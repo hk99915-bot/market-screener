@@ -74,7 +74,7 @@ python -m screener.main --market KR --prices data/kr_prices.parquet --no-send
 
 | 시각 | 워크플로 | 내용 |
 |---|---|---|
-| 07/09/12/15/19 | briefing `reports` | 네이버·한경 신규 리포트 → 기술 태그·여력·손익비·목표가/의견 변경·몰림 |
+| 19:10 | briefing `reports` | 네이버·한경 신규 리포트 → 기술 태그·여력·손익비·목표가/의견 변경·몰림 |
 | 08:50 | briefing `premarket_kr` | 밤사이 미장·섹터·매크로 → 국장 시사점, 밤사이 리포트, **오늘 관심종목**(`reports/watchlist_KR.json`) |
 | 10:30 / 13:30 | briefing `intraday_kr` | 외국인·기관 잠정 수급(시장·종목 상위), 관심종목 수급 교차 |
 | 16:20 | screener `KR` | 전종목 스크리너 + 해석 코멘트 + 리포트 결합 + **마감 코멘트**(지수·수급 확정·대형주) |
