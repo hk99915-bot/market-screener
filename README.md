@@ -65,7 +65,7 @@ python -m screener.main --market KR --prices data/kr_prices.parquet --no-send
   - KRX 가 러너 IP를 차단해 백필이 실패하면: (a) `KRX_BACKEND=openapi` 로 전환하거나 (b) 국내 IP 에서 `python -m screener.main --market KR --no-send` 1회 실행 후 parquet 커밋.
   - KRX 가 GitHub 러너(해외 IP)를 차단하면 `KRX_BACKEND=openapi` + `KRX_API_KEY`(openapi.krx.co.kr 무료 발급)로 전환. 응답 필드명은 `data_krx._openapi_day` 의 매핑 확인.
   - KRX 일별시세는 수정주가가 아니다. 전일 종가 대비 시가 ±45% 초과를 기업행위로 보고 과거 구간을 자동 보정한다 (휴리스틱).
-- US 는 전종목(약 6천)을 매일 받지 않는다. 주 1회 5일치만 받아 거래대금 상위 N(`US_TOP_N`, 기본 1500 ≈ S&P500 + 러셀1000 대부분 + 유동성 있는 중소형)을 `universe/us_top.csv` 에 캐시하고, 매일은 그 N 종목만 400일치를 받는다. 시총 필터 대신 거래대금 필터.
+- US 는 전종목(약 6천)을 매일 받지 않는다. 주 1회 5일치만 받아 거래대금 상위 N(`US_TOP_N`, 기본 300 ≈ 거래대금 상위 대형주 중심. 1500으로 올리면 중소형까지 포함되지만 실행 시간이 크게 늘어남)을 `universe/us_top.csv` 에 캐시하고, 매일은 그 N 종목만 400일치를 받는다. 시총 필터 대신 거래대금 필터.
 - US 마감 cron은 서머타임/표준시를 한 시각(21:40 UTC)으로 커버하므로, 표준시 기간엔 마감 40분 후, 서머타임 기간엔 1시간 40분 후 실행된다.
 - GitHub Actions 스케줄은 혼잡 시 수십 분 지연될 수 있다.
 - 이 저장소에 자동매매·포지션 규칙은 없다 (기획서 v1 스코프).

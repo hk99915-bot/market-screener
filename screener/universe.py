@@ -141,7 +141,7 @@ def us_liquid_subset(full: pl.DataFrame, top_n: int | None = None, refresh_days:
     """전체 상장 종목 중 최근 5일 평균 거래대금 상위 N 만 남김. 순위표는 universe/us_top.csv 에 캐시하고
     refresh_days 마다 갱신 (갱신은 5일치 소량 다운로드라 2~3분)."""
     import os, time
-    top_n = top_n or int(os.environ.get("US_TOP_N", "1500"))
+    top_n = top_n or int(os.environ.get("US_TOP_N", "300"))
     p = UNIVERSE_DIR / "us_top.csv"
     if p.exists() and (time.time() - p.stat().st_mtime) < refresh_days * 86400:
         top = pl.read_csv(p)

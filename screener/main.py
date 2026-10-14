@@ -38,7 +38,7 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     if mc.min_mcap and "mcap" in uni.columns and uni["mcap"].null_count() < len(uni):
         uni = uni.filter(pl.col("mcap").is_null() | (pl.col("mcap") >= mc.min_mcap))
     if market == "US" and not prices_path:
-        uni = universe.us_liquid_subset(uni)   # 전종목 → 거래대금 상위 N (기본 1500)
+        uni = universe.us_liquid_subset(uni)   # 전종목 → 거래대금 상위 N (기본 300)
     log.info("%s 유니버스 %d종목", market, len(uni))
 
     # 2) 시세
