@@ -44,7 +44,7 @@ def fetch_prices(yf_symbols: list[str], market: str, lookback_days: int | None =
                 continue
             frames.append(pl.DataFrame({
                 "yf": sym,
-                "date": pd.to_datetime(d.index).date,
+                "date": [x.date() for x in pd.to_datetime(d.index)],
                 "open": d["Open"].astype(float).values, "high": d["High"].astype(float).values,
                 "low": d["Low"].astype(float).values, "close": d["Close"].astype(float).values,
                 "volume": d["Volume"].fillna(0).astype(float).values,
