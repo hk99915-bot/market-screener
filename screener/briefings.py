@@ -68,8 +68,12 @@ def premarket_kr(send: bool = True) -> str:
         L.append("<b>[국장 시사점]</b>")
         L += ["• " + _esc(x) for x in usmarket.kr_implications(idx, sec, mac)]
 
-    # 2) 밤사이 리포트 (어제 16:00 이후 수집분)
-    store = research.load_store()
+    # 2) 밤사이·아침 리포트: 조용히 수집(알림 없음, 19:10 다이제스트에 포함됨) 후 어제 16:00 이후 발간분 사용
+    try:
+        store, _ = research.update_store()
+    except Exception as e:  # noqa: BLE001
+        log.warning("장전 리포트 수집 실패: %s", e)
+        store = research.load_store()
     sig = _latest_signals("KR")
     cls_of = {r["symbol"]: r for r in sig.to_dicts()} if sig is not None else {}
     cutoff = (now - timedelta(days=1)).replace(hour=16, minute=0).strftime("%Y-%m-%d %H:%M")
@@ -296,8 +300,16 @@ def close_us(last: pl.DataFrame, br: dict) -> str:
 
 # ───────────── 신규 리포트 알림 ─────────────
 
-def reports_alert(send: bool = True, max_items: int = 12) -> str:
-    store, new = research.update_store()
+DIGEST_MARK = REPORT_DIR / "last_digest.txt"
+
+
+def reports_alert(send: bool = True, max_items: int = 15) -> str:
+    """하루 1회 다이제스트: 지난 다이제스트 이후 수집된 모든 리포트 (장전 수집분 포함)."""
+    store, _ = research.update_store()
+    since = DIGEST_MARK.read_text(encoding="utf-8").strip() if DIGEST_MARK.exists() else "0000"
+    new = store.filter(pl.col("collected_at") > since)
+    now_s = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+    DIGEST_MARK.write_text(now_s, encoding="utf-8")
     if new.is_empty():
         log.info("신규 리포트 없음")
         return ""
@@ -309,8 +321,11 @@ def reports_alert(send: bool = True, max_items: int = 12) -> str:
         sup = {r["code"]: r["support20"] for r in research._support(px).to_dicts()}
     rv = research.revisions(store).filter(pl.col("key").is_in(new["key"].implode()))
     rv_of = {r["key"]: r for r in rv.to_dicts()}
-    L = [f"<b>📝 신규 리포트 {len(new)}건</b>"]
-    for r in new.sort("date", descending=True).head(max_items).to_dicts():
+    L = [f"<b>📝 오늘의 리포트 {len(new)}건</b> (지난 다이제스트 이후)"]
+    # 여러 증권사가 겹친 종목 먼저, 그다음 최신순
+    multi = new.group_by("code").len().rename({"len": "_n"})
+    ordered = new.join(multi, on="code", how="left").sort(["_n", "date"], descending=[True, True])
+    for r in ordered.head(max_items).to_dicts():
         s = cls_of.get(r["code"], {})
         tag = f" · {CLASS_KO.get(s.get('class'), '')} T{s.get('trend_score', 0):.0f}/M{s.get('momentum_score', 0):.0f}" if s else ""
         extra = ""
