@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 import polars as pl
 
-from . import context, data, data_krx, indicators, news, report, scoring, universe
+from . import briefings, context, data, data_krx, indicators, news, report, research, scoring, universe
 from .config import CFG
 
 log = logging.getLogger("screener")
@@ -68,13 +68,26 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     mr = context.macro_regime(macro)
     regime_line = context.regime_summary(mr)
     nw = news.build_news_context(last) if not prices_path else None
+    if market == "KR":
+        try:
+            last = research.attach_latest(last, research.load_store(), px)
+        except Exception as e:  # noqa: BLE001
+            log.warning("리포트 결합 실패: %s", e)
 
     # 5) 출력
     report.write_markdown(market, status, last, br, anom, mr, mc.top_n, nw)
     msg = report.telegram_summary(market, status, last, br, anom, mr, regime_line, mc.top_n, nw)
-    print(msg)
+    tail = ""
+    if status == "CONFIRMED" and not prices_path:
+        try:
+            tail = briefings.close_kr(last, br) if market == "KR" else briefings.close_us(last, br)
+        except Exception as e:  # noqa: BLE001
+            log.warning("마감 코멘트 실패: %s", e)
+    print(msg + ("\n\n" + tail if tail else ""))
     if not no_send:
         report.send_telegram(msg)
+        if tail:
+            report.send_telegram(tail)
         report.push_gsheet(market, last)
 
 
@@ -90,15 +103,25 @@ def _record_error(e: BaseException) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--market", choices=["KR", "US"], required=True)
+    ap.add_argument("--market", choices=["KR", "US"])
+    ap.add_argument("--mode", default="screen",
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         stream=sys.stderr)
+    modes = {"premarket_kr": briefings.premarket_kr, "intraday_kr": briefings.intraday_kr,
+             "premarket_us": briefings.premarket_us, "intraday_us": briefings.intraday_us,
+             "reports": briefings.reports_alert}
     try:
-        run(a.market, a.live, a.prices, a.no_send)
+        if a.mode == "screen":
+            if not a.market:
+                ap.error("--market 필요")
+            run(a.market, a.live, a.prices, a.no_send)
+        else:
+            print(modes[a.mode](send=not a.no_send))
     except Exception as e:  # noqa: BLE001
         _record_error(e)
         raise

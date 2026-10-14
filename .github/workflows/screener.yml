@@ -63,6 +63,7 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add -A reports universe data/kr_prices.parquet || true
+          git add -A reports universe data/kr_prices.parquet data/research.parquet 2>/dev/null || true
           git diff --cached --quiet || git commit -m "report: ${{ steps.m.outputs.market }} $(date -u +%F)"
+          git pull --rebase origin main || true
           git push

@@ -1,0 +1,77 @@
+name: briefing
+
+# KST → UTC (-9h). 월~금 기준. 미장 세션은 KST 기준 화~토 새벽에 걸리므로 요일 범위를 따로 둔다.
+on:
+  schedule:
+    - cron: "10 23 * * 0-4"   # 08:10 KST 장전 (KR)
+    - cron: "30 1 * * 1-5"    # 10:30 KST 장중 수급 (KR)
+    - cron: "30 4 * * 1-5"    # 13:30 KST 장중 수급 (KR)
+    - cron: "30 13 * * 1-5"   # 22:30 KST 미장 개장 전
+    - cron: "0 16 * * 1-5"    # 01:00 KST 미장 진행 중
+    - cron: "30 18 * * 1-5"   # 03:30 KST 미장 진행 중
+    # 신규 리포트 알림 07/09/12/15/19 KST
+    - cron: "0 22 * * 0-4"
+    - cron: "0 0 * * 1-5"
+    - cron: "0 3 * * 1-5"
+    - cron: "0 6 * * 1-5"
+    - cron: "0 10 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports"
+        required: true
+        default: "reports"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screener
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: 모드 결정
+        id: m
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT; exit 0
+          fi
+          H=$(date -u +%H); M=$(date -u +%M)
+          case "$H" in
+            23) echo "mode=premarket_kr" ;;
+            01|04) echo "mode=intraday_kr" ;;
+            13) echo "mode=premarket_us" ;;
+            16|18) echo "mode=intraday_us" ;;
+            22|00|03|06|10) echo "mode=reports" ;;
+            *) echo "mode=reports" ;;
+          esac >> $GITHUB_OUTPUT
+
+      - name: 실행
+        env:
+          PYTHONUNBUFFERED: "1"
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+        run: python -m screener.main --mode ${{ steps.m.outputs.mode }}
+
+      - name: 저장
+        if: always()
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add -A reports data/research.parquet 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "briefing: ${{ steps.m.outputs.mode }} $(date -u +%FT%H:%M)"
+          git pull --rebase origin main || true
+          git push || true

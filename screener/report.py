@@ -30,8 +30,20 @@ def _num(x, d=0) -> str:
     return "" if x is None else f"{x:,.{d}f}"
 
 
+def _report_cell(r: dict) -> str:
+    if not r.get("rp_last_date"):
+        return ""
+    d = r["rp_last_date"]; d = d if isinstance(d, str) else d.strftime("%m/%d")
+    x = f"{d} {r.get('rp_last_broker') or ''} {r.get('rp_last_opinion') or ''}"
+    if r.get("tp_upside") is not None:
+        x += f" 여력{r['tp_upside']*100:+.0f}%"
+    if r.get("rr"):
+        x += f" 손익비{r['rr']:.1f}"
+    return x.replace("|", "/")
+
+
 def _md_table(df: pl.DataFrame, cols: list[str], n: int) -> str:
-    head = ["종목", "이름", "시장", "종가", "1D", "20D", "Trend", "Mom", "RevRisk", "분류", "ADX", "RSI", "52H대비", "거래량배", "해석"]
+    head = ["종목", "이름", "시장", "종가", "1D", "20D", "Trend", "Mom", "RevRisk", "분류", "ADX", "RSI", "52H대비", "거래량배", "해석", "리포트"]
     rows = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
     for r in df.head(n).to_dicts():
         rows.append("| " + " | ".join([
@@ -39,6 +51,7 @@ def _md_table(df: pl.DataFrame, cols: list[str], n: int) -> str:
             _pct(r["ret1"]), _pct(r["ret20"]), _num(r["trend_score"]), _num(r["momentum_score"]), _num(r["reversal_risk"]),
             CLASS_KO.get(r["class"], r["class"]), _num(r["adx14"]), _num(r["rsi14"]), _pct(r["from_high52"]), _num(r["vol_ratio"], 1),
             stock_comment(r).replace("|", "/"),
+            _report_cell(r),
         ]) + " |")
     return "\n".join(rows)
 
@@ -116,6 +129,27 @@ def write_markdown(market: str, status: str, last: pl.DataFrame, br: dict, anom:
     return md
 
 
+def _report_tag(r: dict) -> str:
+    """리포트 컨텍스트 한 줄 (attach_latest 결과가 있을 때만)."""
+    if not r.get("rp_last_date"):
+        return ""
+    esc = lambda x: str(x).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")  # noqa: E731
+    d = r["rp_last_date"]
+    d = d if isinstance(d, str) else d.strftime("%m/%d")
+    bits = [f"{d} {esc(r.get('rp_last_broker') or '')} {esc(r.get('rp_last_opinion') or '')}".strip()]
+    if r.get("tp_upside") is not None:
+        bits.append(f"컨센TP 여력 {r['tp_upside']*100:+.0f}%")
+        if r["tp_upside"] < 0:
+            bits.append("목표가 초과")
+    if r.get("rr") is not None and r["rr"] > 0:
+        bits.append(f"손익비 {r['rr']:.1f}")
+    if r.get("rp_brokers30"):
+        bits.append(f"30일 {r['rp_brokers30']}개사")
+    if r.get("rp_last_link"):
+        bits[0] = f"<a href=\"{esc(r['rp_last_link'])}\">{bits[0]}</a>"
+    return " · ".join(bits)
+
+
 def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, anom: pl.DataFrame,
                      mr: list[dict], regime_line: str, top_n: int, news: dict | None = None) -> str:
     s = sections(last, min(top_n, 8))
@@ -147,9 +181,13 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
         L.append(""); L.append(f"<b>{title}</b> ({cnt})")
         for r in df.to_dicts():
             L.append("• " + fmt(r))
-            cm = stock_comment(full_row.get(r["symbol"], r))
+            fr = full_row.get(r["symbol"], r)
+            cm = stock_comment(fr)
             if cm:
                 L.append(f"   ↳ {esc(cm)}")
+            rp = _report_tag(fr)
+            if rp:
+                L.append(f"   📝 {rp}")
 
     f_trend = lambda r: f"{esc(r['name'])} ({r['symbol']}) T{r['trend_score']:.0f}/M{r['momentum_score']:.0f} {_pct(r['ret1'])} ADX{r['adx14']:.0f}"  # noqa: E731
     f_pull = lambda r: f"{esc(r['name'])} ({r['symbol']}) T{r['trend_score']:.0f} RSI{r['rsi14']:.0f} 20D{_pct(r['ret20'])}"  # noqa: E731
