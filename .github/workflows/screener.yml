@@ -4,8 +4,8 @@ on:
   schedule:
     # KR 마감(15:30 KST) 후 — 16:20 KST = 07:20 UTC, 월~금
     - cron: "20 7 * * 1-5"
-    # US 마감(16:00 ET) 후 — 서머타임 20:00 UTC / 표준시 21:00 UTC → 둘 다 커버하도록 21:40 UTC, 월~금
-    - cron: "40 21 * * 1-5"
+    # US 마감 후 07:00 KST = 22:00 UTC (화~토 새벽이므로 UTC 월~금), 매크로 업데이트 포함
+    - cron: "0 22 * * 1-5"
   workflow_dispatch:
     inputs:
       market:

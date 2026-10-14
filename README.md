@@ -75,12 +75,12 @@ python -m screener.main --market KR --prices data/kr_prices.parquet --no-send
 | 시각 | 워크플로 | 내용 |
 |---|---|---|
 | 07/09/12/15/19 | briefing `reports` | 네이버·한경 신규 리포트 → 기술 태그·여력·손익비·목표가/의견 변경·몰림 |
-| 08:10 | briefing `premarket_kr` | 밤사이 미장·섹터·매크로 → 국장 시사점, 밤사이 리포트, **오늘 관심종목**(`reports/watchlist_KR.json`) |
+| 08:50 | briefing `premarket_kr` | 밤사이 미장·섹터·매크로 → 국장 시사점, 밤사이 리포트, **오늘 관심종목**(`reports/watchlist_KR.json`) |
 | 10:30 / 13:30 | briefing `intraday_kr` | 외국인·기관 잠정 수급(시장·종목 상위), 관심종목 수급 교차 |
 | 16:20 | screener `KR` | 전종목 스크리너 + 해석 코멘트 + 리포트 결합 + **마감 코멘트**(지수·수급 확정·대형주) |
-| 22:30 | briefing `premarket_us` | 선물·매크로, 오늘 국장 결과, 어제 US 스크리너 |
-| 01:00 / 03:30 | briefing `intraday_us` | 지수·섹터 ETF 진행 중, 거래대금 상위 등락 |
-| 06:40 | screener `US` | US 스크리너 + 섹터 tone + **내일 국장 시사점** |
+| 21:00 / 22:00 | briefing `premarket_us` | 프리장·장전: 선물·매크로, 오늘 국장 결과, 어제 US 스크리너 |
+| 23:00 / 04:00 | briefing `intraday_us` | 장중·후반: 지수·섹터 ETF 진행 중, 거래대금 상위 등락 |
+| 07:00 | screener `US` | US 스크리너 + 섹터 tone + **내일 국장 시사점** |
 
 리포트 저장소 `data/research.parquet`(커밋): `research.post_performance()` 로 발간 후 5/20/60일 초과수익, `broker_stats()` 로 증권사별 적중률 집계 가능 (데이터가 2~3개월 쌓인 뒤 의미 있음).
 
