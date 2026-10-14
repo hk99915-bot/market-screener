@@ -1,0 +1,64 @@
+name: market-screener
+
+on:
+  schedule:
+    # KR 마감(15:30 KST) 후 — 16:20 KST = 07:20 UTC, 월~금
+    - cron: "20 7 * * 1-5"
+    # US 마감(16:00 ET) 후 — 서머타임 20:00 UTC / 표준시 21:00 UTC → 둘 다 커버하도록 21:40 UTC, 월~금
+    - cron: "40 21 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      market:
+        description: "KR 또는 US"
+        required: true
+        default: "KR"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screener
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: 시장 결정
+        id: m
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "market=${{ github.event.inputs.market }}" >> $GITHUB_OUTPUT
+          elif [ "$(date -u +%H)" -lt 12 ]; then
+            echo "market=KR" >> $GITHUB_OUTPUT
+          else
+            echo "market=US" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 스크리너 실행
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          KRX_BACKEND: ${{ vars.KRX_BACKEND || 'pykrx' }}
+          KRX_API_KEY: ${{ secrets.KRX_API_KEY }}
+          GSHEET_ID: ${{ secrets.GSHEET_ID }}
+          GCP_SA_JSON: ${{ secrets.GCP_SA_JSON }}
+        run: python -m screener.main --market ${{ steps.m.outputs.market }}
+
+      - name: 리포트·유니버스 커밋
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add reports universe data/kr_prices.parquet
+          git diff --cached --quiet || git commit -m "report: ${{ steps.m.outputs.market }} $(date -u +%F)"
+          git push
