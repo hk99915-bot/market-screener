@@ -38,7 +38,8 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     if mc.min_mcap and "mcap" in uni.columns and uni["mcap"].null_count() < len(uni):
         uni = uni.filter(pl.col("mcap").is_null() | (pl.col("mcap") >= mc.min_mcap))
     if market == "US" and not prices_path:
-        uni = universe.us_index_universe(uni) or universe.us_liquid_subset(uni)  # S&P500∪NDX, 실패 시 거래대금 상위 N
+        idx = universe.us_index_universe(uni)   # S&P500 ∪ NDX
+        uni = idx if idx is not None else universe.us_liquid_subset(uni)  # 실패 시 거래대금 상위 N
     log.info("%s 유니버스 %d종목", market, len(uni))
 
     # 2) 시세
