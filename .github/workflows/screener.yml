@@ -49,6 +49,8 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
           KRX_BACKEND: ${{ vars.KRX_BACKEND || 'pykrx' }}
           KRX_API_KEY: ${{ secrets.KRX_API_KEY }}
           GSHEET_ID: ${{ secrets.GSHEET_ID }}

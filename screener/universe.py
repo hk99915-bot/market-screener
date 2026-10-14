@@ -37,12 +37,17 @@ def _load(name: str) -> pl.DataFrame | None:
 # ───────────────────────── KR ─────────────────────────
 
 def _kr_pykrx() -> pl.DataFrame:
+    from datetime import timedelta
     from pykrx import stock  # type: ignore
-    today = date.today().strftime("%Y%m%d")
     frames = []
     for mkt, suffix in (("KOSPI", ".KS"), ("KOSDAQ", ".KQ")):
-        cap = stock.get_market_cap(today, market=mkt)  # index=ticker, 시가총액
-        if cap.empty:
+        cap = None
+        for back in range(8):  # 장 시작 전·휴장일이면 직전 영업일로
+            d = (date.today() - timedelta(days=back)).strftime("%Y%m%d")
+            cap = stock.get_market_cap(d, market=mkt)
+            if cap is not None and not cap.empty and cap["시가총액"].sum() > 0:
+                break
+        if cap is None or cap.empty:
             raise RuntimeError(f"pykrx {mkt} 시총 비어 있음")
         names = {t: stock.get_market_ticker_name(t) for t in cap.index}
         frames.append(pl.DataFrame({

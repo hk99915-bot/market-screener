@@ -43,6 +43,7 @@ GitHub 저장소 → Settings → Secrets and variables → Actions:
 |---|---|---|
 | `TELEGRAM_TOKEN` | O | BotFather 토큰 (Apps Script와 같은 봇 사용 가능) |
 | `TELEGRAM_CHAT_ID` | O | 받을 채팅 ID |
+| `KRX_ID` / `KRX_PW` | O | KRX 정보데이터시스템(data.krx.co.kr) 회원 아이디·비밀번호. pykrx 가 로그인해야 시세 조회 가능 |
 | `GSHEET_ID` | X | 결과를 넣을 구글시트 ID (URL의 `/d/` 뒤) |
 | `GCP_SA_JSON` | X | 서비스계정 JSON 전체 내용. 시트를 서비스계정 이메일에 편집자로 공유해야 함 |
 
