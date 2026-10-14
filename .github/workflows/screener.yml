@@ -4,8 +4,7 @@ on:
   schedule:
     # KR 마감(15:30 KST) 후 — 16:20 KST = 07:20 UTC, 월~금
     - cron: "20 7 * * 1-5"
-    # US 마감 후 07:00 KST = 22:00 UTC (화~토 새벽이므로 UTC 월~금), 매크로 업데이트 포함
-    - cron: "0 22 * * 1-5"
+    # US 스크리너(07:00 KST)는 스케줄이 안정적인 briefing.yml 로 이동. 여기서는 수동 실행만.
   workflow_dispatch:
     inputs:
       market:

@@ -36,6 +36,7 @@ class Cfg:
     macro: dict[str, str] = field(default_factory=lambda: {
         "WTI": "CL=F", "US10Y": "^TNX", "USDJPY": "JPY=X", "USDKRW": "KRW=X",
         "DXY": "DX-Y.NYB", "VIX": "^VIX", "SPX": "^GSPC", "KOSPI": "^KS11", "KOSDAQ": "^KQ11",
+        "NASDAQ": "^IXIC", "RUT": "^RUT", "GOLD": "GC=F", "BTC": "BTC-USD",
     })
     telegram_token: str = os.environ.get("TELEGRAM_TOKEN", "")
     telegram_chat: str = os.environ.get("TELEGRAM_CHAT_ID", "")

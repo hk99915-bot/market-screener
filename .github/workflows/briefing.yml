@@ -11,10 +11,11 @@ on:
     - cron: "0 14 * * 1-5"    # 23:00 KST 미장 장중
     - cron: "0 19 * * 1-5"    # 04:00 KST 미장 후반 (마감 직전)
     - cron: "10 10 * * 1-5"   # 19:10 KST 신규 리포트 (하루 1회, 당일 발간분 모음)
+    - cron: "0 22 * * 1-5"    # 07:00 KST 미장 마감 스크리너 + 매크로 (S&P500 ∪ NDX)
   workflow_dispatch:
     inputs:
       mode:
-        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports"
+        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us"
         required: true
         default: "reports"
 
@@ -28,7 +29,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -50,6 +51,7 @@ jobs:
             12|13) echo "mode=premarket_us" ;;
             14|19) echo "mode=intraday_us" ;;
             10) echo "mode=reports" ;;
+            22) echo "mode=screen_us" ;;
             *) echo "mode=reports" ;;
           esac >> $GITHUB_OUTPUT
 
@@ -60,14 +62,20 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
-        run: python -m screener.main --mode ${{ steps.m.outputs.mode }}
+          KRX_BACKEND: ${{ vars.KRX_BACKEND || 'pykrx' }}
+        run: |
+          if [ "${{ steps.m.outputs.mode }}" = "screen_us" ]; then
+            python -m screener.main --market US
+          else
+            python -m screener.main --mode ${{ steps.m.outputs.mode }}
+          fi
 
       - name: 저장
         if: always()
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add -A reports data/research.parquet 2>/dev/null || true
+          git add -A reports universe data/research.parquet 2>/dev/null || true
           git diff --cached --quiet || git commit -m "briefing: ${{ steps.m.outputs.mode }} $(date -u +%FT%H:%M)"
           git pull --rebase origin main || true
           git push || true

@@ -155,3 +155,58 @@ def us_liquid_subset(full: pl.DataFrame, top_n: int | None = None, refresh_days:
     rank.write_csv(p)
     log.info("US 유동성 상위 %d 갱신 (최저 거래대금 $%.1fM)", len(rank), rank["dv5"].min() / 1e6)
     return full.filter(pl.col("yf").is_in(rank["yf"].implode()))
+
+
+# ───────────────────────── US 지수 구성종목 (S&P 500 ∪ Nasdaq-100) ─────────────────────────
+
+INDEX_SOURCES = {
+    "SP500": ("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", "Symbol", 480),
+    "NDX": ("https://en.wikipedia.org/wiki/Nasdaq-100", "Ticker", 95),
+}
+
+
+def _wiki_tickers(url: str, col: str, min_n: int) -> list[str]:
+    import pandas as pd
+    r = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (market-screener)"}, timeout=30)
+    r.raise_for_status()
+    for t in pd.read_html(io.StringIO(r.text)):
+        if col in t.columns:
+            syms = [str(s).strip().replace(".", "-") for s in t[col].dropna()]
+            if len(syms) >= min_n:
+                return syms
+    raise RuntimeError(f"{url}: '{col}' 열의 구성종목 표를 찾지 못함")
+
+
+def us_index_members(refresh_days: int = 7) -> set[str]:
+    """S&P 500 ∪ Nasdaq-100 구성종목 (yfinance 형식). 주 1회 갱신, 캐시는 universe/us_index.csv."""
+    import time
+    p = UNIVERSE_DIR / "us_index.csv"
+    if p.exists() and (time.time() - p.stat().st_mtime) < refresh_days * 86400:
+        return set(pl.read_csv(p)["yf"].to_list())
+    syms: set[str] = set()
+    for name, (url, col, min_n) in INDEX_SOURCES.items():
+        got = _wiki_tickers(url, col, min_n)
+        log.info("US %s 구성종목 %d개", name, len(got))
+        syms |= set(got)
+    pl.DataFrame({"yf": sorted(syms)}).write_csv(p)
+    return syms
+
+
+def us_index_universe(full: pl.DataFrame) -> pl.DataFrame | None:
+    """지수 구성종목만 남긴 유니버스. 실패하면 None 을 돌려 호출부가 거래대금 상위 방식으로 폴백하게 함."""
+    try:
+        mem = us_index_members()
+    except Exception as e:  # noqa: BLE001
+        log.warning("US 지수 구성종목 실패, 거래대금 상위 방식으로 폴백: %s", e)
+        return None
+    base = full.filter(pl.col("yf").is_in(sorted(mem)))
+    missing = sorted(mem - set(base["yf"].to_list()))   # nasdaqtrader 목록에 없는 종목(예: BRK-B 등)
+    if missing:
+        extra = pl.DataFrame({
+            "symbol": missing, "yf": missing, "name": missing,
+            "market": ["US"] * len(missing), "mcap": [None] * len(missing),
+        }, schema={"symbol": pl.Utf8, "yf": pl.Utf8, "name": pl.Utf8,
+                   "market": pl.Utf8, "mcap": pl.Float64})
+        base = pl.concat([base, extra], how="vertical_relaxed")
+    log.info("US 지수 유니버스 %d종목 (S&P500 ∪ NDX)", len(base))
+    return base
