@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import polars as pl
 import requests
@@ -60,7 +61,7 @@ def write_markdown(market: str, status: str, last: pl.DataFrame, br: dict, anom:
     asof = br.get("date", "")
     s = sections(last, top_n)
     L = [f"# {market} 스크리너 — {asof} [{status}]", "",
-         f"생성 {datetime.now().strftime('%Y-%m-%d %H:%M')} · 유니버스 {br.get('n', 0)}종목 (필터 후)", ""]
+         f"생성 {datetime.now(ZoneInfo('Asia/Seoul')).strftime('%Y-%m-%d %H:%M')} KST · 유니버스 {br.get('n', 0)}종목 (필터 후)", ""]
     if br:
         L += ["## 시장 폭 (Breadth)", "",
               f"- 20일선 위 {br['pct_above20']*100:.0f}% · 50일선 위 {br['pct_above50']*100:.0f}% · 200일선 위 {br['pct_above200']*100:.0f}%"
@@ -156,8 +157,7 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
 
 def send_telegram(text: str) -> None:
     if not CFG.telegram_token or not CFG.telegram_chat:
-        log.warning("텔레그램 미설정 — 전송 생략")
-        return
+        raise RuntimeError("텔레그램 미설정: TELEGRAM_TOKEN / TELEGRAM_CHAT_ID 시크릿이 비어 있음 (이름 철자 확인)")
     url = f"https://api.telegram.org/bot{CFG.telegram_token}/sendMessage"
     chunks, buf = [], ""
     for line in text.split("\n"):
@@ -169,7 +169,8 @@ def send_telegram(text: str) -> None:
         r = requests.post(url, data={"chat_id": CFG.telegram_chat, "text": c, "parse_mode": "HTML",
                                      "disable_web_page_preview": "true"}, timeout=30)
         if r.status_code != 200:
-            log.error("텔레그램 실패: %s", r.text[:200])
+            raise RuntimeError(f"텔레그램 전송 실패 {r.status_code}: {r.text[:300]}")
+    log.info("텔레그램 전송 완료 (%d개 메시지)", len(chunks))
 
 
 def push_gsheet(market: str, last: pl.DataFrame) -> None:
