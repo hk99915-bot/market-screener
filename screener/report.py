@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 import polars as pl
 import requests
 
+from .commentary import market_comment, stock_comment
 from .config import CFG, REPORT_DIR
 
 log = logging.getLogger(__name__)
@@ -30,13 +31,14 @@ def _num(x, d=0) -> str:
 
 
 def _md_table(df: pl.DataFrame, cols: list[str], n: int) -> str:
-    head = ["종목", "이름", "시장", "종가", "1D", "20D", "Trend", "Mom", "RevRisk", "분류", "ADX", "RSI", "52H대비", "거래량배"]
+    head = ["종목", "이름", "시장", "종가", "1D", "20D", "Trend", "Mom", "RevRisk", "분류", "ADX", "RSI", "52H대비", "거래량배", "해석"]
     rows = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
-    for r in df.head(n).select(cols).to_dicts():
+    for r in df.head(n).to_dicts():
         rows.append("| " + " | ".join([
             r["symbol"], str(r["name"])[:18], r["market"], _num(r["close"], 2 if r["market"] not in ("KOSPI", "KOSDAQ") else 0),
             _pct(r["ret1"]), _pct(r["ret20"]), _num(r["trend_score"]), _num(r["momentum_score"]), _num(r["reversal_risk"]),
             CLASS_KO.get(r["class"], r["class"]), _num(r["adx14"]), _num(r["rsi14"]), _pct(r["from_high52"]), _num(r["vol_ratio"], 1),
+            stock_comment(r).replace("|", "/"),
         ]) + " |")
     return "\n".join(rows)
 
@@ -67,7 +69,8 @@ def write_markdown(market: str, status: str, last: pl.DataFrame, br: dict, anom:
               f"- 20일선 위 {br['pct_above20']*100:.0f}% · 50일선 위 {br['pct_above50']*100:.0f}% · 200일선 위 {br['pct_above200']*100:.0f}%"
               + (f" (20일 전 {br['pct_above200_20d_ago']*100:.0f}%)" if 'pct_above200_20d_ago' in br else ""),
               f"- 상승 {br['adv']} / 하락 {br['dec']} · 52주 신고가 {br['new_high52']} / 신저가 {br['new_low52']}",
-              f"- 추세상승 {br['n_trend_long']} / 추세하락 {br['n_trend_short']} · 중앙값 수익률 {_pct(br['median_ret1'])}", ""]
+              f"- 추세상승 {br['n_trend_long']} / 추세하락 {br['n_trend_short']} · 중앙값 수익률 {_pct(br['median_ret1'])}",
+              f"- **해석:** {market_comment(br)}", ""]
     if mr:
         L += ["## 매크로 컨텍스트 (점수 미반영)", "", "| 지표 | 값 | 1D | 20D | 50일선대비 | 레짐 |", "|---|---|---|---|---|---|"]
         L += [f"| {d['key']} | {_num(d['last'], 2)} | {_pct(d['chg1'])} | {_pct(d['chg20'])} | {_pct(d['vs_sma50'])} | {d['regime']} |" for d in mr]
@@ -123,13 +126,30 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
                  f"신고가 {br['new_high52']} / 신저가 {br['new_low52']} · 상승 {br['adv']}/하락 {br['dec']}")
     if regime_line:
         L.append(f"매크로: {esc(regime_line)}")
+    mc = market_comment(br)
+    if mc:
+        L.append(f"→ <i>{esc(mc)}</i>")
+    full_row = {r["symbol"]: r for r in last.to_dicts()}
+
+    totals = {
+        "추세 상승": int((last["class"] == "TREND_LONG").sum()),
+        "상승추세 눌림": int((last["class"] == "PULLBACK_IN_UPTREND").sum()),
+        "역추세 반등": int((last["class"] == "COUNTERTREND_BOUNCE").sum()),
+        "과열 주의": int((last["reversal_risk"] >= 60).sum()),
+        "이상 신호": len(anom),
+    }
 
     def block(title, df, fmt):
         if not len(df):
             return
-        L.append(""); L.append(f"<b>{title}</b> ({len(df)})")
+        tot = totals.get(title, len(df))
+        cnt = f"상위 {len(df)} / 전체 {tot}" if tot > len(df) else f"{len(df)}"
+        L.append(""); L.append(f"<b>{title}</b> ({cnt})")
         for r in df.to_dicts():
             L.append("• " + fmt(r))
+            cm = stock_comment(full_row.get(r["symbol"], r))
+            if cm:
+                L.append(f"   ↳ {esc(cm)}")
 
     f_trend = lambda r: f"{esc(r['name'])} ({r['symbol']}) T{r['trend_score']:.0f}/M{r['momentum_score']:.0f} {_pct(r['ret1'])} ADX{r['adx14']:.0f}"  # noqa: E731
     f_pull = lambda r: f"{esc(r['name'])} ({r['symbol']}) T{r['trend_score']:.0f} RSI{r['rsi14']:.0f} 20D{_pct(r['ret20'])}"  # noqa: E731
