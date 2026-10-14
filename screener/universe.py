@@ -159,35 +159,77 @@ def us_liquid_subset(full: pl.DataFrame, top_n: int | None = None, refresh_days:
 
 # ───────────────────────── US 지수 구성종목 (S&P 500 ∪ Nasdaq-100) ─────────────────────────
 
-INDEX_SOURCES = {
-    "SP500": ("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", "Symbol", 480),
-    "NDX": ("https://en.wikipedia.org/wiki/Nasdaq-100", "Ticker", 95),
-}
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36 market-screener"}
 
 
 def _wiki_tickers(url: str, col: str, min_n: int) -> list[str]:
     import pandas as pd
-    r = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (market-screener)"}, timeout=30)
+    r = requests.get(url, headers=UA, timeout=30)
     r.raise_for_status()
     for t in pd.read_html(io.StringIO(r.text)):
         if col in t.columns:
-            syms = [str(s).strip().replace(".", "-") for s in t[col].dropna()]
+            syms = [str(s).strip() for s in t[col].dropna()]
             if len(syms) >= min_n:
                 return syms
     raise RuntimeError(f"{url}: '{col}' 열의 구성종목 표를 찾지 못함")
 
 
+def _sp500_github() -> list[str]:
+    r = requests.get("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv",
+                     headers=UA, timeout=30)
+    r.raise_for_status()
+    syms = pl.read_csv(io.StringIO(r.text))["Symbol"].to_list()
+    if len(syms) < 480:
+        raise RuntimeError(f"S&P500 github: {len(syms)}개뿐")
+    return syms
+
+
+def _ndx_nasdaq_api() -> list[str]:
+    r = requests.get("https://api.nasdaq.com/api/quote/list-type/nasdaq100",
+                     headers={**UA, "Accept": "application/json"}, timeout=30)
+    r.raise_for_status()
+    rows = (((r.json() or {}).get("data") or {}).get("data") or {}).get("rows") or []
+    syms = [x["symbol"] for x in rows if x.get("symbol")]
+    if len(syms) < 95:
+        raise RuntimeError(f"NDX nasdaq api: {len(syms)}개뿐")
+    return syms
+
+
+INDEX_SOURCES = {
+    "SP500": [_sp500_github,
+              lambda: _wiki_tickers("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", "Symbol", 480)],
+    "NDX": [_ndx_nasdaq_api,
+            lambda: _wiki_tickers("https://en.wikipedia.org/wiki/Nasdaq-100", "Ticker", 95)],
+}
+
+
 def us_index_members(refresh_days: int = 7) -> set[str]:
-    """S&P 500 ∪ Nasdaq-100 구성종목 (yfinance 형식). 주 1회 갱신, 캐시는 universe/us_index.csv."""
+    """S&P 500 ∪ Nasdaq-100 구성종목 (yfinance 형식, BRK.B → BRK-B). 주 1회 갱신, 캐시 universe/us_index.csv.
+    지수별로 소스를 순서대로 시도하고, 실패 사유는 universe/us_index_error.txt 에 남긴다."""
     import time
     p = UNIVERSE_DIR / "us_index.csv"
     if p.exists() and (time.time() - p.stat().st_mtime) < refresh_days * 86400:
         return set(pl.read_csv(p)["yf"].to_list())
     syms: set[str] = set()
-    for name, (url, col, min_n) in INDEX_SOURCES.items():
-        got = _wiki_tickers(url, col, min_n)
-        log.info("US %s 구성종목 %d개", name, len(got))
-        syms |= set(got)
+    errs: list[str] = []
+    for name, fetchers in INDEX_SOURCES.items():
+        for i, f in enumerate(fetchers):
+            try:
+                got = [x.replace(".", "-").replace("/", "-") for x in f()]
+                log.info("US %s 구성종목 %d개 (소스 %d)", name, len(got), i + 1)
+                syms |= set(got)
+                break
+            except Exception as e:  # noqa: BLE001
+                errs.append(f"{name} 소스{i + 1}: {type(e).__name__}: {e}")
+                log.warning("US %s 소스 %d 실패: %s", name, i + 1, e)
+    ep = UNIVERSE_DIR / "us_index_error.txt"
+    if errs:
+        ep.write_text("\n".join(errs) + "\n", encoding="utf-8")
+    elif ep.exists():
+        ep.unlink()
+    if len(syms) < 480:
+        raise RuntimeError("지수 구성종목 부족: " + " | ".join(errs))
     pl.DataFrame({"yf": sorted(syms)}).write_csv(p)
     return syms
 
