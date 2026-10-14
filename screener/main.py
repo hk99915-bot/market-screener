@@ -78,6 +78,16 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         report.push_gsheet(market, last)
 
 
+def _record_error(e: BaseException) -> None:
+    """실패 원인을 reports/last_error.txt 에 남김 → 워크플로가 커밋 → 로그 없이도 원인 확인 가능."""
+    import traceback
+    from .config import REPORT_DIR
+    REPORT_DIR.mkdir(exist_ok=True)
+    (REPORT_DIR / "last_error.txt").write_text(
+        f"{datetime.now(ZoneInfo('Asia/Seoul')):%Y-%m-%d %H:%M} KST\n{type(e).__name__}: {e}\n\n{traceback.format_exc()}",
+        encoding="utf-8")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"], required=True)
@@ -87,7 +97,14 @@ def main() -> None:
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         stream=sys.stderr)
-    run(a.market, a.live, a.prices, a.no_send)
+    try:
+        run(a.market, a.live, a.prices, a.no_send)
+    except Exception as e:  # noqa: BLE001
+        _record_error(e)
+        raise
+    else:
+        from .config import REPORT_DIR
+        (REPORT_DIR / "last_error.txt").unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

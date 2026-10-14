@@ -59,9 +59,10 @@ jobs:
         run: python -m screener.main --market ${{ steps.m.outputs.market }}
 
       - name: 리포트·유니버스 커밋
+        if: always()
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add reports universe data/kr_prices.parquet
+          git add -A reports universe data/kr_prices.parquet || true
           git diff --cached --quiet || git commit -m "report: ${{ steps.m.outputs.market }} $(date -u +%F)"
           git push
