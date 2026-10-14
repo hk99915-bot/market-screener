@@ -158,7 +158,17 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
 def send_telegram(text: str) -> None:
     if not CFG.telegram_token or not CFG.telegram_chat:
         raise RuntimeError("텔레그램 미설정: TELEGRAM_TOKEN / TELEGRAM_CHAT_ID 시크릿이 비어 있음 (이름 철자 확인)")
-    url = f"https://api.telegram.org/bot{CFG.telegram_token}/sendMessage"
+    import re
+    tok, chat = CFG.telegram_token.strip(), CFG.telegram_chat.strip()
+    if ":" not in tok and ":" in chat:      # 두 시크릿 값을 서로 바꿔 넣은 경우
+        tok, chat = chat, tok
+        log.warning("텔레그램: 토큰/채팅ID 값이 서로 바뀌어 있어 자동 교정함")
+    m = re.search(r"\d{6,}:[A-Za-z0-9_-]{30,}", tok)  # 메시지 전체·'bot' 접두어·공백이 섞여도 토큰만 추출
+    if not m:
+        raise RuntimeError(f"텔레그램 토큰 형식 아님: '숫자:영문' 형태가 없음 (길이 {len(tok)}, ':' 포함={':' in tok})")
+    tok = m.group(0)
+    chat = re.sub(r"[^\d-]", "", chat) or chat
+    url = f"https://api.telegram.org/bot{tok}/sendMessage"
     chunks, buf = [], ""
     for line in text.split("\n"):
         if len(buf) + len(line) > 3800:
@@ -166,7 +176,7 @@ def send_telegram(text: str) -> None:
         buf += line + "\n"
     chunks.append(buf)
     for c in chunks:
-        r = requests.post(url, data={"chat_id": CFG.telegram_chat, "text": c, "parse_mode": "HTML",
+        r = requests.post(url, data={"chat_id": chat, "text": c, "parse_mode": "HTML",
                                      "disable_web_page_preview": "true"}, timeout=30)
         if r.status_code != 200:
             raise RuntimeError(f"텔레그램 전송 실패 {r.status_code}: {r.text[:300]}")
