@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 import polars as pl
 
-from . import briefings, context, data, data_krx, indicators, news, report, research, scoring, universe
+from . import briefings, context, dashboard, data, data_krx, detail, indicators, news, report, research, scoring, universe
 from .config import CFG
 
 log = logging.getLogger("screener")
@@ -84,6 +84,18 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         except Exception as e:  # noqa: BLE001
             log.warning("마감 코멘트 실패: %s", e)
     print(msg + ("\n\n" + tail if tail else ""))
+    try:
+        dashboard.put_state(f"macro_{market}", mr)
+        dashboard.put_state(f"regime_{market}", regime_line)
+        dashboard.put_state(f"market_comment_{market}", report.market_comment(br))
+        if tail:
+            dashboard.put_state(f"close_{market}", tail)
+        dashboard.put_state(f"telegram_{market}", msg)
+        detail.build(market, last, full, research.load_store() if market == "KR" else None, mr, regime_line, br,
+                     with_flows=not prices_path)
+        dashboard.build()
+    except Exception as e:  # noqa: BLE001
+        log.warning("대시보드 갱신 실패: %s", e)
     if not no_send:
         report.send_telegram(msg)
         if tail:
@@ -121,7 +133,13 @@ def main() -> None:
                 ap.error("--market 필요")
             run(a.market, a.live, a.prices, a.no_send)
         else:
-            print(modes[a.mode](send=not a.no_send))
+            out = modes[a.mode](send=not a.no_send)
+            print(out)
+            try:
+                dashboard.put_state(a.mode, out)
+                dashboard.build()
+            except Exception as e:  # noqa: BLE001
+                log.warning("대시보드 갱신 실패: %s", e)
     except Exception as e:  # noqa: BLE001
         _record_error(e)
         raise
