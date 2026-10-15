@@ -59,3 +59,5 @@ function getAnalysts() { return raw_('reports/analysts.json'); }
 
 function getMomentum(m) { return raw_(`reports/momentum_${m}.json`); }
 function getMomentumBt() { return raw_('reports/momentum_bt.json'); }
+
+function getDaily() { return raw_('reports/daily_brief.json'); }

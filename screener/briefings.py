@@ -441,4 +441,11 @@ def reports_alert(send: bool = True, max_items: int = 15) -> str:
     msg = "\n".join(L)
     if send:
         send_telegram(msg)
+        try:   # 하루 1회: 센터장 데일리 리서치 브리프 (탑다운 × 바텀업)
+            from . import daily, dashboard
+            dashboard.build()
+            o = json.loads((REPORT_DIR / "daily_brief.json").read_text(encoding="utf-8"))
+            send_telegram(daily.telegram_text(o))
+        except Exception as e:  # noqa: BLE001
+            log.warning("데일리 브리프 전송 실패: %s", e)
     return msg

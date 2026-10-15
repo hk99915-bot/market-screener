@@ -104,7 +104,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
     <button class="on" data-v="home">HOME</button>
     <button data-v="kr">KR</button>
     <button data-v="us">US</button>
-    <button data-v="rep">RESEARCH</button><button data-v="dart">DART</button><button data-v="mom">MOMENTUM</button>
+    <button data-v="daily">DAILY</button><button data-v="rep">RESEARCH</button><button data-v="dart">DART</button><button data-v="mom">MOMENTUM</button>
     <button data-v="brief">BRIEFS</button>
     <button data-v="mdkr">KR FULL</button>
     <button data-v="mdus">US FULL</button>
@@ -224,6 +224,23 @@ function finTable(f,kr){
   const row=(l,k,fmt)=>`<tr><td class="l mu">${l}</td>${q.map((r,i)=>`<td>${fmt?fmt(r,i):n(r[k])}</td>`).join('')}<td class="am">${f.ttm&&k?n(f.ttm[k]):''}</td></tr>`;
   return `<div style="overflow:auto"><table><tr><th class="l">항목</th>${q.map(r=>`<th>${r.period}</th>`).join('')}<th>TTM</th></tr>
    ${row('매출','revenue')}${row('  YoY','',(r,i)=>yoy(i,'revenue'))}${row('영업이익','op')}${row('  OPM','',(r)=>m(r.op,r.revenue))}${row('순이익','ni')}${row('영업현금흐름','cfo')}${row('CAPEX','capex')}${row('자본총계','equity')}${row('부채총계','liab')}</table></div>`;
+}
+let DB=null;
+function dailyView(){
+  if(DB===null){ DB=false; google.script.run.withSuccessHandler(t=>{try{DB=JSON.parse(t);}catch(e){DB={};} if(view==='daily') render();}).withFailureHandler(()=>{DB={}; if(view==='daily') render();}).getDaily(); return '<div class="load">LOADING …</div>'; }
+  if(!DB||!DB.asof) return '<div class="mu" style="padding:16px">데일리 브리프가 아직 없습니다 (다음 자동 실행 때 생성)</div>';
+  const o=DB;
+  const th=o.themes.map(t=>{const tones=Object.entries(t.tones).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}`).join(', ');
+    return `<tr><td class="l am">${esc(t.theme)}</td><td>${t.n}</td><td>${t.stocks}</td><td><b class="${t.pos_share>=0.6?'up':t.pos_share<0.4?'dn':'am'}">${Math.round(t.pos_share*100)}%</b></td><td class="l">${esc((t.topics||[]).join(', '))}</td><td>${t.tp_up||t.tp_down?`<span class="up">↑${t.tp_up}</span> <span class="dn">↓${t.tp_down}</span>`:'—'}</td><td class="l mu">${esc(t.top_stocks.join(', '))}</td></tr><tr class="sub on"><td></td><td colspan="6">${(t.views||[]).map(v=>`<div>· ${esc(v)}</div>`).join('')}<div class="mu">톤: ${esc(tones)}</div></td></tr>`;}).join('');
+  return `<div class="grid">
+   <div class="p c12"><h2>DAILY RESEARCH BRIEF<small>${esc(o.asof)} · 최근 ${o.days}일 리포트 ${o.n_reports}건 · 규칙 기반</small></h2><div class="b"><div class="bv am" style="font-size:16px">${esc(o.headline)}</div></div></div>
+   <div class="p c4"><h2>1. TOP-DOWN</h2><div class="b">${(o.topdown.markets||[]).map(x=>`<div>${tgHtml(x)}</div>`).join('')}<div style="margin-top:6px">${(o.topdown.regime||[]).map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div></div></div>
+   <div class="p c8"><h2>3. 통합 판단<small>탑다운 × 바텀업</small></h2><div class="b">${(o.links||[]).length?o.links.map(x=>`<div style="margin-bottom:6px">▶ ${esc(x)}</div>`).join(''):'<div class="mu">특이 연결 신호 없음</div>'}
+     <div class="mu" style="margin-top:8px">리포트 공통 화두: ${Object.entries(o.topics||{}).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')}</div></div></div>
+   <div class="p c12"><h2>2. BOTTOM-UP<small>테마(업종)별 리서치 컨센서스</small></h2><div class="b"><table><tr><th class="l">테마</th><th>건수</th><th>종목</th><th>긍정 비율</th><th class="l">공통 화두</th><th>목표가</th><th class="l">주요 종목</th></tr>${th}</table></div></div>
+   <div class="p c6"><h2>4. 컨센서스 이탈<small>실질 중립·매도 톤</small></h2><div class="b">${(o.dissent||[]).length?`<table>${o.dissent.map(d=>`<tr><td class="l mu">${d.date}</td><td class="l am">${esc(d.name)}</td><td class="l">${esc(d.broker)}</td><td class="l dn">${esc(d.tone)}</td><td class="l mu">${esc(d.why||'')}</td></tr>`).join('')}</table>`:'<div class="mu">—</div>'}</div></div>
+   <div class="p c6"><h2>5. 주의 공시<small>최근 2일 희석·주의</small></h2><div class="b">${(o.disclosures||[]).length?discTable(o.disclosures,true):'<div class="mu">—</div>'}</div></div>
+  </div>`;
 }
 let MO={}, MBT=null;
 function momView(){
@@ -374,7 +391,7 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||'');
   tape();
   const v=view;
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='dart'?dartView():v==='mom'?momView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }

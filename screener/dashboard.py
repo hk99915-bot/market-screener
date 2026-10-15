@@ -189,3 +189,8 @@ def build() -> None:
         log.info("disclosures.json %d건", dart.write_json())
     except Exception as e:  # noqa: BLE001
         log.warning("disclosures.json 실패: %s", e)
+    try:
+        from . import daily
+        daily.build()
+    except Exception as e:  # noqa: BLE001
+        log.warning("데일리 브리프 실패: %s", e)

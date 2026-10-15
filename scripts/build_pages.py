@@ -21,6 +21,7 @@ SHIM = """<script>
     getAnalysts: () => get('reports/analysts.json'),
     getMomentum: m => get('reports/momentum_' + m + '.json'),
     getMomentumBt: () => get('reports/momentum_bt.json'),
+    getDaily: () => get('reports/daily_brief.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
