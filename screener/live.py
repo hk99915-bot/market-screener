@@ -97,6 +97,17 @@ def snapshot() -> dict:
     except Exception as e:  # noqa: BLE001
         log.warning("야후 일괄 실패: %s", e)
     items = [{"key": k, **q[k]} for k in ORDER if k in q]
+    try:   # 코스피200 선물·베이시스 (선물 − 현물). 큰 마이너스 = 선물 투매(백워데이션), 공포 지표
+        import requests as _rq
+        ua = {"User-Agent": "Mozilla/5.0"}
+        f = _rq.get("https://m.stock.naver.com/api/index/FUT/basic", headers=ua, timeout=10).json()
+        k2 = _rq.get("https://m.stock.naver.com/api/index/KPI200/basic", headers=ua, timeout=10).json()
+        fp, kp = _num(f.get("closePrice")), _num(k2.get("closePrice"))
+        if fp and kp:
+            items.insert(2, {"key": "K200F", "last": fp, "chg": _num(f.get("fluctuationsRatio")) / 100, "src": "naver",
+                             "basis": round(fp - kp, 2), "spot": kp, "status": f.get("marketStatus")})
+    except Exception as e:  # noqa: BLE001
+        log.info("선물 실패: %s", e)
     out = {"updated_at": datetime.now(KST).strftime("%m-%d %H:%M KST"), "items": items}
     (REPORT_DIR / "live.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     log.info("live.json %d개 지표", len(items))

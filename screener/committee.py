@@ -105,6 +105,12 @@ def build() -> dict:
     sig = (_j("signal_scores.json", {}) or {}).get("signals", {})
     dec = _j("decisions.json", {}) or {}
     scen, sb = _scenarios(k, stu, mv)
+    sq = []
+    try:
+        from .shorts import by_code, squeeze_candidates
+        sq = squeeze_candidates(by_code(), peers)
+    except Exception as e:  # noqa: BLE001
+        log.info("숏스퀴즈 후보 실패: %s", e)
     longs, avoid = _ideas(peers)
     sectors, themes = _sectors(chains, peers)
     today = date.today()
@@ -118,7 +124,7 @@ def build() -> dict:
     verdict = (f"기본 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "date": str(today), "head": head, "verdict": verdict,
            "scenarios": scen, "scenario_basis": sb, "sectors": sectors, "themes": themes[:8] + themes[-5:] if len(themes) > 13 else themes,
-           "ideas": {"long": longs, "avoid": avoid}, "events": ev7[:10],
+           "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10],
            "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {})}
     OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
     _record(out)
@@ -204,6 +210,8 @@ def telegram_text(o: dict) -> str:
     av = o["ideas"]["avoid"][:4]
     if av:
         L.append("<b>[회피]</b> " + ", ".join(f"{x['n']} 드라이버 {x['drv']:+.2f}" for x in av))
+    if o.get("squeeze"):
+        L.append("<b>[숏스퀴즈 후보]</b> " + ", ".join(f"{x['n']} 잔고 {x['ratio']:.1f}%" for x in o["squeeze"][:5]))
     if o.get("events"):
         L.append("<b>[7일 이벤트]</b> " + " / ".join(f"{e['date'][5:]} {e['name']}" for e in o["events"][:6]))
     tr = (o.get("track") or {}).get("summary") or {}

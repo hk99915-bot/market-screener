@@ -290,6 +290,15 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             log.info("이익 드라이버 %d종목", len(drv))
         except Exception as e:  # noqa: BLE001
             log.warning("이익 드라이버 실패: %s", e)
+    shorts_m: dict[str, dict] = {}
+    if market == "KR":
+        try:
+            from . import shorts
+            shorts.update()
+            shorts_m = shorts.by_code()
+            log.info("공매도 %d종목", len(shorts_m))
+        except Exception as e:  # noqa: BLE001
+            log.warning("공매도 실패: %s", e)
     themes: dict[str, dict] = {}
     if market == "KR":
         try:
@@ -323,6 +332,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "financials": fins.get(s, {}),
             "valuation": vals.get(s, {}),
             "drivers": drv.get(s, {}),
+            "short": shorts_m.get(s) if market == "KR" else None,
             "sim": sims.get(r["yf"], {}),
             "chart": ch,
             "c1y": c1y.get(r["yf"], []),
@@ -367,7 +377,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                           "per": va.get("per"), "pbr": va.get("pbr"), "roe": va.get("roe"), "roen": va.get("roe_norm"),
                           "drv": dv.get("score"), "sig": (va.get("signal_fv") or {}).get("upside"),
                           "nor": (va.get("group_upside") or {}).get("normal"), "fs": (va.get("fscore") or {}).get("score"),
-                          "cls": st0.get("class")})
+                          "cls": st0.get("class"), "sr": (v0.get("short") or {}).get("ratio"), "sr20": (v0.get("short") or {}).get("chg20")})
         (REPORT_DIR / f"peers_{market}.json").write_text(json.dumps({"asof": out["asof"], "rows": peers}, ensure_ascii=False,
                                                                     default=lambda x: None), encoding="utf-8")
     except Exception as e:  # noqa: BLE001
