@@ -2,7 +2,7 @@ name: deriv-hist
 
 # 수급·파생 일별 이력 적재 — 평일 16:40 KST (KRX 확정치 반영 후). 텔레그램 없음.
 # 결과: data/deriv/daily.csv (하루 1행). GitHub 예약은 자주 늦거나 건너뜀 → GAS 백업 예약기에서도 workflow_dispatch 로 부를 것.
-# 수동: task=backfill (days=과거 영업일 수) · task=probe (소스 탐침, 저장 없음)
+# 수동: task=backfill (days=과거 영업일 수) · task=probe (소스 탐침 → reports/logs/deriv_probe.txt, days 칸에 탐침 이름을 넣으면 그것만)
 on:
   schedule:
     - cron: "40 7 * * 1-5"
@@ -41,16 +41,16 @@ jobs:
         run: |
           T="${{ github.event.inputs.task || 'run' }}"
           if [ "$T" = "probe" ]; then
-            python scripts/probe_deriv_sources.py
+            mkdir -p reports/logs; python scripts/probe_deriv_sources.py ${{ github.event.inputs.days != '0' && github.event.inputs.days || '' }} 2>&1 | tee reports/logs/deriv_probe.txt
           else
-            python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}"
+            mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" 2>&1 | tee reports/logs/deriv_hist.txt
           fi
       - name: 저장
         if: always()
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          for p in data/deriv reports/deriv_hist_status.json; do [ -e "$p" ] && git add -A "$p"; done; true
+          for p in data/deriv reports/deriv_hist_status.json reports/logs/deriv_probe.txt reports/logs/deriv_hist.txt; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "deriv: $(date -u +%FT%H:%M)"
           git stash -q -u 2>/dev/null || true
           ok=0
