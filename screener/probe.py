@@ -24,11 +24,19 @@ def run() -> dict:
         "naver_etf_analysis": "https://m.stock.naver.com/api/stock/139260/etfAnalysis",
         "naver_etf_comp": "https://m.stock.naver.com/api/etf/139260/component",
         "naver_etf_list_m": "https://m.stock.naver.com/api/stocks/etf?page=1&pageSize=5",
+        "theme_list1": "https://m.stock.naver.com/api/stocks/theme?page=1&pageSize=5",
+        "theme_list2": "https://m.stock.naver.com/front-api/stock/theme/list?page=1&pageSize=5",
+        "theme_list3": "https://m.stock.naver.com/api/stocks/theme/list?page=1&pageSize=5",
+        "theme_stock": "https://m.stock.naver.com/api/stock/000660/integration",
+        "theme_pc": "https://finance.naver.com/sise/theme.naver",
+        "theme_pc_detail": "https://finance.naver.com/sise/sise_group_detail.naver?type=theme&no=536",
     }
     for k, u in urls.items():
         try:
             r = requests.get(u, headers=UA, timeout=20)
-            out[k] = {"status": r.status_code, "ctype": r.headers.get("content-type"), "head": r.text[:1500]}
+            txt = r.content.decode(r.encoding or "utf-8", "ignore") if "euc" not in (r.encoding or "").lower() else r.content.decode("euc-kr", "ignore")
+            i = txt.find("theme") if k == "theme_stock" else 0
+            out[k] = {"status": r.status_code, "ctype": r.headers.get("content-type"), "head": txt[max(0, i - 200):i + 1800]}
         except Exception as e:  # noqa: BLE001
             out[k] = {"error": str(e)}
     try:
