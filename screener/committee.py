@@ -95,6 +95,79 @@ def _sectors(chains: dict, peers: list[dict]) -> list[dict]:
     return rows, themes
 
 
+def _flows2() -> list[float]:
+    """최근 2거래일 코스피 외국인 순매수(억원). [0]=오늘(잠정), [1]=전일(확정)."""
+    out = []
+    try:
+        from .flows import intraday_market_flows, investor_totals
+        f = (intraday_market_flows().get("KOSPI") or {}).get("외국인")
+        if f is not None:
+            out.append(float(f))
+        d = date.today() - timedelta(days=1)
+        while len(out) < 2 and d > date.today() - timedelta(days=7):
+            if d.weekday() < 5:
+                v = (investor_totals(d).get("KOSPI") or {}).get("외국인")
+                if v is not None:
+                    out.append(float(v))
+            d -= timedelta(days=1)
+    except Exception as e:  # noqa: BLE001
+        log.info("수급 실패: %s", e)
+    return out
+
+
+def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der: dict) -> dict:
+    """시나리오 확률 ≠ 행동. 확률 1등이어도 '전환 신호'가 안 나왔으면 진입하지 않는다 — 그 이유를 데이터로 적는다."""
+    bull = next((s for s in scen if s["name"].startswith("강세")), {})
+    pb, n = bull.get("prob") or 0, sb.get("n") or 0
+    reasons = []
+    if n:
+        se = (pb * (1 - pb) / n) ** 0.5
+        reasons.append({"t": "확률은 1등이지만 과반이 아님",
+                        "d": f"강세 {pb*100:.0f}%는 '강세가 아닐 확률' {100-pb*100:.0f}%와 같은 말. 표본 {n}회라 오차 범위가 대략 {max(0,pb-1.96*se)*100:.0f}~{min(1,pb+1.96*se)*100:.0f}%로 넓음 — 동전 던지기와 통계적으로 잘 구분되지 않음."})
+    fl = _flows2()
+    hi5, last = k.get("hi5"), k.get("last")
+    met_f = len(fl) >= 2 and fl[0] > 0 and fl[1] > 0
+    met_p = bool(hi5 and last and last >= hi5)
+    fs = " · ".join(f"{'오늘' if i == 0 else '전일'} {v/1e4:+.2f}조" for i, v in enumerate(fl[:2])) if fl else "수급 데이터 없음"
+    reasons.append({"t": "강세 전환 신호 미충족" if not (met_f and met_p) else "강세 전환 신호 충족",
+                    "d": f"규칙: 외국인 2일 연속 순매수 + 5일 고점({hi5 or 0:,.0f}) 회복. 현재 외국인 {fs} → {'충족' if met_f else '미충족'}, 지수 {last or 0:,.0f} → {'충족' if met_p else '미충족'}. 시나리오의 '행동'은 신호가 확인된 뒤에 집행하도록 정의돼 있음."})
+    if k.get("ret1") is not None and k.get("low_today") and last:
+        nearlow = (last / k["low_today"] - 1) < 0.01
+        reasons.append({"t": "종가가 저가권" if nearlow else "장중 저가 대비 반등",
+                        "d": f"하루 {k['ret1']*100:+.1f}%, 저가 {k['low_today']:,.0f} 대비 종가 {(last/k['low_today']-1)*100:+.1f}%. " +
+                             ("저가 근처 마감 = 끝까지 사는 쪽이 없었다는 뜻. 바닥 확인(저가 지지) 전." if nearlow else "저가에서 받쳐주는 매수는 있었음.")})
+    lv = ((stu.get("lev_trade") or {}).get("코스피 -5% 이하 날 종가 매수") or {}).get("다음날 시가 매도") or {}
+    dp = ((stu.get("conditional") or {}).get("deep_(20일 −15% 이상 하락 중)") or {}).get("d1") or {}
+    if lv:
+        reasons.append({"t": "손익비가 대칭이 아님",
+                        "d": f"레버리지 급락일 종가 매수→다음날 시가 매도: 승률 {lv.get('up',0)*100:.0f}% · 평균 {lv.get('avg',0)*100:+.1f}% · 최악 {lv.get('worst',0)*100:+.1f}% (n={lv.get('n')}). "
+                             f"최악 손실이 평균 수익의 약 {abs(lv.get('worst',0))/max(lv.get('avg',0.001),0.001):.0f}배 — 한 번 틀리면 여러 번 맞춘 걸 토해냄."})
+    if dp:
+        reasons.append({"t": "기다리는 비용은 작음",
+                        "d": f"비슷한 날 다음날 코스피 평균 {dp.get('avg',0)*100:+.1f}% (상승 {dp.get('up',0)*100:.0f}%). 하루 늦게 신호 확인 후 들어가도 놓치는 건 평균 이 정도 — 틀렸을 때 피하는 손실이 더 큼."})
+    big = [e for e in ev7 if e.get("imp", 1) >= 3]
+    if big:
+        reasons.append({"t": "이벤트 대기",
+                        "d": "7일 안 핵심 일정: " + ", ".join(f"{e['date'][5:]} {e['name']}" for e in big[:4]) + " — 결과 전 레버리지는 이벤트 도박이 됨."})
+    if der.get("gex_bn") is not None and der["gex_bn"] < 0:
+        reasons.append({"t": "옵션 감마 음수 구간",
+                        "d": f"감마 노출 근사 {der['gex_bn']:+,.0f}억/1%" + (f", 전환점 {der['flip']:.0f}" if der.get("flip") else "") +
+                             " — 딜러 헤지가 추세를 키우는 구간이라 반등도 크지만 추가 급락도 커짐. 방향 확신 없이 레버리지는 불리."})
+    reasons.append({"t": "이미 걸려 있는 노출",
+                    "d": "보유 포지션이 반도체·IT 위주면 반등 베팅은 이미 들어가 있음. 같은 방향 레버리지를 얹으면 분산이 아니라 같은 베팅을 두 배로 하는 것."})
+    if met_f and met_p:
+        st_ = "분할 매수"
+    elif k.get("low20") and last and last < k["low20"] * 0.995:
+        st_ = "방어"
+    else:
+        st_ = "관망"
+    plan = {"관망": f"오늘은 현금 유지. 다음 거래일 외국인 순매수 전환 + 저점({k.get('low_today') or 0:,.0f}) 지지가 확인되면 1차 분할(비반도체 우선), 5일 고점 회복 시 2차.",
+            "분할 매수": "신호 충족 — 현금 1/3씩 분할 집행, 반도체 상한 60% 안에서.",
+            "방어": "20일 저점 이탈 — 가격 규칙 기계적 집행, 인버스 25% 헷지."}[st_]
+    return {"stance": st_, "plan": plan, "reasons": reasons,
+            "summary": (f"PB 판단: {st_} — 강세 확률이 가장 높아도 전환 신호 확인 전엔 진입 안 함 (확률 = 방향, 신호 = 타이밍)" if st_ == "관망" else f"PB 판단: {st_}")}
+
+
 def build() -> dict:
     k = _kospi_state()
     mv = _j("macro_view.json", {}) or {}
@@ -120,11 +193,19 @@ def build() -> dict:
         head.append(f"코스피 {k['last']:,.0f} ({k['ret1']*100:+.1f}%) · 20일 고점 대비 {k['dd20']*100:+.1f}% · 52주 고점 대비 {k['from_hi']*100:+.0f}%")
     if mv.get("summary"):
         head.append(mv["summary"])
+    der = {}
+    try:
+        from . import derivs
+        der = derivs.load()
+    except Exception:  # noqa: BLE001
+        pass
+    stance = _stance(k, scen, sb, stu, ev7, der)
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "date": str(today), "head": head, "verdict": verdict,
            "scenarios": scen, "scenario_basis": sb, "sectors": sectors, "themes": themes[:8] + themes[-5:] if len(themes) > 13 else themes,
-           "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10],
+           "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10], "stance": stance,
+           "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
            "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {})}
     OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
     _record(out)
@@ -197,6 +278,13 @@ def telegram_text(o: dict) -> str:
     L = ["🏛 <b>운용회의</b> · " + o["date"]]
     L += [f"• {x}" for x in o["head"]]
     L += ["", "<b>[시나리오]</b> " + o["verdict"]]
+    if o.get("stance"):
+        L.append("<b>[" + o["stance"]["summary"] + "]</b>")
+        L += [f"  · {r['t']}" for r in o["stance"]["reasons"][:5]]
+        L.append("  → " + o["stance"]["plan"])
+    if o.get("derivs") and o["derivs"].get("notes"):
+        L.append("<b>[옵션 포지션]</b>")
+        L += [f"  · {x}" for x in o["derivs"]["notes"][:4]]
     for s in o["scenarios"]:
         L.append(f"• {s['name']} {(s['prob'] or 0)*100:.0f}% — 신호: {s['trigger']}")
         L.append(f"  → {s['action']}")

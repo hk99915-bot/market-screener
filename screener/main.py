@@ -293,6 +293,11 @@ def main() -> None:
             rebuild_detail_kr()
         elif a.mode == "committee":    # 운용회의 자료 (+텔레그램)
             from . import committee
+            try:
+                from . import derivs
+                derivs.build()
+            except Exception as e:  # noqa: BLE001
+                log.warning("옵션 포지션 실패: %s", e)
             o = committee.build()
             ou = committee.build_us()
             if not a.no_send:
@@ -378,6 +383,11 @@ def main() -> None:
             if a.mode == "reports":   # 저녁 운용회의
                 try:
                     from . import committee
+                    try:
+                        from . import derivs
+                        derivs.build()
+                    except Exception as e:  # noqa: BLE001
+                        log.warning("옵션 포지션 실패: %s", e)
                     o = committee.build()
                     ou = committee.build_us()
                     if not a.no_send:
