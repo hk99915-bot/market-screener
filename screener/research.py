@@ -112,7 +112,7 @@ def fetch_naver(since: date, max_pages: int = 60) -> list[dict]:
             try:
                 from .config import REPORT_DIR
                 (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
-                (REPORT_DIR / "logs" / "naver_list.html").write_text(h[:400000], encoding="utf-8")
+                (REPORT_DIR / "logs" / "naver_list.html").write_text(h[:20000], encoding="utf-8")
                 log.warning("네이버 리스트 파싱 0건 — 응답 %d자, tr %d개 저장", len(h), len(rows))
             except Exception:  # noqa: BLE001
                 pass
@@ -139,23 +139,60 @@ def parse_summary(h: str) -> str:
     return txt.strip()[:600]
 
 
-def enrich_summaries(rows: list[dict], links: dict[str, str], limit: int = 200) -> int:
-    """rows 중 summary 가 None 인 것에 네이버 상세 요약을 채운다. 없으면 '' 로 표시해 다음에 다시 시도하지 않음."""
+SKIP_SENT = re.compile(r"(Tel|TEL|@|Analyst|애널리스트|Compliance|본\s*조사분석|투자의견\s*\(|목표주가\s*\(|현재주가|시가총액|발행주식|52주|외국인\s*(보유|지분)|주요주주|\d{2,3}-\d{3,4}-\d{4}|www\.|http)")
+
+
+def summarize_text(txt: str, max_chars: int = 500) -> str:
+    """리포트 1페이지 텍스트에서 핵심 문장만 추린다 (규칙 기반: 한국어 완결 문장, 표·연락처·면책 제외)."""
+    lines = [re.sub(r"\s+", " ", x).strip() for x in (txt or "").splitlines()]
+    joined = " ".join(x for x in lines if x)
+    sents = re.split(r"(?<=[다음함임됨])\.\s+|\s[-•·▶■□◆◇●○*▷►]\s", joined)
+    keep: list[str] = []
+    for s in sents:
+        s = s.strip(" -•·▶■□◆◇●○*▷►")
+        if not (25 <= len(s) <= 260) or not re.search(r"[가-힣]{4}", s):
+            continue
+        if SKIP_SENT.search(s) or s.count(",") > 8 or len(re.findall(r"\d", s)) > len(s) * 0.35:
+            continue
+        keep.append(s if s.endswith((".", "다", "음", "함", "임", "됨")) else s)
+        if sum(len(x) for x in keep) >= max_chars:
+            break
+    out = ". ".join(x.rstrip(".") for x in keep)
+    return (out + ".")[:max_chars] if out else ""
+
+
+def pdf_summary(url: str) -> str:
+    """한경 컨센서스 리포트 PDF 1페이지에서 요약 문장 추출 (파일은 저장하지 않음)."""
+    r = requests.get(url, headers={**UA, "Referer": "https://consensus.hankyung.com/"}, timeout=40)
+    r.raise_for_status()
+    if not r.content[:5].startswith(b"%PDF"):
+        return ""
+    from io import BytesIO
+    from pdfminer.high_level import extract_text  # type: ignore
+    return summarize_text(extract_text(BytesIO(r.content), maxpages=1))
+
+
+def enrich_summaries(rows: list[dict], links: dict[str, str], limit: int = 120) -> int:
+    """summary 가 비어 있는 행에 요약을 채운다. 네이버 상세가 있으면 그것, 없으면 한경 PDF 1페이지.
+    시도했는데 못 뽑은 건 '-' 로 표시해 다시 받지 않는다 (일시 오류는 None 으로 남겨 재시도)."""
     n = 0
     for r in rows:
-        if r.get("summary") is not None or n >= limit:
+        if r.get("summary") not in (None, "") or n >= limit:
             continue
-        link = links.get(r["key"]) or (r["link"] if r.get("source") == "네이버" else None)
-        if not link:
-            r["summary"] = ""
-            continue
-        n += 1
+        nv = links.get(r["key"]) or (r["link"] if r.get("source") == "네이버" else None)
         try:
-            r["summary"] = parse_summary(_get(link, "https://finance.naver.com/research/", "euc-kr"))
+            if nv:
+                n += 1
+                r["summary"] = parse_summary(_get(nv, "https://finance.naver.com/research/", "euc-kr")) or "-"
+            elif r.get("link") and "hankyung" in r["link"]:
+                n += 1
+                r["summary"] = pdf_summary(r["link"]) or "-"
+            else:
+                r["summary"] = "-"
         except Exception as e:  # noqa: BLE001
-            log.debug("요약 실패 %s: %s", link, e)
-            r["summary"] = None   # 일시 실패는 다음에 재시도
-        time.sleep(0.15)
+            log.debug("요약 실패 %s: %s", r.get("link"), e)
+            r["summary"] = None
+        time.sleep(0.3)
     return n
 
 
@@ -276,7 +313,7 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
     # 기존 저장분 중 요약이 비어 있는 최근 30일치 보충 (한 번 시도해 없으면 '' 로 표시)
     try:
         cut = today - timedelta(days=30)
-        miss = store.filter((pl.col("date") >= cut) & pl.col("summary").is_null())
+        miss = store.filter((pl.col("date") >= cut) & (pl.col("summary").is_null() | (pl.col("summary") == "")))
         if len(miss):
             more = fetch_naver(cut) if cut < since else []
             links = {**nv_links, **{make_key(r["date"], r["code"], r["broker"]): r["link"] for r in more}}
@@ -284,7 +321,8 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
             n_sum += enrich_summaries(rows, links)
             fill = pl.DataFrame(rows, schema=SCHEMA).select("key", pl.col("summary").alias("_s"))
             store = (store.join(fill, on="key", how="left")
-                          .with_columns(pl.coalesce("summary", "_s").alias("summary")).drop("_s"))
+                          .with_columns(pl.when(pl.col("_s").is_not_null()).then(pl.col("_s"))
+                                          .otherwise(pl.col("summary")).alias("summary")).drop("_s"))
     except Exception as e:  # noqa: BLE001
         log.warning("요약 보충 실패: %s", e)
     log.info("리포트 요약 %d건 수집", n_sum)
