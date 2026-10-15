@@ -139,6 +139,17 @@ def run() -> dict:
                 out["krx_" + name] = "ERR " + str(e)[:300]
     except Exception as e:  # noqa: BLE001
         out["krx_deriv"] = "ERR " + str(e)[:300]
+    try:
+        from pykrx import stock as _st
+        import yfinance as _yf
+        df = _st.get_index_ohlcv("20261001", "20261015", "1001")
+        out["krx_kospi_daily"] = {str(i.date()): float(r["종가"]) for i, r in df.iterrows()}
+        y = _yf.download("^KS11", start="2026-10-01", interval="1d", auto_adjust=False, progress=False)
+        if hasattr(y.columns, "levels"):
+            y.columns = [c[0] for c in y.columns]
+        out["yf_kospi_daily"] = {str(i): float(r["Close"]) for i, r in y.iterrows()}
+    except Exception as e:  # noqa: BLE001
+        out["kospi_cmp"] = "ERR " + str(e)[:300]
     p = REPORT_DIR / "logs" / "probe.json"
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
