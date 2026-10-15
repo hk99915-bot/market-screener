@@ -281,18 +281,22 @@ function calPanel(){
     return mob?`<span style="display:inline-block;width:6px;height:6px;border-radius:3px;background:${col};margin:1px"></span>`
       :`<div style="font-size:10.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid ${col};padding-left:3px;margin-top:2px;color:${my?'#ffcc33':'#ccc'}">${my?'📌':''}${esc(e.name.replace(/ 실적$/,''))}${e.type==='실적'?'':''}</div>`;};
   let cells=''; for(let k=0;k<off;k++) cells+='<div></div>';
-  for(let d=1;d<=dim;d++){ const ds=`${CALM}-${String(d).padStart(2,'0')}`, ev=by[ds]||[], dow=(off+d-1)%7;
-    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?44:84}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:3px;cursor:${ev.length?'pointer':'default'};overflow:hidden">
-      <div style="font-size:11px;color:${dow===0?'#ff6b6b':dow===6?'#6ba8ff':'#999'}">${d}${ev.some(e=>e.imp>=3)?' ⭐':''}</div>${ev.slice(0,mob?8:4).map(chip).join('')}${!mob&&ev.length>4?`<div class="mu" style="font-size:10px">+${ev.length-4}</div>`:''}</div>`; }
-  const sel=CALSEL&&by[CALSEL]?by[CALSEL]:null;
-  setTimeout(()=>{ document.querySelectorAll('.calc').forEach(c=>c.onclick=()=>{ if(!by[c.dataset.d]) return; CALSEL=c.dataset.d; $('#homecal').innerHTML=calPanel(); });
+  const MV=CAL.moves||{}, mc=v=>v==null?'':`<span style="color:${v>0?'var(--up)':v<0?'var(--dn)':'#888'}">${v>0?'+':''}${(v*100).toFixed(1)}</span>`;
+  for(let d=1;d<=dim;d++){ const ds=`${CALM}-${String(d).padStart(2,'0')}`, ev=by[ds]||[], dow=(off+d-1)%7, mv=MV[ds];
+    const mvl=mv?`<div style="font-size:${mob?9:10}px;line-height:1.2;white-space:nowrap;overflow:hidden">${mv.KOSPI!=null?(mob?'K':'코')+mc(mv.KOSPI):''}${mv.SPX!=null?' '+(mob?'S':'S&P')+mc(mv.SPX):''}</div>`:'';
+    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:3px;cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
+      <div style="font-size:11px;color:${dow===0?'#ff6b6b':dow===6?'#6ba8ff':'#999'}">${d}${ev.some(e=>e.imp>=3)?' ⭐':''}${ev.some(e=>e.result)?' ✓':''}</div>${mvl}${ev.slice(0,mob?8:4).map(chip).join('')}${!mob&&ev.length>4?`<div class="mu" style="font-size:10px">+${ev.length-4}</div>`:''}</div>`; }
+  const sel=CALSEL&&(by[CALSEL]||MV[CALSEL])?(by[CALSEL]||[]):null, smv=CALSEL?MV[CALSEL]:null;
+  setTimeout(()=>{ document.querySelectorAll('.calc').forEach(c=>c.onclick=()=>{ if(!by[c.dataset.d]&&!MV[c.dataset.d]) return; CALSEL=c.dataset.d; $('#homecal').innerHTML=calPanel(); });
     document.querySelectorAll('[data-calm]').forEach(b=>b.onclick=()=>{ const [y,m]=CALM.split('-').map(Number); const n=new Date(Date.UTC(y,m-1+(+b.dataset.calm),1)); CALM=n.toISOString().slice(0,7); CALSEL=null; $('#homecal').innerHTML=calPanel(); }); },0);
   const lst=(sel||CAL.events.filter(e=>e.date>=today).slice(0,6));
   return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><button class="tag" data-calm="-1">◀</button><b>${Y}년 ${M}월</b><button class="tag" data-calm="1">▶</button>
      <span class="mu" style="font-size:11px;margin-left:auto"><span style="color:#35d6e6">■</span>핵심 실적 <span style="color:#ffcc33">■</span>내 보유 <span style="color:#c77dff">■</span>매크로 <span style="color:#ff9a1f">■</span>만기</span></div>
    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px;text-align:left">${['일','월','화','수','목','금','토'].map((w,i)=>`<div class="mu" style="text-align:center;color:${i===0?'#ff6b6b':i===6?'#6ba8ff':''}">${w}</div>`).join('')}${cells}</div>
    <div style="margin-top:8px"><div class="am" style="font-size:12px">${sel?esc(CALSEL)+' 일정':'다가오는 일정'}</div>
-   ${lst.map(e=>{const my=e.ticker&&mine.has(e.ticker); return `<div style="font-size:12.5px;line-height:1.6;white-space:normal">${sel?'':`<span class="mu">${esc(e.date.slice(5))}</span> `}${e.imp>=3?'⭐ ':''}${my?'📌 ':''}${e.ticker?`<span class="am sym" data-sym="${esc(e.ticker)}" data-mk="${e.market}">${esc(e.name)}</span>`:esc(e.name)} <span class="mu" style="font-size:11px">${esc(e.note||'')}</span></div>`;}).join('')}</div>
+   ${smv?`<div style="font-size:12.5px;line-height:1.7">지수: ${[['KOSPI','코스피'],['KOSDAQ','코스닥'],['SPX','S&P500'],['NASDAQ','나스닥']].filter(([k])=>smv[k]!=null).map(([k,n])=>n+' '+mc(smv[k])+'%').join(' · ')}</div>`:''}
+   ${lst.map(e=>{const my=e.ticker&&mine.has(e.ticker); return `<div style="font-size:12.5px;line-height:1.6;white-space:normal">${sel?'':`<span class="mu">${esc(e.date.slice(5))}</span> `}${e.imp>=3?'⭐ ':''}${my?'📌 ':''}${e.ticker?`<span class="am sym" data-sym="${esc(e.ticker)}" data-mk="${e.market}">${esc(e.name)}</span>`:esc(e.name)} <span class="mu" style="font-size:11px">${esc(e.note||'')}</span>${(e.result||[]).map(r=>`<div style="font-size:12px;padding-left:10px;color:#e8e8e8">→ <b>${esc(r)}</b></div>`).join('')}</div>`;}).join('')}
+   ${sel&&!sel.length?'<div class="mu" style="font-size:12px">일정 없음</div>':''}</div>
    <div class="mu" style="font-size:11px;margin-top:4px">${esc(CAL.note||'')} · 날짜를 누르면 그날 일정</div>`;
 }
 let EVS=null;
