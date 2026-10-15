@@ -46,7 +46,7 @@ def _bars(ticker: str, start: str) -> list[dict]:
 
 def _score_pick(p: dict, date: str) -> dict | None:
     if p.get("cash"):
-        return {"ret": 0.0, "pnl": 0.0, "detail": "현금 유지"}
+        return {"ret": 0.0, "pnl": 0.0, "detail": p.get("label") or "현금 유지"}
     bars = _bars(p["ticker"], date)
     day = next((b for b in bars if b["d"] == date), None)
     after = [b for b in bars if b["d"] > date]
@@ -74,6 +74,10 @@ def score() -> int:
     for it in d["items"]:
         if it.get("result"):
             continue
+        if any(p.get("pending") for p in it["picks"].values()):
+            if it["date"] < datetime.now().strftime("%Y-%m-%d"):
+                it["result"] = {"void": "나 미제출 — 채점 제외", "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
+            continue
         res = {}
         ok = True
         for who, p in it["picks"].items():
@@ -95,7 +99,7 @@ def score() -> int:
     tally = {}
     for it in d["items"]:
         r = it.get("result")
-        if not r:
+        if not r or r.get("void"):
             continue
         for who in it["picks"]:
             t = tally.setdefault(who, {"win": 0, "n": 0, "pnl": 0})

@@ -1,0 +1,71 @@
+name: pick
+
+# 진입 타점 대결 — 저장소 주인이 'pick YYYY-MM-DD' 이슈를 열면 그날 '나' 판단으로 기록하고 이슈를 닫는다.
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: pick
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: (startsWith(github.event.issue.title, 'pick') || startsWith(github.event.issue.title, 'exit')) && github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install polars requests
+      - name: 기록
+        id: r
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+          CREATED: ${{ github.event.issue.created_at }}
+        run: |
+          python - <<'PY'
+          import os
+          from screener.duel import apply_exit_issue, apply_issue
+          f = apply_exit_issue if os.environ["TITLE"].lower().startswith("exit") else apply_issue
+          msg = f(os.environ["TITLE"], os.environ.get("BODY") or "", os.environ["CREATED"])
+          print(msg)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("msg<<EOF\n" + msg + "\nEOF\n")
+          PY
+      - name: 저장
+        run: |
+          git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
+          cp reports/decisions.json /tmp/dec.json
+          for i in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            python - <<'PY'
+          import json
+          new = json.load(open("/tmp/dec.json", encoding="utf-8"))
+          cur = json.load(open("reports/decisions.json", encoding="utf-8"))
+          mine = {x["id"]: x for x in new["items"]}
+          ids = [x["id"] for x in cur["items"]]
+          for k, v in mine.items():
+              if k in ids:
+                  for x in cur["items"]:
+                      if x["id"] == k:
+                          x["picks"] = v["picks"] if v.get("kind") == "exit" else {**x["picks"], "나": v["picks"]["나"]}
+              else:
+                  cur["items"].append(v)
+          open("reports/decisions.json", "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
+          PY
+            git add reports/decisions.json; git diff --cached --quiet && break
+            git commit -qm "pick: ${{ github.event.issue.title }}" && git push -q origin HEAD:main && break
+            sleep 5
+          done
+      - name: 답글·닫기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "${{ steps.r.outputs.msg }}"
+          gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}

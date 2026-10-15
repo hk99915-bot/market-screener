@@ -275,7 +275,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -296,6 +296,9 @@ def main() -> None:
                 events.stats()
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 추적 실패: %s", e)
+        elif a.mode == "duel":   # 14:55 진입 타점 대결 (PB 판정 기록 + 텔레그램)
+            from . import duel
+            print(duel.run(send=not a.no_send))
         elif a.mode == "close_kr":   # 장 마감 후: 모든 화면의 코스피를 KRX 확정 종가로 맞춤 (텔레그램 없음)
             try:
                 live.snapshot()
