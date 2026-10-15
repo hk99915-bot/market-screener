@@ -337,12 +337,13 @@ function drvPanel(d,v){
   return h+`<div class="mu" style="font-size:11px;margin-top:10px">규칙 기반 점수(−1~+1). 체인 35% · 애널리스트 25% · 뉴스 15% · 매크로 15% · 공시 10%, 없는 항목은 빼고 재가중. 점수 → '현재 이익' 가중치 = 50% + 40%×점수 (10~90%). 성과 검증 전 지표.</div>`;
 }
 let SIX=null;
-function loadIndex(cb){ if(SIX) return cb(); SIX=[]; let left=2;
-  for(const mk of ['KR','US']) google.script.run.withSuccessHandler(t=>{try{const j=JSON.parse(t); for(const s of j.symbols||[]) SIX.push({s, n:(j.names||{})[s]||s, m:mk});}catch(e){} if(--left===0) cb();}).withFailureHandler(()=>{if(--left===0) cb();}).getStockIndex(mk); }
+let SIXT=0;
+function loadIndex(cb){ if(SIX&&SIX.length&&Date.now()-SIXT<600000) return cb(); SIX=[]; SIXT=Date.now(); let left=2;
+  for(const mk of ['KR','US']) google.script.run.withSuccessHandler(t=>{try{const j=JSON.parse(t); const ee=new Set(j.etf||[]); for(const s of j.symbols||[]) SIX.push({s, n:(j.names||{})[s]||s, m:mk, e:ee.has(s)});}catch(e){} if(--left===0) cb();}).withFailureHandler(()=>{if(--left===0) cb();}).getStockIndex(mk); }
 function srch(q){ q=q.trim().toLowerCase(); const box=$('#sres'); if(!q){box.style.display='none';return;}
   loadIndex(()=>{ const r=SIX.filter(x=>x.s.toLowerCase().startsWith(q)||String(x.n).toLowerCase().includes(q))
       .sort((a,b)=>(a.s.toLowerCase()===q?-1:0)-(b.s.toLowerCase()===q?-1:0)||(String(a.n).toLowerCase().startsWith(q)?-1:1)-(String(b.n).toLowerCase().startsWith(q)?-1:1)).slice(0,12);
-    box.innerHTML=r.length?r.map((x,i)=>`<div class="${i?'':'on'}" data-sym="${esc(x.s)}" data-mk="${x.m}">${esc(x.n)}<i>${esc(x.s)} · ${x.m}</i></div>`).join(''):'<div class="mu">결과 없음 (스크리너 대상 종목만 검색됩니다)</div>';
+    box.innerHTML=r.length?r.map((x,i)=>`<div class="${i?'':'on'}" data-sym="${esc(x.s)}" data-mk="${x.m}">${esc(x.n)}<i>${esc(x.s)} · ${x.m}${x.e?' · ETF':''}</i></div>`).join(''):'<div class="mu">결과 없음 (스크리너 대상 종목만 검색됩니다)</div>';
     box.style.display='block'; }); }
 document.addEventListener('input',e=>{ if(e.target.id==='sq') srch(e.target.value); });
 document.addEventListener('keydown',e=>{ if(e.target.id!=='sq') return; const box=$('#sres'), it=[...box.querySelectorAll('div[data-sym]')], cur=it.findIndex(x=>x.classList.contains('on'));
@@ -382,7 +383,10 @@ function myParse(txt){ const out=[]; for(const ln of txt.split(/\n/)){ const p=l
     else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 17 128855")
       let k2=p.length; const nums=[]; while(k2>1&&nums.length<2&&n(p[k2-1])!=null){ nums.unshift(n(p[k2-1])); k2--; }
       out.push({key:p.slice(0,k2).join(' '), qty:nums.length?nums[0]:0, avg:nums.length>1?nums[1]:null}); } } return out; }
-function myResolve(k){ const x=k.toLowerCase(); return SIX.find(s=>s.s.toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase().startsWith(x))||SIX.find(s=>String(s.n).toLowerCase().replace(/\s/g,'').includes(x.replace(/\s/g,'')))||null; }
+function myResolve(k){ const x=k.toLowerCase().trim();
+  const ex=SIX.find(s=>s.s.toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase()===x); if(ex) return ex;
+  if(/^[a-z][a-z.\-]{0,5}$/.test(x)||/^\d{6}$/.test(x)) return null;   // 티커·코드는 정확히 일치할 때만 (PSI → PepsiCo 오인 방지)
+  return SIX.find(s=>String(s.n).toLowerCase().startsWith(x))||SIX.find(s=>String(s.n).toLowerCase().replace(/\s/g,'').includes(x.replace(/\s/g,'')))||null; }
 function myView(){
   const txt=myLoad();
   setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); myRun(); }; if(txt) myRun(); },0);
