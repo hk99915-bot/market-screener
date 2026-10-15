@@ -93,13 +93,14 @@ def write_markdown(market: str, status: str, last: pl.DataFrame, br: dict, anom:
         mv = None
     if mv and mv.get("rows"):
         L += ["## 매크로 컨텍스트", "", f"**{mv.get('summary', '')}**", "",
-              "| 지표 | 값 | 1D | 20D | 고점대비 | 한국 주식 영향 | 해설 |", "|---|---|---|---|---|---|---|"]
+              "| 지표 | 값 | 1D | 20D | 고점대비 | 영향 |", "|---|---|---|---|---|---|"]
         for d in mv["rows"]:
             rate = d["key"] == "US10Y"
             c1 = f"{(d.get('d1') or 0)*100:+.0f}bp" if rate else _pct(d.get("chg1"))
             c20 = f"{(d.get('d20') or 0)*100:+.0f}bp" if rate else _pct(d.get("chg20"))
             imp = "—" if d.get("impact") is None else f"{d['impact']:+.2f}"
-            L.append(f"| {d['name']} | {_num(d['last'], 2)} | {c1} | {c20} | {_pct(d.get('from_hi'))} | {imp} | {d['state']} |")
+            L.append(f"| {d['name']} | {_num(d['last'], 2)} | {c1} | {c20} | {_pct(d.get('from_hi'))} | {imp} |")
+        L += [""] + [f"- **{d['name']}**: {d['state']}" for d in mv["rows"] if d.get("state")]
         L += ["", "_영향: 한국 주식 전체에 대한 매크로 바람(−1~+1). 한국 지수 자체는 결과라서 점수에서 제외. 종목별 민감도는 종목 상세 EARNINGS DRIVERS._", ""]
     elif mr:
         L += ["## 매크로 컨텍스트", "", "| 지표 | 값 | 1D | 20D | 50일선대비 | 레짐 |", "|---|---|---|---|---|---|"]

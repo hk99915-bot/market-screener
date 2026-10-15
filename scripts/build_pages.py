@@ -29,6 +29,7 @@ SHIM = """<script>
     getChainSeries: () => get('reports/chains.json'),
     getEvents: () => get('reports/events_stats.json'),
     getMacroHist: () => get('reports/macro_hist.json'),
+    getStudy: () => get('reports/studies/crash_rebound.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
