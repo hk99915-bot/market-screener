@@ -34,16 +34,18 @@ CACHE = REPORT_DIR / "chains.json"
 HYPER = [("MSFT", "마이크로소프트", "AI 인프라 CAPEX", 1), ("GOOGL", "알파벳", "AI 인프라 CAPEX", 1),
          ("AMZN", "아마존", "AI 인프라 CAPEX", 1), ("META", "메타", "AI 인프라 CAPEX", 1)]
 CHAINS: dict[str, dict] = {
-    "memory": {"name": "메모리 반도체", "codes": ["005930", "000660"],
+    # 402340 SK스퀘어 = SK하이닉스 지분 가치가 대부분인 지주사 → 메모리 체인 (업종 분류 '기타금융'으로 은행 체인에 잘못 붙던 것 교정)
+    "memory": {"name": "메모리 반도체", "codes": ["005930", "005935", "000660", "402340"],
                "proxies": [("NVDA", "엔비디아", "HBM 최대 수요처", 1), ("AVGO", "브로드컴", "AI ASIC 수요", 1), ("AMD", "AMD", "GPU·CPU 수요", 1),
                            *HYPER, ("MU", "마이크론", "동일 사이클(경쟁사지만 업황 동행)", 1), ("SNDK", "샌디스크", "낸드 사이클", 1),
-                           ("AMAT", "어플라이드", "업계 증설 강도", 1), ("^SOX", "필라델피아 반도체", "업황 심리", 1)],
+                           ("AMAT", "어플라이드", "업계 증설 강도 (늘면 수요 신호지만 1~2년 뒤 공급 과잉 위험 — 방향 불명확)", 0),
+                           ("^SOX", "필라델피아 반도체", "업황 심리 (주가만 반영)", 1)],
                "macro": {"KRW": 1, "SOX": 1}},
     "semi_equip": {"name": "반도체 장비·소재·부품",
                    "codes": ["042700", "240810", "403870", "058470", "095340", "039030", "357780", "005290", "036930", "140860", "322310", "089030", "131970", "067310"],
                    "proxies": [("TSM", "TSMC", "파운드리 CAPEX", 1), ("MU", "마이크론", "메모리 CAPEX", 1), ("AMAT", "어플라이드", "장비 수주 사이클", 1),
                                ("LRCX", "램리서치", "장비 수주 사이클", 1), ("KLAC", "KLA", "장비 수주 사이클", 1), ("ASML", "ASML", "노광 수주", 1),
-                               ("^SOX", "필라델피아 반도체", "업황 심리", 1)],
+                               ("^SOX", "필라델피아 반도체", "업황 심리 (주가만 반영)", 1)],
                    "macro": {"SOX": 1, "KRW": 1}},
     "battery": {"name": "2차전지", "codes": ["373220", "006400", "247540", "086520", "003670", "066970", "450080", "005070", "348370", "278280"],
                 "proxies": [("TSLA", "테슬라", "EV 수요", 1), ("GM", "GM", "북미 EV 수요", 1), ("ALB", "앨버말", "리튬 가격(양극재 판가 연동)", 1),
@@ -55,7 +57,7 @@ CHAINS: dict[str, dict] = {
               "macro": {"KRW": 1, "WTI": -1}},
     "shipbuilding": {"name": "조선·기자재", "codes": ["009540", "329180", "010140", "042660", "010620", "077970", "082740", "443060", "014620", "033500", "071970"],
                      "proxies": [("FLNG", "FLEX LNG", "LNG선 운임·발주", 1), ("FRO", "프론트라인", "탱커 운임·발주", 1), ("BDRY", "건화물 운임 ETF", "벌크 운임", 1),
-                                 ("NG=F", "천연가스", "LNG 프로젝트", 1), ("CL=F", "WTI", "해양 플랜트", 1), ("SLX", "철강 ETF", "후판 원가", -1)],
+                                 ("NG=F", "천연가스", "LNG 프로젝트", 1), ("CL=F", "WTI", "해양 플랜트", 1), ("SLX", "철강 ETF", "후판 원가 (철강주 주가로 대신 봄)", -1)],
                      "macro": {"KRW": 1, "WTI": 1}},
     "defense": {"name": "방산·항공우주", "codes": ["012450", "064350", "047810", "079550", "272210", "103140", "099320"],
                 "proxies": [("LMT", "록히드마틴", "글로벌 방산 사이클", 1), ("RTX", "RTX", "글로벌 방산 사이클", 1), ("GD", "제너럴다이내믹스", "지상 무기", 1),
@@ -77,9 +79,14 @@ CHAINS: dict[str, dict] = {
                  "proxies": [("GOOGL", "알파벳", "광고 사이클", 1), ("META", "메타", "광고 사이클", 1), ("TTWO", "테이크투", "게임 사이클", 1),
                              ("EA", "EA", "게임 사이클", 1), ("^TNX", "미 10년물", "할인율", -1)],
                  "macro": {"US10Y": -1}},
-    "banks": {"name": "금융", "codes": ["105560", "055550", "086790", "316140", "024110", "138040", "032830", "000810", "006800", "071050", "005830", "029780"],
-              "proxies": [("^TNX", "미 10년물", "금리(예대마진)", 1), ("KBE", "미국 은행 ETF", "글로벌 은행 사이클", 1), ("XLF", "미국 금융 ETF", "업황 심리", 1)],
+    "banks": {"name": "금융(은행·보험)", "codes": ["105560", "055550", "086790", "316140", "024110", "138040", "032830", "000810", "005830", "029780"],
+              "proxies": [("^TNX", "미 10년물", "글로벌 금리 방향 (국내 예대마진과는 간접 연결)", 1), ("KBE", "미국 은행 ETF", "글로벌 은행 사이클", 1), ("XLF", "미국 금융 ETF", "업황 심리", 1)],
               "macro": {"US10Y": 1}},
+    # 증권: 금리↑는 채권 평가손 → 은행과 반대. 이익은 증시 거래대금·IB 사이클이 좌우
+    "brokers": {"name": "증권", "codes": ["006800", "071050", "016360", "039490", "005940", "003530", "001720", "030610"],
+                "proxies": [("IBKR", "인터랙티브브로커스", "개인 매매 활발도 사이클", 1), ("SCHW", "찰스슈왑", "리테일 증권 사이클", 1),
+                            ("HOOD", "로빈후드", "개인 매매 열기", 1), ("^KS11", "코스피", "국내 거래대금 (지수로 대신 봄)", 1)],
+                "macro": {"US10Y": -1}},
     "steel": {"name": "철강", "codes": ["005490", "004020", "001230", "460860"],
               "proxies": [("NUE", "뉴코어", "철강 가격 사이클", 1), ("STLD", "스틸다이내믹스", "철강 가격 사이클", 1), ("SLX", "철강 ETF", "업황", 1),
                           ("VALE", "발레", "철광석(원가)", -1), ("FXI", "중국 대형주", "중국 수요·공급", 1)],
@@ -88,9 +95,9 @@ CHAINS: dict[str, dict] = {
                    "proxies": [("HG=F", "구리", "금속 가격", 1), ("GC=F", "금", "귀금속 부산물", 1), ("SI=F", "은", "귀금속 부산물", 1), ("FXI", "중국 대형주", "중국 수요", 1)],
                    "macro": {"CU": 1, "KRW": 1}},
     "chem": {"name": "화학", "codes": ["051910", "011170", "011780", "009830", "298020", "120110"],
-             "proxies": [("DOW", "다우", "석유화학 사이클", 1), ("LYB", "라이온델바젤", "석유화학 사이클", 1), ("CL=F", "WTI", "나프타 원가", -1),
+             "proxies": [("DOW", "다우", "석유화학 사이클", 1), ("LYB", "라이온델바젤", "석유화학 사이클", 1), ("CL=F", "WTI", "나프타 원가 (단기엔 재고평가 이익도 → 방향 불명확)", 0),
                          ("FXI", "중국 대형주", "중국 수요·증설", 1)],
-             "macro": {"WTI": -1, "KRW": 1}},
+             "macro": {"WTI": 0, "KRW": 1}},
     "refining": {"name": "정유", "codes": ["010950", "096770", "078930", "267250"],
                  "proxies": [("VLO", "발레로", "정제마진 사이클", 1), ("MPC", "마라톤", "정제마진 사이클", 1), ("PSX", "필립스66", "정제마진 사이클", 1),
                              ("CL=F", "WTI", "재고평가(단기)", 1)],
@@ -99,15 +106,31 @@ CHAINS: dict[str, dict] = {
                   "proxies": [("ELF", "e.l.f.", "미국 인디 뷰티 수요", 1), ("EL", "에스티로더", "글로벌 화장품 사이클", 1), ("ULTA", "울타", "미국 뷰티 유통", 1),
                               ("FXI", "중국 대형주", "중국 소비", 1)],
                   "macro": {"KRW": 1}},
-    "food": {"name": "음식료(수출)", "codes": ["003230", "097950", "271560", "004370", "007310"],
+    "food": {"name": "음식료", "codes": ["003230", "097950", "271560", "004370", "007310"],
              "proxies": [("XLP", "미국 필수소비재", "소비 심리", 1), ("ZW=F", "소맥", "원재료", -1), ("ZC=F", "옥수수", "원재료", -1)],
-             "macro": {"KRW": 1}},
+             "macro": {"KRW": 0}},   # 수출주(삼양식품)는 원화 약세 +, 원재료 수입 내수주는 − → 업종 가정 없음
     "airline": {"name": "항공·여행", "codes": ["003490", "020560", "272450", "089590", "039130", "080160"],
                 "proxies": [("JETS", "글로벌 항공 ETF", "여객 사이클", 1), ("CL=F", "WTI", "유류비", -1)],
                 "macro": {"WTI": -1, "KRW": -1}},
-    "it_hw": {"name": "IT 하드웨어·디스플레이", "codes": ["034220", "011070", "009150", "066570", "005935", "353200", "007660"],
-              "proxies": [("AAPL", "애플", "스마트폰·기기 수요", 1), ("^SOX", "필라델피아 반도체", "IT 업황", 1), ("DELL", "델", "PC·서버 수요", 1)],
+    "it_hw": {"name": "IT 하드웨어·디스플레이", "codes": ["034220", "011070"],
+              "proxies": [("AAPL", "애플", "스마트폰·기기 수요", 1), ("^SOX", "필라델피아 반도체", "IT 업황 (주가만 반영)", 1), ("DELL", "델", "PC·서버 수요", 1)],
               "macro": {"KRW": 1, "SOX": 1}},
+    # 이름에 'IT 하드웨어'를 유지 — pb.py 반도체 비중 계산이 체인 이름으로 판별함
+    "components": {"name": "IT 하드웨어 — 전자부품(MLCC·기판)", "codes": ["009150", "009155", "353200", "007660", "222800"],
+                   "proxies": [("6981.T", "무라타", "MLCC 동일 사이클(1위 경쟁사)", 1), ("6976.T", "다이요유덴", "MLCC 동일 사이클", 1),
+                               ("4062.T", "이비덴", "AI 서버 기판(FC-BGA) 사이클", 1), ("NVDA", "엔비디아", "AI 서버 수요", 1),
+                               ("AAPL", "애플", "스마트폰 수요", 1), ("DELL", "델", "PC·서버 수요", 1)],
+                   "macro": {"KRW": 1, "SOX": 1}},
+    "appliance": {"name": "가전·전장·HVAC", "codes": ["066570", "066575"],
+                  "proxies": [("WHR", "월풀", "가전 동일 사이클", 1), ("TT", "트레인", "HVAC·데이터센터 냉각", 1), ("VRT", "버티브", "데이터센터 냉각·전력", 1),
+                              ("XLY", "미국 경기소비재", "미국 소비", 1)],
+                  "macro": {"KRW": 1}},
+    "shipping": {"name": "해운", "codes": ["011200", "028670"],
+                 "proxies": [("ZIM", "짐", "컨테이너 운임 사이클", 1), ("BDRY", "건화물 운임 ETF", "벌크 운임", 1), ("CL=F", "WTI", "연료비", -1)],
+                 "macro": {"KRW": 1}},
+    "utility": {"name": "전력·가스 공기업", "codes": ["015760"],
+                "proxies": [("CL=F", "WTI", "발전 연료비", -1), ("NG=F", "천연가스", "LNG 연료비", -1)],
+                "macro": {"WTI": -1, "KRW": -1}},
     "telecom": {"name": "통신", "codes": ["017670", "030200", "032640"],
                 "proxies": [("VZ", "버라이즌", "통신 방어주", 1), ("^TNX", "미 10년물", "할인율", -1)],
                 "macro": {"US10Y": -1}},
@@ -115,10 +138,13 @@ CHAINS: dict[str, dict] = {
                       "proxies": [("LYV", "라이브네이션", "공연 수요", 1), ("SPOT", "스포티파이", "음원 수요", 1)],
                       "macro": {"KRW": 1}},
 }
-SECTOR_FALLBACK = [("은행", "banks"), ("증권", "banks"), ("보험", "banks"), ("금융", "banks"), ("의약", "bio"), ("제약", "bio"),
+# None = 업종명만으로는 체인을 붙이지 않음 (틀린 체인보다 '판단 보류'가 낫다).
+#  · 기타금융 = 지주사(SK스퀘어·LG·한국앤컴퍼니…) — 은행이 아님
+#  · 기계·장비(농기계·공작기계…)는 전력기기 체인이 아님, 운송·창고(물류·해운)는 항공 체인이 아님
+SECTOR_FALLBACK = [("기타금융", None), ("은행", "banks"), ("증권", "brokers"), ("보험", "banks"), ("금융", "banks"), ("의약", "bio"), ("제약", "bio"),
                    ("화학", "chem"), ("철강", "steel"), ("금속", "nonferrous"), ("통신", "telecom"), ("음식료", "food"), ("식품", "food"),
                    ("오락", "internet"), ("IT 서비스", "internet"), ("전기·전자", "it_hw"), ("반도체", "semi_equip"), ("운송장비", "autos"),
-                   ("기계", "power_grid"), ("전기장비", "power_grid"), ("운송·창고", "airline")]
+                   ("기계", None), ("전기장비", "power_grid"), ("운송·창고", None)]
 FACTORS = {"KOSPI": ("^KS11", "코스피"), "KRW": ("KRW=X", "원/달러(상승=원화 약세)"), "WTI": ("CL=F", "WTI 유가"),
            "US10Y": ("^TNX", "미 10년 금리"), "SOX": ("^SOX", "필라델피아 반도체"), "CU": ("HG=F", "구리"),
            "SPX": ("^GSPC", "S&P500"), "DXY": ("DX-Y.NYB", "달러인덱스")}
@@ -131,7 +157,7 @@ def chain_of(code: str, sector: str | None) -> str | None:
             return k
     for kw, k in SECTOR_FALLBACK:
         if kw in (sector or ""):
-            return k
+            return k   # None 이면 '체인 없음'
     return None
 
 
@@ -217,8 +243,20 @@ def fetch_proxies(max_age_h: float = 20) -> dict:
                 log.info("프록시 %s 상세 실패: %s", t, e)
         out["tickers"][t] = rec
     CACHE.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    _archive("chains", {"asof": out["asof"], "tickers": out["tickers"]})   # 시점 기록 (가격 시계열은 빼고)
     log.info("체인 프록시 %d개", len(out["tickers"]))
     return out
+
+
+def _archive(kind: str, obj: dict) -> None:
+    """매일 덮어쓰는 캐시를 날짜별로 남긴다 (reports/archive/<kind>/YYYY-MM-DD.json, 하루 1개·마지막 실행 기준).
+    나중에 '그날 화면에 떴던 값'으로 점수를 검증하려면 시점 기록이 필요하다."""
+    try:
+        d = REPORT_DIR / "archive" / kind
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{date.today()}.json").write_text(json.dumps(obj, ensure_ascii=False, default=str, separators=(",", ":")), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        log.info("%s 보관 실패: %s", kind, e)
 
 
 def _proxy_signal(rec: dict) -> tuple[float | None, list[str]]:
@@ -422,7 +460,10 @@ def analyst_view(code: str, store: pl.DataFrame | None, rjson: dict) -> dict | N
 
 
 # ───────────── 뉴스 ─────────────
-NEWS_RULES = [   # (패턴, 이벤트, 방향)
+NEWS_RULES = [   # (패턴, 이벤트, 방향) — 첫 번째로 맞는 규칙만 쓰므로 '감소·취소·완화' 같은 반대말 규칙을 먼저 둔다
+    (r"수주\s*(감소|부진|급감|가뭄|절벽|취소|해지|무산)|계약\s*(해지|취소|해제|무산)", "수주 부진·계약 해지", -1),
+    (r"관세\s*(인하|완화|철폐|면제|유예|타결|합의)|관세\s*협상\s*타결", "관세 완화", 1),
+    (r"감산\s*(종료|철회|완화)", "감산 종료", 0),
     (r"가격\s*인상|판가\s*(인상|상승)|가격\s*상승|값\s*(올|상승)|계약가\s*상승", "판가 상승", 1),
     (r"가격\s*(인하|하락)|판가\s*(인하|하락)|값\s*(내|하락)|덤핑", "판가 하락", -1),
     (r"수주|공급\s*계약|계약\s*체결|납품\s*계약|낙찰", "수주·계약", 1),
@@ -461,7 +502,9 @@ def news_events(titles: list[dict], chain: str | None) -> dict:
                 if d:
                     sc.append(d)
                 break
-    return {"n": len(titles), "events": ev[:12], "score": round(sum(sc) / len(sc), 2) if sc else None, "n_scored": len(sc),
+    # 헤드라인 1~2건이 점수를 ±1로 만들지 않게 건수가 적으면 0 쪽으로 줄임 (3건 이상에서 온전히 반영)
+    score = sum(sc) / len(sc) * min(1.0, len(sc) / 3) if sc else None
+    return {"n": len(titles), "events": ev[:12], "score": round(score, 2) if score is not None else None, "n_scored": len(sc),
             "recent": [{"date": x.get("date"), "title": x.get("title", "")[:110], "link": x.get("link")} for x in titles[:8]]}
 
 
@@ -531,7 +574,9 @@ def dart_view(items: list[dict]) -> dict | None:
     ev, sc = [], []
     for x in items[:12]:
         t = (x.get("title") or x.get("report_nm") or "") + " " + (x.get("type") or "")
-        if re.search(r"단일판매|공급계약", t):
+        if re.search(r"해지|취소|해제", t) and re.search(r"단일판매|공급계약", t):
+            ev.append(("공급계약 해지", -1, x))
+        elif re.search(r"단일판매|공급계약", t):
             ev.append(("수주·공급계약", 1, x))
         elif re.search(r"신규시설투자|시설투자", t):
             ev.append(("시설투자", 1, x))
@@ -549,6 +594,7 @@ def dart_view(items: list[dict]) -> dict | None:
 
 
 # ───────────── 종합 ─────────────
+SIG_T = 3.0   # 매크로 '실측 민감도' 인정 기준 (다중검정 보정 대신 보수적 문턱)
 W = {"chain": 0.35, "analyst": 0.25, "news": 0.15, "macro": 0.15, "dart": 0.10}
 
 
@@ -561,7 +607,8 @@ def macro_view(sens: dict | None, moves: dict, prior: dict, mkey: str = "KOSPI")
             continue
         s = (sens or {}).get(k) or {}
         b, tv = s.get("beta"), s.get("t")
-        sig = tv is not None and abs(tv) >= 2
+        # 약 1,000종목 × 7팩터를 한꺼번에 거르므로 |t|≥2 는 우연 통과가 많다 → 3 이상만 '실측'으로 인정
+        sig = tv is not None and abs(tv) >= SIG_T
         pr = prior.get(k)
         if not sig and pr is None:
             continue
@@ -570,11 +617,25 @@ def macro_view(sens: dict | None, moves: dict, prior: dict, mkey: str = "KOSPI")
             rows.append({"factor": k, "name": mv["name"], "r1m": mv["r1m"], "beta": b, "t": tv, "effect": 0,
                          "why": "참고 (방향 가정 없음)"})
             continue
-        r1 = mv["r1m"] if k != "US10Y" else mv["r1m"]
-        eff = max(min(sign * r1 / 0.05, 1), -1)
+        shrink, tag = 1.0, "실측 민감도"
+        if not sig:
+            if b is not None and tv is not None and b * pr < 0 and abs(tv) >= 1:
+                # 업종 가정과 실측 방향이 반대 → 가정으로 덮어쓰지 않음
+                rows.append({"factor": k, "name": mv["name"], "r1m": mv["r1m"], "beta": b, "t": tv, "effect": 0,
+                             "why": "업종 가정과 실측 방향이 반대 → 반영 안 함"})
+                continue
+            shrink, tag = 0.5, "업종 가정(실측 약함 → 절반만)"
+        if k == "US10Y" and mv.get("last"):
+            # 금리는 수준의 %변화가 아니라 bp 변화로 (4.8%→5.04% 는 +24bp, '+5%' 가 아님). 25bp = 만점
+            bp = (mv["last"] - mv["last"] / (1 + mv["r1m"])) * 100
+            eff = max(min(sign * bp / 25, 1), -1) * shrink
+            mv_txt = f"1개월 {bp:+.0f}bp"
+        else:
+            eff = max(min(sign * mv["r1m"] / 0.05, 1), -1) * shrink
+            mv_txt = f"1개월 {mv['r1m']*100:+.1f}%"
         sc.append(eff)
         rows.append({"factor": k, "name": mv["name"], "r1m": mv["r1m"], "beta": b, "t": tv, "effect": round(eff, 2),
-                     "why": ("실측 민감도" if sig else "업종 가정") + f" · 1개월 {mv['r1m']*100:+.1f}%"})
+                     "why": f"{tag} · {mv_txt}"})
     return {"rows": rows, "score": round(sum(sc) / len(sc), 2) if sc else None,
             "beta_mkt": (sens or {}).get("beta_mkt")}
 
@@ -702,6 +763,7 @@ def fetch_us_eps(tickers: list[str], max_age_h: float = 20) -> dict:
             if rec:
                 data[t] = rec
     US_EPS.write_text(json.dumps({"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "data": data}, ensure_ascii=False, default=str), encoding="utf-8")
+    _archive("us_eps", {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "data": data})
     log.info("미장 EPS 추정 %d종목", len(data))
     return data
 
