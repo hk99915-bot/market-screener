@@ -268,7 +268,7 @@ function macroPanel(mk){
 }
 document.addEventListener('click',e=>{ if(e.target.closest('td.mac')) return; const tr=e.target.closest('tr.mvr'); if(!tr) return; const t=tr.querySelector('td[data-x]'); if(!t) return; const r=document.getElementById('mvx-'+t.dataset.x); if(r){ r.classList.toggle('on'); t.textContent=r.classList.contains('on')?'▾':'▸'; }});
 function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이스케이프
-  let t=esc(String(v));
+  let t=esc(String(v)).replace(/&amp;(amp|lt|gt|quot|#39);/g,'&$1;');   // 텔레그램용으로 이미 이스케이프된 &amp; 이중 처리 방지
   t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=&quot;(https?:[^&]*?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank">$2</a>');
   return t.replace(/([+-]\d[\d,]*\.?\d*(?:%|억|조))/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`).replace(/\n/g,'<br>');
 }
