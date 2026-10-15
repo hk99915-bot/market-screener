@@ -1,0 +1,2319 @@
+{
+ "generated_at": "2026-10-15 23:29 KST",
+ "repo": "hk99915-bot/market-screener",
+ "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
+ "areas": {
+  "web": "화면",
+  "workflow": "워크플로",
+  "engine": "엔진",
+  "ops": "운영",
+  "content": "콘텐츠",
+  "tools": "도구",
+  "docs": "문서",
+  "data": "데이터",
+  "etc": "기타"
+ },
+ "first": "2026-10-15",
+ "days": [
+  {
+   "date": "2026-10-15",
+   "total": 303,
+   "work": 188,
+   "auto": 115,
+   "by": {
+    "human": 16,
+    "bot": 53,
+    "agent": 119
+   },
+   "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 95,
+     "items": [
+      {
+       "sha": "49b6eba3",
+       "time": "23:24",
+       "kind": "agent",
+       "summary": "채권 — AI 인프라 신용 감시 — 업종 국지 신용 스트레스 경보",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": [
+        "ai-credit"
+       ]
+      },
+      {
+       "sha": "1ecd9e39",
+       "time": "23:06",
+       "kind": "agent",
+       "summary": "LIFE tab: 가계부·커리어·건강·목표 (pb-private/life/summary.json, 토큰으로 클라이언트에서만 읽음)",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "f728ae84",
+       "time": "23:04",
+       "kind": "agent",
+       "summary": "MY — restore myFetch/myRun accidentally removed with history-selector edit (fixes 'myRun is not defined')",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "5426f9c1",
+       "time": "23:04",
+       "kind": "agent",
+       "summary": "텔레그램 HTML — undo double escaping of &amp; (S&amp;P shown literally)",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "0b1b6cb6",
+       "time": "22:57",
+       "kind": "agent",
+       "summary": "HOME — session-aware US block (intraday/premarket US + US committee summary) — on top during KST 21–07",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "155885fd",
+       "time": "22:40",
+       "kind": "agent",
+       "summary": "백업 예약기 — current timetable; workflows skip late GitHub schedule if a dispatch already ran",
+       "areas": [
+        "web",
+        "workflow"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "e3e983c6",
+       "time": "22:35",
+       "kind": "agent",
+       "summary": "MY 교정 리포트: history selector (pb-private analysis/index.json) + PB 코멘트 section",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "5b6ba684",
+       "time": "22:34",
+       "kind": "agent",
+       "summary": "MY 교정 리포트: render markdown tables as real tables, hide image links",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "5492d5b9",
+       "time": "22:27",
+       "kind": "agent",
+       "summary": "MY 교정 리포트: interactive charts (equity vs KOSPI/SPX counterfactual, money P&L synced, KOSPI with trade markers + click list, monthly/holdi…",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "e58f2a3a",
+       "time": "22:24",
+       "kind": "agent",
+       "summary": "MY — session-only token option (cleared when tab closes)",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "47e8672c",
+       "time": "22:23",
+       "kind": "agent",
+       "summary": "MY — 교정 리포트 패널 — pb-private analysis/latest.json·차트·보고서를 토큰으로 브라우저에서만 표시",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "8d956450",
+       "time": "21:16",
+       "kind": "agent",
+       "summary": "스터디 — STUDY 탭 — 기초체력·약점·TESAT·CFA L1·투운사/금투분 커리큘럼(40모듈), 인적성 연습 32문항(타이머·채점), 오늘의 영어 패널",
+       "areas": [
+        "web",
+        "content",
+        "data"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "99f3825b",
+       "time": "21:05",
+       "kind": "agent",
+       "summary": "채권 — beginner 3-line summary box",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "49655df7",
+       "time": "20:56",
+       "kind": "agent",
+       "summary": "채권 — 채권 탭 — 미국채 곡선·국고채·신용 스프레드·듀레이션 시나리오·주식-채권 상관·포트폴리오 편입 비교·채권 읽는 법",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 7,
+       "tasks": [
+        "ai-credit"
+       ]
+      },
+      {
+       "sha": "e2041a2e",
+       "time": "20:42",
+       "kind": "agent",
+       "summary": "전략 연구소 — 전략 연구소 — 사전 등록 가설 7개 → 공통 하네스(비용 0.25%, 유동성 EW 기준, 비중첩) → Bonferroni 관문 → 등급",
+       "areas": [
+        "web",
+        "workflow",
+        "engine",
+        "data"
+       ],
+       "files": 8,
+       "tasks": [
+        "lab-r2"
+       ]
+      },
+      {
+       "sha": "ef7671dc",
+       "time": "20:26",
+       "kind": "agent",
+       "summary": "운용회의 — 실행 대본 (signals, timed steps, ATR/1%-risk sized non-semi candidates, don'ts); theme cap 40%; max pain demoted",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "e94f1e82",
+       "time": "19:51",
+       "kind": "agent",
+       "summary": "PB 콜 — real-account fit (rules check) and optional 🔥 aggressive bet scored as separate participant",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "c976235a",
+       "time": "19:15",
+       "kind": "agent",
+       "summary": "성적표 — hit rate, avg win/loss, payoff, expectancy per participant; PB plan (target/stop/RR/win rate/EV) in Telegram and web",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "42649df7",
+       "time": "19:08",
+       "kind": "agent",
+       "summary": "엑셀 스킨 — drop green accents (title bar, tabs, checks), neutral LIVE chip, inline accent colors to black/red",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "6e2414bd",
+       "time": "19:06",
+       "kind": "agent",
+       "summary": "엑셀 스킨 — remove text shadows, darker Fib legend",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "4d6aa5f0",
+       "time": "19:05",
+       "kind": "agent",
+       "summary": "Remove grayscale mode; ◐ toggles 기본↔엑셀",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "a0992379",
+       "time": "18:53",
+       "kind": "agent",
+       "summary": "Excel skin (office mode): white grid, Malgun Gothic, ribbon/formula bar, Sheet tabs, light charts; ◐ cycles 기본→엑셀→흑백",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "c8e5f755",
+       "time": "18:23",
+       "kind": "agent",
+       "summary": "US entry duel (미장 진입 타점 대결): run_us at 22:00 KST, pick-us issues, open-entry scoring, tally_by_market",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "d4208b01",
+       "time": "17:58",
+       "kind": "agent",
+       "summary": "종목 상세 — 장중/확정 종가 label; refresh KR details at 15:45 close run",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "edf96d58",
+       "time": "17:54",
+       "kind": "agent",
+       "summary": "MY/HOME: sync holdings from private repo (pb-private) via read-only token stored in browser",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "06554285",
+       "time": "17:39",
+       "kind": "agent",
+       "summary": "PB discretionary call (pb_call workflow) alongside rule call; 3-way scorecard",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "95111924",
+       "time": "17:37",
+       "kind": "agent",
+       "summary": "Entry/exit duel: daily 14:55 PB entry call + Telegram, issue-based picks (pick/exit), stop-loss duel scored at 5d, scorecard UI",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 7,
+       "tasks": []
+      },
+      {
+       "sha": "f28964fe",
+       "time": "17:31",
+       "kind": "agent",
+       "summary": "Committee by session (장전/장중/장후) with archive per session; closing-delta (판단 시점→마감) in home and evening committee",
+       "areas": [
+        "web",
+        "engine",
+        "data",
+        "etc"
+       ],
+       "files": 10,
+       "tasks": []
+      },
+      {
+       "sha": "6c51b4f4",
+       "time": "17:28",
+       "kind": "agent",
+       "summary": "Keep decision-time (14:55) snapshot; close commentary stored separately; decision basis with timestamp in scorecard and committee",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "2cda57a9",
+       "time": "17:24",
+       "kind": "agent",
+       "summary": "Close-aware market commentary; close_kr rewrites home panel with closing values",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "48e715d9",
+       "time": "15:45",
+       "kind": "agent",
+       "summary": "Stealth grayscale mode (toggle + backslash key); indicator results via DBnomics with FRED fallback",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "b6caadba",
+       "time": "15:36",
+       "kind": "agent",
+       "summary": "캘린더 — past events, US indicator results (FRED), daily index moves per day",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "c35f1272",
+       "time": "15:33",
+       "kind": "agent",
+       "summary": "Date-indexed archive for daily brief and committee (KR/US) with web picker; KST dates; options VRP and skew",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 13,
+       "tasks": []
+      },
+      {
+       "sha": "8bd18bd3",
+       "time": "15:28",
+       "kind": "agent",
+       "summary": "Fibonacci + RSI(14) chart overlays, collapsible MY PB input, committee uses KRX index close",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "96343d41",
+       "time": "15:20",
+       "kind": "agent",
+       "summary": "KOSPI200 options positioning (KRX OI, PCR, walls, gamma); PB stance reasoning in committee",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "94841467",
+       "time": "15:15",
+       "kind": "agent",
+       "summary": "미장 운용회의 — build_us, telegram, web KR/US toggle",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "67d72141",
+       "time": "15:09",
+       "kind": "agent",
+       "summary": "공매도 잔고·거래 비중(KRX) 종목 상세·RV·숏스퀴즈 후보, 코스피200 선물·베이시스 실시간 띠, 운용회의 시나리오에 25년 조건부 확률 적용",
+       "areas": [
+        "web",
+        "workflow",
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 11,
+       "tasks": []
+      },
+      {
+       "sha": "48bdbe8c",
+       "time": "15:05",
+       "kind": "agent",
+       "summary": "운용회의: 탑다운·업종 의견·테마 온도·매수 후보/회피·시나리오 3개(1999~ 조건부 확률·전환 신호·행동)·이벤트·검증 현황, 매일 기록·5/20일 채점·브라이어 점수, 저녁 텔레그램",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 9,
+       "tasks": []
+      },
+      {
+       "sha": "72f6c068",
+       "time": "15:02",
+       "kind": "agent",
+       "summary": "판단 성적표를 DAILY 탭 맨 위에도 표시, 모바일 카드형",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "eb570fbf",
+       "time": "15:00",
+       "kind": "agent",
+       "summary": "판단 성적표: 나 vs PB 결정 기록·다음 거래일 가격으로 자동 채점(SIGNALS 탭), 첫 기록 10/15 서킷 레버리지",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 7,
+       "tasks": []
+      },
+      {
+       "sha": "a81f42c4",
+       "time": "14:45",
+       "kind": "agent",
+       "summary": "모멘텀: 수정 안 된 가격 점프·변동성 150% 초과 종목 제외(금호전기 +1314% 같은 왜곡 제거), 차트 크기 복구, 미장 종목명 정리",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "04e7a075",
+       "time": "14:43",
+       "kind": "agent",
+       "summary": "HOME 캘린더를 월간 달력으로(이전·다음 달, 날짜 누르면 그날 일정, 색 범례, 모바일 점 표시)",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "0a88d583",
+       "time": "14:33",
+       "kind": "agent",
+       "summary": "확대·이동 가능한 1년 인터랙티브 차트(Lightweight Charts, 십자선 범례·PSAR·목표/손절선), 트리맵 히트맵(테마 확대·크기 방식·상위 N), 전종목 리포트 매크로 지표 차트 링크",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "c9eb514b",
+       "time": "14:20",
+       "kind": "agent",
+       "summary": "PSAR 데이터가 없으면 화면에서 계산해 점으로 표시",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "36378849",
+       "time": "14:11",
+       "kind": "agent",
+       "summary": "지수·매크로 팝업에 차트 코멘트(추세·모멘텀·위치·변동성·레벨·매크로 해설·이벤트 통계)",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "6bb5efae",
+       "time": "14:09",
+       "kind": "agent",
+       "summary": "차트에 일별 PSAR 점 표시(상승추세 주황·하락추세 보라), ETF 차트도 PSAR·SMA 계산",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "e2d5eb91",
+       "time": "14:04",
+       "kind": "agent",
+       "summary": "RV 동종 비교표(그룹 순위·중앙값)와 MARKET › 히트맵(국장·미장, 1D·5D·20D), 미장 GICS 섹터",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "8562ce43",
+       "time": "13:52",
+       "kind": "agent",
+       "summary": "실적·이벤트 캘린더: FOMC·CPI·고용·PCE, 국내 만기, 빅테크·반도체·국내 대형주 실적일 → HOME 패널·장전 브리핑 D-2·PB 7일 내 보유 관련",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "31b034d8",
+       "time": "13:30",
+       "kind": "agent",
+       "summary": "QUANT › 검증 스터디 탭(급락→반등, 레버리지 하루 매매), 리포트 매크로 해설을 표 밖 목록으로",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "4b6743b9",
+       "time": "13:22",
+       "kind": "agent",
+       "summary": "매크로 바람 점수 일별 기록·코스피 이후 수익률 상관 채점(SIGNALS 탭)",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "73f571fa",
+       "time": "13:12",
+       "kind": "agent",
+       "summary": "미장 종목 이익 드라이버: EPS 추정 30·90일 변화·상하향 건수, 매출 YoY, 공급망 체인, S&P500 대비 매크로 민감도",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "d86289e9",
+       "time": "13:00",
+       "kind": "agent",
+       "summary": "MY PB: 반도체 사이클 쏠림 판정(미국 종목 체인 매핑), 1년 샤프 과대 경고, 목표 변동성 20%, 현실적 25% 헷지 금액",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "11ea5634",
+       "time": "13:00",
+       "kind": "agent",
+       "summary": "MY PB: ETF 미분류 잔여분 이중 계산 제거",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "8bd890ae",
+       "time": "12:54",
+       "kind": "agent",
+       "summary": "HOME — 내 포트폴리오 요약·이벤트(서킷브레이커·사이드카 감지·텔레그램 알림·이후 코스피 통계), 차트 오버레이 켜고 끄기(박스·목표·손절·다음 지지·TP·PSAR), 미등록 티커도 사이드 차트로",
+       "areas": [
+        "web",
+        "workflow",
+        "engine",
+        "data"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "ebfad2c7",
+       "time": "12:41",
+       "kind": "agent",
+       "summary": "헷지안: 분산형 후보(달러·미국채·국고채·금·필수소비재·유틸리티)와 5거래일 수익률 기준 헷지 계산, ETF만 재생성하는 모드",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "e05572aa",
+       "time": "12:38",
+       "kind": "agent",
+       "summary": "MY — 티커는 정확히 일치할 때만 인식(PSI→펩시코 오인 수정), 종목 목록 10분마다 갱신, 검색에 ETF 표시",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "a88d6f9f",
+       "time": "12:34",
+       "kind": "agent",
+       "summary": "ETF 인식(국내 상위 200·헷지 ETF·미국 주요 ETF, 구성종목 look-through)과 MY PB(샤프·소르티노·VaR·베타·위험기여·실질보유·스트레스·최소분산 헷지·전략 비교)",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "5cd0625a",
+       "time": "12:25",
+       "kind": "agent",
+       "summary": "매크로 컨텍스트: 지표별 해설·한국 주식 영향 점수·종합 매크로 바람(리포트·데일리·웹 반영), 금리는 bp 표기",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "02a5e57d",
+       "time": "12:22",
+       "kind": "agent",
+       "summary": "뉴스 이벤트 규칙 확대(실적·수출·고객 투자), 최근 헤드라인 표시",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "0919daf5",
+       "time": "12:21",
+       "kind": "agent",
+       "summary": "지수·매크로 차트: 2년 일봉 OHLCV 캔들·거래량·SMA20/50/200·기간 선택·실시간 마지막 봉, 드라이버/체인 프록시 클릭 이동",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "ef2ef6e9",
+       "time": "12:14",
+       "kind": "agent",
+       "summary": "탭 14개 → 6개 그룹(HOME·MY·MARKET·DAILY·RESEARCH·QUANT) + 하위 탭",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "1e99d4ad",
+       "time": "12:12",
+       "kind": "agent",
+       "summary": "MY 탭: 보유 종목 리스크(베타·코스피 −5% 스트레스·체인 집중·손절선·드라이버·정상화 괴리)",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "af0f9870",
+       "time": "12:09",
+       "kind": "agent",
+       "summary": "시그널 성과 추적(IC·t·분위 스프레드, 기술 시그널 1년 복원)과 SIGNALS·CHAINS 탭",
+       "areas": [
+        "web",
+        "workflow",
+        "engine",
+        "tools"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "5a66b0ad",
+       "time": "12:08",
+       "kind": "agent",
+       "summary": "이익 지속성 드라이버: 공급망 체인(글로벌 피어 EPS 추정·CAPEX·매출), 매크로 민감도, 애널리스트 본문 드라이버, 네이버 뉴스 이벤트, 공시 → 신호 가중 적정가",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "849b55c5",
+       "time": "11:49",
+       "kind": "agent",
+       "summary": "가치평가 3개 시나리오(현재이익·정상화·자산)와 시장 반영 ROE 결론, 일회성 이익 보정, DART 주식 수(자사주 제외·우선주 포함), 6년 재무, 모바일 레이아웃",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "e4cefe34",
+       "time": "11:40",
+       "kind": "agent",
+       "summary": "가치평가 7모델(정상화 RIM 포함)·F-score·듀폰 추가, 재무 분기 계산 벡터화",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "b39869e0",
+       "time": "11:19",
+       "kind": "bot",
+       "summary": "상단 티커 클릭: 지표는 차트, BREADTH 는 해당 시장 화면",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "da79babe",
+       "time": "11:18",
+       "kind": "bot",
+       "summary": "모의 포트폴리오(60/40·리스크패리티·듀얼모멘텀·GTAA·한미로테이션·섹터 롱숏·롱/숏 스트래들) + PORTFOLIO 탭, KR/US FULL 종목 클릭, 미장 검색 인덱스",
+       "areas": [
+        "web",
+        "workflow",
+        "engine",
+        "data"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "a335f119",
+       "time": "11:16",
+       "kind": "bot",
+       "summary": "상단 종목·티커 검색(이름·코드, 방향키·엔터로 상세 열기)",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "28e97bfa",
+       "time": "11:15",
+       "kind": "bot",
+       "summary": "데일리 리서치 브리프: 웹 DAILY 탭, 19:10 텔레그램 발송, 대시보드 갱신 때마다 생성",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "a154af67",
+       "time": "11:14",
+       "kind": "bot",
+       "summary": "리포트 표시: 핵심 뷰 우선, 제목과 같은 논지 숨김, 제목은 원문 링크로, 자동 요약 표시 / 데일리 리서치 브리프 모듈",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "da6a91bc",
+       "time": "11:12",
+       "kind": "bot",
+       "summary": "웹: HOME 장중 패널(수급·프로그램·등락·시총 상위·해석), 브리핑 탭 텔레그램 서식 그대로 표시",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "86050570",
+       "time": "11:11",
+       "kind": "bot",
+       "summary": "리포트 수동 정리 완료 (187건 전체: 핵심 뷰·논지·근거·변수·밸류·톤)",
+       "areas": [
+        "web",
+        "docs"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "cef3c287",
+       "time": "10:57",
+       "kind": "bot",
+       "summary": "미장 재무: SEC EDGAR XBRL companyfacts → 단독 분기(누적 차분·연간−9M), 7일 순환 갱신, 종목 상세 FINANCIALS (SEC_USER_AGENT 필요)",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "8f4050d2",
+       "time": "10:56",
+       "kind": "bot",
+       "summary": "BREADTH 패널 개편: 판정 한 줄(강세/중립/약세 체력 + 단기 흐름), 40/60% 기준선 게이지, 상승/하락·신고가/신저가 분할 막대, 200일선 추이 선",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "5255e1c5",
+       "time": "10:55",
+       "kind": "bot",
+       "summary": "테마 분류: 네이버 테마 구성종목 → 대표 테마 20개 버킷, 리서치 테마별 보기(기본), 종목 상세 테마 표시",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "fecad14b",
+       "time": "10:47",
+       "kind": "bot",
+       "summary": "앱스스크립트 예약 실행기(5분 tick → workflow_dispatch), 시간 밀린 예약 실행은 건너뜀",
+       "areas": [
+        "web",
+        "workflow"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "1c0b2e66",
+       "time": "10:46",
+       "kind": "bot",
+       "summary": "모멘텀: KR·US 현재 순위(12-1·6-1·3M 백분위), 국장 2010~ 백테스트(상장폐지 포함·분할 보정·시장 필터), MOMENTUM 탭",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 7,
+       "tasks": []
+      },
+      {
+       "sha": "e57b35ec",
+       "time": "10:41",
+       "kind": "bot",
+       "summary": "수동 정리 요약(notes/research_manual.json) 우선 적용, 핵심 한 줄 표시",
+       "areas": [
+        "web",
+        "engine",
+        "docs"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "394d3d83",
+       "time": "10:12",
+       "kind": "bot",
+       "summary": "애널리스트 성향·적중률: 한경 작성자 수집, 2년 백필, 60일 초과수익·목표가 도달률·여력 성향, 리포트 옆 표시",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 10,
+       "tasks": []
+      },
+      {
+       "sha": "8e749698",
+       "time": "10:10",
+       "kind": "bot",
+       "summary": "리포트 요약 줄바꿈",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "3e7570a0",
+       "time": "10:09",
+       "kind": "bot",
+       "summary": "리포트 센터장 보고 형식(논지·근거·변수·밸류·톤), 종목별 추세추종 시뮬레이션, 매크로 지표 차트",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "2e053326",
+       "time": "09:46",
+       "kind": "bot",
+       "summary": "종목 상세 재생성 모드(detail_kr), 상세 없을 때 묶음 파일 폴백, 실시간 티커 루프 방식",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "8f147ddb",
+       "time": "09:42",
+       "kind": "bot",
+       "summary": "티커 색상·흐르는 티커, 실행 로그 파일(비밀값 가림)",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "7d94716f",
+       "time": "09:41",
+       "kind": "bot",
+       "summary": "DART 재무제표 수집(주요계정 전 종목 + 전체재무제표 우선 300종목), 단독 분기 시계열, 종목 상세 FINANCIALS",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "f40b5694",
+       "time": "09:39",
+       "kind": "bot",
+       "summary": "전 종목 상세(종목별 파일, 일괄 수급), 리포트 증권사별 요약·핵심 뷰, DART 소음 축소",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 9,
+       "tasks": []
+      },
+      {
+       "sha": "5487aa19",
+       "time": "09:31",
+       "kind": "bot",
+       "summary": "dashboard 모드(알림 없이 웹 데이터만 재생성), 리서치 404 안내 문구",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "b654b03b",
+       "time": "09:30",
+       "kind": "bot",
+       "summary": "DART 공시 수집 (OpenDART, PDF 없음): 분류·주의 플래그, 장전 브리핑·종목 상세·DART 탭",
+       "areas": [
+        "web",
+        "workflow",
+        "engine",
+        "tools"
+       ],
+       "files": 11,
+       "tasks": []
+      },
+      {
+       "sha": "01e63175",
+       "time": "09:23",
+       "kind": "bot",
+       "summary": "리서치 화면: 섹터별·종목별·전체 보기, 기간(7/30/90/180D)·검색, 종목별 리포트 펼치기",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "ec368ab8",
+       "time": "09:21",
+       "kind": "bot",
+       "summary": "지수 준실시간 티커(live.json, 15~30분), 국내 지수 네이버/KRX 보정, FLOWS 최신순, 네이버 캔들 차트",
+       "areas": [
+        "web",
+        "workflow",
+        "engine"
+       ],
+       "files": 7,
+       "tasks": []
+      },
+      {
+       "sha": "bbda4939",
+       "time": "09:18",
+       "kind": "bot",
+       "summary": "LIVE 차트: 국장은 네이버 장중 차트로 (TradingView 위젯이 KRX 미지원해 AAPL로 대체되던 문제)",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "31ed342e",
+       "time": "09:17",
+       "kind": "bot",
+       "summary": "LIVE 차트: 목표가·손절선 수치 바 추가, 수평선 그리기 도구 활성화",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "74989ad4",
+       "time": "09:16",
+       "kind": "bot",
+       "summary": "웹 터미널: LIVE 차트 탭(TradingView) 추가, 중복 상세 코드 제거, LAST ERROR 비공개",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "d70e0d90",
+       "time": "09:06",
+       "kind": "bot",
+       "summary": "GitHub Pages 웹 터미널 추가 (index.html: Apps Script 화면 + 저장소 파일 fetch 심)",
+       "areas": [
+        "web",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "84e19acf",
+       "time": "01:35",
+       "kind": "human",
+       "summary": "Web terminal: dashboard/detail JSON builders + Apps Script terminal UI with stock drawer",
+       "areas": [
+        "web",
+        "engine",
+        "docs",
+        "data"
+       ],
+       "files": 13,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "workflow",
+     "label": "워크플로",
+     "n": 25,
+     "items": [
+      {
+       "sha": "c5480d1c",
+       "time": "21:39",
+       "kind": "agent",
+       "summary": "브리핑 — pick mode by fired cron (not run hour), off-zero US crons, skip if >150min late",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "7c719586",
+       "time": "20:34",
+       "kind": "agent",
+       "summary": "실시간 루프 — survive bash -e (git rebase --abort with no rebase killed the loop after 1 iteration)",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f011bc24",
+       "time": "20:17",
+       "kind": "agent",
+       "summary": "스크리너 — no_send input for verification reruns",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "7616fc84",
+       "time": "20:15",
+       "kind": "agent",
+       "summary": "장 마감 — drop full detail rebuild (40min, ran on yesterday's bars before 16:00); screener save: stash before rebase",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "67efa738",
+       "time": "19:32",
+       "kind": "agent",
+       "summary": "briefing save: stash uncommitted runtime changes before rebase (detail_kr results were silently not pushed)",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9e0f76d6",
+       "time": "19:00",
+       "kind": "agent",
+       "summary": "Weekly self-check (health): consistency, freshness, missing series, calendar expiry, Actions failures; Telegram only on issues",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "bdb401a8",
+       "time": "17:44",
+       "kind": "agent",
+       "summary": "PB discretionary exit calls on holdings (exits payload), issue picks merge into PB-opened exit duels",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "1b75763e",
+       "time": "16:12",
+       "kind": "agent",
+       "summary": "One KOSPI basis: robust live push, 15:45 close refresh (KRX close everywhere), source labels",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "be7f4e19",
+       "time": "13:24",
+       "kind": "agent",
+       "summary": "미장 상세만 조용히 재생성하는 detail_us 모드",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "3c47c8ab",
+       "time": "13:01",
+       "kind": "agent",
+       "summary": "PB 아침 점검: 비공개 시크릿 MY_HOLDINGS·MY_RULES 로 08:50 텔레그램 (손실 한도·반도체 상한·가격 규칙 2일 종가 점검)",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "27f95c9f",
+       "time": "11:22",
+       "kind": "bot",
+       "summary": "screener 저장 단계 푸시 재시도",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "347be32b",
+       "time": "11:20",
+       "kind": "bot",
+       "summary": "briefing 저장 단계: rebase --abort 실패로 step 이 중단되던 문제 수정 (bash -e)",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1431317c",
+       "time": "10:53",
+       "kind": "bot",
+       "summary": "briefing 대기열을 모드별로 분리(장중 브리핑이 다른 요청에 취소되던 문제), 푸시 재시도",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "0bcdb447",
+       "time": "09:34",
+       "kind": "bot",
+       "summary": "dart 모드: 알림 없이 공시 수집 + 웹 데이터 재생성",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "d6debacb",
+       "time": "09:32",
+       "kind": "bot",
+       "summary": "워크플로 저장 단계: 없는 파일이 있으면 git add 전체가 실패하던 문제 수정",
+       "areas": [
+        "workflow"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "5f06973d",
+       "time": "07:44",
+       "kind": "bot",
+       "summary": "US 유니버스를 S&P500∪NDX로, 미장 스크리너를 briefing 스케줄로 이동, 매크로 지표 추가",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools",
+        "docs"
+       ],
+       "files": 8,
+       "tasks": []
+      },
+      {
+       "sha": "cfc6d540",
+       "time": "01:39",
+       "kind": "human",
+       "summary": "Long-history backfill (KR survivorship-free by date, US top-N via yfinance), nightly resumable",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "db3f9fe8",
+       "time": "01:28",
+       "kind": "human",
+       "summary": "예약 — US 21/22/23/04 briefings, US close 07:00, KR premarket 08:50",
+       "areas": [
+        "workflow",
+        "docs"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "c303c535",
+       "time": "01:28",
+       "kind": "human",
+       "summary": "Reports alert once a day at 19:10 KST",
+       "areas": [
+        "workflow",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "7c2f160a",
+       "time": "01:26",
+       "kind": "human",
+       "summary": "Research collector + analytics, KR/US pre/intraday/close briefings, briefing workflow",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools",
+        "docs"
+       ],
+       "files": 10,
+       "tasks": []
+      },
+      {
+       "sha": "c3ecfaa3",
+       "time": "01:10",
+       "kind": "human",
+       "summary": "Accept TELE / TELE_CHAT secret names",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fd76b447",
+       "time": "01:08",
+       "kind": "human",
+       "summary": "Record failure reason to reports/last_error.txt and commit it even on failure",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "7baaf8e0",
+       "time": "01:07",
+       "kind": "human",
+       "summary": "Unbuffered output so errors appear at the end of the log",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "8423d016",
+       "time": "00:46",
+       "kind": "human",
+       "summary": "KRX login env (KRX_ID/KRX_PW) + universe falls back to last business day",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools",
+        "docs"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "aaa5e0d8",
+       "time": "00:38",
+       "kind": "human",
+       "summary": "Initial market screener (KR KRX + US top1500, Telegram)",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools",
+        "docs"
+       ],
+       "files": 16,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 60,
+     "items": [
+      {
+       "sha": "72b2f989",
+       "time": "20:58",
+       "kind": "agent",
+       "summary": "채권 — 헤지 비용 문구를 10년물 이자 대비 비율로, 분배수익률 반올림",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": [
+        "ai-credit"
+       ]
+      },
+      {
+       "sha": "bd88555c",
+       "time": "20:43",
+       "kind": "agent",
+       "summary": "캘린더 — add retail sales/claims, Warsh speech, China 3Q GDP, housing starts; PPI imp 2",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a60ca845",
+       "time": "19:53",
+       "kind": "agent",
+       "summary": "청산 대결 — position sizing (keep fraction) for trims/adds/partial profit-taking",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "731aca4a",
+       "time": "19:37",
+       "kind": "agent",
+       "summary": "Daily brief uses closing flows after close (tagged 마감/잠정); clearer macro-vs-sector wording",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "43ad8fd4",
+       "time": "19:11",
+       "kind": "agent",
+       "summary": "진단 — fix krxfix scoping",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "489281d6",
+       "time": "19:05",
+       "kind": "agent",
+       "summary": "진단 — krxfix mode",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a8b1cf0c",
+       "time": "19:00",
+       "kind": "agent",
+       "summary": "데이터 점검 — check provisional-close fix path",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "39d1ae9c",
+       "time": "18:41",
+       "kind": "agent",
+       "summary": "KR 시세 — replace provisional same-day KRX closes with regular-session close",
+       "areas": [
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "eeed46cb",
+       "time": "18:35",
+       "kind": "agent",
+       "summary": "데이터 점검 — naver minute bars around KRX closing auction",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d30e0cca",
+       "time": "18:33",
+       "kind": "agent",
+       "summary": "데이터 점검 — same-day KR close confirmation (yahoo 1m, naver minute/dealTrend, KRX re-read)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ae09da4d",
+       "time": "18:28",
+       "kind": "agent",
+       "summary": "데이터 점검 — multi-source KR close comparison (KRX bytkr/bydate, Naver fchart/price/chart/sise_day, Yahoo)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "29d5d11d",
+       "time": "18:23",
+       "kind": "agent",
+       "summary": "데이터 점검 — close price cross-check KRX vs Naver/NXT",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "4e938375",
+       "time": "18:11",
+       "kind": "agent",
+       "summary": "매크로 시계열 — keep previous data for indicators that failed to download (US10Y dropped)",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "74886129",
+       "time": "18:05",
+       "kind": "agent",
+       "summary": "Sync live quotes with macro series at write time (24h assets match across ticker/table/charts)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "e1a9436f",
+       "time": "16:13",
+       "kind": "agent",
+       "summary": "add close_kr mode choice",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d049b871",
+       "time": "16:01",
+       "kind": "agent",
+       "summary": "매크로 시계열 — KRX daily bars override Yahoo for KOSPI/KOSDAQ (fixes one-day lag)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1d7ee763",
+       "time": "15:58",
+       "kind": "agent",
+       "summary": "데이터 점검 — KRX vs Yahoo KOSPI dates",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ffd1465b",
+       "time": "15:56",
+       "kind": "agent",
+       "summary": "캘린더 — no results for same-day US releases",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "c6a275ba",
+       "time": "15:51",
+       "kind": "agent",
+       "summary": "경제지표 — BLS API first, reject stale mirror data, match release period to event",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "d655d810",
+       "time": "15:40",
+       "kind": "agent",
+       "summary": "캘린더 — surface FRED errors",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "0a253cc3",
+       "time": "15:12",
+       "kind": "agent",
+       "summary": "KRX 파생 데이터 점검",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "52043217",
+       "time": "15:11",
+       "kind": "agent",
+       "summary": "스터디: S&P500 상태별 20일 결과 분포",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d1532298",
+       "time": "15:09",
+       "kind": "agent",
+       "summary": "운용회의 결론 문구",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "d9ac33ea",
+       "time": "15:09",
+       "kind": "agent",
+       "summary": "f-string 호환성 (3.11)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ced2b72c",
+       "time": "15:03",
+       "kind": "agent",
+       "summary": "파생·공매도 소스 점검",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "762dceaf",
+       "time": "13:55",
+       "kind": "agent",
+       "summary": "캘린더를 장전·리포트 실행 때 자동 갱신",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "49efabb0",
+       "time": "13:53",
+       "kind": "agent",
+       "summary": "캘린더 종목명 정리",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "ad8ea801",
+       "time": "13:41",
+       "kind": "agent",
+       "summary": "장중 브리핑 해석을 문장형 코멘트로: 저점 대비 위치, 매도·매수 주체, 프로그램 차익·비차익 의미, 대형주 대비, 급락일 역사 통계",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "57ae148e",
+       "time": "13:25",
+       "kind": "agent",
+       "summary": "검증 스터디: 코스피 급락일 이후 수익률·조건부·레버리지 ETF 하루 매매 시뮬레이션",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "bfca6f49",
+       "time": "13:21",
+       "kind": "agent",
+       "summary": "테마 대표 분류: 밸류업 등 이벤트성 테마 제외",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "bc463947",
+       "time": "13:16",
+       "kind": "agent",
+       "summary": "테마 목록 마지막 페이지 처리",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "53801489",
+       "time": "13:14",
+       "kind": "agent",
+       "summary": "테마 분류: 네이버 모바일 테마 API로 교체, 강제 갱신 모드",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "21fb5178",
+       "time": "13:12",
+       "kind": "agent",
+       "summary": "테마 소스 점검",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "19af007c",
+       "time": "12:28",
+       "kind": "agent",
+       "summary": "ETF 소스 점검",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "91fa6f18",
+       "time": "12:10",
+       "kind": "agent",
+       "summary": "주식 수 수집: 중간 저장, 1회 1,500종목",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "63c61bef",
+       "time": "12:02",
+       "kind": "agent",
+       "summary": "데이터 소스 점검 모드",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "95e6797b",
+       "time": "11:41",
+       "kind": "agent",
+       "summary": "포트폴리오 데이터 기준일을 실제 마지막 거래일로",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "407dfa76",
+       "time": "11:41",
+       "kind": "agent",
+       "summary": "포트폴리오 cost 필드 복구",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "efec6b09",
+       "time": "11:22",
+       "kind": "bot",
+       "summary": "재무 항목을 재무제표 구분(BS·IS·CF)으로 고정, KRX 일봉은 마지막 저장일을 다시 받아 장중 미완성 봉 덮어쓰기",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "7b155864",
+       "time": "11:19",
+       "kind": "bot",
+       "summary": "매크로 시계열을 dashboard 모드에서도 생성 (티커·매크로 클릭 차트)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f8033ce7",
+       "time": "11:08",
+       "kind": "bot",
+       "summary": "장중 브리핑 확장: 지수 고저·대금, 상승/하락 종목 수, 프로그램 매매, 시총 상위 등락, 규칙 기반 해석, 관심종목 실시간",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "f53a9e57",
+       "time": "11:05",
+       "kind": "bot",
+       "summary": "장중 수급: 네이버 모바일 지수 통합 정보로 대체(PC 페이지 410 종료), 빈 항목 안내 문구",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "0c817d30",
+       "time": "11:03",
+       "kind": "bot",
+       "summary": "장중 수급: 네이버 화면 개편으로 비면 KRX 당일 집계로 대체, 데이터 없음 안내",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "4b9a48c4",
+       "time": "10:59",
+       "kind": "bot",
+       "summary": "PDF 줄 잇기: 줄 끝 한 글자 토막·줄 첫 조사는 붙임 (매 출→매출, 환경 이→환경이)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d907032e",
+       "time": "10:42",
+       "kind": "bot",
+       "summary": "재무제표 수집: 300콜마다 중간 저장, 주요계정은 시총 [금액] 이상만",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5bff916c",
+       "time": "10:41",
+       "kind": "bot",
+       "summary": "리포트 PDF: 본문 칼럼을 왼쪽 정렬선으로 판정 (소제목·숫자 많은 줄 유지)",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "cc04a3c6",
+       "time": "10:28",
+       "kind": "bot",
+       "summary": "리포트 PDF: 본문 칼럼만 추출(사이드바·머리글·표 제외), 리스크 키워드 엄격화, 머리글 문장 제외",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "eb6e6619",
+       "time": "10:18",
+       "kind": "bot",
+       "summary": "PDF 줄바꿈으로 끊긴 단어 붙이기 (재 차 → 재차), 한경 요약 재추출",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "a3932657",
+       "time": "09:59",
+       "kind": "bot",
+       "summary": "리포트 요약: 한경 PDF 1페이지 규칙 기반 추출 (네이버 리서치 페이지 개편 대응)",
+       "areas": [
+        "engine",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "b26471e8",
+       "time": "09:57",
+       "kind": "bot",
+       "summary": "네이버 진단: 응답 전체 저장",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1bf89550",
+       "time": "09:46",
+       "kind": "bot",
+       "summary": "네이버 리서치 리스트 파싱 0건 진단 기록",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "eeaee78a",
+       "time": "09:39",
+       "kind": "bot",
+       "summary": "dashboard 모드에 리포트·요약 수집 포함",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "32b55859",
+       "time": "07:48",
+       "kind": "bot",
+       "summary": "US 유니버스 폴백 분기 수정 (DataFrame 진리값 오류)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "076feb07",
+       "time": "07:46",
+       "kind": "bot",
+       "summary": "US 지수 구성종목 소스 이중화 (S&P500: GitHub 데이터셋, NDX: 나스닥 API) + 실패 사유 기록",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "0eadc9b7",
+       "time": "07:25",
+       "kind": "bot",
+       "summary": "US 유니버스 기본 300종목으로 축소 (실행 시간 단축)",
+       "areas": [
+        "engine",
+        "docs"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "ef8234b2",
+       "time": "01:29",
+       "kind": "human",
+       "summary": "Premarket collects reports silently; 19:10 digest covers all since last digest",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "8ac6c90c",
+       "time": "01:18",
+       "kind": "human",
+       "summary": "Rule-based commentary per stock and market; show section totals",
+       "areas": [
+        "engine"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "aab9e8d7",
+       "time": "01:12",
+       "kind": "human",
+       "summary": "텔레그램 — sanitize token/chat id, auto-swap, clearer format error",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "113ad891",
+       "time": "01:09",
+       "kind": "human",
+       "summary": "Fix yfinance date cast (macro + US prices)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2ac7350a",
+       "time": "01:04",
+       "kind": "human",
+       "summary": "텔레그램 — fail loudly with reason; KST timestamp in report",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 1,
+     "items": [
+      {
+       "sha": "96252425",
+       "time": "23:25",
+       "kind": "agent",
+       "summary": "잠금 — Index.html·Code.gs·build_pages.py (운영 누나, ops-system)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 2,
+     "items": [
+      {
+       "sha": "de0a6a99",
+       "time": "20:53",
+       "kind": "agent",
+       "summary": "설정 — agent worktrees",
+       "areas": [
+        "tools"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "79dfb5e8",
+       "time": "01:39",
+       "kind": "human",
+       "summary": "Commit partial-year backfill progress too",
+       "areas": [
+        "tools"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 1,
+     "items": [
+      {
+       "sha": "54da65d1",
+       "time": "11:03",
+       "kind": "bot",
+       "summary": "리포트 수동 정리 1차 (최근 62건)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 4,
+     "items": [
+      {
+       "sha": "d22a6a67",
+       "time": "20:44",
+       "kind": "agent",
+       "summary": "전략 연구소 — first run log",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "93dea2bb",
+       "time": "15:00",
+       "kind": "agent",
+       "summary": "성적표: 원화 현금 풀베팅 모의 기록 추가",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "e756ed95",
+       "time": "12:25",
+       "kind": "agent",
+       "summary": "매크로 해설 초기 파일",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1cc007a2",
+       "time": "10:47",
+       "kind": "bot",
+       "summary": "모멘텀 백테스트 결과 (국장 2011~2026)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 115,
+    "label": "자동 갱신 115회",
+    "kinds": {
+     "briefing": 77,
+     "live": 25,
+     "report": 9,
+     "backfill": 1,
+     "fin": 1,
+     "health": 1,
+     "pb_call": 1
+    }
+   },
+   "tasks": {
+    "ai-credit": 3,
+    "lab-r2": 1,
+    "ops-system": 1
+   }
+  }
+ ]
+}

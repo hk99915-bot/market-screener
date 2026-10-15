@@ -1,0 +1,50 @@
+name: ops
+
+# 운영 기록 — 매일 23:47 KST. 변경 이력(changelog.json)·작업내역 보고(reports/ops/daily)·최근 24h 워크플로 실행 통계(runs.json)·작업 보드(BOARD.md).
+on:
+  schedule:
+    - cron: "47 14 * * *"   # 23:47 KST (정각은 GitHub 가 자주 건너뜀 → 비정각)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: ops
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # changelog 는 전체 git 이력이 필요
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 워크플로 실행 통계 (최근 24h)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/ops_runs.py --hours 24 || echo "::warning::runs.json 수집 실패"
+
+      - name: 작업 보드 · 변경 이력 · 작업내역 보고
+        run: |
+          python scripts/board.py || echo "::warning::board.json 검증 실패 — BOARD.md 미갱신"
+          python scripts/changelog.py --days 3
+
+      - name: 저장
+        if: always()
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add -A reports/changelog.json reports/ops ops/BOARD.md 2>/dev/null; true
+          git diff --cached --quiet || git commit -m "ops: $(date -u +%FT%H:%M)"
+          git stash -q -u 2>/dev/null || true
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"; true

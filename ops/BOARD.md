@@ -1,0 +1,35 @@
+# 작업 보드
+
+> 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
+
+기준일 2026-10-15 · 작업 10개 · 진행 5 · 검수 2 · 대기 3 · 보류 0 · 완료 0
+
+## 진행 (5)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P1 | `core-weights` | 코어 자산배분 최적 비중 | 자산배분 누나 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
+| P1 | `weekly-scorecard` | 주간 성적표 자동화 | 리스크 누나 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
+| P2 | `lab-r2` | 전략 연구소 2라운드 | 퀀트 누나 | 2026-10-15 | — | `screener/lab.py`<br>`reports/lab.json`<br>`apps-script/Index.html` | — | 1라운드: 사전 등록 가설 7개 · 공통 하네스 · Bonferroni 관문. |
+| P2 | `phone-input` | 폰 빠른 입력 | LIFE 누나 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
+| P2 | `playbook-verify` | 실행 대본 신호 검증 | 백테스트 누나 | 2026-10-15 | — | `reports/studies/playbook_signals.*` | — | 운용회의 실행 대본(신호·시간대별 단계)의 신호가 과거에 실제로 통했는지. |
+
+## 검수 (2)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P1 | `ops-system` | 운영 체계 (작업 보드·잠금·함수 소실 검사·변경 이력·SYSTEM 탭) | 운영 누나 | 2026-10-15 | 2026-10-15 | `ops/*`<br>`scripts/changelog.py`<br>`scripts/board.py`<br>`scripts/lock.py`<br>`scripts/check_functions.py`<br>`scripts/ops_runs.py`<br>`.github/workflows/ops.yml`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py`<br>`reports/changelog.json`<br>`reports/ops/*` | — | Index.html 동시 편집으로 함수가 지워진 회귀(myRun) 재발 방지. 에이전트 규약은 ops/README.md. |
+| P1 | `ai-credit` | AI 인프라 신용 감시 | 채권 누나 | 2026-10-15 | — | `screener/bonds.py`<br>`screener/committee.py`<br>`apps-script/Index.html` | — | 업종 국지 신용 스트레스 경보(정상/주의/경계) → 운용회의 head 한 줄 + 채권 탭 섹션. 10/15 첫 커밋. |
+
+## 대기 (3)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P0 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | 팀장(PB) | — | 2026-10-16 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). |
+| P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | 팀장(PB) | — | 2026-10-16 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. |
+| P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | 팀장(PB) | — | — | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. |
+
+## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
+
+- `apps-script/Index.html` ← `ai-credit`, `ops-system`, `lab-r2` — 편집 전 `ops/locks.json` 잠금 필수
+
