@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 import polars as pl
 
-from . import briefings, context, dashboard, data, data_krx, detail, indicators, news, report, research, scoring, universe
+from . import briefings, context, dashboard, data, data_krx, detail, indicators, live, news, report, research, scoring, universe
 from .config import CFG
 
 log = logging.getLogger("screener")
@@ -67,6 +67,11 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     anom = context.anomalies(last, full)
     macro = data.fetch_macro() if not prices_path else pl.DataFrame(schema={"key": pl.Utf8, "date": pl.Date, "close": pl.Float64})
     mr = context.macro_regime(macro)
+    if not prices_path:
+        try:
+            mr = live.patch_macro(mr)   # 국내 지수는 네이버/KRX 값으로 (야후 오표시 방지)
+        except Exception as e:  # noqa: BLE001
+            log.warning("국내 지수 보정 실패: %s", e)
     regime_line = context.regime_summary(mr)
     nw = news.build_news_context(last) if not prices_path else None
     if market == "KR":
@@ -118,7 +123,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -129,7 +134,9 @@ def main() -> None:
              "premarket_us": briefings.premarket_us, "intraday_us": briefings.intraday_us,
              "reports": briefings.reports_alert}
     try:
-        if a.mode == "screen":
+        if a.mode == "quotes":
+            print(live.snapshot())
+        elif a.mode == "screen":
             if not a.market:
                 ap.error("--market 필요")
             run(a.market, a.live, a.prices, a.no_send)

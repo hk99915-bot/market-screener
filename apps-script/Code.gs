@@ -42,3 +42,7 @@ function getDetail(market) {
 function getMarkdown(name) {
   try { return raw_(`reports/${name}.md`); } catch (e) { return ''; }
 }
+
+function getLive() {
+  try { return raw_('reports/live.json'); } catch (e) { return ''; }
+}

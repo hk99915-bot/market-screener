@@ -12,6 +12,7 @@ SHIM = """<script>
     getData: () => get('reports/dashboard.json').then(t => JSON.parse(t)),
     getDetail: m => get('reports/detail_' + m + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
+    getLive: () => get('reports/live.json').catch(() => ''),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

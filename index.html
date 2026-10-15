@@ -14,6 +14,7 @@
     getData: () => get('reports/dashboard.json').then(t => JSON.parse(t)),
     getDetail: m => get('reports/detail_' + m + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
+    getLive: () => get('reports/live.json').catch(() => ''),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
@@ -84,7 +85,7 @@
   .backdrop{position:fixed;inset:0;background:#0008;z-index:19;display:none}.backdrop.on{display:block}
 .ctab{margin-left:8px}.ctab button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:1px 8px;margin-left:4px;cursor:pointer}.ctab button.on{color:var(--amber);border-color:var(--amber)}
 .lvbar{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;margin-bottom:6px}.lvbar i{font-style:normal;color:var(--muted)}
-.live .nv{width:100%;max-width:700px;background:#fff;display:block}
+.nvtab{margin:0 0 6px 0}.live .nv{width:100%;max-width:700px;background:#fff;display:block}
 .live iframe{width:100%;height:440px;border:0;display:block}.live .lk{margin-top:6px;font-size:12px}.live .lk a{color:var(--blue);margin-right:12px}
 </style>
 </head>
@@ -197,9 +198,12 @@ function mdToHtml(md){
   if(intab) out+='</table>'; return out;
 }
 function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
+let L=null;
+function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D) tape();}).withFailureHandler(()=>{}).getLive();}
 function tape(){
-  const items=[];
-  for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value) items.push(`<b>${d.key}</b> ${num(d.last,2)} ${pct(d.chg1)}`);}
+  const items=[], seen=new Set();
+  if(L&&L.items&&L.items.length){ items.push(`<b class="am">LIVE ${esc(L.updated_at||'')}</b>`); for(const d of L.items){seen.add(d.key); items.push(`<b>${d.key}</b> ${num(d.last,2)} ${pct(d.chg)}`);} }
+  for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value){ if(seen.has(d.key)) continue; seen.add(d.key); items.push(`<b>${d.key}</b> ${num(d.last,2)} ${pct(d.chg1)}`);}}
   const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x) items.push(`<b>${mk} BREADTH</b> 200D↑ ${Math.round(x.pct_above200*100)}% · A/D ${x.adv}/${x.dec}`);}
   const u=[...new Map(items.map(i=>[i,i])).values()];
   $('#tape').innerHTML=u.map(i=>`<span>${i}</span>`).join('')||'<span class="mu">no data</span>';
@@ -231,7 +235,7 @@ function renderDetail(sym,mk,s){
    <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">60D</button><button data-c="live">LIVE</button></span><small id="ch-note">SMA20 · SMA50 · 20D box · TP</small></h2><div class="b" id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div>
    <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
    <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<table style="margin-top:6px"><tr><th class="l">DATE</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th></tr>${rs.items.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${r.link?`<a href="${esc(r.link)}" target="_blank">${num(r.target)||'—'}</a>`:num(r.target)||'—'}</td></tr>`).join('')}</table>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
-   <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${s.flows.map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
+   <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
    <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">
      <div class="k"><div class="t up">▲ BULL</div><div>${esc(sc.bull?.trigger||'')}</div><div>목표 <b class="am">${lvl(sc.bull?.target)}</b> (${sc.bull?.upside!=null?(sc.bull.upside>0?'+':'')+sc.bull.upside.toFixed(1)+'%':'—'}) <span class="mu">${esc(sc.bull?.note||'')}</span></div></div>
      <div class="k"><div class="t">■ BASE</div><div>${esc(sc.base?.note||'')}</div></div>
@@ -243,7 +247,7 @@ function renderDetail(sym,mk,s){
   $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr);
   document.querySelectorAll('.ctab button').forEach(bt=>bt.onclick=()=>{
     document.querySelectorAll('.ctab button').forEach(z=>z.classList.toggle('on',z===bt));
-    if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr,sc,rs,s.close); $('#ch-note').textContent=kr?'네이버 금융 장중 차트 · 1분 갱신':'TradingView · 5분봉 · 왼쪽 도구로 수평선 그리기 가능'; }
+    if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr,sc,rs,s.close); $('#ch-note').textContent=kr?'네이버 금융 · 일봉 캔들(오늘 봉 포함) / 장중 흐름 · 1분 갱신':'TradingView · 5분봉 · 왼쪽 도구로 수평선 그리기 가능'; }
     else { $('#chb').innerHTML='<canvas id="cv" width="960" height="260"></canvas>'; $('#ch-note').textContent='SMA20 · SMA50 · 20D box · TP'; drawChart(s.chart||[],sc,rs,kr); }
   });
 }
@@ -257,10 +261,13 @@ function liveChart(sym,market,kr,sc,rs,close){
   const lv=[['TP',rs?.consensus_tp,'#35d6e6'],['BULL',sc?.bull?.target,'#2fd05a'],['STOP',sc?.bear?.stop,'#ff4b4b'],['PSAR',sc?.bear?.trail,'#ff9a1f']].filter(x=>x[1]);
   const bar=lv.length?`<div class="lvbar">${lv.map(([k,v,c])=>`<span style="color:${c}">${k} <b>${num(v,kr?0:2)}</b>${close?` <i>${((v/close-1)*100>0?'+':'')}${((v/close-1)*100).toFixed(1)}%</i>`:''}</span>`).join('')}<span class="mu">· 종가 ${num(close,kr?0:2)} 기준</span></div>`:'';
   if(kr){
-    const img=()=>`https://ssl.pstatic.net/imgfinance/chart/item/area/day/${encodeURIComponent(sym)}.png?t=${Date.now()}`;
+    window._nvType=window._nvType||'candle/day';
+    const img=()=>`https://ssl.pstatic.net/imgfinance/chart/item/${window._nvType}/${encodeURIComponent(sym)}.png?t=${Date.now()}`;
+    window._nvImg=img;
     clearInterval(window._liveT);
     window._liveT=setInterval(()=>{const el=document.getElementById('nvimg'); if(!el){clearInterval(window._liveT);return;} el.src=img();},60000);
-    return `${bar}<div class="live"><img id="nvimg" class="nv" src="${img()}" alt="네이버 장중 차트" onerror="this.outerHTML='<div class=&quot;mu&quot;>네이버 차트를 불러오지 못했습니다. 아래 링크로 보세요.</div>'"><div class="lk">${links.join('')}<span class="mu">국장 장중 차트: 네이버 금융 · 1분마다 갱신</span></div></div>`;
+    const tb=[['candle/day','일봉 캔들'],['area/day','장중 흐름']].map(([t,l])=>`<button data-nv="${t}" class="${window._nvType===t?'on':''}" onclick="window._nvType=this.dataset.nv;document.querySelectorAll('[data-nv]').forEach(z=>z.classList.toggle('on',z===this));const el=document.getElementById('nvimg');if(el)el.src=window._nvImg()">${l}</button>`).join('');
+    return `${bar}<div class="live"><div class="ctab nvtab">${tb}</div><img id="nvimg" class="nv" src="${img()}" alt="네이버 장중 차트" onerror="this.outerHTML='<div class=&quot;mu&quot;>네이버 차트를 불러오지 못했습니다. 아래 링크로 보세요.</div>'"><div class="lk">${links.join('')}<span class="mu">네이버 금융 차트 · 1분마다 갱신</span></div></div>`;
   }
   return `${bar}<div class="live"><iframe src="${src}" loading="lazy" allowfullscreen></iframe><div class="lk">${links.join('')}<span class="mu">차트가 비어 있으면 위 링크로 보세요</span></div></div>`;
 }
@@ -288,7 +295,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.que
 function load(){
   google.script.run.withSuccessHandler(d=>{D=d;render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
 }
-load(); setInterval(load, 5*60*1000);
+load(); loadLive(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000);
 </script>
 </body>
 </html>
