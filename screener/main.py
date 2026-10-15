@@ -353,6 +353,12 @@ def main() -> None:
                 ap.error("--market 필요")
             run(a.market, a.live, a.prices, a.no_send)
         else:
+            if a.mode in ("premarket_kr", "reports"):   # 캘린더는 하루 두 번 갱신 (장전 브리핑 D-2 에 쓰임)
+                try:
+                    from . import calendar_ev
+                    calendar_ev.build()
+                except Exception as e:  # noqa: BLE001
+                    log.warning("캘린더 실패: %s", e)
             out = modes[a.mode](send=not a.no_send)
             print(out)
             if a.mode == "premarket_kr" and not a.no_send:
