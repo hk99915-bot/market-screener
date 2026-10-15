@@ -131,6 +131,9 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 .srch input:focus{outline:none;border-color:var(--amber)}#sres{position:absolute;top:100%;left:0;right:0;background:#0b0b0b;border:1px solid var(--line);z-index:50;display:none;max-height:360px;overflow:auto}
 #sres div{padding:4px 8px;cursor:pointer;font-size:12px}#sres div.on,#sres div:hover{background:#1a1a1a;color:var(--amber)}#sres i{font-style:normal;color:var(--muted);margin-left:6px}
 @media (max-width:760px){.srch input{width:150px}}
+.subtabs{display:none;gap:4px;padding:6px 8px 0;overflow-x:auto;scrollbar-width:none}.subtabs.on{display:flex}.subtabs::-webkit-scrollbar{display:none}
+.subtabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:12.5px;padding:4px 10px;cursor:pointer;letter-spacing:.04em}
+.subtabs button.on{color:var(--amber);border-bottom-color:var(--amber)}
 /* ── 모바일 ── */
 html,body{overflow-x:hidden}
 .clock,#gen{white-space:nowrap}
@@ -172,16 +175,12 @@ html,body{overflow-x:hidden}
   <span class="mu" id="gen"></span>
   <div class="srch"><input id="sq" placeholder="종목·티커 검색 (예: 삼성전자, 005930, NVDA)" autocomplete="off"><div id="sres"></div></div>
   <div class="tabs">
-    <button class="on" data-v="home">HOME</button><button data-v="my">MY</button>
-    <button data-v="kr">KR</button>
-    <button data-v="us">US</button>
-    <button data-v="daily">DAILY</button><button data-v="rep">RESEARCH</button><button data-v="dart">DART</button><button data-v="mom">MOMENTUM</button><button data-v="pf">PORTFOLIO</button><button data-v="chain">CHAINS</button><button data-v="sig">SIGNALS</button>
-    <button data-v="brief">BRIEFS</button>
-    <button data-v="mdkr">KR FULL</button>
-    <button data-v="mdus">US FULL</button>
+    <button class="on" data-g="home">HOME</button><button data-g="my">MY</button><button data-g="mkt">MARKET</button>
+    <button data-g="daily">DAILY</button><button data-g="res">RESEARCH</button><button data-g="quant">QUANT</button>
   </div>
 </div>
 <div class="tape" id="tape"></div>
+<div class="subtabs" id="subt"></div>
 <div id="root"><div class="load">LOADING …</div></div>
 <div class="backdrop" id="bd"></div>
 <div class="drawer" id="dr"><div class="hd"><b id="dr-t">—</b><span id="dr-s" class="mu"></span><span class="x" id="dr-x">ESC ✕</span></div><div id="dr-b"></div></div>
@@ -686,7 +685,7 @@ function openMacro(key){
 document.addEventListener('click',e=>{const td=e.target.closest('td.mac'); if(td) openMacro(td.dataset.key);
   const ti=e.target.closest('.tape .ti'); if(!ti) return;
   if(ti.dataset.key) openMacro(ti.dataset.key);
-  else if(ti.dataset.view){ const b=document.querySelector(`.tabs button[data-v="${ti.dataset.view}"]`); if(b) b.click(); } });
+  else if(ti.dataset.view){ setView(ti.dataset.view); } });
 function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
 $('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
 document.addEventListener('click',e=>{const td=e.target.closest('td.sym,span.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
@@ -760,7 +759,21 @@ function drawChart(ch,sc,rs,kr){
     if(i%10===0){x.fillStyle='#777';x.fillText(c.d,px-20,H-padB+26);} });
 }
 
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');view=b.dataset.v;render();});
+const GROUPS={home:[['home','HOME']],my:[['my','MY']],
+  mkt:[['kr','KR'],['us','US'],['mdkr','KR 전종목'],['mdus','US 전종목']],
+  daily:[['daily','데일리 리포트'],['brief','브리핑 기록']],
+  res:[['rep','리서치'],['dart','공시']],
+  quant:[['chain','공급망'],['sig','시그널 검증'],['mom','모멘텀'],['pf','모의 포트폴리오']]};
+const LASTV={}; let GRP='home';
+function groupOf(v){ for(const [g,a] of Object.entries(GROUPS)) if(a.some(x=>x[0]===v)) return g; return 'home'; }
+function setView(v){ GRP=groupOf(v); LASTV[GRP]=v; view=v;
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.g===GRP));
+  const sub=GROUPS[GRP], st=$('#subt');
+  st.classList.toggle('on',sub.length>1);
+  st.innerHTML=sub.length>1?sub.map(([k,n])=>`<button data-v="${k}" class="${k===v?'on':''}">${n}</button>`).join(''):'';
+  st.querySelectorAll('button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+  render(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const g=b.dataset.g; setView(LASTV[g]||GROUPS[g][0][0]);});
 function load(){
   google.script.run.withSuccessHandler(d=>{D=d;render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
 }
