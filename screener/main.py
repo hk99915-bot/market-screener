@@ -214,7 +214,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -246,6 +246,9 @@ def main() -> None:
                 print("SEC", sec.update(us))
             except Exception as e:  # noqa: BLE001
                 log.warning("SEC 재무 실패: %s", e)
+        elif a.mode == "portfolios":  # 모의 포트폴리오 (ETF·지수, 2011~)
+            from . import portfolios
+            portfolios.run()
         elif a.mode == "momentum":    # 모멘텀 백테스트(국장 2010~)
             from . import momentum
             momentum.backtest_kr()

@@ -32,7 +32,8 @@ jobs:
         run: |
           python -m screener.main --mode fin --no-send || true
           python -m screener.main --mode analysts --no-send || true
-          python -m screener.main --mode momentum --no-send
+          python -m screener.main --mode momentum --no-send || true
+          python -m screener.main --mode portfolios --no-send
       - name: 저장
         if: always()
         run: |

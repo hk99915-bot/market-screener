@@ -109,7 +109,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
     <button class="on" data-v="home">HOME</button>
     <button data-v="kr">KR</button>
     <button data-v="us">US</button>
-    <button data-v="daily">DAILY</button><button data-v="rep">RESEARCH</button><button data-v="dart">DART</button><button data-v="mom">MOMENTUM</button>
+    <button data-v="daily">DAILY</button><button data-v="rep">RESEARCH</button><button data-v="dart">DART</button><button data-v="mom">MOMENTUM</button><button data-v="pf">PORTFOLIO</button>
     <button data-v="brief">BRIEFS</button>
     <button data-v="mdkr">KR FULL</button>
     <button data-v="mdus">US FULL</button>
@@ -261,6 +261,28 @@ function dailyView(){
    <div class="p c6"><h2>5. 주의 공시<small>최근 2일 희석·주의</small></h2><div class="b">${(o.disclosures||[]).length?discTable(o.disclosures,true):'<div class="mu">—</div>'}</div></div>
   </div>`;
 }
+let PF=null, PFSEL=null;
+function pfView(){
+  if(PF===null){ PF=false; google.script.run.withSuccessHandler(t=>{try{PF=JSON.parse(t);}catch(e){PF={};} if(view==='pf') render();}).withFailureHandler(()=>{PF={}; if(view==='pf') render();}).getPortfolios(); return '<div class="load">LOADING …</div>'; }
+  if(!PF||!PF.strategies) return '<div class="mu" style="padding:16px">모의 포트폴리오 결과가 아직 없습니다 (야간 실행 때 생성)</div>';
+  const S=PF.strategies, P=x=>x==null?'—':pct(x,1);
+  const rows=S.map((s,i)=>`<tr class="pfr" data-i="${i}" style="cursor:pointer"><td class="l am">${esc(s.name)}</td><td>${P(s.stats.cagr)}</td><td class="mu">${s.stats.vol!=null?(s.stats.vol*100).toFixed(0)+'%':'—'}</td><td>${s.stats.sharpe??'—'}</td><td class="dn">${s.stats.mdd!=null?(s.stats.mdd*100).toFixed(0)+'%':'—'}</td><td class="dn">${P(s.stats.worst_month)}</td><td class="l">${Object.entries(s.now).map(([k,v])=>`${esc(k)} ${(v*100).toFixed(0)}%`).join(' · ')}${s.note?`<div class="mu">${esc(s.note)}</div>`:''}</td></tr>`).join('');
+  setTimeout(()=>{document.querySelectorAll('tr.pfr').forEach(tr=>tr.onclick=()=>{PFSEL=+tr.dataset.i; drawPf();}); drawPf();},0);
+  const c=PF.corr||{}; const corr=(c.matrix||[]).length?`<table><tr><th></th>${c.names.map(n=>`<th>${esc(n.slice(0,6))}</th>`).join('')}</tr>${c.matrix.map((r,i)=>`<tr><td class="l am">${esc(c.names[i])}</td>${r.map(v=>`<td class="${v>0.7?'dn':v<0?'up':''}">${v.toFixed(2)}</td>`).join('')}</tr>`).join('')}</table>`:'';
+  return `<div class="grid"><div class="p c12"><h2>MODEL PORTFOLIOS<small>${esc(PF.asof)} · 기준 ${esc(PF.base)} · 월말 리밸런싱 · 비용 ${(PF.cost*100).toFixed(1)}% · 데이터 ~${esc(PF.data_to)}</small></h2><div class="b">
+     <table><tr><th class="l">전략</th><th>CAGR</th><th>변동성</th><th>샤프</th><th>MDD</th><th>최악의 달</th><th class="l">현재 목표 비중</th></tr>${rows}</table>
+     <canvas id="pfc" width="960" height="280" style="margin-top:10px"></canvas>
+     <div class="mu" style="margin-top:6px">행을 누르면 그 전략을 굵게 표시 · 로그 스케일 · 과거 성과이며 미래를 보장하지 않음 · 스트래들은 VIX를 내재변동성으로 쓴 블랙숄즈 모형가</div></div></div>
+   <div class="p c12"><h2>CORRELATION<small>전략 간 월간 수익률 상관 (낮을수록 섞을 때 분산 효과)</small></h2><div class="b" style="overflow:auto">${corr}</div></div></div>`;
+}
+function drawPf(){ const cv=$('#pfc'); if(!cv||!PF||!PF.strategies) return; const W=cv.width=cv.clientWidth*2,H=cv.height=560,x=cv.getContext('2d'),pl=70,pr=200,pt=14,pb=40;
+  const S=PF.strategies.filter(s=>s.curve&&s.curve.length), all=S.flatMap(s=>s.curve.map(r=>Math.log(r[1]))), lo=Math.min(...all), hi=Math.max(...all);
+  const n=Math.max(...S.map(s=>s.curve.length)), X=i=>pl+(W-pl-pr)*i/(n-1), Y=v=>pt+(hi-Math.log(v))/((hi-lo)||1)*(H-pt-pb);
+  const cols=['#ff9a1f','#4aa3ff','#2fd05a','#c77dff','#35d6e6','#ff4b4b','#e8e8e8','#9a5f14'];
+  x.fillStyle='#050505';x.fillRect(0,0,W,H);x.font='20px monospace';
+  [0.5,1,2,4,8].forEach(v=>{const lv=Math.log(v); if(lv<lo-0.05||lv>hi+0.05) return; const y=Y(v);x.strokeStyle='#1c1c1c';x.beginPath();x.moveTo(pl,y);x.lineTo(W-pr,y);x.stroke();x.fillStyle='#777';x.fillText('x'+v,6,y+7);});
+  S.forEach((s,k)=>{const off=n-s.curve.length, sel=PFSEL===PF.strategies.indexOf(s); x.strokeStyle=cols[k%cols.length]; x.globalAlpha=PFSEL==null||sel?1:0.25; x.lineWidth=sel?5:2.5; x.beginPath(); s.curve.forEach((r,i)=>i?x.lineTo(X(i+off),Y(r[1])):x.moveTo(X(i+off),Y(r[1]))); x.stroke(); x.globalAlpha=1; x.fillStyle=cols[k%cols.length]; x.fillText(s.name,W-pr+10,30+k*26);});
+  const c0=S[0].curve; x.fillStyle='#777'; for(let i=0;i<c0.length;i+=24) x.fillText(c0[i][0].slice(0,4),X(i+n-c0.length)-20,H-12); }
 let MO={}, MBT=null;
 function momView(){
   const need=['KR','US'].filter(m=>MO[m]===undefined);
@@ -375,13 +397,15 @@ function briefView(){
   let h='<div class="grid">'; for(const k of keys) h+=pre(k,k.toUpperCase().replace('_',' ')); return h+'</div>';
 }
 function mdView(name){
-  google.script.run.withSuccessHandler(md=>{$('#root').innerHTML=`<div class="md">${mdToHtml(md)}</div>`;}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">${esc(e.message)}</div>`;}).getMarkdown(name);
+  const mk=/_US$/.test(name)?'US':/_KR$/.test(name)?'KR':null;
+  google.script.run.withSuccessHandler(md=>{$('#root').innerHTML=`<div class="md">${mdToHtml(md,mk)}</div>`;}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">${esc(e.message)}</div>`;}).getMarkdown(name);
   return '<div class="load">LOADING …</div>';
 }
-function mdToHtml(md){
+function mdToHtml(md,mk){
   const lines=md.split('\n'); let out='',intab=false;
+  const symCell=c=>{const t=c.trim(); return mk&&(/^[0-9A-Z]{6}$/.test(t)&&mk==='KR'||/^[A-Z][A-Z.\-]{0,5}$/.test(t)&&mk==='US')?`<td class="l am sym" data-sym="${esc(t)}" data-mk="${mk}">${esc(t)}</td>`:`<td class="l">${inline(t)}</td>`;};
   for(const l of lines){
-    if(l.startsWith('|')){ if(/^\|[-| ]+\|$/.test(l.trim())) continue; const cells=l.split('|').slice(1,-1); if(!intab){out+='<table>';intab=true;out+='<tr>'+cells.map(c=>`<th class="l">${esc(c.trim())}</th>`).join('')+'</tr>';} else out+='<tr>'+cells.map(c=>`<td class="l">${inline(c.trim())}</td>`).join('')+'</tr>'; continue; }
+    if(l.startsWith('|')){ if(/^\|[-| ]+\|$/.test(l.trim())) continue; const cells=l.split('|').slice(1,-1); if(!intab){out+='<table>';intab=true;out+='<tr>'+cells.map(c=>`<th class="l">${esc(c.trim())}</th>`).join('')+'</tr>';} else out+='<tr>'+cells.map((c,ci)=>ci===0?symCell(c):`<td class="l">${inline(c.trim())}</td>`).join('')+'</tr>'; continue; }
     if(intab){out+='</table>';intab=false;}
     if(l.startsWith('# ')) out+=`<h1>${esc(l.slice(2))}</h1>`; else if(l.startsWith('## ')) out+=`<h2>${esc(l.slice(3))}</h2>`;
     else if(l.startsWith('- ')) out+=`<div>• ${inline(l.slice(2))}</div>`; else if(l.trim()) out+=`<div>${inline(l)}</div>`;
@@ -410,7 +434,7 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||'');
   tape();
   const v=view;
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
