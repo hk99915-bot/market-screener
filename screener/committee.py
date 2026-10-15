@@ -305,6 +305,13 @@ def build(session: str = "장후") -> dict:
     _acl = _ai_credit_line()
     if _acl:
         head.append(_acl)
+    try:   # 일본: 닛케이·일본 피어 그룹·엔 캐리 — 규칙에 걸릴 때만 한 줄
+        from . import japan
+        _jl = japan.committee_line()
+        if _jl:
+            head.append(_jl)
+    except Exception as e:  # noqa: BLE001
+        log.info("일본 줄 실패: %s", e)
     der = {}
     try:
         from . import derivs

@@ -19,7 +19,7 @@ KST = ZoneInfo("Asia/Seoul")
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                     "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"}
 KR_KEYS = ("KOSPI", "KOSDAQ")
-ORDER = ["KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "VIX", "US10Y", "DXY", "USDKRW", "USDJPY", "WTI", "GOLD", "BTC"]
+ORDER = ["KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "VIX", "US10Y", "DXY", "USDKRW", "USDJPY", "NIKKEI", "TOPIX", "WTI", "GOLD", "BTC"]
 
 
 def _num(x) -> float:
@@ -97,6 +97,14 @@ def snapshot() -> dict:
     except Exception as e:  # noqa: BLE001
         log.warning("야후 일괄 실패: %s", e)
     items = [{"key": k, **q[k]} for k in ORDER if k in q]
+    try:   # 일본 10년 금리 (재무성 일별 CSV, japan.py 가 갱신) — 야후에 없어서 저장값을 붙임
+        jg = (json.loads((REPORT_DIR / "japan.json").read_text(encoding="utf-8")).get("index") or {}).get("JGB10Y") or {}
+        if jg.get("last") and (date.today() - date.fromisoformat(jg["date"])).days <= 5:
+            prev = jg["last"] - (jg.get("d1bp") or 0) / 100
+            i = next((n + 1 for n, x in enumerate(items) if x["key"] == "US10Y"), len(items))
+            items.insert(i, {"key": "JGB10Y", "last": jg["last"], "chg": (jg["last"] / prev - 1) if prev else 0.0, "src": jg.get("src")})
+    except Exception:  # noqa: BLE001
+        pass
     try:   # 코스피200 선물·베이시스 (선물 − 현물). 큰 마이너스 = 선물 투매(백워데이션), 공포 지표
         import requests as _rq
         ua = {"User-Agent": "Mozilla/5.0"}

@@ -37,6 +37,7 @@ class Cfg:
         "WTI": "CL=F", "US10Y": "^TNX", "USDJPY": "JPY=X", "USDKRW": "KRW=X",
         "DXY": "DX-Y.NYB", "VIX": "^VIX", "SPX": "^GSPC", "KOSPI": "^KS11", "KOSDAQ": "^KQ11",
         "NASDAQ": "^IXIC", "RUT": "^RUT", "GOLD": "GC=F", "BTC": "BTC-USD",
+        "NIKKEI": "^N225", "TOPIX": "^TOPX",   # 일본 (도쿄도 09:00 KST 개장) — japan.py
     })
     telegram_token: str = os.environ.get("TELEGRAM_TOKEN", "")
     telegram_chat: str = os.environ.get("TELEGRAM_CHAT_ID", "")

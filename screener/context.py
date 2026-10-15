@@ -63,7 +63,7 @@ def macro_regime(macro: pl.DataFrame) -> list[dict]:
         }
         d["regime"] = "상승" if d["vs_sma50"] > 0.02 else "하락" if d["vs_sma50"] < -0.02 else "중립"
         out.append(d)
-    order = ["KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "VIX", "US10Y", "DXY", "USDKRW", "USDJPY", "WTI", "GOLD", "BTC"]
+    order = ["KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "VIX", "US10Y", "DXY", "USDKRW", "USDJPY", "NIKKEI", "TOPIX", "WTI", "GOLD", "BTC"]
     out.sort(key=lambda d: order.index(d["key"]) if d["key"] in order else 99)
     return out
 

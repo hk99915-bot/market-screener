@@ -12,11 +12,11 @@ import statistics as st
 from .config import REPORT_DIR
 
 log = logging.getLogger(__name__)
-RATE = {"US10Y"}
-INDEX = {"KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT"}
+RATE = {"US10Y", "JGB10Y"}
+INDEX = {"KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "NIKKEI", "TOPIX"}
 NAME = {"KOSPI": "코스피", "KOSDAQ": "코스닥", "SPX": "S&P500", "NASDAQ": "나스닥", "RUT": "러셀2000(미 중소형)",
         "VIX": "VIX(미 변동성)", "US10Y": "미 10년 금리", "DXY": "달러인덱스", "USDKRW": "원/달러", "USDJPY": "엔/달러",
-        "WTI": "WTI 유가", "GOLD": "금", "BTC": "비트코인"}
+        "WTI": "WTI 유가", "GOLD": "금", "BTC": "비트코인", "NIKKEI": "닛케이225", "TOPIX": "TOPIX(일본 전체)", "JGB10Y": "일본 10년 금리"}
 WHAT = {
     "KOSPI": "한국 대형주. 반도체 2개 종목 비중이 커서 메모리 업황과 외국인 수급에 크게 흔들린다.",
     "KOSDAQ": "한국 중소형·성장주. 개인 비중이 높고 금리·바이오·2차전지 심리에 민감.",
@@ -31,6 +31,9 @@ WHAT = {
     "WTI": "국제 유가. 오르면 정유·조선(해양) +, 항공·화학·운송 −, 물가→금리 경로로 시장 전체엔 부담.",
     "GOLD": "실질금리 하락·위험 회피·달러 불신 때 오른다. 주식과 같이 빠지면 현금화(디레버리징) 신호.",
     "BTC": "가장 투기적인 위험자산. 유동성·위험 선호의 선행 지표로 쓰인다.",
+    "NIKKEI": "일본 대형 225종목(가격가중 → 도쿄일렉트론·어드반테스트 같은 반도체 비중 큼). 서울과 같은 9시 개장이라 한국 반도체와 실시간으로 같이 움직인다.",
+    "TOPIX": "도쿄 프라임 전 종목 시가총액 가중. 닛케이보다 은행·내수 비중이 커서 '일본 경제 전체' 온도계.",
+    "JGB10Y": "일본 10년 국채 금리. 오르면 일본 자금이 해외에서 본국으로 돌아갈 유인 → 엔 강세·세계 채권/주식 매도 압력.",
 }
 
 
@@ -101,6 +104,10 @@ def explain(key: str, s: dict, all_: dict) -> tuple[str, float | None]:
         return (f"{s['last']:.2f}% = {lvl}. 1일 {bp1:+.0f}bp, 20일 {bp20:+.0f}bp. 1년 중 {s['pct_1y']*100:.0f}번째 백분위."
                 + (" 금리가 빠르게 오르는 중 → 성장주·고PER 주식과 신흥국에 역풍." if bp20 > 20 else
                    " 금리 하락 → 밸류에이션 부담 완화." if bp20 < -20 else "")), round(max(min(sc, 1), -1), 2)
+    if key == "JGB10Y":   # 점수 제외 — 표시·해설만 (japan.py 가 재무성 CSV 로 채움)
+        bp20 = (s["d20"] or 0) * 100
+        return (f"{s['last']:.2f}%. 1일 {(s['d1'] or 0)*100:+.0f}bp, 20일 {bp20:+.0f}bp."
+                + (" 일본 금리 급등 → 엔 강세·일본 자금 본국 회귀 압력 (위험자산 부담)." if bp20 > 15 else "")), None
     if key == "DXY":
         sc = max(min(-(s["chg20"] or 0) / 0.03, 1), -1) * 0.6
         return (f"20일 {_p(s['chg20'])}{unusual}. " + ("달러 강세 → 신흥국 자금 이탈 압력." if (s["chg20"] or 0) > 0.015 else
@@ -132,7 +139,7 @@ def explain(key: str, s: dict, all_: dict) -> tuple[str, float | None]:
 
 
 W = {"SPX": 1.0, "NASDAQ": 1.0, "RUT": 0.5, "VIX": 1.0, "US10Y": 1.0, "DXY": 0.7, "USDKRW": 1.0, "USDJPY": 0.3, "WTI": 0.5, "GOLD": 0.4, "BTC": 0.3}
-ORDER = ["KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "VIX", "US10Y", "DXY", "USDKRW", "USDJPY", "WTI", "GOLD", "BTC"]
+ORDER = ["KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "NIKKEI", "TOPIX", "VIX", "US10Y", "JGB10Y", "DXY", "USDKRW", "USDJPY", "WTI", "GOLD", "BTC"]
 
 
 def build() -> dict:

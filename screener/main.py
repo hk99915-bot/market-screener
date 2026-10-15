@@ -297,7 +297,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -391,6 +391,11 @@ def main() -> None:
                     derivs.build()
                 except Exception as e:  # noqa: BLE001
                     log.warning("옵션 포지션 실패: %s", e)
+                try:   # 일본 (도쿄 15:30 마감 → 같은 날 반영)
+                    from . import japan
+                    japan.build()
+                except Exception as e:  # noqa: BLE001
+                    log.warning("일본 실패: %s", e)
                 committee.build("장후")
                 calendar_ev.build()
             except Exception as e:  # noqa: BLE001
@@ -430,6 +435,9 @@ def main() -> None:
         elif a.mode == "calendar":     # 실적·이벤트 캘린더
             from . import calendar_ev
             print(len(calendar_ev.build()["events"]))
+        elif a.mode == "japan":        # 일본 시장 (닛케이·TOPIX·JGB·엔 캐리 + 일본 피어 그룹) → reports/japan.json
+            from . import japan
+            print(japan.summary(japan.build()))
         elif a.mode == "bonds":        # 채권 화면 (미국채 곡선·국고채·신용 스프레드·채권 ETF)
             from . import bonds
             print(bonds.summary(bonds.build()))
@@ -525,6 +533,12 @@ def main() -> None:
                         send_telegram(committee.telegram_text_us(ou))
                 except Exception as e:  # noqa: BLE001
                     log.warning("운용회의 실패: %s", e)
+            if a.mode == "premarket_kr":   # 일본 (전일 도쿄 마감 기준) — 운용회의 한 줄에 쓰임
+                try:
+                    from . import japan
+                    japan.build()
+                except Exception as e:  # noqa: BLE001
+                    log.warning("일본 실패: %s", e)
             if a.mode in ("premarket_kr", "intraday_kr"):   # 장전·장중 운용회의 (웹 기록용, 텔레그램은 저녁 회의만)
                 try:
                     from . import committee
