@@ -2,18 +2,21 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 20개 · 진행 1 · 검수 2 · 대기 7 · 보류 0 · 완료 10
+기준일 2026-10-16 · 작업 23개 · 진행 2 · 검수 4 · 대기 7 · 보류 0 · 완료 10
 
-## 진행 (1)
+## 진행 (2)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
+| P1 | `earn-brief-pb` | 보유 종목 실적 브리프 (비공개) | 애널 | 2026-10-16 | 2026-10-16 | private 전용 | — |  |
 | P1 | `deriv-hist` | 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필 | 파생 | 2026-10-16 | 2026-10-20 | `screener/deriv_hist.py`<br>`data/deriv/*`<br>`.github/workflows/deriv_hist.yml` | — | 검증의 전제. 라이브 화면·텔레그램 추가 없음. |
 
-## 검수 (2)
+## 검수 (4)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
+| P1 | `earn-cal-q3` | 국장 3분기 실적 시즌 캘린더 (회사 확정일 반영) | 애널 | 2026-10-16 | 2026-10-16 | `screener/calendar_ev.py`<br>`reports/calendar.json` | — |  |
+| P1 | `drivers-audit` | EARNINGS DRIVERS 내용 감사 (체인 매핑·부호·문구) + 퀀트 감사 반영 | 애널 | 2026-10-16 | 2026-10-17 | `screener/drivers.py`<br>`apps-script/Index.html` | — | 지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관 |
 | P1 | `view-registry` | VIEW 레지스트리 — 관점(렌즈) 기록·일관 적용·수명주기 | CIO | 2026-10-16 | — | `views/registry.json`<br>`views/README.md`<br>`screener/views.py`<br>`scripts/view_attribution.py`<br>`screener/duel.py`<br>`screener/committee.py`<br>`screener/main.py`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 공개 레지스트리엔 개인 수치 없음 — 개인 렌즈는 pb-private views/personal.json 에서만. |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
@@ -43,4 +46,8 @@
 | P2 | `life-health-panel` | LIFE 탭 건강 패널 (체성분 차트·운동·e1RM) | 헬스 | 2026-10-15 | — | `apps-script/Index.html` | — | 데이터는 pb-private에서 런타임 토큰으로만 읽음 — 공개 파일에 수치 없음. |
 | P2 | `phone-input` | 폰 빠른 입력 | LIFE | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
 | P2 | `playbook-verify` | 실행 대본 신호 검증 | 백테스트 | 2026-10-15 | — | `reports/studies/playbook_signals.*` | — | 운용회의 실행 대본(신호·시간대별 단계)의 신호가 과거에 실제로 통했는지. |
+
+## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
+
+- `apps-script/Index.html` ← `view-registry`, `drivers-audit` — 편집 전 `ops/locks.json` 잠금 필수
 
