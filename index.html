@@ -199,7 +199,7 @@ function dartFill(){ const b=$('#dbody'); if(!b||!DS) return; const cut=new Date
   b.innerHTML=it.length?discTable(it.slice(0,500),true):'<div class="mu">해당 공시 없음</div>'; const c=$('#dcnt'); if(c) c.textContent=`${it.length}건 · 기준 ${DS.asof||''}`; }
 let R=null, RV={m:'sector',d:30,q:''};
 function repView(){
-  if(!R){ google.script.run.withSuccessHandler(t=>{try{R=JSON.parse(t);}catch(e){R={items:[],close:{}};} if(view==='rep') render();}).withFailureHandler(e=>{R={items:[],close:{},err:e.message}; if(view==='rep') render();}).getResearch(); return '<div class="load">LOADING …</div>'; }
+  if(!R){ google.script.run.withSuccessHandler(t=>{try{R=JSON.parse(t);}catch(e){R={items:[],close:{}};} if(view==='rep') render();}).withFailureHandler(e=>{R={items:[],close:{},err:/404/.test(e.message)?'리서치 데이터가 아직 생성되지 않았습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='rep') render();}).getResearch(); return '<div class="load">LOADING …</div>'; }
   const btn=(k,v,l)=>`<button class="${RV[k]===v?'on':''}" onclick="RV['${k}']=${typeof v==='number'?v:`'${v}'`};render()">${l}</button>`;
   return `<div class="grid"><div class="p c12"><h2>RESEARCH<span class="ctab">${btn('m','sector','섹터별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><small id="rcnt"></small></h2>
    <div class="b"><input id="rq" class="rq" placeholder="종목 · 증권사 · 섹터 · 제목 검색" value="${esc(RV.q)}" oninput="RV.q=this.value;repFill()">${R.err?`<div class="err">${esc(R.err)}</div>`:''}<div id="rbody"></div></div></div></div>`;

@@ -123,7 +123,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -136,6 +136,8 @@ def main() -> None:
     try:
         if a.mode == "quotes":
             print(live.snapshot())
+        elif a.mode == "dashboard":   # 알림 없이 웹 데이터만 다시 생성
+            dashboard.build()
         elif a.mode == "screen":
             if not a.market:
                 ap.error("--market 필요")
