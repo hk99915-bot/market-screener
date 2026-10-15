@@ -810,11 +810,52 @@ function lifeFill(){
   const Hh=S.health||{}, wk=Hh.weekly||[];
   const health=`<div class="p c6"><h2>HEALTH · 주간<small>health/weekly.csv</small></h2><div class="b">`+(wk.length?`<table><tr><th class="l">주</th><th>체중(kg)</th><th>운동(회)</th><th class="l">메모</th></tr>${wk.slice().reverse().map(w=>`<tr><td class="l">${esc(w.date)}</td><td>${esc(w.weight_kg||'—')}</td><td class="${+w.workouts_count>=3?'up':'am'}">${esc(w.workouts_count||'0')}</td><td class="l mu">${esc(w.note||'')}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px">최근 4주 평균 운동 ${Hh.weekly_workouts_avg4==null?'—':Hh.weekly_workouts_avg4.toFixed(1)}회/주</div>`
       :`<div class="mu" style="white-space:normal;padding:10px 0">기록 시작 전 — 누나한테 '이번 주 체중 OO, 운동 N회'라고 보내면 기록해줄게</div>`)+`</div></div>`;
+  const body=lifeHealthBody(Hh);
   const fv=(g,v)=>v==null||v===''?'—':(g.unit==='원'?M(+v):isNaN(+v)?esc(v):(+v).toLocaleString('ko-KR',{maximumFractionDigits:1}));
   const goals=`<div class="p c6"><h2>GOALS<small>goals/goals.csv</small></h2><div class="b"><table><tr><th class="l">영역</th><th class="l">목표</th><th>현재</th><th>목표치</th><th class="l" style="width:22%">진행</th><th class="l">기한</th></tr>`+
     (S.goals||[]).map(g=>`<tr title="${esc(g.note||'')}"><td class="l mu">${esc(g.area||'')}</td><td class="l">${esc(g.goal)}</td><td>${fv(g,g.current)}</td><td class="mu">${fv(g,g.target)}${g.target!=null&&g.unit&&g.unit!=='원'?' '+esc(g.unit):''}</td><td class="l">${g.pct!=null?bar(g.pct)+`<span class="mu" style="font-size:10.5px">${P(g.pct)}</span>`:`<span class="mu">${esc(g.status||'')}</span>`}</td><td class="l">${esc(g.target_date||'')}</td></tr>`).join('')+`</table></div></div>`;
-  b.innerHTML=kpis+prog+money+cats+recent+apps+specs+story+health+goals+
+  b.innerHTML=kpis+prog+money+cats+recent+apps+specs+story+body+health+goals+
     `<div class="p c12"><div class="b mu" style="font-size:11px;white-space:normal">생성 ${esc(S.generated||'')} · 데이터: 비공개 저장소 life/ CSV → build_summary.py → summary.json. 이 화면은 공개 서버에 아무것도 보내지 않아요.</div></div>`;
+  setTimeout(()=>lifeHealthCharts(Hh),0);
+}
+/* LIFE · 건강 체성분 패널 — summary.json.health(body·series·workouts_weekly·lifts·screen). 수치는 비공개 저장소에서 런타임에만 읽음 */
+let LIFECH=[];
+function lifeHealthBody(H){
+  const B=H.body||{}, S=H.series||{}, L=H.lifts||{}, WW=H.workouts_weekly||[], SC=H.screen||{};
+  const f1=v=>v==null?'—':(+v).toLocaleString('ko-KR',{maximumFractionDigits:1});
+  const sg=(v,good)=>{ if(v==null) return '<span class="mu">—</span>'; const c=v===0?'mu':((v<0)===(good==='down')?'up':'dn'); return `<span class="${c}">${v>0?'+':''}${f1(v)}</span>`; };
+  const keys=[['weight','체중','kg','down'],['smm','골격근량','kg','up'],['fat_kg','체지방량','kg','down'],['fat_pct','체지방률','%','down'],['waist','허리둘레','cm','down']];
+  const any=keys.some(k=>B[k[0]]);
+  const forms=`<a href="https://github.com/hk99915-bot/pb-private/issues/new?template=inbody.yml" target="_blank" rel="noopener">인바디 입력</a> · <a href="https://github.com/hk99915-bot/pb-private/issues/new?template=health.yml" target="_blank" rel="noopener">주간 체중·운동 입력</a>`;
+  const tiles=keys.map(([k,lab,u,good])=>{ const m=B[k]; return `<div style="border:1px solid var(--line);padding:8px;min-width:0"><div class="mu" style="font-size:11px">${lab}</div><div style="font-size:18px;font-weight:700">${m?f1(m.latest):'—'}<span class="mu" style="font-size:11px"> ${u}</span></div><div style="font-size:11px">직전 ${sg(m&&m.d_prev,good)} · 4주 ${sg(m&&m.d_4w,good)}</div><div class="mu" style="font-size:10.5px">${m?esc(m.date)+' · '+m.n+'회':'기록 없음'}</div></div>`; }).join('');
+  const ww=WW.map(w=>w.count), mx=Math.max(4,...ww.filter(v=>v!=null));
+  const bars=`<svg viewBox="0 0 120 40" preserveAspectRatio="none" style="width:100%;height:56px;display:block">`+WW.map((w,i)=>{ const v=w.count||0, h=v/mx*36; return `<rect x="${i*10+1}" y="${(38-h).toFixed(1)}" width="8" height="${h.toFixed(1)}" style="fill:var(${v>=3?'--up':'--amber'})"><title>${esc(w.week)} 주 ${w.count==null?'기록 없음':w.count+'회'}</title></rect>`; }).join('')+`<line x1="0" x2="120" y1="${(38-3/mx*36).toFixed(1)}" y2="${(38-3/mx*36).toFixed(1)}" style="stroke:var(--muted)" stroke-width="0.4" stroke-dasharray="2 2"/></svg>`;
+  const spark=pts=>{ if(!pts||pts.length<2) return ''; const v=pts.map(p=>p[1]), lo=Math.min(...v), hi=Math.max(...v), r=hi-lo||1; return `<svg viewBox="0 0 60 16" style="width:60px;height:16px;vertical-align:middle"><polyline fill="none" style="stroke:var(--amber)" stroke-width="1.2" points="${v.map((x,i)=>(i/(v.length-1)*60).toFixed(1)+','+(15-(x-lo)/r*14).toFixed(1)).join(' ')}"/></svg>`; };
+  const lifts=Object.entries(L).sort((a,b)=>b[1].sessions-a[1].sessions);
+  const liftT=lifts.length?`<table><tr><th class="l">종목</th><th>최근 e1RM</th><th>4주 변화</th><th>최고</th><th>첫 기록</th><th>세션</th><th class="l">추세</th></tr>${lifts.map(([n,x])=>`<tr><td class="l">${esc(n)}</td><td><b>${f1(x.latest)}</b></td><td>${sg(x.d_4w,'up')}</td><td class="mu">${f1(x.best)}</td><td class="mu">${f1(x.first)}</td><td class="mu">${x.sessions}</td><td class="l">${spark(x.series)}</td></tr>`).join('')}</table>`
+    :`<div class="mu" style="white-space:normal">세트 기록 없음 — 누나한테 '스쿼트 60×8×3' 처럼 보내면 workouts.csv 에 들어가고 e1RM(무게×(1+반복/30)) 추세가 여기 떠요.</div>`;
+  const hasSeries=(S.weight||[]).length+(S.smm||[]).length+(S.fat_kg||[]).length>0;
+  return `<div class="p c12"><h2>HEALTH · 체성분 · 리컴프<small>health/inbody.csv + weekly.csv + workouts.csv · 목표: 골격근량 유지↑ · 체지방량↓</small></h2><div class="b" style="white-space:normal">`+
+    (any?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px">${tiles}</div>`
+        :`<div class="mu" style="padding:6px 0">아직 측정값 없음 — 아침 공복 인바디 1회 + 줄자(배꼽 높이) 허리둘레부터. ${forms}</div>`)+
+    (hasSeries?`<div id="lhc1" style="margin-top:8px;height:240px"></div><div id="lhc1l" class="mu" style="font-size:11px"></div>`:'')+
+    `<div class="mu" style="font-size:11px;margin-top:4px">${esc(SC.label||'')}${SC.abdominal_obesity==null?'':SC.abdominal_obesity?' · <span class="dn">허리 ≥90cm(복부비만 기준)</span>':' · 허리 <90cm'} · ${esc(SC.note||'')} · ${any?forms:''}</div>`+
+    `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:10px"><div><div class="mu" style="font-size:11px">주간 운동 횟수 (최근 12주 · 점선 = 주 3회) · 최근 4주 평균 ${H.workouts_avg4==null?'—':(+H.workouts_avg4).toFixed(1)}회</div>${bars}</div><div style="overflow-x:auto">${liftT}</div></div>`+
+    `</div></div>`;
+}
+function lifeHealthCharts(H){
+  LIFECH.forEach(c=>{try{c.remove();}catch(e){}}); LIFECH=[];
+  const el=$('#lhc1'); if(!el||!H||!window.LightweightCharts) return;
+  const S=H.series||{}, cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
+  const c=LightweightCharts.createChart(el,{width:el.clientWidth,height:240,layout:{background:{type:'solid',color:cv('--panel')},textColor:cv('--muted'),fontSize:11},
+    grid:{vertLines:{color:cv('--line')},horzLines:{color:cv('--line')}},rightPriceScale:{borderColor:cv('--line'),visible:true},leftPriceScale:{borderColor:cv('--line'),visible:true},
+    timeScale:{borderColor:cv('--line')},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},localization:{locale:'ko-KR',priceFormatter:v=>v.toFixed(1)}});
+  LIFECH.push(c);
+  const add=(pts,color,scale,w,style)=>{ if(!pts||!pts.length) return; const s=c.addLineSeries({color,lineWidth:w,lineStyle:style||0,priceScaleId:scale,priceLineVisible:false,lastValueVisible:true,pointMarkersVisible:true});
+    const seen={}; s.setData(pts.filter(p=>p[1]!=null&&!seen[p[0]]&&(seen[p[0]]=1)).map(p=>({time:p[0],value:+p[1]}))); };
+  add(S.weight,cv('--amber'),'right',2); add(S.smm,cv('--up'),'left',2); add(S.fat_kg,cv('--dn'),'left',2,2);
+  c.timeScale().fitContent();
+  const l=$('#lhc1l'); if(l) l.innerHTML=`<span style="color:var(--amber)">━ 체중 (오른쪽 축)</span> &nbsp; <span style="color:var(--up)">━ 골격근량</span> &nbsp; <span style="color:var(--dn)">┅ 체지방량</span> <span class="mu">(왼쪽 축, kg)</span> · 인바디는 4주 추세로만 판단`;
 }
 /* 수치 도구 */
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
