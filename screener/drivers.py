@@ -427,8 +427,12 @@ NEWS_RULES = [   # (패턴, 이벤트, 방향)
     (r"공급\s*과잉|수요\s*(둔화|부진|감소)|주문\s*(감소|취소)", "수요 둔화", -1),
     (r"수요\s*(증가|급증|확대)|주문\s*(증가|급증)", "수요 증가", 1),
     (r"관세|반덤핑|수출\s*(통제|규제)|제재", "관세·규제", -1),
-    (r"어닝\s*서프라이즈|깜짝\s*실적|사상\s*최대|최대\s*실적|컨센서스\s*상회", "실적 서프라이즈", 1),
-    (r"어닝\s*쇼크|실적\s*(부진|악화)|적자\s*(전환|확대)|컨센서스\s*하회", "실적 쇼크", -1),
+    (r"어닝\s*서프라이즈|깜짝\s*실적|사상\s*최대|최대\s*실적|컨센서스\s*상회|호실적|실적\s*(개선|호조|기대|성장)|흑자\s*전환|이익\s*(급증|증가)", "실적 개선", 1),
+    (r"어닝\s*쇼크|실적\s*(부진|악화|우려|둔화|감소)|적자\s*(전환|확대|지속)|컨센서스\s*하회|이익\s*(급감|감소)", "실적 악화", -1),
+    (r"수출\s*(증가|호조|급증|최대)|판매\s*(증가|호조|급증)|출하\s*(증가|확대)|점유율\s*(확대|상승|1위)", "판매·수출 호조", 1),
+    (r"수출\s*(감소|부진|급감)|판매\s*(감소|부진|급감)|출하\s*(감소|부진)|점유율\s*(하락|축소)", "판매·수출 부진", -1),
+    (r"투자\s*(확대|늘|증액)|CAPEX\s*(확대|증가)|발주\s*(확대|증가|재개)", "고객 투자 확대", 1),
+    (r"투자\s*(축소|삭감|보류|연기)|발주\s*(감소|취소|지연)", "고객 투자 축소", -1),
     (r"목표가\s*(상향|올)", "목표가 상향", 1),
     (r"목표가\s*(하향|내)", "목표가 하향", -1),
     (r"유상\s*증자|전환사채|CB\s*발행|블록딜|오버행", "희석·오버행", -1),
@@ -450,7 +454,8 @@ def news_events(titles: list[dict], chain: str | None) -> dict:
                 if d:
                     sc.append(d)
                 break
-    return {"n": len(titles), "events": ev[:12], "score": round(sum(sc) / len(sc), 2) if sc else None, "n_scored": len(sc)}
+    return {"n": len(titles), "events": ev[:12], "score": round(sum(sc) / len(sc), 2) if sc else None, "n_scored": len(sc),
+            "recent": [{"date": x.get("date"), "title": x.get("title", "")[:110], "link": x.get("link")} for x in titles[:8]]}
 
 
 def fetch_news(name: str, code: str, days: int = 7) -> list[dict]:
@@ -627,7 +632,7 @@ def build(codes_info: dict[str, dict], prices: pl.DataFrame, discl: dict, news_l
         nv = news_events(news.get(c, []), ck) if c in news else None
         dv = dart_view(discl.get(c, []))
         parts = {"chain": ch.get("score") if ch else None, "analyst": av.get("score") if av else None,
-                 "news": nv.get("score") if nv and nv.get("n_scored", 0) >= 2 else None,
+                 "news": nv.get("score") if nv and nv.get("n_scored", 0) >= 1 else None,
                  "macro": mv.get("score") if mv else None, "dart": dv.get("score") if dv else None}
         score, used = combine(parts)
         out[c] = {"chain": ch, "macro": mv, "analyst": av, "news": nv, "dart": dv, "parts": parts, "weights": used,
