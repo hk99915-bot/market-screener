@@ -82,6 +82,7 @@ function getOpsDaily(d) { try { return raw_('reports/ops/daily/' + d + '.md'); }
 function getOpsRuns() { return raw_('reports/ops/runs.json'); }
 function getHealth() { return raw_('reports/health.json'); }
 function getBonds() { return raw_('reports/bonds.json'); }
+function getJapan() { return raw_('reports/japan.json'); }
 function getStudyGuide() { return raw_('content/study.json'); }
 function getDerivs() { return raw_('reports/derivs.json'); }
 function getMacroReleases() { return raw_('reports/macro_releases.json'); }

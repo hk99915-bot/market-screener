@@ -40,6 +40,7 @@ SHIM = """<script>
     getOpsRuns: () => get('reports/ops/runs.json'),
     getHealth: () => get('reports/health.json'),
     getBonds: () => get('reports/bonds.json'),
+    getJapan: () => get('reports/japan.json'),
     getStudyGuide: () => get('content/study.json'),
     getDerivs: () => get('reports/derivs.json'),
     getMacroReleases: () => get('reports/macro_releases.json'),

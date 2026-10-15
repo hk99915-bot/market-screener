@@ -43,6 +43,7 @@
     getOpsRuns: () => get('reports/ops/runs.json'),
     getHealth: () => get('reports/health.json'),
     getBonds: () => get('reports/bonds.json'),
+    getJapan: () => get('reports/japan.json'),
     getStudyGuide: () => get('content/study.json'),
     getDerivs: () => get('reports/derivs.json'),
     getMacroReleases: () => get('reports/macro_releases.json'),
@@ -315,7 +316,7 @@ function macroPanel(mk){
   if(MV&&MV.rows&&MV.rows.length){
     const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
     const lv=k=>L&&L.items&&L.items.find(x=>x.key===k);
-    const rows=MV.rows.map(d=>{ const l=lv(d.key), rate=d.key==='US10Y', last=l&&l.last?l.last:d.last;
+    const rows=MV.rows.map(d=>{ const l=lv(d.key), rate=d.key==='US10Y'||d.key==='JGB10Y', last=l&&l.last?l.last:d.last;
       const c1=rate?(l&&l.last?`${((l.last-(d.last-(d.d1||0)))*100).toFixed(0)}bp`:`${((d.d1||0)*100).toFixed(0)}bp`):pct(l&&l.chg!=null?l.chg:d.chg1);
       const c20=rate?`${((d.d20||0)*100>0?'+':'')}${((d.d20||0)*100).toFixed(0)}bp`:pct(d.chg20);
       return `<tr class="mvr" data-k="${esc(d.key)}"><td class="l am mac" data-key="${esc(d.key)}">${esc(d.name)}</td><td>${num(last,2)}</td><td>${c1}</td><td>${c20}</td><td class="hm">${d.key==='VIX'||rate?'—':pct(d.from_hi,0)}</td><td style="color:${col(d.impact)}">${d.impact==null?'—':(d.impact>0?'+':'')+d.impact.toFixed(2)}</td><td class="tg mu" data-x="${esc(d.key)}">▸</td></tr>
@@ -327,6 +328,26 @@ function macroPanel(mk){
   const m=(D.state||{})['macro_'+mk]; if(!m||!m.value||!m.value.length) return '<div class="mu">—</div>';
   const reg=(D.state||{})['regime_'+mk];
   return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am mac" data-key="${esc(d.key)}">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
+}
+let JP=null;
+function japanPanel(){   // 일본: 닛케이·TOPIX·엔·JGB + 한국 종목과 연결된 일본 피어 그룹 (reports/japan.json)
+  if(JP===null){ JP=false; google.script.run.withSuccessHandler(t=>{try{JP=JSON.parse(t);}catch(e){JP={};} render();}).withFailureHandler(()=>{JP={};}).getJapan(); }
+  if(!JP||!JP.groups) return `<div class="mu">${JP===false?'LOADING …':'—'}</div>`;
+  const I=JP.index||{}, cr=x=>x==null?'—':`<span class="${x>=0.6?'am':'mu'}">${x.toFixed(2)}</span>`;
+  const ix=[['NIKKEI','닛케이225'],['TOPIX','TOPIX'],['USDJPY','엔/달러'],['JGB10Y','日 10년']].filter(([k])=>I[k]).map(([k,n])=>{const d=I[k];
+    return `<td class="l am mac" data-key="${k}">${n}${d.proxy?' <span class="mu" title="TOPIX 추종 ETF 가격">(ETF)</span>':''}</td><td>${num(d.last,k==='JGB10Y'?3:k==='USDJPY'?2:0)}${k==='JGB10Y'?'%':''}</td><td>${k==='JGB10Y'?(d.d1bp==null?'—':`${d.d1bp>0?'+':''}${d.d1bp}bp`):pct(d.chg1)}</td><td>${k==='JGB10Y'?(d.d20bp==null?'—':`${d.d20bp>0?'+':''}${d.d20bp}bp`):pct(d.chg20)}</td>`;}).map(x=>`<tr>${x}</tr>`).join('');
+  const C=JP.carry||{};
+  const gs=JP.groups.map(g=>{
+    const rows=g.rows.map(r=>`<tr><td class="l">${esc(r.name)} <span class="mu">${esc(r.sym)}</span></td><td>${num(r.last,0)}</td><td>${pct(r.chg1)}</td><td>${pct(r.chg5)}</td><td>${pct(r.chg20)}</td></tr>`).join('');
+    const peers=(g.peers||[]).map(p=>`<tr><td class="l"><span class="sym am" data-sym="${esc(p.sym)}" data-mk="${p.mk}" style="cursor:pointer">${esc(p.name)}</span> <span class="mu">${p.mk}</span></td><td>${num(p.last,p.mk==='US'?2:0)}</td><td>${pct(p.chg1)}</td><td>${pct(p.chg5)}</td><td>${pct(p.chg20)}</td></tr>`).join('');
+    return `<div style="margin-top:8px"><b class="am">${esc(g.name)}</b> <span class="mu">日 바스켓 1D ${pct(g.jp.chg1)} 5D ${pct(g.jp.chg5)} 20D ${pct(g.jp.chg20)} · 60일 상관 vs ${esc(g.kr_label)} ${cr(g.corr_kr)}${g.corr_us!=null?` · vs ${esc(g.us_label)}(전날 밤) ${cr(g.corr_us)}`:''}</span>
+      <div class="mu" style="font-size:11px;white-space:normal">한국 종목과 연결: ${esc(g.link)}${(g.missing||[]).length?` · 데이터 없음: ${esc(g.missing.join(', '))}`:''}</div>
+      <table><tr><th class="l">종목</th><th>현재</th><th>1D</th><th>5D</th><th>20D</th></tr>${rows}${peers?`<tr><td class="l mu" colspan="5">비교: 한국·미국 피어</td></tr>${peers}`:''}</table></div>`;}).join('');
+  return `<div class="mu" style="font-size:11.5px;white-space:normal;margin-bottom:6px">${esc(JP.why||'')}</div>
+    ${JP.line?`<div class="am" style="margin-bottom:6px;white-space:normal">${esc(JP.line)}</div>`:''}
+    ${C.chg5!=null?`<div style="margin-bottom:6px;white-space:normal"><span class="${C.flag?'dn':'mu'}">${C.flag?'⚠ 엔 캐리 청산 경계':'엔 캐리: 이상 없음'}</span> <span class="mu">엔/달러 5일 ${pct(C.chg5)} · 기준: 5일 −3% 이하(엔 급등)면 경계</span></div>`:''}
+    <table><tr><th class="l">지표</th><th>현재</th><th>1D</th><th>20D</th></tr>${ix}</table>${gs}
+    <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">상관 = 최근 60거래일 일간 수익률(같은 날 도쿄·서울). 0.6 이상이면 같이 움직이는 편. 미국 피어는 '전날 밤 미장 → 다음 날 도쿄'로 맞춤. ${esc(JP.date||'')} 종가 기준 · 갱신 ${esc(JP.asof||'')}</div>`;
 }
 document.addEventListener('click',e=>{ if(e.target.closest('td.mac')) return; const tr=e.target.closest('tr.mvr'); if(!tr) return; const t=tr.querySelector('td[data-x]'); if(!t) return; const r=document.getElementById('mvx-'+t.dataset.x); if(r){ r.classList.toggle('on'); t.textContent=r.classList.contains('on')?'▾':'▸'; }});
 function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이스케이프
@@ -360,6 +381,7 @@ function marketView(mk){
     <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 · 지표별 해설</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
   const mc=(D.state||{})['market_comment_'+mk];
   if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
+  if(mk==='KR') h+=`<div class="p c12"><h2>JAPAN<small>도쿄도 9시 개장 · 일본 반도체 장비·메모리·MLCC vs 한국 · 엔 캐리</small></h2><div class="b">${japanPanel()}</div></div>`;
   for(const [k,t] of SEC){const s=sec[k]; if(!s) continue; h+=`<div class="p c12"><h2>${t}<small>top ${s.rows.length} / ${s.total}</small></h2><div class="b">${sigTable(s.rows,mk)}</div></div>`;}
   const an=(D.anomalies||{})[mk]||[];
   if(an.length) h+=`<div class="p c12"><h2>ANOMALIES<small>vol≥3× or gap≥5%</small></h2><div class="b"><table><tr><th class="l">SYM</th><th class="l">NAME</th><th>1D</th><th>GAP</th><th>VOL×</th><th class="l">CLS</th></tr>${an.map(r=>`<tr><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${mk}">${esc(r.symbol)}</td><td class="l">${esc(r.name)}</td><td>${pct(r.ret1)}</td><td>${pct(r.gap)}</td><td class="am">${(r.vol_ratio??0).toFixed(1)}</td><td class="l mu">${CLS[r.class]||''}</td></tr>`).join('')}</table></div></div>`;
