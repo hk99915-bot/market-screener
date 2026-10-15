@@ -421,7 +421,8 @@ document.addEventListener('keydown',e=>{ if(e.target.id!=='sq') return; const bo
   else if(e.key==='Escape'){ box.style.display='none'; } });
 document.addEventListener('click',e=>{ const t=e.target.closest('#sres div[data-sym]'); if(t){ openDetail(t.dataset.sym,t.dataset.mk); $('#sres').style.display='none'; return; } if(!e.target.closest('.srch')) { const b=$('#sres'); if(b) b.style.display='none'; } });
 let DB=null;
-function dailyView(){
+function dailyView(){ const _h=dailyView0(); return _h.startsWith('<div class="load"')?_h:`<div class="grid" style="padding-bottom:0"><div class="c12">${decBox()}</div></div>`+_h; }
+function dailyView0(){
   if(DB===null){ DB=false; google.script.run.withSuccessHandler(t=>{try{DB=JSON.parse(t);}catch(e){DB={};} if(view==='daily') render();}).withFailureHandler(()=>{DB={}; if(view==='daily') render();}).getDaily(); return '<div class="load">LOADING …</div>'; }
   if(!DB||!DB.asof) return '<div class="mu" style="padding:16px">데일리 브리프가 아직 없습니다 (다음 자동 실행 때 생성)</div>';
   const o=DB;
@@ -682,15 +683,17 @@ function studyView(){
 }
 let DEC=null;
 function decBox(){
-  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(view==='sig') render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); return ''; }
+  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(view==='sig'||view==='daily') render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); return ''; }
   if(!DEC||!DEC.items||!DEC.items.length) return '';
   const T=DEC.tally||{}, K=x=>num(Math.round(x),0);
   const who=Object.keys(DEC.items[0].picks);
   const pk=p=>p.cash?'현금 유지':`${esc(p.name||p.ticker)} ${p.notional?K(p.notional/10000)+'만':''}`;
   return `<div class="p" style="margin-bottom:10px"><h2>판단 성적표<small>나 vs PB · 결정마다 실제 가격으로 채점</small></h2><div class="b">
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${who.map(w=>{const t=T[w]||{win:0,n:0,pnl:0}; return `<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${esc(w)}</div><b>${t.win}승 / ${t.n}전</b> · 누적 <span class="${t.pnl>=0?'up':'dn'}">${t.pnl>=0?'+':''}${K(t.pnl)}원</span></div>`;}).join('')}</div>
-   <table><tr><th class="l">날짜</th><th class="l">판단</th>${who.map(w=>`<th class="l">${esc(w)}</th>`).join('')}<th class="l">결과</th></tr>
-   ${[...DEC.items].reverse().map(it=>{const r=it.result; return `<tr><td class="l mu">${esc(it.date.slice(5))}</td><td class="l" style="white-space:normal">${esc(it.title)}<div class="mu" style="font-size:11px">${esc(it.note||'')}</div></td>${who.map(w=>`<td class="l" style="white-space:normal">${pk(it.picks[w])}${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:11.5px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div>`:''}</td>`).join('')}<td class="l">${r?(r.winner?`<b class="am">${esc(r.winner)} 승</b>`:'무승부'):'<span class="mu">채점 대기</span>'}</td></tr>`;}).join('')}</table>
+   ${[...DEC.items].reverse().map(it=>{const r=it.result; return `<div style="border-top:1px solid var(--line);padding:8px 0;line-height:1.6;white-space:normal">
+      <div><span class="mu">${esc(it.date.slice(5))}</span> <b>${esc(it.title)}</b> ${r?(r.winner?`<span class="tag">${esc(r.winner)} 승</span>`:'<span class="tag">무승부</span>'):'<span class="mu" style="font-size:11px">채점 대기</span>'}</div>
+      <div class="mu" style="font-size:11.5px">${esc(it.note||'')}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${who.map(w=>`<div style="flex:1;min-width:140px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}</span><div style="font-size:12.5px">${pk(it.picks[w])}</div>${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:12px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div></div>`;}).join('')}
    <div class="mu" style="font-size:11px;margin-top:4px">모의 기록 포함 · 한 판은 운, 20판 이상 쌓여야 실력</div></div></div>`;
 }
 let MVH=null;
