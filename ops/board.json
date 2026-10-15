@@ -33,7 +33,8 @@
         ".github/workflows/briefing.yml"
       ],
       "depends_on": [
-        "ops-system"
+        "ops-system",
+        "gas-repaste"
       ],
       "notes": "SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지."
     },
@@ -65,6 +66,39 @@
       "files": [],
       "depends_on": [],
       "notes": "private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다."
+    },
+    {
+      "id": "gas-repaste",
+      "title": "GAS 편집기 재붙여넣기 (Scheduler.gs 16:40 deriv_hist 슬롯 + Index.html)",
+      "owner": "PB",
+      "priority": "P0",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-16",
+      "repo": "public",
+      "files": [
+        "apps-script/Scheduler.gs",
+        "apps-script/Index.html"
+      ],
+      "depends_on": [],
+      "notes": "겸이가 GAS 편집기에 직접 붙여넣어야 반영됨. gas-sched-verify 의 전제 — 안 붙이면 검증 결과가 옛 코드 기준."
+    },
+    {
+      "id": "memproxy-line",
+      "title": "장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄",
+      "owner": "PB",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": null,
+      "repo": "public",
+      "files": [
+        "screener/briefings.py"
+      ],
+      "depends_on": [
+        "night-futures-line"
+      ],
+      "notes": "패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용."
     },
     {
       "id": "ai-credit",
@@ -371,7 +405,7 @@
       "title": "국장 3분기 실적 시즌 캘린더 (회사 확정일 반영)",
       "owner": "애널",
       "priority": "P1",
-      "status": "검수",
+      "status": "완료",
       "started": "2026-10-16",
       "due": "2026-10-16",
       "repo": "public",
@@ -380,20 +414,20 @@
         "reports/calendar.json"
       ],
       "depends_on": [],
-      "notes": ""
+      "notes": "검수(PB 10/16): calendar.json 하이닉스 10/28·삼성전자 10/29 회사 확정 반영, calendar_ev.py 컴파일 OK, 비공개 실적 브리프 날짜와 일치. 남은 것: 현대차 10/29는 미확인인데 캘린더 note 비어 있음 → 다음 갱신 때 미확인 표시."
     },
     {
       "id": "earn-brief-pb",
       "title": "보유 종목 실적 브리프 (비공개)",
       "owner": "애널",
       "priority": "P1",
-      "status": "검수",
+      "status": "완료",
       "started": "2026-10-16",
       "due": "2026-10-16",
       "repo": "private",
       "files": [],
       "depends_on": [],
-      "notes": ""
+      "notes": "검수(PB 10/16): private 리포트 존재·확정/미확인 구분·캘린더 날짜 일치 확인."
     }
   ]
 }
