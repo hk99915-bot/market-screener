@@ -258,8 +258,8 @@
       "title": "장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가)",
       "owner": "파생",
       "priority": "P2",
-      "status": "대기",
-      "started": null,
+      "status": "검수",
+      "started": "2026-10-16",
       "due": "2026-10-20",
       "repo": "public",
       "files": [
@@ -274,7 +274,7 @@
       "title": "수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필",
       "owner": "파생",
       "priority": "P1",
-      "status": "진행",
+      "status": "검수",
       "started": "2026-10-16",
       "due": "2026-10-20",
       "repo": "public",
@@ -291,7 +291,7 @@
       "title": "파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭)",
       "owner": "파생",
       "priority": "P2",
-      "status": "진행",
+      "status": "검수",
       "started": "2026-10-16",
       "due": "2026-10-23",
       "repo": "public",
@@ -302,22 +302,22 @@
       "depends_on": [
         "deriv-hist"
       ],
-      "notes": "결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect)."
+      "notes": "결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). | 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(89일, 옵션 열 오염). 레지스트리 반영 제안은 §5 (레지스트리 미수정)."
     },
     {
       "id": "derivs-audit",
       "title": "derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통)",
       "owner": "파생",
       "priority": "P2",
-      "status": "대기",
-      "started": null,
+      "status": "검수",
+      "started": "2026-10-16",
       "due": "2026-10-20",
       "repo": "public",
       "files": [
         "screener/derivs.py"
       ],
       "depends_on": [],
-      "notes": ""
+      "notes": "검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). 단 data/deriv 의 2026-06-05~ 옵션 보드 89행은 수정 전 값 — deriv_hist 워크플로 backfill --redo 2026-06-05 실행 필요."
     },
     {
       "id": "study-derivs",

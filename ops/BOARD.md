@@ -2,26 +2,23 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 23개 · 진행 2 · 검수 5 · 대기 6 · 보류 0 · 완료 10
+기준일 2026-10-16 · 작업 23개 · 진행 0 · 검수 9 · 대기 4 · 보류 0 · 완료 10
 
-## 진행 (2)
-
-| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
-|---|---|---|---|---|---|---|---|---|
-| P1 | `deriv-hist` | 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필 | 파생 | 2026-10-16 | 2026-10-20 | `screener/deriv_hist.py`<br>`data/deriv/*`<br>`.github/workflows/deriv_hist.yml` | — | 검증의 전제. 라이브 화면·텔레그램 추가 없음. |
-| P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). |
-
-## 검수 (5)
+## 검수 (9)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P1 | `earn-brief-pb` | 보유 종목 실적 브리프 (비공개) | 애널 | 2026-10-16 | 2026-10-16 | private 전용 | — |  |
 | P1 | `earn-cal-q3` | 국장 3분기 실적 시즌 캘린더 (회사 확정일 반영) | 애널 | 2026-10-16 | 2026-10-16 | `screener/calendar_ev.py`<br>`reports/calendar.json` | — |  |
 | P1 | `drivers-audit` | EARNINGS DRIVERS 내용 감사 (체인 매핑·부호·문구) + 퀀트 감사 반영 | 애널 | 2026-10-16 | 2026-10-17 | `screener/drivers.py`<br>`apps-script/Index.html` | — | 지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관 |
+| P1 | `deriv-hist` | 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필 | 파생 | 2026-10-16 | 2026-10-20 | `screener/deriv_hist.py`<br>`data/deriv/*`<br>`.github/workflows/deriv_hist.yml` | — | 검증의 전제. 라이브 화면·텔레그램 추가 없음. |
 | P1 | `view-registry` | VIEW 레지스트리 — 관점(렌즈) 기록·일관 적용·수명주기 | CIO | 2026-10-16 | — | `views/registry.json`<br>`views/README.md`<br>`screener/views.py`<br>`scripts/view_attribution.py`<br>`screener/duel.py`<br>`screener/committee.py`<br>`screener/main.py`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 공개 레지스트리엔 개인 수치 없음 — 개인 렌즈는 pb-private views/personal.json 에서만. |
+| P2 | `derivs-audit` | derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통) | 파생 | 2026-10-16 | 2026-10-20 | `screener/derivs.py` | — | 검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). 단 data/deriv 의 2026-06-05~ 옵션 보드 89행은 수정 전 값 — deriv_hist 워크플로 backfill --redo 2026-06-05 실행 필요. |
+| P2 | `night-futures-line` | 장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가) | 파생 | 2026-10-16 | 2026-10-20 | `screener/briefings.py`<br>`screener/deriv_hist.py` | — | 실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시. |
+| P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(89일, 옵션 열 오염). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (6)
+## 대기 (4)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -29,8 +26,6 @@
 | P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | PB | — | 2026-10-16 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. |
 | P0 | `repo-cleanup` | 저장소 대청소: 데이터 브랜치 분리·Pages Actions 배포·기록 정리(filter-repo) | 개발 | — | 2026-10-18 | `.github/workflows/*`<br>`scripts/build_pages.py` | — | 겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | — | — | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. |
-| P2 | `derivs-audit` | derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통) | 파생 | — | 2026-10-20 | `screener/derivs.py` | — |  |
-| P2 | `night-futures-line` | 장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가) | 파생 | — | 2026-10-20 | `screener/briefings.py`<br>`screener/deriv_hist.py` | — | 실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시. |
 
 ## 완료 (10)
 
@@ -50,4 +45,5 @@
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
 
 - `apps-script/Index.html` ← `view-registry`, `drivers-audit` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
 
