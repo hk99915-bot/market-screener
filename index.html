@@ -187,6 +187,43 @@ html,body{overflow-x:hidden}
   .live iframe{height:360px}
 }
 /* 스텔스: 흑백 + 밝은 바탕(반전) — 색 신호 없이 숫자 부호(+/−)로만 읽음 */
+/* 엑셀 스킨 (사무실 모드): 흰 바탕·회색 격자·맑은고딕, 음수만 빨강(엑셀 기본 서식처럼), 차트는 밝게 반전 */
+html.xl{--bg:#fff;--panel:#fff;--line:#d4d4d4;--amber:#000;--amber-dim:#444;--txt:#000;--muted:#595959;--up:#000;--dn:#c00000;--blue:#000;--cyan:#000;
+  --mono:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+html.xl body{font-size:13px;background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:72px 21px;padding-bottom:30px}
+html.xl .top{background:#217346;color:#fff;border-bottom:0;padding:4px 10px}
+html.xl .top .brand,html.xl .top #clock,html.xl .top #gen{color:#fff;letter-spacing:0;font-weight:400}
+html.xl #stb{color:#fff;border-color:#ffffff88}
+html.xl .srch input{background:#fff;color:#000;border:1px solid #c6c6c6;border-radius:2px}
+html.xl #xlrib,html.xl #xlfx{display:flex}
+#xlrib,#xlfx{display:none}
+#xlrib{gap:18px;padding:5px 12px;background:#f3f3f3;border-bottom:1px solid #d4d4d4;font:13px "Malgun Gothic",sans-serif;color:#333;overflow-x:auto;white-space:nowrap}
+#xlrib b{color:#217346;border-bottom:2px solid #217346;font-weight:400}
+#xlfx{gap:8px;align-items:center;padding:3px 8px;background:#fff;border-bottom:1px solid #d4d4d4;font:13px "Malgun Gothic",sans-serif}
+#xlfx span:first-child{width:70px;border:1px solid #d4d4d4;padding:1px 6px;color:#333}
+#xlfx i{color:#888;font-style:italic}
+html.xl .tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#f3f3f3;border-top:1px solid #c6c6c6;justify-content:flex-start;gap:0;padding:0 6px;flex-wrap:nowrap;overflow-x:auto}
+html.xl .tabs button{background:#f3f3f3;color:#333;border:0;border-right:1px solid #d4d4d4;letter-spacing:0;padding:5px 16px;font-weight:400}
+html.xl .tabs button.on{background:#fff;color:#217346;border-bottom:2px solid #217346;font-weight:600}
+html.xl .p{border:1px solid #c6c6c6;box-shadow:none}
+html.xl .p h2{background:#f3f3f3;color:#000;letter-spacing:0;font-weight:600;border-bottom:1px solid #d4d4d4}
+html.xl th{background:#f3f3f3;color:#333;border:1px solid #d4d4d4;letter-spacing:0;font-weight:600}
+html.xl td{border:1px solid #e1e1e1}
+html.xl tr:hover td{background:#e1effa}
+html.xl .subtabs button,html.xl .ovl button,html.xl .sbtn,html.xl .tag,html.xl button{background:#fff;color:#000;border-color:#c6c6c6}
+html.xl .subtabs button.on,html.xl .ovl button.on{background:#e1effa;color:#000;border-color:#217346}
+html.xl input,html.xl select,html.xl textarea{background:#fff!important;color:#000!important;border-color:#c6c6c6!important}
+html.xl [style*="background:#0"],html.xl [style*="background:#1"],html.xl [style*="background: #0"]{background:#fff!important}
+html.xl [style*="color:#ccc"],html.xl [style*="color:#e8e8e8"],html.xl [style*="color:#9a9a9a"]{color:#000!important}
+html.xl [style*="border:1px solid #1"],html.xl [style*="border-top:1px solid #1"]{border-color:#d4d4d4!important}
+html.xl canvas{filter:invert(1) hue-rotate(180deg)}
+html.xl .tape{background:#fff;border-bottom:1px solid #d4d4d4}
+html.xl .drawer,html.xl .drawer .b{background:#fff}
+html.xl .drawer{box-shadow:-4px 0 12px #0003;border-left:1px solid #c6c6c6}
+html.xl .drawer .hd{background:#f3f3f3;border-bottom:1px solid #d4d4d4}
+html.xl .drawer .hd b{color:#000;letter-spacing:0}
+html.xl .am{color:#000}
+html.xl a{color:#0563c1}
 html.stealth{filter:invert(.9) grayscale(1) contrast(.9)}
 html.stealth .brand{letter-spacing:0}
 #stb{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:2px 6px;cursor:pointer;margin-left:4px}
@@ -204,6 +241,8 @@ html.stealth .brand{letter-spacing:0}
     <button data-g="daily">DAILY</button><button data-g="res">RESEARCH</button><button data-g="quant">QUANT</button>
   </div>
 </div>
+<div id="xlrib"><span>파일</span><b>홈</b><span>삽입</span><span>그리기</span><span>페이지 레이아웃</span><span>수식</span><span>데이터</span><span>검토</span><span>보기</span><span>도움말</span></div>
+<div id="xlfx"><span id="xlcell">A1</span><i>fx</i><span id="xlfxv">=SUMIFS(실적!D:D,실적!A:A,">="&amp;TODAY()-7)</span></div>
 <div class="tape" id="tape"></div>
 <div class="subtabs" id="subt"></div>
 <div id="root"><div class="load">LOADING …</div></div>
@@ -1391,12 +1430,25 @@ function load(){
 load(); loadLive(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000);
 </script>
 <script>
-(function(){ const K='mt_stealth';
-  const ap=on=>{ document.documentElement.classList.toggle('stealth',on); document.title=on?'notes':'MARKET TERMINAL';
-    const b=document.getElementById('brand'); if(b) b.textContent=on?'notes':'MARKET TERMINAL'; try{ localStorage.setItem(K,on?'1':'0'); }catch(e){} };
-  let on=false; try{ on=localStorage.getItem(K)==='1'; }catch(e){} ap(on);
-  document.getElementById('stb').onclick=()=>{ on=!on; ap(on); };
-  document.addEventListener('keydown',e=>{ if(e.key==='\\'&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){ on=!on; ap(on); } });
+(function(){ const K='mt_skin';   // '' 기본 · 'xl' 엑셀 스킨(사무실) · 'bw' 흑백
+  const T0=document.title;
+  const ap=m=>{ const H=document.documentElement; H.classList.toggle('xl',m==='xl'); H.classList.toggle('stealth',m==='bw');
+    document.title=m==='xl'?'주간보고_v3.xlsx - Excel':m==='bw'?'notes':T0;
+    const b=document.getElementById('brand'); if(b) b.textContent=m==='xl'?'자동 저장 ● 주간보고_v3.xlsx':m==='bw'?'notes':'MARKET TERMINAL';
+    document.querySelectorAll('.tabs button').forEach((x,i)=>{ if(!x.dataset.o) x.dataset.o=x.textContent; x.textContent=m==='xl'?'Sheet'+(i+1):x.dataset.o; });
+    const st=document.getElementById('stb'); if(st) st.title='화면 모드: '+(m==='xl'?'엑셀':m==='bw'?'흑백':'기본')+' (단축키 \\)';
+    let ic=document.querySelector('link[rel=icon]'); if(!ic){ ic=document.createElement('link'); ic.rel='icon'; document.head.appendChild(ic); }
+    ic.href=m==='xl'?'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#217346"/><text x="8" y="12" font-size="10" text-anchor="middle" fill="#fff" font-family="Arial">X</text></svg>'):'data:,';
+    try{ localStorage.setItem(K,m); }catch(e){} };
+  const order=['','xl','bw'];
+  let m=''; try{ m=localStorage.getItem(K)||(localStorage.getItem('mt_stealth')==='1'?'bw':''); }catch(e){}
+  ap(m);
+  const nx=()=>{ m=order[(order.indexOf(m)+1)%order.length]; ap(m); };
+  document.getElementById('stb').onclick=nx;
+  document.addEventListener('keydown',e=>{ if(e.key==='\\'&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')) nx(); });
+  // 클릭한 셀 주소처럼 보이게 (장식)
+  document.addEventListener('click',e=>{ if(m!=='xl') return; const td=e.target.closest('td'); if(!td) return; const tr=td.parentElement; const c=String.fromCharCode(65+Math.min(25,[...tr.children].indexOf(td))); const r=[...tr.parentElement.children].indexOf(tr)+1;
+    const a=document.getElementById('xlcell'), v=document.getElementById('xlfxv'); if(a) a.textContent=c+r; if(v) v.textContent=td.textContent.trim().slice(0,60); },true);
 })();
 </script>
 </body>
