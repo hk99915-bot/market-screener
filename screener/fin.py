@@ -188,18 +188,24 @@ def update_full(codes: list[str], cmap: dict[str, str], budget: int = 3000) -> i
             if not got:
                 tried[k] = datetime.now(KST).strftime("%Y-%m-%d")
             time.sleep(0.08)
+            if new and used % 300 < 2:          # 중간 저장 (작업이 시간 초과로 끊겨도 받은 만큼 남김)
+                _save_full(old, new, tried)
+                log.info("전체재무제표 중간 저장: %d콜 · %d행", used, len(new))
         if used >= budget:
             log.info("전체재무제표 예산 %d콜 소진 — 다음 실행에서 이어서", budget)
             break
+    _save_full(old, new, tried)
+    return len(new)
+
+
+def _save_full(old: pl.DataFrame, new: list[dict], tried: dict) -> None:
     FIN.mkdir(parents=True, exist_ok=True)
     TRIED.write_text(json.dumps(tried))
     if not new:
-        return 0
+        return
     add = pl.DataFrame(new, schema=FULL_SCHEMA)
     keys = ["code", "year", "reprt", "fs_div", "sj_div", "account_id", "account"]
-    df = pl.concat([old, add]).unique(keys, keep="last")
-    df.write_parquet(FULL)
-    return len(add)
+    pl.concat([old, add]).unique(keys, keep="last").write_parquet(FULL)
 
 
 # ───────────── 분기 시계열 ─────────────
@@ -329,7 +335,10 @@ def update(full_budget: int = 3000) -> dict:
         log.info("DART_API_KEY 없음 — 재무제표 건너뜀")
         return {}
     cmap = corp_codes()
-    uni = pl.read_csv(UNIVERSE_DIR / "kr.csv", schema_overrides={"symbol": pl.Utf8})["symbol"].to_list()
+    u = pl.read_csv(UNIVERSE_DIR / "kr.csv", schema_overrides={"symbol": pl.Utf8})
+    if "mcap" in u.columns:
+        u = u.filter(pl.col("mcap").is_null() | (pl.col("mcap") >= 1e11))   # 스크리너와 같은 시총 1,000억 이상
+    uni = u["symbol"].to_list()
     n_multi = update_multi(uni, cmap)
     n_full = update_full(priority_codes(), cmap, budget=full_budget)
     out = {"multi_rows": n_multi, "full_rows": n_full, "api_calls": CALLS["n"]}
