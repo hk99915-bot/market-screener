@@ -189,6 +189,12 @@ def main() -> None:
         b, t, n7 = ols_nw(d7["abs_r1"].to_numpy(float), np.column_stack([np.ones(len(d7)), x, d7["r0"].abs().to_numpy(float), d7["rv20"].to_numpy(float)]), 0)
         h7["control"] = {"coef_gex_low": _r(b[1]), "t": _r(t[1], 2), "p": _r(p_one(t[1], +1), 4), "n": int(n7),
                          "note": "|r_t|·20일 실현변동성 통제 후 감마 하위 1/3 더미"}
+        d7c = df[["abs_r1", "gex_bn", "r0", "rv20", "rep_iv"]].dropna()
+        xc = (d7c["gex_bn"] <= q1).astype(float).to_numpy()
+        bc, tc, nc = ols_nw(d7c["abs_r1"].to_numpy(float), np.column_stack([np.ones(len(d7c)), xc, d7c["r0"].abs().to_numpy(float),
+                                                                            d7c["rv20"].to_numpy(float), d7c["rep_iv"].to_numpy(float)]), 0)
+        h7["control_iv_posthoc"] = {"coef_gex_low": _r(bc[1]), "t": _r(tc[1], 2), "t_rep_iv": _r(tc[4], 2), "n": int(nc),
+                                    "note": "사후: H7b 에 대표 내재변동성(rep_iv)까지 추가 통제"}
         if h7["grade"] in ("A", "B") and not (np.isfinite(t[1]) and p_one(t[1], +1) < 0.05):
             h7["note"] = (h7.get("note") or "") + " 통제 후 사라짐 → 감마 고유 정보 아님(변동성 군집의 재표현)"
             h7["grade_raw"] = h7["grade"]
@@ -204,13 +210,13 @@ def main() -> None:
     # 검증전 사유 보강 (옵션 보드 열은 2026-10-15 쉼표 버그 수정 전 백필 → 콜 행사가 ≥1,000 누락)
     for s in S:
         if s["id"] in ("H5-r5", "H5-r20", "H6-r5", "H6-r20", "H7"):
-            s["note"] = ((s.get("note") or "") + " 옵션 보드 열(pcr_oi·gex_bn) 89일뿐이고, 코스피200 ≥ 1,000 구간은 행사가 쉼표 버그(dc0aacb9) 수정 전 "
-                         "백필이라 콜 쪽이 빠져 PCR 과대·감마 음수 쏠림 — 재백필(--redo) 전엔 표본이 차도 쓰면 안 됨.").strip()
+            s["note"] = ((s.get("note") or "") + " 옵션 보드 열은 2025-08-29~ (KRX 백필이 그 앞에서 연속 실패로 멈춤). 쉼표 버그(dc0aacb9) 수정 후 재계산된 값 "
+                         "— sanity.option_board_check 로 확인.").strip()
         if s["id"] == "H4":
-            s["note"] = ("basis_pct 89일(2026-06~). basis_theo(2010~)는 금리·배당으로 계산한 이론 베이시스라 '공포·헤지 과잉' 대용 불가. "
+            s["note"] = ("basis_pct 2025-08-29~. basis_theo(2010~)는 금리·배당으로 계산한 이론 베이시스라 '공포·헤지 과잉' 대용 불가. "
                          "값은 서술 통계로만.")
         if s["id"] == "H9":
-            s["note"] = "prog_nonarb 89일(2026-06~). 상위 20% = 18일 → 최소 표본 미달. 값은 서술 통계로만."
+            s["note"] = "prog_nonarb 2025-08-28~. 상위 20% 신호일이 IS 최소 60 미달. 값은 서술 통계로만."
 
     post = {"H2_detail": h2_detail(df), "H3_cost": h3_cost(S), "IV_VOL": iv_vol(df), "SIGNAL1_CRASH": signal1_crash(df)}
     cover = {c: {"from": str(df.loc[df[c].notna(), "date"].min().date()), "to": str(df.loc[df[c].notna(), "date"].max().date()),
@@ -258,7 +264,9 @@ def sanity(df: pd.DataFrame) -> dict:
                                                _r(float(df.loc[df["date"].dt.year == 2026, "spot_frgn"].abs().median()), 0)],
         "rep_iv_median_2010_2025_vs_2026": [_r(float(df.loc[df["date"].dt.year < 2026, "rep_iv"].median()), 1),
                                              _r(float(df.loc[df["date"].dt.year == 2026, "rep_iv"].median()), 1)],
-        "option_board_bug": "call_wall 은 k200 < 1,000 인 11일만 존재, put_wall=1.0 인 날 4일, max_pain·night_close 전부 비어 있음",
+        # 옵션 보드 쉼표 버그(dc0aacb9 전) 흔적: 행사가 '1' 로 둔갑한 벽, 콜 벽 결측, 감마 ≤ 0 쏠림
+        "option_board_check": {"put_wall_eq_1": int((df["put_wall"] == 1).sum()), "call_wall_missing_when_board": int((df["pcr_oi"].notna() & df["call_wall"].isna()).sum()),
+                               "gex_le0_share": _r(float((df["gex_bn"].dropna() <= 0).mean()), 3), "night_close_n": int(df["night_close"].notna().sum())},
     }
 
 
@@ -319,7 +327,7 @@ def iv_vol(df: pd.DataFrame) -> dict:
     base.update({"grade_raw": base["grade"], "grade": "C" if (base["grade"] in ("A", "B", "C") and ok) else "F",
                  "control_nw5": ctrl, "q_low_high": [_r(q1, 1), _r(q2, 1)],
                  "ratio_abs_r1_hi_over_lo": _r(float(d.loc[d["iv_hi"] == 1, "abs_r1"].mean() / d.loc[d["iv_hi"] == 0, "abs_r1"].mean()), 2),
-                 "note": "사후(사전 등록 H7 은 gex_bn 기준인데 감마 이력이 89일·버그 구간이라 대체). 사후라 등급 상한 C. "
+                 "note": "사후(사전 등록 H7 은 gex_bn 기준인데 감마 이력이 2025-08~ 1년뿐이라 2010~ 장기 대용). 사후라 등급 상한 C. "
                          "IV 는 시장이 매긴 '내일 흔들림 가격'이라 예측력이 있는 게 당연 — 렌즈 가치는 '실현변동성(rv20) 통제 후에도 남나'."})
     return base
 
