@@ -38,6 +38,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
+          KRX_API_KEY: ${{ secrets.KRX_API_KEY }}
         run: |
           T="${{ github.event.inputs.task || 'run' }}"
           if [ "$T" = "probe" ]; then

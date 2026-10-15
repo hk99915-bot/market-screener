@@ -330,6 +330,51 @@ def p_krx_sweep():
     print("found", found)
 
 
+def p_round4():
+    import os
+    key = os.environ.get("KRX_API_KEY")
+    print("KRX_API_KEY set:", bool(key))
+    if key:
+        for ep in ["drv/fut_bydd_trd", "drv/opt_bydd_trd", "idx/drvprod_dd_trd", "idx/kospi_dd_trd"]:
+            for d in ["20261015", "20250612"]:
+                try:
+                    r = requests.get("https://data-dbg.krx.co.kr/svc/apis/" + ep, headers={"AUTH_KEY": key}, params={"basDd": d}, timeout=30)
+                    j = r.json() if r.text.startswith("{") else {}
+                    out = j.get("OutBlock_1") or []
+                    k2 = [x for x in out if "코스피200" in json.dumps(x, ensure_ascii=False) or "KOSPI 200" in json.dumps(x, ensure_ascii=False)]
+                    mk = sorted({x.get("MKT_NM") for x in out if x.get("MKT_NM")})
+                    print(ep, d, r.status_code, "rows", len(out), "MKT_NM", mk, "k200", len(k2), json.dumps(k2[:3], ensure_ascii=False)[:900] or r.text[:300])
+                    nt = [x for x in k2 if "야간" in json.dumps(x, ensure_ascii=False)]
+                    print("   night rows", len(nt), json.dumps(nt[:2], ensure_ascii=False)[:700])
+                except Exception as e:  # noqa: BLE001
+                    print(ep, d, "ERR", e)
+    out = krx_post("dbms/MDC/STAT/standard/MDCSTAT13001", trdDd="20261015").json().get("output") or []
+    print("13001 keys", list(out[0].keys()) if out else None)
+    for x in out:
+        print("  ", x)
+    for pid in ["KRDRVFUK2I", "KRDRVFUMKI", "KRDRVOPK2I", "KRDRVFUEQU", "", "ALL", "K2I", "KRDRVFU"]:
+        for extra in (dict(), dict(trdVolVal="1", askBid="3", inqTpCd="1"), dict(isuCd="KR4A016C0004")):
+            try:
+                out = krx_post("dbms/MDC/STAT/standard/MDCSTAT13101", strtDd="20261015", endDd="20261015", prodId=pid, **extra).json().get("output") or []
+                nz = [x for x in out if x.get("NETBID_TRDVOL") not in (None, "0", "-")]
+                print("13101 prodId", repr(pid), extra, "rows", len(out), "nonzero", len(nz), json.dumps(nz[:4], ensure_ascii=False)[:500])
+            except Exception as e:  # noqa: BLE001
+                print("13101", pid, "ERR", str(e)[:80])
+    try:
+        r = requests.get("https://m.stock.naver.com/api/index/FUT/integration", headers=M_UA, timeout=15).json()
+        print("naver FUT dealTrendInfo", json.dumps(r.get("dealTrendInfo"), ensure_ascii=False)[:1500])
+        print("naver FUT programTrendInfo", json.dumps(r.get("programTrendInfo"), ensure_ascii=False)[:500])
+        r = requests.get("https://m.stock.naver.com/api/index/KOSPI/integration", headers=M_UA, timeout=15).json()
+        print("naver KOSPI dealTrendInfo", json.dumps(r.get("dealTrendInfo"), ensure_ascii=False)[:800])
+        r = requests.get("https://m.stock.naver.com/api/index/KOSPI/trend", headers=M_UA, timeout=15)
+        print("naver KOSPI trend", r.text[:600])
+        for q in ("?pageSize=60&page=1", "?page=2&pageSize=20"):
+            r = requests.get("https://m.stock.naver.com/api/index/KOSPI/trend" + q, headers=M_UA, timeout=15)
+            print("trend", q, r.status_code, r.text[:300])
+    except Exception as e:  # noqa: BLE001
+        print("naver ERR", e)
+
+
 if __name__ == "__main__":
     only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
     for nm in only:
