@@ -369,11 +369,19 @@ function evPanel(){
    ${[...EVS.cb].reverse().map(r=>`<tr><td class="l">${esc(r.date)}</td><td>${r.day!=null?pct(r.day,1):'—'}</td><td>${r.d1!=null?pct(r.d1,1):'—'}</td><td>${r.d5!=null?pct(r.d5,1):'—'}</td><td>${r.d20!=null?pct(r.d20,1):'—'}</td><td>${r.low20!=null?pct(r.low20,1):'—'}</td><td class="l mu" style="white-space:normal;font-size:11px">${esc(r.note||'')}</td></tr>`).join('')}</table>
    <div class="mu" style="font-size:11px">${esc(EVS.note||'')}</div></details>`;
 }
+function Utilities_kstHour(){ return new Date(Date.now()+9*3600e3).getUTCHours(); }
+function homeCusHtml(){ const o=CMTU; if(!o) return '<div class="mu">불러오는 중…</div>'; if(!o.head) return '<div class="mu">미장 운용회의 없음</div>';
+  return `${(o.head||[]).map(x=>`<div>• ${esc(x)}</div>`).join('')}<div style="margin-top:6px" class="am">${esc(o.verdict||'')}</div>`+
+    ((o.scenarios||[]).length?`<table style="margin-top:6px">${o.scenarios.map(sc=>`<tr><td class="l">${esc(sc.name)}</td><td>${sc.prob!=null?(sc.prob*100).toFixed(0)+'%':'—'}</td></tr>`).join('')}</table>`:'')+
+    `<div class="mu" style="font-size:11px;margin-top:4px">${esc(o.asof||'')} · 자세히는 운용회의 탭 US</div>`; }
+function homeCusLoad(){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} const e=$('#homecus'); if(e) e.innerHTML=homeCusHtml(); if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={}; if(view==='cmt') render();}).getCommitteeUS(); }
 function homeView(){
   const kr=D.kr||{},us=D.us||{};
   const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
   const w=D.watchlist||[];
-  let h=`<div class="grid">${intradayPanel()}
+  const kh=+Utilities_kstHour(), usTime=kh>=21||kh<7;
+  const usBlock=pre('intraday_us','INTRADAY US')+pre('premarket_us','PREMARKET US')+`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`+(usTime?'':pre('close_US','CLOSE US'));
+  let h=`<div class="grid">${usTime?usBlock:''}${intradayPanel()}
    <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
    <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
    <div class="p c3"><h2>KR CLASSES<small>${kr.asof||''}</small></h2><div class="b">${cc(kr)}</div></div>
@@ -383,7 +391,8 @@ function homeView(){
    <div class="p c12"><h2>CALENDAR<small>실적·FOMC·CPI·만기 · 📌 = 내 보유</small></h2><div class="b" id="homecal">${calPanel()}</div></div>
    <div class="p c6"><h2>LATEST RESEARCH<small>${(D.reports||[]).length}</small></h2><div class="b">${repTable((D.reports||[]).slice(0,14))}</div></div>`;
   setTimeout(homeMyFill,0);
-  h+=pre('premarket_kr','PREMARKET KR')+pre('close_KR','CLOSE KR')+pre('close_US','CLOSE US')+pre('intraday_kr','INTRADAY KR');
+  h+=pre('premarket_kr','PREMARKET KR')+pre('close_KR','CLOSE KR')+(usTime?pre('close_US','CLOSE US'):'')+pre('intraday_kr','INTRADAY KR')+(usTime?'':usBlock);
+  if(CMTU===null) homeCusLoad();
   return h+'</div>';
 }
 function repTable(rows){
