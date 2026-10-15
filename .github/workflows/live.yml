@@ -55,14 +55,15 @@ jobs:
             rm -f /tmp/duel_ran
             if [ $dow -le 5 ] && [ $hm -ge 1450 ] && [ $hm -le 1515 ]; then python -m screener.main --mode duel && touch /tmp/duel_ran || true; fi
             # 다른 작업이 같은 파일을 커밋하면 rebase 가 충돌로 멈춰 이후 갱신이 전부 막힘 → 매번 원격 최신 위에 파일만 다시 얹는다
-            rm -rf /tmp/lv; mkdir -p /tmp/lv; for p in reports/live.json reports/events.json reports/events_stats.json; do [ -e "$p" ] && cp "$p" /tmp/lv/; done
-            [ -e /tmp/duel_ran ] && cp reports/decisions.json /tmp/lv/   # 판정한 회차에만 (다른 때 덮으면 제출된 겸이 판단이 지워짐)
+            rm -rf /tmp/lv; mkdir -p /tmp/lv; for p in reports/live.json reports/events.json reports/events_stats.json; do if [ -e "$p" ]; then cp "$p" /tmp/lv/; fi; done
+            if [ -e /tmp/duel_ran ]; then cp reports/decisions.json /tmp/lv/; fi   # 판정한 회차에만 (다른 때 덮으면 제출된 겸이 판단이 지워짐)
             for i in 1 2 3; do
-              git rebase --abort 2>/dev/null; git fetch -q origin main && git reset -q --hard origin/main
+              git rebase --abort 2>/dev/null || true   # 진행 중인 rebase 없으면 실패 → bash -e 가 루프를 죽였음
+              git fetch -q origin main && git reset -q --hard origin/main || { sleep 5; continue; }
               for f in /tmp/lv/*; do cp "$f" reports/; done
-              git add reports/live.json; for p in reports/events.json reports/events_stats.json reports/decisions.json; do [ -e "$p" ] && git add "$p"; done
+              git add reports/live.json; for p in reports/events.json reports/events_stats.json reports/decisions.json; do if [ -e "$p" ]; then git add "$p"; fi; done
               git diff --cached --quiet && break
-              git commit -qm "live: $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break
+              git commit -qm "live: $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break || true
               sleep 5
             done
             in_window || break
