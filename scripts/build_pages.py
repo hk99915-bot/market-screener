@@ -13,6 +13,7 @@ SHIM = """<script>
     getDetail: m => get('reports/detail_' + m + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
     getLive: () => get('reports/live.json').catch(() => ''),
+    getResearch: () => get('reports/research.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

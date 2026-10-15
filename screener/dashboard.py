@@ -86,6 +86,35 @@ def _reports(days: int = 3, n: int = 60) -> list[dict]:
               .select("date", "code", "name", "broker", "opinion", "target", "title", "link").to_dicts())
 
 
+def write_research(days: int = 180) -> int:
+    """리서치 화면용 전체 묶음 → reports/research.json (섹터·종가 포함, 집계는 브라우저에서)."""
+    p = DATA_DIR / "research.parquet"
+    if not p.exists():
+        return 0
+    df = pl.read_parquet(p)
+    cutoff = datetime.now(KST).date() - timedelta(days=days)
+    df = df.filter(pl.col("date") >= cutoff).sort("date", descending=True)
+    try:
+        from .universe import kr_sectors
+        sec = kr_sectors()
+    except Exception as e:  # noqa: BLE001
+        log.warning("업종 분류 실패: %s", e)
+        sec = {}
+    items = (df.with_columns(pl.col("date").cast(pl.Utf8),
+                             pl.col("code").replace_strict(sec, default="기타", return_dtype=pl.Utf8).alias("sector"))
+               .select("date", "code", "name", "sector", "broker", "opinion", "target", "title", "link").to_dicts())
+    close = {}
+    pp = DATA_DIR / "kr_prices.parquet"
+    if pp.exists():
+        codes = set(df["code"].to_list())
+        last = (pl.read_parquet(pp, columns=["yf", "date", "close"]).sort("date").group_by("yf").last()
+                  .with_columns(pl.col("yf").str.slice(0, 6).alias("code")).filter(pl.col("code").is_in(sorted(codes))))
+        close = dict(zip(last["code"].to_list(), [round(float(x), 2) for x in last["close"].to_list()]))
+    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "days": days, "items": items, "close": close}
+    (REPORT_DIR / "research.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    return len(items)
+
+
 def _watchlist() -> list[dict]:
     p = REPORT_DIR / "watchlist_KR.json"
     try:
@@ -117,3 +146,7 @@ def build() -> None:
     REPORT_DIR.mkdir(exist_ok=True)
     OUT.write_text(json.dumps(data, ensure_ascii=False, default=str), encoding="utf-8")
     log.info("dashboard.json 갱신 (%d bytes)", OUT.stat().st_size)
+    try:
+        log.info("research.json %d건", write_research())
+    except Exception as e:  # noqa: BLE001
+        log.warning("research.json 실패: %s", e)

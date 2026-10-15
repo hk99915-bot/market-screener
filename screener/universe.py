@@ -252,3 +252,42 @@ def us_index_universe(full: pl.DataFrame) -> pl.DataFrame | None:
         base = pl.concat([base, extra], how="vertical_relaxed")
     log.info("US 지수 유니버스 %d종목 (S&P500 ∪ NDX)", len(base))
     return base
+
+
+# ───────────────────────── KR 업종(섹터) 분류 ─────────────────────────
+
+def kr_sectors(refresh_days: int = 7) -> dict[str, str]:
+    """{종목코드: KRX 업종명}. pykrx → FinanceDataReader 순. 주 1회 universe/kr_sector.csv 캐시."""
+    import time
+    from datetime import timedelta
+    p = UNIVERSE_DIR / "kr_sector.csv"
+    if p.exists() and (time.time() - p.stat().st_mtime) < refresh_days * 86400:
+        df = pl.read_csv(p, schema_overrides={"code": pl.Utf8})
+        return dict(zip(df["code"].to_list(), df["sector"].to_list()))
+    rows: dict[str, str] = {}
+    try:
+        from pykrx import stock  # type: ignore
+        for back in range(10):
+            ymd = (date.today() - timedelta(days=back)).strftime("%Y%m%d")
+            for m in ("KOSPI", "KOSDAQ"):
+                df = stock.get_market_sector_classifications(ymd, m)
+                if df is not None and len(df) and "업종명" in df.columns:
+                    rows.update({str(c).zfill(6): str(s) for c, s in zip(df.index, df["업종명"]) if s == s and s})
+            if rows:
+                break
+    except Exception as e:  # noqa: BLE001
+        log.warning("pykrx 업종 분류 실패: %s", e)
+    if not rows:
+        try:
+            import FinanceDataReader as fdr  # type: ignore
+            df = fdr.StockListing("KRX-DESC")
+            rows = {str(c).zfill(6): str(s) for c, s in zip(df["Code"], df["Sector"]) if s == s and s}
+        except Exception as e:  # noqa: BLE001
+            log.warning("FDR 업종 분류 실패: %s", e)
+    if rows:
+        pl.DataFrame({"code": list(rows), "sector": list(rows.values())}).write_csv(p)
+        log.info("KR 업종 분류 %d종목", len(rows))
+    elif p.exists():
+        df = pl.read_csv(p, schema_overrides={"code": pl.Utf8})
+        rows = dict(zip(df["code"].to_list(), df["sector"].to_list()))
+    return rows

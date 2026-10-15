@@ -46,3 +46,5 @@ function getMarkdown(name) {
 function getLive() {
   try { return raw_('reports/live.json'); } catch (e) { return ''; }
 }
+
+function getResearch() { return raw_('reports/research.json'); }
