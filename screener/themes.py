@@ -66,39 +66,58 @@ def _get(url: str) -> str:
     return r.text
 
 
+def _json(url: str):
+    r = requests.get(url, headers={"User-Agent": UA["User-Agent"]}, timeout=20)
+    r.raise_for_status()
+    return r.json()
+
+
 def fetch() -> dict[str, list[str]]:
-    """{종목코드: [소속 테마명...]}"""
-    themes: dict[str, str] = {}
-    for page in range(1, 12):
-        h = _get(f"https://finance.naver.com/sise/theme.naver?&page={page}")
-        found = re.findall(r"sise_group_detail\.naver\?type=theme&(?:amp;)?no=(\d+)[\"'][^>]*>([^<]+)</a>", h)
-        if page == 1 and not found:
-            (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
-            (REPORT_DIR / "logs" / "naver_theme.html").write_text(h[:30000], encoding="utf-8")
-            raise RuntimeError(f"테마 목록 파싱 0건 (응답 {len(h)}자, logs/naver_theme.html)")
-        new = {no: name.strip() for no, name in found if no not in themes}
-        if not new:
+    """{종목코드: [소속 테마명...]} — 네이버 모바일 API (PC 테마 페이지는 Next.js 로 바뀌어 파싱 불가)."""
+    themes: dict[int, str] = {}
+    for page in range(1, 6):
+        j = _json(f"https://m.stock.naver.com/api/stocks/theme?page={page}&pageSize=100")
+        gs = j.get("groups") or []
+        for g in gs:
+            themes[g["no"]] = g["name"]
+        if len(themes) >= (j.get("totalCount") or 0) or not gs:
             break
-        themes.update(new)
         time.sleep(0.2)
     log.info("네이버 테마 %d개", len(themes))
     out: dict[str, list[str]] = {}
+    bad = 0
     for no, name in themes.items():
-        try:
-            h = _get(f"https://finance.naver.com/sise/sise_group_detail.naver?type=theme&no={no}")
-        except Exception as e:  # noqa: BLE001
-            log.debug("테마 %s 실패: %s", name, e)
+        codes = set()
+        for url in (f"https://m.stock.naver.com/api/stocks/theme/{no}?page=1&pageSize=100",
+                    f"https://m.stock.naver.com/api/stocks/theme/{no}/stocks?page=1&pageSize=100"):
+            try:
+                j = _json(url)
+            except Exception:  # noqa: BLE001
+                continue
+            for it in (j.get("stocks") or j.get("items") or []):
+                c = str(it.get("itemCode") or it.get("code") or "")
+                if re.fullmatch(r"\d{6}", c):
+                    codes.add(c)
+            if codes:
+                break
+            if bad == 0:
+                (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
+                (REPORT_DIR / "logs" / "naver_theme.json").write_text(str(j)[:20000], encoding="utf-8")
+        if not codes:
+            bad += 1
+            if bad >= 5 and not out:
+                raise RuntimeError("테마 구성종목 API 응답 형식 불일치 (logs/naver_theme.json)")
             continue
-        for code in set(re.findall(r"/item/main\.naver\?code=(\d{6})", h)):
-            out.setdefault(code, []).append(name)
-        time.sleep(0.12)
+        for c in codes:
+            out.setdefault(c, []).append(name)
+        time.sleep(0.1)
     return out
 
 
-def kr_themes(refresh_days: int = 7) -> dict[str, dict]:
+def kr_themes(refresh_days: int = 7, force: bool = False) -> dict[str, dict]:
     """{코드: {"theme": 대표 테마, "themes": "테마1|테마2|..."}}"""
     import time as _t
-    if P.exists() and (_t.time() - P.stat().st_mtime) < refresh_days * 86400:
+    if not force and P.exists() and (_t.time() - P.stat().st_mtime) < refresh_days * 86400:
         return _load()
     try:
         m = fetch()
