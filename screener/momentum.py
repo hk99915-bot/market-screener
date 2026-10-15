@@ -37,7 +37,12 @@ def ranks(full: pl.DataFrame, last: pl.DataFrame, market: str, top: int = 60) ->
                  (pl.col("close").shift(21).over("yf") / pl.col("close").shift(126).over("yf") - 1).alias("m6_1"),
                  (pl.col("close") / pl.col("close").shift(63).over("yf") - 1).alias("m3"),
                  (pl.col("close") / pl.col("close").shift(1).over("yf") - 1).rolling_std(60).over("yf").alias("vol60"),
+                (pl.col("close") / pl.col("close").shift(1).over("yf") - 1).abs().rolling_max(120).over("yf").alias("maxjump"),
              ).group_by("yf").last())
+    # 액면분할·병합·감자 등 수정되지 않은 가격 점프(국장 가격제한 30% 초과)가 있으면 모멘텀이 왜곡 → 제외
+    thr = 0.31 if market == "KR" else 0.6
+    p = p.filter((pl.col("maxjump").is_null() | (pl.col("maxjump") <= thr))
+                 & (pl.col("vol60").is_null() | (pl.col("vol60") * math.sqrt(252) <= 1.5)))   # 연율 변동성 150% 초과(데이터 이상·초소형 투기주) 제외
     p = p.join(last.select("yf", "symbol", "name", "market", "close", "trend_score", "class"), on="yf", how="inner")
     p = p.filter(pl.col("m6_1").is_not_null())
     if p.is_empty():

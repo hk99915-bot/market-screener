@@ -68,7 +68,7 @@
   .drawer .hd b{color:var(--amber);font-size:15px;letter-spacing:.06em}
   .drawer .hd .x{margin-left:auto;cursor:pointer;color:var(--muted);border:1px solid var(--line);padding:2px 8px}
   .drawer .grid{padding:8px}
-  #cv,#mcv{display:block;width:100%;height:260px;background:#050505}
+  #cv,#mcv,#mbt,#pfc{display:block;width:100%;height:260px;background:#050505}
   .sc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .sc div.k{border:1px solid var(--line);padding:6px 8px}
   .sc .t{letter-spacing:.1em;font-size:11px;margin-bottom:4px}
@@ -248,7 +248,7 @@ function marketView(mk){
   h+=pre('close_'+mk,'CLOSE COMMENT')+pre('telegram_'+mk,'TELEGRAM SUMMARY')+'</div>';
   return h;
 }
-const shortNm=x=>String(x||'').replace(/\s*[-–]\s*(Class [A-Z] )?(Common Stock|Ordinary Shares|American Depositary).*$/i,'').replace(/,?\s+(Inc\.?|Corporation|Corp\.?|Ltd\.?|plc|Holdings?)$/i,'').trim();
+const shortNm=x=>String(x||'').replace(/\s*[-–]\s*(Class [A-Z] )?(Common Stock|Ordinary Shares|American Depositary|New York Registry).*$/i,'').replace(/\s+(Class [A-Z]\s+)?(Common Stock|Ordinary Shares).*$/i,'').replace(/,?\s+(Inc\.?|Corporation|Corp\.?|Ltd\.?|plc|Holdings?|Company|Co\.)$/i,'').replace(/,?\s+(Inc\.?|Corporation|Corp\.?)$/i,'').trim();
 function homeMyStub(){ return myLoad()?'<div class="mu">불러오는 중…</div>':'<div class="mu">MY 탭에 보유 종목을 입력하면 여기에 요약이 나옵니다.</div>'; }
 function homeMyFill(){
   const box=$('#homemy'); if(!box||!myLoad()) return;
@@ -734,7 +734,7 @@ function momView(){
     if(MBT===null){ MBT=false; google.script.run.withSuccessHandler(t=>{try{MBT=JSON.parse(t);}catch(e){MBT={};} if(view==='mom') render();}).withFailureHandler(()=>{MBT={}; if(view==='mom') render();}).getMomentumBt(); }
   }
   const tbl=(d,mk)=>{ if(!d) return '<div class="load">LOADING …</div>'; if(!d.top||!d.top.length) return '<div class="mu">다음 스크리너 실행 때 생성</div>';
-    return `<div class="mu" style="margin-bottom:4px">${d.asof} · ${d.n}종목 중 상위 · 점수=12-1M·6-1M·3M 수익률 백분위 평균</div><table><tr><th class="l">#</th><th class="l">종목</th><th>점수</th><th>12-1M</th><th>6-1M</th><th>3M</th><th>변동성</th><th>Trend</th></tr>${d.top.slice(0,30).map((r,i)=>`<tr><td class="l mu">${i+1}</td><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${mk}">${esc(r.name)}</td><td class="am">${r.score}</td><td>${pct(r.m12_1,0)}</td><td>${pct(r.m6_1,0)}</td><td>${pct(r.m3,0)}</td><td class="mu">${r.vol!=null?(r.vol*100).toFixed(0)+'%':'—'}</td><td>${r.trend??'—'}</td></tr>`).join('')}</table>`; };
+    return `<div class="mu" style="margin-bottom:4px">${d.asof} · ${d.n}종목 중 상위 · 점수=12-1M·6-1M·3M 수익률 백분위 평균</div><table><tr><th class="l">#</th><th class="l">종목</th><th>점수</th><th>12-1M</th><th>6-1M</th><th>3M</th><th>변동성</th><th>Trend</th></tr>${d.top.slice(0,30).map((r,i)=>`<tr><td class="l mu">${i+1}</td><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${mk}">${esc(shortNm(r.name))}</td><td class="am">${r.score}</td><td>${pct(r.m12_1,0)}</td><td>${pct(r.m6_1,0)}</td><td>${pct(r.m3,0)}</td><td class="mu">${r.vol!=null?(r.vol*100).toFixed(0)+'%':'—'}</td><td>${r.trend??'—'}</td></tr>`).join('')}</table>`; };
   const bt=MBT&&MBT.stats?MBT:null;
   const S=(s)=>s?`CAGR <b>${pct(s.cagr,1)}</b> · 변동성 ${(s.vol*100).toFixed(0)}% · 샤프 ${s.sharpe??'—'} · MDD <b class="dn">${(s.mdd*100).toFixed(0)}%</b>`:'—';
   const btHtml=!bt?'<div class="mu">백테스트 결과 없음 (야간 실행 때 생성)</div>':`<div class="mu" style="margin-bottom:6px">${esc(bt.rule)}</div>
