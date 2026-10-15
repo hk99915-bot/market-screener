@@ -166,7 +166,8 @@ def premarket_kr(send: bool = True) -> str:
 
 def intraday_kr(send: bool = True) -> str:
     now = datetime.now(KST)
-    L = [f"<b>📈 장중 브리핑</b> · {now:%m/%d %H:%M} [LIVE·잠정]"]
+    closed = now.weekday() < 5 and now.hour * 100 + now.minute >= 1531
+    L = [f"<b>📈 {'마감 정리' if closed else '장중 브리핑'}</b> · {now:%m/%d %H:%M} [{'종가 기준' if closed else 'LIVE·잠정'}]"]
     snap = {}
     try:
         snap = flows.intraday_snapshot()
@@ -232,11 +233,11 @@ def intraday_kr(send: bool = True) -> str:
         dn_from_high = (hi - la) / pv * 100
         pos = (la - lo) / (hi - lo) if hi > lo else 0.5
         if up_from_low >= 1.0 or (pos >= 0.35 and up_from_low >= 0.8):
-            notes.append(f"코스피 {chg*100:+.2f}%, 장중 저점({(lo/pv-1)*100:+.1f}%)에서 <b>{up_from_low:.1f}%p 회복</b> — 저점은 일단 지켜지는 중")
+            notes.append(f"코스피 {chg*100:+.2f}%, 장중 저점({(lo/pv-1)*100:+.1f}%)에서 <b>{up_from_low:.1f}%p 회복</b>" + (" 마감 — 저점에서 받쳐주는 매수가 있었음" if closed else " — 저점은 일단 지켜지는 중"))
         elif pos <= 0.15:
-            notes.append(f"코스피 {chg*100:+.2f}%, <b>장중 저점 부근</b> — 매도 압력이 아직 그치지 않음")
+            notes.append(f"코스피 {chg*100:+.2f}%, <b>{'저점 부근 마감' if closed else '장중 저점 부근'}</b> — " + ("끝까지 매도 우위, 바닥 확인 전" if closed else "매도 압력이 아직 그치지 않음"))
         else:
-            notes.append(f"코스피 {chg*100:+.2f}%, 장중 고점 대비 {dn_from_high:.1f}%p 밀린 상태 (범위 중간)")
+            notes.append(f"코스피 {chg*100:+.2f}%, 장중 고점 대비 {dn_from_high:.1f}%p 밀린 " + ("채 마감 (범위 중간)" if closed else "상태 (범위 중간)"))
     # ② 누가 팔고 누가 받나
     if k.get("외국인") is not None:
         f, i2, ind = k.get("외국인", 0), k.get("기관", 0), k.get("개인", 0)
@@ -291,7 +292,8 @@ def intraday_kr(send: bool = True) -> str:
         L += [f"• {x}" for x in notes]
     try:
         from . import dashboard
-        dashboard.put_state("intraday_snapshot", {"flows": mf, "snap": snap, "notes": notes})
+        dashboard.put_state("intraday_snapshot", {"flows": mf, "snap": snap, "notes": notes, "phase": "마감" if closed else "장중 잠정",
+                                                  "kospi": kq.get("last"), "kospi_chg": chg})
     except Exception as e:  # noqa: BLE001
         log.debug("장중 스냅샷 저장 실패: %s", e)
 

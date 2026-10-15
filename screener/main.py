@@ -301,6 +301,10 @@ def main() -> None:
                 live.snapshot()
             except Exception as e:  # noqa: BLE001
                 log.warning("시세 실패: %s", e)
+            try:   # 홈 '장중' 패널·해석도 종가 기준으로 다시 씀
+                briefings.intraday_kr(send=False)
+            except Exception as e:  # noqa: BLE001
+                log.warning("마감 해석 실패: %s", e)
             write_macro_series()
             try:
                 from . import dashboard as _db

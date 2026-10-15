@@ -279,7 +279,7 @@ function intradayPanel(){
     const tot=(q.up||0)+(q.down||0);
     return `<tr><td class="l am">${m}</td><td>${sgn(x['외국인'])}</td><td>${sgn(x['기관'])}</td><td>${sgn(x['개인'])}</td><td>${sgn(q.prog_total)}</td><td>${q.up!=null?`<span class="up">${q.up}</span>/<span class="dn">${q.down}</span>`:'—'}</td><td>${tot?`<span class="${q.down/tot>0.6?'dn':q.up/tot>0.6?'up':'am'}">${Math.round(q.down/tot*100)}%</span>`:'—'}</td></tr>`;};
   const top=(sn.KOSPI&&sn.KOSPI.top)||[];
-  return `<div class="p c12"><h2>INTRADAY KR<small>${s.at} · 잠정 · 억원</small></h2><div class="b">
+  return `<div class="p c12"><h2>${v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${s.at} 기준 · ${esc(v.phase||'장중 잠정')}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원</small></h2><div class="b">
    <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
    ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
    ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}</div></div>`;
