@@ -49,12 +49,39 @@ IND = {
 REL = REPORT_DIR / "macro_releases.json"
 
 
+DBN = {"CPIAUCSL": "BLS/cu/CUSR0000SA0", "CPILFESL": "BLS/cu/CUSR0000SA0L1E", "PAYEMS": "BLS/ce/CES0000000001",
+       "UNRATE": "BLS/ln/LNS14000000", "PPIFIS": "BLS/wp/WPSFD4"}
+
+
+def _dbn(sid: str) -> list[tuple[str, float]]:
+    import requests
+    code = DBN[sid]
+    r = requests.get(f"https://api.db.nomics.world/v22/series/{code}?observations=1&format=json", timeout=40)
+    r.raise_for_status()
+    doc = (r.json().get("series") or {}).get("docs") or []
+    if not doc:
+        return []
+    out = []
+    for per, v in zip(doc[0].get("period") or [], doc[0].get("value") or []):
+        if isinstance(v, (int, float)):
+            out.append((str(per), float(v)))
+    return out
+
+
 def _fred(sid: str) -> list[tuple[str, float]]:
+    if sid in DBN:
+        try:
+            o = _dbn(sid)
+            if o:
+                return o
+        except Exception as e:  # noqa: BLE001
+            log.warning("DBnomics %s 실패: %s", sid, e)
     import csv
     import io
 
     import requests
-    r = requests.get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}", timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+    r = requests.get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}", timeout=(10, 60),
+                     headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36", "Accept": "text/csv,*/*"})
     r.raise_for_status()
     out = []
     for row in list(csv.reader(io.StringIO(r.text)))[1:]:
@@ -98,6 +125,7 @@ def releases() -> dict:
                 continue
             if v is None:
                 continue
+            old.get("errors", {}).pop(sid, None)
             o = old["series"].get(sid) or {}
             if o.get("period") != per or o.get("value") != round(v, 3):
                 old["log"].append({"sid": sid, "grp": grp, "label": label, "period": per, "value": round(v, 3),

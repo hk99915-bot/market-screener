@@ -138,12 +138,16 @@ html,body{overflow-x:hidden}
   .bg .bl{width:72px}
   .live iframe{height:360px}
 }
+/* 스텔스: 흑백 + 밝은 바탕(반전) — 색 신호 없이 숫자 부호(+/−)로만 읽음 */
+html.stealth{filter:invert(.9) grayscale(1) contrast(.9)}
+html.stealth .brand{letter-spacing:0}
+#stb{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:2px 6px;cursor:pointer;margin-left:4px}
 .sbtn{background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:12px;padding:4px 8px;cursor:pointer}
 </style>
 </head>
 <body>
 <div class="top">
-  <span class="brand">MARKET TERMINAL</span>
+  <span class="brand" id="brand">MARKET TERMINAL</span><button id="stb" title="흑백 모드 (단축키 \\)">◐</button>
   <span class="clock" id="clock">—</span>
   <span class="mu" id="gen"></span>
   <div class="srch"><input id="sq" placeholder="종목·티커 검색 (예: 삼성전자, 005930, NVDA)" autocomplete="off"><div id="sres"></div></div>
@@ -1297,6 +1301,15 @@ function load(){
   google.script.run.withSuccessHandler(d=>{D=d;render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
 }
 load(); loadLive(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000);
+</script>
+<script>
+(function(){ const K='mt_stealth';
+  const ap=on=>{ document.documentElement.classList.toggle('stealth',on); document.title=on?'notes':'MARKET TERMINAL';
+    const b=document.getElementById('brand'); if(b) b.textContent=on?'notes':'MARKET TERMINAL'; try{ localStorage.setItem(K,on?'1':'0'); }catch(e){} };
+  let on=false; try{ on=localStorage.getItem(K)==='1'; }catch(e){} ap(on);
+  document.getElementById('stb').onclick=()=>{ on=!on; ap(on); };
+  document.addEventListener('keydown',e=>{ if(e.key==='\\'&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){ on=!on; ap(on); } });
+})();
 </script>
 </body>
 </html>
