@@ -24,6 +24,8 @@ SHIM = """<script>
     getDaily: () => get('reports/daily_brief.json'),
     getStockIndex: m => get('reports/detail/' + m + '/_index.json'),
     getPortfolios: () => get('reports/portfolios.json'),
+    getSignals: () => get('reports/signal_scores.json'),
+    getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

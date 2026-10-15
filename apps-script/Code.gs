@@ -65,3 +65,5 @@ function getDaily() { return raw_('reports/daily_brief.json'); }
 function getStockIndex(m) { return raw_(`reports/detail/${m}/_index.json`); }
 
 function getPortfolios() { return raw_('reports/portfolios.json'); }
+function getSignals() { return raw_('reports/signal_scores.json'); }
+function getChains() { return raw_('reports/chains_view.json'); }

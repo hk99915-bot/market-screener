@@ -314,6 +314,14 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "scenarios": _scenarios(r, ch),
             "comment": {"stock": stock_comment(r, max_parts=5), "macro": _macro_view(r, mr, regime_line, br)},
         }
+    if market == "KR":
+        try:
+            from . import track
+            track.backfill_tech(full)
+            track.snapshot(asof, out["stocks"])
+            track.score(full.select("yf", "date", "close"))
+        except Exception as e:  # noqa: BLE001
+            log.warning("시그널 추적 실패: %s", e)
     import shutil
     d = REPORT_DIR / "detail" / market
     if d.exists():
