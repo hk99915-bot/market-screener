@@ -127,6 +127,13 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             reps[code] = [{"date": str(x["date"]), "broker": x["broker"], "opinion": x["opinion"], "target": x["target"],
                            "title": x["title"], "link": x["link"]} for x in g.head(12).to_dicts()]
     flows = _flows_kr(syms[:150], asof) if (with_flows and market == "KR") else {}
+    discl = {}
+    if market == "KR":
+        try:
+            from . import dart
+            discl = dart.by_code(dart.load(), list(syms), days=180, n=12)
+        except Exception as e:  # noqa: BLE001
+            log.warning("종목별 공시 실패: %s", e)
 
     out = {"asof": str(asof), "market": market, "stocks": {}}
     for s in syms:
@@ -149,6 +156,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "research": {"items": reps.get(s, []), "consensus_tp": r.get("consensus_tp"), "tp_upside": r.get("tp_upside"),
                          "brokers30": r.get("rp_brokers30"), "n30": r.get("rp_n30")},
             "flows": fl, "flow_note": flow_note,
+            "disclosures": discl.get(s, []),
             "chart": ch,
             "scenarios": _scenarios(r, ch),
             "comment": {"stock": stock_comment(r, max_parts=5), "macro": _macro_view(r, mr, regime_line, br)},

@@ -48,3 +48,5 @@ function getLive() {
 }
 
 function getResearch() { return raw_('reports/research.json'); }
+
+function getDisclosures() { return raw_('reports/disclosures.json'); }

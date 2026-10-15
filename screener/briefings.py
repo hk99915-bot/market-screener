@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 
 import polars as pl
 
-from . import flows, research, usmarket
+from . import dart, flows, research, usmarket
 from .config import DATA_DIR, REPORT_DIR
 from .report import CLASS_KO, send_telegram
 
@@ -119,6 +119,21 @@ def premarket_kr(send: bool = True) -> str:
     else:
         L.append("<b>[오늘 관심종목]</b> 조건 충족 없음 (어제 스크리너 결과 없거나 약세장)")
     WATCH.write_text(json.dumps(watch, ensure_ascii=False), encoding="utf-8")
+
+    # 4) 어제~오늘 아침 주요 공시 (관심·리포트·신호 종목)
+    try:
+        ddf, _ = dart.update(days=2)
+        codes = {w["code"] for w in watch}
+        codes |= set(store.filter(pl.col("date") >= (now.date() - timedelta(days=30)))["code"].to_list()) if len(store) else set()
+        if sig is not None:
+            codes |= set(sig["symbol"].to_list())
+        dl = dart.brief_lines(ddf, codes, now.date() - timedelta(days=1))
+        if dl:
+            L.append("")
+            L.append(f"<b>[주요 공시 {len(dl)}]</b> (관심·리포트·신호 종목, 어제~오늘)")
+            L += ["• " + _esc(x) for x in dl]
+    except Exception as e:  # noqa: BLE001
+        log.warning("공시 섹션 실패: %s", e)
 
     if sig is not None:
         n200 = None
@@ -306,6 +321,10 @@ DIGEST_MARK = REPORT_DIR / "last_digest.txt"
 def reports_alert(send: bool = True, max_items: int = 15) -> str:
     """하루 1회 다이제스트: 지난 다이제스트 이후 수집된 모든 리포트 (장전 수집분 포함)."""
     store, _ = research.update_store()
+    try:
+        dart.update(days=2)   # 공시는 조용히 갱신 (웹 터미널·종목 상세용)
+    except Exception as e:  # noqa: BLE001
+        log.warning("공시 갱신 실패: %s", e)
     since = DIGEST_MARK.read_text(encoding="utf-8").strip() if DIGEST_MARK.exists() else "0000"
     new = store.filter(pl.col("collected_at") > since)
     now_s = datetime.now(KST).strftime("%Y-%m-%d %H:%M")

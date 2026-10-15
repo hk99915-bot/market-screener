@@ -80,7 +80,7 @@ details.sec{margin-bottom:10px}details.sec summary{cursor:pointer;padding:4px 0;
     <button class="on" data-v="home">HOME</button>
     <button data-v="kr">KR</button>
     <button data-v="us">US</button>
-    <button data-v="rep">RESEARCH</button>
+    <button data-v="rep">RESEARCH</button><button data-v="dart">DART</button>
     <button data-v="brief">BRIEFS</button>
     <button data-v="mdkr">KR FULL</button>
     <button data-v="mdus">US FULL</button>
@@ -160,6 +160,20 @@ function repTable(rows){
   if(!rows||!rows.length) return '<div class="mu">—</div>';
   return `<table><tr><th class="l">DATE</th><th class="l">NAME</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th><th class="l">TITLE</th></tr>`+rows.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${num(r.target)}</td><td class="l">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title).slice(0,50)}</a>`:esc(r.title).slice(0,50)}</td></tr>`).join('')+'</table>';
 }
+let DS=null, DV={c:'ALL',q:'',d:7};
+const FLAGC={'희석':'dn','주의':'dn','정정':'mu'};
+function discTable(rows,withName){ return `<table><tr><th class="l">날짜</th>${withName?'<th class="l">종목</th>':''}<th class="l">유형</th><th class="l">공시</th></tr>${rows.map(r=>`<tr><td class="l mu">${r.date}</td>${withName?`<td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td>`:''}<td class="l">${esc(r.category)}${r.flag?` <b class="${FLAGC[r.flag]||'am'}">${esc(r.flag)}</b>`:''}</td><td class="l"><a href="${esc(r.link)}" target="_blank">${esc(r.title)}</a></td></tr>`).join('')}</table>`; }
+function dartView(){
+  if(!DS){ google.script.run.withSuccessHandler(t=>{try{DS=JSON.parse(t);}catch(e){DS={items:[]};} if(view==='dart') render();}).withFailureHandler(e=>{DS={items:[],err:'공시 데이터가 아직 없습니다 (DART_API_KEY 설정 후 다음 자동 실행 때 생성)'}; if(view==='dart') render();}).getDisclosures(); return '<div class="load">LOADING …</div>'; }
+  const cats=['ALL','⚠ 주의·희석',...new Set((DS.items||[]).map(r=>r.category))];
+  const b=(k,v,l)=>`<button class="${DV[k]===v?'on':''}" onclick="DV['${k}']=${typeof v==='number'?v:`'${v}'`};render()">${l}</button>`;
+  return `<div class="grid"><div class="p c12"><h2>DART 주요 공시<span class="ctab">${[1,3,7,30].map(d=>b('d',d,d+'D')).join('')}</span><small id="dcnt"></small></h2><div class="b">
+   <div class="ctab" style="margin:0 0 8px 0;display:flex;flex-wrap:wrap;gap:4px">${cats.map(c=>b('c',c,c==='ALL'?'전체':c)).join('')}</div>
+   <input class="rq" placeholder="종목 · 공시 제목 검색" value="${esc(DV.q)}" oninput="DV.q=this.value;dartFill()">${DS.err?`<div class="mu">${esc(DS.err)}</div>`:''}<div id="dbody"></div></div></div></div>`;
+}
+function dartFill(){ const b=$('#dbody'); if(!b||!DS) return; const cut=new Date(Date.now()-DV.d*864e5+9*36e5).toISOString().slice(0,10), q=DV.q.trim().toLowerCase();
+  const it=(DS.items||[]).filter(r=>r.date>=cut&&(DV.c==='ALL'||(DV.c==='⚠ 주의·희석'?(r.flag==='주의'||r.flag==='희석'):r.category===DV.c))&&(!q||[r.name,r.code,r.title,r.category].join(' ').toLowerCase().includes(q)));
+  b.innerHTML=it.length?discTable(it.slice(0,500),true):'<div class="mu">해당 공시 없음</div>'; const c=$('#dcnt'); if(c) c.textContent=`${it.length}건 · 기준 ${DS.asof||''}`; }
 let R=null, RV={m:'sector',d:30,q:''};
 function repView(){
   if(!R){ google.script.run.withSuccessHandler(t=>{try{R=JSON.parse(t);}catch(e){R={items:[],close:{}};} if(view==='rep') render();}).withFailureHandler(e=>{R={items:[],close:{},err:e.message}; if(view==='rep') render();}).getResearch(); return '<div class="load">LOADING …</div>'; }
@@ -219,8 +233,9 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||'');
   tape();
   const v=view;
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='dart'?dartView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
+  if(v==='dart') dartFill();
 }
 /* ───── 종목 상세 ───── */
 const DET={};
@@ -243,6 +258,7 @@ function renderDetail(sym,mk,s){
    <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
    <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<table style="margin-top:6px"><tr><th class="l">DATE</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th></tr>${rs.items.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${r.link?`<a href="${esc(r.link)}" target="_blank">${num(r.target)||'—'}</a>`:num(r.target)||'—'}</td></tr>`).join('')}</table>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
    <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
+   <div class="p c12"><h2>DISCLOSURES<small>DART · 최근 180일 주요 공시</small></h2><div class="b">${(s.disclosures||[]).length?discTable(s.disclosures,false):'<div class="mu">'+(kr?'최근 주요 공시 없음 (또는 DART 키 미설정)':'미국 종목은 DART 대상 아님')+'</div>'}</div></div>
    <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">
      <div class="k"><div class="t up">▲ BULL</div><div>${esc(sc.bull?.trigger||'')}</div><div>목표 <b class="am">${lvl(sc.bull?.target)}</b> (${sc.bull?.upside!=null?(sc.bull.upside>0?'+':'')+sc.bull.upside.toFixed(1)+'%':'—'}) <span class="mu">${esc(sc.bull?.note||'')}</span></div></div>
      <div class="k"><div class="t">■ BASE</div><div>${esc(sc.base?.note||'')}</div></div>

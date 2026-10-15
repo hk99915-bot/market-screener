@@ -14,6 +14,7 @@ SHIM = """<script>
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
     getLive: () => get('reports/live.json').catch(() => ''),
     getResearch: () => get('reports/research.json'),
+    getDisclosures: () => get('reports/disclosures.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

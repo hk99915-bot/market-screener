@@ -150,3 +150,8 @@ def build() -> None:
         log.info("research.json %d건", write_research())
     except Exception as e:  # noqa: BLE001
         log.warning("research.json 실패: %s", e)
+    try:
+        from . import dart
+        log.info("disclosures.json %d건", dart.write_json())
+    except Exception as e:  # noqa: BLE001
+        log.warning("disclosures.json 실패: %s", e)
