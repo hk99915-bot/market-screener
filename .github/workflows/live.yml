@@ -60,8 +60,8 @@ jobs:
             for i in 1 2 3; do
               git rebase --abort 2>/dev/null || true   # 진행 중인 rebase 없으면 실패 → bash -e 가 루프를 죽였음
               git fetch -q origin main && git reset -q --hard origin/main || { sleep 5; continue; }
-              for f in /tmp/lv/*; do cp "$f" reports/; done
-              git add reports/live.json; for p in reports/events.json reports/events_stats.json reports/decisions.json; do if [ -e "$p" ]; then git add "$p"; fi; done
+              for f in /tmp/lv/*; do if [ -e "$f" ]; then cp "$f" reports/; fi; done   # 시세 실패로 비면 cp 실패 → bash -e 가 루프를 죽였음
+              for p in reports/live.json reports/events.json reports/events_stats.json reports/decisions.json; do if [ -e "$p" ]; then git add "$p"; fi; done
               git diff --cached --quiet && break
               git commit -qm "live: $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break || true
               sleep 5

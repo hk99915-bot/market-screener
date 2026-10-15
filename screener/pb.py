@@ -1,11 +1,11 @@
 """개인 PB 아침 브리핑 — 보유 내역은 GitHub 비공개 시크릿 MY_HOLDINGS 에서만 읽는다 (저장소·로그에 남기지 않음).
 
 MY_HOLDINGS 형식 (웹 MY 탭과 동일, 한 줄에 하나):
-    005930 11 260864
-    TIGER 200 IT 17 128855
-    MU 1 857.5
-    USD 2223.07
-    현금 3164341
+    005930 10 70000
+    TIGER 200 IT 5 30000
+    MU 2 100.0
+    USD 1000
+    현금 1000000
 선택: MY_RULES — 줄마다 '종목코드 가격' (종가 2일 연속 이탈 시 경고), 'LOSS_LIMIT 0.12' (순자산 대비 손실 한도), 'SEMI_CAP 0.6'
 """
 from __future__ import annotations

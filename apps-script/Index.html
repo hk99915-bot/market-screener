@@ -536,7 +536,7 @@ function myParse(txt){ const out=[]; for(const ln of txt.split(/\n/)){ const p=l
     const k=p[0].toUpperCase();
     if(['현금','KRW','CMA','원화','예수금','RP'].includes(k)||/^CMA/.test(k)) out.push({cash:'KRW', amt:n(p[1])||0});
     else if(['USD','달러','미국달러'].includes(k)) out.push({cash:'USD', amt:n(p[1])||0});
-    else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 17 128855")
+    else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 5 30000")
       let k2=p.length; const nums=[]; while(k2>1&&nums.length<2&&n(p[k2-1])!=null){ nums.unshift(n(p[k2-1])); k2--; }
       out.push({key:p.slice(0,k2).join(' '), qty:nums.length?nums[0]:0, avg:nums.length>1?nums[1]:null}); } } return out; }
 function myResolve(k){ const x=k.toLowerCase().trim();
@@ -572,7 +572,7 @@ function myView(){
         <div class="mu" style="font-size:11px;line-height:1.6;max-width:560px">깃허브 → Settings → Developer settings → Fine-grained tokens → Repository access: <b>pb-private만</b> · Permissions: <b>Contents: Read-only</b>. 토큰은 이 브라우저에만 저장돼요(회사 PC엔 저장 금지). 비우고 저장하면 삭제.</div>
         <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <label class="mu" style="font-size:11px;margin-left:6px"><input id="mytokses" type="checkbox"> 이 창에서만 (탭 닫으면 삭제 · 회사 PC용)</label> <button id="mytokb" class="sbtn">저장</button></details></div>
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
-    <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 11 260864</code> · <code>TIGER 200 IT 17 128855</code> · <code>MU 1 857.5</code> · <code>현금 3164341</code> · <code>USD 2223.07</code></div>
+    <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code></div>
     <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
     <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
     <div id="myout" style="margin-top:12px"></div>
