@@ -279,20 +279,75 @@ def summarize(evs: list[dict], rng) -> dict:
             "signal_lags": lag, "strategies": rows}
 
 
+def exploratory(sp: pd.DataFrame, rng) -> dict:
+    """사전 등록 밖(결과를 본 뒤 추가) — 권고안 근거용. 판정에는 쓰지 않음."""
+    c, lo = sp["close"].to_numpy(), sp["low"].to_numpy()
+
+    def stats(r, base, cl):
+        r = np.asarray(r)
+        return {"mean": round(float(r.mean()), 4), "median": round(float(np.median(r)), 4), "worst": round(float(r.min()), 4),
+                "p10": round(float(np.percentile(r, 10)), 4), "diff_vs_crash_close": round(float((r - base).mean()), 4),
+                "diff_ci": boot_ci(r - base, cl, rng)}
+
+    out = {"note": "결과 확인 후 추가한 탐색 분석. 다중비교 보정 없음 — 권고의 방향 확인용."}
+    for H in HORIZONS:
+        # (a) 2024-09 이전(프록시) 구간만 — 2026년 이벤트 쏠림 점검
+        ev = [i for i in events(sp, -0.03) if sp.index[i] < pd.Timestamp(REAL_FROM)]
+        evs = [x for x in (run_event(sp, i, H) for i in ev) if x]
+        sm = summarize(evs, rng)
+        out[f"pre_2024-09_-3%_H{H}"] = {"n": sm["n_events"], "clusters": sm["n_clusters"],
+                                        **{k: {kk: v[kk] for kk in ("mean", "median", "worst", "p10", "diff_vs_crash_close", "diff_vs_crash_close_ci")}
+                                           for k, v in sm["strategies"].items() if k.split("|")[0] in ("A_next_open", "B_crash_close", "C_next_close", "D_sig2", "E_breakout5", "F_tranche")}}
+        # (b) 손절 레벨 민감도: 급락일 종가 매수 + '레벨 아래 2일 연속 종가'면 청산
+        for thr in (-0.03, -0.05):
+            ev = [i for i in events(sp, thr) if i + H < len(c)]
+            cl = np.array(clusters(ev))
+            base = np.array([c[t + H] / c[t] - 1 for t in ev])
+            st = {"n": len(ev), "no_stop": stats(base, base, cl)}
+            for name, f in (("crash_low", lambda t: lo[t]), ("close-3%", lambda t: c[t] * 0.97), ("close-5%", lambda t: c[t] * 0.95),
+                            ("close-8%", lambda t: c[t] * 0.92), ("close-10%", lambda t: c[t] * 0.90)):
+                r = []
+                for t in ev:
+                    L, x = f(t), c[t + H] / c[t] - 1
+                    for d in range(t + 2, t + H + 1):
+                        if c[d - 1] < L and c[d] < L:
+                            x = c[d] / c[t] - 1
+                            break
+                    r.append(x)
+                st[name] = stats(r, base, cl)
+            out[f"stop_levels_{int(thr*100)}%_H{H}"] = st
+
+            # (c) 시간·추가하락 분할 대안
+            def dip(t):
+                d = next((d for d in range(t + 1, t + 11) if c[d] <= c[t] * 0.95), None)
+                return 0.5 * (c[t + H] / c[t] - 1) + (0.5 * (c[t + H] / c[d] - 1) if d else 0.0)
+            out[f"tranche_alt_{int(thr*100)}%_H{H}"] = {
+                "n": len(ev),
+                "50@crash_close+50@t+5": stats([0.5 * (c[t + H] / c[t] - 1) + 0.5 * (c[t + H] / c[t + 5] - 1) for t in ev], base, cl),
+                "50@crash_close+50@t+10": stats([0.5 * (c[t + H] / c[t] - 1) + 0.5 * (c[t + H] / c[t + 10] - 1) for t in ev], base, cl),
+                "50@crash_close+50@dip-5%(10d내, 없으면 현금)": stats([dip(t) for t in ev], base, cl)}
+    return out
+
+
 def main() -> dict:
-    px = build_proxy()
+    import os
+    cache = os.environ.get("PROXY_CACHE")
+    if cache and Path(cache).exists():
+        px = pd.read_pickle(cache)
+    else:
+        px = build_proxy()
+        if cache:
+            px.to_pickle(cache)
     real = load_real()
     val = validate(px, real)
     px_raw = px.copy()
     px = calibrate(px, real, val)
-    sp = pd.concat([px.loc[px.index < REAL_FROM, ["open", "high", "low", "close"]],
-                    real.loc[real.index >= REAL_FROM]]).sort_index()
-    # 스플라이스: 실제 지수 구간을 프록시 마지막 레벨에 맞춰 연결 (수익률만 쓰므로 레벨 무관하지만 이어지게)
+    # 스플라이스: 실제 지수 첫날(REAL_FROM)까지는 프록시, 그 다음날부터 실제 코스피를 첫날 레벨에 맞춰 이어붙임
     first_real = real.index[real.index >= REAL_FROM][0]
-    # 첫 실제일 수익률이 이어지도록: 실제 전일 종가 비율로 스케일
-    prev_real = real["close"].shift(1).loc[first_real]
-    sc = px.loc[px.index < REAL_FROM, "close"].iloc[-1] / prev_real
-    sp.loc[sp.index >= REAL_FROM] *= sc
+    sc = float(px.loc[first_real, "close"] / real.loc[first_real, "close"])
+    sp = pd.concat([px.loc[px.index <= first_real, ["open", "high", "low", "close"]],
+                    real.loc[real.index > first_real] * sc]).sort_index()
+    assert sp["close"].notna().all()
     out = {"asof": str(sp.index.max().date()), "validation": val, "series": {}}
     rng = np.random.default_rng(SEED)
     for sname, ser in (("spliced", sp), ("proxy_only", px[["open", "high", "low", "close"]]),
@@ -314,6 +369,7 @@ def main() -> dict:
                 out["series"][sname][f"{int(thr*100)}%"][f"H{H}"] = {"all": summ, "first_in_cluster": summarize(firsts, rng),
                                                                       "per_event": [{"date": e["date"], "bh": round(e["bh_crash_close"], 4), "bear": e["bear_day"] is not None,
                                                                                      "lag": e["lag"]} for e in evs]}
+    out["exploratory_not_preregistered"] = exploratory(sp, np.random.default_rng(SEED + 1))
     OUT_J.parent.mkdir(parents=True, exist_ok=True)
     OUT_J.write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     return out
