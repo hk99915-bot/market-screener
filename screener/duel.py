@@ -421,12 +421,15 @@ def record_pb(payload: dict, send: bool = True) -> str:
             it["pb_view"]["lenses"] = _vs["lenses"]
     except Exception as _e:  # noqa: BLE001
         log.info("관점 스냅샷 실패: %s", _e)
-    # 🔥 공격 베팅(확신 높거나 비대칭 기회일 때만) — 별도 참가자 'PB🔥'로 채점
+    # 🔥 공격 PB (매일 필수 · 모의 전용) — 별도 참가자 'PB🔥'로 채점. 현금 판단도 기록
     bold = payload.get("bold")
-    if bold and bold.get("ticker"):
-        bt = str(bold["ticker"])
-        it["picks"]["PB🔥"] = {"ticker": bt, "name": bold.get("name") or NAMES.get(bt, bt), "notional": float(bold.get("notional") or NOTIONAL),
-                              "entry": pk.get("entry", "close"), "exit": bold.get("exit") or pk.get("exit") or "next_open", "by": "PB 공격", "at": pk["at"]}
+    if bold and (bold.get("ticker") or bold.get("cash")):
+        if bold.get("cash"):
+            it["picks"]["PB🔥"] = {"cash": True, "by": "공격 PB", "at": pk["at"]}
+        else:
+            bt = str(bold["ticker"]).upper() if us else str(bold["ticker"])
+            it["picks"]["PB🔥"] = {"ticker": bt, "name": bold.get("name") or (US_NAMES.get(bt, bt) if us else NAMES.get(bt, bt)), "notional": float(bold.get("notional") or NOTIONAL),
+                                  "entry": pk.get("entry", "open" if us else "close"), "exit": bold.get("exit") or pk.get("exit") or ("same_close" if us else "next_open"), "by": "공격 PB", "at": pk["at"]}
         it["pb_view"]["bold"] = {"why": bold.get("why", ""), "plan": bold.get("plan") or None}
     # 보유 종목 매도 타점 (PB 재량) — 금액은 모의 100만 고정 (실제 보유 수량·금액은 공개 저장소에 남기지 않음)
     ex_msgs = []
@@ -486,9 +489,9 @@ def record_pb(payload: dict, send: bool = True) -> str:
     rl = payload.get("real") or {}
     if rl:
         msg += ["", "💼 <b>실전 적용</b>: " + ("가능" if rl.get("ok") else "규칙상 비추천") + (f" · 총자산의 {rl['size_pct']*100:.0f}% 이내" if isinstance(rl.get("size_pct"), (int, float)) else "") + (" — " + str(rl.get("note")) if rl.get("note") else "")]
-    if bold and bold.get("ticker"):
+    if bold and (bold.get("ticker") or bold.get("cash")):
         bp = it["picks"]["PB🔥"]
-        msg += ["", f"🔥 <b>공격 베팅</b>: {bp['name']} {bp['notional']/10000:,.0f}만 · " + ex_lbl.get(bp["exit"], bp["exit"]) + " 청산", str(bold.get("why", ""))]
+        msg += ["", "🔥 <b>공격 PB</b>: " + ("현금" if bp.get("cash") else f"{bp['name']} {bp['notional']/10000:,.0f}만 · " + ex_lbl.get(bp["exit"], bp["exit"]) + " 청산") + " (모의 전용)", str(bold.get("why", ""))]
         pl2 = plan_line(bold.get("plan"))
         if pl2:
             msg.append(pl2)
