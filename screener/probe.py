@@ -164,7 +164,7 @@ def run() -> dict:
     except Exception as e:  # noqa: BLE001
         out["close_cmp"] = "ERR " + str(e)[:300]
     try:   # 종가 대조 2: 후보 소스별 10-13~15 OHLC
-        out["close_cmp3"] = _close_cmp3()
+        out["krx_fix"] = _krx_fix()
     except Exception as e:  # noqa: BLE001
         out["close_cmp2"] = "ERR " + traceback.format_exc()[-600:]
     p = REPORT_DIR / "logs" / "probe.json"
@@ -306,3 +306,27 @@ def _close_cmp3() -> dict:
         except Exception as e:  # noqa: BLE001
             res[c]["naver_dealtrend"] = "ERR " + str(e)[:200]
     return res
+
+
+def _krx_fix() -> dict:
+    """data_krx 잠정 종가 교정 경로 점검."""
+    import time as _t
+    from datetime import date as _d
+    from . import data_krx as dk
+    r: dict = {}
+    d = _d(2026, 10, 15)
+    t0 = _t.time()
+    try:
+        df, prov = dk._pykrx_raw_day(d)
+        r["raw"] = {"rows": len(df), "prov": prov, "sec": round(_t.time() - t0, 1),
+                    "s": df.filter(df["yf"].is_in(["005930.KS", "000660.KS", "009150.KS"])).to_dicts()}
+    except Exception:  # noqa: BLE001
+        r["raw"] = traceback.format_exc()[-1500:]
+        df, prov = dk._pykrx_day(d), True
+    t0 = _t.time()
+    try:
+        yc = dk._yahoo_close(df["yf"].to_list(), d)
+        r["yahoo"] = {"n": len(yc), "sec": round(_t.time() - t0, 1), "s": {k: yc.get(k) for k in ("005930.KS", "000660.KS", "009150.KS", "247540.KQ")}}
+    except Exception:  # noqa: BLE001
+        r["yahoo"] = traceback.format_exc()[-1500:]
+    return r
