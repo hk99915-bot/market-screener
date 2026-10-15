@@ -1,16 +1,42 @@
-2026-10-15 08:24:52,922 INFO screener.live: live.json 14개 지표
-2026-10-15 08:24:59,992 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': 14633.0, '외국인': -37737.0, '기관': 16668.0}, 'KOSDAQ': {'개인': -631.0, '외국인': 2168.0, '기관': -1663.0}}
-2026-10-15 08:25:05,437 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-15 08:25:05,926 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-15 08:25:05,978 INFO matplotlib.font_manager: generated new fontManager
-2026-10-15 08:25:41,657 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-15 08:25:41,727 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.11) — 주된 요인: 나스닥 +, S&P500 +, 미 10년 금리 − · 글로벌 매크로는 심하지 않은데 한국만 크게 빠짐 → 원인은 국내·업종(반도체) 쪽, 매크로 반전만으론 회복 근거 부족
-2026-10-15 08:25:41,749 INFO screener.dashboard: dashboard.json 갱신 (95024 bytes)
-2026-10-15 08:25:41,834 INFO screener.dashboard: research.json 187건
-2026-10-15 08:25:41,842 INFO screener.dashboard: disclosures.json 235건
-2026-10-15 08:25:41,861 INFO screener.daily: 데일리 리포트: 리포트 102건, 테마 22개, 통합 체크 3개
-2026-10-15 08:25:41,873 INFO screener.daily: 데일리 리포트: 리포트 102건, 테마 22개, 통합 체크 3개
-2026-10-15 08:25:49,566 INFO screener.derivs: 옵션 포지션: PCR 1.37 GEX -985.4억 flip None
-2026-10-15 08:25:53,314 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': 14633.0, '외국인': -37737.0, '기관': 16668.0}, 'KOSDAQ': {'개인': -631.0, '외국인': 2168.0, '기관': -1663.0}}
-2026-10-15 08:25:54,179 INFO screener.committee: 운용회의 자료 생성
-2026-10-15 08:26:55,448 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-15 10:33:52,856 INFO screener.live: live.json 14개 지표
+2026-10-15 10:33:53,272 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-15 10:33:53,413 INFO matplotlib.font_manager: generated new fontManager
+2026-10-15 10:34:03,462 INFO screener.universe: KR 유니버스 _kr_pykrx: 2554종목
+2026-10-15 10:34:05,395 INFO screener.data_krx: KRX 2026-10-08: 2654행
+2026-10-15 10:34:08,436 INFO screener.data_krx: KRX 2026-10-09: 0행
+2026-10-15 10:34:10,631 INFO screener.data_krx: KRX 2026-10-12: 2651행
+2026-10-15 10:34:13,426 INFO screener.data_krx: KRX 2026-10-13: 2651행
+2026-10-15 10:34:15,315 INFO screener.data_krx: KRX 2026-10-14: 2651행
+2026-10-15 10:37:21,772 INFO screener.data_krx: KRX 2026-10-15 잠정 종가 → 야후 정규장 종가 교체: 2650/2651종목 확인, 2254종목 값 변경
+2026-10-15 10:37:21,773 INFO screener.data_krx: KRX 2026-10-15: 2651행 (잠정)
+2026-10-15 10:37:23,181 INFO screener.momentum: 모멘텀 순위 KR 716종목
+2026-10-15 10:38:02,433 INFO screener.detail: 일괄 수급 2678종목
+2026-10-15 10:38:03,429 INFO screener.detail: 재무 요약 1238종목
+2026-10-15 10:38:03,851 INFO screener.valuation: 가치평가 1213종목
+2026-10-15 10:47:14,109 INFO screener.drivers: 뉴스 412종목 (헤드라인 5941건)
+2026-10-15 10:47:14,274 INFO screener.detail: 이익 드라이버 1261종목
+2026-10-15 11:03:11,135 INFO screener.shorts: 공매도 잔고 1일 추가
+2026-10-15 11:03:11,152 INFO screener.detail: 공매도 2761종목
+2026-10-15 11:03:11,347 INFO screener.track: 시그널 스냅샷 2026-10-15 1261종목 (누적 250일)
+2026-10-15 11:03:15,401 INFO screener.detail: detail/KR: 1261종목, 71322 KB
+2026-10-15 11:05:08,935 INFO screener.etf: ETF 구성 379780 실패: not all arguments converted during string formatting
+2026-10-15 11:05:12,006 INFO screener.etf: ETF 구성 453850 실패: not all arguments converted during string formatting
+2026-10-15 11:09:43,999 INFO screener.etf: ETF KR 206개 (389s)
+2026-10-15 11:09:51,175 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': 13967.0, '외국인': -37637.0, '기관': 17176.0}, 'KOSDAQ': {'개인': -748.0, '외국인': 2228.0, '기관': -1614.0}}
+2026-10-15 11:09:51,719 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-15 11:09:58,293 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-15 11:10:01,815 INFO screener.live: live.json 14개 지표
+2026-10-15 11:10:01,860 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.10) — 주된 요인: 나스닥 +, S&P500 +, 미 10년 금리 − · 글로벌 매크로는 심하지 않은데 한국만 크게 빠짐 → 원인은 국내·업종(반도체) 쪽, 매크로 반전만으론 회복 근거 부족
+2026-10-15 11:10:01,881 INFO screener.dashboard: dashboard.json 갱신 (98738 bytes)
+2026-10-15 11:10:01,964 INFO screener.dashboard: research.json 187건
+2026-10-15 11:10:01,970 INFO screener.dashboard: disclosures.json 235건
+2026-10-15 11:10:01,990 INFO screener.daily: 데일리 리포트: 리포트 102건, 테마 22개, 통합 체크 3개
+2026-10-15 11:10:02,002 INFO screener.daily: 데일리 리포트: 리포트 102건, 테마 22개, 통합 체크 3개
+2026-10-15 11:10:07,459 INFO screener.derivs: 옵션 포지션: PCR 1.37 GEX -985.4억 flip None
+2026-10-15 11:10:11,586 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': 13967.0, '외국인': -37637.0, '기관': 17176.0}, 'KOSDAQ': {'개인': -748.0, '외국인': 2228.0, '기관': -1614.0}}
+2026-10-15 11:10:12,408 INFO screener.committee: 운용회의 자료 생성
+2026-10-15 11:11:13,334 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-15 11:12:13,409 WARNING screener.calendar_ev: FRED PCEPILFE 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-15 11:13:13,461 WARNING screener.calendar_ev: FRED A191RL1Q225SBEA 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-15 11:14:13,554 WARNING screener.calendar_ev: FRED DFEDTARU 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-15 11:14:13,567 INFO screener.calendar_ev: 캘린더 70건
