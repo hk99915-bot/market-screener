@@ -22,8 +22,9 @@ on:
 permissions:
   contents: write
 
+# 모드별로 대기열을 나눈다. 같은 그룹은 '대기 1개'만 허용돼 새 요청이 기존 대기(예: 장중 브리핑)를 취소하기 때문.
 concurrency:
-  group: screener
+  group: briefing-${{ github.event.inputs.mode || github.event.schedule || 'x' }}
   cancel-in-progress: false
 
 jobs:
@@ -80,5 +81,4 @@ jobs:
           git config user.email "screener-bot@users.noreply.github.com"
           for p in reports universe data/research.parquet data/dart.parquet; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "briefing: ${{ steps.m.outputs.mode }} $(date -u +%FT%H:%M)"
-          git pull --rebase origin main || true
-          git push || true
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && break; git rebase --abort 2>/dev/null; sleep $((i*5)); done; true
