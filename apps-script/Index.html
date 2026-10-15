@@ -632,31 +632,25 @@ function corrDraw(){ const W=CORR; if(!W||!window.LightweightCharts) return;
   const cb=$('#cqus'); if(cb&&!cb.dataset.b){ cb.dataset.b='1'; cb.onchange=()=>corrDraw(); }
 }
 function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) return; b.dataset.done='1';
-  pbGet('analysis/latest.json').then(t=>{ const o=JSON.parse(t);
-    b.innerHTML=`<div style="margin-bottom:8px">기준 ${esc(o.date)}</div><table style="max-width:640px">${(o.kpis||[]).map(k=>`<tr><td class="l">${esc(k[0])}</td><td><b>${esc(k[1])}</b></td></tr>`).join('')}</table>`+
-      `<div id="mycint" style="margin-top:12px"></div><details style="margin-top:12px"><summary style="cursor:pointer" class="am">정적 차트 이미지</summary>`+(o.images||[]).map((im,i)=>`<div style="margin-top:12px"><div class="am" style="font-size:12px">${esc(im[0])}</div><img id="mycimg${i}" alt="" style="max-width:100%;border:1px solid var(--line);margin-top:4px"></div>`).join('')+`</details>`+
-      `<details style="margin-top:12px"><summary style="cursor:pointer" class="am">전체 보고서</summary><div id="mycrep" style="line-height:1.6;margin-top:6px">불러오는 중…</div></details>`;
-    if(o.web) pbGet(o.dir+'/'+o.web).then(t=>corrCharts(JSON.parse(t))).catch(()=>{});
-    (o.images||[]).forEach((im,i)=>pbGet(o.dir+'/'+im[1],'blob').then(bl=>{ const e=$('#mycimg'+i); if(e) e.src=URL.createObjectURL(bl); }).catch(()=>{}));
-    pbGet(o.dir+'/'+o.report).then(t=>{ const e=$('#mycrep'); if(e) e.innerHTML=mdLite(t); }).catch(()=>{ const e=$('#mycrep'); if(e) e.textContent='보고서 없음'; });
+  pbGet('analysis/index.json').then(t=>JSON.parse(t).reports||[]).catch(()=>[{date:'최신',dir:'',latest:1}]).then(R=>{
+    R=R.slice().sort((a,c)=>a.date<c.date?1:-1);
+    b.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span class="am">리포트 히스토리</span>
+      <select id="mycsel" style="background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:2px 4px">${R.map((r,k)=>`<option value="${k}">${esc(r.date)} · ${esc(r.title||'')}</option>`).join('')}</select>
+      <span class="mu" style="font-size:11px">${R.length}건 · 새 분석이 쌓이면 여기 추가돼</span></div><div id="mycone"></div>`;
+    const load=k=>{ const r=R[k]; const metaP=r.latest?'analysis/latest.json':r.dir+'/meta.json';
+      $('#mycone').innerHTML='<div class="mu">불러오는 중…</div>';
+      pbGet(metaP).then(t=>{ const o=JSON.parse(t); const dir=o.dir||r.dir;
+        $('#mycone').innerHTML=`<div style="margin-bottom:8px" class="mu">기준 ${esc(o.date)}</div><table style="max-width:640px">${(o.kpis||[]).map(k=>`<tr><td class="l">${esc(k[0])}</td><td><b>${esc(k[1])}</b></td></tr>`).join('')}</table>`+
+          (o.comment?`<details open style="margin-top:12px"><summary style="cursor:pointer" class="am">PB 코멘트 · 처방</summary><div id="myccom" style="line-height:1.7;margin-top:6px">불러오는 중…</div></details>`:'')+
+          `<div id="mycint" style="margin-top:12px"></div><details style="margin-top:12px"><summary style="cursor:pointer" class="am">정적 차트 이미지</summary>`+(o.images||[]).map((im,i)=>`<div style="margin-top:12px"><div class="am" style="font-size:12px">${esc(im[0])}</div><img id="mycimg${i}" alt="" style="max-width:100%;border:1px solid var(--line);margin-top:4px"></div>`).join('')+`</details>`+
+          `<details style="margin-top:12px"><summary style="cursor:pointer" class="am">전체 보고서</summary><div id="mycrep" style="line-height:1.6;margin-top:6px">불러오는 중…</div></details>`;
+        if(o.comment) pbGet(dir+'/'+o.comment).then(t=>{ const e=$('#myccom'); if(e) e.innerHTML=mdLite(t); }).catch(()=>{});
+        if(o.web) pbGet(dir+'/'+o.web).then(t=>corrCharts(JSON.parse(t))).catch(()=>{});
+        (o.images||[]).forEach((im,i)=>pbGet(dir+'/'+im[1],'blob').then(bl=>{ const e=$('#mycimg'+i); if(e) e.src=URL.createObjectURL(bl); }).catch(()=>{}));
+        pbGet(dir+'/'+o.report).then(t=>{ const e=$('#mycrep'); if(e) e.innerHTML=mdLite(t); }).catch(()=>{ const e=$('#mycrep'); if(e) e.textContent='보고서 없음'; });
+      }).catch(e=>{ $('#mycone').textContent='불러오기 실패('+e.message+')'; }); };
+    $('#mycsel').onchange=e=>load(+e.target.value); load(0);
   }).catch(e=>{ b.textContent='불러오기 실패('+e.message+') — 토큰 권한 확인'; delete b.dataset.done; }); }
-function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
-  for(const [m,sy] of list){ const k=m+':'+sy; if(MYD[k]){ done(); continue; }
-    google.script.run.withSuccessHandler(t=>{try{MYD[k]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(m,sy); } }
-function myRun(){
-  if(typeof CH!=='undefined'&&CH===null){ CH=false; google.script.run.withSuccessHandler(t=>{try{CH=JSON.parse(t);}catch(e){CH={};}}).getChains(); }
-  if(typeof PF!=='undefined'&&PF===null){ PF=false; google.script.run.withSuccessHandler(t=>{try{PF=JSON.parse(t);}catch(e){PF={};}}).getPortfolios(); }
-  const out=$('#myout'); if(!out) return; out.innerHTML='<div class="load">LOADING …</div>';
-  loadIndex(()=>{
-    const all=myParse($('#myta').value);
-    const hs=all.filter(h=>h.key).map(h=>({...h, r:myResolve(h.key)}));
-    const cash=all.filter(h=>h.cash);
-    const miss=hs.filter(h=>!h.r).map(h=>h.key);
-    const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]), ...HEDGES.map(x=>[x[0],x[1]]), ...BENCH];
-    const go=()=>myFetch(need,()=>myRender(hs,cash,miss));
-    if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go();
-  });
-}
 /* 수치 도구 */
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const cov=(a,b)=>{const ma=mean(a),mb=mean(b);let s=0;for(let i=0;i<a.length;i++)s+=(a[i]-ma)*(b[i]-mb);return s/(a.length-1);};
