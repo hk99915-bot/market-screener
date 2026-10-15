@@ -295,6 +295,41 @@ def p_krx_opt_hist():
         print("fut", d, len(out), [(x.get("ISU_NM"), x.get("TDD_CLSPRC"), x.get("SPOT_PRC"), x.get("ACC_OPNINT_QTY")) for x in out[:2]])
 
 
+def p_krx_night2():
+    for d in ["20250605", "20250609", "20250610", "20250611", "20250901", "20260105", "20260914", "20261014", "20261015", "20261016"]:
+        try:
+            out = krx_post("dbms/MDC/STAT/standard/MDCSTAT12501", trdDd=d, prodId="KRDRVFUK2I", mktTpCd="T", rghtTpCd="T").json().get("output") or []
+            print(d, len(out), [(x.get("ISU_NM"), x.get("TDD_OPNPRC"), x.get("TDD_CLSPRC"), x.get("ACC_TRDVOL")) for x in out if "SP" not in x.get("ISU_NM", "")][:3],
+                  "야간", [(x.get("ISU_NM"), x.get("TDD_CLSPRC"), x.get("ACC_TRDVOL")) for x in out if "야간" in x.get("ISU_NM", "")][:2])
+        except Exception as e:  # noqa: BLE001
+            print(d, "ERR", e)
+    out = krx_post("dbms/MDC/STAT/standard/MDCSTAT13001", strtDd="20261014", endDd="20261015").json().get("output") or []
+    print("13001 rows", json.dumps(out, ensure_ascii=False)[:2500])
+    r = krx_post("dbms/comm/finder/finder_drvprodisu", mktsel="ALL", searchText="", bld="dbms/comm/finder/finder_drvprodisu")
+    print("finder", r.status_code, r.text[:1500])
+
+
+def p_krx_sweep():
+    found = []
+    for a in range(130, 140):
+        for b in range(1, 6):
+            bld = f"dbms/MDC/STAT/standard/MDCSTAT{a}{b:02d}"
+            for prm in (dict(trdDd="20261015", prodId="KRDRVFUK2I", mktTpCd="T", rghtTpCd="T"),
+                        dict(strtDd="20261013", endDd="20261015", prodId="KRDRVFUK2I", mktTpCd="T", inqTpCd="2", trdVolVal="1", askBid="3")):
+                try:
+                    r = krx_post(bld, **prm)
+                    if not r.text.startswith("{"):
+                        continue
+                    out = r.json().get("output") or r.json().get("OutBlock_1") or []
+                    if out:
+                        nz = any(any(ch.isdigit() and ch != "0" for ch in str(v)) for x in out[:15] for k, v in x.items() if "VOL" in k or "VAL" in k or "QTY" in k)
+                        print(bld[-9:], list(prm)[0], "rows", len(out), "nonzero", nz, json.dumps(out[:2], ensure_ascii=False)[:500])
+                        found.append(bld)
+                except Exception as e:  # noqa: BLE001
+                    pass
+    print("found", found)
+
+
 if __name__ == "__main__":
     only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
     for nm in only:
