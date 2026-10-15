@@ -144,6 +144,12 @@ def _summ(rows: list[dict], S: float, asof: date) -> dict:
         c = [(abs(kk - k), v) for (cc, kk), v in ivs.items()]
         return min(c)[1] if c else 0.3
     atm = [v for (cp, k), v in ivs.items() if abs(k / S - 1) < 0.02]
+    # 스큐: 5% 외가 풋 IV − 5% 외가 콜 IV (가장 가까운 행사가)
+    def near_iv(cp, tgt):
+        c = [(abs(k - tgt), v) for (cc, k), v in ivs.items() if cc == cp]
+        return min(c)[1] if c else None
+    p95, c105 = near_iv("P", S * 0.95), near_iv("C", S * 1.05)
+    skew = (p95 - c105) if p95 and c105 else None
     def gex(at):
         tot = 0.0
         prof = {}
@@ -169,7 +175,8 @@ def _summ(rows: list[dict], S: float, asof: date) -> dict:
             "pcr_oi": round(poi / coi, 3) if coi else None, "pcr_vol": round(pv / cv, 3) if cv else None,
             "call_oi": coi, "put_oi": poi, "max_pain": mp,
             "call_wall": {"k": cw["k"], "oi": cw["oi"]} if cw else None, "put_wall": {"k": pw["k"], "oi": pw["oi"]} if pw else None,
-            "atm_iv": round(sum(atm) / len(atm), 4) if atm else None,
+            "atm_iv": round(sum(atm) / len(atm), 4) if atm else None, "skew": round(skew, 4) if skew is not None else None,
+            "iv_p95": round(p95, 4) if p95 else None, "iv_c105": round(c105, 4) if c105 else None,
             "gex_bn": round(g0 / 1e8, 1), "flip": round(flip, 1) if flip else None,
             "gex_top": [{"k": k, "g_bn": round(v / 1e8, 1)} for k, v in sorted(top)],
             "oi_profile": [{"k": k, "c": sum(r["oi"] for r in fr if r["cp"] == "C" and r["k"] == k),
@@ -219,6 +226,13 @@ def interpret(o: dict) -> list[str]:
                                                          "양수: 딜러 헤지가 반대로 움직임 → 변동성 억제·박스권 경향"))
         if o.get("flip"):
             L.append(f"감마 전환점 ≈ {o['flip']:.1f} (현재 대비 {(o['flip']/S-1)*100:+.1f}%) — 이 위로 회복하면 변동성 진정 쪽")
+    if o.get("atm_iv") and o.get("rv20"):
+        vrp = o["atm_iv"] - o["rv20"]
+        L.append(f"내재변동성(ATM) {o['atm_iv']*100:.0f}% vs 실현변동성(20일) {o['rv20']*100:.0f}% — " +
+                 ("옵션이 실제 움직임보다 비쌈: 공포 프리미엄. 보험(풋) 사기엔 비싼 구간" if vrp > 0.05 else
+                  "옵션이 실제 움직임보다 쌈: 시장이 변동성을 과소평가 — 헷지 사기엔 싼 구간" if vrp < -0.03 else "대체로 맞게 가격됨"))
+    if o.get("skew") is not None:
+        L.append(f"스큐(5% 외가 풋 IV − 콜 IV) {o['skew']*100:+.1f}%p — " + ("하락 보험 수요가 강함" if o["skew"] > 0.05 else "상방 콜 수요 쪽" if o["skew"] < 0 else "보통"))
     f = o.get("fut") or {}
     if f.get("basis") is not None:
         L.append(f"선물 베이시스 {f['basis']:+.2f}p — " + ("백워데이션: 선물이 현물보다 쌈, 매도 헤지 쏠림·차익 매수 유인" if f["basis"] < 0 else "콘탱고: 정상"))
@@ -268,6 +282,16 @@ def build(backfill: int = 20) -> dict:
     h["rows"] = sorted(h["rows"], key=lambda r: r["date"])[-260:]
     HIST.write_text(json.dumps(h, ensure_ascii=False), encoding="utf-8")
     cur["hist"] = h["rows"][-60:]
+    try:
+        from pykrx import stock  # type: ignore
+        df = stock.get_index_ohlcv((d - timedelta(days=60)).strftime("%Y%m%d"), d.strftime("%Y%m%d"), "1028")
+        c = [float(x) for x in df["종가"].tolist()]
+        r = [math.log(c[i] / c[i - 1]) for i in range(len(c) - 20, len(c))] if len(c) > 21 else []
+        if r:
+            m = sum(r) / len(r)
+            cur["rv20"] = round(math.sqrt(sum((x - m) ** 2 for x in r) / (len(r) - 1) * 252), 4)
+    except Exception as e:  # noqa: BLE001
+        log.info("코스피200 실현변동성 실패: %s", e)
     cur["notes"] = interpret(cur)
     cur["asof"] = datetime.now().strftime("%Y-%m-%d %H:%M")
     OUT.write_text(json.dumps(cur, ensure_ascii=False), encoding="utf-8")

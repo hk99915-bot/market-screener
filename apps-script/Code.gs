@@ -61,6 +61,8 @@ function getMomentum(m) { return raw_(`reports/momentum_${m}.json`); }
 function getMomentumBt() { return raw_('reports/momentum_bt.json'); }
 
 function getDaily() { return raw_('reports/daily_brief.json'); }
+function getDailyIndex() { return raw_('reports/daily_hist/_index.json'); }
+function getDailyAt(d) { return raw_('reports/daily_hist/' + d + '.json'); }
 
 function getStockIndex(m) { return raw_(`reports/detail/${m}/_index.json`); }
 
@@ -75,5 +77,7 @@ function getCalendar() { return raw_('reports/calendar.json'); }
 function getDecisions() { return raw_('reports/decisions.json'); }
 function getCommittee() { return raw_('reports/committee.json'); }
 function getCommitteeUS() { return raw_('reports/committee_us.json'); }
+function getArchIndex(k) { return raw_('reports/archive/' + k + '/_index.json'); }
+function getArchAt(k, d) { return raw_('reports/archive/' + k + '/' + d + '.json'); }
 function getPeers(mk) { return raw_('reports/peers_' + (mk === 'US' ? 'US' : 'KR') + '.json'); }
 function getChains() { return raw_('reports/chains_view.json'); }

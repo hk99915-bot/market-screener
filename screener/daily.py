@@ -180,6 +180,7 @@ def build(days: int = 7) -> dict:
            "topics": dict(all_topics.most_common(8))}
     (REPORT_DIR / "daily_brief.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     (REPORT_DIR / "daily_brief.md").write_text(to_markdown(out), encoding="utf-8")
+    archive(out)
     log.info("데일리 리포트: 리포트 %d건, 테마 %d개, 통합 체크 %d개", len(items), len(themes), len(links))
     return out
 
@@ -223,3 +224,20 @@ def telegram_text(o: dict) -> str:
         L.append("")
         L.append("<b>[이탈]</b> " + " · ".join(f"{d['name']}({d['broker']}, {d['tone']})" for d in o["dissent"][:5]))
     return "\n".join(L)
+
+
+def archive(o: dict) -> None:
+    """날짜별 누적: reports/daily_hist/YYYY-MM-DD.json (그날 마지막 실행본) + _index.json (날짜·헤드라인 목록)."""
+    d = str(o.get("asof", ""))[:10]
+    if len(d) != 10:
+        return
+    hd = REPORT_DIR / "daily_hist"
+    hd.mkdir(parents=True, exist_ok=True)
+    (hd / f"{d}.json").write_text(json.dumps(o, ensure_ascii=False), encoding="utf-8")
+    try:
+        idx = json.loads((hd / "_index.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        idx = {"days": []}
+    idx["days"] = sorted([x for x in idx["days"] if x["date"] != d] + [{"date": d, "asof": o.get("asof"), "headline": o.get("headline", "")}],
+                         key=lambda x: x["date"], reverse=True)
+    (hd / "_index.json").write_text(json.dumps(idx, ensure_ascii=False), encoding="utf-8")

@@ -25,6 +25,8 @@
     getMomentum: m => get('reports/momentum_' + m + '.json'),
     getMomentumBt: () => get('reports/momentum_bt.json'),
     getDaily: () => get('reports/daily_brief.json'),
+    getDailyIndex: () => get('reports/daily_hist/_index.json'),
+    getDailyAt: (d) => get('reports/daily_hist/' + d + '.json'),
     getStockIndex: m => get('reports/detail/' + m + '/_index.json'),
     getPortfolios: () => get('reports/portfolios.json'),
     getSignals: () => get('reports/signal_scores.json'),
@@ -38,6 +40,8 @@
     getDecisions: () => get('reports/decisions.json'),
     getCommittee: () => get('reports/committee.json'),
     getCommitteeUS: () => get('reports/committee_us.json'),
+    getArchIndex: (k) => get('reports/archive/' + k + '/_index.json'),
+    getArchAt: (k, d) => get('reports/archive/' + k + '/' + d + '.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
@@ -182,6 +186,7 @@ html,body{overflow-x:hidden}
   .bg .bl{width:72px}
   .live iframe{height:360px}
 }
+.sbtn{background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:12px;padding:4px 8px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -465,7 +470,21 @@ document.addEventListener('keydown',e=>{ if(e.target.id!=='sq') return; const bo
   else if(e.key==='Escape'){ box.style.display='none'; } });
 document.addEventListener('click',e=>{ const t=e.target.closest('#sres div[data-sym]'); if(t){ openDetail(t.dataset.sym,t.dataset.mk); $('#sres').style.display='none'; return; } if(!e.target.closest('.srch')) { const b=$('#sres'); if(b) b.style.display='none'; } });
 let DB=null;
-function dailyView(){ const _h=dailyView0(); return _h.startsWith('<div class="load"')?_h:`<div class="grid" style="padding-bottom:0"><div class="c12">${decBox()}</div></div>`+_h; }
+let DIDX=null, DSEL=null, DLATEST=null;
+function dailyPick(){
+  if(DIDX===null){ DIDX=false; google.script.run.withSuccessHandler(t=>{try{DIDX=JSON.parse(t);}catch(e){DIDX={days:[]};} if(view==='daily') render();}).withFailureHandler(()=>{DIDX={days:[]};}).getDailyIndex(); }
+  const days=(DIDX&&DIDX.days)||[]; if(!days.length) return '';
+  setTimeout(()=>{ const sel=$('#dsel'); if(!sel) return; sel.onchange=()=>{ const d=sel.value;
+      if(!DLATEST&&DB&&DB.asof) DLATEST=DB;
+      if(d==='latest'){ DSEL=null; DB=DLATEST||null; render(); return; }
+      DSEL=d; google.script.run.withSuccessHandler(t=>{try{DB=JSON.parse(t);}catch(e){DB={};} render();}).getDailyAt(d); };
+    document.querySelectorAll('[data-dstep]').forEach(b=>b.onclick=()=>{ const i=days.findIndex(x=>x.date===(DSEL||days[0].date)); const j=Math.min(days.length-1,Math.max(0,i+(+b.dataset.dstep))); sel.value=j===0&&!DSEL?'latest':days[j].date; if(j===0) sel.value='latest'; sel.onchange(); }); },0);
+  return `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span class="mu" style="font-size:12px">지난 브리프</span>
+    <button data-dstep="1" class="sbtn">◀ 이전</button>
+    <select id="dsel" style="background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:4px 6px;max-width:72vw"><option value="latest" ${!DSEL?'selected':''}>최신</option>${days.map(x=>`<option value="${esc(x.date)}" ${DSEL===x.date?'selected':''}>${esc(x.date)} · ${esc(String(x.headline||'').slice(0,40))}</option>`).join('')}</select>
+    <button data-dstep="-1" class="sbtn">다음 ▶</button>${DSEL?`<span class="am" style="font-size:12px">${esc(DSEL)} 기록 보는 중</span>`:''}</div>`;
+}
+function dailyView(){ const _h=dailyView0(); return _h.startsWith('<div class="load"')?_h:`<div class="grid" style="padding-bottom:0"><div class="c12">${dailyPick()}${DSEL?'':decBox()}</div></div>`+_h; }
 function dailyView0(){
   if(DB===null){ DB=false; google.script.run.withSuccessHandler(t=>{try{DB=JSON.parse(t);}catch(e){DB={};} if(view==='daily') render();}).withFailureHandler(()=>{DB={}; if(view==='daily') render();}).getDaily(); return '<div class="load">LOADING …</div>'; }
   if(!DB||!DB.asof) return '<div class="mu" style="padding:16px">데일리 브리프가 아직 없습니다 (다음 자동 실행 때 생성)</div>';
@@ -760,14 +779,26 @@ function derivPanel(d){
   const bars=pr.filter((x,i)=>pr.length<=40||i%Math.ceil(pr.length/40)===0).map(x=>{const near=Math.abs(x.k-d.spot)<=2.5;return `<div style="display:flex;align-items:center;gap:4px;font-size:10px;line-height:1.3"><span style="width:44px;text-align:right" class="${near?'am':'mu'}">${x.k.toFixed(1)}</span><div style="flex:1;display:flex;justify-content:flex-end"><div style="height:7px;width:${x.p/mx*100}%;background:var(--dn)"></div></div><div style="flex:1"><div style="height:7px;width:${x.c/mx*100}%;background:var(--up)"></div></div></div>`;}).join('');
   const h=(d.hist||[]).slice(-20);
   return `<div class="p c12"><h2>옵션 포지션 · 코스피200<small>KRX ${esc(d.date||'')} · 최근월 ${esc((d.expiry||'').slice(5))} 만기 (D-${d.dte??'?'})</small></h2><div class="b" style="white-space:normal">
-   <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">${[['현물',d.spot?.toFixed(1)],['풋/콜 OI',d.pcr_oi?.toFixed(2)],['풋/콜 거래량',d.pcr_vol?.toFixed(2)],['최대 고통',d.max_pain?.toFixed(1)],['풋 벽',d.put_wall?d.put_wall.k.toFixed(1):'—'],['콜 벽',d.call_wall?d.call_wall.k.toFixed(1):'—'],['ATM IV',d.atm_iv?(d.atm_iv*100).toFixed(0)+'%':'—'],['감마(억/1%)',d.gex_bn!=null?(d.gex_bn>0?'+':'')+Math.round(d.gex_bn).toLocaleString():'—'],['감마 전환점',d.flip?d.flip.toFixed(1):'—'],['베이시스',(d.fut||{}).basis!=null?d.fut.basis.toFixed(2):'—']].map(([a,b])=>`<div><div class="mu" style="font-size:10px">${a}</div><b>${b??'—'}</b></div>`).join('')}</div>
+   <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">${[['현물',d.spot?.toFixed(1)],['풋/콜 OI',d.pcr_oi?.toFixed(2)],['풋/콜 거래량',d.pcr_vol?.toFixed(2)],['최대 고통',d.max_pain?.toFixed(1)],['풋 벽',d.put_wall?d.put_wall.k.toFixed(1):'—'],['콜 벽',d.call_wall?d.call_wall.k.toFixed(1):'—'],['ATM IV',d.atm_iv?(d.atm_iv*100).toFixed(0)+'%':'—'],['실현변동성20',d.rv20?(d.rv20*100).toFixed(0)+'%':'—'],['스큐',d.skew!=null?(d.skew*100).toFixed(1)+'%p':'—'],['감마(억/1%)',d.gex_bn!=null?(d.gex_bn>0?'+':'')+Math.round(d.gex_bn).toLocaleString():'—'],['감마 전환점',d.flip?d.flip.toFixed(1):'—'],['베이시스',(d.fut||{}).basis!=null?d.fut.basis.toFixed(2):'—']].map(([a,b])=>`<div><div class="mu" style="font-size:10px">${a}</div><b>${b??'—'}</b></div>`).join('')}</div>
    <div style="line-height:1.7;margin-bottom:8px">${(d.notes||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}</div>
    <div class="mu" style="font-size:10px;display:flex;justify-content:space-between"><span>← 풋 미결제</span><span>행사가</span><span>콜 미결제 →</span></div>${bars}
    ${h.length>1?`<div class="mu" style="font-size:11px;margin-top:6px">PCR 추이: ${h.map(x=>x.pcr_oi!=null?x.pcr_oi.toFixed(2):'—').join(' → ')}</div>`:''}
    <div class="mu" style="font-size:11px;margin-top:4px">감마는 종가로 역산한 내재변동성 기반 근사. '콜 +, 풋 −' 관례라 한국 시장 참여자 구성에선 부호가 틀릴 수 있음 — 벽·자석 가격대 위주로 볼 것.</div></div></div>`;
 }
-function cmtTabs(){ setTimeout(()=>document.querySelectorAll('[data-cmk]').forEach(b=>b.onclick=()=>{CMK=b.dataset.cmk;render();}),0);
-  return `<div class="ovl" style="padding:8px 8px 0">${['KR','US'].map(k=>`<button data-cmk="${k}" class="${CMK===k?'on':''}">${k==='KR'?'국장':'미장'}</button>`).join('')}</div>`; }
+const CAI={}, CSEL={KR:null,US:null}, CLAT={};
+function cmtTabs(){
+  const kind=CMK==='KR'?'committee':'committee_us';
+  if(CAI[kind]===undefined){ CAI[kind]=false; google.script.run.withSuccessHandler(t=>{try{CAI[kind]=JSON.parse(t);}catch(e){CAI[kind]={days:[]};} if(view==='cmt') render();}).withFailureHandler(()=>{CAI[kind]={days:[]};}).getArchIndex(kind); }
+  const days=(CAI[kind]&&CAI[kind].days)||[], sel=CSEL[CMK];
+  setTimeout(()=>{ document.querySelectorAll('[data-cmk]').forEach(b=>b.onclick=()=>{CMK=b.dataset.cmk;render();});
+    const s=$('#csel'); if(!s) return;
+    const go=d=>{ const cur=CMK==='KR'?CMT:CMTU; if(!CLAT[CMK]&&cur&&cur.scenarios&&!CSEL[CMK]) CLAT[CMK]=cur;
+      if(d==='latest'){ CSEL[CMK]=null; if(CMK==='KR') CMT=CLAT.KR||null; else CMTU=CLAT.US||null; render(); return; }
+      CSEL[CMK]=d; google.script.run.withSuccessHandler(t=>{let o={};try{o=JSON.parse(t);}catch(e){} if(CMK==='KR') CMT=o; else CMTU=o; render();}).getArchAt(kind,d); };
+    s.onchange=()=>go(s.value);
+    document.querySelectorAll('[data-cstep]').forEach(b=>b.onclick=()=>{ if(!days.length) return; const i=CSEL[CMK]?days.findIndex(x=>x.date===CSEL[CMK]):0; const j=Math.min(days.length-1,Math.max(0,i+(+b.dataset.cstep))); go(j===0?'latest':days[j].date); }); },0);
+  return `<div class="ovl" style="padding:8px 8px 0;display:flex;gap:6px;align-items:center;flex-wrap:wrap">${['KR','US'].map(k=>`<button data-cmk="${k}" class="${CMK===k?'on':''}">${k==='KR'?'국장':'미장'}</button>`).join('')}
+    ${days.length?`<span class="mu" style="font-size:12px;margin-left:8px">지난 회의</span><button data-cstep="1" class="sbtn">◀</button><select id="csel" style="background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:4px 6px;max-width:60vw"><option value="latest" ${!sel?'selected':''}>최신</option>${days.map(x=>`<option value="${esc(x.date)}" ${sel===x.date?'selected':''}>${esc(x.date)} · ${esc(String(x.headline||'').slice(0,36))}</option>`).join('')}</select><button data-cstep="-1" class="sbtn">▶</button>${sel?`<span class="am" style="font-size:12px">${esc(sel)} 기록</span>`:''}`:''}</div>`; }
 function cmtUSView(){
   if(CMTU===null){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={};if(view==='cmt') render();}).getCommitteeUS(); return '<div class="load">LOADING …</div>'; }
   const o=CMTU; if(!o||!o.scenarios) return cmtTabs()+'<div class="grid"><div class="p c12"><div class="b mu">미장 운용회의 자료 생성 전</div></div></div>';

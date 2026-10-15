@@ -15,7 +15,16 @@ import logging
 import statistics as st
 from datetime import date, datetime, timedelta
 
+from zoneinfo import ZoneInfo
+
 from .config import DATA_DIR, REPORT_DIR
+
+KST = ZoneInfo("Asia/Seoul")
+
+
+def _kst_today() -> date:
+    return datetime.now(KST).date()
+
 
 log = logging.getLogger(__name__)
 OUT = REPORT_DIR / "committee.json"
@@ -37,7 +46,7 @@ def _kospi_state() -> dict:
     # 야후 지수는 장중·장 마감 직후 늦게 갱신됨 → KRX 확정 일봉(또는 장중)으로 오늘 값을 덮어씀
     try:
         from pykrx import stock  # type: ignore
-        t = date.today()
+        t = _kst_today()
         df = stock.get_index_ohlcv((t - timedelta(days=7)).strftime("%Y%m%d"), t.strftime("%Y%m%d"), "1001")
         if df is not None and len(df):
             d0 = str(df.index[-1].date())
@@ -118,8 +127,8 @@ def _flows2() -> list[float]:
         f = (intraday_market_flows().get("KOSPI") or {}).get("외국인")
         if f is not None:
             out.append(float(f))
-        d = date.today() - timedelta(days=1)
-        while len(out) < 2 and d > date.today() - timedelta(days=7):
+        d = _kst_today() - timedelta(days=1)
+        while len(out) < 2 and d > _kst_today() - timedelta(days=7):
             if d.weekday() < 5:
                 v = (investor_totals(d).get("KOSPI") or {}).get("외국인")
                 if v is not None:
@@ -201,7 +210,7 @@ def build() -> dict:
         log.info("숏스퀴즈 후보 실패: %s", e)
     longs, avoid = _ideas(peers)
     sectors, themes = _sectors(chains, peers)
-    today = date.today()
+    today = _kst_today()
     ev7 = [e for e in cal if today <= date.fromisoformat(e["date"]) <= today + timedelta(days=7) and e.get("imp", 1) >= 2]
     head = []
     if k:
@@ -217,10 +226,10 @@ def build() -> dict:
     stance = _stance(k, scen, sb, stu, ev7, der)
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
-    out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "date": str(today), "head": head, "verdict": verdict,
+    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "date": str(today), "head": head, "verdict": verdict,
            "scenarios": scen, "scenario_basis": sb, "sectors": sectors, "themes": themes[:8] + themes[-5:] if len(themes) > 13 else themes,
            "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10], "stance": stance,
-           "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
+           "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "rv20", "skew", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
            "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {})}
     OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
     _record(out)
@@ -229,8 +238,25 @@ def build() -> dict:
         OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
     except Exception as e:  # noqa: BLE001
         log.warning("운용회의 채점 실패: %s", e)
+    _archive("committee", out)
     log.info("운용회의 자료 생성")
     return out
+
+
+def _archive(kind: str, o: dict) -> None:
+    """날짜별 누적: reports/archive/<kind>/YYYY-MM-DD.json + _index.json (날짜·결론 목록). 같은 날은 마지막 실행본."""
+    d = str(o.get("date") or o.get("asof", ""))[:10]
+    hd = REPORT_DIR / "archive" / kind
+    hd.mkdir(parents=True, exist_ok=True)
+    (hd / f"{d}.json").write_text(json.dumps(o, ensure_ascii=False, default=str), encoding="utf-8")
+    try:
+        idx = json.loads((hd / "_index.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        idx = {"days": []}
+    head = ((o.get("stance") or {}).get("stance") or "") + " · " + str(o.get("verdict", ""))[:60]
+    idx["days"] = sorted([x for x in idx["days"] if x["date"] != d] + [{"date": d, "asof": o.get("asof"), "headline": head.strip(" ·")}],
+                         key=lambda x: x["date"], reverse=True)
+    (hd / "_index.json").write_text(json.dumps(idx, ensure_ascii=False), encoding="utf-8")
 
 
 def _record(o: dict) -> None:
@@ -376,7 +402,7 @@ def build_us() -> dict:
     avoid.sort(key=lambda r: r["drv"])
     f = lambda r: {"s": r["s"], "n": r["n"], "g": r["g"], "drv": r.get("drv"), "r20": r.get("r20"), "r5": r.get("r5")}  # noqa: E731
     cal = (_j("calendar.json", {}) or {}).get("events", [])
-    today = date.today()
+    today = _kst_today()
     ev = [e for e in cal if today <= date.fromisoformat(e["date"]) <= today + timedelta(days=10) and (e.get("market") == "US" or e["type"] == "매크로")]
     head = []
     if k:
@@ -395,12 +421,13 @@ def build_us() -> dict:
          "action": "반도체·고PER 비중 축소, SH/PSQ 소량 헷지, 한국 메모리도 같은 신호로 축소(연결 규칙)"},
     ]
     best = max(scen, key=lambda s: s.get("prob") or 0)
-    out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "date": str(today), "market": "US", "head": head,
+    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "date": str(today), "market": "US", "head": head,
            "verdict": f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 S&P500 '{basis}' {p.get('n') or 0}회",
            "scenarios": scen, "scenario_basis": {"basis": basis, "n": p.get("n")}, "sectors": secs,
            "ideas": {"long": [f(r) for r in longs[:10]], "avoid": [f(r) for r in avoid[:8]]}, "events": ev[:12],
            "kr_link": "한국 메모리 판단의 선행 지표: 빅테크 설비투자 가이던스(10/21 메타, 10/28 MSFT·구글, 10/29 아마존) · 마이크론 EPS 추정 · TSMC 가이던스"}
     OUT_US.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    _archive("committee_us", out)
     log.info("미장 운용회의 생성")
     return out
 

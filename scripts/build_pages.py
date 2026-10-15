@@ -22,6 +22,8 @@ SHIM = """<script>
     getMomentum: m => get('reports/momentum_' + m + '.json'),
     getMomentumBt: () => get('reports/momentum_bt.json'),
     getDaily: () => get('reports/daily_brief.json'),
+    getDailyIndex: () => get('reports/daily_hist/_index.json'),
+    getDailyAt: (d) => get('reports/daily_hist/' + d + '.json'),
     getStockIndex: m => get('reports/detail/' + m + '/_index.json'),
     getPortfolios: () => get('reports/portfolios.json'),
     getSignals: () => get('reports/signal_scores.json'),
@@ -35,6 +37,8 @@ SHIM = """<script>
     getDecisions: () => get('reports/decisions.json'),
     getCommittee: () => get('reports/committee.json'),
     getCommitteeUS: () => get('reports/committee_us.json'),
+    getArchIndex: (k) => get('reports/archive/' + k + '/_index.json'),
+    getArchAt: (k, d) => get('reports/archive/' + k + '/' + d + '.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
