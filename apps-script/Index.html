@@ -368,74 +368,143 @@ function dailyView(){
   </div>`;
 }
 let PF=null, PFSEL=null;
-/* ── 보유 종목 리스크 (이 브라우저에만 저장) ── */
-const MYK='mt_holdings_v1'; let MYD={}, MYFX=null;
+/* ── MY: 보유 종목 리스크 · PB (이 브라우저에만 저장) ── */
+const MYK='mt_holdings_v1'; let MYD={}, MYX=null;
+const HEDGES=[['KR','114800','KODEX 인버스 (코스피200 −1배)'],['KR','252670','KODEX 200선물인버스2X (−2배)'],['US','SOXS','SOXS (미 반도체 −3배)'],['US','SH','SH (S&P500 −1배)'],['US','PSQ','PSQ (나스닥100 −1배)']];
+const BENCH=[['KR','069500'],['US','SOXX']];
 function myLoad(){ try{ return localStorage.getItem(MYK)||''; }catch(e){ return window._myTxt||''; } }
 function mySave(t){ window._myTxt=t; try{ localStorage.setItem(MYK,t); }catch(e){} }
 function myParse(txt){ const out=[]; for(const ln of txt.split(/\n/)){ const p=ln.trim().split(/[\s,]+/).filter(Boolean); if(!p.length) continue;
-    const q=parseFloat((p[1]||'').replace(/,/g,'')), a=parseFloat((p[2]||'').replace(/,/g,'')); out.push({key:p[0], qty:isFinite(q)?q:0, avg:isFinite(a)?a:null}); } return out; }
-function myResolve(k){ const x=k.toLowerCase(); const ex=SIX.find(s=>s.s.toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase().startsWith(x)); return ex||null; }
+    const n=x=>{const v=parseFloat(String(x||'').replace(/,/g,'')); return isFinite(v)?v:null;};
+    const k=p[0].toUpperCase();
+    if(['현금','KRW','CMA','원화','예수금','RP'].includes(k)||/^CMA/.test(k)) out.push({cash:'KRW', amt:n(p[1])||0});
+    else if(['USD','달러','미국달러'].includes(k)) out.push({cash:'USD', amt:n(p[1])||0});
+    else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 17 128855")
+      let k2=p.length; const nums=[]; while(k2>1&&nums.length<2&&n(p[k2-1])!=null){ nums.unshift(n(p[k2-1])); k2--; }
+      out.push({key:p.slice(0,k2).join(' '), qty:nums.length?nums[0]:0, avg:nums.length>1?nums[1]:null}); } } return out; }
+function myResolve(k){ const x=k.toLowerCase(); return SIX.find(s=>s.s.toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase().startsWith(x))||SIX.find(s=>String(s.n).toLowerCase().replace(/\s/g,'').includes(x.replace(/\s/g,'')))||null; }
 function myView(){
   const txt=myLoad();
   setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); myRun(); }; if(txt) myRun(); },0);
-  return `<div class="grid"><div class="p c12"><h2>MY HOLDINGS<small>보유 종목 리스크 · 이 브라우저에만 저장(서버 전송 없음)</small></h2><div class="b">
-    <div class="mu" style="font-size:12px;margin-bottom:6px">한 줄에 하나: <b>종목코드·티커·이름 수량 평균단가</b> (예: <code>005930 100 230000</code>, <code>SK하이닉스 10 1500000</code>, <code>NVDA 20 120</code>)</div>
-    <textarea id="myta" rows="6" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
+  return `<div class="grid"><div class="p c12"><h2>MY PB<small>보유 자산 분석 · 이 브라우저에만 저장(서버 전송 없음)</small></h2><div class="b">
+    <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 11 260864</code> · <code>TIGER 200 IT 17 128855</code> · <code>MU 1 857.5</code> · <code>현금 3164341</code> · <code>USD 2223.07</code></div>
+    <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
     <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div>
     <div id="myout" style="margin-top:12px"></div></div></div></div>`;
 }
+function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
+  for(const [m,sy] of list){ const k=m+':'+sy; if(MYD[k]){ done(); continue; }
+    google.script.run.withSuccessHandler(t=>{try{MYD[k]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(m,sy); } }
 function myRun(){
+  if(typeof PF!=='undefined'&&PF===null){ PF=false; google.script.run.withSuccessHandler(t=>{try{PF=JSON.parse(t);}catch(e){PF={};}}).getPortfolios(); }
   const out=$('#myout'); if(!out) return; out.innerHTML='<div class="load">LOADING …</div>';
   loadIndex(()=>{
-    const hs=myParse($('#myta').value).map(h=>({...h, r:myResolve(h.key)}));
+    const all=myParse($('#myta').value);
+    const hs=all.filter(h=>h.key).map(h=>({...h, r:myResolve(h.key)}));
+    const cash=all.filter(h=>h.cash);
     const miss=hs.filter(h=>!h.r).map(h=>h.key);
-    const need=hs.filter(h=>h.r && !MYD[h.r.m+':'+h.r.s]);
-    let left=need.length+(MYFX===null?1:0);
-    const done=()=>{ if(--left<=0) myRender(hs,miss); };
-    if(MYFX===null) google.script.run.withSuccessHandler(t=>{try{const s=JSON.parse(t).series.USDKRW, z=s[s.length-1]; MYFX=z.length>=6?z[4]:z[1];}catch(e){MYFX=1400;} done();}).withFailureHandler(()=>{MYFX=1400;done();}).getMacroSeries();
-    for(const h of need) google.script.run.withSuccessHandler(t=>{try{MYD[h.r.m+':'+h.r.s]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(h.r.m,h.r.s);
-    if(left<=0) myRender(hs,miss);
+    const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]), ...HEDGES.map(x=>[x[0],x[1]]), ...BENCH];
+    const go=()=>myFetch(need,()=>myRender(hs,cash,miss));
+    if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go();
   });
 }
-function myRender(hs,miss){
-  const rows=[]; let tot=0, cost=0;
+/* 수치 도구 */
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const cov=(a,b)=>{const ma=mean(a),mb=mean(b);let s=0;for(let i=0;i<a.length;i++)s+=(a[i]-ma)*(b[i]-mb);return s/(a.length-1);};
+const sd=a=>Math.sqrt(cov(a,a));
+const corr=(a,b)=>cov(a,b)/(sd(a)*sd(b)||1);
+const quant=(a,q)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.floor(q*(s.length-1))];};
+function cl(series){ const m={}; for(const r of series||[]) m[r[0]]=r.length>=6?r[4]:r[1]; return m; }
+function myRender(hs,cash,miss){
+  const FXs=cl((MYX||{}).USDKRW), fxDates=Object.keys(FXs).sort(), FX=FXs[fxDates[fxDates.length-1]]||1400;
+  // 기준 날짜: 코스피 거래일 최근 250일
+  const kos=cl((MYX||{}).KOSPI); let days=Object.keys(kos).sort().slice(-251);
+  const ff=(m,ds)=>{ const ks=Object.keys(m).sort(); let j=0,last=null; const o=[]; for(const d of ds){ while(j<ks.length&&ks[j]<=d){ last=m[ks[j]]; j++; } o.push(last); } return o; };
+  // US 자산은 전 거래일(미국 장이 한국 장 뒤에 열림) 값으로: d 이전(<d) 마지막 값
+  const ffPrev=(m,ds)=>{ const ks=Object.keys(m).sort(); let j=0,last=null; const o=[]; for(const d of ds){ while(j<ks.length&&ks[j]<d){ last=m[ks[j]]; j++; } o.push(last); } return o; };
+  const fxS=ff(FXs,days);
+  const series=(mk,d)=>{ const m={}; for(const r of (d&&d.c1y)||[]) m[r[0]]=r[1]; if(mk==='KR') return ff(m,days); const p=ffPrev(m,days); return p.map((v,i)=>v!=null&&fxS[i]?v*fxS[i]:null); };
+  const rets=a=>{const o=[];for(let i=1;i<a.length;i++)o.push(a[i]!=null&&a[i-1]?a[i]/a[i-1]-1:0);return o;};
+  // 보유
+  const A=[]; let tot=0, cost=0;
   for(const h of hs){ if(!h.r) continue; const d=MYD[h.r.m+':'+h.r.s]; if(!d) continue;
-    const fx=h.r.m==='US'?(MYFX||1400):1, px=d.close, val=px*h.qty*fx, cb=h.avg?h.avg*h.qty*fx:null;
-    const dv=d.drivers||{}, v=d.valuation||{}, sc=d.scenarios||{}, st=d.stats||{};
-    const beta=(dv.macro||{}).beta_mkt ?? (h.r.m==='US'?1.0:1.0);
-    const sens=k=>{const r=((dv.macro||{}).rows||[]).find(x=>x.factor===k); return r&&r.t!=null&&Math.abs(r.t)>=2?r.beta:null;};
-    rows.push({h,d,px,val,cb,pnl:cb!=null?val/cb-1:null,beta,krw:sens('KRW'),sox:sens('SOX'),drv:dv.score,chain:(dv.chain||{}).name||v.sector||d.theme||'기타',
-      gn:(v.group_upside||{}).normal, gc:(v.group_upside||{}).current, sf:(v.signal_fv||{}).upside, stop:(sc.bear||{}).stop, cls:st.class, fx});
-    tot+=val; if(cb!=null) cost+=cb; }
-  if(!rows.length){ $('#myout').innerHTML=`<div class="err">인식된 종목이 없습니다${miss.length?': '+esc(miss.join(', ')):''}</div>`; return; }
-  for(const r of rows) r.w=r.val/tot;
-  const wb=rows.reduce((a,r)=>a+r.w*r.beta,0);
-  const exp=k=>rows.reduce((a,r)=>a+r.w*(r[k]||0),0);
-  const usd=rows.filter(r=>r.h.r.m==='US').reduce((a,r)=>a+r.w,0);
-  const byc={}; rows.forEach(r=>byc[r.chain]=(byc[r.chain]||0)+r.w);
-  const conc=Object.entries(byc).sort((a,b)=>b[1]-a[1]);
-  const below=rows.filter(r=>r.stop&&r.px<r.stop);
-  const rev=rows.filter(r=>r.drv!=null&&r.drv<-0.1);
-  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0);
-  const warn=[];
-  rows.filter(r=>r.w>0.3).forEach(r=>warn.push(`${esc(r.d.name)} 비중 ${W(r.w)} — 한 종목이 30% 초과`));
-  if(conc[0]&&conc[0][1]>0.5) warn.push(`${esc(conc[0][0])} 체인 비중 ${W(conc[0][1])} — 같은 사이클에 절반 이상`);
-  below.forEach(r=>warn.push(`${esc(r.d.name)} 20일 저점 손절선 ${num(r.stop,0)} 아래 (현재 ${num(r.px,0)})`));
-  rows.filter(r=>r.drv!=null&&r.drv<-0.1&&r.gn!=null&&r.gn<0).forEach(r=>warn.push(`${esc(r.d.name)} 이익 드라이버 회귀 쪽(${r.drv.toFixed(2)}) + 정상화 적정가보다 비쌈(${pct(r.gn,0)}) → 비중 축소 후보`));
-  rows.filter(r=>r.drv!=null&&r.drv>0.2&&r.gn!=null&&r.gn>0).forEach(r=>warn.push(`<span style="color:var(--up)">${esc(r.d.name)} 드라이버 지속 쪽 + 평균 이익 기준으로도 싸다 → 보유 근거 유지</span>`));
+    const fx=h.r.m==='US'?FX:1, val=d.close*h.qty*fx, cb=h.avg?h.avg*h.qty*fx:null;
+    A.push({h,d,name:d.name||h.r.s,mk:h.r.m,etf:!!d.etf,val,cb,ser:series(h.r.m,d)}); tot+=val; if(cb!=null) cost+=cb; }
+  let cK=0,cU=0; for(const c of cash){ if(c.cash==='KRW') cK+=c.amt; else cU+=c.amt*FX; }
+  const NAV=tot+cK+cU;
+  if(!A.length){ $('#myout').innerHTML=`<div class="err">인식된 종목이 없습니다${miss.length?': '+esc(miss.join(', ')):''}</div>`; return; }
+  for(const a of A){ a.w=a.val/NAV; a.r=rets(a.ser); }
+  const n=days.length-1, rf=0.03/252;
+  const rUSDcash=rets(fxS);
+  const P=[]; for(let t=0;t<n;t++){ let x=0; for(const a of A) x+=a.w*a.r[t]; x+=(cU/NAV)*rUSDcash[t]+(cK/NAV)*rf; P.push(x); }
+  const E=[]; for(let t=0;t<n;t++){ let x=0; for(const a of A) x+=(a.val/tot)*a.r[t]; E.push(x); }   // 주식만
+  const ann=a=>Math.pow(a.reduce((p,x)=>p*(1+x),1),252/a.length)-1, vol=a=>sd(a)*Math.sqrt(252);
+  const mdd=a=>{let p=1,pk=1,m=0;for(const x of a){p*=1+x;pk=Math.max(pk,p);m=Math.min(m,p/pk-1);}return m;};
+  const sortino=a=>{const dn=a.filter(x=>x<rf).map(x=>x-rf); const dd=Math.sqrt(dn.reduce((s,x)=>s+x*x,0)/a.length)*Math.sqrt(252); return dd?(ann(a)-0.03)/dd:null;};
+  const kR=rets(ff(kos,days)), sox=rets(series('US',MYD['US:SOXX'])), spx=rets(ffPrev(cl((MYX||{}).SPX),days));
+  const beta=(a,b)=>cov(a,b)/(cov(b,b)||1);
+  const Pm={ret:ann(P),vol:vol(P),sh:(ann(P)-0.03)/(vol(P)||1),so:sortino(P),mdd:mdd(P),var:-quant(P,0.05),cvar:-mean(P.filter(x=>x<=quant(P,0.05))),
+     bK:beta(P,kR),bS:beta(P,spx),bX:beta(P,sox),cFX:corr(P,rUSDcash)};
+  const Em={ret:ann(E),vol:vol(E),sh:(ann(E)-0.03)/(vol(E)||1),mdd:mdd(E)};
+  // 종목별
+  const sp=cov(P,P);
+  for(const a of A){ a.bK=beta(a.r,kR); a.bX=beta(a.r,sox); a.vol=vol(a.r); a.rc=a.w*cov(a.r,P)/(sp||1); a.ret=ann(a.r); }
+  // 실질 보유 (ETF 풀기)
+  const real={}; const addR=(k,nm,v,src)=>{ const o=real[k]||(real[k]={name:nm,val:0,src:[]}); o.val+=v; if(!o.src.includes(src)) o.src.push(src); };
+  for(const a of A){ if(a.etf&&(a.d.etf.holdings||[]).length){ const hsum=a.d.etf.holdings.reduce((s,x)=>s+x.weight,0); for(const x of a.d.etf.holdings) addR(x.code,x.name,a.val*x.weight,a.name); if(hsum<0.999) addR('_etc_'+a.h.r.s,a.name+' 기타',a.val*(1-hsum),a.name); } else addR(a.h.r.s,a.name,a.val,'직접'); }
+  const realL=Object.values(real).sort((x,y)=>y.val-x.val);
+  const dup=realL.filter(x=>x.src.length>1&&x.src.includes('직접'));
+  // 체인 노출
+  const chains={}; for(const a of A){ if(a.etf){ const lc=(a.d.etf.look||{}).chains||{}; const cov_=Object.values(lc).reduce((s,x)=>s+x,0); for(const [k,w] of Object.entries(lc)) chains[k]=(chains[k]||0)+a.val*w; if(cov_<1) chains['기타(ETF)']=(chains['기타(ETF)']||0)+a.val*(1-cov_); } else { const k=((a.d.drivers||{}).chain||{}).name||(a.d.valuation||{}).sector||(a.mk==='US'?'미국 주식':'기타'); chains[k]=(chains[k]||0)+a.val; } }
+  const chainL=Object.entries(chains).sort((x,y)=>y[1]-x[1]);
+  // 스트레스
+  const stK=A.reduce((s,a)=>s+a.val*a.bK*-0.10,0), stX=A.reduce((s,a)=>s+a.val*a.bX*-0.15,0);
+  const usdV=A.filter(a=>a.mk==='US').reduce((s,a)=>s+a.val,0)+cU, stF=usdV*0.05;
+  // 헷지
+  const hedge=HEDGES.map(([m,sy,nm])=>{ const d=MYD[m+':'+sy]; if(!d||!d.c1y) return null; const r=rets(series(m,d)); const c=cov(P,r), v=cov(r,r); if(!v) return null;
+     const hr=-c/v, amt=hr*NAV, rho=corr(P,r), red=1-Math.sqrt(Math.max(sp-c*c/v,0)/sp); return {nm,sy,m,rho,amt,red,price:d.close}; }).filter(Boolean);
+  // 목표 변동성으로 주식 비중
+  const tv=0.15, eqW=tot/NAV, eqTarget=Math.min(Em.vol?tv/Em.vol:eqW,1);
+  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
+  // PB 의견
+  const op=[];
+  const top=chainL[0]; if(top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
+  if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 ETF부터 줄이면 수수료·추적오차를 같이 없앱니다.`);
+  op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}). ${Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':Pm.sh>1?'위험 대비 보상은 좋았지만 같은 요인에 대한 베팅이 맞았던 결과입니다.':'보통 수준.'} 최대낙폭 ${pct(Pm.mdd,0)}.`);
+  op.push(`<b>비중</b>: 주식 변동성 ${W(Em.vol)} 기준으로 포트 변동성을 연 15%에 맞추려면 주식 비중 ${W(eqTarget)} (현재 ${W(eqW)}). ${eqW>eqTarget+0.05?`→ 약 ${K((eqW-eqTarget)*NAV)}원 줄이거나 아래 헷지로 같은 효과.`:eqW<eqTarget-0.05?'→ 위험 여력이 남아 있습니다. 다만 같은 체인에 더 넣으면 쏠림만 커집니다.':'→ 적정 범위.'}`);
+  if(Pm.cFX<-0.2) op.push(`<b>달러 현금</b>: 포트와 원/달러 상관 ${F(Pm.cFX)} — 주가가 빠질 때 달러가 올라 이미 자연 헷지로 작동하고 있습니다. 달러를 원화로 바꾸면 이 헷지가 사라집니다.`);
+  const hb=hedge.filter(h=>h.amt>0).sort((a,b)=>b.red-a.red)[0];
+  if(hb) op.push(`<b>헷지</b>: 가장 효율적인 건 ${esc(hb.nm)} — 포트 변동성 최대 ${W(hb.red)} 감소에 필요한 금액 ${K(hb.amt)}원, 절반 헷지면 ${K(hb.amt/2)}원. 레버리지·인버스 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 단기 보험으로만 쓰세요.`);
+  const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
   $('#myout').innerHTML=`
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-     ${[['평가액',K(tot)+'원'],['손익',cost?`${pct(tot/cost-1,1)} (${K(tot-cost)}원)`:'—'],['시장 베타',wb.toFixed(2)],['코스피 −5% 시 추정',`${K(-tot*wb*0.05)}원 (${(-wb*5).toFixed(1)}%)`],['달러 자산',W(usd)]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
+     ${[['순자산',K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['주식 손익',cost?`${pct(tot/cost-1,1)} (${K(tot-cost)}원)`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95%',`${K(Pm.var*NAV)}원`],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
    </div>
-   ${warn.length?`<div style="border:1px solid var(--amber-dim);padding:8px 10px;margin-bottom:10px;line-height:1.8;font-size:13px">${warn.map(w=>'· '+w).join('<br>')}</div>`:''}
-   <div class="mu" style="font-size:12px;margin-bottom:4px">체인 노출: ${conc.map(([k,w])=>`${esc(k)} ${W(w)}`).join(' · ')} · 환율 민감 노출 ${exp('krw').toFixed(2)} · 반도체(SOX) 민감 노출 ${exp('sox').toFixed(2)} (시장 영향 제외, 유의한 것만)</div>
-   <div style="overflow:auto"><table><tr><th class="l">종목</th><th>비중</th><th>현재가</th><th>손익</th><th>베타</th><th>드라이버</th><th>정상화 괴리</th><th>신호가중 괴리</th><th>손절선</th><th class="l">상태</th></tr>
-   ${rows.sort((a,b)=>b.w-a.w).map(r=>`<tr><td class="l am sym" data-sym="${esc(r.h.r.s)}" data-mk="${r.h.r.m}">${esc(r.d.name)}</td><td>${W(r.w)}</td><td>${num(r.px,r.h.r.m==='US'?2:0)}</td><td>${r.pnl!=null?pct(r.pnl,1):'—'}</td><td class="mu">${r.beta.toFixed(2)}</td>
-     <td style="color:${col(r.drv)}">${r.drv!=null?(r.drv>0?'+':'')+r.drv.toFixed(2):'—'}</td><td>${r.gn!=null?pct(r.gn,0):'—'}</td><td>${r.sf!=null?pct(r.sf,0):'—'}</td>
-     <td class="${r.stop&&r.px<r.stop?'dn':'mu'}">${r.stop?num(r.stop,0):'—'}</td><td class="l mu">${esc(CLS[r.cls]||r.cls||'')}</td></tr>`).join('')}</table></div>
+   <div class="p" style="margin-bottom:8px"><h2>PB 의견<small>규칙 기반 · 지난 1년 데이터 · 성과 검증 전</small></h2><div class="b" style="line-height:1.8;font-size:13px;white-space:normal">${op.map(x=>'· '+x).join('<br>')}</div></div>
+   <div class="p" style="margin-bottom:8px"><h2>보유<small>위험기여 = 포트 변동 중 이 종목 몫</small></h2><div class="b"><table><tr><th class="l">종목</th><th>비중</th><th>손익</th><th>위험기여</th><th>β KOSPI</th><th>β SOX</th><th>1년 변동성</th><th>드라이버</th></tr>
+    ${A.sort((a,b)=>b.val-a.val).map(a=>{const dv=(a.etf?((a.d.etf||{}).look||{}).drv:(a.d.drivers||{}).score); return `<tr><td class="l am sym" data-sym="${esc(a.h.r.s)}" data-mk="${a.mk}">${esc(a.name)}${a.etf?' <span class="tag">ETF</span>':''}</td><td>${W(a.w)}</td><td>${a.cb?pct(a.val/a.cb-1,1):'—'}</td><td class="${a.rc>a.w*1.3?'dn':''}">${W(a.rc)}</td><td>${F(a.bK)}</td><td>${F(a.bX)}</td><td class="mu">${W(a.vol)}</td><td style="color:${col(dv)}">${dv!=null?(dv>0?'+':'')+dv.toFixed(2):'—'}</td></tr>`;}).join('')}
+    ${cK?`<tr><td class="l mu">원화 현금</td><td>${W(cK/NAV)}</td><td colspan="6" class="mu l">연 3% 가정</td></tr>`:''}${cU?`<tr><td class="l mu">달러 현금</td><td>${W(cU/NAV)}</td><td colspan="6" class="mu l">원/달러 변동이 수익 · 포트와 상관 ${F(Pm.cFX)}</td></tr>`:''}</table></div></div>
+   <div class="grid" style="padding:0;margin-bottom:8px">
+    <div class="p c6"><h2>실질 보유<small>ETF를 구성종목으로 풀어서</small></h2><div class="b"><table>${realL.slice(0,12).map(x=>`<tr><td class="l">${esc(x.name)} <span class="mu" style="font-size:11px">${esc(x.src.join('+'))}</span></td><td>${K(x.val)}</td><td>${W(x.val/NAV)}</td></tr>`).join('')}</table></div></div>
+    <div class="p c6"><h2>체인 노출<small>주식 대비</small></h2><div class="b">${chainL.map(([k,v])=>`<div class="bg"><span class="bl" style="width:130px">${esc(k)}</span><span class="bt"><i class="am" style="width:${Math.min(v/tot*100,100)}%"></i></span><b>${W(v/tot)}</b></div>`).join('')}</div></div>
+   </div>
+   <div class="grid" style="padding:0;margin-bottom:8px">
+    <div class="p c6"><h2>스트레스 테스트<small>종목별 1년 베타로 추정</small></h2><div class="b" style="line-height:1.9">
+      <div>코스피 −10% → <b class="dn">${K(stK)}원</b> (${pct(stK/NAV,1)})</div>
+      <div>미 반도체(SOXX) −15% → <b class="dn">${K(stX)}원</b> (${pct(stX/NAV,1)})</div>
+      <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${K(stF)}원</b> (${pct(stF/NAV,1)})</div>
+      <div>하루 손실이 이보다 클 확률 5%: <b>${K(Pm.var*NAV)}원</b> · 그런 날 평균 ${K(Pm.cvar*NAV)}원</div></div></div>
+    <div class="p c6"><h2>헷지안<small>최소분산 헷지 비율 · 1년 일별</small></h2><div class="b"><table><tr><th class="l">수단</th><th>상관</th><th>필요 금액</th><th>변동성 감소</th></tr>
+      ${hedge.map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td>${h.amt>0?K(h.amt)+'원':'—'}</td><td>${h.amt>0?W(h.red):'—'}</td></tr>`).join('')}</table>
+      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">필요 금액 = 포트 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 절반만 하면 효과도 대략 절반 이하. 인버스·레버리지 ETF는 일간 재조정으로 장기 보유 시 손실이 쌓임.</div></div></div>
+   </div>
+   ${pf?`<div class="p" style="margin-bottom:8px"><h2>모의 전략과 비교<small>2011~ 월간 · 원화</small></h2><div class="b"><table><tr><th class="l">전략</th><th>연수익</th><th>변동성</th><th>샤프</th><th>최대낙폭</th><th class="l">지금 배분</th></tr>
+      <tr><td class="l am">내 포트 (최근 1년)</td><td>${pct(Pm.ret,1)}</td><td>${W(Pm.vol)}</td><td>${F(Pm.sh)}</td><td>${pct(Pm.mdd,0)}</td><td class="l mu">반도체 중심</td></tr>
+      ${pf.filter(x=>!/스트래들/.test(x.name)).map(x=>`<tr><td class="l">${esc(x.name)}</td><td>${pct(x.stats.cagr,1)}</td><td>${W(x.stats.vol)}</td><td>${F(x.stats.sharpe)}</td><td>${pct(x.stats.mdd,0)}</td><td class="l mu" style="white-space:normal;font-size:11px">${Object.entries(x.now||{}).filter(([k,w])=>Math.abs(w)>0.005).map(([k,w])=>`${esc(k)} ${W(w)}`).join(' · ')}</td></tr>`).join('')}</table>
+      <div class="mu" style="font-size:11px;margin-top:4px">내 포트는 1년, 전략은 15년 성과라 직접 비교는 거칠다. 핵심은 변동성·낙폭 대비 수익 구조.</div></div></div>`:''}
    ${miss.length?`<div class="mu" style="margin-top:6px">인식 못 한 종목: ${esc(miss.join(', '))}</div>`:''}
-   <div class="mu" style="font-size:11px;margin-top:8px">현재가는 최근 종가(장중 아님). 베타는 최근 1년 코스피 대비, 미장은 1.0 가정. 손절선 = 20일 저점. 규칙 기반 점검이며 성과 검증 전.</div>`;
+   <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
 }
 let SG=null, CH=null;
 function sigView(){
@@ -706,7 +775,34 @@ document.addEventListener('click',e=>{const p=e.target.closest('.px'); if(!p) re
 function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
 $('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
 document.addEventListener('click',e=>{const td=e.target.closest('td.sym,span.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
+function renderEtf(sym,mk,s){
+  const st=s.stats||{}, kr=mk==='KR', e=s.etf||{}, lk=e.look||{}, hs=e.holdings||[];
+  const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
+  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`ETF${e.inverse?' · <span class="dn">인버스</span>':''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · as of ${esc(s.asof||'')}`;
+  const ch=Object.entries(lk.chains||{});
+  let h=`<div class="grid">
+   <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">60D</button><button data-c="live">LIVE</button></span><small id="ch-note">일봉</small></h2><div class="b" id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div>
+   <div class="p c6"><h2>ETF<small>${esc(e.issuer||e.family||'')}</small></h2><div class="b" style="line-height:1.7">
+     ${e.base?`<div>기초지수 <b>${esc(e.base)}</b></div>`:''}${e.category?`<div>분류 <b>${esc(e.category)}</b></div>`:''}
+     ${e.fee!=null?`<div>총보수 ${e.fee}%</div>`:''}${e.nav_total?`<div>순자산 ${esc(e.nav_total)}</div>`:''}
+     <div>수익률 5D ${pct(st.ret5)} · 20D ${pct(st.ret20)} · 60D ${pct(st.ret60)} · 52주 고점대비 ${pct(st.from_high52)}</div>
+     <div class="mu">SMA20 ${num(st.sma20,kr?0:2)} · SMA50 ${num(st.sma50,kr?0:2)} · SMA200 ${num(st.sma200,kr?0:2)} · RSI ${st.rsi14!=null?st.rsi14.toFixed(0):'—'}</div>
+     ${e.summary?`<div class="mu" style="font-size:12px;margin-top:6px;white-space:normal">${esc(e.summary)}</div>`:''}</div></div>
+   <div class="p c6"><h2>LOOK-THROUGH<small>구성종목 가중 합산 · 커버리지 ${lk.coverage!=null?Math.round(lk.coverage*100)+'%':'—'}</small></h2><div class="b" style="line-height:1.8">
+     ${lk.coverage?`<div>이익 드라이버 <b style="color:${col(lk.drv)}">${sg(lk.drv)}</b> · 신호가중 적정가 괴리 ${lk.sig!=null?pct(lk.sig,0):'—'} · 정상화 괴리 ${lk.norm!=null?pct(lk.norm,0):'—'}</div>
+     ${ch.length?`<div style="margin-top:4px">${ch.map(([k,w])=>`<div class="bg"><span class="bl" style="width:120px">${esc(k)}</span><span class="bt"><i class="am" style="width:${Math.min(w*100,100)}%"></i></span><b>${Math.round(w*100)}%</b></div>`).join('')}</div>`:''}`
+     :'<div class="mu">구성종목 상세가 없어 합산 불가 (채권·선물·원자재·해외 ETF 등)</div>'}</div></div>
+   <div class="p c12"><h2>HOLDINGS<small>상위 ${hs.length}개 · 누르면 종목 상세</small></h2><div class="b">${hs.length?`<table><tr><th class="l">종목</th><th>비중</th><th>20D</th><th>드라이버</th><th>정상화 괴리</th><th>신호가중 괴리</th></tr>${hs.map(x=>`<tr><td class="l ${x.mk?'am sym':''}" ${x.mk?`data-sym="${esc(x.code)}" data-mk="${x.mk}"`:''}>${esc(x.name)} <span class="mu">${esc(x.code)}</span></td><td>${(x.weight*100).toFixed(1)}%</td><td>${x.ret20!=null?pct(x.ret20,1):'—'}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${x.norm!=null?pct(x.norm,0):'—'}</td><td>${x.sig!=null?pct(x.sig,0):'—'}</td></tr>`).join('')}</table>`:'<div class="mu">구성 정보 없음</div>'}</div></div>
+  </div>`;
+  $('#dr-b').innerHTML=h; drawChart(s.chart||[],{},{},kr);
+  document.querySelectorAll('.ctab button').forEach(bt=>bt.onclick=()=>{
+    document.querySelectorAll('.ctab button').forEach(z=>z.classList.toggle('on',z===bt));
+    if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,'',kr,{},{},s.close); }
+    else { $('#chb').innerHTML='<canvas id="cv" width="960" height="260"></canvas>'; drawChart(s.chart||[],{},{},kr); }
+  });
+}
 function renderDetail(sym,mk,s){
+  if(s.etf) return renderEtf(sym,mk,s);
   const st=s.stats||{}, kr=mk==='KR', sc=s.scenarios||{}, rs=s.research||{};
   $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market}${s.theme?` · <span class="am">${esc(s.theme)}</span>`:''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · as of ${s.asof||''}`;
   const kv=o=>`<div class="kv">${Object.entries(o).map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;

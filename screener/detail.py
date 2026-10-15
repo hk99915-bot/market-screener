@@ -196,6 +196,14 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             sims[yf] = _simulate(g)
     except Exception as e:  # noqa: BLE001
         log.warning("시뮬레이션 실패: %s", e)
+    c1y: dict[str, list] = {}   # MY 탭 위험 계산용 1년 종가
+    try:
+        for (yf_,), g in (full.filter(pl.col("yf").is_in(last["yf"].implode())).select("yf", "date", "close")
+                          .sort("yf", "date").group_by("yf", maintain_order=True)):
+            g = g.tail(260)
+            c1y[yf_] = [[str(d), round(float(c), 4)] for d, c in zip(g["date"].to_list(), g["close"].to_list()) if c is not None]
+    except Exception as e:  # noqa: BLE001
+        log.warning("1년 종가 실패: %s", e)
     charts: dict[str, list[dict]] = {}
     for (yf,), g in hist.group_by("yf", maintain_order=True):
         rd = lambda v: None if v is None else round(v, 2)  # noqa: E731
@@ -311,6 +319,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "drivers": drv.get(s, {}),
             "sim": sims.get(r["yf"], {}),
             "chart": ch,
+            "c1y": c1y.get(r["yf"], []),
             "scenarios": _scenarios(r, ch),
             "comment": {"stock": stock_comment(r, max_parts=5), "macro": _macro_view(r, mr, regime_line, br)},
         }
@@ -338,3 +347,8 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     old = REPORT_DIR / f"detail_{market}.json"
     old.unlink(missing_ok=True)   # 예전 묶음 파일 제거
     log.info("detail/%s: %d종목, %d KB", market, len(out["stocks"]), size // 1024)
+    try:
+        from . import etf
+        etf.build(market)
+    except Exception as e:  # noqa: BLE001
+        log.warning("ETF 상세 실패: %s", e)
