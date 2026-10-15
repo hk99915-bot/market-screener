@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import html as htmlmod
 import logging
+import json
 import re
 import time
 from datetime import date, datetime, timedelta
@@ -185,15 +186,72 @@ def summarize_text(txt: str, max_chars: int = 500) -> str:
     return (out + ".")[:max_chars] if out else ""
 
 
+HEADER_RX = re.compile(r"Company\s*Report|Industry\s*Report|\(\d{6}\)|\b(BUY|HOLD|SELL|Buy|Hold|Sell)\s*\((M|U|D|N|유지|상향|하향)\)|"
+                       r"목표주가|현재주가|상승여력|직전\s*목표|투자의견|시가총액|Analyst|RA\b|\d{4}[.\-]\d{2}[.\-]\d{2}")
+_PDF_DEBUG: list[dict] = []
+
+
+def _main_column_text(data: bytes) -> str:
+    """1페이지 텍스트 상자 중 '본문 칼럼'만 골라 위→아래로 잇는다.
+    - 폭이 좁은 상자(페이지 폭 35% 미만: 오른쪽 사이드바 표·주가 정보)는 버림
+    - 페이지 상단 12%(머리글: 회사명·코드·의견·날짜)는 버림
+    - 숫자 비중이 높은 상자(재무 표)와 머리글 패턴 상자는 버림"""
+    from io import BytesIO
+    from pdfminer.high_level import extract_pages  # type: ignore
+    from pdfminer.layout import LAParams, LTTextContainer  # type: ignore
+    page = next(iter(extract_pages(BytesIO(data), maxpages=1, laparams=LAParams(line_margin=0.4))), None)
+    if page is None:
+        return ""
+    W, H = page.width, page.height
+    boxes = []
+    for el in page:
+        if not isinstance(el, LTTextContainer):
+            continue
+        t = el.get_text()
+        flat = re.sub(r"\s+", "", t)
+        if len(flat) < 15:
+            continue
+        x0, y0, x1, y1 = el.bbox
+        dig = len(re.findall(r"[\d,.%()+-]", flat)) / max(len(flat), 1)
+        han = len(HANGUL.findall(flat)) / max(len(flat), 1)
+        keep = (x1 - x0) >= 0.35 * W and y1 <= 0.88 * H and dig < 0.35 and han > 0.3 \
+            and not (len(flat) < 120 and HEADER_RX.search(t))
+        boxes.append({"x0": round(x0), "y1": round(y1), "w": round(x1 - x0), "dig": round(dig, 2),
+                      "han": round(han, 2), "keep": keep, "t": t})
+    if len(_PDF_DEBUG) < 4:
+        _PDF_DEBUG.append({"W": round(W), "H": round(H),
+                           "boxes": [{**{k: v for k, v in b.items() if k != "t"}, "t": re.sub(r"\s+", " ", b["t"])[:90]} for b in boxes]})
+    kept = [b for b in boxes if b["keep"]]
+    if not kept:
+        return ""
+    # 칼럼(왼쪽 x 기준 묶음) 순서 → 위에서 아래
+    kept.sort(key=lambda b: (round(b["x0"] / (W * 0.25)), -b["y1"]))
+    return "\n".join(b["t"] for b in kept)
+
+
 def pdf_summary(url: str) -> str:
-    """한경 컨센서스 리포트 PDF 1페이지에서 요약 문장 추출 (파일은 저장하지 않음)."""
+    """한경 컨센서스 리포트 PDF 1페이지 본문 칼럼에서 요약 문장 추출 (파일은 저장하지 않음)."""
     r = requests.get(url, headers={**UA, "Referer": "https://consensus.hankyung.com/"}, timeout=40)
     r.raise_for_status()
     if not r.content[:5].startswith(b"%PDF"):
         return ""
-    from io import BytesIO
-    from pdfminer.high_level import extract_text  # type: ignore
-    return summarize_text(extract_text(BytesIO(r.content), maxpages=1))
+    try:
+        txt = _main_column_text(r.content)
+    except Exception as e:  # noqa: BLE001
+        log.debug("레이아웃 추출 실패, 전체 텍스트로: %s", e)
+        txt = ""
+    if not txt:
+        from io import BytesIO
+        from pdfminer.high_level import extract_text  # type: ignore
+        txt = extract_text(BytesIO(r.content), maxpages=1)
+    return summarize_text(txt)
+
+
+def dump_pdf_debug() -> None:
+    if _PDF_DEBUG:
+        from .config import REPORT_DIR
+        (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
+        (REPORT_DIR / "logs" / "pdf_boxes.json").write_text(json.dumps(_PDF_DEBUG, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def enrich_summaries(rows: list[dict], links: dict[str, str], limit: int = 200) -> int:
@@ -350,6 +408,7 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
     except Exception as e:  # noqa: BLE001
         log.warning("요약 보충 실패: %s", e)
     log.info("리포트 요약 %d건 수집", n_sum)
+    dump_pdf_debug()
     DATA_DIR.mkdir(exist_ok=True)
     store.write_parquet(STORE)
     log.info("리포트 저장소 %d건 (신규 %d)", len(store), len(new))
@@ -473,7 +532,7 @@ def broker_stats(perf: pl.DataFrame, horizon: int = 20, min_n: int = 15) -> pl.D
 
 POS_KW = re.compile(r"상회|상향|개선|증가|확대|성장|호조|서프라이즈|최대|반등|회복|수혜|강세|턴어라운드|가속")
 NEG_KW = re.compile(r"하회|하향|부진|감소|축소|둔화|우려|부담|약세|적자|리스크|하락|불확실|지연|역성장|감익")
-RISK_KW = re.compile(r"리스크|우려|부담|불확실|하회|하향|둔화|지연|변수|경쟁\s*심화|규제")
+RISK_KW = re.compile(r"리스크|우려|불확실|하방|부정적|경쟁\s*심화|규제|변수는|변수로|부진할|하회할")
 EVID_KW = re.compile(r"영업이익|매출|EPS|순이익|컨센서스|추정|전망|성장률|마진|OPM|YoY|QoQ|가이던스|수주|출하|판가|ASP")
 METHOD = re.compile(r"(SOTP|DCF|RIM|EV\s*/\s*EBITDA|Target\s*P\s*/?\s*E|P\s*/\s*E|PER|P\s*/\s*B|PBR)[^.]{0,60}?(\d+(?:\.\d+)?\s*(?:배|x|X))?", re.I)
 
@@ -487,7 +546,7 @@ def structure(r: dict, close: float | None = None) -> dict:
     summ = r.get("summary") or ""
     summ = "" if summ == "-" else summ
     title = (r.get("title") or "").strip()
-    sents = _sents(summ)
+    sents = [x for x in _sents(summ) if not HEADER_RX.search(x[:60])]
     evid = [x for x in sents if EVID_KW.search(x) and not RISK_KW.search(x)][:2]
     risk = [x for x in sents if RISK_KW.search(x)][:1]
     m = METHOD.search(summ)
