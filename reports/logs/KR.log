@@ -1,31 +1,36 @@
-2026-10-15 07:22:05,521 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-15 07:22:05,597 INFO matplotlib.font_manager: generated new fontManager
-2026-10-15 07:22:19,743 INFO screener.universe: KR 유니버스 _kr_pykrx: 2554종목
-2026-10-15 07:22:19,743 INFO screener: KR 유니버스 1280종목
-2026-10-15 07:22:22,796 INFO screener.data_krx: KRX 2026-10-15: 2651행
-2026-10-15 07:22:23,018 INFO screener.data_krx: 기업행위 추정 373건 → 과거 구간 조정
-2026-10-15 07:22:23,690 INFO screener: 시세 329656행 / 1266종목
-2026-10-15 07:22:24,860 INFO screener: 필터 후 741종목 · 기준일 2026-10-15 · CONFIRMED
-2026-10-15 07:22:25,081 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
-2026-10-15 07:22:25,827 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-15 07:22:25,834 WARNING screener: 국내 지수 보정 실패: 'bool' object has no attribute 'patch_macro'
-2026-10-15 07:22:26,232 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-15 07:23:16,450 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-15 07:23:16,522 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.11) — 주된 요인: 나스닥 +, S&P500 +, 미 10년 금리 − · 글로벌 매크로는 심하지 않은데 한국만 크게 빠짐 → 원인은 국내·업종(반도체) 쪽, 매크로 반전만으론 회복 근거 부족
-2026-10-15 07:23:29,796 INFO screener.momentum: 모멘텀 순위 KR 730종목
-2026-10-15 07:24:33,208 INFO screener.detail: 일괄 수급 2678종목
-2026-10-15 07:24:34,234 INFO screener.detail: 재무 요약 1238종목
-2026-10-15 07:24:34,627 INFO screener.valuation: 가치평가 1213종목
-2026-10-15 07:31:43,521 INFO screener.drivers: 뉴스 412종목 (헤드라인 5896건)
-2026-10-15 07:31:43,696 INFO screener.detail: 이익 드라이버 1261종목
-2026-10-15 07:48:38,479 INFO screener.shorts: 공매도 잔고 16일 추가
-2026-10-15 07:48:38,497 INFO screener.detail: 공매도 2762종목
-2026-10-15 07:48:38,778 INFO screener.track: 시그널 스냅샷 2026-10-15 1261종목 (누적 250일)
-2026-10-15 07:48:42,947 INFO screener.detail: detail/KR: 1261종목, 71337 KB
-2026-10-15 07:54:29,827 INFO screener.etf: ETF KR 206개 (347s)
-2026-10-15 07:54:29,990 INFO screener.dashboard: dashboard.json 갱신 (94992 bytes)
-2026-10-15 07:54:30,065 INFO screener.dashboard: research.json 187건
-2026-10-15 07:54:30,072 INFO screener.dashboard: disclosures.json 235건
-2026-10-15 07:54:30,091 INFO screener.daily: 데일리 리포트: 리포트 102건, 테마 22개, 통합 체크 3개
-2026-10-15 07:54:31,723 INFO screener.report: 텔레그램 전송 완료 (2개 메시지)
-2026-10-15 07:54:32,458 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-15 11:18:59,656 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-15 11:18:59,792 INFO matplotlib.font_manager: generated new fontManager
+2026-10-15 11:19:09,760 INFO screener.universe: KR 유니버스 _kr_pykrx: 2554종목
+2026-10-15 11:19:09,761 INFO screener: KR 유니버스 1280종목
+2026-10-15 11:19:11,710 INFO screener.data_krx: KRX 2026-10-08: 2654행
+2026-10-15 11:19:13,630 INFO screener.data_krx: KRX 2026-10-09: 0행
+2026-10-15 11:19:15,356 INFO screener.data_krx: KRX 2026-10-12: 2651행
+2026-10-15 11:19:17,269 INFO screener.data_krx: KRX 2026-10-13: 2651행
+2026-10-15 11:19:19,153 INFO screener.data_krx: KRX 2026-10-14: 2651행
+2026-10-15 11:19:21,179 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
+2026-10-15 11:23:18,224 INFO screener.data_krx: KRX 2026-10-15 잠정 종가 → 야후 정규장 종가 교체: 2650/2651종목 확인, 2299종목 값 변경
+2026-10-15 11:23:18,225 INFO screener.data_krx: KRX 2026-10-15: 2651행 (잠정)
+2026-10-15 11:23:18,486 INFO screener.data_krx: 기업행위 추정 373건 → 과거 구간 조정
+2026-10-15 11:23:19,798 INFO screener: 시세 329656행 / 1266종목
+2026-10-15 11:23:20,893 INFO screener: 필터 후 742종목 · 기준일 2026-10-15 · CONFIRMED
+2026-10-15 11:23:21,863 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-15 11:23:21,869 WARNING screener: 국내 지수 보정 실패: 'bool' object has no attribute 'patch_macro'
+2026-10-15 11:23:23,210 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-15 11:23:29,515 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-15 11:23:32,508 INFO screener.live: live.json 14개 지표
+2026-10-15 11:23:32,579 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.10) — 주된 요인: 나스닥 +, S&P500 +, 미 10년 금리 − · 미국 지수는 덜 빠졌는데 한국이 크게 빠짐 → 금리·환율 같은 매크로보다 한국 비중이 큰 업종(반도체·AI 인프라) 쏠림이 풀리는 쪽. 원인 뉴스가 미국발이어도 충격은 업종 쏠림만큼 한국에 크게 옴 — 매크로 반전만으론 회복 근거 부족
+2026-10-15 11:23:44,315 INFO screener.momentum: 모멘텀 순위 KR 731종목
+2026-10-15 11:24:25,246 INFO screener.detail: 일괄 수급 2678종목
+2026-10-15 11:24:26,267 INFO screener.detail: 재무 요약 1238종목
+2026-10-15 11:24:26,613 INFO screener.valuation: 가치평가 1213종목
+2026-10-15 11:31:49,963 INFO screener.drivers: 뉴스 412종목 (헤드라인 5951건)
+2026-10-15 11:31:50,113 INFO screener.detail: 이익 드라이버 1261종목
+2026-10-15 11:31:52,276 INFO screener.shorts: 공매도 잔고 0일 추가
+2026-10-15 11:31:52,298 INFO screener.detail: 공매도 2761종목
+2026-10-15 11:31:52,519 INFO screener.track: 시그널 스냅샷 2026-10-15 1261종목 (누적 250일)
+2026-10-15 11:31:56,715 INFO screener.detail: detail/KR: 1261종목, 71566 KB
+2026-10-15 11:37:23,739 INFO screener.etf: ETF KR 206개 (327s)
+2026-10-15 11:37:23,879 INFO screener.dashboard: dashboard.json 갱신 (99461 bytes)
+2026-10-15 11:37:23,954 INFO screener.dashboard: research.json 187건
+2026-10-15 11:37:23,961 INFO screener.dashboard: disclosures.json 235건
+2026-10-15 11:37:23,978 INFO screener.daily: 데일리 리포트: 리포트 102건, 테마 22개, 통합 체크 3개
