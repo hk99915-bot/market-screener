@@ -164,7 +164,7 @@ def premarket_kr(send: bool = True) -> str:
 
 # ───────────── KR 장중 ─────────────
 
-def intraday_kr(send: bool = True) -> str:
+def intraday_kr(send: bool = True, state_key: str = "intraday_snapshot") -> str:
     now = datetime.now(KST)
     closed = now.weekday() < 5 and now.hour * 100 + now.minute >= 1531
     L = [f"<b>📈 {'마감 정리' if closed else '장중 브리핑'}</b> · {now:%m/%d %H:%M} [{'종가 기준' if closed else 'LIVE·잠정'}]"]
@@ -292,7 +292,7 @@ def intraday_kr(send: bool = True) -> str:
         L += [f"• {x}" for x in notes]
     try:
         from . import dashboard
-        dashboard.put_state("intraday_snapshot", {"flows": mf, "snap": snap, "notes": notes, "phase": "마감" if closed else "장중 잠정",
+        dashboard.put_state(state_key, {"flows": mf, "snap": snap, "notes": notes, "phase": "마감" if closed else "장중 잠정",
                                                   "kospi": kq.get("last"), "kospi_chg": chg})
     except Exception as e:  # noqa: BLE001
         log.debug("장중 스냅샷 저장 실패: %s", e)

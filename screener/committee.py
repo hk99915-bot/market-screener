@@ -228,6 +228,15 @@ def build() -> dict:
     except Exception:  # noqa: BLE001
         pass
     stance = _stance(k, scen, sb, stu, ev7, der)
+    # 판단 시점 기록: 오늘 장중 브리핑 스냅샷(시각 포함)을 함께 남김 — 마감 후 숫자가 바뀌어도 '그때 무엇을 보고 결정했나'가 보이게
+    try:
+        import re as _re
+        _st = (_j("dashboard_state.json", {}) or {}).get("intraday_snapshot") or {}
+        if str(_st.get("at", "")).startswith(str(_kst_today())):
+            stance["basis"] = {"at": _st["at"], "src": "장중 브리핑 스냅샷 (네이버 잠정)",
+                               "lines": [_re.sub(r"<[^>]+>", "", x) for x in (_st.get("value") or {}).get("notes", [])[:5]]}
+    except Exception:  # noqa: BLE001
+        pass
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "date": str(today), "head": head, "verdict": verdict,

@@ -272,6 +272,9 @@ function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이
   t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=&quot;(https?:[^&]*?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank">$2</a>');
   return t.replace(/([+-]\d[\d,]*\.?\d*(?:%|억|조))/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`).replace(/\n/g,'<br>');
 }
+function closeNote(){ const c=(D.state||{})['close_snapshot'], s=(D.state||{})['intraday_snapshot'];
+  if(!c||!c.value||!c.value.notes||(s&&c.at<s.at)) return '';
+  return `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px"><div class="am" style="font-size:12px">마감 후 정리 · ${esc(c.at)} 기준${c.value.kospi?` · 코스피 ${num(c.value.kospi,2)} (${pct(c.value.kospi_chg,2)})`:''}</div>${c.value.notes.map(x=>'<div style="font-size:12.5px;line-height:1.6;white-space:normal">• '+tgHtml(x)+'</div>').join('')}</div>`; }
 function intradayPanel(){
   const s=(D.state||{})['intraday_snapshot']; if(!s||!s.value) return '';
   const v=s.value, f=v.flows||{}, sn=v.snap||{};
@@ -282,7 +285,7 @@ function intradayPanel(){
   return `<div class="p c12"><h2>${v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${s.at} 기준 · ${esc(v.phase||'장중 잠정')}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원</small></h2><div class="b">
    <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
    ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
-   ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}</div></div>`;
+   ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(String(s.at).slice(11))} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div>`;
 }
 function pre(key,title){
   const s=(D.state||{})[key]; if(!s||!s.value) return '';
@@ -769,7 +772,7 @@ function cmtView(){
   return cmtTabs()+`<div class="grid">
    <div class="p c12"><h2>운용회의 · 국장<small>${esc(o.asof)} · 규칙 기반 · 검증 중</small></h2><div class="b" style="line-height:1.8;white-space:normal">${(o.head||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">결론</b> ${esc(o.verdict)}</div></div></div>
    <div class="p c12"><h2>운용 시나리오<small>확률 = 1999~ 코스피 비슷한 상황 이후 20거래일 결과 분포 (${esc((o.scenario_basis||{}).basis||'')}, ${(o.scenario_basis||{}).n||0}회)</small></h2><div class="b"><div style="display:flex;gap:8px;flex-wrap:wrap">${sc}</div></div></div>
-   ${o.stance?`<div class="p c12"><h2>PB 판단 · ${esc(o.stance.stance)}<small>확률 = 방향, 신호 = 타이밍 — 왜 이렇게 결정했나</small></h2><div class="b" style="line-height:1.7;white-space:normal"><div style="border:1px solid ${o.stance.stance==='관망'?'var(--amber)':o.stance.stance==='방어'?'var(--dn)':'var(--up)'};padding:6px 10px;margin-bottom:8px"><b class="am">${esc(o.stance.stance)}</b> ${esc(o.stance.plan)}</div>${o.stance.reasons.map((r,i)=>`<div style="margin:4px 0"><b>${i+1}. ${esc(r.t)}</b><div class="mu" style="font-size:12px">${esc(r.d)}</div></div>`).join('')}</div></div>`:''}
+   ${o.stance?`<div class="p c12"><h2>PB 판단 · ${esc(o.stance.stance)}<small>확률 = 방향, 신호 = 타이밍 — 왜 이렇게 결정했나</small></h2><div class="b" style="line-height:1.7;white-space:normal"><div style="border:1px solid ${o.stance.stance==='관망'?'var(--amber)':o.stance.stance==='방어'?'var(--dn)':'var(--up)'};padding:6px 10px;margin-bottom:8px"><b class="am">${esc(o.stance.stance)}</b> ${esc(o.stance.plan)}</div>${o.stance.basis?`<div style="font-size:12px;border-left:2px solid var(--amber);padding-left:8px;margin-bottom:8px"><b class="am">판단 시점 ${esc(String(o.stance.basis.at).slice(5))}</b> <span class="mu">${esc(o.stance.basis.src)} — 이 숫자를 보고 결정했어요. 아래 근거 숫자는 회의 생성 시각(${esc(o.asof)}) 기준</span>${o.stance.basis.lines.map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}${o.stance.reasons.map((r,i)=>`<div style="margin:4px 0"><b>${i+1}. ${esc(r.t)}</b><div class="mu" style="font-size:12px">${esc(r.d)}</div></div>`).join('')}</div></div>`:''}
    ${o.derivs?derivPanel(o.derivs):''}
    <div class="p c6"><h2>업종 의견<small>공급망 체인 점수</small></h2><div class="b"><table>${(o.sectors||[]).map(r=>`<tr><td class="l">${esc(r.chain)}</td><td style="color:${col(r.score)}">${sg(r.score)}</td><td class="l ${r.stance==='비중 확대'?'up':r.stance==='비중 축소'?'dn':'mu'}">${r.stance}</td></tr>`).join('')}</table></div></div>
    <div class="p c6"><h2>테마 온도<small>드라이버 평균 상·하위 · 시총 가중 수익률</small></h2><div class="b"><table><tr><th class="l">테마</th><th>드라이버</th><th>5D</th><th>20D</th></tr>${(o.themes||[]).map(t=>`<tr><td class="l">${esc(t.theme)}</td><td style="color:${col(t.drv)}">${sg(t.drv)}</td><td>${pct(t.r5,1)}</td><td>${pct(t.r20,1)}</td></tr>`).join('')}</table></div></div>
@@ -832,6 +835,7 @@ function decBox(){
    ${[...DEC.items].reverse().map(it=>{const r=it.result; return `<div style="border-top:1px solid var(--line);padding:8px 0;line-height:1.6;white-space:normal">
       <div><span class="mu">${esc(it.date.slice(5))}</span> <b>${esc(it.title)}</b> ${r?(r.winner?`<span class="tag">${esc(r.winner)} 승</span>`:'<span class="tag">무승부</span>'):'<span class="mu" style="font-size:11px">채점 대기</span>'}</div>
       <div class="mu" style="font-size:11.5px">${esc(it.note||'')}</div>
+      ${it.basis?`<div style="font-size:11.5px;border-left:2px solid var(--amber);padding-left:6px;margin-top:3px"><span class="am">판단 시점 ${esc(String(it.basis.at).slice(5))}</span> <span class="mu">${esc(it.basis.src||'')}</span>${(it.basis.lines||[]).map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${who.map(w=>`<div style="flex:1;min-width:140px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}</span><div style="font-size:12.5px">${pk(it.picks[w])}</div>${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:12px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div></div>`;}).join('')}
    <div class="mu" style="font-size:11px;margin-top:4px">모의 기록 포함 · 한 판은 운, 20판 이상 쌓여야 실력</div></div></div>`;
 }
