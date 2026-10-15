@@ -52,7 +52,7 @@ jobs:
             14|19) echo "mode=intraday_us" ;;
             10) echo "mode=reports" ;;
             22) echo "mode=screen_us" ;;
-            *) echo "mode=reports" ;;
+            *) echo "mode=skip" ;;   # 예약이 몇 시간 밀려 엉뚱한 시각에 돌면 아무것도 안 함
           esac >> $GITHUB_OUTPUT
 
       - name: 실행
@@ -65,7 +65,9 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           KRX_BACKEND: ${{ vars.KRX_BACKEND || 'pykrx' }}
         run: |
-          if [ "${{ steps.m.outputs.mode }}" = "screen_us" ]; then
+          if [ "${{ steps.m.outputs.mode }}" = "skip" ]; then
+            echo "예약 시각과 맞지 않는 실행 — 건너뜀"
+          elif [ "${{ steps.m.outputs.mode }}" = "screen_us" ]; then
             python -m screener.main --market US
           else
             python -m screener.main --mode ${{ steps.m.outputs.mode }}
