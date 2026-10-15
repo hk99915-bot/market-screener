@@ -79,7 +79,8 @@ def _fetch_day(d: date) -> pl.DataFrame:
 def update(lookback_days: int = 400, max_calls: int = 450) -> pl.DataFrame:
     DATA_DIR.mkdir(exist_ok=True)
     hist = pl.read_parquet(PARQUET) if PARQUET.exists() else pl.DataFrame(schema=SCHEMA)
-    start = (hist["date"].max() + timedelta(days=1)) if len(hist) else date.today() - timedelta(days=lookback_days)
+    # 마지막 저장일도 다시 받는다: 장중에 돌았던 실행이 미완성 봉을 저장했어도 다음 실행에서 확정치로 덮어씀
+    start = hist["date"].max() if len(hist) else date.today() - timedelta(days=lookback_days)
     days = [start + timedelta(i) for i in range((date.today() - start).days + 1)]
     days = [d for d in days if d.weekday() < 5][-max_calls:]
     new, fails = [], 0

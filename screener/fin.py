@@ -211,25 +211,28 @@ def _save_full(old: pl.DataFrame, new: list[dict], tried: dict) -> None:
 # ───────────── 분기 시계열 ─────────────
 
 # 표준 항목 ← (account_id 후보, 계정명 후보)
-ITEMS = {
-    "revenue": (["ifrs-full_Revenue"], ["매출액", "수익(매출액)", "영업수익", "매출"]),
-    "op": (["dart_OperatingIncomeLoss"], ["영업이익", "영업이익(손실)"]),
-    "ni": (["ifrs-full_ProfitLoss"], ["당기순이익", "당기순이익(손실)", "분기순이익", "반기순이익"]),
-    "ni_owner": (["ifrs-full_ProfitLossAttributableToOwnersOfParent"], ["지배기업의소유주에게귀속되는당기순이익", "지배기업소유주지분"]),
-    "assets": (["ifrs-full_Assets"], ["자산총계"]),
-    "liab": (["ifrs-full_Liabilities"], ["부채총계"]),
-    "equity": (["ifrs-full_Equity"], ["자본총계"]),
-    "equity_owner": (["ifrs-full_EquityAttributableToOwnersOfParent"], ["지배기업의소유주에게귀속되는자본", "지배기업소유주지분"]),
-    "cash": (["ifrs-full_CashAndCashEquivalents"], ["현금및현금성자산"]),
-    "cfo": (["ifrs-full_CashFlowsFromUsedInOperatingActivities"], ["영업활동현금흐름", "영업활동으로인한현금흐름"]),
-    "capex": (["ifrs-full_PurchaseOfPropertyPlantAndEquipment"], ["유형자산의취득"]),
-    "da": (["ifrs-full_DepreciationAndAmortisationExpense", "ifrs-full_AdjustmentsForDepreciationAndAmortisationExpense"], ["감가상각비"]),
-    "div_paid": (["ifrs-full_DividendsPaidClassifiedAsFinancingActivities"], ["배당금의지급", "배당금지급"]),
+IS_, BS_, CF_ = ("IS", "CIS"), ("BS",), ("CF",)
+ITEMS = {   # 항목: (account_id 후보, 계정명 후보, 재무제표 구분)
+    "revenue": (["ifrs-full_Revenue"], ["매출액", "수익(매출액)", "영업수익", "매출"], IS_),
+    "op": (["dart_OperatingIncomeLoss"], ["영업이익", "영업이익(손실)"], IS_),
+    "ni": (["ifrs-full_ProfitLoss"], ["당기순이익", "당기순이익(손실)", "분기순이익", "반기순이익", "분기순이익(손실)", "반기순이익(손실)"], IS_),
+    "ni_owner": (["ifrs-full_ProfitLossAttributableToOwnersOfParent"], ["지배기업의소유주에게귀속되는당기순이익", "지배기업소유주지분"], IS_),
+    "assets": (["ifrs-full_Assets"], ["자산총계"], BS_),
+    "liab": (["ifrs-full_Liabilities"], ["부채총계"], BS_),
+    "equity": (["ifrs-full_Equity"], ["자본총계"], BS_),
+    "equity_owner": (["ifrs-full_EquityAttributableToOwnersOfParent"], ["지배기업의소유주에게귀속되는자본", "지배기업소유주지분"], BS_),
+    "cash": (["ifrs-full_CashAndCashEquivalents"], ["현금및현금성자산"], BS_),
+    "cfo": (["ifrs-full_CashFlowsFromUsedInOperatingActivities"], ["영업활동현금흐름", "영업활동으로인한현금흐름"], CF_),
+    "capex": (["ifrs-full_PurchaseOfPropertyPlantAndEquipment"], ["유형자산의취득"], CF_),
+    "da": (["ifrs-full_DepreciationAndAmortisationExpense", "ifrs-full_AdjustmentsForDepreciationAndAmortisationExpense"], ["감가상각비"], CF_ + IS_),
+    "div_paid": (["ifrs-full_DividendsPaidClassifiedAsFinancingActivities"], ["배당금의지급", "배당금지급"], CF_),
 }
 FLOW = {"revenue", "op", "ni", "ni_owner", "cfo", "capex", "da", "div_paid"}    # 기간 값(누적 차분 대상)
 
 
-def _pick(g: pl.DataFrame, ids: list[str], names: list[str], flow: bool) -> float | None:
+def _pick(g: pl.DataFrame, ids: list[str], names: list[str], flow: bool, sjs: tuple = ()) -> float | None:
+    if sjs and "sj_div" in g.columns:
+        g = g.filter(pl.col("sj_div").is_in(list(sjs)))
     for cond in ([pl.col("account_id").is_in(ids)] if "account_id" in g.columns else []) + [pl.col("account").is_in(names)]:
         h = g.filter(cond)
         if len(h):
@@ -263,8 +266,8 @@ def quarterly(code: str) -> pl.DataFrame:
     recs = []
     for (y, rc), g in src.group_by("year", "reprt"):
         rec = {"year": y, "q": REPRT[rc][0]}
-        for k, (ids, names) in ITEMS.items():
-            rec[k] = _pick(g, ids, names, k in FLOW)
+        for k, (ids, names, sjs) in ITEMS.items():
+            rec[k] = _pick(g, ids, names, k in FLOW, sjs)
         recs.append(rec)
     if not recs:
         return pl.DataFrame()
