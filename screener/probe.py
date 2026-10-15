@@ -103,6 +103,42 @@ def run() -> dict:
         out["yf_version"] = yf.__version__
     except Exception:  # noqa: BLE001
         out["yf"] = traceback.format_exc()
+    # KRX 파생 (pykrx 세션 재사용, bld 후보 탐색)
+    try:
+        from datetime import date, timedelta
+        from pykrx.website.krx.krxio import KrxWebIo
+
+        class _B(KrxWebIo):
+            def __init__(self, b):
+                super().__init__()
+                self._b = b
+            @property
+            def bld(self):
+                return self._b
+            def fetch(self, **kw):
+                return self.read(**kw)
+        d = date.today()
+        while d.weekday() >= 5:
+            d -= timedelta(days=1)
+        ymd = d.strftime("%Y%m%d")
+        st = (d - timedelta(days=7)).strftime("%Y%m%d")
+        tries = [
+            ("opt_series", "dbms/MDC/STAT/standard/MDCSTAT12501", {"trdDd": ymd, "prodId": "KRDRVOPK2I", "mktTpCd": "T", "rghtTpCd": "T"}),
+            ("opt_series_2", "dbms/MDC/STAT/standard/MDCSTAT12502", {"trdDd": ymd, "prodId": "KRDRVOPK2I", "mktTpCd": "T", "rghtTpCd": "T"}),
+            ("fut_series", "dbms/MDC/STAT/standard/MDCSTAT12501", {"trdDd": ymd, "prodId": "KRDRVFUK2I", "mktTpCd": "T", "rghtTpCd": "T"}),
+        ]
+        for code in ("MDCSTAT13101", "MDCSTAT13102", "MDCSTAT13201", "MDCSTAT13202", "MDCSTAT13001", "MDCSTAT13301"):
+            tries.append((code, f"dbms/MDC/STAT/standard/{code}", {"strtDd": st, "endDd": ymd, "prodId": "KRDRVFUK2I", "inqTpCd": "1", "trdVolVal": "2"}))
+        for name, bld, prm in tries:
+            try:
+                r = _B(bld).fetch(**prm)
+                o = r.get("output") or r.get("OutBlock_1") or r.get("block1") or []
+                out["krx_" + name] = {"keys": list(r.keys())[:6], "n": len(o) if isinstance(o, list) else None,
+                                      "head": json.dumps(o[:4] if isinstance(o, list) else r, ensure_ascii=False)[:1500]}
+            except Exception as e:  # noqa: BLE001
+                out["krx_" + name] = "ERR " + str(e)[:300]
+    except Exception as e:  # noqa: BLE001
+        out["krx_deriv"] = "ERR " + str(e)[:300]
     p = REPORT_DIR / "logs" / "probe.json"
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
