@@ -164,6 +164,29 @@ def _file_log(name: str | None) -> None:
     root.addHandler(h)
 
 
+def _krx_override(ser: dict) -> None:
+    """야후 한국 지수는 하루 늦게 들어오거나 장중 값이 남아 있음 → 최근 15일은 KRX 확정 일봉으로 덮어씀 (날짜 정렬 기준 = KRX)."""
+    try:
+        from datetime import date as _d, timedelta as _td
+        from pykrx import stock  # type: ignore
+        t = _d.today()
+        for key, code in (("KOSPI", "1001"), ("KOSDAQ", "2001")):
+            df = stock.get_index_ohlcv((t - _td(days=21)).strftime("%Y%m%d"), t.strftime("%Y%m%d"), code)
+            if df is None or not len(df):
+                continue
+            rows = {r[0]: r for r in ser.get(key, [])}
+            for i, x in df.iterrows():
+                ds = str(i.date())
+                c = float(x["종가"])
+                if c <= 0:
+                    continue
+                rows[ds] = [ds, float(x["시가"]) or c, float(x["고가"]) or c, float(x["저가"]) or c, c, int(x.get("거래량") or 0)]
+            ser[key] = [rows[k] for k in sorted(rows)]
+        log.info("KRX 지수 일봉으로 코스피·코스닥 최근분 보정")
+    except Exception as e:  # noqa: BLE001
+        log.warning("KRX 지수 보정 실패: %s", e)
+
+
 def write_macro_series(macro: pl.DataFrame | None = None) -> None:
     """매크로 지표 일봉 OHLCV 2년 → reports/macro_series.json (웹 티커·매크로 표 클릭 차트용).
     항목: [날짜, 시가, 고가, 저가, 종가, 거래량]. 스크린용 200일 데이터와 별도로 2년치를 받는다."""
@@ -191,6 +214,7 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
                 o, h, lo = r(x.get("open")) or c, r(x.get("high")) or c, r(x.get("low")) or c
                 rows.append([str(x["date"]), o, max(h, o, c), min(lo, o, c), c, int(x.get("volume") or 0)])
             ser[k] = rows
+        _krx_override(ser)
         (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
             {"asof": str(macro["date"].max()), "fmt": "dohlcv", "series": ser}, ensure_ascii=False), encoding="utf-8")
         try:
