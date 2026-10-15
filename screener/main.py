@@ -294,9 +294,11 @@ def main() -> None:
         elif a.mode == "committee":    # 운용회의 자료 (+텔레그램)
             from . import committee
             o = committee.build()
+            ou = committee.build_us()
             if not a.no_send:
                 from .report import send_telegram
                 send_telegram(committee.telegram_text(o))
+                send_telegram(committee.telegram_text_us(ou))
         elif a.mode == "calendar":     # 실적·이벤트 캘린더
             from . import calendar_ev
             print(len(calendar_ev.build()["events"]))
@@ -377,9 +379,11 @@ def main() -> None:
                 try:
                     from . import committee
                     o = committee.build()
+                    ou = committee.build_us()
                     if not a.no_send:
                         from .report import send_telegram
                         send_telegram(committee.telegram_text(o))
+                        send_telegram(committee.telegram_text_us(ou))
                 except Exception as e:  # noqa: BLE001
                     log.warning("운용회의 실패: %s", e)
             if a.mode == "premarket_kr" and not a.no_send:

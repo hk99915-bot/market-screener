@@ -220,3 +220,97 @@ def telegram_text(o: dict) -> str:
     else:
         L.append("<i>회의 성적: 기록 시작 — 5거래일 뒤부터 채점</i>")
     return "\n".join(L)
+
+
+# ───────────── 미장 운용회의 ─────────────
+OUT_US = REPORT_DIR / "committee_us.json"
+
+
+def _spx_state() -> dict:
+    ms = (_j("macro_series.json", {}) or {}).get("series", {})
+    def cl(k):
+        return [r[4] if len(r) >= 6 else r[1] for r in ms.get(k) or []]
+    c = cl("SPX")
+    if len(c) < 30:
+        return {}
+    nq, vix, tnx = cl("NASDAQ"), cl("VIX"), cl("US10Y")
+    last = c[-1]
+    return {"last": last, "ret1": last / c[-2] - 1, "dd20": last / max(c[-21:]) - 1, "from_hi": last / max(c[-250:]) - 1,
+            "r20": last / c[-21] - 1, "hi5": max(c[-5:]), "low20": min(c[-20:]), "sma50": st.mean(c[-50:]),
+            "nq20": (nq[-1] / nq[-21] - 1) if len(nq) > 21 else None, "vix": vix[-1] if vix else None,
+            "tnx": tnx[-1] if tnx else None, "tnx20": (tnx[-1] - tnx[-21]) * 100 if len(tnx) > 21 else None}
+
+
+def build_us() -> dict:
+    k = _spx_state()
+    stu = _j("studies/crash_rebound.json", {}) or {}
+    b = stu.get("spx_buckets20") or {}
+    dd = k.get("dd20", 0) if k else 0
+    key = "correction" if dd <= -0.07 else "pullback" if dd <= -0.02 else "near_high"
+    if k and k.get("ret1", 0) <= -0.02 and b.get("drop2"):
+        key = "drop2"
+    p = b.get(key) or b.get("all") or {"bull": 0.4, "base": 0.4, "bear": 0.2, "n": 0}
+    basis = {"near_high": "고점 부근(20일 고점 대비 −2% 이내)", "pullback": "눌림(−2~−7%)", "correction": "조정(−7% 이상)", "drop2": "하루 −2% 이상 하락", "all": "전체"}[key]
+    peers = (_j("peers_US.json", {}) or {}).get("rows", [])
+    by = {}
+    for r in peers:
+        if r.get("r20") is not None and r.get("g"):
+            by.setdefault(r["g"], []).append(r)
+    secs = []
+    for g, a in by.items():
+        if len(a) < 5:
+            continue
+        w = [x.get("mc") or 1 for x in a]
+        secs.append({"sector": g, "n": len(a), "r5": sum(wi * (x.get("r5") or 0) for wi, x in zip(w, a)) / sum(w),
+                     "r20": sum(wi * x["r20"] for wi, x in zip(w, a)) / sum(w),
+                     "drv": st.mean([x["drv"] for x in a if x.get("drv") is not None] or [0])})
+    for x in secs:
+        x["stance"] = "비중 확대" if x["drv"] >= 0.25 else "비중 축소" if x["drv"] <= 0.0 else "중립"
+    secs.sort(key=lambda x: -x["drv"])
+    longs = [r for r in peers if (r.get("drv") or 0) >= 0.4 and (r.get("r20") or 0) <= -0.03]
+    longs.sort(key=lambda r: -(r["drv"]))
+    avoid = [r for r in peers if r.get("drv") is not None and r["drv"] <= -0.2 and (r.get("r20") or 0) >= 0.05]
+    avoid.sort(key=lambda r: r["drv"])
+    f = lambda r: {"s": r["s"], "n": r["n"], "g": r["g"], "drv": r.get("drv"), "r20": r.get("r20"), "r5": r.get("r5")}  # noqa: E731
+    cal = (_j("calendar.json", {}) or {}).get("events", [])
+    today = date.today()
+    ev = [e for e in cal if today <= date.fromisoformat(e["date"]) <= today + timedelta(days=10) and (e.get("market") == "US" or e["type"] == "매크로")]
+    head = []
+    if k:
+        head.append(f"S&P500 {k['last']:,.0f} ({k['ret1']*100:+.1f}%) · 20일 {k['r20']*100:+.1f}% · 20일 고점 대비 {k['dd20']*100:+.1f}% · 52주 고점 대비 {k['from_hi']*100:+.1f}%")
+        head.append(f"나스닥 20일 {(k.get('nq20') or 0)*100:+.1f}% · VIX {k.get('vix') or 0:.1f} · 미 10년 {k.get('tnx') or 0:.2f}% (20일 {k.get('tnx20') or 0:+.0f}bp)")
+    lo = k.get("low20") if k else None
+    scen = [
+        {"name": "강세 — 고점 경신", "prob": p.get("bull"), "def": "20거래일 뒤 S&P500 +3% 초과",
+         "trigger": "빅테크 실적(10/21~29)에서 설비투자·클라우드 성장 상향 + 10년 금리 하락 전환",
+         "action": "미국 반도체·AI 인프라 비중 유지, 원화 강세 시 달러 자산 추가 매수 기회"},
+        {"name": "기본 — 박스권", "prob": p.get("base"), "def": "20거래일 뒤 ±3% 이내",
+         "trigger": "실적은 부합, 금리 5% 근처 횡보",
+         "action": "종목 교체(이익 추정 상향 종목으로), 비중 유지"},
+        {"name": "약세 — 금리·밸류 조정", "prob": p.get("bear"), "def": f"20거래일 뒤 −3% 미만 (그중 −10% 미만 {(p.get('deep_bear') or 0)*100:.0f}%)",
+         "trigger": f"10년 금리 5.3% 돌파, 또는 빅테크 설비투자 가이던스 하향, 또는 S&P 20일 저점({lo or 0:,.0f}) 이탈",
+         "action": "반도체·고PER 비중 축소, SH/PSQ 소량 헷지, 한국 메모리도 같은 신호로 축소(연결 규칙)"},
+    ]
+    best = max(scen, key=lambda s: s.get("prob") or 0)
+    out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "date": str(today), "market": "US", "head": head,
+           "verdict": f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 S&P500 '{basis}' {p.get('n') or 0}회",
+           "scenarios": scen, "scenario_basis": {"basis": basis, "n": p.get("n")}, "sectors": secs,
+           "ideas": {"long": [f(r) for r in longs[:10]], "avoid": [f(r) for r in avoid[:8]]}, "events": ev[:12],
+           "kr_link": "한국 메모리 판단의 선행 지표: 빅테크 설비투자 가이던스(10/21 메타, 10/28 MSFT·구글, 10/29 아마존) · 마이크론 EPS 추정 · TSMC 가이던스"}
+    OUT_US.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    log.info("미장 운용회의 생성")
+    return out
+
+
+def telegram_text_us(o: dict) -> str:
+    L = ["🗽 <b>미장 운용회의</b> · " + o["date"]] + [f"• {x}" for x in o["head"]]
+    L += ["", "<b>[시나리오]</b> " + o["verdict"]]
+    for s in o["scenarios"]:
+        L.append(f"• {s['name']} {(s['prob'] or 0)*100:.0f}% — 신호: {s['trigger']}")
+    up = [x for x in o["sectors"] if x["stance"] == "비중 확대"][:4]
+    dn = [x for x in o["sectors"] if x["stance"] == "비중 축소"][:3]
+    L.append("<b>[섹터]</b> 확대: " + (", ".join(f"{x['sector']}({x['drv']:+.2f})" for x in up) or "—") + " / 축소: " + (", ".join(x["sector"] for x in dn) or "—"))
+    if o["ideas"]["long"]:
+        L.append("<b>[매수 후보]</b> " + ", ".join(f"{x['s']} {x['drv']:+.2f}" for x in o["ideas"]["long"][:6]))
+    L.append("<i>" + o["kr_link"] + "</i>")
+    return "\n".join(L)
