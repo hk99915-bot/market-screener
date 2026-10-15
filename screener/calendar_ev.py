@@ -93,7 +93,8 @@ def releases() -> dict:
             try:
                 per, v, pv = _calc(_fred(sid), how)
             except Exception as e:  # noqa: BLE001
-                log.info("FRED %s 실패: %s", sid, e)
+                log.warning("FRED %s 실패: %s", sid, e)
+                old.setdefault("errors", {})[sid] = str(e)[:200]
                 continue
             if v is None:
                 continue
