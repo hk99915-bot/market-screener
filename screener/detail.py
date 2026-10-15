@@ -253,6 +253,29 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         except Exception as e:  # noqa: BLE001
             log.warning("종목별 공시 실패: %s", e)
 
+    drv: dict[str, dict] = {}
+    if market == "KR":
+        try:
+            from . import drivers, universe
+            from .config import UNIVERSE_DIR
+            u = pl.read_csv(UNIVERSE_DIR / "kr.csv", schema_overrides={"symbol": pl.Utf8})
+            mc = dict(zip(u["symbol"].to_list(), u["mcap"].to_list()))
+            secs = universe.kr_sectors() or {}
+            info = {s0: {"name": rows[s0]["name"], "sector": secs.get(s0), "mcap": mc.get(s0)} for s0 in syms if s0 in rows}
+            drv = drivers.build(info, full.select("yf", "date", "close"), discl)
+            for s0, d0 in drv.items():   # 가치평가에 신호 가중 적정가 연결
+                v0 = vals.get(s0)
+                if not v0 or d0.get("w_current") is None:
+                    continue
+                g = v0.get("groups") or {}
+                if g.get("current") and g.get("normal"):
+                    w = d0["w_current"]
+                    fv = w * g["current"] + (1 - w) * g["normal"]
+                    v0["signal_fv"] = {"value": round(fv, 0), "w_current": w,
+                                       "upside": round(fv / rows[s0]["close"] - 1, 3) if rows[s0].get("close") else None}
+            log.info("이익 드라이버 %d종목", len(drv))
+        except Exception as e:  # noqa: BLE001
+            log.warning("이익 드라이버 실패: %s", e)
     themes: dict[str, dict] = {}
     if market == "KR":
         try:
@@ -285,6 +308,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "disclosures": discl.get(s, []),
             "financials": fins.get(s, {}),
             "valuation": vals.get(s, {}),
+            "drivers": drv.get(s, {}),
             "sim": sims.get(r["yf"], {}),
             "chart": ch,
             "scenarios": _scenarios(r, ch),

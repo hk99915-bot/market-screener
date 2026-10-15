@@ -275,7 +275,7 @@ function valPanel(v,close){
   const rows=Object.entries(v.models).map(([k,m])=>`<tr><td class="l"><span style="color:${(GN[m.group]||['','#aaa'])[1]}">■</span> ${esc(k)}</td><td>${num(m.value,0)}</td><td>${pct(m.upside,0)}</td></tr><tr><td colspan="3" class="l mu" style="white-space:normal;font-size:11px;padding:0 6px 6px 22px;border-bottom:1px solid #1c1c1c">${esc(m.note)}</td></tr>`).join('');
   const f=v.fscore, d=v.dupont, a=v.assumptions||{}, sh=v.shares||{}, P=x=>x==null?'—':(x*100).toFixed(1)+'%';
   return `${v.verdict?`<div style="border:1px solid #fc3;padding:8px 10px;margin-bottom:8px;line-height:1.6"><b style="color:#fc3">결론</b> ${esc(v.verdict)}</div>`:''}
-   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${cards}</div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${cards}${v.signal_fv?`<div style="flex:1;min-width:150px;border-left:3px solid #fc3;padding:4px 10px"><div class="mu" style="font-size:11px">신호 가중 (현재이익 ${Math.round(v.signal_fv.w_current*100)}%)</div><div style="font-size:16px"><b>${num(v.signal_fv.value,0)}</b> ${pct(v.signal_fv.upside,0)}</div></div>`:''}</div>
    <div class="mu" style="font-size:11px">현재가 <b style="color:#fc3">${num(close,0)}</b> · 전체 범위 ${num(r.low,0)} ~ ${num(r.high,0)} · PER ${v.per??'—'}${v.per_reported&&v.per_reported!==v.per?` (보고이익 기준 ${v.per_reported})`:''} · PBR ${v.pbr??'—'}${v.implied_g!=null?` · 역DCF 내재 영구성장 ${(v.implied_g*100).toFixed(1)}%`:''}</div>${bar}
    <table style="max-width:640px"><tr><th class="l">모델</th><th>적정가</th><th>괴리</th></tr>${rows}</table>
    ${(v.flags||[]).map(t=>`<div style="color:#fb6;font-size:11px;margin-top:4px">⚠ ${esc(t)}</div>`).join('')}
@@ -286,6 +286,37 @@ function valPanel(v,close){
    RIM 민감도 (COE): ${Object.entries(v.rim_sens||{}).map(([k,x])=>`${k} ${num(x,0)}`).join(' / ')||'—'}<br>
    주식 수 ${num(sh.shares,0)}주 — ${esc(sh.src||'')}${sh.treasury_pct?` · 자사주 ${(sh.treasury_pct*100).toFixed(1)}%`:''}${sh.pref_pct?` · 우선주 ${(sh.pref_pct*100).toFixed(1)}%`:''}<br>
    가정: COE ${(a.coe*100).toFixed(0)}% · 영구성장 ${(a.g*100).toFixed(0)}% · 기준 ${esc(a.period||'')} TTM · 업종 ${esc(v.sector||'—')}${v.peer?` (PER ${v.peer.per?.toFixed?.(1)??'—'} / PBR ${v.peer.pbr?.toFixed?.(2)??'—'}, n=${v.peer.n})`:''}${a.financial_sector?' · 금융업: 현금흐름 모델 제외':''}</div>`;
+}
+function drvPanel(d,v){
+  if(!d||!Object.keys(d).length) return '<div class="mu">드라이버 데이터 없음</div>';
+  const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
+  const sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
+  const lab=x=>x==null?'판단 보류':x>0.3?'이익 지속 쪽':x>0.1?'약하게 지속 쪽':x<-0.3?'평균 회귀 쪽':x<-0.1?'약하게 회귀 쪽':'중립';
+  const NM={chain:'공급망 체인',analyst:'애널리스트',news:'뉴스',macro:'매크로',dart:'공시'};
+  const parts=Object.entries(NM).map(([k,n])=>{const x=(d.parts||{})[k]; return `<div style="flex:1;min-width:92px;border:1px solid var(--line);padding:4px 8px"><div class="mu" style="font-size:11px">${n}${d.weights&&d.weights[k]?` · ${Math.round(d.weights[k]*100)}%`:''}</div><b style="color:${col(x)}">${sg(x)}</b></div>`;}).join('');
+  const sf=v&&v.signal_fv;
+  let h=`<div style="border:1px solid ${col(d.score)};padding:8px 10px;margin-bottom:8px;line-height:1.6"><b style="color:${col(d.score)}">${lab(d.score)}</b> 종합 ${sg(d.score)}
+    ${sf?` → '현재 이익' 가중 ${Math.round(sf.w_current*100)}% · 신호 가중 적정가 <b>${num(sf.value,0)}</b> ${pct(sf.upside,0)}`:''}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${parts}</div>`;
+  const ch=d.chain;
+  if(ch&&ch.proxies&&ch.proxies.length){ h+=`<div class="am" style="font-size:12px;margin:6px 0 2px">공급망 · ${esc(ch.name)} <span style="color:${col(ch.score)}">${sg(ch.score)}</span></div>
+    <table style="max-width:760px">${ch.proxies.map(p=>`<tr><td class="l">${esc(p.name)} <span class="mu">${esc(p.ticker)}</span><div class="mu" style="font-size:11px;white-space:normal">${esc(p.role)}${p.relation<0?' (반대로 작용)':p.relation===0?' (참고)':''}</div></td><td style="color:${col(p.effect)}">${sg(p.effect)}</td></tr><tr><td colspan="2" class="l mu" style="white-space:normal;font-size:11px;padding:0 6px 6px 14px">${esc(p.why||'')}</td></tr>`).join('')}</table>`; }
+  const m=d.macro;
+  if(m&&m.rows&&m.rows.length){ h+=`<div class="am" style="font-size:12px;margin:10px 0 2px">매크로 바람 <span style="color:${col(m.score)}">${sg(m.score)}</span> <span class="mu">(시장 베타 ${m.beta_mkt??'—'}, 시장 영향 제외한 민감도)</span></div>
+    <table style="max-width:760px"><tr><th class="l">변수</th><th>1개월</th><th>민감도(t)</th><th>영향</th></tr>${m.rows.map(r=>`<tr><td class="l">${esc(r.name)}<div class="mu" style="font-size:11px">${esc(r.why)}</div></td><td>${pct(r.r1m,1)}</td><td class="mu">${r.beta!=null?r.beta.toFixed(2):'—'}${r.t!=null?` (${r.t})`:''}</td><td style="color:${col(r.effect)}">${sg(r.effect)}</td></tr>`).join('')}</table>`; }
+  const a=d.analyst;
+  if(a){ const dr=Object.entries(a.drivers||{}).sort((x,y)=>(y[1].up+y[1].dn)-(x[1].up+x[1].dn));
+    h+=`<div class="am" style="font-size:12px;margin:10px 0 2px">애널리스트 (90일 ${a.n}건) <span style="color:${col(a.score)}">${sg(a.score)}</span> <span class="mu">전 종목 평균 ${sg(a.base)} 대비</span></div>
+    <div class="mu" style="font-size:12px;line-height:1.7">목표가 ↑${a.tp_up} ↓${a.tp_dn} · 이익 추정 ↑${a.op_up} ↓${a.op_dn} · 컨센 상회 언급 ${a.beat} / 하회 ${a.miss} · 톤 ${Object.entries(a.tones).map(([k,n])=>`${esc(k)} ${n}`).join(', ')}</div>
+    ${dr.length?`<div style="font-size:12px;line-height:1.8;margin-top:2px">리포트가 말하는 이익 드라이버: ${dr.map(([k,x])=>`<span title="${esc((x.ex||[]).join(' / '))}" style="margin-right:8px;color:${x.up>x.dn?'var(--up)':x.dn>x.up?'var(--dn)':'var(--amber)'}">${esc(k)} ${x.up>x.dn?'▲':x.dn>x.up?'▼':'◆'}${x.up}/${x.dn}</span>`).join('')}</div>
+    ${dr.slice(0,3).map(([k,x])=>(x.ex||[]).slice(0,1).map(e=>`<div class="mu" style="font-size:11px;margin-left:10px;white-space:normal">· [${esc(k)}] ${esc(e)}</div>`).join('')).join('')}`:''}`; }
+  const n=d.news;
+  if(n&&n.events&&n.events.length){ h+=`<div class="am" style="font-size:12px;margin:10px 0 2px">뉴스 이벤트 (7일 헤드라인 ${n.n}건 중 ${n.events.length}건) <span style="color:${col(n.score)}">${sg(n.score)}</span></div>
+    ${n.events.slice(0,8).map(e=>`<div style="font-size:12px;line-height:1.6;white-space:normal"><span style="color:${e.dir>0?'var(--up)':e.dir<0?'var(--dn)':'var(--muted)'}">${e.dir>0?'▲':e.dir<0?'▼':'◆'} ${esc(e.event)}</span> <span class="mu">${esc(e.date||'')}</span> ${e.link?`<a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.title)}</a>`:esc(e.title)}</div>`).join('')}`; }
+  else if(n) h+=`<div class="mu" style="font-size:12px;margin-top:8px">뉴스: 7일 헤드라인 ${n.n}건, 이익 이벤트로 분류된 것 없음</div>`;
+  const dv=d.dart;
+  if(dv&&dv.events&&dv.events.length) h+=`<div class="am" style="font-size:12px;margin:10px 0 2px">공시 이벤트</div>${dv.events.map(e=>`<div style="font-size:12px"><span style="color:${e.dir>0?'var(--up)':e.dir<0?'var(--dn)':'var(--muted)'}">${esc(e.event)}</span> <span class="mu">${esc(e.date||'')}</span> ${esc(e.title||'')}</div>`).join('')}`;
+  return h+`<div class="mu" style="font-size:11px;margin-top:10px">규칙 기반 점수(−1~+1). 체인 35% · 애널리스트 25% · 뉴스 15% · 매크로 15% · 공시 10%, 없는 항목은 빼고 재가중. 점수 → '현재 이익' 가중치 = 50% + 40%×점수 (10~90%). 성과 검증 전 지표.</div>`;
 }
 let SIX=null;
 function loadIndex(cb){ if(SIX) return cb(); SIX=[]; let left=2;
@@ -544,6 +575,7 @@ function renderDetail(sym,mk,s){
    <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<div style="margin-top:6px;max-height:340px;overflow:auto">${rs.items.map(repLine).join('')}</div>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
    <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
    <div class="p c12"><h2>TREND SIMULATION<small>${s.sim&&s.sim.days?`최근 ${s.sim.days}거래일(${s.sim.from}~) · 종가 체결 · 왕복비용 ${(s.sim.cost*100).toFixed(2)}% 가정 · 과거 성과, 예측 아님`:''}</small></h2><div class="b">${simTable(s.sim)}</div></div>
+   ${kr?`<div class="p c12"><h2>EARNINGS DRIVERS<small>이익이 유지될까 · 공급망·매크로·애널리스트·뉴스·공시</small></h2><div class="b">${drvPanel(s.drivers,s.valuation)}</div></div>`:''}
    ${kr?`<div class="p c12"><h2>VALUATION<small>3개 시나리오 · 범위로 볼 것, 점 추정 아님</small></h2><div class="b">${valPanel(s.valuation,s.close)}</div></div>`:''}
    <div class="p c12"><h2>FINANCIALS<small>${kr?'DART':'SEC EDGAR'} · 단독 분기 · ${s.financials?.unit||(kr?'억원':'$M')}</small></h2><div class="b">${finTable(s.financials,kr)}</div></div>
    <div class="p c12"><h2>DISCLOSURES<small>DART · 최근 180일 주요 공시</small></h2><div class="b">${(s.disclosures||[]).length?discTable(s.disclosures,false):'<div class="mu">'+(kr?'최근 주요 공시 없음 (또는 DART 키 미설정)':'미국 종목은 DART 대상 아님')+'</div>'}</div></div>
