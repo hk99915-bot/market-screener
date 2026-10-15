@@ -411,6 +411,16 @@ def record_pb(payload: dict, send: bool = True) -> str:
     it["picks"]["PB"] = pk
     it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"],
                      "plan": payload.get("plan") or None, "real": payload.get("real") or None}
+    # 판단 시점의 관점(렌즈) 상태 스냅샷 — 나중에 어느 렌즈가 맞았는지 귀속 (scripts/view_attribution.py)
+    _vs = None
+    try:
+        from . import views as _views
+        _vs = _views.compact()
+        if _vs.get("lenses"):
+            it["pb_view"]["views_asof"] = _vs.get("asof")
+            it["pb_view"]["lenses"] = _vs["lenses"]
+    except Exception as _e:  # noqa: BLE001
+        log.info("관점 스냅샷 실패: %s", _e)
     # 🔥 공격 베팅(확신 높거나 비대칭 기회일 때만) — 별도 참가자 'PB🔥'로 채점
     bold = payload.get("bold")
     if bold and bold.get("ticker"):
@@ -454,6 +464,9 @@ def record_pb(payload: dict, send: bool = True) -> str:
         if rule:
             ei["picks"]["규칙"] = rule
         ei["pb_view"] = {"why": e.get("why", ""), "lines": [], "conviction": e.get("conviction", ""), "at": pk["at"], "plan": e.get("plan") or None}
+        if _vs and _vs.get("lenses"):
+            ei["pb_view"]["views_asof"] = _vs.get("asof")
+            ei["pb_view"]["lenses"] = _vs["lenses"]
         ex_msgs.append(f"• {name}: <b>{act}</b> — {e.get('why', '')} " + ((plan_line(e.get("plan")) or "") + " " if e.get("plan") else "") +
                        f"[<a href=\"{issue_url_exit(code, '보유')}\">나는 보유</a> · <a href=\"{issue_url_exit(code, '매도')}\">나는 매도</a>]")
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")

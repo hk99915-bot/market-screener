@@ -98,3 +98,4 @@ function getArchIndex(k) { return raw_('reports/archive/' + k + '/_index.json');
 function getArchAt(k, d) { return raw_('reports/archive/' + k + '/' + d + '.json'); }
 function getPeers(mk) { return raw_('reports/peers_' + (mk === 'US' ? 'US' : 'KR') + '.json'); }
 function getChains() { return raw_('reports/chains_view.json'); }
+function getViews() { return raw_('reports/views.json'); }

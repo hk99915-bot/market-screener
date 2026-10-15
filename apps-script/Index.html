@@ -1334,6 +1334,44 @@ function labView(){
     <table><tr><th class="l">가설</th><th class="l">계열</th><th class="l">내용</th><th class="l">조건</th></tr>${wait.map(r=>`<tr><td class="l">${esc(r.name)}</td><td class="l mu">${esc(r.family)}</td><td class="l" style="white-space:normal">${esc(r.hypothesis)}</td><td class="l mu" style="white-space:normal;font-size:11px">${esc(r.rule)}</td></tr>`).join('')}</table>
   </div></div>${bench}${dmp}</div>`;
 }
+/* ───── VIEWS: 관점(렌즈) 레지스트리 — views/registry.json → reports/views.json ───── */
+let VW=null;
+function viewsView(){
+  if(VW===null){ VW=false; google.script.run.withSuccessHandler(t=>{try{VW=JSON.parse(t);}catch(e){VW={};} if(view==='views') render();}).withFailureHandler(()=>{VW={}; if(view==='views') render();}).getViews(); return '<div class="load">LOADING …</div>'; }
+  if(!VW||!VW.summary) return '<div class="grid"><div class="p c12"><div class="b mu">VIEW 데이터 없음 — 다음 자동 실행(장전·장 마감) 때 생성</div></div></div>';
+  const GC={A:'g',B:'',C:'b',F:'r'};
+  const gb=g=>`<span class="tag ${g in GC?GC[g]:'b'}" title="근거 등급">${esc(g||'—')}</span>`;
+  const gr=r=>r==='pass'?'<b class="up">통과</b>':r==='fail'?'<b class="dn">불통과</b>':`<span class="mu">${esc(r||'—')}</span>`;
+  const RL={gate:'게이트',weight:'가중',alert:'주의',reference:'참고',none:'—'};
+  const RC={gate:'am',weight:'am',alert:'',reference:'mu',none:'mu'};
+  const tl=x=>x==null?'<span class="mu">— (가중 렌즈 신호 없음)</span>':`<b class="${x>0?'up':x<0?'dn':'mu'}">${x>0?'+':''}${x.toFixed(2)}</b>`;
+  const col=d=>{ const s=VW.summary[d]||{};
+    const gates=(s.gates||[]).map(g=>`<div>${gr(g.result)} ${esc(g.name)} ${gb(g.grade)} <span class="mu">${esc(g.state)}</span></div>`).join('');
+    const priv=(s.private_gates||[]).length?`<div class="mu" style="font-size:11px">개인 게이트 ${(s.private_gates||[]).length}개 — 비공개 저장소에서 판정: ${(s.private_gates||[]).map(g=>esc(g.name)).join(' · ')}</div>`:'';
+    const wts=(s.weights||[]).map(w=>`<div>${w.sign==null?'<span class="mu">·</span>':w.sign>0?'<b class="up">+1</b>':w.sign<0?'<b class="dn">−1</b>':'<span class="mu">0</span>'} ${esc(w.name)} ${gb(w.grade)} <span class="mu">${esc(w.state)}</span></div>`).join('');
+    const al=(s.alerts||[]).map(a=>`<div><b class="am">!</b> ${esc(a.name)}${a.expires?` <span class="mu">(~${esc(a.expires)})</span>`:''}<div class="mu" style="font-size:11px;white-space:normal">${esc(a.line||'')}</div></div>`).join('');
+    const ov=s.gate==='fail'?'<b class="dn">불통과</b>':s.gate==='pass'?'<b class="up">통과</b>':`<span class="mu">${esc(s.gate||'—')}</span>`;
+    return `<div class="p c4"><h2>${esc(s.label||d)}<small>공개 게이트 ${ov}</small></h2><div class="b" style="white-space:normal;font-size:12px;line-height:1.7">
+      <div class="am" style="font-size:11px">게이트</div>${gates||'<div class="mu">공개 게이트 없음</div>'}${priv}
+      <div class="am" style="font-size:11px;margin-top:6px">가중 기울기 ${tl(s.tilt)}</div>${wts||'<div class="mu">가중 렌즈 없음</div>'}
+      <div class="am" style="font-size:11px;margin-top:6px">주의 ${(s.alerts||[]).length}</div>${al||'<div class="mu">없음</div>'}
+      <div class="mu" style="font-size:11px;margin-top:6px">참고 ${(s.reference||[]).length}개 — 근거로 인용 시 '참고' 표시</div></div></div>`; };
+  const ls=(VW.lenses||[]).slice().sort((a,b)=>(a.family==='personal')-(b.family==='personal'));
+  const rows=ls.map(L=>{ const r=L.roles||{}; const st=String(L.status||'');
+    return `<tr><td class="l"><b>${esc(L.name_ko)}</b><div class="mu" style="font-size:10px">${esc(L.id)} · ${esc(L.family)}</div></td>
+      <td class="l" style="white-space:normal;min-width:160px">${L.state==='n/a'?'<span class="mu">n/a</span>':L.state==='private'?'<span class="mu">비공개</span>':`<b class="${L.bias==='bull'?'up':L.bias==='bear'?'dn':''}">${esc(L.state)}</b>`}<div class="mu" style="font-size:11px">${esc(L.note||'')}</div></td>
+      ${['entry','exit','allocation'].map(d=>`<td class="${RC[r[d]||'none']}">${RL[r[d]||'none']}</td>`).join('')}
+      <td>${gb(L.grade)}</td><td class="${st==='채택'?'up':st==='강등'||st==='폐기'?'dn':st==='후보'?'am':'mu'}">${esc(st)}</td><td class="mu">${esc(L.review_by||'')}</td></tr>`; }).join('');
+  const lc=VW.lifecycle||{};
+  const lint=(VW.lint||[]).length?`<div class="dn" style="font-size:12px;white-space:normal">점검: ${(VW.lint||[]).map(esc).join(' · ')}</div>`:'';
+  const ch=(VW.changes||[]).length?`<div class="am" style="font-size:12px;white-space:normal">직전 거래일 대비 변화: ${(VW.changes||[]).map(esc).join(' · ')}</div>`:'';
+  return `<div class="grid"><div class="p c12"><h2>VIEWS — 관점 레지스트리<small>${esc(VW.asof||'')} · 레지스트리 ${esc(VW.registry_updated||'')}</small></h2><div class="b" style="white-space:normal;font-size:12px;line-height:1.7">
+    <div class="mu">${esc(VW.how_to_use||'')}</div>${ch}${lint}
+    <div style="margin-top:4px">${Object.entries(lc).filter(([k,v])=>v.length).map(([k,v])=>`<span class="tag ${k==='채택'?'g':k==='강등'||k==='폐기'?'r':''}">${esc(k)} ${v.length}</span>`).join('')}</div></div></div>
+    ${['entry','exit','allocation'].map(col).join('')}
+    <div class="p c12"><h2>렌즈 전체<small>역할 = 진입 / 청산·축소 / 자산배분 · 등급 A~F·검증전 · 규칙 views/README.md</small></h2><div class="b" style="overflow-x:auto"><table>
+      <tr><th class="l">렌즈</th><th class="l">지금 상태</th><th>진입</th><th>청산</th><th>배분</th><th>등급</th><th>상태</th><th>재검토</th></tr>${rows}</table></div></div></div>`;
+}
 let CMT=null, CMTU=null, CMK='KR';
 function cmtView(){
   if(CMK==='US') return cmtUSView();
@@ -1637,7 +1675,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -1648,6 +1686,7 @@ function sysLoad(k,fn){ if(SYS[k]!==null) return; SYS[k]=false;
     .withFailureHandler(()=>{ SYS[k]={}; if(SYSV[view]) render(); })[fn](); }
 const sysKst=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
 const sysPr=p=>p==='P0'?`<span class="tag r">P0</span>`:p==='P1'?`<span class="tag">P1</span>`:p==='P2'?`<span class="tag b">P2</span>`:`<span class="mu">${esc(p||'')}</span>`;
+const sysNm=x=>String(x||'').replace(/\s*누나$/,'').replace('팀장(PB)','PB');   // 화면 표시용 담당 이름 (데이터는 그대로)
 function sysTeamHtml(T){   // 팀원별 업무량 — ops/team.json(완료 작업 실측) + 보드 상태
   const M=SYS.team||{}, R=M.runs||[], E=M.earlier||{}, nm=x=>String(x||'').replace(/\s*누나$/,'').replace('팀장(PB)','PB');
   const by={}; const g=k=>by[k]=by[k]||{n:0,tools:0,sec:0,tok:0,open:0,done:0,early:0};
@@ -1668,7 +1707,7 @@ function sysBoardView(){
   const ids=new Set(T.map(t=>t.id)), st=Object.fromEntries(T.map(t=>[t.id,t.status]));
   const row=t=>{ const late=t.due&&t.due<td&&t.status!=='완료', soon=!late&&t.due&&t.due<=td&&t.status!=='완료';
     const dep=(t.depends_on||[]).map(d=>`<span class="${ids.has(d)&&st[d]!=='완료'?'am':'mu'}">${esc(d)}</span>`).join(', ');
-    return `<tr><td class="l">${sysPr(t.priority)}</td><td class="l" style="white-space:normal;min-width:180px"><b>${esc(t.title)}</b><div class="mu" style="font-size:11px">${esc(t.id)}${dep?' · 선행 '+dep:''}</div></td><td class="l am">${esc(t.owner)}</td><td class="mu">${esc(t.started||'—')}</td><td class="${late?'dn':soon?'am':''}">${esc(t.due||'—')}${late?' 지남':soon?' 오늘':''}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:140px">${t.repo==='private'?'private 전용':(t.files||[]).map(esc).join('<br>')||'—'}</td><td class="l" style="white-space:normal;font-size:11px;min-width:200px">${esc(t.notes||'')}</td></tr>`; };
+    return `<tr><td class="l">${sysPr(t.priority)}</td><td class="l" style="white-space:normal;min-width:180px"><b>${esc(t.title)}</b><div class="mu" style="font-size:11px">${esc(t.id)}${dep?' · 선행 '+dep:''}</div></td><td class="l am">${esc(sysNm(t.owner))}</td><td class="mu">${esc(t.started||'—')}</td><td class="${late?'dn':soon?'am':''}">${esc(t.due||'—')}${late?' 지남':soon?' 오늘':''}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:140px">${t.repo==='private'?'private 전용':(t.files||[]).map(esc).join('<br>')||'—'}</td><td class="l" style="white-space:normal;font-size:11px;min-width:200px">${esc(t.notes||'')}</td></tr>`; };
   const cnt=ST.map(s=>`${s} ${T.filter(t=>t.status===s).length}`).join(' · ');
   let h=`<div class="grid">${sysTeamHtml(T)}<div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;
   for(const s of ST){ const g=T.filter(t=>t.status===s).sort((a,b)=>pk(a)-pk(b)||String(a.due||'9').localeCompare(String(b.due||'9'))); if(!g.length) continue;
@@ -1679,7 +1718,7 @@ function sysBoardView(){
   h+=`</div></div>`;
   const L=(SYS.locks&&SYS.locks.locks)||[];
   const age=s=>{ const t=Date.parse(s); return isNaN(t)?null:(Date.now()-t)/3600e3; };
-  h+=`<div class="p c12"><h2>파일 잠금<small>ops/locks.json · 규칙 ops/LOCKS.md</small></h2><div class="b">${SYS.locks===false?'<span class="mu">LOADING …</span>':L.length?`<table><tr><th class="l">파일</th><th class="l">담당</th><th class="l">작업</th><th>시작</th></tr>${L.map(x=>{ const a=age(x.since); return `<tr><td class="l">${esc(x.file)}</td><td class="l am">${esc(x.owner)}</td><td class="l">${esc(x.task||'')}</td><td class="${a>6?'dn':'mu'}">${esc(x.since||'')}${a>6?` · ${Math.round(a)}시간 방치`:''}</td></tr>`; }).join('')}</table>`:'<span class="mu">잠금 없음</span>'}</div></div></div>`;
+  h+=`<div class="p c12"><h2>파일 잠금<small>ops/locks.json · 규칙 ops/LOCKS.md</small></h2><div class="b">${SYS.locks===false?'<span class="mu">LOADING …</span>':L.length?`<table><tr><th class="l">파일</th><th class="l">담당</th><th class="l">작업</th><th>시작</th></tr>${L.map(x=>{ const a=age(x.since); return `<tr><td class="l">${esc(x.file)}</td><td class="l am">${esc(sysNm(x.owner))}</td><td class="l">${esc(x.task||'')}</td><td class="${a>6?'dn':'mu'}">${esc(x.since||'')}${a>6?` · ${Math.round(a)}시간 방치`:''}</td></tr>`; }).join('')}</table>`:'<span class="mu">잠금 없음</span>'}</div></div></div>`;
   return h;
 }
 function sysSetD(d){ SYSD=d; SYSDR=false; render(); }
@@ -2031,7 +2070,7 @@ function drawCanvas(ch,sc,rs,kr){
 
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권']],
-  daily:[['daily','데일리 리포트'],['cmt','운용회의'],['brief','브리핑 기록']],
+  daily:[['daily','데일리 리포트'],['cmt','운용회의'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오']],
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};

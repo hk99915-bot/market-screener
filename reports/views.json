@@ -1,0 +1,1061 @@
+{
+ "asof": "2026-10-16 00:05",
+ "date": "2026-10-16",
+ "registry_updated": "2026-10-16",
+ "summary": {
+  "entry": {
+   "label": "진입",
+   "gate": "없음",
+   "gates": [],
+   "private_gates": [
+    {
+     "id": "personal.instrument_ban",
+     "name": "상품 금지 (레버리지·인버스·신규상장·미수)",
+     "state": "private",
+     "grade": "B"
+    },
+    {
+     "id": "personal.satellite_cap",
+     "name": "위성 북 상한 사용률",
+     "state": "private",
+     "grade": "B"
+    },
+    {
+     "id": "personal.theme_concentration",
+     "name": "반도체 테마 집중도",
+     "state": "private",
+     "grade": "B"
+    },
+    {
+     "id": "personal.loss_limit",
+     "name": "손실 한도·쿨다운·매매 금지",
+     "state": "private",
+     "grade": "C"
+    },
+    {
+     "id": "personal.event_day_ban",
+     "name": "이벤트·서킷 당일 장중 진입 금지",
+     "state": "private",
+     "grade": "C"
+    }
+   ],
+   "tilt": 1.0,
+   "weights": [
+    {
+     "id": "crash_day_close",
+     "name": "급락일 종가 진입 (기다리지 않기)",
+     "state": "급락일(−5%)",
+     "grade": "B",
+     "sign": 1
+    }
+   ],
+   "alerts": [
+    {
+     "id": "kr_regime",
+     "name": "국장 레짐 (200일선·20일 낙폭)",
+     "state": "하락장",
+     "grade": "C",
+     "line": "하락장 = 위성 북 노출 상한 낮춤 (수치는 개인 규정)"
+    },
+    {
+     "id": "options_gamma",
+     "name": "옵션 감마·풋콜 (코스피200)",
+     "state": "감마 음수",
+     "grade": "검증전",
+     "line": "풋/콜 OI 1.366 · ATM IV 0.5454 · RV20 0.4622 — 흔들림 큼, 사이즈 주의"
+    },
+    {
+     "id": "ai_credit",
+     "name": "AI 인프라 신용 감시",
+     "state": "경계",
+     "grade": "검증전",
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -60.1%, 20일 −20%↓ 7/8종목(CIFR, IREN, WULF, APLD, CRWV, CORZ, NBIS), HYG 1M -1.4%, VIX 17.4 · 최약 CIFR -69%, IREN -65%"
+    },
+    {
+     "id": "ovr-2026-10-15-circuit",
+     "name": "이벤트 예외",
+     "state": "예외",
+     "grade": "—",
+     "line": "10/15 코스피 장중 −9% 서킷 이후 4거래일: 신규 진입은 평소 1차 비중의 절반까지만, 레버리지 상품 신규 없음",
+     "expires": "2026-10-20"
+    }
+   ],
+   "reference": [
+    {
+     "id": "confirm_signals",
+     "name": "반등 확인 신호 (저점 지지·5일 고점·저점 2일 이탈)",
+     "state": "켜짐 1/3",
+     "grade": "F"
+    },
+    {
+     "id": "foreign_flow",
+     "name": "외국인 현물 순매수 (코스피)",
+     "state": "대량 순매도",
+     "grade": "검증전"
+    },
+    {
+     "id": "macro_wind",
+     "name": "매크로 바람 (금리·환율·미국 지수 합성)",
+     "state": "역풍",
+     "grade": "검증전"
+    },
+    {
+     "id": "breadth_kr",
+     "name": "시장 폭 (국장 200일선 위 종목 비율)",
+     "state": "약함",
+     "grade": "검증전"
+    },
+    {
+     "id": "scenario_base_rate",
+     "name": "시나리오 기저확률 (1999~ 조건부 통계)",
+     "state": "강세 우위",
+     "grade": "C"
+    },
+    {
+     "id": "stock_trend_score",
+     "name": "종목 추세·모멘텀 점수 (스크리너)",
+     "state": "효과 불분명",
+     "grade": "F"
+    },
+    {
+     "id": "us10y",
+     "name": "미 10년 금리 (수준·1개월 변화)",
+     "state": "보합",
+     "grade": "검증전"
+    },
+    {
+     "id": "japan_semi_lead",
+     "name": "일본 반도체 장비·메모리 동행",
+     "state": "일본 장비 약세",
+     "grade": "C"
+    },
+    {
+     "id": "supply_chain",
+     "name": "공급망 체인 점수 (업종 비중 의견)",
+     "state": "확대 4 / 축소 4",
+     "grade": "검증전"
+    },
+    {
+     "id": "committee_ideas",
+     "name": "운용회의 매수 후보 (이익 신호 좋고 과하게 빠진 종목)",
+     "state": "채점 전",
+     "grade": "검증전"
+    },
+    {
+     "id": "us_regime",
+     "name": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
+     "state": "정상",
+     "grade": "검증전"
+    }
+   ]
+  },
+  "exit": {
+   "label": "청산·축소",
+   "gate": "n/a",
+   "gates": [
+    {
+     "id": "atr_stop",
+     "name": "종목 손절선 (20일 저점·2×ATR)",
+     "state": "종목별",
+     "grade": "C",
+     "result": "종목별"
+    }
+   ],
+   "private_gates": [
+    {
+     "id": "personal.theme_concentration",
+     "name": "반도체 테마 집중도",
+     "state": "private",
+     "grade": "B"
+    }
+   ],
+   "tilt": null,
+   "weights": [
+    {
+     "id": "personal.satellite_cap",
+     "name": "위성 북 상한 사용률",
+     "state": "private",
+     "grade": "B",
+     "sign": null
+    }
+   ],
+   "alerts": [
+    {
+     "id": "ai_credit",
+     "name": "AI 인프라 신용 감시",
+     "state": "경계",
+     "grade": "검증전",
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -60.1%, 20일 −20%↓ 7/8종목(CIFR, IREN, WULF, APLD, CRWV, CORZ, NBIS), HYG 1M -1.4%, VIX 17.4 · 최약 CIFR -69%, IREN -65%"
+    }
+   ],
+   "reference": [
+    {
+     "id": "kr_regime",
+     "name": "국장 레짐 (200일선·20일 낙폭)",
+     "state": "하락장",
+     "grade": "C"
+    },
+    {
+     "id": "foreign_flow",
+     "name": "외국인 현물 순매수 (코스피)",
+     "state": "대량 순매도",
+     "grade": "검증전"
+    },
+    {
+     "id": "macro_wind",
+     "name": "매크로 바람 (금리·환율·미국 지수 합성)",
+     "state": "역풍",
+     "grade": "검증전"
+    },
+    {
+     "id": "scenario_base_rate",
+     "name": "시나리오 기저확률 (1999~ 조건부 통계)",
+     "state": "강세 우위",
+     "grade": "C"
+    },
+    {
+     "id": "options_gamma",
+     "name": "옵션 감마·풋콜 (코스피200)",
+     "state": "감마 음수",
+     "grade": "검증전"
+    },
+    {
+     "id": "us10y",
+     "name": "미 10년 금리 (수준·1개월 변화)",
+     "state": "보합",
+     "grade": "검증전"
+    },
+    {
+     "id": "japan_semi_lead",
+     "name": "일본 반도체 장비·메모리 동행",
+     "state": "일본 장비 약세",
+     "grade": "C"
+    },
+    {
+     "id": "supply_chain",
+     "name": "공급망 체인 점수 (업종 비중 의견)",
+     "state": "확대 4 / 축소 4",
+     "grade": "검증전"
+    },
+    {
+     "id": "event_calendar",
+     "name": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
+     "state": "7일 안 1건",
+     "grade": "검증전"
+    },
+    {
+     "id": "us_regime",
+     "name": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
+     "state": "정상",
+     "grade": "검증전"
+    },
+    {
+     "id": "personal.hold_period",
+     "name": "보유기간 습관 (10일+ 보유)",
+     "state": "private",
+     "grade": "C"
+    }
+   ]
+  },
+  "allocation": {
+   "label": "자산배분",
+   "gate": "fail",
+   "gates": [
+    {
+     "id": "kr_regime",
+     "name": "국장 레짐 (200일선·20일 낙폭)",
+     "state": "하락장",
+     "grade": "C",
+     "result": "fail"
+    }
+   ],
+   "private_gates": [
+    {
+     "id": "personal.satellite_cap",
+     "name": "위성 북 상한 사용률",
+     "state": "private",
+     "grade": "B"
+    },
+    {
+     "id": "personal.theme_concentration",
+     "name": "반도체 테마 집중도",
+     "state": "private",
+     "grade": "B"
+    }
+   ],
+   "tilt": null,
+   "weights": [
+    {
+     "id": "personal.isa_dca",
+     "name": "코어 북 적립 진행",
+     "state": "private",
+     "grade": "B",
+     "sign": null
+    }
+   ],
+   "alerts": [
+    {
+     "id": "ai_credit",
+     "name": "AI 인프라 신용 감시",
+     "state": "경계",
+     "grade": "검증전",
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -60.1%, 20일 −20%↓ 7/8종목(CIFR, IREN, WULF, APLD, CRWV, CORZ, NBIS), HYG 1M -1.4%, VIX 17.4 · 최약 CIFR -69%, IREN -65%"
+    }
+   ],
+   "reference": [
+    {
+     "id": "macro_wind",
+     "name": "매크로 바람 (금리·환율·미국 지수 합성)",
+     "state": "역풍",
+     "grade": "검증전"
+    },
+    {
+     "id": "breadth_kr",
+     "name": "시장 폭 (국장 200일선 위 종목 비율)",
+     "state": "약함",
+     "grade": "검증전"
+    },
+    {
+     "id": "scenario_base_rate",
+     "name": "시나리오 기저확률 (1999~ 조건부 통계)",
+     "state": "강세 우위",
+     "grade": "C"
+    },
+    {
+     "id": "index_abs_momentum",
+     "name": "지수 절대모멘텀 (12개월 > 0 이면 보유)",
+     "state": "상태 없음",
+     "grade": "F"
+    },
+    {
+     "id": "stock_bond_corr",
+     "name": "주식–채권 상관 (IEF vs S&P500, 1년)",
+     "state": "같이 움직임",
+     "grade": "C"
+    },
+    {
+     "id": "us10y",
+     "name": "미 10년 금리 (수준·1개월 변화)",
+     "state": "보합",
+     "grade": "검증전"
+    },
+    {
+     "id": "supply_chain",
+     "name": "공급망 체인 점수 (업종 비중 의견)",
+     "state": "확대 4 / 축소 4",
+     "grade": "검증전"
+    },
+    {
+     "id": "us_regime",
+     "name": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
+     "state": "정상",
+     "grade": "검증전"
+    }
+   ]
+  }
+ },
+ "changes": [],
+ "lenses": [
+  {
+   "id": "kr_regime",
+   "name_ko": "국장 레짐 (200일선·20일 낙폭)",
+   "family": "trend",
+   "status": "채택",
+   "grade": "C",
+   "evidence_src": "pb-private analysis/2026-10-15-rules (하락장 손실한도·손절 연 2~3%p 소폭 도움) · lab DUAL_MOMENTUM_INDEX F",
+   "roles": {
+    "entry": "alert",
+    "exit": "reference",
+    "allocation": "gate"
+   },
+   "review_by": "2026-11-15",
+   "state": "하락장",
+   "value": {
+    "dd20": -0.2156,
+    "below200": true,
+    "above20": false
+   },
+   "bias": "bear",
+   "alert": true,
+   "gate": {
+    "allocation": "fail"
+   },
+   "note": "하락장 = 위성 북 노출 상한 낮춤 (수치는 개인 규정)",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "crash_day_close",
+   "name_ko": "급락일 종가 진입 (기다리지 않기)",
+   "family": "price",
+   "status": "채택",
+   "grade": "B",
+   "evidence_src": "reports/studies/playbook_signals.md",
+   "roles": {
+    "entry": "weight",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "급락일(−5%)",
+   "value": {
+    "ret1": -0.0757,
+    "dd20": -0.2156
+   },
+   "bias": "bull",
+   "alert": false,
+   "gate": {},
+   "note": "진입한다면 오늘 종가에 — 확인 신호를 기다리면 평균적으로 더 비싸게 삼 (지수 대비 초과수익 근거는 아님)",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "confirm_signals",
+   "name_ko": "반등 확인 신호 (저점 지지·5일 고점·저점 2일 이탈)",
+   "family": "price",
+   "status": "강등",
+   "grade": "F",
+   "evidence_src": "reports/studies/playbook_signals.md",
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "켜짐 1/3",
+   "value": 1,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "강등된 신호 — 진입 근거로 인용 금지",
+   "asof": "2026-10-15 20:28"
+  },
+  {
+   "id": "foreign_flow",
+   "name_ko": "외국인 현물 순매수 (코스피)",
+   "family": "flows",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "reports/studies/playbook_signals.md 0-1 (일별 이력 미저장) · 별도 연구: 종목고유 수급 × 선물 레짐 H1·H2 기각",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "대량 순매도",
+   "value": -37637.0,
+   "bias": "bear",
+   "alert": false,
+   "gate": {},
+   "note": "-3.76조 (마감, 오늘 아님)",
+   "asof": "2026-10-15 20:09"
+  },
+  {
+   "id": "macro_wind",
+   "name_ko": "매크로 바람 (금리·환율·미국 지수 합성)",
+   "family": "macro",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "lab MACRO_TILT (데이터 부족 — 대기)",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "review_by": "2026-11-15",
+   "state": "역풍",
+   "value": -0.16,
+   "bias": "bear",
+   "alert": false,
+   "gate": {},
+   "note": "역풍",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "breadth_kr",
+   "name_ko": "시장 폭 (국장 200일선 위 종목 비율)",
+   "family": "trend",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "—",
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "review_by": "2026-12-15",
+   "state": "약함",
+   "value": 0.253,
+   "bias": "bear",
+   "alert": false,
+   "gate": {},
+   "note": "신고가 3 / 신저가 58",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "scenario_base_rate",
+   "name_ko": "시나리오 기저확률 (1999~ 조건부 통계)",
+   "family": "price",
+   "status": "채택",
+   "grade": "C",
+   "evidence_src": "reports/studies/crash_rebound.json buckets20",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "review_by": "2026-11-15",
+   "state": "강세 우위",
+   "value": {
+    "강세": 0.469,
+    "기본": 0.281,
+    "약세": 0.25
+   },
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "근거 '20일 −15% 이상 하락 중 −5% 급락' n=32",
+   "asof": "2026-10-15 20:28"
+  },
+  {
+   "id": "stock_trend_score",
+   "name_ko": "종목 추세·모멘텀 점수 (스크리너)",
+   "family": "momentum",
+   "status": "강등",
+   "grade": "F",
+   "evidence_src": "reports/signal_scores.json (250일, h20 IC −0.045) · lab TREND_12_1 F",
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "효과 불분명",
+   "value": -0.045,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "h20 IC",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "index_abs_momentum",
+   "name_ko": "지수 절대모멘텀 (12개월 > 0 이면 보유)",
+   "family": "momentum",
+   "status": "강등",
+   "grade": "F",
+   "evidence_src": "reports/lab.json DUAL_MOMENTUM_INDEX",
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "review_by": "2026-11-15",
+   "state": "상태 없음",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "lab 등급 F",
+   "asof": null
+  },
+  {
+   "id": "options_gamma",
+   "name_ko": "옵션 감마·풋콜 (코스피200)",
+   "family": "derivs",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "lab VRP_OPTIONS (옵션 일별 장기 이력 없음 — 대기)",
+   "roles": {
+    "entry": "alert",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "감마 음수",
+   "value": -985.4,
+   "bias": null,
+   "alert": true,
+   "gate": {},
+   "note": "풋/콜 OI 1.366 · ATM IV 0.5454 · RV20 0.4622 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-10-15 11:28"
+  },
+  {
+   "id": "ai_credit",
+   "name_ko": "AI 인프라 신용 감시",
+   "family": "bonds_credit",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "reports/bonds.json ai_credit (2026-10 신설)",
+   "roles": {
+    "entry": "alert",
+    "exit": "alert",
+    "allocation": "alert"
+   },
+   "review_by": "2026-11-15",
+   "state": "경계",
+   "value": 2,
+   "bias": "bear",
+   "alert": true,
+   "gate": {},
+   "note": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -60.1%, 20일 −20%↓ 7/8종목(CIFR, IREN, WULF, APLD, CRWV, CORZ, NBIS), HYG 1M -1.4%, VIX 17.4 · 최약 CIFR -69%, IREN -65%",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "stock_bond_corr",
+   "name_ko": "주식–채권 상관 (IEF vs S&P500, 1년)",
+   "family": "bonds_credit",
+   "status": "채택",
+   "grade": "C",
+   "evidence_src": "reports/bonds.json corr (서술 통계)",
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "review_by": "2026-11-15",
+   "state": "같이 움직임",
+   "value": 0.35,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "장기채보다 단기채·현금",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "us10y",
+   "name_ko": "미 10년 금리 (수준·1개월 변화)",
+   "family": "macro",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "—",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "review_by": "2026-12-15",
+   "state": "보합",
+   "value": {
+    "level": 5.062,
+    "d20_bp": 11.5
+   },
+   "bias": "neutral",
+   "alert": false,
+   "gate": {},
+   "note": "",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "yen_carry",
+   "name_ko": "엔 캐리 청산 경계 (엔/달러 5일)",
+   "family": "japan",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "reports/japan.json (2024-08-05 1회 사례 기반 규칙)",
+   "roles": {
+    "entry": "alert",
+    "exit": "alert",
+    "allocation": "none"
+   },
+   "review_by": "2026-12-15",
+   "state": "평온",
+   "value": -0.0013,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "japan_semi_lead",
+   "name_ko": "일본 반도체 장비·메모리 동행",
+   "family": "japan",
+   "status": "검증중",
+   "grade": "C",
+   "evidence_src": "reports/japan.json corr_kr (60일 상관 0.7대 — 동행, 선행 미검증)",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "review_by": "2026-12-15",
+   "state": "일본 장비 약세",
+   "value": -0.1107,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "60일 상관 0.73",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "supply_chain",
+   "name_ko": "공급망 체인 점수 (업종 비중 의견)",
+   "family": "valuation",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "lab TREND_SECTOR (시점별 업종 이력 없음 — 대기)",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "review_by": "2026-12-15",
+   "state": "확대 4 / 축소 4",
+   "value": {
+    "ow": [
+     "메모리 반도체",
+     "반도체 장비·소재·부품",
+     "전력기기·전선",
+     "정유"
+    ],
+    "uw": [
+     "원전·발전",
+     "화학",
+     "항공·여행",
+     "통신"
+    ]
+   },
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "확대: 메모리 반도체, 반도체 장비·소재·부품, 전력기기·전선",
+   "asof": null
+  },
+  {
+   "id": "committee_ideas",
+   "name_ko": "운용회의 매수 후보 (이익 신호 좋고 과하게 빠진 종목)",
+   "family": "valuation",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "reports/committee_hist.json (채점 시작)",
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-12-15",
+   "state": "채점 전",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "5거래일 뒤부터 채점",
+   "asof": "2026-10-15 20:28"
+  },
+  {
+   "id": "event_calendar",
+   "name_ko": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
+   "family": "events",
+   "status": "채택",
+   "grade": "검증전",
+   "evidence_src": "reports/events_stats.json (이벤트 당일 변동 서술)",
+   "roles": {
+    "entry": "alert",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "7일 안 1건",
+   "value": 1,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "10-21 Meta Platforms 실적",
+   "asof": null
+  },
+  {
+   "id": "atr_stop",
+   "name_ko": "종목 손절선 (20일 저점·2×ATR)",
+   "family": "price",
+   "status": "채택",
+   "grade": "C",
+   "evidence_src": "pb-private analysis/2026-10-15-rules (R2 손절: 하락장 소폭 도움)",
+   "roles": {
+    "entry": "none",
+    "exit": "gate",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "종목별",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {
+    "exit": "종목별"
+   },
+   "note": "보유 종목별 손절선은 운용회의·종목 상세에서 판정 (공개 화면엔 보유 없음)",
+   "asof": null
+  },
+  {
+   "id": "us_regime",
+   "name_ko": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
+   "family": "trend",
+   "status": "검증중",
+   "grade": "검증전",
+   "evidence_src": "reports/studies/crash_rebound.json spx_buckets20 (서술)",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "review_by": "2026-12-15",
+   "state": "정상",
+   "value": {
+    "vs50": -0.00113,
+    "chg20": 0.00786,
+    "vix": 17.47
+   },
+   "bias": "neutral",
+   "alert": false,
+   "gate": {},
+   "note": "",
+   "asof": "2026-10-15"
+  },
+  {
+   "id": "personal.instrument_ban",
+   "name_ko": "상품 금지 (레버리지·인버스·신규상장·미수)",
+   "family": "personal",
+   "status": "채택",
+   "grade": "B",
+   "evidence_src": "pb-private analysis/2026-10-15 · 2026-10-15-rules (본인 원장 재생)",
+   "roles": {
+    "entry": "gate",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "private",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판정은 비공개 저장소 views/personal.json",
+   "asof": null
+  },
+  {
+   "id": "personal.satellite_cap",
+   "name_ko": "위성 북 상한 사용률",
+   "family": "personal",
+   "status": "채택",
+   "grade": "B",
+   "evidence_src": "pb-private analysis/2026-10-15-rules (코어만 > 매매)",
+   "roles": {
+    "entry": "gate",
+    "exit": "weight",
+    "allocation": "gate"
+   },
+   "review_by": "2026-11-15",
+   "state": "private",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판정은 비공개 저장소 views/personal.json",
+   "asof": null
+  },
+  {
+   "id": "personal.theme_concentration",
+   "name_ko": "반도체 테마 집중도",
+   "family": "personal",
+   "status": "채택",
+   "grade": "B",
+   "evidence_src": "pb-private analysis/2026-10-15 (테마별 손익)",
+   "roles": {
+    "entry": "gate",
+    "exit": "gate",
+    "allocation": "gate"
+   },
+   "review_by": "2026-11-15",
+   "state": "private",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판정은 비공개 저장소 views/personal.json",
+   "asof": null
+  },
+  {
+   "id": "personal.loss_limit",
+   "name_ko": "손실 한도·쿨다운·매매 금지",
+   "family": "personal",
+   "status": "채택",
+   "grade": "C",
+   "evidence_src": "pb-private analysis/2026-10-15-rules (R6 손실한도: 하락장 연 2~3%p)",
+   "roles": {
+    "entry": "gate",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "private",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판정은 비공개 저장소 views/personal.json",
+   "asof": null
+  },
+  {
+   "id": "personal.event_day_ban",
+   "name_ko": "이벤트·서킷 당일 장중 진입 금지",
+   "family": "personal",
+   "status": "채택",
+   "grade": "C",
+   "evidence_src": "규정 v2.1 [1] (근거: 본인 원장 당일 매매 승률)",
+   "roles": {
+    "entry": "gate",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "private",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판정은 비공개 저장소 views/personal.json",
+   "asof": null
+  },
+  {
+   "id": "personal.hold_period",
+   "name_ko": "보유기간 습관 (10일+ 보유)",
+   "family": "personal",
+   "status": "강등",
+   "grade": "C",
+   "evidence_src": "pb-private analysis/2026-10-15 (10일+ 보유만 수익) · 2026-10-15-rules (최소보유 R3는 다른 장에서 효과 없음)",
+   "roles": {
+    "entry": "none",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "private",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판정은 비공개 저장소 views/personal.json",
+   "asof": null
+  },
+  {
+   "id": "personal.isa_dca",
+   "name_ko": "코어 북 적립 진행",
+   "family": "personal",
+   "status": "채택",
+   "grade": "B",
+   "evidence_src": "pb-private analysis/2026-10-15-rules · 2026-10-15-alloc",
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "weight"
+   },
+   "review_by": "2026-11-15",
+   "state": "private",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판정은 비공개 저장소 views/personal.json",
+   "asof": null
+  },
+  {
+   "id": "cand.add_on_drop",
+   "name_ko": "후보: 10일 안 추가 −5% 하락 시 2차 진입",
+   "family": "price",
+   "status": "후보",
+   "grade": "검증전",
+   "evidence_src": "reports/studies/playbook_signals.md 6절 (사전등록 밖 탐색)",
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-01",
+   "state": "후보",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "가중 0 — 사전등록·검증 전",
+   "asof": null
+  },
+  {
+   "id": "cand.program_nonarb",
+   "name_ko": "후보: 프로그램 비차익 막판 매수 = 바닥 신호?",
+   "family": "flows",
+   "status": "후보",
+   "grade": "검증전",
+   "evidence_src": "—",
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "후보",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "가중 0 — 사전등록·검증 전",
+   "asof": null
+  }
+ ],
+ "overrides": {
+  "active": [
+   {
+    "id": "ovr-2026-10-15-circuit",
+    "scope": "entry",
+    "effect": "alert",
+    "line": "10/15 코스피 장중 −9% 서킷 이후 4거래일: 신규 진입은 평소 1차 비중의 절반까지만, 레버리지 상품 신규 없음",
+    "why": "서킷 다음 며칠은 장중 변동이 커서 체결 품질이 나쁨 — 근거 서술 수준(검증 아님)",
+    "created": "2026-10-16",
+    "expires": "2026-10-20"
+   }
+  ],
+  "expired": []
+ },
+ "lifecycle": {
+  "후보": [
+   "cand.add_on_drop",
+   "cand.program_nonarb"
+  ],
+  "사전등록": [],
+  "검증중": [
+   "foreign_flow",
+   "macro_wind",
+   "breadth_kr",
+   "options_gamma",
+   "ai_credit",
+   "us10y",
+   "yen_carry",
+   "japan_semi_lead",
+   "supply_chain",
+   "committee_ideas",
+   "us_regime"
+  ],
+  "채택": [
+   "kr_regime",
+   "crash_day_close",
+   "scenario_base_rate",
+   "stock_bond_corr",
+   "event_calendar",
+   "atr_stop",
+   "personal.instrument_ban",
+   "personal.satellite_cap",
+   "personal.theme_concentration",
+   "personal.loss_limit",
+   "personal.event_day_ban",
+   "personal.isa_dca"
+  ],
+  "강등": [
+   "confirm_signals",
+   "stock_trend_score",
+   "index_abs_momentum",
+   "personal.hold_period"
+  ],
+  "폐기": []
+ },
+ "lint": [],
+ "how_to_use": "게이트 불통과면 그 판단 안 함 · 가중은 B 이상 렌즈만 합산 · 주의는 사이즈·확인용(방향 결정 금지) · 참고는 인용 시 '참고' 표시. 개인 게이트는 pb-private views/personal.json."
+}

@@ -293,11 +293,27 @@ def _record_error(e: BaseException) -> None:
         encoding="utf-8")
 
 
+def _views_safe() -> None:
+    """VIEW 레지스트리 갱신 (reports/views.json) + 렌즈 사후 귀속. 실패해도 본 작업엔 영향 없음."""
+    try:
+        from . import views
+        views.build()
+    except Exception as e:  # noqa: BLE001
+        log.warning("VIEW 레지스트리 실패: %s", e)
+        return
+    try:
+        import runpy
+        from .config import ROOT
+        runpy.run_path(str(ROOT / "scripts" / "view_attribution.py"), run_name="__main__")
+    except Exception as e:  # noqa: BLE001
+        log.info("관점 귀속 실패: %s", e)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -400,6 +416,7 @@ def main() -> None:
                 calendar_ev.build()
             except Exception as e:  # noqa: BLE001
                 log.warning("운용회의 실패: %s", e)
+            _views_safe()
         elif a.mode == "dashboard":   # 알림 없이 웹 데이터 갱신 (리포트·요약 수집 포함)
             try:
                 research.update_store()
@@ -435,6 +452,8 @@ def main() -> None:
         elif a.mode == "calendar":     # 실적·이벤트 캘린더
             from . import calendar_ev
             print(len(calendar_ev.build()["events"]))
+        elif a.mode == "views":        # VIEW 레지스트리: 렌즈 상태 → reports/views.json (+ 귀속 reports/views_attrib.json)
+            _views_safe()
         elif a.mode == "japan":        # 일본 시장 (닛케이·TOPIX·JGB·엔 캐리 + 일본 피어 그룹) → reports/japan.json
             write_macro_series()   # 닛케이·TOPIX 매크로 시계열도 같이 확인
             from . import japan
@@ -503,6 +522,7 @@ def main() -> None:
             if not a.market:
                 ap.error("--market 필요")
             run(a.market, a.live, a.prices, a.no_send)
+            _views_safe()
         else:
             if a.mode in ("premarket_kr", "reports", "intraday_kr"):   # 판단 성적표 채점 (다음 거래일 시가가 생기면)
                 try:
@@ -546,6 +566,8 @@ def main() -> None:
                     committee.build("장전" if a.mode == "premarket_kr" else "장중")
                 except Exception as e:  # noqa: BLE001
                     log.warning("운용회의(%s) 실패: %s", a.mode, e)
+            if a.mode == "premarket_kr":
+                _views_safe()
             if a.mode == "premarket_us" and datetime.now(ZoneInfo("Asia/Seoul")).hour < 22:   # 21:00 KST 1회 — 전날 미국채 확정치 반영
                 try:
                     from . import bonds

@@ -332,6 +332,11 @@ def build(session: str = "장후") -> dict:
         stance["exec"] = _exec_plan(k, stance, der, longs)
     except Exception as e:  # noqa: BLE001
         log.warning("실행 대본 실패: %s", e)
+    try:   # VIEW 레지스트리 요약 (views/registry.json → reports/views.json): 진입·자산배분 게이트/기울기/주의
+        from . import views as _views
+        stance["views"] = _views.committee_summary(_views.build())
+    except Exception as e:  # noqa: BLE001
+        log.info("VIEW 요약 실패: %s", e)
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     if session == "장후":
@@ -480,6 +485,9 @@ def telegram_text(o: dict) -> str:
             for c in ex.get("cands", []):
                 L.append(f"  · {c['n']} 종가 {c['close']:,.0f} · 손절 {c['stop']:,.0f}({-c['stop_pct']*100:.1f}%) · 목표 {c['target']:,.0f}(2R) · 1차 비중 {c['size_1st']*100:.1f}%")
             L.append("  ✖ " + " / ".join(ex["dont"]))
+    _vw = (o.get("stance") or {}).get("views") or {}
+    if _vw.get("changes"):   # 게이트가 뒤집혔거나 새 주의가 떴을 때만 한 줄
+        L.append("🔭 관점 변화: " + " · ".join(_vw["changes"][:4]) + (f" 외 {len(_vw['changes'])-4}건" if len(_vw["changes"]) > 4 else ""))
     if o.get("derivs") and o["derivs"].get("notes"):
         L.append("<b>[옵션 포지션]</b>")
         L += [f"  · {x}" for x in o["derivs"]["notes"][:4]]

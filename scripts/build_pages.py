@@ -56,6 +56,7 @@ SHIM = """<script>
     getArchIndex: (k) => get('reports/archive/' + k + '/_index.json'),
     getArchAt: (k, d) => get('reports/archive/' + k + '/' + d + '.json'),
     getChains: () => get('reports/chains_view.json'),
+    getViews: () => get('reports/views.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
