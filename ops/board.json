@@ -302,7 +302,7 @@
       "depends_on": [
         "deriv-hist"
       ],
-      "notes": "결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). | 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(89일, 옵션 열 오염). 레지스트리 반영 제안은 §5 (레지스트리 미수정)."
+      "notes": "결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). | 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정)."
     },
     {
       "id": "derivs-audit",
@@ -317,7 +317,7 @@
         "screener/derivs.py"
       ],
       "depends_on": [],
-      "notes": "검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). 단 data/deriv 의 2026-06-05~ 옵션 보드 89행은 수정 전 값 — deriv_hist 워크플로 backfill --redo 2026-06-05 실행 필요."
+      "notes": "검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). fc69e054 백필에서 재계산 확인(행사가 1 벽 0일, 콜 벽 결측 0일)."
     },
     {
       "id": "study-derivs",
