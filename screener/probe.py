@@ -164,7 +164,7 @@ def run() -> dict:
     except Exception as e:  # noqa: BLE001
         out["close_cmp"] = "ERR " + str(e)[:300]
     try:   # 종가 대조 2: 후보 소스별 10-13~15 OHLC
-        out["close_cmp2"] = _close_cmp2()
+        out["close_cmp3"] = _close_cmp3()
     except Exception as e:  # noqa: BLE001
         out["close_cmp2"] = "ERR " + traceback.format_exc()[-600:]
     p = REPORT_DIR / "logs" / "probe.json"
@@ -253,4 +253,55 @@ def _close_cmp2() -> dict:
             res[c]["yahoo"] = {str(i.date()): [float(r["Open"]), float(r["High"]), float(r["Low"]), float(r["Close"]), float(r["Volume"])] for i, r in d.iterrows()}
     except Exception as e:  # noqa: BLE001
         res["_yahoo"] = "ERR " + str(e)[:200]
+    return res
+
+
+def _close_cmp3() -> dict:
+    """당일 정규장(15:30) 종가 확정: 야후 1분봉·네이버 분봉·네이버 dealTrend·KRX 재조회."""
+    import requests as rq
+    from pykrx import stock as st
+    ua = {"User-Agent": UA["User-Agent"]}
+    codes = {"005930": ".KS", "000660": ".KS", "009150": ".KS", "247540": ".KQ", "086520": ".KQ", "196170": ".KQ"}
+    res: dict = {c: {} for c in codes}
+    try:
+        for mkt in ("KOSPI", "KOSDAQ"):
+            df = st.get_market_ohlcv_by_ticker("20261015", market=mkt)
+            for c in codes:
+                if c in df.index:
+                    res[c]["krx_bytkr_now"] = [float(df.loc[c, "종가"]), float(df.loc[c, "거래량"])]
+    except Exception as e:  # noqa: BLE001
+        res["_krx"] = str(e)[:200]
+    try:
+        from pykrx.website.krx.market.core import 전종목시세
+        raw = 전종목시세().fetch("20261014", "STK")
+        res["_krx_1014_row"] = raw[raw["ISU_SRT_CD"] == "005930"].to_dict("records")
+        res["_lateInfo_counts"] = raw["lateInfoMsgCd"].value_counts().to_dict()
+        raw = 전종목시세().fetch("20261015", "STK")
+        res["_lateInfo_counts_1015"] = raw["lateInfoMsgCd"].value_counts().to_dict()
+    except Exception as e:  # noqa: BLE001
+        res["_krx_raw"] = str(e)[:200]
+    try:
+        import yfinance as yf
+        for c, s in codes.items():
+            y = yf.download(c + s, period="2d", interval="1m", auto_adjust=False, progress=False)
+            if hasattr(y.columns, "levels"):
+                y.columns = [x[0] for x in y.columns]
+            y.index = y.index.tz_convert("Asia/Seoul")
+            y = y[(y.index.strftime("%Y-%m-%d") == "2026-10-15")]
+            res[c]["yahoo_1m_tail"] = [[str(i.time()), float(r["Close"]), float(r["Volume"])] for i, r in y.tail(4).iterrows()]
+    except Exception as e:  # noqa: BLE001
+        res["_y1m"] = str(e)[:200]
+    for c in codes:
+        try:
+            u = f"https://api.stock.naver.com/chart/domestic/item/{c}/minute?startDateTime=202610151515&endDateTime=202610151805"
+            j = rq.get(u, headers=ua, timeout=10).json()
+            res[c]["naver_min"] = [[x.get("localDateTime"), x.get("currentPrice") or x.get("closePrice"), x.get("accumulatedTradingVolume")] for x in j][-12:] if isinstance(j, list) else str(j)[:300]
+        except Exception as e:  # noqa: BLE001
+            res[c]["naver_min"] = "ERR " + str(e)[:200]
+        try:
+            j = rq.get(f"https://m.stock.naver.com/api/stock/{c}/integration", headers=ua, timeout=10).json()
+            res[c]["naver_dealtrend"] = [{k: x.get(k) for k in ("bizdate", "closePrice", "compareToPreviousClosePrice", "accumulatedTradingVolume")} for x in (j.get("dealTrendInfos") or [])[:3]]
+            res[c]["naver_integ_keys"] = list(j.keys())
+        except Exception as e:  # noqa: BLE001
+            res[c]["naver_dealtrend"] = "ERR " + str(e)[:200]
     return res
