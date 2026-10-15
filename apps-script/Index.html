@@ -371,7 +371,9 @@ function dailyView(){
 let PF=null, PFSEL=null;
 /* ── MY: 보유 종목 리스크 · PB (이 브라우저에만 저장) ── */
 const MYK='mt_holdings_v1'; let MYD={}, MYX=null;
-const HEDGES=[['KR','114800','KODEX 인버스 (코스피200 −1배)'],['KR','252670','KODEX 200선물인버스2X (−2배)'],['US','SOXS','SOXS (미 반도체 −3배)'],['US','SH','SH (S&P500 −1배)'],['US','PSQ','PSQ (나스닥100 −1배)']];
+const HEDGES=[['KR','114800','KODEX 인버스 (코스피200 −1배)','inv'],['KR','252670','KODEX 200선물인버스2X (−2배)','inv'],['US','SOXS','SOXS (미 반도체 −3배)','inv'],['US','SH','SH (S&P500 −1배)','inv'],['US','PSQ','PSQ (나스닥100 −1배)','inv'],
+  ['KR','261240','KODEX 미국달러선물 (원화 계좌로 달러)','div'],['KR','305080','TIGER 미국채10년선물','div'],['KR','148070','KOSEF 국고채10년','div'],['KR','132030','KODEX 골드선물(H)','div'],
+  ['US','TLT','TLT (미 장기국채)','div'],['US','IEF','IEF (미 중기국채)','div'],['US','GLD','GLD (금)','div'],['US','UUP','UUP (달러 강세)','div'],['US','XLP','XLP (미 필수소비재)','div'],['US','XLU','XLU (미 유틸리티)','div']];
 const BENCH=[['KR','069500'],['US','SOXX']];
 function myLoad(){ try{ return localStorage.getItem(MYK)||''; }catch(e){ return window._myTxt||''; } }
 function mySave(t){ window._myTxt=t; try{ localStorage.setItem(MYK,t); }catch(e){} }
@@ -465,8 +467,17 @@ function myRender(hs,cash,miss){
   const stK=A.reduce((s,a)=>s+a.val*a.bK*-0.10,0), stX=A.reduce((s,a)=>s+a.val*a.bX*-0.15,0);
   const usdV=A.filter(a=>a.mk==='US').reduce((s,a)=>s+a.val,0)+cU, stF=usdV*0.05;
   // 헷지
-  const hedge=HEDGES.map(([m,sy,nm])=>{ const d=MYD[m+':'+sy]; if(!d||!d.c1y) return null; const r=rets(series(m,d)); const c=cov(P,r), v=cov(r,r); if(!v) return null;
-     const hr=-c/v, amt=hr*NAV, rho=corr(P,r), red=1-Math.sqrt(Math.max(sp-c*c/v,0)/sp); return {nm,sy,m,rho,amt,red,price:d.close}; }).filter(Boolean);
+  // 한·미 장 시차 때문에 일간 상관은 과소평가 → 5거래일 수익률로 헷지 계산
+  const wk=a=>{const o=[];for(let i=0;i+5<=a.length;i+=5){let p=1;for(let j=i;j<i+5;j++)p*=1+a[j];o.push(p-1);}return o;};
+  const Pw=wk(P), spw=cov(Pw,Pw);
+  const eqR=E;   // 주식 부분 수익률
+  const hedge=HEDGES.map(([m,sy,nm,ty])=>{ const d=MYD[m+':'+sy]; if(!d||!d.c1y||d.c1y.length<120) return null; const r=rets(series(m,d)); const rw=wk(r);
+     const c=cov(Pw,rw), v=cov(rw,rw); if(!v) return null; const rho=corr(Pw,rw);
+     if(ty==='inv'){ const hr=-c/v, amt=hr*NAV, red=1-Math.sqrt(Math.max(spw-c*c/v,0)/spw); return {ty,nm,sy,m,rho,amt,red}; }
+     // 분산형: 주식 10%p(순자산 기준)를 이 자산으로 옮겼을 때 변동성 변화
+     const sw=0.10*NAV/NAV; const Q=[]; for(let t=0;t<P.length;t++) Q.push(P[t]-sw*eqR[t]+sw*r[t]);
+     const Qw=wk(Q); const red=1-Math.sqrt(cov(Qw,Qw)/spw); const rq=(ann(Q)-ann(P));
+     return {ty,nm,sy,m,rho,amt:0.10*NAV,red,dret:rq,ret1y:ann(r)}; }).filter(Boolean);
   // 목표 변동성으로 주식 비중
   const tv=0.15, eqW=tot/NAV, eqTarget=Math.min(Em.vol?tv/Em.vol:eqW,1);
   const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
@@ -478,8 +489,10 @@ function myRender(hs,cash,miss){
   op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}). ${Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':Pm.sh>1?'위험 대비 보상은 좋았지만 같은 요인에 대한 베팅이 맞았던 결과입니다.':'보통 수준.'} 최대낙폭 ${pct(Pm.mdd,0)}.`);
   op.push(`<b>비중</b>: 주식 변동성 ${W(Em.vol)} 기준으로 포트 변동성을 연 15%에 맞추려면 주식 비중 ${W(eqTarget)} (현재 ${W(eqW)}). ${eqW>eqTarget+0.05?`→ 약 ${K((eqW-eqTarget)*NAV)}원 줄이거나 아래 헷지로 같은 효과.`:eqW<eqTarget-0.05?'→ 위험 여력이 남아 있습니다. 다만 같은 체인에 더 넣으면 쏠림만 커집니다.':'→ 적정 범위.'}`);
   if(Pm.cFX<-0.2) op.push(`<b>달러 현금</b>: 포트와 원/달러 상관 ${F(Pm.cFX)} — 주가가 빠질 때 달러가 올라 이미 자연 헷지로 작동하고 있습니다. 달러를 원화로 바꾸면 이 헷지가 사라집니다.`);
-  const hb=hedge.filter(h=>h.amt>0).sort((a,b)=>b.red-a.red)[0];
-  if(hb) op.push(`<b>헷지</b>: 가장 효율적인 건 ${esc(hb.nm)} — 포트 변동성 최대 ${W(hb.red)} 감소에 필요한 금액 ${K(hb.amt)}원, 절반 헷지면 ${K(hb.amt/2)}원. 레버리지·인버스 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 단기 보험으로만 쓰세요.`);
+  const hb=hedge.filter(h=>h.ty==='inv'&&h.amt>0).sort((a,b)=>b.red-a.red)[0];
+  if(hb) op.push(`<b>단기 보험(인버스)</b>: 가장 효율적인 건 ${esc(hb.nm)} — 포트 변동성 최대 ${W(hb.red)} 감소에 ${K(hb.amt)}원, 절반이면 ${K(hb.amt/2)}원. 인버스·레버리지 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 이벤트 보험으로만.`);
+  const hd=hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).slice(0,2);
+  if(hd.length) op.push(`<b>구조적 분산</b>: 주식 10%p를 옮긴다면 ${hd.map(h=>`${esc(h.nm)} (변동성 ${W(h.red)} 감소, 포트 상관 ${F(h.rho)})`).join(', ')}가 가장 효과적이었습니다. 인버스와 달리 들고 있어도 녹지 않습니다.`);
   const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
   $('#myout').innerHTML=`
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
@@ -499,9 +512,12 @@ function myRender(hs,cash,miss){
       <div>미 반도체(SOXX) −15% → <b class="dn">${K(stX)}원</b> (${pct(stX/NAV,1)})</div>
       <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${K(stF)}원</b> (${pct(stF/NAV,1)})</div>
       <div>하루 손실이 이보다 클 확률 5%: <b>${K(Pm.var*NAV)}원</b> · 그런 날 평균 ${K(Pm.cvar*NAV)}원</div></div></div>
-    <div class="p c6"><h2>헷지안<small>최소분산 헷지 비율 · 1년 일별</small></h2><div class="b"><table><tr><th class="l">수단</th><th>상관</th><th>필요 금액</th><th>변동성 감소</th></tr>
-      ${hedge.map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td>${h.amt>0?K(h.amt)+'원':'—'}</td><td>${h.amt>0?W(h.red):'—'}</td></tr>`).join('')}</table>
-      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">필요 금액 = 포트 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 절반만 하면 효과도 대략 절반 이하. 인버스·레버리지 ETF는 일간 재조정으로 장기 보유 시 손실이 쌓임.</div></div></div>
+    <div class="p c6"><h2>헷지안<small>5거래일 수익률 · 최근 1년</small></h2><div class="b">
+      <div class="am" style="font-size:12px">① 인버스 (단기 보험)</div><table><tr><th class="l">수단</th><th>상관</th><th>필요 금액</th><th>변동성 감소</th></tr>
+      ${hedge.filter(h=>h.ty==='inv').map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td>${h.amt>0?K(h.amt)+'원':'—'}</td><td>${h.amt>0?W(h.red):'—'}</td></tr>`).join('')}</table>
+      <div class="am" style="font-size:12px;margin-top:8px">② 분산 (주식 10%p를 옮기면)</div><table><tr><th class="l">수단</th><th>상관</th><th>변동성 감소</th><th>1년 수익</th></tr>
+      ${hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td class="${h.red>0?'up':'dn'}">${W(h.red)}</td><td>${pct(h.ret1y,0)}</td></tr>`).join('')}</table>
+      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">① 필요 금액 = 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 인버스·레버리지는 일간 재조정으로 오래 들면 손실이 쌓임. ② 상관이 낮거나 음수일수록 분산 효과. 과거 1년 상관이라 위기 때는 바뀔 수 있음(물가 충격엔 채권도 같이 빠짐).</div></div></div>
    </div>
    ${pf?`<div class="p" style="margin-bottom:8px"><h2>모의 전략과 비교<small>2011~ 월간 · 원화</small></h2><div class="b"><table><tr><th class="l">전략</th><th>연수익</th><th>변동성</th><th>샤프</th><th>최대낙폭</th><th class="l">지금 배분</th></tr>
       <tr><td class="l am">내 포트 (최근 1년)</td><td>${pct(Pm.ret,1)}</td><td>${W(Pm.vol)}</td><td>${F(Pm.sh)}</td><td>${pct(Pm.mdd,0)}</td><td class="l mu">반도체 중심</td></tr>
