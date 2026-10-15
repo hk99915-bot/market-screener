@@ -425,7 +425,13 @@ def record_pb(payload: dict, send: bool = True) -> str:
         if not code:
             continue
         name = e.get("name") or code
-        act = "매도" if str(e.get("act", "")).startswith("매도") or "축소" in str(e.get("act", "")) else "보유"
+        # 비중 조절: keep = 남길 비중 (1=보유, 0=전량 매도, 0.5=절반 축소/익절, 1.5=50% 추가). act 문구보다 keep 우선
+        raw_act = str(e.get("act", ""))
+        keep = e.get("keep")
+        if not isinstance(keep, (int, float)):
+            keep = 0.0 if raw_act.startswith("매도") else 0.5 if ("축소" in raw_act or "익절" in raw_act) else 1.5 if "추가" in raw_act else 1.0
+        keep = max(0.0, min(2.0, float(keep)))
+        act = "매도" if keep == 0 else ("보유" if keep == 1 else f"{'축소' if keep < 1 else '추가'} → 비중 {keep*100:.0f}%")
         code = code if code.isdigit() else code.upper()
         eid = f"{kd}-exit-{code}"
         hold = _hold_pick(code, name, NOTIONAL)
@@ -440,7 +446,11 @@ def record_pb(payload: dict, send: bool = True) -> str:
             ei = {"id": eid, "date": kd, "kind": "exit", "title": f"매도 타점 대결 · {name}", "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
                   "picks": {"나": {"pending": True}}}
             data["items"].append(ei)
-        ei["picks"]["PB"] = ({"cash": True, "label": "매도"} if act == "매도" else hold) | {"by": "PB 재량", "at": pk["at"]}
+        if keep == 0:
+            pbp = {"cash": True, "label": "매도"}
+        else:   # 남긴 비중만큼만 수익·손실을 받음 (축소=일부 현금화)
+            pbp = _hold_pick(code, name, NOTIONAL * keep) | {"name": f"{name} " + ("보유" if keep == 1 else f"비중 {keep*100:.0f}%")}
+        ei["picks"]["PB"] = pbp | {"by": "PB 재량", "at": pk["at"], "keep": keep}
         if rule:
             ei["picks"]["규칙"] = rule
         ei["pb_view"] = {"why": e.get("why", ""), "lines": [], "conviction": e.get("conviction", ""), "at": pk["at"], "plan": e.get("plan") or None}
