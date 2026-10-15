@@ -112,7 +112,7 @@ def fetch_naver(since: date, max_pages: int = 60) -> list[dict]:
             try:
                 from .config import REPORT_DIR
                 (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
-                (REPORT_DIR / "logs" / "naver_list.html").write_text(h[:20000], encoding="utf-8")
+                (REPORT_DIR / "logs" / "naver_list.html").write_text(h[:400000], encoding="utf-8")
                 log.warning("네이버 리스트 파싱 0건 — 응답 %d자, tr %d개 저장", len(h), len(rows))
             except Exception:  # noqa: BLE001
                 pass
