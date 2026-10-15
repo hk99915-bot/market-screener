@@ -104,6 +104,29 @@ def run() -> dict:
                     c5.append(lv[j + 5]["c"] / buy - 1 - cost)
             sims[f"코스피 {int(t*100)}% 이하 날 종가 매수"] = {"다음날 시가 매도": _summ(a), "다음날 종가 매도": _summ(b), "5일 보유": _summ(c5)}
         out["lev_trade"] = sims
+    # 미장(S&P500) 시나리오 확률용 버킷: 현재 상태(20일 고점 대비 낙폭·하루 등락) 조건별 20거래일 뒤 분포
+    try:
+        sp = _dl("^GSPC", "1999-01-01")
+        sc = [x["c"] for x in sp]
+        def sfwd(i, n):
+            return sc[i + n] / sc[i] - 1 if i + n < len(sc) else None
+        def sdd(i):
+            return sc[i] / max(sc[max(0, i - 20):i + 1]) - 1
+        def sb(idx):
+            v = [sfwd(i, 20) for i in idx if sfwd(i, 20) is not None]
+            if not v:
+                return None
+            n = len(v)
+            return {"n": n, "bull": round(sum(1 for x in v if x > 0.03) / n, 3), "base": round(sum(1 for x in v if -0.03 <= x <= 0.03) / n, 3),
+                    "bear": round(sum(1 for x in v if x < -0.03) / n, 3), "deep_bear": round(sum(1 for x in v if x < -0.10) / n, 3)}
+        rng = range(21, len(sc))
+        out["spx_buckets20"] = {"all": sb(list(rng)), "near_high": sb([i for i in rng if sdd(i) > -0.02]),
+                                "pullback": sb([i for i in rng if -0.07 < sdd(i) <= -0.02]),
+                                "correction": sb([i for i in rng if sdd(i) <= -0.07]),
+                                "drop2": sb([i for i in rng if sc[i] / sc[i - 1] - 1 <= -0.02]),
+                                "thresholds": "강세 +3% 초과 / 기본 ±3% / 약세 −3% 미만 (S&P500 변동성이 코스피보다 작아 기준을 좁힘)"}
+    except Exception as e:  # noqa: BLE001
+        log.warning("S&P 버킷 실패: %s", e)
     p = REPORT_DIR / "studies"
     p.mkdir(parents=True, exist_ok=True)
     (p / "crash_rebound.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
