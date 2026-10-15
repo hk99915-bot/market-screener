@@ -73,6 +73,26 @@ def _ymd(d: date) -> str:
 
 # ───────────── KRX 호출 (pykrx 로그인 세션 재사용) ─────────────
 
+import threading
+_RL = threading.Lock()
+_LAST_RELOGIN = [0.0]
+
+
+def _relogin() -> None:
+    """KRX 가 HTML(세션 끊김·과다 요청)을 돌려주면 재로그인 (60초에 한 번까지)."""
+    import os
+    with _RL:
+        if time.time() - _LAST_RELOGIN[0] < 60:
+            return
+        _LAST_RELOGIN[0] = time.time()
+        try:
+            from pykrx.website.comm import auth
+            if auth._auth_session is not None and os.getenv("KRX_ID"):
+                ok = auth._auth_session.refresh(os.getenv("KRX_ID"), os.getenv("KRX_PW"))
+                log.info("KRX 재로그인 %s", "성공" if ok else "실패")
+        except Exception as e:  # noqa: BLE001
+            log.info("KRX 재로그인 오류: %s", e)
+
 def krx_post(bld: str, **params) -> list[dict]:
     import requests
     from pykrx.website.comm.webio import get_session
@@ -92,7 +112,10 @@ def krx_post(bld: str, **params) -> list[dict]:
             if r.text.startswith("{"):
                 j = r.json()
                 return j.get("output") or j.get("OutBlock_1") or []
-            return []
+            log.info("KRX %s HTML 응답 — 재로그인 후 재시도", bld[-9:])
+            time.sleep(5 * (i + 1))
+            _relogin()
+            s = get_session()
         except Exception as e:  # noqa: BLE001
             log.info("KRX %s 재시도 %d: %s", bld[-9:], i + 1, e)
             time.sleep(2 * (i + 1))
@@ -190,7 +213,18 @@ def night_krx(d: date) -> dict:
 def board_day(d: date) -> dict:
     """옵션·선물 보드 (derivs.py 와 같은 계산). 거래일이 아니면 {}."""
     from . import derivs
-    opt, fut = derivs._day(_ymd(d))
+    opt = fut = None
+    for i in range(4):   # KRX 가 몰아치는 요청에 HTML(차단·세션 만료) 을 돌려줄 때가 있음 → 쉬었다 재시도
+        try:
+            opt, fut = derivs._day(_ymd(d))
+            break
+        except Exception as e:  # noqa: BLE001
+            if i == 3:
+                raise
+            log.info("보드 %s 재시도 %d: %s", d, i + 1, e)
+            time.sleep(10 * (i + 1))
+            _relogin()
+    raw = sum(1 for x in opt if re.search(r"코스피200\s+[CP]\s+\d{6}", x.get("ISU_NM") or "") and "야간" not in (x.get("ISU_NM") or ""))
     f = derivs._fut(fut)
     row: dict = {}
     if f:
@@ -202,6 +236,9 @@ def board_day(d: date) -> dict:
         if n.get("close"):
             row.update({"night_close": n["close"], "night_vol": n.get("vol"), "night_src": "eurex_board"})
     rows = derivs._parse(opt)
+    if raw and len(rows) < raw:
+        bad = [x.get("ISU_NM") for x in opt if re.search(r"코스피200\s+[CP]\s+\d{6}", x.get("ISU_NM") or "") and not derivs.RX.search(x.get("ISU_NM") or "")][:3]
+        log.warning("%s 옵션 이름 파싱 누락 %d/%d 예: %s", d, raw - len(rows), raw, bad)
     S = (f or {}).get("spot") or (f or {}).get("close")
     if rows and S:
         s = derivs._summ(rows, S, d)
@@ -277,7 +314,8 @@ def _trading_days(db: dict[str, dict]) -> list[str]:
     return sorted(d for d, r in db.items() if r.get("kospi_close"))
 
 
-def run(task: str = "run", days: int = 0) -> dict:
+def run(task: str = "run", days: int = 0, redo: str | None = None) -> dict:
+    """redo='YYYY-MM-DD': 그날 이후 옵션·선물 보드 값을 다시 계산 (계산식 수정 뒤 재적재용)."""
     t0 = time.time()
     today = datetime.now(KST).date()
     db = {r["date"]: r for r in load()}
@@ -299,6 +337,11 @@ def run(task: str = "run", days: int = 0) -> dict:
         _merge(db, [fi])
     tds = _trading_days(db)
     # 하루 1콜: run = 최근 5영업일 덮어쓰기, backfill = 최근부터 거꾸로 빈 칸만 days 개
+    if redo:
+        for d in tds:
+            if d >= redo:
+                for k in ("pcr_oi", "fut_close"):
+                    db[d][k] = None
     if task == "backfill":
         todo = [d for d in reversed(tds) if db[d].get("pcr_oi") is None or db[d].get("prog_nonarb") is None or db[d].get("fut_close") is None][:max(days, 0)]
     else:
@@ -320,12 +363,24 @@ def run(task: str = "run", days: int = 0) -> dict:
 
     from concurrent.futures import ThreadPoolExecutor
     done = 0
-    workers = 4 if task == "backfill" else 1
+    fails = 0
+    workers = 2 if task == "backfill" else 1
     with ThreadPoolExecutor(workers) as ex:
         for i in range(0, len(todo), 40):
+            got = 0
             for row in ex.map(one, todo[i:i + 40]):
                 _merge(db, [row])
                 done += 1
+                got += int(len(row) > 1)
+            fails = 0 if got else fails + 1
+            if fails:
+                log.warning("배치 전부 실패 %d회 — 2분 쉬고 재로그인", fails)
+                if fails >= 3:
+                    log.warning("연속 실패 — 중단 (다음 실행이 이어서)")
+                    break
+                time.sleep(120)
+                _LAST_RELOGIN[0] = 0
+                _relogin()
             save(list(db.values()))
             log.info("하루 소스 %d/%d (%s) %.0fs", done, len(todo), todo[min(i + 39, len(todo) - 1)], time.time() - t0)
             if time.time() - t0 > 80 * 60:   # 워크플로 90분 제한 전에 저장하고 멈춤
@@ -338,6 +393,8 @@ def run(task: str = "run", days: int = 0) -> dict:
         ds = [r["date"] for r in rows if r.get(k) not in (None, "")]
         if ds:
             cover[k] = {"from": ds[0], "to": ds[-1], "n": len(ds)}
+    st["n_errors"] = len(st["errors"])
+    st["errors"] = st["errors"][:30]
     st.update({"rows": len(rows), "daily_done": done, "daily_todo": len(todo), "secs": round(time.time() - t0),
                "coverage": cover, "asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M")})
     STATUS.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -402,13 +459,14 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--task", default="run", choices=["run", "backfill", "night"])
     ap.add_argument("--days", type=int, default=0)
+    ap.add_argument("--redo", default=None, help="YYYY-MM-DD 이후 보드 값 재계산")
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if a.task == "night":
         nf = night_futures()
         print(json.dumps(nf, ensure_ascii=False), night_line(nf))
         return
-    run(a.task, a.days)
+    run(a.task, a.days, a.redo)
 
 
 if __name__ == "__main__":

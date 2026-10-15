@@ -14,6 +14,9 @@ on:
       days:
         description: "backfill 영업일 수 (옵션 보드 하루 1회 조회)"
         default: "0"
+      redo:
+        description: "YYYY-MM-DD 이후 옵션·선물 보드 재계산 (계산식 수정 뒤)"
+        default: ""
 
 permissions:
   contents: write
@@ -44,7 +47,7 @@ jobs:
           if [ "$T" = "probe" ]; then
             mkdir -p reports/logs; python scripts/probe_deriv_sources.py ${{ github.event.inputs.days != '0' && github.event.inputs.days || '' }} 2>&1 | tee reports/logs/deriv_probe.txt
           else
-            mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" 2>&1 | tee reports/logs/deriv_hist.txt
+            mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" ${{ github.event.inputs.redo && format('--redo {0}', github.event.inputs.redo) || '' }} 2>&1 | tee reports/logs/deriv_hist.txt
           fi
       - name: 저장
         if: always()

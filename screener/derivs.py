@@ -13,6 +13,8 @@
 - 만기일 당일엔 최근월이 그날 오후 소멸 → 다음 월물로 넘김 (전엔 만기일 감마가 0·전환점이 엉뚱하게 찍힘)
 - 최대 고통: 후보 범위(현물 ±15%) 끝에 걸리면 '범위 밖'(None) — 전엔 항상 0.85×현물 근처가 찍힘(깊은 내가격 OI 탓)
 - 감마 전환점: 현재가에서 가장 가까운 부호 전환 (전엔 격자 맨 아래 쪽 첫 전환)
+- 행사가 1,000 이상(쉼표 표기)이 정규식에서 빠지던 버그 수정 — 코스피200 이 1,000 을 넘은 구간(2026-07~10)에서
+  콜 벽 없음·감마 음수 쏠림·PCR 왜곡의 원인이었음 (지수 위쪽 콜이 통째로 누락)
 - 풋콜비율은 '월물 전 만기 합' (위클리 제외) — 위클리로 거래가 옮겨가 거래량 PCR 은 시장 전체를 대표하지 못함
 """
 from __future__ import annotations
@@ -30,7 +32,7 @@ OUT = REPORT_DIR / "derivs.json"
 HIST = REPORT_DIR / "derivs_hist.json"
 MULT = 250_000
 RATE = 0.03
-RX = re.compile(r"코스피200\s+([CP])\s+(\d{6})\s+([\d.]+)")
+RX = re.compile(r"코스피200\s+([CP])\s+(\d{6})\s+([\d,]+(?:\.\d+)?)")   # 행사가 1,000 이상은 쉼표 포함
 
 
 def _io(bld: str, **kw) -> list[dict]:
@@ -110,7 +112,7 @@ def _parse(opt: list[dict]) -> list[dict]:
         m = RX.search(nm)
         if not m:
             continue
-        rows.append({"cp": m.group(1), "ym": m.group(2), "k": float(m.group(3)), "px": _f(r.get("TDD_CLSPRC")),
+        rows.append({"cp": m.group(1), "ym": m.group(2), "k": float(m.group(3).replace(",", "")), "px": _f(r.get("TDD_CLSPRC")),
                      "oi": _f(r.get("ACC_OPNINT_QTY")) or 0.0, "vol": _f(r.get("ACC_TRDVOL")) or 0.0})
     return rows
 
