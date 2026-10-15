@@ -150,6 +150,19 @@ def run() -> dict:
         out["yf_kospi_daily"] = {str(i): float(r["Close"]) for i, r in y.iterrows()}
     except Exception as e:  # noqa: BLE001
         out["kospi_cmp"] = "ERR " + str(e)[:300]
+    try:   # 종가 대조: KRX 정규장 vs 네이버(정규·NXT) vs 야후
+        import requests as _rq
+        from pykrx import stock as _st2
+        cmp = {}
+        for code in ("000660", "005930", "009150"):
+            df = _st2.get_market_ohlcv("20261013", "20261015", code)
+            j = _rq.get(f"https://m.stock.naver.com/api/stock/{code}/basic", headers={"User-Agent": "Mozilla/5.0"}, timeout=10).json()
+            cmp[code] = {"krx": {str(i.date()): float(r["종가"]) for i, r in df.iterrows()},
+                         "naver": {k: j.get(k) for k in ("closePrice", "fluctuationsRatio", "marketStatus", "localTradedAt")},
+                         "naver_over": (j.get("overMarketPriceInfo") or {})}
+        out["close_cmp"] = cmp
+    except Exception as e:  # noqa: BLE001
+        out["close_cmp"] = "ERR " + str(e)[:300]
     p = REPORT_DIR / "logs" / "probe.json"
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
