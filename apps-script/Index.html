@@ -680,6 +680,19 @@ function studyView(){
     <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">해석: 반등 경향은 있지만 레버리지 기준 평균 +2~3%, 최악은 다음날 시가부터 −18%. 다음날 시가 매도가 종가 매도보다 승률이 높았음. 표본의 상당수가 2020·2026년에 몰려 있음.</div>
   </div></div></div>`;
 }
+let DEC=null;
+function decBox(){
+  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(view==='sig') render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); return ''; }
+  if(!DEC||!DEC.items||!DEC.items.length) return '';
+  const T=DEC.tally||{}, K=x=>num(Math.round(x),0);
+  const who=Object.keys(DEC.items[0].picks);
+  const pk=p=>p.cash?'현금 유지':`${esc(p.name||p.ticker)} ${p.notional?K(p.notional/10000)+'만':''}`;
+  return `<div class="p" style="margin-bottom:10px"><h2>판단 성적표<small>나 vs PB · 결정마다 실제 가격으로 채점</small></h2><div class="b">
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${who.map(w=>{const t=T[w]||{win:0,n:0,pnl:0}; return `<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${esc(w)}</div><b>${t.win}승 / ${t.n}전</b> · 누적 <span class="${t.pnl>=0?'up':'dn'}">${t.pnl>=0?'+':''}${K(t.pnl)}원</span></div>`;}).join('')}</div>
+   <table><tr><th class="l">날짜</th><th class="l">판단</th>${who.map(w=>`<th class="l">${esc(w)}</th>`).join('')}<th class="l">결과</th></tr>
+   ${[...DEC.items].reverse().map(it=>{const r=it.result; return `<tr><td class="l mu">${esc(it.date.slice(5))}</td><td class="l" style="white-space:normal">${esc(it.title)}<div class="mu" style="font-size:11px">${esc(it.note||'')}</div></td>${who.map(w=>`<td class="l" style="white-space:normal">${pk(it.picks[w])}${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:11.5px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div>`:''}</td>`).join('')}<td class="l">${r?(r.winner?`<b class="am">${esc(r.winner)} 승</b>`:'무승부'):'<span class="mu">채점 대기</span>'}</td></tr>`;}).join('')}</table>
+   <div class="mu" style="font-size:11px;margin-top:4px">모의 기록 포함 · 한 판은 운, 20판 이상 쌓여야 실력</div></div></div>`;
+}
 let MVH=null;
 function sigView(){
   if(MVH===null){ MVH=false; google.script.run.withSuccessHandler(t=>{try{MVH=JSON.parse(t);}catch(e){MVH={};} if(view==='sig') render();}).withFailureHandler(()=>{MVH={};}).getMacroHist(); }
@@ -690,6 +703,7 @@ function sigView(){
   const rows=Object.entries(SG.signals).sort((a,b)=>((b[1].h20||{}).ic||0)-((a[1].h20||{}).ic||0)).map(([k,r])=>`<tr><td class="l">${esc(r.desc)}</td><td class="l" style="color:${vc(r.verdict)}">${esc(r.verdict||'')}</td>${cell(r.h5)}${cell(r.h20)}${cell(r.h60)}<td class="mu">${(r.h20||r.h5||{}).days||0}일</td></tr>`).join('');
   return `<div class="grid"><div class="p c12"><h2>SIGNAL SCORECARD<small>국장 · 시그널 기록 ${SG.n_days}일 (${esc(SG.first||'')}~) · 채점 ${esc(SG.asof||'')}</small></h2><div class="b">
    <div class="mu" style="font-size:12px;line-height:1.7;margin-bottom:8px">매일 기록한 시그널이 이후 5·20·60거래일 <b>시장 중앙값 대비 초과수익</b>을 맞췄는지. IC = 순위상관(+면 시그널 방향대로 맞음), t = 겹치는 기간을 보정한 t값(|t|≥2면 우연 아님), 상하위 = 상위 20% − 하위 20% 초과수익, 적중 = IC가 +인 날 비율. 기술 시그널은 과거 1년 복원, 가치평가·드라이버는 기록 시작일부터 쌓임.</div>
+   ${decBox()}
    ${MVH&&MVH.rows?`<div style="margin-bottom:8px;font-size:12.5px">매크로 바람 점수 (시계열): 기록 ${MVH.rows.length}일 · 판정 <b>${esc(MVH.verdict||'검증 중')}</b>${MVH.score&&MVH.score.h20?` · 20일 뒤 코스피와 상관 ${MVH.score.h20.corr}`:''}</div>`:''}
    <table><tr><th class="l">시그널</th><th class="l">판정</th><th>5D IC</th><th>t</th><th>상하위</th><th>적중</th><th>20D IC</th><th>t</th><th>상하위</th><th>적중</th><th>60D IC</th><th>t</th><th>상하위</th><th>적중</th><th>표본</th></tr>${rows}</table></div></div></div>`;
 }
