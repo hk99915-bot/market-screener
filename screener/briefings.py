@@ -68,6 +68,15 @@ def premarket_kr(send: bool = True) -> str:
         L.append("<b>[국장 시사점]</b>")
         L += ["• " + _esc(x) for x in usmarket.kr_implications(idx, sec, mac)]
 
+    # 1-1) 야간선물 한 줄 (KRX 야간 세션 평균 체결가 → 예상 시초가). 화면·알림 추가 없이 이 한 줄만. 실패해도 브리핑은 계속
+    try:
+        from . import deriv_hist
+        nl = deriv_hist.night_line(deriv_hist.night_futures())
+        if nl:
+            L.append(_esc(nl))
+    except Exception as e:  # noqa: BLE001
+        log.warning("야간선물 한 줄 실패: %s", e)
+
     # 2) 밤사이·아침 리포트: 조용히 수집(알림 없음, 19:10 다이제스트에 포함됨) 후 어제 16:00 이후 발간분 사용
     try:
         store, _ = research.update_store()

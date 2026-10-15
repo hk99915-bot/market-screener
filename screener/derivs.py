@@ -7,7 +7,13 @@
   부호가 틀릴 수 있음 → '방향'보다 '감마가 몰린 가격대(자석·벽)' 위주로 읽을 것.
 - 감마 전환점(flip): 가상의 지수 수준별로 GEX 합을 다시 계산해 부호가 바뀌는 곳
 - 선물: 최근월물 종가·OI·베이시스
-- 일별 요약은 reports/derivs_hist.json 에 누적 (PCR 추세)
+- 일별 요약은 reports/derivs_hist.json 에 누적 (PCR 추세). 장기 일별 이력은 screener/deriv_hist.py → data/deriv/daily.csv
+
+점검 (2026-10-16, 파생):
+- 만기일 당일엔 최근월이 그날 오후 소멸 → 다음 월물로 넘김 (전엔 만기일 감마가 0·전환점이 엉뚱하게 찍힘)
+- 최대 고통: 후보 범위(현물 ±15%) 끝에 걸리면 '범위 밖'(None) — 전엔 항상 0.85×현물 근처가 찍힘(깊은 내가격 OI 탓)
+- 감마 전환점: 현재가에서 가장 가까운 부호 전환 (전엔 격자 맨 아래 쪽 첫 전환)
+- 풋콜비율은 '월물 전 만기 합' (위클리 제외) — 위클리로 거래가 옮겨가 거래량 PCR 은 시장 전체를 대표하지 못함
 """
 from __future__ import annotations
 
@@ -110,7 +116,7 @@ def _parse(opt: list[dict]) -> list[dict]:
 
 
 def _summ(rows: list[dict], S: float, asof: date) -> dict:
-    yms = sorted({r["ym"] for r in rows if _expiry(r["ym"]) >= asof})
+    yms = sorted({r["ym"] for r in rows if _expiry(r["ym"]) > asof})   # 만기일 당일엔 다음 월물
     if not yms:
         return {}
     front = yms[0]
@@ -124,8 +130,10 @@ def _summ(rows: list[dict], S: float, asof: date) -> dict:
     # 최대 고통: 만기 지수가 K 일 때 매수자 총 내재가치가 최소인 K
     def pain(x):
         return sum(r["oi"] * (max(0, x - r["k"]) if r["cp"] == "C" else max(0, r["k"] - x)) for r in fr)
-    near = [k for k in ks if 0.85 * S <= k <= 1.15 * S] or ks
-    mp = min(near, key=pain) if near else None
+    mp = min(ks, key=pain) if ks else None   # 전체 행사가 중 최소 — 현물 ±15% 밖이면 의미 없음 → None
+    mp_raw = mp
+    if mp is not None and not (0.85 * S <= mp <= 1.15 * S):
+        mp = None
     calls = [r for r in fr if r["cp"] == "C" and r["k"] >= S]
     puts = [r for r in fr if r["cp"] == "P" and r["k"] <= S]
     cw = max(calls, key=lambda r: r["oi"]) if calls else None
@@ -141,7 +149,7 @@ def _summ(rows: list[dict], S: float, asof: date) -> dict:
     def iv_for(cp, k):
         if (cp, k) in ivs:
             return ivs[(cp, k)]
-        c = [(abs(kk - k), v) for (cc, kk), v in ivs.items()]
+        c = [(abs(kk - k), v) for (cc, kk), v in ivs.items() if cc == cp] or [(abs(kk - k), v) for (cc, kk), v in ivs.items()]
         return min(c)[1] if c else 0.3
     atm = [v for (cp, k), v in ivs.items() if abs(k / S - 1) < 0.02]
     # 스큐: 5% 외가 풋 IV − 5% 외가 콜 IV (가장 가까운 행사가)
@@ -166,14 +174,14 @@ def _summ(rows: list[dict], S: float, asof: date) -> dict:
     grid = [S * (1 + i / 200) for i in range(-30, 31)]
     vals = [(x, gex(x)[0]) for x in grid]
     for (x1, v1), (x2, v2) in zip(vals, vals[1:]):
-        if v1 == 0 or (v1 < 0) != (v2 < 0):
-            flip = x1 + (x2 - x1) * (abs(v1) / (abs(v1) + abs(v2) or 1))
-            if abs(flip - S) < abs((flip if flip else 1e9) - S) + 1:
-                break
+        if (v1 < 0) != (v2 < 0):
+            fx = x1 + (x2 - x1) * (abs(v1) / (abs(v1) + abs(v2) or 1))
+            if flip is None or abs(fx - S) < abs(flip - S):   # 현재가에서 가장 가까운 전환
+                flip = fx
     top = sorted(prof.items(), key=lambda kv: -abs(kv[1]))[:8]
     return {"front": front, "expiry": str(_expiry(front)), "dte": (_expiry(front) - asof).days, "spot": round(S, 2),
             "pcr_oi": round(poi / coi, 3) if coi else None, "pcr_vol": round(pv / cv, 3) if cv else None,
-            "call_oi": coi, "put_oi": poi, "max_pain": mp,
+            "call_oi": coi, "put_oi": poi, "max_pain": mp, "max_pain_raw": mp_raw,
             "call_wall": {"k": cw["k"], "oi": cw["oi"]} if cw else None, "put_wall": {"k": pw["k"], "oi": pw["oi"]} if pw else None,
             "atm_iv": round(sum(atm) / len(atm), 4) if atm else None, "skew": round(skew, 4) if skew is not None else None,
             "iv_p95": round(p95, 4) if p95 else None, "iv_c105": round(c105, 4) if c105 else None,
@@ -189,8 +197,16 @@ def _fut(fut: list[dict]) -> dict:
         return {}
     r = rows[0]
     px, sp = _f(r.get("TDD_CLSPRC")), _f(r.get("SPOT_PRC"))
-    return {"name": r.get("ISU_NM"), "close": px, "spot": sp, "basis": round(px - sp, 2) if px and sp else None,
-            "oi": _f(r.get("ACC_OPNINT_QTY")), "vol": _f(r.get("ACC_TRDVOL"))}
+    out = {"name": r.get("ISU_NM"), "close": px, "open": _f(r.get("TDD_OPNPRC")), "spot": sp,
+           "basis": round(px - sp, 2) if px and sp else None,
+           "oi": _f(r.get("ACC_OPNINT_QTY")), "vol": _f(r.get("ACC_TRDVOL"))}
+    # 야간 행 (유렉스 연계 시절 2009~2025-06 은 같은 보드에 '(야간)' 으로 나옴; KRX 자체 야간시장 이후엔 이 보드에 없음)
+    nt = [x for x in fut if "야간" in (x.get("ISU_NM") or "") and "SP" not in (x.get("ISU_NM") or "")]
+    if nt:
+        n = nt[0]
+        out["night"] = {"name": n.get("ISU_NM"), "close": _f(n.get("TDD_CLSPRC")), "vol": _f(n.get("ACC_TRDVOL")),
+                        "oi": _f(n.get("ACC_OPNINT_QTY"))}
+    return out
 
 
 def _read(d: date) -> dict | None:
@@ -208,32 +224,38 @@ def _read(d: date) -> dict | None:
 
 
 def interpret(o: dict) -> list[str]:
+    """초보용 한 줄 해석. 원칙: 검증 안 된 것은 '방향 신호'로 말하지 않는다 (reports/studies/derivs_signals.md)."""
     if not o or not o.get("spot"):
         return []
     S = o["spot"]
     L = []
     if o.get("pcr_oi") is not None:
         p = o["pcr_oi"]
-        L.append(f"풋/콜 미결제 비율 {p:.2f} — " + ("풋이 많이 쌓임: 하락 대비 수요 큼(역발상으론 바닥 근처 신호가 되기도)" if p >= 1.2 else
-                                                 "콜 우위: 상승 기대 쏠림" if p <= 0.7 else "중립 범위"))
+        L.append(f"풋/콜 미결제 비율 {p:.2f} — " + ("풋(하락 대비 보험)이 콜보다 많이 쌓임" if p >= 1.2 else
+                                                 "콜(상승 베팅)이 더 많이 쌓임" if p <= 0.7 else "중립 범위") +
+                 " · 방향 신호로는 검증 전")
     if o.get("put_wall") and o.get("call_wall"):
-        L.append(f"아래 풋 벽 {o['put_wall']['k']:.1f} (OI {o['put_wall']['oi']:,.0f}) · 위 콜 벽 {o['call_wall']['k']:.1f} (OI {o['call_wall']['oi']:,.0f}) — 만기({o['expiry'][5:]})까지 지지·저항 후보")
+        pw, cw = o["put_wall"]["k"], o["call_wall"]["k"]
+        L.append(f"미결제 최다 행사가: 아래 풋 {pw:.1f}({(pw/S-1)*100:+.0f}%) · 위 콜 {cw:.1f}({(cw/S-1)*100:+.0f}%) — "
+                 f"만기({o['expiry'][5:]})까지 '벽'이 된다는 주장은 검증 전, 위치 참고만")
     if o.get("gex_bn") is not None:
         neg = o["gex_bn"] < 0
-        L.append(f"감마 노출 근사 {o['gex_bn']:+,.0f}억/1% — " + ("음수: 딜러 헤지가 추세를 따라감 → 변동성 확대 구간(급락·급반등 모두 커짐)" if neg else
-                                                         "양수: 딜러 헤지가 반대로 움직임 → 변동성 억제·박스권 경향"))
+        L.append(f"감마 노출 근사 {o['gex_bn']:+,.0f}억/1% — " + ("음수: 시장이 흔들릴 때 헤지 매매가 흔들림을 키우는 쪽" if neg else
+                                                         "양수: 헤지 매매가 흔들림을 누그러뜨리는 쪽") +
+                 " (딜러가 콜 매수·풋 매도라는 가정 — 한국은 틀릴 수 있음. 방향 아님, 흔들림 크기 참고)")
         if o.get("flip"):
-            L.append(f"감마 전환점 ≈ {o['flip']:.1f} (현재 대비 {(o['flip']/S-1)*100:+.1f}%) — 이 위로 회복하면 변동성 진정 쪽")
+            L.append(f"감마 전환점 ≈ {o['flip']:.1f} (현재 대비 {(o['flip']/S-1)*100:+.1f}%) — 위 가정이 맞을 때만 의미")
     if o.get("atm_iv") and o.get("rv20"):
         vrp = o["atm_iv"] - o["rv20"]
         L.append(f"내재변동성(ATM) {o['atm_iv']*100:.0f}% vs 실현변동성(20일) {o['rv20']*100:.0f}% — " +
-                 ("옵션이 실제 움직임보다 비쌈: 공포 프리미엄. 보험(풋) 사기엔 비싼 구간" if vrp > 0.05 else
-                  "옵션이 실제 움직임보다 쌈: 시장이 변동성을 과소평가 — 헷지 사기엔 싼 구간" if vrp < -0.03 else "대체로 맞게 가격됨"))
+                 ("옵션 값이 최근 실제 흔들림보다 비쌈(공포 프리미엄) — 지금 보험(풋) 사기는 비싼 편" if vrp > 0.05 else
+                  "옵션 값이 최근 실제 흔들림보다 쌈 — 보험 사기엔 싼 편" if vrp < -0.03 else "대체로 맞게 가격됨"))
     if o.get("skew") is not None:
         L.append(f"스큐(5% 외가 풋 IV − 콜 IV) {o['skew']*100:+.1f}%p — " + ("하락 보험 수요가 강함" if o["skew"] > 0.05 else "상방 콜 수요 쪽" if o["skew"] < 0 else "보통"))
     f = o.get("fut") or {}
     if f.get("basis") is not None:
-        L.append(f"선물 베이시스 {f['basis']:+.2f}p — " + ("백워데이션: 선물이 현물보다 쌈, 매도 헤지 쏠림·차익 매수 유인" if f["basis"] < 0 else "콘탱고: 정상"))
+        L.append(f"선물 베이시스 {f['basis']:+.2f}p — " + ("선물이 현물보다 쌈(백워데이션). 배당·금리 이론값 대비로 봐야 정확 — 큰 음수가 며칠 이어지면 매도 헤지 쏠림" if f["basis"] < 0 else
+                                                      "선물이 현물보다 비쌈(콘탱고) — 보통 상태"))
     if o.get("max_pain"):   # 참고용 — 근거 약해 맨 뒤로 (텔레그램 상위 4줄에서 빠짐)
         L.append(f"(참고) 최대 고통 {o['max_pain']:.1f} — 옵션 매수자 손실이 최대인 만기 지수. '끌려간다'는 가설은 근거 약함, 매매 근거로 쓰지 말 것")
     return L
