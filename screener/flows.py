@@ -11,11 +11,13 @@ from __future__ import annotations
 import html as htmlmod
 import logging
 import re
-from datetime import date, timedelta
+from zoneinfo import ZoneInfo
+from datetime import datetime, date, timedelta
 
 import requests
 
 log = logging.getLogger(__name__)
+KST = ZoneInfo("Asia/Seoul")
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"}
 IDX_CODE = {"KOSPI": "1001", "KOSDAQ": "2001"}
 
@@ -109,6 +111,14 @@ def intraday_market_flows() -> dict:
                 out[name] = vals
         except Exception as e:  # noqa: BLE001
             log.warning("장중 투자자 %s 실패: %s", name, e)
+    if not out:   # 네이버 화면 개편 등으로 못 읽으면 KRX(pykrx) 당일 집계로
+        try:
+            out = {k: {w: v.get(w) for w in ("개인", "외국인", "기관") if v.get(w) is not None}
+                   for k, v in investor_totals(datetime.now(KST).date()).items()}
+            if out:
+                log.info("장중 시장 수급: KRX 당일 집계 사용")
+        except Exception as e:  # noqa: BLE001
+            log.warning("KRX 장중 수급 실패: %s", e)
     return out
 
 
@@ -130,6 +140,24 @@ def intraday_rank(investor: str, side: str = "buy", n: int = 7) -> list[dict]:
             nums = [x.replace(",", "") for x in re.findall(r">\s*([+-]?[\d,]+)\s*<", tr)]
             amt = float(nums[-1]) if nums else 0.0  # 마지막 숫자열 = 금액(백만원)
             rows.append({"code": m.group(1), "name": htmlmod.unescape(m.group(2)).strip(), "amt_mil": amt})
+    if not rows:   # KRX 당일 종목별 순매수(투자자별) — 유가·코스닥 합쳐 정렬
+        try:
+            from pykrx import stock  # type: ignore
+            ymd = datetime.now(KST).strftime("%Y%m%d")
+            name = {"외국인": "외국인", "기관": "기관합계"}[investor]
+            for mkt in ("KOSPI", "KOSDAQ"):
+                df = stock.get_market_net_purchases_of_equities(ymd, ymd, mkt, name)
+                if df is None or df.empty:
+                    continue
+                col = [c for c in df.columns if "순매수거래대금" in str(c)][0]
+                for code, r in df.iterrows():
+                    rows.append({"code": str(code).zfill(6), "name": str(r.get("종목명", code)),
+                                 "amt_mil": float(r[col]) / 1e6})
+            rows = [r for r in rows if (r["amt_mil"] > 0) == (side == "buy")]
+            if rows:
+                log.info("장중 %s %s 순위: KRX 당일 집계 사용", investor, side)
+        except Exception as e:  # noqa: BLE001
+            log.warning("KRX 장중 순위 실패: %s", e)
     rows.sort(key=lambda x: abs(x["amt_mil"]), reverse=True)
     return rows[:n]
 

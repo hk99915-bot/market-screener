@@ -176,6 +176,8 @@ def intraday_kr(send: bool = True) -> str:
             L.append(f"<b>{title}</b> " + ", ".join(f"{_esc(r['name'])}({abs(r['amt_mil'])/100:,.0f}억)" for r in rows[:6]))
     L.append("")
     line("외국인 순매수", fb); line("외국인 순매도", fs); line("기관 순매수", ib); line("기관 순매도", is_)
+    if not mf and not (fb or fs or ib or is_):
+        L.append("⚠ 장중 수급 데이터를 받지 못했습니다 (네이버·KRX 모두 응답 없음). 마감 후 확정치는 16:20 브리핑에 포함됩니다.")
 
     # 관심종목 교차
     try:
