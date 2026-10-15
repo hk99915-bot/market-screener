@@ -1,0 +1,217 @@
+"""파생·수급 이력 소스 탐침 (Actions 전용 — 로컬 샌드박스는 KRX·네이버 차단).
+
+python scripts/probe_deriv_sources.py  → 표준출력에 각 소스의 응답 모양을 찍는다.
+결과는 screener/deriv_hist.py 의 소스 선택 근거로 docstring 에 요약한다.
+"""
+from __future__ import annotations
+
+import json
+import re
+import sys
+import traceback
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
+
+import requests
+
+KST = ZoneInfo("Asia/Seoul")
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"}
+M_UA = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+        "Referer": "https://m.stock.naver.com/"}
+
+
+def hdr(t):
+    print("\n" + "=" * 8 + " " + t + " " + "=" * 8, flush=True)
+
+
+def txt(h, n=900):
+    h = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", " ", h, flags=re.I)
+    h = re.sub(r"<[^>]+>", " ", h)
+    h = re.sub(r"&nbsp;", " ", h)
+    return re.sub(r"\s+", " ", h)[:n]
+
+
+def krx_post(bld, **params):
+    from pykrx.website.comm.webio import get_session
+    params["bld"] = bld
+    s = get_session()
+    head = {"User-Agent": "Mozilla/5.0", "Referer": "https://data.krx.co.kr/contents/MDC/MDI/outerLoader/index.cmd",
+            "X-Requested-With": "XMLHttpRequest"}
+    if s is None:
+        return requests.post("https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd", data=params, headers=head, timeout=30)
+    h = s.get_headers()
+    h.update(head)
+    return s.session.post("https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd", data=params, headers=h, timeout=30)
+
+
+def krx_get(url):
+    from pykrx.website.comm.webio import get_session
+    s = get_session()
+    if s is None:
+        return requests.get(url, headers=UA, timeout=30)
+    h = s.get_headers()
+    return s.session.get(url, headers=h, timeout=30)
+
+
+def show_json(r, n=1200):
+    try:
+        j = r.json()
+    except Exception:  # noqa: BLE001
+        print("status", r.status_code, "non-json", r.text[:300].replace("\n", " "))
+        return None
+    if isinstance(j, dict):
+        print("status", r.status_code, "keys", list(j.keys())[:20])
+        for k, v in j.items():
+            if isinstance(v, list):
+                print(f"  {k}: list[{len(v)}]", json.dumps(v[:2], ensure_ascii=False)[:n])
+                if len(v) > 2:
+                    print("   ... last:", json.dumps(v[-1], ensure_ascii=False)[:400])
+    else:
+        print("status", r.status_code, json.dumps(j, ensure_ascii=False)[:n])
+    return j
+
+
+def step(name, fn):
+    hdr(name)
+    try:
+        fn()
+    except Exception:  # noqa: BLE001
+        traceback.print_exc(file=sys.stdout)
+
+
+def p_pykrx_flows():
+    from pykrx import stock
+    df = stock.get_market_trading_value_by_date("20100101", "20261231", "KOSPI")
+    print(df.shape, list(df.columns))
+    print(df.head(3).to_string())
+    print(df.tail(3).to_string())
+    df2 = stock.get_market_trading_value_by_date("20260901", "20261231", "KOSPI", detail=True)
+    print(df2.shape, list(df2.columns))
+    print(df2.tail(2).to_string())
+
+
+def p_krx_futboard():
+    today = datetime.now(KST).date()
+    for back in range(0, 4):
+        d = today - timedelta(days=back)
+        r = krx_post("dbms/MDC/STAT/standard/MDCSTAT12501", trdDd=d.strftime("%Y%m%d"), prodId="KRDRVFUK2I", mktTpCd="T", rghtTpCd="T")
+        j = r.json()
+        out = j.get("output") or []
+        print(d, "rows", len(out), "keys", list(out[0].keys()) if out else None)
+        for x in out:
+            nm = x.get("ISU_NM", "")
+            if "SP" in nm or "스프레드" in nm:
+                continue
+            print("  ", {k: x.get(k) for k in ("ISU_NM", "TDD_OPNPRC", "TDD_CLSPRC", "CMPPREVDD_PRC", "SPOT_PRC", "SETL_PRC", "ACC_TRDVOL", "ACC_TRDVAL", "ACC_OPNINT_QTY")})
+    # 미니·옵션 이름 확인 (야간 행)
+    r = krx_post("dbms/MDC/STAT/standard/MDCSTAT12501", trdDd=today.strftime("%Y%m%d"), prodId="KRDRVOPK2I", mktTpCd="T", rghtTpCd="T")
+    out = r.json().get("output") or []
+    nms = [x.get("ISU_NM", "") for x in out]
+    print("options rows", len(out), "야간 rows", sum("야간" in n for n in nms), "sample", nms[:3], [n for n in nms if "야간" in n][:3])
+    w = [n for n in nms if re.search(r"W|위클리", n)]
+    print("weekly-like names", len(w), w[:5])
+
+
+def p_krx_screens():
+    # 파생 투자자별·프로그램 화면의 bld 를 찾기 위해 화면 템플릿을 읽는다
+    for code in ["12501", "12502", "12601", "12602", "12701", "12801", "12802", "12901", "12902", "13001", "13002",
+                 "13101", "13102", "13103", "13201", "13202", "13301", "13302", "13401", "13501", "13601",
+                 "02601", "02602", "02701", "02702", "02801"]:
+        for url in (f"https://data.krx.co.kr/contents/MDC/STAT/standard/MDCSTAT{code}.cmd",):
+            try:
+                r = krx_get(url)
+                h = r.text
+                title = re.findall(r"<(?:h2|h3|title)[^>]*>([^<]{2,80})<", h)
+                blds = sorted(set(re.findall(r"dbms/MDC/[A-Z_/]+MDCSTAT\d+", h)))
+                params = sorted(set(re.findall(r"name=\"([a-zA-Z_]{3,20})\"", h)))[:40]
+                print(code, r.status_code, len(h), "title", title[:3], "blds", blds[:5], "params", params)
+            except Exception as e:  # noqa: BLE001
+                print(code, "ERR", e)
+
+
+def p_krx_inv_guess():
+    s, e = "20260901", "20261016"
+    trials = [
+        ("dbms/MDC/STAT/standard/MDCSTAT13101", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I", inqTpCd="2", trdVolVal="2", askBid="3")),
+        ("dbms/MDC/STAT/standard/MDCSTAT13102", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I", inqTpCd="2", trdVolVal="2", askBid="3")),
+        ("dbms/MDC/STAT/standard/MDCSTAT13102", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I", subProdId="", inqTpCd="2", trdVolVal="2", askBid="3", isuOpt="F")),
+        ("dbms/MDC/STAT/standard/MDCSTAT13001", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I")),
+        ("dbms/MDC/STAT/standard/MDCSTAT13002", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I")),
+        ("dbms/MDC/STAT/standard/MDCSTAT12601", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I")),
+        ("dbms/MDC/STAT/standard/MDCSTAT12701", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I")),
+        ("dbms/MDC/STAT/standard/MDCSTAT12801", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I")),
+        ("dbms/MDC/STAT/standard/MDCSTAT12901", dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I")),
+        ("dbms/MDC/STAT/standard/MDCSTAT02601", dict(strtDd=s, endDd=e, mktId="STK")),
+        ("dbms/MDC/STAT/standard/MDCSTAT02602", dict(strtDd=s, endDd=e, mktId="STK")),
+    ]
+    for bld, p in trials:
+        print("--", bld, p)
+        try:
+            show_json(krx_post(bld, **p), 500)
+        except Exception as e2:  # noqa: BLE001
+            print("ERR", e2)
+
+
+def p_naver_pc():
+    today = datetime.now(KST).date().strftime("%Y%m%d")
+    for path in [f"investorDealTrendDay.naver?bizdate={today}&sosok=",
+                 f"investorDealTrendDay.naver?bizdate={today}&sosok=01",
+                 f"investorDealTrendDay.naver?bizdate={today}&sosok=02",
+                 f"investorDealTrendDay.naver?bizdate={today}&sosok=03",
+                 f"investorDealTrendDay.naver?bizdate={today}&sosok=&page=40",
+                 f"programDealTrendDay.naver?bizdate={today}&sosok=",
+                 f"programDealTrendDay.naver?bizdate={today}&sosok=&page=40",
+                 "sise_index_day.naver?code=FUT",
+                 "sise_index.naver?code=FUT",
+                 "investorDealTrendTime.naver?bizdate=" + today + "&sosok=03"]:
+        url = "https://finance.naver.com/sise/" + path
+        try:
+            r = requests.get(url, headers={**UA, "Referer": "https://finance.naver.com/sise/"}, timeout=20)
+            r.encoding = "euc-kr"
+            print("--", path, r.status_code, len(r.text))
+            print("  ", txt(r.text, 700))
+        except Exception as e:  # noqa: BLE001
+            print("--", path, "ERR", e)
+
+
+def p_naver_mobile():
+    for path in ["api/index/FUT/basic", "api/index/FUT/integration", "api/index/KPI200/basic",
+                 "api/index/KOSPI/integration", "api/index/KOSPI/trend", "api/index/KOSPI/investor",
+                 "api/index/FUT/price?pageSize=5&page=1", "api/index/KOSPI/price?pageSize=5&page=1",
+                 "api/index/FUTN/basic", "api/index/NFUT/basic", "api/index/FUT_NIGHT/basic", "api/index/KPI200NF/basic"]:
+        url = "https://m.stock.naver.com/" + path
+        try:
+            r = requests.get(url, headers=M_UA, timeout=15)
+            print("--", path, r.status_code)
+            if r.ok:
+                j = show_json(r, 900)
+                if isinstance(j, dict) and "dealTrendInfos" in j:
+                    print("  dealTrendInfos:", json.dumps(j["dealTrendInfos"], ensure_ascii=False)[:1200])
+                if isinstance(j, dict) and path.endswith("basic"):
+                    print("  ", json.dumps(j, ensure_ascii=False)[:1200])
+        except Exception as e:  # noqa: BLE001
+            print("--", path, "ERR", e)
+    for url in ["https://api.stock.naver.com/index/KOSPI/integration", "https://api.stock.naver.com/index/FUT/basic",
+                "https://polling.finance.naver.com/api/realtime/domestic/index/FUT",
+                "https://polling.finance.naver.com/api/realtime?query=SERVICE_INDEX:FUT"]:
+        try:
+            r = requests.get(url, headers=M_UA, timeout=15)
+            print("--", url, r.status_code, r.text[:800].replace("\n", " "))
+        except Exception as e:  # noqa: BLE001
+            print("--", url, "ERR", e)
+
+
+def p_esignal_investing():
+    for url in ["https://www.esignal.co.kr/kospi200-futures-night/", "https://www.esignal.co.kr/",
+                "https://kr.investing.com/indices/korea-200-futures"]:
+        try:
+            r = requests.get(url, headers=UA, timeout=20)
+            print("--", url, r.status_code, len(r.text), txt(r.text, 400))
+        except Exception as e:  # noqa: BLE001
+            print("--", url, "ERR", e)
+
+
+if __name__ == "__main__":
+    only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
+    for nm in only:
+        step(nm, globals()["p_" + nm])
