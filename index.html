@@ -32,6 +32,7 @@
     getEvents: () => get('reports/events_stats.json'),
     getMacroHist: () => get('reports/macro_hist.json'),
     getStudy: () => get('reports/studies/crash_rebound.json'),
+    getCalendar: () => get('reports/calendar.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
@@ -303,6 +304,16 @@ function homeMyFill(){
     const go=()=>myFetch(hs.map(h=>[h.r.m,h.r.s]),fin);
     if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go(); });
 }
+let CAL=null;
+function calPanel(){
+  if(CAL===null){ CAL=false; google.script.run.withSuccessHandler(t=>{try{CAL=JSON.parse(t);}catch(e){CAL={};} const b=$('#homecal'); if(b) b.innerHTML=calPanel();}).withFailureHandler(()=>{CAL={};}).getCalendar(); return '<div class="load">LOADING …</div>'; }
+  if(!CAL||!CAL.events||!CAL.events.length) return '<div class="mu">캘린더 생성 전</div>';
+  let mine=new Set(); try{ myParse(myLoad()).filter(h=>h.key).forEach(h=>{const r=SIX&&SIX.length?myResolve(h.key):null; if(r) mine.add(r.s); else mine.add(h.key.toUpperCase());}); }catch(e){}
+  const today=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+  const ev=CAL.events.filter(e=>e.date>=today).slice(0,30);
+  const dd=d=>{const n=Math.round((new Date(d)-new Date(today))/864e5); return n===0?'오늘':n===1?'내일':`D-${n}`;};
+  return `<table>${ev.map(e=>{const my=e.ticker&&mine.has(e.ticker); return `<tr><td class="l mu" style="white-space:nowrap">${esc(e.date.slice(5))} <span class="${dd(e.date)==='오늘'||dd(e.date)==='내일'?'am':''}">${dd(e.date)}</span></td><td class="l" style="white-space:normal">${e.imp>=3?'⭐ ':''}${my?'📌 ':''}${e.ticker?`<span class="am sym" data-sym="${esc(e.ticker)}" data-mk="${e.market}">${esc(e.name)}</span>`:esc(e.name)}<div class="mu" style="font-size:11px">${esc(e.note||'')}</div></td></tr>`;}).join('')}</table><div class="mu" style="font-size:11px;margin-top:4px">${esc(CAL.note||'')}</div>`;
+}
 let EVS=null;
 function evPanel(){
   if(EVS===null){ EVS=false; google.script.run.withSuccessHandler(t=>{try{EVS=JSON.parse(t);}catch(e){EVS={};} const b=$('#homeev'); if(b) b.innerHTML=evPanel();}).withFailureHandler(()=>{EVS={};}).getEvents(); return '<div class="load">LOADING …</div>'; }
@@ -328,6 +339,7 @@ function homeView(){
    <div class="p c3"><h2>US CLASSES<small>${us.asof||''}</small></h2><div class="b">${cc(us)}</div></div>
    <div class="p c6"><h2>MY PORTFOLIO<small>MY 탭 입력 기준 · 최근 종가</small></h2><div class="b" id="homemy">${homeMyStub()}</div></div>
    <div class="p c6"><h2>EVENTS<small>서킷브레이커·사이드카 · 이후 코스피</small></h2><div class="b" id="homeev">${evPanel()}</div></div>
+   <div class="p c12"><h2>CALENDAR<small>실적·FOMC·CPI·만기 · 📌 = 내 보유</small></h2><div class="b" id="homecal">${calPanel()}</div></div>
    <div class="p c6"><h2>LATEST RESEARCH<small>${(D.reports||[]).length}</small></h2><div class="b">${repTable((D.reports||[]).slice(0,14))}</div></div>`;
   setTimeout(homeMyFill,0);
   h+=pre('premarket_kr','PREMARKET KR')+pre('close_KR','CLOSE KR')+pre('close_US','CLOSE US')+pre('intraday_kr','INTRADAY KR');

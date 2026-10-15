@@ -30,6 +30,7 @@ SHIM = """<script>
     getEvents: () => get('reports/events_stats.json'),
     getMacroHist: () => get('reports/macro_hist.json'),
     getStudy: () => get('reports/studies/crash_rebound.json'),
+    getCalendar: () => get('reports/calendar.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {

@@ -151,6 +151,16 @@ def brief() -> str | None:
         drv = f" · 드라이버 {r['drv']:+.2f}" if r["drv"] is not None else ""
         pnl = f" · 손익 {(r['v']/r['c']-1)*100:+.1f}%" if r["c"] else ""
         L.append(f"• {r['name']}{' (ETF)' if r['etf'] else ''} {r['v']/nav*100:.0f}% · 1D {(r['r1'] or 0)*100:+.1f}%{pnl}{drv}")
+    try:   # 보유 종목·규칙 관련 이벤트 7일 내
+        from .calendar_ev import upcoming
+        mine = {r["s"] for r in rows}
+        up = [e for e in upcoming(7) if e.get("ticker") in mine or e.get("imp", 1) >= 3]
+        if up:
+            L.append("")
+            L.append("<b>7일 내 이벤트</b>")
+            L += [f"• {e['date'][5:]} {'📌 ' if e.get('ticker') in mine else ''}{e['name']}" + (f" — {e['note']}" if e.get("note") else "") for e in up[:8]]
+    except Exception:  # noqa: BLE001
+        pass
     try:
         ev = json.loads((REPORT_DIR / "events_stats.json").read_text(encoding="utf-8"))
         rec = [e for e in ev.get("events", [])[:5] if not e.get("type", "").startswith("경보")]

@@ -147,6 +147,15 @@ def premarket_kr(send: bool = True) -> str:
         if n200 is not None and n200 < 0.4:
             L.append(f"⚠ 시장 폭 약함(200일선 위 {n200*100:.0f}%) — 개별 신호 신뢰도 낮음, 비중 보수적으로")
 
+    try:   # 오늘~모레 이벤트 (실적·매크로·만기)
+        from .calendar_ev import upcoming
+        up = upcoming(2)
+        if up:
+            L.append("")
+            L.append("<b>[이벤트 D-2]</b>")
+            L += [f"• {e['date'][5:]} {'⭐' if e.get('imp', 1) >= 3 else ''}{_esc(e['name'])}" + (f" — {_esc(e['note'])}" if e.get("note") else "") for e in up[:8]]
+    except Exception as e:  # noqa: BLE001
+        log.warning("이벤트 캘린더 실패: %s", e)
     msg = "\n".join(L)
     if send:
         send_telegram(msg)

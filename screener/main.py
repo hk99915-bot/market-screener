@@ -251,7 +251,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -283,9 +283,17 @@ def main() -> None:
                 events.stats()
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 통계 실패: %s", e)
+            try:
+                from . import calendar_ev
+                calendar_ev.build()
+            except Exception as e:  # noqa: BLE001
+                log.warning("캘린더 실패: %s", e)
             dashboard.build()
         elif a.mode == "detail_kr":   # 종목 상세만 재생성 (어제 종가 기준, 알림 없음)
             rebuild_detail_kr()
+        elif a.mode == "calendar":     # 실적·이벤트 캘린더
+            from . import calendar_ev
+            print(len(calendar_ev.build()["events"]))
         elif a.mode == "study":        # 검증 스터디 (급락 후 반등·레버리지 매매)
             from . import study
             study.run()
