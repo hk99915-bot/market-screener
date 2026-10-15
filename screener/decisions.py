@@ -8,7 +8,7 @@ reports/decisions.json:
 entry "close" = 결정일 종가, exit "next_open" = 다음 거래일 시가 / "next_close" / "d5_close"(5거래일 뒤 종가)
 entry "open"  = 결정일(세션일) 시가 — 미장 대결. exit "same_close" = 같은 날 종가,
                "d5_close" = 진입일 포함 5번째 세션 종가 (진입일 + 4거래일 뒤 종가; 시가 진입은 진입일 자체가 1세션이므로)
-채점: 야후 일봉(.KS) — 결정일 다음 거래일 데이터가 생기면 손익(%·원) 계산, 승자 표시.
+채점: KR = data/kr_prices.parquet(KRX 확정 종가) + 없는 날만 야후(.KS/.KQ), US = 야후 — 결정일 다음 거래일 데이터가 생기면 손익(%·원) 계산, 승자 표시.
 item["market"] = "KR"(기본) | "US" — tally_by_market 에 시장별 누적 전적.
 """
 from __future__ import annotations
@@ -45,14 +45,61 @@ def add(item: dict) -> None:
 
 
 def _bars(ticker: str, start: str) -> list[dict]:
+    if str(ticker).isdigit():
+        return _bars_kr(str(ticker), start)
+    return _bars_yf(ticker, start)
+
+
+def _bars_yf(t: str, start: str) -> list[dict]:
     import yfinance as yf
-    t = ticker if "." in ticker or not ticker.isdigit() else ticker + ".KS"
     df = yf.download(t, start=start, interval="1d", auto_adjust=False, progress=False)
     if df is None or not len(df):
         return []
     if hasattr(df.columns, "levels"):
         df.columns = [c[0] for c in df.columns]
     return [{"d": str(i.date()), "o": float(r["Open"]), "c": float(r["Close"])} for i, r in df.iterrows() if r["Close"] > 0]
+
+
+_KR_REFRESHED = False
+
+
+def _bars_kr(code: str, start: str) -> list[dict]:
+    """KR 일봉 = 스크리너와 같은 소스: data/kr_prices.parquet (KRX 확정 종가, 잠정일은 정규장 종가로 교정).
+    파켓에 아직 없는 날(오늘 장중 시가 등)만 야후(.KS/.KQ, KRX 정규장 시세)로 채움.
+    오늘(KST) 봉은 15:45 전이면 종가를 None 으로 — 장중 현재가로 채점하지 않음."""
+    global _KR_REFRESHED
+    from .data_krx import KST, PARQUET, refresh_recent
+    if not _KR_REFRESHED:   # 실행당 1회: 커밋된 파켓의 잠정 종가를 KRX 확정치로 교정
+        _KR_REFRESHED = True
+        try:
+            refresh_recent()
+        except Exception as e:  # noqa: BLE001
+            log.warning("KR 일봉 교정 실패 — 저장된 시세로 채점: %s", e)
+    bars: dict[str, dict] = {}
+    suf = ".KS"
+    try:
+        import polars as pl
+        px = pl.read_parquet(PARQUET).filter(pl.col("yf").str.starts_with(code + ".") & (pl.col("date") >= pl.lit(start).str.to_date()))
+        if len(px):
+            suf = px["yf"][0][len(code):]
+        for r in px.iter_rows(named=True):
+            if r["close"] > 0:
+                bars[str(r["date"])] = {"d": str(r["date"]), "o": float(r["open"]), "c": float(r["close"])}
+    except Exception as e:  # noqa: BLE001
+        log.warning("KR 일봉 파켓 읽기 실패 %s: %s", code, e)
+    try:
+        yb = _bars_yf(code + suf, start)
+        if not yb and suf == ".KS" and not bars:
+            yb = _bars_yf(code + ".KQ", start)
+        for b in yb:
+            bars.setdefault(b["d"], b)
+    except Exception as e:  # noqa: BLE001
+        log.warning("KR 야후 일봉 실패 %s: %s", code, e)
+    n = datetime.now(KST)
+    today = str(n.date())
+    if today in bars and n.hour * 60 + n.minute < 15 * 60 + 45:
+        bars[today] = {**bars[today], "c": None}
+    return [bars[k] for k in sorted(bars)]
 
 
 def _score_pick(p: dict, date: str) -> dict | None:
@@ -67,7 +114,7 @@ def _score_pick(p: dict, date: str) -> dict | None:
         return _score_open(p, date, bars)
     day = next((b for b in bars if b["d"] == date), None)
     after = [b for b in bars if b["d"] > date]
-    if not day or not after:
+    if not day or not after or day["c"] is None:
         return None
     buy = day["c"]
     ex = p.get("exit", "next_open")
@@ -79,6 +126,8 @@ def _score_pick(p: dict, date: str) -> dict | None:
         if len(after) < 5:
             return None
         sell, when = after[4]["c"], after[4]["d"] + " 종가"
+    if sell is None:
+        return None
     cost = 0.0005
     r = sell / buy - 1 - cost
     return {"ret": round(r, 4), "pnl": round(r * (p.get("notional") or 0)), "buy": round(buy, 2), "sell": round(sell, 2),
@@ -99,6 +148,8 @@ def _score_open(p: dict, date: str, bars: list[dict]) -> dict | None:
         sell, when = seq[4]["c"], seq[4]["d"] + " 종가"
     else:
         sell, when = seq[0]["c"], seq[0]["d"] + " 종가"
+    if sell is None:
+        return None
     cost = 0.0005
     r = sell / buy - 1 - cost
     return {"ret": round(r, 4), "pnl": round(r * (p.get("notional") or 0)), "buy": round(buy, 2), "sell": round(sell, 2),

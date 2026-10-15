@@ -245,13 +245,17 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
 
 
 def rebuild_detail_kr() -> None:
-    """저장된 KR 일봉(어제 종가까지)으로 종목 상세 파일만 다시 생성. 알림·리포트·매크로 상태는 건드리지 않음."""
+    """저장된 KR 일봉으로 종목 상세 파일만 다시 생성 (최근 영업일은 KRX 확정치로 교정). 알림·리포트·매크로 상태는 건드리지 않음."""
     import json as _json
     from .config import REPORT_DIR
     mc = CFG.kr
     uni = universe.kr_universe()
     if mc.min_mcap and "mcap" in uni.columns and uni["mcap"].null_count() < len(uni):
         uni = uni.filter(pl.col("mcap").is_null() | (pl.col("mcap") >= mc.min_mcap))
+    try:   # 최근 영업일 잠정 종가(시간외·NXT 반영)를 KRX 확정치/정규장 종가로 교정. 16:00 KST 전엔 어제까지만.
+        data_krx.refresh_recent()
+    except Exception as e:  # noqa: BLE001
+        log.warning("KR 일봉 교정 실패 — 저장된 시세 사용: %s", e)
     px = pl.read_parquet(DATA_DIR / "kr_prices.parquet").filter(pl.col("yf").is_in(uni["yf"].implode()))
     full = indicators.add_indicators(px)
     last = indicators.latest(full).join(uni.select("yf", "symbol", "name", "market"), on="yf", how="left")
