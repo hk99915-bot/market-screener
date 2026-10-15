@@ -254,7 +254,7 @@ function repLine(r){
   const TC={'낙관':'up','긍정(유지)':'up','신중한 매수':'am','사실상 중립':'am','중립':'mu','매도':'dn','의견 없음':'mu'};
   const tone=r.tone?`<span class="tone ${TC[r.tone]||'mu'}">${esc(r.tone)}${r.tone_why?` <i>${esc(r.tone_why)}</i>`:''}</span>`:'';
   const ev=(r.evidence||[]).map(x=>`<li>${esc(x)}</li>`).join('');
-  const body=(r.thesis||ev||r.risk||r.method)?`<div class="sm"><div><span class="k">논지</span>${esc(r.thesis||r.title||'')}</div>${ev?`<div><span class="k">근거</span><ul>${ev}</ul></div>`:''}${r.risk?`<div><span class="k">변수</span>${esc(r.risk)}</div>`:''}${r.method?`<div><span class="k">밸류</span>${esc(r.method)}</div>`:''}</div>`:(r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:'');
+  const body=(r.thesis||ev||r.risk||r.method)?`<div class="sm">${r.view?`<div><span class="k">핵심</span><b>${esc(r.view)}</b></div>`:''}<div><span class="k">논지</span>${esc(r.thesis||r.title||'')}</div>${ev?`<div><span class="k">근거</span><ul>${ev}</ul></div>`:''}${r.risk?`<div><span class="k">변수</span>${esc(r.risk)}</div>`:''}${r.method?`<div><span class="k">밸류</span>${esc(r.method)}</div>`:''}</div>`:(r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:'');
   return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b>${anBadge(r)} · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} ${tone} ${r.link?`<a href="${esc(r.link)}" target="_blank">원문</a>`:''}</div>${body}</div>`;
 }
 function stockRows(ss,showSec){ if(!ss.length) return '<div class="mu">해당 기간 리포트 없음</div>';

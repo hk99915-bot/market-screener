@@ -118,11 +118,22 @@ def write_research(days: int = 180) -> int:
         last = (pl.read_parquet(pp, columns=["yf", "date", "close"]).sort("date").group_by("yf").last()
                   .with_columns(pl.col("yf").str.slice(0, 6).alias("code")).filter(pl.col("code").is_in(sorted(codes))))
         close = dict(zip(last["code"].to_list(), [round(float(x), 2) for x in last["close"].to_list()]))
-    for it in items:
+    manual = {}
+    try:   # 사람이(또는 대화 중 Claude 가) 원문을 읽고 정리한 요약이 있으면 규칙 기반 결과보다 우선
+        from pathlib import Path
+        mp = Path(__file__).resolve().parents[1] / "notes" / "research_manual.json"
+        manual = json.loads(mp.read_text(encoding="utf-8")) if mp.exists() else {}
+    except Exception as e:  # noqa: BLE001
+        log.warning("수동 요약 로드 실패: %s", e)
+    keys = df["key"].to_list()
+    for k, it in zip(keys, items):
         try:
             it.update(research.structure(it, close.get(it["code"])))
         except Exception as e:  # noqa: BLE001
             log.debug("구조화 실패 %s: %s", it.get("code"), e)
+        if k in manual:
+            it.update({f: v for f, v in manual[k].items() if f in ("thesis", "evidence", "risk", "method", "tone", "tone_why", "view")})
+            it["curated"] = True
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "days": days, "items": items, "close": close}
     (REPORT_DIR / "research.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     return len(items)
