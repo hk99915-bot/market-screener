@@ -212,28 +212,74 @@ def intraday_kr(send: bool = True) -> str:
         L.append("")
         L.append("<b>[시총 상위]</b> " + " · ".join(f"{_esc(t['name'])} {t['chg']:+.1f}%" for t in top if t.get("chg") is not None))
 
-    # 4) 해석 (규칙 기반)
+    # 4) 해석 (규칙 기반, 문장형)
     notes = []
     ks, kq = snap.get("KOSPI", {}), idx.get("KOSPI", {})
-    if k.get("외국인") is not None and k["외국인"] < -10000:
-        notes.append(f"외국인 현물 {abs(k['외국인'])/10000:.1f}조 순매도로 지수 하락 주도")
-    if ks.get("prog_nonarb") is not None and ks["prog_nonarb"] < -5000:
-        notes.append("비차익 프로그램 매도 대규모 — 바스켓(패시브·외국인) 매도 성격")
-    if k.get("개인") and k.get("개인") > 5000 and (kq.get("chg") or 0) < -0.02:
-        notes.append("개인 저가 매수 유입")
+    chg = kq.get("chg")
+    # ① 지수 위치: 장중 고저 범위 안에서 어디에 있나
+    if ks.get("high") and ks.get("low") and ks.get("prev") and kq.get("last"):
+        hi, lo, pv, la = ks["high"], ks["low"], ks["prev"], kq["last"]
+        up_from_low = (la - lo) / pv * 100
+        dn_from_high = (hi - la) / pv * 100
+        pos = (la - lo) / (hi - lo) if hi > lo else 0.5
+        if up_from_low >= 1.0 or (pos >= 0.35 and up_from_low >= 0.8):
+            notes.append(f"코스피 {chg*100:+.2f}%, 장중 저점({(lo/pv-1)*100:+.1f}%)에서 <b>{up_from_low:.1f}%p 회복</b> — 저점은 일단 지켜지는 중")
+        elif pos <= 0.15:
+            notes.append(f"코스피 {chg*100:+.2f}%, <b>장중 저점 부근</b> — 매도 압력이 아직 그치지 않음")
+        else:
+            notes.append(f"코스피 {chg*100:+.2f}%, 장중 고점 대비 {dn_from_high:.1f}%p 밀린 상태 (범위 중간)")
+    # ② 누가 팔고 누가 받나
+    if k.get("외국인") is not None:
+        f, i2, ind = k.get("외국인", 0), k.get("기관", 0), k.get("개인", 0)
+        jo = lambda v: f"{v/10000:+.2f}조" if abs(v) >= 10000 else f"{v:+,.0f}억"  # noqa: E731
+        if f < -5000 and (i2 > 0 or ind > 0):
+            buyers = " · ".join(x for x in (f"기관 {jo(i2)}" if i2 > 0 else "", f"개인 {jo(ind)}" if ind > 0 else "") if x)
+            notes.append(f"외국인 현물 <b>{jo(f)}</b>가 하락의 주범, {buyers}가 받아 주는 중")
+        elif f > 5000 and i2 > 0:
+            notes.append(f"외국인 {jo(f)}·기관 {jo(i2)} 동반 매수 — 수급이 지수를 받치는 중")
+        elif f < 0 and i2 < 0:
+            notes.append(f"외국인 {jo(f)}·기관 {jo(i2)} 동반 매도 — 개인만 받는 구조, 반등 동력 약함")
+    # ③ 프로그램
+    arb, nar = ks.get("prog_arb"), ks.get("prog_nonarb")
+    if arb is not None and chg is not None:
+        if arb > 3000 and chg < -0.01:
+            notes.append(f"프로그램 <b>차익 {arb:+,.0f}억</b> — 선물이 과하게 빠졌다 붙으며 차익 매수 유입. 바닥권에서 자주 나오지만, 선물이 되밀리면 매도로 바뀔 수 있음")
+        elif arb < -3000:
+            notes.append(f"프로그램 차익 {arb:+,.0f}억 — 선물 약세로 차익 매도, 하락 가속 요인")
+    if nar is not None and nar < -5000:
+        notes.append(f"비차익 {nar:+,.0f}억 — 바스켓(패시브·외국인) 매도 성격")
+    elif nar is not None and nar > 5000:
+        notes.append(f"비차익 {nar:+,.0f}억 — 바스켓 매수 유입")
+    # ④ 시장 폭·대형주
     if ks.get("up") is not None and ks.get("down"):
         r = ks["down"] / max(ks["up"] + ks["down"], 1)
         if r > 0.85:
             notes.append(f"하락 종목 {r*100:.0f}% — 업종 불문 전면 투매")
         elif r < 0.3:
-            notes.append("상승 종목 우세 — 지수보다 체감 장세가 강함")
-    if top:
+            notes.append(f"상승 종목 {100-r*100:.0f}% — 지수보다 체감 장세가 강함")
+    if top and chg is not None:
         big = [t for t in top[:3] if t.get("chg") is not None]
-        if big and kq.get("chg") is not None and min(t["chg"] for t in big) / 100 < kq["chg"] - 0.02:
-            notes.append("대형주가 지수보다 더 빠짐 — 반도체 등 시총 상위 집중 매도")
+        if big and min(t["chg"] for t in big) / 100 < chg - 0.02:
+            worst = sorted(big, key=lambda t: t["chg"])[:2]
+            notes.append("대형주가 지수보다 더 빠짐 (" + ", ".join(f"{_esc(t['name'])} {t['chg']:+.1f}%" for t in worst) + ") — 시총 상위 집중 매도")
+        elif big and min(t["chg"] for t in big) / 100 > chg + 0.01:
+            notes.append("대형주가 지수보다 덜 빠짐 — 중소형 쪽 매도가 더 큼")
+    # ⑤ 역사적 맥락 (검증 스터디)
+    if chg is not None and chg <= -0.05:
+        try:
+            import json as _j
+            stu = _j.loads((REPORT_DIR / "studies" / "crash_rebound.json").read_text(encoding="utf-8"))
+            dp = (stu.get("conditional") or {}).get("deep_(20일 −15% 이상 하락 중)", {})
+            d5 = (stu.get("drop_days") or {}).get("-5%", {})
+            if d5.get("d1"):
+                notes.append(f"역사적으로 코스피 −5% 이하 날 다음날 상승 {d5['d1']['up']*100:.0f}% (평균 {d5['d1']['avg']*100:+.1f}%)"
+                             + (f", 이미 20일 −15% 빠진 상태면 {dp['d1']['up']*100:.0f}%" if dp.get("d1") else "") + " — 1999년 이후")
+        except Exception:  # noqa: BLE001
+            pass
     if notes:
         L.append("")
-        L.append("<b>[해석]</b> " + " · ".join(notes))
+        L.append("<b>[해석]</b>")
+        L += [f"• {x}" for x in notes]
     try:
         from . import dashboard
         dashboard.put_state("intraday_snapshot", {"flows": mf, "snap": snap, "notes": notes})
