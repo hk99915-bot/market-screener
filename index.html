@@ -185,6 +185,15 @@ function repTable(rows){
   if(!rows||!rows.length) return '<div class="mu">—</div>';
   return `<table><tr><th class="l">DATE</th><th class="l">NAME</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th><th class="l">TITLE</th></tr>`+rows.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${num(r.target)}</td><td class="l">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title).slice(0,50)}</a>`:esc(r.title).slice(0,50)}</td></tr>`).join('')+'</table>';
 }
+function finTable(f,kr){
+  if(!kr) return '<div class="mu">미국 종목 재무는 아직 미지원</div>';
+  const q=(f&&f.quarters)||[]; if(!q.length) return '<div class="mu">재무 데이터 없음 (DART 수집 대기 중이거나 대상 밖)</div>';
+  const n=v=>v==null?'—':num(v,0), m=(a,b)=>a!=null&&b?`${(a/b*100).toFixed(1)}%`:'—';
+  const yoy=(i,k)=>{const p=q[i-4]; return p&&p[k]&&q[i][k]!=null?pct(q[i][k]/p[k]-1,0):'';};
+  const row=(l,k,fmt)=>`<tr><td class="l mu">${l}</td>${q.map((r,i)=>`<td>${fmt?fmt(r,i):n(r[k])}</td>`).join('')}<td class="am">${f.ttm&&k?n(f.ttm[k]):''}</td></tr>`;
+  return `<div style="overflow:auto"><table><tr><th class="l">항목</th>${q.map(r=>`<th>${r.period}</th>`).join('')}<th>TTM</th></tr>
+   ${row('매출','revenue')}${row('  YoY','',(r,i)=>yoy(i,'revenue'))}${row('영업이익','op')}${row('  OPM','',(r)=>m(r.op,r.revenue))}${row('순이익','ni')}${row('영업현금흐름','cfo')}${row('CAPEX','capex')}${row('자본총계','equity')}${row('부채총계','liab')}</table></div>`;
+}
 let DS=null, DV={c:'ALL',q:'',d:7};
 const FLAGC={'희석':'dn','주의':'dn','정정':'mu'};
 function discTable(rows,withName){ return `<table><tr><th class="l">날짜</th>${withName?'<th class="l">종목</th>':''}<th class="l">유형</th><th class="l">공시</th></tr>${rows.map(r=>`<tr><td class="l mu">${r.date}</td>${withName?`<td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td>`:''}<td class="l">${esc(r.category)}${r.flag?` <b class="${FLAGC[r.flag]||'am'}">${esc(r.flag)}</b>`:''}</td><td class="l"><a href="${esc(r.link)}" target="_blank">${esc(r.title)}</a></td></tr>`).join('')}</table>`; }
@@ -301,6 +310,7 @@ function renderDetail(sym,mk,s){
    <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
    <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<div style="margin-top:6px;max-height:340px;overflow:auto">${rs.items.map(repLine).join('')}</div>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
    <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
+   <div class="p c12"><h2>FINANCIALS<small>DART · 단독 분기 · 억원${s.financials?.quarters?.length?'':''}</small></h2><div class="b">${finTable(s.financials,kr)}</div></div>
    <div class="p c12"><h2>DISCLOSURES<small>DART · 최근 180일 주요 공시</small></h2><div class="b">${(s.disclosures||[]).length?discTable(s.disclosures,false):'<div class="mu">'+(kr?'최근 주요 공시 없음 (또는 DART 키 미설정)':'미국 종목은 DART 대상 아님')+'</div>'}</div></div>
    <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">
      <div class="k"><div class="t up">▲ BULL</div><div>${esc(sc.bull?.trigger||'')}</div><div>목표 <b class="am">${lvl(sc.bull?.target)}</b> (${sc.bull?.upside!=null?(sc.bull.upside>0?'+':'')+sc.bull.upside.toFixed(1)+'%':'—'}) <span class="mu">${esc(sc.bull?.note||'')}</span></div></div>

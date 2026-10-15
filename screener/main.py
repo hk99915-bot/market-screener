@@ -130,7 +130,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -149,6 +149,9 @@ def main() -> None:
             except Exception as e:  # noqa: BLE001
                 log.warning("리포트 갱신 실패: %s", e)
             dashboard.build()
+        elif a.mode == "fin":         # 재무제표 수집 (알림 없음)
+            from . import fin
+            print(fin.update())
         elif a.mode == "dart":        # 알림 없이 공시만 수집 (최근 7일)
             from . import dart
             df, n = dart.update(days=7)

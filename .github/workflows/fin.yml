@@ -1,0 +1,40 @@
+name: financials
+
+# DART 재무제표 수집 (주요계정: 전 종목 / 전체 재무제표: 우선 300종목, 실행당 3,000콜 예산)
+on:
+  schedule:
+    - cron: "30 18 * * *"   # 03:30 KST 매일 (백필이 끝나면 새 분기 보고서만 받음)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fin
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 수집
+        env:
+          PYTHONUNBUFFERED: "1"
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: python -m screener.main --mode fin --no-send
+      - name: 저장
+        if: always()
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          for p in data/fin universe/dart_corp.csv reports/last_error.txt; do [ -e "$p" ] && git add -A "$p"; done; true
+          git diff --cached --quiet && exit 0
+          git commit -m "fin: $(date -u +%FT%H:%M)"
+          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done

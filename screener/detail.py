@@ -161,6 +161,17 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         log.info("일괄 수급 %d종목", len(flows))
         if not flows:   # 일괄 조회가 막히면 상위 150종목만 종목별로
             flows = _flows_kr(_targets(last)[:150], asof)
+    fins: dict[str, dict] = {}
+    if market == "KR":
+        try:
+            from . import fin
+            for s0 in syms:
+                v = fin.summary(s0)
+                if v:
+                    fins[s0] = v
+            log.info("재무 요약 %d종목", len(fins))
+        except Exception as e:  # noqa: BLE001
+            log.warning("재무 요약 실패: %s", e)
     discl = {}
     if market == "KR":
         try:
@@ -191,6 +202,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                          "brokers30": r.get("rp_brokers30"), "n30": r.get("rp_n30")},
             "flows": fl, "flow_note": flow_note,
             "disclosures": discl.get(s, []),
+            "financials": fins.get(s, {}),
             "chart": ch,
             "scenarios": _scenarios(r, ch),
             "comment": {"stock": stock_comment(r, max_parts=5), "macro": _macro_view(r, mr, regime_line, br)},
