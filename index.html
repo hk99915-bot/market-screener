@@ -1,0 +1,320 @@
+<!doctype html>
+<!-- 자동 생성: apps-script/Index.html + Pages 심. 화면 수정은 apps-script/Index.html 에서 하고 이 파일도 같이 갱신 -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MARKET TERMINAL</title>
+<script>
+/* GitHub Pages 용: Apps Script 의 google.script.run 을 같은 저장소 파일 fetch 로 대체 */
+(function(){
+  const get = p => fetch(p + '?t=' + Date.now(), {cache: 'no-store'}).then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' (' + p + ')'); return r.text(); });
+  const api = {
+    getData: () => get('reports/dashboard.json').then(t => JSON.parse(t)),
+    getDetail: m => get('reports/detail_' + m + '.json'),
+    getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
+  };
+  function runner(ok, fail) {
+    const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
+    for (const k in api) r[k] = (...a) => api[k](...a).then(v => ok && ok(v), e => fail ? fail(e) : console.error(e));
+    return r;
+  }
+  window.google = { script: { run: runner() } };
+})();
+</script>
+
+<style>
+  :root{
+    --bg:#000; --panel:#0b0b0b; --line:#2a2a2a; --amber:#ff9a1f; --amber-dim:#9a5f14;
+    --txt:#e8e8e8; --muted:#8a8a8a; --up:#2fd05a; --dn:#ff4b4b; --blue:#4aa3ff; --cyan:#35d6e6;
+    --mono:"IBM Plex Mono","Consolas","Menlo","Noto Sans Mono CJK KR",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--txt);font:12.5px/1.45 var(--mono);-webkit-font-smoothing:antialiased}
+  a{color:var(--cyan);text-decoration:none}
+  .top{display:flex;align-items:center;gap:14px;padding:6px 12px;background:#111;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .brand{color:var(--amber);font-weight:700;letter-spacing:.12em}
+  .clock{color:var(--muted)}
+  .tabs{display:flex;gap:2px;margin-left:auto}
+  .tabs button{background:#1a1a1a;color:var(--muted);border:1px solid var(--line);padding:4px 10px;font:inherit;cursor:pointer;letter-spacing:.06em}
+  .tabs button.on{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}
+  .tape{white-space:nowrap;overflow:hidden;background:#070707;border-bottom:1px solid var(--line);padding:4px 0}
+  .tape span{display:inline-block;padding:0 18px;color:var(--muted)}
+  .tape b{color:var(--txt);font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;padding:8px}
+  .p{background:var(--panel);border:1px solid var(--line);min-width:0}
+  .p h2{margin:0;padding:5px 8px;background:#161616;color:var(--amber);font-size:11.5px;letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  .p h2 small{color:var(--muted);font-weight:400;letter-spacing:0}
+  .p .b{padding:6px 8px;overflow:auto}
+  .c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
+  @media(max-width:1100px){.c3,.c4{grid-column:span 6}.c8{grid-column:span 12}}
+  @media(max-width:700px){.c3,.c4,.c6,.c8{grid-column:span 12}.tabs button{padding:4px 7px}}
+  table{border-collapse:collapse;width:100%;white-space:nowrap}
+  th{color:var(--muted);text-align:right;font-weight:400;padding:2px 6px;border-bottom:1px solid var(--line);letter-spacing:.05em}
+  td{padding:2px 6px;text-align:right;border-bottom:1px solid #141414}
+  th:first-child,td:first-child,th.l,td.l{text-align:left}
+  tr:hover td{background:#141414}
+  .up{color:var(--up)}.dn{color:var(--dn)}.mu{color:var(--muted)}.am{color:var(--amber)}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
+  .kv div:nth-child(odd){color:var(--muted)}
+  .bar{height:6px;background:#1c1c1c;position:relative;margin:2px 0 6px}
+  .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber)}
+  .tag{display:inline-block;padding:0 5px;border:1px solid var(--amber-dim);color:var(--amber);font-size:10.5px;margin-right:4px}
+  .tag.g{border-color:#1f6b33;color:var(--up)}.tag.r{border-color:#7a2020;color:var(--dn)}.tag.b{border-color:#2a4f7a;color:var(--blue)}
+  pre{margin:0;white-space:pre-wrap;color:#d0d0d0;font:inherit}
+  .err{background:#2a0e0e;color:#ffb3b3;border:1px solid #5a1a1a;padding:6px 8px;margin:8px}
+  .spark{display:flex;align-items:flex-end;gap:1px;height:34px}
+  .spark i{flex:1;background:var(--amber-dim)}.spark i.last{background:var(--amber)}
+  .load{padding:40px;text-align:center;color:var(--muted);letter-spacing:.2em}
+  .md{padding:10px 14px;max-width:1200px}
+  .md table{white-space:normal}
+  .md h1,.md h2{color:var(--amber);letter-spacing:.08em;font-size:13px;margin:14px 0 6px}
+  td.sym{cursor:pointer;text-decoration:underline dotted}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(980px,100vw);background:#070707;border-left:1px solid var(--amber-dim);z-index:20;overflow:auto;box-shadow:-10px 0 30px #000;display:none}
+  .drawer.on{display:block}
+  .drawer .hd{position:sticky;top:0;background:#111;border-bottom:1px solid var(--line);padding:8px 12px;display:flex;gap:14px;align-items:baseline}
+  .drawer .hd b{color:var(--amber);font-size:15px;letter-spacing:.06em}
+  .drawer .hd .x{margin-left:auto;cursor:pointer;color:var(--muted);border:1px solid var(--line);padding:2px 8px}
+  .drawer .grid{padding:8px}
+  canvas{display:block;width:100%;height:260px;background:#050505}
+  .sc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .sc div.k{border:1px solid var(--line);padding:6px 8px}
+  .sc .t{letter-spacing:.1em;font-size:11px;margin-bottom:4px}
+  .backdrop{position:fixed;inset:0;background:#0008;z-index:19;display:none}.backdrop.on{display:block}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="brand">MARKET TERMINAL</span>
+  <span class="clock" id="clock">—</span>
+  <span class="mu" id="gen"></span>
+  <div class="tabs">
+    <button class="on" data-v="home">HOME</button>
+    <button data-v="kr">KR</button>
+    <button data-v="us">US</button>
+    <button data-v="rep">RESEARCH</button>
+    <button data-v="brief">BRIEFS</button>
+    <button data-v="mdkr">KR FULL</button>
+    <button data-v="mdus">US FULL</button>
+  </div>
+</div>
+<div class="tape" id="tape"></div>
+<div id="root"><div class="load">LOADING …</div></div>
+<div class="backdrop" id="bd"></div>
+<div class="drawer" id="dr"><div class="hd"><b id="dr-t">—</b><span id="dr-s" class="mu"></span><span class="x" id="dr-x">ESC ✕</span></div><div id="dr-b"></div></div>
+
+<script>
+const CLS={TREND_LONG:'추세상승',TREND_OVEREXTENDED:'추세과열',PULLBACK_IN_UPTREND:'눌림',COUNTERTREND_BOUNCE:'역추세반등',TREND_SHORT:'추세하락',NEUTRAL:'중립',OVEREXTENDED:'과열'};
+const SEC=[['TREND_LONG','TREND LONG'],['PULLBACK_IN_UPTREND','PULLBACK IN UPTREND'],['COUNTERTREND_BOUNCE','COUNTERTREND BOUNCE'],['OVEREXTENDED','OVEREXTENDED / RISK≥60'],['TREND_SHORT','TREND SHORT']];
+let D=null, view='home';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pct=(x,d=1)=>x==null?'':`<span class="${x>0?'up':x<0?'dn':'mu'}">${(x*100).toFixed(d)>0?'+':''}${(x*100).toFixed(d)}%</span>`;
+const num=(x,d=0)=>x==null?'':Number(x).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
+const n0=x=>x==null?'':Math.round(x);
+function tick(){const t=new Date();$('#clock').textContent=t.toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false});}
+setInterval(tick,1000);tick();
+
+function sigTable(rows,market){
+  if(!rows||!rows.length) return '<div class="mu">—</div>';
+  const kr=market==='KR';
+  return `<table><tr><th class="l">SYM</th><th class="l">NAME</th><th>PX</th><th>1D</th><th>20D</th><th>T</th><th>M</th><th>RISK</th><th>ADX</th><th>RSI</th><th>52H</th><th>VOL×</th><th class="l">CLS</th></tr>`+
+  rows.map(r=>`<tr><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${market}">${esc(r.symbol)}</td><td class="l">${esc(r.name).slice(0,16)}</td><td>${num(r.close,kr?0:2)}</td><td>${pct(r.ret1)}</td><td>${pct(r.ret20)}</td><td class="am">${n0(r.trend_score)}</td><td>${n0(r.momentum_score)}</td><td class="${r.reversal_risk>=60?'dn':''}">${n0(r.reversal_risk)}</td><td>${n0(r.adx14)}</td><td>${n0(r.rsi14)}</td><td>${pct(r.from_high52,0)}</td><td class="${r.vol_ratio>=3?'am':''}">${(r.vol_ratio??0).toFixed(1)}</td><td class="l mu">${CLS[r.class]||r.class||''}</td></tr>`).join('')+'</table>';
+}
+function breadthPanel(mk){
+  const b=(D.breadth||[]).filter(x=>x.market===mk);
+  if(!b.length) return `<div class="mu">—</div>`;
+  const L=b[b.length-1];
+  const sp=b.slice(-30).map((x,i,a)=>`<i class="${i===a.length-1?'last':''}" style="height:${Math.max(2,(x.pct_above200||0)*34)}px" title="${x.date} ${Math.round(x.pct_above200*100)}%"></i>`).join('');
+  const bar=(l,v)=>`<div>${l} <b>${Math.round(v*100)}%</b></div><div class="bar"><i style="width:${v*100}%"></i></div>`;
+  return `<div class="mu">${L.date} · n=${L.n}</div>${bar('ABOVE 20D',L.pct_above20)}${bar('ABOVE 50D',L.pct_above50)}${bar('ABOVE 200D',L.pct_above200)}
+  <div class="kv"><div>ADV/DEC</div><div><span class="up">${L.adv}</span> / <span class="dn">${L.dec}</span></div><div>52W HI/LO</div><div><span class="up">${L.new_high52}</span> / <span class="dn">${L.new_low52}</span></div></div>
+  <div class="mu" style="margin-top:6px">% ABOVE 200D · 30 SESSIONS</div><div class="spark">${sp}</div>`;
+}
+function macroPanel(mk){
+  const m=(D.state||{})['macro_'+mk]; if(!m||!m.value||!m.value.length) return '<div class="mu">—</div>';
+  const reg=(D.state||{})['regime_'+mk];
+  return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
+}
+function pre(key,title){
+  const s=(D.state||{})[key]; if(!s||!s.value) return '';
+  const txt=String(s.value).replace(/<[^>]+>/g,'');
+  return `<div class="p c6"><h2>${title}<small>${s.at}</small></h2><div class="b"><pre>${esc(txt)}</pre></div></div>`;
+}
+function marketView(mk){
+  const S=D[mk.toLowerCase()]||{}; const sec=S.sections||{};
+  let h=`<div class="grid">
+    <div class="p c4"><h2>BREADTH ${mk}</h2><div class="b">${breadthPanel(mk)}</div></div>
+    <div class="p c8"><h2>MACRO CONTEXT<small>score 미반영</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
+  const mc=(D.state||{})['market_comment_'+mk];
+  if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
+  for(const [k,t] of SEC){const s=sec[k]; if(!s) continue; h+=`<div class="p c12"><h2>${t}<small>top ${s.rows.length} / ${s.total}</small></h2><div class="b">${sigTable(s.rows,mk)}</div></div>`;}
+  const an=(D.anomalies||{})[mk]||[];
+  if(an.length) h+=`<div class="p c12"><h2>ANOMALIES<small>vol≥3× or gap≥5%</small></h2><div class="b"><table><tr><th class="l">SYM</th><th class="l">NAME</th><th>1D</th><th>GAP</th><th>VOL×</th><th class="l">CLS</th></tr>${an.map(r=>`<tr><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${mk}">${esc(r.symbol)}</td><td class="l">${esc(r.name)}</td><td>${pct(r.ret1)}</td><td>${pct(r.gap)}</td><td class="am">${(r.vol_ratio??0).toFixed(1)}</td><td class="l mu">${CLS[r.class]||''}</td></tr>`).join('')}</table></div></div>`;
+  h+=pre('close_'+mk,'CLOSE COMMENT')+pre('telegram_'+mk,'TELEGRAM SUMMARY')+'</div>';
+  return h;
+}
+function homeView(){
+  const kr=D.kr||{},us=D.us||{};
+  const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
+  const w=D.watchlist||[];
+  let h=`<div class="grid">
+   <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
+   <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
+   <div class="p c3"><h2>KR CLASSES<small>${kr.asof||''}</small></h2><div class="b">${cc(kr)}</div></div>
+   <div class="p c3"><h2>US CLASSES<small>${us.asof||''}</small></h2><div class="b">${cc(us)}</div></div>
+   <div class="p c6"><h2>WATCHLIST KR<small>${w.length} · 장전 선정</small></h2><div class="b">${w.length?`<table><tr><th class="l">SYM</th><th class="l">NAME</th><th class="l">CLS</th><th>T</th><th class="l">WHY</th></tr>${w.map(x=>`<tr><td class="l am sym" data-sym="${x.code}" data-mk="KR">${x.code}</td><td class="l">${esc(x.name)}</td><td class="l mu">${CLS[x.class]||''}</td><td>${n0(x.trend)}</td><td class="l">${esc(x.why)}</td></tr>`).join('')}</table>`:'<div class="mu">—</div>'}</div></div>
+   <div class="p c6"><h2>LATEST RESEARCH<small>${(D.reports||[]).length}</small></h2><div class="b">${repTable((D.reports||[]).slice(0,14))}</div></div>`;
+  h+=pre('premarket_kr','PREMARKET KR')+pre('close_KR','CLOSE KR')+pre('close_US','CLOSE US')+pre('intraday_kr','INTRADAY KR');
+  if(D.last_error) h+=`<div class="p c12"><h2 style="color:var(--dn)">LAST ERROR</h2><div class="b"><pre>${esc(D.last_error)}</pre></div></div>`;
+  return h+'</div>';
+}
+function repTable(rows){
+  if(!rows||!rows.length) return '<div class="mu">—</div>';
+  return `<table><tr><th class="l">DATE</th><th class="l">NAME</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th><th class="l">TITLE</th></tr>`+rows.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${num(r.target)}</td><td class="l">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title).slice(0,50)}</a>`:esc(r.title).slice(0,50)}</td></tr>`).join('')+'</table>';
+}
+function repView(){return `<div class="grid"><div class="p c12"><h2>RESEARCH · LAST 3 DAYS<small>${(D.reports||[]).length}</small></h2><div class="b">${repTable(D.reports)}</div></div></div>`;}
+function briefView(){
+  const keys=['premarket_kr','intraday_kr','close_KR','premarket_us','intraday_us','close_US','reports'];
+  let h='<div class="grid">'; for(const k of keys) h+=pre(k,k.toUpperCase().replace('_',' ')); return h+'</div>';
+}
+function mdView(name){
+  google.script.run.withSuccessHandler(md=>{$('#root').innerHTML=`<div class="md">${mdToHtml(md)}</div>`;}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">${esc(e.message)}</div>`;}).getMarkdown(name);
+  return '<div class="load">LOADING …</div>';
+}
+function mdToHtml(md){
+  const lines=md.split('\n'); let out='',intab=false;
+  for(const l of lines){
+    if(l.startsWith('|')){ if(/^\|[-| ]+\|$/.test(l.trim())) continue; const cells=l.split('|').slice(1,-1); if(!intab){out+='<table>';intab=true;out+='<tr>'+cells.map(c=>`<th class="l">${esc(c.trim())}</th>`).join('')+'</tr>';} else out+='<tr>'+cells.map(c=>`<td class="l">${inline(c.trim())}</td>`).join('')+'</tr>'; continue; }
+    if(intab){out+='</table>';intab=false;}
+    if(l.startsWith('# ')) out+=`<h1>${esc(l.slice(2))}</h1>`; else if(l.startsWith('## ')) out+=`<h2>${esc(l.slice(3))}</h2>`;
+    else if(l.startsWith('- ')) out+=`<div>• ${inline(l.slice(2))}</div>`; else if(l.trim()) out+=`<div>${inline(l)}</div>`;
+  }
+  if(intab) out+='</table>'; return out;
+}
+function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
+function tape(){
+  const items=[];
+  for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value) items.push(`<b>${d.key}</b> ${num(d.last,2)} ${pct(d.chg1)}`);}
+  const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x) items.push(`<b>${mk} BREADTH</b> 200D↑ ${Math.round(x.pct_above200*100)}% · A/D ${x.adv}/${x.dec}`);}
+  const u=[...new Map(items.map(i=>[i,i])).values()];
+  $('#tape').innerHTML=u.map(i=>`<span>${i}</span>`).join('')||'<span class="mu">no data</span>';
+}
+function render(){
+  if(!D) return;
+  $('#gen').textContent='DATA '+(D.generated_at||'');
+  tape();
+  const v=view;
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+}
+/* ───── 종목 상세 ───── */
+const DET={};
+function openDetail(sym,mk){
+  $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent=sym;$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
+  const show=()=>{const st=DET[mk].stocks[sym]; if(!st){$('#dr-b').innerHTML='<div class="err">상세 데이터 없음 (신호 섹션 밖 종목)</div>';return;} renderDetail(sym,mk,st);};
+  if(DET[mk]) return show();
+  google.script.run.withSuccessHandler(t=>{DET[mk]=JSON.parse(t);show();}).withFailureHandler(e=>{$('#dr-b').innerHTML=`<div class="err">${esc(e.message)}</div>`;}).getDetail(mk);
+}
+function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
+$('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
+document.addEventListener('click',e=>{const td=e.target.closest('td.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
+function renderDetail(sym,mk,s){
+  const st=s.stats||{}, kr=mk==='KR', sc=s.scenarios||{}, rs=s.research||{};
+  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · as of ${DET[mk].asof}`;
+  const kv=o=>`<div class="kv">${Object.entries(o).map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;
+  const lvl=v=>v==null?'—':num(v,kr?0:2);
+  let h=`<div class="grid">
+   <div class="p c12"><h2>CHART 60D<small>SMA20 · SMA50 · 20D box · TP</small></h2><div class="b"><canvas id="cv" width="960" height="260"></canvas></div></div>
+   <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
+   <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<table style="margin-top:6px"><tr><th class="l">DATE</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th></tr>${rs.items.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${r.link?`<a href="${esc(r.link)}" target="_blank">${num(r.target)||'—'}</a>`:num(r.target)||'—'}</td></tr>`).join('')}</table>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
+   <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${s.flows.map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
+   <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">
+     <div class="k"><div class="t up">▲ BULL</div><div>${esc(sc.bull?.trigger||'')}</div><div>목표 <b class="am">${lvl(sc.bull?.target)}</b> (${sc.bull?.upside!=null?(sc.bull.upside>0?'+':'')+sc.bull.upside.toFixed(1)+'%':'—'}) <span class="mu">${esc(sc.bull?.note||'')}</span></div></div>
+     <div class="k"><div class="t">■ BASE</div><div>${esc(sc.base?.note||'')}</div></div>
+     <div class="k"><div class="t dn">▼ BEAR</div><div>${esc(sc.bear?.trigger||'')}</div><div>손절 <b class="am">${lvl(sc.bear?.stop)}</b> (${sc.bear?.loss!=null?sc.bear.loss.toFixed(1)+'%':'—'}) → 다음 ${lvl(sc.bear?.next)} <span class="mu">${esc(sc.bear?.note||'')}</span></div>${sc.bear?.trail?`<div>추적손절(PSAR) <b class="am">${lvl(sc.bear.trail)}</b> (${sc.bear.trail_loss?.toFixed(1)}%)</div>`:''}</div>
+   </div><div style="margin-top:6px">손익비 20일저점 기준 <b class="${sc.rr>=2?'up':sc.rr<1?'dn':'am'}">${sc.rr??'—'}</b>${sc.rr_trail!=null?` · PSAR 기준 <b class="${sc.rr_trail>=2?'up':sc.rr_trail<1?'dn':'am'}">${sc.rr_trail}</b>`:''} <span class="mu">— ${esc(sc.rr_note||'')}</span></div></div></div>
+   <div class="p c6"><h2>STOCK VIEW</h2><div class="b">${esc(s.comment?.stock||'—')}</div></div>
+   <div class="p c6"><h2>MACRO VIEW</h2><div class="b">${esc(s.comment?.macro||'—')}</div></div>
+  </div>`;
+  $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr);
+}
+function sgn(v){return v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${v.toFixed(0)}</span>`;}
+function drawChart(ch,sc,rs,kr){
+  const cv=$('#cv'); if(!cv||!ch.length) return; const W=cv.width=cv.clientWidth*2,H=cv.height=520; const x=cv.getContext('2d'); x.scale(1,1);
+  const padL=70,padR=16,padT=12,padB=70,vh=90; const n=ch.length; const cw=(W-padL-padR)/n;
+  const lv=[sc.bull?.target,sc.bear?.stop,rs.consensus_tp].filter(v=>v);
+  let lo=Math.min(...ch.map(c=>c.l),...lv),hi=Math.max(...ch.map(c=>c.h),...lv); const pad=(hi-lo)*0.06; lo-=pad;hi+=pad;
+  const Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB-vh); const vmax=Math.max(...ch.map(c=>c.v))||1;
+  x.fillStyle='#050505';x.fillRect(0,0,W,H);
+  x.strokeStyle='#1c1c1c';x.lineWidth=1;x.font='20px monospace';x.fillStyle='#777';
+  for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,y=Y(v);x.beginPath();x.moveTo(padL,y);x.lineTo(W-padR,y);x.stroke();x.fillText(v.toLocaleString(undefined,{maximumFractionDigits:kr?0:2}),4,y+7);}
+  const line=(key,col)=>{x.strokeStyle=col;x.lineWidth=2;x.beginPath();let s=false;ch.forEach((c,i)=>{if(c[key]==null)return;const px=padL+cw*i+cw/2,py=Y(c[key]);s?x.lineTo(px,py):x.moveTo(px,py);s=true;});x.stroke();};
+  line('s20','#4aa3ff');line('s50','#c77dff');
+  const hline=(v,col,lab)=>{if(!v)return;const y=Y(v);x.setLineDash([8,6]);x.strokeStyle=col;x.lineWidth=2;x.beginPath();x.moveTo(padL,y);x.lineTo(W-padR,y);x.stroke();x.setLineDash([]);x.fillStyle=col;x.fillText(lab,W-padR-x.measureText(lab).width,y-6);};
+  hline(rs.consensus_tp,'#35d6e6','TP '+num(rs.consensus_tp)); hline(sc.bull?.target,'#2fd05a','BULL '+num(sc.bull?.target)); hline(sc.bear?.stop,'#ff4b4b','STOP '+num(sc.bear?.stop)); if(sc.bear?.trail) hline(sc.bear.trail,'#ff9a1f','PSAR');
+  ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4b4b':'#4aa3ff'; if(!kr){x.strokeStyle=x.fillStyle=up?'#2fd05a':'#ff4b4b';}
+    x.lineWidth=2;x.beginPath();x.moveTo(px,Y(c.h));x.lineTo(px,Y(c.l));x.stroke();const yo=Y(c.o),yc=Y(c.c);x.fillRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo)));
+    const vb=H-padB-(c.v/vmax)*vh*0.95; x.fillStyle=up?'#5a2020':'#1f3a5a'; x.fillRect(px-cw*0.3,vb,cw*0.6,H-padB-vb);
+    if(i%10===0){x.fillStyle='#777';x.fillText(c.d,px-20,H-padB+26);} });
+}
+
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{/* ───── 종목 상세 ───── */
+const DET={};
+function openDetail(sym,mk){
+  $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent=sym;$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
+  const show=()=>{const st=DET[mk].stocks[sym]; if(!st){$('#dr-b').innerHTML='<div class="err">상세 데이터 없음 (신호 섹션 밖 종목)</div>';return;} renderDetail(sym,mk,st);};
+  if(DET[mk]) return show();
+  google.script.run.withSuccessHandler(t=>{DET[mk]=JSON.parse(t);show();}).withFailureHandler(e=>{$('#dr-b').innerHTML=`<div class="err">${esc(e.message)}</div>`;}).getDetail(mk);
+}
+function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
+$('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
+document.addEventListener('click',e=>{const td=e.target.closest('td.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
+function renderDetail(sym,mk,s){
+  const st=s.stats||{}, kr=mk==='KR', sc=s.scenarios||{}, rs=s.research||{};
+  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · as of ${DET[mk].asof}`;
+  const kv=o=>`<div class="kv">${Object.entries(o).map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;
+  const lvl=v=>v==null?'—':num(v,kr?0:2);
+  let h=`<div class="grid">
+   <div class="p c12"><h2>CHART 60D<small>SMA20 · SMA50 · 20D box · TP</small></h2><div class="b"><canvas id="cv" width="960" height="260"></canvas></div></div>
+   <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
+   <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<table style="margin-top:6px"><tr><th class="l">DATE</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th></tr>${rs.items.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${r.link?`<a href="${esc(r.link)}" target="_blank">${num(r.target)||'—'}</a>`:num(r.target)||'—'}</td></tr>`).join('')}</table>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
+   <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${s.flows.map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
+   <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">
+     <div class="k"><div class="t up">▲ BULL</div><div>${esc(sc.bull?.trigger||'')}</div><div>목표 <b class="am">${lvl(sc.bull?.target)}</b> (${sc.bull?.upside!=null?(sc.bull.upside>0?'+':'')+sc.bull.upside.toFixed(1)+'%':'—'}) <span class="mu">${esc(sc.bull?.note||'')}</span></div></div>
+     <div class="k"><div class="t">■ BASE</div><div>${esc(sc.base?.note||'')}</div></div>
+     <div class="k"><div class="t dn">▼ BEAR</div><div>${esc(sc.bear?.trigger||'')}</div><div>손절 <b class="am">${lvl(sc.bear?.stop)}</b> (${sc.bear?.loss!=null?sc.bear.loss.toFixed(1)+'%':'—'}) → 다음 ${lvl(sc.bear?.next)} <span class="mu">${esc(sc.bear?.note||'')}</span></div>${sc.bear?.trail?`<div>추적손절(PSAR) <b class="am">${lvl(sc.bear.trail)}</b> (${sc.bear.trail_loss?.toFixed(1)}%)</div>`:''}</div>
+   </div><div style="margin-top:6px">손익비 20일저점 기준 <b class="${sc.rr>=2?'up':sc.rr<1?'dn':'am'}">${sc.rr??'—'}</b>${sc.rr_trail!=null?` · PSAR 기준 <b class="${sc.rr_trail>=2?'up':sc.rr_trail<1?'dn':'am'}">${sc.rr_trail}</b>`:''} <span class="mu">— ${esc(sc.rr_note||'')}</span></div></div></div>
+   <div class="p c6"><h2>STOCK VIEW</h2><div class="b">${esc(s.comment?.stock||'—')}</div></div>
+   <div class="p c6"><h2>MACRO VIEW</h2><div class="b">${esc(s.comment?.macro||'—')}</div></div>
+  </div>`;
+  $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr);
+}
+function sgn(v){return v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${v.toFixed(0)}</span>`;}
+function drawChart(ch,sc,rs,kr){
+  const cv=$('#cv'); if(!cv||!ch.length) return; const W=cv.width=cv.clientWidth*2,H=cv.height=520; const x=cv.getContext('2d'); x.scale(1,1);
+  const padL=70,padR=16,padT=12,padB=70,vh=90; const n=ch.length; const cw=(W-padL-padR)/n;
+  const lv=[sc.bull?.target,sc.bear?.stop,rs.consensus_tp].filter(v=>v);
+  let lo=Math.min(...ch.map(c=>c.l),...lv),hi=Math.max(...ch.map(c=>c.h),...lv); const pad=(hi-lo)*0.06; lo-=pad;hi+=pad;
+  const Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB-vh); const vmax=Math.max(...ch.map(c=>c.v))||1;
+  x.fillStyle='#050505';x.fillRect(0,0,W,H);
+  x.strokeStyle='#1c1c1c';x.lineWidth=1;x.font='20px monospace';x.fillStyle='#777';
+  for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,y=Y(v);x.beginPath();x.moveTo(padL,y);x.lineTo(W-padR,y);x.stroke();x.fillText(v.toLocaleString(undefined,{maximumFractionDigits:kr?0:2}),4,y+7);}
+  const line=(key,col)=>{x.strokeStyle=col;x.lineWidth=2;x.beginPath();let s=false;ch.forEach((c,i)=>{if(c[key]==null)return;const px=padL+cw*i+cw/2,py=Y(c[key]);s?x.lineTo(px,py):x.moveTo(px,py);s=true;});x.stroke();};
+  line('s20','#4aa3ff');line('s50','#c77dff');
+  const hline=(v,col,lab)=>{if(!v)return;const y=Y(v);x.setLineDash([8,6]);x.strokeStyle=col;x.lineWidth=2;x.beginPath();x.moveTo(padL,y);x.lineTo(W-padR,y);x.stroke();x.setLineDash([]);x.fillStyle=col;x.fillText(lab,W-padR-x.measureText(lab).width,y-6);};
+  hline(rs.consensus_tp,'#35d6e6','TP '+num(rs.consensus_tp)); hline(sc.bull?.target,'#2fd05a','BULL '+num(sc.bull?.target)); hline(sc.bear?.stop,'#ff4b4b','STOP '+num(sc.bear?.stop)); if(sc.bear?.trail) hline(sc.bear.trail,'#ff9a1f','PSAR');
+  ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4b4b':'#4aa3ff'; if(!kr){x.strokeStyle=x.fillStyle=up?'#2fd05a':'#ff4b4b';}
+    x.lineWidth=2;x.beginPath();x.moveTo(px,Y(c.h));x.lineTo(px,Y(c.l));x.stroke();const yo=Y(c.o),yc=Y(c.c);x.fillRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo)));
+    const vb=H-padB-(c.v/vmax)*vh*0.95; x.fillStyle=up?'#5a2020':'#1f3a5a'; x.fillRect(px-cw*0.3,vb,cw*0.6,H-padB-vb);
+    if(i%10===0){x.fillStyle='#777';x.fillText(c.d,px-20,H-padB+26);} });
+}
+
+document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');view=b.dataset.v;render();});
+function load(){
+  google.script.run.withSuccessHandler(d=>{D=d;render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
+}
+load(); setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
