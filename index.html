@@ -56,7 +56,7 @@
   .tape:hover .tk{animation-play-state:paused}
   @keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   @media (prefers-reduced-motion:reduce){.tape .tk{animation:none}}
-  .tape .ti{display:inline-block;padding:0 16px;color:var(--txt);border-right:1px solid #1a1a1a}
+  .tape .ti{cursor:pointer;display:inline-block;padding:0 16px;color:var(--txt);border-right:1px solid #1a1a1a}
   .tape .ti b{color:var(--amber);font-weight:600;margin-right:6px}
   .tape .ti .v{color:var(--txt)}
   .tape .ti .c{margin-left:6px;font-weight:600}
@@ -449,12 +449,12 @@ let L=null;
 function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D) tape();}).withFailureHandler(()=>{}).getLive();}
 let TAPE_HTML='';
 function tkItem(k,v,c,dg){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f', ar=cls==='u'?'▲':cls==='d'?'▼':'■';
-  return `<span class="ti ${cls}"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}</span></span>`; }
+  return `<span class="ti ${cls}" data-key="${esc(k)}" title="${esc(k)} 차트 보기"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}</span></span>`; }
 function tape(){
   const items=[], seen=new Set();
   if(L&&L.items&&L.items.length){ items.push(`<span class="ti lv"><b>LIVE</b><span class="v mu">${esc(L.updated_at||'')}</span></span>`); for(const d of L.items){seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg,['KOSPI','KOSDAQ','SPX','NASDAQ','RUT','BTC','GOLD','USDKRW'].includes(d.key)?2:2));} }
   for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value){ if(seen.has(d.key)) continue; seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg1));}}
-  const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x){ const p=x.pct_above200, cls=p>=0.6?'u':p<0.4?'d':'f'; items.push(`<span class="ti ${cls}"><b>${mk} BREADTH</b><span class="v">200D↑ ${Math.round(p*100)}%</span><span class="c">A/D ${x.adv}/${x.dec}</span></span>`);} }
+  const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x){ const p=x.pct_above200, cls=p>=0.6?'u':p<0.4?'d':'f'; items.push(`<span class="ti ${cls}" data-view="${mk.toLowerCase()}" title="${mk} 화면으로"><b>${mk} BREADTH</b><span class="v">200D↑ ${Math.round(p*100)}%</span><span class="c">A/D ${x.adv}/${x.dec}</span></span>`);} }
   if(!items.length){ $('#tape').innerHTML='<span class="mu" style="padding:0 16px">no data</span>'; TAPE_HTML=''; return; }
   const h=items.join('');
   if(h===TAPE_HTML) return;            // 내용이 같으면 애니메이션을 재시작하지 않음
@@ -501,7 +501,10 @@ function openMacro(key){
   if(MS) return show();
   google.script.run.withSuccessHandler(t=>{try{MS=JSON.parse(t);}catch(e){MS={series:{}};} show();}).withFailureHandler(()=>{MS={series:{}};show();}).getMacroSeries();
 }
-document.addEventListener('click',e=>{const td=e.target.closest('td.mac'); if(td) openMacro(td.dataset.key);});
+document.addEventListener('click',e=>{const td=e.target.closest('td.mac'); if(td) openMacro(td.dataset.key);
+  const ti=e.target.closest('.tape .ti'); if(!ti) return;
+  if(ti.dataset.key) openMacro(ti.dataset.key);
+  else if(ti.dataset.view){ const b=document.querySelector(`.tabs button[data-v="${ti.dataset.view}"]`); if(b) b.click(); } });
 function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
 $('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
 document.addEventListener('click',e=>{const td=e.target.closest('td.sym,span.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
