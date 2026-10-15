@@ -63,6 +63,7 @@
   .sc .t{letter-spacing:.1em;font-size:11px;margin-bottom:4px}
   .backdrop{position:fixed;inset:0;background:#0008;z-index:19;display:none}.backdrop.on{display:block}
 .ctab{margin-left:8px}.ctab button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:1px 8px;margin-left:4px;cursor:pointer}.ctab button.on{color:var(--amber);border-color:var(--amber)}
+.lvbar{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;margin-bottom:6px}.lvbar i{font-style:normal;color:var(--muted)}
 .live iframe{width:100%;height:440px;border:0;display:block}.live .lk{margin-top:6px;font-size:12px}.live .lk a{color:var(--blue);margin-right:12px}
 </style>
 </head>
@@ -221,18 +222,20 @@ function renderDetail(sym,mk,s){
   $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr);
   document.querySelectorAll('.ctab button').forEach(bt=>bt.onclick=()=>{
     document.querySelectorAll('.ctab button').forEach(z=>z.classList.toggle('on',z===bt));
-    if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr); $('#ch-note').textContent='TradingView · 5분봉 · 거래소에 따라 지연 시세'; }
+    if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr,sc,rs,s.close); $('#ch-note').textContent='TradingView · 5분봉 · 왼쪽 도구로 수평선 그리기 가능 · 거래소에 따라 지연'; }
     else { $('#chb').innerHTML='<canvas id="cv" width="960" height="260"></canvas>'; $('#ch-note').textContent='SMA20 · SMA50 · 20D box · TP'; drawChart(s.chart||[],sc,rs,kr); }
   });
 }
 function tvSym(sym,market,kr){ if(kr) return 'KRX:'+sym; const m=String(market||'').toUpperCase(); return ['NASDAQ','NYSE','AMEX'].includes(m)?m+':'+sym:sym; }
-function liveChart(sym,market,kr){
+function liveChart(sym,market,kr,sc,rs,close){
   const t=tvSym(sym,market,kr);
-  const src='https://s.tradingview.com/widgetembed/?symbol='+encodeURIComponent(t)+'&interval=5&theme=dark&style=1&locale=kr&timezone=Asia%2FSeoul&hidesidetoolbar=1&symboledit=0&saveimage=0&withdateranges=1';
+  const src='https://s.tradingview.com/widgetembed/?symbol='+encodeURIComponent(t)+'&interval=5&theme=dark&style=1&locale=kr&timezone=Asia%2FSeoul&hidesidetoolbar=0&symboledit=0&saveimage=0&withdateranges=1';
   const links=[`<a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(t)}" target="_blank">TradingView에서 열기</a>`];
   if(kr) links.push(`<a href="https://finance.naver.com/item/main.naver?code=${encodeURIComponent(sym)}" target="_blank">네이버 실시간 시세</a>`);
   else links.push(`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(sym)}" target="_blank">Yahoo 시세</a>`);
-  return `<div class="live"><iframe src="${src}" loading="lazy" allowfullscreen></iframe><div class="lk">${links.join('')}<span class="mu">차트가 비어 있으면 위 링크로 보세요</span></div></div>`;
+  const lv=[['TP',rs?.consensus_tp,'#35d6e6'],['BULL',sc?.bull?.target,'#2fd05a'],['STOP',sc?.bear?.stop,'#ff4b4b'],['PSAR',sc?.bear?.trail,'#ff9a1f']].filter(x=>x[1]);
+  const bar=lv.length?`<div class="lvbar">${lv.map(([k,v,c])=>`<span style="color:${c}">${k} <b>${num(v,kr?0:2)}</b>${close?` <i>${((v/close-1)*100>0?'+':'')}${((v/close-1)*100).toFixed(1)}%</i>`:''}</span>`).join('')}<span class="mu">· 종가 ${num(close,kr?0:2)} 기준</span></div>`:'';
+  return `${bar}<div class="live"><iframe src="${src}" loading="lazy" allowfullscreen></iframe><div class="lk">${links.join('')}<span class="mu">차트가 비어 있으면 위 링크로 보세요</span></div></div>`;
 }
 function sgn(v){return v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${v.toFixed(0)}</span>`;}
 function drawChart(ch,sc,rs,kr){
