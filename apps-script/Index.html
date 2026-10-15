@@ -969,7 +969,8 @@ function bondView(){
    <div>② <b>짧은 금리 &lt; 긴 금리면 정상</b>, 뒤집히면(역전) 경기 걱정 신호야. 지금 미국 10년−2년 ${_cs!=null?(_cs*100>0?'+':'')+(_cs*100).toFixed(0)+'bp → '+(_cs>0?'정상':'역전'):'—'}.</div>
    <div>③ <b>회사채 − 국채 금리 차이(신용 스프레드)가 벌어지면</b> 돈 빌려주기 무섭다는 뜻 = 위험 회피. 지금 한국 AA− ${_aa!=null?(_aa*100).toFixed(0)+'bp':'—'}${_aam!=null?` (한 달 ${_aam>0?'+':''}${_aam.toFixed(0)}bp) → ${Math.abs(_aam)<10?'조용해':'움직이는 중'}`:''}.</div>
    <div class="mu" style="font-size:12px;margin-top:4px">나머지 표·차트는 이 세 가지를 자세히 본 거야. 모르는 칸은 건너뛰어도 돼 — STUDY 탭 '채권 기초'에서 차근차근.</div></div></div>`;
-  return `<div class="grid">${easy}
+  const aic=aiCreditPanel(o.ai_credit);
+  return `<div class="grid">${easy}${aic}
    <div class="p c6"><h2>핵심 숫자<small>${esc(o.generated_at||'')} 생성</small></h2><div class="b">${key}</div></div>
    <div class="p c6"><h2>해석<small>규칙 기반 · 숫자 인용</small></h2><div class="b" style="line-height:1.75;white-space:normal">${(o.notes||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}
      <div class="mu" style="font-size:10.5px;margin-top:8px;line-height:1.5">데이터 소스<br>${src}</div></div></div>
@@ -989,6 +990,35 @@ function bondView(){
    <div class="p c12"><h2>채권 ETF<small>가격 · 수익률 (분배금 포함 수정주가)</small></h2><div class="b" style="overflow-x:auto"><table><tr><th class="l">ETF</th><th>종가</th><th>1D</th><th>1M</th><th>1Y</th><th>D(근사)</th><th class="l">역할</th></tr>${etf}</table></div></div>
    <div class="p c12"><h2>채권 읽는 법<small>현재 숫자 대입</small></h2><div class="b" style="line-height:1.75;white-space:normal">${(o.guide||[]).map((g,i)=>`<details class="sec"${i<2?' open':''}><summary><b>${esc(g.t)}</b></summary><div style="padding:2px 4px 6px">${esc(g.b)}</div></details>`).join('')}</div></div>
   </div>`;
+}
+function aiCreditPanel(a){
+  if(!a||!a.alert) return '';
+  const al=a.alert, lc=al.lv>=2?'dn':al.lv>=1?'am':'mu';
+  const fv=c=>c.v==null?'—':c.fmt==='pct'?pct(c.v,1):c.fmt==='n'?`<b>${c.v}</b><span class="mu">/${c.of}</span>${c.names&&c.names.length?' <span class="mu">('+esc(c.names.join(', '))+')</span>':''}`:`<b>${Number(c.v).toFixed(1)}</b>`;
+  const chk=(al.checks||[]).map(c=>`<tr><td class="l">${esc(c.name)}<div class="mu" style="font-size:10.5px;white-space:normal">${esc(c.why)}</div></td><td>${fv(c)}</td><td class="l mu" style="font-size:11px">${esc(c.rule)}</td><td class="${c.pt>=2?'dn':c.pt>=1?'am':'mu'}"><b>${c.pt}</b></td></tr>`).join('');
+  const vc=x=>x==null?'<td class="mu">—</td>':`<td class="${x>=0.8?'dn':x>=0.5?'am':'mu'}">${(x*100).toFixed(0)}%</td>`;
+  const bk=(a.basket||[]).map(r=>`<tr><td class="l"><b>${esc(r.s)}</b> <span class="mu" style="font-size:11px">${esc(r.n)}</span>${r.short?' <span class="mu" style="font-size:10px">(상장 1년 미만)</span>':''}</td><td>${num(r.close,2)}</td><td>${pct(r.r1,1)}</td><td>${pct(r.r20,1)}</td><td>${pct(r.dd,1)}</td>${vc(r.vol20)}</tr>`).join('');
+  const ce=(a.etf||[]).map(e=>`<tr><td class="l">${esc(e.n)}</td><td>${num(e.close,2)}</td><td>${pct(e.r1,2)}</td><td>${pct(e.r20,1)}</td><td>${pct(e.dd,1)}</td></tr>`).join('');
+  const spark=h=>{ if(!h||h.length<2) return ''; const W=160,H=34,vs=h.map(x=>x[1]),lo=Math.min(...vs),hi=Math.max(...vs),rg=(hi-lo)||1;
+    const pts=vs.map((v,i)=>`${(i/(vs.length-1)*W).toFixed(1)},${(H-2-(v-lo)/rg*(H-4)).toFixed(1)}`).join(' ');
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:${W}px;height:${H}px;vertical-align:middle"><polyline points="${pts}" fill="none" style="stroke:var(--amber);stroke-width:1.4"/></svg>`; };
+  const RT={HYG_IEF:['HYG/IEF','하이일드 ÷ 중기국채 — 내리면 투기등급 회사채가 국채보다 약함'],BKLN_SHY:['BKLN/SHY','레버리지론 ÷ 단기국채 — 내리면 빚 많은 회사 대출 가격이 약함']};
+  const rt=Object.entries(RT).map(([k,[n,t]])=>{ const r=(a.ratios||{})[k]; return r?`<tr><td class="l">${n}<div class="mu" style="font-size:10.5px;white-space:normal">${t}</div></td><td>${r.v}</td><td>${pct(r.r20,1)}</td><td>${pct(r.r60,1)}</td><td>${spark(r.hist)}</td></tr>`:''; }).join('');
+  const miss=(a.missing||[]).length?` · 데이터 없음: ${esc(a.missing.join(', '))}`:'';
+  return `<div class="p c12"><h2>AI 인프라 신용 감시<small>${esc(a.asof||'')} · 주가로 본 신용 스트레스 · 규칙 기반</small></h2><div class="b" style="overflow-x:auto">
+    <div style="line-height:1.75;white-space:normal;border:1px solid var(--${al.lv>=2?'dn':al.lv>=1?'amber':'line'});padding:6px 10px;margin-bottom:8px">
+      <div>신용 경보: <b class="${lc}" style="font-size:15px">${esc(al.level)}</b> <span class="mu">(점수 ${al.score} · 0~1 정상 · 2~3 주의 · 4+ 경계)</span></div>
+      <div>${esc(al.explain||'')}</div>
+      <div class="mu" style="font-size:11.5px">왜 따로 보나: 하이일드 지수(HYG)는 수백 개 회사를 섞은 평균이라, 한 업종(AI 데이터센터)이 빚 부담으로 흔들려도 지수엔 거의 안 잡힘. 그래서 그 업종 회사들 주가를 직접 봄.</div></div>
+    <table style="max-width:820px"><tr><th class="l">경보 항목</th><th>지금</th><th class="l">기준</th><th>점수</th></tr>${chk}</table>
+    <div class="am" style="font-size:12px;margin:10px 0 2px">바스켓 — 빚으로 데이터센터를 짓는 회사들 (낙폭 큰 순)</div>
+    <table><tr><th class="l">종목</th><th>종가</th><th>1D</th><th>20일</th><th>52주 고점 대비</th><th>20일 변동성</th></tr>${bk}</table>
+    <div class="mu" style="font-size:11px;margin:4px 0 8px;white-space:normal;line-height:1.6">CDS(부도 보험료)·개별 회사채 가격은 무료 데이터가 없어 주가로 대신함: 고점 대비 많이 빠지고, 한 달 새 급락하고, 하루하루 출렁임(20일 변동성, 연율 — 50%↑ <span class="am">주황</span>, 80%↑ <span class="dn">빨강</span>)이 클수록 시장이 그 회사의 빚 상환 능력을 의심한다는 신호.${miss}</div>
+    <div class="am" style="font-size:12px;margin:6px 0 2px">신용 ETF · 비율</div>
+    <table style="max-width:640px"><tr><th class="l">ETF</th><th>종가</th><th>1D</th><th>20일</th><th>52주 고점 대비</th></tr>${ce}</table>
+    <table style="max-width:640px;margin-top:6px"><tr><th class="l">비율</th><th>현재</th><th>1M</th><th>3M</th><th>1년 추이</th></tr>${rt}</table>
+    <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">VIX ${a.vix==null?'—':Number(a.vix).toFixed(1)} <span class="mu">(${esc(a.vix_src||'')})</span> · 경보가 '주의' 이상이면 운용회의 맨 위 요약에도 한 줄 들어감.</div>
+  </div></div>`;
 }
 function drawBondHist(){
   const el=$('#bdh'); if(!el||!BND||!BND.hist) return;

@@ -4,6 +4,7 @@
 - 미국채 수익률 곡선: home.treasury.gov 일별 par yield CSV (올해 + 작년). 실패 시 야후 ^IRX/^FVX/^TNX/^TYX
 - 한국 장외 채권수익률: KRX 정보데이터시스템 [14017] 개별추이 (국고 1~30년, 회사채 AA-·BBB-, CD) — pykrx 세션
 - 채권 ETF: 야후 (TLT IEF SHY LQD HYG, 114260 KODEX 국고채3년, 148070 국고채10년) + 주식 지수(상관관계용)
+- AI 인프라 신용 감시: 야후 (CRWV ORCL NBIS APLD IREN CORZ WULF CIFR + HYG JNK LQD BKLN IEF SHY + ^VIX) → 규칙 기반 신용 경보
 
 파생: 장단기 금리차, 신용 스프레드, 한미 금리차, bp 변화, 듀레이션·볼록성·시나리오, 주식-채권 상관, 규칙 기반 해석.
 """
@@ -47,6 +48,28 @@ ETFS = {
     "148070.KS": ("국고채10년 ETF (148070)", "KR", 8.0, "kr_10Y", "장기 — 원화 방어 + 금리 인하 차익"),
 }
 EQ = {"^GSPC": "SPX", "^KS11": "KOSPI"}
+
+# AI 인프라 신용 감시 — 빚(하이일드·전환사채·리스)으로 데이터센터를 짓는 신용 민감 종목.
+# CDS·개별 채권 가격은 무료 소스가 없어 '주가로 본 스트레스'(52주 고점 대비 낙폭, 20일 수익률, 20일 변동성)로 대신함.
+AI_BASKET = {
+    "CRWV": "CoreWeave (GPU 클라우드)",
+    "ORCL": "Oracle (AI 데이터센터 증설)",
+    "NBIS": "Nebius (GPU 클라우드)",
+    "APLD": "Applied Digital (데이터센터)",
+    "IREN": "IREN (채굴→AI 데이터센터)",
+    "CORZ": "Core Scientific (채굴→AI 호스팅)",
+    "WULF": "TeraWulf (채굴→AI 호스팅)",
+    "CIFR": "Cipher Mining (채굴→AI 호스팅)",
+}
+CREDIT_ETFS = {
+    "HYG": "미 하이일드 (HYG)",
+    "JNK": "미 하이일드 (JNK)",
+    "LQD": "미 투자등급 회사채 (LQD)",
+    "BKLN": "레버리지론 (BKLN)",
+    "IEF": "미국채 7-10년 (IEF)",
+    "SHY": "미국채 1-3년 (SHY)",
+}
+LEVELS = ("정상", "주의", "경계")
 
 
 # ───────────────────────── 공통 ─────────────────────────
@@ -302,7 +325,9 @@ def interpret(o: dict) -> list[str]:
         r = hy["r20"]
         L.append(f"미국 신용(HYG/IEF 비율) 1개월 {r * 100:+.1f}% — " + (
             "하이일드가 국채보다 약함 = 위험 회피 신호." if r < -0.015 else
-            "하이일드가 국채보다 강함 = 위험 선호." if r > 0.01 else "뚜렷한 신용 스트레스 없음."))
+            "하이일드가 국채보다 강함 = 위험 선호." if r > 0.01 else "뚜렷한 신용 스트레스 없음.")
+                 + (f" 단, AI 인프라 신용 감시는 '{ac['level']}' — 지수에 안 잡히는 업종 스트레스 (아래 섹션)."
+                    if (ac := ((o.get("ai_credit") or {}).get("alert") or {})).get("lv", 0) >= 1 else ""))
     aa = sp.get("kr_aa") or {}
     if aa.get("v") is not None:
         m1 = aa.get("m1")
@@ -433,6 +458,122 @@ def vehicles(o: dict) -> list[dict]:
         e = E.get(s) or {}
         add(e.get("n", s), e.get("dy"), e.get("dur"), "있음(비헤지)", "미국 상장: 양도세 22%(연 250만원 초과)", e.get("role", ""), "분배수익률(12개월)")
     return rows
+
+
+# ───────────────────────── AI 인프라 신용 감시 ─────────────────────────
+def _tail_stats(px: dict[str, float]) -> dict | None:
+    """가격 시계열 → 종가·52주 고점 대비 낙폭·20거래일 수익률·20일 실현변동성(연율)."""
+    ds = sorted(px)
+    if len(ds) < 25:
+        return None
+    v = [px[d] for d in ds]
+    last = v[-1]
+    hi = max(v[-252:])
+    lr = [math.log(v[i] / v[i - 1]) for i in range(len(v) - 20, len(v)) if v[i - 1] > 0 and v[i] > 0]
+    vol = None
+    if len(lr) >= 10:
+        m = sum(lr) / len(lr)
+        vol = math.sqrt(sum((x - m) ** 2 for x in lr) / (len(lr) - 1)) * math.sqrt(252)
+    return {"close": round(last, 2), "date": ds[-1], "hi52": round(hi, 2), "dd": round(last / hi - 1, 4),
+            "r1": round(last / v[-2] - 1, 4), "r20": round(last / v[-21] - 1, 4),
+            "vol20": None if vol is None else round(vol, 3), "n": len(v), "short": len(v) < 240}
+
+
+def _ratio(a: dict[str, float], b: dict[str, float]) -> dict | None:
+    ds = sorted(set(a) & set(b))
+    if len(ds) < 61:
+        return None
+    r = [a[d] / b[d] for d in ds]
+    return {"v": round(r[-1], 4), "r20": round(r[-1] / r[-21] - 1, 4), "r60": round(r[-1] / r[-61] - 1, 4),
+            "hist": [[d, round(x, 4)] for d, x in zip(ds[-260:], r[-260:])]}
+
+
+def _median(xs: list[float]) -> float | None:
+    xs = sorted(xs)
+    n = len(xs)
+    if not n:
+        return None
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+def credit_alert(basket: list[dict], hy_m1: float | None, vix: float | None) -> dict:
+    """규칙 기반 신용 경보. 항목별 0/1/2점, 합계 0~1 정상 · 2~3 주의 · 4+ 경계 (한 항목이라도 2점이면 최소 주의)."""
+    med = _median([r["dd"] for r in basket if r.get("dd") is not None])
+    crash = [r["s"] for r in basket if r.get("r20") is not None and r["r20"] < -0.20]
+    nb = len(basket)
+
+    def pts(x, t1, t2, low=True):
+        if x is None:
+            return 0
+        if low:
+            return 2 if x <= t2 else 1 if x <= t1 else 0
+        return 2 if x >= t2 else 1 if x >= t1 else 0
+    ch = [
+        {"k": "basket_dd", "name": "바스켓 52주 고점 대비 낙폭 (중앙값)", "v": None if med is None else round(med, 4), "fmt": "pct",
+         "rule": "−25% 이하 1점 · −40% 이하 2점", "pt": pts(med, -0.25, -0.40),
+         "why": "AI 데이터센터 회사 주가가 고점에서 얼마나 빠졌나 — 많이 빠질수록 시장이 '빚 갚을 능력'을 의심한다는 뜻"},
+        {"k": "crash_n", "name": "20일 새 −20% 넘게 빠진 종목 수", "v": len(crash), "fmt": "n", "of": nb, "names": crash,
+         "rule": "2개 이상 1점 · 3개 이상 2점", "pt": 2 if len(crash) >= 3 else 1 if len(crash) >= 2 else 0,
+         "why": "한 달 새 급락이 여러 종목에 번지면 개별 악재가 아니라 업종 전체의 돈줄 문제일 수 있음"},
+        {"k": "hy_m1", "name": "하이일드 ETF(HYG) 1개월 수익률", "v": None if hy_m1 is None else round(hy_m1, 4), "fmt": "pct",
+         "rule": "−1.5% 이하 1점 · −3% 이하 2점", "pt": pts(hy_m1, -0.015, -0.03),
+         "why": "투기등급 회사채 전체 가격 — 이게 빠지면 스트레스가 업종을 넘어 신용시장 전반으로 번졌다는 뜻"},
+        {"k": "vix", "name": "VIX (주식 공포지수)", "v": None if vix is None else round(vix, 2), "fmt": "num",
+         "rule": "22 이상 1점 · 30 이상 2점", "pt": pts(vix, 22, 30, low=False),
+         "why": "옵션 가격으로 본 시장 불안 — 높을수록 투자자들이 하락 보험을 비싸게 삼"},
+    ]
+    score = sum(c["pt"] for c in ch)
+    lv = 2 if score >= 4 else 1 if score >= 2 else 0
+    if lv == 0 and any(c["pt"] == 2 for c in ch):
+        lv = 1
+    level = LEVELS[lv]
+    worst = sorted([r for r in basket if r.get("dd") is not None], key=lambda r: r["dd"])[:2]
+    fp = lambda x: "—" if x is None else f"{x * 100:+.1f}%"  # noqa: E731
+    line = (f"AI 인프라 신용 {level}: 바스켓 고점 대비 중앙값 {fp(med)}, 20일 −20%↓ {len(crash)}/{nb}종목"
+            + (f"({', '.join(crash)})" if crash else "") + f", HYG 1M {fp(hy_m1)}, VIX {'—' if vix is None else f'{vix:.1f}'}"
+            + (" · 최약 " + ", ".join(f"{r['s']} {r['dd'] * 100:+.0f}%" for r in worst) if worst else ""))
+    if lv == 0:
+        expl = "AI 데이터센터 업종 주가와 신용시장 모두 평소 범위 — 특별한 경고 없음."
+    elif ch[2]["pt"] == 0 and ch[3]["pt"] == 0:
+        expl = ("하이일드 지수·VIX는 조용한데 AI 데이터센터 업종만 아픔 — 지수 신용 지표(HYG/IEF)에 안 잡히는 '업종 국지 스트레스'. "
+                "이 회사들은 빚으로 GPU·전력·건물을 사고 소수 고객(빅테크·AI 연구소)과의 계약으로 갚는 구조라, 자금 조달이 막히면 주가가 먼저 반응함.")
+    else:
+        expl = "업종 스트레스가 하이일드·변동성 지표까지 번지는 중 — 신용시장 전반의 위험 회피로 커질 수 있음."
+    if lv == 2:
+        expl += " 경계: AI 인프라 관련(반도체·전력 장비 포함) 비중과 레버리지를 점검할 구간."
+    return {"level": level, "lv": lv, "score": score, "checks": ch, "line": line, "explain": expl}
+
+
+def ai_credit(px: dict[str, dict[str, float]], vix_fallback: float | None = None) -> dict:
+    """AI 인프라 바스켓·신용 ETF·비율·경보. 데이터 없는 티커는 missing 으로 빠짐."""
+    basket, missing = [], []
+    for t, n in AI_BASKET.items():
+        st = _tail_stats(px.get(t) or {})
+        if st is None:
+            missing.append(t)
+            continue
+        basket.append({"s": t, "n": n, **st})
+    basket.sort(key=lambda r: r["dd"])
+    etfs = []
+    for t, n in CREDIT_ETFS.items():
+        st = _tail_stats(px.get(t) or {})
+        if st:
+            etfs.append({"s": t, "n": n, **{k: st[k] for k in ("close", "date", "r1", "r20", "dd", "vol20")}})
+    hyp = px.get("HYG") or {}
+    hds = sorted(hyp)
+    hy_m1 = round(hyp[hds[-1]] / hyp[hds[-22]] - 1, 4) if len(hds) > 22 else None
+    vx = px.get("^VIX") or {}
+    vix = vx[max(vx)] if vx else vix_fallback
+    ratios = {}
+    for k, (a, b) in {"HYG_IEF": ("HYG", "IEF"), "BKLN_SHY": ("BKLN", "SHY")}.items():
+        r = _ratio(px.get(a) or {}, px.get(b) or {})
+        if r:
+            ratios[k] = r
+    return {"asof": max((r["date"] for r in basket), default=None), "basket": basket, "missing": missing,
+            "kept": [r["s"] for r in basket], "etf": etfs, "ratios": ratios, "hy_m1": hy_m1,
+            "vix": None if vix is None else round(vix, 2),
+            "vix_src": "yahoo ^VIX" if vx else ("macro_series" if vix_fallback is not None else None),
+            "alert": credit_alert(basket, hy_m1, vix)}
 
 
 # ───────────────────────── 빌드 ─────────────────────────
@@ -604,6 +745,28 @@ def build() -> dict:
     o["corr"] = cr
 
     prev = _load_json(OUT, {})
+    # AI 인프라 신용 감시 (바스켓 + 신용 ETF + VIX) — 실패하면 이전 값 유지
+    try:
+        extra = [t for t in list(AI_BASKET) + list(CREDIT_ETFS) + ["^VIX"] if not px.get(t)]
+        cx = _yf_closes(extra) if extra else {}
+        okx = [t for t, v in cx.items() if v]
+        px.update({t: v for t, v in cx.items() if v})
+        src["ai_credit_yahoo"] = f"ok {len(okx)}/{len(extra)}" + ("" if len(okx) == len(extra) else f" (빠짐: {', '.join(t for t, v in cx.items() if not v)})")
+    except Exception as e:  # noqa: BLE001
+        src["ai_credit_yahoo"] = f"실패: {type(e).__name__}: {str(e)[:200]}"
+    try:
+        vxs = ms.get("VIX") or []
+        vfb = next((r[4] for r in reversed(vxs) if r[4]), None)
+        ac = ai_credit(px, vfb)
+        if ac["basket"]:
+            o["ai_credit"] = ac
+        elif prev.get("ai_credit"):
+            o["ai_credit"] = prev["ai_credit"]
+            src["ai_credit_yahoo"] = src.get("ai_credit_yahoo", "") + " — 이전 값 유지"
+    except Exception as e:  # noqa: BLE001
+        src["ai_credit"] = f"실패: {type(e).__name__}: {str(e)[:200]}"
+        if prev.get("ai_credit"):
+            o["ai_credit"] = prev["ai_credit"]
     if not any((px.get(t) or {}) for t in ETFS) and prev.get("etf"):   # 야후 실패 → 이전 ETF·상관 유지
         for k in ("etf", "corr", "credit_us"):
             if k in prev:
@@ -626,5 +789,7 @@ def load() -> dict:
 def summary(o: dict) -> str:
     g = lambda d, k: (d.get(k) or {}).get("v")  # noqa: E731
     us, kr = o.get("us", {}).get("chg", {}), o.get("kr", {}).get("chg", {})
+    al = ((o.get("ai_credit") or {}).get("alert") or {}).get("line") or "AI 인프라 신용: 데이터 없음"
     return (f"US 2Y {g(us, '2Y')} 10Y {g(us, '10Y')} 30Y {g(us, '30Y')} | KR 3Y {g(kr, '3Y')} 10Y {g(kr, '10Y')} AA- {g(kr, 'AA')}\n"
+            + al + "\n"
             + json.dumps(o.get("sources", {}), ensure_ascii=False))

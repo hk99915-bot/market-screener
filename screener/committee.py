@@ -39,6 +39,19 @@ def _j(name: str, default=None):
         return default
 
 
+def _ai_credit_line() -> str | None:
+    """채권 탭 'AI 인프라 신용 감시'가 주의 이상일 때만 한 줄 (5일 넘은 값은 무시). 실패해도 회의엔 영향 없음."""
+    try:
+        a = (_j("bonds.json", {}) or {}).get("ai_credit") or {}
+        al = a.get("alert") or {}
+        if int(al.get("lv") or 0) >= 1 and al.get("line") and a.get("asof") \
+                and (_kst_today() - date.fromisoformat(str(a["asof"])[:10])).days <= 5:
+            return str(al["line"]) + " (채권 탭)"
+    except Exception as e:  # noqa: BLE001
+        log.info("AI 인프라 신용 줄 실패: %s", e)
+    return None
+
+
 def _kospi_state() -> dict:
     src = "야후 일봉"
     ms = (_j("macro_series.json", {}) or {}).get("series", {}).get("KOSPI") or []
@@ -289,6 +302,9 @@ def build(session: str = "장후") -> dict:
         head.append(f"코스피 {k['last']:,.2f} ({k['ret1']*100:+.1f}%, {k.get('src', '')}) · 20일 고점 대비 {k['dd20']*100:+.1f}% · 52주 고점 대비 {k['from_hi']*100:+.0f}%")
     if mv.get("summary"):
         head.append(mv["summary"])
+    _acl = _ai_credit_line()
+    if _acl:
+        head.append(_acl)
     der = {}
     try:
         from . import derivs
@@ -542,6 +558,9 @@ def build_us() -> dict:
     if k:
         head.append(f"S&P500 {k['last']:,.0f} ({k['ret1']*100:+.1f}%) · 20일 {k['r20']*100:+.1f}% · 20일 고점 대비 {k['dd20']*100:+.1f}% · 52주 고점 대비 {k['from_hi']*100:+.1f}%")
         head.append(f"나스닥 20일 {(k.get('nq20') or 0)*100:+.1f}% · VIX {k.get('vix') or 0:.1f} · 미 10년 {k.get('tnx') or 0:.2f}% (20일 {k.get('tnx20') or 0:+.0f}bp)")
+    _acl = _ai_credit_line()
+    if _acl:
+        head.append(_acl)
     lo = k.get("low20") if k else None
     scen = [
         {"name": "강세 — 고점 경신", "prob": p.get("bull"), "def": "20거래일 뒤 S&P500 +3% 초과",
