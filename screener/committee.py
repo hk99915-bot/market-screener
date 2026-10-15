@@ -81,7 +81,7 @@ def _scenarios(k: dict, stu: dict, mv: dict) -> list[dict]:
     return [
         {"name": "강세 — 급반등·추세 회복", "prob": p.get("bull"), "def": "20거래일 뒤 코스피 +5% 초과",
          "trigger": f"외국인 현물 2일 연속 순매수 전환 + 코스피 5일 고점({k.get('hi5', 0):,.0f}) 회복",
-         "action": "반도체는 상한(60%) 안에서 유지, 현금 분할 매수 2차 집행(비반도체 우선), 인버스 헷지 해제"},
+         "action": "반도체는 테마 한도(40%) 넘는 만큼 반등 때 덜고, 현금 분할 매수 2차 집행(비반도체 우선), 인버스 헷지 해제"},
         {"name": "기본 — 반등 후 박스", "prob": p.get("base"), "def": "20거래일 뒤 ±5% 이내",
          "trigger": f"오늘 저점({lowt:,.0f}) 지지, 외국인 매도 둔화(일 −1조 이내)",
          "action": "반등 때 중복·약한 고리 축소(ETF 중복, 평균이익 기준 고평가), 실적 시즌(10/21~29) 확인 전 비중 유지"},
@@ -190,10 +190,77 @@ def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der
     else:
         st_ = "관망"
     plan = {"관망": f"오늘은 현금 유지. 다음 거래일 외국인 순매수 전환 + 저점({k.get('low_today') or 0:,.0f}) 지지가 확인되면 1차 분할(비반도체 우선), 5일 고점 회복 시 2차.",
-            "분할 매수": "신호 충족 — 현금 1/3씩 분할 집행, 반도체 상한 60% 안에서.",
+            "분할 매수": "신호 충족 — 현금 1/3씩 분할 집행, 반도체 테마 한도 40% 안에서(신규는 비반도체).",
             "방어": "20일 저점 이탈 — 가격 규칙 기계적 집행, 인버스 25% 헷지."}[st_]
     return {"stance": st_, "plan": plan, "reasons": reasons,
             "summary": (f"PB 판단: {st_} — 강세 확률이 가장 높아도 전환 신호 확인 전엔 진입 안 함 (확률 = 방향, 신호 = 타이밍)" if st_ == "관망" else f"PB 판단: {st_}")}
+
+
+def _bars(code: str) -> list[dict]:
+    try:
+        return json.loads((REPORT_DIR / "detail" / "KR" / f"{code}.json").read_text(encoding="utf-8")).get("chart") or []
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def _risk_box(code: str) -> dict | None:
+    """리스크 프레임 [1][2][3]: 손절 = max(20일 저점, 종가−2×ATR14), 목표 = 2R, 비중 = 1% 리스크 ÷ 손절폭 (단일 15% 상한)."""
+    b = [x for x in _bars(code) if x.get("c") and x.get("h") and x.get("l")]
+    if len(b) < 21:
+        return None
+    c = b[-1]["c"]
+    tr = [max(b[i]["h"], b[i - 1]["c"]) - min(b[i]["l"], b[i - 1]["c"]) for i in range(len(b) - 14, len(b))]
+    atr = sum(tr) / len(tr)
+    stop = max(min(x["l"] for x in b[-20:]), c - 2 * atr)
+    stop = min(stop, c - atr)   # 최소 1×ATR 여유 — 하루 소음에 털리지 않게
+    sp = (c - stop) / c
+    if sp <= 0:
+        return None
+    full = min(0.01 / sp, 0.15)
+    return {"close": c, "atr_pct": atr / c, "stop": stop, "stop_pct": sp, "target": c + 2 * (c - stop),
+            "size_full": full, "size_1st": full / 2, "skip": sp > 0.15}
+
+
+def _exec_plan(k: dict, stance: dict, der: dict, longs: list[dict]) -> dict:
+    """운용회의 → 실행 대본 (PB 북 = 기관처럼 매일 시장 참여한다는 가정의 모델 포트폴리오).
+    언제·무슨 조건이면·무엇을·얼마나·어디서 손절/익절. 비중은 총자산 % (금액·개인 보유 내역은 공개 파일에 안 씀)."""
+    lowt, hi5, last = k.get("low_today") or 0, k.get("hi5") or 0, k.get("last") or 0
+    neg = der.get("gex_bn") is not None and der["gex_bn"] < 0
+    fl = _flows2()
+    sig = [{"t": "외국인 순매수 전환", "now": (f"오늘 {fl[0]/1e4:+.2f}조" if fl else "데이터 없음"), "ok": bool(fl and fl[0] > 0)},
+           {"t": f"오늘 저점 {lowt:,.0f} 지지 (종가 기준)", "now": f"{last:,.0f}", "ok": bool(last and lowt and last >= lowt)},
+           {"t": f"5일 고점 {hi5:,.0f} 회복 (2차 조건)", "now": f"{last:,.0f}", "ok": bool(last and hi5 and last >= hi5)}]
+    cands = []
+    for x in longs:
+        if x.get("semi"):
+            continue
+        rb = _risk_box(x["s"])
+        if not rb or rb["skip"]:
+            continue
+        cands.append({"s": x["s"], "n": x["n"], "g": x.get("g"), "drv": x.get("drv"),
+                      **{kk: rb[kk] for kk in ("close", "atr_pct", "stop", "stop_pct", "target", "size_1st", "size_full")}})
+        if len(cands) >= 3:
+            break
+    steps = [
+        {"when": "장 시작~10:00", "do": "아무것도 안 함 — 시초가 추격 금지" + (" (옵션 감마 음수: 장 초반 위아래 흔들림이 큼)" if neg else ""),
+         "why": "급락 다음날 시가는 갭으로 왜곡. 신호는 장 후반에 확인"},
+        {"when": "14:30~14:50 신호 점검", "do": "신호 1·2 둘 다 충족이면 1차, 하나라도 아니면 다음 날 다시",
+         "why": "확률은 방향, 신호는 타이밍 — 신호 전 진입은 동전 던지기"},
+        {"when": "1차 진입 (신호 충족 시, 14:50 전후)", "do": "비반도체 후보 1~2종목, 종목당 '1차 비중'만 (1% 리스크 수량의 절반)",
+         "why": "반도체 테마가 한도(40%) 초과인 북에서 반도체 신규는 같은 베팅 두 배"},
+        {"when": f"2차 (코스피 5일 고점 {hi5:,.0f} 종가 회복 시)", "do": "1차와 같은 크기 추가 + 1차 손절선을 본전으로",
+         "why": "이기는 포지션에만 추가 (피라미딩). 물타기 금지"},
+        {"when": "익절", "do": "+1R(손절폭만큼 상승)에서 1/3, +2R에서 1/3, 나머지는 최고가−3×ATR 트레일링",
+         "why": "손익비 1:2 이상 확보 후 추세는 끌고 감"},
+        {"when": "반등 구간 (어느 날이든)", "do": "반도체 비중을 테마 한도 40%까지 단계적 축소",
+         "why": "진입보다 쏠림 해소가 먼저. 반등은 비싼 쪽을 덜 기회"},
+        {"when": f"약세 경로 (저점 {lowt:,.0f} 2일 연속 종가 이탈)", "do": "신규 진입 중단, 1차 포지션 손절 집행, 메모리 절반 축소, 인버스 ≤ 25%",
+         "why": "계획한 손절은 협상 대상 아님"},
+    ]
+    dont = ["반도체 물타기", "레버리지 ETF 신규(테마 한도 초과 상태)", "장중 −3%에 손절선 옮기기", "신호 확인 전 '싸 보여서' 매수"]
+    return {"book": "PB 북 — 기관처럼 매일 시장 참여 가정 (겸이 실계좌 적용은 성적표 '실전 적용'에서)",
+            "signals": sig, "steps": steps, "cands": cands, "dont": dont,
+            "note": "비중 = 총자산 대비 %. 1차 비중 = min(1% ÷ 손절폭, 15%) ÷ 2. 손절 = max(20일 저점, 종가 − 2×ATR14). 목표 = 2R. 손절폭 15% 초과 종목 제외."}
 
 
 def build(session: str = "장후") -> dict:
@@ -238,6 +305,10 @@ def build(session: str = "장후") -> dict:
                                "lines": [_re.sub(r"<[^>]+>", "", x) for x in (_st.get("value") or {}).get("notes", [])[:5]]}
     except Exception:  # noqa: BLE001
         pass
+    try:
+        stance["exec"] = _exec_plan(k, stance, der, longs)
+    except Exception as e:  # noqa: BLE001
+        log.warning("실행 대본 실패: %s", e)
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     if session == "장후":
@@ -378,6 +449,14 @@ def telegram_text(o: dict) -> str:
         L.append("<b>[" + o["stance"]["summary"] + "]</b>")
         L += [f"  · {r['t']}" for r in o["stance"]["reasons"][:5]]
         L.append("  → " + o["stance"]["plan"])
+        ex = o["stance"].get("exec") or {}
+        if ex:
+            L.append("<b>[실행 대본 — PB 북 기준]</b>")
+            L += ["  " + ("✅" if g["ok"] else "⬜") + f" {g['t']} — 현재 {g['now']}" for g in ex["signals"]]
+            L += [f"  {i+1}. {st_['when']}: {st_['do']}" for i, st_ in enumerate(ex["steps"])]
+            for c in ex.get("cands", []):
+                L.append(f"  · {c['n']} 종가 {c['close']:,.0f} · 손절 {c['stop']:,.0f}({-c['stop_pct']*100:.1f}%) · 목표 {c['target']:,.0f}(2R) · 1차 비중 {c['size_1st']*100:.1f}%")
+            L.append("  ✖ " + " / ".join(ex["dont"]))
     if o.get("derivs") and o["derivs"].get("notes"):
         L.append("<b>[옵션 포지션]</b>")
         L += [f"  · {x}" for x in o["derivs"]["notes"][:4]]

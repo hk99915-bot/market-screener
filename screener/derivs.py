@@ -218,8 +218,6 @@ def interpret(o: dict) -> list[str]:
                                                  "콜 우위: 상승 기대 쏠림" if p <= 0.7 else "중립 범위"))
     if o.get("put_wall") and o.get("call_wall"):
         L.append(f"아래 풋 벽 {o['put_wall']['k']:.1f} (OI {o['put_wall']['oi']:,.0f}) · 위 콜 벽 {o['call_wall']['k']:.1f} (OI {o['call_wall']['oi']:,.0f}) — 만기({o['expiry'][5:]})까지 지지·저항 후보")
-    if o.get("max_pain"):
-        L.append(f"최대 고통 {o['max_pain']:.1f} (현재 {S:.1f}, {(o['max_pain']/S-1)*100:+.1f}%) — 만기 근처에 끌려가는 경향이 있다는 가설, 근거 약함")
     if o.get("gex_bn") is not None:
         neg = o["gex_bn"] < 0
         L.append(f"감마 노출 근사 {o['gex_bn']:+,.0f}억/1% — " + ("음수: 딜러 헤지가 추세를 따라감 → 변동성 확대 구간(급락·급반등 모두 커짐)" if neg else
@@ -236,6 +234,8 @@ def interpret(o: dict) -> list[str]:
     f = o.get("fut") or {}
     if f.get("basis") is not None:
         L.append(f"선물 베이시스 {f['basis']:+.2f}p — " + ("백워데이션: 선물이 현물보다 쌈, 매도 헤지 쏠림·차익 매수 유인" if f["basis"] < 0 else "콘탱고: 정상"))
+    if o.get("max_pain"):   # 참고용 — 근거 약해 맨 뒤로 (텔레그램 상위 4줄에서 빠짐)
+        L.append(f"(참고) 최대 고통 {o['max_pain']:.1f} — 옵션 매수자 손실이 최대인 만기 지수. '끌려간다'는 가설은 근거 약함, 매매 근거로 쓰지 말 것")
     return L
 
 
