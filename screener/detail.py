@@ -292,8 +292,9 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         fp = d / f"{s}.json"
         fp.write_text(json.dumps({**v, "symbol": s, "asof": out["asof"]}, ensure_ascii=False, default=str), encoding="utf-8")
         size += fp.stat().st_size
-    (d / "_index.json").write_text(json.dumps({"asof": out["asof"], "symbols": sorted(out["stocks"])}, ensure_ascii=False),
-                                   encoding="utf-8")
+    (d / "_index.json").write_text(json.dumps({"asof": out["asof"], "symbols": sorted(out["stocks"]),
+                                               "names": {k: v.get("name") for k, v in out["stocks"].items()}},
+                                              ensure_ascii=False), encoding="utf-8")
     old = REPORT_DIR / f"detail_{market}.json"
     old.unlink(missing_ok=True)   # 예전 묶음 파일 제거
     log.info("detail/%s: %d종목, %d KB", market, len(out["stocks"]), size // 1024)

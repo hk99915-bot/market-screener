@@ -93,6 +93,10 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 .bsv{width:100%;height:46px;display:block}.bsv .pl{fill:none;stroke:var(--amber);stroke-width:1.5}.bsv .g60{stroke:var(--up);stroke-dasharray:3 3;opacity:.6}.bsv .g40{stroke:var(--dn);stroke-dasharray:3 3;opacity:.6}.bsv .pd{fill:var(--amber)}
 .tg{font-size:13px;line-height:1.6}
 .rp .rt{margin:2px 0 2px 12px;font-size:12px}
+.srch{position:relative;margin-left:16px}.srch input{width:260px;background:#050505;border:1px solid var(--line);color:var(--txt);font:inherit;font-size:12px;padding:4px 8px}
+.srch input:focus{outline:none;border-color:var(--amber)}#sres{position:absolute;top:100%;left:0;right:0;background:#0b0b0b;border:1px solid var(--line);z-index:50;display:none;max-height:360px;overflow:auto}
+#sres div{padding:4px 8px;cursor:pointer;font-size:12px}#sres div.on,#sres div:hover{background:#1a1a1a;color:var(--amber)}#sres i{font-style:normal;color:var(--muted);margin-left:6px}
+@media (max-width:760px){.srch input{width:150px}}
 </style>
 </head>
 <body>
@@ -100,6 +104,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
   <span class="brand">MARKET TERMINAL</span>
   <span class="clock" id="clock">—</span>
   <span class="mu" id="gen"></span>
+  <div class="srch"><input id="sq" placeholder="종목·티커 검색 (예: 삼성전자, 005930, NVDA)" autocomplete="off"><div id="sres"></div></div>
   <div class="tabs">
     <button class="on" data-v="home">HOME</button>
     <button data-v="kr">KR</button>
@@ -225,6 +230,20 @@ function finTable(f,kr){
   return `<div style="overflow:auto"><table><tr><th class="l">항목</th>${q.map(r=>`<th>${r.period}</th>`).join('')}<th>TTM</th></tr>
    ${row('매출','revenue')}${row('  YoY','',(r,i)=>yoy(i,'revenue'))}${row('영업이익','op')}${row('  OPM','',(r)=>m(r.op,r.revenue))}${row('순이익','ni')}${row('영업현금흐름','cfo')}${row('CAPEX','capex')}${row('자본총계','equity')}${row('부채총계','liab')}</table></div>`;
 }
+let SIX=null;
+function loadIndex(cb){ if(SIX) return cb(); SIX=[]; let left=2;
+  for(const mk of ['KR','US']) google.script.run.withSuccessHandler(t=>{try{const j=JSON.parse(t); for(const s of j.symbols||[]) SIX.push({s, n:(j.names||{})[s]||s, m:mk});}catch(e){} if(--left===0) cb();}).withFailureHandler(()=>{if(--left===0) cb();}).getStockIndex(mk); }
+function srch(q){ q=q.trim().toLowerCase(); const box=$('#sres'); if(!q){box.style.display='none';return;}
+  loadIndex(()=>{ const r=SIX.filter(x=>x.s.toLowerCase().startsWith(q)||String(x.n).toLowerCase().includes(q))
+      .sort((a,b)=>(a.s.toLowerCase()===q?-1:0)-(b.s.toLowerCase()===q?-1:0)||(String(a.n).toLowerCase().startsWith(q)?-1:1)-(String(b.n).toLowerCase().startsWith(q)?-1:1)).slice(0,12);
+    box.innerHTML=r.length?r.map((x,i)=>`<div class="${i?'':'on'}" data-sym="${esc(x.s)}" data-mk="${x.m}">${esc(x.n)}<i>${esc(x.s)} · ${x.m}</i></div>`).join(''):'<div class="mu">결과 없음 (스크리너 대상 종목만 검색됩니다)</div>';
+    box.style.display='block'; }); }
+document.addEventListener('input',e=>{ if(e.target.id==='sq') srch(e.target.value); });
+document.addEventListener('keydown',e=>{ if(e.target.id!=='sq') return; const box=$('#sres'), it=[...box.querySelectorAll('div[data-sym]')], cur=it.findIndex(x=>x.classList.contains('on'));
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); if(!it.length) return; const n=(cur+(e.key==='ArrowDown'?1:-1)+it.length)%it.length; it.forEach((x,i)=>x.classList.toggle('on',i===n)); }
+  else if(e.key==='Enter'){ const t=it[Math.max(cur,0)]; if(t){ openDetail(t.dataset.sym,t.dataset.mk); box.style.display='none'; e.target.blur(); } }
+  else if(e.key==='Escape'){ box.style.display='none'; } });
+document.addEventListener('click',e=>{ const t=e.target.closest('#sres div[data-sym]'); if(t){ openDetail(t.dataset.sym,t.dataset.mk); $('#sres').style.display='none'; return; } if(!e.target.closest('.srch')) { const b=$('#sres'); if(b) b.style.display='none'; } });
 let DB=null;
 function dailyView(){
   if(DB===null){ DB=false; google.script.run.withSuccessHandler(t=>{try{DB=JSON.parse(t);}catch(e){DB={};} if(view==='daily') render();}).withFailureHandler(()=>{DB={}; if(view==='daily') render();}).getDaily(); return '<div class="load">LOADING …</div>'; }

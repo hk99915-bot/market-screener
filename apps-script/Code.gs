@@ -61,3 +61,5 @@ function getMomentum(m) { return raw_(`reports/momentum_${m}.json`); }
 function getMomentumBt() { return raw_('reports/momentum_bt.json'); }
 
 function getDaily() { return raw_('reports/daily_brief.json'); }
+
+function getStockIndex(m) { return raw_(`reports/detail/${m}/_index.json`); }
