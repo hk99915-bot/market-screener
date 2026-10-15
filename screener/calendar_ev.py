@@ -68,12 +68,56 @@ def _dbn(sid: str) -> list[tuple[str, float]]:
     return out
 
 
+_BLS: dict = {}
+
+
+def _bls_all() -> dict:
+    """BLS 공개 API v2 (키 없이 하루 25회) — CPI·근원 CPI·고용·실업률·PPI 를 한 번에."""
+    if _BLS:
+        return _BLS
+    import requests
+    ids = {v.split("/")[-1]: k for k, v in DBN.items()}
+    y = date.today().year
+    r = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data/", json={"seriesid": list(ids), "startyear": str(y - 2), "endyear": str(y)}, timeout=40)
+    r.raise_for_status()
+    for srs in (r.json().get("Results") or {}).get("series") or []:
+        obs = []
+        for d in srs.get("data") or []:
+            if str(d.get("period", "")).startswith("M") and d.get("period") != "M13":
+                try:
+                    obs.append((f"{d['year']}-{d['period'][1:]}", float(d["value"])))
+                except (ValueError, KeyError):
+                    pass
+        _BLS[ids.get(srs.get("seriesID"), srs.get("seriesID"))] = sorted(obs)
+    return _BLS
+
+
+def _fresh(obs: list[tuple[str, float]], max_days: int = 130) -> bool:
+    if not obs:
+        return False
+    per = obs[-1][0][:10]
+    try:
+        d = date.fromisoformat(per if len(per) == 10 else per + "-01")
+    except ValueError:
+        return False
+    return (date.today() - d).days <= max_days
+
+
 def _fred(sid: str) -> list[tuple[str, float]]:
+    """우선순위: BLS API → DBnomics → FRED. 오래된(4개월+) 값은 버림 — 미러가 멈춰 있으면 틀린 '최신값'이 됨."""
     if sid in DBN:
         try:
-            o = _dbn(sid)
-            if o:
+            o = _bls_all().get(sid) or []
+            if _fresh(o):
                 return o
+            log.warning("BLS %s 최신 아님/없음 (%s)", sid, o[-1][0] if o else None)
+        except Exception as e:  # noqa: BLE001
+            log.warning("BLS %s 실패: %s", sid, e)
+        try:
+            o = _dbn(sid)
+            if _fresh(o):
+                return o
+            log.warning("DBnomics %s 오래된 값 (%s) 무시", sid, o[-1][0] if o else None)
         except Exception as e:  # noqa: BLE001
             log.warning("DBnomics %s 실패: %s", sid, e)
     import csv
@@ -89,6 +133,8 @@ def _fred(sid: str) -> list[tuple[str, float]]:
             out.append((row[0], float(row[1])))
         except (ValueError, IndexError):
             continue
+    if not _fresh(out, 200):
+        raise ValueError(f"FRED {sid} 오래된 값 {out[-1][0] if out else None}")
     return out
 
 
@@ -156,14 +202,22 @@ def _attach(ev: list[dict], rel: dict) -> None:
         if not g:
             continue
         d0 = date.fromisoformat(e["date"])
-        hits = [x for x in rel.get("log", []) if x["grp"] == g and d0 <= date.fromisoformat(x["seen"]) <= d0 + timedelta(days=4)]
+        def ok_period(x):
+            try:
+                pd = date.fromisoformat(x["period"][:10] if len(x["period"]) >= 10 else x["period"] + "-01")
+            except ValueError:
+                return False
+            return 0 <= (d0 - pd).days <= 125
+        hits = [x for x in rel.get("log", []) if x["grp"] == g and ok_period(x) and d0 <= date.fromisoformat(x["seen"]) <= d0 + timedelta(days=4)]
         if hits:
             e["result"] = [_fmt(x) for x in hits]
         if g not in last_ev or e["date"] > last_ev[g]["date"]:
             last_ev[g] = e
     for g, e in last_ev.items():
         if not e.get("result"):
-            cur = [x for x in rel.get("series", {}).values() if x["grp"] == g]
+            d0 = date.fromisoformat(e["date"])
+            cur = [x for x in rel.get("series", {}).values() if x["grp"] == g
+                   and 0 <= (d0 - date.fromisoformat(x["period"][:10] if len(x["period"]) >= 10 else x["period"] + "-01")).days <= 125]
             if cur:
                 e["result"] = [_fmt(x) + f" · 기준 {x['period'][:7]}" for x in cur]
 
