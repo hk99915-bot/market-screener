@@ -8,6 +8,8 @@
 - 기본 진입 = 당일 종가, 청산 = 다음날 시가, 금액 100만원(모의)
 - 겸이 제출: 저장소에 제목 'pick YYYY-MM-DD' 이슈 → 본문 '종목코드 [금액] [시가|종가|5일]' 또는 '현금'
   (15:30 KST 이전 제출분만 인정, 저장소 주인만)
+- 미장 대결(run_us, 22:00 KST): id '<ET날짜>-entry-us', 시가 진입 → 당일 종가 청산, 규칙은 pb_call_us 참고.
+  겸이 제출: 'pick-us YYYY-MM-DD' 이슈 → 본문 'TICKER [금액] [당일종가|5일]' 또는 '현금' (09:30 ET 이전만)
 """
 from __future__ import annotations
 
@@ -21,6 +23,7 @@ from .config import REPORT_DIR
 
 log = logging.getLogger(__name__)
 KST = ZoneInfo("Asia/Seoul")
+ET = ZoneInfo("America/New_York")
 REPO = "hk99915-bot/market-screener"
 NOTIONAL = 1_000_000
 NAMES = {"069500": "KODEX 200", "122630": "KODEX 레버리지", "114800": "KODEX 인버스", "252670": "KODEX 200선물인버스2X",
@@ -108,8 +111,153 @@ def run(send: bool = True) -> dict | None:
     return item
 
 
+# ── 미장 진입 타점 대결: 22:00 KST(미 장 시작 전) 판정 → 그날 시가 진입, 종가 청산 ─────────────
+US_NAMES = {"SPY": "SPY (S&P500)", "QQQ": "QQQ (나스닥100)", "SOXX": "SOXX (반도체)", "SQQQ": "SQQQ (나스닥 -3x)"}
+US_EX_LBL = {"same_close": "당일 종가", "d5_close": "5거래일째 종가"}
+
+
+def us_date(now: datetime | None = None) -> str:
+    """미 정규장 세션 날짜 = 지금 뉴욕 날짜 (22:00 KST = 09:00 ET 같은 날)."""
+    return str((now or datetime.now(KST)).astimezone(ET).date())
+
+
+def us_open_kst(d: str) -> datetime:
+    """그 날짜 09:30 ET (= 정규장 시작, 제출 마감)."""
+    y, m, dd = map(int, d.split("-"))
+    return datetime(y, m, dd, 9, 30, tzinfo=ET)
+
+
+def issue_url_us(date: str, body: str = "") -> str:
+    return f"https://github.com/{REPO}/issues/new?title={quote('pick-us ' + date)}&body={quote(body)}"
+
+
+def pb_call_us(d: str | None = None) -> dict:
+    """미장 규칙(단순·고정, macro_series 일봉):
+      dd20 = SPX 최근 종가 / 최근 21개 종가 최고치 − 1, ret1 = SPX 전일 수익률, VIX 최근값
+      · dd20 ≤ −3% & ret1 ≥ 0  → SPY 롱 (눌림 후 반등 확인)
+      · dd20 ≤ −7% & VIX ≥ 25  → SPY 롱 ('공포 구간 역발상')
+      · 그 외 → 현금 ('검증된 타점 없음')
+    진입 = 당일 시가, 청산 = 당일 종가."""
+    try:
+        ser = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8")).get("series") or {}
+    except Exception:  # noqa: BLE001
+        ser = {}
+
+    def closes(k):   # 세션 날짜 당일(진행 중) 봉은 제외 — 판정은 전일 종가까지
+        return [(b[0], float(b[4])) for b in (ser.get(k) or []) if b and b[4] and (d is None or b[0] < d)]
+    spx, vix, ndx = closes("SPX"), closes("VIX"), closes("NASDAQ")
+    lines, dd20, ret1, v = [], None, None, (vix[-1][1] if vix else None)
+    if len(spx) >= 2:
+        last = spx[-1][1]
+        ret1 = last / spx[-2][1] - 1
+        dd20 = last / max(c for _, c in spx[-21:]) - 1
+        lines.append(f"S&P500 {last:,.2f} ({ret1*100:+.2f}%, {spx[-1][0][5:]}) · 20일 고점 대비 {dd20*100:+.1f}%")
+    else:
+        lines.append("S&P500 시계열 없음")
+    if v is not None:
+        lines.append(f"VIX {v:.2f}")
+    if len(ndx) >= 2:
+        lines.append(f"나스닥 {ndx[-1][1]:,.0f} ({(ndx[-1][1]/ndx[-2][1]-1)*100:+.2f}%)")
+    pick, why = {"cash": True}, "검증된 타점 없음 — 기다림"
+    spy = {"ticker": "SPY", "name": US_NAMES["SPY"], "notional": NOTIONAL, "entry": "open", "exit": "same_close"}
+    if dd20 is not None and ret1 is not None and dd20 <= -0.03 and ret1 >= 0:
+        pick, why = spy, f"20일 고점 대비 {dd20*100:.1f}% 눌린 뒤 전일 반등({ret1*100:+.2f}%) — 반등 확인 자리"
+    elif dd20 is not None and v is not None and dd20 <= -0.07 and v >= 25:
+        pick, why = spy | {"note": "공포 구간 역발상"}, f"공포 구간 역발상 — 20일 고점 대비 {dd20*100:.1f}%, VIX {v:.1f}"
+    elif dd20 is not None and dd20 <= -0.03:
+        why = f"20일 고점 대비 {dd20*100:.1f}% 눌렸지만 전일도 하락 — 반등 확인 전"
+    return {"pick": pick, "why": why, "lines": lines, "dd20": dd20, "ret1": ret1, "vix": v}
+
+
+def _us_links(d: str) -> str:
+    return " · ".join(f"<a href=\"{issue_url_us(d, b)}\">{n}</a>" for b, n in
+                      [("SPY 1000000", "SPY"), ("QQQ 1000000", "QQQ"), ("SOXX 1000000", "SOXX"), ("SQQQ 1000000", "SQQQ"),
+                       ("현금", "현금"), ("TICKER 금액 [5일]", "직접 입력")])
+
+
+def _us_item(d: str) -> dict:
+    return {"id": f"{d}-entry-us", "date": d, "market": "US", "kind": "entry", "title": "미장 진입 타점 대결",
+            "note": "", "picks": {"나": {"pending": True}, "PB": {"pending": True}}}
+
+
+def run_us(send: bool = True) -> dict | None:
+    from . import decisions
+    now = datetime.now(KST)
+    d = us_date(now)
+    if datetime.fromisoformat(d).weekday() >= 5:
+        log.info("미장 주말(%s) — 대결 없음", d)
+        return None
+    iid = f"{d}-entry-us"
+    ex = next((x for x in decisions.load().get("items", []) if x["id"] == iid), None)
+    if ex and "규칙" in ex.get("picks", {}):
+        log.info("오늘 미장 규칙 판정 이미 기록됨")
+        return None
+    c = pb_call_us(d)
+    item = _us_item(d) | {"note": "규칙: " + c["why"],
+                          "basis": {"at": now.strftime("%Y-%m-%d %H:%M"), "src": "판정 시점 일봉 (macro_series, 전일 종가 기준)", "lines": c["lines"]}}
+    item["picks"]["규칙"] = c["pick"]
+    if ex:   # PB(판단)·나 가 먼저 들어와 있으면 유지하고 규칙만 추가
+        ex["picks"]["규칙"] = c["pick"]
+        ex["note"] = (ex.get("note", "") + " · 규칙: " + c["why"]).strip(" ·")
+        ex.setdefault("basis", item["basis"])
+        ex.setdefault("market", "US")
+        item = ex
+    decisions.add(item)
+    p = c["pick"]
+    dl = us_open_kst(d).astimezone(KST)
+    msg = ["🗽 <b>미장 진입 타점 대결</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})", *[f"• {x}" for x in c["lines"]], "",
+           "<b>규칙</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 시가 진입 → 당일 종가 청산"),
+           "  " + c["why"], "<i>PB(누나) 판단은 따로 옴</i>", "",
+           f"<b>겸이 판단은?</b> 미장 시작(09:30 ET = {dl:%H:%M} KST) 전까지 제출",
+           _us_links(d)]
+    if send:
+        from .report import send_telegram
+        send_telegram("\n".join(msg))
+    log.info("미장 타점 판정 기록: %s", c["why"])
+    return item
+
+
+def _apply_issue_us(title: str, body: str, created_at: str) -> str:
+    """이슈 'pick-us YYYY-MM-DD' → 미장 대결 '나' 칸. 마감 = 그 날짜 09:30 ET."""
+    from . import decisions
+    import re
+    m = re.search(r"(\d{4}-\d{2}-\d{2})", title or "")
+    if not m:
+        return "제목에 날짜(pick-us YYYY-MM-DD)가 없어 기록하지 못했어."
+    d = m.group(1)
+    t = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+    dl = us_open_kst(d)
+    tk = t.astimezone(KST)
+    if t >= dl:
+        return f"{d} 미장 시작(09:30 ET = {dl.astimezone(KST):%m-%d %H:%M} KST) 이후 제출({tk:%m-%d %H:%M} KST)이라 반영하지 않았어. 시가 진입이라 개장 전에만 받아."
+    first = (body or "").strip().splitlines()[0].strip() if (body or "").strip() else ""
+    if first.startswith("현금") or first.lower() == "cash":
+        pick = {"cash": True}
+    else:
+        toks = first.replace(",", "").split()
+        if not toks or not re.fullmatch(r"[A-Za-z][A-Za-z.\-]{0,5}", toks[0]):
+            return "본문 첫 줄을 'TICKER [금액] [당일종가|5일]' 또는 '현금'으로 적어줘. 예: QQQ 1000000"
+        tk_ = toks[0].upper()
+        amt = next((float(x) for x in toks[1:] if re.fullmatch(r"\d+(\.\d+)?", x)), NOTIONAL)
+        ex = "d5_close" if "5일" in first else "same_close"
+        pick = {"ticker": tk_, "name": US_NAMES.get(tk_, tk_), "notional": amt, "entry": "open", "exit": ex}
+    data = decisions.load()
+    it = next((x for x in data.get("items", []) if x["id"] == f"{d}-entry-us"), None)
+    if not it:
+        it = _us_item(d) | {"note": "PB 판정 없음(겸이 단독 기록)"}
+        it["picks"]["PB"] = {"cash": True}
+        data["items"].append(it)
+    it["picks"]["나"] = pick | {"submitted": tk.strftime("%H:%M")}
+    decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+    return (f"기록 완료 ✅ 미장 {d} 나: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 시가 진입 → {US_EX_LBL[pick['exit']]} 청산")
+            + f" (제출 {tk:%H:%M} KST)")
+
+
 def apply_issue(title: str, body: str, created_at: str) -> str:
-    """이슈 'pick YYYY-MM-DD' → 그날 타점 대결의 '나' 칸 채움. 반환: 이슈에 남길 답글."""
+    """이슈 'pick YYYY-MM-DD' → 그날 타점 대결의 '나' 칸 채움. 반환: 이슈에 남길 답글.
+    'pick-us YYYY-MM-DD' 는 미장 대결로 넘김."""
+    if (title or "").strip().lower().startswith("pick-us"):
+        return _apply_issue_us(title, body, created_at)
     from . import decisions
     import re
     m = re.search(r"(\d{4}-\d{2}-\d{2})", title or "")
@@ -211,19 +359,30 @@ def record_pb(payload: dict, send: bool = True) -> str:
     payload: {"pick": {"ticker","notional","exit"} | {"cash": true}, "why": str, "lines": [..], "conviction": "낮음|보통|높음"}"""
     from . import decisions
     now = datetime.now(KST)
-    d = str(now.date())
-    iid = f"{d}-entry"
+    us = str(payload.get("market", "")).upper() == "US"
+    d = us_date(now) if us else str(now.date())
+    kd = str(now.date())   # 매도 타점 대결은 KST 날짜 기준 (기존 규약)
+    iid = f"{d}-entry-us" if us else f"{d}-entry"
     pk = payload.get("pick") or {"cash": True}
     if not pk.get("cash"):
         t = str(pk["ticker"])
-        pk = {"ticker": t, "name": pk.get("name") or NAMES.get(t, t), "notional": float(pk.get("notional") or NOTIONAL),
-              "entry": "close", "exit": pk.get("exit") or "next_open"}
+        if us:
+            t = t.upper()
+            pk = {"ticker": t, "name": pk.get("name") or US_NAMES.get(t, t), "notional": float(pk.get("notional") or NOTIONAL),
+                  "entry": "open", "exit": "d5_close" if pk.get("exit") == "d5_close" else "same_close"}
+        else:
+            pk = {"ticker": t, "name": pk.get("name") or NAMES.get(t, t), "notional": float(pk.get("notional") or NOTIONAL),
+                  "entry": "close", "exit": pk.get("exit") or "next_open"}
+    else:
+        pk = dict(pk)
     pk["by"] = "PB 재량"
     pk["at"] = now.strftime("%H:%M")
     data = decisions.load()
     it = next((x for x in data.get("items", []) if x["id"] == iid), None)
     if not it:
-        it = {"id": iid, "date": d, "kind": "entry", "title": "진입 타점 대결", "note": "", "picks": {"나": {"pending": True}}}
+        it = (_us_item(d) if us else
+              {"id": iid, "date": d, "kind": "entry", "title": "진입 타점 대결", "note": "", "picks": {"나": {"pending": True}}})
+        it["picks"].pop("PB", None)
         data["items"].append(it)
     it["picks"]["PB"] = pk
     it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"]}
@@ -235,7 +394,8 @@ def record_pb(payload: dict, send: bool = True) -> str:
             continue
         name = e.get("name") or code
         act = "매도" if str(e.get("act", "")).startswith("매도") or "축소" in str(e.get("act", "")) else "보유"
-        eid = f"{d}-exit-{code}"
+        code = code if code.isdigit() else code.upper()
+        eid = f"{kd}-exit-{code}"
         hold = _hold_pick(code, name, NOTIONAL)
         rule = None
         try:
@@ -245,7 +405,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
             pass
         ei = next((x for x in data["items"] if x["id"] == eid), None)
         if not ei:
-            ei = {"id": eid, "date": d, "kind": "exit", "title": f"매도 타점 대결 · {name}", "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
+            ei = {"id": eid, "date": kd, "kind": "exit", "title": f"매도 타점 대결 · {name}", "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
                   "picks": {"나": {"pending": True}}}
             data["items"].append(ei)
         ei["picks"]["PB"] = ({"cash": True, "label": "매도"} if act == "매도" else hold) | {"by": "PB 재량", "at": pk["at"]}
@@ -255,15 +415,22 @@ def record_pb(payload: dict, send: bool = True) -> str:
         ex_msgs.append(f"• {name}: <b>{act}</b> — {e.get('why', '')} "
                        f"[<a href=\"{issue_url_exit(code, '보유')}\">나는 보유</a> · <a href=\"{issue_url_exit(code, '매도')}\">나는 매도</a>]")
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가"}
-    msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
-           "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-           payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
-           f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
-           f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
+    ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가"} | ({"d5_close": "5거래일째 종가", "same_close": "당일 종가"} if us else {})
+    if us:
+        dl = us_open_kst(d).astimezone(KST)
+        msg = ["💬 <b>PB 판단 · 미장</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})" + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
+               "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 시가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
+               payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               f"겸이 판단: {_us_links(d)} (미장 시작 {dl:%H:%M} KST 전)"]
+    else:
+        msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
+               "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
+               payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
+               f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
     if ex_msgs:
         msg += ["", "<b>보유 종목 매도 타점</b> (5거래일 뒤 종가 채점)", *ex_msgs]
     if send:
         from .report import send_telegram
         send_telegram("\n".join(m for m in msg if m is not None))
-    return "PB 판단 기록: " + ("현금" if pk.get("cash") else pk["name"])
+    return ("PB 판단 기록(미장): " if us else "PB 판단 기록: ") + ("현금" if pk.get("cash") else pk["name"])

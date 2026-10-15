@@ -5,19 +5,30 @@ reports/decisions.json:
               "picks": {"나": {"ticker", "name", "notional", "entry": "close", "exit": "next_open"} | {"cash": true},
                         "PB": {...}},
               "result": {...채점 후}}]}
-entry "close" = 결정일 종가, exit "next_open" = 다음 거래일 시가 / "next_close" / "d5_close"
+entry "close" = 결정일 종가, exit "next_open" = 다음 거래일 시가 / "next_close" / "d5_close"(5거래일 뒤 종가)
+entry "open"  = 결정일(세션일) 시가 — 미장 대결. exit "same_close" = 같은 날 종가,
+               "d5_close" = 진입일 포함 5번째 세션 종가 (진입일 + 4거래일 뒤 종가; 시가 진입은 진입일 자체가 1세션이므로)
 채점: 야후 일봉(.KS) — 결정일 다음 거래일 데이터가 생기면 손익(%·원) 계산, 승자 표시.
+item["market"] = "KR"(기본) | "US" — tally_by_market 에 시장별 누적 전적.
 """
 from __future__ import annotations
 
 import json
 import logging
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from .config import REPORT_DIR
 
 log = logging.getLogger(__name__)
 OUT = REPORT_DIR / "decisions.json"
+ET = ZoneInfo("America/New_York")
+
+
+def _us_session_done(date: str) -> bool:
+    """미장 세션(date)의 종가가 확정됐는가 — 뉴욕 16:30 이후."""
+    n = datetime.now(ET)
+    return str(n.date()) > date or (str(n.date()) == date and n.hour * 60 + n.minute >= 16 * 60 + 30)
 
 
 def load() -> dict:
@@ -48,6 +59,12 @@ def _score_pick(p: dict, date: str) -> dict | None:
     if p.get("cash"):
         return {"ret": 0.0, "pnl": 0.0, "detail": p.get("label") or "현금 유지"}
     bars = _bars(p["ticker"], date)
+    if not str(p["ticker"]).isdigit():   # 미국 종목: 진행 중인 세션 봉(잠정)은 쓰지 않음
+        today = str(datetime.now(ET).date())
+        if not _us_session_done(today):
+            bars = [b for b in bars if b["d"] < today]
+    if p.get("entry") == "open":
+        return _score_open(p, date, bars)
     day = next((b for b in bars if b["d"] == date), None)
     after = [b for b in bars if b["d"] > date]
     if not day or not after:
@@ -68,6 +85,26 @@ def _score_pick(p: dict, date: str) -> dict | None:
             "detail": f"{date} 종가 {buy:,.0f} → {when} {sell:,.0f}"}
 
 
+def _score_open(p: dict, date: str, bars: list[dict]) -> dict | None:
+    """시가 진입: 결정일 시가 매수 → same_close(당일 종가) / d5_close(진입일 포함 5번째 세션 종가)."""
+    seq = [b for b in bars if b["d"] >= date]
+    if not seq:
+        return None
+    if seq[0]["d"] != date:   # 결정일에 봉이 없는데 이후 봉은 있음 = 휴장일
+        return {"ret": 0.0, "pnl": 0.0, "detail": f"{date} 휴장 — 거래 없음", "holiday": True}
+    buy = seq[0]["o"]
+    if p.get("exit", "same_close") == "d5_close":
+        if len(seq) < 5:
+            return None
+        sell, when = seq[4]["c"], seq[4]["d"] + " 종가"
+    else:
+        sell, when = seq[0]["c"], seq[0]["d"] + " 종가"
+    cost = 0.0005
+    r = sell / buy - 1 - cost
+    return {"ret": round(r, 4), "pnl": round(r * (p.get("notional") or 0)), "buy": round(buy, 2), "sell": round(sell, 2),
+            "detail": f"{date} 시가 {buy:,.2f} → {when} {sell:,.2f}"}
+
+
 def score() -> int:
     d = load()
     n = 0
@@ -82,6 +119,8 @@ def score() -> int:
                 it["result"] = {"void": "나 미제출 — 채점 제외" if "나" not in live else "상대 판단 없음 — 채점 제외",
                                 "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
                 continue
+        if it.get("market") == "US" and not _us_session_done(it["date"]):
+            continue   # 미장 세션 종가 확정 전
         res = {}
         ok = True
         for who, p in live.items():
@@ -94,24 +133,30 @@ def score() -> int:
                 ok = False
                 break
             res[who] = s
+        if ok and any(v.get("holiday") for v in res.values()):
+            it["result"] = {"void": "휴장일 — 채점 제외", "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
+            continue
         if ok and res:
             best = max(res.items(), key=lambda kv: kv[1]["pnl"])
             tie = len({v["pnl"] for v in res.values()}) == 1
             it["result"] = {**res, "winner": None if tie else best[0], "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
             n += 1
     # 누적 전적
-    tally = {}
+    tally, by_mk = {}, {"KR": {}, "US": {}}
     for it in d["items"]:
         r = it.get("result")
         if not r or r.get("void"):
             continue
+        mk = by_mk.setdefault(it.get("market") or "KR", {})
         for who in [w for w in it["picks"] if w in r]:
-            t = tally.setdefault(who, {"win": 0, "n": 0, "pnl": 0})
-            t["n"] += 1
-            t["pnl"] += r.get(who, {}).get("pnl", 0)
-            if r.get("winner") == who:
-                t["win"] += 1
+            for tb in (tally, mk):
+                t = tb.setdefault(who, {"win": 0, "n": 0, "pnl": 0})
+                t["n"] += 1
+                t["pnl"] += r.get(who, {}).get("pnl", 0)
+                if r.get("winner") == who:
+                    t["win"] += 1
     d["tally"] = tally
+    d["tally_by_market"] = by_mk
     OUT.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
     log.info("판단 성적표 채점 %d건", n)
     return n
