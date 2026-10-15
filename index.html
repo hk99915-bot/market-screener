@@ -13,6 +13,7 @@
   const api = {
     getData: () => get('reports/dashboard.json').then(t => JSON.parse(t)),
     getDetail: m => get('reports/detail_' + m + '.json'),
+    getStock: (m, s) => get('reports/detail/' + m + '/' + encodeURIComponent(s) + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
     getLive: () => get('reports/live.json').catch(() => ''),
     getResearch: () => get('reports/research.json'),
@@ -92,6 +93,7 @@
 .rq{width:100%;max-width:420px;background:#050505;border:1px solid var(--line);color:var(--txt);font:inherit;padding:5px 8px;margin-bottom:8px}
 tr.sub{display:none}tr.sub.on{display:table-row}tr.sub td{font-size:12px;line-height:1.7;padding-bottom:8px;text-align:left}td.tg{cursor:pointer;color:var(--amber);width:14px}
 details.sec{margin-bottom:10px}details.sec summary{cursor:pointer;padding:4px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
+.rp{padding:4px 0;border-bottom:1px dashed #1c1c1c}.rp .sm{color:#bdbdbd;font-size:12px;line-height:1.6;margin:2px 0 2px 12px}
 </style>
 </head>
 <body>
@@ -212,8 +214,24 @@ function stockAgg(items){ const m=new Map(); for(const r of items){ if(!m.has(r.
   return [...m.values()].map(s=>{ s.rs.sort((a,b)=>b.date.localeCompare(a.date)); const lb=new Map(); for(const r of s.rs) if(r.target&&!lb.has(r.broker)) lb.set(r.broker,r.target);
     const tp=med([...lb.values()]), c=(R.close||{})[s.code]; return {...s,n:s.rs.length,nb:new Set(s.rs.map(r=>r.broker)).size,last:s.rs[0],tp,close:c,up:(tp&&c)?tp/c-1:null}; })
    .sort((a,b)=>b.n-a.n||b.last.date.localeCompare(a.last.date)); }
+const BUYR=/buy|매수|outperform|overweight|비중확대|strong/i, SELLR=/sell|매도|underperform|underweight|비중축소|reduce/i;
+function coreView(s){
+  const lb=new Map(); for(const r of s.rs) if(!lb.has(r.broker)) lb.set(r.broker,r);
+  const L=[...lb.values()], tps=L.map(r=>r.target).filter(Boolean);
+  const b=L.filter(r=>BUYR.test(r.opinion||'')).length, se=L.filter(r=>SELLR.test(r.opinion||'')).length, h=L.length-b-se;
+  const up=s.rs.filter(r=>r.tp_chg>0.001).length, dn=s.rs.filter(r=>r.tp_chg<-0.001).length;
+  const parts=[`${L.length}곳`, [b?`매수 ${b}`:'',h?`중립·기타 ${h}`:'',se?`매도 ${se}`:''].filter(Boolean).join(' / ')];
+  if(tps.length) parts.push(`TP ${num(Math.min(...tps))}${tps.length>1?'~'+num(Math.max(...tps)):''}${s.up!=null?` (${(s.up*100>0?'+':'')+(s.up*100).toFixed(0)}%)`:''}`);
+  if(up||dn) parts.push(`목표가 ${up?'상향 '+up:''}${up&&dn?' · ':''}${dn?'하향 '+dn:''}`);
+  return parts.filter(Boolean).join(' · ');
+}
+function repLine(r){
+  const ch=r.tp_chg>0.001?` <span class="up">↑${(r.tp_chg*100).toFixed(0)}%</span>`:r.tp_chg<-0.001?` <span class="dn">↓${(r.tp_chg*100).toFixed(0)}%</span>`:'';
+  const op=r.op_chg>0?' <span class="up">의견↑</span>':r.op_chg<0?' <span class="dn">의견↓</span>':'';
+  return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b> · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} · ${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title||'리포트')}</a>`:esc(r.title||'')}</div>${r.summary?`<div class="sm">${esc(r.summary)}</div>`:''}</div>`;
+}
 function stockRows(ss,showSec){ if(!ss.length) return '<div class="mu">해당 기간 리포트 없음</div>';
-  return `<table><tr><th></th><th class="l">종목</th>${showSec?'<th class="l">섹터</th>':''}<th>건수</th><th>증권사</th><th class="l">최근</th><th class="l">최근 의견</th><th>컨센 TP</th><th>종가</th><th>여력</th></tr>${ss.map(s=>`<tr><td class="tg" title="리포트 펼치기">▸</td><td class="l am sym" data-sym="${esc(s.code)}" data-mk="KR">${esc(s.name)} <span class="mu">${esc(s.code)}</span></td>${showSec?`<td class="l mu">${esc(s.sector)}</td>`:''}<td>${s.n}</td><td>${s.nb}</td><td class="l mu">${s.last.date}</td><td class="l">${esc(s.last.opinion||'')}</td><td>${s.tp?num(s.tp):'—'}</td><td>${s.close?num(s.close):'—'}</td><td>${s.up!=null?pct(s.up,0):'—'}</td></tr><tr class="sub"><td></td><td colspan="${showSec?9:8}">${s.rs.map(r=>`<div><span class="mu">${r.date}</span> ${esc(r.broker)} · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'} · ${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title||'리포트')}</a>`:esc(r.title||'')}</div>`).join('')}</td></tr>`).join('')}</table>`; }
+  return `<table><tr><th></th><th class="l">종목</th>${showSec?'<th class="l">섹터</th>':''}<th class="l">핵심 뷰</th><th class="l">최근</th><th>종가</th></tr>${ss.map(s=>`<tr><td class="tg" title="증권사별 요약 펼치기">▸</td><td class="l am sym" data-sym="${esc(s.code)}" data-mk="KR">${esc(s.name)} <span class="mu">${esc(s.code)}</span></td>${showSec?`<td class="l mu">${esc(s.sector)}</td>`:''}<td class="l">${coreView(s)}</td><td class="l mu">${s.last.date}</td><td>${s.close?num(s.close):'—'}</td></tr><tr class="sub"><td></td><td colspan="${showSec?5:4}">${s.rs.map(repLine).join('')}</td></tr>`).join('')}</table>`; }
 function repBody(it){
   if(RV.m==='all') return it.length?`<table><tr><th class="l">날짜</th><th class="l">종목</th><th class="l">섹터</th><th class="l">증권사</th><th class="l">의견</th><th>TP</th><th class="l">제목</th></tr>${it.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td><td class="l mu">${esc(r.sector||'기타')}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${r.target?num(r.target):'—'}</td><td class="l">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title||'리포트')}</a>`:esc(r.title||'')}</td></tr>`).join('')}</table>`:'<div class="mu">해당 기간 리포트 없음</div>';
   const ss=stockAgg(it);
@@ -264,22 +282,24 @@ function render(){
 const DET={};
 function openDetail(sym,mk){
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent=sym;$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
-  const show=()=>{const st=DET[mk].stocks[sym]; if(!st){$('#dr-b').innerHTML='<div class="err">상세 데이터 없음 (신호 섹션 밖 종목)</div>';return;} renderDetail(sym,mk,st);};
-  if(DET[mk]) return show();
-  google.script.run.withSuccessHandler(t=>{DET[mk]=JSON.parse(t);show();}).withFailureHandler(e=>{$('#dr-b').innerHTML=`<div class="err">${esc(e.message)}</div>`;}).getDetail(mk);
+  const k=mk+':'+sym;
+  if(DET[k]) return renderDetail(sym,mk,DET[k]);
+  google.script.run.withSuccessHandler(t=>{DET[k]=JSON.parse(t);renderDetail(sym,mk,DET[k]);}).withFailureHandler(e=>{
+    const kr=mk==='KR', lk=kr?`https://finance.naver.com/item/main.naver?code=${encodeURIComponent(sym)}`:`https://finance.yahoo.com/quote/${encodeURIComponent(sym)}`;
+    $('#dr-b').innerHTML=/404/.test(e.message)?`<div class="err">스크리너 유니버스 밖 종목입니다 (${kr?'시총 1,000억 미만·우선주·ETF 등':'S&P500·나스닥100 밖'}). <a href="${lk}" target="_blank">${kr?'네이버':'야후'}에서 보기</a></div>`:`<div class="err">${esc(e.message)}</div>`;}).getStock(mk,sym);
 }
 function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
 $('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
 document.addEventListener('click',e=>{const td=e.target.closest('td.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
 function renderDetail(sym,mk,s){
   const st=s.stats||{}, kr=mk==='KR', sc=s.scenarios||{}, rs=s.research||{};
-  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · as of ${DET[mk].asof}`;
+  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · as of ${s.asof||''}`;
   const kv=o=>`<div class="kv">${Object.entries(o).map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;
   const lvl=v=>v==null?'—':num(v,kr?0:2);
   let h=`<div class="grid">
    <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">60D</button><button data-c="live">LIVE</button></span><small id="ch-note">SMA20 · SMA50 · 20D box · TP</small></h2><div class="b" id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div>
    <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
-   <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<table style="margin-top:6px"><tr><th class="l">DATE</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th></tr>${rs.items.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${r.link?`<a href="${esc(r.link)}" target="_blank">${num(r.target)||'—'}</a>`:num(r.target)||'—'}</td></tr>`).join('')}</table>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
+   <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<div style="margin-top:6px;max-height:340px;overflow:auto">${rs.items.map(repLine).join('')}</div>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
    <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
    <div class="p c12"><h2>DISCLOSURES<small>DART · 최근 180일 주요 공시</small></h2><div class="b">${(s.disclosures||[]).length?discTable(s.disclosures,false):'<div class="mu">'+(kr?'최근 주요 공시 없음 (또는 DART 키 미설정)':'미국 종목은 DART 대상 아님')+'</div>'}</div></div>
    <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">

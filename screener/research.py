@@ -29,7 +29,8 @@ log = logging.getLogger(__name__)
 STORE = DATA_DIR / "research.parquet"
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"}
 SCHEMA = {"key": pl.Utf8, "date": pl.Date, "source": pl.Utf8, "code": pl.Utf8, "name": pl.Utf8, "title": pl.Utf8,
-          "broker": pl.Utf8, "opinion": pl.Utf8, "target": pl.Float64, "link": pl.Utf8, "collected_at": pl.Utf8}
+          "broker": pl.Utf8, "opinion": pl.Utf8, "target": pl.Float64, "link": pl.Utf8, "collected_at": pl.Utf8,
+          "summary": pl.Utf8}
 KST = ZoneInfo("Asia/Seoul")
 
 BUY_WORDS = re.compile(r"(?i)buy|매수|outperform|overweight|비중확대|strong")
@@ -113,6 +114,43 @@ def fetch_naver(since: date, max_pages: int = 60) -> list[dict]:
     return out
 
 
+CUT = re.compile(r"(본\s*조사분석자료|본\s*자료는|Compliance|컴플라이언스|당사는\s*동\s*자료|투자등급\s*관련)")
+
+
+def parse_summary(h: str) -> str:
+    """네이버 리서치 상세 페이지의 본문 요약(애널리스트 작성 핵심 문단)."""
+    m = re.search(r"class=[\"']view_cnt[\"'][^>]*>([\s\S]*?)</td>", h, flags=re.I)
+    if not m:
+        return ""
+    body = re.sub(r"<br\s*/?>|</p>|</li>", "\n", m.group(1), flags=re.I)
+    lines = [_strip(x) for x in body.split("\n")]
+    txt = " ".join(x for x in lines if x)
+    c = CUT.search(txt)
+    if c:
+        txt = txt[:c.start()]
+    return txt.strip()[:600]
+
+
+def enrich_summaries(rows: list[dict], links: dict[str, str], limit: int = 200) -> int:
+    """rows 중 summary 가 None 인 것에 네이버 상세 요약을 채운다. 없으면 '' 로 표시해 다음에 다시 시도하지 않음."""
+    n = 0
+    for r in rows:
+        if r.get("summary") is not None or n >= limit:
+            continue
+        link = links.get(r["key"]) or (r["link"] if r.get("source") == "네이버" else None)
+        if not link:
+            r["summary"] = ""
+            continue
+        n += 1
+        try:
+            r["summary"] = parse_summary(_get(link, "https://finance.naver.com/research/", "euc-kr"))
+        except Exception as e:  # noqa: BLE001
+            log.debug("요약 실패 %s: %s", link, e)
+            r["summary"] = None   # 일시 실패는 다음에 재시도
+        time.sleep(0.15)
+    return n
+
+
 def enrich_naver(rows: list[dict], limit: int = 400) -> None:
     """상세 페이지에서 목표가·투자의견 보강 (상한 limit건)."""
     n = 0
@@ -179,7 +217,13 @@ def fetch_hankyung(since: date, max_pages: int = 10) -> list[dict]:
 # ───────────── 저장소 ─────────────
 
 def load_store() -> pl.DataFrame:
-    return pl.read_parquet(STORE) if STORE.exists() else pl.DataFrame(schema=SCHEMA)
+    if not STORE.exists():
+        return pl.DataFrame(schema=SCHEMA)
+    df = pl.read_parquet(STORE)
+    for c, t in SCHEMA.items():
+        if c not in df.columns:
+            df = df.with_columns(pl.lit(None, dtype=t).alias(c))
+    return df.select(list(SCHEMA))
 
 
 def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.DataFrame, pl.DataFrame]:
@@ -212,11 +256,30 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
         r["key"] = k
         fresh.append(r)
     enrich_naver(fresh)
+    nv_links = {make_key(r["date"], r["code"], r["broker"]): r["link"] for r in nv}   # 한경 우선이어도 요약은 네이버에서
+    for r in fresh:
+        r.setdefault("summary", None)
+    n_sum = enrich_summaries(fresh, nv_links)
     now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
     for r in fresh:
         r["collected_at"] = now
     new = pl.DataFrame(fresh, schema=SCHEMA) if fresh else pl.DataFrame(schema=SCHEMA)
     store = pl.concat([store, new]).unique("key", keep="first").sort("date", "code")
+    # 기존 저장분 중 요약이 비어 있는 최근 30일치 보충 (한 번 시도해 없으면 '' 로 표시)
+    try:
+        cut = today - timedelta(days=30)
+        miss = store.filter((pl.col("date") >= cut) & pl.col("summary").is_null())
+        if len(miss):
+            more = fetch_naver(cut) if cut < since else []
+            links = {**nv_links, **{make_key(r["date"], r["code"], r["broker"]): r["link"] for r in more}}
+            rows = miss.to_dicts()
+            n_sum += enrich_summaries(rows, links)
+            fill = pl.DataFrame(rows, schema=SCHEMA).select("key", pl.col("summary").alias("_s"))
+            store = (store.join(fill, on="key", how="left")
+                          .with_columns(pl.coalesce("summary", "_s").alias("summary")).drop("_s"))
+    except Exception as e:  # noqa: BLE001
+        log.warning("요약 보충 실패: %s", e)
+    log.info("리포트 요약 %d건 수집", n_sum)
     DATA_DIR.mkdir(exist_ok=True)
     store.write_parquet(STORE)
     log.info("리포트 저장소 %d건 (신규 %d)", len(store), len(new))

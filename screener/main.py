@@ -58,6 +58,7 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     # 유니버스 전체가 같은 날짜여야 함: 최빈 날짜 외(상폐·거래정지)는 제외
     asof = last["date"].mode()[0]
     last = last.filter(pl.col("date") == asof)
+    last_all = last                                   # 종목 상세는 필터와 무관하게 전 종목
     last = scoring.apply_filters(last, mc.min_price, mc.min_dollar_vol)
     last = scoring.score(last)
     log.info("필터 후 %d종목 · 기준일 %s · %s", len(last), asof, status)
@@ -97,7 +98,13 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         if tail:
             dashboard.put_state(f"close_{market}", tail)
         dashboard.put_state(f"telegram_{market}", msg)
-        detail.build(market, last, full, research.load_store() if market == "KR" else None, mr, regime_line, br,
+        det = scoring.score(last_all)
+        if market == "KR":
+            try:
+                det = research.attach_latest(det, research.load_store(), px)
+            except Exception as e:  # noqa: BLE001
+                log.warning("상세용 리포트 결합 실패: %s", e)
+        detail.build(market, det, full, research.load_store() if market == "KR" else None, mr, regime_line, br,
                      with_flows=not prices_path)
         dashboard.build()
     except Exception as e:  # noqa: BLE001

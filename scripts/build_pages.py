@@ -11,6 +11,7 @@ SHIM = """<script>
   const api = {
     getData: () => get('reports/dashboard.json').then(t => JSON.parse(t)),
     getDetail: m => get('reports/detail_' + m + '.json'),
+    getStock: (m, s) => get('reports/detail/' + m + '/' + encodeURIComponent(s) + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
     getLive: () => get('reports/live.json').catch(() => ''),
     getResearch: () => get('reports/research.json'),

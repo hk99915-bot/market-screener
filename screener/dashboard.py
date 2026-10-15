@@ -88,12 +88,18 @@ def _reports(days: int = 3, n: int = 60) -> list[dict]:
 
 def write_research(days: int = 180) -> int:
     """리서치 화면용 전체 묶음 → reports/research.json (섹터·종가 포함, 집계는 브라우저에서)."""
-    p = DATA_DIR / "research.parquet"
-    if not p.exists():
+    from . import research
+    store = research.load_store()
+    if store.is_empty():
         return 0
-    df = pl.read_parquet(p)
+    try:
+        rv = research.revisions(store).select("key", "tp_chg", "op_chg")
+        store = store.join(rv, on="key", how="left")
+    except Exception as e:  # noqa: BLE001
+        log.warning("리비전 계산 실패: %s", e)
+        store = store.with_columns(pl.lit(None, pl.Float64).alias("tp_chg"), pl.lit(None, pl.Int8).alias("op_chg"))
     cutoff = datetime.now(KST).date() - timedelta(days=days)
-    df = df.filter(pl.col("date") >= cutoff).sort("date", descending=True)
+    df = store.filter(pl.col("date") >= cutoff).sort("date", descending=True)
     try:
         from .universe import kr_sectors
         sec = kr_sectors()
@@ -102,7 +108,9 @@ def write_research(days: int = 180) -> int:
         sec = {}
     items = (df.with_columns(pl.col("date").cast(pl.Utf8),
                              pl.col("code").replace_strict(sec, default="기타", return_dtype=pl.Utf8).alias("sector"))
-               .select("date", "code", "name", "sector", "broker", "opinion", "target", "title", "link").to_dicts())
+               .with_columns(pl.col("tp_chg").round(4))
+               .select("date", "code", "name", "sector", "broker", "opinion", "target", "title", "link",
+                       "summary", "tp_chg", "op_chg").to_dicts())
     close = {}
     pp = DATA_DIR / "kr_prices.parquet"
     if pp.exists():

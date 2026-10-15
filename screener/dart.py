@@ -49,8 +49,9 @@ RULES: list[tuple[str, tuple[str, ...], str]] = [
     ("정기보고서", ("사업보고서", "반기보고서", "분기보고서"), ""),
     ("IR·공정공시", ("기업설명회", "공정공시", "IR"), ""),
 ]
+# 웹·브리핑에 올리는 유형 (지분 5%·임원 매매·타법인 투자·IR 등은 저장만 하고 숨김)
 MAJOR = {"상장폐지·관리", "감자", "유상증자", "CB·BW·EB", "무상증자", "자사주", "배당", "실적", "수주·계약",
-         "합병·분할", "최대주주", "지분 5%", "타법인 투자", "소송"}
+         "합병·분할", "최대주주", "정기보고서"}
 
 
 def key() -> str:
@@ -181,8 +182,15 @@ def write_json(df: pl.DataFrame | None = None, days: int = 30) -> int:
         return 0
     cut = datetime.now(KST).date() - timedelta(days=days)
     f = (df.filter((pl.col("date") >= cut) & (pl.col("code") != "")
-                   & (pl.col("category").is_in(sorted(MAJOR)) | (pl.col("flag") != "")))
+                   & (pl.col("category").is_in(sorted(MAJOR)) | pl.col("flag").is_in(["희석", "주의"])))
            .sort("rcept_no", descending=True))
+    try:   # 스크리너 유니버스(시총 1,000억 이상) 종목만 — 초소형주 관리·정지 공시 소음 제거
+        from .config import UNIVERSE_DIR
+        uni = set(pl.read_csv(UNIVERSE_DIR / "kr.csv", schema_overrides={"symbol": pl.Utf8})["symbol"].to_list())
+        if uni:
+            f = f.filter(pl.col("code").is_in(sorted(uni)))
+    except Exception as e:  # noqa: BLE001
+        log.warning("유니버스 필터 생략: %s", e)
     items = [{"date": str(x["date"]), "code": x["code"], "name": x["name"], "title": x["title"],
               "category": x["category"], "flag": x["flag"], "link": link(x["rcept_no"])} for x in f.to_dicts()]
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "days": days, "items": items}

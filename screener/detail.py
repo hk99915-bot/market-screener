@@ -107,9 +107,36 @@ def _macro_view(r: dict, mr: list[dict], regime_line: str, br: dict) -> str:
     return " · ".join(b for b in bits if b)
 
 
+def _flows_bulk(asof_dates: list[date], days: int = 10) -> dict[str, list[dict]]:
+    """전 종목 투자자별 순매수(억원) — 날짜×투자자×시장 단위 일괄 조회(약 60콜)로 모든 종목을 한 번에."""
+    out: dict[str, dict[str, dict]] = {}
+    try:
+        from pykrx import stock  # type: ignore
+    except Exception:  # noqa: BLE001
+        return {}
+    inv = {"외국인": "외국인", "기관": "기관합계", "개인": "개인"}
+    for d in asof_dates[-days:]:
+        ymd = d.strftime("%Y%m%d")
+        for mkt in ("KOSPI", "KOSDAQ"):
+            for k, name in inv.items():
+                try:
+                    df = stock.get_market_net_purchases_of_equities(ymd, ymd, mkt, name)
+                except Exception as e:  # noqa: BLE001
+                    log.debug("일괄 수급 %s %s %s 실패: %s", ymd, mkt, k, e)
+                    continue
+                if df is None or df.empty:
+                    continue
+                col = [c for c in df.columns if "순매수거래대금" in str(c)]
+                if not col:
+                    continue
+                for code, v in zip(df.index.astype(str), df[col[0]]):
+                    out.setdefault(code.zfill(6), {}).setdefault(d.strftime("%m/%d"), {})[k] = round(float(v) / 1e8, 1)
+    return {c: [{"date": dd, **vals} for dd, vals in sorted(m.items(), key=lambda x: x[0])] for c, m in out.items()}
+
+
 def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFrame | None,
           mr: list[dict], regime_line: str, br: dict, with_flows: bool = True) -> None:
-    syms = _targets(last)
+    syms = [s for s in last["symbol"].to_list() if s]   # 전 종목
     asof = last["date"].max()
     rows = {r["symbol"]: r for r in last.filter(pl.col("symbol").is_in(syms)).to_dicts()}
     hist = (full.filter(pl.col("yf").is_in(last.filter(pl.col("symbol").is_in(syms))["yf"].implode()))
@@ -125,8 +152,15 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                    .sort("date", descending=True))
         for (code,), g in rr.group_by("code", maintain_order=True):
             reps[code] = [{"date": str(x["date"]), "broker": x["broker"], "opinion": x["opinion"], "target": x["target"],
-                           "title": x["title"], "link": x["link"]} for x in g.head(12).to_dicts()]
-    flows = _flows_kr(syms[:150], asof) if (with_flows and market == "KR") else {}
+                           "title": x["title"], "link": x["link"], "summary": x.get("summary") or ""}
+                          for x in g.head(12).to_dicts()]
+    flows: dict[str, list[dict]] = {}
+    if with_flows and market == "KR":
+        days = sorted(set(full["date"].to_list()))[-10:]
+        flows = _flows_bulk(days)
+        log.info("일괄 수급 %d종목", len(flows))
+        if not flows:   # 일괄 조회가 막히면 상위 150종목만 종목별로
+            flows = _flows_kr(_targets(last)[:150], asof)
     discl = {}
     if market == "KR":
         try:
@@ -161,7 +195,18 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "scenarios": _scenarios(r, ch),
             "comment": {"stock": stock_comment(r, max_parts=5), "macro": _macro_view(r, mr, regime_line, br)},
         }
-    REPORT_DIR.mkdir(exist_ok=True)
-    p = REPORT_DIR / f"detail_{market}.json"
-    p.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
-    log.info("detail_%s.json: %d종목, %d KB", market, len(out["stocks"]), p.stat().st_size // 1024)
+    import shutil
+    d = REPORT_DIR / "detail" / market
+    if d.exists():
+        shutil.rmtree(d)
+    d.mkdir(parents=True, exist_ok=True)
+    size = 0
+    for s, v in out["stocks"].items():
+        fp = d / f"{s}.json"
+        fp.write_text(json.dumps({**v, "symbol": s, "asof": out["asof"]}, ensure_ascii=False, default=str), encoding="utf-8")
+        size += fp.stat().st_size
+    (d / "_index.json").write_text(json.dumps({"asof": out["asof"], "symbols": sorted(out["stocks"])}, ensure_ascii=False),
+                                   encoding="utf-8")
+    old = REPORT_DIR / f"detail_{market}.json"
+    old.unlink(missing_ok=True)   # 예전 묶음 파일 제거
+    log.info("detail/%s: %d종목, %d KB", market, len(out["stocks"]), size // 1024)
