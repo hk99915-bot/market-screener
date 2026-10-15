@@ -6,6 +6,7 @@ on:
     - cron: "50 23 * * 0-4"   # 08:50 KST 장전 코멘트 (KR)
     - cron: "30 1 * * 1-5"    # 10:30 KST 장중 수급 (KR)
     - cron: "30 4 * * 1-5"    # 13:30 KST 장중 수급 (KR)
+    - cron: "45 6 * * 1-5"    # 15:45 KST 장 마감 확정치로 지수·데일리·운용회의 갱신
     - cron: "0 12 * * 1-5"    # 21:00 KST 미장 프리장
     - cron: "0 13 * * 1-5"    # 22:00 KST 미장 장전
     - cron: "0 14 * * 1-5"    # 23:00 KST 미장 장중
@@ -49,6 +50,7 @@ jobs:
           case "$H" in
             23) echo "mode=premarket_kr" ;;
             01|04) echo "mode=intraday_kr" ;;
+            06) echo "mode=close_kr" ;;
             12|13) echo "mode=premarket_us" ;;
             14|19) echo "mode=intraday_us" ;;
             10) echo "mode=reports" ;;

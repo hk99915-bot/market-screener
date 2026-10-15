@@ -166,7 +166,9 @@ def build(days: int = 7) -> dict:
     # ── 헤드라인 ──
     head = []
     if kchg is not None:
-        head.append(f"KOSPI {kchg*100:+.1f}%")
+        kst = (lv.get("KOSPI") or {}).get("status")
+        tag = "확정" if kst and kst != "OPEN" else ("장중 " + str(live.get("updated_at", ""))[6:11]) if "KOSPI" in lv else "전일"
+        head.append(f"KOSPI {kchg*100:+.1f}% ({tag})")
     if fk.get("외국인") is not None:
         head.append(f"외국인 {fk['외국인']/10000:+.1f}조")
     if themes:

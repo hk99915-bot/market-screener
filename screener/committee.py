@@ -40,6 +40,7 @@ def _j(name: str, default=None):
 
 
 def _kospi_state() -> dict:
+    src = "야후 일봉"
     ms = (_j("macro_series.json", {}) or {}).get("series", {}).get("KOSPI") or []
     c = [r[4] if len(r) >= 6 else r[1] for r in ms]
     lo = [r[3] if len(r) >= 6 else r[1] for r in ms]
@@ -56,13 +57,16 @@ def _kospi_state() -> dict:
             elif ms and str(ms[-1][0]) < d0:
                 c.append(cl)
                 lo.append(lw)
+            now = datetime.now(KST)
+            closed = d0 < str(now.date()) or now.hour * 100 + now.minute >= 1535
+            src = f"KRX {'확정 종가' if closed else '장중 ' + now.strftime('%H:%M')} {d0[5:]}"
     except Exception as e:  # noqa: BLE001
         log.info("KRX 지수 덮어쓰기 실패: %s", e)
     if len(c) < 30:
         return {}
     last = c[-1]
     return {"last": last, "ret1": last / c[-2] - 1, "dd20": last / max(c[-21:]) - 1, "from_hi": last / max(c[-250:]) - 1,
-            "low_today": lo[-1], "low20": min(lo[-20:]), "hi5": max(c[-5:]), "sma20": st.mean(c[-20:]), "sma50": st.mean(c[-50:])}
+            "low_today": lo[-1], "low20": min(lo[-20:]), "hi5": max(c[-5:]), "src": src, "sma20": st.mean(c[-20:]), "sma50": st.mean(c[-50:])}
 
 
 def _scenarios(k: dict, stu: dict, mv: dict) -> list[dict]:
@@ -214,7 +218,7 @@ def build() -> dict:
     ev7 = [e for e in cal if today <= date.fromisoformat(e["date"]) <= today + timedelta(days=7) and e.get("imp", 1) >= 2]
     head = []
     if k:
-        head.append(f"코스피 {k['last']:,.0f} ({k['ret1']*100:+.1f}%) · 20일 고점 대비 {k['dd20']*100:+.1f}% · 52주 고점 대비 {k['from_hi']*100:+.0f}%")
+        head.append(f"코스피 {k['last']:,.2f} ({k['ret1']*100:+.1f}%, {k.get('src', '')}) · 20일 고점 대비 {k['dd20']*100:+.1f}% · 52주 고점 대비 {k['from_hi']*100:+.0f}%")
     if mv.get("summary"):
         head.append(mv["summary"])
     der = {}

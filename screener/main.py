@@ -296,6 +296,32 @@ def main() -> None:
                 events.stats()
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 추적 실패: %s", e)
+        elif a.mode == "close_kr":   # 장 마감 후: 모든 화면의 코스피를 KRX 확정 종가로 맞춤 (텔레그램 없음)
+            try:
+                live.snapshot()
+            except Exception as e:  # noqa: BLE001
+                log.warning("시세 실패: %s", e)
+            write_macro_series()
+            try:
+                from . import dashboard as _db
+                _db.build() if hasattr(_db, "build") else None
+            except Exception as e:  # noqa: BLE001
+                log.warning("대시보드 실패: %s", e)
+            try:
+                from . import daily
+                daily.build()
+            except Exception as e:  # noqa: BLE001
+                log.warning("데일리 실패: %s", e)
+            try:
+                from . import calendar_ev, committee, derivs
+                try:
+                    derivs.build()
+                except Exception as e:  # noqa: BLE001
+                    log.warning("옵션 포지션 실패: %s", e)
+                committee.build()
+                calendar_ev.build()
+            except Exception as e:  # noqa: BLE001
+                log.warning("운용회의 실패: %s", e)
         elif a.mode == "dashboard":   # 알림 없이 웹 데이터 갱신 (리포트·요약 수집 포함)
             try:
                 research.update_store()
