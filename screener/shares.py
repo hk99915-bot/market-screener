@@ -55,7 +55,13 @@ def _parse(rows: list[dict]) -> dict | None:
     return {"common_issued": ci, "common_treasury": ct, "pref_issued": pi, "pref_treasury": pt, "out_total": out}
 
 
-def update_dart(codes: list[str], budget: int = 3000) -> int:
+def _merge(old: pl.DataFrame, new: list[dict]) -> None:
+    add = pl.DataFrame(new, schema=SCHEMA)
+    df = pl.concat([old.filter(~pl.col("code").is_in(add["code"].implode())), add], how="vertical_relaxed")
+    df.sort("code").write_csv(OUT)
+
+
+def update_dart(codes: list[str], budget: int = 1500) -> int:
     from . import fin
     if not fin.key():
         log.info("DART 키 없음 — 주식 수 건너뜀")
@@ -82,13 +88,13 @@ def update_dart(codes: list[str], budget: int = 3000) -> int:
             v = _parse(j.get("list") or [])
             if v:
                 new.append({"code": code, "year": y, "reprt": rc, **v, "krx_listed": krx_old.get(code), "stamp": time.time()})
+                if len(new) % 300 == 0:
+                    _merge(old, new)   # 중간 저장 (타임아웃 대비)
                 break
         if not todo:
             break
     if new:
-        add = pl.DataFrame(new, schema=SCHEMA)
-        df = pl.concat([old.filter(~pl.col("code").is_in(add["code"].implode())), add], how="vertical_relaxed")
-        df.sort("code").write_csv(OUT)
+        _merge(old, new)
     log.info("DART 주식 수 %d종목 갱신 (호출 %d)", len(new), n)
     return len(new)
 
@@ -144,6 +150,6 @@ def shares_map() -> dict[str, dict]:
     return out
 
 
-def update(codes: list[str], budget: int = 3000) -> dict:
+def update(codes: list[str], budget: int = 1500) -> dict:
     d = update_dart(codes, budget)
     return {"dart": d, "krx": update_krx()}
