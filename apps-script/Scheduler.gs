@@ -5,6 +5,7 @@
  * GitHub Actions 에 workflow_dispatch 로 요청한다. 같은 날 같은 작업은 한 번만.
  *
  * 설치 (1회)
+ * 0) 반드시 개인 구글 계정에서 (회사 계정 금지 — 토큰이 들어감)
  * 1) GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token
  *    - Repository access: Only select → hk99915-bot/market-screener
  *    - Permissions: Actions = Read and write (그 외 없음)
@@ -22,19 +23,22 @@ const EVERY = [0, 1, 2, 3, 4, 5, 6];
 const SCHEDULE = [
   ['02:00', 'backfill.yml', { market: 'ALL' }, EVERY],
   ['03:30', 'fin.yml', {}, EVERY],
-  ['04:00', 'briefing.yml', { mode: 'intraday_us' }, US_DAYS],
-  ['07:00', 'briefing.yml', { mode: 'screen_us' }, US_DAYS],
+  ['03:52', 'briefing.yml', { mode: 'intraday_us' }, US_DAYS],
+  ['06:52', 'briefing.yml', { mode: 'screen_us' }, US_DAYS],
   ['08:40', 'live.yml', {}, WEEKDAY],
   ['08:50', 'briefing.yml', { mode: 'premarket_kr' }, WEEKDAY],
   ['10:30', 'briefing.yml', { mode: 'intraday_kr' }, WEEKDAY],
   ['13:30', 'briefing.yml', { mode: 'intraday_kr' }, WEEKDAY],
-  ['16:20', 'screener.yml', { market: 'KR' }, WEEKDAY],
+  ['15:45', 'briefing.yml', { mode: 'close_kr' }, WEEKDAY],
+  ['16:20', 'screener.yml', { market: 'KR', no_send: 'false' }, WEEKDAY],
   ['19:10', 'briefing.yml', { mode: 'reports' }, WEEKDAY],
-  ['21:00', 'briefing.yml', { mode: 'premarket_us' }, WEEKDAY],
-  ['22:00', 'briefing.yml', { mode: 'premarket_us' }, WEEKDAY],
+  ['20:52', 'briefing.yml', { mode: 'premarket_us' }, WEEKDAY],
+  ['21:52', 'briefing.yml', { mode: 'premarket_us' }, WEEKDAY],
   ['22:20', 'live.yml', {}, WEEKDAY],
-  ['23:00', 'briefing.yml', { mode: 'intraday_us' }, WEEKDAY],
+  ['22:52', 'briefing.yml', { mode: 'intraday_us' }, WEEKDAY],
 ];
+// 같은 시각 GitHub 자체 예약도 울릴 수 있음 → 워크플로 쪽에서 '최근 수동 실행이 있으면 예약 실행은 건너뜀'으로 중복 방지
+
 const WINDOW_MIN = 20;   // 예정 시각 이후 이 시간 안에만 실행 (늦게 깨어나도 몰아서 보내지 않음)
 
 function kstNow_() {

@@ -22,6 +22,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 # 모드별로 대기열을 나눈다. 같은 그룹은 '대기 1개'만 허용돼 새 요청이 기존 대기(예: 장중 브리핑)를 취소하기 때문.
 concurrency:
@@ -62,6 +63,12 @@ jobs:
           set -- $CR; SM=$((10#$1 + 10#$2 * 60)); NM=$((10#$(date -u +%M) + 10#$(date -u +%H) * 60))
           LATE=$(( (NM - SM + 1440) % 1440 ))
           if [ $LATE -gt 150 ]; then echo "예약 $CR 이 ${LATE}분 지연 — 건너뜀"; MODE=skip; fi
+          # 백업 예약기(Apps Script)가 이미 수동 실행을 보냈으면 늦게 울린 GitHub 예약은 건너뜀 (중복 텔레그램 방지)
+          if [ "$MODE" != "skip" ]; then
+            SINCE=$(date -u -d "-$((LATE + 10)) min" +%FT%TZ)
+            N=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/${{ github.repository }}/actions/workflows/briefing.yml/runs?event=workflow_dispatch&created=%3E%3D$SINCE&per_page=5" | python3 -c "import sys,json;print(json.load(sys.stdin).get('total_count',0))" 2>/dev/null || echo 0)
+            if [ "${N:-0}" -gt 0 ]; then echo "백업 예약기가 이미 실행 — 건너뜀"; MODE=skip; fi
+          fi
           echo "mode=$MODE" >> $GITHUB_OUTPUT
 
       - name: 실행
