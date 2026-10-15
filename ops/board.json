@@ -12,7 +12,8 @@
     "매크로 누나",
     "운영 누나",
     "PM 누나",
-    "헬스 누나"
+    "헬스 누나",
+    "CIO 누나"
   ],
   "tasks": [
     {
@@ -225,6 +226,30 @@
       ],
       "depends_on": [],
       "notes": "데이터는 pb-private에서 런타임 토큰으로만 읽음 — 공개 파일에 수치 없음."
+    },
+    {
+      "id": "view-registry",
+      "title": "VIEW 레지스트리 — 관점(렌즈) 기록·일관 적용·수명주기",
+      "owner": "CIO 누나",
+      "priority": "P1",
+      "status": "진행",
+      "started": "2026-10-16",
+      "due": null,
+      "repo": "public",
+      "files": [
+        "views/registry.json",
+        "views/README.md",
+        "screener/views.py",
+        "scripts/view_attribution.py",
+        "screener/duel.py",
+        "screener/committee.py",
+        "screener/main.py",
+        "apps-script/Index.html",
+        "apps-script/Code.gs",
+        "scripts/build_pages.py"
+      ],
+      "depends_on": [],
+      "notes": "공개 레지스트리엔 개인 수치 없음 — 개인 렌즈는 pb-private views/personal.json 에서만."
     }
   ]
 }
