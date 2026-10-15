@@ -15,7 +15,8 @@
     getDetail: m => get('reports/detail_' + m + '.json'),
     getStock: (m, s) => get('reports/detail/' + m + '/' + encodeURIComponent(s) + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
-    getLive: () => get('reports/live.json').catch(() => ''),
+    // live.json 은 자주 바뀌므로 Pages 재배포를 기다리지 않고 raw 에서 직접 (CDN 캐시 최대 5분)
+    getLive: () => fetch('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/live.json?t=' + Date.now()).then(r => r.ok ? r.text() : get('reports/live.json')).catch(() => get('reports/live.json').catch(() => '')),
     getResearch: () => get('reports/research.json'),
     getDisclosures: () => get('reports/disclosures.json'),
   };
@@ -308,9 +309,11 @@ function openDetail(sym,mk){
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent=sym;$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
   const k=mk+':'+sym;
   if(DET[k]) return renderDetail(sym,mk,DET[k]);
-  google.script.run.withSuccessHandler(t=>{DET[k]=JSON.parse(t);renderDetail(sym,mk,DET[k]);}).withFailureHandler(e=>{
+  const fail=e=>{
     const kr=mk==='KR', lk=kr?`https://finance.naver.com/item/main.naver?code=${encodeURIComponent(sym)}`:`https://finance.yahoo.com/quote/${encodeURIComponent(sym)}`;
-    $('#dr-b').innerHTML=/404/.test(e.message)?`<div class="err">스크리너 유니버스 밖 종목입니다 (${kr?'시총 1,000억 미만·우선주·ETF 등':'S&P500·나스닥100 밖'}). <a href="${lk}" target="_blank">${kr?'네이버':'야후'}에서 보기</a></div>`:`<div class="err">${esc(e.message)}</div>`;}).getStock(mk,sym);
+    $('#dr-b').innerHTML=/404/.test(e.message)?`<div class="err">이 종목의 상세 데이터가 없습니다. 다음 자동 실행 때 생성되거나, 스크리너 대상 밖 종목입니다 (${kr?'시총 1,000억 미만·우선주·ETF 등':'S&P500·나스닥100 밖'}). <a href="${lk}" target="_blank">${kr?'네이버':'야후'}에서 보기</a></div>`:`<div class="err">${esc(e.message)}</div>`;};
+  const bundle=()=>google.script.run.withSuccessHandler(t=>{const b=JSON.parse(t), st=b.stocks&&b.stocks[sym]; if(!st) return fail({message:'404'}); DET[k]={...st,asof:b.asof}; renderDetail(sym,mk,DET[k]);}).withFailureHandler(fail).getDetail(mk);
+  google.script.run.withSuccessHandler(t=>{DET[k]=JSON.parse(t);renderDetail(sym,mk,DET[k]);}).withFailureHandler(e=>/404/.test(e.message)?bundle():fail(e)).getStock(mk,sym);
 }
 function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
 $('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});

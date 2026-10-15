@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 import polars as pl
 
 from . import briefings, context, dashboard, data, data_krx, detail, indicators, live, news, report, research, scoring, universe
-from .config import CFG
+from .config import CFG, DATA_DIR
 
 log = logging.getLogger("screener")
 
@@ -150,6 +150,36 @@ def _file_log(name: str | None) -> None:
     root.addHandler(h)
 
 
+def rebuild_detail_kr() -> None:
+    """저장된 KR 일봉(어제 종가까지)으로 종목 상세 파일만 다시 생성. 알림·리포트·매크로 상태는 건드리지 않음."""
+    import json as _json
+    from .config import REPORT_DIR
+    mc = CFG.kr
+    uni = universe.kr_universe()
+    if mc.min_mcap and "mcap" in uni.columns and uni["mcap"].null_count() < len(uni):
+        uni = uni.filter(pl.col("mcap").is_null() | (pl.col("mcap") >= mc.min_mcap))
+    px = pl.read_parquet(DATA_DIR / "kr_prices.parquet").filter(pl.col("yf").is_in(uni["yf"].implode()))
+    full = indicators.add_indicators(px)
+    last = indicators.latest(full).join(uni.select("yf", "symbol", "name", "market"), on="yf", how="left")
+    asof = last["date"].mode()[0]
+    last_all = last.filter(pl.col("date") == asof)
+    flt = scoring.score(scoring.apply_filters(last_all, mc.min_price, mc.min_dollar_vol))
+    br = context.breadth(flt, full)
+    try:
+        st = _json.loads((REPORT_DIR / "dashboard_state.json").read_text(encoding="utf-8"))
+        mr = (st.get("macro_KR") or {}).get("value") or []
+        regime_line = (st.get("regime_KR") or {}).get("value") or ""
+    except Exception:  # noqa: BLE001
+        mr, regime_line = [], ""
+    store = research.load_store()
+    det = scoring.score(last_all)
+    try:
+        det = research.attach_latest(det, store, px)
+    except Exception as e:  # noqa: BLE001
+        log.warning("리포트 결합 실패: %s", e)
+    detail.build("KR", det, full, store, mr, regime_line, br, with_flows=True)
+
+
 def _record_error(e: BaseException) -> None:
     """실패 원인을 reports/last_error.txt 에 남김 → 워크플로가 커밋 → 로그 없이도 원인 확인 가능."""
     import traceback
@@ -164,7 +194,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -184,6 +214,8 @@ def main() -> None:
             except Exception as e:  # noqa: BLE001
                 log.warning("리포트 갱신 실패: %s", e)
             dashboard.build()
+        elif a.mode == "detail_kr":   # 종목 상세만 재생성 (어제 종가 기준, 알림 없음)
+            rebuild_detail_kr()
         elif a.mode == "fin":         # 재무제표 수집 (알림 없음)
             from . import fin
             print(fin.update())

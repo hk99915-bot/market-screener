@@ -13,7 +13,8 @@ SHIM = """<script>
     getDetail: m => get('reports/detail_' + m + '.json'),
     getStock: (m, s) => get('reports/detail/' + m + '/' + encodeURIComponent(s) + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
-    getLive: () => get('reports/live.json').catch(() => ''),
+    // live.json 은 자주 바뀌므로 Pages 재배포를 기다리지 않고 raw 에서 직접 (CDN 캐시 최대 5분)
+    getLive: () => fetch('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/live.json?t=' + Date.now()).then(r => r.ok ? r.text() : get('reports/live.json')).catch(() => get('reports/live.json').catch(() => '')),
     getResearch: () => get('reports/research.json'),
     getDisclosures: () => get('reports/disclosures.json'),
   };

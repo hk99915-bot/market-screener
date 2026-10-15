@@ -1,11 +1,14 @@
 name: live-quotes
 
-# 지수·매크로 준실시간 스냅샷 → reports/live.json (웹 터미널 상단 티커가 1분마다 읽음)
-# GitHub 스케줄은 수 분~수십 분 밀릴 수 있다.
+# 지수·매크로 준실시간 → reports/live.json. 짧은 주기 스케줄은 GitHub 가 자주 건너뛰므로,
+# 장 시작 무렵 한 번 켜지면 장이 끝날 때까지 한 작업 안에서 10분마다 갱신하는 루프로 돈다.
+# 루프 시작 스케줄이 빠질 때를 대비해 매시 백업 트리거도 둔다 (이미 돌고 있으면 대기 후 이어받음).
 on:
   schedule:
-    - cron: "*/15 0-6 * * 1-5"    # 09:00–15:59 KST 국장 시간
-    - cron: "*/30 13-20 * * 1-5"  # 22:00–05:59 KST 미장 시간
+    - cron: "40 23 * * 0-4"     # 08:40 KST 국장 루프 시작
+    - cron: "7 0-6 * * 1-5"     # 국장 시간 매시 백업
+    - cron: "20 13 * * 1-5"     # 22:20 KST 미장 루프 시작
+    - cron: "7 14-19 * * 1-5"   # 미장 시간 매시 백업
   workflow_dispatch:
 
 permissions:
@@ -13,12 +16,12 @@ permissions:
 
 concurrency:
   group: live
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,17 +29,31 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: 스냅샷
+      - name: 루프
         env:
           PYTHONUNBUFFERED: "1"
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
-        run: python -m screener.main --mode quotes --no-send
-      - name: 저장
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add reports/live.json
-          git diff --cached --quiet && exit 0
-          git commit -m "live: $(date -u +%FT%H:%M)"
-          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done
+          in_window() {   # KST 08:40–15:50 (국장) 또는 22:15–05:15 (미장), 주말 제외 대략
+            hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm))
+            [ $hm -ge 840 ] && [ $hm -le 1550 ] && return 0
+            [ $hm -ge 2215 ] || [ $hm -le 515 ] && return 0
+            return 1
+          }
+          end=$((SECONDS + 340*60))
+          first=1
+          while [ $SECONDS -lt $end ]; do
+            if ! in_window && [ $first -eq 0 ]; then echo "장 시간 종료"; break; fi
+            first=0
+            python -m screener.main --mode quotes --no-send || true
+            git add reports/live.json
+            if ! git diff --cached --quiet; then
+              git commit -qm "live: $(date -u +%FT%H:%M)"
+              for i in 1 2 3; do git pull -q --rebase origin main && git push -q && break; sleep 5; done
+            fi
+            in_window || break
+            sleep 600
+          done
