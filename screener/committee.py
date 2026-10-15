@@ -121,7 +121,7 @@ def build() -> dict:
     if mv.get("summary"):
         head.append(mv["summary"])
     best = max(scen, key=lambda s: s.get("prob") or 0)
-    verdict = (f"가장 가능성 높은 시나리오: {best["name"]} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
+    verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "date": str(today), "head": head, "verdict": verdict,
            "scenarios": scen, "scenario_basis": sb, "sectors": sectors, "themes": themes[:8] + themes[-5:] if len(themes) > 13 else themes,
            "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10],
