@@ -211,6 +211,90 @@ def p_esignal_investing():
             print("--", url, "ERR", e)
 
 
+def p_krx_night():
+    d = "20261015"
+    for bld, base in [("dbms/MDC/STAT/standard/MDCSTAT12501", dict(trdDd=d, prodId="KRDRVFUK2I", rghtTpCd="T")),
+                      ("dbms/MDC/STAT/standard/MDCSTAT12701", dict(strtDd="20261010", endDd="20261016", prodId="KRDRVFUK2I"))]:
+        for mk in ["T", "N", "E", "A", "1", "2", "3", "0", "Y", None]:
+            p = dict(base)
+            if mk is not None:
+                p["mktTpCd"] = mk
+            try:
+                out = krx_post(bld, **p).json().get("output") or []
+                nm = [(x.get("TRD_DD") or "") + " " + (x.get("ISU_NM") or "") + " " + str(x.get("TDD_CLSPRC")) + " vol " + str(x.get("ACC_TRDVOL")) for x in out[:6]]
+                print(bld[-5:], "mktTpCd", mk, "rows", len(out), nm)
+            except Exception as e:  # noqa: BLE001
+                print(bld[-5:], mk, "ERR", e)
+    # 12701 은 기간 조회 — 야간 표기 행이 섞이는지 다른 파라미터 이름도 시도
+    for k, v in [("trdTpCd", "N"), ("sessTpCd", "2"), ("ntTpCd", "N"), ("nightYn", "Y"), ("isuOpt", "N"), ("mktTpCd", "N")]:
+        try:
+            out = krx_post("dbms/MDC/STAT/standard/MDCSTAT12701", strtDd="20261010", endDd="20261016", prodId="KRDRVFUK2I", **{k: v}).json().get("output") or []
+            print("12701", k, v, len(out), [(x.get("TRD_DD"), x.get("TDD_CLSPRC"), x.get("ACC_TRDVOL")) for x in out[:4]])
+        except Exception as e:  # noqa: BLE001
+            print("12701", k, v, "ERR", e)
+
+
+def p_krx_inv2():
+    s, e = "20261013", "20261015"
+    base = dict(strtDd=s, endDd=e, prodId="KRDRVFUK2I")
+    combos = [dict(), dict(mktTpCd="T"), dict(mktTpCd="T", rghtTpCd="T"), dict(inqTpCd="1"), dict(inqTpCd="2"),
+              dict(inqTpCd="1", mktTpCd="T"), dict(inqTpCd="2", mktTpCd="T", trdVolVal="1", askBid="3"),
+              dict(isuCd="", inqTpCd="2", mktTpCd="T"), dict(prodTpCd="F", inqTpCd="2"), dict(secugrpId="FU", inqTpCd="2")]
+    for bld in ("dbms/MDC/STAT/standard/MDCSTAT13101", "dbms/MDC/STAT/standard/MDCSTAT13102", "dbms/MDC/STAT/standard/MDCSTAT13103"):
+        for c in combos:
+            try:
+                r = krx_post(bld, **base, **c)
+                j = r.json()
+                out = j.get("output") or []
+                nz = [x for x in out if any(str(v) not in ("0", "", "-") for k2, v in x.items() if "TRD" in k2)]
+                print(bld[-5:], c, "rows", len(out), "nonzero", len(nz), json.dumps(nz[:3] or out[:1], ensure_ascii=False)[:600])
+            except Exception as e2:  # noqa: BLE001
+                print(bld[-5:], c, "ERR", str(e2)[:100])
+    # 하루씩: 기간합계를 strt=end 로
+    for c in [dict(mktTpCd="T"), dict(inqTpCd="1", mktTpCd="T", trdVolVal="1", askBid="3")]:
+        try:
+            out = krx_post("dbms/MDC/STAT/standard/MDCSTAT13101", strtDd="20261015", endDd="20261015", prodId="KRDRVFUK2I", **c).json().get("output") or []
+            print("13101 1day", c, json.dumps(out[:11], ensure_ascii=False)[:1500])
+        except Exception as e2:  # noqa: BLE001
+            print("ERR", e2)
+
+
+def p_krx_prog():
+    for p in [dict(strtDd="20261015", endDd="20261015", mktId="STK"), dict(strtDd="20100104", endDd="20100104", mktId="STK"),
+              dict(strtDd="20180102", endDd="20180102", mktId="STK")]:
+        try:
+            print("02601", p, json.dumps(krx_post("dbms/MDC/STAT/standard/MDCSTAT02601", **p).json().get("output"), ensure_ascii=False)[:700])
+        except Exception as e:  # noqa: BLE001
+            print("ERR", e)
+    for p in [dict(strtDd="20261001", endDd="20261015", mktId="STK", inqTpCd="2"), dict(strtDd="20261001", endDd="20261015", mktId="STK", itmTpCd="2"),
+              dict(strtDd="20261001", endDd="20261015", mktId="STK", inqTpCd="2", trdVolVal="2", askBid="3")]:
+        try:
+            r = krx_post("dbms/MDC/STAT/standard/MDCSTAT02602", **p)
+            print("02602", p, r.text[:500].replace("\n", " ") if not r.text.startswith("{") else json.dumps(r.json(), ensure_ascii=False)[:700])
+        except Exception as e:  # noqa: BLE001
+            print("ERR", e)
+
+
+def p_krx_opt_hist():
+    # 옵션 보드가 얼마나 과거까지 나오나 + 만기월별 OI 분포
+    for d in ["20261015", "20250612", "20240103", "20220103", "20190102", "20150105", "20120104"]:
+        try:
+            out = krx_post("dbms/MDC/STAT/standard/MDCSTAT12501", trdDd=d, prodId="KRDRVOPK2I", mktTpCd="T", rghtTpCd="T").json().get("output") or []
+            nms = [x.get("ISU_NM", "") for x in out]
+            by = {}
+            for x in out:
+                m = re.search(r"([CP])\s+(\S+)\s+([\d.]+)", x.get("ISU_NM", ""))
+                if m:
+                    key = (m.group(1), m.group(2))
+                    by[key] = by.get(key, 0) + float(str(x.get("ACC_OPNINT_QTY") or 0).replace(",", "").replace("-", "0") or 0)
+            print(d, "rows", len(out), "sample", nms[:2], "OI by (cp,month):", sorted(by.items(), key=lambda kv: -kv[1])[:10])
+        except Exception as e:  # noqa: BLE001
+            print(d, "ERR", e)
+    for d in ["20261015", "20200102", "20150105"]:
+        out = krx_post("dbms/MDC/STAT/standard/MDCSTAT12501", trdDd=d, prodId="KRDRVFUK2I", mktTpCd="T", rghtTpCd="T").json().get("output") or []
+        print("fut", d, len(out), [(x.get("ISU_NM"), x.get("TDD_CLSPRC"), x.get("SPOT_PRC"), x.get("ACC_OPNINT_QTY")) for x in out[:2]])
+
+
 if __name__ == "__main__":
     only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
     for nm in only:
