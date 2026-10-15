@@ -238,6 +238,13 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             log.info("재무 요약 %d종목", len(fins))
         except Exception as e:  # noqa: BLE001
             log.warning("재무 요약 실패: %s", e)
+    vals: dict[str, dict] = {}
+    if market == "KR":
+        try:
+            from . import valuation
+            vals = valuation.kr_all({s0: rows[s0]["close"] for s0 in syms if s0 in rows and rows[s0].get("close")})
+        except Exception as e:  # noqa: BLE001
+            log.warning("가치평가 실패: %s", e)
     discl = {}
     if market == "KR":
         try:
@@ -277,6 +284,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "flows": fl, "flow_note": flow_note,
             "disclosures": discl.get(s, []),
             "financials": fins.get(s, {}),
+            "valuation": vals.get(s, {}),
             "sim": sims.get(r["yf"], {}),
             "chart": ch,
             "scenarios": _scenarios(r, ch),

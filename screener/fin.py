@@ -246,44 +246,67 @@ def _pick(g: pl.DataFrame, ids: list[str], names: list[str], flow: bool, sjs: tu
 _CACHE: dict[str, pl.DataFrame] = {}
 
 
-def _frames() -> tuple[pl.DataFrame, pl.DataFrame]:
-    if "full" not in _CACHE:
-        _CACHE["full"] = _load(FULL, FULL_SCHEMA)
-        _CACHE["multi"] = _load(MULTI, MULTI_SCHEMA).with_columns(pl.lit("").alias("account_id"))
-    return _CACHE["full"], _CACHE["multi"]
+_ALL: dict[str, pl.DataFrame] = {}
+
+
+def _tag(df: pl.DataFrame) -> pl.DataFrame:
+    """행마다 표준 항목(item)과 우선순위(prio: account_id 일치 0, 계정명 일치 1)를 붙인다."""
+    item, prio = pl.lit(None, pl.Utf8), pl.lit(None, pl.Int8)
+    for k, (ids, names, sjs) in reversed(list(ITEMS.items())):
+        in_sj = pl.col("sj_div").is_in(list(sjs))
+        by_id = in_sj & pl.col("account_id").is_in(ids)
+        by_nm = in_sj & pl.col("account").is_in(names)
+        item = pl.when(by_id | by_nm).then(pl.lit(k)).otherwise(item)
+        prio = pl.when(by_id).then(pl.lit(0, pl.Int8)).when(by_nm).then(pl.lit(1, pl.Int8)).otherwise(prio)
+    return df.with_columns(item.alias("item"), prio.alias("prio")).filter(pl.col("item").is_not_null())
+
+
+def all_quarterly() -> pl.DataFrame:
+    """전 종목 단독 분기 시계열 (원 단위), 한 번에 벡터 연산으로. 전체재무제표 우선, 없으면 주요계정."""
+    if "q" in _ALL:
+        return _ALL["q"]
+    full = _load(FULL, FULL_SCHEMA)
+    multi = _load(MULTI, MULTI_SCHEMA).with_columns(pl.lit("").alias("account_id")).select(list(FULL_SCHEMA))
+    have_full = set(full["code"].unique().to_list()) if len(full) else set()
+    src = pl.concat([full, multi.filter(~pl.col("code").is_in(sorted(have_full)))], how="vertical_relaxed")
+    if src.is_empty():
+        _ALL["q"] = pl.DataFrame()
+        return _ALL["q"]
+    # 연결(CFS) 있으면 연결, 없으면 별도
+    cfs = src.filter(pl.col("fs_div") == "CFS").select("code").unique().with_columns(pl.lit(True).alias("_c"))
+    src = (src.join(cfs, on="code", how="left")
+              .filter((pl.col("_c").is_not_null() & (pl.col("fs_div") == "CFS")) | (pl.col("_c").is_null() & (pl.col("fs_div") == "OFS")))
+              .drop("_c"))
+    t = _tag(src.with_row_index("_i"))
+    # 같은 우선순위면 손익계산서(IS)를 포괄손익계산서(CIS)보다, 그다음 원래 순서를 따른다 (정렬 안정성)
+    t = t.with_columns(pl.when(pl.col("sj_div") == "CIS").then(1).otherwise(0).alias("_sj"))
+    flow = sorted(FLOW)
+    t = t.with_columns(pl.when(pl.col("item").is_in(flow) & pl.col("reprt").is_in(["11012", "11014"]) & pl.col("add_amount").is_not_null())
+                         .then(pl.col("add_amount")).otherwise(pl.col("amount")).alias("v"))
+    t = (t.sort(["prio", "_sj", "_i"], maintain_order=True)
+          .group_by("code", "year", "reprt", "item", maintain_order=True).agg(pl.col("v").first()))
+    w = t.pivot(on="item", index=["code", "year", "reprt"], values="v", aggregate_function="first")
+    for k in ITEMS:
+        if k not in w.columns:
+            w = w.with_columns(pl.lit(None, pl.Float64).alias(k))
+    w = (w.with_columns(pl.col("reprt").replace_strict({k: v[0] for k, v in REPRT.items()}, return_dtype=pl.Int32).alias("q"))
+          .drop("reprt").sort("code", "year", "q"))
+    w = w.with_columns(pl.col("q").shift(1).over("code", "year").alias("_pq"))
+    for k in flow:
+        prev = pl.col(k).shift(1).over("code", "year")
+        w = w.with_columns(pl.when(pl.col("q") == 1).then(pl.col(k))
+                             .when(pl.col("_pq") == pl.col("q") - 1).then(pl.col(k) - prev).otherwise(None).alias(k))
+    w = w.drop("_pq").with_columns((pl.col("year").cast(pl.Utf8) + "Q" + pl.col("q").cast(pl.Utf8)).alias("period"))
+    _ALL["q"] = w
+    _ALL["by"] = {k[0]: v for k, v in w.partition_by("code", as_dict=True).items()}
+    return w
 
 
 def quarterly(code: str) -> pl.DataFrame:
-    """종목의 단독 분기 시계열 (전체재무제표 우선, 없으면 주요계정). 금액 단위: 원."""
-    full, multi = _frames()
-    src = full.filter(pl.col("code") == code)
-    if src.is_empty():
-        src = multi.filter(pl.col("code") == code).select(list(FULL_SCHEMA))
-    if src.is_empty():
-        return pl.DataFrame()
-    fs = "CFS" if (src["fs_div"] == "CFS").any() else "OFS"
-    src = src.filter(pl.col("fs_div") == fs)
-    recs = []
-    for (y, rc), g in src.group_by("year", "reprt"):
-        rec = {"year": y, "q": REPRT[rc][0]}
-        for k, (ids, names, sjs) in ITEMS.items():
-            rec[k] = _pick(g, ids, names, k in FLOW, sjs)
-        recs.append(rec)
-    if not recs:
-        return pl.DataFrame()
-    df = pl.DataFrame(recs).sort("year", "q")
-    # 누적 → 단독 분기
-    out = df.with_columns(pl.col("q").shift(1).over("year").alias("_pq"))
-    for k in FLOW & set(df.columns):
-        prev = pl.col(k).shift(1).over("year")
-        out = out.with_columns(
-            pl.when(pl.col("q") == 1).then(pl.col(k))
-              .when(pl.col("_pq") == pl.col("q") - 1).then(pl.col(k) - prev)   # 직전 분기가 있어야 차분
-              .otherwise(None).alias(k))
-    out = out.drop("_pq")
-    # 손익계산서는 분기보고서 thstrm 이 이미 단독 분기인 경우가 있어 add_amount 로 누적을 맞췄으므로 위 차분이 맞다.
-    # 빠진 분기가 있으면 차분이 틀어지므로 해당 연도는 연속 분기가 있을 때만 신뢰
-    return out.with_columns((pl.col("year").cast(pl.Utf8) + "Q" + pl.col("q").cast(pl.Utf8)).alias("period"))
+    """종목의 단독 분기 시계열 (원 단위)."""
+    all_quarterly()
+    g = _ALL.get("by", {}).get(code)
+    return g.drop("code") if g is not None else pl.DataFrame()
 
 
 def summary(code: str, n: int = 8) -> dict:
