@@ -196,7 +196,7 @@ def _attach(ev: list[dict], rel: dict) -> None:
     keymap = [("CPI", "CPI"), ("고용", "고용"), ("PCE", "PCE"), ("GDP", "GDP"), ("FOMC", "FOMC"), ("PPI", "PPI")]
     last_ev = {}
     for e in ev:
-        if e["type"] != "매크로" or date.fromisoformat(e["date"]) > today:
+        if e["type"] != "매크로" or date.fromisoformat(e["date"]) >= today:   # 당일 미국 발표는 한국 밤 → 다음날부터 결과
             continue
         g = next((g for k, g in keymap if k in e["name"]), None)
         if not g:
