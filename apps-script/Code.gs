@@ -72,4 +72,5 @@ function getEvents() { return raw_('reports/events_stats.json'); }
 function getMacroHist() { return raw_('reports/macro_hist.json'); }
 function getStudy() { return raw_('reports/studies/crash_rebound.json'); }
 function getCalendar() { return raw_('reports/calendar.json'); }
+function getPeers(mk) { return raw_('reports/peers_' + (mk === 'US' ? 'US' : 'KR') + '.json'); }
 function getChains() { return raw_('reports/chains_view.json'); }

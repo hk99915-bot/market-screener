@@ -337,6 +337,41 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             track.score(full.select("yf", "date", "close"))
         except Exception as e:  # noqa: BLE001
             log.warning("시그널 추적 실패: %s", e)
+    # 동종 비교(RV)·히트맵용 요약 — 종목별 핵심 숫자만 한 파일에
+    try:
+        mc = {}
+        try:
+            from .config import UNIVERSE_DIR
+            uf = UNIVERSE_DIR / ("kr.csv" if market == "KR" else "us.csv")
+            if uf.exists():
+                u0 = pl.read_csv(uf, schema_overrides={"symbol": pl.Utf8})
+                if "mcap" in u0.columns:
+                    mc = dict(zip(u0["symbol"].to_list(), u0["mcap"].to_list()))
+        except Exception:  # noqa: BLE001
+            pass
+        ussec = {}
+        if market == "US":
+            try:
+                from .universe import us_sectors
+                ussec = us_sectors()
+            except Exception:  # noqa: BLE001
+                ussec = {}
+        semi = {"NVDA", "AMD", "AVGO", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "INTC", "QCOM", "TXN", "ADI", "MRVL", "ARM", "MU", "SNDK",
+                "MCHP", "NXPI", "ON", "MPWR", "TER", "WDC", "STX"}
+        peers = []
+        for s0, v0 in out["stocks"].items():
+            va, dv, st0 = v0.get("valuation") or {}, v0.get("drivers") or {}, v0.get("stats") or {}
+            grp = (("반도체" if s0 in semi else ussec.get(s0)) if market == "US" else None) or v0.get("theme") or va.get("sector") or ((dv.get("chain") or {}).get("name")) or "기타"
+            peers.append({"s": s0, "n": v0.get("name"), "g": grp, "sec": va.get("sector"),
+                          "mc": mc.get(s0) or st0.get("dollar_vol20"), "r1": st0.get("ret1"), "r5": st0.get("ret5"), "r20": st0.get("ret20"),
+                          "per": va.get("per"), "pbr": va.get("pbr"), "roe": va.get("roe"), "roen": va.get("roe_norm"),
+                          "drv": dv.get("score"), "sig": (va.get("signal_fv") or {}).get("upside"),
+                          "nor": (va.get("group_upside") or {}).get("normal"), "fs": (va.get("fscore") or {}).get("score"),
+                          "cls": st0.get("class")})
+        (REPORT_DIR / f"peers_{market}.json").write_text(json.dumps({"asof": out["asof"], "rows": peers}, ensure_ascii=False,
+                                                                    default=lambda x: None), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        log.warning("동종 비교 파일 실패: %s", e)
     import shutil
     d = REPORT_DIR / "detail" / market
     if d.exists():

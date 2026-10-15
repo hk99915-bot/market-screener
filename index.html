@@ -33,6 +33,7 @@
     getMacroHist: () => get('reports/macro_hist.json'),
     getStudy: () => get('reports/studies/crash_rebound.json'),
     getCalendar: () => get('reports/calendar.json'),
+    getPeers: (mk) => get('reports/peers_' + mk + '.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
@@ -620,6 +621,36 @@ function myRender(hs,cash,miss){
    <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
 }
 let SG=null, CH=null;
+const PEERS={};
+function peersLoad(mk,cb){ if(PEERS[mk]) return cb(PEERS[mk]); google.script.run.withSuccessHandler(t=>{try{PEERS[mk]=JSON.parse(t);}catch(e){PEERS[mk]={rows:[]};} cb(PEERS[mk]);}).withFailureHandler(()=>{PEERS[mk]={rows:[]};cb(PEERS[mk]);}).getPeers(mk); }
+function rvFill(sym,mk){
+  peersLoad(mk,P=>{ const box=$('#rvbox'); if(!box) return; const rows=P.rows||[], me=rows.find(r=>r.s===sym);
+    if(!me){ box.innerHTML='<div class="mu">비교 데이터 없음</div>'; return; }
+    const grp=rows.filter(r=>r.g===me.g); const list=[...grp].sort((a,b)=>(b.mc||0)-(a.mc||0)).slice(0,14); if(!list.includes(me)) list.push(me);
+    const med=k=>{const v=grp.map(r=>r[k]).filter(x=>x!=null&&isFinite(x)).sort((a,b)=>a-b); return v.length?v[Math.floor(v.length/2)]:null;};
+    const rk=k=>{const v=grp.filter(r=>r[k]!=null); if(me[k]==null||!v.length) return ''; const n=v.filter(r=>r[k]>me[k]).length+1; return `${n}/${v.length}`;};
+    const F=(x,d=1)=>x==null||!isFinite(x)?'—':x.toFixed(d), P_=x=>x==null?'—':pct(x,0), col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
+    $('#rvsub').textContent=`${me.g} · ${grp.length}종목`;
+    box.innerHTML=`<div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7;white-space:normal">그룹 안 순위 — 20일 수익률 ${rk('r20')} · 드라이버 ${rk('drv')} · 정상화 적정가 괴리 ${rk('nor')} (1위 = 가장 큼)</div>
+     <table><tr><th class="l">종목</th><th>1D</th><th>20D</th><th>PER</th><th>PBR</th><th>ROE</th><th>평균ROE</th><th>드라이버</th><th>정상화</th><th>신호가중</th></tr>
+     ${list.map(r=>`<tr style="${r===me?'background:#1a1408':''}"><td class="l ${r===me?'am':''}"><span class="sym" data-sym="${esc(r.s)}" data-mk="${mk}" style="cursor:pointer">${esc(shortNm(r.n)||r.s)}</span></td><td>${pct(r.r1,1)}</td><td>${pct(r.r20,0)}</td><td>${F(r.per)}</td><td>${F(r.pbr,2)}</td><td>${r.roe!=null?(r.roe*100).toFixed(0)+'%':'—'}</td><td class="mu">${r.roen!=null?(r.roen*100).toFixed(0)+'%':'—'}</td><td style="color:${col(r.drv)}">${r.drv!=null?(r.drv>0?'+':'')+r.drv.toFixed(2):'—'}</td><td>${P_(r.nor)}</td><td>${P_(r.sig)}</td></tr>`).join('')}
+     <tr class="mu"><td class="l">그룹 중앙값</td><td>${pct(med('r1'),1)}</td><td>${pct(med('r20'),0)}</td><td>${F(med('per'))}</td><td>${F(med('pbr'),2)}</td><td>${med('roe')!=null?(med('roe')*100).toFixed(0)+'%':'—'}</td><td>${med('roen')!=null?(med('roen')*100).toFixed(0)+'%':'—'}</td><td>${med('drv')!=null?med('drv').toFixed(2):'—'}</td><td>${P_(med('nor'))}</td><td>${P_(med('sig'))}</td></tr></table>`; });
+}
+let HMK='KR', HMM='r1';
+function heatView(){
+  const mk=HMK; if(!PEERS[mk]){ peersLoad(mk,()=>{ if(view==='heat') render(); }); return '<div class="load">LOADING …</div>'; }
+  const rows=(PEERS[mk].rows||[]).filter(r=>r[HMM]!=null&&(r.mc||0)>0);
+  const by={}; rows.forEach(r=>{(by[r.g]=by[r.g]||[]).push(r);});
+  const groups=Object.entries(by).map(([g,a])=>({g,a:a.sort((x,y)=>y.mc-x.mc),tot:a.reduce((s,r)=>s+r.mc,0),avg:a.reduce((s,r)=>s+r.mc*r[HMM],0)/a.reduce((s,r)=>s+r.mc,0)})).sort((x,y)=>y.tot-x.tot);
+  const maxmc=Math.max(...rows.map(r=>r.mc)); const lim=HMM==='r1'?0.05:HMM==='r5'?0.10:0.20;
+  const bg=v=>{const t=Math.max(-1,Math.min(1,v/lim)); const up=mk==='KR'?[220,50,50]:[40,170,80], dn=mk==='KR'?[40,110,220]:[220,50,50]; const c=t>=0?up:dn, a=Math.abs(t); return `rgba(${c[0]},${c[1]},${c[2]},${0.15+0.75*a})`;};
+  const tile=r=>{const sz=Math.max(34,Math.round(Math.sqrt(r.mc/maxmc)*150)); return `<div class="sym" data-sym="${esc(r.s)}" data-mk="${mk}" title="${esc(r.n)} ${(r[HMM]*100).toFixed(1)}%" style="cursor:pointer;width:${sz}px;height:${Math.round(sz*0.62)}px;background:${bg(r[HMM])};display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;font-size:${sz>80?12:10}px;line-height:1.15;color:#fff;border:1px solid #000"><span style="max-width:95%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(shortNm(r.n)||r.s)}</span><b>${(r[HMM]*100).toFixed(1)}%</b></div>`;};
+  const btn=(k,v,l,cur)=>`<button data-${k}="${v}" class="${cur===v?'on':''}">${l}</button>`;
+  setTimeout(()=>{ document.querySelectorAll('[data-hmk]').forEach(b=>b.onclick=()=>{HMK=b.dataset.hmk;render();}); document.querySelectorAll('[data-hmm]').forEach(b=>b.onclick=()=>{HMM=b.dataset.hmm;render();}); },0);
+  return `<div class="grid"><div class="p c12"><h2>HEATMAP<span class="ctab">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)} · ${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}</span><small>${esc(PEERS[mk].asof||'')} 종가 · 크기=${mk==='KR'?'시가총액':'거래대금'}</small></h2><div class="b">
+    ${groups.slice(0,24).map(G=>`<div style="margin-bottom:8px"><div style="font-size:12px;margin-bottom:2px"><b>${esc(G.g)}</b> <span style="color:${G.avg>=0?(mk==='KR'?'var(--dn)':'var(--up)'):(mk==='KR'?'var(--blue)':'var(--dn)')}">${(G.avg*100).toFixed(1)}%</span> <span class="mu">${G.a.length}종목</span></div><div style="display:flex;flex-wrap:wrap;gap:0">${G.a.slice(0,30).map(tile).join('')}</div></div>`).join('')}
+    <div class="mu" style="font-size:11px">${mk==='KR'?'빨강=상승 파랑=하락 (국내 관례)':'초록=상승 빨강=하락'} · 그룹 수익률은 크기 가중 평균 · 그룹당 상위 30종목</div></div></div></div>`;
+}
 let STU=null;
 function studyView(){
   if(STU===null){ STU=false; google.script.run.withSuccessHandler(t=>{try{STU=JSON.parse(t);}catch(e){STU={};} if(view==='study') render();}).withFailureHandler(()=>{STU={};if(view==='study') render();}).getStudy(); return '<div class="load">LOADING …</div>'; }
@@ -839,7 +870,7 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||'');
   tape();
   const v=view;
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='my'?myView():v==='study'?studyView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='heat'?heatView():v==='my'?myView():v==='study'?studyView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -956,6 +987,7 @@ function renderDetail(sym,mk,s){
    <div class="p c12"><h2>TREND SIMULATION<small>${s.sim&&s.sim.days?`최근 ${s.sim.days}거래일(${s.sim.from}~) · 종가 체결 · 왕복비용 ${(s.sim.cost*100).toFixed(2)}% 가정 · 과거 성과, 예측 아님`:''}</small></h2><div class="b">${simTable(s.sim)}</div></div>
    ${(kr||(s.drivers&&Object.keys(s.drivers).length))?`<div class="p c12"><h2>EARNINGS DRIVERS<small>이익이 유지될까 · ${kr?'공급망·매크로·애널리스트·뉴스·공시':'EPS 추정 변화·매출·공급망·매크로'}</small></h2><div class="b">${drvPanel(s.drivers,s.valuation)}</div></div>`:''}
    ${kr?`<div class="p c12"><h2>VALUATION<small>3개 시나리오 · 범위로 볼 것, 점 추정 아님</small></h2><div class="b">${valPanel(s.valuation,s.close)}</div></div>`:''}
+   <div class="p c12"><h2>RV · 동종 비교<small id="rvsub">같은 테마·업종</small></h2><div class="b" id="rvbox"><div class="mu">불러오는 중…</div></div></div>
    <div class="p c12"><h2>FINANCIALS<small>${kr?'DART':'SEC EDGAR'} · 단독 분기 · ${s.financials?.unit||(kr?'억원':'$M')}</small></h2><div class="b">${finTable(s.financials,kr)}</div></div>
    <div class="p c12"><h2>DISCLOSURES<small>DART · 최근 180일 주요 공시</small></h2><div class="b">${(s.disclosures||[]).length?discTable(s.disclosures,false):'<div class="mu">'+(kr?'최근 주요 공시 없음 (또는 DART 키 미설정)':'미국 종목은 DART 대상 아님')+'</div>'}</div></div>
    <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">
@@ -966,7 +998,7 @@ function renderDetail(sym,mk,s){
    <div class="p c6"><h2>STOCK VIEW</h2><div class="b">${esc(s.comment?.stock||'—')}</div></div>
    <div class="p c6"><h2>MACRO VIEW</h2><div class="b">${esc(s.comment?.macro||'—')}</div></div>
   </div>`;
-  $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr);
+  $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr); rvFill(sym,mk);
   document.querySelectorAll('.ctab button').forEach(bt=>bt.onclick=()=>{
     document.querySelectorAll('.ctab button').forEach(z=>z.classList.toggle('on',z===bt));
     if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr,sc,rs,s.close); $('#ch-note').textContent=kr?'네이버 금융 · 일봉 캔들(오늘 봉 포함) / 장중 흐름 · 1분 갱신':'TradingView · 5분봉 · 왼쪽 도구로 수평선 그리기 가능'; }
@@ -1032,7 +1064,7 @@ function drawChart(ch,sc,rs,kr){
 }
 
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],
-  mkt:[['kr','KR'],['us','US'],['mdkr','KR 전종목'],['mdus','US 전종목']],
+  mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목']],
   daily:[['daily','데일리 리포트'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['mom','모멘텀'],['pf','모의 포트폴리오']]};
