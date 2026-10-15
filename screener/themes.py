@@ -76,7 +76,12 @@ def fetch() -> dict[str, list[str]]:
     """{종목코드: [소속 테마명...]} — 네이버 모바일 API (PC 테마 페이지는 Next.js 로 바뀌어 파싱 불가)."""
     themes: dict[int, str] = {}
     for page in range(1, 6):
-        j = _json(f"https://m.stock.naver.com/api/stocks/theme?page={page}&pageSize=100")
+        try:
+            j = _json(f"https://m.stock.naver.com/api/stocks/theme?page={page}&pageSize=100")
+        except Exception:  # noqa: BLE001
+            if themes:
+                break
+            raise
         gs = j.get("groups") or []
         for g in gs:
             themes[g["no"]] = g["name"]
