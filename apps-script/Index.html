@@ -573,7 +573,17 @@ function myView(){
 // 교정 리포트: pb-private/analysis/latest.json → 이미지·보고서를 토큰으로 직접 받아 이 브라우저에서만 표시 (공개 서버 경유 없음)
 const PBAPI='https://api.github.com/repos/hk99915-bot/pb-private/contents/';
 function pbGet(path,as){ const tk=ghTok(); return fetch(PBAPI+path+'?t='+Date.now(),{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github.raw'},cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error(r.status); return as==='blob'?r.blob():r.text(); }); }
-function mdLite(t){ return esc(t).split('\n').map(l=>/^#{1,3} /.test(l)?'<div style="color:var(--amber);font-weight:700;margin-top:10px">'+l.replace(/^#+ /,'')+'</div>':/^\|/.test(l)?'<div style="font-family:monospace;white-space:pre">'+l+'</div>':/^\s*[-*] /.test(l)?'<div>· '+l.replace(/^\s*[-*] /,'')+'</div>':'<div>'+l+'</div>').join(''); }
+function mdLite(t){ const L=String(t||'').split('\n'), out=[]; let tb=null;
+  const cell=c=>esc(c.trim()).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  const flush=()=>{ if(!tb) return; const rows=tb.filter(r=>!/^\s*\|?\s*:?-{2,}/.test(r)).map(r=>r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|'));
+    if(rows.length){ const [h,...b]=rows; out.push('<div style="overflow-x:auto"><table style="margin:4px 0 10px"><tr>'+h.map((c,k)=>`<th class="${k?'':'l'}">${cell(c)}</th>`).join('')+'</tr>'+b.map(r=>'<tr>'+r.map((c,k)=>{ const v=c.trim(); const cl=/^[-−]/.test(v)&&/\d/.test(v)?'dn':/^\+/.test(v)?'up':''; return `<td class="${k?cl:'l'}">${cell(c)}</td>`; }).join('')+'</tr>').join('')+'</table></div>'); }
+    tb=null; };
+  for(const l of L){ if(/^\s*\|/.test(l)){ (tb=tb||[]).push(l); continue; } flush();
+    if(/^\s*!\[/.test(l)||!l.trim()) continue;
+    if(/^#{1,3} /.test(l)||/^\d+\. \S/.test(l)&&l.length<40) out.push('<div style="color:var(--amber);font-weight:700;margin-top:12px">'+cell(l.replace(/^#+ /,''))+'</div>');
+    else if(/^\s*[-*·] /.test(l)) out.push('<div style="margin-left:4px">· '+cell(l.replace(/^\s*[-*·] /,''))+'</div>');
+    else out.push('<div>'+cell(l)+'</div>'); }
+  flush(); return out.join(''); }
 let CORR=null, CORRCH=[];
 function corrCharts(W){ CORR=W; const box=$('#mycint'); if(!box) return;
   const f=v=>v==null?'—':(v/1e6).toFixed(2)+'M', pc=v=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(1)+'%', col=v=>v>0?'up':v<0?'dn':'mu';
