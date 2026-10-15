@@ -124,6 +124,60 @@ def intraday_market_flows() -> dict:
     return out
 
 
+_MI: dict[str, dict] = {}
+M_UA = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+        "Referer": "https://m.stock.naver.com/"}
+
+
+def mobile_index(name: str) -> dict:
+    """네이버 모바일 지수 통합 정보 (시세·투자자·프로그램·등락 종목 수·시총 상위 구성종목). 실행 중 1회 캐시."""
+    if name not in _MI:
+        r = requests.get(f"https://m.stock.naver.com/api/index/{name}/integration", headers=M_UA, timeout=15)
+        r.raise_for_status()
+        _MI[name] = r.json()
+    return _MI[name]
+
+
+def mobile_stock(code: str) -> dict:
+    r = requests.get(f"https://m.stock.naver.com/api/stock/{code}/basic", headers=M_UA, timeout=10)
+    r.raise_for_status()
+    return r.json()
+
+
+def _n(v):
+    try:
+        return float(str(v).replace(",", "").replace("+", "").replace("%", ""))
+    except (TypeError, ValueError):
+        return None
+
+
+def intraday_snapshot() -> dict:
+    """장중 브리핑용 시장 스냅샷: 지수 시가·고가·저가·대금, 프로그램 매매, 등락 종목 수, 시총 상위 종목."""
+    out = {}
+    for name in ("KOSPI", "KOSDAQ"):
+        try:
+            j = mobile_index(name)
+        except Exception as e:  # noqa: BLE001
+            log.warning("모바일 지수 %s 실패: %s", name, e)
+            continue
+        ti = {x.get("code"): x.get("value") for x in j.get("totalInfos") or []}
+        pg = j.get("programTrendInfo") or {}
+        ud = j.get("upDownStockInfo") or {}
+        top = []
+        for s in (j.get("enrollStocks") or [])[:12]:
+            top.append({"code": s.get("itemCode"), "name": s.get("stockName"), "chg": _n(s.get("fluctuationsRatio")),
+                        "px": _n(s.get("closePrice")), "tv": _n(s.get("accumulatedTradingValue"))})
+        out[name] = {
+            "prev": _n(ti.get("lastClosePrice")), "open": _n(ti.get("openPrice")), "high": _n(ti.get("highPrice")),
+            "low": _n(ti.get("lowPrice")), "value_mil": _n(str(ti.get("accumulatedTradingValue", "")).replace("백만", "")),
+            "prog_arb": _n(pg.get("indexDifferenceReal")), "prog_nonarb": _n(pg.get("indexBiDifferenceReal")),
+            "prog_total": _n(pg.get("indexTotalReal")),
+            "up": _n(ud.get("riseCount")), "upper": _n(ud.get("upperCount")), "down": _n(ud.get("fallCount")),
+            "lower": _n(ud.get("lowerCount")), "flat": _n(ud.get("steadyCount")), "top": top,
+        }
+    return out
+
+
 def _mobile_index_flows() -> dict:
     """m.stock.naver.com 지수 통합 정보에서 개인·외국인·기관 순매수(억원)를 찾는다.
     응답 구조가 바뀌어도 키 이름(personal/foreign/institution)으로 재귀 탐색. 진단용으로 원본 일부를 logs 에 남김."""
@@ -155,9 +209,7 @@ def _mobile_index_flows() -> dict:
 
     for name in ("KOSPI", "KOSDAQ"):
         try:
-            r = requests.get(f"https://m.stock.naver.com/api/index/{name}/integration", headers=UA, timeout=15)
-            r.raise_for_status()
-            j = r.json()
+            j = mobile_index(name)
             try:
                 from .config import REPORT_DIR
                 (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)

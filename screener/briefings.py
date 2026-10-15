@@ -157,46 +157,105 @@ def premarket_kr(send: bool = True) -> str:
 
 def intraday_kr(send: bool = True) -> str:
     now = datetime.now(KST)
-    L = [f"<b>📈 장중 수급</b> · {now:%m/%d %H:%M} [LIVE·잠정]"]
+    L = [f"<b>📈 장중 브리핑</b> · {now:%m/%d %H:%M} [LIVE·잠정]"]
+    snap = {}
+    try:
+        snap = flows.intraday_snapshot()
+    except Exception as e:  # noqa: BLE001
+        log.warning("장중 스냅샷 실패: %s", e)
+    try:
+        from .live import kr_naver
+        idx = kr_naver()
+    except Exception:  # noqa: BLE001
+        idx = {}
     mf = flows.intraday_market_flows()
+
+    # 1) 지수·등락
+    L.append("")
+    L.append("<b>[지수]</b>")
+    for mkt in ("KOSPI", "KOSDAQ"):
+        q, sn = idx.get(mkt, {}), snap.get(mkt, {})
+        if not q and not sn:
+            continue
+        line = f"{mkt} {q.get('last', 0):,.2f} ({q.get('chg', 0)*100:+.2f}%)" if q else mkt
+        if sn.get("high") and sn.get("low") and sn.get("prev"):
+            line += f" · 고 {(sn['high']/sn['prev']-1)*100:+.1f}% / 저 {(sn['low']/sn['prev']-1)*100:+.1f}%"
+        if sn.get("value_mil"):
+            line += f" · 대금 {sn['value_mil']/1e6:,.1f}조"
+        L.append(line)
+        if sn.get("up") is not None:
+            tot = (sn.get("up") or 0) + (sn.get("down") or 0)
+            L.append(f"  상승 {sn['up']:.0f}(상한 {sn.get('upper') or 0:.0f}) · 하락 {sn['down']:.0f}(하한 {sn.get('lower') or 0:.0f})"
+                     + (f" · 하락 비율 {sn['down']/tot*100:.0f}%" if tot else ""))
+
+    # 2) 투자자·프로그램
+    L.append("")
+    L.append("<b>[수급]</b>")
     for mkt in ("KOSPI", "KOSDAQ"):
         if mf.get(mkt):
             v = mf[mkt]
             L.append(f"{mkt}: 외국인 {v.get('외국인', 0):+,.0f}억 · 기관 {v.get('기관', 0):+,.0f}억 · 개인 {v.get('개인', 0):+,.0f}억")
+        sn = snap.get(mkt, {})
+        if sn.get("prog_total") is not None:
+            L.append(f"  프로그램 {sn['prog_total']:+,.0f}억 (차익 {sn.get('prog_arb') or 0:+,.0f} · 비차익 {sn.get('prog_nonarb') or 0:+,.0f})")
     k = mf.get("KOSPI", {})
     if k.get("외국인") is not None and k.get("기관") is not None:
-        f, i = k["외국인"], k["기관"]
-        L.append("→ " + ("외국인·기관 동반 매수" if f > 0 and i > 0 else "외국인·기관 동반 매도" if f < 0 and i < 0
-                        else f"외국인 {'매수' if f > 0 else '매도'} / 기관 {'매수' if i > 0 else '매도'} 엇갈림"))
-    fb, fs = flows.intraday_rank("외국인", "buy"), flows.intraday_rank("외국인", "sell")
-    ib, is_ = flows.intraday_rank("기관", "buy"), flows.intraday_rank("기관", "sell")
-
-    def line(title, rows):
-        if rows:
-            L.append(f"<b>{title}</b> " + ", ".join(f"{_esc(r['name'])}({abs(r['amt_mil'])/100:,.0f}억)" for r in rows[:6]))
-    L.append("")
-    line("외국인 순매수", fb); line("외국인 순매도", fs); line("기관 순매수", ib); line("기관 순매도", is_)
+        f, i2 = k["외국인"], k["기관"]
+        L.append("→ " + ("외국인·기관 동반 매수" if f > 0 and i2 > 0 else "외국인·기관 동반 매도" if f < 0 and i2 < 0
+                        else f"외국인 {'매수' if f > 0 else '매도'} / 기관 {'매수' if i2 > 0 else '매도'} 엇갈림"))
     if not mf:
-        L.append("⚠ 장중 시장 수급을 받지 못했습니다 (네이버 PC 페이지 종료, KRX는 마감 후 제공). 확정치는 16:20 마감 브리핑에 포함됩니다.")
-    if not (fb or fs or ib or is_):
-        L.append("· 종목별 장중 순매수 순위는 네이버 페이지 종료(410)로 현재 제공 불가 — 마감 후 확정치로 대체")
+        L.append("⚠ 장중 시장 수급을 받지 못했습니다. 확정치는 16:20 마감 브리핑에 포함됩니다.")
 
-    # 관심종목 교차
+    # 3) 시총 상위 종목
+    top = (snap.get("KOSPI", {}).get("top") or [])[:10]
+    if top:
+        L.append("")
+        L.append("<b>[시총 상위]</b> " + " · ".join(f"{_esc(t['name'])} {t['chg']:+.1f}%" for t in top if t.get("chg") is not None))
+
+    # 4) 해석 (규칙 기반)
+    notes = []
+    ks, kq = snap.get("KOSPI", {}), idx.get("KOSPI", {})
+    if k.get("외국인") is not None and k["외국인"] < -10000:
+        notes.append(f"외국인 현물 {abs(k['외국인'])/10000:.1f}조 순매도로 지수 하락 주도")
+    if ks.get("prog_nonarb") is not None and ks["prog_nonarb"] < -5000:
+        notes.append("비차익 프로그램 매도 대규모 — 바스켓(패시브·외국인) 매도 성격")
+    if k.get("개인") and k.get("개인") > 5000 and (kq.get("chg") or 0) < -0.02:
+        notes.append("개인 저가 매수 유입")
+    if ks.get("up") is not None and ks.get("down"):
+        r = ks["down"] / max(ks["up"] + ks["down"], 1)
+        if r > 0.85:
+            notes.append(f"하락 종목 {r*100:.0f}% — 업종 불문 전면 투매")
+        elif r < 0.3:
+            notes.append("상승 종목 우세 — 지수보다 체감 장세가 강함")
+    if top:
+        big = [t for t in top[:3] if t.get("chg") is not None]
+        if big and kq.get("chg") is not None and min(t["chg"] for t in big) / 100 < kq["chg"] - 0.02:
+            notes.append("대형주가 지수보다 더 빠짐 — 반도체 등 시총 상위 집중 매도")
+    if notes:
+        L.append("")
+        L.append("<b>[해석]</b> " + " · ".join(notes))
+
+    fb = fs = ib = is_ = []
+    # 5) 관심종목 실시간
     try:
         watch = json.loads(WATCH.read_text(encoding="utf-8")) if WATCH.exists() else []
     except Exception:  # noqa: BLE001
         watch = []
     if watch:
-        buy_codes = {r["code"] for r in fb + ib}
-        sell_codes = {r["code"] for r in fs + is_}
-        hits = []
-        for w in watch:
-            if w["code"] in buy_codes:
-                hits.append(f"{_esc(w['name'])} ← 외인/기관 순매수 상위")
-            elif w["code"] in sell_codes:
-                hits.append(f"{_esc(w['name'])} ← 외인/기관 순매도 상위 ⚠")
-        L.append("")
-        L.append("<b>[관심종목 수급]</b> " + (" · ".join(hits) if hits else "상위권 진입 없음"))
+        rows = []
+        for w in watch[:12]:
+            try:
+                q = flows.mobile_stock(w["code"])
+                rows.append((w["name"], flows._n(q.get("fluctuationsRatio"))))
+            except Exception as e:  # noqa: BLE001
+                log.debug("관심종목 시세 %s 실패: %s", w["code"], e)
+        rows = [r for r in rows if r[1] is not None]
+        if rows:
+            rows.sort(key=lambda r: -r[1])
+            L.append("")
+            L.append("<b>[오늘 관심종목]</b> " + " · ".join(f"{_esc(n)} {c:+.1f}%" for n, c in rows))
+    L.append("")
+    L.append("<i>종목별 외국인·기관 순매수 순위는 장중 공개 소스가 없어 16:20 마감 브리핑(KRX 확정치)에 포함</i>")
     msg = "\n".join(L)
     if send:
         send_telegram(msg)
