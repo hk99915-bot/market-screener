@@ -208,7 +208,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     for (yf,), g in hist.group_by("yf", maintain_order=True):
         rd = lambda v: None if v is None else round(v, 2)  # noqa: E731
         charts[yf] = [{"d": str(x["date"])[5:], "o": rd(x["open"]), "h": rd(x["high"]), "l": rd(x["low"]), "c": rd(x["close"]),
-                       "v": int(x["volume"] or 0), "s20": rd(x.get("sma20")), "s50": rd(x.get("sma50"))} for x in g.to_dicts()]
+                       "v": int(x["volume"] or 0), "s20": rd(x.get("sma20")), "s50": rd(x.get("sma50")), "p": rd(x.get("psar"))} for x in g.to_dicts()]
     reps: dict[str, list[dict]] = {}
     if store is not None and len(store):
         rr = (store.filter(pl.col("code").is_in(syms) & (pl.col("date") >= asof - timedelta(days=180)))

@@ -126,8 +126,17 @@ def _stats(g) -> tuple[dict, list, list]:
     st = {"ret1": r(1), "ret5": r(5), "ret20": r(20), "ret60": r(60), "high52": hi, "low52": lo, "from_high52": last / hi - 1,
           "sma20": sma(20), "sma50": sma(50), "sma200": sma(200), "rsi14": rsi}
     rd = lambda v: None if v is None else round(float(v), 4)  # noqa: E731
+    try:
+        import numpy as np
+        from .indicators import psar_np
+        ps = psar_np(g["High"].astype(float).to_numpy(), g["Low"].astype(float).to_numpy(), np.array(c, dtype=float))
+    except Exception:  # noqa: BLE001
+        ps = [None] * len(c)
+    s20 = [sum(c[i - 19:i + 1]) / 20 if i >= 19 else None for i in range(len(c))]
+    s50 = [sum(c[i - 49:i + 1]) / 50 if i >= 49 else None for i in range(len(c))]
     chart = [{"d": d[i][5:], "o": rd(g["Open"].iloc[i]), "h": rd(g["High"].iloc[i]), "l": rd(g["Low"].iloc[i]), "c": rd(c[i]),
-              "v": int(g["Volume"].iloc[i] or 0), "s20": None, "s50": None} for i in range(max(0, len(c) - 60), len(c))]
+              "v": int(g["Volume"].iloc[i] or 0), "s20": rd(s20[i]), "s50": rd(s50[i]),
+              "p": rd(ps[i]) if ps[i] is not None and ps[i] == ps[i] else None} for i in range(max(0, len(c) - 60), len(c))]
     c1y = [[d[i], rd(c[i])] for i in range(max(0, len(c) - 260), len(c))]
     return {k: (round(v, 4) if isinstance(v, float) else v) for k, v in st.items()}, chart, c1y
 

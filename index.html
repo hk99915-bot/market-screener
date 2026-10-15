@@ -1041,7 +1041,7 @@ function drawChart(ch,sc,rs,kr){
   const cv=$('#cv'); if(!cv||!ch.length) return; const W=cv.width=cv.clientWidth*2,H=cv.height=520; const x=cv.getContext('2d'); x.scale(1,1);
   const padL=70,padR=16,padT=12,padB=70,vh=90; const n=ch.length; const cw=(W-padL-padR)/n;
   const bx=sc.base&&sc.base.range;
-  const lv=[ovOn('bull')&&sc.bull?.target,ovOn('stop')&&sc.bear?.stop,ovOn('tp')&&rs.consensus_tp,ovOn('next')&&sc.bear?.next,ovOn('psar')&&sc.bear?.trail,...(ovOn('box')&&bx?bx:[])].filter(v=>v);
+  const lv=[ovOn('bull')&&sc.bull?.target,ovOn('stop')&&sc.bear?.stop,ovOn('tp')&&rs.consensus_tp,ovOn('next')&&sc.bear?.next,ovOn('psar')&&sc.bear?.trail,...(ovOn('box')&&bx?bx:[]),...(ovOn('psar')?ch.map(c=>c.p):[])].filter(v=>v);
   let lo=Math.min(...ch.map(c=>c.l),...lv),hi=Math.max(...ch.map(c=>c.h),...lv); const pad=(hi-lo)*0.06; lo-=pad;hi+=pad;
   const Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB-vh); const vmax=Math.max(...ch.map(c=>c.v))||1;
   x.fillStyle='#050505';x.fillRect(0,0,W,H);
@@ -1056,7 +1056,10 @@ function drawChart(ch,sc,rs,kr){
   if(ovOn('bull')) hline(sc.bull?.target,'#2fd05a','BULL '+fm(sc.bull?.target));
   if(ovOn('stop')) hline(sc.bear?.stop,'#ff4b4b','STOP '+fm(sc.bear?.stop));
   if(ovOn('next')) hline(sc.bear?.next,'#ff6b9a','다음 지지 '+fm(sc.bear?.next));
-  if(ovOn('psar')&&sc.bear?.trail) hline(sc.bear.trail,'#ff9a1f','PSAR '+fm(sc.bear.trail));
+  if(ovOn('psar')){ const pts=ch.filter(c=>c.p!=null);
+    if(pts.length){ ch.forEach((c,i)=>{ if(c.p==null||c.p<lo||c.p>hi) return; const px=padL+cw*i+cw/2; x.fillStyle=c.p<c.c?'#ff9a1f':'#c070ff'; x.beginPath(); x.arc(px,Y(c.p),Math.max(2.5,cw*0.12),0,Math.PI*2); x.fill(); });
+      const lp=pts[pts.length-1]; x.fillStyle='#ff9a1f'; x.fillText('PSAR '+fm(lp.p)+(lp.p<lp.c?' (상승추세)':' (하락추세)'),padL+6,padT+22); }
+    else if(sc.bear?.trail) hline(sc.bear.trail,'#ff9a1f','PSAR '+fm(sc.bear.trail)); }
   ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4b4b':'#4aa3ff'; if(!kr){x.strokeStyle=x.fillStyle=up?'#2fd05a':'#ff4b4b';}
     x.lineWidth=2;x.beginPath();x.moveTo(px,Y(c.h));x.lineTo(px,Y(c.l));x.stroke();const yo=Y(c.o),yc=Y(c.c);x.fillRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo)));
     const vb=H-padB-(c.v/vmax)*vh*0.95; x.fillStyle=up?'#5a2020':'#1f3a5a'; x.fillRect(px-cw*0.3,vb,cw*0.6,H-padB-vb);
