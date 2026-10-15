@@ -28,6 +28,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
         run: |
           python -m screener.main --mode fin --no-send || true
           python -m screener.main --mode analysts --no-send || true
@@ -37,7 +38,7 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          for p in data/fin universe/dart_corp.csv data/research.parquet reports; do [ -e "$p" ] && git add -A "$p"; done; true
+          for p in data/fin universe/dart_corp.csv universe/sec_tickers.json data/research.parquet reports; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet && exit 0
           git commit -m "fin: $(date -u +%FT%H:%M)"
           for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done

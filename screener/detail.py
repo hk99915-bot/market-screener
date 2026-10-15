@@ -218,6 +218,16 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         if not flows:   # 일괄 조회가 막히면 상위 150종목만 종목별로
             flows = _flows_kr(_targets(last)[:150], asof)
     fins: dict[str, dict] = {}
+    if market == "US":
+        try:
+            from . import sec
+            for s0 in syms:
+                v = sec.summary(s0)
+                if v:
+                    fins[s0] = v
+            log.info("미장 재무 요약 %d종목", len(fins))
+        except Exception as e:  # noqa: BLE001
+            log.warning("미장 재무 요약 실패: %s", e)
     if market == "KR":
         try:
             from . import fin

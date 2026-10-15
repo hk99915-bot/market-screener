@@ -236,9 +236,16 @@ def main() -> None:
             dashboard.build()
         elif a.mode == "detail_kr":   # 종목 상세만 재생성 (어제 종가 기준, 알림 없음)
             rebuild_detail_kr()
-        elif a.mode == "fin":         # 재무제표 수집 (알림 없음)
+        elif a.mode == "fin":         # 재무제표 수집 (알림 없음): KR(DART) + US(SEC)
             from . import fin
             print(fin.update())
+            try:
+                from . import sec
+                from .config import UNIVERSE_DIR
+                us = pl.read_csv(UNIVERSE_DIR / "us_index.csv")["yf"].to_list() if (UNIVERSE_DIR / "us_index.csv").exists() else []
+                print("SEC", sec.update(us))
+            except Exception as e:  # noqa: BLE001
+                log.warning("SEC 재무 실패: %s", e)
         elif a.mode == "momentum":    # 모멘텀 백테스트(국장 2010~)
             from . import momentum
             momentum.backtest_kr()
