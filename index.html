@@ -503,13 +503,16 @@ function myResolve(k){ const x=k.toLowerCase().trim();
   const ex=SIX.find(s=>s.s.toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase()===x); if(ex) return ex;
   if(/^[a-z][a-z.\-]{0,5}$/.test(x)||/^\d{6}$/.test(x)) return null;   // 티커·코드는 정확히 일치할 때만 (PSI → PepsiCo 오인 방지)
   return SIX.find(s=>String(s.n).toLowerCase().startsWith(x))||SIX.find(s=>String(s.n).toLowerCase().replace(/\s/g,'').includes(x.replace(/\s/g,'')))||null; }
+function myOpen(){ try{ return localStorage.getItem('mt_myopen')==='1'; }catch(e){ return false; } }
 function myView(){
   const txt=myLoad();
-  setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); myRun(); }; if(txt) myRun(); },0);
+  setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); $('#myin').open=false; myRun(); };
+    $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
   return `<div class="grid"><div class="p c12"><h2>MY PB<small>보유 자산 분석 · 이 브라우저에만 저장(서버 전송 없음)</small></h2><div class="b">
+    <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
     <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 11 260864</code> · <code>TIGER 200 IT 17 128855</code> · <code>MU 1 857.5</code> · <code>현금 3164341</code> · <code>USD 2223.07</code></div>
     <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
-    <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div>
+    <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
     <div id="myout" style="margin-top:12px"></div></div></div></div>`;
 }
 function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
@@ -1181,7 +1184,7 @@ function liveChart(sym,market,kr,sc,rs,close){
   return `${bar}<div class="live"><iframe src="${src}" loading="lazy" allowfullscreen></iframe><div class="lk">${links.join('')}<span class="mu">차트가 비어 있으면 위 링크로 보세요</span></div></div>`;
 }
 function sgn(v){return v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${v.toFixed(0)}</span>`;}
-const OVN=[['s20','SMA20','#4aa3ff'],['s50','SMA50','#c77dff'],['box','20일 박스','#888'],['bull','BULL 목표','#2fd05a'],['stop','STOP','#ff4b4b'],['next','다음 지지','#ff6b9a'],['tp','컨센 TP','#35d6e6'],['psar','PSAR','#ff9a1f']];
+const OVN=[['s20','SMA20','#4aa3ff'],['s50','SMA50','#c77dff'],['box','20일 박스','#888'],['bull','BULL 목표','#2fd05a'],['stop','STOP','#ff4b4b'],['next','다음 지지','#ff6b9a'],['tp','컨센 TP','#35d6e6'],['psar','PSAR','#ff9a1f'],['fib','피보나치','#e8c547'],['rsi','RSI(14)','#b0b0b0']];
 let OV=(()=>{ try{ return JSON.parse(localStorage.getItem('mt_ov')||'null')||{}; }catch(e){ return {}; } })();
 const ovOn=k=>OV[k]!==false;
 function ovBar(){ return `<div class="ovl">${OVN.map(([k,n,c])=>`<button data-ov="${k}" class="${ovOn(k)?'on':''}" style="--c:${c}">${n}</button>`).join('')}<button data-ov="_all">전체</button></div>`; }
@@ -1202,6 +1205,13 @@ let LWCH=null;
 function fullDates(ch,asof){ // 'MM-DD' 만 있는 옛 데이터 → 연도 복원
   if(ch.every(c=>c.t)) return; let y=+(String(asof||new Date().toISOString()).slice(0,4)); let pm=13;
   for(let i=ch.length-1;i>=0;i--){ const m=+ch[i].d.slice(0,2); if(m>pm) y--; pm=m; ch[i].t=`${y}-${ch[i].d}`; } }
+function rsiJS(ch,n=14){ const out=new Array(ch.length).fill(null); if(ch.length<=n) return out; let g=0,l=0;
+  for(let i=1;i<=n;i++){ const d=ch[i].c-ch[i-1].c; if(d>0) g+=d; else l-=d; } g/=n; l/=n; out[n]=l===0?100:100-100/(1+g/l);
+  for(let i=n+1;i<ch.length;i++){ const d=ch[i].c-ch[i-1].c; g=(g*(n-1)+Math.max(d,0))/n; l=(l*(n-1)+Math.max(-d,0))/n; out[i]=l===0?100:100-100/(1+g/l); } return out; }
+function fibLv(ch,w=120){ const a=ch.slice(-w); if(a.length<20) return null; let hi=-Infinity,lo=Infinity,ih=0,il=0;
+  a.forEach((b,i)=>{ if(b.h>hi){hi=b.h;ih=i;} if(b.l<lo){lo=b.l;il=i;} }); const up=il<ih, R=[0.236,0.382,0.5,0.618,0.786];
+  // 상승 후(저점→고점): 고점에서 아래로 되돌림 / 하락 후(고점→저점): 저점에서 위로 반등
+  return {hi,lo,up,lv:R.map(r=>[r,up?hi-(hi-lo)*r:lo+(hi-lo)*r])}; }
 function drawChart(ch,sc,rs,kr){
   LASTCH=[ch,sc,rs,kr];
   if(ch&&ch.length&&!ch.some(c=>c.p!=null)) psarJS(ch);
@@ -1229,9 +1239,22 @@ function drawChart(ch,sc,rs,kr){
   const pl=(v,col,t,st=2)=>{ if(v) cs.createPriceLine({price:v,color:col,lineWidth:1,lineStyle:st,axisLabelVisible:true,title:t}); };
   if(ovOn('tp')) pl(rs.consensus_tp,'#35d6e6','TP'); if(ovOn('bull')) pl(sc.bull?.target,'#2fd05a','BULL'); if(ovOn('stop')) pl(sc.bear?.stop,'#ff4b4b','STOP');
   if(ovOn('next')) pl(sc.bear?.next,'#ff6b9a','지지'); const bx=sc.base&&sc.base.range; if(ovOn('box')&&bx){ pl(bx[1],'#777','박스↑',1); pl(bx[0],'#777','박스↓',1); }
+  const fb=fibLv(ch,120); if(ovOn('fib')&&fb) fb.lv.forEach(([r,v])=>{ cs.createPriceLine({price:v,color:r===0.618||r===0.382?'#e8c547':'rgba(232,197,71,.55)',lineWidth:1,lineStyle:3,axisLabelVisible:r===0.382||r===0.5||r===0.618,title:'Fib '+(r*100).toFixed(1)}); });
+  const rsi=rsiJS(ch,14); let rc=null;
+  if(ovOn('rsi')){ const rb=document.createElement('div'); rb.id='lwrsi'; rb.style.cssText='height:90px;position:relative'; el.parentNode.appendChild(rb);
+    rc=LC.createChart(rb,{width:el.clientWidth,height:90,layout:{background:{type:'solid',color:'#050505'},textColor:'#777',fontSize:10},grid:{vertLines:{color:'#101010'},horzLines:{color:'#101010'}},
+      rightPriceScale:{borderColor:'#2a2a2a',scaleMargins:{top:0.08,bottom:0.08}},timeScale:{visible:false,rightOffset:3,barSpacing:mob?6:8},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},localization:{locale:'ko-KR',priceFormatter:v=>v.toFixed(0)}});
+    const rl=rc.addLineSeries({color:'#b0b0b0',lineWidth:1.5,lastValueVisible:true,priceLineVisible:false,crosshairMarkerVisible:false});
+    rl.setData(ch.map((b,i)=>rsi[i]!=null?{time:b.t,value:rsi[i]}:{time:b.t}));  // 빈 값도 시간축에 넣어 메인 차트와 인덱스 정렬
+    rl.createPriceLine({price:70,color:'#ff4b4b',lineWidth:1,lineStyle:2,axisLabelVisible:false,title:'70'}); rl.createPriceLine({price:30,color:'#2fd05a',lineWidth:1,lineStyle:2,axisLabelVisible:false,title:'30'});
+    const lab=document.createElement('div'); lab.style.cssText='position:absolute;left:6px;top:2px;z-index:3;font-size:10px;color:#999;pointer-events:none'; lab.textContent='RSI(14) '+(rsi[ch.length-1]!=null?rsi[ch.length-1].toFixed(0):''); rb.appendChild(lab);
+    let sy=false; c.timeScale().subscribeVisibleLogicalRangeChange(r=>{ if(sy||!r) return; sy=true; rc.timeScale().setVisibleLogicalRange(r); sy=false; });
+    rc.timeScale().subscribeVisibleLogicalRangeChange(r=>{ if(sy||!r) return; sy=true; c.timeScale().setVisibleLogicalRange(r); sy=false; });
+    new ResizeObserver(()=>{ try{ rc.applyOptions({width:el.clientWidth}); }catch(_){} }).observe(rb); }
   const n=ch.length; c.timeScale().setVisibleLogicalRange({from:Math.max(0,n-(mob?60:90)),to:n+2});
   const leg=$('#lwleg'), map={}; ch.forEach((b,i)=>map[b.t]={...b,prev:i?ch[i-1].c:null});
-  const show=b=>{ if(!b) return; const chg=b.prev?b.c/b.prev-1:null; leg.innerHTML=`${esc(b.t)} 시 ${num(b.o,kr?0:2)} 고 ${num(b.h,kr?0:2)} 저 ${num(b.l,kr?0:2)} 종 <b>${num(b.c,kr?0:2)}</b> ${chg!=null?pct(chg,2):''}${b.p!=null&&ovOn('psar')?` · PSAR ${num(b.p,kr?0:2)}`:''}`; };
+  ch.forEach((b,i)=>{ map[b.t].rsi=rsi[i]; });
+  const show=b=>{ if(!b) return; const chg=b.prev?b.c/b.prev-1:null; leg.innerHTML=`${esc(b.t)} 시 ${num(b.o,kr?0:2)} 고 ${num(b.h,kr?0:2)} 저 ${num(b.l,kr?0:2)} 종 <b>${num(b.c,kr?0:2)}</b> ${chg!=null?pct(chg,2):''}${b.p!=null&&ovOn('psar')?` · PSAR ${num(b.p,kr?0:2)}`:''}${b.rsi!=null&&ovOn('rsi')?` · RSI ${b.rsi.toFixed(0)}`:''}${ovOn('fib')&&fb?`<br><span style="color:#e8c547">Fib ${fb.up?'상승분 되돌림':'하락분 반등'} ${num(fb.lo,kr?0:2)}~${num(fb.hi,kr?0:2)} (120일)</span>`:''}`; };
   show(map[ch[n-1].t]);
   c.subscribeCrosshairMove(p=>{ if(!p||!p.time){ show(map[ch[n-1].t]); return; } const t=typeof p.time==='string'?p.time:`${p.time.year}-${String(p.time.month).padStart(2,'0')}-${String(p.time.day).padStart(2,'0')}`; show(map[t]); });
   el.addEventListener('dblclick',()=>c.timeScale().setVisibleLogicalRange({from:Math.max(0,n-(mob?60:90)),to:n+2}));

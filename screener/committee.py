@@ -34,6 +34,21 @@ def _kospi_state() -> dict:
     ms = (_j("macro_series.json", {}) or {}).get("series", {}).get("KOSPI") or []
     c = [r[4] if len(r) >= 6 else r[1] for r in ms]
     lo = [r[3] if len(r) >= 6 else r[1] for r in ms]
+    # 야후 지수는 장중·장 마감 직후 늦게 갱신됨 → KRX 확정 일봉(또는 장중)으로 오늘 값을 덮어씀
+    try:
+        from pykrx import stock  # type: ignore
+        t = date.today()
+        df = stock.get_index_ohlcv((t - timedelta(days=7)).strftime("%Y%m%d"), t.strftime("%Y%m%d"), "1001")
+        if df is not None and len(df):
+            d0 = str(df.index[-1].date())
+            cl, lw = float(df["종가"].iloc[-1]), float(df["저가"].iloc[-1])
+            if ms and str(ms[-1][0]) == d0:
+                c[-1], lo[-1] = cl, lw
+            elif ms and str(ms[-1][0]) < d0:
+                c.append(cl)
+                lo.append(lw)
+    except Exception as e:  # noqa: BLE001
+        log.info("KRX 지수 덮어쓰기 실패: %s", e)
     if len(c) < 30:
         return {}
     last = c[-1]
