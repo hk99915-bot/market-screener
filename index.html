@@ -1064,8 +1064,16 @@ document.addEventListener('click',e=>{ const b=e.target.closest('.ovl button'); 
   try{ localStorage.setItem('mt_ov',JSON.stringify(OV)); }catch(_){}
   document.querySelectorAll('.ovl button[data-ov]').forEach(x=>{ if(x.dataset.ov!=='_all') x.classList.toggle('on',ovOn(x.dataset.ov)); });
   if(LASTCH) drawChart(...LASTCH); });
+function psarJS(ch,af0=0.02,afMax=0.2){ // 데이터에 PSAR 이 없을 때 화면에서 계산 (Wilder)
+  const n=ch.length; if(n<3) return; let up=ch[1].c>=ch[0].c, af=af0, ep=up?ch[0].h:ch[0].l, ps=up?ch[0].l:ch[0].h;
+  for(let i=1;i<n;i++){ ps=ps+af*(ep-ps);
+    if(up){ ps=Math.min(ps,ch[i-1].l,i>1?ch[i-2].l:ch[i-1].l); if(ch[i].l<ps){ up=false; ps=ep; ep=ch[i].l; af=af0; } else if(ch[i].h>ep){ ep=ch[i].h; af=Math.min(af+af0,afMax); } }
+    else { ps=Math.max(ps,ch[i-1].h,i>1?ch[i-2].h:ch[i-1].h); if(ch[i].h>ps){ up=true; ps=ep; ep=ch[i].h; af=af0; } else if(ch[i].l<ep){ ep=ch[i].l; af=Math.min(af+af0,afMax); } }
+    if(ch[i].p==null) ch[i].p=Math.round(ps*100)/100; }
+}
 function drawChart(ch,sc,rs,kr){
   LASTCH=[ch,sc,rs,kr];
+  if(ch&&ch.length&&!ch.some(c=>c.p!=null)) psarJS(ch);
   const cv=$('#cv'); if(!cv||!ch.length) return; const W=cv.width=cv.clientWidth*2,H=cv.height=520; const x=cv.getContext('2d'); x.scale(1,1);
   const padL=70,padR=16,padT=12,padB=70,vh=90; const n=ch.length; const cw=(W-padL-padR)/n;
   const bx=sc.base&&sc.base.range;
