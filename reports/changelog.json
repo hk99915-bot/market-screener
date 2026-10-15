@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-15 23:37 KST",
+ "generated_at": "2026-10-16 03:41 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,21 +16,733 @@
  "first": "2026-10-15",
  "days": [
   {
-   "date": "2026-10-15",
-   "total": 312,
-   "work": 195,
-   "auto": 117,
+   "date": "2026-10-16",
+   "total": 68,
+   "work": 38,
+   "auto": 30,
    "by": {
-    "human": 16,
-    "bot": 53,
-    "agent": 126
+    "agent": 38
    },
    "areas": [
     {
      "area": "web",
      "label": "화면",
-     "n": 96,
+     "n": 5,
      "items": [
+      {
+       "sha": "133e3bb9",
+       "time": "01:40",
+       "kind": "agent",
+       "summary": "MY — 토큰 PIN 잠금 기억 (AES-GCM·PBKDF2, 복호화 토큰은 이 창에만) — 회사 PC에서 매번 토큰 입력 불편 해소",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "f902a249",
+       "time": "00:54",
+       "kind": "agent",
+       "summary": "drivers: 체인 오매핑·부호·과장 문구 교정 [drivers-audit]",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": [
+        "drivers-audit"
+       ]
+      },
+      {
+       "sha": "fcb2a1e8",
+       "time": "00:49",
+       "kind": "agent",
+       "summary": "운영 — GAS 예약기에 16:40 deriv_hist 추가 (GitHub 예약 지연 대비 — GAS 편집기에 다시 붙여넣어야 반영) [deriv-hist]",
+       "areas": [
+        "web"
+       ],
+       "files": 1,
+       "tasks": [
+        "deriv-hist"
+       ]
+      },
+      {
+       "sha": "c509c120",
+       "time": "00:37",
+       "kind": "agent",
+       "summary": "공격 PB: 매일 필수 모의 참가자(PB🔥), 현금 판단도 기록, 화면·텔레그램 표기 '공격 PB (모의 전용)'",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": [
+        "view-registry"
+       ]
+      },
+      {
+       "sha": "69f686ba",
+       "time": "00:07",
+       "kind": "agent",
+       "summary": "views: VIEW 레지스트리 — 관점(렌즈) 기록·판단별 게이트/가중/주의·수명주기, PB 판단에 렌즈 스냅샷, 귀속 스크립트, DAILY › VIEWS 화면 [view-registry]",
+       "areas": [
+        "web",
+        "engine",
+        "ops",
+        "tools",
+        "docs",
+        "data",
+        "etc"
+       ],
+       "files": 15,
+       "tasks": [
+        "ops-system",
+        "view-registry"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "workflow",
+     "label": "워크플로",
+     "n": 4,
+     "items": [
+      {
+       "sha": "dc0aacb9",
+       "time": "00:59",
+       "kind": "agent",
+       "summary": "derivs: 행사가 1,000 이상(쉼표) 누락 버그 수정 + 백필 재로그인·연속실패 차단·--redo [derivs-audit]",
+       "areas": [
+        "workflow",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": [
+        "night-futures-line",
+        "deriv-hist",
+        "derivs-audit"
+       ]
+      },
+      {
+       "sha": "5fb809d3",
+       "time": "00:25",
+       "kind": "agent",
+       "summary": "deriv: 탐침 4차 (KRX Open API 선물·야간, 투자자별 선물 파라미터) [deriv-hist]",
+       "areas": [
+        "workflow",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": [
+        "deriv-hist"
+       ]
+      },
+      {
+       "sha": "76bf8040",
+       "time": "00:15",
+       "kind": "agent",
+       "summary": "deriv: 탐침 출력 저장 (Actions 로그 대신 reports/logs) [deriv-hist]",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": [
+        "deriv-hist"
+       ]
+      },
+      {
+       "sha": "a0f833d4",
+       "time": "00:13",
+       "kind": "agent",
+       "summary": "deriv: 수급·파생 이력 워크플로 골격 + 소스 탐침 스크립트 [deriv-hist]",
+       "areas": [
+        "workflow",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": [
+        "deriv-hist"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 3,
+     "items": [
+      {
+       "sha": "54de83c1",
+       "time": "00:54",
+       "kind": "agent",
+       "summary": "캘린더 — 3분기 실적일 회사 확정분 반영 (하이닉스 10/28·삼성전자 10/29 등) [earn-cal-q3]",
+       "areas": [
+        "engine",
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "earn-cal-q3"
+       ]
+      },
+      {
+       "sha": "d766ce5a",
+       "time": "00:36",
+       "kind": "agent",
+       "summary": "deriv: 백필 4병렬 + 검증 스크립트(사전등록 H1~H9) [deriv-hist]",
+       "areas": [
+        "engine",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": [
+        "night-futures-line",
+        "deriv-hist",
+        "derivs-validate"
+       ]
+      },
+      {
+       "sha": "520f1cb9",
+       "time": "00:31",
+       "kind": "agent",
+       "summary": "deriv: 수급·파생 일별 이력(deriv_hist) + derivs.py 점검(만기일 월물 교체·전환점·최대고통 범위·문구) + 장전 야간선물 한 줄 [deriv-hist]",
+       "areas": [
+        "engine"
+       ],
+       "files": 4,
+       "tasks": [
+        "night-futures-line",
+        "deriv-hist",
+        "derivs-audit"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 18,
+     "items": [
+      {
+       "sha": "10c29fce",
+       "time": "02:05",
+       "kind": "agent",
+       "summary": "운영 — 파생 검수 메모 갱신 (재백필 반영) [derivs-audit]",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system",
+        "derivs-audit"
+       ]
+      },
+      {
+       "sha": "7e4507b8",
+       "time": "02:02",
+       "kind": "agent",
+       "summary": "운영 — 파생 작업 4건 검수로 (검증 결과·감사 메모) [derivs-validate]",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system",
+        "derivs-validate"
+       ]
+      },
+      {
+       "sha": "ba892376",
+       "time": "01:56",
+       "kind": "agent",
+       "summary": "운영 — 파생 신호 검증 재개 [derivs-validate]",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system",
+        "derivs-validate"
+       ]
+      },
+      {
+       "sha": "dccca4c8",
+       "time": "01:54",
+       "kind": "agent",
+       "summary": "잠금 — 파생 작업 중단 — 잠금 해제",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "49eef251",
+       "time": "01:00",
+       "kind": "agent",
+       "summary": "팀 업무량: 애널 추가",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "71ad30a6",
+       "time": "00:57",
+       "kind": "agent",
+       "summary": "보드: earn-brief-pb 검수",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "52f17f29",
+       "time": "00:55",
+       "kind": "agent",
+       "summary": "잠금 해제 — 애널 잠금 해제, 보드 들여쓰기 원래대로",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d1fab083",
+       "time": "00:54",
+       "kind": "agent",
+       "summary": "보드: 애널 작업 등록 (drivers-audit·earn-cal-q3·earn-brief-pb)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "260299f4",
+       "time": "00:51",
+       "kind": "agent",
+       "summary": "보드: 저장소 대청소 10/18 등록(승인), 팀 업무량 갱신",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "29b6f54c",
+       "time": "00:50",
+       "kind": "agent",
+       "summary": "잠금 — drivers.py·Index.html·calendar_ev.py (애널, drivers-audit)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "25436c42",
+       "time": "00:38",
+       "kind": "agent",
+       "summary": "보드: study-derivs 검수",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a311f119",
+       "time": "00:31",
+       "kind": "agent",
+       "summary": "잠금 — screener/main.py (파생, deriv-hist)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "1f9cb965",
+       "time": "00:21",
+       "kind": "agent",
+       "summary": "잠금 — screener/derivs.py (파생, derivs-audit) + data/deriv 커밋 허용",
+       "areas": [
+        "ops",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "0f68a708",
+       "time": "00:12",
+       "kind": "agent",
+       "summary": "보드: 파생 작업 4건 등록·야간선물 한 줄 인수 + lock: workflows/deriv_hist.yml (파생, deriv-hist)",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a9184aff",
+       "time": "00:12",
+       "kind": "agent",
+       "summary": "팀 업무량: CIO 추가",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "832e6f47",
+       "time": "00:07",
+       "kind": "agent",
+       "summary": "잠금 해제 — Index.html·Code.gs·build_pages.py·committee.py·main.py (CIO) + 보드 view-registry 검수",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "7f15a1b7",
+       "time": "00:05",
+       "kind": "agent",
+       "summary": "보드: 야간선물 장전 한 줄 작업 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "4a5cbaea",
+       "time": "00:02",
+       "kind": "agent",
+       "summary": "보드: 완료 작업 10건 완료 처리, 담당 표기에서 '누나' 제거",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "content",
+     "label": "콘텐츠",
+     "n": 1,
+     "items": [
+      {
+       "sha": "28761359",
+       "time": "00:38",
+       "kind": "agent",
+       "summary": "스터디 — A8 선물·옵션 읽는 법 (베이시스·미결제·PCR·벽·감마·야간선물·만기일) [study-derivs]",
+       "areas": [
+        "content"
+       ],
+       "files": 1,
+       "tasks": [
+        "study-derivs"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 5,
+     "items": [
+      {
+       "sha": "dbf2b060",
+       "time": "02:05",
+       "kind": "agent",
+       "summary": "스터디 — 파생 신호 검증 재계산 — 옵션 보드 재백필(1년) 반영, H7 감마는 IV 통제 후 소멸 [derivs-validate]",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": [
+        "derivs-validate"
+       ]
+      },
+      {
+       "sha": "df178aa3",
+       "time": "02:02",
+       "kind": "agent",
+       "summary": "스터디 — 파생·수급 신호 검증 결과 — H2·H3 F, H8 야간→시가 A(정보), 옵션 열 검증전(오염), 사후 IV·신호① [derivs-validate]",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": [
+        "derivs-validate"
+       ]
+      },
+      {
+       "sha": "8bbc54f2",
+       "time": "00:27",
+       "kind": "agent",
+       "summary": "deriv: 탐침 5차 (야간 종가 화면 찾기) [deriv-hist]",
+       "areas": [
+        "tools"
+       ],
+       "files": 1,
+       "tasks": [
+        "deriv-hist"
+       ]
+      },
+      {
+       "sha": "50f583f2",
+       "time": "00:21",
+       "kind": "agent",
+       "summary": "deriv: 탐침 3차 (KRX 야간 행·파생 화면 훑기) [deriv-hist]",
+       "areas": [
+        "tools"
+       ],
+       "files": 1,
+       "tasks": [
+        "deriv-hist"
+       ]
+      },
+      {
+       "sha": "0a1de08e",
+       "time": "00:18",
+       "kind": "agent",
+       "summary": "deriv: 탐침 2차 (야간·투자자별 선물·프로그램·옵션 과거) [deriv-hist]",
+       "areas": [
+        "tools"
+       ],
+       "files": 1,
+       "tasks": [
+        "deriv-hist"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 1,
+     "items": [
+      {
+       "sha": "e013bca2",
+       "time": "00:16",
+       "kind": "agent",
+       "summary": "스터디 — 파생·수급 신호 사전 등록 (H1~H9, 결과 전) [derivs-validate]",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": [
+        "derivs-validate"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 1,
+     "items": [
+      {
+       "sha": "7e86608d",
+       "time": "00:06",
+       "kind": "agent",
+       "summary": "decisions: 10/15 미장 PB 기록을 중립 말투로 정리",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 30,
+    "label": "자동 갱신 30회",
+    "kinds": {
+     "live": 21,
+     "deriv": 8,
+     "backfill": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 19,
+    "deriv-hist": 10,
+    "derivs-validate": 6,
+    "night-futures-line": 3,
+    "derivs-audit": 3,
+    "view-registry": 2,
+    "study-derivs": 1,
+    "drivers-audit": 1,
+    "earn-cal-q3": 1
+   }
+  },
+  {
+   "date": "2026-10-15",
+   "total": 337,
+   "work": 216,
+   "auto": 121,
+   "by": {
+    "human": 16,
+    "bot": 53,
+    "agent": 147
+   },
+   "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 104,
+     "items": [
+      {
+       "sha": "5c3d78d7",
+       "time": "23:55",
+       "kind": "agent",
+       "summary": "운영: 팀 업무량 트래킹 (ops/team.json + SYSTEM › 작업 보드 상단 패널)",
+       "areas": [
+        "web",
+        "ops"
+       ],
+       "files": 5,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "be7ed9ad",
+       "time": "23:53",
+       "kind": "agent",
+       "summary": "화면·공식 기록에서 '누나' 표시 제거: UI 문구 PB로, pb_call 에 tg(텔레그램 전용 말투) 필드 추가 — 기록(why)은 중립 말투",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "d9c24d9a",
+       "time": "23:52",
+       "kind": "agent",
+       "summary": "LIFE — 건강 패널 — Q4 목표 진행·기준 경로·조정 규칙 판정·주간 음주 일수 [life-health-panel]",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": [
+        "life-health-panel"
+       ]
+      },
+      {
+       "sha": "ad795717",
+       "time": "23:46",
+       "kind": "agent",
+       "summary": "LIFE — LIFE 탭 건강 패널 — 체성분 차트(체중·골격근량·체지방량)·주간 운동·e1RM 추세 [life-health-panel]",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": [
+        "life-health-panel"
+       ]
+      },
+      {
+       "sha": "1678b315",
+       "time": "23:43",
+       "kind": "agent",
+       "summary": "웹 — 사용 기록(로컬 일별 집계) + MY·SYSTEM '사용 기록' 패널, 비공개 이슈 폼으로 내보내기 [pm-usage]",
+       "areas": [
+        "web",
+        "ops"
+       ],
+       "files": 5,
+       "tasks": [
+        "ops-system",
+        "pm-usage"
+       ]
+      },
+      {
+       "sha": "dc0e1a4b",
+       "time": "23:40",
+       "kind": "agent",
+       "summary": "전략 연구소 — 코스피 프록시 기준 추가, 진입 시점 변형(시가/종가), 2차 사전등록 가설 3개 (CRASH_REBOUND_LARGE·LOWVOL_LARGE·DUAL_MOMENTUM_INDEX)",
+       "areas": [
+        "web",
+        "engine",
+        "data"
+       ],
+       "files": 4,
+       "tasks": [
+        "lab-r2"
+       ]
+      },
+      {
+       "sha": "09594f2a",
+       "time": "23:40",
+       "kind": "agent",
+       "summary": "웹 — MARKET>KR 에 JAPAN 패널 (닛케이·TOPIX·엔·JGB10Y, 일본 피어 그룹 3개 vs 한국·미국, 60일 상관, 엔 캐리) + getJapan",
+       "areas": [
+        "web"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "00b8898b",
+       "time": "23:39",
+       "kind": "agent",
+       "summary": "개인정보 정리: 예시 보유 숫자를 가짜 값으로, 모의 풀베팅 금액 [금액] 단위로 표준화; live 루프 빈 /tmp/lv·live.json 없음 시 bash -e 종료 버그 수정",
+       "areas": [
+        "web",
+        "workflow",
+        "engine",
+        "data"
+       ],
+       "files": 5,
+       "tasks": []
+      },
       {
        "sha": "3bbe38c5",
        "time": "23:35",
@@ -1531,8 +2243,33 @@
     {
      "area": "engine",
      "label": "엔진",
-     "n": 62,
+     "n": 64,
      "items": [
+      {
+       "sha": "24d0ef72",
+       "time": "23:57",
+       "kind": "agent",
+       "summary": "텔레그램 PB 판단: 공식 문장 + 💌 누나 한마디 둘 다 발송; 팀 업무량에 자산배분 추가",
+       "areas": [
+        "engine",
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "29503349",
+       "time": "23:46",
+       "kind": "agent",
+       "summary": "운용회의 — 실행 대본을 플레이북 백테스트 결과로 수정 — 신호 게이트 제거(참고 표시), 1차=급락일 종가, 2차 보류, 약세 경로는 경보+종목 손절만",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
       {
        "sha": "84fa8f8b",
        "time": "23:35",
@@ -2239,8 +2976,139 @@
     {
      "area": "ops",
      "label": "운영",
-     "n": 2,
+     "n": 12,
      "items": [
+      {
+       "sha": "535929e2",
+       "time": "23:59",
+       "kind": "agent",
+       "summary": "잠금 — Index.html·Code.gs·build_pages.py·committee.py·main.py (CIO 누나, view-registry) + 보드 작업 등록 [view-registry]",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system",
+        "view-registry"
+       ]
+      },
+      {
+       "sha": "b3d4bae0",
+       "time": "23:52",
+       "kind": "agent",
+       "summary": "잠금 해제 — Index.html (헬스 누나)",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a91fc823",
+       "time": "23:50",
+       "kind": "agent",
+       "summary": "잠금 — Index.html (헬스 누나, life-health-panel)",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "692cb95d",
+       "time": "23:46",
+       "kind": "agent",
+       "summary": "잠금 해제 — Index.html (헬스 누나)",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "c4bccdf1",
+       "time": "23:45",
+       "kind": "agent",
+       "summary": "잠금 — Index.html (헬스 누나, life-health-panel)",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "65384b19",
+       "time": "23:41",
+       "kind": "agent",
+       "summary": "잠금 — Index.html (PM 누나, pm-usage)",
+       "areas": [
+        "ops"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a2964f96",
+       "time": "23:40",
+       "kind": "agent",
+       "summary": "잠금 해제 — Index.html·Code.gs·build_pages.py (매크로 누나)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "433ace29",
+       "time": "23:39",
+       "kind": "agent",
+       "summary": "잠금 해제 — Index.html·Code.gs·build_pages.py (운영 누나) · 보드에 japan(매크로 누나) 사후 등록 · 변경 이력·작업내역 보고 재생성 [ops-system]",
+       "areas": [
+        "ops"
+       ],
+       "files": 7,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "2cc7a47e",
+       "time": "23:39",
+       "kind": "agent",
+       "summary": "잠금 — Index.html·Code.gs·build_pages.py (매크로 누나, japan)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "9221243c",
+       "time": "23:37",
+       "kind": "agent",
+       "summary": "잠금 해제 — committee.py·main.py (매크로 누나)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "cfc68352",
        "time": "23:33",
@@ -2290,8 +3158,23 @@
     {
      "area": "tools",
      "label": "도구",
-     "n": 3,
+     "n": 4,
      "items": [
+      {
+       "sha": "7801b786",
+       "time": "23:44",
+       "kind": "agent",
+       "summary": "스터디 — playbook_signals results — crash-day playbook signals vs simple entries",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": [
+        "playbook-verify"
+       ]
+      },
       {
        "sha": "df934a18",
        "time": "23:28",
@@ -2401,11 +3284,11 @@
     }
    ],
    "auto_updates": {
-    "n": 117,
-    "label": "자동 갱신 117회",
+    "n": 121,
+    "label": "자동 갱신 121회",
     "kinds": {
-     "briefing": 78,
-     "live": 26,
+     "briefing": 79,
+     "live": 29,
      "report": 9,
      "backfill": 1,
      "fin": 1,
@@ -2414,11 +3297,14 @@
     }
    },
    "tasks": {
+    "ops-system": 17,
     "japan": 5,
-    "ops-system": 4,
     "ai-credit": 3,
-    "lab-r2": 1,
-    "playbook-verify": 1
+    "lab-r2": 2,
+    "playbook-verify": 2,
+    "life-health-panel": 2,
+    "pm-usage": 1,
+    "view-registry": 1
    }
   }
  ]
