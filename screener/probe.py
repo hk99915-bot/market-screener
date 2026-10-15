@@ -293,9 +293,10 @@ def _close_cmp3() -> dict:
         res["_y1m"] = str(e)[:200]
     for c in codes:
         try:
-            u = f"https://api.stock.naver.com/chart/domestic/item/{c}/minute?startDateTime=202610151515&endDateTime=202610151805"
+            u = f"https://api.stock.naver.com/chart/domestic/item/{c}/minute?startDateTime=202610151517&endDateTime=202610151545"
             j = rq.get(u, headers=ua, timeout=10).json()
-            res[c]["naver_min"] = [[x.get("localDateTime"), x.get("currentPrice") or x.get("closePrice"), x.get("accumulatedTradingVolume")] for x in j][-12:] if isinstance(j, list) else str(j)[:300]
+            res[c]["naver_min"] = [[x.get("localDateTime"), x.get("currentPrice") or x.get("closePrice"), x.get("accumulatedTradingVolume")] for x in j] if isinstance(j, list) else str(j)[:300]
+            res[c]["naver_min_keys"] = list(j[0].keys()) if isinstance(j, list) and j else None
         except Exception as e:  # noqa: BLE001
             res[c]["naver_min"] = "ERR " + str(e)[:200]
         try:
