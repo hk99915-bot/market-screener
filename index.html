@@ -114,6 +114,12 @@ tr.sub td,.rp,.rp *,.sm,.sm *{white-space:normal!important;word-break:keep-all;o
 .rp .sm .k{display:inline-block;min-width:34px;color:var(--amber);font-size:11px;margin-right:6px}.rp .sm ul{margin:2px 0 2px 40px;padding:0}.rp .sm li{margin:0}
 td.mac{cursor:pointer;text-decoration:underline dotted}
 .simt td,.simt th{padding:3px 8px}
+.bv{font-size:14px;margin-bottom:2px}.bv b{font-size:16px;margin-right:4px}
+.bg{display:flex;align-items:center;gap:6px;margin:4px 0}.bg .bl{width:84px;color:var(--muted);font-size:12px}.bg b{width:64px;text-align:right;font-size:12px}
+.bg .bt{position:relative;flex:1;height:8px;background:#151515}.bg .bt i{position:absolute;left:0;top:0;bottom:0}.bg .bt u{position:absolute;top:-2px;bottom:-2px;width:1px;background:#555}
+.bg .bt i.up,.bg .bs i.up{background:var(--up)}.bg .bt i.dn,.bg .bs i.dn{background:var(--dn)}.bg .bt i.am{background:var(--amber)}
+.bg .bs{flex:1;height:8px;display:flex;background:#151515}.bg .bs i{display:block;height:100%}
+.bsv{width:100%;height:46px;display:block}.bsv .pl{fill:none;stroke:var(--amber);stroke-width:1.5}.bsv .g60{stroke:var(--up);stroke-dasharray:3 3;opacity:.6}.bsv .g40{stroke:var(--dn);stroke-dasharray:3 3;opacity:.6}.bsv .pd{fill:var(--amber)}
 </style>
 </head>
 <body>
@@ -157,12 +163,21 @@ function sigTable(rows,market){
 function breadthPanel(mk){
   const b=(D.breadth||[]).filter(x=>x.market===mk);
   if(!b.length) return `<div class="mu">—</div>`;
-  const L=b[b.length-1];
-  const sp=b.slice(-30).map((x,i,a)=>`<i class="${i===a.length-1?'last':''}" style="height:${Math.max(2,(x.pct_above200||0)*34)}px" title="${x.date} ${Math.round(x.pct_above200*100)}%"></i>`).join('');
-  const bar=(l,v)=>`<div>${l} <b>${Math.round(v*100)}%</b></div><div class="bar"><i style="width:${v*100}%"></i></div>`;
-  return `<div class="mu">${L.date} · n=${L.n}</div>${bar('ABOVE 20D',L.pct_above20)}${bar('ABOVE 50D',L.pct_above50)}${bar('ABOVE 200D',L.pct_above200)}
-  <div class="kv"><div>ADV/DEC</div><div><span class="up">${L.adv}</span> / <span class="dn">${L.dec}</span></div><div>52W HI/LO</div><div><span class="up">${L.new_high52}</span> / <span class="dn">${L.new_low52}</span></div></div>
-  <div class="mu" style="margin-top:6px">% ABOVE 200D · 30 SESSIONS</div><div class="spark">${sp}</div>`;
+  const L=b[b.length-1], P=b.length>20?b[b.length-21]:b[0];
+  const p200=L.pct_above200??0, p50=L.pct_above50??0, p20=L.pct_above20??0, d200=(p200-(P.pct_above200??p200))*100;
+  // 판정: 200일선 위 비율(장기 체력) × 20일선 위 비율(단기 흐름)
+  const lvl=p200>=0.6?'강세':p200>=0.4?'중립':'약세', cls=p200>=0.6?'up':p200>=0.4?'am':'dn';
+  const shortv=p20>=0.6?'단기 매수세 우위':p20<=0.3?'단기 투매 구간':'단기 혼조';
+  const trend=b.length<6?'추이 데이터 쌓는 중':Math.abs(d200)<3?'20일 전과 비슷':d200>0?`20일 전보다 +${d200.toFixed(0)}%p 개선`:`20일 전보다 ${d200.toFixed(0)}%p 악화`;
+  const verdict=`<div class="bv ${cls}"><b>${lvl}</b> 체력 · ${shortv}</div><div class="mu" style="margin-bottom:6px">200일선 위 ${Math.round(p200*100)}% (${trend}) · ${L.date} · ${L.n}종목</div>`;
+  const gauge=(l,v)=>{const c=v>=0.6?'up':v>=0.4?'am':'dn'; return `<div class="bg"><span class="bl">${l}</span><span class="bt"><i class="${c}" style="width:${(v*100).toFixed(0)}%"></i><u style="left:40%"></u><u style="left:60%"></u></span><b class="${c}">${Math.round(v*100)}%</b></div>`;};
+  const split=(l,a,d)=>{const t=(a+d)||1, pa=a/t*100; return `<div class="bg"><span class="bl">${l}</span><span class="bs"><i class="up" style="width:${pa.toFixed(0)}%"></i><i class="dn" style="width:${(100-pa).toFixed(0)}%"></i></span><b><span class="up">${a}</span>/<span class="dn">${d}</span></b></div>`;};
+  // 30일 추이: 200일선 위 비율 선 + 40/60 기준선
+  const s=b.slice(-30), w=220, h=46, X=i=>i*(w-4)/Math.max(s.length-1,1)+2, Y=v=>h-2-(v||0)*(h-4);
+  const pts=s.map((x,i)=>`${X(i).toFixed(1)},${Y(x.pct_above200).toFixed(1)}`).join(' ');
+  const svg=`<svg viewBox="0 0 ${w} ${h}" class="bsv" preserveAspectRatio="none"><line x1="0" x2="${w}" y1="${Y(.6)}" y2="${Y(.6)}" class="g60"/><line x1="0" x2="${w}" y1="${Y(.4)}" y2="${Y(.4)}" class="g40"/><polyline points="${pts}" class="pl"/><circle cx="${X(s.length-1)}" cy="${Y(p200)}" r="2.5" class="pd"/></svg>`;
+  return `${verdict}${gauge('20일선 위',p20)}${gauge('50일선 위',p50)}${gauge('200일선 위',p200)}${split('상승/하락',L.adv,L.dec)}${split('신고가/신저가',L.new_high52,L.new_low52)}
+   ${s.length>=5?`<div class="mu" style="margin-top:6px">200일선 위 비율 · 최근 ${s.length}거래일 (점선 40% / 60%)</div>${svg}`:`<div class="mu" style="margin-top:6px">추이 그래프는 5거래일 이상 쌓이면 표시</div>`}`;
 }
 function macroPanel(mk){
   const m=(D.state||{})['macro_'+mk]; if(!m||!m.value||!m.value.length) return '<div class="mu">—</div>';
