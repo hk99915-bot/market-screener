@@ -297,7 +297,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -328,6 +328,32 @@ def main() -> None:
         elif a.mode == "duel_us":   # 22:00 미장 진입 타점 대결 (수동 실행용)
             from . import duel
             print(duel.run_us(send=not a.no_send))
+        elif a.mode == "krxfix":   # 잠정 종가 교정 경로 진단 (예외·시간 기록)
+            import time as _t
+            import traceback as _tb
+            from datetime import date as _d
+            from . import data_krx as dk
+            r = {}
+            d = _d(2026, 10, 15)
+            for name, fn in (("raw", lambda: dk._pykrx_raw_day(d)), ):
+                t0 = _t.time()
+                try:
+                    df, prov = fn()
+                    r[name] = {"rows": df.height, "prov": prov, "sec": round(_t.time() - t0, 1),
+                               "s": df.filter(df["yf"].is_in(["005930.KS", "000660.KS", "009150.KS"])).to_dicts()}
+                except BaseException:  # noqa: BLE001
+                    r[name] = _tb.format_exc()[-2000:]
+                    df = None
+                (REPORT_DIR / "logs" / "krxfix.json").write_text(json.dumps(r, ensure_ascii=False, default=str, indent=1), encoding="utf-8")
+            for syms in (["005930.KS", "000660.KS", "009150.KS", "247540.KQ"], (df["yf"].to_list() if df is not None else [])[:400]):
+                t0 = _t.time()
+                try:
+                    yc = dk._yahoo_close(syms, d)
+                    r[f"yahoo_{len(syms)}"] = {"n": len(yc), "sec": round(_t.time() - t0, 1), "s": dict(list(yc.items())[:5])}
+                except BaseException:  # noqa: BLE001
+                    r[f"yahoo_{len(syms)}"] = _tb.format_exc()[-2000:]
+                (REPORT_DIR / "logs" / "krxfix.json").write_text(json.dumps(r, ensure_ascii=False, default=str, indent=1), encoding="utf-8")
+            print(r)
         elif a.mode == "health":   # 주간 자가점검 (이상 있을 때만 텔레그램)
             from . import health
             print(health.run(send=not a.no_send))
