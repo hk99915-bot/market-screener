@@ -888,6 +888,32 @@ function openDetail(sym,mk){
   google.script.run.withSuccessHandler(t=>{DET[k]=JSON.parse(t);renderDetail(sym,mk,DET[k]);}).withFailureHandler(e=>/404/.test(e.message)?bundle():fail(e)).getStock(mk,sym);
 }
 let MS=null;
+function macroComment(key,all){
+  const box=$('#mccom'); if(!box) return;
+  const C=all.map(x=>x.c), H=all.map(x=>x.h), Lw=all.map(x=>x.l), n=C.length, last=C[n-1];
+  const sma=k=>n>=k?C.slice(-k).reduce((a,b)=>a+b,0)/k:null;
+  const s20=sma(20), s50=sma(50), s200=sma(200);
+  const r=k=>n>k?last/C[n-1-k]-1:null;
+  let g=0,l=0; for(let i=n-14;i<n;i++){ if(i<1) continue; const d=C[i]-C[i-1]; if(d>0) g+=d; else l-=d; } const rsi=l?100-100/(1+g/l):100;
+  const hi20=Math.max(...H.slice(-20)), lo20=Math.min(...Lw.slice(-20)), hi52=Math.max(...C.slice(-250)), lo52=Math.min(...C.slice(-250));
+  const rets=[]; for(let i=Math.max(1,n-20);i<n;i++) rets.push(C[i]/C[i-1]-1);
+  const vol20=Math.sqrt(rets.reduce((a,b)=>a+b*b,0)/rets.length)*Math.sqrt(252);
+  let streak=0; for(let i=n-1;i>0;i--){ const up=C[i]>C[i-1]; if(i===n-1){streak=up?1:-1;continue;} if(up&&streak>0) streak++; else if(!up&&streak<0) streak--; else break; }
+  const rate=key==='US10Y', fm=v=>num(v,v<50?2:0), P=x=>x==null?'—':pct(x,1);
+  const L=[];
+  const pos=[s20&&(last>s20?'20일선 위':'20일선 아래'),s50&&(last>s50?'50일선 위':'50일선 아래'),s200&&(last>s200?'200일선 위':'200일선 아래')].filter(Boolean);
+  const trend=s50&&s200?(last>s50&&s50>s200?'상승 추세 (정배열)':last<s50&&s50<s200?'하락 추세 (역배열)':last<s200?'장기 추세 이탈 구간':'추세 전환 구간'):'추세 판단용 데이터 부족';
+  L.push(`<b>추세</b>: ${trend} — ${pos.join(' · ')}`);
+  L.push(`<b>모멘텀</b>: ${rate?`20일 ${((C[n-1]-C[n-21])*100).toFixed(0)}bp`:`1개월 ${P(r(21))} · 3개월 ${P(r(63))}`} · RSI ${rsi.toFixed(0)} ${rsi<30?'<span class="up">(과매도)</span>':rsi>70?'<span class="dn">(과매수)</span>':''} · ${Math.abs(streak)}일 연속 ${streak>0?'상승':'하락'}`);
+  L.push(`<b>위치</b>: 52주 고점 대비 ${P(last/hi52-1)}, 저점 대비 ${P(last/lo52-1)} · 20일 박스 ${fm(lo20)}~${fm(hi20)} ${last<=lo20*1.005?'<span class="dn">(박스 하단 이탈 근처)</span>':last>=hi20*0.995?'<span class="up">(박스 상단 돌파 근처)</span>':''}`);
+  if(!rate) L.push(`<b>변동성</b>: 최근 20일 연율 ${(vol20*100).toFixed(0)}% ${vol20>0.35?'— 매우 높음, 포지션 크기 줄일 구간':vol20>0.22?'— 높은 편':'— 보통'}`);
+  L.push(`<b>레벨</b>: 지지 ${fm(lo20)} (20일 저점)${s200&&s200<last?` · ${fm(s200)} (200일선)`:''} / 저항 ${fm(hi20)} (20일 고점)${s50&&s50>last?` · ${fm(s50)} (50일선)`:''}`);
+  const mv=(typeof MV!=='undefined'&&MV&&MV.rows)?MV.rows.find(x=>x.key===key):null;
+  if(mv){ L.push(`<b>매크로 해설</b>: ${esc(mv.state)}`); if(mv.impact!=null) L.push(`<b>한국 주식 영향</b>: ${mv.impact>0?'+':''}${mv.impact.toFixed(2)} (−1~+1)`); L.push(`<span class="mu">${esc(mv.what)}</span>`); }
+  if(key==='KOSPI'&&typeof EVS!=='undefined'&&EVS&&EVS.cb_summary&&EVS.cb_summary.d1&&r(1)!=null&&r(1)<=-0.05){ const o=EVS.cb_summary.d1; L.push(`<b>이벤트</b>: 오늘 같은 급락(서킷) 이후 다음날 평균 ${pct(o.avg,1)}, 상승 ${Math.round(o.up*100)}% — HOME › EVENTS, QUANT › 검증 스터디 참고`); }
+  box.innerHTML=L.map(x=>'· '+x).join('<br>');
+  if(typeof MV!=='undefined'&&MV===null){ MV=false; google.script.run.withSuccessHandler(t=>{try{MV=JSON.parse(t);}catch(e){MV={};} macroComment(key,all);}).withFailureHandler(()=>{MV={};}).getMacroView(); }
+}
 let MRNG=252;
 function macroBars(key){
   const raw=(MS.series||{})[key]||((typeof CHS!=='undefined'&&CHS&&CHS.series)||{})[key]||[];
@@ -907,7 +933,8 @@ function openMacro(key){
     const hasOHLC=all.some(x=>x.h!==x.l);
     $('#dr-s').innerHTML=`${num(last,2)} · 1D ${pct(ch(1))} · 1M ${pct(ch(21))} · 3M ${pct(ch(63))} · 1Y ${pct(ch(250))} · ${esc(all[all.length-1].d)}${all[all.length-1].live?' <span class="am">LIVE 반영</span>':''}`;
     const R=[[63,'3M'],[126,'6M'],[252,'1Y'],[520,'2Y']];
-    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>${esc(key)}<span class="ctab">${R.map(([n,l])=>`<button data-r="${n}" class="${n===MRNG?'on':''}">${l}</button>`).join('')}</span><small>${hasOHLC?'일봉':'종가'} · SMA20/50/200 · 야후${['KOSPI','KOSDAQ'].includes(key)?'·네이버 실시간':''}</small></h2><div class="b"><canvas id="mcv" width="960" height="340"></canvas><div class="mu" style="font-size:11px;margin-top:4px" id="mcinfo"></div></div></div></div>`;
+    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>${esc(key)}<span class="ctab">${R.map(([n,l])=>`<button data-r="${n}" class="${n===MRNG?'on':''}">${l}</button>`).join('')}</span><small>${hasOHLC?'일봉':'종가'} · SMA20/50/200 · 야후${['KOSPI','KOSDAQ'].includes(key)?'·네이버 실시간':''}</small></h2><div class="b"><canvas id="mcv" width="960" height="340"></canvas><div class="mu" style="font-size:11px;margin-top:4px" id="mcinfo"></div></div></div>
+      <div class="p c12"><h2>COMMENT<small>규칙 기반 · 예측 아님</small></h2><div class="b" id="mccom" style="line-height:1.8;font-size:13px;white-space:normal"></div></div></div>`;
     document.querySelectorAll('#dr-b .ctab button').forEach(bt=>bt.onclick=()=>{MRNG=+bt.dataset.r; show();});
     const st=Math.max(0,all.length-MRNG), b=all.slice(st), n=b.length;
     const sma=(k,i)=>{const j=st+i; if(j+1<k) return null; let s0=0; for(let q=j+1-k;q<=j;q++) s0+=C[q]; return s0/k;};
@@ -927,6 +954,7 @@ function openMacro(key){
     line(20,'#f5c542');line(50,'#c77dff');line(200,'#35d6e6');
     x.fillStyle='#777';const step=Math.ceil(n/(window.innerWidth<700?4:7));for(let i=0;i<n;i+=step)x.fillText(b[i].d.slice(2),X(i)-fs*2,H-fs*0.4);
     const s20=sma(20,n-1),s50=sma(50,n-1),s200=sma(200,n-1), hi52=Math.max(...C.slice(-250)), lo52=Math.min(...C.slice(-250));
+    macroComment(key,all);
     $('#mcinfo').innerHTML=`<span style="color:#f5c542">SMA20 ${s20?num(s20,0):'—'}</span> · <span style="color:#c77dff">SMA50 ${s50?num(s50,0):'—'}</span> · <span style="color:#35d6e6">SMA200 ${s200?num(s200,0):'—'}</span> · 52주 고 ${num(hi52,2)} (${pct(last/hi52-1,1)}) / 저 ${num(lo52,2)} · 빨강=상승 파랑=하락${all[all.length-1].live?' · 노란 테두리=실시간 반영 봉':''}`;
   };
   if(MS) return show();
