@@ -196,7 +196,8 @@ def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der
             "summary": (f"PB 판단: {st_} — 강세 확률이 가장 높아도 전환 신호 확인 전엔 진입 안 함 (확률 = 방향, 신호 = 타이밍)" if st_ == "관망" else f"PB 판단: {st_}")}
 
 
-def build() -> dict:
+def build(session: str = "장후") -> dict:
+    """session: 장전(08:50) · 장중(10:30·13:30) · 장후(15:45 마감·19:10 저녁). 같은 날 같은 세션은 마지막 실행본이 남음."""
     k = _kospi_state()
     mv = _j("macro_view.json", {}) or {}
     stu = (_j("studies/crash_rebound.json", {}) or {})
@@ -239,7 +240,11 @@ def build() -> dict:
         pass
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
-    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "date": str(today), "head": head, "verdict": verdict,
+    if session == "장후":
+        cd = close_delta()
+        if cd:
+            head.append("장 막판: " + " · ".join(cd[:3]))
+    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "date": str(today), "session": session, "head": head, "verdict": verdict,
            "scenarios": scen, "scenario_basis": sb, "sectors": sectors, "themes": themes[:8] + themes[-5:] if len(themes) > 13 else themes,
            "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10], "stance": stance,
            "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "rv20", "skew", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
@@ -256,19 +261,56 @@ def build() -> dict:
     return out
 
 
+def close_delta() -> list[str]:
+    """판단 시점(장중 스냅샷) → 마감 스냅샷 사이 변화: 막판에 누가 샀나/팔았나. 둘 다 오늘 것일 때만."""
+    st = _j("dashboard_state.json", {}) or {}
+    a, b = st.get("intraday_snapshot") or {}, st.get("close_snapshot") or {}
+    t = str(_kst_today())
+    if not (str(a.get("at", "")).startswith(t) and str(b.get("at", "")).startswith(t)):
+        return []
+    va, vb = a.get("value") or {}, b.get("value") or {}
+    fa, fb = (va.get("flows") or {}).get("KOSPI") or {}, (vb.get("flows") or {}).get("KOSPI") or {}
+    sa, sb = (va.get("snap") or {}).get("KOSPI") or {}, (vb.get("snap") or {}).get("KOSPI") or {}
+    L = []
+    tm = str(a["at"])[11:16]
+    if va.get("kospi_chg") is None:   # 예전 스냅샷: 해석 첫 줄에서 등락률 복원
+        import re as _re
+        m = _re.search(r"코스피 ([+-−]?\d+\.\d+)%", " ".join(va.get("notes") or []))
+        if m:
+            va = {**va, "kospi_chg": float(m.group(1).replace("−", "-")) / 100}
+    if va.get("kospi_chg") is not None and vb.get("kospi_chg") is not None:
+        L.append(f"코스피 {tm} {va['kospi_chg']*100:+.2f}% → 마감 {vb['kospi_chg']*100:+.2f}% ({(vb['kospi_chg']-va['kospi_chg'])*100:+.1f}%p)")
+    who = [(w, fb[w] - fa[w]) for w in ("외국인", "기관", "개인") if fa.get(w) is not None and fb.get(w) is not None]
+    if who:
+        L.append(f"{tm} 이후 순매수 변화: " + " · ".join(f"{w} {v:+,.0f}억" for w, v in who))
+    if sa.get("prog_total") is not None and sb.get("prog_total") is not None:
+        dn = (sb.get("prog_nonarb") or 0) - (sa.get("prog_nonarb") or 0)
+        L.append(f"프로그램 {sb['prog_total']-sa['prog_total']:+,.0f}억 (비차익 {dn:+,.0f}억)" + (" — 막판 바스켓 매수가 반등을 끌어올림" if dn > 1000 else " — 막판 바스켓 매도" if dn < -1000 else ""))
+    ta, tb = (sa.get("up") or 0) + (sa.get("down") or 0), (sb.get("up") or 0) + (sb.get("down") or 0)
+    if ta and tb:
+        L.append(f"하락 종목 비율 {sa['down']/ta*100:.0f}% → {sb['down']/tb*100:.0f}%")
+    if L:
+        L.append("주의: 장중 값은 잠정치·마감은 확정치라 차이 일부는 집계 보정, 동시호가엔 패시브·차익 정리 물량도 섞임")
+    return L
+
+
 def _archive(kind: str, o: dict) -> None:
-    """날짜별 누적: reports/archive/<kind>/YYYY-MM-DD.json + _index.json (날짜·결론 목록). 같은 날은 마지막 실행본."""
+    """날짜·세션별 누적: reports/archive/<kind>/YYYY-MM-DD[_세션].json + _index.json. 같은 날 같은 세션은 마지막 실행본."""
     d = str(o.get("date") or o.get("asof", ""))[:10]
+    ses = o.get("session") or ""
+    fid = f"{d}_{ses}" if ses else d
     hd = REPORT_DIR / "archive" / kind
     hd.mkdir(parents=True, exist_ok=True)
-    (hd / f"{d}.json").write_text(json.dumps(o, ensure_ascii=False, default=str), encoding="utf-8")
+    (hd / f"{fid}.json").write_text(json.dumps(o, ensure_ascii=False, default=str), encoding="utf-8")
     try:
         idx = json.loads((hd / "_index.json").read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
         idx = {"days": []}
     head = ((o.get("stance") or {}).get("stance") or "") + " · " + str(o.get("verdict", ""))[:60]
-    idx["days"] = sorted([x for x in idx["days"] if x["date"] != d] + [{"date": d, "asof": o.get("asof"), "headline": head.strip(" ·")}],
-                         key=lambda x: x["date"], reverse=True)
+    order = {"장전": 1, "장중": 2, "장후": 3}
+    idx["days"] = sorted([x for x in idx["days"] if x.get("id", x["date"]) != fid] +
+                         [{"id": fid, "date": d, "session": ses, "asof": o.get("asof"), "headline": head.strip(" ·")}],
+                         key=lambda x: (x["date"], order.get(x.get("session", ""), 0), x.get("asof") or ""), reverse=True)
     (hd / "_index.json").write_text(json.dumps(idx, ensure_ascii=False), encoding="utf-8")
 
 
@@ -329,7 +371,7 @@ def score() -> dict:
 
 
 def telegram_text(o: dict) -> str:
-    L = ["🏛 <b>운용회의</b> · " + o["date"]]
+    L = ["🏛 <b>운용회의 · " + o.get("session", "") + "</b> · " + o["date"]]
     L += [f"• {x}" for x in o["head"]]
     L += ["", "<b>[시나리오]</b> " + o["verdict"]]
     if o.get("stance"):

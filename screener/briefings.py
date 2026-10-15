@@ -294,6 +294,11 @@ def intraday_kr(send: bool = True, state_key: str = "intraday_snapshot") -> str:
         from . import dashboard
         dashboard.put_state(state_key, {"flows": mf, "snap": snap, "notes": notes, "phase": "마감" if closed else "장중 잠정",
                                                   "kospi": kq.get("last"), "kospi_chg": chg})
+        if state_key == "close_snapshot":   # 판단 시점 → 마감 사이 변화 (막판 수급)
+            from .committee import close_delta
+            cur = json.loads(dashboard.STATE.read_text(encoding="utf-8"))
+            cur["close_snapshot"]["value"]["delta"] = close_delta()
+            dashboard.STATE.write_text(json.dumps(cur, ensure_ascii=False), encoding="utf-8")
     except Exception as e:  # noqa: BLE001
         log.debug("장중 스냅샷 저장 실패: %s", e)
 

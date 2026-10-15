@@ -322,7 +322,7 @@ def main() -> None:
                     derivs.build()
                 except Exception as e:  # noqa: BLE001
                     log.warning("옵션 포지션 실패: %s", e)
-                committee.build()
+                committee.build("장후")
                 calendar_ev.build()
             except Exception as e:  # noqa: BLE001
                 log.warning("운용회의 실패: %s", e)
@@ -442,7 +442,7 @@ def main() -> None:
                         derivs.build()
                     except Exception as e:  # noqa: BLE001
                         log.warning("옵션 포지션 실패: %s", e)
-                    o = committee.build()
+                    o = committee.build("장후")
                     ou = committee.build_us()
                     if not a.no_send:
                         from .report import send_telegram
@@ -450,6 +450,12 @@ def main() -> None:
                         send_telegram(committee.telegram_text_us(ou))
                 except Exception as e:  # noqa: BLE001
                     log.warning("운용회의 실패: %s", e)
+            if a.mode in ("premarket_kr", "intraday_kr"):   # 장전·장중 운용회의 (웹 기록용, 텔레그램은 저녁 회의만)
+                try:
+                    from . import committee
+                    committee.build("장전" if a.mode == "premarket_kr" else "장중")
+                except Exception as e:  # noqa: BLE001
+                    log.warning("운용회의(%s) 실패: %s", a.mode, e)
             if a.mode == "premarket_kr" and not a.no_send:
                 try:
                     from . import pb
