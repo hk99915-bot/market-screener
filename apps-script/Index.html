@@ -521,7 +521,7 @@ function myRender(hs,cash,miss){
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
   // PB 의견
   const op=[];
-  const semi=chainL.filter(([k])=>/반도체|IT 하드웨어|기타\(ETF\)/.test(k)).reduce((s,x)=>s+x[1],0)+A.filter(a=>a.etf&&a.mk==='US'&&/semi|SOX|PSI|SMH/i.test(a.h.r.s+(a.d.name||''))).reduce((s,a)=>s+a.val*(1-(((a.d.etf||{}).look||{}).coverage||0)),0);
+  const semi=chainL.filter(([k])=>/반도체|IT 하드웨어/.test(k)).reduce((s,x)=>s+x[1],0)+A.filter(a=>a.etf&&a.mk==='US'&&/semi|SOX|PSI|SMH/i.test(a.h.r.s+(a.d.name||''))).reduce((s,a)=>s+a.val*(1-(((a.d.etf||{}).look||{}).coverage||0)),0);
   if(semi/tot>0.6) op.push(`<b>쏠림</b>: 주식의 <b>${W(semi/tot)}</b>(순자산의 ${W(semi/NAV)})가 반도체·IT 하드웨어 한 사이클입니다. 종목 수는 ${A.length}개지만 실제로는 베팅 하나 — 이 사이클이 꺾이면 전부 같이 꺾입니다. 규칙: 순자산 대비 60% 상한.`);
   const top=chainL[0]; if(semi/tot<=0.6&&top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
   if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 ETF부터 줄이면 수수료·추적오차를 같이 없앱니다.`);
