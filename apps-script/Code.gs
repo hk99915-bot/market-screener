@@ -67,4 +67,6 @@ function getStockIndex(m) { return raw_(`reports/detail/${m}/_index.json`); }
 function getPortfolios() { return raw_('reports/portfolios.json'); }
 function getSignals() { return raw_('reports/signal_scores.json'); }
 function getMacroView() { return raw_('reports/macro_view.json'); }
+function getChainSeries() { return raw_('reports/chains.json'); }
+function getEvents() { return raw_('reports/events_stats.json'); }
 function getChains() { return raw_('reports/chains_view.json'); }

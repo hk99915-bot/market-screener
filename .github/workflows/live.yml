@@ -34,6 +34,8 @@ jobs:
           PYTHONUNBUFFERED: "1"
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
@@ -49,7 +51,7 @@ jobs:
             if ! in_window && [ $first -eq 0 ]; then echo "장 시간 종료"; break; fi
             first=0
             python -m screener.main --mode quotes --no-send || true
-            git add reports/live.json
+            git add reports/live.json; for p in reports/events.json reports/events_stats.json; do [ -e "$p" ] && git add "$p"; done
             if ! git diff --cached --quiet; then
               git commit -qm "live: $(date -u +%FT%H:%M)"
               for i in 1 2 3; do git pull -q --rebase origin main && git push -q && break; sleep 5; done

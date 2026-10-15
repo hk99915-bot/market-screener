@@ -26,6 +26,8 @@ SHIM = """<script>
     getPortfolios: () => get('reports/portfolios.json'),
     getSignals: () => get('reports/signal_scores.json'),
     getMacroView: () => get('reports/macro_view.json'),
+    getChainSeries: () => get('reports/chains.json'),
+    getEvents: () => get('reports/events_stats.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {

@@ -264,13 +264,25 @@ def main() -> None:
              "reports": briefings.reports_alert}
     try:
         if a.mode == "quotes":
-            print(live.snapshot())
+            snap = live.snapshot()
+            print(snap)
+            try:   # 서킷브레이커·사이드카 감지 → events.json + 텔레그램(새 이벤트만, --no-send 와 무관)
+                from . import events
+                events.check(snap, send=True)
+                events.stats()
+            except Exception as e:  # noqa: BLE001
+                log.warning("이벤트 추적 실패: %s", e)
         elif a.mode == "dashboard":   # 알림 없이 웹 데이터 갱신 (리포트·요약 수집 포함)
             try:
                 research.update_store()
             except Exception as e:  # noqa: BLE001
                 log.warning("리포트 갱신 실패: %s", e)
             write_macro_series()
+            try:
+                from . import events
+                events.stats()
+            except Exception as e:  # noqa: BLE001
+                log.warning("이벤트 통계 실패: %s", e)
             dashboard.build()
         elif a.mode == "detail_kr":   # 종목 상세만 재생성 (어제 종가 기준, 알림 없음)
             rebuild_detail_kr()
