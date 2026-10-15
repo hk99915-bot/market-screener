@@ -818,44 +818,50 @@ function lifeFill(){
     `<div class="p c12"><div class="b mu" style="font-size:11px;white-space:normal">생성 ${esc(S.generated||'')} · 데이터: 비공개 저장소 life/ CSV → build_summary.py → summary.json. 이 화면은 공개 서버에 아무것도 보내지 않아요.</div></div>`;
   setTimeout(()=>lifeHealthCharts(Hh),0);
 }
-/* LIFE · 건강 체성분 패널 — summary.json.health(body·series·workouts_weekly·lifts·screen). 수치는 비공개 저장소에서 런타임에만 읽음 */
+/* LIFE · 건강 체성분 패널 — summary.json.health(body·series·targets·weight_path·pace·workouts_weekly·lifts). 수치는 비공개 저장소에서 런타임에만 읽음 */
 let LIFECH=[];
 function lifeHealthBody(H){
-  const B=H.body||{}, S=H.series||{}, L=H.lifts||{}, WW=H.workouts_weekly||[], SC=H.screen||{};
+  const B=H.body||{}, S=H.series||{}, L=H.lifts||{}, WW=H.workouts_weekly||[], T=H.targets||[], WP=H.weight_path, PC=H.pace||{};
   const f1=v=>v==null?'—':(+v).toLocaleString('ko-KR',{maximumFractionDigits:1});
   const sg=(v,good)=>{ if(v==null) return '<span class="mu">—</span>'; const c=v===0?'mu':((v<0)===(good==='down')?'up':'dn'); return `<span class="${c}">${v>0?'+':''}${f1(v)}</span>`; };
-  const keys=[['weight','체중','kg','down'],['smm','골격근량','kg','up'],['fat_kg','체지방량','kg','down'],['fat_pct','체지방률','%','down'],['waist','허리둘레','cm','down']];
+  const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,(p||0)*100))}%;${c?'background:var('+c+')':''}"></i></div>`;
+  const keys=[['fat_kg','체지방량','kg','down'],['smm','골격근량','kg','up'],['fat_pct','체지방률','%','down'],['visceral_area','내장지방면적','cm²','down'],['weight','체중','kg','down']];
   const any=keys.some(k=>B[k[0]]);
-  const forms=`<a href="https://github.com/hk99915-bot/pb-private/issues/new?template=inbody.yml" target="_blank" rel="noopener">인바디 입력</a> · <a href="https://github.com/hk99915-bot/pb-private/issues/new?template=health.yml" target="_blank" rel="noopener">주간 체중·운동 입력</a>`;
+  const forms=`<a href="https://github.com/hk99915-bot/pb-private/issues/new?template=health.yml" target="_blank" rel="noopener">주간 입력(체중·운동·음주)</a> · <a href="https://github.com/hk99915-bot/pb-private/issues/new?template=inbody.yml" target="_blank" rel="noopener">인바디 입력</a>`;
   const tiles=keys.map(([k,lab,u,good])=>{ const m=B[k]; return `<div style="border:1px solid var(--line);padding:8px;min-width:0"><div class="mu" style="font-size:11px">${lab}</div><div style="font-size:18px;font-weight:700">${m?f1(m.latest):'—'}<span class="mu" style="font-size:11px"> ${u}</span></div><div style="font-size:11px">직전 ${sg(m&&m.d_prev,good)} · 4주 ${sg(m&&m.d_4w,good)}</div><div class="mu" style="font-size:10.5px">${m?esc(m.date)+' · '+m.n+'회':'기록 없음'}</div></div>`; }).join('');
-  const ww=WW.map(w=>w.count), mx=Math.max(4,...ww.filter(v=>v!=null));
-  const bars=`<svg viewBox="0 0 120 40" preserveAspectRatio="none" style="width:100%;height:56px;display:block">`+WW.map((w,i)=>{ const v=w.count||0, h=v/mx*36; return `<rect x="${i*10+1}" y="${(38-h).toFixed(1)}" width="8" height="${h.toFixed(1)}" style="fill:var(${v>=3?'--up':'--amber'})"><title>${esc(w.week)} 주 ${w.count==null?'기록 없음':w.count+'회'}</title></rect>`; }).join('')+`<line x1="0" x2="120" y1="${(38-3/mx*36).toFixed(1)}" y2="${(38-3/mx*36).toFixed(1)}" style="stroke:var(--muted)" stroke-width="0.4" stroke-dasharray="2 2"/></svg>`;
+  const stc=s=>s==='달성'||s==='유지 중'?'up':s==='실패'||s==='목표 아래'?'dn':s==='미달'?'am':'mu';
+  const tgt=T.length?`<table><tr><th class="l">Q4 목표 (${esc((T[0]||{}).deadline||'')})</th><th>기준선</th><th>현재</th><th>목표</th><th>실패선</th><th class="l" style="width:24%">진행</th><th class="l">상태</th></tr>${T.map(t=>`<tr title="${esc(t.note||'')}"><td class="l">${esc(t.label)}${t.metric==='weight'?' <span class="mu" style="font-size:10.5px">(결과 지표)</span>':''}</td><td class="mu">${f1(t.baseline)}</td><td><b>${f1(t.latest)}</b></td><td>${t.metric==='visceral_area'?'&lt; '+f1(Math.ceil(t.target)):(t.direction==='up'?'≥ ':'≤ ')+f1(t.target)}</td><td class="mu">${t.fail==null?'—':f1(t.fail)}</td><td class="l">${t.pct==null?'':bar(t.pct,t.direction==='up'?(t.pct<0.5?'--amber':'--up'):'')+`<span class="mu" style="font-size:10.5px">${t.direction==='up'?'여유 ':''}${(t.pct*100).toFixed(0)}%</span>`}</td><td class="l ${stc(t.status)}">${esc(t.status||'—')}</td></tr>`).join('')}</table>`:'';
+  const path=WP?`체중 기준 경로 ${f1(WP.from[1])}→${f1(WP.to[1])} (주 ${f1(WP.per_week)}kg) · 오늘 기준 ${f1(WP.ref_today)}kg · 최근 측정은 경로 대비 ${sg(WP.gap,'down')}kg`:'';
+  const pace=`<div style="white-space:normal;font-size:12px;margin-top:6px"><span class="${PC.flag?'dn':'mu'}">● ${esc(PC.rule||'')}</span> &nbsp; <span class="${PC.smm_per_month!=null&&PC.smm_per_month<-0.5?'dn':'mu'}">● ${esc(PC.smm_rule||'')}</span><br><span class="mu">${path}</span></div>`;
+  const mx=Math.max(4,...WW.map(w=>w.count||0)), y3=(38-3/mx*36).toFixed(1);
+  const bars=`<svg viewBox="0 0 120 40" preserveAspectRatio="none" style="width:100%;height:56px;display:block">`+WW.map((w,i)=>{ const v=w.count||0, h=v/mx*36; return `<rect x="${i*10+1}" y="${(38-h).toFixed(1)}" width="8" height="${h.toFixed(1)}" style="fill:var(${v>=3?'--up':'--amber'})"><title>${esc(w.week)} 주 운동 ${w.count==null?'기록 없음':w.count+'회'}</title></rect>`; }).join('')+`<line x1="0" x2="120" y1="${y3}" y2="${y3}" style="stroke:var(--muted)" stroke-width="0.4" stroke-dasharray="2 2"/></svg>`;
+  const alc=`<div style="display:flex;gap:2px">`+WW.map(w=>{ const a=w.alcohol_days, lim=w.alcohol_target, over=a!=null&&lim!=null&&a>lim; return `<div title="${esc(w.week)} 주 음주 ${a==null?'기록 없음':a+'일'}${lim==null?'':' · 한도 '+lim}" style="flex:1;text-align:center;font-size:11px;padding:2px 0;border:1px solid var(--line)" class="${a==null?'mu':over?'dn':'up'}">${a==null?'·':a}</div>`; }).join('')+`</div>`;
   const spark=pts=>{ if(!pts||pts.length<2) return ''; const v=pts.map(p=>p[1]), lo=Math.min(...v), hi=Math.max(...v), r=hi-lo||1; return `<svg viewBox="0 0 60 16" style="width:60px;height:16px;vertical-align:middle"><polyline fill="none" style="stroke:var(--amber)" stroke-width="1.2" points="${v.map((x,i)=>(i/(v.length-1)*60).toFixed(1)+','+(15-(x-lo)/r*14).toFixed(1)).join(' ')}"/></svg>`; };
   const lifts=Object.entries(L).sort((a,b)=>b[1].sessions-a[1].sessions);
-  const liftT=lifts.length?`<table><tr><th class="l">종목</th><th>최근 e1RM</th><th>4주 변화</th><th>최고</th><th>첫 기록</th><th>세션</th><th class="l">추세</th></tr>${lifts.map(([n,x])=>`<tr><td class="l">${esc(n)}</td><td><b>${f1(x.latest)}</b></td><td>${sg(x.d_4w,'up')}</td><td class="mu">${f1(x.best)}</td><td class="mu">${f1(x.first)}</td><td class="mu">${x.sessions}</td><td class="l">${spark(x.series)}</td></tr>`).join('')}</table>`
-    :`<div class="mu" style="white-space:normal">세트 기록 없음 — 누나한테 '스쿼트 60×8×3' 처럼 보내면 workouts.csv 에 들어가고 e1RM(무게×(1+반복/30)) 추세가 여기 떠요.</div>`;
+  const liftT=lifts.length?`<table><tr><th class="l">종목</th><th>최근 e1RM</th><th>4주</th><th>최고</th><th>세션</th><th class="l">추세</th></tr>${lifts.map(([n,x])=>`<tr><td class="l">${esc(n)}</td><td><b>${f1(x.latest)}</b></td><td>${sg(x.d_4w,'up')}</td><td class="mu">${f1(x.best)}</td><td class="mu">${x.sessions}</td><td class="l">${spark(x.series)}</td></tr>`).join('')}</table>`
+    :`<div class="mu" style="white-space:normal;font-size:12px">세트 기록 없음 — '스쿼트 60×8×3' 처럼 누나한테 보내면 e1RM(무게×(1+반복/30)) 추세가 떠요. 감량기엔 e1RM 유지 = 근육 지키는 중.</div>`;
   const hasSeries=(S.weight||[]).length+(S.smm||[]).length+(S.fat_kg||[]).length>0;
-  return `<div class="p c12"><h2>HEALTH · 체성분 · 리컴프<small>health/inbody.csv + weekly.csv + workouts.csv · 목표: 골격근량 유지↑ · 체지방량↓</small></h2><div class="b" style="white-space:normal">`+
-    (any?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px">${tiles}</div>`
-        :`<div class="mu" style="padding:6px 0">아직 측정값 없음 — 아침 공복 인바디 1회 + 줄자(배꼽 높이) 허리둘레부터. ${forms}</div>`)+
+  return `<div class="p c12"><h2>HEALTH · Q4 체성분<small>목표: 체지방량↓ · 골격근량 유지 · 기록은 폰 폼이 원본(브라우저 메모는 기기 바뀌면 사라짐) · ${forms}</small></h2><div class="b" style="white-space:normal">`+
+    (any?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px">${tiles}</div>`:`<div class="mu" style="padding:6px 0">측정값 없음 — ${forms}</div>`)+
+    `<div style="overflow-x:auto;margin-top:8px">${tgt}</div>`+pace+
     (hasSeries?`<div id="lhc1" style="margin-top:8px;height:240px"></div><div id="lhc1l" class="mu" style="font-size:11px"></div>`:'')+
-    `<div class="mu" style="font-size:11px;margin-top:4px">${esc(SC.label||'')}${SC.abdominal_obesity==null?'':SC.abdominal_obesity?' · <span class="dn">허리 ≥90cm(복부비만 기준)</span>':' · 허리 <90cm'} · ${esc(SC.note||'')} · ${any?forms:''}</div>`+
-    `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:10px"><div><div class="mu" style="font-size:11px">주간 운동 횟수 (최근 12주 · 점선 = 주 3회) · 최근 4주 평균 ${H.workouts_avg4==null?'—':(+H.workouts_avg4).toFixed(1)}회</div>${bars}</div><div style="overflow-x:auto">${liftT}</div></div>`+
+    `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:10px"><div><div class="mu" style="font-size:11px">주간 운동 (최근 12주 · 점선 = 주 3회) · 4주 평균 ${H.workouts_avg4==null?'—':(+H.workouts_avg4).toFixed(1)}회</div>${bars}<div class="mu" style="font-size:11px;margin-top:6px">주간 음주 일수 (빨강 = 그 주 한도 초과 · 한도는 비공개 targets.csv)</div>${alc}</div><div style="overflow-x:auto">${liftT}</div></div>`+
     `</div></div>`;
 }
 function lifeHealthCharts(H){
   LIFECH.forEach(c=>{try{c.remove();}catch(e){}}); LIFECH=[];
   const el=$('#lhc1'); if(!el||!H||!window.LightweightCharts) return;
-  const S=H.series||{}, cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
+  const S=H.series||{}, WP=H.weight_path, cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
   const c=LightweightCharts.createChart(el,{width:el.clientWidth,height:240,layout:{background:{type:'solid',color:cv('--panel')},textColor:cv('--muted'),fontSize:11},
     grid:{vertLines:{color:cv('--line')},horzLines:{color:cv('--line')}},rightPriceScale:{borderColor:cv('--line'),visible:true},leftPriceScale:{borderColor:cv('--line'),visible:true},
     timeScale:{borderColor:cv('--line')},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},localization:{locale:'ko-KR',priceFormatter:v=>v.toFixed(1)}});
   LIFECH.push(c);
-  const add=(pts,color,scale,w,style)=>{ if(!pts||!pts.length) return; const s=c.addLineSeries({color,lineWidth:w,lineStyle:style||0,priceScaleId:scale,priceLineVisible:false,lastValueVisible:true,pointMarkersVisible:true});
-    const seen={}; s.setData(pts.filter(p=>p[1]!=null&&!seen[p[0]]&&(seen[p[0]]=1)).map(p=>({time:p[0],value:+p[1]}))); };
+  const add=(pts,color,scale,w,style,markers)=>{ if(!pts||!pts.length) return; const s=c.addLineSeries({color,lineWidth:w,lineStyle:style||0,priceScaleId:scale,priceLineVisible:false,lastValueVisible:markers!==false,pointMarkersVisible:markers!==false});
+    const seen={}; s.setData(pts.filter(p=>p[1]!=null&&!seen[p[0]]&&(seen[p[0]]=1)).map(p=>({time:p[0],value:+p[1]}))); return s; };
+  if(WP) add([WP.from,WP.to],cv('--muted'),'right',1,2,false);
   add(S.weight,cv('--amber'),'right',2); add(S.smm,cv('--up'),'left',2); add(S.fat_kg,cv('--dn'),'left',2,2);
   c.timeScale().fitContent();
-  const l=$('#lhc1l'); if(l) l.innerHTML=`<span style="color:var(--amber)">━ 체중 (오른쪽 축)</span> &nbsp; <span style="color:var(--up)">━ 골격근량</span> &nbsp; <span style="color:var(--dn)">┅ 체지방량</span> <span class="mu">(왼쪽 축, kg)</span> · 인바디는 4주 추세로만 판단`;
+  const l=$('#lhc1l'); if(l) l.innerHTML=`<span style="color:var(--amber)">━ 체중</span> <span class="mu">┅ 기준 경로 (오른쪽 축)</span> &nbsp; <span style="color:var(--up)">━ 골격근량</span> &nbsp; <span style="color:var(--dn)">┅ 체지방량</span> <span class="mu">(왼쪽 축, kg) · 인바디는 4주 추세로만 판단</span>`;
 }
 /* 수치 도구 */
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
