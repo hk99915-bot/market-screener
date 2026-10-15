@@ -30,7 +30,8 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
           python -m screener.main --mode fin --no-send || true
-          python -m screener.main --mode analysts --no-send
+          python -m screener.main --mode analysts --no-send || true
+          python -m screener.main --mode momentum --no-send
       - name: 저장
         if: always()
         run: |

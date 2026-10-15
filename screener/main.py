@@ -108,6 +108,11 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         if tail:
             dashboard.put_state(f"close_{market}", tail)
         dashboard.put_state(f"telegram_{market}", msg)
+        try:
+            from . import momentum
+            momentum.ranks(full, last, market)
+        except Exception as e:  # noqa: BLE001
+            log.warning("모멘텀 순위 실패: %s", e)
         det = scoring.score(last_all)
         if market == "KR":
             try:
@@ -182,6 +187,11 @@ def rebuild_detail_kr() -> None:
     except Exception:  # noqa: BLE001
         mr, regime_line = [], ""
     store = research.load_store()
+    try:
+        from . import momentum
+        momentum.ranks(full, flt, "KR")
+    except Exception as e:  # noqa: BLE001
+        log.warning("모멘텀 순위 실패: %s", e)
     det = scoring.score(last_all)
     try:
         det = research.attach_latest(det, store, px)
@@ -204,7 +214,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -229,6 +239,9 @@ def main() -> None:
         elif a.mode == "fin":         # 재무제표 수집 (알림 없음)
             from . import fin
             print(fin.update())
+        elif a.mode == "momentum":    # 모멘텀 백테스트(국장 2010~)
+            from . import momentum
+            momentum.backtest_kr()
         elif a.mode == "analysts":    # 과거 리포트 백필(최초 1회) + 애널리스트 성향·적중률
             from . import analysts
             research.backfill_hankyung()

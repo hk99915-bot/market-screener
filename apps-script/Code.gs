@@ -56,3 +56,6 @@ function getStock(market, sym) { return raw_(`reports/detail/${market}/${sym}.js
 function getMacroSeries() { return raw_('reports/macro_series.json'); }
 
 function getAnalysts() { return raw_('reports/analysts.json'); }
+
+function getMomentum(m) { return raw_(`reports/momentum_${m}.json`); }
+function getMomentumBt() { return raw_('reports/momentum_bt.json'); }

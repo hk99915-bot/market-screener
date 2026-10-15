@@ -19,6 +19,8 @@ SHIM = """<script>
     getDisclosures: () => get('reports/disclosures.json'),
     getMacroSeries: () => get('reports/macro_series.json'),
     getAnalysts: () => get('reports/analysts.json'),
+    getMomentum: m => get('reports/momentum_' + m + '.json'),
+    getMomentumBt: () => get('reports/momentum_bt.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

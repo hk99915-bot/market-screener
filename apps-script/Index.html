@@ -96,7 +96,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
     <button class="on" data-v="home">HOME</button>
     <button data-v="kr">KR</button>
     <button data-v="us">US</button>
-    <button data-v="rep">RESEARCH</button><button data-v="dart">DART</button>
+    <button data-v="rep">RESEARCH</button><button data-v="dart">DART</button><button data-v="mom">MOMENTUM</button>
     <button data-v="brief">BRIEFS</button>
     <button data-v="mdkr">KR FULL</button>
     <button data-v="mdus">US FULL</button>
@@ -193,6 +193,39 @@ function finTable(f,kr){
   return `<div style="overflow:auto"><table><tr><th class="l">항목</th>${q.map(r=>`<th>${r.period}</th>`).join('')}<th>TTM</th></tr>
    ${row('매출','revenue')}${row('  YoY','',(r,i)=>yoy(i,'revenue'))}${row('영업이익','op')}${row('  OPM','',(r)=>m(r.op,r.revenue))}${row('순이익','ni')}${row('영업현금흐름','cfo')}${row('CAPEX','capex')}${row('자본총계','equity')}${row('부채총계','liab')}</table></div>`;
 }
+let MO={}, MBT=null;
+function momView(){
+  const need=['KR','US'].filter(m=>MO[m]===undefined);
+  if(need.length||MBT===null){
+    need.forEach(m=>{MO[m]=null; google.script.run.withSuccessHandler(t=>{try{MO[m]=JSON.parse(t);}catch(e){MO[m]={top:[]};} if(view==='mom') render();}).withFailureHandler(()=>{MO[m]={top:[],err:1}; if(view==='mom') render();}).getMomentum(m);});
+    if(MBT===null){ MBT=false; google.script.run.withSuccessHandler(t=>{try{MBT=JSON.parse(t);}catch(e){MBT={};} if(view==='mom') render();}).withFailureHandler(()=>{MBT={}; if(view==='mom') render();}).getMomentumBt(); }
+  }
+  const tbl=(d,mk)=>{ if(!d) return '<div class="load">LOADING …</div>'; if(!d.top||!d.top.length) return '<div class="mu">다음 스크리너 실행 때 생성</div>';
+    return `<div class="mu" style="margin-bottom:4px">${d.asof} · ${d.n}종목 중 상위 · 점수=12-1M·6-1M·3M 수익률 백분위 평균</div><table><tr><th class="l">#</th><th class="l">종목</th><th>점수</th><th>12-1M</th><th>6-1M</th><th>3M</th><th>변동성</th><th>Trend</th></tr>${d.top.slice(0,30).map((r,i)=>`<tr><td class="l mu">${i+1}</td><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${mk}">${esc(r.name)}</td><td class="am">${r.score}</td><td>${pct(r.m12_1,0)}</td><td>${pct(r.m6_1,0)}</td><td>${pct(r.m3,0)}</td><td class="mu">${r.vol!=null?(r.vol*100).toFixed(0)+'%':'—'}</td><td>${r.trend??'—'}</td></tr>`).join('')}</table>`; };
+  const bt=MBT&&MBT.stats?MBT:null;
+  const S=(s)=>s?`CAGR <b>${pct(s.cagr,1)}</b> · 변동성 ${(s.vol*100).toFixed(0)}% · 샤프 ${s.sharpe??'—'} · MDD <b class="dn">${(s.mdd*100).toFixed(0)}%</b>`:'—';
+  const btHtml=!bt?'<div class="mu">백테스트 결과 없음 (야간 실행 때 생성)</div>':`<div class="mu" style="margin-bottom:6px">${esc(bt.rule)}</div>
+    <table><tr><th class="l">전략</th><th class="l">성과 (${bt.stats.momentum.months}개월)</th></tr>
+    <tr><td class="l am">모멘텀 상위 10%</td><td class="l">${S(bt.stats.momentum)}</td></tr>
+    <tr><td class="l">모멘텀 + 시장 필터</td><td class="l">${S(bt.stats.momentum_filtered)}</td></tr>
+    <tr><td class="l mu">유니버스 동일가중</td><td class="l">${S(bt.stats.universe_ew)}</td></tr></table>
+    <div style="margin-top:6px">월별 승률(유니버스 대비) <b>${(bt.hit_vs_bench*100).toFixed(0)}%</b> · 평균 ${bt.avg_names}종목 · 월 교체율 ${(bt.avg_turnover*100).toFixed(0)}%</div>
+    <canvas id="mbt" width="960" height="260" style="margin-top:8px"></canvas>
+    <div style="overflow:auto;margin-top:6px"><table><tr><th class="l">연도</th>${bt.years.map(y=>`<th>${y.year}</th>`).join('')}</tr><tr><td class="l am">모멘텀</td>${bt.years.map(y=>`<td>${pct(y.port,0)}</td>`).join('')}</tr><tr><td class="l">+필터</td>${bt.years.map(y=>`<td>${pct(y.filt,0)}</td>`).join('')}</tr><tr><td class="l mu">유니버스</td>${bt.years.map(y=>`<td>${pct(y.bench,0)}</td>`).join('')}</tr></table></div>
+    <div class="mu" style="margin-top:6px">주의: 가격 수익률(배당 미포함) · 유상증자 권리락은 보정 안 됨 · 과거 성과, 미래 보장 아님</div>`;
+  setTimeout(()=>drawBt(bt),0);
+  return `<div class="grid"><div class="p c12"><h2>MOMENTUM BACKTEST · KR 2010~<small>12-1개월 모멘텀이 한국에서 통했는가</small></h2><div class="b">${btHtml}</div></div>
+    <div class="p c6"><h2>MOMENTUM RANK · KR</h2><div class="b">${tbl(MO.KR,'KR')}</div></div>
+    <div class="p c6"><h2>MOMENTUM RANK · US</h2><div class="b">${tbl(MO.US,'US')}</div></div></div>`;
+}
+function drawBt(bt){ const cv=$('#mbt'); if(!cv||!bt||!bt.curve) return; const W=cv.width=cv.clientWidth*2,H=cv.height=520,x=cv.getContext('2d'),c=bt.curve,pl=70,pr=16,pt=14,pb=40;
+  const vals=c.flatMap(r=>[r[1],r[2],r[3]]).map(v=>Math.log(v)), lo=Math.min(...vals), hi=Math.max(...vals), Y=v=>pt+(hi-Math.log(v))/((hi-lo)||1)*(H-pt-pb), X=i=>pl+(W-pl-pr)*i/(c.length-1);
+  x.fillStyle='#050505';x.fillRect(0,0,W,H);x.font='20px monospace';
+  [0.25,0.5,1,2,4,8].forEach(v=>{const lv=Math.log(v); if(lv<lo-0.05||lv>hi+0.05) return; const y=Y(v);x.strokeStyle='#1c1c1c';x.beginPath();x.moveTo(pl,y);x.lineTo(W-pr,y);x.stroke();x.fillStyle='#777';x.fillText('x'+v,6,y+7);});
+  const line=(k,col)=>{x.strokeStyle=col;x.lineWidth=3;x.beginPath();c.forEach((r,i)=>i?x.lineTo(X(i),Y(r[k])):x.moveTo(X(i),Y(r[k])));x.stroke();};
+  line(2,'#777');line(3,'#4aa3ff');line(1,'#ff9a1f');
+  x.fillStyle='#777';for(let i=0;i<c.length;i+=24)x.fillText(c[i][0].slice(0,4),X(i)-20,H-12);
+  x.fillStyle='#ff9a1f';x.fillText('모멘텀',W-300,30);x.fillStyle='#4aa3ff';x.fillText('+필터',W-200,30);x.fillStyle='#999';x.fillText('유니버스',W-110,30);}
 let DS=null, DV={c:'ALL',q:'',d:7};
 const FLAGC={'희석':'dn','주의':'dn','정정':'mu'};
 function discTable(rows,withName){ return `<table><tr><th class="l">날짜</th>${withName?'<th class="l">종목</th>':''}<th class="l">유형</th><th class="l">공시</th></tr>${rows.map(r=>`<tr><td class="l mu">${r.date}</td>${withName?`<td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td>`:''}<td class="l">${esc(r.category)}${r.flag?` <b class="${FLAGC[r.flag]||'am'}">${esc(r.flag)}</b>`:''}</td><td class="l"><a href="${esc(r.link)}" target="_blank">${esc(r.title)}</a></td></tr>`).join('')}</table>`; }
@@ -307,7 +340,7 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||'');
   tape();
   const v=view;
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='dart'?dartView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='dart'?dartView():v==='mom'?momView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
