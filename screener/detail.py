@@ -188,7 +188,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     asof = last["date"].max()
     rows = {r["symbol"]: r for r in last.filter(pl.col("symbol").is_in(syms)).to_dicts()}
     hist = (full.filter(pl.col("yf").is_in(last.filter(pl.col("symbol").is_in(syms))["yf"].implode()))
-                .sort("yf", "date").group_by("yf").tail(60))
+                .sort("yf", "date").group_by("yf").tail(260))   # 1년 (웹 차트에서 확대·이동)
     sims: dict[str, dict] = {}
     try:
         cols = [x for x in ("yf", "date", "close", "sma20", "sma50", "psar") if x in full.columns]
@@ -207,8 +207,8 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     charts: dict[str, list[dict]] = {}
     for (yf,), g in hist.group_by("yf", maintain_order=True):
         rd = lambda v: None if v is None else round(v, 2)  # noqa: E731
-        charts[yf] = [{"d": str(x["date"])[5:], "o": rd(x["open"]), "h": rd(x["high"]), "l": rd(x["low"]), "c": rd(x["close"]),
-                       "v": int(x["volume"] or 0), "s20": rd(x.get("sma20")), "s50": rd(x.get("sma50")), "p": rd(x.get("psar"))} for x in g.to_dicts()]
+        charts[yf] = [{"d": str(x["date"])[5:], "t": str(x["date"])[:10], "o": rd(x["open"]), "h": rd(x["high"]), "l": rd(x["low"]), "c": rd(x["close"]),
+                       "v": int(x["volume"] or 0), "s20": rd(x.get("sma20")), "s50": rd(x.get("sma50")), "s200": rd(x.get("sma200")), "p": rd(x.get("psar"))} for x in g.to_dicts()]
     reps: dict[str, list[dict]] = {}
     if store is not None and len(store):
         rr = (store.filter(pl.col("code").is_in(syms) & (pl.col("date") >= asof - timedelta(days=180)))

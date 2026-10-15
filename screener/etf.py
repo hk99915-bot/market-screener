@@ -134,9 +134,10 @@ def _stats(g) -> tuple[dict, list, list]:
         ps = [None] * len(c)
     s20 = [sum(c[i - 19:i + 1]) / 20 if i >= 19 else None for i in range(len(c))]
     s50 = [sum(c[i - 49:i + 1]) / 50 if i >= 49 else None for i in range(len(c))]
-    chart = [{"d": d[i][5:], "o": rd(g["Open"].iloc[i]), "h": rd(g["High"].iloc[i]), "l": rd(g["Low"].iloc[i]), "c": rd(c[i]),
-              "v": int(g["Volume"].iloc[i] or 0), "s20": rd(s20[i]), "s50": rd(s50[i]),
-              "p": rd(ps[i]) if ps[i] is not None and ps[i] == ps[i] else None} for i in range(max(0, len(c) - 60), len(c))]
+    s200 = [sum(c[i - 199:i + 1]) / 200 if i >= 199 else None for i in range(len(c))]
+    chart = [{"d": d[i][5:], "t": d[i], "o": rd(g["Open"].iloc[i]), "h": rd(g["High"].iloc[i]), "l": rd(g["Low"].iloc[i]), "c": rd(c[i]),
+              "v": int(g["Volume"].iloc[i] or 0), "s20": rd(s20[i]), "s50": rd(s50[i]), "s200": rd(s200[i]),
+              "p": rd(ps[i]) if ps[i] is not None and ps[i] == ps[i] else None} for i in range(max(0, len(c) - 260), len(c))]
     c1y = [[d[i], rd(c[i])] for i in range(max(0, len(c) - 260), len(c))]
     return {k: (round(v, 4) if isinstance(v, float) else v) for k, v in st.items()}, chart, c1y
 
