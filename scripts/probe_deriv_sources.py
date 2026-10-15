@@ -375,6 +375,40 @@ def p_round4():
         print("naver ERR", e)
 
 
+def p_night_sweep():
+    hits = []
+    for a in range(120, 130):
+        for b in range(1, 6):
+            bld = f"dbms/MDC/STAT/standard/MDCSTAT{a}{b:02d}"
+            for prm in (dict(trdDd="20261015", prodId="KRDRVFUK2I", mktTpCd="T", rghtTpCd="T"),
+                        dict(strtDd="20261013", endDd="20261015", prodId="KRDRVFUK2I", mktTpCd="T")):
+                try:
+                    r = krx_post(bld, **prm)
+                    if not r.text.startswith("{"):
+                        continue
+                    t = r.text
+                    out = r.json().get("output") or []
+                    if out:
+                        print(bld[-9:], list(prm)[0], "rows", len(out), "야간" in t, json.dumps(out[:1], ensure_ascii=False)[:300])
+                    if "야간" in t:
+                        hits.append(bld)
+                except Exception:  # noqa: BLE001
+                    pass
+    print("야간 hits", hits)
+    names = ["trdSessTpCd", "sessTpCd", "drvMktTpCd", "mktSessTpCd", "trdTp", "dayNightTpCd", "dnTpCd", "ntdyTpCd", "trdTmTpCd",
+             "isNight", "nightTpCd", "mktTp", "marketTpCd", "trdMktTpCd", "dyNgtTpCd", "dnTp", "sessTp", "srchTpCd", "aggBasTpCd"]
+    for nm in names:
+        for v in ("N", "2", "Y", "1", "3", "E"):
+            try:
+                out = krx_post("dbms/MDC/STAT/standard/MDCSTAT12701", strtDd="20261013", endDd="20261015", prodId="KRDRVFUK2I", **{nm: v}).json().get("output") or []
+                tags = sorted({(x.get("TRD_DD") or "")[-4:] for x in out})
+                if any("야간" in t for t in tags) or not out:
+                    print("12701", nm, v, len(out), tags, [(x.get("TRD_DD"), x.get("TDD_CLSPRC")) for x in out[:3]])
+            except Exception:  # noqa: BLE001
+                pass
+    print("param sweep done")
+
+
 if __name__ == "__main__":
     only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
     for nm in only:
