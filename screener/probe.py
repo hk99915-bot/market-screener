@@ -24,6 +24,10 @@ def run() -> dict:
         "naver_etf_analysis": "https://m.stock.naver.com/api/stock/139260/etfAnalysis",
         "naver_etf_comp": "https://m.stock.naver.com/api/etf/139260/component",
         "naver_etf_list_m": "https://m.stock.naver.com/api/stocks/etf?page=1&pageSize=5",
+        "fut_index": "https://m.stock.naver.com/api/index/FUT/basic",
+        "fut_index2": "https://m.stock.naver.com/api/index/KPI200/integration",
+        "fut_naver_sise": "https://m.stock.naver.com/api/futures/KS200/basic",
+        "deal_trend_fut": "https://m.stock.naver.com/api/index/KOSPI/investorTrend?type=futures",
         "theme_list1": "https://m.stock.naver.com/api/stocks/theme?page=1&pageSize=5",
         "theme_list2": "https://m.stock.naver.com/front-api/stock/theme/list?page=1&pageSize=5",
         "theme_list3": "https://m.stock.naver.com/api/stocks/theme/list?page=1&pageSize=5",
@@ -66,6 +70,30 @@ def run() -> dict:
         except Exception as e:  # noqa: BLE001
             res["psi_top"] = "ERR " + str(e)
         out["yf"] = res
+        try:
+            from pykrx import stock
+            from datetime import date, timedelta
+            for back in range(1, 6):
+                ymd = (date.today() - timedelta(days=back)).strftime("%Y%m%d")
+                try:
+                    sb = stock.get_shorting_balance_by_ticker(ymd, market="KOSPI")
+                    if sb is not None and len(sb):
+                        out["pykrx_short_balance"] = {"date": ymd, "cols": list(sb.columns), "head": sb.head(5).to_json(force_ascii=False)}
+                        break
+                except Exception as e:  # noqa: BLE001
+                    out["pykrx_short_balance"] = "ERR " + str(e)[:200]
+            try:
+                sv = stock.get_shorting_volume_by_ticker((date.today() - timedelta(days=1)).strftime("%Y%m%d"), market="KOSPI")
+                out["pykrx_short_volume"] = {"cols": list(sv.columns), "head": sv.head(3).to_json(force_ascii=False)}
+            except Exception as e:  # noqa: BLE001
+                out["pykrx_short_volume"] = "ERR " + str(e)[:200]
+            try:
+                fx = stock.get_market_trading_value_by_investor((date.today() - timedelta(days=7)).strftime("%Y%m%d"), date.today().strftime("%Y%m%d"), "KOSPI")
+                out["pykrx_inv"] = fx.head(12).to_json(force_ascii=False)
+            except Exception as e:  # noqa: BLE001
+                out["pykrx_inv"] = "ERR " + str(e)[:200]
+        except Exception as e:  # noqa: BLE001
+            out["pykrx_short"] = "ERR " + str(e)[:200]
         try:
             from pykrx import stock
             df = stock.get_etf_portfolio_deposit_file("139260")
