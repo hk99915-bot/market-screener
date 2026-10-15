@@ -67,6 +67,10 @@ def pb_call() -> dict:
     return {"pick": pick, "why": why, "lines": lines}
 
 
+def issue_url_exit(code: str, body: str) -> str:
+    return f"https://github.com/{REPO}/issues/new?title={quote('exit ' + code)}&body={quote(body)}"
+
+
 def issue_url(date: str, body: str = "") -> str:
     return f"https://github.com/{REPO}/issues/new?title={quote('pick ' + date)}&body={quote(body)}"
 
@@ -181,6 +185,15 @@ def apply_exit_issue(title: str, body: str, created_at: str) -> str:
         return f"{code} 상세 데이터를 찾지 못했어 ({type(e).__name__})."
     mine = "매도" if re.search(r"매도|손절|팔", body or "") else "보유"
     d = str(t.date())
+    data = decisions.load()
+    ex = next((x for x in data.get("items", []) if x["id"] == f"{d}-exit-{code}"), None)
+    if ex and "PB" in ex.get("picks", {}):
+        if t.hour * 100 + t.minute > 1530:
+            return "15:30 이후 제출이라 오늘 매도 대결엔 반영하지 않았어 (종가 기준 채점)."
+        ex["picks"]["나"] = ({"cash": True, "label": "매도"} if mine == "매도" else _hold_pick(code, c["name"], NOTIONAL)) | {"submitted": t.strftime("%H:%M")}
+        decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        pbp = ex["picks"]["PB"]
+        return f"기록 완료 ✅ {c['name']} — 나: {mine} / PB: {'매도' if pbp.get('cash') else '보유'} · 5거래일 뒤 종가로 채점"
     item = {"id": f"{d}-exit-{code}", "date": d, "kind": "exit", "title": f"매도 타점 대결 · {c['name']}",
             "note": f"PB: {c['act']} — {c['why']}. 채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
             "picks": {"나": {"cash": True, "label": "매도"} if mine == "매도" else _hold_pick(code, c["name"], amt),
@@ -214,6 +227,33 @@ def record_pb(payload: dict, send: bool = True) -> str:
         data["items"].append(it)
     it["picks"]["PB"] = pk
     it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"]}
+    # 보유 종목 매도 타점 (누나 재량) — 금액은 모의 100만 고정 (실제 보유 수량·금액은 공개 저장소에 남기지 않음)
+    ex_msgs = []
+    for e in (payload.get("exits") or [])[:12]:
+        code = str(e.get("ticker", "")).strip()
+        if not code:
+            continue
+        name = e.get("name") or code
+        act = "매도" if str(e.get("act", "")).startswith("매도") or "축소" in str(e.get("act", "")) else "보유"
+        eid = f"{d}-exit-{code}"
+        hold = _hold_pick(code, name, NOTIONAL)
+        rule = None
+        try:
+            rc = exit_call(code, "KR" if code.isdigit() else "US")
+            rule = {"cash": True, "label": "매도"} if rc["act"] == "매도" else hold
+        except Exception:  # noqa: BLE001
+            pass
+        ei = next((x for x in data["items"] if x["id"] == eid), None)
+        if not ei:
+            ei = {"id": eid, "date": d, "kind": "exit", "title": f"매도 타점 대결 · {name}", "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
+                  "picks": {"나": {"pending": True}}}
+            data["items"].append(ei)
+        ei["picks"]["PB"] = ({"cash": True, "label": "매도"} if act == "매도" else hold) | {"by": "PB 재량", "at": pk["at"]}
+        if rule:
+            ei["picks"]["규칙"] = rule
+        ei["pb_view"] = {"why": e.get("why", ""), "lines": [], "conviction": e.get("conviction", ""), "at": pk["at"]}
+        ex_msgs.append(f"• {name}: <b>{act}</b> — {e.get('why', '')} "
+                       f"[<a href=\"{issue_url_exit(code, '보유')}\">나는 보유</a> · <a href=\"{issue_url_exit(code, '매도')}\">나는 매도</a>]")
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가"}
     msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
@@ -221,6 +261,8 @@ def record_pb(payload: dict, send: bool = True) -> str:
            payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
            f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
            f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
+    if ex_msgs:
+        msg += ["", "<b>보유 종목 매도 타점</b> (5거래일 뒤 종가 채점)", *ex_msgs]
     if send:
         from .report import send_telegram
         send_telegram("\n".join(m for m in msg if m is not None))

@@ -54,7 +54,7 @@ jobs:
               if k in ids:
                   for x in cur["items"]:
                       if x["id"] == k:
-                          x["picks"] = v["picks"] if v.get("kind") == "exit" else {**x["picks"], "나": v["picks"]["나"]}
+                          x["picks"] = {**x["picks"], "나": v["picks"]["나"]} if (v.get("kind") != "exit" or "PB" in x["picks"] and x["picks"]["PB"].get("by")) else v["picks"]
               else:
                   cur["items"].append(v)
           open("reports/decisions.json", "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
