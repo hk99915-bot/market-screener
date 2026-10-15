@@ -37,7 +37,7 @@ class Cfg:
         "WTI": "CL=F", "US10Y": "^TNX", "USDJPY": "JPY=X", "USDKRW": "KRW=X",
         "DXY": "DX-Y.NYB", "VIX": "^VIX", "SPX": "^GSPC", "KOSPI": "^KS11", "KOSDAQ": "^KQ11",
         "NASDAQ": "^IXIC", "RUT": "^RUT", "GOLD": "GC=F", "BTC": "BTC-USD",
-        "NIKKEI": "^N225", "TOPIX": "^TOPX",   # 일본 (도쿄도 09:00 KST 개장) — japan.py
+        "NIKKEI": "^N225", "TOPIX": "1306.T",   # 일본 (도쿄도 09:00 KST 개장) — 야후에 TOPIX 지수(^TOPX)가 없어 TOPIX ETF 로 대체
     })
     telegram_token: str = os.environ.get("TELEGRAM_TOKEN", "")
     telegram_chat: str = os.environ.get("TELEGRAM_CHAT_ID", "")

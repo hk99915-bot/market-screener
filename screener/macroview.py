@@ -16,7 +16,7 @@ RATE = {"US10Y", "JGB10Y"}
 INDEX = {"KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "NIKKEI", "TOPIX"}
 NAME = {"KOSPI": "코스피", "KOSDAQ": "코스닥", "SPX": "S&P500", "NASDAQ": "나스닥", "RUT": "러셀2000(미 중소형)",
         "VIX": "VIX(미 변동성)", "US10Y": "미 10년 금리", "DXY": "달러인덱스", "USDKRW": "원/달러", "USDJPY": "엔/달러",
-        "WTI": "WTI 유가", "GOLD": "금", "BTC": "비트코인", "NIKKEI": "닛케이225", "TOPIX": "TOPIX(일본 전체)", "JGB10Y": "일본 10년 금리"}
+        "WTI": "WTI 유가", "GOLD": "금", "BTC": "비트코인", "NIKKEI": "닛케이225", "TOPIX": "TOPIX(일본 전체·ETF 1306 가격)", "JGB10Y": "일본 10년 금리"}
 WHAT = {
     "KOSPI": "한국 대형주. 반도체 2개 종목 비중이 커서 메모리 업황과 외국인 수급에 크게 흔들린다.",
     "KOSDAQ": "한국 중소형·성장주. 개인 비중이 높고 금리·바이오·2차전지 심리에 민감.",

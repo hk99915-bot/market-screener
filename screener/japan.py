@@ -24,7 +24,7 @@ KST = ZoneInfo("Asia/Seoul")
 OUT = REPORT_DIR / "japan.json"
 CORR_N = 60
 
-INDEX = {"NIKKEI": ["^N225"], "TOPIX": ["^TOPX", "1306.T"]}   # TOPIX 지수가 없으면 TOPIX 추종 ETF(1306.T) 로 대체
+INDEX = {"NIKKEI": ["^N225"], "TOPIX": ["^TOPX", "1306.T"]}   # 야후에 ^TOPX 가 없음(2026-10 확인) → TOPIX 추종 ETF(1306.T) 로 대체
 GROUPS = [
     {"id": "equip", "name": "반도체 장비",
      "jp": {"8035.T": "도쿄일렉트론", "6857.T": "어드반테스트", "6146.T": "디스코", "6920.T": "레이저텍", "7735.T": "스크린"},

@@ -436,6 +436,7 @@ def main() -> None:
             from . import calendar_ev
             print(len(calendar_ev.build()["events"]))
         elif a.mode == "japan":        # 일본 시장 (닛케이·TOPIX·JGB·엔 캐리 + 일본 피어 그룹) → reports/japan.json
+            write_macro_series()   # 닛케이·TOPIX 매크로 시계열도 같이 확인
             from . import japan
             print(japan.summary(japan.build()))
         elif a.mode == "bonds":        # 채권 화면 (미국채 곡선·국고채·신용 스프레드·채권 ETF)
