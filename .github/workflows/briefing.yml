@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us | dashboard | dart | detail_kr | shares"
+        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us | dashboard | dart | detail_kr | detail_us | shares | etf | themes | pb | quotes"
         required: true
         default: "reports"
 
@@ -72,6 +72,8 @@ jobs:
             echo "예약 시각과 맞지 않는 실행 — 건너뜀"
           elif [ "${{ steps.m.outputs.mode }}" = "screen_us" ]; then
             python -m screener.main --market US
+          elif [ "${{ steps.m.outputs.mode }}" = "detail_us" ]; then
+            python -m screener.main --market US --no-send   # 미장 상세만 재생성 (텔레그램 없음)
           else
             python -m screener.main --mode ${{ steps.m.outputs.mode }}
           fi
