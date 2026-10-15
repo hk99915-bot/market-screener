@@ -1,7 +1,17 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
   "updated": "2026-10-15",
-  "owners": ["팀장(PB)", "퀀트 누나", "채권 누나", "리스크 누나", "백테스트 누나", "LIFE 누나", "자산배분 누나", "운영 누나"],
+  "owners": [
+    "팀장(PB)",
+    "퀀트 누나",
+    "채권 누나",
+    "리스크 누나",
+    "백테스트 누나",
+    "LIFE 누나",
+    "자산배분 누나",
+    "매크로 누나",
+    "운영 누나"
+  ],
   "tasks": [
     {
       "id": "gas-sched-verify",
@@ -12,8 +22,14 @@
       "started": null,
       "due": "2026-10-16",
       "repo": "public",
-      "files": ["apps-script/Scheduler.gs", ".github/workflows/live.yml", ".github/workflows/briefing.yml"],
-      "depends_on": ["ops-system"],
+      "files": [
+        "apps-script/Scheduler.gs",
+        ".github/workflows/live.yml",
+        ".github/workflows/briefing.yml"
+      ],
+      "depends_on": [
+        "ops-system"
+      ],
       "notes": "SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지."
     },
     {
@@ -25,7 +41,10 @@
       "started": null,
       "due": "2026-10-16",
       "repo": "public",
-      "files": [".github/workflows/screener.yml", "screener/data_krx.py"],
+      "files": [
+        ".github/workflows/screener.yml",
+        "screener/data_krx.py"
+      ],
       "depends_on": [],
       "notes": "16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치)."
     },
@@ -51,7 +70,11 @@
       "started": "2026-10-15",
       "due": null,
       "repo": "public",
-      "files": ["screener/bonds.py", "screener/committee.py", "apps-script/Index.html"],
+      "files": [
+        "screener/bonds.py",
+        "screener/committee.py",
+        "apps-script/Index.html"
+      ],
       "depends_on": [],
       "notes": "업종 국지 신용 스트레스 경보(정상/주의/경계) → 운용회의 head 한 줄 + 채권 탭 섹션. 10/15 첫 커밋."
     },
@@ -90,7 +113,20 @@
       "started": "2026-10-15",
       "due": "2026-10-15",
       "repo": "public",
-      "files": ["ops/*", "scripts/changelog.py", "scripts/board.py", "scripts/lock.py", "scripts/check_functions.py", "scripts/ops_runs.py", ".github/workflows/ops.yml", "apps-script/Index.html", "apps-script/Code.gs", "scripts/build_pages.py", "reports/changelog.json", "reports/ops/*"],
+      "files": [
+        "ops/*",
+        "scripts/changelog.py",
+        "scripts/board.py",
+        "scripts/lock.py",
+        "scripts/check_functions.py",
+        "scripts/ops_runs.py",
+        ".github/workflows/ops.yml",
+        "apps-script/Index.html",
+        "apps-script/Code.gs",
+        "scripts/build_pages.py",
+        "reports/changelog.json",
+        "reports/ops/*"
+      ],
       "depends_on": [],
       "notes": "Index.html 동시 편집으로 함수가 지워진 회귀(myRun) 재발 방지. 에이전트 규약은 ops/README.md."
     },
@@ -103,7 +139,11 @@
       "started": "2026-10-15",
       "due": null,
       "repo": "public",
-      "files": ["screener/lab.py", "reports/lab.json", "apps-script/Index.html"],
+      "files": [
+        "screener/lab.py",
+        "reports/lab.json",
+        "apps-script/Index.html"
+      ],
       "depends_on": [],
       "notes": "1라운드: 사전 등록 가설 7개 · 공통 하네스 · Bonferroni 관문."
     },
@@ -116,7 +156,9 @@
       "started": "2026-10-15",
       "due": null,
       "repo": "public",
-      "files": ["reports/studies/playbook_signals.*"],
+      "files": [
+        "reports/studies/playbook_signals.*"
+      ],
       "depends_on": [],
       "notes": "운용회의 실행 대본(신호·시간대별 단계)의 신호가 과거에 실제로 통했는지."
     },
@@ -132,6 +174,25 @@
       "files": [],
       "depends_on": [],
       "notes": "private 저장소 전용."
+    },
+    {
+      "id": "japan",
+      "title": "일본 시장 연동 (닛케이·TOPIX·JGB10Y·엔 캐리·일본 피어 상관)",
+      "owner": "매크로 누나",
+      "priority": "P2",
+      "status": "진행",
+      "started": "2026-10-15",
+      "due": null,
+      "repo": "public",
+      "files": [
+        "screener/japan.py",
+        "reports/japan.json",
+        "screener/macroview.py",
+        "screener/committee.py",
+        "screener/main.py"
+      ],
+      "depends_on": [],
+      "notes": "보드 밖에서 시작된 작업 — 운영 누나가 잠금(locks.json) 보고 사후 등록. 우선순위는 팀장 확인 필요."
     }
   ]
 }

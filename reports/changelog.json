@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-15 23:29 KST",
+ "generated_at": "2026-10-15 23:37 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -17,20 +17,33 @@
  "days": [
   {
    "date": "2026-10-15",
-   "total": 303,
-   "work": 188,
-   "auto": 115,
+   "total": 312,
+   "work": 195,
+   "auto": 117,
    "by": {
     "human": 16,
     "bot": 53,
-    "agent": 119
+    "agent": 126
    },
    "areas": [
     {
      "area": "web",
      "label": "화면",
-     "n": 95,
+     "n": 96,
      "items": [
+      {
+       "sha": "3bbe38c5",
+       "time": "23:35",
+       "kind": "agent",
+       "summary": "SYSTEM 탭: 작업 보드·파일 잠금 / 변경 이력(날짜·영역 칩·자동 갱신 접기·작업내역 보고) / 운영 상태(워크플로 24h·예약 지연·GAS 도착·자가점검) [ops-system]",
+       "areas": [
+        "web"
+       ],
+       "files": 4,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "49b6eba3",
        "time": "23:24",
@@ -635,7 +648,9 @@
         "data"
        ],
        "files": 6,
-       "tasks": []
+       "tasks": [
+        "japan"
+       ]
       },
       {
        "sha": "73f571fa",
@@ -732,7 +747,9 @@
         "engine"
        ],
        "files": 8,
-       "tasks": []
+       "tasks": [
+        "japan"
+       ]
       },
       {
        "sha": "02a5e57d",
@@ -1195,8 +1212,22 @@
     {
      "area": "workflow",
      "label": "워크플로",
-     "n": 25,
+     "n": 26,
      "items": [
+      {
+       "sha": "0b305011",
+       "time": "23:32",
+       "kind": "agent",
+       "summary": "운영 — 작업 보드·공유 파일 잠금·함수 소실 검사·변경 이력·워크플로 실행 통계 [ops-system]",
+       "areas": [
+        "workflow",
+        "ops"
+       ],
+       "files": 14,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "c5480d1c",
        "time": "21:39",
@@ -1500,8 +1531,34 @@
     {
      "area": "engine",
      "label": "엔진",
-     "n": 60,
+     "n": 62,
      "items": [
+      {
+       "sha": "84fa8f8b",
+       "time": "23:35",
+       "kind": "agent",
+       "summary": "japan: TOPIX 는 ETF 1306.T (야후 ^TOPX 없음), --mode japan 에서 매크로 시계열도 갱신",
+       "areas": [
+        "engine"
+       ],
+       "files": 4,
+       "tasks": [
+        "japan"
+       ]
+      },
+      {
+       "sha": "58d53380",
+       "time": "23:33",
+       "kind": "agent",
+       "summary": "japan: 닛케이·TOPIX·JGB10Y·엔 캐리 + 일본 피어 그룹(장비·Kioxia·MLCC) 상관 → reports/japan.json",
+       "areas": [
+        "engine"
+       ],
+       "files": 8,
+       "tasks": [
+        "japan"
+       ]
+      },
       {
        "sha": "72b2f989",
        "time": "20:58",
@@ -1546,7 +1603,9 @@
         "engine"
        ],
        "files": 2,
-       "tasks": []
+       "tasks": [
+        "japan"
+       ]
       },
       {
        "sha": "43ad8fd4",
@@ -2180,8 +2239,21 @@
     {
      "area": "ops",
      "label": "운영",
-     "n": 1,
+     "n": 2,
      "items": [
+      {
+       "sha": "cfc68352",
+       "time": "23:33",
+       "kind": "agent",
+       "summary": "잠금 — committee.py·main.py (매크로 누나, japan)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "96252425",
        "time": "23:25",
@@ -2198,10 +2270,42 @@
      ]
     },
     {
+     "area": "content",
+     "label": "콘텐츠",
+     "n": 1,
+     "items": [
+      {
+       "sha": "ebe52e22",
+       "time": "23:28",
+       "kind": "agent",
+       "summary": "스터디 — 암산·비율 꿀팁 모듈(P0) + 자료해석 암산 드릴 10문항 + 2주 연습 루틴",
+       "areas": [
+        "content"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
      "area": "tools",
      "label": "도구",
-     "n": 2,
+     "n": 3,
      "items": [
+      {
+       "sha": "df934a18",
+       "time": "23:28",
+       "kind": "agent",
+       "summary": "스터디 — playbook_signals pre-registration (definitions before results)",
+       "areas": [
+        "tools",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "playbook-verify"
+       ]
+      },
       {
        "sha": "de0a6a99",
        "time": "20:53",
@@ -2297,11 +2401,11 @@
     }
    ],
    "auto_updates": {
-    "n": 115,
-    "label": "자동 갱신 115회",
+    "n": 117,
+    "label": "자동 갱신 117회",
     "kinds": {
-     "briefing": 77,
-     "live": 25,
+     "briefing": 78,
+     "live": 26,
      "report": 9,
      "backfill": 1,
      "fin": 1,
@@ -2310,9 +2414,11 @@
     }
    },
    "tasks": {
+    "japan": 5,
+    "ops-system": 4,
     "ai-credit": 3,
     "lab-r2": 1,
-    "ops-system": 1
+    "playbook-verify": 1
    }
   }
  ]

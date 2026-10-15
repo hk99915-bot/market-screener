@@ -35,7 +35,7 @@ fetch → rebase → (잠금) → 편집 → check_functions → build → check
 4. **푸시 직전 다시 최신화 + 검사**
    ```bash
    git fetch origin && git rebase origin/main          # 충돌 나면 '양쪽 모두 살리는' 쪽으로 해결
-   python scripts/check_functions.py                    # 사라진 함수·변수 이름 / <script> 문법 / 빌드 최신 / 잠금
+   python scripts/check_functions.py                    # 사라진 함수·변수 이름 / <script> 문법 / 빌드 최신 / 잠금 / 충돌 표시·JSON
    python scripts/build_pages.py                        # index.html 재생성
    python scripts/check_functions.py                    # 빌드 결과까지 다시 확인 → '통과' 여야 함
    git add -A && git commit … && git push origin HEAD:main

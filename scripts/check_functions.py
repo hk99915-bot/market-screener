@@ -97,7 +97,10 @@ def lock_conflicts(base: str, owner: str | None) -> list[str]:
     p = ROOT / "ops" / "locks.json"
     if not p.exists():
         return []
-    locks = json.loads(p.read_text(encoding="utf-8")).get("locks", [])
+    try:
+        locks = json.loads(p.read_text(encoding="utf-8")).get("locks", [])
+    except ValueError:
+        return []   # 깨진 JSON 은 [5] 에서 실패 처리
     try:
         changed = set(git("diff", "--name-only", base).split()) | set(git("diff", "--name-only", "--cached", base).split())
     except subprocess.CalledProcessError:
@@ -160,6 +163,31 @@ def main() -> int:
     (fails if a.owner else warns).extend(lc)
     if not lc:
         print("  ✓ 충돌 없음")
+
+    print("[5] 충돌 표시·JSON")
+    bad = []
+    try:
+        changed = set(git("diff", "--name-only", a.base).split())
+    except subprocess.CalledProcessError:
+        changed = set()
+    for f in sorted(changed | {"ops/board.json", "ops/locks.json"}):
+        p = ROOT / f
+        if not p.is_file() or p.stat().st_size > 5_000_000:
+            continue
+        try:
+            t = p.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if re.search(r"^(<{7}|>{7}) ", t, re.M) or re.search(r"^={7}$", t, re.M):
+            bad.append(f"{f} 에 머지 충돌 표시(<<<<<<< / >>>>>>>)가 남아 있음")
+        elif f.endswith(".json"):
+            try:
+                json.loads(t)
+            except ValueError as e:
+                bad.append(f"{f} JSON 깨짐: {e}")
+    fails += bad
+    if not bad:
+        print("  ✓ 없음")
 
     for w in warns:
         print("⚠", w)
