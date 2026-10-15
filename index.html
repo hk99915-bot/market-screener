@@ -865,7 +865,13 @@ function bondView(){
   const veh=(o.vehicles||[]).map(v=>`<tr><td class="l">${esc(v.name)}</td><td>${v.y==null?'—':v.y.toFixed(2)+'%'}${v.ylabel?`<div class="mu" style="font-size:10px">${esc(v.ylabel)}</div>`:''}</td><td>${f2(v.dur)}</td><td>${v.up100==null?'<span class="mu">해당 없음</span>':'<span class="up">+'+v.up100.toFixed(1)+'%</span>'}</td><td class="l ${v.fx.startsWith('있음')?'am':'mu'}">${esc(v.fx)}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:150px">${esc(v.tax)}</td><td class="l" style="white-space:normal;font-size:11px;min-width:180px">${esc(v.role)}</td></tr>`).join('');
   const cu=o.credit_us;
   setTimeout(drawBondHist,0);
-  return `<div class="grid">
+  const _u10=(U['10Y']||{}).v, _u10m=(U['10Y']||{}).m1, _cs=(S.us_10_2||{}).v, _aa=(S.kr_aa||{}).v, _aam=(S.kr_aa||{}).m1, _cr=((o.corr||{}).rows||o.corr||[]);
+  const easy=`<div class="p c12"><h2>처음이면 이것만<small>채권 탭 3줄 요약</small></h2><div class="b" style="line-height:1.8;white-space:normal">
+   <div>① <b>금리가 오르면 채권값은 내려가</b> (시소). 미국 10년 금리 ${_u10!=null?_u10.toFixed(2)+'%':'—'}${_u10m!=null?` · 한 달 새 ${_u10m>0?'+':''}${_u10m.toFixed(0)}bp(0.01%p 단위) ${_u10m>0?'올랐어 → 채권값↓, 성장주·반도체에도 부담':'내렸어 → 채권값↑'}`:''}.</div>
+   <div>② <b>짧은 금리 &lt; 긴 금리면 정상</b>, 뒤집히면(역전) 경기 걱정 신호야. 지금 미국 10년−2년 ${_cs!=null?(_cs*100>0?'+':'')+(_cs*100).toFixed(0)+'bp → '+(_cs>0?'정상':'역전'):'—'}.</div>
+   <div>③ <b>회사채 − 국채 금리 차이(신용 스프레드)가 벌어지면</b> 돈 빌려주기 무섭다는 뜻 = 위험 회피. 지금 한국 AA− ${_aa!=null?(_aa*100).toFixed(0)+'bp':'—'}${_aam!=null?` (한 달 ${_aam>0?'+':''}${_aam.toFixed(0)}bp) → ${Math.abs(_aam)<10?'조용해':'움직이는 중'}`:''}.</div>
+   <div class="mu" style="font-size:12px;margin-top:4px">나머지 표·차트는 이 세 가지를 자세히 본 거야. 모르는 칸은 건너뛰어도 돼 — STUDY 탭 '채권 기초'에서 차근차근.</div></div></div>`;
+  return `<div class="grid">${easy}
    <div class="p c6"><h2>핵심 숫자<small>${esc(o.generated_at||'')} 생성</small></h2><div class="b">${key}</div></div>
    <div class="p c6"><h2>해석<small>규칙 기반 · 숫자 인용</small></h2><div class="b" style="line-height:1.75;white-space:normal">${(o.notes||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}
      <div class="mu" style="font-size:10.5px;margin-top:8px;line-height:1.5">데이터 소스<br>${src}</div></div></div>
