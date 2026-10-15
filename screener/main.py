@@ -8,6 +8,7 @@ python -m screener.main --market KR --prices data/kr_prices.parquet  # 캐시/�
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from datetime import date, datetime
@@ -16,7 +17,7 @@ from zoneinfo import ZoneInfo
 import polars as pl
 
 from . import briefings, context, dashboard, data, data_krx, detail, indicators, live, news, report, research, scoring, universe
-from .config import CFG, DATA_DIR
+from .config import CFG, DATA_DIR, REPORT_DIR
 
 log = logging.getLogger("screener")
 
@@ -76,6 +77,12 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     regime_line = context.regime_summary(mr)
     if not prices_path and len(macro):
         write_macro_series(macro)
+        try:
+            mv = json.loads((REPORT_DIR / "macro_view.json").read_text(encoding="utf-8"))
+            if mv.get("summary"):
+                regime_line = mv["summary"] + (" · " + regime_line if regime_line else "")
+        except Exception:  # noqa: BLE001
+            pass
     nw = news.build_news_context(last) if not prices_path else None
     if market == "KR":
         try:
@@ -186,6 +193,11 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
             ser[k] = rows
         (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
             {"asof": str(macro["date"].max()), "fmt": "dohlcv", "series": ser}, ensure_ascii=False), encoding="utf-8")
+        try:
+            from . import macroview
+            macroview.build()
+        except Exception as e:  # noqa: BLE001
+            log.warning("매크로 해설 실패: %s", e)
     except Exception as e:  # noqa: BLE001
         log.warning("매크로 시계열 저장 실패: %s", e)
 

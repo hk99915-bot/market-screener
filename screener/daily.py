@@ -87,6 +87,12 @@ def build(days: int = 7) -> dict:
             top_lines.append(f"{label} {last:,.2f} ({c*100:+.1f}%)")
     usdkrw20 = (macro.get("USDKRW") or {}).get("chg20")
     regime = []
+    try:
+        _mv = json.loads((REPORT_DIR / "macro_view.json").read_text(encoding="utf-8"))
+        if _mv.get("summary"):
+            regime.append(_mv["summary"])
+    except Exception:  # noqa: BLE001
+        pass
     if b200 is not None:
         regime.append(f"KR 200일선 위 {b200*100:.0f}% — " + ("강세 체력" if b200 >= 0.6 else "중립" if b200 >= 0.4 else "약세 체력"))
     if fk.get("외국인") is not None:

@@ -27,6 +27,7 @@
     getStockIndex: m => get('reports/detail/' + m + '/_index.json'),
     getPortfolios: () => get('reports/portfolios.json'),
     getSignals: () => get('reports/signal_scores.json'),
+    getMacroView: () => get('reports/macro_view.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
@@ -132,6 +133,8 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 .srch input:focus{outline:none;border-color:var(--amber)}#sres{position:absolute;top:100%;left:0;right:0;background:#0b0b0b;border:1px solid var(--line);z-index:50;display:none;max-height:360px;overflow:auto}
 #sres div{padding:4px 8px;cursor:pointer;font-size:12px}#sres div.on,#sres div:hover{background:#1a1a1a;color:var(--amber)}#sres i{font-style:normal;color:var(--muted);margin-left:6px}
 @media (max-width:760px){.srch input{width:150px}}
+.mvt td.mac{white-space:normal;min-width:84px;max-width:120px;line-height:1.3}.mvt tr.mvr{cursor:pointer}
+@media (max-width:700px){.mvt .hm{display:none}.mvt td,.mvt th{padding:4px 4px;font-size:12px}}
 .subtabs{display:none;gap:4px;padding:6px 8px 0;overflow-x:auto;scrollbar-width:none}.subtabs.on{display:flex}.subtabs::-webkit-scrollbar{display:none}
 .subtabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:12.5px;padding:4px 10px;cursor:pointer;letter-spacing:.04em}
 .subtabs button.on{color:var(--amber);border-bottom-color:var(--amber)}
@@ -223,11 +226,26 @@ function breadthPanel(mk){
   return `${verdict}${gauge('20일선 위',p20)}${gauge('50일선 위',p50)}${gauge('200일선 위',p200)}${split('상승/하락',L.adv,L.dec)}${split('신고가/신저가',L.new_high52,L.new_low52)}
    ${s.length>=5?`<div class="mu" style="margin-top:6px">200일선 위 비율 · 최근 ${s.length}거래일 (점선 40% / 60%)</div>${svg}`:`<div class="mu" style="margin-top:6px">추이 그래프는 5거래일 이상 쌓이면 표시</div>`}`;
 }
+let MV=null;
 function macroPanel(mk){
+  if(MV===null){ MV=false; google.script.run.withSuccessHandler(t=>{try{MV=JSON.parse(t);}catch(e){MV={};} render();}).withFailureHandler(()=>{MV={};}).getMacroView(); }
+  if(MV&&MV.rows&&MV.rows.length){
+    const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
+    const lv=k=>L&&L.items&&L.items.find(x=>x.key===k);
+    const rows=MV.rows.map(d=>{ const l=lv(d.key), rate=d.key==='US10Y', last=l&&l.last?l.last:d.last;
+      const c1=rate?(l&&l.last?`${((l.last-(d.last-(d.d1||0)))*100).toFixed(0)}bp`:`${((d.d1||0)*100).toFixed(0)}bp`):pct(l&&l.chg!=null?l.chg:d.chg1);
+      const c20=rate?`${((d.d20||0)*100>0?'+':'')}${((d.d20||0)*100).toFixed(0)}bp`:pct(d.chg20);
+      return `<tr class="mvr" data-k="${esc(d.key)}"><td class="l am mac" data-key="${esc(d.key)}">${esc(d.name)}</td><td>${num(last,2)}</td><td>${c1}</td><td>${c20}</td><td class="hm">${d.key==='VIX'||rate?'—':pct(d.from_hi,0)}</td><td style="color:${col(d.impact)}">${d.impact==null?'—':(d.impact>0?'+':'')+d.impact.toFixed(2)}</td><td class="tg mu" data-x="${esc(d.key)}">▸</td></tr>
+        <tr class="sub" id="mvx-${esc(d.key)}"><td colspan="7" style="white-space:normal"><div style="color:var(--txt)">${esc(d.state)}</div><div class="mu" style="font-size:11px;margin-top:2px">${esc(d.what)}</div></td></tr>`;}).join('');
+    return `<div style="border:1px solid ${col(MV.score)};padding:6px 9px;margin-bottom:6px;line-height:1.6;font-size:12.5px;white-space:normal"><b style="color:${col(MV.score)}">${esc(MV.label||'')}</b> ${esc((MV.summary||'').replace(/^매크로 바람 \S+ /,''))}</div>
+      <table class="mvt"><tr><th class="l">지표</th><th>현재</th><th>1D</th><th>20D</th><th class="hm">고점대비</th><th>영향</th><th></th></tr>${rows}</table>
+      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">▸ 누르면 해설. 영향 = 한국 주식 전체에 대한 바람(−1~+1), 종합해서 위 판단에 반영. 한국 지수는 결과라 점수 제외. 현재·1D는 실시간, 나머지는 ${esc(MV.asof||'')} 일봉 기준.</div>`;
+  }
   const m=(D.state||{})['macro_'+mk]; if(!m||!m.value||!m.value.length) return '<div class="mu">—</div>';
   const reg=(D.state||{})['regime_'+mk];
   return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am mac" data-key="${esc(d.key)}">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
 }
+document.addEventListener('click',e=>{ if(e.target.closest('td.mac')) return; const tr=e.target.closest('tr.mvr'); if(!tr) return; const t=tr.querySelector('td[data-x]'); if(!t) return; const r=document.getElementById('mvx-'+t.dataset.x); if(r){ r.classList.toggle('on'); t.textContent=r.classList.contains('on')?'▾':'▸'; }});
 function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이스케이프
   let t=esc(String(v));
   t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=&quot;(https?:[^&]*?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank">$2</a>');
@@ -253,7 +271,7 @@ function marketView(mk){
   const S=D[mk.toLowerCase()]||{}; const sec=S.sections||{};
   let h=`<div class="grid">
     <div class="p c4"><h2>BREADTH ${mk}</h2><div class="b">${breadthPanel(mk)}</div></div>
-    <div class="p c8"><h2>MACRO CONTEXT<small>score 미반영</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
+    <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 · 지표별 해설</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
   const mc=(D.state||{})['market_comment_'+mk];
   if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
   for(const [k,t] of SEC){const s=sec[k]; if(!s) continue; h+=`<div class="p c12"><h2>${t}<small>top ${s.rows.length} / ${s.total}</small></h2><div class="b">${sigTable(s.rows,mk)}</div></div>`;}
