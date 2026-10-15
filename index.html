@@ -30,6 +30,7 @@
     getMacroView: () => get('reports/macro_view.json'),
     getChainSeries: () => get('reports/chains.json'),
     getEvents: () => get('reports/events_stats.json'),
+    getMacroHist: () => get('reports/macro_hist.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {
@@ -606,7 +607,9 @@ function myRender(hs,cash,miss){
    <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
 }
 let SG=null, CH=null;
+let MVH=null;
 function sigView(){
+  if(MVH===null){ MVH=false; google.script.run.withSuccessHandler(t=>{try{MVH=JSON.parse(t);}catch(e){MVH={};} if(view==='sig') render();}).withFailureHandler(()=>{MVH={};}).getMacroHist(); }
   if(SG===null){ SG=false; google.script.run.withSuccessHandler(t=>{try{SG=JSON.parse(t);}catch(e){SG={};} if(view==='sig') render();}).withFailureHandler(()=>{SG={}; if(view==='sig') render();}).getSignals(); return '<div class="load">LOADING …</div>'; }
   if(!SG||!SG.signals) return '<div class="grid"><div class="p c12"><div class="b mu">아직 채점 결과 없음 — 다음 종목 상세 생성 때 만들어집니다</div></div></div>';
   const vc=v=>v==='유효'?'var(--up)':v&&v.startsWith('역방향')?'var(--dn)':'var(--muted)';
@@ -614,6 +617,7 @@ function sigView(){
   const rows=Object.entries(SG.signals).sort((a,b)=>((b[1].h20||{}).ic||0)-((a[1].h20||{}).ic||0)).map(([k,r])=>`<tr><td class="l">${esc(r.desc)}</td><td class="l" style="color:${vc(r.verdict)}">${esc(r.verdict||'')}</td>${cell(r.h5)}${cell(r.h20)}${cell(r.h60)}<td class="mu">${(r.h20||r.h5||{}).days||0}일</td></tr>`).join('');
   return `<div class="grid"><div class="p c12"><h2>SIGNAL SCORECARD<small>국장 · 시그널 기록 ${SG.n_days}일 (${esc(SG.first||'')}~) · 채점 ${esc(SG.asof||'')}</small></h2><div class="b">
    <div class="mu" style="font-size:12px;line-height:1.7;margin-bottom:8px">매일 기록한 시그널이 이후 5·20·60거래일 <b>시장 중앙값 대비 초과수익</b>을 맞췄는지. IC = 순위상관(+면 시그널 방향대로 맞음), t = 겹치는 기간을 보정한 t값(|t|≥2면 우연 아님), 상하위 = 상위 20% − 하위 20% 초과수익, 적중 = IC가 +인 날 비율. 기술 시그널은 과거 1년 복원, 가치평가·드라이버는 기록 시작일부터 쌓임.</div>
+   ${MVH&&MVH.rows?`<div style="margin-bottom:8px;font-size:12.5px">매크로 바람 점수 (시계열): 기록 ${MVH.rows.length}일 · 판정 <b>${esc(MVH.verdict||'검증 중')}</b>${MVH.score&&MVH.score.h20?` · 20일 뒤 코스피와 상관 ${MVH.score.h20.corr}`:''}</div>`:''}
    <table><tr><th class="l">시그널</th><th class="l">판정</th><th>5D IC</th><th>t</th><th>상하위</th><th>적중</th><th>20D IC</th><th>t</th><th>상하위</th><th>적중</th><th>60D IC</th><th>t</th><th>상하위</th><th>적중</th><th>표본</th></tr>${rows}</table></div></div></div>`;
 }
 function chainView(){

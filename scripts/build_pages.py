@@ -28,6 +28,7 @@ SHIM = """<script>
     getMacroView: () => get('reports/macro_view.json'),
     getChainSeries: () => get('reports/chains.json'),
     getEvents: () => get('reports/events_stats.json'),
+    getMacroHist: () => get('reports/macro_hist.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {

@@ -171,5 +171,44 @@ def build() -> dict:
     out = {"asof": max((r["date"] for r in rows), default=None), "score": round(score, 2) if score is not None else None,
            "label": label, "summary": summary, "rows": rows}
     (REPORT_DIR / "macro_view.json").write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    try:
+        _track(out, stats)
+    except Exception as e:  # noqa: BLE001
+        log.warning("매크로 점수 기록 실패: %s", e)
     log.info("매크로 해설: %s", summary)
     return out
+
+
+def _track(out: dict, stats: dict) -> None:
+    """매크로 바람 점수를 날짜별로 기록하고, 이후 코스피 5·20일 수익률과의 상관으로 채점 (시계열 시그널)."""
+    p = REPORT_DIR / "macro_hist.json"
+    h = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"rows": []}
+    d = out.get("asof")
+    if d and out.get("score") is not None:
+        h["rows"] = [r for r in h["rows"] if r["date"] != d] + [{"date": d, "score": out["score"]}]
+        h["rows"].sort(key=lambda r: r["date"])
+    try:
+        ser = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8"))["series"]["KOSPI"]
+        c = {r[0]: (r[4] if len(r) >= 6 else r[1]) for r in ser}
+        ds = sorted(c)
+        res = {}
+        for n in (5, 20):
+            xs, ys = [], []
+            for r in h["rows"]:
+                if r["date"] in c:
+                    i = ds.index(r["date"])
+                    if i + n < len(ds):
+                        xs.append(r["score"])
+                        ys.append(c[ds[i + n]] / c[r["date"]] - 1)
+            if len(xs) >= 10:
+                mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
+                cov = sum((a - mx) * (b - my) for a, b in zip(xs, ys))
+                vx = sum((a - mx) ** 2 for a in xs) ** 0.5
+                vy = sum((b - my) ** 2 for b in ys) ** 0.5
+                res[f"h{n}"] = {"corr": round(cov / (vx * vy), 3) if vx and vy else None, "n": len(xs), "n_eff": round(len(xs) / n, 1)}
+        h["score"] = res
+        h["verdict"] = ("검증 중 (표본 부족)" if not res or max(v["n_eff"] for v in res.values()) < 8 else
+                        "유효" if (res.get("h20") or res.get("h5"))["corr"] and (res.get("h20") or res.get("h5"))["corr"] > 0.2 else "효과 불분명")
+    except Exception:  # noqa: BLE001
+        pass
+    p.write_text(json.dumps(h, ensure_ascii=False), encoding="utf-8")
