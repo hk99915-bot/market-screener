@@ -2,13 +2,14 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-15 · 작업 11개 · 진행 6 · 검수 2 · 대기 3 · 보류 0 · 완료 0
+기준일 2026-10-15 · 작업 12개 · 진행 7 · 검수 2 · 대기 3 · 보류 0 · 완료 0
 
-## 진행 (6)
+## 진행 (7)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P1 | `core-weights` | 코어 자산배분 최적 비중 | 자산배분 누나 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
+| P1 | `pm-usage` | 사용 기록(로컬 집계)·내보내기 + PM 지표 체계 | PM 누나 | 2026-10-15 | — | `apps-script/Index.html` | — | 웹은 일별 횟수만 localStorage 에 저장, 내보내기는 비공개 저장소 이슈 폼으로. 리포트·지표 정의는 private. |
 | P1 | `weekly-scorecard` | 주간 성적표 자동화 | 리스크 누나 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
 | P2 | `japan` | 일본 시장 연동 (닛케이·TOPIX·JGB10Y·엔 캐리·일본 피어 상관) | 매크로 누나 | 2026-10-15 | — | `screener/japan.py`<br>`reports/japan.json`<br>`screener/macroview.py`<br>`screener/committee.py`<br>`screener/main.py` | — | 보드 밖에서 시작된 작업 — 운영 누나가 잠금(locks.json) 보고 사후 등록. 우선순위는 팀장 확인 필요. |
 | P2 | `lab-r2` | 전략 연구소 2라운드 | 퀀트 누나 | 2026-10-15 | — | `screener/lab.py`<br>`reports/lab.json`<br>`apps-script/Index.html` | — | 1라운드: 사전 등록 가설 7개 · 공통 하네스 · Bonferroni 관문. |
@@ -32,6 +33,6 @@
 
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
 
-- `apps-script/Index.html` ← `ai-credit`, `ops-system`, `lab-r2` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/Index.html` ← `ai-credit`, `ops-system`, `lab-r2`, `pm-usage` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/committee.py` ← `ai-credit`, `japan` — 편집 전 `ops/locks.json` 잠금 필수
 
