@@ -101,8 +101,9 @@ def build(days: int = 75) -> dict:
         if t in CHIP:
             tags.append("반도체")
         nm = str(names.get(t, t))
-        for cut in (" - Common Stock", ", Inc.", " Inc.", " Corporation", " Corp."):
+        for cut in (" - ", ", Inc", ", LLC", " Inc.", " Corporation", " Corp.", " Holdings", " Holding", " PLC", " N.V.", ".com"):
             nm = nm.split(cut)[0]
+        nm = nm.strip()
         ev.append({"date": d, "type": "실적", "name": f"{nm} 실적", "ticker": t, "market": "KR" if t.isdigit() else "US",
                    "note": " · ".join(tags) + (" · 미국 장후 발표가 많음 → 한국 다음날 반영" if not t.isdigit() else ""),
                    "imp": 3 if t in CAPEX or t in ("NVDA", "MU", "000660", "005930") else 2 if t in CHIP else 1})
