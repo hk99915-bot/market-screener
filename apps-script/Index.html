@@ -660,6 +660,23 @@ function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) retur
       }).catch(e=>{ $('#mycone').textContent='불러오기 실패('+e.message+')'; }); };
     $('#mycsel').onchange=e=>load(+e.target.value); load(0);
   }).catch(e=>{ b.textContent='불러오기 실패('+e.message+') — 토큰 권한 확인'; delete b.dataset.done; }); }
+function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
+  for(const [m,sy] of list){ const k=m+':'+sy; if(MYD[k]){ done(); continue; }
+    google.script.run.withSuccessHandler(t=>{try{MYD[k]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(m,sy); } }
+function myRun(){
+  if(typeof CH!=='undefined'&&CH===null){ CH=false; google.script.run.withSuccessHandler(t=>{try{CH=JSON.parse(t);}catch(e){CH={};}}).getChains(); }
+  if(typeof PF!=='undefined'&&PF===null){ PF=false; google.script.run.withSuccessHandler(t=>{try{PF=JSON.parse(t);}catch(e){PF={};}}).getPortfolios(); }
+  const out=$('#myout'); if(!out) return; out.innerHTML='<div class="load">LOADING …</div>';
+  loadIndex(()=>{
+    const all=myParse($('#myta').value);
+    const hs=all.filter(h=>h.key).map(h=>({...h, r:myResolve(h.key)}));
+    const cash=all.filter(h=>h.cash);
+    const miss=hs.filter(h=>!h.r).map(h=>h.key);
+    const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]), ...HEDGES.map(x=>[x[0],x[1]]), ...BENCH];
+    const go=()=>myFetch(need,()=>myRender(hs,cash,miss));
+    if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go();
+  });
+}
 /* 수치 도구 */
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const cov=(a,b)=>{const ma=mean(a),mb=mean(b);let s=0;for(let i=0;i<a.length;i++)s+=(a[i]-ma)*(b[i]-mb);return s/(a.length-1);};
