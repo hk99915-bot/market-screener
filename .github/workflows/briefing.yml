@@ -7,12 +7,12 @@ on:
     - cron: "30 1 * * 1-5"    # 10:30 KST 장중 수급 (KR)
     - cron: "30 4 * * 1-5"    # 13:30 KST 장중 수급 (KR)
     - cron: "45 6 * * 1-5"    # 15:45 KST 장 마감 확정치로 지수·데일리·운용회의 갱신
-    - cron: "0 12 * * 1-5"    # 21:00 KST 미장 프리장
-    - cron: "0 13 * * 1-5"    # 22:00 KST 미장 장전
-    - cron: "0 14 * * 1-5"    # 23:00 KST 미장 장중
-    - cron: "0 19 * * 1-5"    # 04:00 KST 미장 후반 (마감 직전)
+    - cron: "52 11 * * 1-5"   # 20:52 KST 미장 프리장 (정각은 GitHub 가 자주 건너뜀 → 비정각)
+    - cron: "52 12 * * 1-5"   # 21:52 KST 미장 장전
+    - cron: "52 13 * * 1-5"   # 22:52 KST 미장 장중
+    - cron: "52 18 * * 1-5"   # 03:52 KST 미장 후반 (마감 직전)
     - cron: "10 10 * * 1-5"   # 19:10 KST 신규 리포트 (하루 1회, 당일 발간분 모음)
-    - cron: "0 22 * * 1-5"    # 07:00 KST 미장 마감 스크리너 + 매크로 (S&P500 ∪ NDX)
+    - cron: "52 21 * * 1-5"   # 06:52 KST 미장 마감 스크리너 + 매크로 (S&P500 ∪ NDX)
   workflow_dispatch:
     inputs:
       mode:
@@ -46,17 +46,23 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT; exit 0
           fi
-          H=$(date -u +%H); M=$(date -u +%M)
-          case "$H" in
-            23) echo "mode=premarket_kr" ;;
-            01|04) echo "mode=intraday_kr" ;;
-            06) echo "mode=close_kr" ;;
-            12|13) echo "mode=premarket_us" ;;
-            14|19) echo "mode=intraday_us" ;;
-            10) echo "mode=reports" ;;
-            22) echo "mode=screen_us" ;;
-            *) echo "mode=skip" ;;   # 예약이 몇 시간 밀려 엉뚱한 시각에 돌면 아무것도 안 함
-          esac >> $GITHUB_OUTPUT
+          # 모드는 '어느 예약이 울렸나'(cron 문자열)로 정한다 — 실행 시각 기준이면 GitHub 지연(수십 분) 때 엉뚱한 모드가 됨
+          CR="${{ github.event.schedule }}"
+          case "$CR" in
+            "50 23 * * 0-4") MODE=premarket_kr ;;
+            "30 1 * * 1-5"|"30 4 * * 1-5") MODE=intraday_kr ;;
+            "45 6 * * 1-5") MODE=close_kr ;;
+            "52 11 * * 1-5"|"52 12 * * 1-5") MODE=premarket_us ;;
+            "52 13 * * 1-5"|"52 18 * * 1-5") MODE=intraday_us ;;
+            "10 10 * * 1-5") MODE=reports ;;
+            "52 21 * * 1-5") MODE=screen_us ;;
+            *) MODE=skip ;;
+          esac
+          # 예약 시각보다 150분 넘게 밀렸으면 낡은 브리핑이 되므로 건너뜀
+          set -- $CR; SM=$((10#$1 + 10#$2 * 60)); NM=$((10#$(date -u +%M) + 10#$(date -u +%H) * 60))
+          LATE=$(( (NM - SM + 1440) % 1440 ))
+          if [ $LATE -gt 150 ]; then echo "예약 $CR 이 ${LATE}분 지연 — 건너뜀"; MODE=skip; fi
+          echo "mode=$MODE" >> $GITHUB_OUTPUT
 
       - name: 실행
         env:
