@@ -84,6 +84,7 @@
   .backdrop{position:fixed;inset:0;background:#0008;z-index:19;display:none}.backdrop.on{display:block}
 .ctab{margin-left:8px}.ctab button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:1px 8px;margin-left:4px;cursor:pointer}.ctab button.on{color:var(--amber);border-color:var(--amber)}
 .lvbar{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;margin-bottom:6px}.lvbar i{font-style:normal;color:var(--muted)}
+.live .nv{width:100%;max-width:700px;background:#fff;display:block}
 .live iframe{width:100%;height:440px;border:0;display:block}.live .lk{margin-top:6px;font-size:12px}.live .lk a{color:var(--blue);margin-right:12px}
 </style>
 </head>
@@ -242,7 +243,7 @@ function renderDetail(sym,mk,s){
   $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr);
   document.querySelectorAll('.ctab button').forEach(bt=>bt.onclick=()=>{
     document.querySelectorAll('.ctab button').forEach(z=>z.classList.toggle('on',z===bt));
-    if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr,sc,rs,s.close); $('#ch-note').textContent='TradingView · 5분봉 · 왼쪽 도구로 수평선 그리기 가능 · 거래소에 따라 지연'; }
+    if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr,sc,rs,s.close); $('#ch-note').textContent=kr?'네이버 금융 장중 차트 · 1분 갱신':'TradingView · 5분봉 · 왼쪽 도구로 수평선 그리기 가능'; }
     else { $('#chb').innerHTML='<canvas id="cv" width="960" height="260"></canvas>'; $('#ch-note').textContent='SMA20 · SMA50 · 20D box · TP'; drawChart(s.chart||[],sc,rs,kr); }
   });
 }
@@ -255,6 +256,12 @@ function liveChart(sym,market,kr,sc,rs,close){
   else links.push(`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(sym)}" target="_blank">Yahoo 시세</a>`);
   const lv=[['TP',rs?.consensus_tp,'#35d6e6'],['BULL',sc?.bull?.target,'#2fd05a'],['STOP',sc?.bear?.stop,'#ff4b4b'],['PSAR',sc?.bear?.trail,'#ff9a1f']].filter(x=>x[1]);
   const bar=lv.length?`<div class="lvbar">${lv.map(([k,v,c])=>`<span style="color:${c}">${k} <b>${num(v,kr?0:2)}</b>${close?` <i>${((v/close-1)*100>0?'+':'')}${((v/close-1)*100).toFixed(1)}%</i>`:''}</span>`).join('')}<span class="mu">· 종가 ${num(close,kr?0:2)} 기준</span></div>`:'';
+  if(kr){
+    const img=()=>`https://ssl.pstatic.net/imgfinance/chart/item/area/day/${encodeURIComponent(sym)}.png?t=${Date.now()}`;
+    clearInterval(window._liveT);
+    window._liveT=setInterval(()=>{const el=document.getElementById('nvimg'); if(!el){clearInterval(window._liveT);return;} el.src=img();},60000);
+    return `${bar}<div class="live"><img id="nvimg" class="nv" src="${img()}" alt="네이버 장중 차트" onerror="this.outerHTML='<div class=&quot;mu&quot;>네이버 차트를 불러오지 못했습니다. 아래 링크로 보세요.</div>'"><div class="lk">${links.join('')}<span class="mu">국장 장중 차트: 네이버 금융 · 1분마다 갱신</span></div></div>`;
+  }
   return `${bar}<div class="live"><iframe src="${src}" loading="lazy" allowfullscreen></iframe><div class="lk">${links.join('')}<span class="mu">차트가 비어 있으면 위 링크로 보세요</span></div></div>`;
 }
 function sgn(v){return v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${v.toFixed(0)}</span>`;}
