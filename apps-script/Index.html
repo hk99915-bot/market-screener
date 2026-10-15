@@ -536,7 +536,7 @@ function myResolve(k){ const x=k.toLowerCase().trim();
   return SIX.find(s=>String(s.n).toLowerCase().startsWith(x))||SIX.find(s=>String(s.n).toLowerCase().replace(/\s/g,'').includes(x.replace(/\s/g,'')))||null; }
 // 비공개 저장소(pb-private/holdings.txt) 동기화 — 읽기 전용 토큰은 이 브라우저 localStorage 에만 보관
 const GHK='mt_gh_tok', PBSRC='https://api.github.com/repos/hk99915-bot/pb-private/contents/holdings.txt';
-function ghTok(){ try{ return localStorage.getItem(GHK)||''; }catch(e){ return ''; } }
+function ghTok(){ try{ return sessionStorage.getItem(GHK)||localStorage.getItem(GHK)||''; }catch(e){ return ''; } }
 function myClean(t){ return String(t||'').split('\n').filter(l=>l.trim()&&!l.trim().startsWith('#')).join('\n'); }
 let MYSYNC={st:'',at:''};
 function mySync(cb){ const tk=ghTok(); if(!tk){ MYSYNC={st:'토큰 없음'}; cb&&cb(false); return; }
@@ -552,7 +552,7 @@ function myView(){
   setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); $('#myin').open=false; myRun(); };
     const st=()=>{ const e=$('#mysync'); if(e) e.textContent=MYSYNC.st+(MYSYNC.at?' · '+MYSYNC.at:''); };
     $('#mysyncb').onclick=()=>{ mySync(ok=>{ st(); if(ok) myRun(); }); st(); };
-    $('#mytokb').onclick=()=>{ const v=($('#mytok').value||'').trim(); try{ v?localStorage.setItem(GHK,v):localStorage.removeItem(GHK); }catch(_){} $('#mytok').value=''; mySync(ok=>{ st(); if(ok) myRun(); }); st(); };
+    $('#mytokb').onclick=()=>{ const v=($('#mytok').value||'').trim(); const ses=$('#mytokses')&&$('#mytokses').checked; try{ localStorage.removeItem(GHK); sessionStorage.removeItem(GHK); if(v) (ses?sessionStorage:localStorage).setItem(GHK,v); }catch(_){} $('#mytok').value=''; mySync(ok=>{ st(); if(ok) myRun(); }); st(); };
     if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ st(); if(ok) myRun(); }); st(); }
     const mc=$('#mycorr'); if(mc) mc.addEventListener('toggle',e=>{ if(e.target.open) myCorr(); });
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
@@ -561,7 +561,7 @@ function myView(){
       <button id="mysyncb" class="sbtn">지금 불러오기</button>
       <details style="display:inline"><summary class="mu" style="cursor:pointer;font-size:11px">토큰 설정</summary>
         <div class="mu" style="font-size:11px;line-height:1.6;max-width:560px">깃허브 → Settings → Developer settings → Fine-grained tokens → Repository access: <b>pb-private만</b> · Permissions: <b>Contents: Read-only</b>. 토큰은 이 브라우저에만 저장돼요(회사 PC엔 저장 금지). 비우고 저장하면 삭제.</div>
-        <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="mytokb" class="sbtn">저장</button></details></div>
+        <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <label class="mu" style="font-size:11px;margin-left:6px"><input id="mytokses" type="checkbox"> 이 창에서만 (탭 닫으면 삭제 · 회사 PC용)</label> <button id="mytokb" class="sbtn">저장</button></details></div>
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
     <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 11 260864</code> · <code>TIGER 200 IT 17 128855</code> · <code>MU 1 857.5</code> · <code>현금 3164341</code> · <code>USD 2223.07</code></div>
     <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
