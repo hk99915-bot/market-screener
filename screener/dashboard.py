@@ -112,7 +112,7 @@ def build() -> None:
         "reports": _reports(),
         "watchlist": _watchlist(),
         "state": st,
-        "last_error": _last_error(),
+        # last_error 는 공개 페이지에 싣지 않음 (reports/last_error.txt 로만 확인)
     }
     REPORT_DIR.mkdir(exist_ok=True)
     OUT.write_text(json.dumps(data, ensure_ascii=False, default=str), encoding="utf-8")
