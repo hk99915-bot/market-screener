@@ -215,6 +215,16 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
                 rows.append([str(x["date"]), o, max(h, o, c), min(lo, o, c), c, int(x.get("volume") or 0)])
             ser[k] = rows
         _krx_override(ser)
+        try:   # 상단 시세(live.json)도 같은 시점으로 — 24시간 거래 자산(환율·유가·VIX)이 화면마다 달라지지 않게
+            from . import live as _live
+            snap = {i["key"]: i for i in _live.snapshot().get("items", [])}
+            for k, it in snap.items():   # 24시간 자산은 시세 스냅샷 값으로 오늘 마지막 봉 종가를 맞춤
+                if k in ser and ser[k] and k not in ("KOSPI", "KOSDAQ", "K200F") and it.get("last"):
+                    ser[k][-1][4] = round(float(it["last"]), 4)
+                    ser[k][-1][2] = max(ser[k][-1][2], ser[k][-1][4])
+                    ser[k][-1][3] = min(ser[k][-1][3], ser[k][-1][4])
+        except Exception as e:  # noqa: BLE001
+            log.warning("시세 동기화 실패: %s", e)
         (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
             {"asof": str(macro["date"].max()), "fmt": "dohlcv", "series": ser}, ensure_ascii=False), encoding="utf-8")
         try:
