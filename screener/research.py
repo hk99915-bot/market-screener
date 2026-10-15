@@ -144,6 +144,8 @@ SKIP_SENT = re.compile(r"(Tel|TEL|@|Analyst|애널리스트|Compliance|본\s*조
 
 
 HANGUL = re.compile(r"[가-힣]")
+SOLO = set("및 수 것 더 등 약 각 총 전 후 중 위 안 내 외 때 곳 줄 데 뿐 듯 채 셈 척 만 큰 새 첫 두 세 네 한 그 이 저 또 꼭 잘 못 안 왜".split())
+JOSA = set("이가을를은는의에로와과도만")
 
 
 def _join_lines(txt: str) -> str:
@@ -161,7 +163,12 @@ def _join_lines(txt: str) -> str:
             continue
         prev_space = out.endswith(" ") or raw[:1].isspace()
         a, b = out.rstrip()[-1:], line.strip()[:1]
-        if not prev_space and HANGUL.match(a or "") and HANGUL.match(b or ""):
+        last_tok = out.rstrip().rsplit(" ", 1)[-1]
+        first_tok = line.strip().split(" ", 1)[0]
+        # 줄 끝 한 글자 토막("재" / "차 능가") 또는 줄 첫 조사("환경" / "이 조성")는 끊긴 단어로 보고 붙인다
+        broken = (len(last_tok) == 1 and HANGUL.match(last_tok) and last_tok not in SOLO) or \
+                 (len(first_tok) <= 2 and first_tok[:1] in JOSA and HANGUL.match(a or ""))
+        if (not prev_space or broken) and HANGUL.match(a or "") and HANGUL.match(b or ""):
             out = out.rstrip() + line.lstrip()           # 끝 공백은 남겨 다음 줄 판단에 씀
         else:
             out = out.rstrip() + " " + line.lstrip()
