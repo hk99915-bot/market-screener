@@ -33,6 +33,7 @@ SHIM = """<script>
     getCalendar: () => get('reports/calendar.json'),
     getPeers: (mk) => get('reports/peers_' + mk + '.json'),
     getDecisions: () => get('reports/decisions.json'),
+    getCommittee: () => get('reports/committee.json'),
     getChains: () => get('reports/chains_view.json'),
   };
   function runner(ok, fail) {

@@ -251,7 +251,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -291,6 +291,12 @@ def main() -> None:
             dashboard.build()
         elif a.mode == "detail_kr":   # 종목 상세만 재생성 (어제 종가 기준, 알림 없음)
             rebuild_detail_kr()
+        elif a.mode == "committee":    # 운용회의 자료 (+텔레그램)
+            from . import committee
+            o = committee.build()
+            if not a.no_send:
+                from .report import send_telegram
+                send_telegram(committee.telegram_text(o))
         elif a.mode == "calendar":     # 실적·이벤트 캘린더
             from . import calendar_ev
             print(len(calendar_ev.build()["events"]))
@@ -367,6 +373,15 @@ def main() -> None:
                     log.warning("캘린더 실패: %s", e)
             out = modes[a.mode](send=not a.no_send)
             print(out)
+            if a.mode == "reports":   # 저녁 운용회의
+                try:
+                    from . import committee
+                    o = committee.build()
+                    if not a.no_send:
+                        from .report import send_telegram
+                        send_telegram(committee.telegram_text(o))
+                except Exception as e:  # noqa: BLE001
+                    log.warning("운용회의 실패: %s", e)
             if a.mode == "premarket_kr" and not a.no_send:
                 try:
                     from . import pb

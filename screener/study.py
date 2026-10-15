@@ -70,6 +70,16 @@ def run() -> dict:
                                      "d20": _summ([fwd(i, 20) for i in deep]), "dates": [ds[i] for i in deep][-15:]},
         "shallow_(그 외)": {"days": len(shallow), "d1": _summ([fwd(i, 1) for i in shallow]), "d5": _summ([fwd(i, 5) for i in shallow]),
                           "d20": _summ([fwd(i, 20) for i in shallow])}}
+    # 시나리오 확률용: 20일 뒤 분포 버킷 (전체 / −5% 급락일 / 깊은 하락 중 급락일)
+    def bucket(idx):
+        v = [fwd(i, 20) for i in idx if fwd(i, 20) is not None]
+        if not v:
+            return None
+        n = len(v)
+        return {"n": n, "bull": round(sum(1 for x in v if x > 0.05) / n, 3), "base": round(sum(1 for x in v if -0.05 <= x <= 0.05) / n, 3),
+                "bear": round(sum(1 for x in v if x < -0.05) / n, 3), "deep_bear": round(sum(1 for x in v if x < -0.15) / n, 3)}
+    out["buckets20"] = {"all": bucket(list(range(1, len(c)))), "drop5": bucket(idx5), "deep": bucket(deep),
+                        "dd15": bucket([i for i in range(21, len(c)) if dd20(i) <= -0.15])}
     # 연속 급락
     clus = [i for i in idx5 if any(j in idx5 for j in range(i - 5, i))]
     out["cluster_(5일 내 두 번째 −5%)"] = {"days": len(clus), "d1": _summ([fwd(i, 1) for i in clus]), "d20": _summ([fwd(i, 20) for i in clus]),
