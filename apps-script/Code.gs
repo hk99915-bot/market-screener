@@ -73,6 +73,7 @@ function getChainSeries() { return raw_('reports/chains.json'); }
 function getEvents() { return raw_('reports/events_stats.json'); }
 function getMacroHist() { return raw_('reports/macro_hist.json'); }
 function getStudy() { return raw_('reports/studies/crash_rebound.json'); }
+function getLab() { return raw_('reports/lab.json'); }
 function getCalendar() { return raw_('reports/calendar.json'); }
 function getDecisions() { return raw_('reports/decisions.json'); }
 function getCommittee() { return raw_('reports/committee.json'); }
