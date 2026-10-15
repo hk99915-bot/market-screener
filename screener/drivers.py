@@ -638,6 +638,13 @@ def build(codes_info: dict[str, dict], prices: pl.DataFrame, discl: dict, news_l
         out[c] = {"chain": ch, "macro": mv, "analyst": av, "news": nv, "dart": dv, "parts": parts, "weights": used,
                   "score": round(score, 2) if score is not None else None,
                   "w_current": round(min(max(0.5 + 0.4 * score, 0.1), 0.9), 2) if score is not None else None}
-    (REPORT_DIR / "chains_view.json").write_text(json.dumps({"asof": prox.get("asof"), "chains": chains, "factors": moves},
+    usmap = {}   # 미국 종목 → 체인 (같은 사이클로 묶이는 프록시만)
+    for k, c in CHAINS.items():
+        for t, _n, role, rel in c["proxies"]:
+            if rel == 1 and not t.startswith("^") and "=" not in t and t not in usmap and ("사이클" in role or "동일" in role):
+                usmap[t] = c["name"]
+    for t in ("NVDA", "AMD", "AVGO", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "INTC", "QCOM", "TXN", "ADI", "MRVL", "ARM", "SMH", "SOXX", "PSI", "SOXL"):
+        usmap.setdefault(t, "미국 반도체")
+    (REPORT_DIR / "chains_view.json").write_text(json.dumps({"asof": prox.get("asof"), "chains": chains, "factors": moves, "us_map": usmap},
                                                             ensure_ascii=False, default=str), encoding="utf-8")
     return out
