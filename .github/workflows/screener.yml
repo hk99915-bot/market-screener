@@ -11,6 +11,10 @@ on:
         description: "KR 또는 US"
         required: true
         default: "KR"
+      no_send:
+        description: "텔레그램 생략 (검증용 재실행)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -56,7 +60,7 @@ jobs:
           KRX_API_KEY: ${{ secrets.KRX_API_KEY }}
           GSHEET_ID: ${{ secrets.GSHEET_ID }}
           GCP_SA_JSON: ${{ secrets.GCP_SA_JSON }}
-        run: python -m screener.main --market ${{ steps.m.outputs.market }}
+        run: python -m screener.main --market ${{ steps.m.outputs.market }} ${{ github.event.inputs.no_send == 'true' && '--no-send' || '' }}
 
       - name: 리포트·유니버스 커밋
         if: always()
