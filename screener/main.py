@@ -75,15 +75,7 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
             log.warning("국내 지수 보정 실패: %s", e)
     regime_line = context.regime_summary(mr)
     if not prices_path and len(macro):
-        try:
-            import json as _json
-            from .config import REPORT_DIR
-            ser = {k: [[str(d), round(float(c), 4)] for d, c in zip(g["date"].to_list(), g["close"].to_list()) if c is not None]
-                   for (k,), g in macro.sort("date").group_by("key", maintain_order=True)}
-            (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
-                {"asof": str(asof), "series": ser}, ensure_ascii=False), encoding="utf-8")
-        except Exception as e:  # noqa: BLE001
-            log.warning("매크로 시계열 저장 실패: %s", e)
+        write_macro_series(macro)
     nw = news.build_news_context(last) if not prices_path else None
     if market == "KR":
         try:
@@ -165,6 +157,22 @@ def _file_log(name: str | None) -> None:
     root.addHandler(h)
 
 
+def write_macro_series(macro: pl.DataFrame | None = None) -> None:
+    """매크로 지표 일봉 시계열 → reports/macro_series.json (웹 티커·매크로 표 클릭 차트용)."""
+    import json as _json
+    from .config import REPORT_DIR
+    try:
+        macro = data.fetch_macro() if macro is None else macro
+        if not len(macro):
+            return
+        ser = {k: [[str(d), round(float(c), 4)] for d, c in zip(g["date"].to_list(), g["close"].to_list()) if c is not None]
+               for (k,), g in macro.sort("date").group_by("key", maintain_order=True)}
+        (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
+            {"asof": str(macro["date"].max()), "series": ser}, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        log.warning("매크로 시계열 저장 실패: %s", e)
+
+
 def rebuild_detail_kr() -> None:
     """저장된 KR 일봉(어제 종가까지)으로 종목 상세 파일만 다시 생성. 알림·리포트·매크로 상태는 건드리지 않음."""
     import json as _json
@@ -233,6 +241,7 @@ def main() -> None:
                 research.update_store()
             except Exception as e:  # noqa: BLE001
                 log.warning("리포트 갱신 실패: %s", e)
+            write_macro_series()
             dashboard.build()
         elif a.mode == "detail_kr":   # 종목 상세만 재생성 (어제 종가 기준, 알림 없음)
             rebuild_detail_kr()
