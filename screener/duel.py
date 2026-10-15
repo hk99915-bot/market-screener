@@ -354,6 +354,30 @@ def apply_exit_issue(title: str, body: str, created_at: str) -> str:
 
 
 
+def plan_line(pl: dict | None) -> str | None:
+    """🎯 목표 +x% · 손절 −y% · 손익비 1:z · 과거 승률 w% (n) · 기대값 e%"""
+    if not pl:
+        return None
+    f = lambda v, sg=True: (f"{v*100:+.1f}%" if sg else f"{v*100:.0f}%") if isinstance(v, (int, float)) else None  # noqa: E731
+    parts = []
+    if pl.get("target") is not None:
+        parts.append("목표 " + f(pl["target"]))
+    if pl.get("stop") is not None:
+        parts.append("손절 " + f(pl["stop"]))
+    rr = pl.get("rr")
+    if rr is None and isinstance(pl.get("target"), (int, float)) and isinstance(pl.get("stop"), (int, float)) and pl["stop"]:
+        rr = abs(pl["target"] / pl["stop"])
+    if rr is not None:
+        parts.append(f"손익비 1:{rr:.1f}")
+    if pl.get("win_rate") is not None:
+        parts.append(f"과거 승률 {pl['win_rate']*100:.0f}%" + (f" (n={pl['n']})" if pl.get("n") else ""))
+    if pl.get("ev") is not None:
+        parts.append("기대값 " + f(pl["ev"]))
+    if pl.get("basis"):
+        parts.append(str(pl["basis"]))
+    return "🎯 " + " · ".join(parts) if parts else None
+
+
 def record_pb(payload: dict, send: bool = True) -> str:
     """PB(누나) 재량 판단 기록 — 예약 세션이 데이터를 읽고 판단해 workflow_dispatch(pb_call)로 넘김.
     payload: {"pick": {"ticker","notional","exit"} | {"cash": true}, "why": str, "lines": [..], "conviction": "낮음|보통|높음"}"""
@@ -385,7 +409,8 @@ def record_pb(payload: dict, send: bool = True) -> str:
         it["picks"].pop("PB", None)
         data["items"].append(it)
     it["picks"]["PB"] = pk
-    it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"]}
+    it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"],
+                     "plan": payload.get("plan") or None}
     # 보유 종목 매도 타점 (누나 재량) — 금액은 모의 100만 고정 (실제 보유 수량·금액은 공개 저장소에 남기지 않음)
     ex_msgs = []
     for e in (payload.get("exits") or [])[:12]:
@@ -411,8 +436,8 @@ def record_pb(payload: dict, send: bool = True) -> str:
         ei["picks"]["PB"] = ({"cash": True, "label": "매도"} if act == "매도" else hold) | {"by": "PB 재량", "at": pk["at"]}
         if rule:
             ei["picks"]["규칙"] = rule
-        ei["pb_view"] = {"why": e.get("why", ""), "lines": [], "conviction": e.get("conviction", ""), "at": pk["at"]}
-        ex_msgs.append(f"• {name}: <b>{act}</b> — {e.get('why', '')} "
+        ei["pb_view"] = {"why": e.get("why", ""), "lines": [], "conviction": e.get("conviction", ""), "at": pk["at"], "plan": e.get("plan") or None}
+        ex_msgs.append(f"• {name}: <b>{act}</b> — {e.get('why', '')} " + ((plan_line(e.get("plan")) or "") + " " if e.get("plan") else "") +
                        f"[<a href=\"{issue_url_exit(code, '보유')}\">나는 보유</a> · <a href=\"{issue_url_exit(code, '매도')}\">나는 매도</a>]")
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가"} | ({"d5_close": "5거래일째 종가", "same_close": "당일 종가"} if us else {})
@@ -420,7 +445,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
         dl = us_open_kst(d).astimezone(KST)
         msg = ["💬 <b>PB 판단 · 미장</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})" + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
                "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 시가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               payload.get("why", ""), plan_line(payload.get("plan")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: {_us_links(d)} (미장 시작 {dl:%H:%M} KST 전)"]
     else:
         msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),

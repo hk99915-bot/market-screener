@@ -200,12 +200,27 @@ def score() -> int:
             continue
         mk = by_mk.setdefault(it.get("market") or "KR", {})
         for who in [w for w in it["picks"] if w in r]:
+            rw = r.get(who, {})
             for tb in (tally, mk):
-                t = tb.setdefault(who, {"win": 0, "n": 0, "pnl": 0})
+                t = tb.setdefault(who, {"win": 0, "n": 0, "pnl": 0, "rets": []})
                 t["n"] += 1
-                t["pnl"] += r.get(who, {}).get("pnl", 0)
+                t["pnl"] += rw.get("pnl", 0)
                 if r.get("winner") == who:
                     t["win"] += 1
+                if not it["picks"][who].get("cash") and rw.get("ret") is not None:
+                    t.setdefault("rets", []).append(rw["ret"])
+    # 실력 지표: 승률(수익 낸 비율)·평균 수익/손실·손익비·기대값 (현금 판단은 제외, 진입한 판만)
+    for tb in [tally, *by_mk.values()]:
+        for t in tb.values():
+            rs = t.pop("rets", [])
+            w = [x for x in rs if x > 0]
+            l = [x for x in rs if x <= 0]
+            t["trades"] = len(rs)
+            t["hit"] = round(len(w) / len(rs), 3) if rs else None
+            t["avg_win"] = round(sum(w) / len(w), 4) if w else None
+            t["avg_loss"] = round(sum(l) / len(l), 4) if l else None
+            t["payoff"] = round(t["avg_win"] / abs(t["avg_loss"]), 2) if w and l and t["avg_loss"] else None
+            t["ev"] = round(sum(rs) / len(rs), 4) if rs else None
     d["tally"] = tally
     d["tally_by_market"] = by_mk
     OUT.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
