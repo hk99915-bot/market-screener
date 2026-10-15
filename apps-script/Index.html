@@ -1227,23 +1227,44 @@ function labView(){
   if(!LAB||!LAB.results) return '<div class="grid"><div class="p c12"><div class="b mu">전략 연구소 결과 없음 — 주간 실행 전</div></div></div>';
   const gc=g=>g==='A'?'var(--up)':g==='B'?'var(--amber)':g==='C'?'var(--muted)':'var(--dn)';
   const T=x=>x==null?'—':x.toFixed(1), N=x=>x==null?'—':x;
-  const cell=d=>d&&d.n?`<td>${pct(d.mean_ex,2)}</td><td class="mu">${T(d.t)}</td><td class="mu">${d.n}</td>`:'<td colspan="3" class="mu">—</td>';
   const reg=LAB.registry||[], byId=Object.fromEntries(reg.map(r=>[r.id,r]));
-  const rows=Object.entries(LAB.results).map(([id,r])=>{ const g=byId[id]||{}, I=r.splits.IS||{};
+  const SPL=['IS','OOS','HOLDOUT'];
+  // 구버전 lab.json (variants 없음) 호환
+  const varsOf=r=>r.variants?Object.values(r.variants):[{entry:'open',label:'다음날 시가 진입',grade:r.grade,reasons:r.reasons,splits:Object.fromEntries(SPL.map(k=>[k,{ew:(r.splits||{})[k]||{}}]))}];
+  const ex=d=>d&&d.n?`${pct(d.mean_ex,2)}<div class="mu" style="font-size:10px">t ${T(d.t)}</div>`:'<span class="mu">—</span>';
+  const cell=sp=>{const e=(sp||{}).ew, k=(sp||{}).kospi, n=(k&&k.n)||(e&&e.n)||0; return `<td>${e?ex(e):'<span class="mu">—</span>'}</td><td>${ex(k)}</td><td class="mu">${n||'—'}</td>`;};
+  const rows=Object.entries(LAB.results).map(([id,r])=>{ const g=byId[id]||{}, vs=varsOf(r);
+    const isNew=g.registered&&g.registered!==(reg[0]||{}).registered;
     const sig=r.last_signals?`<div style="font-size:11px">신호 ${esc(r.last_signals.date)}: ${r.last_signals.picks.slice(0,12).map(p=>`<span class="am sym" data-sym="${esc(p.s)}" data-mk="KR">${esc(p.n)}</span>`).join(' · ')}</div>`:'';
-    return `<tr><td class="l" title="${esc(g.hypothesis||'')}"><b>${esc(g.name||id)}</b><div class="mu" style="font-size:10px">${esc(id)} · 보유 ${g.hold}일${I.mean_raw!=null?' · IS 원수익 '+(I.mean_raw*100).toFixed(2)+'%':''}</div></td><td class="l mu">${esc(g.family||'')}</td>
-      <td><b style="color:${gc(r.grade)};font-size:15px">${r.grade}</b></td>${cell(r.splits.IS)}${cell(r.splits.OOS)}${cell(r.splits.HOLDOUT)}
+    const st=r.state?`<div style="font-size:11px">현재 ${esc(r.state.date)} 12개월 ${pct(r.state.k12m,1)} → <b class="am">${r.state.hold?'지수 보유':'현금'}</b></div>`:'';
+    const ev=r.n_events!=null?`<div class="mu" style="font-size:10px">이벤트 전체 ${r.n_events}회 · 최근 ${esc((r.events||[]).slice(-3).join(', '))}</div>`:'';
+    return vs.map((v,i)=>{ const I=(v.splits.IS||{}).ew||(v.splits.IS||{}).kospi||{}, by=v.grade_by||{};
+      const head=i===0?`<td class="l" rowspan="${vs.length}" title="${esc(g.hypothesis||'')}"><b>${esc(g.name||id)}</b>${isNew?' <span class="tag">신규 '+esc(g.registered.slice(5))+'</span>':''}<div class="mu" style="font-size:10px">${esc(id)} · 보유 ${g.hold}일 · 주 기준 ${esc(g.bench||'EW')}</div>${ev}${sig}${st}</td>`:'';
+      return `<tr>${head}<td class="l" style="font-size:11px">${esc(v.label||v.entry)}${v.posthoc?' <span class="mu" title="첫 결과를 본 뒤 추가한 변형 — 관문 m 에 포함">(사후)</span>':''}</td>
+      <td><b style="color:${gc(v.grade)};font-size:15px">${v.grade}</b><div class="mu" style="font-size:10px">${by.ew?'EW '+by.ew+' · ':''}${by.kospi?'K '+by.kospi:''}</div></td>${SPL.map(k=>cell(v.splits[k])).join('')}
       <td>${I.hit!=null?Math.round(I.hit*100)+'%':'—'}</td><td class="mu">${N(I.payoff)}</td>
-      <td class="l mu" style="font-size:11px;white-space:normal;min-width:220px">${(r.reasons||[]).map(esc).join('<br>')}${sig}</td></tr>`; }).join('');
+      <td class="l mu" style="font-size:11px;white-space:normal;min-width:220px">${(v.reasons||[]).map(esc).join('<br>')}</td></tr>`; }).join(''); }).join('');
   const wait=reg.filter(r=>!(r.id in LAB.results));
-  const gate=LAB.gate||{};
-  return `<div class="grid"><div class="p c12"><h2>전략 연구소<small>${esc(LAB.asof||'')} 종가까지 · 사전 등록 ${esc((reg[0]||{}).registered||'')} · 관문 IS t ≥ ${gate.req_t??'—'} (m=${gate.m??'—'})</small></h2><div class="b">
+  const gate=LAB.gate||{}, bi=LAB.bench_info||{}, kc=bi.kospi_check||{};
+  const yr=(kc.yearly||[]);
+  const bench=bi.kospi_method?`<div class="p c12"><h2>비교 기준 2개<small>EW = 유동성 유니버스 동일가중 · KOSPI = 코스피 프록시</small></h2><div class="b" style="white-space:normal;font-size:12px;line-height:1.7">
+    <div><b class="am">EW</b> ${esc(bi.ew_from||'')} = 1 → 현재 <b>${N(bi.ew_level)}</b> · <b class="am">KOSPI 프록시</b> ${esc(bi.kospi_from||'')} = 1 → 현재 <b>${N(bi.kospi_level)}</b></div>
+    <div class="mu">${esc(bi.kospi_method)}</div>
+    ${kc.n?`<div>실제 코스피와 비교 (${esc(kc.from)}~${esc(kc.to)}, ${kc.n}일): 일간 상관 <b>${N(kc.corr)}</b> · 추적오차 연 ${(kc.te_ann*100).toFixed(1)}% · 누적 프록시 ${pct(kc.cum_proxy,1)} vs 코스피 ${pct(kc.cum_kospi,1)}</div>`:''}
+    ${yr.length?`<div>연도별 (프록시 / 실제 코스피 연말 종가): ${yr.map(x=>`${x.y} ${pct(x.proxy,0)}/${pct(x.kospi,0)}`).join(' · ')} → 평균 연 <b class="${kc.drift_ann<0?'dn':'up'}">${(kc.drift_ann*100).toFixed(1)}%p</b> 어긋남</div>`:''}
+    ${bi.overnight_bp?`<div>하루 평균 (bp): 밤사이(전일 종가→시가) EW ${bi.overnight_bp.ew} · KOSPI ${bi.overnight_bp.kospi} / 장중(시가→종가) EW ${bi.intraday_bp.ew} · KOSPI ${bi.intraday_bp.kospi} — 장중이 음수라 '다음날 시가 진입'은 첫날 장중 손실을 그대로 떠안는다</div>`:''}
+    <div class="mu">주의: 원주가 데이터에 ±45% 넘는 갭만 수정 반영 → 유상증자 권리락·작은 무상증자는 하락으로 남아 두 기준 모두 실제보다 낮게 나온다(같은 데이터를 쓰는 전략도 같은 영향을 받음).</div>
+  </div></div>`:'';
+  const dm=((LAB.results.DUAL_MOMENTUM_INDEX||{}).variants||{}).open;
+  const dmp=dm&&dm.path?`<div class="p c12"><h2>지수 절대모멘텀 — 수익·낙폭<small>20거래일 표본 경로 기준 (일중 낙폭 미포함) · 현금 이자 0</small></h2><div class="b"><table><tr><th class="l">구간</th><th>전략 연복리</th><th>지수 보유 연복리</th><th>전략 최대낙폭</th><th>지수 최대낙폭</th><th>보유 비중</th></tr>${['ALL',...SPL].filter(k=>dm.path[k]).map(k=>{const p=dm.path[k];return `<tr><td class="l">${k==='ALL'?'전체':k}</td><td>${pct(p.strat.cagr,1)}</td><td>${pct(p.bh.cagr,1)}</td><td>${pct(p.strat.mdd,1)}</td><td>${pct(p.bh.mdd,1)}</td><td class="mu">${Math.round(p.on*100)}%</td></tr>`;}).join('')}</table></div></div>`:'';
+  return `<div class="grid"><div class="p c12"><h2>전략 연구소<small>${esc(LAB.asof||'')} 종가까지 · 사전 등록 ${[...new Set(reg.map(r=>r.registered))].map(esc).join(' / ')} · 관문 IS t ≥ ${gate.req_t??'—'} (m=${gate.m??'—'})</small></h2><div class="b">
     <div class="mu" style="font-size:12px;line-height:1.7;white-space:normal;margin-bottom:6px">${esc(LAB.method||'')}</div>
-    <div style="overflow-x:auto"><table><tr><th class="l">전략</th><th class="l">계열</th><th>등급</th><th>IS 초과</th><th>t</th><th>n</th><th>OOS 초과</th><th>t</th><th>n</th><th>HOLDOUT 초과</th><th>t</th><th>n</th><th>IS 적중</th><th>손익비</th><th class="l">판정 사유</th></tr>${rows}</table></div>
-    <div class="mu" style="font-size:11px;margin-top:6px;white-space:normal">초과 = 리밸런싱(또는 이벤트)당 평균, 비용 차감 후 유동성 유니버스 동일가중 대비. 등급 A·B 만 최근 신호 표시. 전략 이름에 마우스를 올리면 가설.</div>
+    <div style="overflow-x:auto"><table><tr><th class="l" rowspan="2">전략</th><th class="l" rowspan="2">진입</th><th rowspan="2">등급</th>${SPL.map(k=>`<th colspan="3">${k} 초과</th>`).join('')}<th rowspan="2">IS 적중</th><th rowspan="2">손익비</th><th class="l" rowspan="2">판정 사유</th></tr>
+      <tr>${SPL.map(()=>'<th>vs EW</th><th>vs KOSPI</th><th>n</th>').join('')}</tr>${rows}</table></div>
+    <div class="mu" style="font-size:11px;margin-top:6px;white-space:normal">초과 = 리밸런싱(또는 이벤트)당 평균, 비용 차감 후. 등급 = EW·KOSPI 기준 각각 관문을 통과해야 함(낮은 쪽). 등급 A·B 만 최근 신호 표시. 전략 이름에 마우스를 올리면 가설. (사후) = 첫 결과를 본 뒤 추가한 진입 변형 — 다중검정 m 에 포함.</div>
     <div class="am" style="font-size:12px;margin:12px 0 2px">대기 (데이터 부족 — 테스트 안 함)</div>
     <table><tr><th class="l">가설</th><th class="l">계열</th><th class="l">내용</th><th class="l">조건</th></tr>${wait.map(r=>`<tr><td class="l">${esc(r.name)}</td><td class="l mu">${esc(r.family)}</td><td class="l" style="white-space:normal">${esc(r.hypothesis)}</td><td class="l mu" style="white-space:normal;font-size:11px">${esc(r.rule)}</td></tr>`).join('')}</table>
-  </div></div></div>`;
+  </div></div>${bench}${dmp}</div>`;
 }
 let CMT=null, CMTU=null, CMK='KR';
 function cmtView(){
