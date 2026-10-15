@@ -333,6 +333,7 @@ def main() -> None:
             import traceback as _tb
             from datetime import date as _d
             from . import data_krx as dk
+            from .config import REPORT_DIR as _RD
             r = {}
             d = _d(2026, 10, 15)
             for name, fn in (("raw", lambda: dk._pykrx_raw_day(d)), ):
@@ -344,7 +345,7 @@ def main() -> None:
                 except BaseException:  # noqa: BLE001
                     r[name] = _tb.format_exc()[-2000:]
                     df = None
-                (REPORT_DIR / "logs" / "krxfix.json").write_text(json.dumps(r, ensure_ascii=False, default=str, indent=1), encoding="utf-8")
+                (_RD / "logs" / "krxfix.json").write_text(json.dumps(r, ensure_ascii=False, default=str, indent=1), encoding="utf-8")
             for syms in (["005930.KS", "000660.KS", "009150.KS", "247540.KQ"], (df["yf"].to_list() if df is not None else [])[:400]):
                 t0 = _t.time()
                 try:
@@ -352,7 +353,7 @@ def main() -> None:
                     r[f"yahoo_{len(syms)}"] = {"n": len(yc), "sec": round(_t.time() - t0, 1), "s": dict(list(yc.items())[:5])}
                 except BaseException:  # noqa: BLE001
                     r[f"yahoo_{len(syms)}"] = _tb.format_exc()[-2000:]
-                (REPORT_DIR / "logs" / "krxfix.json").write_text(json.dumps(r, ensure_ascii=False, default=str, indent=1), encoding="utf-8")
+                (_RD / "logs" / "krxfix.json").write_text(json.dumps(r, ensure_ascii=False, default=str, indent=1), encoding="utf-8")
             print(r)
         elif a.mode == "health":   # 주간 자가점검 (이상 있을 때만 텔레그램)
             from . import health
