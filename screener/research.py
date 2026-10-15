@@ -142,10 +142,34 @@ def parse_summary(h: str) -> str:
 SKIP_SENT = re.compile(r"(Tel|TEL|@|Analyst|애널리스트|Compliance|본\s*조사분석|투자의견\s*\(|목표주가\s*\(|현재주가|시가총액|발행주식|52주|외국인\s*(보유|지분)|주요주주|\d{2,3}-\d{3,4}-\d{4}|www\.|http)")
 
 
+HANGUL = re.compile(r"[가-힣]")
+
+
+def _join_lines(txt: str) -> str:
+    """PDF 줄을 잇는다. 줄 끝/시작에 공백이 있으면 원래 띄어쓰기, 한글-한글로 바로 이어지면
+    줄바꿈 때문에 단어가 끊긴 것으로 보고 붙인다 ("재" + "차" → "재차")."""
+    out = ""
+    for raw in (txt or "").splitlines():
+        if not raw.strip():
+            if out and not out.endswith(" "):
+                out += " "
+            continue
+        line = re.sub(r"[ \t\u3000]+", " ", raw)
+        if not out:
+            out = line.lstrip()
+            continue
+        prev_space = out.endswith(" ") or raw[:1].isspace()
+        a, b = out.rstrip()[-1:], line.strip()[:1]
+        if not prev_space and HANGUL.match(a or "") and HANGUL.match(b or ""):
+            out = out.rstrip() + line.lstrip()           # 끝 공백은 남겨 다음 줄 판단에 씀
+        else:
+            out = out.rstrip() + " " + line.lstrip()
+    return re.sub(r"\s+", " ", out).strip()
+
+
 def summarize_text(txt: str, max_chars: int = 500) -> str:
     """리포트 1페이지 텍스트에서 핵심 문장만 추린다 (규칙 기반: 한국어 완결 문장, 표·연락처·면책 제외)."""
-    lines = [re.sub(r"\s+", " ", x).strip() for x in (txt or "").splitlines()]
-    joined = " ".join(x for x in lines if x)
+    joined = _join_lines(txt)
     sents = re.split(r"(?<=[다음함임됨])\.\s+|\s[-•·▶■□◆◇●○*▷►]\s", joined)
     keep: list[str] = []
     for s in sents:
@@ -172,7 +196,7 @@ def pdf_summary(url: str) -> str:
     return summarize_text(extract_text(BytesIO(r.content), maxpages=1))
 
 
-def enrich_summaries(rows: list[dict], links: dict[str, str], limit: int = 120) -> int:
+def enrich_summaries(rows: list[dict], links: dict[str, str], limit: int = 200) -> int:
     """summary 가 비어 있는 행에 요약을 채운다. 네이버 상세가 있으면 그것, 없으면 한경 PDF 1페이지.
     시도했는데 못 뽑은 건 '-' 로 표시해 다시 받지 않는다 (일시 오류는 None 으로 남겨 재시도)."""
     n = 0
