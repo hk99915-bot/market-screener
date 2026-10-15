@@ -111,7 +111,9 @@ def intraday_market_flows() -> dict:
                 out[name] = vals
         except Exception as e:  # noqa: BLE001
             log.warning("장중 투자자 %s 실패: %s", name, e)
-    if not out:   # 네이버 화면 개편 등으로 못 읽으면 KRX(pykrx) 당일 집계로
+    if not out:   # 네이버 PC 페이지 종료 → 네이버 모바일 지수 통합 정보의 투자자별 매매동향
+        out = _mobile_index_flows()
+    if not out:   # 그래도 없으면 KRX(pykrx) 당일 집계 (보통 장 마감 후에만 있음)
         try:
             out = {k: {w: v.get(w) for w in ("개인", "외국인", "기관") if v.get(w) is not None}
                    for k, v in investor_totals(datetime.now(KST).date()).items()}
@@ -119,6 +121,57 @@ def intraday_market_flows() -> dict:
                 log.info("장중 시장 수급: KRX 당일 집계 사용")
         except Exception as e:  # noqa: BLE001
             log.warning("KRX 장중 수급 실패: %s", e)
+    return out
+
+
+def _mobile_index_flows() -> dict:
+    """m.stock.naver.com 지수 통합 정보에서 개인·외국인·기관 순매수(억원)를 찾는다.
+    응답 구조가 바뀌어도 키 이름(personal/foreign/institution)으로 재귀 탐색. 진단용으로 원본 일부를 logs 에 남김."""
+    import json as _json
+    out: dict[str, dict] = {}
+    UA = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+          "Referer": "https://m.stock.naver.com/"}
+    keymap = {"개인": ("personal", "individual"), "외국인": ("foreign",), "기관": ("institution", "organ")}
+
+    def num(v):
+        try:
+            return float(str(v).replace(",", "").replace("+", ""))
+        except ValueError:
+            return None
+
+    def walk(o, found):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                kl = k.lower()
+                for who, keys in keymap.items():
+                    if who not in found and any(x in kl for x in keys) and not isinstance(v, (dict, list)):
+                        x = num(v)
+                        if x is not None:
+                            found[who] = x
+                walk(v, found)
+        elif isinstance(o, list) and o:
+            walk(o[0], found)   # 최신 1건(당일)
+        return found
+
+    for name in ("KOSPI", "KOSDAQ"):
+        try:
+            r = requests.get(f"https://m.stock.naver.com/api/index/{name}/integration", headers=UA, timeout=15)
+            r.raise_for_status()
+            j = r.json()
+            try:
+                from .config import REPORT_DIR
+                (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
+                (REPORT_DIR / "logs" / f"naver_m_{name}.json").write_text(_json.dumps(j, ensure_ascii=False)[:6000], encoding="utf-8")
+            except Exception:  # noqa: BLE001
+                pass
+            trend = j.get("dealTrendInfos") or j.get("investorTrend") or j
+            vals = walk(trend, {})
+            if vals:
+                out[name] = vals
+        except Exception as e:  # noqa: BLE001
+            log.warning("네이버 모바일 %s 수급 실패: %s", name, e)
+    if out:
+        log.info("장중 시장 수급: 네이버 모바일 %s", out)
     return out
 
 
