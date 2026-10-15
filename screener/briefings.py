@@ -234,6 +234,11 @@ def intraday_kr(send: bool = True) -> str:
     if notes:
         L.append("")
         L.append("<b>[해석]</b> " + " · ".join(notes))
+    try:
+        from . import dashboard
+        dashboard.put_state("intraday_snapshot", {"flows": mf, "snap": snap, "notes": notes})
+    except Exception as e:  # noqa: BLE001
+        log.debug("장중 스냅샷 저장 실패: %s", e)
 
     fb = fs = ib = is_ = []
     # 5) 관심종목 실시간

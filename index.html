@@ -120,6 +120,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 .bg .bt i.up,.bg .bs i.up{background:var(--up)}.bg .bt i.dn,.bg .bs i.dn{background:var(--dn)}.bg .bt i.am{background:var(--amber)}
 .bg .bs{flex:1;height:8px;display:flex;background:#151515}.bg .bs i{display:block;height:100%}
 .bsv{width:100%;height:46px;display:block}.bsv .pl{fill:none;stroke:var(--amber);stroke-width:1.5}.bsv .g60{stroke:var(--up);stroke-dasharray:3 3;opacity:.6}.bsv .g40{stroke:var(--dn);stroke-dasharray:3 3;opacity:.6}.bsv .pd{fill:var(--amber)}
+.tg{font-size:13px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -184,10 +185,26 @@ function macroPanel(mk){
   const reg=(D.state||{})['regime_'+mk];
   return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am mac" data-key="${esc(d.key)}">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
 }
+function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이스케이프
+  let t=esc(String(v));
+  t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=&quot;(https?:[^&]*?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank">$2</a>');
+  return t.replace(/([+-]\d[\d,]*\.?\d*(?:%|억|조))/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`).replace(/\n/g,'<br>');
+}
+function intradayPanel(){
+  const s=(D.state||{})['intraday_snapshot']; if(!s||!s.value) return '';
+  const v=s.value, f=v.flows||{}, sn=v.snap||{};
+  const row=m=>{const x=f[m]||{}, q=sn[m]||{}; if(!Object.keys(x).length&&!Object.keys(q).length) return '';
+    const tot=(q.up||0)+(q.down||0);
+    return `<tr><td class="l am">${m}</td><td>${sgn(x['외국인'])}</td><td>${sgn(x['기관'])}</td><td>${sgn(x['개인'])}</td><td>${sgn(q.prog_total)}</td><td>${q.up!=null?`<span class="up">${q.up}</span>/<span class="dn">${q.down}</span>`:'—'}</td><td>${tot?`<span class="${q.down/tot>0.6?'dn':q.up/tot>0.6?'up':'am'}">${Math.round(q.down/tot*100)}%</span>`:'—'}</td></tr>`;};
+  const top=(sn.KOSPI&&sn.KOSPI.top)||[];
+  return `<div class="p c12"><h2>INTRADAY KR<small>${s.at} · 잠정 · 억원</small></h2><div class="b">
+   <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
+   ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
+   ${(v.notes||[]).length?`<div style="margin-top:6px"><span class="am">해석</span> ${v.notes.map(esc).join(' · ')}</div>`:''}</div></div>`;
+}
 function pre(key,title){
   const s=(D.state||{})[key]; if(!s||!s.value) return '';
-  const txt=String(s.value).replace(/<[^>]+>/g,'');
-  return `<div class="p c6"><h2>${title}<small>${s.at}</small></h2><div class="b"><pre>${esc(txt)}</pre></div></div>`;
+  return `<div class="p c6"><h2>${title}<small>${s.at}</small></h2><div class="b"><div class="tg">${tgHtml(s.value)}</div></div></div>`;
 }
 function marketView(mk){
   const S=D[mk.toLowerCase()]||{}; const sec=S.sections||{};
@@ -206,7 +223,7 @@ function homeView(){
   const kr=D.kr||{},us=D.us||{};
   const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
   const w=D.watchlist||[];
-  let h=`<div class="grid">
+  let h=`<div class="grid">${intradayPanel()}
    <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
    <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
    <div class="p c3"><h2>KR CLASSES<small>${kr.asof||''}</small></h2><div class="b">${cc(kr)}</div></div>
@@ -422,7 +439,7 @@ function openMacro(key){
 document.addEventListener('click',e=>{const td=e.target.closest('td.mac'); if(td) openMacro(td.dataset.key);});
 function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
 $('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
-document.addEventListener('click',e=>{const td=e.target.closest('td.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
+document.addEventListener('click',e=>{const td=e.target.closest('td.sym,span.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
 function renderDetail(sym,mk,s){
   const st=s.stats||{}, kr=mk==='KR', sc=s.scenarios||{}, rs=s.research||{};
   $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market}${s.theme?` · <span class="am">${esc(s.theme)}</span>`:''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · as of ${s.asof||''}`;
