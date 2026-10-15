@@ -1,0 +1,58 @@
+name: pb_call
+
+# PB(누나) 재량 판단 — 예약 세션이 데이터를 읽고 판단한 결과(JSON)를 넘기면 성적표에 기록하고 텔레그램으로 보낸다.
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: '{"pick":{"ticker":"069500","notional":1000000,"exit":"next_open"}|{"cash":true},"why":"...","lines":["..."],"conviction":"보통"}'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pick
+  cancel-in-progress: false
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 기록·전송
+        env:
+          PB_PAYLOAD: ${{ github.event.inputs.payload }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
+        run: python -m screener.main --mode pb_call
+      - name: 저장
+        run: |
+          git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
+          cp reports/decisions.json /tmp/dec.json
+          for i in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            python - <<'PY'
+          import json
+          new = json.load(open("/tmp/dec.json", encoding="utf-8"))
+          cur = json.load(open("reports/decisions.json", encoding="utf-8"))
+          ids = {x["id"]: x for x in cur["items"]}
+          for v in new["items"]:
+              if not v.get("pb_view"):
+                  continue
+              if v["id"] in ids:
+                  ids[v["id"]]["picks"]["PB"] = v["picks"]["PB"]
+                  ids[v["id"]]["pb_view"] = v["pb_view"]
+              else:
+                  cur["items"].append(v)
+          open("reports/decisions.json", "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
+          PY
+            git add reports/decisions.json; git diff --cached --quiet && break
+            git commit -qm "pb_call $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break
+            sleep 5
+          done

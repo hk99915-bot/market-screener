@@ -74,13 +74,17 @@ def score() -> int:
     for it in d["items"]:
         if it.get("result"):
             continue
-        if any(p.get("pending") for p in it["picks"].values()):
-            if it["date"] < datetime.now().strftime("%Y-%m-%d"):
-                it["result"] = {"void": "나 미제출 — 채점 제외", "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
-            continue
+        live = {w: p for w, p in it["picks"].items() if not p.get("pending")}
+        if len(live) < len(it["picks"]):
+            if it["date"] >= datetime.now().strftime("%Y-%m-%d"):
+                continue   # 당일엔 제출을 더 기다림
+            if "나" not in live or len(live) < 2:
+                it["result"] = {"void": "나 미제출 — 채점 제외" if "나" not in live else "상대 판단 없음 — 채점 제외",
+                                "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
+                continue
         res = {}
         ok = True
-        for who, p in it["picks"].items():
+        for who, p in live.items():
             try:
                 s = _score_pick(p, it["date"])
             except Exception as e:  # noqa: BLE001
@@ -101,7 +105,7 @@ def score() -> int:
         r = it.get("result")
         if not r or r.get("void"):
             continue
-        for who in it["picks"]:
+        for who in [w for w in it["picks"] if w in r]:
             t = tally.setdefault(who, {"win": 0, "n": 0, "pnl": 0})
             t["n"] += 1
             t["pnl"] += r.get(who, {}).get("pnl", 0)

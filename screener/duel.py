@@ -76,18 +76,24 @@ def run(send: bool = True) -> dict | None:
     now = datetime.now(KST)
     d = str(now.date())
     iid = f"{d}-entry"
-    if any(x["id"] == iid for x in decisions.load().get("items", [])):
-        log.info("오늘 타점 판정 이미 기록됨")
+    ex = next((x for x in decisions.load().get("items", []) if x["id"] == iid), None)
+    if ex and "규칙" in ex.get("picks", {}):
+        log.info("오늘 규칙 판정 이미 기록됨")
         return None
     c = pb_call()
     item = {"id": iid, "date": d, "kind": "entry", "title": "진입 타점 대결",
-            "note": "PB: " + c["why"], "picks": {"나": {"pending": True}, "PB": c["pick"]},
+            "note": "규칙: " + c["why"], "picks": {"나": {"pending": True}, "PB": {"pending": True}, "규칙": c["pick"]},
             "basis": {"at": now.strftime("%Y-%m-%d %H:%M"), "src": "판정 시점 스냅샷 (네이버 잠정)", "lines": c["lines"]}}
+    if ex:   # PB(판단)·나 가 먼저 들어와 있으면 유지하고 규칙만 추가
+        ex["picks"]["규칙"] = c["pick"]
+        ex["note"] = (ex.get("note", "") + " · 규칙: " + c["why"]).strip(" ·")
+        ex.setdefault("basis", item["basis"])
+        item = ex
     decisions.add(item)
     p = c["pick"]
     msg = ["🎯 <b>진입 타점 대결</b> · " + now.strftime("%m/%d %H:%M"), *[f"• {x}" for x in c["lines"]], "",
-           "<b>PB</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 종가 진입 → 다음날 시가 청산"),
-           "  " + c["why"], "",
+           "<b>규칙</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 종가 진입 → 다음날 시가 청산"),
+           "  " + c["why"], "<i>PB(누나) 판단은 따로 옴</i>", "",
            "<b>겸이 판단은?</b> 15:30 전까지 제출",
            f"<a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
            f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url(d, '종목코드 금액 시가')}\">직접 입력</a>"]
@@ -184,3 +190,38 @@ def apply_exit_issue(title: str, body: str, created_at: str) -> str:
     same = (mine == c["act"])
     return (f"기록 완료 ✅ {c['name']} — 나: {mine} / PB: {c['act']} ({c['why']})"
             + (" · 둘이 같은 판단이라 이번 판은 무승부" if same else " · 5거래일 뒤 종가로 채점"))
+
+
+
+def record_pb(payload: dict, send: bool = True) -> str:
+    """PB(누나) 재량 판단 기록 — 예약 세션이 데이터를 읽고 판단해 workflow_dispatch(pb_call)로 넘김.
+    payload: {"pick": {"ticker","notional","exit"} | {"cash": true}, "why": str, "lines": [..], "conviction": "낮음|보통|높음"}"""
+    from . import decisions
+    now = datetime.now(KST)
+    d = str(now.date())
+    iid = f"{d}-entry"
+    pk = payload.get("pick") or {"cash": True}
+    if not pk.get("cash"):
+        t = str(pk["ticker"])
+        pk = {"ticker": t, "name": pk.get("name") or NAMES.get(t, t), "notional": float(pk.get("notional") or NOTIONAL),
+              "entry": "close", "exit": pk.get("exit") or "next_open"}
+    pk["by"] = "PB 재량"
+    pk["at"] = now.strftime("%H:%M")
+    data = decisions.load()
+    it = next((x for x in data.get("items", []) if x["id"] == iid), None)
+    if not it:
+        it = {"id": iid, "date": d, "kind": "entry", "title": "진입 타점 대결", "note": "", "picks": {"나": {"pending": True}}}
+        data["items"].append(it)
+    it["picks"]["PB"] = pk
+    it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"]}
+    decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+    ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가"}
+    msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
+           "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
+           payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+           f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
+           f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
+    if send:
+        from .report import send_telegram
+        send_telegram("\n".join(m for m in msg if m is not None))
+    return "PB 판단 기록: " + ("현금" if pk.get("cash") else pk["name"])
