@@ -214,6 +214,14 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
                 o, h, lo = r(x.get("open")) or c, r(x.get("high")) or c, r(x.get("low")) or c
                 rows.append([str(x["date"]), o, max(h, o, c), min(lo, o, c), c, int(x.get("volume") or 0)])
             ser[k] = rows
+        try:   # 이번 수집에서 빠진 지표(야후 일시 실패)는 이전 파일 값을 유지 — 화면에서 지표가 사라지지 않게
+            prev = _json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8")).get("series", {})
+            for k, v in prev.items():
+                if not ser.get(k) and v:
+                    ser[k] = v
+                    log.warning("매크로 %s 수집 실패 — 이전 데이터 유지", k)
+        except Exception:  # noqa: BLE001
+            pass
         _krx_override(ser)
         try:   # 상단 시세(live.json)도 같은 시점으로 — 24시간 거래 자산(환율·유가·VIX)이 화면마다 달라지지 않게
             from . import live as _live
