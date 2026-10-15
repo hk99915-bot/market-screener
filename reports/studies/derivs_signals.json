@@ -1,0 +1,990 @@
+{
+ "registered": "2026-10-16",
+ "computed": "2026-10-15 17:01",
+ "m": 10,
+ "alpha_bonf": 0.005,
+ "grades_doc": "A=IS Bonferroni+OOS · B=IS Bonferroni(OOS 미확인) · C=방향만(p<0.10) · F=효과 없음/반대 · 검증전=표본 미달",
+ "post_hoc_doc": "post 절은 사전 등록 밖(사후). Bonferroni 묶음(m=10)에 넣지 않고, 등급은 views 규칙대로 최대 C(F는 가능).",
+ "sanity": {
+  "rows": 4130,
+  "dup_dates": 0,
+  "max_calendar_gap_days": 11,
+  "ohlc_violations": 0,
+  "open_eq_prev_close_share": 0.001,
+  "flow_4way_sum_abs_median": 0.0,
+  "abs_r_gt_8pct_days": [
+   "2020-03-19 -0.088",
+   "2020-03-24 +0.083",
+   "2024-08-05 -0.092",
+   "2026-03-04 -0.128",
+   "2026-03-05 +0.092",
+   "2026-04-01 +0.081",
+   "2026-05-21 +0.081",
+   "2026-06-08 -0.086",
+   "2026-06-23 -0.105",
+   "2026-07-02 -0.082",
+   "2026-07-13 -0.094",
+   "2026-07-28 -0.115",
+   "2026-07-31 +0.165"
+  ],
+  "share_2026_of_abs_r_gt_8pct": 0.77,
+  "frgn_abs_median_2010_2025_vs_2026": [
+   1651.0,
+   14464.0
+  ],
+  "rep_iv_median_2010_2025_vs_2026": [
+   15.4,
+   50.0
+  ],
+  "option_board_bug": "call_wall 은 k200 < 1,000 인 11일만 존재, put_wall=1.0 인 날 4일, max_pain·night_close 전부 비어 있음"
+ },
+ "coverage": {
+  "kospi_open": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "kospi_high": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "kospi_low": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "kospi_close": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "k200_close": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "spot_frgn": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "spot_inst": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "spot_indiv": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "spot_corp": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "prog_arb": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "prog_nonarb": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "fut_frgn": {
+   "from": "2026-10-15",
+   "to": "2026-10-15",
+   "n": 1
+  },
+  "fut_inst": {
+   "from": "2026-10-15",
+   "to": "2026-10-15",
+   "n": 1
+  },
+  "fut_indiv": {
+   "from": "2026-10-15",
+   "to": "2026-10-15",
+   "n": 1
+  },
+  "fut_name": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "fut_open": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "fut_close": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "fut_spot": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "fut_oi": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "fut_vol": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "basis": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "basis_pct": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "basis_theo": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "night_close": {
+   "n": 0
+  },
+  "night_vol": {
+   "from": "2026-06-11",
+   "to": "2026-10-15",
+   "n": 84
+  },
+  "night_vwap": {
+   "from": "2026-06-11",
+   "to": "2026-10-15",
+   "n": 84
+  },
+  "night_src": {
+   "from": "2026-06-11",
+   "to": "2026-10-15",
+   "n": 84
+  },
+  "rep_iv": {
+   "from": "2010-01-04",
+   "to": "2026-10-15",
+   "n": 4130
+  },
+  "opt_front": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "opt_dte": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "pcr_oi": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "pcr_vol": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "call_wall": {
+   "from": "2026-07-28",
+   "to": "2026-10-15",
+   "n": 11
+  },
+  "call_wall_oi": {
+   "from": "2026-07-28",
+   "to": "2026-10-15",
+   "n": 11
+  },
+  "put_wall": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "put_wall_oi": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "gex_bn": {
+   "from": "2026-06-05",
+   "to": "2026-10-15",
+   "n": 89
+  },
+  "flip": {
+   "from": "2026-06-05",
+   "to": "2026-10-07",
+   "n": 34
+  },
+  "atm_iv": {
+   "from": "2026-07-28",
+   "to": "2026-10-15",
+   "n": 14
+  },
+  "skew": {
+   "from": "2026-06-08",
+   "to": "2026-10-15",
+   "n": 57
+  },
+  "max_pain": {
+   "n": 0
+  }
+ },
+ "signals": [
+  {
+   "id": "H1",
+   "lens_id": "fut_foreign_flow",
+   "name": "외국인 선물 순매수 → 다음날",
+   "grade": "검증전",
+   "n": 0,
+   "note": "데이터 없음. 네이버 당일값을 2026-10-16부터 적재 — 과거 조회 소스 없음"
+  },
+  {
+   "id": "H2",
+   "lens_id": "foreign_flow",
+   "name": "외국인 현물 순매수 → 다음날",
+   "grade": "F",
+   "n": 4129,
+   "n_signal": 2071,
+   "effect": 0.00028,
+   "effect_unit": "r1 평균 차이(로그수익률)",
+   "effect_is": -0.00035,
+   "effect_oos": 0.00177,
+   "t_is": -0.89,
+   "p_is": 0.8123,
+   "t_oos": 1.7,
+   "p_oos": 0.0448,
+   "t_all": 0.67,
+   "p_all": 0.25,
+   "period": "2010-01-04 ~ 2026-10-14",
+   "is_until": "2021-09-15",
+   "direction": "+",
+   "note": ""
+  },
+  {
+   "id": "H3",
+   "lens_id": "foreign_flow",
+   "name": "외국인 현물 3일 순매도 후 순매수 전환 → 5일",
+   "grade": "F",
+   "n": 262,
+   "effect": -0.00055,
+   "effect_unit": "r5 − 무조건 r5 (로그)",
+   "effect_is": -0.00194,
+   "effect_oos": 0.00208,
+   "t_is": -1.06,
+   "p_is": 0.8562,
+   "t_oos": 0.47,
+   "p_oos": 0.3181,
+   "t_all": -0.29,
+   "p_all": 0.6142,
+   "period": "2010-02-10 ~ 2026-10-01",
+   "is_until": "2021-09-16",
+   "direction": "+",
+   "note": "사건 간 5일 겹침은 보정 안 함(사건이 최소 4일 간격이라 겹침 작음)"
+  },
+  {
+   "id": "H4",
+   "lens_id": "fut_basis",
+   "name": "베이시스 음수(백워데이션) → 5일",
+   "grade": "검증전",
+   "n": 84,
+   "n_signal": 18,
+   "effect": 0.07007,
+   "effect_unit": "r5 평균 차이(로그수익률)",
+   "effect_is": 0.0822,
+   "effect_oos": 0.06499,
+   "t_is": 3.04,
+   "p_is": 0.0012,
+   "t_oos": 2.46,
+   "p_oos": 0.0069,
+   "t_all": 3.96,
+   "p_all": 0.0,
+   "period": "2026-06-05 ~ 2026-10-07",
+   "is_until": "2026-08-28",
+   "direction": "+",
+   "note": "basis_pct 89일(2026-06~). basis_theo(2010~)는 금리·배당으로 계산한 이론 베이시스라 '공포·헤지 과잉' 대용 불가. 값은 서술 통계로만."
+  },
+  {
+   "id": "H5-r5",
+   "lens_id": "options_pcr",
+   "name": "풋콜(OI) 상위 20% → 5일 (역발상)",
+   "grade": "검증전",
+   "n": 25,
+   "n_signal": 0,
+   "effect": null,
+   "effect_unit": "r5 평균 차이(로그수익률)",
+   "effect_is": null,
+   "effect_oos": null,
+   "t_is": null,
+   "p_is": null,
+   "t_oos": null,
+   "p_oos": null,
+   "t_all": null,
+   "p_all": null,
+   "period": "2026-08-31 ~ 2026-10-07",
+   "is_until": "2026-09-23",
+   "direction": "+",
+   "note": "옵션 보드 열(pcr_oi·gex_bn) 89일뿐이고, 코스피200 ≥ 1,000 구간은 행사가 쉼표 버그(dc0aacb9) 수정 전 백필이라 콜 쪽이 빠져 PCR 과대·감마 음수 쏠림 — 재백필(--redo) 전엔 표본이 차도 쓰면 안 됨."
+  },
+  {
+   "id": "H5-r20",
+   "lens_id": "options_pcr",
+   "name": "풋콜(OI) 상위 20% → 20일 (역발상)",
+   "grade": "검증전",
+   "n": 10,
+   "n_signal": 0,
+   "effect": null,
+   "effect_unit": "r20 평균 차이(로그수익률)",
+   "effect_is": null,
+   "effect_oos": null,
+   "t_is": null,
+   "p_is": null,
+   "t_oos": null,
+   "p_oos": null,
+   "t_all": null,
+   "p_all": null,
+   "period": "2026-08-31 ~ 2026-09-11",
+   "is_until": "2026-09-11",
+   "direction": "+",
+   "note": "옵션 보드 열(pcr_oi·gex_bn) 89일뿐이고, 코스피200 ≥ 1,000 구간은 행사가 쉼표 버그(dc0aacb9) 수정 전 백필이라 콜 쪽이 빠져 PCR 과대·감마 음수 쏠림 — 재백필(--redo) 전엔 표본이 차도 쓰면 안 됨."
+  },
+  {
+   "id": "H6-r5",
+   "lens_id": "options_pcr",
+   "name": "풋콜(OI) 하위 20% → 5일 (낮음)",
+   "grade": "검증전",
+   "n": 25,
+   "n_signal": 25,
+   "effect": null,
+   "effect_unit": "r5 평균 차이(로그수익률)",
+   "effect_is": null,
+   "effect_oos": null,
+   "t_is": null,
+   "p_is": null,
+   "t_oos": null,
+   "p_oos": null,
+   "t_all": null,
+   "p_all": null,
+   "period": "2026-08-31 ~ 2026-10-07",
+   "is_until": "2026-09-23",
+   "direction": "−",
+   "note": "옵션 보드 열(pcr_oi·gex_bn) 89일뿐이고, 코스피200 ≥ 1,000 구간은 행사가 쉼표 버그(dc0aacb9) 수정 전 백필이라 콜 쪽이 빠져 PCR 과대·감마 음수 쏠림 — 재백필(--redo) 전엔 표본이 차도 쓰면 안 됨."
+  },
+  {
+   "id": "H6-r20",
+   "lens_id": "options_pcr",
+   "name": "풋콜(OI) 하위 20% → 20일 (낮음)",
+   "grade": "검증전",
+   "n": 10,
+   "n_signal": 10,
+   "effect": null,
+   "effect_unit": "r20 평균 차이(로그수익률)",
+   "effect_is": null,
+   "effect_oos": null,
+   "t_is": null,
+   "p_is": null,
+   "t_oos": null,
+   "p_oos": null,
+   "t_all": null,
+   "p_all": null,
+   "period": "2026-08-31 ~ 2026-09-11",
+   "is_until": "2026-09-11",
+   "direction": "−",
+   "note": "옵션 보드 열(pcr_oi·gex_bn) 89일뿐이고, 코스피200 ≥ 1,000 구간은 행사가 쉼표 버그(dc0aacb9) 수정 전 백필이라 콜 쪽이 빠져 PCR 과대·감마 음수 쏠림 — 재백필(--redo) 전엔 표본이 차도 쓰면 안 됨."
+  },
+  {
+   "id": "H7",
+   "lens_id": "options_gamma",
+   "name": "감마 하위 1/3 vs 상위 1/3 → 다음날 |수익률| (흔들림)",
+   "grade": "검증전",
+   "n": 59,
+   "n_signal": 29,
+   "effect": -0.01164,
+   "effect_unit": "abs_r1 평균 차이(로그수익률)",
+   "effect_is": -0.01052,
+   "effect_oos": 0.00536,
+   "t_is": -0.85,
+   "p_is": 0.8015,
+   "t_oos": 0.67,
+   "p_oos": 0.253,
+   "t_all": -1.39,
+   "p_all": 0.9183,
+   "period": "2026-06-05 ~ 2026-10-14",
+   "is_until": "2026-09-02",
+   "direction": "+",
+   "note": "옵션 보드 열(pcr_oi·gex_bn) 89일뿐이고, 코스피200 ≥ 1,000 구간은 행사가 쉼표 버그(dc0aacb9) 수정 전 백필이라 콜 쪽이 빠져 PCR 과대·감마 음수 쏠림 — 재백필(--redo) 전엔 표본이 차도 쓰면 안 됨.",
+   "control": {
+    "coef_gex_low": -0.00782,
+    "t": -1.09,
+    "p": 0.863,
+    "n": 88,
+    "note": "|r_t|·20일 실현변동성 통제 후 감마 하위 1/3 더미"
+   }
+  },
+  {
+   "id": "H8",
+   "lens_id": "night_futures",
+   "name": "야간선물 등락 → 다음 정규장 시가 갭 (산수 확인)",
+   "grade": "A",
+   "n": 84,
+   "effect": 0.531,
+   "effect_unit": "R² (시가 갭 ~ 야간 등락)",
+   "slope": 0.995,
+   "period": "2026-06-11 ~ 2026-10-15",
+   "detail": {
+    "all": {
+     "n": 84,
+     "slope": 0.995,
+     "intercept_bp": 5.5,
+     "t": 8.4,
+     "r2": 0.531,
+     "sign_hit": 0.762,
+     "mae_bp": 124.6,
+     "mae_naive_bp": 124.9,
+     "from": "2026-06-11",
+     "to": "2026-10-15"
+    },
+    "is": {
+     "n": 58,
+     "slope": 0.968,
+     "intercept_bp": 12.1,
+     "t": 7.5,
+     "r2": 0.552,
+     "sign_hit": 0.759,
+     "mae_bp": 137.0,
+     "mae_naive_bp": 135.6,
+     "from": "2026-06-11",
+     "to": "2026-09-02"
+    },
+    "oos": {
+     "n": 26,
+     "slope": 1.171,
+     "intercept_bp": -8.5,
+     "t": 5.1,
+     "r2": 0.455,
+     "sign_hit": 0.769,
+     "mae_bp": 100.8,
+     "mae_naive_bp": 101.0,
+     "from": "2026-09-03",
+     "to": "2026-10-15"
+    },
+    "eurex": {
+     "n": 0
+    },
+    "krx_vwap": {
+     "n": 84,
+     "slope": 0.995,
+     "intercept_bp": 5.5,
+     "t": 8.4,
+     "r2": 0.531,
+     "sign_hit": 0.762,
+     "mae_bp": 124.6,
+     "mae_naive_bp": 124.9,
+     "from": "2026-06-11",
+     "to": "2026-10-15"
+    },
+    "krx_vwap_oos": {
+     "n": 26,
+     "slope": 1.171,
+     "intercept_bp": -8.5,
+     "t": 5.1,
+     "r2": 0.455,
+     "sign_hit": 0.769,
+     "mae_bp": 100.8,
+     "mae_naive_bp": 101.0,
+     "from": "2026-09-03",
+     "to": "2026-10-15"
+    },
+    "attribution_corr": {
+     "row_D_vs_gap_D": 0.737,
+     "row_D_vs_gap_D+1": -0.04
+    },
+    "vs_futures_open_gap": {
+     "n": 84,
+     "slope": 1.262,
+     "intercept_bp": 19.0,
+     "t": 10.9,
+     "r2": 0.575,
+     "sign_hit": 0.762,
+     "mae_bp": 135.3,
+     "mae_naive_bp": 145.2,
+     "from": "2026-06-11",
+     "to": "2026-10-15"
+    },
+    "big_move_gt1pct": {
+     "n": 40,
+     "sign_hit": 0.9
+    },
+    "resid_sd_bp": 157.9,
+    "gap_sd_bp": 233.4
+   },
+   "note": "KRX 자체 야간은 종가 대신 세션 평균 체결가(VWAP) — 사전 등록의 '야간 종가'에서 벗어남. 매매 신호 아님, 시초가 예상 정보."
+  },
+  {
+   "id": "H9",
+   "lens_id": "cand.program_nonarb",
+   "name": "프로그램 비차익 순매수 상위 20% → 다음날",
+   "grade": "검증전",
+   "n": 88,
+   "n_signal": 18,
+   "effect": 0.0223,
+   "effect_unit": "r1 평균 차이(로그수익률)",
+   "effect_is": 0.02505,
+   "effect_oos": null,
+   "t_is": 1.57,
+   "p_is": 0.0583,
+   "t_oos": null,
+   "p_oos": null,
+   "t_all": 1.54,
+   "p_all": 0.062,
+   "period": "2026-06-05 ~ 2026-10-14",
+   "is_until": "2026-09-02",
+   "direction": "+",
+   "note": "prog_nonarb 89일(2026-06~). 상위 20% = 18일 → 최소 표본 미달. 값은 서술 통계로만."
+  }
+ ],
+ "post": {
+  "H2_detail": {
+   "by_era_r1": {
+    "2010-2020": {
+     "n1": 1409,
+     "n0": 1305,
+     "diff": -0.00046,
+     "t": -1.13
+    },
+    "2021-2025": {
+     "n1": 601,
+     "n0": 624,
+     "diff": -5e-05,
+     "t": -0.07
+    },
+    "2026": {
+     "n1": 61,
+     "n0": 130,
+     "diff": 0.01584,
+     "t": 2.78
+    }
+   },
+   "same_day_r0": {
+    "n1": 2071,
+    "n0": 2059,
+    "diff": 0.00888,
+    "t": 22.56
+   },
+   "note": "same_day_r0 = 같은 날 수익률 차이 — 외국인 순매수는 '그날' 오른 날과 겹친다(설명), 다음날 예측은 별개.",
+   "timing_strategy": {
+    "cost_0.25%": {
+     "ann_ret_strategy": -0.0563,
+     "ann_ret_buyhold": 0.0724,
+     "time_in_market": 0.502,
+     "switches_per_year": 88.3
+    },
+    "cost_0.05%": {
+     "ann_ret_strategy": 0.032,
+     "ann_ret_buyhold": 0.0724,
+     "time_in_market": 0.502,
+     "switches_per_year": 88.3
+    }
+   }
+  },
+  "H3_cost": {
+   "effect_gross": -0.00055,
+   "effect_net_0.25%": -0.00305,
+   "effect_net_0.05%": -0.00105,
+   "note": "사건마다 5일 보유 1회 왕복. 총효과부터 음수라 비용 차감은 확인용."
+  },
+  "IV_VOL": {
+   "id": "IV_VOL",
+   "lens_id": "options_gamma",
+   "name": "사후: 대표 내재변동성 상위 1/3 vs 하위 1/3 → 다음날 |수익률|",
+   "grade": "C",
+   "n": 2768,
+   "n_signal": 1392,
+   "effect": 0.0083,
+   "effect_unit": "abs_r1 평균 차이(로그수익률)",
+   "effect_is": 0.00677,
+   "effect_oos": 0.00908,
+   "t_is": 16.01,
+   "p_is": 0.0,
+   "t_oos": 11.32,
+   "p_oos": 0.0,
+   "t_all": 19.82,
+   "p_all": 0.0,
+   "period": "2010-02-01 ~ 2026-10-14",
+   "is_until": "2021-03-12",
+   "direction": "+",
+   "note": "사후(사전 등록 H7 은 gex_bn 기준인데 감마 이력이 89일·버그 구간이라 대체). 사후라 등급 상한 C. IV 는 시장이 매긴 '내일 흔들림 가격'이라 예측력이 있는 게 당연 — 렌즈 가치는 '실현변동성(rv20) 통제 후에도 남나'.",
+   "grade_raw": "A",
+   "control_nw5": {
+    "is": {
+     "n": 2876,
+     "coef_iv_daily": 0.981,
+     "t_iv": 5.98,
+     "coef_rv20_daily": -0.121,
+     "t_rv20": -1.17,
+     "coef_abs_r0": 0.016,
+     "t_abs_r0": 0.36
+    },
+    "oos": {
+     "n": 1233,
+     "coef_iv_daily": 1.109,
+     "t_iv": 7.54,
+     "coef_rv20_daily": -0.241,
+     "t_rv20": -2.41,
+     "coef_abs_r0": -0.04,
+     "t_abs_r0": -0.76
+    },
+    "all": {
+     "n": 4109,
+     "coef_iv_daily": 1.05,
+     "t_iv": 9.76,
+     "coef_rv20_daily": -0.177,
+     "t_rv20": -2.44,
+     "coef_abs_r0": -0.015,
+     "t_abs_r0": -0.39
+    }
+   },
+   "q_low_high": [
+    13.6,
+    17.6
+   ],
+   "ratio_abs_r1_hi_over_lo": 2.64
+  },
+  "SIGNAL1_CRASH": {
+   "doc": [
+    "이벤트: 1일 ≤ −3% (−5%) & 종가 ÷ 최근 21개 종가 최고 − 1 ≤ −10%. 청산 T = t+H 종가 (H=20·60), 미진입 = 0%.",
+    "B  = 급락일 종가 매수 (기준선, crash_day_close 렌즈)",
+    "G1 = t+1..t+10 중 외국인 현물 순매수(>0) 첫날 종가 (committee _exec_plan 신호① '외국인 순매수 전환')",
+    "G2 = t+1..t+20 중 외국인 현물 2일 연속 순매수 둘째 날 종가 (committee 강세 시나리오 트리거 '2일 연속 순매수 전환')",
+    "차이는 같은 이벤트끼리 짝지은 G − B, 10거래일 클러스터 부트스트랩 95% CI."
+   ],
+   "-3%_H20": {
+    "n_events": 37,
+    "n_clusters": 10,
+    "from": "2011-08-05",
+    "to": "2026-08-06",
+    "B": {
+     "mean": 0.0584,
+     "median": 0.0543,
+     "hit": 0.757,
+     "worst": -0.1382,
+     "ci": [
+      0.0115,
+      0.1142
+     ]
+    },
+    "G1": {
+     "mean": 0.0273,
+     "median": 0.0,
+     "hit": 0.432,
+     "worst": -0.1659,
+     "ci": [
+      -0.0157,
+      0.0759
+     ],
+     "filled": 29,
+     "median_lag_days": 3.0,
+     "entry_prem_vs_crash_close": 0.0097,
+     "missed_B_mean": 0.1132,
+     "diff_vs_B": -0.0311,
+     "diff_ci": [
+      -0.0796,
+      0.0108
+     ]
+    },
+    "G2": {
+     "mean": -0.0038,
+     "median": 0.0,
+     "hit": 0.378,
+     "worst": -0.152,
+     "ci": [
+      -0.0317,
+      0.032
+     ],
+     "filled": 26,
+     "median_lag_days": 5.0,
+     "entry_prem_vs_crash_close": 0.0531,
+     "missed_B_mean": 0.0803,
+     "diff_vs_B": -0.0622,
+     "diff_ci": [
+      -0.0883,
+      -0.0362
+     ]
+    },
+    "B_by_crash_day_frgn": {
+     "buy": {
+      "n": 3,
+      "mean": -0.0004
+     },
+     "sell": {
+      "n": 34,
+      "mean": 0.0636
+     }
+    },
+    "pre_2026": {
+     "n": 18,
+     "clusters": 7,
+     "G1_diff_vs_B": -0.0625,
+     "G2_diff_vs_B": -0.0611,
+     "G1_diff_ci": [
+      -0.094,
+      -0.0095
+     ],
+     "G2_diff_ci": [
+      -0.0825,
+      -0.0207
+     ]
+    }
+   },
+   "-3%_H60": {
+    "n_events": 30,
+    "n_clusters": 10,
+    "from": "2011-08-05",
+    "to": "2026-07-13",
+    "B": {
+     "mean": 0.203,
+     "median": 0.107,
+     "hit": 0.767,
+     "worst": -0.135,
+     "ci": [
+      -0.0237,
+      0.3887
+     ]
+    },
+    "G1": {
+     "mean": 0.1072,
+     "median": 0.0,
+     "hit": 0.4,
+     "worst": -0.1921,
+     "ci": [
+      -0.0425,
+      0.3208
+     ],
+     "filled": 22,
+     "median_lag_days": 3.0,
+     "entry_prem_vs_crash_close": 0.0216,
+     "missed_B_mean": 0.2867,
+     "diff_vs_B": -0.0958,
+     "diff_ci": [
+      -0.1855,
+      -0.0065
+     ]
+    },
+    "G2": {
+     "mean": 0.0445,
+     "median": 0.0,
+     "hit": 0.3,
+     "worst": -0.2321,
+     "ci": [
+      -0.0607,
+      0.1727
+     ],
+     "filled": 19,
+     "median_lag_days": 5.0,
+     "entry_prem_vs_crash_close": 0.053,
+     "missed_B_mean": 0.3267,
+     "diff_vs_B": -0.1585,
+     "diff_ci": [
+      -0.2403,
+      -0.0246
+     ]
+    },
+    "B_by_crash_day_frgn": {
+     "buy": {
+      "n": 2,
+      "mean": 0.3321
+     },
+     "sell": {
+      "n": 28,
+      "mean": 0.1937
+     }
+    },
+    "pre_2026": {
+     "n": 18,
+     "clusters": 7,
+     "G1_diff_vs_B": -0.1403,
+     "G2_diff_vs_B": -0.148,
+     "G1_diff_ci": [
+      -0.228,
+      -0.0101
+     ],
+     "G2_diff_ci": [
+      -0.228,
+      -0.021
+     ]
+    }
+   },
+   "-5%_H20": {
+    "n_events": 17,
+    "n_clusters": 7,
+    "from": "2011-08-19",
+    "to": "2026-08-03",
+    "B": {
+     "mean": 0.0767,
+     "median": 0.0757,
+     "hit": 0.824,
+     "worst": -0.1376,
+     "ci": [
+      0.0298,
+      0.1852
+     ]
+    },
+    "G1": {
+     "mean": 0.0418,
+     "median": 0.0294,
+     "hit": 0.529,
+     "worst": -0.1365,
+     "ci": [
+      0.0138,
+      0.0535
+     ],
+     "filled": 15,
+     "median_lag_days": 3.0,
+     "entry_prem_vs_crash_close": 0.0039,
+     "missed_B_mean": 0.2906,
+     "diff_vs_B": -0.0349,
+     "diff_ci": [
+      -0.1664,
+      0.0229
+     ]
+    },
+    "G2": {
+     "mean": -0.0115,
+     "median": 0.0,
+     "hit": 0.412,
+     "worst": -0.1356,
+     "ci": [
+      -0.0248,
+      0.011
+     ],
+     "filled": 13,
+     "median_lag_days": 5.0,
+     "entry_prem_vs_crash_close": 0.0616,
+     "missed_B_mean": 0.1736,
+     "diff_vs_B": -0.0882,
+     "diff_ci": [
+      -0.1877,
+      -0.0496
+     ]
+    },
+    "B_by_crash_day_frgn": {
+     "buy": {
+      "n": 2,
+      "mean": -0.0278
+     },
+     "sell": {
+      "n": 15,
+      "mean": 0.0906
+     }
+    },
+    "pre_2026": {
+     "n": 5,
+     "clusters": 4,
+     "G1_diff_vs_B": -0.1404,
+     "G2_diff_vs_B": -0.1677,
+     "G1_diff_ci": [
+      -0.2566,
+      -0.0199
+     ],
+     "G2_diff_ci": [
+      -0.2599,
+      -0.0747
+     ]
+    }
+   },
+   "-5%_H60": {
+    "n_events": 12,
+    "n_clusters": 7,
+    "from": "2011-08-19",
+    "to": "2026-07-13",
+    "B": {
+     "mean": 0.2409,
+     "median": 0.1889,
+     "hit": 0.667,
+     "worst": -0.1231,
+     "ci": [
+      -0.0332,
+      0.4936
+     ]
+    },
+    "G1": {
+     "mean": 0.1343,
+     "median": 0.0,
+     "hit": 0.417,
+     "worst": -0.1921,
+     "ci": [
+      -0.0677,
+      0.3773
+     ],
+     "filled": 10,
+     "median_lag_days": 3.5,
+     "entry_prem_vs_crash_close": 0.0297,
+     "missed_B_mean": 0.4566,
+     "diff_vs_B": -0.1067,
+     "diff_ci": [
+      -0.262,
+      -0.0123
+     ]
+    },
+    "G2": {
+     "mean": 0.0135,
+     "median": -0.0064,
+     "hit": 0.167,
+     "worst": -0.2321,
+     "ci": [
+      -0.0914,
+      0.1199
+     ],
+     "filled": 8,
+     "median_lag_days": 5.0,
+     "entry_prem_vs_crash_close": 0.0643,
+     "missed_B_mean": 0.5481,
+     "diff_vs_B": -0.2274,
+     "diff_ci": [
+      -0.3879,
+      -0.0449
+     ]
+    },
+    "B_by_crash_day_frgn": {
+     "buy": {
+      "n": 2,
+      "mean": 0.3321
+     },
+     "sell": {
+      "n": 10,
+      "mean": 0.2227
+     }
+    },
+    "pre_2026": {
+     "n": 5,
+     "clusters": 4,
+     "G1_diff_vs_B": -0.2083,
+     "G2_diff_vs_B": -0.2377,
+     "G1_diff_ci": [
+      -0.3999,
+      -0.0202
+     ],
+     "G2_diff_ci": [
+      -0.4023,
+      -0.0737
+     ]
+    }
+   },
+   "verdict": {
+    "G1": "악화",
+    "G2": "악화"
+   }
+  }
+ }
+}

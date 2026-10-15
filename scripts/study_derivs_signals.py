@@ -46,7 +46,7 @@ def ols_nw(y: np.ndarray, X: np.ndarray, lag: int):
     ok = np.isfinite(y) & np.all(np.isfinite(X), axis=1)
     y, X = y[ok], X[ok]
     n, k = X.shape
-    if n <= k + 2:
+    if n <= k + 2 or np.linalg.matrix_rank(X) < k:      # 부분 표본에 신호가 한쪽뿐이면 추정 불가
         return np.full(k, np.nan), np.full(k, np.nan), n
     XtX_inv = np.linalg.inv(X.T @ X)
     b = XtX_inv @ X.T @ y
@@ -201,12 +201,25 @@ def main() -> None:
     df["nonarb_top"] = np.where(nb.notna(), (nb >= nb.quantile(0.8)).astype(float), np.nan)
     S.append(two_group(df, "nonarb_top", "r1", +1, 0, "H9", "cand.program_nonarb", "프로그램 비차익 순매수 상위 20% → 다음날"))
 
+    # 검증전 사유 보강 (옵션 보드 열은 2026-10-15 쉼표 버그 수정 전 백필 → 콜 행사가 ≥1,000 누락)
+    for s in S:
+        if s["id"] in ("H5-r5", "H5-r20", "H6-r5", "H6-r20", "H7"):
+            s["note"] = ((s.get("note") or "") + " 옵션 보드 열(pcr_oi·gex_bn) 89일뿐이고, 코스피200 ≥ 1,000 구간은 행사가 쉼표 버그(dc0aacb9) 수정 전 "
+                         "백필이라 콜 쪽이 빠져 PCR 과대·감마 음수 쏠림 — 재백필(--redo) 전엔 표본이 차도 쓰면 안 됨.").strip()
+        if s["id"] == "H4":
+            s["note"] = ("basis_pct 89일(2026-06~). basis_theo(2010~)는 금리·배당으로 계산한 이론 베이시스라 '공포·헤지 과잉' 대용 불가. "
+                         "값은 서술 통계로만.")
+        if s["id"] == "H9":
+            s["note"] = "prog_nonarb 89일(2026-06~). 상위 20% = 18일 → 최소 표본 미달. 값은 서술 통계로만."
+
+    post = {"H2_detail": h2_detail(df), "H3_cost": h3_cost(S), "IV_VOL": iv_vol(df), "SIGNAL1_CRASH": signal1_crash(df)}
     cover = {c: {"from": str(df.loc[df[c].notna(), "date"].min().date()), "to": str(df.loc[df[c].notna(), "date"].max().date()),
-                 "n": int(df[c].notna().sum())} for c in ("kospi_close", "spot_frgn", "prog_nonarb", "fut_close", "pcr_oi", "gex_bn",
-                                                          "night_close", "night_vwap", "fut_frgn", "basis_theo", "rep_iv") if c in df and df[c].notna().any()}
+                 "n": int(df[c].notna().sum())} if df[c].notna().any() else {"n": 0}
+             for c in pd.read_csv(CSV, nrows=0).columns if c != "date"}
     out = {"registered": "2026-10-16", "computed": datetime.now().strftime("%Y-%m-%d %H:%M"), "m": M, "alpha_bonf": ALPHA_B,
            "grades_doc": "A=IS Bonferroni+OOS · B=IS Bonferroni(OOS 미확인) · C=방향만(p<0.10) · F=효과 없음/반대 · 검증전=표본 미달",
-           "coverage": cover, "signals": S}
+           "post_hoc_doc": "post 절은 사전 등록 밖(사후). Bonferroni 묶음(m=10)에 넣지 않고, 등급은 views 규칙대로 최대 C(F는 가능).",
+           "sanity": sanity(df), "coverage": cover, "signals": S, "post": post}
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     for s in S:
         print(f"{s['id']:7s} {s['grade']:4s} n={s.get('n')} eff={s.get('effect')} t_is={s.get('t_is')} p_is={s.get('p_is')} "
@@ -216,6 +229,191 @@ def main() -> None:
         if s.get("detail"):
             print("        detail", s["detail"])
     print("coverage", json.dumps(cover, ensure_ascii=False))
+    print("sanity", json.dumps(out["sanity"], ensure_ascii=False))
+    for k, v in post.items():
+        print("POST", k, json.dumps(v, ensure_ascii=False))
+
+
+# ───────────────────────── 사후(post-hoc) · 보강 — 사전 등록 밖 ─────────────────────────
+COST_RT = 0.0025     # lab.py 와 같은 왕복 비용(보수적: 지수 ETF·선물은 훨씬 작다)
+COST_RT_LOW = 0.0005
+NBOOT = 5000
+CLUSTER_GAP = 10
+
+
+def sanity(df: pd.DataFrame) -> dict:
+    r = df["r0"]
+    flow_sum = (df["spot_frgn"] + df["spot_inst"] + df["spot_indiv"] + df["spot_corp"]).abs()
+    big = df.loc[r.abs() > 0.08, ["date", "r0"]]
+    return {
+        "rows": int(len(df)), "dup_dates": int(df["date"].duplicated().sum()),
+        "max_calendar_gap_days": int(df["date"].diff().dt.days.max()),
+        "ohlc_violations": int(((df["kospi_high"] < df[["kospi_open", "kospi_close"]].max(axis=1) - 1e-6) |
+                                (df["kospi_low"] > df[["kospi_open", "kospi_close"]].min(axis=1) + 1e-6)).sum()),
+        "open_eq_prev_close_share": _r(float((df["gap"].abs() < 1e-9).mean()), 4),
+        "flow_4way_sum_abs_median": _r(float(flow_sum.median()), 2),
+        "abs_r_gt_8pct_days": [f"{d.date()} {x:+.3f}" for d, x in zip(big["date"], big["r0"])],
+        "share_2026_of_abs_r_gt_8pct": _r(float((big["date"].dt.year == 2026).mean()), 2),
+        "frgn_abs_median_2010_2025_vs_2026": [_r(float(df.loc[df["date"].dt.year < 2026, "spot_frgn"].abs().median()), 0),
+                                               _r(float(df.loc[df["date"].dt.year == 2026, "spot_frgn"].abs().median()), 0)],
+        "rep_iv_median_2010_2025_vs_2026": [_r(float(df.loc[df["date"].dt.year < 2026, "rep_iv"].median()), 1),
+                                             _r(float(df.loc[df["date"].dt.year == 2026, "rep_iv"].median()), 1)],
+        "option_board_bug": "call_wall 은 k200 < 1,000 인 11일만 존재, put_wall=1.0 인 날 4일, max_pain·night_close 전부 비어 있음",
+    }
+
+
+def _welch_block(sub, col, y):
+    a = sub.loc[sub[col] == 1, y].to_numpy(float)
+    b = sub.loc[sub[col] == 0, y].to_numpy(float)
+    d, t = welch(a, b)
+    return {"n1": int(len(a)), "n0": int(len(b)), "diff": _r(d), "t": _r(t, 2)}
+
+
+def h2_detail(df: pd.DataFrame) -> dict:
+    """H2 보강: 시대별, 동시점(같은 날) 차이, 비용 차감 타이밍 전략."""
+    d = df[df["spot_frgn"].notna()].copy()
+    eras = {"2010-2020": d["date"].dt.year <= 2020, "2021-2025": d["date"].dt.year.between(2021, 2025), "2026": d["date"].dt.year == 2026}
+    out = {"by_era_r1": {k: _welch_block(d[m], "spot_frgn_buy", "r1") for k, m in eras.items()},
+           "same_day_r0": _welch_block(d, "spot_frgn_buy", "r0"),
+           "note": "same_day_r0 = 같은 날 수익률 차이 — 외국인 순매수는 '그날' 오른 날과 겹친다(설명), 다음날 예측은 별개."}
+    # 타이밍 전략: t 외국인 순매수면 t 종가 매수 → t+1 종가 보유, 아니면 현금. 전환마다 편도 비용.
+    s = d[["date", "spot_frgn_buy", "r1"]].dropna()
+    on = s["spot_frgn_buy"].to_numpy(float)
+    sw = np.abs(np.diff(np.r_[0.0, on]))
+    gross = on * s["r1"].to_numpy(float)
+    res = {}
+    for nm, c in (("cost_0.25%", COST_RT), ("cost_0.05%", COST_RT_LOW)):
+        net = gross - sw * c / 2
+        res[nm] = {"ann_ret_strategy": _r(float(net.mean() * 252), 4), "ann_ret_buyhold": _r(float(s["r1"].mean() * 252), 4),
+                   "time_in_market": _r(float(on.mean()), 3), "switches_per_year": _r(float(sw.sum() / len(on) * 252), 1)}
+    out["timing_strategy"] = res
+    return out
+
+
+def h3_cost(S: list) -> dict:
+    h3 = next((s for s in S if s["id"] == "H3"), None)
+    if not h3 or h3.get("effect") is None:
+        return {}
+    return {"effect_gross": h3["effect"], "effect_net_0.25%": _r(h3["effect"] - COST_RT), "effect_net_0.05%": _r(h3["effect"] - COST_RT_LOW),
+            "note": "사건마다 5일 보유 1회 왕복. 총효과부터 음수라 비용 차감은 확인용."}
+
+
+def iv_vol(df: pd.DataFrame) -> dict:
+    """사후 IV_VOL: 대표 내재변동성(rep_iv, 2010~) 상위 1/3 vs 하위 1/3 → 다음날 |r1|. H7(감마)의 대용.
+    H7 과 같은 틀(분위 1/3·Welch·통제 회귀). 방향은 보지 않는다."""
+    d = df[["date", "rep_iv", "r1", "r0", "rv20"]].dropna().copy()
+    d["abs_r1"] = d["r1"].abs()
+    q1, q2 = d["rep_iv"].quantile(1 / 3), d["rep_iv"].quantile(2 / 3)
+    d["iv_hi"] = np.where((d["rep_iv"] >= q2) | (d["rep_iv"] <= q1), (d["rep_iv"] >= q2).astype(float), np.nan)
+    base = two_group(d, "iv_hi", "abs_r1", +1, 0, "IV_VOL", "options_gamma", "사후: 대표 내재변동성 상위 1/3 vs 하위 1/3 → 다음날 |수익률|")
+    cut = split(d["date"])
+    ctrl = {}
+    for part, sub in (("is", d[d["date"] < cut]), ("oos", d[d["date"] >= cut]), ("all", d)):
+        X = np.column_stack([np.ones(len(sub)), sub["rep_iv"].to_numpy(float) / 100 / math.sqrt(252),
+                             sub["r0"].abs().to_numpy(float), sub["rv20"].to_numpy(float) / math.sqrt(252)])
+        b, t, n = ols_nw(sub["abs_r1"].to_numpy(float), X, 5)
+        ctrl[part] = {"n": int(n), "coef_iv_daily": _r(b[1], 3), "t_iv": _r(t[1], 2), "coef_rv20_daily": _r(b[3], 3), "t_rv20": _r(t[3], 2),
+                      "coef_abs_r0": _r(b[2], 3), "t_abs_r0": _r(t[2], 2)}
+    # 등급: 사후 → 최대 C. IS·OOS 모두 통제 후 IV t>2 면 C, 아니면 F.
+    ok = all((ctrl[p]["t_iv"] or 0) > 2 for p in ("is", "oos"))
+    base.update({"grade_raw": base["grade"], "grade": "C" if (base["grade"] in ("A", "B", "C") and ok) else "F",
+                 "control_nw5": ctrl, "q_low_high": [_r(q1, 1), _r(q2, 1)],
+                 "ratio_abs_r1_hi_over_lo": _r(float(d.loc[d["iv_hi"] == 1, "abs_r1"].mean() / d.loc[d["iv_hi"] == 0, "abs_r1"].mean()), 2),
+                 "note": "사후(사전 등록 H7 은 gex_bn 기준인데 감마 이력이 89일·버그 구간이라 대체). 사후라 등급 상한 C. "
+                         "IV 는 시장이 매긴 '내일 흔들림 가격'이라 예측력이 있는 게 당연 — 렌즈 가치는 '실현변동성(rv20) 통제 후에도 남나'."})
+    return base
+
+
+def _clusters(idx):
+    cid, out, last = -1, [], None
+    for i in idx:
+        if last is None or i - last > CLUSTER_GAP:
+            cid += 1
+        out.append(cid)
+        last = i
+    return np.array(out)
+
+
+def _boot(vals, cl, rng):
+    u = np.unique(cl)
+    groups = [vals[cl == g] for g in u]
+    bs = np.empty(NBOOT)
+    for k in range(NBOOT):
+        pick = rng.integers(0, len(u), len(u))
+        bs[k] = np.concatenate([groups[p] for p in pick]).mean()
+    return [_r(float(np.percentile(bs, 2.5)), 4), _r(float(np.percentile(bs, 97.5)), 4)]
+
+
+def signal1_crash(df: pd.DataFrame) -> dict:
+    """사후 SIGNAL1: 실행 대본 신호① '외국인 순매수 전환'을 playbook_signals 의 급락 이벤트·비교 틀 그대로 검증.
+    이벤트: 1일 ≤ −3% (−5%) & 종가 ÷ 최근 21개 종가 최고 − 1 ≤ −10%. 청산 T = t+H 종가 (H=20·60), 미진입 = 0%.
+    B  = 급락일 종가 매수 (기준선, crash_day_close 렌즈)
+    G1 = t+1..t+10 중 외국인 현물 순매수(>0) 첫날 종가 (committee _exec_plan 신호① '외국인 순매수 전환')
+    G2 = t+1..t+20 중 외국인 현물 2일 연속 순매수 둘째 날 종가 (committee 강세 시나리오 트리거 '2일 연속 순매수 전환')
+    차이는 같은 이벤트끼리 짝지은 G − B, 10거래일 클러스터 부트스트랩 95% CI."""
+    rng = np.random.default_rng(20261016)
+    c = df["kospi_close"].to_numpy(float)
+    f = df["spot_frgn"].to_numpy(float)
+    dates = df["date"]
+    out = {"doc": signal1_crash.__doc__.strip().splitlines()[1:]}
+    for thr in (-0.03, -0.05):
+        ev = [i for i in range(21, len(c)) if c[i] / c[i - 1] - 1 <= thr and c[i] / c[i - 20:i + 1].max() - 1 <= -0.10]
+        for H in (20, 60):
+            rows = []
+            for t in ev:
+                T = t + H
+                if T >= len(c):
+                    continue
+                g1 = next((d for d in range(t + 1, min(t + 10, T) + 1) if f[d] > 0), None)
+                g2 = next((d for d in range(t + 2, min(t + 20, T) + 1) if f[d] > 0 and f[d - 1] > 0), None)
+                rB = c[T] / c[t] - 1
+                r1 = c[T] / c[g1] - 1 if g1 is not None else 0.0
+                r2 = c[T] / c[g2] - 1 if g2 is not None else 0.0
+                rows.append({"t": t, "date": str(dates[t].date()), "B": rB, "G1": r1, "G2": r2, "g1_lag": (g1 - t) if g1 else None,
+                             "g2_lag": (g2 - t) if g2 else None, "frgn_crash_day_buy": bool(f[t] > 0),
+                             "g1_prem": (c[g1] / c[t] - 1) if g1 else None, "g2_prem": (c[g2] / c[t] - 1) if g2 else None})
+            if not rows:
+                continue
+            R = pd.DataFrame(rows)
+            cl = _clusters(R["t"].tolist())
+            res = {"n_events": len(R), "n_clusters": int(cl.max() + 1), "from": R["date"].iloc[0], "to": R["date"].iloc[-1]}
+            for k in ("B", "G1", "G2"):
+                v = R[k].to_numpy(float)
+                res[k] = {"mean": _r(v.mean(), 4), "median": _r(float(np.median(v)), 4), "hit": _r(float((v > 0).mean()), 3),
+                          "worst": _r(v.min(), 4), "ci": _boot(v, cl, rng)}
+            for k, lag, prem in (("G1", "g1_lag", "g1_prem"), ("G2", "g2_lag", "g2_prem")):
+                diff = (R[k] - R["B"]).to_numpy(float)
+                filled = R[lag].notna()
+                res[k].update({"filled": int(filled.sum()), "median_lag_days": _r(float(R.loc[filled, lag].median()), 1) if filled.any() else None,
+                               "entry_prem_vs_crash_close": _r(float(R.loc[filled, prem].mean()), 4) if filled.any() else None,
+                               "missed_B_mean": _r(float(R.loc[~filled, "B"].mean()), 4) if (~filled).any() else None,
+                               "diff_vs_B": _r(float(diff.mean()), 4), "diff_ci": _boot(diff, cl, rng)})
+            # 급락일 당일 외국인이 샀나 → B 수익 서술
+            m = R["frgn_crash_day_buy"]
+            res["B_by_crash_day_frgn"] = {"buy": {"n": int(m.sum()), "mean": _r(float(R.loc[m, "B"].mean()), 4) if m.any() else None},
+                                          "sell": {"n": int((~m).sum()), "mean": _r(float(R.loc[~m, "B"].mean()), 4) if (~m).any() else None}}
+            pre = R[R["date"] < "2026-01-01"]
+            if len(pre) > 3:
+                clp = _clusters(pre["t"].tolist())
+                res["pre_2026"] = {"n": len(pre), "clusters": int(clp.max() + 1),
+                                   **{f"{k}_diff_vs_B": _r(float((pre[k] - pre["B"]).mean()), 4) for k in ("G1", "G2")},
+                                   **{f"{k}_diff_ci": _boot((pre[k] - pre["B"]).to_numpy(float), clp, rng) for k in ("G1", "G2")}}
+            out[f"{int(thr * 100)}%_H{H}"] = res
+    # 판정 (playbook 0-5 규칙 그대로 적용): H20·H60 모두 B 대비 평균 > 0 이고 한 CI 라도 0 위 → 개선. 반대면 악화.
+    verdict = {}
+    for k in ("G1", "G2"):
+        a, b = out.get("-3%_H20", {}).get(k, {}), out.get("-3%_H60", {}).get(k, {})
+        if not a or not b:
+            continue
+        da, db = a["diff_vs_B"], b["diff_vs_B"]
+        if da > 0 and db > 0 and (a["diff_ci"][0] > 0 or b["diff_ci"][0] > 0):
+            verdict[k] = "개선"
+        elif da < 0 and db < 0 and (a["diff_ci"][1] < 0 or b["diff_ci"][1] < 0):
+            verdict[k] = "악화"
+        else:
+            verdict[k] = "근거 불충분"
+    out["verdict"] = verdict
+    return out
 
 
 def night_test(df: pd.DataFrame) -> dict:
@@ -271,6 +469,19 @@ def night_test(df: pd.DataFrame) -> dict:
         ko = fit(kk[kk["date"] >= kc])
         det["krx_vwap_oos"] = ko
         g = "A" if (k8["r2"] or 0) >= 0.5 and (ko.get("r2") or 0) >= 0.4 else "C" if (k8["r2"] or 0) >= 0.2 else "F"
+    # 보강: 귀속 확인(행 D 야간 → D 시가 vs D+1 시가), 선물 시가 갭(같은 상품) 대비, 큰 야간 움직임(|x|>1%) 적중률
+    if len(k):
+        xk = k["night_vwap"] / df["fut_close"].shift(1).loc[k.index] - 1
+        fut_gap = df["fut_open"] / df["fut_close"].shift(1) - 1
+        kk = pd.DataFrame({"x": xk, "gap": k["gap"], "gap_next": k["gap_next"], "fut_gap": fut_gap.loc[k.index]}).dropna()
+        det["attribution_corr"] = {"row_D_vs_gap_D": _r(float(kk["x"].corr(kk["gap"])), 3),
+                                   "row_D_vs_gap_D+1": _r(float(kk["x"].corr(kk["gap_next"])), 3)}
+        fk = pd.DataFrame({"date": k["date"], "x": xk, "y": fut_gap.loc[k.index]}).dropna()
+        det["vs_futures_open_gap"] = fit(fk)
+        big = kk[kk["x"].abs() > 0.01]
+        det["big_move_gt1pct"] = {"n": int(len(big)), "sign_hit": _r(float((np.sign(big["x"]) == np.sign(big["gap"])).mean()), 3) if len(big) else None}
+        det["resid_sd_bp"] = _r(float((kk["gap"] - kk["x"]).std() * 1e4), 1)
+        det["gap_sd_bp"] = _r(float(kk["gap"].std() * 1e4), 1)
     base = det["krx_vwap"] if det["krx_vwap"].get("n", 0) >= 10 else det["all"]
     return {"id": "H8", "lens_id": "night_futures", "name": "야간선물 등락 → 다음 정규장 시가 갭 (산수 확인)", "grade": g,
             "n": base.get("n"), "effect": base.get("r2"), "effect_unit": "R² (시가 갭 ~ 야간 등락)", "slope": base.get("slope"),
