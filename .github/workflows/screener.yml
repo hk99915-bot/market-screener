@@ -65,5 +65,4 @@ jobs:
           git config user.email "screener-bot@users.noreply.github.com"
           for p in reports universe data/kr_prices.parquet data/research.parquet data/dart.parquet; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "report: ${{ steps.m.outputs.market }} $(date -u +%F)"
-          git pull --rebase origin main || true
-          git push
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && break; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done; true
