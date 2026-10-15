@@ -106,10 +106,20 @@ def write_research(days: int = 180) -> int:
     except Exception as e:  # noqa: BLE001
         log.warning("업종 분류 실패: %s", e)
         sec = {}
+    try:
+        from .themes import kr_themes
+        th = kr_themes()
+    except Exception as e:  # noqa: BLE001
+        log.warning("테마 분류 실패: %s", e)
+        th = {}
+    df = df.with_columns(
+        pl.col("code").replace_strict({k: v["theme"] for k, v in th.items() if v.get("theme")}, default=None,
+                                      return_dtype=pl.Utf8).alias("theme"))
     items = (df.with_columns(pl.col("date").cast(pl.Utf8),
                              pl.col("code").replace_strict(sec, default="기타", return_dtype=pl.Utf8).alias("sector"))
                .with_columns(pl.col("tp_chg").round(4))
-               .select("date", "code", "name", "sector", "broker", "analyst", "opinion", "target", "title", "link",
+               .with_columns(pl.coalesce("theme", "sector").alias("theme"))
+               .select("date", "code", "name", "sector", "theme", "broker", "analyst", "opinion", "target", "title", "link",
                        "summary", "tp_chg", "op_chg").to_dicts())
     close = {}
     pp = DATA_DIR / "kr_prices.parquet"

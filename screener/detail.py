@@ -236,6 +236,13 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         except Exception as e:  # noqa: BLE001
             log.warning("종목별 공시 실패: %s", e)
 
+    themes: dict[str, dict] = {}
+    if market == "KR":
+        try:
+            from .themes import kr_themes
+            themes = kr_themes()
+        except Exception as e:  # noqa: BLE001
+            log.warning("테마 실패: %s", e)
     out = {"asof": str(asof), "market": market, "stocks": {}}
     for s in syms:
         r = rows.get(s)
@@ -250,6 +257,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                 "쌍끌이 매수" if f5 > 0 and i5 > 0 else "동반 매도" if f5 < 0 and i5 < 0 else "엇갈림")
         out["stocks"][s] = {
             "name": r["name"], "market": r["market"], "close": r["close"],
+            "theme": (themes.get(s) or {}).get("theme"), "themes": (themes.get(s) or {}).get("themes", ""),
             "stats": {k: (round(r[k], 4) if isinstance(r.get(k), float) else r.get(k)) for k in ("ret1", "ret5", "ret20", "ret60", "trend_score", "momentum_score", "reversal_risk",
                                              "class", "adx14", "rsi14", "cci20", "stoch_k", "macd", "macd_sig", "atr14",
                                              "sma20", "sma50", "sma200", "high52", "low52", "from_high52", "vol_ratio",
