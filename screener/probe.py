@@ -18,7 +18,12 @@ def run() -> dict:
         "naver_news_list": "https://m.stock.naver.com/api/news/list?category=mainnews&pageSize=5&page=1",
         "google_news": "https://news.google.com/rss/search?q=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4+when:7d&hl=ko&gl=KR&ceid=KR:ko",
         "google_news_en": "https://news.google.com/rss/search?q=DRAM+prices+when:7d&hl=en-US&gl=US&ceid=US:en",
-        "naver_research_industry": "https://m.stock.naver.com/api/research/industry?pageSize=3",
+        "naver_etf_list": "https://finance.naver.com/api/sise/etfItemList.nhn?etfType=0&targetColumn=market_sum&sortOrder=desc",
+        "naver_etf_basic": "https://m.stock.naver.com/api/stock/139260/basic",
+        "naver_etf_integration": "https://m.stock.naver.com/api/stock/139260/integration",
+        "naver_etf_analysis": "https://m.stock.naver.com/api/stock/139260/etfAnalysis",
+        "naver_etf_comp": "https://m.stock.naver.com/api/etf/139260/component",
+        "naver_etf_list_m": "https://m.stock.naver.com/api/stocks/etf?page=1&pageSize=5",
     }
     for k, u in urls.items():
         try:
@@ -46,7 +51,19 @@ def run() -> dict:
             res["mu_rev"] = inc.loc["Total Revenue"].to_json() if "Total Revenue" in inc.index else list(inc.index)[:30]
         except Exception as e:  # noqa: BLE001
             res["mu_rev"] = "ERR " + str(e)
+        try:
+            fd = yf.Ticker("PSI").funds_data
+            res["psi_top"] = fd.top_holdings.to_json()
+            res["psi_sector"] = str(fd.sector_weightings)[:400]
+        except Exception as e:  # noqa: BLE001
+            res["psi_top"] = "ERR " + str(e)
         out["yf"] = res
+        try:
+            from pykrx import stock
+            df = stock.get_etf_portfolio_deposit_file("139260")
+            out["pykrx_pdf"] = df.head(15).to_json(force_ascii=False)
+        except Exception as e:  # noqa: BLE001
+            out["pykrx_pdf"] = "ERR " + str(e)[:300]
         out["yf_version"] = yf.__version__
     except Exception:  # noqa: BLE001
         out["yf"] = traceback.format_exc()
