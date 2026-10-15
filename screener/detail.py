@@ -225,7 +225,14 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         log.info("일괄 수급 %d종목", len(flows))
         if not flows:   # 일괄 조회가 막히면 상위 150종목만 종목별로
             flows = _flows_kr(_targets(last)[:150], asof)
+    drv: dict[str, dict] = {}
     fins: dict[str, dict] = {}
+    if market == "US":
+        try:
+            from . import drivers
+            drv = drivers.build_us([s0 for s0 in syms if s0 in rows], full.select("yf", "date", "close"))
+        except Exception as e:  # noqa: BLE001
+            log.warning("미장 이익 드라이버 실패: %s", e)
     if market == "US":
         try:
             from . import sec
@@ -261,7 +268,6 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         except Exception as e:  # noqa: BLE001
             log.warning("종목별 공시 실패: %s", e)
 
-    drv: dict[str, dict] = {}
     if market == "KR":
         try:
             from . import drivers, universe

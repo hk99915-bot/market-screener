@@ -120,8 +120,9 @@ SECTOR_FALLBACK = [("은행", "banks"), ("증권", "banks"), ("보험", "banks")
                    ("오락", "internet"), ("IT 서비스", "internet"), ("전기·전자", "it_hw"), ("반도체", "semi_equip"), ("운송장비", "autos"),
                    ("기계", "power_grid"), ("전기장비", "power_grid"), ("운송·창고", "airline")]
 FACTORS = {"KOSPI": ("^KS11", "코스피"), "KRW": ("KRW=X", "원/달러(상승=원화 약세)"), "WTI": ("CL=F", "WTI 유가"),
-           "US10Y": ("^TNX", "미 10년 금리"), "SOX": ("^SOX", "필라델피아 반도체"), "CU": ("HG=F", "구리")}
-US_LAG = {"WTI", "US10Y", "SOX", "CU"}   # 미국 장은 한국 장 마감 뒤 → 전일 값으로 맞춘다
+           "US10Y": ("^TNX", "미 10년 금리"), "SOX": ("^SOX", "필라델피아 반도체"), "CU": ("HG=F", "구리"),
+           "SPX": ("^GSPC", "S&P500"), "DXY": ("DX-Y.NYB", "달러인덱스")}
+US_LAG = {"WTI", "US10Y", "SOX", "CU", "SPX", "DXY"}   # 미국 장은 한국 장 마감 뒤 → 전일 값으로 맞춘다
 
 
 def chain_of(code: str, sector: str | None) -> str | None:
@@ -179,7 +180,9 @@ def fetch_proxies(max_age_h: float = 20) -> dict:
     """모든 체인 프록시 + 매크로 팩터: 가격 1년, EPS 추정 변화, 매출·CAPEX YoY. reports/chains.json 캐시."""
     if CACHE.exists() and (time.time() - CACHE.stat().st_mtime) < max_age_h * 3600:
         try:
-            return json.loads(CACHE.read_text(encoding="utf-8"))
+            c = json.loads(CACHE.read_text(encoding="utf-8"))
+            if all(v[0] in c.get("series", {}) for v in FACTORS.values()):   # 팩터가 추가됐으면 다시 받기
+                return c
         except Exception:  # noqa: BLE001
             pass
     import yfinance as yf
@@ -284,19 +287,23 @@ def _rets(series: list[list]) -> dict[str, float]:
     return out
 
 
-def macro_sens(prices: pl.DataFrame, prox: dict) -> dict[str, dict]:
-    """종목별: 시장 제거 잔차 수익률의 팩터 베타·t값 (최근 1년). prices: yf,date,close (KR)."""
+def macro_sens(prices: pl.DataFrame, prox: dict, market: str = "KR") -> dict[str, dict]:
+    """종목별: 시장 제거 잔차 수익률의 팩터 베타·t값 (최근 1년). prices: yf,date,close.
+    KR: 시장=코스피, 미국 팩터는 전일 값. US: 시장=S&P500, 같은 날짜, 원화 제외."""
+    mkey = "KOSPI" if market == "KR" else "SPX"
     fr = {}
     for k, (t, _) in FACTORS.items():
+        if market == "US" and k in ("KOSPI", "KRW"):
+            continue
         ser = prox["series"].get(t)
         if not ser:
             continue
         r = _rets(ser)
-        if k in US_LAG:   # 한국 날짜 d 에는 미국 d−1 거래일 값을 쓴다
+        if market == "KR" and k in US_LAG:   # 한국 날짜 d 에는 미국 d−1 거래일 값을 쓴다
             ds = sorted(r)
             r = {ds[i + 1]: r[ds[i]] for i in range(len(ds) - 1)}
         fr[k] = r
-    if "KOSPI" not in fr:
+    if mkey not in fr:
         return {}
     since = str(date.today() - timedelta(days=380))
     out = {}
@@ -305,18 +312,18 @@ def macro_sens(prices: pl.DataFrame, prox: dict) -> dict[str, dict]:
         ds = [str(d) for d in g["date"].to_list()]
         cl = g["close"].to_list()
         rs = {ds[i]: math.log(cl[i] / cl[i - 1]) for i in range(1, len(ds)) if cl[i] and cl[i - 1]}
-        common = [d for d in rs if d in fr["KOSPI"]]
+        common = [d for d in rs if d in fr[mkey]]
         if len(common) < 120:
             continue
         y = [rs[d] for d in common]
-        m = [fr["KOSPI"][d] for d in common]
+        m = [fr[mkey][d] for d in common]
         bm, _ = _ols1(y, m)
         if bm is None:
             continue
-        resid = {d: rs[d] - bm * fr["KOSPI"][d] for d in common}
+        resid = {d: rs[d] - bm * fr[mkey][d] for d in common}
         rec = {"beta_mkt": round(bm, 2)}
         for k, r in fr.items():
-            if k == "KOSPI":
+            if k == mkey:
                 continue
             cd = [d for d in common if d in r]
             b, tv = _ols1([resid[d] for d in cd], [r[d] for d in cd])
@@ -545,12 +552,12 @@ def dart_view(items: list[dict]) -> dict | None:
 W = {"chain": 0.35, "analyst": 0.25, "news": 0.15, "macro": 0.15, "dart": 0.10}
 
 
-def macro_view(sens: dict | None, moves: dict, prior: dict) -> dict | None:
+def macro_view(sens: dict | None, moves: dict, prior: dict, mkey: str = "KOSPI") -> dict | None:
     if not sens and not prior:
         return None
     rows, sc = [], []
     for k, mv in moves.items():
-        if k == "KOSPI" or mv.get("r1m") is None:
+        if k in ("KOSPI", mkey) or mv.get("r1m") is None or (mkey == "SPX" and k == "KRW"):
             continue
         s = (sens or {}).get(k) or {}
         b, tv = s.get("beta"), s.get("t")
@@ -572,10 +579,13 @@ def macro_view(sens: dict | None, moves: dict, prior: dict) -> dict | None:
             "beta_mkt": (sens or {}).get("beta_mkt")}
 
 
-def combine(parts: dict[str, float | None]) -> tuple[float | None, dict]:
+W_US = {"chain": 0.25, "eps": 0.45, "rev": 0.15, "macro": 0.15}
+
+
+def combine(parts: dict[str, float | None], weights: dict | None = None) -> tuple[float | None, dict]:
     num = den = 0.0
     used = {}
-    for k, w in W.items():
+    for k, w in (weights or W).items():
         v = parts.get(k)
         if v is None:
             continue
@@ -647,4 +657,115 @@ def build(codes_info: dict[str, dict], prices: pl.DataFrame, discl: dict, news_l
         usmap.setdefault(t, "미국 반도체")
     (REPORT_DIR / "chains_view.json").write_text(json.dumps({"asof": prox.get("asof"), "chains": chains, "factors": moves, "us_map": usmap},
                                                             ensure_ascii=False, default=str), encoding="utf-8")
+    return out
+
+
+# ───────────── 미장 종목 ─────────────
+US_EPS = REPORT_DIR / "us_eps.json"
+US_SEMI = {"NVDA", "AMD", "AVGO", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "INTC", "QCOM", "TXN", "ADI", "MRVL", "ARM",
+           "MCHP", "NXPI", "ON", "MPWR", "TER", "SWKS", "QRVO", "ENTG", "SNPS", "CDNS", "WDC", "STX"}
+
+
+def fetch_us_eps(tickers: list[str], max_age_h: float = 20) -> dict:
+    """미장 종목별 EPS 추정 변화·매출 YoY (yfinance, 병렬). reports/us_eps.json 캐시."""
+    old = {}
+    if US_EPS.exists():
+        try:
+            old = json.loads(US_EPS.read_text(encoding="utf-8"))
+            if (time.time() - US_EPS.stat().st_mtime) < max_age_h * 3600 and len(old.get("data", {})) >= len(tickers) * 0.8:
+                return old["data"]
+        except Exception:  # noqa: BLE001
+            old = {}
+    from concurrent.futures import ThreadPoolExecutor
+
+    import yfinance as yf
+
+    def one(t):
+        try:
+            T = yf.Ticker(t)
+            rec = {"eps": _eps_trend(T)}
+            y, q = _q_yoy(T.quarterly_income_stmt, "Total Revenue")
+            rec["rev_yoy"], rec["rev_q"] = y, q
+            try:
+                rv = T.eps_revisions
+                if rv is not None and len(rv) and "+1y" in rv.index:
+                    r = rv.loc["+1y"]
+                    rec["rev_up30"], rec["rev_dn30"] = _num(r.get("upLast30days")), _num(r.get("downLast30days"))
+            except Exception:  # noqa: BLE001
+                pass
+            return t, rec
+        except Exception:  # noqa: BLE001
+            return t, None
+    data = {}
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        for t, rec in ex.map(one, tickers):
+            if rec:
+                data[t] = rec
+    US_EPS.write_text(json.dumps({"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "data": data}, ensure_ascii=False, default=str), encoding="utf-8")
+    log.info("미장 EPS 추정 %d종목", len(data))
+    return data
+
+
+def _eps_view(rec: dict | None) -> tuple[dict | None, float | None, float | None]:
+    if not rec:
+        return None, None, None
+    e = rec.get("eps") or {}
+    parts, why = [], []
+    for per, lab in (("+1y", "내년"), ("0y", "올해")):
+        x = e.get(per) or {}
+        if x.get("chg90") is not None:
+            parts.append(max(min(x["chg90"] / 0.10, 1), -1))
+            why.append(f"{lab} EPS 추정 90일 {x['chg90']*100:+.1f}%" + (f" (30일 {x['chg30']*100:+.1f}%)" if x.get("chg30") is not None else ""))
+    up, dn = rec.get("rev_up30"), rec.get("rev_dn30")
+    if up is not None and dn is not None and (up + dn) > 0:
+        parts.append((up - dn) / (up + dn))
+        why.append(f"최근 30일 내년 추정 상향 {up:.0f}건 / 하향 {dn:.0f}건")
+    eps_s = sum(parts) / len(parts) if parts else None
+    ry = rec.get("rev_yoy")
+    rev_s = max(min(ry / 0.3, 1), -1) * 0.7 if ry is not None else None
+    view = {"why": why, "rev_yoy": ry, "rev_q": rec.get("rev_q"), "up30": up, "dn30": dn,
+            "eps": {k: v for k, v in e.items()}}
+    return view, (round(eps_s, 2) if eps_s is not None else None), (round(rev_s, 2) if rev_s is not None else None)
+
+
+def build_us(codes: list[str], prices: pl.DataFrame) -> dict[str, dict]:
+    try:
+        prox = fetch_proxies()
+    except Exception as e:  # noqa: BLE001
+        log.warning("체인 프록시 실패: %s", e)
+        prox = {"tickers": {}, "series": {}}
+    chains = {k: chain_view(k, prox) for k in CHAINS}
+    moves = factor_moves(prox)
+    try:
+        sens = macro_sens(prices, prox, "US")
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 매크로 민감도 실패: %s", e)
+        sens = {}
+    usmap = {}
+    for k, c in CHAINS.items():
+        for t, _n, role, rel in c["proxies"]:
+            if rel == 1 and ("사이클" in role or "동일" in role) and t not in usmap and not t.startswith("^") and "=" not in t:
+                usmap[t] = k
+    for t in US_SEMI:
+        usmap.setdefault(t, "semi_equip")
+    try:
+        eps = fetch_us_eps(codes)
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 EPS 실패: %s", e)
+        eps = {}
+    out = {}
+    for c in codes:
+        ck = usmap.get(c)
+        ch = chains.get(ck) if ck else None
+        if ch and ck == "semi_equip" and c in US_SEMI:
+            ch = {**ch, "name": "미국 반도체 (장비·파운드리 사이클)"}
+        prior = {"US10Y": -1} if c in US_SEMI or ck else {}
+        mv = macro_view(sens.get(c), moves, prior, "SPX")
+        ev, eps_s, rev_s = _eps_view(eps.get(c))
+        parts = {"chain": ch.get("score") if ch else None, "eps": eps_s, "rev": rev_s, "macro": mv.get("score") if mv else None}
+        score, used = combine(parts, W_US)
+        out[c] = {"market": "US", "chain": ch, "macro": mv, "eps": ev, "parts": parts, "weights": used,
+                  "score": round(score, 2) if score is not None else None,
+                  "w_current": round(min(max(0.5 + 0.4 * score, 0.1), 0.9), 2) if score is not None else None}
+    log.info("미장 이익 드라이버 %d종목", len(out))
     return out
