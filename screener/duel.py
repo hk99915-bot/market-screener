@@ -462,12 +462,12 @@ def record_pb(payload: dict, send: bool = True) -> str:
         dl = us_open_kst(d).astimezone(KST)
         msg = ["💬 <b>PB 판단 · 미장</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})" + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
                "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 시가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               (payload.get("tg") or payload.get("why", "")), plan_line(payload.get("plan")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               payload.get("why", ""), *([f"💌 {payload['tg']}"] if payload.get("tg") else []), plan_line(payload.get("plan")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: {_us_links(d)} (미장 시작 {dl:%H:%M} KST 전)"]
     else:
         msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
                "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               (payload.get("tg") or payload.get("why", "")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               payload.get("why", ""), *([f"💌 {payload['tg']}"] if payload.get("tg") else []), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
                f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
     rl = payload.get("real") or {}
