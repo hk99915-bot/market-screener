@@ -410,7 +410,14 @@ def record_pb(payload: dict, send: bool = True) -> str:
         data["items"].append(it)
     it["picks"]["PB"] = pk
     it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"],
-                     "plan": payload.get("plan") or None}
+                     "plan": payload.get("plan") or None, "real": payload.get("real") or None}
+    # 🔥 공격 베팅(확신 높거나 비대칭 기회일 때만) — 별도 참가자 'PB🔥'로 채점
+    bold = payload.get("bold")
+    if bold and bold.get("ticker"):
+        bt = str(bold["ticker"])
+        it["picks"]["PB🔥"] = {"ticker": bt, "name": bold.get("name") or NAMES.get(bt, bt), "notional": float(bold.get("notional") or NOTIONAL),
+                              "entry": pk.get("entry", "close"), "exit": bold.get("exit") or pk.get("exit") or "next_open", "by": "PB 공격", "at": pk["at"]}
+        it["pb_view"]["bold"] = {"why": bold.get("why", ""), "plan": bold.get("plan") or None}
     # 보유 종목 매도 타점 (누나 재량) — 금액은 모의 100만 고정 (실제 보유 수량·금액은 공개 저장소에 남기지 않음)
     ex_msgs = []
     for e in (payload.get("exits") or [])[:12]:
@@ -453,6 +460,15 @@ def record_pb(payload: dict, send: bool = True) -> str:
                payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
                f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
+    rl = payload.get("real") or {}
+    if rl:
+        msg += ["", "💼 <b>실전 적용</b>: " + ("가능" if rl.get("ok") else "규칙상 비추천") + (f" · 총자산의 {rl['size_pct']*100:.0f}% 이내" if isinstance(rl.get("size_pct"), (int, float)) else "") + (" — " + str(rl.get("note")) if rl.get("note") else "")]
+    if bold and bold.get("ticker"):
+        bp = it["picks"]["PB🔥"]
+        msg += ["", f"🔥 <b>공격 베팅</b>: {bp['name']} {bp['notional']/10000:,.0f}만 · " + ex_lbl.get(bp["exit"], bp["exit"]) + " 청산", str(bold.get("why", ""))]
+        pl2 = plan_line(bold.get("plan"))
+        if pl2:
+            msg.append(pl2)
     if ex_msgs:
         msg += ["", "<b>보유 종목 매도 타점</b> (5거래일 뒤 종가 채점)", *ex_msgs]
     if send:
