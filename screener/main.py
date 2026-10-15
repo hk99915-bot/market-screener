@@ -143,7 +143,11 @@ def main() -> None:
     try:
         if a.mode == "quotes":
             print(live.snapshot())
-        elif a.mode == "dashboard":   # 알림 없이 웹 데이터만 다시 생성
+        elif a.mode == "dashboard":   # 알림 없이 웹 데이터 갱신 (리포트·요약 수집 포함)
+            try:
+                research.update_store()
+            except Exception as e:  # noqa: BLE001
+                log.warning("리포트 갱신 실패: %s", e)
             dashboard.build()
         elif a.mode == "dart":        # 알림 없이 공시만 수집 (최근 7일)
             from . import dart
