@@ -87,4 +87,8 @@ jobs:
           git config user.email "screener-bot@users.noreply.github.com"
           for p in reports universe data/research.parquet data/dart.parquet data/signals.parquet data/short_hist.parquet; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "briefing: ${{ steps.m.outputs.mode }} $(date -u +%FT%H:%M)"
-          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && break; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done; true
+          # 커밋 대상이 아닌 변경(예: 실행 중 교정된 data/kr_prices.parquet)이 남아 있으면 pull --rebase 가 거부돼 푸시가 조용히 실패함 → 치워둔다
+          git stash -q -u 2>/dev/null || true
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"; true
