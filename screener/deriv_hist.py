@@ -303,8 +303,7 @@ def run(task: str = "run", days: int = 0) -> dict:
         todo = [d for d in reversed(tds) if db[d].get("pcr_oi") is None or db[d].get("prog_nonarb") is None or db[d].get("fut_close") is None][:max(days, 0)]
     else:
         todo = tds[-5:]
-    done = 0
-    for d in todo:
+    def one(d: str) -> dict:
         dd = date.fromisoformat(d)
         row: dict = {"date": d}
         try:
@@ -317,15 +316,21 @@ def run(task: str = "run", days: int = 0) -> dict:
         except Exception as e:  # noqa: BLE001
             log.warning("%s 하루 소스 실패: %s", d, e)
             st["errors"].append(f"{d}: {e}")
-        _merge(db, [row])
-        done += 1
-        if done % 50 == 0:
+        return row
+
+    from concurrent.futures import ThreadPoolExecutor
+    done = 0
+    workers = 4 if task == "backfill" else 1
+    with ThreadPoolExecutor(workers) as ex:
+        for i in range(0, len(todo), 40):
+            for row in ex.map(one, todo[i:i + 40]):
+                _merge(db, [row])
+                done += 1
             save(list(db.values()))
-            log.info("백필 %d/%d (%s) %.0fs", done, len(todo), d, time.time() - t0)
-        if time.time() - t0 > 80 * 60:   # 워크플로 90분 제한 전에 저장하고 멈춤
-            log.warning("시간 제한 — %d/%d 에서 멈춤 (다음 실행이 이어서)", done, len(todo))
-            break
-        time.sleep(0.15)
+            log.info("하루 소스 %d/%d (%s) %.0fs", done, len(todo), todo[min(i + 39, len(todo) - 1)], time.time() - t0)
+            if time.time() - t0 > 80 * 60:   # 워크플로 90분 제한 전에 저장하고 멈춤
+                log.warning("시간 제한 — %d/%d 에서 멈춤 (다음 실행이 이어서)", done, len(todo))
+                break
     save(list(db.values()))
     rows = sorted(db.values(), key=lambda r: r["date"])
     cover = {}
