@@ -75,6 +75,12 @@ function getMacroHist() { return raw_('reports/macro_hist.json'); }
 function getStudy() { return raw_('reports/studies/crash_rebound.json'); }
 function getLab() { return raw_('reports/lab.json'); }
 function getBonds() { return raw_('reports/bonds.json'); }
+function getStudyGuide() { return raw_('content/study.json'); }
+function getDerivs() { return raw_('reports/derivs.json'); }
+function getMacroReleases() { return raw_('reports/macro_releases.json'); }
+function getEnglishLatest() { return raw_('reports/english/latest.json'); }
+function getEnglishAt(d) { return raw_('reports/english/' + d + '.json'); }
+function getEnglishIndex() { return raw_('reports/english/index.json'); }
 function getCalendar() { return raw_('reports/calendar.json'); }
 function getDecisions() { return raw_('reports/decisions.json'); }
 function getCommittee() { return raw_('reports/committee.json'); }
