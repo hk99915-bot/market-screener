@@ -37,6 +37,7 @@
     getStudy: () => get('reports/studies/crash_rebound.json'),
     getLab: () => get('reports/lab.json'),
     getBoard: () => get('ops/board.json'),
+    getTeam: () => get('ops/team.json'),
     getLocks: () => get('ops/locks.json'),
     getChangelog: () => get('reports/changelog.json'),
     getOpsDaily: (d) => get('reports/ops/daily/' + d + '.md').catch(() => ''),
@@ -1705,14 +1706,25 @@ function render(){
   if(v==='dart') dartFill();
 }
 /* ───── SYSTEM: 작업 보드 · 변경 이력 · 운영 상태 (ops/board.json · ops/locks.json · reports/changelog.json · reports/ops/runs.json · reports/health.json) ───── */
-const SYS={board:null,locks:null,chg:null,runs:null,health:null}; const SYSDAY={}; let SYSD='', SYSA='', SYSDR=false;
+const SYS={team:null,board:null,locks:null,chg:null,runs:null,health:null}; const SYSDAY={}; let SYSD='', SYSA='', SYSDR=false;
 function sysLoad(k,fn){ if(SYS[k]!==null) return; SYS[k]=false;
   google.script.run.withSuccessHandler(t=>{ try{ SYS[k]=typeof t==='string'?JSON.parse(t):(t||{}); }catch(e){ SYS[k]={}; } if(SYSV[view]) render(); })
     .withFailureHandler(()=>{ SYS[k]={}; if(SYSV[view]) render(); })[fn](); }
 const sysKst=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
 const sysPr=p=>p==='P0'?`<span class="tag r">P0</span>`:p==='P1'?`<span class="tag">P1</span>`:p==='P2'?`<span class="tag b">P2</span>`:`<span class="mu">${esc(p||'')}</span>`;
+function sysTeamHtml(T){   // 팀원별 업무량 — ops/team.json(완료 작업 실측) + 보드 상태
+  const M=SYS.team||{}, R=M.runs||[], E=M.earlier||{}, nm=x=>String(x||'').replace(/\s*누나$/,'').replace('팀장(PB)','PB');
+  const by={}; const g=k=>by[k]=by[k]||{n:0,tools:0,sec:0,tok:0,open:0,done:0,early:0};
+  R.forEach(r=>{ const o=g(nm(r.owner)); o.n++; o.tools+=r.tools||0; o.sec+=r.sec||0; o.tok+=r.tokens||0; });
+  Object.entries(E).forEach(([k,v])=>{ g(nm(k)).early+=v; });
+  (T||[]).forEach(t=>{ const o=g(nm(t.owner)); if(t.status==='완료') o.done++; else o.open++; });
+  const rows=Object.entries(by).sort((a,b)=>(b[1].tools-a[1].tools)||((b[1].n+b[1].early)-(a[1].n+a[1].early)));
+  if(!rows.length) return '';
+  const mx=Math.max(1,...rows.map(([,o])=>o.tools));
+  return `<div class="p c12"><h2>팀 업무량<small>ops/team.json · 도구 호출 수 순 · ${esc(M.updated||'')}</small></h2><div class="b"><table><tr><th class="l">담당</th><th>완료 작업</th><th>도구 호출</th><th class="l"></th><th>소요</th><th>토큰</th><th>보드 진행·대기</th></tr>${rows.map(([k,o])=>`<tr><td class="l am">${esc(k)}</td><td>${o.n}${o.early?` <span class="mu">+${o.early}</span>`:''}</td><td>${o.tools||'—'}</td><td class="l" style="min-width:90px"><div style="height:6px;background:var(--amber);opacity:.8;width:${Math.round(o.tools/mx*100)}%"></div></td><td class="mu">${o.sec?Math.round(o.sec/60)+'분':'—'}</td><td class="mu">${o.tok?(o.tok/1000).toFixed(0)+'k':'—'}</td><td>${o.open||'—'}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px;margin-top:4px">+N = 수치 기록 전 초기 작업 건수</div></div></div>`;
+}
 function sysBoardView(){
-  sysLoad('board','getBoard'); sysLoad('locks','getLocks');
+  sysLoad('board','getBoard'); sysLoad('locks','getLocks'); sysLoad('team','getTeam');
   if(SYS.board===false) return '<div class="load">LOADING …</div>';
   const B=SYS.board||{}, T=B.tasks||[], td=sysKst();
   if(!T.length) return '<div class="grid"><div class="p c12"><div class="b mu">작업 보드(ops/board.json)를 불러오지 못했습니다.</div></div></div>';
@@ -1722,7 +1734,7 @@ function sysBoardView(){
     const dep=(t.depends_on||[]).map(d=>`<span class="${ids.has(d)&&st[d]!=='완료'?'am':'mu'}">${esc(d)}</span>`).join(', ');
     return `<tr><td class="l">${sysPr(t.priority)}</td><td class="l" style="white-space:normal;min-width:180px"><b>${esc(t.title)}</b><div class="mu" style="font-size:11px">${esc(t.id)}${dep?' · 선행 '+dep:''}</div></td><td class="l am">${esc(t.owner)}</td><td class="mu">${esc(t.started||'—')}</td><td class="${late?'dn':soon?'am':''}">${esc(t.due||'—')}${late?' 지남':soon?' 오늘':''}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:140px">${t.repo==='private'?'private 전용':(t.files||[]).map(esc).join('<br>')||'—'}</td><td class="l" style="white-space:normal;font-size:11px;min-width:200px">${esc(t.notes||'')}</td></tr>`; };
   const cnt=ST.map(s=>`${s} ${T.filter(t=>t.status===s).length}`).join(' · ');
-  let h=`<div class="grid"><div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;
+  let h=`<div class="grid">${sysTeamHtml(T)}<div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;
   for(const s of ST){ const g=T.filter(t=>t.status===s).sort((a,b)=>pk(a)-pk(b)||String(a.due||'9').localeCompare(String(b.due||'9'))); if(!g.length) continue;
     h+=`<div class="am" style="margin:8px 0 2px;font-weight:700">${s} <span class="mu">${g.length}</span></div><table><tr><th class="l">우선</th><th class="l">작업</th><th class="l">담당</th><th>시작</th><th>기한</th><th class="l">파일</th><th class="l">메모</th></tr>${g.map(row).join('')}</table>`; }
   const share={}; T.filter(t=>t.status==='진행'||t.status==='검수').forEach(t=>(t.files||[]).forEach(f=>(share[f]=share[f]||[]).push(t.id)));

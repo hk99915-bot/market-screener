@@ -34,6 +34,7 @@ SHIM = """<script>
     getStudy: () => get('reports/studies/crash_rebound.json'),
     getLab: () => get('reports/lab.json'),
     getBoard: () => get('ops/board.json'),
+    getTeam: () => get('ops/team.json'),
     getLocks: () => get('ops/locks.json'),
     getChangelog: () => get('reports/changelog.json'),
     getOpsDaily: (d) => get('reports/ops/daily/' + d + '.md').catch(() => ''),
