@@ -347,7 +347,7 @@ def recommend(o: dict) -> list[str]:
     hc = o.get("hedge_cost")
     if hc is not None:
         out.append(f"환헤지 비용 ≈ 미국 3M − 한국 CD = {hc:+.2f}%p/년 — " + (
-            "헤지하면 미국채 이자의 상당 부분을 비용으로 냄. 비헤지는 환율이 수익을 좌우." if hc > 1 else
+            (f"헤지하면 미국 10년물 이자({u10:.2f}%)의 약 {hc / u10:.0%}를 비용으로 냄. 비헤지는 환율이 수익을 좌우." if u10 else "헤지 비용 큼.") if hc > 1 else
             "헤지 비용 부담 작음." if hc >= 0 else "헤지 시 오히려 이득(한국 단기금리가 더 높음)."))
     return out
 
@@ -562,7 +562,7 @@ def build() -> dict:
                 inf = yf.Ticker(t).info or {}
                 v = inf.get("yield") or inf.get("dividendYield")
                 if v:
-                    yinfo[t] = float(v) * (100 if float(v) < 1 else 1)
+                    yinfo[t] = round(float(v) * (100 if float(v) < 1 else 1), 2)
             except Exception:  # noqa: BLE001
                 pass
     except Exception:  # noqa: BLE001
