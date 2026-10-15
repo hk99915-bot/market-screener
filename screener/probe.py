@@ -163,7 +163,94 @@ def run() -> dict:
         out["close_cmp"] = cmp
     except Exception as e:  # noqa: BLE001
         out["close_cmp"] = "ERR " + str(e)[:300]
+    try:   # 종가 대조 2: 후보 소스별 10-13~15 OHLC
+        out["close_cmp2"] = _close_cmp2()
+    except Exception as e:  # noqa: BLE001
+        out["close_cmp2"] = "ERR " + traceback.format_exc()[-600:]
     p = REPORT_DIR / "logs" / "probe.json"
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     return {k: (v.get("status") if isinstance(v, dict) and "status" in v else "…") for k, v in out.items()}
+
+
+def _close_cmp2() -> dict:
+    import re
+    import requests as rq
+    from pykrx import stock as st
+    codes = {"005930": ".KS", "000660": ".KS", "009150": ".KS", "247540": ".KQ", "086520": ".KQ", "196170": ".KQ"}
+    days = ["20261013", "20261014", "20261015"]
+    res: dict = {c: {} for c in codes}
+    ua = {"User-Agent": UA["User-Agent"]}
+
+    def _safe(name, fn):
+        for c in codes:
+            try:
+                res[c][name] = fn(c)
+            except Exception as e:  # noqa: BLE001
+                res[c][name] = "ERR " + str(e)[:200]
+
+    # KRX 전종목 시세 (MDCSTAT01501) — 파이프라인이 쓰는 것
+    for d in days:
+        for mkt in ("KOSPI", "KOSDAQ"):
+            try:
+                df = st.get_market_ohlcv_by_ticker(d, market=mkt)
+                for c in codes:
+                    if c in df.index:
+                        r = df.loc[c]
+                        res[c].setdefault("krx_bytkr", {})[d] = [float(r["시가"]), float(r["고가"]), float(r["저가"]), float(r["종가"]), float(r["거래량"])]
+            except Exception as e:  # noqa: BLE001
+                res["_err_bytkr_" + d + mkt] = str(e)[:200]
+    # 원시 응답 필드 (1행)
+    try:
+        from pykrx.website.krx.market.core import 전종목시세
+        raw = 전종목시세().fetch(days[-1], "STK")
+        res["_bytkr_cols"] = list(raw.columns)
+        res["_bytkr_row"] = raw[raw["ISU_SRT_CD"] == "005930"].to_dict("records")
+    except Exception as e:  # noqa: BLE001
+        res["_bytkr_cols"] = "ERR " + str(e)[:200]
+    # KRX 개별종목 (MDCSTAT01701, 단순종가)
+    _safe("krx_bydate", lambda c: {str(i.date()): [float(x) for x in r[["시가", "고가", "저가", "종가", "거래량"]]]
+                                   for i, r in st.get_market_ohlcv(days[0], days[-1], c, adjusted=False).iterrows()})
+    # 네이버 fchart (pykrx adjusted=True 경로)
+    def _fchart(c):
+        t = rq.get(f"https://fchart.stock.naver.com/sise.nhn?symbol={c}&timeframe=day&count=5&requestType=0", headers=ua, timeout=10).text
+        return re.findall(r'data="([^"]+)"', t)
+    _safe("naver_fchart", _fchart)
+    # 네이버 모바일 일별 시세
+    _safe("naver_m_price", lambda c: [{k: x.get(k) for k in ("localTradedAt", "openPrice", "highPrice", "lowPrice", "closePrice", "accumulatedTradingVolume")}
+                                      for x in rq.get(f"https://m.stock.naver.com/api/stock/{c}/price?pageSize=4&page=1", headers=ua, timeout=10).json()])
+    # 네이버 차트 API
+    def _chart(c):
+        u = f"https://api.stock.naver.com/chart/domestic/item/{c}/day?startDateTime=202610130000&endDateTime=202610152359"
+        r = rq.get(u, headers=ua, timeout=10)
+        try:
+            j = r.json()
+        except Exception:  # noqa: BLE001
+            return {"status": r.status_code, "head": r.text[:300]}
+        return j if isinstance(j, list) else {"status": r.status_code, "head": str(j)[:600]}
+    _safe("naver_chart", _chart)
+    # 네이버 PC 일별 시세 (sise_day)
+    def _sday(c):
+        t = rq.get(f"https://finance.naver.com/item/sise_day.naver?code={c}&page=1", headers=ua, timeout=10).content.decode("euc-kr", "ignore")
+        rows = re.findall(r'<span class="tah p10 gray03">(\d{4}\.\d\d\.\d\d)</span>(.*?)</tr>', t, re.S)
+        o = {}
+        for d, rest in rows[:4]:
+            nums = re.findall(r'>([\d,]+)<', rest)
+            o[d] = nums
+        return o
+    _safe("naver_sise_day", _sday)
+    # 네이버 basic (현재)
+    _safe("naver_basic", lambda c: (lambda j: {**{k: j.get(k) for k in ("closePrice", "compareToPreviousClosePrice", "fluctuationsRatio", "marketStatus", "localTradedAt", "stockExchangeType", "tradeStopType")},
+                                                 "over": {k: (j.get("overMarketPriceInfo") or {}).get(k) for k in ("overPrice", "overMarketStatus", "tradingSessionType", "localTradedAt")}})
+                                    (rq.get(f"https://m.stock.naver.com/api/stock/{c}/basic", headers=ua, timeout=10).json()))
+    # 야후
+    try:
+        import yfinance as yf
+        syms = [c + s for c, s in codes.items()]
+        y = yf.download(syms, start="2026-10-13", auto_adjust=False, group_by="ticker", progress=False)
+        for c, s in codes.items():
+            d = y[c + s].dropna(subset=["Close"])
+            res[c]["yahoo"] = {str(i.date()): [float(r["Open"]), float(r["High"]), float(r["Low"]), float(r["Close"]), float(r["Volume"])] for i, r in d.iterrows()}
+    except Exception as e:  # noqa: BLE001
+        res["_yahoo"] = "ERR " + str(e)[:200]
+    return res
