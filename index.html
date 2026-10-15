@@ -768,7 +768,7 @@ function lifeView(){
   if(tk&&!LIFE&&!LIFEERR) setTimeout(()=>pbGet('life/summary.json').then(t=>{ LIFE=JSON.parse(t); if(view==='life') lifeFill(); }).catch(e=>{ LIFEERR=e.message; const b=$('#lifeb'); if(b) b.innerHTML=`<div class="p c12"><div class="b dn">불러오기 실패(${esc(e.message)}) — 토큰 권한(pb-private Contents: Read) 확인 · <a href="#" onclick="LIFEERR='';render();return false">다시 시도</a></div></div>`; }),0);
   else if(LIFE) setTimeout(lifeFill,0);
   const head=`<div class="p c12"><h2>LIFE<small>가계부 · 커리어 · 건강 · 목표 · 비공개 저장소(pb-private/life)에서 이 브라우저로 직접 읽음</small></h2><div class="b mu" style="font-size:12px;white-space:normal">
-    업데이트 방법: 뱅샐 내보내기 파일·운동·지원 현황은 PB(누나)에게 보내면 비공개 저장소에 반영돼요. <a href="#" onclick="LIFE=null;LIFEERR='';render();return false">새로고침</a></div></div>`;
+    업데이트 방법: 뱅샐 내보내기 파일·운동·지원 현황은 PB에게 보내면 비공개 저장소에 반영돼요. <a href="#" onclick="LIFE=null;LIFEERR='';render();return false">새로고침</a></div></div>`;
   if(!tk) return `<div class="grid">${head}<div class="p c12"><div class="b" style="white-space:normal">이 탭은 비공개 저장소 토큰이 있어야 보여요. <a href="#" onclick="setView('my');return false">MY 탭 → 토큰 설정</a>에서 읽기 전용 토큰을 저장한 뒤 돌아오세요.</div></div></div>`;
   return `<div class="grid">${head}<div id="lifeb" style="display:contents"><div class="p c12"><div class="b mu">${LIFEERR?'불러오기 실패('+esc(LIFEERR)+') · <a href="#" onclick="LIFEERR=\'\';render();return false">다시 시도</a>':'불러오는 중…'}</div></div></div></div>`;
 }
@@ -809,7 +809,7 @@ function lifeFill(){
     (C.story_bank||[]).map(s=>`<div style="border:1px solid var(--line);padding:8px;white-space:normal"><div class="am" style="font-weight:700">${esc(s['경험명'])}</div><div style="font-size:15px;margin:4px 0"><b>${esc(s['정량 결과'])}</b></div><div class="mu" style="font-size:12px">${esc(s['자소서 한 줄'])}</div></div>`).join('')+`</div></div></div>`;
   const Hh=S.health||{}, wk=Hh.weekly||[];
   const health=`<div class="p c6"><h2>HEALTH · 주간<small>health/weekly.csv</small></h2><div class="b">`+(wk.length?`<table><tr><th class="l">주</th><th>체중(kg)</th><th>운동(회)</th><th class="l">메모</th></tr>${wk.slice().reverse().map(w=>`<tr><td class="l">${esc(w.date)}</td><td>${esc(w.weight_kg||'—')}</td><td class="${+w.workouts_count>=3?'up':'am'}">${esc(w.workouts_count||'0')}</td><td class="l mu">${esc(w.note||'')}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px">최근 4주 평균 운동 ${Hh.weekly_workouts_avg4==null?'—':Hh.weekly_workouts_avg4.toFixed(1)}회/주</div>`
-      :`<div class="mu" style="white-space:normal;padding:10px 0">기록 시작 전 — 누나한테 '이번 주 체중 OO, 운동 N회'라고 보내면 기록해줄게</div>`)+`</div></div>`;
+      :`<div class="mu" style="white-space:normal;padding:10px 0">기록 시작 전 — '이번 주 체중 OO, 운동 N회'를 폰 입력 폼이나 PB 대화로 보내면 기록돼요</div>`)+`</div></div>`;
   const body=lifeHealthBody(Hh);
   const fv=(g,v)=>v==null||v===''?'—':(g.unit==='원'?M(+v):isNaN(+v)?esc(v):(+v).toLocaleString('ko-KR',{maximumFractionDigits:1}));
   const goals=`<div class="p c6"><h2>GOALS<small>goals/goals.csv</small></h2><div class="b"><table><tr><th class="l">영역</th><th class="l">목표</th><th>현재</th><th>목표치</th><th class="l" style="width:22%">진행</th><th class="l">기한</th></tr>`+
@@ -839,7 +839,7 @@ function lifeHealthBody(H){
   const spark=pts=>{ if(!pts||pts.length<2) return ''; const v=pts.map(p=>p[1]), lo=Math.min(...v), hi=Math.max(...v), r=hi-lo||1; return `<svg viewBox="0 0 60 16" style="width:60px;height:16px;vertical-align:middle"><polyline fill="none" style="stroke:var(--amber)" stroke-width="1.2" points="${v.map((x,i)=>(i/(v.length-1)*60).toFixed(1)+','+(15-(x-lo)/r*14).toFixed(1)).join(' ')}"/></svg>`; };
   const lifts=Object.entries(L).sort((a,b)=>b[1].sessions-a[1].sessions);
   const liftT=lifts.length?`<table><tr><th class="l">종목</th><th>최근 e1RM</th><th>4주</th><th>최고</th><th>세션</th><th class="l">추세</th></tr>${lifts.map(([n,x])=>`<tr><td class="l">${esc(n)}</td><td><b>${f1(x.latest)}</b></td><td>${sg(x.d_4w,'up')}</td><td class="mu">${f1(x.best)}</td><td class="mu">${x.sessions}</td><td class="l">${spark(x.series)}</td></tr>`).join('')}</table>`
-    :`<div class="mu" style="white-space:normal;font-size:12px">세트 기록 없음 — '스쿼트 60×8×3' 처럼 누나한테 보내면 e1RM(무게×(1+반복/30)) 추세가 떠요. 감량기엔 e1RM 유지 = 근육 지키는 중.</div>`;
+    :`<div class="mu" style="white-space:normal;font-size:12px">세트 기록 없음 — '스쿼트 60×8×3' 처럼 PB 대화로 보내면 e1RM(무게×(1+반복/30)) 추세가 떠요. 감량기엔 e1RM 유지 = 근육 지키는 중.</div>`;
   const hasSeries=(S.weight||[]).length+(S.smm||[]).length+(S.fat_kg||[]).length>0;
   return `<div class="p c12"><h2>HEALTH · Q4 체성분<small>목표: 체지방량↓ · 골격근량 유지 · 기록은 폰 폼이 원본(브라우저 메모는 기기 바뀌면 사라짐) · ${forms}</small></h2><div class="b" style="white-space:normal">`+
     (any?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px">${tiles}</div>`:`<div class="mu" style="padding:6px 0">측정값 없음 — ${forms}</div>`)+

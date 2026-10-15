@@ -100,7 +100,7 @@ def run(send: bool = True) -> dict | None:
     p = c["pick"]
     msg = ["🎯 <b>진입 타점 대결</b> · " + now.strftime("%m/%d %H:%M"), *[f"• {x}" for x in c["lines"]], "",
            "<b>규칙</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 종가 진입 → 다음날 시가 청산"),
-           "  " + c["why"], "<i>PB(누나) 판단은 따로 옴</i>", "",
+           "  " + c["why"], "<i>PB 판단은 따로 옴</i>", "",
            "<b>겸이 판단은?</b> 15:30 전까지 제출",
            f"<a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
            f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url(d, '종목코드 금액 시가')}\">직접 입력</a>"]
@@ -207,7 +207,7 @@ def run_us(send: bool = True) -> dict | None:
     dl = us_open_kst(d).astimezone(KST)
     msg = ["🗽 <b>미장 진입 타점 대결</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})", *[f"• {x}" for x in c["lines"]], "",
            "<b>규칙</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 시가 진입 → 당일 종가 청산"),
-           "  " + c["why"], "<i>PB(누나) 판단은 따로 옴</i>", "",
+           "  " + c["why"], "<i>PB 판단은 따로 옴</i>", "",
            f"<b>겸이 판단은?</b> 미장 시작(09:30 ET = {dl:%H:%M} KST) 전까지 제출",
            _us_links(d)]
     if send:
@@ -379,8 +379,8 @@ def plan_line(pl: dict | None) -> str | None:
 
 
 def record_pb(payload: dict, send: bool = True) -> str:
-    """PB(누나) 재량 판단 기록 — 예약 세션이 데이터를 읽고 판단해 workflow_dispatch(pb_call)로 넘김.
-    payload: {"pick": {"ticker","notional","exit"} | {"cash": true}, "why": str, "lines": [..], "conviction": "낮음|보통|높음"}"""
+    """PB 재량 판단 기록 — 예약 세션이 데이터를 읽고 판단해 workflow_dispatch(pb_call)로 넘김.
+    payload: {"pick": {"ticker","notional","exit"} | {"cash": true}, "why": str(공식 기록·터미널용 중립 말투), "tg": str(선택, 텔레그램 전용 말투), "lines": [..], "conviction": "낮음|보통|높음"}"""
     from . import decisions
     now = datetime.now(KST)
     us = str(payload.get("market", "")).upper() == "US"
@@ -418,7 +418,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
         it["picks"]["PB🔥"] = {"ticker": bt, "name": bold.get("name") or NAMES.get(bt, bt), "notional": float(bold.get("notional") or NOTIONAL),
                               "entry": pk.get("entry", "close"), "exit": bold.get("exit") or pk.get("exit") or "next_open", "by": "PB 공격", "at": pk["at"]}
         it["pb_view"]["bold"] = {"why": bold.get("why", ""), "plan": bold.get("plan") or None}
-    # 보유 종목 매도 타점 (누나 재량) — 금액은 모의 100만 고정 (실제 보유 수량·금액은 공개 저장소에 남기지 않음)
+    # 보유 종목 매도 타점 (PB 재량) — 금액은 모의 100만 고정 (실제 보유 수량·금액은 공개 저장소에 남기지 않음)
     ex_msgs = []
     for e in (payload.get("exits") or [])[:12]:
         code = str(e.get("ticker", "")).strip()
@@ -462,12 +462,12 @@ def record_pb(payload: dict, send: bool = True) -> str:
         dl = us_open_kst(d).astimezone(KST)
         msg = ["💬 <b>PB 판단 · 미장</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})" + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
                "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 시가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               payload.get("why", ""), plan_line(payload.get("plan")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               (payload.get("tg") or payload.get("why", "")), plan_line(payload.get("plan")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: {_us_links(d)} (미장 시작 {dl:%H:%M} KST 전)"]
     else:
         msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
                "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               payload.get("why", ""), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               (payload.get("tg") or payload.get("why", "")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
                f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
     rl = payload.get("real") or {}
