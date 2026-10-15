@@ -124,7 +124,7 @@ def _load(p, schema) -> pl.DataFrame:
 def update_multi(codes: list[str], cmap: dict[str, str], refetch_last: int = 2) -> int:
     old = _load(MULTI, MULTI_SCHEMA)
     have = set(zip(old["year"].to_list(), old["reprt"].to_list())) if len(old) else set()
-    pers = periods()
+    pers = periods(6)   # 주요계정은 6년치: 이익 정상화(사이클 평균 ROE)에 한 사이클 이상 필요
     todo = [p for p in pers if p not in have] + [p for p in pers[-refetch_last:] if p in have]
     corp = [cmap[c] for c in codes if c in cmap]
     back = {v: k for k, v in cmap.items()}
