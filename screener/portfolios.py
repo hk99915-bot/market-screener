@@ -193,7 +193,7 @@ def run(start_bt: str = "2011-01-01") -> dict:
     mat = np.array([res[k]["rets"][-L:] for k in keys])
     corr = np.corrcoef(mat).round(2).tolist() if L > 12 else []
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "base": "KRW (롱숏·스트래들은 USD)",
-           "data_to": str(kp.index[-1].date()),   # 월말 라벨(10-31)이 아닌 실제 마지막 거래일 "cost": COST,
+           "data_to": str(kp.index[-1].date()), "cost": COST,   # data_to: 월말 라벨이 아닌 실제 마지막 거래일
            "strategies": [{"name": k, "stats": v["stats"], "now": {LABEL.get(a, a): round(w, 3) for a, w in v["now"].items()},
                            "curve": v["curve"], "note": v.get("note", "")} for k, v in res.items()],
            "corr": {"names": keys, "matrix": corr}}
