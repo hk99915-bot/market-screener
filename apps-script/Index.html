@@ -199,7 +199,7 @@ html.stealth .brand{letter-spacing:0}
   <div class="srch"><input id="sq" placeholder="종목·티커 검색 (예: 삼성전자, 005930, NVDA)" autocomplete="off"><div id="sres"></div></div>
   <div class="tabs">
     <button class="on" data-g="home">HOME</button><button data-g="my">MY</button><button data-g="life">LIFE</button><button data-g="mkt">MARKET</button>
-    <button data-g="daily">DAILY</button><button data-g="res">RESEARCH</button><button data-g="quant">QUANT</button><button data-g="study">STUDY</button>
+    <button data-g="daily">DAILY</button><button data-g="res">RESEARCH</button><button data-g="quant">QUANT</button><button data-g="study">STUDY</button><button data-g="sys">SYSTEM</button>
   </div>
 </div>
 <div id="xlrib"><span>파일</span><b>홈</b><span>삽입</span><span>그리기</span><span>페이지 레이아웃</span><span>수식</span><span>데이터</span><span>검토</span><span>보기</span><span>도움말</span></div>
@@ -1547,10 +1547,97 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||'');
   tape();
   const v=view;
+  if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
   $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
+/* ───── SYSTEM: 작업 보드 · 변경 이력 · 운영 상태 (ops/board.json · ops/locks.json · reports/changelog.json · reports/ops/runs.json · reports/health.json) ───── */
+const SYS={board:null,locks:null,chg:null,runs:null,health:null}; const SYSDAY={}; let SYSD='', SYSA='', SYSDR=false;
+function sysLoad(k,fn){ if(SYS[k]!==null) return; SYS[k]=false;
+  google.script.run.withSuccessHandler(t=>{ try{ SYS[k]=typeof t==='string'?JSON.parse(t):(t||{}); }catch(e){ SYS[k]={}; } if(SYSV[view]) render(); })
+    .withFailureHandler(()=>{ SYS[k]={}; if(SYSV[view]) render(); })[fn](); }
+const sysKst=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+const sysPr=p=>p==='P0'?`<span class="tag r">P0</span>`:p==='P1'?`<span class="tag">P1</span>`:p==='P2'?`<span class="tag b">P2</span>`:`<span class="mu">${esc(p||'')}</span>`;
+function sysBoardView(){
+  sysLoad('board','getBoard'); sysLoad('locks','getLocks');
+  if(SYS.board===false) return '<div class="load">LOADING …</div>';
+  const B=SYS.board||{}, T=B.tasks||[], td=sysKst();
+  if(!T.length) return '<div class="grid"><div class="p c12"><div class="b mu">작업 보드(ops/board.json)를 불러오지 못했습니다.</div></div></div>';
+  const ST=['진행','검수','대기','보류','완료'], pk=t=>['P0','P1','P2','P3'].indexOf(t.priority);
+  const ids=new Set(T.map(t=>t.id)), st=Object.fromEntries(T.map(t=>[t.id,t.status]));
+  const row=t=>{ const late=t.due&&t.due<td&&t.status!=='완료', soon=!late&&t.due&&t.due<=td&&t.status!=='완료';
+    const dep=(t.depends_on||[]).map(d=>`<span class="${ids.has(d)&&st[d]!=='완료'?'am':'mu'}">${esc(d)}</span>`).join(', ');
+    return `<tr><td class="l">${sysPr(t.priority)}</td><td class="l" style="white-space:normal;min-width:180px"><b>${esc(t.title)}</b><div class="mu" style="font-size:11px">${esc(t.id)}${dep?' · 선행 '+dep:''}</div></td><td class="l am">${esc(t.owner)}</td><td class="mu">${esc(t.started||'—')}</td><td class="${late?'dn':soon?'am':''}">${esc(t.due||'—')}${late?' 지남':soon?' 오늘':''}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:140px">${t.repo==='private'?'private 전용':(t.files||[]).map(esc).join('<br>')||'—'}</td><td class="l" style="white-space:normal;font-size:11px;min-width:200px">${esc(t.notes||'')}</td></tr>`; };
+  const cnt=ST.map(s=>`${s} ${T.filter(t=>t.status===s).length}`).join(' · ');
+  let h=`<div class="grid"><div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;
+  for(const s of ST){ const g=T.filter(t=>t.status===s).sort((a,b)=>pk(a)-pk(b)||String(a.due||'9').localeCompare(String(b.due||'9'))); if(!g.length) continue;
+    h+=`<div class="am" style="margin:8px 0 2px;font-weight:700">${s} <span class="mu">${g.length}</span></div><table><tr><th class="l">우선</th><th class="l">작업</th><th class="l">담당</th><th>시작</th><th>기한</th><th class="l">파일</th><th class="l">메모</th></tr>${g.map(row).join('')}</table>`; }
+  const share={}; T.filter(t=>t.status==='진행'||t.status==='검수').forEach(t=>(t.files||[]).forEach(f=>(share[f]=share[f]||[]).push(t.id)));
+  const hot=Object.entries(share).filter(([,a])=>a.length>1);
+  if(hot.length) h+=`<div class="mu" style="font-size:11.5px;margin-top:8px;white-space:normal">충돌 주의 — ${hot.map(([f,a])=>`<span class="am">${esc(f)}</span> ← ${a.map(esc).join(', ')}`).join(' · ')} (편집 전 잠금 필수)</div>`;
+  h+=`</div></div>`;
+  const L=(SYS.locks&&SYS.locks.locks)||[];
+  const age=s=>{ const t=Date.parse(s); return isNaN(t)?null:(Date.now()-t)/3600e3; };
+  h+=`<div class="p c12"><h2>파일 잠금<small>ops/locks.json · 규칙 ops/LOCKS.md</small></h2><div class="b">${SYS.locks===false?'<span class="mu">LOADING …</span>':L.length?`<table><tr><th class="l">파일</th><th class="l">담당</th><th class="l">작업</th><th>시작</th></tr>${L.map(x=>{ const a=age(x.since); return `<tr><td class="l">${esc(x.file)}</td><td class="l am">${esc(x.owner)}</td><td class="l">${esc(x.task||'')}</td><td class="${a>6?'dn':'mu'}">${esc(x.since||'')}${a>6?` · ${Math.round(a)}시간 방치`:''}</td></tr>`; }).join('')}</table>`:'<span class="mu">잠금 없음</span>'}</div></div></div>`;
+  return h;
+}
+function sysSetD(d){ SYSD=d; SYSDR=false; render(); }
+function sysSetA(a){ SYSA=a; render(); }
+function sysDaily(){ SYSDR=!SYSDR; const d=SYSD; if(SYSDR&&SYSDAY[d]===undefined){ SYSDAY[d]=false;
+  google.script.run.withSuccessHandler(t=>{ SYSDAY[d]=t||''; if(view==='sysc') render(); }).withFailureHandler(()=>{ SYSDAY[d]=''; if(view==='sysc') render(); }).getOpsDaily(d); }
+  render(); }
+function sysChgView(){
+  sysLoad('chg','getChangelog');
+  if(SYS.chg===false) return '<div class="load">LOADING …</div>';
+  const C=SYS.chg||{}, DS=C.days||[];
+  if(!DS.length) return '<div class="grid"><div class="p c12"><div class="b mu">변경 이력(reports/changelog.json) 없음 — ops 워크플로 실행 전</div></div></div>';
+  if(!DS.some(d=>d.date===SYSD)) SYSD=DS[0].date;
+  const i=DS.findIndex(d=>d.date===SYSD), day=DS[i];
+  if(SYSA&&!day.areas.some(a=>a.area===SYSA)) SYSA='';
+  const sel=`<select onchange="sysSetD(this.value)" style="background:var(--panel);color:var(--txt);border:1px solid var(--line);font:inherit;padding:2px 4px">${DS.map(d=>`<option value="${d.date}"${d.date===SYSD?' selected':''}>${d.date} · 작업 ${d.work} · 자동 ${d.auto}</option>`).join('')}</select>`;
+  const nav=`<button class="sbtn" ${i<DS.length-1?`onclick="sysSetD('${DS[i+1].date}')"`:'disabled'}>◀ 이전</button> ${sel} <button class="sbtn" ${i>0?`onclick="sysSetD('${DS[i-1].date}')"`:'disabled'}>다음 ▶</button>`;
+  const chips=[['','전체 '+day.work]].concat(day.areas.map(a=>[a.area,a.label+' '+a.n])).map(([k,n])=>`<span class="tag ${SYSA===k?'':'b'}" style="cursor:pointer;margin:2px 4px 2px 0" onclick="sysSetA('${k}')">${esc(n)}</span>`).join('');
+  const by=day.by||{}, byT=[['agent','에이전트'],['human','사람'],['bot','봇 계정']].filter(([k])=>by[k]).map(([k,n])=>`${n} ${by[k]}`).join(' · ');
+  const items=day.areas.filter(a=>!SYSA||a.area===SYSA).flatMap(a=>a.items.map(x=>({...x,label:a.label}))).sort((a,b)=>b.time.localeCompare(a.time));
+  const rows=items.map(x=>`<tr><td class="mu">${esc(x.time)}</td><td class="l am">${esc(x.label)}</td><td class="l" style="white-space:normal;min-width:260px">${esc(x.summary)}${(x.tasks||[]).map(t=>` <span class="tag b">${esc(t)}</span>`).join('')}</td><td class="mu" style="font-size:10.5px">${esc(x.sha)}</td></tr>`).join('');
+  const au=day.auto_updates||{}, ak=Object.entries(au.kinds||{});
+  const tk=Object.entries(day.tasks||{});
+  const dr=SYSDR?(SYSDAY[SYSD]===false||SYSDAY[SYSD]===undefined?'<div class="mu">LOADING …</div>':SYSDAY[SYSD]?(typeof mdLite==='function'?mdLite(SYSDAY[SYSD]):`<pre>${esc(SYSDAY[SYSD])}</pre>`):'<div class="mu">이 날 작업내역 보고 없음</div>'):'';
+  return `<div class="grid"><div class="p c12"><h2>변경 이력<small>${esc(C.generated_at||'')} 생성 · ${esc(C.first||'')}부터 · ${DS.length}일</small></h2><div class="b">
+    <div style="margin-bottom:6px">${nav} <button class="sbtn" onclick="sysDaily()">${SYSDR?'작업내역 보고 닫기':'작업내역 보고'}</button></div>
+    <div style="margin-bottom:4px">커밋 <b>${day.total}</b> = 작업 <b>${day.work}</b> + <span class="mu">${esc(au.label||'자동 갱신 0회')}</span>${byT?` <span class="mu">· ${byT}</span>`:''}</div>
+    <div style="margin-bottom:6px">${chips}</div>
+    ${tk.length?`<div class="mu" style="font-size:11.5px;margin-bottom:6px;white-space:normal">작업별 커밋: ${tk.map(([k,n])=>`<span class="am">${esc(k)}</span> ${n}`).join(' · ')}</div>`:''}
+    ${dr?`<div style="border:1px solid var(--line);padding:6px 10px;margin-bottom:8px;white-space:normal">${dr}</div>`:''}
+    <table><tr><th>시각</th><th class="l">영역</th><th class="l">변경</th><th>커밋</th></tr>${rows||'<tr><td class="l mu" colspan="4">이 날 작업 커밋 없음</td></tr>'}</table>
+    ${au.n?`<details style="margin-top:8px"><summary class="mu" style="cursor:pointer">${esc(au.label)} (봇 산출물 커밋 — 접음)</summary><div class="mu" style="font-size:11.5px;padding:4px 0;white-space:normal">${ak.map(([k,n])=>`${esc(k)} ${n}`).join(' · ')}</div></details>`:''}
+  </div></div></div>`;
+}
+function sysOpsView(){
+  sysLoad('runs','getOpsRuns'); sysLoad('health','getHealth');
+  if(SYS.runs===false&&SYS.health===false) return '<div class="load">LOADING …</div>';
+  const R=SYS.runs||{}, W=R.workflows||[], G=R.gas||[], H=SYS.health||{}, tot=R.total||{};
+  const dl=v=>v==null?'<span class="mu">—</span>':`<span class="${v>60?'dn':v>20?'am':''}">${v}분</span>`;
+  const n0=(v,c)=>v?`<span class="${c}">${v}</span>`:'<span class="mu">0</span>';
+  const wrows=W.map(w=>{ const l=w.last||{}; const lc=l.conclusion==='success'?'up':l.conclusion==='failure'?'dn':'mu';
+    return `<tr><td class="l">${esc(w.name)}<div class="mu" style="font-size:10.5px">${esc((w.path||'').replace('.github/workflows/',''))}</div></td><td>${w.runs}</td><td>${n0(w.success,'up')}</td><td>${n0(w.failure,'dn')}</td><td>${n0(w.cancelled,'mu')}</td><td>${w.schedule}${w.cron_expected?`<span class="mu">/${w.cron_expected}</span>`:''}</td><td>${w.dispatch}</td><td>${w.cron_missed_est==null?'<span class="mu">—</span>':n0(w.cron_missed_est,'am')}</td><td>${dl(w.max_delay_min)}</td><td>${dl(w.avg_delay_min)}</td><td class="l">${l.at?`<a href="${esc(l.url||'#')}" target="_blank" class="${lc}">${esc(l.at)} ${esc(l.event==='schedule'?'예약':l.event==='workflow_dispatch'?'수동':l.event||'')} ${esc(l.conclusion||l.status||'')}</a>`:'<span class="mu">24h 실행 없음</span>'}</td></tr>`; }).join('');
+  const fl=W.flatMap(w=>(w.failures||[]).map(f=>({...f,name:w.name}))).sort((a,b)=>b.at.localeCompare(a.at)).slice(0,10);
+  const gs=R.gas_summary||{};
+  const grows=G.map(g=>`<tr><td class="l mu">${esc(g.slot)}</td><td class="l">${esc(g.workflow)}</td><td>${g.arrived?'<span class="up">도착</span>':'<span class="dn">없음</span>'}</td><td>${dl(g.delay_min)}</td></tr>`).join('');
+  const iss=H.issues||[], ok=H.ok||[], f7=Object.entries(H.fails7d||{});
+  return `<div class="grid"><div class="p c12"><h2>워크플로 실행 (최근 ${R.window_h||24}시간)<small>${esc(R.asof||'수집 전')} · 실행 ${tot.runs??'—'} · 성공 ${tot.success??'—'} · 실패 ${tot.failure??'—'} · 예약 ${tot.schedule??'—'} / 수동 ${tot.dispatch??'—'}</small></h2><div class="b">
+    ${W.length?`<table><tr><th class="l">워크플로</th><th>실행</th><th>성공</th><th>실패</th><th>취소</th><th>예약/예정</th><th>수동</th><th>누락 추정</th><th>최대 지연</th><th>평균 지연</th><th class="l">마지막</th></tr>${wrows}</table>`:'<span class="mu">runs.json 없음 — ops 워크플로 실행 전</span>'}
+    ${fl.length?`<div style="margin-top:8px"><b class="dn">최근 실패</b>${fl.map(f=>`<div style="font-size:11.5px"><a href="${esc(f.url||'#')}" target="_blank" class="dn">${esc(f.at)}</a> ${esc(f.name)} <span class="mu">${esc(f.event)} · ${esc(f.title||'')}</span></div>`).join('')}</div>`:''}
+    <div class="mu" style="font-size:11px;margin-top:6px;white-space:normal">${esc(R.note||'')}</div></div></div>
+  <div class="p c6"><h2>백업 예약기 (GAS) 도착<small>${gs.slots?`${gs.arrived}/${gs.slots} 도착 · 최대 지연 ${gs.max_delay_min??'—'}분`:''}</small></h2><div class="b">
+    ${G.length?`<table><tr><th class="l">슬롯 (KST)</th><th class="l">워크플로</th><th>dispatch</th><th>지연</th></tr>${grows}</table><div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">슬롯 후 30분 안에 같은 워크플로의 수동 실행이 생겼는지로 판정 (사람이 누른 수동 실행도 도착으로 셈).</div>`:'<span class="mu">최근 24시간 슬롯 없음</span>'}</div></div>
+  <div class="p c6"><h2>자가점검<small>${esc(H.asof||'reports/health.json 없음')}</small></h2><div class="b">
+    ${iss.length?iss.map(x=>`<div class="dn">✗ ${esc(typeof x==='string'?x:JSON.stringify(x))}</div>`).join(''):'<div class="up">이상 없음</div>'}
+    ${ok.map(x=>`<div class="mu">✓ ${esc(x)}</div>`).join('')}
+    ${f7.length?`<div style="margin-top:6px">최근 7일 실패: ${f7.map(([k,n])=>`<span class="${n?'dn':'mu'}">${esc(k)} ${n}</span>`).join(' · ')}</div>`:''}</div></div></div>`;
+}
+const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 /* ───── 종목 상세 ───── */
 const DET={};
 function openDetail(sym,mk){
@@ -1848,6 +1935,7 @@ const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   res:[['rep','리서치'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오']],
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
+GROUPS.sys=[['sysb','작업 보드'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
 const LASTV={}; let GRP='home';
 function groupOf(v){ for(const [g,a] of Object.entries(GROUPS)) if(a.some(x=>x[0]===v)) return g; return 'home'; }
 function setView(v){ GRP=groupOf(v); LASTV[GRP]=v; view=v;

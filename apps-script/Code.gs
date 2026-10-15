@@ -74,6 +74,13 @@ function getEvents() { return raw_('reports/events_stats.json'); }
 function getMacroHist() { return raw_('reports/macro_hist.json'); }
 function getStudy() { return raw_('reports/studies/crash_rebound.json'); }
 function getLab() { return raw_('reports/lab.json'); }
+// SYSTEM 탭 (운영): 작업 보드·잠금·변경 이력·작업내역 보고·워크플로 실행 통계·자가점검
+function getBoard() { return raw_('ops/board.json'); }
+function getLocks() { return raw_('ops/locks.json'); }
+function getChangelog() { return raw_('reports/changelog.json'); }
+function getOpsDaily(d) { try { return raw_('reports/ops/daily/' + d + '.md'); } catch (e) { return ''; } }
+function getOpsRuns() { return raw_('reports/ops/runs.json'); }
+function getHealth() { return raw_('reports/health.json'); }
 function getBonds() { return raw_('reports/bonds.json'); }
 function getStudyGuide() { return raw_('content/study.json'); }
 function getDerivs() { return raw_('reports/derivs.json'); }
