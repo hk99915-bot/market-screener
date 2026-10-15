@@ -2078,5 +2078,83 @@ load(); loadLive(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000)
     const a=document.getElementById('xlcell'), v=document.getElementById('xlfxv'); if(a) a.textContent=c+r; if(v) v.textContent=td.textContent.trim().slice(0,60); },true);
 })();
 </script>
+<script>
+/* ───── 사용 기록 (나만 보는 로컬 집계) ─────
+   이 브라우저 localStorage 에만 '일별 횟수'를 쌓는다. 외부 전송·분석 도구 없음.
+   내보내기 = 비공개 저장소 이슈 폼을 미리 채워 여는 링크(쓰기 토큰 불필요) → 워크플로가 usage/*.csv 에 반영. */
+(function(){
+  const K='mt_usage_v1', KEEP=180, REPO='hk99915-bot/pb-private';
+  const GRPS=['home','my','life','mkt','daily','res','quant','study','sys'];
+  const EVS=['detail','panel','duel','study_chk','quiz','quiz_ok','export'];
+  const kst=()=>new Date(Date.now()+9*3600e3);              // KST 기준 날짜·시각
+  const dkey=()=>kst().toISOString().slice(0,10);
+  const hr=()=>kst().getUTCHours()+kst().getUTCMinutes()/60;
+  let S; try{ S=JSON.parse(localStorage.getItem(K)||'null'); }catch(e){ S=null; }
+  if(!S||typeof S!=='object'||!S.d) S={v:1,d:{},x:null};
+  if(!S.dev) S.dev=Math.random().toString(36).slice(2,6);   // 기기 구분용 임의 4자 (폰·PC 기록을 합칠 때 덮어쓰기 방지)
+  const save=()=>{ const ks=Object.keys(S.d).sort(); ks.slice(0,Math.max(0,ks.length-KEEP)).forEach(k=>delete S.d[k]);
+    try{ localStorage.setItem(K,JSON.stringify(S)); }catch(e){} };
+  const day=()=>{ const k=dkey(); return S.d[k]||(S.d[k]={s:0,g:{},sv:{},e:{},mh:0,nt:0,t0:null,t1:null}); };
+  const hm=()=>kst().toISOString().slice(11,16);
+  function bump(kind,name){ try{ const D=day(), h=hr(); D.t0=D.t0||hm(); D.t1=hm();
+      try{ D.st=Object.keys(JSON.parse(localStorage.getItem('mt_study_done')||'{}')).length; }catch(_){}   // 스터디 완료 모듈 수 스냅샷
+      if(kind==='g'){ D.g[name]=(D.g[name]||0)+1; if(document.documentElement.classList.contains('xl')) D.xl=(D.xl||0)+1;   // 엑셀 스킨(사무실 모드) 상태에서 연 화면
+        if(name==='mkt'||name==='home'){ if(h>=9&&h<15.5) D.mh++; if(h>=21||h<7) D.nt++; } }   // 장중(09–15:30)·미장 시간(21–07) 시세 화면 확인
+      else if(kind==='sv') D.sv[name]=(D.sv[name]||0)+1;
+      else D.e[name]=(D.e[name]||0)+1;
+      save(); }catch(e){} }
+  // 세션: 탭을 연 뒤 30분 넘게 비활성이었다가 돌아오면 새 세션
+  let last=0; const touch=()=>{ const n=Date.now(); if(n-last>30*60e3){ try{ day().s++; save(); }catch(e){} } last=n; };
+  touch(); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) touch(); });
+  // 화면 전환: 전역 setView 를 감싼다 (탭·하위 탭·코드에서 이동 모두 이 함수를 거침)
+  const gOf=v=>{ let g=v; try{ if(typeof groupOf==='function') g=groupOf(v); }catch(e){} return g==='system'?'sys':g; };
+  if(typeof window.setView==='function'){ const o=window.setView; let pg=null;
+    window.setView=function(v){ const g=gOf(v); touch(); if(g!==pg) bump('g',GRPS.includes(g)?g:'other'); pg=g; bump('sv',v); return o.apply(this,arguments); };
+    bump('g','home'); pg='home'; }
+  // 행동 이벤트(위임): 종목 상세·패널 펼침·대결 제출·스터디 체크·퀴즈
+  let lastSum=null;
+  document.addEventListener('click',e=>{ const t=e.target; if(!t||!t.closest) return; touch(); const sm=t.closest('summary'); lastSum=sm?sm.parentElement:null;
+    if(t.closest('.sym,[data-sym]')) bump('e','detail');
+    const a=t.closest('a[href*="/issues/new"]'); if(a&&/title=(pick|exit)/i.test(a.href)) bump('e','duel');
+    if(t.closest('#exgo')) bump('e','duel');
+    const ch=t.closest('[data-ch]'); if(ch){ const k=ch.dataset.ch; bump('e','quiz');
+      setTimeout(()=>{ const r=document.querySelector(`[data-res="${CSS.escape(k)}"]`); if(r&&/정답/.test(r.textContent)) bump('e','quiz_ok'); },0); }
+  },true);
+  document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.tagName==='DETAILS'&&d.open&&d===lastSum&&d.id!=='usagebox') bump('e','panel'); },true);
+  document.addEventListener('change',e=>{ const c=e.target; if(c&&c.matches&&c.matches('[data-mchk]')&&c.checked) bump('e','study_chk'); },true);
+
+  // ── 내보내기: 최근 7일(또는 마지막 내보내기 이후) 일별 CSV → 비공개 이슈 폼 ──
+  const HDR=['date','dev','sessions','first','last',...GRPS,'other','mkt_open_hours','night','detail','panel','duel','study_chk','quiz','quiz_ok','study_total','xl','top_sub'];
+  function rows(n){ const ks=Object.keys(S.d).sort().slice(-n);
+    return ks.map(k=>{ const D=S.d[k], top=Object.entries(D.sv||{}).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([a,b])=>a+':'+b).join(';');
+      return [k,S.dev,D.s||0,D.t0||'',D.t1||'',...GRPS.map(g=>(D.g||{})[g]||0),(D.g||{}).other||0,D.mh||0,D.nt||0,
+        ...['detail','panel','duel','study_chk','quiz','quiz_ok'].map(x=>(D.e||{})[x]||0),D.st||0,D.xl||0,top].join(','); }); }
+  function exportUrl(n){ const isoW=(()=>{ const d=kst(); d.setUTCHours(0,0,0,0); const w=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-w+3);
+      const y=d.getUTCFullYear(), f=new Date(Date.UTC(y,0,4)); return y+'-W'+String(1+Math.round(((d-f)/864e5-3+((f.getUTCDay()+6)%7))/7)).padStart(2,'0'); })();
+    const csv=[HDR.join(','),...rows(n)].join('\n');
+    return `https://github.com/${REPO}/issues/new?template=usage.yml&title=${encodeURIComponent('usage '+isoW)}&data=${encodeURIComponent(csv)}`; }
+  function summary(){ const ks=Object.keys(S.d).sort(), last7=ks.filter(k=>k>=new Date(Date.now()+9*3600e3-6*864e5).toISOString().slice(0,10));
+    const sum=(f)=>last7.reduce((a,k)=>a+f(S.d[k]),0);
+    const g=GRPS.map(x=>[x,sum(D=>(D.g||{})[x]||0)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
+    return {days:last7.length, all:ks.length, ses:sum(D=>D.s||0), g, mh:sum(D=>D.mh||0), duel:sum(D=>(D.e||{}).duel||0), chk:sum(D=>(D.e||{}).study_chk||0), quiz:sum(D=>(D.e||{}).quiz||0), x:S.x}; }
+  function box(){ const s=summary();
+    return `<details class="p c12" id="usagebox" style="margin-top:10px"><summary style="cursor:pointer;padding:6px 10px"><b>사용 기록</b> <span class="mu" style="font-size:11.5px">최근 7일 ${s.days}일 접속 · 세션 ${s.ses} · 이 브라우저에만 저장</span></summary>
+     <div class="b" style="font-size:12px;line-height:1.7;white-space:normal">
+      <div>탭별 열람(7일): ${s.g.map(([k,v])=>`<span style="margin-right:8px">${k.toUpperCase()} <b>${v}</b></span>`).join('')||'<span class="mu">아직 없음</span>'}</div>
+      <div>장중 시세 확인 <b>${s.mh}</b> · 대결 제출 클릭 <b>${s.duel}</b> · 스터디 체크 <b>${s.chk}</b> · 퀴즈 <b>${s.quiz}</b></div>
+      <div class="mu">기록 일수 ${s.all}일 · 마지막 내보내기 ${s.x||'없음'}</div>
+      <div style="margin-top:6px"><button class="sbtn" id="usgexp">사용 기록 내보내기 (최근 7일 → 비공개 이슈)</button> <button class="sbtn" id="usgexp28">28일</button> <button class="sbtn" id="usgclr" style="margin-left:8px">기록 지우기</button></div>
+      <div class="mu" style="font-size:11px">버튼을 누르면 비공개 저장소 이슈 폼이 채워진 채 열린다 → '제출'하면 usage/daily.csv·weekly.csv 에 반영. 주 1회(일요일 주간 리뷰 때) 권장.</div>
+     </div></details>`; }
+  function inject(){ try{ if(typeof view==='undefined'||(view!=='my'&&view!=='syso')) return; const r=document.getElementById('root'); if(!r||document.getElementById('usagebox')) return;
+      r.insertAdjacentHTML('beforeend',box());
+      const go=n=>{ S.x=dkey(); bump('e','export'); window.open(exportUrl(n),'_blank'); };
+      document.getElementById('usgexp').onclick=()=>go(7); document.getElementById('usgexp28').onclick=()=>go(28);
+      document.getElementById('usgclr').onclick=()=>{ if(confirm('이 브라우저의 사용 기록을 지울까요?')){ S={v:1,d:{},x:null,dev:S.dev}; save(); const b=document.getElementById('usagebox'); if(b) b.remove(); inject(); } };
+    }catch(e){} }
+  const root=document.getElementById('root'); if(root) new MutationObserver(()=>{ if(!document.getElementById('usagebox')) inject(); }).observe(root,{childList:true});
+  window.mtUsage={dump:()=>JSON.parse(JSON.stringify(S)), csv:n=>[HDR.join(','),...rows(n||7)].join('\n')};
+})();
+</script>
 </body>
 </html>
