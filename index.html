@@ -121,6 +121,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 .bg .bs{flex:1;height:8px;display:flex;background:#151515}.bg .bs i{display:block;height:100%}
 .bsv{width:100%;height:46px;display:block}.bsv .pl{fill:none;stroke:var(--amber);stroke-width:1.5}.bsv .g60{stroke:var(--up);stroke-dasharray:3 3;opacity:.6}.bsv .g40{stroke:var(--dn);stroke-dasharray:3 3;opacity:.6}.bsv .pd{fill:var(--amber)}
 .tg{font-size:13px;line-height:1.6}
+.rp .rt{margin:2px 0 2px 12px;font-size:12px}
 </style>
 </head>
 <body>
@@ -347,8 +348,9 @@ function repLine(r){
   const TC={'낙관':'up','긍정(유지)':'up','신중한 매수':'am','사실상 중립':'am','중립':'mu','사실상 매도':'dn','매도':'dn','의견 없음':'mu'};
   const tone=r.tone?`<span class="tone ${TC[r.tone]||'mu'}">${esc(r.tone)}${r.tone_why?` <i>${esc(r.tone_why)}</i>`:''}</span>`:'';
   const ev=(r.evidence||[]).map(x=>`<li>${esc(x)}</li>`).join('');
-  const body=(r.thesis||ev||r.risk||r.method)?`<div class="sm">${r.view?`<div><span class="k">핵심</span><b>${esc(r.view)}</b></div>`:''}<div><span class="k">논지</span>${esc(r.thesis||r.title||'')}</div>${ev?`<div><span class="k">근거</span><ul>${ev}</ul></div>`:''}${r.risk?`<div><span class="k">변수</span>${esc(r.risk)}</div>`:''}${r.method?`<div><span class="k">밸류</span>${esc(r.method)}</div>`:''}</div>`:(r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:'');
-  return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b>${anBadge(r)} · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} ${tone} ${r.link?`<a href="${esc(r.link)}" target="_blank">원문</a>`:''}</div>${body}</div>`;
+  const showThesis=r.thesis&&r.thesis!==r.title&&!r.view;   // 제목과 같은 '논지'는 정보가 없어 숨김
+  const body=(r.view||showThesis||ev||r.risk||r.method)?`<div class="sm">${r.view?`<div><span class="k">핵심</span><b>${esc(r.view)}</b></div>`:''}${showThesis?`<div><span class="k">논지</span>${esc(r.thesis)}</div>`:''}${ev?`<div><span class="k">근거</span><ul>${ev}</ul></div>`:''}${r.risk?`<div><span class="k">변수</span>${esc(r.risk)}</div>`:''}${r.method?`<div><span class="k">밸류</span>${esc(r.method)}</div>`:''}</div>`:(r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:'');
+  return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b>${anBadge(r)} · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} ${tone}</div><div class="rt">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title||'원문')}</a>`:esc(r.title||'')}${r.curated?'':' <span class="mu">· 자동 요약</span>'}</div>${body}</div>`;
 }
 function stockRows(ss,showSec){ if(!ss.length) return '<div class="mu">해당 기간 리포트 없음</div>';
   return `<table><tr><th></th><th class="l">종목</th>${showSec?'<th class="l">섹터</th>':''}<th class="l">핵심 뷰</th><th class="l">최근</th><th>종가</th></tr>${ss.map(s=>`<tr><td class="tg" title="증권사별 요약 펼치기">▸</td><td class="l am sym" data-sym="${esc(s.code)}" data-mk="KR">${esc(s.name)} <span class="mu">${esc(s.code)}</span></td>${showSec?`<td class="l mu">${esc(s.sector)}</td>`:''}<td class="l">${coreView(s)}</td><td class="l mu">${s.last.date}</td><td>${s.close?num(s.close):'—'}</td></tr><tr class="sub"><td></td><td colspan="${showSec?5:4}">${s.rs.map(repLine).join('')}</td></tr>`).join('')}</table>`; }
