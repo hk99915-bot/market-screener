@@ -1132,7 +1132,7 @@ document.addEventListener('click',e=>{const td=e.target.closest('td.sym,span.sym
 function renderEtf(sym,mk,s){
   const st=s.stats||{}, kr=mk==='KR', e=s.etf||{}, lk=e.look||{}, hs=e.holdings||[];
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
-  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`ETF${e.inverse?' · <span class="dn">인버스</span>':''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · as of ${esc(s.asof||'')}`;
+  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`ETF${e.inverse?' · <span class="dn">인버스</span>':''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${esc(s.asof||'')}${s.asof_label?` <span class="${s.asof_label.startsWith('장중')?'am':'mu'}">${esc(s.asof_label)}</span>`:''}`;
   const ch=Object.entries(lk.chains||{});
   let h=`<div class="grid">
    <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">1Y</button><button data-c="live">LIVE</button></span><small id="ch-note">일봉</small></h2><div class="b" id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div>
@@ -1159,7 +1159,7 @@ function renderDetail(sym,mk,s){
   window._DETASOF=s.asof;
   if(s.etf) return renderEtf(sym,mk,s);
   const st=s.stats||{}, kr=mk==='KR', sc=s.scenarios||{}, rs=s.research||{};
-  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market}${s.theme?` · <span class="am">${esc(s.theme)}</span>`:''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · as of ${s.asof||''}`;
+  $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market}${s.theme?` · <span class="am">${esc(s.theme)}</span>`:''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · ${esc(s.asof||'')}${s.asof_label?` <span class="${s.asof_label.startsWith('장중')?'am':'mu'}">${esc(s.asof_label)}</span>`:''}`;
   const kv=o=>`<div class="kv">${Object.entries(o).map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;
   const lvl=v=>v==null?'—':num(v,kr?0:2);
   let h=`<div class="grid">

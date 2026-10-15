@@ -308,6 +308,10 @@ def main() -> None:
                 live.snapshot()
             except Exception as e:  # noqa: BLE001
                 log.warning("시세 실패: %s", e)
+            try:   # 종목 상세(차트·가격·시나리오)도 확정 종가로 — 16:20 스크리너보다 먼저 반영
+                rebuild_detail_kr()
+            except Exception as e:  # noqa: BLE001
+                log.warning("종목 상세 갱신 실패: %s", e)
             try:   # 마감 해석은 별도 키 — 장중(판단 시점) 기록은 덮어쓰지 않음
                 briefings.intraday_kr(send=False, state_key="close_snapshot")
             except Exception as e:  # noqa: BLE001

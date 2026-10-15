@@ -16,6 +16,21 @@ from .config import REPORT_DIR
 log = logging.getLogger(__name__)
 
 
+
+def _asof_label(market: str, asof: str) -> str:
+    """'확정 종가' vs '장중 HH:MM' — 같은 날짜라도 장중 생성분은 마감가가 아님을 표시."""
+    from datetime import datetime as _dt
+    from zoneinfo import ZoneInfo as _Z
+    now = _dt.now(_Z("Asia/Seoul"))
+    if market == "KR":
+        if asof < str(now.date()) or now.hour * 100 + now.minute >= 1535:
+            return "확정 종가"
+        return f"장중 {now:%H:%M}"
+    ny = _dt.now(_Z("America/New_York"))
+    if asof < str(ny.date()) or ny.hour * 100 + ny.minute >= 1605 or ny.weekday() >= 5:
+        return "확정 종가"
+    return f"장중 {ny:%H:%M} ET"
+
 def _targets(last: pl.DataFrame, max_n: int = 220) -> list[str]:
     parts = [
         last.filter(pl.col("class") == "TREND_LONG").sort("trend_score", descending=True).head(60),
@@ -390,7 +405,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     size = 0
     for s, v in out["stocks"].items():
         fp = d / f"{s}.json"
-        fp.write_text(json.dumps({**v, "symbol": s, "asof": out["asof"]}, ensure_ascii=False, default=str), encoding="utf-8")
+        fp.write_text(json.dumps({**v, "symbol": s, "asof": out["asof"], "asof_label": _asof_label(market, out["asof"])}, ensure_ascii=False, default=str), encoding="utf-8")
         size += fp.stat().st_size
     (d / "_index.json").write_text(json.dumps({"asof": out["asof"], "symbols": sorted(out["stocks"]),
                                                "names": {k: v.get("name") for k, v in out["stocks"].items()}},
