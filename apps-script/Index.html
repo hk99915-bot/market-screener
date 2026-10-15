@@ -143,27 +143,27 @@ html,body{overflow-x:hidden}
 html.xl{--bg:#fff;--panel:#fff;--line:#d4d4d4;--amber:#000;--amber-dim:#444;--txt:#000;--muted:#595959;--up:#000;--dn:#c00000;--blue:#000;--cyan:#000;
   --mono:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
 html.xl body{font-size:13px;background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:72px 21px;padding-bottom:30px}
-html.xl .top{background:#217346;color:#fff;border-bottom:0;padding:4px 10px}
-html.xl .top .brand,html.xl .top #clock,html.xl .top #gen{color:#fff;letter-spacing:0;font-weight:400}
-html.xl #stb{color:#fff;border-color:#ffffff88}
+html.xl .top{background:#f3f3f3;color:#333;border-bottom:1px solid #d4d4d4;padding:4px 10px}
+html.xl .top .brand,html.xl .top #clock,html.xl .top #gen{color:#333;letter-spacing:0;font-weight:400}
+html.xl #stb{color:#666;border-color:#c6c6c6}
 html.xl .srch input{background:#fff;color:#000;border:1px solid #c6c6c6;border-radius:2px}
 html.xl #xlrib,html.xl #xlfx{display:flex}
 #xlrib,#xlfx{display:none}
 #xlrib{gap:18px;padding:5px 12px;background:#f3f3f3;border-bottom:1px solid #d4d4d4;font:13px "Malgun Gothic",sans-serif;color:#333;overflow-x:auto;white-space:nowrap}
-#xlrib b{color:#217346;border-bottom:2px solid #217346;font-weight:400}
+#xlrib b{color:#333;border-bottom:2px solid #8a8a8a;font-weight:400}
 #xlfx{gap:8px;align-items:center;padding:3px 8px;background:#fff;border-bottom:1px solid #d4d4d4;font:13px "Malgun Gothic",sans-serif}
 #xlfx span:first-child{width:70px;border:1px solid #d4d4d4;padding:1px 6px;color:#333}
 #xlfx i{color:#888;font-style:italic}
 html.xl .tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#f3f3f3;border-top:1px solid #c6c6c6;justify-content:flex-start;gap:0;padding:0 6px;flex-wrap:nowrap;overflow-x:auto}
 html.xl .tabs button{background:#f3f3f3;color:#333;border:0;border-right:1px solid #d4d4d4;letter-spacing:0;padding:5px 16px;font-weight:400}
-html.xl .tabs button.on{background:#fff;color:#217346;border-bottom:2px solid #217346;font-weight:600}
+html.xl .tabs button.on{background:#fff;color:#000;border-bottom:2px solid #8a8a8a;font-weight:600}
 html.xl .p{border:1px solid #c6c6c6;box-shadow:none}
 html.xl .p h2{background:#f3f3f3;color:#000;letter-spacing:0;font-weight:600;border-bottom:1px solid #d4d4d4}
 html.xl th{background:#f3f3f3;color:#333;border:1px solid #d4d4d4;letter-spacing:0;font-weight:600}
 html.xl td{border:1px solid #e1e1e1}
 html.xl tr:hover td{background:#e1effa}
 html.xl .subtabs button,html.xl .ovl button,html.xl .sbtn,html.xl .tag,html.xl button{background:#fff;color:#000;border-color:#c6c6c6}
-html.xl .subtabs button.on,html.xl .ovl button.on{background:#e1effa;color:#000;border-color:#217346}
+html.xl .subtabs button.on,html.xl .ovl button.on{background:#ececec;color:#000;border-color:#8a8a8a}
 html.xl input,html.xl select,html.xl textarea{background:#fff!important;color:#000!important;border-color:#c6c6c6!important}
 html.xl [style*="background:#0"],html.xl [style*="background:#1"],html.xl [style*="background: #0"]{background:#fff!important}
 html.xl [style*="color:#ccc"],html.xl [style*="color:#e8e8e8"],html.xl [style*="color:#9a9a9a"]{color:#000!important}
@@ -172,6 +172,13 @@ html.xl canvas{filter:invert(1) hue-rotate(180deg)}
 html.xl #lwleg,html.xl #lwrsi div{text-shadow:none!important;color:#000!important}
 html.xl #lwleg span[style*="#e8c547"]{color:#7a5c00!important}
 html.xl *{text-shadow:none!important}
+html.xl .tape .ti.lv b{background:none;color:#595959;padding:0}
+html.xl .tape .ti.u,html.xl .tape .ti.d{background:none}
+html.xl .tape .ti{border-right:1px solid #e1e1e1}
+html.xl [style*="color:#4e9"],html.xl [style*="color:#2fd05a"],html.xl [style*="color:#35d6e6"],html.xl [style*="color:#c77dff"],html.xl [style*="color:#ff9a1f"],
+html.xl [style*="color:#ffcc33"],html.xl [style*="color:#4aa3ff"],html.xl [style*="color:#6ba8ff"],html.xl [style*="color:var(--up)"]{color:#000!important}
+html.xl [style*="color:#e66"],html.xl [style*="color:#ff4b4b"],html.xl [style*="color:#ff6b6b"],html.xl [style*="color:#ff6b9a"]{color:#c00000!important}
+html.xl [style*="border-left:2px solid var(--amber)"],html.xl [style*="border-left:2px solid #c77dff"],html.xl [style*="border:1px solid var(--amber)"]{border-color:#bfbfbf!important}
 html.xl .tape{background:#fff;border-bottom:1px solid #d4d4d4}
 html.xl .drawer,html.xl .drawer .b{background:#fff}
 html.xl .drawer{box-shadow:-4px 0 12px #0003;border-left:1px solid #c6c6c6}
