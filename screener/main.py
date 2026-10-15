@@ -297,7 +297,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -370,6 +370,11 @@ def main() -> None:
             except Exception as e:  # noqa: BLE001
                 log.warning("마감 해석 실패: %s", e)
             write_macro_series()
+            try:   # 채권 화면 (KRX 장외 수익률은 장 마감 후 확정)
+                from . import bonds
+                bonds.build()
+            except Exception as e:  # noqa: BLE001
+                log.warning("채권 실패: %s", e)
             try:
                 from . import dashboard as _db
                 _db.build() if hasattr(_db, "build") else None
@@ -425,6 +430,9 @@ def main() -> None:
         elif a.mode == "calendar":     # 실적·이벤트 캘린더
             from . import calendar_ev
             print(len(calendar_ev.build()["events"]))
+        elif a.mode == "bonds":        # 채권 화면 (미국채 곡선·국고채·신용 스프레드·채권 ETF)
+            from . import bonds
+            print(bonds.summary(bonds.build()))
         elif a.mode == "lab":          # 전략 연구소: 사전 등록 가설 → 공통 백테스트 → 통계 관문 → 등급
             from . import lab
             print(lab.summary(lab.run()))
@@ -523,6 +531,12 @@ def main() -> None:
                     committee.build("장전" if a.mode == "premarket_kr" else "장중")
                 except Exception as e:  # noqa: BLE001
                     log.warning("운용회의(%s) 실패: %s", a.mode, e)
+            if a.mode == "premarket_us" and datetime.now(ZoneInfo("Asia/Seoul")).hour < 22:   # 21:00 KST 1회 — 전날 미국채 확정치 반영
+                try:
+                    from . import bonds
+                    bonds.build()
+                except Exception as e:  # noqa: BLE001
+                    log.warning("채권 실패: %s", e)
             if a.mode == "premarket_us":   # 22:00 KST — 미장 진입 타점 대결 (규칙 판정 + 텔레그램)
                 try:
                     from . import duel

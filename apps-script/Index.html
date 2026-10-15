@@ -780,6 +780,80 @@ function studyView(){
     <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">해석: 반등 경향은 있지만 레버리지 기준 평균 +2~3%, 최악은 다음날 시가부터 −18%. 다음날 시가 매도가 종가 매도보다 승률이 높았음. 표본의 상당수가 2020·2026년에 몰려 있음.</div>
   </div></div></div>`;
 }
+let BND=null, BDCH=null;
+function bondView(){
+  if(BND===null){ BND=false; google.script.run.withSuccessHandler(t=>{try{BND=JSON.parse(t);}catch(e){BND={};} if(view==='bond') render();}).withFailureHandler(()=>{BND={};if(view==='bond') render();}).getBonds(); return '<div class="load">LOADING …</div>'; }
+  const o=BND; if(!o||!o.us) return '<div class="grid"><div class="p c12"><div class="b mu">채권 데이터 생성 전</div></div></div>';
+  const U=o.us.chg||{}, K=o.kr.chg||{}, S=o.spreads||{};
+  const bp=(x,inv)=>x==null?'<td class="mu">—</td>':`<td class="${inv===0||x===0?'mu':x>0?'dn':'up'}">${x>0?'+':''}${x.toFixed(0)}</td>`;
+  // 금리 행: 금리↑ = 채권 가격↓ → 빨강(dn)
+  const yr=(lab,c,tip)=>c&&c.v!=null?`<tr title="${esc(tip||'')}"><td class="l">${lab}</td><td><b>${c.v.toFixed(2)}%</b></td>${bp(c.d1)}${bp(c.w1)}${bp(c.m1)}${bp(c.y1)}</tr>`:'';
+  const sr=(lab,c,cred,tip)=>c&&c.v!=null?`<tr title="${esc(tip||'')}"><td class="l">${lab}</td><td><b>${c.v*100>0?'+':''}${(c.v*100).toFixed(0)}bp</b></td>${bp(c.d1,cred?undefined:0)}${bp(c.w1,cred?undefined:0)}${bp(c.m1,cred?undefined:0)}${bp(c.y1,cred?undefined:0)}</tr>`:'';
+  const hdr='<tr><th class="l">항목</th><th>현재</th><th>1D</th><th>1W</th><th>1M</th><th>1Y</th></tr>';
+  const sub=t=>`<tr><td class="l am" colspan="6" style="padding-top:6px">${t}</td></tr>`;
+  const key=`<table>${hdr}${sub('미국채 <span class="mu">'+esc(o.us.asof||'')+'</span>')}${yr('3개월',U['3M'])}${yr('2년',U['2Y'])}${yr('10년',U['10Y'])}${yr('30년',U['30Y'])}
+    ${sub('한국 <span class="mu">'+esc(o.kr.asof||'')+'</span>')}${yr('국고 3년',K['3Y'])}${yr('국고 10년',K['10Y'])}${yr('CD 91일',K['CD'])}${yr('회사채 AA− 3년',K['AA'])}${yr('회사채 BBB− 3년',K['BBB'])}
+    ${sub('금리차 · 스프레드')}${sr('미 10Y−2Y',S.us_10_2,0,'마이너스 = 역전')}${sr('미 10Y−3M',S.us_10_3m,0,'연준이 중시한다고 알려진 역전 지표')}${sr('한 10Y−3Y',S.kr_10_3,0)}${sr('AA− − 국고3Y',S.kr_aa,1,'신용 스프레드: 벌어지면 위험 회피')}${sr('BBB− − 국고3Y',S.kr_bbb,1)}${sr('한 10Y − 미 10Y',S.krus_10,0,'마이너스 = 한국 금리가 더 낮음')}</table>
+    <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">변화는 bp(0.01%p). 금리 색 = 채권 가격 기준: 금리↑(가격↓) <span class="dn">빨강</span>, 금리↓(가격↑) <span class="up">초록</span>. 신용 스프레드 확대도 빨강. 마우스를 올리면 설명.</div>`;
+  const src=Object.entries(o.sources||{}).map(([k,v])=>`<span class="${String(v).startsWith('ok')?'mu':'dn'}">${esc(k)}: ${esc(v)}</span>`).join('<br>');
+  // 수익률 곡선 (만기 축은 √년 간격)
+  const curveSvg=(cv,keys,yrs,title)=>{ const n=cv.now||{}; if(!Object.keys(n).length) return '';
+    const W=520,H=190,pl=40,pr=10,pt=14,pb=26, ks=keys.filter(k=>n[k]!=null);
+    const all=['now','m1','y1'].flatMap(s=>ks.map(k=>(cv[s]||{})[k]).filter(v=>v!=null)); let lo=Math.min(...all), hi=Math.max(...all); const pad=(hi-lo)*0.12||0.2; lo-=pad; hi+=pad;
+    const xm=Math.sqrt(yrs[ks[ks.length-1]]), X=k=>pl+(W-pl-pr)*Math.sqrt(yrs[k])/xm, Y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo));
+    const line=(s,c,dash)=>{ const pts=ks.filter(k=>(cv[s]||{})[k]!=null).map(k=>`${X(k).toFixed(1)},${Y(cv[s][k]).toFixed(1)}`); return pts.length>1?`<polyline points="${pts.join(' ')}" fill="none" style="stroke:${c};stroke-width:${s==='now'?2.2:1.4}" ${dash?'stroke-dasharray="4 3"':''}/>`+(s==='now'?ks.map(k=>`<circle cx="${X(k).toFixed(1)}" cy="${Y(n[k]).toFixed(1)}" r="2.6" style="fill:${c}"><title>${k} ${n[k].toFixed(2)}%</title></circle>`).join(''):''):''; };
+    let g=''; for(let i=0;i<=4;i++){ const v=lo+(hi-lo)*i/4, y=Y(v); g+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" style="stroke:var(--line)"/><text x="${pl-4}" y="${y+3}" text-anchor="end" font-size="10" style="fill:var(--muted)">${v.toFixed(2)}</text>`; }
+    g+=ks.map(k=>`<text x="${X(k)}" y="${H-8}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${k}</text>`).join('');
+    return `<div class="mu" style="font-size:12px;margin:4px 0 0">${title} <span style="color:var(--amber)">━ 현재</span> <span style="color:var(--cyan)">╍ 1개월 전</span> <span>╍ 1년 전</span></div>
+      <svg viewBox="0 0 ${W} ${H}" style="display:block;width:100%;max-width:${W}px;height:auto;font-family:inherit">${g}${line('y1','var(--muted)',1)}${line('m1','var(--cyan)',1)}${line('now','var(--amber)')}</svg>`; };
+  const UY={'1M':1/12,'3M':.25,'6M':.5,'1Y':1,'2Y':2,'3Y':3,'5Y':5,'7Y':7,'10Y':10,'20Y':20,'30Y':30};
+  const f2=x=>x==null?'—':x.toFixed(2), sc=x=>x==null?'<td class="mu">—</td>':`<td class="${x>0?'up':x<0?'dn':'mu'}">${x>0?'+':''}${x.toFixed(1)}%</td>`;
+  const dur=(o.duration||[]).map(d=>`<tr><td class="l">${esc(d.n)}</td><td class="l mu">${esc(d.kind)}</td><td>${f2(d.dur)}</td><td class="mu">${d.conv==null?'—':d.conv.toFixed(0)}</td>${sc(d.scen['-100'])}${sc(d.scen['-50'])}${sc(d.scen['50'])}${sc(d.scen['100'])}<td>${d.carry==null?'—':d.carry.toFixed(2)+'%'}</td><td>${d.be_bp==null?'—':'+'+d.be_bp+'bp'}</td></tr>`).join('');
+  const etf=(o.etf||[]).map(e=>`<tr><td class="l">${esc(e.n)}</td><td>${e.close==null?'—':num(e.close,e.mk==='KR'?0:2)}</td><td>${pct(e.r1,2)}</td><td>${pct(e.r20,1)}</td><td>${pct(e.r250,1)}</td><td class="mu">${f2(e.dur)}</td><td class="l mu" style="white-space:normal;font-size:11px">${esc(e.role)}</td></tr>`).join('');
+  const C=o.corr||{}, cc=x=>x==null?'<td class="mu">—</td>':`<td class="${x>0.2?'dn':x<-0.2?'up':'mu'}"><b>${x>0?'+':''}${x.toFixed(2)}</b></td>`;
+  const corr=Object.values(C).map(c=>`<tr><td class="l">${esc(c.a)}</td><td class="l mu">${esc(c.b)}</td>${cc(c.c250)}${cc(c.c60)}<td class="mu">${c.n}</td></tr>`).join('');
+  const veh=(o.vehicles||[]).map(v=>`<tr><td class="l">${esc(v.name)}</td><td>${v.y==null?'—':v.y.toFixed(2)+'%'}${v.ylabel?`<div class="mu" style="font-size:10px">${esc(v.ylabel)}</div>`:''}</td><td>${f2(v.dur)}</td><td>${v.up100==null?'<span class="mu">해당 없음</span>':'<span class="up">+'+v.up100.toFixed(1)+'%</span>'}</td><td class="l ${v.fx.startsWith('있음')?'am':'mu'}">${esc(v.fx)}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:150px">${esc(v.tax)}</td><td class="l" style="white-space:normal;font-size:11px;min-width:180px">${esc(v.role)}</td></tr>`).join('');
+  const cu=o.credit_us;
+  setTimeout(drawBondHist,0);
+  return `<div class="grid">
+   <div class="p c6"><h2>핵심 숫자<small>${esc(o.generated_at||'')} 생성</small></h2><div class="b">${key}</div></div>
+   <div class="p c6"><h2>해석<small>규칙 기반 · 숫자 인용</small></h2><div class="b" style="line-height:1.75;white-space:normal">${(o.notes||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}
+     <div class="mu" style="font-size:10.5px;margin-top:8px;line-height:1.5">데이터 소스<br>${src}</div></div></div>
+   <div class="p c6"><h2>수익률 곡선<small>만기별 금리 · 가로축 √만기</small></h2><div class="b">${curveSvg(o.us.curve||{},Object.keys(UY),UY,'미국채')}${curveSvg(o.kr.curve||{},['1Y','2Y','3Y','5Y','10Y','20Y','30Y'],UY,'한국 국고채')}</div></div>
+   <div class="p c6"><h2>금리차 추이<small>bp · 0 아래 = 역전</small></h2><div class="b"><div id="bdh" style="height:300px"></div><div id="bdleg" class="mu" style="font-size:11px;margin-top:4px"></div>${cu?`<div style="font-size:12px;margin-top:6px">미국 신용 프록시 HYG/IEF ${cu.v} · 1개월 ${pct(cu.r20,1)} · 3개월 ${pct(cu.r60,1)} <span class="mu">(내리면 하이일드가 국채보다 약함 = 위험 회피)</span></div>`:''}</div></div>
+   <div class="p c12"><h2>듀레이션 · 금리 시나리오<small>금리가 이만큼 바뀌면 가격은? · 액면채는 −D·Δy + ½·C·Δy², ETF는 −D·Δy (근사)</small></h2><div class="b" style="overflow-x:auto">
+     <table><tr><th class="l">채권</th><th class="l">계산</th><th>듀레이션 D</th><th>볼록성 C</th><th>금리 −1%p</th><th>−0.5%p</th><th>+0.5%p</th><th>+1%p</th><th>1년 이자</th><th>손익분기 금리 상승</th></tr>${dur}</table>
+     <div class="mu" style="font-size:11px;margin-top:6px;white-space:normal;line-height:1.6">듀레이션 = 금리 1%p 변화당 가격 변화 %. 액면채는 현재 금리로 계산(반년 이자 지급 가정). ETF 듀레이션은 운용사 공시 실효 듀레이션 근처의 <b>근사 상수</b>(TLT ~16, IEF ~7.5, SHY ~1.9, LQD ~8.5, HYG ~3.5, 국고3년 ETF ~2.8, 국고10년 ETF ~8)이고 ETF '1년 이자'는 해당 만기 국채금리로 대신함. 손익분기 = 1년 이자 ÷ D: 1년 동안 금리가 이만큼 넘게 오르면 이자를 받고도 손해. 하이일드·회사채는 금리 말고 신용 위험(경기)으로도 움직임.</div></div></div>
+   <div class="p c12"><h2>포트폴리오 편입<small>장기 자산배분용 후보 비교 · 일반 정보</small></h2><div class="b" style="overflow-x:auto">
+     <div style="line-height:1.75;white-space:normal;margin-bottom:8px;border:1px solid var(--amber);padding:6px 10px">${(o.reco||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')||'<span class="mu">판단 근거 부족</span>'}</div>
+     <div class="am" style="font-size:12px;margin:6px 0 2px">채권이 지금 주식을 헤지하나? — 일간 수익률 상관</div>
+     <table style="max-width:640px"><tr><th class="l">채권</th><th class="l">주식</th><th>1년</th><th>3개월</th><th>표본(일)</th></tr>${corr}</table>
+     <div class="mu" style="font-size:11px;margin:4px 0 8px;white-space:normal">음수(<span class="up">초록</span>) = 주식이 빠질 때 채권이 오르는 경향 → 분산 효과. 양수(<span class="dn">빨강</span>) = 같이 움직임(2022년처럼 물가·금리 충격 국면) → 채권이 방어가 안 됨. 하이일드는 원래 양수.</div>
+     <div class="am" style="font-size:12px;margin:6px 0 2px">편입 후보</div>
+     <table><tr><th class="l">수단</th><th>금리(근사)</th><th>듀레이션</th><th>금리 −1%p 시 가격</th><th class="l">환율 위험</th><th class="l">세금(일반)</th><th class="l">역할</th></tr>${veh}</table>
+     <div class="mu" style="font-size:11px;margin-top:6px;white-space:normal;line-height:1.6">환헤지형 금리 ≈ 미국채 금리 − 헤지 비용(미국 3M − 한국 CD${o.hedge_cost!=null?' = '+o.hedge_cost.toFixed(2)+'%p':''}); 실제 비용은 선물환 시장에서 정해져 조금 다름. 비헤지 미국채의 원화 수익 ≈ 채권 수익 + 원/달러 변화. 세금은 일반적 구조만 적었고 계좌(ISA·연금)·금액에 따라 달라짐. 개인투자용 국채 금리는 '국고채 + 가산금리'로 매달 공고됨.</div></div></div>
+   <div class="p c12"><h2>채권 ETF<small>가격 · 수익률 (분배금 포함 수정주가)</small></h2><div class="b" style="overflow-x:auto"><table><tr><th class="l">ETF</th><th>종가</th><th>1D</th><th>1M</th><th>1Y</th><th>D(근사)</th><th class="l">역할</th></tr>${etf}</table></div></div>
+   <div class="p c12"><h2>채권 읽는 법<small>현재 숫자 대입</small></h2><div class="b" style="line-height:1.75;white-space:normal">${(o.guide||[]).map((g,i)=>`<details class="sec"${i<2?' open':''}><summary><b>${esc(g.t)}</b></summary><div style="padding:2px 4px 6px">${esc(g.b)}</div></details>`).join('')}</div></div>
+  </div>`;
+}
+function drawBondHist(){
+  const el=$('#bdh'); if(!el||!BND||!BND.hist) return;
+  if(BDCH){ try{BDCH.remove();}catch(e){} BDCH=null; }
+  if(!window.LightweightCharts){ el.innerHTML='<div class="mu">차트 라이브러리 없음</div>'; return; }
+  const cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
+  const c=LightweightCharts.createChart(el,{width:el.clientWidth,height:300,layout:{background:{type:'solid',color:cv('--panel')},textColor:cv('--muted'),fontSize:11},
+    grid:{vertLines:{color:cv('--line')},horzLines:{color:cv('--line')}},rightPriceScale:{borderColor:cv('--line')},timeScale:{borderColor:cv('--line')},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},
+    localization:{locale:'ko-KR',priceFormatter:v=>v.toFixed(0)+'bp'}});
+  BDCH=c;
+  const S=[['us_10_2','미 10Y−2Y','--amber'],['us_10_3m','미 10Y−3M','--blue'],['kr_10_3','한 10Y−3Y','--cyan'],['kr_aa','한 AA−−국고3Y','--dn']];
+  const leg=[];
+  for(const [k,n,col] of S){ const d=(BND.hist[k]||[]).map(([t,v])=>({time:t,value:+(v*100).toFixed(1)})); if(!d.length) continue;
+    const s=c.addLineSeries({color:cv(col),lineWidth:k==='us_10_2'?2:1.5,priceLineVisible:false,lastValueVisible:true,title:''}); s.setData(d);
+    if(k==='us_10_2') s.createPriceLine({price:0,color:cv('--muted'),lineWidth:1,lineStyle:2,axisLabelVisible:false,title:''});
+    leg.push(`<span style="color:var(${col})">━ ${n} ${d[d.length-1].value.toFixed(0)}</span>`); }
+  c.timeScale().fitContent();
+  const lg=$('#bdleg'); if(lg) lg.innerHTML=leg.join(' &nbsp; ');
+}
 let LAB=null;
 function labView(){
   if(LAB===null){ LAB=false; google.script.run.withSuccessHandler(t=>{try{LAB=JSON.parse(t);}catch(e){LAB={};} if(view==='lab') render();}).withFailureHandler(()=>{LAB={};if(view==='lab') render();}).getLab(); return '<div class="load">LOADING …</div>'; }
@@ -1106,7 +1180,7 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||'');
   tape();
   const v=view;
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='heat'?heatView():v==='my'?myView():v==='study'?studyView():v==='lab'?labView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='heat'?heatView():v==='my'?myView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -1402,7 +1476,7 @@ function drawCanvas(ch,sc,rs,kr){
 }
 
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],
-  mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목']],
+  mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오']]};
