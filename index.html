@@ -610,6 +610,7 @@ function myView(){
     $('#mysyncb').onclick=()=>{ mySync(ok=>{ st(); if(ok) myRun(); }); st(); };
     $('#mytokb').onclick=()=>{ const v=($('#mytok').value||'').trim(); try{ v?localStorage.setItem(GHK,v):localStorage.removeItem(GHK); }catch(_){} $('#mytok').value=''; mySync(ok=>{ st(); if(ok) myRun(); }); st(); };
     if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ st(); if(ok) myRun(); }); st(); }
+    const mc=$('#mycorr'); if(mc) mc.addEventListener('toggle',e=>{ if(e.target.open) myCorr(); });
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
   return `<div class="grid"><div class="p c12"><h2>MY PB<small>보유 자산 분석 · 비공개 저장소(pb-private)에서 자동 동기화 · 공개 서버로 전송 없음</small></h2><div class="b">
     <div style="font-size:12px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="am">비공개 저장소 연동</span> <span id="mysync" class="mu">${ghTok()?esc(MYSYNC.st||'대기'):'토큰 미설정'}</span>
@@ -621,8 +622,22 @@ function myView(){
     <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 11 260864</code> · <code>TIGER 200 IT 17 128855</code> · <code>MU 1 857.5</code> · <code>현금 3164341</code> · <code>USD 2223.07</code></div>
     <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
     <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
-    <div id="myout" style="margin-top:12px"></div></div></div></div>`;
+    <div id="myout" style="margin-top:12px"></div>
+    <details id="mycorr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">교정 리포트 (비공개 · 눌러서 열기)</summary><div id="mycorrb" class="mu" style="font-size:12px">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
+    </div></div></div>`;
 }
+// 교정 리포트: pb-private/analysis/latest.json → 이미지·보고서를 토큰으로 직접 받아 이 브라우저에서만 표시 (공개 서버 경유 없음)
+const PBAPI='https://api.github.com/repos/hk99915-bot/pb-private/contents/';
+function pbGet(path,as){ const tk=ghTok(); return fetch(PBAPI+path+'?t='+Date.now(),{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github.raw'},cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error(r.status); return as==='blob'?r.blob():r.text(); }); }
+function mdLite(t){ return esc(t).split('\n').map(l=>/^#{1,3} /.test(l)?'<div style="color:var(--amber);font-weight:700;margin-top:10px">'+l.replace(/^#+ /,'')+'</div>':/^\|/.test(l)?'<div style="font-family:monospace;white-space:pre">'+l+'</div>':/^\s*[-*] /.test(l)?'<div>· '+l.replace(/^\s*[-*] /,'')+'</div>':'<div>'+l+'</div>').join(''); }
+function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) return; b.dataset.done='1';
+  pbGet('analysis/latest.json').then(t=>{ const o=JSON.parse(t);
+    b.innerHTML=`<div style="margin-bottom:8px">기준 ${esc(o.date)}</div><table style="max-width:640px">${(o.kpis||[]).map(k=>`<tr><td class="l">${esc(k[0])}</td><td><b>${esc(k[1])}</b></td></tr>`).join('')}</table>`+
+      (o.images||[]).map((im,i)=>`<div style="margin-top:12px"><div class="am" style="font-size:12px">${esc(im[0])}</div><img id="mycimg${i}" alt="" style="max-width:100%;border:1px solid var(--line);margin-top:4px"></div>`).join('')+
+      `<details style="margin-top:12px"><summary style="cursor:pointer" class="am">전체 보고서</summary><div id="mycrep" style="line-height:1.6;margin-top:6px">불러오는 중…</div></details>`;
+    (o.images||[]).forEach((im,i)=>pbGet(o.dir+'/'+im[1],'blob').then(bl=>{ const e=$('#mycimg'+i); if(e) e.src=URL.createObjectURL(bl); }).catch(()=>{}));
+    pbGet(o.dir+'/'+o.report).then(t=>{ const e=$('#mycrep'); if(e) e.innerHTML=mdLite(t); }).catch(()=>{ const e=$('#mycrep'); if(e) e.textContent='보고서 없음'; });
+  }).catch(e=>{ b.textContent='불러오기 실패('+e.message+') — 토큰 권한 확인'; delete b.dataset.done; }); }
 function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
   for(const [m,sy] of list){ const k=m+':'+sy; if(MYD[k]){ done(); continue; }
     google.script.run.withSuccessHandler(t=>{try{MYD[k]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(m,sy); } }
