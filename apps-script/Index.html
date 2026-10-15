@@ -20,8 +20,17 @@
   .tabs button{background:#1a1a1a;color:var(--muted);border:1px solid var(--line);padding:4px 10px;font:inherit;cursor:pointer;letter-spacing:.06em}
   .tabs button.on{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}
   .tape{white-space:nowrap;overflow:hidden;background:#070707;border-bottom:1px solid var(--line);padding:4px 0}
-  .tape span{display:inline-block;padding:0 18px;color:var(--muted)}
-  .tape b{color:var(--txt);font-weight:600}
+  .tape .tk{display:inline-block;white-space:nowrap;animation:tk 60s linear infinite;will-change:transform}
+  .tape:hover .tk{animation-play-state:paused}
+  @keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion:reduce){.tape .tk{animation:none}}
+  .tape .ti{display:inline-block;padding:0 16px;color:var(--txt);border-right:1px solid #1a1a1a}
+  .tape .ti b{color:var(--amber);font-weight:600;margin-right:6px}
+  .tape .ti .v{color:var(--txt)}
+  .tape .ti .c{margin-left:6px;font-weight:600}
+  .tape .ti.u .c{color:var(--up)} .tape .ti.d .c{color:var(--dn)} .tape .ti.f .c{color:var(--muted)}
+  .tape .ti.u{background:linear-gradient(0deg,rgba(47,208,90,.07),transparent)} .tape .ti.d{background:linear-gradient(0deg,rgba(255,75,75,.08),transparent)}
+  .tape .ti.lv b{color:#000;background:var(--amber);padding:0 6px;border-radius:2px}
   .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;padding:8px}
   .p{background:var(--panel);border:1px solid var(--line);min-width:0}
   .p h2{margin:0;padding:5px 8px;background:#161616;color:var(--amber);font-size:11.5px;letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
@@ -246,13 +255,19 @@ function mdToHtml(md){
 function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
 let L=null;
 function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D) tape();}).withFailureHandler(()=>{}).getLive();}
+let TAPE_HTML='';
+function tkItem(k,v,c,dg){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f', ar=cls==='u'?'▲':cls==='d'?'▼':'■';
+  return `<span class="ti ${cls}"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}</span></span>`; }
 function tape(){
   const items=[], seen=new Set();
-  if(L&&L.items&&L.items.length){ items.push(`<b class="am">LIVE ${esc(L.updated_at||'')}</b>`); for(const d of L.items){seen.add(d.key); items.push(`<b>${d.key}</b> ${num(d.last,2)} ${pct(d.chg)}`);} }
-  for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value){ if(seen.has(d.key)) continue; seen.add(d.key); items.push(`<b>${d.key}</b> ${num(d.last,2)} ${pct(d.chg1)}`);}}
-  const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x) items.push(`<b>${mk} BREADTH</b> 200D↑ ${Math.round(x.pct_above200*100)}% · A/D ${x.adv}/${x.dec}`);}
-  const u=[...new Map(items.map(i=>[i,i])).values()];
-  $('#tape').innerHTML=u.map(i=>`<span>${i}</span>`).join('')||'<span class="mu">no data</span>';
+  if(L&&L.items&&L.items.length){ items.push(`<span class="ti lv"><b>LIVE</b><span class="v mu">${esc(L.updated_at||'')}</span></span>`); for(const d of L.items){seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg,['KOSPI','KOSDAQ','SPX','NASDAQ','RUT','BTC','GOLD','USDKRW'].includes(d.key)?2:2));} }
+  for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value){ if(seen.has(d.key)) continue; seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg1));}}
+  const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x){ const p=x.pct_above200, cls=p>=0.6?'u':p<0.4?'d':'f'; items.push(`<span class="ti ${cls}"><b>${mk} BREADTH</b><span class="v">200D↑ ${Math.round(p*100)}%</span><span class="c">A/D ${x.adv}/${x.dec}</span></span>`);} }
+  if(!items.length){ $('#tape').innerHTML='<span class="mu" style="padding:0 16px">no data</span>'; TAPE_HTML=''; return; }
+  const h=items.join('');
+  if(h===TAPE_HTML) return;            // 내용이 같으면 애니메이션을 재시작하지 않음
+  TAPE_HTML=h;
+  $('#tape').innerHTML=`<div class="tk" style="animation-duration:${Math.max(30,items.length*5)}s">${h}${h}</div>`;
 }
 function render(){
   if(!D) return;

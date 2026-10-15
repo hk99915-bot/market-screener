@@ -116,6 +116,40 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         report.push_gsheet(market, last)
 
 
+class _Redact(logging.Filter):
+    """로그에 비밀값(API 키·비밀번호·토큰)이 찍히지 않게 가림 — 로그 파일이 공개 저장소에 커밋되므로."""
+    def __init__(self) -> None:
+        super().__init__()
+        import os
+        self.secrets = [v for k, v in os.environ.items()
+                        if any(t in k for t in ("KEY", "TOKEN", "PW", "PASS", "SECRET", "CHAT")) and v and len(v) >= 6]
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        for v in self.secrets:
+            msg = msg.replace(v, "***")
+        import re as _re
+        msg = _re.sub(r"(crtfc_key=)[^&\s'\"]+", r"\1***", msg)
+        msg = _re.sub(r"bot\d+:[A-Za-z0-9_-]+", "bot***", msg)
+        record.msg, record.args = msg, None
+        return True
+
+
+def _file_log(name: str | None) -> None:
+    """실행 로그를 reports/logs/{name}.log 에 남김 (마지막 실행분만, 비밀값 가림)."""
+    from .config import REPORT_DIR
+    d = REPORT_DIR / "logs"
+    d.mkdir(parents=True, exist_ok=True)
+    h = logging.FileHandler(d / f"{name or 'run'}.log", mode="w", encoding="utf-8")
+    h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+    red = _Redact()
+    h.addFilter(red)
+    root = logging.getLogger()
+    for hh in root.handlers:
+        hh.addFilter(red)
+    root.addHandler(h)
+
+
 def _record_error(e: BaseException) -> None:
     """실패 원인을 reports/last_error.txt 에 남김 → 워크플로가 커밋 → 로그 없이도 원인 확인 가능."""
     import traceback
@@ -137,6 +171,7 @@ def main() -> None:
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         stream=sys.stderr)
+    _file_log(a.market if a.mode == "screen" else a.mode)
     modes = {"premarket_kr": briefings.premarket_kr, "intraday_kr": briefings.intraday_kr,
              "premarket_us": briefings.premarket_us, "intraday_us": briefings.intraday_us,
              "reports": briefings.reports_alert}
