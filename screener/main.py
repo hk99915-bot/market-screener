@@ -158,17 +158,34 @@ def _file_log(name: str | None) -> None:
 
 
 def write_macro_series(macro: pl.DataFrame | None = None) -> None:
-    """매크로 지표 일봉 시계열 → reports/macro_series.json (웹 티커·매크로 표 클릭 차트용)."""
+    """매크로 지표 일봉 OHLCV 2년 → reports/macro_series.json (웹 티커·매크로 표 클릭 차트용).
+    항목: [날짜, 시가, 고가, 저가, 종가, 거래량]. 스크린용 200일 데이터와 별도로 2년치를 받는다."""
     import json as _json
     from .config import REPORT_DIR
     try:
-        macro = data.fetch_macro() if macro is None else macro
+        try:
+            long = data.fetch_prices(list(CFG.macro.values()), "MACRO", lookback_days=760)
+            inv = {v: k for k, v in CFG.macro.items()}
+            macro = long.with_columns(pl.col("yf").replace_strict(inv, default=pl.col("yf")).alias("key"))
+        except Exception as e:  # noqa: BLE001
+            log.warning("매크로 2년 수집 실패, 기존 데이터 사용: %s", e)
+            macro = data.fetch_macro() if macro is None else macro
         if not len(macro):
             return
-        ser = {k: [[str(d), round(float(c), 4)] for d, c in zip(g["date"].to_list(), g["close"].to_list()) if c is not None]
-               for (k,), g in macro.sort("date").group_by("key", maintain_order=True)}
+        r = lambda v: None if v is None else round(float(v), 4)  # noqa: E731
+        cols = [c for c in ("open", "high", "low", "close", "volume") if c in macro.columns]
+        ser = {}
+        for (k,), g in macro.sort("date").group_by("key", maintain_order=True):
+            rows = []
+            for x in g.select("date", *cols).to_dicts():
+                if x.get("close") is None:
+                    continue
+                c = r(x["close"])
+                o, h, lo = r(x.get("open")) or c, r(x.get("high")) or c, r(x.get("low")) or c
+                rows.append([str(x["date"]), o, max(h, o, c), min(lo, o, c), c, int(x.get("volume") or 0)])
+            ser[k] = rows
         (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
-            {"asof": str(macro["date"].max()), "series": ser}, ensure_ascii=False), encoding="utf-8")
+            {"asof": str(macro["date"].max()), "fmt": "dohlcv", "series": ser}, ensure_ascii=False), encoding="utf-8")
     except Exception as e:  # noqa: BLE001
         log.warning("매크로 시계열 저장 실패: %s", e)
 
