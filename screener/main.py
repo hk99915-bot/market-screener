@@ -251,7 +251,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -286,6 +286,9 @@ def main() -> None:
             dashboard.build()
         elif a.mode == "detail_kr":   # 종목 상세만 재생성 (어제 종가 기준, 알림 없음)
             rebuild_detail_kr()
+        elif a.mode == "study":        # 검증 스터디 (급락 후 반등·레버리지 매매)
+            from . import study
+            study.run()
         elif a.mode == "themes":       # 테마 분류 강제 갱신 (네이버 모바일 API)
             from .themes import kr_themes
             print(len(kr_themes(force=True)))
