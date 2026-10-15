@@ -203,29 +203,37 @@ def _main_column_text(data: bytes) -> str:
     if page is None:
         return ""
     W, H = page.width, page.height
-    boxes = []
+    raw = []
     for el in page:
         if not isinstance(el, LTTextContainer):
             continue
         t = el.get_text()
         flat = re.sub(r"\s+", "", t)
-        if len(flat) < 15:
+        if len(flat) < 4:
             continue
         x0, y0, x1, y1 = el.bbox
-        dig = len(re.findall(r"[\d,.%()+-]", flat)) / max(len(flat), 1)
-        han = len(HANGUL.findall(flat)) / max(len(flat), 1)
-        keep = (x1 - x0) >= 0.35 * W and y1 <= 0.88 * H and dig < 0.35 and han > 0.3 \
-            and not (len(flat) < 120 and HEADER_RX.search(t))
-        boxes.append({"x0": round(x0), "y1": round(y1), "w": round(x1 - x0), "dig": round(dig, 2),
-                      "han": round(han, 2), "keep": keep, "t": t})
+        raw.append({"x0": x0, "x1": x1, "y0": y0, "y1": y1, "w": x1 - x0, "t": t, "flat": flat})
+    # 본문 칼럼 = 폭 넓은 한글 상자들이 가장 많이 공유하는 왼쪽 정렬선
+    wide = [b for b in raw if b["w"] >= 0.35 * W and len(HANGUL.findall(b["flat"])) >= 0.3 * len(b["flat"])]
+    if not wide:
+        return ""
+    from collections import Counter
+    main_x0 = Counter(round(b["x0"] / 8) for b in wide).most_common(1)[0][0] * 8
+    right = max(b["x1"] for b in wide if abs(b["x0"] - main_x0) <= 16)
+    boxes = []
+    for b in raw:
+        in_col = abs(b["x0"] - main_x0) <= 16 and b["x1"] <= right + 20
+        head = b["y1"] > 0.88 * H or b["y0"] < 0.05 * H
+        meta = len(b["flat"]) < 120 and HEADER_RX.search(b["t"]) is not None
+        keep = in_col and not head and not meta
+        boxes.append({"x0": round(b["x0"]), "y1": round(b["y1"]), "w": round(b["w"]), "keep": keep, "t": b["t"]})
     if len(_PDF_DEBUG) < 4:
-        _PDF_DEBUG.append({"W": round(W), "H": round(H),
+        _PDF_DEBUG.append({"W": round(W), "H": round(H), "main_x0": main_x0, "right": round(right),
                            "boxes": [{**{k: v for k, v in b.items() if k != "t"}, "t": re.sub(r"\s+", " ", b["t"])[:90]} for b in boxes]})
     kept = [b for b in boxes if b["keep"]]
     if not kept:
         return ""
-    # 칼럼(왼쪽 x 기준 묶음) 순서 → 위에서 아래
-    kept.sort(key=lambda b: (round(b["x0"] / (W * 0.25)), -b["y1"]))
+    kept.sort(key=lambda b: -b["y1"])
     return "\n".join(b["t"] for b in kept)
 
 
