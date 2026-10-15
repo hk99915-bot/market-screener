@@ -54,3 +54,5 @@ function getDisclosures() { return raw_('reports/disclosures.json'); }
 function getStock(market, sym) { return raw_(`reports/detail/${market}/${sym}.json`); }
 
 function getMacroSeries() { return raw_('reports/macro_series.json'); }
+
+function getAnalysts() { return raw_('reports/analysts.json'); }

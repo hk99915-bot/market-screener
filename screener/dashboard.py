@@ -109,7 +109,7 @@ def write_research(days: int = 180) -> int:
     items = (df.with_columns(pl.col("date").cast(pl.Utf8),
                              pl.col("code").replace_strict(sec, default="기타", return_dtype=pl.Utf8).alias("sector"))
                .with_columns(pl.col("tp_chg").round(4))
-               .select("date", "code", "name", "sector", "broker", "opinion", "target", "title", "link",
+               .select("date", "code", "name", "sector", "broker", "analyst", "opinion", "target", "title", "link",
                        "summary", "tp_chg", "op_chg").to_dicts())
     close = {}
     pp = DATA_DIR / "kr_prices.parquet"

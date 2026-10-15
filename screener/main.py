@@ -204,7 +204,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -229,6 +229,11 @@ def main() -> None:
         elif a.mode == "fin":         # 재무제표 수집 (알림 없음)
             from . import fin
             print(fin.update())
+        elif a.mode == "analysts":    # 과거 리포트 백필(최초 1회) + 애널리스트 성향·적중률
+            from . import analysts
+            research.backfill_hankyung()
+            print(analysts.build())
+            dashboard.build()
         elif a.mode == "dart":        # 알림 없이 공시만 수집 (최근 7일)
             from . import dart
             df, n = dart.update(days=7)

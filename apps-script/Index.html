@@ -80,6 +80,7 @@ tr.sub{display:none}tr.sub.on{display:table-row}tr.sub td{font-size:12px;line-he
 details.sec{margin-bottom:10px}details.sec summary{cursor:pointer;padding:4px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
 .rp{padding:4px 0;border-bottom:1px dashed #1c1c1c}.rp .sm{color:#bdbdbd;font-size:12px;line-height:1.6;margin:2px 0 2px 12px}
 tr.sub td,.rp,.rp *,.sm,.sm *{white-space:normal!important;word-break:keep-all;overflow-wrap:anywhere}.rp{max-width:1100px}
+.an{margin-left:6px;color:#ddd}.an i{font-style:normal;color:var(--muted);font-size:11px;margin-left:6px}
 .tone{font-size:11px;border:1px solid currentColor;padding:0 5px;margin-left:4px;border-radius:2px}.tone i{font-style:normal;opacity:.8}
 .rp .sm .k{display:inline-block;min-width:34px;color:var(--amber);font-size:11px;margin-right:6px}.rp .sm ul{margin:2px 0 2px 40px;padding:0}.rp .sm li{margin:0}
 td.mac{cursor:pointer;text-decoration:underline dotted}
@@ -206,8 +207,21 @@ function dartView(){
 function dartFill(){ const b=$('#dbody'); if(!b||!DS) return; const cut=new Date(Date.now()-DV.d*864e5+9*36e5).toISOString().slice(0,10), q=DV.q.trim().toLowerCase();
   const it=(DS.items||[]).filter(r=>r.date>=cut&&(DV.c==='ALL'||(DV.c==='⚠ 주의·희석'?(r.flag==='주의'||r.flag==='희석'):r.category===DV.c))&&(!q||[r.name,r.code,r.title,r.category].join(' ').toLowerCase().includes(q)));
   b.innerHTML=it.length?discTable(it.slice(0,500),true):'<div class="mu">해당 공시 없음</div>'; const c=$('#dcnt'); if(c) c.textContent=`${it.length}건 · 기준 ${DS.asof||''}`; }
+let AN=null;
+function loadAnalysts(cb){ if(AN) return cb&&cb(); google.script.run.withSuccessHandler(t=>{try{AN=JSON.parse(t);}catch(e){AN={analysts:{}};} cb&&cb();}).withFailureHandler(()=>{AN={analysts:{}}; cb&&cb();}).getAnalysts(); }
+const normB=b=>String(b||'').replace(/\s|\(주\)|증권|투자|금융|주식회사/g,'');   // research._norm_broker 와 동일
+function anBadge(r){
+  if(!r.analyst) return '';
+  const a=AN&&AN.analysts&&(AN.analysts[normB(r.broker)+'|'+r.analyst]);
+  if(!a) return ` <span class="mu">${esc(r.analyst)}</span>`;
+  const st=[]; if(a.n60>=((AN.meta||{}).min_n||8)) st.push(`매수 적중 ${(a.hit60_buy*100).toFixed(0)}% (n=${a.n60}, 60일 초과수익 ${(a.exc60_buy>0?'+':'')+(a.exc60_buy*100).toFixed(1)}%)`); else st.push(`표본 부족 (n=${a.n})`);
+  if(a.tp_hit!=null&&a.n_tp>=5) st.push(`목표가 도달 ${(a.tp_hit*100).toFixed(0)}%`);
+  if(a.upside_med!=null) st.push(`평균 여력 ${(a.upside_med*100).toFixed(0)}%`);
+  return ` <span class="an" title="${esc((a.style||[]).join(' · '))}">${esc(r.analyst)}<i>${esc(st.join(' · '))}${(a.style||[]).length?' · '+esc(a.style.join(' · ')):''}</i></span>`;
+}
 let R=null, RV={m:'sector',d:30,q:''};
 function repView(){
+  if(!AN) loadAnalysts(()=>{ if(view==='rep'&&R) repFill(); });
   if(!R){ google.script.run.withSuccessHandler(t=>{try{R=JSON.parse(t);}catch(e){R={items:[],close:{}};} if(view==='rep') render();}).withFailureHandler(e=>{R={items:[],close:{},err:/404/.test(e.message)?'리서치 데이터가 아직 생성되지 않았습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='rep') render();}).getResearch(); return '<div class="load">LOADING …</div>'; }
   const btn=(k,v,l)=>`<button class="${RV[k]===v?'on':''}" onclick="RV['${k}']=${typeof v==='number'?v:`'${v}'`};render()">${l}</button>`;
   return `<div class="grid"><div class="p c12"><h2>RESEARCH<span class="ctab">${btn('m','sector','섹터별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><small id="rcnt"></small></h2>
@@ -241,7 +255,7 @@ function repLine(r){
   const tone=r.tone?`<span class="tone ${TC[r.tone]||'mu'}">${esc(r.tone)}${r.tone_why?` <i>${esc(r.tone_why)}</i>`:''}</span>`:'';
   const ev=(r.evidence||[]).map(x=>`<li>${esc(x)}</li>`).join('');
   const body=(r.thesis||ev||r.risk||r.method)?`<div class="sm"><div><span class="k">논지</span>${esc(r.thesis||r.title||'')}</div>${ev?`<div><span class="k">근거</span><ul>${ev}</ul></div>`:''}${r.risk?`<div><span class="k">변수</span>${esc(r.risk)}</div>`:''}${r.method?`<div><span class="k">밸류</span>${esc(r.method)}</div>`:''}</div>`:(r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:'');
-  return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b> · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} ${tone} ${r.link?`<a href="${esc(r.link)}" target="_blank">원문</a>`:''}</div>${body}</div>`;
+  return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b>${anBadge(r)} · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} ${tone} ${r.link?`<a href="${esc(r.link)}" target="_blank">원문</a>`:''}</div>${body}</div>`;
 }
 function stockRows(ss,showSec){ if(!ss.length) return '<div class="mu">해당 기간 리포트 없음</div>';
   return `<table><tr><th></th><th class="l">종목</th>${showSec?'<th class="l">섹터</th>':''}<th class="l">핵심 뷰</th><th class="l">최근</th><th>종가</th></tr>${ss.map(s=>`<tr><td class="tg" title="증권사별 요약 펼치기">▸</td><td class="l am sym" data-sym="${esc(s.code)}" data-mk="KR">${esc(s.name)} <span class="mu">${esc(s.code)}</span></td>${showSec?`<td class="l mu">${esc(s.sector)}</td>`:''}<td class="l">${coreView(s)}</td><td class="l mu">${s.last.date}</td><td>${s.close?num(s.close):'—'}</td></tr><tr class="sub"><td></td><td colspan="${showSec?5:4}">${s.rs.map(repLine).join('')}</td></tr>`).join('')}</table>`; }
@@ -300,6 +314,7 @@ function render(){
 /* ───── 종목 상세 ───── */
 const DET={};
 function openDetail(sym,mk){
+  if(!AN) loadAnalysts();
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent=sym;$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
   const k=mk+':'+sym;
   if(DET[k]) return renderDetail(sym,mk,DET[k]);

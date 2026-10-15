@@ -207,7 +207,8 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                    .sort("date", descending=True))
         for (code,), g in rr.group_by("code", maintain_order=True):
             reps[code] = [{"date": str(x["date"]), "broker": x["broker"], "opinion": x["opinion"], "target": x["target"],
-                           "title": x["title"], "link": x["link"], "summary": x.get("summary") or ""}
+                           "title": x["title"], "link": x["link"], "summary": x.get("summary") or "",
+                           "analyst": x.get("analyst")}
                           for x in g.head(12).to_dicts()]
     flows: dict[str, list[dict]] = {}
     if with_flows and market == "KR":

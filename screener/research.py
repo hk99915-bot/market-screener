@@ -30,7 +30,7 @@ STORE = DATA_DIR / "research.parquet"
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"}
 SCHEMA = {"key": pl.Utf8, "date": pl.Date, "source": pl.Utf8, "code": pl.Utf8, "name": pl.Utf8, "title": pl.Utf8,
           "broker": pl.Utf8, "opinion": pl.Utf8, "target": pl.Float64, "link": pl.Utf8, "collected_at": pl.Utf8,
-          "summary": pl.Utf8}
+          "summary": pl.Utf8, "analyst": pl.Utf8}
 KST = ZoneInfo("Asia/Seoul")
 
 BUY_WORDS = re.compile(r"(?i)buy|매수|outperform|overweight|비중확대|strong")
@@ -220,9 +220,9 @@ def enrich_naver(rows: list[dict], limit: int = 400) -> None:
 
 # ───────────── 한경컨센서스 ─────────────
 
-def fetch_hankyung(since: date, max_pages: int = 10) -> list[dict]:
+def fetch_hankyung(since: date, max_pages: int = 10, until: date | None = None) -> list[dict]:
     base = "https://consensus.hankyung.com"
-    today = datetime.now(KST).date()
+    today = until or datetime.now(KST).date()
     out = []
     for p in range(1, max_pages + 1):
         url = (f"{base}/analysis/list?sdate={since}&edate={today}&report_type=CO"
@@ -251,7 +251,7 @@ def fetch_hankyung(since: date, max_pages: int = 10) -> list[dict]:
                 "date": date.fromisoformat(dm.group(0)), "source": "한경", "code": m.group(2),
                 "name": m.group(1).strip(), "title": m.group(3).strip() or tt,
                 "broker": _strip(tds[5]), "opinion": _strip(tds[3]) or None, "target": _num(_strip(tds[2])),
-                "link": link,
+                "link": link, "analyst": _strip(tds[4]) or None,
             })
         if found < 80:
             break
@@ -502,3 +502,43 @@ def structure(r: dict, close: float | None = None) -> dict:
         tone = "긍정(유지)" if rank == 2 else "의견 없음"
     return {"thesis": title, "evidence": evid, "risk": risk[0] if risk else None, "method": method,
             "tone": tone, "tone_why": " · ".join(why) if why else None}
+
+
+def backfill_hankyung(years: int = 2, window_days: int = 20) -> int:
+    """한경 컨센서스 과거 리포트를 기간 창 단위로 받아 저장소에 합친다 (요약 없이 메타데이터만).
+    이미 있는 키는 애널리스트 이름만 보충. 한 번 끝나면 store_min ≤ 시작일이라 다시 돌지 않는다."""
+    store = load_store()
+    today = datetime.now(KST).date()
+    start = today - timedelta(days=365 * years)
+    if len(store) and store["date"].min() <= start + timedelta(days=7) and store["analyst"].null_count() < len(store) * 0.2:
+        log.info("과거 리포트 백필 이미 완료")
+        return 0
+    rows: list[dict] = []
+    d = start
+    while d < today:
+        e = min(d + timedelta(days=window_days), today)
+        try:
+            got = fetch_hankyung(d, max_pages=40, until=e)
+            rows += got
+            log.info("한경 백필 %s~%s %d건", d, e, len(got))
+        except Exception as ex:  # noqa: BLE001
+            log.warning("한경 백필 %s 실패: %s", d, ex)
+        d = e + timedelta(days=1)
+        time.sleep(0.5)
+    if not rows:
+        return 0
+    now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+    for r in rows:
+        r["key"] = make_key(r["date"], r["code"], r["broker"])
+        r.setdefault("summary", "-" if r["date"] < today - timedelta(days=30) else None)
+        r["collected_at"] = "backfill " + now
+    new = pl.DataFrame(rows, schema=SCHEMA).unique("key", keep="first")
+    # 기존 행의 애널리스트 보충
+    an = new.select("key", pl.col("analyst").alias("_a"))
+    store = (store.join(an, on="key", how="left")
+                  .with_columns(pl.coalesce("analyst", "_a").alias("analyst")).drop("_a"))
+    add = new.filter(~pl.col("key").is_in(store["key"].implode()))
+    store = pl.concat([store, add]).unique("key", keep="first").sort("date", "code")
+    store.write_parquet(STORE)
+    log.info("백필 추가 %d건 · 저장소 %d건", len(add), len(store))
+    return len(add)
