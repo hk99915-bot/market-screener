@@ -118,6 +118,11 @@ def write_research(days: int = 180) -> int:
         last = (pl.read_parquet(pp, columns=["yf", "date", "close"]).sort("date").group_by("yf").last()
                   .with_columns(pl.col("yf").str.slice(0, 6).alias("code")).filter(pl.col("code").is_in(sorted(codes))))
         close = dict(zip(last["code"].to_list(), [round(float(x), 2) for x in last["close"].to_list()]))
+    for it in items:
+        try:
+            it.update(research.structure(it, close.get(it["code"])))
+        except Exception as e:  # noqa: BLE001
+            log.debug("구조화 실패 %s: %s", it.get("code"), e)
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "days": days, "items": items, "close": close}
     (REPORT_DIR / "research.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     return len(items)

@@ -58,6 +58,54 @@ def _flows_kr(codes: list[str], asof: date, days: int = 10) -> dict[str, list[di
     return out
 
 
+COST = 0.0025   # 왕복 거래비용 가정 (수수료+세금+슬리피지 대략)
+
+
+def _sim_one(c: list[float], pos: list[int], dates: list, cost: float = COST) -> dict:
+    """pos[i] = i일 종가 기준 결정한 포지션(+1 롱, -1 숏, 0 무포지션) → i+1일 수익에 적용."""
+    eq, peak, mdd, trades, wins = 1.0, 1.0, 0.0, 0, 0
+    entry_px, entry_i, cur = None, None, 0
+    for i in range(1, len(c)):
+        p = pos[i - 1]
+        if p != cur:                       # 포지션 변경 (i-1일 종가에 체결)
+            if cur != 0 and entry_px:
+                ret = (c[i - 1] / entry_px - 1) * cur
+                trades += 1
+                wins += ret > 0
+            if p != 0:
+                entry_px, entry_i = c[i - 1], i - 1
+            eq *= (1 - cost / 2) ** (abs(p - cur))
+            cur = p
+        eq *= 1 + cur * (c[i] / c[i - 1] - 1)
+        peak = max(peak, eq)
+        mdd = min(mdd, eq / peak - 1)
+    open_ret = (c[-1] / entry_px - 1) * cur if cur and entry_px else None
+    return {"ret": round(eq - 1, 4), "mdd": round(mdd, 4), "trades": trades,
+            "win": round(wins / trades, 3) if trades else None, "pos": cur,
+            "entry_date": str(dates[entry_i]) if cur and entry_i is not None else None,
+            "entry_px": round(entry_px, 2) if cur and entry_px else None,
+            "open_ret": round(open_ret, 4) if open_ret is not None else None}
+
+
+def _simulate(g: pl.DataFrame, days: int = 250) -> dict:
+    """추세추종 백테스트 (단일 종목, 최근 days 영업일, 종가 체결, 비용 왕복 0.25% 가정).
+    1) 이평 추세: 종가>SMA50 & SMA20>SMA50 이면 롱, 반대면 숏(롱숏) / 무포지션(롱온리)
+    2) PSAR: 종가>PSAR 롱, 아니면 숏/무포지션"""
+    g = g.drop_nulls(["close", "sma20", "sma50"]).tail(days)
+    if len(g) < 60:
+        return {}
+    c, s20, s50 = g["close"].to_list(), g["sma20"].to_list(), g["sma50"].to_list()
+    ps = g["psar"].to_list() if "psar" in g.columns else [None] * len(c)
+    dates = g["date"].to_list()
+    ma = [1 if (c[i] > s50[i] and s20[i] > s50[i]) else -1 if (c[i] < s50[i] and s20[i] < s50[i]) else 0 for i in range(len(c))]
+    sar = [0 if ps[i] is None else (1 if c[i] > ps[i] else -1) for i in range(len(c))]
+    out = {"days": len(c), "from": str(dates[0]), "bh": round(c[-1] / c[0] - 1, 4), "cost": COST}
+    for name, sig in (("ma", ma), ("psar", sar)):
+        out[name] = {"long": _sim_one(c, [max(x, 0) for x in sig], dates),
+                     "ls": _sim_one(c, sig, dates)}
+    return out
+
+
 def _scenarios(r: dict, chart: list[dict]) -> dict:
     """규칙 기반 시나리오: 지지/저항 레벨과 조건. 예측이 아니라 '어느 레벨에서 무엇이 바뀌는가'."""
     c = r.get("close") or 0
@@ -141,6 +189,13 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     rows = {r["symbol"]: r for r in last.filter(pl.col("symbol").is_in(syms)).to_dicts()}
     hist = (full.filter(pl.col("yf").is_in(last.filter(pl.col("symbol").is_in(syms))["yf"].implode()))
                 .sort("yf", "date").group_by("yf").tail(60))
+    sims: dict[str, dict] = {}
+    try:
+        cols = [x for x in ("yf", "date", "close", "sma20", "sma50", "psar") if x in full.columns]
+        for (yf,), g in full.select(cols).sort("yf", "date").group_by("yf", maintain_order=True):
+            sims[yf] = _simulate(g)
+    except Exception as e:  # noqa: BLE001
+        log.warning("시뮬레이션 실패: %s", e)
     charts: dict[str, list[dict]] = {}
     for (yf,), g in hist.group_by("yf", maintain_order=True):
         rd = lambda v: None if v is None else round(v, 2)  # noqa: E731
@@ -203,6 +258,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             "flows": fl, "flow_note": flow_note,
             "disclosures": discl.get(s, []),
             "financials": fins.get(s, {}),
+            "sim": sims.get(r["yf"], {}),
             "chart": ch,
             "scenarios": _scenarios(r, ch),
             "comment": {"stock": stock_comment(r, max_parts=5), "macro": _macro_view(r, mr, regime_line, br)},

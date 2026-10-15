@@ -79,6 +79,10 @@
 tr.sub{display:none}tr.sub.on{display:table-row}tr.sub td{font-size:12px;line-height:1.7;padding-bottom:8px;text-align:left}td.tg{cursor:pointer;color:var(--amber);width:14px}
 details.sec{margin-bottom:10px}details.sec summary{cursor:pointer;padding:4px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
 .rp{padding:4px 0;border-bottom:1px dashed #1c1c1c}.rp .sm{color:#bdbdbd;font-size:12px;line-height:1.6;margin:2px 0 2px 12px}
+.tone{font-size:11px;border:1px solid currentColor;padding:0 5px;margin-left:4px;border-radius:2px}.tone i{font-style:normal;opacity:.8}
+.rp .sm .k{display:inline-block;min-width:34px;color:var(--amber);font-size:11px;margin-right:6px}.rp .sm ul{margin:2px 0 2px 40px;padding:0}.rp .sm li{margin:0}
+td.mac{cursor:pointer;text-decoration:underline dotted}
+.simt td,.simt th{padding:3px 8px}
 </style>
 </head>
 <body>
@@ -132,7 +136,7 @@ function breadthPanel(mk){
 function macroPanel(mk){
   const m=(D.state||{})['macro_'+mk]; if(!m||!m.value||!m.value.length) return '<div class="mu">—</div>';
   const reg=(D.state||{})['regime_'+mk];
-  return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
+  return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am mac" data-key="${esc(d.key)}">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
 }
 function pre(key,title){
   const s=(D.state||{})[key]; if(!s||!s.value) return '';
@@ -169,6 +173,14 @@ function homeView(){
 function repTable(rows){
   if(!rows||!rows.length) return '<div class="mu">—</div>';
   return `<table><tr><th class="l">DATE</th><th class="l">NAME</th><th class="l">BROKER</th><th class="l">OP</th><th>TP</th><th class="l">TITLE</th></tr>`+rows.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${num(r.target)}</td><td class="l">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title).slice(0,50)}</a>`:esc(r.title).slice(0,50)}</td></tr>`).join('')+'</table>';
+}
+function simTable(m){
+  if(!m||!m.days) return '<div class="mu">시뮬레이션 데이터 부족 (60거래일 미만)</div>';
+  const P=x=>x==null?'—':pct(x,1), pos=p=>p>0?'<b class="up">롱</b>':p<0?'<b class="dn">숏</b>':'<span class="mu">관망</span>';
+  const row=(name,desc,k,mode)=>{const r=m[k][mode]; return `<tr><td class="l">${name}</td><td class="l mu">${desc}</td><td>${P(r.ret)}</td><td>${P(r.ret-m.bh)}</td><td>${P(r.mdd)}</td><td>${r.trades}</td><td>${r.win==null?'—':(r.win*100).toFixed(0)+'%'}</td><td class="l">${pos(r.pos)}${r.pos?` <span class="mu">${r.entry_date} 진입 ${num(r.entry_px)}</span> ${P(r.open_ret)}`:''}</td></tr>`;};
+  return `<table class="simt"><tr><th class="l">전략</th><th class="l">방식</th><th>누적수익</th><th>보유대비</th><th>MDD</th><th>거래</th><th>승률</th><th class="l">현재 포지션 · 진입 후 손익</th></tr>
+    ${row('이평 추세 롱','종가>50일선 & 20>50 이면 보유','ma','long')}${row('이평 추세 롱숏','위 조건이면 롱, 반대면 숏','ma','ls')}${row('PSAR 롱','종가>PSAR 이면 보유','psar','long')}${row('PSAR 롱숏','종가>PSAR 롱, 아니면 숏','psar','ls')}
+    <tr><td class="l">단순 보유</td><td class="l mu">기간 시작에 사서 보유</td><td>${P(m.bh)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td></td></tr></table>`;
 }
 function finTable(f,kr){
   if(!kr) return '<div class="mu">미국 종목 재무는 아직 미지원</div>';
@@ -217,12 +229,18 @@ function coreView(s){
   const parts=[`${L.length}곳`, [b?`매수 ${b}`:'',h?`중립·기타 ${h}`:'',se?`매도 ${se}`:''].filter(Boolean).join(' / ')];
   if(tps.length) parts.push(`TP ${num(Math.min(...tps))}${tps.length>1?'~'+num(Math.max(...tps)):''}${s.up!=null?` (${(s.up*100>0?'+':'')+(s.up*100).toFixed(0)}%)`:''}`);
   if(up||dn) parts.push(`목표가 ${up?'상향 '+up:''}${up&&dn?' · ':''}${dn?'하향 '+dn:''}`);
+  const tn={}; for(const r of L) if(r.tone) tn[r.tone]=(tn[r.tone]||0)+1;
+  const tl=Object.entries(tn).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}`).join(', '); if(tl) parts.push(`톤: ${tl}`);
   return parts.filter(Boolean).join(' · ');
 }
 function repLine(r){
   const ch=r.tp_chg>0.001?` <span class="up">↑${(r.tp_chg*100).toFixed(0)}%</span>`:r.tp_chg<-0.001?` <span class="dn">↓${(r.tp_chg*100).toFixed(0)}%</span>`:'';
   const op=r.op_chg>0?' <span class="up">의견↑</span>':r.op_chg<0?' <span class="dn">의견↓</span>':'';
-  return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b> · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} · ${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title||'리포트')}</a>`:esc(r.title||'')}</div>${r.summary?`<div class="sm">${esc(r.summary)}</div>`:''}</div>`;
+  const TC={'낙관':'up','긍정(유지)':'up','신중한 매수':'am','사실상 중립':'am','중립':'mu','매도':'dn','의견 없음':'mu'};
+  const tone=r.tone?`<span class="tone ${TC[r.tone]||'mu'}">${esc(r.tone)}${r.tone_why?` <i>${esc(r.tone_why)}</i>`:''}</span>`:'';
+  const ev=(r.evidence||[]).map(x=>`<li>${esc(x)}</li>`).join('');
+  const body=(r.thesis||ev||r.risk||r.method)?`<div class="sm"><div><span class="k">논지</span>${esc(r.thesis||r.title||'')}</div>${ev?`<div><span class="k">근거</span><ul>${ev}</ul></div>`:''}${r.risk?`<div><span class="k">변수</span>${esc(r.risk)}</div>`:''}${r.method?`<div><span class="k">밸류</span>${esc(r.method)}</div>`:''}</div>`:(r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:'');
+  return `<div class="rp"><div><span class="mu">${r.date}</span> <b>${esc(r.broker)}</b> · ${esc(r.opinion||'—')} · TP ${r.target?num(r.target):'—'}${ch}${op} ${tone} ${r.link?`<a href="${esc(r.link)}" target="_blank">원문</a>`:''}</div>${body}</div>`;
 }
 function stockRows(ss,showSec){ if(!ss.length) return '<div class="mu">해당 기간 리포트 없음</div>';
   return `<table><tr><th></th><th class="l">종목</th>${showSec?'<th class="l">섹터</th>':''}<th class="l">핵심 뷰</th><th class="l">최근</th><th>종가</th></tr>${ss.map(s=>`<tr><td class="tg" title="증권사별 요약 펼치기">▸</td><td class="l am sym" data-sym="${esc(s.code)}" data-mk="KR">${esc(s.name)} <span class="mu">${esc(s.code)}</span></td>${showSec?`<td class="l mu">${esc(s.sector)}</td>`:''}<td class="l">${coreView(s)}</td><td class="l mu">${s.last.date}</td><td>${s.close?num(s.close):'—'}</td></tr><tr class="sub"><td></td><td colspan="${showSec?5:4}">${s.rs.map(repLine).join('')}</td></tr>`).join('')}</table>`; }
@@ -290,6 +308,25 @@ function openDetail(sym,mk){
   const bundle=()=>google.script.run.withSuccessHandler(t=>{const b=JSON.parse(t), st=b.stocks&&b.stocks[sym]; if(!st) return fail({message:'404'}); DET[k]={...st,asof:b.asof}; renderDetail(sym,mk,DET[k]);}).withFailureHandler(fail).getDetail(mk);
   google.script.run.withSuccessHandler(t=>{DET[k]=JSON.parse(t);renderDetail(sym,mk,DET[k]);}).withFailureHandler(e=>/404/.test(e.message)?bundle():fail(e)).getStock(mk,sym);
 }
+let MS=null;
+function openMacro(key){
+  $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent=key;$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
+  const show=()=>{const s=(MS.series||{})[key]; if(!s||!s.length){$('#dr-b').innerHTML='<div class="err">시계열 없음 (다음 스크리너 실행 때 생성)</div>';return;}
+    const c=s.map(x=>x[1]), last=c[c.length-1], ch=(n)=>c.length>n?last/c[c.length-1-n]-1:null;
+    const ma=(n,i)=>i+1>=n?c.slice(i+1-n,i+1).reduce((a,b)=>a+b,0)/n:null;
+    $('#dr-s').innerHTML=`${num(last,2)} · 1D ${pct(ch(1))} · 1M ${pct(ch(21))} · 3M ${pct(ch(63))} · as of ${esc(s[s.length-1][0])}`;
+    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>${esc(key)}<small>일봉 · SMA20 · SMA50 · 야후 기준</small></h2><div class="b"><canvas id="mcv" width="960" height="300"></canvas></div></div></div>`;
+    const cv=$('#mcv'), W=cv.width=cv.clientWidth*2, H=cv.height=560, x=cv.getContext('2d'), pl=80, pr=16, pt=14, pb=40;
+    const lo=Math.min(...c), hi=Math.max(...c), pad=(hi-lo)*0.06||1, Y=v=>pt+(hi+pad-v)/((hi-lo)+2*pad)*(H-pt-pb), X=i=>pl+(W-pl-pr)*i/(c.length-1);
+    x.fillStyle='#050505';x.fillRect(0,0,W,H);x.font='20px monospace';
+    for(let i=0;i<=4;i++){const v=lo-pad+((hi-lo)+2*pad)*i/4,y=Y(v);x.strokeStyle='#1c1c1c';x.beginPath();x.moveTo(pl,y);x.lineTo(W-pr,y);x.stroke();x.fillStyle='#777';x.fillText(v.toLocaleString(undefined,{maximumFractionDigits:2}),4,y+7);}
+    const line=(f,col,w)=>{x.strokeStyle=col;x.lineWidth=w;x.beginPath();let st=false;c.forEach((_,i)=>{const v=f(i);if(v==null)return;st?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v));st=true;});x.stroke();};
+    line(i=>ma(20,i),'#4aa3ff',2);line(i=>ma(50,i),'#c77dff',2);line(i=>c[i],last>=c[0]?'#2fd05a':'#ff4b4b',3);
+    x.fillStyle='#777';for(let i=0;i<c.length;i+=Math.ceil(c.length/6))x.fillText(s[i][0].slice(2),X(i)-30,H-12);};
+  if(MS) return show();
+  google.script.run.withSuccessHandler(t=>{try{MS=JSON.parse(t);}catch(e){MS={series:{}};} show();}).withFailureHandler(()=>{MS={series:{}};show();}).getMacroSeries();
+}
+document.addEventListener('click',e=>{const td=e.target.closest('td.mac'); if(td) openMacro(td.dataset.key);});
 function closeDetail(){$('#dr').classList.remove('on');$('#bd').classList.remove('on');}
 $('#dr-x').onclick=closeDetail;$('#bd').onclick=closeDetail;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
 document.addEventListener('click',e=>{const td=e.target.closest('td.sym'); if(td) openDetail(td.dataset.sym,td.dataset.mk);});
@@ -303,6 +340,7 @@ function renderDetail(sym,mk,s){
    <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
    <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<div style="margin-top:6px;max-height:340px;overflow:auto">${rs.items.map(repLine).join('')}</div>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
    <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
+   <div class="p c12"><h2>TREND SIMULATION<small>${s.sim&&s.sim.days?`최근 ${s.sim.days}거래일(${s.sim.from}~) · 종가 체결 · 왕복비용 ${(s.sim.cost*100).toFixed(2)}% 가정 · 과거 성과, 예측 아님`:''}</small></h2><div class="b">${simTable(s.sim)}</div></div>
    <div class="p c12"><h2>FINANCIALS<small>DART · 단독 분기 · 억원${s.financials?.quarters?.length?'':''}</small></h2><div class="b">${finTable(s.financials,kr)}</div></div>
    <div class="p c12"><h2>DISCLOSURES<small>DART · 최근 180일 주요 공시</small></h2><div class="b">${(s.disclosures||[]).length?discTable(s.disclosures,false):'<div class="mu">'+(kr?'최근 주요 공시 없음 (또는 DART 키 미설정)':'미국 종목은 DART 대상 아님')+'</div>'}</div></div>
    <div class="p c12"><h2>SCENARIOS<small>규칙 기반 · 예측 아님</small></h2><div class="b"><div class="sc">

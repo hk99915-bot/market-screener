@@ -443,3 +443,62 @@ def broker_stats(perf: pl.DataFrame, horizon: int = 20, min_n: int = 15) -> pl.D
                 pl.len().alias("n"), pl.col(f"exc{horizon}").mean().alias("avg_exc"),
                 (pl.col(f"exc{horizon}") > 0).mean().alias("hit"))
               .filter(pl.col("n") >= min_n).sort("avg_exc", descending=True))
+
+
+# ───────────── 리포트 구조화 (규칙 기반, 센터장 보고 형식) ─────────────
+
+POS_KW = re.compile(r"상회|상향|개선|증가|확대|성장|호조|서프라이즈|최대|반등|회복|수혜|강세|턴어라운드|가속")
+NEG_KW = re.compile(r"하회|하향|부진|감소|축소|둔화|우려|부담|약세|적자|리스크|하락|불확실|지연|역성장|감익")
+RISK_KW = re.compile(r"리스크|우려|부담|불확실|하회|하향|둔화|지연|변수|경쟁\s*심화|규제")
+EVID_KW = re.compile(r"영업이익|매출|EPS|순이익|컨센서스|추정|전망|성장률|마진|OPM|YoY|QoQ|가이던스|수주|출하|판가|ASP")
+METHOD = re.compile(r"(SOTP|DCF|RIM|EV\s*/\s*EBITDA|Target\s*P\s*/?\s*E|P\s*/\s*E|PER|P\s*/\s*B|PBR)[^.]{0,60}?(\d+(?:\.\d+)?\s*(?:배|x|X))?", re.I)
+
+
+def _sents(txt: str) -> list[str]:
+    return [x.strip() for x in re.split(r"(?<=[다음함임됨])\.\s*|\.\s+(?=[가-힣A-Z0-9])", txt or "") if len(x.strip()) >= 12]
+
+
+def structure(r: dict, close: float | None = None) -> dict:
+    """요약·제목·의견·목표가로 핵심 논지 / 근거 / 리스크 / 밸류 방법 / 톤 을 규칙 기반으로 뽑는다."""
+    summ = r.get("summary") or ""
+    summ = "" if summ == "-" else summ
+    title = (r.get("title") or "").strip()
+    sents = _sents(summ)
+    evid = [x for x in sents if EVID_KW.search(x) and not RISK_KW.search(x)][:2]
+    risk = [x for x in sents if RISK_KW.search(x)][:1]
+    m = METHOD.search(summ)
+    method = None
+    if m:
+        method = re.sub(r"\s+", "", m.group(1)).upper().replace("TARGETP/E", "Target P/E")
+        if m.group(2):
+            method += " " + m.group(2).replace(" ", "")
+    text = title + " " + summ
+    pos, neg = len(POS_KW.findall(text)), len(NEG_KW.findall(text))
+    rank = opinion_rank(r.get("opinion"))
+    if re.search(r"없음|Not\s*Rated|^NR$|N/R", r.get("opinion") or "", re.I) or not (r.get("opinion") or "").strip():
+        rank = -9   # 투자의견 없음 (IR협의회·스몰캡 커버 등)
+    up = (r["target"] / close - 1) if (r.get("target") and close) else None
+    tpc = r.get("tp_chg")
+    why = []
+    if rank == 0:
+        tone = "매도"
+    elif rank == 2 and tpc is not None and tpc < -0.001:
+        tone, _ = "사실상 중립", why.append(f"매수 유지지만 목표가 {tpc*100:+.0f}%")
+    elif rank == 2 and up is not None and up < 0.10:
+        tone, _ = "사실상 중립", why.append(f"매수지만 여력 {up*100:+.0f}%")
+    elif rank == 2 and neg > pos + 1:
+        tone, _ = "신중한 매수", why.append("본문에 부정 표현이 더 많음")
+    elif rank == 2 and ((tpc or 0) > 0.001 or pos >= neg + 2) and (up is None or up >= 0.15):
+        tone = "낙관"
+        if tpc and tpc > 0:
+            why.append(f"목표가 {tpc*100:+.0f}%")
+        if up is not None:
+            why.append(f"여력 {up*100:+.0f}%")
+    elif rank == 1:
+        tone = "중립"
+    elif rank == -9:
+        tone = "의견 없음"
+    else:
+        tone = "긍정(유지)" if rank == 2 else "의견 없음"
+    return {"thesis": title, "evidence": evid, "risk": risk[0] if risk else None, "method": method,
+            "tone": tone, "tone_why": " · ".join(why) if why else None}

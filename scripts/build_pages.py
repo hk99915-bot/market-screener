@@ -17,6 +17,7 @@ SHIM = """<script>
     getLive: () => fetch('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/live.json?t=' + Date.now()).then(r => r.ok ? r.text() : get('reports/live.json')).catch(() => get('reports/live.json').catch(() => '')),
     getResearch: () => get('reports/research.json'),
     getDisclosures: () => get('reports/disclosures.json'),
+    getMacroSeries: () => get('reports/macro_series.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

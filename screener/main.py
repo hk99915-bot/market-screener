@@ -74,6 +74,16 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         except Exception as e:  # noqa: BLE001
             log.warning("국내 지수 보정 실패: %s", e)
     regime_line = context.regime_summary(mr)
+    if not prices_path and len(macro):
+        try:
+            import json as _json
+            from .config import REPORT_DIR
+            ser = {k: [[str(d), round(float(c), 4)] for d, c in zip(g["date"].to_list(), g["close"].to_list()) if c is not None]
+                   for (k,), g in macro.sort("date").group_by("key", maintain_order=True)}
+            (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
+                {"asof": str(asof), "series": ser}, ensure_ascii=False), encoding="utf-8")
+        except Exception as e:  # noqa: BLE001
+            log.warning("매크로 시계열 저장 실패: %s", e)
     nw = news.build_news_context(last) if not prices_path else None
     if market == "KR":
         try:
