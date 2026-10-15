@@ -165,7 +165,7 @@ def build() -> dict:
     if kr and us and score is not None:
         gap = (kr["chg20"] or 0) - (us["chg20"] or 0)
         if gap < -0.08 and score > -0.15:
-            summary += " · 글로벌 매크로는 심하지 않은데 한국만 크게 빠짐 → 원인은 국내·업종(반도체) 쪽, 매크로 반전만으론 회복 근거 부족"
+            summary += " · 미국 지수는 덜 빠졌는데 한국이 크게 빠짐 → 금리·환율 같은 매크로보다 한국 비중이 큰 업종(반도체·AI 인프라) 쏠림이 풀리는 쪽. 원인 뉴스가 미국발이어도 충격은 업종 쏠림만큼 한국에 크게 옴 — 매크로 반전만으론 회복 근거 부족"
         elif gap < -0.08:
             summary += " · 매크로 역풍 + 한국 초과 하락이 겹침"
     out = {"asof": max((r["date"] for r in rows), default=None), "score": round(score, 2) if score is not None else None,

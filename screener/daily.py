@@ -76,7 +76,11 @@ def build(days: int = 7) -> dict:
 
     br = [b for b in (dash.get("breadth") or []) if b.get("market") == "KR"]
     b200 = br[-1]["pct_above200"] if br else None
-    snap = _state(st, "intraday_snapshot") or {}
+    # 장 마감 후엔 마감 스냅샷(확정에 가까운 수급)을 우선 — 같은 날짜이고 더 최근일 때만
+    _i, _c = st.get("intraday_snapshot") or {}, st.get("close_snapshot") or {}
+    use_close = isinstance(_c, dict) and str(_c.get("at", ""))[:10] == str(_i.get("at", ""))[:10] and str(_c.get("at", "")) > str(_i.get("at", ""))
+    snap = (_c.get("value") if use_close else _state(st, "intraday_snapshot")) or {}
+    flow_tag = "마감" if use_close else ("잠정 " + str(_i.get("at", ""))[11:16] if _i else "")
     fk = ((snap.get("flows") or {}).get("KOSPI") or {})
     top_lines = []
     for k, label in (("KOSPI", "KOSPI"), ("KOSDAQ", "KOSDAQ"), ("SPX", "S&P500"), ("NASDAQ", "나스닥"), ("VIX", "VIX"),
@@ -96,7 +100,7 @@ def build(days: int = 7) -> dict:
     if b200 is not None:
         regime.append(f"KR 200일선 위 {b200*100:.0f}% — " + ("강세 체력" if b200 >= 0.6 else "중립" if b200 >= 0.4 else "약세 체력"))
     if fk.get("외국인") is not None:
-        regime.append(f"외국인 현물 {fk['외국인']:+,.0f}억 · 기관 {fk.get('기관', 0):+,.0f}억 · 개인 {fk.get('개인', 0):+,.0f}억")
+        regime.append(f"외국인 현물 {fk['외국인']:+,.0f}억 · 기관 {fk.get('기관', 0):+,.0f}억 · 개인 {fk.get('개인', 0):+,.0f}억 ({flow_tag})")
     if (chg("VIX") or 0) > 0.08:
         regime.append("VIX 급등 — 위험회피")
 
