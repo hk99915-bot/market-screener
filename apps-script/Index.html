@@ -298,7 +298,7 @@ function coreView(s){
 function repLine(r){
   const ch=r.tp_chg>0.001?` <span class="up">↑${(r.tp_chg*100).toFixed(0)}%</span>`:r.tp_chg<-0.001?` <span class="dn">↓${(r.tp_chg*100).toFixed(0)}%</span>`:'';
   const op=r.op_chg>0?' <span class="up">의견↑</span>':r.op_chg<0?' <span class="dn">의견↓</span>':'';
-  const TC={'낙관':'up','긍정(유지)':'up','신중한 매수':'am','사실상 중립':'am','중립':'mu','매도':'dn','의견 없음':'mu'};
+  const TC={'낙관':'up','긍정(유지)':'up','신중한 매수':'am','사실상 중립':'am','중립':'mu','사실상 매도':'dn','매도':'dn','의견 없음':'mu'};
   const tone=r.tone?`<span class="tone ${TC[r.tone]||'mu'}">${esc(r.tone)}${r.tone_why?` <i>${esc(r.tone_why)}</i>`:''}</span>`:'';
   const ev=(r.evidence||[]).map(x=>`<li>${esc(x)}</li>`).join('');
   const body=(r.thesis||ev||r.risk||r.method)?`<div class="sm">${r.view?`<div><span class="k">핵심</span><b>${esc(r.view)}</b></div>`:''}<div><span class="k">논지</span>${esc(r.thesis||r.title||'')}</div>${ev?`<div><span class="k">근거</span><ul>${ev}</ul></div>`:''}${r.risk?`<div><span class="k">변수</span>${esc(r.risk)}</div>`:''}${r.method?`<div><span class="k">밸류</span>${esc(r.method)}</div>`:''}</div>`:(r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:'');
