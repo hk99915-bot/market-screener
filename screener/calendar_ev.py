@@ -43,6 +43,20 @@ US_EARN = ["MSFT", "GOOGL", "AMZN", "META", "AAPL", "NVDA", "AVGO", "AMD", "MU",
            "TSLA", "INTC", "QCOM", "ORCL", "CRM", "NFLX", "WDC", "STX", "DELL", "SMCI", "ARM", "MRVL", "GEV", "VRT", "ETN"]
 KR_EARN = ["005930", "000660", "009150", "373220", "207940", "005380", "000270", "068270", "035420", "035720", "105560", "055550",
            "012450", "042660", "329180", "009540", "267260", "034020", "006400", "051910", "066570", "011070", "402340", "028260"]
+# 회사가 발표한 실적일 (야후 추정치를 덮어씀). (날짜 KST 기준 발표일, 메모, 중요도) — 2026-10-16 애널 확인, 출처는 메모에
+# 미국은 현지 장 마감 후 발표 → 한국 다음날 아침 반영
+VERIFIED = {
+    "000660": ("2026-10-28", "회사 확정 · 09:00 컨콜 · 컨센 영업익 약 77조(FnGuide, 10/15 기사) · 추가 주주환원 발표 여부", 3),
+    "005930": ("2026-10-29", "회사 확정 · 10:00 컨콜(확정실적·사업부별) · 잠정 10/8: 매출 195조·영업익 107.4조", 3),
+    "009150": ("2026-10-28", "회사 공시(10/12) · 3분기 결산 실적 · 시각은 공시 원문 확인", 2),
+    "000270": ("2026-10-30", "회사 확정 · 14:10 컨콜", 2),
+    "012330": ("2026-10-30", "회사 확정 · 10:10 컨콜 (10:00 자료 공시)", 1),
+    "WDC": ("2026-10-22", "회사 확정 · 장 마감 후 · HDD 판가·AI 데이터센터 수요", 2),
+    "STX": ("2026-10-27", "회사 확정 · 장 마감 후 · HDD 판가·AI 데이터센터 수요", 2),
+    "SNDK": ("2026-10-29", "회사 확정 · 장 마감 후 컨콜 13:30 PT · 낸드 판가", 3),
+    "AAPL": ("2026-11-02", "회사 확정 · 장 마감 후 · 스마트폰 부품(MLCC·카메라) 수요", 2),
+    "NVDA": ("2026-11-17", "회사 일정 · 장 마감 후 · HBM 최대 수요처", 3),
+}
 CAPEX = {"MSFT", "GOOGL", "AMZN", "META", "ORCL"}   # 빅테크 설비투자 가이던스 — 메모리 매도 규칙과 연결
 CHIP = {"NVDA", "MU", "SNDK", "AVGO", "AMD", "TSM", "ASML", "AMAT", "LRCX", "KLAC", "000660", "005930", "WDC", "STX", "ARM", "MRVL"}
 
@@ -309,7 +323,10 @@ def build(days: int = 75) -> dict:
     except Exception as e:  # noqa: BLE001
         log.warning("국장 실적일 실패: %s", e)
         kr = {}
-    for t, d in {**us, **kr}.items():
+    merged = {**us, **kr}
+    for t, (vd, _n, _i) in VERIFIED.items():
+        merged[t] = vd
+    for t, d in merged.items():
         try:
             dd = date.fromisoformat(d)
         except ValueError:
@@ -325,9 +342,14 @@ def build(days: int = 75) -> dict:
         for cut in (" - ", ", Inc", ", LLC", " Inc.", " Corporation", " Corp.", " Holdings", " Holding", " PLC", " N.V.", ".com"):
             nm = nm.split(cut)[0]
         nm = nm.strip()
-        ev.append({"date": d, "type": "실적", "name": f"{nm} 실적", "ticker": t, "market": "KR" if t.isdigit() else "US",
-                   "note": " · ".join(tags) + (" · 미국 장후 발표가 많음 → 한국 다음날 반영" if not t.isdigit() else ""),
-                   "imp": 3 if t in CAPEX or t in ("NVDA", "MU", "000660", "005930") else 2 if t in CHIP else 1})
+        vf = VERIFIED.get(t)
+        imp = 3 if t in CAPEX or t in ("NVDA", "MU", "000660", "005930") else 2 if t in CHIP else 1
+        e = {"date": d, "type": "실적", "name": f"{nm} 실적", "ticker": t, "market": "KR" if t.isdigit() else "US",
+             "note": " · ".join(([vf[1]] if vf else []) + tags) + (" · 미국 장후 발표가 많음 → 한국 다음날 반영" if not t.isdigit() else ""),
+             "imp": max(imp, vf[2]) if vf else imp}
+        if vf:
+            e["confirmed"] = True
+        ev.append(e)
     seen = set()
     ev = [e for e in ev if not ((e["date"], e["name"]) in seen or seen.add((e["date"], e["name"])))]
     ev.sort(key=lambda e: (e["date"], -e["imp"]))
@@ -336,7 +358,7 @@ def build(days: int = 75) -> dict:
     except Exception as e:  # noqa: BLE001
         log.warning("지표 결과 실패: %s", e)
     out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "events": ev, "moves": _moves(),
-           "note": "실적일은 야후 기준 예정일(회사 확정 전 추정 포함). 매크로 일정은 연준·BLS·BEA 공식 일정 기준."}
+           "note": "실적일은 야후 기준 예정일(회사 확정 전 추정 포함) — '회사 확정' 표시분은 회사 발표로 확인. 매크로 일정은 연준·BLS·BEA 공식 일정 기준."}
     OUT.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     log.info("캘린더 %d건", len(ev))
     return out
