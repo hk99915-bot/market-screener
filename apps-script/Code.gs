@@ -86,6 +86,8 @@ function getBonds() { return raw_('reports/bonds.json'); }
 function getJapan() { return raw_('reports/japan.json'); }
 function getStudyGuide() { return raw_('content/study.json'); }
 function getDerivs() { return raw_('reports/derivs.json'); }
+function getDerivHist() { return raw_('data/deriv/daily.csv'); }
+function getDerivSignals() { return raw_('reports/studies/derivs_signals.json'); }
 function getMacroReleases() { return raw_('reports/macro_releases.json'); }
 function getEnglishLatest() { return raw_('reports/english/latest.json'); }
 function getEnglishAt(d) { return raw_('reports/english/' + d + '.json'); }

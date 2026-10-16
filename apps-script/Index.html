@@ -388,7 +388,7 @@ function evPanel(){
   const todayLine=ck.slice(0,10)===today
     ?`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> ${tn?`<span style="color:var(--dn)">이벤트 ${tn}건</span>`:'주요 이벤트 없음 (서킷·사이드카·금리·정책·지정학 등)'} <span class="mu" style="font-size:11px">· ${esc(ck.slice(11))} 확인</span></div>`
     :`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> <span class="mu">아직 확인 전${ck?` (마지막 확인 ${esc(ck.slice(5))})`:''}</span></div>`;
-  return `${todayLine}<div class="mu" style="font-size:11px">기록 · 최근 7일</div>${recent.length?`<div style="margin-bottom:6px">${recent.slice(0,6).map(e=>`<div style="font-size:12.5px;${e.date===today?'color:var(--dn)':''}">● ${esc(e.date.slice(5))} ${esc(e.time||'')} <b>${esc(e.market)} ${esc(e.type)}</b> ${e.link?`<a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.title||'')}</a>`:esc(e.title||'')}</div>`).join('')}</div>`:'<div class="mu" style="margin-bottom:6px">최근 7일 기록된 이벤트 없음</div>'}
+  return `${todayLine}<details style="margin-bottom:4px"><summary class="mu" style="cursor:pointer;font-size:12px">기록 · 최근 7일 (${recent.length}건)</summary>${recent.length?`<div style="margin-bottom:6px">${recent.slice(0,6).map(e=>`<div style="font-size:12.5px;${e.date===today?'color:var(--dn)':''}">● ${esc(e.date.slice(5))} ${esc(e.time||'')} <b>${esc(e.market)} ${esc(e.type)}</b> ${e.link?`<a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.title||'')}</a>`:esc(e.title||'')}</div>`).join('')}</div>`:'<div class="mu" style="margin-bottom:6px">최근 7일 기록된 이벤트 없음</div>'}</details>
    ${sm(S,'서킷브레이커 이후')}${sm(B,'코스피 −5% 이상 급락일 이후')}
    <details style="margin-top:4px"><summary class="mu" style="cursor:pointer;font-size:12px">역대 서킷브레이커 ${EVS.cb.length}회</summary><table><tr><th class="l">날짜</th><th>당일</th><th>다음날</th><th>5일</th><th>20일</th><th>20일내 저점</th><th class="l">메모</th></tr>
    ${[...EVS.cb].reverse().map(r=>`<tr><td class="l">${esc(r.date)}</td><td>${r.day!=null?pct(r.day,1):'—'}</td><td>${r.d1!=null?pct(r.d1,1):'—'}</td><td>${r.d5!=null?pct(r.d5,1):'—'}</td><td>${r.d20!=null?pct(r.d20,1):'—'}</td><td>${r.low20!=null?pct(r.low20,1):'—'}</td><td class="l mu" style="white-space:normal;font-size:11px">${esc(r.note||'')}</td></tr>`).join('')}</table>
@@ -1678,7 +1678,7 @@ function mdToHtml(md,mk){
 }
 function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
 let L=null;
-function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D) tape();}).withFailureHandler(()=>{}).getLive();}
+function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D){ tape(); genHdr(); }}).withFailureHandler(()=>{}).getLive();}
 let TAPE_HTML='';
 function tkItem(k,v,c,dg){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f', ar=cls==='u'?'▲':cls==='d'?'▼':'■';
   return `<span class="ti ${cls}" data-key="${esc(k)}" title="${esc(k)} 차트 보기"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}</span></span>`; }
@@ -1693,13 +1693,116 @@ function tape(){
   TAPE_HTML=h;
   $('#tape').innerHTML=`<div class="tk" style="animation-duration:${Math.max(30,items.length*5)}s">${h}${h}</div>`;
 }
+/* ───── 파생(DERIV) 화면: 흩어진 파생 정보 모음 — reports/derivs.json · data/deriv/daily.csv · reports/studies/derivs_signals.json · live.json K200F (새 수집 없음) ───── */
+const DVX={d:null,h:null,s:null}; let DVCH=[];
+function dvLoad(k,fn,parse){ if(DVX[k]!==null) return; DVX[k]=false; const r=google.script.run;
+  if(typeof r[fn]!=='function'){ DVX[k]={}; return; }
+  r.withSuccessHandler(t=>{ try{ DVX[k]=parse?parse(t):(typeof t==='string'?JSON.parse(t):(t||{})); }catch(e){ DVX[k]={}; } if(view==='deriv') render(); })
+   .withFailureHandler(()=>{ DVX[k]={}; if(view==='deriv') render(); })[fn](); }
+function dvCsv(t){ const L=String(t||'').trim().split(/\r?\n/); if(L.length<2) return {rows:[]}; const H=L[0].split(',');
+  const rows=L.slice(1).map(l=>{ const a=l.split(','), o={}; H.forEach((h,i)=>{ const v=a[i]; o[h]=(v===''||v==null)?null:(h==='date'||h==='fut_name'||h==='night_src'||h==='opt_front'?v:(isNaN(+v)?v:+v)); }); return o; });
+  return {rows}; }
+// 검증 등급 배지: A/B 초록 · C 노랑 · F 빨강 · 검증전/참고 회색
+function dvB(g){ g=g||'참고'; const c=(g==='A'||g==='B')?'tag g':g==='F'?'tag r':g==='C'?'tag':'tag mu';
+  return `<span class="${c}" style="${c==='tag mu'?'color:var(--muted);border-color:var(--line)':''}" title="검증 등급 (reports/studies/derivs_signals.json)">${g==='참고'?'참고':'등급 '+esc(g)}</span>`; }
+function dvGrade(lens){ const S=(DVX.s&&DVX.s.signals)||[]; const a=S.filter(x=>x.lens_id===lens).map(x=>x.grade); if(!a.length) return '참고';
+  const rk=['A','B','C','F','검증전']; return a.sort((x,y)=>rk.indexOf(x)-rk.indexOf(y))[0]; }
+function derivView(){
+  dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv);
+  if(DVX.d===false&&DVX.h===false) return '<div class="load">LOADING …</div>';
+  const d=DVX.d||{}, R=(DVX.h&&DVX.h.rows)||[], S=DVX.s||{};
+  const lv=((L&&L.items)||[]).find(x=>x.key==='K200F')||null;
+  const last=k=>{ for(let i=R.length-1;i>=0;i--) if(R[i][k]!=null) return R[i]; return null; };
+  const f=(v,dg=2)=>v==null||isNaN(v)?'—':Number(v).toLocaleString('ko-KR',{minimumFractionDigits:dg,maximumFractionDigits:dg});
+  const sg=(v,dg=2)=>v==null?'—':(v>0?'+':'')+f(v,dg);
+  const fu=d.fut||{}, ff=last('fut_frgn'), nt=last('night_vwap'), bt=last('basis_theo');
+  const card=(t,v,sub,g)=>`<div style="flex:1;min-width:150px;border:1px solid var(--line);padding:6px 10px;line-height:1.5"><div class="mu" style="font-size:11px">${t} ${dvB(g)}</div><div style="font-size:18px"><b>${v}</b></div><div class="mu" style="font-size:11px;white-space:normal">${sub||''}</div></div>`;
+  const lb=lv&&lv.basis!=null?lv.basis:fu.basis;
+  const cards=[
+    card('코스피200 현물',f(lv&&lv.spot!=null?lv.spot:(fu.spot??d.spot)),lv?`실시간(${esc(lv.src||'')}) · ${esc(lv.status||'')}`:`KRX ${esc(d.date||'')} 종가`,'참고'),
+    card('코스피200 선물',f(lv?lv.last:fu.close),lv?`${pct(lv.chg,2)} · ${esc(fu.name||'')}`:esc(fu.name||''),'참고'),
+    card('베이시스 (선물−현물)',sg(lb),`${lb==null?'':lb>=0?'선물이 비쌈(콘탱고)':'선물이 쌈(백워데이션)'}${bt&&bt.basis_theo!=null?` · 이론값 ${f(bt.basis_theo)}`:''}`,dvGrade('fut_basis')),
+    card('최근월 옵션 만기',d.expiry?esc(d.expiry.slice(5))+` <span class="am">D-${d.dte??'?'}</span>`:'—',`${esc(d.front||'')} 물 · 만기일엔 흔들림이 커질 수 있음`,'참고'),
+    card('외국인 선물 순매수',ff?sg(ff.fut_frgn,0)+'<span class="mu" style="font-size:11px"> 계약</span>':'—',ff?`${esc(ff.date)} · 기관 ${sg(ff.fut_inst,0)} · 개인 ${sg(ff.fut_indiv,0)}`:'적재 전',dvGrade('fut_foreign_flow')),
+    card('야간선물 (KRX 평균가)',nt?f(nt.night_vwap):'—',nt?`${esc(nt.date)} 세션 · 거래 ${num(nt.night_vol)}계약 · 다음날 시가 갭 예상용`:'데이터 없음',dvGrade('night_futures'))
+  ].join('');
+  const sum=`<div class="p c12"><h2>파생 · 오늘 요약<small>코스피200 선물·옵션 · ${esc(d.asof||d.date||'')}</small></h2><div class="b" style="white-space:normal">
+    <div class="mu" style="font-size:12px;margin-bottom:6px">선물·옵션은 '시장이 어디에 돈을 걸었나'를 보여주는 위치 정보야. 아래 숫자는 모두 <b>방향 신호로 검증되지 않았어</b> — 흔들림·위치 참고만.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${cards}</div>
+    <div style="margin-top:8px"><button class="sbtn" id="dvA8">📘 A8 선물·옵션 읽는 법 (스터디)</button> <span class="mu" style="font-size:11px">처음이면 이것부터 — 베이시스·PCR·벽·감마·야간선물·만기일</span></div></div></div>`;
+  // 2) 옵션 포지션 — 운용회의 패널 재사용(derivPanel), 제목에 등급 배지 + 한 줄 해설만 덧붙임
+  let op='';
+  if(d&&d.oi_profile){ op=derivPanel(d)
+    .replace('<h2>',`<h2>${dvB(dvGrade('options_pcr'))} `)
+    .replace('<div class="b" style="white-space:normal">',`<div class="b" style="white-space:normal"><div class="mu" style="font-size:12px;margin-bottom:6px">풋/콜 비율(PCR)·벽·최대고통·감마·IV는 옵션 시장의 '쏠림'이야. PCR ${dvB(dvGrade('options_pcr'))} · 감마 ${dvB(dvGrade('options_gamma'))} · 벽·최대고통·IV ${dvB('참고')} — 방향 예측용이 아님.</div>`); }
+  else op='<div class="p c12"><div class="b mu">옵션 포지션(reports/derivs.json) 불러오기 전</div></div>';
+  // 3) 일별 이력 차트
+  const ser=(k)=>R.filter(r=>r[k]!=null).length;
+  const hc=(id,t,g,desc)=>`<div class="p c6"><h2>${t} ${dvB(g)}<small id="${id}l"></small></h2><div class="b" style="white-space:normal"><div class="mu" style="font-size:11px;margin-bottom:4px">${desc}</div><div id="${id}" style="height:200px"></div></div></div>`;
+  const nff=ser('fut_frgn');
+  const hist=R.length?`<div class="p c12"><h2>일별 이력<small>data/deriv/daily.csv · ${esc(R[0].date)}~${esc(R[R.length-1].date)} · 옵션·선물 열은 2025-08-29~</small></h2><div class="b mu" style="font-size:12px;white-space:normal">하루 한 번 쌓이는 기록. 선이 한쪽으로 쏠린 정도를 보는 용도 — 꺾였다고 사고팔 근거가 되진 않아(아래 검증 현황 참고).</div></div>
+    ${hc('dvc1','베이시스',dvGrade('fut_basis'),'선물−현물(포인트). 0 아래 = 선물이 쌈 → 헤지·공포가 많을 때 자주 나옴. 점선 = 금리·배당으로 계산한 이론값.')}
+    ${hc('dvc2','풋/콜 비율 (PCR)',dvGrade('options_pcr'),'1보다 크면 풋(하락 대비 보험)이 콜보다 많음. OI = 쌓인 계약, 거래량 = 그날 거래.')}
+    ${hc('dvc3','감마 노출 · 억원/1%',dvGrade('options_gamma'),'음수 = 시장이 흔들릴 때 헤지 매매가 흔들림을 키우는 쪽(근사·가정 있음). 방향이 아니라 흔들림 크기 참고.')}
+    ${hc('dvc4','외국인 선물 순매수 · 계약',dvGrade('fut_foreign_flow'),nff>=2?'막대 위 = 순매수, 아래 = 순매도.':`적재 시작 직후라 ${nff}일치뿐 — 쌓이면 막대로 표시. 과거 조회 소스 없음.`)}`:'<div class="p c12"><div class="b mu">일별 이력(data/deriv/daily.csv) 불러오기 전</div></div>';
+  // 4) 검증 현황 표
+  const sigs=S.signals||[];
+  const vt=sigs.length?`<div class="p c12"><h2>검증 현황<small>reports/studies/derivs_signals.json · 등록 ${esc(S.registered||'')} · 계산 ${esc(S.computed||'')}</small></h2><div class="b" style="white-space:normal">
+    <div style="border:1px solid var(--dn);padding:6px 10px;margin-bottom:8px;font-size:12px">⚠ <b>방향 신호로 쓰지 말 것.</b> 아래 가설은 대부분 '검증 전'(표본 부족) 또는 'F'(효과 없음)야. A 등급인 야간선물도 '다음날 시초가 예상' 산수 확인일 뿐 매매 신호가 아니야.</div>
+    <div style="overflow-x:auto"><table><tr><th class="l">ID</th><th class="l">가설</th><th>등급</th><th>표본</th><th>p(IS)</th><th>p(OOS)</th><th class="l">메모</th></tr>
+    ${sigs.map(x=>`<tr><td class="l mu">${esc(x.id)}</td><td class="l" style="white-space:normal;min-width:160px">${esc(x.name)}</td><td>${dvB(x.grade)}</td><td>${x.n??'—'}</td><td class="mu">${x.p_is!=null?x.p_is.toFixed(3):'—'}</td><td class="mu">${x.p_oos!=null?x.p_oos.toFixed(3):'—'}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:200px">${esc(x.note||'')}</td></tr>`).join('')}</table></div>
+    <div class="mu" style="font-size:11px;margin-top:6px">${esc(S.grades_doc||'')} · 다중검정 m=${S.m??'?'}, α=${S.alpha_bonf??'?'}. 자세한 내용은 QUANT › 검증 스터디.</div></div></div>`:'';
+  setTimeout(drawDerivHist,0);
+  setTimeout(()=>{ const b=$('#dvA8'); if(b) b.onclick=dvGoA8; },0);
+  return `<div class="grid">${sum}${op}${hist}${vt}</div>`;
+}
+function dvGoA8(){ setView('edu'); let n=0; const t=setInterval(()=>{ const m=document.getElementById('mod-A8'); if(m){ clearInterval(t); m.open=true; m.scrollIntoView({behavior:'smooth',block:'start'}); } else if(++n>50) clearInterval(t); },100); }
+function drawDerivHist(){
+  DVCH.forEach(c=>{try{c.remove();}catch(e){}}); DVCH=[];
+  const R=(DVX.h&&DVX.h.rows)||[]; if(!R.length||!$('#dvc1')) return;
+  if(!window.LightweightCharts){ ['dvc1','dvc2','dvc3','dvc4'].forEach(i=>{const e=$('#'+i); if(e) e.innerHTML='<div class="mu">차트 라이브러리 없음</div>';}); return; }
+  const cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
+  const mk=(id,fmt)=>{ const el=$('#'+id); if(!el) return null; const c=LightweightCharts.createChart(el,{width:el.clientWidth,height:200,layout:{background:{type:'solid',color:cv('--panel')},textColor:cv('--muted'),fontSize:11},
+    grid:{vertLines:{color:cv('--line')},horzLines:{color:cv('--line')}},rightPriceScale:{borderColor:cv('--line')},timeScale:{borderColor:cv('--line')},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},
+    localization:{locale:'ko-KR',priceFormatter:fmt}}); DVCH.push(c); return c; };
+  const from='2025-08-29', Rr=R.filter(r=>r.date>=from);
+  const pts=(k,rows)=>(rows||Rr).filter(r=>r[k]!=null&&!isNaN(r[k])).map(r=>({time:r.date,value:+r[k]}));
+  const line=(c,k,col,w,st)=>{ const d=pts(k); if(!d.length) return null; const s=c.addLineSeries({color:cv(col),lineWidth:w||2,lineStyle:st||0,priceLineVisible:false,lastValueVisible:true}); s.setData(d); return d; };
+  const zero=(s)=>s&&s.createPriceLine({price:0,color:cv('--muted'),lineWidth:1,lineStyle:2,axisLabelVisible:false,title:''});
+  const leg=(id,a)=>{ const e=$('#'+id+'l'); if(e) e.innerHTML=a.filter(Boolean).join(' &nbsp; '); };
+  const lastv=(d,dg)=>d&&d.length?d[d.length-1].value.toFixed(dg):'—';
+  // 1 베이시스
+  const c1=mk('dvc1',v=>v.toFixed(1)); if(c1){ const b=line(c1,'basis','--amber',2), t=line(c1,'basis_theo','--muted',1,2);
+    const s0=c1.addLineSeries({color:'rgba(0,0,0,0)',lineWidth:1,priceLineVisible:false,lastValueVisible:false}); if(b) { s0.setData(b.map(x=>({time:x.time,value:0}))); zero(s0); }
+    leg('dvc1',[`<span style="color:var(--amber)">━ 실제 ${lastv(b,2)}</span>`,`<span class="mu">┅ 이론 ${lastv(t,2)}</span>`]); c1.timeScale().fitContent(); }
+  // 2 PCR
+  const c2=mk('dvc2',v=>v.toFixed(2)); if(c2){ const a=line(c2,'pcr_oi','--amber',2), v=line(c2,'pcr_vol','--blue',1.5);
+    leg('dvc2',[`<span style="color:var(--amber)">━ OI ${lastv(a,2)}</span>`,`<span style="color:var(--blue)">━ 거래량 ${lastv(v,2)}</span>`]); c2.timeScale().fitContent(); }
+  // 3 감마 (0 기준 위/아래 색)
+  const c3=mk('dvc3',v=>v.toFixed(0)); if(c3){ const d=pts('gex_bn'); if(d.length){
+    const s=c3.addBaselineSeries({baseValue:{type:'price',price:0},topLineColor:cv('--up'),bottomLineColor:cv('--dn'),topFillColor1:'rgba(0,0,0,0)',topFillColor2:'rgba(0,0,0,0)',bottomFillColor1:'rgba(0,0,0,0)',bottomFillColor2:'rgba(0,0,0,0)',lineWidth:2,priceLineVisible:false}); s.setData(d); zero(s); }
+    leg('dvc3',[`최근 ${lastv(d,0)}`]); c3.timeScale().fitContent(); }
+  // 4 외국인 선물 순매수 (막대)
+  const fd=pts('fut_frgn'); if(fd.length>=2){ const c4=mk('dvc4',v=>v.toFixed(0)); if(c4){
+    const s=c4.addHistogramSeries({priceLineVisible:false}); s.setData(fd.map(x=>({time:x.time,value:x.value,color:x.value>=0?cv('--up'):cv('--dn')}))); c4.timeScale().fitContent(); leg('dvc4',[`최근 ${lastv(fd,0)}`]); } }
+  else { const e=$('#dvc4'); if(e){ e.style.height='auto'; e.innerHTML=fd.length?`<div style="padding:12px 0">${esc(fd[0].time)} · <b class="${fd[0].value>=0?'up':'dn'}">${fd[0].value>0?'+':''}${num(fd[0].value)}</b> 계약</div>`:'<div class="mu">데이터 없음</div>'; } }
+}
+/* 헤더 시각: DATA = dashboard.json 생성(장중 브리핑 때만) · LIVE = live.json(60초마다 다시 읽음). 장중 LIVE 20분 넘게 묵으면 ⚠️ */
+function genHdr(){ const g=$('#gen'); if(!g) return; const hm=x=>{ const m=String(x||'').match(/(\d{1,2}):(\d{2})/); return m?m[1].padStart(2,'0')+':'+m[2]:''; };
+  let t='DATA '+(hm(D&&D.generated_at)||((D&&D.generated_at)||'—'));
+  const lu=L&&L.updated_at; if(lu){ let warn=false;
+    try{ const k=new Date(Date.now()+9*3600e3), m=String(lu).match(/(?:(\d{4})-)?(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/);
+      const wd=k.getUTCDay(), mins=k.getUTCHours()*60+k.getUTCMinutes();
+      if(m&&wd>=1&&wd<=5&&mins>=540&&mins<=930){ const lt=Date.UTC(m[1]?+m[1]:k.getUTCFullYear(),+m[2]-1,+m[3],+m[4],+m[5]); warn=(k.getTime()-lt)>20*60e3; } }catch(e){}
+    t+=' · '+(warn?'⚠️ ':'')+'LIVE '+(hm(lu)||lu); }
+  g.textContent=t; }
 function render(){
   if(!D) return;
-  $('#gen').textContent='DATA '+(D.generated_at||'');
+  $('#gen').textContent='DATA '+(D.generated_at||''); genHdr();
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -2102,7 +2205,7 @@ function drawCanvas(ch,sc,rs,kr){
 }
 
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
-  mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권']],
+  mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오']],
