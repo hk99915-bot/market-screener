@@ -611,25 +611,6 @@ V2_FOOTER = "실계좌 적용: VIEW 게이트 통과 항목만 (개인 북은 �
 LIGHTS = {"red": "🔴 오늘 행동 필요", "yellow": "🟡 지켜보기", "green": "🟢 할 일 없음"}
 
 
-def _prev_meeting(session: str) -> dict | None:
-    """직전 운용회의(같은 날 같은 세션 제외) 기록. _index.json 은 (날짜, 세션 순서, 시각) 내림차순."""
-    hd = REPORT_DIR / "archive" / "committee"
-    me = f"{_kst_today()}_{session}"
-    try:
-        days = json.loads((hd / "_index.json").read_text(encoding="utf-8")).get("days", [])
-    except Exception:  # noqa: BLE001
-        days = []
-    for x in days:
-        fid = x.get("id") or x.get("date")
-        if fid == me:
-            continue
-        try:
-            return json.loads((hd / f"{fid}.json").read_text(encoding="utf-8"))
-        except Exception:  # noqa: BLE001
-            continue
-    return None
-
-
 def _ev_time(e: dict) -> str | None:
     """캘린더 메모에서 한국 시각 추출 ('… → 한국 21:30', '한국 11:00'). 없으면 None."""
     import re as _re
