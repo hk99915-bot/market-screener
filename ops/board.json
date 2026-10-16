@@ -1022,6 +1022,54 @@
     "ra-sec-coverage"
    ],
    "notes": "'한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함."
+  },
+  {
+   "id": "ra-sector-frames",
+   "title": "RA: 국장 리서치(research.json)에서 섹터별 분석 프레임(지표 체크리스트) 추출 → docs/desk_kb/analyst.md 섹터 섹션. 원문 복제 금지, 지표명·빈도만",
+   "owner": "애널-RA",
+   "status": "대기",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    "scripts/research_frames.py",
+    "docs/desk_kb/analyst.md"
+   ],
+   "started": "",
+   "due": "2026-10-24",
+   "depends_on": [],
+   "notes": "실존 애널 개인 페르소나 금지. 하우스 단위도 공개엔 이름 없이."
+  },
+  {
+   "id": "ra-house-scoreboard",
+   "title": "RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일 수익률·낙관 편향(목표가 인플레) 스코어보드 — 참고 경보용, 가중치 아님",
+   "owner": "애널-RA",
+   "status": "대기",
+   "priority": "P2",
+   "repo": "private",
+   "files": [],
+   "started": "",
+   "due": "2026-10-28",
+   "depends_on": [
+    "ra-sector-frames"
+   ],
+   "notes": "표본 n<10 하우스는 미표시. 개인명 저장 금지."
+  },
+  {
+   "id": "peer-bear-view",
+   "title": "피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만)",
+   "owner": "애널-피어",
+   "status": "대기",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    "docs/peer_review/bear_YYYY-MM-DD.md"
+   ],
+   "started": "",
+   "due": "2026-10-20",
+   "depends_on": [
+    "ra-sector-frames"
+   ],
+   "notes": "지어낸 반대 금지 — 시장에 실존하는 뷰만."
   }
  ]
 }
