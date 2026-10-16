@@ -2,48 +2,75 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 31개 · 진행 0 · 검수 13 · 대기 6 · 보류 0 · 완료 12
+기준일 2026-10-16 · 작업 48개 · 진행 3 · 검수 10 · 대기 12 · 보류 2 · 완료 21
 
-## 검수 (13)
+## 진행 (3)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
+| P0 | `semis-cap-study` | semis_cap 사전등록 검증 — 테마 한도 40% vs 35% vs 밴드(40/45/30) 백테스트 | 퀀트 | 2026-10-16 | 2026-10-18 | `reports/studies/semis_cap.md`<br>`reports/studies/semis_cap.json` | — | 실행 중. 안건 7·8-A 의 유일한 데이터 근거 — 10/18 오전까지 결과 없으면 '근거 없음'으로 보고하고 결정은 보수안 유지. 개인 비중 없이 파라미터만. |
+| P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-18 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
+| P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
+
+## 검수 (10)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P0 | `rebound-alert` | 14:25 반등일 판정 알림 (--mode rebound, cron + GAS 슬롯, 지수 비율만) | 운영 | 2026-10-16 | 2026-10-19 | `screener/rebound.py`<br>`screener/decisions.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | `gas-repaste` | 1ac92739. 다음 거래일 10/19 14:25 첫 실전 도착(GitHub cron·GAS 중복 억제) 확인 후 완료. 메시지에 개인 수치 없음 재확인. |
 | P1 | `cmt-v2` | 운용회의 v2 — 멀티매니저 모닝 미팅 형식(신호등 결론·시계·탑다운·포지셔닝·섹터·바텀업·아이디어 TOP3·헤지·프리모템·성적) + 원천 교차 아이디어 추적 채점 + 장중 갱신·14:15 슬롯 | CIO | 2026-10-16 | 2026-10-17 | `screener/committee.py`<br>`apps-script/Index.html`<br>`screener/main.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | — | 새 키만 추가(기존 stance·scenarios·ideas·derivs 유지). reports/ideas_log.json·ideas_attrib.json 은 예약 실행이 생성. GAS 재붙여넣기: Index.html·Scheduler.gs. 컨센서스·선물 외국인 수급은 데이터 없음. |
 | P1 | `drivers-audit` | EARNINGS DRIVERS 내용 감사 (체인 매핑·부호·문구) + 퀀트 감사 반영 | 애널 | 2026-10-16 | 2026-10-17 | `screener/drivers.py`<br>`apps-script/Index.html` | — | 지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관 |
-| P1 | `entry-signal-validate` | 급락 뒤 진입 신호 사전등록 검증 — 강세 전환 신호(외국인 2일+5일 고점) 대체 후보(저점+3%·5일선·20일선·단계 진입·급락일 종가) | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_entry_signals.py`<br>`reports/studies/entry_signals.md`<br>`reports/studies/entry_signals.json`<br>`views/registry.json` | — | 운용회의 코드는 안 바꿈(PB 검토 후 별도). registry 에 entry_trigger 후보 렌즈만. |
-| P1 | `rule-audit` | 비싼 대기·확인 조건 전수 점검 — 손절·트레일·부분익절·반등일·하락장 노출·추격 사이징 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_rule_audit.py`<br>`reports/studies/rule_audit.md`<br>`reports/studies/rule_audit.json`<br>`views/registry.json` | `entry-signal-validate` | 코드(committee.py 등) 변경 없음 — 추천만. 개인 규칙은 파라미터만 일반화. |
 | P1 | `deriv-hist` | 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필 | 파생 | 2026-10-16 | 2026-10-20 | `screener/deriv_hist.py`<br>`data/deriv/*`<br>`.github/workflows/deriv_hist.yml` | — | 검증의 전제. 라이브 화면·텔레그램 추가 없음. |
 | P1 | `view-registry` | VIEW 레지스트리 — 관점(렌즈) 기록·일관 적용·수명주기 | CIO | 2026-10-16 | — | `views/registry.json`<br>`views/README.md`<br>`screener/views.py`<br>`scripts/view_attribution.py`<br>`screener/duel.py`<br>`screener/committee.py`<br>`screener/main.py`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 공개 레지스트리엔 개인 수치 없음 — 개인 렌즈는 pb-private views/personal.json 에서만. |
 | P2 | `deriv-tab` | 터미널 '파생(DERIV)' 화면 — 흩어진 파생 정보(옵션 포지션·일별 이력·검증 등급) 한곳에 모음 | 파생 | 2026-10-16 | 2026-10-17 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 새 수집 없음 — reports/derivs.json·data/deriv/daily.csv·reports/studies/derivs_signals.json·live.json K200F 재사용. |
-| P2 | `fib-lens` | VIEW 레지스트리에 fib_levels 렌즈 등록 (검증 등급 반영) | CIO | 2026-10-16 | 2026-10-17 | `views/registry.json` | `fib-validate` | 등급 C 미만이면 역할 reference 이하. |
-| P2 | `fib-validate` | 피보나치·하방 Fib 지지 효과 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_fib_levels.py`<br>`reports/studies/fib_levels.md`<br>`reports/studies/fib_levels.json` | — | H1 터치 후 반등 / H2 이탈 후 추가 하락 / H3 61.8·100% 우위. IS 2019~2023, OOS 2024~. |
 | P2 | `derivs-audit` | derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통) | 파생 | 2026-10-16 | 2026-10-20 | `screener/derivs.py` | — | 검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). fc69e054 백필에서 재계산 확인(행사가 1 벽 0일, 콜 벽 결측 0일). |
 | P2 | `night-futures-line` | 장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가) | 파생 | 2026-10-16 | 2026-10-20 | `screener/briefings.py`<br>`screener/deriv_hist.py` | — | 실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시. |
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (6)
+## 대기 (12)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
-| P0 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | PB | — | 2026-10-16 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). |
-| P0 | `gas-repaste` | GAS 편집기 재붙여넣기 (Scheduler.gs 16:40 deriv_hist 슬롯 + Index.html) | PB | — | 2026-10-16 | `apps-script/Scheduler.gs`<br>`apps-script/Index.html` | — | 겸이가 GAS 편집기에 직접 붙여넣어야 반영됨. gas-sched-verify 의 전제 — 안 붙이면 검증 결과가 옛 코드 기준. |
-| P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | PB | — | 2026-10-16 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system`, `gas-repaste` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. |
-| P0 | `repo-cleanup` | 저장소 대청소: 데이터 브랜치 분리·Pages Actions 배포·기록 정리(filter-repo) | 개발 | — | 2026-10-18 | `.github/workflows/*`<br>`scripts/build_pages.py` | — | 겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. |
-| P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | — | — | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. |
-| P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. |
+| P0 | `gas-repaste` | GAS 편집기 재붙여넣기 (Scheduler.gs: 16:40 deriv_hist + 14:25 rebound 슬롯 · Index.html PIN 토큰) — 사용자 직접 | PB | — | 2026-10-17 | `apps-script/Scheduler.gs`<br>`apps-script/Index.html` | — | 사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. |
+| P0 | `repo-cleanup` | 저장소 대청소: 데이터 브랜치 분리·Pages Actions 배포·기록 정리(filter-repo) | 개발 | — | 2026-10-18 | `.github/workflows/*`<br>`scripts/build_pages.py` | — | 겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. 10:00~12:00 창. 오후 리뷰(sunday-review) 전에 끝내고 재클론·GAS 확인까지. |
+| P0 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | PB | — | 2026-10-19 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). / 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증. |
+| P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | PB | — | 2026-10-19 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system`, `gas-repaste` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. / 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증. |
+| P1 | `my-rules-secret` | MY_RULES 시크릿 SEMI_CAP 0.40 설정 — 사용자 직접 | PB | — | 2026-10-17 | — | — | 사용자가 저장소 Settings › Secrets 에서 직접. 값은 비율(0.40)만. 일요일 결정에 따라 0.35 로 바꿀 수 있으니 10/18 리뷰 후 재확인. |
+| P1 | `alpha-baseline-fix` | 알파 기준점 미장 분을 10/16 미장 종가로 정정 (단일 리셋 — 일요일 1회) | 리스크 | — | 2026-10-18 | private 전용 | `sunday-review` | private 저장소 전용. 기준점 파일의 미장 평가는 10/15 종가로 적혀 있음 → 10/18 리뷰에서 1회 정정 후 잠금. |
+| P1 | `cio-memo` | CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·8-C·8-D 통합안) | CIO | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리. |
+| P1 | `frm-audit` | FRM 한도(VaR·연 변동성) 감사 — 60일 실현 변동성 기준 재계산, 테마 한도와 정합 | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만. |
+| P1 | `sunday-scorecard` | 일요일 성적표 자동화 확장 — '규칙 간 정합성' 항목(테마 비중·VaR·위성 북 크기 vs 각 한도 나란히) | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용(weekly-scorecard 확장). 10/18 첫 발행, 이후 매주 일요일. 안건 8-B 재발 방지 장치. |
+| P1 | `tests-pytest` | tests/ pytest 층 — 파서·잠금·보드·rebound 판정 회귀 테스트 + CI 게이트 | 개발 | — | 2026-10-24 | `tests/`<br>`requirements.txt`<br>`.github/workflows/ops.yml` | — | 현재 tests/make_synthetic.py 뿐. 10/16 PB🔥 병합 누락·행사가 파싱 같은 회귀를 잡는 최소 층부터(10개 이내). 규칙 동결과 무관(안전망). |
+| P2 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
+| P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
 
-## 완료 (12)
+## 보류 (2)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
+| P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
+
+## 완료 (21)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P1 | `ops-system` | 운영 체계 (작업 보드·잠금·함수 소실 검사·변경 이력·SYSTEM 탭) | 운영 | 2026-10-15 | 2026-10-15 | `ops/*`<br>`scripts/changelog.py`<br>`scripts/board.py`<br>`scripts/lock.py`<br>`scripts/check_functions.py`<br>`scripts/ops_runs.py`<br>`.github/workflows/ops.yml`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py`<br>`reports/changelog.json`<br>`reports/ops/*` | — | Index.html 동시 편집으로 함수가 지워진 회귀(myRun) 재발 방지. 에이전트 규약은 ops/README.md. |
+| P1 | `agreements-ledger` | 합의 원장 신설 (대화 합의 → ✅시행/🗳️일요일/🔒약속 한 장) | PB | 2026-10-16 | 2026-10-16 | private 전용 | — | private 저장소 전용. 새 세션은 이 원장부터 읽는다. 일요일 리뷰 후 ✅확정분을 규정 파일로 옮기는 건 sunday-review 산출물. |
 | P1 | `earn-brief-pb` | 보유 종목 실적 브리프 (비공개) | 애널 | 2026-10-16 | 2026-10-16 | private 전용 | — | 검수(PB 10/16): private 리포트 존재·확정/미확인 구분·캘린더 날짜 일치 확인. |
 | P1 | `earn-cal-q3` | 국장 3분기 실적 시즌 캘린더 (회사 확정일 반영) | 애널 | 2026-10-16 | 2026-10-16 | `screener/calendar_ev.py`<br>`reports/calendar.json` | — | 검수(PB 10/16): calendar.json 하이닉스 10/28·삼성전자 10/29 회사 확정 반영, calendar_ev.py 컴파일 OK, 비공개 실적 브리프 날짜와 일치. 남은 것: 현대차 10/29는 미확인인데 캘린더 note 비어 있음 → 다음 갱신 때 미확인 표시. |
+| P1 | `gamma-regime` | gamma_regime 사전등록 검증 (H1·H1b·H2 + 탐색) + 렌즈 등록 + deriv-hist 자동 재판정 | 파생 | 2026-10-16 | 2026-10-16 | `reports/studies/gamma_regime.json` | `deriv-hist` | 1e6acfc4(사전등록) → aa6e6a07(결과). 사후 등록(PM). 10/30 재판정은 gamma-verdict. |
+| P1 | `me-fire-slot` | 모의 대결 '나🔥' 공격 픽 칸 (이슈 pick🔥, 모의 전용·고정 금액·근거 없으면 '감') + 감/판단 분리 집계 | PB | 2026-10-16 | 2026-10-16 | `screener/decisions.py`<br>`apps-script/Index.html` | — | 2b542a54 + 1ac92739(by_basis). 사후 등록(PM). 레버리지 해제 조건의 '🔥 성적'은 이 칸 기준(일요일 안건 8-I). |
+| P1 | `ops-history` | 운용 히스토리 신설 (매 거래일 16:00 하루 블록 + 현재 운용 상태) | PB | 2026-10-16 | 2026-10-16 | private 전용 | — | private 저장소 전용. 10/15·10/16 블록 작성 완료. 이후는 일일 운영(별도 작업 아님). |
+| P1 | `pbfire-merge-fix` | PB🔥 픽 저장 병합 누락 버그 수정 + 10/16 픽 복구 | PB | 2026-10-16 | 2026-10-16 | `screener/pb_call.py` | — | 2890e8e2. 보드 밖에서 시작 → 사후 등록(PM). |
+| P1 | `entry-signal-validate` | 급락 뒤 진입 신호 사전등록 검증 — 강세 전환 신호(외국인 2일+5일 고점) 대체 후보(저점+3%·5일선·20일선·단계 진입·급락일 종가) | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_entry_signals.py`<br>`reports/studies/entry_signals.md`<br>`reports/studies/entry_signals.json`<br>`views/registry.json` | — | 운용회의 코드는 안 바꿈(PB 검토 후 별도). registry 에 entry_trigger 후보 렌즈만. / 결과 reports/studies/entry_signals.md — 일요일 안건 1(운용회의 신호 교체)로 넘김. 코드 변경은 sunday-review 결정 후 별도 작업. |
+| P1 | `rule-audit` | 비싼 대기·확인 조건 전수 점검 — 손절·트레일·부분익절·반등일·하락장 노출·추격 사이징 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_rule_audit.py`<br>`reports/studies/rule_audit.md`<br>`reports/studies/rule_audit.json`<br>`views/registry.json` | `entry-signal-validate` | 코드(committee.py 등) 변경 없음 — 추천만. 개인 규칙은 파라미터만 일반화. / 결과 reports/studies/rule_audit.md — 일요일 안건 6. 완료. |
 | P1 | `ai-credit` | AI 인프라 신용 감시 | 채권 | 2026-10-15 | — | `screener/bonds.py`<br>`screener/committee.py`<br>`apps-script/Index.html` | — | 업종 국지 신용 스트레스 경보(정상/주의/경계) → 운용회의 head 한 줄 + 채권 탭 섹션. 10/15 첫 커밋. |
 | P1 | `core-weights` | 코어 자산배분 최적 비중 | 자산배분 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
 | P1 | `pm-usage` | 사용 기록(로컬 집계)·내보내기 + PM 지표 체계 | PM | 2026-10-15 | — | `apps-script/Index.html` | — | 웹은 일별 횟수만 localStorage 에 저장, 내보내기는 비공개 저장소 이슈 폼으로. 리포트·지표 정의는 private. |
 | P1 | `weekly-scorecard` | 주간 성적표 자동화 | 리스크 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
+| P2 | `fib-lens` | VIEW 레지스트리에 fib_levels 렌즈 등록 (검증 등급 반영) | CIO | 2026-10-16 | 2026-10-17 | `views/registry.json` | `fib-validate` | 등급 F → reference. 차트 범례에 F 표시(14cf6ca0). 완료. |
+| P2 | `fib-validate` | 피보나치·하방 Fib 지지 효과 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_fib_levels.py`<br>`reports/studies/fib_levels.md`<br>`reports/studies/fib_levels.json` | — | H1 터치 후 반등 / H2 이탈 후 추가 하락 / H3 61.8·100% 우위. IS 2019~2023, OOS 2024~. / 결과 F(참고 전용) — 안건 4 반영, 렌즈 등록 완료(fib-lens). |
 | P2 | `japan` | 일본 시장 연동 (닛케이·TOPIX·JGB10Y·엔 캐리·일본 피어 상관) | 매크로 | 2026-10-15 | — | `screener/japan.py`<br>`reports/japan.json`<br>`screener/macroview.py`<br>`screener/committee.py`<br>`screener/main.py` | — | 보드 밖에서 시작된 작업 — 운영 누나가 잠금(locks.json) 보고 사후 등록. 우선순위는 팀장 확인 필요. |
 | P2 | `lab-r2` | 전략 연구소 2라운드 | 퀀트 | 2026-10-15 | — | `screener/lab.py`<br>`reports/lab.json`<br>`apps-script/Index.html` | — | 1라운드: 사전 등록 가설 7개 · 공통 하네스 · Bonferroni 관문. |
 | P2 | `life-health-panel` | LIFE 탭 건강 패널 (체성분 차트·운동·e1RM) | 헬스 | 2026-10-15 | — | `apps-script/Index.html` | — | 데이터는 pb-private에서 런타임 토큰으로만 읽음 — 공개 파일에 수치 없음. |
@@ -52,11 +79,12 @@
 
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
 
+- `.github/workflows/briefing.yml` ← `cmt-v2`, `rebound-alert` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Code.gs` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/Scheduler.gs` ← `cmt-v2`, `rebound-alert` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/committee.py` ← `view-registry`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/main.py` ← `view-registry`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/build_pages.py` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
-- `views/registry.json` ← `view-registry`, `fib-lens`, `entry-signal-validate`, `rule-audit` — 편집 전 `ops/locks.json` 잠금 필수
 
