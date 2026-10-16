@@ -1,0 +1,30 @@
+name: tests
+
+# 순수 로직 회귀 검사 — main 푸시·PR 마다 pytest (네트워크 없이 도는 tests/ 만, 수 초).
+# 대결 이슈 파싱(pick·pick🔥)·trail 청산 무장·이벤트 '발동' 필터·운용회의 Δ 한 줄.
+on:
+  push:
+    branches: [main]
+    paths: ["screener/**", "scripts/**", "tests/**", "requirements.txt", ".github/workflows/tests.yml"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt pytest
+      - run: python -m pytest -q
