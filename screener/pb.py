@@ -82,7 +82,7 @@ def brief() -> str | None:
     if not txt:
         return None
     rules_txt = os.environ.get("MY_RULES", "")
-    loss_limit, semi_cap, price_rules = 0.12, 0.60, {}
+    loss_limit, semi_cap, price_rules = 0.12, 0.40, {}
     for ln in rules_txt.splitlines():
         p = ln.split()
         if len(p) >= 2 and p[0].upper() == "LOSS_LIMIT":
@@ -132,11 +132,11 @@ def brief() -> str | None:
     room = loss_limit * nav - loss
     day = sum(r["v"] - r["v"] / (1 + r["r1"]) for r in rows if r["r1"] is not None)
     L = ["🧑‍💼 <b>PB 아침 점검</b>",
-         f"순자산 <b>{nav:,.0f}원</b> · 주식 {tot/nav*100:.0f}% · 현금 {cash/nav*100:.0f}%",
-         f"주식 손익 {(-loss)/cost*100 if cost else 0:+.1f}% ({-loss:+,.0f}원) · 최근일 {day:+,.0f}원"]
+         f"주식 {tot/nav*100:.0f}% · 현금 {cash/nav*100:.0f}% (금액은 터미널 MY 탭에서만)",
+         f"주식 손익 {(-loss)/cost*100 if cost else 0:+.1f}% · 최근일 {day/nav*100:+.2f}%"]
     L.append("")
     L.append("<b>규칙 점검</b>")
-    L.append(f"• 손실 한도(순자산 −{loss_limit*100:.0f}%)까지 " + (f"<b>{room:,.0f}원</b> 남음 (주식 −{room/tot*100:.1f}% 추가 하락 여유)" if room > 0 else "<b>⛔ 한도 도달 — 메모리 절반 축소 실행</b>"))
+    L.append(f"• 손실 한도(순자산 −{loss_limit*100:.0f}%)까지 " + (f"순자산 <b>{room/nav*100:.1f}%</b> 남음 (주식 −{room/tot*100:.1f}% 추가 하락 여유)" if room > 0 else "<b>⛔ 한도 도달 — 메모리 절반 축소 실행</b>"))
     L.append(f"• 반도체 비중 순자산 {semi/nav*100:.0f}% (상한 {semi_cap*100:.0f}%)" + (" ⛔ 초과 — 추가 매수 금지" if semi / nav > semi_cap + 0.005 else " ✅"))
     for code, px in price_rules.items():
         r = next((x for x in rows if x["s"].upper() == code), None)
