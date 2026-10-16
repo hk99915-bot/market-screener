@@ -1,0 +1,107 @@
+<!-- tab_life.html — LIFE 탭 — pb-private/life/summary.json (lifeView·건강 패널).
+     apps-script/Index.html 이 include('tab_life') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
+     전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
+<script>
+/* ───── LIFE: pb-private/life/summary.json (가계부·커리어·건강·목표) — 토큰으로 이 브라우저에서만 읽음, 공개 서버 경유 없음 ───── */
+let LIFE=null, LIFEERR='';
+function lifeView(){
+  const tk=ghTok();
+  if(tk&&!LIFE&&!LIFEERR) setTimeout(()=>pbGet('life/summary.json').then(t=>{ LIFE=JSON.parse(t); if(view==='life') lifeFill(); }).catch(e=>{ LIFEERR=e.message; const b=$('#lifeb'); if(b) b.innerHTML=`<div class="p c12"><div class="b dn">불러오기 실패(${esc(e.message)}) — 토큰 권한(pb-private Contents: Read) 확인 · <a href="#" onclick="LIFEERR='';render();return false">다시 시도</a></div></div>`; }),0);
+  else if(LIFE) setTimeout(lifeFill,0);
+  const head=`<div class="p c12"><h2>LIFE<small>가계부 · 커리어 · 건강 · 목표 · 비공개 저장소(pb-private/life)에서 이 브라우저로 직접 읽음</small></h2><div class="b mu" style="font-size:12px;white-space:normal">
+    업데이트 방법: 뱅샐 내보내기 파일·운동·지원 현황은 PB에게 보내면 비공개 저장소에 반영돼요. <a href="#" onclick="LIFE=null;LIFEERR='';render();return false">새로고침</a></div></div>`;
+  if(!tk) return `<div class="grid">${head}<div class="p c12"><div class="b" style="white-space:normal">이 탭은 비공개 저장소 토큰이 있어야 보여요. <a href="#" onclick="setView('my');return false">MY 탭 → 토큰 설정</a>에서 읽기 전용 토큰을 저장한 뒤 돌아오세요.</div></div></div>`;
+  return `<div class="grid">${head}<div id="lifeb" style="display:contents"><div class="p c12"><div class="b mu">${LIFEERR?'불러오기 실패('+esc(LIFEERR)+') · <a href="#" onclick="LIFEERR=\'\';render();return false">다시 시도</a>':'불러오는 중…'}</div></div></div></div>`;
+}
+function lifeFill(){
+  const S=LIFE, b=$('#lifeb'); if(!S||!b) return;
+  const W=v=>v==null||isNaN(v)?'—':Math.round(v).toLocaleString('ko-KR'), M=v=>v==null?'—':(v/1e4).toLocaleString('ko-KR',{maximumFractionDigits:0})+'만',
+        P=v=>v==null?'—':(v*100).toFixed(1)+'%', K=S.kpi||{}, G=S.progress_1e8||{}, A=G.assumption||{}, NW=S.net_worth||{}, PR=S.period||{};
+  const bva=S.budget_vs_actual||{}, used=bva.budget_total?bva.actual_total/bva.budget_total:null;
+  const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,(p||0)*100))}%;${c?'background:var('+c+')':''}"></i></div>`;
+  const tile=(t,v,s)=>`<div class="p c3"><h2>${t}</h2><div class="b"><div style="font-size:20px;font-weight:700">${v}</div><div class="mu" style="font-size:11px;white-space:normal">${s}</div></div></div>`;
+  const eta=G.eta;
+  const kpis=tile('저축률 (12개월)',`<span class="${K.savings_rate>=0.5?'up':'am'}">${P(K.savings_rate)}</span>`,`${esc(PR.from||'')}~${esc(PR.to||'')} · 수입 ${M(K.income_12m)} − 소비 ${M(K.spend_12m)} (이체 제외)`)+
+    tile('월 평균 지출',W(K.avg_spend)+'원',`소비=지출−환불 · 월 평균 수입 ${W(K.avg_income)}원`)+
+    tile(`${esc(bva.month||'')} 지출 vs 예산`,`<span class="${used>1?'dn':'up'}">${W(bva.actual_total)}</span> <span class="mu" style="font-size:13px">/ ${W(bva.budget_total)}</span>`,bar(used,used>1?'--dn':'--up')+`예산 사용 ${P(used)}`)+
+    tile('순자산',W(NW.net_worth)+'원',`${esc(NW.date||'')} · 현금성 ${M(NW.cash)} · 예적금 ${M(NW.savings)} · 투자 ${M(NW.invest)}`);
+  const prog=`<div class="p c12"><h2>서른 전 순자산 1억<small>목표 ${esc(G.target_date||'')}</small></h2><div class="b" style="white-space:normal">
+    <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap"><b style="font-size:18px">${P(G.pct)}</b><span>${M(G.current)} / ${M(G.target)}</span>
+    <span>예상 도달 <b class="${eta&&eta.on_track?'up':'dn'}">${eta?esc(eta.date)+' ('+eta.months+'개월)':'계산 불가'}</b> ${eta?(eta.on_track?'<span class="up">· 목표일 이전</span>':'<span class="dn">· 목표일 이후</span>'):''}</span></div>
+    ${bar(G.pct)}<div class="mu" style="font-size:11px">가정: 월 저축 ${W(A.monthly_saving)}원 (${esc(A.basis||'')}) · 이체 순유출·보너스 변동은 반영 안 됨 · 순자산: ${esc(NW.note||'')}</div></div></div>`;
+  // 월별 막대 (inline SVG — 테마 변수만 사용)
+  const ms=S.monthly||[], mx=Math.max(1,...ms.map(m=>Math.max(m.income,m.spend,m.invest_in))), H=160, bw=100/Math.max(1,ms.length);
+  const svg=`<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" style="width:100%;height:180px;display:block">`+ms.map((m,i)=>{ const x=i*bw, w=bw/4.2;
+      const r=(v,k,c)=>{ v=Math.max(0,v||0); return `<rect x="${(x+bw*0.08+k*w).toFixed(2)}" y="${(H-v/mx*H).toFixed(2)}" width="${(w*0.92).toFixed(2)}" height="${(v/mx*H).toFixed(2)}" style="fill:var(${c})"><title>${m.month} ${['수입','소비','투자납입'][k]} ${W(v)}</title></rect>`; };
+      return r(m.income,0,'--up')+r(m.spend,1,'--dn')+r(m.invest_in,2,'--amber'); }).join('')+`<line x1="0" x2="100" y1="${H}" y2="${H}" style="stroke:var(--line)" stroke-width="0.6"/></svg>`+
+    `<div style="display:flex;font-size:10.5px" class="mu">${ms.map(m=>`<span style="flex:1;text-align:center">${m.month.slice(2).replace('-','.')}</span>`).join('')}</div>`;
+  const money=`<div class="p c8"><h2>MONEY · 월별 흐름<small><span class="up">■ 수입</span> <span class="dn">■ 소비</span> <span class="am">■ 투자납입</span></small></h2><div class="b">${svg}
+    <table style="margin-top:6px"><tr><th class="l">월</th><th>수입</th><th>소비</th><th>투자납입</th><th>이체(순)</th></tr>${ms.slice().reverse().map(m=>`<tr><td class="l">${m.month}</td><td>${W(m.income)}</td><td>${W(m.spend)}</td><td>${W(m.invest_in)}</td><td class="${m.transfer_net<0?'dn':'mu'}">${W(m.transfer_net)}</td></tr>`).join('')}</table></div></div>`;
+  const cats=`<div class="p c4"><h2>카테고리<small>12개월 평균 vs 월예산</small></h2><div class="b"><table><tr><th class="l">카테고리</th><th>평균</th><th>예산</th><th>${esc((bva.month||'').slice(2))}</th></tr>`+
+    (S.categories||[]).filter(c=>c.avg_12m||c.budget).map(c=>`<tr><td class="l">${esc(c.category)}</td><td class="${c.budget&&c.avg_12m>c.budget?'dn':''}">${W(c.avg_12m)}</td><td class="mu">${c.budget?W(c.budget):'—'}</td><td>${W(c.last_month)}</td></tr>`).join('')+
+    `<tr><td class="l"><b>합계</b></td><td><b>${W(K.avg_spend)}</b></td><td class="mu">${W(K.budget_total)}</td><td>${W(K.last_month_spend)}</td></tr></table><div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">빨강 = 12개월 평균이 예산 초과. 예산 합계가 실제 평균보다 크게 낮으면 예산을 현실에 맞출지 소비를 줄일지 먼저 정하기.</div></div></div>`;
+  const recent=`<div class="p c12"><h2>최근 거래<small>최근 20건 · money/ledger.csv</small></h2><div class="b"><table><tr><th class="l">날짜</th><th class="l">유형</th><th class="l">카테고리</th><th class="l">상대처</th><th>금액</th><th class="l">메모</th></tr>`+
+    (S.recent||[]).map(r=>`<tr><td class="l">${esc(r.date)}</td><td class="l ${r.type==='수입'||r.type==='환불'||r.type==='이자'?'up':r.type==='지출'?'dn':'mu'}">${esc(r.type)}</td><td class="l">${esc(r.category||'')}</td><td class="l">${esc(r.payee||'')}</td><td>${W(r.amount)}</td><td class="l mu" style="white-space:normal">${esc(r.memo||'')}</td></tr>`).join('')+`</table></div></div>`;
+  const C=S.career||{};
+  const apps=`<div class="p c6"><h2>CAREER · 지원 현황<small>${Object.entries(C.applications_by_status||{}).map(([k,v])=>esc(k)+' '+v).join(' · ')||'0건'}</small></h2><div class="b">`+
+    ((C.applications||[]).length?`<table><tr><th class="l">회사</th><th class="l">직무</th><th class="l">단계</th><th class="l">다음 액션</th><th class="l">기한</th><th class="l">결과</th></tr>${C.applications.map(a=>`<tr><td class="l"><b>${esc(a['회사'])}</b></td><td class="l">${esc(a['직무'])}</td><td class="l am">${esc(a['현재단계'])}</td><td class="l">${esc(a['다음 액션'])}</td><td class="l">${esc(a['기한']||'—')}</td><td class="l">${esc(a['결과'])}</td></tr>`).join('')}</table>`:'<span class="mu">지원 기록 없음</span>')+`</div></div>`;
+  const specs=`<div class="p c6"><h2>스펙 현황</h2><div class="b"><table><tr><th class="l">구분</th><th class="l">항목</th><th class="l">현재</th><th class="l">목표</th><th class="l">마감</th><th class="l">상태</th></tr>${(C.specs||[]).map(s=>`<tr><td class="l mu">${esc(s['구분'])}</td><td class="l">${esc(s['항목'])}</td><td class="l">${esc(s['현재상태'])}</td><td class="l">${esc(s['목표'])}</td><td class="l">${esc(s['마감일']||'')}</td><td class="l ${s['상태']==='완료'?'up':'am'}">${esc(s['상태'])}</td></tr>`).join('')}</table></div></div>`;
+  const story=`<div class="p c12"><h2>STORY BANK<small>${C.story_bank_count||0}개 · 자소서·면접용 핵심 경험</small></h2><div class="b"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">`+
+    (C.story_bank||[]).map(s=>`<div style="border:1px solid var(--line);padding:8px;white-space:normal"><div class="am" style="font-weight:700">${esc(s['경험명'])}</div><div style="font-size:15px;margin:4px 0"><b>${esc(s['정량 결과'])}</b></div><div class="mu" style="font-size:12px">${esc(s['자소서 한 줄'])}</div></div>`).join('')+`</div></div></div>`;
+  const Hh=S.health||{}, wk=Hh.weekly||[];
+  const health=`<div class="p c6"><h2>HEALTH · 주간<small>health/weekly.csv</small></h2><div class="b">`+(wk.length?`<table><tr><th class="l">주</th><th>체중(kg)</th><th>운동(회)</th><th class="l">메모</th></tr>${wk.slice().reverse().map(w=>`<tr><td class="l">${esc(w.date)}</td><td>${esc(w.weight_kg||'—')}</td><td class="${+w.workouts_count>=3?'up':'am'}">${esc(w.workouts_count||'0')}</td><td class="l mu">${esc(w.note||'')}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px">최근 4주 평균 운동 ${Hh.weekly_workouts_avg4==null?'—':Hh.weekly_workouts_avg4.toFixed(1)}회/주</div>`
+      :`<div class="mu" style="white-space:normal;padding:10px 0">기록 시작 전 — '이번 주 체중 OO, 운동 N회'를 폰 입력 폼이나 PB 대화로 보내면 기록돼요</div>`)+`</div></div>`;
+  const body=lifeHealthBody(Hh);
+  const fv=(g,v)=>v==null||v===''?'—':(g.unit==='원'?M(+v):isNaN(+v)?esc(v):(+v).toLocaleString('ko-KR',{maximumFractionDigits:1}));
+  const goals=`<div class="p c6"><h2>GOALS<small>goals/goals.csv</small></h2><div class="b"><table><tr><th class="l">영역</th><th class="l">목표</th><th>현재</th><th>목표치</th><th class="l" style="width:22%">진행</th><th class="l">기한</th></tr>`+
+    (S.goals||[]).map(g=>`<tr title="${esc(g.note||'')}"><td class="l mu">${esc(g.area||'')}</td><td class="l">${esc(g.goal)}</td><td>${fv(g,g.current)}</td><td class="mu">${fv(g,g.target)}${g.target!=null&&g.unit&&g.unit!=='원'?' '+esc(g.unit):''}</td><td class="l">${g.pct!=null?bar(g.pct)+`<span class="mu" style="font-size:10.5px">${P(g.pct)}</span>`:`<span class="mu">${esc(g.status||'')}</span>`}</td><td class="l">${esc(g.target_date||'')}</td></tr>`).join('')+`</table></div></div>`;
+  b.innerHTML=kpis+prog+money+cats+recent+apps+specs+story+body+health+goals+
+    `<div class="p c12"><div class="b mu" style="font-size:11px;white-space:normal">생성 ${esc(S.generated||'')} · 데이터: 비공개 저장소 life/ CSV → build_summary.py → summary.json. 이 화면은 공개 서버에 아무것도 보내지 않아요.</div></div>`;
+  setTimeout(()=>lifeHealthCharts(Hh),0);
+}
+/* LIFE · 건강 체성분 패널 — summary.json.health(body·series·targets·weight_path·pace·workouts_weekly·lifts). 수치는 비공개 저장소에서 런타임에만 읽음 */
+let LIFECH=[];
+function lifeHealthBody(H){
+  const B=H.body||{}, S=H.series||{}, L=H.lifts||{}, WW=H.workouts_weekly||[], T=H.targets||[], WP=H.weight_path, PC=H.pace||{};
+  const f1=v=>v==null?'—':(+v).toLocaleString('ko-KR',{maximumFractionDigits:1});
+  const sg=(v,good)=>{ if(v==null) return '<span class="mu">—</span>'; const c=v===0?'mu':((v<0)===(good==='down')?'up':'dn'); return `<span class="${c}">${v>0?'+':''}${f1(v)}</span>`; };
+  const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,(p||0)*100))}%;${c?'background:var('+c+')':''}"></i></div>`;
+  const keys=[['fat_kg','체지방량','kg','down'],['smm','골격근량','kg','up'],['fat_pct','체지방률','%','down'],['visceral_area','내장지방면적','cm²','down'],['weight','체중','kg','down']];
+  const any=keys.some(k=>B[k[0]]);
+  const forms=`<a href="https://github.com/hk99915-bot/pb-private/issues/new?template=health.yml" target="_blank" rel="noopener">주간 입력(체중·운동·음주)</a> · <a href="https://github.com/hk99915-bot/pb-private/issues/new?template=inbody.yml" target="_blank" rel="noopener">인바디 입력</a>`;
+  const tiles=keys.map(([k,lab,u,good])=>{ const m=B[k]; return `<div style="border:1px solid var(--line);padding:8px;min-width:0"><div class="mu" style="font-size:11px">${lab}</div><div style="font-size:18px;font-weight:700">${m?f1(m.latest):'—'}<span class="mu" style="font-size:11px"> ${u}</span></div><div style="font-size:11px">직전 ${sg(m&&m.d_prev,good)} · 4주 ${sg(m&&m.d_4w,good)}</div><div class="mu" style="font-size:10.5px">${m?esc(m.date)+' · '+m.n+'회':'기록 없음'}</div></div>`; }).join('');
+  const stc=s=>s==='달성'||s==='유지 중'?'up':s==='실패'||s==='목표 아래'?'dn':s==='미달'?'am':'mu';
+  const tgt=T.length?`<table><tr><th class="l">Q4 목표 (${esc((T[0]||{}).deadline||'')})</th><th>기준선</th><th>현재</th><th>목표</th><th>실패선</th><th class="l" style="width:24%">진행</th><th class="l">상태</th></tr>${T.map(t=>`<tr title="${esc(t.note||'')}"><td class="l">${esc(t.label)}${t.metric==='weight'?' <span class="mu" style="font-size:10.5px">(결과 지표)</span>':''}</td><td class="mu">${f1(t.baseline)}</td><td><b>${f1(t.latest)}</b></td><td>${t.metric==='visceral_area'?'&lt; '+f1(Math.ceil(t.target)):(t.direction==='up'?'≥ ':'≤ ')+f1(t.target)}</td><td class="mu">${t.fail==null?'—':f1(t.fail)}</td><td class="l">${t.pct==null?'':bar(t.pct,t.direction==='up'?(t.pct<0.5?'--amber':'--up'):'')+`<span class="mu" style="font-size:10.5px">${t.direction==='up'?'여유 ':''}${(t.pct*100).toFixed(0)}%</span>`}</td><td class="l ${stc(t.status)}">${esc(t.status||'—')}</td></tr>`).join('')}</table>`:'';
+  const path=WP?`체중 기준 경로 ${f1(WP.from[1])}→${f1(WP.to[1])} (주 ${f1(WP.per_week)}kg) · 오늘 기준 ${f1(WP.ref_today)}kg · 최근 측정은 경로 대비 ${sg(WP.gap,'down')}kg`:'';
+  const pace=`<div style="white-space:normal;font-size:12px;margin-top:6px"><span class="${PC.flag?'dn':'mu'}">● ${esc(PC.rule||'')}</span> &nbsp; <span class="${PC.smm_per_month!=null&&PC.smm_per_month<-0.5?'dn':'mu'}">● ${esc(PC.smm_rule||'')}</span><br><span class="mu">${path}</span></div>`;
+  const mx=Math.max(4,...WW.map(w=>w.count||0)), y3=(38-3/mx*36).toFixed(1);
+  const bars=`<svg viewBox="0 0 120 40" preserveAspectRatio="none" style="width:100%;height:56px;display:block">`+WW.map((w,i)=>{ const v=w.count||0, h=v/mx*36; return `<rect x="${i*10+1}" y="${(38-h).toFixed(1)}" width="8" height="${h.toFixed(1)}" style="fill:var(${v>=3?'--up':'--amber'})"><title>${esc(w.week)} 주 운동 ${w.count==null?'기록 없음':w.count+'회'}</title></rect>`; }).join('')+`<line x1="0" x2="120" y1="${y3}" y2="${y3}" style="stroke:var(--muted)" stroke-width="0.4" stroke-dasharray="2 2"/></svg>`;
+  const alc=`<div style="display:flex;gap:2px">`+WW.map(w=>{ const a=w.alcohol_days, lim=w.alcohol_target, over=a!=null&&lim!=null&&a>lim; return `<div title="${esc(w.week)} 주 음주 ${a==null?'기록 없음':a+'일'}${lim==null?'':' · 한도 '+lim}" style="flex:1;text-align:center;font-size:11px;padding:2px 0;border:1px solid var(--line)" class="${a==null?'mu':over?'dn':'up'}">${a==null?'·':a}</div>`; }).join('')+`</div>`;
+  const spark=pts=>{ if(!pts||pts.length<2) return ''; const v=pts.map(p=>p[1]), lo=Math.min(...v), hi=Math.max(...v), r=hi-lo||1; return `<svg viewBox="0 0 60 16" style="width:60px;height:16px;vertical-align:middle"><polyline fill="none" style="stroke:var(--amber)" stroke-width="1.2" points="${v.map((x,i)=>(i/(v.length-1)*60).toFixed(1)+','+(15-(x-lo)/r*14).toFixed(1)).join(' ')}"/></svg>`; };
+  const lifts=Object.entries(L).sort((a,b)=>b[1].sessions-a[1].sessions);
+  const liftT=lifts.length?`<table><tr><th class="l">종목</th><th>최근 e1RM</th><th>4주</th><th>최고</th><th>세션</th><th class="l">추세</th></tr>${lifts.map(([n,x])=>`<tr><td class="l">${esc(n)}</td><td><b>${f1(x.latest)}</b></td><td>${sg(x.d_4w,'up')}</td><td class="mu">${f1(x.best)}</td><td class="mu">${x.sessions}</td><td class="l">${spark(x.series)}</td></tr>`).join('')}</table>`
+    :`<div class="mu" style="white-space:normal;font-size:12px">세트 기록 없음 — '스쿼트 60×8×3' 처럼 PB 대화로 보내면 e1RM(무게×(1+반복/30)) 추세가 떠요. 감량기엔 e1RM 유지 = 근육 지키는 중.</div>`;
+  const hasSeries=(S.weight||[]).length+(S.smm||[]).length+(S.fat_kg||[]).length>0;
+  return `<div class="p c12"><h2>HEALTH · Q4 체성분<small>목표: 체지방량↓ · 골격근량 유지 · 기록은 폰 폼이 원본(브라우저 메모는 기기 바뀌면 사라짐) · ${forms}</small></h2><div class="b" style="white-space:normal">`+
+    (any?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px">${tiles}</div>`:`<div class="mu" style="padding:6px 0">측정값 없음 — ${forms}</div>`)+
+    `<div style="overflow-x:auto;margin-top:8px">${tgt}</div>`+pace+
+    (hasSeries?`<div id="lhc1" style="margin-top:8px;height:240px"></div><div id="lhc1l" class="mu" style="font-size:11px"></div>`:'')+
+    `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:10px"><div><div class="mu" style="font-size:11px">주간 운동 (최근 12주 · 점선 = 주 3회) · 4주 평균 ${H.workouts_avg4==null?'—':(+H.workouts_avg4).toFixed(1)}회</div>${bars}<div class="mu" style="font-size:11px;margin-top:6px">주간 음주 일수 (빨강 = 그 주 한도 초과 · 한도는 비공개 targets.csv)</div>${alc}</div><div style="overflow-x:auto">${liftT}</div></div>`+
+    `</div></div>`;
+}
+function lifeHealthCharts(H){
+  LIFECH.forEach(c=>{try{c.remove();}catch(e){}}); LIFECH=[];
+  const el=$('#lhc1'); if(!el||!H||!window.LightweightCharts) return;
+  const S=H.series||{}, WP=H.weight_path, cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
+  const c=LightweightCharts.createChart(el,{width:el.clientWidth,height:240,layout:{background:{type:'solid',color:cv('--panel')},textColor:cv('--muted'),fontSize:11},
+    grid:{vertLines:{color:cv('--line')},horzLines:{color:cv('--line')}},rightPriceScale:{borderColor:cv('--line'),visible:true},leftPriceScale:{borderColor:cv('--line'),visible:true},
+    timeScale:{borderColor:cv('--line')},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},localization:{locale:'ko-KR',priceFormatter:v=>v.toFixed(1)}});
+  LIFECH.push(c);
+  const add=(pts,color,scale,w,style,markers)=>{ if(!pts||!pts.length) return; const s=c.addLineSeries({color,lineWidth:w,lineStyle:style||0,priceScaleId:scale,priceLineVisible:false,lastValueVisible:markers!==false,pointMarkersVisible:markers!==false});
+    const seen={}; s.setData(pts.filter(p=>p[1]!=null&&!seen[p[0]]&&(seen[p[0]]=1)).map(p=>({time:p[0],value:+p[1]}))); return s; };
+  if(WP) add([WP.from,WP.to],cv('--muted'),'right',1,2,false);
+  add(S.weight,cv('--amber'),'right',2); add(S.smm,cv('--up'),'left',2); add(S.fat_kg,cv('--dn'),'left',2,2);
+  c.timeScale().fitContent();
+  const l=$('#lhc1l'); if(l) l.innerHTML=`<span style="color:var(--amber)">━ 체중</span> <span class="mu">┅ 기준 경로 (오른쪽 축)</span> &nbsp; <span style="color:var(--up)">━ 골격근량</span> &nbsp; <span style="color:var(--dn)">┅ 체지방량</span> <span class="mu">(왼쪽 축, kg) · 인바디는 4주 추세로만 판단</span>`;
+}
+</script>

@@ -1,15 +1,15 @@
 """푸시 전 필수 검사 — 동시 편집으로 함수가 사라지는 회귀(예: myRun 삭제) 방지.
 
-1) apps-script/Index.html · *.gs 의 최상위 이름(`function NAME(`, `const/let/var NAME=`)을
-   기준 리비전(기본 origin/main)과 작업 사본에서 비교 → 하나라도 사라지면 실패.
+1) apps-script/Index.html(+ include 되는 tab_*.html 을 합친 화면 전체) · *.gs 의 최상위 이름(`function NAME(`, `const/let/var NAME=`)을
+   기준 리비전(기본 origin/main)과 작업 사본에서 비교 → 하나라도 사라지면 실패. 화면 파일 사이에 같은 이름이 둘이면 실패.
    일부러 지운 이름은 --allow-removed NAME[,NAME…] 로 명시.
-2) 빌드된 index.html 과 apps-script/Index.html 의 모든 인라인 <script> 를 node `new Function` 으로 문법 검사.
+2) 빌드된 index.html 과 apps-script/Index.html · tab_*.html 의 모든 인라인 <script> 를 node `new Function` 으로 문법 검사.
 3) index.html 이 Index.html 보다 낡았으면 경고 (python scripts/build_pages.py 다시 실행).
 4) ops/locks.json 에서 남이 잠근 공유 파일을 내가 고쳤으면 경고 (--owner 주면 실패).
 
   python scripts/check_functions.py                       # 기본: origin/main 대비
   python scripts/check_functions.py --base HEAD~1 --allow-removed oldFn,LEGACY
-  python scripts/check_functions.py --owner "퀀트 누나"
+  python scripts/check_functions.py --owner "퀀트"
 종료코드 0 = 통과, 1 = 실패.
 """
 from __future__ import annotations
@@ -25,7 +25,11 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from build_pages import SRC_DIR, includes_of, resolve_includes  # noqa: E402  (include 해석은 빌드와 같은 코드)
+
 WATCH = ["apps-script/Index.html", "apps-script/Code.gs", "apps-script/Scheduler.gs"]
+SCREEN = "apps-script/Index.html"   # 화면: 이 파일 + include 되는 apps-script/tab_*.html 을 합쳐 한 덩어리로 본다
 TOP = re.compile(r"^(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)\s*\(|^(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=", re.M)
 SCRIPT = re.compile(r"<script(\s[^>]*)?>(.*?)</script>", re.S | re.I)
 
@@ -51,6 +55,42 @@ def at_rev(rev: str, path: str) -> str | None:
         return git("show", f"{rev}:{path}")
     except subprocess.CalledProcessError:
         return None
+
+
+def screen_at(rev: str | None) -> str | None:
+    """화면 전체(Index.html + include 된 tab_*.html). rev=None 이면 작업 사본. 옛 리비전(include 없는 단일 파일)도 그대로 돈다."""
+    if rev is None:
+        read = lambda n: (SRC_DIR / f"{n}.html").read_text(encoding="utf-8")
+    else:
+        def read(n):
+            t = at_rev(rev, f"apps-script/{n}.html")
+            if t is None:
+                raise FileNotFoundError(n)
+            return t
+    try:
+        shell = read("Index")
+    except FileNotFoundError:
+        return None
+    return resolve_includes(shell, read)
+
+
+def tab_files() -> list[Path]:
+    shell = (SRC_DIR / "Index.html").read_text(encoding="utf-8")
+    return [SRC_DIR / f"{n}.html" for n in includes_of(shell)]
+
+
+def dup_names() -> list[str]:
+    """셸과 탭 파일 사이에 같은 최상위 이름이 둘 이상 — 나중 것이 앞 것을 덮어써 조용히 깨진다."""
+    seen: dict[str, str] = {}
+    out = []
+    for p in [SRC_DIR / "Index.html", *tab_files()]:
+        if not p.exists():
+            continue
+        for n in sorted(names(p.read_text(encoding="utf-8"))):
+            if n in seen and seen[n] != p.name:
+                out.append(f"{n} ({seen[n]} · {p.name})")
+            seen.setdefault(n, p.name)
+    return out
 
 
 def syntax_check(path: Path) -> list[str]:
@@ -82,15 +122,15 @@ process.exit(bad?1:0);"""
 
 
 def stale_build() -> str | None:
-    src, out = ROOT / "apps-script" / "Index.html", ROOT / "index.html"
+    out = ROOT / "index.html"
     if not out.exists():
         return "index.html 없음"
-    s = src.read_text(encoding="utf-8")
+    s = screen_at(None)
     o = out.read_text(encoding="utf-8")
     # 빌드 산출물에서 심(shim)과 머리 주석을 걷어내면 원본과 같아야 함
     o2 = re.sub(r"<!-- 자동 생성:.*?-->\n", "", o, count=1)
     o2 = re.sub(r"(<title>MARKET TERMINAL</title>)\n<script>\n/\* GitHub Pages 용.*?</script>\n", r"\1", o2, count=1, flags=re.S)
-    return None if o2 == s else "index.html 이 apps-script/Index.html 과 다름 → python scripts/build_pages.py 실행 후 커밋"
+    return None if o2 == s else "index.html 이 apps-script/Index.html + tab_*.html 과 다름 → python scripts/build_pages.py 실행 후 커밋"
 
 
 def lock_conflicts(base: str, owner: str | None) -> list[str]:
@@ -131,13 +171,21 @@ def main() -> int:
 
     print(f"[1] 최상위 이름 비교 ({a.base} → 작업 사본)")
     for path in WATCH:
-        old = at_rev(a.base, path)
         cur_p = ROOT / path
+        if path == SCREEN:   # 화면은 셸 + tab_*.html 합본으로 비교 (탭 파일로 옮긴 이름은 '사라짐' 이 아님)
+            try:
+                old, cur = screen_at(a.base), screen_at(None) if cur_p.exists() else None
+            except (FileNotFoundError, RuntimeError) as e:
+                fails.append(f"{path} include 해석 실패: {e}"); continue
+            path = "apps-script/Index.html+tab_*.html"
+        else:
+            old = at_rev(a.base, path)
+            cur = cur_p.read_text(encoding="utf-8") if cur_p.exists() else None
         if old is None:
             continue
-        if not cur_p.exists():
+        if cur is None:
             fails.append(f"{path} 파일이 사라짐"); continue
-        o, c = names(old), names(cur_p.read_text(encoding="utf-8"))
+        o, c = names(old), names(cur)
         gone = sorted(o - c - allow)
         added = sorted(c - o)
         ok_gone = sorted((o - c) & allow)
@@ -147,8 +195,12 @@ def main() -> int:
             fails.append(f"{path} 에서 사라진 이름: {', '.join(gone)}\n"
                          f"    → 머지/리베이스 중 남의 코드를 지운 것일 수 있음. 일부러 지웠다면 --allow-removed {','.join(gone)}")
 
+    dups = dup_names()
+    if dups:
+        fails.append("화면 파일 사이에 겹치는 최상위 이름: " + ", ".join(dups))
+
     print("[2] <script> 문법 검사 (node new Function)")
-    for p in (ROOT / "index.html", ROOT / "apps-script" / "Index.html"):
+    for p in (ROOT / "index.html", ROOT / "apps-script" / "Index.html", *tab_files()):
         fails += syntax_check(p)
 
     print("[3] 빌드 최신 여부")

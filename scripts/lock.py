@@ -1,9 +1,10 @@
 """공유 파일 잠금 (ops/locks.json). 규칙은 ops/LOCKS.md.
 
   python scripts/lock.py list
-  python scripts/lock.py take  apps-script/Index.html --owner "퀀트 누나" --task lab-r2
-  python scripts/lock.py drop  apps-script/Index.html --owner "퀀트 누나"
-  python scripts/lock.py drop  --owner "퀀트 누나"          # 내 잠금 전부 해제
+  python scripts/lock.py take  apps-script/tab_quant.html --owner "퀀트" --task lab-r2   # 탭 하나만 잠근다
+  python scripts/lock.py take  apps-script/Index.html --owner "개발" --task shell-fix      # 공용 셸을 고칠 때만
+  python scripts/lock.py drop  apps-script/tab_quant.html --owner "퀀트"
+  python scripts/lock.py drop  --owner "퀀트"          # 내 잠금 전부 해제
 
 take/drop 은 파일만 고친다. 바로 작은 커밋으로 푸시해야 다른 에이전트가 본다:
   git add ops/locks.json && git commit -m "lock: <파일> (<담당>, <작업>)" && git pull --rebase origin main && git push
@@ -19,8 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LOCKS = ROOT / "ops" / "locks.json"
 KST = timezone(timedelta(hours=9))
-SHARED = ["apps-script/Index.html", "apps-script/Code.gs", "scripts/build_pages.py",
-          "screener/committee.py", "screener/main.py", ".github/workflows/*"]
+SHARED = ["apps-script/Index.html", "apps-script/tab_*.html", "apps-script/Code.gs", "scripts/build_pages.py",
+          "screener/committee.py", "screener/main.py", ".github/workflows/*"]   # 탭 파일은 하나씩 따로 잠근다 (ops/LOCKS.md)
 STALE_H = 6   # 이보다 오래된 잠금은 '방치' 로 표시 (팀장이 정리)
 
 

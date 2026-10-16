@@ -1,0 +1,320 @@
+<!-- tab_my.html — MY 탭 — 보유 종목 리스크·PB·비공개 저장소 동기화·교정 리포트 (myView·myRender). 수치는 이 브라우저에만.
+     apps-script/Index.html 이 include('tab_my') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
+     전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
+<script>
+/* ── MY: 보유 종목 리스크 · PB (이 브라우저에만 저장) ── */
+const MYK='mt_holdings_v1'; let MYD={}, MYX=null;
+const HEDGES=[['KR','114800','KODEX 인버스 (코스피200 −1배)','inv'],['KR','252670','KODEX 200선물인버스2X (−2배)','inv'],['US','SOXS','SOXS (미 반도체 −3배)','inv'],['US','SH','SH (S&P500 −1배)','inv'],['US','PSQ','PSQ (나스닥100 −1배)','inv'],
+  ['KR','261240','KODEX 미국달러선물 (원화 계좌로 달러)','div'],['KR','305080','TIGER 미국채10년선물','div'],['KR','148070','KOSEF 국고채10년','div'],['KR','132030','KODEX 골드선물(H)','div'],
+  ['US','TLT','TLT (미 장기국채)','div'],['US','IEF','IEF (미 중기국채)','div'],['US','GLD','GLD (금)','div'],['US','UUP','UUP (달러 강세)','div'],['US','XLP','XLP (미 필수소비재)','div'],['US','XLU','XLU (미 유틸리티)','div']];
+const BENCH=[['KR','069500'],['US','SOXX']];
+function myLoad(){ try{ return localStorage.getItem(MYK)||''; }catch(e){ return window._myTxt||''; } }
+function mySave(t){ window._myTxt=t; try{ localStorage.setItem(MYK,t); }catch(e){} }
+// '## ISA' 줄 아래는 ISA 코어 북(book:'isa'), 그 위는 위성 북(book:'sat'). 분모(순자산)는 두 북 + 현금 전부.
+const ISA_HEAD=/^#{1,3}\s*ISA\b/i;
+function myParse(txt){ const out=[]; let book='sat'; for(const ln of txt.split(/\n/)){ const t=ln.trim(); if(ISA_HEAD.test(t)){ book='isa'; continue; } if(t.startsWith('#')) continue; const p=t.split(/[\s,]+/).filter(Boolean); if(!p.length) continue;
+    const n=x=>{const v=parseFloat(String(x||'').replace(/,/g,'')); return isFinite(v)?v:null;};
+    const k=p[0].toUpperCase();
+    if(['현금','KRW','CMA','원화','예수금','RP'].includes(k)||/^CMA/.test(k)) out.push({cash:'KRW', amt:n(p[1])||0, book});
+    else if(['USD','달러','미국달러'].includes(k)) out.push({cash:'USD', amt:n(p[1])||0, book});
+    else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 5 30000")
+      let k2=p.length; const nums=[]; while(k2>1&&nums.length<2&&n(p[k2-1])!=null){ nums.unshift(n(p[k2-1])); k2--; }
+      out.push({key:p.slice(0,k2).join(' '), qty:nums.length?nums[0]:0, avg:nums.length>1?nums[1]:null, book}); } } return out; }
+// ISA 코어 목표 (안건 8): S&P500 40 · NDX 10 · K200 15 · 국고채 20 · 금 15, 밴드 ±5%p
+const ISA_TARGET=[['S&P500',0.40],['NDX',0.10],['K200',0.15],['KTB',0.20],['Gold',0.15]], ISA_BAND=0.05;
+function isaBucket(s,nm){ const n=String(nm||'').toUpperCase();
+  if(s==='360750'||n.includes('S&P')||['SPY','IVV','VOO','SPLG'].includes(s)) return 'S&P500';
+  if(s==='133690'||n.includes('나스닥')||n.includes('NDX')||['QQQ','QQQM'].includes(s)) return 'NDX';
+  if(['148070','305080','152380'].includes(s)||/국고채|국채|KTB/.test(n)) return 'KTB';
+  if(s==='132030'||/골드|금선물|GOLD/.test(n)||['GLD','IAU'].includes(s)) return 'Gold';
+  if(s==='069500'||(/(^|\s)200(\s|$)|코스피/.test(n)&&!/IT|반도체|인버스|레버리지/.test(n))) return 'K200';
+  return null; }
+// 반도체 분류 (pb.py semi_class 와 동일): 'semi' = 한도 산입(반도체 체인·미국 반도체·반도체/IT 섹터 ETF 전액), 'elec' = 전기·IT 하드웨어(상관 테마, 보조 수치),
+// 지수 ETF(KODEX 200·S&P500 …)는 한도 밖 — 속의 반도체 룩스루는 lookW 로 돌려 '참고 경보' 로만 보인다 (합의 1-④)
+const SEMI_ETFS=['139260','091160','PSI','SOXX','SMH','SOXL','SOXQ','XSD','SMHX','396500','395160','449450'];
+const US_SEMIS=['MU','SNDK','NVDA','AMD','AVGO','TSM','INTC','QCOM','ARM','MRVL','LRCX','AMAT','KLAC','ASML','WDC','STX'];
+function semiClass(a){ const s=a.h.r.s, n=String(a.d.name||'').toUpperCase();
+  if(a.etf){ if(SEMI_ETFS.includes(s)||/반도체|SEMI|SOX|IT$|\bIT\b|테크/.test(n)) return {kind:'semi',lookW:0};
+    const lc=(a.d.etf.look||{}).chains||{}; let lw=0; for(const [k,w] of Object.entries(lc)) if(/반도체|IT 하드웨어/.test(k)) lw+=w; return {kind:null,lookW:lw}; }
+  const ch=((a.d.drivers||{}).chain||{}).name||'';
+  if(US_SEMIS.includes(s)||/반도체/.test(ch)) return {kind:'semi',lookW:0};
+  if(/IT 하드웨어/.test(ch)) return {kind:'elec',lookW:0};
+  return {kind:null,lookW:0}; }
+function myResolve(k){ const x=k.toLowerCase().trim();
+  const ex=SIX.find(s=>s.s.toLowerCase()===x)||SIX.find(s=>String(s.n).toLowerCase()===x); if(ex) return ex;
+  if(/^[a-z][a-z.\-]{0,5}$/.test(x)||/^\d{6}$/.test(x)) return null;   // 티커·코드는 정확히 일치할 때만 (PSI → PepsiCo 오인 방지)
+  return SIX.find(s=>String(s.n).toLowerCase().startsWith(x))||SIX.find(s=>String(s.n).toLowerCase().replace(/\s/g,'').includes(x.replace(/\s/g,'')))||null; }
+// 비공개 저장소(pb-private/holdings.txt) 동기화 — 읽기 전용 토큰은 이 브라우저 localStorage 에만 보관
+const GHK='mt_gh_tok', PBSRC='https://api.github.com/repos/hk99915-bot/pb-private/contents/holdings.txt';
+function ghTok(){ try{ return sessionStorage.getItem(GHK)||localStorage.getItem(GHK)||''; }catch(e){ return ''; } }
+// PIN 잠금 기억: 토큰을 PIN 으로 암호화(AES-GCM, PBKDF2 25만 회)해 이 브라우저에 저장 → 다음부턴 PIN 만 입력. 복호화한 토큰은 이 창(sessionStorage)에만.
+const GHE='mt_gh_enc';
+function alertMsg(m){ const e=$('#mysync'); if(e) e.textContent=m; }
+const _b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))), _ub64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+async function _ghKey(pin,salt){ const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); }
+async function ghLock(tok,pin){ const salt=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
+  const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},await _ghKey(pin,salt),new TextEncoder().encode(tok));
+  localStorage.setItem(GHE,JSON.stringify({s:_b64(salt),i:_b64(iv),c:_b64(c)})); }
+async function ghUnlock(pin){ try{ const o=JSON.parse(localStorage.getItem(GHE)||'null'); if(!o) return false;
+  const p=await crypto.subtle.decrypt({name:'AES-GCM',iv:_ub64(o.i)},await _ghKey(pin,_ub64(o.s)),_ub64(o.c));
+  sessionStorage.setItem(GHK,new TextDecoder().decode(p)); return true; }catch(e){ return false; } }
+function ghLocked(){ try{ return !ghTok() && !!localStorage.getItem(GHE); }catch(e){ return false; } }
+function myClean(t){ return String(t||'').split('\n').filter(l=>l.trim()&&(ISA_HEAD.test(l.trim())||!l.trim().startsWith('#'))).join('\n'); }
+let MYSYNC={st:'',at:''};
+function mySync(cb){ const tk=ghTok(); if(!tk){ MYSYNC={st:'토큰 없음'}; cb&&cb(false); return; }
+  MYSYNC={st:'불러오는 중…'};
+  fetch(PBSRC+'?t='+Date.now(),{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github.raw'},cache:'no-store'})
+    .then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); })
+    .then(t=>{ const c=myClean(t); if(c){ mySave(c); const ta=$('#myta'); if(ta) ta.value=c; } MYSYNC={st:'동기화됨',at:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}; cb&&cb(true); })
+    .catch(e=>{ MYSYNC={st:'실패('+e.message+') — 토큰 권한·만료 확인'}; cb&&cb(false); }); }
+let MYSYNCED=false;
+function myOpen(){ try{ return localStorage.getItem('mt_myopen')==='1'; }catch(e){ return false; } }
+function myView(){
+  const txt=myLoad();
+  setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); $('#myin').open=false; myRun(); };
+    const st=()=>{ const e=$('#mysync'); if(e) e.textContent=MYSYNC.st+(MYSYNC.at?' · '+MYSYNC.at:''); };
+    $('#mysyncb').onclick=()=>{ mySync(ok=>{ st(); if(ok) myRun(); }); st(); };
+    $('#mytokb').onclick=async()=>{ const v=($('#mytok').value||'').trim(); const ses=$('#mytokses')&&$('#mytokses').checked; const pin=(($('#mytokpin')||{}).value||'').trim();
+      try{ localStorage.removeItem(GHK); sessionStorage.removeItem(GHK); if(v){ if(pin){ if(pin.length<6){ alertMsg('PIN 은 6자 이상'); return; } await ghLock(v,pin); localStorage.removeItem(GHK); sessionStorage.setItem(GHK,v); } else { localStorage.removeItem(GHE); (ses?sessionStorage:localStorage).setItem(GHK,v); } } }catch(_){}
+      $('#mytok').value=''; if($('#mytokpin')) $('#mytokpin').value=''; mySync(ok=>{ st(); if(ok) myRun(); }); st(); render(); };
+    const pu=$('#mypinb'); if(pu) pu.onclick=async()=>{ const ok=await ghUnlock(($('#mypin').value||'').trim()); $('#mypin').value=''; if(ok){ mySync(k=>{ st(); if(k) myRun(); }); render(); } else { const e=$('#mypinmsg'); if(e) e.textContent='PIN 이 틀렸어요'; } };
+    const pi=$('#mypin'); if(pi) pi.onkeydown=e=>{ if(e.key==='Enter') $('#mypinb').click(); };
+    const fg=$('#mypinforget'); if(fg) fg.onclick=()=>{ try{ localStorage.removeItem(GHE); }catch(_){} render(); };
+    if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ st(); if(ok) myRun(); }); st(); }
+    const mc=$('#mycorr'); if(mc) mc.addEventListener('toggle',e=>{ if(e.target.open) myCorr(); });
+    $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
+  return `<div class="grid"><div class="p c12"><h2>MY PB<small>보유 자산 분석 · 비공개 저장소(pb-private)에서 자동 동기화 · 공개 서버로 전송 없음</small></h2><div class="b">
+    <div style="font-size:12px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="am">비공개 저장소 연동</span> <span id="mysync" class="mu">${ghTok()?esc(MYSYNC.st||'대기'):ghLocked()?'🔒 PIN 으로 잠김':'토큰 미설정'}</span>${ghLocked()?`<input id="mypin" type="password" inputmode="text" autocomplete="off" placeholder="PIN" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="mypinb" class="sbtn">열기</button> <span id="mypinmsg" class="dn" style="font-size:11px"></span> <a href="#" id="mypinforget" class="mu" style="font-size:11px">PIN 기억 지우기</a>`:''}
+      <button id="mysyncb" class="sbtn">지금 불러오기</button>
+      <details style="display:inline"><summary class="mu" style="cursor:pointer;font-size:11px">토큰 설정</summary>
+        <div class="mu" style="font-size:11px;line-height:1.6;max-width:560px">깃허브 → Settings → Developer settings → Fine-grained tokens → Repository access: <b>pb-private만</b> · Permissions: <b>Contents: Read-only</b>. 토큰은 이 브라우저에만 저장돼요(회사 PC엔 저장 금지). 비우고 저장하면 삭제.</div>
+        <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <label class="mu" style="font-size:11px;margin-left:6px"><input id="mytokses" type="checkbox"> 이 창에서만 (탭 닫으면 삭제 · 회사 PC용)</label> <span class="mu" style="font-size:11px;margin-left:6px">또는 PIN 잠금 기억:</span> <input id="mytokpin" type="password" autocomplete="new-password" placeholder="PIN 6자+" style="width:100px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <span class="mu" style="font-size:11px">(PIN 을 넣고 저장하면 다음부턴 PIN 만 입력 — 회사 PC 추천)</span> <button id="mytokb" class="sbtn">저장</button></details></div>
+    <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
+    <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code><br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
+    <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
+    <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
+    <div id="myout" style="margin-top:12px"></div>
+    <details id="mycorr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">교정 리포트 (비공개 · 눌러서 열기)</summary><div id="mycorrb" class="mu" style="font-size:12px">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
+    </div></div></div>`;
+}
+// 교정 리포트: pb-private/analysis/latest.json → 이미지·보고서를 토큰으로 직접 받아 이 브라우저에서만 표시 (공개 서버 경유 없음)
+const PBAPI='https://api.github.com/repos/hk99915-bot/pb-private/contents/';
+function pbGet(path,as){ const tk=ghTok(); return fetch(PBAPI+path+'?t='+Date.now(),{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github.raw'},cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error(r.status); return as==='blob'?r.blob():r.text(); }); }
+function mdLite(t){ const L=String(t||'').split('\n'), out=[]; let tb=null;
+  const cell=c=>esc(c.trim()).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  const flush=()=>{ if(!tb) return; const rows=tb.filter(r=>!/^\s*\|?\s*:?-{2,}/.test(r)).map(r=>r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|'));
+    if(rows.length){ const [h,...b]=rows; out.push('<div style="overflow-x:auto"><table style="margin:4px 0 10px"><tr>'+h.map((c,k)=>`<th class="${k?'':'l'}">${cell(c)}</th>`).join('')+'</tr>'+b.map(r=>'<tr>'+r.map((c,k)=>{ const v=c.trim(); const cl=/^[-−]/.test(v)&&/\d/.test(v)?'dn':/^\+/.test(v)?'up':''; return `<td class="${k?cl:'l'}">${cell(c)}</td>`; }).join('')+'</tr>').join('')+'</table></div>'); }
+    tb=null; };
+  for(const l of L){ if(/^\s*\|/.test(l)){ (tb=tb||[]).push(l); continue; } flush();
+    if(/^\s*!\[/.test(l)||!l.trim()) continue;
+    if(/^#{1,3} /.test(l)||/^\d+\. \S/.test(l)&&l.length<40) out.push('<div style="color:var(--amber);font-weight:700;margin-top:12px">'+cell(l.replace(/^#+ /,''))+'</div>');
+    else if(/^\s*[-*·] /.test(l)) out.push('<div style="margin-left:4px">· '+cell(l.replace(/^\s*[-*·] /,''))+'</div>');
+    else out.push('<div>'+cell(l)+'</div>'); }
+  flush(); return out.join(''); }
+let CORR=null, CORRCH=[];
+function corrCharts(W){ CORR=W; const box=$('#mycint'); if(!box) return;
+  const f=v=>v==null?'—':(v/1e6).toFixed(2)+'M', pc=v=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(1)+'%', col=v=>v>0?'up':v<0?'dn':'mu';
+  const mrow=W.monthly.map(([m,a,k,u])=>{ const bar=(v,c)=>`<div style="height:8px;width:${Math.min(100,Math.abs(v)*150)}%;background:var(${c});margin:1px 0"></div>`;
+    return `<tr><td class="l">${m}</td><td class="${col(a)}"><b>${pc(a)}</b></td><td class="${col(k)}">${pc(k)}</td><td class="${col(u)}">${pc(u)}</td><td class="l" style="width:40%">${bar(a,a<0?'--dn':'--up')}${bar(k,'--muted')}</td></tr>`; }).join('');
+  const hrow=W.hold.map(([b,n,w,p])=>`<tr><td class="l">${esc(b)}</td><td>${n}</td><td>${(w*100).toFixed(0)}%</td><td class="${col(p)}">${f(p)}</td></tr>`).join('');
+  const crow=W.cls.map(([b,n,w,p])=>`<tr><td class="l">${esc(b)}</td><td>${n}</td><td>${(w*100).toFixed(0)}%</td><td class="${col(p)}">${f(p)}</td></tr>`).join('');
+  box.innerHTML=`<div class="am" style="font-size:12px">계좌 평가액 vs 넣은 돈 vs 지수 반사실 <span class="mu">(드래그·확대 가능, 아래 손익 차트와 연동)</span></div>
+   <div id="cq1" style="height:300px;margin-top:4px"></div><div id="cq1l" class="mu" style="font-size:11px;margin:2px 0 8px"></div>
+   <div class="am" style="font-size:12px">돈 손익 (평가액 − 순입금)</div><div id="cq2" style="height:160px;margin-top:4px"></div>
+   <div class="am" style="font-size:12px;margin-top:12px">코스피 위 매매 <span class="mu">▲매수 ▼매도 · 주황=레버리지·인버스 · 날짜를 누르면 그날 매매 목록</span>
+     <label style="margin-left:8px"><input type="checkbox" id="cqus"> 미국 매매도 표시</label></div>
+   <div id="cq3" style="height:300px;margin-top:4px"></div><div id="cq3d" style="font-size:12px;margin-top:6px;line-height:1.6"></div>
+   <div class="grid" style="margin-top:12px"><div class="c6"><div class="am" style="font-size:12px">월별 수익률 (시간가중) vs 지수</div><table><tr><th class="l">월</th><th>내 계좌</th><th>KOSPI</th><th>S&P(원화)</th><th class="l"></th></tr>${mrow}</table></div>
+   <div class="c6"><div class="am" style="font-size:12px">보유 기간별 실현손익</div><table><tr><th class="l">보유</th><th>건수</th><th>승률</th><th>손익</th></tr>${hrow}</table>
+   <div class="am" style="font-size:12px;margin-top:10px">진입 유형별 (실현+미실현)</div><table><tr><th class="l">유형</th><th>건수</th><th>승률</th><th>손익</th></tr>${crow}</table>
+   <div class="mu" style="font-size:11px;margin-top:6px">레버리지·인버스 ${f(+W.lev.True)} · 일반 ${f(+W.lev.False)} / 반도체 ${f(+W.semi.True)} · 그 외 ${f(+W.semi.False)}</div></div></div>`;
+  setTimeout(()=>corrDraw(),0);
+}
+function corrDraw(){ const W=CORR; if(!W||!window.LightweightCharts) return;
+  CORRCH.forEach(c=>{try{c.remove();}catch(e){}}); CORRCH=[];
+  const cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
+  const mk=(id,h,fmt)=>{ const el=$('#'+id); if(!el) return null; const c=LightweightCharts.createChart(el,{width:el.clientWidth,height:h,layout:{background:{type:'solid',color:cv('--panel')},textColor:cv('--muted'),fontSize:11},
+    grid:{vertLines:{color:cv('--line')},horzLines:{color:cv('--line')}},rightPriceScale:{borderColor:cv('--line')},timeScale:{borderColor:cv('--line')},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},
+    localization:{locale:'ko-KR',priceFormatter:fmt}}); CORRCH.push(c); return c; };
+  const M=v=>(v/1e6).toFixed(1)+'M';
+  const c1=mk('cq1',300,M), c2=mk('cq2',160,M); if(!c1||!c2) return;
+  const E=W.equity, ln=(c,i,color,w,style)=>{ const s=c.addLineSeries({color,lineWidth:w,lineStyle:style||0,priceLineVisible:false,lastValueVisible:true}); s.setData(E.map(r=>({time:r[0],value:r[i]}))); return s; };
+  const se=ln(c1,1,cv('--amber'),2); ln(c1,2,cv('--muted'),1,2); ln(c1,3,cv('--up'),1.5); ln(c1,4,cv('--blue'),1.5);
+  let pk=E.reduce((a,r)=>r[1]>a[1]?r:a,E[0]); se.setMarkers([{time:pk[0],position:'aboveBar',color:cv('--amber'),shape:'circle',text:'최고 '+M(pk[1])}]);
+  $('#cq1l').innerHTML=`<span style="color:var(--amber)">━ 내 계좌</span> &nbsp; <span class="mu">┅ 넣은 돈(누적)</span> &nbsp; <span style="color:var(--up)">━ 같은 돈 코스피</span> &nbsp; <span style="color:var(--blue)">━ 같은 돈 S&P500(원화)</span>`;
+  const bs=c2.addBaselineSeries({baseValue:{type:'price',price:0},topLineColor:cv('--up'),bottomLineColor:cv('--dn'),topFillColor1:'rgba(0,0,0,0)',topFillColor2:'rgba(0,0,0,0)',bottomFillColor1:'rgba(0,0,0,0)',bottomFillColor2:'rgba(0,0,0,0)',lineWidth:2,priceLineVisible:false});
+  bs.setData(E.map(r=>({time:r[0],value:r[5]})));
+  c1.timeScale().fitContent(); c2.timeScale().fitContent();
+  let lock=false; const sync=(a,b)=>a.timeScale().subscribeVisibleLogicalRangeChange(r=>{ if(lock||!r) return; lock=true; b.timeScale().setVisibleLogicalRange(r); lock=false; });
+  sync(c1,c2); sync(c2,c1);
+  const c3=mk('cq3',300,v=>v.toFixed(0)); if(!c3) return;
+  const ks=c3.addLineSeries({color:cv('--txt'),lineWidth:1.5,priceLineVisible:false}); ks.setData(E.map(r=>({time:r[0],value:r[7]})));
+  const showUS=$('#cqus')&&$('#cqus').checked, days=new Set(E.map(r=>r[0]));
+  const agg={}; for(const t of W.trades){ if(t[2]==='US'&&!showUS) continue; if(!days.has(t[0])) continue; const k=t[0]+t[1]; (agg[k]=agg[k]||{d:t[0],s:t[1],n:0,lev:false}); agg[k].n+=t[5]; agg[k].lev=agg[k].lev||t[6]; }
+  const mks=Object.values(agg).sort((a,b)=>a.d<b.d?-1:1).map(a=>({time:a.d,position:a.s==='B'?'belowBar':'aboveBar',shape:a.s==='B'?'arrowUp':'arrowDown',color:a.lev?cv('--amber'):(a.s==='B'?cv('--up'):cv('--dn')),size:Math.min(2,0.4+Math.sqrt(a.n/8e6))}));
+  ks.setMarkers(mks); c3.timeScale().fitContent();
+  c3.subscribeClick(p=>{ const d=$('#cq3d'); if(!d||!p||!p.time) return; const day=typeof p.time==='string'?p.time:`${p.time.year}-${String(p.time.month).padStart(2,'0')}-${String(p.time.day).padStart(2,'0')}`;
+    const L=W.trades.filter(t=>t[0]===day&&(showUS||t[2]==='KR'));
+    d.innerHTML=`<b class="am">${day}</b> `+(L.length?L.map(t=>`<div>${t[1]==='B'?'<span class="up">매수</span>':'<span class="dn">매도</span>'} ${t[6]?'<span class="am">[레버]</span> ':''}${esc(t[4])} <span class="mu">${t[2]} · ${(t[5]/1e4).toFixed(0)}만원${t[7]?' · '+esc(t[7]):''}</span>${t[8]!=null?` · ${t[1]==='B'?'이 매수의 최종 손익':'실현손익'} <span class="${t[8]>0?'up':'dn'}">${(t[8]/1e4).toFixed(0)}만원</span>`:''}</div>`).join(''):'<span class="mu">이날 매매 없음</span>'); });
+  const cb=$('#cqus'); if(cb&&!cb.dataset.b){ cb.dataset.b='1'; cb.onchange=()=>corrDraw(); }
+}
+function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) return; b.dataset.done='1';
+  pbGet('analysis/index.json').then(t=>JSON.parse(t).reports||[]).catch(()=>[{date:'최신',dir:'',latest:1}]).then(R=>{
+    R=R.slice().sort((a,c)=>a.date<c.date?1:-1);
+    b.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span class="am">리포트 히스토리</span>
+      <select id="mycsel" style="background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:2px 4px">${R.map((r,k)=>`<option value="${k}">${esc(r.date)} · ${esc(r.title||'')}</option>`).join('')}</select>
+      <span class="mu" style="font-size:11px">${R.length}건 · 새 분석이 쌓이면 여기 추가돼</span></div><div id="mycone"></div>`;
+    const load=k=>{ const r=R[k]; const metaP=r.latest?'analysis/latest.json':r.dir+'/meta.json';
+      $('#mycone').innerHTML='<div class="mu">불러오는 중…</div>';
+      pbGet(metaP).then(t=>{ const o=JSON.parse(t); const dir=o.dir||r.dir;
+        $('#mycone').innerHTML=`<div style="margin-bottom:8px" class="mu">기준 ${esc(o.date)}</div><table style="max-width:640px">${(o.kpis||[]).map(k=>`<tr><td class="l">${esc(k[0])}</td><td><b>${esc(k[1])}</b></td></tr>`).join('')}</table>`+
+          (o.comment?`<details open style="margin-top:12px"><summary style="cursor:pointer" class="am">PB 코멘트 · 처방</summary><div id="myccom" style="line-height:1.7;margin-top:6px">불러오는 중…</div></details>`:'')+
+          `<div id="mycint" style="margin-top:12px"></div><details style="margin-top:12px"><summary style="cursor:pointer" class="am">정적 차트 이미지</summary>`+(o.images||[]).map((im,i)=>`<div style="margin-top:12px"><div class="am" style="font-size:12px">${esc(im[0])}</div><img id="mycimg${i}" alt="" style="max-width:100%;border:1px solid var(--line);margin-top:4px"></div>`).join('')+`</details>`+
+          `<details style="margin-top:12px"><summary style="cursor:pointer" class="am">전체 보고서</summary><div id="mycrep" style="line-height:1.6;margin-top:6px">불러오는 중…</div></details>`;
+        if(o.comment) pbGet(dir+'/'+o.comment).then(t=>{ const e=$('#myccom'); if(e) e.innerHTML=mdLite(t); }).catch(()=>{});
+        if(o.web) pbGet(dir+'/'+o.web).then(t=>corrCharts(JSON.parse(t))).catch(()=>{});
+        (o.images||[]).forEach((im,i)=>pbGet(dir+'/'+im[1],'blob').then(bl=>{ const e=$('#mycimg'+i); if(e) e.src=URL.createObjectURL(bl); }).catch(()=>{}));
+        pbGet(dir+'/'+o.report).then(t=>{ const e=$('#mycrep'); if(e) e.innerHTML=mdLite(t); }).catch(()=>{ const e=$('#mycrep'); if(e) e.textContent='보고서 없음'; });
+      }).catch(e=>{ $('#mycone').textContent='불러오기 실패('+e.message+')'; }); };
+    $('#mycsel').onchange=e=>load(+e.target.value); load(0);
+  }).catch(e=>{ b.textContent='불러오기 실패('+e.message+') — 토큰 권한 확인'; delete b.dataset.done; }); }
+function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
+  for(const [m,sy] of list){ const k=m+':'+sy; if(MYD[k]){ done(); continue; }
+    google.script.run.withSuccessHandler(t=>{try{MYD[k]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(m,sy); } }
+function myRun(){
+  if(typeof CH!=='undefined'&&CH===null){ CH=false; google.script.run.withSuccessHandler(t=>{try{CH=JSON.parse(t);}catch(e){CH={};}}).getChains(); }
+  if(typeof PF!=='undefined'&&PF===null){ PF=false; google.script.run.withSuccessHandler(t=>{try{PF=JSON.parse(t);}catch(e){PF={};}}).getPortfolios(); }
+  const out=$('#myout'); if(!out) return; out.innerHTML='<div class="load">LOADING …</div>';
+  loadIndex(()=>{
+    const all=myParse($('#myta').value);
+    const hs=all.filter(h=>h.key).map(h=>({...h, r:myResolve(h.key)}));
+    const cash=all.filter(h=>h.cash);
+    const miss=hs.filter(h=>!h.r).map(h=>h.key);
+    const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]), ...HEDGES.map(x=>[x[0],x[1]]), ...BENCH];
+    const go=()=>myFetch(need,()=>myRender(hs,cash,miss));
+    if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go();
+  });
+}
+function myRender(hs,cash,miss){
+  const FXs=cl((MYX||{}).USDKRW), fxDates=Object.keys(FXs).sort(), FX=FXs[fxDates[fxDates.length-1]]||1400;
+  // 기준 날짜: 코스피 거래일 최근 250일
+  const kos=cl((MYX||{}).KOSPI); let days=Object.keys(kos).sort().slice(-251);
+  const ff=(m,ds)=>{ const ks=Object.keys(m).sort(); let j=0,last=null; const o=[]; for(const d of ds){ while(j<ks.length&&ks[j]<=d){ last=m[ks[j]]; j++; } o.push(last); } return o; };
+  // US 자산은 전 거래일(미국 장이 한국 장 뒤에 열림) 값으로: d 이전(<d) 마지막 값
+  const ffPrev=(m,ds)=>{ const ks=Object.keys(m).sort(); let j=0,last=null; const o=[]; for(const d of ds){ while(j<ks.length&&ks[j]<d){ last=m[ks[j]]; j++; } o.push(last); } return o; };
+  const fxS=ff(FXs,days);
+  const series=(mk,d)=>{ const m={}; for(const r of (d&&d.c1y)||[]) m[r[0]]=r[1]; if(mk==='KR') return ff(m,days); const p=ffPrev(m,days); return p.map((v,i)=>v!=null&&fxS[i]?v*fxS[i]:null); };
+  const rets=a=>{const o=[];for(let i=1;i<a.length;i++)o.push(a[i]!=null&&a[i-1]?a[i]/a[i-1]-1:0);return o;};
+  // 보유
+  const A=[]; let tot=0, cost=0;
+  for(const h of hs){ if(!h.r) continue; const d=MYD[h.r.m+':'+h.r.s]; if(!d) continue;
+    const fx=h.r.m==='US'?FX:1, val=d.close*h.qty*fx, cb=h.avg?h.avg*h.qty*fx:null;
+    A.push({h,d,name:shortNm(d.name)||h.r.s,mk:h.r.m,etf:!!d.etf,val,cb,ser:series(h.r.m,d),book:h.book||'sat'}); tot+=val; if(cb!=null) cost+=cb; }
+  let cK=0,cU=0,cIsa=0; for(const c of cash){ const v=c.cash==='KRW'?c.amt:c.amt*FX; if(c.cash==='KRW') cK+=c.amt; else cU+=c.amt*FX; if(c.book==='isa') cIsa+=v; }
+  const NAV=tot+cK+cU;   // 분모: 순자산(위성+ISA+현금) — 안건 8-J
+  const totSat=A.filter(a=>a.book!=='isa').reduce((s,a)=>s+a.val,0), totIsa=A.filter(a=>a.book==='isa').reduce((s,a)=>s+a.val,0), isaTot=totIsa+cIsa;
+  const hasIsa=isaTot>0;
+  if(!A.length){ $('#myout').innerHTML=`<div class="err">인식된 종목이 없습니다${miss.length?': '+esc(miss.join(', ')):''}</div>`; return; }
+  for(const a of A){ a.w=a.val/NAV; a.r=rets(a.ser); }
+  const n=days.length-1, rf=0.03/252;
+  const rUSDcash=rets(fxS);
+  const P=[]; for(let t=0;t<n;t++){ let x=0; for(const a of A) x+=a.w*a.r[t]; x+=(cU/NAV)*rUSDcash[t]+(cK/NAV)*rf; P.push(x); }
+  const E=[]; for(let t=0;t<n;t++){ let x=0; for(const a of A) x+=(a.val/tot)*a.r[t]; E.push(x); }   // 주식만
+  const ann=a=>Math.pow(a.reduce((p,x)=>p*(1+x),1),252/a.length)-1, vol=a=>sd(a)*Math.sqrt(252);
+  const mdd=a=>{let p=1,pk=1,m=0;for(const x of a){p*=1+x;pk=Math.max(pk,p);m=Math.min(m,p/pk-1);}return m;};
+  const sortino=a=>{const dn=a.filter(x=>x<rf).map(x=>x-rf); const dd=Math.sqrt(dn.reduce((s,x)=>s+x*x,0)/a.length)*Math.sqrt(252); return dd?(ann(a)-0.03)/dd:null;};
+  const kR=rets(ff(kos,days)), sox=rets(series('US',MYD['US:SOXX'])), spx=rets(ffPrev(cl((MYX||{}).SPX),days));
+  const beta=(a,b)=>cov(a,b)/(cov(b,b)||1);
+  const Pm={ret:ann(P),vol:vol(P),sh:(ann(P)-0.03)/(vol(P)||1),so:sortino(P),mdd:mdd(P),var:-quant(P,0.05),cvar:-mean(P.filter(x=>x<=quant(P,0.05))),
+     bK:beta(P,kR),bS:beta(P,spx),bX:beta(P,sox),cFX:corr(P,rUSDcash)};
+  const Em={ret:ann(E),vol:vol(E),sh:(ann(E)-0.03)/(vol(E)||1),mdd:mdd(E)};
+  // 종목별
+  const sp=cov(P,P);
+  for(const a of A){ a.bK=beta(a.r,kR); a.bX=beta(a.r,sox); a.vol=vol(a.r); a.rc=a.w*cov(a.r,P)/(sp||1); a.ret=ann(a.r); }
+  // 실질 보유 (ETF 풀기)
+  const real={}; const addR=(k,nm,v,src)=>{ const o=real[k]||(real[k]={name:nm,val:0,src:[]}); o.val+=v; if(!o.src.includes(src)) o.src.push(src); };
+  for(const a of A){ if(a.etf&&(a.d.etf.holdings||[]).length){ const hsum=a.d.etf.holdings.reduce((s,x)=>s+x.weight,0); for(const x of a.d.etf.holdings) addR(x.code,x.name,a.val*x.weight,a.name); if(hsum<0.999) addR('_etc_'+a.h.r.s,a.name+' 기타',a.val*(1-hsum),a.name); } else addR(a.h.r.s,a.name,a.val,'직접'); }
+  const realL=Object.values(real).sort((x,y)=>y.val-x.val);
+  const dup=realL.filter(x=>x.src.length>1&&x.src.includes('직접'));
+  // 체인 노출
+  const USM=(typeof CH!=='undefined'&&CH&&CH.us_map)||{};
+  const chains={}; for(const a of A){ if(a.etf){ const lc=(a.d.etf.look||{}).chains||{}; const cov_=Object.values(lc).reduce((s,x)=>s+x,0); for(const [k,w] of Object.entries(lc)) chains[k]=(chains[k]||0)+a.val*w; if(cov_<1) chains['기타(ETF)']=(chains['기타(ETF)']||0)+a.val*(1-cov_); } else { const k=((a.d.drivers||{}).chain||{}).name||(a.mk==='US'?(USM[a.h.r.s]||'미국 주식'):(a.d.valuation||{}).sector)||'기타'; chains[k]=(chains[k]||0)+a.val; } }
+  const chainL=Object.entries(chains).sort((x,y)=>y[1]-x[1]);
+  // 스트레스
+  const stK=A.reduce((s,a)=>s+a.val*a.bK*-0.10,0), stX=A.reduce((s,a)=>s+a.val*a.bX*-0.15,0);
+  const usdV=A.filter(a=>a.mk==='US').reduce((s,a)=>s+a.val,0)+cU, stF=usdV*0.05;
+  // 헷지
+  // 한·미 장 시차 때문에 일간 상관은 과소평가 → 5거래일 수익률로 헷지 계산
+  const wk=a=>{const o=[];for(let i=0;i+5<=a.length;i+=5){let p=1;for(let j=i;j<i+5;j++)p*=1+a[j];o.push(p-1);}return o;};
+  const Pw=wk(P), spw=cov(Pw,Pw);
+  const eqR=E;   // 주식 부분 수익률
+  const hedge=HEDGES.map(([m,sy,nm,ty])=>{ const d=MYD[m+':'+sy]; if(!d||!d.c1y||d.c1y.length<120) return null; const r=rets(series(m,d)); const rw=wk(r);
+     const c=cov(Pw,rw), v=cov(rw,rw); if(!v) return null; const rho=corr(Pw,rw);
+     if(ty==='inv'){ const hr=-c/v, amt=hr*NAV, red=1-Math.sqrt(Math.max(spw-c*c/v,0)/spw), r2=rho*rho, red25=1-Math.sqrt(Math.max(1-(2*0.25-0.0625)*r2,0)); return {ty,nm,sy,m,rho,amt,red,red25}; }
+     // 분산형: 주식 10%p(순자산 기준)를 이 자산으로 옮겼을 때 변동성 변화
+     const sw=0.10*NAV/NAV; const Q=[]; for(let t=0;t<P.length;t++) Q.push(P[t]-sw*eqR[t]+sw*r[t]);
+     const Qw=wk(Q); const red=1-Math.sqrt(cov(Qw,Qw)/spw); const rq=(ann(Q)-ann(P));
+     return {ty,nm,sy,m,rho,amt:0.10*NAV,red,dret:rq,ret1y:ann(r)}; }).filter(Boolean);
+  // 목표 변동성으로 주식 비중
+  const tv=0.20, eqW=tot/NAV, eqTarget=Math.min(Em.vol?tv/Em.vol:eqW,1);
+  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
+  const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
+  // PB 의견
+  const op=[];
+  let semi=0, elec=0, look=0; for(const a of A){ const c=semiClass(a); if(c.kind==='semi') semi+=a.val; else if(c.kind==='elec') elec+=a.val; look+=a.val*c.lookW; }
+  const semiElec=semi+elec;
+  const SEMI_CAP=0.40;   // 규정 [3] 테마 합계 ≤ 순자산의 40% (2026-10-15 v2.1) — 반도체(전기 제외), 지수 ETF 룩스루 제외
+  const SEMI_BAND=0.45;  // 발동선 (안건 7): 넘으면 다음 반등일에 40% 로
+  const semiTag=semi/NAV>SEMI_BAND?`<b>⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 40%로 (${K((semi/NAV-SEMI_CAP)*NAV)}원 초과)`:semi/NAV>SEMI_CAP?`<b>⛔ 상한 초과</b> — 추가 매수 금지 (${K((semi/NAV-SEMI_CAP)*NAV)}원 초과, 반등일에 축소)`:'한도 안 ✅';
+  op.push(`<b>반도체</b>: 반도체(전기 제외) 순자산의 <b>${W(semi/NAV)}</b> (상한 ${W(SEMI_CAP)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}. 반도체+전기(상관 테마) ${W(semiElec/NAV)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/NAV)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
+  const top=chainL[0]; if(semi/tot<=0.6&&top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
+  if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 섹터 ETF(TIGER 200 IT·PSI 등)부터 — 지수 ETF(KODEX 200·S&P500 등 ISA 코어 적립분)는 줄이지 않습니다.`);
+  op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}), 최대낙폭 ${pct(Pm.mdd,0)}. ${Pm.sh>2?'<b>이 숫자를 기대값으로 쓰면 안 됩니다.</b> 지난 1년 메모리 대랠리가 그대로 들어간 이례적 값이고, 같은 베팅이 맞았던 결과일 뿐입니다. 볼 것은 샤프가 아니라 변동성·낙폭.':Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':'보통 수준.'}`);
+  op.push(`<b>비중</b>: 주식 변동성 ${W(Em.vol)} 기준으로 포트 변동성을 연 20%(주식시장 평균 수준)에 맞추려면 주식 비중 ${W(eqTarget)} (현재 ${W(eqW)}). ${eqW>eqTarget+0.05?`→ 약 ${K((eqW-eqTarget)*NAV)}원 줄이거나 아래 헷지로 같은 효과.`:eqW<eqTarget-0.05?'→ 위험 여력이 남아 있습니다. 다만 같은 체인에 더 넣으면 쏠림만 커집니다.':'→ 적정 범위.'}`);
+  if(Pm.cFX<-0.2) op.push(`<b>달러 현금</b>: 포트와 원/달러 상관 ${F(Pm.cFX)} — 주가가 빠질 때 달러가 올라 이미 자연 헷지로 작동하고 있습니다. 달러를 원화로 바꾸면 이 헷지가 사라집니다.`);
+  const hb=hedge.filter(h=>h.ty==='inv'&&h.amt>0).sort((a,b)=>b.red-a.red)[0];
+  if(hb) op.push(`<b>단기 보험(인버스)</b>: 가장 효율적인 건 ${esc(hb.nm)}. 현실적인 25% 헷지 = <b>${K(hb.amt/4)}원</b>으로 변동성 ${W(hb.red25)} 감소 (100% 헷지는 ${K(hb.amt)}원이 필요해 비현실적). 인버스·레버리지 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 이벤트 보험으로만. <b>⚠ 규정 [2]: 인버스·레버리지는 2027-04-15까지 실계좌 금지 — 참고용 수치(모델 북 전용).</b>`);
+  const hd=hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).slice(0,2);
+  if(hd.length) op.push(`<b>구조적 분산</b>: 주식 10%p를 옮긴다면 ${hd.map(h=>`${esc(h.nm)} (변동성 ${W(h.red)} 감소, 포트 상관 ${F(h.rho)})`).join(', ')}가 가장 효과적이었습니다. 인버스와 달리 들고 있어도 녹지 않습니다.`);
+  const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
+  const isaW={}; let isaEtc=0; for(const a of A){ if(a.book!=='isa') continue; const b=isaBucket(a.h.r.s,a.d.name); if(b) isaW[b]=(isaW[b]||0)+a.val; else isaEtc+=a.val; }
+  const isaPanel=hasIsa?`<div class="p" style="margin-bottom:8px"><h2>ISA 코어<small>순자산의 ${W(isaTot/NAV)} · 목표 S&P40/NDX10/K200 15/국고채20/금15 · 밴드 ±${(ISA_BAND*100).toFixed(0)}%p · 적립으로 맞춤(매도 아님)</small></h2><div class="b"><table><tr><th class="l">바구니</th><th>지금</th><th>목표</th><th>차이</th><th>상태</th></tr>
+     ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="up">밴드 안 ✅</span>':d>0?'<span class="dn">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
+     ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${K(cIsa)}원 — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>
+     <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">ISA 코어 ${K(isaTot)}원. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
+  $('#myout').innerHTML=`
+   <div class="mu" style="font-size:12px;margin-bottom:6px">분모: 순자산(위성+ISA+현금) ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 한도 ${W(SEMI_CAP)} · 발동선 ${W(SEMI_BAND)}</div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+     ${[['순자산',K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체(전기 제외) / +전기',`${W(semi/NAV)} / ${W(semiElec/NAV)}`],['주식 손익',cost?`${pct(tot/cost-1,1)} (${K(tot-cost)}원)`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95%',`${K(Pm.var*NAV)}원`],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
+   </div>
+   <div class="p" style="margin-bottom:8px"><h2>PB 의견<small>규칙 기반 · 지난 1년 데이터 · 성과 검증 전</small></h2><div class="b" style="line-height:1.8;font-size:13px;white-space:normal">${op.map(x=>'· '+x).join('<br>')}</div></div>
+   ${isaPanel}
+   <div class="p" style="margin-bottom:8px"><h2>보유<small>위험기여 = 포트 변동 중 이 종목 몫</small></h2><div class="b"><table><tr><th class="l">종목</th><th>비중</th><th>손익</th><th>위험기여</th><th>β KOSPI</th><th>β SOX</th><th>1년 변동성</th><th>드라이버</th></tr>
+    ${A.sort((a,b)=>b.val-a.val).map(a=>{const dv=(a.etf?((a.d.etf||{}).look||{}).drv:(a.d.drivers||{}).score); return `<tr><td class="l am sym" data-sym="${esc(a.h.r.s)}" data-mk="${a.mk}">${esc(a.name)}${a.etf?' <span class="tag">ETF</span>':''}${a.book==='isa'?' <span class="tag">ISA</span>':''}</td><td>${W(a.w)}</td><td>${a.cb?pct(a.val/a.cb-1,1):'—'}</td><td class="${a.rc>a.w*1.3?'dn':''}">${W(a.rc)}</td><td>${F(a.bK)}</td><td>${F(a.bX)}</td><td class="mu">${W(a.vol)}</td><td style="color:${col(dv)}">${dv!=null?(dv>0?'+':'')+dv.toFixed(2):'—'}</td></tr>`;}).join('')}
+    ${cK?`<tr><td class="l mu">원화 현금</td><td>${W(cK/NAV)}</td><td colspan="6" class="mu l">연 3% 가정</td></tr>`:''}${cU?`<tr><td class="l mu">달러 현금</td><td>${W(cU/NAV)}</td><td colspan="6" class="mu l">원/달러 변동이 수익 · 포트와 상관 ${F(Pm.cFX)}</td></tr>`:''}</table></div></div>
+   <div class="grid" style="padding:0;margin-bottom:8px">
+    <div class="p c6"><h2>실질 보유<small>ETF를 구성종목으로 풀어서</small></h2><div class="b"><table>${realL.slice(0,12).map(x=>`<tr><td class="l">${esc(x.name)} <span class="mu" style="font-size:11px">${esc(x.src.join('+'))}</span></td><td>${K(x.val)}</td><td>${W(x.val/NAV)}</td></tr>`).join('')}</table></div></div>
+    <div class="p c6"><h2>체인 노출<small>주식 대비</small></h2><div class="b">${chainL.map(([k,v])=>`<div class="bg"><span class="bl" style="width:130px">${esc(k)}</span><span class="bt"><i class="am" style="width:${Math.min(v/tot*100,100)}%"></i></span><b>${W(v/tot)}</b></div>`).join('')}</div></div>
+   </div>
+   <div class="grid" style="padding:0;margin-bottom:8px">
+    <div class="p c6"><h2>스트레스 테스트<small>종목별 1년 베타로 추정</small></h2><div class="b" style="line-height:1.9">
+      <div>코스피 −10% → <b class="dn">${K(stK)}원</b> (${pct(stK/NAV,1)})</div>
+      <div>미 반도체(SOXX) −15% → <b class="dn">${K(stX)}원</b> (${pct(stX/NAV,1)})</div>
+      <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${K(stF)}원</b> (${pct(stF/NAV,1)})</div>
+      <div>하루 손실이 이보다 클 확률 5%: <b>${K(Pm.var*NAV)}원</b> · 그런 날 평균 ${K(Pm.cvar*NAV)}원</div></div></div>
+    <div class="p c6"><h2>헷지안<small>5거래일 수익률 · 최근 1년</small></h2><div class="b">
+      <div class="am" style="font-size:12px">① 인버스 (단기 보험)</div><table><tr><th class="l">수단</th><th>상관</th><th>25% 헷지</th><th>감소</th><th>100% 헷지</th><th>감소</th></tr>
+      ${hedge.filter(h=>h.ty==='inv').map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td>${h.amt>0?K(h.amt/4)+'원':'—'}</td><td>${h.amt>0?W(h.red25):'—'}</td><td class="mu">${h.amt>0?K(h.amt)+'원':'—'}</td><td class="mu">${h.amt>0?W(h.red):'—'}</td></tr>`).join('')}</table>
+      <div class="am" style="font-size:12px;margin-top:8px">② 분산 (주식 10%p를 옮기면)</div><table><tr><th class="l">수단</th><th>상관</th><th>변동성 감소</th><th>1년 수익</th></tr>
+      ${hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td class="${h.red>0?'up':'dn'}">${W(h.red)}</td><td>${pct(h.ret1y,0)}</td></tr>`).join('')}</table>
+      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">① 필요 금액 = 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 인버스·레버리지는 일간 재조정으로 오래 들면 손실이 쌓임. ② 상관이 낮거나 음수일수록 분산 효과. 과거 1년 상관이라 위기 때는 바뀔 수 있음(물가 충격엔 채권도 같이 빠짐).</div></div></div>
+   </div>
+   ${pf?`<div class="p" style="margin-bottom:8px"><h2>모의 전략과 비교<small>2011~ 월간 · 원화</small></h2><div class="b"><table><tr><th class="l">전략</th><th>연수익</th><th>변동성</th><th>샤프</th><th>최대낙폭</th><th class="l">지금 배분</th></tr>
+      <tr><td class="l am">내 포트 (최근 1년)</td><td>${pct(Pm.ret,1)}</td><td>${W(Pm.vol)}</td><td>${F(Pm.sh)}</td><td>${pct(Pm.mdd,0)}</td><td class="l mu">반도체 중심</td></tr>
+      ${pf.filter(x=>!/스트래들/.test(x.name)).map(x=>`<tr><td class="l">${esc(x.name)}</td><td>${pct(x.stats.cagr,1)}</td><td>${W(x.stats.vol)}</td><td>${F(x.stats.sharpe)}</td><td>${pct(x.stats.mdd,0)}</td><td class="l mu" style="white-space:normal;font-size:11px">${Object.entries(x.now||{}).filter(([k,w])=>Math.abs(w)>0.005).map(([k,w])=>`${esc(k)} ${W(w)}`).join(' · ')}</td></tr>`).join('')}</table>
+      <div class="mu" style="font-size:11px;margin-top:4px">내 포트는 1년, 전략은 15년 성과라 직접 비교는 거칠다. 핵심은 변동성·낙폭 대비 수익 구조.</div></div></div>`:''}
+   ${miss.length?`<div class="mu" style="margin-top:6px">인식 못 한 종목: ${esc(miss.join(', '))}</div>`:''}
+   <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
+}
+</script>

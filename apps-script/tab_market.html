@@ -1,0 +1,170 @@
+<!-- tab_market.html — MARKET 탭 — KR/US 시장 패널·히트맵·전종목 MD 뷰 (marketView·heatView·mdView).
+     apps-script/Index.html 이 include('tab_market') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
+     전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
+<script>
+function sigTable(rows,market){
+  if(!rows||!rows.length) return '<div class="mu">—</div>';
+  const kr=market==='KR';
+  return `<table><tr><th class="l">SYM</th><th class="l">NAME</th><th>PX</th><th>1D</th><th>20D</th><th>T</th><th>M</th><th>RISK</th><th>ADX</th><th>RSI</th><th>52H</th><th>VOL×</th><th class="l">CLS</th></tr>`+
+  rows.map(r=>`<tr><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${market}">${esc(r.symbol)}</td><td class="l">${esc(r.name).slice(0,16)}</td><td>${num(r.close,kr?0:2)}</td><td>${pct(r.ret1)}</td><td>${pct(r.ret20)}</td><td class="am">${n0(r.trend_score)}</td><td>${n0(r.momentum_score)}</td><td class="${r.reversal_risk>=60?'dn':''}">${n0(r.reversal_risk)}</td><td>${n0(r.adx14)}</td><td>${n0(r.rsi14)}</td><td>${pct(r.from_high52,0)}</td><td class="${r.vol_ratio>=3?'am':''}">${(r.vol_ratio??0).toFixed(1)}</td><td class="l mu">${CLS[r.class]||r.class||''}</td></tr>`).join('')+'</table>';
+}
+function breadthPanel(mk){
+  const b=(D.breadth||[]).filter(x=>x.market===mk);
+  if(!b.length) return `<div class="mu">—</div>`;
+  const L=b[b.length-1], P=b.length>20?b[b.length-21]:b[0];
+  const p200=L.pct_above200??0, p50=L.pct_above50??0, p20=L.pct_above20??0, d200=(p200-(P.pct_above200??p200))*100;
+  // 판정: 200일선 위 비율(장기 체력) × 20일선 위 비율(단기 흐름)
+  const lvl=p200>=0.6?'강세':p200>=0.4?'중립':'약세', cls=p200>=0.6?'up':p200>=0.4?'am':'dn';
+  const shortv=p20>=0.6?'단기 매수세 우위':p20<=0.3?'단기 투매 구간':'단기 혼조';
+  const trend=b.length<6?'추이 데이터 쌓는 중':Math.abs(d200)<3?'20일 전과 비슷':d200>0?`20일 전보다 +${d200.toFixed(0)}%p 개선`:`20일 전보다 ${d200.toFixed(0)}%p 악화`;
+  const verdict=`<div class="bv ${cls}"><b>${lvl}</b> 체력 · ${shortv}</div><div class="mu" style="margin-bottom:6px">200일선 위 ${Math.round(p200*100)}% (${trend}) · ${L.date} · ${L.n}종목</div>`;
+  const gauge=(l,v)=>{const c=v>=0.6?'up':v>=0.4?'am':'dn'; return `<div class="bg"><span class="bl">${l}</span><span class="bt"><i class="${c}" style="width:${(v*100).toFixed(0)}%"></i><u style="left:40%"></u><u style="left:60%"></u></span><b class="${c}">${Math.round(v*100)}%</b></div>`;};
+  const split=(l,a,d)=>{const t=(a+d)||1, pa=a/t*100; return `<div class="bg"><span class="bl">${l}</span><span class="bs"><i class="up" style="width:${pa.toFixed(0)}%"></i><i class="dn" style="width:${(100-pa).toFixed(0)}%"></i></span><b><span class="up">${a}</span>/<span class="dn">${d}</span></b></div>`;};
+  // 30일 추이: 200일선 위 비율 선 + 40/60 기준선
+  const s=b.slice(-30), w=220, h=46, X=i=>i*(w-4)/Math.max(s.length-1,1)+2, Y=v=>h-2-(v||0)*(h-4);
+  const pts=s.map((x,i)=>`${X(i).toFixed(1)},${Y(x.pct_above200).toFixed(1)}`).join(' ');
+  const svg=`<svg viewBox="0 0 ${w} ${h}" class="bsv" preserveAspectRatio="none"><line x1="0" x2="${w}" y1="${Y(.6)}" y2="${Y(.6)}" class="g60"/><line x1="0" x2="${w}" y1="${Y(.4)}" y2="${Y(.4)}" class="g40"/><polyline points="${pts}" class="pl"/><circle cx="${X(s.length-1)}" cy="${Y(p200)}" r="2.5" class="pd"/></svg>`;
+  return `${verdict}${gauge('20일선 위',p20)}${gauge('50일선 위',p50)}${gauge('200일선 위',p200)}${split('상승/하락',L.adv,L.dec)}${split('신고가/신저가',L.new_high52,L.new_low52)}
+   ${s.length>=5?`<div class="mu" style="margin-top:6px">200일선 위 비율 · 최근 ${s.length}거래일 (점선 40% / 60%)</div>${svg}`:`<div class="mu" style="margin-top:6px">추이 그래프는 5거래일 이상 쌓이면 표시</div>`}`;
+}
+let MV=null;
+function macroPanel(mk){
+  if(MV===null){ MV=false; google.script.run.withSuccessHandler(t=>{try{MV=JSON.parse(t);}catch(e){MV={};} render();}).withFailureHandler(()=>{MV={};}).getMacroView(); }
+  if(MV&&MV.rows&&MV.rows.length){
+    const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
+    const lv=k=>L&&L.items&&L.items.find(x=>x.key===k);
+    const rows=MV.rows.map(d=>{ const l=lv(d.key), rate=d.key==='US10Y'||d.key==='JGB10Y', last=l&&l.last?l.last:d.last;
+      const c1=rate?(l&&l.last?`${((l.last-(d.last-(d.d1||0)))*100).toFixed(0)}bp`:`${((d.d1||0)*100).toFixed(0)}bp`):pct(l&&l.chg!=null?l.chg:d.chg1);
+      const c20=rate?`${((d.d20||0)*100>0?'+':'')}${((d.d20||0)*100).toFixed(0)}bp`:pct(d.chg20);
+      return `<tr class="mvr" data-k="${esc(d.key)}"><td class="l am mac" data-key="${esc(d.key)}">${esc(d.name)}</td><td>${num(last,2)}</td><td>${c1}</td><td>${c20}</td><td class="hm">${d.key==='VIX'||rate?'—':pct(d.from_hi,0)}</td><td style="color:${col(d.impact)}">${d.impact==null?'—':(d.impact>0?'+':'')+d.impact.toFixed(2)}</td><td class="tg mu" data-x="${esc(d.key)}">▸</td></tr>
+        <tr class="sub" id="mvx-${esc(d.key)}"><td colspan="7" style="white-space:normal"><div style="color:var(--txt)">${esc(d.state)}</div><div class="mu" style="font-size:11px;margin-top:2px">${esc(d.what)}</div></td></tr>`;}).join('');
+    return `<div style="border:1px solid ${col(MV.score)};padding:6px 9px;margin-bottom:6px;line-height:1.6;font-size:12.5px;white-space:normal"><b style="color:${col(MV.score)}">${esc(MV.label||'')}</b> ${esc((MV.summary||'').replace(/^매크로 바람 \S+ /,''))}</div>
+      <table class="mvt"><tr><th class="l">지표</th><th>현재</th><th>1D</th><th>20D</th><th class="hm">고점대비</th><th>영향</th><th></th></tr>${rows}</table>
+      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">▸ 누르면 해설. 영향 = 한국 주식 전체에 대한 바람(−1~+1), 종합해서 위 판단에 반영. 한국 지수는 결과라 점수 제외. 현재·1D는 실시간, 나머지는 ${esc(MV.asof||'')} 일봉 기준.</div>`;
+  }
+  const m=(D.state||{})['macro_'+mk]; if(!m||!m.value||!m.value.length) return '<div class="mu">—</div>';
+  const reg=(D.state||{})['regime_'+mk];
+  return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am mac" data-key="${esc(d.key)}">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
+}
+let JP=null;
+function japanPanel(){   // 일본: 닛케이·TOPIX·엔·JGB + 한국 종목과 연결된 일본 피어 그룹 (reports/japan.json)
+  if(JP===null){ JP=false; google.script.run.withSuccessHandler(t=>{try{JP=JSON.parse(t);}catch(e){JP={};} render();}).withFailureHandler(()=>{JP={};}).getJapan(); }
+  if(!JP||!JP.groups) return `<div class="mu">${JP===false?'LOADING …':'—'}</div>`;
+  const I=JP.index||{}, cr=x=>x==null?'—':`<span class="${x>=0.6?'am':'mu'}">${x.toFixed(2)}</span>`;
+  const ix=[['NIKKEI','닛케이225'],['TOPIX','TOPIX'],['USDJPY','엔/달러'],['JGB10Y','日 10년']].filter(([k])=>I[k]).map(([k,n])=>{const d=I[k];
+    return `<td class="l am mac" data-key="${k}">${n}${d.proxy?' <span class="mu" title="TOPIX 추종 ETF 가격">(ETF)</span>':''}</td><td>${num(d.last,k==='JGB10Y'?3:k==='USDJPY'?2:0)}${k==='JGB10Y'?'%':''}</td><td>${k==='JGB10Y'?(d.d1bp==null?'—':`${d.d1bp>0?'+':''}${d.d1bp}bp`):pct(d.chg1)}</td><td>${k==='JGB10Y'?(d.d20bp==null?'—':`${d.d20bp>0?'+':''}${d.d20bp}bp`):pct(d.chg20)}</td>`;}).map(x=>`<tr>${x}</tr>`).join('');
+  const C=JP.carry||{};
+  const gs=JP.groups.map(g=>{
+    const rows=g.rows.map(r=>`<tr><td class="l">${esc(r.name)} <span class="mu">${esc(r.sym)}</span></td><td>${num(r.last,0)}</td><td>${pct(r.chg1)}</td><td>${pct(r.chg5)}</td><td>${pct(r.chg20)}</td></tr>`).join('');
+    const peers=(g.peers||[]).map(p=>`<tr><td class="l"><span class="sym am" data-sym="${esc(p.sym)}" data-mk="${p.mk}" style="cursor:pointer">${esc(p.name)}</span> <span class="mu">${p.mk}</span></td><td>${num(p.last,p.mk==='US'?2:0)}</td><td>${pct(p.chg1)}</td><td>${pct(p.chg5)}</td><td>${pct(p.chg20)}</td></tr>`).join('');
+    return `<div style="margin-top:8px"><b class="am">${esc(g.name)}</b> <span class="mu">日 바스켓 1D ${pct(g.jp.chg1)} 5D ${pct(g.jp.chg5)} 20D ${pct(g.jp.chg20)} · 60일 상관 vs ${esc(g.kr_label)} ${cr(g.corr_kr)}${g.corr_us!=null?` · vs ${esc(g.us_label)}(전날 밤) ${cr(g.corr_us)}`:''}</span>
+      <div class="mu" style="font-size:11px;white-space:normal">한국 종목과 연결: ${esc(g.link)}${(g.missing||[]).length?` · 데이터 없음: ${esc(g.missing.join(', '))}`:''}</div>
+      <table><tr><th class="l">종목</th><th>현재</th><th>1D</th><th>5D</th><th>20D</th></tr>${rows}${peers?`<tr><td class="l mu" colspan="5">비교: 한국·미국 피어</td></tr>${peers}`:''}</table></div>`;}).join('');
+  return `<div class="mu" style="font-size:11.5px;white-space:normal;margin-bottom:6px">${esc(JP.why||'')}</div>
+    ${JP.line?`<div class="am" style="margin-bottom:6px;white-space:normal">${esc(JP.line)}</div>`:''}
+    ${C.chg5!=null?`<div style="margin-bottom:6px;white-space:normal"><span class="${C.flag?'dn':'mu'}">${C.flag?'⚠ 엔 캐리 청산 경계':'엔 캐리: 이상 없음'}</span> <span class="mu">엔/달러 5일 ${pct(C.chg5)} · 기준: 5일 −3% 이하(엔 급등)면 경계</span></div>`:''}
+    <table><tr><th class="l">지표</th><th>현재</th><th>1D</th><th>20D</th></tr>${ix}</table>${gs}
+    <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">상관 = 최근 60거래일 일간 수익률(같은 날 도쿄·서울). 0.6 이상이면 같이 움직이는 편. 미국 피어는 '전날 밤 미장 → 다음 날 도쿄'로 맞춤. ${esc(JP.date||'')} 종가 기준 · 갱신 ${esc(JP.asof||'')}</div>`;
+}
+document.addEventListener('click',e=>{ if(e.target.closest('td.mac')) return; const tr=e.target.closest('tr.mvr'); if(!tr) return; const t=tr.querySelector('td[data-x]'); if(!t) return; const r=document.getElementById('mvx-'+t.dataset.x); if(r){ r.classList.toggle('on'); t.textContent=r.classList.contains('on')?'▾':'▸'; }});
+function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이스케이프
+  let t=esc(String(v)).replace(/&amp;(amp|lt|gt|quot|#39);/g,'&$1;');   // 텔레그램용으로 이미 이스케이프된 &amp; 이중 처리 방지
+  t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=&quot;(https?:[^&]*?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank">$2</a>');
+  return t.replace(/([+-]\d[\d,]*\.?\d*(?:%|억|조))/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`).replace(/\n/g,'<br>');
+}
+function closeNote(){ const c=(D.state||{})['close_snapshot'], s=(D.state||{})['intraday_snapshot'];
+  if(!c||!c.value||!c.value.notes||(s&&c.at<s.at)) return '';
+  return `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px"><div class="am" style="font-size:12px">마감 후 정리 · ${esc(c.at)} 기준${c.value.kospi?` · 코스피 ${num(c.value.kospi,2)} (${pct(c.value.kospi_chg,2)})`:''}</div>${c.value.notes.map(x=>'<div style="font-size:12.5px;line-height:1.6;white-space:normal">• '+tgHtml(x)+'</div>').join('')}${(c.value.delta||[]).length?`<div class="am" style="font-size:12px;margin-top:6px">판단 시점 → 마감, 막판에 무슨 일이</div>${c.value.delta.map((x,i,a)=>`<div style="font-size:12.5px;line-height:1.6;white-space:normal" class="${i===a.length-1?'mu':''}">• ${tgHtml(x)}</div>`).join('')}`:''}</div>`; }
+function intradayPanel(){
+  const s=(D.state||{})['intraday_snapshot']; if(!s||!s.value) return '';
+  const v=s.value, f=v.flows||{}, sn=v.snap||{};
+  const row=m=>{const x=f[m]||{}, q=sn[m]||{}; if(!Object.keys(x).length&&!Object.keys(q).length) return '';
+    const tot=(q.up||0)+(q.down||0);
+    return `<tr><td class="l am">${m}</td><td>${sgn(x['외국인'])}</td><td>${sgn(x['기관'])}</td><td>${sgn(x['개인'])}</td><td>${sgn(q.prog_total)}</td><td>${q.up!=null?`<span class="up">${q.up}</span>/<span class="dn">${q.down}</span>`:'—'}</td><td>${tot?`<span class="${q.down/tot>0.6?'dn':q.up/tot>0.6?'up':'am'}">${Math.round(q.down/tot*100)}%</span>`:'—'}</td></tr>`;};
+  const top=(sn.KOSPI&&sn.KOSPI.top)||[];
+  return `<div class="p c12"><h2>${v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${s.at} 기준 · ${esc(v.phase||'장중 잠정')}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원</small></h2><div class="b">
+   <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
+   ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
+   ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(String(s.at).slice(11))} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div>`;
+}
+function pre(key,title){
+  const s=(D.state||{})[key]; if(!s||!s.value) return '';
+  return `<div class="p c6"><h2>${title}<small>${s.at}</small></h2><div class="b"><div class="tg">${tgHtml(s.value)}</div></div></div>`;
+}
+function marketView(mk){
+  const S=D[mk.toLowerCase()]||{}; const sec=S.sections||{};
+  let h=`<div class="grid">
+    <div class="p c4"><h2>BREADTH ${mk}</h2><div class="b">${breadthPanel(mk)}</div></div>
+    <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 · 지표별 해설</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
+  const mc=(D.state||{})['market_comment_'+mk];
+  if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
+  if(mk==='KR') h+=`<div class="p c12"><h2>JAPAN<small>도쿄도 9시 개장 · 일본 반도체 장비·메모리·MLCC vs 한국 · 엔 캐리</small></h2><div class="b">${japanPanel()}</div></div>`;
+  for(const [k,t] of SEC){const s=sec[k]; if(!s) continue; h+=`<div class="p c12"><h2>${t}<small>top ${s.rows.length} / ${s.total}</small></h2><div class="b">${sigTable(s.rows,mk)}</div></div>`;}
+  const an=(D.anomalies||{})[mk]||[];
+  if(an.length) h+=`<div class="p c12"><h2>ANOMALIES<small>vol≥3× or gap≥5%</small></h2><div class="b"><table><tr><th class="l">SYM</th><th class="l">NAME</th><th>1D</th><th>GAP</th><th>VOL×</th><th class="l">CLS</th></tr>${an.map(r=>`<tr><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${mk}">${esc(r.symbol)}</td><td class="l">${esc(r.name)}</td><td>${pct(r.ret1)}</td><td>${pct(r.gap)}</td><td class="am">${(r.vol_ratio??0).toFixed(1)}</td><td class="l mu">${CLS[r.class]||''}</td></tr>`).join('')}</table></div></div>`;
+  h+=pre('close_'+mk,'CLOSE COMMENT')+pre('telegram_'+mk,'TELEGRAM SUMMARY')+'</div>';
+  return h;
+}
+let HMK='KR', HMM='r1', HMG=null, HMN=25, HMS='mc';
+function squarify(items,x,y,w,h){ // items: [{v,...}] → [{...,x,y,w,h}]
+  const out=[]; let rest=items.filter(o=>o.v>0).sort((a,b)=>b.v-a.v); const tot=rest.reduce((s,o)=>s+o.v,0); if(!tot) return out;
+  const scale=w*h/tot; rest=rest.map(o=>({...o,_a:o.v*scale}));
+  const worst=(row,len)=>{const s=row.reduce((a,o)=>a+o._a,0),mx=Math.max(...row.map(o=>o._a)),mn=Math.min(...row.map(o=>o._a)); return Math.max(len*len*mx/(s*s),(s*s)/(len*len*mn));};
+  while(rest.length){ const len=Math.min(w,h); let row=[rest[0]], i=1;
+    while(i<rest.length && worst([...row,rest[i]],len)<=worst(row,len)){ row.push(rest[i]); i++; }
+    const s0=row.reduce((a,o)=>a+o._a,0), thick=s0/len; let off=0;
+    for(const o of row){ const l=o._a/thick; if(w>=h) out.push({...o,x:x,y:y+off,w:thick,h:l}); else out.push({...o,x:x+off,y:y,w:l,h:thick}); off+=l; }
+    if(w>=h){ x+=thick; w-=thick; } else { y+=thick; h-=thick; } rest=rest.slice(i); }
+  return out; }
+function heatView(){
+  const mk=HMK; if(!PEERS[mk]){ peersLoad(mk,()=>{ if(view==='heat') render(); }); return '<div class="load">LOADING …</div>'; }
+  const rows=(PEERS[mk].rows||[]).filter(r=>r[HMM]!=null&&(r.mc||0)>0);
+  const by={}; rows.forEach(r=>{(by[r.g]=by[r.g]||[]).push(r);});
+  let groups=Object.entries(by).map(([g,a])=>{a.sort((x,y)=>y.mc-x.mc); const top=a.slice(0,HMN); const tot=top.reduce((s,r)=>s+r.mc,0); return {g,a:top,n:a.length,v:HMS==='eq'?top.length:tot,avg:a.reduce((s,r)=>s+r.mc*r[HMM],0)/a.reduce((s,r)=>s+r.mc,0)};});
+  if(HMG) groups=groups.filter(G=>G.g===HMG);
+  const lim=HMM==='r1'?0.05:HMM==='r5'?0.10:0.20;
+  const colr=v=>{const t=Math.max(-1,Math.min(1,v/lim)), a=Math.abs(t); const up=mk==='KR'?[214,48,49]:[48,160,80], dn=mk==='KR'?[40,100,200]:[214,48,49], mid=[44,44,48]; const c=t>=0?up:dn; return `rgb(${Math.round(mid[0]+(c[0]-mid[0])*a)},${Math.round(mid[1]+(c[1]-mid[1])*a)},${Math.round(mid[2]+(c[2]-mid[2])*a)})`;};
+  const W=Math.min(window.innerWidth-28,1400), H=Math.round(window.innerWidth<700?W*1.5:Math.min(W*0.62,820));
+  const gl=squarify(groups,0,0,W,H);
+  let svg='';
+  for(const G of gl){ const hdr=G.h>40&&G.w>60?16:0;
+    svg+=`<g><rect x="${G.x}" y="${G.y}" width="${G.w}" height="${G.h}" fill="#111" stroke="#000" stroke-width="2"/>`;
+    if(hdr) svg+=`<text class="hg" data-g="${esc(G.g)}" x="${G.x+4}" y="${G.y+12}" font-size="11" fill="#ddd" style="cursor:pointer">${esc(G.g)} <tspan fill="${G.avg>=0?(mk==='KR'?'#ff7b7b':'#6fe08a'):(mk==='KR'?'#7fb3ff':'#ff7b7b')}">${(G.avg*100).toFixed(1)}%</tspan></text>`;
+    const tl=squarify(G.a.map(r=>({...r,v:HMS==='eq'?1:r.mc})),G.x+1,G.y+hdr+1,Math.max(G.w-2,1),Math.max(G.h-hdr-2,1));
+    for(const t of tl){ const fs=Math.max(8,Math.min(15,Math.sqrt(t.w*t.h)/6)); const lab=t.w>34&&t.h>20;
+      svg+=`<g class="sym" data-sym="${esc(t.s)}" data-mk="${mk}" style="cursor:pointer"><rect x="${t.x}" y="${t.y}" width="${Math.max(t.w-1,0)}" height="${Math.max(t.h-1,0)}" fill="${colr(t[HMM])}"><title>${esc(t.n)} ${(t[HMM]*100).toFixed(1)}%</title></rect>`;
+      if(lab) svg+=`<text x="${t.x+t.w/2}" y="${t.y+t.h/2-(t.h>34?fs*0.2:0)}" text-anchor="middle" font-size="${fs}" fill="#fff" style="pointer-events:none">${esc(String(shortNm(t.n)||t.s).slice(0,Math.max(2,Math.floor(t.w/(fs*0.9)))))}</text>${t.h>34?`<text x="${t.x+t.w/2}" y="${t.y+t.h/2+fs}" text-anchor="middle" font-size="${fs*0.85}" fill="#fff" style="pointer-events:none">${(t[HMM]*100).toFixed(1)}%</text>`:''}`;
+      svg+='</g>'; } svg+='</g>'; }
+  const btn=(k,v,l,cur)=>`<button data-${k}="${v}" class="${cur==v?'on':''}">${l}</button>`;
+  setTimeout(()=>{ document.querySelectorAll('[data-hmk]').forEach(b=>b.onclick=()=>{HMK=b.dataset.hmk;HMG=null;render();});
+    document.querySelectorAll('[data-hmm]').forEach(b=>b.onclick=()=>{HMM=b.dataset.hmm;render();});
+    document.querySelectorAll('[data-hmn]').forEach(b=>b.onclick=()=>{HMN=+b.dataset.hmn;render();});
+    document.querySelectorAll('[data-hms]').forEach(b=>b.onclick=()=>{HMS=b.dataset.hms;render();});
+    document.querySelectorAll('text.hg').forEach(t=>t.onclick=()=>{HMG=t.dataset.g;render();});
+    const back=$('#hmback'); if(back) back.onclick=()=>{HMG=null;render();}; },0);
+  return `<div class="grid"><div class="p c12"><h2>HEATMAP<small>${esc(PEERS[mk].asof||'')} 종가</small></h2><div class="b">
+    <div class="ovl">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)}<span class="mu" style="margin:0 4px">|</span>${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}<span class="mu" style="margin:0 4px">|</span>${btn('hms','mc',mk==='KR'?'시총 크기':'거래대금 크기',HMS)}${btn('hms','eq','같은 크기',HMS)}<span class="mu" style="margin:0 4px">|</span>${btn('hmn',10,'상위10',HMN)}${btn('hmn',25,'상위25',HMN)}${btn('hmn',60,'상위60',HMN)}</div>
+    ${HMG?`<div style="margin:4px 0"><button id="hmback" class="tag">← 전체 보기</button> <b>${esc(HMG)}</b> 확대 중</div>`:'<div class="mu" style="font-size:11px;margin:4px 0">테마 이름을 누르면 그 테마만 확대 · 종목을 누르면 상세</div>'}
+    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;max-width:100%;height:auto;font-family:inherit">${svg}</svg>
+    <div class="mu" style="font-size:11px;margin-top:4px">${mk==='KR'?'빨강=상승 파랑=하락 (국내 관례)':'초록=상승 빨강=하락'} · 진할수록 큰 움직임 (±${(lim*100).toFixed(0)}%에서 최대) · 테마 수익률은 시총 가중</div></div></div></div>`;
+}
+function mdView(name){
+  const mk=/_US$/.test(name)?'US':/_KR$/.test(name)?'KR':null;
+  google.script.run.withSuccessHandler(md=>{$('#root').innerHTML=`<div class="md">${mdToHtml(md,mk)}</div>`;}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">${esc(e.message)}</div>`;}).getMarkdown(name);
+  return '<div class="load">LOADING …</div>';
+}
+function mdToHtml(md,mk){
+  const lines=md.split('\n'); let out='',intab=false;
+  const MACK={KOSPI:'KOSPI',KOSDAQ:'KOSDAQ',SPX:'SPX',NASDAQ:'NASDAQ',RUT:'RUT',VIX:'VIX',US10Y:'US10Y',DXY:'DXY',USDKRW:'USDKRW',USDJPY:'USDJPY',WTI:'WTI',GOLD:'GOLD',BTC:'BTC',
+    '코스피':'KOSPI','코스닥':'KOSDAQ','S&P500':'SPX','나스닥':'NASDAQ','러셀2000(미 중소형)':'RUT','VIX(미 변동성)':'VIX','미 10년 금리':'US10Y','달러인덱스':'DXY','원/달러':'USDKRW','엔/달러':'USDJPY','WTI 유가':'WTI','금':'GOLD','비트코인':'BTC'};
+  const symCell=c=>{const t=c.trim(); if(MACK[t]) return `<td class="l am mac" data-key="${MACK[t]}">${esc(t)}</td>`; return mk&&(/^[0-9A-Z]{6}$/.test(t)&&mk==='KR'||/^[A-Z][A-Z.\-]{0,5}$/.test(t)&&mk==='US')?`<td class="l am sym" data-sym="${esc(t)}" data-mk="${mk}">${esc(t)}</td>`:`<td class="l">${inline(t)}</td>`;};
+  for(const l of lines){
+    if(l.startsWith('|')){ if(/^\|[-| ]+\|$/.test(l.trim())) continue; const cells=l.split('|').slice(1,-1); if(!intab){out+='<table>';intab=true;out+='<tr>'+cells.map(c=>`<th class="l">${esc(c.trim())}</th>`).join('')+'</tr>';} else out+='<tr>'+cells.map((c,ci)=>ci===0?symCell(c):`<td class="l">${inline(c.trim())}</td>`).join('')+'</tr>'; continue; }
+    if(intab){out+='</table>';intab=false;}
+    if(l.startsWith('# ')) out+=`<h1>${esc(l.slice(2))}</h1>`; else if(l.startsWith('## ')) out+=`<h2>${esc(l.slice(3))}</h2>`;
+    else if(l.startsWith('- ')) out+=`<div>• ${inline(l.slice(2))}</div>`; else if(l.trim()) out+=`<div>${inline(l)}</div>`;
+  }
+  if(intab) out+='</table>'; return out;
+}
+function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
+</script>

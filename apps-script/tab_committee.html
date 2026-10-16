@@ -1,0 +1,183 @@
+<!-- tab_committee.html — DAILY › 운용회의 — v1/v2 회의록·기명 점도표 띠·파생 패널·미장 회의·지난 회의 (cmtView·dotStripHtml·cmtUSView).
+     apps-script/Index.html 이 include('tab_committee') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
+     전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
+<script>
+let CMT=null, CMTU=null, CMK='KR', DOT=null;
+function cmtView(){
+  if(CMK==='US') return cmtUSView();
+  if(CMT===null){ CMT=false; google.script.run.withSuccessHandler(t=>{try{CMT=JSON.parse(t);}catch(e){CMT={};} if(view==='cmt') render();}).withFailureHandler(()=>{CMT={};if(view==='cmt') render();}).getCommittee(); return '<div class="load">LOADING …</div>'; }
+  const o=CMT; if(!o||!o.scenarios) return cmtTabs()+'<div class="grid"><div class="p c12"><div class="b mu">운용회의 자료 생성 전</div></div></div>';
+  if(o.bottom_line) return cmtTabs()+cmtV2Html(o);
+  return cmtTabs()+cmtLegacyHtml(o);
+}
+/* 예전 형식(v1) 운용회의 — 지난 회의 기록(bottom_line 없음)을 열 때 */
+function cmtLegacyHtml(o){
+  const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
+  const sc=o.scenarios.map(s=>`<div style="flex:1;min-width:220px;border:1px solid var(--line);padding:8px 10px;line-height:1.6;white-space:normal">
+     <div style="display:flex;justify-content:space-between"><b>${esc(s.name)}</b><b class="am" style="font-size:16px">${Math.round((s.prob||0)*100)}%</b></div>
+     <div class="mu" style="font-size:11px">${esc(s.def)}</div><div style="font-size:12px;margin-top:4px"><span class="am">전환 신호</span> ${esc(s.trigger)}</div><div style="font-size:12px"><span class="am">행동</span> ${esc(s.action)}</div></div>`).join('');
+  const idea=(a,t)=>a.length?`<table><tr><th class="l">${t}</th><th class="l">테마</th><th>드라이버</th><th>정상화 괴리</th><th>20D</th><th>PBR</th></tr>${a.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}${x.semi?' <span class="tag">반도체</span>':''}</td><td class="l mu">${esc(x.g)}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${pct(x.nor,0)}</td><td>${pct(x.r20,0)}</td><td class="mu">${x.pbr??'—'}</td></tr>`).join('')}</table>`:'<div class="mu">해당 없음</div>';
+  const tr=(o.track||{}).summary||{};
+  return `<div class="grid">
+   <div class="p c12"><h2>운용회의 · 국장${o.session?' · '+esc(o.session):''}<small>${esc(o.asof)} · 규칙 기반 · 검증 중</small></h2><div class="b" style="line-height:1.8;white-space:normal">${(o.head||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">결론</b> ${esc(o.verdict)}</div></div></div>
+   <div class="p c12"><h2>운용 시나리오<small>확률 = 1999~ 코스피 비슷한 상황 이후 20거래일 결과 분포 (${esc((o.scenario_basis||{}).basis||'')}, ${(o.scenario_basis||{}).n||0}회)</small></h2><div class="b"><div style="display:flex;gap:8px;flex-wrap:wrap">${sc}</div></div></div>
+   ${o.stance?`<div class="p c12"><h2>PB 판단 · ${esc(o.stance.stance)}<small>확률 = 방향, 신호 = 타이밍 — 왜 이렇게 결정했나</small></h2><div class="b" style="line-height:1.7;white-space:normal"><div style="border:1px solid ${o.stance.stance==='관망'?'var(--amber)':o.stance.stance==='방어'?'var(--dn)':'var(--up)'};padding:6px 10px;margin-bottom:8px"><b class="am">${esc(o.stance.stance)}</b> ${esc(o.stance.plan)}</div>${o.stance.basis?`<div style="font-size:12px;border-left:2px solid var(--amber);padding-left:8px;margin-bottom:8px"><b class="am">판단 시점 ${esc(String(o.stance.basis.at).slice(5))}</b> <span class="mu">${esc(o.stance.basis.src)} — 이 숫자를 보고 결정했어요. 아래 근거 숫자는 회의 생성 시각(${esc(o.asof)}) 기준</span>${o.stance.basis.lines.map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}${o.stance.reasons.map((r,i)=>`<div style="margin:4px 0"><b>${i+1}. ${esc(r.t)}</b><div class="mu" style="font-size:12px">${esc(r.d)}</div></div>`).join('')}</div></div>${o.stance.exec?execHtml(o.stance.exec):''}`:''}
+   ${o.derivs?derivPanel(o.derivs):''}
+   <div class="p c6"><h2>업종 의견<small>공급망 체인 점수</small></h2><div class="b"><table>${(o.sectors||[]).map(r=>`<tr><td class="l">${esc(r.chain)}</td><td style="color:${col(r.score)}">${sg(r.score)}</td><td class="l ${r.stance==='비중 확대'?'up':r.stance==='비중 축소'?'dn':'mu'}">${r.stance}</td></tr>`).join('')}</table></div></div>
+   <div class="p c6"><h2>테마 온도<small>드라이버 평균 상·하위 · 시총 가중 수익률</small></h2><div class="b"><table><tr><th class="l">테마</th><th>드라이버</th><th>5D</th><th>20D</th></tr>${(o.themes||[]).map(t=>`<tr><td class="l">${esc(t.theme)}</td><td style="color:${col(t.drv)}">${sg(t.drv)}</td><td>${pct(t.r5,1)}</td><td>${pct(t.r20,1)}</td></tr>`).join('')}</table></div></div>
+   <div class="p c6"><h2>매수 후보<small>검증 전 후보 · 이익 신호 강함 + 평균 이익 기준 저평가 + 20일 −10% 이상 하락</small></h2><div class="b">${idea((o.ideas||{}).long||[],'종목')}</div></div>
+   <div class="p c6"><h2>회피<small>검증 전 후보 · 이익 신호 꺾임 + 평균 이익 기준 고평가</small></h2><div class="b">${idea((o.ideas||{}).avoid||[],'종목')}</div></div>
+   ${(o.squeeze||[]).length?`<div class="p c12"><h2>숏스퀴즈 후보<small>공매도 잔고 1% 이상 + 이익 드라이버 양호 · 반등 시 되사기 압력</small></h2><div class="b"><table><tr><th class="l">종목</th><th class="l">테마</th><th>잔고 비중</th><th>20일 변화</th><th>드라이버</th><th>20D</th></tr>${o.squeeze.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</td><td class="l mu">${esc(x.g)}</td><td>${x.ratio.toFixed(2)}%</td><td>${x.chg20!=null?(x.chg20>0?'+':'')+x.chg20.toFixed(2)+'%p':'—'}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${pct(x.r20,0)}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px;margin-top:4px">숏스퀴즈는 반등의 방아쇠가 있어야 일어남. 잔고가 많다는 건 하락 베팅이 강하다는 뜻이기도 함.</div></div></div>`:''}
+   <div class="p c12"><h2>이번 주 이벤트 · 검증 현황</h2><div class="b" style="line-height:1.8;white-space:normal">
+     ${(o.events||[]).map(e=>`<div>${esc(e.date.slice(5))} ${e.imp>=3?'⭐':''} ${esc(e.name)} <span class="mu" style="font-size:11px">${esc(e.note||'')}</span></div>`).join('')||'<div class="mu">7일 내 주요 이벤트 없음</div>'}
+     <div style="margin-top:6px" class="mu">시그널 판정: ${Object.entries(o.validation||{}).map(([k,v])=>`${esc(k)} ${esc(v||'')}`).join(' · ')||'—'}</div>
+     <div class="mu">회의 성적: ${tr.h5?`매수 후보 5일 초과수익 평균 ${pct(tr.h5.long_avg,1)} (적중 ${Math.round(tr.h5.long_hit*100)}%, ${tr.h5.n}회)`:'기록 시작 — 5거래일 뒤부터 채점'}${tr.brier?` · 시나리오 브라이어 ${tr.brier.avg} (무작위 0.667, 낮을수록 좋음)`:''}</div></div></div>
+  </div>`;
+}
+/* ───── 운용회의 v2 — 멀티매니저 모닝 미팅: 결론 → 탑다운 → 포지셔닝 → 섹터 → 종목 → 아이디어 → 헤지 → 프리모템 → 성적 ───── */
+function cmtSec(no,title,sub,body,open){
+  return `<details class="p c12 cmts"${open?' open':''}><summary><h2><span>${no}. ${esc(title)}</span><small>${sub||''}</small></h2></summary><div class="b" style="line-height:1.7;white-space:normal;font-size:12.5px">${body}</div></details>`; }
+function cmtList(a,cls){ return (a||[]).length?(a||[]).map(x=>`<div class="${cls||''}">• ${esc(x)}</div>`).join(''):''; }
+function cmtTbl(head,rows){ return `<div style="overflow-x:auto"><table><tr>${head.map((h,i)=>`<th class="${i===0?'l':''}">${h}</th>`).join('')}</tr>${rows.join('')}</table></div>`; }
+function cmtSrcHtml(a){ const g=x=>x==='검증전'?'검증 전':x;
+  return (a||[]).map(z=>`<div><b class="${z.side==='agree'?'up':'dn'}">${z.side==='agree'?'＋':'－'}</b> ${esc(z.label)} <span class="tag${z.grade==='F'?' r':z.grade==='검증전'?' b':''}">${esc(g(z.grade))}</span><span class="mu" style="font-size:10.5px">${z.w!=null?' w '+(z.w>0?'+':'')+z.w:''}${z.perf?' · '+esc(z.perf):''}</span></div>`).join('')||'<span class="mu">원천 없음</span>'; }
+function cmtBLCard(o){
+  const bl=o.bottom_line||{}, c=({red:'var(--dn)',yellow:'var(--amber)',green:'var(--up)'})[bl.light]||'var(--amber)';
+  return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 국장${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
+    <div class="b" style="line-height:1.75;white-space:normal;font-size:13px">${(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
+function cmtScenCards(o){
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap">${(o.scenarios||[]).map(s=>`<div style="flex:1;min-width:200px;border:1px solid var(--line);padding:8px 10px;line-height:1.6;white-space:normal">
+     <div style="display:flex;justify-content:space-between;gap:6px"><b>${esc(s.name)}</b><b class="am" style="font-size:16px">${Math.round((s.prob||0)*100)}%</b></div>
+     <div class="mu" style="font-size:11px">${esc(s.def)}</div><div style="font-size:12px;margin-top:4px"><span class="am">전환 신호</span> ${esc(s.trigger)}</div><div style="font-size:12px"><span class="am">행동</span> ${esc(s.action)}</div></div>`).join('')}</div>`; }
+/* 기명 점도표 띠 — reports/dotplot.json: 자산마다 데스크 머리글자를 판정 색(매수 초록·중립 회색·매도 빨강)으로. 지수·업종 수준 판단만 */
+function dotStripHtml(){
+  if(DOT===null){ DOT=false; google.script.run.withSuccessHandler(t=>{try{DOT=JSON.parse(t);}catch(e){DOT={};} if(view==='cmt') render();}).withFailureHandler(()=>{DOT={}; if(view==='cmt') render();}).getDotplot(); return ''; }
+  const d=DOT; if(!d||!d.assets) return '';
+  const KO={KOSPI:'코스피',SEMI_KR:'반도체(KR)',SPX:'S&P500',US10Y:'미10년(금리↑=매수)'}, INI={'퀀트':'Q','파생':'D','매크로':'M','리스크':'R','애널':'A','CIO':'C','PB':'P','겸이':'G'};
+  const col=s=>s==='매수'?'var(--up)':s==='매도'?'var(--dn)':'var(--muted)';
+  const rows=Object.keys(KO).filter(a=>d.assets[a]).map(a=>{ const seen={}, dots=[];
+    (d.assets[a]||[]).forEach(x=>{ if(seen[x.desk]) return; seen[x.desk]=1;
+      dots.push(`<span title="${esc(x.desk+' '+x.stance+x.conv+' · '+(x.reason||''))}" style="display:inline-block;min-width:18px;text-align:center;margin-right:3px;border:1px solid ${col(x.stance)};color:${col(x.stance)};font-weight:${x.conv>=2?'700':'400'};font-size:11px;line-height:16px">${INI[x.desk]||x.desk[0]}</span>`); });
+    const c=((d.summary||{})[a]||{}).counts||{}, tg=((d.summary||{})[a]||{}).tags||{}, TK={rates:'금리',regime:'레짐',signal:'신호',valuation:'밸류',risk:'리스크',flows:'수급'};
+    const ov=Object.keys(tg).filter(k=>tg[k]>=2).map(k=>(TK[k]||k)+' '+tg[k]).join(' · ');
+    return `<tr><td class="l" style="white-space:nowrap">${KO[a]}</td><td class="l">${dots.join('')}</td><td class="l mu" style="font-size:11px;white-space:nowrap"><span class="up">${c['매수']||0}</span>/<span class="mu">${c['중립']||0}</span>/<span class="dn">${c['매도']||0}</span>${ov?' · 겹침 '+esc(ov):''}</td></tr>`; });
+  return `<div class="p c12"><h2><span>기명 점도표</span><small>${esc(d.date||'')} · 데스크 머리글자 = 판정 색 (굵게 = 확신 2+) · 매수/중립/매도 · 규칙 기반, 채점은 docs/desk_kb/_scoreboard.md</small></h2><div class="b" style="white-space:normal">${cmtTbl(['자산','Q퀀트 D파생 M매크로 R리스크 A애널 C CIO P PB G겸이','집계'],rows)}</div></div>`; }
+function cmtV2Html(o){
+  const bl=o.bottom_line||{}, M=o.macro||{}, P=o.positioning||{}, R=o.rotation||{}, B=o.bottom_up||{}, I=o.ideas_top||{}, H=o.hedges||{}, PM=o.premortem||{}, T=o.track||{};
+  const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
+  const f0=v=>v==null?'—':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0});
+  const sec=[];
+  // 0. 결론 · 오늘의 시계
+  const clk=(bl.clock||[]).map(c=>`<tr><td class="l ${c.kind==='이벤트'?'am':'mu'}" style="white-space:nowrap">${esc(c.t)}</td><td class="l" style="white-space:normal">${esc(c.what)}</td></tr>`);
+  sec.push(cmtSec(0,'결론 · 오늘의 시계','신호등 = 오늘 행동 필요 / 지켜보기 / 할 일 없음',
+    (clk.length?cmtTbl(['시각','무엇'],clk):'<div class="mu">시계 항목 없음</div>')
+    +`<div style="margin-top:8px">${(o.head||[]).map(x=>'<div class="mu">• '+esc(x)+'</div>').join('')}</div>`
+    +`<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">시나리오</b> ${esc(o.verdict||'')}</div>`,true));
+  // 1. 탑다운
+  const gl=(M.global||[]).map(g=>`<div${g.big?' class="am"':''}>• ${esc(g.t)}${g.z!=null?` <span class="mu" style="font-size:11px">(${g.z>0?'+':''}${g.z}σ)</span>`:''}</div>`).join('');
+  const st=o.stance;
+  sec.push(cmtSec(1,'탑다운 · 거시','밤사이 글로벌 → 국내 → 지표 → 레짐 · 시나리오 · 판정',
+    `${(M.regime||{}).line?`<div style="margin-bottom:6px"><b class="am">${esc(M.regime.line)}</b></div>`:''}
+    <div class="am" style="font-size:11px">무엇이 바뀌었나</div>${cmtList(M.changed)}
+    <div class="am" style="font-size:11px;margin-top:6px">밤사이 글로벌 <span class="mu">(σ = 하루 변화 ÷ 60일 평균 변동)</span></div>${gl||'<div class="mu">데이터 없음</div>'}
+    <div class="am" style="font-size:11px;margin-top:6px">국내</div>${cmtList(M.domestic)||'<div class="mu">데이터 없음</div>'}
+    ${(M.releases||[]).length?`<div class="am" style="font-size:11px;margin-top:6px">지표 발표 (최근 7일)</div>${cmtList(M.releases)}`:''}
+    ${(M.upcoming||[]).length?`<div class="am" style="font-size:11px;margin-top:6px">7일 안 매크로 일정</div>${cmtList(M.upcoming)}`:''}
+    ${M.summary?`<div class="mu" style="margin-top:6px">${esc(M.summary)}</div>`:''}<div class="mu" style="font-size:11px">${esc(M.note||'')}</div>
+    <div class="am" style="font-size:11px;margin-top:10px">운용 시나리오 <span class="mu">확률 = 1999~ 코스피 비슷한 상황 이후 20거래일 (${esc((o.scenario_basis||{}).basis||'')}, ${(o.scenario_basis||{}).n||0}회)</span></div>${cmtScenCards(o)}
+    ${st?`<div style="margin-top:10px;border:1px solid ${st.stance==='관망'?'var(--amber)':st.stance==='방어'?'var(--dn)':'var(--up)'};padding:6px 10px"><b class="am">PB 판단 · ${esc(st.stance)}</b> ${esc(st.plan)}</div>${st.basis?`<div style="font-size:12px;border-left:2px solid var(--amber);padding-left:8px;margin:6px 0"><b class="am">판단 시점 ${esc(String(st.basis.at).slice(5))}</b> <span class="mu">${esc(st.basis.src)}</span>${(st.basis.lines||[]).map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}${(st.reasons||[]).map((r,i)=>`<div style="margin:4px 0"><b>${i+1}. ${esc(r.t)}</b><div class="mu" style="font-size:12px">${esc(r.d)}</div></div>`).join('')}`:''}`,false));
+  // 2. 크로스에셋 · 포지셔닝
+  const sh=(P.shorts||[]).map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</td><td class="l mu">${esc(x.g||'')}</td><td>${x.ratio.toFixed(2)}%</td><td>${x.chg20!=null?(x.chg20>0?'+':'')+x.chg20.toFixed(2)+'%p':'—'}</td></tr>`);
+  sec.push(cmtSec(2,'크로스에셋 · 포지셔닝','현물 수급 · 프로그램 · 선물 · 옵션 내재 변동 · 공매도',
+    `${P.worry?`<div style="border:1px solid var(--amber);padding:6px 10px;margin-bottom:6px"><b class="am">${esc(P.worry)}</b></div>`:''}${cmtList(P.lines)}
+    ${sh.length?`<div class="am" style="font-size:11px;margin-top:8px">공매도 잔고 상위 (시총 1조+, ${esc((P.shorts[0]||{}).asof||'')})</div>${cmtTbl(['종목','테마','잔고 비중','20일 변화'],sh)}`:''}
+    <div class="mu" style="font-size:11px;margin-top:4px">${esc(P.note||'')}</div>${o.derivs?derivPanel(o.derivs):''}`,false));
+  // 3. 섹터 로테이션
+  const tl=a=>(a||[]).map(t=>`${esc(t.theme)} ${pct(t.r5,1)}`).join(' · ')||'—';
+  const wy=a=>(a||[]).map(x=>`<div><b>${esc(x.chain)}</b> <span style="color:${col(x.score)}">${sg(x.score)}</span> <span class="mu" style="font-size:11px">${esc(x.why||'')}</span></div>`).join('')||'<div class="mu">해당 없음</div>';
+  sec.push(cmtSec(3,'섹터 로테이션','주도·소외 · 모멘텀 vs 드라이버 괴리 · 비중 확대/축소',
+    `<div><span class="am">주도(5D)</span> ${tl(R.lead)}</div><div><span class="am">소외(5D)</span> ${tl(R.lag)}</div>
+    ${(R.divergence||[]).length?`<div class="am" style="font-size:11px;margin-top:6px">모멘텀 vs 드라이버 괴리</div>${R.divergence.map(d=>`<div>• ${esc(d.theme)} — ${esc(d.kind)} (드라이버 ${sg(d.drv)}, 20D ${pct(d.r20,1)})</div>`).join('')}`:''}
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px"><div style="flex:1;min-width:240px"><div class="up" style="font-size:11px">비중 확대 3</div>${wy(R.overweight)}</div><div style="flex:1;min-width:240px"><div class="dn" style="font-size:11px">비중 축소 3</div>${wy(R.underweight)}</div></div>
+    <div class="mu" style="font-size:11px;margin-top:4px">${esc(R.note||'')}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px"><div style="flex:1;min-width:240px">${cmtTbl(['체인','점수','의견'],(o.sectors||[]).map(r=>`<tr><td class="l">${esc(r.chain)}</td><td style="color:${col(r.score)}">${sg(r.score)}</td><td class="l ${r.stance==='비중 확대'?'up':r.stance==='비중 축소'?'dn':'mu'}">${esc(r.stance)}</td></tr>`))}</div>
+    <div style="flex:1;min-width:240px">${cmtTbl(['테마','드라이버','5D','20D'],(o.themes||[]).map(t=>`<tr><td class="l">${esc(t.theme)}</td><td style="color:${col(t.drv)}">${sg(t.drv)}</td><td>${pct(t.r5,1)}</td><td>${pct(t.r20,1)}</td></tr>`))}</div></div>`,false));
+  // 4. 종목 바텀업
+  const RS=B.research||{};
+  const rr=(RS.items||[]).map(x=>`<tr><td class="l"><span class="am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</span><div class="mu" style="font-size:10px">${esc(String(x.date).slice(5))} ${esc(x.broker||'')}</div></td><td class="l">${esc(x.opinion||'')}</td><td>${f0(x.target)}${x.tp_chg!=null&&Math.abs(x.tp_chg)>0.001?'<br>'+pct(x.tp_chg,0):x.tp_chg!=null?'<br><span class="mu">유지</span>':''}</td><td>${x.upside!=null?pct(x.upside,0):'—'}</td><td class="l" style="white-space:normal;min-width:160px;font-size:11.5px">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener" style="color:inherit">${esc(x.title||'')}</a>`:esc(x.title||'')}${x.prev?`<div class="mu" style="font-size:10px">직전 ${esc(String(x.prev.date).slice(5))} ${esc(x.prev.broker||'')} ${f0(x.prev.target)}</div>`:''}</td></tr>`);
+  const dr=(B.disclosures||[]).map(x=>`<tr><td class="l"><span class="am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</span><div class="mu" style="font-size:10px">${esc(String(x.date).slice(5))}</div></td><td class="l">${esc(x.cat)}${x.flag?' <span class="tag'+(x.flag==='주의'?' r':'')+'">'+esc(x.flag)+'</span>':''}</td><td class="l" style="white-space:normal;font-size:11.5px">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener" style="color:inherit">${esc(x.title)}</a>`:esc(x.title)}</td></tr>`);
+  const er=(B.earnings||[]).map(e=>`<div>${esc(String(e.date).slice(5))} ${e.imp>=3?'★ ':''}${esc(e.n)} <span class="mu" style="font-size:11px">${esc(e.market||'')}${e.confirmed?' · 회사 확정':''}</span></div>`).join('');
+  const idea=(a,t)=>a.length?cmtTbl([t,'테마','드라이버','정상화 괴리','20D','PBR'],a.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}${x.semi?' <span class="tag">반도체</span>':''}</td><td class="l mu">${esc(x.g)}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${pct(x.nor,0)}</td><td>${pct(x.r20,0)}</td><td class="mu">${x.pbr??'—'}</td></tr>`)):'<div class="mu">해당 없음</div>';
+  sec.push(cmtSec(4,'종목 바텀업','리서치(목표가 변화) · 공시 · 7일 실적 · 후보',
+    `<div class="am" style="font-size:11px">리서치 ${esc((RS.dates||[]).map(d=>String(d).slice(5)).join('·'))} · ${RS.n||0}건 · 목표가 상향 ${RS.up||0} / 하향 ${RS.down||0}</div>${rr.length?cmtTbl(['종목','의견','목표가','여력','요지'],rr):'<div class="mu">리포트 없음</div>'}<div class="mu" style="font-size:11px">${esc(RS.note||'')}</div>
+    <div class="am" style="font-size:11px;margin-top:8px">주요 공시</div>${dr.length?cmtTbl(['종목','분류','제목'],dr):'<div class="mu">해당 없음</div>'}<div class="mu" style="font-size:11px">${esc(B.note||'')}</div>
+    <div class="am" style="font-size:11px;margin-top:8px">7일 실적</div>${er||'<div class="mu">없음</div>'}
+    ${(I.candidates||[]).length?`<div class="am" style="font-size:11px;margin-top:8px">원천 교차 후보 (TOP3 다음) <span class="mu">점수 = 동의 − 반대 원천 가중</span></div>${cmtTbl(['종목','점수','확신','종가','손절','목표','원천'],I.candidates.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</td><td>${x.score}</td><td>${esc(x.conv)}</td><td>${f0(x.entry)}</td><td class="dn">${f0(x.stop)}</td><td class="up">${f0(x.target)}</td><td class="l" style="white-space:normal;min-width:200px;font-size:11px">${cmtSrcHtml(x.sources)}</td></tr>`))}`:''}
+    <div class="am" style="font-size:11px;margin-top:8px">매수 후보 <span class="mu">검증 전 · 이익 신호 강함 + 저평가 + 20일 −10% 이상</span></div>${idea((o.ideas||{}).long||[],'종목')}
+    <div class="am" style="font-size:11px;margin-top:8px">회피 <span class="mu">검증 전 · 이익 신호 꺾임 + 고평가</span></div>${idea((o.ideas||{}).avoid||[],'종목')}
+    ${(o.squeeze||[]).length?`<div class="am" style="font-size:11px;margin-top:8px">숏스퀴즈 후보 <span class="mu">잔고 1%+ · 드라이버 양호</span></div>${cmtTbl(['종목','테마','잔고','20일 변화','드라이버','20D'],o.squeeze.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</td><td class="l mu">${esc(x.g)}</td><td>${x.ratio.toFixed(2)}%</td><td>${x.chg20!=null?(x.chg20>0?'+':'')+x.chg20.toFixed(2)+'%p':'—'}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${pct(x.r20,0)}</td></tr>`))}`:''}`,false));
+  // 5. 트레이드 아이디어
+  const card=x=>`<div style="flex:1;min-width:240px;border:1px solid ${String(x.status).startsWith('실행')?'var(--up)':'var(--line)'};padding:8px 10px">
+     <div style="display:flex;justify-content:space-between;gap:6px"><b><span class="am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</span> ${esc(x.side)}</b><span class="${String(x.status).startsWith('실행')?'up':'mu'}" style="font-size:11px">${esc(x.status)}</span></div>
+     <div style="font-size:12px">확신도 <b>${esc(x.conv)}</b> · 사이즈 <b class="am">${(x.size*100).toFixed(1)}%</b> <span class="mu">(모델 북)</span> · ${x.payoff.toFixed(1)}R</div>
+     <div style="font-size:12px">진입 ${f0(x.entry)}~${f0(x.entry_max)} · 손절 <span class="dn">${f0(x.stop)}</span> (${(-x.stop_pct*100).toFixed(1)}%) · 목표 <span class="up">${f0(x.target)}</span></div>
+     <div style="font-size:12px"><span class="am">촉매</span> ${(x.catalyst||[]).map(c=>esc(String(c.date).slice(5)+' '+c.what)).join(' · ')||'<span class="mu">없음 → 대기</span>'}</div>
+     <div style="font-size:12px"><span class="dn">kill</span> ${(x.kill||[]).map(esc).join(' / ')}</div>
+     <div style="font-size:11.5px;margin-top:3px">${cmtSrcHtml(x.sources)}</div>${x.score!=null?`<div class="mu" style="font-size:11px">확신 점수 ${x.score}</div>`:''}</div>`;
+  sec.push(cmtSec(5,'트레이드 아이디어 (최대 3)','모델 북 · 진입·손절·목표·촉매·kill criteria',
+    `${(I.items||[]).length?`<div style="display:flex;gap:8px;flex-wrap:wrap">${I.items.map(card).join('')}</div>`:`<div class="mu">${esc(I.empty||'아이디어 없음 — 대기')}</div>`}
+    <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.formula||'')}${I.entry_gate?' · 진입 VIEW 게이트: '+esc(I.entry_gate):''}</div>${st&&st.exec?execHtml(st.exec):''}`,true));
+  // 6. 헤지 · 비대칭
+  const A=o.asymmetry||H.asymmetry;
+  sec.push(cmtSec(6,'헤지 · 비대칭','최악 시나리오 대비 비용 (모델 북 기준)',
+    `${H.worst?`<div class="mu">최악 시나리오: ${esc(H.worst)}${H.worst_p!=null?' '+Math.round(H.worst_p*100)+'%':''}</div>`:''}
+    ${(H.hedges||[]).map(h=>`<div style="margin:4px 0"><b>${esc(h.name)}</b>${h.cost_book!=null?` <span class="am">비용 ${(h.cost_book*100).toFixed(2)}%p</span>`:''}<div style="font-size:12px">${esc(h.line)}</div><div class="mu" style="font-size:11px">${esc(h.when||'')}</div></div>`).join('')}
+    ${A?`<div style="margin-top:8px;border:1px solid var(--amber);padding:6px 10px"><b class="am">비대칭 자리</b> ${esc(A.name)}<div style="font-size:12px">${esc(A.line)}</div><div class="mu" style="font-size:11px">${esc(A.cond||'')}</div></div>`:''}`,false));
+  // 7. 프리모템
+  sec.push(cmtSec(7,'프리모템 — 우리가 틀렸다면','반대 시나리오 · 알아챌 신호 · 그때 행동',
+    PM.wrong?`<div><b>${esc(PM.wrong)}</b>${PM.p!=null?` <span class="am">${Math.round(PM.p*100)}%</span>`:''}</div><div><span class="am">알아챌 신호</span> ${esc(PM.tell||'')}</div>${PM.cost?`<div><span class="am">놓치는 비용</span> ${esc(PM.cost)}</div>`:''}<div><span class="am">그때 행동</span> ${esc(PM.action||'')}</div>`:'<div class="mu">없음</div>',false));
+  // 8. 성적
+  sec.push(cmtSec(8,'성적 · 검증','회의 채점 · 시그널 판정',
+    `${cmtList(T.lines)}<div class="am" style="font-size:11px;margin-top:8px">원천별 성적 (아이디어 추적${T.ideas_n?' · 기록 '+T.ideas_n+'건':''})</div>${(T.by_source||[]).length?cmtTbl(['원천','n','1R 도달','손절','평균 R','5일','20일','상태'],T.by_source.map(x=>`<tr><td class="l">${esc(x.k)}</td><td>${x.n}</td><td>${Math.round(x.hit1R*100)}%</td><td>${Math.round(x.stop*100)}%</td><td>${x.avgR>0?'+':''}${x.avgR}</td><td>${x.ret5!=null?pct(x.ret5,1):'—'}</td><td>${x.ret20!=null?pct(x.ret20,1):'—'}</td><td class="${x.status==='반영'?'up':'mu'}">${esc(x.status)}</td></tr>`)):'<div class="mu">채점 전 — 기록 후 5거래일 뒤부터</div>'}<div class="mu" style="font-size:11px">${esc(T.by_source_note||'')}</div><div class="mu" style="margin-top:6px">시그널 판정: ${Object.entries(o.validation||{}).map(([k,v])=>`${esc(k)} ${esc(v||'')}`).join(' · ')||'—'}</div>`,false));
+  return `<div class="grid">${cmtBLCard(o)}${dotStripHtml()}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
+}
+function derivPanel(d){
+  const pr=d.oi_profile||[], mx=Math.max(1,...pr.map(x=>Math.max(x.c,x.p)));
+  const bars=pr.filter((x,i)=>pr.length<=40||i%Math.ceil(pr.length/40)===0).map(x=>{const near=Math.abs(x.k-d.spot)<=2.5;return `<div style="display:flex;align-items:center;gap:4px;font-size:10px;line-height:1.3"><span style="width:44px;text-align:right" class="${near?'am':'mu'}">${x.k.toFixed(1)}</span><div style="flex:1;display:flex;justify-content:flex-end"><div style="height:7px;width:${x.p/mx*100}%;background:var(--dn)"></div></div><div style="flex:1"><div style="height:7px;width:${x.c/mx*100}%;background:var(--up)"></div></div></div>`;}).join('');
+  const h=(d.hist||[]).slice(-20);
+  return `<div class="p c12"><h2>옵션 포지션 · 코스피200<small>KRX ${esc(d.date||'')} · 최근월 ${esc((d.expiry||'').slice(5))} 만기 (D-${d.dte??'?'})</small></h2><div class="b" style="white-space:normal">
+   <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">${[['현물',d.spot?.toFixed(1)],['풋/콜 OI',d.pcr_oi?.toFixed(2)],['풋/콜 거래량',d.pcr_vol?.toFixed(2)],['최대 고통',d.max_pain?.toFixed(1)],['풋 벽',d.put_wall?d.put_wall.k.toFixed(1):'—'],['콜 벽',d.call_wall?d.call_wall.k.toFixed(1):'—'],['ATM IV',d.atm_iv?(d.atm_iv*100).toFixed(0)+'%':'—'],['실현변동성20',d.rv20?(d.rv20*100).toFixed(0)+'%':'—'],['스큐',d.skew!=null?(d.skew*100).toFixed(1)+'%p':'—'],['감마(억/1%)',d.gex_bn!=null?(d.gex_bn>0?'+':'')+Math.round(d.gex_bn).toLocaleString():'—'],['감마 전환점',d.flip?d.flip.toFixed(1):'—'],['베이시스',(d.fut||{}).basis!=null?d.fut.basis.toFixed(2):'—']].map(([a,b])=>`<div><div class="mu" style="font-size:10px">${a}</div><b>${b??'—'}</b></div>`).join('')}</div>
+   <div style="line-height:1.7;margin-bottom:8px">${(d.notes||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}</div>
+   <div class="mu" style="font-size:10px;display:flex;justify-content:space-between"><span>← 풋 미결제</span><span>행사가</span><span>콜 미결제 →</span></div>${bars}
+   ${h.length>1?`<div class="mu" style="font-size:11px;margin-top:6px">PCR 추이: ${h.map(x=>x.pcr_oi!=null?x.pcr_oi.toFixed(2):'—').join(' → ')}</div>`:''}
+   <div class="mu" style="font-size:11px;margin-top:4px">감마는 종가로 역산한 내재변동성 기반 근사. '콜 +, 풋 −' 관례라 한국 시장 참여자 구성에선 부호가 틀릴 수 있음 — 벽·자석 가격대 위주로 볼 것.</div></div></div>`;
+}
+const CAI={}, CSEL={KR:null,US:null}, CLAT={};
+function cmtTabs(){
+  const kind=CMK==='KR'?'committee':'committee_us';
+  if(CAI[kind]===undefined){ CAI[kind]=false; google.script.run.withSuccessHandler(t=>{try{CAI[kind]=JSON.parse(t);}catch(e){CAI[kind]={days:[]};} if(view==='cmt') render();}).withFailureHandler(()=>{CAI[kind]={days:[]};}).getArchIndex(kind); }
+  const days=(CAI[kind]&&CAI[kind].days)||[], sel=CSEL[CMK];
+  setTimeout(()=>{ document.querySelectorAll('[data-cmk]').forEach(b=>b.onclick=()=>{CMK=b.dataset.cmk;render();});
+    const s=$('#csel'); if(!s) return;
+    const go=d=>{ const cur=CMK==='KR'?CMT:CMTU; if(!CLAT[CMK]&&cur&&cur.scenarios&&!CSEL[CMK]) CLAT[CMK]=cur;
+      if(d==='latest'){ CSEL[CMK]=null; if(CMK==='KR') CMT=CLAT.KR||null; else CMTU=CLAT.US||null; render(); return; }
+      CSEL[CMK]=d; google.script.run.withSuccessHandler(t=>{let o={};try{o=JSON.parse(t);}catch(e){} if(CMK==='KR') CMT=o; else CMTU=o; render();}).getArchAt(kind,d); };
+    s.onchange=()=>go(s.value);
+    document.querySelectorAll('[data-cstep]').forEach(b=>b.onclick=()=>{ if(!days.length) return; const i=CSEL[CMK]?days.findIndex(x=>(x.id||x.date)===CSEL[CMK]):0; const j=Math.min(days.length-1,Math.max(0,i+(+b.dataset.cstep))); go(j===0?'latest':(days[j].id||days[j].date)); }); },0);
+  return `<div class="ovl" style="padding:8px 8px 0;display:flex;gap:6px;align-items:center;flex-wrap:wrap">${['KR','US'].map(k=>`<button data-cmk="${k}" class="${CMK===k?'on':''}">${k==='KR'?'국장':'미장'}</button>`).join('')}
+    ${days.length?`<span class="mu" style="font-size:12px;margin-left:8px">지난 회의</span><button data-cstep="1" class="sbtn">◀</button><select id="csel" style="background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:4px 6px;max-width:60vw"><option value="latest" ${!sel?'selected':''}>최신</option>${days.map(x=>`<option value="${esc(x.id||x.date)}" ${sel===(x.id||x.date)?'selected':''}>${esc(x.date)}${x.session?' '+esc(x.session):''} · ${esc(String(x.headline||'').slice(0,32))}</option>`).join('')}</select><button data-cstep="-1" class="sbtn">▶</button>${sel?`<span class="am" style="font-size:12px">${esc(sel)} 기록</span>`:''}`:''}</div>`; }
+function execHtml(e){const f=(v,d=0)=>v==null?'—':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d});return `<div class="p c12"><h2>실행 대본<small>${esc(e.book||'')}</small></h2><div class="b" style="line-height:1.7;white-space:normal"><div style="margin-bottom:6px">${(e.signals||[]).map(g=>`<div>${g.ok?'<b class="up">■ 충족</b>':'<span class="mu">□ 미충족</span>'} ${esc(g.t)} <span class="mu">— 현재 ${esc(g.now)}</span></div>`).join('')}</div><table><tr><th class="l">언제</th><th class="l">무엇을</th><th class="l">왜</th></tr>${(e.steps||[]).map((s,i)=>`<tr><td class="l"><b>${i+1}.</b> ${esc(s.when)}</td><td class="l">${esc(s.do)}</td><td class="l mu" style="font-size:12px">${esc(s.why)}</td></tr>`).join('')}</table>${(e.cands||[]).length?`<h3 style="margin:8px 0 4px;font-size:13px">1차 후보 (비반도체)</h3><table><tr><th class="l">종목</th><th>종가</th><th>손절</th><th>손절폭</th><th>목표(2R)</th><th>1차 비중</th><th>ATR</th></tr>${e.cands.map(c=>`<tr><td class="l">${esc(c.n)}</td><td>${f(c.close)}</td><td class="dn">${f(c.stop)}</td><td>${(-c.stop_pct*100).toFixed(1)}%</td><td class="up">${f(c.target)}</td><td><b>${(c.size_1st*100).toFixed(1)}%</b></td><td class="mu">${(c.atr_pct*100).toFixed(1)}%</td></tr>`).join('')}</table>`:''}<div style="margin-top:6px" class="dn">✖ ${(e.dont||[]).map(esc).join(' · ')}</div><div class="mu" style="font-size:11px;margin-top:4px">${esc(e.note||'')}</div></div></div>`}
+function cmtUSView(){
+  if(CMTU===null){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={};if(view==='cmt') render();}).getCommitteeUS(); return '<div class="load">LOADING …</div>'; }
+  const o=CMTU; if(!o||!o.scenarios) return cmtTabs()+'<div class="grid"><div class="p c12"><div class="b mu">미장 운용회의 자료 생성 전</div></div></div>';
+  const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
+  const sc=o.scenarios.map(s=>`<div style="flex:1;min-width:220px;border:1px solid var(--line);padding:8px 10px;line-height:1.6;white-space:normal"><div style="display:flex;justify-content:space-between"><b>${esc(s.name)}</b><b class="am" style="font-size:16px">${Math.round((s.prob||0)*100)}%</b></div><div class="mu" style="font-size:11px">${esc(s.def)}</div><div style="font-size:12px;margin-top:4px"><span class="am">전환 신호</span> ${esc(s.trigger)}</div><div style="font-size:12px"><span class="am">행동</span> ${esc(s.action)}</div></div>`).join('');
+  const idea=a=>a.length?`<table><tr><th class="l">종목</th><th class="l">섹터</th><th>드라이버</th><th>5D</th><th>20D</th></tr>${a.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="US">${esc(x.s)} <span class="mu">${esc(shortNm(x.n))}</span></td><td class="l mu">${esc(x.g)}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${pct(x.r5,1)}</td><td>${pct(x.r20,0)}</td></tr>`).join('')}</table>`:'<div class="mu">해당 없음</div>';
+  return cmtTabs()+`<div class="grid">
+   <div class="p c12"><h2>운용회의 · 미장<small>${esc(o.asof)} · 규칙 기반 · 검증 중</small></h2><div class="b" style="line-height:1.8;white-space:normal">${(o.head||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">결론</b> ${esc(o.verdict)}</div><div class="mu" style="font-size:12px;margin-top:4px">🔗 ${esc(o.kr_link||'')}</div></div></div>
+   <div class="p c12"><h2>운용 시나리오<small>S&P500 1999~ 비슷한 상황 이후 20거래일 · 기준 ±3%</small></h2><div class="b"><div style="display:flex;gap:8px;flex-wrap:wrap">${sc}</div></div></div>
+   <div class="p c6"><h2>섹터 의견<small>이익 드라이버 평균 · 시총 가중 수익률</small></h2><div class="b"><table><tr><th class="l">섹터</th><th>드라이버</th><th>5D</th><th>20D</th><th class="l">의견</th></tr>${(o.sectors||[]).map(x=>`<tr><td class="l">${esc(x.sector)}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${pct(x.r5,1)}</td><td>${pct(x.r20,1)}</td><td class="l ${x.stance==='비중 확대'?'up':x.stance==='비중 축소'?'dn':'mu'}">${x.stance}</td></tr>`).join('')}</table></div></div>
+   <div class="p c6"><h2>매수 후보<small>검증 전 후보 · EPS 추정 상향 강함 + 최근 눌림</small></h2><div class="b">${idea((o.ideas||{}).long||[])}</div><h2>회피<small>검증 전 후보 · 추정 하향 + 최근 급등</small></h2><div class="b">${idea((o.ideas||{}).avoid||[])}</div></div>
+   <div class="p c12"><h2>10일 이벤트</h2><div class="b" style="line-height:1.8;white-space:normal">${(o.events||[]).map(e=>`<div>${esc(e.date.slice(5))} ${e.imp>=3?'⭐':''} ${esc(e.name)} <span class="mu" style="font-size:11px">${esc(e.note||'')}</span></div>`).join('')||'<div class="mu">없음</div>'}</div></div></div>`;
+}
+</script>

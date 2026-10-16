@@ -1,8 +1,49 @@
 """apps-script/Index.html → 루트 index.html (GitHub Pages 용). google.script.run 을 저장소 파일 fetch 로 대체하는 심을 넣는다.
-화면은 apps-script/Index.html 에서 고치고 `python scripts/build_pages.py` 로 다시 생성."""
+화면은 apps-script/Index.html(공용 셸) + apps-script/tab_*.html(탭별) 에서 고치고 `python scripts/build_pages.py` 로 다시 생성.
+Index.html 의 `<?!= include('tab_x') ?>` 는 GAS 에서 Code.gs include() 가, 여기서는 resolve_includes() 가 같은 파일 내용으로 바꾼다."""
+import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = ROOT / "apps-script"
+INCLUDE = re.compile(r"<\?!=\s*include\(\s*['\"]([\w.-]+)['\"]\s*\)\s*\?>")
+
+
+def resolve_includes(src: str, read=None, _seen: tuple = ()) -> str:
+    """`<?!= include('name') ?>` → apps-script/name.html 내용 (GAS HtmlService include 와 같은 결과). 중첩 허용, 순환은 오류.
+    read(name) 은 파일 내용을 돌려주는 함수 (기본: apps-script/<name>.html 읽기 — 검사 스크립트는 git 리비전에서 읽을 때 바꿔 쓴다)."""
+    if read is None:
+        read = lambda n: (SRC_DIR / f"{n}.html").read_text(encoding="utf-8")
+
+    def rep(m: re.Match) -> str:
+        name = m.group(1)
+        if name in _seen:
+            raise RuntimeError(f"include 순환: {' → '.join(_seen + (name,))}")
+        try:
+            body = read(name)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"include('{name}') 대상 apps-script/{name}.html 없음") from None
+        return resolve_includes(body, read, _seen + (name,))
+    return INCLUDE.sub(rep, src)
+
+
+def includes_of(src: str) -> list[str]:
+    return INCLUDE.findall(src)
+
+
+def screen_source(read=None) -> str:
+    """셸 + 탭 파일을 합친 '한 장짜리' 원본 (옛 단일 Index.html 과 같은 꼴)."""
+    shell = (SRC_DIR / "Index.html").read_text(encoding="utf-8") if read is None else read("Index")
+    return resolve_includes(shell, read)
+
+
+def build(src: str) -> str:
+    assert src.lstrip().lower().startswith("<!doctype html>")
+    assert not INCLUDE.search(src), "include 가 남아 있음"
+    out = src.replace("<title>MARKET TERMINAL</title>", "<title>MARKET TERMINAL</title>\n" + SHIM, 1)
+    return out.replace("<!doctype html>", "<!doctype html>\n<!-- 자동 생성: scripts/build_pages.py 로 apps-script/Index.html + tab_*.html 에서 만든다. 직접 고치지 말 것 -->", 1)
+
 SHIM = """<script>
 /* GitHub Pages 용: Apps Script 의 google.script.run 을 같은 저장소 파일 fetch 로 대체 */
 (function(){
@@ -73,9 +114,13 @@ SHIM = """<script>
 </script>
 """
 
-src = (ROOT / "apps-script" / "Index.html").read_text(encoding="utf-8")
-assert src.lstrip().lower().startswith("<!doctype html>")
-out = src.replace("<title>MARKET TERMINAL</title>", "<title>MARKET TERMINAL</title>\n" + SHIM, 1)
-out = out.replace("<!doctype html>", "<!doctype html>\n<!-- 자동 생성: scripts/build_pages.py 로 apps-script/Index.html 에서 만든다. 직접 고치지 말 것 -->", 1)
-(ROOT / "index.html").write_text(out, encoding="utf-8")
-print("index.html 생성")
+
+def main() -> int:
+    src = screen_source()
+    (ROOT / "index.html").write_text(build(src), encoding="utf-8")
+    print(f"index.html 생성 (include {len(includes_of((SRC_DIR / 'Index.html').read_text(encoding='utf-8')))}개 인라인)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -3,7 +3,9 @@
  * GitHub private 저장소의 reports/dashboard.json 을 읽어 터미널 스타일로 표시.
  *
  * 설치
- * 1) script.google.com → 새 프로젝트 → Code.gs 와 Index.html 붙여넣기
+ * 1) script.google.com → 새 프로젝트 → Code.gs 붙여넣기, 그리고 HTML 파일을 하나씩 만들어 붙여넣기:
+ *      Index.html(공용 셸) + apps-script/tab_*.html 전부 (파일 이름은 확장자 없이 tab_daily 처럼; 목록은 ops/README.md)
+ *    Index.html 의 <?!= include('tab_daily') ?> 를 아래 include() 가 같은 이름의 HTML 파일 내용으로 바꾼다.
  * 2) 프로젝트 설정 → 스크립트 속성:
  *      GITHUB_TOKEN : GitHub Fine-grained PAT (저장소 market-screener, Contents: Read-only)
  *      GITHUB_REPO  : hk99915-bot/market-screener
@@ -11,10 +13,16 @@
  */
 
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  // 템플릿으로 평가해야 <?!= include('tab_x') ?> 가 풀린다 (createHtmlOutputFromFile 은 그대로 출력)
+  return HtmlService.createTemplateFromFile('Index').evaluate()
     .setTitle('MARKET TERMINAL')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// 탭 파일 끼워 넣기 — Index.html 의 <?!= include('tab_daily') ?> 가 이 함수를 부른다. 파일이 없으면 GAS 가 오류를 낸다 (이름 확인).
+function include(name) {
+  return HtmlService.createHtmlOutputFromFile(name).getContent();
 }
 
 function raw_(path) {

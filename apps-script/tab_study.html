@@ -1,0 +1,188 @@
+<!-- tab_study.html — STUDY 탭 — 커리큘럼·인적성·오늘의 영어 (eduView·aptView·engView).
+     apps-script/Index.html 이 include('tab_study') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
+     전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
+<script>
+/* ───── STUDY: 커리큘럼 · 인적성 · 오늘의 영어 ───── */
+let EDU=null; const EDL={ms:null,rel:null,der:null,bnd:null}; const ENG={idx:null,cur:null,sel:null};
+const escA=s=>esc(s).replace(/"/g,'&quot;');
+function eduGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function eduPut(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+let EDONE=eduGet('mt_study_done',{}); let APTS=eduGet('mt_apt_score',{});
+const EDV=['edu','apt','eng'];
+function eduLoad(){
+  if(EDU!==null) return;
+  EDU=false; google.script.run.withSuccessHandler(t=>{try{EDU=JSON.parse(t);}catch(e){EDU={};} if(EDV.includes(view)) render();}).withFailureHandler(()=>{EDU={};if(EDV.includes(view)) render();}).getStudyGuide();
+}
+function eduLive(){
+  const run=(k,fn)=>{ if(EDL[k]!==null) return; EDL[k]=false; const r=google.script.run; if(typeof r[fn]!=='function'){ EDL[k]={}; return; }
+    r.withSuccessHandler(t=>{try{EDL[k]=JSON.parse(t)||{};}catch(e){EDL[k]={};} eduFillLive();}).withFailureHandler(()=>{EDL[k]={};})[fn](); };
+  run('ms','getMacroSeries'); run('rel','getMacroReleases'); run('der','getDerivs'); run('bnd','getBonds');
+}
+const EDK={US10Y:'미 10년물',USDKRW:'원/달러',USDJPY:'엔/달러',VIX:'VIX',DXY:'달러인덱스',SPX:'S&P500',KOSPI:'코스피',GOLD:'금',WTI:'WTI',
+  CPI:'CPI 전년비',CORECPI:'근원 CPI',PPI:'PPI',NFP:'비농업 고용',UNRATE:'실업률',PCR:'풋/콜 OI',GEX:'감마노출',ATMIV:'ATM IV',RV20:'실현변동성20',MAXPAIN:'최대 고통',PUTWALL:'풋 벽',CALLWALL:'콜 벽',BASIS:'선물 베이시스',US2Y:'미 2년물',US10_2:'미 10Y−2Y',KR3Y:'국고 3년',KRAA:'회사채 AA− 스프레드',KRBBB:'회사채 BBB− 스프레드'};
+const EDREL={CPI:'CPIAUCSL',CORECPI:'CPILFESL',PPI:'PPIFIS',NFP:'PAYEMS',UNRATE:'UNRATE'};
+function eduVal(k){
+  const f=(v,d=2)=>Number(v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const ms=EDL.ms&&EDL.ms.series, rel=EDL.rel&&EDL.rel.series, dv=EDL.der, bd=EDL.bnd;
+  if(bd&&bd.asof){ const bp=x=>x==null?'':`1개월 ${x>=0?'+':''}${Math.round(x)}bp`, sp=bd.spreads||{};
+    const o={US2Y:((bd.us||{}).chg||{})['2Y'],KR3Y:((bd.kr||{}).chg||{})['3Y']}[k];
+    if(o&&o.v!=null) return {v:f(o.v)+'%',s:bp(o.m1),d:o.date};
+    const q={US10_2:sp.us_10_2,KRAA:sp.kr_aa,KRBBB:sp.kr_bbb}[k];
+    if(q&&q.v!=null) return {v:(q.v>=0?'+':'')+Math.round(q.v*100)+'bp',s:bp(q.m1),d:q.date}; }
+  if(ms&&ms[k]&&ms[k].length){ const s=ms[k], n=s.length, c=s[n-1][4], p=n>20?s[n-21][4]:null;
+    if(k==='US10Y') return {v:f(c)+'%',s:p!=null?`20일 ${(c-p)*100>=0?'+':''}${Math.round((c-p)*100)}bp`:'',d:s[n-1][0],u:p!=null&&c>p};
+    return {v:f(c,c>1000?0:2),s:p?`20일 ${c>=p?'+':''}${((c/p-1)*100).toFixed(1)}%`:'',d:s[n-1][0],u:p!=null&&c>p}; }
+  if(rel&&EDREL[k]&&rel[EDREL[k]]){ const r=rel[EDREL[k]], mk=x=>r.how==='mom_k'?`${x>=0?'+':''}${Math.round(x)}천명`:f(x)+'%';
+    return {v:mk(r.value),s:r.prev!=null?'이전 '+mk(r.prev):'',d:r.period}; }
+  if(dv&&dv.date){ const g={PCR:dv.pcr_oi!=null?f(dv.pcr_oi):null,GEX:dv.gex_bn!=null?(dv.gex_bn>0?'+':'')+Math.round(dv.gex_bn).toLocaleString()+'억/1%':null,
+      ATMIV:dv.atm_iv!=null?Math.round(dv.atm_iv*100)+'%':null,RV20:dv.rv20!=null?Math.round(dv.rv20*100)+'%':null,MAXPAIN:dv.max_pain!=null?f(dv.max_pain,1):null,
+      PUTWALL:dv.put_wall?f(dv.put_wall.k,1):null,CALLWALL:dv.call_wall?f(dv.call_wall.k,1):null,BASIS:(dv.fut||{}).basis!=null?(dv.fut.basis>=0?'+':'')+f(dv.fut.basis):null}[k];
+    if(g!=null) return {v:g,s:'코스피200 옵션',d:dv.date}; }
+  return null;
+}
+function eduChips(keys){
+  return (keys||[]).map(k=>{ const o=eduVal(k); return `<span style="display:inline-block;margin:2px 10px 2px 0"><span class="mu">${esc(EDK[k]||k)}</span> ${o?`<b>${esc(o.v)}</b> <span class="mu" style="font-size:11px">${esc(o.s||'')}${o.d?' · '+esc(o.d):''}</span>`:'<span class="mu">— 데이터 없음</span>'}</span>`; }).join('');
+}
+function eduFillLive(){ document.querySelectorAll('[data-live]').forEach(el=>{ el.innerHTML=eduChips(el.dataset.live.split(',').filter(Boolean)); }); }
+function eduAll(){ return ((EDU&&EDU.tracks)||[]).flatMap(t=>t.modules.map(m=>({...m,_t:t.id}))); }
+function eduProg(){
+  const all=eduAll(), n=all.length, d=all.filter(m=>EDONE[m.id]).length;
+  const el=$('#eduprog'); if(el) el.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px"><span>전체 진행 <b>${d}</b> / ${n} 모듈</span><span class="mu">${n?Math.round(d/n*100):0}%</span></div><div class="bar"><i style="width:${n?d/n*100:0}%"></i></div>`+
+    (EDU.tracks||[]).map(t=>{ const a=t.modules.length, b=t.modules.filter(m=>EDONE[m.id]).length; return `<div style="display:flex;align-items:center;gap:8px;font-size:11.5px"><span style="width:150px" class="mu">${esc(t.title.replace(/^트랙 /,''))}</span><div class="bar" style="flex:1;margin:0"><i style="width:${a?b/a*100:0}%"></i></div><span style="width:44px;text-align:right">${b}/${a}</span></div>`; }).join('');
+  document.querySelectorAll('[data-mdone]').forEach(x=>{ const ok=!!EDONE[x.dataset.mdone]; x.textContent=ok?'✓ 완료':''; });
+  document.querySelectorAll('[data-rchip]').forEach(x=>{ x.style.color=EDONE[x.dataset.rchip]?'var(--up)':''; });
+}
+function eduModule(m){
+  const lvl='★'.repeat(m.level||1)+'☆'.repeat(Math.max(0,3-(m.level||1)));
+  const sec=(t,h)=>h?`<div class="am" style="font-size:12px;margin:10px 0 3px">${t}</div>${h}`:'';
+  const ul=a=>a&&a.length?`<ul style="margin:2px 0 2px 18px;padding:0">${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+  return `<div style="display:flex;gap:8px;align-items:flex-start;border-bottom:1px solid var(--line);padding:4px 0">
+   <input type="checkbox" data-mchk="${escA(m.id)}" ${EDONE[m.id]?'checked':''} title="완료 체크" style="margin-top:7px;accent-color:var(--amber)">
+   <details class="sec" id="mod-${escA(m.id)}" style="flex:1;min-width:0;margin:0;white-space:normal">
+    <summary><b class="am">${esc(m.id)}</b> ${esc(m.title)} ${m.weak?'<span class="tag r">겸이 약점</span>':''}
+     <span class="mu" style="font-size:11px">${(m.tags||[]).map(esc).join(' · ')} · 난이도 ${lvl} · 약 ${m.hours}h</span> <span class="up" data-mdone="${escA(m.id)}" style="font-size:11px"></span></summary>
+    <div style="line-height:1.7;font-size:13px;max-width:980px;word-break:keep-all;overflow-wrap:anywhere">
+     <div style="margin:6px 0"><span class="tag">한 줄 요약</span> <b>${esc(m.summary)}</b></div>
+     <div style="border-left:2px solid var(--amber);padding:2px 0 2px 10px;margin:6px 0"><span class="mu">생활 비유 —</span> ${esc(m.analogy)}</div>
+     ${m.prereq&&m.prereq.length?`<div style="font-size:12px"><span class="mu">먼저 볼 것:</span> ${m.prereq.map(p=>`<a href="#" data-goto="${escA(p)}">${esc(p)}</a>`).join(' · ')}</div>`:''}
+     ${sec('용어 박스',m.terms&&m.terms.length?`<div class="kv" style="font-size:12.5px">${m.terms.map(t=>`<div>${esc(t.t)}</div><div>${esc(t.d)}</div>`).join('')}</div>`:'')}
+     ${sec('핵심 개념',ul(m.concepts))}
+     ${sec('공식',(m.formulas||[]).map(f=>`<div style="margin:4px 0;padding:4px 8px;border:1px solid var(--line)"><b>${esc(f.f)}</b>${f.v&&f.v.length?`<div class="mu" style="font-size:12px">${f.v.map(v=>`${esc(v.s)}: ${esc(v.m)}`).join(' · ')}</div>`:''}${f.note?`<div class="mu" style="font-size:11.5px">※ ${esc(f.note)}</div>`:''}</div>`).join(''))}
+     ${sec('쉬운 숫자 예시',m.example?`<div>${esc(m.example)}</div>`:'')}
+     ${m.today?sec('오늘 시장에서',`<div>${esc(m.today.text)}</div>${m.today.keys&&m.today.keys.length?`<div data-live="${escA(m.today.keys.join(','))}" style="font-size:12px;margin-top:2px">${eduChips(m.today.keys)}</div>`:''}`):''}
+     ${sec('흔한 실수',ul(m.mistakes))}
+     ${sec('확인문제 <span class="mu" style="font-size:11px">— 눌러서 정답</span>',(m.quiz||[]).map((q,i)=>`<details style="margin:3px 0"><summary style="cursor:pointer"><span class="mu">Q${i+1} [${esc(q.t)}]</span> ${esc(q.q)}</summary><div style="margin:2px 0 4px 16px"><b class="am">정답: ${esc(q.a)}</b><div class="mu" style="font-size:12.5px">${esc(q.why)}</div></div></details>`).join(''))}
+    </div></details></div>`;
+}
+function eduView(){
+  eduLoad(); eduLive();
+  if(!EDU) return '<div class="load">LOADING …</div>';
+  if(!EDU.tracks) return '<div class="grid"><div class="p c12"><div class="b mu">STUDY 콘텐츠(content/study.json)를 불러오지 못했습니다.</div></div></div>';
+  const R=EDU.roadmap||{}, byId=Object.fromEntries(eduAll().map(m=>[m.id,m]));
+  setTimeout(eduBind,0);
+  return `<div class="grid">
+   <div class="p c8"><h2>학습 로드맵<small>${esc(EDU.updated||'')} · 총 약 ${R.total_hours||'—'}시간</small></h2><div class="b" style="white-space:normal;line-height:1.7">
+    <div class="mu" style="font-size:12px;margin-bottom:6px">${esc(EDU.intro||'')}</div>
+    ${(R.steps||[]).map(s=>`<div style="margin:6px 0"><b>${esc(s.name)}</b> <span class="mu">약 ${s.hours}h</span><div style="font-size:12px">${s.ids.map(i=>`<a href="#" data-goto="${escA(i)}" data-rchip="${escA(i)}" title="${escA((byId[i]||{}).title||'')}">${esc(i)}</a>`).join(' → ')}</div><div class="mu" style="font-size:11.5px">${esc(s.note||'')}</div></div>`).join('')}
+    <div style="font-size:12px;margin-top:6px">${esc(R.pace||'')}</div>
+    <div style="font-size:12px;margin-top:4px"><span class="am">병행 트랙</span> ${esc(R.parallel||'')}</div>
+    <div class="mu" style="font-size:12px;margin-top:4px">공부법: ${esc(R.how||'')}</div></div></div>
+   <div class="p c4"><h2>진행률<small>이 브라우저에 저장</small></h2><div class="b" id="eduprog" style="white-space:normal"></div>
+    <div class="b" style="white-space:normal;font-size:12px;border-top:1px solid var(--line)"><span class="am">TESAT</span> <span class="mu">${esc((EDU.tesat||{}).note||'')} ${esc((EDU.tesat||{}).news_source||'')}</span></div></div>
+   <div class="p c12"><div class="b"><div class="ovl" style="margin:0">${EDU.tracks.map(t=>`<button data-trk="${escA(t.id)}">${esc(t.title)}</button>`).join('')}<button data-exp="1">모두 펼치기</button><button data-exp="0">모두 접기</button></div></div></div>
+   ${EDU.tracks.map(t=>`<div class="p c12" id="trk-${escA(t.id)}"><h2>${esc(t.title)} <small>${t.badge?esc(t.badge)+' · ':''}${t.modules.length}개 모듈</small></h2><div class="b" style="white-space:normal">
+     <div class="mu" style="font-size:12px;margin-bottom:4px">${esc(t.desc||'')}</div>${t.modules.map(eduModule).join('')}</div></div>`).join('')}
+  </div>`;
+}
+function eduBind(){
+  eduProg(); eduFillLive();
+  document.querySelectorAll('[data-mchk]').forEach(c=>c.onchange=()=>{ const id=c.dataset.mchk; if(c.checked) EDONE[id]=new Date().toISOString().slice(0,10); else delete EDONE[id]; eduPut('mt_study_done',EDONE); eduProg(); });
+  document.querySelectorAll('[data-goto]').forEach(a=>a.onclick=e=>{ e.preventDefault(); const d=document.getElementById('mod-'+a.dataset.goto); if(d){ d.open=true; d.scrollIntoView({behavior:'smooth',block:'start'}); } });
+  document.querySelectorAll('[data-trk]').forEach(b=>b.onclick=()=>{ const d=document.getElementById('trk-'+b.dataset.trk); if(d) d.scrollIntoView({behavior:'smooth',block:'start'}); });
+  document.querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{ document.querySelectorAll('details[id^="mod-"]').forEach(d=>d.open=b.dataset.exp==='1'); });
+}
+/* 인적성 문항: 타이머 + 채점 */
+let APTF='', APTT=null;
+function aptItem(x,key){
+  const r=APTS[key], tb=x.table;
+  return `<div style="border-bottom:1px solid var(--line);padding:8px 0;white-space:normal;line-height:1.65;max-width:980px" data-apt="${escA(key)}">
+   <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.id||'')}</b><span class="tag">${esc(x.sec||x.type||'')}</span><span class="mu" style="font-size:11.5px">${esc(x.sub||'')} · 목표 ${x.time_sec||60}초</span>
+    <button class="sbtn" data-tmr="${escA(key)}" style="margin-left:auto">⏱ 시작</button><span data-tv="${escA(key)}" style="min-width:56px;text-align:right">${r&&r.t!=null?r.t+'초':'0초'}</span>
+    <span data-res="${escA(key)}" style="font-size:12px">${r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>'):''}</span></div>
+   ${x.passage?`<div style="border-left:2px solid var(--amber);padding:2px 0 2px 10px;margin:4px 0;font-size:12.5px">${esc(x.passage)}</div>`:''}
+   ${tb?`<div style="overflow-x:auto;margin:4px 0"><div class="mu" style="font-size:11.5px">${esc(tb.cap||'')}</div><table style="width:auto;min-width:280px"><tr>${tb.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${tb.rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${i?'':'l'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
+   <div style="margin:4px 0"><b>${esc(x.q)}</b></div>
+   <div style="display:flex;flex-direction:column;gap:3px">${x.choices.map((c,i)=>`<button class="sbtn" data-ch="${escA(key)}" data-i="${i}" style="text-align:left;white-space:normal">${'①②③④⑤⑥'[i]||i+1} ${esc(c)}</button>`).join('')}</div>
+   <details style="margin-top:4px" ${r?'open':''}><summary class="mu" style="cursor:pointer;font-size:12px">정답·해설 보기</summary><div style="font-size:12.5px;margin:2px 0 0 14px"><b class="am">정답 ${'①②③④⑤⑥'[x.a]||x.a+1}</b> — ${esc(x.exp||x.exp_ko||'')}${x.tip?`<div class="mu">⏩ 시간 단축: ${esc(x.tip)}</div>`:''}</div></details></div>`;
+}
+function aptBind(items){
+  const byK=Object.fromEntries(items.map(([x,k])=>[k,x]));
+  const stopT=()=>{ if(!APTT) return null; clearInterval(APTT.iv); const s=Math.round((Date.now()-APTT.t0)/1000), k=APTT.k; const b=document.querySelector(`[data-tmr="${k}"]`); if(b) b.textContent='⏱ 시작'; APTT=null; return [k,s]; };
+  document.querySelectorAll('[data-tmr]').forEach(b=>b.onclick=()=>{ const k=b.dataset.tmr; const was=APTT&&APTT.k; const st=stopT(); if(was===k) return;
+    const tv=document.querySelector(`[data-tv="${k}"]`); const t0=Date.now(); b.textContent='⏹ 정지';
+    APTT={k,t0,iv:setInterval(()=>{ if(!document.body.contains(tv)){ clearInterval(APTT&&APTT.iv); APTT=null; return; } const s=Math.round((Date.now()-t0)/1000), lim=(byK[k]||{}).time_sec||60; tv.textContent=s+'초'; tv.style.color=s>lim?'var(--dn)':''; },500)}; });
+  document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{ const k=b.dataset.ch, x=byK[k]; if(!x) return; const i=+b.dataset.i;
+    let t=null; if(APTT&&APTT.k===k){ const st=stopT(); t=st[1]; }
+    const ok=i===x.a; APTS[k]={ok,t:t!=null?t:(APTS[k]||{}).t??null,at:new Date().toISOString().slice(0,10)}; eduPut('mt_apt_score',APTS);
+    document.querySelectorAll(`[data-ch="${k}"]`).forEach(o=>{ const j=+o.dataset.i; o.style.borderColor=j===x.a?'var(--up)':(j===i?'var(--dn)':''); });
+    const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
+    const d=b.closest('[data-apt]').querySelector('details'); if(d) d.open=true; aptTally(); });
+}
+function aptTally(){
+  const el=$('#apttally'); if(!el||!EDU||!EDU.aptitude) return;
+  const items=EDU.aptitude.items, secs=EDU.aptitude.sections||[];
+  const row=(nm,arr)=>{ const tried=arr.filter(x=>APTS[x.id]), ok=tried.filter(x=>APTS[x.id].ok), tt=tried.filter(x=>APTS[x.id].t!=null), avg=tt.length?Math.round(tt.reduce((a,x)=>a+APTS[x.id].t,0)/tt.length):null, tgt=arr.length?Math.round(arr.reduce((a,x)=>a+(x.time_sec||60),0)/arr.length):null;
+    return `<tr><td class="l">${esc(nm)}</td><td>${tried.length}/${arr.length}</td><td>${tried.length?Math.round(ok.length/tried.length*100)+'%':'—'}</td><td>${avg!=null?avg+'초':'—'}</td><td class="mu">${tgt??'—'}초</td></tr>`; };
+  el.innerHTML=`<table><tr><th class="l">영역</th><th>푼 문항</th><th>정답률</th><th>평균 시간</th><th>목표</th></tr>${secs.map(s=>row(s,items.filter(x=>x.sec===s))).join('')}${row('합계',items)}</table>`;
+}
+function aptView(){
+  eduLoad();
+  if(!EDU) return '<div class="load">LOADING …</div>';
+  const A=EDU.aptitude; if(!A||!A.items) return '<div class="grid"><div class="p c12"><div class="b mu">인적성 문항 없음</div></div></div>';
+  const list=A.items.filter(x=>!APTF||x.sec===APTF).map(x=>[x,x.id]);
+  setTimeout(()=>{ aptBind(list); aptTally();
+    document.querySelectorAll('[data-aptf]').forEach(b=>b.onclick=()=>{ APTF=b.dataset.aptf; render(); });
+    const rs=$('#aptreset'); if(rs) rs.onclick=()=>{ if(!confirm('인적성 채점 기록을 지울까요?')) return; Object.keys(APTS).forEach(k=>{ if(!/^E\d/.test(k)) delete APTS[k]; }); eduPut('mt_apt_score',APTS); render(); }; },0);
+  return `<div class="grid"><div class="p c12"><h2>${esc(A.title)}<small>${A.items.length}문항 · 자체 제작</small></h2><div class="b" style="white-space:normal">
+    <div class="mu" style="font-size:12px;margin-bottom:6px">${esc(A.note||'')}</div>
+    <div id="apttally"></div><div class="ovl" style="margin-top:6px"><button data-aptf="" class="${APTF?'':'on'}">전체</button>${(A.sections||[]).map(s=>`<button data-aptf="${escA(s)}" class="${APTF===s?'on':''}">${esc(s)}</button>`).join('')}<button id="aptreset">기록 초기화</button></div>
+    <div class="mu" style="font-size:11.5px">⏱ 시작 → 풀고 → 선택지 클릭하면 시간이 기록되고 채점된다. 목표 시간을 넘기면 시간이 빨간색.</div></div></div>
+   <div class="p c12"><div class="b">${list.map(([x,k])=>aptItem(x,k)).join('')}</div></div></div>`;
+}
+/* 오늘의 영어 + 오늘의 인적성(시장 데이터) */
+function engLoad(date){
+  const set=t=>{ let o=null; try{ o=t?JSON.parse(t):null; }catch(e){} ENG.cur=o||{}; if(view==='eng') render(); };
+  ENG.cur=false;
+  const r=google.script.run.withSuccessHandler(set).withFailureHandler(()=>{ ENG.cur={}; if(view==='eng') render(); });
+  date?r.getEnglishAt(date):r.getEnglishLatest();
+}
+function engBody(E){
+  const ph=[]; let s=esc(E.body||'');
+  (E.vocab||[]).forEach((v,i)=>{ const w=esc(v.w); const j=s.indexOf(w); if(j<0) return; ph.push(`<span class="am" data-vw="${i}" title="${escA(v.ko)}" style="border-bottom:1px dotted var(--amber);cursor:pointer">${w}</span>`); s=s.slice(0,j)+'\u0001'+(ph.length-1)+'\u0002'+s.slice(j+w.length); });
+  s=s.replace(/\u0001(\d+)\u0002/g,(_,n)=>ph[+n]);
+  return s.split(/\n\n+/).map(p=>`<p style="margin:0 0 8px">${p}</p>`).join('');
+}
+function engView(){
+  if(ENG.idx===null){ ENG.idx=false; google.script.run.withSuccessHandler(t=>{try{ENG.idx=JSON.parse(t)||{};}catch(e){ENG.idx={};} if(view==='eng') render();}).withFailureHandler(()=>{ENG.idx={};if(view==='eng') render();}).getEnglishIndex(); }
+  if(ENG.cur===null) engLoad(ENG.sel);
+  if(ENG.cur===false) return '<div class="load">LOADING …</div>';
+  const E=ENG.cur||{}, dates=((ENG.idx||{}).dates)||[];
+  const pick=`<div class="ovl" style="padding:8px 8px 0;align-items:center"><span class="mu" style="font-size:12px">날짜</span> <select id="engd" style="background:var(--panel);color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><option value="">최신</option>${dates.map(d=>`<option value="${escA(d)}" ${ENG.sel===d?'selected':''}>${esc(d)}</option>`).join('')}</select></div>`;
+  setTimeout(()=>{ const s=$('#engd'); if(s) s.onchange=()=>{ ENG.sel=s.value||null; ENG.cur=null; render(); };
+    document.querySelectorAll('[data-vw]').forEach(sp=>sp.onclick=()=>{ const n=sp.nextElementSibling; if(n&&n.dataset&&n.dataset.vk!=null){ n.remove(); return; } const v=(E.vocab||[])[+sp.dataset.vw]||{}; sp.insertAdjacentHTML('afterend',`<i class="mu" data-vk="1" style="font-style:normal;font-size:12px"> (${esc(v.ko)})</i>`); });
+    if(E.aptitude) aptBind(E.aptitude.map((x,i)=>[x,'E'+(E.date||'')+'-'+i])); },0);
+  if(!E.body) return pick+'<div class="grid"><div class="p c12"><h2>오늘의 영어</h2><div class="b mu">아직 오늘 자료 없음</div></div></div>';
+  return pick+`<div class="grid">
+   <div class="p c8"><h2>오늘의 영어<small>${esc(E.date||'')} · ${esc(E.level||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.75;font-size:13.5px">
+    <div style="font-size:15px;margin-bottom:6px"><b>${esc(E.title||'')}</b></div>${engBody(E)}
+    <div class="mu" style="font-size:11.5px">밑줄 단어를 누르면 뜻 표시</div>
+    <details style="margin-top:6px"><summary style="cursor:pointer" class="am">한국어 번역 보기</summary><div style="font-size:13px">${esc(E.ko||'').split(/\n\n+/).map(p=>`<p style="margin:4px 0 8px">${p}</p>`).join('')}</div></details>
+    ${(E.sources||[]).length?`<div class="mu" style="font-size:11.5px;margin-top:6px">출처: ${E.sources.map(s=>s.url?`<a href="${escA(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`:esc(s.title)).join(' · ')}</div>`:''}</div></div>
+   <div class="p c4"><h2>단어 ${(E.vocab||[]).length}</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.6">${(E.vocab||[]).map(v=>`<div style="margin-bottom:5px"><b class="am">${esc(v.w)}</b> <span class="mu">${esc(v.pos||'')}</span> ${esc(v.ko)}<div class="mu" style="font-size:11.5px">${esc(v.ex||'')}</div></div>`).join('')}</div></div>
+   <div class="p c6"><h2>문법 포인트</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.grammar||[]).map(g=>`<div style="margin-bottom:10px"><b>${esc(g.point)}</b><div style="border-left:2px solid var(--amber);padding-left:8px;margin:3px 0" class="am">“${esc(g.quote)}”</div><div>${esc(g.explain_ko)}</div>${(g.examples||[]).length?`<div class="mu" style="font-size:12px">예) ${g.examples.map(esc).join(' / ')}</div>`:''}</div>`).join('')}</div></div>
+   <div class="p c6"><h2>시제 읽기</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.tense||[]).map(t=>`<div style="margin-bottom:8px"><span class="am">“${esc(t.sentence)}”</span><div><span class="tag">${esc(t.tense)}</span> ${esc(t.why_ko)}</div></div>`).join('')}</div></div>
+   <div class="p c6"><h2>독해 퀴즈</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.quiz||[]).map((q,i)=>`<div style="margin-bottom:8px"><b>Q${i+1}. ${esc(q.q)}</b>${(q.choices||[]).map((c,j)=>`<div>${String.fromCharCode(97+j)}) ${esc(c)}</div>`).join('')}<details><summary class="mu" style="cursor:pointer">정답 보기</summary><b class="am">${String.fromCharCode(97+(q.a||0))}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</details></div>`).join('')}</div></div>
+   <div class="p c6"><h2>오늘의 인적성 (시장 데이터)<small>${(E.aptitude||[]).length}문항</small></h2><div class="b">${(E.aptitude||[]).map((x,i)=>aptItem({...x,id:'오늘 '+(i+1),sec:x.type},'E'+(E.date||'')+'-'+i)).join('')||'<span class="mu">아직 오늘 자료 없음</span>'}</div></div>
+  </div>`;
+}
+</script>

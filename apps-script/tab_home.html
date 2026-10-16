@@ -1,0 +1,99 @@
+<!-- tab_home.html — HOME 탭 — 캘린더·이벤트·미장 운용회의 요약·MY 요약 (homeView).
+     apps-script/Index.html 이 include('tab_home') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
+     전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
+<script>
+function homeMyStub(){ return myLoad()?'<div class="mu">불러오는 중…</div>':'<div class="mu">MY 탭에 보유 종목을 입력하면 여기에 요약이 나옵니다.</div>'; }
+function homeMyFill(){
+  if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ if(ok) homeMyFill(); }); }
+  const box=$('#homemy'); if(!box||!myLoad()) return;
+  loadIndex(()=>{ const all=myParse(myLoad()), hs=all.filter(h=>h.key).map(h=>({...h,r:myResolve(h.key)})).filter(h=>h.r), cash=all.filter(h=>h.cash);
+    const fin=()=>{ const FXs=cl((MYX||{}).USDKRW), ks=Object.keys(FXs).sort(), FX=FXs[ks[ks.length-1]]||1400;
+      let tot=0,cost=0,day=0; const rows=[];
+      for(const h of hs){ const d=MYD[h.r.m+':'+h.r.s]; if(!d) continue; const fx=h.r.m==='US'?FX:1, v=d.close*h.qty*fx, c=h.avg?h.avg*h.qty*fx:null, r1=(d.stats||{}).ret1;
+        tot+=v; if(c) cost+=c; if(r1!=null) day+=v-v/(1+r1); rows.push({h,d,v,c,r1,drv:d.etf?((d.etf.look||{}).drv):(d.drivers||{}).score,stop:(d.scenarios&&d.scenarios.bear||{}).stop}); }
+      let cK=0,cU=0; for(const c of cash){ if(c.cash==='KRW') cK+=c.amt; else cU+=c.amt*FX; } const NAV=tot+cK+cU;
+      const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
+      box.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;font-size:12.5px"><span>순자산 <b>${K(NAV)}</b></span><span>주식 ${W(tot/NAV)}</span><span>손익 ${cost?pct(tot/cost-1,1):'—'}</span><span>최근일 ${pct(day/(tot-day||1),1)} (${K(day)})</span></div>
+       <table><tr><th class="l">종목</th><th>비중</th><th>1D</th><th>손익</th><th>드라이버</th><th>손절선</th></tr>${rows.sort((a,b)=>b.v-a.v).map(r=>`<tr><td class="l am sym" data-sym="${esc(r.h.r.s)}" data-mk="${r.h.r.m}">${esc(shortNm(r.d.name)||r.h.r.s)}${r.d.etf?' <span class="tag">ETF</span>':''}</td><td>${W(r.v/NAV)}</td><td>${pct(r.r1,1)}</td><td>${r.c?pct(r.v/r.c-1,1):'—'}</td><td style="color:${col(r.drv)}">${r.drv!=null?(r.drv>0?'+':'')+r.drv.toFixed(2):'—'}</td><td class="${r.stop&&r.d.close<r.stop?'dn':'mu'}">${r.stop?num(r.stop,r.h.r.m==='KR'?0:2):'—'}</td></tr>`).join('')}</table>
+       <div class="mu" style="font-size:11px;margin-top:4px">전체 분석(샤프·베타·헷지)은 MY 탭</div>`; };
+    const go=()=>myFetch(hs.map(h=>[h.r.m,h.r.s]),fin);
+    if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go(); });
+}
+let CAL=null;
+let CALM=null, CALSEL=null;
+function calPanel(){
+  if(CAL===null){ CAL=false; google.script.run.withSuccessHandler(t=>{try{CAL=JSON.parse(t);}catch(e){CAL={};} const b=$('#homecal'); if(b) b.innerHTML=calPanel();}).withFailureHandler(()=>{CAL={};}).getCalendar(); return '<div class="load">LOADING …</div>'; }
+  if(!CAL||!CAL.events||!CAL.events.length) return '<div class="mu">캘린더 생성 전</div>';
+  let mine=new Set(); try{ myParse(myLoad()).filter(h=>h.key).forEach(h=>{const r=SIX&&SIX.length?myResolve(h.key):null; mine.add(r?r.s:h.key.toUpperCase());}); }catch(e){}
+  const today=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+  if(!CALM) CALM=today.slice(0,7);
+  const [Y,M]=CALM.split('-').map(Number), first=new Date(Date.UTC(Y,M-1,1)), dim=new Date(Date.UTC(Y,M,0)).getUTCDate(), off=first.getUTCDay();
+  const by={}; CAL.events.forEach(e=>{(by[e.date]=by[e.date]||[]).push(e);});
+  const mob=window.innerWidth<700;
+  const chip=e=>{const my=e.ticker&&mine.has(e.ticker); const col=e.type==='매크로'?'#c77dff':e.type==='만기'?'#ff9a1f':my?'#ffcc33':e.imp>=3?'#35d6e6':'#666';
+    return mob?`<span style="display:inline-block;width:6px;height:6px;border-radius:3px;background:${col};margin:1px"></span>`
+      :`<div style="font-size:10.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid ${col};padding-left:3px;margin-top:2px;color:${my?'#ffcc33':'#ccc'}">${my?'📌':''}${esc(e.name.replace(/ 실적$/,''))}${e.type==='실적'?'':''}</div>`;};
+  let cells=''; for(let k=0;k<off;k++) cells+='<div></div>';
+  const MV=CAL.moves||{}, mc=v=>v==null?'':`<span style="color:${v>0?'var(--up)':v<0?'var(--dn)':'#888'}">${v>0?'+':''}${(v*100).toFixed(1)}</span>`;
+  for(let d=1;d<=dim;d++){ const ds=`${CALM}-${String(d).padStart(2,'0')}`, ev=by[ds]||[], dow=(off+d-1)%7, mv=MV[ds];
+    const mvl=mv?`<div style="font-size:${mob?9:10}px;line-height:1.2;white-space:nowrap;overflow:hidden">${mv.KOSPI!=null?(mob?'K':'코')+mc(mv.KOSPI):''}${mv.SPX!=null?' '+(mob?'S':'S&P')+mc(mv.SPX):''}</div>`:'';
+    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:3px;cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
+      <div style="font-size:11px;color:${dow===0?'#ff6b6b':dow===6?'#6ba8ff':'#999'}">${d}${ev.some(e=>e.imp>=3)?' ⭐':''}${ev.some(e=>e.result)?' ✓':''}</div>${mvl}${ev.slice(0,mob?8:4).map(chip).join('')}${!mob&&ev.length>4?`<div class="mu" style="font-size:10px">+${ev.length-4}</div>`:''}</div>`; }
+  const sel=CALSEL&&(by[CALSEL]||MV[CALSEL])?(by[CALSEL]||[]):null, smv=CALSEL?MV[CALSEL]:null;
+  setTimeout(()=>{ document.querySelectorAll('.calc').forEach(c=>c.onclick=()=>{ if(!by[c.dataset.d]&&!MV[c.dataset.d]) return; CALSEL=c.dataset.d; $('#homecal').innerHTML=calPanel(); });
+    document.querySelectorAll('[data-calm]').forEach(b=>b.onclick=()=>{ const [y,m]=CALM.split('-').map(Number); const n=new Date(Date.UTC(y,m-1+(+b.dataset.calm),1)); CALM=n.toISOString().slice(0,7); CALSEL=null; $('#homecal').innerHTML=calPanel(); }); },0);
+  const lst=(sel||CAL.events.filter(e=>e.date>=today).slice(0,6));
+  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><button class="tag" data-calm="-1">◀</button><b>${Y}년 ${M}월</b><button class="tag" data-calm="1">▶</button>
+     <span class="mu" style="font-size:11px;margin-left:auto"><span style="color:#35d6e6">■</span>핵심 실적 <span style="color:#ffcc33">■</span>내 보유 <span style="color:#c77dff">■</span>매크로 <span style="color:#ff9a1f">■</span>만기</span></div>
+   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px;text-align:left">${['일','월','화','수','목','금','토'].map((w,i)=>`<div class="mu" style="text-align:center;color:${i===0?'#ff6b6b':i===6?'#6ba8ff':''}">${w}</div>`).join('')}${cells}</div>
+   <div style="margin-top:8px"><div class="am" style="font-size:12px">${sel?esc(CALSEL)+' 일정':'다가오는 일정'}</div>
+   ${smv?`<div style="font-size:12.5px;line-height:1.7">지수: ${[['KOSPI','코스피'],['KOSDAQ','코스닥'],['SPX','S&P500'],['NASDAQ','나스닥']].filter(([k])=>smv[k]!=null).map(([k,n])=>n+' '+mc(smv[k])+'%').join(' · ')}</div>`:''}
+   ${lst.map(e=>{const my=e.ticker&&mine.has(e.ticker); return `<div style="font-size:12.5px;line-height:1.6;white-space:normal">${sel?'':`<span class="mu">${esc(e.date.slice(5))}</span> `}${e.imp>=3?'⭐ ':''}${my?'📌 ':''}${e.ticker?`<span class="am sym" data-sym="${esc(e.ticker)}" data-mk="${e.market}">${esc(e.name)}</span>`:esc(e.name)} <span class="mu" style="font-size:11px">${esc(e.note||'')}</span>${(e.result||[]).map(r=>`<div style="font-size:12px;padding-left:10px;color:#e8e8e8">→ <b>${esc(r)}</b></div>`).join('')}</div>`;}).join('')}
+   ${sel&&!sel.length?'<div class="mu" style="font-size:12px">일정 없음</div>':''}</div>
+   <div class="mu" style="font-size:11px;margin-top:4px">${esc(CAL.note||'')} · 날짜를 누르면 그날 일정</div>`;
+}
+let EVS=null;
+function evPanel(){
+  if(EVS===null){ EVS=false; google.script.run.withSuccessHandler(t=>{try{EVS=JSON.parse(t);}catch(e){EVS={};} const b=$('#homeev'); if(b) b.innerHTML=evPanel();}).withFailureHandler(()=>{EVS={};}).getEvents(); return '<div class="load">LOADING …</div>'; }
+  if(!EVS||!EVS.cb) return '<div class="mu">이벤트 통계 생성 전</div>';
+  const today=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+  const recent=(EVS.events||[]).filter(e=>e.date>=new Date(Date.now()+9*3600e3-7*864e5).toISOString().slice(0,10));
+  const S=EVS.cb_summary||{}, B=EVS.big_summary||{};
+  const sm=(o,lab)=>o.d1?`<div style="font-size:12.5px;margin:2px 0">${lab}: 다음날 평균 ${pct(o.d1.avg,1)} (상승 ${Math.round(o.d1.up*100)}%, ${o.d1.n}회)${o.d5?` · 5일 ${pct(o.d5.avg,1)} (${Math.round(o.d5.up*100)}%)`:''}${o.d20?` · 20일 ${pct(o.d20.avg,1)} (${Math.round(o.d20.up*100)}%)`:''}</div>`:'';
+  const tn=(EVS.events||[]).filter(e=>e.date===today).length, ck=EVS.checked_at||'';
+  const todayLine=ck.slice(0,10)===today
+    ?`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> ${tn?`<span style="color:var(--dn)">이벤트 ${tn}건</span>`:'주요 이벤트 없음 (서킷·사이드카·금리·정책·지정학 등)'} <span class="mu" style="font-size:11px">· ${esc(ck.slice(11))} 확인</span></div>`
+    :`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> <span class="mu">아직 확인 전${ck?` (마지막 확인 ${esc(ck.slice(5))})`:''}</span></div>`;
+  return `${todayLine}<details style="margin-bottom:4px"><summary class="mu" style="cursor:pointer;font-size:12px">기록 · 최근 7일 (${recent.length}건)</summary>${recent.length?`<div style="margin-bottom:6px">${recent.slice(0,6).map(e=>`<div style="font-size:12.5px;${e.date===today?'color:var(--dn)':''}">● ${esc(e.date.slice(5))} ${esc(e.time||'')} <b>${esc(e.market)} ${esc(e.type)}</b> ${e.link?`<a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.title||'')}</a>`:esc(e.title||'')}</div>`).join('')}</div>`:'<div class="mu" style="margin-bottom:6px">최근 7일 기록된 이벤트 없음</div>'}</details>
+   ${sm(S,'서킷브레이커 이후')}${sm(B,'코스피 −5% 이상 급락일 이후')}
+   <details style="margin-top:4px"><summary class="mu" style="cursor:pointer;font-size:12px">역대 서킷브레이커 ${EVS.cb.length}회</summary><table><tr><th class="l">날짜</th><th>당일</th><th>다음날</th><th>5일</th><th>20일</th><th>20일내 저점</th><th class="l">메모</th></tr>
+   ${[...EVS.cb].reverse().map(r=>`<tr><td class="l">${esc(r.date)}</td><td>${r.day!=null?pct(r.day,1):'—'}</td><td>${r.d1!=null?pct(r.d1,1):'—'}</td><td>${r.d5!=null?pct(r.d5,1):'—'}</td><td>${r.d20!=null?pct(r.d20,1):'—'}</td><td>${r.low20!=null?pct(r.low20,1):'—'}</td><td class="l mu" style="white-space:normal;font-size:11px">${esc(r.note||'')}</td></tr>`).join('')}</table>
+   <div class="mu" style="font-size:11px">${esc(EVS.note||'')}</div></details>`;
+}
+function Utilities_kstHour(){ return new Date(Date.now()+9*3600e3).getUTCHours(); }
+function homeCusHtml(){ const o=CMTU; if(!o) return '<div class="mu">불러오는 중…</div>'; if(!o.head) return '<div class="mu">미장 운용회의 없음</div>';
+  return `${(o.head||[]).map(x=>`<div>• ${esc(x)}</div>`).join('')}<div style="margin-top:6px" class="am">${esc(o.verdict||'')}</div>`+
+    ((o.scenarios||[]).length?`<table style="margin-top:6px">${o.scenarios.map(sc=>`<tr><td class="l">${esc(sc.name)}</td><td>${sc.prob!=null?(sc.prob*100).toFixed(0)+'%':'—'}</td></tr>`).join('')}</table>`:'')+
+    `<div class="mu" style="font-size:11px;margin-top:4px">${esc(o.asof||'')} · 자세히는 운용회의 탭 US</div>`; }
+function homeCusLoad(){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} const e=$('#homecus'); if(e) e.innerHTML=homeCusHtml(); if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={}; if(view==='cmt') render();}).getCommitteeUS(); }
+function homeView(){
+  const kr=D.kr||{},us=D.us||{};
+  const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
+  const w=D.watchlist||[];
+  const kh=+Utilities_kstHour(), usTime=kh>=21||kh<7;
+  const usBlock=pre('intraday_us','INTRADAY US')+pre('premarket_us','PREMARKET US')+`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`+(usTime?'':pre('close_US','CLOSE US'));
+  let h=`<div class="grid">${usTime?usBlock:''}${intradayPanel()}
+   <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
+   <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
+   <div class="p c3"><h2>KR CLASSES<small>${kr.asof||''}</small></h2><div class="b">${cc(kr)}</div></div>
+   <div class="p c3"><h2>US CLASSES<small>${us.asof||''}</small></h2><div class="b">${cc(us)}</div></div>
+   <div class="p c6"><h2>MY PORTFOLIO<small>MY 탭 입력 기준 · 최근 종가</small></h2><div class="b" id="homemy">${homeMyStub()}</div></div>
+   <div class="p c6"><h2>EVENTS<small>서킷브레이커·사이드카 · 이후 코스피</small></h2><div class="b" id="homeev">${evPanel()}</div></div>
+   <div class="p c12"><h2>CALENDAR<small>실적·FOMC·CPI·만기 · 📌 = 내 보유</small></h2><div class="b" id="homecal">${calPanel()}</div></div>
+   <div class="p c6"><h2>LATEST RESEARCH<small>${(D.reports||[]).length}</small></h2><div class="b">${repTable((D.reports||[]).slice(0,14))}</div></div>`;
+  setTimeout(homeMyFill,0);
+  h+=pre('premarket_kr','PREMARKET KR')+pre('close_KR','CLOSE KR')+(usTime?pre('close_US','CLOSE US'):'')+pre('intraday_kr','INTRADAY KR')+(usTime?'':usBlock);
+  if(CMTU===null) homeCusLoad();
+  return h+'</div>';
+}
+</script>

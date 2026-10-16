@@ -1,0 +1,64 @@
+<!-- tab_duel.html — 대결·주문표 — reports/decisions.json 진입 판·주문표·채점 (decBox·ticketBox). DAILY·QUANT 시그널 화면에 끼워짐.
+     apps-script/Index.html 이 include('tab_duel') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
+     전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
+<script>
+let DEC=null;
+function planHtml(p){ if(!p) return ''; const f=v=>v==null?null:(v>0?'+':'')+(v*100).toFixed(1)+'%';
+  const rr=p.rr!=null?p.rr:(p.target!=null&&p.stop?Math.abs(p.target/p.stop):null);
+  const a=[p.target!=null?'목표 '+f(p.target):'',p.stop!=null?'손절 '+f(p.stop):'',rr!=null?'손익비 1:'+rr.toFixed(1):'',p.win_rate!=null?`과거 승률 ${(p.win_rate*100).toFixed(0)}%${p.n?` (n=${p.n})`:''}`:'',p.ev!=null?'기대값 '+f(p.ev):'',p.basis?esc(p.basis):''].filter(Boolean);
+  return a.length?`<div style="font-size:12px;margin:2px 0"><b>🎯 ${a.join(' · ')}</b></div>`:''; }
+function statLine(t){ if(!t||!t.trades) return '<div class="mu" style="font-size:11px">진입 판 없음</div>'; const p=v=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(1)+'%';
+  return `<div style="font-size:11.5px;line-height:1.5">진입 ${t.trades}판 · 승률 <b>${t.hit!=null?(t.hit*100).toFixed(0)+'%':'—'}</b> · 평균 수익 ${p(t.avg_win)} / 손실 ${p(t.avg_loss)} · 손익비 <b>${t.payoff!=null?'1:'+t.payoff.toFixed(2):'—'}</b> · 기대값 <b>${p(t.ev)}</b></div>`; }
+function ticketBox(D,IU){
+  // 주문표(규정 [4]) — kind 'ticket' 항목: 열린 것(채점 전)은 표, 채점된 것은 R 누적. 금액은 공개 기록 규칙대로 100만 이하 또는 비중만.
+  const tk=(D.items||[]).filter(it=>it.kind==='ticket'), T=(D.tally||{})['주문표'];
+  const wd=(a,b)=>{let n=0; const d=new Date(a+'T00:00:00'); const e=new Date(b+'T00:00:00'); while(d<e){d.setDate(d.getDate()+1); const w=d.getDay(); if(w>0&&w<6) n++;} return n;};
+  const today=new Date().toISOString().slice(0,10);
+  const open=tk.filter(it=>!it.result).reverse(), done=tk.filter(it=>it.result&&!it.result.void).reverse();
+  const vc=v=>v&&v.startsWith('✅')?'var(--up)':v&&v.startsWith('⚠')?'var(--amber)':'var(--dn)';
+  const px=v=>v==null?'—':num(v,v<100?2:0);
+  const rows=open.map(it=>{const left=Math.max(0,(it.horizon_days||0)-wd(it.date,today));
+    return `<tr><td class="l"><span class="px" data-t="${esc(it.code)}">${esc(it.name||it.code)}</span> <span class="mu">${esc(it.code)}</span></td><td>${px(it.entry)}</td><td class="dn">${px(it.stop_eff||it.stop)}</td><td class="up">${px(it.target)}</td><td>1:${it.rr!=null?Number(it.rr).toFixed(1):'—'}</td><td style="color:${vc(it.verdict)}">${esc(it.verdict||'')}</td><td>${it.verdict&&it.verdict.startsWith('⛔')?'—':left+'일'}</td><td class="mu">${it.qty_max!=null?num(it.qty_max,0)+'주':'—'}${it.notional?` · ${num(Math.round(it.notional/10000),0)}만`:it.notional_pct!=null?` · ${it.notional_pct}%`:''}</td></tr>
+     <tr><td colspan="8" class="l mu" style="font-size:11px;white-space:normal;padding:0 6px 6px 14px">${esc(it.submitted||it.date)} · ${esc(it.why||'')}${(it.reasons||[]).length?' — '+esc(it.reasons.join(' / ')):''}</td></tr>`;}).join('');
+  const hist=done.slice(0,8).map(it=>`<span style="margin-right:12px"><span class="mu">${esc(it.date.slice(5))}</span> ${esc(it.name||it.code)} <b class="${it.result.r>=0?'up':'dn'}">${it.result.r>=0?'+':''}${Number(it.result.r).toFixed(2)}R</b></span>`).join('');
+  const tform=`<input id="tkcode" placeholder="종목코드" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tkentry" placeholder="매수가" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tkstop" placeholder="손절가" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tktarget" placeholder="목표가" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tkdays" placeholder="보유(일)" value="5" style="width:60px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="tkgo" class="sbtn">주문표 열기 (깃허브 이슈)</button>`;
+  setTimeout(()=>{ const g=$('#tkgo'); if(!g) return; g.onclick=()=>{ const v=id=>($(id).value||'').trim(); const c=v('#tkcode'); if(!c) return;
+    const e=+v('#tkentry')||0, st=+v('#tkstop')||0, tg=+v('#tktarget')||0; const rr=e>st&&st>0?((tg-e)/(e-st)).toFixed(2):'';
+    window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
+  return `<div style="border-top:1px solid var(--line);margin-top:8px;padding:8px 0;font-size:12.5px;line-height:1.7;white-space:normal"><b class="am">주문표</b> <span class="mu" style="font-size:11px">매수 전 필수(규정 [4]) · 손익비 1:2 미만·레버리지·개장 30분·이벤트 당일 거부 · 추격은 절반 · 1회 리스크 = 위성 북 × r</span>${T?` <span style="font-size:11.5px">· 채점 ${T.n}건 · 승률 <b>${Math.round((T.hit||0)*100)}%</b> · 평균 <b class="${T.avg_r>=0?'up':'dn'}">${T.avg_r>=0?'+':''}${T.avg_r}R</b></span>`:''}
+    ${rows?`<table style="margin-top:4px"><tr><th class="l">종목</th><th>매수가</th><th>손절(실효)</th><th>목표가</th><th>손익비</th><th>판정</th><th>남은 기간</th><th class="l">최대 수량 · 선언</th></tr>${rows}</table>`:'<div class="mu" style="font-size:11px">열린 주문표 없음</div>'}
+    ${hist?`<div style="font-size:11.5px;margin-top:4px"><span class="mu">최근 채점</span> ${hist}</div>`:''}
+    <div style="margin-top:6px">${tform}</div>
+    <div class="mu" style="font-size:11px">제목 \`ticket &lt;코드&gt;\` · 본문 매수가/손절가/목표가/근거/보유 n일 (금액은 100만 이하 또는 비중 %만 공개 기록) · 답글에 판정표</div></div>`;
+}
+function decBox(){
+  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(view==='sig'||view==='daily') render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); return ''; }
+  if(!DEC||!DEC.items||!DEC.items.length) return '';
+  const T=DEC.tally||{}, K=x=>num(Math.round(x),0);
+  const who=[...new Set(DEC.items.flatMap(i=>Object.keys(i.picks)))];
+  const REPO='hk99915-bot/market-screener', IU=(t,b)=>`https://github.com/${REPO}/issues/new?title=${encodeURIComponent(t)}&body=${encoding(b)}`, encoding=encodeURIComponent;
+  const US_CH=[['SPY 1000000','SPY'],['QQQ 1000000','QQQ'],['SOXX 1000000','SOXX'],['SQQQ 1000000','SQQQ'],['현금','현금']], KR_CH=[['069500 1000000 시가','KODEX 200'],['122630 1000000 시가','레버리지'],['114800 1000000 시가','인버스'],['현금','현금']];
+  const isUS=it=>it.market==='US', mkTag=it=>`<span class="tag" style="font-size:10px;padding:0 4px;${isUS(it)?'color:#4cc9f0;border-color:#4cc9f0':''}">${isUS(it)?'미장':'국장'}</span>`;
+  const pk=(p,it)=>p.pending?`<span class="am">제출 대기</span> <span style="font-size:11px">${(isUS(it)?US_CH:KR_CH).map(([b,n])=>`<a target="_blank" href="${IU((isUS(it)?'pick-us ':'pick ')+it.date,b)}">${n}</a>`).join(' · ')}</span>`
+    :p.cash?esc(p.label||'현금 유지'):`${esc(p.name||p.ticker)} ${p.notional?K(p.notional/10000)+'만':''}${p.submitted?` <span class="mu" style="font-size:11px">(${esc(p.submitted)} 제출)</span>`:''}`;
+  setTimeout(()=>{ const g=$('#exgo'); if(!g) return; g.onclick=()=>{ const c=($('#excode').value||'').trim(), a=($('#examt').value||'').trim(), act=document.querySelector('input[name=exact]:checked'); if(!c) return;
+    window.open(IU(`exit ${c}${a?' '+a:''}`, act?act.value:'보유'),'_blank'); }; },0);
+  return `<div class="p" style="margin-bottom:10px"><h2>판단 성적표<small>나 vs PB · 결정마다 실제 가격으로 채점</small></h2><div class="b">
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${who.map(w=>{const t=T[w]||{win:0,n:0,pnl:0}; return `<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${esc(w)}</div><b>${t.win}승 / ${t.n}전</b> · 누적 <span class="${t.pnl>=0?'up':'dn'}">${t.pnl>=0?'+':''}${K(t.pnl)}원</span>${statLine(t)}</div>`;}).join('')}</div>
+   ${DEC.tally_by_market?['KR','US'].map(m=>{const TM=DEC.tally_by_market[m]||{}; return `<div style="font-size:11.5px;margin-bottom:2px"><span class="mu" style="display:inline-block;width:34px">${m==='US'?'미장':'국장'}</span>${who.map(w=>{const t=TM[w]||{win:0,n:0,pnl:0}; return `<span style="margin-right:12px"><span class="mu">${esc(w)}</span> ${t.win}/${t.n} <span class="${t.pnl>=0?'up':'dn'}">${t.pnl>=0?'+':''}${K(t.pnl)}</span></span>`;}).join('')}</div>`;}).join(''):''}
+   ${ticketBox(DEC,IU)}
+   ${[...DEC.items].filter(it=>it.kind!=='ticket').reverse().map(it=>{const r=it.result; return `<div style="border-top:1px solid var(--line);padding:8px 0;line-height:1.6;white-space:normal">
+      <div><span class="mu">${esc(it.date.slice(5))}</span> ${mkTag(it)} <b>${esc(it.title)}</b> ${r?(r.void?`<span class="mu" style="font-size:11px">${esc(r.void)}</span>`:r.winner?`<span class="tag">${esc(r.winner)} 승</span>`:'<span class="tag">무승부</span>'):'<span class="mu" style="font-size:11px">채점 대기</span>'}</div>
+      <div class="mu" style="font-size:11.5px">${esc(it.note||'')}</div>
+      ${it.basis?`<div style="font-size:11.5px;border-left:2px solid var(--amber);padding-left:6px;margin-top:3px"><span class="am">판단 시점 ${esc(String(it.basis.at).slice(5))}</span> <span class="mu">${esc(it.basis.src||'')}</span>${(it.basis.lines||[]).map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}
+      ${it.pb_view?`<div style="font-size:12px;border-left:2px solid #c77dff;padding-left:6px;margin-top:3px"><b style="color:#c77dff">PB 판단 ${esc(it.pb_view.at||'')}</b>${it.pb_view.conviction?` <span class="mu">확신 ${esc(it.pb_view.conviction)}</span>`:''}<div>${esc(it.pb_view.why||'')}</div>${planHtml(it.pb_view.plan)}${it.pb_view.real?`<div style="font-size:12px">💼 실전 적용: <b>${it.pb_view.real.ok?'가능':'규칙상 비추천'}</b>${it.pb_view.real.size_pct!=null?` · 총자산의 ${(it.pb_view.real.size_pct*100).toFixed(0)}% 이내`:''}${it.pb_view.real.note?' — '+esc(it.pb_view.real.note):''}</div>`:''}${it.pb_view.bold?`<div style="font-size:12px">🔥 <b>공격 PB</b> <span class="mu">(모의 전용)</span> ${esc(it.pb_view.bold.why||'')}</div>${planHtml(it.pb_view.bold.plan)}`:''}${(it.pb_view.lines||[]).map(x=>'<div class="mu">· '+esc(x)+'</div>').join('')}</div>`:''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${Object.keys(it.picks).map(w=>`<div style="flex:1;min-width:140px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}</span><div style="font-size:12.5px">${pk(it.picks[w],it)}</div>${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:12px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div></div>`;}).join('')}
+   <div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-size:12.5px;line-height:1.8;white-space:normal"><b class="am">매도 타점 대결 열기</b> <span class="mu" style="font-size:11px">팔까(손절·익절) 말까 — PB가 규칙으로 판정, 5거래일 뒤 종가로 채점</span><br>
+     <input id="excode" placeholder="종목코드 (예: 000660)" style="width:150px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px">
+     <input id="examt" placeholder="평가금액(원)" style="width:120px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px">
+     <label><input type="radio" name="exact" value="보유" checked> 나는 보유</label> <label><input type="radio" name="exact" value="매도"> 나는 매도</label>
+     <button id="exgo" class="sbtn">제출 (깃허브 이슈)</button>
+     <div class="mu" style="font-size:11px">진입 타점 대결은 매 거래일 14:55 무렵(국장, 15:30 마감) · 22:00 무렵(미장, 09:30 ET 개장 전 마감) 텔레그램으로 열림 · 이슈가 열리면 '제출'만 누르면 됨</div></div>
+   <div class="mu" style="font-size:11px;margin-top:4px">모의 기록 포함 · 한 판은 운, 20판 이상 쌓여야 실력</div></div></div>`;
+}
+</script>
