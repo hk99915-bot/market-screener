@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 66개 · 진행 2 · 검수 19 · 대기 21 · 보류 2 · 완료 22
+기준일 2026-10-16 · 작업 67개 · 진행 2 · 검수 20 · 대기 21 · 보류 2 · 완료 22
 
 ## 진행 (2)
 
@@ -11,10 +11,11 @@
 | P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-18 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 
-## 검수 (19)
+## 검수 (20)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
+| P0 | `crash-day-active` | 급락일 종가를 1차 신호로: _stance 급락일(≤−5%) → 분할 매수(외국인 조건 삭제, 회복 확인=20일선 2일), 15:05 crash_check 알림, PB 급락일 현금 사유 필수·성적표 행동률, 점도표 퀀트 매수2 | 개발 | 2026-10-16 | 2026-10-17 | `screener/committee.py`<br>`screener/alerts.py`<br>`screener/duel.py`<br>`screener/dotplot.py`<br>`screener/main.py`<br>`scripts/scorecard_week.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs`<br>`tests/test_crash_day.py` | — | 10/15 복기(급락일 종가 1등 신호에 모델 '관망'·PB 현금). 모델·알림만 변경, rules.txt 는 일요일 별도 결정. GAS Scheduler.gs 15:05 슬롯 재붙여넣기 필요. |
 | P0 | `semis-cap-study` | semis_cap 사전등록 검증 — 테마 한도 40% vs 35% vs 밴드(40/45/30) 백테스트 | 퀀트 | 2026-10-16 | 2026-10-18 | `reports/studies/semis_cap.md`<br>`reports/studies/semis_cap.json` | — | 결과 71f87fd9·c9fe8595: H1(밴드) C · H2(글라이드) A · H3(하락장 캡) F — 안건 7·8-A·8-C 의 데이터 근거. PB 검수 후 일요일 안건 팩에 등급 그대로 인용. 개인 비중 없이 파라미터만. |
 | P0 | `sunday-scorecard-auto` | 일요일 성적표 자동 생성: 규칙 준수·위반·알파(기준점 대비)·대결 전적(나🔥 감/판단 분리)·정합성 표 | 개발 | 2026-10-16 | 2026-10-18 | `scripts/scorecard_week.py`<br>`.github/workflows/lab.yml` | — | 개인 금액은 pb-private/scorecard/build_week.py 쪽에서, 공개는 비율만. |
 | P0 | `rebound-alert` | 14:25 반등일 판정 알림 (--mode rebound, cron + GAS 슬롯, 지수 비율만) | 운영 | 2026-10-16 | 2026-10-19 | `screener/rebound.py`<br>`screener/decisions.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | `gas-repaste` | 1ac92739. 다음 거래일 10/19 14:25 첫 실전 도착(GitHub cron·GAS 중복 억제) 확인 후 완료. 메시지에 개인 수치 없음 재확인. |
@@ -97,15 +98,17 @@
 
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
 
-- `.github/workflows/briefing.yml` ← `cmt-v2`, `rebound-alert`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
+- `.github/workflows/briefing.yml` ← `cmt-v2`, `rebound-alert`, `valuation-daily`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Code.gs` ← `view-registry`, `deriv-tab`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2`, `order-ticket-form`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
-- `apps-script/Scheduler.gs` ← `cmt-v2`, `rebound-alert` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/Scheduler.gs` ← `cmt-v2`, `rebound-alert`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `content/study.json` ← `study-derivs`, `edu-curriculum-v3` — 편집 전 `ops/locks.json` 잠금 필수
-- `screener/committee.py` ← `view-registry`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/committee.py` ← `view-registry`, `cmt-v2`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/decisions.py` ← `rebound-alert`, `order-ticket-form` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
-- `screener/duel.py` ← `view-registry`, `order-ticket-form` — 편집 전 `ops/locks.json` 잠금 필수
-- `screener/main.py` ← `view-registry`, `cmt-v2`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/dotplot.py` ← `dotplot`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/duel.py` ← `view-registry`, `order-ticket-form`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/main.py` ← `view-registry`, `cmt-v2`, `valuation-daily`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/build_pages.py` ← `view-registry`, `deriv-tab`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
+- `scripts/scorecard_week.py` ← `sunday-scorecard-auto`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 

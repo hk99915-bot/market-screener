@@ -330,7 +330,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot", "crash_check"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -475,6 +475,9 @@ def main() -> None:
         elif a.mode == "rebound":      # 14:25 KST 반등일 판정 알림 (규정 [12]: 14:30 코스피 ≥ 전일 종가 +0.5%) — 지수 비율만, 보유·금액 없음
             from . import rebound
             rebound.run(send=not a.no_send)
+        elif a.mode == "crash_check":  # 15:05 KST 급락일 종가 매수 신호 (코스피 장중 ≤ −4.5% → 텔레그램 1회, 1차 신호 · 등급 registry 인용) — 지수 비율만
+            from . import alerts
+            print(alerts.crash_check(send=not a.no_send))
         elif a.mode == "deriv_hist":   # 수급·파생 일별 이력 1행 적재 → data/deriv/daily.csv (알림 없음, 백필은 python -m screener.deriv_hist --task backfill)
             from . import deriv_hist
             deriv_hist.run("run")

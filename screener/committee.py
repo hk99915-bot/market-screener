@@ -6,6 +6,9 @@
 3. 종목 아이디어: 이익 신호는 좋은데 과하게 빠진 종목(매수 후보) / 이익 신호가 꺾였는데 비싼 종목(회피)
 4. 운용 시나리오 3개: 강세·기본·약세 — 확률(1999~ 코스피 조건부 통계), 전환 신호, 행동
 5. 검증 현황: 시그널 판정·과거 회의 성적
+6. 판정(_stance)·실행 대본(_exec_plan): **1차 신호 = 급락일 종가**(코스피 장중/종가 ≤ −5.0%, 등급은 views/registry.json `crash_day_close` 를 그대로 인용).
+   급락일엔 외국인 수급과 무관하게 '분할 매수'(1차 집행). '회복 확인'은 외국인 2일 조건을 빼고 **20일선 2일 연속 회복**(노출 상향 기준)으로 본다.
+   — 10/15 복기: 외국인 2일 조건이 1등 신호(급락일 종가)를 막아 '관망'을 냈음. 모델(운용회의·알림)만 바꾸며 규정 원본(rules.txt)은 별도 결정.
 기록 → reports/committee_hist.json, 다음 실행부터 5·20거래일 성과로 채점.
 """
 from __future__ import annotations
@@ -79,7 +82,47 @@ def _kospi_state() -> dict:
         return {}
     last = c[-1]
     return {"last": last, "ret1": last / c[-2] - 1, "dd20": last / max(c[-21:]) - 1, "from_hi": last / max(c[-250:]) - 1,
-            "low_today": lo[-1], "low20": min(lo[-20:]), "hi5": max(c[-5:]), "src": src, "sma20": st.mean(c[-20:]), "sma50": st.mean(c[-50:])}
+            "low_today": lo[-1], "low20": min(lo[-20:]), "hi5": max(c[-5:]), "src": src, "sma20": st.mean(c[-20:]), "sma50": st.mean(c[-50:]),
+            "prev_close": c[-2], "above20_streak": _above_sma_streak(c, 20)}
+
+
+def _above_sma_streak(c: list[float], n: int = 20) -> int:
+    """끝에서부터 종가가 n일 이동평균 위인 날이 몇 일 연속인지 (회복 확인 = 20일선 2일 연속 회복)."""
+    k = 0
+    for i in range(len(c) - 1, n - 1, -1):
+        if c[i] > st.mean(c[i - n + 1:i + 1]):
+            k += 1
+        else:
+            break
+    return k
+
+
+CRASH_PCT, CRASH_NEAR_PCT = -0.05, -0.04
+
+
+def crash_day_grade() -> str:
+    """views/registry.json `crash_day_close` 의 evidence.grade 를 그대로 반환 (없으면 '검증전')."""
+    try:
+        reg = json.loads((REPORT_DIR.parent / "views" / "registry.json").read_text(encoding="utf-8"))
+        for l in reg.get("lenses") or []:
+            if isinstance(l, dict) and l.get("id") == "crash_day_close":
+                return str(((l.get("evidence") or {}).get("grade")) or "검증전")
+    except Exception as e:  # noqa: BLE001
+        log.info("registry 등급 읽기 실패: %s", e)
+    return "검증전"
+
+
+def crash_flag(k: dict) -> dict:
+    """급락일 판정: 코스피 장중 저가 또는 종가가 전일 종가 대비 ≤ −5.0% → crash, ≤ −4.0% → near.
+    반환 {crash, near, ret1, low_ret, grade, thr}. k 가 비면 전부 False."""
+    ret1 = k.get("ret1") if k else None
+    if ret1 is None:
+        return {"crash": False, "near": False, "ret1": None, "low_ret": None, "grade": crash_day_grade(), "thr": CRASH_PCT}
+    prev = k.get("prev_close") or ((k.get("last") or 0) / (1 + ret1) if k.get("last") else None)
+    low_ret = (k["low_today"] / prev - 1) if (k.get("low_today") and prev) else None
+    worst = min(x for x in (ret1, low_ret) if x is not None)
+    return {"crash": worst <= CRASH_PCT, "near": worst <= CRASH_NEAR_PCT, "ret1": ret1, "low_ret": low_ret,
+            "grade": crash_day_grade(), "thr": CRASH_PCT}
 
 
 def _scenarios(k: dict, stu: dict, mv: dict) -> list[dict]:
@@ -93,7 +136,7 @@ def _scenarios(k: dict, stu: dict, mv: dict) -> list[dict]:
     mvs = (mv or {}).get("label") or "중립"
     return [
         {"name": "강세 — 급반등·추세 회복", "prob": p.get("bull"), "def": "20거래일 뒤 코스피 +5% 초과",
-         "trigger": f"외국인 현물 2일 연속 순매수 전환 + 코스피 5일 고점({k.get('hi5', 0):,.0f}) 회복",
+         "trigger": f"코스피 20일선({k.get('sma20') or 0:,.0f}) 2일 연속 종가 회복 (노출 상향 기준 · 외국인 조건 없음)",
          "action": "반도체는 테마 한도(40%) 넘는 만큼 반등 때 덜고, 현금 분할 매수 2차 집행(비반도체 우선), 인버스 헷지 해제"},
         {"name": "기본 — 반등 후 박스", "prob": p.get("base"), "def": "20거래일 뒤 ±5% 이내",
          "trigger": f"오늘 저점({lowt:,.0f}) 지지, 외국인 매도 둔화(일 −1조 이내)",
@@ -157,21 +200,28 @@ def _flows2() -> list[float]:
 
 
 def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der: dict) -> dict:
-    """시나리오 확률 ≠ 행동. 확률 1등이어도 '전환 신호'가 안 나왔으면 진입하지 않는다 — 그 이유를 데이터로 적는다."""
+    """시나리오 확률 ≠ 행동. 1차 신호는 '급락일 종가'(장중/종가 ≤ −5%): 그날은 외국인 수급과 무관하게 '분할 매수'(1차 집행).
+    급락일이 아니면 '회복 확인'(20일선 2일 연속 회복)에만 분할 매수, 20일 저점 이탈이면 방어, 그 외 관망 — 이유는 데이터로 적는다."""
     bull = next((s for s in scen if s["name"].startswith("강세")), {})
     pb, n = bull.get("prob") or 0, sb.get("n") or 0
     reasons = []
+    cf = crash_flag(k)
+    if cf["crash"]:
+        reasons.append({"t": f"급락일 종가 — 1차 신호 충족 (등급 {cf['grade']})",
+                        "d": f"코스피 종가 {cf['ret1']*100:+.1f}%" + (f" · 장중 저가 {cf['low_ret']*100:+.1f}%" if cf.get("low_ret") is not None else "")
+                             + f" ≤ {CRASH_PCT*100:.1f}%. 급락일 종가 매수: 20일 +7.5%·승률 81%(n=16, entry_signals) — 저점 지지·5일 고점 기다리기보다 우월. 외국인 수급은 조건이 아님(10/15 복기)."})
+    elif cf["near"]:
+        reasons.append({"t": "급락일 근접 (−4% 이하)", "d": f"코스피 {cf['ret1']*100:+.1f}% — 15:05 재점검, 종가/저가 −5% 도달 시 1차 신호."})
     if n:
         se = (pb * (1 - pb) / n) ** 0.5
         reasons.append({"t": "확률은 1등이지만 과반이 아님",
                         "d": f"강세 {pb*100:.0f}%는 '강세가 아닐 확률' {100-pb*100:.0f}%와 같은 말. 표본 {n}회라 오차 범위가 대략 {max(0,pb-1.96*se)*100:.0f}~{min(1,pb+1.96*se)*100:.0f}%로 넓음 — 동전 던지기와 통계적으로 잘 구분되지 않음."})
-    fl = _flows2()
-    hi5, last = k.get("hi5"), k.get("last")
-    met_f = len(fl) >= 2 and fl[0] > 0 and fl[1] > 0
-    met_p = bool(hi5 and last and last >= hi5)
-    fs = " · ".join(f"{'오늘' if i == 0 else '전일'} {v/1e4:+.2f}조" for i, v in enumerate(fl[:2])) if fl else "수급 데이터 없음"
-    reasons.append({"t": "강세 전환 신호 미충족" if not (met_f and met_p) else "강세 전환 신호 충족",
-                    "d": f"규칙: 외국인 2일 연속 순매수 + 5일 고점({hi5 or 0:,.0f}) 회복. 현재 외국인 {fs} → {'충족' if met_f else '미충족'}, 지수 {last or 0:,.0f} → {'충족' if met_p else '미충족'}. 시나리오의 '행동'은 신호가 확인된 뒤에 집행하도록 정의돼 있음."})
+    last, sma20 = k.get("last"), k.get("sma20")
+    streak = int(k.get("above20_streak") or 0)
+    met_rec = streak >= 2
+    reasons.append({"t": "회복 확인 충족 (20일선 2일 연속)" if met_rec else "회복 확인 미충족",
+                    "d": f"규칙: 코스피 종가가 20일선({sma20 or 0:,.0f}) 위 2일 연속 → 노출 상향(2차). 현재 {last or 0:,.0f}, 20일선 위 {streak}일. "
+                         "외국인 2일 순매수 조건은 삭제(entry_signals F — 10/15 급락일 1차 신호를 막은 조건)."})
     if k.get("ret1") is not None and k.get("low_today") and last:
         nearlow = (last / k["low_today"] - 1) < 0.01
         reasons.append({"t": "종가가 저가권" if nearlow else "장중 저가 대비 반등",
@@ -196,17 +246,23 @@ def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der
                              " — 딜러 헤지가 추세를 키우는 구간이라 반등도 크지만 추가 급락도 커짐. 방향 확신 없이 레버리지는 불리."})
     reasons.append({"t": "이미 걸려 있는 노출",
                     "d": "보유 포지션이 반도체·IT 위주면 반등 베팅은 이미 들어가 있음. 같은 방향 레버리지를 얹으면 분산이 아니라 같은 베팅을 두 배로 하는 것."})
-    if met_f and met_p:
+    if cf["crash"]:
+        st_ = "분할 매수"   # 1차 신호: 급락일 종가 — 외국인 수급·20일 저점 여부와 무관하게 1차 집행
+        plan = (f"급락일 종가 1차 매수(등급 {cf['grade']}) — 15:20 동시호가. 크기 = 해금 단계 리스크(1단계 0.25%). "
+                "실계좌 신규는 해금 후(11/16), 그 전엔 모의 '나' 픽 + ISA 선매수(승인 시). 반도체 테마 한도 40% 안에서(신규는 비반도체). 레버리지 없음.")
+    elif met_rec:
         st_ = "분할 매수"
+        plan = "회복 확인(20일선 2일 연속) — 노출 상향: 현금 1/3씩 분할 집행, 반도체 테마 한도 40% 안에서(신규는 비반도체)."
     elif k.get("low20") and last and last < k["low20"] * 0.995:
         st_ = "방어"
+        plan = "20일 저점 이탈 — 가격 규칙 기계적 집행, 인버스 25% 헷지. 단 하루 −5% 급락이 오면 그날 종가는 1차 신호(위 규칙 우선)."
     else:
         st_ = "관망"
-    plan = {"관망": f"오늘은 현금 유지. 다음 거래일 외국인 순매수 전환 + 저점({k.get('low_today') or 0:,.0f}) 지지가 확인되면 1차 분할(비반도체 우선), 5일 고점 회복 시 2차.",
-            "분할 매수": "신호 충족 — 현금 1/3씩 분할 집행, 반도체 테마 한도 40% 안에서(신규는 비반도체).",
-            "방어": "20일 저점 이탈 — 가격 규칙 기계적 집행, 인버스 25% 헷지."}[st_]
-    return {"stance": st_, "plan": plan, "reasons": reasons,
-            "summary": (f"PB 판단: {st_} — 강세 확률이 가장 높아도 전환 신호 확인 전엔 진입 안 함 (확률 = 방향, 신호 = 타이밍)" if st_ == "관망" else f"PB 판단: {st_}")}
+        plan = (f"오늘은 현금 유지. 1차 신호 = 급락일 종가(코스피 −5%, 15:05 점검) · 2차 = 20일선({sma20 or 0:,.0f}) 2일 연속 회복 시 노출 상향. "
+                "외국인 수급은 조건이 아님.")
+    return {"stance": st_, "plan": plan, "reasons": reasons, "crash_day": cf,
+            "summary": (f"PB 판단: {st_} — 1차 신호(급락일 종가)·2차 신호(20일선 2일 회복) 모두 미충족 (확률 = 방향, 신호 = 타이밍)" if st_ == "관망"
+                        else f"PB 판단: {st_}" + (f" — 급락일 종가 1차 집행 (등급 {cf['grade']})" if cf["crash"] else ""))}
 
 
 def _bars(code: str) -> list[dict]:
@@ -239,12 +295,16 @@ def _exec_plan(k: dict, stance: dict, der: dict, longs: list[dict]) -> dict:
     언제·무슨 조건이면·무엇을·얼마나·어디서 손절/익절. 비중은 총자산 % (금액·개인 보유 내역은 공개 파일에 안 씀)."""
     lowt, hi5, last = k.get("low_today") or 0, k.get("hi5") or 0, k.get("last") or 0
     neg = der.get("gex_bn") is not None and der["gex_bn"] < 0
-    fl = _flows2()
+    cf = (stance or {}).get("crash_day") or crash_flag(k)
+    g = cf.get("grade") or crash_day_grade()
     # 2026-10-16 백테스트(reports/studies/playbook_signals.md, 2010~2026 코스피 급락 55건): 저점 지지·5일 고점 2차·약세 경로 청산은
-    # 전부 '급락일 종가 매수'보다 나빴음 → 게이트에서 빼고 참고 표시만. 외국인 수급은 이력이 없어 검증 불가.
-    sig = [{"t": "외국인 순매수 전환 (참고 — 이력 없어 검증 전)", "now": (f"오늘 {fl[0]/1e4:+.2f}조" if fl else "데이터 없음"), "ok": bool(fl and fl[0] > 0)},
-           # 10/16 재검증(reports/studies/exec_signal.md): 'last >= lowt'는 종가 ≥ 저가라 항상 참(결함) → 저가 +1% 위 마감(C등급)으로 교정
-           {"t": f"오늘 저점 {lowt:,.0f} +1% 위 마감 (C — 참고)", "now": f"{last:,.0f}", "ok": bool(last and lowt and last >= lowt * 1.01)},
+    # 전부 '급락일 종가 매수'보다 나빴음 → 1차 신호 = 급락일 종가(등급은 registry 인용). 외국인 수급은 이력이 없어 검증 불가 → 신호에서 제외.
+    sig = [{"t": f"급락일 종가 — 1차 신호 (등급 {g}, 코스피 장중/종가 ≤ −5%)",
+            "now": (f"{cf['ret1']*100:+.1f}%" + (f" · 저가 {cf['low_ret']*100:+.1f}%" if cf.get("low_ret") is not None else "")) if cf.get("ret1") is not None else "데이터 없음",
+            "ok": bool(cf.get("crash"))},
+           # 10/16 재검증(reports/studies/exec_signal.md): 'last >= lowt'는 종가 ≥ 저가라 항상 참(결함) → 저가 +1% 위 마감(C등급)으로 교정. 2차 참고.
+           {"t": f"오늘 저점 {lowt:,.0f} +1% 위 마감 (C — 2차 참고)", "now": f"{last:,.0f}", "ok": bool(last and lowt and last >= lowt * 1.01)},
+           {"t": f"20일선({k.get('sma20') or 0:,.0f}) 2일 연속 회복 (노출 상향 기준)", "now": f"{last:,.0f} · 위 {int(k.get('above20_streak') or 0)}일", "ok": int(k.get("above20_streak") or 0) >= 2},
            {"t": f"5일 고점 {hi5:,.0f} (참고 — 2차 조건에서 제외)", "now": f"{last:,.0f}", "ok": bool(last and hi5 and last >= hi5)}]
     cands = []
     for x in longs:
@@ -258,11 +318,12 @@ def _exec_plan(k: dict, stance: dict, der: dict, longs: list[dict]) -> dict:
         if len(cands) >= 3:
             break
     steps = [
-        {"when": "1차 진입 (급락일 종가 동시호가, 장 마감 후 발표면 다음 날 아무 때나)", "do": "비반도체 후보 1~2종목, 종목당 '1차 비중' (1% 리스크 수량의 절반)",
-         "why": "백테스트: 신호 기다리기(저점 지지·5일 고점)는 급락일 종가 매수보다 20일 −2.2~−5.7%p 나빴음. 기다리는 비용이 진짜 비용"},
+        {"when": f"급락일 종가 1차 매수 — 15:20 동시호가 (1차 신호 · 등급 {g})" + (" · 오늘 충족" if cf.get("crash") else " · 오늘 미충족"),
+         "do": "크기 = 해금 단계 리스크(1단계 0.25%) · 실계좌 신규는 해금 후(11/16), 그 전엔 모의 '나' 픽 + ISA 선매수(승인 시)",
+         "why": "급락일 종가: 20일 +7.5%·승률 81%(n=16, entry_signals). 신호 기다리기(저점 지지·5일 고점)는 20일 −2.2~−5.7%p 나빴음. 10/15 외국인 2일 조건이 이 신호를 막음 → 조건 삭제"},
         {"when": "장 시작 직후", "do": "급하게 안 사도 됨 — 시초가 호가가 얇으면 30분 뒤" + (" (옵션 감마 음수: 장 초반 흔들림 큼)" if neg else ""),
          "why": "체결 품질 때문이지 엣지는 아님 (다음 날 시가 vs 종가 차이 +0.1%p, 유의하지 않음)"},
-        {"when": "2차", "do": "보류 — 검증 대기. 1차만 운용",
+        {"when": "2차 (참고)", "do": "저가 +1% 위 마감(C)은 참고만 · 노출 상향은 20일선 2일 연속 회복 시",
          "why": "'5일 고점 회복 시 추가'는 반등 대부분을 놓쳐서 −3.9%p(20일). 대안(10일 내 추가 −5% 시 같은 크기)은 사전등록 후 재검증"},
         {"when": "익절", "do": "+1R에서 1/3, +2R에서 1/3, 나머지는 최고가−3×ATR 트레일링",
          "why": "손익비 1:2 이상 확보 후 추세는 끌고 감"},
@@ -271,9 +332,9 @@ def _exec_plan(k: dict, stance: dict, der: dict, longs: list[dict]) -> dict:
         {"when": f"약세 경로 (저점 {lowt:,.0f} 2일 연속 종가 이탈)", "do": "경보: 신규 진입 중단 + 레버리지·인버스 노출 점검. 청산은 종목별 손절선만",
          "why": "지수 기준 일괄 청산은 급락 55건 중 53%에서 발동해 −4.0%p(20일). 계획한 종목 손절은 협상 대상 아님"},
     ]
-    dont = ["반도체 물타기", "레버리지 ETF 신규(테마 한도 초과 상태)", "장중 −3%에 손절선 옮기기", "손절선 없는 매수"]
+    dont = ["레버리지 (급락일에도)", "반도체 물타기", "장중 −3%에 손절선 옮기기", "손절선 없는 매수", "급락일 근거 없는 관망(안 하면 사유 기록)"]
     return {"book": "PB 북 — 기관처럼 매일 시장 참여 가정 (겸이 실계좌 적용은 성적표 '실전 적용'에서)",
-            "signals": sig, "steps": steps, "cands": cands, "dont": dont,
+            "signals": sig, "steps": steps, "cands": cands, "dont": dont, "crash_day": cf, "primary": "crash_day_close",
             "note": "비중 = 총자산 대비 %. 1차 비중 = min(1% ÷ 손절폭, 15%) ÷ 2. 손절 = max(20일 저점, 종가 − 2×ATR14). 목표 = 2R. 손절폭 15% 초과 종목 제외."}
 
 
@@ -369,7 +430,8 @@ def build(session: str = "장후") -> dict:
            "scenarios": scen, "scenario_basis": sb, "sectors": sectors, "themes": themes[:8] + themes[-5:] if len(themes) > 13 else themes,
            "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10], "stance": stance,
            "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "rv20", "skew", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
-           "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {})}
+           "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {}),
+           "crash_day": stance.get("crash_day") or crash_flag(k)}
     try:   # 모닝 미팅 v2 섹션 (기존 키는 유지, 새 키만 추가)
         _v2_build(out, k, der, chains, themes, peers, cal, stu, _bucket(k, stu), _dl, session)
     except Exception as e:  # noqa: BLE001
@@ -1139,7 +1201,7 @@ def _v2_premortem(stance: dict, scen: list[dict], k: dict, stu: dict) -> dict:
     if s in ("관망", None):
         return {"wrong": "관망이 틀린 경우: V자 반등 — 신호 확인 전에 반등 대부분이 지나감",
                 "p": bull.get("prob"),
-                "tell": f"코스피 5일 고점 {k.get('hi5') or 0:,.0f} 회복 + 외국인 순매수 전환",
+                "tell": f"코스피 20일선 {k.get('sma20') or 0:,.0f} 2일 연속 회복 (또는 하루 −5% 급락 → 그날 종가가 1차 신호)",
                 "cost": (f"1999~ 비슷한 날 다음날 평균 {dp.get('avg', 0)*100:+.1f}% (상승 {dp.get('up', 0)*100:.0f}%)" if dp else None),
                 "action": "추격 매수 금지 — 1차 비중만 집행, 손절선은 20일 저점·2×ATR 그대로. 2차 진입은 검증 대기"}
     if s == "분할 매수":

@@ -1127,6 +1127,29 @@
     "dotplot"
    ],
    "notes": "10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외."
+  },
+  {
+   "id": "crash-day-active",
+   "title": "급락일 종가를 1차 신호로: _stance 급락일(≤−5%) → 분할 매수(외국인 조건 삭제, 회복 확인=20일선 2일), 15:05 crash_check 알림, PB 급락일 현금 사유 필수·성적표 행동률, 점도표 퀀트 매수2",
+   "owner": "개발",
+   "status": "검수",
+   "priority": "P0",
+   "repo": "public",
+   "files": [
+    "screener/committee.py",
+    "screener/alerts.py",
+    "screener/duel.py",
+    "screener/dotplot.py",
+    "screener/main.py",
+    "scripts/scorecard_week.py",
+    ".github/workflows/briefing.yml",
+    "apps-script/Scheduler.gs",
+    "tests/test_crash_day.py"
+   ],
+   "started": "2026-10-16",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "10/15 복기(급락일 종가 1등 신호에 모델 '관망'·PB 현금). 모델·알림만 변경, rules.txt 는 일요일 별도 결정. GAS Scheduler.gs 15:05 슬롯 재붙여넣기 필요."
   }
  ]
 }

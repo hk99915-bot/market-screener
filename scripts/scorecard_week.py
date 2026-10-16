@@ -123,6 +123,27 @@ def duel_record(items: list[dict], mon: date, sun: date) -> dict:
     return {"scored": scored, "void": void, "pending": pending, "by": out}
 
 
+def crash_day_pb(items: list[dict], mon: date, sun: date) -> dict:
+    """급락일 PB 행동률 — 이번 주 급락일(항목 crash_day=True, KR entry) 수와 그중 PB 가 행동한 수.
+    행동 = 현금이 아닌 PB 픽, 또는 현금이지만 게이트 불통 사유를 명시(pb_view.gate_fail 또는 why 에 '게이트')."""
+    n = acted = 0
+    days = []
+    for it in items:
+        if it.get("kind") not in (None, "entry") or str(it.get("market", "KR")).upper() == "US" or not it.get("crash_day"):
+            continue
+        if not _in_week(it.get("date"), mon, sun):
+            continue
+        pb = (it.get("picks") or {}).get("PB")
+        if not pb:
+            continue
+        pv = it.get("pb_view") or {}
+        ok = (not pb.get("cash")) or bool(pv.get("gate_fail")) or ("게이트" in str(pv.get("why") or ""))
+        n += 1
+        acted += int(ok)
+        days.append({"date": it.get("date"), "acted": ok, "cash": bool(pb.get("cash"))})
+    return {"n": n, "acted": acted, "rate": (acted / n) if n else None, "days": days}
+
+
 # ---------------------------------------------------------------- 렌즈·연구
 def lens_table(reg: dict) -> dict:
     rows, counts = [], {g: 0 for g in GRADE_ORDER}
@@ -294,6 +315,9 @@ def render_md(res: dict) -> str:
             for k, b in (t.get("by_basis") or {}).items():
                 L.append(f"| └ 나🔥({k}) | {b['n']} | {b['win']}* | {pct(b['win_rate'], 0, False)} | {b['trades']} | {pct(b['hit'], 0, False)} | {pct(b['avg_ret'], 2)} | {b['pnl']:+,} |")
     L += ["", "\\* 나🔥 의 '승' = 같은 판에서 '나'보다 손익이 큰 횟수 (레버리지 해금 조건 판정용)", ""]
+    cd = res.get("crash_pb") or {}
+    L += [f"급락일 PB 행동률: {cd.get('acted', 0)}/{cd.get('n', 0)}" + (f" ({pct(cd['rate'], 0, False)})" if cd.get("rate") is not None else " (급락일 없음)")
+          + " — 급락일(코스피 −5%)에 현금이 아닌 PB 픽 또는 게이트 불통 사유 명시 건수", ""]
     cum = res.get("cumulative") or {}
     if cum:
         L += ["누적 (전체 기간): " + " · ".join(
@@ -347,6 +371,7 @@ def build(today: date | None = None) -> dict:
         "kospi": kospi_week(_j(REPORTS / "macro_series.json", {}), mon, sun),
         "duel": duel_record(dec.get("items") or [], mon, sun),
         "cumulative": dec.get("tally") or {},
+        "crash_pb": crash_day_pb(dec.get("items") or [], mon, sun),
         "regime": regime,
         "regime_now": cur_regime,
         "events": event_counts((_j(REPORTS / "events.json", {}) or {}).get("events") or [], mon, sun),

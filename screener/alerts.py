@@ -4,8 +4,9 @@
     기준선 = env RULE_STOP_LEVEL, 없으면 reports/committee.json 의 low20, 그것도 없으면 macro_series KOSPI 20일 저점(오늘 제외).
 (b) 기한: env RULE_DEADLINE (YYYY-MM-DD, 기본 2026-10-22) → D-2 · D-1 · D-day 한 줄.
 (c) 발동선: MY_HOLDINGS 가 있고 반도체(전기 제외·지수 ETF 룩스루 제외) 비중 > SEMI_BAND(기본 0.45) → "📐 반도체 발동선 초과 — 다음 반등일 40%로".
+(d) 급락일 종가 매수 신호: 평일 15:05 KST(--mode crash_check) 코스피 장중 ≤ −4.5% → "⚡ 급락일 종가 매수 신호 … 15:20 동시호가" (1차 신호, 등급은 registry 인용).
 
-같은 날 같은 알림은 한 번만 보낸다 (reports/alerts_state.json). 16:20 스크리너(KR)와 14:25 반등일 판정에서 호출.
+같은 날 같은 알림은 한 번만 보낸다 (reports/alerts_state.json). 16:20 스크리너(KR)와 14:25 반등일 판정, 15:05 급락 점검에서 호출.
 """
 from __future__ import annotations
 
@@ -178,3 +179,58 @@ def run(send: bool = True, at_close: bool = True) -> list[str]:
         _save(st)
     log.info("규정 알림 %d건%s", len(fresh), "" if send else " (전송 안 함)")
     return [line for _, line in fresh]
+
+
+# ───────────────────────────── (d) 급락일 종가 매수 신호 (15:05) ─────────────────────────────
+CRASH_ALERT_PCT = -0.045   # 15:05 장중 기준. 확정 판정(−5.0%)보다 느슨하게 울려 15:20 동시호가 전에 준비하게 한다
+CRASH_STUDY = "20일 +7.5%·승률 81%·n16"   # reports/studies/entry_signals.md 급락일 종가
+
+
+def crash_text(chg: float, grade: str, today: date | None = None, last: float | None = None) -> str:
+    """급락일 종가 매수 신호 문장 (지수 비율만). issue_url 은 모의 '나' 픽 등록 링크(069500 1000000 종가 선입력)."""
+    from .duel import issue_url
+    today = today or datetime.now(KST).date()
+    link = issue_url(str(today), "069500 1000000 종가\n근거: 급락일 종가(1차 신호)")
+    L = [f"⚡ <b>급락일 종가 매수 신호</b> (등급 {grade}, {CRASH_STUDY}) — 15:20 동시호가",
+         f"코스피 {last:,.2f} ({chg*100:+.2f}%)" if last else f"코스피 {chg*100:+.2f}%",
+         f"할 일: ① 모의 pick 등록(<a href=\"{link}\">링크</a>) ② ISA 선매수(안건 2 승인 시) ③ 위성 실계좌는 해금 후.",
+         "하지 말 일: 레버리지. 안 할 거면 사유를 기록."]
+    return "\n".join(L)
+
+
+def crash_check(q: dict | None = None, send: bool = True, today: date | None = None) -> dict | None:
+    """15:05 KST: 코스피 장중 등락률 ≤ CRASH_ALERT_PCT 면 텔레그램 1회(alerts_state 'crash'). 반환 {chg, last, fired, text}."""
+    today = today or datetime.now(KST).date()
+    if q is None:
+        try:
+            from .live import kr_naver
+            q = (kr_naver() or {}).get("KOSPI") or {}
+        except Exception as e:  # noqa: BLE001
+            log.warning("급락 점검: 코스피 시세 실패 %s", e)
+            q = {}
+    chg, last = q.get("chg"), q.get("last")
+    if chg is None:
+        log.warning("급락 점검: 코스피 시세 없음")
+        return None
+    out = {"date": str(today), "chg": round(float(chg), 4), "last": last, "thr": CRASH_ALERT_PCT, "fired": False, "text": None}
+    if chg > CRASH_ALERT_PCT:
+        log.info("급락 점검 %s: 코스피 %+.2f%% — 신호 없음", today, chg * 100)
+        return out
+    try:
+        from .committee import crash_day_grade
+        grade = crash_day_grade()
+    except Exception:  # noqa: BLE001
+        grade = "검증전"
+    out["text"] = crash_text(float(chg), grade, today, last)
+    st = _state()
+    key = f"{today}:crash"
+    if key in st.get("sent", {}):
+        log.info("급락 신호 이미 전송 (%s)", key)
+        return out
+    out["fired"] = True
+    if send:
+        from .report import send_telegram
+        send_telegram(out["text"])
+        st.setdefault("sent", {})[key] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+        _save(st)
+    return out

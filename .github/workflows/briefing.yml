@@ -9,6 +9,7 @@ on:
     - cron: "30 4 * * 1-5"    # 13:30 KST 장중 수급 (KR)
     - cron: "15 5 * * 1-5"    # 14:15 KST '판정 전' 운용회의 (장중 세션, 텔레그램 짧은 판)
     - cron: "25 5 * * 1-5"    # 14:25 KST 반등일 판정 알림 (코스피 vs 전일 종가 +0.5%, 비율만)
+    - cron: "5 6 * * 1-5"     # 15:05 KST 급락일 종가 매수 신호 점검 (코스피 장중 ≤ −4.5% → 15:20 동시호가 안내, 비율만)
     - cron: "45 6 * * 1-5"    # 15:45 KST 장 마감 확정치로 지수·데일리·운용회의 갱신
     - cron: "52 11 * * 1-5"   # 20:52 KST 미장 프리장 (정각은 GitHub 가 자주 건너뜀 → 비정각)
     - cron: "52 12 * * 1-5"   # 21:52 KST 미장 장전
@@ -20,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us | dashboard | dart | detail_kr | detail_us | shares | etf | themes | pb | quotes | bonds | lab | committee | close_kr | rebound | valuation"
+        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us | dashboard | dart | detail_kr | detail_us | shares | etf | themes | pb | quotes | bonds | lab | committee | close_kr | rebound | valuation | crash_check"
         required: true
         default: "reports"
 
@@ -59,6 +60,7 @@ jobs:
             "45 6 * * 1-5") MODE=close_kr ;;
             "35 2 * * 1-5"|"15 5 * * 1-5") MODE=committee ;;
             "25 5 * * 1-5") MODE=rebound ;;
+            "5 6 * * 1-5") MODE=crash_check ;;
             "52 11 * * 1-5"|"52 12 * * 1-5") MODE=premarket_us ;;
             "52 13 * * 1-5"|"52 18 * * 1-5") MODE=intraday_us ;;
             "10 10 * * 1-5") MODE=reports ;;

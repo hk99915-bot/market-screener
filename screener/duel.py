@@ -391,6 +391,44 @@ def plan_line(pl: dict | None) -> str | None:
     return "🎯 " + " · ".join(parts) if parts else None
 
 
+def is_crash_day(today: str | None = None, cmt: dict | None = None, q: dict | None = None) -> bool:
+    """오늘이 급락일인가 — reports/committee.json 의 crash_day 플래그(오늘 날짜)를 우선, 없으면 코스피 장중 등락률 ≤ −5% 로 계산.
+    PB 책임: 급락일에 PB 가 현금이면 사유가 필수(성적표 '급락일 PB 행동률')."""
+    today = today or str(datetime.now(KST).date())
+    try:
+        if cmt is None:
+            cmt = json.loads((REPORT_DIR / "committee.json").read_text(encoding="utf-8"))
+        cf = (cmt or {}).get("crash_day") or {}
+        if str((cmt or {}).get("date")) == today and cf:
+            return bool(cf.get("crash"))
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        if q is None:
+            from .live import kr_naver
+            q = (kr_naver() or {}).get("KOSPI") or {}
+        chg = q.get("chg")
+        return chg is not None and float(chg) <= -0.05
+    except Exception:  # noqa: BLE001
+        return False
+
+
+CRASH_CASH_LINE = "⚠️ 급락일 현금 — 사유 필수(근거 없는 관망은 복기 대상)"
+
+
+def mark_crash_day(it: dict, pk: dict, crash: bool) -> dict:
+    """급락일이면 항목에 crash_day=True, PB 픽이 현금이면 pb_view.lines 에 경고 한 줄 + crash_day_cash=True (성적표 집계용)."""
+    it["crash_day"] = bool(crash)
+    pv = it.setdefault("pb_view", {})
+    if crash and pk.get("cash"):
+        pv["crash_day_cash"] = True
+        if CRASH_CASH_LINE not in (pv.get("lines") or []):
+            pv["lines"] = list(pv.get("lines") or []) + [CRASH_CASH_LINE]
+    else:
+        pv["crash_day_cash"] = False
+    return it
+
+
 def record_pb(payload: dict, send: bool = True) -> str:
     """PB 재량 판단 기록 — 예약 세션이 데이터를 읽고 판단해 workflow_dispatch(pb_call)로 넘김.
     payload: {"pick": {"ticker","notional","exit"} | {"cash": true}, "why": str(공식 기록·터미널용 중립 말투), "tg": str(선택, 텔레그램 전용 말투), "lines": [..], "conviction": "낮음|보통|높음"}"""
@@ -424,6 +462,11 @@ def record_pb(payload: dict, send: bool = True) -> str:
     it["picks"]["PB"] = pk
     it["pb_view"] = {"why": payload.get("why", ""), "lines": payload.get("lines") or [], "conviction": payload.get("conviction", ""), "at": pk["at"],
                      "plan": payload.get("plan") or None, "real": payload.get("real") or None}
+    if not us:   # 급락일 PB 책임 — 현금이면 사유 필수 줄 추가 (성적표 '급락일 PB 행동률' 집계)
+        try:
+            mark_crash_day(it, pk, is_crash_day(d))
+        except Exception as _e:  # noqa: BLE001
+            log.info("급락일 표시 실패: %s", _e)
     # 판단 시점의 관점(렌즈) 상태 스냅샷 — 나중에 어느 렌즈가 맞았는지 귀속 (scripts/view_attribution.py)
     _vs = None
     try:
@@ -496,7 +539,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
     else:
         msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
                "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               payload.get("why", ""), *([f"💌 {payload['tg']}"] if payload.get("tg") else []), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               payload.get("why", ""), *([f"💌 {payload['tg']}"] if payload.get("tg") else []), *[f"• {x}" for x in (it["pb_view"].get("lines") or [])[:7]], "",
                f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
                f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url_bold(d)}\">🔥공격 픽</a> (15:30 전)"]
     rl = payload.get("real") or {}

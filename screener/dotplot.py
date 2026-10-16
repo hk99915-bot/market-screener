@@ -13,7 +13,7 @@
 지평: 5d · 20d (거래일). 데스크마다 점을 찍는 지평이 정해져 있다 (DESK_HORIZONS).
 
 데스크별 규칙 (결정적 — 같은 입력이면 같은 점. 입력 파일이 없으면 그 데스크는 중립 '입력 없음')
-    퀀트   급락일 종가(하루 −5% 이하) → 매수2 (entry_signals F, 등급 C) · 실행 대본 신호 '저점 +1% 위 마감' 충족 → 매수1
+    퀀트   급락일(코스피 장중/종가 −5% 이하, committee.json crash_day 또는 r1) → 매수2 '급락일 종가(등급 X)' (X = registry crash_day_close) · '저점 +1% 위 마감' 충족 → 매수1
            · 그 외(20일선 아래 포함)는 중립. 금리(US10Y)는 규칙 없음 → 중립.
     파생   방향 점을 찍을 B 이상 렌즈가 아직 없다 → 항상 중립. 다만 감마 음수 / 선물 백워데이션 / PCR 극단(≥1.3 또는 ≤0.7) 은 사유에 적는다 (코스피·반도체만).
     매크로 바람 점수 ≤ −0.3 → 매도1, ≥ +0.3 → 매수1 (주가지수). 미 10년이 5일 +10bp 넘게 오르고 5.0% 위면 주가지수 매도1 (금리 우선).
@@ -249,6 +249,15 @@ def _picks_today(dec: dict | None, today: str) -> list[dict]:
     return out
 
 
+def _crash_grade(root: Path | None = None) -> str:
+    """views/registry.json `crash_day_close` 등급 그대로 (없으면 '검증전')."""
+    reg = _read(Path(root or ROOT) / "views" / "registry.json") or {}
+    for l in reg.get("lenses") or []:
+        if isinstance(l, dict) and l.get("id") == "crash_day_close":
+            return str(((l.get("evidence") or {}).get("grade")) or "검증전")
+    return "검증전"
+
+
 def _glide_active(cmt: dict | None) -> bool:
     if os.environ.get("SEMI_GLIDE", "").strip() in ("1", "true", "on", "yes"):
         return True
@@ -269,8 +278,12 @@ def derive_features(inputs: dict, today: str | None = None) -> dict:
     gex = (der or {}).get("gex_bn")
     if gex is None:
         gex = (gamma.get("latest") or {}).get("gex_bn")
+    cf = (cmt or {}).get("crash_day") or {}
+    crash_today = bool(cf.get("crash")) and str((cmt or {}).get("date")) == today
     return {
         "date": today,
+        "crash_day": crash_today,
+        "crash_grade": _crash_grade(),
         "px": px,
         "us10y": {"level": us10[-1][1] if us10 else None, "d5_bp": (_chg(us10, 5) or 0) * 100 if len(us10) > 5 else None},
         "macro_score": (mv or {}).get("score"),
@@ -305,8 +318,11 @@ def rule_quant(f: dict, asset: str) -> tuple:
         return "중립", 1, "금리 방향 규칙 없음", "none"
     p = f["px"].get(asset) or {}
     r1 = p.get("r1")
+    g = f.get("crash_grade") or "검증전"
+    if asset == "KOSPI" and f.get("crash_day"):
+        return "매수", 2, f"급락일 종가(등급 {g}) — 1차 신호, 기다리지 않기" + (f" (하루 {_pct(r1)})" if r1 is not None else ""), "signal"
     if r1 is not None and r1 <= -0.05:
-        return "매수", 2, f"급락일 종가(하루 {_pct(r1)}) — 기다리지 않기(F, 등급 C)", "signal"
+        return "매수", 2, f"급락일 종가(등급 {g}) — 하루 {_pct(r1)}, 기다리지 않기", "signal"
     if asset in ("KOSPI", "SEMI_KR") and f.get("low_signal_ok"):
         return "매수", 1, "저점 +1% 위 마감 신호 충족(C — 참고)", "signal"
     if p.get("vs200") is not None and p["vs200"] < 0:
