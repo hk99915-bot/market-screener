@@ -813,7 +813,7 @@
    "id": "quant-data-etf-hist",
    "title": "연구용 데이터 창고: ETF(091160·139260·069500·122630) 일봉 복원 + 코스피200 시가 + 섹터 지수 → data/hist/",
    "owner": "퀀트-데이터",
-   "status": "대기",
+   "status": "완료",
    "repo": "public",
    "files": [
     "data/hist/**",
@@ -839,7 +839,7 @@
    "started": "",
    "due": "2026-10-18",
    "depends_on": [],
-   "notes": "선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입."
+   "notes": "선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순."
   },
   {
    "id": "order-ticket-form",
