@@ -123,17 +123,20 @@ def _score_pick(p: dict, date: str) -> dict | None:
         sell, when = after[0]["o"], after[0]["d"] + " 시가"
     elif ex == "next_close":
         sell, when = after[0]["c"], after[0]["d"] + " 종가"
-    elif ex == "trail":   # 추세 끌고가기 (규정 [5]): 종가 20일선 아래 마감 또는 진입가 −8% 이하 → 그날 종가 청산, 최대 60거래일
+    elif ex == "trail":   # 추세 끌고가기 (규정 [5]): 종가 20일선 이탈(20일선 위를 한 번 회복한 뒤) 또는 진입가 −8% 이하 → 그날 종가 청산, 최대 60거래일
         from datetime import date as _date, timedelta as _td
         hist = [b for b in _bars(p["ticker"], str(_date.fromisoformat(date) - _td(days=45))) if b["d"] <= date and b["c"]]
         closes = [b["c"] for b in hist]
         sell = when = None
+        armed = bool(len(closes) >= 20 and buy >= sum(closes[-20:]) / 20)   # 20일선 아래에서 진입하면 20일선을 회복한 뒤부터 이탈 청산 적용 (그 전엔 −8% 손절만)
         for i, b in enumerate(after[:60]):
             if b["c"] is None:
                 return None
             closes.append(b["c"])
             sma = sum(closes[-20:]) / 20 if len(closes) >= 20 else None
-            why = "−8% 손절" if b["c"] <= buy * 0.92 else "20일선 이탈" if sma and b["c"] < sma else "60거래일 만기" if i == 59 else None
+            if sma and b["c"] >= sma:
+                armed = True
+            why = "−8% 손절" if b["c"] <= buy * 0.92 else "20일선 이탈" if armed and sma and b["c"] < sma else "60거래일 만기" if i == 59 else None
             if why:
                 sell, when = b["c"], f"{b['d']} 종가 ({why})"
                 break
