@@ -386,6 +386,21 @@
                    "note": "사전등록 H1(지지)·H2(이탈) F. H3 61.8·100% 우위는 IS B·OOS 미재현 — 피보 비율끼리 비교라 렌즈 등급엔 미반영. 차트 선은 '참고'로만, 진입·손절 근거 인용 금지."},
       "status": "강등", "review_by": "2027-04-16", "owner": "CIO",
       "history": [{"date": "2026-10-16", "change": "등록 — 사전등록 검증 F, 참고 전용", "why": "차트 오버레이(fibLv·fibDown)가 판단에 몰래 쓰이지 않게 등급 고정"}]
+    },
+    {
+      "id": "entry_trigger",
+      "name_ko": "후보: 강세 전환 신호 대체 — 급락일 종가 진입 (확인 신호 기다리지 않기)",
+      "family": "price",
+      "question": "급락(20일 −15% 또는 −5%) 뒤 운용회의 '강세 전환 신호'(외국인 2일 + 5일 고점)를 무엇으로 바꿀까?",
+      "inputs": [{"file": "reports/macro_series.json", "field": "series.KOSPI (dd20·ret1·5/20일선)"}, {"file": "data/deriv/daily.csv", "field": "spot_frgn"}],
+      "read": {"params": {"dd20": -0.15, "ret1": -0.05, "win": 20},
+               "states": [{"state": "진입 시점(F)", "when": "급락 이벤트 첫날 종가"}, {"state": "참고: 저점 +3%(B)", "when": "이벤트 후 종가 ≥ 이후 최저 종가 × 1.03 (등급 F, 참고만)"}, {"state": "해당 없음", "when": "그 외"}]},
+      "roles": {"entry": "alert", "exit": "none", "allocation": "none"},
+      "evidence": {"grade": "C", "source": "reports/studies/entry_signals.md", "n": 11, "date": "2026-10-16",
+                   "effect": "t0+40 공통청산 대조군 대비: F(급락일 종가) +6.8%p (p 0.070) · B 저점+3% +5.3%p (0.112, F) · E 5일선 +4.9%p (0.136, F) · A 단계 +4.8%p (0.114, F) · B2 +3.8%p (F) · C 20일선 +2.9%p (F). Bonferroni(m=6) 통과 없음",
+                   "note": "2010~ 독립 국면 11개(IS 3)라 전체 표본 판정. 모든 후보가 IS·OOS·하락장에서 대조군보다 + 방향이지만 유의하지 않음. 신호형은 모두 F보다 나쁨. 외국인 2일 조건이 최대 비용원(가격만 +6.1%p). 운용회의 코드 반영은 PB 검토 후 별도."},
+      "status": "후보", "review_by": "2026-11-15", "owner": "CIO",
+      "history": [{"date": "2026-10-16", "change": "후보 등록 — 근거 C, 진입 alert", "why": "entry_signals 사전등록 검증: 신호형 후보 모두 입증 실패, 급락일 종가가 C"}]
     }
   ],
   "overrides": [
