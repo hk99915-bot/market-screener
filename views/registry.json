@@ -1,433 +1,1992 @@
 {
-  "_doc": "VIEW 레지스트리 — 매수·매도·자산배분 판단에 쓰는 관점(렌즈) 목록. 규칙은 views/README.md. 계산은 screener/views.py → reports/views.json. 공개 파일: 보유·수량·금액·개인 한도 수치 금지 (personal 계열은 id·역할만, 판정은 pb-private views/personal.json).",
-  "version": 1,
-  "updated": "2026-10-16",
-  "roles_doc": {
-    "gate": "통과/불통과. 불통과면 그 판단(진입·청산·배분)을 하지 않거나 강제로 한다. 위험을 줄이는 방향 게이트는 근거 C 이상, 위험을 늘리는 방향(매수 허가) 게이트는 B 이상만.",
-    "weight": "기울기(+1 강세 / −1 약세)를 합산. 근거 B 이상만.",
-    "alert": "주의 환기 — 사이즈를 줄이거나 확인할 일을 늘림. 방향 결정에 쓰지 않음. 검증 전이어도 가능.",
-    "reference": "읽어만 둠. 판단 근거로 인용 금지(인용하면 '참고' 표시).",
-    "none": "이 판단엔 안 씀."
-  },
-  "grades_doc": {
-    "A": "사전등록 + 표본 밖(OOS/홀드아웃)까지 통과",
-    "B": "사전등록 비교에서 통계적으로 유의, 또는 본인 원장 재생 백테스트에서 큰 차이 (표본 밖 미확인)",
-    "C": "방향성 근거만 (표본 작음·사후·서술 통계)",
-    "F": "검증했고 실패 (효과 없음 또는 반대)",
-    "검증전": "데이터 부족 등으로 아직 검증 안 함"
-  },
-  "status_doc": ["후보", "사전등록", "검증중", "채택", "강등", "폐기"],
-  "lenses": [
+ "_doc": "VIEW 레지스트리 — 매수·매도·자산배분 판단에 쓰는 관점(렌즈) 목록. 규칙은 views/README.md. 계산은 screener/views.py → reports/views.json. 공개 파일: 보유·수량·금액·개인 한도 수치 금지 (personal 계열은 id·역할만, 판정은 pb-private views/personal.json).",
+ "version": 1,
+ "updated": "2026-10-16",
+ "roles_doc": {
+  "gate": "통과/불통과. 불통과면 그 판단(진입·청산·배분)을 하지 않거나 강제로 한다. 위험을 줄이는 방향 게이트는 근거 C 이상, 위험을 늘리는 방향(매수 허가) 게이트는 B 이상만.",
+  "weight": "기울기(+1 강세 / −1 약세)를 합산. 근거 B 이상만.",
+  "alert": "주의 환기 — 사이즈를 줄이거나 확인할 일을 늘림. 방향 결정에 쓰지 않음. 검증 전이어도 가능.",
+  "reference": "읽어만 둠. 판단 근거로 인용 금지(인용하면 '참고' 표시).",
+  "none": "이 판단엔 안 씀."
+ },
+ "grades_doc": {
+  "A": "사전등록 + 표본 밖(OOS/홀드아웃)까지 통과",
+  "B": "사전등록 비교에서 통계적으로 유의, 또는 본인 원장 재생 백테스트에서 큰 차이 (표본 밖 미확인)",
+  "C": "방향성 근거만 (표본 작음·사후·서술 통계)",
+  "F": "검증했고 실패 (효과 없음 또는 반대)",
+  "검증전": "데이터 부족 등으로 아직 검증 안 함"
+ },
+ "status_doc": [
+  "후보",
+  "사전등록",
+  "검증중",
+  "채택",
+  "강등",
+  "폐기"
+ ],
+ "lenses": [
+  {
+   "id": "kr_regime",
+   "name_ko": "국장 레짐 (200일선·20일 낙폭)",
+   "family": "trend",
+   "question": "지금 코스피가 하락장인가 — 위험 노출 상한을 어디에 둘까?",
+   "inputs": [
     {
-      "id": "kr_regime",
-      "name_ko": "국장 레짐 (200일선·20일 낙폭)",
-      "family": "trend",
-      "question": "지금 코스피가 하락장인가 — 위험 노출 상한을 어디에 둘까?",
-      "inputs": [{"file": "reports/macro_view.json", "field": "rows[KOSPI].vs200, chg20"}, {"file": "reports/macro_series.json", "field": "series.KOSPI"}],
-      "read": {"params": {"dd20_bear": -0.15},
-               "states": [{"state": "하락장", "when": "200일선 아래 또는 20일 고점 대비 ≤ −15%"}, {"state": "회복 확인 전", "when": "200일선 위지만 20일선 아래"}, {"state": "상승장", "when": "200일선 위 + 20일선 위"}]},
-      "roles": {"entry": "alert", "exit": "reference", "allocation": "gate"},
-      "evidence": {"grade": "C", "source": "pb-private analysis/2026-10-15-rules (하락장 손실한도·손절 연 2~3%p 소폭 도움) · lab DUAL_MOMENTUM_INDEX F", "n": null, "date": "2026-10-15",
-                   "note": "알파가 아니라 위험 축소 스위치. 지수 절대모멘텀(타이밍 전략)은 lab에서 F — '하락장이니 지수를 판다'는 근거 없음, '하락장이니 위성 북 노출 상한을 낮춘다'만."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 규정 v2.1 [1] 레짐 판정을 렌즈로 이관", "why": "운용회의·규정·PB 판단이 같은 정의를 쓰게"}]
+     "file": "reports/macro_view.json",
+     "field": "rows[KOSPI].vs200, chg20"
     },
     {
-      "id": "crash_day_close",
-      "name_ko": "급락일 종가 진입 (기다리지 않기)",
-      "family": "price",
-      "question": "급락일에 들어간다면 언제 — 신호를 기다릴까, 그날 종가에 살까?",
-      "inputs": [{"file": "reports/macro_view.json", "field": "rows[KOSPI].chg1"}, {"file": "reports/macro_series.json", "field": "series.KOSPI (dd20)"}],
-      "read": {"params": {"ret1": -0.03, "ret1_deep": -0.05, "dd20": -0.10},
-               "states": [{"state": "급락일(−5%)", "when": "1일 ≤ −5% & 20일 고점 대비 ≤ −10%"}, {"state": "급락일(−3%)", "when": "1일 ≤ −3% & 20일 고점 대비 ≤ −10%"}, {"state": "해당 없음", "when": "그 외"}]},
-      "roles": {"entry": "weight", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "B", "source": "reports/studies/playbook_signals.md", "n": 55, "date": "2026-10-15",
-                   "note": "2010~2026 코스피 급락 55건(독립 19묶음): 급락일 종가 매수가 저점 지지·5일 고점·분할·약세 경로 컷보다 20일 −2.2~−5.7%p 우월(유의). 단 '지수보다 낫다'는 아님 — lab CRASH_REBOUND_LARGE(대형주 바스켓 vs 코스피) F. 그래서 '진입한다면 종가에, 기다리지 말 것'이라는 타이밍 가중일 뿐 매수 허가 게이트가 아님."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 타이밍 가중(+1)", "why": "playbook_signals 사전등록 결과"}]
-    },
-    {
-      "id": "confirm_signals",
-      "name_ko": "반등 확인 신호 (저점 지지·5일 고점·저점 2일 이탈)",
-      "family": "price",
-      "question": "급락 뒤 '확인하고 들어가기' 신호가 켜졌나?",
-      "inputs": [{"file": "reports/committee.json", "field": "stance.exec.signals"}],
-      "read": {"params": {}, "states": [{"state": "켜짐 n/3", "when": "실행 대본 참고 신호 중 켜진 수"}]},
-      "roles": {"entry": "reference", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "F", "source": "reports/studies/playbook_signals.md", "n": 55, "date": "2026-10-15",
-                   "note": "32개 조합 전부 급락일 종가 매수보다 나쁨. 약세 경로 컷도 53%에서 발동해 −4.0%p. 규정 v2.1 [4]의 '하락 매수는 실행 대본 신호 충족 시만'과 충돌 — 다음 규정 리뷰 안건."},
-      "status": "강등", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "강등 (게이트 → 참고)", "why": "사전등록 검증에서 악화 판정"}]
-    },
-    {
-      "id": "foreign_flow",
-      "name_ko": "외국인 현물 순매수 (코스피)",
-      "family": "flows",
-      "question": "외국인이 사고 있나 팔고 있나?",
-      "inputs": [{"file": "reports/dashboard_state.json", "field": "close_snapshot / intraday_snapshot .value.flows.KOSPI.외국인"}],
-      "read": {"params": {"big": -10000}, "states": [{"state": "순매수", "when": "> 0"}, {"state": "순매도", "when": "≤ 0"}, {"state": "대량 순매도", "when": "≤ −1조 (억원 −10,000)"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "reports/studies/playbook_signals.md 0-1 (일별 이력 미저장) · 별도 연구: 종목고유 수급 × 선물 레짐 H1·H2 기각", "n": null, "date": "2026-10-15",
-                   "note": "지수 수급 일별 이력이 없어 검증 불가. 이력 적재가 먼저(lab FOREIGN_FLOW_FILTER 대기)."},
-      "status": "검증중", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": "운용회의 강세 전환 신호에 쓰이지만 근거 없음"}]
-    },
-    {
-      "id": "macro_wind",
-      "name_ko": "매크로 바람 (금리·환율·미국 지수 합성)",
-      "family": "macro",
-      "question": "매크로 환경이 위험자산에 순풍인가 역풍인가?",
-      "inputs": [{"file": "reports/macro_view.json", "field": "score, label"}],
-      "read": {"params": {"tail": 0.15, "head": -0.15}, "states": [{"state": "순풍", "when": "score ≥ +0.15"}, {"state": "역풍", "when": "score ≤ −0.15"}, {"state": "중립", "when": "그 사이"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "reference"},
-      "evidence": {"grade": "검증전", "source": "lab MACRO_TILT (데이터 부족 — 대기)", "n": null, "date": "2026-10-15", "note": "점수 가중치가 사후 설정. 국면 시계열 확보 전까지 참고만."},
-      "status": "검증중", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "breadth_kr",
-      "name_ko": "시장 폭 (국장 200일선 위 종목 비율)",
-      "family": "trend",
-      "question": "지수만 버티는가, 종목 전반이 무너졌나?",
-      "inputs": [{"file": "reports/breadth_history.jsonl", "field": "market=KR pct_above200, new_high52, new_low52"}],
-      "read": {"params": {"weak": 0.30, "strong": 0.60}, "states": [{"state": "약함", "when": "200일선 위 < 30%"}, {"state": "강함", "when": "≥ 60%"}, {"state": "보통", "when": "그 사이"}]},
-      "roles": {"entry": "reference", "exit": "none", "allocation": "reference"},
-      "evidence": {"grade": "검증전", "source": "—", "n": null, "date": "2026-10-15", "note": "breadth_history 누적 중. 1년 쌓이면 사전등록 후 검증."},
-      "status": "검증중", "review_by": "2026-12-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "scenario_base_rate",
-      "name_ko": "시나리오 기저확률 (1999~ 조건부 통계)",
-      "family": "price",
-      "question": "비슷한 낙폭 상황에서 20일 뒤 강세·기본·약세가 몇 % 나왔나?",
-      "inputs": [{"file": "reports/committee.json", "field": "scenarios[].prob, scenario_basis"}],
-      "read": {"params": {}, "states": [{"state": "강세 우위/기본 우위/약세 우위", "when": "최대 확률 시나리오"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "reference"},
-      "evidence": {"grade": "C", "source": "reports/studies/crash_rebound.json buckets20", "n": 32, "date": "2026-10-15", "note": "서술 통계. 표본 수십 회라 오차 범위가 ±15%p 이상. 확률 = 방향, 타이밍 아님."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "stock_trend_score",
-      "name_ko": "종목 추세·모멘텀 점수 (스크리너)",
-      "family": "momentum",
-      "question": "종목 고를 때 추세/모멘텀 점수가 다음 수익을 예측하나?",
-      "inputs": [{"file": "reports/signal_scores.json", "field": "signals.trend_score / momentum_score .verdict, h20.ic"}],
-      "read": {"params": {}, "states": [{"state": "판정 문자열", "when": "signal_scores verdict 그대로"}]},
-      "roles": {"entry": "reference", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "F", "source": "reports/signal_scores.json (250일, h20 IC −0.045) · lab TREND_12_1 F", "n": 250, "date": "2026-10-15", "note": "점수 높은 종목이 오히려 덜 오름(최근 1년). 종목 선택 근거로 쓰지 않음."},
-      "status": "강등", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록과 동시에 강등 (참고)", "why": "IC 음수, lab F"}]
-    },
-    {
-      "id": "index_abs_momentum",
-      "name_ko": "지수 절대모멘텀 (12개월 > 0 이면 보유)",
-      "family": "momentum",
-      "question": "지수를 들고 있을지 현금으로 갈지 추세로 정할 수 있나?",
-      "inputs": [{"file": "reports/lab.json", "field": "results.DUAL_MOMENTUM_INDEX"}],
-      "read": {"params": {}, "states": [{"state": "보유/현금", "when": "lab state.hold"}]},
-      "roles": {"entry": "none", "exit": "none", "allocation": "reference"},
-      "evidence": {"grade": "F", "source": "reports/lab.json DUAL_MOMENTUM_INDEX", "n": 192, "date": "2026-10-15", "note": "보유 대비 초과 없음. 단, lab 원자료가 ±45% 갭만 수정 → 장기 결과 연 −4%p 정도 비관 편향 가능."},
-      "status": "강등", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": "lab F"}]
-    },
-    {
-      "id": "options_gamma",
-      "name_ko": "옵션 감마·풋콜 (코스피200)",
-      "family": "derivs",
-      "question": "딜러 헤지가 변동을 키우는 구간인가?",
-      "inputs": [{"file": "reports/derivs.json", "field": "gex_bn, pcr_oi, atm_iv, rv20"}],
-      "read": {"params": {}, "states": [{"state": "감마 음수", "when": "gex_bn < 0 — 움직임 확대"}, {"state": "감마 양수", "when": "gex_bn ≥ 0"}]},
-      "roles": {"entry": "alert", "exit": "reference", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "lab VRP_OPTIONS (옵션 일별 장기 이력 없음 — 대기)", "n": 21, "date": "2026-10-15", "note": "방향이 아니라 '흔들림 크기' 주의. 사이즈 줄이는 데만."},
-      "status": "검증중", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 진입 주의", "why": ""}]
-    },
-    {
-      "id": "gamma_regime",
-      "name_ko": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
-      "family": "derivs",
-      "question": "숏감마(감마 음수) 구간을 노릴 수 있나? — 다음날 흔들림이 IV 예고보다 크고, 방향이 이어지나?",
-      "inputs": [{"file": "data/deriv/daily.csv", "field": "gex_bn, flip, atm_iv, k200_close, kospi_open·close"}, {"file": "reports/derivs.json", "field": "gex_bn (오늘 상태)"}],
-      "read": {"params": {}, "states": [{"state": "감마 음수", "when": "gex_bn < 0 — 딜러가 움직임을 따라감"}, {"state": "감마 양수", "when": "gex_bn ≥ 0 — 딜러가 움직임을 받아냄"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "reports/studies/gamma_regime.json", "n": 272, "date": "2026-10-16", "note": "scripts/study_gamma.py 사전등록(H1 |r1|·H1b 실현/내재·H2 방향 지속). deriv-hist 적재 뒤 매일 자동 재판정.", "effect": "|r1| 음수−양수 0.02379 (p_is 0.0025) · 실현/내재 0.10409 (p_is 0.2731) · 방향 지속 0.01511 (p_is 0.7291)", "next_eval": "2026-10-30"},
-      "status": "사전등록", "review_by": "2026-12-16", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "사전등록 — 참고 전용", "why": "'숏감마 구간을 노릴 수 있나?' 질문 검증"}]
-    },
-    {
-      "id": "ai_credit",
-      "name_ko": "AI 인프라 신용 감시",
-      "family": "bonds_credit",
-      "question": "AI 데이터센터 업종의 빚 스트레스가 커지나?",
-      "inputs": [{"file": "reports/bonds.json", "field": "ai_credit.alert.lv, level"}],
-      "read": {"params": {"warn_lv": 1}, "states": [{"state": "정상", "when": "lv 0"}, {"state": "주의", "when": "lv 1"}, {"state": "경계", "when": "lv ≥ 2"}]},
-      "roles": {"entry": "alert", "exit": "alert", "allocation": "alert"},
-      "evidence": {"grade": "검증전", "source": "reports/bonds.json ai_credit (2026-10 신설)", "n": null, "date": "2026-10-15", "note": "반도체·AI 인프라 쏠림 점검 계기로만. 경계라고 바로 팔지 않음."},
-      "status": "검증중", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 주의", "why": ""}]
-    },
-    {
-      "id": "stock_bond_corr",
-      "name_ko": "주식–채권 상관 (IEF vs S&P500, 1년)",
-      "family": "bonds_credit",
-      "question": "채권이 주식 하락을 막아주는 국면인가?",
-      "inputs": [{"file": "reports/bonds.json", "field": "corr.IEF_SPX.c250"}],
-      "read": {"params": {"pos": 0.2}, "states": [{"state": "같이 움직임", "when": "상관 > +0.2 — 장기채 헤지 효과 약함"}, {"state": "헤지 작동", "when": "상관 ≤ +0.2"}]},
-      "roles": {"entry": "none", "exit": "none", "allocation": "reference"},
-      "evidence": {"grade": "C", "source": "reports/bonds.json corr (서술 통계)", "n": 250, "date": "2026-10-15", "note": "코어 북 채권 듀레이션(단기 vs 장기) 고를 때 참고. 비중 자체는 연 1회 리밸런싱 규칙."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "us10y",
-      "name_ko": "미 10년 금리 (수준·1개월 변화)",
-      "family": "macro",
-      "question": "할인율 부담이 커지고 있나?",
-      "inputs": [{"file": "reports/macro_view.json", "field": "rows[US10Y].last, d20"}],
-      "read": {"params": {"up_bp": 25}, "states": [{"state": "급등", "when": "20일 +25bp 이상"}, {"state": "급락", "when": "20일 −25bp 이하"}, {"state": "보합", "when": "그 사이"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "reference"},
-      "evidence": {"grade": "검증전", "source": "—", "n": null, "date": "2026-10-15", "note": ""},
-      "status": "검증중", "review_by": "2026-12-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "yen_carry",
-      "name_ko": "엔 캐리 청산 경계 (엔/달러 5일)",
-      "family": "japan",
-      "question": "엔 급등으로 세계 위험자산이 한꺼번에 팔릴 위험이 커졌나?",
-      "inputs": [{"file": "reports/japan.json", "field": "carry.flag, carry.chg5"}],
-      "read": {"params": {"chg5": -0.03}, "states": [{"state": "경계", "when": "엔/달러 5일 ≤ −3%"}, {"state": "평온", "when": "그 외"}]},
-      "roles": {"entry": "alert", "exit": "alert", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "reports/japan.json (2024-08-05 1회 사례 기반 규칙)", "n": 1, "date": "2026-10-15", "note": "사례 1회. 주의 환기만."},
-      "status": "검증중", "review_by": "2026-12-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 주의", "why": ""}]
-    },
-    {
-      "id": "japan_semi_lead",
-      "name_ko": "일본 반도체 장비·메모리 동행",
-      "family": "japan",
-      "question": "도쿄 장비·메모리주가 한국 반도체보다 먼저/같이 움직였나?",
-      "inputs": [{"file": "reports/japan.json", "field": "groups[].jp.chg1, corr_kr"}],
-      "read": {"params": {}, "states": [{"state": "일본 약세/강세", "when": "장비 그룹 1일 수익률 부호"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "none"},
-      "evidence": {"grade": "C", "source": "reports/japan.json corr_kr (60일 상관 0.7대 — 동행, 선행 미검증)", "n": 60, "date": "2026-10-15", "note": "상관은 선행이 아님."},
-      "status": "검증중", "review_by": "2026-12-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "supply_chain",
-      "name_ko": "공급망 체인 점수 (업종 비중 의견)",
-      "family": "valuation",
-      "question": "어느 업종 이익 전망이 올라가고 있나?",
-      "inputs": [{"file": "reports/chains_view.json", "field": "chains.*.score"}],
-      "read": {"params": {"ow": 0.3, "uw": -0.15}, "states": [{"state": "비중 확대 n / 축소 n", "when": "score ≥ 0.3 / ≤ −0.15"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "reference"},
-      "evidence": {"grade": "검증전", "source": "lab TREND_SECTOR (시점별 업종 이력 없음 — 대기)", "n": null, "date": "2026-10-15", "note": ""},
-      "status": "검증중", "review_by": "2026-12-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "committee_ideas",
-      "name_ko": "운용회의 매수 후보 (이익 신호 좋고 과하게 빠진 종목)",
-      "family": "valuation",
-      "question": "회의가 고른 매수 후보가 시장보다 나았나?",
-      "inputs": [{"file": "reports/committee.json", "field": "track.summary.h5/h20"}],
-      "read": {"params": {"min_n": 20}, "states": [{"state": "채점 n회 · 5일 초과 평균", "when": "track.summary"}]},
-      "roles": {"entry": "reference", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "reports/committee_hist.json (채점 시작)", "n": 0, "date": "2026-10-15", "note": "20회 채점 쌓이면 사전등록 기준(초과수익 t)으로 재등급."},
-      "status": "검증중", "review_by": "2026-12-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "event_calendar",
-      "name_ko": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
-      "family": "events",
-      "question": "결과가 나오기 전에 들어가면 이벤트 도박이 되나?",
-      "inputs": [{"file": "reports/calendar.json", "field": "events[].imp ≥ 3"}],
-      "read": {"params": {"days": 7, "imp": 3}, "states": [{"state": "당일 있음", "when": "오늘 imp ≥ 3"}, {"state": "7일 안 n건", "when": ""}, {"state": "없음", "when": ""}]},
-      "roles": {"entry": "alert", "exit": "reference", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "reports/events_stats.json (이벤트 당일 변동 서술)", "n": null, "date": "2026-10-15", "note": "개인 규정의 'CPI·FOMC 당일 장중 진입 금지'는 personal.event_day_ban 게이트."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 주의", "why": ""}]
-    },
-    {
-      "id": "atr_stop",
-      "name_ko": "종목 손절선 (20일 저점·2×ATR)",
-      "family": "price",
-      "question": "들고 있는 종목이 계획한 손절선을 깼나?",
-      "inputs": [{"file": "reports/detail/KR/<code>.json", "field": "chart (종목별, committee._risk_box)"}],
-      "read": {"params": {}, "states": [{"state": "종목별", "when": "종가 < 손절선 → 청산"}]},
-      "roles": {"entry": "none", "exit": "gate", "allocation": "none"},
-      "evidence": {"grade": "C", "source": "pb-private analysis/2026-10-15-rules (R2 손절: 하락장 소폭 도움)", "n": null, "date": "2026-10-15", "note": "위험 축소 방향이라 C로 게이트 허용. 지수 기준 일괄 청산(약세 경로 컷)은 F — 종목별 손절만."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 청산 게이트", "why": ""}]
-    },
-    {
-      "id": "us_regime",
-      "name_ko": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
-      "family": "trend",
-      "question": "미국장이 조정 국면인가?",
-      "inputs": [{"file": "reports/macro_view.json", "field": "rows[SPX].vs50, chg20; rows[VIX].last"}],
-      "read": {"params": {"vix_hi": 25}, "states": [{"state": "조정", "when": "50일선 아래 & 20일 < −5%"}, {"state": "변동성 높음", "when": "VIX ≥ 25"}, {"state": "정상", "when": "그 외"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "reference"},
-      "evidence": {"grade": "검증전", "source": "reports/studies/crash_rebound.json spx_buckets20 (서술)", "n": null, "date": "2026-10-15", "note": ""},
-      "status": "검증중", "review_by": "2026-12-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 참고", "why": ""}]
-    },
-    {
-      "id": "personal.instrument_ban",
-      "name_ko": "상품 금지 (레버리지·인버스·신규상장·미수)",
-      "family": "personal",
-      "question": "이 상품은 지금 내 규정상 살 수 있나?",
-      "inputs": [{"file": "pb-private:views/personal.json", "field": "lenses[instrument_ban]"}],
-      "read": {"params": {"private": true}, "states": [{"state": "금지 중 / 해제", "when": "pb-private 판정"}]},
-      "roles": {"entry": "gate", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "B", "source": "pb-private analysis/2026-10-15 · 2026-10-15-rules (본인 원장 재생)", "n": null, "date": "2026-10-15", "note": "개선의 대부분이 이 규칙 하나에서 나옴. 본인 1개 계좌·1년 표본(표본 밖 미확인)이라 B."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 진입 게이트", "why": "규정 v2.1 [2]"}]
-    },
-    {
-      "id": "personal.satellite_cap",
-      "name_ko": "위성 북 상한 사용률",
-      "family": "personal",
-      "question": "실험 계좌가 정해둔 크기를 넘었나?",
-      "inputs": [{"file": "pb-private:views/personal.json", "field": "lenses[satellite_cap]"}],
-      "read": {"params": {"private": true}, "states": [{"state": "한도 안 / 초과", "when": "pb-private 판정"}]},
-      "roles": {"entry": "gate", "exit": "weight", "allocation": "gate"},
-      "evidence": {"grade": "B", "source": "pb-private analysis/2026-10-15-rules (코어만 > 매매)", "n": null, "date": "2026-10-15", "note": "매매를 줄일수록 나았음. 초과면 신규 진입 불가·초과분 코어 이전."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록", "why": "규정 v2.1 [0]"}]
-    },
-    {
-      "id": "personal.theme_concentration",
-      "name_ko": "반도체 테마 집중도",
-      "family": "personal",
-      "question": "한 테마(반도체·메모리)에 너무 몰려 있나?",
-      "inputs": [{"file": "pb-private:views/personal.json", "field": "lenses[theme_concentration]"}],
-      "read": {"params": {"private": true}, "states": [{"state": "한도 안 / 초과", "when": "pb-private 판정"}]},
-      "roles": {"entry": "gate", "exit": "gate", "allocation": "gate"},
-      "evidence": {"grade": "B", "source": "pb-private analysis/2026-10-15 (테마별 손익)", "n": null, "date": "2026-10-15", "note": "초과 중이면 같은 테마 신규 진입 불가, 반등일에 축소."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록", "why": "규정 v2.1 [3]"}]
-    },
-    {
-      "id": "personal.loss_limit",
-      "name_ko": "손실 한도·쿨다운·매매 금지",
-      "family": "personal",
-      "question": "손실 한도나 위반으로 지금 매매가 막혀 있나?",
-      "inputs": [{"file": "pb-private:views/personal.json", "field": "lenses[loss_limit], lenses[cooldown]"}],
-      "read": {"params": {"private": true}, "states": [{"state": "정상 / 금지 중", "when": "pb-private 판정"}]},
-      "roles": {"entry": "gate", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "C", "source": "pb-private analysis/2026-10-15-rules (R6 손실한도: 하락장 연 2~3%p)", "n": null, "date": "2026-10-15", "note": "위험 축소 방향 → C로 게이트 허용."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록", "why": "규정 v2.1 [6]·[9]"}]
-    },
-    {
-      "id": "personal.event_day_ban",
-      "name_ko": "이벤트·서킷 당일 장중 진입 금지",
-      "family": "personal",
-      "question": "오늘이 장중 신규 진입이 금지된 날인가?",
-      "inputs": [{"file": "pb-private:views/personal.json", "field": "lenses[event_day_ban]"}, {"file": "reports/views.json", "field": "event_calendar, overrides"}],
-      "read": {"params": {"private": true}, "states": [{"state": "금지일 / 아님", "when": "pb-private 판정"}]},
-      "roles": {"entry": "gate", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "C", "source": "규정 v2.1 [1] (근거: 본인 원장 당일 매매 승률)", "n": null, "date": "2026-10-15", "note": ""},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록", "why": ""}]
-    },
-    {
-      "id": "personal.hold_period",
-      "name_ko": "보유기간 습관 (10일+ 보유)",
-      "family": "personal",
-      "question": "노이즈에 일찍 파는 습관이 나오고 있나?",
-      "inputs": [{"file": "pb-private:views/personal.json", "field": "lenses[hold_period]"}],
-      "read": {"params": {"private": true}, "states": [{"state": "참고", "when": ""}]},
-      "roles": {"entry": "none", "exit": "reference", "allocation": "none"},
-      "evidence": {"grade": "C", "source": "pb-private analysis/2026-10-15 (10일+ 보유만 수익) · 2026-10-15-rules (최소보유 R3는 다른 장에서 효과 없음)", "n": null, "date": "2026-10-15", "note": "원장에선 강하지만 규칙으로 강제하면 효과 없음 → 강등(가이드)."},
-      "status": "강등", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록과 동시에 강등 (가이드)", "why": "규정 v2.1 [5] R3 강등과 일치"}]
-    },
-    {
-      "id": "personal.isa_dca",
-      "name_ko": "코어 북 적립 진행",
-      "family": "personal",
-      "question": "코어(ISA) 적립을 계획대로 하고 있나?",
-      "inputs": [{"file": "pb-private:views/personal.json", "field": "lenses[isa_dca]"}],
-      "read": {"params": {"private": true}, "states": [{"state": "계획대로 / 미달 / 데이터 없음", "when": "pb-private 판정"}]},
-      "roles": {"entry": "none", "exit": "none", "allocation": "weight"},
-      "evidence": {"grade": "B", "source": "pb-private analysis/2026-10-15-rules · 2026-10-15-alloc", "n": null, "date": "2026-10-15", "note": "코어 적립이 매매보다 나았음 — 남는 돈의 기본값은 코어."},
-      "status": "채택", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록", "why": "규정 v2.1 [0]"}]
-    },
-    {
-      "id": "cand.add_on_drop",
-      "name_ko": "후보: 10일 안 추가 −5% 하락 시 2차 진입",
-      "family": "price",
-      "question": "급락 뒤 2차 진입을 '확인 후'가 아니라 '추가 하락 시'로 하면 나은가?",
-      "inputs": [{"file": "reports/studies/playbook_signals.md", "field": "6절 탐색"}],
-      "read": {"params": {}, "states": [{"state": "가설", "when": ""}]},
-      "roles": {"entry": "none", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "reports/studies/playbook_signals.md 6절 (사전등록 밖 탐색)", "n": 55, "date": "2026-10-15", "note": "탐색 결과: 평균 비용 작고 꼬리 얇음. 사전등록 후 재검증해야 채택 가능."},
-      "status": "후보", "review_by": "2026-11-01", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "후보 등록 (가중 0)", "why": "급락 스터디 탐색 결과"}]
-    },
-    {
-      "id": "cand.program_nonarb",
-      "name_ko": "후보: 프로그램 비차익 막판 매수 = 바닥 신호?",
-      "family": "flows",
-      "question": "장 막판 비차익(바스켓) 대량 매수가 다음날 반등을 예고하나?",
-      "inputs": [{"file": "reports/dashboard_state.json", "field": "close_snapshot.value.snap.KOSPI.prog_nonarb"}],
-      "read": {"params": {}, "states": [{"state": "가설", "when": ""}]},
-      "roles": {"entry": "none", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "검증전", "source": "—", "n": 0, "date": "2026-10-16", "note": "일별 이력 저장부터 필요(현재 스냅샷 2개뿐)."},
-      "status": "후보", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "후보 등록 (가중 0)", "why": "10/15 장 막판 차익·비차익 해석에서 나온 아이디어"}]
-    },
-    {
-      "id": "fib_levels",
-      "name_ko": "피보나치 되돌림·하방 Fib 지지선",
-      "family": "technical",
-      "question": "차트의 피보나치 되돌림 선(특히 현재가 아래 하방 Fib)이 지지선 역할을 하나 — 매수·손절 위치로 써도 되나?",
-      "inputs": [{"file": "reports/detail/KR/<code>.json", "field": "chart OHLC 최근 120봉 (Index.html fibLv·fibDown)"}],
-      "read": {"params": {"window": 120, "band": 0.005, "ratios": [0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.272, 1.618]},
-               "states": [{"state": "선 위", "when": "종가가 가장 가까운 하방 Fib 위 (±0.5% 밖)"}, {"state": "터치", "when": "당일 봉이 하방 Fib ±0.5% 구간에 닿음"}, {"state": "이탈", "when": "터치 후 이틀 연속 종가가 레벨 −0.5% 아래"}]},
-      "roles": {"entry": "reference", "exit": "reference", "allocation": "none"},
-      "evidence": {"grade": "F", "source": "reports/studies/fib_levels.md", "n": 18683, "date": "2026-10-16",
-                   "effect": "터치 후 10일 수익률 무작위 선 대비 −0.11%p (월 t −1.15, p 0.88; OOS −0.19%p) · 이탈 후 10일 −0.34%p (p 0.15)",
-                   "note": "사전등록 H1(지지)·H2(이탈) F. H3 61.8·100% 우위는 IS B·OOS 미재현 — 피보 비율끼리 비교라 렌즈 등급엔 미반영. 차트 선은 '참고'로만, 진입·손절 근거 인용 금지."},
-      "status": "강등", "review_by": "2027-04-16", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "등록 — 사전등록 검증 F, 참고 전용", "why": "차트 오버레이(fibLv·fibDown)가 판단에 몰래 쓰이지 않게 등급 고정"}]
-    },
-    {
-      "id": "entry_trigger",
-      "name_ko": "후보: 강세 전환 신호 대체 — 급락일 종가 진입 (확인 신호 기다리지 않기)",
-      "family": "price",
-      "question": "급락(20일 −15% 또는 −5%) 뒤 운용회의 '강세 전환 신호'(외국인 2일 + 5일 고점)를 무엇으로 바꿀까?",
-      "inputs": [{"file": "reports/macro_series.json", "field": "series.KOSPI (dd20·ret1·5/20일선)"}, {"file": "data/deriv/daily.csv", "field": "spot_frgn"}],
-      "read": {"params": {"dd20": -0.15, "ret1": -0.05, "win": 20},
-               "states": [{"state": "진입 시점(F)", "when": "급락 이벤트 첫날 종가"}, {"state": "참고: 저점 +3%(B)", "when": "이벤트 후 종가 ≥ 이후 최저 종가 × 1.03 (등급 F, 참고만)"}, {"state": "해당 없음", "when": "그 외"}]},
-      "roles": {"entry": "alert", "exit": "none", "allocation": "none"},
-      "evidence": {"grade": "C", "source": "reports/studies/entry_signals.md", "n": 11, "date": "2026-10-16",
-                   "effect": "t0+40 공통청산 대조군 대비: F(급락일 종가) +6.8%p (p 0.070) · B 저점+3% +5.3%p (0.112, F) · E 5일선 +4.9%p (0.136, F) · A 단계 +4.8%p (0.114, F) · B2 +3.8%p (F) · C 20일선 +2.9%p (F). Bonferroni(m=6) 통과 없음",
-                   "note": "2010~ 독립 국면 11개(IS 3)라 전체 표본 판정. 모든 후보가 IS·OOS·하락장에서 대조군보다 + 방향이지만 유의하지 않음. 신호형은 모두 F보다 나쁨. 외국인 2일 조건이 최대 비용원(가격만 +6.1%p). 운용회의 코드 반영은 PB 검토 후 별도."},
-      "status": "후보", "review_by": "2026-11-15", "owner": "CIO",
-      "history": [{"date": "2026-10-16", "change": "후보 등록 — 근거 C, 진입 alert", "why": "entry_signals 사전등록 검증: 신호형 후보 모두 입증 실패, 급락일 종가가 C"}]
-    },
-    {"id": "cand.chase_sizing", "name_ko": "후보: 추격 진입(RSI14>70 또는 전일 +5%) 사이즈 축소 — 유지·강화 쪽 근거", "family": "price", "question": "과열 종목을 살 때 사이즈를 줄여야 하나?", "inputs": [{"file": "data/kr_prices.parquet", "field": "close (RSI14 Wilder, 전일 대비)"}], "read": {"params": {"rsi": 70, "r1": 0.05}, "states": [{"state": "추격", "when": "신호일 RSI14 > 70 또는 전일 대비 ≥ +5%"}, {"state": "해당 없음", "when": "그 외"}]}, "roles": {"entry": "alert", "exit": "none", "allocation": "none"}, "evidence": {"grade": "C", "source": "reports/studies/rule_audit.md", "n": 203, "date": "2026-10-16", "effect": "거래대금 상위 100 코호트(20일 보유, 왕복 0.25%): 추격 종목 − 비추격 −1.6%p/20일 (p 0.004, OOS −2.5%p, 하락장 −2.3%p). 코호트 수익: 금지 vs 절반 +0.13%p (p 0.011), 전액 vs 절반 −0.13%p", "note": "추격 절반 규칙은 '비싼 대기'가 아님 — 오히려 추격 진입이 더 나쁨. Bonferroni(α 0.0028) 미달이라 C. 절반 → 금지 강화는 후보"}, "status": "후보", "review_by": "2026-11-15", "owner": "퀀트", "history": [{"date": "2026-10-16", "change": "후보 등록", "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"}]},
-    {"id": "cand.rebound_day_sell", "name_ko": "후보: 반등일(+0.5%) 매도 대기 — 즉시 매도보다 나음", "family": "price", "question": "지수 20일선 이탈 뒤 축소할 때, 반등일을 기다렸다 팔까 바로 팔까?", "inputs": [{"file": "data/deriv/daily.csv", "field": "kospi_close"}], "read": {"params": {"th": 0.005, "max_wait": 10}, "states": [{"state": "반등일", "when": "코스피 전일 대비 ≥ +0.5% (종가 근사)"}, {"state": "대기", "when": "그 외 (최대 10거래일)"}]}, "roles": {"entry": "none", "exit": "alert", "allocation": "reference"}, "evidence": {"grade": "C", "source": "reports/studies/rule_audit.md", "n": 106, "date": "2026-10-16", "effect": "코스피 20일선 하향 이탈 106건: 즉시 매도는 +0.5% 반등일 대기보다 매도가 −0.45%p (p 0.013, IS·OOS·하락장 같은 방향). +0.0%·+1.0% 임계값은 현행과 차이 없음. 종목판(4,990건)은 차이 없음", "note": "대기 평균 2.9거래일, 69%가 t0보다 비싸게 팜. 14:30 판정을 종가로 근사"}, "status": "후보", "review_by": "2026-11-15", "owner": "퀀트", "history": [{"date": "2026-10-16", "change": "후보 등록", "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"}]},
-    {"id": "cand.bear_cap_cost", "name_ko": "후보: 하락장(200일선 아래) 노출 50% 상한의 비용 — 완화 검토", "family": "trend", "question": "200일선 아래에서 노출을 50%로 묶는 게 값어치가 있나?", "inputs": [{"file": "data/deriv/daily.csv", "field": "kospi_close (200일선)"}], "read": {"params": {"cap_now": 0.5, "alts": [0.0, 0.7, 1.0]}, "states": [{"state": "하락장", "when": "전일 종가 < 200일선"}, {"state": "해당 없음", "when": "그 외"}]}, "roles": {"entry": "none", "exit": "none", "allocation": "reference"}, "evidence": {"grade": "C", "source": "reports/studies/rule_audit.md", "n": 188, "date": "2026-10-16", "effect": "코스피 2010-10~ 일별(현금 0, 편도 0.125%): 상한 50% 연 4.9%·샤프 0.36·MDD −41% vs 제한 없음 7.2%·0.43·−44%, 70% 5.9%·0.39·−40%. 21일 블록 차이 +0.22%p (p 0.086, IS·OOS 같은 방향)", "note": "위험을 늘리는 방향이라 B 전까지 참고만. 하락장 블록 안에선 차이 ≈0 — 비용은 200일선 근처 휩쏘 구간에서 생김. 개인 손실한도 목적(심리·현금흐름)은 이 검정 밖"}, "status": "후보", "review_by": "2026-11-15", "owner": "퀀트", "history": [{"date": "2026-10-16", "change": "후보 등록", "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"}]},
-    {"id": "cand.exit_rules_audit", "name_ko": "참고: 손절 −8%·20일선 트레일·1R/2R 부분익절 대안 비교 (차이 없음)", "family": "price", "question": "손절 폭·트레일 기준·부분익절을 바꾸면 나아지나?", "inputs": [{"file": "data/hist/kr_*.parquet", "field": "o/c (상폐 포함)"}], "read": {"params": {"stop": -0.08, "trail_ma": 20, "partial": "1R·2R 1/3"}, "states": [{"state": "현행 유지", "when": "대안 모두 F"}]}, "roles": {"entry": "none", "exit": "reference", "allocation": "none"}, "evidence": {"grade": "F", "source": "reports/studies/rule_audit.md", "n": 67, "date": "2026-10-16", "effect": "거래대금 상위 100 × 67코호트(6,654거래): 손절 −5/−12%/2×ATR/없음 차이 −0.12~+0.09%p (p ≥ 0.29). 트레일 10/50일선·3×ATR·없음 −0.60~+0.02%p (p ≥ 0.14, 트레일 없음은 MDD −72% vs −48%). 부분익절 없음 +0.18%p (p 0.58), 2R 전량 −0.03%p", "note": "대안이 현행과 구별 안 됨 = 현행이 '비싼' 증거도 없음. 진입이 무조건(유동성 상위)이라 진입 신호와 결합 시 달라질 수 있음"}, "status": "후보", "review_by": "2026-12-15", "owner": "퀀트", "history": [{"date": "2026-10-16", "change": "후보 등록", "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"}]}
-  ],
-  "overrides": [
-    {
-      "id": "ovr-2026-10-15-circuit",
-      "scope": "entry",
-      "effect": "alert",
-      "line": "10/15 코스피 장중 −9% 서킷 이후 4거래일: 신규 진입은 평소 1차 비중의 절반까지만, 레버리지 상품 신규 없음",
-      "why": "서킷 다음 며칠은 장중 변동이 커서 체결 품질이 나쁨 — 근거 서술 수준(검증 아님)",
-      "created": "2026-10-16",
-      "expires": "2026-10-20"
+     "file": "reports/macro_series.json",
+     "field": "series.KOSPI"
     }
-  ]
+   ],
+   "read": {
+    "params": {
+     "dd20_bear": -0.15
+    },
+    "states": [
+     {
+      "state": "하락장",
+      "when": "200일선 아래 또는 20일 고점 대비 ≤ −15%"
+     },
+     {
+      "state": "회복 확인 전",
+      "when": "200일선 위지만 20일선 아래"
+     },
+     {
+      "state": "상승장",
+      "when": "200일선 위 + 20일선 위"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "reference",
+    "allocation": "gate"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "pb-private analysis/2026-10-15-rules (하락장 손실한도·손절 연 2~3%p 소폭 도움) · lab DUAL_MOMENTUM_INDEX F",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "알파가 아니라 위험 축소 스위치. 지수 절대모멘텀(타이밍 전략)은 lab에서 F — '하락장이니 지수를 판다'는 근거 없음, '하락장이니 위성 북 노출 상한을 낮춘다'만."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 규정 v2.1 [1] 레짐 판정을 렌즈로 이관",
+     "why": "운용회의·규정·PB 판단이 같은 정의를 쓰게"
+    }
+   ]
+  },
+  {
+   "id": "crash_day_close",
+   "name_ko": "급락일 종가 진입 (기다리지 않기)",
+   "family": "price",
+   "question": "급락일에 들어간다면 언제 — 신호를 기다릴까, 그날 종가에 살까?",
+   "inputs": [
+    {
+     "file": "reports/macro_view.json",
+     "field": "rows[KOSPI].chg1"
+    },
+    {
+     "file": "reports/macro_series.json",
+     "field": "series.KOSPI (dd20)"
+    }
+   ],
+   "read": {
+    "params": {
+     "ret1": -0.03,
+     "ret1_deep": -0.05,
+     "dd20": -0.1
+    },
+    "states": [
+     {
+      "state": "급락일(−5%)",
+      "when": "1일 ≤ −5% & 20일 고점 대비 ≤ −10%"
+     },
+     {
+      "state": "급락일(−3%)",
+      "when": "1일 ≤ −3% & 20일 고점 대비 ≤ −10%"
+     },
+     {
+      "state": "해당 없음",
+      "when": "그 외"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "weight",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "B",
+    "source": "reports/studies/playbook_signals.md",
+    "n": 55,
+    "date": "2026-10-15",
+    "note": "2010~2026 코스피 급락 55건(독립 19묶음): 급락일 종가 매수가 저점 지지·5일 고점·분할·약세 경로 컷보다 20일 −2.2~−5.7%p 우월(유의). 단 '지수보다 낫다'는 아님 — lab CRASH_REBOUND_LARGE(대형주 바스켓 vs 코스피) F. 그래서 '진입한다면 종가에, 기다리지 말 것'이라는 타이밍 가중일 뿐 매수 허가 게이트가 아님."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 타이밍 가중(+1)",
+     "why": "playbook_signals 사전등록 결과"
+    }
+   ]
+  },
+  {
+   "id": "confirm_signals",
+   "name_ko": "반등 확인 신호 (저점 지지·5일 고점·저점 2일 이탈)",
+   "family": "price",
+   "question": "급락 뒤 '확인하고 들어가기' 신호가 켜졌나?",
+   "inputs": [
+    {
+     "file": "reports/committee.json",
+     "field": "stance.exec.signals"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "켜짐 n/3",
+      "when": "실행 대본 참고 신호 중 켜진 수"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "F",
+    "source": "reports/studies/playbook_signals.md",
+    "n": 55,
+    "date": "2026-10-15",
+    "note": "32개 조합 전부 급락일 종가 매수보다 나쁨. 약세 경로 컷도 53%에서 발동해 −4.0%p. 규정 v2.1 [4]의 '하락 매수는 실행 대본 신호 충족 시만'과 충돌 — 다음 규정 리뷰 안건."
+   },
+   "status": "강등",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "강등 (게이트 → 참고)",
+     "why": "사전등록 검증에서 악화 판정"
+    }
+   ]
+  },
+  {
+   "id": "foreign_flow",
+   "name_ko": "외국인 현물 순매수 (코스피)",
+   "family": "flows",
+   "question": "외국인이 사고 있나 팔고 있나?",
+   "inputs": [
+    {
+     "file": "reports/dashboard_state.json",
+     "field": "close_snapshot / intraday_snapshot .value.flows.KOSPI.외국인"
+    }
+   ],
+   "read": {
+    "params": {
+     "big": -10000
+    },
+    "states": [
+     {
+      "state": "순매수",
+      "when": "> 0"
+     },
+     {
+      "state": "순매도",
+      "when": "≤ 0"
+     },
+     {
+      "state": "대량 순매도",
+      "when": "≤ −1조 (억원 −10,000)"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/studies/playbook_signals.md 0-1 (일별 이력 미저장) · 별도 연구: 종목고유 수급 × 선물 레짐 H1·H2 기각",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "지수 수급 일별 이력이 없어 검증 불가. 이력 적재가 먼저(lab FOREIGN_FLOW_FILTER 대기)."
+   },
+   "status": "검증중",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": "운용회의 강세 전환 신호에 쓰이지만 근거 없음"
+    }
+   ]
+  },
+  {
+   "id": "macro_wind",
+   "name_ko": "매크로 바람 (금리·환율·미국 지수 합성)",
+   "family": "macro",
+   "question": "매크로 환경이 위험자산에 순풍인가 역풍인가?",
+   "inputs": [
+    {
+     "file": "reports/macro_view.json",
+     "field": "score, label"
+    }
+   ],
+   "read": {
+    "params": {
+     "tail": 0.15,
+     "head": -0.15
+    },
+    "states": [
+     {
+      "state": "순풍",
+      "when": "score ≥ +0.15"
+     },
+     {
+      "state": "역풍",
+      "when": "score ≤ −0.15"
+     },
+     {
+      "state": "중립",
+      "when": "그 사이"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "lab MACRO_TILT (데이터 부족 — 대기)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "점수 가중치가 사후 설정. 국면 시계열 확보 전까지 참고만."
+   },
+   "status": "검증중",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "breadth_kr",
+   "name_ko": "시장 폭 (국장 200일선 위 종목 비율)",
+   "family": "trend",
+   "question": "지수만 버티는가, 종목 전반이 무너졌나?",
+   "inputs": [
+    {
+     "file": "reports/breadth_history.jsonl",
+     "field": "market=KR pct_above200, new_high52, new_low52"
+    }
+   ],
+   "read": {
+    "params": {
+     "weak": 0.3,
+     "strong": 0.6
+    },
+    "states": [
+     {
+      "state": "약함",
+      "when": "200일선 위 < 30%"
+     },
+     {
+      "state": "강함",
+      "when": "≥ 60%"
+     },
+     {
+      "state": "보통",
+      "when": "그 사이"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "—",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "breadth_history 누적 중. 1년 쌓이면 사전등록 후 검증."
+   },
+   "status": "검증중",
+   "review_by": "2026-12-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "scenario_base_rate",
+   "name_ko": "시나리오 기저확률 (1999~ 조건부 통계)",
+   "family": "price",
+   "question": "비슷한 낙폭 상황에서 20일 뒤 강세·기본·약세가 몇 % 나왔나?",
+   "inputs": [
+    {
+     "file": "reports/committee.json",
+     "field": "scenarios[].prob, scenario_basis"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "강세 우위/기본 우위/약세 우위",
+      "when": "최대 확률 시나리오"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/studies/crash_rebound.json buckets20",
+    "n": 32,
+    "date": "2026-10-15",
+    "note": "서술 통계. 표본 수십 회라 오차 범위가 ±15%p 이상. 확률 = 방향, 타이밍 아님."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "stock_trend_score",
+   "name_ko": "종목 추세·모멘텀 점수 (스크리너)",
+   "family": "momentum",
+   "question": "종목 고를 때 추세/모멘텀 점수가 다음 수익을 예측하나?",
+   "inputs": [
+    {
+     "file": "reports/signal_scores.json",
+     "field": "signals.trend_score / momentum_score .verdict, h20.ic"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "판정 문자열",
+      "when": "signal_scores verdict 그대로"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "F",
+    "source": "reports/signal_scores.json (250일, h20 IC −0.045) · lab TREND_12_1 F",
+    "n": 250,
+    "date": "2026-10-15",
+    "note": "점수 높은 종목이 오히려 덜 오름(최근 1년). 종목 선택 근거로 쓰지 않음."
+   },
+   "status": "강등",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록과 동시에 강등 (참고)",
+     "why": "IC 음수, lab F"
+    }
+   ]
+  },
+  {
+   "id": "index_abs_momentum",
+   "name_ko": "지수 절대모멘텀 (12개월 > 0 이면 보유)",
+   "family": "momentum",
+   "question": "지수를 들고 있을지 현금으로 갈지 추세로 정할 수 있나?",
+   "inputs": [
+    {
+     "file": "reports/lab.json",
+     "field": "results.DUAL_MOMENTUM_INDEX"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "보유/현금",
+      "when": "lab state.hold"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "F",
+    "source": "reports/lab.json DUAL_MOMENTUM_INDEX",
+    "n": 192,
+    "date": "2026-10-15",
+    "note": "보유 대비 초과 없음. 단, lab 원자료가 ±45% 갭만 수정 → 장기 결과 연 −4%p 정도 비관 편향 가능."
+   },
+   "status": "강등",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": "lab F"
+    }
+   ]
+  },
+  {
+   "id": "options_gamma",
+   "name_ko": "옵션 감마·풋콜 (코스피200)",
+   "family": "derivs",
+   "question": "딜러 헤지가 변동을 키우는 구간인가?",
+   "inputs": [
+    {
+     "file": "reports/derivs.json",
+     "field": "gex_bn, pcr_oi, atm_iv, rv20"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "감마 음수",
+      "when": "gex_bn < 0 — 움직임 확대"
+     },
+     {
+      "state": "감마 양수",
+      "when": "gex_bn ≥ 0"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "lab VRP_OPTIONS (옵션 일별 장기 이력 없음 — 대기)",
+    "n": 21,
+    "date": "2026-10-15",
+    "note": "방향이 아니라 '흔들림 크기' 주의. 사이즈 줄이는 데만."
+   },
+   "status": "검증중",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 진입 주의",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "gamma_regime",
+   "name_ko": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
+   "family": "derivs",
+   "question": "숏감마(감마 음수) 구간을 노릴 수 있나? — 다음날 흔들림이 IV 예고보다 크고, 방향이 이어지나?",
+   "inputs": [
+    {
+     "file": "data/deriv/daily.csv",
+     "field": "gex_bn, flip, atm_iv, k200_close, kospi_open·close"
+    },
+    {
+     "file": "reports/derivs.json",
+     "field": "gex_bn (오늘 상태)"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "감마 음수",
+      "when": "gex_bn < 0 — 딜러가 움직임을 따라감"
+     },
+     {
+      "state": "감마 양수",
+      "when": "gex_bn ≥ 0 — 딜러가 움직임을 받아냄"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/studies/gamma_regime.json",
+    "n": 272,
+    "date": "2026-10-16",
+    "note": "scripts/study_gamma.py 사전등록(H1 |r1|·H1b 실현/내재·H2 방향 지속). deriv-hist 적재 뒤 매일 자동 재판정.",
+    "effect": "|r1| 음수−양수 0.02379 (p_is 0.0025) · 실현/내재 0.10409 (p_is 0.2731) · 방향 지속 0.01511 (p_is 0.7291)",
+    "next_eval": "2026-10-30"
+   },
+   "status": "사전등록",
+   "review_by": "2026-12-16",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "사전등록 — 참고 전용",
+     "why": "'숏감마 구간을 노릴 수 있나?' 질문 검증"
+    }
+   ]
+  },
+  {
+   "id": "ai_credit",
+   "name_ko": "AI 인프라 신용 감시",
+   "family": "bonds_credit",
+   "question": "AI 데이터센터 업종의 빚 스트레스가 커지나?",
+   "inputs": [
+    {
+     "file": "reports/bonds.json",
+     "field": "ai_credit.alert.lv, level"
+    }
+   ],
+   "read": {
+    "params": {
+     "warn_lv": 1
+    },
+    "states": [
+     {
+      "state": "정상",
+      "when": "lv 0"
+     },
+     {
+      "state": "주의",
+      "when": "lv 1"
+     },
+     {
+      "state": "경계",
+      "when": "lv ≥ 2"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "alert",
+    "allocation": "alert"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/bonds.json ai_credit (2026-10 신설)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "반도체·AI 인프라 쏠림 점검 계기로만. 경계라고 바로 팔지 않음."
+   },
+   "status": "검증중",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 주의",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "stock_bond_corr",
+   "name_ko": "주식–채권 상관 (IEF vs S&P500, 1년)",
+   "family": "bonds_credit",
+   "question": "채권이 주식 하락을 막아주는 국면인가?",
+   "inputs": [
+    {
+     "file": "reports/bonds.json",
+     "field": "corr.IEF_SPX.c250"
+    }
+   ],
+   "read": {
+    "params": {
+     "pos": 0.2
+    },
+    "states": [
+     {
+      "state": "같이 움직임",
+      "when": "상관 > +0.2 — 장기채 헤지 효과 약함"
+     },
+     {
+      "state": "헤지 작동",
+      "when": "상관 ≤ +0.2"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/bonds.json corr (서술 통계)",
+    "n": 250,
+    "date": "2026-10-15",
+    "note": "코어 북 채권 듀레이션(단기 vs 장기) 고를 때 참고. 비중 자체는 연 1회 리밸런싱 규칙."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "us10y",
+   "name_ko": "미 10년 금리 (수준·1개월 변화)",
+   "family": "macro",
+   "question": "할인율 부담이 커지고 있나?",
+   "inputs": [
+    {
+     "file": "reports/macro_view.json",
+     "field": "rows[US10Y].last, d20"
+    }
+   ],
+   "read": {
+    "params": {
+     "up_bp": 25
+    },
+    "states": [
+     {
+      "state": "급등",
+      "when": "20일 +25bp 이상"
+     },
+     {
+      "state": "급락",
+      "when": "20일 −25bp 이하"
+     },
+     {
+      "state": "보합",
+      "when": "그 사이"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "—",
+    "n": null,
+    "date": "2026-10-15",
+    "note": ""
+   },
+   "status": "검증중",
+   "review_by": "2026-12-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "yen_carry",
+   "name_ko": "엔 캐리 청산 경계 (엔/달러 5일)",
+   "family": "japan",
+   "question": "엔 급등으로 세계 위험자산이 한꺼번에 팔릴 위험이 커졌나?",
+   "inputs": [
+    {
+     "file": "reports/japan.json",
+     "field": "carry.flag, carry.chg5"
+    }
+   ],
+   "read": {
+    "params": {
+     "chg5": -0.03
+    },
+    "states": [
+     {
+      "state": "경계",
+      "when": "엔/달러 5일 ≤ −3%"
+     },
+     {
+      "state": "평온",
+      "when": "그 외"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "alert",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/japan.json (2024-08-05 1회 사례 기반 규칙)",
+    "n": 1,
+    "date": "2026-10-15",
+    "note": "사례 1회. 주의 환기만."
+   },
+   "status": "검증중",
+   "review_by": "2026-12-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 주의",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "japan_semi_lead",
+   "name_ko": "일본 반도체 장비·메모리 동행",
+   "family": "japan",
+   "question": "도쿄 장비·메모리주가 한국 반도체보다 먼저/같이 움직였나?",
+   "inputs": [
+    {
+     "file": "reports/japan.json",
+     "field": "groups[].jp.chg1, corr_kr"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "일본 약세/강세",
+      "when": "장비 그룹 1일 수익률 부호"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/japan.json corr_kr (60일 상관 0.7대 — 동행, 선행 미검증)",
+    "n": 60,
+    "date": "2026-10-15",
+    "note": "상관은 선행이 아님."
+   },
+   "status": "검증중",
+   "review_by": "2026-12-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "supply_chain",
+   "name_ko": "공급망 체인 점수 (업종 비중 의견)",
+   "family": "valuation",
+   "question": "어느 업종 이익 전망이 올라가고 있나?",
+   "inputs": [
+    {
+     "file": "reports/chains_view.json",
+     "field": "chains.*.score"
+    }
+   ],
+   "read": {
+    "params": {
+     "ow": 0.3,
+     "uw": -0.15
+    },
+    "states": [
+     {
+      "state": "비중 확대 n / 축소 n",
+      "when": "score ≥ 0.3 / ≤ −0.15"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "lab TREND_SECTOR (시점별 업종 이력 없음 — 대기)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": ""
+   },
+   "status": "검증중",
+   "review_by": "2026-12-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "committee_ideas",
+   "name_ko": "운용회의 매수 후보 (이익 신호 좋고 과하게 빠진 종목)",
+   "family": "valuation",
+   "question": "회의가 고른 매수 후보가 시장보다 나았나?",
+   "inputs": [
+    {
+     "file": "reports/committee.json",
+     "field": "track.summary.h5/h20"
+    }
+   ],
+   "read": {
+    "params": {
+     "min_n": 20
+    },
+    "states": [
+     {
+      "state": "채점 n회 · 5일 초과 평균",
+      "when": "track.summary"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/committee_hist.json (채점 시작)",
+    "n": 0,
+    "date": "2026-10-15",
+    "note": "20회 채점 쌓이면 사전등록 기준(초과수익 t)으로 재등급."
+   },
+   "status": "검증중",
+   "review_by": "2026-12-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "event_calendar",
+   "name_ko": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
+   "family": "events",
+   "question": "결과가 나오기 전에 들어가면 이벤트 도박이 되나?",
+   "inputs": [
+    {
+     "file": "reports/calendar.json",
+     "field": "events[].imp ≥ 3"
+    }
+   ],
+   "read": {
+    "params": {
+     "days": 7,
+     "imp": 3
+    },
+    "states": [
+     {
+      "state": "당일 있음",
+      "when": "오늘 imp ≥ 3"
+     },
+     {
+      "state": "7일 안 n건",
+      "when": ""
+     },
+     {
+      "state": "없음",
+      "when": ""
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/events_stats.json (이벤트 당일 변동 서술)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "개인 규정의 'CPI·FOMC 당일 장중 진입 금지'는 personal.event_day_ban 게이트."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 주의",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "atr_stop",
+   "name_ko": "종목 손절선 (20일 저점·2×ATR)",
+   "family": "price",
+   "question": "들고 있는 종목이 계획한 손절선을 깼나?",
+   "inputs": [
+    {
+     "file": "reports/detail/KR/<code>.json",
+     "field": "chart (종목별, committee._risk_box)"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "종목별",
+      "when": "종가 < 손절선 → 청산"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "gate",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "pb-private analysis/2026-10-15-rules (R2 손절: 하락장 소폭 도움)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "위험 축소 방향이라 C로 게이트 허용. 지수 기준 일괄 청산(약세 경로 컷)은 F — 종목별 손절만."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 청산 게이트",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "us_regime",
+   "name_ko": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
+   "family": "trend",
+   "question": "미국장이 조정 국면인가?",
+   "inputs": [
+    {
+     "file": "reports/macro_view.json",
+     "field": "rows[SPX].vs50, chg20; rows[VIX].last"
+    }
+   ],
+   "read": {
+    "params": {
+     "vix_hi": 25
+    },
+    "states": [
+     {
+      "state": "조정",
+      "when": "50일선 아래 & 20일 < −5%"
+     },
+     {
+      "state": "변동성 높음",
+      "when": "VIX ≥ 25"
+     },
+     {
+      "state": "정상",
+      "when": "그 외"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/studies/crash_rebound.json spx_buckets20 (서술)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": ""
+   },
+   "status": "검증중",
+   "review_by": "2026-12-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 참고",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "personal.instrument_ban",
+   "name_ko": "상품 금지 (레버리지·인버스·신규상장·미수)",
+   "family": "personal",
+   "question": "이 상품은 지금 내 규정상 살 수 있나?",
+   "inputs": [
+    {
+     "file": "pb-private:views/personal.json",
+     "field": "lenses[instrument_ban]"
+    }
+   ],
+   "read": {
+    "params": {
+     "private": true
+    },
+    "states": [
+     {
+      "state": "금지 중 / 해제",
+      "when": "pb-private 판정"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "gate",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "B",
+    "source": "pb-private analysis/2026-10-15 · 2026-10-15-rules (본인 원장 재생)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "개선의 대부분이 이 규칙 하나에서 나옴. 본인 1개 계좌·1년 표본(표본 밖 미확인)이라 B."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 진입 게이트",
+     "why": "규정 v2.1 [2]"
+    }
+   ]
+  },
+  {
+   "id": "personal.satellite_cap",
+   "name_ko": "위성 북 상한 사용률",
+   "family": "personal",
+   "question": "실험 계좌가 정해둔 크기를 넘었나?",
+   "inputs": [
+    {
+     "file": "pb-private:views/personal.json",
+     "field": "lenses[satellite_cap]"
+    }
+   ],
+   "read": {
+    "params": {
+     "private": true
+    },
+    "states": [
+     {
+      "state": "한도 안 / 초과",
+      "when": "pb-private 판정"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "gate",
+    "exit": "weight",
+    "allocation": "gate"
+   },
+   "evidence": {
+    "grade": "B",
+    "source": "pb-private analysis/2026-10-15-rules (코어만 > 매매)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "매매를 줄일수록 나았음. 초과면 신규 진입 불가·초과분 코어 이전."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록",
+     "why": "규정 v2.1 [0]"
+    }
+   ]
+  },
+  {
+   "id": "personal.theme_concentration",
+   "name_ko": "반도체 테마 집중도",
+   "family": "personal",
+   "question": "한 테마(반도체·메모리)에 너무 몰려 있나?",
+   "inputs": [
+    {
+     "file": "pb-private:views/personal.json",
+     "field": "lenses[theme_concentration]"
+    }
+   ],
+   "read": {
+    "params": {
+     "private": true
+    },
+    "states": [
+     {
+      "state": "한도 안 / 초과",
+      "when": "pb-private 판정"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "gate",
+    "exit": "gate",
+    "allocation": "gate"
+   },
+   "evidence": {
+    "grade": "B",
+    "source": "pb-private analysis/2026-10-15 (테마별 손익)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "초과 중이면 같은 테마 신규 진입 불가, 반등일에 축소."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록",
+     "why": "규정 v2.1 [3]"
+    }
+   ]
+  },
+  {
+   "id": "personal.loss_limit",
+   "name_ko": "손실 한도·쿨다운·매매 금지",
+   "family": "personal",
+   "question": "손실 한도나 위반으로 지금 매매가 막혀 있나?",
+   "inputs": [
+    {
+     "file": "pb-private:views/personal.json",
+     "field": "lenses[loss_limit], lenses[cooldown]"
+    }
+   ],
+   "read": {
+    "params": {
+     "private": true
+    },
+    "states": [
+     {
+      "state": "정상 / 금지 중",
+      "when": "pb-private 판정"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "gate",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "pb-private analysis/2026-10-15-rules (R6 손실한도: 하락장 연 2~3%p)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "위험 축소 방향 → C로 게이트 허용."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록",
+     "why": "규정 v2.1 [6]·[9]"
+    }
+   ]
+  },
+  {
+   "id": "personal.event_day_ban",
+   "name_ko": "이벤트·서킷 당일 장중 진입 금지",
+   "family": "personal",
+   "question": "오늘이 장중 신규 진입이 금지된 날인가?",
+   "inputs": [
+    {
+     "file": "pb-private:views/personal.json",
+     "field": "lenses[event_day_ban]"
+    },
+    {
+     "file": "reports/views.json",
+     "field": "event_calendar, overrides"
+    }
+   ],
+   "read": {
+    "params": {
+     "private": true
+    },
+    "states": [
+     {
+      "state": "금지일 / 아님",
+      "when": "pb-private 판정"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "gate",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "규정 v2.1 [1] (근거: 본인 원장 당일 매매 승률)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": ""
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록",
+     "why": ""
+    }
+   ]
+  },
+  {
+   "id": "personal.hold_period",
+   "name_ko": "보유기간 습관 (10일+ 보유)",
+   "family": "personal",
+   "question": "노이즈에 일찍 파는 습관이 나오고 있나?",
+   "inputs": [
+    {
+     "file": "pb-private:views/personal.json",
+     "field": "lenses[hold_period]"
+    }
+   ],
+   "read": {
+    "params": {
+     "private": true
+    },
+    "states": [
+     {
+      "state": "참고",
+      "when": ""
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "pb-private analysis/2026-10-15 (10일+ 보유만 수익) · 2026-10-15-rules (최소보유 R3는 다른 장에서 효과 없음)",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "원장에선 강하지만 규칙으로 강제하면 효과 없음 → 강등(가이드)."
+   },
+   "status": "강등",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록과 동시에 강등 (가이드)",
+     "why": "규정 v2.1 [5] R3 강등과 일치"
+    }
+   ]
+  },
+  {
+   "id": "personal.isa_dca",
+   "name_ko": "코어 북 적립 진행",
+   "family": "personal",
+   "question": "코어(ISA) 적립을 계획대로 하고 있나?",
+   "inputs": [
+    {
+     "file": "pb-private:views/personal.json",
+     "field": "lenses[isa_dca]"
+    }
+   ],
+   "read": {
+    "params": {
+     "private": true
+    },
+    "states": [
+     {
+      "state": "계획대로 / 미달 / 데이터 없음",
+      "when": "pb-private 판정"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "weight"
+   },
+   "evidence": {
+    "grade": "B",
+    "source": "pb-private analysis/2026-10-15-rules · 2026-10-15-alloc",
+    "n": null,
+    "date": "2026-10-15",
+    "note": "코어 적립이 매매보다 나았음 — 남는 돈의 기본값은 코어."
+   },
+   "status": "채택",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록",
+     "why": "규정 v2.1 [0]"
+    }
+   ]
+  },
+  {
+   "id": "cand.add_on_drop",
+   "name_ko": "후보: 10일 안 추가 −5% 하락 시 2차 진입",
+   "family": "price",
+   "question": "급락 뒤 2차 진입을 '확인 후'가 아니라 '추가 하락 시'로 하면 나은가?",
+   "inputs": [
+    {
+     "file": "reports/studies/playbook_signals.md",
+     "field": "6절 탐색"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "가설",
+      "when": ""
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "reports/studies/playbook_signals.md 6절 (사전등록 밖 탐색)",
+    "n": 55,
+    "date": "2026-10-15",
+    "note": "탐색 결과: 평균 비용 작고 꼬리 얇음. 사전등록 후 재검증해야 채택 가능."
+   },
+   "status": "후보",
+   "review_by": "2026-11-01",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "후보 등록 (가중 0)",
+     "why": "급락 스터디 탐색 결과"
+    }
+   ]
+  },
+  {
+   "id": "cand.program_nonarb",
+   "name_ko": "후보: 프로그램 비차익 막판 매수 = 바닥 신호?",
+   "family": "flows",
+   "question": "장 막판 비차익(바스켓) 대량 매수가 다음날 반등을 예고하나?",
+   "inputs": [
+    {
+     "file": "reports/dashboard_state.json",
+     "field": "close_snapshot.value.snap.KOSPI.prog_nonarb"
+    }
+   ],
+   "read": {
+    "params": {},
+    "states": [
+     {
+      "state": "가설",
+      "when": ""
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "검증전",
+    "source": "—",
+    "n": 0,
+    "date": "2026-10-16",
+    "note": "일별 이력 저장부터 필요(현재 스냅샷 2개뿐)."
+   },
+   "status": "후보",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "후보 등록 (가중 0)",
+     "why": "10/15 장 막판 차익·비차익 해석에서 나온 아이디어"
+    }
+   ]
+  },
+  {
+   "id": "fib_levels",
+   "name_ko": "피보나치 되돌림·하방 Fib 지지선",
+   "family": "technical",
+   "question": "차트의 피보나치 되돌림 선(특히 현재가 아래 하방 Fib)이 지지선 역할을 하나 — 매수·손절 위치로 써도 되나?",
+   "inputs": [
+    {
+     "file": "reports/detail/KR/<code>.json",
+     "field": "chart OHLC 최근 120봉 (Index.html fibLv·fibDown)"
+    }
+   ],
+   "read": {
+    "params": {
+     "window": 120,
+     "band": 0.005,
+     "ratios": [
+      0.236,
+      0.382,
+      0.5,
+      0.618,
+      0.786,
+      1,
+      1.272,
+      1.618
+     ]
+    },
+    "states": [
+     {
+      "state": "선 위",
+      "when": "종가가 가장 가까운 하방 Fib 위 (±0.5% 밖)"
+     },
+     {
+      "state": "터치",
+      "when": "당일 봉이 하방 Fib ±0.5% 구간에 닿음"
+     },
+     {
+      "state": "이탈",
+      "when": "터치 후 이틀 연속 종가가 레벨 −0.5% 아래"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "F",
+    "source": "reports/studies/fib_levels.md",
+    "n": 18683,
+    "date": "2026-10-16",
+    "effect": "터치 후 10일 수익률 무작위 선 대비 −0.11%p (월 t −1.15, p 0.88; OOS −0.19%p) · 이탈 후 10일 −0.34%p (p 0.15)",
+    "note": "사전등록 H1(지지)·H2(이탈) F. H3 61.8·100% 우위는 IS B·OOS 미재현 — 피보 비율끼리 비교라 렌즈 등급엔 미반영. 차트 선은 '참고'로만, 진입·손절 근거 인용 금지."
+   },
+   "status": "강등",
+   "review_by": "2027-04-16",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 사전등록 검증 F, 참고 전용",
+     "why": "차트 오버레이(fibLv·fibDown)가 판단에 몰래 쓰이지 않게 등급 고정"
+    }
+   ]
+  },
+  {
+   "id": "entry_trigger",
+   "name_ko": "후보: 강세 전환 신호 대체 — 급락일 종가 진입 (확인 신호 기다리지 않기)",
+   "family": "price",
+   "question": "급락(20일 −15% 또는 −5%) 뒤 운용회의 '강세 전환 신호'(외국인 2일 + 5일 고점)를 무엇으로 바꿀까?",
+   "inputs": [
+    {
+     "file": "reports/macro_series.json",
+     "field": "series.KOSPI (dd20·ret1·5/20일선)"
+    },
+    {
+     "file": "data/deriv/daily.csv",
+     "field": "spot_frgn"
+    }
+   ],
+   "read": {
+    "params": {
+     "dd20": -0.15,
+     "ret1": -0.05,
+     "win": 20
+    },
+    "states": [
+     {
+      "state": "진입 시점(F)",
+      "when": "급락 이벤트 첫날 종가"
+     },
+     {
+      "state": "참고: 저점 +3%(B)",
+      "when": "이벤트 후 종가 ≥ 이후 최저 종가 × 1.03 (등급 F, 참고만)"
+     },
+     {
+      "state": "해당 없음",
+      "when": "그 외"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/studies/entry_signals.md",
+    "n": 11,
+    "date": "2026-10-16",
+    "effect": "t0+40 공통청산 대조군 대비: F(급락일 종가) +6.8%p (p 0.070) · B 저점+3% +5.3%p (0.112, F) · E 5일선 +4.9%p (0.136, F) · A 단계 +4.8%p (0.114, F) · B2 +3.8%p (F) · C 20일선 +2.9%p (F). Bonferroni(m=6) 통과 없음",
+    "note": "2010~ 독립 국면 11개(IS 3)라 전체 표본 판정. 모든 후보가 IS·OOS·하락장에서 대조군보다 + 방향이지만 유의하지 않음. 신호형은 모두 F보다 나쁨. 외국인 2일 조건이 최대 비용원(가격만 +6.1%p). 운용회의 코드 반영은 PB 검토 후 별도."
+   },
+   "status": "후보",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "후보 등록 — 근거 C, 진입 alert",
+     "why": "entry_signals 사전등록 검증: 신호형 후보 모두 입증 실패, 급락일 종가가 C"
+    }
+   ]
+  },
+  {
+   "id": "cand.chase_sizing",
+   "name_ko": "후보: 추격 진입(RSI14>70 또는 전일 +5%) 사이즈 축소 — 유지·강화 쪽 근거",
+   "family": "price",
+   "question": "과열 종목을 살 때 사이즈를 줄여야 하나?",
+   "inputs": [
+    {
+     "file": "data/kr_prices.parquet",
+     "field": "close (RSI14 Wilder, 전일 대비)"
+    }
+   ],
+   "read": {
+    "params": {
+     "rsi": 70,
+     "r1": 0.05
+    },
+    "states": [
+     {
+      "state": "추격",
+      "when": "신호일 RSI14 > 70 또는 전일 대비 ≥ +5%"
+     },
+     {
+      "state": "해당 없음",
+      "when": "그 외"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/studies/rule_audit.md",
+    "n": 203,
+    "date": "2026-10-16",
+    "effect": "거래대금 상위 100 코호트(20일 보유, 왕복 0.25%): 추격 종목 − 비추격 −1.6%p/20일 (p 0.004, OOS −2.5%p, 하락장 −2.3%p). 코호트 수익: 금지 vs 절반 +0.13%p (p 0.011), 전액 vs 절반 −0.13%p",
+    "note": "추격 절반 규칙은 '비싼 대기'가 아님 — 오히려 추격 진입이 더 나쁨. Bonferroni(α 0.0028) 미달이라 C. 절반 → 금지 강화는 후보"
+   },
+   "status": "후보",
+   "review_by": "2026-11-15",
+   "owner": "퀀트",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "후보 등록",
+     "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"
+    }
+   ]
+  },
+  {
+   "id": "cand.rebound_day_sell",
+   "name_ko": "후보: 반등일(+0.5%) 매도 대기 — 즉시 매도보다 나음",
+   "family": "price",
+   "question": "지수 20일선 이탈 뒤 축소할 때, 반등일을 기다렸다 팔까 바로 팔까?",
+   "inputs": [
+    {
+     "file": "data/deriv/daily.csv",
+     "field": "kospi_close"
+    }
+   ],
+   "read": {
+    "params": {
+     "th": 0.005,
+     "max_wait": 10
+    },
+    "states": [
+     {
+      "state": "반등일",
+      "when": "코스피 전일 대비 ≥ +0.5% (종가 근사)"
+     },
+     {
+      "state": "대기",
+      "when": "그 외 (최대 10거래일)"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "alert",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/studies/rule_audit.md",
+    "n": 106,
+    "date": "2026-10-16",
+    "effect": "코스피 20일선 하향 이탈 106건: 즉시 매도는 +0.5% 반등일 대기보다 매도가 −0.45%p (p 0.013, IS·OOS·하락장 같은 방향). +0.0%·+1.0% 임계값은 현행과 차이 없음. 종목판(4,990건)은 차이 없음",
+    "note": "대기 평균 2.9거래일, 69%가 t0보다 비싸게 팜. 14:30 판정을 종가로 근사"
+   },
+   "status": "후보",
+   "review_by": "2026-11-15",
+   "owner": "퀀트",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "후보 등록",
+     "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"
+    }
+   ]
+  },
+  {
+   "id": "cand.bear_cap_cost",
+   "name_ko": "후보: 하락장(200일선 아래) 노출 50% 상한의 비용 — 완화 검토",
+   "family": "trend",
+   "question": "200일선 아래에서 노출을 50%로 묶는 게 값어치가 있나?",
+   "inputs": [
+    {
+     "file": "data/deriv/daily.csv",
+     "field": "kospi_close (200일선)"
+    }
+   ],
+   "read": {
+    "params": {
+     "cap_now": 0.5,
+     "alts": [
+      0.0,
+      0.7,
+      1.0
+     ]
+    },
+    "states": [
+     {
+      "state": "하락장",
+      "when": "전일 종가 < 200일선"
+     },
+     {
+      "state": "해당 없음",
+      "when": "그 외"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/studies/rule_audit.md",
+    "n": 188,
+    "date": "2026-10-16",
+    "effect": "코스피 2010-10~ 일별(현금 0, 편도 0.125%): 상한 50% 연 4.9%·샤프 0.36·MDD −41% vs 제한 없음 7.2%·0.43·−44%, 70% 5.9%·0.39·−40%. 21일 블록 차이 +0.22%p (p 0.086, IS·OOS 같은 방향)",
+    "note": "위험을 늘리는 방향이라 B 전까지 참고만. 하락장 블록 안에선 차이 ≈0 — 비용은 200일선 근처 휩쏘 구간에서 생김. 개인 손실한도 목적(심리·현금흐름)은 이 검정 밖"
+   },
+   "status": "후보",
+   "review_by": "2026-11-15",
+   "owner": "퀀트",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "후보 등록",
+     "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"
+    }
+   ]
+  },
+  {
+   "id": "cand.exit_rules_audit",
+   "name_ko": "참고: 손절 −8%·20일선 트레일·1R/2R 부분익절 대안 비교 (차이 없음)",
+   "family": "price",
+   "question": "손절 폭·트레일 기준·부분익절을 바꾸면 나아지나?",
+   "inputs": [
+    {
+     "file": "data/hist/kr_*.parquet",
+     "field": "o/c (상폐 포함)"
+    }
+   ],
+   "read": {
+    "params": {
+     "stop": -0.08,
+     "trail_ma": 20,
+     "partial": "1R·2R 1/3"
+    },
+    "states": [
+     {
+      "state": "현행 유지",
+      "when": "대안 모두 F"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "none",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "F",
+    "source": "reports/studies/rule_audit.md",
+    "n": 67,
+    "date": "2026-10-16",
+    "effect": "거래대금 상위 100 × 67코호트(6,654거래): 손절 −5/−12%/2×ATR/없음 차이 −0.12~+0.09%p (p ≥ 0.29). 트레일 10/50일선·3×ATR·없음 −0.60~+0.02%p (p ≥ 0.14, 트레일 없음은 MDD −72% vs −48%). 부분익절 없음 +0.18%p (p 0.58), 2R 전량 −0.03%p",
+    "note": "대안이 현행과 구별 안 됨 = 현행이 '비싼' 증거도 없음. 진입이 무조건(유동성 상위)이라 진입 신호와 결합 시 달라질 수 있음"
+   },
+   "status": "후보",
+   "review_by": "2026-12-15",
+   "owner": "퀀트",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "후보 등록",
+     "why": "rule_audit 사전등록 검증 (m=18 Bonferroni 통과 없음)"
+    }
+   ]
+  },
+  {
+   "id": "exec_signal_1",
+   "name_ko": "실행 대본 신호 1 — 외국인 당일 순매수 (코드 fl[0] > 0)",
+   "family": "flows",
+   "question": "규정 [12]·[4] '실행 대본 신호 1'(오늘 코스피 외국인 순매수 > 0)이 켜진 날 사면 하락장에서 무조건·급락일 종가보다 나은가?",
+   "inputs": [
+    {
+     "file": "data/deriv/daily.csv",
+     "field": "spot_frgn"
+    },
+    {
+     "file": "reports/committee.json",
+     "field": "stance.exec.signals[0].ok"
+    }
+   ],
+   "read": {
+    "params": {
+     "threshold": 0
+    },
+    "states": [
+     {
+      "state": "켜짐",
+      "when": "오늘 외국인 현물 순매수 > 0 (하루만)"
+     },
+     {
+      "state": "꺼짐",
+      "when": "≤ 0"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "F",
+    "source": "reports/studies/exec_signal.md",
+    "n": 647,
+    "date": "2026-10-16",
+    "effect": "하락장 날 신호 뒤 코스피 20일 −0.5%p vs 무조건(NW p 0.24, F) · 60일 −2.1%p(p 0.024, IS·OOS 둘 다 −, 역방향 C) · 급락일 종가 대비 20일 −7.0%p(p 0.044). '둘 다'(S1&저점지지) 요구해도 승률 개선 없음(H3 F)",
+    "note": "코드상 '신호 2'(종가 ≥ 당일 저가)는 항상 참이라 규정 [12] '1·2 신호 충족' = 이 신호 하나. 진입 게이트로 쓰지 말 것. 외국인 조건은 entry_signals(D0>D)·이번(S2′>S12) 두 연구 모두에서 붙일수록 나빴다."
+   },
+   "status": "강등",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 + 강등 (게이트 → 참고)",
+     "why": "exec_signal 사전등록 검증: 하락장에서 효과 없음(F)·60일 역방향"
+    }
+   ]
+  },
+  {
+   "id": "exec_signal_2",
+   "name_ko": "실행 대본 신호 2 — 저점 지지 (코드: 종가 ≥ 당일 저가 → 항상 참 / 의도: 저가 +1% 위 마감)",
+   "family": "price",
+   "question": "'오늘 저점 위 마감'이 하락장 진입 타이밍으로 쓸 만한가?",
+   "inputs": [
+    {
+     "file": "data/deriv/daily.csv",
+     "field": "kospi_low · kospi_close"
+    },
+    {
+     "file": "reports/committee.json",
+     "field": "stance.exec.signals[1].ok"
+    }
+   ],
+   "read": {
+    "params": {
+     "coded": "close >= low (항상 참)",
+     "intended": "close >= low × 1.01"
+    },
+    "states": [
+     {
+      "state": "저가권 마감",
+      "when": "종가 < 당일 저가 × 1.01 (하락장 날의 82%)"
+     },
+     {
+      "state": "저점 지지(S2′)",
+      "when": "종가 ≥ 당일 저가 × 1.01"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "alert",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/studies/exec_signal.md",
+    "n": 278,
+    "date": "2026-10-16",
+    "effect": "S2′(저가 +1% 위 마감) 하락장 날: 20일 +1.1%p vs 무조건(NW p 0.062) · 60일 +2.4%p(p 0.098) · IS +1.0 / OOS +4.1 · 승률 66% vs 60%. 단 급락일 종가 대비 20일 −5.7%p. Bonferroni(m=15) 미달",
+    "note": "코드 그대로(`last >= lowt`)는 종가가 저가 아래일 수 없어 100% 켜짐 — 검정 불가. 코드 수정 제안: `last >= lowt * 1.01`. 급락일이 아닌 하락장 날의 신규 진입 '저가권 마감 제외' 참고선으로만."
+   },
+   "status": "후보",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 코드 정의는 항상 참(결함), 의도 버전 C",
+     "why": "exec_signal 사전등록 검증"
+    }
+   ]
+  },
+  {
+   "id": "sector_postcrash",
+   "name_ko": "급락 뒤 비반도체 섹터 기록 (KRX 업종 24개, 동일가중)",
+   "family": "sector",
+   "question": "코스피 −5% 급락일 뒤 반도체·IT 하드웨어를 뺀 어느 업종이 60일 동안 덜 나빴고, 덜 빠진 업종과 많이 빠진 업종 중 어느 쪽이 나았나?",
+   "inputs": [
+    {
+     "file": "data/hist/kr_*.parquet",
+     "field": "close"
+    },
+    {
+     "file": "universe/kr_sector.csv",
+     "field": "sector"
+    },
+    {
+     "file": "reports/committee.json",
+     "field": "rotation"
+    }
+   ],
+   "read": {
+    "params": {
+     "crash": -0.05,
+     "exclude": [
+      "전기·전자",
+      "semi_equip",
+      "it_hw",
+      "components",
+      "005930",
+      "000660"
+     ],
+     "min_members": 8
+    },
+    "states": [
+     {
+      "state": "덜 나쁜 업종",
+      "when": "보험 · IT 서비스 · 의료·정밀기기 (60일 코스피 대비 0.0 / −0.1 / −2.0%p, n 9)"
+     },
+     {
+      "state": "피할 업종",
+      "when": "운송·창고 · 오락·문화 · 섬유·의류 (−10.9 / −9.7 / −9.1%p) · 부동산(n 7, −19.7)"
+     },
+     {
+      "state": "주도 업종 추격",
+      "when": "급락일에 덜 빠진 상위 1/3 → 60일 −3.4%p 더 나쁨(평균회귀 방향 C)"
+     }
+    ]
+   },
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "evidence": {
+    "grade": "C",
+    "source": "reports/studies/exec_signal.md",
+    "n": 9,
+    "date": "2026-10-16",
+    "effect": "급락 비중첩 9건 뒤 60일: 비반도체 24개 업종 모두 코스피 이하(최고 보험 ±0.0%p). H4 '덜 빠진 − 많이 빠진' −3.4%p(p 0.075, OOS 7건 −3.8) = 사전 가설(퀄리티 우위) 반대, 평균회귀 방향 C. 반등일 3건 검증전",
+    "note": "생존 편향(현재 상장 종목 과거치)·동일가중 vs 시총가중 코스피·2026년 급락 4건 집중. 오늘 rotation 주도(음식료·운송)는 과거 급락 뒤 중하위~최하위 — 추격 근거 없음. 지수(코스피200 ETF) 대비 나은 비반도체 섹터 베팅은 기록상 없음."
+   },
+   "status": "후보",
+   "review_by": "2026-11-15",
+   "owner": "CIO",
+   "history": [
+    {
+     "date": "2026-10-16",
+     "change": "등록 — 근거 C(역방향 평균회귀), 참고",
+     "why": "exec_signal Part 2"
+    }
+   ]
+  }
+ ],
+ "overrides": [
+  {
+   "id": "ovr-2026-10-15-circuit",
+   "scope": "entry",
+   "effect": "alert",
+   "line": "10/15 코스피 장중 −9% 서킷 이후 4거래일: 신규 진입은 평소 1차 비중의 절반까지만, 레버리지 상품 신규 없음",
+   "why": "서킷 다음 며칠은 장중 변동이 커서 체결 품질이 나쁨 — 근거 서술 수준(검증 아님)",
+   "created": "2026-10-16",
+   "expires": "2026-10-20"
+  }
+ ]
 }
