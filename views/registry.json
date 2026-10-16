@@ -371,6 +371,21 @@
       "evidence": {"grade": "검증전", "source": "—", "n": 0, "date": "2026-10-16", "note": "일별 이력 저장부터 필요(현재 스냅샷 2개뿐)."},
       "status": "후보", "review_by": "2026-11-15", "owner": "CIO",
       "history": [{"date": "2026-10-16", "change": "후보 등록 (가중 0)", "why": "10/15 장 막판 차익·비차익 해석에서 나온 아이디어"}]
+    },
+    {
+      "id": "fib_levels",
+      "name_ko": "피보나치 되돌림·하방 Fib 지지선",
+      "family": "technical",
+      "question": "차트의 피보나치 되돌림 선(특히 현재가 아래 하방 Fib)이 지지선 역할을 하나 — 매수·손절 위치로 써도 되나?",
+      "inputs": [{"file": "reports/detail/KR/<code>.json", "field": "chart OHLC 최근 120봉 (Index.html fibLv·fibDown)"}],
+      "read": {"params": {"window": 120, "band": 0.005, "ratios": [0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.272, 1.618]},
+               "states": [{"state": "선 위", "when": "종가가 가장 가까운 하방 Fib 위 (±0.5% 밖)"}, {"state": "터치", "when": "당일 봉이 하방 Fib ±0.5% 구간에 닿음"}, {"state": "이탈", "when": "터치 후 이틀 연속 종가가 레벨 −0.5% 아래"}]},
+      "roles": {"entry": "reference", "exit": "reference", "allocation": "none"},
+      "evidence": {"grade": "F", "source": "reports/studies/fib_levels.md", "n": 18683, "date": "2026-10-16",
+                   "effect": "터치 후 10일 수익률 무작위 선 대비 −0.11%p (월 t −1.15, p 0.88; OOS −0.19%p) · 이탈 후 10일 −0.34%p (p 0.15)",
+                   "note": "사전등록 H1(지지)·H2(이탈) F. H3 61.8·100% 우위는 IS B·OOS 미재현 — 피보 비율끼리 비교라 렌즈 등급엔 미반영. 차트 선은 '참고'로만, 진입·손절 근거 인용 금지."},
+      "status": "강등", "review_by": "2027-04-16", "owner": "CIO",
+      "history": [{"date": "2026-10-16", "change": "등록 — 사전등록 검증 F, 참고 전용", "why": "차트 오버레이(fibLv·fibDown)가 판단에 몰래 쓰이지 않게 등급 고정"}]
     }
   ],
   "overrides": [
