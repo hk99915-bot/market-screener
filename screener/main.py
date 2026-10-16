@@ -504,6 +504,10 @@ def main() -> None:
                 from . import sec
                 from .config import UNIVERSE_DIR
                 us = pl.read_csv(UNIVERSE_DIR / "us_index.csv")["yf"].to_list() if (UNIVERSE_DIR / "us_index.csv").exists() else []
+                # 우선 수집 목록(보유·관심 ETF 구성종목) — 실행당 200종목 예산이라 앞에 둬야 먼저 받음 (10/16)
+                if (UNIVERSE_DIR / "us_priority.csv").exists():
+                    pri = pl.read_csv(UNIVERSE_DIR / "us_priority.csv")["yf"].to_list()
+                    us = pri + [t for t in us if t not in set(pri)]
                 print("SEC", sec.update(us))
             except Exception as e:  # noqa: BLE001
                 log.warning("SEC 재무 실패: %s", e)
