@@ -308,10 +308,11 @@ def main() -> None:
         mg = np.array([r["mdd"] for r in g_runs]); ms = np.array([r["mdd"] for r in s_runs])
         # 글라이드가 처음 35% 이하로 가는 달
         first35 = []
-        for r in g_runs:
+        for i, r in zip(starts, g_runs):
             w = r["wts"]
             idx = np.where(w <= 0.35)[0]
-            first35.append(int(math.ceil(idx[0] / 21)) if len(idx) else None)
+            # 몇 번째 적립(달력 월) 뒤인가: i0 이후 month_start 통과 횟수
+            first35.append(int(df["month_start"].values[i + 1:i + 1 + idx[0]].sum()) if len(idx) else None)
         f = np.array([x for x in first35 if x is not None], float)
         res = {"contrib": c_, "test": c, "tw_glide_mean": float(tw_g.mean()), "tw_sell_mean": float(tw_s.mean()),
                "mdd_glide": {"mean": float(mg.mean()), "p10": float(np.percentile(mg, 10)), "min": float(mg.min())},
@@ -365,6 +366,17 @@ def main() -> None:
             shock.append((runs3[0.35][k]["nav"][jj] - 1) - (runs3[0.30][k]["nav"][jj] - 1))
     h3["shock20_loss_diff_35_minus_30"] = {"n": len(shock), "mean": float(np.mean(shock)) if shock else None,
                                            "median": float(np.median(shock)) if shock else None}
+    # (사후 보조, m 미포함) PB 산술의 전제인 '이미 캡 비중에 있는 상태'에서 −20% 충격: 시작 즉시 캡까지 매도한 변형
+    shock_im = []
+    for i in bear_starts:
+        a = simulate(df, i, i + WIN, rule="CAP", cap=0.35, sell_to=0.35); b = simulate(df, i, i + WIN, rule="CAP", cap=0.30, sell_to=0.30)
+        sem_idx = np.cumprod(1 + df["sem"].values[i + 1:i + WIN + 1])
+        j = np.where(sem_idx <= 0.80)[0]
+        if len(j):
+            jj = j[0] + 1
+            shock_im.append((a["nav"][jj] - 1) - (b["nav"][jj] - 1))
+    h3["shock20_loss_diff_35_minus_30_immediate(사후)"] = {"n": len(shock_im), "mean": float(np.mean(shock_im)) if shock_im else None,
+                                                          "median": float(np.median(shock_im)) if shock_im else None}
     out["results"]["H3"] = h3
     sd = h3["shock20_loss_diff_35_minus_30"]["mean"]
     md = h3["tests"]["CAP35-CAP40"]["mdd_diff"] - h3["tests"]["CAP30-CAP40"]["mdd_diff"]
