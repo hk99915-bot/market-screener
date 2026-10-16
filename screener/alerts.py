@@ -50,6 +50,11 @@ def stop_level(rows: list[list] | None = None) -> tuple[float | None, str]:
     v = _num(os.environ.get("RULE_STOP_LEVEL"))
     if v:
         return v, "설정"
+    # 규정 [12]는 고정선(5,451) — 시크릿이 없을 때 롤링 20일 저점으로 바꿔 울리면 선이 매일 움직여 규정과 달라짐.
+    # 하락장 특칙 기간(기본 ~2026-10-22, RULE_DEADLINE)에는 고정 기본값을 쓰고, 그 뒤에만 롤링으로 넘어간다.
+    dl = os.environ.get("RULE_DEADLINE", "2026-10-22")
+    if datetime.now(KST).strftime("%Y-%m-%d") <= dl:
+        return 5451.0, "규정 [12] 고정선"
     try:
         j = json.loads((REPORT_DIR / "committee.json").read_text(encoding="utf-8"))
         k = (j.get("kospi") or j.get("index") or {})
