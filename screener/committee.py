@@ -243,7 +243,8 @@ def _exec_plan(k: dict, stance: dict, der: dict, longs: list[dict]) -> dict:
     # 2026-10-16 백테스트(reports/studies/playbook_signals.md, 2010~2026 코스피 급락 55건): 저점 지지·5일 고점 2차·약세 경로 청산은
     # 전부 '급락일 종가 매수'보다 나빴음 → 게이트에서 빼고 참고 표시만. 외국인 수급은 이력이 없어 검증 불가.
     sig = [{"t": "외국인 순매수 전환 (참고 — 이력 없어 검증 전)", "now": (f"오늘 {fl[0]/1e4:+.2f}조" if fl else "데이터 없음"), "ok": bool(fl and fl[0] > 0)},
-           {"t": f"오늘 저점 {lowt:,.0f} 위 마감 (참고 — 게이트 아님)", "now": f"{last:,.0f}", "ok": bool(last and lowt and last >= lowt)},
+           # 10/16 재검증(reports/studies/exec_signal.md): 'last >= lowt'는 종가 ≥ 저가라 항상 참(결함) → 저가 +1% 위 마감(C등급)으로 교정
+           {"t": f"오늘 저점 {lowt:,.0f} +1% 위 마감 (C — 참고)", "now": f"{last:,.0f}", "ok": bool(last and lowt and last >= lowt * 1.01)},
            {"t": f"5일 고점 {hi5:,.0f} (참고 — 2차 조건에서 제외)", "now": f"{last:,.0f}", "ok": bool(last and hi5 and last >= hi5)}]
     cands = []
     for x in longs:
