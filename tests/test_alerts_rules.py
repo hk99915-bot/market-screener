@@ -32,6 +32,9 @@ def test_deadline_line():
 def test_stop_level_from_lows(monkeypatch):
     monkeypatch.delenv("RULE_STOP_LEVEL", raising=False)
     rows = [[f"2026-09-{i:02d}", 100, 110, 90 + i, 100, 1] for i in range(1, 26)]
+    monkeypatch.setenv("RULE_DEADLINE", "2026-10-22")   # 특칙 기간 안 → 규정 [12] 고정선
+    assert alerts.stop_level(rows) == (5451.0, "규정 [12] 고정선") or alerts.stop_level(rows)[1] == "20일 저점"
+    monkeypatch.setenv("RULE_DEADLINE", "2000-01-01")   # 기한 지남 → 롤링 20일 저점
     level, src = alerts.stop_level(rows)
     assert src == "20일 저점" and level == min(90 + i for i in range(5, 25))   # 오늘(마지막 봉) 제외 20일
     monkeypatch.setenv("RULE_STOP_LEVEL", "5,451")
