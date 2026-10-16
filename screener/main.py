@@ -496,7 +496,14 @@ def main() -> None:
             u = pl.read_csv(UNIVERSE_DIR / "kr.csv", schema_overrides={"symbol": pl.Utf8})
             print("주식 수", shares.update(u["symbol"].to_list()))
             rebuild_detail_kr()
-        elif a.mode == "fin":         # 재무제표 수집 (알림 없음): KR(DART) + US(SEC)
+        elif a.mode == "fin":         # 재무제표 수집 (알림 없음): US(SEC) 먼저 — DART 백필이 3시간 제한을 다 써서 SEC 가 한 번도 못 돌던 문제(10/16)
+            try:
+                from . import sec
+                from .config import UNIVERSE_DIR
+                us = pl.read_csv(UNIVERSE_DIR / "us_index.csv")["yf"].to_list() if (UNIVERSE_DIR / "us_index.csv").exists() else []
+                print("SEC", sec.update(us))
+            except Exception as e:  # noqa: BLE001
+                log.warning("SEC 재무 실패: %s", e)
             from . import fin
             print(fin.update())
             try:
@@ -506,13 +513,6 @@ def main() -> None:
                 print("주식 수", shares.update(u["symbol"].to_list()))
             except Exception as e:  # noqa: BLE001
                 log.warning("주식 수 실패: %s", e)
-            try:
-                from . import sec
-                from .config import UNIVERSE_DIR
-                us = pl.read_csv(UNIVERSE_DIR / "us_index.csv")["yf"].to_list() if (UNIVERSE_DIR / "us_index.csv").exists() else []
-                print("SEC", sec.update(us))
-            except Exception as e:  # noqa: BLE001
-                log.warning("SEC 재무 실패: %s", e)
         elif a.mode == "portfolios":  # 모의 포트폴리오 (ETF·지수, 2011~)
             from . import portfolios
             portfolios.run()
