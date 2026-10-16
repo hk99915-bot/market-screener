@@ -1,6 +1,6 @@
 {
  "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
- "updated": "2026-10-16",
+ "updated": "2026-10-17",
  "owners": [
   "PB",
   "퀀트",
@@ -880,7 +880,7 @@
    "id": "edu-curriculum-v3",
    "title": "STUDY 커리큘럼 v3 정규화: 모듈 스키마·검증 스크립트 + 파생(D1~D4)·리스크(R1~R6)·퀀트(Q1~Q6)·행동재무(H1~H6)·운용회의(M1~M3) 트랙 — 파생·퀀트·FRM·CIO 자료 흡수",
    "owner": "교육",
-   "status": "검수",
+   "status": "완료",
    "priority": "P1",
    "repo": "public",
    "files": [
@@ -892,13 +892,13 @@
    "started": "2026-10-16",
    "due": "2026-10-18",
    "depends_on": [],
-   "notes": "개인 금액 금지(비율 사례만). Index.html 변경은 개발 인계(일요일)."
+   "notes": "개인 금액 금지(비율 사례만). Index.html 변경은 개발 인계(일요일). | 10/17 2주 게이트(index.json gate, 열린 15) 추가 후 완료."
   },
   {
    "id": "edu-quiz-srs",
    "title": "문제은행(quiz_bank)·복습 스케줄(SRS 1/3/7/21일)·평일 07:10 오늘 공부 알림(study_daily)",
    "owner": "평가",
-   "status": "검수",
+   "status": "완료",
    "priority": "P1",
    "repo": "public",
    "files": [
@@ -912,7 +912,7 @@
    "depends_on": [
     "edu-curriculum-v3"
    ],
-   "notes": "진행 저장은 'study <id> done' 이슈 → reports/study_progress.json 제안(스펙만)."
+   "notes": "진행 저장은 'study <id> done' 이슈 → reports/study_progress.json 제안(스펙만). | 10/17 진행 저장 구현(study-progress)으로 이관, 완료."
   },
   {
    "id": "edu-dev-handoff",
@@ -1167,6 +1167,30 @@
    "due": "2026-10-20",
    "depends_on": [],
    "notes": "10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인."
+  },
+  {
+   "id": "study-progress",
+   "title": "STUDY 진행 기록 이슈 경로: 'study <id> done' → study.yml → reports/study_progress.json(출석·SRS 파생), quiz_bank 채점, 오답 → desk_kb/_quiz_feedback.md 큐, 2주 게이트(열린 15·잠금 52), study_daily ≤4줄(이슈 링크·출석)",
+   "owner": "평가",
+   "status": "검수",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/study_progress.py",
+    ".github/workflows/study.yml",
+    "screener/study_daily.py",
+    "content/study/index.json",
+    "scripts/study_content_check.py",
+    "reports/study_progress.json",
+    "docs/desk_kb/_quiz_feedback.md",
+    "tests/test_study_progress.py"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-20",
+   "depends_on": [
+    "edu-quiz-srs"
+   ],
+   "notes": "첫 실전: 10/19(월) 07:10 메시지의 이슈 링크로 'study H2 done' 1건 → 답글·닫힘·progress 커밋 확인. 오답 큐는 해당 데스크가 KB '흔한 오해'에 반영 후 [x]. 모듈 id·날짜·정답 여부만(금액 없음). Index.html 병합은 edu-dev-handoff #4."
   }
  ]
 }

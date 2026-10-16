@@ -10,7 +10,7 @@
 
 검사 항목: 필수 필드 · id 중복 · prereq 존재·순환 · quiz choices 4개·answer 범위 · est_min ≤ 20(v3) ·
           v3 핵심 개념/공식/실수의 출처 태그([consult:…] [kb:…] [reports/studies/…] [교육 보충]) ·
-          로드맵 id 존재 · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 금지어 · study.json 동기화.
+          로드맵 id 존재 · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 2주 게이트(open 정확히 15) · 금지어 · study.json 동기화.
 """
 from __future__ import annotations
 
@@ -229,6 +229,27 @@ def check_all(S: dict) -> Check:
             share = sum(1 for it in all_items if it.get("kind") == "situation") / len(all_items)
             if share < 0.7:
                 c.err(f"quiz_bank: 상황 판단 문제 비중 {share:.0%} < 70% (consult:pb_learner#L8)")
+    # 2주 게이트: 열린 모듈 정확히 15개, 나머지 전부 잠김, 겹침 없음
+    gate = idx.get("gate")
+    if gate is None:
+        if rm.get("first_two_weeks"):
+            c.err("index.json: 'gate' 없음 (첫 2주 열린 모듈 15개)")
+    else:
+        op, lk = list(gate.get("open", [])), list(gate.get("locked", []))
+        if len(op) != 15 or len(set(op)) != 15:
+            c.err(f"gate.open 은 정확히 15개 (지금 {len(op)})")
+        for i in op + lk:
+            if i not in mods:
+                c.err(f"gate: 없는 모듈 '{i}'")
+        if set(op) & set(lk):
+            c.err(f"gate: open·locked 겹침 {sorted(set(op) & set(lk))}")
+        if set(op) | set(lk) != set(mods):
+            c.err(f"gate: open+locked ≠ 전체 모듈 (빠짐 {sorted(set(mods) - set(op) - set(lk))})")
+        if gate.get("unlock_rule") != "앞 모듈 done 이슈":
+            c.err("gate.unlock_rule 은 '앞 모듈 done 이슈'")
+        ftw = rm.get("first_two_weeks", [])
+        if op[:len(ftw)] != ftw:
+            c.err("gate.open 은 first_two_weeks 순서로 시작해야 함 (H2 → R1 → D1 …)")
     # srs
     srs = S.get("srs")
     if srs is not None:
@@ -268,11 +289,18 @@ def build(S: dict) -> dict:
     idx = S["index"]
     tracks = []
     hours: dict[str, float] = {}
+    gate = idx.get("gate") or {}
+    open_ids = set(gate.get("open", []))
     for t in S["tracks"]:
         tt = {k: v for k, v in t.items() if k != "modules"}
         tt["modules"] = [_legacy_module(m) for m in t["modules"]]
         for m in tt["modules"]:
             hours[m["id"]] = float(m["hours"])
+            if gate:   # 2주 게이트 플래그 (Index.html 은 무시해도 됨)
+                m["locked"] = m["id"] not in open_ids
+                m["open_until"] = None if m["locked"] else gate.get("open_until")
+                if m["locked"]:
+                    m["unlock_rule"] = gate.get("unlock_rule", "앞 모듈 done 이슈")
         tracks.append(tt)
     rm = json.loads(json.dumps(idx["roadmap"], ensure_ascii=False))
     for s in rm.get("steps", []):
@@ -281,7 +309,7 @@ def build(S: dict) -> dict:
     rm["total_modules"] = len(hours)
     out = {"version": idx["version"], "updated": idx["updated"], "title": idx["title"], "intro": idx["intro"],
            "roadmap": rm, "tesat": idx["tesat"], "tracks": tracks, "aptitude": S["aptitude"],
-           "schema": "v3", "built_from": "content/study/*.json (scripts/study_content_check.py --build)"}
+           "gate": idx.get("gate"), "schema": "v3", "built_from": "content/study/*.json (scripts/study_content_check.py --build)"}
     if S.get("srs"):
         out["srs"] = {"intervals": S["srs"]["intervals"], "note": S["srs"].get("note", "")}
     return out

@@ -1,0 +1,294 @@
+"""STUDY 진행 기록 (평가 데스크) — GitHub 이슈 `study <module_id> done` → reports/study_progress.json.
+
+워크플로 `.github/workflows/study.yml` 이 저장소 주인이 연 이슈를 읽어 호출한다(pick.yml 과 같은 경로).
+
+이슈 형식
+  제목  study <module_id> done
+  본문  quiz <qid> <answer_index>     (선택, 한 줄에 하나. answer_index 0~3)
+        min <n>                      (선택, 걸린 분)
+
+파일  reports/study_progress.json
+  {"note", "done":[{id,date,min}], "quiz":[{qid,module,answer,correct,ok,date}], "streak", "last",
+   "unlocked":[id…],                                 ← 게이트(index.json gate) 밖 모듈 중 '앞 모듈 done'으로 열린 것
+   "modules":{id:{done:[날짜], stage, next_due, scores:[[날짜, 비율]]}}}   ← study_daily 복습 선택용 파생 뷰
+오답은 reports/study_wrong.json 에 쌓고 docs/desk_kb/_quiz_feedback.md 큐에 한 줄 추가한다
+(모듈·데스크·개념·오답 — 해당 데스크 KB '흔한 오해' 후보, 피드백 루프). 금액·보유 없음. 네트워크 없음.
+
+  python -m screener.study_progress --title "study H2 done" --body "quiz H2-b4 1\\nmin 15"
+"""
+from __future__ import annotations
+
+import argparse
+import copy
+import json
+import re
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from urllib.parse import quote
+from zoneinfo import ZoneInfo
+
+ROOT = Path(__file__).resolve().parents[1]
+KST = ZoneInfo("Asia/Seoul")
+REPO = "hk99915-bot/market-screener"
+INTERVALS = [1, 3, 7, 21]
+TRACK_DESK = {"H": "behavior", "R": "frm", "D": "derivs", "Q": "quant", "M": "cio", "A": "behavior", "0": "macro", "B": "quant"}
+INITIAL = {"note": "10/17 시작, 출석은 done 이슈 기준", "done": [], "quiz": [], "streak": 0, "last": None, "unlocked": [], "modules": {}}
+
+TITLE_RE = re.compile(r"^\s*study\s+([0-9A-Za-z][\w-]*)\s+done\s*$", re.I)
+QUIZ_RE = re.compile(r"^\s*quiz\s+(\S+)\s+([0-3])\s*$", re.I)
+MIN_RE = re.compile(r"^\s*min(?:utes)?\s*[=: ]\s*(\d{1,3})\s*$", re.I)
+
+
+def _j(p: Path, default):
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return default
+
+
+def _dump(p: Path, o) -> None:
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(o, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+
+
+def issue_url_study(module_id: str, body: str = "") -> str:
+    """터미널·텔레그램용 미리 채운 이슈 링크 (duel.py issue_url 과 같은 패턴)."""
+    return f"https://github.com/{REPO}/issues/new?title={quote(f'study {module_id} done')}&body={quote(body)}"
+
+
+# ───────────────────────── 파싱 ─────────────────────────
+def parse_issue(title: str, body: str | None) -> dict | None:
+    """`study <id> done` + 본문 `quiz <qid> <idx>`·`min <n>` → {id, quiz:[(qid, idx)], min}. 형식이 아니면 None."""
+    m = TITLE_RE.match(title or "")
+    if not m:
+        return None
+    out: dict = {"id": m.group(1), "quiz": [], "min": None, "bad": []}
+    for line in (body or "").splitlines():
+        line = line.strip()
+        q = QUIZ_RE.match(line)
+        if q:
+            out["quiz"].append((q.group(1), int(q.group(2))))
+            continue
+        if line.lower().startswith("quiz"):
+            out["bad"].append(line)   # 'quiz H2-b3 <0~3>' 처럼 번호를 안 바꾼 줄
+            continue
+        n = MIN_RE.match(line)
+        if n:
+            out["min"] = int(n.group(1))
+    return out
+
+
+# ───────────────────────── 채점 ─────────────────────────
+def grade(bank: dict, qid: str, answer: int) -> dict | None:
+    item = next((q for q in (bank or {}).get("items", []) if q.get("id") == qid), None)
+    if not item:
+        return None
+    correct = int(item.get("answer", -1))
+    return {"qid": qid, "module": item.get("module"), "answer": answer, "correct": correct, "ok": answer == correct,
+            "q": item.get("q", ""), "choices": list(item.get("choices", [])), "why": item.get("why", ""),
+            "desk": quiz_desk(item), "duel": item.get("duel"), "rule_ref": item.get("rule_ref")}
+
+
+def quiz_desk(item: dict) -> str:
+    """오답 피드백을 보낼 데스크: src 태그(kb:frm / consult:derivs)에서, 없으면 트랙 글자로."""
+    for s in item.get("src", []) or []:
+        m = re.match(r"(?:kb|consult):([a-z_]+)#", s)
+        if m and m.group(1) != "pb_learner":
+            return m.group(1)
+    mod = str(item.get("module", ""))
+    return TRACK_DESK.get(mod[:1], "behavior")
+
+
+# ───────────────────────── 출석·SRS ─────────────────────────
+def _weekday_gap_ok(a: date, b: date) -> bool:
+    """a < b. 사이에 빠진 평일이 없으면 연속으로 본다 (주말은 건너뛰어도 됨 — 평일 기준 출석)."""
+    d = a + timedelta(days=1)
+    while d < b:
+        if d.weekday() < 5:
+            return False
+        d += timedelta(days=1)
+    return True
+
+
+def streak(dates: list[str]) -> int:
+    ds = sorted({date.fromisoformat(x) for x in dates})
+    if not ds:
+        return 0
+    n = 1
+    for a, b in zip(ds, ds[1:]):
+        n = n + 1 if _weekday_gap_ok(a, b) else 1
+    return n
+
+
+def derive_modules(done: list[dict], quiz: list[dict], intervals: list[int] | None = None) -> dict:
+    """done·quiz 기록 → study_daily.pick_review 가 읽는 {id:{done, stage, next_due, scores}} (srs.json 규칙)."""
+    iv = intervals or INTERVALS
+    mods: dict[str, dict] = {}
+    events: list[tuple[str, int, str, dict]] = []   # (날짜, 순서, 종류, 레코드)
+    for d in done:
+        events.append((d["date"], 0, "done", d))
+    for q in quiz:
+        events.append((q["date"], 1, "quiz", q))
+    for day, _, kind, rec in sorted(events, key=lambda e: (e[0], e[1])):
+        mid = rec["id"] if kind == "done" else rec.get("module")
+        if not mid:
+            continue
+        m = mods.setdefault(mid, {"done": [], "stage": 0, "next_due": None, "scores": []})
+        t = date.fromisoformat(day)
+        if kind == "done":
+            if day not in m["done"]:
+                m["done"].append(day)
+            if m["stage"] == 0 or m["next_due"] is None:
+                m["next_due"] = (t + timedelta(days=iv[0])).isoformat()
+            continue
+        # 퀴즈: 복습 due 가 지났거나 당일이면 SRS 판정, 아니면 점수만 기록
+        m["scores"].append([day, 1.0 if rec.get("ok") else 0.0])
+        if not m["done"]:
+            continue
+        if rec.get("ok"):
+            if m["next_due"] and t >= date.fromisoformat(m["next_due"]) and m["stage"] < 4:
+                m["stage"] += 1
+                m["next_due"] = None if m["stage"] >= 4 else (t + timedelta(days=iv[min(m["stage"], len(iv) - 1)])).isoformat()
+        else:
+            m["stage"] = 0
+            m["next_due"] = (t + timedelta(days=iv[0])).isoformat()
+    return mods
+
+
+# ───────────────────────── 적용 ─────────────────────────
+def _order(study: dict) -> list[str]:
+    rm = (study or {}).get("roadmap", {})
+    ftw = list(rm.get("first_two_weeks", []))
+    return ftw + [i for i in rm.get("order", []) if i not in ftw]
+
+
+def _titles(study: dict) -> dict[str, str]:
+    return {m["id"]: m.get("title", "") for t in (study or {}).get("tracks", []) for m in t.get("modules", [])}
+
+
+def unlock_next(progress: dict, study: dict, done_id: str) -> str | None:
+    """'앞 모듈 done 이슈' 규칙: roadmap.order 에서 done_id 바로 다음의 잠긴 모듈 1개를 연다."""
+    gate = (study or {}).get("gate") or {}
+    locked = list(gate.get("locked", []))
+    if not locked:
+        return None
+    order = list((study or {}).get("roadmap", {}).get("order", []))
+    if done_id not in order:
+        return None
+    opened = set(gate.get("open", [])) | set(progress.get("unlocked", []))
+    for nxt in order[order.index(done_id) + 1:]:
+        if nxt in locked and nxt not in opened:
+            progress.setdefault("unlocked", []).append(nxt)
+            return nxt
+    return None
+
+
+def apply(progress: dict, parsed: dict, bank: dict, study: dict, today: date) -> tuple[dict, list[dict], list[str]]:
+    """진행 파일에 반영. 반환 (progress, 채점 결과[], 답글 줄[])."""
+    p = {**copy.deepcopy(INITIAL), **copy.deepcopy(progress or {})}
+    mid, day = parsed["id"], today.isoformat()
+    titles = _titles(study)
+    lines: list[str] = []
+    if mid not in titles and titles:
+        lines.append(f"⚠️ 모듈 '{mid}' 는 content/study.json 에 없습니다. 기록하지 않았습니다.")
+        return p, [], lines
+    if not any(d["id"] == mid and d["date"] == day for d in p["done"]):
+        p["done"].append({"id": mid, "date": day, "min": parsed.get("min")})
+    graded: list[dict] = []
+    for b in parsed.get("bad", []):
+        lines.append(f"⚠️ 퀴즈 줄 형식 오류 '{b}' — `quiz <qid> <0~3>` (번호는 0·1·2·3 중 하나).")
+    answered = {(q["qid"], q["date"]) for q in p["quiz"]}
+    for qid, ans in parsed["quiz"]:
+        g = grade(bank, qid, ans)
+        if g is None:
+            lines.append(f"⚠️ 문항 '{qid}' 없음 — quiz_bank id 를 확인하세요.")
+            continue
+        graded.append(g)
+        if (qid, day) in answered:
+            continue
+        p["quiz"].append({"qid": qid, "module": g["module"], "answer": ans, "correct": g["correct"], "ok": g["ok"], "date": day})
+    p["streak"] = streak([d["date"] for d in p["done"]])
+    p["last"] = day
+    p["modules"] = derive_modules(p["done"], p["quiz"])
+    opened = unlock_next(p, study, mid)
+    # 답글
+    t = titles.get(mid, "")
+    lines.insert(0, f"✅ {mid} {t.split(' — ')[0]} 완료 기록 ({day}{', ' + str(parsed['min']) + '분' if parsed.get('min') else ''}).")
+    for g in graded:
+        mark = "정답" if g["ok"] else "오답"
+        lines.append(f"{'🟢' if g['ok'] else '🔴'} {g['qid']} {mark} — 내 답: {g['choices'][g['answer']]} / 정답: {g['choices'][g['correct']]}. {g['why']}")
+        if g.get("duel"):
+            d = g["duel"]
+            pick = d.get("pick")
+            lines.append(f"   ⚔️ {d.get('desk')} 데스크 답: {g['choices'][pick] if isinstance(pick, int) and 0 <= pick < len(g['choices']) else '—'}")
+        if not g["ok"]:
+            lines.append(f"   → docs/desk_kb/_quiz_feedback.md 큐에 추가({g['desk']} '흔한 오해' 후보)")
+    m = p["modules"].get(mid, {})
+    if m.get("next_due"):
+        lines.append(f"🔁 다음 복습: {m['next_due']} (단계 {m.get('stage', 0)}/4, 간격 1·3·7·21일)")
+    lines.append(f"📅 출석 {p['streak']}일 연속")
+    if opened:
+        lines.append(f"🔓 다음 모듈 열림: {opened} {titles.get(opened, '').split(' — ')[0]} — 완료 시 `study {opened} done`")
+    return p, graded, lines
+
+
+def append_wrong(graded: list[dict], today: date, root: Path = ROOT) -> int:
+    """오답 → reports/study_wrong.json + docs/desk_kb/_quiz_feedback.md 큐 (데스크 KB '흔한 오해' 후보)."""
+    wrong = [g for g in graded if not g["ok"]]
+    if not wrong:
+        return 0
+    wp = root / "reports" / "study_wrong.json"
+    w = _j(wp, {"note": "study 이슈 오답 누적 — 데스크 KB '흔한 오해' 재료. 금액·보유 없음", "items": []})
+    day = today.isoformat()
+    fb = root / "docs" / "desk_kb" / "_quiz_feedback.md"
+    if not fb.exists():
+        fb.parent.mkdir(parents=True, exist_ok=True)
+        fb.write_text("# 퀴즈 오답 큐 → 데스크 KB '흔한 오해'\n\n"
+                      "> `study <id> done` 이슈의 오답이 자동으로 쌓인다(screener/study_progress.py). 해당 데스크가 KB `흔한 오해` 절에 반영하면 줄 앞에 `[x]` 로 표시한다. 모듈·개념·오답만, 개인 데이터 없음.\n\n"
+                      "| 날짜 | 모듈 | 데스크 | 문항 | 개념(문제) | 오답 → 정답 | 반영 |\n|---|---|---|---|---|---|---|\n", encoding="utf-8")
+    rows = []
+    for g in wrong:
+        if any(x["qid"] == g["qid"] and x["date"] == day for x in w["items"]):
+            continue
+        w["items"].append({"qid": g["qid"], "module": g["module"], "desk": g["desk"], "answer": g["answer"], "correct": g["correct"],
+                           "wrong_choice": g["choices"][g["answer"]], "correct_choice": g["choices"][g["correct"]], "date": day})
+        esc = lambda s: str(s).replace("|", "／").replace("\n", " ")  # noqa: E731
+        rows.append(f"| {day} | {g['module']} | {g['desk']} | {g['qid']} | {esc(g['q'])} | {esc(g['choices'][g['answer']])} → {esc(g['choices'][g['correct']])} | [ ] |\n")
+    if rows:
+        _dump(wp, w)
+        with fb.open("a", encoding="utf-8") as f:
+            f.writelines(rows)
+    return len(rows)
+
+
+def apply_issue(title: str, body: str | None, created_at: str | None = None, root: Path = ROOT) -> str:
+    parsed = parse_issue(title, body)
+    if not parsed:
+        return "형식: 제목 `study <module_id> done`, 본문(선택) `quiz <qid> <0~3>` 한 줄씩, `min <n>`."
+    today = datetime.now(KST).date()
+    if created_at:
+        try:
+            today = datetime.fromisoformat(created_at.replace("Z", "+00:00")).astimezone(KST).date()
+        except ValueError:
+            pass
+    pp = root / "reports" / "study_progress.json"
+    progress = _j(pp, copy.deepcopy(INITIAL))
+    bank = _j(root / "content" / "study" / "quiz_bank.json", {})
+    study = _j(root / "content" / "study.json", {})
+    progress, graded, lines = apply(progress, parsed, bank, study, today)
+    _dump(pp, progress)
+    append_wrong(graded, today, root)
+    return "\n".join(lines)
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--title", required=True)
+    ap.add_argument("--body", default="")
+    ap.add_argument("--created")
+    a = ap.parse_args()
+    print(apply_issue(a.title, a.body.replace("\\n", "\n"), a.created))
+
+
+if __name__ == "__main__":
+    main()

@@ -3,8 +3,10 @@
 content/study.json(빌드본) + content/study/quiz_bank.json + content/study/srs.json + reports/study_progress.json(선택)
 + reports/english/latest.json(헤드라인) → reports/study_daily.json, 텔레그램 한 줄(환경변수 있을 때만).
 
-선택 규칙(srs.json rules): 복습 1개(가장 오래 밀린 것) + 새 모듈 1개(로드맵 순서·선행 충족, 첫 2주 우선 목록 먼저) + 퀴즈 1개(복습 모듈 우선, 날짜 해시로 결정적).
-하루 20분 상한 — 모듈 하나만 노출한다(consult:pb_learner#L5). 네트워크 없이 돈다. 싸게.
+선택 규칙(srs.json rules): 복습 1개(가장 오래 밀린 것) + 새 모듈 1개(2주 게이트 열린 모듈 + 'study <id> done' 으로 열린 모듈 중, 첫 2주 우선 목록 먼저, 미완료)
++ 퀴즈 1개(복습 모듈 우선, 아직 답하지 않은 문항, 날짜 해시로 결정적).
+진행 파일 reports/study_progress.json 은 screener/study_progress.py(이슈 `study <id> done`)가 쓴다 — 여기서는 읽기만.
+텔레그램 ≤4줄: 오늘 공부 / 퀴즈 / 완료 이슈 링크 / 출석 N일 연속. 하루 20분 상한(consult:pb_learner#L5). 네트워크 없이 돈다. 싸게.
 
   python -m screener.study_daily            # 오늘
   python -m screener.study_daily --date 2026-10-20 --no-telegram
@@ -18,6 +20,8 @@ import logging
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+from .study_progress import issue_url_study
 
 log = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,23 +55,38 @@ def pick_review(progress: dict, today: date, mods: dict) -> dict | None:
     return {"id": best, "overdue_days": best_late, "stage": progress["modules"][best].get("stage", 0)} if best else None
 
 
+def _done_ids(progress: dict) -> set[str]:
+    p = progress or {}
+    return {mid for mid, m in p.get("modules", {}).items() if m.get("done")} | {d["id"] for d in p.get("done", []) if d.get("id")}
+
+
 def pick_new(study: dict, progress: dict, mods: dict) -> str | None:
-    """로드맵 순서에서 미완료·선행 충족 첫 모듈. 첫 2주 우선 목록을 먼저 소진 (srs.rules.new_pick)."""
-    done = {mid for mid, p in (progress or {}).get("modules", {}).items() if p.get("done")}
+    """열린 모듈(gate.open + progress.unlocked) 중 미완료 첫 모듈. 첫 2주 우선 목록 → 로드맵 순서 (srs.rules.new_pick).
+    게이트가 없으면(구형 빌드) 선행 충족 규칙만."""
+    done = _done_ids(progress)
     rm = study.get("roadmap", {})
+    gate = study.get("gate") or {}
+    opened = set(gate.get("open", [])) | set((progress or {}).get("unlocked", [])) if gate else None
     cands = [i for i in rm.get("first_two_weeks", []) if i in mods] + [i for i in rm.get("order", []) if i in mods]
     seen: set[str] = set()
     for mid in cands:
         if mid in seen or mid in done:
             continue
         seen.add(mid)
+        if opened is not None:
+            if mid in opened:
+                return mid
+            continue
         if all(p in done for p in mods[mid].get("prereq", []) if p in mods) or mid in rm.get("first_two_weeks", []):
             return mid
     return None
 
 
-def pick_quiz(bank: dict, module_id: str | None, day: date) -> dict | None:
-    items = [q for q in (bank or {}).get("items", []) if q.get("module") == module_id]
+def pick_quiz(bank: dict, module_id: str | None, day: date, progress: dict | None = None) -> dict | None:
+    """모듈의 문항 1개 — 아직 답하지 않은 것 우선(progress.quiz), 모두 답했으면 전체에서."""
+    pool = [q for q in (bank or {}).get("items", []) if q.get("module") == module_id]
+    answered = {q.get("qid") for q in (progress or {}).get("quiz", [])}
+    items = [q for q in pool if q.get("id") not in answered] or pool
     if not items:
         return None
     items.sort(key=lambda q: (q.get("kind") != "situation", q.get("id", "")))  # situation 우선
@@ -80,9 +99,16 @@ def build(today: date, study: dict, bank: dict, srs: dict, progress: dict | None
     review = pick_review(progress or {}, today, mods)
     new_id = pick_new(study, progress or {}, mods)
     quiz_mod = (review or {}).get("id") or new_id
-    quiz = pick_quiz(bank, quiz_mod, today)
+    quiz = pick_quiz(bank, quiz_mod, today, progress)
     new = mods.get(new_id) if new_id else None
+    gate = study.get("gate") or {}
+    next_locked = None
+    if gate and not new_id:
+        done = _done_ids(progress or {})
+        next_locked = next((i for i in study.get("roadmap", {}).get("order", []) if i not in done), None)
+    issue_mod = new_id or (review or {}).get("id")
     est = int(new.get("est_min") or round(float(new.get("hours", 0)) * 60)) if new else 0
+    body = (f"quiz {quiz['id']} <0~3>\n" if quiz else "") + f"min {est or 15}"
     out = {
         "date": today.isoformat(),
         "weekday": today.weekday(),
@@ -95,28 +121,37 @@ def build(today: date, study: dict, bank: dict, srs: dict, progress: dict | None
                   "duel_desk": (quiz.get("duel") or {}).get("desk"), "rule_ref": quiz.get("rule_ref")} if quiz else None),
         "english": ({"date": english.get("date"), "title": english.get("title"), "level": english.get("level")} if english else None),
         "daily_cap_min": (srs or {}).get("rules", {}).get("daily_cap", {}).get("est_min_total", 20),
-        "progress_source": "reports/study_progress.json" if progress else "없음(이슈 'study <id> done' 제안 — srs.json progress_store)",
+        "progress_source": "reports/study_progress.json" if progress else "없음(이슈 'study <id> done' 으로 기록 — screener/study_progress.py)",
         "srs": {"intervals": (srs or {}).get("intervals", [1, 3, 7, 21])},
+        "streak": int((progress or {}).get("streak") or 0),
+        "issue_url": issue_url_study(issue_mod, body) if issue_mod else None,
+        "issue_title": f"study {issue_mod} done" if issue_mod else None,
+        "gate": ({"open_until": gate.get("open_until"), "open": len(gate.get("open", [])), "unlocked": list((progress or {}).get("unlocked", [])),
+                  "next_locked": next_locked, "unlock_rule": gate.get("unlock_rule")} if gate else None),
     }
     return out
 
 
 def telegram_text(o: dict) -> str:
-    n, r, q = o.get("new"), o.get("review"), o.get("quiz")
+    """≤4줄: 오늘 공부 · 퀴즈 · 완료 이슈 링크 · 출석."""
+    n, r, q, g = o.get("new"), o.get("review"), o.get("quiz"), o.get("gate") or {}
     bits = ["📚 오늘 공부:"]
-    bits.append(f"{n['id']} {n['title'].split(' — ')[0]} ({n['est_min']}분)" if n else "새 모듈 없음(로드맵 완주)")
+    if n:
+        bits.append(f"{n['id']} {n['title'].split(' — ')[0]} ({n['est_min']}분)")
+    elif g.get("next_locked"):
+        bits.append(f"새 모듈 잠김({g['next_locked']}) — {g.get('unlock_rule') or '앞 모듈 done 이슈'}")
+    else:
+        bits.append("새 모듈 없음(로드맵 완주)")
     bits.append(f"· 복습 {r['id']}" if r else "· 복습 없음")
     bits.append("· 퀴즈 1" if q else "")
-    line = " ".join(b for b in bits if b)
-    extra = []
-    if n and n.get("terminal_lookup"):
-        extra.append(f"🔎 {n['terminal_lookup']}")
+    lines = [" ".join(b for b in bits if b)]
     if q:
-        extra.append(f"❓ [{q['module']}] {q['q']}")
-    e = o.get("english")
-    if e and e.get("title"):
-        extra.append(f"🗞 {e['title']}")
-    return "\n".join([line, *extra])
+        ch = " / ".join(f"{i}){c}" for i, c in enumerate(q["choices"]))
+        lines.append(f"❓ [{q['module']}] {q['q']} — {ch}")
+    if o.get("issue_url"):
+        lines.append(f"📝 완료 기록(이슈 '{o['issue_title']}', 본문 quiz <qid> <번호>): {o['issue_url']}")
+    lines.append(f"📅 출석 {o.get('streak', 0)}일 연속" + (f" · 복습 D+{r['overdue_days']}" if r and r.get("overdue_days") else ""))
+    return "\n".join(lines[:4])
 
 
 def run(today: date | None = None, send: bool = True, root: Path = ROOT) -> dict:

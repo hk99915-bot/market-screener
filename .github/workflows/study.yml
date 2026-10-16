@@ -1,0 +1,59 @@
+name: study
+
+# STUDY 진행 기록 (평가 데스크) — 저장소 주인이 'study <module_id> done' 이슈를 열면 reports/study_progress.json 에 기록하고 답글 후 닫는다 (pick.yml 과 같은 경로).
+# 본문(선택): 'quiz <qid> <0~3>' 한 줄씩(quiz_bank 채점), 'min <n>'. 오답은 reports/study_wrong.json + docs/desk_kb/_quiz_feedback.md 큐(데스크 KB '흔한 오해' 후보).
+# 네트워크 없음. 모듈 id·날짜·정답 여부만 기록(금액·보유 없음).
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: study
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: startsWith(github.event.issue.title, 'study ') && github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 기록·저장
+        id: r
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+          CREATED: ${{ github.event.issue.created_at }}
+        run: |
+          git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
+          ok=0
+          for i in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            msg=$(python - <<'PY'
+          import os
+          from screener.study_progress import apply_issue
+          print(apply_issue(os.environ["TITLE"], os.environ.get("BODY") or "", os.environ.get("CREATED")))
+          PY
+          )
+            git add reports/study_progress.json reports/study_wrong.json docs/desk_kb/_quiz_feedback.md 2>/dev/null || true
+            git diff --cached --quiet && { ok=1; break; }
+            git commit -qm "study: ${TITLE}" && git push -q origin HEAD:main && { ok=1; break; }
+            sleep 5
+          done
+          [ $ok = 1 ] || echo "::warning::푸시 실패 — 진행이 저장되지 않음"
+          printf 'msg<<EOF\n%s\nEOF\n' "$msg" >> "$GITHUB_OUTPUT"
+      - name: 답글·닫기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file - <<'MSG'
+          ${{ steps.r.outputs.msg }}
+          MSG
+          gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}

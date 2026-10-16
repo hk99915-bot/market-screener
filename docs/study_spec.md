@@ -16,7 +16,8 @@
 | `content/study.json` | **빌드 산출물** — Code.gs `getStudyGuide` / `scripts/build_pages.py`가 읽는 단일 파일. 손으로 고치지 않는다 | `python scripts/study_content_check.py --build` |
 | `scripts/study_content_check.py` | 검증(CI) + 빌드 + (1회성) 분할 | 교육 |
 | `tests/test_study_content.py` | 검증기·빌드 동기화·터미널 호환 키·study_daily 선택 로직 | 교육 |
-| `screener/study_daily.py` · `.github/workflows/study_daily.yml` | 평일 07:10 KST '오늘 공부' → `reports/study_daily.json` + 텔레그램 | 교육-후임 |
+| `screener/study_daily.py` · `.github/workflows/study_daily.yml` | 평일 07:10 KST '오늘 공부' → `reports/study_daily.json` + 텔레그램(≤4줄) | 교육-후임 |
+| `screener/study_progress.py` · `.github/workflows/study.yml` · `tests/test_study_progress.py` | 이슈 `study <id> done` → `reports/study_progress.json`, 오답 큐 `docs/desk_kb/_quiz_feedback.md` | 평가 |
 
 트랙 순서(`track_order`): `0 → R → H → A → D → M → P → T → Q → B → C`. 트랙 R·D·Q·H·M이 v3 신규(25모듈).
 
@@ -73,7 +74,9 @@ CI(`tests.yml` → `tests/test_study_content.py` → `scc.check_all`, 그리고 
 간격 `[1, 3, 7, 21]`일. 통과(≥60%) → 다음 단계, 실패 → 1일로. 4단계 = 정착. 밀린 복습은 **가장 오래 밀린 1개만** 오늘로(벌점 없음). 하루 상한: 복습 1·새 모듈 1·퀴즈 1, 20분.
 새 모듈 선택: `roadmap.first_two_weeks`(H2 R1 D1 H1 R2 H4 D2 R6 H6 M1)를 먼저 소진 → `roadmap.order`에서 미완료·선행 충족 첫 모듈.
 
-**진행 저장 제안(미구현)**: 학습자가 GitHub 이슈 `study <id> done`(선택 `score=4/5`) / `study <id> review score=3/5` 생성 → `study_daily.yml`이 라벨 `study` 이슈를 읽어 `reports/study_progress.json` 갱신 후 닫음. 스키마: `{"updated","modules":{"<id>":{"done":[날짜],"stage":0..4,"next_due":날짜,"scores":[[날짜,비율]]}}}`. 현재 Index.html은 `localStorage mt_study_done`만 쓴다 — 두 저장소의 병합은 Dev handoff #4.
+**진행 저장(구현, 2026-10-17 — 평가 데스크)**: 학습자가 GitHub 이슈 `study <id> done`(본문 선택: `quiz <qid> <0~3>` 한 줄씩, `min <n>`) 생성 → `.github/workflows/study.yml`(pick.yml 과 같은 경로, 주인만) → `python -m screener.study_progress` 가 `reports/study_progress.json` 갱신·답글·닫기. 스키마: `{"note","done":[{id,date,min}],"quiz":[{qid,module,answer,correct,ok,date}],"streak","last","unlocked":[id],"modules":{"<id>":{"done":[날짜],"stage":0..4,"next_due":날짜,"scores":[[날짜,비율]]}}}` — `modules` 는 done·quiz 에서 파생(복습 선택용, 위 SRS 규칙: 정답이면서 due 지남 → stage+1, 오답 → stage 0). 출석(`streak`)은 done 이슈 날짜의 평일 연속(주말 건너뜀 허용). 퀴즈는 quiz_bank 로 채점, 오답은 `reports/study_wrong.json` + `docs/desk_kb/_quiz_feedback.md` 큐(모듈·데스크·개념·오답)에 쌓여 해당 데스크 KB '흔한 오해' 재료가 된다(피드백 루프). 현재 Index.html 은 `localStorage mt_study_done`만 쓴다 — 두 저장소의 병합은 Dev handoff #4.
+
+**2주 게이트(`index.json gate`)**: 10/17~10/30 열린 모듈 15개 = `first_two_weeks` 10(H2 R1 D1 H1 R2 H4 D2 R6 H6 M1) + `order` 앞 5(0-1~0-5). 나머지 52개는 `locked`, `unlock_rule: "앞 모듈 done 이슈"` — done 이슈가 `order` 상 다음 잠긴 모듈 1개를 연다(`progress.unlocked`). 검증기가 open 정확히 15·겹침 없음·전체 커버를 확인하고, 빌드가 모듈마다 `locked`/`open_until`/`unlock_rule` 을 붙인다. `study_daily` 는 열린 모듈 중에서만 새 모듈을 고르고, 텔레그램은 ≤4줄(오늘 공부 / 퀴즈 / 미리 채운 이슈 링크 / 출석 N일 연속).
 
 ## 5. 교육-후임 산출물
 - `quiz_bank.json`: 125문항(25모듈 × 5), 상황 판단 80%, 전 문항 `duel` 데스크 답·`src` 출처, 규칙 인용 문항 `rule_ref`.
