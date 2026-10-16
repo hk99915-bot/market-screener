@@ -2,7 +2,13 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 27개 · 진행 0 · 검수 9 · 대기 6 · 보류 0 · 완료 12
+기준일 2026-10-16 · 작업 28개 · 진행 1 · 검수 9 · 대기 6 · 보류 0 · 완료 12
+
+## 진행 (1)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P2 | `deriv-tab` | 터미널 '파생(DERIV)' 화면 — 흩어진 파생 정보(옵션 포지션·일별 이력·검증 등급) 한곳에 모음 | 파생 | 2026-10-16 | 2026-10-17 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 새 수집 없음 — reports/derivs.json·data/deriv/daily.csv·reports/studies/derivs_signals.json·live.json K200F 재사용. |
 
 ## 검수 (9)
 
@@ -48,7 +54,9 @@
 
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
 
-- `apps-script/Index.html` ← `view-registry`, `drivers-audit` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/Code.gs` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
+- `scripts/build_pages.py` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
 - `views/registry.json` ← `view-registry`, `fib-lens` — 편집 전 `ops/locks.json` 잠금 필수
 
