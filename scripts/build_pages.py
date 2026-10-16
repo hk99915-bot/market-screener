@@ -61,6 +61,7 @@ SHIM = """<script>
     getChains: () => get('reports/chains_view.json'),
     getViews: () => get('reports/views.json'),
     getValuation: () => get('reports/valuation.json'),
+    getDotplot: () => get('reports/dotplot.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

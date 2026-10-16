@@ -103,3 +103,4 @@ function getPeers(mk) { return raw_('reports/peers_' + (mk === 'US' ? 'US' : 'KR
 function getChains() { return raw_('reports/chains_view.json'); }
 function getViews() { return raw_('reports/views.json'); }
 function getValuation() { return raw_('reports/valuation.json'); }   // 반도체 밸류에이션 바스켓 (RESEARCH 탭)
+function getDotplot() { return raw_('reports/dotplot.json'); }   // 기명 점도표 (운용회의 카드 점 띠)

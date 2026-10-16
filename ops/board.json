@@ -1092,6 +1092,24 @@
    "due": "2026-10-17",
    "depends_on": [],
    "notes": "US 9종목(MU·SNDK·NVDA·INTC·TXN·KLAC·LRCX·TSM 등)은 fin 워크플로 SEC 수집 후 자동 채움(그 전엔 ⚠검증전). 20일 분해의 EPS₀ 는 archive/valuation 이 20일 쌓인 뒤 유효. GAS: Code.gs getValuation + Index.html 재붙여넣기 필요."
+  },
+  {
+   "id": "dotplot",
+   "title": "기명 점도표: 데스크별 자산(코스피·반도체·S&P500·미10년) 방향 점 + 지평 경과 채점(스코어보드) + 운용회의 카드 점 띠",
+   "owner": "개발",
+   "status": "검수",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/dotplot.py",
+    "tests/test_dotplot.py",
+    "reports/dotplot.json",
+    "docs/desk_kb/_scoreboard.md"
+   ],
+   "started": "2026-10-16",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "규칙은 모듈 문서문자열. 장후 운용회의(reports 모드) 뒤 자동 호출. 지수·업종 수준만, 금액 없음."
   }
  ]
 }

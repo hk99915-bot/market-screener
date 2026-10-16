@@ -293,6 +293,15 @@ def _record_error(e: BaseException) -> None:
         encoding="utf-8")
 
 
+def _dotplot_safe(send: bool) -> None:
+    """기명 점도표 (reports/dotplot.json + 채점). 장후 운용회의 뒤와 --mode dotplot 에서. 실패해도 본 작업엔 영향 없음."""
+    try:
+        from . import dotplot
+        dotplot.run(send=send)
+    except Exception as e:  # noqa: BLE001
+        log.warning("점도표 실패: %s", e)
+
+
 def _views_safe() -> None:
     """VIEW 레지스트리 갱신 (reports/views.json) + 렌즈 사후 귀속. 실패해도 본 작업엔 영향 없음."""
     try:
@@ -321,7 +330,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -457,6 +466,9 @@ def main() -> None:
                 from .report import send_telegram
                 send_telegram(committee.telegram_text(o))
                 send_telegram(committee.telegram_text_us(ou))
+        elif a.mode == "dotplot":      # 기명 점도표: 데스크별 자산 방향 점 + 지평 지난 점 채점 (+텔레그램 4줄)
+            from . import dotplot
+            print(dotplot.to_markdown(dotplot.run(send=not a.no_send)))
         elif a.mode == "calendar":     # 실적·이벤트 캘린더
             from . import calendar_ev
             print(len(calendar_ev.build()["events"]))
@@ -586,6 +598,7 @@ def main() -> None:
                         send_telegram(committee.telegram_text_us(ou))
                 except Exception as e:  # noqa: BLE001
                     log.warning("운용회의 실패: %s", e)
+                _dotplot_safe(send=not a.no_send)   # 장후 운용회의 산출물로 기명 점도표 (가벼움: 파일 읽기만)
             if a.mode == "premarket_kr":   # 일본 (전일 도쿄 마감 기준) — 운용회의 한 줄에 쓰임
                 try:
                     from . import japan

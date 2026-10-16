@@ -64,6 +64,7 @@
     getChains: () => get('reports/chains_view.json'),
     getViews: () => get('reports/views.json'),
     getValuation: () => get('reports/valuation.json'),
+    getDotplot: () => get('reports/dotplot.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
@@ -1501,7 +1502,7 @@ function viewsView(){
     <div class="p c12"><h2>렌즈 전체<small>역할 = 진입 / 청산·축소 / 자산배분 · 등급 A~F·검증전 · 규칙 views/README.md</small></h2><div class="b" style="overflow-x:auto"><table>
       <tr><th class="l">렌즈</th><th class="l">지금 상태</th><th>진입</th><th>청산</th><th>배분</th><th>등급</th><th>상태</th><th>재검토</th></tr>${rows}</table></div></div></div>`;
 }
-let CMT=null, CMTU=null, CMK='KR';
+let CMT=null, CMTU=null, CMK='KR', DOT=null;
 function cmtView(){
   if(CMK==='US') return cmtUSView();
   if(CMT===null){ CMT=false; google.script.run.withSuccessHandler(t=>{try{CMT=JSON.parse(t);}catch(e){CMT={};} if(view==='cmt') render();}).withFailureHandler(()=>{CMT={};if(view==='cmt') render();}).getCommittee(); return '<div class="load">LOADING …</div>'; }
@@ -1548,6 +1549,19 @@ function cmtScenCards(o){
   return `<div style="display:flex;gap:8px;flex-wrap:wrap">${(o.scenarios||[]).map(s=>`<div style="flex:1;min-width:200px;border:1px solid var(--line);padding:8px 10px;line-height:1.6;white-space:normal">
      <div style="display:flex;justify-content:space-between;gap:6px"><b>${esc(s.name)}</b><b class="am" style="font-size:16px">${Math.round((s.prob||0)*100)}%</b></div>
      <div class="mu" style="font-size:11px">${esc(s.def)}</div><div style="font-size:12px;margin-top:4px"><span class="am">전환 신호</span> ${esc(s.trigger)}</div><div style="font-size:12px"><span class="am">행동</span> ${esc(s.action)}</div></div>`).join('')}</div>`; }
+/* 기명 점도표 띠 — reports/dotplot.json: 자산마다 데스크 머리글자를 판정 색(매수 초록·중립 회색·매도 빨강)으로. 지수·업종 수준 판단만 */
+function dotStripHtml(){
+  if(DOT===null){ DOT=false; google.script.run.withSuccessHandler(t=>{try{DOT=JSON.parse(t);}catch(e){DOT={};} if(view==='cmt') render();}).withFailureHandler(()=>{DOT={}; if(view==='cmt') render();}).getDotplot(); return ''; }
+  const d=DOT; if(!d||!d.assets) return '';
+  const KO={KOSPI:'코스피',SEMI_KR:'반도체(KR)',SPX:'S&P500',US10Y:'미10년(금리↑=매수)'}, INI={'퀀트':'Q','파생':'D','매크로':'M','리스크':'R','애널':'A','CIO':'C','PB':'P','겸이':'G'};
+  const col=s=>s==='매수'?'var(--up)':s==='매도'?'var(--dn)':'var(--muted)';
+  const rows=Object.keys(KO).filter(a=>d.assets[a]).map(a=>{ const seen={}, dots=[];
+    (d.assets[a]||[]).forEach(x=>{ if(seen[x.desk]) return; seen[x.desk]=1;
+      dots.push(`<span title="${esc(x.desk+' '+x.stance+x.conv+' · '+(x.reason||''))}" style="display:inline-block;min-width:18px;text-align:center;margin-right:3px;border:1px solid ${col(x.stance)};color:${col(x.stance)};font-weight:${x.conv>=2?'700':'400'};font-size:11px;line-height:16px">${INI[x.desk]||x.desk[0]}</span>`); });
+    const c=((d.summary||{})[a]||{}).counts||{}, tg=((d.summary||{})[a]||{}).tags||{}, TK={rates:'금리',regime:'레짐',signal:'신호',valuation:'밸류',risk:'리스크',flows:'수급'};
+    const ov=Object.keys(tg).filter(k=>tg[k]>=2).map(k=>(TK[k]||k)+' '+tg[k]).join(' · ');
+    return `<tr><td class="l" style="white-space:nowrap">${KO[a]}</td><td class="l">${dots.join('')}</td><td class="l mu" style="font-size:11px;white-space:nowrap"><span class="up">${c['매수']||0}</span>/<span class="mu">${c['중립']||0}</span>/<span class="dn">${c['매도']||0}</span>${ov?' · 겹침 '+esc(ov):''}</td></tr>`; });
+  return `<div class="p c12"><h2><span>기명 점도표</span><small>${esc(d.date||'')} · 데스크 머리글자 = 판정 색 (굵게 = 확신 2+) · 매수/중립/매도 · 규칙 기반, 채점은 docs/desk_kb/_scoreboard.md</small></h2><div class="b" style="white-space:normal">${cmtTbl(['자산','Q퀀트 D파생 M매크로 R리스크 A애널 C CIO P PB G겸이','집계'],rows)}</div></div>`; }
 function cmtV2Html(o){
   const bl=o.bottom_line||{}, M=o.macro||{}, P=o.positioning||{}, R=o.rotation||{}, B=o.bottom_up||{}, I=o.ideas_top||{}, H=o.hedges||{}, PM=o.premortem||{}, T=o.track||{};
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
@@ -1625,7 +1639,7 @@ function cmtV2Html(o){
   // 8. 성적
   sec.push(cmtSec(8,'성적 · 검증','회의 채점 · 시그널 판정',
     `${cmtList(T.lines)}<div class="am" style="font-size:11px;margin-top:8px">원천별 성적 (아이디어 추적${T.ideas_n?' · 기록 '+T.ideas_n+'건':''})</div>${(T.by_source||[]).length?cmtTbl(['원천','n','1R 도달','손절','평균 R','5일','20일','상태'],T.by_source.map(x=>`<tr><td class="l">${esc(x.k)}</td><td>${x.n}</td><td>${Math.round(x.hit1R*100)}%</td><td>${Math.round(x.stop*100)}%</td><td>${x.avgR>0?'+':''}${x.avgR}</td><td>${x.ret5!=null?pct(x.ret5,1):'—'}</td><td>${x.ret20!=null?pct(x.ret20,1):'—'}</td><td class="${x.status==='반영'?'up':'mu'}">${esc(x.status)}</td></tr>`)):'<div class="mu">채점 전 — 기록 후 5거래일 뒤부터</div>'}<div class="mu" style="font-size:11px">${esc(T.by_source_note||'')}</div><div class="mu" style="margin-top:6px">시그널 판정: ${Object.entries(o.validation||{}).map(([k,v])=>`${esc(k)} ${esc(v||'')}`).join(' · ')||'—'}</div>`,false));
-  return `<div class="grid">${cmtBLCard(o)}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
+  return `<div class="grid">${cmtBLCard(o)}${dotStripHtml()}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
 }
 function derivPanel(d){
   const pr=d.oi_profile||[], mx=Math.max(1,...pr.map(x=>Math.max(x.c,x.p)));
