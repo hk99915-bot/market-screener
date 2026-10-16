@@ -29,8 +29,9 @@ fetch → rebase → (잠금) → 편집 → check_functions → build → check
    ```bash
    git fetch origin && git rebase origin/main
    ```
-2. **잠금** — 공유 파일(`apps-script/Index.html`·`Code.gs`·`scripts/build_pages.py`·`screener/committee.py`·`screener/main.py`·`.github/workflows/*`)을 고칠 거면 [LOCKS.md](LOCKS.md) 대로 잠금 커밋을 먼저 푸시.
-3. **편집** — 남의 함수·변수는 지우지 않는다. 화면은 `apps-script/Index.html` 에서만 고친다 (`index.html` 은 산출물).
+2. **잠금** — 공유 파일(`apps-script/Index.html`·`apps-script/tab_*.html`(고칠 탭만)·`Code.gs`·`scripts/build_pages.py`·`screener/committee.py`·`screener/main.py`·`.github/workflows/*`)을 고칠 거면 [LOCKS.md](LOCKS.md) 대로 잠금 커밋을 먼저 푸시.
+3. **편집** — 남의 함수·변수는 지우지 않는다. 화면은 `apps-script/tab_*.html`(탭별) 과 `apps-script/Index.html`(공용 셸) 에서만 고친다 (`index.html` 은 산출물).
+   탭 함수는 그 탭 파일에, 여러 탭이 쓰는 도우미는 셸에. 파일 사이에 같은 최상위 이름을 두지 않는다 (`check_functions.py` 가 잡는다).
    새 데이터 getter 는 `apps-script/Code.gs` **와** `scripts/build_pages.py` 양쪽에 같은 이름으로 추가.
 4. **푸시 직전 다시 최신화 + 검사**
    ```bash
@@ -45,6 +46,33 @@ fetch → rebase → (잠금) → 편집 → check_functions → build → check
    - 실패 `문법 오류` → 해당 `<script>` 행 근처 수정. 푸시 금지.
    - push 가 거절되면(그새 남이 푸시) 4번을 처음부터 반복.
 5. **잠금 해제 + 보드** — `python scripts/lock.py drop --owner "<내 이름>"`, `python scripts/board.py --set <id> 검수`(또는 완료) 후 함께 커밋·푸시.
+
+## GAS 웹앱에 붙여넣기 (화면 파일 분리 후)
+
+script.google.com 프로젝트에는 **폴더가 없다**. 아래 파일을 각각 같은 이름으로 만들어 붙여넣는다 (HTML 파일은 `파일 추가 → HTML`, 이름은 확장자 없이 `tab_daily` 처럼 — 처음 한 번만 만들고, 그 뒤로는 바뀐 파일만 덮어쓴다).
+`Index.html` 의 `<?!= include('tab_x') ?>` 를 `Code.gs` 의 `include()` 가 같은 이름의 파일 내용으로 바꾼다. 파일 하나라도 빠지면 웹앱이 `No HTML file named tab_x` 오류로 열리지 않는다.
+
+| # | 파일 (GAS 이름) | 종류 | 내용 |
+|---|---|---|---|
+| 1 | `Code.gs` | 스크립트 | 데이터 getter · `doGet` · `include` |
+| 2 | `Scheduler.gs` | 스크립트 | 예약기 (쓰는 경우만) |
+| 3 | `Index` | HTML | 공용 셸 (head·CSS·탭 바·도우미·render) |
+| 4 | `tab_market` | HTML | MARKET › KR·US·히트맵·전종목 |
+| 5 | `tab_home` | HTML | HOME |
+| 6 | `tab_daily` | HTML | DAILY › 데일리 리포트·VIEWS·브리핑 기록 |
+| 7 | `tab_my` | HTML | MY |
+| 8 | `tab_life` | HTML | LIFE |
+| 9 | `tab_research` | HTML | RESEARCH › 리서치·밸류에이션·공시 |
+| 10 | `tab_quant` | HTML | QUANT › 공급망·시그널·스터디·연구소·모멘텀·모의 포트폴리오 |
+| 11 | `tab_bond` | HTML | MARKET › 채권 |
+| 12 | `tab_study` | HTML | STUDY › 커리큘럼·인적성·영어 |
+| 13 | `tab_committee` | HTML | DAILY › 운용회의 (점도표 띠 포함) |
+| 14 | `tab_duel` | HTML | 대결·주문표 (DAILY·시그널 화면에 끼워짐) |
+| 15 | `tab_mkt_deriv` | HTML | MARKET › 파생 |
+| 16 | `tab_system` | HTML | SYSTEM › 작업 보드·변경 이력·운영 상태 |
+| 17 | `tab_detail` | HTML | 종목 상세 서랍·차트 (모든 탭 공용) |
+
+붙여넣은 뒤 `배포 → 배포 관리 → 새 버전` 으로 갱신. GitHub Pages(`index.html`) 는 `python scripts/build_pages.py` 가 include 를 인라인해 한 파일로 만든다.
 
 ## 커밋 메시지
 

@@ -102,11 +102,11 @@ with TelegramClient(StringSession(), API_ID, API_HASH) as c:
 
 ## 웹 터미널 (Apps Script 웹앱)
 
-`apps-script/` 의 `Code.gs` + `Index.html` 을 Apps Script 프로젝트에 넣고 웹앱으로 배포하면, 저장소의 `reports/dashboard.json` · `detail_*.json` 을 읽어
+`apps-script/` 의 `Code.gs` + `Index.html`(공용 셸) + `tab_*.html`(탭별 화면 14개) 을 Apps Script 프로젝트에 넣고 웹앱으로 배포하면, 저장소의 `reports/dashboard.json` · `detail_*.json` 을 읽어
 터미널 스타일(검정 바탕·앰버 헤더·모노스페이스)로 보여준다. 종목을 클릭하면 60일 차트(SMA20/50·목표가·손절선), 지표, 리포트 이력, 10일 수급, 시나리오(Bull/Base/Bear·손익비), 개별/거시 코멘트.
 
 1. GitHub → Settings → Developer settings → Fine-grained tokens → 저장소 `market-screener` 만, Permissions: **Contents: Read-only** → 토큰 복사
-2. script.google.com → 새 프로젝트 → `Code.gs`, `Index.html`(파일 추가 → HTML) 붙여넣기
+2. script.google.com → 새 프로젝트 → `Code.gs` 붙여넣기, `Index` 와 `tab_*` HTML 파일을 하나씩 만들어(파일 추가 → HTML, 확장자 없는 이름) 붙여넣기 — 목록은 [ops/README.md](ops/README.md) 의 'GAS 웹앱에 붙여넣기'
 3. 프로젝트 설정 → 스크립트 속성: `GITHUB_TOKEN`, `GITHUB_REPO`(= `hk99915-bot/market-screener`)
 4. 배포 → 새 배포 → 유형 **웹 앱** → 실행 주체 **나**, 액세스 **나만** → 배포 → URL 열기 (폰 홈화면에 추가 가능)
 
