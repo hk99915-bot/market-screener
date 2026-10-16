@@ -2,21 +2,16 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 28개 · 진행 1 · 검수 9 · 대기 6 · 보류 0 · 완료 12
+기준일 2026-10-16 · 작업 28개 · 진행 0 · 검수 10 · 대기 6 · 보류 0 · 완료 12
 
-## 진행 (1)
-
-| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
-|---|---|---|---|---|---|---|---|---|
-| P2 | `deriv-tab` | 터미널 '파생(DERIV)' 화면 — 흩어진 파생 정보(옵션 포지션·일별 이력·검증 등급) 한곳에 모음 | 파생 | 2026-10-16 | 2026-10-17 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 새 수집 없음 — reports/derivs.json·data/deriv/daily.csv·reports/studies/derivs_signals.json·live.json K200F 재사용. |
-
-## 검수 (9)
+## 검수 (10)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P1 | `drivers-audit` | EARNINGS DRIVERS 내용 감사 (체인 매핑·부호·문구) + 퀀트 감사 반영 | 애널 | 2026-10-16 | 2026-10-17 | `screener/drivers.py`<br>`apps-script/Index.html` | — | 지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관 |
 | P1 | `deriv-hist` | 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필 | 파생 | 2026-10-16 | 2026-10-20 | `screener/deriv_hist.py`<br>`data/deriv/*`<br>`.github/workflows/deriv_hist.yml` | — | 검증의 전제. 라이브 화면·텔레그램 추가 없음. |
 | P1 | `view-registry` | VIEW 레지스트리 — 관점(렌즈) 기록·일관 적용·수명주기 | CIO | 2026-10-16 | — | `views/registry.json`<br>`views/README.md`<br>`screener/views.py`<br>`scripts/view_attribution.py`<br>`screener/duel.py`<br>`screener/committee.py`<br>`screener/main.py`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 공개 레지스트리엔 개인 수치 없음 — 개인 렌즈는 pb-private views/personal.json 에서만. |
+| P2 | `deriv-tab` | 터미널 '파생(DERIV)' 화면 — 흩어진 파생 정보(옵션 포지션·일별 이력·검증 등급) 한곳에 모음 | 파생 | 2026-10-16 | 2026-10-17 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 새 수집 없음 — reports/derivs.json·data/deriv/daily.csv·reports/studies/derivs_signals.json·live.json K200F 재사용. |
 | P2 | `fib-lens` | VIEW 레지스트리에 fib_levels 렌즈 등록 (검증 등급 반영) | CIO | 2026-10-16 | 2026-10-17 | `views/registry.json` | `fib-validate` | 등급 C 미만이면 역할 reference 이하. |
 | P2 | `fib-validate` | 피보나치·하방 Fib 지지 효과 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_fib_levels.py`<br>`reports/studies/fib_levels.md`<br>`reports/studies/fib_levels.json` | — | H1 터치 후 반등 / H2 이탈 후 추가 하락 / H3 61.8·100% 우위. IS 2019~2023, OOS 2024~. |
 | P2 | `derivs-audit` | derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통) | 파생 | 2026-10-16 | 2026-10-20 | `screener/derivs.py` | — | 검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). fc69e054 백필에서 재계산 확인(행사가 1 벽 0일, 콜 벽 결측 0일). |
