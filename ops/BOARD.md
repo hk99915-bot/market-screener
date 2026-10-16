@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 70개 · 진행 2 · 검수 20 · 대기 22 · 보류 2 · 완료 24
+기준일 2026-10-17 · 작업 70개 · 진행 2 · 검수 21 · 대기 21 · 보류 2 · 완료 24
 
 ## 진행 (2)
 
@@ -11,7 +11,7 @@
 | P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-18 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 
-## 검수 (20)
+## 검수 (21)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -19,6 +19,7 @@
 | P0 | `semis-cap-study` | semis_cap 사전등록 검증 — 테마 한도 40% vs 35% vs 밴드(40/45/30) 백테스트 | 퀀트 | 2026-10-16 | 2026-10-18 | `reports/studies/semis_cap.md`<br>`reports/studies/semis_cap.json` | — | 결과 71f87fd9·c9fe8595: H1(밴드) C · H2(글라이드) A · H3(하락장 캡) F — 안건 7·8-A·8-C 의 데이터 근거. PB 검수 후 일요일 안건 팩에 등급 그대로 인용. 개인 비중 없이 파라미터만. |
 | P0 | `sunday-scorecard-auto` | 일요일 성적표 자동 생성: 규칙 준수·위반·알파(기준점 대비)·대결 전적(나🔥 감/판단 분리)·정합성 표 | 개발 | 2026-10-16 | 2026-10-18 | `scripts/scorecard_week.py`<br>`.github/workflows/lab.yml` | — | 개인 금액은 pb-private/scorecard/build_week.py 쪽에서, 공개는 비율만. |
 | P0 | `rebound-alert` | 14:25 반등일 판정 알림 (--mode rebound, cron + GAS 슬롯, 지수 비율만) | 운영 | 2026-10-16 | 2026-10-19 | `screener/rebound.py`<br>`screener/decisions.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | `gas-repaste` | 1ac92739. 다음 거래일 10/19 14:25 첫 실전 도착(GitHub cron·GAS 중복 억제) 확인 후 완료. 메시지에 개인 수치 없음 재확인. |
+| P0 | `sec-ytd-bug` | SEC 파서 YTD 누적치 결함 의심: 비(非)12월 결산사(MU 9월·SNDK 6월)의 ni/op/cfo/revenue가 분기마다 누적되는 모양 → 회계연도 기준 차감 로직 점검·수정, 12월 결산사도 대조. 수정 전까지 valuation_daily 해당 종목 '검증전' 강제 | 데이터 | 2026-10-17 | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인. |
 | P0 | `order-ticket-form` | 주문표 폼 → decisions 기록(pick 이슈 경로 재사용): 종목·매수가·손절가·목표가·근거·보유기간, 실매매 전 필수 | 개발 | 2026-10-16 | 2026-11-09 | `screener/duel.py`<br>`screener/decisions.py`<br>`.github/workflows/pick.yml`<br>`apps-script/Index.html` | — | 해금 1단계(11/16) 필수 도구. 금액은 기록하되 공개 저장소엔 비율/모의 100만 환산만. |
 | P1 | `cmt-v2` | 운용회의 v2 — 멀티매니저 모닝 미팅 형식(신호등 결론·시계·탑다운·포지셔닝·섹터·바텀업·아이디어 TOP3·헤지·프리모템·성적) + 원천 교차 아이디어 추적 채점 + 장중 갱신·14:15 슬롯 | CIO | 2026-10-16 | 2026-10-17 | `screener/committee.py`<br>`apps-script/Index.html`<br>`screener/main.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | — | 새 키만 추가(기존 stance·scenarios·ideas·derivs 유지). reports/ideas_log.json·ideas_attrib.json 은 예약 실행이 생성. GAS 재붙여넣기: Index.html·Scheduler.gs. 컨센서스·선물 외국인 수급은 데이터 없음. |
 | P1 | `dotplot` | 기명 점도표: 데스크별 자산(코스피·반도체·S&P500·미10년) 방향 점 + 지평 경과 채점(스코어보드) + 운용회의 카드 점 띠 | 개발 | 2026-10-16 | 2026-10-17 | `screener/dotplot.py`<br>`tests/test_dotplot.py`<br>`reports/dotplot.json`<br>`docs/desk_kb/_scoreboard.md` | — | 규칙은 모듈 문서문자열. 장후 운용회의(reports 모드) 뒤 자동 호출. 지수·업종 수준만, 금액 없음. |
@@ -36,7 +37,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (22)
+## 대기 (21)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -44,7 +45,6 @@
 | P0 | `repo-cleanup` | 저장소 대청소: 데이터 브랜치 분리·Pages Actions 배포·기록 정리(filter-repo) | 개발 | — | 2026-10-18 | `.github/workflows/*`<br>`scripts/build_pages.py` | — | 겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. 10:00~12:00 창. 오후 리뷰(sunday-review) 전에 끝내고 재클론·GAS 확인까지. |
 | P0 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | PB | — | 2026-10-19 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). / 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증. |
 | P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | PB | — | 2026-10-19 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system`, `gas-repaste` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. / 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증. |
-| P0 | `sec-ytd-bug` | SEC 파서 YTD 누적치 결함 의심: 비(非)12월 결산사(MU 9월·SNDK 6월)의 ni/op/cfo/revenue가 분기마다 누적되는 모양 → 회계연도 기준 차감 로직 점검·수정, 12월 결산사도 대조. 수정 전까지 valuation_daily 해당 종목 '검증전' 강제 | 데이터 | — | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인. |
 | P1 | `my-rules-secret` | MY_RULES 시크릿 SEMI_CAP 0.40 설정 — 사용자 직접 | PB | — | 2026-10-17 | — | — | 사용자가 저장소 Settings › Secrets 에서 직접. 값은 비율(0.40)만. 일요일 결정에 따라 0.35 로 바꿀 수 있으니 10/18 리뷰 후 재확인. |
 | P1 | `alpha-baseline-fix` | 알파 기준점 미장 분을 10/16 미장 종가로 정정 (단일 리셋 — 일요일 1회) | 리스크 | — | 2026-10-18 | private 전용 | `sunday-review` | private 저장소 전용. 기준점 파일의 미장 평가는 10/15 종가로 적혀 있음 → 10/18 리뷰에서 1회 정정 후 잠금. |
 | P1 | `cio-memo` | CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·8-C·8-D 통합안) | CIO | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리. |
@@ -111,6 +111,7 @@
 - `screener/dotplot.py` ← `dotplot`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/duel.py` ← `view-registry`, `order-ticket-form`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/main.py` ← `view-registry`, `cmt-v2`, `valuation-daily`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/valuation_daily.py` ← `valuation-daily`, `sec-ytd-bug` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/build_pages.py` ← `view-registry`, `deriv-tab`, `valuation-daily`, `index-split` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/scorecard_week.py` ← `sunday-scorecard-auto`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 
