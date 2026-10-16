@@ -229,8 +229,23 @@ def score() -> int:
                     t["win"] += 1
                 if not it["picks"][who].get("cash") and rw.get("ret") is not None:
                     t.setdefault("rets", []).append(rw["ret"])
+    # 나🔥(공격 픽, 모의 전용·별도 채점): 근거 분류 '감' vs '판단' 별로 따로 집계 + '나' 대비 우위 횟수 (레버리지 해제 조건 '🔥베팅 성적' 판정용)
+    bb = {}
+    for it in d["items"]:
+        r = it.get("result")
+        pb_ = it["picks"].get("나🔥")
+        if not r or r.get("void") or not pb_ or "나🔥" not in r:
+            continue
+        k = pb_.get("basis") or ("감" if not pb_.get("why") or pb_.get("why") == "감" else "판단")
+        t = bb.setdefault(k, {"n": 0, "pnl": 0, "beat_me": 0, "rets": []})
+        t["n"] += 1
+        t["pnl"] += r["나🔥"].get("pnl", 0)
+        if "나" in r and r["나🔥"].get("pnl", 0) > r["나"].get("pnl", 0):
+            t["beat_me"] += 1
+        if not pb_.get("cash") and r["나🔥"].get("ret") is not None:
+            t["rets"].append(r["나🔥"]["ret"])
     # 실력 지표: 승률(수익 낸 비율)·평균 수익/손실·손익비·기대값 (현금 판단은 제외, 진입한 판만)
-    for tb in [tally, *by_mk.values()]:
+    for tb in [tally, *by_mk.values(), bb]:
         for t in tb.values():
             rs = t.pop("rets", [])
             w = [x for x in rs if x > 0]
@@ -241,6 +256,8 @@ def score() -> int:
             t["avg_loss"] = round(sum(l) / len(l), 4) if l else None
             t["payoff"] = round(t["avg_win"] / abs(t["avg_loss"]), 2) if w and l and t["avg_loss"] else None
             t["ev"] = round(sum(rs) / len(rs), 4) if rs else None
+    if bb:
+        tally.setdefault("나🔥", {"win": 0, "n": 0, "pnl": 0})["by_basis"] = bb
     d["tally"] = tally
     d["tally_by_market"] = by_mk
     OUT.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")

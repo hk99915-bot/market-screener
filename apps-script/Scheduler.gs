@@ -31,6 +31,7 @@ const SCHEDULE = [
   ['11:35', 'briefing.yml', { mode: 'committee' }, WEEKDAY],          // 점심 운용회의 (겸이 점심 11:30~12:50)
   ['13:30', 'briefing.yml', { mode: 'intraday_kr' }, WEEKDAY],
   ['14:15', 'briefing.yml', { mode: 'committee' }, WEEKDAY],          // '판정 전' 운용회의 (장중 세션)
+  ['14:25', 'briefing.yml', { mode: 'rebound' }, WEEKDAY],            // 반등일 판정 알림 (코스피 vs 전일 종가 +0.5%, 비율만)
   ['15:45', 'briefing.yml', { mode: 'close_kr' }, WEEKDAY],
   ['16:20', 'screener.yml', { market: 'KR', no_send: 'false' }, WEEKDAY],
   ['16:40', 'deriv_hist.yml', { task: 'run', days: '0' }, WEEKDAY],   // 수급·파생 일별 이력 (중복 실행돼도 같은 날짜 덮어쓰기라 무해)
