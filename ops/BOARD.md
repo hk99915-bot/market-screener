@@ -2,7 +2,13 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 30개 · 진행 0 · 검수 12 · 대기 6 · 보류 0 · 완료 12
+기준일 2026-10-16 · 작업 31개 · 진행 1 · 검수 12 · 대기 6 · 보류 0 · 완료 12
+
+## 진행 (1)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P1 | `rule-audit` | 비싼 대기·확인 조건 전수 점검 — 손절·트레일·부분익절·반등일·하락장 노출·추격 사이징 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_rule_audit.py`<br>`reports/studies/rule_audit.md`<br>`reports/studies/rule_audit.json`<br>`views/registry.json` | `entry-signal-validate` | 코드(committee.py 등) 변경 없음 — 추천만. 개인 규칙은 파라미터만 일반화. |
 
 ## 검수 (12)
 
@@ -57,5 +63,5 @@
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/main.py` ← `view-registry`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/build_pages.py` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
-- `views/registry.json` ← `view-registry`, `fib-lens`, `entry-signal-validate` — 편집 전 `ops/locks.json` 잠금 필수
+- `views/registry.json` ← `view-registry`, `fib-lens`, `entry-signal-validate`, `rule-audit` — 편집 전 `ops/locks.json` 잠금 필수
 
