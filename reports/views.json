@@ -1,5 +1,5 @@
 {
- "asof": "2026-10-16 16:45",
+ "asof": "2026-10-16 19:44",
  "date": "2026-10-16",
  "registry_updated": "2026-10-16",
  "summary": {
@@ -62,7 +62,7 @@
      "name": "옵션 감마·풋콜 (코스피200)",
      "state": "감마 음수",
      "grade": "검증전",
-     "line": "풋/콜 OI 1.325 · ATM IV 0.4808 · RV20 0.4652 — 흔들림 큼, 사이즈 주의"
+     "line": "풋/콜 OI 1.366 · ATM IV 0.5454 · RV20 0.4622 — 흔들림 큼, 사이즈 주의"
     },
     {
      "id": "ai_credit",
@@ -125,6 +125,12 @@
      "grade": "F"
     },
     {
+     "id": "gamma_regime",
+     "name": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
+     "state": "감마 음수",
+     "grade": "검증전"
+    },
+    {
      "id": "us10y",
      "name": "미 10년 금리 (수준·1개월 변화)",
      "state": "보합",
@@ -159,6 +165,18 @@
      "name": "피보나치 되돌림·하방 Fib 지지선",
      "state": "n/a",
      "grade": "F"
+    },
+    {
+     "id": "exec_signal_1",
+     "name": "실행 대본 신호 1 — 외국인 당일 순매수 (코드 fl[0] > 0)",
+     "state": "n/a",
+     "grade": "F"
+    },
+    {
+     "id": "sector_postcrash",
+     "name": "급락 뒤 비반도체 섹터 기록 (KRX 업종 24개, 동일가중)",
+     "state": "후보",
+     "grade": "C"
     }
    ]
   },
@@ -229,6 +247,12 @@
     {
      "id": "options_gamma",
      "name": "옵션 감마·풋콜 (코스피200)",
+     "state": "감마 음수",
+     "grade": "검증전"
+    },
+    {
+     "id": "gamma_regime",
+     "name": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
      "state": "감마 음수",
      "grade": "검증전"
     },
@@ -385,6 +409,12 @@
     {
      "id": "cand.bear_cap_cost",
      "name": "후보: 하락장(200일선 아래) 노출 50% 상한의 비용 — 완화 검토",
+     "state": "후보",
+     "grade": "C"
+    },
+    {
+     "id": "sector_postcrash",
+     "name": "급락 뒤 비반도체 섹터 기록 (KRX 업종 24개, 동일가중)",
      "state": "후보",
      "grade": "C"
     }
@@ -609,12 +639,33 @@
    },
    "review_by": "2026-11-15",
    "state": "감마 음수",
-   "value": -1045.8,
+   "value": -930.9,
    "bias": null,
    "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.325 · ATM IV 0.4808 · RV20 0.4652 — 흔들림 큼, 사이즈 주의",
-   "asof": "2026-10-16 06:50"
+   "note": "풋/콜 OI 1.366 · ATM IV 0.5454 · RV20 0.4622 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-10-16 10:44"
+  },
+  {
+   "id": "gamma_regime",
+   "name_ko": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
+   "family": "derivs",
+   "status": "사전등록",
+   "grade": "검증전",
+   "evidence_src": "reports/studies/gamma_regime.json",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "review_by": "2026-12-16",
+   "state": "감마 음수",
+   "value": -930.9,
+   "bias": null,
+   "alert": true,
+   "gate": {},
+   "note": "풋/콜 OI 1.366 · ATM IV 0.5454 · RV20 0.4622 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-10-16 10:44"
   },
   {
    "id": "ai_credit",
@@ -1164,6 +1215,69 @@
    "gate": {},
    "note": "가중 0 — 사전등록·검증 전",
    "asof": null
+  },
+  {
+   "id": "exec_signal_1",
+   "name_ko": "실행 대본 신호 1 — 외국인 당일 순매수 (코드 fl[0] > 0)",
+   "family": "flows",
+   "status": "강등",
+   "grade": "F",
+   "evidence_src": "reports/studies/exec_signal.md",
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "n/a",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판독 함수 없음",
+   "asof": null
+  },
+  {
+   "id": "exec_signal_2",
+   "name_ko": "실행 대본 신호 2 — 저점 지지 (코드: 종가 ≥ 당일 저가 → 항상 참 / 의도: 저가 +1% 위 마감)",
+   "family": "price",
+   "status": "후보",
+   "grade": "C",
+   "evidence_src": "reports/studies/exec_signal.md",
+   "roles": {
+    "entry": "alert",
+    "exit": "none",
+    "allocation": "none"
+   },
+   "review_by": "2026-11-15",
+   "state": "후보",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "가중 0 — 사전등록·검증 전",
+   "asof": null
+  },
+  {
+   "id": "sector_postcrash",
+   "name_ko": "급락 뒤 비반도체 섹터 기록 (KRX 업종 24개, 동일가중)",
+   "family": "sector",
+   "status": "후보",
+   "grade": "C",
+   "evidence_src": "reports/studies/exec_signal.md",
+   "roles": {
+    "entry": "reference",
+    "exit": "none",
+    "allocation": "reference"
+   },
+   "review_by": "2026-11-15",
+   "state": "후보",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "가중 0 — 사전등록·검증 전",
+   "asof": null
   }
  ],
  "overrides": {
@@ -1188,9 +1302,13 @@
    "cand.chase_sizing",
    "cand.rebound_day_sell",
    "cand.bear_cap_cost",
-   "cand.exit_rules_audit"
+   "cand.exit_rules_audit",
+   "exec_signal_2",
+   "sector_postcrash"
   ],
-  "사전등록": [],
+  "사전등록": [
+   "gamma_regime"
+  ],
   "검증중": [
    "foreign_flow",
    "macro_wind",
@@ -1223,7 +1341,8 @@
    "stock_trend_score",
    "index_abs_momentum",
    "personal.hold_period",
-   "fib_levels"
+   "fib_levels",
+   "exec_signal_1"
   ],
   "폐기": []
  },
