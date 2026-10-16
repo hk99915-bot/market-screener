@@ -38,7 +38,9 @@ log = logging.getLogger("build_hist")
 START = date(2010, 1, 1)
 OVERLAP_DAYS = 14
 SIZE_BUDGET = 25 * 1024 * 1024
-PRIORITY = {"pykrx": 4, "yfinance": 3, "hist_parquet": 3, "ew_composite": 3, "deriv_csv": 2, "macro_series": 2, "chains_json": 1}
+PRIORITY = {"pykrx": 5, "yfinance": 4, "hist_parquet": 3, "ew_composite": 3, "deriv_csv": 2, "macro_series": 2, "chains_json": 1}
+NET_SRC = ("pykrx", "yfinance")
+WARNINGS: list[str] = []
 
 # 국내 ETF: screener.etf.KR_MUST (헷지·레버리지·섹터 필수 목록) + 연구에서 자주 쓰는 것
 KR_ETF_EXTRA = ["114260", "148070", "091170", "091180", "157450", "152100"]
@@ -112,13 +114,18 @@ def existing(name: str) -> pl.DataFrame:
 
 
 def since(cur: pl.DataFrame, symbols: list[str]) -> date:
-    """증분 시작일: 요청 심볼이 전부 있으면 가장 이른 '마지막 날짜' - 겹침, 하나라도 없으면 2010."""
+    """증분 시작일. 요청 심볼이 모두 네트워크 출처(yfinance/pykrx)로 처음부터 채워져 있으면 가장 이른 '마지막 날짜' - 겹침,
+    하나라도 없거나 오프라인 출처(deriv_csv·macro_series·chains_json·hist_parquet)로만 시작하면 2010 부터 전부 다시 받는다."""
     if not len(cur):
         return START
-    last = cur.filter(pl.col("symbol").is_in(symbols)).group_by("symbol").agg(pl.col("date").max())
-    if last["symbol"].n_unique() < len(set(symbols)):
+    c = cur.filter(pl.col("symbol").is_in(symbols))
+    g = c.group_by("symbol").agg(pl.col("date").min().alias("d0"), pl.col("date").max().alias("d1"),
+                                 pl.col("date").filter(pl.col("src").is_in(NET_SRC)).min().alias("n0"))
+    if g["symbol"].n_unique() < len(set(symbols)):
         return START
-    return max(START, min(last["date"].to_list()) - timedelta(days=OVERLAP_DAYS))
+    if g["n0"].null_count() or (g["n0"] > g["d0"] + timedelta(days=30)).any():
+        return START
+    return max(START, min(g["d1"].to_list()) - timedelta(days=OVERLAP_DAYS))
 
 
 # ───────────── 오프라인 출처 ─────────────
@@ -213,7 +220,7 @@ def yf_download(symbols: list[str], start: date, rename: dict[str, str] | None =
         try:
             raw = yf.download(chunk, start=start.isoformat(), auto_adjust=True, group_by="ticker", threads=True, progress=False, timeout=120)
         except Exception as e:  # noqa: BLE001
-            log.warning("yfinance 배치 %d 실패: %s", i // 50, e)
+            log.warning("yfinance 배치 %d 실패: %r", i // 50, e)
             continue
         if raw is None or raw.empty:
             continue
@@ -257,7 +264,7 @@ def krx_indices(start: date) -> pl.DataFrame:
             parts.append(_pykrx_ohlcv(stock.get_index_ohlcv_by_date, code, start, sym))
             time.sleep(0.5)
         except Exception as e:  # noqa: BLE001
-            log.warning("pykrx 지수 %s 실패: %s", sym, e)
+            log.warning("pykrx 지수 %s 실패: %r", sym, e)
     return pl.concat(parts) if parts else empty()
 
 
@@ -273,7 +280,7 @@ def krx_sectors(start: date) -> pl.DataFrame:
         try:
             codes = [c for c in stock.get_index_ticker_list(today, market=mkt) if c not in KRX_INDEX]
         except Exception as e:  # noqa: BLE001
-            log.warning("pykrx 업종 목록(%s) 실패: %s", mkt, e)
+            log.warning("pykrx 업종 목록(%s) 실패: %r", mkt, e)
             continue
         for c in codes:
             try:
@@ -281,7 +288,7 @@ def krx_sectors(start: date) -> pl.DataFrame:
                 parts.append(_pykrx_ohlcv(stock.get_index_ohlcv_by_date, c, start, f"KRX:{name}"))
                 time.sleep(0.5)
             except Exception as e:  # noqa: BLE001
-                log.warning("pykrx 업종 %s 실패: %s", c, e)
+                log.warning("pykrx 업종 %s 실패: %r", c, e)
     return pl.concat(parts) if parts else empty()
 
 
@@ -297,7 +304,7 @@ def krx_etfs(codes: list[str], start: date) -> pl.DataFrame:
             parts.append(_pykrx_ohlcv(stock.get_etf_ohlcv_by_date, c, start, c))
             time.sleep(0.5)
         except Exception as e:  # noqa: BLE001
-            log.warning("pykrx ETF %s 실패: %s", c, e)
+            log.warning("pykrx ETF %s 실패: %r", c, e)
     return pl.concat(parts) if parts else empty()
 
 
@@ -363,7 +370,7 @@ def write(frames: dict[str, pl.DataFrame]) -> dict:
         files[name] = {"rows": len(df), "bytes": p.stat().st_size,
                        "symbols": {r["symbol"]: {"first": r["first"].isoformat(), "last": r["last"].isoformat(), "rows": r["rows"], "source": r["source"]}
                                    for r in g.to_dicts()}}
-    man = {"schema": {k: str(v) for k, v in SCHEMA.items()}, "files": files, "total_bytes": total,
+    man = {"schema": {k: str(v) for k, v in SCHEMA.items()}, "files": files, "total_bytes": total, "warnings": WARNINGS[:40],
            "note": "yfinance 출처는 close==adj_close(배당·분할 반영), pykrx/KRX 는 close 원주가·adj_close 분할보정, EW: 합성지수 2010-01-04=1000"}
     if {k: v for k, v in old.items() if k != "built"} != man:
         man["built"] = date.today().isoformat()
@@ -382,6 +389,13 @@ def main() -> None:
     g.add_argument("--offline", action="store_true", help="저장소 안의 자료만 병합")
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", stream=sys.stderr)
+
+    class _Cap(logging.Handler):
+        def emit(self, r):
+            WARNINGS.append(self.format(r)[:300])
+    h = _Cap(level=logging.WARNING)
+    h.setFormatter(logging.Formatter("%(name)s: %(message)s"))
+    logging.getLogger().addHandler(h)
     network = a.network or (not a.offline and bool(os.environ.get("GITHUB_ACTIONS")))
     log.info("build_hist network=%s dir=%s", network, HIST_DIR)
     man = write(build(network))

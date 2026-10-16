@@ -29,6 +29,8 @@ jobs:
       - name: 창고 빌드 (네트워크 백필)
         env:
           PYTHONUNBUFFERED: "1"
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: python scripts/build_hist.py --network
       - name: 요약
         if: always()
@@ -39,6 +41,8 @@ jobs:
           if p.exists():
               m = json.loads(p.read_text())
               print(f"built {m.get('built')} — total {m.get('total_bytes', 0) / 1e6:.1f} MB\n")
+              for w in m.get("warnings", []):
+                  print(f"- WARN {w}")
               print("| file | symbols | rows | range |\n|---|---|---|---|")
               for f, i in m["files"].items():
                   s = i["symbols"]
