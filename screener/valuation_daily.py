@@ -61,6 +61,8 @@ TRIPWIRES = [
 ]
 MIN_Q = 4          # 이보다 적은 분기로 만든 값은 '검증전'
 CUM_RATIO = 1.8    # 최근 4분기가 매 분기 이 배수 넘게 단조 증가하면 누적(YTD) 값 의심 → '검증전'
+VERIFIED_PATH = "universe/fin_verified.json"   # 사람이 8-K/10-Q 원문과 대조한 분기값 — 일치하면 누적 의심 해제
+VERIFIED_TOL = 0.01                              # 대조 허용 오차 1%
 RATE_BP = 25       # 금리 민감도 가정 ±bp
 
 
@@ -104,7 +106,39 @@ def cumulative_smell(q: list[dict], keys: tuple[str, ...] = ("ni", "revenue", "o
     return None
 
 
-def metrics(q: list[dict], shares: float | None, price: float | None) -> dict:
+def _load_verified() -> dict:
+    """{ticker: {period: {item: value, "src": url}}} — 없으면 빈 dict."""
+    try:
+        from pathlib import Path
+        return json.loads(Path(VERIFIED_PATH).read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def externally_verified(q: list[dict], sym: str | None, verified: dict | None = None) -> str | None:
+    """최신 분기의 항목이 사람이 원문 대조해 둔 값과 1% 안에서 일치하면 출처 문자열, 아니면 None.
+    누적치 의심(cumulative_smell)은 휴리스틱이라 진짜 초고성장(2026 메모리 사이클)을 오탐한다 — 원문 대조가 우선한다."""
+    if not sym or not q:
+        return None
+    v = (verified if verified is not None else _load_verified()).get(sym) or {}
+    last = q[-1]
+    rec = v.get(str(last.get("end"))) or v.get(str(last.get("period")))   # 키는 분기 말일(YYYY-MM-DD), 구형은 2026Q3
+    if not rec:
+        return None
+    hits = 0
+    for k, want in rec.items():
+        if k == "src" or not isinstance(want, (int, float)):
+            continue
+        got = last.get(k)
+        if got is None or want == 0:   # 수집 안 된 항목은 대조 대상에서 뺀다 (MU 매출 태그 미수집 등)
+            continue
+        if abs(got - want) / abs(want) > VERIFIED_TOL:
+            return None
+        hits += 1
+    return rec.get("src", "원문 대조") if hits else None
+
+
+def metrics(q: list[dict], shares: float | None, price: float | None, sym: str | None = None) -> dict:
     """q: 분기 dict 목록(오래된 → 최신). 항목 revenue/op/ni/(ni_owner)/cfo/capex/da/assets/liab/(equity_owner|equity)/cash.
     shares: 주식 수, price: 종가. 통화는 q 와 price 가 같아야 한다. 결과는 비율 중심, 데이터가 없으면 None."""
     q = [r for r in q if r]
@@ -155,8 +189,12 @@ def metrics(q: list[dict], shares: float | None, price: float | None) -> dict:
         flags.append(f"검증전: 분기 {n}개 (연환산)")
     smell = cumulative_smell(q)
     if smell:   # 누적치 의심 — 비율은 내되 검증전으로 내린다 (10/17 SEC YTD 점검)
-        out["verified"] = False
-        flags.append(f"검증전: {smell} 4분기 연속 {CUM_RATIO}배↑ (누적치 의심)")
+        src = externally_verified(q, sym)
+        if src:   # 사람이 8-K/10-Q 원문과 대조한 분기 → 오탐으로 보고 해제 (10/17 MU·SNDK 웹 대조)
+            flags.append(f"원문 대조 일치({src}) → 누적 의심 해제")
+        else:
+            out["verified"] = False
+            flags.append(f"검증전: {smell} 4분기 연속 {CUM_RATIO}배↑ (누적치 의심)")
     if out["loss"]:
         flags.append("TTM 적자 → PER 없음")
     if rev is None:
@@ -331,7 +369,7 @@ def build(send: bool = False) -> dict:
         asof = det.get("asof")
         ret20 = (det.get("stats") or {}).get("ret20")
         q, sh = (us_quarters if b["mk"] == "US" else kr_quarters)(b["sym"])
-        m = metrics(q, sh, price)
+        m = metrics(q, sh, price, sym=b["sym"])
         rf = rt["us10y"] if b["mk"] == "US" else rt["kr3y"]
         m["rate_adj"] = (m["earn_yield"] - rf / 100) if (m.get("earn_yield") is not None and rf is not None) else None
         p0 = price / (1 + ret20) if (price and ret20 is not None and ret20 > -1) else None

@@ -136,3 +136,15 @@ def test_cumulative_smell_marks_unverified():
     assert not m["verified"] and any("누적치 의심" in f for f in m["flags"])
     assert vd.cumulative_smell(_q(8)) is None
     assert vd.cumulative_smell(q[-4:]) == "ni"
+
+
+def test_externally_verified_clears_cumulative_smell():
+    q = _q(8)
+    for i, v in enumerate([0.11, 0.80, 3.62, 6.903]):   # SNDK FY26 실제 분기 순이익(십억) — 휴리스틱은 누적으로 오탐
+        q[4 + i]["ni"] = v
+    assert vd.cumulative_smell(q[-4:]) == "ni"
+    ver = {"X": {str(q[-1]["period"]): {"ni": 6.903, "div_paid": 1.0, "src": "8-K"}}}   # div_paid 미수집 → 건너뜀
+    assert vd.externally_verified(q, "X", ver) == "8-K"
+    assert vd.externally_verified(q, "X", {"X": {str(q[-1]["period"]): {"ni": 7.5}}}) is None   # 8% 어긋나면 해제 안 됨
+    assert vd.externally_verified(q, "X", {"X": {str(q[-1]["period"]): {"src": "8-K"}}}) is None   # 대조 항목 0개면 해제 안 됨
+    assert vd.externally_verified(q, "Y", ver) is None
