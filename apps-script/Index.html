@@ -386,7 +386,7 @@ function evPanel(){
   const sm=(o,lab)=>o.d1?`<div style="font-size:12.5px;margin:2px 0">${lab}: 다음날 평균 ${pct(o.d1.avg,1)} (상승 ${Math.round(o.d1.up*100)}%, ${o.d1.n}회)${o.d5?` · 5일 ${pct(o.d5.avg,1)} (${Math.round(o.d5.up*100)}%)`:''}${o.d20?` · 20일 ${pct(o.d20.avg,1)} (${Math.round(o.d20.up*100)}%)`:''}</div>`:'';
   const tn=(EVS.events||[]).filter(e=>e.date===today).length, ck=EVS.checked_at||'';
   const todayLine=ck.slice(0,10)===today
-    ?`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> ${tn?`<span style="color:var(--dn)">이벤트 ${tn}건</span>`:'서킷·사이드카 없음'} <span class="mu" style="font-size:11px">· ${esc(ck.slice(11))} 확인</span></div>`
+    ?`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> ${tn?`<span style="color:var(--dn)">이벤트 ${tn}건</span>`:'주요 이벤트 없음 (서킷·사이드카·금리·정책·지정학 등)'} <span class="mu" style="font-size:11px">· ${esc(ck.slice(11))} 확인</span></div>`
     :`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> <span class="mu">아직 확인 전${ck?` (마지막 확인 ${esc(ck.slice(5))})`:''}</span></div>`;
   return `${todayLine}<div class="mu" style="font-size:11px">기록 · 최근 7일</div>${recent.length?`<div style="margin-bottom:6px">${recent.slice(0,6).map(e=>`<div style="font-size:12.5px;${e.date===today?'color:var(--dn)':''}">● ${esc(e.date.slice(5))} ${esc(e.time||'')} <b>${esc(e.market)} ${esc(e.type)}</b> ${e.link?`<a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.title||'')}</a>`:esc(e.title||'')}</div>`).join('')}</div>`:'<div class="mu" style="margin-bottom:6px">최근 7일 기록된 이벤트 없음</div>'}
    ${sm(S,'서킷브레이커 이후')}${sm(B,'코스피 −5% 이상 급락일 이후')}

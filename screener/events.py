@@ -44,6 +44,19 @@ PAT = [
     (r"(코스피|유가증권).{0,20}매수\s*사이드카|매수\s*사이드카.{0,20}(코스피|유가증권)", "KOSPI", "매수 사이드카"),
     (r"코스닥.{0,20}매수\s*사이드카|매수\s*사이드카.{0,20}코스닥", "KOSDAQ", "매수 사이드카"),
 ]
+# 서킷·사이드카 외 굵직한 이벤트 (뉴스 제목 기준, 같은 날 같은 유형은 1회). 세 번째 값 True = '속보' 제목만 (평소에도 자주 쓰는 표현이라)
+PAT_BIG = [
+    (r"(한은|한국은행|금통위).{0,20}기준\s*금리.{0,15}(인상|인하|동결)", "한은 기준금리", False),
+    (r"(연준|FOMC|파월).{0,25}(금리|기준금리).{0,15}(인상|인하|동결)", "FOMC 금리", True),
+    (r"공매도.{0,10}(전면\s*)?(금지|재개)|증시\s*안정\s*(펀드|기금)|증안\s*펀드|(금융|증시|시장)\s*안정\s*(조치|대책)", "정책·시장안정 조치", False),
+    (r"비상\s*계엄|전쟁\s*(발발|선포)|미사일\s*발사|핵\s*실험|(북한|이란|중동).{0,10}(공습|도발|침공)", "지정학 충격", True),
+    (r"(국가\s*)?신용\s*등급.{0,10}(강등|하향)|디폴트\s*선언|파산\s*보호\s*신청", "신용 충격", True),
+    (r"(나스닥|S&P\s*500|다우|뉴욕\s*증시).{0,15}(폭락|급락)|블랙\s*(먼데이|프라이데이)", "미 증시 급락", True),
+    (r"(원[·/]?달러\s*)?환율.{0,20}(돌파|폭등|급등|급락)", "환율 급변", True),
+    (r"(국제\s*)?유가.{0,15}(폭등|급등|폭락|급락)", "유가 급변", True),
+    (r"(삼성전자|SK\s*하이닉스|하이닉스|엔비디아).{0,20}(어닝|실적)\s*(쇼크|서프라이즈)", "대형주 실적 쇼크·서프", False),
+    (r"(한국거래소|거래소|증권사|HTS|MTS).{0,15}(전산\s*장애|먹통|거래\s*(중단|정지))", "거래 장애", False),
+]
 
 
 def load() -> dict:
@@ -89,6 +102,13 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
                      "source": "뉴스", "title": n["title"][:120], "link": n["link"]}
                 new.append(e)
                 have.add((today, mk, ty))
+        for pat, ty, flash in PAT_BIG:
+            if flash and "속보" not in n["title"]:
+                continue
+            if re.search(pat, n["title"]) and (today, "시장", ty) not in have:
+                new.append({"date": today, "time": f"{n['dt'][8:10]}:{n['dt'][10:12]}" if len(n["dt"]) >= 12 else now.strftime("%H:%M"),
+                            "market": "시장", "type": ty, "source": "뉴스", "title": n["title"][:120], "link": n["link"]})
+                have.add((today, "시장", ty))
     # 지수 등락률 근접 경보
     items = {i["key"]: i for i in (live or {}).get("items", [])}
     for k in ("KOSPI", "KOSDAQ"):
