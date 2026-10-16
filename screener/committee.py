@@ -175,7 +175,7 @@ def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der
     if k.get("ret1") is not None and k.get("low_today") and last:
         nearlow = (last / k["low_today"] - 1) < 0.01
         reasons.append({"t": "종가가 저가권" if nearlow else "장중 저가 대비 반등",
-                        "d": f"하루 {k['ret1']*100:+.1f}%, 저가 {k['low_today']:,.0f} 대비 종가 {(last/k['low_today']-1)*100:+.1f}%. " +
+                        "d": f"하루 {k['ret1']*100:+.1f}%, 저가 {k['low_today']:,.0f} 대비 {'현재' if '장중' in str(k.get('src', '')) else '종가'} {(last/k['low_today']-1)*100:+.1f}%. " +
                              ("저가 근처 마감 = 끝까지 사는 쪽이 없었다는 뜻. 바닥 확인(저가 지지) 전." if nearlow else "저가에서 받쳐주는 매수는 있었음.")})
     lv = ((stu.get("lev_trade") or {}).get("코스피 -5% 이하 날 종가 매수") or {}).get("다음날 시가 매도") or {}
     dp = ((stu.get("conditional") or {}).get("deep_(20일 −15% 이상 하락 중)") or {}).get("d1") or {}
@@ -337,6 +337,12 @@ def build(session: str = "장후") -> dict:
         stance["views"] = _views.committee_summary(_views.build())
     except Exception as e:  # noqa: BLE001
         log.info("VIEW 요약 실패: %s", e)
+    try:
+        _dl = _delta_line(k, scen, stance, der, session)
+        if _dl:
+            head.insert(1, _dl)
+    except Exception as e:  # noqa: BLE001
+        log.info("직전 회의 대비 줄 실패: %s", e)
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     if session == "장후":
@@ -393,6 +399,48 @@ def close_delta() -> list[str]:
     return L
 
 
+def _delta_line(k: dict, scen: list[dict], stance: dict, der: dict, session: str) -> str | None:
+    """직전 운용회의(다른 세션·이전 날) 대비 무엇이 바뀌었나 — 같은 문장이 반복돼 보이는 문제를 한 줄로 해소."""
+    import re as _re
+    hd = REPORT_DIR / "archive" / "committee"
+    me = f"{_kst_today()}_{session}"
+    prev = None
+    try:   # _index.json 은 (날짜, 세션 순서, 시각) 내림차순 — 체크아웃 후 파일 mtime 은 믿을 수 없음
+        days = json.loads((hd / "_index.json").read_text(encoding="utf-8")).get("days", [])
+    except Exception:  # noqa: BLE001
+        days = []
+    for x in days:
+        fid = x.get("id") or x.get("date")
+        if fid == me:
+            continue
+        try:
+            prev = json.loads((hd / f"{fid}.json").read_text(encoding="utf-8"))
+            break
+        except Exception:  # noqa: BLE001
+            continue
+    if not prev:
+        return None
+    parts = []
+    m = _re.search(r"코스피 ([\d,]+\.\d+)", (prev.get("head") or [""])[0])
+    if m and k.get("last"):
+        pv = float(m.group(1).replace(",", ""))
+        parts.append(f"코스피 {pv:,.0f}→{k['last']:,.0f} ({(k['last']/pv-1)*100:+.1f}%)")
+    pp = {s["name"].split(" ")[0]: s.get("prob") for s in prev.get("scenarios", [])}
+    for s0 in scen:
+        nm = s0["name"].split(" ")[0]
+        if pp.get(nm) is not None and s0.get("prob") is not None and abs(s0["prob"] - pp[nm]) >= 0.01:
+            parts.append(f"{nm} {pp[nm]*100:.0f}→{s0['prob']*100:.0f}%")
+    ps, cs = (prev.get("stance") or {}).get("stance"), stance.get("stance")
+    parts.append(f"판정 {ps}→{cs}" if ps and ps != cs else f"판정 유지({cs})")
+    pd = prev.get("derivs") or {}
+    if der.get("pcr_oi") is not None and pd.get("pcr_oi") is not None and abs(der["pcr_oi"] - pd["pcr_oi"]) >= 0.02:
+        parts.append(f"PCR {pd['pcr_oi']:.2f}→{der['pcr_oi']:.2f}")
+    if der.get("gex_bn") is not None and pd.get("gex_bn") is not None and abs(der["gex_bn"] - pd["gex_bn"]) >= 50:
+        parts.append(f"감마 {pd['gex_bn']:,.0f}→{der['gex_bn']:,.0f}억")
+    when = f"{str(prev.get('date', ''))[5:]} {prev.get('session', '')} {str(prev.get('asof', ''))[11:16]}".strip()
+    return f"직전 회의({when}) 대비: " + " · ".join(parts)
+
+
 def _archive(kind: str, o: dict) -> None:
     """날짜·세션별 누적: reports/archive/<kind>/YYYY-MM-DD[_세션].json + _index.json. 같은 날 같은 세션은 마지막 실행본."""
     d = str(o.get("date") or o.get("asof", ""))[:10]
@@ -406,7 +454,7 @@ def _archive(kind: str, o: dict) -> None:
     except Exception:  # noqa: BLE001
         idx = {"days": []}
     head = ((o.get("stance") or {}).get("stance") or "") + " · " + str(o.get("verdict", ""))[:60]
-    order = {"장전": 1, "장중": 2, "장후": 3}
+    order = {"장전": 1, "점심": 2, "장중": 3, "장후": 4}
     idx["days"] = sorted([x for x in idx["days"] if x.get("id", x["date"]) != fid] +
                          [{"id": fid, "date": d, "session": ses, "asof": o.get("asof"), "headline": head.strip(" ·")}],
                          key=lambda x: (x["date"], order.get(x.get("session", ""), 0), x.get("asof") or ""), reverse=True)
