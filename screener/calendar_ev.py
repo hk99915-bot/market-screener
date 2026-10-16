@@ -308,6 +308,19 @@ def build(days: int = 75) -> dict:
             dual = m in (3, 6, 9, 12)
             ev.append({"date": str(d), "type": "만기", "name": "국내 " + ("선물·옵션 동시만기" if dual else "옵션 만기"),
                        "note": "장 막판 프로그램 물량 출렁임", "imp": 2 if dual else 1})
+    # 서킷브레이커·사이드카 발동일 (실제 발동만: events.load() 가 오탐 정리) — 달력에 '시장 이벤트'로 표시
+    try:
+        from . import events as _evm
+        for e in _evm.load().get("events", []):
+            ty = e.get("type", "")
+            if (ty.startswith("서킷") or "사이드카" in ty) and start <= date.fromisoformat(e["date"]) <= end:
+                ev.append({"date": e["date"], "type": "시장 이벤트", "name": f"{e.get('market', '')} {ty} 발동",
+                           "note": e.get("title", "")[:80], "imp": 3})
+        for h in _evm.HISTORY:
+            if start <= date.fromisoformat(h["date"]) <= end:
+                ev.append({"date": h["date"], "type": "시장 이벤트", "name": "KOSPI 서킷브레이커 발동", "note": h.get("note", ""), "imp": 3})
+    except Exception as e:  # noqa: BLE001
+        log.warning("시장 이벤트(서킷) 달력 반영 실패: %s", e)
     names = {}
     for mk in ("KR", "US"):
         p = REPORT_DIR / "detail" / mk / "_index.json"
