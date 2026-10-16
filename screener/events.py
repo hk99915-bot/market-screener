@@ -60,11 +60,22 @@ PAT_BIG = [
 ]
 
 
+def _valid(e: dict) -> bool:
+    """뉴스로 잡은 서킷·사이드카는 제목에 '발동'이 있어야 실제 이벤트 (통계·해설 기사 오탐 제거, 10/16 '올해만 10번 멈췄다' 사례)."""
+    if e.get("source") == "뉴스" and any(k in e.get("type", "") for k in ("서킷", "사이드카")):
+        return "발동" in e.get("title", "")
+    return True
+
+
 def load() -> dict:
     try:
-        return json.loads(OUT.read_text(encoding="utf-8"))
+        st = json.loads(OUT.read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
         return {"events": []}
+    ev = st.get("events", [])
+    st["events"] = [e for e in ev if _valid(e)]
+    st["_dropped"] = len(ev) - len(st["events"])
+    return st
 
 
 def _news() -> list[dict]:
@@ -96,7 +107,7 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
         if n["dt"][:8] != now.strftime("%Y%m%d"):
             continue
         for pat, mk, ty in PAT:
-            if re.search(pat, n["title"]) and (today, mk, ty) not in have:
+            if re.search(pat, n["title"]) and "발동" in n["title"] and (today, mk, ty) not in have:
                 stage = re.search(r"([123])\s*단계", n["title"])
                 e = {"date": today, "time": f"{n['dt'][8:10]}:{n['dt'][10:12]}" if len(n["dt"]) >= 12 else now.strftime("%H:%M"),
                      "market": mk, "type": ty + (f" {stage.group(1)}단계" if stage and ty == "서킷브레이커" else ""),
@@ -123,12 +134,13 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
             new.append({"date": today, "time": now.strftime("%H:%M"), "market": k, "type": "경보:" + lvl, "source": "지수",
                         "title": f"{k} {c*100:+.2f}% ({it.get('last'):,.2f})"})
             have.add((today, k, "경보:" + lvl))
-    if new:
+    if new or st.get("_dropped"):
+        st.pop("_dropped", None)
         st["events"] = sorted(ev + new, key=lambda e: (e["date"], e.get("time", "")), reverse=True)[:300]
         st["updated_at"] = now.strftime("%Y-%m-%d %H:%M")
         OUT.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
         log.info("새 이벤트 %d건", len(new))
-        if send:
+        if send and new:
             try:
                 from .report import send_telegram
                 send_telegram("🚨 <b>시장 이벤트</b>\n" + "\n".join(
