@@ -1914,8 +1914,13 @@ function openDetail(sym,mk){
   const fail=e=>{
     const kr=mk==='KR', lk=kr?`https://finance.naver.com/item/main.naver?code=${encodeURIComponent(sym)}`:`https://finance.yahoo.com/quote/${encodeURIComponent(sym)}`;
     $('#dr-b').innerHTML=/404/.test(e.message)?`<div class="err">이 종목의 상세 데이터가 없습니다. 다음 자동 실행 때 생성되거나, 스크리너 대상 밖 종목입니다 (${kr?'시총 1,000억 미만·우선주·ETF 등':'S&P500·나스닥100 밖'}). <a href="${lk}" target="_blank">${kr?'네이버':'야후'}에서 보기</a></div>`:`<div class="err">${esc(e.message)}</div>`;};
-  const bundle=()=>google.script.run.withSuccessHandler(t=>{const b=JSON.parse(t), st=b.stocks&&b.stocks[sym]; if(!st) return fail({message:'404'}); DET[k]={...st,asof:b.asof}; renderDetail(sym,mk,DET[k]);}).withFailureHandler(fail).getDetail(mk);
-  google.script.run.withSuccessHandler(t=>{DET[k]=JSON.parse(t);renderDetail(sym,mk,DET[k]);}).withFailureHandler(e=>/404/.test(e.message)?bundle():fail(e)).getStock(mk,sym);
+  // 무한 LOADING 방지: 렌더 중 오류는 화면에 표시, 12초 넘게 응답 없으면 다시 시도 버튼
+  const req=(DET._req=(DET._req||0)+1);
+  const show=d=>{ if(DET._req!==req) return; clearTimeout(slow); try{ DET[k]=d; renderDetail(sym,mk,d); }catch(err){ delete DET[k]; $('#dr-b').innerHTML=`<div class="err">상세 화면 오류: ${esc(String(err&&err.message||err))} — <a href="#" onclick="openDetail('${esc(sym)}','${mk}');return false">다시 시도</a></div>`; console.error(err); } };
+  const slow=setTimeout(()=>{ if(DET._req===req&&!DET[k]) $('#dr-b').innerHTML='<div class="load">불러오는 중이 오래 걸려요 (12초+) … <a href="#" onclick="openDetail(\''+esc(sym)+'\',\''+mk+'\');return false">다시 시도</a></div>'; },12000);
+  const fail0=fail; const failT=e=>{ clearTimeout(slow); fail0(e); };
+  const bundle=()=>failT({message:'404'});   // detail_<시장>.json 묶음은 더 이상 생성되지 않음 → 바로 '데이터 없음' 안내 (예전엔 없는 파일을 한 번 더 요청해 대기가 길어짐)
+  google.script.run.withSuccessHandler(t=>{let d; try{ d=JSON.parse(t); }catch(err){ return failT({message:'JSON 파싱 실패'}); } show(d);}).withFailureHandler(e=>/404/.test(e.message)?bundle():failT(e)).getStock(mk,sym);
 }
 let MS=null;
 function macroComment(key,all){
