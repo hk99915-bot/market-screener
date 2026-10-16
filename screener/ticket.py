@@ -197,6 +197,7 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
     if close and abs(e / close - 1) > 0.10:
         notes.append(f"매수가가 최근 종가 {close:,.2f} 와 10% 이상 차이")
     fx = usdkrw() if mk == "US" else 1.0
+    # denominator=D5 매매 슬리브(sat_book, env SAT_BOOK_KRW) — 1회 리스크의 분모 (docs/rules_terms.md §0)
     risk_krw = sat_book() * risk_pct() / 100
     qty = int(math.floor(risk_krw / (risk_ps * fx))) if risk_ps > 0 else 0
     if half:

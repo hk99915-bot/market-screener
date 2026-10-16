@@ -214,6 +214,7 @@ def evaluate(txt: str, rules_txt: str = "") -> dict | None:
     cash_sat = books["sat"][1] + books["sat"][2] * fx
     cash_isa = books["isa"][1] + books["isa"][2] * fx
     tot_sat, tot_isa = sum(r["v"] for r in sat), sum(r["v"] for r in isa)
+    # denominator=D2 전체 투자자산(NAV) = 위성 주식 + ISA + 원화·달러 현금 (docs/rules_terms.md §0) — 반도체 비중·손실 한도의 분모
     nav = tot_sat + tot_isa + cash_sat + cash_isa
     tot = tot_sat + tot_isa
     cost = sum(r["c"] for r in rows if r["c"])
@@ -270,12 +271,14 @@ def brief() -> str | None:
     rows, nav, tot, cost, loss, miss = ev["rows"], ev["nav"], ev["tot"], ev["cost"], ev["loss"], ev["miss"]
     loss_limit, price_rules = ev["rules"]["loss_limit"], ev["rules"]["price"]
     cash = ev["cash"]
+    # denominator=D2 nav (누적 손실 한도 LOSS_LIMIT · 반도체 비중 모두 같은 분모 — docs/rules_terms.md)
     room = loss_limit * nav - loss
     L = ["🧑‍💼 <b>PB 아침 점검</b> <i>분모: 순자산(위성+ISA+현금)</i>",
          f"주식 {tot/nav*100:.0f}% (위성 {ev['tot_sat']/nav*100:.0f}% · ISA {ev['tot_isa']/nav*100:.0f}%) · 현금 {cash/nav*100:.0f}% (금액은 터미널 MY 탭에서만)",
          f"주식 손익 {(-loss)/cost*100 if cost else 0:+.1f}% · 최근일 {ev['day']*100:+.2f}%"]
     L.append("")
     L.append("<b>규칙 점검</b>")
+    # denominator=D2 nav — 규정 원문엔 없는 구 규칙(LOSS_LIMIT), 용어집 '누적 손실 한도' 참조
     L.append(f"• 손실 한도(순자산 −{loss_limit*100:.0f}%)까지 " + (f"순자산 <b>{room/nav*100:.1f}%</b> 남음 (주식 −{room/tot*100:.1f}% 추가 하락 여유)" if room > 0 else "<b>⛔ 한도 도달 — 메모리 절반 축소 실행</b>"))
     L.append(semi_line(ev))
     L += isa_lines(ev)

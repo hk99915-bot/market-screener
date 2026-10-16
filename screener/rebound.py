@@ -25,7 +25,7 @@ def judge(q: dict | None = None) -> dict | None:
     last, chg = q.get("last"), q.get("chg")
     if not last or chg is None:
         return None
-    prev = last / (1 + chg)
+    prev = last / (1 + chg)   # denominator: 전일 KRX 확정 종가(prev) — 반등일 = 14:30 현재가 ≥ prev × (1 + THRESHOLD)
     now = datetime.now(KST)
     return {"date": now.strftime("%Y-%m-%d"), "time": now.strftime("%H:%M"), "last": round(last, 2), "prev": round(prev, 2),
             "thr": round(prev * (1 + THRESHOLD), 2), "chg": round(chg, 4), "ok": chg >= THRESHOLD, "src": q.get("src"), "status": q.get("status")}
