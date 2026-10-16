@@ -494,6 +494,23 @@
       ],
       "depends_on": [],
       "notes": "새 키만 추가(기존 stance·scenarios·ideas·derivs 유지). reports/ideas_log.json·ideas_attrib.json 은 예약 실행이 생성. GAS 재붙여넣기: Index.html·Scheduler.gs. 컨센서스·선물 외국인 수급은 데이터 없음."
+    },
+    {
+      "id": "entry-signal-validate",
+      "title": "급락 뒤 진입 신호 사전등록 검증 — 강세 전환 신호(외국인 2일+5일 고점) 대체 후보(저점+3%·5일선·20일선·단계 진입·급락일 종가)",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "진행",
+      "started": "2026-10-16",
+      "due": "2026-10-17",
+      "files": [
+        "scripts/study_entry_signals.py",
+        "reports/studies/entry_signals.md",
+        "reports/studies/entry_signals.json",
+        "views/registry.json"
+      ],
+      "depends_on": [],
+      "notes": "운용회의 코드는 안 바꿈(PB 검토 후 별도). registry 에 entry_trigger 후보 렌즈만."
     }
   ]
 }

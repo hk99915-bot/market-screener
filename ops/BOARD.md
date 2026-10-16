@@ -2,7 +2,13 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 29개 · 진행 0 · 검수 11 · 대기 6 · 보류 0 · 완료 12
+기준일 2026-10-16 · 작업 30개 · 진행 1 · 검수 11 · 대기 6 · 보류 0 · 완료 12
+
+## 진행 (1)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P1 | `entry-signal-validate` | 급락 뒤 진입 신호 사전등록 검증 — 강세 전환 신호(외국인 2일+5일 고점) 대체 후보(저점+3%·5일선·20일선·단계 진입·급락일 종가) | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_entry_signals.py`<br>`reports/studies/entry_signals.md`<br>`reports/studies/entry_signals.json`<br>`views/registry.json` | — | 운용회의 코드는 안 바꿈(PB 검토 후 별도). registry 에 entry_trigger 후보 렌즈만. |
 
 ## 검수 (11)
 
@@ -56,5 +62,5 @@
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/main.py` ← `view-registry`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/build_pages.py` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
-- `views/registry.json` ← `view-registry`, `fib-lens` — 편집 전 `ops/locks.json` 잠금 필수
+- `views/registry.json` ← `view-registry`, `fib-lens`, `entry-signal-validate` — 편집 전 `ops/locks.json` 잠금 필수
 
