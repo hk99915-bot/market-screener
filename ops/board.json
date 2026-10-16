@@ -1150,6 +1150,23 @@
    "due": "2026-10-17",
    "depends_on": [],
    "notes": "10/15 복기(급락일 종가 1등 신호에 모델 '관망'·PB 현금). 모델·알림만 변경, rules.txt 는 일요일 별도 결정. GAS Scheduler.gs 15:05 슬롯 재붙여넣기 필요."
+  },
+  {
+   "id": "sec-ytd-bug",
+   "title": "SEC 파서 YTD 누적치 결함 의심: 비(非)12월 결산사(MU 9월·SNDK 6월)의 ni/op/cfo/revenue가 분기마다 누적되는 모양 → 회계연도 기준 차감 로직 점검·수정, 12월 결산사도 대조. 수정 전까지 valuation_daily 해당 종목 '검증전' 강제",
+   "owner": "데이터",
+   "status": "대기",
+   "priority": "P0",
+   "repo": "public",
+   "files": [
+    "screener/sec.py",
+    "tests/test_sec_parse.py",
+    "screener/valuation_daily.py"
+   ],
+   "started": "",
+   "due": "2026-10-20",
+   "depends_on": [],
+   "notes": "10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인."
   }
  ]
 }
