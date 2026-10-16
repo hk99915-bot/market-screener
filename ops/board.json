@@ -713,7 +713,7 @@
       "title": "semis_cap 사전등록 검증 — 테마 한도 40% vs 35% vs 밴드(40/45/30) 백테스트",
       "owner": "퀀트",
       "priority": "P0",
-      "status": "진행",
+      "status": "검수",
       "started": "2026-10-16",
       "due": "2026-10-18",
       "repo": "public",
@@ -722,7 +722,7 @@
         "reports/studies/semis_cap.json"
       ],
       "depends_on": [],
-      "notes": "실행 중. 안건 7·8-A 의 유일한 데이터 근거 — 10/18 오전까지 결과 없으면 '근거 없음'으로 보고하고 결정은 보수안 유지. 개인 비중 없이 파라미터만."
+      "notes": "결과 71f87fd9·c9fe8595: H1(밴드) C · H2(글라이드) A · H3(하락장 캡) F — 안건 7·8-A·8-C 의 데이터 근거. PB 검수 후 일요일 안건 팩에 등급 그대로 인용. 개인 비중 없이 파라미터만."
     },
     {
       "id": "gamma-verdict",
@@ -780,8 +780,8 @@
       "title": "tests/ pytest 층 — 파서·잠금·보드·rebound 판정 회귀 테스트 + CI 게이트",
       "owner": "개발",
       "priority": "P1",
-      "status": "대기",
-      "started": null,
+      "status": "검수",
+      "started": "2026-10-16",
       "due": "2026-10-24",
       "repo": "public",
       "files": [
@@ -790,7 +790,7 @@
         ".github/workflows/ops.yml"
       ],
       "depends_on": [],
-      "notes": "현재 tests/make_synthetic.py 뿐. 10/16 PB🔥 병합 누락·행사가 파싱 같은 회귀를 잡는 최소 층부터(10개 이내). 규칙 동결과 무관(안전망)."
+      "notes": "3013b933: pytest.ini·conftest·회귀 3종(대결 파싱·trail 무장·회의 Δ) + tests.yml. 검수: CI 첫 실행 통과 확인, 이후 lock/board/rebound 판정 테스트 추가는 11/16 이후."
     },
     {
       "id": "my-rules-secret",
