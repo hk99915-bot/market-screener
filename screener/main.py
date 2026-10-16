@@ -443,7 +443,11 @@ def main() -> None:
                 derivs.build()
             except Exception as e:  # noqa: BLE001
                 log.warning("옵션 포지션 실패: %s", e)
-            o = committee.build()
+            from datetime import datetime as _dt
+            from zoneinfo import ZoneInfo as _Z
+            _hm = _dt.now(_Z("Asia/Seoul")).strftime("%H%M")   # 실행 시각으로 세션 이름 (장중에 '장후'로 찍히던 문제)
+            _ses = "장전" if _hm < "0900" else "점심" if "1100" <= _hm < "1300" else "장중" if _hm < "1530" else "장후"
+            o = committee.build(_ses)
             ou = committee.build_us()
             if not a.no_send:
                 from .report import send_telegram

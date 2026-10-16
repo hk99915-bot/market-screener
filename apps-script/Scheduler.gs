@@ -28,6 +28,7 @@ const SCHEDULE = [
   ['08:40', 'live.yml', {}, WEEKDAY],
   ['08:50', 'briefing.yml', { mode: 'premarket_kr' }, WEEKDAY],
   ['10:30', 'briefing.yml', { mode: 'intraday_kr' }, WEEKDAY],
+  ['11:35', 'briefing.yml', { mode: 'committee' }, WEEKDAY],          // 점심 운용회의 (겸이 점심 11:30~12:50)
   ['13:30', 'briefing.yml', { mode: 'intraday_kr' }, WEEKDAY],
   ['15:45', 'briefing.yml', { mode: 'close_kr' }, WEEKDAY],
   ['16:20', 'screener.yml', { market: 'KR', no_send: 'false' }, WEEKDAY],
