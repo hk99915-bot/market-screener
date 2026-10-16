@@ -256,8 +256,11 @@ def intraday_kr(send: bool = True, state_key: str = "intraday_snapshot") -> str:
             notes.append(f"외국인 현물 <b>{jo(f)}</b>가 하락의 주범, {buyers}가 받아 주는 중")
         elif f > 5000 and i2 > 0:
             notes.append(f"외국인 {jo(f)}·기관 {jo(i2)} 동반 매수 — 수급이 지수를 받치는 중")
-        elif f < 0 and i2 < 0:
-            notes.append(f"외국인 {jo(f)}·기관 {jo(i2)} 동반 매도 — 개인만 받는 구조, 반등 동력 약함")
+        elif f < 0 and i2 < 0 and ind > 0:
+            notes.append(f"외국인 {jo(f)}·기관 {jo(i2)} 동반 매도 — 개인({jo(ind)})만 받는 구조, 반등 동력 약함")
+        elif f < 0 and i2 < 0 and ind <= 0:
+            other = -(f + i2 + ind)   # 세 주체 합의 반대편 = 기타법인(자사주 매입 포함)·기타 — 장중 잠정치는 오차 큼
+            notes.append(f"외국인 {jo(f)}·기관 {jo(i2)}·개인 {jo(ind)} 모두 순매도 — 받는 쪽은 기타법인 등 약 {jo(other)} 추정(자사주 매입 가능성). 잠정치라 마감 확정치로 재확인")
     # ③ 프로그램
     arb, nar = ks.get("prog_arb"), ks.get("prog_nonarb")
     if arb is not None and chg is not None:
