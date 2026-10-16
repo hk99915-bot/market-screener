@@ -1,0 +1,2790 @@
+{
+ "version": 1,
+ "updated": "2026-10-16",
+ "owner": "교육-후임(문제은행·복습 스케줄 담당)",
+ "note": "모듈당 ≥5문항. kind knowledge|situation(상황 판단 ≥70%, consult:pb_learner#L8). duel = 데스크 답(pick) — 터미널은 '데스크 답 vs 내 답' 대결 형식으로 렌더(Dev handoff). rule_ref 가 있는 문항은 규칙 조항을 인용하면 만점. 금액·보유 없음.",
+ "items": [
+  {
+   "id": "R1-b1",
+   "module": "R1",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "−30% 손실 뒤 원금 회복에 필요한 수익률은?",
+   "choices": [
+    "+30%",
+    "+42.9%",
+    "+60%",
+    "+100%"
+   ],
+   "answer": 1,
+   "why": "1/(1−0.3)−1 = 0.429.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#1"
+   ]
+  },
+  {
+   "id": "R1-b2",
+   "module": "R1",
+   "kind": "situation",
+   "difficulty": 1,
+   "q": "동료가 '−20% 났지만 +20% 오르면 본전'이라 한다. 답은?",
+   "choices": [
+    "맞다",
+    "96 — +25%가 필요하다",
+    "+20%면 104",
+    "변동성 따라 다르다"
+   ],
+   "answer": 1,
+   "why": "0.8×1.2 = 0.96.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q1"
+   ]
+  },
+  {
+   "id": "R1-b3",
+   "module": "R1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "두 전략 산술평균이 같이 +8%인데 A는 σ 10%, B는 σ 40%. 복리(기하) 수익이 높은 쪽은?",
+   "choices": [
+    "B",
+    "A — 끌림 0.5%p vs 8%p",
+    "같다",
+    "알 수 없다"
+   ],
+   "answer": 1,
+   "why": "g ≈ μ − σ²/2: A 7.5%, B 0%.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#3"
+   ]
+  },
+  {
+   "id": "R1-b4",
+   "module": "R1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "일 변동 3%인 지수의 2배 레버리지 ETF를 횡보장에서 3개월 들고 있을 계획이다. 공식으로 보면?",
+   "choices": [
+    "횡보면 손해 없음",
+    "σ 2배 → 끌림 4배, 횡보만 해도 녹는다",
+    "μ가 0이니 g도 0",
+    "3개월은 짧아 무관"
+   ],
+   "answer": 1,
+   "why": "연 σ ≈ 95% → σ²/2 ≈ 45%p/년.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#3",
+    "consult:pb_learner#L6"
+   ],
+   "rule_ref": "규칙 [레버리지 금지]"
+  },
+  {
+   "id": "R1-b5",
+   "module": "R1",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "1년 −58%인 기록을 교재에 쓸 때 맞는 서술은?",
+   "choices": [
+    "'도박으로 망했다'",
+    "'이 거래 유형(레버리지 단타)이 손실 대부분을 만들었다 — 회복엔 +138%'",
+    "'운이 나빴다'",
+    "'누구나 이랬을 것'"
+   ],
+   "answer": 1,
+   "why": "사람이 아니라 거래 구조가 설명변수. 금지 표현 피함.",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q10",
+    "consult:pb_learner#L7"
+   ]
+  },
+  {
+   "id": "R2-b1",
+   "module": "R2",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "정규 가정에서 VaR99(2.326σ)와 ES97.5(2.338σ)의 관계는?",
+   "choices": [
+    "ES가 2배",
+    "거의 같다",
+    "VaR가 더 크다",
+    "무관"
+   ],
+   "answer": 1,
+   "why": "꼬리가 두꺼울 때만 ES가 커진다.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#4",
+    "kb:frm#21"
+   ]
+  },
+  {
+   "id": "R2-b2",
+   "module": "R2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "역사적 200일에서 VaR97.5 ≈ 5%, ES97.5 = 7.6%다. 이 격차가 말하는 것은?",
+   "choices": [
+    "모형 오류",
+    "꼬리가 두껍다 → 비중은 VaR가 아니라 스트레스로",
+    "VaR가 과대",
+    "격차는 정상, 정보 없음"
+   ],
+   "answer": 1,
+   "why": "정규면 같아야 한다. 1.5배 격차 = 두꺼운 꼬리.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q13"
+   ]
+  },
+  {
+   "id": "R2-b3",
+   "module": "R2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'VaR99 1.5%'를 하락장 σ에서 지키려면 고변동 테마를 0%로 해도 초과한다. 이 한도는?",
+   "choices": [
+    "엄격해서 좋다",
+    "지킬 수 없는 한도 — 규칙 전체를 무력화, 상대형(지수 VaR×0.5)으로",
+    "스트레스로 대체 불가",
+    "유지"
+   ],
+   "answer": 1,
+   "why": "[kb:frm#8]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#8",
+    "consult:frm#q4"
+   ],
+   "rule_ref": "규칙 [11]"
+  },
+  {
+   "id": "R2-b4",
+   "module": "R2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "월 1회 백테스트: 12개월 초과일 0회. 평가는?",
+   "choices": [
+    "완벽한 모형",
+    "VaR가 너무 커서 비중을 불필요하게 줄였을 수 있다(과대도 오류)",
+    "기대 2.5회보다 적으니 안전",
+    "데이터 오류"
+   ],
+   "answer": 1,
+   "why": "[consult:frm#q14]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q14",
+    "kb:frm#6"
+   ]
+  },
+  {
+   "id": "R2-b5",
+   "module": "R2",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "PB가 VaR를 보고할 때 FRM이 반려하는 조건은?",
+   "choices": [
+    "숫자가 크다",
+    "σ 창(20/60/250)·역사적 VaR·12개월 초과일 수가 한 줄에 없다",
+    "ES가 없다",
+    "베타가 없다"
+   ],
+   "answer": 1,
+   "why": "데스크 복기 '다음부터'.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q12"
+   ]
+  },
+  {
+   "id": "R3-b1",
+   "module": "R3",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "스트레스 테스트 사건을 고를 때 원칙이 아닌 것은?",
+   "choices": [
+    "내 주 위험이 터진 사건",
+    "성격이 다른 2~3개",
+    "데이터가 있는 것",
+    "가장 최근 1개만"
+   ],
+   "answer": 3,
+   "why": "[kb:frm#9]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 3
+   },
+   "src": [
+    "kb:frm#9"
+   ]
+  },
+  {
+   "id": "R3-b2",
+   "module": "R3",
+   "kind": "situation",
+   "difficulty": 1,
+   "q": "한도 −15%, 비중 40%. 버틸 수 있는 충격은?",
+   "choices": [
+    "−15%",
+    "−37.5%",
+    "−6%",
+    "−60%"
+   ],
+   "answer": 1,
+   "why": "15 ÷ 40.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#10"
+   ]
+  },
+  {
+   "id": "R3-b3",
+   "module": "R3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "테마 재생 충격 −45%, 한도 −15%. 비중 상한은?",
+   "choices": [
+    "40%",
+    "33%",
+    "15%",
+    "50%"
+   ],
+   "answer": 1,
+   "why": "15 ÷ 45.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#10"
+   ],
+   "rule_ref": "규칙 [11]"
+  },
+  {
+   "id": "R3-b4",
+   "module": "R3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "VaR 한도와 스트레스 한도가 충돌한다. 어느 쪽이 구속인가?",
+   "choices": [
+    "VaR",
+    "스트레스 −15% + 테마 비중 — VaR는 계기판",
+    "둘 다",
+    "둘 다 아님"
+   ],
+   "answer": 1,
+   "why": "[kb:cio#13]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "kb:cio#13",
+    "consult:frm#q4"
+   ]
+  },
+  {
+   "id": "R3-b5",
+   "module": "R3",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "'2020-03·2024-08·2026-07 모두 통과했으니 안전하다'는 말의 빈틈은?",
+   "choices": [
+    "없다",
+    "선택한 사건보다 큰 사건은 늘 가능 — 통과는 '이 사건에 대해'만",
+    "2026-07은 빼야",
+    "VaR도 봐야"
+   ],
+   "answer": 1,
+   "why": "[consult:frm#q5]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q5"
+   ]
+  },
+  {
+   "id": "R4-b1",
+   "module": "R4",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "β 0.7 포트는 지수 −10%에 '평균' 몇 %?",
+   "choices": [
+    "−10%",
+    "−7%",
+    "−3%",
+    "0%"
+   ],
+   "answer": 1,
+   "why": "[kb:frm#11]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#11"
+   ]
+  },
+  {
+   "id": "R4-b2",
+   "module": "R4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "같은 테마 ρ 0.8 종목 5개 등가중. 포트 σ는 개별 σ의?",
+   "choices": [
+    "0.45배",
+    "0.92배",
+    "0.2배",
+    "1배"
+   ],
+   "answer": 1,
+   "why": "1/n + ρ(1−1/n) = 0.84 → √ = 0.92.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q6"
+   ],
+   "rule_ref": "규칙 [테마 한도]"
+  },
+  {
+   "id": "R4-b3",
+   "module": "R4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "50/50, σ 40%·10%, ρ 0. 위험 기여는?",
+   "choices": [
+    "50/50",
+    "94% / 6%",
+    "80/20",
+    "10/90"
+   ],
+   "answer": 1,
+   "why": "비중 같아도 위험 16배 차이.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#24"
+   ]
+  },
+  {
+   "id": "R4-b4",
+   "module": "R4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "ETF 안에 보유 종목과 같은 종목이 들어 있다. 테마 비중 계산은?",
+   "choices": [
+    "ETF는 별도",
+    "룩스루로 합산 — 상관 0.8 이상은 한 포지션",
+    "ETF만 센다",
+    "무시"
+   ],
+   "answer": 1,
+   "why": "[consult:frm#q11]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q11",
+    "kb:frm#19"
+   ]
+  },
+  {
+   "id": "R4-b5",
+   "module": "R4",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "위기에 분산이 남는 묶음은?",
+   "choices": [
+    "같은 국가 주식 10종목",
+    "국채·현금처럼 ρ가 안 오르는 자산",
+    "통화(항상 방패)",
+    "레버리지 ETF"
+   ],
+   "answer": 1,
+   "why": "통화는 위기 유형에 따라 방향이 바뀐다.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q15",
+    "kb:frm#23"
+   ]
+  },
+  {
+   "id": "R5-b1",
+   "module": "R5",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "semis_cap에서 밴드(40/45/30) vs 월말 고정캡의 가장 뚜렷한 차이는?",
+   "choices": [
+    "수익 2배",
+    "매도 횟수 10 vs 58",
+    "MDD 절반",
+    "비중 평균"
+   ],
+   "answer": 1,
+   "why": "[kb:frm#13]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#13"
+   ]
+  },
+  {
+   "id": "R5-b2",
+   "module": "R5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "w 40%, r +20%, c 2%. 적립 희석 뒤 비중은?",
+   "choices": [
+    "38%",
+    "43.6%",
+    "40%",
+    "35%"
+   ],
+   "answer": 1,
+   "why": "0.48/(1.02+0.08). 상승장은 희석이 못 따라간다 → 상단 45 필요.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q8"
+   ]
+  },
+  {
+   "id": "R5-b3",
+   "module": "R5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'하락장 하드캡을 40 → 30으로 낮추자'. semis_cap 등급은?",
+   "choices": [
+    "A",
+    "C",
+    "F — MDD 0.4%p 차이, 근거 없음",
+    "검증전"
+   ],
+   "answer": 2,
+   "why": "[kb:frm#14]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 2
+   },
+   "src": [
+    "kb:frm#14"
+   ],
+   "rule_ref": "규칙 [반도체 밴드]"
+  },
+  {
+   "id": "R5-b4",
+   "module": "R5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "적립이 순자산 대비 5%/월이다. 글라이드만으로 한도 유지가 되나?",
+   "choices": [
+    "된다",
+    "7% 아래면 글라이드만으론 불가 — 밴드 매도 병행",
+    "된다, 2개월",
+    "적립을 늘린다"
+   ],
+   "answer": 1,
+   "why": "[consult:frm#q7]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q7"
+   ]
+  },
+  {
+   "id": "R5-b5",
+   "module": "R5",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "코어 60/40에서 주식이 +10% 났다. 밴드 ±5%p 안이면?",
+   "choices": [
+    "매도 리밸런싱",
+    "적립분을 채권에만 넣어 되돌린다(매도 0) — 62.3%",
+    "아무것도",
+    "주식 추가"
+   ],
+   "answer": 1,
+   "why": "w(1+r)/(1+wr) = 0.623.",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "kb:cio#6"
+   ]
+  },
+  {
+   "id": "R6-b1",
+   "module": "R6",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "손절폭 12%, 리스크 예산 1%. 비중은?",
+   "choices": [
+    "12%",
+    "8.3%",
+    "1%",
+    "16.7%"
+   ],
+   "answer": 1,
+   "why": "1 ÷ 12.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#16"
+   ]
+  },
+  {
+   "id": "R6-b2",
+   "module": "R6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "가격 100, ATR 6, 20일 저점 85. 손절선은?",
+   "choices": [
+    "85",
+    "88 (max(85, 100−12))",
+    "94",
+    "97"
+   ],
+   "answer": 1,
+   "why": "손절폭 12% → 비중 8.3%.",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q9"
+   ],
+   "rule_ref": "규칙 [ATR 손절]"
+  },
+  {
+   "id": "R6-b3",
+   "module": "R6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'우위가 확실하니 Kelly 전량'이라는 제안. 초보 지침은?",
+   "choices": [
+    "Kelly 전량",
+    "1% 고정 — Kelly는 우위를 알 때, 실무도 1/4~1/2",
+    "Kelly 절반",
+    "사이징 불필요"
+   ],
+   "answer": 1,
+   "why": "[consult:frm#q9]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q9"
+   ]
+  },
+  {
+   "id": "R6-b4",
+   "module": "R6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "손절폭 3%(일 변동 1%)와 18%(일 변동 5%) 종목에 같은 −8% 손절을 쓰면?",
+   "choices": [
+    "공정",
+    "전자는 너무 넓고 후자는 너무 좁다(소음 손절) — ATR로 종목별",
+    "후자가 유리",
+    "전자가 유리"
+   ],
+   "answer": 1,
+   "why": "[kb:frm#18]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "kb:frm#18"
+   ]
+  },
+  {
+   "id": "R6-b5",
+   "module": "R6",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "MY 탭 위험기여 열에서 비중 8% 종목이 위험 기여 30%다. 뜻은?",
+   "choices": [
+    "오류",
+    "σ·상관이 커서 비중 대비 위험이 크다 — 사이징 재검토",
+    "비중을 늘려야",
+    "무시"
+   ],
+   "answer": 1,
+   "why": "[consult:frm#q16]",
+   "duel": {
+    "desk": "FRM",
+    "pick": 1
+   },
+   "src": [
+    "consult:frm#q16",
+    "kb:frm#24"
+   ]
+  },
+  {
+   "id": "D1-b1",
+   "module": "D1",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "우리/KRX 관행의 베이시스 부호는?",
+   "choices": [
+    "S − F",
+    "F − S (양수 = 콘탱고)",
+    "|F − S|",
+    "F ÷ S"
+   ],
+   "answer": 1,
+   "why": "Hull 3장은 반대.",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q13"
+   ]
+  },
+  {
+   "id": "D1-b2",
+   "module": "D1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "12월 둘째 주, 이론 베이시스 −1.0, 시장 −1.5. 공포의 크기는?",
+   "choices": [
+    "−1.5",
+    "−0.5(괴리)",
+    "−2.5",
+    "0"
+   ],
+   "answer": 1,
+   "why": "배당 d 때문에 이론가 자체가 음수.",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q3"
+   ]
+  },
+  {
+   "id": "D1-b3",
+   "module": "D1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "매수 사이드카 발동 요건은?",
+   "choices": [
+    "코스피 +5%",
+    "코스피200 선물 기준가 대비 +5% 이상 1분 지속 → 프로그램 매수 호가 5분 정지",
+    "현물 +8%",
+    "외국인 순매수"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q4]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q4"
+   ]
+  },
+  {
+   "id": "D1-b4",
+   "module": "D1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "급락 다음날 베이시스가 양전했고 외국인은 선물 −9,540계약이었다. 베이시스 양전의 뜻은?",
+   "choices": [
+    "외국인 매수",
+    "선물이 먼저 뛴 속도 차이 — 방향 예언 아님",
+    "바닥 확인",
+    "배당락"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q4]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q4"
+   ]
+  },
+  {
+   "id": "D1-b5",
+   "module": "D1",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "H4 BASIS_NEG를 재검정할 수 있는 시점은?",
+   "choices": [
+    "지금",
+    "IS 음수일이 60일을 채울 때",
+    "OOS t>2면 즉시",
+    "영원히 불가"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q5]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q5"
+   ],
+   "rule_ref": "규칙 [12]"
+  },
+  {
+   "id": "D2-b1",
+   "module": "D2",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "터미널 pcr_oi·pcr_vol의 집계 범위는?",
+   "choices": [
+    "최근월만",
+    "월물 전 만기 합(위클리 제외)",
+    "위클리 포함",
+    "당일 거래만"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q6]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q6"
+   ]
+  },
+  {
+   "id": "D2-b2",
+   "module": "D2",
+   "kind": "situation",
+   "difficulty": 1,
+   "q": "IV 32%일 때 하루 1σ는 약?",
+   "choices": [
+    "32%",
+    "2.0%",
+    "0.13%",
+    "6.4%"
+   ],
+   "answer": 1,
+   "why": "0.32/15.87.",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q7"
+   ]
+  },
+  {
+   "id": "D2-b3",
+   "module": "D2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "IV 48%(1σ 3%)인데 5일 뒤 예상폭은?",
+   "choices": [
+    "3%",
+    "6.8% (×√5)",
+    "15%",
+    "1.4%"
+   ],
+   "answer": 1,
+   "why": "√시간 규칙.",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q7"
+   ]
+  },
+  {
+   "id": "D2-b4",
+   "module": "D2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "rv20 46%, atm_iv 48%. 읽는 법은?",
+   "choices": [
+    "옵션이 비싸다",
+    "옵션이 과거 흔들림만큼을 값에 매김 — 크기 정보, 방향 없음",
+    "하락 신호",
+    "상승 신호"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q7]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q7"
+   ]
+  },
+  {
+   "id": "D2-b5",
+   "module": "D2",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "시험 문제 'PCR이 높으면?'과 터미널 규칙이 다르다. 어떻게 답하나?",
+   "choices": [
+    "시험도 '검증전'",
+    "시험엔 교과서(공포·역발상), 터미널에선 등급표(검증전) — 두 칸",
+    "둘 다 역발상",
+    "둘 다 무시"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q16]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q16"
+   ]
+  },
+  {
+   "id": "D3-b1",
+   "module": "D3",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "교과서 감마(옵션 보유자)의 부호는?",
+   "choices": [
+    "항상 음수",
+    "항상 양수",
+    "0",
+    "포지션에 따라"
+   ],
+   "answer": 1,
+   "why": "딜러 '숏감마'는 포지션 가정.",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q15"
+   ]
+  },
+  {
+   "id": "D3-b2",
+   "module": "D3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "gex_bn 가 −1,000억인데 한국은 개인이 풋을 매도하고 외국인이 샀다. 가정이 틀리면?",
+   "choices": [
+    "숫자가 바뀐다",
+    "같은 OI인데 부호가 뒤집힌다 → 부호 대신 위치만 참고",
+    "변화 없음",
+    "감마가 0"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q15]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q15"
+   ]
+  },
+  {
+   "id": "D3-b3",
+   "module": "D3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "gamma_regime 재판정 예정일(next_eval)이 지나도 등급이 '검증전' 그대로면?",
+   "choices": [
+    "A로 승격",
+    "재검토 미실행 → 신뢰 낮춤",
+    "F",
+    "무시"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q11]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q11"
+   ]
+  },
+  {
+   "id": "D3-b4",
+   "module": "D3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "H7 감마 효과 +1.94%p(t 3.4)가 IV 통제 후 +0.44%p(t 1.1). 결론은?",
+   "choices": [
+    "감마가 원인",
+    "'흔들리는 장이라 감마도 낮고 IV도 높다' — 감마는 IV의 재표현",
+    "IV가 틀림",
+    "둘 다 신호"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q7]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q7",
+    "consult:derivs#q9"
+   ]
+  },
+  {
+   "id": "D3-b5",
+   "module": "D3",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "flip 아래 날의 다음날 |r1| 4.1% vs 위 2.0%(H3x 탐색). 이 결과로 할 수 있는 것은?",
+   "choices": [
+    "숏 진입",
+    "사이즈 축소(C, 탐색 상한) — 방향 판단 금지",
+    "롱 진입",
+    "벽까지 베팅"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q10]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q10"
+   ],
+   "rule_ref": "규칙 [사이즈 축소]"
+  },
+  {
+   "id": "D4-b1",
+   "module": "D4",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "Hull 최소분산 헤지비율 h = ρ·σ_S/σ_F 는 주식 포트·지수선물에서 무엇과 같나?",
+   "choices": [
+    "1",
+    "β",
+    "ρ",
+    "σ"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q14]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q14"
+   ]
+  },
+  {
+   "id": "D4-b2",
+   "module": "D4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "포트 500, β 0.8, 선물 400, 승수 0.25. 계약 수는?",
+   "choices": [
+    "4",
+    "5",
+    "8",
+    "10"
+   ],
+   "answer": 0,
+   "why": "0.8×500/100 = 4.",
+   "duel": {
+    "desk": "파생",
+    "pick": 0
+   },
+   "src": [
+    "consult:derivs#q11"
+   ]
+  },
+  {
+   "id": "D4-b3",
+   "module": "D4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "헤지 중 베이시스가 +3 → −2로 움직였다. 헤지 손익은?",
+   "choices": [
+    "현물 손익과 정확히 상쇄",
+    "현물 손익 ≠ 헤지 손익(베이시스 리스크)",
+    "이익",
+    "무관"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q11]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q11"
+   ]
+  },
+  {
+   "id": "D4-b4",
+   "module": "D4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "운용회의 hedges 의 '인버스 25%'를 실계좌에서 따라 해도 되나?",
+   "choices": [
+    "된다",
+    "안 된다 — 모델 북 전용, 실계좌 상품 금지",
+    "절반만",
+    "ETF면 된다"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q6]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q6"
+   ],
+   "rule_ref": "규칙 [상품 금지]"
+  },
+  {
+   "id": "D4-b5",
+   "module": "D4",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "만기(둘째 목요일) 전 롤오버를 잊었다. 결과는?",
+   "choices": [
+    "자동 연장",
+    "최종거래일에 포지션 소멸(현금결제) — 헤지 공백",
+    "손실 없음",
+    "증거금 반환"
+   ],
+   "answer": 1,
+   "why": "[consult:derivs#q11]",
+   "duel": {
+    "desk": "파생",
+    "pick": 1
+   },
+   "src": [
+    "consult:derivs#q11"
+   ]
+  },
+  {
+   "id": "Q1-b1",
+   "module": "Q1",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "사전등록 §0에 반드시 들어가는 것이 아닌 것은?",
+   "choices": [
+    "데이터·이벤트 정의",
+    "검정 수 m·α",
+    "등급 규칙",
+    "결과 수익률"
+   ],
+   "answer": 3,
+   "why": "[kb:quant#1]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 3
+   },
+   "src": [
+    "kb:quant#1"
+   ]
+  },
+  {
+   "id": "Q1-b2",
+   "module": "Q1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "코드 버그(분기 이름 오타)를 고쳤다. 새 id로 재등록해야 하나?",
+   "choices": [
+    "예",
+    "아니오 — 정의 변경이 아니면 머리말에 '정의 변경 없음'으로 기록",
+    "둘 다",
+    "연구 폐기"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q2]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q2"
+   ]
+  },
+  {
+   "id": "Q1-b3",
+   "module": "Q1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "fib_levels에서 하락장에만 효과가 보여 '하락장 한정 규칙'으로 쓰자고 한다.",
+   "choices": [
+    "채택",
+    "사후 분석 — 새 id(FIB_GOLDEN_BEAR)로 재등록 후보, 지금은 C 상한",
+    "F",
+    "A"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q2]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q2",
+    "reports/studies/fib_levels"
+   ]
+  },
+  {
+   "id": "Q1-b4",
+   "module": "Q1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "시도 일지에 꼭 적어야 하는 것은?",
+   "choices": [
+    "성공한 것만",
+    "버린 가설과 이유 — 없으면 N을 셀 수 없다",
+    "수익률만",
+    "날짜만"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q13]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q13"
+   ]
+  },
+  {
+   "id": "Q1-b5",
+   "module": "Q1",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "'급락 뒤 진입' 질문은 세 연구에서 검정됐다(m 6·15). 전체 시도 N은?",
+   "choices": [
+    "6",
+    "15",
+    "50 이상 — 헤어컷을 더 줘야",
+    "21"
+   ],
+   "answer": 2,
+   "why": "[consult:quant#q13]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 2
+   },
+   "src": [
+    "consult:quant#q13"
+   ]
+  },
+  {
+   "id": "Q2-b1",
+   "module": "Q2",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "OOS 길이를 정하는 기준은?",
+   "choices": [
+    "항상 30%",
+    "사건이 충분히 든 기간",
+    "최근 1년",
+    "IS와 같게"
+   ],
+   "answer": 1,
+   "why": "[kb:quant#15]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "kb:quant#15",
+    "consult:quant#q3"
+   ]
+  },
+  {
+   "id": "Q2-b2",
+   "module": "Q2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "entry_signals IS 이벤트가 3개뿐이다. 사전 규칙은?",
+   "choices": [
+    "연구 중단",
+    "IS<8이면 전체 표본으로 판정(사전 규칙)",
+    "OOS만",
+    "IS만"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q3]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q3"
+   ]
+  },
+  {
+   "id": "Q2-b3",
+   "module": "Q2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "파라미터 −8%만 좋고 −7%·−9%는 나쁘다.",
+   "choices": [
+    "최적값 발견",
+    "뾰족한 봉우리 — 우연 의심",
+    "채택",
+    "OOS 불필요"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q4]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q4"
+   ]
+  },
+  {
+   "id": "Q2-b4",
+   "module": "Q2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "새 규칙이 '무조건 보유'나 '급락일 종가'를 못 이긴다.",
+   "choices": [
+    "복잡하니 좋다",
+    "단순 대조군을 못 이기면 채택 불가",
+    "표본 늘리기",
+    "OOS로"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q4]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q4"
+   ]
+  },
+  {
+   "id": "Q2-b5",
+   "module": "Q2",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "rule_audit T1 손절 −5%: IS +0.21, OOS −0.05. 경로 하나로 가를 수 있는 것은?",
+   "choices": [
+    "효과 없음 확정",
+    "'OOS 운'과 '효과 없음'을 못 가른다 → 부호 일치·하락장 하위까지 요구",
+    "효과 있음",
+    "재등록"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q15]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q15"
+   ]
+  },
+  {
+   "id": "Q3-b1",
+   "module": "Q3",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "m=18(rule_audit)일 때 Bonferroni α는 약?",
+   "choices": [
+    "0.05",
+    "0.0028",
+    "0.01",
+    "0.1"
+   ],
+   "answer": 1,
+   "why": "0.05/18.",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q5"
+   ]
+  },
+  {
+   "id": "Q3-b2",
+   "module": "Q3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "fib H2는 '−' 방향을 사전에 고정했다. 결과 본 뒤 방향을 골랐다면?",
+   "choices": [
+    "무관",
+    "α가 사실상 2배",
+    "더 엄격",
+    "C"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q5]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q5"
+   ]
+  },
+  {
+   "id": "Q3-b3",
+   "module": "Q3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "HLZ 기준 t≥3.0 vs 우리 C(t≈1.3). 학습자에게 말해야 하나?",
+   "choices": [
+    "숨긴다",
+    "말한다 — C는 발견이 아니라 '다음 라운드 후보' 내부 라벨",
+    "C를 없앤다",
+    "A로"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q16]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q16"
+   ]
+  },
+  {
+   "id": "Q3-b4",
+   "module": "Q3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "C 렌즈 cand.bear_cap_cost(위험을 늘리는 방향)를 쓰려면?",
+   "choices": [
+    "바로 적용",
+    "B 전까지 참고만 — 사이즈 확대 근거 금지",
+    "절반 적용",
+    "F로"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q16]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q16"
+   ],
+   "rule_ref": "규칙 [등급 역할]"
+  },
+  {
+   "id": "Q3-b5",
+   "module": "Q3",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "'동전 10개 각 5번, 하나가 5번 다 앞면(3%)'. 특별한 동전?",
+   "choices": [
+    "예",
+    "10개 중 하나쯤 27% — 아니오",
+    "표본 부족",
+    "재실험"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q5]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q5"
+   ]
+  },
+  {
+   "id": "Q4-b1",
+   "module": "Q4",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "등급 B의 뜻은?",
+   "choices": [
+    "OOS만 통과",
+    "IS Bonferroni 통과, OOS 미확인",
+    "방향만",
+    "효과 없음"
+   ],
+   "answer": 1,
+   "why": "[kb:quant#4]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "kb:quant#4"
+   ]
+  },
+  {
+   "id": "Q4-b2",
+   "module": "Q4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "등급 배지 회색(검증전)과 빨강(F) 중 '더 나쁜' 쪽은?",
+   "choices": [
+    "회색",
+    "빨강",
+    "둘 다 '근거의 세기'일 뿐 — 회색은 성적표 없음",
+    "같다"
+   ],
+   "answer": 2,
+   "why": "[consult:quant#q11]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 2
+   },
+   "src": [
+    "consult:quant#q11"
+   ]
+  },
+  {
+   "id": "Q4-b3",
+   "module": "Q4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "rule_audit T3 부분익절: 승률 29→38%, 손익비 2.21→1.39, 기대값 동일. 등급은?",
+   "choices": [
+    "A",
+    "C",
+    "F",
+    "검증전"
+   ],
+   "answer": 2,
+   "why": "[kb:quant#17]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 2
+   },
+   "src": [
+    "kb:quant#17"
+   ]
+  },
+  {
+   "id": "Q4-b4",
+   "module": "Q4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "exec_signal 섹터 결과가 'C(역방향)'이다. 뜻은?",
+   "choices": [
+    "반대로 해도 됨",
+    "사전 예상과 반대 방향의 약한 근거 — 참고",
+    "F",
+    "A"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q6]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q6"
+   ]
+  },
+  {
+   "id": "Q4-b5",
+   "module": "Q4",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "entry_signals 후보 5개 모두 F, 급락일 종가만 C. 결론은?",
+   "choices": [
+    "모두 폐기",
+    "'기다리는 확인 신호는 비용' — F는 입증 못 함이지 나쁨 아님",
+    "C도 폐기",
+    "A"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q7]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q7"
+   ]
+  },
+  {
+   "id": "Q5-b1",
+   "module": "Q5",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "Newey-West가 고치는 문제는?",
+   "choices": [
+    "꼬리",
+    "겹침(자기상관)",
+    "생존편향",
+    "비용"
+   ],
+   "answer": 1,
+   "why": "[kb:quant#20]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "kb:quant#20"
+   ]
+  },
+  {
+   "id": "Q5-b2",
+   "module": "Q5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'14:30 반등 판정' 규칙을 일봉으로 검증했다. 한계는?",
+   "choices": [
+    "없음",
+    "종가 근사 — 장중 집행과 다를 수 있다",
+    "표본",
+    "비용"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q8]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q8"
+   ],
+   "rule_ref": "규칙 [반등일 매도]"
+  },
+  {
+   "id": "Q5-b3",
+   "module": "Q5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "동일 조건 비교 연구에서 비용 0은?",
+   "choices": [
+    "치명적",
+    "차이 비교엔 무해, 절대 수익은 과대",
+    "무관",
+    "필수"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q8]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q8"
+   ]
+  },
+  {
+   "id": "Q5-b4",
+   "module": "Q5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "감마 음수 60일 중 40일이 한 국면이다. 보완은?",
+   "choices": [
+    "NW",
+    "중앙값 병기·국면 단위 묶기·한 국면 제외 재계산",
+    "표본 늘리기",
+    "무시"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q14]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q14"
+   ]
+  },
+  {
+   "id": "Q5-b5",
+   "module": "Q5",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "'외국인 조건을 더 붙이면 더 안전'. 실측은?",
+   "choices": [
+    "맞다",
+    "붙일수록 나빴다(D0>D +6.1%p) — 조건은 비용",
+    "무관",
+    "OOS에서만"
+   ],
+   "answer": 1,
+   "why": "[kb:quant#21]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "kb:quant#21"
+   ]
+  },
+  {
+   "id": "Q6-b1",
+   "module": "Q6",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "검출력(power)이란?",
+   "choices": [
+    "효과 없을 때 '없다' 할 확률",
+    "효과 있을 때 잡아낼 확률(1−β)",
+    "α",
+    "p값"
+   ],
+   "answer": 1,
+   "why": "[kb:quant#6]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "kb:quant#6"
+   ]
+  },
+  {
+   "id": "Q6-b2",
+   "module": "Q6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "semis_cap +0.35%p, SE 0.16%p, Bonferroni α 0.0071. 80% 검출력 MDE는?",
+   "choices": [
+    "0.16",
+    "0.53%p — 0.35는 경계",
+    "1.0",
+    "0.05"
+   ],
+   "answer": 1,
+   "why": "[kb:quant#9]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "kb:quant#9"
+   ]
+  },
+  {
+   "id": "Q6-b3",
+   "module": "Q6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "rule_audit 코호트 67개에서 0.2%p 차이가 안 보인다.",
+   "choices": [
+    "효과 없음",
+    "검출력 부족 — 판정 유보",
+    "효과 있음",
+    "재등록"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q9]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q9"
+   ]
+  },
+  {
+   "id": "Q6-b4",
+   "module": "Q6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'최소 60일' 규칙은 어디서 왔나?",
+   "choices": [
+    "관행뿐",
+    "효과 1%p·σ 2%·80% 검출력의 두 그룹 비교 산수 + 관행",
+    "규정",
+    "임의"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q9]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q9"
+   ]
+  },
+  {
+   "id": "Q6-b5",
+   "module": "Q6",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "표본을 키워 0.1%p가 유의해졌다. 비용 0.25% 왕복·회전 3%면?",
+   "choices": [
+    "채택",
+    "실질 유의성 미달(비용 0.75%p > 효과)",
+    "OOS",
+    "재검정"
+   ],
+   "answer": 1,
+   "why": "[consult:quant#q9]",
+   "duel": {
+    "desk": "퀀트",
+    "pick": 1
+   },
+   "src": [
+    "consult:quant#q9"
+   ]
+  },
+  {
+   "id": "H1-b1",
+   "module": "H1",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "처분효과 용어의 출처는?",
+   "choices": [
+    "Kahneman 2011",
+    "Shefrin & Statman 1985",
+    "Odean 1998",
+    "Barber 2000"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#1]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#1"
+   ]
+  },
+  {
+   "id": "H1-b2",
+   "module": "H1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "월 기록: 이익 실현 3·이익 보유 7·손실 실현 1·손실 보유 9. PGR/PLR 비율은?",
+   "choices": [
+    "1.0",
+    "3.0 — 처분효과 의심(1.5 이상)",
+    "0.3",
+    "무의미"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#2]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#2"
+   ]
+  },
+  {
+   "id": "H1-b3",
+   "module": "H1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'손절 −8%는 F니까 손절을 없애자'. 답은?",
+   "choices": [
+    "맞다",
+    "폭의 통계 가치는 F지만 '없음'은 보유일만 늘고 MDD 같음 — 행동 장치로 유지",
+    "−12%로",
+    "A로"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#27]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#27",
+    "consult:behavior#q15"
+   ],
+   "rule_ref": "규칙 [손절]"
+  },
+  {
+   "id": "H1-b4",
+   "module": "H1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "손실 종목을 들고 있는 것은 무엇과 같나?",
+   "choices": [
+    "관망",
+    "오늘 가격에 새로 사는 것",
+    "손실 확정 회피",
+    "리밸런싱"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#12]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#12"
+   ]
+  },
+  {
+   "id": "H1-b5",
+   "module": "H1",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "월 거래가 10건 미만이면 PGR/PLR은?",
+   "choices": [
+    "그대로",
+    "분기 합산(표본 작음)",
+    "계산 금지",
+    "가중"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q13]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q13"
+   ]
+  },
+  {
+   "id": "H2-b1",
+   "module": "H2",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "Thaler & Johnson 1990 실험의 결론은?",
+   "choices": [
+    "손실 뒤 위험 회피",
+    "직전 이익 뒤 같은 내기를 더 받아들인다",
+    "무관",
+    "규칙 준수"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q3]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q3"
+   ]
+  },
+  {
+   "id": "H2-b2",
+   "module": "H2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "큰 손실 직후 '본전만 찾자'며 사이즈를 2배로. 이름은?",
+   "choices": [
+    "하우스머니",
+    "브레이크이븐 효과",
+    "앵커링",
+    "처분효과"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#3]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#3"
+   ]
+  },
+  {
+   "id": "H2-b3",
+   "module": "H2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "보상을 '이번 달 수익'에 붙이면?",
+   "choices": [
+    "동기 강화",
+    "하우스머니로 변질 — 절차에만",
+    "무관",
+    "면허 효과 감소"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#x2]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#x2"
+   ]
+  },
+  {
+   "id": "H2-b4",
+   "module": "H2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "나🔥 제출은 하루 몇 번, 언제?",
+   "choices": [
+    "수시",
+    "하루 1회, 15:00 창 — 시장 보는 시간을 늘리지 않기 위해",
+    "장 시작",
+    "22시"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#x3]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#x3"
+   ]
+  },
+  {
+   "id": "H2-b5",
+   "module": "H2",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "프롭 데스크의 '일일 손실 한도 도달 → 당일 매매 종료'와 같은 구조의 개인 규칙은?",
+   "choices": [
+    "손절 −8%",
+    "큰 수익·손실 뒤 24시간 쿨다운",
+    "밴드",
+    "사전등록"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#14]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#14"
+   ],
+   "rule_ref": "규칙 [쿨다운]"
+  },
+  {
+   "id": "H3-b1",
+   "module": "H3",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "장기적으로 더 크게 남는 후회는?",
+   "choices": [
+    "작위",
+    "부작위('안 샀는데 올랐다')",
+    "같다",
+    "없다"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#4]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#4"
+   ]
+  },
+  {
+   "id": "H3-b2",
+   "module": "H3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "rule_audit T4: 반등일 대기가 즉시 매도보다 +0.45%p. 등급과 쓰임은?",
+   "choices": [
+    "A, 항상 대기",
+    "C — 대기 허용, 재량은 '일찍 팔기' 방향만",
+    "F",
+    "검증전"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#28]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#28"
+   ],
+   "rule_ref": "규칙 [반등일 매도]"
+  },
+  {
+   "id": "H3-b3",
+   "module": "H3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "상승장에서 '안 샀는데 올랐다'가 만드는 행동은?",
+   "choices": [
+    "관망",
+    "뒤늦은 추격 매수",
+    "손절",
+    "헤지"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q4]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q4"
+   ]
+  },
+  {
+   "id": "H3-b4",
+   "module": "H3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "후회회피는 CFA 분류에서?",
+   "choices": [
+    "인지 오류 — 교정",
+    "감정 편향 — 우회(프리모템·기댓값 표)",
+    "둘 다 아님",
+    "규정"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q16]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q16"
+   ]
+  },
+  {
+   "id": "H3-b5",
+   "module": "H3",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "대기 중 '더 안 빠질 듯' 재협상이 생겼다. 규칙상 선택은?",
+   "choices": [
+    "대기 유지",
+    "즉시 매도(실행 확률) — 재량은 일찍 팔기 방향만",
+    "규칙 변경",
+    "추가 매수"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#13]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#13"
+   ]
+  },
+  {
+   "id": "H4-b1",
+   "module": "H4",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "앵커링의 원전은?",
+   "choices": [
+    "Odean 1998",
+    "Tversky & Kahneman 1974",
+    "Thaler 1985",
+    "Shefrin 1985"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#5]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#5"
+   ]
+  },
+  {
+   "id": "H4-b2",
+   "module": "H4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "종목 상세에 매입가 표시가 없는 이유는?",
+   "choices": [
+    "버그",
+    "의도된 설계(앵커 제거)",
+    "데이터 없음",
+    "비공개"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q9]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q9"
+   ]
+  },
+  {
+   "id": "H4-b3",
+   "module": "H4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'분할매수'라 부를 수 있는 조건은?",
+   "choices": [
+    "빠질 때마다 추가",
+    "사기 전에 회차·가격·총량을 적음",
+    "평단이 낮아짐",
+    "한도 초과 아님"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#18]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#18"
+   ],
+   "rule_ref": "규칙 [물타기 금지]"
+  },
+  {
+   "id": "H4-b4",
+   "module": "H4",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "앵커링은 CFA 분류에서?",
+   "choices": [
+    "감정 편향",
+    "인지 오류 — 교정 가능(교정 질문 연습)",
+    "생리",
+    "규정"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#9]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#9"
+   ]
+  },
+  {
+   "id": "H4-b5",
+   "module": "H4",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "매입가와 무관하게 10일 이상 들고 간 일반주는 플러스였다. 교훈은?",
+   "choices": [
+    "장기 보유가 답",
+    "매입가가 아니라 보유 구조(레버리지·기간)가 결과를 갈랐다",
+    "운",
+    "단타가 답"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q5]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q5"
+   ]
+  },
+  {
+   "id": "H5-b1",
+   "module": "H5",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "약정 장치의 효과 조건 4가지는?",
+   "choices": [
+    "사전·구체·풀기 어려움·기한",
+    "수익·손실·시간·비중",
+    "승률·손익비·n·α",
+    "목표·손절·비중·시각"
+   ],
+   "answer": 0,
+   "why": "[kb:behavior#7]",
+   "duel": {
+    "desk": "PB",
+    "pick": 0
+   },
+   "src": [
+    "kb:behavior#7"
+   ]
+  },
+  {
+   "id": "H5-b2",
+   "module": "H5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'비율의 분모를 바꾸자(전기 제외)'는 제안. 패턴은?",
+   "choices": [
+    "정당",
+    "정의 변경으로 위험을 작아 보이게 — 함정 징후",
+    "중립",
+    "A"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#21]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#21"
+   ]
+  },
+  {
+   "id": "H5-b3",
+   "module": "H5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'이번 주만 관망'은?",
+   "choices": [
+    "예외",
+    "기한 연장형 위반 신청",
+    "규칙",
+    "냉각기간"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q6]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q6"
+   ]
+  },
+  {
+   "id": "H5-b4",
+   "module": "H5",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "거버넌스 주기(CIO)에서 파라미터 변경 주기는?",
+   "choices": [
+    "일간",
+    "주간(일요일) · 구조는 월간·사전등록 · 전면은 분기",
+    "분기",
+    "수시"
+   ],
+   "answer": 1,
+   "why": "[kb:cio#16]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "kb:cio#16"
+   ],
+   "rule_ref": "규칙 [변경 절차]"
+  },
+  {
+   "id": "H5-b5",
+   "module": "H5",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "규칙을 통보하면 반발하고 데이터를 보여주면 수용하는 학습자에게 규칙을 쓸 때?",
+   "choices": [
+    "간단히 통보",
+    "'왜'와 검증 등급을 항상 병기",
+    "더 엄격히",
+    "생략"
+   ],
+   "answer": 1,
+   "why": "[consult:pb_learner#L3]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:pb_learner#L3"
+   ]
+  },
+  {
+   "id": "H6-b1",
+   "module": "H6",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "Danziger 2011 연구의 대상은?",
+   "choices": [
+    "트레이더",
+    "가석방 판사",
+    "학생",
+    "의사"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#6]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#6"
+   ]
+  },
+  {
+   "id": "H6-b2",
+   "module": "H6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "장 시작 30분 안 매수 금지의 근거는?",
+   "choices": [
+    "검증 A",
+    "스프레드·변동 최대, 갭 되돌림 — 단 #14 검증전",
+    "수수료",
+    "규정"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q7]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q7"
+   ],
+   "rule_ref": "규칙 [시초가 금지]"
+  },
+  {
+   "id": "H6-b3",
+   "module": "H6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "평일 실행 가능 창(학습자 일정)은?",
+   "choices": [
+    "09:00~10:00",
+    "점심 11:30~12:50 + 14:30 전후",
+    "22시",
+    "수시"
+   ],
+   "answer": 1,
+   "why": "[consult:pb_learner#L5]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:pb_learner#L5"
+   ]
+  },
+  {
+   "id": "H6-b4",
+   "module": "H6",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'자아고갈은 재현 실패했으니 결정 피로도 없다'는?",
+   "choices": [
+    "맞다",
+    "메커니즘 논쟁과 현상(기본값 쏠림)은 별개 — 시간창 규칙 유지",
+    "규칙 폐기",
+    "A"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q7]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q7"
+   ]
+  },
+  {
+   "id": "H6-b5",
+   "module": "H6",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "인지 오류(앵커링)도 피곤하면?",
+   "choices": [
+    "무관",
+    "감정 편향처럼 작동 → H6이 모든 장치의 전제",
+    "사라진다",
+    "강해지지 않는다"
+   ],
+   "answer": 1,
+   "why": "[consult:behavior#q16]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "consult:behavior#q16"
+   ]
+  },
+  {
+   "id": "M1-b1",
+   "module": "M1",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "ideas_top 원천 가중은?",
+   "choices": [
+    "A1·B.8·C.6·검증전.3·F0",
+    "모두 1",
+    "A만",
+    "F −1"
+   ],
+   "answer": 0,
+   "why": "[kb:cio#8]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 0
+   },
+   "src": [
+    "kb:cio#8"
+   ]
+  },
+  {
+   "id": "M1-b2",
+   "module": "M1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "위성 10이 −30%, 레거시 30이 한 테마·일 변동 3%. 위험의 대부분은?",
+   "choices": [
+    "위성",
+    "레거시(상관 1·고변동)",
+    "같다",
+    "코어"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q7]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q7"
+   ]
+  },
+  {
+   "id": "M1-b3",
+   "module": "M1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "레거시 북이 '영원히 매도만'이면?",
+   "choices": [
+    "안전",
+    "위험이 줄지 않는다 — 축소 일정이 있어야",
+    "코어로 전환",
+    "위성으로"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q7]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q7"
+   ]
+  },
+  {
+   "id": "M1-b4",
+   "module": "M1",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "2026-03-09 급락 뒤 60일 +55%. 상한 때문에 반만 들었다. 규칙은?",
+   "choices": [
+    "틀렸다",
+    "비용을 알고 지키는 것 — T5 검토 중",
+    "즉시 폐기",
+    "상한 100"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q9]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q9"
+   ],
+   "rule_ref": "규칙 [레짐 상한]"
+  },
+  {
+   "id": "M1-b5",
+   "module": "M1",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "track.summary.h20 의 기준은?",
+   "choices": [
+    "절대 수익",
+    "시장 중앙값 대비 초과수익·적중률(n)",
+    "코스피 대비",
+    "PB 대비"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q11]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q11"
+   ]
+  },
+  {
+   "id": "M2-b1",
+   "module": "M2",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "scenario_base_rate 렌즈의 등급은?",
+   "choices": [
+    "A",
+    "C(서술 통계)",
+    "F",
+    "검증전"
+   ],
+   "answer": 1,
+   "why": "[kb:cio#3]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "kb:cio#3"
+   ]
+  },
+  {
+   "id": "M2-b2",
+   "module": "M2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "n 176에서 강세 44% vs 중립 35%. 어떻게 읽나?",
+   "choices": [
+    "강세 우세 확정",
+    "±7%p 소음 — 세밀하게 읽지 않는다",
+    "중립",
+    "약세"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q3]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q3"
+   ]
+  },
+  {
+   "id": "M2-b3",
+   "module": "M2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "Merton식 연속 노출 대신 계단식 한도를 쓰는 이유는?",
+   "choices": [
+    "계산 편의",
+    "확률 오차(거짓 정밀도) + 행동 제어 우선",
+    "규정",
+    "전통"
+   ],
+   "answer": 1,
+   "why": "[kb:cio#11]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "kb:cio#11"
+   ]
+  },
+  {
+   "id": "M2-b4",
+   "module": "M2",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "asymmetry ratio 2.2, p 0.017. 보험료 3%. 급락 시 순손실은?",
+   "choices": [
+    "−15%",
+    "−8%",
+    "−3%",
+    "−22%"
+   ],
+   "answer": 1,
+   "why": "−15 + 7.",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q6"
+   ]
+  },
+  {
+   "id": "M2-b5",
+   "module": "M2",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "trigger '5일 고점+외국인 2일'은 entry_signals F다. 운용회의에서의 쓰임은?",
+   "choices": [
+    "진입 허가",
+    "tell(관측)로만, 게이트 아님 — 교체 예정",
+    "폐기",
+    "A"
+   ],
+   "answer": 1,
+   "why": "[kb:cio#18]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "kb:cio#18"
+   ],
+   "rule_ref": "규칙 [12]"
+  },
+  {
+   "id": "M3-b1",
+   "module": "M3",
+   "kind": "knowledge",
+   "difficulty": 1,
+   "q": "premortem 다섯 필드는?",
+   "choices": [
+    "wrong·p·tell·cost·action",
+    "label·clock·dont",
+    "macro·micro",
+    "buy·sell"
+   ],
+   "answer": 0,
+   "why": "[kb:cio#4]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 0
+   },
+   "src": [
+    "kb:cio#4"
+   ]
+  },
+  {
+   "id": "M3-b2",
+   "module": "M3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "'하지 말 일'에 '장중 −3%에 손절선 옮기기'가 있다. 어느 함정의 실물인가?",
+   "choices": [
+    "앵커링",
+    "규칙을 바꿔 위반 없애기(H5)",
+    "결정 피로",
+    "처분효과"
+   ],
+   "answer": 1,
+   "why": "[kb:behavior#24]",
+   "duel": {
+    "desk": "PB",
+    "pick": 1
+   },
+   "src": [
+    "kb:behavior#24"
+   ]
+  },
+  {
+   "id": "M3-b3",
+   "module": "M3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "IPS 1쪽 과제의 채점 기준은?",
+   "choices": [
+    "길이",
+    "숫자가 들어간 문장 수",
+    "서명",
+    "표 수"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q16]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q16"
+   ]
+  },
+  {
+   "id": "M3-b4",
+   "module": "M3",
+   "kind": "situation",
+   "difficulty": 2,
+   "q": "손절을 '−1R'에 두면 게이트 '손절 설정'은?",
+   "choices": [
+    "충족",
+    "항상 참인 동어반복 — 게임 불가 위반",
+    "미충족",
+    "C"
+   ],
+   "answer": 1,
+   "why": "[kb:cio#14]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "kb:cio#14"
+   ]
+  },
+  {
+   "id": "M3-b5",
+   "module": "M3",
+   "kind": "situation",
+   "difficulty": 3,
+   "q": "IPS에서 리스크 '허용도'와 '감내 능력'을 분리하는 이유는?",
+   "choices": [
+    "형식",
+    "성향(잠 못 자는 선)과 능력(소득·기간)은 다른 숫자",
+    "규정",
+    "없다"
+   ],
+   "answer": 1,
+   "why": "[consult:cio#q16]",
+   "duel": {
+    "desk": "CIO",
+    "pick": 1
+   },
+   "src": [
+    "consult:cio#q16"
+   ]
+  }
+ ]
+}

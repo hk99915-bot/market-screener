@@ -1,0 +1,28 @@
+{
+ "version": 1,
+ "updated": "2026-10-16",
+ "owner": "교육-후임(문제은행·복습 스케줄 담당)",
+ "intervals": [1, 3, 7, 21],
+ "note": "완료일 D 기준 D+1 → D+3 → D+7 → D+21 복습. 복습 퀴즈 통과(≥60%)면 다음 단계, 실패면 stage 0(D+1)로. 4단계 통과 = '정착'. 주 1~2회 결손은 정상 — 밀린 복습은 '가장 오래 밀린 것 1개'만 오늘 복습으로 올린다(하루 복습 1개 상한).",
+ "rules": {
+  "due": "next_due = last_done + intervals[stage] (영업일 아님, 달력일)",
+  "pass": "복습 퀴즈 정답률 ≥ 0.6 → stage += 1 (최대 4 = 정착)",
+  "fail": "정답률 < 0.6 → stage = 0, next_due = today + 1",
+  "overdue_pick": "due 가 지난 모듈 중 (today − next_due) 가 가장 큰 것 1개만 오늘 복습. 나머지는 자동 이월(벌점 없음, consult:pb_learner#L5)",
+  "daily_cap": {"review": 1, "new": 1, "quiz": 1, "est_min_total": 20},
+  "new_pick": "roadmap.order 순서에서 (a) 미완료 (b) prereq 모두 완료(또는 prereq 없음) 인 첫 모듈. 첫 2주는 roadmap.first_two_weeks 를 먼저 소진(consult:pb_learner#L9). 진행 파일이 없으면 first_two_weeks[0]",
+  "quiz_pick": "오늘 복습 모듈이 있으면 그 모듈의 quiz_bank 에서 1개(situation 우선), 없으면 새 모듈의 1개. 같은 날엔 같은 문항(날짜 해시로 결정적)",
+  "settled": "stage 4 도달 모듈은 30일마다 1문항만 가벼운 재점검(선택)"
+ },
+ "progress_store": {
+  "status": "제안 — Index.html 미구현 (Dev handoff 참조)",
+  "current": "localStorage mt_study_done (브라우저 한정, 완료 여부만)",
+  "proposal": {
+   "write": "학습자가 GitHub 이슈 생성: 제목 'study <module_id> done' (선택 본문: 'score=4/5', 'note=…'). 복습 결과는 'study <module_id> review score=3/5'",
+   "ingest": "study_daily 워크플로가 매일 07:10 KST 실행 시 gh api 로 라벨 'study' 이슈를 읽어 reports/study_progress.json 갱신 후 이슈 닫음",
+   "file": "reports/study_progress.json = {\"updated\": \"YYYY-MM-DD\", \"modules\": {\"<id>\": {\"done\": [\"YYYY-MM-DD\"], \"stage\": 0..4, \"next_due\": \"YYYY-MM-DD\", \"scores\": [[\"YYYY-MM-DD\", 0.8]]}}}",
+   "why_issue": "스마트폰에서 가장 쉬운 쓰기 경로이고(공개 저장소라 비밀 불필요), 이력이 남으며, 터미널 수정 없이 시작할 수 있다. duel.py 의 'pick' 이슈 파싱과 같은 패턴",
+   "privacy": "모듈 id·날짜·정답률만. 금액·보유 없음"
+  }
+ }
+}

@@ -1,0 +1,43 @@
+name: study_daily
+
+# 오늘의 공부 한 줄 (교육-후임) — 평일 07:10 KST = 전날 22:10 UTC (일~목). 복습 1 + 새 모듈 1 + 퀴즈 1 + 영어 헤드라인.
+# 네트워크 없이 content/study.json·quiz_bank·srs·reports/english/latest.json 만 읽는다. 텔레그램은 시크릿이 있을 때만.
+on:
+  schedule:
+    - cron: "10 22 * * 0-4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: study_daily
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 콘텐츠 검증 (스키마·id·prereq·quiz)
+        run: python scripts/study_content_check.py
+      - name: 오늘의 공부
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PYTHONUNBUFFERED: "1"
+        run: python -m screener.study_daily
+      - name: 저장
+        if: always()
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          [ -e reports/study_daily.json ] && git add reports/study_daily.json; true
+          git diff --cached --quiet || git commit -m "study_daily: $(date -u +%F)"
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"; true
