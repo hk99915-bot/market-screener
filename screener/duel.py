@@ -78,6 +78,11 @@ def issue_url(date: str, body: str = "") -> str:
     return f"https://github.com/{REPO}/issues/new?title={quote('pick ' + date)}&body={quote(body)}"
 
 
+def issue_url_bold(date: str, body: str = "종목코드 1000000 시가\n근거: ") -> str:
+    """🔥 공격 픽(나🔥) — 모의 전용, '나'와 별도 채점."""
+    return f"https://github.com/{REPO}/issues/new?title={quote('pick🔥 ' + date)}&body={quote(body)}"
+
+
 def run(send: bool = True) -> dict | None:
     from . import decisions
     now = datetime.now(KST)
@@ -103,7 +108,8 @@ def run(send: bool = True) -> dict | None:
            "  " + c["why"], "<i>PB 판단은 따로 옴</i>", "",
            "<b>겸이 판단은?</b> 15:30 전까지 제출",
            f"<a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
-           f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url(d, '종목코드 금액 시가')}\">직접 입력</a>"]
+           f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url(d, '종목코드 금액 시가')}\">직접 입력</a>"
+           f" · <a href=\"{issue_url_bold(d)}\">🔥공격 픽</a>"]
     if send:
         from .report import send_telegram
         send_telegram("\n".join(msg))
@@ -255,7 +261,8 @@ def _apply_issue_us(title: str, body: str, created_at: str) -> str:
 
 def apply_issue(title: str, body: str, created_at: str) -> str:
     """이슈 'pick YYYY-MM-DD' → 그날 타점 대결의 '나' 칸 채움. 반환: 이슈에 남길 답글.
-    'pick-us YYYY-MM-DD' 는 미장 대결로 넘김."""
+    'pick-us YYYY-MM-DD' 는 미장 대결로 넘김.
+    'pick🔥 YYYY-MM-DD' (또는 'pick-bold') → '나🔥' 칸 (공격 픽 · 모의 전용 · 별도 채점). 본문 둘째 줄 = 근거(없으면 '감')."""
     if (title or "").strip().lower().startswith("pick-us"):
         return _apply_issue_us(title, body, created_at)
     from . import decisions
@@ -283,9 +290,15 @@ def apply_issue(title: str, body: str, created_at: str) -> str:
         amt = next((float(x) for x in toks[1:] if re.fullmatch(r"\d+(\.\d+)?", x)), NOTIONAL)
         ex = "trail" if ("끌고" in first or "추세" in first or "trail" in first.lower()) else "next_close" if "종가" in first else "d5_close" if "5일" in first else "next_open"
         pick = {"ticker": toks[0], "name": NAMES.get(toks[0], toks[0]), "notional": amt, "entry": "close", "exit": ex}
-    it["picks"]["나"] = pick | {"submitted": t.strftime("%H:%M")}
+    tl = (title or "").strip().lower()
+    slot = "나🔥" if ("🔥" in tl or tl.startswith("pick-bold")) else "나"
+    if slot == "나🔥":
+        lines = [x.strip() for x in (body or "").strip().splitlines()[1:] if x.strip()]
+        why = re.sub(r"^근거\s*[:：]\s*", "", lines[0]) if lines else ""
+        pick = pick | {"why": why or "감", "basis": "판단" if why and why != "감" else "감"} | ({} if pick.get("cash") else {"notional": float(NOTIONAL)})   # 공격 픽은 100만 고정
+    it["picks"][slot] = pick | {"submitted": t.strftime("%H:%M")}
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    return f"기록 완료 ✅ {d} 나: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})"
+    return f"기록 완료 ✅ {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})"
 
 
 # ── 매도 타점 대결: '지금 팔까(손절·익절) 말까' ─────────────────────────────
@@ -485,7 +498,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
                "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
                payload.get("why", ""), *([f"💌 {payload['tg']}"] if payload.get("tg") else []), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
-               f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> (15:30 전)"]
+               f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url_bold(d)}\">🔥공격 픽</a> (15:30 전)"]
     rl = payload.get("real") or {}
     if rl:
         msg += ["", "💼 <b>실전 적용</b>: " + ("가능" if rl.get("ok") else "규칙상 비추천") + (f" · 총자산의 {rl['size_pct']*100:.0f}% 이내" if isinstance(rl.get("size_pct"), (int, float)) else "") + (" — " + str(rl.get("note")) if rl.get("note") else "")]

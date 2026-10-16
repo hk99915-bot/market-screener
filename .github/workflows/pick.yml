@@ -1,7 +1,7 @@
 name: pick
 
 # 진입 타점 대결 — 저장소 주인이 'pick YYYY-MM-DD' 이슈를 열면 그날 '나' 판단으로 기록하고 이슈를 닫는다.
-# 'pick-us YYYY-MM-DD' = 미장 대결(id '<date>-entry-us', 마감 09:30 ET) — apply_issue 가 내부에서 미장 경로로 넘김.
+# 'pick🔥 YYYY-MM-DD' = '나🔥' 공격 픽(모의 전용, 별도 채점). 'pick-us YYYY-MM-DD' = 미장 대결(id '<date>-entry-us', 마감 09:30 ET) — apply_issue 가 내부에서 미장 경로로 넘김.
 on:
   issues:
     types: [opened]
@@ -55,7 +55,7 @@ jobs:
               if k in ids:
                   for x in cur["items"]:
                       if x["id"] == k:
-                          x["picks"] = {**x["picks"], "나": v["picks"]["나"]} if (v.get("kind") != "exit" or "PB" in x["picks"] and x["picks"]["PB"].get("by")) else v["picks"]
+                          x["picks"] = {**x["picks"], **{s: v["picks"][s] for s in ("나", "나🔥") if s in v["picks"]}} if (v.get("kind") != "exit" or "PB" in x["picks"] and x["picks"]["PB"].get("by")) else v["picks"]
               else:
                   cur["items"].append(v)
           open("reports/decisions.json", "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
