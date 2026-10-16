@@ -344,6 +344,20 @@ def build(session: str = "장후") -> dict:
             head.insert(1, _dl)
     except Exception as e:  # noqa: BLE001
         log.info("직전 회의 대비 줄 실패: %s", e)
+    try:   # 매 회의 같은 근거 8개가 반복된다는 피드백(10/16): 직전 회의와 제목·문장(숫자 제외)이 같은 근거는 한 줄로 접는다
+        import re as _re2
+        _prev = _prev_meeting(session)
+        if _prev:
+            _norm = lambda r: (r.get("t"), _re2.sub(r"[-−+]?[\d,.]+", "#", r.get("d", "")))  # noqa: E731
+            _old = {_norm(r) for r in ((_prev.get("stance") or {}).get("reasons") or [])}
+            rs = stance.get("reasons") or []
+            new_r = [r for r in rs if _norm(r) not in _old]
+            same = [r for r in rs if _norm(r) in _old]
+            if same:
+                stance["reasons_same"] = same
+                stance["reasons"] = new_r + [{"t": f"직전 회의와 같은 근거 {len(same)}개", "d": " · ".join(r["t"] for r in same) + " (숫자만 갱신, 결론 동일)"}]
+    except Exception as e:  # noqa: BLE001
+        log.info("근거 반복 접기 실패: %s", e)
     best = max(scen, key=lambda s: s.get("prob") or 0)
     verdict = (f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 '{sb['basis']}' {sb['n'] or 0}회")
     if session == "장후":
@@ -407,6 +421,26 @@ def close_delta() -> list[str]:
     if L:
         L.append("주의: 장중 값은 잠정치·마감은 확정치라 차이 일부는 집계 보정, 동시호가엔 패시브·차익 정리 물량도 섞임")
     return L
+
+
+def _prev_meeting(session: str) -> dict | None:
+    """직전 운용회의(_index.json 순서상 지금 세션 다음 항목)."""
+    hd = REPORT_DIR / "archive" / "committee"
+    me = f"{_kst_today()}_{session}"
+    try:
+        days = json.loads((hd / "_index.json").read_text(encoding="utf-8")).get("days", [])
+    except Exception:  # noqa: BLE001
+        return None
+    days = sorted(days, key=lambda x: str(x.get("asof") or x.get("date") or ""), reverse=True)   # 실제 생성 시각 순
+    for x in days:
+        fid = x.get("id") or x.get("date")
+        if fid == me:
+            continue
+        try:
+            return json.loads((hd / f"{fid}.json").read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+    return None
 
 
 def _delta_line(k: dict, scen: list[dict], stance: dict, der: dict, session: str) -> str | None:

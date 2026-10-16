@@ -171,10 +171,18 @@ def build() -> dict:
     us = stats.get("SPX")
     if kr and us and score is not None:
         gap = (kr["chg20"] or 0) - (us["chg20"] or 0)
+        g20 = f"20일 코스피 {(kr['chg20'] or 0)*100:+.1f}% vs S&P {(us['chg20'] or 0)*100:+.1f}% (격차 {gap*100:+.1f}%p)"
         if gap < -0.08 and score > -0.15:
-            summary += " · 미국 지수는 덜 빠졌는데 한국이 크게 빠짐 → 금리·환율 같은 매크로보다 한국 비중이 큰 업종(반도체·AI 인프라) 쏠림이 풀리는 쪽. 원인 뉴스가 미국발이어도 충격은 업종 쏠림만큼 한국에 크게 옴 — 매크로 반전만으론 회복 근거 부족"
+            summary += f" · {g20} → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족"
         elif gap < -0.08:
-            summary += " · 매크로 역풍 + 한국 초과 하락이 겹침"
+            summary += f" · 매크로 역풍 + 한국 초과 하락 겹침 ({g20})"
+    try:   # 직전 해설과 같은 결론이면 반복 문장 대신 '변화 없음' 표시 (매일 같은 문장이 반복된다는 피드백, 10/16)
+        prev = json.loads((REPORT_DIR / "macro_view.json").read_text(encoding="utf-8"))
+        if summary and prev.get("label") == label and prev.get("score") is not None and score is not None \
+                and abs(prev["score"] - score) < 0.05 and str(prev.get("asof")) != str(max((r["date"] for r in rows), default=None)):
+            summary = f"매크로 바람 {label} ({score:+.2f}, 전일 {prev['score']:+.2f}) — 변화 없음" + (summary[summary.index(" · "):] if " · " in summary else "")
+    except Exception:  # noqa: BLE001
+        pass
     out = {"asof": max((r["date"] for r in rows), default=None), "score": round(score, 2) if score is not None else None,
            "label": label, "summary": summary, "rows": rows}
     (REPORT_DIR / "macro_view.json").write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
