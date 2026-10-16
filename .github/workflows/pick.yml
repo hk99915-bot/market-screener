@@ -2,6 +2,7 @@ name: pick
 
 # 진입 타점 대결 — 저장소 주인이 'pick YYYY-MM-DD' 이슈를 열면 그날 '나' 판단으로 기록하고 이슈를 닫는다.
 # 'pick🔥 YYYY-MM-DD' = '나🔥' 공격 픽(모의 전용, 별도 채점). 'pick-us YYYY-MM-DD' = 미장 대결(id '<date>-entry-us', 마감 09:30 ET) — apply_issue 가 내부에서 미장 경로로 넘김.
+# 'ticket <코드>' = 주문표(규정 [4], screener/ticket.py) — 매수가·손절가·목표가·근거·보유기간을 규칙 검사 후 kind 'ticket' 으로 기록, 답글에 판정표.
 on:
   issues:
     types: [opened]
@@ -16,7 +17,7 @@ concurrency:
 
 jobs:
   record:
-    if: (startsWith(github.event.issue.title, 'pick') || startsWith(github.event.issue.title, 'exit')) && github.event.issue.user.login == github.repository_owner
+    if: (startsWith(github.event.issue.title, 'pick') || startsWith(github.event.issue.title, 'exit') || startsWith(github.event.issue.title, 'ticket')) && github.event.issue.user.login == github.repository_owner
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,11 +31,15 @@ jobs:
           TITLE: ${{ github.event.issue.title }}
           BODY: ${{ github.event.issue.body }}
           CREATED: ${{ github.event.issue.created_at }}
+          SAT_BOOK_KRW: ${{ secrets.SAT_BOOK_KRW }}
+          RISK_PCT: ${{ secrets.RISK_PCT }}
         run: |
           python - <<'PY'
           import os
           from screener.duel import apply_exit_issue, apply_issue
-          f = apply_exit_issue if os.environ["TITLE"].lower().startswith("exit") else apply_issue   # pick / pick-us 모두 apply_issue
+          from screener.ticket import apply_ticket_issue
+          tl = os.environ["TITLE"].lower()
+          f = apply_ticket_issue if tl.startswith("ticket") else apply_exit_issue if tl.startswith("exit") else apply_issue   # pick / pick-us 모두 apply_issue
           msg = f(os.environ["TITLE"], os.environ.get("BODY") or "", os.environ["CREATED"])
           print(msg)
           open(os.environ["GITHUB_OUTPUT"], "a").write("msg<<EOF\n" + msg + "\nEOF\n")
@@ -51,10 +56,12 @@ jobs:
           cur = json.load(open("reports/decisions.json", encoding="utf-8"))
           mine = {x["id"]: x for x in new["items"]}
           ids = [x["id"] for x in cur["items"]]
-          for k, v in mine.items():   # '-entry' · '-entry-us' · '-exit-*' 모두 같은 규칙으로 병합
+          for k, v in mine.items():   # '-entry' · '-entry-us' · '-exit-*' 모두 같은 규칙으로 병합, '-ticket-*' 는 통째로 교체
               if k in ids:
                   for x in cur["items"]:
                       if x["id"] == k:
+                          if v.get("kind") == "ticket":
+                              x.clear(); x.update(v); continue
                           x["picks"] = {**x["picks"], **{s: v["picks"][s] for s in ("나", "나🔥") if s in v["picks"]}} if (v.get("kind") != "exit" or "PB" in x["picks"] and x["picks"]["PB"].get("by")) else v["picks"]
               else:
                   cur["items"].append(v)
@@ -68,5 +75,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "${{ steps.r.outputs.msg }}"
+          gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file - <<'MSG'
+          ${{ steps.r.outputs.msg }}
+          MSG
           gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}

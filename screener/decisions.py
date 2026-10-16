@@ -11,6 +11,8 @@ entry "open"  = 결정일(세션일) 시가 — 미장 대결. exit "same_close"
                "d5_close" = 진입일 포함 5번째 세션 종가 (진입일 + 4거래일 뒤 종가; 시가 진입은 진입일 자체가 1세션이므로)
 채점: KR = data/kr_prices.parquet(KRX 확정 종가) + 없는 날만 야후(.KS/.KQ), US = 야후 — 결정일 다음 거래일 데이터가 생기면 손익(%·원) 계산, 승자 표시.
 item["market"] = "KR"(기본) | "US" — tally_by_market 에 시장별 누적 전적.
+kind "ticket" (주문표, screener/ticket.py): picks 없음. 청산 = 이후 `exit <코드>` 이슈(나: 매도) 또는 종가가 실효 손절가 이하 또는 보유기간(horizon_days 거래일) 만료 종가.
+               실현 R = (청산가 − 매수가) ÷ (매수가 − 실효 손절가). tally["주문표"] = {n, hit, avg_r}. 거부(⛔)된 주문표는 채점하지 않음.
 """
 from __future__ import annotations
 
@@ -176,11 +178,55 @@ def _score_open(p: dict, date: str, bars: list[dict]) -> dict | None:
             "detail": f"{date} 시가 {buy:,.2f} → {when} {sell:,.2f}"}
 
 
+def _score_ticket(it: dict, items: list[dict]) -> dict | None:
+    """주문표 채점: exit 이슈(나=매도) 날짜 종가 / 실효 손절 이탈 종가 / horizon_days 번째 거래일 종가 → R."""
+    e, s = float(it["entry"]), float(it.get("stop_eff") or it["stop"])
+    if e <= s:
+        return {"void": "손절가 구조 오류 — 채점 제외"}
+    exit_d = min((x["date"] for x in items if x.get("kind") == "exit" and str(x.get("id", "")).endswith(f"-exit-{it['code']}")
+                  and x["date"] > it["date"] and (x.get("picks") or {}).get("나", {}).get("cash")), default=None)
+    bars = [b for b in _bars(it["code"], it["date"]) if b["d"] > it["date"]]
+    if not str(it["code"]).isdigit():
+        today = str(datetime.now(ET).date())
+        if not _us_session_done(today):
+            bars = [b for b in bars if b["d"] < today]
+    sell = when = None
+    for i, b in enumerate(bars):
+        if b["c"] is None:
+            return None
+        if b["c"] <= s:
+            sell, when = b["c"], f"{b['d']} 종가 (손절 {s:,.2f} 이탈)"
+        elif exit_d and b["d"] >= exit_d:
+            sell, when = b["c"], f"{b['d']} 종가 (exit 이슈)"
+        elif i + 1 >= int(it.get("horizon_days") or 5):
+            sell, when = b["c"], f"{b['d']} 종가 (보유기간 만료)"
+        if sell is not None:
+            break
+    if sell is None:
+        return None
+    ret = sell / e - 1 - 0.0005
+    return {"ret": round(ret, 4), "r": round((sell - e) / (e - s), 2), "sell": round(sell, 2),
+            "detail": f"매수가 {e:,.2f} → {when} {sell:,.2f}", "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
+
+
 def score() -> int:
     d = load()
     n = 0
     for it in d["items"]:
         if it.get("result"):
+            continue
+        if it.get("kind") == "ticket":   # 주문표: 별도 채점 (거부된 건 기록만)
+            if str(it.get("verdict", "")).startswith("⛔"):
+                it["result"] = {"void": "거부된 주문표 — 채점 제외", "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
+                continue
+            try:
+                r = _score_ticket(it, d["items"])
+            except Exception as e:  # noqa: BLE001
+                log.warning("주문표 채점 실패 %s: %s", it["id"], e)
+                r = None
+            if r:
+                it["result"] = r
+                n += 1
             continue
         live = {w: p for w, p in it["picks"].items() if not p.get("pending")}
         if len(live) < len(it["picks"]):
@@ -216,7 +262,7 @@ def score() -> int:
     tally, by_mk = {}, {"KR": {}, "US": {}}
     for it in d["items"]:
         r = it.get("result")
-        if not r or r.get("void"):
+        if not r or r.get("void") or it.get("kind") == "ticket":
             continue
         mk = by_mk.setdefault(it.get("market") or "KR", {})
         for who in [w for w in it["picks"] if w in r]:
@@ -258,6 +304,9 @@ def score() -> int:
             t["ev"] = round(sum(rs) / len(rs), 4) if rs else None
     if bb:
         tally.setdefault("나🔥", {"win": 0, "n": 0, "pnl": 0})["by_basis"] = bb
+    rs = [it["result"]["r"] for it in d["items"] if it.get("kind") == "ticket" and it.get("result") and it["result"].get("r") is not None]
+    if rs:
+        tally["주문표"] = {"n": len(rs), "hit": round(sum(1 for x in rs if x > 0) / len(rs), 3), "avg_r": round(sum(rs) / len(rs), 2), "sum_r": round(sum(rs), 2)}
     d["tally"] = tally
     d["tally_by_market"] = by_mk
     OUT.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
