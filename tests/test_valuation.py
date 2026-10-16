@@ -126,3 +126,13 @@ def test_markdown_and_telegram_shape():
     assert "| 종목 | PER/PBR | 이익추세 | 금리조정 매력 |" in md and "⚠검증전" in md and "재무 없음" in md
     tg = vd.telegram_text(o)
     assert len(tg.split("\n")) <= 8 and "매매 트리거 아님" in tg and "원" not in tg
+
+
+def test_cumulative_smell_marks_unverified():
+    q = _q(8)
+    for i, v in enumerate([5.24, 13.785, 28.243, 60.0]):   # 매 분기 1.8배↑ 단조 증가 — 누적치 전형
+        q[4 + i]["ni"] = v
+    m = vd.metrics(q, shares=100.0, price=80.0)
+    assert not m["verified"] and any("누적치 의심" in f for f in m["flags"])
+    assert vd.cumulative_smell(_q(8)) is None
+    assert vd.cumulative_smell(q[-4:]) == "ni"

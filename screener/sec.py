@@ -4,8 +4,9 @@ SEC 는 User-Agent 에 연락처를 요구한다 → 환경변수 SEC_USER_AGENT
 없으면 건너뛴다. 요청은 초당 10회 이하로 제한.
 
 분기 값 만들기
-- 손익·현금흐름(기간 값): 3개월짜리 기록이 있으면 그대로, 없으면 같은 회계연도 시작일의 누적(YTD) 차분.
-  4분기는 연간(10-K) − 9개월 누적.
+- 손익·현금흐름(기간 값): 3개월짜리 기록이 있으면 그대로, 없으면 같은 회계연도 시작일의 누적(YTD) 차분(derived=True).
+  2분기 = 6개월 − 1분기, 3분기 = 9개월 − 6개월, 4분기 = 연간(10-K) − 9개월. 앞 누적이 빠지면 그 분기는 비워 둔다.
+  12월 결산이 아닌 회사(MU 8~9월·SNDK 6~7월)도 시작일 사슬이라 같은 식으로 처리된다.
 - 재무상태(시점 값): 분기 말 값.
 종목당 7일마다 갱신(하루 약 1/7씩 순환).
 """
@@ -27,6 +28,7 @@ FIN = DATA_DIR / "fin"
 OUT = FIN / "us_quarterly.parquet"
 STAMP = FIN / "us_stamp.json"
 TICKERS = UNIVERSE_DIR / "sec_tickers.json"
+SCHEMA = {"ticker": pl.Utf8, "end": pl.Utf8, "item": pl.Utf8, "value": pl.Float64, "derived": pl.Boolean}   # derived: 누적 차분으로 만든 분기 값
 
 FLOW = {
     "revenue": ["Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "SalesRevenueNet",
@@ -76,37 +78,45 @@ def _days(a: str, b: str) -> int:
     return (date.fromisoformat(b) - date.fromisoformat(a)).days
 
 
-def _flow_quarters(recs: list[dict]) -> dict[str, float]:
-    """{분기말: 3개월 값}"""
-    recs = [r for r in recs if r.get("start") and r.get("end") and r.get("val") is not None]
-    by = {}
-    for r in recs:   # 같은 (start,end) 는 가장 최근 제출본
+Q_MIN, Q_MAX = 80, 100      # 3개월 기록으로 인정하는 기간(일). 연간(≈365일)·6·9개월 누적은 모두 사슬 차분 대상
+
+
+def _flow_quarters(recs: list[dict]) -> dict[str, tuple[float, bool]]:
+    """{분기말: (3개월 값, 차분으로 만든 값인지)}
+
+    1) 기간 80~100일 기록은 그대로 분기 값(derived=False).
+    2) 그보다 긴 누적(6·9개월·연간) 기록은 **같은 시작일**(=같은 회계연도) 사슬에서 바로 앞 기록(3개월·6개월·9개월)과의
+       차가 80~100일일 때만 그 차로 분기 값을 만든다(derived=True). 4분기 = 연간 − 9개월.
+       앞 기록이 없거나(예: 6개월 누적만 빠짐) 간격이 한 분기가 아니면 그 분기는 내지 않는다 — 만들어 내지 않는다.
+    3) 100일 넘는 기록은 차분 없이는 절대 분기 값으로 내보내지 않는다.
+    fy/fp 는 companyfacts 에서 '제출한 보고서'의 연도·기간이라 10-K 의 전년 비교치에도 당해 fy 가 붙는다 → 회계연도 묶음은
+    시작일 동일성으로 하고, fp 는 같은 (start,end) 중 어느 제출본을 쓸지(FY > Qn 보고서, 그다음 filed 최신) 고르는 데만 쓴다.
+    """
+    recs = [r for r in recs if r.get("start") and r.get("end") and r.get("val") is not None and _days(r["start"], r["end"]) >= Q_MIN]
+    by: dict[tuple[str, str], dict] = {}
+    for r in recs:   # 같은 (start,end) 는 가장 최근 제출본 (연간 보고서 우선)
         k = (r["start"], r["end"])
-        if k not in by or r.get("filed", "") > by[k].get("filed", ""):
-            by[k] = r
-    q3 = {e: r["val"] for (s, e), r in by.items() if 80 <= _days(s, e) <= 100}
-    ytd: dict[str, dict[str, float]] = {}   # start → {end: val}
+        rank = (1 if r.get("fp") == "FY" else 0, r.get("filed", ""))
+        if k not in by or rank > by[k]["_rank"]:
+            by[k] = {**r, "_rank": rank}
+    q: dict[str, tuple[float, bool]] = {}
     for (s, e), r in by.items():
-        if _days(s, e) > 100:
-            ytd.setdefault(s, {})[e] = r["val"]
-    for s, ends in ytd.items():
+        if _days(s, e) <= Q_MAX:
+            q[e] = (r["val"], False)
+    chain: dict[str, dict[str, float]] = {}   # 시작일 → {끝: 누적 값} (3개월 기록 포함 — 1분기가 6개월 차분의 앞 기록)
+    for (s, e), r in by.items():
+        chain.setdefault(s, {})[e] = r["val"]
+    for s, ends in chain.items():
         es = sorted(ends)
         for i, e in enumerate(es):
-            if e in q3:
+            if e in q or _days(s, e) <= Q_MAX:
                 continue
-            prev_end = es[i - 1] if i else None
-            if prev_end and 80 <= _days(prev_end, e) <= 100:
-                q3[e] = ends[e] - ends[prev_end]
-            elif not prev_end:
-                # 첫 누적이 6·9개월이면 그 전 분기들이 3개월 기록으로 있어야 차분 가능
-                pass
-    # 4분기 = 연간 − (같은 시작일의 9개월 누적), 9개월 누적이 없으면 연간 − 앞 3개 분기 합
-    for (s, e), r in by.items():
-        if 350 <= _days(s, e) <= 380 and e not in q3:
-            nine = [v for ee, v in ytd.get(s, {}).items() if 260 <= _days(s, ee) <= 285]
-            if nine:
-                q3[e] = r["val"] - nine[0]
-    return q3
+            if i == 0:
+                continue   # 앞 기록 없는 누적치 — 분기로 만들 수 없음
+            prev = es[i - 1]
+            if Q_MIN <= _days(prev, e) <= Q_MAX:
+                q[e] = (ends[e] - ends[prev], True)
+    return q
 
 
 def _instant(recs: list[dict]) -> dict[str, float]:
@@ -131,13 +141,13 @@ def parse(facts: dict) -> list[dict]:
         for t in tags:
             q = _flow_quarters(units(t, ug))
             if q:
-                rows += [{"end": e, "item": item, "value": float(v)} for e, v in q.items()]
+                rows += [{"end": e, "item": item, "value": float(v), "derived": d} for e, (v, d) in q.items()]
                 break
     for item, tags in INSTANT.items():
         for t in tags:
             v = _instant(units(t, ug) or units(t, dei))
             if v:
-                rows += [{"end": e, "item": item, "value": float(x)} for e, x in v.items()]
+                rows += [{"end": e, "item": item, "value": float(x), "derived": False} for e, x in v.items()]
                 break
     return rows
 
@@ -149,7 +159,9 @@ def update(tickers: list[str], refresh_days: int = 7, budget: int = 200) -> int:
     FIN.mkdir(parents=True, exist_ok=True)
     stamp = json.loads(STAMP.read_text()) if STAMP.exists() else {}
     cmap = ticker_map()
-    old = pl.read_parquet(OUT) if OUT.exists() else pl.DataFrame(schema={"ticker": pl.Utf8, "end": pl.Utf8, "item": pl.Utf8, "value": pl.Float64})
+    old = pl.read_parquet(OUT) if OUT.exists() else pl.DataFrame(schema=SCHEMA)
+    if "derived" not in old.columns:   # 예전 파일: 차분 여부 모름 → null
+        old = old.with_columns(pl.lit(None, dtype=pl.Boolean).alias("derived"))
     now = time.time()
     todo = [t for t in tickers if t in cmap and now - stamp.get(t, 0) > refresh_days * 86400][:budget]
     new = []
@@ -161,7 +173,7 @@ def update(tickers: list[str], refresh_days: int = 7, budget: int = 200) -> int:
         except Exception as e:  # noqa: BLE001
             log.warning("SEC %s 실패: %s", t, e)
     if new:
-        add = pl.DataFrame(new, schema={"ticker": pl.Utf8, "end": pl.Utf8, "item": pl.Utf8, "value": pl.Float64})
+        add = pl.DataFrame(new, schema=SCHEMA)
         done = set(add["ticker"].unique().to_list())
         df = pl.concat([old.filter(~pl.col("ticker").is_in(sorted(done))), add])
         df.write_parquet(OUT)

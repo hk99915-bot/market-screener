@@ -60,6 +60,7 @@ TRIPWIRES = [
     {"date": None, "name": "미 10년물 5.0% 상·하 돌파", "note": "현재 수준은 금리 블록 참조"},
 ]
 MIN_Q = 4          # 이보다 적은 분기로 만든 값은 '검증전'
+CUM_RATIO = 1.8    # 최근 4분기가 매 분기 이 배수 넘게 단조 증가하면 누적(YTD) 값 의심 → '검증전'
 RATE_BP = 25       # 금리 민감도 가정 ±bp
 
 
@@ -86,6 +87,21 @@ def _safe_div(a, b) -> float | None:
         return a / b
     except Exception:  # noqa: BLE001
         return None
+
+
+def cumulative_smell(q: list[dict], keys: tuple[str, ...] = ("ni", "revenue", "op")) -> str | None:
+    """최근 4분기 중 어느 항목이 매 분기 CUM_RATIO 배 넘게 단조 증가하면 그 항목 이름 — SEC/DART 분기 값에 누적치가 섞인 전형.
+    (정상 고성장도 걸릴 수 있어 '검증전' 표시만, 값은 그대로 둔다.) 양수 4개가 모두 있어야 판단."""
+    last4 = q[-4:]
+    if len(last4) < 4:
+        return None
+    for k in keys:
+        v = [r.get(k) for r in last4]
+        if any(x is None or x <= 0 for x in v):
+            continue
+        if all(v[i + 1] > v[i] * CUM_RATIO for i in range(3)):
+            return k
+    return None
 
 
 def metrics(q: list[dict], shares: float | None, price: float | None) -> dict:
@@ -137,6 +153,10 @@ def metrics(q: list[dict], shares: float | None, price: float | None) -> dict:
     flags = []
     if not out["verified"]:
         flags.append(f"검증전: 분기 {n}개 (연환산)")
+    smell = cumulative_smell(q)
+    if smell:   # 누적치 의심 — 비율은 내되 검증전으로 내린다 (10/17 SEC YTD 점검)
+        out["verified"] = False
+        flags.append(f"검증전: {smell} 4분기 연속 {CUM_RATIO}배↑ (누적치 의심)")
     if out["loss"]:
         flags.append("TTM 적자 → PER 없음")
     if rev is None:
