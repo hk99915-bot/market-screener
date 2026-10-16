@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 55개 · 진행 6 · 검수 12 · 대기 14 · 보류 2 · 완료 21
+기준일 2026-10-16 · 작업 55개 · 진행 6 · 검수 13 · 대기 13 · 보류 2 · 완료 21
 
 ## 진행 (6)
 
@@ -15,7 +15,7 @@
 | P1 | `edu-curriculum-v3` | STUDY 커리큘럼 v3 정규화: 모듈 스키마·검증 스크립트 + 파생(D1~D4)·리스크(R1~R6)·퀀트(Q1~Q6)·행동재무(H1~H6)·운용회의(M1~M3) 트랙 — 파생·퀀트·FRM·CIO 자료 흡수 | 교육 | 2026-10-16 | 2026-10-18 | `content/study.json`<br>`content/study/**`<br>`docs/study_spec.md`<br>`scripts/study_content_check.py` | — | 개인 금액 금지(비율 사례만). Index.html 변경은 개발 인계(일요일). |
 | P1 | `edu-quiz-srs` | 문제은행(quiz_bank)·복습 스케줄(SRS 1/3/7/21일)·평일 07:10 오늘 공부 알림(study_daily) | 교육-후임 | 2026-10-16 | 2026-10-18 | `content/study/quiz_bank.json`<br>`content/study/srs.json`<br>`screener/study_daily.py`<br>`.github/workflows/study_daily.yml` | `edu-curriculum-v3` | 진행 저장은 'study <id> done' 이슈 → reports/study_progress.json 제안(스펙만). |
 
-## 검수 (12)
+## 검수 (13)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -23,6 +23,7 @@
 | P0 | `rebound-alert` | 14:25 반등일 판정 알림 (--mode rebound, cron + GAS 슬롯, 지수 비율만) | 운영 | 2026-10-16 | 2026-10-19 | `screener/rebound.py`<br>`screener/decisions.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | `gas-repaste` | 1ac92739. 다음 거래일 10/19 14:25 첫 실전 도착(GitHub cron·GAS 중복 억제) 확인 후 완료. 메시지에 개인 수치 없음 재확인. |
 | P1 | `cmt-v2` | 운용회의 v2 — 멀티매니저 모닝 미팅 형식(신호등 결론·시계·탑다운·포지셔닝·섹터·바텀업·아이디어 TOP3·헤지·프리모템·성적) + 원천 교차 아이디어 추적 채점 + 장중 갱신·14:15 슬롯 | CIO | 2026-10-16 | 2026-10-17 | `screener/committee.py`<br>`apps-script/Index.html`<br>`screener/main.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | — | 새 키만 추가(기존 stance·scenarios·ideas·derivs 유지). reports/ideas_log.json·ideas_attrib.json 은 예약 실행이 생성. GAS 재붙여넣기: Index.html·Scheduler.gs. 컨센서스·선물 외국인 수급은 데이터 없음. |
 | P1 | `drivers-audit` | EARNINGS DRIVERS 내용 감사 (체인 매핑·부호·문구) + 퀀트 감사 반영 | 애널 | 2026-10-16 | 2026-10-17 | `screener/drivers.py`<br>`apps-script/Index.html` | — | 지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관 |
+| P1 | `sunday-scorecard` | 일요일 성적표 자동화 확장 — '규칙 간 정합성' 항목(테마 비중·VaR·위성 북 크기 vs 각 한도 나란히) | 리스크 | 2026-10-16 | 2026-10-18 | private 전용 | — | private 저장소 전용(weekly-scorecard 확장). 10/18 첫 발행, 이후 매주 일요일. 안건 8-B 재발 방지 장치. |
 | P1 | `deriv-hist` | 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필 | 파생 | 2026-10-16 | 2026-10-20 | `screener/deriv_hist.py`<br>`data/deriv/*`<br>`.github/workflows/deriv_hist.yml` | — | 검증의 전제. 라이브 화면·텔레그램 추가 없음. |
 | P1 | `tests-pytest` | tests/ pytest 층 — 파서·잠금·보드·rebound 판정 회귀 테스트 + CI 게이트 | 개발 | 2026-10-16 | 2026-10-24 | `tests/`<br>`requirements.txt`<br>`.github/workflows/ops.yml` | — | 3013b933: pytest.ini·conftest·회귀 3종(대결 파싱·trail 무장·회의 Δ) + tests.yml. 검수: CI 첫 실행 통과 확인, 이후 lock/board/rebound 판정 테스트 추가는 11/16 이후. |
 | P1 | `view-registry` | VIEW 레지스트리 — 관점(렌즈) 기록·일관 적용·수명주기 | CIO | 2026-10-16 | — | `views/registry.json`<br>`views/README.md`<br>`screener/views.py`<br>`scripts/view_attribution.py`<br>`screener/duel.py`<br>`screener/committee.py`<br>`screener/main.py`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 공개 레지스트리엔 개인 수치 없음 — 개인 렌즈는 pb-private views/personal.json 에서만. |
@@ -32,7 +33,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (14)
+## 대기 (13)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -45,7 +46,6 @@
 | P1 | `cio-memo` | CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·8-C·8-D 통합안) | CIO | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리. |
 | P1 | `frm-audit` | FRM 한도(VaR·연 변동성) 감사 — 60일 실현 변동성 기준 재계산, 테마 한도와 정합 | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만. |
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 퀀트-재현 | — | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. |
-| P1 | `sunday-scorecard` | 일요일 성적표 자동화 확장 — '규칙 간 정합성' 항목(테마 비중·VaR·위성 북 크기 vs 각 한도 나란히) | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용(weekly-scorecard 확장). 10/18 첫 발행, 이후 매주 일요일. 안건 8-B 재발 방지 장치. |
 | P1 | `quant-data-etf-hist` | 연구용 데이터 창고: ETF(091160·139260·069500·122630) 일봉 복원 + 코스피200 시가 + 섹터 지수 → data/hist/ | 퀀트-데이터 | — | 2026-10-25 | `data/hist/**`<br>`scripts/build_hist.py` | — | semis_cap·exec_signal 연구가 삼성+하이닉스 대용치를 씀 → 실제 ETF로 재실행 가능하게. 네트워크 차단 시 KRX/공공데이터 백필 워크플로로. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
 | P2 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |

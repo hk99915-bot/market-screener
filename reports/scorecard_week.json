@@ -1,0 +1,938 @@
+{
+ "asof": "2026-10-16 18:35",
+ "week": {
+  "iso": "2026-W42",
+  "mon": "2026-10-12",
+  "sun": "2026-10-18",
+  "label": "10/12~10/18",
+  "partial": true
+ },
+ "kospi": {
+  "base": "2026-10-08",
+  "last": "2026-10-16",
+  "ret": -0.1446,
+  "days": 5
+ },
+ "duel": {
+  "scored": 2,
+  "void": 1,
+  "pending": 1,
+  "by": {
+   "나": {
+    "n": 2,
+    "win": 2,
+    "pnl": 81903,
+    "trades": 2,
+    "hit": 1.0,
+    "avg_ret": 0.0428,
+    "win_rate": 1.0
+   },
+   "나🔥": {
+    "n": 0,
+    "win": 0,
+    "pnl": 0,
+    "trades": 0,
+    "hit": null,
+    "avg_ret": null,
+    "win_rate": null,
+    "by_basis": {
+     "감": {
+      "n": 0,
+      "win": 0,
+      "pnl": 0,
+      "trades": 0,
+      "hit": null,
+      "avg_ret": null,
+      "win_rate": null
+     },
+     "판단": {
+      "n": 0,
+      "win": 0,
+      "pnl": 0,
+      "trades": 0,
+      "hit": null,
+      "avg_ret": null,
+      "win_rate": null
+     }
+    }
+   },
+   "PB": {
+    "n": 2,
+    "win": 0,
+    "pnl": 0,
+    "trades": 0,
+    "hit": null,
+    "avg_ret": null,
+    "win_rate": 0.0
+   },
+   "PB🔥": {
+    "n": 0,
+    "win": 0,
+    "pnl": 0,
+    "trades": 0,
+    "hit": null,
+    "avg_ret": null,
+    "win_rate": null
+   },
+   "규칙": {
+    "n": 0,
+    "win": 0,
+    "pnl": 0,
+    "trades": 0,
+    "hit": null,
+    "avg_ret": null,
+    "win_rate": null
+   }
+  }
+ },
+ "cumulative": {
+  "나": {
+   "win": 2,
+   "n": 2,
+   "pnl": 81903,
+   "trades": 2,
+   "hit": 1.0,
+   "avg_win": 0.0428,
+   "avg_loss": null,
+   "payoff": null,
+   "ev": 0.0428
+  },
+  "PB": {
+   "win": 0,
+   "n": 2,
+   "pnl": 0.0,
+   "trades": 0,
+   "hit": null,
+   "avg_win": null,
+   "avg_loss": null,
+   "payoff": null,
+   "ev": null
+  }
+ },
+ "regime": [
+  {
+   "date": "2026-10-15",
+   "session": "장후",
+   "asof": "2026-10-15 20:28",
+   "regime": null,
+   "probs": {
+    "강세": 0.469,
+    "기본": 0.281,
+    "약세": 0.25
+   },
+   "stance": "관망"
+  },
+  {
+   "date": "2026-10-16",
+   "session": "장후",
+   "asof": "2026-10-16 15:50",
+   "regime": "하락장",
+   "probs": {
+    "강세": 0.438,
+    "기본": 0.347,
+    "약세": 0.216
+   },
+   "stance": "관망"
+  }
+ ],
+ "regime_now": "하락장",
+ "events": {
+  "서킷": 2,
+  "사이드카": 1,
+  "경보": 3,
+  "total": 6
+ },
+ "health": {
+  "asof": "2026-10-15 19:01",
+  "failed_runs_7d": 1,
+  "by_workflow": {
+   "briefing": 1
+  },
+  "issues": 0
+ },
+ "lenses": {
+  "n": 39,
+  "by_grade": {
+   "A": 0,
+   "B": 5,
+   "C": 14,
+   "F": 6,
+   "검증전": 14
+  },
+  "rows": [
+   {
+    "id": "kr_regime",
+    "name": "국장 레짐 (200일선·20일 낙폭)",
+    "family": "trend",
+    "grade": "C",
+    "status": "채택",
+    "roles": {
+     "entry": "alert",
+     "exit": "reference",
+     "allocation": "gate"
+    }
+   },
+   {
+    "id": "crash_day_close",
+    "name": "급락일 종가 진입 (기다리지 않기)",
+    "family": "price",
+    "grade": "B",
+    "status": "채택",
+    "roles": {
+     "entry": "weight",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "confirm_signals",
+    "name": "반등 확인 신호 (저점 지지·5일 고점·저점 2일 이탈)",
+    "family": "price",
+    "grade": "F",
+    "status": "강등",
+    "roles": {
+     "entry": "reference",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "foreign_flow",
+    "name": "외국인 현물 순매수 (코스피)",
+    "family": "flows",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "macro_wind",
+    "name": "매크로 바람 (금리·환율·미국 지수 합성)",
+    "family": "macro",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "breadth_kr",
+    "name": "시장 폭 (국장 200일선 위 종목 비율)",
+    "family": "trend",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "none",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "scenario_base_rate",
+    "name": "시나리오 기저확률 (1999~ 조건부 통계)",
+    "family": "price",
+    "grade": "C",
+    "status": "채택",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "stock_trend_score",
+    "name": "종목 추세·모멘텀 점수 (스크리너)",
+    "family": "momentum",
+    "grade": "F",
+    "status": "강등",
+    "roles": {
+     "entry": "reference",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "index_abs_momentum",
+    "name": "지수 절대모멘텀 (12개월 > 0 이면 보유)",
+    "family": "momentum",
+    "grade": "F",
+    "status": "강등",
+    "roles": {
+     "entry": "none",
+     "exit": "none",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "options_gamma",
+    "name": "옵션 감마·풋콜 (코스피200)",
+    "family": "derivs",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "alert",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "gamma_regime",
+    "name": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
+    "family": "derivs",
+    "grade": "검증전",
+    "status": "사전등록",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "ai_credit",
+    "name": "AI 인프라 신용 감시",
+    "family": "bonds_credit",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "alert",
+     "exit": "alert",
+     "allocation": "alert"
+    }
+   },
+   {
+    "id": "stock_bond_corr",
+    "name": "주식–채권 상관 (IEF vs S&P500, 1년)",
+    "family": "bonds_credit",
+    "grade": "C",
+    "status": "채택",
+    "roles": {
+     "entry": "none",
+     "exit": "none",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "us10y",
+    "name": "미 10년 금리 (수준·1개월 변화)",
+    "family": "macro",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "yen_carry",
+    "name": "엔 캐리 청산 경계 (엔/달러 5일)",
+    "family": "japan",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "alert",
+     "exit": "alert",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "japan_semi_lead",
+    "name": "일본 반도체 장비·메모리 동행",
+    "family": "japan",
+    "grade": "C",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "supply_chain",
+    "name": "공급망 체인 점수 (업종 비중 의견)",
+    "family": "valuation",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "committee_ideas",
+    "name": "운용회의 매수 후보 (이익 신호 좋고 과하게 빠진 종목)",
+    "family": "valuation",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "event_calendar",
+    "name": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
+    "family": "events",
+    "grade": "검증전",
+    "status": "채택",
+    "roles": {
+     "entry": "alert",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "atr_stop",
+    "name": "종목 손절선 (20일 저점·2×ATR)",
+    "family": "price",
+    "grade": "C",
+    "status": "채택",
+    "roles": {
+     "entry": "none",
+     "exit": "gate",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "us_regime",
+    "name": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
+    "family": "trend",
+    "grade": "검증전",
+    "status": "검증중",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "personal.instrument_ban",
+    "name": "상품 금지 (레버리지·인버스·신규상장·미수)",
+    "family": "personal",
+    "grade": "B",
+    "status": "채택",
+    "roles": {
+     "entry": "gate",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "personal.satellite_cap",
+    "name": "위성 북 상한 사용률",
+    "family": "personal",
+    "grade": "B",
+    "status": "채택",
+    "roles": {
+     "entry": "gate",
+     "exit": "weight",
+     "allocation": "gate"
+    }
+   },
+   {
+    "id": "personal.theme_concentration",
+    "name": "반도체 테마 집중도",
+    "family": "personal",
+    "grade": "B",
+    "status": "채택",
+    "roles": {
+     "entry": "gate",
+     "exit": "gate",
+     "allocation": "gate"
+    }
+   },
+   {
+    "id": "personal.loss_limit",
+    "name": "손실 한도·쿨다운·매매 금지",
+    "family": "personal",
+    "grade": "C",
+    "status": "채택",
+    "roles": {
+     "entry": "gate",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "personal.event_day_ban",
+    "name": "이벤트·서킷 당일 장중 진입 금지",
+    "family": "personal",
+    "grade": "C",
+    "status": "채택",
+    "roles": {
+     "entry": "gate",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "personal.hold_period",
+    "name": "보유기간 습관 (10일+ 보유)",
+    "family": "personal",
+    "grade": "C",
+    "status": "강등",
+    "roles": {
+     "entry": "none",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "personal.isa_dca",
+    "name": "코어 북 적립 진행",
+    "family": "personal",
+    "grade": "B",
+    "status": "채택",
+    "roles": {
+     "entry": "none",
+     "exit": "none",
+     "allocation": "weight"
+    }
+   },
+   {
+    "id": "cand.add_on_drop",
+    "name": "후보: 10일 안 추가 −5% 하락 시 2차 진입",
+    "family": "price",
+    "grade": "검증전",
+    "status": "후보",
+    "roles": {
+     "entry": "none",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "cand.program_nonarb",
+    "name": "후보: 프로그램 비차익 막판 매수 = 바닥 신호?",
+    "family": "flows",
+    "grade": "검증전",
+    "status": "후보",
+    "roles": {
+     "entry": "none",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "fib_levels",
+    "name": "피보나치 되돌림·하방 Fib 지지선",
+    "family": "technical",
+    "grade": "F",
+    "status": "강등",
+    "roles": {
+     "entry": "reference",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "entry_trigger",
+    "name": "후보: 강세 전환 신호 대체 — 급락일 종가 진입 (확인 신호 기다리지 않기)",
+    "family": "price",
+    "grade": "C",
+    "status": "후보",
+    "roles": {
+     "entry": "alert",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "cand.chase_sizing",
+    "name": "후보: 추격 진입(RSI14>70 또는 전일 +5%) 사이즈 축소 — 유지·강화 쪽 근거",
+    "family": "price",
+    "grade": "C",
+    "status": "후보",
+    "roles": {
+     "entry": "alert",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "cand.rebound_day_sell",
+    "name": "후보: 반등일(+0.5%) 매도 대기 — 즉시 매도보다 나음",
+    "family": "price",
+    "grade": "C",
+    "status": "후보",
+    "roles": {
+     "entry": "none",
+     "exit": "alert",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "cand.bear_cap_cost",
+    "name": "후보: 하락장(200일선 아래) 노출 50% 상한의 비용 — 완화 검토",
+    "family": "trend",
+    "grade": "C",
+    "status": "후보",
+    "roles": {
+     "entry": "none",
+     "exit": "none",
+     "allocation": "reference"
+    }
+   },
+   {
+    "id": "cand.exit_rules_audit",
+    "name": "참고: 손절 −8%·20일선 트레일·1R/2R 부분익절 대안 비교 (차이 없음)",
+    "family": "price",
+    "grade": "F",
+    "status": "후보",
+    "roles": {
+     "entry": "none",
+     "exit": "reference",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "exec_signal_1",
+    "name": "실행 대본 신호 1 — 외국인 당일 순매수 (코드 fl[0] > 0)",
+    "family": "flows",
+    "grade": "F",
+    "status": "강등",
+    "roles": {
+     "entry": "reference",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "exec_signal_2",
+    "name": "실행 대본 신호 2 — 저점 지지 (코드: 종가 ≥ 당일 저가 → 항상 참 / 의도: 저가 +1% 위 마감)",
+    "family": "price",
+    "grade": "C",
+    "status": "후보",
+    "roles": {
+     "entry": "alert",
+     "exit": "none",
+     "allocation": "none"
+    }
+   },
+   {
+    "id": "sector_postcrash",
+    "name": "급락 뒤 비반도체 섹터 기록 (KRX 업종 24개, 동일가중)",
+    "family": "sector",
+    "grade": "C",
+    "status": "후보",
+    "roles": {
+     "entry": "reference",
+     "exit": "none",
+     "allocation": "reference"
+    }
+   }
+  ],
+  "updated": "2026-10-16"
+ },
+ "studies": [
+  {
+   "study": "derivs_signals",
+   "id": "H1",
+   "grade": "검증전",
+   "why": "외국인 선물 순매수 → 다음날"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H2",
+   "grade": "F",
+   "why": "외국인 현물 순매수 → 다음날"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H3",
+   "grade": "F",
+   "why": "외국인 현물 3일 순매도 후 순매수 전환 → 5일"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H4",
+   "grade": "검증전",
+   "why": "베이시스 음수(백워데이션) → 5일"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H5-r5",
+   "grade": "검증전",
+   "why": "풋콜(OI) 상위 20% → 5일 (역발상)"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H5-r20",
+   "grade": "검증전",
+   "why": "풋콜(OI) 상위 20% → 20일 (역발상)"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H6-r5",
+   "grade": "검증전",
+   "why": "풋콜(OI) 하위 20% → 5일 (낮음)"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H6-r20",
+   "grade": "검증전",
+   "why": "풋콜(OI) 하위 20% → 20일 (낮음)"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H7",
+   "grade": "검증전",
+   "why": "감마 하위 1/3 vs 상위 1/3 → 다음날 |수익률| (흔들림)"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H8",
+   "grade": "A",
+   "why": "야간선물 등락 → 다음 정규장 시가 갭 (산수 확인)"
+  },
+  {
+   "study": "derivs_signals",
+   "id": "H9",
+   "grade": "검증전",
+   "why": "프로그램 비차익 순매수 상위 20% → 다음날"
+  },
+  {
+   "study": "entry_signals",
+   "id": "A",
+   "grade": "F",
+   "why": "대조군 대비 개선 없음(평균 +4.8%p, p=0.114)"
+  },
+  {
+   "study": "entry_signals",
+   "id": "B",
+   "grade": "F",
+   "why": "대조군 대비 개선 없음(평균 +5.3%p, p=0.112)"
+  },
+  {
+   "study": "entry_signals",
+   "id": "B2",
+   "grade": "F",
+   "why": "대조군 대비 개선 없음(평균 +3.8%p, p=0.123)"
+  },
+  {
+   "study": "entry_signals",
+   "id": "C",
+   "grade": "F",
+   "why": "대조군 대비 개선 없음(평균 +2.9%p, p=0.198)"
+  },
+  {
+   "study": "entry_signals",
+   "id": "E",
+   "grade": "F",
+   "why": "대조군 대비 개선 없음(평균 +4.9%p, p=0.136)"
+  },
+  {
+   "study": "entry_signals",
+   "id": "F",
+   "grade": "C",
+   "why": "방향만(p=0.070, Bonferroni 미달)"
+  },
+  {
+   "study": "fib_levels",
+   "id": "lens",
+   "grade": "F",
+   "why": null
+  },
+  {
+   "study": "gamma_regime",
+   "id": "gamma_regime",
+   "grade": "검증전",
+   "why": "숏감마(감마 음수) 구간을 노릴 수 있나?"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T1/s5",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.29)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T1/s12",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.57)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T1/satr",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.31)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T1/snone",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.80)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T2/m10",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.90)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T2/m50",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.47)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T2/chand",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.14)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T2/tnone",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.28)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T3/nopart",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.58)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T3/target2R",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.82)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T4/imm",
+   "grade": "C",
+   "why": "방향만(p=0.013, Bonferroni α=0.0028 미달)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T4/th0",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.43)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T4/th1",
+   "grade": "F",
+   "why": "현행과 구별 안 됨(p=0.74)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T5/c0",
+   "grade": "C",
+   "why": "방향만(p=0.080, Bonferroni α=0.0028 미달)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T5/c70",
+   "grade": "C",
+   "why": "방향만(p=0.084, Bonferroni α=0.0028 미달)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T5/c100",
+   "grade": "C",
+   "why": "방향만(p=0.086, Bonferroni α=0.0028 미달)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T6/full",
+   "grade": "C",
+   "why": "방향만(p=0.011, Bonferroni α=0.0028 미달)"
+  },
+  {
+   "study": "rule_audit",
+   "id": "T6/ban",
+   "grade": "C",
+   "why": "방향만(p=0.011, Bonferroni α=0.0028 미달)"
+  },
+  {
+   "study": "semis_cap",
+   "id": "H1 BAND−CAP40M",
+   "grade": "C",
+   "why": null
+  },
+  {
+   "study": "semis_cap",
+   "id": "H1 BAND−BH",
+   "grade": "F",
+   "why": null
+  },
+  {
+   "study": "semis_cap",
+   "id": "H1 CAP40M−BH",
+   "grade": "F",
+   "why": null
+  },
+  {
+   "study": "semis_cap",
+   "id": "H2 GLIDE−SELL35",
+   "grade": "A",
+   "why": null
+  },
+  {
+   "study": "semis_cap",
+   "id": "H3 CAP30−CAP40",
+   "grade": "F",
+   "why": null
+  },
+  {
+   "study": "semis_cap",
+   "id": "H3 CAP35−CAP40",
+   "grade": "F",
+   "why": null
+  },
+  {
+   "study": "semis_cap",
+   "id": "H3 CAP45−CAP40",
+   "grade": "F",
+   "why": null
+  }
+ ],
+ "consistency": [
+  {
+   "rule": "[3] 테마 집중도",
+   "limit": "목표 40% · 발동선 45% (주 1회 점검)",
+   "input": "env SCORECARD_THEME_CAP/BAND · registry personal.theme_concentration",
+   "value": "비공개 (pb-private 성적표)",
+   "status": "—"
+  },
+  {
+   "rule": "[11] 1일 VaR99 (60일 실현, 계기판)",
+   "limit": "하락장 1.5% / 기본 2% — 판정 아님(계기판)",
+   "input": "레짐 하락장 (views kr_regime)",
+   "value": "비공개 (pb-private 성적표)",
+   "status": "—"
+  },
+  {
+   "rule": "[11] 스트레스",
+   "limit": "어느 시나리오도 −15% 초과 금지",
+   "input": "시나리오: 2020-03 · 2024-08-05 · 2026-07 반도체 · 원/달러 +10%",
+   "value": "비공개 (pb-private 성적표)",
+   "status": "—"
+  },
+  {
+   "rule": "[0] 위성 북 크기",
+   "limit": "상한 (비공개 금액) — 초과분 연말까지 코어 이전",
+   "input": "pb-private holdings",
+   "value": "비공개 (pb-private 성적표)",
+   "status": "—"
+  },
+  {
+   "rule": "[5] 보유 백스톱",
+   "limit": "종목별 −20% 도달 시 2주 내 정리",
+   "input": "pb-private holdings",
+   "value": "비공개 (pb-private 성적표)",
+   "status": "—"
+  }
+ ],
+ "telegram": "📊 주간 성적표 준비됨 (10/12~10/18) — 대결 2건 · 나 승률 100% · 나🔥(감) — · 나🔥(판단) — · PB 0% · PB🔥 — · 코스피 주간 −14.5% · 레짐 하락장 · 렌즈 A0/B5/C14/F6 · 서킷·사이드카 6건 · 워크플로 실패 1건"
+}
