@@ -57,4 +57,9 @@ def run(send: bool = True) -> dict | None:
     if send:
         from .report import send_telegram
         send_telegram(text(j))
+    try:   # 기한 D-n · 반도체 발동선 (종가 전이라 손절선 점검은 16:20 에서)
+        from . import alerts
+        alerts.run(send=send, at_close=False)
+    except Exception as e:  # noqa: BLE001
+        log.warning("규정 알림 실패: %s", e)
     return j

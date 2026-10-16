@@ -1,12 +1,23 @@
 """개인 PB 아침 브리핑 — 보유 내역은 GitHub 비공개 시크릿 MY_HOLDINGS 에서만 읽는다 (저장소·로그에 남기지 않음).
 
-MY_HOLDINGS 형식 (웹 MY 탭과 동일, 한 줄에 하나):
+MY_HOLDINGS 형식 (웹 MY 탭과 동일, 한 줄에 하나 — 위성 북, 그 뒤 `## ISA` 줄부터 ISA 코어 북):
     005930 10 70000
     TIGER 200 IT 5 30000
     MU 2 100.0
     USD 1000
     현금 1000000
-선택: MY_RULES — 줄마다 '종목코드 가격' (종가 2일 연속 이탈 시 경고), 'LOSS_LIMIT 0.12' (순자산 대비 손실 한도), 'SEMI_CAP 0.6'
+    ## ISA
+    360750 100 20000
+    133690 20 100000
+    069500 30 40000
+    148070 40 110000
+    132030 50 20000
+    현금 500000
+선택: MY_RULES — 줄마다 '종목코드 가격' (종가 2일 연속 이탈 시 경고), 'LOSS_LIMIT 0.12' (순자산 대비 손실 한도), 'SEMI_CAP 0.40', 'SEMI_BAND 0.45'
+
+분모는 항상 순자산 = 위성 + ISA + 현금(원화·달러). 반도체 비중은 '반도체(전기 제외)' 를 기본으로, '반도체+전기(상관 테마)' 를 보조로 보인다.
+지수 ETF(KODEX 200·S&P500·나스닥100 …) 속 반도체 룩스루는 한도 계산에서 빼고 '참고 경보' 한 줄로만 보인다 (합의 1-④).
+섹터 ETF(TIGER 200 IT·KODEX 반도체·SOXX·SMH·PSI …)는 전액 반도체로 센다. 텔레그램에는 비율만 보낸다 (금액 없음).
 """
 from __future__ import annotations
 
@@ -27,7 +38,38 @@ def _num(x):
         return None
 
 
+ISA_HEAD = re.compile(r"^#{1,3}\s*ISA\b", re.I)
+ISA_TARGET = {"S&P500": 0.40, "NDX": 0.10, "K200": 0.15, "KTB": 0.20, "Gold": 0.15}   # ISA 코어 목표 (안건 8)
+ISA_BAND = 0.05   # ±5%p
+SEMI_ETFS = {"139260", "091160", "PSI", "SOXX", "SMH", "SOXL", "SOXQ", "XSD", "SMHX", "396500", "395160", "449450"}   # 반도체·IT 섹터 ETF (전액 반도체)
+US_SEMIS = {"MU", "SNDK", "NVDA", "AMD", "AVGO", "TSM", "INTC", "QCOM", "ARM", "MRVL", "LRCX", "AMAT", "KLAC", "ASML", "WDC", "STX"}
+RE_SEMI = re.compile(r"반도체")
+RE_ELEC = re.compile(r"IT 하드웨어")   # 전자부품(삼성전기 등)·디스플레이 — '상관 테마'
+
+
+def parse_books(txt: str) -> dict[str, tuple[list[dict], float, float]]:
+    """`## ISA` 줄을 경계로 위성(sat)·ISA 두 북으로 나눠 파싱. 각 북 = (보유 목록, 원화 현금, 달러 현금)."""
+    books = {"sat": ([], 0.0, 0.0), "isa": ([], 0.0, 0.0)}
+    cur = "sat"
+    chunks = {"sat": [], "isa": []}
+    for ln in txt.splitlines():
+        if ISA_HEAD.match(ln.strip()):
+            cur = "isa"
+            continue
+        if ln.strip().startswith("#"):
+            continue
+        chunks[cur].append(ln)
+    for b in books:
+        books[b] = _parse_lines("\n".join(chunks[b]))
+    return books
+
+
 def parse(txt: str) -> tuple[list[dict], float, float]:
+    """위성 북만 (하위 호환). ISA 북은 parse_books(txt)["isa"]."""
+    return parse_books(txt)["sat"]
+
+
+def _parse_lines(txt: str) -> tuple[list[dict], float, float]:
     hs, krw, usd = [], 0.0, 0.0
     for ln in txt.splitlines():
         p = ln.strip().split()
@@ -77,67 +119,166 @@ def _detail(mk: str, s: str) -> dict | None:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
+def isa_bucket(s: str, name: str) -> str | None:
+    """ISA 코어 종목 → 목표 바구니 (S&P500 / NDX / K200 / KTB / Gold). 못 고르면 None(기타)."""
+    n = (name or "").upper()
+    if s == "360750" or "S&P" in n or s in ("SPY", "IVV", "VOO", "SPLG"):
+        return "S&P500"
+    if s == "133690" or "나스닥" in n or "NDX" in n or s in ("QQQ", "QQQM"):
+        return "NDX"
+    if s in ("148070", "305080", "152380") or re.search(r"국고채|국채|KTB", n):
+        return "KTB"
+    if s == "132030" or re.search(r"골드|금선물|GOLD", n) or s in ("GLD", "IAU"):
+        return "Gold"
+    if s == "069500" or (re.search(r"(^|\s)200(\s|$)|코스피", n) and not re.search(r"IT|반도체|인버스|레버리지|선물인버스", n)):
+        return "K200"
+    return None
+
+
+def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains: dict) -> tuple[str | None, float]:
+    """반도체 분류. 반환 (kind, look_w): kind = 'semi'(한도 산입) / 'elec'(전기·IT 하드웨어, 상관 테마) / None.
+    look_w = 지수 ETF 등 한도 밖 ETF 안의 반도체·IT 하드웨어 룩스루 비중 (참고 경보용, 한도 제외)."""
+    n = (name or "").upper()
+    if is_etf:
+        if s in SEMI_ETFS or re.search(r"반도체|SEMI|SOX|IT$|\bIT\b|테크", n):
+            return "semi", 0.0
+        lw = sum(w for k, w in (look_chains or {}).items() if RE_SEMI.search(k) or RE_ELEC.search(k))
+        return None, lw
+    if s in US_SEMIS or RE_SEMI.search(chain or ""):
+        return "semi", 0.0
+    if RE_ELEC.search(chain or ""):
+        return "elec", 0.0
+    return None, 0.0
+
+
+def rules(rules_txt: str) -> dict:
+    o = {"loss_limit": 0.12, "semi_cap": 0.40, "semi_band": 0.45, "price": {}}
+    for ln in (rules_txt or "").splitlines():
+        p = ln.split()
+        if len(p) < 2:
+            continue
+        k = p[0].upper()
+        if k == "LOSS_LIMIT":
+            o["loss_limit"] = _num(p[1]) or o["loss_limit"]
+        elif k == "SEMI_CAP":
+            o["semi_cap"] = _num(p[1]) or o["semi_cap"]
+        elif k == "SEMI_BAND":
+            o["semi_band"] = _num(p[1]) or o["semi_band"]
+        elif _num(p[1]):
+            o["price"][k] = _num(p[1])
+    return o
+
+
+def _fx() -> float:
+    try:
+        ms = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8"))["series"]["USDKRW"]
+        return ms[-1][4] if len(ms[-1]) >= 6 else ms[-1][1]
+    except Exception:  # noqa: BLE001
+        return 1400.0
+
+
+def evaluate(txt: str, rules_txt: str = "") -> dict | None:
+    """보유 텍스트 → 비율 묶음. 금액은 반환값 안에만 있고 밖으로 보내지 않는다 (호출자는 비율만 쓴다)."""
+    books = parse_books(txt)
+    ru = rules(rules_txt)
+    idx = _index()
+    fx = _fx()
+    rows, miss = [], []
+    for book, (hs, krw, usd) in books.items():
+        for h in hs:
+            r = resolve(h["key"], idx)
+            d = _detail(*r) if r else None
+            if not d:
+                miss.append(h["key"])
+                continue
+            mk, s = r
+            f = fx if mk == "US" else 1.0
+            v = d["close"] * h["qty"] * f
+            c = h["avg"] * h["qty"] * f if h["avg"] else None
+            dv = d.get("drivers") or {}
+            look = ((d.get("etf") or {}).get("look") or {})
+            chain = (dv.get("chain") or {}).get("name") or ("ETF" if d.get("etf") else (d.get("valuation") or {}).get("sector")) or mk
+            st = d.get("stats") or {}
+            c1y = d.get("c1y") or []
+            name = re.sub(r",?\s+(Inc\.?|Corporation|Corp\.?)$", "", re.sub(r"\s*[-–]\s*(Common Stock|Ordinary).*$", "", d.get("name") or s))
+            kind, lw = semi_class(mk, s, name, chain, bool(d.get("etf")), look.get("chains") or {})
+            rows.append({"book": book, "mk": mk, "s": s, "name": name, "v": v, "c": c, "r1": st.get("ret1"),
+                         "drv": dv.get("score") if not d.get("etf") else look.get("drv"),
+                         "stop": ((d.get("scenarios") or {}).get("bear") or {}).get("stop"), "close": d["close"], "etf": bool(d.get("etf")),
+                         "semi": kind == "semi", "elec": kind == "elec", "look": v * lw, "isa": isa_bucket(s, name) if book == "isa" else None,
+                         "last2": [x[1] for x in c1y[-2:]]})
+    if not rows:
+        return None
+    sat = [r for r in rows if r["book"] == "sat"]
+    isa = [r for r in rows if r["book"] == "isa"]
+    cash_sat = books["sat"][1] + books["sat"][2] * fx
+    cash_isa = books["isa"][1] + books["isa"][2] * fx
+    tot_sat, tot_isa = sum(r["v"] for r in sat), sum(r["v"] for r in isa)
+    nav = tot_sat + tot_isa + cash_sat + cash_isa
+    tot = tot_sat + tot_isa
+    cost = sum(r["c"] for r in rows if r["c"])
+    semi = sum(r["v"] for r in rows if r["semi"])
+    elec = sum(r["v"] for r in rows if r["elec"])
+    look = sum(r["look"] for r in rows)
+    loss = cost - sum(r["v"] for r in rows if r["c"])
+    isa_tot = tot_isa + cash_isa
+    isa_w = {k: 0.0 for k in ISA_TARGET}
+    isa_etc = 0.0
+    for r in isa:
+        if r["isa"]:
+            isa_w[r["isa"]] += r["v"]
+        else:
+            isa_etc += r["v"]
+    isa_w = {k: (v / isa_tot if isa_tot else 0.0) for k, v in isa_w.items()}
+    return {"rows": rows, "miss": miss, "fx": fx, "rules": ru, "nav": nav, "tot": tot, "tot_sat": tot_sat, "tot_isa": tot_isa, "isa_tot": isa_tot,
+            "cash": cash_sat + cash_isa, "cost": cost, "loss": loss, "has_isa": bool(isa) or cash_isa > 0,
+            "semi_ex": semi / nav if nav else 0.0, "semi_elec": (semi + elec) / nav if nav else 0.0, "look": look / nav if nav else 0.0,
+            "isa_w": isa_w, "isa_etc": isa_etc / isa_tot if isa_tot else 0.0, "isa_cash": cash_isa / isa_tot if isa_tot else 0.0,
+            "day": sum(r["v"] - r["v"] / (1 + r["r1"]) for r in rows if r["r1"] is not None) / nav if nav else 0.0}
+
+
+def semi_line(ev: dict) -> str:
+    cap, band = ev["rules"]["semi_cap"], ev["rules"]["semi_band"]
+    x = ev["semi_ex"]
+    tag = " ⛔ 발동선 초과 — 다음 반등일 40%로" if x > band + 0.005 else " ⛔ 상한 초과 — 추가 매수 금지" if x > cap + 0.005 else " ✅"
+    return (f"• 반도체(전기 제외) 순자산 <b>{x*100:.0f}%</b> (상한 {cap*100:.0f}% · 발동선 {band*100:.0f}%){tag}\n"
+            f"  반도체+전기(상관 테마) {ev['semi_elec']*100:.0f}% · 참고: 지수 ETF 속 반도체 ≈ {ev['look']*100:.0f}% 추가 (한도 제외)")
+
+
+def isa_lines(ev: dict) -> list[str]:
+    if not ev.get("has_isa"):
+        return []
+    parts = []
+    for k, t in ISA_TARGET.items():
+        w = ev["isa_w"].get(k, 0.0)
+        d = w - t
+        mark = "✅" if abs(d) <= ISA_BAND else ("▲" if d > 0 else "▼")
+        parts.append(f"{k} {w*100:.0f}/{t*100:.0f}{mark}")
+    L = [f"• ISA 코어 순자산 {ev['isa_tot']/ev['nav']*100:.0f}% · 밴드 ±{ISA_BAND*100:.0f}%p: " + " · ".join(parts)]
+    if ev["isa_cash"] > 0.005 or ev["isa_etc"] > 0.005:
+        L.append(f"  ISA 현금 {ev['isa_cash']*100:.0f}% · 기타 {ev['isa_etc']*100:.0f}%")
+    return L
+
+
 def brief() -> str | None:
     txt = os.environ.get("MY_HOLDINGS", "").strip()
     if not txt:
         return None
-    rules_txt = os.environ.get("MY_RULES", "")
-    loss_limit, semi_cap, price_rules = 0.12, 0.40, {}
-    for ln in rules_txt.splitlines():
-        p = ln.split()
-        if len(p) >= 2 and p[0].upper() == "LOSS_LIMIT":
-            loss_limit = _num(p[1]) or loss_limit
-        elif len(p) >= 2 and p[0].upper() == "SEMI_CAP":
-            semi_cap = _num(p[1]) or semi_cap
-        elif len(p) >= 2 and _num(p[1]):
-            price_rules[p[0].upper()] = _num(p[1])
-    hs, krw, usd = parse(txt)
-    idx = _index()
-    try:
-        ms = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8"))["series"]["USDKRW"]
-        fx = ms[-1][4] if len(ms[-1]) >= 6 else ms[-1][1]
-    except Exception:  # noqa: BLE001
-        fx = 1400.0
-    rows, tot, cost, miss = [], 0.0, 0.0, []
-    for h in hs:
-        r = resolve(h["key"], idx)
-        d = _detail(*r) if r else None
-        if not d:
-            miss.append(h["key"])
-            continue
-        mk, s = r
-        f = fx if mk == "US" else 1.0
-        v = d["close"] * h["qty"] * f
-        c = h["avg"] * h["qty"] * f if h["avg"] else None
-        dv = d.get("drivers") or {}
-        look = ((d.get("etf") or {}).get("look") or {})
-        chain = (dv.get("chain") or {}).get("name") or ("ETF" if d.get("etf") else (d.get("valuation") or {}).get("sector")) or mk
-        st = d.get("stats") or {}
-        c1y = d.get("c1y") or []
-        rows.append({"mk": mk, "s": s, "name": re.sub(r",?\s+(Inc\.?|Corporation|Corp\.?)$", "", re.sub(r"\s*[-–]\s*(Common Stock|Ordinary).*$", "", d.get("name") or s)),
-                     "v": v, "c": c, "r1": st.get("ret1"), "drv": dv.get("score") if not d.get("etf") else look.get("drv"),
-                     "stop": ((d.get("scenarios") or {}).get("bear") or {}).get("stop"), "close": d["close"], "etf": bool(d.get("etf")),
-                     "semi": bool(re.search(r"반도체|IT 하드웨어", chain)) or (d.get("etf") and sum(w for k, w in (look.get("chains") or {}).items() if re.search(r"반도체|IT 하드웨어", k)) > 0.5)
-                     or s in ("MU", "SNDK", "NVDA", "AMD", "AVGO", "TSM", "SOXX", "SMH", "PSI", "SOXL"),
-                     "last2": [x[1] for x in c1y[-2:]]})
-        tot += v
-        if c:
-            cost += c
-    cash = krw + usd * fx
-    nav = tot + cash
-    if not rows:
+    ev = evaluate(txt, os.environ.get("MY_RULES", ""))
+    if not ev:
         return None
-    semi = sum(r["v"] for r in rows if r["semi"])
-    loss = cost - sum(r["v"] for r in rows if r["c"])
+    rows, nav, tot, cost, loss, miss = ev["rows"], ev["nav"], ev["tot"], ev["cost"], ev["loss"], ev["miss"]
+    loss_limit, price_rules = ev["rules"]["loss_limit"], ev["rules"]["price"]
+    cash = ev["cash"]
     room = loss_limit * nav - loss
-    day = sum(r["v"] - r["v"] / (1 + r["r1"]) for r in rows if r["r1"] is not None)
-    L = ["🧑‍💼 <b>PB 아침 점검</b>",
-         f"주식 {tot/nav*100:.0f}% · 현금 {cash/nav*100:.0f}% (금액은 터미널 MY 탭에서만)",
-         f"주식 손익 {(-loss)/cost*100 if cost else 0:+.1f}% · 최근일 {day/nav*100:+.2f}%"]
+    L = ["🧑‍💼 <b>PB 아침 점검</b> <i>분모: 순자산(위성+ISA+현금)</i>",
+         f"주식 {tot/nav*100:.0f}% (위성 {ev['tot_sat']/nav*100:.0f}% · ISA {ev['tot_isa']/nav*100:.0f}%) · 현금 {cash/nav*100:.0f}% (금액은 터미널 MY 탭에서만)",
+         f"주식 손익 {(-loss)/cost*100 if cost else 0:+.1f}% · 최근일 {ev['day']*100:+.2f}%"]
     L.append("")
     L.append("<b>규칙 점검</b>")
     L.append(f"• 손실 한도(순자산 −{loss_limit*100:.0f}%)까지 " + (f"순자산 <b>{room/nav*100:.1f}%</b> 남음 (주식 −{room/tot*100:.1f}% 추가 하락 여유)" if room > 0 else "<b>⛔ 한도 도달 — 메모리 절반 축소 실행</b>"))
-    L.append(f"• 반도체 비중 순자산 {semi/nav*100:.0f}% (상한 {semi_cap*100:.0f}%)" + (" ⛔ 초과 — 추가 매수 금지" if semi / nav > semi_cap + 0.005 else " ✅"))
+    L.append(semi_line(ev))
+    L += isa_lines(ev)
     for code, px in price_rules.items():
         r = next((x for x in rows if x["s"].upper() == code), None)
         if not r:
@@ -150,7 +291,7 @@ def brief() -> str | None:
     for r in sorted(rows, key=lambda x: -x["v"]):
         drv = f" · 드라이버 {r['drv']:+.2f}" if r["drv"] is not None else ""
         pnl = f" · 손익 {(r['v']/r['c']-1)*100:+.1f}%" if r["c"] else ""
-        L.append(f"• {r['name']}{' (ETF)' if r['etf'] else ''} {r['v']/nav*100:.0f}% · 1D {(r['r1'] or 0)*100:+.1f}%{pnl}{drv}")
+        L.append(f"• {r['name']}{' (ETF)' if r['etf'] else ''}{' [ISA]' if r['book'] == 'isa' else ''} {r['v']/nav*100:.0f}% · 1D {(r['r1'] or 0)*100:+.1f}%{pnl}{drv}")
     try:   # 보유 종목·규칙 관련 이벤트 7일 내
         from .calendar_ev import upcoming
         mine = {r["s"] for r in rows}

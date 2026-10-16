@@ -537,6 +537,12 @@ def main() -> None:
                 ap.error("--market 필요")
             run(a.market, a.live, a.prices, a.no_send)
             _views_safe()
+            if a.market == "KR":   # 16:20 규정 알림 (손절선 2일·기한 D-2·반도체 발동선) — 비율만
+                try:
+                    from . import alerts
+                    alerts.run(send=not a.no_send, at_close=True)
+                except Exception as e:  # noqa: BLE001
+                    log.warning("규정 알림 실패: %s", e)
         else:
             if a.mode in ("premarket_kr", "reports", "intraday_kr"):   # 판단 성적표 채점 (다음 거래일 시가가 생기면)
                 try:
