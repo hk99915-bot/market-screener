@@ -1,5 +1,5 @@
 {
- "asof": "2026-10-16 10:35",
+ "asof": "2026-10-16 11:37",
  "date": "2026-10-16",
  "registry_updated": "2026-10-16",
  "summary": {
@@ -62,7 +62,7 @@
      "name": "옵션 감마·풋콜 (코스피200)",
      "state": "감마 음수",
      "grade": "검증전",
-     "line": "풋/콜 OI 1.346 · ATM IV 0.5024 · RV20 0.4684 — 흔들림 큼, 사이즈 주의"
+     "line": "풋/콜 OI 1.327 · ATM IV 0.4943 · RV20 0.4679 — 흔들림 큼, 사이즈 주의"
     },
     {
      "id": "ai_credit",
@@ -153,6 +153,12 @@
      "name": "미장 레짐 (S&P500 50일선·20일 낙폭·VIX)",
      "state": "정상",
      "grade": "검증전"
+    },
+    {
+     "id": "fib_levels",
+     "name": "피보나치 되돌림·하방 Fib 지지선",
+     "state": "n/a",
+     "grade": "F"
     }
    ]
   },
@@ -261,6 +267,12 @@
      "name": "보유기간 습관 (10일+ 보유)",
      "state": "private",
      "grade": "C"
+    },
+    {
+     "id": "fib_levels",
+     "name": "피보나치 되돌림·하방 Fib 지지선",
+     "state": "n/a",
+     "grade": "F"
     }
    ]
   },
@@ -433,7 +445,7 @@
    "alert": false,
    "gate": {},
    "note": "강등된 신호 — 진입 근거로 인용 금지",
-   "asof": "2026-10-16 10:15"
+   "asof": "2026-10-16 10:35"
   },
   {
    "id": "foreign_flow",
@@ -521,7 +533,7 @@
    "alert": false,
    "gate": {},
    "note": "근거 '20일 −15% 이상 하락 중' n=176",
-   "asof": "2026-10-16 10:15"
+   "asof": "2026-10-16 10:35"
   },
   {
    "id": "stock_trend_score",
@@ -579,12 +591,12 @@
    },
    "review_by": "2026-11-15",
    "state": "감마 음수",
-   "value": -816.0,
+   "value": -936.0,
    "bias": null,
    "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.346 · ATM IV 0.5024 · RV20 0.4684 — 흔들림 큼, 사이즈 주의",
-   "asof": "2026-10-16 01:07"
+   "note": "풋/콜 OI 1.327 · ATM IV 0.4943 · RV20 0.4679 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-10-16 02:37"
   },
   {
    "id": "ai_credit",
@@ -747,7 +759,7 @@
    "alert": false,
    "gate": {},
    "note": "5거래일 뒤부터 채점",
-   "asof": "2026-10-16 10:15"
+   "asof": "2026-10-16 10:35"
   },
   {
    "id": "event_calendar",
@@ -1006,6 +1018,27 @@
    "gate": {},
    "note": "가중 0 — 사전등록·검증 전",
    "asof": null
+  },
+  {
+   "id": "fib_levels",
+   "name_ko": "피보나치 되돌림·하방 Fib 지지선",
+   "family": "technical",
+   "status": "강등",
+   "grade": "F",
+   "evidence_src": "reports/studies/fib_levels.md",
+   "roles": {
+    "entry": "reference",
+    "exit": "reference",
+    "allocation": "none"
+   },
+   "review_by": "2027-04-16",
+   "state": "n/a",
+   "value": null,
+   "bias": null,
+   "alert": false,
+   "gate": {},
+   "note": "판독 함수 없음",
+   "asof": null
   }
  ],
  "overrides": {
@@ -1059,7 +1092,8 @@
    "confirm_signals",
    "stock_trend_score",
    "index_abs_momentum",
-   "personal.hold_period"
+   "personal.hold_period",
+   "fib_levels"
   ],
   "폐기": []
  },
