@@ -897,14 +897,16 @@ function myRender(hs,cash,miss){
   // PB 의견
   const op=[];
   const semi=chainL.filter(([k])=>/반도체|IT 하드웨어/.test(k)).reduce((s,x)=>s+x[1],0)+A.filter(a=>a.etf&&a.mk==='US'&&/semi|SOX|PSI|SMH/i.test(a.h.r.s+(a.d.name||''))).reduce((s,a)=>s+a.val*(1-(((a.d.etf||{}).look||{}).coverage||0)),0);
-  if(semi/tot>0.6) op.push(`<b>쏠림</b>: 주식의 <b>${W(semi/tot)}</b>(순자산의 ${W(semi/NAV)})가 반도체·IT 하드웨어 한 사이클입니다. 종목 수는 ${A.length}개지만 실제로는 베팅 하나 — 이 사이클이 꺾이면 전부 같이 꺾입니다. 규칙: 순자산 대비 60% 상한.`);
+  const SEMI_CAP=0.40;   // 규정 [3] 테마 합계 ≤ 전체 투자자산의 40% (2026-10-15 v2.1)
+  if(semi/NAV>SEMI_CAP||semi/tot>0.6) op.push(`<b>쏠림</b>: 반도체·IT 하드웨어 한 사이클이 <b>투자자산의 ${W(semi/NAV)}</b> (주식만 보면 ${W(semi/tot)}). 종목 수는 ${A.length}개지만 실제로는 베팅 하나 — 이 사이클이 꺾이면 전부 같이 꺾입니다. 규칙: 전체 투자자산 대비 ${W(SEMI_CAP)} 상한 → ${semi/NAV>SEMI_CAP?`<b>${K((semi/NAV-SEMI_CAP)*NAV)}원 초과</b> (반등일에 축소)`:'한도 안'}.`);
+  else op.push(`<b>쏠림</b>: 반도체·IT 하드웨어 투자자산의 ${W(semi/NAV)} — 한도(${W(SEMI_CAP)}) 안 ✅`);
   const top=chainL[0]; if(semi/tot<=0.6&&top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
-  if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 ETF부터 줄이면 수수료·추적오차를 같이 없앱니다.`);
+  if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 섹터 ETF(TIGER 200 IT·PSI 등)부터 — 지수 ETF(KODEX 200·S&P500 등 ISA 코어 적립분)는 줄이지 않습니다.`);
   op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}), 최대낙폭 ${pct(Pm.mdd,0)}. ${Pm.sh>2?'<b>이 숫자를 기대값으로 쓰면 안 됩니다.</b> 지난 1년 메모리 대랠리가 그대로 들어간 이례적 값이고, 같은 베팅이 맞았던 결과일 뿐입니다. 볼 것은 샤프가 아니라 변동성·낙폭.':Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':'보통 수준.'}`);
   op.push(`<b>비중</b>: 주식 변동성 ${W(Em.vol)} 기준으로 포트 변동성을 연 20%(주식시장 평균 수준)에 맞추려면 주식 비중 ${W(eqTarget)} (현재 ${W(eqW)}). ${eqW>eqTarget+0.05?`→ 약 ${K((eqW-eqTarget)*NAV)}원 줄이거나 아래 헷지로 같은 효과.`:eqW<eqTarget-0.05?'→ 위험 여력이 남아 있습니다. 다만 같은 체인에 더 넣으면 쏠림만 커집니다.':'→ 적정 범위.'}`);
   if(Pm.cFX<-0.2) op.push(`<b>달러 현금</b>: 포트와 원/달러 상관 ${F(Pm.cFX)} — 주가가 빠질 때 달러가 올라 이미 자연 헷지로 작동하고 있습니다. 달러를 원화로 바꾸면 이 헷지가 사라집니다.`);
   const hb=hedge.filter(h=>h.ty==='inv'&&h.amt>0).sort((a,b)=>b.red-a.red)[0];
-  if(hb) op.push(`<b>단기 보험(인버스)</b>: 가장 효율적인 건 ${esc(hb.nm)}. 현실적인 25% 헷지 = <b>${K(hb.amt/4)}원</b>으로 변동성 ${W(hb.red25)} 감소 (100% 헷지는 ${K(hb.amt)}원이 필요해 비현실적). 인버스·레버리지 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 이벤트 보험으로만.`);
+  if(hb) op.push(`<b>단기 보험(인버스)</b>: 가장 효율적인 건 ${esc(hb.nm)}. 현실적인 25% 헷지 = <b>${K(hb.amt/4)}원</b>으로 변동성 ${W(hb.red25)} 감소 (100% 헷지는 ${K(hb.amt)}원이 필요해 비현실적). 인버스·레버리지 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 이벤트 보험으로만. <b>⚠ 규정 [2]: 인버스·레버리지는 2027-04-15까지 실계좌 금지 — 참고용 수치(모델 북 전용).</b>`);
   const hd=hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).slice(0,2);
   if(hd.length) op.push(`<b>구조적 분산</b>: 주식 10%p를 옮긴다면 ${hd.map(h=>`${esc(h.nm)} (변동성 ${W(h.red)} 감소, 포트 상관 ${F(h.rho)})`).join(', ')}가 가장 효과적이었습니다. 인버스와 달리 들고 있어도 녹지 않습니다.`);
   const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
