@@ -284,7 +284,7 @@ def _cand(L, x):
 
 EVAL = {"kr_regime": _kr_regime, "crash_day_close": _crash_day, "confirm_signals": _confirm, "foreign_flow": _flows,
         "macro_wind": _macro, "breadth_kr": _breadth, "scenario_base_rate": _scen, "stock_trend_score": _stock_trend,
-        "index_abs_momentum": _absmom, "options_gamma": _gamma, "ai_credit": _ai_credit, "stock_bond_corr": _sb_corr,
+        "index_abs_momentum": _absmom, "options_gamma": _gamma, "gamma_regime": _gamma, "ai_credit": _ai_credit, "stock_bond_corr": _sb_corr,
         "us10y": _us10y, "yen_carry": _carry, "japan_semi_lead": _jp_semi, "supply_chain": _chains,
         "committee_ideas": _ideas, "event_calendar": _events, "atr_stop": _atr, "us_regime": _us_regime}
 

@@ -46,6 +46,7 @@ SHIM = """<script>
     getDerivs: () => get('reports/derivs.json'),
     getDerivHist: () => get('data/deriv/daily.csv'),
     getDerivSignals: () => get('reports/studies/derivs_signals.json'),
+    getGammaStudy: () => get('reports/studies/gamma_regime.json'),
     getMacroReleases: () => get('reports/macro_releases.json'),
     getEnglishLatest: () => get('reports/english/latest.json'),
     getEnglishAt: (d) => get('reports/english/' + d + '.json'),

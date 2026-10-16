@@ -145,6 +145,18 @@
       "history": [{"date": "2026-10-16", "change": "등록 — 진입 주의", "why": ""}]
     },
     {
+      "id": "gamma_regime",
+      "name_ko": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
+      "family": "derivs",
+      "question": "숏감마(감마 음수) 구간을 노릴 수 있나? — 다음날 흔들림이 IV 예고보다 크고, 방향이 이어지나?",
+      "inputs": [{"file": "data/deriv/daily.csv", "field": "gex_bn, flip, atm_iv, k200_close, kospi_open·close"}, {"file": "reports/derivs.json", "field": "gex_bn (오늘 상태)"}],
+      "read": {"params": {}, "states": [{"state": "감마 음수", "when": "gex_bn < 0 — 딜러가 움직임을 따라감"}, {"state": "감마 양수", "when": "gex_bn ≥ 0 — 딜러가 움직임을 받아냄"}]},
+      "roles": {"entry": "reference", "exit": "reference", "allocation": "none"},
+      "evidence": {"grade": "검증전", "source": "reports/studies/gamma_regime.json", "n": 272, "date": "2026-10-16", "note": "scripts/study_gamma.py 사전등록(H1 |r1|·H1b 실현/내재·H2 방향 지속). deriv-hist 적재 뒤 매일 자동 재판정.", "effect": "|r1| 음수−양수 0.02379 (p_is 0.0025) · 실현/내재 0.10409 (p_is 0.2731) · 방향 지속 0.01511 (p_is 0.7291)", "next_eval": "2026-10-30"},
+      "status": "사전등록", "review_by": "2026-12-16", "owner": "CIO",
+      "history": [{"date": "2026-10-16", "change": "사전등록 — 참고 전용", "why": "'숏감마 구간을 노릴 수 있나?' 질문 검증"}]
+    },
+    {
       "id": "ai_credit",
       "name_ko": "AI 인프라 신용 감시",
       "family": "bonds_credit",

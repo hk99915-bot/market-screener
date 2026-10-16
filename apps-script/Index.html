@@ -1796,7 +1796,7 @@ function tape(){
   $('#tape').innerHTML=`<div class="tk" style="animation-duration:${Math.max(30,items.length*5)}s">${h}${h}</div>`;
 }
 /* ───── 파생(DERIV) 화면: 흩어진 파생 정보 모음 — reports/derivs.json · data/deriv/daily.csv · reports/studies/derivs_signals.json · live.json K200F (새 수집 없음) ───── */
-const DVX={d:null,h:null,s:null}; let DVCH=[];
+const DVX={d:null,h:null,s:null,g:null}; let DVCH=[];
 function dvLoad(k,fn,parse){ if(DVX[k]!==null) return; DVX[k]=false; const r=google.script.run;
   if(typeof r[fn]!=='function'){ DVX[k]={}; return; }
   r.withSuccessHandler(t=>{ try{ DVX[k]=parse?parse(t):(typeof t==='string'?JSON.parse(t):(t||{})); }catch(e){ DVX[k]={}; } if(view==='deriv') render(); })
@@ -1810,7 +1810,7 @@ function dvB(g){ g=g||'참고'; const c=(g==='A'||g==='B')?'tag g':g==='F'?'tag 
 function dvGrade(lens){ const S=(DVX.s&&DVX.s.signals)||[]; const a=S.filter(x=>x.lens_id===lens).map(x=>x.grade); if(!a.length) return '참고';
   const rk=['A','B','C','F','검증전']; return a.sort((x,y)=>rk.indexOf(x)-rk.indexOf(y))[0]; }
 function derivView(){
-  dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv);
+  dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv); dvLoad('g','getGammaStudy');
   if(DVX.d===false&&DVX.h===false) return '<div class="load">LOADING …</div>';
   const d=DVX.d||{}, R=(DVX.h&&DVX.h.rows)||[], S=DVX.s||{};
   const lv=((L&&L.items)||[]).find(x=>x.key==='K200F')||null;
@@ -1845,7 +1845,7 @@ function derivView(){
   const hist=R.length?`<div class="p c12"><h2>일별 이력<small>data/deriv/daily.csv · ${esc(R[0].date)}~${esc(R[R.length-1].date)} · 옵션·선물 열은 2025-08-29~</small></h2><div class="b mu" style="font-size:12px;white-space:normal">하루 한 번 쌓이는 기록. 선이 한쪽으로 쏠린 정도를 보는 용도 — 꺾였다고 사고팔 근거가 되진 않아(아래 검증 현황 참고).</div></div>
     ${hc('dvc1','베이시스',dvGrade('fut_basis'),'선물−현물(포인트). 0 아래 = 선물이 쌈 → 헤지·공포가 많을 때 자주 나옴. 점선 = 금리·배당으로 계산한 이론값.')}
     ${hc('dvc2','풋/콜 비율 (PCR)',dvGrade('options_pcr'),'1보다 크면 풋(하락 대비 보험)이 콜보다 많음. OI = 쌓인 계약, 거래량 = 그날 거래.')}
-    ${hc('dvc3','감마 노출 · 억원/1%',dvGrade('options_gamma'),'음수 = 시장이 흔들릴 때 헤지 매매가 흔들림을 키우는 쪽(근사·가정 있음). 방향이 아니라 흔들림 크기 참고.')}
+    ${hc('dvc3','감마 노출 · 억원/1%',dvGrade('options_gamma'),'음수 = 시장이 흔들릴 때 헤지 매매가 흔들림을 키우는 쪽(근사·가정 있음). 방향이 아니라 흔들림 크기 참고.'+((DVX.g&&DVX.g.ui_line)?`<br><span title="${esc(DVX.g.summary_ko||'')}">${esc(DVX.g.ui_line)} · reports/studies/gamma_regime.json</span>`:''))}
     ${hc('dvc4','외국인 선물 순매수 · 계약',dvGrade('fut_foreign_flow'),nff>=2?'막대 위 = 순매수, 아래 = 순매도.':`적재 시작 직후라 ${nff}일치뿐 — 쌓이면 막대로 표시. 과거 조회 소스 없음.`)}`:'<div class="p c12"><div class="b mu">일별 이력(data/deriv/daily.csv) 불러오기 전</div></div>';
   // 4) 검증 현황 표
   const sigs=S.signals||[];

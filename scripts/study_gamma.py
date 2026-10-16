@@ -182,10 +182,23 @@ def flip_slope(df, cut):
             "desc": {"below_flip": {"n": int(len(below)), "mean": _r(below.mean())}, "above_flip": {"n": int(len(above)), "mean": _r(above.mean())}}}
 
 
-def next_eval(last: pd.Timestamp, n: int) -> str | None:
-    if n >= MIN_N:
-        return None
-    return str((last + pd.offsets.BDay(MIN_N - n)).date())
+def next_eval(df: pd.DataFrame) -> str | None:
+    """판정 가능해지는 예상 날짜(영업일). 조건: n ≥ 60 그리고 IS 각 레짐 ≥ 20일 · OOS 각 레짐 ≥ 10일.
+    앞으로의 날은 지금까지의 감마 음수 비율로 섞인다고 가정한 추정치 (실제 판정은 매일 재계산)."""
+    d = df[df["abs_r1"].notna()].reset_index(drop=True)
+    n = len(d)
+    neg = d["neg"].to_numpy(float)
+    cum = np.concatenate([[0.0], np.cumsum(neg)])
+    p = float(neg.mean()) if n else 0.2
+    for k in range(0, 1500):
+        tot = n + k
+        c = int(tot * 0.7)
+        neg_is = cum[min(c, n)] + p * max(0, c - n)
+        neg_all = cum[n] + p * k
+        pos_is, pos_oos = c - neg_is, (tot - c) - (neg_all - neg_is)
+        if tot >= MIN_N and min(neg_is, pos_is) >= MIN_GROUP_IS and min(neg_all - neg_is, pos_oos) >= MIN_GROUP_OOS:
+            return None if k == 0 else str((df["date"].iloc[-1] + pd.offsets.BDay(k)).date())
+    return None
 
 
 def episodes(df) -> list[dict]:
@@ -216,14 +229,13 @@ def summary_ko(n, grade, H, nxt) -> str:
          "한 방향으로 밀리기 쉽다는 게 통설이다. 이 연구는 그 통설이 코스피200 에서도 맞는지, 그리고 그게 옵션 가격(IV)에 이미 "
          "들어 있는 정보 이상인지 본다. ")
     s += (f"지금까지 {n}거래일(감마 음수 {h1['n_neg']}일): 다음날 절대 등락은 음수 구간 평균 {pct(d1n['mean'])} vs 양수 {pct(d1p['mean'])}, "
-          f"IV 가 예고한 흔들림 대비 실제 비율은 {rn['mean']} vs {rp['mean']}, 다음날 장중이 전날 방향을 이어간 비율은 "
+          f"IV 가 예고한 흔들림 대비 실제 비율은 {rn['mean']:.2f} vs {rp['mean']:.2f}, 다음날 장중이 전날 방향을 이어간 비율은 "
           f"{pct(cn['mean'])} vs {pct(cp['mean'])}. ")
     if grade == "검증전":
-        s += "표본이 사전 등록 기준에 못 미쳐 위 숫자는 서술 통계일 뿐 유의성 판정이 아니다."
-        if nxt:
-            s += f" 표본 60일 도달 예상 {nxt} 에 자동 판정."
-        else:
-            s += " 감마 음수 날이 IS 구간에 충분히 쌓이면 매일 재계산으로 자동 판정."
+        why = (f"전체 {n}일 < {MIN_N}일" if n < MIN_N else
+               f"앞 70%(학습 구간)의 감마 음수 날이 {h1['n_neg_is']}일 < {MIN_GROUP_IS}일 — 숏감마 날 대부분이 최근(2026-06~)에 몰림")
+        s += f"사전 등록 기준({why})에 못 미쳐 위 숫자는 서술 통계일 뿐 유의성 판정이 아니다."
+        s += f" 예상 판정일 {nxt} (매 거래일 자동 재계산)." if nxt else " 매 거래일 자동 재계산."
     else:
         s += f"사전 등록 기준 판정: 렌즈 등급 {grade} (H1 {h1['grade']} · H1b {h1b['grade']} · H2 {h2['grade']}). "
         if h1b["grade"] in ("F", "C") and h1["grade"] in ("A", "B", "C"):
@@ -235,28 +247,50 @@ def summary_ko(n, grade, H, nxt) -> str:
 
 
 def update_registry(out: dict) -> bool:
+    """views/registry.json 은 손으로 정렬한 파일 → 전체를 다시 쓰지 않고 gamma_regime 블록의 evidence·history 한 줄씩만 바꾼다."""
     try:
-        reg = json.loads(REG.read_text(encoding="utf-8"))
+        text = REG.read_text(encoding="utf-8")
+        reg = json.loads(text)
     except Exception:  # noqa: BLE001
         return False
     L = next((x for x in reg.get("lenses", []) if x.get("id") == LENS), None)
     if not L:
         return False
-    ev = L.setdefault("evidence", {})
-    old = ev.get("grade")
-    new = out["grade"]
+    ev = dict(L.get("evidence") or {})
+    old, new = ev.get("grade"), out["grade"]
+    if old == new and ev.get("next_eval") == out.get("next_eval") and ev.get("n"):
+        return False   # 손으로 관리하는 파일 — 등급·판정 예정일이 바뀔 때만 고친다 (매일 n 만 바뀌는 잡음 커밋 방지)
     H = {h["id"]: h for h in out["hypotheses"]}
-    eff = (f"|r1| 음수−양수 {H['H1']['effect_all']} (p_is {H['H1']['p_is']}) · 실현/내재 {H['H1b']['effect_all']} (p_is {H['H1b']['p_is']}) · "
-           f"방향 지속 {H['H2']['effect_all']} (p_is {H['H2']['p_is']})")
-    changed = (old != new) or ev.get("n") != out["n"]
     ev.update({"grade": new, "source": "reports/studies/gamma_regime.json", "n": out["n"], "date": out["computed"][:10],
-               "effect": eff, "next_eval": out.get("next_eval")})
+               "effect": (f"|r1| 음수−양수 {H['H1']['effect_all']} (p_is {H['H1']['p_is']}) · 실현/내재 {H['H1b']['effect_all']} "
+                          f"(p_is {H['H1b']['p_is']}) · 방향 지속 {H['H2']['effect_all']} (p_is {H['H2']['p_is']})"),
+               "next_eval": out.get("next_eval")})
+    hist = list(L.get("history") or [])
     if old != new:
-        L.setdefault("history", []).append({"date": out["computed"][:10], "change": f"등급 {old} → {new} (자동 판정)",
-                                            "why": "scripts/study_gamma.py 사전등록 기준"})
-    if changed:
-        REG.write_text(json.dumps(reg, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    return changed
+        hist.append({"date": out["computed"][:10], "change": f"등급 {old} → {new} (자동 판정)", "why": "scripts/study_gamma.py 사전등록 기준"})
+    lines = text.split("\n")
+    try:
+        i0 = next(i for i, ln in enumerate(lines) if ln.strip() == f'"id": "{LENS}",')
+    except StopIteration:
+        return False
+    done = set()
+    for i in range(i0, min(i0 + 20, len(lines))):
+        st_ = lines[i].strip()
+        ind = lines[i][: len(lines[i]) - len(lines[i].lstrip())]
+        if st_.startswith('"evidence":') and "ev" not in done:
+            lines[i] = ind + '"evidence": ' + json.dumps(ev, ensure_ascii=False) + ("," if st_.endswith(",") else "")
+            done.add("ev")
+        elif st_.startswith('"history":') and "h" not in done:
+            lines[i] = ind + '"history": ' + json.dumps(hist, ensure_ascii=False) + ("," if st_.endswith(",") else "")
+            done.add("h")
+        if st_ in ("}", "},"):
+            break
+    new_text = "\n".join(lines)
+    if new_text == text:
+        return False
+    json.loads(new_text)   # 깨지면 쓰지 않음
+    REG.write_text(new_text, encoding="utf-8")
+    return True
 
 
 def main() -> None:
@@ -274,7 +308,7 @@ def main() -> None:
     main_h = [H["H1"], H["H1b"], H["H2"]]
     g = lens_grade(main_h) if n >= MIN_N else "검증전"
     last = df["date"].iloc[-1]
-    nxt = next_eval(last, n)
+    nxt = next_eval(df) if g == "검증전" else None
     now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
     out = {
         "id": LENS, "registered": "2026-10-16", "computed": now, "question": "숏감마(감마 음수) 구간을 노릴 수 있나?",
@@ -292,7 +326,8 @@ def main() -> None:
                     "감마 음수 날은 급락 국면(neg_by_month)에 몰려 있어 한두 국면이 결과를 좌우할 수 있다.",
                     "derivs_signals H7(하위 1/3) 결과: IV 를 통제하면 감마 효과가 사라졌다 — H1b 가 그 질문의 사전등록 재검정."],
     }
-    out["ui_line"] = (f"감마 레짐 검증: {g} (n={n}/{MIN_N}" + (f", 판정 예정 {nxt[5:]}" if nxt else "") + ")")
+    cnt = f"n={n}/{MIN_N}" if n < MIN_N else f"n={n}, IS 감마음수 {H['H1']['n_neg_is']}/{MIN_GROUP_IS}일" if g == "검증전" else f"n={n}"
+    out["ui_line"] = f"감마 레짐 검증: {g} ({cnt}" + (f", 판정 예정 {nxt[5:]}" if nxt else "") + ")"
     out["summary_ko"] = summary_ko(n, g, H, nxt)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

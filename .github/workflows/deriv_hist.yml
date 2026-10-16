@@ -49,12 +49,15 @@ jobs:
           else
             mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" ${{ github.event.inputs.redo && format('--redo {0}', github.event.inputs.redo) || '' }} 2>&1 | tee reports/logs/deriv_hist.txt
           fi
+      - name: 감마 레짐 검증 재계산 (scripts/study_gamma.py — 사전등록 기준, 표본 차면 자동 판정)
+        if: github.event.inputs.task != 'probe'
+        run: python scripts/study_gamma.py || echo "::warning::study_gamma 실패 — 이전 결과 유지"
       - name: 저장
         if: always()
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          for p in data/deriv reports/deriv_hist_status.json reports/logs/deriv_probe.txt reports/logs/deriv_hist.txt; do [ -e "$p" ] && git add -A "$p"; done; true
+          for p in data/deriv reports/deriv_hist_status.json reports/studies/gamma_regime.json views/registry.json reports/logs/deriv_probe.txt reports/logs/deriv_hist.txt; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "deriv: $(date -u +%FT%H:%M)"
           git stash -q -u 2>/dev/null || true
           ok=0
