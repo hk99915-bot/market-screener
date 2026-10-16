@@ -1,0 +1,426 @@
+{
+ "schema": {
+  "date": "Date",
+  "symbol": "String",
+  "open": "Float32",
+  "high": "Float32",
+  "low": "Float32",
+  "close": "Float32",
+  "adj_close": "Float32",
+  "volume": "Float64",
+  "src": "String"
+ },
+ "files": {
+  "kr_index_daily": {
+   "rows": 8765,
+   "bytes": 135233,
+   "symbols": {
+    "KOSDAQ": {
+     "first": "2024-09-19",
+     "last": "2026-10-16",
+     "rows": 503,
+     "source": "macro_series"
+    },
+    "KOSPI": {
+     "first": "2010-01-04",
+     "last": "2026-10-16",
+     "rows": 4131,
+     "source": "deriv_csv"
+    },
+    "KOSPI200": {
+     "first": "2010-01-04",
+     "last": "2026-10-16",
+     "rows": 4131,
+     "source": "deriv_csv"
+    }
+   }
+  },
+  "kr_sector_daily": {
+   "rows": 110081,
+   "bytes": 842007,
+   "symbols": {
+    "EW:IT 서비스": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:KOSDAQ": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:KOSPI": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:건설": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:금속": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:금융": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:기계·장비": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:기타금융": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:기타제조": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:보험": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:부동산": {
+     "first": "2013-12-12",
+     "last": "2026-10-16",
+     "rows": 2727,
+     "source": "ew_composite"
+    },
+    "EW:비금속": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:섬유·의류": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:오락·문화": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:운송·창고": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:운송장비·부품": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:유통": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:음식료·담배": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:의료·정밀기기": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:일반서비스": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:전기·가스": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:전기·전자": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:제약": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:종이·목재": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:증권": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:통신": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    },
+    "EW:화학": {
+     "first": "2010-01-05",
+     "last": "2026-10-16",
+     "rows": 4129,
+     "source": "ew_composite"
+    }
+   }
+  },
+  "us_daily": {
+   "rows": 103181,
+   "bytes": 2213676,
+   "symbols": {
+    "AAPL": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "AMAT": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "AMD": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "AMZN": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "ASML": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "AVGO": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "FXI": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "GOOGL": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "ITA": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "IWM": {
+     "first": "2010-01-04",
+     "last": "2025-12-31",
+     "rows": 4024,
+     "source": "hist_parquet"
+    },
+    "KLAC": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "LIT": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "LRCX": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "META": {
+     "first": "2012-05-18",
+     "last": "2026-10-14",
+     "rows": 3622,
+     "source": "hist_parquet"
+    },
+    "MSFT": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "MU": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "NVDA": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "QQQ": {
+     "first": "2010-01-04",
+     "last": "2025-12-31",
+     "rows": 4024,
+     "source": "hist_parquet"
+    },
+    "SNDK": {
+     "first": "2025-02-13",
+     "last": "2026-10-14",
+     "rows": 419,
+     "source": "hist_parquet"
+    },
+    "SPY": {
+     "first": "2010-01-04",
+     "last": "2025-12-31",
+     "rows": 4024,
+     "source": "hist_parquet"
+    },
+    "STX": {
+     "first": "2010-01-04",
+     "last": "2025-12-31",
+     "rows": 4024,
+     "source": "hist_parquet"
+    },
+    "TSLA": {
+     "first": "2010-06-29",
+     "last": "2026-10-14",
+     "rows": 4099,
+     "source": "hist_parquet"
+    },
+    "TSM": {
+     "first": "2010-01-04",
+     "last": "2026-10-14",
+     "rows": 4221,
+     "source": "hist_parquet"
+    },
+    "URA": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "WDC": {
+     "first": "2010-01-04",
+     "last": "2025-12-31",
+     "rows": 4024,
+     "source": "hist_parquet"
+    },
+    "XBI": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "XLF": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "XLP": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "XLY": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "^GSPC": {
+     "first": "2010-01-04",
+     "last": "2026-10-15",
+     "rows": 4222,
+     "source": "hist_parquet"
+    },
+    "^IXIC": {
+     "first": "2010-01-04",
+     "last": "2026-10-15",
+     "rows": 4222,
+     "source": "hist_parquet"
+    },
+    "^RUT": {
+     "first": "2024-09-16",
+     "last": "2026-10-15",
+     "rows": 523,
+     "source": "macro_series"
+    },
+    "^SOX": {
+     "first": "2025-08-15",
+     "last": "2026-10-14",
+     "rows": 293,
+     "source": "chains_json"
+    },
+    "^TNX": {
+     "first": "2010-01-04",
+     "last": "2026-10-15",
+     "rows": 4220,
+     "source": "hist_parquet"
+    },
+    "^VIX": {
+     "first": "2010-01-04",
+     "last": "2026-10-15",
+     "rows": 4224,
+     "source": "hist_parquet"
+    }
+   }
+  }
+ },
+ "total_bytes": 3190916,
+ "note": "yfinance 출처는 close==adj_close(배당·분할 반영), pykrx/KRX 는 close 원주가·adj_close 분할보정, EW: 합성지수 2010-01-04=1000",
+ "built": "2026-10-16"
+}

@@ -1,0 +1,55 @@
+name: hist
+
+# 연구용 시세 창고 갱신 — data/hist/{kr_etf,kr_index,kr_sector,us}_daily.parquet + _manifest.json
+# 러너는 야후·KRX 에 접근 가능 → scripts/build_hist.py 가 2010 년부터 증분 백필 (심볼별 마지막 날짜 -14일부터).
+# 매주 토 20:00 UTC (일 05:00 KST) + 수동. 오프라인 병합 결과와 같으면 커밋하지 않는다.
+on:
+  schedule:
+    - cron: "0 20 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hist
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 창고 빌드 (네트워크 백필)
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python scripts/build_hist.py --network
+      - name: 요약
+        if: always()
+        run: |
+          python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          p = pathlib.Path("data/hist/_manifest.json")
+          if p.exists():
+              m = json.loads(p.read_text())
+              print(f"built {m.get('built')} — total {m.get('total_bytes', 0) / 1e6:.1f} MB\n")
+              print("| file | symbols | rows | range |\n|---|---|---|---|")
+              for f, i in m["files"].items():
+                  s = i["symbols"]
+                  print(f"| {f} | {len(s)} | {i['rows']} | {min(v['first'] for v in s.values())} ~ {max(v['last'] for v in s.values())} |")
+          EOF
+      - name: 저장
+        if: always()
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add data/hist/*_daily.parquet data/hist/_manifest.json 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m "hist: 시세 창고 갱신 $(date -u +%F)"
+          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 15; done
