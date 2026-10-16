@@ -2,7 +2,13 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 25개 · 진행 0 · 검수 7 · 대기 6 · 보류 0 · 완료 12
+기준일 2026-10-16 · 작업 27개 · 진행 1 · 검수 7 · 대기 7 · 보류 0 · 완료 12
+
+## 진행 (1)
+
+| 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
+|---|---|---|---|---|---|---|---|---|
+| P2 | `fib-validate` | 피보나치·하방 Fib 지지 효과 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_fib_levels.py`<br>`reports/studies/fib_levels.md`<br>`reports/studies/fib_levels.json` | — | H1 터치 후 반등 / H2 이탈 후 추가 하락 / H3 61.8·100% 우위. IS 2019~2023, OOS 2024~. |
 
 ## 검수 (7)
 
@@ -16,7 +22,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (6)
+## 대기 (7)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -25,6 +31,7 @@
 | P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | PB | — | 2026-10-16 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system`, `gas-repaste` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. |
 | P0 | `repo-cleanup` | 저장소 대청소: 데이터 브랜치 분리·Pages Actions 배포·기록 정리(filter-repo) | 개발 | — | 2026-10-18 | `.github/workflows/*`<br>`scripts/build_pages.py` | — | 겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | — | — | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. |
+| P2 | `fib-lens` | VIEW 레지스트리에 fib_levels 렌즈 등록 (검증 등급 반영) | CIO | 2026-10-16 | 2026-10-17 | `views/registry.json` | `fib-validate` | 등급 C 미만이면 역할 reference 이하. |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. |
 
 ## 완료 (12)

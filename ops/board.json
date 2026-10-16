@@ -428,6 +428,38 @@
       "files": [],
       "depends_on": [],
       "notes": "검수(PB 10/16): private 리포트 존재·확정/미확인 구분·캘린더 날짜 일치 확인."
+    },
+    {
+      "id": "fib-validate",
+      "title": "피보나치·하방 Fib 지지 효과 사전등록 검증",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "진행",
+      "started": "2026-10-16",
+      "due": "2026-10-17",
+      "files": [
+        "scripts/study_fib_levels.py",
+        "reports/studies/fib_levels.md",
+        "reports/studies/fib_levels.json"
+      ],
+      "depends_on": [],
+      "notes": "H1 터치 후 반등 / H2 이탈 후 추가 하락 / H3 61.8·100% 우위. IS 2019~2023, OOS 2024~."
+    },
+    {
+      "id": "fib-lens",
+      "title": "VIEW 레지스트리에 fib_levels 렌즈 등록 (검증 등급 반영)",
+      "owner": "CIO",
+      "priority": "P2",
+      "status": "대기",
+      "started": "2026-10-16",
+      "due": "2026-10-17",
+      "files": [
+        "views/registry.json"
+      ],
+      "depends_on": [
+        "fib-validate"
+      ],
+      "notes": "등급 C 미만이면 역할 reference 이하."
     }
   ]
 }
