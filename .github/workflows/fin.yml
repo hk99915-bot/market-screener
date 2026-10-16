@@ -1,6 +1,6 @@
 name: financials
 
-# DART 재무제표 수집 (주요계정: 전 종목 / 전체 재무제표: 우선 300종목, 실행당 3,000콜 예산)
+# DART 재무제표 수집 (주요계정: 전 종목 / 전체 재무제표: 우선 300종목, 실행당 1,200콜·45분 예산 — 매일 조금씩 이어받음)
 on:
   schedule:
     - cron: "30 18 * * *"   # 03:30 KST 매일 (백필이 끝나면 새 분기 보고서만 받음)
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 100
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,6 +29,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+          FIN_BUDGET_MIN: "45"   # DART 수집 벽시계 예산(분) — 나눠서 천천히, 매일 이어받음
         run: |
           # 빨리 끝나는 것부터 — DART 재무 백필이 3시간 제한을 다 써서 뒤 작업이 못 돌던 문제 (10/16)
           python -m screener.main --mode portfolios --no-send || true

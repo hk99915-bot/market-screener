@@ -13,6 +13,7 @@ import io
 import json
 import logging
 import re
+import os
 import time
 import zipfile
 from datetime import datetime, timedelta
@@ -121,6 +122,18 @@ def _load(p, schema) -> pl.DataFrame:
     return pl.read_parquet(p) if p.exists() else pl.DataFrame(schema=schema)
 
 
+# 벽시계 예산 — 워크플로 3시간 제한을 DART 백필이 다 써서 뒤 작업이 못 돌던 문제(10/16). 기본 45분, FIN_BUDGET_MIN 로 조절.
+_T0 = time.monotonic()
+
+
+def _over() -> bool:
+    try:
+        lim = float(os.environ.get("FIN_BUDGET_MIN", "45"))
+    except ValueError:
+        lim = 45.0
+    return (time.monotonic() - _T0) > lim * 60
+
+
 def update_multi(codes: list[str], cmap: dict[str, str], refetch_last: int = 2) -> int:
     old = _load(MULTI, MULTI_SCHEMA)
     have = set(zip(old["year"].to_list(), old["reprt"].to_list())) if len(old) else set()
@@ -139,19 +152,29 @@ def update_multi(codes: list[str], cmap: dict[str, str], refetch_last: int = 2) 
                             "amount": _num(r.get("thstrm_amount")), "add_amount": _num(r.get("thstrm_add_amount"))})
             time.sleep(0.1)
         log.info("주요계정 %d %s 누적 %d행", y, REPRT[rc][1], len(new))
-    if not new:
-        return 0
+        if new:                                   # 기간 단위 중간 저장 — 끊겨도 받은 만큼 남김
+            old = _save_multi(old, new)
+            new = []
+        if _over():
+            log.info("재무 벽시계 예산 소진 — 주요계정 나머지 기간은 다음 실행에서")
+            break
+    if new:
+        old = _save_multi(old, new)
+    return len(old)
+
+
+def _save_multi(old: pl.DataFrame, new: list[dict]) -> pl.DataFrame:
     add = pl.DataFrame(new, schema=MULTI_SCHEMA)
     keys = ["code", "year", "reprt", "fs_div", "sj_div", "account"]
     df = pl.concat([old, add]).unique(keys, keep="last")
     FIN.mkdir(parents=True, exist_ok=True)
     df.write_parquet(MULTI)
-    return len(add)
+    return df
 
 
 # ───────────── 2) 전체 재무제표 (우선 종목) ─────────────
 
-def update_full(codes: list[str], cmap: dict[str, str], budget: int = 3000) -> int:
+def update_full(codes: list[str], cmap: dict[str, str], budget: int = 1200) -> int:
     old = _load(FULL, FULL_SCHEMA)
     have = set(zip(old["code"].to_list(), old["year"].to_list(), old["reprt"].to_list())) if len(old) else set()
     tried = json.loads(TRIED.read_text()) if TRIED.exists() else {}
@@ -169,7 +192,7 @@ def update_full(codes: list[str], cmap: dict[str, str], budget: int = 3000) -> i
                 continue
             if k in tried:
                 continue
-            if used >= budget:
+            if used >= budget or _over():
                 break
             got = False
             for fs in ("CFS", "OFS"):                     # 연결 우선, 없으면 별도
@@ -191,8 +214,8 @@ def update_full(codes: list[str], cmap: dict[str, str], budget: int = 3000) -> i
             if new and used % 300 < 2:          # 중간 저장 (작업이 시간 초과로 끊겨도 받은 만큼 남김)
                 _save_full(old, new, tried)
                 log.info("전체재무제표 중간 저장: %d콜 · %d행", used, len(new))
-        if used >= budget:
-            log.info("전체재무제표 예산 %d콜 소진 — 다음 실행에서 이어서", budget)
+        if used >= budget or _over():
+            log.info("전체재무제표 예산 소진(%d콜 사용, 벽시계 %s) — 다음 실행에서 이어서", used, "초과" if _over() else "여유")
             break
     _save_full(old, new, tried)
     return len(new)
@@ -356,7 +379,7 @@ def priority_codes(limit: int = 300) -> list[str]:
     return out[:limit]
 
 
-def update(full_budget: int = 3000) -> dict:
+def update(full_budget: int = 1200) -> dict:
     if not key():
         log.info("DART_API_KEY 없음 — 재무제표 건너뜀")
         return {}
