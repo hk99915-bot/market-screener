@@ -6,6 +6,7 @@ reports/decisions.json:
                         "PB": {...}},
               "result": {...채점 후}}]}
 entry "close" = 결정일 종가, exit "next_open" = 다음 거래일 시가 / "next_close" / "d5_close"(5거래일 뒤 종가)
+               / "trail"(추세 끌고가기: 종가 20일선 이탈 또는 −8% 손절 시 그날 종가, 최대 60거래일)
 entry "open"  = 결정일(세션일) 시가 — 미장 대결. exit "same_close" = 같은 날 종가,
                "d5_close" = 진입일 포함 5번째 세션 종가 (진입일 + 4거래일 뒤 종가; 시가 진입은 진입일 자체가 1세션이므로)
 채점: KR = data/kr_prices.parquet(KRX 확정 종가) + 없는 날만 야후(.KS/.KQ), US = 야후 — 결정일 다음 거래일 데이터가 생기면 손익(%·원) 계산, 승자 표시.
@@ -122,6 +123,22 @@ def _score_pick(p: dict, date: str) -> dict | None:
         sell, when = after[0]["o"], after[0]["d"] + " 시가"
     elif ex == "next_close":
         sell, when = after[0]["c"], after[0]["d"] + " 종가"
+    elif ex == "trail":   # 추세 끌고가기 (규정 [5]): 종가 20일선 아래 마감 또는 진입가 −8% 이하 → 그날 종가 청산, 최대 60거래일
+        from datetime import date as _date, timedelta as _td
+        hist = [b for b in _bars(p["ticker"], str(_date.fromisoformat(date) - _td(days=45))) if b["d"] <= date and b["c"]]
+        closes = [b["c"] for b in hist]
+        sell = when = None
+        for i, b in enumerate(after[:60]):
+            if b["c"] is None:
+                return None
+            closes.append(b["c"])
+            sma = sum(closes[-20:]) / 20 if len(closes) >= 20 else None
+            why = "−8% 손절" if b["c"] <= buy * 0.92 else "20일선 이탈" if sma and b["c"] < sma else "60거래일 만기" if i == 59 else None
+            if why:
+                sell, when = b["c"], f"{b['d']} 종가 ({why})"
+                break
+        if sell is None:
+            return None   # 아직 보유 중
     else:
         if len(after) < 5:
             return None

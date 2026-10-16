@@ -281,11 +281,11 @@ def apply_issue(title: str, body: str, created_at: str) -> str:
         if not toks or not re.fullmatch(r"[0-9A-Za-z]{6}|[A-Za-z.]{1,6}", toks[0]):
             return "본문 첫 줄을 '종목코드 [금액] [시가|종가|5일]' 또는 '현금'으로 적어줘."
         amt = next((float(x) for x in toks[1:] if re.fullmatch(r"\d+(\.\d+)?", x)), NOTIONAL)
-        ex = "next_close" if "종가" in first else "d5_close" if "5일" in first else "next_open"
+        ex = "trail" if ("끌고" in first or "추세" in first or "trail" in first.lower()) else "next_close" if "종가" in first else "d5_close" if "5일" in first else "next_open"
         pick = {"ticker": toks[0], "name": NAMES.get(toks[0], toks[0]), "notional": amt, "entry": "close", "exit": ex}
     it["picks"]["나"] = pick | {"submitted": t.strftime("%H:%M")}
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    return f"기록 완료 ✅ {d} 나: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})"
+    return f"기록 완료 ✅ {d} 나: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})"
 
 
 # ── 매도 타점 대결: '지금 팔까(손절·익절) 말까' ─────────────────────────────
@@ -473,7 +473,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
         ex_msgs.append(f"• {name}: <b>{act}</b> — {e.get('why', '')} " + ((plan_line(e.get("plan")) or "") + " " if e.get("plan") else "") +
                        f"[<a href=\"{issue_url_exit(code, '보유')}\">나는 보유</a> · <a href=\"{issue_url_exit(code, '매도')}\">나는 매도</a>]")
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가"} | ({"d5_close": "5거래일째 종가", "same_close": "당일 종가"} if us else {})
+    ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"} | ({"d5_close": "5거래일째 종가", "same_close": "당일 종가"} if us else {})
     if us:
         dl = us_open_kst(d).astimezone(KST)
         msg = ["💬 <b>PB 판단 · 미장</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})" + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
