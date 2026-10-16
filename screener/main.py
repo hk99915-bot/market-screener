@@ -309,6 +309,14 @@ def _views_safe() -> None:
         log.info("관점 귀속 실패: %s", e)
 
 
+
+def _cmt_session() -> str:
+    """운용회의 세션 이름 = 실행 시각(KST) 기준: ~09:00 장전 · 11:00~13:00 점심 · ~15:30 장중 · 이후 장후."""
+    from datetime import datetime as _dt
+    from zoneinfo import ZoneInfo as _Z
+    _hm = _dt.now(_Z("Asia/Seoul")).strftime("%H%M")
+    return "장전" if _hm < "0900" else "점심" if "1100" <= _hm < "1300" else "장중" if _hm < "1530" else "장후"
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
@@ -443,11 +451,7 @@ def main() -> None:
                 derivs.build()
             except Exception as e:  # noqa: BLE001
                 log.warning("옵션 포지션 실패: %s", e)
-            from datetime import datetime as _dt
-            from zoneinfo import ZoneInfo as _Z
-            _hm = _dt.now(_Z("Asia/Seoul")).strftime("%H%M")   # 실행 시각으로 세션 이름 (장중에 '장후'로 찍히던 문제)
-            _ses = "장전" if _hm < "0900" else "점심" if "1100" <= _hm < "1300" else "장중" if _hm < "1530" else "장후"
-            o = committee.build(_ses)
+            o = committee.build(_cmt_session())
             ou = committee.build_us()
             if not a.no_send:
                 from .report import send_telegram
@@ -567,10 +571,10 @@ def main() -> None:
                     japan.build()
                 except Exception as e:  # noqa: BLE001
                     log.warning("일본 실패: %s", e)
-            if a.mode in ("premarket_kr", "intraday_kr"):   # 장전·장중 운용회의 (웹 기록용, 텔레그램은 저녁 회의만)
+            if a.mode in ("premarket_kr", "intraday_kr"):   # 장전·장중 운용회의 (웹 갱신용, 텔레그램 없음 — 세션은 실행 시각 기준)
                 try:
                     from . import committee
-                    committee.build("장전" if a.mode == "premarket_kr" else "장중")
+                    committee.build("장전" if a.mode == "premarket_kr" else _cmt_session())
                 except Exception as e:  # noqa: BLE001
                     log.warning("운용회의(%s) 실패: %s", a.mode, e)
             if a.mode == "premarket_kr":

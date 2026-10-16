@@ -337,6 +337,7 @@ def build(session: str = "장후") -> dict:
         stance["views"] = _views.committee_summary(_views.build())
     except Exception as e:  # noqa: BLE001
         log.info("VIEW 요약 실패: %s", e)
+    _dl = None
     try:
         _dl = _delta_line(k, scen, stance, der, session)
         if _dl:
@@ -354,6 +355,10 @@ def build(session: str = "장후") -> dict:
            "ideas": {"long": longs, "avoid": avoid}, "squeeze": sq, "events": ev7[:10], "stance": stance,
            "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "rv20", "skew", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
            "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {})}
+    try:   # 모닝 미팅 v2 섹션 (기존 키는 유지, 새 키만 추가)
+        _v2_build(out, k, der, chains, themes, peers, cal, stu, _bucket(k, stu), _dl, session)
+    except Exception as e:  # noqa: BLE001
+        log.warning("운용회의 v2 실패: %s", e)
     OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
     _record(out)
     try:
@@ -361,6 +366,11 @@ def build(session: str = "장후") -> dict:
         OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
     except Exception as e:  # noqa: BLE001
         log.warning("운용회의 채점 실패: %s", e)
+    try:
+        out["track"] = {**(out.get("track") or {}), **_v2_track(out)}
+        OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        log.info("운용회의 v2 성적 실패: %s", e)
     _archive("committee", out)
     log.info("운용회의 자료 생성")
     return out
@@ -402,22 +412,7 @@ def close_delta() -> list[str]:
 def _delta_line(k: dict, scen: list[dict], stance: dict, der: dict, session: str) -> str | None:
     """직전 운용회의(다른 세션·이전 날) 대비 무엇이 바뀌었나 — 같은 문장이 반복돼 보이는 문제를 한 줄로 해소."""
     import re as _re
-    hd = REPORT_DIR / "archive" / "committee"
-    me = f"{_kst_today()}_{session}"
-    prev = None
-    try:   # _index.json 은 (날짜, 세션 순서, 시각) 내림차순 — 체크아웃 후 파일 mtime 은 믿을 수 없음
-        days = json.loads((hd / "_index.json").read_text(encoding="utf-8")).get("days", [])
-    except Exception:  # noqa: BLE001
-        days = []
-    for x in days:
-        fid = x.get("id") or x.get("date")
-        if fid == me:
-            continue
-        try:
-            prev = json.loads((hd / f"{fid}.json").read_text(encoding="utf-8"))
-            break
-        except Exception:  # noqa: BLE001
-            continue
+    prev = _prev_meeting(session)
     if not prev:
         return None
     parts = []
@@ -518,6 +513,16 @@ def score() -> dict:
 
 
 def telegram_text(o: dict) -> str:
+    """v2(bottom_line 있음)면 모닝 미팅 요약(25줄 이내), 아니면 예전 전체본."""
+    if o.get("bottom_line"):
+        try:
+            return _telegram_v2(o)
+        except Exception as e:  # noqa: BLE001
+            log.warning("텔레그램 v2 실패 → 예전 형식: %s", e)
+    return _telegram_text_v1(o)
+
+
+def _telegram_text_v1(o: dict) -> str:
     L = ["🏛 <b>운용회의 · " + o.get("session", "") + "</b> · " + o["date"]]
     L += [f"• {x}" for x in o["head"]]
     L += ["", "<b>[시나리오]</b> " + o["verdict"]]
@@ -562,6 +567,748 @@ def telegram_text(o: dict) -> str:
     else:
         L.append("<i>회의 성적: 기록 시작 — 5거래일 뒤부터 채점</i>")
     return "\n".join(L)
+
+
+# ───────────── 모닝 미팅 v2 (cmt-v2) ─────────────
+# 멀티매니저 헤지펀드 데일리 모닝 미팅 형식: 결론(bottom_line) → 탑다운(macro) → 크로스에셋·포지셔닝 → 섹터 → 종목(bottom_up)
+# → 트레이드 아이디어(ideas_top) → 헤지·비대칭 → 프리모템 → 성적(track). 숫자는 reports/*.json 에 있는 것만 쓰고, 없으면 그 줄을 뺀다.
+# 기존 키(stance·scenarios·ideas·derivs …)는 그대로 두고 새 키만 더한다 (14:42 PB 예약 작업이 기존 키를 읽음).
+V2_FOOTER = "실계좌 적용: VIEW 게이트 통과 항목만 (개인 북은 비공개 PB 판단 참조)"
+LIGHTS = {"red": "🔴 오늘 행동 필요", "yellow": "🟡 지켜보기", "green": "🟢 할 일 없음"}
+
+
+def _prev_meeting(session: str) -> dict | None:
+    """직전 운용회의(같은 날 같은 세션 제외) 기록. _index.json 은 (날짜, 세션 순서, 시각) 내림차순."""
+    hd = REPORT_DIR / "archive" / "committee"
+    me = f"{_kst_today()}_{session}"
+    try:
+        days = json.loads((hd / "_index.json").read_text(encoding="utf-8")).get("days", [])
+    except Exception:  # noqa: BLE001
+        days = []
+    for x in days:
+        fid = x.get("id") or x.get("date")
+        if fid == me:
+            continue
+        try:
+            return json.loads((hd / f"{fid}.json").read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+    return None
+
+
+def _ev_time(e: dict) -> str | None:
+    """캘린더 메모에서 한국 시각 추출 ('… → 한국 21:30', '한국 11:00'). 없으면 None."""
+    import re as _re
+    m = _re.search(r"한국\s*(?:\d{1,2}/\d{1,2}\s*)?(\d{1,2}:\d{2})", str(e.get("note") or ""))
+    return m.group(1).zfill(5) if m else None
+
+
+def _series_move(ms: dict, key: str, bp: bool = False) -> dict | None:
+    """macro_series 마지막 하루 변화와 60일 일간 변화 표준편차 대비 크기(z). bp=True 면 금리(%) 차이를 bp 로."""
+    rows = ms.get(key) or []
+    c = [r[4] if len(r) >= 6 else r[1] for r in rows]
+    c = [x for x in c if x]
+    if len(c) < 25:
+        return None
+    ch = [(c[i] - c[i - 1]) * 100 if bp else c[i] / c[i - 1] - 1 for i in range(max(1, len(c) - 61), len(c))]
+    sd = st.pstdev(ch[:-1]) if len(ch) > 5 else 0
+    return {"last": c[-1], "d1": ch[-1], "z": (ch[-1] / sd) if sd else None, "date": str(rows[-1][0])}
+
+
+def _regime(mv: dict) -> dict:
+    r = next((x for x in (mv or {}).get("rows", []) if x.get("key") == "KOSPI"), {})
+    v50, v200, hi = r.get("vs50"), r.get("vs200"), r.get("from_hi")
+    if v50 is None or v200 is None:
+        return {}
+    if v200 < 0 and v50 < 0:
+        lab = "하락장"
+    elif v200 < 0 or (hi is not None and hi <= -0.10):
+        lab = "회복"
+    else:
+        lab = "상승"
+    return {"label": lab, "line": f"레짐 {lab} — 코스피 200일선 대비 {v200*100:+.1f}%, 50일선 대비 {v50*100:+.1f}%"
+            + (f", 52주 고점 대비 {hi*100:+.0f}%" if hi is not None else "") + " (규칙: 200·50일선 위치)"}
+
+
+def _v2_macro(mv: dict, prev: dict | None) -> dict:
+    ms = (_j("macro_series.json", {}) or {}).get("series", {})
+    bonds = _j("bonds.json", {}) or {}
+    rg = _regime(mv)
+    glob, dom, changed = [], [], []
+    spec = [("SPX", "S&P500", False), ("NASDAQ", "나스닥", False), ("US10Y", "미 10년", True), ("DXY", "달러인덱스", False),
+            ("WTI", "WTI", False), ("VIX", "VIX", False), ("USDJPY", "엔/달러", False), ("NIKKEI", "닛케이", False)]
+    for key, nm, bp in spec:
+        m = _series_move(ms, key, bp)
+        if not m:
+            continue
+        if bp:
+            s = f"{nm} {m['last']:.2f}% ({m['d1']:+.0f}bp)"
+        elif key == "VIX":
+            s = f"{nm} {m['last']:.1f} ({m['d1']*100:+.1f}%)"
+        else:
+            s = f"{nm} {m['last']:,.2f} ({m['d1']*100:+.1f}%)"
+        s += f" · {m['date'][5:]}"
+        big = m["z"] is not None and abs(m["z"]) >= 1.5
+        glob.append({"t": s, "z": round(m["z"], 1) if m["z"] is not None else None, "big": big})
+        if big:
+            changed.append(f"{nm} 하루 변화가 60일 평균 변동의 {abs(m['z']):.1f}배 ({'상승' if m['d1'] > 0 else '하락'})")
+        if key == "US10Y":
+            u2 = ((bonds.get("us") or {}).get("chg") or {}).get("2Y") or {}
+            if u2.get("v") is not None:
+                glob.append({"t": f"미 2년 {u2['v']:.2f}% ({(u2.get('d1') or 0):+.0f}bp) · {str(u2.get('date', ''))[5:]}", "z": None, "big": False})
+            sp = (bonds.get("spreads") or {}).get("us_10_2") or {}
+            if sp.get("v") is not None:
+                glob.append({"t": f"미 10Y−2Y {sp['v']*100:+.0f}bp (1주 {(sp.get('w1') or 0):+.0f}bp)", "z": None, "big": False})
+    jp = _j("japan.json", {}) or {}
+    if (jp.get("carry") or {}).get("flag"):
+        changed.append("엔 캐리 청산 경계 규칙 발동 (엔/달러 5일 −3% 이하)")
+    m = _series_move(ms, "USDKRW")
+    if m:
+        dom.append(f"원/달러 {m['last']:,.1f} ({m['d1']*100:+.2f}%) · {m['date'][5:]}")
+        if m["z"] is not None and abs(m["z"]) >= 1.5:
+            changed.append(f"원/달러 하루 변화가 60일 평균 변동의 {abs(m['z']):.1f}배")
+    kr = (bonds.get("kr") or {}).get("chg") or {}
+    for t in ("3Y", "10Y"):
+        x = kr.get(t) or {}
+        if x.get("v") is not None:
+            dom.append(f"국고 {t.replace('Y', '년')} {x['v']:.3f}% (하루 {(x.get('d1') or 0):+.1f}bp · 1주 {(x.get('w1') or 0):+.1f}bp) · {str(x.get('date', ''))[5:]}")
+    kus = (bonds.get("spreads") or {}).get("krus_10") or {}
+    if kus.get("v") is not None:
+        dom.append(f"한·미 10년 금리차 {kus['v']*100:+.0f}bp (1개월 {(kus.get('m1') or 0):+.0f}bp)")
+    _acl = _ai_credit_line()
+    if _acl:
+        dom.append(_acl)
+    # 지표 발표: 결과 vs 직전 (컨센서스 데이터는 수집하지 않음 → '예상 대비'는 표시 안 함)
+    today = _kst_today()
+    rel = []
+    for sid, x in ((_j("macro_releases.json", {}) or {}).get("series") or {}).items():
+        try:
+            if (today - date.fromisoformat(str(x.get("seen"))[:10])).days > 7:
+                continue
+        except Exception:  # noqa: BLE001
+            continue
+        u = "천명" if x.get("how") == "mom_k" else "%"
+        rel.append(f"{x.get('label')} {x.get('value'):,.2f}{u} (직전 {x.get('prev'):,.2f}{u}, {str(x.get('period', ''))[:7]}) — 발표 확인 {str(x.get('seen'))[5:10]}")
+    cal = (_j("calendar.json", {}) or {}).get("events", [])
+    up = []
+    for e in cal:
+        try:
+            d = date.fromisoformat(e["date"])
+        except Exception:  # noqa: BLE001
+            continue
+        if e.get("type") == "매크로" and today <= d <= today + timedelta(days=7) and e.get("imp", 1) >= 2:
+            tm = _ev_time(e)
+            up.append(f"{e['date'][5:]}{' ' + tm if tm else ''} {e['name']}" + (" ★" if e.get("imp", 1) >= 3 else ""))
+    if prev and rg.get("label"):
+        pr = ((prev.get("macro") or {}).get("regime") or {}).get("label")
+        if pr and pr != rg["label"]:
+            changed.insert(0, f"레짐 전환 {pr}→{rg['label']}")
+    return {"regime": rg, "global": glob, "domestic": dom, "releases": rel, "upcoming": up[:6],
+            "changed": changed or ["밤사이 큰 변화 없음 (모든 지표 하루 변화가 60일 평균 변동의 1.5배 미만)"],
+            "summary": (mv or {}).get("summary"),
+            "note": "결과는 직전치 대비만 표시 — 컨센서스(예상치)는 수집하지 않음. ★ = 핵심 이벤트"}
+
+
+def _v2_flows_snapshot() -> dict:
+    """대시보드 스냅샷(장중 잠정·마감 확정)에서 코스피 현물 수급·프로그램·등락 종목."""
+    s = _j("dashboard_state.json", {}) or {}
+    a, b = s.get("intraday_snapshot") or {}, s.get("close_snapshot") or {}
+    t = str(_kst_today())
+    cur = a if str(a.get("at", "")).startswith(t) and str(a.get("at", "")) >= str(b.get("at", "")) else b
+    if not cur.get("at"):
+        return {}
+    v = cur.get("value") or {}
+    out = {"at": str(cur["at"]), "kind": "장중 잠정" if cur is a else "마감 확정"}
+    out["flows"] = (v.get("flows") or {}).get("KOSPI") or {}
+    out["snap"] = (v.get("snap") or {}).get("KOSPI") or {}
+    if cur is a and b.get("at") and not str(b["at"]).startswith(t):
+        out["prev_flows"] = ((b.get("value") or {}).get("flows") or {}).get("KOSPI") or {}
+        out["prev_at"] = str(b["at"])
+    return out
+
+
+def _v2_positioning(der: dict, k: dict, peers: list[dict]) -> dict:
+    L, worry = [], []
+    fs = _v2_flows_snapshot()
+    if fs.get("flows"):
+        f = fs["flows"]
+        L.append(f"현물 수급(코스피, {fs['at'][5:16]} {fs['kind']}): " + " · ".join(f"{w} {f[w]:+,.0f}억" for w in ("외국인", "기관", "개인") if f.get(w) is not None))
+        if fs.get("prev_flows", {}).get("외국인") is not None:
+            L.append(f"전일 외국인 {fs['prev_flows']['외국인']/1e4:+.2f}조 ({fs['prev_at'][5:10]} 확정)")
+        if (f.get("외국인") or 0) < 0:
+            worry.append("외국인 현물 순매도 지속")
+    sn = fs.get("snap") or {}
+    if sn.get("prog_total") is not None:
+        L.append(f"프로그램 {sn['prog_total']:+,.0f}억 (차익 {sn.get('prog_arb', 0):+,.0f} · 비차익 {sn.get('prog_nonarb', 0):+,.0f})")
+    if sn.get("up") is not None and sn.get("down") is not None and (sn["up"] + sn["down"]):
+        L.append(f"상승 {sn['up']:.0f} · 하락 {sn['down']:.0f} 종목 (상승 비율 {sn['up']/(sn['up']+sn['down'])*100:.0f}%)")
+    fut = (der or {}).get("fut") or {}
+    if fut.get("basis") is not None:
+        L.append(f"선물 {fut.get('name', '')} 베이시스 {fut['basis']:+.2f} · 미결제 {fut.get('oi', 0):,.0f}계약")
+    im = None
+    if der and der.get("atm_iv") and der.get("spot"):
+        mv1 = der["atm_iv"] / 252 ** 0.5
+        im = {"pct": mv1, "k200": der["spot"] * mv1, "kospi": (k.get("last") or 0) * mv1 if k.get("last") else None}
+        L.append(f"옵션 내재 하루 예상 변동폭 ±{mv1*100:.1f}% (ATM IV {der['atm_iv']*100:.0f}% ÷ √252) = 코스피200 ±{im['k200']:.1f}pt"
+                 + (f" · 코스피 ±{im['kospi']:,.0f}pt" if im["kospi"] else ""))
+        if der.get("rv20"):
+            prem = der["atm_iv"] / der["rv20"] - 1
+            L.append(f"내재 vs 실현(20일 {der['rv20']*100:.0f}%) {prem*100:+.0f}% — " + ("옵션이 실현보다 비쌈: 보험 수요 우위" if prem > 0.1 else "옵션이 실현보다 쌈: 헤지 비용 유리" if prem < -0.1 else "대체로 실현 수준"))
+        worry.append(f"하루 ±{mv1*100:.1f}% 변동")
+    if der and der.get("pcr_oi") is not None:
+        L.append(f"풋/콜 미결제 {der['pcr_oi']:.2f} · 거래량 {der.get('pcr_vol') or 0:.2f}" + (f" · 감마 {der['gex_bn']:+,.0f}억/1%" if der.get("gex_bn") is not None else "")
+                 + (f" · 감마 전환점 {der['flip']:.1f}" if der.get("flip") else "") + " (방향 신호로는 검증 전)")
+        if der["pcr_oi"] >= 1.2:
+            worry.append(f"풋 우위(PCR {der['pcr_oi']:.2f})")
+        if (der.get("gex_bn") or 0) < 0:
+            worry.append("음수 감마(딜러 헤지가 변동 증폭)")
+    shorts = []
+    try:
+        from .shorts import by_code
+        sh = by_code()
+        mc = {r["s"]: r for r in peers if (r.get("mc") or 0) >= 1e12}
+        rows = sorted([(c, v) for c, v in sh.items() if c in mc and v.get("ratio") is not None], key=lambda x: -x[1]["ratio"])[:5]
+        shorts = [{"s": c, "n": mc[c]["n"], "g": mc[c].get("g"), "ratio": v["ratio"], "chg20": v.get("chg20"), "asof": v.get("asof")} for c, v in rows]
+    except Exception as e:  # noqa: BLE001
+        log.info("공매도 상위 실패: %s", e)
+    line = ("시장이 가격에 넣은 걱정: " + " · ".join(worry)) if worry else None
+    return {"lines": L, "implied": im, "shorts": shorts, "worry": line,
+            "note": "선물 외국인 순매수는 수집하지 않음. 공매도 잔고 = 시총 1조 이상 상위, KRX 공시 지연(T+2)."}
+
+
+def _v2_sectors(sectors: list[dict], themes_all: list[dict], chains: dict) -> dict:
+    th = [t for t in themes_all if t.get("r5") is not None]
+    lead = sorted(th, key=lambda t: -t["r5"])[:3]
+    lag = sorted(th, key=lambda t: t["r5"])[:3]
+    div = []
+    for t in th:
+        if (t.get("drv") or 0) >= 0.25 and (t.get("r20") or 0) <= -0.10:
+            div.append({"theme": t["theme"], "kind": "드라이버 양호인데 과매도", "drv": t["drv"], "r20": t["r20"]})
+        elif (t.get("drv") or 0) <= -0.05 and (t.get("r20") or 0) >= 0.05:
+            div.append({"theme": t["theme"], "kind": "드라이버 없는 상승", "drv": t["drv"], "r20": t["r20"]})
+
+    def why(name: str) -> str:
+        c = next((v for v in (chains or {}).values() if v.get("name") == name), {})
+        px = sorted([p for p in c.get("proxies", []) if p.get("effect") is not None], key=lambda p: -abs(p["effect"]))[:2]
+        return " / ".join(f"{p.get('name')} {p['effect']:+.2f}: {str(p.get('why') or '')[:40]}" for p in px)
+    ow = [{"chain": r["chain"], "score": r["score"], "why": why(r["chain"])} for r in sectors if r.get("stance") == "비중 확대"][:3]
+    uw = [{"chain": r["chain"], "score": r["score"], "why": why(r["chain"])} for r in sorted(sectors, key=lambda r: r["score"]) if r.get("stance") == "비중 축소"][:3]
+    return {"lead": lead, "lag": lag, "divergence": sorted(div, key=lambda d: -abs(d["drv"]))[:5], "overweight": ow, "underweight": uw,
+            "note": "주도/소외 = 테마 시총가중 5일 수익률. 비중 의견 = 공급망 체인 점수(검증 전) — 이유는 체인 내 영향 큰 프록시 2개."}
+
+
+def _v2_research(today: date) -> dict:
+    r = _j("research.json", {}) or {}
+    items = r.get("items") or []
+    close = r.get("close") or {}
+    ds = sorted({i["date"] for i in items if i.get("date") and i["date"] <= str(today)}, reverse=True)[:2]
+    out, up, dn = [], 0, 0
+    for i in items:
+        if i.get("date") not in ds:
+            continue
+        prev = [p for p in items if p.get("code") == i.get("code") and p.get("date", "") < i["date"] and p.get("target")]
+        same = [p for p in prev if p.get("broker") == i.get("broker")]
+        pv = (sorted(same, key=lambda p: p["date"]) or sorted(prev, key=lambda p: p["date"]) or [None])[-1]
+        chg = i.get("tp_chg")
+        if chg is None and pv and i.get("target") and pv.get("target") and pv.get("broker") == i.get("broker"):
+            chg = i["target"] / pv["target"] - 1
+        cl = close.get(i.get("code") or "")
+        if chg is not None and chg > 0.001:
+            up += 1
+        elif chg is not None and chg < -0.001:
+            dn += 1
+        out.append({"date": i["date"], "s": i.get("code"), "n": i.get("name"), "broker": i.get("broker"), "opinion": i.get("opinion"),
+                    "target": i.get("target"), "tp_chg": chg, "upside": (i["target"] / cl - 1) if i.get("target") and cl else None,
+                    "prev": ({"date": pv["date"], "broker": pv.get("broker"), "target": pv.get("target")} if pv else None),
+                    "title": i.get("thesis") or i.get("title"), "tone": i.get("tone"), "link": i.get("link")})
+    out.sort(key=lambda x: (abs(x["tp_chg"] or 0) <= 0.001, x["date"] != ds[0], -abs(x["tp_chg"] or 0), -(x["upside"] or -9)))
+    return {"dates": ds, "n": len(out), "up": up, "down": dn, "items": out[:10],
+            "note": "목표가 변화 = 같은 증권사 직전 리포트 대비 (없으면 표시 안 함). 상승여력 = 목표가 ÷ 수집 시점 종가."}
+
+
+def _v2_bottom_up(o: dict, peers: list[dict], cal: list[dict], today: date) -> dict:
+    mc = {r["s"]: r.get("mc") or 0 for r in peers}
+    dis = (_j("disclosures.json", {}) or {}).get("items") or []
+    pri = ("수주·계약", "자사주", "유상증자", "CB·BW·EB", "합병·분할", "최대주주", "실적", "배당")
+    dd = sorted({x["date"] for x in dis if x.get("date") and x["date"] <= str(today)}, reverse=True)[:2]
+    dl = [x for x in dis if x.get("date") in dd and x.get("category") in pri and mc.get(x.get("code"), 0) >= 3e11]
+    dl.sort(key=lambda x: (x["date"] != (dd[0] if dd else ""), pri.index(x["category"]), -mc.get(x.get("code"), 0)))
+    earn = [e for e in cal if e.get("type") == "실적" and str(today) <= e.get("date", "") <= str(today + timedelta(days=7))]
+    earn.sort(key=lambda e: (e["date"], -(e.get("imp") or 1)))
+    return {"research": _v2_research(today),
+            "disclosures": [{"date": x["date"], "s": x.get("code"), "n": x.get("name"), "cat": x.get("category"), "flag": x.get("flag"),
+                             "title": str(x.get("title") or "").strip()[:60], "link": x.get("link"), "mc": mc.get(x.get("code"))} for x in dl[:8]],
+            "earnings": [{"date": e["date"], "n": e.get("name"), "ticker": e.get("ticker"), "market": e.get("market"), "imp": e.get("imp", 1),
+                          "confirmed": bool(e.get("confirmed")), "note": e.get("note")} for e in earn[:10]],
+            "long": [x["n"] for x in (o.get("ideas") or {}).get("long", [])[:5]],
+            "avoid": [x["n"] for x in (o.get("ideas") or {}).get("avoid", [])[:5]],
+            "squeeze": [x["n"] for x in (o.get("squeeze") or [])[:5]],
+            "note": "공시 = 최근 2일, 시총 3천억 이상, 수주·자사주·증자·CB·합병·최대주주·실적·배당만."}
+
+
+def _lens(views: dict, lid: str) -> dict:
+    L = next((x for x in (views or {}).get("lenses", []) if x.get("id") == lid), {})
+    return {"id": lid, "name": L.get("name_ko") or lid, "grade": L.get("grade") or "검증전", "status": L.get("status")}
+
+
+IDEAS_LOG = REPORT_DIR / "ideas_log.json"
+IDEAS_ATTRIB = REPORT_DIR / "ideas_attrib.json"
+GRADE_W = {"A": 1.0, "B": 0.8, "C": 0.6, "검증전": 0.3, "F": 0.0}
+ATTRIB_MIN_N = 10
+
+
+def _signals_kr() -> dict:
+    """reports/signals/<최근>_KR.csv → {code: {class, trend, mom, rev}}."""
+    import csv
+    fs = sorted((REPORT_DIR / "signals").glob("*_KR.csv"))
+    if not fs:
+        return {}
+    out = {}
+    with fs[-1].open(encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            out[str(r.get("symbol", "")).zfill(6)] = {"class": r.get("class"), "asof": fs[-1].name[:10],
+                                                      "trend": r.get("trend_score"), "mom": r.get("momentum_score"), "rev": r.get("reversal_risk")}
+    return out
+
+
+def _attrib_weight(attrib: dict, key: str) -> tuple[float, str]:
+    """원천별 실제 성적으로 가중 보정 — n<10 이면 1.0('검증 전'), 이상이면 평균 R 을 표본 크기로 수축해 0.5~1.5배."""
+    a = ((attrib or {}).get("sources") or {}).get(key) or {}
+    n, r = a.get("n") or 0, a.get("avgR")
+    if n < ATTRIB_MIN_N or r is None:
+        return 1.0, f"성적 n={n} (검증 전)"
+    m = max(0.5, min(1.5, 1 + r * n / (n + 20)))
+    return m, f"성적 n={n} 평균 {r:+.2f}R → ×{m:.2f}"
+
+
+def _v2_sources(o: dict, peers: list[dict], today: date) -> tuple[dict, dict]:
+    """후보 종목별 원천(동의/반대) 수집. 반환: ({code: [source…]}, {code: 이름·테마})."""
+    views = _j("views.json", {}) or {}
+    lab = _j("lab.json", {}) or {}
+    lg = lambda lid: _lens(views, lid)["grade"]  # noqa: E731
+    S, meta = {}, {r["s"]: {"n": r["n"], "g": r.get("g"), "semi": r.get("g") in SEMI_G} for r in peers}
+
+    def add(code, key, label, side, grade, src):
+        if code not in meta:
+            return
+        cur = S.setdefault(code, [])
+        dup = next((x for x in cur if x["k"] == key and x["side"] == side), None)
+        if dup:   # 같은 원천은 한 표 — 근거만 덧붙임 (공시 3건이 3표가 되지 않게)
+            if label not in dup["label"]:
+                dup["label"] += " · " + label
+            return
+        cur.append({"k": key, "label": label, "side": side, "grade": grade or "검증전", "src": src})
+    ex = ((o.get("stance") or {}).get("exec") or {}).get("cands") or []
+    for c in ex:
+        add(c["s"], "exec_plan", "실행 대본 후보 (손절 20일 저점·2×ATR)", "agree", lg("atr_stop"), "committee._exec_plan")
+    for x in (o.get("ideas") or {}).get("long", []):
+        add(x["s"], "committee_ideas", f"이익 신호 {x.get('drv') or 0:+.2f} · 20D {(x.get('r20') or 0)*100:+.0f}%", "agree", lg("committee_ideas"), "peers_KR")
+    for x in (o.get("ideas") or {}).get("avoid", []):
+        add(x["s"], "committee_avoid", f"회피 목록 (이익 신호 {x.get('drv') or 0:+.2f})", "oppose", lg("committee_ideas"), "peers_KR")
+    for x in o.get("squeeze") or []:
+        add(x["s"], "squeeze", f"숏스퀴즈 후보 (잔고 {x['ratio']:.1f}%)", "agree", "검증전", "shorts")
+    sig = _signals_kr()
+    sg = lg("stock_trend_score")
+    for code in list(meta):
+        c = (sig.get(code) or {}).get("class")
+        if c in ("TREND_LONG", "PULLBACK_IN_UPTREND"):
+            add(code, "signal:trend", f"시그널 {c}", "agree", sg, "signals")
+        elif c in ("TREND_SHORT", "TREND_OVEREXTENDED"):
+            add(code, "signal:trend", f"시그널 {c}", "oppose", sg, "signals")
+    mk = _j("momentum_KR.json", {}) or {}
+    mg = ((lab.get("results") or {}).get("TREND_12_1") or {}).get("grade") or "검증전"
+    for x in mk.get("top") or []:
+        add(str(x.get("symbol")), "momentum:12-1", f"12-1 모멘텀 상위 (점수 {x.get('score')})", "agree", mg, "momentum_KR")
+    for x in mk.get("bottom") or []:
+        add(str(x.get("symbol")), "momentum:12-1", f"12-1 모멘텀 하위 (점수 {x.get('score')})", "oppose", mg, "momentum_KR")
+    for hid, v in (lab.get("results") or {}).items():
+        ls = v.get("last_signals") or {}
+        for p in ls.get("picks") or []:
+            add(str(p.get("s")), f"lab:{hid}", f"전략 연구소 {hid} 신호 {str(ls.get('date', ''))[5:]}", "agree", v.get("grade") or "검증전", "lab")
+    rs = (_j("research.json", {}) or {}).get("items") or []
+    cut = str(today - timedelta(days=30))
+    tp = {}
+    for i in rs:
+        if i.get("date", "") >= cut and i.get("tp_chg") is not None and abs(i["tp_chg"]) > 0.001:
+            tp.setdefault(i.get("code"), []).append(i["tp_chg"])
+    for code, a in tp.items():
+        u, d = sum(1 for x in a if x > 0), sum(1 for x in a if x < 0)
+        if u:
+            add(code, "research:tp_up", f"목표가↑ {u}건 (30일)", "agree", "검증전", "research")
+        if d:
+            add(code, "research:tp_down", f"목표가↓ {d}건 (30일)", "oppose", "검증전", "research")
+    dis = (_j("disclosures.json", {}) or {}).get("items") or []
+    cut3 = str(today - timedelta(days=3))
+    mc = {r["s"]: r.get("mc") or 0 for r in peers}
+    for x in dis:
+        if x.get("date", "") < cut3 or mc.get(x.get("code"), 0) < 3e11:
+            continue
+        if x.get("category") in ("수주·계약", "자사주"):
+            add(x.get("code"), "disclosure:plus", f"공시 {x['category']} {str(x['date'])[5:]}", "agree", "검증전", "disclosures")
+        elif x.get("category") in ("유상증자", "CB·BW·EB"):
+            add(x.get("code"), "disclosure:dilution", f"공시 {x['category']} {str(x['date'])[5:]}", "oppose", "검증전", "disclosures")
+    return S, meta
+
+
+def _v2_ideas_top(o: dict, cal: list[dict], bu: dict, today: date, peers: list[dict] | None = None) -> dict:
+    """여러 원천(실행 대본·이익 신호·시그널·모멘텀·연구소·리서치·공시·숏스퀴즈)이 겹치는 종목을 고른다.
+    원천 가중 = 검증 등급(A 1·B .8·C .6·검증 전 .3·F 0) × 실제 성적 보정(ideas_attrib, n≥10). 숫자(진입·손절·목표)는 리스크 박스 규칙."""
+    peers = peers or (_j("peers_KR.json", {}) or {}).get("rows", [])
+    attrib = _j("ideas_attrib.json", {}) or {}
+    S, meta = _v2_sources(o, peers, today)
+    views = _j("views.json", {}) or {}
+    gate = (((o.get("stance") or {}).get("views") or {}).get("entry") or {}).get("gate")
+    rows = []
+    for code, ss in S.items():
+        agree = [s for s in ss if s["side"] == "agree"]
+        if not agree or meta.get(code, {}).get("semi"):
+            continue   # 반도체는 테마 한도 때문에 실행 대본과 같이 제외
+        sc = 0.0
+        for s in ss:
+            m, note = _attrib_weight(attrib, s["k"])
+            s["w"] = round(GRADE_W.get(s["grade"], 0.3) * m * (1 if s["side"] == "agree" else -1), 3)
+            s["perf"] = note
+            sc += s["w"]
+        if sc <= 0:
+            continue
+        rows.append((sc, code, ss))
+    rows.sort(key=lambda x: -x[0])
+    out, cands = [], []
+    for sc, code, ss in rows:
+        if len(out) + len(cands) >= 10:
+            break
+        rb = _risk_box(code)
+        if not rb or rb["skip"]:
+            continue
+        strong = any(s["side"] == "agree" and GRADE_W.get(s["grade"], 0) >= 0.6 for s in ss)
+        conv = "높음" if sc >= 1.2 else "중간" if sc >= 0.6 else "낮음"
+        if conv == "높음" and not strong:
+            conv = "중간"   # C 이상 원천의 동의 없으면 상한 '중간'
+        cm = {"높음": 1.0, "중간": 0.7, "낮음": 0.4}[conv]
+        payoff = (rb["target"] - rb["close"]) / (rb["close"] - rb["stop"])
+        size = min(cm * (payoff / 2) * 0.01 / rb["stop_pct"], 0.15)
+        cat = [{"date": e["date"], "what": "실적 발표" + (" (회사 확정)" if e.get("confirmed") else " (예정일 추정)")}
+               for e in cal if e.get("type") == "실적" and str(e.get("ticker")) == code and str(today) <= e.get("date", "") <= str(today + timedelta(days=14))]
+        cat += [{"date": str(today), "what": s["label"]} for s in ss if s["k"] in ("research:tp_up", "disclosure:plus")]
+        status = ("대기 — 촉매 없음" if not cat else "대기 — 확신 낮음" if conv == "낮음"
+                  else "대기 — 판정 방어" if (o.get("stance") or {}).get("stance") == "방어"
+                  else "대기 — 진입 게이트 불통과" if gate == "fail" else "실행 후보")
+        row = {"s": code, "n": meta[code]["n"], "g": meta[code].get("g"), "side": "롱", "conv": conv, "score": round(sc, 2), "size": size,
+               "entry": rb["close"], "entry_max": rb["close"] * (1 + 0.5 * rb["atr_pct"]), "stop": rb["stop"], "stop_pct": rb["stop_pct"],
+               "target": rb["target"], "payoff": payoff, "atr_pct": rb["atr_pct"], "catalyst": cat[:3], "status": status,
+               "kill": [f"종가 {rb['stop']:,.0f} 하회 (손절, 협상 대상 아님)", "동의 원천이 반대로 바뀜 (예: 이익 신호 0 이하·회피 목록 편입)",
+                        "20거래일 안 +1R 미도달 (시간 손절)"],
+               "sources": [{k: s[k] for k in ("k", "label", "side", "grade", "w", "perf")} for s in ss],
+               "lens": [_lens(views, "atr_stop")]}
+        (out if len(out) < 3 else cands).append(row)
+    return {"items": out, "candidates": cands, "entry_gate": gate,
+            "formula": "확신 점수 = Σ 동의 원천 가중 − Σ 반대 원천 가중 (가중 = 검증 등급 A1·B.8·C.6·검증전.3·F0 × 원천 실제 성적 보정). "
+                       "높음 ≥1.2·중간 ≥0.6·낮음 >0, C 이상 원천 동의 없으면 상한 중간. 사이즈(모델 북 %) = 확신도(1·.7·.4) × 손익비/2 × 1% ÷ 손절폭, 상한 15%. "
+                       "진입·손절·목표 = 리스크 박스 규칙(손절 max(20일 저점, 종가−2×ATR14), 목표 2R).",
+            "empty": None if out else "숫자 근거 있는 아이디어 없음 (동의 원천 > 반대이고 손절폭 15% 이하인 비반도체 후보 없음) — 대기"}
+
+
+def _ideas_log_score() -> dict:
+    """ideas_log.json 의 지난 아이디어를 실제 일봉으로 채점 → 원천별 성적 ideas_attrib.json. 반환: attrib."""
+    import polars as pl
+    log_ = json.loads(IDEAS_LOG.read_text(encoding="utf-8")) if IDEAS_LOG.exists() else {"rows": []}
+    p = DATA_DIR / "kr_prices.parquet"
+    if not log_["rows"] or not p.exists():
+        return _j("ideas_attrib.json", {}) or {}
+    codes = list({r["ticker"] for r in log_["rows"]})
+    since = min(r["date"] for r in log_["rows"])
+    px = (pl.read_parquet(p).with_columns(pl.col("yf").str.slice(0, 6).alias("code"), pl.col("date").cast(pl.Utf8))
+            .filter(pl.col("code").is_in(codes) & (pl.col("date") > since)).sort("date"))
+    by = {c: g.select("date", "high", "low", "close").rows() for (c,), g in px.group_by("code")}
+    for r in log_["rows"]:
+        if (r.get("score") or {}).get("final"):
+            continue
+        bars = [b for b in by.get(r["ticker"], []) if b[0] > r["date"]][:20]
+        R = r["entry"] - r["stop"]
+        if not bars or R <= 0:
+            continue
+        sc = {"days": len(bars), "hit1R": False, "stopped": False}
+        for i, (d, h, lo, c) in enumerate(bars):
+            if lo is not None and lo <= r["stop"]:
+                sc["stopped"], sc["exitR"], sc["exit_date"] = True, -1.0, d
+                break
+            if h is not None and h >= r["entry"] + R and not sc["hit1R"]:
+                sc["hit1R"], sc["hit_date"] = True, d
+        if len(bars) >= 5:
+            sc["ret5"] = bars[4][3] / r["entry"] - 1
+        if len(bars) >= 20:
+            sc["ret20"] = bars[19][3] / r["entry"] - 1
+        sc["R"] = sc.get("exitR", (bars[-1][3] - r["entry"]) / R)
+        sc["final"] = sc["stopped"] or len(bars) >= 20
+        r["score"] = sc
+    IDEAS_LOG.write_text(json.dumps(log_, ensure_ascii=False), encoding="utf-8")
+    agg = {}
+    for r in log_["rows"]:
+        sc = r.get("score") or {}
+        if sc.get("days", 0) < 5:   # 5거래일 지나야 채점
+            continue
+        for k in {s["k"] for s in r.get("sources", []) if s.get("side") == "agree"}:
+            agg.setdefault(k, []).append(sc)
+    src = {}
+    for k, a in agg.items():
+        n = len(a)
+        src[k] = {"n": n, "hit1R": round(sum(1 for x in a if x.get("hit1R")) / n, 2), "stop": round(sum(1 for x in a if x.get("stopped")) / n, 2),
+                  "avgR": round(st.mean(x["R"] for x in a), 2), "ret5": round(st.mean(x["ret5"] for x in a if "ret5" in x), 4) if any("ret5" in x for x in a) else None,
+                  "ret20": round(st.mean(x["ret20"] for x in a if "ret20" in x), 4) if any("ret20" in x for x in a) else None,
+                  "status": "검증 전" if n < ATTRIB_MIN_N else "반영"}
+    at = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "min_n": ATTRIB_MIN_N, "n_ideas": len(log_["rows"]), "sources": src,
+          "note": "아이디어 기록 후 5거래일 지난 것만 채점. 1R 도달·손절은 일중 고가·저가(같은 날 둘 다면 손절로), R = 손절 시 −1, 아니면 마지막 종가 기준. "
+                  "원천 = 그 아이디어에 '동의'한 원천. n<10 은 확신도 가중에 반영 안 함."}
+    IDEAS_ATTRIB.write_text(json.dumps(at, ensure_ascii=False), encoding="utf-8")
+    return at
+
+
+def _ideas_log_append(o: dict) -> None:
+    """이번 회의의 ideas_top(+후보) 기록. 같은 날 같은 종목은 첫 기록만 (세션 반복으로 표본이 부풀지 않게)."""
+    log_ = json.loads(IDEAS_LOG.read_text(encoding="utf-8")) if IDEAS_LOG.exists() else {"rows": []}
+    have = {(r["date"], r["ticker"]) for r in log_["rows"]}
+    it = o.get("ideas_top") or {}
+    for rank, a in (("top", it.get("items") or []), ("cand", it.get("candidates") or [])):
+        for x in a:
+            if (o["date"], x["s"]) in have:
+                continue
+            log_["rows"].append({"date": o["date"], "session": o.get("session"), "asof": o.get("asof"), "ticker": x["s"], "name": x["n"],
+                                 "side": x["side"], "entry": x["entry"], "stop": x["stop"], "target": x["target"], "conviction": x["conv"],
+                                 "score_in": x.get("score"), "rank": rank,
+                                 "sources": [{"k": s["k"], "side": s["side"], "grade": s["grade"]} for s in x.get("sources", [])]})
+    cut = str(_kst_today() - timedelta(days=400))
+    log_["rows"] = [r for r in log_["rows"] if r["date"] >= cut]
+    IDEAS_LOG.write_text(json.dumps(log_, ensure_ascii=False), encoding="utf-8")
+
+
+def _v2_hedges(der: dict, k: dict, scen: list[dict], sb_probs: dict) -> dict:
+    H, asym = [], None
+    bear = next((s for s in scen if s["name"].startswith("약세")), {})
+    bull = next((s for s in scen if s["name"].startswith("강세")), {})
+    if der and der.get("spot") and der.get("atm_iv") and der.get("dte"):
+        try:
+            from .derivs import _bs
+            S, T = der["spot"], der["dte"] / 365
+            K = round(S * 0.95 / 2.5) * 2.5
+            v = der.get("iv_p95") or der["atm_iv"]
+            prem = _bs(S, K, T, v, "P")
+            pay15 = max(K - S * 0.85, 0) - prem
+            H.append({"name": f"코스피200 풋 {K:.1f} ({(K/S-1)*100:+.0f}% OTM, {str(der.get('expiry', ''))[5:]} 만기)",
+                      "cost": prem / S, "cost_book": 0.25 * prem / S,
+                      "line": f"이론가 ≈ {prem:.1f}pt (기초 대비 {prem/S*100:.1f}%, IV {v*100:.0f}% · 블랙숄즈) — 북 25% 명목 헤지 비용 {0.25*prem/S*100:.2f}%p. 코스피200 −15%면 북 기준 +{0.25*pay15/S*100:.1f}%p",
+                      "when": f"약세 시나리오 {(bear.get('prob') or 0)*100:.0f}% 대비 · 만기 D-{der['dte']}"})
+            if prem > 0:
+                asym = {"name": H[-1]["name"], "loss": prem / S, "gain": pay15 / S, "ratio": pay15 / prem,
+                        "p": sb_probs.get("deep_bear"),
+                        "line": f"최대 손실 = 프리미엄 {prem/S*100:.1f}% · 코스피200 −15% 시 이익 {pay15/S*100:.1f}% (손익비 {pay15/prem:.1f}배)"
+                                + (f" · 1999~ 비슷한 상황 20일 −15% 미만 빈도 {sb_probs['deep_bear']*100:.1f}%" if sb_probs.get("deep_bear") is not None else ""),
+                        "cond": "변동성 상승 국면 진입 전이 유리 — 내재변동성이 이미 높으면 비용 큼 (모델 북 전용)"}
+        except Exception as e:  # noqa: BLE001
+            log.info("헤지 이론가 실패: %s", e)
+    H.append({"name": "인버스 1배 ETF 25% (모델 북 전용 — 실계좌 적용 불가)", "cost": None, "cost_book": None,
+              "line": "시간가치 비용 없음, 대신 강세 시나리오(20일 +5% 초과)면 북 기준 −1.25%p 이상 기회비용"
+                      + (f" · 강세 확률 {(bull.get('prob') or 0)*100:.0f}%" if bull.get("prob") is not None else ""),
+              "when": "레버리지·인버스는 모델 북 아이디어에서만 언급 — 실계좌 상품 금지 게이트(비공개)"})
+    if k.get("low20"):
+        H.append({"name": "현금 비중 (신규 진입 중단)", "cost": None, "cost_book": None,
+                  "line": f"코스피 20일 저점 {k['low20']:,.0f} 종가 이탈 시 신규 진입 중단 — 비용은 반등 놓침뿐", "when": "약세 경로 경보"})
+    return {"hedges": H, "asymmetry": asym, "worst": bear.get("name"), "worst_p": bear.get("prob")}
+
+
+def _v2_premortem(stance: dict, scen: list[dict], k: dict, stu: dict) -> dict:
+    s = (stance or {}).get("stance")
+    bull = next((x for x in scen if x["name"].startswith("강세")), {})
+    bear = next((x for x in scen if x["name"].startswith("약세")), {})
+    dp = ((stu.get("conditional") or {}).get("deep_(20일 −15% 이상 하락 중)") or {}).get("d1") or {}
+    if s in ("관망", None):
+        return {"wrong": "관망이 틀린 경우: V자 반등 — 신호 확인 전에 반등 대부분이 지나감",
+                "p": bull.get("prob"),
+                "tell": f"코스피 5일 고점 {k.get('hi5') or 0:,.0f} 회복 + 외국인 순매수 전환",
+                "cost": (f"1999~ 비슷한 날 다음날 평균 {dp.get('avg', 0)*100:+.1f}% (상승 {dp.get('up', 0)*100:.0f}%)" if dp else None),
+                "action": "추격 매수 금지 — 1차 비중만 집행, 손절선은 20일 저점·2×ATR 그대로. 2차 진입은 검증 대기"}
+    if s == "분할 매수":
+        return {"wrong": "분할 매수가 틀린 경우: 반등 실패 후 연속 급락", "p": bear.get("prob"),
+                "tell": f"코스피 20일 저점 {k.get('low20') or 0:,.0f} 종가 이탈",
+                "cost": None, "action": "신규 진입 중단, 종목별 손절선 기계적 집행 — 지수 기준 일괄 청산은 하지 않음(백테스트 열위)"}
+    return {"wrong": "방어가 틀린 경우: 저점 이탈이 속임수(베어 트랩)", "p": bull.get("prob"),
+            "tell": f"이탈 후 3거래일 안 20일 저점 {k.get('low20') or 0:,.0f} 재회복",
+            "cost": None, "action": "헤지(인버스·풋) 절반 해제, 신규 진입은 1차 비중부터"}
+
+
+def _v2_track(o: dict) -> dict:
+    tr = (o.get("track") or {}).get("summary") or {}
+    pb = ((o.get("scorecard") or {}).get("PB")) or {}
+    L = []
+    for n, lab in (("h5", "5거래일"), ("h20", "20거래일")):
+        x = tr.get(n)
+        if x:
+            L.append(f"매수 후보 {lab} 시장 중앙값 대비 {x['long_avg']*100:+.1f}% · 적중 {x['long_hit']*100:.0f}% (n={x['n']})"
+                     + (f" · 회피 목록 {x['avoid_avg']*100:+.1f}%" if x.get("avoid_avg") is not None else ""))
+    if tr.get("brier"):
+        L.append(f"시나리오 브라이어 {tr['brier']['avg']} (무작위 {tr['brier']['naive']}, 낮을수록 좋음, n={tr['brier']['n']})")
+    if pb.get("n") and pb.get("hit") is not None:
+        L.append(f"PB 모델 북 판정 {pb['n']}건 · 적중 {('%.0f%%' % (pb['hit']*100)) if pb.get('hit') is not None else '—'} · 손익비 {pb['payoff'] if pb.get('payoff') is not None else '—'}")
+    at = _j("ideas_attrib.json", {}) or {}
+    bys = sorted([{"k": k, **v} for k, v in (at.get("sources") or {}).items()], key=lambda x: -x["n"])
+    return {"lines": L or ["기록 시작 — 5거래일 뒤부터 채점"], "by_source": bys, "ideas_n": at.get("n_ideas"),
+            "by_source_note": at.get("note") or "아이디어 원천별 성적 — 첫 기록 후 5거래일 뒤부터 채점"}
+
+
+def _v2_clock(o: dict, k: dict, der: dict, cal: list[dict], today: date, im: dict | None) -> list[dict]:
+    C = []
+    for e in cal:
+        if e.get("date") == str(today) and e.get("type") not in ("시장 이벤트",):
+            C.append({"t": _ev_time(e) or "시각 미정", "what": e["name"] + (" ★" if e.get("imp", 1) >= 3 else ""), "kind": "이벤트"})
+    tm = today + timedelta(days=1)
+    for e in cal:   # 내일 새벽(한국 00:00~08:59) 미국 이벤트도 오늘 밤 시계에 포함
+        t = _ev_time(e)
+        if e.get("date") == str(tm) and t and t < "09:00":
+            C.append({"t": "내일 " + t, "what": e["name"], "kind": "이벤트"})
+    C.sort(key=lambda x: x["t"])
+    last = k.get("last")
+    for lab, v in (("오늘 저점", k.get("low_today")), ("20일 저점(약세 경보선)", k.get("low20")), ("5일 고점(강세 전환선)", k.get("hi5"))):
+        if v:
+            C.append({"t": "가격선", "what": f"코스피 {lab} {v:,.0f}" + (f" (현재 대비 {(v/last-1)*100:+.1f}%)" if last else ""), "kind": "가격",
+                      "dist": (v / last - 1) if last else None})
+    if der and der.get("flip"):
+        C.append({"t": "가격선", "what": f"코스피200 감마 전환점 {der['flip']:.1f} (현물 {der.get('spot', 0):.1f}, 검증 전)", "kind": "가격"})
+    if im and im.get("kospi") and last:
+        C.append({"t": "범위", "what": f"내재 하루 범위 코스피 {last-im['kospi']:,.0f}~{last+im['kospi']:,.0f} (±{im['pct']*100:.1f}%)", "kind": "가격"})
+    return C
+
+
+def _v2_bottom_line(o: dict, k: dict, prev: dict | None, delta: str | None, clock: list[dict], ideas: dict, macro: dict, session: str) -> dict:
+    st_ = (o.get("stance") or {}).get("stance")
+    ps = ((prev or {}).get("stance") or {}).get("stance")
+    flip = bool(ps and st_ and ps != st_)
+    prev_ids = {x.get("s") for x in ((prev or {}).get("ideas_top") or {}).get("items", []) if str(x.get("status", "")).startswith("실행")}
+    new_go = [x for x in ideas.get("items", []) if x["status"].startswith("실행") and x["s"] not in prev_ids]
+    im = (o.get("positioning") or {}).get("implied") or {}
+    band = (im.get("pct") or 0.01)
+    near = [c["what"] for c in clock if c.get("dist") is not None and 0 < abs(c["dist"]) <= band]
+    ev_today = [c for c in clock if c["kind"] == "이벤트"]
+    gate_fail = (ideas.get("entry_gate") == "fail")
+    reg_flip = any(str(x).startswith("레짐 전환") for x in macro.get("changed", []))
+    if flip or reg_flip or (new_go and not gate_fail):
+        light = "red"
+    elif ev_today or near:
+        light = "yellow"
+    else:
+        light = "green"
+    l1 = delta or "직전 회의 기록 없음 — 오늘부터 비교"
+    evs = [f"{c['t']} {c['what']}" for c in ev_today[:2]]
+    pls = [c["what"] for c in clock if c["t"] == "가격선"][:3]
+    l2 = "오늘의 시계: " + (" · ".join(evs) + " / " if evs else "시각 정해진 이벤트 없음 / ") + " · ".join(pls)
+    if light == "red":
+        why = ("판정 " + f"{ps}→{st_}") if flip else ("레짐 전환" if reg_flip else "신규 실행 후보 " + ", ".join(x["n"] for x in new_go[:2]))
+        l3 = f"할 일: {why} — 섹션 5 아이디어의 진입·손절·촉매 확인 후 집행. 하지 말 일: 손절선 없는 진입·추격 매수"
+    elif light == "yellow":
+        l3 = ("할 일: 판정 유지 · 신규 행동 없음 — " + ("가격선 근접: " + near[0] if near else "이벤트 결과 확인 후 재판정")
+              + ". 하지 말 일: 이벤트 결과 전 레버리지·방향 베팅 확대")
+    else:
+        l3 = "판정 유지 · 할 일 없음. 하지 말 일: 변화 없는 날의 매매(거래비용만 발생)"
+    return {"light": light, "label": LIGHTS[light], "lines": [l1, l2, l3], "clock": clock, "stance": st_, "prev_stance": ps,
+            "session": session, "footer": V2_FOOTER}
+
+
+def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict], peers: list[dict], cal: list[dict],
+              stu: dict, sb_probs: dict, delta: str | None, session: str) -> None:
+    """모닝 미팅 v2 키를 out 에 추가. 섹션 하나가 실패해도 나머지는 계속."""
+    today = _kst_today()
+    prev = _prev_meeting(session)
+    mv = _j("macro_view.json", {}) or {}
+    steps = [("macro", lambda: _v2_macro(mv, prev)),
+             ("positioning", lambda: _v2_positioning(der, k, peers)),
+             ("rotation", lambda: _v2_sectors(out.get("sectors") or [], themes_all, chains)),
+             ("bottom_up", lambda: _v2_bottom_up(out, peers, cal, today)),
+             ("ideas_top", lambda: _v2_ideas_top(out, cal, out.get("bottom_up") or {}, today, peers)),
+             ("hedges", lambda: _v2_hedges(der, k, out.get("scenarios") or [], sb_probs)),
+             ("premortem", lambda: _v2_premortem(out.get("stance") or {}, out.get("scenarios") or [], k, stu))]
+    try:   # 지난 아이디어 채점 → 원천별 성적 (확신도 가중에 반영)
+        _ideas_log_score()
+    except Exception as e:  # noqa: BLE001
+        log.info("아이디어 채점 실패: %s", e)
+    for key, fn in steps:
+        try:
+            out[key] = fn()
+        except Exception as e:  # noqa: BLE001
+            log.warning("운용회의 v2 %s 실패: %s", key, e)
+    if isinstance(out.get("hedges"), dict):
+        out["asymmetry"] = out["hedges"].get("asymmetry")
+    try:
+        clock = _v2_clock(out, k, der, cal, today, (out.get("positioning") or {}).get("implied"))
+        out["bottom_line"] = _v2_bottom_line(out, k, prev, delta, clock, out.get("ideas_top") or {}, out.get("macro") or {}, session)
+    except Exception as e:  # noqa: BLE001
+        log.warning("운용회의 v2 bottom_line 실패: %s", e)
+    try:
+        _ideas_log_append(out)
+    except Exception as e:  # noqa: BLE001
+        log.info("아이디어 기록 실패: %s", e)
+    out["footer"] = V2_FOOTER
+    out["v"] = 2
+
+
+def _bucket(k: dict, stu: dict) -> dict:
+    """_scenarios 와 같은 조건 버킷 (deep_bear 등 원자료 확률을 v2 섹션에서 쓰려고)."""
+    b = (stu or {}).get("buckets20") or {}
+    deep = k and k.get("dd20", 0) <= -0.15
+    shock = k and k.get("ret1", 0) <= -0.05
+    key = "deep" if deep and shock else "dd15" if deep else "drop5" if shock else "all"
+    return b.get(key) or b.get("all") or {}
+
+
+def _telegram_v2(o: dict) -> str:
+    """모닝 미팅 v2 텔레그램 — 25줄 이내. 점심·장중 세션은 bottom_line + 시계 + ideas_top 만."""
+    bl = o.get("bottom_line") or {}
+    lunch = o.get("session") in ("점심", "장중")   # 장중(10:30·13:30·14:15)도 짧은 판
+    L = [f"🏛 <b>운용회의 · {o.get('session', '')}</b> · {o['date']}  {bl.get('label', '')}"]
+    L += [f"{'①②③'[i]} {x}" for i, x in enumerate((bl.get("lines") or [])[:3])]
+    if not lunch:
+        mc = o.get("macro") or {}
+        if (mc.get("regime") or {}).get("line"):
+            L.append("<b>[탑다운]</b> " + mc["regime"]["line"])
+        if mc.get("changed"):
+            L.append("  · 바뀐 것: " + " / ".join(mc["changed"][:2]))
+        ps = o.get("positioning") or {}
+        if ps.get("worry"):
+            L.append("<b>[포지셔닝]</b> " + ps["worry"])
+        rt = o.get("rotation") or {}
+        if rt.get("overweight") or rt.get("underweight"):
+            L.append("<b>[섹터]</b> 확대 " + (", ".join(x["chain"] for x in rt.get("overweight", [])) or "—")
+                     + " / 축소 " + (", ".join(x["chain"] for x in rt.get("underweight", [])) or "—"))
+        rs = ((o.get("bottom_up") or {}).get("research") or {})
+        if rs.get("n"):
+            L.append(f"<b>[리서치]</b> {len(rs.get('dates', []))}일 {rs['n']}건 · 목표가 상향 {rs.get('up', 0)} · 하향 {rs.get('down', 0)}")
+    it = (o.get("ideas_top") or {}).get("items") or []
+    L.append("<b>[트레이드 아이디어 · 모델 북]</b>" + ("" if it else " " + str((o.get("ideas_top") or {}).get("empty") or "없음")))
+    for i, x in enumerate(it[:3]):
+        cat = ", ".join(f"{c['date'][5:]} {c['what']}" for c in x.get("catalyst", [])[:1]) or "촉매 없음"
+        L.append(f" {i+1}. {x['n']} {x['side']} · 확신 {x['conv']} · {x['size']*100:.1f}% · 진입 {x['entry']:,.0f} 손절 {x['stop']:,.0f} 목표 {x['target']:,.0f} ({x['payoff']:.1f}R) · {cat} · {x['status']}")
+    clk = bl.get("clock") or []
+    if clk:   # ②에 이미 나온 3개 가격선(저점·20일 저점·5일 고점)은 빼고 시각·감마·내재 범위만
+        ev = [f"{c['t']} {c['what']}" for c in clk if c["kind"] == "이벤트"]
+        L.append("<b>[시계]</b> " + (" · ".join(ev[:4]) if ev else "시각 정해진 이벤트 없음"))
+        L += ["  · " + c["what"] for c in clk if c["kind"] == "가격" and c.get("dist") is None][:3]
+    if not lunch:
+        hd = o.get("hedges") or {}
+        if hd.get("hedges"):
+            L.append("<b>[헤지]</b> " + hd["hedges"][0]["name"] + " — " + hd["hedges"][0]["line"])
+        pm = o.get("premortem") or {}
+        if pm.get("wrong"):
+            L.append(f"<b>[프리모템]</b> {pm['wrong']} → 신호: {pm.get('tell', '')} → {pm.get('action', '')}")
+        tl = ((o.get("track") or {}).get("lines") or [])[:1]
+        if tl:
+            L.append("<i>성적: " + tl[0] + "</i>")
+    L.append("<i>" + V2_FOOTER + "</i>")
+    import html as _h
+    tags = {"&lt;b&gt;": "<b>", "&lt;/b&gt;": "</b>", "&lt;i&gt;": "<i>", "&lt;/i&gt;": "</i>"}
+    out = []
+    for x in L[:25]:   # 텔레그램 HTML 모드: & < > 이스케이프 후 b·i 태그만 복원
+        y = _h.escape(x, quote=False)
+        for a, b in tags.items():
+            y = y.replace(a, b)
+        out.append(y)
+    return "\n".join(out)
 
 
 # ───────────── 미장 운용회의 ─────────────
