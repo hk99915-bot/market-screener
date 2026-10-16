@@ -1,0 +1,558 @@
+{
+ "id": "M",
+ "title": "트랙 M · 운용회의 읽기 — 탑다운·확률·프리모템",
+ "badge": "CIO 데스크 자문",
+ "desc": "R2·D2·A1 뒤. 매일 보는 운용회의 문서를 '결론 → 근거' 순으로, 확률을 '출석부'로, 프리모템을 '탈출 지도'로 읽는 법. 출처 [consult:cio#q]·[kb:cio#]. 예시 숫자는 2026-10-16 reports/committee.json.",
+ "modules": [
+  {
+   "schema": 3,
+   "id": "M1",
+   "track": "M",
+   "title": "운용회의 읽기 ① 탑다운 → 바텀업 — 결론은 확률이 아니라 신호로 바뀐다",
+   "tags": [
+    "운용회의",
+    "CFA L1 포트폴리오",
+    "투운사"
+   ],
+   "level": 2,
+   "est_min": 20,
+   "weak": false,
+   "prereq": [
+    "R2",
+    "D2",
+    "A1"
+   ],
+   "objectives": [
+    "CIO v2 여섯 절이 각각 답하는 질문을 한 줄씩 말한다",
+    "탑다운이 '크기', 바텀업이 '대상'을 정한다는 우선순위를 설명한다",
+    "하루 3분 루틴 5단계를 외운다",
+    "3북 구조(코어·위성·레거시)의 역할을 말한다"
+   ],
+   "summary": "bottom_line 한 줄(신호등·할 일·하지 말 일)이 결론이고 나머지는 근거입니다. 상위 단계(레짐)가 하위 단계(종목)의 허용 범위를 정하므로 탑다운으로 읽습니다. 거꾸로 읽으면 한도 없는 매수 목록이 됩니다.",
+   "analogy": "병원 차트는 '진단·처방' 한 줄이 맨 위고 검사 수치는 아래 근거입니다. 검사 수치(종목 아이디어)부터 읽고 처방(한도)을 건너뛰면 약을 두 배로 먹게 됩니다. [consult:cio#q1] [consult:cio#q2]",
+   "terms": [
+    {
+     "t": "bottom_line",
+     "d": "오늘 할 일/하지 말 일. 신호등 label(🟡 지켜보기 등)."
+    },
+    {
+     "t": "macro",
+     "d": "바람이 어느 쪽인가 — 순풍·역풍·레짐(200·50일선)."
+    },
+    {
+     "t": "positioning",
+     "d": "시장이 무엇을 가격에 넣었나 — 수급·PCR·감마·내재 ±%."
+    },
+    {
+     "t": "rotation",
+     "d": "어디로 돈이 도나 — 주도·소외·괴리."
+    },
+    {
+     "t": "bottom_up",
+     "d": "어느 종목인가 — 리서치·공시·이익 신호. ideas_top은 원천 가중 합(A1·B.8·C.6·검증전.3·F0)."
+    },
+    {
+     "t": "premortem",
+     "d": "내가 틀리면 어떻게 아나 — wrong·p·tell·cost·action."
+    },
+    {
+     "t": "3북",
+     "d": "코어(적립 전용·매도 금지·밴드) / 위성(새 매매 돈, 한도·손절) / 레거시(기존 보유, 축소 일정)."
+    }
+   ],
+   "concepts": [
+    "bottom_line 한 줄이 결론, 나머지는 근거. 결론은 확률이 아니라 신호로 바뀐다 — 확률 1등 시나리오여도 전환 신호 전엔 행동 없음(2026-10-16: 강세 43.8% 1등인데 관망, '과반 아님·전환 신호 미충족'). [consult:cio#q1]",
+    "순서가 탑다운인 이유: 상위 단계가 하위 단계의 허용 범위를 정한다. macro.regime 하락장 → 위성 노출 상한이 먼저 → bottom_up 아이디어는 그 상한 안에서 size(1% 리스크)로 계산. 거꾸로 읽으면 한도 없는 매수 목록. [consult:cio#q2]",
+    "탑다운이 크기(얼마나)를, 바텀업이 대상(무엇을)을 정한다. 충돌하면 탑다운 상한 안에서 후보를 줄인다. 바텀업이 아무리 좋아도 상한을 올리지 않는다. 2026-03-09 급락 뒤 60일 +55%(exec_signal H4) — 상한 때문에 반만 들고 간 비용은 실제로 존재하고, 규칙은 비용을 알고 지킨다. [consult:cio#q9] [reports/studies/exec_signal]",
+    "3북: 코어 = 지수 적립·매도 금지·밴드 리밸런싱, 위성 = 새 매매 돈(한도·손절·집중도 규칙은 여기만), 레거시 = 기존 보유의 축소 일정이 있는 북. 위험은 북 크기가 아니라 매매하는 돈의 크기와 상관·변동성에서 온다(위성 10이 −30% → 전체 −3%; 레거시 30이 한 테마·일 변동 3% → 전체 0.9%p). [consult:cio#q7] [kb:cio#2]",
+    "코어는 레짐을 보지 않는다(다이얼 없음: 비중·밴드·적립일만). 위성은 다이얼 셋(레짐 상한·시나리오 단계·종목 사이즈). 코어에 레짐을 넣으면 코어가 위성이 된다(지수 타이밍 DUAL_MOMENTUM F). [consult:cio#q13] [kb:cio#12]",
+    "Grinold-Kahn: IR ≈ IC × √BR, BR은 종목 수가 아니라 독립 판단 수. 같은 테마·같은 촉매 3종목은 BR≈1. 세는 법: '이 아이디어가 틀리면 저것도 같이 틀리나?' 예면 하나. ideas_top 한국전력·효성은 같은 테마·같은 원천 → BR≈1. [consult:cio#q14] [kb:cio#7]",
+    "하루 3분: ①bottom_line 신호등·할 일 ②clock 가격선 3개(오늘 저점·20일 저점=약세 경보선·5일 고점=강세 전환선)와 거리 ③premortem.tell ④ideas_top status/kill ⑤track/scorecard(n 두 자릿수 전엔 '기록 중'). [consult:cio#q11] [kb:cio#19]"
+   ],
+   "formulas": [
+    {
+     "name": "여섯 절의 질문",
+     "f": "bottom_line=오늘 뭘 하나 · macro=바람 · positioning=가격에 든 것 · rotation=돈의 방향 · bottom_up=어느 종목 · premortem=틀리면 어떻게 아나",
+     "example": "2026-10-16: 🟡 지켜보기 / 중립 +0.10 하락장 / PCR 1.32·감마 음수·내재 ±3.0% / 주도 음식료·소외 반도체 / 34건 / V자 반등 tell 5일 고점 6,384",
+     "src": "[consult:cio#q2]"
+    },
+    {
+     "name": "독립 판단 수",
+     "f": "IR ≈ IC × √BR · BR = 테마·동의 원천으로 묶은 뒤 남은 묶음 수",
+     "example": "IC 0.05, BR 100 → IR 0.5 · BR 1(반도체 3종목) → 0.05",
+     "src": "[kb:cio#7]"
+    }
+   ],
+   "example": "2026-10-16: rotation.divergence '반도체 드라이버 양호인데 과매도(20일 −23%)' + 체인 '메모리 반도체 0.44' → 바텀업은 매수 쪽. 그러나 regime 하락장 + 테마 한도 40% + [12] '신규는 비반도체'가 상한 → ideas_top은 한국전력·효성(에너지·소재)만 '대기 — 촉매 없음'. 코스피 5,668, 20일 저점 5,451.",
+   "market_hook": {
+    "tab": "운용회의",
+    "fields": [
+     "bottom_line.label",
+     "bottom_line.clock",
+     "macro.regime",
+     "ideas_top.status",
+     "ideas_top.kill"
+    ],
+    "keys": [
+     "KOSPI"
+    ],
+    "read": "위에서 아래로: label → clock 3선 거리 → regime → ideas_top status·kill. status '대기 — 촉매 없음'과 kill 을 같이 읽어야 '주문'이 된다."
+   },
+   "terminal_lookup": "운용회의 bottom_line.label 과 macro.regime 두 값을 적는다.",
+   "rule_link": "규칙 [레짐 상한 100/70/50 · 테마 한도 · [12] 위성 신규 비반도체] — 탑다운이 크기, 바텀업이 대상.",
+   "pitfalls": [
+    "'강세 44%니까 사야지' → 44%는 '강세 아님 56%'와 같은 말(n 176, 95% 구간 36~51%). 행동은 trigger 뒤. [consult:cio#q1]",
+    "'운용회의가 샀다고 했으니 산다' → ideas_top.status '대기'와 kill 조건을 같이 읽어야 주문. [consult:cio#q10]",
+    "'코어도 하락장이면 줄이자' → 코어는 레짐을 보지 않는다. 타이밍 베팅(F)이 들어간다. [consult:cio#q13]",
+    "'종목 3개 = 판단 3개' → 같은 테마면 BR 1. [consult:cio#q14]"
+   ],
+   "quiz": [
+    {
+     "kind": "knowledge",
+     "q": "운용회의 v2에서 '내가 틀리면 어떻게 아나'에 답하는 절은?",
+     "choices": [
+      "macro",
+      "positioning",
+      "premortem",
+      "rotation"
+     ],
+     "answer": 2,
+     "why": "[consult:cio#q2]"
+    },
+    {
+     "kind": "situation",
+     "q": "rotation 에 '반도체 과매도·드라이버 양호', regime 은 하락장·테마 한도 초과. 할 일은?",
+     "choices": [
+      "반도체 매수",
+      "탑다운 상한 안에서 후보를 줄인다 — 비반도체 1차 비중만, 상한은 안 올린다",
+      "한도 상향",
+      "코어 축소"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q9]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     },
+     "rule_ref": "규칙 [레짐 상한·테마 한도]"
+    },
+    {
+     "kind": "situation",
+     "q": "ideas_top 두 종목이 같은 테마(에너지·소재)·같은 동의 원천이다. 독립 판단 수 BR은?",
+     "choices": [
+      "2",
+      "1",
+      "4",
+      "0"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q14]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     }
+    },
+    {
+     "kind": "situation",
+     "q": "'하락장이니 코어 S&P 적립을 멈추자'는 제안은?",
+     "choices": [
+      "타당",
+      "코어에 타이밍 베팅(F)을 넣는 것 — 코어는 다이얼이 없다",
+      "위성으로 이동",
+      "밴드 조정"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q13]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     }
+    }
+   ],
+   "next_door": "'기본 시나리오 55%'는 어디서 온 숫자인가? → M2",
+   "srs": {
+    "intervals": [
+     1,
+     3,
+     7,
+     21
+    ]
+   },
+   "sources": [
+    "consult:cio#q1",
+    "consult:cio#q2",
+    "consult:cio#q7",
+    "consult:cio#q9",
+    "consult:cio#q10",
+    "consult:cio#q11",
+    "consult:cio#q13",
+    "consult:cio#q14",
+    "kb:cio#2",
+    "kb:cio#7",
+    "kb:cio#12",
+    "kb:cio#19",
+    "reports/studies/exec_signal"
+   ]
+  },
+  {
+   "schema": 3,
+   "id": "M2",
+   "track": "M",
+   "title": "운용회의 읽기 ② 시나리오 확률 — 예측이 아니라 출석부",
+   "tags": [
+    "운용회의",
+    "CFA L1 포트폴리오",
+    "투운사"
+   ],
+   "level": 2,
+   "est_min": 15,
+   "weak": false,
+   "prereq": [
+    "M1",
+    "Q4"
+   ],
+   "objectives": [
+    "scenario_basis(조건·n)로 확률이 '조건부 기저율'임을 설명한다",
+    "확률 → 행동 변환이 연속값이 아니라 레짐 상한 안의 계단식임을 말한다",
+    "asymmetry·hedges 를 '손익비·꼬리'로 읽는다"
+   ],
+   "summary": "확률 = 1999~ 코스피에서 오늘과 같은 조건이던 날들의 20거래일 뒤 결과 빈도입니다. 내일을 맞히는 숫자가 아니라 '과거에 오늘 같은 날 뒤 몇 %가 그랬나'는 출석부입니다. 그래서 확률이 커도 행동은 신호가 켜진 뒤입니다.",
+   "analogy": "'이 반에서 지각한 날 뒤 이틀 안에 또 지각한 비율 55%'는 내일 그 학생이 지각한다는 예측이 아닙니다. 비슷한 날의 출석부입니다. [consult:cio#q3]",
+   "terms": [
+    {
+     "t": "scenario_basis",
+     "d": "조건(평상시/급락일/20일 −15% 이상 하락 중/깊은 하락)과 표본 n."
+    },
+    {
+     "t": "기저율",
+     "d": "조건이 같은 과거 사례의 결과 빈도. 등급 C(서술 통계, 오차 ±15%p)."
+    },
+    {
+     "t": "trigger",
+     "d": "시나리오를 행동으로 바꾸는 전환 신호."
+    },
+    {
+     "t": "asymmetry",
+     "d": "헤지의 최대 손실 대 이익(ratio)과 발동 빈도(p)."
+    },
+    {
+     "t": "hedges",
+     "d": "무엇으로 어느 시나리오에 보험을 드나(풋·인버스·현금 3안, cost·when)."
+    }
+   ],
+   "concepts": [
+    "2026-10-16 scenario_basis = {'20일 −15% 이상 하락 중', n 176}. 20일 뒤 +5% 초과 43.8% / ±5% 34.7% / −5% 미만 21.6%. 평상시(n 6,822)면 22.6/62.7/14.7 — 조건이 바뀌면 확률도 바뀐다. 176이면 ±7%p는 소음이라 '44 vs 35'를 세밀하게 읽지 않는다. [consult:cio#q3] [kb:cio#3]",
+    "현업 규칙: 레짐이 상한, 시나리오가 그 안의 단계. 확률을 노출에 비례시키지 않는다. 일반 예시: 상한 상승장 100/회복 전 70/하락장 50, 그 안에서 약세 ≥30% '신규 0 + 헤지 검토', 20~30% '1차 비중', <20% '2차까지'. [consult:cio#q4] [kb:cio#11]",
+    "교과서(Merton 기대효용)는 연속값을 내지만 (a)확률 추정 오차가 커서 거짓 정밀도이고 (b)행동 제어가 우선이라 계단식 한도를 쓴다. 레짐 kr_regime 은 C — '알파가 아니라 위험 축소 스위치'. [consult:cio#q4]",
+    "asymmetry 2026-10-16: 풋 −5% OTM, loss 3.2%(프리미엄 전액), gain 7.0%(코스피200 −15% 시), ratio 2.2, p 0.017. 기대값은 음수(−3 + 0.017×7 ≈ −2.9)지만 −15% → −8%로 줄여 다음 달 규칙을 지킬 수 있게 한다(복구 비대칭: 85는 +17.6%, 92는 +8.7%). [consult:cio#q6] [kb:cio#9]",
+    "'인버스 25%'는 모델 북 전용(실계좌 상품 금지 게이트). 학습자가 따라 하지 않는다. [consult:cio#q6]",
+    "운용회의 scenarios[0].trigger·premortem.tell 의 '5일 고점 + 외국인 2일'은 entry_signals F(대조군 꼴찌) — tell로는 쓰되 진입 허가 게이트로 읽지 않는다(PB 검토 후 교체 예정). [kb:cio#18]"
+   ],
+   "formulas": [
+    {
+     "name": "조건부 기저율",
+     "f": "P(결과 | 조건) = 조건이 같던 날 중 결과 빈도",
+     "example": "'20일 −15% 중'(n 176): +5% 초과 43.8% · 평상시(n 6,822): 22.6%",
+     "src": "[kb:cio#3]"
+    },
+    {
+     "name": "확률 → 노출(계단)",
+     "f": "노출 = min(레짐 상한, 시나리오 단계)",
+     "example": "하락장 50 × 약세 21.6%(1차 비중) → 신규 소량뿐",
+     "src": "[consult:cio#q4]"
+    },
+    {
+     "name": "꼬리 보험 산수",
+     "f": "순손실 = 충격 − 보험 이익 · 비용 = 프리미엄",
+     "example": "100, 보험료 3, −15% 급락(p 1.7%) → −15 + 7 = −8. 기대값 −2.9지만 복구 +17.6% → +8.7%",
+     "src": "[consult:cio#q6]"
+    }
+   ],
+   "example": "강세 43.8%가 1등인데 판정은 관망. 이유: '과반 아님 · 전환 신호(5일 고점 6,384) 미충족'. 확률이 아니라 신호가 행동을 바꿉니다. 그리고 그 신호 자체는 F 등급이라 '허가'가 아니라 '관측'입니다.",
+   "market_hook": {
+    "tab": "운용회의",
+    "fields": [
+     "scenarios",
+     "scenario_basis.n",
+     "scenarios[].trigger",
+     "asymmetry.ratio",
+     "hedges"
+    ],
+    "keys": [
+     "KOSPI",
+     "VIX"
+    ],
+    "read": "scenario_basis 의 조건과 n 을 먼저 읽고, 확률 옆의 trigger 가 켜졌는지 본다. asymmetry ratio·p 는 보험 손익비."
+   },
+   "terminal_lookup": "운용회의 scenario_basis 의 n 과 1등 시나리오 확률을 적고, trigger 충족 여부를 O/X로 적는다.",
+   "rule_link": "규칙 [레짐 상한 안의 시나리오 단계 · 신호 전 행동 없음 · 실계좌 인버스 금지]",
+   "pitfalls": [
+    "'확률 높은 시나리오 = 확정' → 출석부. 행동 열쇠는 trigger. [kb:cio#17]",
+    "'premortem p 0.438은 관망이 맞을 확률' → 관망이 틀릴 확률. [consult:cio#q12]",
+    "'ideas_top score 0.9 = 수익 확률 90%' → 원천 가중 합계, 성적 n=0 검증전. [consult:cio#q12]",
+    "'약세 35%면 노출 65%' → 비례가 아니라 계단. 레짐이 먼저. [consult:cio#q4]"
+   ],
+   "quiz": [
+    {
+     "kind": "knowledge",
+     "q": "시나리오 확률 43.8%의 뜻은?",
+     "choices": [
+      "내일 오를 확률",
+      "같은 조건이던 과거 176일 중 20일 뒤 +5% 초과였던 비율",
+      "CIO의 예측",
+      "옵션 내재 확률"
+     ],
+     "answer": 1,
+     "why": "[kb:cio#3]"
+    },
+    {
+     "kind": "situation",
+     "q": "강세 44% > 약세 22%. '그러니 매수'에 답하면?",
+     "choices": [
+      "매수",
+      "신호(trigger) 전엔 행동 없음 — 44%는 '강세 아님 56%'와 같은 말",
+      "절반 매수",
+      "헤지 해제"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q1]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     },
+     "rule_ref": "규칙 [신호 전 행동 없음]"
+    },
+    {
+     "kind": "situation",
+     "q": "약세 확률 35%, 레짐 하락장(상한 50). 노출은?",
+     "choices": [
+      "65%",
+      "상한 50 안에서 '신규 0 + 헤지 검토' 단계",
+      "35%",
+      "100%"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q4]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     }
+    },
+    {
+     "kind": "situation",
+     "q": "풋 헤지 기대값이 −2.9로 음수다. 그래도 드는 이유는?",
+     "choices": [
+      "기대값이 양수라서",
+      "−15%를 −8%로 줄여 복구 비대칭을 피하고 다음 달 규칙을 지키게 한다",
+      "수수료가 없어서",
+      "의무라서"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q6]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     }
+    }
+   ],
+   "next_door": "내 판정이 틀렸다면 무엇으로 알아채나? → M3 프리모템",
+   "srs": {
+    "intervals": [
+     1,
+     3,
+     7,
+     21
+    ]
+   },
+   "sources": [
+    "consult:cio#q1",
+    "consult:cio#q3",
+    "consult:cio#q4",
+    "consult:cio#q6",
+    "consult:cio#q12",
+    "kb:cio#3",
+    "kb:cio#9",
+    "kb:cio#11",
+    "kb:cio#17",
+    "kb:cio#18"
+   ]
+  },
+  {
+   "schema": 3,
+   "id": "M3",
+   "track": "M",
+   "title": "운용회의 읽기 ③ 프리모템 — 틀렸다면 → 신호 → 행동",
+   "tags": [
+    "운용회의",
+    "CFA L1 포트폴리오",
+    "투운사"
+   ],
+   "level": 2,
+   "est_min": 15,
+   "weak": false,
+   "prereq": [
+    "M2",
+    "H3"
+   ],
+   "objectives": [
+    "premortem 필드(wrong·p·tell·cost·action)를 설명한다",
+    "자기 포지션에 프리모템 3줄을 쓴다",
+    "좋은 프리모템과 나쁜 프리모템을 구분한다",
+    "자기 IPS 1쪽의 빈칸을 안다"
+   ],
+   "summary": "프리모템은 비관이 아니라 탈출 지도입니다. 내 판정이 틀리는 시나리오(wrong), 그 확률(p), 틀렸음을 알리는 관측 가능한 신호(tell), 기다린 비용(cost), 그때 할 일(action, 수량·시한)로 이루어집니다.",
+   "analogy": "등산 전에 '길을 잃었다면 어디서 알아채고(갈림길 표지), 그때 어디로 돌아가나(마지막 쉼터)'를 적어 두는 것입니다. 산 위에서 정하면 늦습니다. [consult:cio#q5]",
+   "terms": [
+    {
+     "t": "wrong",
+     "d": "내 판정이 틀리는 길. 한 가지로 특정."
+    },
+    {
+     "t": "tell",
+     "d": "틀렸음을 가장 먼저 알리는 숫자·가격. 관측 가능해야 한다."
+    },
+    {
+     "t": "cost",
+     "d": "기다린 비용(예: 비슷한 날 다음날 평균 +1.0%)."
+    },
+    {
+     "t": "action",
+     "d": "그때 할 일. 수량·시한 포함."
+    },
+    {
+     "t": "IPS",
+     "d": "투자정책서. 목표·리스크 허용도와 감내 능력·제약·배분·벤치마크·변경 절차."
+    }
+   ],
+   "concepts": [
+    "2026-10-16 premortem: wrong '관망이 틀린 경우: V자 반등', p 0.438, tell '5일 고점 6,384 회복 + 외국인 순매수 전환', cost '비슷한 날 다음날 평균 +1.0%(상승 69%)', action '추격 금지 — 1차 비중만, 손절 20일 저점·2×ATR'. [consult:cio#q5] [kb:cio#4]",
+    "좋은 예: '반도체 반등 베팅이 틀리는 길 = 빅테크 설비투자 가이던스 하향. tell = 코스피 20일 저점 5,451 2일 연속 종가 이탈. action = 다음날 시가에 절반 축소.' 나쁜 예: '시장이 더 빠질 수도 있다. 조심한다.'(틀리는 길 미특정·tell이 숫자 아님·수량·시한 없음). [consult:cio#q5]",
+    "프리모템은 작위/부작위를 미리 적는 장치 — 후회회피(감정)를 교정이 아니라 우회한다. '하지 말 일' 줄에 '장중 −3%에 손절선 옮기기'가 명시돼 있다(H5 함정의 실물). [consult:behavior#q9] [kb:behavior#24]",
+    "오늘 tell의 '5일 고점+외국인' 신호 자체는 entry_signals F — tell로는 쓰되 진입 허가 게이트로 읽지 않는다. [consult:cio#q5] [reports/studies/entry_signals]",
+    "게이트 설계 3원칙: 측정 가능 · 게임 불가(아무것도 안 해도 자동 충족되거나 손절을 −1R에 두면 항상 참인 동어반복 금지 — exec_signal '신호 2'가 그 사례) · 결과가 아니라 과정 조건. [consult:cio#q16] [kb:cio#14] [reports/studies/exec_signal]",
+    "'내 IPS 1쪽' 과제: 목표(예: 3년, 코스피 총수익 ±0 이상, 연 최대낙폭 −15% 이내) / 리스크 감내 능력과 성향 각 한 줄 / 제약 / 배분(코어 비율·밴드, 위성 상한) / 벤치마크·평가 주기 / 변경 절차('위반 중인 규칙은 그 리뷰에서 완화 불가', '22시 이후 결정 금지') / 금지. 채점 = 숫자가 들어간 문장 수. [consult:cio#q16]"
+   ],
+   "formulas": [
+    {
+     "name": "프리모템 3줄",
+     "f": "① 틀렸다면 이유 ___ ② 가장 먼저 알려줄 숫자 ___ ③ 그 숫자가 나오면 ___(수량·시한)",
+     "example": "'관망이 틀린 길 = V자 반등 / 5일 고점 6,384 회복 / 추격 금지, 1차 비중만'",
+     "src": "[consult:cio#q5]"
+    },
+    {
+     "name": "게이트 3원칙",
+     "f": "측정 가능 × 게임 불가 × 과정 조건",
+     "example": "'종가 ≥ 당일 저가'는 항상 참 → 게임 불가 위반(동어반복). '주문표·손절 동시 설정·보고'는 과정 조건",
+     "src": "[kb:cio#14]"
+    }
+   ],
+   "example": "premortem.p 0.438은 '관망이 틀릴 확률'이지 맞을 확률이 아닙니다. action '추격 금지, 1차 비중만'은 '사지 마'가 아니라 '틀렸을 때의 비용(+1.0%)을 알고 작게'라는 회계입니다.",
+   "market_hook": {
+    "tab": "운용회의",
+    "fields": [
+     "premortem.wrong",
+     "premortem.p",
+     "premortem.tell",
+     "premortem.cost",
+     "premortem.action",
+     "bottom_line.dont"
+    ],
+    "keys": [
+     "KOSPI"
+    ],
+    "read": "tell 이 숫자인지, action 에 수량·시한이 있는지 두 가지만 본다. '하지 말 일' 줄을 소리 내 읽는다."
+   },
+   "terminal_lookup": "운용회의 premortem 에서 tell 숫자와 action 수량 한 쌍을 적는다.",
+   "rule_link": "규칙 [손절선 사전 기입 · 장중 손절선 이동 금지 · 위반 중 규칙 완화 불가] — 프리모템 action은 규칙 조항을 가리킨다.",
+   "pitfalls": [
+    "'프리모템 = 비관' → 회계. action은 '작게'이지 '하지 마'가 아니다. [kb:cio#17]",
+    "'tell이 F 등급이면 무시' → tell(관측)과 게이트(허가)는 다르다. [consult:cio#q5]",
+    "'조심한다'로 끝나는 프리모템 → 틀리는 길·숫자·수량·시한이 없으면 프리모템이 아니다. [consult:cio#q5]"
+   ],
+   "quiz": [
+    {
+     "kind": "knowledge",
+     "q": "premortem 의 tell 은 무엇이어야 하나?",
+     "choices": [
+      "느낌",
+      "관측 가능한 숫자·가격",
+      "확률",
+      "의견"
+     ],
+     "answer": 1,
+     "why": "[kb:cio#4]"
+    },
+    {
+     "kind": "situation",
+     "q": "'시장이 더 빠질 수도 있다. 조심한다.' 이 프리모템을 고치면?",
+     "choices": [
+      "그대로",
+      "틀리는 길 특정 + 숫자 tell + 수량·시한 action",
+      "확률만 추가",
+      "삭제"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q5]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     }
+    },
+    {
+     "kind": "situation",
+     "q": "premortem.p 0.438 을 '관망이 맞을 확률'로 읽었다. 맞나?",
+     "choices": [
+      "맞다",
+      "틀리다 — 관망이 틀릴 확률",
+      "둘 다",
+      "p는 무의미"
+     ],
+     "answer": 1,
+     "why": "[consult:cio#q12]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     }
+    },
+    {
+     "kind": "situation",
+     "q": "규정 게이트 '종가 ≥ 당일 저가'는 항상 참이다. 어느 원칙 위반인가?",
+     "choices": [
+      "측정 가능",
+      "게임 불가(동어반복)",
+      "과정 조건",
+      "위반 아님"
+     ],
+     "answer": 1,
+     "why": "[kb:cio#14]",
+     "duel": {
+      "desk": "CIO",
+      "pick": 1
+     },
+     "rule_ref": "규칙 [12] 실행 대본"
+    }
+   ],
+   "next_door": "이제 4단계(CFA L1 포트폴리오 B10)로 — 또는 처음으로 돌아가 R1을 복습(SRS 1·3·7·21일).",
+   "srs": {
+    "intervals": [
+     1,
+     3,
+     7,
+     21
+    ]
+   },
+   "sources": [
+    "consult:cio#q5",
+    "consult:cio#q12",
+    "consult:cio#q16",
+    "consult:behavior#q9",
+    "kb:cio#4",
+    "kb:cio#14",
+    "kb:cio#17",
+    "kb:behavior#24",
+    "reports/studies/entry_signals",
+    "reports/studies/exec_signal"
+   ]
+  }
+ ]
+}
