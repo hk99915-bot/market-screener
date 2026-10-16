@@ -1,21 +1,23 @@
-2026-10-15 09:12:13,622 INFO screener.research: 한경 47건
-2026-10-15 09:12:16,382 WARNING screener.research: 네이버 리스트 파싱 0건 — 응답 125996자, tr 0개 저장
-2026-10-15 09:12:16,382 INFO screener.research: 네이버 0건
-2026-10-15 09:12:16,382 INFO screener.research: 네이버 상세 보강 0건
-2026-10-15 09:12:16,385 INFO screener.research: 리포트 요약 0건 수집
-2026-10-15 09:12:16,388 INFO screener.research: 리포트 저장소 187건 (신규 0)
-2026-10-15 09:12:17,598 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-15 09:12:18,100 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-15 09:12:18,151 INFO matplotlib.font_manager: generated new fontManager
-2026-10-15 09:12:33,882 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-15 09:12:37,405 INFO screener.live: live.json 14개 지표
-2026-10-15 09:12:37,455 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.10) — 주된 요인: 나스닥 +, S&P500 +, 미 10년 금리 − · 글로벌 매크로는 심하지 않은데 한국만 크게 빠짐 → 원인은 국내·업종(반도체) 쪽, 매크로 반전만으론 회복 근거 부족
-2026-10-15 09:13:38,440 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-15 09:14:38,503 WARNING screener.calendar_ev: FRED PCEPILFE 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-15 09:15:38,564 WARNING screener.calendar_ev: FRED A191RL1Q225SBEA 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-15 09:16:38,667 WARNING screener.calendar_ev: FRED DFEDTARU 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-15 09:16:38,679 INFO screener.calendar_ev: 캘린더 70건
-2026-10-15 09:16:38,696 INFO screener.dashboard: dashboard.json 갱신 (98737 bytes)
-2026-10-15 09:16:38,772 INFO screener.dashboard: research.json 187건
-2026-10-15 09:16:38,779 INFO screener.dashboard: disclosures.json 235건
-2026-10-15 09:16:38,798 INFO screener.daily: 데일리 리포트: 리포트 102건, 테마 22개, 통합 체크 3개
+2026-10-16 03:46:55,080 INFO screener.research: 한경 60건
+2026-10-16 03:46:56,837 WARNING screener.research: 네이버 리스트 파싱 0건 — 응답 125996자, tr 0개 저장
+2026-10-16 03:46:56,837 INFO screener.research: 네이버 0건
+2026-10-16 03:46:56,837 INFO screener.research: 네이버 상세 보강 0건
+2026-10-16 03:48:19,464 INFO screener.research: 리포트 요약 18건 수집
+2026-10-16 03:48:19,469 INFO screener.research: 리포트 저장소 206건 (신규 18)
+2026-10-16 03:48:20,374 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
+2026-10-16 03:48:21,326 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-16 03:48:21,370 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지
+2026-10-16 03:48:21,758 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-16 03:48:21,809 INFO matplotlib.font_manager: generated new fontManager
+2026-10-16 03:48:33,248 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-16 03:48:35,876 INFO screener.live: live.json 17개 지표
+2026-10-16 03:48:35,979 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.09) — 주된 요인: 미 10년 금리 −, S&P500 +, 원/달러 + · 미국 지수는 덜 빠졌는데 한국이 크게 빠짐 → 금리·환율 같은 매크로보다 한국 비중이 큰 업종(반도체·AI 인프라) 쏠림이 풀리는 쪽. 원인 뉴스가 미국발이어도 충격은 업종 쏠림만큼 한국에 크게 옴 — 매크로 반전만으론 회복 근거 부족
+2026-10-16 03:49:37,042 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-16 03:50:37,094 WARNING screener.calendar_ev: FRED PCEPILFE 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-16 03:51:37,126 WARNING screener.calendar_ev: FRED A191RL1Q225SBEA 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-16 03:52:37,212 WARNING screener.calendar_ev: FRED DFEDTARU 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-16 03:52:37,224 INFO screener.calendar_ev: 캘린더 79건
+2026-10-16 03:52:37,241 INFO screener.dashboard: dashboard.json 갱신 (107312 bytes)
+2026-10-16 03:52:37,310 INFO screener.dashboard: research.json 206건
+2026-10-16 03:52:37,318 INFO screener.dashboard: disclosures.json 335건
+2026-10-16 03:52:37,334 INFO screener.daily: 데일리 리포트: 리포트 88건, 테마 21개, 통합 체크 1개
