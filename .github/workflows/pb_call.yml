@@ -46,7 +46,7 @@ jobs:
               if not v.get("pb_view"):
                   continue
               if v["id"] in ids:
-                  for k in ("PB", "규칙"):
+                  for k in ("PB", "PB🔥", "규칙"):
                       if k in v["picks"]:
                           ids[v["id"]]["picks"][k] = v["picks"][k]
                   ids[v["id"]]["pb_view"] = v["pb_view"]
