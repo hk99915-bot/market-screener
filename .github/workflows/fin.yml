@@ -30,10 +30,11 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
         run: |
-          python -m screener.main --mode fin --no-send || true
-          python -m screener.main --mode analysts --no-send || true
+          # 빨리 끝나는 것부터 — DART 재무 백필이 3시간 제한을 다 써서 뒤 작업이 못 돌던 문제 (10/16)
+          python -m screener.main --mode portfolios --no-send || true
           python -m screener.main --mode momentum --no-send || true
-          python -m screener.main --mode portfolios --no-send
+          python -m screener.main --mode analysts --no-send || true
+          python -m screener.main --mode fin --no-send || true
       - name: 저장
         if: always()
         run: |

@@ -152,8 +152,13 @@ def stats() -> dict:
             if v:
                 out[k] = {"n": len(v), "avg": round(sum(v) / len(v), 4), "up": round(sum(1 for x in v if x > 0) / len(v), 2)}
         return out
+    now = datetime.now(KST)
+    today = now.strftime("%Y-%m-%d")
     res = {"cb": cb, "cb_summary": summ(cb), "big": big[-30:], "big_summary": summ(big),
            "events": st.get("events", [])[:50], "updated_at": st.get("updated_at"),
+           # 당일 기준 표시용: 기록(events)은 이벤트가 터질 때만 바뀌지만, 확인 시각은 시세 갱신마다 바뀜
+           "checked_at": now.strftime("%Y-%m-%d %H:%M"),
+           "today": {"date": today, "n": sum(1 for e in st.get("events", []) if e.get("date") == today)},
            "note": "다음날·5일·20일 = 그날 종가 대비 코스피 수익률(야후 일봉). 2024-09 이전 발동일은 일봉 범위 밖이라 수치 없음."}
     (REPORT_DIR / "events_stats.json").write_text(json.dumps(res, ensure_ascii=False), encoding="utf-8")
     return res
