@@ -16,10 +16,11 @@ on:
     - cron: "52 18 * * 1-5"   # 03:52 KST 미장 후반 (마감 직전)
     - cron: "10 10 * * 1-5"   # 19:10 KST 신규 리포트 (하루 1회, 당일 발간분 모음)
     - cron: "52 21 * * 1-5"   # 06:52 KST 미장 마감 스크리너 + 매크로 (S&P500 ∪ NDX)
+    - cron: "40 21 * * 1-5"   # 06:40 KST 반도체 밸류에이션 바스켓 (미장 종가 반영, 비율만 · 참고 등급) — KR 종가분은 16:20 스크리너 안에서 갱신
   workflow_dispatch:
     inputs:
       mode:
-        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us | dashboard | dart | detail_kr | detail_us | shares | etf | themes | pb | quotes | bonds | lab | committee | close_kr | rebound"
+        description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us | dashboard | dart | detail_kr | detail_us | shares | etf | themes | pb | quotes | bonds | lab | committee | close_kr | rebound | valuation"
         required: true
         default: "reports"
 
@@ -62,6 +63,7 @@ jobs:
             "52 13 * * 1-5"|"52 18 * * 1-5") MODE=intraday_us ;;
             "10 10 * * 1-5") MODE=reports ;;
             "52 21 * * 1-5") MODE=screen_us ;;
+            "40 21 * * 1-5") MODE=valuation ;;
             *) MODE=skip ;;
           esac
           # 예약 시각보다 150분 넘게 밀렸으면 낡은 브리핑이 되므로 건너뜀

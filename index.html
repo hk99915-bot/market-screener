@@ -63,6 +63,7 @@
     getArchAt: (k, d) => get('reports/archive/' + k + '/' + d + '.json'),
     getChains: () => get('reports/chains_view.json'),
     getViews: () => get('reports/views.json'),
+    getValuation: () => get('reports/valuation.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
@@ -1830,6 +1831,27 @@ function anBadge(r){
   if(a.upside_med!=null) st.push(`평균 여력 ${(a.upside_med*100).toFixed(0)}%`);
   return ` <span class="an" title="${esc((a.style||[]).join(' · '))}">${esc(r.analyst)}<i>${esc(st.join(' · '))}${(a.style||[]).length?' · '+esc(a.style.join(' · ')):''}</i></span>`;
 }
+let VAL=null;
+function valView(){   // 반도체 밸류에이션 바스켓 (reports/valuation.json) — 비율만, 참고 등급, 매매 트리거 아님
+  if(VAL===null){ VAL=false; google.script.run.withSuccessHandler(t=>{try{VAL=JSON.parse(t);}catch(e){VAL={};} if(view==='val') render();}).withFailureHandler(e=>{VAL={err:/404/.test(e.message)?'밸류에이션 데이터가 아직 없습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='val') render();}).getValuation(); return '<div class="load">LOADING …</div>'; }
+  if(!VAL||!VAL.rows) return `<div class="grid"><div class="p c12"><h2>밸류에이션</h2><div class="b">${VAL&&VAL.err?`<div class="err">${esc(VAL.err)}</div>`:'<div class="mu">—</div>'}</div></div></div>`;
+  const B=VAL.basket||{}, RT=VAL.rates||{}, D=B.decomp20||{}, S=B.rate_sens||{};
+  const f=(x,d=1,s='')=>x==null?'—':Number(x).toFixed(d)+s;
+  const trend=r=>{ if(!r.n_quarters) return '<span class="mu">재무 없음</span>'; const om=(r.op_margin_4q||[]).filter(x=>x!=null); const ar=om.length>=2?(om[om.length-1]>om[0]+0.01?'↑':om[om.length-1]<om[0]-0.01?'↓':'→'):'';
+    return `${r.rev_yoy!=null?'매출 '+pct(r.rev_yoy,0):'<span class="mu">매출 —</span>'} · OPM ${ar}${om.length?(om[om.length-1]*100).toFixed(0)+'%':''}${r.ocf_ni!=null?' · OCF/NI '+f(r.ocf_ni,1):''}`; };
+  const rows=VAL.rows.map(r=>`<tr><td class="l"><span class="sym am" data-sym="${esc(r.sym)}" data-mk="${r.mk}" style="cursor:pointer">${esc(r.name)}</span>${r.verified?'':' <span class="mu" title="분기 4개 미만 또는 데이터 없음">⚠검증전</span>'}</td><td>${r.loss?'적자':f(r.per,1)} / ${f(r.pbr,2)}</td><td class="l mu">${trend(r)}</td><td>${pct(r.rate_adj)}</td></tr>`).join('');
+  const top=a=>(a||[]).map(x=>`${esc(x.name)} ${pct(x.rate_adj)}`).join(' / ')||'—';
+  return `<div class="grid">
+   <div class="p c12"><h2>반도체 밸류에이션 바스켓<small>${esc(VAL.asof)} · 검증 ${B.n_verified||0}/${B.n||0} · ${esc(VAL.grade||'')}</small></h2><div class="b">
+    <div class="mu" style="margin-bottom:6px">중앙 PER ${f(B.median_per,1)} · PBR ${f(B.median_pbr,2)} · 미 10Y ${f(RT.us10y,2,'%')} (5일 ${f(RT.us10y_w1_bp,0,'bp')}) · 국고 3Y ${f(RT.kr3y,2,'%')} (5일 ${f(RT.kr3y_w1_bp,0,'bp')})</div>
+    <table><tr><th class="l">종목</th><th>PER/PBR</th><th class="l">이익추세</th><th>금리조정 매력</th></tr>${rows}</table>
+    <div class="mu" style="margin-top:6px">금리조정 매력 상위: ${top(B.cheapest)} · 하위: ${top(B.richest)}</div>
+    <div class="mu">20일 분해(중앙): 가격 ${pct(D.d_price)} = 멀티플 ${pct(D.d_multiple)} + EPS ${pct(D.d_eps)} · ${esc(D.basis||'')}</div>
+    <div class="mu">금리 ±${S.bp||25}bp → 중앙 PER ${pct(S.up)} / ${pct(S.down)} · ${esc(S.formula||'')}</div>
+    <div class="mu">다음 이벤트: ${((VAL.events||{}).next||[]).slice(0,4).map(e=>`${esc(e.date.slice(5))} ${esc(e.name)}`).join(' · ')||'—'} · 발동선: ${((VAL.events||{}).tripwires||[]).filter(t=>t.date).slice(0,3).map(t=>`${esc(t.date.slice(5))} ${esc(t.name)}`).join(' · ')}</div>
+    <div class="mu" style="margin-top:4px">📎 비율만 · 금리조정 매력 = E/P − 무위험(US 미10Y, KR 국고3Y) · 매매 트리거 아님</div>
+   </div></div></div>`;
+}
 let R=null, RV={m:'theme',d:30,q:''};
 function repView(){
   if(!AN) loadAnalysts(()=>{ if(view==='rep'&&R) repFill(); });
@@ -2028,7 +2050,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -2438,7 +2460,7 @@ function drawCanvas(ch,sc,rs,kr){
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['views','VIEWS'],['brief','브리핑 기록']],
-  res:[['rep','리서치'],['dart','공시']],
+  res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오']],
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
 GROUPS.sys=[['sysb','작업 보드'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)

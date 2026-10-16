@@ -321,7 +321,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -472,6 +472,9 @@ def main() -> None:
             write_macro_series()   # 닛케이·TOPIX 매크로 시계열도 같이 확인
             from . import japan
             print(japan.summary(japan.build()))
+        elif a.mode == "valuation":    # 반도체 밸류에이션 바스켓 (비율만, 참고 등급) → reports/valuation.json/.md (+텔레그램 ≤8줄)
+            from . import valuation_daily
+            print(valuation_daily.summary(valuation_daily.build(send=not a.no_send)))
         elif a.mode == "bonds":        # 채권 화면 (미국채 곡선·국고채·신용 스프레드·채권 ETF)
             from . import bonds
             print(bonds.summary(bonds.build()))
@@ -547,6 +550,11 @@ def main() -> None:
                     alerts.run(send=not a.no_send, at_close=True)
                 except Exception as e:  # noqa: BLE001
                     log.warning("규정 알림 실패: %s", e)
+                try:   # 반도체 밸류에이션 바스켓 (KR 종가 반영분, 텔레그램은 06:40 미장 슬롯에서만)
+                    from . import valuation_daily
+                    valuation_daily.build(send=False)
+                except Exception as e:  # noqa: BLE001
+                    log.warning("밸류에이션 바스켓 실패: %s", e)
         else:
             if a.mode in ("premarket_kr", "reports", "intraday_kr"):   # 판단 성적표 채점 (다음 거래일 시가가 생기면)
                 try:

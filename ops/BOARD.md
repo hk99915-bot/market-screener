@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-16 · 작업 56개 · 진행 2 · 검수 17 · 대기 13 · 보류 2 · 완료 22
+기준일 2026-10-16 · 작업 64개 · 진행 2 · 검수 18 · 대기 20 · 보류 2 · 완료 22
 
 ## 진행 (2)
 
@@ -11,7 +11,7 @@
 | P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-18 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 
-## 검수 (17)
+## 검수 (18)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -21,6 +21,7 @@
 | P0 | `order-ticket-form` | 주문표 폼 → decisions 기록(pick 이슈 경로 재사용): 종목·매수가·손절가·목표가·근거·보유기간, 실매매 전 필수 | 개발 | 2026-10-16 | 2026-11-09 | `screener/duel.py`<br>`screener/decisions.py`<br>`.github/workflows/pick.yml`<br>`apps-script/Index.html` | — | 해금 1단계(11/16) 필수 도구. 금액은 기록하되 공개 저장소엔 비율/모의 100만 환산만. |
 | P1 | `cmt-v2` | 운용회의 v2 — 멀티매니저 모닝 미팅 형식(신호등 결론·시계·탑다운·포지셔닝·섹터·바텀업·아이디어 TOP3·헤지·프리모템·성적) + 원천 교차 아이디어 추적 채점 + 장중 갱신·14:15 슬롯 | CIO | 2026-10-16 | 2026-10-17 | `screener/committee.py`<br>`apps-script/Index.html`<br>`screener/main.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | — | 새 키만 추가(기존 stance·scenarios·ideas·derivs 유지). reports/ideas_log.json·ideas_attrib.json 은 예약 실행이 생성. GAS 재붙여넣기: Index.html·Scheduler.gs. 컨센서스·선물 외국인 수급은 데이터 없음. |
 | P1 | `drivers-audit` | EARNINGS DRIVERS 내용 감사 (체인 매핑·부호·문구) + 퀀트 감사 반영 | 애널 | 2026-10-16 | 2026-10-17 | `screener/drivers.py`<br>`apps-script/Index.html` | — | 지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관 |
+| P1 | `valuation-daily` | 반도체 밸류에이션 바스켓 일일 추적: PER/PBR·ROE·E/P−rf·20일 멀티플/EPS 분해 → reports/valuation.json/.md, 텔레그램 ≤8줄, RESEARCH 탭 카드 (비율만, 참고 등급) | 애널 | 2026-10-16 | 2026-10-17 | `screener/valuation_daily.py`<br>`screener/main.py`<br>`tests/test_valuation.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py`<br>`docs/desk_kb/analyst.md` | — | US 9종목(MU·SNDK·NVDA·INTC·TXN·KLAC·LRCX·TSM 등)은 fin 워크플로 SEC 수집 후 자동 채움(그 전엔 ⚠검증전). 20일 분해의 EPS₀ 는 archive/valuation 이 20일 쌓인 뒤 유효. GAS: Code.gs getValuation + Index.html 재붙여넣기 필요. |
 | P1 | `edu-curriculum-v3` | STUDY 커리큘럼 v3 정규화: 모듈 스키마·검증 스크립트 + 파생(D1~D4)·리스크(R1~R6)·퀀트(Q1~Q6)·행동재무(H1~H6)·운용회의(M1~M3) 트랙 — 파생·퀀트·FRM·CIO 자료 흡수 | 교육 | 2026-10-16 | 2026-10-18 | `content/study.json`<br>`content/study/**`<br>`docs/study_spec.md`<br>`scripts/study_content_check.py` | — | 개인 금액 금지(비율 사례만). Index.html 변경은 개발 인계(일요일). |
 | P1 | `edu-quiz-srs` | 문제은행(quiz_bank)·복습 스케줄(SRS 1/3/7/21일)·평일 07:10 오늘 공부 알림(study_daily) | 교육-후임 | 2026-10-16 | 2026-10-18 | `content/study/quiz_bank.json`<br>`content/study/srs.json`<br>`screener/study_daily.py`<br>`.github/workflows/study_daily.yml` | `edu-curriculum-v3` | 진행 저장은 'study <id> done' 이슈 → reports/study_progress.json 제안(스펙만). |
 | P1 | `sunday-scorecard` | 일요일 성적표 자동화 확장 — '규칙 간 정합성' 항목(테마 비중·VaR·위성 북 크기 vs 각 한도 나란히) | 리스크 | 2026-10-16 | 2026-10-18 | private 전용 | — | private 저장소 전용(weekly-scorecard 확장). 10/18 첫 발행, 이후 매주 일요일. 안건 8-B 재발 방지 장치. |
@@ -33,7 +34,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (13)
+## 대기 (20)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -46,7 +47,14 @@
 | P1 | `cio-memo` | CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·8-C·8-D 통합안) | CIO | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리. |
 | P1 | `frm-audit` | FRM 한도(VaR·연 변동성) 감사 — 60일 실현 변동성 기준 재계산, 테마 한도와 정합 | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만. |
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 퀀트-재현 | — | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. |
+| P1 | `peer-review-valuation` | 피어 리뷰: 애널 밸류에이션 모델(정상화 ROE·할인율·멀티플/EPS 분해) 독립 검토 + 10/16 반도체 논지(theses) 반대 의견서 — 매주 월요일 | 애널-피어 | — | 2026-10-20 | `docs/peer_review/valuation_YYYY-MM-DD.md`<br>`docs/desk_kb/analyst.md` | `valuation-daily` | 피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당. |
+| P1 | `ra-sec-coverage` | RA: SEC·DART 커버리지 확장 — 반도체 바스켓 전체(PSI·SOXX 구성 30+종목, 하이닉스 ADR 없음→DART), 실적 발표일·컨센서스 EPS(무료 소스 조사) 수집 파이프라인 | 애널-RA | — | 2026-10-21 | `universe/us_priority.csv`<br>`screener/sec.py`<br>`screener/earnings_cal.py`<br>`reports/earnings_cal.json` | `valuation-daily` | 컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
+| P2 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 애널-피어 | — | 2026-10-20 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. |
+| P2 | `ra-etf-holdings-full` | RA: ETF 구성종목 전체 목록 수집(PSI·SOXX·SMH·139260·091160) → 룩스루·밸류에이션 바스켓 자동 갱신 | 애널-RA | — | 2026-10-23 | `screener/etf.py`<br>`reports/detail/US/*.json` | — | 현재 상위 7개만 저장됨. |
+| P2 | `ra-sector-frames` | RA: 국장 리서치(research.json)에서 섹터별 분석 프레임(지표 체크리스트) 추출 → docs/desk_kb/analyst.md 섹터 섹션. 원문 복제 금지, 지표명·빈도만 | 애널-RA | — | 2026-10-24 | `scripts/research_frames.py`<br>`docs/desk_kb/analyst.md` | — | 실존 애널 개인 페르소나 금지. 하우스 단위도 공개엔 이름 없이. |
+| P2 | `peer-earnings-preview` | 피어: 실적 시즌 프리뷰 — 10/29 삼성·MU(12월)·하이닉스 컨센서스 대비 시나리오 3개(상·기본·하)와 주가 반응 통계(과거 실적일 ±1일) | 애널-피어 | — | 2026-10-27 | `reports/studies/earnings_reaction.md` | `ra-sec-coverage` | '한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함. |
+| P2 | `ra-house-scoreboard` | RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일 수익률·낙관 편향(목표가 인플레) 스코어보드 — 참고 경보용, 가중치 아님 | 애널-RA | — | 2026-10-28 | private 전용 | `ra-sector-frames` | 표본 n<10 하우스는 미표시. 개인명 저장 금지. |
 | P2 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
 | P2 | `desk-scoreboard-monthly` | 데스크 성적표·복기 월례: ideas_attrib·decisions tally·연구 등급·재현 결과를 docs/desk_kb/_scoreboard.md로 모으고 각 데스크 KB '복기' 3줄 갱신 | PM | — | 2026-10-31 | `docs/desk_kb/_scoreboard.md`<br>`docs/desk_kb/*.md`<br>`scripts/desk_scoreboard.py` | — | 첫 회 10/31. 데스크 프롬프트 템플릿에 'KB+최근 복기 3건 읽기' 포함(HANDOFF). |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
@@ -87,15 +95,15 @@
 
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
 
-- `.github/workflows/briefing.yml` ← `cmt-v2`, `rebound-alert` — 편집 전 `ops/locks.json` 잠금 필수
-- `apps-script/Code.gs` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
-- `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2`, `order-ticket-form` — 편집 전 `ops/locks.json` 잠금 필수
+- `.github/workflows/briefing.yml` ← `cmt-v2`, `rebound-alert`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/Code.gs` ← `view-registry`, `deriv-tab`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2`, `order-ticket-form`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Scheduler.gs` ← `cmt-v2`, `rebound-alert` — 편집 전 `ops/locks.json` 잠금 필수
 - `content/study.json` ← `study-derivs`, `edu-curriculum-v3` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/committee.py` ← `view-registry`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/decisions.py` ← `rebound-alert`, `order-ticket-form` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/duel.py` ← `view-registry`, `order-ticket-form` — 편집 전 `ops/locks.json` 잠금 필수
-- `screener/main.py` ← `view-registry`, `cmt-v2` — 편집 전 `ops/locks.json` 잠금 필수
-- `scripts/build_pages.py` ← `view-registry`, `deriv-tab` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/main.py` ← `view-registry`, `cmt-v2`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
+- `scripts/build_pages.py` ← `view-registry`, `deriv-tab`, `valuation-daily` — 편집 전 `ops/locks.json` 잠금 필수
 

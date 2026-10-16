@@ -1070,6 +1070,28 @@
     "ra-sector-frames"
    ],
    "notes": "지어낸 반대 금지 — 시장에 실존하는 뷰만."
+  },
+  {
+   "id": "valuation-daily",
+   "title": "반도체 밸류에이션 바스켓 일일 추적: PER/PBR·ROE·E/P−rf·20일 멀티플/EPS 분해 → reports/valuation.json/.md, 텔레그램 ≤8줄, RESEARCH 탭 카드 (비율만, 참고 등급)",
+   "owner": "애널",
+   "status": "검수",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/valuation_daily.py",
+    "screener/main.py",
+    "tests/test_valuation.py",
+    ".github/workflows/briefing.yml",
+    "apps-script/Index.html",
+    "apps-script/Code.gs",
+    "scripts/build_pages.py",
+    "docs/desk_kb/analyst.md"
+   ],
+   "started": "2026-10-16",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "US 9종목(MU·SNDK·NVDA·INTC·TXN·KLAC·LRCX·TSM 등)은 fin 워크플로 SEC 수집 후 자동 채움(그 전엔 ⚠검증전). 20일 분해의 EPS₀ 는 archive/valuation 이 20일 쌓인 뒤 유효. GAS: Code.gs getValuation + Index.html 재붙여넣기 필요."
   }
  ]
 }

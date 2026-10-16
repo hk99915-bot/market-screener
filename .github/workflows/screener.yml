@@ -3,6 +3,7 @@ name: market-screener
 on:
   schedule:
     # KR 마감(15:30 KST) 후 — 16:20 KST = 07:20 UTC, 월~금
+    # (KR 경로는 main.py 안에서 규정 알림 → 반도체 밸류에이션 바스켓(reports/valuation.json, 텔레그램 없음)까지 이어서 돈다)
     - cron: "20 7 * * 1-5"
     # US 스크리너(07:00 KST)는 스케줄이 안정적인 briefing.yml 로 이동. 여기서는 수동 실행만.
   workflow_dispatch:
