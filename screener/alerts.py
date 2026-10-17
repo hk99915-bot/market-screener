@@ -150,7 +150,7 @@ def touch_lines(fetch=None) -> list[tuple[str, str]]:
         probe = q["low"] if q.get("low") else q["last"]
         if probe <= px:
             how = "장중 저가" if q.get("low") else "현재가"
-            out.append((f"touch:{code}", f"⛔ <b>{q.get('name', code)} 발동선 터치 — 즉시 매도</b> · {how} {probe:,.0f} ≤ {px:,.0f} (예외 1회 조건, 재협상 없음)"))
+            out.append((f"touch:{code}", f"⛔ <b>{q.get('name', code)} 발동선 터치</b> · {how} {probe:,.0f} ≤ {px:,.0f} · 결재 #2 예외 조건 충족(사전 합의: 재협상 없음) — 실행 여부는 오너"))
     return out
 
 
