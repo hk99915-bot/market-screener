@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-17T23:10+09:00",
+ "updated": "2026-10-17T23:13+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -947,8 +947,8 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-11",
-  "commits_total": 1077,
-  "commits_bot": 487,
+  "commits_total": 1081,
+  "commits_bot": 489,
   "commits_unmapped": 311,
   "audit_files": [
    "2026-10-17"
@@ -1099,7 +1099,7 @@
     }
    },
    "기록": {
-    "commits_7d": 4,
+    "commits_7d": 6,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -1390,16 +1390,16 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 102,
-   "tokens": 18596805,
-   "tools": 4416,
-   "sec": 55465,
+   "runs": 103,
+   "tokens": 18691952,
+   "tools": 4424,
+   "sec": 55598,
    "days": 3,
    "per_day": {
-    "runs": 34.0,
-    "tokens": 6198935.0,
-    "tools": 1472.0,
-    "sec": 18488.3
+    "runs": 34.3,
+    "tokens": 6230650.7,
+    "tools": 1474.7,
+    "sec": 18532.7
    }
   }
  },
@@ -1444,16 +1444,16 @@
    }
   },
   "opus": {
-   "runs": 31,
-   "tokens": 3368002,
-   "tools": 637,
-   "sec": 8761,
+   "runs": 32,
+   "tokens": 3463149,
+   "tools": 645,
+   "sec": 8894,
    "days": 1,
    "per_day": {
-    "runs": 31.0,
-    "tokens": 3368002.0,
-    "tools": 637.0,
-    "sec": 8761.0
+    "runs": 32.0,
+    "tokens": 3463149.0,
+    "tools": 645.0,
+    "sec": 8894.0
    }
   }
  }
