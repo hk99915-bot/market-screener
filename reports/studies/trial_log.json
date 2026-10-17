@@ -81,6 +81,13 @@
    "question": "추세 시뮬레이션 '새로 켜짐' 신호를 승률 Wilson 대신 거래당 기대값 t 하한 > 0 으로 거르면 통과가 생기는가(우연 대비)",
    "unregistered_trials": 0,
    "discarded": ""
+  },
+  "ktb_vs_ust": {
+   "topic": "bond_sleeve",
+   "question": "ISA 채권 20% 슬리브: 국고채 vs 미국채(환노출·환헤지), 원화 기준",
+   "unregistered_trials": 0,
+   "unregistered_note": "FX 복원 검증(달러선물 ETF↔현물 2024-09~)은 데이터 준비 단계로 결과 비교 아님",
+   "discarded": ""
   }
  },
  "trials": [
@@ -165,6 +172,15 @@
    "result": "KR m94 통과0(우연 기대 4.7) · US m79 통과1(IEX PSAR, t하한 +0.83%, 우연 3.95) · Wilson 통과 0/0 · 재현율 99.2%/96.5% · 이항 p 1.00/0.98 → C·참고 표시만, 10/24 검증",
    "discarded_why": "",
    "study": "trend_expectancy"
+  },
+  {
+   "date": "2026-10-17",
+   "topic": "bond_sleeve",
+   "hypothesis": "(사전등록 m=11) H1 KOSPI≤−5% 달 평균: UST-UH−KTB10·UST-H−KTB10·UST-UH−UST-H >0 / H2 ISA믹스 샤프: UST-UH슬리브 vs KTB10·UST-H vs KTB10·UST-UH vs UST-H (블록 부트스트랩) / H3 BOK 인상기(2017-11~2018-11·2021-08~2023-01) 월평균 KTB10−UST-UH·KTB10−UST-H <0 / H4 직전6개월 USDKRW 상승 국면(사전 판정) 다음달 UST-UH−KTB10 >0 / H5 전체 월평균 UST-UH−KTB10·UST-H−KTB10",
+   "params": "월간 2011-11~2026-09(148070 상장 이후 공통), 월말 신호→다음 거래일 종가 체결, 교체 편도 0.1%. KTB10=148070, KTB3=114260(서술만), UST-UH=IEF×USDKRW, UST-H=IEF−(미 정책금리−한 기준금리)/12, TLT-UH 서술만. USDKRW=달러선물 ETF(138230→261240) 수익−미 정책금리/12로 복원(야후·FRED 차단). ISA믹스=S&P40·NDX10·K200 15·채권20·금15(GLD×FX) 월 리밸런싱. Bonferroni α=0.05/11. 등급 rule_audit 규약(A=보정 유의+IS(~2018)·OOS(2019~) 같은 방향, B=보정 유의, C=p<0.10, F, 검증전=n<8). 부트스트랩 블록6 B=5000 시드 20261017",
+   "result": "(계산 전 등록 — 결과는 이 줄 아래 갱신 커밋)",
+   "discarded_why": "",
+   "study": "ktb_vs_ust"
   }
  ]
 }
