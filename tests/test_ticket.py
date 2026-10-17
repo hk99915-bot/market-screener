@@ -1,4 +1,4 @@
-"""ticket.apply_ticket_issue — 주문표 파싱·규칙 검사(손익비·레버리지·개장 30분·추격 절반)·공개 금액 규칙."""
+"""ticket.apply_ticket_issue — 주문표 파싱·규칙 검사(손익비·레버리지·개장 30분·추격 절반·매도/판정 후 30분 쿨다운)·공개 금액 규칙."""
 import json
 
 import pytest
@@ -27,6 +27,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.delenv("SAT_BOOK_KRW", raising=False)
     monkeypatch.delenv("RISK_PCT", raising=False)
     monkeypatch.delenv("MY_RULES", raising=False)
+    monkeypatch.delenv(ticket.COOLDOWN_ENV, raising=False)
     return rep
 
 
@@ -87,3 +88,50 @@ def test_halt_event_today_rejected(env):
 def test_missing_field_message(env):
     msg = ticket.apply_ticket_issue("ticket 000001", "매수가 10000\n손절가 9500", OK_AT)
     assert "빠진 항목" in msg and "목표가" in msg
+
+
+# ── 결재 #14 ③ 매도·판정·포상 후 30분 쿨다운 (근거: 10/16 보상 직후 레버리지 충동, kb:behavior#22) ──
+def _write_items(rep, items):
+    (rep / "decisions.json").write_text(json.dumps({"items": items}, ensure_ascii=False), encoding="utf-8")
+
+
+def _exit_sell(code, hhmm):
+    return {"id": f"{D}-exit-{code}", "date": D, "kind": "exit", "name": "팔린주", "title": "매도 타점 대결 · 팔린주",
+            "picks": {"나": {"cash": True, "label": "매도", "submitted": hhmm}, "PB": {"cash": True}}, "basis": {"at": f"{D} {hhmm}"}}
+
+
+def test_cooldown_after_sell_rejected(env):
+    _write_items(env, [_exit_sell("000003", "13:45")])          # 13:45 매도 → 14:00 제출은 15분 뒤
+    msg = ticket.apply_ticket_issue("ticket 000001", BODY, OK_AT)
+    assert "⛔ 거부" in msg and "30분 쿨다운" in msg and "매도" in msg and "결재 #14" in msg
+    assert _item(env, "000001")["verdict"].startswith("⛔")
+
+
+def test_cooldown_expired_passes(env):
+    _write_items(env, [_exit_sell("000003", "13:29")])          # 31분 전 매도 → 통과
+    assert "✅ 통과" in ticket.apply_ticket_issue("ticket 000001", BODY, OK_AT)
+
+
+def test_cooldown_after_previous_ticket_verdict(env):
+    ticket.apply_ticket_issue("ticket 000001", BODY, OK_AT)                      # 14:00 판정
+    msg = ticket.apply_ticket_issue("ticket 000002", "매수가 10500\n손절가 10000\n목표가 11600\n근거: 돌파\n보유 5일", f"{D}T05:10:00Z")  # 14:10
+    assert "⛔ 거부" in msg and "주문표 판정" in msg
+    # 거부된 판정도 판정 — 재협상(반복 제출)마다 30분이 다시 간다: 14:31 은 14:10 +21분 → 거부, 15:02 는 14:31 +31분 → 통과
+    assert "⛔ 거부" in ticket.apply_ticket_issue("ticket 000001", BODY, f"{D}T05:31:00Z")
+    assert "✅ 통과" in ticket.apply_ticket_issue("ticket 000001", BODY, f"{D}T06:02:00Z")
+
+
+def test_cooldown_env_manual_time(env, monkeypatch):
+    monkeypatch.setenv(ticket.COOLDOWN_ENV, f"{D} 13:50")        # 포상·장외 매도 수동 기록(KST)
+    msg = ticket.apply_ticket_issue("ticket 000001", BODY, OK_AT)
+    assert "⛔ 거부" in msg and "수동 기록" in msg
+    _write_items(env, [])                                         # 방금 기록된 판정 제거
+    monkeypatch.setenv(ticket.COOLDOWN_ENV, f"{D}T04:00:00Z")     # ISO 13:00 KST → 60분 전 → 통과
+    assert "✅ 통과" in ticket.apply_ticket_issue("ticket 000001", BODY, OK_AT)
+
+
+def test_cooldown_ignores_future_and_hold(env):
+    _write_items(env, [_exit_sell("000003", "14:20"),            # 제출(14:00) 이후의 매도는 무시
+                       {"id": f"{D}-exit-000004", "date": D, "kind": "exit", "name": "보유주",
+                        "picks": {"나": {"ticker": "000004", "notional": 1}, "PB": {"cash": True}}, "basis": {"at": f"{D} 13:50"}}])  # 보유 판단은 매도 아님
+    assert "✅ 통과" in ticket.apply_ticket_issue("ticket 000001", BODY, OK_AT)
