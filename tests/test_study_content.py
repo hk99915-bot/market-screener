@@ -177,3 +177,48 @@ def test_study_daily_run_writes_file(tmp_path):
     o = study_daily.run(date(2026, 10, 21), send=False, root=tmp_path)
     assert (tmp_path / "reports" / "study_daily.json").exists()
     assert o["new"] is not None
+
+
+# ── 교육 라운드1 (2026-10-17): 월 07:10 첫 메시지 = '오늘 1모듈 + 퀴즈 1' (consult:pb_learner#L5·L9, srs.rules.daily_cap) ──
+def _load():
+    study = json.loads((ROOT / "content" / "study.json").read_text(encoding="utf-8"))
+    bank = json.loads((ROOT / "content" / "study" / "quiz_bank.json").read_text(encoding="utf-8"))
+    srs = json.loads((ROOT / "content" / "study" / "srs.json").read_text(encoding="utf-8"))
+    return study, bank, srs
+
+
+def test_monday_1019_first_message_is_h2_one_module_one_quiz():
+    study, bank, srs = _load()
+    empty = {"note": "", "done": [], "quiz": [], "streak": 0, "last": None, "unlocked": [], "modules": {}}   # reports/study_progress.json 초기 상태
+    for progress in (None, empty):
+        o = study_daily.build(date(2026, 10, 19), study, bank, srs, progress, None)
+        assert o["weekday"] == 0 and o["review"] is None
+        assert o["new"]["id"] == "H2" and o["new"]["first_two_weeks"] and o["new"]["est_min"] == 15 and not o["new"]["multi_day"]
+        assert o["quiz"]["module"] == "H2" and o["quiz"]["kind"] == "situation" and len(o["quiz"]["choices"]) == 4
+        assert o["issue_title"] == "study H2 done" and "min%2015" in o["issue_url"]
+        lines = study_daily.telegram_text(o).split("\n")
+        assert len(lines) <= 4
+        assert lines[0].startswith("📚 오늘 공부: H2 ") and "(15분)" in lines[0] and "복습 없음" in lines[0] and lines[0].endswith("퀴즈 1")
+        assert lines[1].startswith("❓ [H2]")
+
+
+def test_legacy_hour_module_capped_to_daily_20min():
+    """first_two_weeks 10개를 다 끝내면 0-1(6시간짜리 구형 모듈)이 오는데, 알림은 '오늘 20분'만 보여준다(총량 노출 금지, L5)."""
+    study, bank, srs = _load()
+    progress = {"modules": {i: {"done": ["2026-10-01"], "stage": 4, "next_due": "2026-11-01"} for i in study["roadmap"]["first_two_weeks"]}}
+    o = study_daily.build(date(2026, 10, 28), study, bank, srs, progress, None)
+    assert o["new"]["id"] == "0-1" and o["new"]["total_min"] == 360
+    assert o["new"]["est_min"] <= o["daily_cap_min"] == 20 and o["new"]["multi_day"]
+    assert "min%2020" in o["issue_url"] and "(20분)" in study_daily.telegram_text(o)
+
+
+def test_quiz_situation_first_until_exhausted():
+    """situation 미답 문항이 남아 있으면 knowledge 는 나오지 않는다(srs.rules.quiz_pick 'situation 우선'); 다 답하면 knowledge."""
+    study, bank, srs = _load()
+    sit = [q["id"] for q in bank["items"] if q["module"] == "H2" and q["kind"] == "situation"]
+    know = [q["id"] for q in bank["items"] if q["module"] == "H2" and q["kind"] == "knowledge"]
+    assert sit and know
+    for d in range(19, 31):
+        assert study_daily.pick_quiz(bank, "H2", date(2026, 10, d), None)["kind"] == "situation"
+    progress = {"quiz": [{"qid": q} for q in sit]}
+    assert study_daily.pick_quiz(bank, "H2", date(2026, 10, 19), progress)["id"] in know

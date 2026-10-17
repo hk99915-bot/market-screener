@@ -1300,6 +1300,26 @@
       ],
       "depends_on": [],
       "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+    },
+    {
+      "id": "quiz-key-balance",
+      "title": "문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why)",
+      "owner": "교육",
+      "desk": "교육",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "content/study/quiz_bank.json",
+        "scripts/study_content_check.py",
+        "tests/test_study_content.py"
+      ],
+      "depends_on": [
+        "study-progress"
+      ],
+      "notes": "교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음."
     }
   ]
 }

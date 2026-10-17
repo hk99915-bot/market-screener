@@ -89,7 +89,10 @@ def pick_quiz(bank: dict, module_id: str | None, day: date, progress: dict | Non
     items = [q for q in pool if q.get("id") not in answered] or pool
     if not items:
         return None
-    items.sort(key=lambda q: (q.get("kind") != "situation", q.get("id", "")))  # situation 우선
+    # situation 우선(srs.rules.quiz_pick, consult:pb_learner#L8 상황 판단 70%): 미답 situation 이 남아 있으면 그 안에서만 고른다.
+    # (정렬만 하고 해시로 뽑으면 우선순위가 사라진다 — 교육 라운드1 수정)
+    items = [q for q in items if q.get("kind") == "situation"] or items
+    items.sort(key=lambda q: q.get("id", ""))
     h = int(hashlib.sha1(f"{day.isoformat()}:{module_id}".encode()).hexdigest(), 16)
     return items[h % len(items)]
 
@@ -107,20 +110,24 @@ def build(today: date, study: dict, bank: dict, srs: dict, progress: dict | None
         done = _done_ids(progress or {})
         next_locked = next((i for i in study.get("roadmap", {}).get("order", []) if i not in done), None)
     issue_mod = new_id or (review or {}).get("id")
-    est = int(new.get("est_min") or round(float(new.get("hours", 0)) * 60)) if new else 0
+    cap = int((srs or {}).get("rules", {}).get("daily_cap", {}).get("est_min_total", 20))
+    total_min = int(new.get("est_min") or round(float(new.get("hours", 0)) * 60)) if new else 0
+    # 하루 1모듈 20분 상한(consult:pb_learner#L5): 구형(시간 단위) 모듈은 '오늘 분량'만 보여준다 — 총량(360분)을 보여주면 역효과.
+    est = min(total_min, cap) if total_min else 0
     body = (f"quiz {quiz['id']} <0~3>\n" if quiz else "") + f"min {est or 15}"
     out = {
         "date": today.isoformat(),
         "weekday": today.weekday(),
         "review": ({"id": review["id"], "title": mods[review["id"]]["title"], "stage": review["stage"], "overdue_days": review["overdue_days"],
                     "interval_days": (srs or {}).get("intervals", [1, 3, 7, 21])[min(review["stage"], 3)]} if review else None),
-        "new": ({"id": new_id, "title": new["title"], "track": new["_track"], "est_min": est, "level": new.get("level"),
+        "new": ({"id": new_id, "title": new["title"], "track": new["_track"], "est_min": est, "total_min": total_min, "multi_day": total_min > cap,
+                 "level": new.get("level"),
                  "summary": new.get("summary"), "terminal_lookup": new.get("terminal_lookup"), "rule_link": new.get("rule_link"),
                  "prereq": new.get("prereq", []), "first_two_weeks": new_id in study.get("roadmap", {}).get("first_two_weeks", [])} if new else None),
         "quiz": ({"id": quiz["id"], "module": quiz["module"], "kind": quiz.get("kind"), "q": quiz["q"], "choices": quiz["choices"],
                   "duel_desk": (quiz.get("duel") or {}).get("desk"), "rule_ref": quiz.get("rule_ref")} if quiz else None),
         "english": ({"date": english.get("date"), "title": english.get("title"), "level": english.get("level")} if english else None),
-        "daily_cap_min": (srs or {}).get("rules", {}).get("daily_cap", {}).get("est_min_total", 20),
+        "daily_cap_min": cap,
         "progress_source": "reports/study_progress.json" if progress else "없음(이슈 'study <id> done' 으로 기록 — screener/study_progress.py)",
         "srs": {"intervals": (srs or {}).get("intervals", [1, 3, 7, 21])},
         "streak": int((progress or {}).get("streak") or 0),
