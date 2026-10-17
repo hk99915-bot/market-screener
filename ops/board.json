@@ -2072,6 +2072,79 @@
       ],
       "notes": "현재 activist.json returns 는 서술용(공시 전 거래일 종가 대비 d0·d5·d20·d60 원 수익률). 채점은 사전등록 §3 기준으로 별도 함수 + trial_log 등록(m=4).",
       "desk": "애널"
+    },
+    {
+      "id": "active-flow-firstrun",
+      "title": "액티브 ETF PDF 첫 실데이터 수집 (KRX 로그인 환경에서 1회)",
+      "owner": "데이터",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-22",
+      "repo": "public",
+      "files": [
+        "screener/active_funds.py",
+        "reports/active_funds.json",
+        "reports/active_funds_snap.json"
+      ],
+      "depends_on": [],
+      "notes": "10/17 샌드박스: data.krx.co.kr·네이버 프록시 403 + pykrx 1.2.9 가 KRX_ID/KRX_PW 요구 → 수집 0/18. Actions(KRX 시크릿 있음)에서 `python -m screener.active_funds` 2일 연속 실행해야 첫 diff. 첫 실행 때 TARGETS 이름·코드 대조(495060 종목명 변경 공시, 471780 출처 1곳).",
+      "desk": "데이터"
+    },
+    {
+      "id": "active-flow-schedule",
+      "title": "액티브 ETF 편입·편출 수집 예약 편입 제안 — 평일 18:50 KST (accum 18:37 뒤·reports 19:10 앞)",
+      "owner": "데이터",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "screener/active_funds.py",
+        "reports/active_funds.json",
+        "reports/active_funds_snap.json",
+        "docs/schedule_table.md"
+      ],
+      "depends_on": [
+        "active-flow-firstrun"
+      ],
+      "notes": "오너 결재 필요. 월요일 장 전 라이브 루프 변경 금지라 10/17엔 워크플로 미추가. 안: cron 단독 슬롯(GAS 불필요), KRX_ID/KRX_PW 환경, 커밋 대상 reports/active_funds*.json 2개, commit 입력(결정 C). 용량 추정 하루 수십 KB(스냅샷 1개 덮어쓰기 + 이벤트 60거래일 상한). contracts.py 에 active_funds.json 계약(asof·status·events) 추가는 개발 잠금 확인 후.",
+      "desk": "데이터"
+    },
+    {
+      "id": "active-fund-quarterly",
+      "title": "액티브 공모펀드 보유 2단계 — 자산운용보고서(분기)·금투협 상위 보유",
+      "owner": "데이터",
+      "priority": "P3",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [
+        "active-flow-firstrun"
+      ],
+      "notes": "분기·상위 보유만·수주 지연 → 일간 신호 아님, ETF 신호의 교차확인용. 소스 접근성(금투협 전자공시 API) 먼저 조사.",
+      "desk": "데이터"
+    },
+    {
+      "id": "active-flow-prereg-score",
+      "title": "사전등록 1차 채점 — 액티브 ETF 동시 실질 증가 종목 20/60일 초과수익",
+      "owner": "데이터",
+      "priority": "P3",
+      "status": "대기",
+      "started": null,
+      "due": "2027-04-30",
+      "repo": "public",
+      "files": [
+        "docs/valuation_notes/2026-10-17_active_flow_prereg.md"
+      ],
+      "depends_on": [
+        "active-flow-schedule"
+      ],
+      "notes": "수집 120거래일 + 독립 신호 30건 이상일 때만. 기준 변경은 노트 끝에 덧붙이기.",
+      "desk": "데이터"
     }
   ]
 }
