@@ -207,11 +207,35 @@ def releases() -> dict:
     return old
 
 
-def _fmt(x: dict) -> str:
+# 결재 #9 (2026-10-17): 컨센서스(예상치)를 수집하지 않으므로 '서프라이즈·예상 대비·상회·하회' 표기 금지.
+# 지표 발표 문장은 전부 아래 한 함수로 만든다 — '전월 대비' 변화(±%p / ±천명)만 적고, 개정 전 잠정치임을 전제한다.
+BANNED_WORDS = ("서프라이즈", "컨센서스", "컨센", "예상 대비", "예상치", "상회", "하회", "깜짝")
+
+
+def release_line(x: dict, period: bool = False, seen: bool = False) -> str:
+    """지표 발표 한 줄: '<지표> <값> (전월 <직전> → <차이>)'. prev 는 직전 발표치(월 지표면 전월, 일별 수준은 30일 전).
+
+    예) CPI 전년비 4.02% (전월 3.71% → +0.31%p) · 비농업 고용 +29천명 (전월 +133천명 → −104천명)
+    """
     v, p = x["value"], x.get("prev")
-    if x["how"] == "mom_k":
-        return f"{x['label']} {v:+,.0f}천명 (전월 {p:+,.0f})" if p is not None else f"{x['label']} {v:+,.0f}천명"
-    return f"{x['label']} {v:.2f}%" + (f" (이전 {p:.2f}%)" if p is not None else "")
+    label = x.get("label", "")
+    if x.get("how") == "mom_k":
+        s = f"{label} {v:+,.0f}천명"
+        if p is not None:
+            s += f" (전월 {p:+,.0f}천명 → {v - p:+,.0f}천명)"
+    else:
+        s = f"{label} {v:.2f}%"
+        if p is not None:
+            s += f" (전월 {p:.2f}% → {v - p:+.2f}%p)"
+    if period and x.get("period"):
+        s += f" · {str(x['period'])[:7]} 기준"
+    if seen and x.get("seen"):
+        s += f" · 발표 확인 {str(x['seen'])[5:10]}"
+    return s
+
+
+def _fmt(x: dict) -> str:
+    return release_line(x)
 
 
 def _attach(ev: list[dict], rel: dict) -> None:

@@ -21,6 +21,7 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from .config import DATA_DIR, REPORT_DIR
+from .calendar_ev import release_line
 
 KST = ZoneInfo("Asia/Seoul")
 
@@ -756,7 +757,7 @@ def _v2_macro(mv: dict, prev: dict | None) -> dict:
     _acl = _ai_credit_line()
     if _acl:
         dom.append(_acl)
-    # 지표 발표: 결과 vs 직전 (컨센서스 데이터는 수집하지 않음 → '예상 대비'는 표시 안 함)
+    # 지표 발표: 전월 대비만 (결재 #9 — 컨센서스를 수집하지 않으므로 '서프라이즈·예상 대비' 표기 금지, 문장은 calendar_ev.release_line 한 곳에서)
     today = _kst_today()
     rel = []
     for sid, x in ((_j("macro_releases.json", {}) or {}).get("series") or {}).items():
@@ -765,8 +766,8 @@ def _v2_macro(mv: dict, prev: dict | None) -> dict:
                 continue
         except Exception:  # noqa: BLE001
             continue
-        u = "천명" if x.get("how") == "mom_k" else "%"
-        rel.append(f"{x.get('label')} {x.get('value'):,.2f}{u} (직전 {x.get('prev'):,.2f}{u}, {str(x.get('period', ''))[:7]}) — 발표 확인 {str(x.get('seen'))[5:10]}")
+        rel.append(release_line(x, period=True, seen=True))
+    gap = _kr_us_gap(mv)
     cal = (_j("calendar.json", {}) or {}).get("events", [])
     up = []
     for e in cal:
@@ -783,8 +784,20 @@ def _v2_macro(mv: dict, prev: dict | None) -> dict:
             changed.insert(0, f"레짐 전환 {pr}→{rg['label']}")
     return {"regime": rg, "global": glob, "domestic": dom, "releases": rel, "upcoming": up[:6],
             "changed": changed or ["밤사이 큰 변화 없음 (모든 지표 하루 변화가 60일 평균 변동의 1.5배 미만)"],
-            "summary": (mv or {}).get("summary"),
-            "note": "결과는 직전치 대비만 표시 — 컨센서스(예상치)는 수집하지 않음. ★ = 핵심 이벤트"}
+            "summary": (mv or {}).get("summary"), "gap": gap,
+            "note": "지표는 전월(직전 발표치) 대비 변화만 표시 (시장 예상 자료 없음 · 개정 전 잠정치). "
+                    + (f"{gap} · " if gap else "") + "★ = 핵심 이벤트"}
+
+
+def _kr_us_gap(mv: dict | None) -> str | None:
+    """코스피−S&P500 20일 격차 한 줄 (결재 #9: 매크로 지표 문장에 병기). macro_view rows 의 chg20 사용."""
+    st_ = {r.get("key"): r for r in ((mv or {}).get("rows") or []) if isinstance(r, dict)}
+    kr, us = (st_.get("KOSPI") or {}).get("chg20"), (st_.get("SPX") or {}).get("chg20")
+    if kr is None or us is None:
+        return None
+    g = kr - us
+    tag = " — 한국 고유 요인(반도체 쏠림·외국인) 쪽" if g < -0.08 else (" — 한국이 강함" if g > 0.08 else "")
+    return f"코스피−S&P500 20일 격차 {g*100:+.1f}%p (코스피 {kr*100:+.1f}% / S&P500 {us*100:+.1f}%){tag}"
 
 
 def _v2_flows_snapshot() -> dict:

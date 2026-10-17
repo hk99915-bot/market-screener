@@ -8,6 +8,7 @@
 3. [자체연구-검증전] 매크로 바람 점수 = Σ(W × 지표 impact −1~+1) ÷ ΣW. W: SPX 1·NASDAQ 1·RUT .5·VIX 1·US10Y 1·DXY .7·USDKRW 1·USDJPY .3·WTI .5·GOLD .4·BTC .3. 라벨 ≤−0.4 강한 역풍 / ≤−0.15 역풍 / ≥+0.15 순풍 / ≥+0.4 강한 순풍. 한국 지수(KOSPI·KOSDAQ)·닛케이·TOPIX·JGB는 **점수 제외**(결과이지 원인 아님 / 표시만). 가중치 사후 설정 → 참고만. (출처: `screener/macroview.py` `W`/`explain`/`build`, registry `macro_wind` 검증전)
 4. [자체연구-C] 레짐(코스피): 하락장 = 200일선 아래 또는 20일 고점 대비 ≤ −15% / 회복 확인 전 = 200일선 위·20일선 아래 / 상승장 = 둘 다 위. 운용회의 macro.regime 문구는 200·50일선 대비 %를 같이 적는다. 역할: 위험 축소 스위치(노출 상한), 알파 아님. (출처: registry `kr_regime` C, `reports/committee.json` macro.regime)
 5. [자체연구-검증전] 코스피 vs S&P 20일 격차: gap = KOSPI chg20 − SPX chg20. gap < −8%p면 "한국 고유 요인(반도체 쏠림·외국인 매도)", > +8%p면 "한국이 강함". 격차가 크면 요약에 "매크로 반전만으론 회복 근거 부족"을 붙인다. (출처: `screener/macroview.py` `explain` KOSPI 분기·`build` 요약)
+18. [규정] BLS 비농업 고용(CES)은 **기준월 약 3주 뒤 첫 추정치 → 이후 두 달 연속 개정 → 연 1회 벤치마크(3월 실업보험 기록으로 수준 재산정)**. 2026-09 발표에서 7·8월 합계 −6만 하향, 2025-03 벤치마크는 −86.2만(NSA), 최근 10년 벤치마크 평균 |0.2%|. 우리 `macro_releases.json` `value`/`prev`는 모두 **개정 전 잠정치** → 전월 대비 차이(예: −104천명)의 일부는 다음 달 개정으로 사라질 수 있다. 문장엔 '개정 전'을 붙인다. (출처: BLS Employment Situation 2026-09·CES 개정 설명 페이지 cesnaicsrev·CES Benchmark Article, 2026-10-17 WebSearch 확인)
 
 ## 공식
 6. [교과서] 실질금리 ≈ 명목 − 기대인플레(피셔 근사). 10년 4.0 − BEI 2.5 = 1.5%. 금·성장주·신흥국 통화는 실질금리에 반응. 터미널에 TIPS·BEI 시리즈 **없음**(CPI 대용 시 명시). (출처: 0-4 모듈; FRED DFII10·T10YIE `[확인 필요]`)
@@ -27,6 +28,7 @@
 ## 터미널에서 보는 자리
 15. [자체연구-검증전] 1분 읽기: `committee.macro.changed`(이례적 변화) → `releases`(value vs prev) → `upcoming`(★) → `summary`(바람 + 격차 문장). 칩 US10Y/US2Y → 10Y−2Y 변화의 다리(2Y vs 10Y)로 베어/불 × 스티프닝/플래트닝 분류(`bonds.interpret`). (출처: `reports/committee.json` macro, `screener/bonds.py` `interpret`)
 16. [자체연구-검증전] 한국 변수 중 먼저 볼 하나 = USDKRW. 미 금리↑·달러↑ → 원화 약세 → 외국인 환차손 → 매도 압력(수출주 이익 +보다 수급 −가 보통 큼). 한·미 10년 금리차(`spreads.krus_10`)는 장기 요인. 외국인 수급 자체의 예측력은 **검증전**(일별 이력 미저장). (출처: `screener/macroview.py` USDKRW 해설, registry `foreign_flow` 검증전)
+- [표기 규칙 — 결재 #9, 2026-10-17] 매크로 지표 문장은 `screener/calendar_ev.py` `release_line()` 한 곳에서만 만든다: `<지표> <값> (전월 <직전> → <차이>)`. 금지어 `BANNED_WORDS`(서프라이즈·컨센서스·예상 대비·상회·하회·깜짝). 운용회의 `macro.releases`·`macro.note`·캘린더 이벤트 `result` 모두 이 함수. `macro.gap` = 코스피−S&P500 20일 격차 한 줄을 note에 병기(`committee._kr_us_gap`). 테스트 `tests/test_macro_release_wording.py`.
 
 ## 우리 연구와의 차이
 17. [자체연구-검증전] 매크로 바람과 코스피: 2026-10-16 바람 중립(+0.10)인데 코스피 20일 −15.2%(S&P +1.4%) — 매크로 점수는 **한국 고유 충격(업종 쏠림)을 못 잡는다**. 바람은 참고, 레짐(C)이 상한. 바람 점수의 예측력은 lab MACRO_TILT 대기(데이터 부족). (출처: `reports/macro_view.json`, registry `macro_wind`)
@@ -37,3 +39,4 @@
 
 ## 복기 (틀린 판단 → 왜 → 다음부터)
 - 2026-10-16 · 아직 채점된 판단 없음(매크로 바람 성적은 `macro_view.json` track이 쌓이는 중). 다음부터: 바람 라벨을 인용할 때 항상 '검증전'과 코스피–S&P 격차를 같이 적는다 — 중립 라벨만 보면 오늘 같은 한국 고유 급락을 놓친다.
+- 2026-10-17 · 2026-10-16 KB 13번에 "`prev`보다 높으니 서프라이즈"를 오해로 적어 놓고도 코드는 '직전'·'이전'·'전월' 세 가지 표기가 파일마다 달랐고(committee.py / calendar_ev.py) 격차는 summary에만 있었다 → 규칙을 KB에만 쓰고 생성 코드를 한 곳으로 모으지 않음 → 다음부터: 표기 규칙은 함수 1개 + 금지어 테스트로 고정하고, KB '터미널에서 보는 자리'에 그 함수명을 적는다.
