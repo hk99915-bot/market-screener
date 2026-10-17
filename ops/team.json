@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-17T22:33+09:00",
+ "updated": "2026-10-17T22:43+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -866,8 +866,8 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-11",
-  "commits_total": 1039,
-  "commits_bot": 474,
+  "commits_total": 1045,
+  "commits_bot": 475,
   "commits_unmapped": 307,
   "audit_files": [
    "2026-10-17"
@@ -928,7 +928,7 @@
     }
    },
    "PM": {
-    "commits_7d": 38,
+    "commits_7d": 42,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -1108,7 +1108,7 @@
     }
    },
    "애널": {
-    "commits_7d": 6,
+    "commits_7d": 7,
     "board": {
      "진행": 0,
      "검수": 2,
@@ -1291,16 +1291,16 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 90,
-   "tokens": 13946196,
-   "tools": 3329,
-   "sec": 51487,
+   "runs": 94,
+   "tokens": 17549561,
+   "tools": 4180,
+   "sec": 52032,
    "days": 3,
    "per_day": {
-    "runs": 30.0,
-    "tokens": 4648732.0,
-    "tools": 1109.7,
-    "sec": 17162.3
+    "runs": 31.3,
+    "tokens": 5849853.7,
+    "tools": 1393.3,
+    "sec": 17344.0
    }
   }
  },
@@ -1332,29 +1332,29 @@
    }
   },
   "claude-opus-5-5": {
-   "runs": 38,
-   "tokens": 6766690,
-   "tools": 1734,
+   "runs": 39,
+   "tokens": 10071846,
+   "tools": 2540,
    "sec": 24157,
    "days": 1,
    "per_day": {
-    "runs": 38.0,
-    "tokens": 6766690.0,
-    "tools": 1734.0,
+    "runs": 39.0,
+    "tokens": 10071846.0,
+    "tools": 2540.0,
     "sec": 24157.0
    }
   },
   "opus": {
-   "runs": 20,
-   "tokens": 2022549,
-   "tools": 356,
-   "sec": 4783,
+   "runs": 23,
+   "tokens": 2320758,
+   "tools": 401,
+   "sec": 5328,
    "days": 1,
    "per_day": {
-    "runs": 20.0,
-    "tokens": 2022549.0,
-    "tools": 356.0,
-    "sec": 4783.0
+    "runs": 23.0,
+    "tokens": 2320758.0,
+    "tools": 401.0,
+    "sec": 5328.0
    }
   }
  }
