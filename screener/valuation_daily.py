@@ -309,14 +309,17 @@ def _median(xs: list) -> float | None:
 
 # ───────────── 데이터 적재 ─────────────
 
-def us_quarters(ticker: str) -> tuple[list[dict], float | None]:
-    """SEC long → 분기 dict 목록(손익 있는 분기만), 최근 주식 수. 데이터 없으면 ([], None)."""
+def us_quarters(ticker: str, n: int = 12, df=None) -> tuple[list[dict], float | None]:
+    """SEC long → 분기 dict 목록(손익 있는 분기만, 최근 n개), 최근 주식 수. 데이터 없으면 ([], None).
+    df: 미리 읽어 둔 us_quarterly 프레임(전 종목 일괄 처리 시 parquet 재읽기 방지 — valuation.us_all)."""
     try:
         import polars as pl
         from .sec import OUT
-        if not OUT.exists():
-            return [], None
-        df = pl.read_parquet(OUT).filter(pl.col("ticker") == ticker)
+        if df is None:
+            if not OUT.exists():
+                return [], None
+            df = pl.read_parquet(OUT)
+        df = df.filter(pl.col("ticker") == ticker)
         if df.is_empty():
             return [], None
         w = df.pivot(on="item", index="end", values="value", aggregate_function="first").sort("end")
@@ -332,7 +335,7 @@ def us_quarters(ticker: str) -> tuple[list[dict], float | None]:
         for r in w.to_dicts():
             d = date.fromisoformat(r["end"])
             rows.append({**r, "period": f"{d.year}Q{(d.month - 1) // 3 + 1}"})
-        return rows[-12:], shares
+        return rows[-n:], shares
     except Exception as e:  # noqa: BLE001
         log.warning("SEC 분기 %s 실패: %s", ticker, e)
         return [], None

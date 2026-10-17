@@ -53,8 +53,8 @@ def _dcf(fcfe: float, g1: float, coe: float = COE, g: float = G, years: int = 5)
 TAX = 0.22   # 일회성 의심 시 핵심이익 = 영업이익 × (1 − 법인세율)
 
 
-def base_metrics(q: list[dict], shares: float) -> dict | None:
-    """q: fin.quarterly(code).to_dicts() (원 단위). 주당 지표."""
+def base_metrics(q: list[dict], shares: float, tax: float = TAX) -> dict | None:
+    """q: fin.quarterly(code).to_dicts() (원 단위, US 는 USD). 주당 지표. tax: 일회성 보정용 법인세율(KR 22%, US 21%)."""
     if not q or not shares or len(q) < 4:
         return None
     last = q[-1]
@@ -66,7 +66,7 @@ def base_metrics(q: list[dict], shares: float) -> dict | None:
     one_off = False
     if ni_rep is not None and op is not None and op > 0 and ni_rep > op * 1.15:
         own = (_ttm(q, "ni_owner") or ni_rep) / (_ttm(q, "ni") or ni_rep) if _ttm(q, "ni") else 1.0
-        core, one_off = op * (1 - TAX) * min(max(own, 0), 1), True
+        core, one_off = op * (1 - tax) * min(max(own, 0), 1), True
     rev = _ttm(q, "revenue")
     rev_prev = sum(r.get("revenue") or 0 for r in q[-8:-4]) if len(q) >= 8 else None
     cfo, capex, div = _ttm(q, "cfo"), _ttm(q, "capex"), _ttm(q, "div_paid")
@@ -137,6 +137,9 @@ def _dupont(q: list[dict]) -> dict | None:
     return {"margin": round(ni / rev, 4), "turnover": round(rev / a, 3), "leverage": round(a / e, 2)}
 
 
+BPS_MODELS = ("PBR-ROE", "RIM", "정상화 PER", "정상화 PBR-ROE", "정상화 RIM", "상대 PBR")
+
+
 def peer_multiples(rows: list[dict]) -> dict[str, dict]:
     """rows: [{sector, per, pbr}] → 업종별 중앙값 (표본 5개 이상, 극단값 제외)."""
     by: dict[str, dict[str, list[float]]] = {}
@@ -156,10 +159,17 @@ def _med(xs):
     return st.median(xs) if xs else None
 
 
-def value(m: dict, price: float, sector: str | None, peers: dict) -> dict:
+def value(m: dict, price: float, sector: str | None, peers: dict, coe: float = COE, g: float = G,
+          currency: str = "KRW", fin_sectors: tuple = FIN_SECTORS, tax: float = TAX, outlier: float | None = None) -> dict:
     """모델을 '현재 이익이 지속' / '사이클 평균으로 회귀' / '자산·배당' 세 묶음으로 나눠 낸다.
     범위가 넓으면 결론은 '어느 묶음이 맞나' = 이익이 유지되느냐로 귀결되므로, 시장이 반영한 지속 ROE(역산)를 함께 준다."""
-    fin = any(k in (sector or "") for k in FIN_SECTORS)
+    fin = any(k in (sector or "") for k in fin_sectors)
+    usd = currency == "USD"
+    dec = 2 if usd else 0
+    fm = (lambda x: f"${x:,.2f}") if usd else (lambda x: f"{x:,.0f}")       # 주당 금액 표기
+    fw = (lambda x: f"${x:,.2f}") if usd else (lambda x: f"{x:,.0f}원")
+    pc = lambda x: f"{x*100:.1f}".rstrip("0").rstrip(".")                  # 9.0→9, 10.1→10.1 (KR 표기 유지)
+    COE, G = coe, g   # noqa: N806 — 아래 식은 그대로, 시장별 가정만 바꿔 끼운다
     pm = peers.get(sector or "기타", {})
     eps, bps, roe, dps, fcfe = m.get("eps"), m.get("bps"), m.get("roe"), m.get("dps"), m.get("fcfe")
     rn = m.get("roe_norm")
@@ -167,37 +177,48 @@ def value(m: dict, price: float, sector: str | None, peers: dict) -> dict:
 
     def put(name, v, note, grp):
         if v is not None and v > 0 and v == v:
-            out[name] = {"value": round(v, 0), "upside": round(v / price - 1, 3) if price else None, "note": note, "group": grp}
+            out[name] = {"value": round(v, dec), "upside": round(v / price - 1, 3) if price else None, "note": note, "group": grp}
 
     ce = " (일회성 제외 핵심이익)" if m.get("one_off") else ""
     # ① 현재 이익 지속
     if eps and eps > 0 and pm.get("per"):
-        put("상대 PER", eps * pm["per"], f"EPS {eps:,.0f}{ce} × 업종 PER {pm['per']:.1f}배", "current")
+        put("상대 PER", eps * pm["per"], f"EPS {fm(eps)}{ce} × 업종 PER {pm['per']:.1f}배", "current")
     if bps and roe is not None:
         put("PBR-ROE", bps * max(roe - G, 0) / (COE - G), f"ROE {roe*100:.1f}%{ce} 영구 유지 → 적정 PBR {max(roe-G,0)/(COE-G):.2f}배", "current")
-        put("RIM", _rim(bps, roe, COE), f"ROE {roe*100:.1f}%{ce}가 10년간 COE {COE*100:.0f}%로 수렴", "current")
+        put("RIM", _rim(bps, roe, COE), f"ROE {roe*100:.1f}%{ce}가 10년간 COE {pc(COE)}%로 수렴", "current")
     if not fin and fcfe and fcfe > 0:
         g1 = max(min(m.get("rev_g") or 0.03, 0.15), -0.05)
-        put("DCF(FCFE)", _dcf(fcfe, g1), f"FCFE {fcfe:,.0f}원, 5년 성장 {g1*100:.0f}% 후 {G*100:.0f}%", "current")
+        put("DCF(FCFE)", _dcf(fcfe, g1, COE, G), f"FCFE {fw(fcfe)}, 5년 성장 {g1*100:.0f}% 후 {pc(G)}%", "current")
     # ② 사이클 평균으로 회귀 (이익 정상화)
     if bps and rn is not None:
         yrs = m.get("roe_years")
         put("정상화 PER", bps * rn * pm["per"] if pm.get("per") and rn > 0 else None,
-            f"정상 EPS {bps*rn:,.0f} (BPS × 평균 ROE {rn*100:.1f}%) × 업종 PER", "normal")
+            f"정상 EPS {fm(bps*rn)} (BPS × 평균 ROE {rn*100:.1f}%) × 업종 PER", "normal")
         put("정상화 PBR-ROE", bps * max(rn - G, 0) / (COE - G), f"평균 ROE {rn*100:.1f}% 영구 → 적정 PBR {max(rn-G,0)/(COE-G):.2f}배", "normal")
         put("정상화 RIM", _rim(bps, rn, COE), f"최근 {yrs}년 평균 ROE {rn*100:.1f}% 기준", "normal")
     # ③ 자산·배당
     if bps and pm.get("pbr"):
-        put("상대 PBR", bps * pm["pbr"], f"BPS {bps:,.0f} × 업종 PBR {pm['pbr']:.2f}배", "asset")
+        put("상대 PBR", bps * pm["pbr"], f"BPS {fm(bps)} × 업종 PBR {pm['pbr']:.2f}배", "asset")
     if dps and (m.get("payout") or 0) >= 0.25:   # 배당성향이 낮은 성장주에 DDM 은 의미 없음
-        put("DDM", dps * (1 + G) / (COE - G), f"DPS {dps:,.0f}원, 성장 {G*100:.0f}%", "asset")
+        put("DDM", dps * (1 + G) / (COE - G), f"DPS {fw(dps)}, 성장 {pc(G)}%", "asset")
 
-    grp = {g: _med([v["value"] for v in out.values() if v["group"] == g]) for g in ("current", "normal", "asset")}
     flags = []
+    excluded: dict[str, dict] = {}
+    if outlier and price:   # 이상치 가드 (US): 자본 과소(PBR>100)면 BPS 기반 모델 전부, 그리고 현재가의 1/outlier~outlier 배 밖 모델은 범위에서 뺀다
+        if bps and bps > 0 and price / bps > 100:
+            for k in [k for k in out if k in BPS_MODELS]:
+                excluded[k] = out.pop(k)
+            flags.append(f"PBR {price/bps:.0f}배(>100) — 자본 과소(자사주 매입 등) → BPS 기반 모델 범위에서 제외")
+        far = [k for k, x in out.items() if not (price / outlier <= x["value"] <= price * outlier)]
+        for k in far:
+            excluded[k] = out.pop(k)
+        if far:
+            flags.append(f"이상치 제외: {', '.join(far)} (현재가의 1/{outlier:.0f}~{outlier:.0f}배 밖)")
+    grp = {g: _med([v["value"] for v in out.values() if v["group"] == g]) for g in ("current", "normal", "asset")}
     ni_t, op_t = m.get("ni_ttm"), m.get("op_ttm")
     if m.get("one_off"):
-        flags.append(f"순이익이 영업이익의 {ni_t/op_t:.1f}배 → 일회성(지분법·처분이익) 의심, 영업이익×(1−22%)로 바꿔 계산"
-                     f" (보고 EPS {m['eps_reported']:,.0f} → 핵심 EPS {eps:,.0f})")
+        flags.append(f"순이익이 영업이익의 {ni_t/op_t:.1f}배 → 일회성(지분법·처분이익) 의심, 영업이익×(1−{pc(tax)}%)로 바꿔 계산"
+                     f" (보고 EPS {fm(m['eps_reported'])} → 핵심 EPS {fm(eps)})")
     cyc = None
     if roe is not None and rn is not None and rn > 0:
         cyc = roe / rn
@@ -222,7 +243,7 @@ def value(m: dict, price: float, sector: str | None, peers: dict) -> dict:
             keep = (implied_roe - rn) / (roe - rn)   # 0 = 평균 회귀, 1 = 현재 유지
             verdict += f". 평균 대비 지금의 초과 ROE 중 {keep*100:.0f}%가 영구 유지된다고 가정하는 가격"
     vals = [v["value"] for v in out.values()]
-    res = {"models": out, "groups": {k: (round(v, 0) if v else None) for k, v in grp.items()},
+    res = {"models": out, **({"excluded": excluded} if excluded else {}), "groups": {k: (round(v, dec) if v else None) for k, v in grp.items()},
            "group_upside": {k: (round(v / price - 1, 3) if v and price else None) for k, v in grp.items()},
            "flags": flags, "verdict": verdict, "implied_roe": round(implied_roe, 4) if implied_roe is not None else None,
            "cycle": round(cyc, 2) if cyc is not None else None,
@@ -238,7 +259,7 @@ def value(m: dict, price: float, sector: str | None, peers: dict) -> dict:
         res["range"] = {"low": min(vals), "mid": st.median(vals), "high": max(vals),
                         "mid_upside": round(st.median(vals) / price - 1, 3) if price else None}
     if bps and roe is not None:
-        res["rim_sens"] = {f"{c*100:.0f}%": round(_rim(bps, roe, c), 0) for c in (0.08, 0.09, 0.10)}
+        res["rim_sens"] = {f"{pc(c)}%": round(_rim(bps, roe, c), dec) for c in (COE - 0.01, COE, COE + 0.01)}
     if not fin and fcfe and fcfe > 0 and price:
         res["implied_g"] = round((COE * price - fcfe) / (price + fcfe), 4)
     if price and eps and eps > 0:
@@ -299,4 +320,215 @@ def kr_all(prices: dict[str, float]) -> dict[str, dict]:
         except Exception as e:  # noqa: BLE001
             log.warning("가치평가 %s 실패: %s", c, e)
     log.info("가치평가 %d종목", len(out))
+    return out
+
+
+# ───────────── US (SEC 재무, USD) — KR 과 가정이 다르다 ─────────────
+# COE = 미 10년 금리(reports/live.json US10Y, 없으면 bonds.json) + ERP. 베타 1 가정(종목별 베타 미반영).
+US_ERP = 0.05            # [가정] Damodaran 2026-01 implied ERP 4.23% (BVR 2차 인용, 원문 스프레드시트 미확인) 보다 0.8%p 보수적
+US_G = 0.025             # [가정] 영구 명목성장 2.5% (미 장기 실질 ~1.8% + 물가 목표 2% 의 하단 절충). KR 2% 보다 높음
+US_RF_FALLBACK = 0.045   # 금리 파일이 없을 때만 — flags 에 '금리 데이터 없음' 표시
+US_TAX = 0.21            # 일회성 보정 세율: 미 연방 법인세 21% [가정: 주세 제외]
+US_FIN_SECTORS = ("금융",)   # universe/us_sector.csv (GICS 11섹터 한글). 은행·보험·증권 + 결제(V·MA)까지 포함 → 현금흐름 모델 제외
+US_OUTLIER = 20.0        # 모델값이 현재가의 1/20~20배 밖이면 범위에서 제외
+US_CYCLICAL = {"MU", "SNDK", "WDC", "STX", "NVDA", "AMD", "AVGO", "TSM", "INTC", "QCOM", "ARM", "MRVL", "TXN", "ADI",
+               "MCHP", "NXPI", "ON", "MPWR", "TER", "SWKS", "QRVO", "ENTG", "AMAT", "LRCX", "KLAC", "ASML"}   # 반도체·메모리
+US_CYCLICAL_SECTORS = ("소재", "에너지")
+NORM_MIN_Q = 20          # 데이터로 평균 순이익률을 낼 최소 분기(5년). 미달이면 아래 수기 값 → 없으면 ROE 정상화
+NORM_MARGIN = {          # 사람이 10-K 로 모은 장기 평균 순이익률 (docs/valuation_notes/2026-10-17_memory.md §2)
+    "MU": (0.188, "FY2016~FY2025 10년 평균 순이익률 (메모리 노트 §2, 공시·검증전)"),
+    "SNDK": (0.138, "구 SanDisk FY2012~2014 3년 평균 (메모리 노트 §2, 검증전 — 가장 약한 숫자)"),
+}
+COMMON_ASSUMPTION = ("상대 PER·PBR-ROE·RIM·DCF 는 모두 '최근 TTM 이익(ROE)이 지속된다'는 같은 전제를 공유 — 서로 독립된 확인이 아니다."
+                     " 반대 전제는 '정상화' 묶음과 cycle_view")
+
+
+def us_rf() -> tuple[float, str]:
+    """미 10년 금리(소수)와 출처. 실패하면 (US_RF_FALLBACK, '데이터 없음(…)')."""
+    try:
+        from . import valuation_daily as vd
+        r = vd.rates()
+        if r.get("us10y") is not None:
+            return float(r["us10y"]) / 100, f"US10Y {float(r['us10y']):.2f}% ({'live.json' if r.get('us10y_live') else 'bonds.json'} {r.get('us10y_date') or ''})".strip()
+    except Exception as e:  # noqa: BLE001
+        log.warning("미 10Y 실패: %s", e)
+        return US_RF_FALLBACK, f"데이터 없음({e}) → {US_RF_FALLBACK*100:.1f}% 가정"
+    return US_RF_FALLBACK, f"데이터 없음(US10Y 미수집) → {US_RF_FALLBACK*100:.1f}% 가정"
+
+
+def _contiguous(q: list[dict], max_days: int = 300) -> bool:
+    """최근 4분기의 첫·끝 분기말 간격이 max_days 이하 = 분기가 빠지지 않음 (TTM 이 진짜 12개월)."""
+    from datetime import date
+    try:
+        a, b = date.fromisoformat(str(q[-4]["end"])), date.fromisoformat(str(q[-1]["end"]))
+        return (b - a).days <= max_days
+    except Exception:  # noqa: BLE001
+        return True   # end 가 없는 합성 데이터 등은 판단 보류
+
+
+def cycle_view(q: list[dict], m: dict, price: float, shares: float, ticker: str | None = None) -> dict | None:
+    """사이클 업종: '최근 이익률 지속' vs '정규화(장기 평균 순이익률 × 현재 매출)' PER 을 나란히.
+    정규화 이익 = 평균 순이익률 × TTM 매출(범위 위쪽 PER) / × 최근 분기 매출×4(아래쪽). 매출이 없으면 BPS × 평균 ROE 로 대체."""
+    if not price or not shares:
+        return None
+    mcap = price * shares
+    l4 = q[-4:]
+    ni_t = _sum4(l4, "ni")
+    rev_t = _sum4(l4, "revenue")
+    ni_l, rev_l = q[-1].get("ni"), q[-1].get("revenue")
+    per = lambda e: round(mcap / e, 1) if e and e > 0 else None   # noqa: E731
+    cur = {"per_ttm": per(ni_t), "per_runrate": per(ni_l * 4 if ni_l is not None else None),
+           "margin_ttm": round(ni_t / rev_t, 4) if ni_t is not None and rev_t else None,
+           "margin_last": round(ni_l / rev_l, 4) if ni_l is not None and rev_l else None}
+    hist = [r for r in q if r.get("ni") is not None and r.get("revenue")]
+    norm: dict = {}
+    if rev_t and len(hist) >= NORM_MIN_Q:
+        h = hist[-40:]
+        mg = sum(r["ni"] for r in h) / sum(r["revenue"] for r in h)
+        norm = {"method": "margin", "margin": round(mg, 4), "src": f"SEC 분기 {len(h)}개 순이익 합 ÷ 매출 합 ({h[0].get('period')}~{h[-1].get('period')})"}
+    elif rev_t and ticker in NORM_MARGIN:
+        mg, src = NORM_MARGIN[ticker]
+        norm = {"method": "margin", "margin": mg, "src": src}
+    if norm:
+        mg = norm["margin"]
+        norm["per_high"] = per(mg * rev_t)                                    # TTM 매출 기준 → PER 높게
+        norm["per_low"] = per(mg * rev_l * 4) if rev_l else None              # 최근 분기×4 매출 → PER 낮게
+    elif m.get("bps") and m.get("roe_norm") and m["roe_norm"] > 0:   # 매출 없음 → ROE 정상화 (수기 이익률은 매출이 있어야 적용)
+        e = m["bps"] * m["roe_norm"]
+        norm = {"method": "roe", "roe_norm": round(m["roe_norm"], 4), "per_high": round(price / e, 1), "per_low": None,
+                "src": f"매출 항목 없음 → BPS × {m.get('roe_years')}년 평균 ROE {m['roe_norm']*100:.1f}% (SEC 분기)"}
+    if not any(cur.values()) and not norm:
+        return None
+    P = lambda x: "—" if x is None else f"{x*100:.0f}%"   # noqa: E731
+    rng = lambda a, b: "—" if a is None and b is None else (f"{a}" if b is None else f"{b} ~ {a}" if a is not None else f"{b}")   # noqa: E731
+    lines = [f"최근 이익률 지속 가정: PER {rng(cur['per_ttm'], cur['per_runrate'])} (최근 분기×4 ~ TTM)"
+             f" · 순이익률 TTM {P(cur['margin_ttm'])} / 최근 분기 {P(cur['margin_last'])}"]
+    if norm.get("method") == "margin":
+        lines.append(f"정규화 가정: PER {rng(norm['per_high'], norm.get('per_low'))} (평균 순이익률 {P(norm['margin'])} × 현재 매출) — {norm['src']}")
+    elif norm:
+        lines.append(f"정규화 가정: PER {norm['per_high']} — {norm['src']}")
+        if ticker in NORM_MARGIN:
+            norm["manual_margin"] = NORM_MARGIN[ticker][0]
+            lines.append(f"수기 평균 순이익률 {NORM_MARGIN[ticker][0]*100:.1f}%({NORM_MARGIN[ticker][1]})는 SEC 매출 태그가 없어 자동 적용 못 함 — 노트 수동 계산값 참고")
+    return {"current": cur, "normal": norm or None, "lines": lines}
+
+
+def _us_stub(flags: list[str], sector: str | None) -> dict:
+    return {"models": {}, "flags": flags, "currency": "USD", "sector": sector, "quality": {"verified": False}}
+
+
+def us_all(prices: dict[str, float], verified: dict | None = None, rf: tuple[float, str] | None = None) -> dict[str, dict]:
+    """US 전 종목 가치평가 (USD 그대로, 원화 환산 없음). prices: {ticker: 종가 USD}.
+    재무 = data/fin/us_quarterly.parquet (SEC companyfacts) → valuation_daily.us_quarters 로 분기 dict.
+    주식 수 = SEC 최근 shares 우선, 없거나 시총/종가와 2배 넘게 어긋나면 universe/us.csv 시총 ÷ 종가."""
+    import json
+    import polars as pl
+    from . import valuation_daily as vd
+    from .config import UNIVERSE_DIR
+    from .sec import OUT
+    if not OUT.exists():
+        log.warning("US 가치평가: %s 없음 (데이터 없음)", OUT)
+        return {}
+    df = pl.read_parquet(OUT)
+    parts = {k[0] if isinstance(k, tuple) else k: g for k, g in df.partition_by("ticker", as_dict=True).items()}
+    try:
+        sec_map = dict(pl.read_csv(UNIVERSE_DIR / "us_sector.csv").select("yf", "sector").iter_rows())
+    except Exception as e:  # noqa: BLE001
+        log.warning("US 업종 실패: %s", e)
+        sec_map = {}
+    try:
+        u = pl.read_csv(UNIVERSE_DIR / "us.csv", infer_schema_length=0)
+        mcap = {r["symbol"]: float(r["mcap"]) for r in u.select("symbol", "mcap").to_dicts() if r["mcap"]}
+    except Exception as e:  # noqa: BLE001
+        log.warning("US 시총 실패: %s", e)
+        mcap = {}
+    if verified is None:
+        try:
+            verified = json.loads((UNIVERSE_DIR / "fin_verified.json").read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            verified = {}
+    rf_v, rf_src = rf or us_rf()
+    coe = rf_v + US_ERP
+    base: dict[str, tuple] = {}
+    out: dict[str, dict] = {}
+    for t, p in prices.items():
+        if not p or t not in parts:
+            continue
+        sector = sec_map.get(t)
+        q, sh = vd.us_quarters(t, n=40, df=parts[t])
+        flags: list[str] = []
+        ok = True
+        n_mc = mcap[t] / p if mcap.get(t) else None
+        if sh and n_mc and not 0.5 <= sh / n_mc <= 2:
+            flags.append(f"SEC 주식 수 {sh/1e6:,.0f}M 이 시총÷종가 {n_mc/1e6:,.0f}M 와 2배 넘게 어긋남(주식 분할·종류주) → 시총÷종가 사용")
+            sh = None
+        if sh:
+            n, info = sh, {"src": "SEC CommonStockSharesOutstanding 최근값", "shares": sh}
+        elif n_mc:
+            n, info = n_mc, {"src": "시가총액 ÷ 종가 근사 (SEC 주식 수 없음)", "shares": n_mc}
+        else:
+            out[t] = _us_stub(["주식 수 없음(SEC·시총 모두 없음) → 가치평가 생략"], sector)
+            continue
+        if len(q) < 4:
+            out[t] = _us_stub([f"검증전: SEC 분기 {len(q)}개 (4개 미만) → TTM 불가, 모델 생략"], sector)
+            continue
+        if not _contiguous(q):
+            ok = False
+            flags.append(f"검증전: 최근 4분기 불연속({q[-4].get('end')}~{q[-1].get('end')}) → TTM 이 12개월이 아닐 수 있음")
+        smell = vd.cumulative_smell(q)
+        if smell:
+            src = vd.externally_verified(q, t, verified)
+            if src:
+                flags.append(f"{smell} 4분기 급증 = 누적치 의심이었으나 원문 대조 일치({src}) → 해제")
+            else:
+                ok = False
+                flags.append(f"검증전: {smell} 4분기 연속 {vd.CUM_RATIO}배↑ (누적치 의심, universe/fin_verified.json 대조 전)")
+        eq = q[-1].get("equity")
+        if eq is not None and eq <= 0:
+            ok = False
+            flags.append("검증전: 자본 음수 → BPS·ROE 기반 모델 의미 없음")
+        if all(r.get("revenue") is None for r in q[-4:]):
+            flags.append("매출 태그 미수집(SEC) → 매출 성장·듀폰·정규화 이익률 생략")
+        m = base_metrics(q, n, tax=US_TAX)
+        if not m:
+            out[t] = _us_stub(flags + ["검증전: 기본 지표 계산 불가"], sector)
+            continue
+        base[t] = (m, info, flags, ok, q, n, sector)
+    # 업종 중앙 배수: 검증 통과 종목만 (오염 방지)
+    peers = peer_multiples([{"sector": b[6], "per": prices[t] / b[0]["eps"] if b[0].get("eps") and b[0]["eps"] > 0 else None,
+                             "pbr": prices[t] / b[0]["bps"] if b[0].get("bps") and b[0]["bps"] > 0 else None}
+                            for t, b in base.items() if b[3]])
+    for t, (m, info, flags, ok, q, n, sector) in base.items():
+        try:
+            v = value(m, prices[t], sector, peers, coe=coe, g=US_G, currency="USD", fin_sectors=US_FIN_SECTORS,
+                      tax=US_TAX, outlier=US_OUTLIER)
+        except Exception as e:  # noqa: BLE001
+            log.warning("US 가치평가 %s 실패: %s", t, e)
+            continue
+        fin = v["assumptions"]["financial_sector"]
+        extra = []
+        if m.get("eps") is not None and m["eps"] <= 0:
+            extra.append("TTM 적자(PER<0) → 이익 기반 모델(상대 PER·DCF) 제외")
+        if fin:
+            extra.append("금융업: DCF(FCFE)·역DCF 제외. 순이익은 우선주 배당 미차감 [가정] → EPS 소폭 과대")
+        elif m.get("fcfe") is None:
+            extra.append("영업현금흐름·CAPEX 분기 누락(SEC) → DCF(FCFE)·역DCF 생략")
+        if m.get("dps") is None and any(r.get("div_paid") for r in q[-4:]):
+            extra.append("배당 지급 분기 누락(SEC) → DDM 생략")
+        v["flags"] = flags + extra + v["flags"] + [COMMON_ASSUMPTION]
+        if not ok and v.get("verdict"):
+            v["verdict"] = "(검증전) " + v["verdict"]
+        v["currency"] = "USD"
+        v["quality"] = {"verified": ok, "n_quarters": len(q), "last_end": q[-1].get("end")}
+        v["assumptions"].update({"rf": round(rf_v, 4), "rf_src": rf_src, "erp": US_ERP, "beta": 1.0, "tax": US_TAX,
+                                 "erp_src": "[가정] 5.0% — Damodaran 2026-01 implied 4.23%(2차 인용)보다 보수적"})
+        v["sector"] = sector
+        v["peer"] = peers.get(sector or "기타")
+        v["shares"] = info
+        if (t in US_CYCLICAL or any(s in (sector or "") for s in US_CYCLICAL_SECTORS)) and not fin:
+            cv = cycle_view(q, m, prices[t], n, t)
+            if cv:
+                v["cycle_view"] = cv
+        out[t] = v
+    log.info("US 가치평가 %d종목 (검증전 %d)", len(out), sum(1 for x in out.values() if not (x.get("quality") or {}).get("verified")))
     return out
