@@ -315,7 +315,8 @@ def rebuild_detail_kr() -> None:
         data_krx.refresh_recent()
     except Exception as e:  # noqa: BLE001
         log.warning("KR 일봉 교정 실패 — 저장된 시세 사용: %s", e)
-    px = pl.read_parquet(DATA_DIR / "kr_prices.parquet").filter(pl.col("yf").is_in(uni["yf"].implode()))
+    from .prices import load_kr   # 공통 로더 = 기업행위 조정 (외부감사 P1 px-adjust-unify)
+    px = load_kr().filter(pl.col("yf").is_in(uni["yf"].implode()))
     full = indicators.add_indicators(px)
     last = indicators.latest(full).join(uni.select("yf", "symbol", "name", "market"), on="yf", how="left")
     asof = last["date"].mode()[0]

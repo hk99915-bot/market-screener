@@ -620,7 +620,8 @@ def score() -> dict:
     p = DATA_DIR / "kr_prices.parquet"
     if not p.exists() or not h["rows"]:
         return {}
-    px = (pl.read_parquet(p).with_columns(pl.col("yf").str.slice(0, 6).alias("code"), pl.col("date").cast(pl.Utf8))
+    from .prices import load_kr   # 공통 로더 = 기업행위 조정 (px-adjust-unify)
+    px = (load_kr(path=p).with_columns(pl.col("yf").str.slice(0, 6).alias("code"), pl.col("date").cast(pl.Utf8))
             .select("code", "date", "close"))
     days = sorted(px["date"].unique().to_list())
     wide = {d: dict(zip(g["code"].to_list(), g["close"].to_list())) for (d,), g in px.group_by("date")}
@@ -1159,7 +1160,8 @@ def _ideas_log_score() -> dict:
         return _j("ideas_attrib.json", {}) or {}
     codes = list({r["ticker"] for r in log_["rows"]})
     since = min(r["date"] for r in log_["rows"])
-    px = (pl.read_parquet(p).with_columns(pl.col("yf").str.slice(0, 6).alias("code"), pl.col("date").cast(pl.Utf8))
+    from .prices import load_kr   # 공통 로더 = 기업행위 조정 (px-adjust-unify)
+    px = (load_kr(path=p).with_columns(pl.col("yf").str.slice(0, 6).alias("code"), pl.col("date").cast(pl.Utf8))
             .filter(pl.col("code").is_in(codes) & (pl.col("date") > since)).sort("date"))
     by = {c: g.select("date", "high", "low", "close").rows() for (c,), g in px.group_by("code")}
     for r in log_["rows"]:
