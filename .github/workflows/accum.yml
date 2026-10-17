@@ -1,7 +1,7 @@
 name: accum
 
 # 국장 외인·기관 매집 스캔 (퀀트) — 평일 18:37 KST = 09:37 UTC (KRX 투자자별 종목 확정치는 장 마감 뒤 18시 전후).
-# daily: 최근 결측 거래일 채움(하루 10콜) → reports/accum.json + reports/archive/accum/. 빈 결과는 status=fail + 잡 실패.
+# daily: 최근 결측 거래일 채움(하루 5콜) → reports/accum.json + reports/archive/accum/. 빈 결과는 status=fail + 잡 실패.
 # backfill(수동): data/flows/kr_inv_YYYY.parquet 를 since 까지 거꾸로 채움 — 재개 가능, 시간 예산 안에서 멈춤.
 on:
   schedule:
@@ -20,6 +20,10 @@ on:
         description: "수집 시간 예산(분)"
         required: false
         default: "50"
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C, docs/schedule_table.md). backfill 은 true"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -49,7 +53,7 @@ jobs:
           BUDGET: ${{ inputs.budget || '12' }}
         run: python -m screener.accum "$MODE" --since "$SINCE" --budget-min "$BUDGET" 2>&1 | tee reports/logs/accum.log; exit ${PIPESTATUS[0]}
       - name: 저장
-        if: always()
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"

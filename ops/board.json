@@ -1668,7 +1668,7 @@
    "title": "accum.yml 수동 dispatch 읽기 전용 기본(commit 입력 + 저장 조건) — 결정C, 잠금 해제 뒤",
    "owner": "퀀트",
    "priority": "P2",
-   "status": "대기",
+   "status": "검수",
    "started": null,
    "due": "2026-10-20",
    "repo": "public",
@@ -1677,7 +1677,7 @@
     "tests/test_schedule_single.py"
    ],
    "depends_on": [],
-   "notes": "운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌).",
+   "notes": "운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌). | 퀀트 10/17: accum.yml 에 commit 입력(기본 false)+저장 조건 반영, tests/test_schedule_single.py PENDING 비움. 운영 확인 후 완료.",
    "desk": "운영"
   }
  ]

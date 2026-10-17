@@ -5,9 +5,9 @@
       거래대금 대비 = 기간 순매수 ÷ 기간 거래대금(%) — 그 기간 '손바뀜' 중 큰손 몫.
 
 데이터 (Actions 전용 — 샌드박스는 KRX 차단):
-  pykrx get_market_cap(d, mkt)                       종가·시총·거래대금 (시장당 1콜)
+  pykrx get_market_cap(d, 'ALL')                     종가·시총·거래대금 (1콜)
   pykrx get_market_net_purchases_of_equities(d,d,…)  투자자별 종목 순매수대금 (시장×투자자당 1콜)
-  → 하루 10콜(2시장 × [시총 + 외국인·기관합계·연기금·투신]). 일별 저장소 data/flows/kr_inv_YYYY.parquet.
+  → 하루 5콜(ALL 시장: 시총 + 외국인·기관합계·연기금·투신, 시장 구분은 저장소 yf 접미사). 일별 저장소 data/flows/kr_inv_YYYY.parquet.
   ETF·ETN 은 KRX '주식' 조회에 원래 안 들어오지만, 이름 규칙으로 한 번 더 거른다 — ETF 의 '기관'은 대부분 LP(유동성공급자)가
   개인 매매를 받아주는 거울이라 매집 신호가 아니다.
 
@@ -164,55 +164,78 @@ def _call(fn, *a, tries: int = 3, **k):
     for t in range(tries):
         try:
             r = fn(*a, **k)
-            time.sleep(0.25)          # KRX 차단 방지
+            time.sleep(0.6)           # KRX 차단 방지 (0.25초 간격은 ~460콜 뒤 차단됨, 10/17)
             if r is not None and not r.empty:
                 return r
         except Exception as e:  # noqa: BLE001
             log.warning("%s%s 실패(%d): %s", fn.__name__, a, t + 1, str(e)[:120])
-        time.sleep(2 + 3 * t)
+        time.sleep(15 * (t + 1))      # 차단 추정 → 길게 쉬고 재로그인
         _relogin()
     return None
 
 
+_MKT: dict[str, str] = {}
+
+
+def market_map() -> dict[str, str]:
+    """종목코드 → 'K'(KOSPI)/'Q'(KOSDAQ). 저장소의 yf 접미사(.KS/.KQ, 상폐 포함 2010~) + universe/kr.csv.
+    여기 없는 코드(대개 KONEX)는 스캔에서 뺀다. 시장별 조회 대신 ALL 1콜로 줄이려고 쓴다(KRX 호출 한도, 10/17)."""
+    if _MKT:
+        return _MKT
+    fs = sorted((ROOT / "data" / "hist").glob("kr_20*.parquet")) + [ROOT / "data" / "kr_prices.parquet"]
+    for f in fs:
+        try:
+            yf = pd.read_parquet(f, columns=["yf"])["yf"].astype(str).unique()
+        except Exception:  # noqa: BLE001
+            continue
+        for x in yf:
+            c, _, suf = x.partition(".")
+            if suf in ("KS", "KQ"):
+                _MKT[c] = "K" if suf == "KS" else "Q"
+    try:
+        u = pd.read_csv(ROOT / "universe" / "kr.csv", dtype={"symbol": str})
+        for c, m in zip(u["symbol"], u["market"]):
+            _MKT[str(c).zfill(6)] = "K" if m == "KOSPI" else "Q"
+    except Exception:  # noqa: BLE001
+        pass
+    return _MKT
+
+
 def fetch_day(d: date, names: dict | None = None) -> pd.DataFrame | None:
-    """하루 전 종목(KOSPI·KOSDAQ). 시총 조회가 비면 None(휴장·미집계). 투자자 조회 실패는 0 이 아니라 NaN→행 제외."""
+    """하루 전 종목. 호출 5개(시총 ALL + 투자자 4 × ALL). 시총이 비면 None(휴장·차단).
+    외국인·기관합계가 비면 그날 전체를 버린다(0 으로 채우지 않음). 연기금·투신은 보조라 비면 0 + 로그."""
     from pykrx import stock  # type: ignore
     ymd = d.strftime("%Y%m%d")
-    parts = []
-    for mkt, tag in MKTS.items():
-        cap = _call(stock.get_market_cap, ymd, market=mkt)
-        if cap is None or cap.empty:
-            return None
-        c_close, c_cap, c_tv = _col(cap, "종가"), _col(cap, "시가총액"), _col(cap, "거래대금")
-        if not (c_close and c_cap and c_tv) or float(cap[c_tv].sum()) <= 0:
-            return None
-        g = pd.DataFrame({"code": cap.index.astype(str), "close": cap[c_close].astype(float).values,
-                          "mcap": cap[c_cap].astype(float).values / 1e8, "tv": cap[c_tv].astype(float).values / 1e6})
-        g["mkt"] = tag
-        for k, inv in INV.items():
-            nb = _call(stock.get_market_net_purchases_of_equities, ymd, ymd, mkt, inv)
-            if nb is None or nb.empty or _col(nb, "순매수거래대금") is None:
-                if k in ("f", "i"):
-                    log.warning("%s %s %s 비어 있음 → 그날 시장 제외", ymd, mkt, inv)
-                    g = g.iloc[0:0]
-                    break
-                g[k] = 0.0      # 연기금·투신은 보조 — 없으면 0, 로그만
-                continue
-            s = nb[_col(nb, "순매수거래대금")].astype(float) / 1e6
-            s.index = s.index.astype(str)
-            g[k] = g["code"].map(s).fillna(0.0).values
-            if names is not None and _col(nb, "종목명"):
-                for t, nm in nb[_col(nb, "종목명")].items():
-                    names[str(t)] = str(nm)
-        parts.append(g)
-    if not parts or not sum(len(p) for p in parts):
+    cap = _call(stock.get_market_cap, ymd, market="ALL")
+    if cap is None or cap.empty:
         return None
-    out = pd.concat(parts, ignore_index=True)
-    out["date"] = d
-    for k in INV:
-        if k not in out:
-            out[k] = 0.0
-    return _typed(out)
+    c_close, c_cap, c_tv = _col(cap, "종가"), _col(cap, "시가총액"), _col(cap, "거래대금")
+    if not (c_close and c_cap and c_tv) or float(cap[c_tv].sum()) <= 0:
+        return None
+    g = pd.DataFrame({"code": cap.index.astype(str).str.zfill(6), "close": cap[c_close].astype(float).values,
+                      "mcap": cap[c_cap].astype(float).values / 1e8, "tv": cap[c_tv].astype(float).values / 1e6})
+    mm = market_map()
+    g["mkt"] = g["code"].map(mm)
+    g = g[g["mkt"].notna()].copy()
+    for k, inv in INV.items():
+        nb = _call(stock.get_market_net_purchases_of_equities, ymd, ymd, "ALL", inv)
+        if nb is None or nb.empty or _col(nb, "순매수거래대금") is None:
+            if k in ("f", "i"):
+                log.warning("%s %s 비어 있음 → 그날 제외", ymd, inv)
+                return None
+            log.warning("%s %s 비어 있음 → 0", ymd, inv)
+            g[k] = 0.0
+            continue
+        s = nb[_col(nb, "순매수거래대금")].astype(float) / 1e6
+        s.index = s.index.astype(str).str.zfill(6)
+        g[k] = g["code"].map(s).fillna(0.0).values
+        if names is not None and _col(nb, "종목명"):
+            for t, nm in nb[_col(nb, "종목명")].items():
+                names[str(t).zfill(6)] = str(nm)
+    if g.empty:
+        return None
+    g["date"] = d
+    return _typed(g)
 
 
 def fill(days: list[date], budget_min: float, root: Path = STORE, flush_every: int = 20) -> dict:
