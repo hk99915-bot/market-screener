@@ -11,6 +11,19 @@
 8. 숏 스트래들          같은 스트래들을 매도(프리미엄 2% 수취 규모), 손실 한도 없음 — 꼬리 위험 확인용
 
 스트래들은 실제 옵션 호가가 아니라 VIX 를 내재변동성으로 쓴 블랙숄즈 모형가다(스큐·스프레드 미반영).
+
+체결 시점 (외부감사 10/17 P1 bt-exec-lag 반영, 10/17~):
+- 신호 = 월말(m) 마지막 거래일 종가까지의 데이터. 체결 = 그 다음 거래일 종가(자산별 실제 거래일 — 한국 휴장이면 K200 은
+  다음 한국 거래일). 수익률 = 체결가(m) → 체결가(m+1). 이전 방식(신호와 같은 종가에 체결)은 stats_same_close 로 함께 저장.
+- 마지막(진행 중) 구간은 최신 종가로 평가.
+- 1~6번 전략에 적용. 스트래들(7·8)은 신호가 없는 상시 전략이라 월말 종가 진입·청산 그대로.
+가정:
+- 비용 COST = 교체분 편도 0.1% (목표 비중 기준 회전율, 월중 비중 표류는 무시). 롱숏은 매월 4다리 × 0.05%.
+- 환율: 달러 자산 원화가 = 야후 Close × 야후 KRW=X 같은 날 값(뉴욕·런던 시각 기준 고시라 한국 종가와 시차 있음).
+  환전 스프레드·환전 수수료 미반영(개인 기준 편도 0.1~1% 수준 — 회전이 큰 듀얼 모멘텀·로테이션에 불리하게 작용할 부분).
+- 분배금: yfinance auto_adjust=True → 배당·분배금이 배당락일에 세전으로 재투자된 총수익 가격. 미국 ETF 분배금 원천징수 15%,
+  국내 배당소득세 15.4%·해외주식 양도세 22% 미반영(세전 수익률).
+- 숏 다리 대주 비용·증거금 이자 차이 미반영, 증거금은 SHY 수익.
 """
 from __future__ import annotations
 
@@ -38,11 +51,28 @@ LABEL = {"SPY": "S&P500", "QQQ": "나스닥100", "EFA": "선진국(미국 외)",
 
 
 def fetch(start: str = "2005-01-01"):
-    import pandas as pd
+    """야후 종가 (ffill 전 원본 — 자산별 실제 거래일을 알아야 다음 거래일 체결가를 고를 수 있다)."""
     import yfinance as yf
     df = yf.download(list(TICKERS.values()), start=start, auto_adjust=True, progress=False, threads=True)["Close"]
-    df = df.rename(columns={v: k for k, v in TICKERS.items()}).sort_index().ffill()
+    df = df.rename(columns={v: k for k, v in TICKERS.items()}).sort_index()
     return df[[c for c in TICKERS if c in df.columns]]
+
+
+def exec_prices(raw, val, labels):
+    """월말 라벨마다 '라벨 다음 첫 실제 거래일'의 가격표 (val 에서 읽음; raw 는 거래일 판정용 ffill 전 원본).
+    다음 거래일이 아직 없으면(진행 중인 달) 최신 값으로 평가."""
+    import pandas as pd
+    out = {}
+    for c in val.columns:
+        if c not in raw.columns:
+            continue
+        days = raw[c].dropna().index
+        col = []
+        for m in labels:
+            i = days.searchsorted(m, side="right")
+            col.append(val.at[days[i], c] if i < len(days) else val[c].dropna().iloc[-1] if val[c].notna().any() else float("nan"))
+        out[c] = col
+    return pd.DataFrame(out, index=labels)
 
 
 def _krw(px):
@@ -81,15 +111,19 @@ def _stats(r) -> dict:
             "months": int(len(r)), "worst_month": round(float(r.min()), 4), "best_month": round(float(r.max()), 4)}
 
 
-def run(start_bt: str = "2011-01-01") -> dict:
+def run(start_bt: str = "2011-01-01", raw=None) -> dict:
+    """raw: 테스트용 가격표(fetch() 와 같은 모양). 없으면 야후에서 받음."""
     import pandas as pd
-    px = fetch()
+    raw = fetch() if raw is None else raw
+    px = raw.ffill()
     kp = _krw(px)
     me = kp.resample("ME").last()
+    ex = exec_prices(raw, kp, me.index)            # 원화, 다음 거래일 종가
     rets = me.pct_change()
     daily = kp.pct_change()
     vol60 = daily.rolling(60).std().resample("ME").last() * math.sqrt(252)
     me_usd = px.resample("ME").last()
+    ex_usd = exec_prices(raw, px, me_usd.index)    # 달러, 다음 거래일 종가
     months = [m for m in me.index if m >= pd.Timestamp(start_bt)]
 
     def weights(name: str, m) -> dict[str, float]:
@@ -125,43 +159,56 @@ def run(start_bt: str = "2011-01-01") -> dict:
 
     names = ["60/40", "리스크 패리티", "듀얼 모멘텀", "추세추종 GTAA", "한·미 로테이션"]
     res: dict[str, dict] = {}
-    for nm in names:
+
+    def path(nm, P):
         prev, rr, curve, eq = {}, [], [], 1.0
         for k, m in enumerate(months[:-1]):
-            w = weights(nm, m)
+            w = weights(nm, m)                        # 신호: 월말 m 종가까지
             nxt = months[k + 1]
-            r = sum(wt * (me.loc[nxt, a] / me.loc[m, a] - 1) for a, wt in w.items())
+            r = sum(wt * (P.loc[nxt, a] / P.loc[m, a] - 1) for a, wt in w.items())
             turn = sum(abs(w.get(a, 0) - prev.get(a, 0)) for a in set(w) | set(prev))
             r -= turn * COST
             prev = w
             rr.append(r)
             eq *= 1 + r
             curve.append([str(nxt.date())[:7], round(eq, 4)])
-        res[nm] = {"stats": _stats(rr), "curve": curve, "now": weights(nm, me.index[-1]), "rets": rr}
+        return rr, curve
+
+    for nm in names:
+        rr, curve = path(nm, ex)
+        same, _ = path(nm, me)
+        res[nm] = {"stats": _stats(rr), "stats_same_close": _stats(same), "curve": curve,
+                   "now": weights(nm, me.index[-1]), "rets": rr}
 
     # 6. 섹터 모멘텀 롱숏 (미국 섹터 ETF, 달러 기준 롱숏 스프레드 + 단기채)
     secs = [c for c in ("XLK", "XLF", "XLV", "XLE", "XLI", "XLY", "XLP", "XLU", "XLB", "XLRE", "XLC") if c in me_usd.columns]
-    rr, curve, eq, longs, shorts = [], [], 1.0, [], []
     mu = [m for m in me_usd.index if m >= pd.Timestamp(start_bt)]
-    for k, m in enumerate(mu[:-1]):
-        i = me_usd.index.get_loc(m)
-        if i < 12:
-            continue
-        mom = {s: me_usd[s].iloc[i - 1] / me_usd[s].iloc[i - 12] - 1 for s in secs
-               if me_usd[s].iloc[i - 12] == me_usd[s].iloc[i - 12] and me_usd[s].iloc[i - 1] == me_usd[s].iloc[i - 1]}
-        if len(mom) < 6:
-            continue
-        srt = sorted(mom, key=mom.get, reverse=True)
-        longs, shorts = srt[:3], srt[-3:]
-        nxt = mu[k + 1]
-        lr = sum(me_usd.loc[nxt, s] / me_usd.loc[m, s] - 1 for s in longs) / 3
-        sr = sum(me_usd.loc[nxt, s] / me_usd.loc[m, s] - 1 for s in shorts) / 3
-        cash = me_usd.loc[nxt, "SHY"] / me_usd.loc[m, "SHY"] - 1
-        r = lr - sr + cash - 4 * COST * 0.5
-        rr.append(r)
-        eq *= 1 + r
-        curve.append([str(nxt.date())[:7], round(eq, 4)])
-    res["섹터 모멘텀 롱숏"] = {"stats": _stats(rr), "curve": curve, "rets": rr,
+
+    def ls_path(P):
+        rr, curve, eq, longs, shorts = [], [], 1.0, [], []
+        for k, m in enumerate(mu[:-1]):
+            i = me_usd.index.get_loc(m)
+            if i < 12:
+                continue
+            mom = {s: me_usd[s].iloc[i - 1] / me_usd[s].iloc[i - 12] - 1 for s in secs
+                   if me_usd[s].iloc[i - 12] == me_usd[s].iloc[i - 12] and me_usd[s].iloc[i - 1] == me_usd[s].iloc[i - 1]}
+            if len(mom) < 6:
+                continue
+            srt = sorted(mom, key=mom.get, reverse=True)
+            longs, shorts = srt[:3], srt[-3:]
+            nxt = mu[k + 1]
+            lr = sum(P.loc[nxt, s] / P.loc[m, s] - 1 for s in longs) / 3
+            sr = sum(P.loc[nxt, s] / P.loc[m, s] - 1 for s in shorts) / 3
+            cash = P.loc[nxt, "SHY"] / P.loc[m, "SHY"] - 1
+            r = lr - sr + cash - 4 * COST * 0.5
+            rr.append(r)
+            eq *= 1 + r
+            curve.append([str(nxt.date())[:7], round(eq, 4)])
+        return rr, curve, longs, shorts
+
+    rr, curve, longs, shorts = ls_path(ex_usd)
+    same = ls_path(me_usd)[0]
+    res["섹터 모멘텀 롱숏"] = {"stats": _stats(rr), "stats_same_close": _stats(same), "curve": curve, "rets": rr,
                           "now": {**{f"롱 {s}": 1 / 3 for s in longs}, **{f"숏 {s}": -1 / 3 for s in shorts}}}
 
     # 7·8. 스트래들 (S&P500, 1개월, IV=VIX)
@@ -194,7 +241,8 @@ def run(start_bt: str = "2011-01-01") -> dict:
     corr = np.corrcoef(mat).round(2).tolist() if L > 12 else []
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "base": "KRW (롱숏·스트래들은 USD)",
            "data_to": str(kp.index[-1].date()), "cost": COST,   # data_to: 월말 라벨이 아닌 실제 마지막 거래일
-           "strategies": [{"name": k, "stats": v["stats"], "now": {LABEL.get(a, a): round(w, 3) for a, w in v["now"].items()},
+           "exec": "월말 종가 신호 → 다음 거래일 종가 체결 (1~6번). stats_same_close = 이전 방식(같은 종가 체결) 비교용",
+           "strategies": [{"name": k, "stats": v["stats"], **({"stats_same_close": v["stats_same_close"]} if "stats_same_close" in v else {}), "now": {LABEL.get(a, a): round(w, 3) for a, w in v["now"].items()},
                            "curve": v["curve"], "note": v.get("note", "")} for k, v in res.items()],
            "corr": {"names": keys, "matrix": corr}}
     REPORT_DIR.mkdir(exist_ok=True)
