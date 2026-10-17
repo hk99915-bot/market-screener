@@ -144,6 +144,12 @@ def write_research(days: int = 180) -> int:
         if k in manual:
             it.update({f: v for f, v in manual[k].items() if f in ("thesis", "evidence", "risk", "method", "tone", "tone_why", "view")})
             it["curated"] = True
+    try:   # 발간일 국면 태그 — 코스피·해당 종목 (regime_tag 정의)
+        from . import regime_tag
+        kp, st = regime_tag.load_series(DATA_DIR, set(df["code"].to_list()))
+        log.info("리서치 국면 태그 %d건", regime_tag.tag_items(items, kp, st))
+    except Exception as e:  # noqa: BLE001
+        log.warning("국면 태그 실패: %s", e)
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "days": days, "items": items, "close": close}
     (REPORT_DIR / "research.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     return len(items)
