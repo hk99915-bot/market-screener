@@ -23,7 +23,7 @@
 - 커밋 신원은 저장소 기본(`Claude <noreply@anthropic.com>`). 개인 이메일 금지.
 - `git add -A` 금지. 경로 지정 add만.
 - **커밋 접두**: 모든 데스크 커밋 메시지는 `<desk>:` 또는 `<desk> 라운드N:`로 시작(PB는 `pb:`). 팀 업무량 자동 집계(scripts/team_stats.py)가 이걸로 데스크를 센다 — 10/17 첫 집계에서 커밋 2/3가 미분류(PM VOC).
-- **에이전트 완료 통계**: PB는 에이전트가 끝날 때마다 토큰·도구·초를 ops/team.json runs 에 넘긴다(PM 소관, 저장소에서 자동 수집 불가).
+- **에이전트 완료 통계**: PB는 에이전트가 끝날 때마다 `python3 scripts/team_run.py --owner … --task … --tokens … --tools … --sec … --model …` 로 즉시 기록(PM 소관). 나머지 지표(커밋·보드·요청·감사)는 main push 마다 `.github/workflows/team.yml` 이 자동 갱신(10/17 오너: 모든 작업 활성화 때 자동).
 
 ## 요청 응답 규약
 - 요청을 받은 데스크는 다음 라운드 파일에 `처리→<요청 데스크>: <무엇을 어떻게 / 또는 거절 사유>` 1줄로 닫는다. 안 닫히면 round_collect가 2라운드 뒤 보드 P1로 올린다.
