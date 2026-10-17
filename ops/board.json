@@ -2287,6 +2287,27 @@
         "integrity-p0-1"
       ],
       "notes": "설계 문서만(코드 X), 월 장 후 착수. 진행 중·대기 승인·예약·일요일 안건·커리어 절을 원장·이슈·예약 스냅샷에서 생성, 규칙 절은 CLAUDE.md 참조. 설계: docs/integrity_dev_plan_2026-10-17.md §5"
+    },
+    {
+      "id": "my-tab-ledger-compare",
+      "title": "MY 탭 보유 관리 (a)+(b) — 브라우저 주 + 원장 대조(덮어쓰기 확인창·배지 2개·백업 내보내기/가져오기)",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "검수",
+      "started": "2026-10-17",
+      "repo": "public",
+      "files": [
+        "apps-script/tab_my.html",
+        "apps-script/tab_home.html",
+        "index.html",
+        "tests/test_my_backup.py",
+        "scripts/ui_smoke.py"
+      ],
+      "notes": "34598d29 · 근거 docs/my_tab_holdings_plan.md, 겸이 승인 10/17 '우웅 ㄱ 알아서 ㄱㄱ'. 남은 것: B-16 정정 문구 반영(ops/README.md:93·pb HANDOFF:58).",
+      "due": "2026-10-18",
+      "depends_on": [
+        "integrity-p0-4"
+      ]
     }
   ]
 }
