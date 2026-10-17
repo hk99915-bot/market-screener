@@ -331,6 +331,17 @@ def run(rnd: str, rounds_dir: Path, scoreboard: Path, board: Path, ledger_path: 
     return 0
 
 
+def refresh_team_stats(out=print) -> None:
+    """팀 업무량 auto 블록 갱신 (PM 소관, scripts/team_stats.py). 실패해도 라운드 수집은 성공으로 두되 로그는 남긴다."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import team_stats
+        rc = team_stats.main([])
+        out(f"  팀 업무량 갱신(ops/team.json auto) — 종료코드 {rc}, 커밋에 포함")
+    except Exception as e:  # noqa: BLE001 — 수집 본작업과 분리
+        out(f"  ⚠ 팀 업무량 갱신 실패: {type(e).__name__}: {e} — `python3 scripts/team_stats.py` 수동 실행")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--date", default=datetime.now(KST).strftime("%Y-%m-%d"), help="라운드 날짜 (기본 오늘 KST)")
@@ -341,8 +352,11 @@ def main(argv=None) -> int:
     ap.add_argument("--ledger", type=Path, default=None, help="요청 장부 (기본 <rounds-dir>/_requests.json)")
     ap.add_argument("--audit-dir", type=Path, default=AUDIT_DIR, help="감사 데스크 산출물 폴더 (<date>.json)")
     a = ap.parse_args(argv)
-    return run(a.date, a.rounds_dir, a.scoreboard, a.board, a.ledger or a.rounds_dir / "_requests.json", a.apply,
-               audit_dir=a.audit_dir)
+    rc = run(a.date, a.rounds_dir, a.scoreboard, a.board, a.ledger or a.rounds_dir / "_requests.json", a.apply,
+             audit_dir=a.audit_dir)
+    if a.apply and rc == 0:
+        refresh_team_stats()   # --apply 끝: 팀 업무량 auto 도 같이 (PM 소관 — 커밋에 ops/team.json 포함)
+    return rc
 
 
 if __name__ == "__main__":

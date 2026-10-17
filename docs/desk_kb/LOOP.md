@@ -16,6 +16,7 @@
 - 라운드 파일을 모아 `_scoreboard.md`의 **라운드 표**(데스크 | 배움 | 고침 | 피어 | 복기 | 요청 건수)에 1줄씩, 요청은 다음 라운드의 피어 배정으로.
 - 같은 요청이 2라운드 연속 미처리면 보드 P1로 승격.
 - 월 1회 `_scoreboard.md` 적중률(점도표·모의·연구 등급)과 라운드 표를 나란히 두고 "많이 고친 데스크가 더 맞히는가"를 본다.
+- 팀 업무량(ops/team.json)은 **PM 데스크 소관**: 에이전트 완료 통계(토큰·도구·시간) runs 기록은 PB가 PM에 넘기고, `auto` 블록(커밋·보드·요청·감사)은 `scripts/team_stats.py`가 매일 자동(ops.yml 00:07·23:47 KST + round_collect --apply).
 
 ## 작업 격리 (라운드 1 VOC 7건: 공유 체크아웃 때문에 커밋 귀속 섞임·rebase 막힘)
 - 데스크 에이전트는 **자기 worktree**에서 일한다: `git worktree add /tmp/claude-0/.../scratchpad/wt_<desk> origin/main` → 작업 → 커밋 → `git push origin HEAD:main`(거부 시 `pull --rebase`) → `git worktree remove`. 공유 체크아웃에서 편집 금지.

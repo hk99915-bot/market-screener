@@ -10,16 +10,22 @@ function sysLoad(k,fn){ if(SYS[k]!==null) return; SYS[k]=false;
 const sysKst=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
 const sysPr=p=>p==='P0'?`<span class="tag r">P0</span>`:p==='P1'?`<span class="tag">P1</span>`:p==='P2'?`<span class="tag b">P2</span>`:`<span class="mu">${esc(p||'')}</span>`;
 const sysNm=x=>String(x||'').replace(/\s*누나$/,'').replace('팀장(PB)','PB');   // 화면 표시용 담당 이름 (데이터는 그대로)
-function sysTeamHtml(T){   // 팀원별 업무량 — ops/team.json(완료 작업 실측) + 보드 상태
-  const M=SYS.team||{}, R=M.runs||[], E=M.earlier||{}, nm=x=>String(x||'').replace(/\s*누나$/,'').replace('팀장(PB)','PB');
-  const by={}; const g=k=>by[k]=by[k]||{n:0,tools:0,sec:0,tok:0,open:0,done:0,early:0};
+function sysTeamHtml(T){   // 팀원별 업무량 — ops/team.json: runs(완료 작업 실측, PM 기록) + auto(scripts/team_stats.py 매일 자동) + 보드
+  const M=SYS.team||{}, R=M.runs||[], E=M.earlier||{}, A=(M.auto&&M.auto.desks)||{}, nm=x=>String(x||'').replace(/\s*누나$/,'').replace('팀장(PB)','PB');
+  const by={}; const g=k=>by[k]=by[k]||{n:0,tools:0,sec:0,tok:0,open:0,early:0,a:null};
   R.forEach(r=>{ const o=g(nm(r.owner)); o.n++; o.tools+=r.tools||0; o.sec+=r.sec||0; o.tok+=r.tokens||0; });
   Object.entries(E).forEach(([k,v])=>{ g(nm(k)).early+=v; });
-  (T||[]).forEach(t=>{ const o=g(nm(t.owner)); if(t.status==='완료') o.done++; else o.open++; });
-  const rows=Object.entries(by).sort((a,b)=>(b[1].tools-a[1].tools)||((b[1].n+b[1].early)-(a[1].n+a[1].early)));
+  Object.entries(A).forEach(([k,v])=>{ g(nm(k)).a=v; });
+  (T||[]).forEach(t=>{ const o=g(nm(t.owner)); if(t.status!=='완료') o.open++; });
+  const rows=Object.entries(by).sort((a,b)=>(b[1].tools-a[1].tools)||(((b[1].a||{}).commits_7d||0)-((a[1].a||{}).commits_7d||0))||((b[1].n+b[1].early)-(a[1].n+a[1].early)));
   if(!rows.length) return '';
   const mx=Math.max(1,...rows.map(([,o])=>o.tools));
-  return `<div class="p c12"><h2>팀 업무량<small>ops/team.json · 도구 호출 수 순 · ${esc(M.updated||'')}</small></h2><div class="b"><table><tr><th class="l">담당</th><th>완료 작업</th><th>도구 호출</th><th class="l"></th><th>소요</th><th>토큰</th><th>보드 진행·대기</th></tr>${rows.map(([k,o])=>`<tr><td class="l am">${esc(k)}</td><td>${o.n}${o.early?` <span class="mu">+${o.early}</span>`:''}</td><td>${o.tools||'—'}</td><td class="l" style="min-width:90px"><div style="height:6px;background:var(--amber);opacity:.8;width:${Math.round(o.tools/mx*100)}%"></div></td><td class="mu">${o.sec?Math.round(o.sec/60)+'분':'—'}</td><td class="mu">${o.tok?(o.tok/1000).toFixed(0)+'k':'—'}</td><td>${o.open||'—'}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px;margin-top:4px">+N = 수치 기록 전 초기 작업 건수</div></div></div>`;
+  const up=String(M.updated||''), ud=Date.parse(up.slice(0,10)), lag=isNaN(ud)?null:Math.round((Date.parse(sysKst())-ud)/864e5);
+  const stale=lag===null?' · <span class="dn">⚠ 갱신 시각 없음</span>':lag>0?` · <span class="dn">⚠ 갱신 안 됨 (${lag}일)</span>`:'';
+  const au=M.auto||{}, cell=v=>v?v:'<span class="mu">—</span>';
+  const pr=a=>{ if(!a) return '<span class="mu">—</span>'; const b=a.board||{}; return (b['진행']||b['검수'])?`${b['진행']||0}/${b['검수']||0}`:'<span class="mu">—</span>'; };
+  const ad=a=>{ const x=(a&&a.audit)||{}; const t=[x['치명']?`<span class="dn">치명 ${x['치명']}</span>`:'',x['중']?`<span class="am">중 ${x['중']}</span>`:'',x['경']?`<span class="mu">경 ${x['경']}</span>`:''].filter(Boolean).join(' '); return t||'<span class="mu">—</span>'; };
+  return `<div class="p c12"><h2>팀 업무량<small>ops/team.json · PM 소관 · 갱신 ${esc(up||'—')}${stale}</small></h2><div class="b"><table><tr><th class="l">담당</th><th>완료 작업</th><th>도구 호출</th><th class="l"></th><th>소요</th><th>토큰</th><th>7일 커밋</th><th>진행/검수</th><th>요청 대기</th><th class="l">감사</th><th>보드 미완</th></tr>${rows.map(([k,o])=>`<tr><td class="l am">${esc(k)}</td><td>${o.n}${o.early?` <span class="mu">+${o.early}</span>`:''}</td><td>${o.tools||'—'}</td><td class="l" style="min-width:90px"><div style="height:6px;background:var(--amber);opacity:.8;width:${Math.round(o.tools/mx*100)}%"></div></td><td class="mu">${o.sec?Math.round(o.sec/60)+'분':'—'}</td><td class="mu">${o.tok?(o.tok/1000).toFixed(0)+'k':'—'}</td><td>${cell(o.a&&o.a.commits_7d)}</td><td>${pr(o.a)}</td><td>${o.a&&o.a.req_open?`<span class="am">${o.a.req_open}</span>`:'<span class="mu">—</span>'}</td><td class="l" style="font-size:11px">${ad(o.a)}</td><td>${o.open||'—'}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">완료 작업·도구·소요·토큰 = 에이전트 완료 통계(runs, PB→PM 기록) · +N = 수치 기록 전 초기 작업 · 7일 커밋·진행/검수·요청 대기·감사 = scripts/team_stats.py 자동(최근 ${au.window_days||7}일, 커밋 ${au.commits_total??'—'} 중 봇 ${au.commits_bot??'—'}·미분류 ${au.commits_unmapped??'—'}) · 감사 = reports/audit 치명/중/경</div></div></div>`;
 }
 function sysBoardView(){
   sysLoad('board','getBoard'); sysLoad('locks','getLocks'); sysLoad('team','getTeam');
