@@ -21,8 +21,40 @@ function ticketBox(D,IU){
     return `<tr><td class="l"><span class="px" data-t="${esc(it.code)}">${esc(it.name||it.code)}</span> <span class="mu">${esc(it.code)}</span></td><td>${px(it.entry)}</td><td class="dn">${px(it.stop_eff||it.stop)}</td><td class="up">${px(it.target)}</td><td>1:${it.rr!=null?Number(it.rr).toFixed(1):'—'}</td><td style="color:${vc(it.verdict)}">${esc(it.verdict||'')}</td><td>${it.verdict&&it.verdict.startsWith('⛔')?'—':left+'일'}</td><td class="mu">${it.qty_max!=null?num(it.qty_max,0)+'주':'—'}${it.notional?` · ${num(Math.round(it.notional/10000),0)}만`:it.notional_pct!=null?` · ${it.notional_pct}%`:''}</td></tr>
      <tr><td colspan="8" class="l mu" style="font-size:11px;white-space:normal;padding:0 6px 6px 14px">${esc(it.submitted||it.date)} · ${esc(it.why||'')}${(it.reasons||[]).length?' — '+esc(it.reasons.join(' / ')):''}</td></tr>`;}).join('');
   const hist=done.slice(0,8).map(it=>`<span style="margin-right:12px"><span class="mu">${esc(it.date.slice(5))}</span> ${esc(it.name||it.code)} <b class="${it.result.r>=0?'up':'dn'}">${it.result.r>=0?'+':''}${Number(it.result.r).toFixed(2)}R</b></span>`).join('');
-  const tform=`<input id="tkcode" placeholder="종목코드" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tkentry" placeholder="매수가" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tkstop" placeholder="손절가" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tktarget" placeholder="목표가" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <input id="tkdays" placeholder="보유(일)" value="5" style="width:60px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="tkgo" class="sbtn">주문표 열기 (깃허브 이슈)</button>`;
-  setTimeout(()=>{ const g=$('#tkgo'); if(!g) return; g.onclick=()=>{ const v=id=>($(id).value||'').trim(); const c=v('#tkcode'); if(!c) return;
+  // 주문표 입력 (10/17 오너 요청): 종목명·티커 검색 → 최신가 자동 → 손절·목표 = 매수가 × (1 + %) 기본 −7% / +15% (손익비 2.1, 규정 −8%·1:2 안)
+  const TK_STOP=-7, TK_TGT=15, IS=`background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px`;
+  const tform=`<span style="position:relative;display:inline-block"><input id="tkq" placeholder="종목명·티커 (예: mu, 하이닉스)" autocomplete="off" style="width:190px;${IS}"><div id="tkres" class="mu" style="display:none;position:absolute;z-index:30;left:0;top:100%;min-width:260px;max-height:260px;overflow:auto;background:var(--panel);border:1px solid var(--line);font-size:12px"></div></span><input id="tkcode" type="hidden"><input id="tkmk" type="hidden">
+    <input id="tkentry" placeholder="매수가" style="width:90px;${IS}">
+    손절 <input id="tkstopp" value="${TK_STOP}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tkstop" placeholder="손절가" style="width:90px;${IS}">
+    목표 <input id="tktgtp" value="${TK_TGT}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tktarget" placeholder="목표가" style="width:90px;${IS}">
+    <input id="tkdays" placeholder="보유(일)" value="5" style="width:52px;${IS}">일 <button id="tkgo" class="sbtn">주문표 열기 (깃허브 이슈)</button>
+    <div id="tklbl" class="mu" style="font-size:11px"></div>`;
+  setTimeout(()=>{ const g=$('#tkgo'); if(!g) return; const v=id=>($(id).value||'').trim();
+    const dp=()=>v('#tkmk')==='US'?2:0, rd=x=>dp()?Math.round(x*100)/100:Math.round(x);
+    const lbl=t=>{ const e=+v('#tkentry')||0, st=+v('#tkstop')||0, tg=+v('#tktarget')||0; let h=t!=null?t:($('#tklbl').dataset.src||'');
+      if(e>0&&st>0&&tg>0){ const rr=e>st?(tg-e)/(e-st):null, sd=st/e-1; h+=` · 손익비 <b class="${rr!=null&&rr>=2?'up':'dn'}">1:${rr!=null?rr.toFixed(2):'—'}</b>${rr!=null&&rr<2?' (1:2 미만 → 거부됨)':''} · 손절 <b class="${sd<-0.08?'dn':''}">${(sd*100).toFixed(1)}%</b>${sd<-0.08?' (−8% 초과 → 거부됨)':''}`; }
+      $('#tklbl').innerHTML=h; };
+    const fromPct=()=>{ const e=+v('#tkentry'); if(!(e>0)) return lbl(); $('#tkstop').value=rd(e*(1+(+v('#tkstopp')||0)/100)); $('#tktarget').value=rd(e*(1+(+v('#tktgtp')||0)/100)); lbl(); };
+    const toPct=(px,pc)=>{ const e=+v('#tkentry'), x=+v(px); if(e>0&&x>0) $(pc).value=((x/e-1)*100).toFixed(1); lbl(); };
+    ['#tkentry','#tkstopp','#tktgtp'].forEach(id=>$(id).oninput=fromPct);
+    $('#tkstop').oninput=()=>toPct('#tkstop','#tkstopp'); $('#tktarget').oninput=()=>toPct('#tktarget','#tktgtp');
+    const setPx=(px,src)=>{ $('#tkentry').value=rd(px); $('#tklbl').dataset.src=src; fromPct(); };
+    // 최신가: 국장은 네이버 실시간(브라우저에서 막히면) → 저장소 상세의 마지막 종가. 미장은 상세 종가(무료 실시간 없음).
+    const price=(sym,mk)=>{ $('#tklbl').innerHTML='가격 불러오는 중…';
+      const fb=()=>google.script.run.withSuccessHandler(t=>{ try{ const d=JSON.parse(t); setPx(d.close, `종가 ${esc(String(d.asof||''))} 기준 (실시간 아님 — 장중이면 매수가 직접 수정)`);}catch(e){ lbl('가격 없음 — 매수가 직접 입력'); } }).withFailureHandler(()=>lbl('가격 없음 — 매수가 직접 입력')).getStock(mk,sym);
+      if(mk!=='KR') return fb();
+      const ac=new AbortController(); const to=setTimeout(()=>ac.abort(),3000);
+      fetch('https://polling.finance.naver.com/api/realtime/domestic/stock/'+encodeURIComponent(sym),{signal:ac.signal}).then(r=>r.json()).then(j=>{ clearTimeout(to);
+        const d=(j.datas||[])[0]||{}, px=+String(d.closePrice||d.closePriceRaw||'').replace(/,/g,''); if(!(px>0)) throw 0;
+        const at=String(d.localTradedAt||'').slice(11,16); setPx(px, `현재가 네이버 실시간${at?' '+at:''}`); }).catch(()=>{ clearTimeout(to); fb(); }); };
+    const pick=(sym,mk,name)=>{ $('#tkcode').value=sym; $('#tkmk').value=mk; $('#tkq').value=`${name} (${sym})`; $('#tkres').style.display='none'; price(sym,mk); };
+    $('#tkq').oninput=()=>{ const q=v('#tkq').toLowerCase(), box=$('#tkres'); if(!q){ box.style.display='none'; return; }
+      loadIndex(()=>{ const r=SIX.filter(x=>x.s.toLowerCase().startsWith(q)||String(x.n).toLowerCase().includes(q))
+        .sort((a,b)=>(a.s.toLowerCase()===q?-1:0)-(b.s.toLowerCase()===q?-1:0)||(String(a.n).toLowerCase().startsWith(q)?-1:1)-(String(b.n).toLowerCase().startsWith(q)?-1:1)).slice(0,10);
+        box.innerHTML=r.length?r.map(x=>`<div data-tks="${esc(x.s)}" data-tkm="${x.m}" data-tkn="${esc(x.n)}" style="padding:3px 8px;cursor:pointer;color:var(--txt)">${esc(x.n)} <i class="mu">${esc(x.s)} · ${x.m}${x.e?' · ETF':''}</i></div>`).join(''):'<div style="padding:3px 8px">결과 없음 (스크리너 대상 종목만)</div>';
+        box.style.display='block'; box.querySelectorAll('div[data-tks]').forEach(d=>d.onclick=()=>pick(d.dataset.tks,d.dataset.tkm,d.dataset.tkn)); }); };
+    $('#tkq').onkeydown=e=>{ if(e.key==='Enter'){ const d=$('#tkres').querySelector('div[data-tks]'); if(d){ e.preventDefault(); d.click(); } } };
+    g.onclick=()=>{ const c=v('#tkcode')||v('#tkq'); if(!c) return;
     const e=+v('#tkentry')||0, st=+v('#tkstop')||0, tg=+v('#tktarget')||0; const rr=e>st&&st>0?((tg-e)/(e-st)).toFixed(2):'';
     window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
   return `<div style="border-top:1px solid var(--line);margin-top:8px;padding:8px 0;font-size:12.5px;line-height:1.7;white-space:normal"><b class="am">주문표</b> <span class="mu" style="font-size:11px">매수 전 필수(규정 [4]) · 손익비 1:2 미만·레버리지·개장 30분·이벤트 당일 거부 · 추격은 절반 · 1회 리스크 = 위성 북 × r</span>${T?` <span style="font-size:11.5px">· 채점 ${T.n}건 · 승률 <b>${Math.round((T.hit||0)*100)}%</b> · 평균 <b class="${T.avg_r>=0?'up':'dn'}">${T.avg_r>=0?'+':''}${T.avg_r}R</b></span>`:''}
