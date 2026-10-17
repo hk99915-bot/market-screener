@@ -146,13 +146,41 @@ def _col(df: pd.DataFrame, key: str) -> str | None:
     return cs[0] if cs else None
 
 
+def _relogin() -> None:
+    """KRX 세션 재로그인 — 같은 KRX_ID 로 다른 잡이 로그인하면 기존 세션이 끊겨 HTML(비JSON)이 온다(10/17 첫 실행)."""
+    import os
+    try:
+        from pykrx.website.comm.auth import get_auth_session  # type: ignore
+        s = get_auth_session()
+        if s is not None and os.environ.get("KRX_ID"):
+            ok = s.refresh(os.environ["KRX_ID"], os.environ.get("KRX_PW", ""))
+            log.info("KRX 재로그인 %s", "성공" if ok else "실패")
+    except Exception as e:  # noqa: BLE001
+        log.warning("KRX 재로그인 오류: %s", str(e)[:120])
+
+
+def _call(fn, *a, tries: int = 3, **k):
+    """pykrx 호출 + 빈/비JSON 응답 재시도(재로그인). 마지막까지 실패하면 None."""
+    for t in range(tries):
+        try:
+            r = fn(*a, **k)
+            time.sleep(0.25)          # KRX 차단 방지
+            if r is not None and not r.empty:
+                return r
+        except Exception as e:  # noqa: BLE001
+            log.warning("%s%s 실패(%d): %s", fn.__name__, a, t + 1, str(e)[:120])
+        time.sleep(2 + 3 * t)
+        _relogin()
+    return None
+
+
 def fetch_day(d: date, names: dict | None = None) -> pd.DataFrame | None:
     """하루 전 종목(KOSPI·KOSDAQ). 시총 조회가 비면 None(휴장·미집계). 투자자 조회 실패는 0 이 아니라 NaN→행 제외."""
     from pykrx import stock  # type: ignore
     ymd = d.strftime("%Y%m%d")
     parts = []
     for mkt, tag in MKTS.items():
-        cap = stock.get_market_cap(ymd, market=mkt)
+        cap = _call(stock.get_market_cap, ymd, market=mkt)
         if cap is None or cap.empty:
             return None
         c_close, c_cap, c_tv = _col(cap, "종가"), _col(cap, "시가총액"), _col(cap, "거래대금")
@@ -162,14 +190,7 @@ def fetch_day(d: date, names: dict | None = None) -> pd.DataFrame | None:
                           "mcap": cap[c_cap].astype(float).values / 1e8, "tv": cap[c_tv].astype(float).values / 1e6})
         g["mkt"] = tag
         for k, inv in INV.items():
-            nb = None
-            for attempt in range(3):
-                try:
-                    nb = stock.get_market_net_purchases_of_equities(ymd, ymd, mkt, inv)
-                    break
-                except Exception as e:  # noqa: BLE001
-                    log.warning("%s %s %s 실패(%d): %s", ymd, mkt, inv, attempt + 1, str(e)[:120])
-                    time.sleep(2 * (attempt + 1))
+            nb = _call(stock.get_market_net_purchases_of_equities, ymd, ymd, mkt, inv)
             if nb is None or nb.empty or _col(nb, "순매수거래대금") is None:
                 if k in ("f", "i"):
                     log.warning("%s %s %s 비어 있음 → 그날 시장 제외", ymd, mkt, inv)
@@ -198,7 +219,7 @@ def fill(days: list[date], budget_min: float, root: Path = STORE, flush_every: i
     """주어진 거래일(순서대로)을 시간 예산 안에서 채운다. 반환: 채운 날·건너뛴 날."""
     t0 = time.time()
     names = load_names(root)
-    buf, done, skipped = [], [], []
+    buf, done, skipped, fails = [], [], [], 0
     for d in days:
         if (time.time() - t0) / 60 > budget_min:
             log.info("시간 예산 %.0f분 소진 — 남은 %d일은 다음 실행", budget_min, len(days) - len(done) - len(skipped))
@@ -210,7 +231,12 @@ def fill(days: list[date], budget_min: float, root: Path = STORE, flush_every: i
             f = None
         if f is None:
             skipped.append(str(d))
+            fails += 1
+            if fails >= 5:
+                log.warning("연속 %d일 수집 실패 — KRX 차단/세션 문제로 보고 중단 (마지막 %s)", fails, d)
+                break
             continue
+        fails = 0
         buf.append(f)
         done.append(str(d))
         if len(buf) >= flush_every:
@@ -283,7 +309,7 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     grp = (both != both.groupby(df["code"]).shift(1)).cumsum()
     df["st_fi"] = both.groupby([df["code"], grp]).cumsum() * both
     df["tv_avg5"] = g["tv"].transform(lambda s: s.astype(float).rolling(5, min_periods=5).mean())
-    df["tv_avg20"] = df["tv20"] / 20
+    df["tv_avg20"] = g["tv"].transform(lambda s: s.astype(float).rolling(20, min_periods=5).mean())   # 적격 판정용(이력 짧아도)
     prior60 = g["tv"].transform(lambda s: s.astype(float).shift(5).rolling(60, min_periods=40).mean())
     df["tv_x"] = df["tv_avg5"] / prior60                                              # 최근 5일 ÷ 그 전 60일
     a = g["tv"].transform(lambda s: s.astype(float).shift(5).rolling(20, min_periods=15).mean())
@@ -433,6 +459,8 @@ def archive(out: dict) -> None:
         return
     try:
         ARCH.mkdir(parents=True, exist_ok=True)
+        # 화면용 전체본: getArchAt('accum','latest') — Code.gs·build_pages 에 전용 getter 를 넣기 전 임시 경로(공유 파일 잠금 중)
+        (ARCH / "latest.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":"), default=str), encoding="utf-8")
         slim = {k: out[k] for k in ("asof", "generated_at", "status", "n", "counts") if k in out}
         slim["top"] = {k: [{"code": r["code"], "name": r["name"], "fi20_cap": r["fi20_cap"], "ret20": r["ret20"]}
                            for r in v[:15]] for k, v in (out.get("top") or {}).items()}

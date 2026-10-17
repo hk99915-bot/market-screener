@@ -53,7 +53,7 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add data/flows/ reports/accum.json reports/archive/accum/ reports/logs/accum.log 2>/dev/null; true
+          for f in data/flows reports/accum.json reports/archive/accum reports/logs/accum.log; do [ -e "$f" ] && git add "$f" || true; done
           git diff --cached --quiet || git commit -m "accum: ${MODE:-daily} $(date -u +%F)"
           ok=0
           for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
