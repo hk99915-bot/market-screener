@@ -83,3 +83,8 @@ def test_touch_rule_parses_and_fires(monkeypatch):
     assert alerts.touch_lines(fetch=lambda c: fake.get(c)) == []
     fake["000660"] = {"last": 1160000.0, "low": None, "name": "SK하이닉스"}   # 저가 키 없으면 현재가로
     assert "현재가" in alerts.touch_lines(fetch=lambda c: fake.get(c))[0][1]
+
+
+def test_savings_rule_parsed_and_zero_default():
+    assert pb.rules("SAVINGS 9200000")["savings"] == 9200000.0
+    assert pb.rules("SEMI_CAP 0.40")["savings"] == 0.0

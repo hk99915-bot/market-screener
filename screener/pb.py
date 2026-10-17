@@ -13,7 +13,7 @@ MY_HOLDINGS 형식 (웹 MY 탭과 동일, 한 줄에 하나 — 위성 북, 그 
     148070 40 110000
     132030 50 20000
     현금 500000
-선택: MY_RULES — 줄마다 '종목코드 가격' (종가 2일 연속 이탈 시 경고), '종목코드 가격 touch' (장중 저가 터치 즉시 ⛔, 결재 #2 예외 조건), 'LOSS_LIMIT 0.12' (순자산 대비 손실 한도), 'SEMI_CAP 0.40', 'SEMI_BAND 0.45'
+선택: MY_RULES — 줄마다 '종목코드 가격' (종가 2일 연속 이탈 시 경고), '종목코드 가격 touch' (장중 저가 터치 즉시 ⛔, 결재 #2 예외 조건), 'LOSS_LIMIT 0.12' (순자산 대비 손실 한도), 'SEMI_CAP 0.40', 'SEMI_BAND 0.45', 'SAVINGS <예적금 금액>' (결재 #1 분모 (b): 반도체 비중·D2 스트레스 분모에 더함, 출력은 비율만)
 
 분모는 항상 순자산 = 위성 + ISA + 현금(원화·달러). 반도체 비중은 '반도체(전기 제외)' 를 기본으로, '반도체+전기(상관 테마)' 를 보조로 보인다.
 지수 ETF(KODEX 200·S&P500·나스닥100 …) 속 반도체 룩스루는 한도 계산에서 빼고 '참고 경보' 한 줄로만 보인다 (합의 1-④).
@@ -204,7 +204,7 @@ def stress_line(ev: dict, scenario: str = "2026-07") -> str:
 
 
 def rules(rules_txt: str) -> dict:
-    o = {"loss_limit": 0.12, "semi_cap": 0.40, "semi_band": 0.45, "price": {}, "touch": {}}
+    o = {"loss_limit": 0.12, "semi_cap": 0.40, "semi_band": 0.45, "price": {}, "touch": {}, "savings": 0.0}
     for ln in (rules_txt or "").splitlines():
         p = ln.split()
         if len(p) < 2:
@@ -216,6 +216,8 @@ def rules(rules_txt: str) -> dict:
             o["semi_cap"] = _num(p[1]) or o["semi_cap"]
         elif k == "SEMI_BAND":
             o["semi_band"] = _num(p[1]) or o["semi_band"]
+        elif k == "SAVINGS":       # 예적금(불가침) — 결재 #1 분모 (b) = 투자자산 + 예적금. 금액은 시크릿에만, 출력은 비율만
+            o["savings"] = _num(p[1]) or 0.0
         elif _num(p[1]) and len(p) >= 3 and p[2].lower() in ("touch", "즉시"):
             o["touch"][k] = _num(p[1])     # '종목코드 가격 touch' — 장중 저가 터치 즉시 ⛔ (종가 2일 규칙과 별개)
         elif _num(p[1]):
@@ -287,11 +289,16 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
             isa_etc += r["v"]
     isa_w = {k: (v / isa_tot if isa_tot else 0.0) for k, v in isa_w.items()}
     # denominator=stress_denominator_code (기본 D2 nav) — 결재 #3 구속 한도 '스트레스 −15%' 의 손실률, 비율만 보관
-    st_den, st_books = stress_denominator(stress_denominator_code, nav=nav, tot=tot, tot_sat=tot_sat, cash_sat=cash_sat)
+    # 결재 #1 (b): MY_RULES 'SAVINGS <금액>' 이 있으면 반도체 비중·D2 스트레스 분모에 예적금을 더한다 (없으면 (a) 투자자산만)
+    sav = ru.get("savings") or 0.0
+    den = nav + sav
+    den_label = "(b) 투자자산+예적금" if sav > 0 else "(a) 투자자산 · 예적금 미입력"
+    st_den, st_books = stress_denominator(stress_denominator_code, nav=den, tot=tot, tot_sat=tot_sat, cash_sat=cash_sat)
     stress = {k: stress_loss(rows, st_den, k, st_books) for k in STRESS_SCENARIOS}
     return {"rows": rows, "stress": stress, "stress_denom": stress_denominator_code.upper(), "miss": miss, "fx": fx, "rules": ru, "nav": nav, "tot": tot, "tot_sat": tot_sat, "tot_isa": tot_isa, "isa_tot": isa_tot,
             "cash": cash_sat + cash_isa, "cost": cost, "loss": loss, "has_isa": bool(isa) or cash_isa > 0,
-            "semi_ex": semi / nav if nav else 0.0, "semi_elec": (semi + elec) / nav if nav else 0.0, "look": look / nav if nav else 0.0,
+            "denom": den_label,
+            "semi_ex": semi / den if den else 0.0, "semi_elec": (semi + elec) / den if den else 0.0, "look": look / den if den else 0.0,
             "isa_w": isa_w, "isa_etc": isa_etc / isa_tot if isa_tot else 0.0, "isa_cash": cash_isa / isa_tot if isa_tot else 0.0,
             "day": sum(r["v"] - r["v"] / (1 + r["r1"]) for r in rows if r["r1"] is not None) / nav if nav else 0.0}
 
@@ -300,7 +307,7 @@ def semi_line(ev: dict) -> str:
     cap, band = ev["rules"]["semi_cap"], ev["rules"]["semi_band"]
     x = ev["semi_ex"]
     tag = " ⛔ 발동선 초과 — 다음 반등일 40%로" if x > band + 0.005 else " ⛔ 상한 초과 — 추가 매수 금지" if x > cap + 0.005 else " ✅"
-    return (f"• 반도체(전기 제외) 순자산 <b>{x*100:.0f}%</b> (상한 {cap*100:.0f}% · 발동선 {band*100:.0f}%){tag}\n"
+    return (f"• 반도체(전기 제외) <b>{x*100:.0f}%</b> · 분모 {ev.get('denom', '(a)')} (상한 {cap*100:.0f}% · 발동선 {band*100:.0f}%){tag}\n"
             f"  반도체+전기(상관 테마) {ev['semi_elec']*100:.0f}% · 참고: 지수 ETF 속 반도체 ≈ {ev['look']*100:.0f}% 추가 (한도 제외)")
 
 
