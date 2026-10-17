@@ -73,6 +73,7 @@ SHIM = """<script>
     getMacroHist: () => get('reports/macro_hist.json'),
     getStudy: () => get('reports/studies/crash_rebound.json'),
     getLab: () => get('reports/lab.json'),
+    getIsaLab: () => get('reports/isa_lab_returns.json'),
     getBoard: () => get('ops/board.json'),
     getTeam: () => get('ops/team.json'),
     getLocks: () => get('ops/locks.json'),

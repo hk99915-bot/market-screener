@@ -1,0 +1,120 @@
+<!-- tab_isalab.html — QUANT › ISA 실험실 (ilabView). 자산별 비중 슬라이더 → 브라우저 안에서 즉시 백테스트(서버 없음).
+     데이터: reports/isa_lab_returns.json (screener/isa_lab.py build — pb-private 2026-10-15 배분 보고서의 원화 월수익률, 시장 데이터만).
+     계산 로직은 ILAB_CALC 블록(순수 함수) — tests/test_isa_lab.py 가 node 로 꺼내 screener/isa_lab.py 기준 구현과 숫자 대조.
+     월 적립 금액은 '100(단위 자유)' 기본값 · 결과는 배수·% 로만 · 입력값은 저장·전송하지 않는다. -->
+<script>
+/* ILAB_CALC_BEGIN — DOM 없는 순수 계산 (screener/isa_lab.py 와 같은 정의·같은 순서) */
+function ilabNet(D,cost){ const A=D.assets; return D.months.map((_,t)=>A.map(a=>D.r[a][t]-(cost?D.drag[a]/12:0))); }
+function ilabW(D,wm){ const w=D.assets.map(a=>+(wm[a]||0)); const s=w.reduce((x,y)=>x+y,0); return s>0?w.map(x=>x/s):w; }
+function ilabSim(M,w,rebal,contrib){
+  const A=w.length; let H=w.map(x=>x*(contrib===0?1:0)); let paid=contrib===0?1:0; const V=[],twr=[],inv=[];
+  for(let t=0;t<M.length;t++){ const r=M[t];
+    if(contrib>0){ for(let i=0;i<A;i++) H[i]+=contrib*w[i]; paid+=contrib; }
+    if(t>0&&(rebal==='M'||(rebal==='A'&&t%12===0))){ let tot=0; for(let i=0;i<A;i++) tot+=H[i]; H=w.map(x=>tot*x); }
+    let st=0; for(let i=0;i<A;i++) st+=H[i];
+    H=H.map((h,i)=>h*(1+r[i]));
+    let en=0; for(let i=0;i<A;i++) en+=H[i];
+    twr.push(st>0?en/st-1:0); V.push(en); inv.push(paid); }
+  return {V,twr,inv}; }
+function ilabStd(x){ const m=x.reduce((a,b)=>a+b,0)/x.length; let s=0; for(const v of x) s+=(v-m)*(v-m); return Math.sqrt(s/(x.length-1)); }
+function ilabTwrStats(twr){ const n=twr.length, idx=[1]; let I=1; for(const r of twr){ I*=1+r; idx.push(I); }
+  let pk=idx[0], mdd=0; for(const v of idx){ pk=Math.max(pk,v); mdd=Math.max(mdd,1-v/pk); }
+  let w12=NaN; if(n>=12){ w12=Infinity; for(let t=0;t<n-11;t++) w12=Math.min(w12,idx[t+12]/idx[t]-1); }
+  return {cagr:Math.pow(idx[n],12/n)-1, vol:ilabStd(twr)*Math.sqrt(12), mdd:-mdd, worst12:w12, mult:idx[n]}; }
+function ilabIrr(c,n,fin){ let lo=-0.99,hi=1.0; for(let it=0;it<100;it++){ const mid=(lo+hi)/2; let fv=0; for(let k=0;k<n;k++) fv+=c*Math.pow(1+mid,n-k); if(fv>fin) hi=mid; else lo=mid; } return (lo+hi)/2; }
+function ilabDcaStats(sim,c){ const V=sim.V, inv=sim.inv, n=V.length; let under=Infinity, pk=0, mdd=0;
+  for(let t=0;t<n;t++){ under=Math.min(under,V[t]/inv[t]-1); pk=Math.max(pk,V[t]); mdd=Math.max(mdd,1-V[t]/pk); }
+  return {irr:Math.pow(1+ilabIrr(c,n,V[n-1]),12)-1, mult:V[n-1]/inv[n-1], under, bal_mdd:-mdd}; }
+function ilabCrisis(D,twr){ const m=D.months, o={}; for(const [nm,a,b] of D.crises){ const i=m.indexOf(a), j=m.indexOf(b); if(i<0||j<0) continue; let g=1; for(let t=i;t<=j;t++) g*=1+twr[t]; o[nm]=g-1; } return o; }
+function ilabEval(D,wm,rebal,cost,contrib){ const M=ilabNet(D,cost), w=ilabW(D,wm), lump=ilabSim(M,w,rebal,0), dca=ilabSim(M,w,rebal,contrib);
+  return {lump:ilabTwrStats(lump.twr), dca:ilabDcaStats(dca,contrib), crisis:ilabCrisis(D,lump.twr), curve:lump.V, dcurve:dca.V, inv:dca.inv}; }
+function ilabRng(seed){ let a=seed|0; return function(){ a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function ilabQ(xs,q){ const s=xs.slice().sort((a,b)=>a-b), p=(s.length-1)*q, lo=Math.floor(p), hi=Math.min(lo+1,s.length-1); return s[lo]+(s[hi]-s[lo])*(p-lo); }
+function ilabBoot(D,wm,rebal,cost,P,T,L,seed){ const M=ilabNet(D,cost), w=ilabW(D,wm), n=M.length, rnd=ilabRng(seed); const cagr=[],mult=[],mdd=[];
+  for(let p=0;p<P;p++){ let k=Math.floor(rnd()*n); const path=[];
+    for(let t=0;t<T;t++){ if(t>0) k=(rnd()<1/L)?Math.floor(rnd()*n):(k+1)%n; path.push(M[k]); }
+    const ls=ilabTwrStats(ilabSim(path,w,rebal,0).twr), d=ilabSim(path,w,rebal,1);
+    cagr.push(ls.cagr); mdd.push(ls.mdd); mult.push(d.V[T-1]/d.inv[T-1]); }
+  return {cagr_med:ilabQ(cagr,.5),cagr_p10:ilabQ(cagr,.1),mult_med:ilabQ(mult,.5),mult_p10:ilabQ(mult,.1),mdd_med:ilabQ(mdd,.5),mdd_p10:ilabQ(mdd,.1)}; }
+/* ILAB_CALC_END */
+
+let ILAB=null, ILABCH=null, ILABBT=null;
+const ILAB_ST={w:{SP:40,NDX:10,KS:15,KR3Y:20,KR10Y:0,UST:0,GOLD:15}, rebal:'A', cost:true, contrib:100, log:true};
+function ilabView(){
+  if(ILAB===null){ ILAB=false; google.script.run.withSuccessHandler(t=>{try{ILAB=typeof t==='string'?JSON.parse(t):t;}catch(e){ILAB={};} if(view==='isa') render();}).withFailureHandler(()=>{ILAB={}; if(view==='isa') render();}).getIsaLab(); return '<div class="load">LOADING …</div>'; }
+  if(!ILAB||!ILAB.months) return '<div class="grid"><div class="p c12"><div class="b mu">ISA 실험실 데이터 없음 (reports/isa_lab_returns.json — python -m screener.isa_lab build)</div></div></div>';
+  const D=ILAB, S=ILAB_ST;
+  const sl=D.assets.map(a=>`<div style="display:grid;grid-template-columns:90px 1fr 46px;gap:8px;align-items:center;margin:3px 0"><span>${esc(D.names[a])}</span><input type="range" min="0" max="100" step="1" value="${+S.w[a]||0}" data-a="${a}" oninput="ilabSet(this)" style="width:100%;accent-color:var(--amber)"><b id="ilw_${a}" style="text-align:right">${+S.w[a]||0}%</b></div>`).join('');
+  const pre=Object.keys(D.presets).map((k,i)=>`<button class="sbtn" onclick="ilabPreset(${i})">${esc(k)}</button>`).join(' ');
+  const rb=[['M','매월'],['A','연 1회'],['N','안 함']].map(([k,n])=>`<label style="margin-right:8px"><input type="radio" name="ilrb" value="${k}" ${S.rebal===k?'checked':''} onchange="ILAB_ST.rebal=this.value;ILABBT=null;ilabRecalc()"> ${n}</label>`).join('');
+  const dg=D.assets.map(a=>`${esc(D.names[a])} ${(D.drag[a]*100).toFixed(1)}%`).join(' · ');
+  setTimeout(ilabRecalc,0);
+  return `<div class="grid">
+  <div class="p c12"><div class="b" style="font-size:12px;color:var(--amber)">⚠ 2004-01~${esc(D.months[D.months.length-1])} 한 구간 백테스트 — 금 강세장 포함·과최적화 주의, 미래 보장 아님. 데이터 기준일 ${esc(D.asof)} (마지막 달은 10/15 까지 부분 월). 비용 가정(연, 월 1/12 차감): ${dg}. 세금·매매비용 미반영.</div></div>
+  <div class="p c4"><h2>비중<small id="ilsum"></small></h2><div class="b">
+    <div style="margin-bottom:6px">${pre}</div>${sl}
+    <div style="margin-top:8px"><button class="sbtn" onclick="ilabNorm()">합계 100%로 맞추기</button> <span class="mu" style="font-size:11px">합계가 100이 아니어도 계산은 비율로 정규화</span></div>
+    <div style="margin-top:8px">리밸런싱: ${rb}</div>
+    <div style="margin-top:4px"><label><input type="checkbox" ${S.cost?'checked':''} onchange="ILAB_ST.cost=this.checked;ILABBT=null;ilabRecalc()"> 비용 차감</label>
+      &nbsp; <label>월 적립 <input type="number" min="1" value="${S.contrib}" style="width:70px" onchange="ILAB_ST.contrib=Math.max(1,+this.value||100);ilabRecalc()"></label> <span class="mu" style="font-size:11px">(단위 자유 · 브라우저 안에서만 계산, 저장·전송 안 함)</span></div>
+  </div></div>
+  <div class="p c8"><h2>현행 ISA vs 선택<small>${esc(D.months[0])}~${esc(D.months[D.months.length-1])} · ${D.months.length}개월 · 원화</small></h2><div class="b" id="ilout"></div></div>
+  <div class="p c12"><h2>누적 곡선 (일시금 1 → 배수)<small><label><input type="checkbox" ${S.log?'checked':''} onchange="ILAB_ST.log=this.checked;ilabRecalc()"> 로그</label></small></h2><div class="b"><div id="ilch" style="height:280px"></div><div class="mu" style="font-size:11px"><span style="color:var(--muted)">━ 현행 ISA 40/10/15/20/15</span> &nbsp; <span style="color:var(--amber)">━ 선택</span></div></div></div>
+  <div class="p c12"><h2>블록 부트스트랩 10년<small>평균 12개월 블록 · 2,000 경로 · 원형</small></h2><div class="b" id="ilbt">${ILABBT?ilabBootHtml(true):ilabBootIdle()}</div></div>
+  </div>`;
+}
+function ilabSet(el){ ILAB_ST.w[el.dataset.a]=+el.value; const b=$('#ilw_'+el.dataset.a); if(b) b.textContent=el.value+'%'; ILABBT=null; ilabRecalc(); }
+function ilabPreset(i){ const p=Object.values(ILAB.presets)[i]; ILAB.assets.forEach(a=>ILAB_ST.w[a]=+(p[a]||0)); ILABBT=null; render(); }
+function ilabNorm(){ const s=ILAB.assets.reduce((x,a)=>x+(+ILAB_ST.w[a]||0),0); if(s<=0) return; ILAB.assets.forEach(a=>ILAB_ST.w[a]=Math.round((+ILAB_ST.w[a]||0)*100/s)); render(); }
+function ilabBase(){ return Object.values(ILAB.presets)[0]; }
+function ilabRecalc(){
+  const o=$('#ilout'); if(!o||!ILAB||!ILAB.months) return; const D=ILAB, S=ILAB_ST;
+  const s=D.assets.reduce((x,a)=>x+(+S.w[a]||0),0), sm=$('#ilsum');
+  if(sm) sm.innerHTML=s===100?`합계 100%`:`<span class="dn">합계 ${s}% → 비율로 정규화</span>`;
+  if(s<=0){ o.innerHTML='<span class="dn">비중이 모두 0</span>'; return; }
+  const B=ilabEval(D,ilabBase(),S.rebal,S.cost,S.contrib), X=ilabEval(D,S.w,S.rebal,S.cost,S.contrib);
+  const p1=v=>v==null||isNaN(v)?'—':(v*100).toFixed(1)+'%', pp=v=>isNaN(v)?'—':`${v>0?'+':''}${(v*100).toFixed(1)}%p`, mx=v=>v.toFixed(2)+'배';
+  const row=(lab,b,x,f,d,better)=>{ const df=d(x-b), good=better==null?'':((x-b)*better>0.0005?'up':(x-b)*better<-0.0005?'dn':'mu'); return `<tr><td class="l">${lab}</td><td>${f(b)}</td><td><b>${f(x)}</b></td><td class="${good}">${df}</td></tr>`; };
+  const dmx=v=>`${v>0?'+':''}${v.toFixed(2)}배`;
+  let h=`<table><tr><th class="l">지표</th><th>현행 ISA</th><th>선택</th><th>차이</th></tr>
+   <tr><td class="l am" colspan="4">일시금 (2004-01 에 1 넣고 그대로)</td></tr>
+   ${row('연복리 CAGR',B.lump.cagr,X.lump.cagr,p1,pp,1)}${row('연변동성',B.lump.vol,X.lump.vol,p1,pp,-1)}${row('최대낙폭',B.lump.mdd,X.lump.mdd,p1,pp,1)}${row('최악 12개월',B.lump.worst12,X.lump.worst12,p1,pp,1)}${row('최종 배수',B.lump.mult,X.lump.mult,mx,dmx,1)}
+   <tr><td class="l am" colspan="4">월 적립 (매달 초 ${num(S.contrib)} · ${D.months.length}회)</td></tr>
+   ${row('연환산 IRR',B.dca.irr,X.dca.irr,p1,pp,1)}${row('최종 / 넣은 돈',B.dca.mult,X.dca.mult,mx,dmx,1)}${row('최악 평가손 (넣은 돈 대비)',B.dca.under,X.dca.under,p1,pp,1)}${row('잔고 기준 최대낙폭',B.dca.bal_mdd,X.dca.bal_mdd,p1,pp,1)}
+   <tr><td class="l am" colspan="4">위기 구간 (일시금 누적수익률)</td></tr>
+   ${Object.keys(X.crisis).map(k=>row(esc(k),B.crisis[k],X.crisis[k],p1,pp,1)).join('')}</table>
+   <div class="mu" style="font-size:11px;margin-top:4px">최종 금액 예: 월 ${num(S.contrib)} 적립이면 넣은 돈 ${num(S.contrib*D.months.length)} → 현행 ${num(B.dcurve[B.dcurve.length-1])} · 선택 ${num(X.dcurve[X.dcurve.length-1])}. 낙폭은 수익률(시간가중) 기준, 잔고 기준은 새 돈이 들어와 작아 보인다.</div>`;
+  o.innerHTML=h; ilabChart(B.curve,X.curve);
+  const bt=$('#ilbt'); if(bt) bt.innerHTML=ILABBT?ilabBootHtml(true):ilabBootIdle();
+}
+function ilabChart(b,x){
+  if(ILABCH){ try{ILABCH.remove();}catch(e){} ILABCH=null; }
+  const el=$('#ilch'); if(!el) return;
+  const cs=getComputedStyle(document.documentElement), cv=n=>(cs.getPropertyValue(n)||'').trim()||'#888';
+  if(!window.LightweightCharts){ ilabCanvas(el,b,x,cv); return; }   // CDN 차단 시 대체 (캔버스 선 2개)
+  const c=LightweightCharts.createChart(el,{width:el.clientWidth,height:280,layout:{background:{type:'solid',color:cv('--panel')},textColor:cv('--muted'),fontSize:11},
+    grid:{vertLines:{color:cv('--line')},horzLines:{color:cv('--line')}},rightPriceScale:{borderColor:cv('--line'),mode:ILAB_ST.log?1:0},
+    timeScale:{borderColor:cv('--line')},crosshair:{mode:0},handleScroll:{vertTouchDrag:false},localization:{locale:'ko-KR',priceFormatter:v=>v.toFixed(2)}});
+  ILABCH=c; const tm=ILAB.months.map(m=>m+'-01');
+  const add=(arr,color,w)=>{ const s=c.addLineSeries({color,lineWidth:w,priceLineVisible:false}); s.setData(arr.map((v,i)=>({time:tm[i],value:v}))); };
+  add(b,cv('--muted'),1); add(x,cv('--amber'),2); c.timeScale().fitContent();
+}
+function ilabCanvas(el,b,x,cv){
+  el.innerHTML='<canvas style="width:100%;height:100%"></canvas>'; const c=el.firstChild, W=c.width=el.clientWidth*2, H=c.height=el.clientHeight*2, g=c.getContext('2d'), pl=20, pr=110, pt=16, pb=36;
+  const lg=ILAB_ST.log, f=v=>lg?Math.log(v):v, all=b.concat(x), lo=f(Math.min(...all,1)), hi=f(Math.max(...all)), n=b.length;
+  const X=i=>pl+(W-pl-pr)*i/(n-1), Y=v=>pt+(H-pt-pb)*(1-(f(v)-lo)/(hi-lo||1));
+  g.font='22px monospace'; g.fillStyle=cv('--muted'); g.strokeStyle=cv('--line'); g.lineWidth=1;
+  ILAB.months.forEach((m,i)=>{ if(m.endsWith('-01')&&(+m.slice(0,4))%4===0){ g.beginPath(); g.moveTo(X(i),pt); g.lineTo(X(i),H-pb); g.stroke(); g.fillText(m.slice(0,4),X(i)-24,H-8); } });
+  const line=(a,col,w)=>{ g.strokeStyle=col; g.lineWidth=w; g.beginPath(); a.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.stroke(); g.fillStyle=col; g.fillText(a[n-1].toFixed(2)+'배',W-pr+8,Y(a[n-1])+8); };
+  line(b,cv('--muted'),2); line(x,cv('--amber'),4);
+}
+function ilabRunBoot(){ const bt=$('#ilbt'); if(bt) bt.innerHTML='<span class="mu">계산 중 …</span>';
+  setTimeout(()=>{ const S=ILAB_ST; ILABBT={b:ilabBoot(ILAB,ilabBase(),S.rebal,S.cost,2000,120,12,7), x:ilabBoot(ILAB,S.w,S.rebal,S.cost,2000,120,12,7)}; const e=$('#ilbt'); if(e) e.innerHTML=ilabBootHtml(true); },20); }
+function ilabBootIdle(){ return `<button class="sbtn" onclick="ilabRunBoot()">실행 (약 1초)</button> <span class="mu" style="font-size:11px">과거 ${ILAB.months.length}개월을 평균 12개월 덩어리로 섞어 10년 경로를 만든다 — 과거 분포 안에서만 섞으므로 금 강세장 편향이 그대로 남는다</span>`; }
+function ilabBootHtml(btn){ const B=ILABBT.b, X=ILABBT.x, p1=v=>(v*100).toFixed(1)+'%', mx=v=>v.toFixed(2)+'배';
+  return (btn?`<button class="sbtn" onclick="ilabRunBoot()">다시 실행</button> <span class="mu" style="font-size:11px">비중·옵션을 바꾸면 결과가 지워진다 — 다시 실행</span>`:'')+
+  `<table style="margin-top:6px"><tr><th class="l">10년 (2,000 경로)</th><th>현행 중앙값</th><th>현행 하위10%</th><th>선택 중앙값</th><th>선택 하위10%</th></tr>
+  <tr><td class="l">일시금 CAGR</td><td>${p1(B.cagr_med)}</td><td>${p1(B.cagr_p10)}</td><td><b>${p1(X.cagr_med)}</b></td><td><b>${p1(X.cagr_p10)}</b></td></tr>
+  <tr><td class="l">월 적립 최종/넣은 돈</td><td>${mx(B.mult_med)}</td><td>${mx(B.mult_p10)}</td><td><b>${mx(X.mult_med)}</b></td><td><b>${mx(X.mult_p10)}</b></td></tr>
+  <tr><td class="l">최대낙폭 (나쁜 10% = 하위10%)</td><td>${p1(B.mdd_med)}</td><td>${p1(B.mdd_p10)}</td><td><b>${p1(X.mdd_med)}</b></td><td><b>${p1(X.mdd_p10)}</b></td></tr></table>`; }
+</script>

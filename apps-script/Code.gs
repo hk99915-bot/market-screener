@@ -77,6 +77,7 @@ function getEvents() { return raw_('reports/events_stats.json'); }
 function getMacroHist() { return raw_('reports/macro_hist.json'); }
 function getStudy() { return raw_('reports/studies/crash_rebound.json'); }
 function getLab() { return raw_('reports/lab.json'); }
+function getIsaLab() { return raw_('reports/isa_lab_returns.json'); }   // QUANT › ISA 실험실 (screener/isa_lab.py)
 // SYSTEM 탭 (운영): 작업 보드·잠금·변경 이력·작업내역 보고·워크플로 실행 통계·자가점검
 function getBoard() { return raw_('ops/board.json'); }
 function getTeam() { return raw_('ops/team.json'); }

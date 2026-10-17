@@ -2,19 +2,18 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 122개 · 진행 5 · 검수 31 · 대기 43 · 보류 2 · 완료 41
+기준일 2026-10-17 · 작업 122개 · 진행 4 · 검수 32 · 대기 43 · 보류 2 · 완료 41
 
-## 진행 (5)
+## 진행 (4)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-18 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | 2026-10-17 | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. / 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. |
-| P2 | `isa-lab` | ISA 비중 실험실 — 슬라이더 백테스트(브라우저 계산) | 퀀트 | 2026-10-17 | 2026-10-19 | `apps-script/tab_isalab.html`<br>`scripts/isa_lab.py`<br>`reports/isa_lab_returns.json`<br>`tests/test_isa_lab.py` | — | 겸이 10/17 지시. 데이터 = pb-private 2026-10-15-alloc 월수익률(시장 데이터만). 전략(자산배분) 검토 요청. |
 | P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | 2026-10-17 | 2026-10-24 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 2차(잔여 개발): live.json(asof 'YYYY-MM-DD HH:MM' 추가·write_json) + dashboard_state.json(put_state 조각별 asof 가드, main.py 스크리너 조각에 시세 기준일) 완료. guard 는 양쪽 시각이 있으면 분 단위·KST 정규화 비교(UTC 'Z' 값이 하루 전으로 읽혀 정상 장중 갱신이 막히던 일 단위 문제 수정), 테스트 tests/test_guard_rest.py 7건. 10/17 3차(데이터2, 정합성 감사 M1·M2): accum.json·us_accum.json 쓰기를 guard.write_json 경유로(계약+역행), chains·us_eps 캐시도 write_json + 만료 판단을 파일 mtime→파일 안 generated_at/asof(KST) 로, ops/freshness.json 에 chains·us_eps 등록(kind=session US). 남음: dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv, daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, 장중 브리핑 조각 asof(현재 없음 → 항상 씀). 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). 계약 등록 보류: screener/contracts.py 에 "live.json": {v1, date asof, required asof·updated_at·items} 와 dashboard_state.json(조각마다 at 필수, schema_version 미기입 — 화면이 state 통째로 실음) 추가 필요(개발5 잠금 해제 후). |
 
-## 검수 (31)
+## 검수 (32)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -43,6 +42,7 @@
 | P1 | `tests-pytest` | tests/ pytest 층 — 파서·잠금·보드·rebound 판정 회귀 테스트 + CI 게이트 | 개발 | 2026-10-16 | 2026-10-24 | `tests/`<br>`requirements.txt`<br>`.github/workflows/ops.yml` | — | 3013b933: pytest.ini·conftest·회귀 3종(대결 파싱·trail 무장·회의 Δ) + tests.yml. 검수: CI 첫 실행 통과 확인, 이후 lock/board/rebound 판정 테스트 추가는 11/16 이후. |
 | P1 | `view-registry` | VIEW 레지스트리 — 관점(렌즈) 기록·일관 적용·수명주기 | CIO | 2026-10-16 | — | `views/registry.json`<br>`views/README.md`<br>`screener/views.py`<br>`scripts/view_attribution.py`<br>`screener/duel.py`<br>`screener/committee.py`<br>`screener/main.py`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 공개 레지스트리엔 개인 수치 없음 — 개인 렌즈는 pb-private views/personal.json 에서만. |
 | P2 | `deriv-tab` | 터미널 '파생(DERIV)' 화면 — 흩어진 파생 정보(옵션 포지션·일별 이력·검증 등급) 한곳에 모음 | 파생 | 2026-10-16 | 2026-10-17 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 새 수집 없음 — reports/derivs.json·data/deriv/daily.csv·reports/studies/derivs_signals.json·live.json K200F 재사용. |
+| P2 | `isa-lab` | ISA 비중 실험실 — 슬라이더 백테스트(브라우저 계산) | 퀀트 | 2026-10-17 | 2026-10-19 | `apps-script/tab_isalab.html`<br>`screener/isa_lab.py`<br>`reports/isa_lab_returns.json`<br>`tests/test_isa_lab.py` | — | 겸이 10/17 지시. 데이터 = pb-private 2026-10-15-alloc 월수익률(시장 데이터만). 전략(자산배분) 검토 요청. / 대조(10/17): 월 리밸·비용 미차감으로 돌리면 매크로 금 보고서 5절과 일치(현행 10.81%·MDD −13.70%, 금10+국고 10.35%·−14.35%, 금10+NDX 10.98%·−15.98%). 화면 기본(비용 차감·연 1회)은 현행 10.53%·−16.13% — 차이 = ① 비용 연 약 0.44%p(배분 보고서 DRAG, 매크로는 미차감) ② 연 1회 리밸(2026-06~10 낙폭 −12.6%→−15.6%). 2008 구간은 배분 보고서 기준 07-11~09-02(매크로는 08-01~09-02: −2.0% vs 우리 계산 −2.5%, 경계 정의 차이 추정). 부트스트랩 10년 = 배분 보고서와 같은 정상 블록 L=12, 단 적립·평가 가정 다름(배수만). |
 | P2 | `audit-pb-direct-test` | 감사 M4: 42954487 (pb 직접) committee.score/_ideas_log_score/rebuild_detail_kr 조정가 전환 회귀 테스트 + 영향·롤백 기록 | PB | 2026-10-17 | 2026-10-20 | `screener/committee.py`<br>`screener/main.py` | — | 개발 검수. 과거 성적 소급 변동 범위 1줄. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md · 10/17 개발5 검수: tests/test_committee_adjusted.py(1:5 분할 픽스처 — score 조정가 초과 0 vs 원본 −80%). 소급 재계산 1줄 external_audit_fixes.md. 발견: ideas_log entry·stop 원본가 vs 조정 봉 불일치 → audit-ideas-basis |
 | P2 | `derivs-audit` | derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통) | 파생 | 2026-10-16 | 2026-10-20 | `screener/derivs.py` | — | 검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). fc69e054 백필에서 재계산 확인(행사가 1 벽 0일, 콜 벽 결측 0일). |
 | P2 | `night-futures-line` | 장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가) | 파생 | 2026-10-16 | 2026-10-20 | `screener/briefings.py`<br>`screener/deriv_hist.py` | — | 실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시. |

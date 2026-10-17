@@ -71,6 +71,7 @@ script.google.com 프로젝트에는 **폴더가 없다**. 아래 파일을 각�
 | 15 | `tab_mkt_deriv` | HTML | MARKET › 파생 |
 | 16 | `tab_system` | HTML | SYSTEM › 작업 보드·변경 이력·운영 상태 |
 | 17 | `tab_detail` | HTML | 종목 상세 서랍·차트 (모든 탭 공용) |
+| 18 | `tab_isalab` | HTML | QUANT › ISA 실험실 (비중 슬라이더 백테스트, 데이터 getIsaLab) |
 
 붙여넣은 뒤 `배포 → 배포 관리 → 새 버전` 으로 갱신. GitHub Pages(`index.html`) 는 `python scripts/build_pages.py` 가 include 를 인라인해 한 파일로 만든다.
 
