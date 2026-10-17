@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 109개 · 진행 4 · 검수 27 · 대기 43 · 보류 2 · 완료 33
+기준일 2026-10-17 · 작업 110개 · 진행 4 · 검수 27 · 대기 44 · 보류 2 · 완료 33
 
 ## 진행 (4)
 
@@ -45,7 +45,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (43)
+## 대기 (44)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -82,6 +82,7 @@
 | P2 | `peer-earnings-preview` | 피어: 실적 시즌 프리뷰 — 10/29 삼성·MU(12월)·하이닉스 컨센서스 대비 시나리오 3개(상·기본·하)와 주가 반응 통계(과거 실적일 ±1일) | 피어리뷰 | — | 2026-10-27 | `reports/studies/earnings_reaction.md` | `ra-sec-coverage` | '한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함. |
 | P2 | `ra-house-scoreboard` | RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일 수익률·낙관 편향(목표가 인플레) 스코어보드 — 참고 경보용, 가중치 아님 | 데이터 | — | 2026-10-28 | private 전용 | `ra-sector-frames` | 표본 n<10 하우스는 미표시. 개인명 저장 금지. |
 | P2 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
+| P2 | `dart-netcash` | DART 재무에 단기금융상품·차입금 수집 → 순현금 계산 (삼성 207조 주장 검증 불가 사례) | 데이터 | — | 2026-10-31 | `screener/dart.py`<br>`screener/fin.py` | — | 10/17 오너 질문(삼성 순현금 207조). 현재 cash=현금성자산만. 3Q 확정(10/30) 전에. |
 | P2 | `desk-scoreboard-monthly` | 데스크 성적표·복기 월례: ideas_attrib·decisions tally·연구 등급·재현 결과를 docs/desk_kb/_scoreboard.md로 모으고 각 데스크 KB '복기' 3줄 갱신 | PM | — | 2026-10-31 | `docs/desk_kb/_scoreboard.md`<br>`docs/desk_kb/*.md`<br>`scripts/desk_scoreboard.py` | — | 첫 회 10/31. 데스크 프롬프트 템플릿에 'KB+최근 복기 3건 읽기' 포함(HANDOFF). |
 | P2 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-10-31 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. |
 | P2 | `pub-whitelist` | 공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 감사 | 검증 | — | 2026-10-31 | `.github/workflows/*.yml`<br>`scripts/slop_audit.py` | — | 외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지. |
