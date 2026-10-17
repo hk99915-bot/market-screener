@@ -2,15 +2,17 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 90개 · 진행 3 · 검수 22 · 대기 37 · 보류 2 · 완료 26
+기준일 2026-10-17 · 작업 90개 · 진행 5 · 검수 22 · 대기 35 · 보류 2 · 완료 26
 
-## 진행 (3)
+## 진행 (5)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-18 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | 2026-10-17 | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. / 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. |
+| P1 | `px-adjust-unify` | KR 가격 조정 경로 통일 — 원본/조정 스키마 분리, decisions·track·momentum 등 parquet 직접 읽기 18곳을 공통 로더로 | 데이터 | 2026-10-17 | 2026-10-19 | `screener/data_krx.py`<br>`screener/decisions.py`<br>`screener/prices.py` | — | 외부감사 10/17 P1 확인. 원본 parquet에 ±45% 시가갭 373건/343종목(13개월) → 휴리스틱 자체가 과검출 의심(거래정지·900xxx). 실제 기업행위(KRX/DART) 대조 + 분할·병합·정지 회귀테스트. |
+| P1 | `bt-exec-lag` | 포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시 | 백테스트 | 2026-10-17 | 2026-10-20 | `screener/portfolios.py`<br>`tests/test_portfolios.py` | — | 외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부. |
 
 ## 검수 (22)
 
@@ -39,7 +41,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (37)
+## 대기 (35)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -55,8 +57,6 @@
 | P1 | `alpha-baseline-fix` | 알파 기준점 미장 분을 10/16 미장 종가로 정정 (단일 리셋 — 일요일 1회) | 리스크 | — | 2026-10-18 | private 전용 | `sunday-review` | private 저장소 전용. 기준점 파일의 미장 평가는 10/15 종가로 적혀 있음 → 10/18 리뷰에서 1회 정정 후 잠금. |
 | P1 | `cio-memo` | CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·8-C·8-D 통합안) | CIO | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리. |
 | P1 | `frm-audit` | FRM 한도(VaR·연 변동성) 감사 — 60일 실현 변동성 기준 재계산, 테마 한도와 정합 | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만. |
-| P1 | `px-adjust-unify` | KR 가격 조정 경로 통일 — 원본/조정 스키마 분리, decisions·track·momentum 등 parquet 직접 읽기 18곳을 공통 로더로 | 데이터 | — | 2026-10-19 | `screener/data_krx.py`<br>`screener/decisions.py`<br>`screener/prices.py` | — | 외부감사 10/17 P1 확인. 원본 parquet에 ±45% 시가갭 373건/343종목(13개월) → 휴리스틱 자체가 과검출 의심(거래정지·900xxx). 실제 기업행위(KRX/DART) 대조 + 분할·병합·정지 회귀테스트. |
-| P1 | `bt-exec-lag` | 포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시 | 백테스트 | — | 2026-10-20 | `screener/portfolios.py`<br>`tests/test_portfolios.py` | — | 외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부. |
 | P1 | `dotplot-neutral-rule` | 점도표: '중립' 점은 기본 시나리오 확률 + 위/아래 전환 조건(flip_up/flip_down) 필수 — 조건 없는 중립은 기록 거부. 텔레그램 줄에 '기본 X% · 위 조건 · 아래 조건' 표기 | 개발 | — | 2026-10-20 | `screener/dotplot.py`<br>`tests/test_dotplot.py` | `dotplot` | 10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외. |
 | P1 | `pbview-amount-wording` | PB 의견 생성 텍스트에서 원화 금액 제거(비율·'모의' 표기)·기저율 인용에 등급 꼬리표 | 개발 | — | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 감사 라운드1 PB 중: decisions.json pb_view '100만원·300만원' 금액 문장, n=12 기저율 등급 없음. 생성 프롬프트/템플릿 수정. |
 | P1 | `peer-review-valuation` | 피어 리뷰: 애널 밸류에이션 모델(정상화 ROE·할인율·멀티플/EPS 분해) 독립 검토 + 10/16 반도체 논지(theses) 반대 의견서 — 매주 월요일 | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/valuation_YYYY-MM-DD.md`<br>`docs/desk_kb/analyst.md` | `valuation-daily` | 피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당. |
@@ -126,7 +126,7 @@
 - `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2`, `order-ticket-form`, `valuation-daily`, `index-split` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Scheduler.gs` ← `cmt-v2`, `rebound-alert`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/committee.py` ← `view-registry`, `cmt-v2`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
-- `screener/decisions.py` ← `rebound-alert`, `order-ticket-form` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/decisions.py` ← `rebound-alert`, `order-ticket-form`, `px-adjust-unify` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/dotplot.py` ← `dotplot`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/duel.py` ← `view-registry`, `order-ticket-form`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
