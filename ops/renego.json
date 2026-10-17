@@ -1,4 +1,15 @@
 {
  "_doc": "재협상 카운터 — 규칙 id(screener/defs.py 상수)·날짜·횟수만. 사유 글·금액 금지. 기록: python3 -m screener.renego add <RULE>. 같은 규칙 30일 안 2회째부터 주문표 ⛔ '재협상 2회째' + 사유 칸 필수 (오너 승인 10/17 14:09).",
- "events": []
+ "events": [
+  {
+   "rule": "POS_BACKSTOP",
+   "date": "2026-10-17",
+   "count": 1
+  },
+  {
+   "rule": "POS_BACKSTOP",
+   "date": "2026-10-17",
+   "count": 2
+  }
+ ]
 }
