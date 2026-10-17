@@ -2145,6 +2145,25 @@
       ],
       "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 수집 120거래일 + 독립 신호 30건 이상일 때만. 기준 변경은 노트 끝에 덧붙이기.",
       "desk": "데이터"
+    },
+    {
+      "id": "isa-lab",
+      "title": "ISA 비중 실험실 — 슬라이더 백테스트(브라우저 계산)",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "진행",
+      "started": "2026-10-17",
+      "due": "2026-10-19",
+      "repo": "public",
+      "files": [
+        "apps-script/tab_isalab.html",
+        "scripts/isa_lab.py",
+        "reports/isa_lab_returns.json",
+        "tests/test_isa_lab.py"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/17 지시. 데이터 = pb-private 2026-10-15-alloc 월수익률(시장 데이터만). 전략(자산배분) 검토 요청.",
+      "desk": "퀀트"
     }
   ]
 }
