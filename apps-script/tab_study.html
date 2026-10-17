@@ -117,7 +117,7 @@ function aptItem(x,key){
    ${tb?`<div style="overflow-x:auto;margin:4px 0"><div class="mu" style="font-size:11.5px">${esc(tb.cap||'')}</div><table style="width:auto;min-width:280px"><tr>${tb.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${tb.rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${i?'':'l'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
    <div style="margin:4px 0"><b>${esc(x.q)}</b></div>
    <div style="display:flex;flex-direction:column;gap:3px">${x.choices.map((c,i)=>`<button class="sbtn" data-ch="${escA(key)}" data-i="${i}" style="text-align:left;white-space:normal">${'①②③④⑤⑥'[i]||i+1} ${esc(c)}</button>`).join('')}</div>
-   <details style="margin-top:4px" ${r?'open':''}><summary class="mu" style="cursor:pointer;font-size:12px">정답·해설 보기</summary><div style="font-size:12.5px;margin:2px 0 0 14px"><b class="am">정답 ${'①②③④⑤⑥'[x.a]||x.a+1}</b> — ${esc(x.exp||x.exp_ko||'')}${x.tip?`<div class="mu">⏩ 시간 단축: ${esc(x.tip)}</div>`:''}</div></details></div>`;
+   <details style="margin-top:4px" ${r?'open':''}><summary class="mu" style="cursor:pointer;font-size:12px">정답·해설 보기</summary><div style="font-size:12.5px;margin:2px 0 0 14px"><b class="am">정답 ${'①②③④⑤⑥'[x.a]||x.a+1}</b> — ${esc(x.exp||x.exp_ko||'')}${x.why?`<div>근거: ${esc(x.why)}</div>`:''}${x.tip?`<div class="mu">⏩ 시간 단축: ${esc(x.tip)}</div>`:''}</div></details></div>`;
 }
 function aptBind(items){
   const byK=Object.fromEntries(items.map(([x,k])=>[k,x]));
@@ -139,6 +139,26 @@ function aptTally(){
     return `<tr><td class="l">${esc(nm)}</td><td>${tried.length}/${arr.length}</td><td>${tried.length?Math.round(ok.length/tried.length*100)+'%':'—'}</td><td>${avg!=null?avg+'초':'—'}</td><td class="mu">${tgt??'—'}초</td></tr>`; };
   el.innerHTML=`<table><tr><th class="l">영역</th><th>푼 문항</th><th>정답률</th><th>평균 시간</th><th>목표</th></tr>${secs.map(s=>row(s,items.filter(x=>x.sec===s))).join('')}${row('합계',items)}</table>`;
 }
+/* 기출 메타(원문은 공식 링크로만) · 유형 지도 */
+function aptPast(P){
+  if(!P||!P.items) return '';
+  const areas=P.areas||[...new Set(P.items.map(x=>x.area))];
+  const one=x=>`<div style="border-bottom:1px solid var(--line);padding:6px 0;white-space:normal;line-height:1.6">
+   <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.year+' '+x.booklet+' '+x.no)}</b><span class="tag">${esc(x.type)}</span><span class="mu" style="font-size:11.5px">${esc(x.topic)} · 권장 ${x.time_sec}초</span>
+    <a href="${escA(x.url)}" target="_blank" rel="noopener noreferrer" style="margin-left:auto;font-size:12px">기출 · 원문 보기 ↗</a></div>
+   <details style="margin-top:2px"><summary class="mu" style="cursor:pointer;font-size:12px">전략·함정</summary><div style="font-size:12.5px;margin:2px 0 0 14px">
+    <div><b>전략</b> ${esc(x.strategy)}</div><div><b class="dn">함정</b> ${esc(x.trap)}</div>
+    <div class="mu" style="font-size:11px">${esc(x.exam)} · 시행 ${esc(x.date)} · <a href="${escA(x.checked_via)}" target="_blank" rel="noopener noreferrer">번호 확인(2차 자료)</a></div></div></details></div>`;
+  return `<div class="p c12"><h2>${esc(P.title||'PSAT 기출')}<small>${P.items.length}문항 메타 · 원문 미수록</small></h2><div class="b" style="white-space:normal">
+   <div class="mu" style="font-size:12px;margin-bottom:4px">${esc(P.note||'')}</div><div class="mu" style="font-size:11.5px;margin-bottom:6px">⏱ ${esc(P.time_rule||'')}</div>
+   ${areas.map(a=>`<h3 style="margin:8px 0 2px;font-size:13px">${esc(a)} <small class="mu">${P.items.filter(x=>x.area===a).length}</small></h3>${P.items.filter(x=>x.area===a).map(one).join('')}`).join('')}</div></div>`;
+}
+function aptTypeMap(T){
+  if(!T||!T.rows) return '';
+  return `<div class="p c12"><h2>유형 지도<small>${esc(T.cap||'')}</small></h2><div class="b" style="white-space:normal;overflow-x:auto">
+   <table style="width:auto;min-width:320px"><tr>${T.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${T.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'':'l'}" style="white-space:normal">${esc(c)}</td>`).join('')}</tr>`).join('')}</table>
+   <div class="mu" style="font-size:11.5px;margin-top:4px">${esc(T.note||'')}</div></div></div>`;
+}
 function aptView(){
   eduLoad();
   if(!EDU) return '<div class="load">LOADING …</div>';
@@ -147,11 +167,12 @@ function aptView(){
   setTimeout(()=>{ aptBind(list); aptTally();
     document.querySelectorAll('[data-aptf]').forEach(b=>b.onclick=()=>{ APTF=b.dataset.aptf; render(); });
     const rs=$('#aptreset'); if(rs) rs.onclick=()=>{ if(!confirm('인적성 채점 기록을 지울까요?')) return; Object.keys(APTS).forEach(k=>{ if(!/^E\d/.test(k)) delete APTS[k]; }); eduPut('mt_apt_score',APTS); render(); }; },0);
-  return `<div class="grid"><div class="p c12"><h2>${esc(A.title)}<small>${A.items.length}문항 · 자체 제작</small></h2><div class="b" style="white-space:normal">
+  return `<div class="grid"><div class="p c12"><h2>${esc(A.title)}<small>${A.items.length}문항 · 자체 제작${A.past?` · 기출 메타 ${A.past.items.length}`:''}</small></h2><div class="b" style="white-space:normal">
     <div class="mu" style="font-size:12px;margin-bottom:6px">${esc(A.note||'')}</div>
-    <div id="apttally"></div><div class="ovl" style="margin-top:6px"><button data-aptf="" class="${APTF?'':'on'}">전체</button>${(A.sections||[]).map(s=>`<button data-aptf="${escA(s)}" class="${APTF===s?'on':''}">${esc(s)}</button>`).join('')}<button id="aptreset">기록 초기화</button></div>
+    <div id="apttally"></div><div class="ovl" style="margin-top:6px"><button data-aptf="" class="${APTF?'':'on'}">전체</button>${(A.sections||[]).map(s=>`<button data-aptf="${escA(s)}" class="${APTF===s?'on':''}">${esc(s)}</button>`).join('')}${A.past?`<button data-aptf="__past" class="${APTF==='__past'?'on':''}">PSAT 기출 ↗</button>`:''}<button id="aptreset">기록 초기화</button></div>
     <div class="mu" style="font-size:11.5px">⏱ 시작 → 풀고 → 선택지 클릭하면 시간이 기록되고 채점된다. 목표 시간을 넘기면 시간이 빨간색.</div></div></div>
-   <div class="p c12"><div class="b">${list.map(([x,k])=>aptItem(x,k)).join('')}</div></div></div>`;
+   ${APTF==='__past'?aptPast(A.past):''}${(!APTF||/GSAT|SKCT/.test(APTF))&&APTF!=='__past'?aptTypeMap(A.type_map):''}
+   ${list.length?`<div class="p c12"><div class="b">${list.map(([x,k])=>aptItem(x,k)).join('')}</div></div>`:''}</div>`;
 }
 /* 오늘의 영어 + 오늘의 인적성(시장 데이터) */
 function engLoad(date){

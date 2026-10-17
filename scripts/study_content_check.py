@@ -10,7 +10,7 @@
 
 검사 항목: 필수 필드 · id 중복 · prereq 존재·순환 · quiz choices 4개·answer 범위 · est_min ≤ 20(v3) ·
           v3 핵심 개념/공식/실수의 출처 태그([consult:…] [kb:…] [reports/studies/…] [교육 보충]) ·
-          로드맵 id 존재 · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 2주 게이트(open 정확히 15) · 금지어 · study.json 동기화.
+          로드맵 id 존재 · 인적성(선택지 5·정답 위치 분포·기출 메타 필드·https) · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 2주 게이트(open 정확히 15) · 금지어 · study.json 동기화.
 """
 from __future__ import annotations
 
@@ -146,6 +146,73 @@ def check_quiz(q: dict, where: str, c: Check, require_v3: bool) -> None:
             c.err(f"{where}: 구형 quiz 는 t/q/a/why")
 
 
+APT_PAST_REQ = ["id", "exam", "year", "date", "booklet", "no", "area", "type", "topic", "strategy", "trap", "time_sec", "url", "checked_via"]
+
+
+def check_aptitude(A: dict, c: Check) -> None:
+    """인적성(aptitude.json): 자체 문항 선택지 5개·정답 위치 분포(kb:edu#7c) · 기출 메타(past) 필수 필드·https 원문 링크 · 출처 블록."""
+    secs = A.get("sections", [])
+    seen: set[str] = set()
+    by_sec: dict[str, list[int]] = {}
+    for it in A.get("items", []):
+        iid = it.get("id", "?")
+        if iid in seen:
+            c.err(f"aptitude: id 중복 {iid}")
+        seen.add(iid)
+        if it.get("sec") not in secs:
+            c.err(f"aptitude {iid}: sec '{it.get('sec')}' 가 sections 에 없음")
+        ch = it.get("choices", [])
+        if len(ch) != 5 or len(set(ch)) != 5:
+            c.err(f"aptitude {iid}: choices 는 서로 다른 5개")
+        a = it.get("a")
+        if not isinstance(a, int) or not 0 <= a < len(ch):
+            c.err(f"aptitude {iid}: a(0-index) 범위 밖 {a}")
+            continue
+        if not (it.get("exp") or "").strip():
+            c.err(f"aptitude {iid}: exp 없음")
+        if "why" in it and len(it["why"].strip()) < 15:
+            c.err(f"aptitude {iid}: why 는 한 문장 근거 (kb:edu#7b)")
+        by_sec.setdefault(it.get("sec"), []).append(a)
+    for sec, arr in by_sec.items():
+        if len(arr) >= 5:
+            top = max(arr.count(i) for i in range(5))
+            if top / len(arr) > 0.6:
+                c.err(f"aptitude '{sec}': 같은 정답 위치 {top}/{len(arr)} > 60% (kb:edu#7c)")
+    past = A.get("past")
+    if past is not None:
+        areas = past.get("areas", [])
+        pids: set[str] = set()
+        for it in past.get("items", []):
+            pid = it.get("id", "?")
+            for k in APT_PAST_REQ:
+                if k not in it or it[k] in ("", None):
+                    c.err(f"aptitude.past {pid}: 필수 필드 없음 '{k}'")
+            if pid in pids:
+                c.err(f"aptitude.past: id 중복 {pid}")
+            pids.add(pid)
+            for k in ("url", "checked_via"):
+                if not str(it.get(k, "")).startswith("https://"):
+                    c.err(f"aptitude.past {pid}: {k} 는 https 링크")
+            if it.get("area") not in areas:
+                c.err(f"aptitude.past {pid}: area '{it.get('area')}' ∉ {areas}")
+            if not str(it.get("booklet", "")).endswith("책형"):
+                c.err(f"aptitude.past {pid}: booklet 은 'O책형'")
+        for ar in areas:
+            if not any(it.get("area") == ar for it in past.get("items", [])):
+                c.err(f"aptitude.past: 영역 '{ar}' 항목 0개")
+        src = A.get("sources") or {}
+        if not src.get("license_judgment") or not src.get("checked"):
+            c.err("aptitude.sources: license_judgment·checked 필요 (past 가 있으면)")
+        for s_ in src.get("list", []):
+            if not str(s_.get("url", "")).startswith("https://"):
+                c.err(f"aptitude.sources {s_.get('id')}: url 은 https")
+    tm = A.get("type_map")
+    if tm is not None:
+        for r in tm.get("rows", []):
+            if len(r) != len(tm.get("head", [])):
+                c.err(f"aptitude.type_map: 행 길이 ≠ head ({r[:2]})")
+
+
 def check_all(S: dict) -> Check:
     c = Check()
     idx = S["index"]
@@ -259,6 +326,8 @@ def check_all(S: dict) -> Check:
         for k in ("rules", "progress_store"):
             if k not in srs:
                 c.err(f"srs.json: '{k}' 없음")
+    if S.get("aptitude"):
+        check_aptitude(S["aptitude"], c)
     return c
 
 

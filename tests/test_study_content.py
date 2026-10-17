@@ -1,5 +1,6 @@
 """STUDY v3 콘텐츠 검증 — 스키마·id 중복·prereq 순환·quiz 인덱스·빌드 동기화·study_daily 선택 로직 (네트워크 없음)."""
 import copy
+import re
 import json
 import subprocess
 import sys
@@ -222,3 +223,54 @@ def test_quiz_situation_first_until_exhausted():
         assert study_daily.pick_quiz(bank, "H2", date(2026, 10, d), None)["kind"] == "situation"
     progress = {"quiz": [{"qid": q} for q in sit]}
     assert study_daily.pick_quiz(bank, "H2", date(2026, 10, 19), progress)["id"] in know
+
+
+# ───────── 인적성(aptitude.json) 품질: 기출 메타·유형 대응 문항 (kb:edu#7, 2026-10-17 오너 요청) ─────────
+APT_NEW = "GSAT·SKCT 유형 대응"
+
+
+def test_aptitude_choices_and_key_balance(S):
+    A = S["aptitude"]
+    for it in A["items"]:
+        assert len(it["choices"]) == 5 and len(set(it["choices"])) == 5, it["id"]
+        assert 0 <= it["a"] < 5, it["id"]
+    new = [it for it in A["items"] if it["sec"] == APT_NEW]
+    assert len(new) == 10
+    assert sorted(it["a"] for it in new) == [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]   # 정답 위치 1~5 각 2개
+    for it in new:
+        assert len(it["why"]) >= 30 and re.search(r"다\.\)?$|다\)\.$", it["why"].rstrip()), it["id"]   # 한 문장 이상 근거
+        longest = max(range(5), key=lambda i: len(it["choices"][i]))
+        assert not (longest == it["a"] and len(it["choices"][it["a"]]) > 1.5 * sorted(map(len, it["choices"]))[-2]), it["id"]
+    for sec in A["sections"]:
+        arr = [it["a"] for it in A["items"] if it["sec"] == sec]
+        assert max(arr.count(i) for i in range(5)) / len(arr) <= 0.6, sec
+
+
+def test_aptitude_past_meta(S):
+    A = S["aptitude"]
+    past = A["past"]["items"]
+    assert len(past) >= 15
+    for ar in ("언어논리", "자료해석", "상황판단"):
+        assert sum(1 for p in past if p["area"] == ar) >= 5, ar
+    assert len({p["year"] for p in past}) >= 3
+    for p in past:
+        for k in scc.APT_PAST_REQ:
+            assert p.get(k) not in (None, ""), (p.get("id"), k)
+        assert p["url"].startswith("https://") and p["checked_via"].startswith("https://")
+        assert p["booklet"].endswith("책형")
+    assert len({p["id"] for p in past}) == len(past)
+    src = A["sources"]
+    assert src["license_judgment"] and src["checked"]
+    assert all(s["url"].startswith("https://") for s in src["list"])
+    assert "지원 기업 전형에 인적성검사가 없으면" in A["note"]
+
+
+def test_aptitude_check_catches_bad(S):
+    A = copy.deepcopy(S["aptitude"])
+    A["past"]["items"][0]["url"] = "http://example.com/x.pdf"
+    del A["past"]["items"][1]["trap"]
+    A["items"][0]["choices"] = A["items"][0]["choices"][:4]
+    c = scc.Check()
+    scc.check_aptitude(A, c)
+    msg = "\n".join(c.errors)
+    assert "https" in msg and "'trap'" in msg and "choices" in msg
