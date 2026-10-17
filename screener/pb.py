@@ -40,8 +40,7 @@ def _num(x):
 
 
 ISA_HEAD = re.compile(r"^#{1,3}\s*ISA\b", re.I)
-ISA_TARGET = {"S&P500": 0.40, "NDX": 0.10, "K200": 0.15, "KTB": 0.20, "Gold": 0.15}   # ISA 코어 목표 (안건 8)
-ISA_BAND = 0.05   # ±5%p
+from .defs import ISA_BAND, ISA_TARGET   # ISA 코어 목표 (안건 8) ±5%p — 단일 원천 screener/defs.py
 SEMI_ETFS = {"139260", "091160", "PSI", "SOXX", "SMH", "SOXL", "SOXQ", "XSD", "SMHX", "396500", "395160", "449450"}   # 반도체·IT 섹터 ETF (전액 반도체)
 US_SEMIS = {"MU", "SNDK", "NVDA", "AMD", "AVGO", "TSM", "INTC", "QCOM", "ARM", "MRVL", "LRCX", "AMAT", "KLAC", "ASML", "WDC", "STX"}
 RE_SEMI = re.compile(r"반도체")
@@ -174,7 +173,7 @@ def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains
 STRESS_SCENARIOS = {
     "2026-07": {"label": "2026-07 재현(반도체 −30%)", "semi": -0.30, "elec": -0.24, "look": -0.30},
 }
-STRESS_LIMIT = 0.15   # 어느 시나리오도 −15% 초과 금지 (scorecard_week [11] 스트레스 와 같은 수치)
+from .defs import STRESS_LIMIT   # 0.15 — 어느 시나리오도 −15% 초과 금지 (scorecard_week [11] 스트레스 와 같은 수치)
 STRESS_DENOMINATORS = ("D2", "D1", "EQ")   # docs/rules_terms.md §0: D2 전체 투자자산(기본, 결재 #1 (b) 가정) · D1 위성 북 · EQ 주식만(참고)
 
 
@@ -219,7 +218,8 @@ def stress_line(ev: dict, scenario: str = "2026-07") -> str:
 
 
 def rules(rules_txt: str) -> dict:
-    o = {"loss_limit": 0.12, "semi_cap": 0.40, "semi_band": 0.45, "price": {}, "touch": {}, "savings": 0.0}
+    from .defs import LOSS_LIMIT, SEMI_BAND, SEMI_CAP   # 기본값 단일 원천 (MY_RULES 줄이 있으면 덮어씀)
+    o = {"loss_limit": LOSS_LIMIT, "semi_cap": SEMI_CAP, "semi_band": SEMI_BAND, "price": {}, "touch": {}, "savings": 0.0}
     for ln in (rules_txt or "").splitlines():
         p = ln.split()
         if len(p) < 2:

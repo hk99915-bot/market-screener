@@ -138,11 +138,34 @@ def allow(path: Path, new_value, key: str | None = None) -> bool:
     return False
 
 
+def record_contract(path: Path, errs: list[str]) -> None:
+    fp = _report_dir() / "freshness.json"
+    try:
+        cur = json.loads(fp.read_text(encoding="utf-8")) if fp.exists() else {}
+    except Exception:  # noqa: BLE001
+        cur = {}
+    rows = (cur.get("contract_violation") or []) + [{"at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "path": Path(path).name,
+                                                       "errors": errs[:5], "mode": os.environ.get("SCREENER_MODE") or ""}]
+    cur["contract_violation"] = rows[-KEEP:]
+    fp.parent.mkdir(parents=True, exist_ok=True)
+    fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
 def write_json(path: Path, obj, *, key: str | None = None, **dumps_kw) -> bool:
-    """json.dumps(obj) 를 path 에 쓰되 asof 역행이면 쓰지 않는다. 쓴 경우 True."""
+    """json.dumps(obj) 를 path 에 쓰되 ① 데이터 계약(screener/contracts.py) 위반 ② asof 역행이면 쓰지 않는다. 쓴 경우 True."""
+    from . import contracts
     path = Path(path)
+    errs = contracts.check(path, obj)
+    if errs:
+        log.warning("⛔ 데이터 계약 위반 — %s 쓰지 않음: %s", path, "; ".join(errs[:3]))
+        try:
+            record_contract(path, errs)
+        except Exception as e:  # noqa: BLE001
+            log.warning("계약 위반 기록 실패: %s", e)
+        return False
     if not allow(path, json_day(obj, key), key):
         return False
+    contracts.stamp(path, obj)
     dumps_kw.setdefault("ensure_ascii", False)
     path.write_text(json.dumps(obj, **dumps_kw), encoding="utf-8")
     return True

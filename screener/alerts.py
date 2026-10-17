@@ -218,7 +218,7 @@ def run(send: bool = True, at_close: bool = True) -> list[str]:
 
 
 # ───────────────────────────── (d) 급락일 종가 매수 신호 (15:05) ─────────────────────────────
-CRASH_ALERT_PCT = -0.045   # 15:05 장중 기준. 확정 판정(−5.0%)보다 느슨하게 울려 15:20 동시호가 전에 준비하게 한다
+from .defs import CRASH_ALERT_PCT   # (단일 원천 screener/defs.py) −0.045 — 15:05 장중 기준. 확정 판정(−5.0%)보다 느슨하게 울려 15:20 동시호가 전에 준비하게 한다
 CRASH_STUDY = "20일 +7.5%·승률 81%·n16"   # reports/studies/entry_signals.md 급락일 종가
 
 

@@ -14,7 +14,7 @@ from .config import REPORT_DIR
 log = logging.getLogger(__name__)
 KST = ZoneInfo("Asia/Seoul")
 OUT = REPORT_DIR / "rebound.json"
-THRESHOLD = 0.005   # 전일 종가 대비 +0.5%
+from .defs import REBOUND_THRESHOLD as THRESHOLD   # 전일 종가 대비 +0.5% (단일 원천 screener/defs.py)
 
 
 def judge(q: dict | None = None) -> dict | None:

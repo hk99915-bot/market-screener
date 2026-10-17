@@ -99,7 +99,7 @@ def _above_sma_streak(c: list[float], n: int = 20) -> int:
     return k
 
 
-CRASH_PCT, CRASH_NEAR_PCT = -0.05, -0.04
+from .defs import CRASH_NEAR_PCT, CRASH_PCT   # −5% / −4% (단일 원천 screener/defs.py)
 
 
 def crash_day_grade() -> str:

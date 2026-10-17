@@ -27,6 +27,8 @@
 - **가드** `screener/guard.py` write_json/write_text/allow: 일 단위 비교, 같은 날 허용, 과거면 안 쓰고 `regress_blocked` 기록. 백필만 `SCREENER_ALLOW_REGRESS=1`.
 - **저장 단계** briefing·screener.yml: `pull --rebase -X theirs` 뒤 `python -m screener.regress_git` — 원격보다 과거 날짜 파일은 원격 판으로 되돌리고 amend(수동·주말 dispatch 포함, 상세는 폴더 통째).
 - **화면** 상단 헤더 `#fresh` 배지(⚠ 늦은 데이터 n / 데이터 정상 · 점검 hh:mm) → 클릭 시 서랍에 파일·기대·실제·담당·복구 명령. `scripts/ui_smoke.py` 가 실파일 + 늦음 주입 2경우를 검사.
+- **데이터 계약** `screener/contracts.py`(14 산출물: schema_version·필수 키·형·날짜 키) — `guard.write_json` 이 쓰기 직전 검사, 위반이면 안 쓰고 `contract_violation` 기록. 저장소 현재 파일도 테스트가 같은 계약으로 검사(tests/test_contracts.py).
+- **규칙 상수 단일 원천** `screener/defs.py`(분모 D1~D5·한도·판정·주문표 상수) — rebound·alerts·committee·pb·ticket 이 import. `check_rules_terms.py` 가 숫자 재정의·화면(tab_my) 불일치·용어표 미등록을 잡음.
 - 가드 적용(16 호출부): detail KR·US(색인 판정, 폴더 통째) · peers_* · sim_signals_* · latest_*.md · momentum_* · derivs(date) · committee(date, 3곳) · committee_us · valuation(json·md·이력) · bonds · daily_brief(json·md) · macro_view · japan(date) · macro_series + main.run 시세 기준일 판정. **미적용**: 보드 `guard-rest` 참조.
 
 ### 조용한 대체 지점 (grep: 뒤로 걷는 날짜 루프·"이전 값 유지", 10/17)

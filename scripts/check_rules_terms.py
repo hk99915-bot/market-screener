@@ -59,6 +59,48 @@ def scan_files(files: list[str] | None = None, root: Path = ROOT) -> list[str]:
     return out
 
 
+# ── 규칙 상수 단일 원천 (screener/defs.py, refactor_plan 결정 B 2026-10-17) ──
+DEF_FILES = FILES + ["screener/committee.py"]
+UI_CONSTS = {"apps-script/tab_my.html": ("SEMI_CAP", "SEMI_BAND", "ISA_BAND")}
+
+
+def _defs():
+    sys.path.insert(0, str(ROOT))
+    from screener import defs   # noqa: E402
+    return defs
+
+
+def scan_defs(root: Path = ROOT, defs=None) -> list[str]:
+    """① defs.TERMS 용어가 rules_terms.md 에 있는가 ② 규칙 파일이 같은 이름을 숫자로 재정의하지 않는가 ③ 화면 상수 = defs 값."""
+    defs = defs or _defs()
+    out = []
+    doc = (root / "docs" / "rules_terms.md").read_text(encoding="utf-8")
+    for name, term in defs.TERMS.items():
+        if term not in doc:
+            out.append(f"docs/rules_terms.md: defs.{name} 의 용어 '{term}' 가 용어표에 없음 (definition-first)")
+    names = "|".join(sorted(defs.LOCAL_ALIASES, key=len, reverse=True))
+    redef = re.compile(rf"^\s*(?:{names})\s*(?:,\s*\w+\s*)*=\s*[-\d.(]")
+    dict_lit = re.compile(r"[\"'](?:loss_limit|semi_cap|semi_band)[\"']\s*:\s*-?\d")
+    for rel in DEF_FILES:
+        p = root / rel
+        if not p.exists():
+            continue
+        for i, ln in enumerate(p.read_text(encoding="utf-8").splitlines()):
+            code = ln.split("#", 1)[0]
+            if redef.search(code) or dict_lit.search(code):
+                out.append(f"{rel}:{i + 1}: 규칙 상수를 숫자로 재정의 — screener/defs.py 에서 import → {ln.strip()[:80]}")
+    for rel, keys in UI_CONSTS.items():
+        p = root / rel
+        if not p.exists():
+            continue
+        txt = p.read_text(encoding="utf-8")
+        for k in keys:
+            m = re.search(rf"\b{k}\s*=\s*(-?[\d.]+)", txt)
+            if m and abs(float(m.group(1)) - getattr(defs, k)) > 1e-12:
+                out.append(f"{rel}: 화면 {k}={m.group(1)} ≠ screener/defs.py {getattr(defs, k)}")
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--list", action="store_true")
@@ -68,11 +110,11 @@ def main(argv=None) -> int:
         print("rule A:", DENOM_DEF.pattern)
         print("rule B:", DIV_BY_DENOM.pattern, "+", CAP_NAME.pattern, f"(window {WINDOW})")
         return 0
-    probs = scan_files()
+    probs = scan_files() + scan_defs()
     for p in probs:
         print("❌", p)
     if probs:
-        print(f"\n{len(probs)}건 — 비율 한도 계산 줄에 `# denominator=<D1~D5> …` 라벨을 붙이세요 (docs/rules_terms.md).")
+        print(f"\n{len(probs)}건 — 비율 한도 계산 줄에 `# denominator=<D1~D5> …` 라벨, 규칙 상수는 screener/defs.py 에서 (docs/rules_terms.md).")
         return 1
     print(f"✅ rules terms: {len(FILES)} files, denominator labels OK")
     return 0

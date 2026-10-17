@@ -28,7 +28,7 @@ def _fr(rep):
 
 # ── B. asof 단조 가드 ──
 def test_guard_blocks_regress_and_records(rep):
-    p = rep / "momentum_US.json"
+    p = rep / "x_summary.json"   # 계약 없는 경로 — 역행만 검사
     p.write_text(json.dumps({"asof": "2026-10-16", "n": 1}), encoding="utf-8")
     assert guard.write_json(p, {"asof": "2026-10-15", "n": 2}) is False
     assert json.loads(p.read_text())["n"] == 1                       # 기존 그대로
@@ -37,7 +37,7 @@ def test_guard_blocks_regress_and_records(rep):
 
 
 def test_guard_same_day_and_newer_allowed(rep):
-    p = rep / "derivs.json"
+    p = rep / "x_board.json"
     p.write_text(json.dumps({"asof": "2026-10-16 15:50", "date": "2026-10-16", "v": 1}), encoding="utf-8")
     assert guard.write_json(p, {"asof": "2026-10-16 19:44", "date": "2026-10-16", "v": 2}, key="date")
     assert guard.write_json(p, {"asof": "2026-10-17 01:00", "date": "2026-10-17", "v": 3}, key="date")

@@ -39,10 +39,8 @@ from .duel import ET, KST, NAMES, REPO, US_NAMES, lev_drag_note, lev_factor
 log = logging.getLogger(__name__)
 
 SAT_BOOK_DEFAULT = 3_000_000       # 모의 위성 북 (실제 크기는 env 로만, 기록에 남기지 않음)
-RISK_PCT_DEFAULT = 0.25            # 1단계: 1회 리스크 = 위성 북의 0.25%
 PUBLIC_NOTIONAL_CAP = 1_000_000    # 이 금액 이하만 원화로 기록
-MIN_RR = 2.0
-HARD_STOP = 0.08
+from .defs import COOLDOWN_MIN, HARD_STOP, MIN_RR, RISK_PCT_DEFAULT   # 단일 원천 screener/defs.py (1회 리스크 0.25% · R:R 2 · 손절 8% · 쿨다운 30분)
 LEV_BAN_UNTIL = "2027-04-15"
 LEV_CODES = {"122630", "252670", "114800", "233740", "251340", "253150", "253160", "123320", "123310", "130730", "152500"}
 LEV_RE_KR = re.compile(r"(레버리지|인버스|2X|3X)", re.I)
@@ -54,7 +52,6 @@ US_LEV_RE_NAME = re.compile(r"(2x|3x|Bull|Bear|Ultra|Leveraged|Inverse|Daily)", 
 EVT_HALT = re.compile(r"서킷|사이드카|circuit|sidecar", re.I)
 EVT_HALT_NEAR = re.compile(r"경보|근처|해제", re.I)
 CAL_MACRO = re.compile(r"\bCPI\b|FOMC|소비자물가", re.I)
-COOLDOWN_MIN = 30                  # 매도·판정·포상 후 신규 주문표 금지 (결재 #14 ③)
 COOLDOWN_ENV = "COOLDOWN_LAST_AT"  # 포상·장외 매도 등 기록에 없는 시각을 수동으로 — ISO 또는 'YYYY-MM-DD HH:MM'(KST)
 
 
