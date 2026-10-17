@@ -711,6 +711,7 @@ function myParse(txt){ const out=[]; let book='sat'; for(const ln of txt.split(/
     const k=p[0].toUpperCase();
     if(['현금','KRW','CMA','원화','예수금','RP'].includes(k)||/^CMA/.test(k)) out.push({cash:'KRW', amt:n(p[1])||0, book});
     else if(['USD','달러','미국달러'].includes(k)) out.push({cash:'USD', amt:n(p[1])||0, book});
+    else if(['예적금','적금','예금','SAVINGS'].includes(k)) out.push({sav:n(p[1])||0});   // 결재 #1 분모 (b): 불가침 예적금 — 반도체 비중 분모에만 더함
     else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 5 30000")
       let k2=p.length; const nums=[]; while(k2>1&&nums.length<2&&n(p[k2-1])!=null){ nums.unshift(n(p[k2-1])); k2--; }
       out.push({key:p.slice(0,k2).join(' '), qty:nums.length?nums[0]:0, avg:nums.length>1?nums[1]:null, book}); } } return out; }
@@ -785,7 +786,7 @@ function myView(){
         <div class="mu" style="font-size:11px;line-height:1.6;max-width:560px">깃허브 → Settings → Developer settings → Fine-grained tokens → Repository access: <b>pb-private만</b> · Permissions: <b>Contents: Read-only</b>. 토큰은 이 브라우저에만 저장돼요(회사 PC엔 저장 금지). 비우고 저장하면 삭제.</div>
         <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <label class="mu" style="font-size:11px;margin-left:6px"><input id="mytokses" type="checkbox"> 이 창에서만 (탭 닫으면 삭제 · 회사 PC용)</label> <span class="mu" style="font-size:11px;margin-left:6px">또는 PIN 잠금 기억:</span> <input id="mytokpin" type="password" autocomplete="new-password" placeholder="PIN 6자+" style="width:100px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <span class="mu" style="font-size:11px">(PIN 을 넣고 저장하면 다음부턴 PIN 만 입력 — 회사 PC 추천)</span> <button id="mytokb" class="sbtn">저장</button></details></div>
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
-    <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code><br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
+    <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code> · <code>예적금 9000000</code>(반도체 한도 분모에만 더함)<br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
     <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
     <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
     <div id="myout" style="margin-top:12px"></div>
@@ -884,6 +885,7 @@ function myRun(){
     const all=myParse($('#myta').value);
     const hs=all.filter(h=>h.key).map(h=>({...h, r:myResolve(h.key)}));
     const cash=all.filter(h=>h.cash);
+    window._mySav=all.filter(h=>h.sav!=null).reduce((s,h)=>s+h.sav,0);
     const miss=hs.filter(h=>!h.r).map(h=>h.key);
     const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]), ...HEDGES.map(x=>[x[0],x[1]]), ...BENCH];
     const go=()=>myFetch(need,()=>myRender(hs,cash,miss));
@@ -907,6 +909,7 @@ function myRender(hs,cash,miss){
     A.push({h,d,name:shortNm(d.name)||h.r.s,mk:h.r.m,etf:!!d.etf,val,cb,ser:series(h.r.m,d),book:h.book||'sat'}); tot+=val; if(cb!=null) cost+=cb; }
   let cK=0,cU=0,cIsa=0; for(const c of cash){ const v=c.cash==='KRW'?c.amt:c.amt*FX; if(c.cash==='KRW') cK+=c.amt; else cU+=c.amt*FX; if(c.book==='isa') cIsa+=v; }
   const NAV=tot+cK+cU;   // 분모: 순자산(위성+ISA+현금) — 안건 8-J
+  const SAV=window._mySav||0, DEN=NAV+SAV, DENL=SAV>0?'(b) 투자자산+예적금':'(a) 투자자산 · 예적금 줄 없음';   // 결재 #1: 반도체 한도 분모
   const totSat=A.filter(a=>a.book!=='isa').reduce((s,a)=>s+a.val,0), totIsa=A.filter(a=>a.book==='isa').reduce((s,a)=>s+a.val,0), isaTot=totIsa+cIsa;
   const hasIsa=isaTot>0;
   if(!A.length){ $('#myout').innerHTML=`<div class="err">인식된 종목이 없습니다${miss.length?': '+esc(miss.join(', ')):''}</div>`; return; }
@@ -962,8 +965,8 @@ function myRender(hs,cash,miss){
   const semiElec=semi+elec;
   const SEMI_CAP=0.40;   // 규정 [3] 테마 합계 ≤ 순자산의 40% (2026-10-15 v2.1) — 반도체(전기 제외), 지수 ETF 룩스루 제외
   const SEMI_BAND=0.45;  // 발동선 (안건 7): 넘으면 다음 반등일에 40% 로
-  const semiTag=semi/NAV>SEMI_BAND?`<b>⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 40%로 (${K((semi/NAV-SEMI_CAP)*NAV)}원 초과)`:semi/NAV>SEMI_CAP?`<b>⛔ 상한 초과</b> — 추가 매수 금지 (${K((semi/NAV-SEMI_CAP)*NAV)}원 초과, 반등일에 축소)`:'한도 안 ✅';
-  op.push(`<b>반도체</b>: 반도체(전기 제외) 순자산의 <b>${W(semi/NAV)}</b> (상한 ${W(SEMI_CAP)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}. 반도체+전기(상관 테마) ${W(semiElec/NAV)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/NAV)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
+  const semiTag=semi/DEN>SEMI_BAND?`<b>⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 40%로 (${K((semi/DEN-SEMI_CAP)*DEN)}원 초과)`:semi/DEN>SEMI_CAP?`<b>⛔ 상한 초과</b> — 추가 매수 금지 (${K((semi/DEN-SEMI_CAP)*DEN)}원 초과, 반등일에 축소)`:'한도 안 ✅';
+  op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (상한 ${W(SEMI_CAP)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}. 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
   const top=chainL[0]; if(semi/tot<=0.6&&top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
   if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 섹터 ETF(TIGER 200 IT·PSI 등)부터 — 지수 ETF(KODEX 200·S&P500 등 ISA 코어 적립분)는 줄이지 않습니다.`);
   op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}), 최대낙폭 ${pct(Pm.mdd,0)}. ${Pm.sh>2?'<b>이 숫자를 기대값으로 쓰면 안 됩니다.</b> 지난 1년 메모리 대랠리가 그대로 들어간 이례적 값이고, 같은 베팅이 맞았던 결과일 뿐입니다. 볼 것은 샤프가 아니라 변동성·낙폭.':Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':'보통 수준.'}`);
@@ -982,7 +985,7 @@ function myRender(hs,cash,miss){
   $('#myout').innerHTML=`
    <div class="mu" style="font-size:12px;margin-bottom:6px">분모: 순자산(위성+ISA+현금) ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 한도 ${W(SEMI_CAP)} · 발동선 ${W(SEMI_BAND)}</div>
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-     ${[['순자산',K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체(전기 제외) / +전기',`${W(semi/NAV)} / ${W(semiElec/NAV)}`],['주식 손익',cost?`${pct(tot/cost-1,1)} (${K(tot-cost)}원)`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95%',`${K(Pm.var*NAV)}원`],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
+     ${[['순자산',K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체 / +전기 · 분모 '+(SAV>0?'(b)':'(a)'),`${W(semi/DEN)} / ${W(semiElec/DEN)}`],['주식 손익',cost?`${pct(tot/cost-1,1)} (${K(tot-cost)}원)`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95%',`${K(Pm.var*NAV)}원`],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
    </div>
    <div class="p" style="margin-bottom:8px"><h2>PB 의견<small>규칙 기반 · 지난 1년 데이터 · 성과 검증 전</small></h2><div class="b" style="line-height:1.8;font-size:13px;white-space:normal">${op.map(x=>'· '+x).join('<br>')}</div></div>
    ${isaPanel}
