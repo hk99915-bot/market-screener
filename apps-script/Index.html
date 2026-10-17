@@ -295,13 +295,19 @@ function med(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)
 let L=null;
 function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D){ tape(); genHdr(); }}).withFailureHandler(()=>{}).getLive();}
 let TAPE_HTML='';
-function tkItem(k,v,c,dg){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f', ar=cls==='u'?'▲':cls==='d'?'▼':'■';
-  return `<span class="ti ${cls}" data-key="${esc(k)}" title="${esc(k)} 차트 보기"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}</span></span>`; }
+function tkItem(k,v,c,dg,lagDate){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f', ar=cls==='u'?'▲':cls==='d'?'▼':'■';
+  return `<span class="ti ${cls}" data-key="${esc(k)}" title="${esc(k)} 차트 보기${lagDate?' · 마지막 봉 '+esc(lagDate)+' (같은 시장 다른 지표보다 이전 날짜 — 등락률 비교 주의)':''}"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}${lagDate?` <span class="mu">(${esc(lagDate.slice(5))} 기준)</span>`:''}</span></span>`; }
+/* 티커 머리표: 정규장 중 LIVE, 그 밖(주말·휴일·장후)은 CLOSE(거래일) — live.json session/trade_date, 옛 파일은 KST 요일·시각으로 판정 (감사 경-2 10/17) */
+function liveSess(){ if(!L) return {s:'',d:''}; if(L.session) return {s:L.session,d:L.trade_date||''};
+  const k=new Date(Date.now()+9*3600e3), wd=k.getUTCDay(), mins=k.getUTCHours()*60+k.getUTCMinutes();
+  return {s:(wd>=1&&wd<=5&&mins>=540&&mins<930)?'LIVE':'CLOSE', d:''}; }
+function liveTag(){ const x=liveSess(); const lab=x.s==='CLOSE'?`CLOSE${x.d?'('+esc(x.d.slice(5))+')':''}`:'LIVE';
+  return `<span class="ti lv"><b>${lab}</b><span class="v mu">${esc(L.updated_at||'')}</span></span>`; }
 function tape(){
   const items=[], seen=new Set();
-  if(L&&L.items&&L.items.length){ items.push(`<span class="ti lv"><b>LIVE</b><span class="v mu">${esc(L.updated_at||'')}</span></span>`); for(const d of L.items){seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg,2)); if(d.key==='K200F'&&d.basis!=null) items.push(`<span class="ti ${d.basis<-1?'d':d.basis>1?'u':'f'}" data-basis="1" title="선물−현물. 크게 마이너스면 선물 투매(공포) · 누르면 설명·이력"><b>베이시스</b><span class="v">${d.basis>0?'+':''}${d.basis.toFixed(2)}</span><span class="c">${d.basis<-1?'백워데이션':d.basis>1?'콘탱고':'중립'}</span></span>`);} }
+  if(L&&L.items&&L.items.length){ items.push(liveTag()); for(const d of L.items){seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg,2,d.lag?d.date:null)); if(d.key==='K200F'&&d.basis!=null) items.push(`<span class="ti ${d.basis<-1?'d':d.basis>1?'u':'f'}" data-basis="1" title="선물−현물. 크게 마이너스면 선물 투매(공포) · 누르면 설명·이력"><b>베이시스</b><span class="v">${d.basis>0?'+':''}${d.basis.toFixed(2)}</span><span class="c">${d.basis<-1?'백워데이션':d.basis>1?'콘탱고':'중립'}</span></span>`);} }
   for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value){ if(seen.has(d.key)) continue; seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg1));}}
-  const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x){ const p=x.pct_above200, cls=p>=0.6?'u':p<0.4?'d':'f'; items.push(`<span class="ti ${cls}" data-view="${mk.toLowerCase()}" title="${mk} 화면으로"><b>${mk} BREADTH</b><span class="v">200D↑ ${Math.round(p*100)}%</span><span class="c">A/D ${x.adv}/${x.dec}</span></span>`);} }
+  const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x){ const p=x.pct_above200, cls=p>=0.6?'u':p<0.4?'d':'f'; items.push(`<span class="ti ${cls}" data-view="${mk.toLowerCase()}" title="${mk} 화면으로 · 유니버스 ${x.n||'—'}종목(스크리너 기준, 지수 전체 등락 수와 다름)${x.date?' · '+esc(x.date):''}"><b>${mk} BREADTH${x.n?`<span class="mu" style="font-weight:normal">(${x.n})</span>`:''}</b><span class="v">200D↑ ${Math.round(p*100)}%</span><span class="c">A/D ${x.adv}/${x.dec}</span></span>`);} }
   if(!items.length){ $('#tape').innerHTML='<span class="mu" style="padding:0 16px">no data</span>'; TAPE_HTML=''; return; }
   const h=items.join('');
   if(h===TAPE_HTML) return;            // 내용이 같으면 애니메이션을 재시작하지 않음
@@ -315,7 +321,7 @@ function genHdr(){ const g=$('#gen'); if(!g) return; const hm=x=>{ const m=Strin
     try{ const k=new Date(Date.now()+9*3600e3), m=String(lu).match(/(?:(\d{4})-)?(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/);
       const wd=k.getUTCDay(), mins=k.getUTCHours()*60+k.getUTCMinutes();
       if(m&&wd>=1&&wd<=5&&mins>=540&&mins<=930){ const lt=Date.UTC(m[1]?+m[1]:k.getUTCFullYear(),+m[2]-1,+m[3],+m[4],+m[5]); warn=(k.getTime()-lt)>20*60e3; } }catch(e){}
-    t+=' · '+(warn?'⚠️ ':'')+'LIVE '+(hm(lu)||lu); }
+    const ls=liveSess(); t+=' · '+(warn?'⚠️ ':'')+(ls.s==='CLOSE'?`CLOSE${ls.d?'('+ls.d.slice(5)+')':''} `:'LIVE ')+(hm(lu)||lu); }
   g.textContent=t; }
 /* 데이터 신선도 배지 (재발방지대책 D, 10/17): reports/freshness.json 의 late(계약 대비 늦음) + regress_today(역행 차단) */
 let FR=null;
