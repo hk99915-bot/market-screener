@@ -104,6 +104,11 @@ jobs:
             python -m screener.main --mode ${{ steps.m.outputs.mode }}
           fi
 
+      - name: 신선도 점검
+        if: always()
+        # 모든 모드 끝에 ops/freshness.json 계약 점검 → reports/freshness.json (텔레그램 없음, 아래 저장 단계가 커밋). 실패해도 저장은 진행
+        run: python -m screener.main --mode freshness || echo "::warning::신선도 점검 실패"
+
       - name: 저장
         if: always()
         run: |
@@ -113,6 +118,7 @@ jobs:
           git diff --cached --quiet || git commit -m "briefing: ${{ steps.m.outputs.mode }} $(date -u +%FT%H:%M)"
           # 커밋 대상이 아닌 변경(예: 실행 중 교정된 data/kr_prices.parquet)이 남아 있으면 pull --rebase 가 거부돼 푸시가 조용히 실패함 → 치워둔다
           git stash -q -u 2>/dev/null || true
+          # 역행 검사: rebase 뒤 HEAD 의 산출물 날짜가 원격 main 보다 과거면 그 파일은 원격 판으로 되돌림 (10/17 detail_us 역행 — 수동·주말 실행 포함)
           ok=0
-          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && python -m screener.regress_git && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
           [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"; true

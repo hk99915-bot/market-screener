@@ -22,12 +22,47 @@ from .config import CFG, DATA_DIR, REPORT_DIR
 log = logging.getLogger("screener")
 
 
-def _status(market_tz: str, live: bool) -> str:
+def _status(market_tz: str, live: bool, now: datetime | None = None) -> str:
     """기획 원칙: 장중 [LIVE] vs 종가 [CONFIRMED]. 로컬 시각이 장중이면 강제로 LIVE."""
-    now = datetime.now(ZoneInfo(market_tz))
+    now = (now or datetime.now(ZoneInfo(market_tz))).astimezone(ZoneInfo(market_tz))
     hm = now.hour * 100 + now.minute
     in_session = (900 <= hm < 1540) if market_tz == "Asia/Seoul" else (930 <= hm < 1605)
     return "LIVE" if (live or (in_session and now.weekday() < 5)) else "CONFIRMED"
+
+
+def asof_decision(market: str, asof, now: datetime, published) -> str:
+    """시세 기준일 판정 (10/17 detail_us 역행 재발 방지).
+    'ok'      = 기대 거래일(tradecal.expected_session) 이상
+    'stale'   = 기대일보다 과거지만 이미 게시된 값보다는 과거가 아님 → 쓰되 [STALE] 표시
+    'regress' = 이미 게시된 기준일(detail/<mk>/_index.json)보다 과거 → 아무것도 쓰지 않음"""
+    from . import guard, tradecal
+    a = guard.day(asof)
+    pub = guard.day(published)
+    if pub and a and a < pub:
+        return "regress"
+    return "ok" if a and a >= tradecal.expected_session(market, now).isoformat() else "stale"
+
+
+def fetch_with_retry(fetch, market: str, now: datetime, tries: int = 3, sleep_s: float | None = None):
+    """시세를 받고, 최빈 기준일이 기대 거래일보다 과거면 sleep 후 다시 받는다 (Yahoo 가 장후 몇 시간 동안 당일 봉을
+    빼고 주는 사례: 10/17 00:47 UTC 실행에서 US 523종목 전부 10/16 봉 없음, 같은 실행의 지수(^GSPC)는 10/16 있음).
+    반환 (시세, 최빈 기준일)."""
+    import os
+    import time
+    from . import tradecal
+    if sleep_s is None:
+        sleep_s = float(os.environ.get("SCREENER_RETRY_SLEEP", "90"))
+    exp = tradecal.expected_session(market, now)
+    px = None
+    for i in range(max(1, tries)):
+        px = fetch()
+        asof = px.group_by("yf").agg(pl.col("date").max())["date"].mode()[0]
+        if asof >= exp:
+            return px, asof
+        log.warning("%s 시세 최빈 기준일 %s < 기대 거래일 %s (시도 %d/%d)", market, asof, exp, i + 1, tries)
+        if i + 1 < tries:
+            time.sleep(sleep_s)
+    return px, asof
 
 
 def run(market: str, live: bool = False, prices_path: str | None = None, no_send: bool = False) -> None:
@@ -44,12 +79,13 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     log.info("%s 유니버스 %d종목", market, len(uni))
 
     # 2) 시세
+    now = datetime.now(ZoneInfo("Asia/Seoul"))
     if prices_path:
         px = pl.read_parquet(prices_path)
     elif market == "KR":
-        px = data_krx.fetch_prices_krx()          # KRX 공식 데이터 (증분)
+        px, _ = fetch_with_retry(data_krx.fetch_prices_krx, market, now)          # KRX 공식 데이터 (증분)
     else:
-        px = data.fetch_prices(uni["yf"].to_list(), market)
+        px, _ = fetch_with_retry(lambda: data.fetch_prices(uni["yf"].to_list(), market), market, now)
     px = px.filter(pl.col("yf").is_in(uni["yf"].implode()))
     log.info("시세 %d행 / %d종목", len(px), px["yf"].n_unique())
 
@@ -58,6 +94,19 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     last = indicators.latest(full).join(uni.select("yf", "symbol", "name", "market"), on="yf", how="left")
     # 유니버스 전체가 같은 날짜여야 함: 최빈 날짜 외(상폐·거래정지)는 제외
     asof = last["date"].mode()[0]
+    if not prices_path:   # 기준일 가드: 게시본보다 과거면 중단, 기대 거래일보다 과거면 [STALE] (10/17 detail_us 역행)
+        from . import guard
+        pub_idx = REPORT_DIR / "detail" / market / "_index.json"
+        verdict = asof_decision(market, asof, now, guard.existing_day(pub_idx))
+        if verdict == "regress":
+            guard.allow(pub_idx, str(asof))   # 차단 기록(reports/freshness.json regress_blocked) + 경고 로그
+            log.error("⛔ %s 시세 기준일 %s 가 게시본 %s 보다 과거 — 산출물·텔레그램 모두 건너뜀", market, asof, guard.existing_day(pub_idx))
+            return
+        if verdict == "stale":
+            status = "STALE"
+            from . import tradecal
+            guard.record_stale(f"reports/detail/{market}/_index.json", f"{market} 시세 기준일", tradecal.expected_session(market, now), asof)
+            log.warning("%s 기준일 %s 가 기대 거래일보다 과거 — [STALE] 로 표시", market, asof)
     last = last.filter(pl.col("date") == asof)
     last_all = last                                   # 종목 상세는 필터와 무관하게 전 종목
     last = scoring.apply_filters(last, mc.min_price, mc.min_dollar_vol)
@@ -71,7 +120,8 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     mr = context.macro_regime(macro)
     if not prices_path:
         try:
-            mr = live.patch_macro(mr)   # 국내 지수는 네이버/KRX 값으로 (야후 오표시 방지)
+            from . import live as _live_mod   # 인자 live(bool) 가 모듈 이름을 가려 10/16 부터 매번 실패하던 것 수정
+            mr = _live_mod.patch_macro(mr)   # 국내 지수는 네이버/KRX 값으로 (야후 오표시 방지)
         except Exception as e:  # noqa: BLE001
             log.warning("국내 지수 보정 실패: %s", e)
     regime_line = context.regime_summary(mr)
@@ -193,6 +243,7 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
     import json as _json
     from .config import REPORT_DIR
     try:
+        stale: dict = {}   # 조용한 대체 금지(10/17): 이전 값으로 채운 지표는 파일에 표시 + freshness 기록
         try:
             long = data.fetch_prices(list(CFG.macro.values()), "MACRO", lookback_days=760)
             inv = {v: k for k, v in CFG.macro.items()}
@@ -200,6 +251,7 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
         except Exception as e:  # noqa: BLE001
             log.warning("매크로 2년 수집 실패, 기존 데이터 사용: %s", e)
             macro = data.fetch_macro() if macro is None else macro
+            stale["_fetch"] = "2년 수집 실패 → 200일 데이터"
         if not len(macro):
             return
         r = lambda v: None if v is None else round(float(v), 4)  # noqa: E731
@@ -219,7 +271,9 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
             for k, v in prev.items():
                 if not ser.get(k) and v:
                     ser[k] = v
-                    log.warning("매크로 %s 수집 실패 — 이전 데이터 유지", k)
+                    if k != "JGB10Y":   # JGB10Y 는 야후에 없음 — japan.build 가 따로 채움(정상 경로)
+                        stale[k] = v[-1][0] if v and v[-1] else None
+                    log.warning("매크로 %s 수집 실패 — 이전 데이터 유지(stale)", k)
         except Exception:  # noqa: BLE001
             pass
         _krx_override(ser)
@@ -233,8 +287,13 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
                     ser[k][-1][3] = min(ser[k][-1][3], ser[k][-1][4])
         except Exception as e:  # noqa: BLE001
             log.warning("시세 동기화 실패: %s", e)
-        (REPORT_DIR / "macro_series.json").write_text(_json.dumps(
-            {"asof": str(macro["date"].max()), "fmt": "dohlcv", "series": ser}, ensure_ascii=False), encoding="utf-8")
+        from .guard import write_json
+        new_asof = str(macro["date"].max())
+        if stale:
+            from .guard import record_stale
+            for k, got in stale.items():
+                record_stale("reports/macro_series.json", k, new_asof, got)
+        write_json(REPORT_DIR / "macro_series.json", {"asof": new_asof, "fmt": "dohlcv", "series": ser, "stale": stale})
         try:
             from . import macroview
             macroview.build()
@@ -330,7 +389,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot", "crash_check", "derivs"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot", "crash_check", "derivs", "freshness", "freshness_alert"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -338,6 +397,8 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         stream=sys.stderr)
     _file_log(a.market if a.mode == "screen" else a.mode)
+    import os as _os
+    _os.environ.setdefault("SCREENER_MODE", a.mode if a.mode != "screen" else f"screen_{a.market}")   # guard 역행 기록에 남김
     modes = {"premarket_kr": briefings.premarket_kr, "intraday_kr": briefings.intraday_kr,
              "premarket_us": briefings.premarket_us, "intraday_us": briefings.intraday_us,
              "reports": briefings.reports_alert}
@@ -388,6 +449,10 @@ def main() -> None:
                     r[f"yahoo_{len(syms)}"] = _tb.format_exc()[-2000:]
                 (_RD / "logs" / "krxfix.json").write_text(json.dumps(r, ensure_ascii=False, default=str, indent=1), encoding="utf-8")
             print(r)
+        elif a.mode in ("freshness", "freshness_alert"):   # 신선도 계약 점검 (ops/freshness.json → reports/freshness.json). alert 만 텔레그램 ⛔
+            from . import freshness
+            o = freshness.run(send=(a.mode == "freshness_alert" and not a.no_send))
+            print({"late": [(x["id"], x["expected"], x["actual"]) for x in o["late"]], "regress_today": len(o["regress_today"])})
         elif a.mode == "health":   # 주간 자가점검 (이상 있을 때만 텔레그램)
             from . import health
             print(health.run(send=not a.no_send))

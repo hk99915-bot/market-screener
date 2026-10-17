@@ -184,8 +184,9 @@ def build(days: int = 7) -> dict:
            "headline": " · ".join(head), "topdown": {"markets": top_lines, "regime": regime},
            "themes": themes[:12], "links": links, "dissent": dissent, "tp_cuts": cuts, "disclosures": disc,
            "topics": dict(all_topics.most_common(8))}
-    (REPORT_DIR / "daily_brief.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
-    (REPORT_DIR / "daily_brief.md").write_text(to_markdown(out), encoding="utf-8")
+    from .guard import write_json
+    if write_json(REPORT_DIR / "daily_brief.json", out):   # asof 역행이면 json·md 둘 다 건너뜀
+        (REPORT_DIR / "daily_brief.md").write_text(to_markdown(out), encoding="utf-8")
     archive(out)
     log.info("데일리 리포트: 리포트 %d건, 테마 %d개, 통합 체크 %d개", len(items), len(themes), len(links))
     return out

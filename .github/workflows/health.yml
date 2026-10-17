@@ -1,20 +1,35 @@
 name: health
 
-# 주간 자가점검 — 일요일 22:00 KST. 정합성·신선도·결측·만료·예약 실패를 보고, 이상 있을 때만 텔레그램.
+# 주간 자가점검 — 일요일 22:00 KST. 정합성·신선도·결측·만료·예약 실패를 보고, 이상 있을 때만 텔레그램(무음).
+# 신선도 독립 점검 — 매일 08:20·20:10 KST. ops/freshness.json 계약 대비 늦은 산출물·역행 차단이 있으면 텔레그램 ⛔ 소리 1통
+# (같은 항목·기대일은 하루 1회 — reports/freshness_alert_state.json). 10/17 오너 지시 재발방지대책 C(b).
 on:
   schedule:
-    - cron: "0 13 * * 0"
+    - cron: "0 13 * * 0"     # 일 22:00 KST 주간 점검
+    - cron: "20 23 * * *"    # 08:20 KST 신선도
+    - cron: "10 11 * * *"    # 20:10 KST 신선도
   workflow_dispatch:
+    inputs:
+      what:
+        description: "health | freshness"
+        required: false
+        default: "health"
 
 permissions:
   contents: write
   actions: read
+
+concurrency:
+  group: health
+  cancel-in-progress: false
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50          # ops/team.json 신선도(마지막 사람 커밋 시각) 판정용
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -25,15 +40,19 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
-        run: python -m screener.main --mode health
+        run: |
+          if [ "${{ github.event.schedule }}" = "0 13 * * 0" ] || [ "${{ github.event.inputs.what }}" = "health" ]; then
+            python -m screener.main --mode health
+          fi
+          python -m screener.main --mode freshness_alert
       - name: 저장
         if: always()
         run: |
           git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
-          cp reports/health.json /tmp/h.json 2>/dev/null || exit 0
+          mkdir -p /tmp/h; for f in health.json freshness.json freshness_alert_state.json; do cp reports/$f /tmp/h/ 2>/dev/null || true; done
           for i in 1 2 3; do
-            git fetch -q origin main && git reset -q --hard origin/main && cp /tmp/h.json reports/health.json
-            git add reports/health.json; git diff --cached --quiet && break
+            git fetch -q origin main && git reset -q --hard origin/main && cp /tmp/h/* reports/ 2>/dev/null || true
+            git add reports/health.json reports/freshness.json reports/freshness_alert_state.json 2>/dev/null; git diff --cached --quiet && break
             git commit -qm "health $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break
             sleep 5
           done

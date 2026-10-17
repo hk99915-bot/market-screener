@@ -292,6 +292,9 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
           mr: list[dict], regime_line: str, br: dict, with_flows: bool = True) -> None:
     syms = [s for s in last["symbol"].to_list() if s]   # 전 종목
     asof = last["date"].max()
+    from .guard import allow
+    if not allow(REPORT_DIR / "detail" / market / "_index.json", str(asof)):   # asof 역행이면 상세·피어 전부 건너뜀 (10/17 detail_us)
+        return
     rows = {r["symbol"]: r for r in last.filter(pl.col("symbol").is_in(syms)).to_dicts()}
     hist = (full.filter(pl.col("yf").is_in(last.filter(pl.col("symbol").is_in(syms))["yf"].implode()))
                 .sort("yf", "date").group_by("yf").tail(260))   # 1년 (웹 차트에서 확대·이동)
@@ -484,8 +487,8 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                           "drv": dv.get("score"), "sig": (va.get("signal_fv") or {}).get("upside"),
                           "nor": (va.get("group_upside") or {}).get("normal"), "fs": (va.get("fscore") or {}).get("score"),
                           "cls": st0.get("class"), "sr": (v0.get("short") or {}).get("ratio"), "sr20": (v0.get("short") or {}).get("chg20")})
-        (REPORT_DIR / f"peers_{market}.json").write_text(json.dumps({"asof": out["asof"], "rows": peers}, ensure_ascii=False,
-                                                                    default=lambda x: None), encoding="utf-8")
+        from .guard import write_json
+        write_json(REPORT_DIR / f"peers_{market}.json", {"asof": out["asof"], "rows": peers}, default=lambda x: None)
     except Exception as e:  # noqa: BLE001
         log.warning("동종 비교 파일 실패: %s", e)
     import shutil
@@ -506,7 +509,8 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     log.info("detail/%s: %d종목, %d KB", market, len(out["stocks"]), size // 1024)
     try:   # 새로 켜진 추세 신호 시장별 집계 (운용회의 sim_fresh 블록이 읽음)
         ss = sim_signals(market, out["asof"], out["stocks"])
-        (REPORT_DIR / f"sim_signals_{market}.json").write_text(json.dumps(ss, ensure_ascii=False, default=str), encoding="utf-8")
+        from .guard import write_json
+        write_json(REPORT_DIR / f"sim_signals_{market}.json", ss, default=str)
         log.info("sim_signals_%s: 스캔 %d · 통과 %d · 기대 우연 %.1f", market, ss["n_scanned"], ss["n_pass"], ss["expected_chance"])
     except Exception as e:  # noqa: BLE001
         log.warning("추세 신호 집계 실패: %s", e)

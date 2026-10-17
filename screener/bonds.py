@@ -596,6 +596,16 @@ def _merge(hist: dict[str, dict], new: dict[str, dict]) -> None:
         hist.setdefault(d, {}).update(rec)
 
 
+def _stale(o: dict, block: str, got) -> None:
+    """조용한 대체 금지(10/17): 이전 실행 값을 쓴 블록은 o['stale'][block] 로 표시 + reports/freshness.json 기록."""
+    o.setdefault("stale", {})[block] = {"want": o.get("asof"), "got": got}
+    try:
+        from .guard import record_stale
+        record_stale("reports/bonds.json", block, o.get("asof"), got)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def build() -> dict:
     now = datetime.now(ZoneInfo("Asia/Seoul"))
     H = _load_json(HIST, {"rows": []})
@@ -778,10 +788,12 @@ def build() -> dict:
         elif prev.get("ai_credit"):
             o["ai_credit"] = prev["ai_credit"]
             src["ai_credit_yahoo"] = src.get("ai_credit_yahoo", "") + " — 이전 값 유지"
+            _stale(o, "ai_credit", prev.get("asof"))
     except Exception as e:  # noqa: BLE001
         src["ai_credit"] = f"실패: {type(e).__name__}: {str(e)[:200]}"
         if prev.get("ai_credit"):
             o["ai_credit"] = prev["ai_credit"]
+            _stale(o, "ai_credit", prev.get("asof"))
     if not any((px.get(t) or {}) for t in ETFS) and prev.get("etf"):   # 야후 실패 → 이전 ETF·상관 유지
         for k in ("etf", "corr", "credit_us"):
             if k in prev:
@@ -790,11 +802,13 @@ def build() -> dict:
             e.update(etf_rate_label(e.get("dur"), e.get("n")))
         o["duration"] = [d for d in dur if d["kind"] != "ETF 근사"] + [{"n": e["n"], "kind": "ETF 근사", **e["calc"]} for e in o["etf"] if e.get("calc")]
         src["etf_yahoo"] += " — 이전 값 유지"
+        _stale(o, "etf", prev.get("asof"))
     o["notes"] = interpret(o)
     o["reco"] = recommend(o)
     o["guide"] = guide(o)
     o["vehicles"] = vehicles(o)
-    OUT.write_text(json.dumps(o, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    from .guard import write_json
+    write_json(OUT, o, separators=(",", ":"))
     log.info("채권: US10Y %s KR10Y %s 소스 %s", (us_chg.get("10Y") or {}).get("v"), (kr_chg.get("10Y") or {}).get("v"), src)
     return o
 

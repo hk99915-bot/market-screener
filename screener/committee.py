@@ -30,6 +30,7 @@ def _kst_today() -> date:
     return datetime.now(KST).date()
 
 
+from .guard import write_json as _gw   # asof 단조 가드 (date 역행 시 쓰지 않음)
 log = logging.getLogger(__name__)
 OUT = REPORT_DIR / "committee.json"
 HIST = REPORT_DIR / "committee_hist.json"
@@ -486,16 +487,16 @@ def build(session: str = "장후") -> dict:
         _v2_build(out, k, der, chains, themes, peers, cal, stu, _bucket(k, stu), _dl, session)
     except Exception as e:  # noqa: BLE001
         log.warning("운용회의 v2 실패: %s", e)
-    OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    _gw(OUT, out, key="date", default=str)
     _record(out)
     try:
         out["track"] = score()
-        OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+        _gw(OUT, out, key="date", default=str)
     except Exception as e:  # noqa: BLE001
         log.warning("운용회의 채점 실패: %s", e)
     try:
         out["track"] = {**(out.get("track") or {}), **_v2_track(out)}
-        OUT.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+        _gw(OUT, out, key="date", default=str)
     except Exception as e:  # noqa: BLE001
         log.info("운용회의 v2 성적 실패: %s", e)
     _archive("committee", out)
@@ -1531,7 +1532,7 @@ def build_us() -> dict:
            "scenarios": scen, "scenario_basis": {"basis": basis, "n": p.get("n")}, "sectors": secs,
            "ideas": {"long": [f(r) for r in longs[:10]], "avoid": [f(r) for r in avoid[:8]]}, "events": ev[:12],
            "kr_link": "한국 메모리 판단의 선행 지표: 빅테크 설비투자 가이던스(10/21 메타, 10/28 MSFT·구글, 10/29 아마존) · 마이크론 EPS 추정 · TSMC 가이던스"}
-    OUT_US.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    _gw(OUT_US, out, key="date", default=str)
     _archive("committee_us", out)
     log.info("미장 운용회의 생성")
     return out

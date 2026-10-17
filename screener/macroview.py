@@ -185,7 +185,8 @@ def build() -> dict:
         pass
     out = {"asof": max((r["date"] for r in rows), default=None), "score": round(score, 2) if score is not None else None,
            "label": label, "summary": summary, "rows": rows}
-    (REPORT_DIR / "macro_view.json").write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    from .guard import write_json
+    write_json(REPORT_DIR / "macro_view.json", out, default=str)
     try:
         _track(out, stats)
     except Exception as e:  # noqa: BLE001

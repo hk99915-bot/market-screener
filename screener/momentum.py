@@ -61,7 +61,8 @@ def ranks(full: pl.DataFrame, last: pl.DataFrame, market: str, top: int = 60) ->
     data = {"asof": str(last["date"].max()), "market": market, "n": len(out), "top": out[:top],
             "bottom": out[-20:][::-1]}
     REPORT_DIR.mkdir(exist_ok=True)
-    (REPORT_DIR / f"momentum_{market}.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    from .guard import write_json
+    write_json(REPORT_DIR / f"momentum_{market}.json", data)
     log.info("모멘텀 순위 %s %d종목", market, len(out))
     return out
 

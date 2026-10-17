@@ -264,8 +264,9 @@ def interpret(o: dict) -> list[str]:
 
 
 def build(backfill: int = 20) -> dict:
+    from .tradecal import is_session
     d = date.today()
-    while d.weekday() >= 5:
+    while not is_session("KR", d):   # 주말 + KRX 휴장일 (tradecal)
         d -= timedelta(days=1)
     want, cur = d, None
     for _ in range(5):
@@ -283,7 +284,7 @@ def build(backfill: int = 20) -> dict:
         if cur:
             break
         d -= timedelta(days=1)
-        while d.weekday() >= 5:
+        while not is_session("KR", d):
             d -= timedelta(days=1)
     if not cur:
         log.warning("KRX 옵션 데이터 없음")
@@ -291,6 +292,11 @@ def build(backfill: int = 20) -> dict:
     if d != want:   # 조용히 전일로 넘어가던 문제(10/16 화면이 10/15 로 남음) → 표시
         cur["stale"] = {"want": str(want), "got": str(d)}
         log.warning("옵션 보드: %s 수집 실패 → %s 값 사용(stale 표시)", want, d)
+        try:
+            from .guard import record_stale
+            record_stale("reports/derivs.json", "옵션 보드", want, d)
+        except Exception:  # noqa: BLE001
+            pass
     try:
         h = json.loads(HIST.read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
@@ -328,7 +334,8 @@ def build(backfill: int = 20) -> dict:
         log.info("코스피200 실현변동성 실패: %s", e)
     cur["notes"] = interpret(cur)
     cur["asof"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-    OUT.write_text(json.dumps(cur, ensure_ascii=False), encoding="utf-8")
+    from .guard import write_json
+    write_json(OUT, cur, key="date")   # asof 는 실행 시각 — 데이터일(date) 역행만 차단
     log.info("옵션 포지션: PCR %.2f GEX %s억 flip %s", cur.get("pcr_oi") or 0, cur.get("gex_bn"), cur.get("flip"))
     return cur
 

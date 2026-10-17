@@ -138,7 +138,8 @@ def write_markdown(market: str, status: str, last: pl.DataFrame, br: dict, anom:
     (REPORT_DIR / "signals").mkdir(exist_ok=True)
     (REPORT_DIR / "anomalies").mkdir(exist_ok=True)
     (REPORT_DIR / "daily" / f"{asof}_{market}.md").write_text(md, encoding="utf-8")
-    (REPORT_DIR / f"latest_{market}.md").write_text(md, encoding="utf-8")
+    from .guard import write_text
+    write_text(REPORT_DIR / f"latest_{market}.md", md, asof=asof)   # asof 역행이면 쓰지 않음
     last.select(COLS).sort("trend_score", descending=True).write_csv(REPORT_DIR / "signals" / f"{asof}_{market}.csv")
     if len(anom):
         anom.write_csv(REPORT_DIR / "anomalies" / f"{asof}_{market}.csv")

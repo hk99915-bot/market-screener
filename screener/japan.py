@@ -258,7 +258,8 @@ def build(fetch=None, jgb=None) -> dict:
          "index": idx, "carry": carry, "groups": groups, "sources": src,
          "why": "도쿄는 서울과 같은 9시에 열린다. 일본 반도체 장비·메모리·MLCC가 한국 반도체·삼성전기와 같이 움직이고, 엔화 급등(엔 캐리 청산)은 세계 위험자산을 한꺼번에 흔든다."}
     o["line"] = committee_line(o)
-    OUT.write_text(json.dumps(o, ensure_ascii=False, default=str), encoding="utf-8")
+    from .guard import write_json
+    write_json(OUT, o, key="date", default=str)
     log.info("일본: %s", o["line"] or "특이 없음")
     return o
 
