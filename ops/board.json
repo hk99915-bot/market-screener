@@ -804,7 +804,7 @@
     },
     {
       "id": "my-rules-secret",
-      "title": "MY_RULES 시크릿 SEMI_CAP 0.40 설정 — 사용자 직접",
+      "title": "MY_RULES 시크릿 등록 — 결재 #2 touch 줄 (pb-private secrets_gen.py 생성본) — 사용자 직접",
       "owner": "PB",
       "priority": "P1",
       "status": "대기",
@@ -812,8 +812,10 @@
       "due": "2026-10-17",
       "repo": "public",
       "files": [],
-      "depends_on": [],
-      "notes": "사용자가 저장소 Settings › Secrets 에서 직접. 값은 비율(0.40)만. 일요일 결정에 따라 0.35 로 바꿀 수 있으니 10/18 리뷰 후 재확인."
+      "depends_on": [
+        "integrity-p0-4"
+      ],
+      "notes": "사용자가 저장소 Settings › Secrets 에서 직접. 값은 비율(0.40)만. 일요일 결정에 따라 0.35 로 바꿀 수 있으니 10/18 리뷰 후 재확인. · 10/17 감사 A-08·B-08 정정(개발): 'SEMI_CAP 0.40' 단일값은 넣지 않는다(defs 레짐 연동이 덮임). 내용은 `python3 scripts/secrets_gen.py show MY_RULES`(pb-private) 로 생성, 등록 후 `mark MY_RULES`."
     },
     {
       "id": "quant-data-etf-hist",
@@ -2216,6 +2218,75 @@
       "files": [],
       "depends_on": [],
       "notes": "퀀트 요청(lab-p1 P1-T): 창고에 컨센서스 과거 이력 없음, data/dart.parquet 잠정실적 5일분(10/12~16)뿐 → P1-T는 확정 숫자 대용치(QoQ 개선+매출 YoY>0)로만 검정. 잠정실적 공시 이력(2021~) 적재되면 대용치 ① 재등록."
+    },
+    {
+      "id": "integrity-p0-1",
+      "title": "비공개 정합성 검사기 integrity_check.py (감사 P0-1 · E-06)",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "검수",
+      "started": "2026-10-17",
+      "due": "2026-10-18",
+      "repo": "private",
+      "files": [],
+      "depends_on": [],
+      "notes": "pb-private scripts/integrity_check.py + tests 21건. 원장 🗳️ 기한·키, '미체결/예정' 문구↔체결 기록, HANDOFF·history·PLAN 잔존, holdings↔isa_holdings·미결제·예적금, 일정 날짜 불일치·요일, 시크릿 낡음. 정정 전 스냅샷 치명 3/중 8/경 5(종료 1), 현재 원장 치명 0/중 7/경 4. 연결(세션 시작 훅·22:30 기록 예약)은 오너 결정 후 — 예약 변경. 설계·결과: docs/integrity_dev_plan_2026-10-17.md"
+    },
+    {
+      "id": "integrity-p0-2",
+      "title": "결재 ✅ → rules.txt 반영 현황 블록 + 미반영 검사 (감사 P0-2)",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-25",
+      "repo": "private",
+      "files": [],
+      "depends_on": [
+        "integrity-p0-1"
+      ],
+      "notes": "설계만(10/17 밤). rules.txt 는 월 14:42 판단 입력 + [13] 22~07시 규칙 변경 금지 → 월 장 후 생성기 착수, 본문 개정은 일요일 오너 결정. 설계: docs/integrity_dev_plan_2026-10-17.md §2"
+    },
+    {
+      "id": "integrity-p0-3",
+      "title": "14:42 PB 예약 프롬프트 규칙 하드코딩 제거 (감사 P0-3 · C-02)",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-20",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "notes": "예약 변경 — 월 장 전 금지. 월 14:42 1회는 현 프롬프트로 돌고 PB가 결재 #2·#3 과 수동 대조. 장 후 오너 확인 뒤 교체. 설계: docs/integrity_dev_plan_2026-10-17.md §3"
+    },
+    {
+      "id": "integrity-p0-4",
+      "title": "MY_HOLDINGS·MY_RULES 시크릿 생성기 + 낡음 감지 (감사 P0-4 · C-03)",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "검수",
+      "started": "2026-10-17",
+      "due": "2026-10-19",
+      "repo": "private",
+      "files": [],
+      "depends_on": [],
+      "notes": "pb-private scripts/secrets_gen.py show|write|check|mark — 생성본은 stdout·gitignore 경로만, 등록 기록은 해시만. MY_RULES 에 SEMI_CAP 단일값을 넣지 않음(defs 레짐 연동이 단일 출처, B-08). 실제 등록은 오너 직접. 공개 아침 점검 '낡음' 배지는 alerts/pb 경로(라이브) → 월 장 후. 설계: docs/integrity_dev_plan_2026-10-17.md §4"
+    },
+    {
+      "id": "integrity-p0-5",
+      "title": "HANDOFF 생성형 전환 (감사 P0-5)",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-25",
+      "repo": "private",
+      "files": [],
+      "depends_on": [
+        "integrity-p0-1"
+      ],
+      "notes": "설계 문서만(코드 X), 월 장 후 착수. 진행 중·대기 승인·예약·일요일 안건·커리어 절을 원장·이슈·예약 스냅샷에서 생성, 규칙 절은 CLAUDE.md 참조. 설계: docs/integrity_dev_plan_2026-10-17.md §5"
     }
   ]
 }

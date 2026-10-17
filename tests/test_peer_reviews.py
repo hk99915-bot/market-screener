@@ -5,11 +5,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DIR = ROOT / "docs" / "peer_reviews"
 SECTIONS = ("주장", "근거", "반증 가능 조건", "채점 3항목")
-AMOUNT = re.compile(r"\d[\d,.]*\s*(만|억)(?!\s*(명|건|주|개|배|년|일|회|p))")  # 300만·1.2억 등 원화 금액
+AMOUNT = re.compile(r"(?<![\d.])(?!0\.)\d[\d,.]*\s*(만|억)(?!\s*(명|건|주|개|배|년|일|회|p))")  # 300만·1.2억 등 원화 금액
+
+
+def _all():
+    return sorted(DIR.glob("*.md"))
 
 
 def _docs():
-    return sorted(DIR.glob("*.md"))
+    """반대 의견서만 — 감사 보고서(첫 제목에 '감사')는 양식이 달라 양식 린트 제외, 금액 금지는 전부 적용(10/17 정합성 감사 보고 추가 후)."""
+    out = []
+    for p in _all():
+        first = next((l for l in p.read_text(encoding="utf-8").splitlines() if l.startswith("# ")), "")
+        if "감사" not in first:
+            out.append(p)
+    return out
 
 
 def test_peer_reviews_exist():
@@ -39,7 +49,7 @@ def test_scoring_table_has_three_rows():
 
 
 def test_no_won_amounts():
-    for p in _docs():
+    for p in _all():
         hit = AMOUNT.search(p.read_text(encoding="utf-8"))
         assert hit is None, f"{p.name}: 원화 금액 금지 — '{hit.group(0)}'"
 
@@ -48,3 +58,4 @@ def test_amount_regex_catches_examples():
     assert AMOUNT.search("한도 300만으로 축소")
     assert AMOUNT.search("약 1.2억원")
     assert not AMOUNT.search("25% · 5종목 · −15%")
+    assert not AMOUNT.search("문구가 '테마 상한 0.40만'")   # '만' = '뿐' (비율 뒤)
