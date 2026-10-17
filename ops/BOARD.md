@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 101개 · 진행 6 · 검수 23 · 대기 38 · 보류 2 · 완료 32
+기준일 2026-10-17 · 작업 101개 · 진행 6 · 검수 23 · 대기 37 · 보류 2 · 완료 33
 
 ## 진행 (6)
 
@@ -43,7 +43,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (38)
+## 대기 (37)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -83,7 +83,6 @@
 | P2 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
 | P2 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
-| P3 | `user-gas-repaste-1017` | GAS Code.gs 재붙여넣기 — getAccum·getUsAccum·getCooldown 추가분 (Pages 화면은 이미 반영, GAS 웹앱만 해당) | 사용자 | 2026-10-17 | 2026-10-19 | `apps-script/Code.gs` | — | GAS 웹앱을 쓸 때만. 배포 → 배포 관리 → 새 버전. |
 | P3 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
 ## 보류 (2)
@@ -93,7 +92,7 @@
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 
-## 완료 (32)
+## 완료 (33)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -128,6 +127,7 @@
 | P2 | `life-health-panel` | LIFE 탭 건강 패널 (체성분 차트·운동·e1RM) | 헬스 | 2026-10-15 | — | `apps-script/Index.html` | — | 데이터는 pb-private에서 런타임 토큰으로만 읽음 — 공개 파일에 수치 없음. |
 | P2 | `phone-input` | 폰 빠른 입력 | LIFE | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
 | P2 | `playbook-verify` | 실행 대본 신호 검증 | 백테스트 | 2026-10-15 | — | `reports/studies/playbook_signals.*` | — | 운용회의 실행 대본(신호·시간대별 단계)의 신호가 과거에 실제로 통했는지. |
+| P3 | `user-gas-repaste-1017` | GAS Code.gs 재붙여넣기 — getAccum·getUsAccum·getCooldown 추가분 (Pages 화면은 이미 반영, GAS 웹앱만 해당) | 사용자 | 2026-10-17 | 2026-10-19 | `apps-script/Code.gs` | — | GAS 웹앱을 쓸 때만. 배포 → 배포 관리 → 새 버전. / PM 10/17: 화면은 Pages, GAS는 Scheduler 전용(복기 11) → Code.gs 재붙여넣기 불필요. |
 | P3 | `gas-freshness` | GAS Code.gs 재붙여넣기 — getFreshness 추가분(상단 신선도 배지) | 사용자 | — | 2026-10-24 | `apps-script/Code.gs` | — | GitHub Pages 화면은 바로 반영. GAS 웹앱은 Code.gs 를 다시 붙여넣기 전까지 배지가 숨겨짐(오류 없음). 다른 Code.gs 변경과 묶어서 1회. / PM 10/17: GAS는 Scheduler.gs 전용(복기 11), 화면은 Pages가 제공 → Code.gs 재붙여넣기 불필요, 종료. |
 
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
