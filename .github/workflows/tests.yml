@@ -5,7 +5,7 @@ name: tests
 on:
   push:
     branches: [main]
-    paths: ["screener/**", "scripts/**", "tests/**", "requirements.txt", ".github/workflows/tests.yml"]
+    paths: ["screener/**", "scripts/**", "tests/**", "docs/**", "requirements.txt", ".github/workflows/tests.yml"]
   pull_request:
   workflow_dispatch:
 
@@ -28,3 +28,17 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt pytest
       - run: python -m pytest -q
+
+  # slop 감사(자동 항목만) — 경고 주석만 남기고 워크플로는 실패시키지 않는다 (치명은 ::error 주석 + 보드 P0 로 사람이 처리).
+  slop-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 40
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/slop_audit.py --ci
