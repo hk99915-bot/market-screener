@@ -1427,6 +1427,97 @@
    "depends_on": [],
    "notes": "Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17.",
    "desk": "데이터"
+  },
+  {
+   "id": "px-adjust-unify",
+   "title": "KR 가격 조정 경로 통일 — 원본/조정 스키마 분리, decisions·track·momentum 등 parquet 직접 읽기 18곳을 공통 로더로",
+   "owner": "데이터",
+   "status": "대기",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/data_krx.py",
+    "screener/decisions.py",
+    "screener/prices.py"
+   ],
+   "started": null,
+   "due": "2026-10-19",
+   "depends_on": [],
+   "notes": "외부감사 10/17 P1 확인. 원본 parquet에 ±45% 시가갭 373건/343종목(13개월) → 휴리스틱 자체가 과검출 의심(거래정지·900xxx). 실제 기업행위(KRX/DART) 대조 + 분할·병합·정지 회귀테스트.",
+   "desk": "데이터"
+  },
+  {
+   "id": "bt-exec-lag",
+   "title": "포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시",
+   "owner": "백테스트",
+   "status": "대기",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/portfolios.py",
+    "tests/test_portfolios.py"
+   ],
+   "started": null,
+   "due": "2026-10-20",
+   "depends_on": [],
+   "notes": "외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부.",
+   "desk": "백테스트"
+  },
+  {
+   "id": "sim-oos",
+   "title": "트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보정, B&H·섹터 대비",
+   "owner": "퀀트",
+   "status": "대기",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/detail.py",
+    "reports/studies/trial_log.json"
+   ],
+   "started": null,
+   "due": "2026-10-24",
+   "depends_on": [
+    "px-adjust-unify"
+   ],
+   "notes": "Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인.",
+   "desk": "퀀트"
+  },
+  {
+   "id": "score-calib",
+   "title": "점수 보정 — Trend/Momentum/Reversal 분포·상한 도달 빈도, 구간별 5/20/60일 수익, 지표 제거 실험",
+   "owner": "퀀트",
+   "status": "대기",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    "screener/scoring.py",
+    "screener/indicators.py",
+    "tests/test_indicators_edge.py"
+   ],
+   "started": null,
+   "due": "2026-10-31",
+   "depends_on": [
+    "px-adjust-unify"
+   ],
+   "notes": "외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시.",
+   "desk": "퀀트"
+  },
+  {
+   "id": "pub-whitelist",
+   "title": "공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 감사",
+   "owner": "검증",
+   "status": "대기",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    ".github/workflows/*.yml",
+    "scripts/slop_audit.py"
+   ],
+   "started": null,
+   "due": "2026-10-31",
+   "depends_on": [],
+   "notes": "외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지.",
+   "desk": "검증"
   }
  ]
 }

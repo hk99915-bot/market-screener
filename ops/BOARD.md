@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 75개 · 진행 3 · 검수 22 · 대기 24 · 보류 2 · 완료 24
+기준일 2026-10-17 · 작업 87개 · 진행 3 · 검수 22 · 대기 35 · 보류 2 · 완료 25
 
 ## 진행 (3)
 
@@ -20,7 +20,7 @@
 | P0 | `semis-cap-study` | semis_cap 사전등록 검증 — 테마 한도 40% vs 35% vs 밴드(40/45/30) 백테스트 | 퀀트 | 2026-10-16 | 2026-10-18 | `reports/studies/semis_cap.md`<br>`reports/studies/semis_cap.json` | — | 결과 71f87fd9·c9fe8595: H1(밴드) C · H2(글라이드) A · H3(하락장 캡) F — 안건 7·8-A·8-C 의 데이터 근거. PB 검수 후 일요일 안건 팩에 등급 그대로 인용. 개인 비중 없이 파라미터만. |
 | P0 | `sunday-scorecard-auto` | 일요일 성적표 자동 생성: 규칙 준수·위반·알파(기준점 대비)·대결 전적(나🔥 감/판단 분리)·정합성 표 | 개발 | 2026-10-16 | 2026-10-18 | `scripts/scorecard_week.py`<br>`.github/workflows/lab.yml` | — | 개인 금액은 pb-private/scorecard/build_week.py 쪽에서, 공개는 비율만. |
 | P0 | `rebound-alert` | 14:25 반등일 판정 알림 (--mode rebound, cron + GAS 슬롯, 지수 비율만) | 운영 | 2026-10-16 | 2026-10-19 | `screener/rebound.py`<br>`screener/decisions.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | `gas-repaste` | 1ac92739. 다음 거래일 10/19 14:25 첫 실전 도착(GitHub cron·GAS 중복 억제) 확인 후 완료. 메시지에 개인 수치 없음 재확인. |
-| P0 | `sec-ytd-bug` | SEC 파서 YTD 누적치 결함 의심: 비(非)12월 결산사(MU 9월·SNDK 6월)의 ni/op/cfo/revenue가 분기마다 누적되는 모양 → 회계연도 기준 차감 로직 점검·수정, 12월 결산사도 대조. 수정 전까지 valuation_daily 해당 종목 '검증전' 강제 | 데이터 | 2026-10-17 | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인. |
+| P0 | `sec-ytd-bug` | SEC 파서 YTD 누적치 결함 의심: 비(非)12월 결산사(MU 9월·SNDK 6월)의 ni/op/cfo/revenue가 분기마다 누적되는 모양 → 회계연도 기준 차감 로직 점검·수정, 12월 결산사도 대조. 수정 전까지 valuation_daily 해당 종목 '검증전' 강제 | 데이터 | 2026-10-17 | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인. · 최종 판정(10/17 PB, 감사 요청): MU·SNDK 분기 순이익·매출은 누적치 아님 — 8-K 원문 대조 전부 일치(universe/fin_verified.json). P0 판정은 모양만 보고 내린 PB 오판(복기 9호). 실제 결함 = MU 현금흐름 1분기 공백(2fcf1180)·매출 태그 전환(8df55397). data.md 복기의 'MU 실제 누적' 문구는 데이터 데스크에 정정 요청. |
 | P0 | `order-ticket-form` | 주문표 폼 → decisions 기록(pick 이슈 경로 재사용): 종목·매수가·손절가·목표가·근거·보유기간, 실매매 전 필수 | 개발 | 2026-10-16 | 2026-11-09 | `screener/duel.py`<br>`screener/decisions.py`<br>`.github/workflows/pick.yml`<br>`apps-script/Index.html` | — | 해금 1단계(11/16) 필수 도구. 금액은 기록하되 공개 저장소엔 비율/모의 100만 환산만. |
 | P1 | `cmt-v2` | 운용회의 v2 — 멀티매니저 모닝 미팅 형식(신호등 결론·시계·탑다운·포지셔닝·섹터·바텀업·아이디어 TOP3·헤지·프리모템·성적) + 원천 교차 아이디어 추적 채점 + 장중 갱신·14:15 슬롯 | CIO | 2026-10-16 | 2026-10-17 | `screener/committee.py`<br>`apps-script/Index.html`<br>`screener/main.py`<br>`.github/workflows/briefing.yml`<br>`apps-script/Scheduler.gs` | — | 새 키만 추가(기존 stance·scenarios·ideas·derivs 유지). reports/ideas_log.json·ideas_attrib.json 은 예약 실행이 생성. GAS 재붙여넣기: Index.html·Scheduler.gs. 컨센서스·선물 외국인 수급은 데이터 없음. |
 | P1 | `dotplot` | 기명 점도표: 데스크별 자산(코스피·반도체·S&P500·미10년) 방향 점 + 지평 경과 채점(스코어보드) + 운용회의 카드 점 띠 | 개발 | 2026-10-16 | 2026-10-17 | `screener/dotplot.py`<br>`tests/test_dotplot.py`<br>`reports/dotplot.json`<br>`docs/desk_kb/_scoreboard.md` | — | 규칙은 모듈 문서문자열. 장후 운용회의(reports 모드) 뒤 자동 호출. 지수·업종 수준만, 금액 없음. |
@@ -39,7 +39,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (24)
+## 대기 (35)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -55,17 +55,28 @@
 | P1 | `alpha-baseline-fix` | 알파 기준점 미장 분을 10/16 미장 종가로 정정 (단일 리셋 — 일요일 1회) | 리스크 | — | 2026-10-18 | private 전용 | `sunday-review` | private 저장소 전용. 기준점 파일의 미장 평가는 10/15 종가로 적혀 있음 → 10/18 리뷰에서 1회 정정 후 잠금. |
 | P1 | `cio-memo` | CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·8-C·8-D 통합안) | CIO | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리. |
 | P1 | `frm-audit` | FRM 한도(VaR·연 변동성) 감사 — 60일 실현 변동성 기준 재계산, 테마 한도와 정합 | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만. |
+| P1 | `px-adjust-unify` | KR 가격 조정 경로 통일 — 원본/조정 스키마 분리, decisions·track·momentum 등 parquet 직접 읽기 18곳을 공통 로더로 | 데이터 | — | 2026-10-19 | `screener/data_krx.py`<br>`screener/decisions.py`<br>`screener/prices.py` | — | 외부감사 10/17 P1 확인. 원본 parquet에 ±45% 시가갭 373건/343종목(13개월) → 휴리스틱 자체가 과검출 의심(거래정지·900xxx). 실제 기업행위(KRX/DART) 대조 + 분할·병합·정지 회귀테스트. |
+| P1 | `bt-exec-lag` | 포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시 | 백테스트 | — | 2026-10-20 | `screener/portfolios.py`<br>`tests/test_portfolios.py` | — | 외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부. |
+| P1 | `detail-us-regress` | detail_us 수동 실행이 US 상세 기준일을 10/16→10/15로 되돌림 — 원인 규명·가드(asof 역행 시 덮어쓰기 금지) | 개발 | — | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 10/17 토 PB가 workflow_dispatch detail_us 실행 → 9ea9efbd 에서 580파일 asof 역행. PB가 부모 커밋 값으로 복원(신규 7종목 유지). 가드: 새 asof < 기존 asof 면 그 종목 건너뛰고 로그. |
 | P1 | `dotplot-neutral-rule` | 점도표: '중립' 점은 기본 시나리오 확률 + 위/아래 전환 조건(flip_up/flip_down) 필수 — 조건 없는 중립은 기록 거부. 텔레그램 줄에 '기본 X% · 위 조건 · 아래 조건' 표기 | 개발 | — | 2026-10-20 | `screener/dotplot.py`<br>`tests/test_dotplot.py` | `dotplot` | 10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외. |
+| P1 | `pbview-amount-wording` | PB 의견 생성 텍스트에서 원화 금액 제거(비율·'모의' 표기)·기저율 인용에 등급 꼬리표 | 개발 | — | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 감사 라운드1 PB 중: decisions.json pb_view '100만원·300만원' 금액 문장, n=12 기저율 등급 없음. 생성 프롬프트/템플릿 수정. |
 | P1 | `peer-review-valuation` | 피어 리뷰: 애널 밸류에이션 모델(정상화 ROE·할인율·멀티플/EPS 분해) 독립 검토 + 10/16 반도체 논지(theses) 반대 의견서 — 매주 월요일 | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/valuation_YYYY-MM-DD.md`<br>`docs/desk_kb/analyst.md` | `valuation-daily` | 피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당. |
+| P1 | `secret-missing-warning` | 시크릿 없음(MY_RULES·MY_HOLDINGS) → 조용히 건너뛰지 말고 아침 점검·health에 '꺼져 있음' 1줄 | 개발 | — | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 10/17 발견: 두 시크릿이 처음부터 없어 발동선·PB 점검이 이틀간 미작동, 아무도 모름. '꺼짐'과 '조건 미충족'을 구분 표기. |
 | P1 | `ra-sec-coverage` | RA: SEC·DART 커버리지 확장 — 반도체 바스켓 전체(PSI·SOXX 구성 30+종목, 하이닉스 ADR 없음→DART), 실적 발표일·컨센서스 EPS(무료 소스 조사) 수집 파이프라인 | 데이터 | — | 2026-10-21 | `universe/us_priority.csv`<br>`screener/sec.py`<br>`screener/earnings_cal.py`<br>`reports/earnings_cal.json` | `valuation-daily` | 컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지. |
+| P1 | `sim-oos` | 트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보정, B&H·섹터 대비 | 퀀트 | — | 2026-10-24 | `screener/detail.py`<br>`reports/studies/trial_log.json` | `px-adjust-unify` | Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
 | P2 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. |
 | P2 | `ra-etf-holdings-full` | RA: ETF 구성종목 전체 목록 수집(PSI·SOXX·SMH·139260·091160) → 룩스루·밸류에이션 바스켓 자동 갱신 | 데이터 | — | 2026-10-23 | `screener/etf.py`<br>`reports/detail/US/*.json` | — | 현재 상위 7개만 저장됨. |
+| P2 | `quiz-key-balance` | 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why) | 교육 | — | 2026-10-24 | `content/study/quiz_bank.json`<br>`scripts/study_content_check.py`<br>`tests/test_study_content.py` | `study-progress` | 교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. |
 | P2 | `ra-sector-frames` | RA: 국장 리서치(research.json)에서 섹터별 분석 프레임(지표 체크리스트) 추출 → docs/desk_kb/analyst.md 섹터 섹션. 원문 복제 금지, 지표명·빈도만 | 데이터 | — | 2026-10-24 | `scripts/research_frames.py`<br>`docs/desk_kb/analyst.md` | — | 실존 애널 개인 페르소나 금지. 하우스 단위도 공개엔 이름 없이. |
 | P2 | `peer-earnings-preview` | 피어: 실적 시즌 프리뷰 — 10/29 삼성·MU(12월)·하이닉스 컨센서스 대비 시나리오 3개(상·기본·하)와 주가 반응 통계(과거 실적일 ±1일) | 피어리뷰 | — | 2026-10-27 | `reports/studies/earnings_reaction.md` | `ra-sec-coverage` | '한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함. |
 | P2 | `ra-house-scoreboard` | RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일 수익률·낙관 편향(목표가 인플레) 스코어보드 — 참고 경보용, 가중치 아님 | 데이터 | — | 2026-10-28 | private 전용 | `ra-sector-frames` | 표본 n<10 하우스는 미표시. 개인명 저장 금지. |
 | P2 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
 | P2 | `desk-scoreboard-monthly` | 데스크 성적표·복기 월례: ideas_attrib·decisions tally·연구 등급·재현 결과를 docs/desk_kb/_scoreboard.md로 모으고 각 데스크 KB '복기' 3줄 갱신 | PM | — | 2026-10-31 | `docs/desk_kb/_scoreboard.md`<br>`docs/desk_kb/*.md`<br>`scripts/desk_scoreboard.py` | — | 첫 회 10/31. 데스크 프롬프트 템플릿에 'KB+최근 복기 3건 읽기' 포함(HANDOFF). |
+| P2 | `pub-whitelist` | 공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 감사 | 검증 | — | 2026-10-31 | `.github/workflows/*.yml`<br>`scripts/slop_audit.py` | — | 외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지. |
+| P2 | `score-calib` | 점수 보정 — Trend/Momentum/Reversal 분포·상한 도달 빈도, 구간별 5/20/60일 수익, 지표 제거 실험 | 퀀트 | — | 2026-10-31 | `screener/scoring.py`<br>`screener/indicators.py`<br>`tests/test_indicators_edge.py` | `px-adjust-unify` | 외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시. |
+| P2 | `pro-plan-round-scale` | Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·우선 데스크, 21:10 자동 라운드 교체 | PM | — | 2026-11-05 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17. |
+| P2 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
 
 ## 보류 (2)
@@ -75,10 +86,11 @@
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 
-## 완료 (24)
+## 완료 (25)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
+| P0 | `audit-life-target-amount` | LIFE 탭 제목 '순자산 목표 금액' 공개 노출 제거 → 금액 없는 문구('순자산 목표 진행률')로, 금액은 비공개 데이터에서만 | 개발 | — | 2026-10-17 | `apps-script/tab_life.html`<br>`scripts/build_pages.py` | — | 감사 지적(audit 10/17, 기준서 (e) 치명): apps-script/tab_life.html:28 <h2> 에 개인 순자산 목표 금액이 공개 저장소·Pages 에 노출. 같은 누출의 docs/rules_terms.md:73·scripts/scorecard_week.py:351·reports/scorecard_week.md:143 은 감사 예외로 즉시 치환함(커밋 '감사: 금액 누출 제거'). tab_life.html 은 잠금 파일이라 개발 데스크 요청. 공개 이력(git) 정리 여부는 PB→오너 결정. · 10/17 PB 처리 4322d72f |
 | P1 | `ops-system` | 운영 체계 (작업 보드·잠금·함수 소실 검사·변경 이력·SYSTEM 탭) | 운영 | 2026-10-15 | 2026-10-15 | `ops/*`<br>`scripts/changelog.py`<br>`scripts/board.py`<br>`scripts/lock.py`<br>`scripts/check_functions.py`<br>`scripts/ops_runs.py`<br>`.github/workflows/ops.yml`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py`<br>`reports/changelog.json`<br>`reports/ops/*` | — | Index.html 동시 편집으로 함수가 지워진 회귀(myRun) 재발 방지. 에이전트 규약은 ops/README.md. |
 | P1 | `agreements-ledger` | 합의 원장 신설 (대화 합의 → ✅시행/🗳️일요일/🔒약속 한 장) | PB | 2026-10-16 | 2026-10-16 | private 전용 | — | private 저장소 전용. 새 세션은 이 원장부터 읽는다. 일요일 리뷰 후 ✅확정분을 규정 파일로 옮기는 건 sunday-review 산출물. |
 | P1 | `earn-brief-pb` | 보유 종목 실적 브리프 (비공개) | 애널 | 2026-10-16 | 2026-10-16 | private 전용 | — | 검수(PB 10/16): private 리포트 존재·확정/미확인 구분·캘린더 날짜 일치 확인. |
