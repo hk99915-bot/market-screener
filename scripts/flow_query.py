@@ -9,6 +9,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 from datetime import date, datetime, timedelta, timezone
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -131,6 +132,7 @@ def main():
     ap.add_argument("--days", type=int, default=400)
     a = ap.parse_args()
     os.makedirs("reports/flowq", exist_ok=True)
+    failed = []
     for c in a.codes:
         try:
             try:
@@ -142,11 +144,19 @@ def main():
                 out = naver_api(c)
             if not out.get("rows"):
                 out = naver(c)
+            out["status"] = "ok" if out.get("rows") else "fail"
             json.dump(out, open(f"reports/flowq/{c}.json", "w"), ensure_ascii=False)
             log.info("%s: %d행 asof %s", c, len(out["rows"]), out["asof"])
+            if out["status"] == "fail":
+                failed.append(c)
         except Exception as ex:  # noqa: BLE001
             log.error("%s 실패: %s", c, ex)
+            failed.append(c)
             json.dump({"code": c, "error": str(ex)[:300]}, open(f"reports/flowq/{c}.json", "w"), ensure_ascii=False)
+
+    if failed:   # 0행·예외 = 실패 (실행 성공 ≠ 데이터 정확, 10/17 레슨런 1)
+        log.error("수급 조회 실패: %s", " ".join(failed))
+        sys.exit(1)
 
 
 if __name__ == "__main__":
