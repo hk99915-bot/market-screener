@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import datetime
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
@@ -120,6 +121,73 @@ def run(send: bool = True) -> dict | None:
 # ── 미장 진입 타점 대결: 22:00 KST(미 장 시작 전) 판정 → 그날 시가 진입, 종가 청산 ─────────────
 US_NAMES = {"SPY": "SPY (S&P500)", "QQQ": "QQQ (나스닥100)", "SOXX": "SOXX (반도체)", "SQQQ": "SQQQ (나스닥 -3x)"}
 US_EX_LBL = {"same_close": "당일 종가", "d5_close": "5거래일째 종가"}
+
+
+# ── 레버리지 ETF 일일 리셋 비용(변동성 끌림) — 결재 #14 ① 코드 근거 ────────────────────────────
+# 레버리지 ETF 는 '일일' 수익률의 L배를 목표로 매일 리셋한다. 여러 날 보유 수익 = Π(1 + L·r_i) − 1 이고,
+# 지수 누적 수익의 L배와 다르다 (SEC·FINRA Investor Alert 2009 / Cheng & Madhavan 2009: 끌림 ≈ (L − L²)/2 · σ²T).
+_LEV_KR = {"122630": 2, "233740": 2, "251340": -1, "114800": -1, "252670": -2, "253150": 2, "253160": -1, "123320": 2, "123310": -1,
+           "130730": 2, "152500": 2}
+_LEV_US_3 = ("SOXL", "SOXS", "TQQQ", "SQQQ", "UPRO", "SPXU", "SPXL", "SPXS", "UDOW", "SDOW", "TNA", "TZA", "TECL", "TECS", "LABU", "LABD",
+             "FNGU", "FNGD", "YINN", "YANG", "KORU", "NUGT", "DUST", "JNUG", "JDST", "TMF", "TMV", "ERX", "ERY", "DRN", "DRV", "FAS", "FAZ",
+             "CURE", "WEBL", "WEBS", "BRKU", "BRKD")
+_LEV_US_2 = ("QLD", "QID", "SSO", "SDS", "BOIL", "KOLD", "UCO", "SCO", "TBT", "NVDL", "TSLL", "MSTU", "MSTZ", "CONL", "AMDL", "PLTU",
+             "BITU", "BITI", "ETHU", "UVIX", "SVIX")
+_LEV_US_INV = ("SOXS", "SQQQ", "SPXU", "SPXS", "SDOW", "TZA", "TECS", "LABD", "FNGD", "YANG", "DUST", "JDST", "TMV", "ERY", "DRV", "FAZ",
+               "WEBS", "BRKD", "QID", "SDS", "KOLD", "SCO", "TBT", "MSTZ", "BITI")
+
+
+def lev_factor(code: str, name: str = "", market: str = "KR") -> int:
+    """레버리지 배수(부호 포함). 일반 ETF·주식 = 0. KR: 코드표 + 이름(레버리지 2 / 인버스 −1 / 인버스2X −2). US: 티커표 + 이름(2x·3x·Bull·Bear)."""
+    code, n = str(code or "").upper(), str(name or "")
+    if market == "KR":
+        if code in _LEV_KR:
+            return _LEV_KR[code]
+        if "인버스2X" in n.replace(" ", "") or ("인버스" in n and "2X" in n.upper()):
+            return -2
+        if "인버스" in n:
+            return -1
+        return 2 if "레버리지" in n else 0
+    sign = -1 if (code in _LEV_US_INV or re.search(r"\b(Bear|Inverse|Short)\b", n, re.I)) else 1
+    if code in _LEV_US_3 or re.search(r"\b3x\b", n, re.I):
+        return 3 * sign
+    if code in _LEV_US_2 or re.search(r"\b2x\b|\bUltra\b", n, re.I):
+        return 2 * sign
+    return 0
+
+
+def lev_drag(rets: list[float], lev: float) -> dict:
+    """일일 수익률 r_i 열에 대해: etf = Π(1+L·r_i)−1 (일일 리셋 복리), index = Π(1+r_i)−1, naive = L·index(초보가 기대하는 값),
+    drag = etf − naive (%p, 보통 음수 = 변동성 끌림). 전부 소수(0.01 = 1%)."""
+    etf, idx = 1.0, 1.0
+    for r in rets:
+        etf *= 1 + lev * r
+        idx *= 1 + r
+    etf, idx = etf - 1, idx - 1
+    return {"etf": etf, "index": idx, "naive": lev * idx, "drag": etf - lev * idx, "days": len(rets), "lev": lev}
+
+
+def lev_drag_note(name: str, lev: float, days: int = 5, swing: float = 0.03) -> str:
+    """결정 기록에 붙이는 한 줄 — 지수가 ±swing 을 days 일 번갈아 오갈 때(끝은 거의 제자리) 레버리지 ETF 가 얼마를 잃는지.
+    예) SOXL 3배, 2일 ±3% 왕복: 지수 −0.09% · 3배 기대 −0.27% · 실제 −0.81% (끌림 −0.54%p). 홀수 보유일은 짝수로 내림."""
+    days = max(2, int(days) - int(days) % 2)   # 짝수일 = 지수가 거의 제자리로 돌아오는 '왕복' 그림
+    rets = [swing if i % 2 == 0 else -swing for i in range(days)]
+    x = lev_drag(rets, lev)
+    return (f"{name} {lev:+g}배 일일 리셋 — {days}일 보유·지수 ±{swing*100:.0f}% 왕복 가정: 지수 {x['index']*100:+.2f}% → "
+            f"{lev:g}배 기대 {x['naive']*100:+.2f}% vs 실제 {x['etf']*100:+.2f}% (끌림 {x['drag']*100:+.2f}%p). 보유 길수록·흔들릴수록 커진다")
+
+
+_HOLD_DAYS = {"next_open": 2, "same_close": 2, "next_close": 2, "d5_close": 5, "trail": 20}
+
+
+def lev_note_for_pick(pick: dict, market: str = "KR") -> str | None:
+    """pick dict 에 레버리지 ETF 가 들어 있으면 끌림 한 줄, 아니면 None. 보유일은 청산 방식에서 추정(trail 은 20일 가정)."""
+    if not pick or pick.get("cash"):
+        return None
+    lev = lev_factor(pick.get("ticker", ""), pick.get("name", ""), market)
+    if not lev:
+        return None
+    return lev_drag_note(pick.get("name") or pick.get("ticker"), lev, _HOLD_DAYS.get(pick.get("exit"), 5))
 
 
 def us_date(now: datetime | None = None) -> str:
@@ -253,10 +321,11 @@ def _apply_issue_us(title: str, body: str, created_at: str) -> str:
         it = _us_item(d) | {"note": "PB 판정 없음(겸이 단독 기록)"}
         it["picks"]["PB"] = {"cash": True}
         data["items"].append(it)
-    it["picks"]["나"] = pick | {"submitted": tk.strftime("%H:%M")}
+    ln = lev_note_for_pick(pick, "US")
+    it["picks"]["나"] = pick | {"submitted": tk.strftime("%H:%M")} | ({"lev_drag": ln} if ln else {})
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     return (f"기록 완료 ✅ 미장 {d} 나: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 시가 진입 → {US_EX_LBL[pick['exit']]} 청산")
-            + f" (제출 {tk:%H:%M} KST)")
+            + f" (제출 {tk:%H:%M} KST)" + (f"\n⚠ {ln}" if ln else ""))
 
 
 def apply_issue(title: str, body: str, created_at: str) -> str:
@@ -296,9 +365,10 @@ def apply_issue(title: str, body: str, created_at: str) -> str:
         lines = [x.strip() for x in (body or "").strip().splitlines()[1:] if x.strip()]
         why = re.sub(r"^근거\s*[:：]\s*", "", lines[0]) if lines else ""
         pick = pick | {"why": why or "감", "basis": "판단" if why and why != "감" else "감"} | ({} if pick.get("cash") else {"notional": float(NOTIONAL)})   # 공격 픽은 100만 고정
-    it["picks"][slot] = pick | {"submitted": t.strftime("%H:%M")}
+    ln = lev_note_for_pick(pick, "KR")
+    it["picks"][slot] = pick | {"submitted": t.strftime("%H:%M")} | ({"lev_drag": ln} if ln else {})
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    return f"기록 완료 ✅ {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})"
+    return f"기록 완료 ✅ {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})" + (f"\n⚠ {ln}" if ln else "")
 
 
 # ── 매도 타점 대결: '지금 팔까(손절·익절) 말까' ─────────────────────────────
@@ -554,6 +624,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
     if ex_msgs:
         msg += ["", "<b>보유 종목 매도 타점</b> (5거래일 뒤 종가 채점)", *ex_msgs]
     if send:
-        from .report import send_telegram
-        send_telegram("\n".join(m for m in msg if m is not None))
+        from .report import loud, send_telegram
+        body = "\n".join(m for m in msg if m is not None)
+        send_telegram(body, disable_notification=not loud(body))   # 결재 #9: 주문표 ⛔ 거부 때만 소리
     return ("PB 판단 기록(미장): " if us else "PB 판단 기록: ") + ("현금" if pk.get("cash") else pk["name"])

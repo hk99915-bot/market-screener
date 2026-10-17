@@ -16,6 +16,8 @@
   · 09:00–09:30 KST(국장) / 09:30–10:00 ET(미장) 제출 → 거부
   · 레버리지·인버스 ETF(2027-04-15 까지) → 거부
   · 당일 서킷브레이커·사이드카 발동(reports/events.json) / CPI·FOMC 당일(reports/calendar.json) → 신규 진입 거부
+  · 매도·판정·포상 후 30분 쿨다운(결재 #14 ③): 최근 매도(`exit` 이슈 '매도')·주문표 판정·env COOLDOWN_LAST_AT 시각 +30분 이내 제출 → 거부
+    (근거: 10/16 보상 직후 레버리지 충동 — 하우스머니·면허 효과, kb:behavior#3·#8·#22)
   · 1회 리스크 = 위성 북 × r → 최대 수량 = 리스크 ÷ (매수가 − 실효 손절가)
     위성 북 = env SAT_BOOK_KRW (없으면 3,000,000 모의), r = env RISK_PCT(%) (없으면 0.25, 1단계)
 
@@ -28,11 +30,11 @@ import logging
 import math
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import quote
 
 from .config import REPORT_DIR
-from .duel import ET, KST, NAMES, REPO, US_NAMES
+from .duel import ET, KST, NAMES, REPO, US_NAMES, lev_drag_note, lev_factor
 
 log = logging.getLogger(__name__)
 
@@ -52,6 +54,8 @@ US_LEV_RE_NAME = re.compile(r"(2x|3x|Bull|Bear|Ultra|Leveraged|Inverse|Daily)", 
 EVT_HALT = re.compile(r"서킷|사이드카|circuit|sidecar", re.I)
 EVT_HALT_NEAR = re.compile(r"경보|근처|해제", re.I)
 CAL_MACRO = re.compile(r"\bCPI\b|FOMC|소비자물가", re.I)
+COOLDOWN_MIN = 30                  # 매도·판정·포상 후 신규 주문표 금지 (결재 #14 ③)
+COOLDOWN_ENV = "COOLDOWN_LAST_AT"  # 포상·장외 매도 등 기록에 없는 시각을 수동으로 — ISO 또는 'YYYY-MM-DD HH:MM'(KST)
 
 
 def _j(p):
@@ -157,6 +161,63 @@ def _macro_today(d: str) -> list[str]:
     return [e.get("name") for e in cal if e.get("date") == d and CAL_MACRO.search(str(e.get("name") or ""))]
 
 
+def _parse_kst(s: str | None) -> datetime | None:
+    """'YYYY-MM-DD HH:MM'(KST 가정) 또는 ISO(Z 포함) → tz-aware datetime. 실패하면 None."""
+    if not s:
+        return None
+    try:
+        t = datetime.fromisoformat(str(s).strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t.replace(tzinfo=KST) if t.tzinfo is None else t
+
+
+def cooldown_events(items: list[dict] | None = None) -> list[tuple[datetime, str]]:
+    """쿨다운 기준 시각 목록 [(시각, 라벨)] — 저장소 안 데이터 + env 만.
+    · kind 'exit' 이고 '나'가 매도(cash) → 매도 시각 (picks.나.submitted 'HH:MM' 또는 basis.at)
+    · kind 'ticket' → 판정 시각 (submitted 'YYYY-MM-DD HH:MM')
+    · env COOLDOWN_LAST_AT → 포상·장외 매도 등 수동 시각"""
+    if items is None:
+        from . import decisions
+        items = decisions.load().get("items") or []
+    out: list[tuple[datetime, str]] = []
+    for it in items:
+        k = it.get("kind")
+        if k == "exit":
+            me = (it.get("picks") or {}).get("나") or {}
+            if not me.get("cash"):
+                continue
+            at = f"{it.get('date')} {me['submitted']}" if me.get("submitted") else (it.get("basis") or {}).get("at")
+            t = _parse_kst(at)
+            if t:
+                out.append((t, f"매도 {it.get('name') or it.get('title', '')}".strip()))
+        elif k == "ticket":
+            t = _parse_kst(it.get("submitted"))
+            if t:
+                out.append((t, f"주문표 판정 {it.get('name') or it.get('code', '')} {it.get('verdict', '')}".strip()))
+    t = _parse_kst(os.environ.get(COOLDOWN_ENV))
+    if t:
+        out.append((t, "수동 기록(포상·매도)"))
+    return out
+
+
+def cooldown_hit(t: datetime, items: list[dict] | None = None, minutes: int = COOLDOWN_MIN) -> str | None:
+    """t 가 최근 매도·판정·포상 시각 +minutes 이내면 거부 사유 문자열, 아니면 None. 미래 시각(t 이후)은 무시."""
+    win = timedelta(minutes=minutes)
+    last = None
+    for at, lbl in cooldown_events(items):
+        if at <= t < at + win and (last is None or at > last[0]):
+            last = (at, lbl)
+    if not last:
+        return None
+    left = int(((last[0] + win) - t).total_seconds() // 60) + 1
+    return f"{lbl_at(last[0])} {last[1]} 후 {minutes}분 쿨다운 — 신규 주문표 거부 ({left}분 뒤 가능; 결재 #14 ③)"
+
+
+def lbl_at(t: datetime) -> str:
+    return t.astimezone(KST).strftime("%H:%M")
+
+
 def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
     """규칙 검사 → {verdict, reasons, rr, stop_eff, risk_ps, qty_max, half, ...}. 네트워크 없음."""
     code, mk = tk["code"], tk["market"]
@@ -181,6 +242,9 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
         reject.append(f"손익비 1:{rr if rr is not None else '—'} < 1:{MIN_RR:.0f} — 진입 금지")
     if is_leveraged(code, name, mk) and d <= LEV_BAN_UNTIL:
         reject.append(f"레버리지·인버스 금지 (~{LEV_BAN_UNTIL})")
+    if is_leveraged(code, name, mk):   # 결재 #14 ①: 금지 여부와 무관하게 리셋 비용(변동성 끌림)을 숫자로 남긴다
+        lv = lev_factor(code, name, mk) or 2
+        notes.append(lev_drag_note(name, lv, max(2, int(tk.get("horizon_days") or 5))))
     hm = tk_kst.hour * 60 + tk_kst.minute if mk == "KR" else tk_et.hour * 60 + tk_et.minute
     lo, hi, lbl = (540, 570, "09:00–09:30 KST") if mk == "KR" else (570, 600, "09:30–10:00 ET")
     if lo <= hm < hi:
@@ -189,6 +253,9 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
         reject.append(f"당일 {h} — 장중 신규 진입 금지")
     for mname in _macro_today(d):
         reject.append(f"{mname} 당일 — 장중 신규 진입 금지")
+    cd = cooldown_hit(t)
+    if cd:
+        reject.append(cd)
     rsi, ret1 = st.get("rsi14"), st.get("ret1")
     if isinstance(rsi, (int, float)) and rsi > 70:
         half.append(f"RSI14 {rsi:.0f} > 70 — 추격, 절반 사이징")
