@@ -16,6 +16,21 @@
 | 테스트 | 약 230건 (10/17 하루 +60) | CI: pytest + slop-audit(경고) |
 | 동시 작업 | 데스크 14+ · 잠금 규약 · 10/17부터 worktree 규약 | |
 
+### 10/17 실행 시 측정 (단계 0 · 개발2 · 10/17 13:51 KST, 출처 = 이 저장소 origin/main 2582cd46·Actions API)
+측정 창: 직전 24시간 = `a7ae0a66`(10/16 13:50 KST) .. origin/main, 커밋 336건(병합 제외 338). 크기는 `git rev-list --objects A..B | git pack-objects --stdout | wc -c`(delta 압축 후 실제 pack 증가분).
+| 항목 | 값 | 식·비고 |
+|---|---|---|
+| **하루 pack 증가** | **128 MB(push 기준 thin) ~ 149 MB(독립 pack)** | 24h 신규 객체. 로컬 `count-objects` 는 pack 334.7 MB + loose 134 MB(.git 473 MB) — 얕은 복제·fetch 시 loose 로 쌓여 기준선(469/335)과 직접 비교 불가 → pack-objects 로 대체 |
+| 경로별 증가(pack) | data/fin 79.3 · detail/KR 22.0 · **detail/US 18.1** · data/hist 16.0 · kr_prices 8.4 · 나머지 ≈ 5 (MB/일) | detail 합계 40.5 MB(27%), data/fin+hist 95 MB(64%) |
+| 정상 상태 추정 | 약 70~80 MB/일 [가정: fin 은 10/16 수동 백필 5회 → 평시 1회(≈20 MB), hist 주 1회] | 그래도 게이트(20 MB/일)의 3~4배 → **A1 진행** |
+| 5 GB 도달 | 현재 pack 335 MB 기준 (5,000−335)/75 ≈ 62일 → **2026-12 중순** [가정: 75 MB/일 일정] | tech_review 추정(2027-01~04)보다 빠름 |
+| 봇 커밋 크기 분포(비압축 신규 blob) | p50 8.3 KB · p90 548 KB · p99 32 MB · 최대 96.8 MB | `report:` 2건 129 MB · `briefing:` 11건 88 MB · `fin:` 6건 87 MB · `live:` 108건 0.9 MB(건수만 많고 크기 무시 가능) |
+| 상세 JSON 평균 | US 588개 26 MB(평균 45 KB) · KR 1,486개 84 MB(평균 57 KB) | 실행 1회 = 폴더 통째 재기록 |
+| Pages 배포 방식 | **브랜치 배포**(main / root, `pages-build-deployment` 동적 워크플로) | 최근 30회 중 성공 5회·취소 25회(새 푸시가 앞 빌드 취소) |
+| Pages 빌드 시간 | 성공 건 52~56초 (04:39~04:48 UTC 3건) | 합친 사이트 산출물(US 상세 포함, data/fin·hist·parquet 제외) 124 MB · 2,457파일 |
+
+**단계 0 결론**: 증가 속도가 게이트를 크게 넘으므로 A1 시범 진행. 단, **US 상세만 옮기면 하루 18 MB(12%)만 준다** — 큰 몫은 data/fin parquet(79 MB, 백필일 기준)과 KR 상세(22 MB). 단계 4 결정 때 "KR 상세 + data/fin" 이전이 실효의 대부분.
+
 ## 2. 문제 목록 — 오늘 실제로 난 사건 기준
 ### 데이터
 - **D1 저장소 비대**: 상세 JSON 2,000여 개를 실행마다 덮어써 커밋 → 매 실행이 수십 MB 새 객체. GitHub 권장 상한(저장소 1~5 GB)에 몇 주~몇 달 안에 닿을 수 있음(tech_review 10/15 추정: 2027-01~04 5 GB). **증가 속도 실측 없음** → 일요일 첫 작업.
@@ -64,6 +79,15 @@
 | 5 | 감사·검증 라운드: PB 직접 커밋·리팩토링 커밋 전수 감사 | 감사·검증 | 치명 0 | 1시간 |
 
 에이전트 수: 동시 3개 이하(Pro 리허설 겸). 각 단계는 별도 worktree·별도 커밋, 실패 시 그 단계만 revert.
+
+### 단계 3 실행 결과 (10/17 · 개발2) — 1단계(이중 기록) 준비 완료, **기본 꺼짐**
+- `scripts/data_branch.py` push/pull/site: 고아 커밋 1개로 `data` 강제 갱신(이력 없음), `_index.json` asof 역행·파일 수 절반 미만이면 push 거부, 원격이 과거면 덮지 않음. 테스트 `tests/test_data_branch.py` 6건.
+- `origin/data` 생성 완료(ad4ffec9, US 상세 588파일(색인 포함), asof 10/16, 커밋 1개).
+- `.github/workflows/pages.yml`: main 체크아웃 + data 덮어쓰기 → `upload-pages-artifact` → `deploy-pages`. `vars.PAGES_ACTIONS=1` 전엔 푸시로 돌지 않음, 수동 실행은 빌드만.
+- 검증: main 에서 US 상세를 지운 2단계 모의 트리로 사이트를 합쳐 `ui_smoke.py --root _site` → 홈·리포트·신선도·**US 검색(AAPL·US)·팝업(색인 200·AAPL.json 200, 4,566자)** 정상. 화면 fetch 경로는 상대경로라 **UI 변경 없음**.
+- main 크기 변화: 1단계(이중 기록)는 0. 2단계(main 에서 US 상세 제거) 시 **−18 MB/일(pack)**, KR 까지 −40 MB/일.
+- **오너 할 일(1단계 켜기)**: Settings → Pages → Build and deployment → Source = "GitHub Actions" → Settings → Secrets and variables → Actions → Variables 에 `PAGES_ACTIONS`=`1`, `DATA_BRANCH_US`=`1`. 되돌리기 = Source "Deploy from a branch / main / (root)" + 변수 삭제.
+- **2단계(main 에서 US 상세 제거) 남은 일** — 운영 잠금(briefing·screener·health.yml) 풀린 뒤 + 월요일 장 운영 1회 확인 뒤: ① 상세를 읽고 쓰는 워크플로(briefing·screener·health) 실행 전 `python3 scripts/data_branch.py pull reports/detail/US`, 저장 단계에 `push` ② `.gitignore` 에 `reports/detail/US/` + `git rm -r --cached` ③ `apps-script/Code.gs` `raw_` 의 US 상세 경로를 `.../data/...` 로(GAS 웹앱은 raw main 을 읽음 — 오너 GAS 재배포 1회).
 
 ## 5. 하지 않을 것
 - git 이력 재작성(A4), committee.py 분할(D), 새 데이터 소스 추가, 화면 디자인 변경.
