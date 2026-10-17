@@ -71,6 +71,46 @@ function mySync(cb){ const tk=ghTok(); if(!tk){ MYSYNC={st:'토큰 없음'}; cb&
     .catch(e=>{ MYSYNC={st:'실패('+e.message+') — 토큰 권한·만료 확인'}; cb&&cb(false); }); }
 let MYSYNCED=false;
 function myOpen(){ try{ return localStorage.getItem('mt_myopen')==='1'; }catch(e){ return false; } }
+// ───── 일기·히스토리 보기 + 회고 쓰기 (10/17 겸이) — pb-private 를 이 브라우저에서만 읽고 씀. 공개 서버 경유 없음
+const _u8=t=>new TextEncoder().encode(t), _b64u=t=>{ let s=''; _u8(t).forEach(b=>s+=String.fromCharCode(b)); return btoa(s); }, _ub64u=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\n/g,'')),c=>c.charCodeAt(0)));
+async function ghGet(path){ const tk=ghTok(); if(!tk) throw new Error('토큰 없음 — 위 "토큰 설정"에서 연결');
+  const r=await fetch(PBAPI+path+'?t='+Date.now(),{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github+json'},cache:'no-store'}); if(!r.ok) throw new Error('읽기 실패 '+r.status); return r.json(); }
+function mdLite(md){ const L=String(md).split('\n'), out=[]; let tb=null, ul=false;
+  const inl=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  const flush=()=>{ if(tb){ out.push('<table>'+tb.filter(r=>!/^\s*\|?\s*:?-{2,}/.test(r)).map((r,k)=>'<tr>'+r.replace(/^\s*\||\|\s*$/g,'').split('|').map(c=>k?`<td class="l">${inl(c.trim())}</td>`:`<th class="l">${inl(c.trim())}</th>`).join('')+'</tr>').join('')+'</table>'); tb=null; } if(ul){ out.push('</ul>'); ul=false; } };
+  for(const l of L){ if(/^\s*\|/.test(l)){ if(ul){out.push('</ul>');ul=false;} (tb=tb||[]).push(l); continue; } if(tb) flush();
+    const h=l.match(/^(#{1,4})\s+(.*)/); if(h){ flush(); out.push(`<div class="am" style="font-size:${15-h[1].length}px;margin:10px 0 4px;font-weight:700">${inl(h[2])}</div>`); continue; }
+    const li=l.match(/^\s*[-*]\s+(\[( |x)\]\s+)?(.*)/); if(li){ if(!ul){ out.push('<ul style="margin:2px 0 2px 18px;padding:0">'); ul=true; } out.push(`<li>${li[1]?(li[2]==='x'?'☑ ':'☐ '):''}${inl(li[3])}</li>`); continue; }
+    flush(); out.push(l.trim()?`<div>${inl(l)}</div>`:'<div style="height:6px"></div>'); }
+  flush(); return out.join(''); }
+let JRL=null;
+async function jrList(){ const b=$('#myjrb'); if(!b) return; b.innerHTML='불러오는 중…';
+  try{ const [j,h]=await Promise.all([ghGet('journal'),ghGet('history')]);
+    JRL={j:j.filter(x=>/\.md$/.test(x.name)).map(x=>x.name.replace('.md','')).sort().reverse(), h:h.filter(x=>/^\d{4}-\d{2}\.md$/.test(x.name)).map(x=>x.name.replace('.md','')).sort().reverse()};
+    const today=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+    b.innerHTML=`<div style="margin:4px 0;line-height:2"><span class="am">일기</span> ${JRL.j.map(d=>`<button class="sbtn" data-jr="journal/${d}.md">${d.slice(5)}</button>`).join(' ')} <span class="am" style="margin-left:8px">히스토리</span> ${JRL.h.map(d=>`<button class="sbtn" data-jr="history/${d}.md">${d}</button>`).join(' ')}</div>
+     <div style="border:1px solid var(--line);padding:6px 8px;margin:6px 0"><b class="am">오늘 한 줄 회고</b> <span class="mu">→ journal/<input id="jrd" value="${today}" style="width:92px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:1px 4px">.md 에 저장</span><br>
+      <textarea id="jrt" rows="3" placeholder="오늘 가장 잘한 판단 / 다시 하면 바꿀 것 / 내일 하나" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:6px;margin-top:4px"></textarea>
+      <div><button id="jrsave" class="sbtn">저장</button> <span id="jrmsg" class="mu"></span></div></div>
+     <div id="jrv" style="font-size:13px;line-height:1.7;white-space:normal;color:var(--txt)"></div>`;
+    b.querySelectorAll('[data-jr]').forEach(x=>x.onclick=()=>jrShow(x.dataset.jr));
+    $('#jrsave').onclick=jrSave;
+    if(JRL.j.length) jrShow('journal/'+JRL.j[0]+'.md');
+  }catch(e){ b.innerHTML=`<span class="dn">${esc(e.message)}</span>`; } }
+async function jrShow(path){ const v=$('#jrv'); if(!v) return; v.innerHTML='불러오는 중…';
+  try{ const f=await ghGet(path); v.innerHTML=`<div class="mu" style="font-size:11px">${esc(path)} · 비공개</div>`+mdLite(_ub64u(f.content)); }catch(e){ v.innerHTML=`<span class="dn">${esc(e.message)}</span>`; } }
+// 회고 저장: ① 토큰에 쓰기 권한이 있으면 journal 파일에 직접 추가 ② 없으면(403·404) 비공개 저장소 이슈 '회고 YYYY-MM-DD' 작성 화면을 열고 기록 데스크가 다음 슬롯에 일기로 옮김
+async function jrSave(){ const d=($('#jrd').value||'').trim(), t=($('#jrt').value||'').trim(), m=$('#jrmsg'); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!t){ m.textContent='날짜·내용 확인'; return; }
+  const now=new Date(Date.now()+9*36e5).toISOString().slice(11,16), path='journal/'+d+'.md', line=`- [x] 회고 (겸이 ${now}): ${t.replace(/\n+/g,' / ')}`;
+  const issue=()=>{ window.open(`https://github.com/hk99915-bot/pb-private/issues/new?title=${encodeURIComponent('회고 '+d)}&body=${encodeURIComponent(t+'\n\n(터미널 MY 탭에서 작성 — 기록 데스크가 journal/'+d+'.md 로 옮김)')}`,'_blank'); m.innerHTML='토큰이 읽기 전용이라 <b>깃허브 이슈 작성 창</b>을 열었어 — 제출하면 기록 데스크가 일기로 옮김'; };
+  try{ m.textContent='저장 중…'; const tk=ghTok(); let sha=null, body='';
+    try{ const f=await ghGet(path); sha=f.sha; body=_ub64u(f.content); }catch(e){ if(!/404/.test(e.message)) throw e; body=`# ${d} 일기\n`; }
+    body=/^- \[ \] 오늘 한 줄 회고.*$/m.test(body)?body.replace(/^- \[ \] 오늘 한 줄 회고.*$/m,line):body.replace(/\s*$/,'\n\n## 회고\n'+line+'\n');
+    const r=await fetch(PBAPI+path,{method:'PUT',headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github+json'},body:JSON.stringify({message:`journal: 회고 ${d} (MY 탭)`,content:_b64u(body),...(sha?{sha}:{}),committer:{name:'Claude',email:'noreply@anthropic.com'}})});
+    if(r.status===403||r.status===404) return issue();
+    if(!r.ok) throw new Error('저장 실패 '+r.status);
+    m.innerHTML='<span class="up">저장됨</span>'; $('#jrt').value=''; jrShow(path);
+  }catch(e){ m.innerHTML=`<span class="dn">${esc(e.message)}</span>`; } }
 function myView(){
   const txt=myLoad();
   setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); $('#myin').open=false; myRun(); };
@@ -84,6 +124,7 @@ function myView(){
     const fg=$('#mypinforget'); if(fg) fg.onclick=()=>{ try{ localStorage.removeItem(GHE); }catch(_){} render(); };
     if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ st(); if(ok) myRun(); }); st(); }
     const mc=$('#mycorr'); if(mc) mc.addEventListener('toggle',e=>{ if(e.target.open) myCorr(); });
+    const mj=$('#myjr'); if(mj) mj.addEventListener('toggle',e=>{ if(e.target.open) jrList(); });
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
   return `<div class="grid"><div class="p c12"><h2>MY PB<small>보유 자산 분석 · 비공개 저장소(pb-private)에서 자동 동기화 · 공개 서버로 전송 없음</small></h2><div class="b">
     <div style="font-size:12px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="am">비공개 저장소 연동</span> <span id="mysync" class="mu">${ghTok()?esc(MYSYNC.st||'대기'):ghLocked()?'🔒 PIN 으로 잠김':'토큰 미설정'}</span>${ghLocked()?`<input id="mypin" type="password" inputmode="text" autocomplete="off" placeholder="PIN" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="mypinb" class="sbtn">열기</button> <span id="mypinmsg" class="dn" style="font-size:11px"></span> <a href="#" id="mypinforget" class="mu" style="font-size:11px">PIN 기억 지우기</a>`:''}
@@ -97,6 +138,7 @@ function myView(){
     <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
     <div id="myout" style="margin-top:12px"></div>
     <details id="mycorr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">교정 리포트 (비공개 · 눌러서 열기)</summary><div id="mycorrb" class="mu" style="font-size:12px">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
+    <details id="myjr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">일기 · 운용 히스토리 · 회고 쓰기 (비공개 · 눌러서 열기)</summary><div id="myjrb" class="mu" style="font-size:12px">토큰 연결 후 열면 목록이 뜸</div></details>
     </div></div></div>`;
 }
 // 교정 리포트: pb-private/analysis/latest.json → 이미지·보고서를 토큰으로 직접 받아 이 브라우저에서만 표시 (공개 서버 경유 없음)
