@@ -18,6 +18,7 @@ MY_HOLDINGS 형식 (웹 MY 탭과 동일, 한 줄에 하나 — 위성 북, 그 
 분모는 항상 순자산 = 위성 + ISA + 현금(원화·달러). 반도체 비중은 '반도체(전기 제외)' 를 기본으로, '반도체+전기(상관 테마)' 를 보조로 보인다.
 지수 ETF(KODEX 200·S&P500·나스닥100 …) 속 반도체 룩스루는 한도 계산에서 빼고 '참고 경보' 한 줄로만 보인다 (합의 1-④).
 섹터 ETF(TIGER 200 IT·KODEX 반도체·SOXX·SMH·PSI …)는 전액 반도체로 센다. 텔레그램에는 비율만 보낸다 (금액 없음).
+스트레스(결재 #3): '2026-07 재현(반도체 −30%)' 손실률을 비율로 계산해 규칙 점검에 한 줄 — 분모는 evaluate(stress_denominator_code=) 로 고른다 (기본 D2).
 """
 from __future__ import annotations
 
@@ -151,6 +152,57 @@ def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains
     return None, 0.0
 
 
+# ---------------------------------------------------------------- 스트레스 (결재 #3: 구속 한도 = 스트레스 −15%, VaR·ES 는 계기판)
+# 2026-07 재현 — 반도체 −30% 가정 (SOXX 2026-06-22 → 07-29 −29%, kb:frm#9 사건 재생). 충격은 분류별 비율:
+#   semi(한도 산입 반도체·섹터 ETF 전액) −30% · elec(전기·IT 하드웨어, 상관 테마 ρ≈0.8 가정, kb:frm#8·#23) −24% · 지수 ETF 룩스루 분은 −30% × 룩스루 비중
+#   그 외(코어 지수 ETF 나머지·국채·금·현금) 0 — 반도체 단일 요인 충격만 재생한다 (코스피 β 전염은 MY 탭 'β 추정' 줄이 따로 본다).
+STRESS_SCENARIOS = {
+    "2026-07": {"label": "2026-07 재현(반도체 −30%)", "semi": -0.30, "elec": -0.24, "look": -0.30},
+}
+STRESS_LIMIT = 0.15   # 어느 시나리오도 −15% 초과 금지 (scorecard_week [11] 스트레스 와 같은 수치)
+STRESS_DENOMINATORS = ("D2", "D1", "EQ")   # docs/rules_terms.md §0: D2 전체 투자자산(기본, 결재 #1 (b) 가정) · D1 위성 북 · EQ 주식만(참고)
+
+
+def stress_denominator(code: str, *, nav: float, tot: float, tot_sat: float, cash_sat: float) -> tuple[float, tuple[str, ...]]:
+    """분모 코드 → (분모 금액, 손실을 집계할 북). D1 은 위성 북만(ISA 코어 제외), D2·EQ 는 두 북 모두."""
+    code = (code or "D2").upper()
+    if code not in STRESS_DENOMINATORS:
+        raise ValueError(f"stress denominator must be one of {STRESS_DENOMINATORS}, got {code!r}")
+    if code == "D1":
+        return tot_sat + cash_sat, ("sat",)        # denominator=D1 위성 북 = 위성 주식 + 위성 현금
+    if code == "EQ":
+        return tot, ("sat", "isa")                 # denominator=EQ 주식 평가액 합 (참고용 — 현금 완충 제외)
+    return nav, ("sat", "isa")                     # denominator=D2 전체 투자자산(NAV)
+
+
+def stress_loss(rows: list[dict], denom: float, scenario: str = "2026-07", books: tuple[str, ...] = ("sat", "isa")) -> float:
+    """시나리오 손실률 (비율, 손실이면 음수). rows 는 evaluate() 의 rows, denom 은 stress_denominator() 가 준 금액.
+    금액은 돌려주지 않는다 — MY 탭·텔레그램엔 이 비율만 나간다."""
+    sc = STRESS_SCENARIOS[scenario]
+    if not denom:
+        return 0.0
+    pnl = 0.0
+    for r in rows:
+        if r["book"] not in books:
+            continue
+        if r.get("semi"):
+            pnl += r["v"] * sc["semi"]
+        elif r.get("elec"):
+            pnl += r["v"] * sc["elec"]
+        else:
+            pnl += (r.get("look") or 0.0) * sc["look"]   # look = 평가액 × 지수 ETF 속 반도체 룩스루 비중
+    return pnl / denom
+
+
+def stress_line(ev: dict, scenario: str = "2026-07") -> str:
+    """텔레그램 한 줄 — 비율만. 한도(−15%) 초과면 ⛔ (구속 한도), 아니면 ✅."""
+    x = ev["stress"][scenario]
+    sc = STRESS_SCENARIOS[scenario]
+    # denominator=ev['stress_denom'] (기본 D2) — 비율은 이미 그 분모로 나눠져 있다
+    tag = " ⛔ 구속 한도 초과 — 반도체 비중 축소(kb:frm#10 허용 충격 = 15 ÷ 비중)" if x < -STRESS_LIMIT - 0.0005 else " ✅"
+    return f"• 스트레스 {sc['label']}: <b>{x*100:+.1f}%</b> (한도 −{STRESS_LIMIT*100:.0f}% · 분모 {ev['stress_denom']} · 비율만){tag}"
+
+
 def rules(rules_txt: str) -> dict:
     o = {"loss_limit": 0.12, "semi_cap": 0.40, "semi_band": 0.45, "price": {}, "touch": {}}
     for ln in (rules_txt or "").splitlines():
@@ -179,8 +231,9 @@ def _fx() -> float:
         return 1400.0
 
 
-def evaluate(txt: str, rules_txt: str = "") -> dict | None:
-    """보유 텍스트 → 비율 묶음. 금액은 반환값 안에만 있고 밖으로 보내지 않는다 (호출자는 비율만 쓴다)."""
+def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2") -> dict | None:
+    """보유 텍스트 → 비율 묶음. 금액은 반환값 안에만 있고 밖으로 보내지 않는다 (호출자는 비율만 쓴다).
+    stress_denominator_code: 스트레스 손실률의 분모 (D2 전체 투자자산 기본 · D1 위성 북 · EQ 주식만) — STRESS_DENOMINATORS."""
     books = parse_books(txt)
     ru = rules(rules_txt)
     idx = _index()
@@ -233,7 +286,10 @@ def evaluate(txt: str, rules_txt: str = "") -> dict | None:
         else:
             isa_etc += r["v"]
     isa_w = {k: (v / isa_tot if isa_tot else 0.0) for k, v in isa_w.items()}
-    return {"rows": rows, "miss": miss, "fx": fx, "rules": ru, "nav": nav, "tot": tot, "tot_sat": tot_sat, "tot_isa": tot_isa, "isa_tot": isa_tot,
+    # denominator=stress_denominator_code (기본 D2 nav) — 결재 #3 구속 한도 '스트레스 −15%' 의 손실률, 비율만 보관
+    st_den, st_books = stress_denominator(stress_denominator_code, nav=nav, tot=tot, tot_sat=tot_sat, cash_sat=cash_sat)
+    stress = {k: stress_loss(rows, st_den, k, st_books) for k in STRESS_SCENARIOS}
+    return {"rows": rows, "stress": stress, "stress_denom": stress_denominator_code.upper(), "miss": miss, "fx": fx, "rules": ru, "nav": nav, "tot": tot, "tot_sat": tot_sat, "tot_isa": tot_isa, "isa_tot": isa_tot,
             "cash": cash_sat + cash_isa, "cost": cost, "loss": loss, "has_isa": bool(isa) or cash_isa > 0,
             "semi_ex": semi / nav if nav else 0.0, "semi_elec": (semi + elec) / nav if nav else 0.0, "look": look / nav if nav else 0.0,
             "isa_w": isa_w, "isa_etc": isa_etc / isa_tot if isa_tot else 0.0, "isa_cash": cash_isa / isa_tot if isa_tot else 0.0,
@@ -283,6 +339,7 @@ def brief() -> str | None:
     # denominator=D2 nav — 규정 원문엔 없는 구 규칙(LOSS_LIMIT), 용어집 '누적 손실 한도' 참조
     L.append(f"• 손실 한도(순자산 −{loss_limit*100:.0f}%)까지 " + (f"순자산 <b>{room/nav*100:.1f}%</b> 남음 (주식 −{room/tot*100:.1f}% 추가 하락 여유)" if room > 0 else "<b>⛔ 한도 도달 — 메모리 절반 축소 실행</b>"))
     L.append(semi_line(ev))
+    L.append(stress_line(ev))   # 비율만 (금액 금지)
     L += isa_lines(ev)
     for code, px in price_rules.items():
         r = next((x for x in rows if x["s"].upper() == code), None)
