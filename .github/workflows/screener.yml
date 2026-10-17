@@ -1,4 +1,6 @@
 name: market-screener
+# 실행 이름 — scripts/slot_guard.py 가 display_title 로 같은 슬롯의 GAS 실행을 찾는다 (결정 C, docs/schedule_table.md)
+run-name: "market-screener ${{ github.event_name == 'workflow_dispatch' && format('[{0}] commit={1}', inputs.market, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
 
 on:
   schedule:
@@ -16,6 +18,10 @@ on:
         description: "텔레그램 생략 (검증용 재실행)"
         required: false
         default: "false"
+      commit:
+        description: "true 일 때만 결과 커밋. auto(기본) = GAS 예약 슬롯(16:20 KR) 시각이면 커밋, 그 밖의 수동 실행은 읽기 전용"
+        required: false
+        default: "auto"
 
 permissions:
   contents: write
@@ -39,18 +45,17 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: 시장 결정
+      - name: 시장 결정 · 실행 주체 확인 (결정 C — 16:20 cron 은 GAS 슬롯의 대기, +12분 뒤 GAS 실행 있으면 건너뜀)
         id: m
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SCHEDULE: ${{ github.event.schedule }}
+          COMMIT_INPUT: ${{ inputs.commit }}
+          KEY_INPUT: ${{ inputs.market }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "market=${{ github.event.inputs.market }}" >> $GITHUB_OUTPUT
-          elif [ "$(date -u +%H)" -lt 12 ]; then
-            # 백업 예약기(Apps Script)가 16:20 KST(07:20 UTC) 근처에 이미 수동 실행했으면 건너뜀
-            N=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/${{ github.repository }}/actions/workflows/screener.yml/runs?event=workflow_dispatch&created=%3E%3D$(date -u +%F)T07:10:00Z&per_page=5" | python3 -c "import sys,json;print(json.load(sys.stdin).get('total_count',0))" 2>/dev/null || echo 0)
-            if [ "${N:-0}" -gt 0 ]; then echo "market=skip" >> $GITHUB_OUTPUT; else echo "market=KR" >> $GITHUB_OUTPUT; fi
-          else
-            echo "market=US" >> $GITHUB_OUTPUT
-          fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then M="${{ inputs.market }}"; else M=KR; fi
+          python scripts/slot_guard.py --wf screener.yml --key "$M" || { echo "::warning::slot_guard 실패 — 실행(fail-open)"; echo "go=true" >> $GITHUB_OUTPUT; [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.commit }}" = "true" ] && echo "commit=true" >> $GITHUB_OUTPUT || echo "commit=false" >> $GITHUB_OUTPUT; }
+          if grep -q '^go=false' "$GITHUB_OUTPUT"; then echo "market=skip" >> $GITHUB_OUTPUT; else echo "market=$M" >> $GITHUB_OUTPUT; fi
 
       - name: 스크리너 실행
         if: steps.m.outputs.market != 'skip'
@@ -71,8 +76,12 @@ jobs:
           GCP_SA_JSON: ${{ secrets.GCP_SA_JSON }}
         run: python -m screener.main --market ${{ steps.m.outputs.market }} ${{ github.event.inputs.no_send == 'true' && '--no-send' || '' }}
 
+      - name: 읽기 전용 (수동 실행 commit≠true — 결과는 커밋하지 않음)
+        if: always() && steps.m.outputs.market != 'skip' && steps.m.outputs.commit != 'true'
+        run: git status --short | head -50; echo "읽기 전용 실행 — 커밋하려면 commit=true 로 다시 실행"
+
       - name: 리포트·유니버스 커밋
-        if: always()
+        if: always() && steps.m.outputs.commit == 'true'
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"

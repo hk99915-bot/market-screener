@@ -52,7 +52,7 @@ python scripts/build_hist.py --network   # yfinance + pykrx 로 2010~ 증분 백
 - 멱등·증분: 심볼별 마지막 날짜 −14일부터만 다시 받고, 결과가 기존 파일과 같으면 다시 쓰지 않는다.
 - 어느 출처가 실패해도 나머지는 진행 (ETF 는 yfinance 에 없으면 pykrx 로 폴백).
 - 크기 예산 25 MB (float32 + zstd). 넘으면 경고 — `US_SYMBOLS` 를 줄인다.
-- 수동 실행: `gh api -X POST repos/hk99915-bot/market-screener/actions/workflows/hist.yml/dispatches -f ref=main`
+- 수동 실행: `gh api -X POST repos/hk99915-bot/market-screener/actions/workflows/hist.yml/dispatches -f ref=main -f "inputs[commit]=true"` (commit 없으면 읽기 전용 — 결정 C, docs/schedule_table.md)
 
 ## 연구에서 바꿀 곳
 

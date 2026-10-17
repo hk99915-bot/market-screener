@@ -47,7 +47,7 @@ GitHub 저장소 → Settings → Secrets and variables → Actions:
 | `GSHEET_ID` | X | 결과를 넣을 구글시트 ID (URL의 `/d/` 뒤) |
 | `GCP_SA_JSON` | X | 서비스계정 JSON 전체 내용. 시트를 서비스계정 이메일에 편집자로 공유해야 함 |
 
-Actions 탭 → `market-screener` → Run workflow 로 수동 실행 가능.
+Actions 탭 → `market-screener` → Run workflow 로 수동 실행 가능. 수동 실행은 기본 **읽기 전용**(커밋 안 함) — 결과를 저장하려면 `commit=true` (docs/schedule_table.md).
 
 ## 로컬 실행
 

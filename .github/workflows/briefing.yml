@@ -1,4 +1,6 @@
 name: briefing
+# 실행 이름 — scripts/slot_guard.py 가 display_title 로 같은 슬롯의 GAS 실행을 찾는다 (결정 C, docs/schedule_table.md)
+run-name: "briefing ${{ github.event_name == 'workflow_dispatch' && format('[{0}] commit={1}', inputs.mode, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
 
 # KST → UTC (-9h). 월~금 기준. 미장 세션은 KST 기준 화~토 새벽에 걸리므로 요일 범위를 따로 둔다.
 on:
@@ -24,6 +26,10 @@ on:
         description: "premarket_kr | intraday_kr | premarket_us | intraday_us | reports | screen_us | dashboard | dart | detail_kr | detail_us | shares | etf | themes | pb | quotes | bonds | lab | committee | close_kr | rebound | valuation | crash_check | derivs"
         required: true
         default: "reports"
+      commit:
+        description: "true 일 때만 결과 커밋. auto(기본) = GAS 예약 슬롯 시각이면 커밋, 그 밖의 수동 실행은 읽기 전용 (10/17 detail_us 역행 재발 방지)"
+        required: false
+        default: "auto"
 
 permissions:
   contents: write
@@ -72,13 +78,17 @@ jobs:
           set -- $CR; SM=$((10#$1 + 10#$2 * 60)); NM=$((10#$(date -u +%M) + 10#$(date -u +%H) * 60))
           LATE=$(( (NM - SM + 1440) % 1440 ))
           if [ $LATE -gt 150 ]; then echo "예약 $CR 이 ${LATE}분 지연 — 건너뜀"; MODE=skip; fi
-          # 백업 예약기(Apps Script)가 이미 수동 실행을 보냈으면 늦게 울린 GitHub 예약은 건너뜀 (중복 텔레그램 방지)
-          if [ "$MODE" != "skip" ]; then
-            SINCE=$(date -u -d "-$((LATE + 10)) min" +%FT%TZ)
-            N=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/${{ github.repository }}/actions/workflows/briefing.yml/runs?event=workflow_dispatch&created=%3E%3D$SINCE&per_page=5" | python3 -c "import sys,json;print(json.load(sys.stdin).get('total_count',0))" 2>/dev/null || echo 0)
-            if [ "${N:-0}" -gt 0 ]; then echo "백업 예약기가 이미 실행 — 건너뜀"; MODE=skip; fi
-          fi
           echo "mode=$MODE" >> $GITHUB_OUTPUT
+
+      - name: 실행 주체 확인 (결정 C — GAS 슬롯이면 cron 은 +12분 대기 후 GAS 실행 시 건너뜀 · 수동은 commit 입력)
+        id: g
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SCHEDULE: ${{ github.event.schedule }}
+          COMMIT_INPUT: ${{ inputs.commit }}
+        run: |
+          if [ "${{ steps.m.outputs.mode }}" = "skip" ]; then echo "go=false" >> $GITHUB_OUTPUT; echo "commit=false" >> $GITHUB_OUTPUT; exit 0; fi
+          python scripts/slot_guard.py --wf briefing.yml --key "${{ steps.m.outputs.mode }}" || { echo "::warning::slot_guard 실패 — 실행(fail-open)"; echo "go=true" >> $GITHUB_OUTPUT; [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.commit }}" = "true" ] && echo "commit=true" >> $GITHUB_OUTPUT || echo "commit=false" >> $GITHUB_OUTPUT; }
 
       - name: 실행
         env:
@@ -94,8 +104,8 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           KRX_BACKEND: ${{ vars.KRX_BACKEND || 'pykrx' }}
         run: |
-          if [ "${{ steps.m.outputs.mode }}" = "skip" ]; then
-            echo "예약 시각과 맞지 않는 실행 — 건너뜀"
+          if [ "${{ steps.m.outputs.mode }}" = "skip" ] || [ "${{ steps.g.outputs.go }}" != "true" ]; then
+            echo "예약 시각과 맞지 않거나 GAS 가 이미 실행한 슬롯 — 건너뜀"
           elif [ "${{ steps.m.outputs.mode }}" = "screen_us" ]; then
             python -m screener.main --market US
           elif [ "${{ steps.m.outputs.mode }}" = "detail_us" ]; then
@@ -105,12 +115,16 @@ jobs:
           fi
 
       - name: 신선도 점검
-        if: always()
+        if: always() && steps.g.outputs.go == 'true'
         # 모든 모드 끝에 ops/freshness.json 계약 점검 → reports/freshness.json (텔레그램 없음, 아래 저장 단계가 커밋). 실패해도 저장은 진행
         run: python -m screener.main --mode freshness || echo "::warning::신선도 점검 실패"
 
+      - name: 읽기 전용 (수동 실행 commit≠true — 결과는 커밋하지 않음)
+        if: always() && steps.g.outputs.go == 'true' && steps.g.outputs.commit != 'true'
+        run: git status --short | head -50; echo "읽기 전용 실행 — 커밋하려면 commit=true 로 다시 실행"
+
       - name: 저장
-        if: always()
+        if: always() && steps.g.outputs.commit == 'true'
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"

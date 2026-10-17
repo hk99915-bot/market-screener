@@ -1,8 +1,12 @@
 name: live-quotes
+# 실행 이름 — scripts/slot_guard.py 가 display_title 로 같은 슬롯의 GAS 실행을 찾는다 (결정 C, docs/schedule_table.md)
+run-name: "live-quotes ${{ github.event_name == 'workflow_dispatch' && format('수동 commit={0}', inputs.commit) || format('예약 {0}', github.event.schedule) }}"
 
 # 지수·매크로 준실시간 → reports/live.json. 짧은 주기 스케줄은 GitHub 가 자주 건너뛰므로,
 # 장 시작 무렵 한 번 켜지면 장이 끝날 때까지 한 작업 안에서 5분마다 갱신하는 루프로 돈다.
 # 루프 시작 스케줄이 빠질 때를 대비해 매시 백업 트리거도 둔다 (이미 돌고 있으면 대기 후 이어받음).
+# 결정 C: 08:40·22:20 은 GAS 가 주 실행 주체, 같은 시각 cron 은 대기(slot_guard). 매시 백업은 '루프 재개' — concurrency 로 동시 1개,
+# 루프가 끝난 뒤 대기열에서 깨어난 실행은 장 시간 밖이면 아무것도 안 하고 끝난다(예전엔 1회 시세 커밋).
 on:
   schedule:
     - cron: "40 23 * * 0-4"     # 08:40 KST 국장 루프 시작
@@ -10,9 +14,15 @@ on:
     - cron: "20 13 * * 1-5"     # 22:20 KST 미장 루프 시작
     - cron: "7 14-19 * * 1-5"   # 미장 시간 매시 백업
   workflow_dispatch:
+    inputs:
+      commit:
+        description: "true 일 때만 live.json 커밋. auto(기본) = GAS 예약 슬롯(08:40·22:20) 시각이면 커밋, 그 밖의 수동 실행은 읽기 전용"
+        required: false
+        default: "auto"
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: live
@@ -29,7 +39,15 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: 실행 주체 확인 (결정 C — GAS 슬롯이면 cron 은 +12분 대기 후 GAS 실행 시 건너뜀 · 수동은 commit 입력)
+        id: g
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SCHEDULE: ${{ github.event.schedule }}
+          COMMIT_INPUT: ${{ inputs.commit }}
+        run: python scripts/slot_guard.py --wf live.yml || { echo "::warning::slot_guard 실패 — 실행(fail-open)"; echo "go=true" >> $GITHUB_OUTPUT; [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.commit }}" = "true" ] && echo "commit=true" >> $GITHUB_OUTPUT || echo "commit=false" >> $GITHUB_OUTPUT; }
       - name: 루프
+        if: steps.g.outputs.go == 'true'
         env:
           PYTHONUNBUFFERED: "1"
           KRX_ID: ${{ secrets.KRX_ID }}
@@ -45,6 +63,9 @@ jobs:
             [ $hm -ge 2215 ] || [ $hm -le 515 ] && return 0
             return 1
           }
+          COMMIT="${{ steps.g.outputs.commit }}"
+          # 대기열에서 늦게 깨어난 예약·백업 실행이 장 시간 밖이면 끝 (수동 실행만 1회 허용)
+          if ! in_window && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then echo "장 시간 밖 예약 실행 — 건너뜀"; exit 0; fi
           end=$((SECONDS + 340*60))
           first=1
           while [ $SECONDS -lt $end ]; do
@@ -54,6 +75,7 @@ jobs:
             hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm)); dow=$(TZ=Asia/Seoul date +%u)
             rm -f /tmp/duel_ran
             if [ $dow -le 5 ] && [ $hm -ge 1450 ] && [ $hm -le 1515 ]; then python -m screener.main --mode duel && touch /tmp/duel_ran || true; fi
+            if [ "$COMMIT" != "true" ]; then echo "읽기 전용 — 커밋 안 함 (commit=true 로 다시 실행)"; in_window || break; sleep 300; continue; fi
             # 다른 작업이 같은 파일을 커밋하면 rebase 가 충돌로 멈춰 이후 갱신이 전부 막힘 → 매번 원격 최신 위에 파일만 다시 얹는다
             rm -rf /tmp/lv; mkdir -p /tmp/lv; for p in reports/live.json reports/events.json reports/events_stats.json; do if [ -e "$p" ]; then cp "$p" /tmp/lv/; fi; done
             if [ -e /tmp/duel_ran ]; then cp reports/decisions.json /tmp/lv/; fi   # 판정한 회차에만 (다른 때 덮으면 제출된 겸이 판단이 지워짐)

@@ -5,7 +5,7 @@ name: tests
 on:
   push:
     branches: [main]
-    paths: ["screener/**", "scripts/**", "tests/**", "docs/**", "requirements.txt", ".github/workflows/tests.yml"]
+    paths: ["screener/**", "scripts/**", "tests/**", "docs/**", "requirements.txt", ".github/workflows/**", "apps-script/Scheduler.gs"]
   pull_request:
   workflow_dispatch:
 
@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt pytest
+      - run: pip install -r requirements.txt pytest pyyaml   # pyyaml: tests/test_schedule_single.py (워크플로·예약 파싱)
       - run: python -m pytest -q
 
   # slop 감사(자동 항목만) — 경고 주석만 남기고 워크플로는 실패시키지 않는다 (치명은 ::error 주석 + 보드 P0 로 사람이 처리).

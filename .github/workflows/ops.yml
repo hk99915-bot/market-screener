@@ -7,6 +7,11 @@ on:
     - cron: "47 14 * * *"   # 23:47 KST (정각은 GitHub 가 자주 건너뜀 → 비정각)
     - cron: "7 15 * * *"    # 00:07 KST — 팀 업무량만 (화면 '갱신 안 됨' 판정이 날짜 기준이라 자정 직후 갱신)
   workflow_dispatch:
+    inputs:
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C: 수동 실행이 예약 산출물을 덮어쓰지 않게)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -45,7 +50,7 @@ jobs:
         run: python scripts/team_stats.py || echo "::warning::team_stats 실패 — 팀 업무량 미갱신(화면에 ⚠ 갱신 안 됨)"
 
       - name: 저장
-        if: always()
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"

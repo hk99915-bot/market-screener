@@ -13,6 +13,8 @@
  * 3) 프로젝트 설정 → 스크립트 속성 → GH_TOKEN = 위 토큰
  * 4) 편집기에서 함수 install 선택 → 실행 (권한 허용) → 끝. 이후 5분마다 자동 실행
  *    확인: 함수 tickTest 실행 → 로그에 오늘 시간표와 실행 여부가 찍힘
+ * 갱신 (코드만 바뀐 경우): 기존 프로젝트에서 전체 선택 → 이 파일로 교체 → 저장 → tickTest 실행.
+ *    install 은 다시 안 해도 됨(트리거는 함수 이름 tick 으로 걸려 있음). 체크리스트: docs/schedule_table.md 맨 위
  */
 const REPO = 'hk99915-bot/market-screener';
 const WEEKDAY = [1, 2, 3, 4, 5];        // 월~금 (KST)
@@ -21,31 +23,35 @@ const EVERY = [0, 1, 2, 3, 4, 5, 6];
 
 // [KST 시각, 워크플로 파일, inputs, 요일]
 const SCHEDULE = [
-  ['02:00', 'backfill.yml', { market: 'ALL' }, EVERY],
-  ['03:30', 'fin.yml', {}, EVERY],
-  ['03:52', 'briefing.yml', { mode: 'intraday_us' }, US_DAYS],
+  ['02:00', 'backfill.yml', { market: 'ALL', commit: 'true' }, EVERY],
+  ['03:30', 'fin.yml', { commit: 'true' }, EVERY],
+  ['03:52', 'briefing.yml', { mode: 'intraday_us', commit: 'true' }, US_DAYS],
   // ['07:10', 'briefing.yml', { mode: 'valuation' }, US_DAYS],      // 반도체 밸류에이션 바스켓 — 06:52 미장 마감 스크리너 뒤(10/17 순서 수정). GitHub cron(10 22 UTC)만 사용, 백업 예약은 켜지 않음 (텔레그램 중복 방지)
-  ['06:52', 'briefing.yml', { mode: 'screen_us' }, US_DAYS],
-  ['08:40', 'live.yml', {}, WEEKDAY],
-  ['08:50', 'briefing.yml', { mode: 'premarket_kr' }, WEEKDAY],
-  ['10:30', 'briefing.yml', { mode: 'intraday_kr' }, WEEKDAY],
-  ['11:35', 'briefing.yml', { mode: 'committee' }, WEEKDAY],          // 점심 운용회의 (겸이 점심 11:30~12:50)
-  ['13:30', 'briefing.yml', { mode: 'intraday_kr' }, WEEKDAY],
-  ['14:15', 'briefing.yml', { mode: 'committee' }, WEEKDAY],          // '판정 전' 운용회의 (장중 세션)
-  ['14:25', 'briefing.yml', { mode: 'rebound' }, WEEKDAY],            // 반등일 판정 알림 (코스피 vs 전일 종가 +0.5%, 비율만)
-  ['15:05', 'briefing.yml', { mode: 'crash_check' }, WEEKDAY],        // 급락일 종가 매수 신호 (코스피 장중 ≤ −4.5% → 15:20 동시호가 안내, 비율만)
-  ['15:45', 'briefing.yml', { mode: 'close_kr' }, WEEKDAY],
-  ['16:20', 'screener.yml', { market: 'KR', no_send: 'false' }, WEEKDAY],
-  ['16:40', 'deriv_hist.yml', { task: 'run', days: '0' }, WEEKDAY],   // 수급·파생 일별 이력 (중복 실행돼도 같은 날짜 덮어쓰기라 무해)
-  ['19:10', 'briefing.yml', { mode: 'reports' }, WEEKDAY],
-  ['20:52', 'briefing.yml', { mode: 'premarket_us' }, WEEKDAY],
-  ['21:52', 'briefing.yml', { mode: 'premarket_us' }, WEEKDAY],
-  ['22:20', 'live.yml', {}, WEEKDAY],
-  ['22:52', 'briefing.yml', { mode: 'intraday_us' }, WEEKDAY],
+  ['06:52', 'briefing.yml', { mode: 'screen_us', commit: 'true' }, US_DAYS],
+  ['08:40', 'live.yml', { commit: 'true' }, WEEKDAY],
+  ['08:50', 'briefing.yml', { mode: 'premarket_kr', commit: 'true' }, WEEKDAY],
+  ['10:30', 'briefing.yml', { mode: 'intraday_kr', commit: 'true' }, WEEKDAY],
+  ['11:35', 'briefing.yml', { mode: 'committee', commit: 'true' }, WEEKDAY],          // 점심 운용회의 (겸이 점심 11:30~12:50)
+  ['13:30', 'briefing.yml', { mode: 'intraday_kr', commit: 'true' }, WEEKDAY],
+  ['14:15', 'briefing.yml', { mode: 'committee', commit: 'true' }, WEEKDAY],          // '판정 전' 운용회의 (장중 세션)
+  ['14:25', 'briefing.yml', { mode: 'rebound', commit: 'true' }, WEEKDAY],            // 반등일 판정 알림 (코스피 vs 전일 종가 +0.5%, 비율만)
+  ['15:05', 'briefing.yml', { mode: 'crash_check', commit: 'true' }, WEEKDAY],        // 급락일 종가 매수 신호 (코스피 장중 ≤ −4.5% → 15:20 동시호가 안내, 비율만)
+  ['15:45', 'briefing.yml', { mode: 'close_kr', commit: 'true' }, WEEKDAY],
+  ['16:20', 'screener.yml', { market: 'KR', no_send: 'false', commit: 'true' }, WEEKDAY],
+  ['16:40', 'deriv_hist.yml', { task: 'run', days: '0', commit: 'true' }, WEEKDAY],   // 수급·파생 일별 이력 (중복 실행돼도 같은 날짜 덮어쓰기라 무해)
+  ['19:10', 'briefing.yml', { mode: 'reports', commit: 'true' }, WEEKDAY],
+  ['20:52', 'briefing.yml', { mode: 'premarket_us', commit: 'true' }, WEEKDAY],
+  ['21:52', 'briefing.yml', { mode: 'premarket_us', commit: 'true' }, WEEKDAY],
+  ['22:20', 'live.yml', { commit: 'true' }, WEEKDAY],
+  ['22:52', 'briefing.yml', { mode: 'intraday_us', commit: 'true' }, WEEKDAY],
 ];
-// 같은 시각 GitHub 자체 예약도 울릴 수 있음 → 워크플로 쪽에서 '최근 수동 실행이 있으면 예약 실행은 건너뜀'으로 중복 방지
+// 결정 C (docs/schedule_table.md): 이 표의 슬롯은 GAS 가 '주 실행 주체'. 같은 시각 GitHub cron 은 대기(fallback) —
+// scripts/slot_guard.py 가 예정 +12분까지 기다렸다가 이 dispatch 가 있으면 건너뛴다. 그래서 WINDOW_MIN 은 12 보다 작아야 한다.
+// commit: 'true' — 워크플로는 수동 실행을 기본 읽기 전용(커밋 안 함)으로 돌린다. 예약 실행기만 커밋 권한을 명시.
+// 슬롯을 더하거나 빼면 tests/test_schedule_single.py 가 워크플로 쪽 가드와 맞는지 검사한다.
 
-const WINDOW_MIN = 20;   // 예정 시각 이후 이 시간 안에만 실행 (늦게 깨어나도 몰아서 보내지 않음)
+const SCHEDULER_VERSION = '2026-10-18 결정C';   // tickTest 첫 줄에 찍힘 — 붙여넣기 확인용
+const WINDOW_MIN = 10;   // 예정 시각 이후 이 시간 안에만 실행 (cron 대기 12분보다 짧게 — 늦게 깨어나도 몰아서 보내지 않음)
 
 function kstNow_() {
   const s = Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm u');
@@ -95,6 +101,7 @@ function install() {
 
 function tickTest() {
   const now = kstNow_();
+  console.log(`예약기 버전 ${SCHEDULER_VERSION} · 창 ${WINDOW_MIN}분`);
   console.log(`지금 KST ${now.date} ${Math.floor(now.min / 60)}:${String(now.min % 60).padStart(2, '0')} 요일 ${now.dow}`);
   for (const [t, wf, inputs, days] of SCHEDULE) {
     const key = `done|${now.date}|${t}|${wf}|${JSON.stringify(inputs)}`;

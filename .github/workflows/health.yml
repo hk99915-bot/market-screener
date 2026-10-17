@@ -14,6 +14,10 @@ on:
         description: "health | freshness"
         required: false
         default: "health"
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C: 수동 실행이 예약 산출물을 덮어쓰지 않게)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -46,7 +50,7 @@ jobs:
           fi
           python -m screener.main --mode freshness_alert
       - name: 저장
-        if: always()
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
           git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
           mkdir -p /tmp/h; for f in health.json freshness.json freshness_alert_state.json; do cp reports/$f /tmp/h/ 2>/dev/null || true; done

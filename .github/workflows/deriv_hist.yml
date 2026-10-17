@@ -1,4 +1,6 @@
 name: deriv-hist
+# 실행 이름 — scripts/slot_guard.py 가 display_title 로 같은 슬롯의 GAS 실행을 찾는다 (결정 C, docs/schedule_table.md)
+run-name: "deriv-hist ${{ github.event_name == 'workflow_dispatch' && format('[{0}] commit={1}', inputs.task, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
 
 # 수급·파생 일별 이력 적재 — 평일 16:40 KST (KRX 확정치 반영 후). 텔레그램 없음.
 # 결과: data/deriv/daily.csv (하루 1행). GitHub 예약은 자주 늦거나 건너뜀 → GAS 백업 예약기에서도 workflow_dispatch 로 부를 것.
@@ -17,9 +19,14 @@ on:
       redo:
         description: "YYYY-MM-DD 이후 옵션·선물 보드 재계산 (계산식 수정 뒤)"
         default: ""
+      commit:
+        description: "true 일 때만 결과 커밋. auto(기본) = GAS 예약 슬롯 시각이면 커밋, 그 밖의 수동 실행은 읽기 전용 (결정 C)"
+        required: false
+        default: "auto"
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: deriv-hist
@@ -36,7 +43,16 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: 실행 주체 확인 (결정 C — GAS 슬롯이면 cron 은 +12분 대기 후 GAS 실행 시 건너뜀 · 수동은 commit 입력)
+        id: g
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SCHEDULE: ${{ github.event.schedule }}
+          COMMIT_INPUT: ${{ inputs.commit }}
+          KEY_INPUT: ${{ inputs.task }}
+        run: python scripts/slot_guard.py --wf deriv_hist.yml || { echo "::warning::slot_guard 실패 — 실행(fail-open)"; echo "go=true" >> $GITHUB_OUTPUT; [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.commit }}" = "true" ] && echo "commit=true" >> $GITHUB_OUTPUT || echo "commit=false" >> $GITHUB_OUTPUT; }
       - name: 실행
+        if: steps.g.outputs.go == 'true'
         env:
           PYTHONUNBUFFERED: "1"
           KRX_ID: ${{ secrets.KRX_ID }}
@@ -50,10 +66,10 @@ jobs:
             mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" ${{ github.event.inputs.redo && format('--redo {0}', github.event.inputs.redo) || '' }} 2>&1 | tee reports/logs/deriv_hist.txt
           fi
       - name: 감마 레짐 검증 재계산 (scripts/study_gamma.py — 사전등록 기준, 표본 차면 자동 판정)
-        if: github.event.inputs.task != 'probe'
+        if: steps.g.outputs.go == 'true' && github.event.inputs.task != 'probe'
         run: python scripts/study_gamma.py || echo "::warning::study_gamma 실패 — 이전 결과 유지"
       - name: 저장
-        if: always()
+        if: always() && steps.g.outputs.commit == 'true'
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
