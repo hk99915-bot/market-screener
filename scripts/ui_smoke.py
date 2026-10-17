@@ -60,6 +60,7 @@ async def run(views: list[str], port: int) -> int:
             print(f"{'OK ' if ok else 'BAD'} {v:6s} {len(txt):6d}자" + (f" · 에러: {errs[0][:160]}" if errs else "") + (" · LOADING/빈 화면" if stuck else ""))
         bad += await check_fresh(b, port)
         bad += await check_us_detail(b, port)
+        bad += await check_my_ledger(b, port)
         await b.close()
     return bad
 
@@ -114,6 +115,47 @@ async def check_us_detail(b, port: int, sym: str = "AAPL") -> int:
     ok = found and got.get("_index.json") == 200 and got.get(f"{sym}.json") == 200 and len(body) > 200 \
         and not body.startswith("LOADING") and "상세 데이터가 없습니다" not in body and not errs
     print(f"{'OK ' if ok else 'BAD'} US상세 검색={'O' if found else 'X'} 색인={got.get('_index.json')} {sym}={got.get(sym + '.json')} 팝업 {len(body)}자"
+          + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return not ok
+
+
+# 가짜 보유(개인 값 아님) — 원장 대조 스모크용
+FAKE_LOCAL = "005930 1 1000\nAAPL 1 100"
+FAKE_LEDGER = "# 주석\n005930 2 1000\nAAPL 1 100\n"
+
+
+async def check_my_ledger(b, port: int) -> int:
+    """MY 탭 '브라우저 주 + 원장 대조' (docs/my_tab_holdings_plan.md): 토큰으로 받은 holdings.txt 가 브라우저 값과 다르면
+    덮어쓰지 않고 확인창 → '원장 값으로 바꾸기' 를 눌러야 바뀜 · 배지(원장 같음/다름 · 백업) · 파일로 저장 시 백업 배지 갱신. API 는 가짜 응답."""
+    import json as _json
+    pg = await b.new_page(viewport={"width": 1300, "height": 900}, accept_downloads=True)
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.add_init_script(f"try{{ if(!sessionStorage.getItem('_sm')){{ sessionStorage.setItem('_sm','1'); localStorage.clear();"
+                             f" localStorage.setItem('mt_gh_tok','smoke'); localStorage.setItem('mt_holdings_v1',{_json.dumps(FAKE_LOCAL)}); }} }}catch(e){{}}")
+    await pg.route("https://api.github.com/**", lambda r: r.fulfill(status=200, content_type="text/plain", body=FAKE_LEDGER)
+                   if "/contents/holdings.txt" in r.request.url else r.fulfill(status=404, body="{}"))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("setView('my')")
+    await pg.wait_for_timeout(2500)
+    ls = "localStorage.getItem('mt_holdings_v1')"
+    kept = await pg.evaluate(ls) == FAKE_LOCAL
+    ask = await pg.evaluate("!!document.querySelector('#myasktake')")
+    led = await pg.evaluate("(document.querySelector('#myledb')||{}).textContent||''")
+    bak = await pg.evaluate("(document.querySelector('#mybakb')||{}).textContent||''")
+    step1 = kept and ask and led == "원장과 다름 2줄" and bak == "백업: 없음"
+    await pg.evaluate("document.querySelector('#mydl').click()")
+    await pg.wait_for_timeout(300)
+    bak2 = await pg.evaluate("(document.querySelector('#mybakb')||{}).textContent||''")
+    await pg.evaluate("document.querySelector('#myasktake').click()")
+    await pg.wait_for_timeout(800)
+    took = (await pg.evaluate(ls)).strip() == "005930 2 1000\nAAPL 1 100"
+    led2 = await pg.evaluate("(document.querySelector('#myledb')||{}).textContent||''")
+    meta = await pg.evaluate("localStorage.getItem('mt_holdings_meta')||''")
+    ok = step1 and bak2.startswith("마지막 백업 오늘") and took and led2 == "원장과 같음" and "1000" not in meta and not errs
+    print(f"{'OK ' if ok else 'BAD'} MY원장대조 유지={'O' if kept else 'X'} 확인창={'O' if ask else 'X'} 배지='{led}'/'{bak}' → 백업='{bak2}' 바꾸기={'O' if took else 'X'} '{led2}'"
           + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok

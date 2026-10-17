@@ -16,7 +16,9 @@ function myRatioOnly(){ try{ return localStorage.getItem(MYRK)!=='0'; }catch(e){
 function mySetRatio(on){ window._myRatio=on; try{ localStorage.setItem(MYRK,on?'1':'0'); }catch(e){} }
 document.addEventListener('change',e=>{ if(e.target&&e.target.id==='myratio'){ mySetRatio(e.target.checked); if(window._myLast) myRender(...window._myLast); } });
 function myLoad(){ try{ return localStorage.getItem(MYK)||''; }catch(e){ return window._myTxt||''; } }
-function mySave(t){ window._myTxt=t; try{ localStorage.setItem(MYK,t); }catch(e){} }
+// 저장 = 이 브라우저 작업본(주). 내용이 바뀌었을 때만 메타 savedAt·출처·해시 갱신 (src: 'manual'|'sync'|'import')
+function mySave(t,src){ const prev=myLoad(); window._myTxt=t; try{ localStorage.setItem(MYK,t); }catch(e){}
+  if(myNorm(prev)!==myNorm(t)||!myMeta().savedAt){ mySetMeta({savedAt:Date.now(),source:src||'manual'}); myDigest(t).then(d=>{ if(d) mySetMeta({digest:d}); myBadges(); }); } }
 // '## ISA' 줄 아래는 ISA 코어 북(book:'isa'), 그 위는 위성 북(book:'sat'). 분모 (a) 투자자산 = 두 북 + 현금 전부, (b) = (a) + 예적금.
 const ISA_HEAD=/^#{1,3}\s*ISA\b/i;
 function myParse(txt){ const out=[]; let book='sat'; for(const ln of txt.split(/\n/)){ const t=ln.trim(); if(ISA_HEAD.test(t)){ book='isa'; continue; } if(t.startsWith('#')) continue; const p=t.split(/[\s,]+/).filter(Boolean); if(!p.length) continue;
@@ -71,12 +73,63 @@ async function ghUnlock(pin){ try{ const o=JSON.parse(localStorage.getItem(GHE)|
 function ghLocked(){ try{ return !ghTok() && !!localStorage.getItem(GHE); }catch(e){ return false; } }
 function myClean(t){ return String(t||'').split('\n').filter(l=>l.trim()&&(ISA_HEAD.test(l.trim())||!l.trim().startsWith('#'))).join('\n'); }
 let MYSYNC={st:'',at:''};
+// ── 브라우저 주 + 원장 대조 (docs/my_tab_holdings_plan.md 추천 (a)+(b), 10/17 겸이 승인) — 원장(holdings.txt)은 읽기·대조만, 쓰기 없음.
+// 메타 mt_holdings_meta = {savedAt,source,digest,ledgerDigest,ledgerAt,exportedAt} — 시각·해시만(수량·금액 없음). 이 브라우저에만 두고 공개 저장소·서버로 안 보냄.
+const MYMK='mt_holdings_meta';
+function myMeta(){ try{ return JSON.parse(localStorage.getItem(MYMK)||'{}')||{}; }catch(e){ return window._myMeta||{}; } }
+function mySetMeta(p){ const m=Object.assign(myMeta(),p); window._myMeta=m; try{ localStorage.setItem(MYMK,JSON.stringify(m)); }catch(e){} return m; }
+// 정규화 = pb:scripts/secrets_gen.py gen_holdings()→digest() 와 같은 규칙: 줄 앞뒤 공백 제거·빈 줄 제거·주석(#, '## ISA' 제외) 제거·연속 공백 1칸 → SHA-256 앞 16자
+function myNorm(t){ return String(t||'').split(/\r\n|\r|\n/).map(l=>l.trim()).filter(l=>l&&(ISA_HEAD.test(l)||!l.startsWith('#'))).map(l=>l.replace(/\s+/g,' ')).join('\n'); }
+async function myDigest(t){ try{ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(myNorm(t))); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,16); }catch(e){ return ''; } }
+// 줄 단위 차이(같은 줄 여러 개도 셈): onlyA = a 에만, onlyB = b 에만
+function myDiff(a,b){ const ca={}; myNorm(a).split('\n').filter(Boolean).forEach(l=>ca[l]=(ca[l]||0)+1);
+  const onlyB=[]; myNorm(b).split('\n').filter(Boolean).forEach(l=>{ if(ca[l]) ca[l]--; else onlyB.push(l); });
+  const onlyA=[]; for(const [l,n] of Object.entries(ca)) for(let i=0;i<n;i++) onlyA.push(l); return {onlyA,onlyB,n:onlyA.length+onlyB.length}; }
+const myDiffHtml=(d,la,lb)=>`<div style="font-size:12px;line-height:1.6;margin-top:4px">${d.onlyA.map(l=>`<div class="dn">− ${esc(la)}: ${esc(l)}</div>`).join('')}${d.onlyB.map(l=>`<div class="up">+ ${esc(lb)}: ${esc(l)}</div>`).join('')||''}${d.n?'':'<div class="mu">차이 없음</div>'}</div>`;
+let MYLEDGER=null, MYPEND=null;   // 원장 텍스트는 이 창 메모리에만 (저장하지 않음)
+const _hm=()=>new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+// 원장 받기: 예전엔 받은 값으로 확인 없이 덮어씀 → 이제 브라우저 값이 비어 있을 때만 채우고, 다르면 확인창(기본 = 내 것 유지)
 function mySync(cb){ const tk=ghTok(); if(!tk){ MYSYNC={st:'토큰 없음'}; cb&&cb(false); return; }
   MYSYNC={st:'불러오는 중…'};
   fetch(PBSRC+'?t='+Date.now(),{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github.raw'},cache:'no-store'})
     .then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); })
-    .then(t=>{ const c=myClean(t); if(c){ mySave(c); const ta=$('#myta'); if(ta) ta.value=c; } MYSYNC={st:'동기화됨',at:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}; cb&&cb(true); })
+    .then(t=>{ const c=myClean(t), loc=myLoad(), at=_hm(); MYLEDGER=c; MYPEND=null;
+      myDigest(c).then(d=>{ if(d) mySetMeta({ledgerDigest:d,ledgerAt:Date.now()}); myBadges(); });
+      if(!myNorm(c)) MYSYNC={st:'원장 비어 있음 — 브라우저 값 유지',at};
+      else if(!myNorm(loc)){ mySave(c,'sync'); const ta=$('#myta'); if(ta) ta.value=c; MYSYNC={st:'원장에서 불러옴(브라우저 비어 있었음)',at}; }
+      else if(myNorm(loc)===myNorm(c)) MYSYNC={st:'원장과 같음',at};
+      else { MYPEND=c; MYSYNC={st:'원장과 다름 — 확인 필요(지금은 내 것 유지)',at}; }
+      myBadges(); myAsk(); cb&&cb(true); })
     .catch(e=>{ MYSYNC={st:'실패('+e.message+') — 토큰 권한·만료 확인'}; cb&&cb(false); }); }
+// 확인창: 원장 값으로 바꿀지 / 유지할지 / 차이 보기. 아무것도 안 누르면 유지
+function myAsk(){ const e=$('#myask'); if(!e) return; if(!MYPEND){ e.innerHTML=''; return; } const d=myDiff(myLoad(),MYPEND);
+  e.innerHTML=`<div style="border:1px solid var(--amber);padding:6px 8px;margin:6px 0;font-size:12px;max-width:640px"><b class="am">원장(holdings.txt)과 이 브라우저 보유가 달라요 — ${d.n}줄.</b> <span class="mu">고르기 전까진 브라우저 값 그대로 써요.</span><br>
+    <button id="myaskkeep" class="sbtn" style="margin-top:4px">내 것 유지</button> <button id="myasktake" class="sbtn">원장 값으로 바꾸기</button> <button id="myaskdiff" class="sbtn">차이 보기</button>
+    <div id="myaskd" style="display:none">${myDiffHtml(d,'브라우저에만','원장에만')}</div>
+    <div class="mu" style="font-size:11px;margin-top:4px">원장이 낡았으면 '백업 → 복사' 해서 PB 에게 대화로 전달 → PB 가 체결 확인 후 holdings.txt 반영 (화면은 원장에 쓰지 않음)</div></div>`;
+  $('#myaskdiff').onclick=()=>{ const x=$('#myaskd'); x.style.display=x.style.display==='none'?'':'none'; };
+  $('#myaskkeep').onclick=()=>{ MYPEND=null; MYSYNC.st='내 것 유지 — 원장과 다름 '+d.n+'줄'; alertMsg(MYSYNC.st+(MYSYNC.at?' · '+MYSYNC.at:'')); myAsk(); myBadges(); };
+  $('#myasktake').onclick=()=>{ const c=MYPEND; MYPEND=null; mySave(c,'sync'); const ta=$('#myta'); if(ta) ta.value=c; MYSYNC.st='원장 값으로 바꿈'; alertMsg(MYSYNC.st+(MYSYNC.at?' · '+MYSYNC.at:'')); myAsk(); myBadges(); myRun(); }; }
+// 배지 2개: 원장 같음/다름(토큰 있을 때만, 이 브라우저 안에서 비교) · 마지막 백업 N일 전(7일 넘거나 백업 뒤 수정 있으면 주황)
+function myBadgeHtml(){ const m=myMeta(), loc=myLoad(); let a, ac='var(--muted)';
+  if(!ghTok()) a='원장: 미확인(토큰 없음)'; else if(MYLEDGER===null) a='원장: 확인 전'; else { const n=myDiff(loc,MYLEDGER).n; a=n?`원장과 다름 ${n}줄`:'원장과 같음'; ac=n?'var(--amber)':'var(--up)'; }
+  let b, warn=false; if(!m.exportedAt){ b='백업: 없음'; warn=!!myNorm(loc); }
+  else { const dd=Math.floor((Date.now()-m.exportedAt)/864e5), mod=(m.savedAt||0)>m.exportedAt; b='마지막 백업 '+(dd?dd+'일 전':'오늘')+(mod?' · 백업 후 수정 있음':''); warn=dd>7||mod; }
+  return `<span id="myledb" class="tag" style="color:${ac};border-color:${ac}" title="브라우저 해시 ${esc(m.digest||'—')} · 원장 해시 ${esc(m.ledgerDigest||'—')} (secrets_gen 과 같은 규칙, 이 브라우저에만)">${a}</span><span id="mybakb" class="tag" style="color:${warn?'var(--amber)':'var(--muted)'};border-color:${warn?'var(--amber)':'var(--line)'}">${b}</span>`; }
+function myBadges(){ const e=$('#mybadge'); if(e) e.innerHTML=myBadgeHtml(); }
+// 내보내기(holdings.txt 형식 텍스트) · 가져오기(미리보기·차이 → 적용). 파일·클립보드는 겸이 기기로만 — 서버 전송 없음
+const _ymd=()=>new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+function myExportText(){ return `# MY 탭 내보내기 ${_ymd()} (브라우저 작업본 · holdings.txt 형식 · 개인 값 — 공개 저장소·텔레그램 금지)\n`+myLoad().replace(/\s*$/,'\n'); }
+function myBakMsg(m){ const e=$('#mybakmsg'); if(e) e.innerHTML=m; }
+function myCopy(){ const t=myExportText(), done=()=>{ mySetMeta({exportedAt:Date.now()}); myBadges(); myBakMsg('<span class="up">복사됨</span> — PB 에게는 대화로'); };
+  const fb=()=>{ try{ const x=document.createElement('textarea'); x.value=t; document.body.appendChild(x); x.select(); const ok=document.execCommand('copy'); x.remove(); ok?done():myBakMsg('<span class="dn">복사 실패 — 파일로 저장을 써줘</span>'); }catch(e){ myBakMsg('<span class="dn">복사 실패</span>'); } };
+  try{ navigator.clipboard.writeText(t).then(done,fb); }catch(e){ fb(); } }
+function myDownload(){ try{ const u=URL.createObjectURL(new Blob([myExportText()],{type:'text/plain;charset=utf-8'})), a=document.createElement('a');
+  a.href=u; a.download='holdings_'+_ymd().replace(/-/g,'')+'.txt'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000);
+  mySetMeta({exportedAt:Date.now()}); myBadges(); myBakMsg('<span class="up">파일로 저장함</span>'); }catch(e){ myBakMsg('<span class="dn">저장 실패 '+esc(e.message)+'</span>'); } }
+function myImpPreview(){ const t=($('#myimp')||{}).value||'', o=$('#myimpd'); if(!o) return; if(!myNorm(t)){ o.innerHTML='<span class="mu">붙여넣은 내용이 없어요</span>'; return; }
+  const d=myDiff(myLoad(),t); o.innerHTML=myDiffHtml(d,'지금 브라우저에만','가져올 내용에만')+(d.n?'<button id="myimpok" class="sbtn" style="margin-top:4px">이 내용으로 바꾸기</button>':'');
+  const ok=$('#myimpok'); if(ok) ok.onclick=()=>{ mySave(myClean(t),'import'); const ta=$('#myta'); if(ta) ta.value=myClean(t); o.innerHTML='<span class="up">가져옴</span>'; $('#myimp').value=''; myAsk(); myBadges(); myRun(); }; }
 let MYSYNCED=false;
 function myOpen(){ try{ return localStorage.getItem('mt_myopen')==='1'; }catch(e){ return false; } }
 // ───── 일기·히스토리 보기 + 회고 쓰기 (10/17 겸이) — pb-private 를 이 브라우저에서만 읽고 씀. 공개 서버 경유 없음
@@ -121,7 +174,10 @@ async function jrSave(){ const d=($('#jrd').value||'').trim(), t=($('#jrt').valu
   }catch(e){ m.innerHTML=`<span class="dn">${esc(e.message)}</span>`; } }
 function myView(){
   const txt=myLoad();
-  setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value); $('#myin').open=false; myRun(); };
+  setTimeout(()=>{ const ta=$('#myta'); if(!ta) return; $('#mygo').onclick=()=>{ mySave(ta.value,'manual'); $('#myin').open=false; myBadges(); myRun(); };
+    $('#mycopy').onclick=myCopy; $('#mydl').onclick=myDownload; $('#myimpv').onclick=myImpPreview;
+    $('#myfile').onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ $('#myimp').value=String(r.result||''); myImpPreview(); }; r.readAsText(f); e.target.value=''; };
+    myAsk(); myBadges();
     const st=()=>{ const e=$('#mysync'); if(e) e.textContent=MYSYNC.st+(MYSYNC.at?' · '+MYSYNC.at:''); };
     $('#mysyncb').onclick=()=>{ mySync(ok=>{ st(); if(ok) myRun(); }); st(); };
     $('#mytokb').onclick=async()=>{ const v=($('#mytok').value||'').trim(); const ses=$('#mytokses')&&$('#mytokses').checked; const pin=(($('#mytokpin')||{}).value||'').trim();
@@ -136,14 +192,20 @@ function myView(){
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
   return `<div class="grid"><div class="p c12"><h2>MY PB<small>보유 자산 분석 · 비공개 저장소(pb-private)에서 자동 동기화 · 공개 서버로 전송 없음</small></h2><div class="b">
     <div style="font-size:12px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="am">비공개 저장소 연동</span> <span id="mysync" class="mu">${ghTok()?esc(MYSYNC.st||'대기'):ghLocked()?'🔒 PIN 으로 잠김':'토큰 미설정'}</span>${ghLocked()?`<input id="mypin" type="password" inputmode="text" autocomplete="off" placeholder="PIN" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="mypinb" class="sbtn">열기</button> <span id="mypinmsg" class="dn" style="font-size:11px"></span> <a href="#" id="mypinforget" class="mu" style="font-size:11px">PIN 기억 지우기</a>`:''}
-      <button id="mysyncb" class="sbtn">지금 불러오기</button>
+      <button id="mysyncb" class="sbtn">원장과 대조</button> <span id="mybadge">${myBadgeHtml()}</span>
       <details style="display:inline"><summary class="mu" style="cursor:pointer;font-size:11px">토큰 설정</summary>
         <div class="mu" style="font-size:11px;line-height:1.6;max-width:560px">깃허브 → Settings → Developer settings → Fine-grained tokens → Repository access: <b>pb-private만</b> · Permissions: <b>Contents: Read-only</b>. 토큰은 이 브라우저에만 저장돼요(회사 PC엔 저장 금지). 비우고 저장하면 삭제.</div>
         <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <label class="mu" style="font-size:11px;margin-left:6px"><input id="mytokses" type="checkbox"> 이 창에서만 (탭 닫으면 삭제 · 회사 PC용)</label> <span class="mu" style="font-size:11px;margin-left:6px">또는 PIN 잠금 기억:</span> <input id="mytokpin" type="password" autocomplete="new-password" placeholder="PIN 6자+" style="width:100px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <span class="mu" style="font-size:11px">(PIN 을 넣고 저장하면 다음부턴 PIN 만 입력 — 회사 PC 추천)</span> <button id="mytokb" class="sbtn">저장</button></details></div>
+    <div id="myask"></div>
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
     <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code> · <code>예적금 9000000</code>(반도체 한도 분모에만 더함)<br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
     <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
     <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
+    <details id="mybak" style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">백업 · 내보내기/가져오기 (holdings.txt 형식)</summary>
+      <div class="mu" style="font-size:11px;line-height:1.6;margin-bottom:4px">브라우저 데이터를 지우면 보유 입력이 사라져요 — 주 1회 백업. <b>개인 값이라 텔레그램·공개 저장소에 붙이지 말 것</b>, PB 에게는 대화로. 원장(holdings.txt)에는 쓰지 않아요.</div>
+      <button id="mycopy" class="sbtn">복사</button> <button id="mydl" class="sbtn">파일로 저장</button> <label class="sbtn" style="display:inline-block">파일 가져오기<input id="myfile" type="file" accept=".txt,text/plain" style="display:none"></label> <span id="mybakmsg" class="mu" style="font-size:12px"></span>
+      <textarea id="myimp" rows="3" placeholder="가져올 내용 붙여넣기 → 미리보기 (적용 전 차이 확인)" style="display:block;width:100%;max-width:640px;margin-top:6px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:13px;padding:6px"></textarea>
+      <button id="myimpv" class="sbtn" style="margin-top:4px">미리보기</button><div id="myimpd"></div></details>
     <div id="myout" style="margin-top:12px"></div>
     <details id="mycorr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">교정 리포트 (비공개 · 눌러서 열기)</summary><div id="mycorrb" class="mu" style="font-size:12px">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
     <details id="myjr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">일기 · 운용 히스토리 · 회고 쓰기 (비공개 · 눌러서 열기)</summary><div id="myjrb" class="mu" style="font-size:12px">토큰 연결 후 열면 목록이 뜸</div></details>

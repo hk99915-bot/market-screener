@@ -3,6 +3,9 @@
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
 function homeMyStub(){ return myLoad()?'<div class="mu">불러오는 중…</div>':'<div class="mu">MY 탭에 보유 종목을 입력하면 여기에 요약이 나옵니다.</div>'; }
+// 원장 대조 한 줄 (MY 탭 '브라우저 주 + 원장 대조'): 토큰으로 받은 holdings.txt 와 브라우저 값이 다르면 알림 — 값은 덮지 않음
+function homeLedgerLine(){ if(typeof MYLEDGER==='undefined'||MYLEDGER===null) return ''; const n=myDiff(myLoad(),MYLEDGER).n;
+  return n?`<div class="am" style="font-size:11.5px;margin-top:4px;cursor:pointer" onclick="setView('my')">⚠ 원장(holdings.txt)과 다름 ${n}줄 — MY 탭에서 확인 (자동으로 덮지 않음)</div>`:''; }
 function homeMyFill(){
   if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ if(ok) homeMyFill(); }); }
   const box=$('#homemy'); if(!box||!myLoad()) return;
@@ -15,7 +18,7 @@ function homeMyFill(){
       const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
       box.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;font-size:12.5px"><span>순자산 <b>${K(NAV)}</b></span><span>주식 ${W(tot/NAV)}</span><span>손익 ${cost?pct(tot/cost-1,1):'—'}</span><span>최근일 ${pct(day/(tot-day||1),1)} (${K(day)})</span></div>
        <table><tr><th class="l">종목</th><th>비중</th><th>1D</th><th>손익</th><th>드라이버</th><th>손절선</th></tr>${rows.sort((a,b)=>b.v-a.v).map(r=>`<tr><td class="l am sym" data-sym="${esc(r.h.r.s)}" data-mk="${r.h.r.m}">${esc(shortNm(r.d.name)||r.h.r.s)}${r.d.etf?' <span class="tag">ETF</span>':''}</td><td>${W(r.v/NAV)}</td><td>${pct(r.r1,1)}</td><td>${r.c?pct(r.v/r.c-1,1):'—'}</td><td style="color:${col(r.drv)}">${r.drv!=null?(r.drv>0?'+':'')+r.drv.toFixed(2):'—'}</td><td class="${r.stop&&r.d.close<r.stop?'dn':'mu'}">${r.stop?num(r.stop,r.h.r.m==='KR'?0:2):'—'}</td></tr>`).join('')}</table>
-       <div class="mu" style="font-size:11px;margin-top:4px">전체 분석(샤프·베타·헷지)은 MY 탭</div>`; };
+       <div class="mu" style="font-size:11px;margin-top:4px">전체 분석(샤프·베타·헷지)은 MY 탭</div>${homeLedgerLine()}`; };
     const go=()=>myFetch(hs.map(h=>[h.r.m,h.r.s]),fin);
     if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go(); });
 }
