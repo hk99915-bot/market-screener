@@ -82,6 +82,7 @@ v1 규칙(전일 종가→당일 시가 ±45%)에 걸린 행 = **373건 / 343종
 - 가장 센 반대 근거: 조정 비율을 **재개일 시가**로 잡으므로 병합 후 첫날 시가가 기준가에서 ±30% 움직이면 과거 가격이 그만큼 틀린다(예: 900300 ×64.9 — 실제 병합 비율 미확인). 정확한 비율은 공시·주식 수가 있어야 한다 `[확인 필요: KRX 전종목 시세의 LIST_SHRS 저장 가능 여부, 10/24까지 데이터]`.
 - 진행 중인 정리매매(아직 끝나지 않은 종목)는 v2가 거르지 못한다.
 - 장기 히스토리(`data/hist/kr_YYYY`, yfinance auto_adjust)는 배당까지 조정된 가격이고 2025-09 이후 KRX 원본은 배당 미조정 → 이음매에서 종목별 배당률만큼 단절(기존 문제, 미수정).
+- **소급 재계산(감사 M4, 42954487):** committee.score·_ideas_log_score 가 조정가로 바뀌어 **과거 운용회의 채점(h5·h20 초과수익)·아이디어 채점이 분할·병합 종목에서 소급 변동** — 커밋 전 화면 수치와 다를 수 있음(회귀 `tests/test_committee_adjusted.py`). 단 ideas_log 의 entry·stop 은 기록 당시 원본가라 이후 분할 종목은 가짜 손절 가능 → 보드 `audit-ideas-basis`(xfail 고정). 롤백 = 42954487 revert.
 
 VOC: committee.py·main.py가 개발 잠금이라 직접 읽기 3곳이 남았다. 포트폴리오는 야후 데이터라 로컬(프록시 403)에서 못 돌려 fin.yml 수동 실행(51분, DART 예산 포함)을 기다렸다 — 모드별 단독 실행 입력이 있으면 5분이면 된다.
 요청→개발: 잠금 해제 시 `committee.score`·`_ideas_log_score`·`main.py:259`의 `pl.read_parquet(kr_prices)`를 `prices.load_kr()`로 교체(테스트 tests/test_prices.py 그대로 사용).

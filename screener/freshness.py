@@ -60,7 +60,12 @@ def _read_value(root: Path, it: dict):
         obj = json.loads(raw)
     except Exception:  # noqa: BLE001
         return None, "JSON 깨짐"
-    return guard._get(obj, it["key"]) if it.get("key") else guard.json_day(obj), None
+    if not it.get("key"):
+        return guard.json_day(obj), None
+    v = guard._get(obj, it["key"])
+    if v is None and it.get("key_fallback"):   # 새 키(예: macro_series asof_kr)가 아직 없는 옛 파일
+        v = guard._get(obj, it["key_fallback"])
+    return v, None
 
 
 def last_human_commit(root: Path = ROOT) -> datetime | None:

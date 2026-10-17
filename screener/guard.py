@@ -80,8 +80,15 @@ def not_older(old, new) -> bool:
 
 
 def _get(obj, key: str):
+    """점 경로. 리스트는 정수 조각으로 인덱스 ('series.KOSPI.-1.0' = KOSPI 끝 행 날짜)."""
     cur = obj
     for k in key.split("."):
+        if isinstance(cur, list):
+            try:
+                cur = cur[int(k)]
+            except (ValueError, IndexError):
+                return None
+            continue
         if not isinstance(cur, dict):
             return None
         cur = cur.get(k)

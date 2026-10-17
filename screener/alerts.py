@@ -10,6 +10,8 @@
 
 소리 등급(결재 #9, 10/17 14:09 도장 — pb-private ops/agreements.md §7-3): RING_KINDS 다섯 가지만 소리, 나머지는 전부
 disable_notification=True. 텔레그램을 보내는 모든 모듈이 이 표(ring/silent)를 쓴다 — 표 밖에서 소리를 켜지 않는다.
+PB 회신(10/17, 감사 M1): '손절 2일' = 코스피 5,451 선 + 보유 종목 기준가 각각 → 둘 다 stop2. 손실 한도 도달('loss_limit')은 표 밖(무음).
+현재 defs.TELEGRAM_ALL_SILENT=True(오너 10/17 '전체 무음') — 이 표는 그 스위치를 끌 때부터 효력.
 """
 from __future__ import annotations
 
@@ -28,7 +30,7 @@ DEFAULT_DEADLINE = "2026-10-22"
 
 # ── 결재 #9 알림 등급: 소리 나는 것은 이 다섯 종류뿐 (키 접두 = 'stop2' · 'dl0' · 'touch:<코드>' · 'halt:…' · 'fresh:<항목>') ──
 RING_KINDS: dict[str, str] = {
-    "stop2": "⛔ 손절선 2일 연속 이탈 (규정 [12])",
+    "stop2": "⛔ 손절선 2일 연속 종가 이탈 — 코스피 규정 [12] 5,451 선('stop2') + 보유 종목 기준가 MY_RULES price('stop2:<코드>', pb 아침 점검)",
     "dl0": "규정 [12] 집행 기한 D-day",
     "touch": "발동선 장중 터치 (MY_RULES touch — 000660 결재 #2 예외 1회)",
     "halt": "서킷브레이커·사이드카 실제 발동",
@@ -67,6 +69,18 @@ def kospi_rows() -> list[list]:
         return json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8"))["series"]["KOSPI"]
     except Exception:  # noqa: BLE001
         return []
+
+
+def kospi_asof(rows: list[list] | None = None) -> str | None:
+    """KR 시장 날짜 = macro_series asof_kr (없으면 KOSPI 끝 행). 최상위 asof 는 BTC 등 24시간 시리즈 날짜라 쓰지 않는다(감사 M3)."""
+    try:
+        v = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8")).get("asof_kr")
+        if v:
+            return str(v)[:10]
+    except Exception:  # noqa: BLE001
+        pass
+    rows = kospi_rows() if rows is None else rows
+    return str(rows[-1][0])[:10] if rows else None
 
 
 def _close(r):
@@ -197,6 +211,21 @@ def _save(st: dict) -> None:
     STATE.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def _stop_stale(today: date, kd: str | None) -> None:
+    """16:20 손절선 점검을 KOSPI 오늘 종가 없이 못 한 경우 — KR 거래일이면 조용히 넘기지 않는다(감사 M3):
+    경고 로그 + reports/freshness.json stale 기록 → 신선도 배지·⛔ 알림(fresh, 지금은 전체 무음)이 잡는다."""
+    from . import tradecal
+    if not tradecal.is_session("KR", today):
+        log.info("손절선 점검: 오늘 KR 휴장 — 건너뜀 (KOSPI 끝 행 %s)", kd)
+        return
+    log.warning("⛔ 손절선 점검 못 함: macro_series KOSPI 끝 행 %s ≠ 오늘 %s (KR 거래일) — 규정 [12] 점검 누락", kd, today)
+    try:
+        from .guard import record_stale
+        record_stale("reports/macro_series.json", "KOSPI(16:20 손절선 점검)", str(today), kd)
+    except Exception as e:  # noqa: BLE001
+        log.warning("stale 기록 실패: %s", e)
+
+
 def build(at_close: bool = True, today: date | None = None) -> list[tuple[str, str]]:
     """(키, 문장) 목록. at_close=False(14:25) 면 종가 기반 손절선 점검은 건너뜀."""
     today = today or datetime.now(KST).date()
@@ -204,9 +233,10 @@ def build(at_close: bool = True, today: date | None = None) -> list[tuple[str, s
     if at_close:
         rows = kospi_rows()
         level, src = stop_level(rows)
+        kd = kospi_asof(rows)
         if level and rows:
-            if str(rows[-1][0]) != str(today):
-                log.info("손절선 점검: 오늘 종가 아직 없음 (%s)", rows[-1][0])
+            if kd != str(today) or str(rows[-1][0])[:10] != str(today):
+                _stop_stale(today, kd)
             else:
                 k, line = stop_line([_close(r) for r in rows], level)
                 if k:
@@ -223,7 +253,9 @@ def build(at_close: bool = True, today: date | None = None) -> list[tuple[str, s
     except Exception as e:  # noqa: BLE001
         log.warning("발동선 점검 실패: %s", e)
     try:
-        out.extend(touch_lines())   # 장중·마감 슬롯 모두 — 터치는 시각을 가리지 않는다
+        from .event_watch import load_state as _ew_state   # event_watch 가 장중에 이미 보낸 touch:<코드> 는 다시 안 보냄 (평생 1회)
+        ew = _ew_state()["sent"]
+        out.extend(t for t in touch_lines() if t[0] not in ew)   # 장중·마감 슬롯 모두 — 터치는 시각을 가리지 않는다
     except Exception as e:  # noqa: BLE001
         log.warning("터치 점검 실패: %s", e)
     return out

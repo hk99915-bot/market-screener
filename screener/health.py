@@ -107,10 +107,14 @@ def check() -> dict:
         except Exception as e:  # noqa: BLE001
             issues.append(f"{mk} 종목 상세 점검 실패: {type(e).__name__}")
     # 2) 파일 신선도
-    for p, key, lim in (("macro_series.json", "asof", 2), ("committee.json", "date", 2), ("daily_brief.json", "asof", 2),
+    for p, key, lim in (("macro_series.json", "asof_kr", 2), ("committee.json", "date", 2), ("daily_brief.json", "asof", 2),
                         ("calendar.json", "asof", 3), ("derivs.json", "date", 3), ("signal_scores.json", "asof", 7)):
         try:
-            a = date.fromisoformat(str(_j(p).get(key))[:10])
+            o = _j(p)
+            v = o.get(key)
+            if v is None and key == "asof_kr":   # 감사 M3: KR 날짜 = KOSPI 끝 행 (옛 파일엔 asof_kr 없음)
+                v = (o.get("series", {}).get("KOSPI") or [[None]])[-1][0]
+            a = date.fromisoformat(str(v)[:10])
             lag = _bdays_between(a, today)
             if lag > lim:
                 issues.append(f"{p} 가 {lag}거래일 멈춤 (마지막 {a})")

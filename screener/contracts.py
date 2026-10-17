@@ -68,8 +68,24 @@ def check(path, obj) -> list[str]:
     return errs
 
 
+KR_SERIES = ("KOSPI", "KOSDAQ")   # KR 시장 날짜를 대표하는 시리즈 (앞에서부터 첫 번째로 있는 것)
+
+
+def series_asof(obj: dict) -> dict:
+    """macro_series → {'asof_by': {시리즈: 끝 행 날짜}, 'asof_kr': KOSPI 끝 행 날짜}. 감사 M3(10/17):
+    최상위 asof = 전 시리즈 최대 날짜라 24시간 시리즈(BTC·USDKRW)가 토요일 날짜로 끌어올림 → KR 소비자(신선도·16:20 손절선)는 asof_kr 를 본다."""
+    by = {}
+    for k, rows in (obj.get("series") or {}).items():
+        if rows and isinstance(rows[-1], (list, tuple)) and rows[-1]:
+            by[k] = str(rows[-1][0])[:10]
+    kr = next((by[k] for k in KR_SERIES if k in by), None)
+    return {"asof_by": by, "asof_kr": kr}
+
+
 def stamp(path, obj) -> None:
-    """계약이 있으면 schema_version 을 채운다 (쓰기 직전, check 통과 후)."""
+    """계약이 있으면 schema_version 을 채운다 (쓰기 직전, check 통과 후). macro_series 는 시리즈별 asof 도 채운다(감사 M3)."""
     hit = contract_for(path)
     if hit and isinstance(obj, dict):
         obj["schema_version"] = hit[1]["v"]
+        if hit[0] == "macro_series.json":
+            obj.update(series_asof(obj))

@@ -114,8 +114,9 @@ def test_events_halt_rings_proximity_silent():
     assert alerts.silent(events.halt_keys([{"market": "KOSPI", "type": "경보:급락 −5% (사이드카 근처)"}]))
 
 
-def test_pb_morning_and_duel_are_silent():
+def test_pb_morning_goes_through_ring_table_and_duel_silent():
+    """감사 M1(10/17): PB 아침 점검은 고정 무음이 아니라 alerts.silent(keys) — stop2:<코드>만 소리 (tests/test_pb_ring.py)."""
     import inspect
     from screener import duel, pb
-    assert "disable_notification=True" in inspect.getsource(pb.send)
+    assert "disable_notification=silent(keys)" in inspect.getsource(pb.send)
     assert "loud(" not in inspect.getsource(duel)

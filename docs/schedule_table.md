@@ -15,6 +15,7 @@
 - **산출물 하나 = 실행 주체 하나.** 슬롯 = (워크플로 · 작업 키 · KST 시각 · 요일). 작업 키 = briefing 의 mode, screener 의 market, deriv_hist 의 task, backfill 의 market.
 - **GAS 슬롯** (Scheduler.gs SCHEDULE 에 있는 슬롯): GAS 가 주 실행 주체. 같은 시각 GitHub cron 은 **대기(fallback)** — `scripts/slot_guard.py` 가 예정 +12분까지 기다린 뒤 같은 키의 dispatch 가 있으면 건너뛰고, 없으면 대신 실행한다. GAS 는 예정 +10분 안에만 보내므로(WINDOW_MIN 20→10) 둘이 겹칠 수 없다.
 - **수동 dispatch 는 기본 읽기 전용.** 입력 `commit`: `true` 커밋 · `false` 읽기 전용 · `auto`(기본, GAS 대상 워크플로 6개) = GAS 슬롯 시각 +25분 안이면 커밋, 밖이면 읽기 전용. 나머지 cron 워크플로 7개는 기본 `false`. 읽기 전용이어도 텔레그램·구글시트 같은 외부 부작용은 그대로다(git 커밋만 막음).
+  - 신선도 ⛔ 알림의 복구 명령(`ops/freshness.json` `fix`)은 전부 `-f commit=true` 를 붙인다 — 알림대로 실행하면 저장까지 된다(감사 M2 10/17, `tests/test_freshness_fix.py` 가 commit 입력이 있는 워크플로마다 강제). 역행은 `guard.write_json` asof 가드가 따로 막는다.
 - **API 실패 = 실행(fail-open)** + `::warning`. 알림 누락이 중복보다 나쁘다고 판단 [가정: 오너 선호, 뒤집힐 조건 — 중복 텔레그램 불만이 누락보다 크면 fail-closed 로].
 - 정의: "이중 실행 슬롯" = 한 슬롯에 가드 없이 실행할 수 있는 주체가 2개 이상. "수동 덮어쓰기 경로" = 자동 트리거가 있는 워크플로에서 수동 dispatch 가 기본값으로 커밋하는 경로.
 

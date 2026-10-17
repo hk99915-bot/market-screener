@@ -492,12 +492,20 @@ def isa_lines(ev: dict) -> list[str]:
 
 
 def brief() -> str | None:
+    return brief_keys()[0]
+
+
+def brief_keys() -> tuple[str | None, list[str]]:
+    """(본문, 알림 키). 키는 결재 #9 등급표(alerts.RING_KINDS)로 소리를 정한다 — PB 회신 10/17(감사 M1):
+    '손절 2일' = 보유 종목 기준가(MY_RULES price) 2일 연속 종가 이탈 + 코스피 5,451 선 → 'stop2:<코드>'(소리).
+    1일 이탈 'stop1:<코드>'·손실 한도 'loss_limit' 은 표 밖(무음). 지금은 TELEGRAM_ALL_SILENT 로 전부 무음."""
     txt = os.environ.get("MY_HOLDINGS", "").strip()
     if not txt:
-        return None
+        return None, []
     ev = evaluate(txt, os.environ.get("MY_RULES", ""))
     if not ev:
-        return None
+        return None, []
+    keys: list[str] = []
     rows, nav, tot, cost, loss, miss = ev["rows"], ev["nav"], ev["tot"], ev["cost"], ev["loss"], ev["miss"]
     loss_limit, price_rules = ev["rules"]["loss_limit"], ev["rules"]["price"]
     cash = ev["cash"]
@@ -510,6 +518,8 @@ def brief() -> str | None:
     L.append("<b>규칙 점검</b>")
     # denominator=D2 nav — 규정 원문엔 없는 구 규칙(LOSS_LIMIT), 용어집 '누적 손실 한도' 참조
     L.append(f"• 손실 한도(순자산 −{loss_limit*100:.0f}%)까지 " + (f"순자산 <b>{room/nav*100:.1f}%</b> 남음 (주식 −{room/tot*100:.1f}% 추가 하락 여유)" if room > 0 else "<b>⛔ 한도 도달 — 메모리 절반 축소 실행</b>"))
+    if room <= 0:
+        keys.append("loss_limit")   # 결재 #9 표 밖 → 무음 (PB 회신 10/17)
     L.append(semi_line(ev))
     L += band_lines(ev)
     L.append(stress_line(ev))   # 비율만 (금액 금지)
@@ -520,6 +530,8 @@ def brief() -> str | None:
             continue
         below = [p for p in r["last2"] if p is not None and p < px]
         tag = "⛔ 2일 연속 이탈 — 실행" if len(below) == 2 else "⚠️ 1일 이탈" if len(below) == 1 else "✅"
+        if below:
+            keys.append(f"stop{min(len(below), 2)}:{code}")   # stop2 = 결재 #9 '손절 2일'(소리) · stop1 = 무음
         L.append(f"• {r['name']} 기준 {px:,.0f} · 최근 종가 {r['close']:,.0f} ({r['close']/px*100-100:+.1f}%) {tag}")
     L.append("")
     L.append("<b>보유</b>")
@@ -555,15 +567,18 @@ def brief() -> str | None:
     if miss:
         L.append("")
         L.append("인식 못 한 종목: " + ", ".join(miss))
-    return "\n".join(L)
+    return "\n".join(L), keys
 
 
 def send() -> bool:
-    t = brief()
+    t, keys = brief_keys()
     if not t:
         log.info("PB: MY_HOLDINGS 없음 — 건너뜀")
         return False
+    from .alerts import silent
     from .report import send_telegram
-    send_telegram(t, disable_notification=True)   # 결재 #9(최종): 아침 점검은 무음 — 손절 2일·터치는 alerts.run 이 따로 소리로 보낸다
+    # 결재 #9 등급표 경유(감사 M1): 보유 종목 기준가 2일 이탈(stop2:<코드>)만 소리, 나머지(1일 이탈·손실 한도·정보)는 무음.
+    # 현재는 defs.TELEGRAM_ALL_SILENT(오너 10/17 전체 무음)가 send_telegram 에서 전부 무음으로 덮는다.
+    send_telegram(t, disable_notification=silent(keys))
     log.info("PB 아침 점검 전송")   # 내용은 로그에 남기지 않음
     return True
