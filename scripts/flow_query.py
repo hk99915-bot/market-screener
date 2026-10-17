@@ -52,6 +52,33 @@ def query(code: str, days: int) -> dict:
             "generated_at": datetime.now(KST).isoformat(timespec="minutes"), "source": "pykrx/KRX", "rows": rows}
 
 
+def naver(code: str, pages: int = 14) -> dict:
+    """pykrx 가 못 읽는 신형 코드(예: 0015B0) 폴백 — 네이버 외국인·기관 일별 표(기관/외국인 순매매 '수량', 외국인 보유율)."""
+    import re
+    import requests
+    ua = {"User-Agent": "Mozilla/5.0", "Referer": "https://finance.naver.com/"}
+    rows, seen = [], set()
+    num = lambda x: float(x.replace(",", "").replace("%", "").replace("+", "")) if x.strip() not in ("", "-") else 0.0
+    for pg in range(1, pages + 1):
+        t = requests.get(f"https://finance.naver.com/item/frgn.naver?code={code}&page={pg}", headers=ua, timeout=15).content.decode("euc-kr", "ignore")
+        got = 0
+        for tr in re.findall(r"<tr[^>]*onMouseOver[^>]*>(.*?)</tr>", t, re.S | re.I):
+            tds = [re.sub(r"<[^>]+>|&nbsp;|\s+", "", x) for x in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
+            if len(tds) < 9 or not re.match(r"\d{4}\.\d{2}\.\d{2}", tds[0]):
+                continue
+            d = tds[0].replace(".", "-")
+            if d in seen:
+                continue
+            seen.add(d); got += 1
+            rows.append({"d": d, "c": num(tds[1]), "v": int(num(tds[4])), "기관합계_q": int(num(tds[5])),
+                         "외국인_q": int(num(tds[6])), "외인보유주": int(num(tds[7])), "외인보유율": num(tds[8])})
+        if not got:
+            break
+    rows.sort(key=lambda r: r["d"])
+    return {"code": code, "asof": rows[-1]["d"] if rows else None, "unit": "주(_q)", "source": "naver frgn",
+            "generated_at": datetime.now(KST).isoformat(timespec="minutes"), "rows": rows}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("codes", nargs="+")
@@ -60,7 +87,13 @@ def main():
     os.makedirs("reports/flowq", exist_ok=True)
     for c in a.codes:
         try:
-            out = query(c, a.days)
+            try:
+                out = query(c, a.days)
+            except Exception as ex:  # noqa: BLE001
+                log.warning("%s pykrx 실패 → 네이버 폴백: %s", c, str(ex)[:120])
+                out = {"rows": []}
+            if not out.get("rows"):
+                out = naver(c)
             json.dump(out, open(f"reports/flowq/{c}.json", "w"), ensure_ascii=False)
             log.info("%s: %d행 asof %s", c, len(out["rows"]), out["asof"])
         except Exception as ex:  # noqa: BLE001
