@@ -91,3 +91,27 @@ def test_latest_filing_wins_and_fy_report_preferred():
         _r("2025-01-01", "2025-03-31", 11, 2025, "Q1", "2025-07-30"),   # 재작성(최신 제출)
     ]
     assert _by(sec.parse(_facts(NetIncomeLoss=recs)), "ni")["2025-03-31"]["value"] == 11
+
+
+def test_revenue_tag_switch_merges_old_and_new_tags():
+    """태그 전환 회사(MU 형): 옛 태그(SalesRevenueNet)는 2018 이전 분기만, 새 태그는 2025~ 분기만 갖는다.
+    예전엔 첫 태그에서 break → 옛 분기만 나오고 update() 의 2019 필터가 전부 버려 '매출 0행'이 됐다."""
+    old = [_r("2017-09-01", "2017-11-30", 6.8, 2018, "Q1", "2017-12-20")]
+    new = [
+        _r("2025-08-29", "2025-11-27", 13.64, 2026, "Q1", "2025-12-18"),
+        _r("2025-08-29", "2026-09-03", 150.0, 2026, "FY", "2026-10-10", "10-K"),
+        _r("2025-08-29", "2026-05-28", 95.77, 2026, "Q3", "2026-06-26"),
+    ]
+    rev = _by(sec.parse(_facts(SalesRevenueNet=old, RevenueFromContractWithCustomerExcludingAssessedTax=new)), "revenue")
+    assert set(rev) == {"2017-11-30", "2025-11-27", "2026-09-03"}
+    assert rev["2026-09-03"]["value"] == pytest.approx(150.0 - 95.77) and rev["2026-09-03"]["derived"] is True
+    assert [r for r in rev.values() if r["end"] >= "2019-01-01"]   # update() 필터 뒤에도 살아남는다
+
+
+def test_revenue_same_quarter_end_earlier_tag_wins():
+    """두 태그가 같은 분기말을 가지면 FLOW 순서상 앞선 태그 값 하나만 (중복 행 없음)."""
+    a = [_r("2025-01-01", "2025-03-31", 10, 2025, "Q1", "2025-04-30")]
+    b = [_r("2025-01-01", "2025-03-31", 99, 2025, "Q1", "2025-04-30"), _r("2025-04-01", "2025-06-30", 12, 2025, "Q2", "2025-07-30")]
+    rows = [r for r in sec.parse(_facts(Revenues=a, RevenueFromContractWithCustomerExcludingAssessedTax=b)) if r["item"] == "revenue"]
+    assert len(rows) == 2
+    assert _by(rows, "revenue")["2025-03-31"]["value"] == 10 and _by(rows, "revenue")["2025-06-30"]["value"] == 12

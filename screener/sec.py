@@ -138,11 +138,13 @@ def parse(facts: dict) -> list[dict]:
         return u.get("USD") or u.get("shares") or []
 
     for item, tags in FLOW.items():
+        # 태그 전환 회사(예: ASC 606 전후 SalesRevenueNet → RevenueFromContractWithCustomer…)는 태그마다 다른 연도의
+        # 분기를 갖는다. 첫 태그에서 끊지 않고 전부 합치되, 같은 분기말은 앞선 태그 우선 (setdefault).
+        merged: dict[str, tuple[float, bool]] = {}
         for t in tags:
-            q = _flow_quarters(units(t, ug))
-            if q:
-                rows += [{"end": e, "item": item, "value": float(v), "derived": d} for e, (v, d) in q.items()]
-                break
+            for e, vd in _flow_quarters(units(t, ug)).items():
+                merged.setdefault(e, vd)
+        rows += [{"end": e, "item": item, "value": float(v), "derived": d} for e, (v, d) in merged.items()]
     for item, tags in INSTANT.items():
         for t in tags:
             v = _instant(units(t, ug) or units(t, dei))
