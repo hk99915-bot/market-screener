@@ -1580,6 +1580,29 @@
    "depends_on": [],
    "notes": "애널 요청 10/17 (KoAct vs NDX 리포트 한계). 샌드박스 DNS 차단 → Actions에서 수집.",
    "desk": "데이터"
+  },
+  {
+   "id": "kr-accum",
+   "title": "국장 외인·기관 매집 스캐너(전 종목 일별 수급 저장소) + 시장 거래대금 + 매집 신호 이벤트 스터디",
+   "owner": "퀀트",
+   "priority": "P1",
+   "status": "진행",
+   "repo": "public",
+   "files": [
+    "screener/accum.py",
+    "scripts/study_accum.py",
+    ".github/workflows/accum.yml",
+    "data/flows/*",
+    "reports/accum.json",
+    "reports/studies/accum_signals.json",
+    "apps-script/tab_market.html",
+    "tests/test_accum.py"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-24",
+   "depends_on": [],
+   "notes": "pykrx 하루 10콜 → data/flows/kr_inv_YYYY.parquet(2022~ 백필, 재개형). 평일 18:37 KST accum.yml. 화면: MARKET›KR ACCUM(getArchAt('accum','latest') 임시 — Code.gs/build_pages 잠금 풀리면 getAccum 전용 getter로). 남은 일: contracts.py 에 accum.json 계약 등록(개발 소관), 2022 하락장 백필 완료 후 스터디 재실행.",
+   "desk": "데이터"
   }
  ]
 }
