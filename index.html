@@ -742,6 +742,7 @@ function myParse(txt){ const out=[]; let book='sat'; for(const ln of txt.split(/
     if(['현금','KRW','CMA','원화','예수금','RP'].includes(k)||/^CMA/.test(k)) out.push({cash:'KRW', amt:n(p[1])||0, book});
     else if(['USD','달러','미국달러'].includes(k)) out.push({cash:'USD', amt:n(p[1])||0, book});
     else if(['예적금','적금','예금','SAVINGS'].includes(k)) out.push({sav:n(p[1])||0});   // 결재 #1 분모 (b): 불가침 예적금 — 반도체 비중 분모에만 더함
+    else if(['ISA적립','ISA_MONTHLY','적립'].includes(k)) out.push({isam:n(p[1])||0, isad:Math.max(1,Math.min(28,Math.round(n(p[2])||1)))});   // 결재 #3 글라이드: 'ISA적립 <월 금액> [적립일]' (pb.py isa_monthly_in 과 동일)
     else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 5 30000")
       let k2=p.length; const nums=[]; while(k2>1&&nums.length<2&&n(p[k2-1])!=null){ nums.unshift(n(p[k2-1])); k2--; }
       out.push({key:p.slice(0,k2).join(' '), qty:nums.length?nums[0]:0, avg:nums.length>1?nums[1]:null, book}); } } return out; }
@@ -949,6 +950,20 @@ function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) retur
 function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
   for(const [m,sy] of list){ const k=m+':'+sy; if(MYD[k]){ done(); continue; }
     google.script.run.withSuccessHandler(t=>{try{MYD[k]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(m,sy); } }
+// 결재 #3 레짐 (pb.py semi_regime 과 같은 정의): 상승장 = 52주 고점 −10% 이내 & 200일선 위 · 회복확인 = 20일선 위 2일 연속 · 나머지 하락장(데이터 없으면 하락장)
+function myRegime(c){ c=(c||[]).filter(x=>x>0); if(c.length<20) return {regime:'하락장',dd:null,above20:0,src:'데이터 없음 → 하락장 가정'};
+  const last=c[c.length-1], hi=Math.max(...c.slice(-252)), dd=last/hi-1, ma=c.length>=200?c.slice(-200).reduce((s,x)=>s+x,0)/200:null;
+  const tag=dd<=-0.20?'하락':(dd<=-0.10||(ma!=null&&last<ma))?'조정':'상승';
+  let k=0; for(let i=c.length-1;i>=20;i--){ const m=c.slice(i-19,i+1).reduce((s,x)=>s+x,0)/20; if(c[i]>m) k++; else break; }
+  return {regime:tag==='상승'?'상승장':k>=2?'회복확인':'하락장', dd, above20:k, src:'코스피 '+tag}; }
+// 11월 말 글라이드 (pb.py glide_path 와 같은 식): ISA 적립이 분모만 키운다고 보고 날짜별 예상 비중 — 비율만
+function myGlide(semi,den,monthly,day,by,target){ const kst=new Date(Date.now()+9*36e5), today=kst.toISOString().slice(0,10), x0=den?semi/den:0;
+  const t0=Date.parse(today), end=Date.parse(by), span=Math.max((end-t0)/864e5,1), pts=[{d:today,x:x0,line:x0,what:'지금'}];
+  let y=kst.getUTCFullYear(), m=kst.getUTCMonth(), k=0;
+  for(let i=0;i<24;i++){ const d=new Date(Date.UTC(y,m+i,day)).toISOString().slice(0,10); if(d>by) break; if(d<=today) continue; k++;
+    pts.push({d,x:semi/(den+k*monthly),line:x0+(target-x0)*((Date.parse(d)-t0)/864e5)/span,what:'ISA 적립 '+k+'회'}); }
+  const denEnd=den+k*monthly; pts.push({d:by,x:semi/denEnd,line:target,what:'목표일'});
+  return {points:pts, need:den?Math.max(semi-target*denEnd,0)/den:0, n:k}; }
 function myRun(){
   if(typeof CH!=='undefined'&&CH===null){ CH=false; google.script.run.withSuccessHandler(t=>{try{CH=JSON.parse(t);}catch(e){CH={};}}).getChains(); }
   if(typeof PF!=='undefined'&&PF===null){ PF=false; google.script.run.withSuccessHandler(t=>{try{PF=JSON.parse(t);}catch(e){PF={};}}).getPortfolios(); }
@@ -958,6 +973,7 @@ function myRun(){
     const hs=all.filter(h=>h.key).map(h=>({...h, r:myResolve(h.key)}));
     const cash=all.filter(h=>h.cash);
     window._mySav=all.filter(h=>h.sav!=null).reduce((s,h)=>s+h.sav,0);
+    const im=all.filter(h=>h.isam!=null); window._myIsaM={amt:im.reduce((s,h)=>s+h.isam,0), day:im.length?im[im.length-1].isad:1};
     const miss=hs.filter(h=>!h.r).map(h=>h.key);
     const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]), ...HEDGES.map(x=>[x[0],x[1]]), ...BENCH];
     const go=()=>myFetch(need,()=>myRender(hs,cash,miss));
@@ -1035,10 +1051,20 @@ function myRender(hs,cash,miss){
   const op=[];
   let semi=0, elec=0, look=0; for(const a of A){ const c=semiClass(a); if(c.kind==='semi') semi+=a.val; else if(c.kind==='elec') elec+=a.val; look+=a.val*c.lookW; }
   const semiElec=semi+elec;
-  const SEMI_CAP=0.40;   // 규정 [3] 테마 합계 ≤ 순자산의 40% (2026-10-15 v2.1) — 반도체(전기 제외), 지수 ETF 룩스루 제외
-  const SEMI_BAND=0.45;  // 발동선 (안건 7): 넘으면 다음 반등일에 40% 로
-  const semiTag=semi/DEN>SEMI_BAND?`<b>⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 40%로 (${K((semi/DEN-SEMI_CAP)*DEN)}원 초과)`:semi/DEN>SEMI_CAP?`<b>⛔ 상한 초과</b> — 추가 매수 금지 (${K((semi/DEN-SEMI_CAP)*DEN)}원 초과, 반등일에 축소)`:'한도 안 ✅';
-  op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (상한 ${W(SEMI_CAP)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}. 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
+  const SEMI_CAP=0.40;   // 규정 [3] 테마 목표 40% (회복확인·상승장) — 반도체(전기 제외), 지수 ETF 룩스루 제외
+  const SEMI_BAND=0.45;  // 발동선 (안건 7): 넘으면 다음 반등일에 레짐 상한으로
+  // ── 결재 #3 (10/17 14:09): 레짐 연동 밴드 · 적립 글라이드 · 60일 VaR99 계기판 — 값은 screener/defs.py 와 같음(check_rules_terms 가 검사), 계산은 pb.py 와 같음
+  const SEMI_FLOOR=0.30, SEMI_GLIDE_TARGET=0.35, SEMI_GLIDE_BY='2026-11-30', VAR99_Z=2.326, VAR99_LIMIT=0.02, VAR99_LIMIT_BEAR=0.015;
+  const SEMI_REGIME_CAP={'하락장':0.35,'회복확인':0.40,'상승장':SEMI_CAP}, SEMI_SWING=['009150'];
+  const RG=myRegime(Object.keys(kos).sort().map(d=>kos[d])), CAPR=SEMI_REGIME_CAP[RG.regime];
+  const bandSt=x=>x>SEMI_BAND+0.005?{st:'trigger',t:`<b class="dn">⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 ${W(CAPR)}로`}:x>CAPR+0.005?{st:'over',t:`<b class="dn">상한 ${W(CAPR)}(${RG.regime}) 초과</b> — 반도체 신규 매수 금지`}:x<SEMI_FLOOR-0.005?{st:'floor',t:`<span class="am">하단 ${W(SEMI_FLOOR)} 미만 — 재매수 허용(의무 아님)</span>`}:{st:'ok',t:'<span class="up">밴드 안 ✅</span>'};
+  const swing=A.filter(a=>SEMI_SWING.includes(a.h.r.s)&&semiClass(a).kind!=='semi').reduce((s,a)=>s+a.val,0);
+  const bEx=bandSt(semi/DEN), bIn=bandSt((semi+swing)/DEN);
+  const P60=P.slice(-60), m60=mean(P60), sd60=Math.sqrt(P60.reduce((s,x)=>s+(x-m60)*(x-m60),0)/Math.max(P60.length-1,1));
+  const VAR99=VAR99_Z*sd60*NAV/DEN, VARL=RG.regime==='하락장'?VAR99_LIMIT_BEAR:VAR99_LIMIT, VAROVER=VAR99>VARL;   // denominator=D2 (b) — P 는 NAV 가중이라 NAV/DEN 으로 환산
+  const IM=window._myIsaM||{amt:0,day:1}, GL=myGlide(semi,DEN,IM.amt,IM.day,SEMI_GLIDE_BY,SEMI_GLIDE_TARGET);
+  const semiTag=bEx.t;
+  op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (레짐 ${RG.regime} 상한 ${W(CAPR)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}.${VAROVER?' <b class="dn">VaR 한도 초과 — 반도체 신규 매수 금지</b>(강제 매도 없음).':''} 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
   const top=chainL[0]; if(semi/tot<=0.6&&top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
   if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 섹터 ETF(TIGER 200 IT·PSI 등)부터 — 지수 ETF(KODEX 200·S&P500 등 ISA 코어 적립분)는 줄이지 않습니다.`);
   op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}), 최대낙폭 ${pct(Pm.mdd,0)}. ${Pm.sh>2?'<b>이 숫자를 기대값으로 쓰면 안 됩니다.</b> 지난 1년 메모리 대랠리가 그대로 들어간 이례적 값이고, 같은 베팅이 맞았던 결과일 뿐입니다. 볼 것은 샤프가 아니라 변동성·낙폭.':Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':'보통 수준.'}`);
@@ -1054,12 +1080,26 @@ function myRender(hs,cash,miss){
      ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="up">밴드 안 ✅</span>':d>0?'<span class="dn">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
      ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${K(cIsa)}원 — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>
      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">ISA 코어 ${K(isaTot)}원. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
+  const bandPanel=`<div class="p" style="margin-bottom:8px" id="mysemiband"><h2>반도체 밴드 · 결재 #3<small>레짐 연동 ${Object.entries(SEMI_REGIME_CAP).map(([k,v])=>k+' '+W(v)).join(' / ')} · 발동선 ${W(SEMI_BAND)} · 하단 ${W(SEMI_FLOOR)} · 분모 ${DENL} · 비율만</small></h2><div class="b" style="white-space:normal">
+     <div style="margin-bottom:6px">레짐 <b class="am">${RG.regime}</b> <span class="mu">(${esc(RG.src)} · 고점 대비 ${RG.dd==null?'—':pct(RG.dd,0)} · 20일선 위 ${RG.above20}일)</span> → 상한 <b>${W(CAPR)}</b></div>
+     <table><tr><th class="l">삼성전기</th><th>반도체 비중</th><th>상한까지</th><th>판정</th></tr>
+      <tr><td class="l">제외 (기본)</td><td><b>${W(semi/DEN)}</b></td><td>${((CAPR-semi/DEN)*100).toFixed(1)}%p</td><td class="l">${bEx.t}</td></tr>
+      <tr><td class="l">포함</td><td><b>${W((semi+swing)/DEN)}</b></td><td>${((CAPR-(semi+swing)/DEN)*100).toFixed(1)}%p</td><td class="l">${bIn.t}</td></tr></table>
+     <div class="mu" style="font-size:11px;margin:2px 0 8px">삼성전기 포함 여부는 11/15 리뷰에서 결정 — 그때까지 두 줄 병기(성적표 동일).</div>
+     <div><b>글라이드</b> ${SEMI_GLIDE_BY.slice(5)}까지 ${W(SEMI_GLIDE_TARGET)} <span class="mu">[가정: 가격 불변 · 반도체 매도 없음 · ISA 적립 매월 ${IM.day}일${IM.amt?` · 월 적립 = 분모의 ${(IM.amt/DEN*100).toFixed(1)}%`:' · <b>ISA적립 줄 없음 — 적립 0 가정</b> (보유 입력에 <code>ISA적립 &lt;월 금액&gt; [일]</code>)'}]</span></div>
+     <table><tr><th class="l">날짜</th><th class="l">무엇</th><th>예상 비중</th><th>목표선</th><th></th></tr>${GL.points.map(p=>`<tr><td class="l">${p.d.slice(5)}</td><td class="l mu">${p.what}</td><td>${(p.x*100).toFixed(1)}%</td><td class="mu">${(p.line*100).toFixed(1)}%</td><td class="l">${p.x<=p.line+0.0005?'<span class="up">✓</span>':'<span class="am">▲</span>'}</td></tr>`).join('')}</table>
+     <div style="margin:4px 0 8px">${GL.need>0.0005?`11월 말 ${W(SEMI_GLIDE_TARGET)}에 적립만으로는 부족 — 추가 축소 <b>분모의 ${(GL.need*100).toFixed(1)}%p</b> (반등일 매도 또는 적립 증액)`:'<span class="up">적립만으로 11월 말 목표 도달 ✅</span>'}</div>
+     <div><b>VaR99 1일 (60거래일 실현)</b> <b class="${VAROVER?'dn':'up'}">${(VAR99*100).toFixed(2)}%</b> / 한도 ${(VARL*100).toFixed(1)}% (${RG.regime==='하락장'?'하락장':'기본'})
+       <div style="height:8px;background:var(--line);margin:4px 0;max-width:420px;position:relative"><div style="height:8px;width:${Math.min(VAR99/(VARL*2),1)*100}%;background:${VAROVER?'var(--dn)':'var(--up)'}"></div><div style="position:absolute;left:50%;top:-2px;height:12px;border-left:2px solid var(--amber)"></div></div>
+       ${VAROVER?'<b class="dn">⛔ 반도체 신규 매수 금지</b> — 계기판 플래그(강제 매도 없음). 한도 아래로 내려오면 자동 해제.':'<span class="mu">한도 안 — 플래그 없음 (계기판, 판정 아님)</span>'} <span class="mu">· σ ${P60.length}일 · 정규 근사 2.326σ</span></div>
+   </div></div>`;
   $('#myout').innerHTML=`
-   <div class="mu" style="font-size:12px;margin-bottom:6px">분모: 순자산(위성+ISA+현금) ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 한도 ${W(SEMI_CAP)} · 발동선 ${W(SEMI_BAND)}</div>
+   <div class="mu" style="font-size:12px;margin-bottom:6px">분모: 순자산(위성+ISA+현금) ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 상한 ${W(CAPR)}(${RG.regime}) · 발동선 ${W(SEMI_BAND)}</div>
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
      ${[['순자산',K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체 / +전기 · 분모 '+(SAV>0?'(b)':'(a)'),`${W(semi/DEN)} / ${W(semiElec/DEN)}`],['주식 손익',cost?`${pct(tot/cost-1,1)} (${K(tot-cost)}원)`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95%',`${K(Pm.var*NAV)}원`],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
    </div>
    <div class="p" style="margin-bottom:8px"><h2>PB 의견<small>규칙 기반 · 지난 1년 데이터 · 성과 검증 전</small></h2><div class="b" style="line-height:1.8;font-size:13px;white-space:normal">${op.map(x=>'· '+x).join('<br>')}</div></div>
+   ${bandPanel}
    ${isaPanel}
    <div class="p" style="margin-bottom:8px"><h2>보유<small>위험기여 = 포트 변동 중 이 종목 몫</small></h2><div class="b"><table><tr><th class="l">종목</th><th>비중</th><th>손익</th><th>위험기여</th><th>β KOSPI</th><th>β SOX</th><th>1년 변동성</th><th>드라이버</th></tr>
     ${A.sort((a,b)=>b.val-a.val).map(a=>{const dv=(a.etf?((a.d.etf||{}).look||{}).drv:(a.d.drivers||{}).score); return `<tr><td class="l am sym" data-sym="${esc(a.h.r.s)}" data-mk="${a.mk}">${esc(a.name)}${a.etf?' <span class="tag">ETF</span>':''}${a.book==='isa'?' <span class="tag">ISA</span>':''}</td><td>${W(a.w)}</td><td>${a.cb?pct(a.val/a.cb-1,1):'—'}</td><td class="${a.rc>a.w*1.3?'dn':''}">${W(a.rc)}</td><td>${F(a.bK)}</td><td>${F(a.bX)}</td><td class="mu">${W(a.vol)}</td><td style="color:${col(dv)}">${dv!=null?(dv>0?'+':'')+dv.toFixed(2):'—'}</td></tr>`;}).join('')}

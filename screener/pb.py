@@ -48,6 +48,19 @@ RE_ELEC = re.compile(r"IT 하드웨어")   # 전자부품(삼성전기 등)·디
 
 
 SAVINGS_KEYS = ("예적금", "적금", "예금", "SAVINGS")
+ISA_MONTHLY_KEYS = ("ISA적립", "ISA_MONTHLY", "적립")   # 결재 #3 글라이드: 'ISA적립 <월 금액> [적립일]' — 금액은 비공개 입력에만, 출력은 비율만
+
+
+def isa_monthly_in(txt: str) -> tuple[float, int]:
+    """보유 텍스트/MY_RULES 의 'ISA적립 <월 금액> [일]' → (월 금액, 적립일 1~28, 기본 1). 없으면 (0, 1)."""
+    amt, day = 0.0, 1
+    for ln in (txt or "").splitlines():
+        p = ln.strip().split()
+        if len(p) >= 2 and p[0].upper() in ISA_MONTHLY_KEYS:
+            amt += _num(p[1]) or 0.0
+            if len(p) >= 3 and _num(p[2]):
+                day = max(1, min(28, int(_num(p[2]))))
+    return amt, day
 
 
 def savings_in(txt: str) -> float:
@@ -71,8 +84,8 @@ def parse_books(txt: str) -> dict[str, tuple[list[dict], float, float]]:
             continue
         if ln.strip().startswith("#"):
             continue
-        if ln.strip().split()[:1] and ln.strip().split()[0].upper() in SAVINGS_KEYS:
-            continue   # 예적금은 보유가 아님 — savings_in() 이 분모로만 쓴다
+        if ln.strip().split()[:1] and ln.strip().split()[0].upper() in SAVINGS_KEYS + ISA_MONTHLY_KEYS:
+            continue   # 예적금·ISA 적립 계획은 보유가 아님 — savings_in()/isa_monthly_in() 이 분모·글라이드로만 쓴다
         chunks[cur].append(ln)
     for b in books:
         books[b] = _parse_lines("\n".join(chunks[b]))
@@ -278,7 +291,7 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
                          "drv": dv.get("score") if not d.get("etf") else look.get("drv"),
                          "stop": ((d.get("scenarios") or {}).get("bear") or {}).get("stop"), "close": d["close"], "etf": bool(d.get("etf")),
                          "semi": kind == "semi", "elec": kind == "elec", "look": v * lw, "isa": isa_bucket(s, name) if book == "isa" else None,
-                         "last2": [x[1] for x in c1y[-2:]]})
+                         "last2": [x[1] for x in c1y[-2:]], "c61": [x[1] * f for x in c1y[-(VAR_WINDOW + 1):]]})
     if not rows:
         return None
     sat = [r for r in rows if r["book"] == "sat"]
@@ -310,7 +323,20 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
     den_label = "(b) 투자자산+예적금" if sav > 0 else "(a) 투자자산 · 예적금 미입력"
     st_den, st_books = stress_denominator(stress_denominator_code, nav=den, tot=tot, tot_sat=tot_sat, cash_sat=cash_sat)
     stress = {k: stress_loss(rows, st_den, k, st_books) for k in STRESS_SCENARIOS}
-    return {"rows": rows, "stress": stress, "stress_denom": stress_denominator_code.upper(), "miss": miss, "fx": fx, "rules": ru, "nav": nav, "tot": tot, "tot_sat": tot_sat, "tot_isa": tot_isa, "isa_tot": isa_tot,
+    swing = sum(r["v"] for r in rows if r["s"] in SEMI_SWING and not r["semi"])
+    reg = semi_regime()
+    var99 = var99_window(rows, den)
+    monthly, mday = isa_monthly_in(txt)
+    if not monthly:
+        monthly, mday = isa_monthly_in(rules_txt)
+    from datetime import datetime as _dt
+    from zoneinfo import ZoneInfo as _Z
+    today = _dt.now(_Z("Asia/Seoul")).date()
+    band = {"regime": reg, "var99": var99, "var_limit": var_limit(reg["regime"]),
+            "ex": band_status(semi / den if den else 0.0, reg["regime"]),
+            "incl": band_status((semi + swing) / den if den else 0.0, reg["regime"]),
+            "glide": glide_path(semi, den, monthly, today, day=mday), "has_monthly": monthly > 0}
+    return {"band": band, "rows": rows, "stress": stress, "stress_denom": stress_denominator_code.upper(), "miss": miss, "fx": fx, "rules": ru, "nav": nav, "tot": tot, "tot_sat": tot_sat, "tot_isa": tot_isa, "isa_tot": isa_tot,
             "cash": cash_sat + cash_isa, "cost": cost, "loss": loss, "has_isa": bool(isa) or cash_isa > 0,
             "denom": den_label,
             "semi_ex": semi / den if den else 0.0, "semi_elec": (semi + elec) / den if den else 0.0, "look": look / den if den else 0.0,
@@ -318,10 +344,134 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
             "day": sum(r["v"] - r["v"] / (1 + r["r1"]) for r in rows if r["r1"] is not None) / nav if nav else 0.0}
 
 
+# ---------------------------------------------------------------- 결재 #3 (10/17 14:09): 레짐 연동 밴드 · 적립 글라이드 · VaR 계기판
+from .defs import (SEMI_BAND, SEMI_FLOOR, SEMI_GLIDE_BY, SEMI_GLIDE_TARGET, SEMI_REGIME_CAP, SEMI_SWING,  # noqa: E402
+                   VAR99_LIMIT, VAR99_LIMIT_BEAR, VAR99_Z, VAR_WINDOW)
+
+
+def semi_regime(closes: list[float] | None = None) -> dict:
+    """반도체 밴드용 레짐 — 코스피 종가(오래된→최신)로:
+    상승장 = regime_tag '상승'(52주 고점 −10% 이내 & 200일선 위) · 회복확인 = 그 밖이면서 20일선 위 2일 연속(committee 회복 확인과 같은 정의)
+    · 하락장 = 나머지(조정 포함 — 보수적으로 35%). 데이터 없으면 하락장으로 본다 [가정: 모르면 가장 낮은 상한]."""
+    from .regime_tag import classify
+    if closes is None:
+        try:
+            from .alerts import _close, kospi_rows
+            closes = [_close(r) for r in kospi_rows()]
+        except Exception:  # noqa: BLE001
+            closes = []
+    c = [x for x in (closes or []) if x]
+    t = classify(c) if c else None
+    streak = 0
+    for i in range(len(c) - 1, 19, -1):
+        if c[i] > sum(c[i - 19:i + 1]) / 20:
+            streak += 1
+        else:
+            break
+    if t and t["l"] == "상승":
+        lab = "상승장"
+    elif streak >= 2:
+        lab = "회복확인"
+    else:
+        lab = "하락장"
+    return {"regime": lab, "tag": (t or {}).get("l"), "dd": (t or {}).get("dd"), "above20": streak, "n": len(c),
+            "src": "macro_series KOSPI (regime_tag.classify + 20일선 2일)" if c else "데이터 없음 → 하락장 가정"}
+
+
+def band_status(x: float, regime: str) -> dict:
+    """비중 x(denominator=D2 (b)) → 밴드 판정. 위에서부터: 발동선 45 초과 / 레짐 상한 초과 / 하단 30 미만 / 밴드 안."""
+    cap = SEMI_REGIME_CAP.get(regime, min(SEMI_REGIME_CAP.values()))
+    if x > SEMI_BAND + 0.005:   # denominator=D2
+        st, tag = "trigger", f"⛔ 발동선 {SEMI_BAND*100:.0f}% 초과 — 다음 반등일 {cap*100:.0f}%로"
+    elif x > cap + 0.005:       # denominator=D2
+        st, tag = "over", f"상한 {cap*100:.0f}%({regime}) 초과 — 반도체 신규 매수 금지"
+    elif x < SEMI_FLOOR - 0.005:   # denominator=D2
+        st, tag = "floor", f"하단 {SEMI_FLOOR*100:.0f}% 미만 — 재매수 허용(의무 아님)"
+    else:
+        st, tag = "ok", "밴드 안 ✅"
+    return {"x": x, "cap": cap, "trigger": SEMI_BAND, "floor": SEMI_FLOOR, "status": st, "tag": tag}
+
+
+def var_limit(regime: str) -> float:
+    return VAR99_LIMIT_BEAR if regime == "하락장" else VAR99_LIMIT
+
+
+def var99_window(rows: list[dict], den: float, window: int = VAR_WINDOW) -> dict | None:
+    """60거래일 실현 변동성 1일 VaR99 = VAR99_Z × σ(포트 일수익) ÷ 분모 — 계기판(강제 매도 없음).
+    포트 일수익 = Σ 평가액_i × 수익률_i,t (현금·예적금 0). 종목 간 날짜는 끝에서부터 위치로 맞춘다 [가정: 한·미 시차 무시 — 상관 과소 가능]."""
+    series = []
+    for r in rows:
+        c = [x for x in (r.get("c61") or []) if x]
+        if len(c) >= 21:
+            series.append((r["v"], [c[i] / c[i - 1] - 1 for i in range(1, len(c))]))
+    if not series or not den:
+        return None
+    n = min(window, min(len(s) for _, s in series))
+    pnl = [sum(v * s[-n + t] for v, s in series) for t in range(n)]
+    mu = sum(pnl) / n
+    sd = (sum((x - mu) ** 2 for x in pnl) / (n - 1)) ** 0.5 if n > 1 else 0.0
+    return {"var99": VAR99_Z * sd / den, "n": n, "window": window}   # denominator=D2 (b)
+
+
+def _month_days(today, by, day: int):
+    from datetime import date
+    out, y, m = [], today.year, today.month
+    while True:
+        d = date(y, m, day)
+        if d > by:
+            return out
+        if d > today:
+            out.append(d)
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+
+
+def glide_path(semi: float, den: float, monthly: float, today, by: str = SEMI_GLIDE_BY, day: int = 1,
+               target: float = SEMI_GLIDE_TARGET) -> dict:
+    """11월 말 35% 글라이드 — ISA 월 적립(비반도체)이 분모만 키운다고 보고 날짜별 예상 비중(비율만).
+    [가정: 가격 불변 · 반도체 매도 없음 · 적립일 = 매월 day일]. need = 11월 말 35% 에 필요한 추가 축소(분모 대비 %p)."""
+    from datetime import date
+    end = date.fromisoformat(by)
+    if not den:
+        return {"points": [], "need": 0.0, "target": target, "by": by}
+    x0 = semi / den   # denominator=D2 (b)
+    pts = [{"d": str(today), "x": x0, "line": x0, "what": "지금"}]
+    span = max((end - today).days, 1)
+    k = 0
+    for d in _month_days(today, end, day):
+        k += 1
+        pts.append({"d": str(d), "x": semi / (den + k * monthly), "line": x0 + (target - x0) * (d - today).days / span, "what": f"ISA 적립 {k}회"})
+    den_end = den + k * monthly
+    pts.append({"d": by, "x": semi / den_end, "line": target, "what": "목표일"})
+    need = max(semi - target * den_end, 0.0) / den   # denominator=D2 (b) — 지금 분모 대비 추가 축소 %p
+    return {"points": pts, "need": need, "target": target, "by": by, "n_contrib": k, "contrib_ratio": monthly / den}
+
+
+def band_lines(ev: dict) -> list[str]:
+    """아침 점검(무음) — 레짐 밴드 · 삼성전기 포함/제외 병기 · 글라이드 · VaR 계기판. 비율만."""
+    b = ev.get("band")
+    if not b:
+        return []
+    rg, ex, inc, g, v = b["regime"], b["ex"], b["incl"], b["glide"], b["var99"]
+    L = [f"• 반도체 밴드(결재 #3) 레짐 <b>{rg['regime']}</b> → 상한 {ex['cap']*100:.0f}% · 발동선 {ex['trigger']*100:.0f}% · 하단 {ex['floor']*100:.0f}%",
+         f"  삼성전기 제외 {ex['x']*100:.0f}% ({ex['tag']}) | 포함 {inc['x']*100:.0f}% ({inc['tag']}) — 포함 여부 11/15 결정"]
+    if g.get("points"):
+        L.append(f"  글라이드 {g['by'][5:]} {g['target']*100:.0f}%: 적립 {g.get('n_contrib', 0)}회 반영 시 {g['points'][-1]['x']*100:.0f}%"
+                 + (f" · 추가 축소 필요 {g['need']*100:.1f}%p" if g["need"] > 0.0005 else " · 적립만으로 도달 ✅")
+                 + ("" if b.get("has_monthly") else " (ISA적립 줄 없음 — 적립 0 가정)"))
+    if v:
+        over = v["var99"] > b["var_limit"]
+        L.append(f"  VaR99 1일(60일 실현) {v['var99']*100:.1f}% / 한도 {b['var_limit']*100:.1f}%"
+                 + (" — <b>반도체 신규 매수 금지</b>(강제 매도 없음)" if over else " ✅"))
+    return L
+
+
 def semi_line(ev: dict) -> str:
     cap, band = ev["rules"]["semi_cap"], ev["rules"]["semi_band"]
+    if ev.get("band"):
+        cap = ev["band"]["ex"]["cap"]   # 결재 #3: 상한은 레짐 연동(하락장 35 · 회복확인 40 · 상승장 40)
     x = ev["semi_ex"]
-    tag = " ⛔ 발동선 초과 — 다음 반등일 40%로" if x > band + 0.005 else " ⛔ 상한 초과 — 추가 매수 금지" if x > cap + 0.005 else " ✅"
+    # denominator=ev['denom'] (D2 (b))
+    tag = f" ⛔ 발동선 초과 — 다음 반등일 {cap*100:.0f}%로" if x > band + 0.005 else " ⛔ 상한 초과 — 추가 매수 금지" if x > cap + 0.005 else " ✅"
     return (f"• 반도체(전기 제외) <b>{x*100:.0f}%</b> · 분모 {ev.get('denom', '(a)')} (상한 {cap*100:.0f}% · 발동선 {band*100:.0f}%){tag}\n"
             f"  반도체+전기(상관 테마) {ev['semi_elec']*100:.0f}% · 참고: 지수 ETF 속 반도체 ≈ {ev['look']*100:.0f}% 추가 (한도 제외)")
 
@@ -361,6 +511,7 @@ def brief() -> str | None:
     # denominator=D2 nav — 규정 원문엔 없는 구 규칙(LOSS_LIMIT), 용어집 '누적 손실 한도' 참조
     L.append(f"• 손실 한도(순자산 −{loss_limit*100:.0f}%)까지 " + (f"순자산 <b>{room/nav*100:.1f}%</b> 남음 (주식 −{room/tot*100:.1f}% 추가 하락 여유)" if room > 0 else "<b>⛔ 한도 도달 — 메모리 절반 축소 실행</b>"))
     L.append(semi_line(ev))
+    L += band_lines(ev)
     L.append(stress_line(ev))   # 비율만 (금액 금지)
     L += isa_lines(ev)
     for code, px in price_rules.items():

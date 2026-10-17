@@ -147,8 +147,9 @@ def band_line() -> tuple[str | None, str | None]:
     if not ev:
         return None, None
     band = ev["rules"]["semi_band"]
-    if ev["semi_ex"] > band + 0.005:
-        return "band", f"📐 <b>반도체 발동선 초과</b> — 다음 반등일 40%로 · 반도체(전기 제외) 순자산 {ev['semi_ex']*100:.0f}% > 발동선 {band*100:.0f}%"
+    cap = (ev.get("band") or {}).get("ex", {}).get("cap", ev["rules"]["semi_cap"])   # 결재 #3 레짐 연동 상한
+    if ev["semi_ex"] > band + 0.005:   # denominator=D2 (b)
+        return "band", f"📐 <b>반도체 발동선 초과</b> — 다음 반등일 {cap*100:.0f}%로 · 반도체(전기 제외) {ev['semi_ex']*100:.0f}% > 발동선 {band*100:.0f}% (무음)"
     return None, None
 
 
