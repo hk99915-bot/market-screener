@@ -12,6 +12,10 @@ Harvey & Liu(2015)는 연구 안의 m 이 아니라 **시도 횟수 N 전체**�
 입력  reports/studies/*.json (각 연구가 쓰는 m 필드명이 달라서 아래 extract_m 이 모두 받는다)
       reports/studies/trial_log.json (주제 태그·등록 전 탐색 횟수·버린 이유 — 사람이 적음)
 출력  reports/studies/trial_log.md
+
+영향 범위  문서 전용 — 워크플로·탭·알림·등급 계산은 이 파일을 import 하지 않는다 (grep trial_log 로 확인, 2026-10-17).
+롤백      git revert <도입 커밋> (파일 6개: trial_log.{py,json,md} · tests/test_trial_log.py · KB·라운드) — 다른 코드 의존 없음.
+테스트    tests/test_trial_log.py 3건 (스키마 4종 추출 · 임시 디렉터리 집계 · 저장소 구조).
 """
 from __future__ import annotations
 
@@ -111,6 +115,7 @@ def _fmt_grades(g: dict) -> str:
 def render_md(b: dict) -> str:
     L = ["# 시도 일지 (trial log)", "",
          "> `scripts/trial_log.py --build` 산출물 — 손으로 고치지 않는다. 사람이 적는 칸은 `trial_log.json`.",
+         "> 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).",
          "> 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.", "",
          f"## 0. 합계 — 시도 N = **{b['N_total']}** (등록 m 합 {sum(r['m'] or 0 for r in b['rows'])} + 등록 전 탐색 {sum(r['unregistered'] for r in b['rows'])}) → 전부 한 가족으로 보면 α = {b['alpha_total']}", "",
          "## 1. 연구별", "",
