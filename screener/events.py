@@ -143,13 +143,21 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
         log.info("새 이벤트 %d건", len(new))
         if send and new:
             try:
+                from .alerts import silent
                 from .report import send_telegram
                 send_telegram("🚨 <b>시장 이벤트</b>\n" + "\n".join(
                     f"• {e['time']} {e['market']} <b>{e['type']}</b> — {e['title']}" for e in new)
-                    + "\n\n과거 서킷 다음날 통계: 웹 HOME › EVENTS")
+                    + "\n\n과거 서킷 다음날 통계: 웹 HOME › EVENTS",
+                    disable_notification=silent(halt_keys(new)))   # 결재 #9: 서킷·사이드카 실제 발동만 소리, 근접 경보·급변 뉴스는 무음
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 텔레그램 실패: %s", e)
     return new
+
+
+def halt_keys(new: list[dict]) -> list[str]:
+    """결재 #9 소리 대상 키: 서킷브레이커·사이드카 '실제 발동'(뉴스 '발동' 확인)만. '경보:'(지수 근접)는 제외."""
+    return [f"halt:{e['market']}:{e['type']}" for e in new
+            if not str(e.get("type", "")).startswith("경보") and any(k in str(e.get("type", "")) for k in ("서킷", "사이드카"))]
 
 
 def stats() -> dict:

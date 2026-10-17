@@ -198,9 +198,10 @@ def test_monday_1019_first_message_is_h2_one_module_one_quiz():
         assert o["quiz"]["module"] == "H2" and o["quiz"]["kind"] == "situation" and len(o["quiz"]["choices"]) == 4
         assert o["issue_title"] == "study H2 done" and "min%2015" in o["issue_url"]
         lines = study_daily.telegram_text(o).split("\n")
-        assert len(lines) <= 4
-        assert lines[0].startswith("📚 오늘 공부: H2 ") and "(15분)" in lines[0] and "복습 없음" in lines[0] and lines[0].endswith("퀴즈 1")
-        assert lines[1].startswith("❓ [H2]")
+        assert len(lines) == 2                                                   # 결재 #9 후속(10/17): 4블록 → 2블록
+        assert lines[0].startswith("📚 오늘 공부: H2 ") and "(15분)" in lines[0] and "복습 없음" in lines[0] and "퀴즈 1" in lines[0]
+        assert "출석 0일 연속" in lines[0]
+        assert lines[1].startswith("❓ [H2]") and "issues/new?title=study%20H2%20done" in lines[1]
 
 
 def test_legacy_hour_module_capped_to_daily_20min():

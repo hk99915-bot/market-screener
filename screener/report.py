@@ -232,16 +232,9 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
     return "\n".join(L)
 
 
-LOUD_MARKS = ("⛔", "⚡")   # 결재 #9(10/17): 소리 나는 알림은 ⛔(규정 집행)·⚡(급락 신호)·14:25 반등일 판정뿐. 나머지는 무음(disable_notification)
-
-
-def loud(text: str) -> bool:
-    """본문에 ⛔/⚡ 가 있으면 소리. 호출부가 `disable_notification=not loud(text)` 로 쓴다 (내용이 날마다 달라지는 알림용)."""
-    return any(m in text for m in LOUD_MARKS)
-
-
 def send_telegram(text: str, *, disable_notification: bool = True) -> None:
-    """텔레그램 전송. 기본 **무음**(disable_notification=True) — 소리는 결재 #9 의 세 가지만 호출부에서 False 로 켠다."""
+    """텔레그램 전송. 기본 **무음**(disable_notification=True). 소리는 결재 #9 등급표(screener/alerts.py RING_KINDS)에 있는
+    다섯 종류만 호출부가 `alerts.silent(keys)` 로 켠다 — 본문 이모지(⛔/⚡)로 소리를 정하지 않는다(10/17 최종안)."""
     if not CFG.telegram_token or not CFG.telegram_chat:
         raise RuntimeError("텔레그램 미설정: TELEGRAM_TOKEN / TELEGRAM_CHAT_ID 시크릿이 비어 있음 (이름 철자 확인)")
     import re

@@ -173,13 +173,13 @@ def test_daily_picks_only_open_modules(study, bank):
     assert o2["new"]["id"] == g["locked"][0]
 
 
-def test_daily_message_four_lines_with_issue_link_and_streak(study, bank):
+def test_daily_message_two_blocks_with_issue_link_and_streak(study, bank):
     srs = json.loads((ROOT / "content" / "study" / "srs.json").read_text(encoding="utf-8"))
     progress = {"done": [{"id": "H2", "date": "2026-10-20", "min": 15}], "quiz": [], "streak": 1, "unlocked": [], "modules": {}}
     o = study_daily.build(date(2026, 10, 21), study, bank, srs, progress, {"title": "x"})
     txt = study_daily.telegram_text(o)
     lines = txt.splitlines()
-    assert len(lines) <= 4 and lines[0].startswith("📚 오늘 공부:") and o["new"]["id"] == "R1"
+    assert len(lines) == 2 and lines[0].startswith("📚 오늘 공부:") and o["new"]["id"] == "R1"
     assert f"issues/new?title=study%20{o['new']['id']}%20done" in txt and "출석 1일 연속" in txt and "누나" not in txt
 
 

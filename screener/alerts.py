@@ -7,6 +7,9 @@
 (d) 급락일 종가 매수 신호: 평일 15:05 KST(--mode crash_check) 코스피 장중 ≤ −4.5% → "⚡ 급락일 종가 매수 신호 … 15:20 동시호가" (1차 신호, 등급은 registry 인용).
 
 같은 날 같은 알림은 한 번만 보낸다 (reports/alerts_state.json). 16:20 스크리너(KR)와 14:25 반등일 판정, 15:05 급락 점검에서 호출.
+
+소리 등급(결재 #9, 10/17 14:09 도장 — pb-private ops/agreements.md §7-3): RING_KINDS 다섯 가지만 소리, 나머지는 전부
+disable_notification=True. 텔레그램을 보내는 모든 모듈이 이 표(ring/silent)를 쓴다 — 표 밖에서 소리를 켜지 않는다.
 """
 from __future__ import annotations
 
@@ -22,6 +25,33 @@ log = logging.getLogger(__name__)
 KST = ZoneInfo("Asia/Seoul")
 STATE = REPORT_DIR / "alerts_state.json"
 DEFAULT_DEADLINE = "2026-10-22"
+
+# ── 결재 #9 알림 등급: 소리 나는 것은 이 다섯 종류뿐 (키 접두 = 'stop2' · 'dl0' · 'touch:<코드>' · 'halt:…' · 'fresh:<항목>') ──
+RING_KINDS: dict[str, str] = {
+    "stop2": "⛔ 손절선 2일 연속 이탈 (규정 [12])",
+    "dl0": "규정 [12] 집행 기한 D-day",
+    "touch": "발동선 장중 터치 (MY_RULES touch — 000660 결재 #2 예외 1회)",
+    "halt": "서킷브레이커·사이드카 실제 발동",
+    "fresh": "데이터 신선도 ⛔ (항목당 하루 1회)",
+}
+
+
+def kind(key: str) -> str:
+    """알림 키 → 종류. 'touch:000660' → 'touch', '2026-10-20:stop2' 처럼 날짜가 붙은 상태 키도 받는다."""
+    parts = str(key).split(":")
+    if len(parts) > 1 and len(parts[0]) == 10 and parts[0][4] == "-":   # YYYY-MM-DD: 접두
+        parts = parts[1:]
+    return parts[0]
+
+
+def ring(keys) -> bool:
+    """키 목록 중 하나라도 RING_KINDS 면 소리."""
+    return any(kind(k) in RING_KINDS for k in keys)
+
+
+def silent(keys=()) -> bool:
+    """send_telegram(disable_notification=silent(keys)) 로 쓴다. 인자 없으면 무음(나머지 전부)."""
+    return not ring(keys)
 
 
 def _num(x):
@@ -207,8 +237,8 @@ def run(send: bool = True, at_close: bool = True) -> list[str]:
         return []
     text = "📏 <b>규정 알림</b>\n" + "\n".join(line for _, line in fresh)
     if send:
-        from .report import loud, send_telegram
-        send_telegram(text, disable_notification=not loud(text))   # 결재 #9: ⛔(손절 2일·터치) 포함 때만 소리, ⚠️·D-n·발동선은 무음
+        from .report import send_telegram
+        send_telegram(text, disable_notification=silent(k for k, _ in fresh))   # 결재 #9: stop2·dl0·touch 만 소리, ⚠️·D-2·D-1·반도체 밴드는 무음
         now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
         for k, _ in fresh:
             st.setdefault("sent", {})[f"{today}:{k}"] = now
@@ -266,7 +296,7 @@ def crash_check(q: dict | None = None, send: bool = True, today: date | None = N
     out["fired"] = True
     if send:
         from .report import send_telegram
-        send_telegram(out["text"], disable_notification=False)   # 결재 #9: ⚡ 급락 신호는 소리
+        send_telegram(out["text"], disable_notification=silent(["crash"]))   # 결재 #9(최종): ⚡ 급락 신호는 무음 (RING_KINDS 밖)
         st.setdefault("sent", {})[key] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
         _save(st)
     return out

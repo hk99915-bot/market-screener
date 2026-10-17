@@ -6,7 +6,7 @@ content/study.json(빌드본) + content/study/quiz_bank.json + content/study/srs
 선택 규칙(srs.json rules): 복습 1개(가장 오래 밀린 것) + 새 모듈 1개(2주 게이트 열린 모듈 + 'study <id> done' 으로 열린 모듈 중, 첫 2주 우선 목록 먼저, 미완료)
 + 퀴즈 1개(복습 모듈 우선, 아직 답하지 않은 문항, 날짜 해시로 결정적).
 진행 파일 reports/study_progress.json 은 screener/study_progress.py(이슈 `study <id> done`)가 쓴다 — 여기서는 읽기만.
-텔레그램 ≤4줄: 오늘 공부 / 퀴즈 / 완료 이슈 링크 / 출석 N일 연속. 하루 20분 상한(consult:pb_learner#L5). 네트워크 없이 돈다. 싸게.
+텔레그램 2블록(10/17 결재 #9 후속): ① 오늘 공부·복습·출석 ② 퀴즈 + 완료 이슈 링크. 하루 20분 상한(consult:pb_learner#L5). 네트워크 없이 돈다. 싸게.
 
   python -m screener.study_daily            # 오늘
   python -m screener.study_daily --date 2026-10-20 --no-telegram
@@ -140,7 +140,7 @@ def build(today: date, study: dict, bank: dict, srs: dict, progress: dict | None
 
 
 def telegram_text(o: dict) -> str:
-    """≤4줄: 오늘 공부 · 퀴즈 · 완료 이슈 링크 · 출석."""
+    """2블록(결재 #9 후속, 10/17: 4→2): ① 오늘 공부·복습·퀴즈·출석 한 줄 ② 퀴즈 문항 + 완료 이슈 링크 한 줄."""
     n, r, q, g = o.get("new"), o.get("review"), o.get("quiz"), o.get("gate") or {}
     bits = ["📚 오늘 공부:"]
     if n:
@@ -149,16 +149,19 @@ def telegram_text(o: dict) -> str:
         bits.append(f"새 모듈 잠김({g['next_locked']}) — {g.get('unlock_rule') or '앞 모듈 done 이슈'}")
     else:
         bits.append("새 모듈 없음(로드맵 완주)")
-    bits.append(f"· 복습 {r['id']}" if r else "· 복습 없음")
+    bits.append(f"· 복습 {r['id']}" + (f"(D+{r['overdue_days']})" if r.get("overdue_days") else "") if r else "· 복습 없음")
     bits.append("· 퀴즈 1" if q else "")
+    bits.append(f"· 📅 출석 {o.get('streak', 0)}일 연속")
     lines = [" ".join(b for b in bits if b)]
+    second = []
     if q:
         ch = " / ".join(f"{i}){c}" for i, c in enumerate(q["choices"]))
-        lines.append(f"❓ [{q['module']}] {q['q']} — {ch}")
+        second.append(f"❓ [{q['module']}] {q['q']} — {ch}")
     if o.get("issue_url"):
-        lines.append(f"📝 완료 기록(이슈 '{o['issue_title']}', 본문 quiz <qid> <번호>): {o['issue_url']}")
-    lines.append(f"📅 출석 {o.get('streak', 0)}일 연속" + (f" · 복습 D+{r['overdue_days']}" if r and r.get("overdue_days") else ""))
-    return "\n".join(lines[:4])
+        second.append(f"📝 완료·답 기록(이슈 '{o['issue_title']}', 본문 quiz <qid> <번호>): {o['issue_url']}")
+    if second:
+        lines.append(" · ".join(second))
+    return "\n".join(lines[:2])
 
 
 def run(today: date | None = None, send: bool = True, root: Path = ROOT) -> dict:

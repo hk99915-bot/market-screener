@@ -184,6 +184,12 @@ def alert_text(o: dict, keys_sent: set[str]) -> tuple[str | None, list[str]]:
     return "\n".join([head] + body), keys
 
 
+def item_of(key: str) -> str:
+    """알림 키 'late:<id>:<기대>' · 'regress:<경로>:<새>' · 'stale:<경로>:…' → 항목(id 또는 경로). 소리 하루 1회 판정 단위."""
+    parts = str(key).split(":")
+    return parts[1] if len(parts) > 1 else str(key)
+
+
 def run(send: bool = False, now: datetime | None = None, root: Path = ROOT) -> dict:
     o = check(now, root)
     if not send:
@@ -195,14 +201,20 @@ def run(send: bool = False, now: datetime | None = None, root: Path = ROOT) -> d
         st = json.loads(sp.read_text(encoding="utf-8")) if sp.exists() else {}
     except Exception:  # noqa: BLE001
         st = {}
-    sent = set(st.get("keys") or []) if st.get("date") == today else set()
+    same = st.get("date") == today
+    sent = set(st.get("keys") or []) if same else set()
+    rang = set(st.get("rang") or []) if same else set()
     text, keys = alert_text(o, sent)
     if text:
         try:
+            from .alerts import silent
             from .report import send_telegram
-            send_telegram(text, disable_notification=False)   # 오너 10/17: 데이터 늦음은 ⛔ 소리
+            new_items = sorted({item_of(k) for k in keys} - rang)
+            # 결재 #9: 데이터 신선도 ⛔ 는 소리 — 단 항목당 하루 1회. 같은 항목이 같은 날 다시 걸리면(기대일 변경 등) 무음.
+            send_telegram(text, disable_notification=silent(f"fresh:{i}" for i in new_items))
             sent |= set(keys)
-            sp.write_text(json.dumps({"date": today, "keys": sorted(sent)}, ensure_ascii=False, indent=1), encoding="utf-8")
+            rang |= set(new_items)
+            sp.write_text(json.dumps({"date": today, "keys": sorted(sent), "rang": sorted(rang)}, ensure_ascii=False, indent=1), encoding="utf-8")
         except Exception as e:  # noqa: BLE001
             log.warning("신선도 알림 실패: %s", e)
     o["alerted"] = keys if text else []

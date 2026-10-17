@@ -626,7 +626,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
     if ex_msgs:
         msg += ["", "<b>보유 종목 매도 타점</b> (5거래일 뒤 종가 채점)", *ex_msgs]
     if send:
-        from .report import loud, send_telegram
+        from .report import send_telegram
         body = "\n".join(m for m in msg if m is not None)
-        send_telegram(body, disable_notification=not loud(body))   # 결재 #9: 주문표 ⛔ 거부 때만 소리
+        send_telegram(body, disable_notification=True)   # 결재 #9(최종): PB 판단·주문표 ⛔ 거부는 무음 (RING_KINDS 밖)
     return ("PB 판단 기록(미장): " if us else "PB 판단 기록: ") + ("현금" if pk.get("cash") else pk["name"])

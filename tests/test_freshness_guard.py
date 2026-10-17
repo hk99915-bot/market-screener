@@ -209,6 +209,26 @@ def test_alert_once_per_day(tmp_path, monkeypatch):
     assert len(sent[0][0].splitlines()) <= 8
     freshness.run(send=True, now=datetime(2026, 10, 17, 8, 20, tzinfo=KST), root=r)    # 다음날 = 새 알림
     assert len(sent) == 2
+    assert sent[1][1] is False                                                          # 다음날 = 다시 소리
+
+
+def test_fresh_ring_once_per_item_per_day(tmp_path, monkeypatch):
+    """결재 #9: 같은 항목이 같은 날 키만 바뀌어(기대일 변경) 다시 걸리면 알림은 가되 무음."""
+    import json as _j
+    r = _root(tmp_path, {"reports/derivs.json": {"date": "2026-10-15"}}, [DERIVS])
+    sent = []
+    from screener import report
+    monkeypatch.setattr(report, "send_telegram", lambda t, disable_notification=True: sent.append((t, disable_notification)))
+    now = datetime(2026, 10, 16, 20, 10, tzinfo=KST)
+    freshness.run(send=True, now=now, root=r)
+    sp = r / "reports" / freshness.STATE.name
+    st = _j.loads(sp.read_text(encoding="utf-8"))
+    assert st["rang"] == ["derivs"] or st["rang"]
+    st["keys"] = []                                   # 같은 날, 새 키(다른 기대일)로 다시 걸린 상황
+    sp.write_text(_j.dumps(st), encoding="utf-8")
+    freshness.run(send=True, now=now, root=r)
+    assert len(sent) == 2 and sent[0][1] is False and sent[1][1] is True
+    assert freshness.item_of("late:derivs:2026-10-16") == "derivs"
 
 
 # ── E. 조용한 대체 stale ──
