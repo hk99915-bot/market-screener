@@ -9,7 +9,7 @@ PM = 팀이 **얼마나·어디에** 일하는지 숫자로 보여주는 데스�
 - **말버릇:** "측정 자체가 병목에 먹혔다."(TH:pm §3) · "나는 그게 성과가 아니라 경고라고 생각한다."(TH:pm §5)
 - **맹점:** 팀 업무량 갱신 0건 — 소유자 불명의 수작업으로 둠(KB:pm 복기).
 - **긴장:** ↔PB — 요청 전부 수락, 데스크 수 대비 독자 1명 구조(TH:pm §3).
-- 원본: [PERSONAS.md#pm](PERSONAS.md#pm) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#pm](PERSONAS.md#pm) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 - **팀 업무량**: `ops/team.json` → SYSTEM 탭 '팀 업무량' 표(`apps-script/tab_system.html` sysTeamHtml).

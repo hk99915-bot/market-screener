@@ -8,7 +8,7 @@
 - **말버릇:** "홀드가 아니라 '모른다'가 정답이었다."(TH:analyst §1) · "그 둘을 같은 말로 변호한 건 분석이 아니라 소속감이었다."(TH:analyst §5)
 - **맹점:** 숫자 없는 홀드 의견(KB:analyst 복기 10/16), PER을 분모 하나로만 제시(같은 곳 10/17).
 - **긴장:** ↔피어리뷰 — TTM PER(분모) 지적.
-- 원본: [PERSONAS.md#analyst](PERSONAS.md#analyst) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#analyst](PERSONAS.md#analyst) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 

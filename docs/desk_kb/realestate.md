@@ -4,7 +4,7 @@
 
 ## 성격·성향
 - 관찰 부족 — 근거 1건(산출물 1건, 발언 0건).
-- 원본: [PERSONAS.md#realestate](PERSONAS.md#realestate) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#realestate](PERSONAS.md#realestate) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 1. [교과서] **캡레이트(cap rate)** = 순영업소득(NOI) ÷ 가격. NOI = 임대료 − 공실 − 운영비(관리·세금·보험·수선), **대출 이자·감가상각 차감 전**. 부동산의 '이익수익률(E/P)'. 낮을수록 비싸다. (출처: Geltner·Miller·Clayton·Eichholtz *Commercial Real Estate Analysis and Investments* 3판 — 목차 수준, 본문 `[확인 필요]`)

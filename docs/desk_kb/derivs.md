@@ -9,7 +9,7 @@
 - **말버릇:** "라벨은 겸손이 아니라 안전장치다."(TH:derivs §5) · "등급표는 장식이 아니라 재검정 일정표다."(TH:derivs §1)
 - **맹점:** 행사가 쉼표 표기 파싱 누락을 석 달 의심하지 않음(KB:derivs 복기).
 - **긴장:** ↔교육 — 등급 표기('PCR F' → '검증전' 정정, TH:derivs §1).
-- 원본: [PERSONAS.md#derivs](PERSONAS.md#derivs) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#derivs](PERSONAS.md#derivs) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 - [교과서] 베이시스(우리/KRX 관행) = 선물 − 현물(F−S), 양수 = 콘탱고, 음수 = 백워데이션. Hull 3장은 S−F 로 **반대 부호** — 시험 문제는 정의부터 확인. 만기엔 어느 정의든 0 으로 수렴. (출처: Hull 11판 §3.3 · `screener/derivs.py` `fut.basis = close − spot`)

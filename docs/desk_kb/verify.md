@@ -8,7 +8,7 @@
 - **말버릇:** "결과를 본 뒤 유리한 쪽이 기준을 정한다"(TH:quant_replicate §3) · "맞는 결과를 내고도 '그래도 결정은 그대로'라는 말을 듣는 것이다."(TH:quant_replicate §5, 일부)
 - **맹점:** 재현 허용오차를 파일로 사전등록하지 않고 고정값으로 둠(KB:verify 복기).
 - **긴장:** ↔퀀트(재현 대상) · ↔PB·겸이 결정(뒤집을 권한).
-- 원본: [PERSONAS.md#verify](PERSONAS.md#verify) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#verify](PERSONAS.md#verify) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 - #1 [규정] **재현성(reproducibility) vs 재연성(replicability)**: NASEM(2019) 정의 — 재현성 = **같은 데이터·같은 방법**으로 같은 결과(계산 재현), 재연성 = **새 데이터**로 같은 질문에 일관된 결과. 우리 '독립 재현'(같은 데이터 창고, 명세만 보고 **다른 코드**)은 그 사이의 **강건성 재현(robustness)** — Freese & Peterson(2017) 분류의 'same data, different analysis'. 코드 미열람이 핵심: 코드를 보면 버그까지 같이 재현한다. (출처: NASEM *Reproducibility and Replicability in Science* 2019 ch.3 · Freese & Peterson, *Annual Review of Sociology* 43, 2017)

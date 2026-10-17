@@ -9,7 +9,7 @@
 - **말버릇:** "하루만 멈추게 해 달라, 지은 걸 세어 보게."(TH:dev §5) · "나는 오늘 기분이 좋고, 동시에 바닥났다."(TH:dev 머리말)
 - **맹점:** 공유 체크아웃에서 남의 변경 혼입을 늦게 인지(KB:dev 복기).
 - **긴장:** ↔교육·평가 — 화면 연동 요청(handoff) 대기(TH:edu §3, TH:edu_junior §3).
-- 원본: [PERSONAS.md#dev](PERSONAS.md#dev) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#dev](PERSONAS.md#dev) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 - [규정-공식문서] 텔레그램 Bot API `sendMessage` 의 `disable_notification`(Boolean): 메시지를 **조용히** 보낸다 — 받는 쪽에 알림은 뜨지만 소리·진동이 없다. 메시지 길이 상한 4096자(우리는 3800자에서 쪼갬), `parse_mode=HTML` 은 `<b><i><a>` 등 제한된 태그만. (https://core.telegram.org/bots/api#sendmessage — 이 세션 네트워크에서 원문 재확인 못 함, 링크로 대체)

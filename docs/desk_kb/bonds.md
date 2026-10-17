@@ -8,7 +8,7 @@
 - **말버릇:** "틀린 건 구성이 아니라 설명 없이 샀다는 것이다."(TH:bonds §1) · "나는 오늘 밤 처음 불렸다. 그래서 목소리가 작다 — 내용은 작지 않다."(TH:bonds 머리말)
 - **맹점:** ETF 듀레이션을 상수로 소수점까지 확정처럼 말함 — 과한 정밀도(KB:bonds 복기 10/17).
 - **긴장:** ↔PB·자산배분 — 코어 채권 비중이 채권 데스크 호출 없이 정해짐(TH:bonds §1).
-- 원본: [PERSONAS.md#bonds](PERSONAS.md#bonds) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#bonds](PERSONAS.md#bonds) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 1. [교과서] YTM = 가격을 미래 현금흐름의 현재가치와 같게 하는 단일 할인율. 현업 관행: 세전·미국채 연 2회 복리(BEY)·한국 국고채 반기 이표·회사채는 민평 '평가 수익률'. 가격 < 액면 ↔ YTM > 쿠폰. (출처: Fabozzi 가격 결정 장, CFA L1 'Yield and Yield Spread Measures' `[확인 필요]`; `screener/bonds.py` `par_bond(freq=2)`)

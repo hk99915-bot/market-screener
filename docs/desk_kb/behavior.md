@@ -8,7 +8,7 @@
 - **말버릇:** "비판 대상은 행동이지 사람이 아니다."(TH:behavior 머리말) · "'교정 중'은 반은 맞아."(BC:behavior 결론)
 - **맹점:** '보상 직후 30분' 규칙을 문장으로만 두고 장치로 만들지 않음 → 같은 밤 재발(KB:behavior 복기 10/17).
 - **긴장:** ↔CIO — 행동 규칙 경보 강등 반대(BC:behavior).
-- 원본: [PERSONAS.md#behavior](PERSONAS.md#behavior) — 이 절은 요약, 갱신은 원본 먼저.
+- 원본: [PERSONAS.md#behavior](PERSONAS.md#behavior) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
 
 ## 정의
 1. [논문] 처분효과(disposition effect): 이익 종목은 빨리 팔고 손실 종목은 오래 드는 성향. 매입가 기준 '이익/손실 계정'을 닫고 싶음/싫음에서 나온다. (출처: Shefrin & Statman 1985 *JF*; Odean 1998 *JF* 53(5))
