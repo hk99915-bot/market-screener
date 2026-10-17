@@ -56,7 +56,7 @@ MY·LIFE 는 비공개 토큰이 없으면 안내문만 렌더(444자·190자) �
 | 중-1 | 중 | 공개 Pages 의 MY 탭이 개인 **금액**(순자산 ○○원, 주식 손익 ○○원, 하루 VaR95 ○○원, ISA 코어 ○○원)을 그림. 브라우저 내 계산·비공개 저장소 원천이지만 같은 파일 307행 '화면엔 비율만(금액 금지)'·CLAUDE.md 공개 저장소 규칙과 충돌(스크린샷 유출 경로) | `apps-script/tab_my.html:358,375` | 화면(MY)·PB |
 | 중-2 | 중 | 분모 용어 3중 혼재: 화면 '(a) 투자자산/(b) 투자자산+예적금', 'D2', '순자산'. defs.py 는 D2=전체 투자자산(NAV)·D4=순자산 전체인데 화면 373행은 NAV 를 '순자산'으로, 스트레스는 NAV 를 'D2', 반도체 밴드는 NAV+예적금을 '(b)'(D코드 없음, 주석은 'D2 (b)')로 부름. `check_rules_terms.py` 는 상수값만 봐서 통과 | `tab_my.html:275-276,307,340,373`, `screener/defs.py:11-18,28` | 규칙·용어 + 화면(MY) |
 | 중-3 | 중 | 대결 기록 문구 '반도체 비중 순자산 약 81%로 **상한(60%)** 초과' — 현행 SEMI_CAP 40%·발동선 45%와 다른 옛 한도, 분모도 '순자산' | `reports/decisions.json` (DAILY·시그널 뷰 표시) | 대결·PB |
-| 중-4 | 중 | 🔥공격 PB 모의 베팅 'KODEX 레버리지 (모의 금액) … 5일 뒤 종가 청산', 나스닥 '3배 레버리지' 베팅이 결재 #14(레버리지 보유 1일 상한) ⏱ 라벨 없이 표시. decisions.json 에 해당 픽이 없어 `duel.lev_cap()` 미적용. '100만 단위 표준화' 문구와 300만원도 불일치 | `reports/daily_brief.json`(asof 10-17 14:06), `screener/duel.py:202-213` | 데일리·대결 |
+| 중-4 | 중 | 🔥공격 PB 모의 베팅 'KODEX 레버리지 (모의 금액) … 5일 뒤 종가 청산', 나스닥 '3배 레버리지' 베팅이 결재 #14(레버리지 보유 1일 상한) ⏱ 라벨 없이 표시. decisions.json 에 해당 픽이 없어 `duel.lev_cap()` 미적용. '모의 금액 단위 표준화' 문구와 실제 모의 금액도 불일치 | `reports/daily_brief.json`(asof 10-17 14:06), `screener/duel.py:202-213` | 데일리·대결 |
 | 중-5 | 중(의심) | 티커 NIKKEI −4.90% vs TOPIX +1.76% 같은 스냅샷 — 6.7%p 괴리는 비정상 가능성(전일 종가 기준 오류 의심), 교차검증 없음 | `reports/live.json` NIKKEI chg −0.0490, TOPIX +0.0176 (yahoo) | 시장데이터(라이브) |
 | 경-1 | 경 | `ui_smoke.py` 가 29뷰 중 7뷰, pageerror 만 검사(콘솔 에러·HTTP 404·LOAD FAILED 미검사) | `scripts/ui_smoke.py:17,40-50` | 감사(화면)·인프라 |
 | 경-2 | 경 | 토요일 티커가 'LIVE 10-17 09:47 KST' 로 금요일 종가 표시 — JSON status CLOSE 인데 라벨은 LIVE, 거래일 미표기 | live.json updated_at·status | 시장데이터(라이브) |
