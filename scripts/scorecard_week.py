@@ -314,7 +314,7 @@ def render_md(res: dict) -> str:
         if who == "나🔥":
             for k, b in (t.get("by_basis") or {}).items():
                 L.append(f"| └ 나🔥({k}) | {b['n']} | {b['win']}* | {pct(b['win_rate'], 0, False)} | {b['trades']} | {pct(b['hit'], 0, False)} | {pct(b['avg_ret'], 2)} | {b['pnl']:+,} |")
-    L += ["", "\\* 나🔥 의 '승' = 같은 판에서 '나'보다 손익이 큰 횟수 (레버리지 해금 조건 판정용)", ""]
+    L += ["", "\\* 나🔥 의 '승' = 같은 판에서 '나'보다 손익이 큰 횟수 — **레버리지 해금 근거에서 제외**(결재 #14, 10/17~ 기록·비교용)", ""]
     cd = res.get("crash_pb") or {}
     L += [f"급락일 PB 행동률: {cd.get('acted', 0)}/{cd.get('n', 0)}" + (f" ({pct(cd['rate'], 0, False)})" if cd.get("rate") is not None else " (급락일 없음)")
           + " — 급락일(코스피 −5%)에 현금이 아닌 PB 픽 또는 게이트 불통 사유 명시 건수", ""]

@@ -59,7 +59,9 @@ def dec_file(tmp_path, monkeypatch):
 def test_pick_records_lev_drag(dec_file):
     msg = duel.apply_issue(f"pick {D}", "122630 1000000 5일", OK_AT)
     me = next(x for x in json.loads(dec_file.read_text(encoding="utf-8"))["items"] if x["id"] == f"{D}-entry")["picks"]["나"]
-    assert "끌림" in me["lev_drag"] and "4일 보유" in me["lev_drag"] and "⚠" in msg
+    # 결재 #14: 레버리지 모의 픽은 1일 상한 — 5일 → 다음날 종가, 리셋 비용은 1일(2일 왕복 그림) 기준
+    assert me["exit"] == "next_close" and "보유 상한 1일" in me["lev_cap"]
+    assert "끌림" in me["lev_drag"] and me["lev_drag"].startswith("리셋 비용") and "⚠" in msg and "⏱" in msg
     duel.apply_issue(f"pick {D}", "069500 1000000", OK_AT)
     me = next(x for x in json.loads(dec_file.read_text(encoding="utf-8"))["items"] if x["id"] == f"{D}-entry")["picks"]["나"]
     assert "lev_drag" not in me

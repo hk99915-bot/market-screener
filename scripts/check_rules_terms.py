@@ -61,7 +61,7 @@ def scan_files(files: list[str] | None = None, root: Path = ROOT) -> list[str]:
 
 # ── 규칙 상수 단일 원천 (screener/defs.py, refactor_plan 결정 B 2026-10-17) ──
 DEF_FILES = FILES + ["screener/committee.py"]
-UI_CONSTS = {"apps-script/tab_my.html": ("SEMI_CAP", "SEMI_BAND", "ISA_BAND", "SEMI_FLOOR", "SEMI_GLIDE_TARGET", "VAR99_LIMIT", "VAR99_LIMIT_BEAR", "VAR99_Z")}
+UI_CONSTS = {"apps-script/tab_my.html": ("SEMI_CAP", "SEMI_BAND", "ISA_BAND", "SEMI_FLOOR", "SEMI_GLIDE_TARGET", "VAR99_LIMIT", "VAR99_LIMIT_BEAR", "VAR99_Z"), "apps-script/tab_duel.html": ("COOLDOWN_MIN",)}
 
 
 def _defs():

@@ -2,7 +2,16 @@
      apps-script/Index.html 이 include('tab_duel') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
-let DEC=null;
+let DEC=null, COOL=null;
+// 결재 #14 ③ (10/17): 매도(exit '매도')·포상(ops/cooldown.json) 후 30분 — 새 모의 베팅 금지, 카운트다운. 주문표 판정은 제외. 값 = screener/defs.py COOLDOWN_MIN
+const COOLDOWN_MIN=30;
+function coolUntil(D){ const ev=[]; const at=s=>{ const t=Date.parse(String(s).replace(' ','T')+':00+09:00'); return isFinite(t)?t:null; };
+  for(const it of (D.items||[])){ if(it.kind!=='exit') continue; const me=(it.picks||{})['나']||{}; if(!me.cash) continue; const t=at(me.submitted?it.date+' '+me.submitted:(it.basis||{}).at); if(t) ev.push([t,'매도 '+(it.title||'').replace('매도 타점 대결 · ','')]); }
+  for(const e of ((COOL&&COOL.events)||[])){ const t=at(e.at); if(t) ev.push([t,e.what||'포상']); }
+  const now=Date.now(); let last=null; for(const [t,l] of ev){ if(t<=now&&now<t+COOLDOWN_MIN*6e4&&(!last||t>last[0])) last=[t,l]; }
+  return last?{until:last[0]+COOLDOWN_MIN*6e4,from:last[0],what:last[1]}:null; }
+function coolTick(){ const e=document.querySelector('[data-cool-until]'); if(!e) return; const left=+e.dataset.coolUntil-Date.now();
+  if(left<=0){ if(view==='sig'||view==='daily') render(); return; } const m=Math.floor(left/6e4), s=Math.floor(left%6e4/1e3); e.textContent=`${m}:${String(s).padStart(2,'0')}`; setTimeout(coolTick,1000); }
 function planHtml(p){ if(!p) return ''; const f=v=>v==null?null:(v>0?'+':'')+(v*100).toFixed(1)+'%';
   const rr=p.rr!=null?p.rr:(p.target!=null&&p.stop?Math.abs(p.target/p.stop):null);
   const a=[p.target!=null?'목표 '+f(p.target):'',p.stop!=null?'손절 '+f(p.stop):'',rr!=null?'손익비 1:'+rr.toFixed(1):'',p.win_rate!=null?`과거 승률 ${(p.win_rate*100).toFixed(0)}%${p.n?` (n=${p.n})`:''}`:'',p.ev!=null?'기대값 '+f(p.ev):'',p.basis?esc(p.basis):''].filter(Boolean);
@@ -77,14 +86,20 @@ function myHoldList(){ let t=''; try{ t=(typeof myLoad==='function'?myLoad():loc
   return myParse(t).filter(h=>h.key).map(h=>{ const r=myResolve(h.key); return r?{s:r.s,m:r.m,n:r.n,qty:h.qty,avg:h.avg,book:h.book}:null; }).filter(Boolean); }
 function decBox(){
   if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(view==='sig'||view==='daily') render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); return ''; }
+  if(COOL===null){ COOL=false; google.script.run.withSuccessHandler(t=>{try{COOL=JSON.parse(t);}catch(e){COOL={};} if(view==='sig'||view==='daily') render();}).withFailureHandler(()=>{COOL={};}).getCooldown(); }
+  const CD=DEC&&DEC.items?coolUntil(DEC):null; if(CD) setTimeout(coolTick,0);
+  const tm=t=>new Date(t+9*36e5).toISOString().slice(11,16);
+  const coolBar=CD?`<div style="border:1px solid var(--dn);padding:6px 10px;margin-bottom:6px;font-size:12.5px">⏳ <b class="dn">쿨다운</b> — ${tm(CD.from)} ${esc(CD.what)} 후 ${COOLDOWN_MIN}분: 새 모의 베팅 금지 · <b data-cool-until="${CD.until}">--:--</b> 남음 (${tm(CD.until)} 이후) <span class="mu" style="font-size:11px">현금 제출은 받음 · 결재 #14</span></div>`:'';
   if(!DEC||!DEC.items||!DEC.items.length) return '';
   const T=DEC.tally||{}, K=x=>num(Math.round(x),0);
   const who=[...new Set(DEC.items.flatMap(i=>Object.keys(i.picks)))];
   const REPO='hk99915-bot/market-screener', IU=(t,b)=>`https://github.com/${REPO}/issues/new?title=${encodeURIComponent(t)}&body=${encoding(b)}`, encoding=encodeURIComponent;
   const US_CH=[['SPY 1000000','SPY'],['QQQ 1000000','QQQ'],['SOXX 1000000','SOXX'],['SQQQ 1000000','SQQQ'],['현금','현금']], KR_CH=[['069500 1000000 시가','KODEX 200'],['122630 1000000 시가','레버리지'],['114800 1000000 시가','인버스'],['현금','현금']];
   const isUS=it=>it.market==='US', mkTag=it=>`<span class="tag" style="font-size:10px;padding:0 4px;${isUS(it)?'color:#4cc9f0;border-color:#4cc9f0':''}">${isUS(it)?'미장':'국장'}</span>`;
-  const pk=(p,it)=>p.pending?`<span class="am">제출 대기</span> <span style="font-size:11px">${(isUS(it)?US_CH:KR_CH).map(([b,n])=>`<a target="_blank" href="${IU((isUS(it)?'pick-us ':'pick ')+it.date,b)}">${n}</a>`).join(' · ')}</span>`
-    :p.cash?esc(p.label||'현금 유지'):`${esc(p.name||p.ticker)} ${p.notional?K(p.notional/10000)+'만':''}${p.submitted?` <span class="mu" style="font-size:11px">(${esc(p.submitted)} 제출)</span>`:''}`;
+  const pk=(p,it)=>p.pending?`<span class="am">제출 대기</span> <span style="font-size:11px">${(isUS(it)?US_CH:KR_CH).map(([b,n])=>CD&&b!=='현금'?`<span class="mu" title="쿨다운 — ${tm(CD.until)} 이후">${n}⏳</span>`:`<a target="_blank" href="${IU((isUS(it)?'pick-us ':'pick ')+it.date,b)}">${n}</a>`).join(' · ')}</span>`
+    :p.cash?esc(p.label||'현금 유지'):`${esc(p.name||p.ticker)} ${p.notional?K(p.notional/10000)+'만':''}${p.submitted?` <span class="mu" style="font-size:11px">(${esc(p.submitted)} 제출)</span>`:''}`
+      +(p.lev_cap?`<div class="am" style="font-size:10.5px">⏱ ${esc(p.lev_cap)}</div>`:'')+(p.lev_cap&&p.lev_drag?`<div class="mu" style="font-size:10.5px">${esc(p.lev_drag)}</div>`:'');
+  const UNL='<span class="mu" style="font-size:10px"> · 해금 근거 제외(결재 #14)</span>';   // 나🔥 는 레버리지 해금 근거로 쓰지 않는다 (표시 라벨 — 채점·기록은 그대로)
   setTimeout(()=>{ const q=$('#exq'); if(!q) return;
     const show=()=>{ const v=(q.value||'').trim().toLowerCase(), box=$('#exres'); const H=myHoldList();
       if(!H.length){ box.innerHTML='<div style="padding:3px 8px">MY 탭에 보유를 먼저 입력하면 여기서 고를 수 있어요</div>'; box.style.display='block'; return; }
@@ -103,7 +118,8 @@ function decBox(){
   setTimeout(()=>{ const g=$('#exgo'); if(!g) return; g.onclick=()=>{ const c=($('#excode').value||'').trim(), a=($('#examt').value||'').trim(), act=document.querySelector('input[name=exact]:checked'); if(!c) return;
     window.open(IU(`exit ${c}${a?' '+a:''}`, act?act.value:'보유'),'_blank'); }; },0);
   return `<div class="p" style="margin-bottom:10px"><h2>판단 성적표<small>나 vs PB · 결정마다 실제 가격으로 채점</small></h2><div class="b">
-   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${who.map(w=>{const t=T[w]||{win:0,n:0,pnl:0}; return `<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${esc(w)}</div><b>${t.win}승 / ${t.n}전</b> · 누적 <span class="${t.pnl>=0?'up':'dn'}">${t.pnl>=0?'+':''}${K(t.pnl)}원</span>${statLine(t)}</div>`;}).join('')}</div>
+   ${coolBar}
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${who.map(w=>{const t=T[w]||{win:0,n:0,pnl:0}; return `<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${esc(w)}${w==='나🔥'?UNL:''}</div><b>${t.win}승 / ${t.n}전</b> · 누적 <span class="${t.pnl>=0?'up':'dn'}">${t.pnl>=0?'+':''}${K(t.pnl)}원</span>${statLine(t)}</div>`;}).join('')}</div>
    ${DEC.tally_by_market?['KR','US'].map(m=>{const TM=DEC.tally_by_market[m]||{}; return `<div style="font-size:11.5px;margin-bottom:2px"><span class="mu" style="display:inline-block;width:34px">${m==='US'?'미장':'국장'}</span>${who.map(w=>{const t=TM[w]||{win:0,n:0,pnl:0}; return `<span style="margin-right:12px"><span class="mu">${esc(w)}</span> ${t.win}/${t.n} <span class="${t.pnl>=0?'up':'dn'}">${t.pnl>=0?'+':''}${K(t.pnl)}</span></span>`;}).join('')}</div>`;}).join(''):''}
    ${ticketBox(DEC,IU)}
    ${[...DEC.items].filter(it=>it.kind!=='ticket').reverse().map(it=>{const r=it.result; return `<div style="border-top:1px solid var(--line);padding:8px 0;line-height:1.6;white-space:normal">
@@ -111,7 +127,7 @@ function decBox(){
       <div class="mu" style="font-size:11.5px">${esc(it.note||'')}</div>
       ${it.basis?`<div style="font-size:11.5px;border-left:2px solid var(--amber);padding-left:6px;margin-top:3px"><span class="am">판단 시점 ${esc(String(it.basis.at).slice(5))}</span> <span class="mu">${esc(it.basis.src||'')}</span>${(it.basis.lines||[]).map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}
       ${it.pb_view?`<div style="font-size:12px;border-left:2px solid #c77dff;padding-left:6px;margin-top:3px"><b style="color:#c77dff">PB 판단 ${esc(it.pb_view.at||'')}</b>${it.pb_view.conviction?` <span class="mu">확신 ${esc(it.pb_view.conviction)}</span>`:''}<div>${esc(it.pb_view.why||'')}</div>${planHtml(it.pb_view.plan)}${it.pb_view.real?`<div style="font-size:12px">💼 실전 적용: <b>${it.pb_view.real.ok?'가능':'규칙상 비추천'}</b>${it.pb_view.real.size_pct!=null?` · 총자산의 ${(it.pb_view.real.size_pct*100).toFixed(0)}% 이내`:''}${it.pb_view.real.note?' — '+esc(it.pb_view.real.note):''}</div>`:''}${it.pb_view.bold?`<div style="font-size:12px">🔥 <b>공격 PB</b> <span class="mu">(모의 전용)</span> ${esc(it.pb_view.bold.why||'')}</div>${planHtml(it.pb_view.bold.plan)}`:''}${(it.pb_view.lines||[]).map(x=>'<div class="mu">· '+esc(x)+'</div>').join('')}</div>`:''}
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${Object.keys(it.picks).map(w=>`<div style="flex:1;min-width:140px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}</span><div style="font-size:12.5px">${pk(it.picks[w],it)}</div>${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:12px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div></div>`;}).join('')}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${Object.keys(it.picks).map(w=>`<div style="flex:1;min-width:140px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}${w==='나🔥'?UNL:''}</span><div style="font-size:12.5px">${pk(it.picks[w],it)}</div>${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:12px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div></div>`;}).join('')}
    <div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-size:12.5px;line-height:1.8;white-space:normal"><b class="am">매도 타점 대결 열기</b> <span class="mu" style="font-size:11px">팔까(손절·익절) 말까 — PB가 규칙으로 판정, 5거래일 뒤 종가로 채점</span><br>
      <span style="position:relative;display:inline-block"><input id="exq" placeholder="내 보유에서 검색 (예: mu, 하이닉스)" autocomplete="off" style="width:210px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><div id="exres" class="mu" style="display:none;position:absolute;z-index:30;left:0;top:100%;min-width:280px;max-height:260px;overflow:auto;background:var(--panel);border:1px solid var(--line);font-size:12px"></div></span><input id="excode" type="hidden"><input id="exmk" type="hidden">
      <input id="examt" placeholder="평가금액(원, 공개 기록 100만 상한)" style="width:120px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px">

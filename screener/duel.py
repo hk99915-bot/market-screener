@@ -128,8 +128,8 @@ US_EX_LBL = {"same_close": "당일 종가", "d5_close": "5거래일째 종가"}
 # 지수 누적 수익의 L배와 다르다 (SEC·FINRA Investor Alert 2009 / Cheng & Madhavan 2009: 끌림 ≈ (L − L²)/2 · σ²T).
 # 영향 범위: apply_issue·_apply_issue_us(pick 이슈 답글 + decisions.json picks[slot].lev_drag 필드 추가) · ticket.evaluate(reasons 한 줄). 채점·탭·스케줄 변경 없음.
 # 롤백: lev_note_for_pick 호출 2곳과 ticket.py 의 notes.append 1곳을 지우면 기존 동작과 동일(필드는 선택적이라 기존 기록 호환).
-_LEV_KR = {"122630": 2, "233740": 2, "251340": -1, "114800": -1, "252670": -2, "253150": 2, "253160": -1, "123320": 2, "123310": -1,
-           "130730": 2, "152500": 2}
+from .defs import COOLDOWN_MIN, MOCK_LEV_ETFS, MOCK_LEV_HOLD_DAYS   # noqa: E402  결재 #14 목록·상한 (단일 원천 screener/defs.py)
+_LEV_KR = {"253150": 2, "253160": -1, "123320": 2, "123310": -1, "130730": 2, "152500": 2} | {k: v for k, v in MOCK_LEV_ETFS.items() if k.isdigit()}
 _LEV_US_3 = ("SOXL", "SOXS", "TQQQ", "SQQQ", "UPRO", "SPXU", "SPXL", "SPXS", "UDOW", "SDOW", "TNA", "TZA", "TECL", "TECS", "LABU", "LABD",
              "FNGU", "FNGD", "YINN", "YANG", "KORU", "NUGT", "DUST", "JNUG", "JDST", "TMF", "TMV", "ERX", "ERY", "DRN", "DRV", "FAS", "FAZ",
              "CURE", "WEBL", "WEBS", "BRKU", "BRKD")
@@ -142,6 +142,8 @@ _LEV_US_INV = ("SOXS", "SQQQ", "SPXU", "SPXS", "SDOW", "TZA", "TECS", "LABD", "F
 def lev_factor(code: str, name: str = "", market: str = "KR") -> int:
     """레버리지 배수(부호 포함). 일반 ETF·주식 = 0. KR: 코드표 + 이름(레버리지 2 / 인버스 −1 / 인버스2X −2). US: 티커표 + 이름(2x·3x·Bull·Bear)."""
     code, n = str(code or "").upper(), str(name or "")
+    if market != "KR" and code in MOCK_LEV_ETFS:
+        return MOCK_LEV_ETFS[code]
     if market == "KR":
         if code in _LEV_KR:
             return _LEV_KR[code]
@@ -190,6 +192,45 @@ def lev_note_for_pick(pick: dict, market: str = "KR") -> str | None:
     if not lev:
         return None
     return lev_drag_note(pick.get("name") or pick.get("ticker"), lev, _HOLD_DAYS.get(pick.get("exit"), 5))
+
+
+# ── 결재 #14 (10/17 14:09): 모의 레버리지 ETF 보유 상한 1일 + 매도·포상 후 30분 쿨다운 — 새 제출부터만(소급 없음) ──────
+_CAP_EXIT = {"KR": {"d5_close": "next_close", "trail": "next_close"}, "US": {"d5_close": "same_close"}}
+_EX_KO = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈 시", "same_close": "당일 종가"}
+
+
+def lev_cap(pick: dict, market: str = "KR") -> dict:
+    """레버리지·인버스 ETF 모의 픽은 보유 MOCK_LEV_HOLD_DAYS(1)일 상한 — 더 긴 청산은 1일 청산으로 바꾸고 lev_cap 라벨 + 리셋 비용(lev_drag) 표시."""
+    if not pick or pick.get("cash"):
+        return pick
+    lev = lev_factor(pick.get("ticker", ""), pick.get("name", ""), market)
+    if not lev:
+        return pick
+    ex = pick.get("exit")
+    new = _CAP_EXIT.get(market, {}).get(ex, ex)
+    lbl = f"레버리지 {lev:+g}배 보유 상한 {MOCK_LEV_HOLD_DAYS}일(결재 #14)" + (f" — 청산 '{_EX_KO.get(ex, ex)}' → '{_EX_KO.get(new, new)}'로 조정" if new != ex else "")
+    out = dict(pick) | {"exit": new, "lev_cap": lbl}
+    out["lev_drag"] = "리셋 비용: " + lev_drag_note(pick.get("name") or pick.get("ticker"), lev, 2)
+    return out
+
+
+def mock_cooldown(t: datetime, minutes: int = COOLDOWN_MIN) -> str | None:
+    """매도(exit 이슈 '매도')·포상(ops/cooldown.json · env COOLDOWN_LAST_AT) 뒤 minutes 분 안이면 새 모의 베팅 거부 사유(남은 분 포함). 주문표 판정은 제외."""
+    from datetime import timedelta
+    from .ticket import cooldown_events
+    win = timedelta(minutes=minutes)
+    last = None
+    for at, lbl in cooldown_events():
+        if lbl.startswith("주문표"):
+            continue
+        if at <= t < at + win and (last is None or at > last[0]):
+            last = (at, lbl)
+    if not last:
+        return None
+    until = last[0] + win
+    left = int((until - t).total_seconds() // 60) + 1
+    return (f"⏳ 쿨다운 — {last[0].astimezone(KST):%H:%M} {last[1]} 후 {minutes}분 동안 새 모의 베팅 금지 "
+            f"({left}분 남음, {until.astimezone(KST):%H:%M} 이후 다시 제출; 결재 #14). 현금 제출은 받음.")
 
 
 def us_date(now: datetime | None = None) -> str:
@@ -317,17 +358,21 @@ def _apply_issue_us(title: str, body: str, created_at: str) -> str:
         amt = next((float(x) for x in toks[1:] if re.fullmatch(r"\d+(\.\d+)?", x)), NOTIONAL)
         ex = "d5_close" if "5일" in first else "same_close"
         pick = {"ticker": tk_, "name": US_NAMES.get(tk_, tk_), "notional": amt, "entry": "open", "exit": ex}
+        cd = mock_cooldown(t.astimezone(KST))
+        if cd:
+            return cd
+        pick = lev_cap(pick, "US")
     data = decisions.load()
     it = next((x for x in data.get("items", []) if x["id"] == f"{d}-entry-us"), None)
     if not it:
         it = _us_item(d) | {"note": "PB 판정 없음(겸이 단독 기록)"}
         it["picks"]["PB"] = {"cash": True}
         data["items"].append(it)
-    ln = lev_note_for_pick(pick, "US")
+    ln = pick.get("lev_drag") or lev_note_for_pick(pick, "US")
     it["picks"]["나"] = pick | {"submitted": tk.strftime("%H:%M")} | ({"lev_drag": ln} if ln else {})
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     return (f"기록 완료 ✅ 미장 {d} 나: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 시가 진입 → {US_EX_LBL[pick['exit']]} 청산")
-            + f" (제출 {tk:%H:%M} KST)" + (f"\n⚠ {ln}" if ln else ""))
+            + f" (제출 {tk:%H:%M} KST)" + (f"\n⏱ {pick['lev_cap']}" if pick.get("lev_cap") else "") + (f"\n⚠ {ln}" if ln else ""))
 
 
 def apply_issue(title: str, body: str, created_at: str) -> str:
@@ -361,16 +406,22 @@ def apply_issue(title: str, body: str, created_at: str) -> str:
         amt = next((float(x) for x in toks[1:] if re.fullmatch(r"\d+(\.\d+)?", x)), NOTIONAL)
         ex = "trail" if ("끌고" in first or "추세" in first or "trail" in first.lower()) else "next_close" if "종가" in first else "d5_close" if "5일" in first else "next_open"
         pick = {"ticker": toks[0], "name": NAMES.get(toks[0], toks[0]), "notional": amt, "entry": "close", "exit": ex}
+        cd = mock_cooldown(t)
+        if cd:
+            return cd
+        pick = lev_cap(pick, "KR")
     tl = (title or "").strip().lower()
     slot = "나🔥" if ("🔥" in tl or tl.startswith("pick-bold")) else "나"
     if slot == "나🔥":
         lines = [x.strip() for x in (body or "").strip().splitlines()[1:] if x.strip()]
         why = re.sub(r"^근거\s*[:：]\s*", "", lines[0]) if lines else ""
         pick = pick | {"why": why or "감", "basis": "판단" if why and why != "감" else "감"} | ({} if pick.get("cash") else {"notional": float(NOTIONAL)})   # 공격 픽은 100만 고정
-    ln = lev_note_for_pick(pick, "KR")
+    ln = pick.get("lev_drag") or lev_note_for_pick(pick, "KR")
+    if slot == "나🔥":
+        pick = pick | {"unlock_evidence": False}   # 결재 #14: 나🔥 는 레버리지 해금 근거에서 제외 (표시 라벨 · 새 기록부터)
     it["picks"][slot] = pick | {"submitted": t.strftime("%H:%M")} | ({"lev_drag": ln} if ln else {})
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    return f"기록 완료 ✅ {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})" + (f"\n⚠ {ln}" if ln else "")
+    return f"기록 완료 ✅ {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})" + (f"\n⏱ {pick['lev_cap']}" if pick.get("lev_cap") else "") + (f"\n⚠ {ln}" if ln else "")
 
 
 # ── 매도 타점 대결: '지금 팔까(손절·익절) 말까' ─────────────────────────────
@@ -520,6 +571,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
         else:
             pk = {"ticker": t, "name": pk.get("name") or NAMES.get(t, t), "notional": float(pk.get("notional") or NOTIONAL),
                   "entry": "close", "exit": pk.get("exit") or "next_open"}
+        pk = lev_cap(pk, "US" if us else "KR")   # 결재 #14: PB 도 모의 레버리지 1일 상한
     else:
         pk = dict(pk)
     pk["by"] = "PB 재량"
@@ -558,6 +610,7 @@ def record_pb(payload: dict, send: bool = True) -> str:
             bt = str(bold["ticker"]).upper() if us else str(bold["ticker"])
             it["picks"]["PB🔥"] = {"ticker": bt, "name": bold.get("name") or (US_NAMES.get(bt, bt) if us else NAMES.get(bt, bt)), "notional": float(bold.get("notional") or NOTIONAL),
                                   "entry": pk.get("entry", "open" if us else "close"), "exit": bold.get("exit") or pk.get("exit") or ("same_close" if us else "next_open"), "by": "공격 PB", "at": pk["at"]}
+            it["picks"]["PB🔥"] = lev_cap(it["picks"]["PB🔥"], "US" if us else "KR")
         it["pb_view"]["bold"] = {"why": bold.get("why", ""), "plan": bold.get("plan") or None}
     # 보유 종목 매도 타점 (PB 재량) — 금액은 모의 100만 고정 (실제 보유 수량·금액은 공개 저장소에 남기지 않음)
     ex_msgs = []

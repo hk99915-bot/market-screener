@@ -195,6 +195,25 @@ def cooldown_events(items: list[dict] | None = None) -> list[tuple[datetime, str
     t = _parse_kst(os.environ.get(COOLDOWN_ENV))
     if t:
         out.append((t, "수동 기록(포상·매도)"))
+    for e in cooldown_file_events():
+        out.append(e)
+    return out
+
+
+COOLDOWN_FILE = REPORT_DIR.parent / "ops" / "cooldown.json"   # 포상·장외 매도 시각(시각·라벨만 — 금액 없음). 원본은 pb-private journal 타임라인(결재 #14)
+
+
+def cooldown_file_events(path=None) -> list[tuple[datetime, str]]:
+    """ops/cooldown.json {"events": [{"at": "YYYY-MM-DD HH:MM", "what": "포상"}]} → [(시각, 라벨)]. 파일 없으면 빈 목록."""
+    try:
+        j = json.loads((path or COOLDOWN_FILE).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for e in j.get("events") or []:
+        t = _parse_kst(e.get("at"))
+        if t:
+            out.append((t, str(e.get("what") or "포상")))
     return out
 
 

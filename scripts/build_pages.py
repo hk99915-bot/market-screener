@@ -106,6 +106,7 @@ SHIM = """<script>
     getFreshness: () => get('reports/freshness.json'),
     getAccum: () => get('reports/accum.json'),
     getUsAccum: () => get('reports/us_accum.json'),
+    getCooldown: () => get('ops/cooldown.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

@@ -32,7 +32,7 @@ def test_pick_basic_next_open(dec_file):
 
 
 def test_pick_trail_and_cash(dec_file):
-    duel.apply_issue(f"pick {D}", "122630 1000000 추세 끌고가기", OK_AT)
+    duel.apply_issue(f"pick {D}", "069500 1000000 추세 끌고가기", OK_AT)
     assert _item(dec_file)["picks"]["나"]["exit"] == "trail"
     duel.apply_issue(f"pick {D}", "현금", OK_AT)
     assert _item(dec_file)["picks"]["나"] == {"cash": True, "submitted": "14:00"}
