@@ -26,8 +26,7 @@ function lifeFill(){
     tile(`${esc(bva.month||'')} 지출 vs 예산`,`<span class="${used>1?'dn':'up'}">${W(bva.actual_total)}</span> <span class="mu" style="font-size:13px">/ ${W(bva.budget_total)}</span>`,bar(used,used>1?'--dn':'--up')+`예산 사용 ${P(used)}`)+
     tile('순자산',W(NW.net_worth)+'원',`${esc(NW.date||'')} · 현금성 ${M(NW.cash)} · 예적금 ${M(NW.savings)} · 투자 ${M(NW.invest)}`);
   const prog=`<div class="p c12"><h2>순자산 목표 진행률<small>목표 ${esc(G.target_date||'')}</small></h2><div class="b" style="white-space:normal">
-    <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap"><b style="font-size:18px">${P(G.pct)}</b><span>${M(G.current)} / ${M(G.target)}</span>
-    <span>예상 도달 <b class="${eta&&eta.on_track?'up':'dn'}">${eta?esc(eta.date)+' ('+eta.months+'개월)':'계산 불가'}</b> ${eta?(eta.on_track?'<span class="up">· 목표일 이전</span>':'<span class="dn">· 목표일 이후</span>'):''}</span></div>
+    <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap"><b style="font-size:18px">${P(G.pct)}</b><span>${M(G.current)} / ${G.target>=1e8?(G.target/1e8)+'억+':M(G.target)+'+'}</span><span class="mu">하한 목표 — 넘기는 게 목표 (10/17)</span></div>
     ${bar(G.pct)}<div class="mu" style="font-size:11px">가정: 월 저축 ${W(A.monthly_saving)}원 (${esc(A.basis||'')}) · 이체 순유출·보너스 변동은 반영 안 됨 · 순자산: ${esc(NW.note||'')}</div></div></div>`;
   // 월별 막대 (inline SVG — 테마 변수만 사용)
   const ms=S.monthly||[], mx=Math.max(1,...ms.map(m=>Math.max(m.income,m.spend,m.invest_in))), H=160, bw=100/Math.max(1,ms.length);
