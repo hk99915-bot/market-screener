@@ -1969,6 +1969,38 @@
       "depends_on": [],
       "notes": "10/17 오너 질문(삼성 순현금 207조). 현재 cash=현금성자산만. 3Q 확정(10/30) 전에.",
       "desk": "데이터"
+    },
+    {
+      "id": "token-meter-real-usage",
+      "title": "에이전트 토큰 실측 기록 — team_run 에 transcript 누적(calls·cache_read·신규) 옵션 + team_stats 데스크×모델 표",
+      "owner": "개발",
+      "status": "대기",
+      "priority": "P2",
+      "repo": "public",
+      "files": [
+        "scripts/team_run.py",
+        "scripts/team_stats.py",
+        "tests/test_team_stats.py"
+      ],
+      "started": null,
+      "due": "2026-11-05",
+      "depends_on": [],
+      "notes": "내무 요청(10/17 토큰 원가센터). 10/17 대조: runs.tokens 는 마지막 호출 컨텍스트 크기에 가까워 실제 누적 처리량의 약 1/30, 기록 누락도 있음(10/16 실측 37건 vs 기록 5건). team_run.py --transcript <agent jsonl> 로 message.id 중복 제거 합산 → runs 에 calls·cache_read·new 추가(기존 tokens 유지). team_stats by_owner_model 추가. 금액은 넣지 않음(토큰·건수만). pro-plan-round-scale(11/5) 입력.",
+      "desk": "개발"
+    },
+    {
+      "id": "hook-per-model-rows",
+      "title": "비공개 Stop 훅 usage CSV 를 날짜×모델 행으로 (한 날 모델이 섞이면 원가 오판)",
+      "owner": "개발",
+      "status": "대기",
+      "priority": "P3",
+      "repo": "private",
+      "files": [],
+      "started": null,
+      "due": "2026-10-31",
+      "depends_on": [],
+      "notes": "내무 요청. 10/17 메인 대화가 두 모델로 섞였는데(약 1:3) CSV 는 마지막 모델 1개만 기록함. 소비 측(household 토큰 보고서)은 이미 모델별 행을 받을 수 있음.",
+      "desk": "개발"
     }
   ]
 }
