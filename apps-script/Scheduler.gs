@@ -24,7 +24,7 @@ const SCHEDULE = [
   ['02:00', 'backfill.yml', { market: 'ALL' }, EVERY],
   ['03:30', 'fin.yml', {}, EVERY],
   ['03:52', 'briefing.yml', { mode: 'intraday_us' }, US_DAYS],
-  // ['06:40', 'briefing.yml', { mode: 'valuation' }, US_DAYS],      // 반도체 밸류에이션 바스켓 — GitHub cron(40 21 UTC)만 사용, 백업 예약은 켜지 않음 (텔레그램 중복 방지)
+  // ['07:10', 'briefing.yml', { mode: 'valuation' }, US_DAYS],      // 반도체 밸류에이션 바스켓 — 06:52 미장 마감 스크리너 뒤(10/17 순서 수정). GitHub cron(10 22 UTC)만 사용, 백업 예약은 켜지 않음 (텔레그램 중복 방지)
   ['06:52', 'briefing.yml', { mode: 'screen_us' }, US_DAYS],
   ['08:40', 'live.yml', {}, WEEKDAY],
   ['08:50', 'briefing.yml', { mode: 'premarket_kr' }, WEEKDAY],
