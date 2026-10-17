@@ -103,3 +103,30 @@ def test_committee_block_omitted_with_log(tmp_path, monkeypatch, caplog):
     _write_signals(tmp_path, n_rows=0)
     b = committee._sim_fresh("KR")
     assert b["items"] == [] and committee._sim_fresh_lines({"sim_fresh": b}) == []   # 통과 0건 → 텔레그램 줄 없음
+
+
+# ── 기대값 하한 규칙 'C·참고' (사전등록 2026-10-17_trend_expectancy_prereg) ──
+def test_committee_exp_block_from_signals_and_study_fallback(tmp_path, monkeypatch):
+    monkeypatch.setattr(committee, "REPORT_DIR", tmp_path)
+    monkeypatch.setattr(committee, "_kst_today", lambda: date(2026, 10, 17))
+    exp = {"n_eligible": 94, "n_pass": 1, "expected_chance": 4.7, "binom_p": 0.99, "grade": "C·참고 — 테스트",
+           "rows": [{"s": "000001", "n": "가", "strategy": "ma", "label": "이평 추세 롱", "trades": 9, "exp": 0.03, "exp_lb": 0.004, "win": 0.44,
+                     "entry_date": "2026-10-16", "grade": "C·참고"}]}
+    # ① 연구 파일만 있을 때(sim_signals 없음) → Wilson 없음 표시 + exp 블록
+    (tmp_path / "studies").mkdir()
+    (tmp_path / "studies" / "trend_expectancy.json").write_text(json.dumps({"markets": [{"market": "KR", "asof": "2026-10-16", "exp": exp}]}), encoding="utf-8")
+    b = committee._sim_fresh("KR")
+    assert b["wilson_missing"] and b["exp"]["label"] == "C·참고" and b["exp"]["src"] == "studies/trend_expectancy.json"
+    assert b["exp"]["items"][0]["exp_lb"] == 0.004
+    assert committee._sim_fresh_lines({"sim_fresh": b}) == []              # 텔레그램 미발송 (사전등록 §2)
+    # ② 파이프라인 sim_signals 에 exp 가 있으면 그쪽 우선
+    _write_signals(tmp_path, n_rows=0)
+    d = json.loads((tmp_path / "sim_signals_KR.json").read_text(encoding="utf-8"))
+    d["exp"] = {**exp, "n_pass": 0, "rows": []}
+    (tmp_path / "sim_signals_KR.json").write_text(json.dumps(d), encoding="utf-8")
+    b = committee._sim_fresh("KR")
+    assert b["exp"]["src"] == "sim_signals_KR.json" and b["exp"]["items"] == [] and not b.get("wilson_missing")
+    # ③ 오래된 연구 파일은 쓰지 않음
+    (tmp_path / "sim_signals_KR.json").unlink()
+    (tmp_path / "studies" / "trend_expectancy.json").write_text(json.dumps({"markets": [{"market": "KR", "asof": "2026-10-01", "exp": exp}]}), encoding="utf-8")
+    assert committee._sim_fresh("KR") is None

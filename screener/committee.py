@@ -349,16 +349,13 @@ def _sim_fresh(market: str = "KR") -> dict | None:
     """종목 상세 TREND SIMULATION 의 '새로 켜진 추세 신호' 집계(reports/sim_signals_{market}.json, detail.build 산출) → 운용회의 블록.
     보유·관심 종목 우선 표시는 하지 않는다(개인 보유는 공개 파일 금지). 파일이 없거나 오래되면 None + 로그 1줄."""
     d = _j(f"sim_signals_{market}.json")
+    ex = _sim_exp(market, d)
     if not d or not d.get("asof"):
         log.info("sim_fresh 생략: sim_signals_%s.json 없음", market)
-        return None
-    try:
-        age = (_kst_today() - date.fromisoformat(str(d["asof"])[:10])).days
-    except ValueError:
-        age = None
-    if age is None or age > SIM_FRESH_MAX_AGE:
-        log.info("sim_fresh 생략: sim_signals_%s.json 기준일 %s (%s일 경과)", market, d.get("asof"), age)
-        return None
+        return {"asof": ex["asof"], "market": market, "items": [], "wilson_missing": True, "exp": ex} if ex else None
+    if not _fresh_age_ok(d["asof"]):
+        log.info("sim_fresh 생략: sim_signals_%s.json 기준일 %s (%s일 초과)", market, d.get("asof"), SIM_FRESH_MAX_AGE)
+        return {"asof": ex["asof"], "market": market, "items": [], "wilson_missing": True, "exp": ex} if ex else None
     items = []
     for r in (d.get("rows") or [])[:SIM_FRESH_TOP]:
         vs = (f"1년 전략 {r['ret']*100:+.0f}% vs 보유 {r['bh']*100:+.0f}%"
@@ -370,7 +367,32 @@ def _sim_fresh(market: str = "KR") -> dict | None:
                               f"(하한 {(r.get('wilson_lo') or 0)*100:.0f}%) · {vs}"})
     return {"asof": d["asof"], "market": market, "n_scanned": d.get("n_scanned"), "n_pass": d.get("n_pass", len(d.get("rows") or [])),
             "n_eligible": d.get("n_eligible"), "expected_chance": d.get("expected_chance"), "grade": d.get("grade"),
-            "criteria": d.get("criteria"), "items": items}
+            "criteria": d.get("criteria"), "items": items, **({"exp": ex} if ex else {})}
+
+
+def _fresh_age_ok(asof) -> bool:
+    try:
+        return (_kst_today() - date.fromisoformat(str(asof)[:10])).days <= SIM_FRESH_MAX_AGE
+    except ValueError:
+        return False
+
+
+def _sim_exp(market: str, d: dict | None) -> dict | None:
+    """기대값 t 하한 규칙(사전등록 2026-10-17, 오너 승인 14:09) — 'C·참고' 표시 전용, 주문표 근거 불가, 텔레그램 미발송.
+    원천: sim_signals_{market}.json 의 exp 블록(파이프라인) → 없으면 reports/studies/trend_expectancy.json(연구 스크립트) 같은 시장."""
+    ex, asof, src = (d or {}).get("exp"), (d or {}).get("asof"), f"sim_signals_{market}.json"
+    if not ex or not _fresh_age_ok(asof):
+        st = _j("studies/trend_expectancy.json", {}) or {}
+        m = next((x for x in st.get("markets") or [] if x.get("market") == market), None)
+        if not m or not _fresh_age_ok(m.get("asof")):
+            return None
+        ex, asof, src = m.get("exp") or {}, m.get("asof"), "studies/trend_expectancy.json"
+    items = [{"s": r["s"], "n": r.get("n") or r["s"], "label": r.get("label") or r.get("strategy"), "trades": r.get("trades"),
+              "exp": r.get("exp"), "exp_lb": r.get("exp_lb"), "win": r.get("win"), "entry_date": r.get("entry_date")}
+             for r in (ex.get("rows") or [])[:SIM_FRESH_TOP]]
+    return {"label": "C·참고", "asof": asof, "src": src, "n_eligible": ex.get("n_eligible"), "n_pass": ex.get("n_pass", len(items)),
+            "expected_chance": ex.get("expected_chance"), "binom_p": ex.get("binom_p"), "grade": ex.get("grade"),
+            "criteria": ex.get("criteria"), "items": items}
 
 
 def _sim_fresh_lines(o: dict) -> list[str]:

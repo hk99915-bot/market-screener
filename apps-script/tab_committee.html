@@ -67,9 +67,15 @@ function cmtSimFreshHtml(o){
   const b=o.sim_fresh; if(!b) return '';
   const it=b.items||[], pc=x=>x==null?'—':(x>0?'+':'')+Math.round(x*100)+'%';
   const rows=it.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="${esc(b.market||'KR')}">${esc(x.n)}</td><td class="l">${esc(x.label)}</td><td>${x.wins}/${x.trades}</td><td class="up">${Math.round((x.wilson_lo||0)*100)}%</td><td>${pc(x.ret)}</td><td class="mu">${pc(x.bh)}</td><td class="mu">${esc(String(x.entry_date||'').slice(5))}</td></tr>`);
-  return `<div class="p c12" style="border:1px solid ${it.length?'var(--up)':'var(--line)'}"><h2><span>🟢 새로 켜진 추세 신호 · 참고 C</span><small>${esc(b.asof||'')} 종가 · 스캔 ${b.n_scanned??'—'}종목 · 통과 ${b.n_pass??0} · 기대 우연 통과 ${b.expected_chance??'—'}</small></h2><div class="b" style="white-space:normal;font-size:12.5px">
-    ${it.length?cmtTbl(['종목','전략','승/거래','승률 하한','1년 전략','1년 보유','켜진 날'],rows):'<div class="mu">오늘 조건 통과 없음 (켜짐 + 거래 6회 이상 + 승률 Wilson 95% 하한 50% 초과)</div>'}
-    <div class="mu" style="font-size:11px;margin-top:4px">${esc(b.grade||'')}</div></div></div>`;
+  // 기대값 하한 규칙 (사전등록 docs/valuation_notes/2026-10-17_trend_expectancy_prereg.md) — 'C·참고' 라벨, 주문표 근거 불가
+  const E=b.exp, eit=(E&&E.items)||[], pp=x=>x==null?'—':(x>0?'+':'')+(x*100).toFixed(1)+'%';
+  const erows=eit.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="${esc(b.market||'KR')}">${esc(x.n)}</td><td class="l">${esc(x.label)} <span class="mu" style="font-size:10.5px;border:1px solid var(--line);padding:0 3px">C·참고</span></td><td>${x.trades}</td><td>${pp(x.exp)}</td><td class="up">${pp(x.exp_lb)}</td><td class="mu">${x.win!=null?Math.round(x.win*100)+'%':'—'}</td><td class="mu">${esc(String(x.entry_date||'').slice(5))}</td></tr>`);
+  const ehtml=E?`<div style="margin-top:8px;border-top:1px dashed var(--line);padding-top:6px"><b>기대값 하한 규칙</b> <span class="mu" style="font-size:10.5px;border:1px solid var(--line);padding:0 3px">C·참고</span> <span class="mu" style="font-size:11px">${esc(E.asof||'')} · 검정 ${E.n_eligible??'—'} · 통과 ${E.n_pass??0} · 우연 기대 ${E.expected_chance??'—'}${E.binom_p!=null?' · 이항 p '+E.binom_p:''} · 주문표 근거 불가</span>
+    ${eit.length?cmtTbl(['종목','전략','청산 거래','기대값','t 하한','승률','켜진 날'],erows):'<div class="mu">통과 없음 (켜짐 + 청산 거래 8회 이상 + 거래당 순수익 t 95% 하한 &gt; 0)</div>'}
+    <div class="mu" style="font-size:11px;margin-top:2px">${esc(E.grade||'')}</div></div>`:'';
+  return `<div class="p c12" style="border:1px solid ${it.length||eit.length?'var(--up)':'var(--line)'}"><h2><span>🟢 새로 켜진 추세 신호 · 참고 C</span><small>${esc(b.asof||'')} 종가 · ${b.wilson_missing?'Wilson 집계 없음(sim_signals 미생성)':`스캔 ${b.n_scanned??'—'}종목 · 통과 ${b.n_pass??0} · 기대 우연 통과 ${b.expected_chance??'—'}`}</small></h2><div class="b" style="white-space:normal;font-size:12.5px">
+    ${it.length?cmtTbl(['종목','전략','승/거래','승률 하한','1년 전략','1년 보유','켜진 날'],rows):b.wilson_missing?'':'<div class="mu">오늘 조건 통과 없음 (켜짐 + 거래 6회 이상 + 승률 Wilson 95% 하한 50% 초과)</div>'}
+    <div class="mu" style="font-size:11px;margin-top:4px">${esc(b.grade||'')}</div>${ehtml}</div></div>`;
 }
 function cmtV2Html(o){
   const bl=o.bottom_line||{}, M=o.macro||{}, P=o.positioning||{}, R=o.rotation||{}, B=o.bottom_up||{}, I=o.ideas_top||{}, H=o.hedges||{}, PM=o.premortem||{}, T=o.track||{};
