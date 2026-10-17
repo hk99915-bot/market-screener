@@ -56,7 +56,7 @@ def run(send: bool = True) -> dict | None:
     log.info("반등일 판정 %s: %s", j["date"], "✅" if j["ok"] else "❌")
     if send:
         from .report import send_telegram
-        send_telegram(text(j))
+        send_telegram(text(j), disable_notification=False)   # 결재 #9: 14:25 반등일 판정은 소리
     try:   # 기한 D-n · 반도체 발동선 (종가 전이라 손절선 점검은 16:20 에서)
         from . import alerts
         alerts.run(send=send, at_close=False)

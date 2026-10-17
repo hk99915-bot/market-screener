@@ -207,8 +207,8 @@ def run(send: bool = True, at_close: bool = True) -> list[str]:
         return []
     text = "📏 <b>규정 알림</b>\n" + "\n".join(line for _, line in fresh)
     if send:
-        from .report import send_telegram
-        send_telegram(text)
+        from .report import loud, send_telegram
+        send_telegram(text, disable_notification=not loud(text))   # 결재 #9: ⛔(손절 2일·터치) 포함 때만 소리, ⚠️·D-n·발동선은 무음
         now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
         for k, _ in fresh:
             st.setdefault("sent", {})[f"{today}:{k}"] = now
@@ -266,7 +266,7 @@ def crash_check(q: dict | None = None, send: bool = True, today: date | None = N
     out["fired"] = True
     if send:
         from .report import send_telegram
-        send_telegram(out["text"])
+        send_telegram(out["text"], disable_notification=False)   # 결재 #9: ⚡ 급락 신호는 소리
         st.setdefault("sent", {})[key] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
         _save(st)
     return out

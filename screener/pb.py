@@ -333,7 +333,7 @@ def send() -> bool:
     if not t:
         log.info("PB: MY_HOLDINGS 없음 — 건너뜀")
         return False
-    from .report import send_telegram
-    send_telegram(t)
+    from .report import loud, send_telegram
+    send_telegram(t, disable_notification=not loud(t))   # 결재 #9: 한도 도달·2일 이탈·발동선 초과(⛔) 때만 소리
     log.info("PB 아침 점검 전송")   # 내용은 로그에 남기지 않음
     return True
