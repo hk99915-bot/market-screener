@@ -126,6 +126,8 @@ US_EX_LBL = {"same_close": "당일 종가", "d5_close": "5거래일째 종가"}
 # ── 레버리지 ETF 일일 리셋 비용(변동성 끌림) — 결재 #14 ① 코드 근거 ────────────────────────────
 # 레버리지 ETF 는 '일일' 수익률의 L배를 목표로 매일 리셋한다. 여러 날 보유 수익 = Π(1 + L·r_i) − 1 이고,
 # 지수 누적 수익의 L배와 다르다 (SEC·FINRA Investor Alert 2009 / Cheng & Madhavan 2009: 끌림 ≈ (L − L²)/2 · σ²T).
+# 영향 범위: apply_issue·_apply_issue_us(pick 이슈 답글 + decisions.json picks[slot].lev_drag 필드 추가) · ticket.evaluate(reasons 한 줄). 채점·탭·스케줄 변경 없음.
+# 롤백: lev_note_for_pick 호출 2곳과 ticket.py 의 notes.append 1곳을 지우면 기존 동작과 동일(필드는 선택적이라 기존 기록 호환).
 _LEV_KR = {"122630": 2, "233740": 2, "251340": -1, "114800": -1, "252670": -2, "253150": 2, "253160": -1, "123320": 2, "123310": -1,
            "130730": 2, "152500": 2}
 _LEV_US_3 = ("SOXL", "SOXS", "TQQQ", "SQQQ", "UPRO", "SPXU", "SPXL", "SPXS", "UDOW", "SDOW", "TNA", "TZA", "TECL", "TECS", "LABU", "LABD",

@@ -1,9 +1,13 @@
-# derivs 라운드1 — 2026-10-17
+# derivs 라운드1 — 2026-10-17 (STANDARD.md 적용판)
 
-1. **읽기** — derivs.md 전체(복기 2건) · 피어 macro.md · _scoreboard.md(파생 채점 행 아직 없음) · 보드 파생 태스크 8건(검수 6·완료 1·대기 gamma-verdict 10/30).
-2. **배움** — SEC·FINRA 2009 Investor Alert(레버리지·인버스 ETF 일일 리셋, 장기 보유 시 L배와 괴리·변동성에서 확대) + Cheng & Madhavan 2009 근사식 끌림 ≈ (L−L²)/2·σ²T 를 KB '공식'에 추가(출처 등급 규정·교과서, 근사식 쪽수 `[확인 필요]`).
-3. **고침** — `screener/duel.py` `lev_factor`·`lev_drag`·`lev_drag_note`·`lev_note_for_pick`: pick/pick-us/pick🔥 에 레버리지 ETF 가 들어오면 `picks[slot].lev_drag` 한 줄(예: 2일 ±3% 왕복 → 3배 −0.81%, 끌림 −0.54%p) + 이슈 답글 ⚠; `screener/ticket.py` 주문표 reasons 에도 표기(금지 여부와 별개). 테스트 `tests/test_lev_drag.py` 7건(손계산 일치·보유일/진폭 단조·추세 시 부호·인버스·배수표·기록 연동). 결재 #14 ① 코드 근거.
-4. **피어(매크로)** — macro.md #3 바람 점수는 VIX 계단만 있고 '한국 변동성' 이 없다. 코스피200 ATM IV(`reports/derivs.json` `atm_iv`, `daily.csv` `rep_iv`)를 KOSPI 처럼 '표시 전용' 칩으로라도 올려 주길 요청 — 10/15 같은 한국 고유 급락(IV 54%)은 VIX 로 안 잡힌다. 점수 가중은 검증전이니 넣지 말고 표시만.
-5. **복기** — 브리프 예시 숫자(5일 −0.81%)를 검산 없이 옮길 뻔함: −0.81% 는 2일 값. 숫자 예시는 함수로 재계산해 적는다(KB 복기 참조).
+1. **읽기** — derivs.md 전체(복기 2건) · 피어 macro.md · _scoreboard.md(파생 채점 행 0건, 10/17 기준) · 보드 파생 태스크 8건(검수 6 · 완료 1 · 대기 gamma-verdict, 재판정 2026-10-30).
+2. **배움** — 레버리지 ETF 일일 리셋: 여러 날 수익 = Π(1+L·r_i)−1, 끌림 ≈ (L−L²)/2·σ²T. 출처: SEC·FINRA Investor Alert 2009-08(investor.gov, 2026-10-17 확인) · Cheng & Madhavan 2009 *JOIM* `[확인 필요: 근사식 쪽수, 10/24 까지]`. 등급 [규정·교과서], 신뢰도 상(항등식). KB '공식'에 추가.
+3. **고침** — `screener/duel.py` `lev_factor`·`lev_drag`·`lev_drag_note`·`lev_note_for_pick`, `screener/ticket.py` evaluate notes 1줄. 검산: r=(+3%,−3%), L=3 → 지수 −0.09%, 3배 기대 −0.27%, 실제 1.09×0.91−1 = −0.81%, 끌림 −0.54%p. 테스트 `tests/test_lev_drag.py` 7건(전체 161건 통과, 10/17). 영향 범위: pick 이슈 답글 + decisions.json `picks[slot].lev_drag` 필드(선택적) + 주문표 reasons — 채점·탭·스케줄 변경 없음. 롤백: 호출 3곳 제거(duel 2·ticket 1)로 기존 동작 복원. 커밋 2cd34515(origin/main).
+4. **피어(매크로)** — macro.md #3 바람 점수에 VIX 계단만 있고 한국 변동성 입력이 없다. 근거: 2026-10-15 코스피200 ATM IV 54.5%(`data/deriv/daily.csv` rep_iv) → 하루 1σ 3.4%, 실제 −7.6%였는데 바람 라벨은 중립(+0.10, macro_view.json 10/16). 요청은 '표시 전용'(점수 가중은 검증전). 반대 근거: KOSPI 자체도 점수 제외인데 IV 만 넣으면 '결과 변수' 원칙과 충돌 — 그래서 칩 표시만.
+5. **복기** — 브리프 예시 '5일 보유 ±3% 왕복 → −0.81%' 를 검산 없이 옮길 뻔함 → −0.81% 는 2일(1왕복) 값, 5일(홀수)은 지수가 +2.8% 로 끝나 왕복이 아님 → 함수가 홀수 보유일을 짝수로 내림, 숫자 예시는 항상 `lev_drag` 로 재계산.
 
-요청→매크로: `macro_view.json` 칩에 코스피200 ATM IV(÷√252 = 하루 1σ)를 표시 전용으로 추가 검토 (점수 제외, 출처 reports/derivs.json atm_iv).
+**결론(행동)** — 무엇: 레버리지 ETF pick·주문표에 리셋 비용 한 줄 자동 표기(완료). 누가: 파생. 언제까지: 2026-10-24 까지 Cheng & Madhavan 쪽수 확인 + 실제 SOXL/KODEX 레버리지 5일 실측 끌림 1건을 KB 에 추가. 뒤집는 조건: 실측 끌림이 공식과 0.1%p 이상 어긋나는 사례가 20건 중 5건 이상이면 배당·금리·스왑비용 항 추가로 식 교체. 반대 근거: 추세장에선 끌림 양수 — '리셋 = 손해' 가 아니라 '경로 의존' 경고로 쓴다.
+
+VOC: 작업 트리가 데스크 간 공유돼 `git add screener/ticket.py` 에 행동 데스크의 미커밋 쿨다운 코드가 섞여 들어감(2cd34515) — 데스크별 worktree 또는 파일 단위 add 규약 필요.
+요청→매크로: `macro_view.json` 칩에 코스피200 ATM IV(`reports/derivs.json` atm_iv, ÷√252 = 하루 1σ)를 표시 전용으로 추가 검토 — 점수 제외, 라벨 '검증전'.
+현재 상태: (1) 리셋 비용 표기 코드·테스트 7건 main 반영(2cd34515), 추가 작업 없음. (2) 남은 일: 10/24 까지 근사식 쪽수 확인 + 실측 끌림 1건 KB 추가, 10/30 gamma_regime 재판정(보드 gamma-verdict). (3) 건드리지 않은 것: 보드·잠금·공유 탭 파일.
