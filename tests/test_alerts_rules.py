@@ -70,3 +70,16 @@ def test_isa_bucket_and_semi_class():
 def test_rules_defaults():
     r = pb.rules("SEMI_CAP 0.40\n005930 60000\n")
     assert r["semi_cap"] == 0.40 and r["semi_band"] == 0.45 and r["loss_limit"] == 0.12 and r["price"] == {"005930": 60000.0}
+
+
+def test_touch_rule_parses_and_fires(monkeypatch):
+    r = pb.rules("000660 1170000 touch\n005930 80000\nSEMI_CAP 0.40")
+    assert r["touch"] == {"000660": 1170000.0} and r["price"] == {"005930": 80000.0}
+    monkeypatch.setenv("MY_RULES", "000660 1170000 touch")
+    fake = {"000660": {"last": 1200000.0, "low": 1169000.0, "name": "SK하이닉스"}}
+    out = alerts.touch_lines(fetch=lambda c: fake.get(c))
+    assert len(out) == 1 and out[0][0] == "touch:000660" and "즉시 매도" in out[0][1] and "장중 저가" in out[0][1]
+    fake["000660"]["low"] = 1171000.0            # 저가가 선 위 → 조용
+    assert alerts.touch_lines(fetch=lambda c: fake.get(c)) == []
+    fake["000660"] = {"last": 1160000.0, "low": None, "name": "SK하이닉스"}   # 저가 키 없으면 현재가로
+    assert "현재가" in alerts.touch_lines(fetch=lambda c: fake.get(c))[0][1]

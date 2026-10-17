@@ -13,7 +13,7 @@ MY_HOLDINGS 형식 (웹 MY 탭과 동일, 한 줄에 하나 — 위성 북, 그 
     148070 40 110000
     132030 50 20000
     현금 500000
-선택: MY_RULES — 줄마다 '종목코드 가격' (종가 2일 연속 이탈 시 경고), 'LOSS_LIMIT 0.12' (순자산 대비 손실 한도), 'SEMI_CAP 0.40', 'SEMI_BAND 0.45'
+선택: MY_RULES — 줄마다 '종목코드 가격' (종가 2일 연속 이탈 시 경고), '종목코드 가격 touch' (장중 저가 터치 즉시 ⛔, 결재 #2 예외 조건), 'LOSS_LIMIT 0.12' (순자산 대비 손실 한도), 'SEMI_CAP 0.40', 'SEMI_BAND 0.45'
 
 분모는 항상 순자산 = 위성 + ISA + 현금(원화·달러). 반도체 비중은 '반도체(전기 제외)' 를 기본으로, '반도체+전기(상관 테마)' 를 보조로 보인다.
 지수 ETF(KODEX 200·S&P500·나스닥100 …) 속 반도체 룩스루는 한도 계산에서 빼고 '참고 경보' 한 줄로만 보인다 (합의 1-④).
@@ -152,7 +152,7 @@ def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains
 
 
 def rules(rules_txt: str) -> dict:
-    o = {"loss_limit": 0.12, "semi_cap": 0.40, "semi_band": 0.45, "price": {}}
+    o = {"loss_limit": 0.12, "semi_cap": 0.40, "semi_band": 0.45, "price": {}, "touch": {}}
     for ln in (rules_txt or "").splitlines():
         p = ln.split()
         if len(p) < 2:
@@ -164,6 +164,8 @@ def rules(rules_txt: str) -> dict:
             o["semi_cap"] = _num(p[1]) or o["semi_cap"]
         elif k == "SEMI_BAND":
             o["semi_band"] = _num(p[1]) or o["semi_band"]
+        elif _num(p[1]) and len(p) >= 3 and p[2].lower() in ("touch", "즉시"):
+            o["touch"][k] = _num(p[1])     # '종목코드 가격 touch' — 장중 저가 터치 즉시 ⛔ (종가 2일 규칙과 별개)
         elif _num(p[1]):
             o["price"][k] = _num(p[1])
     return o

@@ -122,6 +122,38 @@ def band_line() -> tuple[str | None, str | None]:
     return None, None
 
 
+def kr_quote(code: str) -> dict | None:
+    """네이버 모바일 종목 basic — {'last','low','name'}; 장중 저가 키가 없으면 low=None."""
+    try:
+        import requests
+        j = requests.get(f"https://m.stock.naver.com/api/stock/{code}/basic",
+                         headers={"User-Agent": "Mozilla/5.0"}, timeout=10).json()
+        last = _num(j.get("closePrice"))
+        low = _num(j.get("lowPrice")) or _num(j.get("low"))
+        return {"last": last, "low": low, "name": j.get("stockName") or code}
+    except Exception as e:  # noqa: BLE001
+        log.warning("시세 실패 %s: %s", code, e)
+        return None
+
+
+def touch_lines(fetch=None) -> list[tuple[str, str]]:
+    """MY_RULES '코드 가격 touch' — 장중 저가(없으면 현재가)가 가격 이하로 닿으면 ⛔ 즉시 매도 한 줄.
+    결재 #2(10/17): 예외 1회의 조건은 '추가 −8% 장중 터치 즉시'라 종가 2일 규칙으로는 못 잡는다."""
+    from . import pb
+    rules = pb.rules(os.environ.get("MY_RULES", ""))
+    out: list[tuple[str, str]] = []
+    fetch = fetch or kr_quote
+    for code, px in rules.get("touch", {}).items():
+        q = fetch(code)
+        if not q or not q.get("last"):
+            continue
+        probe = q["low"] if q.get("low") else q["last"]
+        if probe <= px:
+            how = "장중 저가" if q.get("low") else "현재가"
+            out.append((f"touch:{code}", f"⛔ <b>{q.get('name', code)} 발동선 터치 — 즉시 매도</b> · {how} {probe:,.0f} ≤ {px:,.0f} (예외 1회 조건, 재협상 없음)"))
+    return out
+
+
 def _state() -> dict:
     try:
         return json.loads(STATE.read_text(encoding="utf-8"))
@@ -159,6 +191,10 @@ def build(at_close: bool = True, today: date | None = None) -> list[tuple[str, s
             out.append((k, line))
     except Exception as e:  # noqa: BLE001
         log.warning("발동선 점검 실패: %s", e)
+    try:
+        out.extend(touch_lines())   # 장중·마감 슬롯 모두 — 터치는 시각을 가리지 않는다
+    except Exception as e:  # noqa: BLE001
+        log.warning("터치 점검 실패: %s", e)
     return out
 
 
