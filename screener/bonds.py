@@ -248,6 +248,18 @@ def dur_only(D: float, y_pct: float | None) -> dict:
             "be_bp": None if not y_pct else round(y_pct / D * 100)}
 
 
+def etf_rate_label(D: float | None, name: str | None = None) -> dict:
+    """채권 ETF 공통 라벨 — 결재 #15 ③ '3년 국고채 ETF = 만기 없음·금리 민감'.
+    상시 만기(constant maturity) ETF는 개별 채권과 달리 만기·pull-to-par 가 없어 '만기까지 들면 원금 회복'이 성립하지 않는다.
+    rate_line = 수정 듀레이션 근사 한 줄: 금리 +100bp → 가격 ≈ −D%. (D 는 운용사 공시 실효 듀레이션 근처의 근사 상수, 114260 은 2.6~3.0 사이를 오간다)"""
+    if D is None:
+        return {"maturity": "없음(상시 듀레이션)", "rate_line": "듀레이션 미상 — 금리 민감도 계산 불가"}
+    down = round(-D * 1.0, 1)          # +100bp
+    down50 = round(-D * 0.5, 1)        # +50bp
+    return {"maturity": "없음(상시 듀레이션) — 만기까지 들어도 원금 확정 없음",
+            "rate_line": f"금리 +100bp → 가격 약 {down:+.1f}% (+50bp {down50:+.1f}%) · D≈{D:g} 근사 · 만기 없음"}
+
+
 # ───────────────────────── 상관 ─────────────────────────
 def _rets(px: dict[str, float]) -> dict[str, float]:
     ds = sorted(px)
@@ -433,19 +445,21 @@ def vehicles(o: dict) -> list[dict]:
     E = {e["s"]: e for e in o.get("etf", [])}
     rows = []
 
-    def add(name, y, D, fx, tax, role, ylabel="", up100=None):
+    def add(name, y, D, fx, tax, role, ylabel="", up100=None, maturity=None):
+        is_etf = up100 != ""   # 개인투자용 국채(시가 평가 없음)는 up100="" 로 들어온다
+        lab = etf_rate_label(D, name) if is_etf else {"maturity": maturity or "있음 — 만기 보유 시 원금·이자 확정(시가 평가 없음)", "rate_line": "중도 환매 전까지 가격 변동 없음(만기 보유 전제)"}
         rows.append({"name": name, "y": None if y is None else round(y, 2), "ylabel": ylabel, "dur": D,
                      "up100": (None if up100 == "" else up100) if up100 is not None else (None if D is None else round(D, 1)),   # −1%p 시 가격 변화 %
-                     "fx": fx, "tax": tax, "role": role})
+                     "fx": fx, "tax": tax, "role": role, **lab})
     k3, k10, k20 = g(kr, "3Y"), g(kr, "10Y"), g(kr, "20Y")
     add("KR 국고채 3년 ETF", k3, (E.get("114260.KS") or {}).get("dur", 2.8), "없음", "분배금 배당소득세 15.4%", "방어 · 현금 대용")
     add("KR 국고채 10년 ETF", k10, (E.get("148070.KS") or {}).get("dur", 8.0), "없음", "분배금 배당소득세 15.4%", "방어 + 금리 인하 베팅")
     if k10:
         add("개인투자용 국채 10년", k10, 10.0, "없음", "만기 보유 시 분리과세(한도 내)·가산금리",
-            "만기 일시 지급(복리) — 시가 평가 없음: 금리가 내려도 차익 없고, 올라도 만기 보유 시 확정 이자", "≈국고10년+가산", "")
+            "만기 일시 지급(복리) — 시가 평가 없음: 금리가 내려도 차익 없고, 올라도 만기 보유 시 확정 이자", "≈국고10년+가산", "", "있음(10년) — 만기 보유 시 원금·이자 확정")
     if k20:
         add("개인투자용 국채 20년", k20, 20.0, "없음", "만기 보유 시 분리과세(한도 내)·가산금리",
-            "만기 일시 지급(복리) — 시가 평가 없음: 금리가 내려도 차익 없고, 올라도 만기 보유 시 확정 이자", "≈국고20년+가산", "")
+            "만기 일시 지급(복리) — 시가 평가 없음: 금리가 내려도 차익 없고, 올라도 만기 보유 시 확정 이자", "≈국고20년+가산", "", "있음(20년) — 만기 보유 시 원금·이자 확정")
     for s, fxl in (("SHY", "있음(비헤지)"), ("IEF", "있음(비헤지)"), ("TLT", "있음(비헤지)")):
         e = E.get(s) or {}
         add(e.get("n", s), e.get("y"), e.get("dur"), fxl, "미국 상장: 양도세 22%(연 250만원 초과)", e.get("role", ""), "해당 만기 국채금리")
@@ -716,6 +730,7 @@ def build() -> dict:
             ds = sorted(p)
             e.update({"close": round(p[ds[-1]], 2), "date": ds[-1], "r1": _ret(p, 1), "r20": _ret(p, 30), "r250": _ret(p, 365)})
         e["calc"] = dur_only(D, e["y"] or e["dy"])
+        e.update(etf_rate_label(D, n))      # 만기 없음 · 금리 +100bp → 가격 −X% 한 줄
         etf.append(e)
     o["etf"] = etf
     hy, ie = px.get("HYG") or {}, px.get("IEF") or {}
@@ -771,6 +786,8 @@ def build() -> dict:
         for k in ("etf", "corr", "credit_us"):
             if k in prev:
                 o[k] = prev[k]
+        for e in o.get("etf", []):
+            e.update(etf_rate_label(e.get("dur"), e.get("n")))
         o["duration"] = [d for d in dur if d["kind"] != "ETF 근사"] + [{"n": e["n"], "kind": "ETF 근사", **e["calc"]} for e in o["etf"] if e.get("calc")]
         src["etf_yahoo"] += " — 이전 값 유지"
     o["notes"] = interpret(o)
