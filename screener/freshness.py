@@ -156,7 +156,8 @@ def check(now: datetime | None = None, root: Path = ROOT, items: list[dict] | No
     out = {"checked_at": now.astimezone(KST).strftime("%Y-%m-%d %H:%M"), "n": len(items), "late": late,
            "regress_today": [b for b in blocked if str(b.get("at", "")).startswith(today)],
            "regress_blocked": blocked, "stale_today": [x for x in stale if str(x.get("at", "")).startswith(today)],
-           "stale": stale, "contract": "ops/freshness.json"}
+           "stale": stale, "contract": "ops/freshness.json",
+           "health": prev.get("health") or []}   # 시크릿 부재 등 '알림 비활성' (alerts.secret_health 가 씀) — 덮어쓰지 않고 보존
     if write:
         out_p.parent.mkdir(parents=True, exist_ok=True)
         out_p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

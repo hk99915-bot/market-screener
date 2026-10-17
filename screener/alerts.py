@@ -4,6 +4,9 @@
     기준선 = env RULE_STOP_LEVEL, 없으면 reports/committee.json 의 low20, 그것도 없으면 macro_series KOSPI 20일 저점(오늘 제외).
 (b) 기한: env RULE_DEADLINE (YYYY-MM-DD, 기본 2026-10-22) → D-2 · D-1 · D-day 한 줄.
 (c) 발동선: MY_HOLDINGS 가 있고 반도체(전기 제외·지수 ETF 룩스루 제외) 비중 > SEMI_BAND(기본 0.45) → "📐 반도체 발동선 초과 — 다음 반등일 40%로".
+(e) 하드 바닥: [5] 개정안(사전등록 10/17, 10/31 도장 전) 반도체 보유분 평단 −30% 장중 터치 → ⛔ 한 줄(비율만, 키 floor:<해시>, 무음).
+    평단은 MY_HOLDINGS 에서 런타임에만(pb.risk_ctx). 000660 처럼 MY_RULES touch 가 더 엄격하면 touch(1,170,000)가 담당.
+시크릿 부재: MY_RULES·MY_HOLDINGS 가 없으면 WARNING + reports/freshness.json 'health' → 화면 배지 '알림 비활성: MY_RULES 없음' (secret_health).
 (d) 급락일 종가 매수 신호: 평일 15:05 KST(--mode crash_check) 코스피 장중 ≤ −4.5% → "⚡ 급락일 종가 매수 신호 … 15:20 동시호가" (1차 신호, 등급은 registry 인용).
 
 같은 날 같은 알림은 한 번만 보낸다 (reports/alerts_state.json). 16:20 스크리너(KR)와 14:25 반등일 판정, 15:05 급락 점검에서 호출.
@@ -199,6 +202,77 @@ def touch_lines(fetch=None) -> list[tuple[str, str]]:
     return out
 
 
+# ── 시크릿 부재 경고 (감사 10/17 #26: MY_RULES·MY_HOLDINGS 가 없으면 touch·발동선이 경고 없이 꺼졌음) ──
+SECRETS = ("MY_RULES", "MY_HOLDINGS")
+HEALTH_FILE = REPORT_DIR / "freshness.json"   # 'health' 목록 — 화면 신선도 배지가 '알림 비활성: <시크릿> 없음' 으로 표시
+
+
+def secret_health(source: str = "", names=SECRETS, path=None) -> list[str]:
+    """없는 시크릿마다 WARNING 로그 + reports/freshness.json 'health' 항목, 생기면 항목 삭제. 반환: 없는 이름 목록.
+    공개 파일에는 '있다/없다'만 — 값·길이는 쓰지 않는다."""
+    fp = path or HEALTH_FILE
+    missing = [n for n in names if not os.environ.get(n, "").strip()]
+    for n in missing:
+        log.warning("⛔ 알림 비활성: %s 없음 (%s) — touch·발동선·하드 바닥 감시가 꺼져 있음", n, source or "?")
+    try:
+        cur = json.loads(fp.read_text(encoding="utf-8")) if fp.exists() else {}
+    except Exception:  # noqa: BLE001
+        cur = {}
+    rows = [h for h in (cur.get("health") or []) if not (str(h.get("id", "")).startswith("secret:") and h["id"][7:] in names)]
+    prev = {h["id"]: h for h in (cur.get("health") or [])}
+    now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+    for n in missing:
+        hid = f"secret:{n}"
+        rows.append({"id": hid, "what": f"알림 비활성: {n} 없음", "since": (prev.get(hid) or {}).get("since") or now,
+                     "by": source, "fix": f"GitHub Settings → Secrets → {n} 생성"})
+    if rows != (cur.get("health") or []):
+        cur["health"] = rows
+        try:
+            fp.parent.mkdir(parents=True, exist_ok=True)
+            fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
+        except Exception as e:  # noqa: BLE001
+            log.warning("health 기록 실패: %s", e)
+    return missing
+
+
+# ── [5] 개정안 하드 바닥 (사전등록 10/17, 10/31 도장 전): 반도체 보유분 평단 −30% 장중 터치 ──
+def floor_hits(ctx: dict | None, rules: dict | None, quote, mk: str = "KR") -> list[tuple[str, str, str]]:
+    """ctx = pb.risk_ctx() (평단은 런타임 메모리에만), quote(code) → {'last','low','name'}. 반환 [(코드, 표시 이름, 문장)].
+    MY_RULES touch 줄이 있고 그 가격이 하드 바닥 이상이면(더 엄격 — 000660 1,170,000) touch 가 담당, 하드 바닥은 건너뜀.
+    문장은 비율만(평단·가격 없음)."""
+    from .defs import SEMI_HARD_FLOOR, SEMI_HARD_FLOOR_STATE
+    out = []
+    touch = (rules or {}).get("touch", {})
+    for code, f in ((ctx or {}).get("floors") or {}).items():
+        if f["mk"] != mk:
+            continue
+        if code in touch and touch[code] >= f["floor"]:
+            continue
+        q = quote(code)
+        if not q or not q.get("last"):
+            continue
+        probe = q["low"] if q.get("low") else q["last"]
+        if probe <= f["floor"]:
+            how = "장중 저가" if q.get("low") else "현재가"
+            nm = q.get("name") or f.get("name") or code
+            out.append((code, nm, f"⛔ <b>{nm} 하드 바닥 터치</b> · {how} 평단 대비 {probe / f['avg'] * 100 - 100:+.1f}% ≤ −{SEMI_HARD_FLOOR*100:.0f}% · "
+                                  f"[5] 개정안 {SEMI_HARD_FLOOR_STATE} — 장중 터치 즉시(실행 여부는 오너)"))
+    return out
+
+
+def _hash(code: str) -> str:
+    from .event_watch import _h
+    return _h(code)
+
+
+def floor_lines(fetch=None, ctx=None) -> list[tuple[str, str]]:
+    """규정 알림용 하드 바닥 — 키 'floor:<해시>' (공개 상태 파일에 보유 코드 노출 금지)."""
+    from . import pb
+    ctx = pb.risk_ctx() if ctx is None else ctx
+    rules = pb.rules(os.environ.get("MY_RULES", ""))
+    return [(f"floor:{_hash(c)}", line) for c, _, line in floor_hits(ctx, rules, fetch or kr_quote, "KR")]
+
+
 def _state() -> dict:
     try:
         return json.loads(STATE.read_text(encoding="utf-8"))
@@ -252,16 +326,23 @@ def build(at_close: bool = True, today: date | None = None) -> list[tuple[str, s
             out.append((k, line))
     except Exception as e:  # noqa: BLE001
         log.warning("발동선 점검 실패: %s", e)
+    ew: dict = {}
     try:
         from .event_watch import load_state as _ew_state   # event_watch 가 장중에 이미 보낸 touch:<코드> 는 다시 안 보냄 (평생 1회)
         ew = _ew_state()["sent"]
         out.extend(t for t in touch_lines() if t[0] not in ew)   # 장중·마감 슬롯 모두 — 터치는 시각을 가리지 않는다
     except Exception as e:  # noqa: BLE001
         log.warning("터치 점검 실패: %s", e)
+    try:
+        ew_day = {k for k in ew if k.startswith("floor:") and k.endswith(str(today))}
+        out.extend(t for t in floor_lines() if f"{t[0]}:{today}" not in ew_day)   # event_watch 가 오늘 보낸 것은 건너뜀
+    except Exception as e:  # noqa: BLE001
+        log.warning("하드 바닥 점검 실패: %s", e)
     return out
 
 
 def run(send: bool = True, at_close: bool = True) -> list[str]:
+    secret_health("alerts")
     today = datetime.now(KST).date()
     items = build(at_close, today)
     st = _state()
@@ -292,9 +373,20 @@ def crash_text(chg: float, grade: str, today: date | None = None, last: float | 
     link = issue_url(str(today), "069500 1000000 종가\n근거: 급락일 종가(1차 신호)")
     L = [f"⚡ <b>급락일 종가 매수 신호</b> (등급 {grade}, {CRASH_STUDY}) — 15:20 동시호가",
          f"코스피 {last:,.2f} ({chg*100:+.2f}%)" if last else f"코스피 {chg*100:+.2f}%",
-         f"할 일: ① 모의 pick 등록(<a href=\"{link}\">링크</a>) ② ISA 선매수(안건 2 승인 시) ③ 위성 실계좌는 해금 후.",
+         f"할 일: ① 모의 pick 등록(<a href=\"{link}\">링크</a>) ② ISA 선매수(결재 #15 · " + isa_crash_note(today) + ") ③ 위성 실계좌는 해금 후.",
          "하지 말 일: 레버리지. 안 할 거면 사유를 기록."]
     return "\n".join(L)
+
+
+def isa_crash_note(today: date | None = None) -> str:
+    """'올해 n/2회' — ops/isa_buys.json 급락일 선매수 카운터 (screener/ticket.py isa_*)."""
+    from .defs import ISA_CRASH_PER_YEAR
+    try:
+        from .ticket import isa_counts
+        n = isa_counts(today or datetime.now(KST).date())["crash_year"]
+    except Exception:  # noqa: BLE001
+        n = None
+    return f"연 {ISA_CRASH_PER_YEAR}회 상한 · 올해 {'?' if n is None else n}/{ISA_CRASH_PER_YEAR}회" + (" — 상한 도달, 이번엔 안 함" if n is not None and n >= ISA_CRASH_PER_YEAR else "")
 
 
 def crash_check(q: dict | None = None, send: bool = True, today: date | None = None) -> dict | None:

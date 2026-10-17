@@ -320,13 +320,15 @@ function genHdr(){ const g=$('#gen'); if(!g) return; const hm=x=>{ const m=Strin
 /* 데이터 신선도 배지 (재발방지대책 D, 10/17): reports/freshness.json 의 late(계약 대비 늦음) + regress_today(역행 차단) */
 let FR=null;
 function freshBadge(){ const el=$('#fresh'); if(!el) return; if(!FR){ el.className='fresh'; el.textContent=''; return; }
-  const n=(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length, hm=String(FR.checked_at||'').slice(11,16);
-  el.className='fresh '+(n?'bad':'ok'); el.textContent=n?`⚠ 늦은 데이터 ${n}`:`데이터 정상 · 점검 ${hm||'—'}`; }
+  const n=(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length, hm=String(FR.checked_at||'').slice(11,16), H=FR.health||[];
+  // 알림 비활성(시크릿 부재 — alerts.secret_health, 감사 10/17 #26): 늦은 데이터보다 먼저 보인다
+  el.className='fresh '+(n||H.length?'bad':'ok'); el.textContent=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · 늦은 데이터 ${n}`:''):n?`⚠ 늦은 데이터 ${n}`:`데이터 정상 · 점검 ${hm||'—'}`; }
 function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[], S=FR.stale_today||[];
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent='데이터 신선도';$('#dr-s').textContent=' 점검 '+esc(FR.checked_at||'')+' KST · 계약 '+(FR.n||0)+'항목';
   const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:11px">${esc(x.desc||'')}</div></td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
   const rr=R.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">기존 ${esc(x.existing)}</td><td class="l dn">새 ${esc(x.new)} (차단)</td><td class="l mu">${esc(x.mode||'')}</td><td class="l mu">${esc(x.at||'')}</td></tr>`).join('');
-  $('#dr-b').innerHTML=(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
+  const H=FR.health||[];
+  $('#dr-b').innerHTML=(H.length?`<h3>알림 비활성 ${H.length}</h3><table><tr><th class="l">항목</th><th class="l">부터</th><th class="l">발견</th><th class="l">복구</th></tr>${H.map(h=>`<tr><td class="l dn">${esc(h.what)}</td><td class="l">${esc(h.since||'')}</td><td class="l mu">${esc(h.by||'')}</td><td class="l">${esc(h.fix||'')}</td></tr>`).join('')}</table>`:'')+(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
     +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:11px">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
     +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
 function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }

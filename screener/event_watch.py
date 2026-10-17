@@ -10,9 +10,12 @@ live.yml 루프가 백그라운드로 약 60초마다 `python -m screener.event_
     halt:<시장>:<단계>:<날짜>     서킷브레이커·사이드카 — 소리. 아래 '발동 판정' 참고
     stopx:<해시>:<날짜>          MY_RULES '<코드> <가격>'(종가 2일 손절선) 장중 이탈 — 무음 경고 (소리 나는 stop2 = 코스피 종가 2일 규칙은 그대로)
     hold5:<해시>:<날짜>          MY_HOLDINGS 국내 종목 장중 ≤ −5% — 무음
+    floor:<해시>:<날짜>          [5] 개정안 하드 바닥(반도체 보유분 평단 −30%, 사전등록·10/31 도장 전) 장중 터치 — 무음(RING_KINDS 밖), 문장은 비율만.
+                                 평단은 MY_HOLDINGS 에서 런타임에만 계산(pb.risk_ctx). MY_RULES touch 가 더 엄격하면(000660 1,170,000) touch 가 담당
   미장 (평일 09:30–16:00 뉴욕, 야후 1분봉)
     spx-3 / ndx-3 / vix+25:<날짜>  S&P500·나스닥100 ≤ −3%, VIX ≥ +25% — 무음
     usstop:<해시>:<날짜>         MY_RULES 미국 티커 손절선 장중 이탈 — 무음
+    floor:<해시>:<날짜>          하드 바닥 (미국 반도체 보유분, 위와 같음)
 
 발동 판정 (halt) — 출처와 오탐 위험:
   · 거래소 규정: 서킷 1·2·3단계 = 코스피(코스닥) 전일 종가 대비 −8%·−15%·−20% 가 1분 지속 (1·2단계는 14:50 뒤 발동 안 함, 단계별 하루 1회).
@@ -223,8 +226,19 @@ def _halt_candidates(now: datetime, idx: dict) -> list[tuple[str, str, dict]]:
     return out
 
 
+def floor_events(ctx: dict | None, rules: dict, quotes: dict, st: dict, day: str, mk: str) -> list[dict]:
+    """하드 바닥 장중 터치 (사전등록) — 하루 1회, 키는 해시."""
+    from . import alerts
+    out = []
+    for code, _, line in alerts.floor_hits(ctx, rules, lambda c: quotes.get(c), mk):
+        key = f"floor:{_h(code)}:{day}"
+        if key not in st["sent"]:
+            out.append(_ev(key, line))
+    return out
+
+
 def kr_events(now: datetime, idx: dict, stocks: dict, rules: dict, held: dict, st: dict,
-              alerts_sent: dict | None = None) -> list[dict]:
+              alerts_sent: dict | None = None, ctx: dict | None = None) -> list[dict]:
     """idx = {'KOSPI'|'KOSDAQ'|'FUT': 시세}, stocks = {코드: 시세}, held = {코드: 이름} (국내 보유), rules = pb.rules(MY_RULES)."""
     from . import alerts
     day = now.astimezone(KST).strftime("%Y-%m-%d")
@@ -298,10 +312,11 @@ def kr_events(now: datetime, idx: dict, stocks: dict, rules: dict, held: dict, s
         q = stocks.get(code)
         if q and q["chg"] <= HOLD_DROP_PCT:
             out.append(_ev(f"hold5:{_h(code)}:{day}", f"🔻 {q.get('name') or name} 장중 {q['chg']*100:+.1f}% (보유 종목)"))
+    out += floor_events(ctx, rules, stocks, st, day, "KR")
     return out
 
 
-def us_events(now: datetime, q: dict, rules: dict) -> list[dict]:
+def us_events(now: datetime, q: dict, rules: dict, ctx: dict | None = None, st: dict | None = None) -> list[dict]:
     """q = {'^GSPC'|'^NDX'|'^VIX'|티커: 시세}. 날짜 = 뉴욕 거래일."""
     day = now.astimezone(NY).strftime("%Y-%m-%d")
     q = {s: v for s, v in q.items() if fresh(v, now, FRESH_US_SEC) and v.get("chg") is not None}
@@ -321,6 +336,7 @@ def us_events(now: datetime, q: dict, rules: dict) -> list[dict]:
             probe = v["low"] if v.get("low") else v["last"]
             if probe < px:
                 out.append(_ev(f"usstop:{_h(sym)}:{day}", f"⚠️ {sym} 손절선 장중 이탈 · {probe:,.2f} &lt; {px:,.2f} — 종가 기준 최종 판정 (무음 경고)"))
+    out += floor_events(ctx, rules, q, st or {"sent": {}}, day, "US")
     return out
 
 
@@ -390,7 +406,13 @@ def run(now: datetime | None = None, send=None) -> dict:
     if not (k_open or u_open):
         log.info("이벤트 감시: 장 시간 밖 — 건너뜀")
         return {"skipped": True}
+    alerts.secret_health("event_watch")   # 시크릿 부재는 경고 + 신선도 배지 (감사 10/17 #26)
     rules = pb.rules(os.environ.get("MY_RULES", ""))
+    try:
+        ctx = pb.risk_ctx()   # 하드 바닥(평단 −30%) — 평단은 메모리에만
+    except Exception as e:  # noqa: BLE001
+        log.warning("하드 바닥 준비 실패: %s", type(e).__name__)
+        ctx = None
     try:
         held_kr, held_us = holdings_codes(os.environ.get("MY_HOLDINGS", ""))
     except Exception as e:  # noqa: BLE001
@@ -412,11 +434,12 @@ def run(now: datetime | None = None, send=None) -> dict:
             a_sent = json.loads(alerts.STATE.read_text(encoding="utf-8")).get("sent", {})
         except Exception:  # noqa: BLE001
             a_sent = {}
-        evs += kr_events(now, idx, stocks, rules, held_kr, st, a_sent)
+        evs += kr_events(now, idx, stocks, rules, held_kr, st, a_sent, ctx)
     if u_open:
-        syms = list(US_SYMS.values()) + sorted({s for s in rules.get("price", {}) if re.fullmatch(r"[A-Z][A-Z.\-]{0,5}", s)})
+        fl_us = {c for c, f in ((ctx or {}).get("floors") or {}).items() if f["mk"] == "US"}
+        syms = list(US_SYMS.values()) + sorted({s for s in rules.get("price", {}) if re.fullmatch(r"[A-Z][A-Z.\-]{0,5}", s)} | fl_us)
         try:
-            evs += us_events(now, us_quotes(syms), rules)
+            evs += us_events(now, us_quotes(syms), rules, ctx, st)
         except Exception as e:  # noqa: BLE001
             log.warning("이벤트 감시: 데이터 없음(야후 1분봉 실패 %s)", type(e).__name__)
     try:

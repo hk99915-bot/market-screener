@@ -11,11 +11,15 @@ from __future__ import annotations
 DENOMINATORS = {
     "D1": "위성 북 (일반계좌 전체)",
     "D1'": "위성 북 (원장 평가액)",
-    "D2": "전체 투자자산 (NAV)",
+    "D2": "(a) 투자자산 (NAV = 위성+ISA+현금)",
+    "D2b": "(b) 투자자산+예적금",   # 결재 #1 (10/17 09:28): 반도체 45% 발동선·스트레스 분모
     "D3": "투자 가능 자산",
-    "D4": "순자산 전체",
+    "D4": "(c) 순자산 전체",
     "D5": "매매 슬리브",
 }
+
+# 분모 라벨 — 화면·텔레그램은 이 문구 그대로 쓴다 (tab_my.html 에 같은 문자열, tests/test_rules_gaps.py 가 검사)
+DENOM_TERMS = {"a": "(a) 투자자산", "b": "(b) 투자자산+예적금", "c": "(c) 순자산 전체"}
 
 # 한도 (비율)
 SEMI_CAP = 0.40           # denominator=D2 테마 밴드 목표 40%
@@ -59,6 +63,13 @@ RISK_PCT_DEFAULT = 0.25     # denominator=D5 1회 리스크 1단계 0.25%
 TELEGRAM_ALL_SILENT = True   # 오너 10/17 15시대 "전체 무음으로 해조" — 모든 텔레그램 무음(RING_KINDS 표는 보존, 되돌릴 땐 False)
 COOLDOWN_MIN = 30           # 매도·판정·포상 후 신규 주문표 금지(분, 결재 #14 ③)
 RENEGO_WARN_AT = 2          # 같은 규칙 재협상 n회째부터 주문표 ⛔ '재협상 2회째' + 사유 칸 필수 (오너 승인 10/17 14:09)
+RENEGO_REASON_MIN = 10      # 재협상 사유 최소 글자 수 (agreements §7-4 — 'ㅇ' 1자 통과 금지, 감사 10/17 #24)
+RENEGO_SCOPE = {"POS_BACKSTOP": "backstop"}   # 규칙 id → 관련 주문표 범위. 표에 없으면 모든 주문표 (renego.relates)
+VAR_SEMI_BUY_BAN = "반도체 신규 매수 금지(결재 #3)"   # VaR 계기판 한도 초과 시 반도체 BUY 주문표 ⛔ (매도는 영향 없음)
+SEMI_HARD_FLOOR_STATE = "사전등록(10/31 도장 전)"
+# 결재 #15 (10/17 도장): ISA 시장 조건 무시 · 월 1회(1일, 휴장이면 다음 거래일) · 급락일 선매수 연 2회 상한
+ISA_MONTHLY_DAY = 1
+ISA_CRASH_PER_YEAR = 2
 RENEGO_WINDOW_DAYS = 30     # 재협상 횟수를 세는 기간(일) [가정: 월 1회 복기 주기와 맞춤 — 11/30 월말 복기에서 재검토]
 
 # 상수 이름 → rules_terms.md 용어표의 용어 (check_rules_terms 가 문서에 있는지 검사)
@@ -69,6 +80,7 @@ TERMS = {
     "MIN_RR": "주문표 R:R", "HARD_STOP": "실효 손절", "RISK_PCT_DEFAULT": "1회 리스크", "COOLDOWN_MIN": "쿨다운",
     "SEMI_REGIME_CAP": "테마 밴드 40/45/30", "SEMI_FLOOR": "테마 밴드 40/45/30", "SEMI_GLIDE_TARGET": "테마 밴드 40/45/30",
     "VAR99_LIMIT": "VaR99 (1일)", "VAR99_LIMIT_BEAR": "VaR99 (1일)",
+    "POS_BACKSTOP": "백스톱", "SEMI_HARD_FLOOR": "백스톱",
 }
 
 # 규칙 파일에서 숫자로 재정의하면 안 되는 지역 이름 (모듈 내 별칭 포함)

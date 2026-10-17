@@ -8,9 +8,16 @@ const HEDGES=[['KR','114800','KODEX 인버스 (코스피200 −1배)','inv'],['K
   ['KR','261240','KODEX 미국달러선물 (원화 계좌로 달러)','div'],['KR','305080','TIGER 미국채10년선물','div'],['KR','148070','KOSEF 국고채10년','div'],['KR','132030','KODEX 골드선물(H)','div'],
   ['US','TLT','TLT (미 장기국채)','div'],['US','IEF','IEF (미 중기국채)','div'],['US','GLD','GLD (금)','div'],['US','UUP','UUP (달러 강세)','div'],['US','XLP','XLP (미 필수소비재)','div'],['US','XLU','XLU (미 유틸리티)','div']];
 const BENCH=[['KR','069500'],['US','SOXX']];
+// 분모 라벨 = screener/defs.py DENOM_TERMS (tests/test_rules_gaps.py 가 같은 문자열인지 검사)
+const DENOM_TERMS={a:'(a) 투자자산',b:'(b) 투자자산+예적금',c:'(c) 순자산 전체'};
+// 비율만 보기 (감사 화면 중-1, 10/17): 기본 ON — 원 금액은 숨기고 비율만. 이 브라우저에만 기억(localStorage)
+const MYRK='mt_ratio_only';
+function myRatioOnly(){ try{ return localStorage.getItem(MYRK)!=='0'; }catch(e){ return window._myRatio!==false; } }
+function mySetRatio(on){ window._myRatio=on; try{ localStorage.setItem(MYRK,on?'1':'0'); }catch(e){} }
+document.addEventListener('change',e=>{ if(e.target&&e.target.id==='myratio'){ mySetRatio(e.target.checked); if(window._myLast) myRender(...window._myLast); } });
 function myLoad(){ try{ return localStorage.getItem(MYK)||''; }catch(e){ return window._myTxt||''; } }
 function mySave(t){ window._myTxt=t; try{ localStorage.setItem(MYK,t); }catch(e){} }
-// '## ISA' 줄 아래는 ISA 코어 북(book:'isa'), 그 위는 위성 북(book:'sat'). 분모(순자산)는 두 북 + 현금 전부.
+// '## ISA' 줄 아래는 ISA 코어 북(book:'isa'), 그 위는 위성 북(book:'sat'). 분모 (a) 투자자산 = 두 북 + 현금 전부, (b) = (a) + 예적금.
 const ISA_HEAD=/^#{1,3}\s*ISA\b/i;
 function myParse(txt){ const out=[]; let book='sat'; for(const ln of txt.split(/\n/)){ const t=ln.trim(); if(ISA_HEAD.test(t)){ book='isa'; continue; } if(t.startsWith('#')) continue; const p=t.split(/[\s,]+/).filter(Boolean); if(!p.length) continue;
     const n=x=>{const v=parseFloat(String(x||'').replace(/,/g,'')); return isFinite(v)?v:null;};
@@ -200,7 +207,7 @@ function corrDraw(){ const W=CORR; if(!W||!window.LightweightCharts) return;
   ks.setMarkers(mks); c3.timeScale().fitContent();
   c3.subscribeClick(p=>{ const d=$('#cq3d'); if(!d||!p||!p.time) return; const day=typeof p.time==='string'?p.time:`${p.time.year}-${String(p.time.month).padStart(2,'0')}-${String(p.time.day).padStart(2,'0')}`;
     const L=W.trades.filter(t=>t[0]===day&&(showUS||t[2]==='KR'));
-    d.innerHTML=`<b class="am">${day}</b> `+(L.length?L.map(t=>`<div>${t[1]==='B'?'<span class="up">매수</span>':'<span class="dn">매도</span>'} ${t[6]?'<span class="am">[레버]</span> ':''}${esc(t[4])} <span class="mu">${t[2]} · ${(t[5]/1e4).toFixed(0)}만원${t[7]?' · '+esc(t[7]):''}</span>${t[8]!=null?` · ${t[1]==='B'?'이 매수의 최종 손익':'실현손익'} <span class="${t[8]>0?'up':'dn'}">${(t[8]/1e4).toFixed(0)}만원</span>`:''}</div>`).join(''):'<span class="mu">이날 매매 없음</span>'); });
+    d.innerHTML=`<b class="am">${day}</b> `+(L.length?L.map(t=>`<div>${t[1]==='B'?'<span class="up">매수</span>':'<span class="dn">매도</span>'} ${t[6]?'<span class="am">[레버]</span> ':''}${esc(t[4])} <span class="mu">${t[2]} · ${myRatioOnly()?'•••':(t[5]/1e4).toFixed(0)+'만원'}${t[7]?' · '+esc(t[7]):''}</span>${t[8]!=null?` · ${t[1]==='B'?'이 매수의 최종 손익':'실현손익'} <span class="${t[8]>0?'up':'dn'}">${myRatioOnly()?(t[8]>0?'+':'−'):(t[8]/1e4).toFixed(0)+'만원'}</span>`:''}</div>`).join(''):'<span class="mu">이날 매매 없음</span>'); });
   const cb=$('#cqus'); if(cb&&!cb.dataset.b){ cb.dataset.b='1'; cb.onchange=()=>corrDraw(); }
 }
 function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) return; b.dataset.done='1';
@@ -257,6 +264,7 @@ function myRun(){
   });
 }
 function myRender(hs,cash,miss){
+  window._myLast=[hs,cash,miss]; const RO=myRatioOnly();
   const FXs=cl((MYX||{}).USDKRW), fxDates=Object.keys(FXs).sort(), FX=FXs[fxDates[fxDates.length-1]]||1400;
   // 기준 날짜: 코스피 거래일 최근 250일
   const kos=cl((MYX||{}).KOSPI); let days=Object.keys(kos).sort().slice(-251);
@@ -272,8 +280,8 @@ function myRender(hs,cash,miss){
     const fx=h.r.m==='US'?FX:1, val=d.close*h.qty*fx, cb=h.avg?h.avg*h.qty*fx:null;
     A.push({h,d,name:shortNm(d.name)||h.r.s,mk:h.r.m,etf:!!d.etf,val,cb,ser:series(h.r.m,d),book:h.book||'sat'}); tot+=val; if(cb!=null) cost+=cb; }
   let cK=0,cU=0,cIsa=0; for(const c of cash){ const v=c.cash==='KRW'?c.amt:c.amt*FX; if(c.cash==='KRW') cK+=c.amt; else cU+=c.amt*FX; if(c.book==='isa') cIsa+=v; }
-  const NAV=tot+cK+cU;   // 분모: 순자산(위성+ISA+현금) — 안건 8-J
-  const SAV=window._mySav||0, DEN=NAV+SAV, DENL=SAV>0?'(b) 투자자산+예적금':'(a) 투자자산 · 예적금 줄 없음';   // 결재 #1: 반도체 한도 분모
+  const NAV=tot+cK+cU;   // 분모 (a) 투자자산(위성+ISA+현금) — 안건 8-J · DENOM_TERMS.a
+  const SAV=window._mySav||0, DEN=NAV+SAV, DENL=SAV>0?DENOM_TERMS.b:DENOM_TERMS.a+' · 예적금 줄 없음';   // 결재 #1: 반도체 한도 분모
   const totSat=A.filter(a=>a.book!=='isa').reduce((s,a)=>s+a.val,0), totIsa=A.filter(a=>a.book==='isa').reduce((s,a)=>s+a.val,0), isaTot=totIsa+cIsa;
   const hasIsa=isaTot>0;
   if(!A.length){ $('#myout').innerHTML=`<div class="err">인식된 종목이 없습니다${miss.length?': '+esc(miss.join(', ')):''}</div>`; return; }
@@ -304,7 +312,7 @@ function myRender(hs,cash,miss){
   const chainL=Object.entries(chains).sort((x,y)=>y[1]-x[1]);
   // 스트레스
   const stK=A.reduce((s,a)=>s+a.val*a.bK*-0.10,0), stX=A.reduce((s,a)=>s+a.val*a.bX*-0.15,0);
-  // 결재 #3 구속 한도: '2026-07 재현(반도체 −30%)' — pb.py STRESS_SCENARIOS 와 같은 충격(semi −30% · elec −24% · 지수 ETF 룩스루 −30%×비중), 분모 D2(NAV). 화면엔 비율만(금액 금지).
+  // 결재 #3 구속 한도: '2026-07 재현(반도체 −30%)' — pb.py STRESS_SCENARIOS 와 같은 충격(semi −30% · elec −24% · 지수 ETF 룩스루 −30%×비중), 분모 (b) DEN(투자자산+예적금, 결재 #1 — 감사 10/17 #2). 화면엔 비율만(금액 금지).
   const stS=A.reduce((s,a)=>{const c=semiClass(a); return s+a.val*(c.kind==='semi'?-0.30:c.kind==='elec'?-0.24:c.lookW*-0.30);},0), STRESS_LIMIT=0.15;
   const usdV=A.filter(a=>a.mk==='US').reduce((s,a)=>s+a.val,0)+cU, stF=usdV*0.05;
   // 헷지
@@ -315,13 +323,13 @@ function myRender(hs,cash,miss){
   const hedge=HEDGES.map(([m,sy,nm,ty])=>{ const d=MYD[m+':'+sy]; if(!d||!d.c1y||d.c1y.length<120) return null; const r=rets(series(m,d)); const rw=wk(r);
      const c=cov(Pw,rw), v=cov(rw,rw); if(!v) return null; const rho=corr(Pw,rw);
      if(ty==='inv'){ const hr=-c/v, amt=hr*NAV, red=1-Math.sqrt(Math.max(spw-c*c/v,0)/spw), r2=rho*rho, red25=1-Math.sqrt(Math.max(1-(2*0.25-0.0625)*r2,0)); return {ty,nm,sy,m,rho,amt,red,red25}; }
-     // 분산형: 주식 10%p(순자산 기준)를 이 자산으로 옮겼을 때 변동성 변화
+     // 분산형: 주식 10%p((a) 투자자산 기준)를 이 자산으로 옮겼을 때 변동성 변화
      const sw=0.10*NAV/NAV; const Q=[]; for(let t=0;t<P.length;t++) Q.push(P[t]-sw*eqR[t]+sw*r[t]);
      const Qw=wk(Q); const red=1-Math.sqrt(cov(Qw,Qw)/spw); const rq=(ann(Q)-ann(P));
      return {ty,nm,sy,m,rho,amt:0.10*NAV,red,dret:rq,ret1y:ann(r)}; }).filter(Boolean);
   // 목표 변동성으로 주식 비중
   const tv=0.20, eqW=tot/NAV, eqTarget=Math.min(Em.vol?tv/Em.vol:eqW,1);
-  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
+  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), KW=x=>RO?'<span class="mu" title="비율만 보기 ON">•••</span>':KW(x), F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
   // PB 의견
   const op=[];
@@ -337,7 +345,7 @@ function myRender(hs,cash,miss){
   const swing=A.filter(a=>SEMI_SWING.includes(a.h.r.s)&&semiClass(a).kind!=='semi').reduce((s,a)=>s+a.val,0);
   const bEx=bandSt(semi/DEN), bIn=bandSt((semi+swing)/DEN);
   const P60=P.slice(-60), m60=mean(P60), sd60=Math.sqrt(P60.reduce((s,x)=>s+(x-m60)*(x-m60),0)/Math.max(P60.length-1,1));
-  const VAR99=VAR99_Z*sd60*NAV/DEN, VARL=RG.regime==='하락장'?VAR99_LIMIT_BEAR:VAR99_LIMIT, VAROVER=VAR99>VARL;   // denominator=D2 (b) — P 는 NAV 가중이라 NAV/DEN 으로 환산
+  const VAR99=VAR99_Z*sd60*NAV/DEN, VARL=RG.regime==='하락장'?VAR99_LIMIT_BEAR:VAR99_LIMIT, VAROVER=VAR99>VARL;   // denominator=D2b (b) — P 는 NAV 가중이라 NAV/DEN 으로 환산
   const IM=window._myIsaM||{amt:0,day:1}, GL=myGlide(semi,DEN,IM.amt,IM.day,SEMI_GLIDE_BY,SEMI_GLIDE_TARGET);
   const semiTag=bEx.t;
   op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (레짐 ${RG.regime} 상한 ${W(CAPR)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}.${VAROVER?' <b class="dn">VaR 한도 초과 — 반도체 신규 매수 금지</b>(강제 매도 없음).':''} 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
@@ -347,15 +355,15 @@ function myRender(hs,cash,miss){
   op.push(`<b>비중</b>: 주식 변동성 ${W(Em.vol)} 기준으로 포트 변동성을 연 20%(주식시장 평균 수준)에 맞추려면 주식 비중 ${W(eqTarget)} (현재 ${W(eqW)}). ${eqW>eqTarget+0.05?`→ 약 ${K((eqW-eqTarget)*NAV)}원 줄이거나 아래 헷지로 같은 효과.`:eqW<eqTarget-0.05?'→ 위험 여력이 남아 있습니다. 다만 같은 체인에 더 넣으면 쏠림만 커집니다.':'→ 적정 범위.'}`);
   if(Pm.cFX<-0.2) op.push(`<b>달러 현금</b>: 포트와 원/달러 상관 ${F(Pm.cFX)} — 주가가 빠질 때 달러가 올라 이미 자연 헷지로 작동하고 있습니다. 달러를 원화로 바꾸면 이 헷지가 사라집니다.`);
   const hb=hedge.filter(h=>h.ty==='inv'&&h.amt>0).sort((a,b)=>b.red-a.red)[0];
-  if(hb) op.push(`<b>단기 보험(인버스)</b>: 가장 효율적인 건 ${esc(hb.nm)}. 현실적인 25% 헷지 = <b>${K(hb.amt/4)}원</b>으로 변동성 ${W(hb.red25)} 감소 (100% 헷지는 ${K(hb.amt)}원이 필요해 비현실적). 인버스·레버리지 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 이벤트 보험으로만. <b>⚠ 규정 [2]: 인버스·레버리지는 2027-04-15까지 실계좌 금지 — 참고용 수치(모델 북 전용).</b>`);
+  if(hb) op.push(`<b>단기 보험(인버스)</b>: 가장 효율적인 건 ${esc(hb.nm)}. 현실적인 25% 헷지 = <b>${KW(hb.amt/4)}</b>으로 변동성 ${W(hb.red25)} 감소 (100% 헷지는 ${KW(hb.amt)}이 필요해 비현실적). 인버스·레버리지 ETF는 매일 재조정돼 횡보장에서 녹으니 수주~수개월 이벤트 보험으로만. <b>⚠ 규정 [2]: 인버스·레버리지는 2027-04-15까지 실계좌 금지 — 참고용 수치(모델 북 전용).</b>`);
   const hd=hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).slice(0,2);
   if(hd.length) op.push(`<b>구조적 분산</b>: 주식 10%p를 옮긴다면 ${hd.map(h=>`${esc(h.nm)} (변동성 ${W(h.red)} 감소, 포트 상관 ${F(h.rho)})`).join(', ')}가 가장 효과적이었습니다. 인버스와 달리 들고 있어도 녹지 않습니다.`);
   const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
   const isaW={}; let isaEtc=0; for(const a of A){ if(a.book!=='isa') continue; const b=isaBucket(a.h.r.s,a.d.name); if(b) isaW[b]=(isaW[b]||0)+a.val; else isaEtc+=a.val; }
-  const isaPanel=hasIsa?`<div class="p" style="margin-bottom:8px"><h2>ISA 코어<small>순자산의 ${W(isaTot/NAV)} · 목표 S&P40/NDX10/K200 15/국고채20/금15 · 밴드 ±${(ISA_BAND*100).toFixed(0)}%p · 적립으로 맞춤(매도 아님)</small></h2><div class="b"><table><tr><th class="l">바구니</th><th>지금</th><th>목표</th><th>차이</th><th>상태</th></tr>
+  const isaPanel=hasIsa?`<div class="p" style="margin-bottom:8px"><h2>ISA 코어<small>${DENOM_TERMS.a}의 ${W(isaTot/NAV)} · 목표 S&P40/NDX10/K200 15/국고채20/금15 · 밴드 ±${(ISA_BAND*100).toFixed(0)}%p · 적립으로 맞춤(매도 아님)</small></h2><div class="b"><table><tr><th class="l">바구니</th><th>지금</th><th>목표</th><th>차이</th><th>상태</th></tr>
      ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="up">밴드 안 ✅</span>':d>0?'<span class="dn">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
-     ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${K(cIsa)}원 — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>
-     <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">ISA 코어 ${K(isaTot)}원. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
+     ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${KW(cIsa)} — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>
+     <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">ISA 코어 ${KW(isaTot)}. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
   const bandPanel=`<div class="p" style="margin-bottom:8px" id="mysemiband"><h2>반도체 밴드 · 결재 #3<small>레짐 연동 ${Object.entries(SEMI_REGIME_CAP).map(([k,v])=>k+' '+W(v)).join(' / ')} · 발동선 ${W(SEMI_BAND)} · 하단 ${W(SEMI_FLOOR)} · 분모 ${DENL} · 비율만</small></h2><div class="b" style="white-space:normal">
      <div style="margin-bottom:6px">레짐 <b class="am">${RG.regime}</b> <span class="mu">(${esc(RG.src)} · 고점 대비 ${RG.dd==null?'—':pct(RG.dd,0)} · 20일선 위 ${RG.above20}일)</span> → 상한 <b>${W(CAPR)}</b></div>
      <table><tr><th class="l">삼성전기</th><th>반도체 비중</th><th>상한까지</th><th>판정</th></tr>
@@ -370,9 +378,9 @@ function myRender(hs,cash,miss){
        ${VAROVER?'<b class="dn">⛔ 반도체 신규 매수 금지</b> — 계기판 플래그(강제 매도 없음). 한도 아래로 내려오면 자동 해제.':'<span class="mu">한도 안 — 플래그 없음 (계기판, 판정 아님)</span>'} <span class="mu">· σ ${P60.length}일 · 정규 근사 2.326σ</span></div>
    </div></div>`;
   $('#myout').innerHTML=`
-   <div class="mu" style="font-size:12px;margin-bottom:6px">분모: 순자산(위성+ISA+현금) ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 상한 ${W(CAPR)}(${RG.regime}) · 발동선 ${W(SEMI_BAND)}</div>
+   <div class="mu" style="font-size:12px;margin-bottom:6px"><label style="float:right;cursor:pointer"><input type="checkbox" id="myratio" ${RO?'checked':''}> 비율만 보기</label>분모: ${DENOM_TERMS.a}(위성+ISA+현금) · 반도체·스트레스 ${DENL} ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 상한 ${W(CAPR)}(${RG.regime}) · 발동선 ${W(SEMI_BAND)}</div>
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-     ${[['순자산',K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체 / +전기 · 분모 '+(SAV>0?'(b)':'(a)'),`${W(semi/DEN)} / ${W(semiElec/DEN)}`],['주식 손익',cost?`${pct(tot/cost-1,1)} (${K(tot-cost)}원)`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95%',`${K(Pm.var*NAV)}원`],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
+     ${[[DENOM_TERMS.a,RO?'100% (비율만)':K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체 / +전기 · 분모 '+(SAV>0?DENOM_TERMS.b:DENOM_TERMS.a),`${W(semi/DEN)} / ${W(semiElec/DEN)}`],['주식 손익',cost?`${pct(tot/cost-1,1)}${RO?'':` (${KW(tot-cost)})`}`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95% · '+DENOM_TERMS.a,RO?pct(-Pm.var,1):K(Pm.var*NAV)+'원'],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
    </div>
    <div class="p" style="margin-bottom:8px"><h2>PB 의견<small>규칙 기반 · 지난 1년 데이터 · 성과 검증 전</small></h2><div class="b" style="line-height:1.8;font-size:13px;white-space:normal">${op.map(x=>'· '+x).join('<br>')}</div></div>
    ${bandPanel}
@@ -385,15 +393,15 @@ function myRender(hs,cash,miss){
     <div class="p c6"><h2>체인 노출<small>주식 대비</small></h2><div class="b">${chainL.map(([k,v])=>`<div class="bg"><span class="bl" style="width:130px">${esc(k)}</span><span class="bt"><i class="am" style="width:${Math.min(v/tot*100,100)}%"></i></span><b>${W(v/tot)}</b></div>`).join('')}</div></div>
    </div>
    <div class="grid" style="padding:0;margin-bottom:8px">
-    <div class="p c6"><h2>스트레스 테스트<small>종목별 1년 베타로 추정</small></h2><div class="b" style="line-height:1.9">
-      <div>코스피 −10% → <b class="dn">${K(stK)}원</b> (${pct(stK/NAV,1)})</div>
-      <div>미 반도체(SOXX) −15% → <b class="dn">${K(stX)}원</b> (${pct(stX/NAV,1)})</div>
-      <div>2026-07 재현(반도체 −30%) → <b class="dn">${pct(stS/NAV,1)}</b> ${stS/NAV<-STRESS_LIMIT?'<b class="dn">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 D2 · 비율만)</span></div>
-      <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${K(stF)}원</b> (${pct(stF/NAV,1)})</div>
-      <div>하루 손실이 이보다 클 확률 5%: <b>${K(Pm.var*NAV)}원</b> · 그런 날 평균 ${K(Pm.cvar*NAV)}원</div></div></div>
+    <div class="p c6"><h2>스트레스 테스트<small>종목별 1년 베타로 추정 · 분모 ${DENL}</small></h2><div class="b" style="line-height:1.9">
+      <div>코스피 −10% → <b class="dn">${KW(stK)}</b> (${pct(stK/DEN,1)})</div>
+      <div>미 반도체(SOXX) −15% → <b class="dn">${KW(stX)}</b> (${pct(stX/DEN,1)})</div>
+      <div>2026-07 재현(반도체 −30%) → <b class="dn">${pct(stS/DEN,1)}</b> ${stS/DEN<-STRESS_LIMIT?'<b class="dn">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 ${DENL} · 비율만)</span></div>
+      <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${KW(stF)}</b> (${pct(stF/DEN,1)})</div>
+      <div>하루 손실이 이보다 클 확률 5%: <b>${KW(Pm.var*NAV)}</b> · 그런 날 평균 ${KW(Pm.cvar*NAV)}</div></div></div>
     <div class="p c6"><h2>헷지안<small>5거래일 수익률 · 최근 1년</small></h2><div class="b">
       <div class="am" style="font-size:12px">① 인버스 (단기 보험)</div><table><tr><th class="l">수단</th><th>상관</th><th>25% 헷지</th><th>감소</th><th>100% 헷지</th><th>감소</th></tr>
-      ${hedge.filter(h=>h.ty==='inv').map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td>${h.amt>0?K(h.amt/4)+'원':'—'}</td><td>${h.amt>0?W(h.red25):'—'}</td><td class="mu">${h.amt>0?K(h.amt)+'원':'—'}</td><td class="mu">${h.amt>0?W(h.red):'—'}</td></tr>`).join('')}</table>
+      ${hedge.filter(h=>h.ty==='inv').map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td>${h.amt>0?KW(h.amt/4):'—'}</td><td>${h.amt>0?W(h.red25):'—'}</td><td class="mu">${h.amt>0?KW(h.amt):'—'}</td><td class="mu">${h.amt>0?W(h.red):'—'}</td></tr>`).join('')}</table>
       <div class="am" style="font-size:12px;margin-top:8px">② 분산 (주식 10%p를 옮기면)</div><table><tr><th class="l">수단</th><th>상관</th><th>변동성 감소</th><th>1년 수익</th></tr>
       ${hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td class="${h.red>0?'up':'dn'}">${W(h.red)}</td><td>${pct(h.ret1y,0)}</td></tr>`).join('')}</table>
       <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">① 필요 금액 = 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 인버스·레버리지는 일간 재조정으로 오래 들면 손실이 쌓임. ② 상관이 낮거나 음수일수록 분산 효과. 과거 1년 상관이라 위기 때는 바뀔 수 있음(물가 충격엔 채권도 같이 빠짐).</div></div></div>

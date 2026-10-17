@@ -20,7 +20,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import defs
-from .defs import RENEGO_WARN_AT, RENEGO_WINDOW_DAYS
+from .defs import RENEGO_REASON_MIN, RENEGO_SCOPE, RENEGO_WARN_AT, RENEGO_WINDOW_DAYS
 
 KST = ZoneInfo("Asia/Seoul")
 FILE = Path(__file__).resolve().parents[1] / "ops" / "renego.json"
@@ -65,6 +65,30 @@ def active(on: date, path: Path | None = None) -> list[dict]:
     """⛔ 대상: 30일 안 같은 규칙 RENEGO_WARN_AT 회 이상. [{rule, term, count, last}] (횟수 많은 순)."""
     rows = [{"rule": r, "term": defs.TERMS.get(r, r), **v} for r, v in counts(on, path).items() if v["count"] >= RENEGO_WARN_AT]
     return sorted(rows, key=lambda x: (-x["count"], x["rule"]))
+
+
+def reason_ok(text: str | None) -> bool:
+    """사유 칸: 공백 제외 RENEGO_REASON_MIN(10)자 이상이어야 기재로 인정 (agreements §7-4, 감사 10/17 #24 'ㅇ' 통과 수정)."""
+    return len("".join(str(text or "").split())) >= RENEGO_REASON_MIN
+
+
+def relates(rule: str, ctx: dict | None) -> bool:
+    """재협상된 규칙이 이 주문표와 관련 있는가 (감사 10/17 #24 ③ — 무관한 주문표까지 ⛔ 하던 것 수정).
+    RENEGO_SCOPE 표:
+      backstop (POS_BACKSTOP) — 반도체 종목 주문표, 또는 −20% 백스톱 아래 보유 종목(물타기·보유 연장) 주문표만.
+      표에 없는 규칙(MIN_RR 등) — 모든 주문표에 적용 (보수적 기본값).
+    ctx = {'semi': bool, 'below_backstop': bool}. ctx 가 None(판단 불가)이면 관련 있다고 본다."""
+    scope = RENEGO_SCOPE.get(rule)
+    if not scope or ctx is None:
+        return True
+    if scope == "backstop":
+        return bool(ctx.get("semi") or ctx.get("below_backstop"))
+    return True
+
+
+def active_for(on: date, ctx: dict | None, path: Path | None = None) -> list[dict]:
+    """active() 중 이 주문표와 관련 있는 규칙만."""
+    return [r for r in active(on, path) if relates(r["rule"], ctx)]
 
 
 def add(rule: str, on: date | None = None, path: Path | None = None) -> dict:

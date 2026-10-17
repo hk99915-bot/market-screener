@@ -33,6 +33,8 @@ jobs:
           CREATED: ${{ github.event.issue.created_at }}
           SAT_BOOK_KRW: ${{ secrets.SAT_BOOK_KRW }}
           RISK_PCT: ${{ secrets.RISK_PCT }}
+          MY_HOLDINGS: ${{ secrets.MY_HOLDINGS }}   # 주문표 VaR·백스톱 판정용(런타임만, 기록 안 함 — 결재 #3 · 감사 10/17 #12)
+          MY_RULES: ${{ secrets.MY_RULES }}
         run: |
           python - <<'PY'
           import os
@@ -48,8 +50,10 @@ jobs:
         run: |
           git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
           cp reports/decisions.json /tmp/dec.json
+          cp ops/isa_buys.json /tmp/isa.json 2>/dev/null || true   # 결재 #15 ISA 카운터(날짜·종류만) — ISA 주문표 통과 시 갱신
           for i in 1 2 3; do
             git fetch -q origin main && git reset -q --hard origin/main
+            [ -f /tmp/isa.json ] && cp /tmp/isa.json ops/isa_buys.json
             python - <<'PY'
           import json
           new = json.load(open("/tmp/dec.json", encoding="utf-8"))
@@ -67,7 +71,7 @@ jobs:
                   cur["items"].append(v)
           open("reports/decisions.json", "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
           PY
-            git add reports/decisions.json; git diff --cached --quiet && break
+            git add reports/decisions.json; [ -f ops/isa_buys.json ] && git add ops/isa_buys.json; git diff --cached --quiet && break
             git commit -qm "pick: ${{ github.event.issue.title }}" && git push -q origin HEAD:main && break
             sleep 5
           done

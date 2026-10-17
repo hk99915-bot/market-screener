@@ -89,7 +89,7 @@ def test_crash_alert_text_and_dedupe(tmp_path, monkeypatch):
     monkeypatch.setattr(alerts, "STATE", tmp_path / "alerts_state.json")
     t = alerts.crash_text(-0.047, GRADE, date(2026, 10, 15), 5240.12)
     assert t.startswith(f"⚡ <b>급락일 종가 매수 신호</b> (등급 {GRADE}, 20일 +7.5%·승률 81%·n16) — 15:20 동시호가")
-    assert "① 모의 pick 등록" in t and "② ISA 선매수(안건 2 승인 시)" in t and "③ 위성 실계좌는 해금 후" in t
+    assert "① 모의 pick 등록" in t and "② ISA 선매수(결재 #15 · 연 2회 상한" in t and "③ 위성 실계좌는 해금 후" in t
     assert "하지 말 일: 레버리지. 안 할 거면 사유를 기록." in t
     assert "069500%201000000%20%EC%A2%85%EA%B0%80" in t   # issue_url 선입력 '069500 1000000 종가'
     r = alerts.crash_check({"chg": -0.046, "last": 5240.0}, send=False, today=date(2026, 10, 15))

@@ -4,7 +4,16 @@
 <script>
 let DEC=null, COOL=null, RENEGO=null;
 // 재협상 카운터 (오너 승인 10/17 14:09): 같은 규칙 30일 안 2회째 재협상(ops/renego.json) → 주문표 ⛔ '재협상 2회째' + 사유 칸 필수. 값 = screener/defs.py RENEGO_*
-const RENEGO_WARN_AT=2, RENEGO_WINDOW_DAYS=30;
+const RENEGO_WARN_AT=2, RENEGO_WINDOW_DAYS=30, RENEGO_REASON_MIN=10;
+// 관련 주문표만 ⛔ (screener/defs.py RENEGO_SCOPE · renego.relates): POS_BACKSTOP = 반도체 종목 또는 −20% 백스톱 아래 보유 종목. 표에 없는 규칙은 전 주문표.
+const RENEGO_SCOPE={POS_BACKSTOP:'backstop'};
+const SEMI_TICKERS=new Set(['MU','SNDK','NVDA','AMD','AVGO','TSM','INTC','QCOM','ARM','MRVL','LRCX','AMAT','KLAC','ASML','WDC','STX','PSI','SOXX','SMH','SOXL','SOXQ','XSD','SMHX','139260','091160','396500','395160','449450','000660','005930','042700','000990','058470','240810','403870','357780','036930','095340','039030','319660','140860']);
+function tkSemi(code,name){ return SEMI_TICKERS.has(String(code||'').toUpperCase())||/반도체|semiconductor/i.test(String(name||'')); }
+function renegoFor(code,name,below){ const ctx={semi:tkSemi(code,name),below:!!below}; return renegoActive().filter(x=>RENEGO_SCOPE[x.rule]!=='backstop'||ctx.semi||ctx.below); }
+// 결재 #14: 레버리지·인버스 베팅은 1일 상한 라벨 (duel.lev_cap 이 못 붙인 공격 PB 문구·픽 포함 — 감사 화면 중-4)
+const LEV_RE=/레버리지|인버스|곱버스|[23]\s*배|\b[23]X\b|\b(SOXL|SOXS|TQQQ|SQQQ|UPRO|SPXU|TNA|TZA|NVDL|TSLL|QLD|SSO)\b|122630|233740|252670|114800|251340/i;
+const LEV_TAG='<span class="am" style="font-size:10.5px"> ⏱ 레버리지 1일 상한(결재 #14)</span>';
+function levTag(t){ return LEV_RE.test(String(t||''))?LEV_TAG:''; }
 function renegoActive(){ const today=new Date(Date.now()+9*36e5).toISOString().slice(0,10), lo=new Date(Date.parse(today+'T00:00:00Z')-(RENEGO_WINDOW_DAYS-1)*864e5).toISOString().slice(0,10), c={};
   for(const e of ((RENEGO&&RENEGO.events)||[])){ const r=String(e.rule||''), d=String(e.date||'').slice(0,10); if(!/^[A-Z0-9_]+$/.test(r)||d<lo||d>today) continue; const x=c[r]||(c[r]={rule:r,count:0,last:''}); x.count++; if(d>x.last) x.last=d; }
   return Object.values(c).filter(x=>x.count>=RENEGO_WARN_AT).sort((a,b)=>b.count-a.count); }
@@ -36,14 +45,14 @@ function ticketBox(D,IU){
      <tr><td colspan="8" class="l mu" style="font-size:11px;white-space:normal;padding:0 6px 6px 14px">${esc(it.submitted||it.date)} · ${esc(it.why||'')}${(it.reasons||[]).length?' — '+esc(it.reasons.join(' / ')):''}</td></tr>`;}).join('');
   const hist=done.slice(0,8).map(it=>`<span style="margin-right:12px"><span class="mu">${esc(it.date.slice(5))}</span> ${esc(it.name||it.code)} <b class="${it.result.r>=0?'up':'dn'}">${it.result.r>=0?'+':''}${Number(it.result.r).toFixed(2)}R</b></span>`).join('');
   // 주문표 입력 (10/17 오너 요청): 종목명·티커 검색 → 최신가 자동 → 손절·목표 = 매수가 × (1 + %) 기본 −7% / +15% (손익비 2.1, 규정 −8%·1:2 안)
-  const RN=renegoActive();
+  const RNALL=renegoActive(); let RN=RNALL;   // 종목을 고르면 renegoFor 로 관련 규칙만 남긴다
   const TK_STOP=-7, TK_TGT=15, IS=`background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px`;
   const tform=`<span style="position:relative;display:inline-block"><input id="tkq" placeholder="종목명·티커 (예: mu, 하이닉스)" autocomplete="off" style="width:190px;${IS}"><div id="tkres" class="mu" style="display:none;position:absolute;z-index:30;left:0;top:100%;min-width:260px;max-height:260px;overflow:auto;background:var(--panel);border:1px solid var(--line);font-size:12px"></div></span><input id="tkcode" type="hidden"><input id="tkmk" type="hidden">
     <input id="tkentry" placeholder="매수가" style="width:90px;${IS}">
     손절 <input id="tkstopp" value="${TK_STOP}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tkstop" placeholder="손절가" style="width:90px;${IS}">
     목표 <input id="tktgtp" value="${TK_TGT}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tktarget" placeholder="목표가" style="width:90px;${IS}">
     <input id="tkdays" placeholder="보유(일)" value="5" style="width:52px;${IS}">일 <button id="tkgo" class="sbtn">주문표 열기 (깃허브 이슈)</button>
-    ${RN.length?`<div id="tkrnbox" style="border:1px solid var(--dn);padding:5px 8px;margin-top:4px"><b class="dn">⛔ 재협상 2회째</b> — ${RN.map(x=>`${esc(x.rule)} ${x.count}회 · 마지막 ${esc(x.last.slice(5))}`).join(' · ')} <span class="mu" style="font-size:11px">(30일 안 같은 규칙 · ops/renego.json)</span>
+    ${RN.length?`<div id="tkrnbox" style="border:1px solid var(--dn);padding:5px 8px;margin-top:4px"><b class="dn">⛔ 재협상 2회째</b> <span class="mu" style="font-size:11px">관련 주문표만 — POS_BACKSTOP: 반도체·−20% 아래 보유 종목</span> <label class="mu" style="font-size:11px"><input type="checkbox" id="tkbelow"> −20% 아래 보유 종목</label> — ${RN.map(x=>`${esc(x.rule)} ${x.count}회 · 마지막 ${esc(x.last.slice(5))}`).join(' · ')} <span class="mu" style="font-size:11px">(30일 안 같은 규칙 · ops/renego.json)</span>
       <textarea id="tkrn" rows="2" placeholder="재협상 사유 (필수, 10자 이상) — 이 글은 저장·전송하지 않습니다. 개인 일지에 옮겨 적으세요." style="display:block;width:100%;margin-top:4px;${IS}"></textarea></div>`:''}
     <div id="tklbl" class="mu" style="font-size:11px"></div>`;
   setTimeout(()=>{ const g=$('#tkgo'); if(!g) return; const v=id=>($(id).value||'').trim();
@@ -64,7 +73,9 @@ function ticketBox(D,IU){
       fetch('https://polling.finance.naver.com/api/realtime/domestic/stock/'+encodeURIComponent(sym),{signal:ac.signal}).then(r=>r.json()).then(j=>{ clearTimeout(to);
         const d=(j.datas||[])[0]||{}, px=+String(d.closePrice||d.closePriceRaw||'').replace(/,/g,''); if(!(px>0)) throw 0;
         const at=String(d.localTradedAt||'').slice(11,16); setPx(px, `현재가 네이버 실시간${at?' '+at:''}`); }).catch(()=>{ clearTimeout(to); fb(); }); };
-    const pick=(sym,mk,name)=>{ $('#tkcode').value=sym; $('#tkmk').value=mk; $('#tkq').value=`${name} (${sym})`; $('#tkres').style.display='none'; price(sym,mk); };
+    const scope=()=>{ const b=$('#tkrnbox'); if(!b) return; RN=renegoFor(v('#tkcode'),v('#tkq'),($('#tkbelow')||{}).checked); b.style.display=RN.length?'':'none'; };
+    const pick=(sym,mk,name)=>{ $('#tkcode').value=sym; $('#tkmk').value=mk; $('#tkq').value=`${name} (${sym})`; $('#tkres').style.display='none'; price(sym,mk); scope(); };
+    if($('#tkbelow')) $('#tkbelow').onchange=scope;
     $('#tkq').oninput=()=>{ const q=v('#tkq').toLowerCase(), box=$('#tkres'); if(!q){ box.style.display='none'; return; }
       loadIndex(()=>{ const r=SIX.filter(x=>x.s.toLowerCase().startsWith(q)||String(x.n).toLowerCase().includes(q))
         .sort((a,b)=>(a.s.toLowerCase()===q?-1:0)-(b.s.toLowerCase()===q?-1:0)||(String(a.n).toLowerCase().startsWith(q)?-1:1)-(String(b.n).toLowerCase().startsWith(q)?-1:1)).slice(0,10);
@@ -73,9 +84,10 @@ function ticketBox(D,IU){
     $('#tkq').onkeydown=e=>{ if(e.key==='Enter'){ const d=$('#tkres').querySelector('div[data-tks]'); if(d){ e.preventDefault(); d.click(); } } };
     g.onclick=()=>{ const c=v('#tkcode')||v('#tkq'); if(!c) return;
     // 재협상 2회째: 사유 글이 있어야 열림. 글 자체는 이슈 본문(공개)에 넣지 않고 '기재' 표시만 — 검사기(screener/ticket.py)는 이 줄로 사유 칸 확인
-    if(RN.length&&v('#tkrn').length<10){ $('#tklbl').innerHTML='<b class="dn">⛔ 재협상 2회째 — 사유 칸(10자 이상)을 먼저 적어야 주문표를 열 수 있음</b>'; $('#tkrn').focus(); return; }
+    scope();
+    if(RN.length&&v('#tkrn').replace(/\s/g,'').length<RENEGO_REASON_MIN){ $('#tklbl').innerHTML=`<b class="dn">⛔ 재협상 2회째 — 사유 칸(${RENEGO_REASON_MIN}자 이상, 공백 제외)을 먼저 적어야 주문표를 열 수 있음</b>`; $('#tkrn').focus(); return; }
     const e=+v('#tkentry')||0, st=+v('#tkstop')||0, tg=+v('#tktarget')||0; const rr=e>st&&st>0?((tg-e)/(e-st)).toFixed(2):'';
-    window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(RN.length?'재협상사유: 기재(글은 비공개)\n':'')+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
+    window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(RN.length?'재협상사유: 기재함 — 글은 비공개(10자 이상 확인)\n':'')+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
   return `<div style="border-top:1px solid var(--line);margin-top:8px;padding:8px 0;font-size:12.5px;line-height:1.7;white-space:normal"><b class="am">주문표</b> <span class="mu" style="font-size:11px">매수 전 필수(규정 [4]) · 손익비 1:2 미만·레버리지·개장 30분·이벤트 당일 거부 · 추격은 절반 · 1회 리스크 = 위성 북 × r</span>${T?` <span style="font-size:11.5px">· 채점 ${T.n}건 · 승률 <b>${Math.round((T.hit||0)*100)}%</b> · 평균 <b class="${T.avg_r>=0?'up':'dn'}">${T.avg_r>=0?'+':''}${T.avg_r}R</b></span>`:''}
     ${rows?`<table style="margin-top:4px"><tr><th class="l">종목</th><th>매수가</th><th>손절(실효)</th><th>목표가</th><th>손익비</th><th>판정</th><th>남은 기간</th><th class="l">최대 수량 · 선언</th></tr>${rows}</table>`:'<div class="mu" style="font-size:11px">열린 주문표 없음</div>'}
     ${hist?`<div style="font-size:11.5px;margin-top:4px"><span class="mu">최근 채점</span> ${hist}</div>`:''}
@@ -109,7 +121,7 @@ function decBox(){
   const isUS=it=>it.market==='US', mkTag=it=>`<span class="tag" style="font-size:10px;padding:0 4px;${isUS(it)?'color:#4cc9f0;border-color:#4cc9f0':''}">${isUS(it)?'미장':'국장'}</span>`;
   const pk=(p,it)=>p.pending?`<span class="am">제출 대기</span> <span style="font-size:11px">${(isUS(it)?US_CH:KR_CH).map(([b,n])=>CD&&b!=='현금'?`<span class="mu" title="쿨다운 — ${tm(CD.until)} 이후">${n}⏳</span>`:`<a target="_blank" href="${IU((isUS(it)?'pick-us ':'pick ')+it.date,b)}">${n}</a>`).join(' · ')}</span>`
     :p.cash?esc(p.label||'현금 유지'):`${esc(p.name||p.ticker)} ${p.notional?K(p.notional/10000)+'만':''}${p.submitted?` <span class="mu" style="font-size:11px">(${esc(p.submitted)} 제출)</span>`:''}`
-      +(p.lev_cap?`<div class="am" style="font-size:10.5px">⏱ ${esc(p.lev_cap)}</div>`:'')+(p.lev_cap&&p.lev_drag?`<div class="mu" style="font-size:10.5px">${esc(p.lev_drag)}</div>`:'');
+      +(p.lev_cap?`<div class="am" style="font-size:10.5px">⏱ ${esc(p.lev_cap)}</div>`:levTag((p.name||'')+' '+(p.ticker||'')))+(p.lev_cap&&p.lev_drag?`<div class="mu" style="font-size:10.5px">${esc(p.lev_drag)}</div>`:'');
   const UNL='<span class="mu" style="font-size:10px"> · 해금 근거 제외(결재 #14)</span>';   // 나🔥 는 레버리지 해금 근거로 쓰지 않는다 (표시 라벨 — 채점·기록은 그대로)
   setTimeout(()=>{ const q=$('#exq'); if(!q) return;
     const show=()=>{ const v=(q.value||'').trim().toLowerCase(), box=$('#exres'); const H=myHoldList();
@@ -137,7 +149,7 @@ function decBox(){
       <div><span class="mu">${esc(it.date.slice(5))}</span> ${mkTag(it)} <b>${esc(it.title)}</b> ${r?(r.void?`<span class="mu" style="font-size:11px">${esc(r.void)}</span>`:r.winner?`<span class="tag">${esc(r.winner)} 승</span>`:'<span class="tag">무승부</span>'):'<span class="mu" style="font-size:11px">채점 대기</span>'}</div>
       <div class="mu" style="font-size:11.5px">${esc(it.note||'')}</div>
       ${it.basis?`<div style="font-size:11.5px;border-left:2px solid var(--amber);padding-left:6px;margin-top:3px"><span class="am">판단 시점 ${esc(String(it.basis.at).slice(5))}</span> <span class="mu">${esc(it.basis.src||'')}</span>${(it.basis.lines||[]).map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}
-      ${it.pb_view?`<div style="font-size:12px;border-left:2px solid #c77dff;padding-left:6px;margin-top:3px"><b style="color:#c77dff">PB 판단 ${esc(it.pb_view.at||'')}</b>${it.pb_view.conviction?` <span class="mu">확신 ${esc(it.pb_view.conviction)}</span>`:''}<div>${esc(it.pb_view.why||'')}</div>${planHtml(it.pb_view.plan)}${it.pb_view.real?`<div style="font-size:12px">💼 실전 적용: <b>${it.pb_view.real.ok?'가능':'규칙상 비추천'}</b>${it.pb_view.real.size_pct!=null?` · 총자산의 ${(it.pb_view.real.size_pct*100).toFixed(0)}% 이내`:''}${it.pb_view.real.note?' — '+esc(it.pb_view.real.note):''}</div>`:''}${it.pb_view.bold?`<div style="font-size:12px">🔥 <b>공격 PB</b> <span class="mu">(모의 전용)</span> ${esc(it.pb_view.bold.why||'')}</div>${planHtml(it.pb_view.bold.plan)}`:''}${(it.pb_view.lines||[]).map(x=>'<div class="mu">· '+esc(x)+'</div>').join('')}</div>`:''}
+      ${it.pb_view?`<div style="font-size:12px;border-left:2px solid #c77dff;padding-left:6px;margin-top:3px"><b style="color:#c77dff">PB 판단 ${esc(it.pb_view.at||'')}</b>${it.pb_view.conviction?` <span class="mu">확신 ${esc(it.pb_view.conviction)}</span>`:''}<div>${esc(it.pb_view.why||'')}</div>${planHtml(it.pb_view.plan)}${it.pb_view.real?`<div style="font-size:12px">💼 실전 적용: <b>${it.pb_view.real.ok?'가능':'규칙상 비추천'}</b>${it.pb_view.real.size_pct!=null?` · 총자산의 ${(it.pb_view.real.size_pct*100).toFixed(0)}% 이내`:''}${it.pb_view.real.note?' — '+esc(it.pb_view.real.note):''}</div>`:''}${it.pb_view.bold?`<div style="font-size:12px">🔥 <b>공격 PB</b> <span class="mu">(모의 전용)</span> ${esc(it.pb_view.bold.why||'')}${levTag(it.pb_view.bold.why)}</div>${planHtml(it.pb_view.bold.plan)}`:''}${(it.pb_view.lines||[]).map(x=>'<div class="mu">· '+esc(x)+'</div>').join('')}</div>`:''}
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${Object.keys(it.picks).map(w=>`<div style="flex:1;min-width:140px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}${w==='나🔥'?UNL:''}</span><div style="font-size:12.5px">${pk(it.picks[w],it)}</div>${r&&r[w]?`<div class="${r[w].pnl>=0?'up':'dn'}" style="font-size:12px">${r[w].pnl>=0?'+':''}${K(r[w].pnl)}원 (${pct(r[w].ret,1)})</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div></div>`;}).join('')}
    <div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-size:12.5px;line-height:1.8;white-space:normal"><b class="am">매도 타점 대결 열기</b> <span class="mu" style="font-size:11px">팔까(손절·익절) 말까 — PB가 규칙으로 판정, 5거래일 뒤 종가로 채점</span><br>
      <span style="position:relative;display:inline-block"><input id="exq" placeholder="내 보유에서 검색 (예: mu, 하이닉스)" autocomplete="off" style="width:210px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><div id="exres" class="mu" style="display:none;position:absolute;z-index:30;left:0;top:100%;min-width:280px;max-height:260px;overflow:auto;background:var(--panel);border:1px solid var(--line);font-size:12px"></div></span><input id="excode" type="hidden"><input id="exmk" type="hidden">

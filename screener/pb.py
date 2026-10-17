@@ -320,7 +320,8 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
     # 결재 #1 (b): MY_RULES 'SAVINGS <금액>' 이 있으면 반도체 비중·D2 스트레스 분모에 예적금을 더한다 (없으면 (a) 투자자산만)
     sav = (ru.get("savings") or 0.0) or savings_in(txt)
     den = nav + sav
-    den_label = "(b) 투자자산+예적금" if sav > 0 else "(a) 투자자산 · 예적금 미입력"
+    from .defs import DENOM_TERMS
+    den_label = DENOM_TERMS["b"] if sav > 0 else DENOM_TERMS["a"] + " · 예적금 미입력"
     st_den, st_books = stress_denominator(stress_denominator_code, nav=den, tot=tot, tot_sat=tot_sat, cash_sat=cash_sat)
     stress = {k: stress_loss(rows, st_den, k, st_books) for k in STRESS_SCENARIOS}
     swing = sum(r["v"] for r in rows if r["s"] in SEMI_SWING and not r["semi"])
@@ -511,7 +512,8 @@ def brief_keys() -> tuple[str | None, list[str]]:
     cash = ev["cash"]
     # denominator=D2 nav (누적 손실 한도 LOSS_LIMIT · 반도체 비중 모두 같은 분모 — docs/rules_terms.md)
     room = loss_limit * nav - loss
-    L = ["🧑‍💼 <b>PB 아침 점검</b> <i>분모: 순자산(위성+ISA+현금)</i>",
+    from .defs import DENOM_TERMS
+    L = [f"🧑‍💼 <b>PB 아침 점검</b> <i>분모: {DENOM_TERMS['a']}(위성+ISA+현금) · 반도체·스트레스는 {ev.get('denom', DENOM_TERMS['a'])}</i>",
          f"주식 {tot/nav*100:.0f}% (위성 {ev['tot_sat']/nav*100:.0f}% · ISA {ev['tot_isa']/nav*100:.0f}%) · 현금 {cash/nav*100:.0f}% (금액은 터미널 MY 탭에서만)",
          f"주식 손익 {(-loss)/cost*100 if cost else 0:+.1f}% · 최근일 {ev['day']*100:+.2f}%"]
     L.append("")
@@ -571,9 +573,11 @@ def brief_keys() -> tuple[str | None, list[str]]:
 
 
 def send() -> bool:
+    from .alerts import secret_health
+    secret_health("pb")   # 시크릿 부재는 조용히 넘기지 않는다(감사 10/17 #26) — 경고 로그 + 신선도 배지 '알림 비활성'
     t, keys = brief_keys()
     if not t:
-        log.info("PB: MY_HOLDINGS 없음 — 건너뜀")
+        log.warning("PB: MY_HOLDINGS 없음 — 아침 점검 비활성 (신선도 health 기록)")
         return False
     from .alerts import silent
     from .report import send_telegram
@@ -582,3 +586,44 @@ def send() -> bool:
     send_telegram(t, disable_notification=silent(keys))
     log.info("PB 아침 점검 전송")   # 내용은 로그에 남기지 않음
     return True
+
+
+# ---------------------------------------------------------------- 규칙 집행 맥락 (감사 10/17 #12·#17·#24) — 런타임 전용, 공개 기록 금지
+def semi_code(mk: str, code: str) -> bool:
+    """종목 코드가 반도체(전기 제외)인가 — detail 파일의 체인으로 판정, 없으면 SEMI_ETFS·US_SEMIS 표."""
+    d = _detail(mk, code) or {}
+    if not d:
+        return code in SEMI_ETFS or code in US_SEMIS
+    dv = d.get("drivers") or {}
+    look = (d.get("etf") or {}).get("look") or {}
+    chain = (dv.get("chain") or {}).get("name") or ("ETF" if d.get("etf") else (d.get("valuation") or {}).get("sector")) or mk
+    kind, _ = semi_class(mk, code, d.get("name") or code, chain, bool(d.get("etf")), look.get("chains") or {})
+    return kind == "semi"
+
+
+def risk_ctx(txt: str | None = None, rules_txt: str | None = None) -> dict | None:
+    """MY_HOLDINGS(+MY_RULES) → 주문표·감시가 쓰는 판정 묶음. 금액·평단은 반환값 안에서만 쓰고 파일·로그에 남기지 않는다.
+    {'var_over': bool|None, 'semi': {코드}, 'backstop': {−20% 아래 보유 코드}, 'floors': {코드: {mk, name, floor, avg}}} — 보유 없으면 None.
+    floors = 위성 북 반도체 보유분 평단 × (1 − SEMI_HARD_FLOOR) (사전등록, 10/31 도장 전). 평단 = 종가 × 원가 ÷ 평가액 (현지 통화)."""
+    from .defs import POS_BACKSTOP, SEMI_HARD_FLOOR
+    txt = os.environ.get("MY_HOLDINGS", "") if txt is None else txt
+    rules_txt = os.environ.get("MY_RULES", "") if rules_txt is None else rules_txt
+    if not txt.strip():
+        return None
+    ev = evaluate(txt, rules_txt)
+    if not ev:
+        return None
+    b = ev.get("band") or {}
+    v = b.get("var99")
+    out = {"var_over": (v["var99"] > b["var_limit"]) if v else None, "semi": set(), "backstop": set(), "floors": {}}
+    for r in ev["rows"]:
+        if r["semi"]:
+            out["semi"].add(r["s"])
+        if not r.get("c") or not r.get("v"):
+            continue
+        if r["v"] / r["c"] - 1 <= -POS_BACKSTOP:
+            out["backstop"].add(r["s"])
+        if r["semi"] and r["book"] == "sat":
+            avg = r["close"] * r["c"] / r["v"]
+            out["floors"][r["s"]] = {"mk": r["mk"], "name": r["name"], "avg": avg, "floor": avg * (1 - SEMI_HARD_FLOOR)}
+    return out

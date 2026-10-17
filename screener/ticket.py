@@ -43,6 +43,8 @@ log = logging.getLogger(__name__)
 
 SAT_BOOK_DEFAULT = 3_000_000       # 모의 위성 북 (실제 크기는 env 로만, 기록에 남기지 않음)
 PUBLIC_NOTIONAL_CAP = 1_000_000    # 이 금액 이하만 원화로 기록
+from .defs import (CRASH_ALERT_PCT, ISA_CRASH_PER_YEAR, ISA_MONTHLY_DAY, RENEGO_REASON_MIN,  # noqa: E402
+                   VAR_SEMI_BUY_BAN)
 from .defs import COOLDOWN_MIN, HARD_STOP, MIN_RR, RISK_PCT_DEFAULT   # 단일 원천 screener/defs.py (1회 리스크 0.25% · R:R 2 · 손절 8% · 쿨다운 30분)
 LEV_BAN_UNTIL = "2027-04-15"
 LEV_CODES = {"122630", "252670", "114800", "233740", "251340", "253150", "253160", "123320", "123310", "130730", "152500"}
@@ -107,7 +109,8 @@ def parse_ticket(title: str, body: str) -> dict:
         raise ValueError("제목을 `ticket <종목코드>` 로 적어 주세요. 예: ticket 000660 / ticket AAPL")
     code = m.group(1) if m.group(1).isdigit() else m.group(1).upper()
     out: dict = {"code": code, "market": "KR" if code.isdigit() else "US", "why": "", "horizon_days": None,
-                 "entry": None, "stop": None, "target": None, "amount": None, "pct": None, "renego_reason": False}
+                 "entry": None, "stop": None, "target": None, "amount": None, "pct": None, "renego_reason": False,
+                 "renego_short": False, "account": "SAT", "side": "BUY", "crash_pre": False}
     keys = {"매수가": "entry", "진입가": "entry", "손절가": "stop", "손절": "stop", "목표가": "target", "목표": "target"}
     for raw in (body or "").splitlines():
         ln = raw.strip().lstrip("-*• ").strip()
@@ -119,8 +122,15 @@ def parse_ticket(title: str, body: str) -> dict:
         k, rest = head.group(1), head.group(2)
         if k in keys:
             out[keys[k]] = _num(rest)
-        elif k in ("재협상사유", "재협상"):   # 사유 글은 저장하지 않는다 — 적었는지(True)만 (공개 저장소, 오너 승인 10/17)
-            out["renego_reason"] = bool(rest.strip())
+        elif k in ("재협상사유", "재협상"):   # 사유 글은 저장하지 않는다 — 10자 이상 적었는지(True)만 (공개 저장소, 오너 승인 10/17)
+            out["renego_reason"] = renego.reason_ok(rest)
+            out["renego_short"] = bool(rest.strip()) and not out["renego_reason"]
+        elif k in ("계좌",):   # 결재 #15: '계좌 ISA' → ISA 코어 매수 주문표 (월 1회·급락일 선매수 연 2회 검사)
+            out["account"] = "ISA" if "ISA" in rest.upper() else "SAT"
+        elif k in ("구분", "방향"):
+            out["side"] = "SELL" if re.search(r"매도|sell", rest, re.I) else "BUY"
+        elif k in ("급락선매수", "급락일선매수"):
+            out["crash_pre"] = True
         elif k in ("근거", "이유", "why"):
             out["why"] = rest.strip()
         elif k in ("보유", "보유기간", "기간"):
@@ -130,7 +140,9 @@ def parse_ticket(title: str, body: str) -> dict:
             out["amount"] = _num(rest)
         elif k in ("비중",):
             out["pct"] = _num(rest)
-    miss = [n for n, k in (("매수가", "entry"), ("손절가", "stop"), ("목표가", "target"), ("근거", "why"), ("보유 n일", "horizon_days")) if not out.get(k)]
+    need = (("매수가", "entry"), ("근거", "why")) if out["account"] == "ISA" else \
+        (("매수가", "entry"), ("손절가", "stop"), ("목표가", "target"), ("근거", "why"), ("보유 n일", "horizon_days"))   # ISA 적립은 손절·목표 없음(시장 조건 무시, 결재 #15)
+    miss = [n for n, k in need if not out.get(k)]
     if miss:
         raise ValueError("주문표에 빠진 항목: " + " · ".join(miss) + "\n```\n매수가 <가격>\n손절가 <가격>\n목표가 <가격>\n근거: <한 줄>\n보유 <n>일\n금액 <원>  (선택, 또는 비중 <pct>%)\n```")
     return out
@@ -235,10 +247,28 @@ def cooldown_hit(t: datetime, items: list[dict] | None = None, minutes: int = CO
     return f"{lbl_at(last[0])} {last[1]} 후 {minutes}분 쿨다운 — 신규 주문표 거부 ({left}분 뒤 가능; 결재 #14 ③)"
 
 
-def renego_rows(on) -> list[dict]:
-    """재협상 2회째 규칙 목록 (ops/renego.json). 파일 오류는 빈 목록 + 로그."""
+def ticket_ctx(code: str, mk: str) -> dict:
+    """주문표 판정 맥락 — {'semi', 'below_backstop', 'var_over'}. 보유·VaR 는 MY_HOLDINGS(런타임 시크릿)로만, 공개 기록 안 함.
+    시크릿이 없으면 var_over=None·below_backstop=False (+ 사유에 '확인 불가' 표기 — 조용한 통과 금지)."""
+    from . import pb
     try:
-        return renego.active(on)
+        semi = pb.semi_code(mk, code)
+    except Exception as e:  # noqa: BLE001
+        log.warning("반도체 판정 실패 %s: %s", code, type(e).__name__)
+        semi = False
+    try:
+        rc = pb.risk_ctx()
+    except Exception as e:  # noqa: BLE001
+        log.warning("보유 맥락 실패: %s", type(e).__name__)
+        rc = None
+    return {"semi": semi or bool(rc and code in rc["semi"]), "below_backstop": bool(rc and code in rc["backstop"]),
+            "var_over": rc["var_over"] if rc else None, "has_holdings": rc is not None}
+
+
+def renego_rows(on, ctx: dict | None = None) -> list[dict]:
+    """재협상 2회째 규칙 중 이 주문표와 관련 있는 것 (ops/renego.json · renego.relates). 파일 오류는 빈 목록 + 로그."""
+    try:
+        return renego.active_for(on, ctx)
     except Exception as e:  # noqa: BLE001
         log.warning("재협상 카운터 읽기 실패: %s", e)
         return []
@@ -248,9 +278,10 @@ def lbl_at(t: datetime) -> str:
     return t.astimezone(KST).strftime("%H:%M")
 
 
-def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
-    """규칙 검사 → {verdict, reasons, rr, stop_eff, risk_ps, qty_max, half, ...}. 네트워크 없음."""
+def evaluate(tk: dict, created_at: str, now: datetime | None = None, ctx: dict | None = None) -> dict:
+    """규칙 검사 → {verdict, reasons, rr, stop_eff, risk_ps, qty_max, half, ...}. 네트워크 없음. ctx 없으면 ticket_ctx()."""
     code, mk = tk["code"], tk["market"]
+    ctx = ctx if ctx is not None else ticket_ctx(code, mk)
     t = datetime.fromisoformat(created_at.replace("Z", "+00:00")) if created_at else (now or datetime.now(KST))
     tk_kst, tk_et = t.astimezone(KST), t.astimezone(ET)
     d = str(tk_kst.date()) if mk == "KR" else str(tk_et.date())
@@ -286,12 +317,20 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
     cd = cooldown_hit(t)
     if cd:
         reject.append(cd)
-    rn = renego_rows(tk_kst.date())   # 같은 규칙 30일 안 2회째 재협상 → ⛔ + 사유 칸 필수 (screener/renego.py)
+    # 결재 #3 VaR 계기판: 한도 초과면 반도체 BUY 주문표 ⛔ (매도 주문표·비반도체는 영향 없음, 강제 매도 없음)
+    if tk.get("side", "BUY") == "BUY" and ctx.get("semi"):
+        if ctx.get("var_over"):
+            reject.append(f"⛔ {VAR_SEMI_BUY_BAN} — VaR99 계기판 한도 초과")
+        elif ctx.get("var_over") is None:
+            notes.append("VaR 계기판 확인 불가(MY_HOLDINGS 없음 — 알림 비활성) — 반도체 매수 전 MY 탭에서 VaR 확인")
+    rn = renego_rows(tk_kst.date(), ctx)   # 같은 규칙 30일 안 2회째 재협상 + 이 주문표와 관련 → ⛔ + 사유 칸(10자 이상) 필수 (screener/renego.py)
     if rn:
         if tk.get("renego_reason"):
             notes.append(renego.banner(rn) + " — 사유 기재됨(글은 공개 기록 안 함)")
+        elif tk.get("renego_short"):
+            reject.append(renego.banner(rn) + f" — 사유가 {RENEGO_REASON_MIN}자 미만: 이유를 문장으로 (글은 저장·공개 안 함)")
         else:
-            reject.append(renego.banner(rn) + " — 사유 칸 필수: 본문에 `재협상사유: <글>` 한 줄 (글은 저장·공개 안 함)")
+            reject.append(renego.banner(rn) + f" — 사유 칸 필수: 본문에 `재협상사유: <{RENEGO_REASON_MIN}자 이상>` 한 줄 (글은 저장·공개 안 함)")
     rsi, ret1 = st.get("rsi14"), st.get("ret1")
     if isinstance(rsi, (int, float)) and rsi > 70:
         half.append(f"RSI14 {rsi:.0f} > 70 — 추격, 절반 사이징")
@@ -354,13 +393,102 @@ def reply_md(tk: dict, ev: dict) -> str:
         ("기록만 남김 — 이 주문표로는 주문하지 않습니다." if ev["verdict"].startswith("⛔") else "성적표에 기록됨 — 이제 주문 가능. 청산은 `exit <코드>` 이슈 또는 보유기간 만료로 채점.")
 
 
+# ───────────── 결재 #15 ISA 코어 매수 (월 1회 · 급락일 선매수 연 2회 상한) ─────────────
+ISA_FILE = REPORT_DIR.parent / "ops" / "isa_buys.json"   # 공개: 날짜·종류만 {"events":[{"date","kind":"monthly"|"crash"}]} — 금액·종목 금지
+ISA_KEYS = {"date", "kind"}
+
+
+def isa_load(path=None) -> dict:
+    try:
+        return json.loads((path or ISA_FILE).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {"events": []}
+
+
+def isa_counts(on, path=None) -> dict:
+    """{'month': 이번 달 월 적립 기록 수, 'crash_year': 올해 급락일 선매수 수}."""
+    ev = isa_load(path).get("events") or []
+    ym, y = str(on)[:7], str(on)[:4]
+    return {"month": sum(1 for e in ev if e.get("kind") == "monthly" and str(e.get("date", ""))[:7] == ym),
+            "crash_year": sum(1 for e in ev if e.get("kind") == "crash" and str(e.get("date", ""))[:4] == y)}
+
+
+def isa_monthly_day(on):
+    """이번 달 적립일 = ISA_MONTHLY_DAY(1일), 휴장이면 다음 KR 거래일."""
+    from . import tradecal
+    d = on.replace(day=ISA_MONTHLY_DAY)
+    for _ in range(10):
+        if tradecal.is_session("KR", d):
+            return d
+        d += timedelta(days=1)
+    return d
+
+
+def _crash_signal(d: str) -> bool:
+    """그날 15:05 급락 신호(alerts_state "<날짜>:crash") 기록이 있는가."""
+    try:
+        from .alerts import STATE
+        if f"{d}:crash" in (json.loads(STATE.read_text(encoding="utf-8")).get("sent") or {}):
+            return True
+    except Exception:  # noqa: BLE001
+        pass
+    return False
+
+
+def evaluate_isa(tk: dict, created_at: str, now: datetime | None = None, path=None, crash=None) -> dict:
+    """ISA 매수 주문표: 시장 조건 무시(R:R·추격·개장 30분 검사 없음) · 월 1회(적립일) · 급락일 선매수 연 2회 · 레버리지 금지."""
+    t = datetime.fromisoformat(created_at.replace("Z", "+00:00")) if created_at else (now or datetime.now(KST))
+    on = t.astimezone(KST).date()
+    code, mk = tk["code"], tk["market"]
+    name = _detail(code, mk).get("name") or (NAMES if mk == "KR" else US_NAMES).get(code, code)
+    c = isa_counts(on, path)
+    reject, notes, kind = [], [], None
+    if is_leveraged(code, name, mk):
+        reject.append("ISA 레버리지·인버스 금지")
+    if tk.get("crash_pre"):
+        kind = "crash"
+        if c["crash_year"] >= ISA_CRASH_PER_YEAR:
+            reject.append(f"급락일 선매수 연 {ISA_CRASH_PER_YEAR}회 상한 도달 (올해 {c['crash_year']}회, 결재 #15)")
+        elif not (crash if crash is not None else _crash_signal(str(on))):
+            reject.append(f"오늘 급락일 신호(15:05 코스피 ≤ {CRASH_ALERT_PCT*100:.1f}%) 기록 없음 — 선매수 아님")
+        else:
+            notes.append(f"급락일 선매수 {c['crash_year'] + 1}/{ISA_CRASH_PER_YEAR}회째 (올해)")
+    else:
+        kind = "monthly"
+        md = isa_monthly_day(on)
+        if on != md:
+            reject.append(f"ISA 월 1회 — 적립일 {md}(1일, 휴장이면 다음 거래일)만 (결재 #15 · 시장 조건 무시)")
+        elif c["month"] >= 1:
+            reject.append("이번 달 ISA 적립 이미 기록됨 — 월 1회")
+    verdict = "⛔ 거부" if reject else "✅ 통과"
+    return {"name": name, "date": str(on), "kind": kind, "verdict": verdict, "reasons": reject + notes,
+            "submitted": t.astimezone(KST).strftime("%Y-%m-%d %H:%M"), "counts": c}
+
+
+def isa_record(on: str, kind: str, path=None) -> dict:
+    fp = path or ISA_FILE
+    d = isa_load(fp)
+    d.setdefault("_doc", "결재 #15 ISA 매수 카운터 — 날짜·종류(monthly|crash)만. 금액·종목 금지. screener/ticket.py evaluate_isa")
+    item = {"date": on, "kind": kind}
+    d["events"] = [{k: v for k, v in e.items() if k in ISA_KEYS} for e in (d.get("events") or [])] + [item]
+    fp.write_text(json.dumps(d, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return item
+
+
 def apply_ticket_issue(title: str, body: str, created_at: str) -> str:
-    """이슈 `ticket <코드>` → 규칙 검사 → decisions.json kind 'ticket' 기록. 반환: 이슈 답글(마크다운)."""
+    """이슈 `ticket <코드>` → 규칙 검사 → decisions.json kind 'ticket' 기록. 반환: 이슈 답글(마크다운).
+    본문 `계좌 ISA` 면 ISA 검사(evaluate_isa) → 통과 시 ops/isa_buys.json 에 날짜·종류만 기록 (성적표 채점 대상 아님)."""
     from . import decisions
     try:
         tk = parse_ticket(title, body)
     except ValueError as e:
         return f"주문표를 기록하지 못했습니다 — {e}"
+    if tk.get("account") == "ISA":
+        ev = evaluate_isa(tk, created_at)
+        if not ev["verdict"].startswith("⛔"):
+            isa_record(ev["date"], ev["kind"])
+        rs = "\n".join(f"- {r}" for r in ev["reasons"]) or "- 규칙 위반 없음"
+        return f"### ISA 주문표 {ev['verdict']} ({'급락일 선매수' if ev['kind'] == 'crash' else '월 적립'})\n\n{ev['name']} ({tk['code']}) · 제출 {ev['submitted']} KST\n\n**검사 결과**\n{rs}"
     ev = evaluate(tk, created_at)
     decisions.add(_item(tk, ev))
     return reply_md(tk, ev)
