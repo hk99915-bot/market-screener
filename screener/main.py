@@ -330,7 +330,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot", "crash_check"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot", "crash_check", "derivs"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -487,6 +487,10 @@ def main() -> None:
             write_macro_series()   # 닛케이·TOPIX 매크로 시계열도 같이 확인
             from . import japan
             print(japan.summary(japan.build()))
+        elif a.mode == "derivs":       # 옵션·선물 보드만 재수집 (reports/derivs.json, 텔레그램 없음) — 수동 복구용
+            from . import derivs
+            o = derivs.build()
+            print({k: o.get(k) for k in ("date", "front", "dte", "pcr_oi", "gex_bn", "stale")})
         elif a.mode == "valuation":    # 반도체 밸류에이션 바스켓 (비율만, 참고 등급) → reports/valuation.json/.md (+텔레그램 ≤8줄)
             from . import valuation_daily
             print(valuation_daily.summary(valuation_daily.build(send=not a.no_send)))

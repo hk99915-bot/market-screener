@@ -267,12 +267,19 @@ def build(backfill: int = 20) -> dict:
     d = date.today()
     while d.weekday() >= 5:
         d -= timedelta(days=1)
-    cur = None
+    want, cur = d, None
     for _ in range(5):
-        try:
-            cur = _read(d)
-        except Exception as e:  # noqa: BLE001
-            log.warning("KRX 옵션 %s 실패: %s", d, e)
+        for k in range(3 if d == want else 1):   # 목표 거래일은 KRX 가 HTML(차단·세션 만료)을 줄 때가 있어 쉬었다 재시도 (deriv_hist.board_day 와 같은 방식)
+            try:
+                cur = _read(d)
+            except Exception as e:  # noqa: BLE001
+                log.warning("KRX 옵션 %s 실패(%d): %s", d, k + 1, e)
+                cur = None
+            if cur:
+                break
+            if d == want and k < 2:
+                import time
+                time.sleep(10 * (k + 1))
         if cur:
             break
         d -= timedelta(days=1)
@@ -281,6 +288,9 @@ def build(backfill: int = 20) -> dict:
     if not cur:
         log.warning("KRX 옵션 데이터 없음")
         return {}
+    if d != want:   # 조용히 전일로 넘어가던 문제(10/16 화면이 10/15 로 남음) → 표시
+        cur["stale"] = {"want": str(want), "got": str(d)}
+        log.warning("옵션 보드: %s 수집 실패 → %s 값 사용(stale 표시)", want, d)
     try:
         h = json.loads(HIST.read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
