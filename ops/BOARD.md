@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 122개 · 진행 4 · 검수 32 · 대기 43 · 보류 2 · 완료 41
+기준일 2026-10-17 · 작업 125개 · 진행 4 · 검수 33 · 대기 45 · 보류 2 · 완료 41
 
 ## 진행 (4)
 
@@ -13,7 +13,7 @@
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | 2026-10-17 | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. / 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. |
 | P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | 2026-10-17 | 2026-10-24 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 2차(잔여 개발): live.json(asof 'YYYY-MM-DD HH:MM' 추가·write_json) + dashboard_state.json(put_state 조각별 asof 가드, main.py 스크리너 조각에 시세 기준일) 완료. guard 는 양쪽 시각이 있으면 분 단위·KST 정규화 비교(UTC 'Z' 값이 하루 전으로 읽혀 정상 장중 갱신이 막히던 일 단위 문제 수정), 테스트 tests/test_guard_rest.py 7건. 10/17 3차(데이터2, 정합성 감사 M1·M2): accum.json·us_accum.json 쓰기를 guard.write_json 경유로(계약+역행), chains·us_eps 캐시도 write_json + 만료 판단을 파일 mtime→파일 안 generated_at/asof(KST) 로, ops/freshness.json 에 chains·us_eps 등록(kind=session US). 남음: dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv, daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, 장중 브리핑 조각 asof(현재 없음 → 항상 씀). 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). 계약 등록 보류: screener/contracts.py 에 "live.json": {v1, date asof, required asof·updated_at·items} 와 dashboard_state.json(조각마다 at 필수, schema_version 미기입 — 화면이 state 통째로 실음) 추가 필요(개발5 잠금 해제 후). |
 
-## 검수 (32)
+## 검수 (33)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -48,9 +48,10 @@
 | P2 | `night-futures-line` | 장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가) | 파생 | 2026-10-16 | 2026-10-20 | `screener/briefings.py`<br>`screener/deriv_hist.py` | — | 실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시. |
 | P2 | `schedule-single-accum` | accum.yml 수동 dispatch 읽기 전용 기본(commit 입력 + 저장 조건) — 결정C, 잠금 해제 뒤 | 퀀트 | — | 2026-10-20 | `.github/workflows/accum.yml`<br>`tests/test_schedule_single.py` | — | 운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' // inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌). / 퀀트 10/17: accum.yml 에 commit 입력(기본 false)+저장 조건 반영, tests/test_schedule_single.py PENDING 비움. 운영 확인 후 완료. |
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
+| P2 | `lab-p1` | 가설 연구소 P1 — 실적 둔화 속 추세 유지(P1·P2·P3·P1-T·P1-O·L2) 백테스트·스크리닝 | 퀀트 | 2026-10-17 | 2026-10-24 | `docs/valuation_notes/2026-10-17_lab_p1_prereg.md`<br>`scripts/study_lab_p1.py`<br>`reports/studies/lab_p1.json`<br>`reports/studies/lab_p1.md`<br>`reports/studies/lab_p1_screen.json` | — | 겸이 10/17 지시(가설 연구소 2단계). 사전등록 b7ed1576 먼저 커밋. 다음: CIO 전략 설계 검토. |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (43)
+## 대기 (45)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -85,7 +86,9 @@
 | P2 | `ra-house-scoreboard` | RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일 수익률·낙관 편향(목표가 인플레) 스코어보드 — 참고 경보용, 가중치 아님 | 데이터 | — | 2026-10-28 | private 전용 | `ra-sector-frames` | 표본 n<10 하우스는 미표시. 개인명 저장 금지. |
 | P2 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
 | P2 | `dart-netcash` | DART 재무에 단기금융상품·차입금 수집 → 순현금 계산 (삼성 207조 주장 검증 불가 사례) | 데이터 | — | 2026-10-31 | `screener/dart.py`<br>`screener/fin.py` | — | 10/17 오너 질문(삼성 순현금 207조). 현재 cash=현금성자산만. 3Q 확정(10/30) 전에. |
+| P2 | `data-consensus-hist` | 턴어라운드 예측 데이터 과제 — 컨센서스 이력·DART 잠정실적 이력 적재 | 데이터 | — | 2026-10-31 | — | — | 퀀트 요청(lab-p1 P1-T): 창고에 컨센서스 과거 이력 없음, data/dart.parquet 잠정실적 5일분(10/12~16)뿐 → P1-T는 확정 숫자 대용치(QoQ 개선+매출 YoY>0)로만 검정. 잠정실적 공시 이력(2021~) 적재되면 대용치 ① 재등록. |
 | P2 | `desk-scoreboard-monthly` | 데스크 성적표·복기 월례: ideas_attrib·decisions tally·연구 등급·재현 결과를 docs/desk_kb/_scoreboard.md로 모으고 각 데스크 KB '복기' 3줄 갱신 | PM | — | 2026-10-31 | `docs/desk_kb/_scoreboard.md`<br>`docs/desk_kb/*.md`<br>`scripts/desk_scoreboard.py` | — | 첫 회 10/31. 데스크 프롬프트 템플릿에 'KB+최근 복기 3건 읽기' 포함(HANDOFF). |
+| P2 | `lab-l3-13f` | L3 구루 13F(Duquesne·국민연금 US) 수집 Actions 실행안 + 사전등록 | 퀀트 | — | 2026-10-31 | — | `lab-p1` | 컨테이너 SEC 연결 실패(000) → Actions(ubuntu, SEC User-Agent)로 13F-HR 수집·data 커밋 후 별도 사전등록 id로 검정. 설계는 reports/studies/lab_p1.json l3_13f. |
 | P2 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-10-31 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. |
 | P2 | `pub-whitelist` | 공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 감사 | 검증 | — | 2026-10-31 | `.github/workflows/*.yml`<br>`scripts/slop_audit.py` | — | 외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지. |
 | P2 | `score-calib` | 점수 보정 — Trend/Momentum/Reversal 분포·상한 도달 빈도, 구간별 5/20/60일 수익, 지표 제거 실험 | 퀀트 | — | 2026-10-31 | `screener/scoring.py`<br>`screener/indicators.py`<br>`tests/test_indicators_edge.py` | `px-adjust-unify` | 외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시. |

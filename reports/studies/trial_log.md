@@ -4,7 +4,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **325** (등록 m 합 284 + 등록 전 탐색 41) → 전부 한 가족으로 보면 α = 0.00015
+## 0. 합계 — 시도 N = **332** (등록 m 합 290 + 등록 전 탐색 42) → 전부 한 가족으로 보면 α = 0.00015
 
 ## 1. 연구별
 
@@ -18,6 +18,8 @@
 | fib_levels | 2026-10-15 | fib | 4 | m | 0.0125 | — | F1 | 렌즈 등급 F |
 | gamma_regime | 2026-10-16 | derivs | 3 | m | 0.01667 | — | C1 검증전4 | IS 감마음수 17일<20 → 검증전, next_eval 대기 |
 | ktb_vs_ust | 2026-10-17 | bond_sleeve | 11 | m | 0.00455 | — | — | 슬리브 간 장기·믹스 성과 구별 불가 → 선택은 정성(채권·매크로)과 환노출 한도로 |
+| lab_p1 | 2026-10-16 | earnings_yoy | 6 | m | 0.00833 | 1 | — | — |
+| lab_p1_screen | 2026-10-16 | (미분류) | — | 미등록 | — | — | — | — |
 | playbook_signals | 2026-10-15 | crash_entry | — | 미등록 | — | 32 | — | 급락일 종가(B)보다 나은 신호 없음 → 다음 연구(entry_signals)로 재정의 |
 | replication_crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 재현 표 — m 없음, −5% 사건 27일 일치 |
 | rule_audit | 2026-10-16 | rules | 18 | params.m | 0.00278 | — | C6 F12 | — |
@@ -36,8 +38,10 @@
 | us_accum | us_accum | 9 | 9 | 18 | 0.00278 |
 | derivs | derivs_signals, gamma_regime | 13 | 0 | 13 | 0.00385 |
 | bond_sleeve | ktb_vs_ust | 11 | 0 | 11 | 0.00455 |
+| earnings_yoy | lab_p1 | 6 | 1 | 7 | 0.00714 |
 | semis_cap | semis_cap | 7 | 0 | 7 | 0.00714 |
 | fib | fib_levels | 4 | 0 | 4 | 0.0125 |
+| (미분류) | lab_p1_screen | 0 | 0 | 0 | None |
 
 ## 3. 시도 기록 (날짜 · 가설 · 파라미터 · 결과 · 버린 이유)
 

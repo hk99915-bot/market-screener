@@ -2169,6 +2169,53 @@
       "depends_on": [],
       "notes": "겸이 10/17 지시. 데이터 = pb-private 2026-10-15-alloc 월수익률(시장 데이터만). 전략(자산배분) 검토 요청. | 대조(10/17): 월 리밸·비용 미차감으로 돌리면 매크로 금 보고서 5절과 일치(현행 10.81%·MDD −13.70%, 금10+국고 10.35%·−14.35%, 금10+NDX 10.98%·−15.98%). 화면 기본(비용 차감·연 1회)은 현행 10.53%·−16.13% — 차이 = ① 비용 연 약 0.44%p(배분 보고서 DRAG, 매크로는 미차감) ② 연 1회 리밸(2026-06~10 낙폭 −12.6%→−15.6%). 2008 구간은 배분 보고서 기준 07-11~09-02(매크로는 08-01~09-02: −2.0% vs 우리 계산 −2.5%, 경계 정의 차이 추정). 부트스트랩 10년 = 배분 보고서와 같은 정상 블록 L=12, 단 적립·평가 가정 다름(배수만).",
       "desk": "퀀트"
+    },
+    {
+      "id": "lab-p1",
+      "title": "가설 연구소 P1 — 실적 둔화 속 추세 유지(P1·P2·P3·P1-T·P1-O·L2) 백테스트·스크리닝",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-17",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "docs/valuation_notes/2026-10-17_lab_p1_prereg.md",
+        "scripts/study_lab_p1.py",
+        "reports/studies/lab_p1.json",
+        "reports/studies/lab_p1.md",
+        "reports/studies/lab_p1_screen.json"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/17 지시(가설 연구소 2단계). 사전등록 b7ed1576 먼저 커밋. 다음: CIO 전략 설계 검토."
+    },
+    {
+      "id": "lab-l3-13f",
+      "title": "L3 구루 13F(Duquesne·국민연금 US) 수집 Actions 실행안 + 사전등록",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "대기",
+      "started": "",
+      "due": "2026-10-31",
+      "repo": "public",
+      "files": [],
+      "depends_on": [
+        "lab-p1"
+      ],
+      "notes": "컨테이너 SEC 연결 실패(000) → Actions(ubuntu, SEC User-Agent)로 13F-HR 수집·data 커밋 후 별도 사전등록 id로 검정. 설계는 reports/studies/lab_p1.json l3_13f."
+    },
+    {
+      "id": "data-consensus-hist",
+      "title": "턴어라운드 예측 데이터 과제 — 컨센서스 이력·DART 잠정실적 이력 적재",
+      "owner": "데이터",
+      "priority": "P2",
+      "status": "대기",
+      "started": "",
+      "due": "2026-10-31",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "notes": "퀀트 요청(lab-p1 P1-T): 창고에 컨센서스 과거 이력 없음, data/dart.parquet 잠정실적 5일분(10/12~16)뿐 → P1-T는 확정 숫자 대용치(QoQ 개선+매출 YoY>0)로만 검정. 잠정실적 공시 이력(2021~) 적재되면 대용치 ① 재등록."
     }
   ]
 }
