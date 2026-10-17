@@ -1178,12 +1178,15 @@ function valView(){   // 반도체 밸류에이션 바스켓 (reports/valuation.
     <div class="mu" style="margin-top:4px">📎 비율만 · 금리조정 매력 = E/P − 무위험(US 미10Y, KR 국고3Y) · 매매 트리거 아님</div>
    </div></div></div>`;
 }
-let R=null, RV={m:'theme',d:30,q:''};
+let R=null, RV={m:'theme',d:30,q:'',o:(()=>{try{return localStorage.getItem('mt_rep_order')||'count';}catch(e){return 'count';}})()};
+// 정렬 토글(10/17 겸이): count=리포트 많은 순 · new=최신순 · old=오래된순 (선택은 이 브라우저에 기억)
+function repOrd(o){ RV.o=o; try{localStorage.setItem('mt_rep_order',o);}catch(e){} render(); }
+const repCmp=(a,b)=>RV.o==='old'?a.localeCompare(b):b.localeCompare(a);
 function repView(){
   if(!AN) loadAnalysts(()=>{ if(view==='rep'&&R) repFill(); });
   if(!R){ google.script.run.withSuccessHandler(t=>{try{R=JSON.parse(t);}catch(e){R={items:[],close:{}};} if(view==='rep') render();}).withFailureHandler(e=>{R={items:[],close:{},err:/404/.test(e.message)?'리서치 데이터가 아직 생성되지 않았습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='rep') render();}).getResearch(); return '<div class="load">LOADING …</div>'; }
   const btn=(k,v,l)=>`<button class="${RV[k]===v?'on':''}" onclick="RV['${k}']=${typeof v==='number'?v:`'${v}'`};render()">${l}</button>`;
-  return `<div class="grid"><div class="p c12"><h2>RESEARCH<span class="ctab">${btn('m','theme','테마별')}${btn('m','sector','업종별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><small id="rcnt"></small></h2>
+  return `<div class="grid"><div class="p c12"><h2>RESEARCH<span class="ctab">${btn('m','theme','테마별')}${btn('m','sector','업종별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><span class="ctab">${[['count','많은순'],['new','최신순'],['old','오래된순']].map(([o,l])=>`<button class="${RV.o===o?'on':''}" onclick="repOrd('${o}')">${l}</button>`).join('')}</span><small id="rcnt"></small></h2>
    <div class="b"><input id="rq" class="rq" placeholder="종목 · 증권사 · 섹터 · 제목 검색" value="${esc(RV.q)}" oninput="RV.q=this.value;repFill()">${R.err?`<div class="err">${esc(R.err)}</div>`:''}<div id="rbody"></div></div></div></div>`;
 }
 function repFill(){ const b=$('#rbody'); if(!b||!R) return; const it=repFilter(); b.innerHTML=repBody(it); const c=$('#rcnt'); if(c) c.textContent=`${it.length}건 · ${new Set(it.map(r=>r.code)).size}종목 · 기준 ${R.asof||''}`; }
@@ -1219,13 +1222,16 @@ function repLine(r){
 function stockRows(ss,showSec){ if(!ss.length) return '<div class="mu">해당 기간 리포트 없음</div>';
   return `<table><tr><th></th><th class="l">종목</th>${showSec?'<th class="l">섹터</th>':''}<th class="l">핵심 뷰</th><th class="l">최근</th><th>종가</th></tr>${ss.map(s=>`<tr><td class="tg" title="증권사별 요약 펼치기">▸</td><td class="l am sym" data-sym="${esc(s.code)}" data-mk="KR">${esc(s.name)} <span class="mu">${esc(s.code)}</span></td>${showSec?`<td class="l mu">${esc(s.sector)}</td>`:''}<td class="l">${coreView(s)}</td><td class="l mu">${s.last.date}</td><td>${s.close?num(s.close):'—'}</td></tr><tr class="sub"><td></td><td colspan="${showSec?5:4}">${s.rs.map(repLine).join('')}</td></tr>`).join('')}</table>`; }
 function repBody(it){
+  if(RV.m==='all'){ it=[...it].sort((a,b)=>RV.o==='old'?a.date.localeCompare(b.date):b.date.localeCompare(a.date)); }
   if(RV.m==='all') return it.length?`<table><tr><th class="l">날짜</th><th class="l">종목</th><th class="l">섹터</th><th class="l">증권사</th><th class="l">의견</th><th>TP</th><th class="l">제목</th></tr>${it.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td><td class="l mu">${esc(r.sector||'기타')}</td><td class="l">${esc(r.broker)}</td><td class="l">${esc(r.opinion||'')}</td><td>${r.target?num(r.target):'—'}</td><td class="l">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title||'리포트')}</a>`:esc(r.title||'')}</td></tr>`).join('')}</table>`:'<div class="mu">해당 기간 리포트 없음</div>';
-  const ss=stockAgg(it);
+  let ss=stockAgg(it);
+  if(RV.o!=='count') ss=[...ss].sort((a,b)=>repCmp(a.last.date,b.last.date));
   if(RV.m==='stock') return stockRows(ss,true);
   const gk=RV.m==='theme'?'theme':'sector';
   const g=new Map(); for(const s of ss){ if(!g.has(s[gk])) g.set(s[gk],[]); g.get(s[gk]).push(s); }
   const tot=a=>a.reduce((x,s)=>x+s.n,0);
-  return [...g.entries()].sort((a,b)=>tot(b[1])-tot(a[1])).map(([sec,a])=>`<details open class="sec"><summary><b class="am">${esc(sec)}</b> <span class="mu">${tot(a)}건 · ${a.length}종목</span></summary>${stockRows(a,false)}</details>`).join('')||'<div class="mu">해당 기간 리포트 없음</div>'; }
+  const gl=a=>a.reduce((x,s)=>s.last.date>x?s.last.date:x,'');
+  return [...g.entries()].sort((a,b)=>RV.o==='count'?tot(b[1])-tot(a[1]):repCmp(gl(a[1]),gl(b[1]))).map(([sec,a])=>`<details open class="sec"><summary><b class="am">${esc(sec)}</b> <span class="mu">${tot(a)}건 · ${a.length}종목</span></summary>${stockRows(a,false)}</details>`).join('')||'<div class="mu">해당 기간 리포트 없음</div>'; }
 document.addEventListener('click',e=>{const t=e.target.closest('td.tg'); if(!t) return; const sub=t.parentElement.nextElementSibling; if(sub&&sub.classList.contains('sub')){sub.classList.toggle('on'); t.textContent=sub.classList.contains('on')?'▾':'▸';}});
 </script>
 
