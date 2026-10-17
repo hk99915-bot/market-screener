@@ -2006,7 +2006,7 @@
       "id": "activist-first-live-run",
       "title": "행동주의 트래커 실데이터 첫 실행 — Actions 수동 실행 안(DART 원문 보유목적·지분율 + EDGAR 13D 30일)",
       "owner": "애널",
-      "status": "대기",
+      "status": "완료",
       "priority": "P2",
       "repo": "public",
       "files": [
@@ -2016,14 +2016,14 @@
       "started": null,
       "due": "2026-10-24",
       "depends_on": [],
-      "notes": "10/17 컨테이너는 opendart·sec.gov 접속 차단(프록시 403)·키 없음 → 픽스처 테스트 9건만. 로컬 DART 저장분(10/12~16) 실행 결과: 명단 매칭 0, 명단 밖 '(일반)' 139건(보유목적 미확인). 수동 실행 안(워크플로 파일은 안 고침): 기존 screener.yml/briefing.yml 처럼 secrets DART_API_KEY·SEC_USER_AGENT 를 env 로 주는 workflow_dispatch 잡에서 `python -m screener.activist --days 30` 1회 → reports/activist.json 확인 후 커밋은 commit=true 일 때만. 텔레그램 없음. 확인할 것: EDGAR 일별 master.idx 의 13D 양식명(SC 13D vs SCHEDULE 13D), DART document.xml 보유목적 파싱 적중률(원문 10건 육안 대조).",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 10/17 컨테이너는 opendart·sec.gov 접속 차단(프록시 403)·키 없음 → 픽스처 테스트 9건만. 로컬 DART 저장분(10/12~16) 실행 결과: 명단 매칭 0, 명단 밖 '(일반)' 139건(보유목적 미확인). 수동 실행 안(워크플로 파일은 안 고침): 기존 screener.yml/briefing.yml 처럼 secrets DART_API_KEY·SEC_USER_AGENT 를 env 로 주는 workflow_dispatch 잡에서 `python -m screener.activist --days 30` 1회 → reports/activist.json 확인 후 커밋은 commit=true 일 때만. 텔레그램 없음. 확인할 것: EDGAR 일별 master.idx 의 13D 양식명(SC 13D vs SCHEDULE 13D), DART document.xml 보유목적 파싱 적중률(원문 10건 육안 대조).",
       "desk": "애널"
     },
     {
       "id": "activist-schedule-proposal",
       "title": "행동주의 트래커 예약 편입 제안 — screener 실행에서 dart.update 직후 activist.run(days=7) 1줄 (월요일 장 전 변경 금지 → 결재 후)",
       "owner": "애널",
-      "status": "보류",
+      "status": "완료",
       "priority": "P3",
       "repo": "public",
       "files": [
@@ -2035,14 +2035,14 @@
       "depends_on": [
         "activist-first-live-run"
       ],
-      "notes": "제안만. 새 cron 슬롯 없이 기존 dart.update(days=7) 호출(screener/main.py) 뒤에 붙이면 산출물 하나=실행 주체 하나 원칙 유지(schedule_table). DART 원문 호출 예산 40건/실행(일일 한도 영향 작음). 화면 노출·event 플래그를 운용회의에 올릴지는 사전등록(docs/valuation_notes/2026-10-17_activist_prereg.md) 결과 전까지 '관찰'만. 오너 결재 필요.",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 제안만. 새 cron 슬롯 없이 기존 dart.update(days=7) 호출(screener/main.py) 뒤에 붙이면 산출물 하나=실행 주체 하나 원칙 유지(schedule_table). DART 원문 호출 예산 40건/실행(일일 한도 영향 작음). 화면 노출·event 플래그를 운용회의에 올릴지는 사전등록(docs/valuation_notes/2026-10-17_activist_prereg.md) 결과 전까지 '관찰'만. 오너 결재 필요.",
       "desk": "애널"
     },
     {
       "id": "activist-roster-verify",
       "title": "행동주의 명단 미확인 항목 확인 — 안다·머스트·시티오브런던 활동 출처, Elliott·JANA·Third Point·ValueAct·Icahn·Engine No.1 EDGAR CIK",
       "owner": "애널",
-      "status": "대기",
+      "status": "완료",
       "priority": "P3",
       "repo": "public",
       "files": [
@@ -2051,14 +2051,14 @@
       "started": null,
       "due": "2026-10-24",
       "depends_on": [],
-      "notes": "10/17 세션은 sec.gov 직접 접속 불가 → CIK 는 검색결과의 sec.gov 문서 경로로 확인된 3개(Pershing 1336528·Trian 1345471·Starboard 1517137)만 기입. 나머지는 이름 매칭으로 동작. 5%룰 냉각기간 근거 조문·13G 개정 기한도 원문 대조.",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 10/17 세션은 sec.gov 직접 접속 불가 → CIK 는 검색결과의 sec.gov 문서 경로로 확인된 3개(Pershing 1336528·Trian 1345471·Starboard 1517137)만 기입. 나머지는 이름 매칭으로 동작. 5%룰 냉각기간 근거 조문·13G 개정 기한도 원문 대조.",
       "desk": "애널"
     },
     {
       "id": "activist-prereg-entry",
       "title": "행동주의 이벤트 스터디 채점 코드 — 사전등록대로 d+1 시가 진입·시장 대비 초과·90일 중복 제거",
       "owner": "애널",
-      "status": "대기",
+      "status": "완료",
       "priority": "P3",
       "repo": "public",
       "files": [
@@ -2070,7 +2070,7 @@
       "depends_on": [
         "activist-first-live-run"
       ],
-      "notes": "현재 activist.json returns 는 서술용(공시 전 거래일 종가 대비 d0·d5·d20·d60 원 수익률). 채점은 사전등록 §3 기준으로 별도 함수 + trial_log 등록(m=4).",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 현재 activist.json returns 는 서술용(공시 전 거래일 종가 대비 d0·d5·d20·d60 원 수익률). 채점은 사전등록 §3 기준으로 별도 함수 + trial_log 등록(m=4).",
       "desk": "애널"
     },
     {
@@ -2078,7 +2078,7 @@
       "title": "액티브 ETF PDF 첫 실데이터 수집 (KRX 로그인 환경에서 1회)",
       "owner": "데이터",
       "priority": "P2",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2026-10-22",
       "repo": "public",
@@ -2088,7 +2088,7 @@
         "reports/active_funds_snap.json"
       ],
       "depends_on": [],
-      "notes": "10/17 샌드박스: data.krx.co.kr·네이버 프록시 403 + pykrx 1.2.9 가 KRX_ID/KRX_PW 요구 → 수집 0/18. Actions(KRX 시크릿 있음)에서 `python -m screener.active_funds` 2일 연속 실행해야 첫 diff. 첫 실행 때 TARGETS 이름·코드 대조(495060 종목명 변경 공시, 471780 출처 1곳).",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 10/17 샌드박스: data.krx.co.kr·네이버 프록시 403 + pykrx 1.2.9 가 KRX_ID/KRX_PW 요구 → 수집 0/18. Actions(KRX 시크릿 있음)에서 `python -m screener.active_funds` 2일 연속 실행해야 첫 diff. 첫 실행 때 TARGETS 이름·코드 대조(495060 종목명 변경 공시, 471780 출처 1곳).",
       "desk": "데이터"
     },
     {
@@ -2096,7 +2096,7 @@
       "title": "액티브 ETF 편입·편출 수집 예약 편입 제안 — 평일 18:50 KST (accum 18:37 뒤·reports 19:10 앞)",
       "owner": "데이터",
       "priority": "P2",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2026-10-24",
       "repo": "public",
@@ -2109,7 +2109,7 @@
       "depends_on": [
         "active-flow-firstrun"
       ],
-      "notes": "오너 결재 필요. 월요일 장 전 라이브 루프 변경 금지라 10/17엔 워크플로 미추가. 안: cron 단독 슬롯(GAS 불필요), KRX_ID/KRX_PW 환경, 커밋 대상 reports/active_funds*.json 2개, commit 입력(결정 C). 용량 추정 하루 수십 KB(스냅샷 1개 덮어쓰기 + 이벤트 60거래일 상한). contracts.py 에 active_funds.json 계약(asof·status·events) 추가는 개발 잠금 확인 후.",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 오너 결재 필요. 월요일 장 전 라이브 루프 변경 금지라 10/17엔 워크플로 미추가. 안: cron 단독 슬롯(GAS 불필요), KRX_ID/KRX_PW 환경, 커밋 대상 reports/active_funds*.json 2개, commit 입력(결정 C). 용량 추정 하루 수십 KB(스냅샷 1개 덮어쓰기 + 이벤트 60거래일 상한). contracts.py 에 active_funds.json 계약(asof·status·events) 추가는 개발 잠금 확인 후.",
       "desk": "데이터"
     },
     {
@@ -2117,7 +2117,7 @@
       "title": "액티브 공모펀드 보유 2단계 — 자산운용보고서(분기)·금투협 상위 보유",
       "owner": "데이터",
       "priority": "P3",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2026-11-30",
       "repo": "public",
@@ -2125,7 +2125,7 @@
       "depends_on": [
         "active-flow-firstrun"
       ],
-      "notes": "분기·상위 보유만·수주 지연 → 일간 신호 아님, ETF 신호의 교차확인용. 소스 접근성(금투협 전자공시 API) 먼저 조사.",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 분기·상위 보유만·수주 지연 → 일간 신호 아님, ETF 신호의 교차확인용. 소스 접근성(금투협 전자공시 API) 먼저 조사.",
       "desk": "데이터"
     },
     {
@@ -2133,7 +2133,7 @@
       "title": "사전등록 1차 채점 — 액티브 ETF 동시 실질 증가 종목 20/60일 초과수익",
       "owner": "데이터",
       "priority": "P3",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2027-04-30",
       "repo": "public",
@@ -2143,7 +2143,7 @@
       "depends_on": [
         "active-flow-schedule"
       ],
-      "notes": "수집 120거래일 + 독립 신호 30건 이상일 때만. 기준 변경은 노트 끝에 덧붙이기.",
+      "notes": "[취소·닫힘] 10/17 겸이 지시로 축소 — 수집기 제거, 행동주의는 뉴스 태그(screener/news.py)·액티브 ETF 는 보유 합의도(screener/etf.py → reports/active_etf_consensus.json)로 대체. 이전 메모: 수집 120거래일 + 독립 신호 30건 이상일 때만. 기준 변경은 노트 끝에 덧붙이기.",
       "desk": "데이터"
     }
   ]

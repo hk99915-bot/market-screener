@@ -39,7 +39,7 @@
 ## 우리 연구와의 차이
 
 - **행동주의 공시 이벤트 수익률 (문헌)**: Brav·Jiang·Partnoy·Thomas(2008, *J. Finance* 63(4) 1729–1775, 2001~2006 수작업 표본): 13D 공시 전후 비정상 수익률 약 **7%**, 이후 1년 되돌림 없음; 목표 회사의 배당·영업성과·CEO 교체가 늘고, 2/3 가 성공·부분 성공. 장기: Bebchuk·Brav·Jiang(2015, *Columbia Law Review*)이 5년 장기 되돌림 없음을 보고(이 세션 원문 미확인). 주의: (1) 미국 소형·중형 중심, (2) 공시 '전' 10일(기한 동안의 매집)에 상당 부분이 먼저 나온다 → 공시 후 진입자의 몫은 더 작다, (3) 한국은 서식·목적 공시 구조가 달라 그대로 옮기면 안 된다. 출처: 논문 초록(corpgov.law.harvard.edu 2008-03-04, Duke 사본). `[논문]` (Bebchuk 2015 은 `[논문-2차]`)
-- **우리 연구와의 차이(예정)**: 위 7% 는 공시 '전후' 창 기준. 우리가 실제로 살 수 있는 건 공시 다음 날부터라 사전등록(docs/valuation_notes/2026-10-17_activist_prereg.md)은 d0 이후만 채점한다. 결과 전까지 `검증전`.
+- **우리 연구와의 차이(예정)**: 위 7% 는 공시 '전후' 창 기준. 우리가 실제로 살 수 있는 건 공시 다음 날부터라 사전등록(docs/valuation_notes/2026-10-17_activist_prereg.md)은 d0 이후만 채점한다. 결과 전까지 `검증전`. *(구축 취소 10/17 겸이 지시로 축소 — 사전등록 노트 삭제, git 이력에만 있음)*
 
 ## 출처
 
@@ -47,7 +47,7 @@
 - Koller et al., *Valuation* (McKinsey) — 멀티플 분해, 사이클 기업 가치평가. `[교과서]`
 - SEC companyfacts(XBRL) 태그 매핑: screener/sec.py FLOW/INSTANT. DART: screener/fin.py ITEMS. `[자체연구-검증전]`
 
-- 행동주의 명단·근거: docs/desk_kb/activists.json (KR 9·US 9, 항목별 출처·등급). 수집기 screener/activist.py → reports/activist.json. `[자체연구-검증전]`
+- 행동주의 명단·근거: docs/desk_kb/activists.json (KR 9·US 9, 항목별 출처·등급). 수집기 screener/activist.py → reports/activist.json. `[자체연구-검증전]` *(구축 취소 10/17 겸이 지시로 축소 — 명단·수집기 삭제(git 이력에만), 행동주의는 뉴스 태그 `screener/news.py` ACTIVIST_KR/US 로만 트래킹. 컨텍스트 전용·점수 합산 없음)*
 - Brav, Jiang, Partnoy, Thomas (2008) "Hedge Fund Activism, Corporate Governance, and Firm Performance", *Journal of Finance* 63(4). `[논문]`
 
 ## 복기 (틀린 판단 → 왜 → 다음부터)

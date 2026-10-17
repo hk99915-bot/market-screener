@@ -528,8 +528,22 @@ def news_events(titles: list[dict], chain: str | None) -> dict:
                 break
     # 헤드라인 1~2건이 점수를 ±1로 만들지 않게 건수가 적으면 0 쪽으로 줄임 (3건 이상에서 온전히 반영)
     score = sum(sc) / len(sc) * min(1.0, len(sc) / 3) if sc else None
-    return {"n": len(titles), "events": ev[:12], "score": round(score, 2) if score is not None else None, "n_scored": len(sc),
-            "recent": [{"date": x.get("date"), "title": x.get("title", "")[:110], "link": x.get("link")} for x in titles[:8]]}
+    # 행동주의 라벨 (10/17 겸이 지시) — 컨텍스트 전용, 위 score 에 넣지 않는다
+    from .news import activist_tag
+    for e in ev:
+        if activist_tag(e["title"]):
+            e["tag"] = activist_tag(e["title"])
+    act = [{"date": x.get("date"), "title": x.get("title", "")[:110], "link": x.get("link"), "tag": activist_tag(x.get("title"))}
+           for x in titles if activist_tag(x.get("title"))]
+    recent = [{"date": x.get("date"), "title": x.get("title", "")[:110], "link": x.get("link")} for x in titles[:8]]
+    for r in recent:
+        if activist_tag(r["title"]):
+            r["tag"] = activist_tag(r["title"])
+    out = {"n": len(titles), "events": ev[:12], "score": round(score, 2) if score is not None else None, "n_scored": len(sc),
+           "recent": recent}
+    if act:
+        out["activist"] = act[:5]
+    return out
 
 
 def fetch_news(name: str, code: str, days: int = 7) -> list[dict]:

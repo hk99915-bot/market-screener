@@ -6,6 +6,9 @@
    시크릿: TG_API_ID, TG_API_HASH, TG_SESSION(StringSession), TG_CHANNELS(쉼표 구분 @채널명)
 3) fiscal.ai (선택, 미검증): 펀더멘털 컨텍스트 어댑터 자리. FISCAL_AI_KEY 가 있을 때만 호출하며,
    엔드포인트는 계정 문서 기준으로 fetch_fiscal_ai() 안에서 채워야 함.
+
+행동주의 태그 (10/17 겸이 지시 "행동주의 ... 주요뉴스만 트래킹"): 별도 수집기 없이 이미 모은 헤드라인에
+activist_tag() 로 '행동주의' 라벨만 붙인다. 컨텍스트 전용 — 점수 합산·텔레그램 발송 없음.
 """
 from __future__ import annotations
 
@@ -17,6 +20,23 @@ from datetime import datetime, timedelta, timezone
 import polars as pl
 
 log = logging.getLogger(__name__)
+
+# ───────────── 0) 행동주의 태그 ─────────────
+ACTIVIST_LABEL = "행동주의"
+ACTIVIST_KR = ["행동주의", "주주행동", "주주제안", "경영참가", "주주서한", "공개서한", "위임장", "의결권 대리",
+               "얼라인", "KCGI", "케이씨지아이", "강성부", "트러스톤", "차파트너스", "플래쉬라이트", "플래시라이트",
+               "안다자산", "머스트자산", "시티오브런던", "엘리엇"]
+ACTIVIST_US = [r"activists?", r"activism", r"(?:schedule\s*)?13D", r"proxy\s+(?:fight|battle|contest)", r"Elliott\s+(?:Management|Investment)",
+               r"Starboard(?:\s+Value)?", r"Trian", r"Pershing\s+Square", r"Ackman", r"Icahn", r"ValueAct", r"Third\s+Point",
+               r"JANA\s+Partners", r"Engine\s+No\.?\s*1"]
+_ACT_KR = re.compile("|".join(re.escape(k) for k in ACTIVIST_KR))
+_ACT_US = re.compile(r"(?i)\b(?:" + "|".join(ACTIVIST_US) + r")\b")
+
+
+def activist_tag(text: str | None) -> str | None:
+    """헤드라인·메시지에 행동주의 키워드가 있으면 '행동주의', 없으면 None. 라벨 전용(점수 없음)."""
+    t = str(text or "")
+    return ACTIVIST_LABEL if t and (_ACT_KR.search(t) or _ACT_US.search(t)) else None
 
 
 # ───────────── 1) yfinance 뉴스 ─────────────
@@ -47,7 +67,10 @@ def yf_news(yf_symbols: list[str], per_symbol: int = 3, max_age_days: int = 3) -
                 continue
             link = (c.get("canonicalUrl") or {}).get("url") or it.get("link") or ""
             src = (c.get("provider") or {}).get("displayName") or it.get("publisher") or ""
-            rows.append({"title": title, "url": link, "source": src, "time": dt.strftime("%m/%d") if dt else ""})
+            row = {"title": title, "url": link, "source": src, "time": dt.strftime("%m/%d") if dt else ""}
+            if activist_tag(title):
+                row["tag"] = ACTIVIST_LABEL
+            rows.append(row)
             if len(rows) >= per_symbol:
                 break
         if rows:
