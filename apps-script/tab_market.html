@@ -77,12 +77,14 @@ function closeNote(){ const c=(D.state||{})['close_snapshot'], s=(D.state||{})['
   return `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px"><div class="am" style="font-size:12px">마감 후 정리 · ${esc(c.at)} 기준${c.value.kospi?` · 코스피 ${num(c.value.kospi,2)} (${pct(c.value.kospi_chg,2)})`:''}</div>${c.value.notes.map(x=>'<div style="font-size:12.5px;line-height:1.6;white-space:normal">• '+tgHtml(x)+'</div>').join('')}${(c.value.delta||[]).length?`<div class="am" style="font-size:12px;margin-top:6px">판단 시점 → 마감, 막판에 무슨 일이</div>${c.value.delta.map((x,i,a)=>`<div style="font-size:12.5px;line-height:1.6;white-space:normal" class="${i===a.length-1?'mu':''}">• ${tgHtml(x)}</div>`).join('')}`:''}</div>`; }
 function intradayPanel(){
   const s=(D.state||{})['intraday_snapshot']; if(!s||!s.value) return '';
-  const v=s.value, f=v.flows||{}, sn=v.snap||{};
+  // 마감 스냅샷이 판단 시점보다 나중이면 표는 마감 확정치로 (10/17 겸이: 장 끝났는데 13:35 잠정치가 그대로였음). 판단 시점 해석은 아래 그대로.
+  const c=(D.state||{})['close_snapshot'], fin=!!(c&&c.value&&c.value.flows&&String(c.at)>String(s.at));
+  const m0=fin?c:s, v=Object.assign({},s.value,fin?{phase:'마감 확정',kospi:c.value.kospi,kospi_chg:c.value.kospi_chg}:{}), f=m0.value.flows||{}, sn=m0.value.snap||{};
   const row=m=>{const x=f[m]||{}, q=sn[m]||{}; if(!Object.keys(x).length&&!Object.keys(q).length) return '';
     const tot=(q.up||0)+(q.down||0);
     return `<tr><td class="l am">${m}</td><td>${sgn(x['외국인'])}</td><td>${sgn(x['기관'])}</td><td>${sgn(x['개인'])}</td><td>${sgn(q.prog_total)}</td><td>${q.up!=null?`<span class="up">${q.up}</span>/<span class="dn">${q.down}</span>`:'—'}</td><td>${tot?`<span class="${q.down/tot>0.6?'dn':q.up/tot>0.6?'up':'am'}">${Math.round(q.down/tot*100)}%</span>`:'—'}</td></tr>`;};
   const top=(sn.KOSPI&&sn.KOSPI.top)||[];
-  return `<div class="p c12"><h2>${v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${s.at} 기준 · ${esc(v.phase||'장중 잠정')}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원</small></h2><div class="b">
+  return `<div class="p c12"><h2>${fin||v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${m0.at} 기준 · ${esc(v.phase||'장중 잠정')}${fin?` · 장중 판단 ${esc(String(s.at).slice(11))} 값은 아래`:''}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원</small></h2><div class="b">
    <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
    ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
    ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(String(s.at).slice(11))} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div>`;
