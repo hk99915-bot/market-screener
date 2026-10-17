@@ -68,6 +68,13 @@
    "unregistered_trials": 9,
    "unregistered_note": "결과 본 뒤 추가한 60일·비용0.25% IS/OOS/약세장 표 9개(sec60, exploratory, 등급 밖). 사전 빈도 집계 1회는 수익 미조회라 0",
    "discarded": "9개 모두 F(IS 20일 초과 −0.23~−0.60%p, 비용 0.25%). S8 갭 60일 OOS 평균 +2.28%p 이나 중앙값 −2.23%p → 소수 대박(생존편향 의심)"
+  },
+  "accum_signals": {
+   "topic": "kr_accum",
+   "question": "KR 외인·기관·연기금 매집 신호 8개가 5/20/60일 같은 날 전 종목 대비 비정상수익을 내나 (다음날 종가 진입)",
+   "unregistered_trials": 0,
+   "unregistered_note": "사전등록(study_accum.py §0) 그대로 1회 실행. 백필이 2022가 아니라 2024-11-26부터라 IS(<2025) = 24거래일·연기금 n 232 — PB 판단으로 A 는 B 상한으로 읽음",
+   "discarded": "pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님"
   }
  },
  "trials": [
@@ -134,6 +141,15 @@
    "result": "S8 OOS +2.28%p(p 0.058) 중앙값 −2.23%p, IS +0.04%p, 약세장 −1.00%p; S7 OOS +0.54%p(p 0.080)",
    "discarded_why": "IS·약세장 부호 불일치 + 평균·중앙값 반대(왜도) + 현재 구성 생존편향 → 상한 C 도 못 줌, 재등록 후보로만",
    "study": "us_accum"
+  },
+  {
+   "date": "2026-10-17",
+   "topic": "kr_accum",
+   "hypothesis": "(사전등록) 매집 신호 8 × h 5/20/60, m 24",
+   "params": "다음날 종가 진입, 비정상수익=같은 날 적격 전 종목 평균 대비, 월 군집 t, α 0.00208, 비용 미반영",
+   "result": "pen h20 +2.14%p t3.47 · h60 +5.41%p t3.61 (KOSPI 대비 −2.2%·−8.8%), 나머지 Bonferroni 미통과",
+   "discarded_why": "IS 24일뿐(2022 백필 실패) → A 아닌 B 상한, 2022 하락장 백필 뒤 재검증",
+   "study": "accum_signals"
   }
  ]
 }
