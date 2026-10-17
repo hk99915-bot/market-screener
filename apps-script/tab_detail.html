@@ -3,27 +3,29 @@
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
 function valPanel(v,close){
+  const VD=v&&v.currency==='USD'?2:0, VC=v&&v.currency==='USD'?'$':'';
   if(!v||!v.models||!Object.keys(v.models).length) return '<div class="mu">가치평가 불가 (재무 4분기 미만·적자·주식 수 정보 없음)</div>';
   const r=v.range||{}, lo=Math.min(r.low,close), hi=Math.max(r.high,close), x=p=>((p-lo)/(hi-lo||1)*100).toFixed(1);
   const GN={current:['현재 이익 지속','#e9a'],normal:['사이클 평균 회귀','#8cf'],asset:['자산·배당','#9b9']};
   const gu=v.group_upside||{}, gv=v.groups||{};
   const cards=Object.entries(GN).filter(([k])=>gv[k]).map(([k,[n,c]])=>`<div style="flex:1;min-width:150px;border-left:3px solid ${c};padding:4px 10px">
-     <div class="mu" style="font-size:11px">${n}</div><div style="font-size:16px"><b>${num(gv[k],0)}</b> ${pct(gu[k],0)}</div></div>`).join('');
+     <div class="mu" style="font-size:11px">${n}</div><div style="font-size:16px"><b>${VC+num(gv[k],VD)}</b> ${pct(gu[k],0)}</div></div>`).join('');
   const bar=`<div style="position:relative;height:26px;margin:6px 0 14px;background:rgba(255,255,255,.04);border-radius:3px">
-     ${Object.entries(v.models).map(([k,m])=>`<div title="${esc(k)} ${num(m.value,0)}" style="position:absolute;left:${x(m.value)}%;top:5px;width:3px;height:16px;background:${(GN[m.group]||['','#aaa'])[1]}"></div>`).join('')}
+     ${Object.entries(v.models).map(([k,m])=>`<div title="${esc(k)} ${VC+num(m.value,VD)}" style="position:absolute;left:${x(m.value)}%;top:5px;width:3px;height:16px;background:${(GN[m.group]||['','#aaa'])[1]}"></div>`).join('')}
      <div title="현재가" style="position:absolute;left:${x(close)}%;top:0;width:2px;height:26px;background:#fc3"></div></div>`;
-  const rows=Object.entries(v.models).map(([k,m])=>`<tr><td class="l"><span style="color:${(GN[m.group]||['','#aaa'])[1]}">■</span> ${esc(k)}</td><td>${num(m.value,0)}</td><td>${pct(m.upside,0)}</td></tr><tr><td colspan="3" class="l mu" style="white-space:normal;font-size:11px;padding:0 6px 6px 22px;border-bottom:1px solid #1c1c1c">${esc(m.note)}</td></tr>`).join('');
+  const rows=Object.entries(v.models).map(([k,m])=>`<tr><td class="l"><span style="color:${(GN[m.group]||['','#aaa'])[1]}">■</span> ${esc(k)}</td><td>${VC+num(m.value,VD)}</td><td>${pct(m.upside,0)}</td></tr><tr><td colspan="3" class="l mu" style="white-space:normal;font-size:11px;padding:0 6px 6px 22px;border-bottom:1px solid #1c1c1c">${esc(m.note)}</td></tr>`).join('');
   const f=v.fscore, d=v.dupont, a=v.assumptions||{}, sh=v.shares||{}, P=x=>x==null?'—':(x*100).toFixed(1)+'%';
   return `${v.verdict?`<div style="border:1px solid #fc3;padding:8px 10px;margin-bottom:8px;line-height:1.6"><b style="color:#fc3">결론</b> ${esc(v.verdict)}</div>`:''}
-   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${cards}${v.signal_fv?`<div style="flex:1;min-width:150px;border-left:3px solid #fc3;padding:4px 10px"><div class="mu" style="font-size:11px">신호 가중 (현재이익 ${Math.round(v.signal_fv.w_current*100)}%)</div><div style="font-size:16px"><b>${num(v.signal_fv.value,0)}</b> ${pct(v.signal_fv.upside,0)}</div></div>`:''}</div>
-   <div class="mu" style="font-size:11px">현재가 <b style="color:#fc3">${num(close,0)}</b> · 전체 범위 ${num(r.low,0)} ~ ${num(r.high,0)} · PER ${v.per??'—'}${v.per_reported&&v.per_reported!==v.per?` (보고이익 기준 ${v.per_reported})`:''} · PBR ${v.pbr??'—'}${v.implied_g!=null?` · 역DCF 내재 영구성장 ${(v.implied_g*100).toFixed(1)}%`:''}</div>${bar}
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">${cards}${v.signal_fv?`<div style="flex:1;min-width:150px;border-left:3px solid #fc3;padding:4px 10px"><div class="mu" style="font-size:11px">신호 가중 (현재이익 ${Math.round(v.signal_fv.w_current*100)}%)</div><div style="font-size:16px"><b>${VC+num(v.signal_fv.value,VD)}</b> ${pct(v.signal_fv.upside,0)}</div></div>`:''}</div>
+   <div class="mu" style="font-size:11px">현재가 <b style="color:#fc3">${VC+num(close,VD)}</b> · 전체 범위 ${VC+num(r.low,VD)} ~ ${VC+num(r.high,VD)} · PER ${v.per??'—'}${v.per_reported&&v.per_reported!==v.per?` (보고이익 기준 ${v.per_reported})`:''} · PBR ${v.pbr??'—'}${v.implied_g!=null?` · 역DCF 내재 영구성장 ${(v.implied_g*100).toFixed(1)}%`:''}</div>${bar}
    <table style="max-width:640px"><tr><th class="l">모델</th><th>적정가</th><th>괴리</th></tr>${rows}</table>
+   ${v.cycle_view&&v.cycle_view.lines?`<div style="font-size:12px;margin-top:6px;border-left:2px solid var(--amber);padding-left:6px"><b class="am">사이클 두 관점</b>${v.cycle_view.lines.map(t=>`<div>· ${esc(t)}</div>`).join('')}</div>`:''}
    ${(v.flags||[]).map(t=>`<div style="color:#fb6;font-size:11px;margin-top:4px">⚠ ${esc(t)}</div>`).join('')}
    <div class="mu" style="font-size:11px;margin-top:8px;line-height:1.6">
    ROE 현재 ${P(v.roe)}${v.roe_reported!=null&&v.roe_reported!==v.roe?` (보고 ${P(v.roe_reported)})`:''} · ${a.roe_years||''}년 평균 ${P(v.roe_norm)} · 최저 ${P(v.roe_min)} · 최고 ${P(v.roe_max)} · 시장 반영 ${P(v.implied_roe)}
    ${d?`<br>듀폰: 순이익률 ${(d.margin*100).toFixed(1)}% × 회전율 ${d.turnover}회 × 레버리지 ${d.leverage}배`:''}<br>
    ${f?`F-score ${f.score}/${f.max} (Piotroski 변형) — ${Object.entries(f.tests).map(([k,ok])=>`<span style="color:${ok?'#4e9':'#e66'}">${ok?'✓':'✗'} ${esc(k)}</span>`).join(' · ')}<br>`:''}
-   RIM 민감도 (COE): ${Object.entries(v.rim_sens||{}).map(([k,x])=>`${k} ${num(x,0)}`).join(' / ')||'—'}<br>
+   RIM 민감도 (COE): ${Object.entries(v.rim_sens||{}).map(([k,x])=>`${k} ${VC+num(x,VD)}`).join(' / ')||'—'}<br>
    주식 수 ${num(sh.shares,0)}주 — ${esc(sh.src||'')}${sh.treasury_pct?` · 자사주 ${(sh.treasury_pct*100).toFixed(1)}%`:''}${sh.pref_pct?` · 우선주 ${(sh.pref_pct*100).toFixed(1)}%`:''}<br>
    가정: COE ${(a.coe*100).toFixed(0)}% · 영구성장 ${(a.g*100).toFixed(0)}% · 기준 ${esc(a.period||'')} TTM · 업종 ${esc(v.sector||'—')}${v.peer?` (PER ${v.peer.per?.toFixed?.(1)??'—'} / PBR ${v.peer.pbr?.toFixed?.(2)??'—'}, n=${v.peer.n})`:''}${a.financial_sector?' · 금융업: 현금흐름 모델 제외':''}</div>`;
 }
@@ -225,7 +227,7 @@ function renderDetail(sym,mk,s){
    <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
    <div class="p c12"><h2>TREND SIMULATION${s.sim&&(s.sim.fresh||[]).length?' <span class="tag" style="border-color:var(--up);color:var(--up)">🟢 오늘 켜짐 '+s.sim.fresh.length+'</span>':''}<small>${s.sim&&s.sim.days?`최근 ${s.sim.days}거래일(${s.sim.from}~) · 종가 체결 · 왕복비용 ${(s.sim.cost*100).toFixed(2)}% 가정 · 과거 성과, 예측 아님`:''}</small></h2><div class="b">${simTable(s.sim)}</div></div>
    ${(kr||(s.drivers&&Object.keys(s.drivers).length))?`<div class="p c12"><h2>EARNINGS DRIVERS<small>이익이 유지될까 · ${kr?'공급망·매크로·애널리스트·뉴스·공시':'EPS 추정 변화·매출·공급망·매크로'}</small></h2><div class="b">${drvPanel(s.drivers,s.valuation)}</div></div>`:''}
-   ${kr?`<div class="p c12"><h2>VALUATION<small>3개 시나리오 · 범위로 볼 것, 점 추정 아님</small></h2><div class="b">${valPanel(s.valuation,s.close)}</div></div>`:''}
+   ${(kr||(s.valuation&&s.valuation.models&&Object.keys(s.valuation.models).length))?`<div class="p c12"><h2>VALUATION<small>3개 시나리오 · 범위로 볼 것, 점 추정 아님${s.valuation&&s.valuation.currency==='USD'?' · USD · 미장 가정(COE=미10년+ERP 5%, g 2.5%)':''}</small></h2><div class="b">${valPanel(s.valuation,s.close)}</div></div>`:''}
    ${kr&&s.short?`<div class="p c12"><h2>SHORT · 공매도<small>KRX · ${esc(s.short.asof||'')} 기준 (잔고는 T+2 공시)</small></h2><div class="b" style="line-height:1.8;white-space:normal">
      <div>잔고 비중(상장주식 대비) <b>${s.short.ratio!=null?s.short.ratio.toFixed(2)+'%':'—'}</b> · 잔고 금액 ${s.short.amt?num(s.short.amt/1e8,0)+'억':'—'} · 5일 변화 ${s.short.chg5!=null?(s.short.chg5>0?'+':'')+s.short.chg5.toFixed(2)+'%p':'—'} · 20일 변화 ${s.short.chg20!=null?(s.short.chg20>0?'+':'')+s.short.chg20.toFixed(2)+'%p':'—'} · 최근 5일 공매도 거래 비중 ${s.short.vol5!=null?s.short.vol5.toFixed(1)+'%':'—'}</div>
      <div class="mu" style="font-size:12px">${s.short.ratio>=3?'잔고가 많은 편 — 반등이 시작되면 되사기(숏커버)로 탄력이 붙을 수 있지만, 반대로 공매도 세력이 하락에 강하게 베팅하고 있다는 뜻이기도 함':s.short.ratio>=1?'잔고 보통 이상':'잔고 적음 — 숏스퀴즈 재료는 약함'}${s.short.chg20>0.3?' · 최근 20일 잔고 증가 중':s.short.chg20<-0.3?' · 최근 20일 잔고 감소(숏커버 진행)':''}</div></div></div>`:''}
