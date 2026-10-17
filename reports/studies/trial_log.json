@@ -87,7 +87,7 @@
    "question": "ISA 채권 20% 슬리브: 국고채 vs 미국채(환노출·환헤지), 원화 기준",
    "unregistered_trials": 0,
    "unregistered_note": "FX 복원 검증(달러선물 ETF↔현물 2024-09~)은 데이터 준비 단계로 결과 비교 아님",
-   "discarded": ""
+   "discarded": "슬리브 간 장기·믹스 성과 구별 불가 → 선택은 정성(채권·매크로)과 환노출 한도로"
   }
  },
  "trials": [
@@ -178,8 +178,8 @@
    "topic": "bond_sleeve",
    "hypothesis": "(사전등록 m=11) H1 KOSPI≤−5% 달 평균: UST-UH−KTB10·UST-H−KTB10·UST-UH−UST-H >0 / H2 ISA믹스 샤프: UST-UH슬리브 vs KTB10·UST-H vs KTB10·UST-UH vs UST-H (블록 부트스트랩) / H3 BOK 인상기(2017-11~2018-11·2021-08~2023-01) 월평균 KTB10−UST-UH·KTB10−UST-H <0 / H4 직전6개월 USDKRW 상승 국면(사전 판정) 다음달 UST-UH−KTB10 >0 / H5 전체 월평균 UST-UH−KTB10·UST-H−KTB10",
    "params": "월간 2011-11~2026-09(148070 상장 이후 공통), 월말 신호→다음 거래일 종가 체결, 교체 편도 0.1%. KTB10=148070, KTB3=114260(서술만), UST-UH=IEF×USDKRW, UST-H=IEF−(미 정책금리−한 기준금리)/12, TLT-UH 서술만. USDKRW=달러선물 ETF(138230→261240) 수익−미 정책금리/12로 복원(야후·FRED 차단). ISA믹스=S&P40·NDX10·K200 15·채권20·금15(GLD×FX) 월 리밸런싱. Bonferroni α=0.05/11. 등급 rule_audit 규약(A=보정 유의+IS(~2018)·OOS(2019~) 같은 방향, B=보정 유의, C=p<0.10, F, 검증전=n<8). 부트스트랩 블록6 B=5000 시드 20261017",
-   "result": "(계산 전 등록 — 결과는 이 줄 아래 갱신 커밋)",
-   "discarded_why": "",
+   "result": "179개월. A 1(H1c 위기월 UH−H +1.79%p p0.0042 경계·IS 7건) · C 1(H1a 위기월 UH−KTB10 +2.19%p p0.0072) · F 9(ISA 샤프차 H2 ×3, 한은 인상기 H3 ×2 반대방향, 사전 FX 추세 H4, 전체 H5 ×2). ISA 믹스 샤프 1.26~1.28·MDD −12.5~−13.8% 구별 불가. 2026-07 원화강세형 위기에 UST-UH −9.1%",
+   "discarded_why": "오건영 관점(한은 인상→국고채 불리, 달러 롱 타이밍) 사전 활용 근거 없음(F). 위기 쿠션 우위는 원화 약세형 위기에 한정",
    "study": "ktb_vs_ust"
   }
  ]
