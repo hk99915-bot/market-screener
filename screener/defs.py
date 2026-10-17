@@ -54,6 +54,7 @@ CRASH_ALERT_PCT = -0.045    # 15:05 장중 급락 신호 (확정 −5% 보다 �
 MIN_RR = 2.0                # 주문표 R:R ≥ 2
 HARD_STOP = 0.08            # 실효 손절 = max(주문표 손절가, 매수가 × (1 − 0.08))
 RISK_PCT_DEFAULT = 0.25     # denominator=D5 1회 리스크 1단계 0.25%
+TELEGRAM_ALL_SILENT = True   # 오너 10/17 15시대 "전체 무음으로 해조" — 모든 텔레그램 무음(RING_KINDS 표는 보존, 되돌릴 땐 False)
 COOLDOWN_MIN = 30           # 매도·판정·포상 후 신규 주문표 금지(분, 결재 #14 ③)
 
 # 상수 이름 → rules_terms.md 용어표의 용어 (check_rules_terms 가 문서에 있는지 검사)

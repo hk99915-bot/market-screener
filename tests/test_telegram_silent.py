@@ -28,12 +28,22 @@ def test_default_is_silent(posted):
     assert posted[0]["text"].startswith("📐 점도표")
 
 
-def test_explicit_loud(posted):
+def test_explicit_loud_is_overridden_when_all_silent(posted, monkeypatch):
+    from screener import defs
+    report.send_telegram("⛔ 손절선", disable_notification=False)
+    assert posted[0]["disable_notification"] == ("true" if defs.TELEGRAM_ALL_SILENT else "false")
+
+
+def test_explicit_loud_when_switch_off(posted, monkeypatch):
+    from screener import defs
+    monkeypatch.setattr(defs, "TELEGRAM_ALL_SILENT", False)
     report.send_telegram("⛔ 손절선", disable_notification=False)
     assert posted[0]["disable_notification"] == "false"
 
 
-def test_long_text_keeps_flag_on_every_chunk(posted):
+def test_long_text_keeps_flag_on_every_chunk(posted, monkeypatch):
+    from screener import defs
+    monkeypatch.setattr(defs, "TELEGRAM_ALL_SILENT", False)
     report.send_telegram("\n".join("x" * 100 for _ in range(80)), disable_notification=False)
     assert len(posted) >= 2 and {c["disable_notification"] for c in posted} == {"false"}
 

@@ -235,6 +235,9 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
 def send_telegram(text: str, *, disable_notification: bool = True) -> None:
     """텔레그램 전송. 기본 **무음**(disable_notification=True). 소리는 결재 #9 등급표(screener/alerts.py RING_KINDS)에 있는
     다섯 종류만 호출부가 `alerts.silent(keys)` 로 켠다 — 본문 이모지(⛔/⚡)로 소리를 정하지 않는다(10/17 최종안)."""
+    from .defs import TELEGRAM_ALL_SILENT
+    if TELEGRAM_ALL_SILENT:   # 오너 10/17 "전체 무음" — 호출부가 소리를 요청해도 무음 (단일 지점)
+        disable_notification = True
     if not CFG.telegram_token or not CFG.telegram_chat:
         raise RuntimeError("텔레그램 미설정: TELEGRAM_TOKEN / TELEGRAM_CHAT_ID 시크릿이 비어 있음 (이름 철자 확인)")
     import re
