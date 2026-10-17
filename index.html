@@ -2046,6 +2046,36 @@ function decBox(){
      apps-script/Index.html 이 include('tab_mkt_deriv') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
+// 베이시스 팝업 (10/17 겸이: 티커·카드의 베이시스/콘탱고 누르면) — data/deriv/daily.csv 의 basis·basis_theo 이력
+let BSH=null;
+function openBasis(){
+  $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent='베이시스 (선물 − 현물)';$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
+  const show=()=>{ const R=(BSH||[]).filter(r=>r.basis!=null); if(!R.length){ $('#dr-b').innerHTML='<div class="err">베이시스 이력 없음</div>'; return; }
+    const last=R[R.length-1], y1=R.slice(-250), srt=y1.map(r=>r.basis).sort((a,b)=>a-b), pctl=srt.filter(v=>v<=last.basis).length/srt.length, back20=R.slice(-20).filter(r=>r.basis<0).length;
+    const lab=b=>b<-1?'<b class="dn">백워데이션</b>':b>1?'<b class="up">콘탱고</b>':'<b>중립</b>';
+    const n=Math.min(R.length,250), b=R.slice(-n), W=900, H=260, lo=Math.min(...b.map(r=>Math.min(r.basis,r.theo??r.basis)),0), hi=Math.max(...b.map(r=>Math.max(r.basis,r.theo??r.basis)),0), pad=(hi-lo)*0.08||1;
+    const Y=v=>12+(hi+pad-v)/((hi+pad)-(lo-pad))*(H-34), X=i=>48+(W-60)*i/(n-1||1);
+    const path=k=>b.map((r,i)=>r[k]==null?'':`${i&&b[i-1][k]!=null?'L':'M'}${X(i).toFixed(1)},${Y(r[k]).toFixed(1)}`).join('');
+    $('#dr-s').innerHTML=`${last.basis>0?'+':''}${last.basis.toFixed(2)}p · ${lab(last.basis)} · ${esc(last.date)}`;
+    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>지금<small>${esc(last.date)} 종가 기준 · data/deriv/daily.csv</small></h2><div class="b" style="line-height:1.8;white-space:normal">
+      실제 <b>${last.basis>0?'+':''}${last.basis.toFixed(2)}</b>p ${lab(last.basis)}${last.theo!=null?` · 이론값 ${last.theo.toFixed(2)}p (금리·배당으로 계산) · 실제−이론 <b class="${last.basis-last.theo<0?'dn':'up'}">${(last.basis-last.theo).toFixed(2)}p</b>`:''}<br>
+      최근 1년 중 위치 <b>${Math.round(pctl*100)}%</b> (0%=가장 낮음) · 최근 20거래일 중 백워데이션(0 아래) <b>${back20}</b>일</div></div>
+     <div class="p c12"><h2>최근 1년<small>━ 실제 · ┅ 이론 · 0선</small></h2><div class="b"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:#050505">
+      <line x1="48" x2="${W-12}" y1="${Y(0)}" y2="${Y(0)}" stroke="#444" stroke-dasharray="4 4"/>
+      ${[hi,0,lo].map(v=>`<text x="4" y="${Y(v)+4}" fill="#777" font-size="12" font-family="monospace">${v.toFixed(1)}</text>`).join('')}
+      <path d="${path('theo')}" fill="none" stroke="#777" stroke-width="1.2" stroke-dasharray="3 3"/><path d="${path('basis')}" fill="none" stroke="#fc3" stroke-width="2"/>
+      ${[0,Math.floor(n/2),n-1].map(i=>`<text x="${X(i)-30}" y="${H-6}" fill="#777" font-size="12" font-family="monospace">${esc(b[i].date)}</text>`).join('')}</svg></div></div>
+     <div class="p c12"><h2>읽는 법<small>비유 → 용어 → 공식</small></h2><div class="b" style="line-height:1.8;white-space:normal;font-size:13px">
+      <b>비유</b> — 다음 달 받을 물건을 오늘 미리 사면 보통 웃돈(보관비·이자)을 얹어 준다. 웃돈이 붙으면 <b>콘탱고</b>, 오히려 할인되면 <b>백워데이션</b>.<br>
+      <b>용어</b> — 베이시스 = 코스피200 선물 − 현물(포인트). 이론값 = 현물 × (금리 − 배당수익률) × 남은 기간. 실제가 이론보다 많이 낮으면 선물을 급히 파는 쪽(헤지·공포)이 많다는 뜻.<br>
+      <b>공식</b> — 이론 베이시스 ≈ S × (r − d) × t/365. 예: S 878, r 3.0%, d 1.5%, t 30일 → 878 × 0.015 × 30/365 ≈ 1.08p.<br>
+      <span class="mu">주의: 백워데이션 자체는 매매 신호가 아님(등급은 파생 데스크 연구 참조). 만기 주(둘째 목요일) 근처엔 0으로 수렴.</span>
+      <div style="margin-top:6px"><button class="sbtn" onclick="$('#dr').classList.remove('on');$('#bd').classList.remove('on');setView('deriv')">파생 탭 전체 차트 →</button></div></div></div></div>`; };
+  if(BSH) return show();
+  google.script.run.withSuccessHandler(t=>{ try{ const L=String(t).trim().split(/\r?\n/), h=L[0].split(','), ix=k=>h.indexOf(k), f=(a,k)=>{const v=parseFloat(a[ix(k)]); return isFinite(v)?v:null;};
+      BSH=L.slice(1).map(l=>{const a=l.split(','); return {date:a[ix('date')], basis:f(a,'basis'), theo:f(a,'basis_theo')};}); }catch(e){ BSH=[]; } show(); }).withFailureHandler(()=>{ BSH=[]; show(); }).getDerivHist(); }
+document.addEventListener('click',e=>{ const c=e.target.closest('[data-basis]'); if(c&&!c.closest('.tape')) openBasis(); });
+
 /* ───── 파생(DERIV) 화면: 흩어진 파생 정보 모음 — reports/derivs.json · data/deriv/daily.csv · reports/studies/derivs_signals.json · live.json K200F (새 수집 없음) ───── */
 const DVX={d:null,h:null,s:null,g:null}; let DVCH=[];
 function dvLoad(k,fn,parse){ if(DVX[k]!==null) return; DVX[k]=false; const r=google.script.run;
@@ -2074,7 +2104,7 @@ function derivView(){
   const cards=[
     card('코스피200 현물',f(lv&&lv.spot!=null?lv.spot:(fu.spot??d.spot)),lv?`실시간(${esc(lv.src||'')}) · ${esc(lv.status||'')}`:`KRX ${esc(d.date||'')} 종가`,'참고'),
     card('코스피200 선물',f(lv?lv.last:fu.close),lv?`${pct(lv.chg,2)} · ${esc(fu.name||'')}`:esc(fu.name||''),'참고'),
-    card('베이시스 (선물−현물)',sg(lb),`${lb==null?'':lb>=0?'선물이 비쌈(콘탱고)':'선물이 쌈(백워데이션)'}${bt&&bt.basis_theo!=null?` · 이론값 ${f(bt.basis_theo)}`:''}`,dvGrade('fut_basis')),
+    `<div data-basis="1" style="flex:1;min-width:150px;cursor:pointer" title="누르면 설명·1년 이력">`+card('베이시스 (선물−현물) ↗',sg(lb),`${lb==null?'':lb>=0?'선물이 비쌈(콘탱고)':'선물이 쌈(백워데이션)'}${bt&&bt.basis_theo!=null?` · 이론값 ${f(bt.basis_theo)}`:''}`,dvGrade('fut_basis'))+`</div>`,
     card('최근월 옵션 만기',d.expiry?esc(d.expiry.slice(5))+` <span class="am">D-${d.dte??'?'}</span>`:'—',`${esc(d.front||'')} 물 · 만기일엔 흔들림이 커질 수 있음`,'참고'),
     card('외국인 선물 순매수',ff?sg(ff.fut_frgn,0)+'<span class="mu" style="font-size:11px"> 계약</span>':'—',ff?`${esc(ff.date)} · 기관 ${sg(ff.fut_inst,0)} · 개인 ${sg(ff.fut_indiv,0)}`:'적재 전',dvGrade('fut_foreign_flow')),
     card('야간선물 (KRX 평균가)',nt?f(nt.night_vwap):'—',nt?`${esc(nt.date)} 세션 · 거래 ${num(nt.night_vol)}계약 · 다음날 시가 갭 예상용`:'데이터 없음',dvGrade('night_futures'))
@@ -2438,6 +2468,7 @@ function openMacro(key){
 document.addEventListener('click',e=>{const td=e.target.closest('td.mac'); if(td) openMacro(td.dataset.key);
   const ti=e.target.closest('.tape .ti'); if(!ti) return;
   if(ti.dataset.key) openMacro(ti.dataset.key);
+  else if(ti.dataset.basis&&typeof openBasis==='function') openBasis();
   else if(ti.dataset.view){ setView(ti.dataset.view); } });
 const PXMAC={'^SOX':null,'CL=F':'WTI','^TNX':'US10Y','GC=F':'GOLD','^KS11':'KOSPI','KRW=X':'USDKRW'};
 document.addEventListener('click',e=>{const p=e.target.closest('.px'); if(!p) return; const t=p.dataset.t;
@@ -2660,7 +2691,7 @@ function tkItem(k,v,c,dg){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f',
   return `<span class="ti ${cls}" data-key="${esc(k)}" title="${esc(k)} 차트 보기"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}</span></span>`; }
 function tape(){
   const items=[], seen=new Set();
-  if(L&&L.items&&L.items.length){ items.push(`<span class="ti lv"><b>LIVE</b><span class="v mu">${esc(L.updated_at||'')}</span></span>`); for(const d of L.items){seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg,2)); if(d.key==='K200F'&&d.basis!=null) items.push(`<span class="ti ${d.basis<-1?'d':d.basis>1?'u':'f'}" title="선물−현물. 크게 마이너스면 선물 투매(공포)"><b>베이시스</b><span class="v">${d.basis>0?'+':''}${d.basis.toFixed(2)}</span><span class="c">${d.basis<-1?'백워데이션':d.basis>1?'콘탱고':'중립'}</span></span>`);} }
+  if(L&&L.items&&L.items.length){ items.push(`<span class="ti lv"><b>LIVE</b><span class="v mu">${esc(L.updated_at||'')}</span></span>`); for(const d of L.items){seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg,2)); if(d.key==='K200F'&&d.basis!=null) items.push(`<span class="ti ${d.basis<-1?'d':d.basis>1?'u':'f'}" data-basis="1" title="선물−현물. 크게 마이너스면 선물 투매(공포) · 누르면 설명·이력"><b>베이시스</b><span class="v">${d.basis>0?'+':''}${d.basis.toFixed(2)}</span><span class="c">${d.basis<-1?'백워데이션':d.basis>1?'콘탱고':'중립'}</span></span>`);} }
   for(const mk of ['KR','US']){const m=(D.state||{})['macro_'+mk]; if(m&&m.value) for(const d of m.value){ if(seen.has(d.key)) continue; seen.add(d.key); items.push(tkItem(d.key,d.last,d.chg1));}}
   const b=(D.breadth||[]); for(const mk of ['KR','US']){const x=b.filter(r=>r.market===mk).pop(); if(x){ const p=x.pct_above200, cls=p>=0.6?'u':p<0.4?'d':'f'; items.push(`<span class="ti ${cls}" data-view="${mk.toLowerCase()}" title="${mk} 화면으로"><b>${mk} BREADTH</b><span class="v">200D↑ ${Math.round(p*100)}%</span><span class="c">A/D ${x.adv}/${x.dec}</span></span>`);} }
   if(!items.length){ $('#tape').innerHTML='<span class="mu" style="padding:0 16px">no data</span>'; TAPE_HTML=''; return; }

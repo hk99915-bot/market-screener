@@ -175,6 +175,7 @@ function openMacro(key){
 document.addEventListener('click',e=>{const td=e.target.closest('td.mac'); if(td) openMacro(td.dataset.key);
   const ti=e.target.closest('.tape .ti'); if(!ti) return;
   if(ti.dataset.key) openMacro(ti.dataset.key);
+  else if(ti.dataset.basis&&typeof openBasis==='function') openBasis();
   else if(ti.dataset.view){ setView(ti.dataset.view); } });
 const PXMAC={'^SOX':null,'CL=F':'WTI','^TNX':'US10Y','GC=F':'GOLD','^KS11':'KOSPI','KRW=X':'USDKRW'};
 document.addEventListener('click',e=>{const p=e.target.closest('.px'); if(!p) return; const t=p.dataset.t;
