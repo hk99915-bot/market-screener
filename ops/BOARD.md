@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 93개 · 진행 6 · 검수 22 · 대기 35 · 보류 2 · 완료 28
+기준일 2026-10-17 · 작업 94개 · 진행 6 · 검수 22 · 대기 36 · 보류 2 · 완료 28
 
 ## 진행 (6)
 
@@ -42,7 +42,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (35)
+## 대기 (36)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -78,6 +78,7 @@
 | P2 | `pub-whitelist` | 공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 감사 | 검증 | — | 2026-10-31 | `.github/workflows/*.yml`<br>`scripts/slop_audit.py` | — | 외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지. |
 | P2 | `score-calib` | 점수 보정 — Trend/Momentum/Reversal 분포·상한 도달 빈도, 구간별 5/20/60일 수익, 지표 제거 실험 | 퀀트 | — | 2026-10-31 | `screener/scoring.py`<br>`screener/indicators.py`<br>`tests/test_indicators_edge.py` | `px-adjust-unify` | 외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시. |
 | P2 | `pro-plan-round-scale` | Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·우선 데스크, 21:10 자동 라운드 교체 | PM | — | 2026-11-05 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17. |
+| P2 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
 | P2 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
 | P3 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |

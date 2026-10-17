@@ -1645,6 +1645,23 @@
    ],
    "notes": "실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다.",
    "desk": "매크로"
+  },
+  {
+   "id": "us-delisted-earnings",
+   "title": "US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용",
+   "owner": "데이터",
+   "status": "대기",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    "data/hist/us_*.parquet",
+    "screener/universe.py"
+   ],
+   "started": null,
+   "due": "2026-11-07",
+   "depends_on": [],
+   "notes": "퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B).",
+   "desk": "데이터"
   }
  ]
 }
