@@ -1,28 +1,35 @@
-2026-10-17 00:46:55,331 INFO screener.universe: US 유니버스 nasdaqtrader: 5870종목
-2026-10-17 00:46:55,335 INFO screener.universe: US 지수 유니버스 523종목 (S&P500 ∪ NDX)
-2026-10-17 00:46:55,335 INFO screener: US 유니버스 523종목
-2026-10-17 00:47:02,589 INFO screener.data: US 시세 배치 1/4
-2026-10-17 00:47:14,289 INFO screener.data: US 시세 배치 2/4
-2026-10-17 00:47:27,244 INFO screener.data: US 시세 배치 3/4
-2026-10-17 00:47:32,589 INFO screener.data: US 시세 배치 4/4
-2026-10-17 00:47:32,638 INFO screener: 시세 142976행 / 523종목
-2026-10-17 00:47:33,090 INFO screener: 필터 후 519종목 · 기준일 2026-10-15 · CONFIRMED
-2026-10-17 00:47:33,933 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-17 00:47:33,939 WARNING screener: 국내 지수 보정 실패: 'bool' object has no attribute 'patch_macro'
-2026-10-17 00:47:35,522 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-17 00:47:35,575 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지
-2026-10-17 00:47:35,913 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-17 00:47:35,969 INFO matplotlib.font_manager: generated new fontManager
-2026-10-17 00:47:46,787 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-17 00:47:50,725 INFO screener.live: live.json 17개 지표
-2026-10-17 00:47:50,779 INFO screener.macroview: 매크로 해설: 매크로 바람 역풍 (-0.21) — 주된 요인: 원/달러 +, 나스닥 −, 미 10년 금리 − · 매크로 역풍 + 한국 초과 하락 겹침 (20일 코스피 -15.2% vs S&P +0.1% (격차 -15.3%p))
-2026-10-17 00:47:57,451 INFO screener.momentum: 모멘텀 순위 US 518종목
-2026-10-17 00:48:00,297 INFO screener.drivers: 미장 이익 드라이버 523종목
-2026-10-17 00:48:00,961 INFO screener.detail: 미장 재무 요약 508종목
-2026-10-17 00:48:01,624 INFO screener.detail: detail/US: 523종목, 26576 KB
-2026-10-17 00:48:23,326 INFO screener.etf: ETF US 64개 (22s)
-2026-10-17 00:48:23,402 INFO screener.dashboard: dashboard.json 갱신 (101926 bytes)
-2026-10-17 00:48:23,524 INFO screener.dashboard: research.json 1395건
-2026-10-17 00:48:23,531 INFO screener.dashboard: disclosures.json 395건
-2026-10-17 00:48:23,558 INFO screener.daily: 데일리 리포트: 리포트 91건, 테마 21개, 통합 체크 1개
-2026-10-17 00:48:23,581 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
+2026-10-17 15:05:44,665 INFO screener.universe: US 유니버스 nasdaqtrader: 5870종목
+2026-10-17 15:05:44,668 INFO screener.universe: US 지수 유니버스 523종목 (S&P500 ∪ NDX)
+2026-10-17 15:05:44,668 INFO screener: US 유니버스 523종목
+2026-10-17 15:05:45,061 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
+2026-10-17 15:05:56,995 INFO screener.data: US 시세 배치 1/4
+2026-10-17 15:06:09,062 INFO screener.data: US 시세 배치 2/4
+2026-10-17 15:06:18,656 INFO screener.data: US 시세 배치 3/4
+2026-10-17 15:06:22,907 INFO screener.data: US 시세 배치 4/4
+2026-10-17 15:06:22,947 INFO screener: 시세 143499행 / 523종목
+2026-10-17 15:06:23,207 INFO screener: 필터 후 519종목 · 기준일 2026-10-16 · CONFIRMED
+2026-10-17 15:06:24,092 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-17 15:06:26,344 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-17 15:06:26,419 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-10-17 15:06:26,652 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-17 15:06:26,717 INFO matplotlib.font_manager: generated new fontManager
+2026-10-17 15:06:34,742 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-17 15:06:37,714 INFO screener.live: live.json 17개 지표
+2026-10-17 15:06:37,752 INFO screener.macroview: 매크로 해설: 매크로 바람 역풍 (-0.21) — 주된 요인: 원/달러 +, 나스닥 −, 미 10년 금리 − · 매크로 역풍 + 한국 초과 하락 겹침 (20일 코스피 -15.2% vs S&P +0.1% (격차 -15.3%p))
+2026-10-17 15:06:48,272 INFO screener.momentum: 모멘텀 순위 US 518종목
+2026-10-17 15:07:02,946 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: DX-Y.NYB"}}}
+2026-10-17 15:07:28,895 INFO screener.drivers: 체인 프록시 87개
+2026-10-17 15:07:35,191 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: FOX"}}}
+2026-10-17 15:07:44,445 INFO screener.drivers: 미장 EPS 추정 523종목
+2026-10-17 15:07:44,453 INFO screener.drivers: 미장 이익 드라이버 523종목
+2026-10-17 15:07:44,808 INFO screener.detail: 미장 재무 요약 508종목
+2026-10-17 15:07:45,249 INFO screener.valuation: US 가치평가 517종목 (검증전 108)
+2026-10-17 15:07:45,706 INFO screener.detail: detail/US: 523종목, 28042 KB
+2026-10-17 15:07:45,709 INFO screener.detail: sim_signals_US: 스캔 519 · 통과 0 · 기대 우연 1.6
+2026-10-17 15:08:10,777 INFO screener.etf: ETF US 64개 (25s)
+2026-10-17 15:08:10,845 INFO screener.dashboard: dashboard.json 갱신 (95344 bytes)
+2026-10-17 15:08:11,265 INFO screener.dashboard: 리서치 국면 태그 1376건
+2026-10-17 15:08:11,284 INFO screener.dashboard: research.json 1376건
+2026-10-17 15:08:11,291 INFO screener.dashboard: disclosures.json 395건
+2026-10-17 15:08:11,313 INFO screener.daily: 데일리 리포트: 리포트 91건, 테마 21개, 통합 체크 1개
+2026-10-17 15:08:11,334 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건

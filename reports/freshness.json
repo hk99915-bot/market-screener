@@ -1,26 +1,7 @@
 {
- "checked_at": "2026-10-17 23:10",
+ "checked_at": "2026-10-18 00:08",
  "n": 23,
- "late": [
-  {
-   "id": "chains",
-   "path": "reports/chains.json",
-   "expected": "2026-10-16",
-   "actual": "2026-10-15",
-   "mode": "detail 빌드 안 drivers.fetch_proxies (screener KR 16:20 · briefing screen_us 06:52 KST, 캐시 6h — asof 기준)",
-   "fix": "gh workflow run briefing.yml -f mode=detail_us -f commit=true",
-   "desc": "체인 프록시·매크로 팩터 가격 캐시 (drivers 화면) — 감사 M1 10/17: mtime 캐시가 CI 에서 만료 안 돼 10/15 정지"
-  },
-  {
-   "id": "us_eps",
-   "path": "reports/us_eps.json",
-   "expected": "2026-10-16",
-   "actual": "2026-10-15",
-   "mode": "briefing screen_us (06:52 KST) drivers.fetch_us_eps (캐시 6h — asof 기준)",
-   "fix": "gh workflow run briefing.yml -f mode=detail_us -f commit=true",
-   "desc": "US 종목 EPS 추정 변화·매출 YoY 캐시 — 감사 M1 10/17"
-  }
- ],
+ "late": [],
  "regress_today": [],
  "regress_blocked": [],
  "stale_today": [],
