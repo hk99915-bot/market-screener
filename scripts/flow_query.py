@@ -88,6 +88,43 @@ def naver(code: str, pages: int = 14) -> dict:
             "generated_at": datetime.now(KST).isoformat(timespec="minutes"), "rows": rows}
 
 
+def naver_api(code: str, need: int = 260) -> dict:
+    """네이버 모바일 API 투자자 추이 — bizdate 커서로 과거 페이지."""
+    import requests
+    ua = {"User-Agent": "Mozilla/5.0", "Referer": "https://m.stock.naver.com/"}
+    num = lambda x: float(str(x).replace(",", "").replace("+", "")) if str(x).strip() not in ("", "-", "None") else 0.0
+    rows, seen, cur = [], set(), None
+    for _ in range(40):
+        u = f"https://m.stock.naver.com/api/stock/{code}/trend?pageSize=60" + (f"&bizdate={cur}" if cur else "")
+        r = requests.get(u, headers=ua, timeout=15)
+        try:
+            js = r.json()
+        except Exception:  # noqa: BLE001
+            log.warning("trend API 비JSON %s %s", r.status_code, r.text[:200]); break
+        if not isinstance(js, list) or not js:
+            if not rows:
+                log.warning("trend API 응답: %s", str(js)[:300])
+            break
+        if not rows:
+            log.info("trend 키: %s", list(js[0].keys()))
+        new = 0
+        for x in js:
+            d = str(x.get("bizdate", ""))
+            if len(d) != 8 or d in seen:
+                continue
+            seen.add(d); new += 1
+            rows.append({"d": f"{d[:4]}-{d[4:6]}-{d[6:]}", "c": num(x.get("closePrice")),
+                         "v": int(num(x.get("accumulatedTradingVolume"))),
+                         "외국인_q": int(num(x.get("foreignerPureBuyQuant"))), "기관합계_q": int(num(x.get("organPureBuyQuant"))),
+                         "개인_q": int(num(x.get("individualPureBuyQuant"))), "외인보유율": num(str(x.get("foreignerHoldRatio", "0")).replace("%", ""))})
+        if not new or len(rows) >= need:
+            break
+        cur = min(seen)
+    rows.sort(key=lambda r: r["d"])
+    return {"code": code, "asof": rows[-1]["d"] if rows else None, "unit": "주(_q)", "source": "naver m.stock trend",
+            "generated_at": datetime.now(KST).isoformat(timespec="minutes"), "rows": rows}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("codes", nargs="+")
@@ -101,6 +138,8 @@ def main():
             except Exception as ex:  # noqa: BLE001
                 log.warning("%s pykrx 실패 → 네이버 폴백: %s", c, str(ex)[:120])
                 out = {"rows": []}
+            if not out.get("rows"):
+                out = naver_api(c)
             if not out.get("rows"):
                 out = naver(c)
             json.dump(out, open(f"reports/flowq/{c}.json", "w"), ensure_ascii=False)
