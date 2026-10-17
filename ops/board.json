@@ -42,7 +42,7 @@
     "ops-system",
     "gas-repaste"
    ],
-   "notes": "SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. | 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증."
+   "notes": "SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. | 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증. | 운영 10/17 결정C: 실행 이름으로 확인 — GAS = 'briefing [모드] commit=true', 같은 시각 cron = '예약 <cron>' 이 +12분 뒤 'GAS 가 슬롯 … 실행함 — cron 건너뜀' 로그로 끝나야 정상(scripts/slot_guard.py)."
   },
   {
    "id": "close-swap-verify",
@@ -87,7 +87,7 @@
     "apps-script/Index.html"
    ],
    "depends_on": [],
-   "notes": "사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제."
+   "notes": "사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. | 운영 10/17 결정C: Scheduler.gs 가 다시 바뀜(WINDOW_MIN 10·모든 슬롯 commit:'true'·SCHEDULER_VERSION). 체크리스트 docs/schedule_table.md §0 — tickTest 첫 줄 '예약기 버전 2026-10-18 결정C' 확인. 붙여넣기 전에도 commit=auto 로 커밋은 됨(호환)."
   },
   {
    "id": "memproxy-line",
@@ -1662,6 +1662,23 @@
    "depends_on": [],
    "notes": "퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B).",
    "desk": "데이터"
+  },
+  {
+   "id": "schedule-single-accum",
+   "title": "accum.yml 수동 dispatch 읽기 전용 기본(commit 입력 + 저장 조건) — 결정C, 잠금 해제 뒤",
+   "owner": "퀀트",
+   "priority": "P2",
+   "status": "대기",
+   "started": null,
+   "due": "2026-10-20",
+   "repo": "public",
+   "files": [
+    ".github/workflows/accum.yml",
+    "tests/test_schedule_single.py"
+   ],
+   "depends_on": [],
+   "notes": "운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌).",
+   "desk": "운영"
   }
  ]
 }

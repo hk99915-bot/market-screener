@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 94개 · 진행 6 · 검수 22 · 대기 36 · 보류 2 · 완료 28
+기준일 2026-10-17 · 작업 95개 · 진행 6 · 검수 22 · 대기 37 · 보류 2 · 완료 28
 
 ## 진행 (6)
 
@@ -42,14 +42,14 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (36)
+## 대기 (37)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
-| P0 | `gas-repaste` | GAS 편집기 재붙여넣기 (Scheduler.gs: 16:40 deriv_hist + 14:25 rebound 슬롯 · Index.html PIN 토큰) — 사용자 직접 | PB | — | 2026-10-17 | `apps-script/Scheduler.gs`<br>`apps-script/Index.html` | — | 사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. |
+| P0 | `gas-repaste` | GAS 편집기 재붙여넣기 (Scheduler.gs: 16:40 deriv_hist + 14:25 rebound 슬롯 · Index.html PIN 토큰) — 사용자 직접 | PB | — | 2026-10-17 | `apps-script/Scheduler.gs`<br>`apps-script/Index.html` | — | 사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. / 운영 10/17 결정C: Scheduler.gs 가 다시 바뀜(WINDOW_MIN 10·모든 슬롯 commit:'true'·SCHEDULER_VERSION). 체크리스트 docs/schedule_table.md §0 — tickTest 첫 줄 '예약기 버전 2026-10-18 결정C' 확인. 붙여넣기 전에도 commit=auto 로 커밋은 됨(호환). |
 | P0 | `repo-cleanup` | 저장소 대청소: 데이터 브랜치 분리·Pages Actions 배포·기록 정리(filter-repo) | 개발 | — | 2026-10-18 | `.github/workflows/*`<br>`scripts/build_pages.py` | — | 겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. 10:00~12:00 창. 오후 리뷰(sunday-review) 전에 끝내고 재클론·GAS 확인까지. |
 | P0 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | PB | — | 2026-10-19 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). / 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증. |
-| P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | PB | — | 2026-10-19 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system`, `gas-repaste` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. / 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증. |
+| P0 | `gas-sched-verify` | GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20) | PB | — | 2026-10-19 | `apps-script/Scheduler.gs`<br>`.github/workflows/live.yml`<br>`.github/workflows/briefing.yml` | `ops-system`, `gas-repaste` | SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. / 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증. / 운영 10/17 결정C: 실행 이름으로 확인 — GAS = 'briefing [모드] commit=true', 같은 시각 cron = '예약 <cron>' 이 +12분 뒤 'GAS 가 슬롯 … 실행함 — cron 건너뜀' 로그로 끝나야 정상(scripts/slot_guard.py). |
 | P1 | `my-rules-secret` | MY_RULES 시크릿 SEMI_CAP 0.40 설정 — 사용자 직접 | PB | — | 2026-10-17 | — | — | 사용자가 저장소 Settings › Secrets 에서 직접. 값은 비율(0.40)만. 일요일 결정에 따라 0.35 로 바꿀 수 있으니 10/18 리뷰 후 재확인. |
 | P1 | `rep-entry-signals` | 독립 재현: entry_signals (122630·KOSPI 실데이터) — 후보 5개 + 급락일 종가 D0 원 vs 재현 표 | 검증 | — | 2026-10-17 | `scripts/replicate_entry_signals.py`<br>`reports/studies/replication_entry_signals.md`<br>`tests/test_rep_entry_signals.py` | — | 22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. |
 | P1 | `rep-exec-signal` | 독립 재현: exec_signal (KRX 69 업종 kr_sector_daily) — S1~S15 승률·평균 원 vs 재현 표 | 검증 | — | 2026-10-17 | `scripts/replicate_exec_signal.py`<br>`reports/studies/replication_exec_signal.md`<br>`tests/test_rep_exec_signal.py` | — | 22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. |
@@ -66,6 +66,7 @@
 | P1 | `sim-oos` | 트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보정, B&H·섹터 대비 | 퀀트 | — | 2026-10-24 | `screener/detail.py`<br>`reports/studies/trial_log.json` | `px-adjust-unify` | Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
 | P2 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. |
+| P2 | `schedule-single-accum` | accum.yml 수동 dispatch 읽기 전용 기본(commit 입력 + 저장 조건) — 결정C, 잠금 해제 뒤 | 퀀트 | — | 2026-10-20 | `.github/workflows/accum.yml`<br>`tests/test_schedule_single.py` | — | 운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' // inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌). |
 | P2 | `ra-etf-holdings-full` | RA: ETF 구성종목 전체 목록 수집(PSI·SOXX·SMH·139260·091160) → 룩스루·밸류에이션 바스켓 자동 갱신 | 데이터 | — | 2026-10-23 | `screener/etf.py`<br>`reports/detail/US/*.json` | — | 현재 상위 7개만 저장됨. |
 | P2 | `etf-pdf-nav` | ETF 일별 구성종목(PDF)·NAV 괴리 시계열 수집 — 0015B0부터 (액티브셰어·급락일 괴리) | 데이터 | — | 2026-10-24 | `scripts/flow_query.py`<br>`.github/workflows/flowq.yml` | — | 애널 요청 10/17 (KoAct vs NDX 리포트 한계). 샌드박스 DNS 차단 → Actions에서 수집. |
 | P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | — | 2026-10-24 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). |

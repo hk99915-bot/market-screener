@@ -22,7 +22,7 @@
 | 항목 | 전 | 후 |
 |---|---|---|
 | 이중 실행 슬롯 | **20** (GAS 20개 전부. briefing 15·screener 1 은 한쪽 방향 가드 — GAS 가 먼저면 cron 건너뜀, cron 이 먼저면 GAS 가 또 실행 / backfill·fin·deriv_hist·live×2 는 가드 없음) | **0** |
-| 수동 덮어쓰기 경로 | **13** 워크플로 (10/17 detail_us 역행의 직접 원인) | **0** |
+| 수동 덮어쓰기 경로 | **13** 워크플로 (10/17 detail_us 역행의 직접 원인) | **0** (+ 10/17 새로 생긴 accum.yml 1개는 퀀트 잠금 — 보드 `schedule-single-accum`) |
 | 월 08:50 장전(premarket_kr) 실행 주체 | GAS + cron (한쪽 가드) | GAS 1 + cron 대기 |
 
 ## 3. 슬롯 × 실행 주체 (자동 생성 — `python scripts/slot_guard.py --table`)
@@ -41,6 +41,7 @@
 | 06:52 | briefing.yml [screen_us] | 화수목금토 | GAS(주) + cron 52 21 * * 1-5(대기) | — |
 | 07:10 | briefing.yml [valuation] | 화수목금토 | cron 10 22 * * 1-5 | — |
 | 07:10 | study_daily.yml | 월화수목금 | cron 10 22 * * 0-4 | — |
+| 07:37 | us_accum.yml | 화수목금토 | cron 37 22 * * 1-5 | — |
 | 08:20 | health.yml | 월화수목금토일 | cron 20 23 * * * | — |
 | 08:30 | scorecard.yml | 일 | cron 30 23 * * 6 | — |
 | 08:40 | live.yml | 월화수목금 | GAS(주) + cron 40 23 * * 0-4(대기) | — |
@@ -61,6 +62,7 @@
 | 15:45 | briefing.yml [close_kr] | 월화수목금 | GAS(주) + cron 45 6 * * 1-5(대기) | — |
 | 16:20 | screener.yml [KR] | 월화수목금 | GAS(주) + cron 20 7 * * 1-5(대기) | — |
 | 16:40 | deriv_hist.yml [run] | 월화수목금 | GAS(주) + cron 40 7 * * 1-5(대기) | — |
+| 18:37 | accum.yml | 월화수목금 | cron 37 9 * * 1-5 | — |
 | 19:10 | briefing.yml [reports] | 월화수목금 | GAS(주) + cron 10 10 * * 1-5(대기) | — |
 | 20:10 | health.yml | 월화수목금토일 | cron 10 11 * * * | — |
 | 20:52 | briefing.yml [premarket_us] | 월화수목금 | GAS(주) + cron 52 11 * * 1-5(대기) | — |
@@ -99,10 +101,10 @@
 Claude 원격 예약 작업(10/17 list_triggers 기준): 오늘의 영어 07:18 · PB 진입·매도 14:42(→pb_call) · PB 미장 21:52(꺼짐) · 기록 12:50/16:00/22:30(pb-private·team.json runs) · 데스크 라운드 평일 21:10(docs) · ISA 리마인드 10/19 10:00(1회). 위 GitHub 산출물과 겹치는 슬롯 없음.
 
 ## 5. 바뀐 것 · 영향 · 롤백
-- 코드: `scripts/slot_guard.py`(가드·파서·분석) · 워크플로 13개(`run-name`, `commit` 입력, 저장 단계 조건, GAS 6개는 가드 단계 + `actions: read`) · `apps-script/Scheduler.gs`(WINDOW_MIN 10, 모든 슬롯 `commit: 'true'`, 버전 표시) · `tests.yml`(pyyaml 설치, 워크플로·Scheduler.gs 변경 때도 테스트).
+- 코드: `scripts/slot_guard.py`(가드·파서·분석) · 워크플로 14개(us_accum 포함, `run-name`, `commit` 입력, 저장 단계 조건, GAS 6개는 가드 단계 + `actions: read`) · `apps-script/Scheduler.gs`(WINDOW_MIN 10, 모든 슬롯 `commit: 'true'`, 버전 표시) · `tests.yml`(pyyaml 설치, 워크플로·Scheduler.gs 변경 때도 테스트).
 - 영향: GitHub cron 이 정시에 울린 GAS 슬롯은 러너가 최대 12분 대기(분 단위 과금 없음, 공개 저장소). GAS 가 죽은 날엔 해당 슬롯이 최대 12분 늦게 실행. 수동 실행 후 결과가 안 보이면 `commit=true` 로 다시.
 - 롤백: 이 커밋 revert. **단, 새 Scheduler.gs 를 이미 붙여넣었다면 구버전 Scheduler.gs 도 다시 붙여넣을 것** — 새 GAS 는 `commit` 입력을 보내는데, 되돌린 워크플로엔 그 입력이 없어 GitHub 가 422 로 전부 거부한다.
-- 남은 위험: (a) 구버전 GAS(창 20분)가 첫 두 틱을 놓쳐 +12분 뒤 보내면 그 슬롯만 이중 가능 — 붙여넣기로 해소. (b) live 22:20 대기 cron 이 루프 종료(약 04:00) 뒤 깨어나면 재개 대신 건너뜀 — 매시 백업(04:07)이 재개. (c) 새 워크플로(퀀트 accum·us_accum 등)는 cron+dispatch+커밋이면 `commit` 입력이 있어야 테스트 통과.
+- 남은 위험: (a) 구버전 GAS(창 20분)가 첫 두 틱을 놓쳐 +12분 뒤 보내면 그 슬롯만 이중 가능 — 붙여넣기로 해소. (b) live 22:20 대기 cron 이 루프 종료(약 04:00) 뒤 깨어나면 재개 대신 건너뜀 — 매시 백업(04:07)이 재개. (c) 새 워크플로는 cron+dispatch+커밋이면 `commit` 입력이 있어야 테스트 통과. us_accum.yml 은 이 커밋에서 반영, **accum.yml 은 퀀트 잠금 중이라 미반영**(테스트 PENDING, 보드 `schedule-single-accum` P2 10/20) — 그때까지 accum 수동 실행은 기본값으로 커밋됨.
 
 VOC: GAS 붙여넣기 전까지 '창 20분' 잔여 위험이 남는다 — 10/18 체크리스트 0번을 결재(14:00) 전에 처리 요청.
 요청→개발: 1단계 asof 가드와 함께 `commit=auto` 의 슬롯 판정(`slot_guard.gas_slot_near`)을 검토 — 붙여넣기 확인 뒤 auto 를 false 로 좁힐지.

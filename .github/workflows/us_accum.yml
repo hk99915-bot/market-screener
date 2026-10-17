@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: "37 22 * * 1-5"
   workflow_dispatch:
+    inputs:
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C, docs/schedule_table.md)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -32,7 +37,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python -m screener.us_accum
       - name: 저장
-        if: always()
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
