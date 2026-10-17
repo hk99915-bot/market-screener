@@ -1,6 +1,20 @@
 {
- "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-17T09:54+09:00",
+ "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
+ "updated": "2026-10-17T09:55+09:00",
+ "plans": [
+  {
+   "plan": "Pro",
+   "from": null,
+   "to": null,
+   "_todo": "오너가 전환일 알려주면 채움 (YYYY-MM-DD, to=null 은 현재). 날짜가 비면 집계는 '미지정'."
+  },
+  {
+   "plan": "Max 5x",
+   "from": null,
+   "to": null,
+   "_todo": "오너가 전환일 알려주면 채움 (YYYY-MM-DD, to=null 은 현재). 날짜가 비면 집계는 '미지정'."
+  }
+ ],
  "runs": [
   {
    "date": "2026-10-15",
@@ -128,7 +142,8 @@
    "task": "세션 마감 기록",
    "tools": 7,
    "sec": 81,
-   "tokens": 83803
+   "tokens": 83803,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -136,7 +151,8 @@
    "task": "SEC YTD 누적치 버그 수정",
    "tools": 20,
    "sec": 1284,
-   "tokens": 105601
+   "tokens": 105601,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -144,7 +160,8 @@
    "task": "밸류에이션 심화 노트(TTM·런레이트·가이던스·정규화)",
    "tools": 36,
    "sec": 620,
-   "tokens": 153752
+   "tokens": 153752,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -152,7 +169,8 @@
    "task": "#7 레거시 북 의견",
    "tools": 4,
    "sec": 164,
-   "tokens": 91555
+   "tokens": 91555,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -160,7 +178,8 @@
    "task": "라운드1(MU 매출 태그)",
    "tools": 8,
    "sec": 122,
-   "tokens": 78310
+   "tokens": 78310,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -168,7 +187,8 @@
    "task": "라운드1(ETF 만기·금리 라벨)",
    "tools": 18,
    "sec": 326,
-   "tokens": 110108
+   "tokens": 110108,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -176,7 +196,8 @@
    "task": "라운드1(#7 반대 의견서)",
    "tools": 19,
    "sec": 394,
-   "tokens": 105923
+   "tokens": 105923,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -184,7 +205,8 @@
    "task": "라운드1(레버리지 리셋 비용)",
    "tools": 22,
    "sec": 318,
-   "tokens": 116820
+   "tokens": 116820,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -192,7 +214,8 @@
    "task": "라운드1(서프라이즈 금지·격차)",
    "tools": 23,
    "sec": 327,
-   "tokens": 120722
+   "tokens": 120722,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -200,7 +223,8 @@
    "task": "라운드1(⛔만 소리)",
    "tools": 21,
    "sec": 358,
-   "tokens": 120450
+   "tokens": 120450,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -208,7 +232,8 @@
    "task": "라운드1(30분 쿨다운)",
    "tools": 24,
    "sec": 360,
-   "tokens": 120106
+   "tokens": 120106,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -216,7 +241,8 @@
    "task": "라운드1(시도 일지)",
    "tools": 20,
    "sec": 386,
-   "tokens": 110722
+   "tokens": 110722,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -224,7 +250,8 @@
    "task": "라운드1(07:10·문제은행 검수)",
    "tools": 29,
    "sec": 387,
-   "tokens": 147633
+   "tokens": 147633,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -232,7 +259,8 @@
    "task": "라운드1(급락일 재현)",
    "tools": 19,
    "sec": 398,
-   "tokens": 127678
+   "tokens": 127678,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -240,7 +268,8 @@
    "task": "라운드1(round_collect)",
    "tools": 17,
    "sec": 414,
-   "tokens": 114284
+   "tokens": 114284,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -248,7 +277,8 @@
    "task": "FRM 라운드1(스트레스 −15% 계기판)",
    "tools": 32,
    "sec": 436,
-   "tokens": 142855
+   "tokens": 142855,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -256,7 +286,8 @@
    "task": "신설·첫 slop 감사",
    "tools": 47,
    "sec": 908,
-   "tokens": 239263
+   "tokens": 239263,
+   "model": "claude-fable-5-1"
   },
   {
    "date": "2026-10-17",
@@ -264,7 +295,17 @@
    "task": "추세 신호→운용회의",
    "tools": 46,
    "sec": 373,
-   "tokens": 164518
+   "tokens": 164518,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "애널",
+   "task": "미장 가치평가",
+   "tools": 44,
+   "sec": 494,
+   "tokens": 170219,
+   "model": "claude-opus-5-5"
   }
  ],
  "earlier": {
@@ -279,9 +320,9 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-11",
-  "commits_total": 676,
-  "commits_bot": 296,
-  "commits_unmapped": 257,
+  "commits_total": 684,
+  "commits_bot": 297,
+  "commits_unmapped": 262,
   "audit_files": [
    "2026-10-17"
   ],
@@ -323,7 +364,7 @@
     }
    },
    "PB": {
-    "commits_7d": 32,
+    "commits_7d": 33,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -341,7 +382,7 @@
     }
    },
    "PM": {
-    "commits_7d": 2,
+    "commits_7d": 3,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -381,7 +422,7 @@
     "board": {
      "진행": 0,
      "검수": 6,
-     "대기": 5,
+     "대기": 6,
      "보류": 2,
      "완료": 1
     },
@@ -511,8 +552,8 @@
      "보류": 0,
      "완료": 2
     },
-    "rounds": 0,
-    "round_last": null,
+    "rounds": 1,
+    "round_last": "2026-10-17",
     "req_open": 0,
     "audit": {
      "치명": 0,
@@ -681,6 +722,62 @@
      "중": 0,
      "경": 0
     }
+   }
+  }
+ },
+ "by_plan": {
+  "미지정": {
+   "runs": 34,
+   "tokens": 5491694,
+   "tools": 1329,
+   "sec": 23414,
+   "days": 3,
+   "per_day": {
+    "runs": 11.3,
+    "tokens": 1830564.7,
+    "tools": 443.0,
+    "sec": 7804.7
+   }
+  }
+ },
+ "by_model": {
+  "미지정": {
+   "runs": 15,
+   "tokens": 3067372,
+   "tools": 873,
+   "sec": 15264,
+   "days": 2,
+   "per_day": {
+    "runs": 7.5,
+    "tokens": 1533686.0,
+    "tools": 436.5,
+    "sec": 7632.0
+   }
+  },
+  "claude-fable-5-1": {
+   "runs": 17,
+   "tokens": 2089585,
+   "tools": 366,
+   "sec": 7283,
+   "days": 1,
+   "per_day": {
+    "runs": 17.0,
+    "tokens": 2089585.0,
+    "tools": 366.0,
+    "sec": 7283.0
+   }
+  },
+  "claude-opus-5-5": {
+   "runs": 2,
+   "tokens": 334737,
+   "tools": 90,
+   "sec": 867,
+   "days": 1,
+   "per_day": {
+    "runs": 2.0,
+    "tokens": 334737.0,
+    "tools": 90.0,
+    "sec": 867.0
    }
   }
  }

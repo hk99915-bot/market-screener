@@ -89,3 +89,22 @@ def test_check_exit_code(tmp_path):
     assert ts.main(["--check", "--team", str(p)]) == 1
     p.write_text(json.dumps({"updated": ts.now_kst().strftime("%Y-%m-%dT%H:%M+09:00"), "runs": []}), encoding="utf-8")
     assert ts.main(["--check", "--team", str(p)]) == 0
+
+
+def test_plan_of_unset_and_ranges():
+    unset = [{"plan": "Pro", "from": None, "to": None}, {"plan": "Max 5x", "from": None, "to": None}]
+    assert ts.plan_of("2026-10-17", unset) == "미지정"
+    pl = [{"plan": "Pro", "from": "2026-09-01", "to": "2026-10-15"}, {"plan": "Max 5x", "from": "2026-10-16", "to": None}]
+    assert ts.plan_of("2026-10-15", pl) == "Pro"
+    assert ts.plan_of("2026-10-17", pl) == "Max 5x"
+    assert ts.plan_of("2026-08-01", pl) == "미지정"
+
+
+def test_group_runs_totals_and_per_day():
+    runs = [{"date": "2026-10-16", "tokens": 100, "tools": 2, "sec": 10.4, "model": "a"},
+            {"date": "2026-10-17", "tokens": 300, "tools": 4, "sec": 20, "model": "a"},
+            {"date": "2026-10-17", "tokens": 50, "tools": 1, "sec": 5}]
+    g = ts.group_runs(runs, lambda r: r.get("model"))
+    assert g["a"]["runs"] == 2 and g["a"]["tokens"] == 400 and g["a"]["days"] == 2
+    assert g["a"]["per_day"]["tokens"] == 200.0 and g["a"]["sec"] == 30
+    assert g["미지정"]["runs"] == 1

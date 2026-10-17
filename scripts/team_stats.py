@@ -15,6 +15,9 @@ ops/team.json 의 runs(에이전트 완료 통계: 토큰·도구·시간)는 �
   python3 scripts/team_stats.py --dry-run  # 출력만
   python3 scripts/team_stats.py --check    # updated 날짜가 오늘(KST)이 아니면 종료코드 1
 
+  요금제·모델별 (runs 기준 — 수작업 통계): by_plan(plans 타임라인, 날짜 비면 '미지정') · by_model(runs.model, 없으면 '미지정')
+    실행 수·토큰·도구·초 합계 + 일평균(실행이 있던 날 기준). 토큰 = 에이전트 처리 토큰이지 요금제 한도 사용량이 아님.
+
 실행 경로: .github/workflows/ops.yml (00:07·23:47 KST) + scripts/round_collect.py --apply 끝.
 롤백: ops.yml 단계와 round_collect 호출 두 줄을 지우면 이전(수작업만)으로 돌아간다. auto 블록은 화면에서만 읽는다.
 """
@@ -222,6 +225,41 @@ def build_auto(commits: list[tuple[str, str]], board: dict, ledger: dict, rounds
     }
 
 
+UNSET = "미지정"
+
+
+def plan_of(day: str, plans) -> str:
+    """runs 날짜 → 요금제 이름. plans = [{"plan","from","to"}] (to=None 은 현재). 날짜 빈 요금제는 매칭 안 함 → '미지정'."""
+    if isinstance(plans, dict):
+        plans = plans.get("timeline") or []
+    for p in plans or []:
+        f, t = p.get("from"), p.get("to")
+        if not f:
+            continue
+        if str(f) <= str(day)[:10] and (not t or str(day)[:10] <= str(t)):
+            return p.get("plan") or UNSET
+    return UNSET
+
+
+def group_runs(runs: list[dict], key) -> dict[str, dict]:
+    """runs 를 key(run)→이름 으로 묶어 실행 수·토큰·도구·초 합계 + 일평균(실행이 있던 날 기준)."""
+    out: dict[str, dict] = {}
+    days: dict[str, set] = {}
+    for r in runs:
+        k = key(r) or UNSET
+        g = out.setdefault(k, {"runs": 0, "tokens": 0, "tools": 0, "sec": 0})
+        g["runs"] += 1
+        g["tokens"] += int(r.get("tokens") or 0)
+        g["tools"] += int(r.get("tools") or 0)
+        g["sec"] += int(round(float(r.get("sec") or 0)))
+        days.setdefault(k, set()).add(str(r.get("date"))[:10])
+    for k, g in out.items():
+        n = len(days[k])
+        g["days"] = n
+        g["per_day"] = {m: round(g[m] / n, 1) for m in ("runs", "tokens", "tools", "sec")}
+    return out
+
+
 def is_stale(updated: str | None, today: date) -> int:
     """updated('YYYY-MM-DD…') 가 today 보다 며칠 뒤졌나. 없거나 못 읽으면 999. 0 = 오늘."""
     try:
@@ -248,6 +286,11 @@ def main(argv=None) -> int:
     auto = build_auto(git_commits(), board, ledger, ROUNDS_DIR, AUDIT_DIR, now.date())
     team["updated"] = now.strftime("%Y-%m-%dT%H:%M+09:00")
     team["auto"] = auto
+    runs = team.get("runs") or []
+    team["by_plan"] = group_runs(runs, lambda r: plan_of(r.get("date", ""), team.get("plans")))
+    team["by_model"] = group_runs(runs, lambda r: r.get("model"))
+    for name, blk in (("요금제", team["by_plan"]), ("모델", team["by_model"])):
+        print(f"{name}별: " + " · ".join(f"{k} {v['runs']}건/{v['tokens']//1000}k토큰/{v['days']}일" for k, v in blk.items()))
     for n, d in auto["desks"].items():
         b = d["board"]
         print(f"  {n:6s} 커밋7d {d['commits_7d']:3d} · 진행 {b['진행']} 검수 {b['검수']} 대기 {b['대기']} · "
