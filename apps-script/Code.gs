@@ -2,9 +2,7 @@
  * Market Terminal — Apps Script 웹앱
  * GitHub private 저장소의 reports/dashboard.json 을 읽어 터미널 스타일로 표시.
  *
- * 설치 — 쉬운 길(10/17~): 파일 3개만. Code.gs · Scheduler.gs · Index(← apps-script/dist/Index.html 내용, 탭이 이미 합쳐진 묶음)
- *   탭을 고친 뒤엔 python3 scripts/build_gas_bundle.py 로 묶음을 다시 만든다 (tests/test_gas_bundle.py 가 낡은 묶음을 잡음).
- * 설치 — 원래 길:
+ * 설치
  * 1) script.google.com → 새 프로젝트 → Code.gs 붙여넣기, 그리고 HTML 파일을 하나씩 만들어 붙여넣기:
  *      Index.html(공용 셸) + apps-script/tab_*.html 전부 (파일 이름은 확장자 없이 tab_daily 처럼; 목록은 ops/README.md)
  *    Index.html 의 <?!= include('tab_daily') ?> 를 아래 include() 가 같은 이름의 HTML 파일 내용으로 바꾼다.
