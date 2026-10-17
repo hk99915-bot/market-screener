@@ -148,3 +148,74 @@ def test_externally_verified_clears_cumulative_smell():
     assert vd.externally_verified(q, "X", {"X": {str(q[-1]["period"]): {"ni": 7.5}}}) is None   # 8% 어긋나면 해제 안 됨
     assert vd.externally_verified(q, "X", {"X": {str(q[-1]["period"]): {"src": "8-K"}}}) is None   # 대조 항목 0개면 해제 안 됨
     assert vd.externally_verified(q, "Y", ver) is None
+
+
+def test_run_rate_per_uses_last_quarter_times_four():
+    """분기가 5→14→28→38 로 가는 회사: TTM PER 과 런레이트 PER 이 벌어진다 (10/17 메모리 노트)."""
+    q = _q(8)
+    for i, v in enumerate([5.0, 14.0, 28.0, 38.0]):
+        q[4 + i]["ni"] = v
+    m = vd.metrics(q, shares=10.0, price=100.0, sym=None)
+    assert m["eps_ttm"] == pytest.approx(85 / 10) and m["per"] == pytest.approx(100 / 8.5)
+    assert m["eps_run_rate"] == pytest.approx(38 * 4 / 10) and m["per_run_rate"] == pytest.approx(100 / 15.2)
+    assert m["run_rate_period"] == q[-1]["period"]
+    assert m["per_run_rate"] < m["per"]
+    # 지배주주 순이익 우선, 최근 분기 적자면 PER 없음(EPS 는 남김), 주식 수 없으면 전부 None
+    assert vd.run_rate(_q(4, ni_owner=2.5), 10.0, 100.0)["eps_run_rate"] == pytest.approx(1.0)
+    rr = vd.run_rate(_q(4, ni=-1.0), 10.0, 100.0)
+    assert rr["per_run_rate"] is None and rr["eps_run_rate"] == pytest.approx(-0.4)
+    assert vd.run_rate(_q(4), None, 100.0)["per_run_rate"] is None and vd.run_rate([], 10.0, 100.0)["per_run_rate"] is None
+    assert m["flags"] == []                                   # 런레이트 추가가 기존 플래그를 바꾸지 않는다
+
+
+def test_guidance_per_from_eps_and_from_revenue():
+    q = _q(4, ni=20.0)
+    for r in q:
+        r["revenue"] = 100.0                                   # 최근 분기 순이익률 20%
+    # 1) EPS 가이던스(범위) ×4 — non-GAAP 표기는 basis 에 남는다
+    g = vd.guidance_per({"period": "Q+1", "eps_lo": 4.0, "eps_hi": 6.0, "eps_basis": "non-GAAP", "src": "8-K"}, q, shares=10.0, price=100.0)
+    assert g["per_guide_lo"] == pytest.approx(100 / 24) and g["per_guide_hi"] == pytest.approx(100 / 16)
+    assert g["per_guide"] == pytest.approx(100 / 20) and "non-GAAP" in g["guide_basis"] and g["guide_src"] == "8-K"
+    # 2) 매출 가이던스만 → 최근 분기 순이익률 유지 가정: 매출 150 × 20% = 30 → ×4 = 120 → EPS 12 → PER 8.33
+    g = vd.guidance_per({"revenue_lo": 150.0, "revenue_hi": 150.0}, q, 10.0, 100.0)
+    assert g["per_guide"] == pytest.approx(100 / 12) and "순이익률 20%" in g["guide_basis"]
+    # 3) 매출 미수집 종목(MU 형): 가이던스 파일의 last_revenue 로 순이익률을 만든다
+    q2 = [dict(r, revenue=None) for r in q]
+    assert vd.guidance_per({"revenue_lo": 150.0, "revenue_hi": 150.0, "last_revenue": 100.0}, q2, 10.0, 100.0)["per_guide"] == pytest.approx(100 / 12)
+    assert vd.guidance_per({"revenue_lo": 150.0}, q2, 10.0, 100.0)["per_guide"] is None          # 매출 기준이 없으면 만들지 않는다
+    # 4) 가이던스 없음·적자·가격 없음 → None, 예외 없음
+    assert vd.guidance_per(None, q, 10.0, 100.0)["per_guide"] is None
+    assert vd.guidance_per({"revenue_lo": 150.0}, _q(4, ni=-5.0), 10.0, 100.0)["per_guide"] is None
+    assert vd.guidance_per({"eps_lo": 4.0}, q, 10.0, None)["per_guide"] is None
+
+
+def test_metrics_reads_guidance_file(tmp_path, monkeypatch):
+    p = tmp_path / "g.json"
+    p.write_text('{"_readme": "x", "ZZZ": {"eps_lo": 5.0, "eps_hi": 5.0, "eps_basis": "GAAP"}}', encoding="utf-8")
+    monkeypatch.setattr(vd, "GUIDANCE_PATH", str(p))
+    m = vd.metrics(_q(4), shares=100.0, price=80.0, sym="ZZZ")
+    assert m["per"] == pytest.approx(20.0) and m["per_guide"] == pytest.approx(80 / 20)
+    assert vd.metrics(_q(4), shares=100.0, price=80.0, sym="NONE")["per_guide"] is None
+    monkeypatch.setattr(vd, "GUIDANCE_PATH", str(tmp_path / "missing.json"))
+    assert vd.metrics(_q(4), shares=100.0, price=80.0, sym="ZZZ")["per_guide"] is None   # 파일 없음 → 조용히 None
+
+
+def test_markdown_shows_three_per_denominators_and_telegram_stays_8_lines():
+    o = {"asof": "2026-10-17", "generated_at": "x", "grade": "참고(검증전) — 매매 트리거 아님", "unit": "비율만",
+         "rates": {"us10y": 5.1, "us10y_w1_bp": -12, "kr3y": 3.85, "kr3y_w1_bp": -13},
+         "basket": {"n": 1, "n_verified": 1, "n_priced": 1, "median_per": 11.7, "median_per_run_rate": 6.6, "median_pbr": 7.2, "n_guided": 1,
+                    "cheapest": [{"name": "A", "rate_adj": 0.02}], "richest": [{"name": "A", "rate_adj": 0.02}],
+                    "decomp20": {"d_price": -0.03, "d_multiple": -0.05, "d_eps": 0.02, "n": 1, "basis": "t"},
+                    "rate_sens": vd.rate_sensitivity(11.7)},
+         "rows": [{"name": "A", "sym": "A", "mk": "US", "verified": True, "per": 11.7, "pbr": 7.2, "rate_adj": 0.02, "n_quarters": 8,
+                   "op_margin_4q": [0.5, 0.8], "rev_yoy": None, "ocf_ni": 1.1, "decomp20": {},
+                   "per_run_rate": 6.6, "per_guide": 5.8, "per_guide_lo": 5.7, "per_guide_hi": 6.0}],
+         "etfs": [], "events": {"window_days": 14, "next": [], "tripwires": []}}
+    md = vd.markdown(o)
+    assert "| 종목 | PER/PBR | 이익추세 | 금리조정 매력 |" in md                 # 기존 머리글 유지
+    assert "PER(TTM/런레이트/가이던스)" in md and "| 11.7 / 6.6 / 5.7~6.0 |" in md
+    assert "런레이트 6.6" in md
+    tg = vd.telegram_text(o)
+    assert len(tg.split("\n")) <= 8 and "런레이트 6.6" in tg
+    o["rows"][0].update({"per_run_rate": None, "per_guide": None})
+    assert "| 11.7 / — / — |" in vd.markdown(o)

@@ -12,6 +12,7 @@
 지표 (모두 최근 종가 기준, 분기 4개 미만이면 '검증전')
 - TTM EPS → PER, BPS → PBR, ROE(TTM), 매출 YoY(최근 분기), 영업이익률 4분기 추세, OCF/순이익, 순현금(근사), EV/EBITDA
 - 금리조정 매력 = 이익수익률(E/P) − 무위험(US: 미 10Y, KR: 국고 3Y)
+- PER 세 분모: TTM / 런레이트(최근 분기×4) / 가이던스(universe/fin_guidance.json 의 다음 분기 매출·EPS ×4) — 사이클 업종은 분모 선택이 결론을 가른다
 - 20일 분해: ln(P1/P0) = ln(PER1/PER0) + ln(EPS1/EPS0)  (가격 변화 = 멀티플 변화 + 이익 변화)
   20일 전 EPS 는 reports/archive/valuation/ 의 과거 산출물에서 가져온다 — 없으면 EPS 변화 0 으로 두고 '검증전' 표시.
 
@@ -63,6 +64,7 @@ MIN_Q = 4          # 이보다 적은 분기로 만든 값은 '검증전'
 CUM_RATIO = 1.8    # 최근 4분기가 매 분기 이 배수 넘게 단조 증가하면 누적(YTD) 값 의심 → '검증전'
 VERIFIED_PATH = "universe/fin_verified.json"   # 사람이 8-K/10-Q 원문과 대조한 분기값 — 일치하면 누적 의심 해제
 VERIFIED_TOL = 0.01                              # 대조 허용 오차 1%
+GUIDANCE_PATH = "universe/fin_guidance.json"     # 사람이 적는 다음 분기 가이던스(매출·EPS 범위, 공시 숫자) → '가이던스 PER'
 RATE_BP = 25       # 금리 민감도 가정 ±bp
 
 
@@ -138,6 +140,69 @@ def externally_verified(q: list[dict], sym: str | None, verified: dict | None = 
     return rec.get("src", "원문 대조") if hits else None
 
 
+def run_rate(q: list[dict], shares: float | None, price: float | None) -> dict:
+    """런레이트(run-rate) PER: 최근 '한' 분기 순이익 ×4 를 연간 이익으로 보고 계산.
+    TTM 이 '지난 1년 평균'이라면 런레이트는 '지금 속도가 1년 계속되면'. 분기가 5→14→28→38 로 가는 회사에서 둘은 크게 벌어진다.
+    최근 분기가 적자·결측이면 None."""
+    out = {"eps_run_rate": None, "per_run_rate": None, "run_rate_period": None}
+    if not q:
+        return out
+    last = q[-1]
+    ni = last.get("ni_owner") if last.get("ni_owner") is not None else last.get("ni")
+    if ni is None or not shares:
+        return out
+    eps = ni * 4 / shares
+    out.update({"eps_run_rate": eps, "run_rate_period": last.get("period"),
+                "per_run_rate": (price / eps) if (price and eps > 0) else None})
+    return out
+
+
+def _load_guidance() -> dict:
+    """{ticker: {"period": "FQ1'27", "revenue_lo": .., "revenue_hi": .., "eps_lo": .., "eps_hi": .., "eps_basis": "non-GAAP", "src": url}}"""
+    try:
+        from pathlib import Path
+        g = json.loads(Path(GUIDANCE_PATH).read_text(encoding="utf-8"))
+        return {k: v for k, v in g.items() if not k.startswith("_")}
+    except Exception:
+        return {}
+
+
+def guidance_per(g: dict | None, q: list[dict], shares: float | None, price: float | None) -> dict:
+    """가이던스 PER: 회사가 제시한 '다음 분기' 숫자 ×4 로 만든 연간 이익 기준.
+    1) EPS 가이던스가 있으면 중앙값 ×4 (회사가 non-GAAP 으로 주면 basis 에 그대로 표기 — GAAP 과 섞지 않는다).
+    2) 매출 가이던스만 있으면 '최근 분기 순이익률이 유지된다' 가정으로 순이익을 만든다(가정을 basis 에 적는다).
+    범위(lo~hi)가 있으면 PER 도 범위(hi 이익 → 낮은 PER)로 돌려준다. 가이던스가 없으면 전부 None."""
+    out = {"per_guide": None, "per_guide_lo": None, "per_guide_hi": None, "guide_period": None, "guide_basis": None, "guide_src": None}
+    if not g or not price or not shares:
+        return out
+    out["guide_period"], out["guide_src"] = g.get("period"), g.get("src")
+    lo, hi = g.get("eps_lo"), g.get("eps_hi")
+    if lo is not None or hi is not None:
+        lo = lo if lo is not None else hi
+        hi = hi if hi is not None else lo
+        out["guide_basis"] = f"EPS 가이던스({g.get('eps_basis') or 'GAAP'}) ×4"
+        eps_lo, eps_hi = lo * 4, hi * 4
+    else:
+        rlo, rhi = g.get("revenue_lo"), g.get("revenue_hi")
+        if rlo is None and rhi is None or not q:
+            return out
+        rlo = rlo if rlo is not None else rhi
+        rhi = rhi if rhi is not None else rlo
+        last = q[-1]
+        ni = last.get("ni_owner") if last.get("ni_owner") is not None else last.get("ni")
+        rev = last.get("revenue") or g.get("last_revenue")   # 매출 미수집(MU)이면 가이던스 파일의 최근 분기 매출(공시값)로 대체
+        if ni is None or not rev or ni <= 0:
+            return out
+        margin = ni / rev
+        out["guide_basis"] = f"매출 가이던스 × 최근 분기 순이익률 {margin*100:.0f}% 유지 가정 ×4"
+        eps_lo, eps_hi = rlo * margin * 4 / shares, rhi * margin * 4 / shares
+    if eps_lo <= 0 or eps_hi <= 0:
+        return out
+    out["per_guide_lo"], out["per_guide_hi"] = price / eps_hi, price / eps_lo     # 이익 상단 → PER 하단
+    out["per_guide"] = price / ((eps_lo + eps_hi) / 2)
+    return out
+
+
 def metrics(q: list[dict], shares: float | None, price: float | None, sym: str | None = None) -> dict:
     """q: 분기 dict 목록(오래된 → 최신). 항목 revenue/op/ni/(ni_owner)/cfo/capex/da/assets/liab/(equity_owner|equity)/cash.
     shares: 주식 수, price: 종가. 통화는 q 와 price 가 같아야 한다. 결과는 비율 중심, 데이터가 없으면 None."""
@@ -174,6 +239,8 @@ def metrics(q: list[dict], shares: float | None, price: float | None, sym: str |
     })
     if price and eps and eps > 0:
         out["earn_yield"] = eps / price
+    out.update(run_rate(q, shares, price))                                         # 최근 분기 ×4
+    out.update(guidance_per(_load_guidance().get(sym) if sym else None, q, shares, price))   # 다음 분기 가이던스 ×4
     # 매출 YoY: 최신 분기 vs 4분기 전 같은 분기
     if n >= 5 and q[-1].get("revenue") and q[-5].get("revenue"):
         out["rev_yoy"] = q[-1]["revenue"] / q[-5]["revenue"] - 1
@@ -396,6 +463,8 @@ def build(send: bool = False) -> dict:
     dp = [r["decomp20"]["d_price"] for r in rows if r["decomp20"].get("d_price") is not None]
     basket = {"n": len(rows), "n_verified": sum(1 for r in rows if r.get("verified")), "n_priced": sum(1 for r in rows if r.get("price")),
               "median_per": med_per, "median_pbr": med_pbr,
+              "median_per_run_rate": _median([r.get("per_run_rate") for r in ok]),
+              "n_guided": sum(1 for r in rows if r.get("per_guide") is not None),
               "cheapest": [{"sym": r["sym"], "name": r["name"], "rate_adj": r["rate_adj"], "per": r.get("per")} for r in adj[:3]],
               "richest": [{"sym": r["sym"], "name": r["name"], "rate_adj": r["rate_adj"], "per": r.get("per")} for r in adj[-3:][::-1]],
               # 바스켓 분해: 가격·EPS 는 중앙값, 멀티플은 차로 정의해 세 항이 더해지게 한다
@@ -407,7 +476,8 @@ def build(send: bool = False) -> dict:
            "grade": "참고(검증전) — 매매 트리거 아님", "unit": "비율만 (보유·금액 없음)",
            "rates": rt, "basket": basket, "rows": rows, "etfs": etfs, "events": events(today),
            "definitions": {"TTM": "최근 4개 분기 합", "rate_adj": "E/P − 무위험(US 미10Y, KR 국고3Y)",
-                           "decomp20": "ln(P1/P0) = ln(PER1/PER0) + ln(EPS1/EPS0)", "검증전": f"분기 {MIN_Q}개 미만 또는 20일 전 EPS 기록 없음"}}
+                           "decomp20": "ln(P1/P0) = ln(PER1/PER0) + ln(EPS1/EPS0)",
+                           "per_run_rate": "최근 분기 순이익×4 기준 PER", "per_guide": "다음 분기 가이던스×4 기준 PER (universe/fin_guidance.json)", "검증전": f"분기 {MIN_Q}개 미만 또는 20일 전 EPS 기록 없음"}}
     REPORT_DIR.mkdir(exist_ok=True)
     (REPORT_DIR / "valuation.json").write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
     _archive(out)
@@ -459,6 +529,19 @@ def _trend(r: dict) -> str:
     return " · ".join(p for p in parts if p)
 
 
+def _per3(r: dict) -> str:
+    """PER 세 분모 한 칸: TTM / 런레이트(최근 분기×4) / 가이던스(다음 분기×4, 범위). 없으면 —."""
+    ttm = "적자" if r.get("loss") else _f(r.get("per"), 1)
+    rr = _f(r.get("per_run_rate"), 1)
+    if r.get("per_guide") is None:
+        gd = "—"
+    elif r.get("per_guide_lo") is not None and r.get("per_guide_hi") is not None and abs(r["per_guide_hi"] - r["per_guide_lo"]) > 0.05:
+        gd = f"{_f(r['per_guide_lo'], 1)}~{_f(r['per_guide_hi'], 1)}"
+    else:
+        gd = _f(r.get("per_guide"), 1)
+    return f"{ttm} / {rr} / {gd}"
+
+
 def _mark(r: dict) -> str:
     return "" if r.get("verified") else " ⚠검증전"
 
@@ -468,11 +551,12 @@ def markdown(o: dict) -> str:
     L = [f"# 반도체 밸류에이션 바스켓 — {o['asof']}", "",
          f"등급: {o['grade']} · {o['unit']} · 생성 {o['generated_at']}", "",
          f"미 10Y {_f(rt.get('us10y'), 2, '%')} (5일 {_f(rt.get('us10y_w1_bp'), 0, 'bp')}) · 국고 3Y {_f(rt.get('kr3y'), 2, '%')} (5일 {_f(rt.get('kr3y_w1_bp'), 0, 'bp')})", "",
-         "| 종목 | PER/PBR | 이익추세 | 금리조정 매력 |", "|---|---|---|---|"]
+         "| 종목 | PER/PBR | 이익추세 | 금리조정 매력 | PER(TTM/런레이트/가이던스) |", "|---|---|---|---|---|"]
     for r in o["rows"]:
         per = "적자" if r.get("loss") else _f(r.get("per"), 1)
-        L.append(f"| {r['name']}{_mark(r)} | {per} / {_f(r.get('pbr'), 2)} | {_trend(r)} | {_pct(r.get('rate_adj'))} |")
-    L += ["", f"바스켓 중앙 PER {_f(b.get('median_per'), 1)} · PBR {_f(b.get('median_pbr'), 2)} (검증 {b['n_verified']}/{b['n']}, 가격 {b['n_priced']}/{b['n']})"]
+        L.append(f"| {r['name']}{_mark(r)} | {per} / {_f(r.get('pbr'), 2)} | {_trend(r)} | {_pct(r.get('rate_adj'))} | {_per3(r)} |")
+    L += ["", f"바스켓 중앙 PER {_f(b.get('median_per'), 1)} (런레이트 {_f(b.get('median_per_run_rate'), 1)}) · PBR {_f(b.get('median_pbr'), 2)} "
+          f"(검증 {b['n_verified']}/{b['n']}, 가격 {b['n_priced']}/{b['n']}, 가이던스 {b.get('n_guided', 0)}종)"]
     d = b["decomp20"]
     L.append(f"20일 분해(중앙값): 가격 {_pct(d.get('d_price'))} = 멀티플 {_pct(d.get('d_multiple'))} + EPS {_pct(d.get('d_eps'))} · 기준 {d['basis']}")
     s = b["rate_sens"]
@@ -488,6 +572,9 @@ def markdown(o: dict) -> str:
     for t in ev["tripwires"]:
         L.append(f"- {t.get('date') or '날짜 미정'} {t['name']} — {t['note']}")
     L += ["", "## 항목 설명", "- TTM: 최근 4개 분기 합. 분기 4개 미만이면 연환산 + ⚠검증전.",
+          "- PER(TTM/런레이트/가이던스): 같은 주가를 세 가지 '이익'으로 나눈 값. TTM=지난 1년 합, 런레이트=최근 분기×4(지금 속도가 1년 계속되면), "
+          "가이던스=회사가 제시한 다음 분기 숫자×4 (universe/fin_guidance.json, 사람이 적음; EPS 가이던스가 non-GAAP 이면 그 기준, 매출만 있으면 최근 분기 순이익률 유지 가정). "
+          "사이클 업종은 세 값이 크게 벌어진다 — 어느 분모를 믿느냐가 결론을 가른다 (docs/valuation_notes/).",
           "- 금리조정 매력 = 이익수익률(TTM EPS ÷ 종가) − 무위험금리(US: 미 10Y, KR: 국고 3Y). 높을수록 금리 대비 싸다.",
           "- 20일 분해: ln(P₁/P₀) = ln(PER₁/PER₀) + ln(EPS₁/EPS₀). 20일 전 EPS 는 archive/valuation 의 과거 산출물.",
           "- 순현금 근사 = 현금 − 총부채 (차입금 항목 미수집, 보수적). EV/EBITDA 는 감가상각 항목이 있을 때만.",
@@ -505,7 +592,7 @@ def telegram_text(o: dict) -> str:
     nxt = f"{ev['date'][5:]} {ev['name']}" if ev else "—"
     trip = next((t for t in o["events"]["tripwires"] if t.get("date")), None)
     lines = [f"📊 반도체 밸류에이션 바스켓 {o['asof']} (검증 {b['n_verified']}/{b['n']})",
-             f"중앙 PER {_f(b.get('median_per'), 1)} · PBR {_f(b.get('median_pbr'), 2)} · 미10Y {_f(rt.get('us10y'), 2, '%')} 국고3Y {_f(rt.get('kr3y'), 2, '%')}",
+             f"중앙 PER {_f(b.get('median_per'), 1)}(런레이트 {_f(b.get('median_per_run_rate'), 1)}) · PBR {_f(b.get('median_pbr'), 2)} · 미10Y {_f(rt.get('us10y'), 2, '%')} 국고3Y {_f(rt.get('kr3y'), 2, '%')}",
              "금리조정 매력 상위: " + (" / ".join(nm(x) for x in b["cheapest"]) or "—"),
              "하위: " + (" / ".join(nm(x) for x in b["richest"]) or "—"),
              f"20일 분해(중앙): 가격 {_pct(d.get('d_price'))} = 멀티플 {_pct(d.get('d_multiple'))} + EPS {_pct(d.get('d_eps'))} [{d['basis']}]",

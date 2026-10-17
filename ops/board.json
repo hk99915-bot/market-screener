@@ -1230,7 +1230,7 @@
    "depends_on": [
     "sec-ytd-bug"
    ],
-   "notes": "SNDK는 revenue 있음, MU만 없음 → Revenues / RevenueFromContractWithCustomerExcludingAssessedTax 태그 폴백 확인. 8-K 대조값 FQ4 54.23B, FQ3 41.46B. 10/17 fin_verified.json 에 기록.",
+   "notes": "SNDK는 revenue 있음, MU만 없음 → Revenues / RevenueFromContractWithCustomerExcludingAssessedTax 태그 폴백 확인. 8-K 대조값 FQ4 54.23B, FQ3 41.46B. 10/17 fin_verified.json 에 기록. 10/17 애널 원인 분석: sec.py parse() 가 분기를 만든 첫 태그에서 break → 옛 태그(Revenues/SalesRevenueNet)가 2019 이전 분기만 만들고 끝나는 '태그 전환' 가설(검증전) — docs/desk_kb/data.md '애널 요청' 참조. 가이던스 PER 은 fin_guidance.json last_revenue 로 우회 중.",
    "desk": "데이터"
   }
  ]

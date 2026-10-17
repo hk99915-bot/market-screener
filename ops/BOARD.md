@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 70개 · 진행 2 · 검수 21 · 대기 21 · 보류 2 · 완료 24
+기준일 2026-10-17 · 작업 71개 · 진행 2 · 검수 21 · 대기 22 · 보류 2 · 완료 24
 
 ## 진행 (2)
 
@@ -37,7 +37,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (21)
+## 대기 (22)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -52,6 +52,7 @@
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | — | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. |
 | P1 | `dotplot-neutral-rule` | 점도표: '중립' 점은 기본 시나리오 확률 + 위/아래 전환 조건(flip_up/flip_down) 필수 — 조건 없는 중립은 기록 거부. 텔레그램 줄에 '기본 X% · 위 조건 · 아래 조건' 표기 | 개발 | — | 2026-10-20 | `screener/dotplot.py`<br>`tests/test_dotplot.py` | `dotplot` | 10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외. |
 | P1 | `peer-review-valuation` | 피어 리뷰: 애널 밸류에이션 모델(정상화 ROE·할인율·멀티플/EPS 분해) 독립 검토 + 10/16 반도체 논지(theses) 반대 의견서 — 매주 월요일 | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/valuation_YYYY-MM-DD.md`<br>`docs/desk_kb/analyst.md` | `valuation-daily` | 피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당. |
+| P1 | `mu-revenue-tag` | MU 매출 항목 미수집(companyfacts 태그 매핑) → valuation '매출 —' | 데이터 | — | 2026-10-21 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | `sec-ytd-bug` | SNDK는 revenue 있음, MU만 없음 → Revenues / RevenueFromContractWithCustomerExcludingAssessedTax 태그 폴백 확인. 8-K 대조값 FQ4 54.23B, FQ3 41.46B. 10/17 fin_verified.json 에 기록. 10/17 애널 원인 분석: sec.py parse() 가 분기를 만든 첫 태그에서 break → 옛 태그(Revenues/SalesRevenueNet)가 2019 이전 분기만 만들고 끝나는 '태그 전환' 가설(검증전) — docs/desk_kb/data.md '애널 요청' 참조. 가이던스 PER 은 fin_guidance.json last_revenue 로 우회 중. |
 | P1 | `ra-sec-coverage` | RA: SEC·DART 커버리지 확장 — 반도체 바스켓 전체(PSI·SOXX 구성 30+종목, 하이닉스 ADR 없음→DART), 실적 발표일·컨센서스 EPS(무료 소스 조사) 수집 파이프라인 | 데이터 | — | 2026-10-21 | `universe/us_priority.csv`<br>`screener/sec.py`<br>`screener/earnings_cal.py`<br>`reports/earnings_cal.json` | `valuation-daily` | 컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
 | P2 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. |

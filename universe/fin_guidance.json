@@ -1,0 +1,23 @@
+{
+ "_readme": "사람이 적는 '다음 분기' 회사 가이던스(공시 숫자, USD). valuation_daily 의 '가이던스 PER' 입력. EPS 가 non-GAAP 이면 eps_basis 에 적는다 — GAAP TTM 과 섞어 읽지 말 것. 매출만 있으면 최근 분기 순이익률 유지 가정으로 순이익을 만든다(last_revenue 는 매출 미수집 종목용 최근 분기 매출). 보유·금액 아님.",
+ "MU": {
+  "period": "FQ1'27 (2026-12 분기)",
+  "revenue_lo": 60000000000.0,
+  "revenue_hi": 63000000000.0,
+  "last_revenue": 54230000000.0,
+  "note": "매출 61.5B ± 1.5B. EPS 가이던스는 non-GAAP 이라 넣지 않음 — 매출×FQ4 순이익률(69.5%) 유지 가정",
+  "src": "8-K 2026-09 (sec.gov 000072312526000018)",
+  "asof": "2026-10-17"
+ },
+ "SNDK": {
+  "period": "FQ1'27 (2026-10 분기)",
+  "revenue_lo": 10300000000.0,
+  "revenue_hi": 10800000000.0,
+  "eps_lo": 44.0,
+  "eps_hi": 46.0,
+  "eps_basis": "non-GAAP",
+  "note": "매출 10.3~10.8B, non-GAAP EPS 44~46 → 가이던스 PER 은 non-GAAP 기준(GAAP TTM 과 분자 정의가 다름)",
+  "src": "8-K 2026-08-05 (sec.gov 000162828026053346)",
+  "asof": "2026-10-17"
+ }
+}
