@@ -85,6 +85,7 @@
 - `origin/data` 생성 완료(ad4ffec9, US 상세 588파일(색인 포함), asof 10/16, 커밋 1개).
 - `.github/workflows/pages.yml`: main 체크아웃 + data 덮어쓰기 → `upload-pages-artifact` → `deploy-pages`. `vars.PAGES_ACTIONS=1` 전엔 푸시로 돌지 않음, 수동 실행은 빌드만.
 - 검증: main 에서 US 상세를 지운 2단계 모의 트리로 사이트를 합쳐 `ui_smoke.py --root _site` → 홈·리포트·신선도·**US 검색(AAPL·US)·팝업(색인 200·AAPL.json 200, 4,566자)** 정상. 화면 fetch 경로는 상대경로라 **UI 변경 없음**.
+- Actions 빌드 실측(run 39004597564, 수동·빌드만): 성공 24초(체크아웃 12·합치기 2·업로드 6초) — 브랜치 배포 52~56초보다 짧음. 배포 작업은 설계대로 건너뜀.
 - main 크기 변화: 1단계(이중 기록)는 0. 2단계(main 에서 US 상세 제거) 시 **−18 MB/일(pack)**, KR 까지 −40 MB/일.
 - **오너 할 일(1단계 켜기)**: Settings → Pages → Build and deployment → Source = "GitHub Actions" → Settings → Secrets and variables → Actions → Variables 에 `PAGES_ACTIONS`=`1`, `DATA_BRANCH_US`=`1`. 되돌리기 = Source "Deploy from a branch / main / (root)" + 변수 삭제.
 - **2단계(main 에서 US 상세 제거) 남은 일** — 운영 잠금(briefing·screener·health.yml) 풀린 뒤 + 월요일 장 운영 1회 확인 뒤: ① 상세를 읽고 쓰는 워크플로(briefing·screener·health) 실행 전 `python3 scripts/data_branch.py pull reports/detail/US`, 저장 단계에 `push` ② `.gitignore` 에 `reports/detail/US/` + `git rm -r --cached` ③ `apps-script/Code.gs` `raw_` 의 US 상세 경로를 `.../data/...` 로(GAS 웹앱은 raw main 을 읽음 — 오너 GAS 재배포 1회).
