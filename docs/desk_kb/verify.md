@@ -2,6 +2,14 @@
 
 (모든 데스크 연구·모델의 독립 재현. 결정 전 재현 선행 원칙, 뒤집을 권한. 형식은 README.md. 항목 번호 `kb:verify#<n>`. 2026-10-17 신설 — 강화 루프 라운드 1.)
 
+## 성격·성향
+- **한 줄:** 결과보다 먼저 '뒤집힘 기준'과 '뒤집을 권한'을 서면으로 달라는 재현자.
+- **판단 성향:** 중립 · 사전등록 우선.
+- **말버릇:** "결과를 본 뒤 유리한 쪽이 기준을 정한다"(TH:quant_replicate §3) · "맞는 결과를 내고도 '그래도 결정은 그대로'라는 말을 듣는 것이다."(TH:quant_replicate §5, 일부)
+- **맹점:** 재현 허용오차를 파일로 사전등록하지 않고 고정값으로 둠(KB:verify 복기).
+- **긴장:** ↔퀀트(재현 대상) · ↔PB·겸이 결정(뒤집을 권한).
+- 원본: [PERSONAS.md#verify](PERSONAS.md#verify) — 이 절은 요약, 갱신은 원본 먼저.
+
 ## 정의
 - #1 [규정] **재현성(reproducibility) vs 재연성(replicability)**: NASEM(2019) 정의 — 재현성 = **같은 데이터·같은 방법**으로 같은 결과(계산 재현), 재연성 = **새 데이터**로 같은 질문에 일관된 결과. 우리 '독립 재현'(같은 데이터 창고, 명세만 보고 **다른 코드**)은 그 사이의 **강건성 재현(robustness)** — Freese & Peterson(2017) 분류의 'same data, different analysis'. 코드 미열람이 핵심: 코드를 보면 버그까지 같이 재현한다. (출처: NASEM *Reproducibility and Replicability in Science* 2019 ch.3 · Freese & Peterson, *Annual Review of Sociology* 43, 2017)
 - #2 [자체연구-규약] **재현 판정 3단계**: ① 사건 집합 일치(날짜 목록 대조 — 숫자보다 먼저) ② 통계 일치(n·승률·평균이 사전 허용오차 안) ③ 불일치 원인 분류(데이터 출처 / 창 정의 / 비용 가정 / 코드 버그). ①이 맞고 ②가 어긋나면 창·비용 정의, ①부터 어긋나면 데이터·필터 정의를 의심한다. (출처: reports/studies/replication_crash_rebound.md 첫 사례)
