@@ -81,3 +81,17 @@ def test_modules_use_defs():
     assert committee.CRASH_PCT == defs.CRASH_PCT and pb.STRESS_LIMIT == defs.STRESS_LIMIT
     assert ticket.MIN_RR == defs.MIN_RR and ticket.HARD_STOP == defs.HARD_STOP
     assert pb.rules("")["semi_band"] == defs.SEMI_BAND and pb.rules("SEMI_CAP 0.35")["semi_cap"] == 0.35
+
+
+def test_accum_contracts_and_getters():
+    """데이터 요청(10/17): accum.json·us_accum.json 계약 등록 + 화면 전용 getter 를 Pages 셸·Code.gs 양쪽에 같은 이름으로."""
+    assert contracts.contract_for("reports/accum.json")[0] == "accum.json"
+    assert contracts.contract_for("reports/us_accum.json")[0] == "us_accum.json"
+    assert contracts.check("reports/accum.json", {"asof": None, "generated_at": "x", "status": "fail", "n": 0}) == []
+    assert contracts.check("reports/us_accum.json", {"asof": "2026-10-16", "generated_at": "x", "status": "ok", "n_scanned": 3})
+    root = Path(__file__).resolve().parents[1]
+    bp = (root / "scripts" / "build_pages.py").read_text(encoding="utf-8")
+    gs = (root / "apps-script" / "Code.gs").read_text(encoding="utf-8")
+    for g, f in (("getAccum", "reports/accum.json"), ("getUsAccum", "reports/us_accum.json")):
+        assert f"{g}: () => get('{f}')" in bp and f"function {g}()" in gs
+    assert ".getAccum()" in (root / "apps-script" / "tab_market.html").read_text(encoding="utf-8")

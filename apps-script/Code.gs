@@ -113,3 +113,5 @@ function getViews() { return raw_('reports/views.json'); }
 function getValuation() { return raw_('reports/valuation.json'); }   // 반도체 밸류에이션 바스켓 (RESEARCH 탭)
 function getDotplot() { return raw_('reports/dotplot.json'); }   // 기명 점도표 (운용회의 카드 점 띠)
 function getFreshness() { return raw_('reports/freshness.json'); }   // 데이터 신선도 배지 (상단 헤더, 10/17 재발방지대책)
+function getAccum() { return raw_('reports/accum.json'); }   // KR 매집 스캔 (MARKET › ACCUM, screener/accum.py 18:37) — contracts.py 등록
+function getUsAccum() { return raw_('reports/us_accum.json'); }   // US 매집 흔적 (screener/us_accum.py) — contracts.py 등록

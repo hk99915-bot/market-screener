@@ -68,8 +68,8 @@ function japanPanel(){   // 일본: 닛케이·TOPIX·엔·JGB + 한국 종목�
 }
 document.addEventListener('click',e=>{ if(e.target.closest('td.mac')) return; const tr=e.target.closest('tr.mvr'); if(!tr) return; const t=tr.querySelector('td[data-x]'); if(!t) return; const r=document.getElementById('mvx-'+t.dataset.x); if(r){ r.classList.toggle('on'); t.textContent=r.classList.contains('on')?'▾':'▸'; }});
 let ACC=null, ACCK='accum';
-function accumPanel(){   // reports/archive/accum/latest.json (screener/accum.py, 평일 18:37 KST)
-  if(ACC===null){ ACC=false; google.script.run.withSuccessHandler(t=>{try{ACC=JSON.parse(t);}catch(e){ACC={};} render();}).withFailureHandler(()=>{ACC={};render();}).getArchAt('accum','latest'); }
+function accumPanel(){   // reports/accum.json (screener/accum.py, 평일 18:37 KST) — 전용 getter getAccum (contracts.py 등록, 10/17)
+  if(ACC===null){ ACC=false; google.script.run.withSuccessHandler(t=>{try{ACC=JSON.parse(t);}catch(e){ACC={};} render();}).withFailureHandler(()=>{ACC={};render();}).getAccum(); }
   if(ACC===false) return '<div class="mu">LOADING …</div>';
   if(!ACC||!ACC.status) return '<div class="mu">데이터 없음 — accum 워크플로 미실행</div>';
   if(ACC.status==='fail') return `<div class="dn">스캔 실패: ${esc(ACC.reason||'')} <span class="mu">(${esc(ACC.generated_at||'')})</span></div>`;

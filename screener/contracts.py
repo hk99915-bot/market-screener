@@ -27,6 +27,10 @@ CONTRACTS: dict[str, dict] = {
     "macro_view.json": {"v": 1, "date": "asof", "required": {"asof": str, "rows": list}},
     "japan.json": {"v": 1, "date": "date", "required": {"asof": str, "date": str}},
     "macro_series.json": {"v": 1, "date": "asof", "required": {"asof": str, "fmt": str, "series": dict}},
+    # 매집 스캔(데이터 요청 10/17): 실패 시 asof=None 으로 쓰므로 날짜는 비어도 허용(status='fail' 이 신호). 화면: MARKET › ACCUM (getAccum/getUsAccum)
+    "accum.json": {"v": 1, "date": "asof", "date_required": False, "required": {"asof": str, "generated_at": str, "status": str, "n": int}},
+    "us_accum.json": {"v": 1, "date": "asof", "date_required": False,
+                      "required": {"asof": str, "generated_at": str, "status": str, "n_scanned": int, "hits": list}},
 }
 
 
