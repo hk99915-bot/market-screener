@@ -1,0 +1,95 @@
+{
+ "_doc": "시도 일지 (kb:quant#13). 연구 파일 안의 m(등록 가설 수)은 scripts/trial_log.py 가 reports/studies/*.json 에서 자동으로 읽는다. 이 파일은 코드가 못 읽는 것만 사람이 적는다: 주제 태그, 등록 전 탐색 횟수, 버린 이유. 같은 질문(topic)이 여러 연구에서 반복되면 N 은 그 합이다 — 우리 p 는 연구 안 m 만 보정한 낙관적 하한. 새 시도는 trials[] 에 날짜·가설·파라미터·결과·버린 이유 순으로 덧붙인다(결과를 본 뒤 지우지 않는다).",
+ "studies": {
+  "playbook_signals": {
+   "topic": "crash_entry",
+   "question": "급락 뒤 어느 신호로 진입하나",
+   "unregistered_trials": 32,
+   "unregistered_note": "8전략(A·B·C·D·D2·E·E2·F) × raw/cut × H20/H60 = 32 조합, CI 기반·m 미등록",
+   "discarded": "급락일 종가(B)보다 나은 신호 없음 → 다음 연구(entry_signals)로 재정의"
+  },
+  "entry_signals": {
+   "topic": "crash_entry",
+   "question": "급락 뒤 확인 신호(외국인·회복)가 대조군보다 나은가",
+   "unregistered_trials": 0,
+   "discarded": "후보 5개 F, 급락일 종가 C → '확인 신호를 기다리지 않기' 추천"
+  },
+  "exec_signal": {
+   "topic": "crash_entry",
+   "question": "실행 신호(S1·S2′·S12·R·R+)와 섹터 낙폭 순위",
+   "unregistered_trials": 0,
+   "discarded": "S2′만 C(보정 전), 급락일 종가보다 20일 −5.7%p"
+  },
+  "crash_rebound": {
+   "topic": "crash_entry",
+   "question": "급락일 뒤 d1·d5·d20 분포(서술)",
+   "unregistered_trials": 0,
+   "discarded": "검정 없음(서술 표) — 가설 생성용"
+  },
+  "rule_audit": {
+   "topic": "rules",
+   "question": "rules.txt 6개 규칙 대안 비교",
+   "unregistered_trials": 0,
+   "discarded": ""
+  },
+  "semis_cap": {
+   "topic": "semis_cap",
+   "question": "반도체 비중 상한·밴드·글라이드",
+   "unregistered_trials": 0,
+   "discarded": ""
+  },
+  "fib_levels": {
+   "topic": "fib",
+   "question": "피보나치 되돌림 지지·이탈·골든",
+   "unregistered_trials": 0,
+   "discarded": "렌즈 등급 F"
+  },
+  "derivs_signals": {
+   "topic": "derivs",
+   "question": "파생 신호 9개(베이시스·PCR·IV 등)",
+   "unregistered_trials": 0,
+   "discarded": "H8 산수만 A, 나머지 F/검증전"
+  },
+  "gamma_regime": {
+   "topic": "derivs",
+   "question": "딜러 감마 국면 → 다음날 변동",
+   "unregistered_trials": 0,
+   "discarded": "IS 감마음수 17일<20 → 검증전, next_eval 대기"
+  },
+  "replication_crash_rebound": {
+   "topic": "crash_entry",
+   "question": "crash_rebound 의 검증 데스크 독립 재현(서술, 검정 없음)",
+   "unregistered_trials": 0,
+   "discarded": "재현 표 — m 없음, −5% 사건 27일 일치"
+  }
+ },
+ "trials": [
+  {
+   "date": "2026-10-15",
+   "topic": "crash_entry",
+   "hypothesis": "대본 신호(저점 지지·5일 고점 회복·분할)가 급락일 종가 매수보다 낫다",
+   "params": "H20/H60, raw/cut, −3%/−5%",
+   "result": "B(급락일 종가) 우위, 신호 D/E 는 기회비용",
+   "discarded_why": "유의차 없음 + 비용·복잡성 → 단순한 쪽 권고",
+   "study": "playbook_signals"
+  },
+  {
+   "date": "2026-10-16",
+   "topic": "crash_entry",
+   "hypothesis": "외국인 순매수·회복 확인 조건이 승률을 올린다",
+   "params": "gap 20, win 20, exit 40, m=6",
+   "result": "5개 F, 급락일 종가 C(p 0.070)",
+   "discarded_why": "조건 추가는 n 만 줄임(kb:quant#21)",
+   "study": "entry_signals"
+  },
+  {
+   "date": "2026-10-16",
+   "topic": "crash_entry",
+   "hypothesis": "실행 신호 5종 × 보유 3기간이 무조건 진입보다 낫다",
+   "params": "m1=15, m3=2, m4=2",
+   "result": "S2′ 만 C, 나머지 F",
+   "discarded_why": "급락일 종가 대비 열위",
+   "study": "exec_signal"
+  }
+ ]
+}
