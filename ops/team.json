@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-17T21:36+09:00",
+ "updated": "2026-10-17T21:52+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -668,9 +668,9 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-11",
-  "commits_total": 1001,
-  "commits_bot": 466,
-  "commits_unmapped": 285,
+  "commits_total": 1008,
+  "commits_bot": 467,
+  "commits_unmapped": 288,
   "audit_files": [
    "2026-10-17"
   ],
@@ -730,7 +730,7 @@
     }
    },
    "PM": {
-    "commits_7d": 35,
+    "commits_7d": 38,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -1093,16 +1093,16 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 67,
-   "tokens": 11591893,
-   "tools": 2918,
-   "sec": 45853,
+   "runs": 72,
+   "tokens": 12161762,
+   "tools": 3002,
+   "sec": 47135,
    "days": 3,
    "per_day": {
-    "runs": 22.3,
-    "tokens": 3863964.3,
-    "tools": 972.7,
-    "sec": 15284.3
+    "runs": 24.0,
+    "tokens": 4053920.7,
+    "tools": 1000.7,
+    "sec": 15711.7
    }
   }
  },
@@ -1134,16 +1134,29 @@
    }
   },
   "claude-opus-5-5": {
-   "runs": 35,
-   "tokens": 6434936,
-   "tools": 1679,
-   "sec": 23306,
+   "runs": 38,
+   "tokens": 6766690,
+   "tools": 1734,
+   "sec": 24157,
    "days": 1,
    "per_day": {
-    "runs": 35.0,
-    "tokens": 6434936.0,
-    "tools": 1679.0,
-    "sec": 23306.0
+    "runs": 38.0,
+    "tokens": 6766690.0,
+    "tools": 1734.0,
+    "sec": 24157.0
+   }
+  },
+  "opus": {
+   "runs": 2,
+   "tokens": 238115,
+   "tools": 29,
+   "sec": 431,
+   "days": 1,
+   "per_day": {
+    "runs": 2.0,
+    "tokens": 238115.0,
+    "tools": 29.0,
+    "sec": 431.0
    }
   }
  }
