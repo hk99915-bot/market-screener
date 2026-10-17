@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 95개 · 진행 6 · 검수 22 · 대기 37 · 보류 2 · 완료 28
+기준일 2026-10-17 · 작업 101개 · 진행 6 · 검수 23 · 대기 38 · 보류 2 · 완료 32
 
 ## 진행 (6)
 
@@ -15,7 +15,7 @@
 | P1 | `bt-exec-lag` | 포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시 | 백테스트 | 2026-10-17 | 2026-10-20 | `screener/portfolios.py`<br>`tests/test_portfolios.py` | — | 외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부. |
 | P1 | `kr-accum` | 국장 외인·기관 매집 스캐너(전 종목 일별 수급 저장소) + 시장 거래대금 + 매집 신호 이벤트 스터디 | 퀀트 | 2026-10-17 | 2026-10-24 | `screener/accum.py`<br>`scripts/study_accum.py`<br>`.github/workflows/accum.yml`<br>`data/flows/*`<br>`reports/accum.json`<br>`reports/studies/accum_signals.json`<br>`apps-script/tab_market.html`<br>`tests/test_accum.py` | — | pykrx 하루 10콜 → data/flows/kr_inv_YYYY.parquet(2022~ 백필, 재개형). 평일 18:37 KST accum.yml. 화면: MARKET›KR ACCUM(getArchAt('accum','latest') 임시 — Code.gs/build_pages 잠금 풀리면 getAccum 전용 getter로). 남은 일: contracts.py 에 accum.json 계약 등록(개발 소관), 2022 하락장 백필 완료 후 스터디 재실행. |
 
-## 검수 (22)
+## 검수 (23)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -39,10 +39,11 @@
 | P2 | `deriv-tab` | 터미널 '파생(DERIV)' 화면 — 흩어진 파생 정보(옵션 포지션·일별 이력·검증 등급) 한곳에 모음 | 파생 | 2026-10-16 | 2026-10-17 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | — | 새 수집 없음 — reports/derivs.json·data/deriv/daily.csv·reports/studies/derivs_signals.json·live.json K200F 재사용. |
 | P2 | `derivs-audit` | derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통) | 파생 | 2026-10-16 | 2026-10-20 | `screener/derivs.py` | — | 검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). fc69e054 백필에서 재계산 확인(행사가 1 벽 0일, 콜 벽 결측 0일). |
 | P2 | `night-futures-line` | 장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가) | 파생 | 2026-10-16 | 2026-10-20 | `screener/briefings.py`<br>`screener/deriv_hist.py` | — | 실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시. |
+| P2 | `schedule-single-accum` | accum.yml 수동 dispatch 읽기 전용 기본(commit 입력 + 저장 조건) — 결정C, 잠금 해제 뒤 | 퀀트 | — | 2026-10-20 | `.github/workflows/accum.yml`<br>`tests/test_schedule_single.py` | — | 운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' // inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌). / 퀀트 10/17: accum.yml 에 commit 입력(기본 false)+저장 조건 반영, tests/test_schedule_single.py PENDING 비움. 운영 확인 후 완료. |
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (37)
+## 대기 (38)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -66,7 +67,7 @@
 | P1 | `sim-oos` | 트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보정, B&H·섹터 대비 | 퀀트 | — | 2026-10-24 | `screener/detail.py`<br>`reports/studies/trial_log.json` | `px-adjust-unify` | Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
 | P2 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. |
-| P2 | `schedule-single-accum` | accum.yml 수동 dispatch 읽기 전용 기본(commit 입력 + 저장 조건) — 결정C, 잠금 해제 뒤 | 퀀트 | — | 2026-10-20 | `.github/workflows/accum.yml`<br>`tests/test_schedule_single.py` | — | 운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' // inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌). |
+| P2 | `user-cooldown-log` | 포상 시각을 ops/cooldown.json 에 기록(시각·라벨만) — 30분 쿨다운 자동화 입력. 원본 pb-private journal 타임라인 | PB | 2026-10-17 | 2026-10-20 | `ops/cooldown.json` | — | 결재 #14 ③. 기록 데스크/PB 가 포상 직후 한 줄 추가(예: {"at":"2026-10-20 15:40","what":"포상"}). 없으면 매도만 쿨다운. |
 | P2 | `ra-etf-holdings-full` | RA: ETF 구성종목 전체 목록 수집(PSI·SOXX·SMH·139260·091160) → 룩스루·밸류에이션 바스켓 자동 갱신 | 데이터 | — | 2026-10-23 | `screener/etf.py`<br>`reports/detail/US/*.json` | — | 현재 상위 7개만 저장됨. |
 | P2 | `etf-pdf-nav` | ETF 일별 구성종목(PDF)·NAV 괴리 시계열 수집 — 0015B0부터 (액티브셰어·급락일 괴리) | 데이터 | — | 2026-10-24 | `scripts/flow_query.py`<br>`.github/workflows/flowq.yml` | — | 애널 요청 10/17 (KoAct vs NDX 리포트 한계). 샌드박스 DNS 차단 → Actions에서 수집. |
 | P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | — | 2026-10-24 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). |
@@ -82,6 +83,7 @@
 | P2 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
 | P2 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
+| P3 | `user-gas-repaste-1017` | GAS Code.gs 재붙여넣기 — getAccum·getUsAccum·getCooldown 추가분 (Pages 화면은 이미 반영, GAS 웹앱만 해당) | 사용자 | 2026-10-17 | 2026-10-19 | `apps-script/Code.gs` | — | GAS 웹앱을 쓸 때만. 배포 → 배포 관리 → 새 버전. |
 | P3 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
 ## 보류 (2)
@@ -91,11 +93,12 @@
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 
-## 완료 (28)
+## 완료 (32)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P0 | `audit-life-target-amount` | LIFE 탭 제목 '순자산 목표 금액' 공개 노출 제거 → 금액 없는 문구('순자산 목표 진행률')로, 금액은 비공개 데이터에서만 | 개발 | — | 2026-10-17 | `apps-script/tab_life.html`<br>`scripts/build_pages.py` | — | 감사 지적(audit 10/17, 기준서 (e) 치명): apps-script/tab_life.html:28 <h2> 에 개인 순자산 목표 금액이 공개 저장소·Pages 에 노출. 같은 누출의 docs/rules_terms.md:73·scripts/scorecard_week.py:351·reports/scorecard_week.md:143 은 감사 예외로 즉시 치환함(커밋 '감사: 금액 누출 제거'). tab_life.html 은 잠금 파일이라 개발 데스크 요청. 공개 이력(git) 정리 여부는 PB→오너 결정. · 10/17 PB 처리 4322d72f |
+| P0 | `r9-alert-grade` | 결재 #9 알림 등급 — 소리 5종(⛔손절 2일·기한 D-day·발동선 터치·서킷/사이드카 발동·신선도 ⛔ 항목당 하루 1회)만, 나머지 무음 + 07:10 공부 알림 4→2블록 | 개발 | 2026-10-17 | 2026-10-17 | `screener/alerts.py`<br>`screener/report.py`<br>`screener/events.py`<br>`screener/freshness.py`<br>`screener/pb.py`<br>`screener/duel.py`<br>`screener/rebound.py`<br>`screener/study_daily.py`<br>`tests/test_telegram_silent.py` | — | alerts.RING_KINDS 단일 등급표, report.loud(이모지 판정) 제거. ⚡급락·14:25 반등·PB 아침·주문표 ⛔는 무음 전환. 5c8d9ac1. 월 10/20 08:50 전 라이브(main 반영). |
 | P1 | `ops-system` | 운영 체계 (작업 보드·잠금·함수 소실 검사·변경 이력·SYSTEM 탭) | 운영 | 2026-10-15 | 2026-10-15 | `ops/*`<br>`scripts/changelog.py`<br>`scripts/board.py`<br>`scripts/lock.py`<br>`scripts/check_functions.py`<br>`scripts/ops_runs.py`<br>`.github/workflows/ops.yml`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py`<br>`reports/changelog.json`<br>`reports/ops/*` | — | Index.html 동시 편집으로 함수가 지워진 회귀(myRun) 재발 방지. 에이전트 규약은 ops/README.md. |
 | P1 | `agreements-ledger` | 합의 원장 신설 (대화 합의 → ✅시행/🗳️일요일/🔒약속 한 장) | PB | 2026-10-16 | 2026-10-16 | private 전용 | — | private 저장소 전용. 새 세션은 이 원장부터 읽는다. 일요일 리뷰 후 ✅확정분을 규정 파일로 옮기는 건 sunday-review 산출물. |
 | P1 | `earn-brief-pb` | 보유 종목 실적 브리프 (비공개) | 애널 | 2026-10-16 | 2026-10-16 | private 전용 | — | 검수(PB 10/16): private 리포트 존재·확정/미확인 구분·캘린더 날짜 일치 확인. |
@@ -105,6 +108,8 @@
 | P1 | `ops-history` | 운용 히스토리 신설 (매 거래일 16:00 하루 블록 + 현재 운용 상태) | PB | 2026-10-16 | 2026-10-16 | private 전용 | — | private 저장소 전용. 10/15·10/16 블록 작성 완료. 이후는 일일 운영(별도 작업 아님). |
 | P1 | `pbfire-merge-fix` | PB🔥 픽 저장 병합 누락 버그 수정 + 10/16 픽 복구 | PB | 2026-10-16 | 2026-10-16 | `screener/pb_call.py` | — | 2890e8e2. 보드 밖에서 시작 → 사후 등록(PM). |
 | P1 | `entry-signal-validate` | 급락 뒤 진입 신호 사전등록 검증 — 강세 전환 신호(외국인 2일+5일 고점) 대체 후보(저점+3%·5일선·20일선·단계 진입·급락일 종가) | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_entry_signals.py`<br>`reports/studies/entry_signals.md`<br>`reports/studies/entry_signals.json`<br>`views/registry.json` | — | 운용회의 코드는 안 바꿈(PB 검토 후 별도). registry 에 entry_trigger 후보 렌즈만. / 결과 reports/studies/entry_signals.md — 일요일 안건 1(운용회의 신호 교체)로 넘김. 코드 변경은 sunday-review 결정 후 별도 작업. |
+| P1 | `r14-duel-guard` | 결재 #14 모의 대결 — 레버리지 ETF 1일 상한(리셋 비용 라벨) · 매도/포상 후 30분 쿨다운(카운트다운) · 나🔥 해금 근거 제외 라벨 | 개발 | 2026-10-17 | 2026-10-17 | `screener/duel.py`<br>`screener/ticket.py`<br>`screener/defs.py`<br>`apps-script/tab_duel.html`<br>`ops/cooldown.json`<br>`tests/test_duel_r14.py` | — | 새 제출부터(소급 없음). 포상 시각 입력 = ops/cooldown.json(시각·라벨만). decisions.py 의 '해금 판정용' 주석은 데이터 잠금이라 미수정 — 해제 후 정리. 52fca64d. |
+| P1 | `r3-semi-band` | 결재 #3 반도체 밴드 레짐 연동(하락장 35·회복확인 40·상승장 40/발동 45·하단 30) + 11월 말 35% 적립 글라이드 + 60일 VaR99 계기판(초과 시 반도체 신규 매수 금지) + 삼성전기 포함/제외 병기 | 개발 | 2026-10-17 | 2026-10-17 | `screener/defs.py`<br>`screener/pb.py`<br>`apps-script/tab_my.html`<br>`tests/test_pb_band.py` | — | 레짐 = regime_tag.classify + 20일선 2일(데이터 없으면 하락장). 글라이드 입력 'ISA적립 <월 금액> [일]'(비공개 입력, 출력 비율만). VaR 한도 2%/하락장 1.5%(scorecard [11]). 3a89134b. 반대 근거: studies/semis_cap.md H3 F. |
 | P1 | `rule-audit` | 비싼 대기·확인 조건 전수 점검 — 손절·트레일·부분익절·반등일·하락장 노출·추격 사이징 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_rule_audit.py`<br>`reports/studies/rule_audit.md`<br>`reports/studies/rule_audit.json`<br>`views/registry.json` | `entry-signal-validate` | 코드(committee.py 등) 변경 없음 — 추천만. 개인 규칙은 파라미터만 일반화. / 결과 reports/studies/rule_audit.md — 일요일 안건 6. 완료. |
 | P1 | `edu-curriculum-v3` | STUDY 커리큘럼 v3 정규화: 모듈 스키마·검증 스크립트 + 파생(D1~D4)·리스크(R1~R6)·퀀트(Q1~Q6)·행동재무(H1~H6)·운용회의(M1~M3) 트랙 — 파생·퀀트·FRM·CIO 자료 흡수 | 교육 | 2026-10-16 | 2026-10-18 | `content/study.json`<br>`content/study/**`<br>`docs/study_spec.md`<br>`scripts/study_content_check.py` | — | 개인 금액 금지(비율 사례만). Index.html 변경은 개발 인계(일요일). / 10/17 2주 게이트(index.json gate, 열린 15) 추가 후 완료. |
 | P1 | `edu-quiz-srs` | 문제은행(quiz_bank)·복습 스케줄(SRS 1/3/7/21일)·평일 07:10 오늘 공부 알림(study_daily) | 평가 | 2026-10-16 | 2026-10-18 | `content/study/quiz_bank.json`<br>`content/study/srs.json`<br>`screener/study_daily.py`<br>`.github/workflows/study_daily.yml` | `edu-curriculum-v3` | 진행 저장은 'study <id> done' 이슈 → reports/study_progress.json 제안(스펙만). / 10/17 진행 저장 구현(study-progress)으로 이관, 완료. |
@@ -114,6 +119,7 @@
 | P1 | `core-weights` | 코어 자산배분 최적 비중 | 자산배분 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
 | P1 | `pm-usage` | 사용 기록(로컬 집계)·내보내기 + PM 지표 체계 | PM | 2026-10-15 | — | `apps-script/Index.html` | — | 웹은 일별 횟수만 localStorage 에 저장, 내보내기는 비공개 저장소 이슈 폼으로. 리포트·지표 정의는 private. |
 | P1 | `weekly-scorecard` | 주간 성적표 자동화 | 리스크 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
+| P2 | `accum-contract` | 데이터 요청: reports/accum.json·us_accum.json 계약 등록 + 전용 getter getAccum/getUsAccum(Pages·Code.gs) | 개발 | 2026-10-17 | 2026-10-17 | `screener/contracts.py`<br>`scripts/build_pages.py`<br>`apps-script/Code.gs`<br>`apps-script/tab_market.html`<br>`tests/test_contracts.py` | — | 실패 시 asof=None 허용. MARKET›KR ACCUM 은 getArchAt('accum','latest') → getAccum(). 81860fd5. |
 | P2 | `fib-lens` | VIEW 레지스트리에 fib_levels 렌즈 등록 (검증 등급 반영) | CIO | 2026-10-16 | 2026-10-17 | `views/registry.json` | `fib-validate` | 등급 F → reference. 차트 범례에 F 표시(14cf6ca0). 완료. |
 | P2 | `fib-validate` | 피보나치·하방 Fib 지지 효과 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_fib_levels.py`<br>`reports/studies/fib_levels.md`<br>`reports/studies/fib_levels.json` | — | H1 터치 후 반등 / H2 이탈 후 추가 하락 / H3 61.8·100% 우위. IS 2019~2023, OOS 2024~. / 결과 F(참고 전용) — 안건 4 반영, 렌즈 등록 완료(fib-lens). |
 | P2 | `us-accum` | 미국 매집 흔적 신호(OBV·A/D·CMF·U/D·베이스 돌파·포켓 피벗·매집일·갭) 사건연구 + 일일 스캔 reports/us_accum.json | 퀀트 | 2026-10-17 | 2026-10-17 | `screener/us_accum.py`<br>`scripts/study_us_accum.py`<br>`reports/studies/us_accum.md`<br>`reports/us_accum.json`<br>`.github/workflows/us_accum.yml`<br>`tests/test_us_accum.py`<br>`docs/valuation_notes/2026-10-17_us_accumulation.md` | — | 9/9 F(20일 유니버스 대비, 비용 0.25%, t+1 시가). 현재 구성 300종목 생존편향 → 등급 상한 B. 스캔은 관찰 목록(신호 개수 점수), 평일 07:37 KST. 롤백 = git revert + us_accum.yml 삭제. |
@@ -126,6 +132,7 @@
 
 ## 충돌 주의 (진행 중 작업이 같은 파일을 고침)
 
+- `.github/workflows/accum.yml` ← `kr-accum`, `schedule-single-accum` — 편집 전 `ops/locks.json` 잠금 필수
 - `.github/workflows/briefing.yml` ← `cmt-v2`, `rebound-alert`, `valuation-daily`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Code.gs` ← `view-registry`, `deriv-tab`, `valuation-daily`, `index-split` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2`, `order-ticket-form`, `valuation-daily`, `index-split` — 편집 전 `ops/locks.json` 잠금 필수

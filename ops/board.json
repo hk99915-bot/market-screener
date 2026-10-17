@@ -1679,6 +1679,122 @@
    "depends_on": [],
    "notes": "운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌). | 퀀트 10/17: accum.yml 에 commit 입력(기본 false)+저장 조건 반영, tests/test_schedule_single.py PENDING 비움. 운영 확인 후 완료.",
    "desk": "운영"
+  },
+  {
+   "id": "r9-alert-grade",
+   "title": "결재 #9 알림 등급 — 소리 5종(⛔손절 2일·기한 D-day·발동선 터치·서킷/사이드카 발동·신선도 ⛔ 항목당 하루 1회)만, 나머지 무음 + 07:10 공부 알림 4→2블록",
+   "owner": "개발",
+   "status": "완료",
+   "priority": "P0",
+   "repo": "public",
+   "files": [
+    "screener/alerts.py",
+    "screener/report.py",
+    "screener/events.py",
+    "screener/freshness.py",
+    "screener/pb.py",
+    "screener/duel.py",
+    "screener/rebound.py",
+    "screener/study_daily.py",
+    "tests/test_telegram_silent.py"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "alerts.RING_KINDS 단일 등급표, report.loud(이모지 판정) 제거. ⚡급락·14:25 반등·PB 아침·주문표 ⛔는 무음 전환. 5c8d9ac1. 월 10/20 08:50 전 라이브(main 반영).",
+   "desk": "개발"
+  },
+  {
+   "id": "r3-semi-band",
+   "title": "결재 #3 반도체 밴드 레짐 연동(하락장 35·회복확인 40·상승장 40/발동 45·하단 30) + 11월 말 35% 적립 글라이드 + 60일 VaR99 계기판(초과 시 반도체 신규 매수 금지) + 삼성전기 포함/제외 병기",
+   "owner": "개발",
+   "status": "완료",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/defs.py",
+    "screener/pb.py",
+    "apps-script/tab_my.html",
+    "tests/test_pb_band.py"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "레짐 = regime_tag.classify + 20일선 2일(데이터 없으면 하락장). 글라이드 입력 'ISA적립 <월 금액> [일]'(비공개 입력, 출력 비율만). VaR 한도 2%/하락장 1.5%(scorecard [11]). 3a89134b. 반대 근거: studies/semis_cap.md H3 F.",
+   "desk": "개발"
+  },
+  {
+   "id": "r14-duel-guard",
+   "title": "결재 #14 모의 대결 — 레버리지 ETF 1일 상한(리셋 비용 라벨) · 매도/포상 후 30분 쿨다운(카운트다운) · 나🔥 해금 근거 제외 라벨",
+   "owner": "개발",
+   "status": "완료",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/duel.py",
+    "screener/ticket.py",
+    "screener/defs.py",
+    "apps-script/tab_duel.html",
+    "ops/cooldown.json",
+    "tests/test_duel_r14.py"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "새 제출부터(소급 없음). 포상 시각 입력 = ops/cooldown.json(시각·라벨만). decisions.py 의 '해금 판정용' 주석은 데이터 잠금이라 미수정 — 해제 후 정리. 52fca64d.",
+   "desk": "개발"
+  },
+  {
+   "id": "accum-contract",
+   "title": "데이터 요청: reports/accum.json·us_accum.json 계약 등록 + 전용 getter getAccum/getUsAccum(Pages·Code.gs)",
+   "owner": "개발",
+   "status": "완료",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    "screener/contracts.py",
+    "scripts/build_pages.py",
+    "apps-script/Code.gs",
+    "apps-script/tab_market.html",
+    "tests/test_contracts.py"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "실패 시 asof=None 허용. MARKET›KR ACCUM 은 getArchAt('accum','latest') → getAccum(). 81860fd5.",
+   "desk": "개발"
+  },
+  {
+   "id": "user-gas-repaste-1017",
+   "title": "GAS Code.gs 재붙여넣기 — getAccum·getUsAccum·getCooldown 추가분 (Pages 화면은 이미 반영, GAS 웹앱만 해당)",
+   "owner": "사용자",
+   "status": "대기",
+   "priority": "P3",
+   "repo": "public",
+   "files": [
+    "apps-script/Code.gs"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-19",
+   "depends_on": [],
+   "notes": "GAS 웹앱을 쓸 때만. 배포 → 배포 관리 → 새 버전.",
+   "desk": "개발"
+  },
+  {
+   "id": "user-cooldown-log",
+   "title": "포상 시각을 ops/cooldown.json 에 기록(시각·라벨만) — 30분 쿨다운 자동화 입력. 원본 pb-private journal 타임라인",
+   "owner": "PB",
+   "status": "대기",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    "ops/cooldown.json"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-20",
+   "depends_on": [],
+   "notes": "결재 #14 ③. 기록 데스크/PB 가 포상 직후 한 줄 추가(예: {\"at\":\"2026-10-20 15:40\",\"what\":\"포상\"}). 없으면 매도만 쿨다운.",
+   "desk": "개발"
   }
  ]
 }
