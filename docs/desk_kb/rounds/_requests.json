@@ -1,0 +1,216 @@
+{
+ "_doc": "강화 루프 요청 장부 — scripts/round_collect.py 가 쓴다. 손으로 고치지 말 것.",
+ "requests": [
+  {
+   "id": "req-behavior-ef3cf408",
+   "from": "edu",
+   "to": "behavior",
+   "text": "kb:behavior#3에 Thaler & Johnson 1990 손실 쪽 조건(본전 회복 가능 시에만 위험추구, 아니면 위험회피)을 10/24까지 확인해 한 줄 추가 — 교육이 H2-b1 오답지를 다시 쓰는 전제.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-cio-523f45e9",
+   "from": "peer",
+   "to": "cio",
+   "text": "rules.txt에서 [5] 백스톱·[8] 이전·[12] 반등일 매도의 적용 범위가 '위성 북(D1 전체)'인지 '위성 한도 내 포지션(D5)'인지 조항별 1줄씩, 10/18 14:00 전까지 #7 댓글로 (R2 판정용).",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-data-47bce057",
+   "from": "dev",
+   "to": "data",
+   "text": "네이버 KOSPI `chg` 분모(전일 종가) 정의 1줄 + 반등일용 KRX 확정 전일 종가 필드 제공 여부 회신, retention.py 초안 때 위 설계 3조건 반영.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-data-c4687197",
+   "from": "frm",
+   "to": "data",
+   "text": "2026-06-22~07-29 구간 반도체 개별주·섹터 ETF·KODEX 200·삼성전기 일봉(data/hist) 보장 — 실측 수익률 재생(#9)으로 −30% 가정을 교체하려면 필요.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-derivs-5cdb298e",
+   "from": "macro",
+   "to": "derivs",
+   "text": "베이시스 '약세 괴리' 문장에 외국인 선물 순매수(`fut_frgn`)·USDKRW 5일 변화를 병기해 심리 요인과 환 헤지 요인을 분리할 수 있는지 (2026-10-20 라운드2까지 답 요청).",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-3b5b1223",
+   "from": "audit",
+   "to": "dev",
+   "text": "보드 P0 `audit-life-target-amount`(tab_life.html:28 순자산 목표 금액 문구 제거) 오늘 처리.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-89c9aeed",
+   "from": "ops",
+   "to": "dev",
+   "text": "scripts/board.py 에 작업 추가 서브커맨드(`--add <json>`, validate 통과 시에만 기록) — round_collect.py 승격 경로를 그쪽으로 옮기고 싶음",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-dee1f9ae",
+   "from": "data",
+   "to": "dev",
+   "text": "`scripts/retention.py`(드라이런 기본) 를 ops 워크플로에 어떻게 붙일지(실행 시점·--apply 승인 경로) 설계 의견 1줄 + dev.md KB 신설.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-edu-dff14251",
+   "from": "behavior",
+   "to": "edu",
+   "text": "H2 concepts ②를 '24시간(현업 관행, kb:behavior#14)'과 '30분(결재 #14 ③, kb:behavior#32, ticket.py 구현)' 두 장치로 분리 표기하고, 30분 규칙 퀴즈 1문(\"거부된 주문표 판정 20분 뒤 다른 종목 주문표를 내면?\") 추가.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-frm-e3fda510",
+   "from": "bonds",
+   "to": "frm",
+   "text": "스트레스 사건에 2022형(주식·채권 동반 하락) 추가 + 채권 ETF 위험 σ·D×Δy 병기(입력 숫자는 bonds #12·#16, 기준일 2026-10-16).",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-macro-e0ef2a13",
+   "from": "derivs",
+   "to": "macro",
+   "text": "`macro_view.json` 칩에 코스피200 ATM IV(`reports/derivs.json` atm_iv, ÷√252 = 하루 1σ)를 표시 전용으로 추가 검토 — 점수 제외, 라벨 '검증전'.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-pb-71d9c381",
+   "from": "audit",
+   "to": "pb",
+   "text": "① 보드 `sec-ytd-bug` notes 에 최종 판정 1줄(어느 종목이 YTD 누적이었는지, fin_verified.json 근거) ② behavior.md:71 PB 복기를 pb.md 로 이전 ③ decisions.json pb_view 문장의 '100만원/300만원'을 '1단위(모의 고정 사이즈)' 로 바꾸는 생성 코드 수정 여부 결정.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-quant-892676d8",
+   "from": "verify",
+   "to": "quant",
+   "text": "crash_rebound §3 '5일 보유' 창 정의(매수일 i 기준 i+5 거래일 종가, 어느 캘린더)와 실행 시점(asof·커밋 해시)을 json meta 에 넣어 달라(10/18 리뷰까지) — 재현 n 26 vs 25 의 1건 차이를 닫기 위함. 코드는 내가 열지 않는다.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  },
+  {
+   "id": "req-verify-ee0a9f82",
+   "from": "quant",
+   "to": "verify",
+   "text": "replication_crash_rebound.json 을 push 하고 `meta` 에 `topic: crash_entry`·`m: 0`(서술) 을 넣어 주면 trial_log 가 자동 분류한다; 원본 코드 부재 시 재현 표를 기준으로 선언할지 10/20까지 결정 요청.",
+   "opened": "2026-10-17",
+   "seen": [
+    "2026-10-17"
+   ],
+   "checked": [
+    "2026-10-17"
+   ],
+   "pending_rounds": 1,
+   "status": "open"
+  }
+ ],
+ "updated": "2026-10-17"
+}
