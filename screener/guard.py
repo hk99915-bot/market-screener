@@ -9,6 +9,9 @@
 
 규칙
 - 날짜 비교는 **일 단위**(앞 10자 YYYY-MM-DD). 같은 날은 허용(장중→마감 갱신), 새 값이 더 과거면 차단.
+- 장중 산출물(live.json·dashboard_state 조각): 양쪽 값에 **시각**이 있으면 분 단위로 비교(같은 날 더 이른 시각 = 역행 차단,
+  같은 시각·더 늦은 시각 = 허용). 시간대 표기(Z·+09:00)는 KST 로 바꿔 비교 — UTC 자정 근처 값이 '하루 전'으로 읽혀
+  정상 장중 갱신이 막히던 일 단위 비교 문제(guard-rest, 10/17) 방지. 한쪽이라도 시각이 없으면 KST 날짜로 비교.
 - 차단 시: 쓰지 않음 + WARNING 로그 + reports/freshness.json 의 `regress_blocked` 에 기록(화면 배지·텔레그램이 읽음).
 - 기존 파일이 없거나 날짜를 못 읽으면 허용(신규 파일). 새 값에 날짜가 없으면 허용(비교 불가 — 로그만).
 - 의도적 과거 재생성(백필)은 환경변수 `SCREENER_ALLOW_REGRESS=1` 로만 우회.
@@ -37,6 +40,45 @@ def day(v) -> str | None:
     return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
 
 
+_T = re.compile(r"(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?\s*(Z|[+-]\d{2}:?\d{2})?")
+
+
+def stamp(v) -> datetime | None:
+    """'2026-10-17 09:47' (KST 가정) · '2026-10-17T00:47:00Z' · '…+09:00' → KST datetime. 시각이 없으면 None."""
+    if v is None:
+        return None
+    if isinstance(v, datetime):
+        return v.replace(tzinfo=KST) if v.tzinfo is None else v.astimezone(KST)
+    m = _T.search(str(v))
+    d0 = _D.search(str(v))
+    if not m or (d0 and d0.start() != m.start()):   # 첫 날짜에 시각이 붙은 경우만 (머리글 '… 2026-10-16 …\n생성 2026-10-17 09:47' 은 날짜 10-16)
+        return None
+    y, mo, d, h, mi, sec, tz = m.groups()
+    try:
+        t = datetime(int(y), int(mo), int(d), int(h), int(mi), int(sec or 0))
+        if tz:
+            t = datetime.fromisoformat(f"{t.isoformat()}{'+00:00' if tz == 'Z' else tz if ':' in tz else tz[:3] + ':' + tz[3:]}")
+            return t.astimezone(KST)
+    except ValueError:
+        return None
+    return t.replace(tzinfo=KST)
+
+
+def kst_day(v) -> str | None:
+    """시각+시간대가 있으면 KST 날짜, 아니면 day()."""
+    t = stamp(v)
+    return t.strftime("%Y-%m-%d") if t else day(v)
+
+
+def not_older(old, new) -> bool:
+    """new 가 old 보다 과거가 아니면 True. 둘 다 시각이 있으면 분 단위, 아니면 KST 날짜 단위. 비교 불가(None)면 True."""
+    to, tn = stamp(old), stamp(new)
+    if to and tn:
+        return tn.replace(second=0, microsecond=0) >= to.replace(second=0, microsecond=0)
+    do, dn = kst_day(old), kst_day(new)
+    return do is None or dn is None or dn >= do
+
+
 def _get(obj, key: str):
     cur = obj
     for k in key.split("."):
@@ -46,20 +88,26 @@ def _get(obj, key: str):
     return cur
 
 
-def json_day(obj, key: str | None = None) -> str | None:
+def json_value(obj, key: str | None = None):
+    """비교에 쓸 원값 (시각 포함 가능). key 없으면 asof → date 순."""
     if key:
-        return day(_get(obj, key))
+        return _get(obj, key)
     for k in ("asof", "date"):
         if isinstance(obj, dict) and obj.get(k) is not None:
-            return day(obj[k])
+            return obj[k]
     return None
+
+
+def json_day(obj, key: str | None = None) -> str | None:
+    return day(json_value(obj, key))
 
 
 def text_day(text: str, head_lines: int = 3) -> str | None:
     return day("\n".join(text.splitlines()[:head_lines]))
 
 
-def existing_day(path: Path, key: str | None = None) -> str | None:
+def existing_value(path: Path, key: str | None = None):
+    """기존 파일의 비교 원값 (json: key 값, 텍스트: 머리 3줄). 없거나 못 읽으면 None."""
     path = Path(path)
     if not path.exists():
         return None
@@ -69,10 +117,14 @@ def existing_day(path: Path, key: str | None = None) -> str | None:
         return None
     if path.suffix == ".json":
         try:
-            return json_day(json.loads(raw), key)
+            return json_value(json.loads(raw), key)
         except Exception:  # noqa: BLE001
             return None
-    return text_day(raw)
+    return text_day(raw)   # 텍스트는 일 단위 그대로 (머리 3줄의 첫 날짜)
+
+
+def existing_day(path: Path, key: str | None = None) -> str | None:
+    return day(existing_value(path, key))
 
 
 def _report_dir() -> Path:
@@ -118,15 +170,20 @@ def record_stale(path: str, what: str, want, got) -> None:
     fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def _label(v) -> str | None:
+    t = stamp(v)
+    return t.strftime("%Y-%m-%d %H:%M") if t else day(v)
+
+
 def allow(path: Path, new_value, key: str | None = None) -> bool:
-    """path 의 기존 날짜보다 new_value 가 과거가 아니면 True. 과거면 기록하고 False."""
-    new = day(new_value)
-    if new is None:
+    """path 의 기존 값보다 new_value 가 과거가 아니면 True. 과거면 기록하고 False. 시각이 양쪽에 있으면 분 단위(not_older)."""
+    if day(new_value) is None:
         log.info("asof 가드: %s 새 값에 날짜 없음 — 비교 생략", path)
         return True
-    old = existing_day(Path(path), key)
-    if old is None or new >= old:
+    old_v = existing_value(Path(path), key)
+    if day(old_v) is None or not_older(old_v, new_value):
         return True
+    old, new = _label(old_v), _label(new_value)
     if os.environ.get("SCREENER_ALLOW_REGRESS") == "1":
         log.warning("asof 가드 우회(SCREENER_ALLOW_REGRESS=1): %s %s → %s", path, old, new)
         return True
@@ -163,7 +220,7 @@ def write_json(path: Path, obj, *, key: str | None = None, **dumps_kw) -> bool:
         except Exception as e:  # noqa: BLE001
             log.warning("계약 위반 기록 실패: %s", e)
         return False
-    if not allow(path, json_day(obj, key), key):
+    if not allow(path, json_value(obj, key), key):
         return False
     contracts.stamp(path, obj)
     dumps_kw.setdefault("ensure_ascii", False)

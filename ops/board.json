@@ -1529,8 +1529,8 @@
       "title": "asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등)",
       "owner": "개발",
       "priority": "P2",
-      "status": "대기",
-      "started": null,
+      "status": "진행",
+      "started": "2026-10-17",
       "due": "2026-10-24",
       "repo": "public",
       "files": [
@@ -1545,7 +1545,7 @@
       "depends_on": [
         "detail-us-regress"
       ],
-      "notes": "10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11).",
+      "notes": "10/17 2차(잔여 개발): live.json(asof 'YYYY-MM-DD HH:MM' 추가·write_json) + dashboard_state.json(put_state 조각별 asof 가드, main.py 스크리너 조각에 시세 기준일) 완료. guard 는 양쪽 시각이 있으면 분 단위·KST 정규화 비교(UTC 'Z' 값이 하루 전으로 읽혀 정상 장중 갱신이 막히던 일 단위 문제 수정), 테스트 tests/test_guard_rest.py 7건. 남음: dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv, daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps, 장중 브리핑 조각 asof(현재 없음 → 항상 씀). 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). 계약 등록 보류: screener/contracts.py 에 \"live.json\": {v1, date asof, required asof·updated_at·items} 와 dashboard_state.json(조각마다 at 필수, schema_version 미기입 — 화면이 state 통째로 실음) 추가 필요(개발5 잠금 해제 후).",
       "desk": "개발"
     },
     {

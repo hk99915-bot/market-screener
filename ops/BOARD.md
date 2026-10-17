@@ -2,15 +2,16 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 109개 · 진행 3 · 검수 27 · 대기 44 · 보류 2 · 완료 33
+기준일 2026-10-17 · 작업 109개 · 진행 4 · 검수 27 · 대기 43 · 보류 2 · 완료 33
 
-## 진행 (3)
+## 진행 (4)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-18 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | 2026-10-17 | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. / 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. |
+| P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | 2026-10-17 | 2026-10-24 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 2차(잔여 개발): live.json(asof 'YYYY-MM-DD HH:MM' 추가·write_json) + dashboard_state.json(put_state 조각별 asof 가드, main.py 스크리너 조각에 시세 기준일) 완료. guard 는 양쪽 시각이 있으면 분 단위·KST 정규화 비교(UTC 'Z' 값이 하루 전으로 읽혀 정상 장중 갱신이 막히던 일 단위 문제 수정), 테스트 tests/test_guard_rest.py 7건. 남음: dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv, daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps, 장중 브리핑 조각 asof(현재 없음 → 항상 씀). 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). 계약 등록 보류: screener/contracts.py 에 "live.json": {v1, date asof, required asof·updated_at·items} 와 dashboard_state.json(조각마다 at 필수, schema_version 미기입 — 화면이 state 통째로 실음) 추가 필요(개발5 잠금 해제 후). |
 
 ## 검수 (27)
 
@@ -44,7 +45,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (44)
+## 대기 (43)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -76,7 +77,6 @@
 | P2 | `user-cooldown-log` | 포상 시각을 ops/cooldown.json 에 기록(시각·라벨만) — 30분 쿨다운 자동화 입력. 원본 pb-private journal 타임라인 | PB | 2026-10-17 | 2026-10-20 | `ops/cooldown.json` | — | 결재 #14 ③. 기록 데스크/PB 가 포상 직후 한 줄 추가(예: {"at":"2026-10-20 15:40","what":"포상"}). 없으면 매도만 쿨다운. |
 | P2 | `ra-etf-holdings-full` | RA: ETF 구성종목 전체 목록 수집(PSI·SOXX·SMH·139260·091160) → 룩스루·밸류에이션 바스켓 자동 갱신 | 데이터 | — | 2026-10-23 | `screener/etf.py`<br>`reports/detail/US/*.json` | — | 현재 상위 7개만 저장됨. |
 | P2 | `etf-pdf-nav` | ETF 일별 구성종목(PDF)·NAV 괴리 시계열 수집 — 0015B0부터 (액티브셰어·급락일 괴리) | 데이터 | — | 2026-10-24 | `scripts/flow_query.py`<br>`.github/workflows/flowq.yml` | — | 애널 요청 10/17 (KoAct vs NDX 리포트 한계). 샌드박스 DNS 차단 → Actions에서 수집. |
-| P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | — | 2026-10-24 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). |
 | P2 | `quiz-key-balance` | 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why) | 교육 | — | 2026-10-24 | `content/study/quiz_bank.json`<br>`scripts/study_content_check.py`<br>`tests/test_study_content.py` | `study-progress` | 교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. |
 | P2 | `ra-sector-frames` | RA: 국장 리서치(research.json)에서 섹터별 분석 프레임(지표 체크리스트) 추출 → docs/desk_kb/analyst.md 섹터 섹션. 원문 복제 금지, 지표명·빈도만 | 데이터 | — | 2026-10-24 | `scripts/research_frames.py`<br>`docs/desk_kb/analyst.md` | — | 실존 애널 개인 페르소나 금지. 하우스 단위도 공개엔 이름 없이. |
 | P2 | `peer-earnings-preview` | 피어: 실적 시즌 프리뷰 — 10/29 삼성·MU(12월)·하이닉스 컨센서스 대비 시나리오 3개(상·기본·하)와 주가 반응 통계(과거 실적일 ±1일) | 피어리뷰 | — | 2026-10-27 | `reports/studies/earnings_reaction.md` | `ra-sec-coverage` | '한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함. |
@@ -145,14 +145,14 @@
 - `apps-script/Code.gs` ← `view-registry`, `deriv-tab`, `valuation-daily`, `index-split` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2`, `order-ticket-form`, `valuation-daily`, `index-split` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Scheduler.gs` ← `cmt-v2`, `rebound-alert`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
-- `screener/committee.py` ← `view-registry`, `cmt-v2`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/committee.py` ← `view-registry`, `cmt-v2`, `crash-day-active`, `guard-rest` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/decisions.py` ← `rebound-alert`, `order-ticket-form`, `px-adjust-unify` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/deriv_hist.py` ← `night-futures-line`, `deriv-hist` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/dotplot.py` ← `dotplot`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/duel.py` ← `view-registry`, `order-ticket-form`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/main.py` ← `view-registry`, `cmt-v2`, `valuation-daily`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/sec.py` ← `sec-ytd-bug`, `mu-revenue-tag` — 편집 전 `ops/locks.json` 잠금 필수
-- `screener/valuation_daily.py` ← `valuation-daily`, `sec-ytd-bug`, `mu-revenue-tag` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/valuation_daily.py` ← `valuation-daily`, `sec-ytd-bug`, `mu-revenue-tag`, `guard-rest` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/build_pages.py` ← `view-registry`, `deriv-tab`, `valuation-daily`, `index-split` — 편집 전 `ops/locks.json` 잠금 필수
 - `scripts/scorecard_week.py` ← `sunday-scorecard-auto`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `tests/test_sec_parse.py` ← `sec-ytd-bug`, `mu-revenue-tag` — 편집 전 `ops/locks.json` 잠금 필수

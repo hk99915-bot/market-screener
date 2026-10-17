@@ -116,7 +116,10 @@ def snapshot() -> dict:
                              "basis": round(fp - kp, 2), "spot": kp, "status": f.get("marketStatus")})
     except Exception as e:  # noqa: BLE001
         log.info("선물 실패: %s", e)
-    out = {"updated_at": datetime.now(KST).strftime("%m-%d %H:%M KST"), "items": items}
-    (REPORT_DIR / "live.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
-    log.info("live.json %d개 지표", len(items))
+    now = datetime.now(KST)
+    # asof = 연도 포함 KST 분 단위 (guard-rest 10/17: updated_at '10-17 09:47 KST' 는 연도가 없어 역행 비교 불가 — 화면 호환용으로 유지)
+    out = {"asof": now.strftime("%Y-%m-%d %H:%M"), "updated_at": now.strftime("%m-%d %H:%M KST"), "items": items}
+    from .guard import write_json
+    if write_json(REPORT_DIR / "live.json", out):   # 계약 + 분 단위 역행 가드 (같은 날 더 늦은 시각은 항상 허용)
+        log.info("live.json %d개 지표", len(items))
     return out

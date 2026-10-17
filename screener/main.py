@@ -151,12 +151,13 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
             log.warning("마감 코멘트 실패: %s", e)
     print(msg + ("\n\n" + tail if tail else ""))
     try:
-        dashboard.put_state(f"macro_{market}", mr)
-        dashboard.put_state(f"regime_{market}", regime_line)
-        dashboard.put_state(f"market_comment_{market}", report.market_comment(br))
+        _sa = str(asof)   # 조각 asof = 시세 기준일 → 과거 기준일 재실행이 새 조각을 덮지 못함 (guard-rest 10/17)
+        dashboard.put_state(f"macro_{market}", mr, asof=_sa)
+        dashboard.put_state(f"regime_{market}", regime_line, asof=_sa)
+        dashboard.put_state(f"market_comment_{market}", report.market_comment(br), asof=_sa)
         if tail:
-            dashboard.put_state(f"close_{market}", tail)
-        dashboard.put_state(f"telegram_{market}", msg)
+            dashboard.put_state(f"close_{market}", tail, asof=_sa)
+        dashboard.put_state(f"telegram_{market}", msg, asof=_sa)
         try:
             from . import momentum
             momentum.ranks(full, last, market)

@@ -23,15 +23,40 @@ SIG_COLS = ["symbol", "name", "market", "close", "ret1", "ret20", "trend_score",
             "class", "adx14", "rsi14", "from_high52", "vol_ratio"]
 
 
-def put_state(key: str, value) -> None:
-    """브리핑 모듈이 조각을 저장 (예: close_comment 텍스트, macro 표)."""
+def put_state(key: str, value, asof=None) -> bool:
+    """브리핑 모듈이 조각을 저장 (예: close_comment 텍스트, macro 표). 쓴 경우 True.
+    asof(데이터 기준일·시각)를 주면 조각 단위 역행 가드(guard-rest 10/17): 기존 조각의 asof 보다 과거면 그 조각만 쓰지 않고
+    reports/freshness.json regress_blocked 에 'dashboard_state.json#<key>' 로 기록. 둘 다 시각이 있으면 분 단위(같은 날 늦은 시각 허용).
+    asof 없는 조각(장중 브리핑 등)은 항상 쓴다 — 기록 시각 'at' 은 실행 시각이라 비교 근거가 아님."""
+    import os
+    from . import contracts, guard
     try:
         st = json.loads(STATE.read_text(encoding="utf-8")) if STATE.exists() else {}
     except Exception:  # noqa: BLE001
         st = {}
-    st[key] = {"at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "value": value}
+    old = (st.get(key) or {}).get("asof") if isinstance(st.get(key), dict) else None
+    if asof is not None and old is not None and not guard.not_older(old, asof) and os.environ.get("SCREENER_ALLOW_REGRESS") != "1":
+        log.warning("⛔ asof 역행 차단: dashboard_state.json#%s 기존 %s → 새 %s (조각 쓰지 않음)", key, old, asof)
+        try:
+            guard.record_block(STATE.parent / f"{STATE.name}#{key}", guard._label(old), guard._label(asof))
+        except Exception as e:  # noqa: BLE001
+            log.warning("역행 기록 실패: %s", e)
+        return False
+    piece = {"at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "value": value}
+    if asof is not None:
+        piece["asof"] = str(asof)
+    errs = contracts.check(STATE, {key: piece})   # 새 조각만 검사 — 기존 조각이 깨져 있어도 다른 조각 갱신을 막지 않음
+    st[key] = piece
+    if errs:
+        log.warning("⛔ 데이터 계약 위반 — dashboard_state.json 쓰지 않음: %s", "; ".join(errs[:3]))
+        try:
+            guard.record_contract(STATE, errs)
+        except Exception as e:  # noqa: BLE001
+            log.warning("계약 위반 기록 실패: %s", e)
+        return False
     REPORT_DIR.mkdir(exist_ok=True)
     STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
+    return True
 
 
 def _signals(market: str, per_class: int = 12) -> dict:
