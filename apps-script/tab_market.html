@@ -67,6 +67,25 @@ function japanPanel(){   // 일본: 닛케이·TOPIX·엔·JGB + 한국 종목�
     <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">상관 = 최근 60거래일 일간 수익률(같은 날 도쿄·서울). 0.6 이상이면 같이 움직이는 편. 미국 피어는 '전날 밤 미장 → 다음 날 도쿄'로 맞춤. ${esc(JP.date||'')} 종가 기준 · 갱신 ${esc(JP.asof||'')}</div>`;
 }
 document.addEventListener('click',e=>{ if(e.target.closest('td.mac')) return; const tr=e.target.closest('tr.mvr'); if(!tr) return; const t=tr.querySelector('td[data-x]'); if(!t) return; const r=document.getElementById('mvx-'+t.dataset.x); if(r){ r.classList.toggle('on'); t.textContent=r.classList.contains('on')?'▾':'▸'; }});
+let ACC=null, ACCK='accum';
+function accumPanel(){   // reports/archive/accum/latest.json (screener/accum.py, 평일 18:37 KST)
+  if(ACC===null){ ACC=false; google.script.run.withSuccessHandler(t=>{try{ACC=JSON.parse(t);}catch(e){ACC={};} render();}).withFailureHandler(()=>{ACC={};render();}).getArchAt('accum','latest'); }
+  if(ACC===false) return '<div class="mu">LOADING …</div>';
+  if(!ACC||!ACC.status) return '<div class="mu">데이터 없음 — accum 워크플로 미실행</div>';
+  if(ACC.status==='fail') return `<div class="dn">스캔 실패: ${esc(ACC.reason||'')} <span class="mu">(${esc(ACC.generated_at||'')})</span></div>`;
+  const M=ACC.market||{}, e=x=>x==null?'—':`<span class="${x>=0?'up':'dn'}">${x>0?'+':''}${Math.round(x).toLocaleString()}</span>`;
+  const mrow=['KOSPI','KOSDAQ'].filter(k=>M[k]).map(k=>{const m=M[k];return `<tr><td class="l am">${k}</td><td>${Math.round(m.tv_last||0).toLocaleString()}</td><td>${m.tv5_vs_60==null?'—':m.tv5_vs_60.toFixed(2)+'×'}</td><td>${e(m.f5)}</td><td>${e(m.f20)}</td><td>${e(m.i5)}</td><td>${e(m.i20)}</td><td>${e(m.pen20)}</td></tr>`;}).join('');
+  const T=ACC.top||{}, tabs=[['accum','매집 상위'],['diverge','매집 후보(가격 정체)'],['foreign','외국인'],['inst','기관'],['pension','연기금'],['streak','동반 연속'],['dryexp','거래 마름→확대'],['distrib','이탈(순매도)']];
+  const bar=tabs.map(([k,n])=>`<span class="acck ${k===ACCK?'am':'mu'}" data-k="${k}" style="cursor:pointer;margin-right:10px">${n}${(T[k]||[]).length?'':' (0)'}</span>`).join('');
+  const p2=x=>x==null?'—':`<span class="${x>=0?'up':'dn'}">${x>0?'+':''}${x.toFixed(2)}%</span>`;
+  const rows=(T[ACCK]||[]).slice(0,15).map(r=>`<tr><td class="l"><span class="sym am" data-sym="${esc(r.code)}" data-mk="KR" style="cursor:pointer">${esc(r.name)}</span> <span class="mu">${esc(r.code)}</span></td><td>${Math.round(r.mcap||0).toLocaleString()}</td><td>${e(r.f20)}</td><td>${e(r.i20)}</td><td>${p2(r.fi20_cap)}</td><td>${p2(r.fi60_cap)}</td><td>${r.fi20_tv==null?'—':r.fi20_tv.toFixed(0)+'%'}</td><td>${r.st_f}/${r.st_i}</td><td>${pct(r.ret20)}</td><td>${r.tv_x==null?'—':r.tv_x.toFixed(1)+'×'}</td></tr>`).join('');
+  return `<div class="mu" style="font-size:11.5px;white-space:normal;margin-bottom:6px">${esc(ACC.asof||'')} 확정치 · 상태 ${esc(ACC.status)}${ACC.reason?' — '+esc(ACC.reason):''} · 적격 ${ACC.n}종목(시총 ≥${ACC.filters.min_mcap_eok}억·20일 평균 대금 ≥${ACC.filters.min_tv20_eok}억) · 금액 억원</div>
+    <table><tr><th class="l">시장</th><th>대금(억)</th><th>5일/60일</th><th>외 5일</th><th>외 20일</th><th>기 5일</th><th>기 20일</th><th>연기금 20일</th></tr>${mrow}</table>
+    <div style="margin:8px 0 4px">${bar}</div>
+    <table><tr><th class="l">종목</th><th>시총(억)</th><th>외 20일</th><th>기 20일</th><th>20일/시총</th><th>60일/시총</th><th>20일/대금</th><th>연속 외/기</th><th>20일 수익</th><th>대금 5/60</th></tr>${rows||'<tr><td class="l mu" colspan="10">해당 없음</td></tr>'}</table>
+    <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">매집 강도 = (외국인+기관) 순매수 ÷ 시가총액. 매집 후보 = 상위 10% 이면서 20일 수익 ≤ +2%. 근거 등급은 reports/studies/accum_signals.json — 매매 지시가 아니라 관찰 목록. ETF '기관'은 LP 거울이라 제외.</div>`;
+}
+document.addEventListener('click',e=>{ const t=e.target.closest('.acck'); if(!t) return; ACCK=t.dataset.k; render(); });
 function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이스케이프
   let t=esc(String(v)).replace(/&amp;(amp|lt|gt|quot|#39);/g,'&$1;');   // 텔레그램용으로 이미 이스케이프된 &amp; 이중 처리 방지
   t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=&quot;(https?:[^&]*?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank">$2</a>');
@@ -100,6 +119,7 @@ function marketView(mk){
     <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 · 지표별 해설</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
   const mc=(D.state||{})['market_comment_'+mk];
   if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
+  if(mk==='KR') h+=`<div class="p c12"><h2>ACCUM<small>외인·기관 매집 스캔 · KOSPI+KOSDAQ 주식(ETF·ETN·스팩 제외) · 검증전</small></h2><div class="b">${accumPanel()}</div></div>`;
   if(mk==='KR') h+=`<div class="p c12"><h2>JAPAN<small>도쿄도 9시 개장 · 일본 반도체 장비·메모리·MLCC vs 한국 · 엔 캐리</small></h2><div class="b">${japanPanel()}</div></div>`;
   for(const [k,t] of SEC){const s=sec[k]; if(!s) continue; h+=`<div class="p c12"><h2>${t}<small>top ${s.rows.length} / ${s.total}</small></h2><div class="b">${sigTable(s.rows,mk)}</div></div>`;}
   const an=(D.anomalies||{})[mk]||[];
