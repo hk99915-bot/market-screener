@@ -1,0 +1,45 @@
+name: flowq
+
+# 종목 수급 조회 (수동). 입력 종목들의 1년 일별 투자자별 순매수 → reports/flowq/<code>.json
+on:
+  workflow_dispatch:
+    inputs:
+      codes:
+        description: "종목코드 공백 구분 (예: 0015B0 005930)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: flowq
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 조회
+        env:
+          PYTHONUNBUFFERED: "1"
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+          CODES: ${{ inputs.codes }}
+        run: python scripts/flow_query.py $CODES
+      - name: 저장
+        if: always()
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add reports/flowq/ 2>/dev/null; true
+          git diff --cached --quiet || git commit -m "flowq: ${{ inputs.codes }}"
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || echo "::warning::푸시 실패"; true
