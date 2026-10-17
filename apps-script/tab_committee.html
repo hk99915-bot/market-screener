@@ -62,6 +62,15 @@ function dotStripHtml(){
     const ov=Object.keys(tg).filter(k=>tg[k]>=2).map(k=>(TK[k]||k)+' '+tg[k]).join(' · ');
     return `<tr><td class="l" style="white-space:nowrap">${KO[a]}</td><td class="l">${dots.join('')}</td><td class="l mu" style="font-size:11px;white-space:nowrap"><span class="up">${c['매수']||0}</span>/<span class="mu">${c['중립']||0}</span>/<span class="dn">${c['매도']||0}</span>${ov?' · 겹침 '+esc(ov):''}</td></tr>`; });
   return `<div class="p c12"><h2><span>기명 점도표</span><small>${esc(d.date||'')} · 데스크 머리글자 = 판정 색 (굵게 = 확신 2+) · 매수/중립/매도 · 규칙 기반, 채점은 docs/desk_kb/_scoreboard.md</small></h2><div class="b" style="white-space:normal">${cmtTbl(['자산','Q퀀트 D파생 M매크로 R리스크 A애널 C CIO P PB G겸이','집계'],rows)}</div></div>`; }
+/* 새로 켜진 추세 신호 (o.sim_fresh — screener/committee.py _sim_fresh, 원천 reports/sim_signals_KR.json). 종목명 클릭 → 종목 상세 */
+function cmtSimFreshHtml(o){
+  const b=o.sim_fresh; if(!b) return '';
+  const it=b.items||[], pc=x=>x==null?'—':(x>0?'+':'')+Math.round(x*100)+'%';
+  const rows=it.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="${esc(b.market||'KR')}">${esc(x.n)}</td><td class="l">${esc(x.label)}</td><td>${x.wins}/${x.trades}</td><td class="up">${Math.round((x.wilson_lo||0)*100)}%</td><td>${pc(x.ret)}</td><td class="mu">${pc(x.bh)}</td><td class="mu">${esc(String(x.entry_date||'').slice(5))}</td></tr>`);
+  return `<div class="p c12" style="border:1px solid ${it.length?'var(--up)':'var(--line)'}"><h2><span>🟢 새로 켜진 추세 신호 · 참고 C</span><small>${esc(b.asof||'')} 종가 · 스캔 ${b.n_scanned??'—'}종목 · 통과 ${b.n_pass??0} · 기대 우연 통과 ${b.expected_chance??'—'}</small></h2><div class="b" style="white-space:normal;font-size:12.5px">
+    ${it.length?cmtTbl(['종목','전략','승/거래','승률 하한','1년 전략','1년 보유','켜진 날'],rows):'<div class="mu">오늘 조건 통과 없음 (켜짐 + 거래 6회 이상 + 승률 Wilson 95% 하한 50% 초과)</div>'}
+    <div class="mu" style="font-size:11px;margin-top:4px">${esc(b.grade||'')}</div></div></div>`;
+}
 function cmtV2Html(o){
   const bl=o.bottom_line||{}, M=o.macro||{}, P=o.positioning||{}, R=o.rotation||{}, B=o.bottom_up||{}, I=o.ideas_top||{}, H=o.hedges||{}, PM=o.premortem||{}, T=o.track||{};
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
@@ -139,7 +148,7 @@ function cmtV2Html(o){
   // 8. 성적
   sec.push(cmtSec(8,'성적 · 검증','회의 채점 · 시그널 판정',
     `${cmtList(T.lines)}<div class="am" style="font-size:11px;margin-top:8px">원천별 성적 (아이디어 추적${T.ideas_n?' · 기록 '+T.ideas_n+'건':''})</div>${(T.by_source||[]).length?cmtTbl(['원천','n','1R 도달','손절','평균 R','5일','20일','상태'],T.by_source.map(x=>`<tr><td class="l">${esc(x.k)}</td><td>${x.n}</td><td>${Math.round(x.hit1R*100)}%</td><td>${Math.round(x.stop*100)}%</td><td>${x.avgR>0?'+':''}${x.avgR}</td><td>${x.ret5!=null?pct(x.ret5,1):'—'}</td><td>${x.ret20!=null?pct(x.ret20,1):'—'}</td><td class="${x.status==='반영'?'up':'mu'}">${esc(x.status)}</td></tr>`)):'<div class="mu">채점 전 — 기록 후 5거래일 뒤부터</div>'}<div class="mu" style="font-size:11px">${esc(T.by_source_note||'')}</div><div class="mu" style="margin-top:6px">시그널 판정: ${Object.entries(o.validation||{}).map(([k,v])=>`${esc(k)} ${esc(v||'')}`).join(' · ')||'—'}</div>`,false));
-  return `<div class="grid">${cmtBLCard(o)}${dotStripHtml()}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
+  return `<div class="grid">${cmtBLCard(o)}${dotStripHtml()}${cmtSimFreshHtml(o)}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
 }
 function derivPanel(d){
   const pr=d.oi_profile||[], mx=Math.max(1,...pr.map(x=>Math.max(x.c,x.p)));

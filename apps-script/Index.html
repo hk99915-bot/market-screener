@@ -232,10 +232,11 @@ function repTable(rows){
 function simTable(m){
   if(!m||!m.days) return '<div class="mu">시뮬레이션 데이터 부족 (60거래일 미만)</div>';
   const P=x=>x==null?'—':pct(x,1), pos=p=>p>0?'<b class="up">롱</b>':p<0?'<b class="dn">숏</b>':'<span class="mu">관망</span>';
-  const row=(name,desc,k,mode)=>{const r=m[k][mode]; return `<tr><td class="l">${name}</td><td class="l mu">${desc}</td><td>${P(r.ret)}</td><td>${P(r.ret-m.bh)}</td><td>${P(r.mdd)}</td><td>${r.trades}</td><td>${r.win==null?'—':(r.win*100).toFixed(0)+'%'}</td><td class="l">${pos(r.pos)}${r.pos?` <span class="mu">${r.entry_date} 진입 ${num(r.entry_px)}</span> ${P(r.open_ret)}`:''}</td></tr>`;};
+  const fr={}; (m.fresh||[]).forEach(f=>fr[f.strategy]=f);   // 새로 켜짐 + 거래 ≥6 + 승률 Wilson 95% 하한 > 50% (detail.py _fresh, 참고 C)
+  const row=(name,desc,k,mode)=>{const r=m[k][mode], f=mode==='long'&&fr[k]; return `<tr${f?' class="simfresh" style="background:rgba(47,208,90,.12);outline:1px solid var(--up)"':''}><td class="l">${name}${f?` <span class="tag" style="border-color:var(--up);color:var(--up)" title="참고(C) — 1년 거래 ${f.trades}회 표본, 수백 종목 동시 검색이라 일부는 우연">🟢 오늘 켜짐 · 승률 하한 ${Math.round(f.wilson_lo*100)}%</span>`:''}</td><td class="l mu">${desc}</td><td>${P(r.ret)}</td><td>${P(r.ret-m.bh)}</td><td>${P(r.mdd)}</td><td>${r.trades}</td><td>${r.win==null?'—':(r.win*100).toFixed(0)+'%'}</td><td class="l">${pos(r.pos)}${r.pos?` <span class="mu">${r.entry_date} 진입 ${num(r.entry_px)}</span> ${P(r.open_ret)}`:''}</td></tr>`;};
   return `<table class="simt"><tr><th class="l">전략</th><th class="l">방식</th><th>누적수익</th><th>보유대비</th><th>MDD</th><th>거래</th><th>승률</th><th class="l">현재 포지션 · 진입 후 손익</th></tr>
     ${row('이평 추세 롱','종가>50일선 & 20>50 이면 보유','ma','long')}${row('이평 추세 롱숏','위 조건이면 롱, 반대면 숏','ma','ls')}${row('PSAR 롱','종가>PSAR 이면 보유','psar','long')}${row('PSAR 롱숏','종가>PSAR 롱, 아니면 숏','psar','ls')}
-    <tr><td class="l">단순 보유</td><td class="l mu">기간 시작에 사서 보유</td><td>${P(m.bh)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td></td></tr></table>`;
+    <tr><td class="l">단순 보유</td><td class="l mu">기간 시작에 사서 보유</td><td>${P(m.bh)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td></td></tr></table>${(m.fresh||[]).length?`<div class="mu" style="font-size:11px;margin-top:4px">🟢 = 마지막·직전 거래일에 켜진 롱 전략 중 거래 6회 이상·승률 Wilson 95% 하한 50% 초과. 참고(C): 종목당 1년 표본이고 전 종목을 동시에 검색하므로 일부는 우연 — 신호·근거일 뿐 매매 지시 아님.</div>`:''}`;
 }
 function finTable(f,kr){
   const q=(f&&f.quarters)||[]; if(!q.length) return `<div class="mu">재무 데이터 없음 (${kr?'DART':'SEC'} 수집 대기 중이거나 대상 밖)</div>`;

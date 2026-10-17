@@ -33,3 +33,8 @@ LOOP·README·STANDARD·_scoreboard(라운드 표 빈 칸)·ops/LOCKS·보드 �
 VOC: 외부망(core.telegram.org) 차단으로 공식 문서 원문을 못 열었고, 공유 체크아웃이라 `git pull --rebase` 가 남의 미커밋 변경에 막힌다(--autostash 로 우회).
 요청→데이터: 네이버 KOSPI `chg` 분모(전일 종가) 정의 1줄 + 반등일용 KRX 확정 전일 종가 필드 제공 여부 회신, retention.py 초안 때 위 설계 3조건 반영.
 현재 상태: ① send_telegram 기본 무음·호출부 5곳 분류 완료, 테스트 7건 통과. ② events.py 🚨 소리 여부는 오너 결정 대기(코드 무변경). ③ retention.py 는 미착수 — 데이터 초안 후 개발이 테스트·ops.yml 연결.
+## 추가 작업 — 새로 켜진 추세 신호 (오너 요청 10/17)
+- 변경: detail.py `_fresh`·`sim_signals`(사전 기준 = 켜짐 2거래일 내·거래 ≥6·승률 Wilson 95% 하한 >50%, 상수 FRESH_*) → `reports/sim_signals_{KR,US}.json` → 운용회의 `sim_fresh`(상위 5)·텔레그램 ≤3줄·상세 표 🟢 배지. 테스트 7건, 시도 일지 trend_sim 1건 등록. 롤백 = 이 커밋 revert.
+- 10/16 종가 재계산: 통과 KR 0/1,459종목·US 0/576종목, 기대 우연 통과 2.35·1.84건(식: Σ P[하한>0.5 | 승률 0.5, 거래 n]). Wilson>0.5 는 거래 ≥6 전략 KR 2,109개 중 2개뿐 — 추세추종은 승률이 낮고 손익비로 버는 구조(kb:quant#11)라 이 기준은 드물게 켜진다. 등급 C(참고).
+- 반대 근거: 기준을 결과 보고 바꾸면 사후 가설(kb:quant#3) — 기대값 기준(승률×손익비) 대안은 새 trial 로 사전등록할 일이지 이 커밋에서 고치지 않음. 신뢰도 중.
+요청→quant: 이 신호의 OOS 검증(켜진 뒤 5·20일 성과 vs 무작위) 10/24까지

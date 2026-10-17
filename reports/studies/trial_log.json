@@ -90,6 +90,16 @@
    "result": "S2′ 만 C, 나머지 F",
    "discarded_why": "급락일 종가 대비 열위",
    "study": "exec_signal"
+  },
+  {
+   "date": "2026-10-17",
+   "topic": "trend_sim",
+   "hypothesis": "종목 상세 TREND SIMULATION 롱 전략(이평 추세·PSAR)이 새로 켜졌을 때(진입일=마지막/직전 거래일) 과거 1년 승률이 높으면 이후 성과가 무작위보다 낫다",
+   "params": "사전 기준(코드 상수 screener/detail.py FRESH_*): (a) pos==1·진입일 ∈ 마지막 2거래일 (b) 청산 거래 ≥6 (c) 승률 Wilson 95% 하한 >0.5 · 250거래일·종가 체결·왕복 0.25% · m = n_scanned(KR 1459·US 576종목, 2026-10-16 종가) × 전략 2개",
+   "result": "10/16 종가 기준 통과 KR 0·US 0 (기대 우연 통과 KR 2.35·US 1.84, 식: Σ P[Wilson 하한>0.5 | 승률 0.5, 거래 n]). Wilson>0.5 자체가 KR 2,109개 전략 중 2개·US 839개 중 0개 — 추세추종은 승률이 아니라 손익비로 버는 구조(kb:quant#11)",
+   "discarded_why": "버리지 않음 — 등급 C(참고) 알림으로만 운용. OOS(켜진 뒤 5·20일 vs 무작위)는 퀀트 검증 요청(10/24)",
+   "study": "(reports/sim_signals_{KR,US}.json — 연구 파일 아님, 매일 갱신)",
+   "m": "n_scanned (10/16 종가: KR 1459 · US 576)"
   }
  ]
 }

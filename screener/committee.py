@@ -339,6 +339,49 @@ def _exec_plan(k: dict, stance: dict, der: dict, longs: list[dict]) -> dict:
             "note": "비중 = 총자산 대비 %. 1차 비중 = min(1% ÷ 손절폭, 15%) ÷ 2. 손절 = max(20일 저점, 종가 − 2×ATR14). 목표 = 2R. 손절폭 15% 초과 종목 제외."}
 
 
+SIM_FRESH_TOP = 5       # 운용회의 화면 상위 N
+SIM_FRESH_TG = 3        # 텔레그램 최대 줄 수
+SIM_FRESH_MAX_AGE = 5   # 일 — 이보다 오래된 집계는 쓰지 않음
+
+
+def _sim_fresh(market: str = "KR") -> dict | None:
+    """종목 상세 TREND SIMULATION 의 '새로 켜진 추세 신호' 집계(reports/sim_signals_{market}.json, detail.build 산출) → 운용회의 블록.
+    보유·관심 종목 우선 표시는 하지 않는다(개인 보유는 공개 파일 금지). 파일이 없거나 오래되면 None + 로그 1줄."""
+    d = _j(f"sim_signals_{market}.json")
+    if not d or not d.get("asof"):
+        log.info("sim_fresh 생략: sim_signals_%s.json 없음", market)
+        return None
+    try:
+        age = (_kst_today() - date.fromisoformat(str(d["asof"])[:10])).days
+    except ValueError:
+        age = None
+    if age is None or age > SIM_FRESH_MAX_AGE:
+        log.info("sim_fresh 생략: sim_signals_%s.json 기준일 %s (%s일 경과)", market, d.get("asof"), age)
+        return None
+    items = []
+    for r in (d.get("rows") or [])[:SIM_FRESH_TOP]:
+        vs = (f"1년 전략 {r['ret']*100:+.0f}% vs 보유 {r['bh']*100:+.0f}%"
+              if r.get("ret") is not None and r.get("bh") is not None else "1년 성과 —")
+        items.append({"s": r["s"], "n": r.get("n") or r["s"], "label": r.get("label") or r.get("strategy"),
+                      "wins": r.get("wins"), "trades": r.get("trades"), "wilson_lo": r.get("wilson_lo"),
+                      "ret": r.get("ret"), "bh": r.get("bh"), "entry_date": r.get("entry_date"),
+                      "line": f"{r.get('n') or r['s']} · {r.get('label') or r.get('strategy')} · 승률 {r.get('wins')}/{r.get('trades')}"
+                              f"(하한 {(r.get('wilson_lo') or 0)*100:.0f}%) · {vs}"})
+    return {"asof": d["asof"], "market": market, "n_scanned": d.get("n_scanned"), "n_pass": d.get("n_pass", len(d.get("rows") or [])),
+            "n_eligible": d.get("n_eligible"), "expected_chance": d.get("expected_chance"), "grade": d.get("grade"),
+            "criteria": d.get("criteria"), "items": items}
+
+
+def _sim_fresh_lines(o: dict) -> list[str]:
+    """텔레그램용: 머리 1줄 + 최대 SIM_FRESH_TG 줄. 통과 0건이면 빈 목록."""
+    b = o.get("sim_fresh") or {}
+    it = (b.get("items") or [])[:SIM_FRESH_TG]
+    if not it:
+        return []
+    return ([f"<b>[새로 켜진 추세 신호 · 참고 C]</b> 스캔 {b.get('n_scanned')}종목 · 통과 {b.get('n_pass')} · 기대 우연 {b.get('expected_chance')}"]
+            + [f"  · {x['line']}" for x in it])
+
+
 def build(session: str = "장후") -> dict:
     """session: 장전(08:50) · 장중(10:30·13:30) · 장후(15:45 마감·19:10 저녁). 같은 날 같은 세션은 마지막 실행본이 남음."""
     k = _kospi_state()
@@ -433,6 +476,12 @@ def build(session: str = "장후") -> dict:
            "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "rv20", "skew", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
            "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {}),
            "crash_day": stance.get("crash_day") or crash_flag(k)}
+    try:   # 새로 켜진 추세 신호 (종목 상세 TREND SIMULATION, 참고 C) — 없으면 키 자체를 뺀다
+        _sf = _sim_fresh("KR")
+        if _sf:
+            out["sim_fresh"] = _sf
+    except Exception as e:  # noqa: BLE001
+        log.warning("sim_fresh 실패: %s", e)
     try:   # 모닝 미팅 v2 섹션 (기존 키는 유지, 새 키만 추가)
         _v2_build(out, k, der, chains, themes, peers, cal, stu, _bucket(k, stu), _dl, session)
     except Exception as e:  # noqa: BLE001
@@ -659,6 +708,7 @@ def _telegram_text_v1(o: dict) -> str:
         L.append("<b>[숏스퀴즈 후보]</b> " + ", ".join(f"{x['n']} 잔고 {x['ratio']:.1f}%" for x in o["squeeze"][:5]))
     if o.get("events"):
         L.append("<b>[7일 이벤트]</b> " + " / ".join(f"{e['date'][5:]} {e['name']}" for e in o["events"][:6]))
+    L += _sim_fresh_lines(o)
     tr = (o.get("track") or {}).get("summary") or {}
     if tr.get("h5"):
         L.append(f"<i>회의 성적: 매수 후보 5일 초과수익 평균 {tr['h5']['long_avg']*100:+.1f}% (적중 {tr['h5']['long_hit']*100:.0f}%, {tr['h5']['n']}회)</i>")
@@ -1390,6 +1440,7 @@ def _telegram_v2(o: dict) -> str:
         tl = ((o.get("track") or {}).get("lines") or [])[:1]
         if tl:
             L.append("<i>성적: " + tl[0] + "</i>")
+        L += _sim_fresh_lines(o)
     L.append("<i>" + V2_FOOTER + "</i>")
     import html as _h
     tags = {"&lt;b&gt;": "<b>", "&lt;/b&gt;": "</b>", "&lt;i&gt;": "<i>", "&lt;/i&gt;": "</i>"}

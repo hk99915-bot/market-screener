@@ -94,9 +94,18 @@ def _sim_one(c: list[float], pos: list[int], dates: list, cost: float = COST) ->
         eq *= 1 + cur * (c[i] / c[i - 1] - 1)
         peak = max(peak, eq)
         mdd = min(mdd, eq / peak - 1)
+    if pos and pos[-1] != cur:             # 마지막 거래일 종가에 바뀐 신호 — 그 종가에 체결(10/17: '오늘 켜짐'이 하루 늦게 보이던 것 수정)
+        p = pos[-1]
+        if cur != 0 and entry_px:
+            ret = (c[-1] / entry_px - 1) * cur
+            trades += 1
+            wins += ret > 0
+        entry_px, entry_i = (c[-1], len(c) - 1) if p != 0 else (None, None)
+        eq *= (1 - cost / 2) ** (abs(p - cur))
+        cur = p
     open_ret = (c[-1] / entry_px - 1) * cur if cur and entry_px else None
     return {"ret": round(eq - 1, 4), "mdd": round(mdd, 4), "trades": trades,
-            "win": round(wins / trades, 3) if trades else None, "pos": cur,
+            "win": round(wins / trades, 3) if trades else None, "wins": int(wins), "pos": cur,
             "entry_date": str(dates[entry_i]) if cur and entry_i is not None else None,
             "entry_px": round(entry_px, 2) if cur and entry_px else None,
             "open_ret": round(open_ret, 4) if open_ret is not None else None}
@@ -114,11 +123,93 @@ def _simulate(g: pl.DataFrame, days: int = 250) -> dict:
     dates = g["date"].to_list()
     ma = [1 if (c[i] > s50[i] and s20[i] > s50[i]) else -1 if (c[i] < s50[i] and s20[i] < s50[i]) else 0 for i in range(len(c))]
     sar = [0 if ps[i] is None else (1 if c[i] > ps[i] else -1) for i in range(len(c))]
-    out = {"days": len(c), "from": str(dates[0]), "bh": round(c[-1] / c[0] - 1, 4), "cost": COST}
+    out = {"days": len(c), "from": str(dates[0]), "bh": round(c[-1] / c[0] - 1, 4), "cost": COST,
+           "last2": [str(dates[-2]), str(dates[-1])]}
     for name, sig in (("ma", ma), ("psar", sar)):
         out[name] = {"long": _sim_one(c, [max(x, 0) for x in sig], dates),
                      "ls": _sim_one(c, sig, dates)}
+    out["fresh"] = _fresh(out, dates)
     return out
+
+
+# ── 새로 켜진 추세 신호 (오너 요청 10/17: "승률 높은 지표가 켜지면 운용회의에 반영·눈에 띄게") ──
+# 사전 기준(결과 보기 전 고정, reports/studies/trial_log.json trend_sim 에 등록):
+#   (a) long 전략이 현재 보유(pos==1)이고 진입일이 마지막 거래일 또는 직전 거래일 (= 새로 켜짐)
+#   (b) 1년(250거래일) 안 청산된 거래 수 ≥ FRESH_MIN_TRADES
+#   (c) 승률 Wilson 95% 하한 > FRESH_WILSON_MIN  (kb:verify#4 — 소표본 승률은 Wilson 구간)
+# 등급 상한 C(참고): 종목당 거래 6~15회 표본 + 수백 종목 동시 검색(다중검정, kb:quant#3) → 일부는 우연 통과.
+FRESH_MIN_TRADES = 6
+FRESH_WILSON_MIN = 0.5
+FRESH_Z = 1.96          # 95% 양측
+FRESH_TOP = 30          # 시장별 집계 파일 상위 N
+FRESH_STRATS = {"ma": "이평 추세 롱", "psar": "PSAR 롱"}
+
+
+def wilson_lo(k: int, n: int, z: float = FRESH_Z) -> float | None:
+    """승률 k/n 의 Wilson 점수 구간 하한. 식: (p̂ + z²/2n − z·√(p̂(1−p̂)/n + z²/4n²)) / (1 + z²/n). 예: 7/8 → 0.529."""
+    if not n:
+        return None
+    p = k / n
+    z2 = z * z
+    return (p + z2 / (2 * n) - z * ((p * (1 - p) / n + z2 / (4 * n * n)) ** 0.5)) / (1 + z2 / n)
+
+
+def _fresh(sim: dict, dates: list) -> list[dict]:
+    """사전 기준 (a)~(c)를 통과한 long 전략 목록. dates = 시뮬레이션에 쓴 거래일(오름차순)."""
+    if len(dates) < 2:
+        return []
+    recent = {str(dates[-1]), str(dates[-2])}
+    out = []
+    for k, label in FRESH_STRATS.items():
+        r = (sim.get(k) or {}).get("long") or {}
+        n = int(r.get("trades") or 0)
+        if r.get("pos") != 1 or str(r.get("entry_date")) not in recent or n < FRESH_MIN_TRADES:
+            continue
+        w = int(r["wins"]) if r.get("wins") is not None else round((r.get("win") or 0) * n)
+        lo = wilson_lo(w, n)
+        if lo is None or lo <= FRESH_WILSON_MIN:
+            continue
+        out.append({"strategy": k, "label": label, "win": round(w / n, 3), "wins": w, "trades": n,
+                    "wilson_lo": round(lo, 3), "ret": r.get("ret"), "bh": sim.get("bh"), "entry_date": r.get("entry_date")})
+    return out
+
+
+def _pass_prob_null(n: int, p0: float = 0.5) -> float:
+    """귀무(매 거래 승률 p0, 독립)에서 거래 n회의 Wilson 하한이 FRESH_WILSON_MIN 을 넘을 확률 = Σ_{k: lo(k,n)>기준} C(n,k)·p0^k·(1−p0)^(n−k)."""
+    from math import comb
+    return sum(comb(n, k) * p0 ** k * (1 - p0) ** (n - k) for k in range(n + 1)
+               if (wilson_lo(k, n) or 0) > FRESH_WILSON_MIN)
+
+
+def sim_signals(market: str, asof: str, stocks: dict) -> dict:
+    """시장별 집계 → reports/sim_signals_{market}.json 내용. stocks = {sym: {"name", "sim"}}."""
+    scanned = {s: v for s, v in stocks.items() if (v.get("sim") or {}).get("days")}
+    m = len(scanned)
+    rows, eligible, exp = [], 0, 0.0
+    for s, v in scanned.items():
+        sim = v["sim"]
+        last2 = set(sim.get("last2") or [])
+        for k in FRESH_STRATS:   # 기대 우연 통과: (a)·(b)만 충족한 전략마다 귀무 통과 확률을 더함
+            r = (sim.get(k) or {}).get("long") or {}
+            n = int(r.get("trades") or 0)
+            if r.get("pos") == 1 and str(r.get("entry_date")) in last2 and n >= FRESH_MIN_TRADES:
+                eligible += 1
+                exp += _pass_prob_null(n)
+        for f in sim.get("fresh") or []:
+            rows.append({"s": s, "n": v.get("name"), **f})
+    rows.sort(key=lambda x: (-x["wilson_lo"], -x["trades"]))
+    return {
+        "asof": asof, "market": market, "n_scanned": m, "n_pass": len(rows), "n_eligible": eligible,
+        "expected_chance": round(exp, 2),
+        "criteria": {"min_trades": FRESH_MIN_TRADES, "wilson_min": FRESH_WILSON_MIN, "z": FRESH_Z,
+                     "fresh": "long 전략 pos==1 이고 진입일 = 마지막 또는 직전 거래일", "window": "250거래일 · 종가 체결 · 왕복비용 0.25%"},
+        "grade": (f"참고(C) — 종목당 1년·거래 6~15회 표본, {m}종목 동시 검색이라 일부는 우연. "
+                  f"기대 우연 통과 ≈ {exp:.1f}건 (식: Σ_(켜짐·거래≥{FRESH_MIN_TRADES}인 전략 {eligible}개) P[Wilson 하한>{FRESH_WILSON_MIN} | 승률 0.5, 거래 n] — 이항 분포 합). "
+                  f"통과 {len(rows)}건이 이 숫자와 비슷하면 우연과 구분되지 않는다. 종목 간 같은 장세(상관)라 통과가 몰려 나올 수 있음."),
+        "formula": "wilson_lo = (p̂ + z²/2n − z·√(p̂(1−p̂)/n + z²/4n²)) / (1 + z²/n), z=1.96",
+        "rows": rows[:FRESH_TOP],
+    }
+
 
 
 def _scenarios(r: dict, chart: list[dict]) -> dict:
@@ -413,6 +504,12 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     old = REPORT_DIR / f"detail_{market}.json"
     old.unlink(missing_ok=True)   # 예전 묶음 파일 제거
     log.info("detail/%s: %d종목, %d KB", market, len(out["stocks"]), size // 1024)
+    try:   # 새로 켜진 추세 신호 시장별 집계 (운용회의 sim_fresh 블록이 읽음)
+        ss = sim_signals(market, out["asof"], out["stocks"])
+        (REPORT_DIR / f"sim_signals_{market}.json").write_text(json.dumps(ss, ensure_ascii=False, default=str), encoding="utf-8")
+        log.info("sim_signals_%s: 스캔 %d · 통과 %d · 기대 우연 %.1f", market, ss["n_scanned"], ss["n_pass"], ss["expected_chance"])
+    except Exception as e:  # noqa: BLE001
+        log.warning("추세 신호 집계 실패: %s", e)
     try:
         from . import etf
         etf.build(market)
