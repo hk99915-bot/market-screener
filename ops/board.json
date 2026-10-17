@@ -1877,6 +1877,63 @@
       "depends_on": [],
       "notes": "표: docs/peer_reviews/2026-10-17_refactor_audit.md §2.2. 담당 열대로 데스크에 나눠 처리. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md",
       "desk": "검증"
+    },
+    {
+      "id": "event-watch",
+      "title": "장중 이벤트 즉시 알림(60초) — touch·지수 −4/−5%·서킷/사이드카·보유 손절선/−5%·미장 SPX/NDX −3%·VIX +25%",
+      "owner": "개발",
+      "status": "검수",
+      "priority": "P1",
+      "repo": "public",
+      "files": [
+        "screener/event_watch.py",
+        ".github/workflows/live.yml",
+        "screener/events.py",
+        "tests/test_event_watch.py",
+        "docs/schedule_table.md"
+      ],
+      "started": "2026-10-17",
+      "due": "2026-10-20",
+      "depends_on": [],
+      "notes": "오너 10/17 15시대 '사건이 터지면 바로'. 실행 주체 = live 루프(백그라운드 60초). 상태 reports/event_state.json(금액 0·보유 코드 해시). 검수: 10/20 09:00~ Actions live 로그에 '이벤트 감시:' 줄이 분마다 찍히는지. 남은 것(개발5 alerts.py 잠금 중이라 미반영): alerts.build 의 touch_lines() 결과에서 event_watch.load_state()['sent'] 의 'touch:<코드>' 를 빼는 2줄 — 안 하면 이벤트 감시가 보낸 터치를 14:25·16:20 규정 알림이 그날 한 번 더 보냄(기존 동작과 같음).",
+      "desk": "개발"
+    },
+    {
+      "id": "live-us-winter-window",
+      "title": "live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지",
+      "owner": "개발",
+      "status": "대기",
+      "priority": "P2",
+      "repo": "public",
+      "files": [
+        ".github/workflows/live.yml",
+        "docs/schedule_table.md"
+      ],
+      "started": "2026-10-17",
+      "due": "2026-10-31",
+      "depends_on": [],
+      "notes": "안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성.",
+      "desk": "개발"
+    },
+    {
+      "id": "live-resume-gap",
+      "title": "live 루프가 죽었을 때 이벤트 감시 공백 줄이기 — 매시 cron 은 실측 3–5시간 늦는 날이 있음",
+      "owner": "개발",
+      "status": "대기",
+      "priority": "P1",
+      "repo": "public",
+      "files": [
+        ".github/workflows/live.yml",
+        "apps-script/Scheduler.gs",
+        "docs/schedule_table.md"
+      ],
+      "started": "2026-10-17",
+      "due": "2026-10-24",
+      "depends_on": [
+        "event-watch"
+      ],
+      "notes": "안 A: 루프 끝(340분 상한·장중)에 gh workflow run live.yml -f commit=true (permissions actions: write 필요 — 권한 확대라 오너/운영 승인 후). 안 B: Scheduler.gs 에 live 재개 슬롯 14:20·04:00 추가(오너 붙여넣기). 실측: 10/15 15:07 cron → 20:19, 10/16 04:07 → 07:05.",
+      "desk": "개발"
     }
   ]
 }

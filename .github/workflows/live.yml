@@ -54,6 +54,9 @@ jobs:
           KRX_PW: ${{ secrets.KRX_PW }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
+          MY_RULES: ${{ secrets.MY_RULES }}           # 이벤트 감시(touch·손절선)만 읽음 — 값은 로그·파일에 안 씀
+          MY_HOLDINGS: ${{ secrets.MY_HOLDINGS }}
+          EVENT_STATE: /tmp/ev/event_state.json       # 작업 중 상태는 /tmp — 커밋 단계의 reset --hard 가 덮지 않게
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
@@ -66,6 +69,10 @@ jobs:
           COMMIT="${{ steps.g.outputs.commit }}"
           # 대기열에서 늦게 깨어난 예약·백업 실행이 장 시간 밖이면 끝 (수동 실행만 1회 허용)
           if ! in_window && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then echo "장 시간 밖 예약 실행 — 건너뜀"; exit 0; fi
+          # 장중 이벤트 감시 (오너 10/17 "사건이 터지면 바로") — 약 60초마다 백그라운드. 장 시간 밖이면 event_watch 가 바로 끝남
+          mkdir -p /tmp/ev; if [ -e reports/event_state.json ]; then cp reports/event_state.json /tmp/ev/; fi
+          ( while true; do t0=$SECONDS; timeout 50 python -m screener.event_watch || true; d=$((60 - (SECONDS - t0))); [ $d -lt 5 ] && d=5; sleep $d; done ) &
+          EW_PID=$!; trap 'kill $EW_PID 2>/dev/null || true' EXIT
           end=$((SECONDS + 340*60))
           first=1
           while [ $SECONDS -lt $end ]; do
@@ -78,12 +85,13 @@ jobs:
             if [ "$COMMIT" != "true" ]; then echo "읽기 전용 — 커밋 안 함 (commit=true 로 다시 실행)"; in_window || break; sleep 300; continue; fi
             # 다른 작업이 같은 파일을 커밋하면 rebase 가 충돌로 멈춰 이후 갱신이 전부 막힘 → 매번 원격 최신 위에 파일만 다시 얹는다
             rm -rf /tmp/lv; mkdir -p /tmp/lv; for p in reports/live.json reports/events.json reports/events_stats.json; do if [ -e "$p" ]; then cp "$p" /tmp/lv/; fi; done
-            if [ -e /tmp/duel_ran ]; then cp reports/decisions.json /tmp/lv/; fi   # 판정한 회차에만 (다른 때 덮으면 제출된 겸이 판단이 지워짐)
+            if [ -e /tmp/duel_ran ]; then cp reports/decisions.json /tmp/lv/; fi
+            if [ -e /tmp/ev/event_state.json ]; then cp /tmp/ev/event_state.json /tmp/lv/; fi   # 이벤트 중복 방지 상태(금액 0·보유 코드 해시)   # 판정한 회차에만 (다른 때 덮으면 제출된 겸이 판단이 지워짐)
             for i in 1 2 3; do
               git rebase --abort 2>/dev/null || true   # 진행 중인 rebase 없으면 실패 → bash -e 가 루프를 죽였음
               git fetch -q origin main && git reset -q --hard origin/main || { sleep 5; continue; }
               for f in /tmp/lv/*; do if [ -e "$f" ]; then cp "$f" reports/; fi; done   # 시세 실패로 비면 cp 실패 → bash -e 가 루프를 죽였음
-              for p in reports/live.json reports/events.json reports/events_stats.json reports/decisions.json; do if [ -e "$p" ]; then git add "$p"; fi; done
+              for p in reports/live.json reports/events.json reports/events_stats.json reports/decisions.json reports/event_state.json; do if [ -e "$p" ]; then git add "$p"; fi; done
               git diff --cached --quiet && break
               git commit -qm "live: $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break || true
               sleep 5

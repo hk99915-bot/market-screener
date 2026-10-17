@@ -148,10 +148,19 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
                 send_telegram("🚨 <b>시장 이벤트</b>\n" + "\n".join(
                     f"• {e['time']} {e['market']} <b>{e['type']}</b> — {e['title']}" for e in new)
                     + "\n\n과거 서킷 다음날 통계: 웹 HOME › EVENTS",
-                    disable_notification=silent(halt_keys(new)))   # 결재 #9: 서킷·사이드카 실제 발동만 소리, 근접 경보·급변 뉴스는 무음
+                    disable_notification=silent(_not_yet_rung(halt_keys(new), today)))   # 결재 #9: 서킷·사이드카 실제 발동만 소리, 근접 경보·급변 뉴스는 무음
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 텔레그램 실패: %s", e)
     return new
+
+
+def _not_yet_rung(keys: list[str], today: str) -> list[str]:
+    """장중 이벤트 감시(event_watch, 지수 프록시)가 오늘 같은 시장 halt 를 이미 울렸으면 뉴스 확인은 무음 (소리 중복 방지)."""
+    try:
+        from .event_watch import halted_today
+        return [k for k in keys if not halted_today(k.split(":")[1], today)]
+    except Exception:  # noqa: BLE001
+        return keys
 
 
 def halt_keys(new: list[dict]) -> list[str]:

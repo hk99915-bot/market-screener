@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 106개 · 진행 3 · 검수 26 · 대기 42 · 보류 2 · 완료 33
+기준일 2026-10-17 · 작업 109개 · 진행 3 · 검수 27 · 대기 44 · 보류 2 · 완료 33
 
 ## 진행 (3)
 
@@ -12,7 +12,7 @@
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | 2026-10-17 | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. / 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. |
 
-## 검수 (26)
+## 검수 (27)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -31,6 +31,7 @@
 | P1 | `px-adjust-unify` | KR 가격 조정 경로 통일 — 원본/조정 스키마 분리, decisions·track·momentum 등 parquet 직접 읽기 18곳을 공통 로더로 | 데이터 | 2026-10-17 | 2026-10-19 | `screener/data_krx.py`<br>`screener/decisions.py`<br>`screener/prices.py` | — | 외부감사 10/17 P1 확인. 원본 parquet에 ±45% 시가갭 373건/343종목(13개월) → 휴리스틱 자체가 과검출 의심(거래정지·900xxx). 실제 기업행위(KRX/DART) 대조 + 분할·병합·정지 회귀테스트. |
 | P1 | `bt-exec-lag` | 포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시 | 백테스트 | 2026-10-17 | 2026-10-20 | `screener/portfolios.py`<br>`tests/test_portfolios.py` | — | 외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부. |
 | P1 | `deriv-hist` | 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, OI, PCR, 벽, 감마) + 백필 | 파생 | 2026-10-16 | 2026-10-20 | `screener/deriv_hist.py`<br>`data/deriv/*`<br>`.github/workflows/deriv_hist.yml` | — | 검증의 전제. 라이브 화면·텔레그램 추가 없음. |
+| P1 | `event-watch` | 장중 이벤트 즉시 알림(60초) — touch·지수 −4/−5%·서킷/사이드카·보유 손절선/−5%·미장 SPX/NDX −3%·VIX +25% | 개발 | 2026-10-17 | 2026-10-20 | `screener/event_watch.py`<br>`.github/workflows/live.yml`<br>`screener/events.py`<br>`tests/test_event_watch.py`<br>`docs/schedule_table.md` | — | 오너 10/17 15시대 '사건이 터지면 바로'. 실행 주체 = live 루프(백그라운드 60초). 상태 reports/event_state.json(금액 0·보유 코드 해시). 검수: 10/20 09:00~ Actions live 로그에 '이벤트 감시:' 줄이 분마다 찍히는지. 남은 것(개발5 alerts.py 잠금 중이라 미반영): alerts.build 의 touch_lines() 결과에서 event_watch.load_state()['sent'] 의 'touch:<코드>' 를 빼는 2줄 — 안 하면 이벤트 감시가 보낸 터치를 14:25·16:20 규정 알림이 그날 한 번 더 보냄(기존 동작과 같음). |
 | P1 | `study-progress` | STUDY 진행 기록 이슈 경로: 'study <id> done' → study.yml → reports/study_progress.json(출석·SRS 파생), quiz_bank 채점, 오답 → desk_kb/_quiz_feedback.md 큐, 2주 게이트(열린 15·잠금 52), study_daily ≤4줄(이슈 링크·출석) | 평가 | 2026-10-17 | 2026-10-20 | `screener/study_progress.py`<br>`.github/workflows/study.yml`<br>`screener/study_daily.py`<br>`content/study/index.json`<br>`scripts/study_content_check.py`<br>`reports/study_progress.json`<br>`docs/desk_kb/_quiz_feedback.md`<br>`tests/test_study_progress.py` | `edu-quiz-srs` | 첫 실전: 10/19(월) 07:10 메시지의 이슈 링크로 'study H2 done' 1건 → 답글·닫힘·progress 커밋 확인. 오답 큐는 해당 데스크가 KB '흔한 오해'에 반영 후 [x]. 모듈 id·날짜·정답 여부만(금액 없음). Index.html 병합은 edu-dev-handoff #4. |
 | P1 | `mu-revenue-tag` | MU 매출 항목 미수집(companyfacts 태그 매핑) → valuation '매출 —' | 데이터 | 2026-10-17 | 2026-10-21 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | `sec-ytd-bug` | SNDK는 revenue 있음, MU만 없음 → Revenues / RevenueFromContractWithCustomerExcludingAssessedTax 태그 폴백 확인. 8-K 대조값 FQ4 54.23B, FQ3 41.46B. 10/17 fin_verified.json 에 기록. 10/17 애널 원인 분석: sec.py parse() 가 분기를 만든 첫 태그에서 break → 옛 태그(Revenues/SalesRevenueNet)가 2019 이전 분기만 만들고 끝나는 '태그 전환' 가설(검증전) — docs/desk_kb/data.md '애널 요청' 참조. 가이던스 PER 은 fin_guidance.json last_revenue 로 우회 중. / 10/17 데이터: 가설1 코드로 확인(첫 태그 break) → parse() 태그별 분기 병합(같은 분기말은 앞선 태그 우선)으로 수정 + 합성 테스트 2건(tests/test_sec_parse.py). 실데이터 대조(FQ4 54.23B 1% 이내)는 SEC_USER_AGENT 워크플로 다음 실행 후 → 검수. |
 | P1 | `kr-accum` | 국장 외인·기관 매집 스캐너(전 종목 일별 수급 저장소) + 시장 거래대금 + 매집 신호 이벤트 스터디 | 퀀트 | 2026-10-17 | 2026-10-24 | `screener/accum.py`<br>`scripts/study_accum.py`<br>`.github/workflows/accum.yml`<br>`data/flows/*`<br>`reports/accum.json`<br>`reports/studies/accum_signals.json`<br>`apps-script/tab_market.html`<br>`tests/test_accum.py` | — | pykrx 하루 10콜 → data/flows/kr_inv_YYYY.parquet(2022~ 백필, 재개형). 평일 18:37 KST accum.yml. 화면: MARKET›KR ACCUM(getArchAt('accum','latest') 임시 — Code.gs/build_pages 잠금 풀리면 getAccum 전용 getter로). 남은 일: contracts.py 에 accum.json 계약 등록(개발 소관), 2022 하락장 백필 완료 후 스터디 재실행. |
@@ -43,7 +44,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (42)
+## 대기 (44)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -67,6 +68,7 @@
 | P1 | `peer-review-valuation` | 피어 리뷰: 애널 밸류에이션 모델(정상화 ROE·할인율·멀티플/EPS 분해) 독립 검토 + 10/16 반도체 논지(theses) 반대 의견서 — 매주 월요일 | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/valuation_YYYY-MM-DD.md`<br>`docs/desk_kb/analyst.md` | `valuation-daily` | 피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당. |
 | P1 | `secret-missing-warning` | 시크릿 없음(MY_RULES·MY_HOLDINGS) → 조용히 건너뛰지 말고 아침 점검·health에 '꺼져 있음' 1줄 | 개발 | — | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 10/17 발견: 두 시크릿이 처음부터 없어 발동선·PB 점검이 이틀간 미작동, 아무도 모름. '꺼짐'과 '조건 미충족'을 구분 표기. |
 | P1 | `ra-sec-coverage` | RA: SEC·DART 커버리지 확장 — 반도체 바스켓 전체(PSI·SOXX 구성 30+종목, 하이닉스 ADR 없음→DART), 실적 발표일·컨센서스 EPS(무료 소스 조사) 수집 파이프라인 | 데이터 | — | 2026-10-21 | `universe/us_priority.csv`<br>`screener/sec.py`<br>`screener/earnings_cal.py`<br>`reports/earnings_cal.json` | `valuation-daily` | 컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지. |
+| P1 | `live-resume-gap` | live 루프가 죽었을 때 이벤트 감시 공백 줄이기 — 매시 cron 은 실측 3–5시간 늦는 날이 있음 | 개발 | 2026-10-17 | 2026-10-24 | `.github/workflows/live.yml`<br>`apps-script/Scheduler.gs`<br>`docs/schedule_table.md` | `event-watch` | 안 A: 루프 끝(340분 상한·장중)에 gh workflow run live.yml -f commit=true (permissions actions: write 필요 — 권한 확대라 오너/운영 승인 후). 안 B: Scheduler.gs 에 live 재개 슬롯 14:20·04:00 추가(오너 붙여넣기). 실측: 10/15 15:07 cron → 20:19, 10/16 04:07 → 07:05. |
 | P1 | `sim-oos` | 트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보정, B&H·섹터 대비 | 퀀트 | — | 2026-10-24 | `screener/detail.py`<br>`reports/studies/trial_log.json` | `px-adjust-unify` | Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
 | P2 | `audit-pb-direct-test` | 감사 M4: 42954487 (pb 직접) committee.score/_ideas_log_score/rebuild_detail_kr 조정가 전환 회귀 테스트 + 영향·롤백 기록 | PB | 2026-10-17 | 2026-10-20 | `screener/committee.py`<br>`screener/main.py` | — | 개발 검수. 과거 성적 소급 변동 범위 1줄. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md |
@@ -81,6 +83,7 @@
 | P2 | `ra-house-scoreboard` | RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일 수익률·낙관 편향(목표가 인플레) 스코어보드 — 참고 경보용, 가중치 아님 | 데이터 | — | 2026-10-28 | private 전용 | `ra-sector-frames` | 표본 n<10 하우스는 미표시. 개인명 저장 금지. |
 | P2 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
 | P2 | `desk-scoreboard-monthly` | 데스크 성적표·복기 월례: ideas_attrib·decisions tally·연구 등급·재현 결과를 docs/desk_kb/_scoreboard.md로 모으고 각 데스크 KB '복기' 3줄 갱신 | PM | — | 2026-10-31 | `docs/desk_kb/_scoreboard.md`<br>`docs/desk_kb/*.md`<br>`scripts/desk_scoreboard.py` | — | 첫 회 10/31. 데스크 프롬프트 템플릿에 'KB+최근 복기 3건 읽기' 포함(HANDOFF). |
+| P2 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-10-31 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. |
 | P2 | `pub-whitelist` | 공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 감사 | 검증 | — | 2026-10-31 | `.github/workflows/*.yml`<br>`scripts/slop_audit.py` | — | 외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지. |
 | P2 | `score-calib` | 점수 보정 — Trend/Momentum/Reversal 분포·상한 도달 빈도, 구간별 5/20/60일 수익, 지표 제거 실험 | 퀀트 | — | 2026-10-31 | `screener/scoring.py`<br>`screener/indicators.py`<br>`tests/test_indicators_edge.py` | `px-adjust-unify` | 외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시. |
 | P2 | `pro-plan-round-scale` | Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·우선 데스크, 21:10 자동 라운드 교체 | PM | — | 2026-11-05 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17. |

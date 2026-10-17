@@ -86,6 +86,7 @@
 | committee.json · committee_hist · dashboard* · daily_brief · macro_view · japan · bonds · derivs | briefing 08:50·10:30·11:35·13:30·14:15·15:45·19:10 (GAS) | — | 시각별 갱신, 슬롯마다 단일 |
 | committee_us.json | briefing 20:52·21:52·22:52·03:52 (GAS) | — | 단일 |
 | reports/live.json · events.json | live 루프 08:40·22:20 (GAS) + 매시 재개 | 수동 live(읽기 전용 기본) | 동시 1개(concurrency) |
+| 장중 이벤트 텔레그램(touch·지수 −4/−5%·서킷/사이드카·보유 손절선/−5%·미장 SPX/NDX −3%·VIX +25%) · reports/event_state.json | **live 루프** 안 백그라운드 `screener.event_watch` 약 60초마다 (2026-10-17 신설) | — (15:05 crash_check 종가 판단 메시지·14:25/16:20 규정 알림은 별도 산출물로 유지) | 단일. touch: 이벤트 감시는 규정 알림이 이미 보낸 코드면 건너뜀(평생 1회). 반대 방향(규정 알림이 이벤트 감시 기록을 보는 것)은 alerts.py 잠금 해제 뒤 — 보드 event-watch, 서킷·사이드카는 뉴스 감지(events.check)와 소리 1회 공유 |
 | reports/decisions.json | live 14:50–15:15 duel · briefing premarket_us duel · screener 규칙 판정 | pick.yml(이슈) · pb_call(PB 예약 세션 14:42) | 필드 병합 방식(각자 자기 칸만) — 슬롯 이중 아님. 1.5단계에서 재점검 |
 | data/deriv/daily.csv · deriv_hist_status · studies/gamma_regime | deriv_hist 16:40 평일 (GAS) | 수동 backfill/probe (commit=true 필요) | 단일 |
 | data/fin · universe/sec_* · portfolios · momentum · analysts | fin 03:30 매일 (GAS) | — | 단일 |
@@ -99,6 +100,22 @@
 | reports/english/* | Claude 예약 '오늘의 영어' 평일 07:18 | — | 단일(세션이 직접 커밋) |
 
 Claude 원격 예약 작업(10/17 list_triggers 기준): 오늘의 영어 07:18 · PB 진입·매도 14:42(→pb_call) · PB 미장 21:52(꺼짐) · 기록 12:50/16:00/22:30(pb-private·team.json runs) · 데스크 라운드 평일 21:10(docs) · ISA 리마인드 10/19 10:00(1회). 위 GitHub 산출물과 겹치는 슬롯 없음.
+
+## 4-1. 장중 이벤트 알림 (오너 10/17 15시대 "사건이 터지면 바로 텔레로 오게, 특정 시간이 아니라")
+- 실행 주체 = live 루프 하나(결정 C). `.github/workflows/live.yml` 루프 단계가 시작할 때 `python -m screener.event_watch` 를 60초 주기 백그라운드로 띄운다. 국장 평일 09:00–15:31 KST·미장 09:30–16:00 뉴욕 밖이면 시세를 받지 않고 끝난다.
+- 소리: `alerts.silent(키)` 하나로만 결정 — touch·halt 만 RING_KINDS(소리), 나머지 무음. **현재는 `defs.TELEGRAM_ALL_SILENT=True`(오너 10/17 "전체 무음")라 전부 무음**, 표는 되돌릴 때를 위해 보존.
+- 중복: 같은 사건은 하루 1회(touch 는 평생 1회), 상태 `reports/event_state.json`(금액 0, 보유 종목 코드는 HMAC 해시). 작업 중엔 `/tmp/ev` 사본을 쓰고 5분 커밋 때 같이 올린다. 전송 ≤ 1통/분, 같은 분의 사건은 1통으로 묶음.
+- 신선도: 시세 시각(네이버 `localTradedAt`, 야후 마지막 1분봉)이 KR 180초·US 300초보다 오래면 알리지 않음.
+- 지연(측정 근거: 10/15–10/17 live.yml 실행 기록, `gh run list`):
+  | 경우 | 사건 → 텔레그램 |
+  |---|---|
+  | 정상(루프 살아 있음) | 감시 주기 60초 + 실행 ~5–10초 → **≤ 약 70초**, 직전 1분 안에 보낸 게 있으면 +≤60초 → ≤ 약 2분 |
+  | 서킷·사이드카 프록시 | 조건 진입 뒤 '1분 지속' 확인 2표본 → 조건 진입 +60~130초 (거래소 실제 발동은 +60초) |
+  | 340분 상한 교대(국장 08:40 시작 → 약 14:20, 미장 22:20 → 약 04:00) | 대기열에 매시 백업 실행이 있으면 바로 이어받음 → 공백 약 1–3분(작업 준비 시간). 10/15 실측: 09:46 시작 → 15:33 종료 → 대기 실행 15:33 시작 |
+  | 루프가 죽고 대기 실행이 없음 | 다음 매시 :07 cron. GitHub cron 지연 실측 최대 **약 3–5시간**(10/15 15:07 예약 → 20:19 실행, 10/16 04:07 → 07:05) → 최악은 그 장 남은 시간 전부 공백 |
+  | GAS 08:40 시작 누락 | cron 08:40 대기(+12분) → 08:52 시작, 09:00 개장 전이라 공백 없음. cron 도 늦으면 첫 매시 백업까지(10/15 실측 09:46 시작 → 09:00–09:46 공백) |
+- 남은 위험: (a) 위 '루프가 죽고 대기 실행 없음' — 개선안 = 루프 끝에 자기 재개 dispatch(`actions: write` 권한 필요, 10/17 개발 세션에선 권한 확대가 승인되지 않아 보류) 또는 GAS 슬롯 14:20·04:00 에 live 재개 추가(Scheduler.gs 붙여넣기 필요). 보드 `live-resume-gap`. (b) 11/02 겨울 시간부터 미장 23:30–06:00 KST 인데 루프 창은 05:15 까지 — 보드 `live-us-winter-window`. (c) 60초 폴링은 1분 안에 찍고 되돌아간 꼬리(touch)를 놓칠 수 있음 — 종목 basic 응답에 장중 저가가 없으면 현재가로 판정.
+- 롤백: live.yml 의 이벤트 감시 3줄과 커밋 목록의 `reports/event_state.json` 제거(또는 이 커밋 revert). 15:05·14:25·16:20 슬롯 알림은 그대로라 롤백해도 기존 알림은 산다.
 
 ## 5. 바뀐 것 · 영향 · 롤백
 - 코드: `scripts/slot_guard.py`(가드·파서·분석) · 워크플로 14개(us_accum 포함, `run-name`, `commit` 입력, 저장 단계 조건, GAS 6개는 가드 단계 + `actions: read`) · `apps-script/Scheduler.gs`(WINDOW_MIN 10, 모든 슬롯 `commit: 'true'`, 버전 표시) · `tests.yml`(pyyaml 설치, 워크플로·Scheduler.gs 변경 때도 테스트).
