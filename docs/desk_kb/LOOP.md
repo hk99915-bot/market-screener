@@ -17,6 +17,14 @@
 - 같은 요청이 2라운드 연속 미처리면 보드 P1로 승격.
 - 월 1회 `_scoreboard.md` 적중률(점도표·모의·연구 등급)과 라운드 표를 나란히 두고 "많이 고친 데스크가 더 맞히는가"를 본다.
 
+## 작업 격리 (라운드 1 VOC 7건: 공유 체크아웃 때문에 커밋 귀속 섞임·rebase 막힘)
+- 데스크 에이전트는 **자기 worktree**에서 일한다: `git worktree add /tmp/claude-0/.../scratchpad/wt_<desk> origin/main` → 작업 → 커밋 → `git push origin HEAD:main`(거부 시 `pull --rebase`) → `git worktree remove`. 공유 체크아웃에서 편집 금지.
+- 커밋 신원은 저장소 기본(`Claude <noreply@anthropic.com>`). 개인 이메일 금지.
+- `git add -A` 금지. 경로 지정 add만.
+
+## 요청 응답 규약
+- 요청을 받은 데스크는 다음 라운드 파일에 `처리→<요청 데스크>: <무엇을 어떻게 / 또는 거절 사유>` 1줄로 닫는다. 안 닫히면 round_collect가 2라운드 뒤 보드 P1로 올린다.
+
 ## 금지
 - 개인 보유·금액·연봉 언급. 실제 증권사 애널 이름 인용. 매매 지시문.
 - 다른 데스크 KB·라운드 파일 수정. 테스트 깨진 채 push. 검증전 결과를 확정처럼 쓰기.
