@@ -88,3 +88,10 @@ def test_touch_rule_parses_and_fires(monkeypatch):
 def test_savings_rule_parsed_and_zero_default():
     assert pb.rules("SAVINGS 9200000")["savings"] == 9200000.0
     assert pb.rules("SEMI_CAP 0.40")["savings"] == 0.0
+
+
+def test_savings_line_in_holdings_is_denominator_not_holding():
+    txt = "005930 1 1000\n예적금 5000\n현금 100\n## ISA\n360750 1 100"
+    assert pb.savings_in(txt) == 5000.0
+    sat = pb.parse_books(txt)["sat"]
+    assert all(h.get("key", h.get("code", "")) != "예적금" for h in sat[0]) and sat[1] == 100.0

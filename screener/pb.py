@@ -48,6 +48,19 @@ RE_SEMI = re.compile(r"반도체")
 RE_ELEC = re.compile(r"IT 하드웨어")   # 전자부품(삼성전기 등)·디스플레이 — '상관 테마'
 
 
+SAVINGS_KEYS = ("예적금", "적금", "예금", "SAVINGS")
+
+
+def savings_in(txt: str) -> float:
+    """보유 텍스트의 '예적금 <금액>' 줄 합 — 결재 #1 분모 (b). MY 탭과 같은 형식 (MY_RULES 'SAVINGS' 와 둘 중 하나만 써도 됨)."""
+    tot = 0.0
+    for ln in (txt or "").splitlines():
+        p = ln.strip().split()
+        if len(p) >= 2 and p[0].upper() in SAVINGS_KEYS:
+            tot += _num(p[1]) or 0.0
+    return tot
+
+
 def parse_books(txt: str) -> dict[str, tuple[list[dict], float, float]]:
     """`## ISA` 줄을 경계로 위성(sat)·ISA 두 북으로 나눠 파싱. 각 북 = (보유 목록, 원화 현금, 달러 현금)."""
     books = {"sat": ([], 0.0, 0.0), "isa": ([], 0.0, 0.0)}
@@ -59,6 +72,8 @@ def parse_books(txt: str) -> dict[str, tuple[list[dict], float, float]]:
             continue
         if ln.strip().startswith("#"):
             continue
+        if ln.strip().split()[:1] and ln.strip().split()[0].upper() in SAVINGS_KEYS:
+            continue   # 예적금은 보유가 아님 — savings_in() 이 분모로만 쓴다
         chunks[cur].append(ln)
     for b in books:
         books[b] = _parse_lines("\n".join(chunks[b]))
@@ -290,7 +305,7 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
     isa_w = {k: (v / isa_tot if isa_tot else 0.0) for k, v in isa_w.items()}
     # denominator=stress_denominator_code (기본 D2 nav) — 결재 #3 구속 한도 '스트레스 −15%' 의 손실률, 비율만 보관
     # 결재 #1 (b): MY_RULES 'SAVINGS <금액>' 이 있으면 반도체 비중·D2 스트레스 분모에 예적금을 더한다 (없으면 (a) 투자자산만)
-    sav = ru.get("savings") or 0.0
+    sav = (ru.get("savings") or 0.0) or savings_in(txt)
     den = nav + sav
     den_label = "(b) 투자자산+예적금" if sav > 0 else "(a) 투자자산 · 예적금 미입력"
     st_den, st_books = stress_denominator(stress_denominator_code, nav=den, tot=tot, tot_sat=tot_sat, cash_sat=cash_sat)
