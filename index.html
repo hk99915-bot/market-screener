@@ -69,6 +69,7 @@
     getAccum: () => get('reports/accum.json'),
     getUsAccum: () => get('reports/us_accum.json'),
     getCooldown: () => get('ops/cooldown.json'),
+    getRenego: () => get('ops/renego.json'),
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
@@ -1907,9 +1908,15 @@ function cmtSimFreshHtml(o){
   const b=o.sim_fresh; if(!b) return '';
   const it=b.items||[], pc=x=>x==null?'—':(x>0?'+':'')+Math.round(x*100)+'%';
   const rows=it.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="${esc(b.market||'KR')}">${esc(x.n)}</td><td class="l">${esc(x.label)}</td><td>${x.wins}/${x.trades}</td><td class="up">${Math.round((x.wilson_lo||0)*100)}%</td><td>${pc(x.ret)}</td><td class="mu">${pc(x.bh)}</td><td class="mu">${esc(String(x.entry_date||'').slice(5))}</td></tr>`);
-  return `<div class="p c12" style="border:1px solid ${it.length?'var(--up)':'var(--line)'}"><h2><span>🟢 새로 켜진 추세 신호 · 참고 C</span><small>${esc(b.asof||'')} 종가 · 스캔 ${b.n_scanned??'—'}종목 · 통과 ${b.n_pass??0} · 기대 우연 통과 ${b.expected_chance??'—'}</small></h2><div class="b" style="white-space:normal;font-size:12.5px">
-    ${it.length?cmtTbl(['종목','전략','승/거래','승률 하한','1년 전략','1년 보유','켜진 날'],rows):'<div class="mu">오늘 조건 통과 없음 (켜짐 + 거래 6회 이상 + 승률 Wilson 95% 하한 50% 초과)</div>'}
-    <div class="mu" style="font-size:11px;margin-top:4px">${esc(b.grade||'')}</div></div></div>`;
+  // 기대값 하한 규칙 (사전등록 docs/valuation_notes/2026-10-17_trend_expectancy_prereg.md) — 'C·참고' 라벨, 주문표 근거 불가
+  const E=b.exp, eit=(E&&E.items)||[], pp=x=>x==null?'—':(x>0?'+':'')+(x*100).toFixed(1)+'%';
+  const erows=eit.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="${esc(b.market||'KR')}">${esc(x.n)}</td><td class="l">${esc(x.label)} <span class="mu" style="font-size:10.5px;border:1px solid var(--line);padding:0 3px">C·참고</span></td><td>${x.trades}</td><td>${pp(x.exp)}</td><td class="up">${pp(x.exp_lb)}</td><td class="mu">${x.win!=null?Math.round(x.win*100)+'%':'—'}</td><td class="mu">${esc(String(x.entry_date||'').slice(5))}</td></tr>`);
+  const ehtml=E?`<div style="margin-top:8px;border-top:1px dashed var(--line);padding-top:6px"><b>기대값 하한 규칙</b> <span class="mu" style="font-size:10.5px;border:1px solid var(--line);padding:0 3px">C·참고</span> <span class="mu" style="font-size:11px">${esc(E.asof||'')} · 검정 ${E.n_eligible??'—'} · 통과 ${E.n_pass??0} · 우연 기대 ${E.expected_chance??'—'}${E.binom_p!=null?' · 이항 p '+E.binom_p:''} · 주문표 근거 불가</span>
+    ${eit.length?cmtTbl(['종목','전략','청산 거래','기대값','t 하한','승률','켜진 날'],erows):'<div class="mu">통과 없음 (켜짐 + 청산 거래 8회 이상 + 거래당 순수익 t 95% 하한 &gt; 0)</div>'}
+    <div class="mu" style="font-size:11px;margin-top:2px">${esc(E.grade||'')}</div></div>`:'';
+  return `<div class="p c12" style="border:1px solid ${it.length||eit.length?'var(--up)':'var(--line)'}"><h2><span>🟢 새로 켜진 추세 신호 · 참고 C</span><small>${esc(b.asof||'')} 종가 · ${b.wilson_missing?'Wilson 집계 없음(sim_signals 미생성)':`스캔 ${b.n_scanned??'—'}종목 · 통과 ${b.n_pass??0} · 기대 우연 통과 ${b.expected_chance??'—'}`}</small></h2><div class="b" style="white-space:normal;font-size:12.5px">
+    ${it.length?cmtTbl(['종목','전략','승/거래','승률 하한','1년 전략','1년 보유','켜진 날'],rows):b.wilson_missing?'':'<div class="mu">오늘 조건 통과 없음 (켜짐 + 거래 6회 이상 + 승률 Wilson 95% 하한 50% 초과)</div>'}
+    <div class="mu" style="font-size:11px;margin-top:4px">${esc(b.grade||'')}</div>${ehtml}</div></div>`;
 }
 function cmtV2Html(o){
   const bl=o.bottom_line||{}, M=o.macro||{}, P=o.positioning||{}, R=o.rotation||{}, B=o.bottom_up||{}, I=o.ideas_top||{}, H=o.hedges||{}, PM=o.premortem||{}, T=o.track||{};
@@ -2035,7 +2042,12 @@ function cmtUSView(){
      apps-script/Index.html 이 include('tab_duel') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
-let DEC=null, COOL=null;
+let DEC=null, COOL=null, RENEGO=null;
+// 재협상 카운터 (오너 승인 10/17 14:09): 같은 규칙 30일 안 2회째 재협상(ops/renego.json) → 주문표 ⛔ '재협상 2회째' + 사유 칸 필수. 값 = screener/defs.py RENEGO_*
+const RENEGO_WARN_AT=2, RENEGO_WINDOW_DAYS=30;
+function renegoActive(){ const today=new Date(Date.now()+9*36e5).toISOString().slice(0,10), lo=new Date(Date.parse(today+'T00:00:00Z')-(RENEGO_WINDOW_DAYS-1)*864e5).toISOString().slice(0,10), c={};
+  for(const e of ((RENEGO&&RENEGO.events)||[])){ const r=String(e.rule||''), d=String(e.date||'').slice(0,10); if(!/^[A-Z0-9_]+$/.test(r)||d<lo||d>today) continue; const x=c[r]||(c[r]={rule:r,count:0,last:''}); x.count++; if(d>x.last) x.last=d; }
+  return Object.values(c).filter(x=>x.count>=RENEGO_WARN_AT).sort((a,b)=>b.count-a.count); }
 // 결재 #14 ③ (10/17): 매도(exit '매도')·포상(ops/cooldown.json) 후 30분 — 새 모의 베팅 금지, 카운트다운. 주문표 판정은 제외. 값 = screener/defs.py COOLDOWN_MIN
 const COOLDOWN_MIN=30;
 function coolUntil(D){ const ev=[]; const at=s=>{ const t=Date.parse(String(s).replace(' ','T')+':00+09:00'); return isFinite(t)?t:null; };
@@ -2064,12 +2076,15 @@ function ticketBox(D,IU){
      <tr><td colspan="8" class="l mu" style="font-size:11px;white-space:normal;padding:0 6px 6px 14px">${esc(it.submitted||it.date)} · ${esc(it.why||'')}${(it.reasons||[]).length?' — '+esc(it.reasons.join(' / ')):''}</td></tr>`;}).join('');
   const hist=done.slice(0,8).map(it=>`<span style="margin-right:12px"><span class="mu">${esc(it.date.slice(5))}</span> ${esc(it.name||it.code)} <b class="${it.result.r>=0?'up':'dn'}">${it.result.r>=0?'+':''}${Number(it.result.r).toFixed(2)}R</b></span>`).join('');
   // 주문표 입력 (10/17 오너 요청): 종목명·티커 검색 → 최신가 자동 → 손절·목표 = 매수가 × (1 + %) 기본 −7% / +15% (손익비 2.1, 규정 −8%·1:2 안)
+  const RN=renegoActive();
   const TK_STOP=-7, TK_TGT=15, IS=`background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px`;
   const tform=`<span style="position:relative;display:inline-block"><input id="tkq" placeholder="종목명·티커 (예: mu, 하이닉스)" autocomplete="off" style="width:190px;${IS}"><div id="tkres" class="mu" style="display:none;position:absolute;z-index:30;left:0;top:100%;min-width:260px;max-height:260px;overflow:auto;background:var(--panel);border:1px solid var(--line);font-size:12px"></div></span><input id="tkcode" type="hidden"><input id="tkmk" type="hidden">
     <input id="tkentry" placeholder="매수가" style="width:90px;${IS}">
     손절 <input id="tkstopp" value="${TK_STOP}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tkstop" placeholder="손절가" style="width:90px;${IS}">
     목표 <input id="tktgtp" value="${TK_TGT}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tktarget" placeholder="목표가" style="width:90px;${IS}">
     <input id="tkdays" placeholder="보유(일)" value="5" style="width:52px;${IS}">일 <button id="tkgo" class="sbtn">주문표 열기 (깃허브 이슈)</button>
+    ${RN.length?`<div id="tkrnbox" style="border:1px solid var(--dn);padding:5px 8px;margin-top:4px"><b class="dn">⛔ 재협상 2회째</b> — ${RN.map(x=>`${esc(x.rule)} ${x.count}회 · 마지막 ${esc(x.last.slice(5))}`).join(' · ')} <span class="mu" style="font-size:11px">(30일 안 같은 규칙 · ops/renego.json)</span>
+      <textarea id="tkrn" rows="2" placeholder="재협상 사유 (필수, 10자 이상) — 이 글은 저장·전송하지 않습니다. 개인 일지에 옮겨 적으세요." style="display:block;width:100%;margin-top:4px;${IS}"></textarea></div>`:''}
     <div id="tklbl" class="mu" style="font-size:11px"></div>`;
   setTimeout(()=>{ const g=$('#tkgo'); if(!g) return; const v=id=>($(id).value||'').trim();
     const dp=()=>v('#tkmk')==='US'?2:0, rd=x=>dp()?Math.round(x*100)/100:Math.round(x);
@@ -2097,8 +2112,10 @@ function ticketBox(D,IU){
         box.style.display='block'; box.querySelectorAll('div[data-tks]').forEach(d=>d.onclick=()=>pick(d.dataset.tks,d.dataset.tkm,d.dataset.tkn)); }); };
     $('#tkq').onkeydown=e=>{ if(e.key==='Enter'){ const d=$('#tkres').querySelector('div[data-tks]'); if(d){ e.preventDefault(); d.click(); } } };
     g.onclick=()=>{ const c=v('#tkcode')||v('#tkq'); if(!c) return;
+    // 재협상 2회째: 사유 글이 있어야 열림. 글 자체는 이슈 본문(공개)에 넣지 않고 '기재' 표시만 — 검사기(screener/ticket.py)는 이 줄로 사유 칸 확인
+    if(RN.length&&v('#tkrn').length<10){ $('#tklbl').innerHTML='<b class="dn">⛔ 재협상 2회째 — 사유 칸(10자 이상)을 먼저 적어야 주문표를 열 수 있음</b>'; $('#tkrn').focus(); return; }
     const e=+v('#tkentry')||0, st=+v('#tkstop')||0, tg=+v('#tktarget')||0; const rr=e>st&&st>0?((tg-e)/(e-st)).toFixed(2):'';
-    window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
+    window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(RN.length?'재협상사유: 기재(글은 비공개)\n':'')+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
   return `<div style="border-top:1px solid var(--line);margin-top:8px;padding:8px 0;font-size:12.5px;line-height:1.7;white-space:normal"><b class="am">주문표</b> <span class="mu" style="font-size:11px">매수 전 필수(규정 [4]) · 손익비 1:2 미만·레버리지·개장 30분·이벤트 당일 거부 · 추격은 절반 · 1회 리스크 = 위성 북 × r</span>${T?` <span style="font-size:11.5px">· 채점 ${T.n}건 · 승률 <b>${Math.round((T.hit||0)*100)}%</b> · 평균 <b class="${T.avg_r>=0?'up':'dn'}">${T.avg_r>=0?'+':''}${T.avg_r}R</b></span>`:''}
     ${rows?`<table style="margin-top:4px"><tr><th class="l">종목</th><th>매수가</th><th>손절(실효)</th><th>목표가</th><th>손익비</th><th>판정</th><th>남은 기간</th><th class="l">최대 수량 · 선언</th></tr>${rows}</table>`:'<div class="mu" style="font-size:11px">열린 주문표 없음</div>'}
     ${hist?`<div style="font-size:11.5px;margin-top:4px"><span class="mu">최근 채점</span> ${hist}</div>`:''}
@@ -2119,6 +2136,7 @@ function myHoldList(){ let t=''; try{ t=(typeof myLoad==='function'?myLoad():loc
   return myParse(t).filter(h=>h.key).map(h=>{ const r=myResolve(h.key); return r?{s:r.s,m:r.m,n:r.n,qty:h.qty,avg:h.avg,book:h.book}:null; }).filter(Boolean); }
 function decBox(){
   if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(view==='sig'||view==='daily') render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); return ''; }
+  if(RENEGO===null){ RENEGO=false; try{ google.script.run.withSuccessHandler(t=>{try{RENEGO=JSON.parse(t);}catch(e){RENEGO={};} if(view==='sig'||view==='daily') render();}).withFailureHandler(()=>{RENEGO={};}).getRenego(); }catch(e){ RENEGO={}; } }
   if(COOL===null){ COOL=false; google.script.run.withSuccessHandler(t=>{try{COOL=JSON.parse(t);}catch(e){COOL={};} if(view==='sig'||view==='daily') render();}).withFailureHandler(()=>{COOL={};}).getCooldown(); }
   const CD=DEC&&DEC.items?coolUntil(DEC):null; if(CD) setTimeout(coolTick,0);
   const tm=t=>new Date(t+9*36e5).toISOString().slice(11,16);

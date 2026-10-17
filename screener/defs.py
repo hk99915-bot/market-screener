@@ -56,6 +56,8 @@ HARD_STOP = 0.08            # 실효 손절 = max(주문표 손절가, 매수가
 RISK_PCT_DEFAULT = 0.25     # denominator=D5 1회 리스크 1단계 0.25%
 TELEGRAM_ALL_SILENT = True   # 오너 10/17 15시대 "전체 무음으로 해조" — 모든 텔레그램 무음(RING_KINDS 표는 보존, 되돌릴 땐 False)
 COOLDOWN_MIN = 30           # 매도·판정·포상 후 신규 주문표 금지(분, 결재 #14 ③)
+RENEGO_WARN_AT = 2          # 같은 규칙 재협상 n회째부터 주문표 ⛔ '재협상 2회째' + 사유 칸 필수 (오너 승인 10/17 14:09)
+RENEGO_WINDOW_DAYS = 30     # 재협상 횟수를 세는 기간(일) [가정: 월 1회 복기 주기와 맞춤 — 11/30 월말 복기에서 재검토]
 
 # 상수 이름 → rules_terms.md 용어표의 용어 (check_rules_terms 가 문서에 있는지 검사)
 TERMS = {

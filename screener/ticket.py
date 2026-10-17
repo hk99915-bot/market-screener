@@ -18,6 +18,8 @@
   · 당일 서킷브레이커·사이드카 발동(reports/events.json) / CPI·FOMC 당일(reports/calendar.json) → 신규 진입 거부
   · 매도·판정·포상 후 30분 쿨다운(결재 #14 ③): 최근 매도(`exit` 이슈 '매도')·주문표 판정·env COOLDOWN_LAST_AT 시각 +30분 이내 제출 → 거부
     (근거: 10/16 보상 직후 레버리지 충동 — 하우스머니·면허 효과, kb:behavior#3·#8·#22)
+  · 재협상 2회째: 같은 규칙(screener/defs.py 이름)이 30일 안 2번 재협상(ops/renego.json) → ⛔ '재협상 2회째' + 본문 `재협상사유: <글>` 없으면 거부.
+    사유 글은 저장하지 않는다(기록엔 reason_given True/False 만).
   · 1회 리스크 = 위성 북 × r → 최대 수량 = 리스크 ÷ (매수가 − 실효 손절가)
     위성 북 = env SAT_BOOK_KRW (없으면 3,000,000 모의), r = env RISK_PCT(%) (없으면 0.25, 1단계)
 
@@ -33,6 +35,7 @@ import re
 from datetime import datetime, timedelta
 from urllib.parse import quote
 
+from . import renego
 from .config import REPORT_DIR
 from .duel import ET, KST, NAMES, REPO, US_NAMES, lev_drag_note, lev_factor
 
@@ -104,7 +107,7 @@ def parse_ticket(title: str, body: str) -> dict:
         raise ValueError("제목을 `ticket <종목코드>` 로 적어 주세요. 예: ticket 000660 / ticket AAPL")
     code = m.group(1) if m.group(1).isdigit() else m.group(1).upper()
     out: dict = {"code": code, "market": "KR" if code.isdigit() else "US", "why": "", "horizon_days": None,
-                 "entry": None, "stop": None, "target": None, "amount": None, "pct": None}
+                 "entry": None, "stop": None, "target": None, "amount": None, "pct": None, "renego_reason": False}
     keys = {"매수가": "entry", "진입가": "entry", "손절가": "stop", "손절": "stop", "목표가": "target", "목표": "target"}
     for raw in (body or "").splitlines():
         ln = raw.strip().lstrip("-*• ").strip()
@@ -116,6 +119,8 @@ def parse_ticket(title: str, body: str) -> dict:
         k, rest = head.group(1), head.group(2)
         if k in keys:
             out[keys[k]] = _num(rest)
+        elif k in ("재협상사유", "재협상"):   # 사유 글은 저장하지 않는다 — 적었는지(True)만 (공개 저장소, 오너 승인 10/17)
+            out["renego_reason"] = bool(rest.strip())
         elif k in ("근거", "이유", "why"):
             out["why"] = rest.strip()
         elif k in ("보유", "보유기간", "기간"):
@@ -230,6 +235,15 @@ def cooldown_hit(t: datetime, items: list[dict] | None = None, minutes: int = CO
     return f"{lbl_at(last[0])} {last[1]} 후 {minutes}분 쿨다운 — 신규 주문표 거부 ({left}분 뒤 가능; 결재 #14 ③)"
 
 
+def renego_rows(on) -> list[dict]:
+    """재협상 2회째 규칙 목록 (ops/renego.json). 파일 오류는 빈 목록 + 로그."""
+    try:
+        return renego.active(on)
+    except Exception as e:  # noqa: BLE001
+        log.warning("재협상 카운터 읽기 실패: %s", e)
+        return []
+
+
 def lbl_at(t: datetime) -> str:
     return t.astimezone(KST).strftime("%H:%M")
 
@@ -272,6 +286,12 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
     cd = cooldown_hit(t)
     if cd:
         reject.append(cd)
+    rn = renego_rows(tk_kst.date())   # 같은 규칙 30일 안 2회째 재협상 → ⛔ + 사유 칸 필수 (screener/renego.py)
+    if rn:
+        if tk.get("renego_reason"):
+            notes.append(renego.banner(rn) + " — 사유 기재됨(글은 공개 기록 안 함)")
+        else:
+            reject.append(renego.banner(rn) + " — 사유 칸 필수: 본문에 `재협상사유: <글>` 한 줄 (글은 저장·공개 안 함)")
     rsi, ret1 = st.get("rsi14"), st.get("ret1")
     if isinstance(rsi, (int, float)) and rsi > 70:
         half.append(f"RSI14 {rsi:.0f} > 70 — 추격, 절반 사이징")
@@ -289,6 +309,8 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None) -> dict:
     out = {"name": name, "date": d, "close": close, "rr": rr, "rr_eff": rr_eff, "stop_eff": stop_eff, "risk_ps": round(risk_ps, 4),
            "qty_max": qty, "half": bool(half), "verdict": verdict, "reasons": reject + half + notes,
            "submitted": tk_kst.strftime("%Y-%m-%d %H:%M"), "rsi14": rsi, "ret1": ret1}
+    if rn:
+        out["renego"] = {"rules": [r["rule"] for r in rn], "reason_given": bool(tk.get("renego_reason"))}
     # 공개 금액 규칙: 100만 이하 선언 금액만 원화, 그 외는 위성 북 대비 % (북 크기 자체는 기록하지 않음)
     amt, pct = tk.get("amount"), tk.get("pct")
     if amt and amt <= PUBLIC_NOTIONAL_CAP:
@@ -311,7 +333,7 @@ def _item(tk: dict, ev: dict) -> dict:
           "horizon_days": tk["horizon_days"], "why": tk["why"], "verdict": ev["verdict"], "reasons": ev["reasons"],
           "qty_max": ev["qty_max"], "half": ev["half"], "submitted": ev["submitted"],
           "note": f"규정 [4] 주문표 · 손익비 1:{ev['rr']} · {ev['verdict']}", "picks": {}}
-    for k in ("notional", "notional_pct"):
+    for k in ("notional", "notional_pct", "renego"):
         if k in ev:
             it[k] = ev[k]
     return it

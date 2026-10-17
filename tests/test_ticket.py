@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from screener import decisions, ticket
+from screener import decisions, renego, ticket
 
 D = "2026-10-16"
 OK_AT = f"{D}T05:00:00Z"      # 14:00 KST
@@ -24,6 +24,7 @@ def env(tmp_path, monkeypatch):
     (rep / "calendar.json").write_text(json.dumps({"events": []}), encoding="utf-8")
     monkeypatch.setattr(ticket, "REPORT_DIR", rep)
     monkeypatch.setattr(decisions, "OUT", rep / "decisions.json")
+    monkeypatch.setattr(renego, "FILE", tmp_path / "renego.json")   # 실제 ops/renego.json 에 기록이 생겨도 이 테스트는 영향 없음
     monkeypatch.delenv("SAT_BOOK_KRW", raising=False)
     monkeypatch.delenv("RISK_PCT", raising=False)
     monkeypatch.delenv("MY_RULES", raising=False)

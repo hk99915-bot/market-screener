@@ -116,3 +116,4 @@ function getFreshness() { return raw_('reports/freshness.json'); }   // 데이�
 function getAccum() { return raw_('reports/accum.json'); }   // KR 매집 스캔 (MARKET › ACCUM, screener/accum.py 18:37) — contracts.py 등록
 function getUsAccum() { return raw_('reports/us_accum.json'); }   // US 매집 흔적 (screener/us_accum.py) — contracts.py 등록
 function getCooldown() { return raw_('ops/cooldown.json'); }   // 결재 #14 포상·장외 매도 시각 (모의 베팅 30분 쿨다운 카운트다운)
+function getRenego() { return raw_('ops/renego.json'); }   // 재협상 카운터 (규칙 id·날짜·횟수만) — 주문표 ⛔ '재협상 2회째' + 사유 칸
