@@ -1,5 +1,5 @@
 """화면 렌더 스모크 — 빌드된 index.html 을 로컬 서버 + 헤드리스 크롬으로 열어 탭별 렌더·콘솔 에러 확인.
-사용: python3 scripts/ui_smoke.py [--root DIR] [view ...]   (기본: home edu apt rep deriv bond my)
+사용: python3 scripts/ui_smoke.py [--root DIR] [view ...]   (기본: Index.html GROUPS 의 전체 뷰 29개 — 감사 경-1 10/17, 예전 기본 7뷰는 QUICK)
   --root: 저장소 대신 다른 폴더를 서빙 (A1 시범: `python3 scripts/data_branch.py site --out _site reports/detail/US` 로 만든 Pages 산출물 검사)
 필요: playwright(파이썬) + 크로미움. 클라우드 세션은 /opt/pw-browsers/chromium-*/chrome-linux*/chrome 사용.
 10/17 PB 화면 수정 사고 4건(STUDY 멈춤 등) 뒤 도입 — 화면을 고치면 커밋 전에 돌린다."""
@@ -14,7 +14,10 @@ import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VIEWS = ["home", "edu", "apt", "rep", "deriv", "bond", "my"]
+QUICK = ["home", "edu", "apt", "rep", "deriv", "bond", "my"]
+VIEWS: list[str] = []   # 비우면 페이지의 GROUPS 에서 전체 뷰를 읽는다 (탭이 늘면 자동 포함)
+ALL_JS = "[...new Set(Object.values(GROUPS).flat().map(x=>x[0]))]"
+MIN_ALL = 29   # 10/17 기준 전체 뷰 수 — 이보다 적게 읽히면 GROUPS 파싱 실패로 보고 BAD
 SERVE = ROOT
 
 
@@ -40,6 +43,12 @@ async def run(views: list[str], port: int) -> int:
         pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
         await pg.wait_for_timeout(2000)
+        if not views:
+            views = await pg.evaluate(ALL_JS)
+            print(f"전체 뷰 {len(views)}개: {' '.join(views)}")
+            if len(views) < MIN_ALL:
+                print(f"BAD 뷰 목록 {len(views)}개 < {MIN_ALL} (GROUPS 읽기 실패?)")
+                bad += 1
         for v in views:
             errs.clear()
             await pg.evaluate(f"setView({v!r})")

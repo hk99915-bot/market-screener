@@ -264,6 +264,8 @@ def value(m: dict, price: float, sector: str | None, peers: dict, coe: float = C
         res["implied_g"] = round((COE * price - fcfe) / (price + fcfe), 4)
     if price and eps and eps > 0:
         res["per"] = round(price / eps, 1)
+    # PER 기준 명시 (감사 M3 10/17: valuation.json 은 '보고' 기준 — 같은 기준값은 per_reported)
+    res["per_basis"] = "핵심" if m.get("one_off") else "보고"
     if price and m.get("eps_reported") and m["eps_reported"] > 0:
         res["per_reported"] = round(price / m["eps_reported"], 1)
     if price and bps:

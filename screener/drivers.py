@@ -202,12 +202,35 @@ def _q_yoy(df, row: str) -> tuple[float | None, str | None]:
         return None, None
 
 
-def fetch_proxies(max_age_h: float = 20) -> dict:
+def _kst_now_str() -> str:
+    """캐시 asof 는 KST 로 찍는다 (CI 러너 UTC 와 혼동 방지 — 신선도 계약 kst_day 기준)."""
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo("Asia/Seoul")).strftime("%Y-%m-%d %H:%M")
+
+
+def _now_iso() -> str:
+    from datetime import timezone
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def cache_age_h(obj: dict) -> float:
+    """캐시 나이(시간) — 파일 mtime 이 아니라 **파일 안의 generated_at/asof** 기준.
+    CI checkout 은 mtime 을 '지금'으로 찍어 캐시가 영원히 신선해 보였다(감사 M1 10/17: chains·us_eps 10/15 정지).
+    generated_at(ISO+시간대) 우선, 없으면 asof('YYYY-MM-DD HH:MM', KST 가정). 못 읽으면 무한대(=다시 받기)."""
+    from .guard import stamp
+    t = stamp((obj or {}).get("generated_at")) or stamp((obj or {}).get("asof"))
+    if t is None:
+        return float("inf")
+    from zoneinfo import ZoneInfo
+    return (datetime.now(ZoneInfo("Asia/Seoul")) - t).total_seconds() / 3600
+
+
+def fetch_proxies(max_age_h: float = 6) -> dict:
     """모든 체인 프록시 + 매크로 팩터: 가격 1년, EPS 추정 변화, 매출·CAPEX YoY. reports/chains.json 캐시."""
-    if CACHE.exists() and (time.time() - CACHE.stat().st_mtime) < max_age_h * 3600:
+    if CACHE.exists():
         try:
             c = json.loads(CACHE.read_text(encoding="utf-8"))
-            if all(v[0] in c.get("series", {}) for v in FACTORS.values()):   # 팩터가 추가됐으면 다시 받기
+            if cache_age_h(c) < max_age_h and all(v[0] in c.get("series", {}) for v in FACTORS.values()):   # 팩터가 추가됐으면 다시 받기
                 return c
         except Exception:  # noqa: BLE001
             pass
@@ -216,7 +239,7 @@ def fetch_proxies(max_age_h: float = 20) -> dict:
     px = yf.download(tick, period="14mo", interval="1d", auto_adjust=True, progress=False, threads=True, group_by="column")
     close = px["Close"] if "Close" in px else px
     hyper = {h[0] for h in HYPER}
-    out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "tickers": {}, "series": {}}
+    out = {"asof": _kst_now_str(), "generated_at": _now_iso(), "tickers": {}, "series": {}}
     for t in tick:
         if t not in close:
             continue
@@ -242,7 +265,8 @@ def fetch_proxies(max_age_h: float = 20) -> dict:
             except Exception as e:  # noqa: BLE001
                 log.info("프록시 %s 상세 실패: %s", t, e)
         out["tickers"][t] = rec
-    CACHE.write_text(json.dumps(out, ensure_ascii=False, default=str), encoding="utf-8")
+    from .guard import write_json
+    write_json(CACHE, out, default=str)   # asof 역행 차단 (guard-rest 10/17)
     _archive("chains", {"asof": out["asof"], "tickers": out["tickers"]})   # 시점 기록 (가격 시계열은 빼고)
     log.info("체인 프록시 %d개", len(out["tickers"]))
     return out
@@ -727,13 +751,13 @@ US_SEMI = {"NVDA", "AMD", "AVGO", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "INTC",
            "MCHP", "NXPI", "ON", "MPWR", "TER", "SWKS", "QRVO", "ENTG", "SNPS", "CDNS", "WDC", "STX"}
 
 
-def fetch_us_eps(tickers: list[str], max_age_h: float = 20) -> dict:
+def fetch_us_eps(tickers: list[str], max_age_h: float = 6) -> dict:
     """미장 종목별 EPS 추정 변화·매출 YoY (yfinance, 병렬). reports/us_eps.json 캐시."""
     old = {}
     if US_EPS.exists():
         try:
             old = json.loads(US_EPS.read_text(encoding="utf-8"))
-            if (time.time() - US_EPS.stat().st_mtime) < max_age_h * 3600 and len(old.get("data", {})) >= len(tickers) * 0.8:
+            if cache_age_h(old) < max_age_h and len(old.get("data", {})) >= len(tickers) * 0.8:
                 return old["data"]
         except Exception:  # noqa: BLE001
             old = {}
@@ -762,8 +786,10 @@ def fetch_us_eps(tickers: list[str], max_age_h: float = 20) -> dict:
         for t, rec in ex.map(one, tickers):
             if rec:
                 data[t] = rec
-    US_EPS.write_text(json.dumps({"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "data": data}, ensure_ascii=False, default=str), encoding="utf-8")
-    _archive("us_eps", {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "data": data})
+    _now = _kst_now_str()
+    from .guard import write_json
+    write_json(US_EPS, {"asof": _now, "generated_at": _now_iso(), "data": data}, default=str)   # asof 역행 차단
+    _archive("us_eps", {"asof": _now, "data": data})
     log.info("미장 EPS 추정 %d종목", len(data))
     return data
 

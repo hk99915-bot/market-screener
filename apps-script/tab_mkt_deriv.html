@@ -65,7 +65,7 @@ function derivView(){
     card('외국인 선물 순매수',ff?sg(ff.fut_frgn,0)+'<span class="mu" style="font-size:11px"> 계약</span>':'—',ff?`${esc(ff.date)} · 기관 ${sg(ff.fut_inst,0)} · 개인 ${sg(ff.fut_indiv,0)}`:'적재 전',dvGrade('fut_foreign_flow')),
     card('야간선물 (KRX 평균가)',nt?f(nt.night_vwap):'—',nt?`${esc(nt.date)} 세션 · 거래 ${num(nt.night_vol)}계약 · 다음날 시가 갭 예상용`:'데이터 없음',dvGrade('night_futures'))
   ].join('');
-  const sum=`<div class="p c12"><h2>파생 · 오늘 요약<small>코스피200 선물·옵션 · ${esc(d.asof||d.date||'')}</small></h2><div class="b" style="white-space:normal">
+  const sum=`<div class="p c12"><h2>파생 · 오늘 요약<small>코스피200 선물·옵션 · 거래일 ${esc(d.date||'—')}${d.asof?` · 생성 ${esc(d.asof)} KST`:''}</small></h2><div class="b" style="white-space:normal">
     <div class="mu" style="font-size:12px;margin-bottom:6px">선물·옵션은 '시장이 어디에 돈을 걸었나'를 보여주는 위치 정보야. 아래 숫자는 모두 <b>방향 신호로 검증되지 않았어</b> — 흔들림·위치 참고만.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${cards}</div>
     <div style="margin-top:8px"><button class="sbtn" id="dvA8">📘 A8 선물·옵션 읽는 법 (스터디)</button> <span class="mu" style="font-size:11px">처음이면 이것부터 — 베이시스·PCR·벽·감마·야간선물·만기일</span></div></div></div>`;

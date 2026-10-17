@@ -42,11 +42,6 @@ function raw_(path) {
 
 function getData() { return JSON.parse(raw_('reports/dashboard.json')); }
 
-function getDetail(market) {
-  // 종목 상세 묶음 (KR | US). 1MB 안팎이라 브라우저에 한 번만 내려보내고 클라이언트가 캐시.
-  return raw_(`reports/detail_${market}.json`);
-}
-
 function getMarkdown(name) {
   try { return raw_(`reports/${name}.md`); } catch (e) { return ''; }
 }

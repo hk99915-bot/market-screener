@@ -75,10 +75,46 @@ def yahoo(keys: list[str]) -> dict:
         try:
             c = df[s]["Close"].dropna()
             if len(c) >= 2:
-                out[k] = {"last": float(c.iloc[-1]), "chg": float(c.iloc[-1] / c.iloc[-2] - 1), "src": "yahoo"}
+                out[k] = {"last": float(c.iloc[-1]), "chg": float(c.iloc[-1] / c.iloc[-2] - 1), "src": "yahoo",
+                          "date": str(c.index[-1].date())}   # 봉 날짜 — 같은 시장 묶음과 날짜가 다르면 flag_lag 가 표시
         except Exception as e:  # noqa: BLE001
             log.warning("야후 %s 실패: %s", k, e)
     return out
+
+
+# 같은 시장 묶음: 한 지표의 마지막 봉 날짜가 묶음 최신보다 이르면 '지연' 표시.
+# 10/17 감사 중-5: 티커 NIKKEI −4.90% 는 야후 ^N225 에 10/16 봉이 없어 10/15 등락이었고, TOPIX(1306.T) +1.76% 는 10/16 등락 — 전일 종가 오류가 아니라 날짜 혼재.
+LAG_GROUPS = {"JP": ("NIKKEI", "TOPIX"), "US": ("SPX", "NASDAQ", "RUT", "VIX"), "CMDTY": ("WTI", "GOLD")}
+
+
+def flag_lag(items: list[dict]) -> list[dict]:
+    """묶음 최신 봉 날짜보다 오래된 지표에 lag=True (등락률은 그 날짜 기준이라 같은 줄 다른 지표와 비교 불가)."""
+    by = {d["key"]: d for d in items}
+    for keys in LAG_GROUPS.values():
+        ds = [by[k]["date"] for k in keys if k in by and by[k].get("date")]
+        if len(ds) < 2:
+            continue
+        top = max(ds)
+        for k in keys:
+            if k in by and by[k].get("date") and by[k]["date"] < top:
+                by[k]["lag"] = True
+                log.warning("live %s 마지막 봉 %s < 같은 시장 %s — 지연 표시", k, by[k]["date"], top)
+    return items
+
+
+def session_label(items: list[dict], now: datetime) -> tuple[str, str]:
+    """('LIVE'|'CLOSE', 거래일). KR 정규장 중이면 LIVE, 아니면 CLOSE + 마지막 KR 거래일 (주말·휴일 티커 'LIVE' 오표기 방지, 감사 경-2)."""
+    from . import tradecal
+    try:
+        live = tradecal.in_session("KR", now)
+        d = tradecal.session_on_or_before("KR", now.date())
+        if not live and d == now.date() and now.hour < 9:   # 개장 전: 화면 값은 전 거래일 종가
+            d = tradecal.prev_session("KR", d)
+    except Exception:  # noqa: BLE001
+        live, d = now.weekday() < 5 and (9 * 60) <= now.hour * 60 + now.minute <= (15 * 60 + 30), now.date()
+    if live and any(str(x.get("status") or "").upper() == "CLOSE" for x in items if x.get("key") in KR_KEYS):
+        live = False
+    return ("LIVE" if live else "CLOSE"), d.isoformat()
 
 
 def patch_macro(mr: list[dict]) -> list[dict]:
@@ -118,7 +154,10 @@ def snapshot() -> dict:
         log.info("선물 실패: %s", e)
     now = datetime.now(KST)
     # asof = 연도 포함 KST 분 단위 (guard-rest 10/17: updated_at '10-17 09:47 KST' 는 연도가 없어 역행 비교 불가 — 화면 호환용으로 유지)
-    out = {"asof": now.strftime("%Y-%m-%d %H:%M"), "updated_at": now.strftime("%m-%d %H:%M KST"), "items": items}
+    flag_lag(items)
+    sess, tday = session_label(items, now)
+    out = {"asof": now.strftime("%Y-%m-%d %H:%M"), "updated_at": now.strftime("%m-%d %H:%M KST"), "items": items,
+           "session": sess, "trade_date": tday}
     from .guard import write_json
     if write_json(REPORT_DIR / "live.json", out):   # 계약 + 분 단위 역행 가드 (같은 날 더 늦은 시각은 항상 허용)
         log.info("live.json %d개 지표", len(items))

@@ -333,7 +333,8 @@ def build(backfill: int = 20) -> dict:
     except Exception as e:  # noqa: BLE001
         log.info("코스피200 실현변동성 실패: %s", e)
     cur["notes"] = interpret(cur)
-    cur["asof"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    from zoneinfo import ZoneInfo   # 생성 시각은 KST (CI 러너 UTC 로 찍혀 화면 헤더가 9시간 어긋남 — 감사 경-3 10/17)
+    cur["asof"] = datetime.now(ZoneInfo("Asia/Seoul")).strftime("%Y-%m-%d %H:%M")
     from .guard import write_json
     write_json(OUT, cur, key="date")   # asof 는 실행 시각 — 데이터일(date) 역행만 차단
     log.info("옵션 포지션: PCR %.2f GEX %s억 flip %s", cur.get("pcr_oi") or 0, cur.get("gex_bn"), cur.get("flip"))

@@ -124,7 +124,8 @@ def build(days: int = 7) -> dict:
         stocks = Counter(i["name"] for i in its)
         pos = sum(v for k, v in tones.items() if k in POS_TONE)
         weak = sum(v for k, v in tones.items() if k in WEAK_TONE)
-        views = [i.get("view") for i in sorted(its, key=lambda x: x.get("date", ""), reverse=True) if i.get("view")][:3]
+        from .calendar_ev import surprise_guard   # '서프라이즈' 는 컨센서스 병기 때만 (감사 경-7)
+        views = [surprise_guard(i.get("view")) for i in sorted(its, key=lambda x: x.get("date", ""), reverse=True) if i.get("view")][:3]
         themes.append({"theme": th, "n": len(its), "stocks": len(stocks), "top_stocks": [s for s, _ in stocks.most_common(4)],
                        "tones": dict(tones), "pos_share": round(pos / len(its), 2), "weak": weak,
                        "topics": [t for t, _ in topics.most_common(3)], "topic_counts": dict(topics.most_common(5)),

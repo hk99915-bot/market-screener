@@ -51,7 +51,6 @@ SHIM = """<script>
     if (!r.ok) throw new Error('HTTP ' + r.status + ' (' + p + ')'); return r.text(); });
   const api = {
     getData: () => get('reports/dashboard.json').then(t => JSON.parse(t)),
-    getDetail: m => get('reports/detail_' + m + '.json'),
     getStock: (m, s) => get('reports/detail/' + m + '/' + encodeURIComponent(s) + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
     // live.json 은 자주 바뀌므로 Pages 재배포를 기다리지 않고 raw 에서 직접 (CDN 캐시 최대 5분)

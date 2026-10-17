@@ -495,11 +495,16 @@ def archive(out: dict) -> None:
         log.warning("보관 실패: %s", e)
 
 
-def write(out: dict) -> None:
+def write(out: dict) -> bool:
+    """reports/accum.json — guard.write_json 경유(계약 + asof 역행 차단, 감사 M2 10/17). 막히면 보관도 하지 않는다."""
+    from .guard import write_json
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":"), default=str), encoding="utf-8")
+    if not write_json(OUT, out, separators=(",", ":"), default=str):
+        log.warning("accum.json: 가드가 쓰기를 막음 (계약 위반 또는 asof 역행) asof=%s", out.get("asof"))
+        return False
     archive(out)
     log.info("accum.json: status=%s asof=%s n=%s %s", out.get("status"), out.get("asof"), out.get("n"), out.get("reason", ""))
+    return True
 
 
 def run_scan(fetch_log: dict | None = None) -> dict:

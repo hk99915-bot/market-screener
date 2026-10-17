@@ -175,6 +175,11 @@ def write_research(days: int = 180) -> int:
         log.info("리서치 국면 태그 %d건", regime_tag.tag_items(items, kp, st))
     except Exception as e:  # noqa: BLE001
         log.warning("국면 태그 실패: %s", e)
+    from .calendar_ev import surprise_guard   # '서프라이즈' 는 컨센서스 병기 때만 (감사 경-7 10/17). 제목은 원문 인용이라 화면에서 표시
+    for it in items:
+        for f in ("view", "thesis"):
+            if isinstance(it.get(f), str):
+                it[f] = surprise_guard(it[f])
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "days": days, "items": items, "close": close}
     (REPORT_DIR / "research.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     return len(items)

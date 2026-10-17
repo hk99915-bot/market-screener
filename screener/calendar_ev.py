@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import re
 import logging
 from datetime import date, datetime, timedelta
 
@@ -210,6 +211,18 @@ def releases() -> dict:
 # 결재 #9 (2026-10-17): 컨센서스(예상치)를 수집하지 않으므로 '서프라이즈·예상 대비·상회·하회' 표기 금지.
 # 지표 발표 문장은 전부 아래 한 함수로 만든다 — '전월 대비' 변화(±%p / ±천명)만 적고, 개정 전 잠정치임을 전제한다.
 BANNED_WORDS = ("서프라이즈", "컨센서스", "컨센", "예상 대비", "예상치", "상회", "하회", "깜짝")
+
+_SURP = re.compile(r"서프라이즈|깜짝\s*실적")
+_CONS = re.compile(r"컨센(서스)?|예상치|기대치|시장\s*예상")
+SURP_NOTE = " (증권사 표현 인용 · 컨센서스 수치 없음)"
+
+
+def surprise_guard(s):
+    """'서프라이즈' 는 같은 줄에 컨센서스(예상치) 기준이 있을 때만 그대로 둔다. 없으면 '증권사 표현 인용' 꼬리표를 붙인다
+    (감사 경-7 10/17 — 인용문이라 지우지 않고 근거 없음을 표시). 문자열이 아니면 그대로."""
+    if not isinstance(s, str) or not _SURP.search(s) or _CONS.search(s) or SURP_NOTE.strip() in s:
+        return s
+    return s + SURP_NOTE
 
 
 def release_line(x: dict, period: bool = False, seen: bool = False) -> str:

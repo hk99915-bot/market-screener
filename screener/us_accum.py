@@ -219,7 +219,9 @@ def _r(x, k):
 def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", stream=sys.stderr)
     o = scan()
-    OUT.write_text(json.dumps(o, ensure_ascii=False, indent=1), encoding="utf-8")
+    from screener.guard import write_json   # 계약 + asof 역행 차단 (감사 M2 10/17)
+    if not write_json(OUT, o, indent=1):
+        print("::warning::us_accum.json 가드 차단 (계약 위반 또는 asof 역행)")
     log.info("us_accum: status=%s asof=%s scanned=%d hits=%d %s", o["status"], o["asof"], o["n_scanned"], o["n_hits"], o["reason"])
     if o["status"] != "ok":
         print(f"::warning::us_accum {o['reason']}")

@@ -347,12 +347,9 @@ def kr_quarters(code: str) -> tuple[list[dict], float | None]:
         q = fin.quarterly(code)
         rows = q.to_dicts()[-12:] if q is not None and not q.is_empty() else []
         n = None
-        try:
-            import polars as pl
-            sh = shares.load().filter(pl.col("code") == code)
-            if len(sh):
-                r = sh.to_dicts()[-1]
-                n = r.get("out_total") or r.get("krx_listed")
+        try:   # 종목 상세(valuation.kr_all)와 같은 분모 — shares_map (자사주 제외·우선주 포함, 보고서 이후 변동 반영). 감사 M3 10/17
+            m0 = shares.shares_map().get(code)
+            n = m0["n"] if m0 else None
         except Exception as e:  # noqa: BLE001
             log.warning("주식 수 %s: %s", code, e)
         rows = [r for r in rows if any(r.get(k) is not None for k in ("op", "ni", "revenue"))]
@@ -426,6 +423,21 @@ def _prev_archive(today: date, lag: int = 20) -> dict | None:
 
 # ───────────── 조립 ─────────────
 
+PER_BASIS = "보고 순이익(지배주주) 최근 4분기 합 ÷ 주식 수(DART 자사주 제외·우선주 포함) · 가격 = 종목 상세 종가(price_date)"
+
+
+def price_asof(rows: list[dict], etfs: list[dict] | None = None) -> tuple[str | None, dict]:
+    """산출물 asof = **가격 기준일**(실행일 아님, 감사 M4 10/17). KR 행 가격일 중 최신(계약 market=KR) → 없으면 전체 최신.
+    시장별 가격일은 price_asof 로 따로 남긴다."""
+    by: dict[str, set] = {}
+    for r in list(rows) + list(etfs or []):
+        if r.get("price_date"):
+            by.setdefault(r.get("mk") or "?", set()).add(str(r["price_date"])[:10])
+    pa = {k: max(v) for k, v in by.items()}
+    kr = pa.get("KR")
+    return (kr or (max(pa.values()) if pa else None)), pa
+
+
 def build(send: bool = False) -> dict:
     from .config import REPORT_DIR
     today = datetime.now(KST).date()
@@ -448,7 +460,7 @@ def build(send: bool = False) -> dict:
         dec = decompose(price, p0, m.get("eps_ttm"), eps0 if eps0 is not None else m.get("eps_ttm"))
         if pr is None and dec["d_multiple"] is not None:
             dec["note"] = "검증전: 20일 전 EPS 기록 없음 → EPS 변화 0 가정"
-        r = {**b, "price": price, "price_date": asof, "shares": sh, "rf": rf, "decomp20": dec,
+        r = {**b, "price": price, "price_date": asof, "shares": sh, "rf": rf, "decomp20": dec, "per_basis": "보고",
              "data_date": m.get("period"), "src": "SEC" if b["mk"] == "US" else "DART", **m}
         if price is None:
             r["flags"] = (r.get("flags") or []) + ["가격 없음(detail 미생성)"]
@@ -475,10 +487,14 @@ def build(send: bool = False) -> dict:
                            "d_multiple": (_median(dp) - (_median(de) or 0.0)) if _median(dp) is not None else None,
                            "n": len(dm), "basis": "20일 전 산출물 EPS" if prev else "검증전(EPS 변화 0 가정)"},
               "rate_sens": rate_sensitivity(med_per)}
-    out = {"asof": today.isoformat(), "generated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"),
+    pa_day, pa = price_asof(rows, etfs)
+    out = {"asof": pa_day or today.isoformat(), "price_asof": pa, "run_date": today.isoformat(),
+           "generated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"),
            "grade": "참고(검증전) — 매매 트리거 아님", "unit": "비율만 (보유·금액 없음)",
            "rates": rt, "basket": basket, "rows": rows, "etfs": etfs, "events": events(today),
-           "definitions": {"TTM": "최근 4개 분기 합", "rate_adj": "E/P − 무위험(US 미10Y, KR 국고3Y)",
+           "definitions": {"TTM": "최근 4개 분기 합", "per": PER_BASIS,
+                           "per_vs_detail": "종목 상세 PER 은 일회성(순이익>영업이익×1.2) 제외 '핵심 EPS' 기준일 수 있음 — 상세의 per_reported 가 이 표의 PER 과 같은 기준",
+                           "asof": "가격 기준일(KR 종가일). 실행 시각은 generated_at", "rate_adj": "E/P − 무위험(US 미10Y, KR 국고3Y)",
                            "decomp20": "ln(P1/P0) = ln(PER1/PER0) + ln(EPS1/EPS0)",
                            "per_run_rate": "최근 분기 순이익×4 기준 PER", "per_guide": "다음 분기 가이던스×4 기준 PER (universe/fin_guidance.json)", "검증전": f"분기 {MIN_Q}개 미만 또는 20일 전 EPS 기록 없음"}}
     REPORT_DIR.mkdir(exist_ok=True)
