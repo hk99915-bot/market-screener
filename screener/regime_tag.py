@@ -63,7 +63,8 @@ def load_series(data_dir, codes: set[str]):
     st = {}
     pp = data_dir / "kr_prices.parquet"
     if pp.exists() and codes:
-        p = (pl.read_parquet(pp, columns=["yf", "date", "close"]).with_columns(pl.col("yf").str.slice(0, 6).alias("code"))
+        from .prices import load_kr   # 고점 대비 낙폭이 분할·병합으로 왜곡되지 않게 조정 가격
+        p = (load_kr(path=pp).select("yf", "date", "close").with_columns(pl.col("yf").str.slice(0, 6).alias("code"))
                .filter(pl.col("code").is_in(sorted(codes))).sort(["code", "date"]))
         for code, g in p.group_by("code", maintain_order=True):
             code = code[0] if isinstance(code, tuple) else code

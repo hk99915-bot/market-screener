@@ -39,8 +39,10 @@ def _latest_signals(market: str) -> pl.DataFrame | None:
 
 
 def _kr_prices() -> pl.DataFrame | None:
-    p = DATA_DIR / "kr_prices.parquet"
-    return pl.read_parquet(p) if p.exists() else None
+    """KR 일봉 (분할·병합 조정, 공통 로더) — 20일 지지선 등 지표용."""
+    from .prices import load_kr
+    px = load_kr()
+    return px if len(px) else None
 
 
 def _pct(x) -> str:

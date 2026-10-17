@@ -8,7 +8,6 @@
 """
 from __future__ import annotations
 
-import glob
 import json
 import logging
 from datetime import datetime, timedelta
@@ -16,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 import polars as pl
 
-from .config import DATA_DIR, REPORT_DIR
+from .config import REPORT_DIR
 from .research import _norm_broker, load_store, opinion_rank
 
 log = logging.getLogger(__name__)
@@ -24,17 +23,11 @@ KST = ZoneInfo("Asia/Seoul")
 
 
 def _prices(since) -> pl.DataFrame:
-    parts = []
-    for f in sorted(glob.glob(str(DATA_DIR / "hist" / "kr_*.parquet"))):
-        y = f.rsplit("_", 1)[-1].split(".")[0]
-        if y.isdigit() and int(y) >= since.year - 1:
-            parts.append(pl.read_parquet(f, columns=["yf", "date", "high", "close"]))
-    cur = DATA_DIR / "kr_prices.parquet"
-    if cur.exists():
-        parts.append(pl.read_parquet(cur, columns=["yf", "date", "high", "close"]))
-    if not parts:
+    from .prices import load_kr   # 분할·병합 조정 (60일 초과수익·250일 고점이 기업행위로 왜곡되지 않게)
+    px = load_kr(hist_from=since.year - 1)
+    if not len(px):
         return pl.DataFrame()
-    px = pl.concat(parts, how="vertical_relaxed").unique(["yf", "date"], keep="last")
+    px = px.select("yf", "date", "high", "close")
     return px.with_columns(pl.col("yf").str.slice(0, 6).alias("code")).sort("code", "date")
 
 

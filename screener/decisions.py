@@ -9,7 +9,7 @@ entry "close" = 결정일 종가, exit "next_open" = 다음 거래일 시가 / "
                / "trail"(추세 끌고가기: 종가 20일선 이탈 또는 −8% 손절 시 그날 종가, 최대 60거래일)
 entry "open"  = 결정일(세션일) 시가 — 미장 대결. exit "same_close" = 같은 날 종가,
                "d5_close" = 진입일 포함 5번째 세션 종가 (진입일 + 4거래일 뒤 종가; 시가 진입은 진입일 자체가 1세션이므로)
-채점: KR = data/kr_prices.parquet(KRX 확정 종가) + 없는 날만 야후(.KS/.KQ), US = 야후 — 결정일 다음 거래일 데이터가 생기면 손익(%·원) 계산, 승자 표시.
+채점: KR = data/kr_prices.parquet(KRX 확정 종가, screener.prices.load_kr 로 분할·병합 조정) + 없는 날만 야후(.KS/.KQ), US = 야후 — 결정일 다음 거래일 데이터가 생기면 손익(%·원) 계산, 승자 표시.
 item["market"] = "KR"(기본) | "US" — tally_by_market 에 시장별 누적 전적.
 kind "ticket" (주문표, screener/ticket.py): picks 없음. 청산 = 이후 `exit <코드>` 이슈(나: 매도) 또는 종가가 실효 손절가 이하 또는 보유기간(horizon_days 거래일) 만료 종가.
                실현 R = (청산가 − 매수가) ÷ (매수가 − 실효 손절가). tally["주문표"] = {n, hit, avg_r}. 거부(⛔)된 주문표는 채점하지 않음.
@@ -71,7 +71,8 @@ def _bars_kr(code: str, start: str) -> list[dict]:
     파켓에 아직 없는 날(오늘 장중 시가 등)만 야후(.KS/.KQ, KRX 정규장 시세)로 채움.
     오늘(KST) 봉은 15:45 전이면 종가를 None 으로 — 장중 현재가로 채점하지 않음."""
     global _KR_REFRESHED
-    from .data_krx import KST, PARQUET, refresh_recent
+    from .data_krx import KST, refresh_recent
+    from .prices import load_kr
     if not _KR_REFRESHED:   # 실행당 1회: 커밋된 파켓의 잠정 종가를 KRX 확정치로 교정
         _KR_REFRESHED = True
         try:
@@ -82,7 +83,8 @@ def _bars_kr(code: str, start: str) -> list[dict]:
     suf = ".KS"
     try:
         import polars as pl
-        px = pl.read_parquet(PARQUET).filter(pl.col("yf").str.starts_with(code + ".") & (pl.col("date") >= pl.lit(start).str.to_date()))
+        px = load_kr().filter(   # 분할·병합 조정 (공통 로더) — 결정일~채점일 사이 기업행위가 손익을 왜곡하지 않게
+            pl.col("yf").str.starts_with(code + ".") & (pl.col("date") >= pl.lit(start).str.to_date()))
         if len(px):
             suf = px["yf"][0][len(code):]
         for r in px.iter_rows(named=True):

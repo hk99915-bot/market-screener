@@ -14,7 +14,7 @@
       주의: 네이버 일별 시세(fchart·m.stock price·pykrx get_market_ohlcv 기본값 adjusted=True)의 종가는
       NXT 애프터마켓(~20:00) 마지막 체결가라 정규장 종가가 아님 (005930 10-14: 네이버 234,500 vs KRX 232,000).
 수정주가: KRX 전종목 일별 시세는 '당일 실제 가격'이라 액면분할·병합 시 과거와 단절됨.
-      전일 종가 대비 시가가 ±45% 를 넘는 날(상하한 30% 밖)을 기업행위로 보고, 그 이전 구간을 비율로 조정.
+      저장 파일은 원본 그대로 두고, 읽을 때 screener/prices.load_kr() 가 조정한다 (규칙은 prices.py 문서).
 """
 from __future__ import annotations
 
@@ -215,24 +215,11 @@ def update(lookback_days: int = 400, max_calls: int = 450, until: date | None = 
 
 # ───────────── 기업행위 조정 ─────────────
 
-def adjust_splits(df: pl.DataFrame, threshold: float = 0.45) -> pl.DataFrame:
-    """전일 종가→당일 시가 비율이 ±45% 를 넘으면 그 이전 구간을 비율로 보정 (가격은 나누고 거래량은 곱함)."""
-    df = df.sort("yf", "date").with_columns(
-        (pl.col("open") / pl.col("close").shift(1).over("yf")).alias("_r"))
-    ev = df.filter((pl.col("_r") > 1 + threshold) | (pl.col("_r") < 1 - threshold)).select("yf", "date", "_r")
-    if not len(ev):
-        return df.drop("_r")
-    log.info("기업행위 추정 %d건 → 과거 구간 조정", len(ev))
-    # 각 이벤트 이전 구간에 누적 비율 적용
-    df = df.with_columns(pl.lit(1.0).alias("_f"))
-    for r in ev.to_dicts():
-        df = df.with_columns(
-            pl.when((pl.col("yf") == r["yf"]) & (pl.col("date") < r["date"]))
-              .then(pl.col("_f") * r["_r"]).otherwise(pl.col("_f")).alias("_f"))
-    return df.with_columns(
-        *[(pl.col(c) * pl.col("_f")).alias(c) for c in ("open", "high", "low", "close")],
-        (pl.col("volume") / pl.col("_f")).alias("volume"),
-    ).drop("_r", "_f")
+def adjust_splits(df: pl.DataFrame, threshold: float | None = None) -> pl.DataFrame:
+    """기업행위 조정 — 규칙은 screener/prices.py 한 곳 (시가·종가 모두 ±31% 밖 + 정리매매 제외, 10/17 v2).
+    threshold 는 옛 호출 호환용(무시). 반환 열은 입력과 같다."""
+    from .prices import adjust
+    return adjust(df)
 
 
 def refresh_recent() -> pl.DataFrame:

@@ -82,14 +82,13 @@ def frame(rows: dict | pl.DataFrame, src: str) -> pl.DataFrame:
 
 
 def split_adjust(df: pl.DataFrame) -> pl.DataFrame:
-    """원주가 → adj_close: 전일 종가 대비 시가 ±45% 갭을 기업행위로 보고 그 이전 구간을 비율 보정 (lab.load_kr 과 같은 규칙)."""
+    """원주가 → adj_close: 기업행위 조정은 공통 규칙 screener.prices.adjust (시가·종가 ±31% + 정리매매 제외)."""
     if not len(df):
         return df
-    df = df.sort("symbol", "date").with_columns(
-        (pl.col("open").cast(pl.Float64) / pl.col("close").cast(pl.Float64).shift(1).over("symbol")).alias("_r"))
-    df = df.with_columns(pl.when((pl.col("_r") > 1.45) | (pl.col("_r") < 0.55)).then(pl.col("_r")).otherwise(1.0).fill_null(1.0).alias("_f"))
-    df = df.with_columns((pl.col("_f").reverse().cum_prod().reverse().over("symbol") / pl.col("_f")).alias("_a"))
-    return df.with_columns((pl.col("close").cast(pl.Float64) * pl.col("_a")).cast(pl.Float32).alias("adj_close")).drop("_r", "_f", "_a")
+    from screener.prices import adjust
+    df = df.sort("symbol", "date")
+    a = adjust(df.select("symbol", "date", pl.col("open").cast(pl.Float64), pl.col("close").cast(pl.Float64)), sym="symbol")
+    return df.with_columns(a["close"].cast(pl.Float32).alias("adj_close"))
 
 
 def merge(parts: list[pl.DataFrame]) -> pl.DataFrame:

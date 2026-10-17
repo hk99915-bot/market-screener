@@ -12,7 +12,6 @@
 """
 from __future__ import annotations
 
-import glob
 import json
 import logging
 import math
@@ -70,22 +69,14 @@ def ranks(full: pl.DataFrame, last: pl.DataFrame, market: str, top: int = 60) ->
 # ───────────── 백테스트 ─────────────
 
 def _load_kr() -> pl.DataFrame:
-    files = sorted(glob.glob(str(DATA_DIR / "hist" / "kr_*.parquet")))
-    parts = [pl.scan_parquet(f) for f in files if "partial" not in f]
-    cur = DATA_DIR / "kr_prices.parquet"
-    if cur.exists():
-        parts.append(pl.scan_parquet(cur))
-    if not parts:
+    """전 기간 KR 일봉 + 조정 종가(adj). 분할·병합 보정은 공통 로더 screener.prices."""
+    from .prices import adjust, load_kr
+    raw = load_kr(raw=True, hist_from=0)
+    if not len(raw):
         return pl.DataFrame()
-    df = (pl.concat(parts, how="vertical_relaxed").select("yf", "date", "open", "close", "volume")
-            .unique(["yf", "date"], keep="last").sort("yf", "date").collect())
-    # 분할·병합 보정 (벡터화): 이벤트일 비율 r 을 그 이전 모든 날짜에 곱한다
-    df = df.with_columns((pl.col("open") / pl.col("close").shift(1).over("yf")).alias("_r"))
-    df = df.with_columns(
-        pl.when((pl.col("_r") > 1.45) | (pl.col("_r") < 0.55)).then(pl.col("_r")).otherwise(1.0).fill_null(1.0).alias("_f"))
-    df = df.with_columns((pl.col("_f").reverse().cum_prod().reverse().over("yf") / pl.col("_f")).alias("_adj"))
-    return df.with_columns((pl.col("close") * pl.col("_adj")).alias("adj"),
-                           (pl.col("close") * pl.col("volume")).alias("tv")).drop("_r", "_f", "_adj")
+    raw = raw.select("yf", "date", "open", "close", "volume")
+    adj = adjust(raw)
+    return raw.with_columns(adj["close"].alias("adj"), (pl.col("close") * pl.col("volume")).alias("tv"))
 
 
 def _stats(r: list[float]) -> dict:

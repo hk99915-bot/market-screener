@@ -13,7 +13,6 @@
 """
 from __future__ import annotations
 
-import glob
 import json
 import logging
 import math
@@ -119,27 +118,16 @@ GRADE_ORDER = "ABCF"
 # ───────────────────────── 데이터 ─────────────────────────
 def load_kr() -> pl.DataFrame:
     """장기 히스토리(상폐 포함) + 올해 일일 데이터 병합, (yf,date) 중복은 kr_prices 우선.
-    분할·병합 보정은 backfill.load_hist → data_krx.adjust_splits 와 같은 규칙(전일 종가→시가 ±45%)을
-    벡터화해서 적용한다 (원본은 이벤트마다 전체 프레임을 다시 써서 수천 건이면 수십 분 걸림)."""
-    files = sorted(glob.glob(str(DATA_DIR / "hist" / "kr_[0-9][0-9][0-9][0-9].parquet")))
-    parts = [pl.scan_parquet(f).select("yf", "date", "open", "high", "low", "close", "volume") for f in files]
-    cur = DATA_DIR / "kr_prices.parquet"
-    if cur.exists():
-        parts.append(pl.scan_parquet(cur).select("yf", "date", "open", "high", "low", "close", "volume"))
-    df = (pl.concat(parts, how="vertical_relaxed")
-            .with_columns(pl.col("date").cast(pl.Date), *[pl.col(c).cast(pl.Float64) for c in ("open", "high", "low", "close", "volume")])
-            .filter((pl.col("close") > 0) & (pl.col("open") > 0))
-            .unique(["yf", "date"], keep="last", maintain_order=True).sort("yf", "date").collect())
-    df = df.with_columns((pl.col("open") / pl.col("close").shift(1).over("yf")).alias("_r"))
-    df = df.with_columns(pl.when((pl.col("_r") > 1.45) | (pl.col("_r") < 0.55)).then(pl.col("_r"))
-                         .otherwise(1.0).fill_null(1.0).alias("_f"))
-    df = df.with_columns((pl.col("_f").reverse().cum_prod().reverse().over("yf") / pl.col("_f")).alias("_a"))
-    return df.select(
+    분할·병합 보정은 공통 로더 screener.prices (원본 열 rc = 조정 전 종가, tv = 원본 거래대금)."""
+    from .prices import adjust, load_kr as _load
+    raw = _load(raw=True, hist_from=0).filter((pl.col("close") > 0) & (pl.col("open") > 0))
+    adj = adjust(raw)
+    return adj.select(
         "yf", "date",
-        *[(pl.col(c) * pl.col("_a")).alias(c[0]) for c in ("open", "high", "low", "close")],
-        (pl.col("volume") / pl.col("_a")).alias("v"),
-        pl.col("close").alias("rc"),
-        (pl.col("close") * pl.col("volume")).alias("tv"),
+        *[pl.col(c).alias(c[0]) for c in ("open", "high", "low", "close")],
+        pl.col("volume").alias("v"),
+        raw["close"].alias("rc"),
+        (raw["close"] * raw["volume"]).alias("tv"),
     )
 
 
