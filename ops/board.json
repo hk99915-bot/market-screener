@@ -1603,6 +1603,48 @@
    "depends_on": [],
    "notes": "pykrx 하루 10콜 → data/flows/kr_inv_YYYY.parquet(2022~ 백필, 재개형). 평일 18:37 KST accum.yml. 화면: MARKET›KR ACCUM(getArchAt('accum','latest') 임시 — Code.gs/build_pages 잠금 풀리면 getAccum 전용 getter로). 남은 일: contracts.py 에 accum.json 계약 등록(개발 소관), 2022 하락장 백필 완료 후 스터디 재실행.",
    "desk": "데이터"
+  },
+  {
+   "id": "us-accum",
+   "title": "미국 매집 흔적 신호(OBV·A/D·CMF·U/D·베이스 돌파·포켓 피벗·매집일·갭) 사건연구 + 일일 스캔 reports/us_accum.json",
+   "owner": "퀀트",
+   "status": "완료",
+   "priority": "P2",
+   "repo": "public",
+   "files": [
+    "screener/us_accum.py",
+    "scripts/study_us_accum.py",
+    "reports/studies/us_accum.md",
+    "reports/us_accum.json",
+    ".github/workflows/us_accum.yml",
+    "tests/test_us_accum.py",
+    "docs/valuation_notes/2026-10-17_us_accumulation.md"
+   ],
+   "started": "2026-10-17",
+   "due": "2026-10-17",
+   "depends_on": [],
+   "notes": "9/9 F(20일 유니버스 대비, 비용 0.25%, t+1 시가). 현재 구성 300종목 생존편향 → 등급 상한 B. 스캔은 관찰 목록(신호 개수 점수), 평일 07:37 KST. 롤백 = git revert + us_accum.yml 삭제.",
+   "desk": "매크로",
+   "done": "2026-10-17"
+  },
+  {
+   "id": "us-accum-pead",
+   "title": "S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정",
+   "owner": "퀀트",
+   "status": "대기",
+   "priority": "P3",
+   "repo": "public",
+   "files": [
+    "scripts/study_us_accum.py",
+    "reports/studies/us_accum.md"
+   ],
+   "started": null,
+   "due": "2026-11-14",
+   "depends_on": [
+    "us-accum"
+   ],
+   "notes": "실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다.",
+   "desk": "매크로"
   }
  ]
 }

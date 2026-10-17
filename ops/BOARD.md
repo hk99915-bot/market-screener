@@ -2,9 +2,9 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 90개 · 진행 5 · 검수 22 · 대기 34 · 보류 2 · 완료 27
+기준일 2026-10-17 · 작업 93개 · 진행 6 · 검수 22 · 대기 35 · 보류 2 · 완료 28
 
-## 진행 (5)
+## 진행 (6)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -13,6 +13,7 @@
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | 2026-10-17 | 2026-10-18 | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. / 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. |
 | P1 | `px-adjust-unify` | KR 가격 조정 경로 통일 — 원본/조정 스키마 분리, decisions·track·momentum 등 parquet 직접 읽기 18곳을 공통 로더로 | 데이터 | 2026-10-17 | 2026-10-19 | `screener/data_krx.py`<br>`screener/decisions.py`<br>`screener/prices.py` | — | 외부감사 10/17 P1 확인. 원본 parquet에 ±45% 시가갭 373건/343종목(13개월) → 휴리스틱 자체가 과검출 의심(거래정지·900xxx). 실제 기업행위(KRX/DART) 대조 + 분할·병합·정지 회귀테스트. |
 | P1 | `bt-exec-lag` | 포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시 | 백테스트 | 2026-10-17 | 2026-10-20 | `screener/portfolios.py`<br>`tests/test_portfolios.py` | — | 외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부. |
+| P1 | `kr-accum` | 국장 외인·기관 매집 스캐너(전 종목 일별 수급 저장소) + 시장 거래대금 + 매집 신호 이벤트 스터디 | 퀀트 | 2026-10-17 | 2026-10-24 | `screener/accum.py`<br>`scripts/study_accum.py`<br>`.github/workflows/accum.yml`<br>`data/flows/*`<br>`reports/accum.json`<br>`reports/studies/accum_signals.json`<br>`apps-script/tab_market.html`<br>`tests/test_accum.py` | — | pykrx 하루 10콜 → data/flows/kr_inv_YYYY.parquet(2022~ 백필, 재개형). 평일 18:37 KST accum.yml. 화면: MARKET›KR ACCUM(getArchAt('accum','latest') 임시 — Code.gs/build_pages 잠금 풀리면 getAccum 전용 getter로). 남은 일: contracts.py 에 accum.json 계약 등록(개발 소관), 2022 하락장 백필 완료 후 스터디 재실행. |
 
 ## 검수 (22)
 
@@ -41,7 +42,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (34)
+## 대기 (35)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -79,6 +80,7 @@
 | P2 | `pro-plan-round-scale` | Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·우선 데스크, 21:10 자동 라운드 교체 | PM | — | 2026-11-05 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17. |
 | P2 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
+| P3 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
 ## 보류 (2)
 
@@ -87,7 +89,7 @@
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 
-## 완료 (27)
+## 완료 (28)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -112,6 +114,7 @@
 | P1 | `weekly-scorecard` | 주간 성적표 자동화 | 리스크 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
 | P2 | `fib-lens` | VIEW 레지스트리에 fib_levels 렌즈 등록 (검증 등급 반영) | CIO | 2026-10-16 | 2026-10-17 | `views/registry.json` | `fib-validate` | 등급 F → reference. 차트 범례에 F 표시(14cf6ca0). 완료. |
 | P2 | `fib-validate` | 피보나치·하방 Fib 지지 효과 사전등록 검증 | 퀀트 | 2026-10-16 | 2026-10-17 | `scripts/study_fib_levels.py`<br>`reports/studies/fib_levels.md`<br>`reports/studies/fib_levels.json` | — | H1 터치 후 반등 / H2 이탈 후 추가 하락 / H3 61.8·100% 우위. IS 2019~2023, OOS 2024~. / 결과 F(참고 전용) — 안건 4 반영, 렌즈 등록 완료(fib-lens). |
+| P2 | `us-accum` | 미국 매집 흔적 신호(OBV·A/D·CMF·U/D·베이스 돌파·포켓 피벗·매집일·갭) 사건연구 + 일일 스캔 reports/us_accum.json | 퀀트 | 2026-10-17 | 2026-10-17 | `screener/us_accum.py`<br>`scripts/study_us_accum.py`<br>`reports/studies/us_accum.md`<br>`reports/us_accum.json`<br>`.github/workflows/us_accum.yml`<br>`tests/test_us_accum.py`<br>`docs/valuation_notes/2026-10-17_us_accumulation.md` | — | 9/9 F(20일 유니버스 대비, 비용 0.25%, t+1 시가). 현재 구성 300종목 생존편향 → 등급 상한 B. 스캔은 관찰 목록(신호 개수 점수), 평일 07:37 KST. 롤백 = git revert + us_accum.yml 삭제. |
 | P2 | `japan` | 일본 시장 연동 (닛케이·TOPIX·JGB10Y·엔 캐리·일본 피어 상관) | 매크로 | 2026-10-15 | — | `screener/japan.py`<br>`reports/japan.json`<br>`screener/macroview.py`<br>`screener/committee.py`<br>`screener/main.py` | — | 보드 밖에서 시작된 작업 — 운영 누나가 잠금(locks.json) 보고 사후 등록. 우선순위는 팀장 확인 필요. |
 | P2 | `lab-r2` | 전략 연구소 2라운드 | 퀀트 | 2026-10-15 | — | `screener/lab.py`<br>`reports/lab.json`<br>`apps-script/Index.html` | — | 1라운드: 사전 등록 가설 7개 · 공통 하네스 · Bonferroni 관문. |
 | P2 | `life-health-panel` | LIFE 탭 건강 패널 (체성분 차트·운동·e1RM) | 헬스 | 2026-10-15 | — | `apps-script/Index.html` | — | 데이터는 pb-private에서 런타임 토큰으로만 읽음 — 공개 파일에 수치 없음. |

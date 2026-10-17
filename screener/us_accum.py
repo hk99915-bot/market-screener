@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -155,7 +156,8 @@ def scan(detail_dir: Path = DETAIL_DIR, grades: dict | None = None, top: int = 3
     if not files:
         out["reason"] = f"입력 없음: {detail_dir} 에 종목 상세 json 0개"
         return out
-    rows, asofs, errs = [], [], 0
+    rows, asofs, errs, skipped_etf = [], [], 0, 0
+    graded = any(GRADE_W.get(g, 0) for g in grades.values())
     for f in files:
         try:
             df, j = _chart_df(f)
@@ -165,6 +167,9 @@ def scan(detail_dir: Path = DETAIL_DIR, grades: dict | None = None, top: int = 3
             continue
         if df is None:
             continue
+        if _is_etf(j):
+            skipped_etf += 1     # 연구 유니버스(개별 종목)와 다름 → 제외
+            continue
         feat = features(df)
         last = feat.iloc[-1]
         asofs.append(str(last["date"]))
@@ -172,7 +177,7 @@ def scan(detail_dir: Path = DETAIL_DIR, grades: dict | None = None, top: int = 3
         on = [s for s in SIGNALS if bool(last[s])]
         if not on:
             continue
-        score = sum(GRADE_W.get(grades.get(s, ""), 0) for s in on) if grades else len(on)
+        score = sum(GRADE_W.get(grades.get(s, ""), 0) for s in on) if graded else len(on)
         rows.append({"symbol": f.stem, "name": j.get("name"), "date": str(last["date"]), "close": round(float(last["close"]), 2),
                      "signals": on, "score": score, "n_sig": int(last["n_sig"]),
                      "rvol": _r(last["rvol"], 2), "cmf20": _r(last["cmf20"], 3), "obv20": _r(last["obv20"], 3),
@@ -186,6 +191,8 @@ def scan(detail_dir: Path = DETAIL_DIR, grades: dict | None = None, top: int = 3
     rows = [r for r in rows if r["date"] == asof]    # 마지막 거래일이 다른(낡은) 종목은 제외
     rows.sort(key=lambda r: (-r["score"], -r["n_sig"], -(r["cmf20"] or -9)))
     out["n_hits"] = len(rows)
+    out["n_etf_skipped"] = skipped_etf
+    out["score_basis"] = "등급 가중(A3·B2·C1)" if graded else "신호 개수 — 연구 등급이 전부 F/검증전이라 가중 없음(참고용 관찰 목록)"
     out["n_stale"] = len(stale)
     out["hits"] = rows[:top]
     out["counts"] = {s: sum(s in r["signals"] for r in rows) for s in SIGNALS}
@@ -194,6 +201,11 @@ def scan(detail_dir: Path = DETAIL_DIR, grades: dict | None = None, top: int = 3
     else:
         out["reason"] = f"{asof} 신호 0건 (스캔 {out['n_scanned']}종목) — 데이터는 있으나 해당 없음"
     return out
+
+
+def _is_etf(j: dict) -> bool:
+    """종목 상세의 market 이 'ETF' 이거나 이름에 'ETF' 단어가 있으면 ETF (예: BND → market 'ETF')."""
+    return str(j.get("market") or "").upper() == "ETF" or bool(re.search(r"\bETF\b", j.get("name") or ""))
 
 
 def _r(x, k):

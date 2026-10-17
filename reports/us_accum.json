@@ -1,0 +1,610 @@
+{
+ "asof": "2026-10-16",
+ "generated_at": "2026-10-17 14:01",
+ "source": "reports/detail/US/*.json chart (260거래일 OHLCV)",
+ "status": "ok",
+ "reason": "",
+ "n_scanned": 522,
+ "n_hits": 171,
+ "grades": {
+  "S1": "F",
+  "S2": "F",
+  "S3": "F",
+  "S4": "F",
+  "S5": "F",
+  "S6": "F",
+  "S7": "F",
+  "S8": "F",
+  "S9": "F"
+ },
+ "names": {
+  "S1": "OBV 괴리",
+  "S2": "A/D 괴리",
+  "S3": "CMF≥0.20",
+  "S4": "U/D 거래량≥1.5",
+  "S5": "베이스 마름→돌파",
+  "S6": "포켓 피벗",
+  "S7": "매집일(RVOL≥2·CLV≥0.5)",
+  "S8": "거래량 갭상승",
+  "S9": "복합(2개+)"
+ },
+ "params": {
+  "obv_div": 0.15,
+  "cmf": 0.2,
+  "udv": 1.5,
+  "base_rng": 1.3,
+  "dry": 0.75,
+  "bo_rv": 1.5,
+  "rvol": 2.0,
+  "clv": 0.5,
+  "gap": 0.03,
+  "min_px": 5.0,
+  "min_dv": 5000000.0,
+  "min_obs": 61
+ },
+ "doc": "reports/studies/us_accum.md · docs/valuation_notes/2026-10-17_us_accumulation.md",
+ "caveat": "가격·거래량 기반 추정치(실제 기관 순매수 아님). 등급 C 이하 신호는 참고용. 매매 지시 아님.",
+ "hits": [
+  {
+   "symbol": "TRV",
+   "name": "The Travelers Companies, Inc. Common Stock",
+   "date": "2026-10-16",
+   "close": 389.54,
+   "signals": [
+    "S5",
+    "S6",
+    "S7",
+    "S9"
+   ],
+   "score": 4,
+   "n_sig": 3,
+   "rvol": 2.28,
+   "cmf20": 0.165,
+   "obv20": 0.241,
+   "udv50": 0.99,
+   "clv": 0.88,
+   "ret20": 0.04
+  },
+  {
+   "symbol": "PPL",
+   "name": "PPL Corporation Common Stock",
+   "date": "2026-10-16",
+   "close": 35.17,
+   "signals": [
+    "S3",
+    "S6",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.1,
+   "cmf20": 0.292,
+   "obv20": 0.444,
+   "udv50": 1.08,
+   "clv": 0.76,
+   "ret20": 0.055
+  },
+  {
+   "symbol": "MRNA",
+   "name": "Moderna, Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 218.01,
+   "signals": [
+    "S3",
+    "S4",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 0.94,
+   "cmf20": 0.277,
+   "obv20": 0.345,
+   "udv50": 1.66,
+   "clv": -0.37,
+   "ret20": 0.415
+  },
+  {
+   "symbol": "P",
+   "name": "Everpure, Inc. Class A common stock",
+   "date": "2026-10-16",
+   "close": 124.01,
+   "signals": [
+    "S3",
+    "S4",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 0.71,
+   "cmf20": 0.265,
+   "obv20": 0.397,
+   "udv50": 2.87,
+   "clv": -0.93,
+   "ret20": 0.191
+  },
+  {
+   "symbol": "TJX",
+   "name": "TJX Companies, Inc. (The) Common Stock",
+   "date": "2026-10-16",
+   "close": 147.33,
+   "signals": [
+    "S3",
+    "S6",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.03,
+   "cmf20": 0.259,
+   "obv20": 0.411,
+   "udv50": 0.82,
+   "clv": 0.87,
+   "ret20": 0.158
+  },
+  {
+   "symbol": "TMO",
+   "name": "Thermo Fisher Scientific Inc Common Stock",
+   "date": "2026-10-16",
+   "close": 690.0,
+   "signals": [
+    "S3",
+    "S4",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.03,
+   "cmf20": 0.246,
+   "obv20": 0.26,
+   "udv50": 1.57,
+   "clv": -0.18,
+   "ret20": 0.059
+  },
+  {
+   "symbol": "XEL",
+   "name": "Xcel Energy Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 76.31,
+   "signals": [
+    "S3",
+    "S6",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.16,
+   "cmf20": 0.235,
+   "obv20": 0.326,
+   "udv50": 1.18,
+   "clv": 0.79,
+   "ret20": 0.055
+  },
+  {
+   "symbol": "FER",
+   "name": "Ferrovial N.V. - Ordinary Shares",
+   "date": "2026-10-16",
+   "close": 49.41,
+   "signals": [
+    "S2",
+    "S3",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.34,
+   "cmf20": 0.232,
+   "obv20": -0.404,
+   "udv50": 0.44,
+   "clv": -0.53,
+   "ret20": -0.102
+  },
+  {
+   "symbol": "TRI",
+   "name": "Thomson Reuters Corp - Common Shares",
+   "date": "2026-10-16",
+   "close": 109.01,
+   "signals": [
+    "S3",
+    "S6",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 2.0,
+   "cmf20": 0.23,
+   "obv20": 0.525,
+   "udv50": 1.45,
+   "clv": -0.1,
+   "ret20": 0.155
+  },
+  {
+   "symbol": "STT",
+   "name": "State Street Corporation Common Stock",
+   "date": "2026-10-16",
+   "close": 165.72,
+   "signals": [
+    "S2",
+    "S3",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.9,
+   "cmf20": 0.215,
+   "obv20": -0.253,
+   "udv50": 0.68,
+   "clv": -0.24,
+   "ret20": -0.089
+  },
+  {
+   "symbol": "ISRG",
+   "name": "Intuitive Surgical, Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 426.7,
+   "signals": [
+    "S3",
+    "S4",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.13,
+   "cmf20": 0.203,
+   "obv20": 0.166,
+   "udv50": 1.64,
+   "clv": -0.75,
+   "ret20": 0.085
+  },
+  {
+   "symbol": "LRCX",
+   "name": "Lam Research Corporation - Common Stock",
+   "date": "2026-10-16",
+   "close": 263.94,
+   "signals": [
+    "S2",
+    "S3",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.35,
+   "cmf20": 0.203,
+   "obv20": -0.29,
+   "udv50": 0.81,
+   "clv": -0.87,
+   "ret20": -0.083
+  },
+  {
+   "symbol": "PG",
+   "name": "Procter & Gamble Company (The) Common Stock",
+   "date": "2026-10-16",
+   "close": 159.35,
+   "signals": [
+    "S4",
+    "S6",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.34,
+   "cmf20": 0.104,
+   "obv20": 0.309,
+   "udv50": 1.51,
+   "clv": 0.48,
+   "ret20": 0.089
+  },
+  {
+   "symbol": "CMS",
+   "name": "CMS Energy Corporation Common Stock",
+   "date": "2026-10-16",
+   "close": 68.7,
+   "signals": [
+    "S6",
+    "S7",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 2.06,
+   "cmf20": 0.099,
+   "obv20": 0.384,
+   "udv50": 1.37,
+   "clv": 0.71,
+   "ret20": 0.051
+  },
+  {
+   "symbol": "COF",
+   "name": "Capital One Financial Corporation Common Stock",
+   "date": "2026-10-16",
+   "close": 201.74,
+   "signals": [
+    "S1",
+    "S2",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.41,
+   "cmf20": 0.045,
+   "obv20": 0.271,
+   "udv50": 1.12,
+   "clv": -0.21,
+   "ret20": -0.003
+  },
+  {
+   "symbol": "EXE",
+   "name": "Expand Energy Corporation - Common Stock",
+   "date": "2026-10-16",
+   "close": 93.41,
+   "signals": [
+    "S6",
+    "S7",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 2.04,
+   "cmf20": 0.017,
+   "obv20": 0.017,
+   "udv50": 1.06,
+   "clv": 0.63,
+   "ret20": 0.068
+  },
+  {
+   "symbol": "SMCI",
+   "name": "Super Micro Computer, Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 31.63,
+   "signals": [
+    "S2",
+    "S4",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.02,
+   "cmf20": 0.006,
+   "obv20": -0.022,
+   "udv50": 1.56,
+   "clv": -0.87,
+   "ret20": -0.191
+  },
+  {
+   "symbol": "SJM",
+   "name": "The J.M. Smucker Company Common Stock",
+   "date": "2026-10-16",
+   "close": 127.43,
+   "signals": [
+    "S4",
+    "S6",
+    "S9"
+   ],
+   "score": 3,
+   "n_sig": 2,
+   "rvol": 1.27,
+   "cmf20": -0.05,
+   "obv20": 0.226,
+   "udv50": 1.6,
+   "clv": 0.28,
+   "ret20": 0.036
+  },
+  {
+   "symbol": "RL",
+   "name": "Ralph Lauren Corporation Common Stock",
+   "date": "2026-10-16",
+   "close": 385.5,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 0.67,
+   "cmf20": 0.342,
+   "obv20": 0.544,
+   "udv50": 1.12,
+   "clv": -0.51,
+   "ret20": 0.154
+  },
+  {
+   "symbol": "TXN",
+   "name": "Texas Instruments Incorporated - Common Stock",
+   "date": "2026-10-16",
+   "close": 276.48,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.43,
+   "cmf20": 0.293,
+   "obv20": 0.093,
+   "udv50": 1.08,
+   "clv": -0.55,
+   "ret20": 0.037
+  },
+  {
+   "symbol": "IDXX",
+   "name": "IDEXX Laboratories, Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 560.36,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.37,
+   "cmf20": 0.261,
+   "obv20": 0.449,
+   "udv50": 1.22,
+   "clv": 0.11,
+   "ret20": 0.095
+  },
+  {
+   "symbol": "SBUX",
+   "name": "Starbucks Corporation - Common Stock",
+   "date": "2026-10-16",
+   "close": 97.52,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.27,
+   "cmf20": 0.251,
+   "obv20": -0.116,
+   "udv50": 0.7,
+   "clv": 0.39,
+   "ret20": 0.018
+  },
+  {
+   "symbol": "COST",
+   "name": "Costco Wholesale Corporation - Common Stock",
+   "date": "2026-10-16",
+   "close": 989.11,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.15,
+   "cmf20": 0.249,
+   "obv20": 0.519,
+   "udv50": 1.23,
+   "clv": 0.35,
+   "ret20": 0.105
+  },
+  {
+   "symbol": "ADI",
+   "name": "Analog Devices, Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 395.44,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.43,
+   "cmf20": 0.248,
+   "obv20": 0.22,
+   "udv50": 1.42,
+   "clv": -0.92,
+   "ret20": 0.052
+  },
+  {
+   "symbol": "PYPL",
+   "name": "PayPal Holdings, Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 56.7,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 0.94,
+   "cmf20": 0.244,
+   "obv20": 0.388,
+   "udv50": 1.05,
+   "clv": -0.57,
+   "ret20": 0.082
+  },
+  {
+   "symbol": "NKE",
+   "name": "Nike, Inc. Common Stock",
+   "date": "2026-10-16",
+   "close": 37.13,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 0.86,
+   "cmf20": 0.238,
+   "obv20": -0.297,
+   "udv50": 0.51,
+   "clv": -0.54,
+   "ret20": 0.046
+  },
+  {
+   "symbol": "EIX",
+   "name": "Edison International Common Stock",
+   "date": "2026-10-16",
+   "close": 55.93,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 0.86,
+   "cmf20": 0.231,
+   "obv20": 0.177,
+   "udv50": 1.01,
+   "clv": 0.0,
+   "ret20": 0.028
+  },
+  {
+   "symbol": "STZ",
+   "name": "Constellation Brands, Inc. Common Stock",
+   "date": "2026-10-16",
+   "close": 131.35,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.04,
+   "cmf20": 0.228,
+   "obv20": 0.295,
+   "udv50": 1.04,
+   "clv": 0.28,
+   "ret20": 0.104
+  },
+  {
+   "symbol": "MPWR",
+   "name": "Monolithic Power Systems, Inc. - Common Stock",
+   "date": "2026-10-16",
+   "close": 1210.86,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.25,
+   "cmf20": 0.226,
+   "obv20": 0.047,
+   "udv50": 1.01,
+   "clv": -0.82,
+   "ret20": -0.004
+  },
+  {
+   "symbol": "NXPI",
+   "name": "NXP Semiconductors N.V. - Common Stock",
+   "date": "2026-10-16",
+   "close": 229.33,
+   "signals": [
+    "S3"
+   ],
+   "score": 1,
+   "n_sig": 1,
+   "rvol": 1.41,
+   "cmf20": 0.222,
+   "obv20": -0.023,
+   "udv50": 0.85,
+   "clv": -0.35,
+   "ret20": 0.006
+  }
+ ],
+ "n_etf_skipped": 64,
+ "score_basis": "신호 개수 — 연구 등급이 전부 F/검증전이라 가중 없음(참고용 관찰 목록)",
+ "n_stale": 3,
+ "counts": {
+  "S1": 9,
+  "S2": 66,
+  "S3": 31,
+  "S4": 15,
+  "S5": 1,
+  "S6": 64,
+  "S7": 4,
+  "S8": 0,
+  "S9": 18
+ }
+}
