@@ -1568,8 +1568,9 @@ function eduProg(){
 // 출처 태그([consult:데스크#q1]·(kb:데스크#3))는 본문에 그대로 두면 읽기 어려움(10/17 겸이) → 작은 ⓢ 로 접고 마우스를 올리면 출처
 function citeFmt(h){ const sup=t=>`<sup class="mu" style="font-size:9px;opacity:.55;cursor:help" title="출처: ${t}">ⓢ</sup>`;
   return String(h).replace(/\s*(?:[\[(]((?:consult|kb):[^\])]*)[\])]|\b((?:consult|kb):[\w-]+#[\w.]+))/g,(_,a,b)=>sup(a||b)).replace(/[,·]\s*(<sup)/g,'$1'); }
+const escC=t=>citeFmt(esc(t));
 function eduModule(m){
-  const esc=t=>citeFmt(globalThis.esc(t));
+  const esc=escC;   // 바깥 esc 는 Index 의 top-level const 라 globalThis 에 없음(10/17 STUDY 멈춤 원인) → 바깥에서 감싼 escC 사용
   const lvl='★'.repeat(m.level||1)+'☆'.repeat(Math.max(0,3-(m.level||1)));
   const sec=(t,h)=>h?`<div class="am" style="font-size:12px;margin:10px 0 3px">${t}</div>${h}`:'';
   const ul=a=>a&&a.length?`<ul style="margin:2px 0 2px 18px;padding:0">${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
