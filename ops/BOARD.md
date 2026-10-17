@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-17 · 작업 101개 · 진행 3 · 검수 26 · 대기 37 · 보류 2 · 완료 33
+기준일 2026-10-17 · 작업 106개 · 진행 3 · 검수 26 · 대기 42 · 보류 2 · 완료 33
 
 ## 진행 (3)
 
@@ -43,7 +43,7 @@
 | P2 | `derivs-validate` | 파생 신호 사전등록 검증 (선물 외국인·베이시스·PCR·감마·야간선물→시가갭) | 파생 | 2026-10-16 | 2026-10-23 | `reports/studies/derivs_signals.*`<br>`scripts/study_derivs_signals.py` | `deriv-hist` | 결과는 views 레지스트리 등급 입력으로 (lens_id·grade·n·effect). / 결과: reports/studies/derivs_signals.md §1~6. Bonferroni 0/10 · H2·H3 F · H8 A(정보) · H4~H7·H9 검증전(옵션 1년치, IS 60일 미달; H7 감마는 IV 통제 후 소멸). 레지스트리 반영 제안은 §5 (레지스트리 미수정). |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (37)
+## 대기 (42)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -59,6 +59,9 @@
 | P1 | `alpha-baseline-fix` | 알파 기준점 미장 분을 10/16 미장 종가로 정정 (단일 리셋 — 일요일 1회) | 리스크 | — | 2026-10-18 | private 전용 | `sunday-review` | private 저장소 전용. 기준점 파일의 미장 평가는 10/15 종가로 적혀 있음 → 10/18 리뷰에서 1회 정정 후 잠금. |
 | P1 | `cio-memo` | CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·8-C·8-D 통합안) | CIO | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리. |
 | P1 | `frm-audit` | FRM 한도(VaR·연 변동성) 감사 — 60일 실현 변동성 기준 재계산, 테마 한도와 정합 | 리스크 | — | 2026-10-18 | private 전용 | — | private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만. |
+| P1 | `audit-fix-commit` | 감사 M2: ops/freshness.json 복구 명령에 -f commit=true 추가 (결정C 뒤 수동 실행 기본 읽기 전용 → ⛔ 알림의 복구 명령이 저장 안 함) | 개발 | 2026-10-17 | 2026-10-19 | `ops/freshness.json`<br>`screener/freshness.py` | — | freshness.py:168 이 fix 를 알림에 그대로 씀. 운영(slot_guard) 확인 필요. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md |
+| P1 | `audit-ring-pb` | 감사 M1: PB 아침 점검 ⛔(보유 종목 기준가 2일 이탈·손실 한도 도달)이 RING_KINDS 밖 — 결재 #9 범위 확인 후 키 추가 또는 의도 문서화 | 개발 | 2026-10-17 | 2026-10-19 | `screener/pb.py`<br>`screener/alerts.py` | — | pb.py:512·522·567, alerts.py:30. 지금은 TELEGRAM_ALL_SILENT 로 잠복, 해제 시 발현. PB가 결재 #9 §7-3 '손절 2일' 범위 회신. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md |
+| P1 | `audit-macro-asof` | 감사 M3: macro_series asof 가 BTC·USDKRW(24h)로 끌어올려져 KOSPI 갱신 실패를 신선도가 못 잡음 + 손절선 점검 건너뜀이 log.info 로 조용함 | 개발 | 2026-10-17 | 2026-10-20 | `screener/main.py`<br>`ops/freshness.json`<br>`screener/alerts.py` | — | main.py:291, alerts.py:209. 제안: macro_series 신선도 키를 series.KOSPI 끝 날짜로, 건너뜀은 record_stale. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md |
 | P1 | `dotplot-neutral-rule` | 점도표: '중립' 점은 기본 시나리오 확률 + 위/아래 전환 조건(flip_up/flip_down) 필수 — 조건 없는 중립은 기록 거부. 텔레그램 줄에 '기본 X% · 위 조건 · 아래 조건' 표기 | 개발 | — | 2026-10-20 | `screener/dotplot.py`<br>`tests/test_dotplot.py` | `dotplot` | 10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외. |
 | P1 | `pbview-amount-wording` | PB 의견 생성 텍스트에서 원화 금액 제거(비율·'모의' 표기)·기저율 인용에 등급 꼬리표 | 개발 | — | 2026-10-20 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 감사 라운드1 PB 중: decisions.json pb_view '100만원·300만원' 금액 문장, n=12 기저율 등급 없음. 생성 프롬프트/템플릿 수정. |
 | P1 | `peer-review-valuation` | 피어 리뷰: 애널 밸류에이션 모델(정상화 ROE·할인율·멀티플/EPS 분해) 독립 검토 + 10/16 반도체 논지(theses) 반대 의견서 — 매주 월요일 | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/valuation_YYYY-MM-DD.md`<br>`docs/desk_kb/analyst.md` | `valuation-daily` | 피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당. |
@@ -66,6 +69,7 @@
 | P1 | `ra-sec-coverage` | RA: SEC·DART 커버리지 확장 — 반도체 바스켓 전체(PSI·SOXX 구성 30+종목, 하이닉스 ADR 없음→DART), 실적 발표일·컨센서스 EPS(무료 소스 조사) 수집 파이프라인 | 데이터 | — | 2026-10-21 | `universe/us_priority.csv`<br>`screener/sec.py`<br>`screener/earnings_cal.py`<br>`reports/earnings_cal.json` | `valuation-daily` | 컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지. |
 | P1 | `sim-oos` | 트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보정, B&H·섹터 대비 | 퀀트 | — | 2026-10-24 | `screener/detail.py`<br>`reports/studies/trial_log.json` | `px-adjust-unify` | Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인. |
 | P2 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-19 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. |
+| P2 | `audit-pb-direct-test` | 감사 M4: 42954487 (pb 직접) committee.score/_ideas_log_score/rebuild_detail_kr 조정가 전환 회귀 테스트 + 영향·롤백 기록 | PB | 2026-10-17 | 2026-10-20 | `screener/committee.py`<br>`screener/main.py` | — | 개발 검수. 과거 성적 소급 변동 범위 1줄. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md |
 | P2 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 피어리뷰 | — | 2026-10-20 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. |
 | P2 | `user-cooldown-log` | 포상 시각을 ops/cooldown.json 에 기록(시각·라벨만) — 30분 쿨다운 자동화 입력. 원본 pb-private journal 타임라인 | PB | 2026-10-17 | 2026-10-20 | `ops/cooldown.json` | — | 결재 #14 ③. 기록 데스크/PB 가 포상 직후 한 줄 추가(예: {"at":"2026-10-20 15:40","what":"포상"}). 없으면 매도만 쿨다운. |
 | P2 | `ra-etf-holdings-full` | RA: ETF 구성종목 전체 목록 수집(PSI·SOXX·SMH·139260·091160) → 룩스루·밸류에이션 바스켓 자동 갱신 | 데이터 | — | 2026-10-23 | `screener/etf.py`<br>`reports/detail/US/*.json` | — | 현재 상위 7개만 저장됨. |
@@ -83,6 +87,7 @@
 | P2 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
 | P2 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
 | P2 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
+| P3 | `audit-1017-minor` | 감사 경 L2~L13 묶음 (live 동시실행 대기·레짐 기본값/SEMI_CAP 덮임·prices join 순서·valuation asof·data_branch lease·us_accum 입력·accum 저장 크기·team ⛔·회고 커미터·flowq 테스트·detail rets 크기) | 개발 | 2026-10-17 | 2026-10-24 | `screener/pb.py`<br>`screener/prices.py`<br>`scripts/data_branch.py` | — | 표: docs/peer_reviews/2026-10-17_refactor_audit.md §2.2. 담당 열대로 데스크에 나눠 처리. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md |
 | P3 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
 ## 보류 (2)
