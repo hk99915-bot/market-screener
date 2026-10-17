@@ -80,6 +80,7 @@ def _sim_one(c: list[float], pos: list[int], dates: list, cost: float = COST) ->
     """pos[i] = i일 종가 기준 결정한 포지션(+1 롱, -1 숏, 0 무포지션) → i+1일 수익에 적용."""
     eq, peak, mdd, trades, wins = 1.0, 1.0, 0.0, 0, 0
     entry_px, entry_i, cur = None, None, 0
+    rets: list[float] = []                 # 청산된 거래별 순수익(왕복비용 차감) — 기대값 하한(_fresh_exp)용
     for i in range(1, len(c)):
         p = pos[i - 1]
         if p != cur:                       # 포지션 변경 (i-1일 종가에 체결)
@@ -87,6 +88,7 @@ def _sim_one(c: list[float], pos: list[int], dates: list, cost: float = COST) ->
                 ret = (c[i - 1] / entry_px - 1) * cur
                 trades += 1
                 wins += ret > 0
+                rets.append(round(ret - cost, 4))
             if p != 0:
                 entry_px, entry_i = c[i - 1], i - 1
             eq *= (1 - cost / 2) ** (abs(p - cur))
@@ -100,6 +102,7 @@ def _sim_one(c: list[float], pos: list[int], dates: list, cost: float = COST) ->
             ret = (c[-1] / entry_px - 1) * cur
             trades += 1
             wins += ret > 0
+            rets.append(round(ret - cost, 4))
         entry_px, entry_i = (c[-1], len(c) - 1) if p != 0 else (None, None)
         eq *= (1 - cost / 2) ** (abs(p - cur))
         cur = p
@@ -108,7 +111,7 @@ def _sim_one(c: list[float], pos: list[int], dates: list, cost: float = COST) ->
             "win": round(wins / trades, 3) if trades else None, "wins": int(wins), "pos": cur,
             "entry_date": str(dates[entry_i]) if cur and entry_i is not None else None,
             "entry_px": round(entry_px, 2) if cur and entry_px else None,
-            "open_ret": round(open_ret, 4) if open_ret is not None else None}
+            "open_ret": round(open_ret, 4) if open_ret is not None else None, "rets": rets}
 
 
 def _simulate(g: pl.DataFrame, days: int = 250) -> dict:
@@ -129,6 +132,7 @@ def _simulate(g: pl.DataFrame, days: int = 250) -> dict:
         out[name] = {"long": _sim_one(c, [max(x, 0) for x in sig], dates),
                      "ls": _sim_one(c, sig, dates)}
     out["fresh"] = _fresh(out, dates)
+    out["fresh_exp"] = _fresh_exp(out, dates)
     return out
 
 
@@ -174,6 +178,91 @@ def _fresh(sim: dict, dates: list) -> list[dict]:
     return out
 
 
+# ── 기대값 하한 규칙 (오너 승인 10/17 14:09, 사전등록 docs/valuation_notes/2026-10-17_trend_expectancy_prereg.md) ──
+# Wilson 승률>50% 는 6회면 6승 0패가 필요해 추세추종(승률 30~45%·손익비 큼)에선 사실상 통과 0. 기대값(거래당 평균 순수익)의
+# t 단측 95% 하한 > 0 을 병기한다. 등급 상한 C(참고) · 주문표 근거 불가 · 운용회의 'C·참고' 라벨로만.
+EXP_MIN_TRADES = 8
+EXP_LB_MIN = 0.0
+# 스튜던트 t 단측 95% 분위수 (자유도 → 값). 표에 없는 자유도는 더 작은 자유도 값을 쓴다(보수적).
+T95 = {1: 6.314, 2: 2.920, 3: 2.353, 4: 2.132, 5: 2.015, 6: 1.943, 7: 1.895, 8: 1.860, 9: 1.833, 10: 1.812,
+       11: 1.796, 12: 1.782, 13: 1.771, 14: 1.761, 15: 1.753, 16: 1.746, 17: 1.740, 18: 1.734, 19: 1.729, 20: 1.725,
+       21: 1.721, 22: 1.717, 23: 1.714, 24: 1.711, 25: 1.708, 26: 1.706, 27: 1.703, 28: 1.701, 29: 1.699, 30: 1.697,
+       40: 1.684, 60: 1.671, 120: 1.658}
+
+
+def t95(df: int) -> float:
+    if df <= 0:
+        return float("inf")
+    return T95.get(df) or T95[max(k for k in T95 if k <= df)]
+
+
+def exp_lb(rets: list[float]) -> tuple[float, float, float] | None:
+    """(평균, 표준편차, t 하한). 식: LB = r̄ − t₀.₉₅,ₙ₋₁·s/√n. 예: [0.1, −0.02]×4 (n 8) → r̄ 0.04, s 0.0641, LB 0.04 − 1.895·0.0227 = −0.003."""
+    n = len(rets)
+    if n < 2:
+        return None
+    m = sum(rets) / n
+    sd = (sum((x - m) ** 2 for x in rets) / (n - 1)) ** 0.5
+    return m, sd, m - t95(n - 1) * sd / n ** 0.5
+
+
+def boot_lb(rets: list[float], b: int = 2000, seed: int = 20261017) -> float | None:
+    """평균의 백분위 부트스트랩 단측 95% 하한 (보조, 표시 안 함)."""
+    import random
+    n = len(rets)
+    if n < 2:
+        return None
+    rng = random.Random(seed)
+    ms = sorted(sum(rng.choice(rets) for _ in range(n)) / n for _ in range(b))
+    return ms[int(0.05 * b)]
+
+
+def _fresh_exp(sim: dict, dates: list) -> list[dict]:
+    """(a) 새로 켜짐 + (b) 청산 거래 ≥ EXP_MIN_TRADES + (c) 기대값 t 하한 > EXP_LB_MIN 인 long 전략."""
+    if len(dates) < 2:
+        return []
+    recent = {str(dates[-1]), str(dates[-2])}
+    out = []
+    for k, label in FRESH_STRATS.items():
+        r = (sim.get(k) or {}).get("long") or {}
+        rets = r.get("rets") or []
+        if r.get("pos") != 1 or str(r.get("entry_date")) not in recent or len(rets) < EXP_MIN_TRADES:
+            continue
+        m, sd, lb = exp_lb(rets)
+        if lb <= EXP_LB_MIN:
+            continue
+        out.append({"strategy": k, "label": label, "trades": len(rets), "exp": round(m, 4), "exp_lb": round(lb, 4),
+                    "sd": round(sd, 4), "win": round(sum(x > 0 for x in rets) / len(rets), 3), "ret": r.get("ret"),
+                    "bh": sim.get("bh"), "entry_date": r.get("entry_date"), "grade": "C·참고"})
+    return out
+
+
+def exp_block(scanned: dict) -> dict:
+    """sim_signals 의 exp 블록 — 통과 목록 + m(검정 수) + 기대 우연 통과 0.05·m + 이항 p."""
+    from math import comb
+    rows, m = [], 0
+    for s, v in scanned.items():
+        sim = v["sim"]
+        last2 = set(sim.get("last2") or [])
+        for k in FRESH_STRATS:
+            r = (sim.get(k) or {}).get("long") or {}
+            if r.get("pos") == 1 and str(r.get("entry_date")) in last2 and len(r.get("rets") or []) >= EXP_MIN_TRADES:
+                m += 1
+        for f in sim.get("fresh_exp") or []:
+            rows.append({"s": s, "n": v.get("name"), **f})
+    rows.sort(key=lambda x: (-x["exp_lb"], -x["trades"]))
+    k = len(rows)
+    p = sum(comb(m, i) * 0.05 ** i * 0.95 ** (m - i) for i in range(k, m + 1)) if m else None
+    return {"n_eligible": m, "n_pass": k, "expected_chance": round(0.05 * m, 2), "binom_p": None if p is None else round(p, 4),
+            "criteria": {"min_trades": EXP_MIN_TRADES, "lb": "t 단측 95% 하한 > 0", "cost": COST,
+                         "prereg": "docs/valuation_notes/2026-10-17_trend_expectancy_prereg.md"},
+            "grade": ("C·참고 — 주문표 근거 불가. 기대값 = 거래당 평균 순수익(왕복 0.25% 차감), 하한 = r̄ − t₀.₉₅·s/√n. "
+                      f"검정 {m}개 중 우연 통과 기대 {0.05 * m:.1f}건" + (f", 이항 p {p:.2f}" if p is not None else "")
+                      + (" — 우연과 구분 안 됨" if p is None or p >= 0.05 else "") + ". 같은 장세 거래라 독립 가정이 낙관적."),
+            "formula": "exp_lb = mean(r) − t95(n−1)·sd(r)/√n, r = 청산가/진입가 − 1 − 0.0025",
+            "rows": rows[:FRESH_TOP]}
+
+
 def _pass_prob_null(n: int, p0: float = 0.5) -> float:
     """귀무(매 거래 승률 p0, 독립)에서 거래 n회의 Wilson 하한이 FRESH_WILSON_MIN 을 넘을 확률 = Σ_{k: lo(k,n)>기준} C(n,k)·p0^k·(1−p0)^(n−k)."""
     from math import comb
@@ -208,6 +297,7 @@ def sim_signals(market: str, asof: str, stocks: dict) -> dict:
                   f"통과 {len(rows)}건이 이 숫자와 비슷하면 우연과 구분되지 않는다. 종목 간 같은 장세(상관)라 통과가 몰려 나올 수 있음."),
         "formula": "wilson_lo = (p̂ + z²/2n − z·√(p̂(1−p̂)/n + z²/4n²)) / (1 + z²/n), z=1.96",
         "rows": rows[:FRESH_TOP],
+        "exp": exp_block(scanned),
     }
 
 

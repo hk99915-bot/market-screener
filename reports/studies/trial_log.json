@@ -75,6 +75,12 @@
    "unregistered_trials": 0,
    "unregistered_note": "사전등록(study_accum.py §0) 그대로 1회 실행. 백필이 2022가 아니라 2024-11-26부터라 IS(<2025) = 24거래일·연기금 n 232 — PB 판단으로 A 는 B 상한으로 읽음",
    "discarded": "pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님"
+  },
+  "trend_expectancy": {
+   "topic": "trend_sim",
+   "question": "추세 시뮬레이션 '새로 켜짐' 신호를 승률 Wilson 대신 거래당 기대값 t 하한 > 0 으로 거르면 통과가 생기는가(우연 대비)",
+   "unregistered_trials": 0,
+   "discarded": ""
   }
  },
  "trials": [
@@ -150,6 +156,15 @@
    "result": "pen h20 +2.14%p t3.47 · h60 +5.41%p t3.61 (KOSPI 대비 −2.2%·−8.8%), 나머지 Bonferroni 미통과",
    "discarded_why": "IS 24일뿐(2022 백필 실패) → A 아닌 B 상한, 2022 하락장 백필 뒤 재검증",
    "study": "accum_signals"
+  },
+  {
+   "date": "2026-10-17",
+   "topic": "trend_sim",
+   "hypothesis": "새로 켜진 롱 추세 전략 중 청산 거래 ≥8 · 거래당 순수익 t 단측 95% 하한 > 0 인 것의 수가 우연 기대(0.05·m)보다 많다",
+   "params": "사전등록(결과 전 커밋): reports/detail/{KR,US} chart 250거래일, 이평 추세 롱·PSAR 롱, 왕복비용 0.25%, 보조 부트스트랩 B2000 시드 20261017, 비교 Wilson(n≥6, >0.5). 등급 상한 C·주문표 근거 불가. 검증 10/24",
+   "result": "(사전등록 — 결과 미산출)",
+   "discarded_why": "",
+   "study": "trend_expectancy"
   }
  ]
 }
