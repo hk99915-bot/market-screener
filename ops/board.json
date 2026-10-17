@@ -830,17 +830,17 @@
       "id": "quant-replicate-studies",
       "title": "독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출",
       "owner": "검증",
-      "status": "대기",
+      "status": "진행",
       "repo": "public",
       "files": [
         "scripts/replicate_*.py",
         "reports/studies/_replication.md"
       ],
       "priority": "P1",
-      "started": "",
+      "started": "2026-10-17",
       "due": "2026-10-18",
       "depends_on": [],
-      "notes": "선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순."
+      "notes": "선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. | 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할."
     },
     {
       "id": "order-ticket-form",
@@ -1232,6 +1232,74 @@
       ],
       "notes": "SNDK는 revenue 있음, MU만 없음 → Revenues / RevenueFromContractWithCustomerExcludingAssessedTax 태그 폴백 확인. 8-K 대조값 FQ4 54.23B, FQ3 41.46B. 10/17 fin_verified.json 에 기록. 10/17 애널 원인 분석: sec.py parse() 가 분기를 만든 첫 태그에서 break → 옛 태그(Revenues/SalesRevenueNet)가 2019 이전 분기만 만들고 끝나는 '태그 전환' 가설(검증전) — docs/desk_kb/data.md '애널 요청' 참조. 가이던스 PER 은 fin_guidance.json last_revenue 로 우회 중. | 10/17 데이터: 가설1 코드로 확인(첫 태그 break) → parse() 태그별 분기 병합(같은 분기말은 앞선 태그 우선)으로 수정 + 합성 테스트 2건(tests/test_sec_parse.py). 실데이터 대조(FQ4 54.23B 1% 이내)는 SEC_USER_AGENT 워크플로 다음 실행 후 → 검수.",
       "desk": "데이터"
+    },
+    {
+      "id": "rep-semis-cap",
+      "title": "독립 재현: semis_cap (091160·139260·069500 실데이터) — 밴드 45% 도달 빈도·글라이드 H1~H3 원 vs 재현 표",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": "",
+      "due": "2026-10-17",
+      "repo": "public",
+      "files": [
+        "scripts/replicate_semis_cap.py",
+        "reports/studies/replication_semis_cap.md",
+        "tests/test_rep_semis_cap.py"
+      ],
+      "depends_on": [],
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+    },
+    {
+      "id": "rep-exec-signal",
+      "title": "독립 재현: exec_signal (KRX 69 업종 kr_sector_daily) — S1~S15 승률·평균 원 vs 재현 표",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": "",
+      "due": "2026-10-17",
+      "repo": "public",
+      "files": [
+        "scripts/replicate_exec_signal.py",
+        "reports/studies/replication_exec_signal.md",
+        "tests/test_rep_exec_signal.py"
+      ],
+      "depends_on": [],
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+    },
+    {
+      "id": "rep-entry-signals",
+      "title": "독립 재현: entry_signals (122630·KOSPI 실데이터) — 후보 5개 + 급락일 종가 D0 원 vs 재현 표",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": "",
+      "due": "2026-10-17",
+      "repo": "public",
+      "files": [
+        "scripts/replicate_entry_signals.py",
+        "reports/studies/replication_entry_signals.md",
+        "tests/test_rep_entry_signals.py"
+      ],
+      "depends_on": [],
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+    },
+    {
+      "id": "rep-rule-audit",
+      "title": "독립 재현: rule_audit (손절·트레일·부분익절·반등일·하락장 노출 T1~T18) — 기대값·손익비 원 vs 재현 표",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": "",
+      "due": "2026-10-17",
+      "repo": "public",
+      "files": [
+        "scripts/replicate_rule_audit.py",
+        "reports/studies/replication_rule_audit.md",
+        "tests/test_rep_rule_audit.py"
+      ],
+      "depends_on": [],
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
     }
   ]
 }
