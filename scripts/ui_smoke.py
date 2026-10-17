@@ -47,7 +47,39 @@ async def run(views: list[str], port: int) -> int:
             ok = not errs and not stuck
             bad += not ok
             print(f"{'OK ' if ok else 'BAD'} {v:6s} {len(txt):6d}자" + (f" · 에러: {errs[0][:160]}" if errs else "") + (" · LOADING/빈 화면" if stuck else ""))
+        bad += await check_fresh(b, port)
         await b.close()
+    return bad
+
+
+LATE = {"checked_at": "2026-10-16 18:00", "n": 21, "regress_today": [{"at": "2026-10-16 17:00", "path": "reports/detail/US/_index.json", "existing": "2026-10-16", "new": "2026-10-15", "mode": "detail_us"}],
+        "late": [{"id": "derivs", "path": "reports/derivs.json", "expected": "2026-10-16", "actual": "2026-10-15", "mode": "briefing reports", "fix": "gh workflow run briefing.yml -f mode=derivs", "desc": "옵션 보드"}]}
+
+
+async def check_fresh(b, port: int) -> int:
+    """상단 신선도 배지: 실제 파일로 '데이터 정상'/'⚠ 늦은 데이터' 중 하나가 보이는지 + 가짜 late 2건 주입 시 빨간 배지·팝업 목록."""
+    import json as _json
+    bad = 0
+    for label, body in (("실파일", None), ("늦음 주입", _json.dumps(LATE, ensure_ascii=False))):
+        pg = await b.new_page(viewport={"width": 1300, "height": 900})
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        if body:
+            await pg.route("**/reports/freshness.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(2500)
+        txt = (await pg.evaluate("(document.querySelector('#fresh')||{}).textContent||''")).strip()
+        cls = await pg.evaluate("(document.querySelector('#fresh')||{}).className||''")
+        ok = (txt.startswith("데이터 정상") or txt.startswith("⚠ 늦은 데이터")) if not body else (txt == "⚠ 늦은 데이터 2" and "bad" in cls)
+        if body and ok:
+            await pg.click("#fresh")
+            await pg.wait_for_timeout(300)
+            pop = await pg.evaluate("document.querySelector('#dr-b').innerText")
+            ok = "reports/derivs.json" in pop and "mode=derivs" in pop and "역행 차단" in pop
+        ok = ok and not errs
+        bad += not ok
+        print(f"{'OK ' if ok else 'BAD'} 신선도배지({label}) '{txt}'" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        await pg.close()
     return bad
 
 

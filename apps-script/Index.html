@@ -20,6 +20,9 @@
   .tabs{display:flex;gap:2px;margin-left:auto}
   .tabs button{background:#1a1a1a;color:var(--muted);border:1px solid var(--line);padding:4px 10px;font:inherit;cursor:pointer;letter-spacing:.06em}
   .tabs button.on{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}
+  .fresh{margin-left:8px;font-size:11px;cursor:pointer;white-space:nowrap}
+  .fresh.ok{color:var(--muted)} .fresh.bad{color:#fff;background:#c62828;padding:1px 7px;border-radius:3px;font-weight:700}
+  html.xl .fresh.bad{background:#c00000}
   .tape{white-space:nowrap;overflow:hidden;background:#070707;border-bottom:1px solid var(--line);padding:4px 0}
   .tape .tk{display:inline-block;white-space:nowrap;animation:tk 60s linear infinite;will-change:transform}
   .tape:hover .tk{animation-play-state:paused}
@@ -197,6 +200,7 @@ html.stealth .brand{letter-spacing:0}
   <span class="brand" id="brand">MARKET TERMINAL</span><button id="stb" title="흑백 모드 (단축키 \\)">◐</button>
   <span class="clock" id="clock">—</span>
   <span class="mu" id="gen"></span>
+  <span id="fresh" class="fresh" title="데이터 신선도 (ops/freshness.json 계약)"></span>
   <div class="srch"><input id="sq" placeholder="종목·티커 검색 (예: 삼성전자, 005930, NVDA)" autocomplete="off"><div id="sres"></div></div>
   <div class="tabs">
     <button class="on" data-g="home">HOME</button><button data-g="my">MY</button><button data-g="life">LIFE</button><button data-g="mkt">MARKET</button>
@@ -313,6 +317,20 @@ function genHdr(){ const g=$('#gen'); if(!g) return; const hm=x=>{ const m=Strin
       if(m&&wd>=1&&wd<=5&&mins>=540&&mins<=930){ const lt=Date.UTC(m[1]?+m[1]:k.getUTCFullYear(),+m[2]-1,+m[3],+m[4],+m[5]); warn=(k.getTime()-lt)>20*60e3; } }catch(e){}
     t+=' · '+(warn?'⚠️ ':'')+'LIVE '+(hm(lu)||lu); }
   g.textContent=t; }
+/* 데이터 신선도 배지 (재발방지대책 D, 10/17): reports/freshness.json 의 late(계약 대비 늦음) + regress_today(역행 차단) */
+let FR=null;
+function freshBadge(){ const el=$('#fresh'); if(!el) return; if(!FR){ el.className='fresh'; el.textContent=''; return; }
+  const n=(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length, hm=String(FR.checked_at||'').slice(11,16);
+  el.className='fresh '+(n?'bad':'ok'); el.textContent=n?`⚠ 늦은 데이터 ${n}`:`데이터 정상 · 점검 ${hm||'—'}`; }
+function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[], S=FR.stale_today||[];
+  $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent='데이터 신선도';$('#dr-s').textContent=' 점검 '+esc(FR.checked_at||'')+' KST · 계약 '+(FR.n||0)+'항목';
+  const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:11px">${esc(x.desc||'')}</div></td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
+  const rr=R.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">기존 ${esc(x.existing)}</td><td class="l dn">새 ${esc(x.new)} (차단)</td><td class="l mu">${esc(x.mode||'')}</td><td class="l mu">${esc(x.at||'')}</td></tr>`).join('');
+  $('#dr-b').innerHTML=(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
+    +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:11px">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
+    +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
+function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
+document.addEventListener('click',e=>{ if(e.target.closest('#fresh')) freshPop(); });
 function render(){
   if(!D) return;
   $('#gen').textContent='DATA '+(D.generated_at||''); genHdr();
@@ -343,7 +361,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const g=b.da
 function load(){
   google.script.run.withSuccessHandler(d=>{D=d;render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
 }
-load(); loadLive(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000);
+load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000); setInterval(loadFresh, 5*60*1000);
 </script>
 <script>
 (function(){ const K='mt_skin';   // '' 기본 · 'xl' 엑셀 스킨(사무실)

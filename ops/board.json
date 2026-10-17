@@ -1396,19 +1396,24 @@
    "id": "detail-us-regress",
    "title": "detail_us 수동 실행이 US 상세 기준일을 10/16→10/15로 되돌림 — 원인 규명·가드(asof 역행 시 덮어쓰기 금지)",
    "owner": "개발",
-   "status": "대기",
+   "status": "완료",
    "priority": "P1",
    "repo": "public",
    "files": [
-    "screener/sec.py",
-    "tests/test_sec_parse.py",
-    "screener/valuation_daily.py"
+    "screener/guard.py",
+    "screener/tradecal.py",
+    "screener/freshness.py",
+    "screener/regress_git.py",
+    "screener/main.py",
+    "ops/freshness.json",
+    "tests/test_freshness_guard.py"
    ],
    "started": null,
    "due": "2026-10-20",
    "depends_on": [],
-   "notes": "10/17 토 PB가 workflow_dispatch detail_us 실행 → 9ea9efbd 에서 580파일 asof 역행. PB가 부모 커밋 값으로 복원(신규 7종목 유지). 가드: 새 asof < 기존 asof 면 그 종목 건너뛰고 로그.",
-   "desk": "데이터"
+   "notes": "10/17 토 PB가 workflow_dispatch detail_us 실행 → 9ea9efbd 에서 580파일 asof 역행. PB가 부모 커밋 값으로 복원(신규 7종목 유지). 가드: 새 asof < 기존 asof 면 그 종목 건너뛰고 로그. | 10/17 개발 완료: 원인 = Yahoo 가 금 20:47 ET 호출에서 종목 10/16 봉 누락 + 코드에 기대 거래일 개념 없음 + 무조건 덮어쓰기·-X theirs. 조치 = main.run 기대일 재시도·[STALE]·게시본 역행 시 중단, guard.py 16 호출부, regress_git 저장 단계, ops/freshness.json 21항목 감시(08:20·20:10 ⛔), 헤더 배지. 복기 docs/desk_kb/dev.md.",
+   "desk": "데이터",
+   "done": "2026-10-17"
   },
   {
    "id": "pro-plan-round-scale",
@@ -1518,6 +1523,46 @@
    "depends_on": [],
    "notes": "외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지.",
    "desk": "검증"
+  },
+  {
+   "id": "guard-rest",
+   "title": "asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등)",
+   "owner": "개발",
+   "priority": "P2",
+   "status": "대기",
+   "started": null,
+   "due": "2026-10-24",
+   "repo": "public",
+   "files": [
+    "screener/live.py",
+    "screener/dashboard.py",
+    "screener/japan.py",
+    "screener/report.py",
+    "screener/committee.py",
+    "screener/valuation_daily.py",
+    "screener/etf.py"
+   ],
+   "depends_on": [
+    "detail-us-regress"
+   ],
+   "notes": "10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11).",
+   "desk": "개발"
+  },
+  {
+   "id": "gas-freshness",
+   "title": "GAS Code.gs 재붙여넣기 — getFreshness 추가분(상단 신선도 배지)",
+   "owner": "사용자",
+   "priority": "P3",
+   "status": "대기",
+   "started": null,
+   "due": "2026-10-24",
+   "repo": "public",
+   "files": [
+    "apps-script/Code.gs"
+   ],
+   "depends_on": [],
+   "notes": "GitHub Pages 화면은 바로 반영. GAS 웹앱은 Code.gs 를 다시 붙여넣기 전까지 배지가 숨겨짐(오류 없음). 다른 Code.gs 변경과 묶어서 1회.",
+   "desk": "개발"
   }
  ]
 }
