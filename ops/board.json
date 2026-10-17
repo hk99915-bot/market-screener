@@ -1391,6 +1391,24 @@
    "depends_on": [],
    "notes": "감사 라운드1 PB 중: decisions.json pb_view '100만원·300만원' 금액 문장, n=12 기저율 등급 없음. 생성 프롬프트/템플릿 수정.",
    "desk": "데이터"
+  },
+  {
+   "id": "detail-us-regress",
+   "title": "detail_us 수동 실행이 US 상세 기준일을 10/16→10/15로 되돌림 — 원인 규명·가드(asof 역행 시 덮어쓰기 금지)",
+   "owner": "개발",
+   "status": "대기",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/sec.py",
+    "tests/test_sec_parse.py",
+    "screener/valuation_daily.py"
+   ],
+   "started": null,
+   "due": "2026-10-20",
+   "depends_on": [],
+   "notes": "10/17 토 PB가 workflow_dispatch detail_us 실행 → 9ea9efbd 에서 580파일 asof 역행. PB가 부모 커밋 값으로 복원(신규 7종목 유지). 가드: 새 asof < 기존 asof 면 그 종목 건너뛰고 로그.",
+   "desk": "데이터"
   }
  ]
 }
