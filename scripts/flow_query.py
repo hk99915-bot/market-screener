@@ -58,20 +58,29 @@ def naver(code: str, pages: int = 14) -> dict:
     import requests
     ua = {"User-Agent": "Mozilla/5.0", "Referer": "https://finance.naver.com/"}
     rows, seen = [], set()
-    num = lambda x: float(x.replace(",", "").replace("%", "").replace("+", "")) if x.strip() not in ("", "-") else 0.0
+    num = lambda x: float(str(x).replace(",", "").replace("%", "").replace("+", "")) if str(x).strip() not in ("", "-", "nan") else 0.0
     for pg in range(1, pages + 1):
         t = requests.get(f"https://finance.naver.com/item/frgn.naver?code={code}&page={pg}", headers=ua, timeout=15).content.decode("euc-kr", "ignore")
         got = 0
-        for tr in re.findall(r"<tr[^>]*onMouseOver[^>]*>(.*?)</tr>", t, re.S | re.I):
-            tds = [re.sub(r"<[^>]+>|&nbsp;|\s+", "", x) for x in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
-            if len(tds) < 9 or not re.match(r"\d{4}\.\d{2}\.\d{2}", tds[0]):
+        import io
+        import pandas as pd
+        try:
+            tabs = pd.read_html(io.StringIO(t))
+        except Exception:  # noqa: BLE001
+            tabs = []
+        for tb in tabs:
+            tb.columns = [" ".join(map(str, c)) if isinstance(c, tuple) else str(c) for c in tb.columns]
+            if not any("날짜" in c for c in tb.columns) or tb.shape[1] < 9:
                 continue
-            d = tds[0].replace(".", "-")
-            if d in seen:
-                continue
-            seen.add(d); got += 1
-            rows.append({"d": d, "c": num(tds[1]), "v": int(num(tds[4])), "기관합계_q": int(num(tds[5])),
-                         "외국인_q": int(num(tds[6])), "외인보유주": int(num(tds[7])), "외인보유율": num(tds[8])})
+            for r in tb.itertuples(index=False):
+                v = [str(x) for x in r]
+                if not re.match(r"\d{4}\.\d{2}\.\d{2}", v[0]) or v[0] in seen:
+                    continue
+                seen.add(v[0]); got += 1
+                rows.append({"d": v[0].replace(".", "-"), "c": num(v[1]), "v": int(num(v[4])), "기관합계_q": int(num(v[5])),
+                             "외국인_q": int(num(v[6])), "외인보유주": int(num(v[7])), "외인보유율": num(v[8])})
+        if pg == 1 and not got:
+            log.warning("네이버 표 파싱 0행 — 길이 %d, 표 %d개, 앞부분: %s", len(t), len(tabs), re.sub(r"\s+", " ", t[:300]))
         if not got:
             break
     rows.sort(key=lambda r: r["d"])
