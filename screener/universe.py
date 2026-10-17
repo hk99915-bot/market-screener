@@ -234,6 +234,18 @@ def us_index_members(refresh_days: int = 7) -> set[str]:
     return syms
 
 
+def us_watch() -> set[str]:
+    """universe/us_watch.csv 의 yf 열 — 지수 구성종목이 아니어도 매일 상세를 만들 관찰 종목. 없으면 빈 집합."""
+    p = UNIVERSE_DIR / "us_watch.csv"
+    if not p.exists():
+        return set()
+    try:
+        return {t.strip() for t in pl.read_csv(p)["yf"].to_list() if t and t.strip()}
+    except Exception as e:  # noqa: BLE001
+        log.warning("us_watch.csv 읽기 실패: %s", e)
+        return set()
+
+
 def us_index_universe(full: pl.DataFrame) -> pl.DataFrame | None:
     """지수 구성종목만 남긴 유니버스. 실패하면 None 을 돌려 호출부가 거래대금 상위 방식으로 폴백하게 함."""
     try:
@@ -241,6 +253,7 @@ def us_index_universe(full: pl.DataFrame) -> pl.DataFrame | None:
     except Exception as e:  # noqa: BLE001
         log.warning("US 지수 구성종목 실패, 거래대금 상위 방식으로 폴백: %s", e)
         return None
+    mem = set(mem) | us_watch()   # 지수 밖 관찰 종목(채권 탭 AI 신용 바스켓 등) — 상세 팝업이 열리도록 (10/17)
     base = full.filter(pl.col("yf").is_in(sorted(mem)))
     missing = sorted(mem - set(base["yf"].to_list()))   # nasdaqtrader 목록에 없는 종목(예: BRK-B 등)
     if missing:

@@ -21,7 +21,7 @@ KR_MUST = ["114800", "252670", "122630", "069500", "102110", "139260", "091160",
            "251340", "261240", "138230", "133690", "360750", "379800", "381170", "305720", "364980", "471760", "117700",
            "132030", "305080", "148070", "114260", "153130", "261220"]
 US_LIST = ["SPY", "QQQ", "DIA", "IWM", "VOO", "VTI", "SCHD", "SOXX", "SMH", "PSI", "XLK", "XLE", "XLF", "XLV", "XLY", "XLP",
-           "XLI", "XLU", "XLB", "XLRE", "XLC", "TLT", "IEF", "SHY", "HYG", "LQD", "BND", "GLD", "SLV", "USO", "UNG", "UUP",
+           "XLI", "XLU", "XLB", "XLRE", "XLC", "TLT", "IEF", "SHY", "HYG", "JNK", "LQD", "BKLN", "BND", "GLD", "SLV", "USO", "UNG", "UUP",
            "ARKK", "TQQQ", "SQQQ", "SOXL", "SOXS", "SH", "PSQ", "SDS", "UVXY", "EEM", "EWY", "EWJ", "FXI", "KWEB", "VEA", "VWO",
            "IBIT", "JEPI", "JEPQ", "KRE", "KBE", "ITA", "URA", "LIT", "TAN", "XBI", "IBB", "MAGS", "COPX", "GDX"]
 INVERSE_HINT = ("인버스", "SQQQ", "SOXS", "SH", "PSQ", "SDS")

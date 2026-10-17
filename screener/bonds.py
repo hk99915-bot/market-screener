@@ -566,7 +566,7 @@ def ai_credit(px: dict[str, dict[str, float]], vix_fallback: float | None = None
         if st is None:
             missing.append(t)
             continue
-        basket.append({"s": t, "n": n, **st})
+        basket.append({"s": t, **st, "n": n, "obs": st.get("n")})   # _tail_stats 의 n(관측 수)이 이름을 덮던 버그(화면 'CIFR 316') — 이름을 뒤에 둔다
     basket.sort(key=lambda r: r["dd"])
     etfs = []
     for t, n in CREDIT_ETFS.items():
