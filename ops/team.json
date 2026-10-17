@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-17T15:17+09:00",
+ "updated": "2026-10-17T15:32+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -338,7 +338,115 @@
    "tools": 22,
    "sec": 186,
    "tokens": 168208,
-   "model": "opus"
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "애널",
+   "task": "KoAct vs 나스닥100 대체 분석",
+   "tools": 35,
+   "sec": 365,
+   "tokens": 116678,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "개발",
+   "task": "데이터 신선도 재발방지·리팩토링 1단계(계약·asof 가드)",
+   "tools": 52,
+   "sec": 822,
+   "tokens": 277195,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "개발",
+   "task": "리팩토링 0·3단계(측정·data 브랜치 시범)",
+   "tools": 49,
+   "sec": 578,
+   "tokens": 145219,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "퀀트",
+   "task": "미장 매집 신호 9종 검증·us_accum",
+   "tools": 62,
+   "sec": 816,
+   "tokens": 172609,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "퀀트",
+   "task": "국장 매집 스캐너·수급 저장소·백필",
+   "tools": 100,
+   "sec": 3060,
+   "tokens": 242076,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "운영",
+   "task": "리팩토링 2단계 예약 일원화",
+   "tools": 58,
+   "sec": 882,
+   "tokens": 225422,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "데이터",
+   "task": "리팩토링 1.5단계(가격 조정 통일·백테스트 체결 시점)",
+   "tools": 80,
+   "sec": 3821,
+   "tokens": 239010,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "개발",
+   "task": "결재 후속(#9 알림 등급·#3 밴드·#14 쿨다운)",
+   "tools": 102,
+   "sec": 1074,
+   "tokens": 277564,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "감사",
+   "task": "리팩토링 5단계 전수 감사",
+   "tools": 89,
+   "sec": 797,
+   "tokens": 290887,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "퀀트",
+   "task": "결재 잔여(추세 기대값 사전등록·재협상 카운터·guard-rest)",
+   "tools": 85,
+   "sec": 954,
+   "tokens": 239133,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "개발",
+   "task": "사건 기반 즉시 알림(event_watch)",
+   "tools": 41,
+   "sec": 595,
+   "tokens": 173749,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "date": "2026-10-17",
+   "owner": "개발",
+   "task": "감사 M1~M4 수정",
+   "tools": 65,
+   "sec": 494,
+   "tokens": 182214,
+   "model": "claude-opus-5-5"
   }
  ],
  "earlier": {
@@ -353,9 +461,9 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-11",
-  "commits_total": 951,
-  "commits_bot": 452,
-  "commits_unmapped": 284,
+  "commits_total": 831,
+  "commits_bot": 352,
+  "commits_unmapped": 264,
   "audit_files": [
    "2026-10-17"
   ],
@@ -778,16 +886,16 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 37,
-   "tokens": 5972368,
-   "tools": 1441,
-   "sec": 24536,
+   "runs": 49,
+   "tokens": 8554124,
+   "tools": 2259,
+   "sec": 38794,
    "days": 3,
    "per_day": {
-    "runs": 12.3,
-    "tokens": 1990789.3,
-    "tools": 480.3,
-    "sec": 8178.7
+    "runs": 16.3,
+    "tokens": 2851374.7,
+    "tools": 753.0,
+    "sec": 12931.3
    }
   }
  },
@@ -819,29 +927,16 @@
    }
   },
   "claude-opus-5-5": {
-   "runs": 4,
-   "tokens": 647203,
-   "tools": 180,
-   "sec": 1803,
+   "runs": 17,
+   "tokens": 3397167,
+   "tools": 1020,
+   "sec": 16247,
    "days": 1,
    "per_day": {
-    "runs": 4.0,
-    "tokens": 647203.0,
-    "tools": 180.0,
-    "sec": 1803.0
-   }
-  },
-  "opus": {
-   "runs": 1,
-   "tokens": 168208,
-   "tools": 22,
-   "sec": 186,
-   "days": 1,
-   "per_day": {
-    "runs": 1.0,
-    "tokens": 168208.0,
-    "tools": 22.0,
-    "sec": 186.0
+    "runs": 17.0,
+    "tokens": 3397167.0,
+    "tools": 1020.0,
+    "sec": 16247.0
    }
   }
  }
