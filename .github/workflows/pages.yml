@@ -19,15 +19,14 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: true   # 봇 커밋이 몰리면 마지막 것만 배포 (브랜치 배포도 같은 방식으로 앞선 빌드를 취소함)
-
 jobs:
   build:
     if: github.event_name == 'workflow_dispatch' || vars.PAGES_ACTIONS == '1'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    concurrency:   # 작업 단위 — 꺼져 있을 때(건너뛴 푸시 실행)가 수동 빌드를 취소하지 않게
+      group: pages-build
+      cancel-in-progress: true   # 봇 커밋이 몰리면 마지막 것만 (브랜치 배포도 같은 방식)
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,6 +50,9 @@ jobs:
     needs: build
     if: (github.event_name == 'push' && vars.PAGES_ACTIONS == '1') || github.event.inputs.deploy == 'true'
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false   # 배포 도중 취소 금지
     environment:
       name: github-pages
       url: ${{ steps.d.outputs.page_url }}
