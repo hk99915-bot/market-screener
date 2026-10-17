@@ -1355,6 +1355,42 @@
    "depends_on": [],
    "notes": "감사 지적(audit 10/17, 기준서 (e) 치명): apps-script/tab_life.html:28 <h2> 에 개인 순자산 목표 금액이 공개 저장소·Pages 에 노출. 같은 누출의 docs/rules_terms.md:73·scripts/scorecard_week.py:351·reports/scorecard_week.md:143 은 감사 예외로 즉시 치환함(커밋 '감사: 금액 누출 제거'). tab_life.html 은 잠금 파일이라 개발 데스크 요청. 공개 이력(git) 정리 여부는 PB→오너 결정. · 10/17 PB 처리 4322d72f",
    "desk": "개발"
+  },
+  {
+   "id": "secret-missing-warning",
+   "title": "시크릿 없음(MY_RULES·MY_HOLDINGS) → 조용히 건너뛰지 말고 아침 점검·health에 '꺼져 있음' 1줄",
+   "owner": "개발",
+   "status": "대기",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/sec.py",
+    "tests/test_sec_parse.py",
+    "screener/valuation_daily.py"
+   ],
+   "started": null,
+   "due": "2026-10-20",
+   "depends_on": [],
+   "notes": "10/17 발견: 두 시크릿이 처음부터 없어 발동선·PB 점검이 이틀간 미작동, 아무도 모름. '꺼짐'과 '조건 미충족'을 구분 표기.",
+   "desk": "데이터"
+  },
+  {
+   "id": "pbview-amount-wording",
+   "title": "PB 의견 생성 텍스트에서 원화 금액 제거(비율·'모의' 표기)·기저율 인용에 등급 꼬리표",
+   "owner": "개발",
+   "status": "대기",
+   "priority": "P1",
+   "repo": "public",
+   "files": [
+    "screener/sec.py",
+    "tests/test_sec_parse.py",
+    "screener/valuation_daily.py"
+   ],
+   "started": null,
+   "due": "2026-10-20",
+   "depends_on": [],
+   "notes": "감사 라운드1 PB 중: decisions.json pb_view '100만원·300만원' 금액 문장, n=12 기저율 등급 없음. 생성 프롬프트/템플릿 수정.",
+   "desk": "데이터"
   }
  ]
 }
