@@ -6,7 +6,7 @@ from pathlib import Path
 import polars as pl
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from replicate_crash_rebound import EXITS, compare, simulate  # noqa: E402
+from replicate_crash_rebound import EXITS, compare, simulate, wilson  # noqa: E402
 
 
 def _frame(symbol, closes, opens=None):
@@ -46,3 +46,10 @@ def test_compare_verdict():
     orig = {"c": {EXITS[0]: {"n": 25, "up": 0.60, "avg": 0.068}, EXITS[1]: {"n": 20, "up": 0.60, "avg": 0.068}, EXITS[2]: {"n": 1}}}
     v = {r["exit"]: r["verdict"] for r in compare(orig, rep)}
     assert v == {EXITS[0]: "일치", EXITS[1]: "불일치", EXITS[2]: "재현 없음"}
+
+
+def test_wilson_matches_textbook():
+    # Brown–Cai–DasGupta: n 26, 16승 → 약 42.6%~77.5%; 50% 포함. n 0 은 nan.
+    lo, hi = wilson(16, 26)
+    assert 0.42 < lo < 0.43 and 0.77 < hi < 0.78 and lo < 0.5 < hi
+    assert wilson(0, 0)[0] != wilson(0, 0)[0]

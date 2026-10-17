@@ -8,11 +8,11 @@
 - #3 [자체연구-규약] **재현 산출물**: `scripts/replicate_<id>.py`(simulate·compare 함수, 합성 데이터 테스트 1건) + `reports/studies/replication_<id>.md/.json`(원 vs 재현 표, 민감도, 판정). 불일치 시 원 보고서 등급 한 단계 강등 요청(보드 quant-replicate-studies 규약). 재현은 **원 숫자가 아니라 재현 숫자**를 기준으로 삼는다.
 
 ## 공식
-- #4 [논문] **소표본 승률의 신뢰구간은 Wilson 구간**으로: 정규근사 p̂±1.96√(p̂(1−p̂)/n)은 n<40·p̂가 0.5에서 멀면 커버리지가 95% 아래로 떨어진다(Brown–Cai–DasGupta 2001). 쉬운 숫자: 승률 61.5%, n 26 → 정규근사 42.8~80.2%, Wilson ≈ 42.5~77.6%. 어느 쪽이든 **50%를 포함** → "승률 61.5%"는 동전 던지기와 구분 안 됨. (출처: Brown, Cai & DasGupta, *Statistical Science* 16(2) 2001 · 적용 replication_crash_rebound.md)
+- #4 [논문] **소표본 승률의 신뢰구간은 Wilson 구간**으로: 정규근사 p̂±1.96√(p̂(1−p̂)/n)은 n<40·p̂가 0.5에서 멀면 커버리지가 95% 아래로 떨어진다(Brown–Cai–DasGupta 2001). 쉬운 숫자(원 보고서 16/26승, 2026-10-16 기준): 정규근사 61.5%±1.96·√(0.615·0.385/26) = 42.8%~80.2%, Wilson(scripts/replicate_crash_rebound.py `wilson(16,26)`) = 42.5%~77.6%. 어느 쪽이든 **50%를 포함** → "승률 61.5%"는 동전 던지기와 구분 안 됨. (출처: Brown, Cai & DasGupta, *Statistical Science* 16(2) 2001 · 적용 replication_crash_rebound.md)
 - #5 [자체연구-규약] **허용오차는 SE 기준으로 사전 고정**: 승률 허용오차 = max(반올림 단위, 0.5·√(p(1−p)/n)). n 26이면 ≈4.9%p(그래서 5%p), n 1,000이면 ≈0.8%p. 고정 숫자 '5%p'를 모든 연구에 쓰면 큰 표본에서 진짜 불일치를 놓친다. (출처: 2026-10-17 복기)
 
 ## 현업 vs 교과서
-- #6 [논문] 모델검증(SR 11-7, 미 연준·OCC 2011)은 검증팀의 **독립성**(개발자와 보고 라인 분리)·**효과적 도전(effective challenge)**·**결과 분석(outcome analysis, 백테스트)** 3요소를 요구한다. 우리 구조: 검증 데스크는 퀀트와 피어(지시 없음)이고 뒤집을 권한이 있음 — 독립성은 충족, 다만 같은 데이터 창고(data/hist)를 쓰므로 데이터 오류는 양쪽에 공통 → 데이터 데스크 매니페스트(_manifest.json 출처·행수)를 재현 보고서에 적는다. (출처: Federal Reserve SR 11-7 / OCC 2011-12 "Supervisory Guidance on Model Risk Management" `[확인 필요: 절 번호]`)
+- #6 [논문] 모델검증(SR 11-7, 미 연준·OCC 2011)은 검증팀의 **독립성**(개발자와 보고 라인 분리)·**효과적 도전(effective challenge)**·**결과 분석(outcome analysis, 백테스트)** 3요소를 요구한다. 우리 구조: 검증 데스크는 퀀트와 피어(지시 없음)이고 뒤집을 권한이 있음 — 독립성은 충족, 다만 같은 데이터 창고(data/hist)를 쓰므로 데이터 오류는 양쪽에 공통 → 데이터 데스크 매니페스트(_manifest.json 출처·행수)를 재현 보고서에 적는다. (출처: Federal Reserve SR 11-7 / OCC 2011-12 "Supervisory Guidance on Model Risk Management" `[확인 필요: SR 11-7 절 번호 — 검증 데스크, 2026-10-24 라운드까지]`)
 
 ## 흔한 오해
 - #7 [자체연구-규약] "재현 일치 = 등급 상향" → 아니다. 재현은 **숫자가 맞는지**만 확인한다. 등급(A/B/C/F/검증전)은 사전등록·Bonferroni·OOS 규약(kb:quant#4)으로 정해지며, crash_rebound 처럼 사전등록 §0이 없는 연구는 재현이 맞아도 **참고(C 상한)**다.
@@ -22,13 +22,13 @@
 - #9 [자체] QUANT › 스터디 탭의 연구별 등급 옆에 재현 여부는 아직 없음 — `reports/studies/replication_<id>.json` 의 `rows[].verdict` 를 읽어 '재현 n/m 일치' 배지를 붙이는 것이 다음 고치기 후보(탭 파일 tab_quant.html 잠금 필요).
 
 ## 우리 연구와의 차이
-- #10 [자체연구-재현] **crash_rebound §3 (코스피 −5% 종가 매수 → 122630)**: 원 n 26·승률 61.5%·평균 +7.2% vs 재현 n 25·60.0%·+6.8%. 사건 날짜 27개 완전 일치, 6/6 항목 허용오차 안 **일치**. 1건 차이는 마지막 사건의 '5거래일 뒤 종가' 유무(창 정의 또는 실행 시점) — 코드 미열람이라 `검증전`. 데이터 출처(pykrx KOSPI vs 야후 ^KS11)·close/adj_close·비용 0 민감도 모두 결론 불변. (출처: reports/studies/replication_crash_rebound.md, 2026-10-17)
+- #10 [자체연구-C(참고), 재현 일치·신뢰도 중] **crash_rebound §3 (코스피 −5% 종가 매수 → 122630, 5거래일 보유, 왕복비용 0.05%, 데이터 2010-02-22~2026-10-16)**: 원 n 26건·승률 61.5%·평균 +7.2% vs 재현 n 25건·60.0%·+6.8%(Wilson 95% 40.7~76.6%). 사건 날짜 27개 완전 일치, 6/6 항목 허용오차 안 **일치**. 결론: 인용 시 'n·승률·평균·최악' 4개 묶음 + 등급 C — 퀀트·CIO, 10/18 리뷰까지; 뒤집는 조건 = §0 사전등록 후 Bonferroni B 이상. 반대 근거: 사건 27건 중 15건이 2026-06~10 한 국면. 1건 차이는 마지막 사건의 '5거래일 뒤 종가' 유무(창 정의 또는 실행 시점) — 코드 미열람이라 `검증전`. 데이터 출처(pykrx KOSPI vs 야후 ^KS11)·close/adj_close·비용 0 민감도 모두 결론 불변. (출처: reports/studies/replication_crash_rebound.md, 2026-10-17)
 
 ## 출처
 - NASEM, *Reproducibility and Replicability in Science*, National Academies Press 2019 — 3장 정의 (공개 PDF, 확인 2026-10-17)
 - Freese & Peterson, "Replication in Social Science", *Annual Review of Sociology* 43, 2017, 147–165 — 재현 유형 2×2 (데이터 같음/다름 × 분석 같음/다름)
 - Brown, Cai & DasGupta, "Interval Estimation for a Binomial Proportion", *Statistical Science* 16(2), 2001, 101–133 — Wald 구간 커버리지 결함, Wilson 권고
-- Federal Reserve SR 11-7 / OCC Bulletin 2011-12, "Supervisory Guidance on Model Risk Management", 2011 — 독립 검증·효과적 도전 `[확인 필요: 절 번호]`
+- Federal Reserve SR 11-7 / OCC Bulletin 2011-12, "Supervisory Guidance on Model Risk Management", 2011 — 독립 검증·효과적 도전 `[확인 필요: 절 번호, 2026-10-24까지]`
 - 자체: scripts/replicate_crash_rebound.py · tests/test_replicate_crash_rebound.py · reports/studies/replication_crash_rebound.md · docs/desk_kb/quant.md #4·#10·#11
 
 ## 복기 (틀린 판단 → 왜 → 다음부터)
