@@ -17,7 +17,6 @@ jobs:
         run: |
           curl --silent --show-error --fail --output /dev/null \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
-            --data-urlencode "text=✅ market-screener 연결 테스트 성공
-          실제 매매 신호가 아닙니다." \
+            --data-urlencode "text=✅ market-screener 연결 테스트 성공 — 실제 매매 신호가 아닙니다." \
             --data "disable_notification=true" \
             "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage"
