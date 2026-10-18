@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-18 02:33 KST",
+ "generated_at": "2026-10-19 02:34 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,13 +16,133 @@
  "first": "2026-10-15",
  "days": [
   {
-   "date": "2026-10-18",
-   "total": 3,
-   "work": 2,
-   "auto": 1,
+   "date": "2026-10-19",
+   "total": 9,
+   "work": 7,
+   "auto": 2,
    "by": {
-    "agent": 1,
-    "bot": 1
+    "human": 4,
+    "bot": 3
+   },
+   "areas": [
+    {
+     "area": "workflow",
+     "label": "워크플로",
+     "n": 4,
+     "items": [
+      {
+       "sha": "0e633be9",
+       "time": "00:16",
+       "kind": "human",
+       "summary": "운영 — keep Telegram test payload single-line",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "390040f1",
+       "time": "00:15",
+       "kind": "human",
+       "summary": "운영 — make Telegram test dependency-free",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "34290b39",
+       "time": "00:13",
+       "kind": "human",
+       "summary": "운영 — add one-click Telegram delivery test",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "366f7f36",
+       "time": "00:10",
+       "kind": "human",
+       "summary": "운영 — add minimal Telegram connection test",
+       "areas": [
+        "workflow"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 3,
+     "items": [
+      {
+       "sha": "9ba98fe7",
+       "time": "00:16",
+       "kind": "bot",
+       "summary": "team: 2026-10-18T15:16 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "04c8bf26",
+       "time": "00:14",
+       "kind": "bot",
+       "summary": "team: 2026-10-18T15:14 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "ee1b3b90",
+       "time": "00:10",
+       "kind": "bot",
+       "summary": "team: 2026-10-18T15:10 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 2,
+    "label": "자동 갱신 2회",
+    "kinds": {
+     "health": 1,
+     "lab": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 3
+   }
+  },
+  {
+   "date": "2026-10-18",
+   "total": 11,
+   "work": 4,
+   "auto": 7,
+   "by": {
+    "agent": 2,
+    "bot": 2
    },
    "areas": [
     {
@@ -49,8 +169,21 @@
     {
      "area": "ops",
      "label": "운영",
-     "n": 1,
+     "n": 2,
      "items": [
+      {
+       "sha": "6602af03",
+       "time": "11:55",
+       "kind": "agent",
+       "summary": "운영 — ISA 초과분 패널 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "9d2ec27b",
        "time": "00:05",
@@ -65,19 +198,41 @@
        ]
       }
      ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 1,
+     "items": [
+      {
+       "sha": "48ff0751",
+       "time": "07:00",
+       "kind": "bot",
+       "summary": "hist: 시세 창고 갱신 2026-10-17",
+       "areas": [
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      }
+     ]
     }
    ],
    "auto_updates": {
-    "n": 1,
-    "label": "자동 갱신 1회",
+    "n": 7,
+    "label": "자동 갱신 7회",
     "kinds": {
-     "briefing": 1
+     "ops": 2,
+     "health": 2,
+     "briefing": 1,
+     "fin": 1,
+     "scorecard": 1
     }
    },
    "tasks": {
+    "ops-system": 2,
     "index-split": 1,
-    "my-tab-ledger-compare": 1,
-    "ops-system": 1
+    "my-tab-ledger-compare": 1
    }
   },
   {
