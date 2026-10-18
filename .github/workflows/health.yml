@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       what:
-        description: "health | freshness"
+        description: "health | freshness | telegram_test"
         required: false
         default: "health"
       commit:
@@ -45,10 +45,14 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
         run: |
-          if [ "${{ github.event.schedule }}" = "0 13 * * 0" ] || [ "${{ github.event.inputs.what }}" = "health" ]; then
-            python -m screener.main --mode health
+          if [ "${{ github.event.inputs.what }}" = "telegram_test" ]; then
+            python -c "from screener.report import send_telegram; send_telegram('✅ market-screener 연결 테스트 성공\\n실제 매매 신호가 아닙니다.')"
+          else
+            if [ "${{ github.event.schedule }}" = "0 13 * * 0" ] || [ "${{ github.event.inputs.what }}" = "health" ]; then
+              python -m screener.main --mode health
+            fi
+            python -m screener.main --mode freshness_alert
           fi
-          python -m screener.main --mode freshness_alert
       - name: 저장
         if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
