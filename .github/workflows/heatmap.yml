@@ -4,6 +4,11 @@ on:
     # 30-minute target cadence, DST/winter both covered. Calendar gate includes early closes.
     - cron: "12,42 13-21 * * 1-5"
   workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Publish snapshot only when explicitly true'
+        required: false
+        default: 'false'
 permissions:
   contents: write
 concurrency:
@@ -24,6 +29,7 @@ jobs:
           rm -f reports/heatmap_US.json
           python -m screener.heatmap
       - name: Publish only heatmap snapshot on latest remote
+        if: github.event_name != 'workflow_dispatch' || inputs.commit == 'true'
         run: |
           [ -f reports/heatmap_US.json ] || exit 0
           cp reports/heatmap_US.json /tmp/heatmap_US.json
