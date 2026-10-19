@@ -491,9 +491,39 @@ function squarify(items,x,y,w,h){ // items: [{v,...}] → [{...,x,y,w,h}]
     for(const o of row){ const l=o._a/thick; if(w>=h) out.push({...o,x:x,y:y+off,w:thick,h:l}); else out.push({...o,x:x+off,y:y,w:l,h:thick}); off+=l; }
     if(w>=h){ x+=thick; w-=thick; } else { y+=thick; h-=thick; } rest=rest.slice(i); }
   return out; }
+
+// US heatmap uses a separate scheduled feed; closing 5D/20D statistics remain untouched.
+let HMUS=null, HMUS_AT=0, HMUS_BUSY=false, HMUS_ERR='';
+async function heatRefreshUS(){
+  if(HMUS_BUSY||Date.now()-HMUS_AT<60000)return;
+  HMUS_BUSY=true; HMUS_AT=Date.now();
+  const ctrl=new AbortController(), timer=setTimeout(()=>ctrl.abort(),12000);
+  const get=async file=>{
+    const r=await fetch('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/'+file+'?t='+Date.now(),{signal:ctrl.signal,cache:'no-store'});
+    if(!r.ok)throw Error('HTTP '+r.status);
+    return r.json();
+  };
+  try{
+    const [q,p]=await Promise.allSettled([get('heatmap_US.json'),get('peers_US.json')]);
+    if(p.status==='fulfilled'&&Array.isArray(p.value.rows))PEERS.US=p.value;
+    if(q.status==='fulfilled'&&Array.isArray(q.value.rows)){HMUS=q.value;HMUS_ERR='';}
+    else HMUS_ERR='장중 갱신 확인 실패 · 표시된 기준시각 확인';
+  }catch(e){HMUS_ERR='장중 갱신 확인 실패 · 표시된 기준시각 확인';}
+  finally{clearTimeout(timer);HMUS_BUSY=false;if(view==='heat'&&HMK==='US')render();}
+}
+function heatSource(mk,metric,base,live){
+  if(mk!=='US'||metric!=='r1'||!live||live.trade_date<(base.asof||''))return {rows:base.rows||[],label:(base.asof||'')+' 종가'};
+  const quotes=new Map(live.rows.map(r=>[r.s,r]));
+  return {rows:(base.rows||[]).filter(r=>quotes.has(r.s)).map(r=>({...r,r1:quotes.get(r.s).r1})),
+    label:live.trade_date+' '+(live.session==='LIVE'?'장중 스냅샷 · 지연 가능':'정규장 마감')+' · 수집 '+live.asof+' · '+live.collected+'/'+live.expected+'종목'};
+}
+setInterval(()=>{if(view==='heat'&&HMK==='US'&&!document.hidden)heatRefreshUS();},60000);
+
 function heatView(){
+  if(HMK==='US')heatRefreshUS();
   const mk=HMK; if(!PEERS[mk]){ peersLoad(mk,()=>{ if(view==='heat') render(); }); return '<div class="load">LOADING …</div>'; }
-  const rows=(PEERS[mk].rows||[]).filter(r=>r[HMM]!=null&&(r.mc||0)>0);
+  const source=heatSource(mk,HMM,PEERS[mk],HMUS);
+  const rows=source.rows.filter(r=>r[HMM]!=null&&(r.mc||0)>0);
   const by={}; rows.forEach(r=>{(by[r.g]=by[r.g]||[]).push(r);});
   let groups=Object.entries(by).map(([g,a])=>{a.sort((x,y)=>y.mc-x.mc); const top=a.slice(0,HMN); const tot=top.reduce((s,r)=>s+r.mc,0); return {g,a:top,n:a.length,v:HMS==='eq'?top.length:tot,avg:a.reduce((s,r)=>s+r.mc*r[HMM],0)/a.reduce((s,r)=>s+r.mc,0)};});
   if(HMG) groups=groups.filter(G=>G.g===HMG);
@@ -517,8 +547,8 @@ function heatView(){
     document.querySelectorAll('[data-hms]').forEach(b=>b.onclick=()=>{HMS=b.dataset.hms;render();});
     document.querySelectorAll('text.hg').forEach(t=>t.onclick=()=>{HMG=t.dataset.g;render();});
     const back=$('#hmback'); if(back) back.onclick=()=>{HMG=null;render();}; },0);
-  return `<div class="grid"><div class="p c12"><h2>HEATMAP<small>${esc(PEERS[mk].asof||'')} 종가</small></h2><div class="b">
-    <div class="ovl">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)}<span class="mu" style="margin:0 4px">|</span>${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}<span class="mu" style="margin:0 4px">|</span>${btn('hms','mc',mk==='KR'?'시총 크기':'거래대금 크기',HMS)}${btn('hms','eq','같은 크기',HMS)}<span class="mu" style="margin:0 4px">|</span>${btn('hmn',10,'상위10',HMN)}${btn('hmn',25,'상위25',HMN)}${btn('hmn',60,'상위60',HMN)}</div>
+  return `<div class="grid"><div class="p c12"><h2>HEATMAP<small>${esc(source.label)}</small></h2><div class="b">
+    <div class="mu">${mk==='US'?esc(HMUS_ERR||'장중 목표 30분 간격 · 휴장 제외 · 5D/20D는 마감 기준'):''}</div><div class="ovl">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)}<span class="mu" style="margin:0 4px">|</span>${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}<span class="mu" style="margin:0 4px">|</span>${btn('hms','mc',mk==='KR'?'시총 크기':'거래대금 크기',HMS)}${btn('hms','eq','같은 크기',HMS)}<span class="mu" style="margin:0 4px">|</span>${btn('hmn',10,'상위10',HMN)}${btn('hmn',25,'상위25',HMN)}${btn('hmn',60,'상위60',HMN)}</div>
     ${HMG?`<div style="margin:4px 0"><button id="hmback" class="tag">← 전체 보기</button> <b>${esc(HMG)}</b> 확대 중</div>`:'<div class="mu" style="font-size:11px;margin:4px 0">테마 이름을 누르면 그 테마만 확대 · 종목을 누르면 상세</div>'}
     <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;max-width:100%;height:auto;font-family:inherit">${svg}</svg>
     <div class="mu" style="font-size:11px;margin-top:4px">${mk==='KR'?'빨강=상승 파랑=하락 (국내 관례)':'초록=상승 빨강=하락'} · 진할수록 큰 움직임 (±${(lim*100).toFixed(0)}%에서 최대) · 테마 수익률은 시총 가중</div></div></div></div>`;
@@ -543,6 +573,7 @@ function mdToHtml(md,mk){
 }
 function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
 </script>
+
 
 <!-- tab_home.html — HOME 탭 — 캘린더·이벤트·미장 운용회의 요약·MY 요약 (homeView).
      apps-script/Index.html 이 include('tab_home') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).

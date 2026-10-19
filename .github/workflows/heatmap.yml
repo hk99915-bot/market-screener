@@ -1,0 +1,42 @@
+name: US heatmap
+on:
+  schedule:
+    # 30-minute target cadence, DST/winter both covered. Calendar gate includes early closes.
+    - cron: "12,42 13-21 * * 1-5"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: heatmap-us
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install yfinance exchange-calendars
+      - name: Collect regular-session heatmap
+        run: |
+          rm -f reports/heatmap_US.json
+          python -m screener.heatmap
+      - name: Publish only heatmap snapshot on latest remote
+        run: |
+          [ -f reports/heatmap_US.json ] || exit 0
+          cp reports/heatmap_US.json /tmp/heatmap_US.json
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python -c "import json,pathlib; p=pathlib.Path('reports/heatmap_US.json'); n=pathlib.Path('/tmp/heatmap_US.json'); old=json.loads(p.read_text()) if p.exists() else {}; new=json.loads(n.read_text()); p.write_bytes(n.read_bytes()) if new['asof'] >= old.get('asof','') else None"
+            git add reports/heatmap_US.json
+            git diff --cached --quiet && exit 0
+            git commit -m "US heatmap: scheduled quote refresh"
+            git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
