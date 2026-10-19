@@ -43,4 +43,24 @@ class TrackingTests(unittest.TestCase):
         r=row(); del r["original"]["status"]
         self.assertEqual(evaluate(r,[bar()])["status"],"review")
 
+
+    def test_run_persists_day_history_and_filters_future_bars(self):
+        import tempfile, types, sys
+        from pathlib import Path
+        from unittest.mock import patch
+        from screener import idea_tracking as tracking
+        class Frame:
+            def iter_rows(self, named=True):
+                return iter([dict(yf="000001.KS",date="2026-10-20",open=100,high=121,low=99,close=119)])
+        meeting={"date":"2026-10-19","asof":"2026-10-19 14:00","ideas_top":{"items":[dict(s="000001",n="fixture",side="롱",status="실행 후보",entry=100,entry_max=102,stop=90,target=120)]}}
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(tracking,"REPORT_DIR",Path(tmp)), patch.dict(sys.modules,{"screener.prices":types.SimpleNamespace(load_kr=lambda **kw:Frame())}):
+                first=tracking.run(meeting,datetime(2026,10,19,18,tzinfo=ZoneInfo("Asia/Seoul")))
+                self.assertEqual(first["rows"][0]["state"]["status"],"waiting")
+                second=tracking.run({},datetime(2026,10,20,16,tzinfo=ZoneInfo("Asia/Seoul")))
+                self.assertEqual(second["rows"][0]["state"]["status"],"target")
+                self.assertEqual(second["summary"]["closed"],1)
+                self.assertTrue((Path(tmp)/"idea_tracking/2026-10-19.json").exists())
+                self.assertTrue((Path(tmp)/"idea_tracking/2026-10-20.json").exists())
+
 if __name__=="__main__": unittest.main()
