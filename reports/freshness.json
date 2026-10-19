@@ -1,8 +1,26 @@
 {
- "checked_at": "2026-10-19 08:59",
+ "checked_at": "2026-10-19 10:21",
  "n": 23,
- "late": [],
- "regress_today": [],
+ "late": [
+  {
+   "id": "calendar",
+   "path": "reports/calendar.json",
+   "expected": "2026-10-19",
+   "actual": "2026-10-18",
+   "mode": "briefing premarket_kr (08:50 KST)",
+   "fix": "gh workflow run briefing.yml -f mode=dashboard -f commit=true",
+   "desc": "실적·이벤트 캘린더"
+  }
+ ],
+ "regress_today": [
+  {
+   "at": "2026-10-19 09:02",
+   "path": "reports/valuation.json",
+   "existing": "2026-10-17",
+   "new": "2026-10-16",
+   "mode": "screen_KR"
+  }
+ ],
  "regress_blocked": [
   {
    "at": "2026-10-19 09:02",
@@ -12,7 +30,16 @@
    "mode": "screen_KR"
   }
  ],
- "stale_today": [],
+ "stale_today": [
+  {
+   "at": "2026-10-19 09:02",
+   "path": "reports/macro_series.json",
+   "what": "KOSPI(16:20 손절선 점검)",
+   "want": "2026-10-19",
+   "got": "2026-10-16",
+   "mode": "screen_KR"
+  }
+ ],
  "stale": [
   {
    "at": "2026-10-19 09:02",
