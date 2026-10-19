@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+from .json_safe import dumps as strict_dumps
 import logging
 from datetime import date, timedelta
 
@@ -589,7 +590,7 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
     size = 0
     for s, v in out["stocks"].items():
         fp = d / f"{s}.json"
-        fp.write_text(json.dumps({**v, "symbol": s, "asof": out["asof"], "asof_label": _asof_label(market, out["asof"])}, ensure_ascii=False, default=str), encoding="utf-8")
+        fp.write_text(strict_dumps({**v, "symbol": s, "asof": out["asof"], "asof_label": _asof_label(market, out["asof"])}, ensure_ascii=False, default=str), encoding="utf-8")
         size += fp.stat().st_size
     from .guard import write_json
     write_json(d / "_index.json", {"asof": out["asof"], "symbols": sorted(out["stocks"]),

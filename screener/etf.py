@@ -15,6 +15,7 @@ US: 주요 ETF 목록, 구성은 야후 funds_data.top_holdings
 from __future__ import annotations
 
 import json
+from .json_safe import dumps as strict_dumps
 import logging
 import time
 from datetime import date, datetime, timedelta
@@ -27,7 +28,7 @@ log = logging.getLogger(__name__)
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
 KR_MUST = ["114800", "252670", "122630", "069500", "102110", "139260", "091160", "091230", "396500", "229200", "233740",
            "251340", "261240", "138230", "133690", "360750", "379800", "381170", "305720", "364980", "471760", "117700",
-           "132030", "305080", "148070", "114260", "153130", "261220"]
+           "132030", "305080", "148070", "114260", "153130", "261220", "475310"]
 US_LIST = ["SPY", "QQQ", "DIA", "IWM", "VOO", "VTI", "SCHD", "SOXX", "SMH", "PSI", "XLK", "XLE", "XLF", "XLV", "XLY", "XLP",
            "XLI", "XLU", "XLB", "XLRE", "XLC", "TLT", "IEF", "SHY", "HYG", "JNK", "LQD", "BKLN", "BND", "GLD", "SLV", "USO", "UNG", "UUP",
            "ARKK", "TQQQ", "SQQQ", "SOXL", "SOXS", "SH", "PSQ", "SDS", "UVXY", "EEM", "EWY", "EWJ", "FXI", "KWEB", "VEA", "VWO",
@@ -247,7 +248,7 @@ def build(market: str) -> int:
                "etf": {**info, **extra, "inverse": inv, "holdings": hold, "look": look},
                "stats": st, "chart": chart, "c1y": c1y, "research": {"items": []}, "flows": [], "disclosures": [],
                "financials": {}, "sim": {}, "scenarios": {}, "comment": {}}
-        (d / f"{code}.json").write_text(json.dumps(rec, ensure_ascii=False, default=str), encoding="utf-8")
+        (d / f"{code}.json").write_text(strict_dumps(rec, ensure_ascii=False, default=str), encoding="utf-8")
         if code not in idx["symbols"]:
             idx["symbols"].append(code)
         idx.setdefault("names", {})[code] = rec["name"]
