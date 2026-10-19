@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-19 02:34 KST",
+ "generated_at": "2026-10-20 05:14 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,15 +16,103 @@
  "first": "2026-10-15",
  "days": [
   {
+   "date": "2026-10-20",
+   "total": 57,
+   "work": 0,
+   "auto": 57,
+   "by": {},
+   "areas": [],
+   "auto_updates": {
+    "n": 57,
+    "label": "자동 갱신 57회",
+    "kinds": {
+     "live": 54,
+     "accum": 1,
+     "health": 1,
+     "briefing": 1
+    }
+   },
+   "tasks": {}
+  },
+  {
    "date": "2026-10-19",
-   "total": 9,
-   "work": 7,
-   "auto": 2,
+   "total": 154,
+   "work": 26,
+   "auto": 128,
    "by": {
-    "human": 4,
-    "bot": 3
+    "human": 15,
+    "bot": 11
    },
    "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 4,
+     "items": [
+      {
+       "sha": "13aadd64",
+       "time": "23:09",
+       "kind": "human",
+       "summary": "GPT: prevent MY analysis from hanging on slow requests and render errors",
+       "areas": [
+        "web",
+        "tools"
+       ],
+       "files": 4,
+       "tasks": [
+        "index-split",
+        "r3-semi-band",
+        "my-tab-ledger-compare"
+       ]
+      },
+      {
+       "sha": "1882725b",
+       "time": "23:00",
+       "kind": "human",
+       "summary": "GPT: repair battle table script and regenerate Pages from all source tabs",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": [
+        "index-split",
+        "r14-duel-guard"
+       ]
+      },
+      {
+       "sha": "53274049",
+       "time": "18:25",
+       "kind": "human",
+       "summary": "GPT: track immutable top-three trade ideas with conservative paper entries and daily status",
+       "areas": [
+        "web",
+        "engine",
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 8,
+       "tasks": [
+        "index-split"
+       ]
+      },
+      {
+       "sha": "48b5a240",
+       "time": "18:11",
+       "kind": "human",
+       "summary": "GPT: show daily mock battle marks separately from final results",
+       "areas": [
+        "web",
+        "data"
+       ],
+       "files": 4,
+       "tasks": [
+        "index-split",
+        "r14-duel-guard"
+       ]
+      }
+     ]
+    },
     {
      "area": "workflow",
      "label": "워크플로",
@@ -77,10 +165,140 @@
      ]
     },
     {
+     "area": "engine",
+     "label": "엔진",
+     "n": 2,
+     "items": [
+      {
+       "sha": "7dde2490",
+       "time": "23:16",
+       "kind": "human",
+       "summary": "GPT: repair SPCX strict JSON and include SOL 475310 ETF detail",
+       "areas": [
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 7,
+       "tasks": [
+        "guard-rest"
+       ]
+      },
+      {
+       "sha": "c788f996",
+       "time": "12:13",
+       "kind": "human",
+       "summary": "GPT: distinguish daily quote status and source times; record terminal follow-ups",
+       "areas": [
+        "engine",
+        "ops",
+        "tools",
+        "docs"
+       ],
+       "files": 4,
+       "tasks": [
+        "ops-system",
+        "gpt-daily-source-time"
+       ]
+      }
+     ]
+    },
+    {
      "area": "ops",
      "label": "운영",
-     "n": 3,
+     "n": 10,
      "items": [
+      {
+       "sha": "7a032ef0",
+       "time": "23:17",
+       "kind": "bot",
+       "summary": "team: 2026-10-19T14:17 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "db969645",
+       "time": "23:10",
+       "kind": "bot",
+       "summary": "team: 2026-10-19T14:10 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "f50bfb79",
+       "time": "23:01",
+       "kind": "bot",
+       "summary": "team: 2026-10-19T14:01 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "4c95d51c",
+       "time": "23:00",
+       "kind": "bot",
+       "summary": "team: 2026-10-19T14:00 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b274017b",
+       "time": "18:26",
+       "kind": "bot",
+       "summary": "team: 2026-10-19T09:26 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "36fbd48d",
+       "time": "18:12",
+       "kind": "bot",
+       "summary": "team: 2026-10-19T09:12 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "5e2ed174",
+       "time": "12:14",
+       "kind": "bot",
+       "summary": "team: 2026-10-19T03:14 (push 트리거)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "9ba98fe7",
        "time": "00:16",
@@ -121,18 +339,112 @@
        ]
       }
      ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 1,
+     "items": [
+      {
+       "sha": "e29bc62b",
+       "time": "23:00",
+       "kind": "human",
+       "summary": "GPT: cover daily idea persistence and completed-bar filtering end to end",
+       "areas": [
+        "tools"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 5,
+     "items": [
+      {
+       "sha": "6ff1c7f9",
+       "time": "21:28",
+       "kind": "bot",
+       "summary": "pick: pick-us 2026-10-19",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5a075ba1",
+       "time": "17:58",
+       "kind": "human",
+       "summary": "GPT: restore 15:03 preregistered PB picks lost in live commit; preserve user pick",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "c0630b2d",
+       "time": "15:03",
+       "kind": "human",
+       "summary": "GPT: preregister cash PB and KODEX 200 mock overnight battle",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a253868f",
+       "time": "07:25",
+       "kind": "human",
+       "summary": "GPT: revise October 19 English lesson around verified weekend news",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "001b25c2",
+       "time": "07:04",
+       "kind": "human",
+       "summary": "content(GPT): English and aptitude 2026-10-19 KST; verified Oct 16 source dates",
+       "areas": [
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      }
+     ]
     }
    ],
    "auto_updates": {
-    "n": 2,
-    "label": "자동 갱신 2회",
+    "n": 128,
+    "label": "자동 갱신 128회",
     "kinds": {
-     "health": 1,
-     "lab": 1
+     "live": 103,
+     "briefing": 14,
+     "health": 2,
+     "ops": 2,
+     "report": 2,
+     "lab": 1,
+     "fin": 1,
+     "study_daily": 1,
+     "pick": 1,
+     "deriv": 1
     }
    },
    "tasks": {
-    "ops-system": 3
+    "ops-system": 11,
+    "index-split": 4,
+    "r14-duel-guard": 2,
+    "gpt-daily-source-time": 1,
+    "r3-semi-band": 1,
+    "my-tab-ledger-compare": 1,
+    "guard-rest": 1
    }
   },
   {
