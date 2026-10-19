@@ -3,23 +3,40 @@
  "n": 23,
  "late": [],
  "regress_today": [],
- "regress_blocked": [],
+ "regress_blocked": [
+  {
+   "at": "2026-10-19 09:02",
+   "path": "reports/valuation.json",
+   "existing": "2026-10-17",
+   "new": "2026-10-16",
+   "mode": "screen_KR"
+  }
+ ],
  "stale_today": [],
- "stale": [],
+ "stale": [
+  {
+   "at": "2026-10-19 09:02",
+   "path": "reports/macro_series.json",
+   "what": "KOSPI(16:20 손절선 점검)",
+   "want": "2026-10-19",
+   "got": "2026-10-16",
+   "mode": "screen_KR"
+  }
+ ],
  "contract": "ops/freshness.json",
  "health": [
   {
    "id": "secret:MY_RULES",
    "what": "알림 비활성: MY_RULES 없음",
-   "since": "2026-10-19 08:59",
-   "by": "pb",
+   "since": "2026-10-19 09:02",
+   "by": "alerts",
    "fix": "GitHub Settings → Secrets → MY_RULES 생성"
   },
   {
    "id": "secret:MY_HOLDINGS",
    "what": "알림 비활성: MY_HOLDINGS 없음",
-   "since": "2026-10-19 08:59",
-   "by": "pb",
+   "since": "2026-10-19 09:02",
+   "by": "alerts",
    "fix": "GitHub Settings → Secrets → MY_HOLDINGS 생성"
   }
  ]
