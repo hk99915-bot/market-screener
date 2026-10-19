@@ -45,7 +45,7 @@ console.log('MY loading: hung index, render error, timeout, stale callback, boun
    myRender([{r:{m:'KR',s:'005930'},qty:2,avg:100}], [{cash:'KRW',amt:100,book:'isa'}],[]);
   `,c);
   assert(out.innerHTML.includes('PB 의견'));assert(out.innerHTML.includes('스트레스 테스트'));
-  if(!ratio)assert(out.innerHTML.includes('20'));
+  if(!ratio)assert(out.innerHTML.includes('20원'));
  }
 }
 console.log('MY real renderer: ratio and amount modes passed');
