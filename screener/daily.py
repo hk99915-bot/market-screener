@@ -57,6 +57,18 @@ def _text(it: dict) -> str:
                      it.get("risk") or "", it.get("summary") if it.get("summary") not in (None, "-") else ""])
 
 
+def quote_label(live: dict) -> str:
+    """Keep quote time separate from report generation; unknown status is not final."""
+    kospi = next((x for x in live.get("items", []) if x.get("key") == "KOSPI"), {})
+    status = str(kospi.get("status") or "").upper()
+    stamp = str(live.get("asof") or live.get("updated_at") or "시각 미확인")
+    if status == "OPEN":
+        return f"장중 · 시세 {stamp}"
+    if status == "CLOSE":
+        return f"마감 · 거래일 {live.get('trade_date') or '미확인'} · 수집 {stamp}"
+    return f"상태 미확인 · 시세 {stamp}"
+
+
 def build(days: int = 7) -> dict:
     now = datetime.now(KST)
     res, dash, live = _load("research.json"), _load("dashboard.json"), _load("live.json")
@@ -80,7 +92,8 @@ def build(days: int = 7) -> dict:
     _i, _c = st.get("intraday_snapshot") or {}, st.get("close_snapshot") or {}
     use_close = isinstance(_c, dict) and str(_c.get("at", ""))[:10] == str(_i.get("at", ""))[:10] and str(_c.get("at", "")) > str(_i.get("at", ""))
     snap = (_c.get("value") if use_close else _state(st, "intraday_snapshot")) or {}
-    flow_tag = "마감" if use_close else ("잠정 " + str(_i.get("at", ""))[11:16] if _i else "")
+    flow_at = str((_c if use_close else _i).get("at") or "기준시각 미확인")
+    flow_tag = ("마감 " if use_close else "잠정 ") + flow_at
     fk = ((snap.get("flows") or {}).get("KOSPI") or {})
     top_lines = []
     for k, label in (("KOSPI", "KOSPI"), ("KOSDAQ", "KOSDAQ"), ("SPX", "S&P500"), ("NASDAQ", "나스닥"), ("VIX", "VIX"),
@@ -171,11 +184,10 @@ def build(days: int = 7) -> dict:
     # ── 헤드라인 ──
     head = []
     if kchg is not None:
-        kst = (lv.get("KOSPI") or {}).get("status")
-        tag = "확정" if kst and kst != "OPEN" else ("장중 " + str(live.get("updated_at", ""))[6:11]) if "KOSPI" in lv else "전일"
+        tag = quote_label(live) if "KOSPI" in lv else "저장 매크로 · 기준시각 미확인"
         head.append(f"KOSPI {kchg*100:+.1f}% ({tag})")
     if fk.get("외국인") is not None:
-        head.append(f"외국인 {fk['외국인']/10000:+.1f}조")
+        head.append(f"외국인 {fk['외국인']/10000:+.1f}조 ({flow_tag})")
     if themes:
         head.append(f"리서치는 {themes[0]['theme']} 중심({themes[0]['n']}건)")
     if links:

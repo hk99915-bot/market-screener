@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-17",
+  "updated": "2026-10-19",
   "owners": [
     "PB",
     "퀀트",
@@ -2308,6 +2308,35 @@
       "depends_on": [
         "integrity-p0-4"
       ]
+    },
+    {
+      "id": "gpt-daily-source-time",
+      "title": "데일리 시세 상태·수급 기준시각 명시",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "완료",
+      "started": "2026-10-19",
+      "due": "2026-10-19",
+      "repo": "public",
+      "files": [
+        "screener/daily.py",
+        "tests/test_daily_quote_label.py"
+      ],
+      "depends_on": [],
+      "notes": "GPT: OPEN 외 상태를 모두 확정으로 표시하던 오류 수정. CLOSE는 거래일·수집시각, 그 외 상태 미확인; 수급 원자료 시각 표시. 테스트 3건·check_functions/build 통과. 기존 산출물은 다음 데일리 생성 때 적용."
+    },
+    {
+      "id": "gpt-terminal-followup-1019",
+      "title": "터미널 점검 잔여: 알림 설정·캘린더 갱신",
+      "owner": "운영",
+      "priority": "P0",
+      "status": "대기",
+      "started": "2026-10-19",
+      "due": "2026-10-19",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "notes": "GPT 점검: live 12:08, daily 10:35, 공개 research 10:35·1564건·최신 발간 10/19. freshness 11:39: calendar 10/18로 지연, MY_RULES/MY_HOLDINGS 없음 경보. 실제 시크릿 값은 공개에 기록하지 않음. 수집 완료와 개인 알림 활성 구분. 캘린더 dashboard commit=true 재생성 후 검증 필요."
     }
   ]
 }
