@@ -1023,9 +1023,36 @@ function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) retur
       }).catch(e=>{ $('#mycone').textContent='불러오기 실패('+e.message+')'; }); };
     $('#mycsel').onchange=e=>load(+e.target.value); load(0);
   }).catch(e=>{ b.textContent='불러오기 실패('+e.message+') — 토큰 권한 확인'; delete b.dataset.done; }); }
-function myFetch(list,cb){ let left=list.length; if(!left) return cb(); const done=()=>{ if(--left<=0) cb(); };
-  for(const [m,sy] of list){ const k=m+':'+sy; if(MYD[k]){ done(); continue; }
-    google.script.run.withSuccessHandler(t=>{try{MYD[k]=JSON.parse(t);}catch(e){} done();}).withFailureHandler(()=>done()).getStock(m,sy); } }
+let MYRUN_ID=0;
+function myRequest(method,args,cb){
+  let settled=false;
+  const finish=(err,value)=>{if(settled) return; settled=true; clearTimeout(timer); cb(err,value);};
+  const timer=setTimeout(()=>finish(new Error('응답 시간 초과')),12000);
+  try{google.script.run.withSuccessHandler(t=>{
+    let value; try{value=JSON.parse(t);if(!value||typeof value!=='object') throw Error('자료 형식 오류');}
+    catch(e){finish(new Error('자료 형식 오류'));return;} finish(null,value);
+  }).withFailureHandler(()=>finish(new Error('자료 요청 실패')))[method](...args);}
+  catch(e){finish(new Error('자료 요청 실패'));}
+}
+function myFetch(list,cb,active=()=>true){
+  const queue=[...new Map(list.map(x=>[x[0]+':'+x[1],x])).values()];
+  let next=0,running=0,finished=0,called=false;const failed=[];
+  const pump=()=>{
+    if(!active()||called)return;
+    if(finished===queue.length){called=true;cb(failed);return;}
+    while(running<4&&next<queue.length){
+      const [m,sy]=queue[next++],k=m+':'+sy;
+      if(MYD[k]){finished++;continue;}
+      running++;
+      myRequest('getStock',[m,sy],(err,d)=>{
+        running--;finished++;
+        if(!err&&d&&Number.isFinite(d.close)&&d.close>0)MYD[k]=d;else failed.push(k);
+        pump();
+      });
+    }
+    if(finished===queue.length&&!called){called=true;cb(failed);}
+  };pump();
+}
 // 결재 #3 레짐 (pb.py semi_regime 과 같은 정의): 상승장 = 52주 고점 −10% 이내 & 200일선 위 · 회복확인 = 20일선 위 2일 연속 · 나머지 하락장(데이터 없으면 하락장)
 function myRegime(c){ c=(c||[]).filter(x=>x>0); if(c.length<20) return {regime:'하락장',dd:null,above20:0,src:'데이터 없음 → 하락장 가정'};
   const last=c[c.length-1], hi=Math.max(...c.slice(-252)), dd=last/hi-1, ma=c.length>=200?c.slice(-200).reduce((s,x)=>s+x,0)/200:null;
@@ -1041,20 +1068,42 @@ function myGlide(semi,den,monthly,day,by,target){ const kst=new Date(Date.now()+
   const denEnd=den+k*monthly; pts.push({d:by,x:semi/denEnd,line:target,what:'목표일'});
   return {points:pts, need:den?Math.max(semi-target*denEnd,0)/den:0, n:k}; }
 function myRun(){
-  if(typeof CH!=='undefined'&&CH===null){ CH=false; google.script.run.withSuccessHandler(t=>{try{CH=JSON.parse(t);}catch(e){CH={};}}).getChains(); }
-  if(typeof PF!=='undefined'&&PF===null){ PF=false; google.script.run.withSuccessHandler(t=>{try{PF=JSON.parse(t);}catch(e){PF={};}}).getPortfolios(); }
-  const out=$('#myout'); if(!out) return; out.innerHTML='<div class="load">LOADING …</div>';
-  loadIndex(()=>{
-    const all=myParse($('#myta').value);
-    const hs=all.filter(h=>h.key).map(h=>({...h, r:myResolve(h.key)}));
-    const cash=all.filter(h=>h.cash);
-    window._mySav=all.filter(h=>h.sav!=null).reduce((s,h)=>s+h.sav,0);
-    const im=all.filter(h=>h.isam!=null); window._myIsaM={amt:im.reduce((s,h)=>s+h.isam,0), day:im.length?im[im.length-1].isad:1};
-    const miss=hs.filter(h=>!h.r).map(h=>h.key);
-    const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]), ...HEDGES.map(x=>[x[0],x[1]]), ...BENCH];
-    const go=()=>myFetch(need,()=>myRender(hs,cash,miss));
-    if(MYX===null) google.script.run.withSuccessHandler(t=>{try{MYX=JSON.parse(t).series;}catch(e){MYX={};} go();}).withFailureHandler(()=>{MYX={};go();}).getMacroSeries(); else go();
-  });
+  const out=$('#myout'), input=$('#myta');if(!out||!input)return;
+  const id=++MYRUN_ID,txt=input.value;let ended=false,stage='종목 목록';
+  const active=()=>!ended&&id===MYRUN_ID&&$('#myout')===out;
+  const fail=message=>{if(!active())return;ended=true;clearTimeout(deadline);
+    out.innerHTML='<div class="err">'+esc(message)+'</div><button class="sbtn" id="myretry">다시 분석</button>';
+    const b=$('#myretry');if(b)b.onclick=myRun;
+  };
+  const deadline=setTimeout(()=>fail(stage+' 응답이 지연됐어요. 입력은 유지됩니다. 연결 상태를 확인하고 다시 분석해 주세요.'),45000);
+  const progress=s=>{stage=s;if(active())out.innerHTML='<div class="load">'+esc(s)+' 불러오는 중…</div>';};
+  const guarded=fn=>(...args)=>{if(!active())return;try{fn(...args);}catch(e){fail('분석 표시 중 오류가 발생했어요. 입력은 유지됩니다. 다시 분석해 주세요.');}};
+  progress(stage);
+  try{
+    if(typeof CH!=='undefined'&&CH===null)myRequest('getChains',[],(e,d)=>{CH=e?null:d;});
+    if(typeof PF!=='undefined'&&PF===null)myRequest('getPortfolios',[],(e,d)=>{PF=e?null:d;});
+    loadIndex(guarded(()=>{
+      const all=myParse(txt),hs=all.filter(h=>h.key).map(h=>({...h,r:myResolve(h.key)})),cash=all.filter(h=>h.cash);
+      window._mySav=all.filter(h=>h.sav!=null).reduce((s,h)=>s+h.sav,0);
+      const im=all.filter(h=>h.isam!=null);window._myIsaM={amt:im.reduce((s,h)=>s+h.isam,0),day:im.length?im[im.length-1].isad:1};
+      const miss=hs.filter(h=>!h.r).map(h=>h.key);
+      if(miss.length)return fail('종목 목록에서 찾지 못했어요: '+miss.join(', ')+' — 입력 또는 연결을 확인해 주세요.');
+      const need=[...hs.filter(h=>h.r).map(h=>[h.r.m,h.r.s]),...HEDGES.map(x=>[x[0],x[1]]),...BENCH];
+      const go=()=>{progress('종목 시세');myFetch(need,guarded(failed=>{
+        const required=hs.filter(h=>h.r).map(h=>h.r.m+':'+h.r.s);
+        if(failed.some(k=>required.includes(k)))return fail('보유 종목 시세를 불러오지 못했어요. 일부 보유분을 제외한 분석은 표시하지 않습니다.');
+        if(!MYX||!Array.isArray(MYX.KOSPI)||MYX.KOSPI.length<21)return fail('분석에 필요한 코스피 이력이 부족해요. 잠시 후 다시 분석해 주세요.');
+        progress('분석 계산');
+        myRender(hs,cash,miss);
+        if(failed.length)out.insertAdjacentHTML('afterbegin','<div class="am">비교·헤지 자료 일부 누락: '+esc(failed.join(', '))+'</div>');
+        ended=true;clearTimeout(deadline);
+      }),active);};
+      if(MYX===null){progress('시장 이력');myRequest('getMacroSeries',[],guarded((err,d)=>{
+        if(err||!d.series)return fail('시장 이력을 불러오지 못했어요. 다시 분석해 주세요.');
+        MYX=d.series;go();
+      }));}else go();
+    }));
+  }catch(e){fail('분석을 시작하지 못했어요. 새로고침 후 다시 시도해 주세요.');}
 }
 function myRender(hs,cash,miss){
   window._myLast=[hs,cash,miss]; const RO=myRatioOnly();
