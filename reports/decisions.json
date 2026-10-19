@@ -32,13 +32,13 @@
     "나": {
      "ret": 0.0192,
      "pnl": 15371,
-     "buy": 5580.0,
-     "sell": 5690.0,
+     "buy": 5580,
+     "sell": 5690,
      "detail": "2026-10-15 종가 5,580 → 2026-10-16 시가 5,690"
     },
     "PB": {
-     "ret": 0.0,
-     "pnl": 0.0,
+     "ret": 0,
+     "pnl": 0,
      "detail": "현금 유지"
     },
     "winner": "나",
@@ -77,13 +77,13 @@
     "나": {
      "ret": 0.0665,
      "pnl": 66532,
-     "buy": 195130.0,
-     "sell": 208210.0,
+     "buy": 195130,
+     "sell": 208210,
      "detail": "2026-10-15 종가 195,130 → 2026-10-16 시가 208,210"
     },
     "PB": {
-     "ret": 0.0,
-     "pnl": 0.0,
+     "ret": 0,
+     "pnl": 0,
      "detail": "현금 유지"
     },
     "winner": "나",
@@ -104,7 +104,7 @@
     "PB": {
      "ticker": "SOXX",
      "name": "iShares Semiconductor ETF",
-     "notional": 1000000.0,
+     "notional": 1000000,
      "entry": "open",
      "exit": "d5_close",
      "by": "PB 재량",
@@ -137,7 +137,7 @@
     "plan": {
      "target": 0.06,
      "stop": -0.03,
-     "rr": 2.0,
+     "rr": 2,
      "win_rate": 0.636,
      "n": 22,
      "ev": null,
@@ -145,7 +145,7 @@
     },
     "real": {
      "ok": false,
-     "size_pct": 0.0,
+     "size_pct": 0,
      "note": "실계좌 반도체 비중이 테마 한도(40%) 초과 — 반도체 신규 추가 불가, 반등 시 축소 우선."
     }
    },
@@ -164,7 +164,7 @@
     "나": {
      "ticker": "475310",
      "name": "SOL 반도체후공정",
-     "notional": 1000000.0,
+     "notional": 1000000,
      "entry": "close",
      "exit": "trail",
      "submitted": "11:46",
@@ -173,7 +173,7 @@
     "PB": {
      "ticker": "015760",
      "name": "한국전력",
-     "notional": 1000000.0,
+     "notional": 1000000,
      "entry": "close",
      "exit": "d5_close",
      "by": "PB 재량",
@@ -324,7 +324,7 @@
     "나": {
      "ticker": "SNDK",
      "name": "SNDK",
-     "notional": 1860000.0,
+     "notional": 1860000,
      "entry": "open",
      "exit": "d5_close",
      "submitted": "22:23"
@@ -340,7 +340,7 @@
     "PB🔥": {
      "ticker": "TQQQ",
      "name": "ProShares UltraPro QQQ",
-     "notional": 3000000.0,
+     "notional": 3000000,
      "entry": "open",
      "exit": "same_close",
      "by": "공격 PB",
@@ -349,7 +349,7 @@
     "나🔥": {
      "ticker": "SOXL",
      "name": "Direxion Semiconductor Bull 3X",
-     "notional": 1000000.0,
+     "notional": 1000000,
      "entry": "open",
      "exit": "d5_close",
      "why": "감",
@@ -511,7 +511,7 @@
     "나": {
      "ticker": "114800",
      "name": "KODEX 인버스",
-     "notional": 1000000.0,
+     "notional": 1000000,
      "entry": "close",
      "exit": "next_open",
      "lev_cap": "레버리지 -1배 보유 상한 1일(결재 #14)",
@@ -519,10 +519,21 @@
      "submitted": "15:15"
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "GPT PB 재량",
+     "at": "15:03"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "069500",
+     "name": "KODEX 200",
+     "notional": 1000000,
+     "entry": "close",
+     "exit": "next_open",
+     "by": "GPT 공격 PB",
+     "at": "15:03"
     }
    },
    "basis": {
@@ -533,6 +544,22 @@
      "장중 범위 안 위치 87% (0=저점, 100=고점)",
      "외국인 현물 -0.18조 · 프로그램 비차익 +4,700억"
     ]
+   },
+   "pb_view": {
+    "why": "GPT 모의 판단: 검증된 진입 신호가 없고 개별 후보 데이터 품질 문제가 있어 보수 PB는 현금. 규칙 산출물과 별도로 판단.",
+    "lines": [
+     "판단 입력: live 2026-10-19 14:58 KST KOSPI +0.74%, K200F 베이시스 +2.92; 운용회의 14:19.",
+     "공격 가설: 장중 반등이 다음 거래일 시가까지 이어지는지 비레버리지 지수 ETF로 검증. 통계적 우위는 미확인.",
+     "개별 후보의 업종 오분류·촉매 없음 때문에 종목 순위는 근거에서 제외. GPT 단일 작성, 독립 데스크 투표 아님."
+    ],
+    "conviction": "낮음",
+    "at": "15:03",
+    "real": "모의 배틀 전용. 실계좌·ISA 매수 지시 아님.",
+    "plan": "현금 PB와 동일 가상원금 기준 비교. 기존 decisions.py의 왕복 비용 0.05%와 다음 거래일 시가 채점 적용. 진입·청산 가격 확보 전 미채점.",
+    "bold": {
+     "why": "단기 반등 지속 가설을 비레버리지 KOSPI200으로 시험",
+     "plan": "가상원금 100만원, 오늘 확정 종가 진입·다음 거래일 시가 청산. 추가 매수·보유 연장 없음. 가격 누락 시 미채점; 사후 픽 변경 금지."
+    }
    }
   }
  ],
@@ -542,7 +569,7 @@
    "n": 2,
    "pnl": 81903,
    "trades": 2,
-   "hit": 1.0,
+   "hit": 1,
    "avg_win": 0.0428,
    "avg_loss": null,
    "payoff": null,
@@ -551,7 +578,7 @@
   "PB": {
    "win": 0,
    "n": 2,
-   "pnl": 0.0,
+   "pnl": 0,
    "trades": 0,
    "hit": null,
    "avg_win": null,
@@ -567,7 +594,7 @@
     "n": 2,
     "pnl": 81903,
     "trades": 2,
-    "hit": 1.0,
+    "hit": 1,
     "avg_win": 0.0428,
     "avg_loss": null,
     "payoff": null,
@@ -576,7 +603,7 @@
    "PB": {
     "win": 0,
     "n": 2,
-    "pnl": 0.0,
+    "pnl": 0,
     "trades": 0,
     "hit": null,
     "avg_win": null,
