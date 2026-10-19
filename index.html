@@ -1171,7 +1171,7 @@ function myRender(hs,cash,miss){
      return {ty,nm,sy,m,rho,amt:0.10*NAV,red,dret:rq,ret1y:ann(r)}; }).filter(Boolean);
   // 목표 변동성으로 주식 비중
   const tv=0.20, eqW=tot/NAV, eqTarget=Math.min(Em.vol?tv/Em.vol:eqW,1);
-  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), KW=x=>RO?'<span class="mu" title="비율만 보기 ON">•••</span>':KW(x), F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
+  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), KW=x=>RO?'<span class="mu" title="비율만 보기 ON">•••</span>':K(x)+'원', F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
   // PB 의견
   const op=[];
@@ -1256,6 +1256,7 @@ function myRender(hs,cash,miss){
    <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
 }
 </script>
+
 
 <!-- tab_life.html — LIFE 탭 — pb-private/life/summary.json (lifeView·건강 패널).
      apps-script/Index.html 이 include('tab_life') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
@@ -2315,6 +2316,7 @@ function cmtUSView(){
 }
 </script>
 
+
 <!-- tab_duel.html — 대결·주문표 — reports/decisions.json 진입 판·주문표·채점 (decBox·ticketBox). DAILY·QUANT 시그널 화면에 끼워짐.
      apps-script/Index.html 이 include('tab_duel') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
@@ -3149,6 +3151,7 @@ function drawCanvas(ch,sc,rs,kr){
 }
 
 </script>
+
 
 <script>
 /* ───── 공용: 라이브 시세 띠·헤더 시각·render·탭 전환·부트스트랩 ───── */

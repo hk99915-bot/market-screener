@@ -440,7 +440,7 @@ function myRender(hs,cash,miss){
      return {ty,nm,sy,m,rho,amt:0.10*NAV,red,dret:rq,ret1y:ann(r)}; }).filter(Boolean);
   // 목표 변동성으로 주식 비중
   const tv=0.20, eqW=tot/NAV, eqTarget=Math.min(Em.vol?tv/Em.vol:eqW,1);
-  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), KW=x=>RO?'<span class="mu" title="비율만 보기 ON">•••</span>':KW(x), F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
+  const W=x=>(x*100).toFixed(0)+'%', K=x=>num(Math.round(x),0), KW=x=>RO?'<span class="mu" title="비율만 보기 ON">•••</span>':K(x)+'원', F=(x,d=2)=>x==null||!isFinite(x)?'—':x.toFixed(d);
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)';
   // PB 의견
   const op=[];
