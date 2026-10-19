@@ -1408,6 +1408,8 @@ def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict
         log.warning("운용회의 v2 bottom_line 실패: %s", e)
     try:
         _ideas_log_append(out)
+        from .idea_tracking import run as track_ideas
+        out["idea_tracking"] = track_ideas(out)
     except Exception as e:  # noqa: BLE001
         log.info("아이디어 기록 실패: %s", e)
     out["footer"] = V2_FOOTER

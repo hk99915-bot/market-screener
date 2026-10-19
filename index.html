@@ -2042,6 +2042,35 @@ function engView(){
      apps-script/Index.html 이 include('tab_committee') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
+
+let IDEA_TRACKING=null;
+function ideaTrackingBox(){
+  if(IDEA_TRACKING===null){
+    IDEA_TRACKING={loading:true};
+    fetch('https://hk99915-bot.github.io/market-screener/reports/idea_tracking.json',{cache:'no-store'})
+      .then(r=>{if(!r.ok) throw Error('tracking'); return r.json();})
+      .then(d=>{IDEA_TRACKING=d; render();})
+      .catch(()=>{IDEA_TRACKING={error:true}; render();});
+  }
+  if(IDEA_TRACKING.loading) return '<div class="mu">아이디어 추적 불러오는 중…</div>';
+  if(IDEA_TRACKING.error) return '<div class="am">아이디어 추적 자료 확인 필요 — 새로고침 후 확인</div>';
+  return ideaTrackingHtml(IDEA_TRACKING);
+}
+function ideaTrackingHtml(d){
+  const labels={waiting:'진입 대기',not_entered:'미진입',open:'보유 중',target:'목표 종료',stop:'종가 손절',timeout:'시간 손절',expired:'미진입 만료',ambiguous:'동일일 목표·손절 — 판정 보류',review:'검증 보류'};
+  const f=v=>Number.isFinite(v)?num(v,0):'—';
+  const pctv=v=>Number.isFinite(v)?(v>0?'+':'')+(v*100).toFixed(2)+'%':'—';
+  const stats=d.summary||{};
+  return '<div style="border-top:1px solid var(--line);margin-top:12px;padding-top:8px"><b>아이디어 일별 추적 · 모의</b>'+
+    '<div class="mu" style="font-size:11px">갱신 '+esc(d.asof||'')+' KST · 종료 '+f(stats.closed)+'건 · 종료 적중률 '+pctv(stats.hit_rate)+' · 종료 평균손익 '+pctv(stats.avg_return)+' · 미진입률 '+pctv(stats.no_entry_rate)+' (진입 여부 확인 '+f(stats.resolved)+'건 기준)</div>'+
+    '<div style="overflow-x:auto"><table><tr><th>제안일 · 종목</th><th>원래 진입 구간</th><th>원래 손절 / 목표</th><th>상태</th><th>모의 진입 / 평가</th><th>가격 기준일</th><th>비용 후 손익</th></tr>'+
+    [...(d.rows||[])].reverse().slice(0,60).map(r=>{const p=r.original||{},s=r.state||{};return '<tr><td>'+esc(r.date)+' · '+esc(r.name)+'</td><td>'+f(p.entry)+'~'+f(p.entry_max)+'</td><td>'+f(p.stop)+' / '+f(p.target)+'</td><td>'+esc(labels[s.status]||'검증 보류')+'</td><td>'+f(s.entry_price)+' / '+f(s.mark_price)+'</td><td>'+esc(s.price_date||'—')+'</td><td class="'+(s.ret>=0?'up':'dn')+'">'+pctv(s.ret)+'</td></tr>'+
+      '<tr><td colspan="7" class="l mu" style="font-size:11px;white-space:normal">'+esc(s.reason||s.source_check||p.status||'')+
+      ' · 최초 기록 '+esc(r.proposed_at||'')+' · '+esc((p.catalyst||[]).map(x=>x.what).join(' / ')||'촉매 미기록')+
+      (p.kill?' · '+esc(p.kill.join(' / ')):'')+'</td></tr>';}).join('')+'</table></div>'+
+    '<div class="mu" style="font-size:11px;white-space:normal">'+esc(d.policy||'')+' · 진행 중·판정 보류는 종료 적중률에서 제외. 과거 원천별 성적표와 별도 집계.</div></div>';
+}
+
 let CMT=null, CMTU=null, CMK='KR', DOT=null;
 function cmtView(){
   if(CMK==='US') return cmtUSView();
@@ -2181,7 +2210,7 @@ function cmtV2Html(o){
      <div style="font-size:11.5px;margin-top:3px">${cmtSrcHtml(x.sources)}</div>${x.score!=null?`<div class="mu" style="font-size:11px">확신 점수 ${x.score}</div>`:''}</div>`;
   sec.push(cmtSec(5,'트레이드 아이디어 (최대 3)','모델 북 · 진입·손절·목표·촉매·kill criteria',
     `${(I.items||[]).length?`<div style="display:flex;gap:8px;flex-wrap:wrap">${I.items.map(card).join('')}</div>`:`<div class="mu">${esc(I.empty||'아이디어 없음 — 대기')}</div>`}
-    <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.formula||'')}${I.entry_gate?' · 진입 VIEW 게이트: '+esc(I.entry_gate):''}</div>${st&&st.exec?execHtml(st.exec):''}`,true));
+    <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.formula||'')}${I.entry_gate?' · 진입 VIEW 게이트: '+esc(I.entry_gate):''}</div>${ideaTrackingBox()}${st&&st.exec?execHtml(st.exec):''}`,true));
   // 6. 헤지 · 비대칭
   const A=o.asymmetry||H.asymmetry;
   sec.push(cmtSec(6,'헤지 · 비대칭','최악 시나리오 대비 비용 (모델 북 기준)',
