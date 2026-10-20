@@ -412,6 +412,9 @@ def main() -> None:
                 from . import events
                 events.check(snap, send=True)
                 events.stats()
+                if snap:   # 이벤트 확인 시각 = 이번 시세 시각 (홈 '오늘 · HH:MM 확인', 감사 10/21 #4)
+                    from .guard import write_json
+                    write_json(REPORT_DIR / "live.json", {**snap, "events_checked_at": snap["asof"]})
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 추적 실패: %s", e)
         elif a.mode == "pb_call":   # PB 재량 판단 기록 (예약 세션 → workflow_dispatch payload)

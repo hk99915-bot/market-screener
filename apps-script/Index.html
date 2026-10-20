@@ -294,7 +294,7 @@ function med(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)
 <script>
 /* ───── 공용: 라이브 시세 띠·헤더 시각·render·탭 전환·부트스트랩 ───── */
 let L=null;
-function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D){ tape(); genHdr(); }}).withFailureHandler(()=>{}).getLive();}
+function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D){ tape(); genHdr(); } const hb=$('#homeev'); if(hb&&EVS) hb.innerHTML=evPanel();}).withFailureHandler(()=>{}).getLive();}   // 이벤트 확인 시각은 live.json (감사 10/21 #4)
 let TAPE_HTML='';
 function tkItem(k,v,c,dg,lagDate){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f', ar=cls==='u'?'▲':cls==='d'?'▼':'■';
   return `<span class="ti ${cls}" data-key="${esc(k)}" title="${esc(k)} 차트 보기${lagDate?' · 마지막 봉 '+esc(lagDate)+' (같은 시장 다른 지표보다 이전 날짜 — 등락률 비교 주의)':''}"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}${lagDate?` <span class="mu">(${esc(lagDate.slice(5))} 기준)</span>`:''}</span></span>`; }

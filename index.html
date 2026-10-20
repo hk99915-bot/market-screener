@@ -737,7 +737,7 @@ function evPanel(){
   const recent=(EVS.events||[]).filter(e=>e.date>=new Date(Date.now()+9*3600e3-7*864e5).toISOString().slice(0,10));
   const S=EVS.cb_summary||{}, B=EVS.big_summary||{};
   const sm=(o,lab)=>o.d1?`<div style="font-size:12.5px;margin:2px 0">${lab}: 다음날 평균 ${pct(o.d1.avg,1)} (상승 ${Math.round(o.d1.up*100)}%, ${o.d1.n}회)${o.d5?` · 5일 ${pct(o.d5.avg,1)} (${Math.round(o.d5.up*100)}%)`:''}${o.d20?` · 20일 ${pct(o.d20.avg,1)} (${Math.round(o.d20.up*100)}%)`:''}</div>`:'';
-  const tn=(EVS.events||[]).filter(e=>e.date===today).length, ck=EVS.checked_at||'';
+  const tn=(EVS.events||[]).filter(e=>e.date===today).length, ck=(L&&L.events_checked_at)||EVS.checked_at||'';
   const todayLine=ck.slice(0,10)===today
     ?`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> ${tn?`<span style="color:var(--dn)">이벤트 ${tn}건</span>`:'주요 이벤트 없음 (서킷·사이드카·금리·정책·지정학 등)'} <span class="mu" style="font-size:11px">· ${esc(ck.slice(11))} 확인</span></div>`
     :`<div style="font-size:13px;margin-bottom:6px"><b>오늘(${esc(today.slice(5))})</b> <span class="mu">아직 확인 전${ck?` (마지막 확인 ${esc(ck.slice(5))})`:''}</span></div>`;
@@ -3715,7 +3715,7 @@ function drawCanvas(ch,sc,rs,kr){
 <script>
 /* ───── 공용: 라이브 시세 띠·헤더 시각·render·탭 전환·부트스트랩 ───── */
 let L=null;
-function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D){ tape(); genHdr(); }}).withFailureHandler(()=>{}).getLive();}
+function loadLive(){google.script.run.withSuccessHandler(t=>{try{L=t?JSON.parse(t):null;}catch(e){L=null;} if(D){ tape(); genHdr(); } const hb=$('#homeev'); if(hb&&EVS) hb.innerHTML=evPanel();}).withFailureHandler(()=>{}).getLive();}   // 이벤트 확인 시각은 live.json (감사 10/21 #4)
 let TAPE_HTML='';
 function tkItem(k,v,c,dg,lagDate){ const cls=c==null?'f':c>0.0005?'u':c<-0.0005?'d':'f', ar=cls==='u'?'▲':cls==='d'?'▼':'■';
   return `<span class="ti ${cls}" data-key="${esc(k)}" title="${esc(k)} 차트 보기${lagDate?' · 마지막 봉 '+esc(lagDate)+' (같은 시장 다른 지표보다 이전 날짜 — 등락률 비교 주의)':''}"><b>${esc(k)}</b><span class="v">${num(v,dg??2)}</span><span class="c">${c==null?'':ar+' '+Math.abs(c*100).toFixed(2)+'%'}${lagDate?` <span class="mu">(${esc(lagDate.slice(5))} 기준)</span>`:''}</span></span>`; }
