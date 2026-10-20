@@ -156,7 +156,11 @@ function doPost(e) {
 function tgHandle_(e) {
   const props = PropertiesService.getScriptProperties();
   if (!tgSecretOk_(e, props.getProperty('TG_WEBHOOK_SECRET'))) { console.warn('비밀값 불일치 — 무시'); return; }
-  const upd = JSON.parse((e.postData && e.postData.contents) || '{}');
+  tgProcess_(JSON.parse((e.postData && e.postData.contents) || '{}'), props);
+}
+
+/** 업데이트 하나 처리 — 웹훅(doPost)과 폴링(tgPoll) 공용. update_id 중복은 여기서 영구 차단. */
+function tgProcess_(upd, props) {
   const cache = CacheService.getScriptCache();
   if (upd.update_id != null) {   // 텔레그램 재전송(같은 update_id) 한 번만
     // GAS 웹앱 응답은 302 리다이렉트라 텔레그램이 '실패'로 보고 같은 update 를 ~11분 간격으로 계속 다시 보낸다
@@ -221,6 +225,46 @@ function tgApi_(method, payload) {
   });
   if (r.getResponseCode() !== 200) console.error('텔레그램 ' + method + ' ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
   return r;
+}
+
+// ── 폴링 모드 (10/21 02시) ──────────────────────────────────────────────────────────────
+// GAS 웹앱은 응답이 항상 302 리다이렉트라 텔레그램 웹훅이 '실패'로 보고 재시도·백오프한다
+// (getWebhookInfo last_error "Wrong response from the webhook: 302 Found", pending 쌓임 → 답장이 수십 분 늦음).
+// 그래서 웹훅을 끄고 1분 시간 트리거가 getUpdates 로 가져온다: 지연 ≤1분, 재전송·중복 없음(offset).
+// 설치: 편집기에서 tgInstallPolling 1회 실행. 되돌리기: tgUninstallPolling → tgSetWebhook.
+
+/** 1분 트리거: 밀린 업데이트를 순서대로 처리. 동시에 두 번 돌지 않게 잠금. */
+function tgPoll() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) return;
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const last = Number(props.getProperty('TG_LAST_UPDATE_ID') || 0);
+    const r = tgApi_('getUpdates', { offset: last ? last + 1 : 0, timeout: 0, limit: 50, allowed_updates: ['callback_query', 'message'] });
+    const j = r ? JSON.parse(r.getContentText()) : null;
+    if (!j || !j.ok) { console.error('getUpdates 실패: ' + (j && j.description || 'no response')); return; }
+    lock.releaseLock();   // tgProcess_ 가 update_id 저장 때 같은 잠금을 다시 잡는다
+    (j.result || []).forEach(function (u) {
+      try { tgProcess_(u, props); } catch (err) { console.error('tgPoll 처리 오류: ' + (err && err.stack || err)); }
+    });
+  } finally {
+    try { lock.releaseLock(); } catch (e2) {}
+  }
+}
+
+/** 편집기에서 1회 실행: 웹훅 해제(밀린 업데이트는 버리지 않음) + tgPoll 1분 트리거 설치. */
+function tgInstallPolling() {
+  tgApi_('deleteWebhook', { drop_pending_updates: false });
+  const has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'tgPoll'; });
+  if (!has) ScriptApp.newTrigger('tgPoll').timeBased().everyMinutes(1).create();
+  tgPoll();
+  console.log('폴링 설치 완료 — 트리거 tgPoll 1분. 웹훅 상태: ' + tgApi_('getWebhookInfo', {}).getContentText());
+}
+
+/** 되돌리기: tgPoll 트리거 삭제 (그다음 tgSetWebhook 실행하면 웹훅 모드). */
+function tgUninstallPolling() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'tgPoll') ScriptApp.deleteTrigger(t); });
+  console.log('tgPoll 트리거 삭제');
 }
 
 /** 편집기에서 실행: 웹훅 상태 확인(토큰은 로그에 안 찍음). last_error_message 가 비어 있으면 정상. */

@@ -79,3 +79,10 @@
 - 처리 조건: ① URL 비밀값 일치 ② 누른 사람 id == `TG_OWNER_CHAT_ID`. 둘 중 하나라도 아니면 아무 동작 없이 끝난다.
 - 이슈는 주인 토큰으로 열리므로 `pick.yml` 의 "저장소 주인만" 조건을 넓히지 않았다.
 - 버튼 데이터 형식: `p|날짜|K/U|종목|청산` (64바이트 이내) — 파이썬 `screener/duel.py pick_cb`/`parse_pick_cb` 와 GAS `tgParseCallback_` 이 같은 규칙이고 `tests/test_tg_pick_buttons.py` 가 node 로 두 쪽을 대조한다.
+
+## 폴링 모드 (10/21 02시 — 웹훅 302 문제)
+GAS 웹앱 응답은 항상 302 리다이렉트라 텔레그램이 웹훅을 '실패'로 보고 재시도·백오프한다(getWebhookInfo `last_error: Wrong response from the webhook: 302 Found`, `pending` 증가 → 답장이 수십 분 늦거나 같은 pick 이 여러 번). 그래서 **1분 시간 트리거 `tgPoll` 이 getUpdates 로 가져오는 방식**으로 바꾼다.
+1. TelegramHook.gs 새 코드 붙여넣기 → 저장 → 배포 관리 → 새 버전 배포.
+2. 편집기 함수 선택 `tgInstallPolling` → ▶ 실행 (권한 요청 뜨면 허용 — 트리거 생성 권한). 로그에 `폴링 설치 완료` 와 `"url":""` 가 보이면 끝.
+3. 텔레그램에 `ask 운영 테스트` → 1분 안에 '📮 요청 접수' 답장.
+되돌리기: `tgUninstallPolling` → `tgSetWebhook`. 지연: 최대 1분(버튼 누른 뒤 '로딩' 표시가 잠깐 남을 수 있음).
