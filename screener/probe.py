@@ -15,6 +15,7 @@ def run() -> dict:
     out = {}
     try:   # 10/21 네이버 리서치 Next.js 화면 데이터 경로 탐침 (로그 [NAVER_PROBE] 줄)
         from . import naver_next_probe
+        naver_next_probe.samples()
         out["naver_research_next"] = naver_next_probe.discover()
     except Exception as e:  # noqa: BLE001
         out["naver_research_next"] = {"error": str(e)}

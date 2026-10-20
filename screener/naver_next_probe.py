@@ -37,6 +37,31 @@ def _p(*a) -> None:
     print("[NAVER_PROBE]", *a, flush=True)
 
 
+API = "https://stock.naver.com/api/stockSecurity/researches/v2/"
+TYPES = ["company", "industry", "market", "invest", "economy", "debenture"]   # 1차 탐침 400 응답의 researchType enum
+
+
+def samples() -> None:
+    """2차 탐침(10/21): 1차에서 JS 로 확인한 목록 함수 /researches/v2/{researchType}?size=N 의 실제 응답 전문(5건)과
+    상세 /{researchType}/{nid} 1건 앞부분을 [NAVER_API] 줄로 — 파서 스키마·픽스처 근거."""
+    s = requests.Session()
+    s.headers.update({**UA, "Referer": "https://stock.naver.com/research"})
+    for t in TYPES:
+        try:
+            r = s.get(f"{API}{t}?size=5", timeout=20)
+            print("[NAVER_API] LIST", t, r.status_code, r.headers.get("content-type"), r.text[:12000].replace("\n", " "), flush=True)
+            nid = re.search(r'"nid"\s*:\s*"?(\d+)', r.text)
+            if nid and t in ("company", "industry"):
+                d = s.get(f"{API}{t}/{nid.group(1)}", timeout=20)
+                print("[NAVER_API] DETAIL", t, nid.group(1), d.status_code, d.text[:3000].replace("\n", " "), flush=True)
+            if t == "company":
+                for q in ("size=3&page=2", "size=3&brokerCode=55"):
+                    r2 = s.get(f"{API}{t}?{q}", timeout=20)
+                    print("[NAVER_API] PARAM", t, q, r2.status_code, r2.text[:600].replace("\n", " "), flush=True)
+        except Exception as e:  # noqa: BLE001
+            print("[NAVER_API] ERR", t, e, flush=True)
+
+
 def discover(fetch_js: bool = True) -> dict:
     res: dict = {}
     s = requests.Session()
@@ -80,6 +105,9 @@ def discover(fetch_js: bool = True) -> dict:
                 if "static" in v or v.endswith((".js", ".css", ".png", ".svg")):
                     continue
                 found.setdefault(v, u.rsplit("/", 1)[-1])
+        k = js.find('r.append("industryTypes"')
+        if k > 0:
+            print("[NAVER_API] BUILDER", js[max(0, k - 1500):k + 200].replace("\n", " "), flush=True)
         for m in re.finditer(r"research", js, flags=re.I):
             ctx = js[max(0, m.start() - 160):m.start() + 200]
             if re.search(r"api|fetch|url|path|endpoint", ctx, flags=re.I):
