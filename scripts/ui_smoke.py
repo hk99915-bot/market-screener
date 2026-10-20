@@ -64,6 +64,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_cmt_us(b, port)
         bad += await check_score(b, port)
         bad += await check_eng(b, port)
+        bad += await check_macro_popup(b, port)
         await b.close()
     return bad
 
@@ -288,6 +289,85 @@ async def check_my_ledger(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} MY원장대조 유지={'O' if kept else 'X'} 확인창={'O' if ask else 'X'} 배지='{led}'/'{bak}' → 백업='{bak2}' 바꾸기={'O' if took else 'X'} '{led2}'"
           + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
+    return not ok
+
+
+def _toss_fixture() -> str:
+    """합성 토스 live.json (실제 시세 아님) — 지금 시각 기준 1분봉 90개, 미장 세션 진행 중."""
+    import json as _json
+    from datetime import datetime, timedelta, timezone
+    now = datetime.now(timezone(timedelta(hours=9)))
+    iso = now.isoformat(timespec="seconds")
+
+    def bars(base: float, n: int = 90) -> list:
+        out, v = [], base
+        for i in range(n):
+            c = round(v * (1 + ((i * 37) % 11 - 5) / 2000), 2)
+            out.append([(now - timedelta(minutes=n - i)).strftime("%H:%M"), v, round(max(v, c) * 1.0005, 2), round(min(v, c) * 0.9995, 2), c])
+            v = c
+        return out
+    idx = {k: {"bars": bars(b), "asof": iso, "n": 90, "last": 0} for k, b in (("KOSPI", 1000.0), ("KOSDAQ", 500.0))}
+    us = {"asof": iso, "session": {"start": (now - timedelta(hours=1)).isoformat(), "end": (now + timedelta(hours=5)).isoformat()},
+          "spark": {k: {"bars": bars(b)} for k, b in (("SPY", 100.0), ("QQQ", 200.0), ("SOXX", 50.0))},
+          "quotes": {k: {"asof": iso, "last": 1.0} for k in ("SPY", "QQQ", "SOXX")}}
+    return _json.dumps({"source": "toss", "date": now.strftime("%Y-%m-%d"), "asof": iso, "indices": idx,
+                        "fx": {"USDKRW": {"asof": iso, "mid": 1000.0}}, "quotes": {}, "us": us})
+
+
+async def check_macro_popup(b, port: int) -> int:
+    """상단 지표 팝업(openMacro) 390px 터치: 봉 단위 토글(1분↔일봉)·크로스헤어 툴팁·대용(ETF)/토스 미제공 배지·가로 넘침 없음·닫으면 60초 타이머 해제.
+    토스 live.json 은 합성 픽스처를 route 로 주입, daily_bars.json 은 404(아직 없을 때 야후 폴백 검사)."""
+    ctx = await b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = await ctx.new_page()
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    body = _toss_fixture()
+    await pg.route("**/toss-live/*.json*", lambda r: r.fulfill(status=404, body=""))
+    await pg.route("**/toss-live/live.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))   # 나중에 등록한 route 가 먼저 — live.json 만 픽스처
+    await pg.add_init_script("try{ localStorage.removeItem('mt_mac_unit'); }catch(e){}")
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    J = lambda js: pg.evaluate(js)
+    tt = "(()=>{const t=document.querySelector('#dr-b .mxt'); return t&&t.style.display==='block'?t.innerText:'';})()"   # 보이는 툴팁만
+
+    async def tap(sel: str) -> None:
+        bb = await (await pg.query_selector(sel)).bounding_box()
+        await pg.touchscreen.tap(bb["x"] + bb["width"] * 0.6, bb["y"] + bb["height"] / 2)
+        await pg.wait_for_timeout(200)
+    res = {}
+    await J("openMacro('KOSPI')")
+    await pg.wait_for_timeout(1500)
+    await pg.click("#mcunit button[data-u='1']")
+    await pg.wait_for_timeout(300)
+    res["1분"] = "분봉 기준" in await J("$('#mcinfo').innerText") and "토스" in await J("$('#macbadge').innerText")
+    await tap("#mcv")
+    res["툴팁1분"] = "시가 대비" in await J(tt)
+    res["타이머"] = await J("MAC_TIMER!==null")
+    await pg.click("#mcunit button[data-u='D']")
+    await pg.wait_for_timeout(300)
+    await tap("#mcv")
+    res["일봉"] = "일봉 기준" in await J("$('#mcinfo').innerText") and "전일비" in await J(tt) and await J("!!document.querySelector('#mcrng')")
+    await J("openMacro('SPX')")
+    await pg.wait_for_timeout(800)
+    await pg.click("#mcunit button[data-u='5']")
+    await pg.wait_for_timeout(300)
+    res["대용ETF"] = "대용(ETF SPY)" in await J("$('#macbadge').innerText")
+    await J("openMacro('VIX')")
+    await pg.wait_for_timeout(800)
+    res["미제공"] = "토스 미제공" in await J("$('#macbadge').innerText") and await J("document.querySelector(\"#mcunit button[data-u='1']\").disabled")
+    # 토스 일봉(daily_bars) 100봉 주입 → 3M 은 토스 일봉, 1Y 버튼엔 '야후'(봉 부족 — 이어붙이지 않음)
+    await J("MAC_DB={src:'toss',asof:new Date().toISOString(),bars:{KOSPI:Array.from({length:100},(_,i)=>{const d=new Date(Date.UTC(2026,0,1+i)).toISOString().slice(0,10),v=1000+i;return [d,v,v+5,v-5,v+1,10];})}};"
+            "MAC_DB_T=Date.now(); MRNG=63; openMacro('KOSPI')")
+    await pg.wait_for_timeout(800)
+    await pg.click("#mcunit button[data-u='D']")
+    await pg.wait_for_timeout(300)
+    res["토스일봉"] = "토스 일봉" in await J("$('#macbadge').innerText") and "야후" in await J("$('#mcrng button[data-r=\"252\"]').innerText")
+    res["넘침없음"] = await J("[...document.querySelectorAll('#dr, #dr *')].every(e=>e.getBoundingClientRect().right<=innerWidth+1)")   # overflow-x:hidden 이라 scrollWidth 대신 요소 오른쪽 끝
+    await J("closeDetail()")
+    res["닫으면해제"] = await J("MAC_TIMER===null")
+    ok = all(res.values()) and not errs
+    print(f"{'OK ' if ok else 'BAD'} 지표팝업 " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await ctx.close()
     return not ok
 
 
