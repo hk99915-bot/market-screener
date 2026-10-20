@@ -51,3 +51,9 @@ def test_hook_branch_delete_is_noop(monkeypatch):
 def test_hook_file_calls_checker():
     h = (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8")
     assert "prepush_check.py" in h and "--hook" in h
+
+
+def test_core_bare_true_blocks(monkeypatch):
+    monkeypatch.setattr(pc, "git", lambda *a: "true" if a[:2] == ("config", "--get") else "")
+    monkeypatch.setattr(pc, "run", lambda name, cmd: True)
+    assert pc.main([]) == 1

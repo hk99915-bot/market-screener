@@ -93,6 +93,9 @@ def main(argv: list[str] | None = None) -> int:
     t0 = time.time()
     py = sys.executable or "python3"
     print("pre-push 검사 (우회 --no-verify 금지 — LOOP.md)")
+    if git("config", "--get", "core.bare").lower() == "true":   # 10/21 공유 체크아웃 core.bare=true 사고
+        print("  ✗ core.bare=true — 공유 체크아웃 git 설정이 망가짐. `git config core.bare false` 로 복구 후 PB 에 보고. push 차단")
+        return 1
     ok = run("board --check", [py, "scripts/board.py", "--check"])
     ok &= run("check_functions", [py, "scripts/check_functions.py"])
     ok &= run("check_rules_terms", [py, "scripts/check_rules_terms.py"])

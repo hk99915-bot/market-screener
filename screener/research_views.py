@@ -7,9 +7,8 @@
   kind별 최근 N건, kind×broker 집계, generated_at/asof.
 
 출처
-- 네이버 리서치 목록 5종(산업·시황·투자정보·경제·채권). 열은 머리행 <th> 이름으로 찾는다(열 번호 가정 없음).
-  2026-10-15 이후 company_list 가 Next.js 화면(Npay 증권)으로 바뀌어 옛 표가 안 나옴(reports/logs/naver_list.html)
-  → 표가 없으면 status=layout_changed 로 남기고 응답 앞부분을 reports/logs/rv_<cat>.html 로 저장(다음 파서 근거).
+- 네이버 리서치 5종(산업·시황·투자정보·경제·채권). 2026-10-15 화면 개편(Next.js, Npay 증권)으로 옛 표가 사라져
+  10/21 부터 목록 API(stock.naver.com/api/stockSecurity/researches/v2/{type}, 근거 screener/naver_research_api.py)로 받는다.
 - 한경 컨센서스: 비CO report_type 값을 **목록 페이지의 '분류선택' 메뉴에서 읽어** 쓴다(값을 코드에 박지 않음 — 추정 금지).
   10/21 실제 응답 확인: IN·MA·EC·DE·FE·BO·FU·QU·FC·ET (UP/DW 는 상향·하향 필터라 제외). 메뉴를 못 찾으면 status=skipped.
 """
@@ -142,25 +141,19 @@ def _get(url: str, referer: str, encoding: str | None = None) -> str:
     return rget(url, referer, encoding)
 
 
-def fetch_naver(cat: str, since: date, max_pages: int = 5) -> tuple[list[dict], dict]:
-    label, lst, read = NAVER_CATS[cat]
-    rows: list[dict] = []
-    diag = "ok"
-    for p in range(1, max_pages + 1):
-        h = _get(f"{NAVER}{lst}?page={p}", NAVER, "euc-kr")
-        got, diag = parse_table(h, re.escape(read) + r"\?[^\"']*nid=\d+", NAVER)
-        if p == 1 and not got:
-            _save_probe(f"naver_{cat}", h)
-            status = "layout_changed" if diag.startswith("layout_changed") else "empty"
-            return [], {"status": status, "n": 0, "reason": diag, "label": label}
-        new = [r for r in got if r["date"] >= since]
-        for r in new:
-            r.update(source="네이버", category=label)
-        rows += new
-        if len(new) < len(got) or not got:
-            break
-        time.sleep(0.2)
-    return rows, {"status": "ok" if rows else "empty", "n": len(rows), "reason": diag, "label": label}
+NAVER_API_TYPE = {"industry": "industry", "market_info": "market", "invest": "invest", "economy": "economy",
+                  "debenture": "debenture"}   # 옛 목록 이름 → researches/v2 researchType (screener/naver_research_api.py)
+
+
+def fetch_naver(cat: str, since: date, max_pages: int = 10) -> tuple[list[dict], dict]:
+    """10/15 화면 개편 뒤 목록 API 로 수집(근거 screener/naver_research_api.py). 요약은 목록 content 에서 ≤500자."""
+    from . import naver_research_api as nra
+    label = NAVER_CATS[cat][0]
+    got, diag = nra.fetch(NAVER_API_TYPE[cat], since, max_pages=max_pages)
+    rows = [{"date": r["date"], "title": r["title"], "broker": r["broker"], "analyst": r.get("analyst"),
+             "sector": r.get("sector"), "link": r["link"], "summary": r["summary"], "source": "네이버", "category": label}
+            for r in got]
+    return rows, {**diag, "label": label, "via": "stock.naver.com researches/v2 API"}
 
 
 HK_SKIP = {"CO", "UP", "DW"}   # 기업(종목 리포트는 research.py) · 상향/하향(필터, 종류 아님) — 사이트 분류 선택 메뉴 기준
@@ -221,7 +214,7 @@ def to_record(r: dict, now: str) -> dict:
     return {"key": make_key(r["date"], r["source"], r.get("broker") or "", r.get("title") or ""),
             "date": r["date"], "source": r["source"], "kind": kind, "kind_reason": why, "sector": sector,
             "title": r.get("title") or "", "broker": r.get("broker") or "", "analyst": r.get("analyst"),
-            "link": r.get("link") or "", "summary": None, "collected_at": now}
+            "link": r.get("link") or "", "summary": clip_summary(r.get("summary")), "collected_at": now}
 
 
 def clip_summary(s: str | None) -> str | None:

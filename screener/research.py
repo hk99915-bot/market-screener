@@ -103,48 +103,16 @@ def write_status(sources: dict) -> None:
         log.warning("리포트 수집 상태 기록 실패: %s", e)
 
 
-def fetch_naver(since: date, max_pages: int = 60) -> list[dict]:
-    out = []
+def fetch_naver(since: date, max_pages: int = 30) -> list[dict]:
+    """네이버(Npay 증권) 종목분석 — 10/15 화면 개편 뒤 목록 API(screener/naver_research_api.py, 근거는 그 모듈 머리말).
+    목표가·의견·요약(content ≤500자)이 목록에 함께 와서 상세 페이지를 따로 받지 않는다."""
+    from . import naver_research_api as nra
     NAVER_LAST.clear()
-    for p in range(1, max_pages + 1):
-        h = _get(f"https://finance.naver.com/research/company_list.naver?page={p}",
-                 "https://finance.naver.com/research/", "euc-kr")
-        rows = re.split(r"<tr[\s>]", h, flags=re.I)[1:]
-        found = older = 0
-        for row in rows:
-            nid = re.search(r"company_read\.naver\?nid=(\d+)", row)
-            stock = re.search(r"code=(\d{6})[^>]*>([^<]+)</a>", row)
-            dm = re.search(r"(\d{2})\.(\d{2})\.(\d{2})", row)
-            if not (nid and stock and dm):
-                continue
-            d = date(2000 + int(dm.group(1)), int(dm.group(2)), int(dm.group(3)))
-            found += 1
-            if d < since:
-                older += 1
-                continue
-            tds = [_strip(x) for x in re.findall(r"<td[^>]*>([\s\S]*?)</td>", row, flags=re.I)]
-            tm = re.search(r"company_read\.naver\?nid=\d+[^\"']*[\"'][^>]*>([\s\S]*?)</a>", row)
-            out.append({
-                "date": d, "source": "네이버", "code": stock.group(1), "name": stock.group(2).strip(),
-                "title": _strip(tm.group(1)) if tm else (tds[1] if len(tds) > 1 else ""),
-                "broker": tds[2] if len(tds) > 2 else "", "opinion": None, "target": None,
-                "link": f"https://finance.naver.com/research/company_read.naver?nid={nid.group(1)}",
-            })
-        if p == 1 and found == 0:   # 진단: 파싱 0건이면 응답 일부를 남김 (reports/logs/naver_list.html)
-            shell = "_next/static" in h and "company_read" not in h
-            NAVER_LAST.update(app_shell=shell, reason=("layout_changed: Next.js 앱 화면(옛 표 없음, 10/15~)" if shell
-                                                       else f"파싱 0건 — 응답 {len(h)}자, tr {len(rows)}개"))
-            try:
-                from .config import REPORT_DIR
-                (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
-                (REPORT_DIR / "logs" / "naver_list.html").write_text(h[:20000], encoding="utf-8")
-                log.warning("네이버 리스트 파싱 0건 — 응답 %d자, tr %d개 저장", len(h), len(rows))
-            except Exception:  # noqa: BLE001
-                pass
-        if found == 0 or older > 0:
-            break
-        time.sleep(0.2)
-    return out
+    got, diag = nra.fetch("company", since, max_pages=max_pages)
+    NAVER_LAST.update(diag)
+    return [{"date": r["date"], "source": "네이버", "code": r["code"], "name": r["name"], "title": r["title"],
+             "broker": r["broker"], "opinion": r.get("opinion"), "target": r.get("target"), "link": r["link"],
+             "summary": r["summary"], "analyst": r.get("analyst")} for r in got]
 
 
 CUT = re.compile(r"(본\s*조사분석자료|본\s*자료는|Compliance|컴플라이언스|당사는\s*동\s*자료|투자등급\s*관련)")
@@ -411,8 +379,8 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
     try:
         nv = fetch_naver(since)
         log.info("네이버 %d건", len(nv))
-        st["네이버"] = {"status": "ok" if nv else ("layout_changed" if NAVER_LAST.get("app_shell") else "empty"),
-                       "n": len(nv), "reason": NAVER_LAST.get("reason")}
+        st["네이버"] = {"status": "ok" if nv else "empty", "n": len(nv), "reason": NAVER_LAST.get("reason"),
+                       "via": "stock.naver.com researches/v2 API"}
     except Exception as e:  # noqa: BLE001
         log.warning("네이버 수집 실패: %s", e)
         st["네이버"] = {"status": "error", "n": 0, "reason": f"{type(e).__name__}: {str(e)[:160]}"}
@@ -428,11 +396,13 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
         seen.add(k)
         r["key"] = k
         fresh.append(r)
-    enrich_naver(fresh)
-    nv_links = {make_key(r["date"], r["code"], r["broker"]): r["link"] for r in nv}   # 한경 우선이어도 요약은 네이버에서
+    # 네이버 API 가 목표가·의견·요약을 같이 주므로 상세 보강(enrich_naver)은 필요 없다. 한경 우선이어도 요약은 네이버 것을 쓴다
+    nv_sum = {make_key(r["date"], r["code"], r["broker"]): r.get("summary") for r in nv}
     for r in fresh:
         r.setdefault("summary", None)
-    n_sum = enrich_summaries(fresh, nv_links)
+        if r.get("summary") in (None, "") and nv_sum.get(r["key"]):
+            r["summary"] = nv_sum[r["key"]]
+    n_sum = enrich_summaries(fresh, {})
     now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
     for r in fresh:
         r["collected_at"] = now
@@ -444,9 +414,12 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
         miss = store.filter((pl.col("date") >= cut) & (pl.col("summary").is_null() | (pl.col("summary") == "")))
         if len(miss):
             more = fetch_naver(cut) if cut < since else []
-            links = {**nv_links, **{make_key(r["date"], r["code"], r["broker"]): r["link"] for r in more}}
+            nv_sum.update({make_key(r["date"], r["code"], r["broker"]): r.get("summary") for r in more})
             rows = miss.to_dicts()
-            n_sum += enrich_summaries(rows, links)
+            for r in rows:
+                if nv_sum.get(r["key"]):
+                    r["summary"] = nv_sum[r["key"]]
+            n_sum += enrich_summaries(rows, {})
             fill = pl.DataFrame(rows, schema=SCHEMA).select("key", pl.col("summary").alias("_s"))
             store = (store.join(fill, on="key", how="left")
                           .with_columns(pl.when(pl.col("_s").is_not_null()).then(pl.col("_s"))
