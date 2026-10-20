@@ -22,7 +22,7 @@ import os
 import socket
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -32,7 +32,10 @@ if str(ROOT) not in sys.path:
 
 from screener import toss_md  # noqa: E402
 
-KST = ZoneInfo("Asia/Seoul")
+try:
+    KST = ZoneInfo("Asia/Seoul")
+except Exception:  # Windows 는 시스템 tz DB 가 없어 tzdata 패키지 필요 — 없으면 고정 +09:00 (한국은 서머타임 없음)
+    KST = timezone(timedelta(hours=9), "KST")
 DATA_DIR = Path(os.environ.get("TOSS_MD_DATA_DIR", Path.home() / "toss_md_data"))
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 LOCK_STALE_SEC = 15 * 60

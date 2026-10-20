@@ -43,9 +43,9 @@
    cd $HOME
    git clone https://github.com/hk99915-bot/market-screener.git
    cd market-screener
-   python -m pip install requests
+   python -m pip install --user requests tzdata
    ```
-   - 수집기는 `requests` 하나만 필요하다(전체 requirements 설치 불필요). 대조(crosscheck)도 표준 라이브러리만 쓴다.
+   - 수집기는 `requests` 와 `tzdata`(Windows 에는 시간대 DB 가 없어 필요) 만 쓴다(전체 requirements 설치 불필요). `tzdata` 가 없어도 수집기는 +09:00 고정으로 돌지만 대조(crosscheck)는 저장소 휴장 표를 읽느라 `tzdata` 가 꼭 필요하다.
 
 ## ③ 비밀 파일(env) 만들기 + 권한 잠그기
 비유: 출입카드를 **잠긴 서랍**에 넣는다. 서랍 열쇠는 나(현재 Windows 사용자)만 가진다.

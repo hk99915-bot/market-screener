@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -33,7 +33,10 @@ FX_TOL_PCT = 0.50            # USDKRW: 토스는 참고 환율(1분 갱신), 야
 CALENDAR_MISMATCH_MAX = 0    # 휴장일 판정 불일치는 1건도 허용 안 함
 # 근거: 지수 종가는 KRX 단일 원천이라 차이가 나면 시각(장중 값 비교)이나 파싱 오류. 환율은 기준 시각이 달라 일중 변동(통상 0.3% 안팎) 만큼 허용.
 
-KST = ZoneInfo("Asia/Seoul")
+try:
+    KST = ZoneInfo("Asia/Seoul")
+except Exception:  # Windows 는 시스템 tz DB 가 없어 tzdata 패키지 필요 — 없으면 고정 +09:00 (한국은 서머타임 없음)
+    KST = timezone(timedelta(hours=9), "KST")
 _CLOSE_KEYS = ("close", "closePrice", "lastPrice", "price")
 _RATE_KEYS = ("rate", "basePrice", "price", "close")
 _OPEN_KEYS = ("isOpen", "open", "isTradingDay")
