@@ -110,8 +110,10 @@ def test_allowed_paths_pass(client, path):
 
 
 def test_collector_pilot_paths_are_whitelisted():
-    for _n, _g, path, _p in collect.PILOT + collect.STOCKS_ALL:
+    for _n, _g, path, _p in collect.PILOT + collect.STOCKS_ALL + collect.us_targets():
         toss_md.check_request("GET", path, {})
+    toss_md.check_request("GET", "/api/v1/sectors", {})
+    toss_md.check_request("GET", "/api/v1/sectors/S111/stocks", {})
 
 
 # ── 2. 토스 API 도메인 문자열은 두 곳에만 ────────────────────────────────────
@@ -238,7 +240,7 @@ def test_429_gives_up_when_retry_after_too_long(tmp_path):
 def test_collect_dry_run_writes_outside_repo(tmp_path):
     now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
     s = collect.run("all", dry_run=True, stocks_all=True, out=tmp_path, now=now)
-    assert s["ok"] == len(collect.PILOT) + len(collect.STOCKS_ALL) and s["fail"] == 0
+    assert s["ok"] == len(collect.PILOT) + len(collect.us_targets()) + len(collect.STOCKS_ALL) and s["fail"] == 0
     day = tmp_path / "_dryrun" / "2026-10-20"
     rec = json.loads((day / "kospi_1m.json").read_text())
     assert rec["generated_at"] and rec["asof"].startswith("2026-10-20T15:30") and rec["asof_src"] == "response"
@@ -288,3 +290,70 @@ def test_crosscheck_flags_breach(tmp_path):
 def test_stocks_all_has_required_market_param():
     # OpenAPI 원문: GET /api/v1/stocks/all 의 market 은 required
     assert collect.STOCKS_ALL and all(p.get("market") for _n, _g, _path, p in collect.STOCKS_ALL)
+
+
+# ── 3. 'us' 그룹·세션 창·다중 그룹·섹터 (10/21) ─────────────────────────────
+def test_us_symbols_public_lists_only(monkeypatch):
+    monkeypatch.setenv("MY_HOLDINGS", "ZZZQ 10\n")   # 개인 보유는 절대 안 읽는다
+    syms = collect.us_symbols()
+    assert syms[:len(collect.US_ETFS)] == list(collect.US_ETFS) and len(syms) <= collect.US_MAX_SYMBOLS
+    assert "ZZZQ" not in syms and len(set(syms)) == len(syms)
+    t = collect.us_targets()
+    assert [x[0] for x in t if x[2] == "/api/v1/candles"] == ["us_spy_1m", "us_qqq_1m", "us_soxx_1m"]
+    assert {x[3]["type"] for x in t if x[2] == "/api/v1/rankings"} == {"MARKET_TRADING_AMOUNT", "TOP_GAINERS", "TOP_LOSERS"}
+    assert len(t) == 8   # 회차당 미장 호출 수
+
+
+@pytest.mark.parametrize("ts,group,want", [
+    ("2026-10-20T23:40", "us", True),     # 화 정규장(ET 10:40)
+    ("2026-10-20T23:40", "intraday", False),
+    ("2026-10-20T10:00", "intraday", True),
+    ("2026-10-21T07:05", "us", False),    # 애프터(18:00 ET) 끝
+    ("2026-10-21T09:05", "us", True),     # 데이마켓(20:00 ET 전날 시작, 서머타임)
+    ("2026-11-03T09:30", "us", False),    # 서머타임 해제 뒤 데이마켓은 10:00 KST 부터
+    ("2026-11-03T10:05", "us", True),
+    ("2026-10-24T06:50", "us", True),     # 토 새벽 = 금 애프터
+    ("2026-10-24T07:15", "us", False),
+    ("2026-10-24T10:00", "intraday", False),   # 토
+])
+def test_session_window_fallback(ts, group, want):
+    now = datetime.fromisoformat(ts).replace(tzinfo=collect.KST)
+    assert collect.in_window(group, now, None)[0] is want
+
+
+def test_session_window_from_calendar(tmp_path):
+    now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
+    collect.run("daily", dry_run=True, out=tmp_path, now=now)
+    base = tmp_path / "_dryrun"
+    assert collect.in_window("us", now, base) == (True, "calendar")
+    late = datetime(2026, 10, 21, 7, 5, tzinfo=collect.KST)   # 픽스처 afterMarket 끝 18:00 ET = 07:00 KST
+    assert collect.in_window("us", late, base)[0] is False
+
+
+def test_multi_group_gate_skips_closed(tmp_path):
+    now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
+    s = collect.run("intraday,us", dry_run=True, out=tmp_path, now=now, gate=True)
+    assert s["skipped"] == {"intraday": "fallback"} and s["ok"] == 8 and s["fail"] == 0
+    with pytest.raises(SystemExit):
+        collect.run("intraday,nope", dry_run=True, out=tmp_path, now=now)
+
+
+def test_lock_waits_then_gives_up(tmp_path):
+    with collect.Lock(tmp_path / "l"):
+        t0 = __import__("time").time()
+        with pytest.raises(SystemExit):
+            with collect.Lock(tmp_path / "l", wait_sec=2.5):
+                pass
+        assert __import__("time").time() - t0 >= 2
+
+
+def test_sectors_collect_calls_and_multi_membership(tmp_path):
+    now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
+    s = collect.run("sectors", dry_run=True, out=tmp_path, now=now)
+    rec = json.loads((tmp_path / "_dryrun" / "2026-10-20" / "sectors.json").read_text(encoding="utf-8"))
+    secs = collect.parse_sectors(rec["data"]["sectors"])
+    leaves = collect.leaf_ids(secs)
+    assert leaves == ["S111", "S112", "S12", "S21"]
+    assert s["ok"] == rec["data"]["calls"] == 1 + 2 * len(leaves) and s["fail"] == 0   # 호출 수 = 1 + 2 × 말단
+    again = collect.run("sectors", dry_run=True, out=tmp_path, now=now)   # 일 1회
+    assert again["ok"] == 0

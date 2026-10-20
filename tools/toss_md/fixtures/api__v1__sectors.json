@@ -1,0 +1,49 @@
+{
+ "_note": "가짜 픽스처(dry-run·테스트용). OpenAPI 원문 Sector 그룹 꼴: sectors[]{sectorId,name,depth,parentSectorId}",
+ "result": {
+  "sectors": [
+   {
+    "sectorId": "S1",
+    "name": "IT",
+    "depth": 0,
+    "parentSectorId": null
+   },
+   {
+    "sectorId": "S11",
+    "name": "반도체",
+    "depth": 1,
+    "parentSectorId": "S1"
+   },
+   {
+    "sectorId": "S111",
+    "name": "메모리",
+    "depth": 2,
+    "parentSectorId": "S11"
+   },
+   {
+    "sectorId": "S112",
+    "name": "반도체 장비",
+    "depth": 2,
+    "parentSectorId": "S11"
+   },
+   {
+    "sectorId": "S12",
+    "name": "전자부품",
+    "depth": 1,
+    "parentSectorId": "S1"
+   },
+   {
+    "sectorId": "S2",
+    "name": "금융",
+    "depth": 0,
+    "parentSectorId": null
+   },
+   {
+    "sectorId": "S21",
+    "name": "은행",
+    "depth": 1,
+    "parentSectorId": "S2"
+   }
+  ]
+ }
+}

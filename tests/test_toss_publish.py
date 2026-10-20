@@ -284,3 +284,58 @@ def test_prices_path_whitelisted_and_rate_limit_recorded(tmp_path):
     assert hb["rate_limit"]["MARKET_INDICATOR"]["remaining"] == 97
     assert hb["rate_limit"]["MARKET_INDICATOR_CHART"]["limit"] == 100
     assert toss_md.rate_group("/api/v1/exchange-rate") == "MARKET_INFO"
+
+
+# ── 10/21 수정: 원문 수급 꼴 · 환율 validFrom · 커밋 메시지 · us 블록 · sectors.json ─────────────
+def test_flows_openapi_records_shape():
+    rec = {"result": {"records": [{"date": "2026-10-20", "updatedAt": "2026-10-20T15:40:00+09:00",
+                                   "individual": {"buyAmount": "500000000000", "sellAmount": "376600000000"},
+                                   "foreigner": {"buyAmount": "100000000000", "sellAmount": "198700000000"},
+                                   "institution": {"buyAmount": "50000000000", "sellAmount": "70000000000",
+                                                   "breakdown": {"pension": {"buyAmount": "9", "sellAmount": "1"}}},
+                                   "otherCorporation": {"buyAmount": "1000000000", "sellAmount": "5700000000"}}]}}
+    f = publish.flows(rec)
+    assert (f["개인"], f["외국인"], f["기관"], f["기타법인"]) == (1234.0, -987.0, -200.0, -47.0)
+    assert f["date"] == "2026-10-20" and f["unit_basis"] == "원→억원"
+
+
+def test_fx_asof_from_valid_from(base):
+    doc = publish.build(base, NOW)
+    assert doc["fx"]["USDKRW"]["asof"] == "2026-10-20T23:30:00+09:00"
+
+
+def test_us_block(base):
+    doc = publish.build(base, NOW)
+    us = doc["us"]
+    assert us["quotes"]["SPY"]["last"] == 671.3 and us["quotes"]["SPY"]["chg_pct"] == -0.42
+    assert us["spark"]["SPY"]["date"] == "2026-10-20" and us["spark"]["SPY"]["bars"][0][0] == "15:50"
+    assert us["rank"]["amount"][0]["s"] == "NVDA" and len(us["rank"]["amount"]) <= publish.US_TOP
+    assert us["sector_rank"][0]["name"] == "반도체"
+    assert us["session"] and us["session"]["end"] == "2026-10-21T07:00:00+09:00"
+    publish.assert_public(doc)
+    assert "rate" not in _keys(doc, set())
+
+
+def test_sectors_json_public_no_money_fields(base):
+    collect.run("sectors", dry_run=True, out=base.parent, now=NOW)
+    sec = publish.build_sectors(base, NOW)
+    publish.assert_public(sec)
+    ks = _keys(sec, set())
+    assert not ks & {"volume", "tradingamount", "marketcapitalization", "currency", "price"}
+    assert sec["members"]["KR"]["005930"] == ["S111", "S112", "S12", "S21"]
+    assert {s["id"]: s["parent"] for s in sec["sectors"]}["S111"] == "S11"
+
+
+def test_git_publish_sectors_kept_and_message(repo, base):
+    work, bare = repo
+    collect.run("sectors", dry_run=True, out=base.parent, now=NOW)
+    assert publish.run(base, now=NOW, repo=work, reports=work / "reports")["status"] == "pushed"
+    assert _git("ls-tree", "--name-only", "toss-live", cwd=bare).split() == ["crosscheck.json", "live.json", "sectors.json"]
+    assert _git("log", "-1", "--format=%s", "toss-live", cwd=bare).startswith("toss: published 2026-10-20T23:40 (asof 2026-10-20")
+    (base / "2026-10-20" / "sectors.json").unlink()      # 로컬 스냅샷이 없어도 원격 sectors.json 은 지워지지 않는다
+    f = base / "2026-10-20" / "usdkrw.json"
+    j = json.loads(f.read_text())
+    j["data"]["result"]["midRate"] = 1327.1
+    f.write_text(json.dumps(j))
+    assert publish.run(base, now=NOW + timedelta(minutes=10), repo=work, reports=work / "reports")["status"] == "pushed"
+    assert "sectors.json" in _git("ls-tree", "--name-only", "toss-live", cwd=bare).split()

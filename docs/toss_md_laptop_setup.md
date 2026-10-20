@@ -177,6 +177,46 @@
    - 터미널 MARKET › KR 의 **TOSS LIVE** 패널에 `토스 · n분 전` 배지가 보이면 연결 완료. 노트북이 멈추면 20분 뒤 네이버/야후로 자동 폴백, 상단 신선도 배지에 `toss_md` 가 뜬다.
 5. **파서 확인(첫 실데이터 1회):** `python tools\toss_md\publish.py --shape` → 파일별 **키 이름만**(값 없음) 출력. 수급·국채가 화면에 `—` 로 비면 이 출력을 PB 에 그대로 전달(개발이 키 이름을 맞춘다).
 
+### ⑥-3 미장(프리·데이·정규·애프터)까지 — 작업 하나로 합치기 (10/21 01시, 겸이 "미장데이터 지금부터" · "프리장 데이장도")
+비유: 기록원을 국장 담당·미장 담당 두 명 두면 출입증(잠금)이 하나라 서로 부딪힌다 → **한 명이 10분마다 깨어나서, 지금 열린 시장만** 적는다.
+- `toss_md_live` = 평일 08:00 시작 · 10분 간격 · **24시간 지속**(다음날 08:00까지). 인자 `--group intraday,us --publish`.
+  - 국장(intraday): 거래일 08:00~20:00 KST 에만 수집. 미장(us): 토스 4세션(데이 → 프리 → 정규 → 애프터) 안에서만. 세션 밖이면 그 그룹은 `skipped` 로 건너뛴다.
+  - 세션 판정 = 수집해 둔 토스 휴장 달력의 세션 시각(있으면) → 없으면 미 동부시간 기준 "전날 20:00 ~ 당일 18:00 ET"(서머타임 기간 KST 09:00~다음날 07:00, **11/2부터 10:00~08:00** 자동).
+  - 24시간인 이유: 겨울(서머타임 해제 뒤)엔 애프터가 08:00 KST 에 끝난다. 23시간 10분이면 07:10~08:00 을 놓친다. 금요일 트리거가 토요일 08:00 까지 이어져 **금요일 밤 미장·토요일 새벽 애프터도 커버**된다.
+  - 한 회차 호출 수: 국장 6 + 미장 8 = **14회** + publish(git fetch·push). 보통 1분 안. 429(호출 과다)면 호출마다 최대 3회·60초 대기라 최악엔 몇 분 → 실행 제한을 **10분**으로.
+- `toss_md_sectors` = 매일 07:20, 토스 섹터 계층 + 섹터별 종목(KR·US) 1회. 호출 수 = 1 + 2 × 말단 섹터 수(호출 사이 0.5초). 30분 제한.
+- `toss_md_daily`(08:30·18:30 달력·종목 목록)는 그대로. 겹치면 뒤에 온 쪽이 최대 4분 기다린다.
+
+```powershell
+cd $HOME\market-screener
+git pull
+$py   = (Get-Command python).Source
+$repo = "$HOME\market-screener"
+
+# 0) 예전 국장 전용 작업은 지운다 (이게 남아 있으면 잠금이 부딪힌다)
+Unregister-ScheduledTask -TaskName "toss_md_intraday" -Confirm:$false -ErrorAction SilentlyContinue
+
+# 1) 국장+미장 한 작업: 평일 08:00 시작, 10분마다, 24시간
+$s1 = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
+$a1 = New-ScheduledTaskAction -Execute $py -Argument "tools\toss_md\collect.py --group intraday,us --publish" -WorkingDirectory $repo
+$t1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 08:00
+$t1.Repetition = (New-ScheduledTaskTrigger -Once -At 08:00 -RepetitionInterval (New-TimeSpan -Minutes 10) -RepetitionDuration (New-TimeSpan -Hours 24)).Repetition
+Register-ScheduledTask -TaskName "toss_md_live" -Action $a1 -Trigger $t1 -Settings $s1 -Force
+
+# 2) 토스 섹터: 매일 07:20 (실시간 작업이 거의 쉬는 시각)
+$s2 = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 30)
+$a2 = New-ScheduledTaskAction -Execute $py -Argument "tools\toss_md\collect.py --group sectors --publish" -WorkingDirectory $repo
+Register-ScheduledTask -TaskName "toss_md_sectors" -Action $a2 -Trigger (New-ScheduledTaskTrigger -Daily -At 07:20) -Settings $s2 -Force
+
+# 3) 지금 바로 1회 (점검): 미리보기 → 실제 1회 → 섹터 1회
+python tools\toss_md\collect.py --group intraday,us --dry-run --no-gate
+python tools\toss_md\collect.py --group intraday,us --publish
+python tools\toss_md\collect.py --group sectors --publish
+Start-ScheduledTask -TaskName "toss_md_live"
+```
+- 결과 한 줄 예: `toss_md collect: ok=8 fail=0 skipped={'intraday': 'fallback'} → …` (밤엔 국장이 쉬므로 정상).
+- 미장 값 확인: 터미널 MARKET › US 의 **TOSS LIVE US** 패널(배지 `토스 · n분 전`). 비거나 `fail` 이면 `python tools\toss_md\publish.py --shape` 출력(키 이름만)을 PB 에 전달 — 미장 종목 캔들 파라미터 이름(symbol)·랭킹 응답 꼴은 [추정]이라 첫 실행으로 맞춘다.
+
 ## ⑦ GitHub "self-hosted runner"로 붙이지 말 것
 비유: 우리 저장소는 **공개 게시판**이다. 이 노트북을 GitHub 의 일꾼(self-hosted runner)으로 등록하면, 모르는 사람이 올린 글(PR)의 코드가 **이 노트북에서 실행**될 수 있다 — 그 코드는 서랍 속 키를 읽어 주문까지 낼 수 있다.
 - 그래서 수집은 **작업 스케줄러로만** 돌리고, GitHub Actions 와 연결하지 않는다.
@@ -187,7 +227,7 @@
 1. **즉시** 토스증권 WTS → Open API → 키 **폐기(삭제/재발급)**, 허용 IP 목록 **비우기**. [미확인, 확인 필요: WTS 에 키 폐기·IP 해제 기능이 실제로 있는지와 메뉴 위치 — 0단계 약관 확인 때 같이 확인]
    - 그 기능이 없으면: 토스증권 고객센터에 "Open API 키 정지" 요청.
 2. 토스 앱 → 주문 내역·체결 내역에서 **내가 하지 않은 주문**이 있는지 확인(있으면 고객센터 신고).
-3. 노트북에서 작업 끄기: `Disable-ScheduledTask toss_md_intraday; Disable-ScheduledTask toss_md_daily`
+3. 노트북에서 작업 끄기: `Disable-ScheduledTask toss_md_live; Disable-ScheduledTask toss_md_daily; Disable-ScheduledTask toss_md_sectors`
 4. `$HOME\.config\toss_md\token.json` 삭제, 새 키를 받으면 ③부터 다시.
 5. PB에게 "토스 키 폐기함, 시각 hh:mm" 만 알리기(키 값은 보내지 않는다).
 

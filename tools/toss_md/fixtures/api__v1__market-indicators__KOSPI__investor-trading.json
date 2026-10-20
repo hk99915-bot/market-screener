@@ -1,20 +1,62 @@
 {
- "_note": "가짜 픽스처(dry-run·테스트용). 필드 이름은 추정 — 실제 응답 구조와 다를 수 있음",
+ "_note": "가짜 픽스처(dry-run·테스트용). OpenAPI 원문 예시 꼴: result.records[]{date,updatedAt,individual{buyAmount,sellAmount},foreigner,institution{…,breakdown},otherCorporation} — 금액 KRW 정수 문자열, net 없음 → buy−sell",
  "result": {
-  "baseDate": "2026-10-20",
-  "status": "PROVISIONAL",
-  "items": [
+  "records": [
    {
-    "investor": "INDIVIDUAL",
-    "netBuyValue": 120
+    "date": "2026-10-19",
+    "updatedAt": "2026-10-19T18:00:00+09:00",
+    "individual": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "9999999999999"
+    },
+    "foreigner": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "9999999999999"
+    },
+    "institution": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "9999999999999",
+     "breakdown": {
+      "financialInvestment": {
+       "buyAmount": "10000000000000",
+       "sellAmount": "9999999999999"
+      }
+     }
+    },
+    "otherCorporation": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "9999999999999"
+    }
    },
    {
-    "investor": "FOREIGN",
-    "netBuyValue": -80
-   },
-   {
-    "investor": "INSTITUTION",
-    "netBuyValue": -40
+    "date": "2026-10-20",
+    "updatedAt": "2026-10-20T15:40:00+09:00",
+    "individual": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "9988000000000"
+    },
+    "foreigner": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "10008000000000"
+    },
+    "institution": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "10004000000000",
+     "breakdown": {
+      "financialInvestment": {
+       "buyAmount": "10000000000000",
+       "sellAmount": "9995000000000"
+      },
+      "pension": {
+       "buyAmount": "10000000000000",
+       "sellAmount": "10001000000000"
+      }
+     }
+    },
+    "otherCorporation": {
+     "buyAmount": "10000000000000",
+     "sellAmount": "10000000000000"
+    }
    }
   ]
  }

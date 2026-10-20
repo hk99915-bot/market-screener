@@ -72,6 +72,7 @@ INVESTORS = {   # 출력 4칸 ← 라벨(정규화: 대문자·공백/하이픈�
 }
 _FIELD_P = {"개인": ("individual", "retail", "personal"), "외국인": ("foreign", "foreigner"),
             "기관": ("institution", "institutional"), "기타법인": ("othercorporation", "othercorp")}
+_BUY_K, _SELL_K = ("buyAmount", "buyValue", "buyTradingAmount"), ("sellAmount", "sellValue", "sellTradingAmount")
 _FIELD_S = ("netbuyvalue", "netvalue", "netbuyamount", "nettradingvalue", "netbuy")
 
 
@@ -132,7 +133,9 @@ def _date_of(d: dict) -> str | None:
 
 
 def flows(data) -> dict | None:
-    """시장 투자자별 순매수 최신 1일 → {date, status, 개인, 외국인, 기관, 기타법인 (억원), unit_basis}. 해석 못 하면 None."""
+    """시장 투자자별 순매수 최신 1일 → {date, status, 개인, 외국인, 기관, 기타법인 (억원), unit_basis}. 해석 못 하면 None.
+    두 꼴 허용: ① OpenAPI 원문 result.records[]{date, individual{buyAmount,sellAmount}, foreigner, institution{…,breakdown}, otherCorporation}
+    (net = buy−sell, 기관 breakdown 세부는 안 받음) ② 라벨+netBuyValue 행 / <투자자>NetBuyValue 필드 (예전 추정 꼴)."""
     if data is None:
         return None
     dated = [(dt, d) for d in crosscheck._dicts(data) if (dt := _date_of(d))]
@@ -159,6 +162,9 @@ def flows(data) -> dict | None:
                             raw.setdefault(cat, v)
                     elif kl in pre and isinstance(val, dict):
                         v = crosscheck._num(val, _VALUE_K)
+                        if v is None:   # OpenAPI 원문: {buyAmount, sellAmount} KRW 정수 문자열, net 없음 → buy−sell (10/21 PB)
+                            b, s_ = crosscheck._num(val, _BUY_K), crosscheck._num(val, _SELL_K)
+                            v = b - s_ if b is not None and s_ is not None else None
                         if v is not None:
                             raw.setdefault(cat, v)
     if not raw:
@@ -192,7 +198,8 @@ def fx_mid(data) -> dict | None:
     m = crosscheck.fx_rate(data)   # midRate 만 (crosscheck._RATE_KEYS)
     if m is None:
         return None
-    return {"mid": _r(m, 2), "asof": collect.find_asof(data)}
+    vf = next((d.get("validFrom") for d in crosscheck._dicts(data) if isinstance(d.get("validFrom"), str)), None)
+    return {"mid": _r(m, 2), "asof": vf or collect.find_asof(data)}   # validFrom = 환율 고시 시각(원문) — 10/21 asof null 수정
 
 
 def calendar(data, today: str) -> dict | None:
@@ -298,10 +305,170 @@ def build(base: Path, now: datetime) -> dict:
                 break
         if c:
             doc["calendar"][mk] = c
+    us = build_us(base, now)
+    if us:
+        doc["us"] = us
     doc["missing"] = missing
     ts_all = [t for t in (to_kst(a) for a in asofs) if t]
     doc["asof"] = max(ts_all).isoformat(timespec="seconds") if ts_all else doc["generated_at"]
     return doc
+
+
+# ── 미장 블록 (10/21 'us' 그룹) ───────────────────────────────────────────
+US_TOP = 20   # 랭킹·섹터 랭킹 상위 몇 개를 공개하나
+_CHG_K = ("changeRate", "changePercent", "fluctuationRate")
+_AMT_K = ("tradingAmount", "tradingValue", "amount")
+_NAME_K = ("name", "stockName", "displayName")
+
+
+def _latest(base: Path, today: date, name: str, days: int = 2):
+    """오늘·어제 폴더 중 asof 가 늦은 수집분의 data (미장은 KST 자정을 넘긴다)."""
+    best, best_t = None, ""
+    for i in range(days):
+        f = base / (today - timedelta(days=i)).isoformat() / f"{name}.json"
+        if not f.exists():
+            continue
+        try:
+            rec = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+        t = str(rec.get("generated_at") or "")
+        if t > best_t:
+            best, best_t = rec.get("data"), t
+    return best
+
+
+def us_bars(datas: list) -> tuple[str | None, list[list]]:
+    """미장 1분봉 여러 수집분 → (ET 날짜, [["HH:MM"(ET, 봉 종료 시각), o, h, l, c], …]) 가장 늦은 ET 거래일만."""
+    by: dict[str, dict] = {}
+    for data in datas:
+        for d in crosscheck._dicts(data):
+            k = collect._row_key(d)
+            t = to_kst(d.get(k)) if k else None
+            c = crosscheck._num(d, crosscheck._CLOSE_KEYS)
+            if t is None or c is None or collect.ET is None:
+                continue
+            e = t.astimezone(collect.ET)
+            o, h, lo = (crosscheck._num(d, ks) for ks in (_OPEN_K, _HIGH_K, _LOW_K))
+            by.setdefault(e.date().isoformat(), {})[e.strftime("%H:%M")] = [
+                e.strftime("%H:%M"), _r(o if o is not None else c), _r(h if h is not None else c), _r(lo if lo is not None else c), _r(c)]
+    if not by:
+        return None, []
+    day = max(by)
+    return day, [by[day][k] for k in sorted(by[day])]
+
+
+def _rank_rows(data, n: int = US_TOP) -> list[dict]:
+    out, seen = [], set()
+    for d in crosscheck._dicts(data):
+        sym = next((d[k] for k in _SYM_K if isinstance(d.get(k), str)), None)
+        if not sym or sym in seen or crosscheck._num(d, _PRICE_K + _CHG_K + _AMT_K) is None:
+            continue
+        seen.add(sym)
+        nm = next((d[k] for k in _NAME_K if isinstance(d.get(k), str)), None)
+        out.append({"s": sym, "n": nm, "last": _r(crosscheck._num(d, _PRICE_K)), "chg_pct": _r(crosscheck._num(d, _CHG_K)),
+                    "amt": _r(crosscheck._num(d, _AMT_K), 0)})
+        if len(out) >= n:
+            break
+    return out
+
+
+def _sector_rank(data, n: int = US_TOP) -> list[dict]:
+    out, seen = [], set()
+    for d in crosscheck._dicts(data):
+        sid = d.get("sectorId")
+        if sid is None or str(sid) in seen:
+            continue
+        seen.add(str(sid))
+        out.append({"id": str(sid), "name": d.get("name"), "chg_pct": _r(crosscheck._num(d, _CHG_K))})
+        if len(out) >= n:
+            break
+    return out
+
+
+def build_us(base: Path, now: datetime) -> dict | None:
+    """live.json 'us' 블록: 지표 ETF·대형주 현재가 · SPY/QQQ/SOXX 1분봉 · 랭킹 상위 20 · 섹터 랭킹. 수집분이 하나도 없으면 None."""
+    today = now.astimezone(KST).date()
+    missing, asofs = [], []
+    pr = _latest(base, today, "us_prices")
+    q = {}
+    for d in crosscheck._dicts(pr) if pr is not None else []:
+        sym = next((d[k] for k in _SYM_K if isinstance(d.get(k), str)), None)
+        v = crosscheck._num(d, _PRICE_K)
+        if not sym or v is None or sym in q:
+            continue
+        t = to_kst(collect.find_asof(d))
+        q[sym] = {"last": _r(v, 4), "chg_pct": _r(crosscheck._num(d, _CHG_K), 3), "asof": t.isoformat(timespec="seconds") if t else None}
+        if t:
+            asofs.append(t)
+    if not q:
+        missing.append("미장 현재가(prices) 없음/해석 실패")
+    spark = {}
+    for sym in collect.US_SPARK:
+        datas = [x for x in (_latest(base, today - timedelta(days=i), f"us_{sym.lower()}_1m", 1) for i in range(2)) if x is not None]
+        day, b = us_bars(datas)
+        if b:
+            spark[sym] = {"date": day, "n": len(b), "bars": b, "tz": "ET", "stamp": "봉 종료 시각"}
+        else:
+            missing.append(f"{sym} 1분봉 없음")
+    ranks = {}
+    for key, name in (("amount", "us_rank_amount"), ("gainers", "us_rank_gainers"), ("losers", "us_rank_losers")):
+        rows = _rank_rows(_latest(base, today, name))
+        if rows:
+            ranks[key] = rows
+        else:
+            missing.append(f"랭킹 {key} 없음")
+    srank = _sector_rank(_latest(base, today, "us_sector_rank"))
+    if not srank:
+        missing.append("섹터 랭킹 없음")
+    if not (q or spark or ranks or srank):
+        return None
+    sess = None
+    cal = None
+    for i in range(8):
+        cal = _load(base / (today - timedelta(days=i)).isoformat(), "calendar_us")
+        if cal:
+            break
+    if cal and collect.ET is not None:
+        d0 = now.astimezone(collect.ET).date()
+        for dd in (d0, d0 + timedelta(days=1)):
+            w = collect.calendar_window(cal, dd.isoformat())
+            if w and now <= w[1]:
+                sess = {"start": w[0].astimezone(KST).isoformat(timespec="seconds"), "end": w[1].astimezone(KST).isoformat(timespec="seconds")}
+                break
+    asof = max(asofs).isoformat(timespec="seconds") if asofs else None
+    return {"asof": asof, "quotes": q, "spark": spark, "rank": ranks, "sector_rank": srank, "session": sess,
+            "missing": missing, "note": "chg_pct = 등락률(%) · amt = 거래대금(USD) · 1분봉 시각은 ET 봉 종료 시각"}
+
+
+# ── 토스 섹터 (보드 toss-sectors) — sectors.json: 섹터 계층 + 종목→말단 섹터 다중 매핑. 시세·금액 필드 없음 ──
+def build_sectors(base: Path, now: datetime) -> dict | None:
+    today = now.astimezone(KST).date()
+    for i in range(8):
+        f = base / (today - timedelta(days=i)).isoformat() / "sectors.json"
+        if not f.exists():
+            continue
+        try:
+            rec = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+        data = rec.get("data") or {}
+        secs = collect.parse_sectors(data.get("sectors"))
+        if not secs:
+            continue
+        members: dict[str, dict[str, list[str]]] = {}
+        for mk, by in (data.get("stocks") or {}).items():
+            m: dict[str, set] = {}
+            for sid, resp in (by or {}).items():
+                for d in crosscheck._dicts(resp):
+                    sym = d.get("symbol")
+                    if isinstance(sym, str) and sym:
+                        m.setdefault(sym, set()).add(str(sid))
+            members[mk] = {k: sorted(v) for k, v in sorted(m.items())}
+        return {"source": "toss", "asof": rec.get("generated_at"), "date": f.parent.name,
+                "sectors": secs, "members": members, "failed": len(data.get("failed") or []),
+                "note": "토스 섹터 3단계(depth 0~2, parent 로 상위). members = 종목 → 말단 섹터 id 목록(다중 소속). 시세·금액 없음."}
+    return None
 
 
 def build_crosscheck(base: Path, now: datetime, reports: Path | None = None) -> dict:
@@ -374,9 +541,10 @@ def render(obj) -> str:
 def fit_size(doc: dict, cap: int = MAX_BYTES) -> dict:
     """render 크기가 cap 을 넘으면 봉을 2배씩 솎는다(마지막 봉 유지)."""
     k = 1
-    while len(render(doc).encode("utf-8")) > cap and any(len(v.get("bars", [])) > 2 for v in doc["indices"].values()):
+    groups = lambda: list(doc["indices"].values()) + list(((doc.get("us") or {}).get("spark") or {}).values())  # noqa: E731
+    while len(render(doc).encode("utf-8")) > cap and any(len(v.get("bars", [])) > 2 for v in groups()):
         k *= 2
-        for v in doc["indices"].values():
+        for v in groups():
             b = v["bars"]
             v["bars"] = b[:-1][::2] + b[-1:] if len(b) > 2 else b
             v["thinned"] = k
@@ -507,9 +675,12 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
         git(["pull", "-q", "--ff-only", "origin", "main"], repo)   # 대조 전에 main 의 macro_series 최신화(실패해도 진행)
     doc = fit_size(build(base, now))
     xc = build_crosscheck(base, now, reports or repo / "reports")
+    sec = build_sectors(base, now)
     assert_public(doc)
     assert_public(xc)
-    sig_full, sig_xc = signature(doc), signature(xc)
+    if sec:
+        assert_public(sec)
+    sig_full, sig_xc = signature(doc), signature(xc) + (signature(sec) if sec else "")
     go, why = decide(st, sig_full, sig_xc, now, min_interval_min)
     st.update({"at": now.isoformat(timespec="seconds"), "decision": why})
     if dry_run:
@@ -517,6 +688,8 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
         out.mkdir(parents=True, exist_ok=True)
         (out / "live.json").write_text(render(doc), encoding="utf-8")
         (out / "crosscheck.json").write_text(render(xc), encoding="utf-8")
+        if sec:
+            (out / "sectors.json").write_text(render(sec), encoding="utf-8")
         return {"status": "dry_run", "decision": why, "go": go, "dir": str(out), "bytes": len(render(doc).encode())}
     if not go:
         st["status"] = f"skipped:{why}"
@@ -532,6 +705,12 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
         return {"status": "fail", "decision": why, "error": st["error"]}
     contracts.stamp(Path("reports") / CONTRACT_PATH, doc)
     files = {"live.json": render(doc), "crosscheck.json": render(xc)}
+    if sec:
+        files["sectors.json"] = render(sec)
+    elif have_remote:   # 트리를 통째로 새로 만들므로, 이번에 못 만들면 원격 sectors.json 을 그대로 실어야 지워지지 않는다
+        old = remote_file(repo, "sectors.json", git)
+        if old:
+            files["sectors.json"] = old if old.endswith("\n") else old + "\n"
     if not push:
         out = base / "publish_preview"
         out.mkdir(parents=True, exist_ok=True)
@@ -540,7 +719,7 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
         st.update({"status": "written(no-push)"})
         _save_state(base, st)
         return {"status": "written", "decision": why}
-    good, msg = git_publish(repo, files, f"toss: {doc['date']} {loc:%H:%M} ({why})", git)
+    good, msg = git_publish(repo, files, f"toss: published {loc:%Y-%m-%dT%H:%M} (asof {doc['date']}, {why})", git)
     st.update({"status": msg if good else "fail", "error": None if good else msg, "pending": not good})
     if good:
         st.update({"last_publish_at": now.isoformat(timespec="seconds"), "last_full": sig_full, "last_xc": sig_xc})
