@@ -232,9 +232,10 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
     return "\n".join(L)
 
 
-def send_telegram(text: str, *, disable_notification: bool = True) -> None:
+def send_telegram(text: str, *, disable_notification: bool = True, reply_markup: dict | None = None) -> None:
     """텔레그램 전송. 기본 **무음**(disable_notification=True). 소리는 결재 #9 등급표(screener/alerts.py RING_KINDS)에 있는
-    다섯 종류만 호출부가 `alerts.silent(keys)` 로 켠다 — 본문 이모지(⛔/⚡)로 소리를 정하지 않는다(10/17 최종안)."""
+    다섯 종류만 호출부가 `alerts.silent(keys)` 로 켠다 — 본문 이모지(⛔/⚡)로 소리를 정하지 않는다(10/17 최종안).
+    reply_markup(인라인 버튼 등, dict)은 쪼갠 메시지 중 **마지막 조각**에만 붙인다(tg-pick-buttons)."""
     from .defs import TELEGRAM_ALL_SILENT
     if TELEGRAM_ALL_SILENT:   # 오너 10/17 "전체 무음" — 호출부가 소리를 요청해도 무음 (단일 지점)
         disable_notification = True
@@ -257,10 +258,13 @@ def send_telegram(text: str, *, disable_notification: bool = True) -> None:
             chunks.append(buf); buf = ""
         buf += line + "\n"
     chunks.append(buf)
-    for c in chunks:
-        r = requests.post(url, data={"chat_id": chat, "text": c, "parse_mode": "HTML",
-                                     "disable_web_page_preview": "true",
-                                     "disable_notification": "true" if disable_notification else "false"}, timeout=30)
+    for i, c in enumerate(chunks):
+        data = {"chat_id": chat, "text": c, "parse_mode": "HTML",
+                "disable_web_page_preview": "true",
+                "disable_notification": "true" if disable_notification else "false"}
+        if reply_markup and i == len(chunks) - 1:
+            data["reply_markup"] = json.dumps(reply_markup, ensure_ascii=False)
+        r = requests.post(url, data=data, timeout=30)
         if r.status_code != 200:
             raise RuntimeError(f"텔레그램 전송 실패 {r.status_code}: {r.text[:300]}")
     log.info("텔레그램 전송 완료 (%d개 메시지)", len(chunks))

@@ -71,6 +71,8 @@
 
 - 2026-10-17 [운영] 신선도 계약·asof 가드·역행 검사·헤더 배지: 테스트 tests/test_freshness_guard.py 29건 + ui_smoke 배지 2경우 · 롤백 = 해당 커밋 revert(가드는 쓰기만 막으므로 revert 시 예전 덮어쓰기로 복귀) · 영향 = briefing·screener·health 워크플로(저장 단계·08:20/20:10 cron 추가·⛔ 소리 알림), 상단 헤더, GAS 는 Code.gs 재붙여넣기 전엔 배지 숨김.
 
+- 2026-10-20 [운영] 대결 메시지 인라인 버튼 + GAS 웹훅(tg-pick-buttons): 테스트 tests/test_tg_pick_buttons.py(파이썬↔GAS node 대조·64바이트·reply_markup·apply_issue 끝까지) · 롤백 = GAS `tgDeleteWebhook` 실행(버튼 무반응, 링크 보조 유지) 또는 커밋 revert · 영향 = duel 메시지 3종에 reply_markup, send_telegram 에 reply_markup 인자(마지막 조각만), pick.yml 끝에 결과 텔레그램 1통(pick 만, 실패 무시). [경험] GAS 웹앱 doPost 는 요청 헤더를 못 읽는다 → secret_token 대신 URL `?s=` 로 검증. getUpdates 사용처 없음(10/20 두 저장소 grep). 절차 docs/telegram_pick_buttons.md.
+
 ## 복기
 - 2026-10-17 (사고 3) 틀림: 토 09:46 KST 수동 detail_us(커밋 9ea9efbd)가 US 580파일을 10/16→10/15 로 덮음 → 왜: ① Yahoo 가 그 호출(금 20:47 ET)에서 **종목 523개 전부 10/16 봉을 빼고** 줌 — 종목당 행 273.4 vs 직전 275.4(시작일 1일 이동 −1, 마지막 봉 누락 −1), 같은 실행의 지수(^GSPC·^IXIC)는 10/16 있음(macro_series). Yahoo 측 원인은 네트워크 차단으로 재현 못 함[확인 필요: 다음 금요일 20~24시 ET 에 yf.download 로 재현, 10/24까지]. ② 코드엔 "지금이면 어느 봉이 있어야 하나"가 없어 최빈 날짜(10/15)를 그대로 기준일로 삼고 `_status` 는 시계만 보고 CONFIRMED. ③ 모든 쓰기가 무조건 덮어쓰기, 저장 단계 `-X theirs` 는 늦은 실행을 이기게 함 → 다음부터: tradecal.expected_session 으로 기대일 계산·재시도, 게시본보다 과거면 중단, 가드·regress_git 이중 차단. 재현 테스트 tests/test_freshness_guard.py::test_saturday_us_regress_is_refused. 덤: main.run 인자 `live`(bool)가 모듈을 가려 `live.patch_macro` 가 매 실행 실패하던 것도 수정.
 - 2026-10-17 (라운드1) 틀림: 작업 사본이 내 것뿐이라 여기고 `git diff --stat` 를 보기 전까지 남의 변경(bonds·ticket·duel 60줄+)이 섞인 줄 몰랐다 → 왜: 데스크 12개가 한 체크아웃을 공유한다는 전제를 브리프의 "동시에 push 중" 에서 읽어내지 못함 → 다음부터: 편집 전 `git status -s` 를 찍고, 커밋은 파일·hunk 단위로만 올린다.

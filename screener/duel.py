@@ -84,6 +84,76 @@ def issue_url_bold(date: str, body: str = "종목코드 1000000 시가\n근거: 
     return f"https://github.com/{REPO}/issues/new?title={quote('pick🔥 ' + date)}&body={quote(body)}"
 
 
+# ── 텔레그램 인라인 버튼 (보드 tg-pick-buttons, 10/20) ─────────────────────────────────────────────
+# 폰 텔레그램 내장 브라우저는 깃허브 로그인이 없어 issues/new 프리필 링크가 아무것도 안 됨 → 버튼 → GAS 웹훅
+# (apps-script/TelegramHook.gs)이 저장소 주인 PAT 로 같은 'pick …' 이슈를 열고, pick.yml 이 지금처럼 기록한다.
+# callback_data = "p|<세션 날짜>|<K|U>|<종목코드·티커|cash>|<청산 코드>" (텔레그램 상한 64바이트). 직접 입력 안내 = "h|<K|U>".
+# 청산 코드 → 이슈 본문 단어: KR o=시가(다음날 시가) c=종가(다음날 종가) 5=5일 · US s=당일 종가(빈칸) 5=5일. GAS 쪽이 같은 표를 쓴다
+# (tests/test_tg_pick_buttons.py 가 node 로 두 구현을 같은 입력에 돌려 대조). 기존 이슈 링크는 버튼이 안 될 때를 위한 보조로 남긴다.
+CB_MAX = 64
+CB_EXIT = {"K": {"o": "시가", "c": "종가", "5": "5일"}, "U": {"s": "", "5": "5일"}}
+_CB_CODE = {"K": re.compile(r"[0-9A-Za-z]{6}"), "U": re.compile(r"[A-Za-z][A-Za-z.\-]{0,5}")}
+KR_BUTTONS = [("069500", "KODEX 200"), ("122630", "레버리지"), ("114800", "인버스")]
+US_BUTTONS = [("SPY", "SPY"), ("QQQ", "QQQ"), ("SOXX", "SOXX"), ("SQQQ", "SQQQ")]
+
+
+def pick_cb(date: str, market: str, code: str, ex: str | None = None) -> str:
+    """버튼 callback_data. market 'KR'/'US'(또는 'K'/'U'), code 'cash' = 현금. 64바이트 넘으면 ValueError."""
+    m = market[:1].upper()
+    ex = ex or ("o" if m == "K" else "s")
+    if m not in CB_EXIT or ex not in CB_EXIT[m]:
+        raise ValueError(f"시장·청산 코드 오류: {market} {ex}")
+    s = f"p|{date}|{m}|{code}|{ex}"
+    if len(s.encode("utf-8")) > CB_MAX:
+        raise ValueError(f"callback_data {len(s.encode('utf-8'))}바이트 > {CB_MAX}")
+    return s
+
+
+def parse_pick_cb(data: str) -> dict | None:
+    """callback_data → {'title','body'} (pick.yml·apply_issue 가 받는 이슈 형식 그대로). 형식이 틀리면 None.
+    KR: 'pick YYYY-MM-DD' + '069500 1000000 시가' · US: 'pick-us YYYY-MM-DD' + 'SPY 1000000' · 현금: 본문 '현금'."""
+    p = (data or "").split("|")
+    if len(p) != 5 or p[0] != "p" or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", p[1]) or p[2] not in CB_EXIT or p[4] not in CB_EXIT[p[2]]:
+        return None
+    _, d, m, code, ex = p
+    title = ("pick " if m == "K" else "pick-us ") + d
+    if code == "cash":
+        return {"title": title, "body": "현금"}
+    if not _CB_CODE[m].fullmatch(code):
+        return None
+    body = " ".join(x for x in (code if m == "K" else code.upper(), str(NOTIONAL), CB_EXIT[m][ex]) if x)
+    return {"title": title, "body": body}
+
+
+def parse_pick_text(text: str, kr_date: str, us_date_: str) -> dict | None:
+    """텔레그램 텍스트 'pick 005930 시가' / 'pick 현금' / 'pick-us QQQ 5일' → {'title','body'}. 날짜는 보낸 시각 기준(KR=KST, US=ET 세션).
+    'pick' 으로 시작하지 않으면 None, 'pick' 인데 내용이 틀리면 {'error': 안내문}."""
+    t = (text or "").strip()
+    m = re.match(r"(?i)^/?(pick-us|pick)(?=\s|$)\s*(.*)$", t, re.S)
+    if not m:
+        return None
+    us = m.group(1).lower() == "pick-us"
+    rest = m.group(2).strip().splitlines()[0].strip() if m.group(2).strip() else ""
+    title = ("pick-us " + us_date_) if us else ("pick " + kr_date)
+    if rest.startswith("현금") or rest.lower() == "cash":
+        return {"title": title, "body": "현금"}
+    toks = rest.replace(",", "").split()
+    if not toks or not re.fullmatch(_CB_CODE["U"].pattern if us else r"[0-9A-Za-z]{6}|[A-Za-z.]{1,6}", toks[0]):   # apply_issue 와 같은 규칙
+        return {"error": "형식: pick 종목코드 [금액] [시가|종가|5일] · pick 현금 · pick-us TICKER [금액] [5일]"}
+    if us:
+        toks[0] = toks[0].upper()
+    return {"title": title, "body": " ".join(toks)}
+
+
+def pick_keyboard(date: str, market: str = "KR") -> dict:
+    """대결 메시지에 붙일 inline_keyboard (reply_markup). 후보별 버튼 + 현금 + 직접 입력 안내."""
+    m = market[:1].upper()
+    rows = [[{"text": n, "callback_data": pick_cb(date, m, c)} for c, n in (KR_BUTTONS if m == "K" else US_BUTTONS)]]
+    rows.append([{"text": "현금", "callback_data": pick_cb(date, m, "cash")},
+                 {"text": "✍️ 직접 입력 안내", "callback_data": f"h|{m}"}])
+    return {"inline_keyboard": rows}
+
+
 def run(send: bool = True) -> dict | None:
     from . import decisions
     now = datetime.now(KST)
@@ -107,13 +177,13 @@ def run(send: bool = True) -> dict | None:
     msg = ["🎯 <b>진입 타점 대결</b> · " + now.strftime("%m/%d %H:%M"), *[f"• {x}" for x in c["lines"]], "",
            "<b>규칙</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 종가 진입 → 다음날 시가 청산"),
            "  " + c["why"], "<i>PB 판단은 따로 옴</i>", "",
-           "<b>겸이 판단은?</b> 15:30 전까지 제출",
+           "<b>겸이 판단은?</b> 15:30 전까지 — 아래 버튼 (안 되면 링크)",
            f"<a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
            f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url(d, '종목코드 금액 시가')}\">직접 입력</a>"
            f" · <a href=\"{issue_url_bold(d)}\">🔥공격 픽</a>"]
     if send:
         from .report import send_telegram
-        send_telegram("\n".join(msg))
+        send_telegram("\n".join(msg), reply_markup=pick_keyboard(d, "KR"))
     log.info("타점 판정 기록: %s", c["why"])
     return item
 
@@ -325,11 +395,11 @@ def run_us(send: bool = True) -> dict | None:
     msg = ["🗽 <b>미장 진입 타점 대결</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})", *[f"• {x}" for x in c["lines"]], "",
            "<b>규칙</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 시가 진입 → 당일 종가 청산"),
            "  " + c["why"], "<i>PB 판단은 따로 옴</i>", "",
-           f"<b>겸이 판단은?</b> 미장 시작(09:30 ET = {dl:%H:%M} KST) 전까지 제출",
+           f"<b>겸이 판단은?</b> 미장 시작(09:30 ET = {dl:%H:%M} KST) 전까지 — 아래 버튼 (안 되면 링크)",
            _us_links(d)]
     if send:
         from .report import send_telegram
-        send_telegram("\n".join(msg))
+        send_telegram("\n".join(msg), reply_markup=pick_keyboard(d, "US"))
     log.info("미장 타점 판정 기록: %s", c["why"])
     return item
 
@@ -681,5 +751,5 @@ def record_pb(payload: dict, send: bool = True) -> str:
     if send:
         from .report import send_telegram
         body = "\n".join(m for m in msg if m is not None)
-        send_telegram(body, disable_notification=True)   # 결재 #9(최종): PB 판단·주문표 ⛔ 거부는 무음 (RING_KINDS 밖)
+        send_telegram(body, disable_notification=True, reply_markup=pick_keyboard(d, "US" if us else "KR"))   # 결재 #9(최종): PB 판단·주문표 ⛔ 거부는 무음 (RING_KINDS 밖)
     return ("PB 판단 기록(미장): " if us else "PB 판단 기록: ") + ("현금" if pk.get("cash") else pk["name"])

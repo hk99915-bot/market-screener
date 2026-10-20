@@ -83,3 +83,17 @@ jobs:
           ${{ steps.r.outputs.msg }}
           MSG
           gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}
+      - name: 텔레그램 결과 (pick·pick-us 만 — 버튼으로 낸 선택이 반영됐는지 폰에서 바로 보이게, tg-pick-buttons)
+        if: startsWith(github.event.issue.title, 'pick')
+        continue-on-error: true
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
+          MSG: ${{ steps.r.outputs.msg }}
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          python - <<'PY'
+          import os
+          from screener.report import send_telegram
+          send_telegram("🎯 " + os.environ["TITLE"] + "\n" + os.environ.get("MSG", ""))
+          PY
