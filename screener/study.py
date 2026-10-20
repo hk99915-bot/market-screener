@@ -37,6 +37,17 @@ def _summ(xs: list[float]) -> dict | None:
             "worst": round(min(xs), 4), "best": round(max(xs), 4)}
 
 
+def indep_count(idx: list[int], h: int = 20) -> int:
+    """겹치는 h일 창 표본 idx 중 서로 겹치지 않는 블록 수 (앞에서부터 탐욕: 고른 날 i 다음은 i+h 이상).
+    '4333회' 같은 일별 표본은 20일 창이 겹쳐 독립 정보가 훨씬 적다 — 오차 범위는 이 수로 읽는다."""
+    n, nxt = 0, None
+    for i in sorted(idx):
+        if nxt is None or i >= nxt:
+            n += 1
+            nxt = i + h
+    return n
+
+
 def run() -> dict:
     k = _dl("^KS11", "1999-01-01")
     lv = _dl("122630.KS", "2010-01-01")
@@ -76,7 +87,7 @@ def run() -> dict:
         if not v:
             return None
         n = len(v)
-        return {"n": n, "bull": round(sum(1 for x in v if x > 0.05) / n, 3), "base": round(sum(1 for x in v if -0.05 <= x <= 0.05) / n, 3),
+        return {"n": n, "n_indep": indep_count([i for i in idx if fwd(i, 20) is not None]), "bull": round(sum(1 for x in v if x > 0.05) / n, 3), "base": round(sum(1 for x in v if -0.05 <= x <= 0.05) / n, 3),
                 "bear": round(sum(1 for x in v if x < -0.05) / n, 3), "deep_bear": round(sum(1 for x in v if x < -0.15) / n, 3)}
     out["buckets20"] = {"all": bucket(list(range(1, len(c)))), "drop5": bucket(idx5), "deep": bucket(deep),
                         "dd15": bucket([i for i in range(21, len(c)) if dd20(i) <= -0.15])}
@@ -117,7 +128,7 @@ def run() -> dict:
             if not v:
                 return None
             n = len(v)
-            return {"n": n, "bull": round(sum(1 for x in v if x > 0.03) / n, 3), "base": round(sum(1 for x in v if -0.03 <= x <= 0.03) / n, 3),
+            return {"n": n, "n_indep": indep_count([i for i in idx if sfwd(i, 20) is not None]), "bull": round(sum(1 for x in v if x > 0.03) / n, 3), "base": round(sum(1 for x in v if -0.03 <= x <= 0.03) / n, 3),
                     "bear": round(sum(1 for x in v if x < -0.03) / n, 3), "deep_bear": round(sum(1 for x in v if x < -0.10) / n, 3)}
         rng = range(21, len(sc))
         out["spx_buckets20"] = {"all": sb(list(rng)), "near_high": sb([i for i in rng if sdd(i) > -0.02]),

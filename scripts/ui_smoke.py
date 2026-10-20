@@ -61,6 +61,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_fresh(b, port)
         bad += await check_us_detail(b, port)
         bad += await check_my_ledger(b, port)
+        bad += await check_cmt_us(b, port)
         await b.close()
     return bad
 
@@ -94,6 +95,27 @@ async def check_fresh(b, port: int) -> int:
         print(f"{'OK ' if ok else 'BAD'} 신선도배지({label}) '{txt}'" + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await pg.close()
     return bad
+
+
+async def check_cmt_us(b, port: int) -> int:
+    """운용회의 › 미장 탭: v2 섹션(결론·탑다운·로테이션·헤지·프리모템·성적)이 실파일 committee_us.json 으로 그려지는지 (us-committee-v2)."""
+    pg = await b.new_page(viewport={"width": 1300, "height": 900})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("setView('cmt')")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("CMK='US'; render()")
+    await pg.wait_for_timeout(2500)
+    await pg.evaluate("document.querySelectorAll('#root details').forEach(d=>d.open=true)")
+    txt = await pg.evaluate("document.querySelector('#root').innerText")
+    need = ["운용회의 미장", "탑다운", "섹터 로테이션", "헤지", "프리모템", "성적"]
+    miss = [w for w in need if w not in txt.replace(" · ", " ")]
+    ok = not errs and not miss
+    print(f"{'OK ' if ok else 'BAD'} 운용회의 미장 v2 {len(txt)}자" + (f" · 에러: {errs[0][:160]}" if errs else "") + (f" · 빠짐: {miss}" if miss else ""))
+    await pg.close()
+    return 0 if ok else 1
 
 
 async def check_us_detail(b, port: int, sym: str = "AAPL") -> int:

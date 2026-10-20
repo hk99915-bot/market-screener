@@ -146,7 +146,13 @@ def _scenarios(k: dict, stu: dict, mv: dict) -> list[dict]:
         {"name": "약세 — 연속 급락(6월 말 패턴)", "prob": p.get("bear"), "def": "20거래일 뒤 −5% 미만 (그중 −15% 미만 " + f"{(p.get('deep_bear') or 0)*100:.0f}%)",
          "trigger": f"오늘 저점({lowt:,.0f}) 2일 연속 종가 이탈, 또는 2단계 서킷, 또는 빅테크 설비투자 가이던스 하향",
          "action": "손실 한도·가격 규칙 기계적 집행(메모리 절반 축소), 인버스 25% 헷지, 현금 비중 확대"},
-    ], {"basis": cond, "n": p.get("n"), "macro": mvs}
+    ], {"basis": cond, "macro": mvs, **_basis_fields(p, (b.get("all") or {}).get("n"))}
+
+
+def _basis_fields(p: dict, n_all) -> dict:
+    """시나리오 근거 n(겹치는 20일 창) + 독립 20일 블록 수(n_indep 또는 범위) — 국장·미장 공용 (screener/us_committee.basis_fields)."""
+    from .us_committee import basis_fields
+    return basis_fields(p or {}, n_all)
 
 
 def _ideas(peers: list[dict]) -> tuple[list, list]:
@@ -1493,7 +1499,7 @@ def _spx_state() -> dict:
         return {}
     nq, vix, tnx = cl("NASDAQ"), cl("VIX"), cl("US10Y")
     last = c[-1]
-    return {"last": last, "ret1": last / c[-2] - 1, "dd20": last / max(c[-21:]) - 1, "from_hi": last / max(c[-250:]) - 1,
+    return {"last": last, "date": str((ms.get("SPX") or [[None]])[-1][0]), "hi52": max(c[-250:]), "ret1": last / c[-2] - 1, "dd20": last / max(c[-21:]) - 1, "from_hi": last / max(c[-250:]) - 1,
             "r20": last / c[-21] - 1, "hi5": max(c[-5:]), "low20": min(c[-20:]), "sma50": st.mean(c[-50:]),
             "nq20": (nq[-1] / nq[-21] - 1) if len(nq) > 21 else None, "vix": vix[-1] if vix else None,
             "tnx": tnx[-1] if tnx else None, "tnx20": (tnx[-1] - tnx[-21]) * 100 if len(tnx) > 21 else None}
@@ -1510,21 +1516,8 @@ def build_us() -> dict:
     p = b.get(key) or b.get("all") or {"bull": 0.4, "base": 0.4, "bear": 0.2, "n": 0}
     basis = {"near_high": "고점 부근(20일 고점 대비 −2% 이내)", "pullback": "눌림(−2~−7%)", "correction": "조정(−7% 이상)", "drop2": "하루 −2% 이상 하락", "all": "전체"}[key]
     peers = (_j("peers_US.json", {}) or {}).get("rows", [])
-    by = {}
-    for r in peers:
-        if r.get("r20") is not None and r.get("g"):
-            by.setdefault(r["g"], []).append(r)
-    secs = []
-    for g, a in by.items():
-        if len(a) < 5:
-            continue
-        w = [x.get("mc") or 1 for x in a]
-        secs.append({"sector": g, "n": len(a), "r5": sum(wi * (x.get("r5") or 0) for wi, x in zip(w, a)) / sum(w),
-                     "r20": sum(wi * x["r20"] for wi, x in zip(w, a)) / sum(w),
-                     "drv": st.mean([x["drv"] for x in a if x.get("drv") is not None] or [0])})
-    for x in secs:
-        x["stance"] = "비중 확대" if x["drv"] >= 0.25 else "비중 축소" if x["drv"] <= 0.0 else "중립"
-    secs.sort(key=lambda x: -x["drv"])
+    from . import us_committee as U
+    secs = U.sector_rows(peers)   # 10/20 수정: 드라이버만 보던 판정 → 드라이버+가격추세 (국장 체인 점수와 같은 구성)
     longs = [r for r in peers if (r.get("drv") or 0) >= 0.4 and (r.get("r20") or 0) <= -0.03]
     longs.sort(key=lambda r: -(r["drv"]))
     avoid = [r for r in peers if r.get("drv") is not None and r["drv"] <= -0.2 and (r.get("r20") or 0) >= 0.05]
@@ -1553,25 +1546,99 @@ def build_us() -> dict:
          "action": "반도체·고PER 비중 축소, SH/PSQ 소량 헷지, 한국 메모리도 같은 신호로 축소(연결 규칙)"},
     ]
     best = max(scen, key=lambda s: s.get("prob") or 0)
+    sbf = _basis_fields(p, (b.get("all") or {}).get("n"))
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "date": str(today), "market": "US", "head": head,
-           "verdict": f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 S&P500 '{basis}' {p.get('n') or 0}회",
-           "scenarios": scen, "scenario_basis": {"basis": basis, "n": p.get("n")}, "sectors": secs,
+           "verdict": f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 S&P500 '{basis}' {p.get('n') or 0}회"
+                      + _indep_suffix(sbf),
+           "scenarios": scen, "scenario_basis": {"basis": basis, **sbf}, "sectors": secs, "sector_note": U.SECTOR_NOTE,
            "ideas": {"long": [f(r) for r in longs[:10]], "avoid": [f(r) for r in avoid[:8]]}, "events": ev[:12],
            "kr_link": "한국 메모리 판단의 선행 지표: 빅테크 설비투자 가이던스(10/21 메타, 10/28 MSFT·구글, 10/29 아마존) · 마이크론 EPS 추정 · TSMC 가이던스"}
+    try:
+        _v2_build_us(out, k, p, cal, today)
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 운용회의 v2 실패: %s", e)
     _gw(OUT_US, out, key="date", default=str)
     _archive("committee_us", out)
     log.info("미장 운용회의 생성")
     return out
 
 
+def _indep_suffix(sbf: dict) -> str:
+    if sbf.get("n_indep") is not None:
+        return f" (겹치지 않는 20일 블록 {sbf['n_indep']}개)"
+    rg = sbf.get("n_indep_range") or {}
+    from .us_committee import rng_txt
+    return f" (겹치지 않는 20일 블록 {rng_txt(rg)}개)" if rg else ""
+
+
+def _prev_us(today_s: str) -> dict | None:
+    """직전 미장 회의(오늘보다 앞선 날짜의 archive/committee_us)."""
+    hd = REPORT_DIR / "archive" / "committee_us"
+    for f in sorted(hd.glob("20*.json"), reverse=True):
+        if f.stem[:10] >= today_s:
+            continue
+        try:
+            return json.loads(f.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+    return None
+
+
+def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> None:
+    """미장 v2 섹션 (국장 _v2_build 와 같은 키). 섹션 하나가 실패해도 나머지는 계속."""
+    from . import us_committee as U
+    ms = (_j("macro_series.json", {}) or {}).get("series", {})
+    bonds = _j("bonds.json", {}) or {}
+    mv = _j("macro_view.json", {}) or {}
+    prev = _prev_us(str(today))
+    steps = [("macro", lambda: U.macro_us(ms, bonds, mv, prev, _series_move)),
+             ("rotation", lambda: U.rotation_us(out.get("sectors") or [])),
+             ("hedges", lambda: U.hedges_us(k, out.get("scenarios") or [], p, bonds)),
+             ("premortem", lambda: U.premortem_us(out.get("scenarios") or [], k, p))]
+    for key, fn in steps:
+        try:
+            out[key] = fn()
+        except Exception as e:  # noqa: BLE001
+            log.warning("미장 v2 %s 실패: %s", key, e)
+    if isinstance(out.get("hedges"), dict):
+        out["asymmetry"] = out["hedges"].get("asymmetry")
+    try:
+        out["bottom_line"] = U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US)
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 v2 bottom_line 실패: %s", e)
+    try:
+        _sf = _sim_fresh("US")
+        if _sf:
+            out["sim_fresh"] = _sf
+    except Exception as e:  # noqa: BLE001
+        log.info("미장 sim_fresh 실패: %s", e)
+    try:
+        out.update(U.build_track(out, ms))
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 v2 기록·채점 실패: %s", e)
+    out["footer"] = V2_FOOTER_US
+    out["v"] = 2
+
+
+V2_FOOTER_US = "미장 회의 = 모델 북·규칙 기반·검증전. 실계좌 적용은 VIEW 게이트 통과 항목만 (개인 북은 비공개 PB 판단 참조)"
+
+
 def telegram_text_us(o: dict) -> str:
-    L = ["🗽 <b>미장 운용회의</b> · " + o["date"]] + [f"• {x}" for x in o["head"]]
+    bl = o.get("bottom_line") or {}
+    L = ["🗽 <b>미장 운용회의</b> · " + o["date"] + (f"  {bl['label']}" if bl.get("label") else "")] + [f"• {x}" for x in o["head"]]
+    L += [f"{'①②③'[i]} {x}" for i, x in enumerate((bl.get("lines") or [])[:3])]
     L += ["", "<b>[시나리오]</b> " + o["verdict"]]
     for s in o["scenarios"]:
         L.append(f"• {s['name']} {(s['prob'] or 0)*100:.0f}% — 신호: {s['trigger']}")
     up = [x for x in o["sectors"] if x["stance"] == "비중 확대"][:4]
     dn = [x for x in o["sectors"] if x["stance"] == "비중 축소"][:3]
-    L.append("<b>[섹터]</b> 확대: " + (", ".join(f"{x['sector']}({x['drv']:+.2f})" for x in up) or "—") + " / 축소: " + (", ".join(x["sector"] for x in dn) or "—"))
+    L.append("<b>[섹터]</b> 확대: " + (", ".join(f"{x['sector']}({x.get('score', x['drv']):+.2f})" for x in up) or "—") + " / 축소: " + (", ".join(x["sector"] for x in dn) or "—"))
+    pm = o.get("premortem") or {}
+    if pm.get("wrong"):
+        L.append(f"<b>[프리모템]</b> {pm['wrong']} → 신호: {pm.get('tell', '')}")
+    tl = ((o.get("track") or {}).get("lines") or [])[:1]
+    if tl:
+        L.append("<i>성적: " + tl[0] + "</i>")
     if o["ideas"]["long"]:
         L.append("<b>[매수 후보]</b> " + ", ".join(f"{x['s']} {x['drv']:+.2f}" for x in o["ideas"]["long"][:6]))
     L.append("<i>" + o["kr_link"] + "</i>")

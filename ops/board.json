@@ -2343,7 +2343,7 @@
       "title": "미장 운용회의 v2 — 국장 수준 섹션 이식(프리모템·헤지·결론·비대칭·매크로 분해·로테이션·성적 틀)",
       "owner": "개발",
       "priority": "P1",
-      "status": "진행",
+      "status": "검수",
       "started": "2026-10-20",
       "due": "2026-10-21",
       "repo": "public",
@@ -2352,10 +2352,11 @@
         "screener/us_committee.py",
         "screener/study.py",
         "apps-script/tab_committee.html",
+        "scripts/ui_smoke.py",
         "tests/test_us_committee.py"
       ],
       "depends_on": [],
-      "notes": "겸이 지적(10/20): committee_us 12키·6KB vs 국장 33키·55KB. 1차 = 미장 데이터로 가능한 것만."
+      "notes": "겸이 지적(10/20): committee_us 12키·6KB vs 국장 33키·55KB → 26키·약 22KB. 추가: bottom_line·macro(레짐·σ·S&P 20일 요인 분해 금리/달러/VIX, 나스닥 별도)·rotation·hedges·asymmetry·premortem·track·scorecard·validation·idea_tracking·sim_fresh·footer·v. 섹터 판정 수정: 드라이버만 → (2×드라이버+0.6×가격추세)/3, 국장 체인 점수 구성·문턱(0.3/−0.15) — 반도체 확대→중립. scenario_basis 에 독립 20일 블록(n_indep, study 다음 실행 때 정확값·그 전엔 범위). 못 한 것: 미장 옵션 체인 미수집 → 풋 이론가·볼록 헤지 없음 / 포지셔닝·수급·리서치·공시 미장 데이터 없음 / 섹터 사후 채점 미구현. 검수: 다음 committee 실행 후 committee_us.json v=2 확인, 10/27 이후 첫 5일 채점."
     },
     {
       "id": "toss-md-pilot",
