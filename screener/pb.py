@@ -28,6 +28,7 @@ import os
 import re
 
 from .config import REPORT_DIR
+from . import sectors   # 공식 1종목1섹터(GICS/WICS) 병행 계산 — 전환 스위치 sectors.OFFICIAL_LIMITS (10/21)
 
 log = logging.getLogger(__name__)
 
@@ -287,7 +288,11 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
             c1y = d.get("c1y") or []
             name = re.sub(r",?\s+(Inc\.?|Corporation|Corp\.?)$", "", re.sub(r"\s*[-–]\s*(Common Stock|Ordinary).*$", "", d.get("name") or s))
             kind, lw = semi_class(mk, s, name, chain, bool(d.get("etf")), look.get("chains") or {})
-            rows.append({"book": book, "mk": mk, "s": s, "name": name, "v": v, "c": c, "r1": st.get("ret1"),
+            # 새 기준(공식 1종목1섹터: GICS/WICS, 10/21 겸이 승인) 병행 계산 — ETF·판정 불가는 예전 분류를 그대로 쓴다
+            off = sectors.official(mk, s) if not d.get("etf") else {"sector": "ETF", "group": None, "src": "ETF"}
+            sn = sectors.semi_official(mk, s) if not d.get("etf") else None
+            semi_new = (kind == "semi") if sn is None else sn
+            rows.append({"sec_new": off["sector"], "sec_src": off["src"], "semi_new": semi_new,"book": book, "mk": mk, "s": s, "name": name, "v": v, "c": c, "r1": st.get("ret1"),
                          "drv": dv.get("score") if not d.get("etf") else look.get("drv"),
                          "stop": ((d.get("scenarios") or {}).get("bear") or {}).get("stop"), "close": d["close"], "etf": bool(d.get("etf")),
                          "semi": kind == "semi", "elec": kind == "elec", "look": v * lw, "isa": isa_bucket(s, name) if book == "isa" else None,
@@ -303,7 +308,13 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
     nav = tot_sat + tot_isa + cash_sat + cash_isa
     tot = tot_sat + tot_isa
     cost = sum(r["c"] for r in rows if r["c"])
-    semi = sum(r["v"] for r in rows if r["semi"])
+    semi_old = sum(r["v"] for r in rows if r["semi"])
+    semi_new = sum(r["v"] for r in rows if r["semi_new"])
+    # 전환 스위치(screener/sectors.OFFICIAL_LIMITS): False = 예전 판정 유지, 새 기준은 아래 *_new 필드로만 병행
+    semi = semi_new if sectors.OFFICIAL_LIMITS else semi_old
+    sec_w: dict[str, float] = {}
+    for r in rows:
+        sec_w[r["sec_new"] or "분류 없음"] = sec_w.get(r["sec_new"] or "분류 없음", 0.0) + r["v"]
     elec = sum(r["v"] for r in rows if r["elec"])
     look = sum(r["look"] for r in rows)
     loss = cost - sum(r["v"] for r in rows if r["c"])
@@ -340,7 +351,11 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
     return {"band": band, "rows": rows, "stress": stress, "stress_denom": stress_denominator_code.upper(), "miss": miss, "fx": fx, "rules": ru, "nav": nav, "tot": tot, "tot_sat": tot_sat, "tot_isa": tot_isa, "isa_tot": isa_tot,
             "cash": cash_sat + cash_isa, "cost": cost, "loss": loss, "has_isa": bool(isa) or cash_isa > 0,
             "denom": den_label,
-            "semi_ex": semi / den if den else 0.0, "semi_elec": (semi + elec) / den if den else 0.0, "look": look / den if den else 0.0,
+            "semi_ex": semi / den if den else 0.0,
+            "semi_ex_old": semi_old / den if den else 0.0, "semi_ex_new": semi_new / den if den else 0.0,
+            "sector_w_new": {k: v / den for k, v in sorted(sec_w.items(), key=lambda kv: -kv[1])} if den else {},
+            "sector_basis": {"switch": sectors.OFFICIAL_LIMITS, "new": "GICS(미장)/" + sectors._kr()[1] + "(국장) 1종목1섹터",
+                             "old": "체인 기반 반도체 분류(semi_class)", "using": "new" if sectors.OFFICIAL_LIMITS else "old"}, "semi_elec": (semi + elec) / den if den else 0.0, "look": look / den if den else 0.0,
             "isa_w": isa_w, "isa_etc": isa_etc / isa_tot if isa_tot else 0.0, "isa_cash": cash_isa / isa_tot if isa_tot else 0.0,
             "day": sum(r["v"] - r["v"] / (1 + r["r1"]) for r in rows if r["r1"] is not None) / nav if nav else 0.0}
 

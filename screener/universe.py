@@ -307,12 +307,11 @@ def kr_sectors(refresh_days: int = 7) -> dict[str, str]:
 
 
 def us_sectors(refresh_days: int = 30) -> dict[str, str]:
-    """{티커: GICS 섹터(한글)} — S&P500 구성 CSV. NDX 전용 종목은 없을 수 있음. universe/us_sector.csv 캐시."""
+    """{티커: GICS 섹터(한글)} — S&P500 구성 CSV. NDX 전용 종목은 없을 수 있음(screener/sectors.US_MANUAL 이 보충).
+    universe/us_sector.csv 캐시 = yf, sector(GICS 11 한글), gics_sub(GICS 하위산업 영문 — 10/21 추가, 반도체 판정용)."""
     import time
+    from .sectors import GICS_KO as ko
     p = UNIVERSE_DIR / "us_sector.csv"
-    ko = {"Information Technology": "IT", "Health Care": "헬스케어", "Financials": "금융", "Consumer Discretionary": "경기소비재",
-          "Communication Services": "커뮤니케이션", "Industrials": "산업재", "Consumer Staples": "필수소비재", "Energy": "에너지",
-          "Utilities": "유틸리티", "Real Estate": "부동산", "Materials": "소재"}
     if p.exists() and (time.time() - p.stat().st_mtime) < refresh_days * 86400:
         df = pl.read_csv(p)
         return dict(zip(df["yf"].to_list(), df["sector"].to_list()))
@@ -322,8 +321,10 @@ def us_sectors(refresh_days: int = 30) -> dict[str, str]:
         r.raise_for_status()
         df = pl.read_csv(io.StringIO(r.text))
         sc = "GICS Sector" if "GICS Sector" in df.columns else [c for c in df.columns if "Sector" in c][0]
-        m = {str(a).replace(".", "-"): ko.get(b, b) for a, b in zip(df["Symbol"].to_list(), df[sc].to_list())}
-        pl.DataFrame({"yf": list(m), "sector": list(m.values())}).write_csv(p)
+        syms = [str(a).replace(".", "-") for a in df["Symbol"].to_list()]
+        m = {a: ko.get(b, b) for a, b in zip(syms, df[sc].to_list())}
+        sub = df["GICS Sub-Industry"].to_list() if "GICS Sub-Industry" in df.columns else [None] * len(syms)
+        pl.DataFrame({"yf": syms, "sector": [m[a] for a in syms], "gics_sub": sub}).unique("yf", keep="first").write_csv(p)
         return m
     except Exception as e:  # noqa: BLE001
         log.warning("미장 섹터 실패: %s", e)

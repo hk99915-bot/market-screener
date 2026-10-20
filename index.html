@@ -366,7 +366,7 @@ function tossLoad(cb){
   const g=f=>fetch(TOSS_BASE+f+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)));
   Promise.all([g('live.json').then(j=>{TOSS=(j&&j.source==='toss')?j:null; TOSS_ERR=TOSS?'':'형식 오류';}).catch(e=>{TOSS=null; TOSS_ERR=String(e&&e.message||e);}),
                g('crosscheck.json').then(j=>{TOSS_XC=j;}).catch(()=>{TOSS_XC=null;})])
-   .then(()=>{ const el=document.getElementById('tossbox'); if(el) el.innerHTML=tossBox(); cb&&cb(); });
+   .then(()=>{ const el=document.getElementById('tossbox'); if(el) el.innerHTML=tossBox(); const eu=document.getElementById('tossusbox'); if(eu) eu.innerHTML=tossUsBox(); cb&&cb(); });
 }
 function tossInSession(){ if(L&&L.session) return L.session==='LIVE';
   const k=new Date(Date.now()+9*3600e3), wd=k.getUTCDay(), m=k.getUTCHours()*60+k.getUTCMinutes(); return wd>=1&&wd<=5&&m>=540&&m<930; }
@@ -403,7 +403,25 @@ function tossBox(){
   const X=(TOSS_XC&&TOSS_XC.days)||[];
   if(X.length) h+=`<div style="margin-top:8px"><span class="mu">토스 대조 ${X.length}거래일 (괴리율 %, 허용: 지수 ${TOSS_XC.tolerances.INDEX_CLOSE_TOL_PCT} · 환율 ${TOSS_XC.tolerances.FX_TOL_PCT})</span><table><tr><th class="l">날짜</th>${X[X.length-1].rows.map(r=>`<th>${esc(r.item)}</th>`).join('')}</tr>${X.slice().reverse().map(d=>`<tr><td class="l mu">${esc(d.date)}</td>${d.rows.map(r=>`<td class="${r.status==='breach'?'dn':r.status==='ok'?'':'mu'}">${r.diff_pct!=null?r.diff_pct.toFixed(3):r.mismatch_n!=null?'불일치 '+r.mismatch_n:esc(r.status)}</td>`).join('')}</tr>`).join('')}</table></div>`;
   return h; }
-setInterval(()=>{ if(document.getElementById('tossbox')) tossLoad(); },60e3);
+setInterval(()=>{ if(document.getElementById('tossbox')||document.getElementById('tossusbox')) tossLoad(); },60e3);
+/* ───── TOSS LIVE US (10/21 'us' 그룹 — 토스 미장 4세션: 데이·프리·정규·애프터) ─────
+   신선: 세션 창(live.json us.session, KST) 안이면 asof 20분 이내 · 창이 끝났으면 마감 30분 전 이후 값이면 '마감분' · 창 정보 없으면 20분 이내만.
+   지연이면 표시만 하고 '기존 소스(야후·네이버)' 안내 — 미장 지수·종목 기존 경로는 그대로. */
+function tossUsFresh(us,ts){ if(!us||!ts) return false; const a=tossAgeMin(ts); if(a==null) return false; const S=us.session, now=Date.now();
+  if(S&&S.start&&S.end){ const st=Date.parse(S.start), en=Date.parse(S.end); if(now>=st&&now<=en) return a<=TOSS_MAX_MIN; if(now>en) return Date.parse(ts)>=en-30*60e3; }
+  return a<=TOSS_MAX_MIN; }
+function tossUsBox(){
+  const T=TOSS, U=T&&T.us; if(!U) return `<div class="am">토스 미장 데이터 없음(${esc(TOSS_ERR||(T?'us 블록 없음 — 노트북 toss_md_live 작업 확인':'로딩 중'))}) — 미장 값은 기존 소스(야후·네이버)</div>`;
+  const ok=tossUsFresh(U,U.asof), S=U.session, cp=v=>v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${Number(v).toFixed(2)}%</span>`;
+  let h=`<div class="mu" style="font-size:12px;margin-bottom:6px">토스 asof ${esc(String(U.asof||'').slice(5,16).replace('T',' '))} ${srcBadge('toss',U.asof)} · ${ok?'<span class="up">신선</span>':'<span class="dn">지연 — 기존 소스(야후·네이버)를 보세요</span>'}${S?` · 세션 ${esc(String(S.start).slice(5,16).replace('T',' '))}~${esc(String(S.end).slice(5,16).replace('T',' '))} KST`:''}${(U.missing||[]).length?` · <span class="am">빠짐: ${esc(U.missing.join(', '))}</span>`:''}</div>`;
+  const Q=U.quotes||{}, core=['SPY','QQQ','DIA','IWM','SOXX','SMH','TLT','HYG','GLD'].filter(k=>Q[k]), secs=['XLK','XLF','XLE','XLV','XLY','XLP','XLI','XLB','XLU','XLRE','XLC'].filter(k=>Q[k]);
+  const sp=U.spark||{};
+  h+=`<table><tr><th class="l">ETF</th><th>현재</th><th>등락</th><th class="l">1분봉(ET, 봉 종료 시각)</th></tr>${core.map(k=>`<tr><td class="l am sym" data-sym="${esc(k)}" data-mk="US">${esc(k)}</td><td>${num(Q[k].last,2)}</td><td>${cp(Q[k].chg_pct)}</td><td style="width:45%">${sp[k]?tossSpark(sp[k].bars,240,32):''}</td></tr>`).join('')}</table>`;
+  if(secs.length) h+=`<div style="margin-top:6px"><span class="mu">섹터 SPDR</span> ${secs.map(k=>`${esc(k)} ${cp(Q[k].chg_pct)}`).join(' · ')}</div>`;
+  const R=U.rank||{}, rt=(lab,a)=>a&&a.length?`<div style="flex:1;min-width:220px"><div class="mu">${lab}</div><table>${a.slice(0,10).map(r=>`<tr><td class="l am sym" data-sym="${esc(r.s)}" data-mk="US">${esc(r.s)}</td><td class="l">${esc(String(r.n||'').slice(0,14))}</td><td>${cp(r.chg_pct)}</td></tr>`).join('')}</table></div>`:'';
+  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">${rt('거래대금 상위(실시간)',R.amount)}${rt('상승 상위(1일)',R.gainers)}${rt('하락 상위(1일)',R.losers)}</div>`;
+  if((U.sector_rank||[]).length) h+=`<div style="margin-top:6px"><span class="mu">토스 섹터 등락(1일)</span> ${U.sector_rank.slice(0,12).map(x=>`${esc(x.name)} ${cp(x.chg_pct)}`).join(' · ')}</div>`;
+  return h; }
 function sigTable(rows,market){
   if(!rows||!rows.length) return '<div class="mu">—</div>';
   const kr=market==='KR';
@@ -519,6 +537,7 @@ function marketView(mk){
   let h=`<div class="grid">
     <div class="p c4"><h2>BREADTH ${mk}</h2><div class="b">${breadthPanel(mk)}</div></div>
     <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 · 지표별 해설</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
+  if(mk==='US'){ h+=`<div class="p c12"><h2>TOSS LIVE US<small>토스 미장 4세션(데이·프리·정규·애프터) · 지연 시 기존 소스 · ETF·랭킹·섹터</small></h2><div class="b" id="tossusbox">${tossUsBox()}</div></div>`; setTimeout(()=>tossLoad(),0); }
   if(mk==='KR'){ h+=`<div class="p c12"><h2>TOSS LIVE<small>토스 우선 · 지연 시 네이버/야후 · 지수·환율·국고채·수급 · 1주 대조</small></h2><div class="b" id="tossbox">${tossBox()}</div></div>`; setTimeout(()=>tossLoad(),0); }
   const mc=(D.state||{})['market_comment_'+mk];
   if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
@@ -569,11 +588,30 @@ function heatSource(mk,metric,base,live){
 }
 setInterval(()=>{if(view==='heat'&&HMK==='US'&&!document.hidden)heatRefreshUS();},60000);
 
+/* 히트맵 분류 (보드 toss-sectors, 10/21 겸이: 테마·순환매·히트맵 = 토스 섹터) — 토스 섹터 중분류(depth 1) 우선, 없는 종목은 기존 분류(peers g:
+   미장 GICS·반도체, 국장 테마·KRX 업종) 폴백. 토스 섹터는 다중 소속 → 한 종목이 여러 섹터 칸에 나올 수 있다(섹터 평균은 각각 정확). */
+let TSEC=null, TSEC_T=0, TSEC_ERR='', TSEC_MAP={}, HMSRC='toss';
+function tsecLoad(cb){ if(TSEC||Date.now()-TSEC_T<300e3){ return; } TSEC_T=Date.now();
+  fetch(TOSS_BASE+'sectors.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)))
+   .then(j=>{TSEC=(j&&j.source==='toss'&&Array.isArray(j.sectors)&&j.members)?j:null; TSEC_ERR=TSEC?'':'형식 오류'; TSEC_MAP={};})
+   .catch(e=>{TSEC=null; TSEC_ERR=String(e&&e.message||e);}).finally(()=>cb&&cb()); }
+function tsecSym(mk,s){ s=String(s||'').toUpperCase(); return mk==='KR'?s.replace(/^A(?=\d{6}$)/,''):s.replace(/\./g,'-'); }
+function tsecD1(mk){ if(!TSEC) return null; if(TSEC_MAP[mk]) return TSEC_MAP[mk];
+  const by={}; TSEC.sectors.forEach(x=>{by[x.id]=x;});
+  const d1=id=>{let x=by[id], g=0; while(x&&x.depth!=null&&x.depth>1&&g++<6) x=by[x.parent]; return x&&x.depth===1?x.name:null;};
+  const out={}; Object.entries(TSEC.members[mk]||{}).forEach(([s,ids])=>{const n=[...new Set(ids.map(d1).filter(Boolean))]; if(n.length) out[tsecSym(mk,s)]=n;});
+  return (TSEC_MAP[mk]=out); }
+function heatGroups(mk,rows){ const M=HMSRC==='toss'?tsecD1(mk):null; if(!M) return {rows,nT:0};
+  let nT=0; const out=[]; rows.forEach(r=>{const g=M[tsecSym(mk,r.s)]; if(g){ nT++; g.forEach(x=>out.push({...r,g:x})); } else out.push(r);}); return {rows:out,nT}; }
 function heatView(){
   if(HMK==='US')heatRefreshUS();
+  tsecLoad(()=>{ if(view==='heat') render(); });
   const mk=HMK; if(!PEERS[mk]){ peersLoad(mk,()=>{ if(view==='heat') render(); }); return '<div class="load">LOADING …</div>'; }
   const source=heatSource(mk,HMM,PEERS[mk],HMUS);
-  const rows=source.rows.filter(r=>r[HMM]!=null&&(r.mc||0)>0);
+  const rows0=source.rows.filter(r=>r[HMM]!=null&&(r.mc||0)>0);
+  const HG=heatGroups(mk,rows0), rows=HG.rows;
+  const old=mk==='US'?'GICS 섹터·반도체(기존)':'테마·KRX 업종(기존)';
+  const srcLab=HMSRC!=='toss'?`분류: ${old}`:TSEC?`분류: 토스 섹터 중분류 ${esc(TSEC.date||'')} · ${HG.nT}/${rows0.length}종목${HG.nT<rows0.length?` · 나머지 ${old}`:''} · 다중 소속은 여러 칸`:`분류: ${old} — 토스 섹터 못 읽음(${esc(TSEC_ERR||'로딩 중')})`;
   const by={}; rows.forEach(r=>{(by[r.g]=by[r.g]||[]).push(r);});
   let groups=Object.entries(by).map(([g,a])=>{a.sort((x,y)=>y.mc-x.mc); const top=a.slice(0,HMN); const tot=top.reduce((s,r)=>s+r.mc,0); return {g,a:top,n:a.length,v:HMS==='eq'?top.length:tot,avg:a.reduce((s,r)=>s+r.mc*r[HMM],0)/a.reduce((s,r)=>s+r.mc,0)};});
   if(HMG) groups=groups.filter(G=>G.g===HMG);
@@ -595,10 +633,12 @@ function heatView(){
     document.querySelectorAll('[data-hmm]').forEach(b=>b.onclick=()=>{HMM=b.dataset.hmm;render();});
     document.querySelectorAll('[data-hmn]').forEach(b=>b.onclick=()=>{HMN=+b.dataset.hmn;render();});
     document.querySelectorAll('[data-hms]').forEach(b=>b.onclick=()=>{HMS=b.dataset.hms;render();});
+    document.querySelectorAll('[data-hmsrc]').forEach(b=>b.onclick=()=>{HMSRC=b.dataset.hmsrc;HMG=null;render();});
     document.querySelectorAll('text.hg').forEach(t=>t.onclick=()=>{HMG=t.dataset.g;render();});
     const back=$('#hmback'); if(back) back.onclick=()=>{HMG=null;render();}; },0);
   return `<div class="grid"><div class="p c12"><h2>HEATMAP<small>${esc(source.label)}</small></h2><div class="b">
-    <div class="mu">${mk==='US'?esc(HMUS_ERR||'장중 목표 30분 간격 · 휴장 제외 · 5D/20D는 마감 기준'):''}</div><div class="ovl">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)}<span class="mu" style="margin:0 4px">|</span>${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}<span class="mu" style="margin:0 4px">|</span>${btn('hms','mc',mk==='KR'?'시총 크기':'거래대금 크기',HMS)}${btn('hms','eq','같은 크기',HMS)}<span class="mu" style="margin:0 4px">|</span>${btn('hmn',10,'상위10',HMN)}${btn('hmn',25,'상위25',HMN)}${btn('hmn',60,'상위60',HMN)}</div>
+    <div class="mu">${mk==='US'?esc(HMUS_ERR||'장중 목표 30분 간격 · 휴장 제외 · 5D/20D는 마감 기준'):''}</div><div class="ovl">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)}<span class="mu" style="margin:0 4px">|</span>${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}<span class="mu" style="margin:0 4px">|</span>${btn('hms','mc',mk==='KR'?'시총 크기':'거래대금 크기',HMS)}${btn('hms','eq','같은 크기',HMS)}<span class="mu" style="margin:0 4px">|</span>${btn('hmn',10,'상위10',HMN)}${btn('hmn',25,'상위25',HMN)}${btn('hmn',60,'상위60',HMN)}<span class="mu" style="margin:0 4px">|</span>${btn('hmsrc','toss','토스 섹터',HMSRC)}${btn('hmsrc','old','기존 분류',HMSRC)}</div>
+    <div class="mu" id="hmsrc" style="font-size:11px;margin:2px 0">${srcLab}</div>
     ${HMG?`<div style="margin:4px 0"><button id="hmback" class="tag">← 전체 보기</button> <b>${esc(HMG)}</b> 확대 중</div>`:'<div class="mu" style="font-size:11px;margin:4px 0">테마 이름을 누르면 그 테마만 확대 · 종목을 누르면 상세</div>'}
     <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;max-width:100%;height:auto;font-family:inherit">${svg}</svg>
     <div class="mu" style="font-size:11px;margin-top:4px">${mk==='KR'?'빨강=상승 파랑=하락 (국내 관례)':'초록=상승 빨강=하락'} · 진할수록 큰 움직임 (±${(lim*100).toFixed(0)}%에서 최대) · 테마 수익률은 시총 가중</div></div></div></div>`;
