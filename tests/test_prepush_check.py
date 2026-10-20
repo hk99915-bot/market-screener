@@ -57,3 +57,11 @@ def test_core_bare_true_blocks(monkeypatch):
     monkeypatch.setattr(pc, "git", lambda *a: "true" if a[:2] == ("config", "--get") else "")
     monkeypatch.setattr(pc, "run", lambda name, cmd: True)
     assert pc.main([]) == 1
+
+
+def test_checks_run_without_git_env(monkeypatch):
+    """훅 환경의 GIT_DIR 등이 검사 하위 프로세스로 새면 tmp 저장소 git 명령이 실제 저장소를 바꾼다(10/21 core.bare)."""
+    monkeypatch.setenv("GIT_DIR", "/nonexistent")
+    monkeypatch.setenv("GIT_INDEX_FILE", "/nonexistent/index")
+    env = pc.clean_env()
+    assert not any(k.startswith("GIT_") for k in env) and "PATH" in env

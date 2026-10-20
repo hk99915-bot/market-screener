@@ -81,3 +81,17 @@ def test_views_fetch_naver_records_keep_summary(monkeypatch):
     assert st["status"] == "ok" and st["n"] == 5 and st["label"] == "산업분석"
     rec = rv.to_record(rows[0], "t")
     assert rec["summary"] and len(rec["summary"]) <= 500 and rec["source"] == "네이버"
+
+
+def test_size_falls_back_on_400():
+    """10/21 첫 실수집: size=100 → 400 Bad Request. 줄여서 다시 받는다."""
+    import requests
+
+    def get(url):
+        if "size=100" in url or "size=50" in url:
+            resp = requests.Response()
+            resp.status_code = 400
+            raise requests.HTTPError("400", response=resp)
+        return _page([3, 2], "2026-10-20", more=False)
+    rows, diag = nra.fetch("economy", date(2026, 10, 1), get=get, pause=0)
+    assert len(rows) == 2 and diag["size"] == 30

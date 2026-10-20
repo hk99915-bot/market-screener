@@ -16,6 +16,7 @@ Actions 봇 push 에는 적용되지 않는다: core.hooksPath 는 로컬 git �
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -29,8 +30,14 @@ CORE = {"screener/config.py", "screener/defs.py", "screener/guard.py", "screener
 MAX_SUBSET = 25
 
 
+def clean_env() -> dict:
+    """훅은 GIT_DIR·GIT_INDEX_FILE 등을 물려받는다 → 검사(pytest 의 임시 git 저장소 명령)가 실제 저장소를 건드림
+    (10/21 core.bare=true 3회 재현). 검사 하위 프로세스에는 GIT_* 를 모두 지워서 넘긴다."""
+    return {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+
+
 def git(*a: str) -> str:
-    r = subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True, env=clean_env())
     return r.stdout.strip() if r.returncode == 0 else ""
 
 
@@ -76,7 +83,7 @@ def tests_for(files: list[str]) -> list[str] | None:
 
 def run(name: str, cmd: list[str]) -> bool:
     t = time.time()
-    r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=clean_env())
     ok = r.returncode == 0
     print(f"  {'✓' if ok else '✗'} {name} ({time.time() - t:.1f}s)")
     if not ok:
