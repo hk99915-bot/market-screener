@@ -291,7 +291,8 @@ def premortem_us(scen: list[dict], k: dict, p: dict) -> dict:
 
 
 # ───────────── 결론 (a) ─────────────
-def bottom_line_us(o: dict, k: dict, prev: dict | None, cal: list[dict], today: date, lights: dict, footer: str) -> dict:
+def bottom_line_us(o: dict, k: dict, prev: dict | None, cal: list[dict], today: date, lights: dict, footer: str,
+                   watch: set | None = None) -> dict:
     best = max(o.get("scenarios") or [{}], key=lambda s: s.get("prob") or 0)
     bn = str(best.get("name", "")).split(" —")[0]
     pb = None
@@ -311,17 +312,17 @@ def bottom_line_us(o: dict, k: dict, prev: dict | None, cal: list[dict], today: 
         except Exception:  # noqa: BLE001
             continue
         if today <= d <= today + timedelta(days=1) and (e.get("market") == "US" or e.get("type") == "매크로") and e.get("imp", 1) >= 2:
-            clock.append({"t": ("오늘 " if d == today else "내일 ") + e["date"][5:], "what": e["name"] + (" ★" if e.get("imp", 1) >= 3 else ""), "kind": "이벤트"})
+            clock.append({"t": ("오늘 " if d == today else "내일 ") + e["date"][5:], "what": e["name"] + (" ★" if e.get("imp", 1) >= 3 else ""), "kind": "이벤트",
+                          "hi": high_event(e, watch)})
     for lab, v in (("20일 저점(약세 전환선)", k.get("low20")), ("5일 고점", k.get("hi5")), ("52주 고점", k.get("hi52"))):
         if v and last:
             clock.append({"t": "가격선", "what": f"S&P500 {lab} {v:,.0f} (현재 대비 {(v/last-1)*100:+.1f}%)", "kind": "가격", "dist": v / last - 1})
     if k.get("vix") and last:
         clock.append({"t": "범위", "what": f"VIX 내재 하루 범위 S&P500 {last*(1-m1):,.0f}~{last*(1+m1):,.0f} (±{m1*100:.1f}%)", "kind": "가격"})
-    near = [c["what"] for c in clock if c.get("dist") is not None and 0 < abs(c["dist"]) <= m1]
-    big_ev = [c for c in clock if c["kind"] == "이벤트" and "★" in c["what"]]
+    near, big_ev = light_yellow(clock, m1)   # 10/20 보정: 범위 절반 이내·고중요 이벤트만 (섹터 의견 변경은 ① 줄에만)
     if flip or reg_flip:
         light = "red"
-    elif big_ev or near or st_chg:
+    elif big_ev or near:
         light = "yellow"
     else:
         light = "green"
@@ -351,13 +352,13 @@ def bottom_line_us(o: dict, k: dict, prev: dict | None, cal: list[dict], today: 
         l3 = (f"할 일: {'결론 ' + str(pb) + '→' + bn if flip else '레짐 전환'} — 시나리오 '행동' 칸 재확인 후 섹터 비중 조정. "
               "하지 말 일: 전환 첫날 레버리지·추격")
     elif light == "yellow":
-        why = ("핵심 일정 " + big_ev[0]["what"]) if big_ev else ("가격선 근접: " + near[0]) if near else ("섹터 의견 변경: " + ", ".join(st_chg[:2]))
+        why = ("고중요 일정 " + big_ev[0]["what"]) if big_ev else ("가격선 근접: " + near[0])
         l3 = f"할 일: 결론 유지 · 신규 행동 없음 — {why} 확인 후 재판정. 하지 말 일: 결과 전 방향 베팅 확대"
     else:
         l3 = "결론 유지 · 할 일 없음. 하지 말 일: 변화 없는 날의 매매(거래비용만 발생)"
     return {"light": light, "label": lights[light], "lines": [l1, l2, l3], "clock": clock, "stance": bn, "prev_stance": pb,
             "footer": footer,
-            "rule": "🔴 결론(최빈 시나리오) 또는 레짐이 바뀜 · 🟡 1일 안 ★일정, VIX 내재 하루 범위 안 가격선, 섹터 의견 변경 · 🟢 그 외"}
+            "rule": LIGHT_RULE}
 
 
 # ───────────── 기록 · 채점 (c) ─────────────
@@ -542,3 +543,124 @@ def build_track(o: dict, ms: dict) -> dict:
           "note": "기록 = reports/committee_us_hist.json (회의일·기준 종가일·후보·확률·섹터 의견). 같은 날 여러 번 돌면 마지막 판만."}
     return {"track": tr, "scorecard": sc, "validation": validation_us(o.get("scenario_basis") or {}, tr),
             "idea_tracking": ideas_tracking(h["rows"], spx, px)}
+
+
+# ───────────── 신호등 보정 (10/20 dev: light-calibration) ─────────────
+# 변동성 큰 장에서 '이벤트 있음 OR 가격선이 내재 1일 범위 안' 이 거의 매일 참 → 🟡 고착. 국장 _v2_bottom_line 과 공용.
+# 🟡 = 가격선이 내재 1일 범위의 NEAR_BAND 배 이내 · 또는 고중요 이벤트(FOMC·CPI·고용·관심 종목 실적). 일반 지표 발표는 시계(clock)에만.
+NEAR_BAND = 0.5
+HI_EVENT_KEYS = ("FOMC", "CPI", "고용", "비농업", "NONFARM", "PAYROLL")
+
+
+def high_event(e: dict, watch: set | None = None) -> bool:
+    """고중요 이벤트: 이름에 FOMC·CPI·고용(비농업) — 또는 실적이면 관심 종목(watch: 운용회의 아이디어·후보) 일 때만."""
+    if e.get("type") == "실적":
+        return str(e.get("ticker") or "") in (watch or set())
+    nm = str(e.get("name") or "").upper()
+    return any(k in nm for k in HI_EVENT_KEYS)
+
+
+def light_yellow(clock: list[dict], band: float) -> tuple[list[str], list[dict]]:
+    """(가까운 가격선 문구들, 고중요 이벤트들). clock 이벤트는 'hi' 플래그를 미리 달아 둔다."""
+    near = [c["what"] for c in clock if c.get("dist") is not None and 0 < abs(c["dist"]) <= NEAR_BAND * band]
+    hi = [c for c in clock if c.get("kind") == "이벤트" and c.get("hi")]
+    return near, hi
+
+
+LIGHT_RULE = ("🔴 판정·결론 또는 레짐 전환(국장은 신규 실행 후보 포함) · 🟡 가격선이 내재 1일 범위의 절반 이내, 또는 고중요 이벤트"
+              "(FOMC·CPI·고용·관심 종목 실적) · 🟢 그 외 — 일반 지표 발표는 시계에만 표기")
+
+
+# ───────────── 미장 진입 후보 ideas_top (10/20 dev: us-entry-ideas) ─────────────
+_GR_ORDER = ["A", "B", "C", "검증전", "F"]
+
+
+def _best_grade(sigs: list[str], grades: dict) -> str:
+    gs = [grades.get(s) or "검증전" for s in sigs] or ["검증전"]
+    return min(gs, key=lambda g: _GR_ORDER.index(g) if g in _GR_ORDER else 3)
+
+
+def ideas_top_us(o: dict, peers: list[dict], acc: dict, cal: list[dict], today: date, risk_box, bars_fn,
+                 gate: str, gate_why: str, lens_grade: str = "검증전", grade_w: dict | None = None) -> dict:
+    """국장 _v2_ideas_top 과 같은 형식. 원천 = us_accum 매집 흔적(연구 등급 가중) + 이익 신호(drv) + 추세(50일선).
+    risk_box(code) → 리스크 박스(손절 max(20일 저점, 종가−2×ATR14), 목표 2R) · bars_fn(code) → chart.
+    gate = 시장 진입 게이트('pass'|'fail', S&P 레짐 하락장이면 fail). 불통과·추세 미확인·촉매 없음이면 '대기'."""
+    GW = grade_w or {"A": 1.0, "B": 0.8, "C": 0.6, "검증전": 0.3, "F": 0.0}
+    meta = {r["s"]: r for r in peers if r.get("s")}
+    S: dict = {}
+
+    def add(code, key, label, side, grade):
+        if code not in meta:
+            return
+        S.setdefault(code, []).append({"k": key, "label": label, "side": side, "grade": grade})
+    hits = (acc.get("hits") or []) if acc.get("status") == "ok" else []
+    grades = acc.get("grades") or {}
+    for h in hits:
+        sg = [s for s in h.get("signals") or []]
+        add(h.get("symbol"), "us_accum", f"매집 흔적 {'·'.join(sg)} ({str(h.get('date', ''))[5:]})", "agree", _best_grade(sg, grades))
+    for r in peers:
+        d = r.get("drv")
+        if d is None:
+            continue
+        if d >= 0.2:
+            add(r["s"], "us_drv", f"이익 신호 {d:+.2f}", "agree", lens_grade)
+        elif d <= -0.2:
+            add(r["s"], "us_drv", f"이익 신호 {d:+.2f}", "oppose", lens_grade)
+    has_acc = {c for c, ss in S.items() if any(s["k"] == "us_accum" for s in ss)}
+    drv = {r["s"]: (r.get("drv") or 0) for r in peers if r.get("s")}
+    # 후보 풀: 매집 흔적이 뜬 종목 ∪ 이익 신호 강한 종목(drv ≥ 0.4, 기존 매수 후보 문턱과 같음)
+    pool = [c for c, ss in S.items() if any(s["side"] == "agree" for s in ss) and (c in has_acc or drv.get(c, 0) >= 0.4)]
+    rows = []
+    for code in pool:
+        ch = bars_fn(code) or []
+        last = ch[-1] if ch else {}
+        s50 = last.get("s50")
+        trend_ok = bool(s50 and last.get("c") and last["c"] >= s50)
+        if s50 and last.get("c"):
+            S[code].append({"k": "us_trend", "label": f"종가 {'≥' if trend_ok else '<'} 50일선 ({(last['c']/s50-1)*100:+.1f}%)",
+                            "side": "agree" if trend_ok else "oppose", "grade": "검증전"})
+        sc = 0.0
+        for s in S[code]:
+            s["w"] = round(GW.get(s["grade"], 0.3) * (1 if s["side"] == "agree" else -1), 3)
+            sc += s["w"]
+        if sc > 0:
+            rows.append((sc, code, trend_ok, last.get("t")))
+    # 동점 정렬: 매집 흔적 있음 → 이익 신호 큰 순 (F 등급이라 점수엔 0 이지만 '등급 상위 관찰' 우선)
+    rows.sort(key=lambda x: (-x[0], x[1] not in has_acc, -drv.get(x[1], 0), x[1]))
+    out, cands = [], []
+    for sc, code, trend_ok, ref in rows:
+        if len(out) + len(cands) >= 5:
+            break
+        rb = risk_box(code)
+        if not rb or rb["skip"]:
+            continue
+        ss = S[code]
+        strong = any(s["side"] == "agree" and GW.get(s["grade"], 0) >= 0.6 for s in ss)
+        conv = "높음" if sc >= 1.2 else "중간" if sc >= 0.6 else "낮음"
+        if conv == "높음" and not strong:
+            conv = "중간"
+        cm = {"높음": 1.0, "중간": 0.7, "낮음": 0.4}[conv]
+        payoff = (rb["target"] - rb["close"]) / (rb["close"] - rb["stop"])
+        size = min(cm * (payoff / 2) * 0.01 / rb["stop_pct"], 0.15)
+        cat = [{"date": e["date"], "what": "실적 발표" + (" (회사 확정)" if e.get("confirmed") else " (예정일 추정)")}
+               for e in cal if e.get("type") == "실적" and str(e.get("ticker")) == code
+               and str(today) <= e.get("date", "") <= str(today + timedelta(days=14))]
+        status = ("대기 — 촉매 없음" if not cat else "대기 — 확신 낮음" if conv == "낮음"
+                  else "대기 — 진입 게이트 불통과" if gate == "fail" else "대기 — 추세 미확인(50일선 아래)" if not trend_ok
+                  else "실행 후보")
+        m = meta[code]
+        row = {"s": code, "n": m.get("n"), "g": m.get("g"), "side": "롱", "conv": conv, "score": round(sc, 2), "size": size,
+               "entry": rb["close"], "entry_max": rb["close"] * (1 + 0.5 * rb["atr_pct"]), "stop": rb["stop"], "stop_pct": rb["stop_pct"],
+               "target": rb["target"], "payoff": payoff, "atr_pct": rb["atr_pct"], "catalyst": cat[:3], "status": status, "ref": ref,
+               "kill": [f"종가 {rb['stop']:,.2f} 하회 (손절, 협상 대상 아님)", "동의 원천이 반대로 바뀜 (이익 신호 −0.2 이하·50일선 이탈)",
+                        "20거래일 안 +1R 미도달 (시간 손절)"],
+               "sources": [{k: s[k] for k in ("k", "label", "side", "grade", "w")} for s in ss]}
+        (out if len(out) < 3 else cands).append(row)
+    gr_note = ("매집 흔적 연구 등급 " + ", ".join(sorted({f'{k}:{v}' for k, v in grades.items()})) if grades else "매집 흔적 등급 미확인")
+    return {"items": out, "candidates": cands, "entry_gate": gate, "entry_gate_why": gate_why, "market": "US",
+            "formula": "확신 점수 = Σ 동의 원천 가중 − Σ 반대 (가중 = 등급 A1·B.8·C.6·검증전.3·F0). 원천 = 매집 흔적(us_accum, 신호별 연구 등급) · "
+                       "이익 신호(peers_US drv ±0.2) · 추세(종가 vs 50일선). 높음 ≥1.2·중간 ≥0.6·낮음 >0, C 이상 동의 없으면 상한 중간. "
+                       "진입·손절·목표 = 리스크 박스(손절 max(20일 저점, 종가−2×ATR14), 목표 2R), 사이즈 = 확신도 × 손익비/2 × 1% ÷ 손절폭(상한 15%). "
+                       "실행 = 촉매(14일 안 실적) + 확신 중간 이상 + 시장 게이트 통과 + 종가 ≥ 50일선. 검증전.",
+            "grade_note": gr_note + " — F 는 가중 0(목록에는 근거로 표시)",
+            "empty": None if out else "숫자 근거 있는 미장 후보 없음 (동의 원천 > 반대이고 손절폭 15% 이하인 후보 없음) — 대기"}

@@ -313,4 +313,9 @@ def score() -> int:
     d["tally_by_market"] = by_mk
     OUT.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
     log.info("판단 성적표 채점 %d건", n)
+    try:   # 대결 누적 성과판(참가자별 누적 수익률·승패·벤치마크·일별 마킹) — 비율만, 실패해도 채점은 유지
+        from . import battle_scoreboard
+        battle_scoreboard.build()
+    except Exception as e:  # noqa: BLE001
+        log.warning("대결 성과판 실패: %s", e)
     return n

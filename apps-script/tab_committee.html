@@ -4,7 +4,7 @@
 <script>
 
 let IDEA_TRACKING=null;
-function ideaTrackingBox(){
+function ideaTrackingBox(mk){
   if(IDEA_TRACKING===null){
     IDEA_TRACKING={loading:true};
     fetch('https://hk99915-bot.github.io/market-screener/reports/idea_tracking.json',{cache:'no-store'})
@@ -14,23 +14,55 @@ function ideaTrackingBox(){
   }
   if(IDEA_TRACKING.loading) return '<div class="mu">아이디어 추적 불러오는 중…</div>';
   if(IDEA_TRACKING.error) return '<div class="am">아이디어 추적 자료 확인 필요 — 새로고침 후 확인</div>';
-  return ideaTrackingHtml(IDEA_TRACKING);
+  return ideaTrackingHtml(IDEA_TRACKING,mk||'KR');
 }
-function ideaTrackingHtml(d){
+function ideaTrackingHtml(d,mk){
+  mk=mk||'KR'; const rowsM=(d.rows||[]).filter(r=>(r.market||'KR')===mk), us=mk==='US';
   const labels={waiting:'진입 대기',not_entered:'미진입',open:'보유 중',target:'목표 종료',stop:'종가 손절',timeout:'시간 손절',expired:'미진입 만료',ambiguous:'동일일 목표·손절 — 판정 보류',review:'검증 보류'};
-  const f=v=>Number.isFinite(v)?num(v,0):'—';
+  const f=v=>Number.isFinite(v)?num(v,us?2:0):'—';
   const pctv=v=>Number.isFinite(v)?(v>0?'+':'')+(v*100).toFixed(2)+'%':'—';
-  const stats=d.summary||{};
-  return '<div style="border-top:1px solid var(--line);margin-top:12px;padding-top:8px"><b>아이디어 일별 추적 · 모의</b>'+
+  const stats=(d.summary_by_market||{})[mk]||(mk==='KR'?d.summary||{}:{});
+  return '<div style="border-top:1px solid var(--line);margin-top:12px;padding-top:8px"><b>'+(us?'미장 ':'')+'아이디어 일별 추적 · 모의</b>'+
     '<div class="mu" style="font-size:11px">갱신 '+esc(d.asof||'')+' KST · 종료 '+f(stats.closed)+'건 · 종료 적중률 '+pctv(stats.hit_rate)+' · 종료 평균손익 '+pctv(stats.avg_return)+' · 미진입률 '+pctv(stats.no_entry_rate)+' (진입 여부 확인 '+f(stats.resolved)+'건 기준)</div>'+
     '<div style="overflow-x:auto"><table><tr><th>제안일 · 종목</th><th>원래 진입 구간</th><th>원래 손절 / 목표</th><th>상태</th><th>모의 진입 / 평가</th><th>가격 기준일</th><th>비용 후 손익</th></tr>'+
-    [...(d.rows||[])].reverse().slice(0,60).map(r=>{const p=r.original||{},s=r.state||{};return '<tr><td>'+esc(r.date)+' · '+esc(r.name)+'</td><td>'+f(p.entry)+'~'+f(p.entry_max)+'</td><td>'+f(p.stop)+' / '+f(p.target)+'</td><td>'+esc(labels[s.status]||'검증 보류')+'</td><td>'+f(s.entry_price)+' / '+f(s.mark_price)+'</td><td>'+esc(s.price_date||'—')+'</td><td class="'+(s.ret>=0?'up':'dn')+'">'+pctv(s.ret)+'</td></tr>'+
+    (rowsM.length?'':'<tr><td colspan="7" class="mu">아직 기록 없음 — 다음 회의부터 진입 규칙대로 추적</td></tr>')+
+    [...rowsM].reverse().slice(0,us?20:60).map(r=>{const p=r.original||{},s=r.state||{};return '<tr><td>'+esc(r.date)+' · '+esc(r.name)+'</td><td>'+f(p.entry)+'~'+f(p.entry_max)+'</td><td>'+f(p.stop)+' / '+f(p.target)+'</td><td>'+esc(labels[s.status]||'검증 보류')+'</td><td>'+f(s.entry_price)+' / '+f(s.mark_price)+'</td><td>'+esc(s.price_date||'—')+'</td><td class="'+(s.ret>=0?'up':'dn')+'">'+pctv(s.ret)+'</td></tr>'+
       '<tr><td colspan="7" class="l mu" style="font-size:11px;white-space:normal">'+esc(s.reason||s.source_check||p.status||'')+
       ' · 최초 기록 '+esc(r.proposed_at||'')+' · '+esc((p.catalyst||[]).map(x=>x.what).join(' / ')||'촉매 미기록')+
       (p.kill?' · '+esc(p.kill.join(' / ')):'')+'</td></tr>';}).join('')+'</table></div>'+
     '<div class="mu" style="font-size:11px;white-space:normal">'+esc(d.policy||'')+' · 진행 중·판정 보류는 종료 적중률에서 제외. 과거 원천별 성적표와 별도 집계.</div></div>';
 }
 
+/* 트레이드 아이디어 카드 (국장 ideas_top · 미장 ideas_top 공용, 10/20 us-entry-ideas) */
+function ideaCardHtml(x,mk){
+  const d=mk==='US'?2:0, f0=v=>v==null?'—':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d,minimumFractionDigits:d}), go=String(x.status).startsWith('실행');
+  return `<div style="flex:1;min-width:240px;max-width:100%;border:1px solid ${go?'var(--up)':'var(--line)'};padding:8px 10px;white-space:normal">
+     <div style="display:flex;justify-content:space-between;gap:6px"><b><span class="am sym" data-sym="${esc(x.s)}" data-mk="${mk}">${esc(mk==='US'?x.s:x.n)}</span>${mk==='US'?` <span class="mu" style="font-size:11px">${esc(shortNm(x.n||''))}</span>`:''} ${esc(x.side)}</b><span class="${go?'up':'mu'}" style="font-size:11px">${esc(x.status)}</span></div>
+     <div style="font-size:12px">확신도 <b>${esc(x.conv)}</b> · 사이즈 <b class="am">${(x.size*100).toFixed(1)}%</b> <span class="mu">(모델 북)</span> · ${x.payoff.toFixed(1)}R</div>
+     <div style="font-size:12px">진입 ${f0(x.entry)}~${f0(x.entry_max)} · 손절 <span class="dn">${f0(x.stop)}</span> (${(-x.stop_pct*100).toFixed(1)}%) · 목표 <span class="up">${f0(x.target)}</span></div>
+     <div style="font-size:12px"><span class="am">촉매</span> ${(x.catalyst||[]).map(c=>esc(String(c.date).slice(5)+' '+c.what)).join(' · ')||'<span class="mu">없음 → 대기</span>'}</div>
+     <div style="font-size:12px"><span class="dn">kill</span> ${(x.kill||[]).map(esc).join(' / ')}</div>
+     <div style="font-size:11.5px;margin-top:3px">${cmtSrcHtml(x.sources)}</div>${x.score!=null?`<div class="mu" style="font-size:11px">확신 점수 ${x.score}</div>`:''}</div>`;
+}
+/* 신호 종목 forward 성과 (reports/signal_tracking.json — screener/signal_tracking.py, 10/20) */
+let SIGTRK=null;
+function sigTrackBox(mk){
+  if(SIGTRK===null){ SIGTRK={loading:true};
+    fetch('https://hk99915-bot.github.io/market-screener/reports/signal_tracking.json',{cache:'no-store'})
+      .then(r=>{if(!r.ok) throw Error('sigtrk'); return r.json();}).then(d=>{SIGTRK=d; if(view==='cmt') render();})
+      .catch(()=>{SIGTRK={error:true}; if(view==='cmt') render();}); }
+  if(SIGTRK.loading) return '<div class="mu">신호 성과 불러오는 중…</div>';
+  if(SIGTRK.error) return '<div class="am">신호 성과 자료 없음 — 다음 회의 생성 후</div>';
+  const d=SIGTRK, src=new Set((d.sources||[]).filter(s=>s.tracked&&s.market===mk).map(s=>s.src));
+  const pc=v=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(1)+'%';
+  const cell=h=>h?`<td class="${h.avg_ex>=0?'up':'dn'}">${pc(h.avg_ex)}</td><td class="mu">${Math.round(h.hit*100)}% · ${h.n}</td>`:'<td class="mu">대기</td><td class="mu">—</td>';
+  const rows=(d.by_tag||[]).filter(t=>src.has(t.src)).map(t=>`<tr><td class="l">${esc(t.src)} · ${esc(t.label)}${t.side<0?' <span class="dn" style="font-size:10.5px">약세</span>':''}</td><td>${t.n_events}</td>${cell(t.h5)}${cell(t.h20)}${cell(t.h60)}</tr>`);
+  const oc=d.origin_counts||{};
+  return `<div style="border-top:1px solid var(--line);margin-top:10px;padding-top:8px"><b>신호 종목 성과 · 신호일 이후 시장 중앙값 대비</b>
+    <div class="mu" style="font-size:11px">갱신 ${esc(d.generated_at||'')} · 첫 기록 ${esc(d.first||'—')} · 실시간 ${oc.live??0} · 게시본 복원 ${(oc.archive||0)+(oc.git||0)} · 사후 재계산 ${oc.recompute??0}</div>
+    ${rows.length?cmtTbl(['원천 · 신호','건수','5일 초과','적중·n','20일 초과','적중·n','60일 초과','적중·n'],rows):'<div class="mu">추적 신호 없음</div>'}
+    <div class="mu" style="font-size:11px;white-space:normal">${esc(d.policy||'')}</div></div>`;
+}
 let CMT=null, CMTU=null, CMK='KR', DOT=null;
 function cmtView(){
   if(CMK==='US') return cmtUSView();
@@ -161,16 +193,10 @@ function cmtV2Html(o){
     <div class="am" style="font-size:11px;margin-top:8px">회피 <span class="mu">검증 전 · 이익 신호 꺾임 + 고평가</span></div>${idea((o.ideas||{}).avoid||[],'종목')}
     ${(o.squeeze||[]).length?`<div class="am" style="font-size:11px;margin-top:8px">숏스퀴즈 후보 <span class="mu">잔고 1%+ · 드라이버 양호</span></div>${cmtTbl(['종목','테마','잔고','20일 변화','드라이버','20D'],o.squeeze.map(x=>`<tr><td class="l am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</td><td class="l mu">${esc(x.g)}</td><td>${x.ratio.toFixed(2)}%</td><td>${x.chg20!=null?(x.chg20>0?'+':'')+x.chg20.toFixed(2)+'%p':'—'}</td><td style="color:${col(x.drv)}">${sg(x.drv)}</td><td>${pct(x.r20,0)}</td></tr>`))}`:''}`,false));
   // 5. 트레이드 아이디어
-  const card=x=>`<div style="flex:1;min-width:240px;border:1px solid ${String(x.status).startsWith('실행')?'var(--up)':'var(--line)'};padding:8px 10px">
-     <div style="display:flex;justify-content:space-between;gap:6px"><b><span class="am sym" data-sym="${esc(x.s)}" data-mk="KR">${esc(x.n)}</span> ${esc(x.side)}</b><span class="${String(x.status).startsWith('실행')?'up':'mu'}" style="font-size:11px">${esc(x.status)}</span></div>
-     <div style="font-size:12px">확신도 <b>${esc(x.conv)}</b> · 사이즈 <b class="am">${(x.size*100).toFixed(1)}%</b> <span class="mu">(모델 북)</span> · ${x.payoff.toFixed(1)}R</div>
-     <div style="font-size:12px">진입 ${f0(x.entry)}~${f0(x.entry_max)} · 손절 <span class="dn">${f0(x.stop)}</span> (${(-x.stop_pct*100).toFixed(1)}%) · 목표 <span class="up">${f0(x.target)}</span></div>
-     <div style="font-size:12px"><span class="am">촉매</span> ${(x.catalyst||[]).map(c=>esc(String(c.date).slice(5)+' '+c.what)).join(' · ')||'<span class="mu">없음 → 대기</span>'}</div>
-     <div style="font-size:12px"><span class="dn">kill</span> ${(x.kill||[]).map(esc).join(' / ')}</div>
-     <div style="font-size:11.5px;margin-top:3px">${cmtSrcHtml(x.sources)}</div>${x.score!=null?`<div class="mu" style="font-size:11px">확신 점수 ${x.score}</div>`:''}</div>`;
+  const card=x=>ideaCardHtml(x,'KR');
   sec.push(cmtSec(5,'트레이드 아이디어 (최대 3)','모델 북 · 진입·손절·목표·촉매·kill criteria',
     `${(I.items||[]).length?`<div style="display:flex;gap:8px;flex-wrap:wrap">${I.items.map(card).join('')}</div>`:`<div class="mu">${esc(I.empty||'아이디어 없음 — 대기')}</div>`}
-    <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.formula||'')}${I.entry_gate?' · 진입 VIEW 게이트: '+esc(I.entry_gate):''}</div>${ideaTrackingBox()}${st&&st.exec?execHtml(st.exec):''}`,true));
+    <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.formula||'')}${I.entry_gate?' · 진입 VIEW 게이트: '+esc(I.entry_gate):''}</div>${ideaTrackingBox('KR')}${st&&st.exec?execHtml(st.exec):''}`,true));
   // 6. 헤지 · 비대칭
   const A=o.asymmetry||H.asymmetry;
   sec.push(cmtSec(6,'헤지 · 비대칭','최악 시나리오 대비 비용 (모델 북 기준)',
@@ -182,7 +208,7 @@ function cmtV2Html(o){
     PM.wrong?`<div><b>${esc(PM.wrong)}</b>${PM.p!=null?` <span class="am">${Math.round(PM.p*100)}%</span>`:''}</div><div><span class="am">알아챌 신호</span> ${esc(PM.tell||'')}</div>${PM.cost?`<div><span class="am">놓치는 비용</span> ${esc(PM.cost)}</div>`:''}<div><span class="am">그때 행동</span> ${esc(PM.action||'')}</div>`:'<div class="mu">없음</div>',false));
   // 8. 성적
   sec.push(cmtSec(8,'성적 · 검증','회의 채점 · 시그널 판정',
-    `${cmtList(T.lines)}<div class="am" style="font-size:11px;margin-top:8px">원천별 성적 (아이디어 추적${T.ideas_n?' · 기록 '+T.ideas_n+'건':''})</div>${(T.by_source||[]).length?cmtTbl(['원천','n','1R 도달','손절','평균 R','5일','20일','상태'],T.by_source.map(x=>`<tr><td class="l">${esc(x.k)}</td><td>${x.n}</td><td>${Math.round(x.hit1R*100)}%</td><td>${Math.round(x.stop*100)}%</td><td>${x.avgR>0?'+':''}${x.avgR}</td><td>${x.ret5!=null?pct(x.ret5,1):'—'}</td><td>${x.ret20!=null?pct(x.ret20,1):'—'}</td><td class="${x.status==='반영'?'up':'mu'}">${esc(x.status)}</td></tr>`)):'<div class="mu">채점 전 — 기록 후 5거래일 뒤부터</div>'}<div class="mu" style="font-size:11px">${esc(T.by_source_note||'')}</div><div class="mu" style="margin-top:6px">시그널 판정: ${Object.entries(o.validation||{}).map(([k,v])=>`${esc(k)} ${esc(v||'')}`).join(' · ')||'—'}</div>`,false));
+    `${cmtList(T.lines)}<div class="am" style="font-size:11px;margin-top:8px">원천별 성적 (아이디어 추적${T.ideas_n?' · 기록 '+T.ideas_n+'건':''})</div>${(T.by_source||[]).length?cmtTbl(['원천','n','1R 도달','손절','평균 R','5일','20일','상태'],T.by_source.map(x=>`<tr><td class="l">${esc(x.k)}</td><td>${x.n}</td><td>${Math.round(x.hit1R*100)}%</td><td>${Math.round(x.stop*100)}%</td><td>${x.avgR>0?'+':''}${x.avgR}</td><td>${x.ret5!=null?pct(x.ret5,1):'—'}</td><td>${x.ret20!=null?pct(x.ret20,1):'—'}</td><td class="${x.status==='반영'?'up':'mu'}">${esc(x.status)}</td></tr>`)):'<div class="mu">채점 전 — 기록 후 5거래일 뒤부터</div>'}<div class="mu" style="font-size:11px">${esc(T.by_source_note||'')}</div><div class="mu" style="margin-top:6px">시그널 판정: ${Object.entries(o.validation||{}).map(([k,v])=>`${esc(k)} ${esc(v||'')}`).join(' · ')||'—'}</div>${sigTrackBox('KR')}`,false));
   return `<div class="grid">${cmtBLCard(o)}${dotStripHtml()}${cmtSimFreshHtml(o)}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
 }
 function derivPanel(d){
@@ -238,6 +264,11 @@ function cmtUSView(){
     <div class="mu" style="font-size:11px;margin-top:4px">${esc(R.note||o.sector_note||'')}</div>`,true));
   sec.push(cmtSec(3,'종목 후보','검증 전 · 매수 후보(드라이버 강함 + 눌림) / 회피(추정 하향 + 급등)',
     `<div class="am" style="font-size:11px">매수 후보</div>${idea((o.ideas||{}).long||[])}<div class="am" style="font-size:11px;margin-top:8px">회피</div>${idea((o.ideas||{}).avoid||[])}`,false));
+  const IU=o.ideas_top||{}, iu=[...(IU.items||[]),...(IU.candidates||[])];
+  sec.push(cmtSec('3-1','매수 진입 후보 (최대 5)','국장 아이디어와 같은 형식 · 진입 구간·손절·목표·R · 게이트 불통과면 대기',
+    `<div style="font-size:12px;margin-bottom:6px">시장 진입 게이트 <b class="${IU.entry_gate==='fail'?'dn':IU.entry_gate==='pass'?'up':'mu'}">${esc(IU.entry_gate==='fail'?'불통과':IU.entry_gate==='pass'?'통과':'판정 없음')}</b> <span class="mu" style="font-size:11px">${esc(IU.entry_gate_why||'')}</span></div>
+    ${iu.length?`<div style="display:flex;gap:8px;flex-wrap:wrap">${iu.map(x=>ideaCardHtml(x,'US')).join('')}</div>`:`<div class="mu">${esc(IU.empty||'후보 없음 — 대기')}</div>`}
+    <div class="mu" style="font-size:11px;margin-top:6px;white-space:normal">${esc(IU.formula||'')} ${esc(IU.grade_note||'')}</div>${ideaTrackingBox('US')}`,true));
   const A=o.asymmetry||H.asymmetry;
   sec.push(cmtSec(4,'헤지 · 비대칭','최악 시나리오 대비 · 모델 북 기준',
     `${H.worst?`<div class="mu">최악 시나리오: ${esc(H.worst)}${H.worst_p!=null?' '+Math.round(H.worst_p*100)+'%':''}</div>`:''}
@@ -252,7 +283,7 @@ function cmtUSView(){
     `${cmtList(T.lines)}<div class="mu" style="font-size:11px">기록 ${SC.meetings??0}회 (첫 회의 ${esc(SC.first||'—')}${SC.backfilled?` · 지난 판 ${SC.backfilled}회 복원`:''}) · 5일 채점 ${SC.scored_h5??0} · 20일 채점 ${SC.scored_h20??0} · 대기 ${SC.pending??0}</div>
     <div class="am" style="font-size:11px;margin-top:8px">검증 현황</div>${vr.length?cmtTbl(['항목','등급','근거','사후 채점'],vr):'<div class="mu">없음</div>'}
     <div class="am" style="font-size:11px;margin-top:8px">아이디어 추적 · 모의 <span class="mu">제안 ${its.n??0} · 추적 ${its.tracked??0} · 종료 ${its.closed??0} · 적중 ${its.hit!=null?Math.round(its.hit*100)+'%':'—'} · 매수 후보 초과 ${pc2(its.long_excess)}</span></div>
-    ${itr.length?cmtTbl(['제안일 · 종목','구분','기준 종가','경과일','수익','S&P500','초과','상태'],itr):'<div class="mu">추적 대상 없음</div>'}<div class="mu" style="font-size:11px">${esc((IT&&IT.note)||'')}</div>`,false));
+    ${itr.length?cmtTbl(['제안일 · 종목','구분','기준 종가','경과일','수익','S&P500','초과','상태'],itr):'<div class="mu">추적 대상 없음</div>'}<div class="mu" style="font-size:11px">${esc((IT&&IT.note)||'')}</div>${sigTrackBox('US')}`,false));
   sec.push(cmtSec(7,'10일 이벤트','미장 실적·매크로',(o.events||[]).map(e=>`<div>${esc(e.date.slice(5))} ${e.imp>=3?'⭐':''} ${esc(e.name)} <span class="mu" style="font-size:11px">${esc(e.note||'')}</span></div>`).join('')||'<div class="mu">없음</div>',false));
   return cmtTabs()+`<div class="grid">${o.bottom_line?cmtBLCard(o):''}
    <div class="p c12"><h2>운용회의 · 미장<small>${esc(o.asof)} · 규칙 기반 · 검증 중</small></h2><div class="b" style="line-height:1.8;white-space:normal">${(o.head||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">결론</b> ${esc(o.verdict)}</div><div class="mu" style="font-size:12px;margin-top:4px">🔗 ${esc(o.kr_link||'')}</div></div></div>

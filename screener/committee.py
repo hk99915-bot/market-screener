@@ -273,16 +273,16 @@ def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der
                         else f"PB 판단: {st_}" + (f" — 급락일 종가 1차 집행 (등급 {cf['grade']})" if cf["crash"] else ""))}
 
 
-def _bars(code: str) -> list[dict]:
+def _bars(code: str, market: str = "KR") -> list[dict]:
     try:
-        return json.loads((REPORT_DIR / "detail" / "KR" / f"{code}.json").read_text(encoding="utf-8")).get("chart") or []
+        return json.loads((REPORT_DIR / "detail" / market / f"{code}.json").read_text(encoding="utf-8")).get("chart") or []
     except Exception:  # noqa: BLE001
         return []
 
 
-def _risk_box(code: str) -> dict | None:
-    """리스크 프레임 [1][2][3]: 손절 = max(20일 저점, 종가−2×ATR14), 목표 = 2R, 비중 = 1% 리스크 ÷ 손절폭 (단일 15% 상한)."""
-    b = [x for x in _bars(code) if x.get("c") and x.get("h") and x.get("l")]
+def _risk_box(code: str, market: str = "KR") -> dict | None:
+    """리스크 프레임 [1][2][3]: 손절 = max(20일 저점, 종가−2×ATR14), 목표 = 2R, 비중 = 1% 리스크 ÷ 손절폭 (단일 15% 상한). market=US 면 detail/US chart."""
+    b = [x for x in _bars(code, market) if x.get("c") and x.get("h") and x.get("l")]
     if len(b) < 21:
         return None
     c = b[-1]["c"]
@@ -1327,15 +1327,19 @@ def _v2_track(o: dict) -> dict:
 
 
 def _v2_clock(o: dict, k: dict, der: dict, cal: list[dict], today: date, im: dict | None) -> list[dict]:
+    from .us_committee import high_event
+    it = o.get("ideas_top") or {}
+    watch = {str(x.get("s")) for x in (it.get("items") or []) + (it.get("candidates") or [])}
     C = []
     for e in cal:
         if e.get("date") == str(today) and e.get("type") not in ("시장 이벤트",):
-            C.append({"t": _ev_time(e) or "시각 미정", "what": e["name"] + (" ★" if e.get("imp", 1) >= 3 else ""), "kind": "이벤트"})
+            C.append({"t": _ev_time(e) or "시각 미정", "what": e["name"] + (" ★" if e.get("imp", 1) >= 3 else ""), "kind": "이벤트",
+                      "hi": high_event(e, watch)})
     tm = today + timedelta(days=1)
     for e in cal:   # 내일 새벽(한국 00:00~08:59) 미국 이벤트도 오늘 밤 시계에 포함
         t = _ev_time(e)
         if e.get("date") == str(tm) and t and t < "09:00":
-            C.append({"t": "내일 " + t, "what": e["name"], "kind": "이벤트"})
+            C.append({"t": "내일 " + t, "what": e["name"], "kind": "이벤트", "hi": high_event(e, watch)})
     C.sort(key=lambda x: x["t"])
     last = k.get("last")
     for lab, v in (("오늘 저점", k.get("low_today")), ("20일 저점(약세 경보선)", k.get("low20")), ("5일 고점(강세 전환선)", k.get("hi5"))):
@@ -1357,13 +1361,14 @@ def _v2_bottom_line(o: dict, k: dict, prev: dict | None, delta: str | None, cloc
     new_go = [x for x in ideas.get("items", []) if x["status"].startswith("실행") and x["s"] not in prev_ids]
     im = (o.get("positioning") or {}).get("implied") or {}
     band = (im.get("pct") or 0.01)
-    near = [c["what"] for c in clock if c.get("dist") is not None and 0 < abs(c["dist"]) <= band]
+    from .us_committee import LIGHT_RULE, light_yellow
+    near, hi_ev = light_yellow(clock, band)   # 10/20 보정: 범위 절반 이내·고중요 이벤트만 🟡 (일반 지표는 시계에만)
     ev_today = [c for c in clock if c["kind"] == "이벤트"]
     gate_fail = (ideas.get("entry_gate") == "fail")
     reg_flip = any(str(x).startswith("레짐 전환") for x in macro.get("changed", []))
     if flip or reg_flip or (new_go and not gate_fail):
         light = "red"
-    elif ev_today or near:
+    elif hi_ev or near:
         light = "yellow"
     else:
         light = "green"
@@ -1375,12 +1380,12 @@ def _v2_bottom_line(o: dict, k: dict, prev: dict | None, delta: str | None, cloc
         why = ("판정 " + f"{ps}→{st_}") if flip else ("레짐 전환" if reg_flip else "신규 실행 후보 " + ", ".join(x["n"] for x in new_go[:2]))
         l3 = f"할 일: {why} — 섹션 5 아이디어의 진입·손절·촉매 확인 후 집행. 하지 말 일: 손절선 없는 진입·추격 매수"
     elif light == "yellow":
-        l3 = ("할 일: 판정 유지 · 신규 행동 없음 — " + ("가격선 근접: " + near[0] if near else "이벤트 결과 확인 후 재판정")
+        l3 = ("할 일: 판정 유지 · 신규 행동 없음 — " + ("가격선 근접: " + near[0] if near else f"고중요 이벤트({hi_ev[0]['what']}) 결과 확인 후 재판정")
               + ". 하지 말 일: 이벤트 결과 전 레버리지·방향 베팅 확대")
     else:
         l3 = "판정 유지 · 할 일 없음. 하지 말 일: 변화 없는 날의 매매(거래비용만 발생)"
     return {"light": light, "label": LIGHTS[light], "lines": [l1, l2, l3], "clock": clock, "stance": st_, "prev_stance": ps,
-            "session": session, "footer": V2_FOOTER}
+            "session": session, "footer": V2_FOOTER, "rule": LIGHT_RULE}
 
 
 def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict], peers: list[dict], cal: list[dict],
@@ -1418,6 +1423,12 @@ def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict
         out["idea_tracking"] = track_ideas(out)
     except Exception as e:  # noqa: BLE001
         log.info("아이디어 기록 실패: %s", e)
+    try:   # 신호 종목 forward 성과 누적 (accum·us_accum·sim_signals → reports/signal_tracking.json, 10/20)
+        from . import signal_tracking
+        st_ = signal_tracking.build()
+        out["signal_tracking"] = {"asof": st_.get("asof"), "first": st_.get("first"), "by_src": st_.get("by_src")}
+    except Exception as e:  # noqa: BLE001
+        log.warning("신호 추적 실패: %s", e)
     out["footer"] = V2_FOOTER
     out["v"] = 2
 
@@ -1602,8 +1613,19 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
             log.warning("미장 v2 %s 실패: %s", key, e)
     if isinstance(out.get("hedges"), dict):
         out["asymmetry"] = out["hedges"].get("asymmetry")
+    try:   # 미장 진입 후보 (국장 ideas_top 형식, 10/20 us-entry-ideas)
+        reg = U.regime_us(mv)
+        gate = "fail" if reg.get("label") == "하락장" else "pass" if reg else "n/a"
+        out["ideas_top"] = U.ideas_top_us(
+            out, (_j("peers_US.json", {}) or {}).get("rows", []), _j("us_accum.json", {}) or {}, cal, today,
+            lambda c: _risk_box(c, "US"), lambda c: _bars(c, "US"), gate,
+            reg.get("line") or "레짐 데이터 없음", _lens(_j("views.json", {}) or {}, "committee_ideas")["grade"], GRADE_W)
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 ideas_top 실패: %s", e)
     try:
-        out["bottom_line"] = U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US)
+        it = out.get("ideas_top") or {}
+        watch = {str(x.get("s")) for x in (it.get("items") or []) + (it.get("candidates") or [])} | {x["s"] for x in (out.get("ideas") or {}).get("long", [])}
+        out["bottom_line"] = U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US, watch)
     except Exception as e:  # noqa: BLE001
         log.warning("미장 v2 bottom_line 실패: %s", e)
     try:
@@ -1616,6 +1638,11 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
         out.update(U.build_track(out, ms))
     except Exception as e:  # noqa: BLE001
         log.warning("미장 v2 기록·채점 실패: %s", e)
+    try:   # 미장 후보도 국장과 같은 진입 규칙 모의추적에 편입 (idea_tracking.json, market=US)
+        from .idea_tracking import run as track_ideas
+        out["idea_tracking_top"] = track_ideas(out, market="US")
+    except Exception as e:  # noqa: BLE001
+        log.info("미장 아이디어 추적 실패: %s", e)
     out["footer"] = V2_FOOTER_US
     out["v"] = 2
 

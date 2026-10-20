@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-20",
+  "updated": "2026-10-21",
   "owners": [
     "PB",
     "퀀트",
@@ -2419,6 +2419,86 @@
       ],
       "depends_on": [],
       "notes": "겸이 10/20 요청. 감사(10/20 저장소 6,699건): ①네이버 종목분석 수집 0건 — 10/15~ 목록이 Next.js(Npay 증권) 화면으로 바뀌어 옛 표 파서가 매 실행 0건(WARNING 만), 저장소 source 100% 한경·증권사 12곳 ②opinion_rank 가 Not Rated·nr·N/A·투자의견없음(1,086건)을 '중립'으로 세어 의견 변화 399건 중 279건이 가짜 의견↑↓ → -1 로 수정(120건) ③fin.yml 저장 단계: 10/19 18:33 UTC 실행이 rebase 충돌 후 재시도 3회 실패했는데 '성공' 표시·결과 미저장 → -X theirs·regress_git·abort·실패 시 exit 1. 비종목: data/research_views.parquet·reports/research_views.json(status 출처별), 분류기 report_kind.classify(title, source_category, text, pages) 순수 함수. 한경 비CO report_type 은 목록 탭 링크에서 런타임으로 읽음(값 미확인). 남은 일: 첫 fin 실행(03:30 KST) 결과로 네이버 5종·한경 탭 실제 수집 여부 확인 → layout_changed 면 reports/logs/rv_*.html 로 새 파서, 네이버 종목분석 새 경로(API) 확인, backfill.yml·hist.yml 같은 푸시 루프 수정."
+    },
+    {
+      "id": "battle-scoreboard",
+      "title": "대결 누적 성과판(참가자별 누적 수익률·승패·벤치마크·일별 마킹) + 성적표 하위 탭 분리",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-20",
+      "due": "2026-10-27",
+      "repo": "public",
+      "depends_on": [],
+      "files": [
+        "screener/battle_scoreboard.py",
+        "screener/decisions.py",
+        "apps-script/tab_duel.html",
+        "apps-script/Index.html",
+        "reports/battle_scoreboard.json",
+        "scripts/ui_smoke.py",
+        "tests/test_tracking_1020.py",
+        "tests/test_index_split.py"
+      ],
+      "notes": "decisions.score() 끝에서 reports/battle_scoreboard.json 생성(확정=decisions 채점, 보유 중=최근 확정 종가 평가·누적 미합산, 벤치 KR KODEX 200·US SPY 같은 창, 미제출·가격 없음=미평가, 금액·notional 미기록). battle_daily(외부 스냅샷)는 marks_ext 로만 병합. 화면: DAILY 대결 박스는 진행 중·제출만, DAILY › 성적표 하위 탭(요약 카드·누적 곡선·판별 칩·최근 3건+더 보기). 롤백=커밋 revert. 검수: 다음 채점(07:xx 장전) 후 파일 갱신·화면 확인."
+    },
+    {
+      "id": "signal-tracking",
+      "title": "신호 종목 forward 성과 누적(+5/+20/+60거래일, 시장 중앙값 대비)",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-20",
+      "due": "2026-10-27",
+      "repo": "public",
+      "depends_on": [],
+      "files": [
+        "screener/signal_tracking.py",
+        "screener/fwd_perf.py",
+        "screener/committee.py",
+        "apps-script/tab_committee.html",
+        "reports/signal_tracking.json",
+        "reports/signal_tracking/*",
+        "tests/test_tracking_1020.py"
+      ],
+      "notes": "원천: accum(KR 매집 태그별)·us_accum·sim_signals KR/US. ideas_top 은 idea_tracking 중복이라 제외, entry_signals·alerts 는 종목 신호 아님. 국장 운용회의 생성마다 갱신(briefing reports/ 커밋). 복원: archive/accum·git 이력(게시본) + KR 매집 data/flows 재계산 160거래일·5일 간격(origin recompute, 당시 화면 노출분 아님). 같은 원천·태그·종목 20일 안 재등장은 계속. 표본 중첩·비용 미반영·검증전."
+    },
+    {
+      "id": "us-entry-ideas",
+      "title": "미장 매수 진입 후보 ideas_top(US) + idea_tracking 모의추적 편입",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-20",
+      "due": "2026-10-27",
+      "repo": "public",
+      "depends_on": [],
+      "files": [
+        "screener/us_committee.py",
+        "screener/committee.py",
+        "screener/idea_tracking.py",
+        "apps-script/tab_committee.html",
+        "tests/test_tracking_1020.py"
+      ],
+      "notes": "원천 = us_accum 매집 흔적(연구 등급 가중, 현재 S1~S9 전부 F → 가중 0, 근거로만 표시) + 이익 신호 drv ±0.2 + 종가 vs 50일선. 리스크 박스·형식 국장과 동일, 3+2개. 시장 게이트 = S&P 레짐 하락장이면 불통과. 실행 = 14일 안 실적 촉매+확신 중간 이상+게이트 통과+50일선 위. 현재 미장 실적 캘린더가 소수라 대부분 '대기 — 촉매 없음'. 모의추적: idea_tracking.json market=US, 제안 뒤 처음 열리는 세션 시가 진입(22:30 KST 이후 제안은 그날 세션 제외)."
+    },
+    {
+      "id": "light-calibration",
+      "title": "신호등 🟡 고착 보정(가격선 0.5×내재 범위·고중요 이벤트만)",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-20",
+      "due": "2026-10-27",
+      "repo": "public",
+      "depends_on": [],
+      "files": [
+        "screener/committee.py",
+        "screener/us_committee.py",
+        "scripts/light_calibration.py",
+        "tests/test_tracking_1020.py"
+      ],
+      "notes": "🟡 = 가격선이 내재 1일 범위 절반 이내 또는 FOMC·CPI·고용·관심 종목(회의 아이디어·후보) 실적. 일반 지표는 시계에만. 미장은 섹터 의견 변경을 🟡 조건에서 뺌(① 줄에는 유지). 라벨 문구 유지. 과거판 재적용(scripts/light_calibration.py): 국장 18판 전 1/17/0 → 후 1/8/9, 미장 v2 1판 0/1/0 → 0/1/0. 뒤집는 조건: 2주간 🟢 날 실제 지수 1일 변동이 내재 범위를 넘는 비율이 🟡 날보다 높으면 문턱 재검토."
     }
   ]
 }

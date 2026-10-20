@@ -62,6 +62,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_us_detail(b, port)
         bad += await check_my_ledger(b, port)
         bad += await check_cmt_us(b, port)
+        bad += await check_score(b, port)
         await b.close()
     return bad
 
@@ -116,6 +117,34 @@ async def check_cmt_us(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} 운용회의 미장 v2 {len(txt)}자" + (f" · 에러: {errs[0][:160]}" if errs else "") + (f" · 빠짐: {miss}" if miss else ""))
     await pg.close()
     return 0 if ok else 1
+
+
+async def check_score(b, port: int) -> int:
+    """DAILY › 성적표 하위 탭 (10/20 겸이: 판단 성적표 분리): 요약 카드·누적 곡선·대결 누적 성과판·판단 기록이 그려지고,
+    폰 폭(390px)에서 가로 스크롤 없음 · DAILY 상단 대결 박스는 짧게(성적표 링크) — battle-scoreboard."""
+    bad = 0
+    for w in (1300, 390):
+        pg = await b.new_page(viewport={"width": w, "height": 850})
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1500)
+        await pg.evaluate("setView('score')")
+        await pg.wait_for_timeout(2500)
+        txt = await pg.evaluate("document.querySelector('#root').innerText")
+        sw, iw = await pg.evaluate("[document.documentElement.scrollWidth, window.innerWidth]")
+        svg = await pg.evaluate("document.querySelectorAll('#root svg polyline').length")
+        sub = await pg.evaluate("[...document.querySelectorAll('#subt button')].map(x=>x.textContent).join(',')")
+        await pg.evaluate("setView('daily')")
+        await pg.wait_for_timeout(2500)
+        dl = await pg.evaluate("document.querySelector('#root').innerText")
+        need = ["성적표", "대결 누적 성과판", "판단 기록"]
+        miss = [x for x in need if x not in txt] + ([] if "성적표" in sub else ["하위 탭"]) + ([] if "성적표 전체" in dl else ["DAILY 대결 박스 링크"])
+        ok = not errs and not miss and sw <= iw + 1 and "원 (" not in txt
+        print(f"{'OK ' if ok else 'BAD'} 성적표 {w}px {len(txt)}자 · 곡선 {svg} · 가로 {sw}/{iw}" + (f" · 에러: {errs[0][:160]}" if errs else "") + (f" · 빠짐: {miss}" if miss else ""))
+        bad += not ok
+        await pg.close()
+    return bad
 
 
 async def check_us_detail(b, port: int, sym: str = "AAPL") -> int:
