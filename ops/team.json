@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-21T00:09+09:00",
+ "updated": "2026-10-21T00:10+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -1086,8 +1086,8 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-15",
-  "commits_total": 1489,
-  "commits_bot": 844,
+  "commits_total": 1492,
+  "commits_bot": 845,
   "commits_unmapped": 330,
   "audit_files": [
    "2026-10-17"
@@ -1148,7 +1148,7 @@
     }
    },
    "PM": {
-    "commits_7d": 52,
+    "commits_7d": 53,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -1184,10 +1184,10 @@
     }
    },
    "개발": {
-    "commits_7d": 64,
+    "commits_7d": 65,
     "board": {
      "진행": 2,
-     "검수": 15,
+     "검수": 16,
      "대기": 14,
      "보류": 2,
      "완료": 7
@@ -1529,31 +1529,31 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 118,
-   "tokens": 21641395,
-   "tools": 4795,
-   "sec": 60143,
-   "days": 5,
+   "runs": 119,
+   "tokens": 21782351,
+   "tools": 4838,
+   "sec": 60579,
+   "days": 6,
    "per_day": {
-    "runs": 23.6,
-    "tokens": 4328279.0,
-    "tools": 959.0,
-    "sec": 12028.6
+    "runs": 19.8,
+    "tokens": 3630391.8,
+    "tools": 806.3,
+    "sec": 10096.5
    }
   }
  },
  "by_model": {
   "미지정": {
-   "runs": 19,
-   "tokens": 3691943,
-   "tools": 1015,
-   "sec": 17286,
-   "days": 3,
+   "runs": 20,
+   "tokens": 3832899,
+   "tools": 1058,
+   "sec": 17722,
+   "days": 4,
    "per_day": {
-    "runs": 6.3,
-    "tokens": 1230647.7,
-    "tools": 338.3,
-    "sec": 5762.0
+    "runs": 5.0,
+    "tokens": 958224.8,
+    "tools": 264.5,
+    "sec": 4430.5
    }
   },
   "claude-fable-5-1": {
