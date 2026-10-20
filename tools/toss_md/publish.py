@@ -10,6 +10,9 @@
                   키 = 봉 **시작** 시각 HH:MM) · 시장 투자자별 순매수(개인·외국인·기관·기타법인 합계만) · USDKRW midRate(매매기준율)
                   · 휴장 달력 요약 · asof/generated_at/published_at/source='toss'
 - crosscheck.json 최근 7거래일 토스 vs 기존 소스 괴리(괴리율·판정만, 원값 없음)
+- sectors.json    토스 섹터 계층 + 종목→말단 섹터(다중) — 하루 1회(10/21)
+- daily_bars.json 지수·국채·미장 지표 ETF 일봉 과거분(마지막 봉 제외, ≤520봉) — 새 날짜가 생길 때만 바뀜(10/21)
+- daily_today.json 키별 마지막 일봉 1개 — 10분 회차마다(10/21)
 넣지 않는 것: 원시 호가·체결·종목 시세, 계좌·토큰·키, 토스 rate(고객 매수환율), API 주소.
 터미널은 raw.githubusercontent.com/<저장소>/toss-live/live.json 을 직접 읽는다(screener/toss_live.py · 화면 tab_market/tab_detail).
 
@@ -675,6 +678,32 @@ def build_sectors(base: Path, now: datetime) -> dict | None:
     return None
 
 
+# ── 일봉 (10/21 겸이 "일봉도 토스데이터로 … 10분마다 최신화") — 커밋 크기 때문에 두 파일로 나눈다 ──────────────
+# daily_bars.json  = 키별 과거 봉(마지막 봉 제외) — 새 날짜가 생길 때만 바뀜(하루 1~2회 커밋)
+# daily_today.json = 키별 마지막 봉 1개 — 10분 회차마다 바뀜(수백 바이트)
+# 화면은 두 파일을 합쳐 쓴다(같은 날짜면 today 가 이김).
+def build_daily(base: Path, now: datetime) -> tuple[dict | None, dict | None]:
+    keys = list(collect.DAILY_IND) + list(collect.DAILY_US)
+    hist, today = {}, {}
+    for k in keys:
+        c = collect.daily_cache(base, k)
+        bars = sorted((c.get("bars") or {}).items())
+        if not bars:
+            continue
+        rows = [[d, *[_r(x, 4) if x is not None else None for x in v]] for d, v in bars]
+        mk = c.get("mk") or ("KR" if k in collect.DAILY_IND else "US")
+        hist[k] = {"mk": mk, "tz": "KST" if mk == "KR" else "ET", "n": len(rows) - 1, "bars": rows[:-1]}
+        today[k] = {"bar": rows[-1], "updated": c.get("updated")}
+    if not today:
+        return None, None
+    last_hist = max((v["bars"][-1][0] for v in hist.values() if v["bars"]), default=None)
+    h = {"source": "toss", "date": last_hist, "keys": hist,
+         "note": "토스 일봉 과거분(키별 마지막 봉 제외). bars = [날짜, 시, 고, 저, 종, 거래량]. 오늘 봉은 daily_today.json. 국채는 % 수익률."}
+    t = {"source": "toss", "asof": max((v["updated"] for v in today.values() if v.get("updated")), default=None), "keys": today,
+         "note": "키별 마지막 일봉 1개(10분 갱신: KOSPI·KOSDAQ 국장 창, SPY·QQQ·DIA·IWM·SOXX 미장 창). bar = [날짜, 시, 고, 저, 종, 거래량]."}
+    return h, t
+
+
 def build_crosscheck(base: Path, now: datetime, reports: Path | None = None) -> dict:
     """최근 XC_DAYS 거래일 crosscheck.json → 괴리율·판정만. 16:00 이후면 오늘 것을 먼저 계산해 로컬에 저장."""
     loc = now.astimezone(KST)
@@ -903,11 +932,13 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
     doc = fit_size(build(base, now))
     xc = build_crosscheck(base, now, reports or repo / "reports")
     sec = build_sectors(base, now)
+    dh, dt = build_daily(base, now)
+    extra = {n: x for n, x in (("sectors.json", sec), ("daily_bars.json", dh), ("daily_today.json", dt)) if x}
     assert_public(doc)
     assert_public(xc)
-    if sec:
-        assert_public(sec)
-    sig_full, sig_xc = signature(doc), signature(xc) + (signature(sec) if sec else "")
+    for x in extra.values():
+        assert_public(x)
+    sig_full, sig_xc = signature(doc), signature(xc) + "".join(signature(extra[n]) for n in sorted(extra))
     go, why = decide(st, sig_full, sig_xc, now, min_interval_min)
     st.update({"at": now.isoformat(timespec="seconds"), "decision": why})
     if dry_run:
@@ -915,8 +946,8 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
         out.mkdir(parents=True, exist_ok=True)
         (out / "live.json").write_text(render(doc), encoding="utf-8")
         (out / "crosscheck.json").write_text(render(xc), encoding="utf-8")
-        if sec:
-            (out / "sectors.json").write_text(render(sec), encoding="utf-8")
+        for n, x in extra.items():
+            (out / n).write_text(render(x), encoding="utf-8")
         return {"status": "dry_run", "decision": why, "go": go, "dir": str(out), "bytes": len(render(doc).encode())}
     if not go:
         st["status"] = f"skipped:{why}"
@@ -932,12 +963,13 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
         return {"status": "fail", "decision": why, "error": st["error"]}
     contracts.stamp(Path("reports") / CONTRACT_PATH, doc)
     files = {"live.json": render(doc), "crosscheck.json": render(xc)}
-    if sec:
-        files["sectors.json"] = render(sec)
-    elif have_remote:   # 트리를 통째로 새로 만들므로, 이번에 못 만들면 원격 sectors.json 을 그대로 실어야 지워지지 않는다
-        old = remote_file(repo, "sectors.json", git)
-        if old:
-            files["sectors.json"] = old if old.endswith("\n") else old + "\n"
+    for n in ("sectors.json", "daily_bars.json", "daily_today.json"):
+        if n in extra:
+            files[n] = render(extra[n])
+        elif have_remote:   # 트리를 통째로 새로 만들므로, 이번에 못 만들면 원격 파일을 그대로 실어야 지워지지 않는다
+            old = remote_file(repo, n, git)
+            if old:
+                files[n] = old if old.endswith("\n") else old + "\n"
     if not push:
         out = base / "publish_preview"
         out.mkdir(parents=True, exist_ok=True)

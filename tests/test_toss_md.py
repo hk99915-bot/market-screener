@@ -240,7 +240,8 @@ def test_429_gives_up_when_retry_after_too_long(tmp_path):
 def test_collect_dry_run_writes_outside_repo(tmp_path):
     now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
     s = collect.run("all", dry_run=True, stocks_all=True, out=tmp_path, now=now)
-    assert s["ok"] == len(collect.PILOT) + len(collect.kr_targets()) + len(collect.us_targets()) + len(collect.STOCKS_ALL) and s["fail"] == 0
+    assert s["ok"] == (len(collect.PILOT) + len(collect.kr_targets()) + len(collect.us_targets()) + len(collect.STOCKS_ALL)
+                       + len(collect.DAILY_LIVE_KR) + len(collect.DAILY_LIVE_US)) and s["fail"] == 0   # + 오늘 일봉 갱신
     day = tmp_path / "_dryrun" / "2026-10-20"
     rec = json.loads((day / "kospi_1m.json").read_text())
     assert rec["generated_at"] and rec["asof"].startswith("2026-10-20T15:30") and rec["asof_src"] == "response"
@@ -335,7 +336,7 @@ def test_session_window_from_calendar(tmp_path):
 def test_multi_group_gate_skips_closed(tmp_path):
     now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
     s = collect.run("intraday,us", dry_run=True, out=tmp_path, now=now, gate=True)
-    assert s["skipped"] == {"intraday": "fallback"} and s["ok"] == 8 and s["fail"] == 0
+    assert s["skipped"] == {"intraday": "fallback"} and s["ok"] == 8 + len(collect.DAILY_LIVE_US) and s["fail"] == 0
     with pytest.raises(SystemExit):
         collect.run("intraday,nope", dry_run=True, out=tmp_path, now=now)
 
@@ -357,7 +358,8 @@ def test_sectors_collect_calls_and_multi_membership(tmp_path):
     leaves = collect.leaf_ids(secs)
     assert leaves == ["S111", "S112", "S12", "S21"]
     nb = len(collect.kr_symbols()) + len(collect.us_symbols())
-    assert rec["data"]["calls"] == 1 + 2 * len(leaves) and s["ok"] == rec["data"]["calls"] + nb and s["fail"] == 0   # 섹터 1+2×말단 + 기준가 일봉 KR·US
+    nd = len(collect.DAILY_US) * 1 + len(collect.DAILY_IND) * 2      # 일봉 백필: 픽스처 지수·국채 2쪽, 미장 1쪽
+    assert rec["data"]["calls"] == 1 + 2 * len(leaves) and s["ok"] == rec["data"]["calls"] + nb + nd and s["fail"] == 0   # 섹터 1+2×말단 + 기준가 일봉 KR·US
     again = collect.run("sectors", dry_run=True, out=tmp_path, now=now)   # 일 1회
     assert again["ok"] == 0
 

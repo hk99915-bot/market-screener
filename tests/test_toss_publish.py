@@ -148,7 +148,7 @@ def test_git_publish_branch_normal_push(repo, base):
     r1 = publish.run(base, now=NOW, repo=work, git=spy, reports=work / "reports")
     assert r1["status"] == "pushed"
     files = _git("ls-tree", "--name-only", "toss-live", cwd=bare).split()
-    assert files == ["crosscheck.json", "live.json"]                 # 브랜치엔 두 파일만
+    assert files == ["crosscheck.json", "daily_bars.json", "daily_today.json", "live.json"]   # 브랜치엔 공개 요약만(일봉 2개 10/21 추가)
     who = _git("log", "-1", "--format=%an <%ae>|%s", "toss-live", cwd=bare)
     assert who.startswith("toss-md <toss-md-bot@users.noreply.github.com>|toss: ")
     assert _git("rev-parse", "HEAD", cwd=work) == _git("rev-parse", "main", cwd=bare)   # main 은 그대로
@@ -339,7 +339,7 @@ def test_git_publish_sectors_kept_and_message(repo, base):
     work, bare = repo
     collect.run("sectors", dry_run=True, out=base.parent, now=NOW)
     assert publish.run(base, now=NOW, repo=work, reports=work / "reports")["status"] == "pushed"
-    assert _git("ls-tree", "--name-only", "toss-live", cwd=bare).split() == ["crosscheck.json", "live.json", "sectors.json"]
+    assert _git("ls-tree", "--name-only", "toss-live", cwd=bare).split() == ["crosscheck.json", "daily_bars.json", "daily_today.json", "live.json", "sectors.json"]
     assert _git("log", "-1", "--format=%s", "toss-live", cwd=bare).startswith("toss: published 2026-10-20T23:40 (asof 2026-10-20")
     (base / "2026-10-20" / "sectors.json").unlink()      # 로컬 스냅샷이 없어도 원격 sectors.json 은 지워지지 않는다
     f = base / "2026-10-20" / "usdkrw.json"
@@ -382,3 +382,32 @@ def test_kr_quotes_and_keys_diagnostic(base):
     assert "symbol" in doc["kr_meta"]["_keys"] and "069500" in doc["kr_meta"]["etfs"]
     assert doc["us"]["_keys"]["prices"] and doc["us"]["chg_unit"]["raw"] == "ratio"
     publish.assert_public(doc)
+
+
+# ── 일봉 (10/21 "일봉도 토스데이터로 · 10분마다 최신화") ─────────────────────────────────────
+def test_daily_bars_backfill_pagination_and_split(base):
+    collect.run("sectors", dry_run=True, out=base.parent, now=NOW)        # 07:20 작업: 백필(2쪽)
+    c = collect.daily_cache(base, "KOSPI")
+    assert sorted(c["bars"]) == ["2026-10-14", "2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20"]
+    h, t = publish.build_daily(base, NOW)
+    assert h["keys"]["KOSPI"]["bars"][-1][0] == "2026-10-19" and t["keys"]["KOSPI"]["bar"][0] == "2026-10-20"   # 과거·오늘 분리
+    assert len(t["keys"]["KOSPI"]["bar"]) == 6 and h["keys"]["SPY"]["tz"] == "ET"
+    publish.assert_public(h)
+    publish.assert_public(t)
+    assert len(publish.render(t).encode()) < 4000      # 10분마다 바뀌는 파일은 작게
+
+
+def test_daily_live_refresh_only_live_keys(tmp_path):
+    seen = []
+
+    class C:
+        rate_limits = {}
+
+        def get(self, path, params=None):
+            seen.append((path, dict(params or {})))
+            return collect.fixture_transport("GET", "https://x" + path + "?" + "&".join(f"{k}={v}" for k, v in (params or {}).items()), {}, None) and \
+                json.loads(collect.fixture_transport("GET", "https://x" + path + "?" + "&".join(f"{k}={v}" for k, v in (params or {}).items()), {}, None).body)
+    now = datetime(2026, 10, 20, 23, 40, tzinfo=KST)
+    collect.run("us", dry_run=True, out=tmp_path, now=now, client=C())
+    daily = [(p, q) for p, q in seen if q.get("interval") == "1d"]
+    assert sorted(q["symbol"] for _p, q in daily) == sorted(collect.DAILY_LIVE_US) and all(q["count"] == 2 for _p, q in daily)

@@ -347,6 +347,8 @@ def fixture_transport(method: str, url: str, headers: dict, data: bytes | None) 
     mc = query.get("marketCountry") or ("KR" if query.get("symbols", "")[:1].isdigit() else None)   # /prices 국장 심볼 → @KR 픽스처
     if query.get("interval") == "1d":
         mc = "1dKR" if str(query.get("symbol", ""))[:1].isdigit() else "1d"   # 일봉(기준가 캐시) 픽스처 — 시장별
+        if name.startswith("api__v1__market-indicators__") and name.endswith("__candles"):
+            name, mc = "api__v1__market-indicators__ID__candles", ("1d_p2" if query.get("before") else "1d")   # 지수·국채 일봉 2쪽
     for cand in ([f"{name}@{mc}"] if mc else []) + [name]:
         f = FIXTURES / f"{cand}.json"
         if f.exists():
@@ -560,6 +562,99 @@ def daily_closes(data, mk: str) -> list[list]:
     return [[k, out[k]] for k in sorted(out)]
 
 
+# ── 일봉 (10/21 겸이 "일봉도 토스데이터로 … 10분마다 최신화") — 상단 지표 팝업 차트용 데이터 ─────────────────────
+# 키 = 지수·국채(market-indicators/{s}/candles) + 미장 지표 ETF(candles symbol). 캐시 = DATA_DIR/daily_bars/<키>.json (날짜별 봉, 저장소 밖).
+# 하루 1회(sectors 작업 07:20): 키마다 200봉씩 nextBefore 페이지네이션으로 최대 DAILY_MAX 봉 백필(이미 있으면 최근 5봉만).
+# 10분 회차: intraday(국장 창) = KOSPI·KOSDAQ, us(미장 창) = DAILY_LIVE_US 만 count=2 로 오늘 봉 갱신.
+# 페이지네이션 요청 파라미터 이름 'before' 는 [추정 — 응답 nextBefore 에서 유추, 첫 백필 로그(pages)로 확인].
+DAILY_IND = INDICATOR_SYMBOLS
+DAILY_US = ("SPY", "QQQ", "DIA", "IWM", "SOXX", "TLT", "GLD")
+DAILY_LIVE_KR = ("KOSPI", "KOSDAQ")
+DAILY_LIVE_US = ("SPY", "QQQ", "DIA", "IWM", "SOXX")
+DAILY_MAX = 520
+DAILY_PAGE = 200
+
+
+def daily_req(key: str) -> tuple[str, dict, str]:
+    """(경로, 기본 파라미터, 시장)."""
+    if key in DAILY_IND:
+        return f"/api/v1/market-indicators/{key}/candles", {"interval": "1d"}, "KR"
+    return "/api/v1/candles", {"symbol": key, "interval": "1d"}, "US"
+
+
+def _daily_rows(data, mk: str) -> tuple[dict, str | None]:
+    """1d 캔들 응답 → ({날짜: [o,h,l,c,v]}, nextBefore)."""
+    tz = KST if mk == "KR" else (ET or KST)
+    out, nxt = {}, None
+    for d in crosscheck_dicts(data):
+        if "nextBefore" in d and d.get("nextBefore"):
+            nxt = str(d["nextBefore"])
+        ts = d.get("timestamp")
+        if not isinstance(ts, str):
+            continue
+        vals = []
+        for k in ("openPrice", "highPrice", "lowPrice", "closePrice", "volume"):
+            v = d.get(k, d.get(k.replace("Price", "")))
+            try:
+                vals.append(float(str(v).replace(",", "")) if v is not None else None)
+            except ValueError:
+                vals.append(None)
+        if vals[3] is None:
+            continue
+        t = _iso(ts)
+        out[(t.astimezone(tz).date().isoformat() if t else ts[:10])] = vals
+    return out, nxt
+
+
+def daily_cache(base: Path, key: str) -> dict:
+    f = base / "daily_bars" / f"{key}.json"
+    try:
+        return json.loads(f.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {"key": key, "bars": {}}
+
+
+def _save_daily(base: Path, key: str, c: dict) -> None:
+    d = base / "daily_bars"
+    d.mkdir(parents=True, exist_ok=True)
+    items = sorted(c["bars"].items())[-DAILY_MAX:]
+    c["bars"] = dict(items)
+    tmp = d / f"{key}.tmp"
+    tmp.write_text(json.dumps(c, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(d / f"{key}.json")
+
+
+def refresh_daily(client, base: Path, keys, now: datetime, backfill: bool = False) -> tuple[int, int, str | None]:
+    """keys 의 일봉 캐시 갱신. backfill=True 면 페이지네이션(키당 ≤3호출), 아니면 count=2 1호출."""
+    ok = fail = 0
+    err = None
+    for key in keys:
+        path, params, mk = daily_req(key)
+        c = daily_cache(base, key)
+        full = backfill and len(c["bars"]) < DAILY_MAX - 10
+        pages = (DAILY_MAX + DAILY_PAGE - 1) // DAILY_PAGE if full else 1
+        cnt = DAILY_PAGE if full else (5 if backfill else 2)
+        before = None
+        for _ in range(pages):
+            q = {**params, "count": cnt, **({"before": before} if before else {})}
+            try:
+                data = client.get(path, q)
+                ok += 1
+            except (toss_md.TossMDError, toss_md.ForbiddenRequest) as e:
+                fail += 1
+                err = f"daily {key}: {e}"
+                break
+            rows, before = _daily_rows(data, mk)
+            c["bars"].update(rows)
+            if not before or not rows:
+                break
+        c.update({"key": key, "mk": mk, "updated": now.isoformat(timespec="seconds")})
+        if backfill:
+            c["backfilled"] = now.isoformat(timespec="seconds")
+        _save_daily(base, key, c)
+    return ok, fail, err
+
+
 class _NoLock:
     def __enter__(self):
         return self
@@ -635,6 +730,13 @@ def run(group: str = "all", dry_run: bool = False, stocks_all: bool = False, out
     if do_sectors:   # 섹터는 청크마다 잠금을 잡고 놓는다(실시간 작업과 번갈아) — 큰 잠금 밖에서
         o, f_, e = collect_sectors(client, day, now, dry_run, lock_path=lock, lock_wait=lock_wait)
         ok, fail, last_err = ok + o, fail + f_, e or last_err
+    if "sectors" in want:   # 일봉 백필(하루 1회, 키당 ≤3호출)
+        try:
+            with Lock(lock, lock_wait):
+                o, f_, e = refresh_daily(client, base, DAILY_IND + DAILY_US, now, backfill=True)
+            ok, fail, last_err = ok + o, fail + f_, e or last_err
+        except SystemExit as e:
+            fail, last_err = fail + 1, f"daily 백필: 잠금 {e}"
     if "sectors" in want and not (day / "bases.json").exists():   # 기준가 캐시(하루 1회)도 같은 작업에서
         o, f_, e = collect_bases(client, day, now, dry_run, lock_path=lock, lock_wait=lock_wait)
         ok, fail, last_err = ok + o, fail + f_, e or last_err
@@ -662,6 +764,10 @@ def run(group: str = "all", dry_run: bool = False, stocks_all: bool = False, out
             tmp.write_text(json.dumps(rec, ensure_ascii=False), encoding="utf-8")
             tmp.replace(f)
             ok += 1
+        live_keys = (DAILY_LIVE_KR if "intraday" in want else ()) + (DAILY_LIVE_US if "us" in want else ())
+        if live_keys:   # 오늘 일봉만(count=2) — 10분마다 팝업 차트 최신화
+            o, f_, e = refresh_daily(client, base, live_keys, now)
+            ok, fail, last_err = ok + o, fail + f_, e or last_err
     write_heartbeat(base, ok, fail, last_err, now, getattr(client, "rate_limits", None))
     summary = {"dir": str(day), "ok": ok, "fail": fail, "skipped": skipped, "host": socket.gethostname() if not dry_run else "dry-run"}
     return summary
