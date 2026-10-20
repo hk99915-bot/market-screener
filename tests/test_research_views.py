@@ -167,3 +167,22 @@ def test_real_hankyung_table_by_header_names():
     assert r["date"] == date(2026, 10, 20) and r["broker"] and r["analyst"]
     assert "report_idx=" in r["link"] and r["link"].startswith("https://consensus.hankyung.com/")
     assert r["title"].count("(") <= 1          # 숨은 요약 팝업이 제목에 섞이지 않음
+
+
+def test_hankyung_subtypes_win_dedupe(monkeypatch):
+    """같은 리포트가 DE(파생)와 FE([파생]외환) 목록에 다 나오면 세부 분류(외환)로 남아야 한다 (10/21 실행 재현)."""
+    calls = []
+
+    def fake_get(url, ref, enc=None):
+        calls.append(url)
+        return "menu"
+    monkeypatch.setattr(rv, "_get", fake_get)
+    monkeypatch.setattr(rv, "hankyung_types", lambda h: {"DE": "파생", "FE": "[파생]외환", "BO": "[파생]채권"})
+    row = {"date": date(2026, 10, 20), "title": "Daily Forex Live", "broker": "B은행", "analyst": None, "sector": None,
+           "link": "https://consensus.hankyung.com/analysis/downpdf?report_idx=1"}
+    monkeypatch.setattr(rv, "parse_table", lambda h, rx, base: ([dict(row)], "ok"))
+    rows, st = rv.fetch_hankyung(date(2026, 10, 19), date(2026, 10, 20), max_pages=1)
+    recs = [rv.to_record(r, "t") for r in rows]
+    store, n = rv.merge(rv.load_store().clear(), recs)
+    assert n == 1 and store["kind"][0] in ("외환", "채권") and "report_type=DE" in calls[-1]
+    assert report_kind.classify("Daily Forex Live", "시장")[0] == "외환"

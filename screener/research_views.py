@@ -192,7 +192,9 @@ def fetch_hankyung(since: date, until: date, max_pages: int = 5) -> tuple[list[d
         return [], {"status": "skipped", "n": 0, "reason": "report_type 탭 미발견 — 목록 HTML reports/logs/rv_hankyung_list.html", "types": {}}
     rows: list[dict] = []
     per: dict[str, str] = {}
-    for code, name in types.items():
+    # 세부 분류([파생]외환·[파생]채권 …)를 상위(파생)보다 먼저 — 같은 리포트가 상위 목록에도 나와서(10/21 실행: FE·BO 행이
+    # 모두 DE 로 분류됨) 먼저 본 쪽이 key 중복 제거에서 남기 때문
+    for code, name in sorted(types.items(), key=lambda kv: (not kv[1].startswith("["), kv[0])):
         try:
             for p in range(1, max_pages + 1):
                 h = _get(f"{HK}/analysis/list?sdate={since}&edate={until}&report_type={code}&pagenum=80&now_page={p}", HK + "/")
