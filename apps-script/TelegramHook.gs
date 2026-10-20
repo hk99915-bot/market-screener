@@ -21,7 +21,8 @@
  *     있을 때만 보고, 실제 검증은 웹훅 URL 의 ?s=<TG_WEBHOOK_SECRET> 로 한다(텔레그램만 이 URL 을 안다).
  *   - 누른 사람(from.id)이 TG_OWNER_CHAT_ID 와 다르면 아무것도 안 한다. 이슈는 주인 PAT 로 열리므로 pick.yml 의
  *     'issue.user == repository_owner' 조건은 그대로 통과하고, 조건을 넓힐 필요가 없다.
- *   - 같은 update 재전송·같은 버튼 연타는 CacheService 10분으로 한 번만 처리.
+ *   - 같은 update 재전송은 처리한 최대 update_id(스크립트 속성 TG_LAST_UPDATE_ID, 자동 기록)로 영구 차단,
+ *     같은 버튼 연타는 CacheService 10분으로 한 번만 처리.
  *
  * 형식(파이썬 screener/duel.py pick_cb·parse_pick_cb·parse_pick_text 와 같은 규칙 — tests/test_tg_pick_buttons.py 가 node 로 대조)
  *   callback_data "p|2026-10-21|K|069500|o" → 이슈 'pick 2026-10-21' / 본문 '069500 1000000 시가'
@@ -80,6 +81,12 @@ function tgParseText_(text, krDate, usDate) {
   return { title: title, body: toks.join(' ') };
 }
 
+/** update_id 는 봇마다 단조 증가 → 이미 처리한 최대값 이하면 재전송. */
+function tgIsNewUpdate_(updateId, lastSeen) {
+  const last = Number(lastSeen);
+  return !(lastSeen != null && lastSeen !== '' && isFinite(last) && Number(updateId) <= last);
+}
+
 /** 비밀값 확인: 헤더(있으면) 또는 URL ?s= . 둘 다 없으면 거부. */
 function tgSecretOk_(e, secret) {
   if (!secret) return false;
@@ -133,9 +140,16 @@ function tgHandle_(e) {
   const upd = JSON.parse((e.postData && e.postData.contents) || '{}');
   const cache = CacheService.getScriptCache();
   if (upd.update_id != null) {   // 텔레그램 재전송(같은 update_id) 한 번만
-    const uk = 'tgu:' + upd.update_id;
-    if (cache.get(uk)) return;
-    cache.put(uk, '1', TG_DEDUP_SEC);
+    // GAS 웹앱 응답은 302 리다이렉트라 텔레그램이 '실패'로 보고 같은 update 를 ~11분 간격으로 계속 다시 보낸다
+    // (10/21 00:41·00:52·01:03 같은 pick 3번). 10분 캐시로는 못 막아서, 처리한 최대 update_id 를 스크립트 속성에 영구 저장.
+    const lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    try {
+      if (!tgIsNewUpdate_(upd.update_id, props.getProperty('TG_LAST_UPDATE_ID'))) return;
+      props.setProperty('TG_LAST_UPDATE_ID', String(upd.update_id));
+    } finally {
+      lock.releaseLock();
+    }
   }
   const now = new Date();
   const plan = tgPlan_(upd, String(props.getProperty('TG_OWNER_CHAT_ID') || '').trim(),
@@ -212,5 +226,5 @@ function tgDeleteWebhook() {
 }
 
 if (typeof module !== 'undefined') {   // node 테스트용 (GAS 에서는 module 이 없어 무시)
-  module.exports = { tgParseCallback_, tgParseText_, tgSecretOk_, tgPlan_, TG_HELP };
+  module.exports = { tgIsNewUpdate_, tgParseCallback_, tgParseText_, tgSecretOk_, tgPlan_, TG_HELP };
 }

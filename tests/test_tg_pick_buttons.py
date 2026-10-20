@@ -121,6 +121,8 @@ const out = {
   sec: [m.tgSecretOk_({ parameter: { s: 'abc' } }, 'abc'), m.tgSecretOk_({ parameter: { s: 'x' } }, 'abc'),
         m.tgSecretOk_({ parameter: {} }, 'abc'), m.tgSecretOk_({ parameter: { s: '' } }, ''),
         m.tgSecretOk_({ headers: { 'X-Telegram-Bot-Api-Secret-Token': 'abc' }, parameter: {} }, 'abc')],
+  upd: [m.tgIsNewUpdate_(5, null), m.tgIsNewUpdate_(5, ''), m.tgIsNewUpdate_(5, '5'), m.tgIsNewUpdate_(4, '5'),
+        m.tgIsNewUpdate_(6, '5')],
 };
 process.stdout.write(JSON.stringify(out));
 """
@@ -155,6 +157,8 @@ def test_gas_matches_python():
     assert p[4]["kind"] == "issue" and p[4]["issue"] == {"title": "pick K", "body": "005930 시가"}
     assert p[5]["kind"] == "ignore" and p[6]["kind"] == "reply" and p[7]["why"] == "not-pick" and p[8]["kind"] == "ignore"
     assert out["sec"] == [True, False, False, False, True]
+    # GAS 302 → 텔레그램이 같은 update 를 ~11분마다 재전송(10/21 같은 pick 3번) — 처리한 최대 update_id 이하는 버림
+    assert out["upd"] == [True, True, False, False, True]
 
 
 # ── 끝까지: 버튼이 연 이슈(GAS 가 본문 뒤에 '(텔레그램 버튼)' 을 붙임)를 기존 apply_issue 가 그대로 기록 ──
