@@ -2,22 +2,21 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-21 · 작업 148개 · 진행 6 · 검수 48 · 대기 50 · 보류 2 · 완료 42
+기준일 2026-10-21 · 작업 148개 · 진행 5 · 검수 49 · 대기 49 · 보류 2 · 완료 43
 
 **기한 지남:** `gas-sched-verify` (2026-10-19), `close-swap-verify` (2026-10-19), `gas-repaste` (2026-10-17), `night-futures-line` (2026-10-20), `deriv-hist` (2026-10-20), `derivs-audit` (2026-10-20), `repo-cleanup` (2026-10-18), `drivers-audit` (2026-10-17), `deriv-tab` (2026-10-17), `cmt-v2` (2026-10-17), `rebound-alert` (2026-10-19), `sunday-review` (2026-10-18), `sunday-scorecard` (2026-10-18), `alpha-baseline-fix` (2026-10-18), `frm-audit` (2026-10-18), `cio-memo` (2026-10-18), `semis-cap-study` (2026-10-18), `my-rules-secret` (2026-10-17), `quant-replicate-studies` (2026-10-18), `sunday-scorecard-auto` (2026-10-18), `edu-dev-handoff` (2026-10-19), `peer-review-valuation` (2026-10-20), `peer-bear-view` (2026-10-20), `valuation-daily` (2026-10-17), `dotplot` (2026-10-17), `dotplot-neutral-rule` (2026-10-20), `crash-day-active` (2026-10-17), `sec-ytd-bug` (2026-10-20), `study-progress` (2026-10-20), `index-split` (2026-10-17), `rep-semis-cap` (2026-10-17), `rep-exec-signal` (2026-10-17), `rep-entry-signals` (2026-10-17), `rep-rule-audit` (2026-10-17), `secret-missing-warning` (2026-10-20), `pbview-amount-wording` (2026-10-20), `px-adjust-unify` (2026-10-19), `bt-exec-lag` (2026-10-20), `schedule-single-accum` (2026-10-20), `user-cooldown-log` (2026-10-20), `audit-ring-pb` (2026-10-19), `audit-fix-commit` (2026-10-19), `audit-macro-asof` (2026-10-20), `audit-pb-direct-test` (2026-10-20), `event-watch` (2026-10-20), `isa-lab` (2026-10-19), `integrity-p0-1` (2026-10-18), `integrity-p0-3` (2026-10-20), `integrity-p0-4` (2026-10-19), `my-tab-ledger-compare` (2026-10-18), `gpt-terminal-followup-1019` (2026-10-19)
 
-## 진행 (6)
+## 진행 (5)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P0 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | **2026-10-18 지남** | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). |
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-23 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. |
 | P1 | `quant-replicate-studies` | 독립 재현: semis_cap·exec_signal·gamma_regime·entry_signals·rule_audit — IS/OOS 누수·Bonferroni·등급 재산출 | 검증 | 2026-10-17 | **2026-10-18 지남** | `scripts/replicate_*.py`<br>`reports/studies/_replication.md` | — | 선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. / 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. |
-| P1 | `rep-hollzzak` | 독립 재현: hollzzak 지수 H1·H2·H3a·H3b (+base·122630 익일 종가) — 원 vs 재현 표·등급 대조 | 검증 | 2026-10-21 | 2026-10-21 | `scripts/replicate_hollzzak.py`<br>`reports/studies/replication_hollzzak.md`<br>`reports/studies/replication_hollzzak.json`<br>`tests/test_replicate_hollzzak.py` | `study-hollzzak` | 명세(사전등록 §1~§7)만, 원 코드 미열람. §0(허용오차 SE식·뒤집힘 기준) 먼저 커밋 후 실행. H4(종목)는 범위 밖 — 다음 라운드. 22시 이후라 등급 변경은 제안만. |
 | P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | 2026-10-17 | 2026-10-24 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 2차(잔여 개발): live.json(asof 'YYYY-MM-DD HH:MM' 추가·write_json) + dashboard_state.json(put_state 조각별 asof 가드, main.py 스크리너 조각에 시세 기준일) 완료. guard 는 양쪽 시각이 있으면 분 단위·KST 정규화 비교(UTC 'Z' 값이 하루 전으로 읽혀 정상 장중 갱신이 막히던 일 단위 문제 수정), 테스트 tests/test_guard_rest.py 7건. 10/17 3차(데이터2, 정합성 감사 M1·M2): accum.json·us_accum.json 쓰기를 guard.write_json 경유로(계약+역행), chains·us_eps 캐시도 write_json + 만료 판단을 파일 mtime→파일 안 generated_at/asof(KST) 로, ops/freshness.json 에 chains·us_eps 등록(kind=session US). 남음: dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv, daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, 장중 브리핑 조각 asof(현재 없음 → 항상 씀). 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). 계약 등록 보류: screener/contracts.py 에 "live.json": {v1, date asof, required asof·updated_at·items} 와 dashboard_state.json(조각마다 at 필수, schema_version 미기입 — 화면이 state 통째로 실음) 추가 필요(개발5 잠금 해제 후). |
 | P2 | `toss-md-pilot` | 토스 Open API 시세 전용 파일럿 (겸이 노트북 수집) | 개발 | 2026-10-20 | 2026-10-31 | `screener/toss_md.py`<br>`tools/toss_md/*`<br>`tests/test_toss_md.py`<br>`docs/toss_md_laptop_setup.md` | — | 겸이 결정 10/20: 시세 전용·노트북(Windows) 1대 수집, 매매는 미래에셋. 코드: GET+화이트리스트, 주문·계좌 경로·계좌 헤더 요청 전 차단, 키는 저장소 밖 env(600/icacls), 응답 원문 로그 금지, 수집 잠금 1개. 결과는 저장소 밖(~/toss_md_data) — 약관 재배포·자동수집 미확인이라 공개 산출물 없음. 10/20 23:5x 겸이 약관 확인 결과 '허용'(재배포·자동수집, 겸이 한 단어 보고·원문 미인용) → 공개 산출물은 1주 crosscheck 통과 후 별도 결재. PILOT 경로는 OpenAPI 원문 대조 완료(1c4338cb). 남은 일: ②키 발급·IP 등록·dry-run·실제 1회 ④1주 crosscheck 괴리 기록 후 채택 여부 결재. 10/21 00:13 노트북 실제 가동 ok=14 fail=0, 첫 대조 KOSDAQ 10/20 종가 토스=네이버 781.97 일치. 10/21 공개 연결 → toss-md-publish(요약만 toss-live 브랜치, main 커밋 없음). 남은 일: 1주 crosscheck(Pages TOSS LIVE 패널) 후 채택 결재. |
 
-## 검수 (48)
+## 검수 (49)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -68,9 +67,10 @@
 | P2 | `light-calibration` | 신호등 🟡 고착 보정(가격선 0.5×내재 범위·고중요 이벤트만) | 개발 | 2026-10-20 | 2026-10-27 | `screener/committee.py`<br>`screener/us_committee.py`<br>`scripts/light_calibration.py`<br>`tests/test_tracking_1020.py` | — | 🟡 = 가격선이 내재 1일 범위 절반 이내 또는 FOMC·CPI·고용·관심 종목(회의 아이디어·후보) 실적. 일반 지표는 시계에만. 미장은 섹터 의견 변경을 🟡 조건에서 뺌(① 줄에는 유지). 라벨 문구 유지. 과거판 재적용(scripts/light_calibration.py): 국장 18판 전 1/17/0 → 후 1/8/9, 미장 v2 1판 0/1/0 → 0/1/0. 뒤집는 조건: 2주간 🟢 날 실제 지수 1일 변동이 내재 범위를 넘는 비율이 🟡 날보다 높으면 문턱 재검토. |
 | P2 | `signal-tracking` | 신호 종목 forward 성과 누적(+5/+20/+60거래일, 시장 중앙값 대비) | 개발 | 2026-10-20 | 2026-10-27 | `screener/signal_tracking.py`<br>`screener/fwd_perf.py`<br>`screener/committee.py`<br>`apps-script/tab_committee.html`<br>`reports/signal_tracking.json`<br>`reports/signal_tracking/*`<br>`tests/test_tracking_1020.py` | — | 원천: accum(KR 매집 태그별)·us_accum·sim_signals KR/US. ideas_top 은 idea_tracking 중복이라 제외, entry_signals·alerts 는 종목 신호 아님. 국장 운용회의 생성마다 갱신(briefing reports/ 커밋). 복원: archive/accum·git 이력(게시본) + KR 매집 data/flows 재계산 160거래일·5일 간격(origin recompute, 당시 화면 노출분 아님). 같은 원천·태그·종목 20일 안 재등장은 계속. 표본 중첩·비용 미반영·검증전. |
 | P2 | `us-entry-ideas` | 미장 매수 진입 후보 ideas_top(US) + idea_tracking 모의추적 편입 | 개발 | 2026-10-20 | 2026-10-27 | `screener/us_committee.py`<br>`screener/committee.py`<br>`screener/idea_tracking.py`<br>`apps-script/tab_committee.html`<br>`tests/test_tracking_1020.py` | — | 원천 = us_accum 매집 흔적(연구 등급 가중, 현재 S1~S9 전부 F → 가중 0, 근거로만 표시) + 이익 신호 drv ±0.2 + 종가 vs 50일선. 리스크 박스·형식 국장과 동일, 3+2개. 시장 게이트 = S&P 레짐 하락장이면 불통과. 실행 = 14일 안 실적 촉매+확신 중간 이상+게이트 통과+50일선 위. 현재 미장 실적 캘린더가 소수라 대부분 '대기 — 촉매 없음'. 모의추적: idea_tracking.json market=US, 제안 뒤 처음 열리는 세션 시가 진입(22:30 KST 이후 제안은 그날 세션 제외). |
+| P2 | `toss-sectors` | 섹터 분류를 토스 섹터(3단계, 국장·미장 공통)로 — KRX 업종 '전기·전자' 401종목 뭉침 해소 | 개발 | 2026-10-21 | 2026-10-31 | `tools/toss_md/collect.py`<br>`tools/toss_md/publish.py`<br>`screener/sectors.py`<br>`screener/wics.py`<br>`screener/universe.py`<br>`screener/pb.py`<br>`screener/detail.py`<br>`universe/us_sector.csv`<br>`universe/kr_wics.csv`<br>`apps-script/tab_market.html`<br>`tests/test_sectors.py`<br>`tests/test_wics.py`<br>`tests/test_toss_md.py`<br>`tests/test_toss_publish.py`<br>`tests/test_heatmap_ui.cjs` | `toss-md-pilot` | 겸이 10/21 00:5x '섹터 분류도 이상한데 토스 기준으로'. 노트북 일 1회 /sectors·/sectors/{id}/stocks(KR·US) 스냅샷. 다중 소속 → 대표 섹터 1개 규칙 필요(비중 한도 영향 — 겸이 결재). 전환일 기록·옛/새 분류 병행 계산. KRX 업종은 대조용 유지. / 10/21 00:4x 겸이(🌙, 낮 재확인): 공식 비중 한도=GICS(미장)/WICS(국장) 1종목1섹터, 테마·순환매·히트맵=토스 섹터. WICS 무료 일일 수집 가능 여부 데이터 데스크 확인 필요(불가 시 KRX 업종 세분화 대안). / 10/21 01:3x 개발: ① WICS 무료 일일 수집 가능(Actions 탐침 run 39453753347: wiseindex GetIndexComponets JSON, G45 681·G4530 반도체와반도체장비 165종목) → screener/wics.py 가 KR 상세 생성 때 일 1회 universe/kr_wics.csv(호출 100). 첫 실수집 전까지는 KRX 업종 대체(반도체 판정 None). ② 미장 GICS: us_sector.csv 에 gics_sub 추가, 야후→GICS 11 매핑표(screener/sectors.py), NDX 전용 11종 수동(확인 필요 10/31). ③ 토스 섹터: collect --group sectors(호출 1+2×말단 섹터, 0.5초 간격, 작업 toss_md_sectors 07:20) → publish 가 toss-live sectors.json(계층+종목→말단 다중, 금액 필드 없음). ④ 히트맵: 토스 중분류(depth1) 우선·기존 폴백·출처 표기·토글. ⑤ 비중 한도: pb.evaluate 에 semi_ex_new·sector_w_new 병행 필드, 판정 불변. 전환 = screener/sectors.OFFICIAL_LIMITS=True (07:00 이후 + 겸이 확인). 남은 일: 노트북 첫 sectors 실행 → 말단 섹터 수·호출 수 확인, 첫 WICS 실수집(no_l2) 확인, 전환 결재. |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (50)
+## 대기 (49)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -115,7 +115,6 @@
 | P2 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-10-31 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. |
 | P2 | `pub-whitelist` | 공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 감사 | 검증 | — | 2026-10-31 | `.github/workflows/*.yml`<br>`scripts/slop_audit.py` | — | 외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지. |
 | P2 | `score-calib` | 점수 보정 — Trend/Momentum/Reversal 분포·상한 도달 빈도, 구간별 5/20/60일 수익, 지표 제거 실험 | 퀀트 | — | 2026-10-31 | `screener/scoring.py`<br>`screener/indicators.py`<br>`tests/test_indicators_edge.py` | `px-adjust-unify` | 외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시. |
-| P2 | `toss-sectors` | 섹터 분류를 토스 섹터(3단계, 국장·미장 공통)로 — KRX 업종 '전기·전자' 401종목 뭉침 해소 | 개발 | — | 2026-10-31 | `tools/toss_md/collect.py`<br>`screener/universe.py` | `toss-md-pilot` | 겸이 10/21 00:5x '섹터 분류도 이상한데 토스 기준으로'. 노트북 일 1회 /sectors·/sectors/{id}/stocks(KR·US) 스냅샷. 다중 소속 → 대표 섹터 1개 규칙 필요(비중 한도 영향 — 겸이 결재). 전환일 기록·옛/새 분류 병행 계산. KRX 업종은 대조용 유지. / 10/21 00:4x 겸이(🌙, 낮 재확인): 공식 비중 한도=GICS(미장)/WICS(국장) 1종목1섹터, 테마·순환매·히트맵=토스 섹터. WICS 무료 일일 수집 가능 여부 데이터 데스크 확인 필요(불가 시 KRX 업종 세분화 대안). |
 | P2 | `pro-plan-round-scale` | Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·우선 데스크, 21:10 자동 라운드 교체 | PM | — | 2026-11-05 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17. |
 | P2 | `token-meter-real-usage` | 에이전트 토큰 실측 기록 — team_run 에 transcript 누적(calls·cache_read·신규) 옵션 + team_stats 데스크×모델 표 | 개발 | — | 2026-11-05 | `scripts/team_run.py`<br>`scripts/team_stats.py`<br>`tests/test_team_stats.py` | — | 내무 요청(10/17 토큰 원가센터). 10/17 대조: runs.tokens 는 마지막 호출 컨텍스트 크기에 가까워 실제 누적 처리량의 약 1/30, 기록 누락도 있음(10/16 실측 37건 vs 기록 5건). team_run.py --transcript <agent jsonl> 로 message.id 중복 제거 합산 → runs 에 calls·cache_read·new 추가(기존 tokens 유지). team_stats by_owner_model 추가. 금액은 넣지 않음(토큰·건수만). pro-plan-round-scale(11/5) 입력. |
 | P2 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
@@ -132,7 +131,7 @@
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 
-## 완료 (42)
+## 완료 (43)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -154,6 +153,7 @@
 | P1 | `edu-quiz-srs` | 문제은행(quiz_bank)·복습 스케줄(SRS 1/3/7/21일)·평일 07:10 오늘 공부 알림(study_daily) | 평가 | 2026-10-16 | 2026-10-18 | `content/study/quiz_bank.json`<br>`content/study/srs.json`<br>`screener/study_daily.py`<br>`.github/workflows/study_daily.yml` | `edu-curriculum-v3` | 진행 저장은 'study <id> done' 이슈 → reports/study_progress.json 제안(스펙만). / 10/17 진행 저장 구현(study-progress)으로 이관, 완료. |
 | P1 | `gpt-daily-source-time` | 데일리 시세 상태·수급 기준시각 명시 | 개발 | 2026-10-19 | 2026-10-19 | `screener/daily.py`<br>`tests/test_daily_quote_label.py` | — | GPT: OPEN 외 상태를 모두 확정으로 표시하던 오류 수정. CLOSE는 거래일·수집시각, 그 외 상태 미확인; 수급 원자료 시각 표시. 테스트 3건·check_functions/build 통과. 기존 산출물은 다음 데일리 생성 때 적용. |
 | P1 | `detail-us-regress` | detail_us 수동 실행이 US 상세 기준일을 10/16→10/15로 되돌림 — 원인 규명·가드(asof 역행 시 덮어쓰기 금지) | 개발 | — | 2026-10-20 | `screener/guard.py`<br>`screener/tradecal.py`<br>`screener/freshness.py`<br>`screener/regress_git.py`<br>`screener/main.py`<br>`ops/freshness.json`<br>`tests/test_freshness_guard.py` | — | 10/17 토 PB가 workflow_dispatch detail_us 실행 → 9ea9efbd 에서 580파일 asof 역행. PB가 부모 커밋 값으로 복원(신규 7종목 유지). 가드: 새 asof < 기존 asof 면 그 종목 건너뛰고 로그. / 10/17 개발 완료: 원인 = Yahoo 가 금 20:47 ET 호출에서 종목 10/16 봉 누락 + 코드에 기대 거래일 개념 없음 + 무조건 덮어쓰기·-X theirs. 조치 = main.run 기대일 재시도·[STALE]·게시본 역행 시 중단, guard.py 16 호출부, regress_git 저장 단계, ops/freshness.json 21항목 감시(08:20·20:10 ⛔), 헤더 배지. 복기 docs/desk_kb/dev.md. |
+| P1 | `rep-hollzzak` | 독립 재현: hollzzak 지수 H1·H2·H3a·H3b (+base·122630 익일 종가) — 원 vs 재현 표·등급 대조 | 검증 | 2026-10-21 | 2026-10-21 | `scripts/replicate_hollzzak.py`<br>`reports/studies/replication_hollzzak.md`<br>`reports/studies/replication_hollzzak.json`<br>`tests/test_replicate_hollzzak.py` | `study-hollzzak` | 명세(사전등록 §1~§7)만, 원 코드 미열람. §0(허용오차 SE식·뒤집힘 기준) 먼저 커밋 후 실행. H4(종목)는 범위 밖 — 다음 라운드. 22시 이후라 등급 변경은 제안만. |
 | P1 | `quant-data-etf-hist` | 연구용 데이터 창고: ETF(091160·139260·069500·122630) 일봉 복원 + 코스피200 시가 + 섹터 지수 → data/hist/ | 데이터 | — | 2026-10-25 | `data/hist/**`<br>`scripts/build_hist.py` | — | semis_cap·exec_signal 연구가 삼성+하이닉스 대용치를 씀 → 실제 ETF로 재실행 가능하게. 네트워크 차단 시 KRX/공공데이터 백필 워크플로로. |
 | P1 | `ai-credit` | AI 인프라 신용 감시 | 채권 | 2026-10-15 | — | `screener/bonds.py`<br>`screener/committee.py`<br>`apps-script/Index.html` | — | 업종 국지 신용 스트레스 경보(정상/주의/경계) → 운용회의 head 한 줄 + 채권 탭 섹션. 10/15 첫 커밋. |
 | P1 | `core-weights` | 코어 자산배분 최적 비중 | 자산배분 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
@@ -188,7 +188,7 @@
 - `apps-script/Index.html` ← `view-registry`, `drivers-audit`, `deriv-tab`, `cmt-v2`, `order-ticket-form`, `valuation-daily`, `index-split`, `battle-scoreboard`, `english-v2-ui` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/Scheduler.gs` ← `cmt-v2`, `rebound-alert`, `crash-day-active` — 편집 전 `ops/locks.json` 잠금 필수
 - `apps-script/tab_committee.html` ← `us-committee-v2`, `signal-tracking`, `us-entry-ideas` — 편집 전 `ops/locks.json` 잠금 필수
-- `apps-script/tab_market.html` ← `kr-accum`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
+- `apps-script/tab_market.html` ← `kr-accum`, `toss-sectors`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
 - `docs/schedule_table.md` ← `event-watch`, `repo-size-stage1` — 편집 전 `ops/locks.json` 잠금 필수
 - `docs/toss_md_laptop_setup.md` ← `toss-md-pilot`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
 - `ops/freshness.json` ← `audit-fix-commit`, `audit-macro-asof`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
@@ -203,6 +203,7 @@
 - `screener/freshness.py` ← `audit-fix-commit`, `audit-macro-asof`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/live.py` ← `guard-rest`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/main.py` ← `view-registry`, `cmt-v2`, `valuation-daily`, `crash-day-active`, `audit-pb-direct-test`, `research-views` — 편집 전 `ops/locks.json` 잠금 필수
+- `screener/pb.py` ← `audit-ring-pb`, `toss-sectors` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/report.py` ← `guard-rest`, `tg-pick-buttons` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/sec.py` ← `sec-ytd-bug`, `mu-revenue-tag` — 편집 전 `ops/locks.json` 잠금 필수
 - `screener/toss_md.py` ← `toss-md-pilot`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
@@ -213,5 +214,9 @@
 - `scripts/ui_smoke.py` ← `my-tab-ledger-compare`, `us-committee-v2`, `battle-scoreboard`, `english-v2-ui` — 편집 전 `ops/locks.json` 잠금 필수
 - `tests/test_index_split.py` ← `index-split`, `battle-scoreboard` — 편집 전 `ops/locks.json` 잠금 필수
 - `tests/test_sec_parse.py` ← `sec-ytd-bug`, `mu-revenue-tag` — 편집 전 `ops/locks.json` 잠금 필수
+- `tests/test_toss_md.py` ← `toss-md-pilot`, `toss-sectors` — 편집 전 `ops/locks.json` 잠금 필수
+- `tests/test_toss_publish.py` ← `toss-sectors`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
 - `tests/test_tracking_1020.py` ← `battle-scoreboard`, `signal-tracking`, `us-entry-ideas`, `light-calibration` — 편집 전 `ops/locks.json` 잠금 필수
+- `tools/toss_md/collect.py` ← `toss-sectors`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
+- `tools/toss_md/publish.py` ← `toss-sectors`, `toss-md-publish` — 편집 전 `ops/locks.json` 잠금 필수
 
