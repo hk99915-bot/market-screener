@@ -94,6 +94,39 @@ def us_symbols(root: Path = ROOT) -> list[str]:
     return out
 
 
+# ── 국장 종목·ETF 현재가 (10/21 겸이 "ETF도 트래킹되지?") — intraday 그룹에 /api/v1/prices 1회 추가 ─────────────
+# 지표·ISA 코어 ETF 고정(공개 코드: screener/pb.isa_bucket 과 같은 목록 + 대표 지수·섹터 ETF) → 운용회의 아이디어 → 시총 순(universe/kr.csv). 개인 보유 미사용.
+KR_ETFS = ("069500", "229200", "360750", "133690", "148070", "305080", "152380", "132030",   # KODEX200·코스닥150·ISA 코어(S&P·NDX·KTB·골드)
+           "091160", "139260", "122630", "114800", "252670")                                  # 반도체·IT 섹터 ETF · 레버리지·인버스(시장 심리)
+KR_MAX_SYMBOLS = 200
+
+
+def kr_symbols(root: Path = ROOT) -> list[str]:
+    out: list[str] = list(KR_ETFS)
+
+    def add(xs):
+        for x in xs:
+            x = str(x or "").strip()
+            if len(x) == 6 and x.isalnum() and x not in out and len(out) < KR_MAX_SYMBOLS:
+                out.append(x)
+    try:
+        c = json.loads((root / "reports" / "committee.json").read_text(encoding="utf-8"))
+        add(r.get("s") for r in ((c.get("ideas_top") or {}).get("items") or []) if isinstance(r, dict))
+        ideas = c.get("ideas") or {}
+        add(r.get("s") for k in ("long", "short", "watch") for r in (ideas.get(k) or []) if isinstance(r, dict))
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        add(ln.split(",", 1)[0] for ln in (root / "universe" / "kr.csv").read_text(encoding="utf-8").splitlines()[1:])
+    except Exception:  # noqa: BLE001
+        pass
+    return out
+
+
+def kr_targets(root: Path = ROOT) -> list[tuple[str, str, str, dict]]:
+    return [("kr_prices", "intraday", "/api/v1/prices", {"symbols": ",".join(kr_symbols(root))})]
+
+
 def us_targets(root: Path = ROOT) -> list[tuple[str, str, str, dict]]:
     t = [("us_prices", "us", "/api/v1/prices", {"symbols": ",".join(us_symbols(root))})]
     # 종목 캔들 파라미터 이름(symbol·interval·count)은 [추정 — 첫 실행 400 이면 원문 대조해 이 줄만 고침]
@@ -117,7 +150,8 @@ try:
 except Exception:  # tzdata 없음 → 세션 판정 불가(그룹을 막지 않고 돌린다)
     ET = None
 KR_WIN = ((8, 0), (20, 0))
-US_DAY_START_ET, US_AFTER_END_ET = (20, 0), (18, 0)
+# 애프터 끝: 10/21 실측 토스 달력 세션 끝 08:50 KST(서머타임) = 19:50 ET — 폴백도 그에 맞춤(PB 메모의 07:00 은 정정)
+US_DAY_START_ET, US_AFTER_END_ET = (20, 0), (19, 50)
 _SESSION_KEYS = ("market", "session")
 _START_K = ("start", "startTime", "startAt", "open", "openTime", "openAt", "from", "begin")
 _END_K = ("end", "endTime", "endAt", "close", "closeTime", "closeAt", "to", "finish")
@@ -186,10 +220,10 @@ def in_window(group: str, now: datetime, base: Path | None = None) -> tuple[bool
         et = now.astimezone(ET)
         d = et.date()
         cal = _cached_calendar(base, "calendar_us", now) if base else None
-        for dd in (d, d + timedelta(days=1)):
-            w = calendar_window(cal, dd.isoformat()) if cal else None
-            if w and w[0] <= now <= w[1]:
-                return True, "calendar"
+        ws = [w for w in (calendar_window(cal, dd.isoformat()) for dd in (d - timedelta(days=1), d, d + timedelta(days=1))) if cal] if cal else []
+        ws = [w for w in ws if w]
+        if ws:   # 달력에 세션 시각이 있으면 달력만으로 판정(폴백 시각과 섞지 않음)
+            return any(w[0] <= now <= w[1] for w in ws), "calendar"
         today = tradecal.is_session("US", d) and (et.hour, et.minute) < US_AFTER_END_ET
         eve = tradecal.is_session("US", d + timedelta(days=1)) and (et.hour, et.minute) >= US_DAY_START_ET
         return today or eve, "fallback"
@@ -310,7 +344,10 @@ def fixture_transport(method: str, url: str, headers: dict, data: bytes | None) 
     name = path.strip("/").replace("/", "__")
     if name.startswith("api__v1__sectors__") and name.endswith("__stocks"):
         name = "api__v1__sectors__ID__stocks"   # 섹터별 종목 픽스처 1개(시장별 @KR·@US)
-    for cand in ([f"{name}@{query['marketCountry']}"] if query.get("marketCountry") else []) + [name]:
+    mc = query.get("marketCountry") or ("KR" if query.get("symbols", "")[:1].isdigit() else None)   # /prices 국장 심볼 → @KR 픽스처
+    if query.get("interval") == "1d":
+        mc = "1dKR" if str(query.get("symbol", ""))[:1].isdigit() else "1d"   # 일봉(기준가 캐시) 픽스처 — 시장별
+    for cand in ([f"{name}@{mc}"] if mc else []) + [name]:
         f = FIXTURES / f"{cand}.json"
         if f.exists():
             return toss_md.Resp(200, {}, f.read_bytes())
@@ -356,38 +393,179 @@ def crosscheck_dicts(x, depth: int = 0):
             yield from crosscheck_dicts(v, depth + 1)
 
 
-def collect_sectors(client, day: Path, now: datetime, dry_run: bool = False,
-                    sleep=time.sleep, gap: float = SECTOR_GAP_SEC) -> tuple[int, int, str | None]:
-    """섹터 계층 + 말단 섹터별 종목(KR·US) → day/sectors.json. 반환 (성공 호출, 실패 호출, 마지막 오류)."""
+SECTOR_CHUNK = 30          # 잠금을 쥐는 단위(호출 수) — 사이사이 잠금을 풀어 실시간 작업(toss_md_live)이 끼어들게 (10/21 01:3x)
+SECTOR_YIELD_SEC = 3.0     # 청크 사이 쉬는 시간(실시간 작업이 잠금을 잡을 틈)
+SECTOR_MAX_SEC = 25 * 60   # 한 실행 상한(작업 제한 30분 안) — 못 끝내면 진행분을 sectors_partial.json 에 두고 다음 실행이 이어 받음
+
+
+def collect_sectors(client, day: Path, now: datetime, dry_run: bool = False, sleep=time.sleep,
+                    gap: float = SECTOR_GAP_SEC, lock_path: Path | None = None, lock_wait: float = 0.0,
+                    clock=time.time) -> tuple[int, int, str | None]:
+    """섹터 계층 + 말단 섹터별 종목(KR·US) → day/sectors.json. 반환 (성공 호출, 실패 호출, 마지막 오류).
+    청크(SECTOR_CHUNK 호출)마다 잠금을 잡고 놓는다 · 청크마다 진행분 저장(중단돼도 이어 받기)."""
     ok = fail = 0
     err = None
+    part_f = day / "sectors_partial.json"
     try:
-        tree = client.get("/api/v1/sectors")
-        ok += 1
-    except (toss_md.TossMDError, toss_md.ForbiddenRequest) as e:
-        return 0, 1, f"sectors: {e}"
+        part = json.loads(part_f.read_text(encoding="utf-8")) if part_f.exists() else {}
+    except Exception:  # noqa: BLE001
+        part = {}
+    stocks: dict[str, dict] = {m: dict((part.get("stocks") or {}).get(m) or {}) for m in SECTOR_MARKETS}
+    failed: list[str] = []
+    t0 = clock()
+
+    def locked():
+        return Lock(lock_path, lock_wait) if lock_path else _NoLock()
+
+    def save_part(tree):
+        tmp = part_f.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"tree": tree, "stocks": stocks}, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(part_f)
+
+    tree = part.get("tree")
+    if tree is None:
+        try:
+            with locked():
+                tree = client.get("/api/v1/sectors")
+            ok += 1
+        except (toss_md.TossMDError, toss_md.ForbiddenRequest) as e:
+            return 0, 1, f"sectors: {e}"
+        except SystemExit as e:
+            return 0, 1, f"sectors: 잠금 {e}"
     secs = parse_sectors(tree)
-    stocks: dict[str, dict] = {m: {} for m in SECTOR_MARKETS}
-    failed = []
-    for mk in SECTOR_MARKETS:
-        for sid in leaf_ids(secs):
-            if not dry_run:
-                sleep(gap)
-            try:
-                stocks[mk][sid] = client.get(f"/api/v1/sectors/{sid}/stocks", {"marketCountry": mk})
-                ok += 1
-            except (toss_md.TossMDError, toss_md.ForbiddenRequest) as e:
-                fail += 1
-                failed.append(f"{mk}:{sid}")
-                err = f"sector_stocks {mk}: {e}"
+    pending = [(mk, sid) for mk in SECTOR_MARKETS for sid in leaf_ids(secs) if sid not in stocks[mk]]
+    stopped = None
+    for i in range(0, len(pending), SECTOR_CHUNK):
+        if clock() - t0 > SECTOR_MAX_SEC:
+            stopped = "시간 상한"
+            break
+        try:
+            with locked():
+                for mk, sid in pending[i:i + SECTOR_CHUNK]:
+                    if not dry_run:
+                        sleep(gap)
+                    try:
+                        stocks[mk][sid] = client.get(f"/api/v1/sectors/{sid}/stocks", {"marketCountry": mk})
+                        ok += 1
+                    except (toss_md.TossMDError, toss_md.ForbiddenRequest) as e:
+                        fail += 1
+                        failed.append(f"{mk}:{sid}")
+                        err = f"sector_stocks {mk}: {e}"
+        except SystemExit as e:   # 잠금을 못 잡음(실시간 작업이 오래 쥠) → 진행분 저장 후 다음 실행에
+            stopped = f"잠금 {e}"
+            break
+        save_part(tree)
+        if not dry_run and i + SECTOR_CHUNK < len(pending):
+            sleep(SECTOR_YIELD_SEC)
+    if stopped:
+        save_part(tree)
+        log.warning("섹터 수집 중단(%s) — 진행분 저장, 남은 %d", stopped, sum(1 for mk, sid in pending if sid not in stocks[mk]))
+        return ok, fail + 1, f"sectors: 중단({stopped})"
     rec = {"generated_at": now.isoformat(timespec="seconds"), "asof": now.isoformat(timespec="seconds"),
            "asof_src": "generated_at", "endpoint": "/api/v1/sectors", "dry_run": dry_run,
-           "data": {"sectors": tree, "stocks": stocks, "failed": failed, "calls": ok + fail, "leaves": len(leaf_ids(secs))}}
+           "data": {"sectors": tree, "stocks": stocks, "failed": failed, "calls": ok + fail, "leaves": len(leaf_ids(secs)),
+                    "sec": round(clock() - t0, 1)}}
     f = day / "sectors.json"
     tmp = f.with_suffix(".tmp")
     tmp.write_text(json.dumps(rec, ensure_ascii=False), encoding="utf-8")
     tmp.replace(f)
+    part_f.unlink(missing_ok=True)
+    log.info("섹터 수집: 말단 %d · 호출 %d · 실패 %d · %.0f초", len(leaf_ids(secs)), ok + fail, fail, clock() - t0)
     return ok, fail, err
+
+
+# ── 기준가(전일 종가) 캐시 (10/21 01:4x 실측: /prices 는 lastPrice 뿐, 등락률·기준가 없음) ──────────────────
+# 'sectors' 작업(07:20, 하루 1회)에 붙여 /api/v1/candles 1d count=3 을 KR·US 심볼마다 1회 → day/bases.json {시장: {심볼: [[날짜, 종가], …]}}.
+# 호출 = KR ≤200 + US ≤200. 섹터와 같은 청크·잠금 양보·이어받기. publish 가 '세션 날짜보다 앞선 마지막 종가'를 기준가로 쓴다.
+BASE_COUNT = 3
+
+
+def collect_bases(client, day: Path, now: datetime, dry_run: bool = False, sleep=time.sleep,
+                  gap: float = SECTOR_GAP_SEC, lock_path: Path | None = None, lock_wait: float = 0.0,
+                  clock=time.time) -> tuple[int, int, str | None]:
+    f = day / "bases.json"
+    part_f = day / "bases_partial.json"
+    if f.exists():
+        return 0, 0, None
+    try:
+        got = json.loads(part_f.read_text(encoding="utf-8")) if part_f.exists() else {}
+    except Exception:  # noqa: BLE001
+        got = {}
+    got = {m: dict(got.get(m) or {}) for m in ("KR", "US")}
+    pending = [("KR", x) for x in kr_symbols() if x not in got["KR"]] + [("US", x) for x in us_symbols() if x not in got["US"]]
+    ok = fail = 0
+    err = stopped = None
+    t0 = clock()
+
+    def locked():
+        return Lock(lock_path, lock_wait) if lock_path else _NoLock()
+
+    def save():
+        tmp = part_f.with_suffix(".tmp")
+        tmp.write_text(json.dumps(got, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(part_f)
+    for i in range(0, len(pending), SECTOR_CHUNK):
+        if clock() - t0 > SECTOR_MAX_SEC:
+            stopped = "시간 상한"
+            break
+        try:
+            with locked():
+                for mk, sym in pending[i:i + SECTOR_CHUNK]:
+                    if not dry_run:
+                        sleep(gap)
+                    try:
+                        data = client.get("/api/v1/candles", {"symbol": sym, "interval": "1d", "count": BASE_COUNT})
+                        ok += 1
+                    except (toss_md.TossMDError, toss_md.ForbiddenRequest) as e:
+                        fail += 1
+                        err = f"bases {mk}: {e}"
+                        got[mk][sym] = []
+                        continue
+                    got[mk][sym] = daily_closes(data, mk)
+        except SystemExit as e:
+            stopped = f"잠금 {e}"
+            break
+        save()
+        if not dry_run and i + SECTOR_CHUNK < len(pending):
+            sleep(SECTOR_YIELD_SEC)
+    if stopped:
+        save()
+        return ok, fail + 1, f"bases: 중단({stopped})"
+    rec = {"generated_at": now.isoformat(timespec="seconds"), "asof": now.isoformat(timespec="seconds"), "asof_src": "generated_at",
+           "endpoint": "/api/v1/candles", "dry_run": dry_run, "data": got}
+    tmp = f.with_suffix(".tmp")
+    tmp.write_text(json.dumps(rec, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(f)
+    part_f.unlink(missing_ok=True)
+    log.info("기준가 캐시: KR %d · US %d · 호출 %d · 실패 %d", len(got["KR"]), len(got["US"]), ok + fail, fail)
+    return ok, fail, err
+
+
+def daily_closes(data, mk: str) -> list[list]:
+    """1d 캔들 → [[시장 날짜, 종가], …] 날짜순. KR=KST 날짜, US=ET 날짜."""
+    out = {}
+    tz = KST if mk == "KR" else (ET or KST)
+    for d in crosscheck_dicts(data):
+        ts = d.get("timestamp") or d.get("date") or d.get("baseDate")
+        c = d.get("closePrice", d.get("close"))
+        try:
+            c = float(str(c).replace(",", "")) if c is not None else None
+        except ValueError:
+            c = None
+        if not isinstance(ts, str) or c is None:
+            continue
+        t = _iso(ts)
+        dd = t.astimezone(tz).date().isoformat() if t else ts[:10]
+        out[dd] = c
+    return [[k, out[k]] for k in sorted(out)]
+
+
+class _NoLock:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
 
 
 def write_heartbeat(base: Path, ok: int, fail: int, last_error: str | None, now: datetime,
@@ -437,11 +615,11 @@ def run(group: str = "all", dry_run: bool = False, stocks_all: bool = False, out
             if not go:
                 want.discard(g)
                 skipped[g] = why
-    targets = [t for t in PILOT + us_targets() if t[1] in want]
+    targets = [t for t in PILOT + kr_targets() + us_targets() if t[1] in want]
     if stocks_all and "daily" in want:
         targets += [t for t in STOCKS_ALL if not (day / f"{t[0]}.json").exists()]  # 시장별 일 1회
     do_sectors = "sectors" in want and not (day / "sectors.json").exists()
-    if not targets and not do_sectors:
+    if not targets and not do_sectors and not ("sectors" in want and not (day / "bases.json").exists()):
         log.info("수집 대상 없음(세션 밖: %s)", skipped)
         return {"dir": str(day), "ok": 0, "fail": 0, "skipped": skipped, "host": "dry-run" if dry_run else socket.gethostname()}
 
@@ -454,10 +632,13 @@ def run(group: str = "all", dry_run: bool = False, stocks_all: bool = False, out
 
     ok, fail, last_err = 0, 0, None
     lock = (base if dry_run else toss_md.CONFIG_DIR) / "collector.lock"
+    if do_sectors:   # 섹터는 청크마다 잠금을 잡고 놓는다(실시간 작업과 번갈아) — 큰 잠금 밖에서
+        o, f_, e = collect_sectors(client, day, now, dry_run, lock_path=lock, lock_wait=lock_wait)
+        ok, fail, last_err = ok + o, fail + f_, e or last_err
+    if "sectors" in want and not (day / "bases.json").exists():   # 기준가 캐시(하루 1회)도 같은 작업에서
+        o, f_, e = collect_bases(client, day, now, dry_run, lock_path=lock, lock_wait=lock_wait)
+        ok, fail, last_err = ok + o, fail + f_, e or last_err
     with Lock(lock, lock_wait):
-        if do_sectors:
-            o, f_, e = collect_sectors(client, day, now, dry_run)
-            ok, fail, last_err = ok + o, fail + f_, e or last_err
         for name, _g, path, params in targets:
             try:
                 data = client.get(path, params)

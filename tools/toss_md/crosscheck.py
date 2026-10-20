@@ -106,7 +106,37 @@ def calendar_days(data) -> dict[str, bool]:
                 if isinstance(d.get(k), bool):
                     out[ds[:10]] = not d[k]
                     break
+            else:   # 10/21 실측 꼴: {today|previousBusinessDay|nextBusinessDay: {date, (integrated:){preMarket…}{startTime,endTime}}} — 개장 플래그 없음
+                if _has_session(d):
+                    out[ds[:10]] = True
+                elif any(k in d for k in ("integrated", "regularMarket", "dayMarket")):
+                    out[ds[:10]] = False
+    _fill_between(data, out)
     return out
+
+
+def _has_session(d: dict) -> bool:
+    for k, v in d.items():
+        if isinstance(v, dict) and ("market" in k.lower() or k == "integrated"):
+            if v.get("startTime") or _has_session(v):
+                return True
+    return False
+
+
+def _fill_between(data, out: dict) -> None:
+    """previousBusinessDay·nextBusinessDay 사이(오늘 제외) 날짜는 휴장."""
+    from datetime import date as _d, timedelta as _td
+    r = data.get("result") if isinstance(data, dict) else None
+    if not isinstance(r, dict) or not all(isinstance(r.get(k), dict) for k in ("previousBusinessDay", "nextBusinessDay")):
+        return
+    try:
+        a, b = (_d.fromisoformat(str(r[k].get("date"))[:10]) for k in ("previousBusinessDay", "nextBusinessDay"))
+    except ValueError:
+        return
+    x = a + _td(days=1)
+    while x < b:
+        out.setdefault(x.isoformat(), False)
+        x += _td(days=1)
 
 
 def _series_close(ms: dict, key: str, day: str) -> float | None:

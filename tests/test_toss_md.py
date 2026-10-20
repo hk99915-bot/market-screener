@@ -110,7 +110,7 @@ def test_allowed_paths_pass(client, path):
 
 
 def test_collector_pilot_paths_are_whitelisted():
-    for _n, _g, path, _p in collect.PILOT + collect.STOCKS_ALL + collect.us_targets():
+    for _n, _g, path, _p in collect.PILOT + collect.STOCKS_ALL + collect.us_targets() + collect.kr_targets():
         toss_md.check_request("GET", path, {})
     toss_md.check_request("GET", "/api/v1/sectors", {})
     toss_md.check_request("GET", "/api/v1/sectors/S111/stocks", {})
@@ -240,7 +240,7 @@ def test_429_gives_up_when_retry_after_too_long(tmp_path):
 def test_collect_dry_run_writes_outside_repo(tmp_path):
     now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
     s = collect.run("all", dry_run=True, stocks_all=True, out=tmp_path, now=now)
-    assert s["ok"] == len(collect.PILOT) + len(collect.us_targets()) + len(collect.STOCKS_ALL) and s["fail"] == 0
+    assert s["ok"] == len(collect.PILOT) + len(collect.kr_targets()) + len(collect.us_targets()) + len(collect.STOCKS_ALL) and s["fail"] == 0
     day = tmp_path / "_dryrun" / "2026-10-20"
     rec = json.loads((day / "kospi_1m.json").read_text())
     assert rec["generated_at"] and rec["asof"].startswith("2026-10-20T15:30") and rec["asof_src"] == "response"
@@ -308,12 +308,13 @@ def test_us_symbols_public_lists_only(monkeypatch):
     ("2026-10-20T23:40", "us", True),     # 화 정규장(ET 10:40)
     ("2026-10-20T23:40", "intraday", False),
     ("2026-10-20T10:00", "intraday", True),
-    ("2026-10-21T07:05", "us", False),    # 애프터(18:00 ET) 끝
+    ("2026-10-21T07:05", "us", True),     # 애프터는 19:50 ET(08:50 KST)까지 — 10/21 실측 달력
+    ("2026-10-21T08:55", "us", False),
     ("2026-10-21T09:05", "us", True),     # 데이마켓(20:00 ET 전날 시작, 서머타임)
-    ("2026-11-03T09:30", "us", False),    # 서머타임 해제 뒤 데이마켓은 10:00 KST 부터
+    ("2026-11-03T09:55", "us", False),    # 서머타임 해제 뒤: 애프터 끝 09:50 · 데이마켓 10:00 KST
     ("2026-11-03T10:05", "us", True),
     ("2026-10-24T06:50", "us", True),     # 토 새벽 = 금 애프터
-    ("2026-10-24T07:15", "us", False),
+    ("2026-10-24T08:55", "us", False),
     ("2026-10-24T10:00", "intraday", False),   # 토
 ])
 def test_session_window_fallback(ts, group, want):
@@ -326,8 +327,9 @@ def test_session_window_from_calendar(tmp_path):
     collect.run("daily", dry_run=True, out=tmp_path, now=now)
     base = tmp_path / "_dryrun"
     assert collect.in_window("us", now, base) == (True, "calendar")
-    late = datetime(2026, 10, 21, 7, 5, tzinfo=collect.KST)   # 픽스처 afterMarket 끝 18:00 ET = 07:00 KST
-    assert collect.in_window("us", late, base)[0] is False
+    late = datetime(2026, 10, 21, 8, 55, tzinfo=collect.KST)   # 픽스처 afterMarket 끝 19:50 ET = 08:50 KST
+    assert collect.in_window("us", late, base) == (False, "calendar")
+    assert collect.in_window("us", datetime(2026, 10, 21, 8, 45, tzinfo=collect.KST), base) == (True, "calendar")
 
 
 def test_multi_group_gate_skips_closed(tmp_path):
@@ -354,6 +356,39 @@ def test_sectors_collect_calls_and_multi_membership(tmp_path):
     secs = collect.parse_sectors(rec["data"]["sectors"])
     leaves = collect.leaf_ids(secs)
     assert leaves == ["S111", "S112", "S12", "S21"]
-    assert s["ok"] == rec["data"]["calls"] == 1 + 2 * len(leaves) and s["fail"] == 0   # 호출 수 = 1 + 2 × 말단
+    nb = len(collect.kr_symbols()) + len(collect.us_symbols())
+    assert rec["data"]["calls"] == 1 + 2 * len(leaves) and s["ok"] == rec["data"]["calls"] + nb and s["fail"] == 0   # 섹터 1+2×말단 + 기준가 일봉 KR·US
     again = collect.run("sectors", dry_run=True, out=tmp_path, now=now)   # 일 1회
     assert again["ok"] == 0
+
+
+def test_kr_symbols_public_only(monkeypatch):
+    monkeypatch.setenv("MY_HOLDINGS", "999999 10\n")
+    k = collect.kr_symbols()
+    assert k[:len(collect.KR_ETFS)] == list(collect.KR_ETFS) and "069500" in k and len(k) <= collect.KR_MAX_SYMBOLS
+    assert "999999" not in k
+    assert [t[0] for t in collect.kr_targets()] == ["kr_prices"]   # 회차당 국장 +1 호출
+
+
+def test_sectors_chunked_resume_and_lock_yield(tmp_path, monkeypatch):
+    """청크마다 잠금을 잡고 놓음 · 중간 중단 시 진행분 보존 → 다음 실행이 이어서 끝냄."""
+    now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
+    monkeypatch.setattr(collect, "SECTOR_CHUNK", 3)
+    seen = []
+    real = collect.Lock
+
+    class Spy(real):
+        def __enter__(self):
+            seen.append("in")
+            return super().__enter__()
+    monkeypatch.setattr(collect, "Lock", Spy)
+    monkeypatch.setattr(collect, "SECTOR_MAX_SEC", -1)     # 첫 청크 전에 시간 상한 → 트리만 받고 중단
+    day = tmp_path / "_dryrun" / "2026-10-20"
+    s1 = collect.run("sectors", dry_run=True, out=tmp_path, now=now)
+    assert s1["fail"] >= 1 and (day / "sectors_partial.json").exists() and not (day / "sectors.json").exists()
+    monkeypatch.setattr(collect, "SECTOR_MAX_SEC", 25 * 60)
+    s2 = collect.run("sectors", dry_run=True, out=tmp_path, now=now)
+    assert (day / "sectors.json").exists() and not (day / "sectors_partial.json").exists()
+    rec = json.loads((day / "sectors.json").read_text(encoding="utf-8"))["data"]
+    assert sum(len(v) for v in rec["stocks"].values()) == 2 * rec["leaves"] and s2["fail"] == 0
+    assert seen.count("in") >= 4   # 청크별 잠금(트리 1 + 청크들) + run 의 큰 잠금

@@ -1,19 +1,62 @@
 {
- "_note": "가짜 픽스처(dry-run·테스트용). 필드 이름은 추정 — 실제 응답 구조와 다를 수 있음",
+ "_note": "가짜 픽스처(dry-run·테스트용). 키 구조 = 10/21 01:4x 노트북 --shape 실측, 값은 합성. NXT 통합 세션. today/previousBusinessDay/nextBusinessDay — 개장 플래그 없음(사이 날짜 = 휴장)",
  "result": {
-  "days": [
-   {
-    "date": "2026-10-19",
-    "isOpen": true
-   },
-   {
-    "date": "2026-10-20",
-    "isOpen": true
-   },
-   {
-    "date": "2026-10-24",
-    "isOpen": false
+  "previousBusinessDay": {
+   "date": "2026-10-22",
+   "integrated": {
+    "preMarket": {
+     "startTime": "2026-10-22T08:00:00+09:00",
+     "singlePriceAuctionStartTime": "2026-10-22T08:50:00+09:00",
+     "endTime": "2026-10-22T08:50:00+09:00"
+    },
+    "regularMarket": {
+     "startTime": "2026-10-22T09:00:00+09:00",
+     "endTime": "2026-10-22T15:30:00+09:00"
+    },
+    "afterMarket": {
+     "startTime": "2026-10-22T15:40:00+09:00",
+     "singlePriceAuctionEndTime": "2026-10-22T16:00:00+09:00",
+     "endTime": "2026-10-22T20:00:00+09:00"
+    }
    }
-  ]
+  },
+  "today": {
+   "date": "2026-10-23",
+   "integrated": {
+    "preMarket": {
+     "startTime": "2026-10-23T08:00:00+09:00",
+     "singlePriceAuctionStartTime": "2026-10-23T08:50:00+09:00",
+     "endTime": "2026-10-23T08:50:00+09:00"
+    },
+    "regularMarket": {
+     "startTime": "2026-10-23T09:00:00+09:00",
+     "endTime": "2026-10-23T15:30:00+09:00"
+    },
+    "afterMarket": {
+     "startTime": "2026-10-23T15:40:00+09:00",
+     "singlePriceAuctionEndTime": "2026-10-23T16:00:00+09:00",
+     "endTime": "2026-10-23T20:00:00+09:00"
+    }
+   }
+  },
+  "nextBusinessDay": {
+   "date": "2026-10-26",
+   "integrated": {
+    "preMarket": {
+     "startTime": "2026-10-26T08:00:00+09:00",
+     "singlePriceAuctionStartTime": "2026-10-26T08:50:00+09:00",
+     "endTime": "2026-10-26T08:50:00+09:00"
+    },
+    "regularMarket": {
+     "startTime": "2026-10-26T09:00:00+09:00",
+     "endTime": "2026-10-26T15:30:00+09:00"
+    },
+    "afterMarket": {
+     "startTime": "2026-10-26T15:40:00+09:00",
+     "singlePriceAuctionEndTime": "2026-10-26T16:00:00+09:00",
+     "endTime": "2026-10-26T20:00:00+09:00"
+    }
+   }
+  }
  }
 }

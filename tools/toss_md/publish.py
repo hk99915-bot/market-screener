@@ -263,7 +263,17 @@ def build(base: Path, now: datetime) -> dict:
                                "n": len(b), "bars": b}
     q = {}
     for i in range(4):
-        q = quotes(_load(base / (today - timedelta(days=i)).isoformat(), "indicator_prices"))
+        folder = base / (today - timedelta(days=i)).isoformat()
+        q = quotes(_load(folder, "indicator_prices"))
+        if q:   # 10/21 실측: indicator prices 의 timestamp 가 None → asof = 수집 시각(generated_at)
+            try:
+                gen = json.loads((folder / "indicator_prices.json").read_text(encoding="utf-8")).get("generated_at")
+            except Exception:  # noqa: BLE001
+                gen = None
+            g = to_kst(gen) if gen else None
+            for v in q.values():
+                if not v.get("asof") and g:
+                    v["asof"], v["asof_src"] = g.isoformat(timespec="seconds"), "수집 시각"
         if q:
             break
     doc["quotes"] = q
@@ -305,6 +315,15 @@ def build(base: Path, now: datetime) -> dict:
                 break
         if c:
             doc["calendar"][mk] = c
+    krp = None
+    for i in range(4):
+        krp = _load(base / (today - timedelta(days=i)).isoformat(), "kr_prices")
+        if krp:
+            break
+    if krp:   # 국장 종목·ETF 현재가 (10/21 "ETF도 트래킹되지?")
+        kq, ku, kw = quote_block(krp, "KR", load_bases(base, today))
+        doc["kr_quotes"] = {s: v for s, v in kq.items() if len(s) == 6 or s.startswith("A")}
+        doc["kr_meta"] = {"chg_unit": {"raw": ku, "basis": kw}, "_keys": keys_of(krp), "etfs": list(collect.KR_ETFS)}
     us = build_us(base, now)
     if us:
         doc["us"] = us
@@ -318,7 +337,188 @@ def build(base: Path, now: datetime) -> dict:
 US_TOP = 20   # 랭킹·섹터 랭킹 상위 몇 개를 공개하나
 _CHG_K = ("changeRate", "changePercent", "fluctuationRate")
 _AMT_K = ("tradingAmount", "tradingValue", "amount")
-_NAME_K = ("name", "stockName", "displayName")
+_NAME_K = ("name", "stockName", "displayName", "koreanName", "symbolName", "companyName", "englishName")
+# 10/21 01:19 첫 실데이터: us.quotes 200개 chg_pct 전부 null · rank 의 n·last·chg null(키 이름 불일치) → 키 이름을 정규식으로 찾고
+# 중첩 dict(예: price{…})도 본다. 실제 키 이름은 live.json us._keys 에 '이름만' 남긴다(값 없음, --shape 대용).
+_RE_CHG = re.compile(r"(chang|fluct).*(rate|ratio|percent|pct)|(rate|ratio|percent|pct).*(chang|fluct)", re.I)
+_RE_PREV = re.compile(r"(prev|previous|base|yesterday|before|reference).*(close|price)|^(basePrice|prevClose|previousClose)$", re.I)
+_RE_DIFF = re.compile(r"^(change|changeAmount|changePrice|priceChange|netChange|compareToPreviousClosePrice|diff|difference)$", re.I)
+_RE_PRICE = re.compile(r"^(price|lastPrice|currentPrice|close|closePrice|tradePrice|last|value)$", re.I)
+_RE_NAME = re.compile(r"name$", re.I)
+# 등락률 단위: 응답에서 (등락률, 현재가, 전일가)가 같이 있으면 판정, 없으면 기본 'ratio'
+# [추정 근거: 10/21 01:19 섹터 '상승 상위' 1·2위 값 0.04·0.04 — %라면 상위 섹터가 +0.04% 라는 뜻이라 비현실적. --shape·대조로 확정, 10/24까지]
+DEFAULT_CHG_UNIT = "ratio"
+
+
+def _flat(d: dict, depth: int = 2) -> dict:
+    """행 dict + 중첩 dict 의 잎 키(같은 이름이면 바깥 우선)."""
+    out = {}
+    if depth < 0 or not isinstance(d, dict):
+        return out
+    for k, v in d.items():
+        if not isinstance(v, (dict, list)):
+            out.setdefault(k, v)
+    for k, v in d.items():
+        if isinstance(v, dict):
+            for k2, v2 in _flat(v, depth - 1).items():
+                out.setdefault(k2, v2)
+    return out
+
+
+def _numv(v):
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        try:
+            return float(v.replace(",", ""))
+        except ValueError:
+            return None
+    return None
+
+
+def _find(f: dict, rx, exclude=None):
+    for k, v in f.items():
+        if rx.search(str(k)) and not (exclude and exclude.search(str(k))):
+            x = _numv(v)
+            if x is not None:
+                return x
+    return None
+
+
+def row_fields(d: dict) -> dict:
+    """한 행 → {name, last, chg_raw, prev, diff, amt} (값 못 찾으면 None)."""
+    f = _flat(d)
+    last = next((x for x in (_numv(f.get(k)) for k in _PRICE_K) if x is not None), None)
+    if last is None:
+        last = _find(f, _RE_PRICE)
+    nm = next((f[k] for k in _NAME_K if isinstance(f.get(k), str) and f[k].strip()), None)
+    if nm is None:
+        nm = next((v for k, v in f.items() if _RE_NAME.search(str(k)) and isinstance(v, str) and v.strip() and not str(k).lower().startswith("sector")), None)
+    return {"name": nm, "last": last, "chg_raw": _find(f, _RE_CHG), "prev": _find(f, _RE_PREV),
+            "diff": _find(f, _RE_DIFF), "amt": next((x for x in (_numv(f.get(k)) for k in _AMT_K) if x is not None), None)}
+
+
+def chg_unit(rows: list[dict]) -> tuple[str, str]:
+    """(단위 'ratio'|'pct', 근거). 현재가·전일가가 같이 있는 행으로 다수결."""
+    votes = {"ratio": 0, "pct": 0}
+    for r in rows:
+        c, last, prev = r.get("chg_raw"), r.get("last"), r.get("prev")
+        if prev is None and last is not None and r.get("diff") is not None:
+            prev = last - r["diff"]
+        if c is None or not last or not prev:
+            continue
+        x = last / prev - 1
+        if abs(x) < 1e-6 and abs(c) < 1e-6:
+            continue
+        votes["ratio" if abs(c - x) <= abs(c - x * 100) else "pct"] += 1
+    if votes["ratio"] or votes["pct"]:
+        u = "ratio" if votes["ratio"] >= votes["pct"] else "pct"
+        return u, f"응답 판정({votes['ratio']}:{votes['pct']})"
+    return DEFAULT_CHG_UNIT, "기본값(추정)"
+
+
+def chg_pct(r: dict, unit: str) -> float | None:
+    """등락률(%) — 등락률 키 → 없으면 전일가/변동폭으로 계산."""
+    if r.get("chg_raw") is not None:
+        return _r(r["chg_raw"] * (100 if unit == "ratio" else 1), 3)
+    last, prev = r.get("last"), r.get("prev")
+    if prev is None and last is not None and r.get("diff") is not None:
+        prev = last - r["diff"]
+    return _r((last / prev - 1) * 100, 3) if last and prev else None
+
+
+def keys_of(data, want: str = "symbol") -> list[str]:
+    """진단용: want 키가 있는 첫 행의 키 이름(중첩은 a.b) — 값은 없음."""
+    for d in crosscheck._dicts(data):
+        if want in d:
+            ks = []
+            for k, v in d.items():
+                ks += [f"{k}.{k2}" for k2 in v] if isinstance(v, dict) else [k]
+            return sorted(ks)[:40]
+    return []
+
+
+def price_rows(data) -> dict[str, dict]:
+    """/api/v1/prices → {심볼: row_fields}."""
+    out = {}
+    for d in crosscheck._dicts(data) if data is not None else []:
+        sym = next((d[k] for k in _SYM_K if isinstance(d.get(k), str)), None)
+        if not sym or sym in out:
+            continue
+        r = row_fields(d)
+        if r["last"] is None:
+            continue
+        t = to_kst(collect.find_asof(d))
+        r["asof"] = t.isoformat(timespec="seconds") if t else None
+        out[sym] = r
+    return out
+
+
+def session_day(mk: str, asof: str | None) -> str | None:
+    """시세 시각 → 그 시세가 속한 거래 세션 날짜. KR = KST 날짜, US = ET 날짜(20:00 ET 이후 데이마켓은 다음 날 세션)."""
+    t = to_kst(asof) if asof else None
+    if t is None:
+        return None
+    if mk == "KR" or collect.ET is None:
+        return t.astimezone(KST).date().isoformat()
+    e = t.astimezone(collect.ET)
+    return (e.date() + timedelta(days=1)).isoformat() if (e.hour, e.minute) >= collect.US_DAY_START_ET else e.date().isoformat()
+
+
+def base_from_cache(closes: list | None, sday: str | None) -> float | None:
+    """[[날짜, 종가], …] 에서 세션 날짜보다 앞선 마지막 종가 = 기준가(전일 종가)."""
+    if not closes or not sday:
+        return None
+    prev = [c for d, c in closes if d < sday]
+    return float(prev[-1]) if prev else None
+
+
+def quote_block(data, mk: str = "US", bases: dict | None = None, ref: dict | None = None,
+                unit_hint: str | None = None) -> tuple[dict, str, str]:
+    """prices → ({심볼: {last, chg_pct, base_src, asof}}, 단위, 근거).
+    /prices 에는 등락률·기준가가 없다(10/21 실측) → 기준가 = 랭킹 price.basePrice(ref, 같은 회차) → 일봉 캐시(bases.json) 순."""
+    rows = price_rows(data)
+    unit, why = chg_unit(list(rows.values()) + list((ref or {}).values()))
+    if unit_hint and why.startswith("기본값"):
+        unit = unit_hint
+    out = {}
+    for s_, r in rows.items():
+        src = "응답"
+        if r["chg_raw"] is None and r["prev"] is None and r["diff"] is None:
+            rr = (ref or {}).get(s_) or {}
+            if rr.get("prev"):
+                r = {**r, "prev": rr["prev"]}
+                src = "랭킹 basePrice"
+            else:
+                b = base_from_cache(((bases or {}).get(mk) or {}).get(s_), session_day(mk, r["asof"]))
+                r = {**r, "prev": b}
+                src = "일봉 캐시" if b else None
+        out[s_] = {"last": _r(r["last"], 4), "chg_pct": chg_pct(r, unit), "base_src": src if chg_pct(r, unit) is not None else None,
+                   "asof": r["asof"]}
+    return out, unit, why
+
+
+def rank_ref(*datas) -> dict:
+    """랭킹 응답들 → {심볼: row_fields} (기준가·단위 판정용)."""
+    out = {}
+    for data in datas:
+        for d in crosscheck._dicts(data) if data is not None else []:
+            sym = next((d[k] for k in _SYM_K if isinstance(d.get(k), str)), None)
+            if sym and sym not in out:
+                r = row_fields(d)
+                if r["last"] is not None or r["prev"] is not None:
+                    out[sym] = r
+    return out
+
+
+def load_bases(base: Path, today: date) -> dict | None:
+    for i in range(4):
+        b = _load(base / (today - timedelta(days=i)).isoformat(), "bases")
+        if b:
+            return b
+    return None
 
 
 def _latest(base: Path, today: date, name: str, days: int = 2):
@@ -358,29 +558,36 @@ def us_bars(datas: list) -> tuple[str | None, list[list]]:
     return day, [by[day][k] for k in sorted(by[day])]
 
 
-def _rank_rows(data, n: int = US_TOP) -> list[dict]:
+def _rank_rows(data, n: int = US_TOP, unit: str = DEFAULT_CHG_UNIT, quotes: dict | None = None) -> list[dict]:
+    """랭킹 행 → [{s, n, last, chg_pct, amt}]. 랭킹 응답에 가격·등락이 없으면 같은 회차 prices(quotes)로 채운다."""
     out, seen = [], set()
     for d in crosscheck._dicts(data):
         sym = next((d[k] for k in _SYM_K if isinstance(d.get(k), str)), None)
-        if not sym or sym in seen or crosscheck._num(d, _PRICE_K + _CHG_K + _AMT_K) is None:
+        if not sym or sym in seen:
+            continue
+        r = row_fields(d)
+        if r["last"] is None and r["chg_raw"] is None and r["amt"] is None:
             continue
         seen.add(sym)
-        nm = next((d[k] for k in _NAME_K if isinstance(d.get(k), str)), None)
-        out.append({"s": sym, "n": nm, "last": _r(crosscheck._num(d, _PRICE_K)), "chg_pct": _r(crosscheck._num(d, _CHG_K)),
-                    "amt": _r(crosscheck._num(d, _AMT_K), 0)})
+        q = (quotes or {}).get(sym) or {}
+        last = r["last"] if r["last"] is not None else q.get("last")
+        c = chg_pct(r, unit)
+        out.append({"s": sym, "n": r["name"], "last": _r(last), "chg_pct": c if c is not None else q.get("chg_pct"),
+                    "amt": _r(r["amt"], 0)})
         if len(out) >= n:
             break
     return out
 
 
-def _sector_rank(data, n: int = US_TOP) -> list[dict]:
+def _sector_rank(data, n: int = US_TOP, unit: str = DEFAULT_CHG_UNIT) -> list[dict]:
     out, seen = [], set()
     for d in crosscheck._dicts(data):
         sid = d.get("sectorId")
         if sid is None or str(sid) in seen:
             continue
         seen.add(str(sid))
-        out.append({"id": str(sid), "name": d.get("name"), "chg_pct": _r(crosscheck._num(d, _CHG_K))})
+        r = row_fields(d)
+        out.append({"id": str(sid), "name": d.get("name") or d.get("sectorName"), "chg_pct": chg_pct(r, unit)})
         if len(out) >= n:
             break
     return out
@@ -391,16 +598,9 @@ def build_us(base: Path, now: datetime) -> dict | None:
     today = now.astimezone(KST).date()
     missing, asofs = [], []
     pr = _latest(base, today, "us_prices")
-    q = {}
-    for d in crosscheck._dicts(pr) if pr is not None else []:
-        sym = next((d[k] for k in _SYM_K if isinstance(d.get(k), str)), None)
-        v = crosscheck._num(d, _PRICE_K)
-        if not sym or v is None or sym in q:
-            continue
-        t = to_kst(collect.find_asof(d))
-        q[sym] = {"last": _r(v, 4), "chg_pct": _r(crosscheck._num(d, _CHG_K), 3), "asof": t.isoformat(timespec="seconds") if t else None}
-        if t:
-            asofs.append(t)
+    rk = {k: _latest(base, today, n) for k, n in (("amount", "us_rank_amount"), ("gainers", "us_rank_gainers"), ("losers", "us_rank_losers"))}
+    q, unit, unit_why = quote_block(pr, "US", load_bases(base, today), rank_ref(*rk.values()))
+    asofs += [t for t in (to_kst(v["asof"]) for v in q.values()) if t]
     if not q:
         missing.append("미장 현재가(prices) 없음/해석 실패")
     spark = {}
@@ -413,12 +613,13 @@ def build_us(base: Path, now: datetime) -> dict | None:
             missing.append(f"{sym} 1분봉 없음")
     ranks = {}
     for key, name in (("amount", "us_rank_amount"), ("gainers", "us_rank_gainers"), ("losers", "us_rank_losers")):
-        rows = _rank_rows(_latest(base, today, name))
+        rows = _rank_rows(rk[key], unit=unit, quotes=q)
         if rows:
             ranks[key] = rows
         else:
             missing.append(f"랭킹 {key} 없음")
-    srank = _sector_rank(_latest(base, today, "us_sector_rank"))
+    srank_data = _latest(base, today, "us_sector_rank")
+    srank = _sector_rank(srank_data, unit=unit)
     if not srank:
         missing.append("섹터 랭킹 없음")
     if not (q or spark or ranks or srank):
@@ -438,7 +639,10 @@ def build_us(base: Path, now: datetime) -> dict | None:
                 break
     asof = max(asofs).isoformat(timespec="seconds") if asofs else None
     return {"asof": asof, "quotes": q, "spark": spark, "rank": ranks, "sector_rank": srank, "session": sess,
-            "missing": missing, "note": "chg_pct = 등락률(%) · amt = 거래대금(USD) · 1분봉 시각은 ET 봉 종료 시각"}
+            "chg_unit": {"raw": unit, "basis": unit_why},
+            "_keys": {"prices": keys_of(pr), "rank": keys_of(_latest(base, today, "us_rank_amount")),
+                      "sector_rank": keys_of(srank_data, "sectorId")},
+            "missing": missing, "note": "chg_pct = 등락률(%, 응답 단위를 % 로 환산) · amt = 거래대금(USD) · 1분봉 시각은 ET 봉 종료 시각 · _keys = 응답 키 이름(진단)"}
 
 
 # ── 토스 섹터 (보드 toss-sectors) — sectors.json: 섹터 계층 + 종목→말단 섹터 다중 매핑. 시세·금액 필드 없음 ──
@@ -571,7 +775,19 @@ def decide(state: dict, sig_full: str, sig_xc: str, now: datetime,
     if min_interval_min and last and not state.get("pending") \
             and (now - last).total_seconds() < min_interval_min * 60 - SLACK_SEC:
         return False, "interval"
-    return True, "intraday" if in_kr_window(now) else "off_session"
+    if in_kr_window(now):
+        return True, "intraday"
+    us = us_session(now)
+    return True, f"us_{us}" if us else "off_session"
+
+
+def us_session(now: datetime) -> str | None:
+    """미장 4세션 이름(ET 기준 — 토스 세션: 데이 20:00~04:00 · 프리 04:00~09:30 · 정규 09:30~16:00 · 애프터 16:00~18:00 ET). 밖이면 None."""
+    if collect.ET is None or not collect.in_window("us", now, None)[0]:
+        return None
+    e = now.astimezone(collect.ET)
+    m = e.hour * 60 + e.minute
+    return "day" if m >= 20 * 60 or m < 4 * 60 else "pre" if m < 9 * 60 + 30 else "regular" if m < 16 * 60 else "after"
 
 
 # ── git (전용 브랜치 toss-live — 작업 트리·main 을 건드리지 않는 plumbing 커밋, 일반 push 만) ─────────────

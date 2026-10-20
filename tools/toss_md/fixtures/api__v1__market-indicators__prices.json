@@ -1,9 +1,25 @@
 {
- "_note": "가짜 픽스처(dry-run·테스트용). 필드 이름은 추정 — 실제 응답 구조와 다를 수 있음. 국채는 % 수익률",
+ "_note": "가짜 픽스처(dry-run·테스트용). 키 구조 = 10/21 01:4x 노트북 --shape 실측, 값은 합성. timestamp 이 None",
  "result": [
-  {"symbol": "KOSPI", "price": 5552.74, "changeRate": -3.73, "timestamp": "2026-10-20T15:30:00+09:00"},
-  {"symbol": "KOSDAQ", "price": 781.97, "changeRate": -3.33, "timestamp": "2026-10-20T15:30:00+09:00"},
-  {"symbol": "KR_BOND_3Y", "price": 2.512, "timestamp": "2026-10-20T15:30:00+09:00"},
-  {"symbol": "KR_BOND_10Y", "price": 2.874, "timestamp": "2026-10-20T15:30:00+09:00"}
+  {
+   "symbol": "KOSPI",
+   "timestamp": null,
+   "lastPrice": 5552.74
+  },
+  {
+   "symbol": "KOSDAQ",
+   "timestamp": null,
+   "lastPrice": 781.97
+  },
+  {
+   "symbol": "KR_BOND_3Y",
+   "timestamp": null,
+   "lastPrice": 2.512
+  },
+  {
+   "symbol": "KR_BOND_10Y",
+   "timestamp": null,
+   "lastPrice": 2.874
+  }
  ]
 }

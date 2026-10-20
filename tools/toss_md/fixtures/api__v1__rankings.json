@@ -1,33 +1,43 @@
 {
- "_note": "가짜 픽스처(dry-run·테스트용). rankings 응답 꼴 추정(symbol·name·price·changeRate·tradingAmount)",
+ "_note": "가짜 픽스처(dry-run·테스트용). 키 구조 = 10/21 01:4x 노트북 --shape 실측, 값은 합성. price{lastPrice,basePrice,changeRate}, 이름 필드 없음, changeRate 는 비율",
  "result": {
+  "rankedAt": "2026-10-20T16:00:00-04:00",
   "rankings": [
    {
     "rank": 1,
     "symbol": "NVDA",
-    "name": "NVIDIA",
-    "price": 221.3,
-    "changeRate": -2.1,
-    "tradingAmount": 25000000000.0,
-    "currency": "USD"
+    "currency": "USD",
+    "price": {
+     "lastPrice": "221.3",
+     "basePrice": "226.047",
+     "changeRate": "-0.021"
+    },
+    "tradingVolume": "1000",
+    "tradingAmount": "25000000000.0"
    },
    {
     "rank": 2,
     "symbol": "TSLA",
-    "name": "Tesla",
-    "price": 410.0,
-    "changeRate": 1.2,
-    "tradingAmount": 20000000000.0,
-    "currency": "USD"
+    "currency": "USD",
+    "price": {
+     "lastPrice": "410.0",
+     "basePrice": "405.1383",
+     "changeRate": "0.012"
+    },
+    "tradingVolume": "1000",
+    "tradingAmount": "20000000000.0"
    },
    {
     "rank": 3,
     "symbol": "MU",
-    "name": "Micron",
-    "price": 914.1,
-    "changeRate": 3.4,
-    "tradingAmount": 18000000000.0,
-    "currency": "USD"
+    "currency": "USD",
+    "price": {
+     "lastPrice": "914.1",
+     "basePrice": "884.0426",
+     "changeRate": "0.034"
+    },
+    "tradingVolume": "1000",
+    "tradingAmount": "18000000000.0"
    }
   ]
  }

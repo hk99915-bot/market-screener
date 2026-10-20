@@ -32,7 +32,7 @@ def test_build_summary_from_fixture(base):
     assert set(doc["flows"]["KOSPI"]) >= {"개인", "외국인", "기관", "기타법인", "date", "unit"}
     assert doc["flows"]["KOSPI"]["외국인"] == -80.0 and doc["flows"]["KOSPI"]["date"] == "2026-10-20"
     assert doc["quotes"]["KR_BOND_3Y"]["last"] == 2.512
-    assert doc["calendar"]["KR"]["closed_next"] == ["2026-10-24"]
+    assert doc["calendar"]["KR"]["closed_next"] == ["2026-10-24", "2026-10-25"]   # 실측 꼴: 전·다음 영업일 사이 = 휴장
     assert contracts.check(Path("reports") / publish.CONTRACT_PATH, doc) == []
 
 
@@ -109,7 +109,10 @@ def test_decide_rules():
     assert publish.decide({**st, "pending": True}, "a", "x", now) == (True, "retry_push")
     assert publish.decide(st, "b", "x", now) == (True, "intraday")              # 기본: 회차마다
     assert publish.decide(st, "b", "x", now, min_interval_min=30) == (False, "interval")
-    assert publish.decide(st, "a", "y", datetime(2026, 10, 21, 18, 30, tzinfo=KST)) == (True, "off_session")
+    assert publish.decide(st, "a", "y", datetime(2026, 10, 21, 18, 30, tzinfo=KST)) == (True, "us_pre")       # 05:30 ET 프리장
+    assert publish.decide(st, "a", "y", datetime(2026, 10, 21, 1, 19, tzinfo=KST)) == (True, "us_regular")   # 10/21 01:19 첫 publish 가 off_session 으로 찍힌 것 수정
+    assert publish.decide(st, "a", "y", datetime(2026, 10, 21, 10, 30, tzinfo=KST) - timedelta(hours=4)) == (True, "us_after")  # 06:30 KST = 17:30 ET
+    assert publish.decide(st, "a", "y", datetime(2026, 10, 25, 12, 0, tzinfo=KST)) == (True, "off_session")   # 일요일
 
 
 # ── git: toss-live 브랜치에 일반 push (실제 git, 로컬 bare 원격) ─────────────────
@@ -307,12 +310,17 @@ def test_fx_asof_from_valid_from(base):
 
 def test_us_block(base):
     doc = publish.build(base, NOW)
+    assert doc["us"]["quotes"]["SPY"]["chg_pct"] is None       # /prices 엔 기준가 없음 → 캐시 전엔 비움(0 으로 채우지 않음)
+    assert doc["us"]["quotes"]["NVDA"]["chg_pct"] == -2.1 and doc["us"]["quotes"]["NVDA"]["base_src"] == "랭킹 basePrice"
+    collect.run("sectors", dry_run=True, out=base.parent, now=NOW)   # 기준가 일봉 캐시
+    doc = publish.build(base, NOW)
+    assert doc["us"]["quotes"]["SPY"]["base_src"] == "일봉 캐시"
     us = doc["us"]
     assert us["quotes"]["SPY"]["last"] == 671.3 and us["quotes"]["SPY"]["chg_pct"] == -0.42
     assert us["spark"]["SPY"]["date"] == "2026-10-20" and us["spark"]["SPY"]["bars"][0][0] == "15:50"
     assert us["rank"]["amount"][0]["s"] == "NVDA" and len(us["rank"]["amount"]) <= publish.US_TOP
     assert us["sector_rank"][0]["name"] == "반도체"
-    assert us["session"] and us["session"]["end"] == "2026-10-21T07:00:00+09:00"
+    assert us["session"] and us["session"]["end"] == "2026-10-21T08:50:00+09:00"
     publish.assert_public(doc)
     assert "rate" not in _keys(doc, set())
 
@@ -347,3 +355,30 @@ def test_git_env_ignores_hook_vars(tmp_path, monkeypatch):
     monkeypatch.setenv("GIT_INDEX_FILE", str(tmp_path / "idx"))
     env = publish.clean_git_env()
     assert "GIT_DIR" not in env and "GIT_INDEX_FILE" not in env
+
+
+# ── 10/21 01:19 첫 실데이터 수정: 등락률 키·단위·이름/가격 중첩·KR 현재가 ───────────────────────
+def test_row_fields_finds_nested_and_unknown_keys():
+    r = publish.row_fields({"symbol": "SPY", "displayName": "SPDR S&P500", "price": {"close": "768.5", "previousClosePrice": "760.0"},
+                            "tradingAmount": "1000"})
+    assert r["name"] == "SPDR S&P500" and r["last"] == 768.5 and r["prev"] == 760.0 and r["amt"] == 1000.0
+    assert publish.chg_pct(r, "ratio") == round((768.5 / 760 - 1) * 100, 3)    # 등락률 키 없으면 전일가로 계산
+    r2 = publish.row_fields({"symbol": "X", "lastPrice": 10, "priceChangeRate": 0.05})
+    assert publish.chg_pct(r2, "ratio") == 5.0 and publish.chg_pct(r2, "pct") == 0.05
+
+
+def test_chg_unit_inference():
+    rows = [{"chg_raw": 0.02, "last": 102.0, "prev": 100.0}, {"chg_raw": -0.01, "last": 99.0, "prev": 100.0}]
+    assert publish.chg_unit(rows)[0] == "ratio"
+    assert publish.chg_unit([{"chg_raw": 2.0, "last": 102.0, "prev": 100.0}])[0] == "pct"
+    assert publish.chg_unit([{"chg_raw": 0.04}]) == (publish.DEFAULT_CHG_UNIT, "기본값(추정)")
+
+
+def test_kr_quotes_and_keys_diagnostic(base):
+    collect.run("sectors", dry_run=True, out=base.parent, now=NOW)
+    doc = publish.build(base, NOW)
+    assert doc["kr_quotes"]["069500"]["chg_pct"] == round((74210 / 76500 - 1) * 100, 3)
+    assert doc["kr_quotes"]["005930"]["last"] == 95000.0
+    assert "symbol" in doc["kr_meta"]["_keys"] and "069500" in doc["kr_meta"]["etfs"]
+    assert doc["us"]["_keys"]["prices"] and doc["us"]["chg_unit"]["raw"] == "ratio"
+    publish.assert_public(doc)
