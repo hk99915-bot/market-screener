@@ -209,7 +209,7 @@ def test_committed_manifest_valid_and_files_ignored():
         pytest.skip("git 없음")
     import subprocess
     for f in files:
-        r = subprocess.run(["git", "-C", str(ROOT), "check-ignore", "-q", f])
+        r = subprocess.run(["git", "-C", str(ROOT), "check-ignore", "-q", "--no-index", f])
         assert r.returncode == 0, f"{f} 가 .gitignore 에 없음"
         assert all(ds.matches(f, ds.GROUPS[g]) for g in [next(g for g in ds.GROUPS if ds.matches(f, ds.GROUPS[g]))])
 
