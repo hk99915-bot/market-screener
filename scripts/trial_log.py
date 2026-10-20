@@ -59,7 +59,8 @@ def _grade_counts(d: dict) -> dict[str, int]:
     g = d.get("grades")
     if isinstance(g, dict):
         for v in g.values():
-            add(v["grade"] if isinstance(v, dict) else v)
+            # 재현 보고서(replication_*.json)는 {orig, rep, …} 꼴 — 재현 등급(rep)을 센다 (10/21 hollzzak 재현에서 KeyError)
+            add((v.get("grade") or v.get("rep")) if isinstance(v, dict) else v)
     for key in ("signals", "hypotheses"):
         if isinstance(d.get(key), list):
             for h in d[key]:
