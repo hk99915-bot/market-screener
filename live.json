@@ -1,6 +1,15 @@
 {
- "asof": "2026-10-21T00:47:52+09:00",
- "calendar": {},
+ "asof": "2026-10-21T00:48:01+09:00",
+ "calendar": {
+  "KR": {
+   "closed_next": [],
+   "today_open": true
+  },
+  "US": {
+   "closed_next": [],
+   "today_open": true
+  }
+ },
  "date": "2026-10-20",
  "flows": {
   "KOSDAQ": {
@@ -30,10 +39,10 @@
    "mid": 1330.27
   }
  },
- "generated_at": "2026-10-21T01:50:34+09:00",
+ "generated_at": "2026-10-21T02:00:28+09:00",
  "indices": {
   "KOSDAQ": {
-   "asof": "2026-10-20T15:30:00+09:00",
+   "asof": "2026-10-21T00:48:01+09:00",
    "bars": [
     ["12:11", 790.92, 790.92, 790.71, 790.71],
     ["12:12", 790.52, 790.52, 790.29, 790.41],
@@ -245,7 +254,7 @@
    "prev_close": null
   },
   "KOSPI": {
-   "asof": "2026-10-20T15:30:00+09:00",
+   "asof": "2026-10-21T00:48:01+09:00",
    "bars": [
     ["12:11", 5610.86, 5610.86, 5603.45, 5603.45],
     ["12:12", 5601.94, 5601.94, 5597.9, 5597.9],
@@ -459,1472 +468,1689 @@
  },
  "missing": [],
  "note": "토스증권 Open API 시세 요약(공개용). 원시 호가·체결·계좌 없음. 환율=매매기준율(mid).",
- "published_at": "2026-10-21T01:50:34+09:00",
+ "published_at": "2026-10-21T02:00:28+09:00",
  "quotes": {
   "KOSDAQ": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 781.97
   },
   "KOSPI": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 5552.74
   },
   "KR_BOND_10Y": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 4.204
   },
   "KR_BOND_20Y": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 4.214
   },
   "KR_BOND_2Y": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 3.84
   },
   "KR_BOND_30Y": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 4.274
   },
   "KR_BOND_3Y": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 3.876
   },
   "KR_BOND_5Y": {
-   "asof": null,
+   "asof": "2026-10-21T00:48:01+09:00",
+   "asof_src": "수집 시각",
    "last": 4.013
   }
  },
  "schema_version": 1,
  "source": "toss",
  "us": {
-  "asof": "2026-10-21T01:50:27+09:00",
+  "_keys": {
+   "prices": ["currency", "lastPrice", "symbol", "timestamp"],
+   "rank": ["currency", "price.basePrice", "price.changeRate", "price.lastPrice", "rank", "symbol", "tradingAmount", "tradingVolume"],
+   "sector_rank": ["changeRate", "currency", "marketCapitalization", "name", "rank", "sectorId", "tradingAmount"]
+  },
+  "asof": "2026-10-21T02:00:18+09:00",
+  "chg_unit": {
+   "basis": "응답 판정(149:0)",
+   "raw": "ratio"
+  },
   "missing": [],
-  "note": "chg_pct = 등락률(%) · amt = 거래대금(USD) · 1분봉 시각은 ET 봉 종료 시각",
+  "note": "chg_pct = 등락률(%, 응답 단위를 % 로 환산) · amt = 거래대금(USD) · 1분봉 시각은 ET 봉 종료 시각 · _keys = 응답 키 이름(진단)",
   "quotes": {
    "AAL": {
-    "asof": "2026-10-21T01:50:22+09:00",
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 12.25
+    "last": 12.185
    },
    "AAOI": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 78.07
+    "last": 77.84
    },
    "AAPL": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 340.83
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.741,
+    "last": 340.4
    },
    "ABBV": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 289.04
+    "last": 289.55
    },
    "ABT": {
-    "asof": "2026-10-21T01:50:14+09:00",
+    "asof": "2026-10-21T02:00:10+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 103.19
+    "last": 103.1
    },
    "ACN": {
-    "asof": "2026-10-21T01:50:15+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 238.62
+    "last": 238.97
    },
    "ADBE": {
-    "asof": "2026-10-21T01:49:59+09:00",
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 255.1675
+    "last": 255.405
    },
    "ADI": {
-    "asof": "2026-10-21T01:50:04+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 399.99
+    "last": 399.0
    },
    "ALAB": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 288.82
+    "last": 288.17
    },
    "AMAT": {
-    "asof": "2026-10-21T01:50:25+09:00",
-    "chg_pct": null,
-    "last": 404.315
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -2.232,
+    "last": 403.89
    },
    "AMD": {
-    "asof": "2026-10-21T01:50:25+09:00",
-    "chg_pct": null,
-    "last": 541.1
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.283,
+    "last": 539.57
    },
    "AMGN": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:10+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 434.84
+    "last": 435.0175
    },
    "AMT": {
-    "asof": "2026-10-21T01:50:09+09:00",
+    "asof": "2026-10-21T02:00:14+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 185.64
+    "last": 185.43
    },
    "AMZN": {
-    "asof": "2026-10-21T01:50:25+09:00",
-    "chg_pct": null,
-    "last": 263.2885
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.244,
+    "last": 263.09
    },
    "ANET": {
-    "asof": "2026-10-21T01:50:23+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 180.49
+    "last": 180.07
    },
    "APH": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 79.085
+    "last": 78.885
    },
    "APLD": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 19.61
+    "last": 19.53
    },
    "APP": {
-    "asof": "2026-10-21T01:50:09+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 274.82
+    "last": 274.0
    },
    "ASML": {
-    "asof": "2026-10-21T01:50:17+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 1637.65
+    "last": 1635.83
    },
    "ASTS": {
-    "asof": "2026-10-21T01:50:23+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 41.65
+    "last": 41.58
    },
    "AVGO": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 335.575
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.039,
+    "last": 334.72
    },
    "AXP": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 320.18
+    "last": 319.98
    },
    "BA": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 191.18
+    "last": 190.86
    },
    "BAC": {
-    "asof": "2026-10-21T01:50:25+09:00",
-    "chg_pct": null,
-    "last": 50.97
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.953,
+    "last": 50.87
    },
    "BE": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 224.22
+    "last": 223.08
    },
    "BKNG": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 163.57
+    "last": 163.39
    },
    "BMNR": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 23.09
+    "last": 23.06
    },
    "BMY": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:06+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 61.455
+    "last": 61.48
    },
    "BSX": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:10+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 45.37
+    "last": 45.285
    },
    "C": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:14+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 122.36
+    "last": 122.3
    },
    "CAT": {
-    "asof": "2026-10-21T01:50:12+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 726.02
+    "last": 723.32
    },
    "CBRS": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 121.81
+    "last": 121.4325
    },
    "CDNS": {
-    "asof": "2026-10-21T01:50:11+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 322.36
+    "last": 322.06
    },
    "CEG": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 260.99
+    "last": 259.6
    },
    "CIEN": {
-    "asof": "2026-10-21T01:50:14+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 344.01
+    "last": 342.62
    },
    "CIFR": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 8.9
+    "last": 8.845
    },
    "CLS": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 304.1
+    "last": 302.29
    },
    "CMCSA": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 22.08
+    "last": 22.11
    },
    "CMG": {
-    "asof": "2026-10-21T01:50:16+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 29.615
+    "last": 29.645
    },
    "COF": {
-    "asof": "2026-10-21T01:50:13+09:00",
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 201.73
+    "last": 201.62
    },
    "COHR": {
-    "asof": "2026-10-21T01:50:24+09:00",
-    "chg_pct": null,
-    "last": 233.52
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.59,
+    "last": 233.39
    },
    "COIN": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 172.31
+    "last": 171.81
    },
    "COP": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 145.46
+    "last": 145.48
    },
    "COST": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 992.65
+    "last": 993.24
    },
    "CRCL": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 86.21
+    "last": 86.075
    },
    "CRDO": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 174.62
+    "last": 174.11
    },
    "CRM": {
-    "asof": "2026-10-21T01:50:02+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 241.71
+    "last": 242.17
    },
    "CRWD": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 226.415
+    "last": 226.55
    },
    "CRWV": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 62.86
+    "last": 62.59
    },
    "CSCO": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 106.2
+    "last": 106.14
    },
    "CTVA": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 12.905
+    "last": 12.86
    },
    "CVNA": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 60.36
+    "last": 60.24
    },
    "CVS": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 94.65
+    "last": 94.42
    },
    "CVX": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 224.01
+    "last": 224.16
    },
    "DAL": {
-    "asof": "2026-10-21T01:50:23+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 76.72
+    "last": 76.52
    },
    "DDOG": {
-    "asof": "2026-10-21T01:50:18+09:00",
+    "asof": "2026-10-21T02:00:15+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 255.57
+    "last": 256.32
    },
    "DE": {
-    "asof": "2026-10-21T01:49:50+09:00",
+    "asof": "2026-10-21T02:00:10+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 637.04
+    "last": 634.44
    },
    "DELL": {
-    "asof": "2026-10-21T01:50:14+09:00",
-    "chg_pct": null,
-    "last": 464.13
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 1.724,
+    "last": 462.65
    },
    "DHR": {
-    "asof": "2026-10-21T01:50:22+09:00",
-    "chg_pct": null,
-    "last": 224.39
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.018,
+    "last": 224.47
    },
    "DIA": {
-    "asof": "2026-10-21T01:50:23+09:00",
-    "chg_pct": null,
-    "last": 524.21
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.946,
+    "last": 523.83
    },
    "DIS": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 111.63
+    "last": 111.55
    },
    "ECHO": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:11+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 86.565
+    "last": 86.37
    },
    "ETN": {
-    "asof": "2026-10-21T01:49:55+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 382.98
+    "last": 380.89
    },
    "FCX": {
-    "asof": "2026-10-21T01:50:18+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 69.08
+    "last": 68.87
    },
    "FICO": {
-    "asof": "2026-10-21T01:50:07+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 795.52
+    "last": 794.32
    },
    "FIX": {
-    "asof": "2026-10-21T01:50:17+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 1406.755
+    "last": 1399.27
    },
    "FTNT": {
-    "asof": "2026-10-21T01:50:12+09:00",
+    "asof": "2026-10-21T02:00:15+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 170.45
+    "last": 170.56
    },
    "GE": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 299.14
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -4.266,
+    "last": 298.0
    },
    "GEV": {
-    "asof": "2026-10-21T01:50:11+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 902.005
+    "last": 898.23
    },
    "GILD": {
-    "asof": "2026-10-21T01:50:05+09:00",
+    "asof": "2026-10-21T02:00:09+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 155.26
+    "last": 155.33
    },
    "GLD": {
-    "asof": "2026-10-21T01:50:14+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 377.95
+    "last": 377.75
    },
    "GLW": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 132.67
+    "last": 132.25
    },
    "GOOG": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 337.58
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.797,
+    "last": 337.45
    },
    "GOOGL": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 341.45
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.845,
+    "last": 341.27
    },
    "GS": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 886.69
+    "last": 885.0
    },
    "HD": {
-    "asof": "2026-10-21T01:50:18+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 315.57
+    "last": 315.62
    },
    "HOOD": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 98.9363
+    "last": 98.68
    },
    "HPE": {
-    "asof": "2026-10-21T01:50:14+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 56.32
+    "last": 56.1
    },
    "HUM": {
-    "asof": "2026-10-21T01:48:55+09:00",
+    "asof": "2026-10-21T01:59:57+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 429.12
+    "last": 427.925
    },
    "HUT": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:08+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 70.935
+    "last": 70.5
    },
    "HWM": {
-    "asof": "2026-10-21T01:50:17+09:00",
-    "chg_pct": null,
-    "last": 208.38
+    "asof": "2026-10-21T02:00:01+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -5.477,
+    "last": 207.98
    },
    "HYG": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:15+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 76.79
+    "last": 76.755
    },
    "IBM": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 239.32
+    "last": 240.0
    },
    "ILMN": {
-    "asof": "2026-10-21T01:50:16+09:00",
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 269.615
+    "last": 269.19
    },
    "INTC": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 93.18
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.837,
+    "last": 92.8
    },
    "INTU": {
-    "asof": "2026-10-21T01:50:05+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 336.055
+    "last": 336.4275
    },
    "IONQ": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 31.6216
+    "last": 31.55
    },
    "IREN": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 27.065
+    "last": 26.87
    },
    "ISRG": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 438.11
+    "last": 437.31
    },
    "IWM": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 275.82
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 1.506,
+    "last": 275.365
    },
    "JNJ": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 258.99
+    "last": 259.36
    },
    "JPM": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 335.4
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.444,
+    "last": 335.01
    },
    "KLAC": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 161.71
+    "last": 161.55
    },
    "KO": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 92.875
+    "last": 92.87
    },
    "LIN": {
-    "asof": "2026-10-21T01:50:06+09:00",
+    "asof": "2026-10-21T01:59:58+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 498.755
+    "last": 498.4
    },
    "LITE": {
-    "asof": "2026-10-21T01:50:17+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 827.12
+    "last": 824.6
    },
    "LLY": {
-    "asof": "2026-10-21T01:50:25+09:00",
-    "chg_pct": null,
-    "last": 1292.89
+    "asof": "2026-10-21T02:00:09+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 4.376,
+    "last": 1294.62
    },
    "LRCX": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 263.83
+    "last": 263.55
    },
    "MA": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 620.77
+    "last": 621.52
    },
    "MCD": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 246.18
+    "last": 246.0
    },
    "MCHP": {
-    "asof": "2026-10-21T01:50:15+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 76.42
+    "last": 76.16
    },
    "MCK": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:03+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 1021.13
+    "last": 1021.81
    },
    "MDB": {
-    "asof": "2026-10-21T01:50:13+09:00",
+    "asof": "2026-10-21T02:00:11+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 359.7
+    "last": 361.385
    },
    "MDT": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:06+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 94.33
+    "last": 94.37
    },
    "MELI": {
-    "asof": "2026-10-21T01:49:13+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 1857.28
+    "last": 1860.62
    },
    "META": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 690.55
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -2.203,
+    "last": 689.9
    },
    "MPC": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 472.89
+    "last": 472.55
    },
    "MPWR": {
-    "asof": "2026-10-21T01:49:50+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 1271.2
+    "last": 1263.91
    },
    "MRK": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 147.97
+    "last": 148.045
    },
    "MRNA": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 238.8186
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 5.417,
+    "last": 239.18
    },
    "MRVL": {
-    "asof": "2026-10-21T01:50:24+09:00",
-    "chg_pct": null,
-    "last": 241.79
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 1.687,
+    "last": 241.09
    },
    "MS": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 180.51
+    "last": 180.28
    },
    "MSFT": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 531.68
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.255,
+    "last": 532.16
    },
    "MSTR": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 145.01
+    "last": 144.66
    },
    "MU": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 910.37
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.474,
+    "last": 909.19
    },
    "NBIS": {
-    "asof": "2026-10-21T01:50:22+09:00",
-    "chg_pct": null,
-    "last": 170.71
+    "asof": "2026-10-21T02:00:14+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.267,
+    "last": 169.785
    },
    "NEE": {
-    "asof": "2026-10-21T01:50:17+09:00",
+    "asof": "2026-10-21T02:00:03+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 79.0599
+    "last": 79.07
    },
    "NET": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 294.29
+    "last": 294.65
    },
    "NFLX": {
-    "asof": "2026-10-21T01:50:21+09:00",
-    "chg_pct": null,
-    "last": 69.7
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.472,
+    "last": 69.52
    },
    "NKE": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 38.1178
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 2.257,
+    "last": 38.05
    },
    "NOW": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 148.48
+    "last": 148.87
    },
    "NTAP": {
-    "asof": "2026-10-21T01:50:10+09:00",
+    "asof": "2026-10-21T01:59:58+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 209.0
+    "last": 208.51
    },
    "NTRA": {
-    "asof": "2026-10-21T01:50:16+09:00",
+    "asof": "2026-10-21T02:00:08+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 407.55
+    "last": 407.43
    },
    "NU": {
-    "asof": "2026-10-21T01:50:19+09:00",
-    "chg_pct": null,
-    "last": 15.365
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 5.996,
+    "last": 15.38
    },
    "NVDA": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 216.915
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.06,
+    "last": 216.96
    },
    "NXPI": {
-    "asof": "2026-10-21T01:50:12+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 238.75
+    "last": 238.5
    },
    "OKTA": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T01:59:49+09:00",
+    "base_src": null,
     "chg_pct": null,
     "last": 192.26
    },
    "ON": {
-    "asof": "2026-10-21T01:50:13+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 75.7
+    "last": 75.54
    },
    "ORCL": {
-    "asof": "2026-10-21T01:50:24+09:00",
-    "chg_pct": null,
-    "last": 132.32
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 2.029,
+    "last": 132.22
    },
    "P": {
-    "asof": "2026-10-21T01:50:22+09:00",
+    "asof": "2026-10-21T02:00:04+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 126.77
+    "last": 126.225
    },
    "PANW": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:17+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 341.04
+    "last": 340.89
    },
    "PBR": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 25.805
+    "last": 25.815
    },
    "PEP": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 134.04
+    "last": 134.05
    },
    "PFE": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:03+09:00",
+    "base_src": null,
     "chg_pct": null,
     "last": 30.135
    },
    "PG": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 158.35
+    "last": 158.49
    },
    "PGR": {
-    "asof": "2026-10-21T01:50:03+09:00",
+    "asof": "2026-10-21T02:00:04+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 220.49
+    "last": 220.84
    },
    "PLTR": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 194.66
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.124,
+    "last": 194.39
    },
    "PM": {
-    "asof": "2026-10-21T01:50:22+09:00",
+    "asof": "2026-10-21T02:00:15+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 200.935
+    "last": 201.39
    },
    "PSX": {
-    "asof": "2026-10-21T01:49:38+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 290.37
+    "last": 290.02
    },
    "PTC": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T01:59:40+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 193.24
+    "last": 193.2675
    },
    "PWR": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:04+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 599.84
+    "last": 597.69
    },
    "QCOM": {
-    "asof": "2026-10-21T01:50:02+09:00",
+    "asof": "2026-10-21T02:00:04+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 174.945
+    "last": 174.26
    },
    "QQQ": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 719.03
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.004,
+    "last": 718.39
    },
    "RDDT": {
-    "asof": "2026-10-21T01:50:14+09:00",
+    "asof": "2026-10-21T02:00:11+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 156.72
+    "last": 156.02
    },
    "RKLB": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 51.46
+    "last": 51.41
    },
    "RTX": {
-    "asof": "2026-10-21T01:50:01+09:00",
+    "asof": "2026-10-21T02:00:04+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 191.27
+    "last": 191.07
    },
    "SBUX": {
-    "asof": "2026-10-21T01:50:23+09:00",
+    "asof": "2026-10-21T02:00:14+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 99.46
+    "last": 99.21
    },
    "SCHW": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 90.71
+    "last": 90.64
    },
    "SHOP": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 173.61
+    "last": 173.83
    },
    "SMCI": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 32.135
+    "last": 32.05
    },
    "SMH": {
-    "asof": "2026-10-21T01:50:22+09:00",
-    "chg_pct": null,
-    "last": 549.25
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.053,
+    "last": 548.17
    },
    "SNDK": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 1382.8
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.575,
+    "last": 1379.0
    },
    "SNOW": {
-    "asof": "2026-10-21T01:50:06+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 320.95
+    "last": 320.97
    },
    "SNPS": {
-    "asof": "2026-10-21T01:50:13+09:00",
+    "asof": "2026-10-21T01:59:55+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 446.11
+    "last": 445.555
    },
    "SOFI": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 14.815
+    "last": 14.79
    },
    "SOLV": {
-    "asof": "2026-10-21T01:50:10+09:00",
+    "asof": "2026-10-21T02:00:15+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 85.7
+    "last": 85.655
    },
    "SOXX": {
-    "asof": "2026-10-21T01:50:21+09:00",
-    "chg_pct": null,
-    "last": 504.34
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.221,
+    "last": 503.04
    },
    "SPCX": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 147.67
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.5,
+    "last": 147.22
    },
    "SPOT": {
-    "asof": "2026-10-21T01:49:34+09:00",
+    "asof": "2026-10-21T01:59:42+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 528.63
+    "last": 529.34
    },
    "SPY": {
-    "asof": "2026-10-21T01:50:26+09:00",
-    "chg_pct": null,
-    "last": 769.33
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 0.312,
+    "last": 768.87
    },
    "STX": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 675.99
+    "last": 675.5
    },
    "SWKS": {
-    "asof": "2026-10-21T01:50:14+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 81.28
+    "last": 81.17
    },
    "SYK": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 304.14
+    "last": 304.16
    },
    "T": {
-    "asof": "2026-10-21T01:50:15+09:00",
+    "asof": "2026-10-21T02:00:02+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 23.5
+    "last": 23.485
    },
    "TER": {
-    "asof": "2026-10-21T01:50:23+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 338.24
+    "last": 336.88
    },
    "TGT": {
-    "asof": "2026-10-21T01:50:09+09:00",
+    "asof": "2026-10-21T01:59:45+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 155.13
+    "last": 155.06
    },
    "TJX": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 147.04
+    "last": 146.99
    },
    "TLT": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 79.9
+    "last": 79.88
    },
    "TMO": {
-    "asof": "2026-10-21T01:50:15+09:00",
-    "chg_pct": null,
-    "last": 687.86
+    "asof": "2026-10-21T02:00:00+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 1.053,
+    "last": 686.535
    },
    "TMUS": {
-    "asof": "2026-10-21T01:50:15+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 158.63
+    "last": 158.72
    },
    "TPL": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 345.29
+    "last": 342.99
    },
    "TSLA": {
-    "asof": "2026-10-21T01:50:24+09:00",
-    "chg_pct": null,
-    "last": 374.35
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 1.573,
+    "last": 373.85
    },
    "TSM": {
-    "asof": "2026-10-21T01:50:23+09:00",
-    "chg_pct": null,
-    "last": 427.41
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 1.613,
+    "last": 427.0
    },
    "TWLO": {
-    "asof": "2026-10-21T01:50:13+09:00",
+    "asof": "2026-10-21T02:00:12+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 258.2
+    "last": 258.34
    },
    "TWST": {
-    "asof": "2026-10-21T01:50:01+09:00",
+    "asof": "2026-10-21T01:59:58+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 147.54
+    "last": 145.79
    },
    "TXN": {
-    "asof": "2026-10-21T01:50:17+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 280.6375
+    "last": 279.355
    },
    "UBER": {
-    "asof": "2026-10-21T01:50:25+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 68.83
+    "last": 68.775
    },
    "UNH": {
-    "asof": "2026-10-21T01:50:16+09:00",
-    "chg_pct": null,
-    "last": 422.23
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 3.642,
+    "last": 421.7
    },
    "V": {
-    "asof": "2026-10-21T01:50:27+09:00",
-    "chg_pct": null,
-    "last": 406.82
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": 1.031,
+    "last": 407.075
    },
    "VLO": {
-    "asof": "2026-10-21T01:49:48+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 433.34
+    "last": 432.78
    },
    "VRT": {
-    "asof": "2026-10-21T01:50:12+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 204.78
+    "last": 203.68
    },
    "VRTX": {
-    "asof": "2026-10-21T01:50:01+09:00",
+    "asof": "2026-10-21T02:00:06+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 506.79
+    "last": 506.74
    },
    "VST": {
-    "asof": "2026-10-21T01:50:22+09:00",
+    "asof": "2026-10-21T02:00:07+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 150.67
+    "last": 149.7
    },
    "VZ": {
-    "asof": "2026-10-21T01:50:16+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
     "last": 44.485
    },
    "WDC": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 360.62
+    "last": 360.7
    },
    "WFC": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:13+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 81.84
+    "last": 81.67
    },
    "WMT": {
-    "asof": "2026-10-21T01:50:12+09:00",
+    "asof": "2026-10-21T02:00:15+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 118.1435
+    "last": 118.14
    },
    "XLB": {
-    "asof": "2026-10-21T01:50:20+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 51.05
+    "last": 50.97
    },
    "XLC": {
-    "asof": "2026-10-21T01:50:22+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 110.19
+    "last": 110.11
    },
    "XLE": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 67.69
+    "last": 67.685
    },
    "XLF": {
-    "asof": "2026-10-21T01:50:22+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 55.64
+    "last": 55.625
    },
    "XLI": {
-    "asof": "2026-10-21T01:50:19+09:00",
-    "chg_pct": null,
-    "last": 166.74
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": "랭킹 basePrice",
+    "chg_pct": -0.228,
+    "last": 166.3
    },
    "XLK": {
-    "asof": "2026-10-21T01:50:24+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 185.96
+    "last": 185.8
    },
    "XLP": {
-    "asof": "2026-10-21T01:50:19+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 87.63
+    "last": 87.65
    },
    "XLRE": {
-    "asof": "2026-10-21T01:50:21+09:00",
+    "asof": "2026-10-21T02:00:16+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 42.38
+    "last": 42.345
    },
    "XLU": {
-    "asof": "2026-10-21T01:50:23+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 41.935
+    "last": 41.9
    },
    "XLV": {
-    "asof": "2026-10-21T01:50:26+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 179.63
+    "last": 179.66
    },
    "XLY": {
-    "asof": "2026-10-21T01:50:27+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 115.505
+    "last": 115.37
    },
    "XOM": {
-    "asof": "2026-10-21T01:50:23+09:00",
+    "asof": "2026-10-21T02:00:18+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 176.88
+    "last": 176.98
    },
    "ZS": {
-    "asof": "2026-10-21T01:50:07+09:00",
+    "asof": "2026-10-21T02:00:03+09:00",
+    "base_src": null,
     "chg_pct": null,
-    "last": 214.57
+    "last": 214.535
    }
   },
   "rank": {
    "amount": [
     {
-     "amt": 68992719575.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 87133845082.0,
+     "chg_pct": 0.3,
+     "last": 768.82,
      "n": null,
      "s": "SPY"
     },
     {
-     "amt": 33921152288.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "SPCX"
-    },
-    {
-     "amt": 33209093454.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "DHR"
-    },
-    {
-     "amt": 32702871830.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "SHOP"
-    },
-    {
-     "amt": 31930969650.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "NVDA"
-    },
-    {
-     "amt": 26583762428.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "MU"
-    },
-    {
-     "amt": 26087847254.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 56997505663.0,
+     "chg_pct": 0.0,
+     "last": 718.31,
      "n": null,
      "s": "QQQ"
     },
     {
-     "amt": 23985516340.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 55901818958.0,
+     "chg_pct": -0.06,
+     "last": 216.94,
      "n": null,
-     "s": "SOXL"
+     "s": "NVDA"
     },
     {
-     "amt": 23918451475.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 38057679363.0,
+     "chg_pct": -0.48,
+     "last": 147.24,
      "n": null,
-     "s": "SNDK"
+     "s": "SPCX"
     },
     {
-     "amt": 23026784563.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "MRNA"
-    },
-    {
-     "amt": 22547009013.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 28378061795.0,
+     "chg_pct": 1.62,
+     "last": 427.05,
      "n": null,
      "s": "TSM"
     },
     {
-     "amt": 21000195050.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "IWM"
-    },
-    {
-     "amt": 18345138048.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "INTC"
-    },
-    {
-     "amt": 18049363695.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "LQD"
-    },
-    {
-     "amt": 16406828258.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "TMO"
-    },
-    {
-     "amt": 16395348950.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "AMZN"
-    },
-    {
-     "amt": 15961379403.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 25442239906.0,
+     "chg_pct": -0.85,
+     "last": 341.25,
      "n": null,
      "s": "GOOGL"
     },
     {
-     "amt": 15112650721.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 23847687445.0,
+     "chg_pct": 2.0,
+     "last": 132.19,
+     "n": null,
+     "s": "ORCL"
+    },
+    {
+     "amt": 23415092390.0,
+     "chg_pct": 0.48,
+     "last": 99.13,
+     "n": null,
+     "s": "SOXL"
+    },
+    {
+     "amt": 21919631702.0,
+     "chg_pct": 0.81,
+     "last": 92.78,
+     "n": null,
+     "s": "INTC"
+    },
+    {
+     "amt": 21276687575.0,
+     "chg_pct": 1.51,
+     "last": 275.38,
+     "n": null,
+     "s": "IWM"
+    },
+    {
+     "amt": 19971817293.0,
+     "chg_pct": -2.17,
+     "last": 690.09,
+     "n": null,
+     "s": "META"
+    },
+    {
+     "amt": 19510343027.0,
+     "chg_pct": 0.61,
+     "last": 1379.59,
+     "n": null,
+     "s": "SNDK"
+    },
+    {
+     "amt": 17727293209.0,
+     "chg_pct": 0.45,
+     "last": 909.03,
+     "n": null,
+     "s": "MU"
+    },
+    {
+     "amt": 15531781661.0,
+     "chg_pct": -0.26,
+     "last": 532.12,
+     "n": null,
+     "s": "MSFT"
+    },
+    {
+     "amt": 15474032566.0,
+     "chg_pct": 1.59,
+     "last": 373.93,
+     "n": null,
+     "s": "TSLA"
+    },
+    {
+     "amt": 14026031226.0,
+     "chg_pct": 0.3,
+     "last": 706.73,
      "n": null,
      "s": "VOO"
     },
     {
-     "amt": 14661125005.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 13293901374.0,
+     "chg_pct": -0.74,
+     "last": 340.39,
      "n": null,
-     "s": "HYG"
+     "s": "AAPL"
     },
     {
-     "amt": 14610147838.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 12251801963.0,
+     "chg_pct": -0.5,
+     "last": 69.5,
      "n": null,
-     "s": "AMD"
+     "s": "NFLX"
+    },
+    {
+     "amt": 12140972790.0,
+     "chg_pct": -0.8,
+     "last": 337.42,
+     "n": null,
+     "s": "GOOG"
+    },
+    {
+     "amt": 12131372126.0,
+     "chg_pct": 0.23,
+     "last": 263.07,
+     "n": null,
+     "s": "AMZN"
     }
    ],
    "gainers": [
     {
-     "amt": 192099020087.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 198772409221.0,
+     "chg_pct": 63.04,
+     "last": 5.56,
      "n": null,
      "s": "SAIQ"
     },
     {
-     "amt": 2863381084836.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 2890307064731.0,
+     "chg_pct": 51.56,
+     "last": 45.53,
      "n": null,
      "s": "BRZE"
     },
     {
-     "amt": 299222916376.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "WORX"
-    },
-    {
-     "amt": 132334720844.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 133645385545.0,
+     "chg_pct": 44.25,
+     "last": 0.55,
      "n": null,
      "s": "PRSO"
     },
     {
-     "amt": 96064202711.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 302200742951.0,
+     "chg_pct": 43.65,
+     "last": 3.85,
+     "n": null,
+     "s": "WORX"
+    },
+    {
+     "amt": 96363497335.0,
+     "chg_pct": 39.54,
+     "last": 3.07,
      "n": null,
      "s": "AIXI"
     },
     {
-     "amt": 124896648665.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 126234876390.0,
+     "chg_pct": 36.81,
+     "last": 5.76,
      "n": null,
      "s": "MYGN"
     },
     {
-     "amt": 5090409663.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 5117424918.0,
+     "chg_pct": 33.48,
+     "last": 6.06,
      "n": null,
      "s": "ATGL"
     },
     {
-     "amt": 6946679006.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 7215280840.0,
+     "chg_pct": 31.77,
+     "last": 2.53,
      "n": null,
      "s": "HOST"
     },
     {
-     "amt": 31650534531.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "GOW"
-    },
-    {
-     "amt": 19472340999.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 19643458935.0,
+     "chg_pct": 29.44,
+     "last": 2.11,
      "n": null,
      "s": "NCPL"
     },
     {
-     "amt": 9148314945.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 9603197326.0,
+     "chg_pct": 31.37,
+     "last": 0.21,
      "n": null,
      "s": "SAFX"
     },
     {
-     "amt": 553964949.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 31865756079.0,
+     "chg_pct": 28.84,
+     "last": 4.02,
      "n": null,
-     "s": "CCG"
+     "s": "GOW"
     },
     {
-     "amt": 169710407342.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 170896511544.0,
+     "chg_pct": 28.53,
+     "last": 0.69,
      "n": null,
      "s": "FRTT"
     },
     {
-     "amt": 8121261285.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 8214045946.0,
+     "chg_pct": 27.41,
+     "last": 2.51,
      "n": null,
      "s": "HUIZ"
     },
     {
-     "amt": 590947190.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 554677716.0,
+     "chg_pct": 24.13,
+     "last": 5.71,
      "n": null,
-     "s": "CLNN"
+     "s": "CCG"
     },
     {
-     "amt": 840880930.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "NNNN"
-    },
-    {
-     "amt": 494214574.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "CPIX"
-    },
-    {
-     "amt": 1274188322.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 1577585680.0,
+     "chg_pct": 21.74,
+     "last": 8.51,
      "n": null,
      "s": "CD"
     },
     {
-     "amt": 98905081.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 1029049775.0,
+     "chg_pct": 21.12,
+     "last": 3.44,
      "n": null,
-     "s": "CCM"
+     "s": "OMH"
     },
     {
-     "amt": 80231526.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 616521612.0,
+     "chg_pct": 20.97,
+     "last": 3.98,
      "n": null,
-     "s": "FMST"
+     "s": "CLNN"
+    },
+    {
+     "amt": 854770604.0,
+     "chg_pct": 20.48,
+     "last": 3.94,
+     "n": null,
+     "s": "NNNN"
+    },
+    {
+     "amt": 442536973.0,
+     "chg_pct": 18.12,
+     "last": 5.67,
+     "n": null,
+     "s": "SLE"
+    },
+    {
+     "amt": 98905081.0,
+     "chg_pct": 17.97,
+     "last": 4.2,
+     "n": null,
+     "s": "CCM"
     }
    ],
    "losers": [
     {
-     "amt": 6359651476.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 6522688290.0,
+     "chg_pct": -55.56,
+     "last": 0.85,
      "n": null,
      "s": "CJMB"
     },
     {
-     "amt": 1789809258.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 1797474224.0,
+     "chg_pct": -41.36,
+     "last": 0.07,
      "n": null,
      "s": "SXTC"
     },
     {
-     "amt": 27306281316.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 27314628668.0,
+     "chg_pct": -34.05,
+     "last": 0.18,
      "n": null,
      "s": "GCDT"
     },
     {
-     "amt": 6821233770.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 7012275465.0,
+     "chg_pct": -33.5,
+     "last": 3.89,
      "n": null,
      "s": "RAIL"
     },
     {
-     "amt": 1773685265.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 1806876874.0,
+     "chg_pct": -32.44,
+     "last": 0.02,
      "n": null,
      "s": "SDST"
     },
     {
-     "amt": 849672614.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 74089274.0,
+     "chg_pct": -30.7,
+     "last": 0.42,
+     "n": null,
+     "s": "MNY"
+    },
+    {
+     "amt": 858539673.0,
+     "chg_pct": -26.53,
+     "last": 0.65,
      "n": null,
      "s": "POLA"
     },
     {
-     "amt": 331795276.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 339419123.0,
+     "chg_pct": -24.86,
+     "last": 0.29,
      "n": null,
      "s": "IPW"
     },
     {
-     "amt": 615187635.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 620774021.0,
+     "chg_pct": -24.3,
+     "last": 0.24,
      "n": null,
      "s": "INLF"
     },
     {
-     "amt": 18356467215.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "GMEX"
-    },
-    {
-     "amt": 331494518.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 331761970.0,
+     "chg_pct": -23.68,
+     "last": 0.09,
      "n": null,
      "s": "AXG"
     },
     {
-     "amt": 1396527599.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 18378310222.0,
+     "chg_pct": -24.62,
+     "last": 0.99,
+     "n": null,
+     "s": "GMEX"
+    },
+    {
+     "amt": 1407565189.0,
+     "chg_pct": -20.9,
+     "last": 0.17,
      "n": null,
      "s": "RUBI"
     },
     {
+     "amt": 109723863.0,
+     "chg_pct": -20.87,
+     "last": 4.51,
+     "n": null,
+     "s": "LCU"
+    },
+    {
+     "amt": 86318244.0,
+     "chg_pct": -20.68,
+     "last": 4.6,
+     "n": null,
+     "s": "NXGL"
+    },
+    {
      "amt": 6955001.0,
-     "chg_pct": null,
-     "last": null,
+     "chg_pct": -20.25,
+     "last": 0.63,
      "n": null,
      "s": "AACG"
     },
     {
-     "amt": 1147837256.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "BURU"
-    },
-    {
-     "amt": 4485975568.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "FISN"
-    },
-    {
-     "amt": 8628158.0,
-     "chg_pct": null,
-     "last": null,
-     "n": null,
-     "s": "MPU"
-    },
-    {
-     "amt": 31043932.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 31452594.0,
+     "chg_pct": -18.4,
+     "last": 0.51,
      "n": null,
      "s": "GIFT"
     },
     {
-     "amt": 535453367.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 9565510.0,
+     "chg_pct": -18.89,
+     "last": 2.06,
      "n": null,
-     "s": "ATII"
+     "s": "MPU"
     },
     {
-     "amt": 1184734731.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 1152822004.0,
+     "chg_pct": -18.8,
+     "last": 0.45,
      "n": null,
-     "s": "OBAI"
+     "s": "BURU"
     },
     {
-     "amt": 447719209.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 459443954.0,
+     "chg_pct": -18.66,
+     "last": 4.27,
      "n": null,
      "s": "TSEG"
     },
     {
-     "amt": 258663544.0,
-     "chg_pct": null,
-     "last": null,
+     "amt": 266467783.0,
+     "chg_pct": -16.12,
+     "last": 0.16,
      "n": null,
      "s": "CDT"
     }
@@ -1932,104 +2158,104 @@
   },
   "sector_rank": [
    {
-    "chg_pct": 0.06,
+    "chg_pct": 5.45,
     "id": "167",
     "name": "캐릭터"
    },
    {
-    "chg_pct": 0.04,
+    "chg_pct": 3.55,
     "id": "605",
     "name": "암호화폐"
    },
    {
-    "chg_pct": 0.04,
+    "chg_pct": 3.4,
     "id": "473",
     "name": "저축은행"
    },
    {
-    "chg_pct": 0.03,
+    "chg_pct": 2.94,
     "id": "613",
     "name": "대마초"
    },
    {
-    "chg_pct": 0.03,
-    "id": "3",
-    "name": "항공사"
-   },
-   {
-    "chg_pct": 0.03,
+    "chg_pct": 2.81,
     "id": "37",
     "name": "바이오신약"
    },
    {
-    "chg_pct": 0.03,
-    "id": "619",
-    "name": "지역난방"
+    "chg_pct": 2.74,
+    "id": "3",
+    "name": "항공사"
    },
    {
-    "chg_pct": 0.03,
+    "chg_pct": 2.61,
     "id": "447",
     "name": "아이스크림"
    },
    {
-    "chg_pct": 0.03,
-    "id": "155",
-    "name": "부동산임대개발"
+    "chg_pct": 2.6,
+    "id": "619",
+    "name": "지역난방"
    },
    {
-    "chg_pct": 0.03,
-    "id": "925",
-    "name": "의료서비스"
-   },
-   {
-    "chg_pct": 0.03,
-    "id": "35",
-    "name": "바이오"
-   },
-   {
-    "chg_pct": 0.02,
+    "chg_pct": 2.6,
     "id": "779",
     "name": "제약"
    },
    {
-    "chg_pct": 0.02,
+    "chg_pct": 2.52,
+    "id": "35",
+    "name": "바이오"
+   },
+   {
+    "chg_pct": 2.47,
+    "id": "925",
+    "name": "의료서비스"
+   },
+   {
+    "chg_pct": 2.33,
     "id": "183",
     "name": "지주사"
    },
    {
-    "chg_pct": 0.02,
-    "id": "289",
-    "name": "자전거"
+    "chg_pct": 2.31,
+    "id": "155",
+    "name": "부동산임대개발"
    },
    {
-    "chg_pct": 0.02,
+    "chg_pct": 2.31,
     "id": "31",
     "name": "의료"
    },
    {
-    "chg_pct": 0.02,
-    "id": "607",
-    "name": "오토바이"
+    "chg_pct": 2.05,
+    "id": "289",
+    "name": "자전거"
    },
    {
-    "chg_pct": 0.02,
-    "id": "351",
-    "name": "수산물"
+    "chg_pct": 2.02,
+    "id": "329",
+    "name": "조선기자재"
    },
    {
-    "chg_pct": 0.02,
+    "chg_pct": 2.02,
+    "id": "465",
+    "name": "신용평가"
+   },
+   {
+    "chg_pct": 2.0,
+    "id": "311",
+    "name": "바이오시밀러"
+   },
+   {
+    "chg_pct": 2.0,
     "id": "243",
     "name": "출판"
    },
    {
-    "chg_pct": 0.02,
+    "chg_pct": 1.93,
     "id": "89",
     "name": "IT솔루션구축"
-   },
-   {
-    "chg_pct": 0.02,
-    "id": "727",
-    "name": "주거용 리츠"
    }
   ],
   "session": {
@@ -2039,16 +2265,6 @@
   "spark": {
    "QQQ": {
     "bars": [
-     ["09:32", 714.75, 715.29, 713.78, 713.78],
-     ["09:33", 713.76, 714.26, 713.38, 713.76],
-     ["09:34", 713.86, 713.9, 713.05, 713.22],
-     ["09:35", 713.23, 714.04, 713.23, 713.8],
-     ["09:36", 713.72, 713.73, 712.92, 713.36],
-     ["09:37", 713.36, 714.15, 713.11, 714.08],
-     ["09:38", 714.14, 714.6, 713.93, 714.5],
-     ["09:39", 714.52, 714.59, 713.6, 713.67],
-     ["09:40", 713.56, 713.75, 712.91, 712.94],
-     ["09:41", 712.95, 713.08, 711.81, 711.9],
      ["09:42", 711.87, 712.16, 711.05, 711.34],
      ["09:43", 711.34, 711.51, 710.77, 711.0],
      ["09:44", 711.01, 711.6, 711.01, 711.07],
@@ -2238,7 +2454,17 @@
      ["12:48", 718.71, 719.13, 718.71, 719.13],
      ["12:49", 719.18, 719.32, 719.17, 719.22],
      ["12:50", 719.25, 719.4, 719.12, 719.12],
-     ["12:51", 719.11, 719.15, 718.99, 719.03]
+     ["12:51", 719.11, 719.15, 718.8, 718.8],
+     ["12:52", 718.88, 719.01, 718.88, 718.88],
+     ["12:53", 718.86, 718.91, 718.49, 718.58],
+     ["12:54", 718.59, 718.59, 717.79, 717.79],
+     ["12:55", 717.8, 718.02, 717.6, 718.02],
+     ["12:56", 718.02, 718.51, 718.02, 718.08],
+     ["12:57", 718.12, 718.18, 718.03, 718.16],
+     ["12:58", 718.14, 718.25, 718.0, 718.19],
+     ["12:59", 718.12, 718.25, 717.94, 718.17],
+     ["13:00", 718.27, 718.3, 717.97, 718.15],
+     ["13:01", 718.19, 718.46, 718.16, 718.38]
     ],
     "date": "2026-10-20",
     "n": 200,
@@ -2247,16 +2473,6 @@
    },
    "SOXX": {
     "bars": [
-     ["09:32", 495.15, 495.53, 492.4, 492.4],
-     ["09:33", 492.48, 493.81, 492.3, 493.27],
-     ["09:34", 493.33, 493.53, 492.26, 492.81],
-     ["09:35", 492.88, 493.75, 492.7, 493.41],
-     ["09:36", 493.44, 493.54, 491.86, 492.93],
-     ["09:37", 493.18, 495.19, 492.55, 494.88],
-     ["09:38", 495.02, 496.46, 494.39, 496.46],
-     ["09:39", 496.52, 496.8, 494.49, 494.49],
-     ["09:40", 494.25, 494.27, 492.86, 493.59],
-     ["09:41", 493.58, 493.58, 491.3, 492.18],
      ["09:42", 492.15, 492.68, 490.2, 490.95],
      ["09:43", 490.9, 491.33, 490.08, 491.0],
      ["09:44", 491.06, 492.0, 490.79, 490.79],
@@ -2446,7 +2662,17 @@
      ["12:48", 503.77, 504.53, 503.76, 504.53],
      ["12:49", 504.65, 504.89, 504.63, 504.77],
      ["12:50", 504.81, 504.92, 504.55, 504.55],
-     ["12:51", 504.44, 504.47, 504.29, 504.34]
+     ["12:51", 504.44, 504.47, 503.92, 503.96],
+     ["12:52", 504.08, 504.29, 504.08, 504.13],
+     ["12:53", 504.13, 504.16, 503.74, 503.83],
+     ["12:54", 503.77, 503.77, 502.88, 502.88],
+     ["12:55", 502.84, 503.0, 502.57, 502.92],
+     ["12:56", 502.98, 503.42, 502.98, 503.1],
+     ["12:57", 502.92, 502.92, 502.73, 502.85],
+     ["12:58", 502.89, 502.89, 502.55, 502.81],
+     ["12:59", 502.7, 502.71, 502.29, 502.62],
+     ["13:00", 502.71, 502.74, 502.41, 502.74],
+     ["13:01", 502.73, 503.19, 502.73, 503.16]
     ],
     "date": "2026-10-20",
     "n": 200,
@@ -2455,16 +2681,6 @@
    },
    "SPY": {
     "bars": [
-     ["09:32", 765.53, 765.82, 765.31, 765.37],
-     ["09:33", 765.32, 765.46, 765.16, 765.41],
-     ["09:34", 765.41, 765.59, 765.28, 765.41],
-     ["09:35", 765.41, 765.75, 765.38, 765.53],
-     ["09:36", 765.52, 765.69, 765.27, 765.47],
-     ["09:37", 765.42, 765.86, 765.3, 765.83],
-     ["09:38", 765.81, 766.19, 765.74, 766.11],
-     ["09:39", 766.07, 766.08, 765.77, 765.92],
-     ["09:40", 765.9, 766.08, 765.71, 765.74],
-     ["09:41", 765.74, 765.78, 765.23, 765.3],
      ["09:42", 765.25, 765.51, 764.83, 764.92],
      ["09:43", 764.9, 764.95, 764.32, 764.45],
      ["09:44", 764.47, 764.81, 764.47, 764.62],
@@ -2654,7 +2870,17 @@
      ["12:48", 769.05, 769.42, 769.04, 769.34],
      ["12:49", 769.39, 769.53, 769.39, 769.45],
      ["12:50", 769.48, 769.55, 769.43, 769.44],
-     ["12:51", 769.41, 769.42, 769.32, 769.34]
+     ["12:51", 769.41, 769.42, 769.17, 769.23],
+     ["12:52", 769.27, 769.32, 769.18, 769.18],
+     ["12:53", 769.19, 769.22, 768.96, 769.03],
+     ["12:54", 768.98, 769.01, 768.37, 768.37],
+     ["12:55", 768.38, 768.49, 768.24, 768.48],
+     ["12:56", 768.57, 768.87, 768.55, 768.57],
+     ["12:57", 768.58, 768.68, 768.56, 768.61],
+     ["12:58", 768.6, 768.73, 768.52, 768.68],
+     ["12:59", 768.68, 768.75, 768.54, 768.71],
+     ["13:00", 768.77, 768.78, 768.55, 768.66],
+     ["13:01", 768.68, 768.93, 768.64, 768.85]
     ],
     "date": "2026-10-20",
     "n": 200,
