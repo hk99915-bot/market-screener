@@ -31,6 +31,10 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: 큰 데이터 받기 (릴리스 data-latest → data/ — scripts/data_store.py, repo-size-stage1)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/data_store.py pull
       - name: 창고 빌드 (네트워크 백필)
         env:
           PYTHONUNBUFFERED: "1"
@@ -55,10 +59,16 @@ jobs:
           EOF
       - name: 저장
         if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add data/hist/*_daily.parquet data/hist/_manifest.json 2>/dev/null || true
+          python scripts/data_store.py push --groups hist || echo "::error::data_store push 실패 — hist 큰 데이터가 릴리스에 저장되지 않음(data/data_store_status.json)"
+          # *_daily.parquet 는 릴리스 자산(위 push) — git 에는 _manifest.json 과 data_store manifest 만
+          git add data/hist/_manifest.json data/data_store_manifest.json 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -m "hist: 시세 창고 갱신 $(date -u +%F)"
-          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 15; done
+          ok=0
+          for i in 1 2 3; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep 15; done
+          [ $ok = 1 ] || echo "::warning::푸시 실패 — hist manifest 가 저장되지 않음(자산은 릴리스에 있음)"; true

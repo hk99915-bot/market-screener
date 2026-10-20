@@ -1,5 +1,4 @@
 data/*
-!data/kr_prices.parquet
 !data/research.parquet
 !data/research_views.parquet
 !data/dart.parquet
@@ -8,7 +7,6 @@ data/*
 __pycache__/
 *.pyc
 .env
-!data/signals.parquet
 !data/short_hist.parquet
 
 # 에이전트 작업용 임시 worktree
@@ -22,3 +20,12 @@ toss_md_data/
 
 # 큰 데이터 파일 릴리스 자산 메타 (scripts/data_store.py, repo-size-stage1)
 !data/data_store_manifest.json
+# 릴리스 자산(data-latest)으로 옮긴 큰 데이터 — 매일 통째 재커밋되던 파일 (repo-size-stage1, 10/21).
+# 받기: python scripts/data_store.py pull · 목록: data/data_store_manifest.json. 여기서 빼면 다시 git 이 분다.
+data/kr_prices.parquet
+data/signals.parquet
+data/fin/multi.parquet
+data/fin/full.parquet
+data/hist/*_daily.parquet
+data/flows/kr_inv_*.parquet
+data/data_store_status.json

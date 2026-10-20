@@ -25,6 +25,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install polars requests
+      - name: 큰 데이터 받기 (릴리스 data-latest → data/ — scripts/data_store.py, repo-size-stage1)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/data_store.py pull
       - name: 기록
         id: r
         env:

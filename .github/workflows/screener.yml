@@ -57,6 +57,12 @@ jobs:
           python scripts/slot_guard.py --wf screener.yml --key "$M" || { echo "::warning::slot_guard 실패 — 실행(fail-open)"; echo "go=true" >> $GITHUB_OUTPUT; [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.commit }}" = "true" ] && echo "commit=true" >> $GITHUB_OUTPUT || echo "commit=false" >> $GITHUB_OUTPUT; }
           if grep -q '^go=false' "$GITHUB_OUTPUT"; then echo "market=skip" >> $GITHUB_OUTPUT; else echo "market=$M" >> $GITHUB_OUTPUT; fi
 
+      - name: 큰 데이터 받기 (릴리스 data-latest → data/ — scripts/data_store.py, repo-size-stage1)
+        if: steps.m.outputs.market != 'skip'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/data_store.py pull --record-stale
+
       - name: 스크리너 실행
         if: steps.m.outputs.market != 'skip'
         env:
@@ -82,10 +88,13 @@ jobs:
 
       - name: 리포트·유니버스 커밋
         if: always() && steps.m.outputs.commit == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          for p in reports universe data/kr_prices.parquet data/research.parquet data/dart.parquet data/signals.parquet data/short_hist.parquet; do [ -e "$p" ] && git add -A "$p"; done; true
+          python scripts/data_store.py push --groups prices,signals || echo "::error::data_store push 실패 — screener 큰 데이터가 릴리스에 저장되지 않음(data/data_store_status.json)"
+          for p in reports universe data/research.parquet data/dart.parquet data/short_hist.parquet data/data_store_manifest.json; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "report: ${{ steps.m.outputs.market }} $(date -u +%F)"
           # 커밋 대상이 아닌 변경(교정된 parquet 등)이 남으면 rebase 가 거부돼 푸시가 조용히 실패 → 치워둔다
           git stash -q -u 2>/dev/null || true

@@ -90,6 +90,12 @@ jobs:
           if [ "${{ steps.m.outputs.mode }}" = "skip" ]; then echo "go=false" >> $GITHUB_OUTPUT; echo "commit=false" >> $GITHUB_OUTPUT; exit 0; fi
           python scripts/slot_guard.py --wf briefing.yml --key "${{ steps.m.outputs.mode }}" || { echo "::warning::slot_guard 실패 — 실행(fail-open)"; echo "go=true" >> $GITHUB_OUTPUT; [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.commit }}" = "true" ] && echo "commit=true" >> $GITHUB_OUTPUT || echo "commit=false" >> $GITHUB_OUTPUT; }
 
+      - name: 큰 데이터 받기 (릴리스 data-latest → data/ — scripts/data_store.py, repo-size-stage1)
+        if: steps.g.outputs.go == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/data_store.py pull --record-stale
+
       - name: 실행
         env:
           PYTHONUNBUFFERED: "1"
@@ -125,10 +131,13 @@ jobs:
 
       - name: 저장
         if: always() && steps.g.outputs.commit == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          for p in reports universe data/research.parquet data/research_views.parquet data/dart.parquet data/signals.parquet data/short_hist.parquet; do [ -e "$p" ] && git add -A "$p"; done; true
+          python scripts/data_store.py push --groups signals || echo "::error::data_store push 실패 — briefing 큰 데이터가 릴리스에 저장되지 않음(data/data_store_status.json)"
+          for p in reports universe data/research.parquet data/research_views.parquet data/dart.parquet data/short_hist.parquet data/data_store_manifest.json; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "briefing: ${{ steps.m.outputs.mode }} $(date -u +%FT%H:%M)"
           # 커밋 대상이 아닌 변경(예: 실행 중 교정된 data/kr_prices.parquet)이 남아 있으면 pull --rebase 가 거부돼 푸시가 조용히 실패함 → 치워둔다
           git stash -q -u 2>/dev/null || true

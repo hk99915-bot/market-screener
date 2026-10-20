@@ -55,6 +55,15 @@
 | 11 | screener/japan.py:211 | macro_series 에 직접 병합(가드 우회) | 미처리 → guard-rest |
 | 12 | screener/shorts.py:47 | 30일 뒤로 누적 수집 | 해당 없음(빠진 날 채우기) |
 
+## 큰 데이터 = 릴리스 자산 (repo-size-stage1, 10/21 — 겸이 승인 1단계 '더 안 커지게')
+- [경험] parquet 는 이미 압축이라 git 이 차이를 못 저장 → 바뀔 때마다 통째로 쌓인다. 10/14~20 실측(zlib 객체): 옮긴 11파일 276.7MB = 7일 증가의 49%(일회성 연도 파일 124MB 제외 시 63%), 나머지 reports/detail 123.9MB·기타 39.7MB.
+- 옮긴 파일: `data/kr_prices.parquet`·`data/signals.parquet`·`data/fin/{multi,full}.parquet`·`data/hist/*_daily.parquet`(4)·`data/flows/kr_inv_*.parquet`(3) → 릴리스 `data-latest` 자산(이름 `/`→`__`, label 에 sha256·size·rows·asof). git 에는 `data/data_store_manifest.json`(git_rev = 마지막 커밋본) 만. 연도 파일 `data/hist/{kr,us}_YYYY` 는 불변이라 git 유지.
+- `scripts/data_store.py pull|push|snapshot|status`(표준 라이브러리만). pull 실패 → 로컬 → 최신 주간 스냅샷 → git_rev 순 폴백 + `data/data_store_status.json`(추적 밖 — 추적 파일을 더럽히면 커밋 안 하는 워크플로의 rebase 가 막힘) + ::warning::. push 차단: 같은 sha·asof 역행·행/크기 절반 미만·이번 실행 pull 폴백(--force 로만).
+- 워크플로: pull = accum·briefing·fin·hist·lab·live·pb_call·pick·screener·us_accum, push(저장 단계 안, commit 조건 그대로) = fin[fin]·screener[prices,signals]·briefing[signals]·hist[hist]·accum[flows]. 수동 dispatch 읽기 전용이면 push 도 안 함(결정 C). `tests/test_data_store.py` 가 'push 하는 워크플로는 pull 먼저'를 강제.
+- 주간 스냅샷 `data_store.yml` 금 20:17 KST → `data-YYYYMMDD`(최근 8개). 복기: `python scripts/data_store.py pull --tag data-20261023 --dest /tmp/x`.
+- [경험] 이 세션(claude.ai 원격)은 릴리스 생성·수정이 403("not permitted for this session type") — 업로드는 Actions(GITHUB_TOKEN)로만. 읽기·workflow dispatch 는 됨.
+- 로컬 체크아웃: rm 커밋을 pull 하면 작업 트리에서 이 파일들이 지워진다 → `python3 scripts/data_store.py pull` 로 받는다(공개 저장소라 토큰 없이도 받기 가능).
+
 ## 흔한 오해
 - [경험] "무음이면 안 보인다" → 아니다. 메시지·배지는 그대로 오고 **소리만** 없다. 그래서 정보성 알림을 무음으로 돌려도 손실이 없다.
 - [경험] 호출부마다 `if CFG.telegram_token and CFG.telegram_chat:` 를 반복하지 않는다(dotplot 에 남아 있음) — `send_telegram` 이 미설정이면 RuntimeError 를 내고, 호출부는 `try/except` 로 로그만 남기는 것이 현재 관행.
@@ -74,6 +83,8 @@
 - 2026-10-20 [운영] 대결 메시지 인라인 버튼 + GAS 웹훅(tg-pick-buttons): 테스트 tests/test_tg_pick_buttons.py(파이썬↔GAS node 대조·64바이트·reply_markup·apply_issue 끝까지) · 롤백 = GAS `tgDeleteWebhook` 실행(버튼 무반응, 링크 보조 유지) 또는 커밋 revert · 영향 = duel 메시지 3종에 reply_markup, send_telegram 에 reply_markup 인자(마지막 조각만), pick.yml 끝에 결과 텔레그램 1통(pick 만, 실패 무시). [경험] GAS 웹앱 doPost 는 요청 헤더를 못 읽는다 → secret_token 대신 URL `?s=` 로 검증. getUpdates 사용처 없음(10/20 두 저장소 grep). 절차 docs/telegram_pick_buttons.md.
 
 - 2026-10-21 [운영] 오늘의 영어 v2 화면(english-v2-ui): 테스트 tests/test_english_v2_fixture.py + ui_smoke check_eng(새 스키마 390·1300px, 옛 스키마 390px — tests/fixtures 를 route 로 주입) · 롤백 = 커밋 revert(localStorage mt_eng_score_v1·mt_opic_v1 은 남아도 무해) · 영향 = STUDY›영어 화면, 사용 기록 CSV 끝 4열(eng_review/_ok·eng_quiz/_ok; pb-private usage/intake.py 는 모르는 열 무시 → 반영엔 intake EVS 추가 필요). [경험] html,body{overflow-x:hidden} 이라 scrollWidth 만으론 폰 넘침을 못 잡는다 → 요소 getBoundingClientRect().right 로 검사. 공용 헤더 #fresh 배지가 390px 에서 오른쪽 493px 까지 넘침(모든 화면, 미처리).
+
+- 2026-10-21 [운영] 큰 데이터 릴리스 자산 이전(repo-size-stage1): 테스트 tests/test_data_store.py(가짜 GH 로 왕복·덮어쓰기·역행/축소/폴백 차단·스냅샷 보존 8·manifest 무시 확인·워크플로 pull→push 순서) · 롤백 = 워크플로의 data_store 단계 제거 + .gitignore 블록 삭제 + 파일 `pull` 후 git add · 영향 = 10개 워크플로 시작에 다운로드(~53MB, 수 초), 5개 저장 단계에 업로드, git 일 증가 추정 25~40MB → 약 9~15MB.
 
 ## 복기
 - 2026-10-17 (사고 3) 틀림: 토 09:46 KST 수동 detail_us(커밋 9ea9efbd)가 US 580파일을 10/16→10/15 로 덮음 → 왜: ① Yahoo 가 그 호출(금 20:47 ET)에서 **종목 523개 전부 10/16 봉을 빼고** 줌 — 종목당 행 273.4 vs 직전 275.4(시작일 1일 이동 −1, 마지막 봉 누락 −1), 같은 실행의 지수(^GSPC·^IXIC)는 10/16 있음(macro_series). Yahoo 측 원인은 네트워크 차단으로 재현 못 함[확인 필요: 다음 금요일 20~24시 ET 에 yf.download 로 재현, 10/24까지]. ② 코드엔 "지금이면 어느 봉이 있어야 하나"가 없어 최빈 날짜(10/15)를 그대로 기준일로 삼고 `_status` 는 시계만 보고 CONFIRMED. ③ 모든 쓰기가 무조건 덮어쓰기, 저장 단계 `-X theirs` 는 늦은 실행을 이기게 함 → 다음부터: tradecal.expected_session 으로 기대일 계산·재시도, 게시본보다 과거면 중단, 가드·regress_git 이중 차단. 재현 테스트 tests/test_freshness_guard.py::test_saturday_us_regress_is_refused. 덤: main.run 인자 `live`(bool)가 모듈을 가려 `live.patch_macro` 가 매 실행 실패하던 것도 수정.

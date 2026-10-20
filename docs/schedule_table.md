@@ -66,6 +66,7 @@
 | 18:37 | accum.yml | 월화수목금 | cron 37 9 * * 1-5 | — |
 | 19:10 | briefing.yml [reports] | 월화수목금 | GAS(주) + cron 10 10 * * 1-5(대기) | — |
 | 20:10 | health.yml | 월화수목금토일 | cron 10 11 * * * | — |
+| 20:17 | data_store.yml | 금 | cron 17 11 * * 5 | — |
 | 20:52 | briefing.yml [premarket_us] | 월화수목금 | GAS(주) + cron 52 11 * * 1-5(대기) | — |
 | 21:52 | briefing.yml [premarket_us] | 월화수목금 | GAS(주) + cron 52 12 * * 1-5(대기) | — |
 | 22:00 | health.yml | 일 | cron 0 13 * * 0 | — |

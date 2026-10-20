@@ -46,6 +46,11 @@ jobs:
           SCHEDULE: ${{ github.event.schedule }}
           COMMIT_INPUT: ${{ inputs.commit }}
         run: python scripts/slot_guard.py --wf live.yml || { echo "::warning::slot_guard 실패 — 실행(fail-open)"; echo "go=true" >> $GITHUB_OUTPUT; [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.commit }}" = "true" ] && echo "commit=true" >> $GITHUB_OUTPUT || echo "commit=false" >> $GITHUB_OUTPUT; }
+      - name: 큰 데이터 받기 (릴리스 data-latest → data/ — scripts/data_store.py, repo-size-stage1)
+        if: steps.g.outputs.go == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/data_store.py pull
       - name: 루프
         if: steps.g.outputs.go == 'true'
         env:

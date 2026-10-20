@@ -1,7 +1,7 @@
 name: data_store
 run-name: "data_store ${{ github.event_name == 'workflow_dispatch' && format('[{0}] commit={1}', inputs.mode, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
 
-# 큰 데이터 파일 = 릴리스 자산 (repo-size-stage1, scripts/data_store.py · docs/data_store.md)
+# 큰 데이터 파일 = 릴리스 자산 (repo-size-stage1, scripts/data_store.py · docs/desk_kb/dev.md "큰 데이터 = 릴리스 자산")
 # - 예약: 금 20:17 KST(11:17 UTC) 주간 스냅샷 data-YYYYMMDD — 복기·감사용 '그 주 값' 보존, 최근 8주만 유지.
 # - 수동 mode: snapshot | status | bootstrap(최초 이전: 작업 트리의 현재본을 data-latest 로 강제 업로드 + manifest 커밋)
 # 이 워크플로는 데이터를 만들지 않는다 — data-latest 를 받아(pull) 보존·점검만. git 커밋은 bootstrap 의 manifest 뿐(commit=true 일 때).
