@@ -125,8 +125,41 @@ def _match(a: str, b: str) -> bool:
     return bool(ta & tb) or (a and b and (a in b or b in a))
 
 
+def public_card(pub: dict | None, today: date) -> dict:
+    """공공 리포트(reports/public_reports.json) → 기관 묶음별 한 줄 + 최근 7일 새 발간 + 다음 발간(규칙 추정)."""
+    if not pub:
+        return {"status": "없음", "groups": [], "new7": [], "calendar": [], "sources": {}}
+    items = pub.get("items") or []
+    c7, c30 = str(today - timedelta(days=7)), str(today - timedelta(days=30))
+    groups = []
+    for g in ("한은", "정부·연구기관", "시장기관", "해외"):
+        gi = [i for i in items if i.get("group") == g and (i.get("date") or "") >= c30]
+        top = gi[:3]
+        line = (f"{g}: 30일 {len(gi)}건" + (" — " + " · ".join(f"[{i['series']}] {i['title'][:40]} ({(i.get('date') or '')[5:]})" for i in top) if top else " — 수집분 없음"))
+        groups.append({"group": g, "n30": len(gi), "line": line, "links": [{"date": i.get("date"), "title": i["title"], "link": i.get("link")} for i in top]})
+    new7 = [{"date": i.get("date"), "inst": i["inst"], "series": i["series"], "title": i["title"], "link": i.get("link")}
+            for i in items if (i.get("date") or "") >= c7][:10]
+    cal = sorted([c for c in pub.get("calendar") or [] if c["next"] >= today.strftime("%Y-%m")],
+                 key=lambda c: (c.get("rule") == "매월", c["next"]))[:10]   # 정기 큰 보고서(분기·반기) 먼저, 매월 지표는 뒤
+    srcs = {}
+    for s in pub.get("sources") or []:
+        srcs[s["status"]] = srcs.get(s["status"], 0) + 1
+    return {"status": "ok", "asof": pub.get("asof"), "groups": groups, "new7": new7, "calendar": cal, "sources": srcs,
+            "label": pub.get("label")}
+
+
+def geo_card(j: dict | None) -> dict:
+    """외부 지정학 논평(Jiang Xueqin) — 제목·날짜·링크·태그만, 참고 뷰."""
+    if not j:
+        return {"status": "없음", "videos": [], "tags60": {}}
+    return {"status": (j.get("status") or {}).get("status"), "who": j.get("who"), "grade": j.get("grade"),
+            "videos": [{k: v.get(k) for k in ("date", "title", "link", "tags")} for v in (j.get("videos") or [])[:5]],
+            "tags60": j.get("tags60") or {}, "asof": j.get("asof")}
+
+
 def build(store: pl.DataFrame, views: pl.DataFrame, meta: dict[str, dict], committee: dict | None,
-          details: dict[str, dict] | None = None, today: date | None = None) -> dict:
+          details: dict[str, dict] | None = None, today: date | None = None,
+          public: dict | None = None, jiang: dict | None = None) -> dict:
     """순수 함수 — 테스트는 합성 데이터로 이걸 부른다. meta: code→{name,sector,theme}."""
     details = details or {}
     committee = committee or {}
@@ -292,6 +325,8 @@ def build(store: pl.DataFrame, views: pl.DataFrame, meta: dict[str, dict], commi
         "themes": {"weeks": [str(w) for w in weeks], "rows": clusters},
         "macro": {"items": macro_items, "n": mfx.height if len(vs) else 0, "keywords": [{"kw": k, "n": n} for k, n in mk.most_common(8)]},
         "divergence": div[:10],
+        "public": public_card(public, today or datetime.now(KST).date()),
+        "geo": geo_card(jiang),
         "crowding": crowd,
         "method": {
             "window": "발간일 기준 · 영업일 = 평일 근사(공휴일 미반영)",
@@ -329,7 +364,8 @@ def run() -> dict | None:
             details[code] = {"tp_upside": None if rs.get("tp_upside") is None else round(rs["tp_upside"], 4)}
             if code not in meta:
                 meta[code] = {"name": d.get("name"), "theme": d.get("theme")}
-    out = build(store, views, meta, _load_json(REPORT_DIR / "committee.json"), details)
+    out = build(store, views, meta, _load_json(REPORT_DIR / "committee.json"), details,
+                public=_load_json(REPORT_DIR / "public_reports.json"), jiang=_load_json(REPORT_DIR / "views" / "jiang.json"))
     if write_json(OUT, out, key="asof"):
         log.info("research_synthesis.json — %s", out["headline"]["text"])
     return out

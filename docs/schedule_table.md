@@ -86,6 +86,7 @@
 | reports/detail/KR/* · peers_KR · latest_KR.md · watchlist_KR | screener KR 16:20 평일 (GAS) | 수동 detail_kr · screener 수동 | 수동 = 읽기 전용 기본 → 단일 |
 | reports/valuation.json·.md | briefing valuation 07:10 화~토 (cron 단독) | screener KR 16:20 (KR 종가분) | 시장별 종가 순서상 2슬롯 — 의도. 역행은 개발 asof 가드(screener/guard.py)가 차단 |
 | reports/research_synthesis.json | fin 03:30 매일 (research_views 수집 직후 1줄) | 수동 `python -m screener.research_synthesis`(로컬) | 단일 — 애널 research-synthesis |
+| reports/public_reports.json · reports/views/jiang.json | fin 03:30 매일 (research_views 다음 · research_synthesis 앞 1줄) | 수동 `python -m screener.public_reports --probe`(저장 안 함) | 단일 — 애널 public-reports |
 | committee.json · committee_hist · dashboard* · daily_brief · macro_view · japan · bonds · derivs | briefing 08:50·10:30·11:35·13:30·14:15·15:45·19:10 (GAS) | — | 시각별 갱신, 슬롯마다 단일 |
 | committee_us.json | briefing 20:52·21:52·22:52·03:52 (GAS) | — | 단일 |
 | reports/live.json · events.json | live 루프 08:40·22:20 (GAS) + 매시 재개 | 수동 live(읽기 전용 기본) | 동시 1개(concurrency) |

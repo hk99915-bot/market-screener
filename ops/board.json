@@ -3122,6 +3122,47 @@
       "depends_on": [],
       "escalated": "2026-10-21",
       "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-ee0a9f82`."
+    },
+    {
+      "id": "public-reports",
+      "title": "공공 리포트 트래커(한은 정기·정부/연구기관·시장기관·Fed/IMF/BIS) + 지정학 외부 논평(Jiang Xueqin) 피드 → 리서치 종합 '공공 리포트'·'지정학 뷰' 카드",
+      "owner": "애널",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "screener/public_reports.py",
+        "screener/research_synthesis.py",
+        "tests/test_public_reports.py",
+        "apps-script/tab_research.html",
+        ".github/workflows/fin.yml",
+        "scripts/ui_smoke.py",
+        "reports/views/jiang_predictions.json",
+        "docs/desk_kb/analyst.md"
+      ],
+      "depends_on": [
+        "research-synthesis"
+      ],
+      "notes": "겸이 10/21 08:2x 요청(금융안정보고서·한은 정기·공공기관 경제/증권 리포트·장쉐친 게임이론 뷰). 애널 직접 구현. 컨테이너는 외부 사이트 전부 프록시 차단 → fin.yml 03:30 Actions 에서만 수집. 소스 19개(ok/empty/error/manual 표는 reports/public_reports.json sources). KOFIA·KSD·국민연금은 동적 화면이라 '수동'. 목록 페이지 URL 은 추정 포함 — 첫 Actions 결과로 막힌 소스 교체(10/24). 다음 발간 = 월 단위 규칙 추정(공식 일정표 대조 필요). Jiang = 제목·링크·태그만, 참고 뷰."
+    },
+    {
+      "id": "jiang-prediction-ledger",
+      "title": "Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기)",
+      "owner": "검증",
+      "priority": "P3",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-07",
+      "repo": "public",
+      "files": [
+        "reports/views/jiang_predictions.json"
+      ],
+      "depends_on": [
+        "public-reports"
+      ],
+      "notes": "애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈."
     }
   ]
 }
