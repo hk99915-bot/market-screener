@@ -2546,6 +2546,25 @@
         "toss-md-pilot"
       ],
       "notes": "겸이 10/21 '지금부터 시작해' + PB 설계(최대한 최신·전용 브랜치). 노트북 collect --publish → toss-live 브랜치 루트 live.json·crosscheck.json 만(plumbing 커밋, 일반 push, 봇 신원 toss-md, 변화 없으면 커밋 없음). 공개: prices 현재값(지수·국채 2~30Y)·1분봉 OHLC(봉 시작 시각)·투자자 4분류 합계·USDKRW midRate·달력·대조 괴리율. 터미널: live.py 가 신선(장중 20분/장외 당일분)하면 KOSPI·KOSDAQ·USDKRW src=toss, 화면 MARKET›KR TOSS LIVE 패널·지수 서랍 INTRADAY 가 raw 직접 fetch(CORS *, 캐시 300초), 지연 시 네이버/야후. 신선도 kind=toss_md(장중 30분, 장외 마지막 거래일). 시뮬 72커밋/일 ≈ 38KiB/일(gc 후). 겸이 할 일: 가이드 ⑥(작업 재등록 --publish, 첫 push GCM 로그인). 검수 대기: 첫 실데이터로 수급 단위(원/백만원)·국채 심볼 2/5/20/30Y·investor-trading 레이트리밋 그룹 확인(10/24까지, publish.py --shape)."
+    },
+    {
+      "id": "study-hollzzak",
+      "title": "연구: '홀짝홀홀' — 폭락 뒤 숏커버 반등 1회 가설(지수 H1~H3·종목 H4) 사전등록 검정",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "reports/studies/hollzzak_preregistration.md",
+        "reports/studies/hollzzak.md",
+        "reports/studies/hollzzak.json",
+        "scripts/study_hollzzak.py",
+        "tests/test_study_hollzzak.py"
+      ],
+      "depends_on": [],
+      "notes": "사전등록 0a32f3de(결과 전). 판정: H1 F · H2 검증전 · H3a F · H3b F(역방향 C) · H4a F · H4b C · H4c F(역방향 C). 2026 홀드아웃만 H2·H3 방향. 사이드카 실제 이력 없음(대용), 숏커버 메커니즘 검증 불가(short_hist 19일). 검수: 검증 데스크 재현."
     }
   ]
 }
