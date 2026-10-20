@@ -189,3 +189,17 @@ def test_team_run_trigger_field(tmp_path, monkeypatch):
     team_run.main(["--owner", "개발", "--task", "y", "--tokens", "1", "--tools", "2", "--sec", "3", "--date", "2026-10-21"])
     runs = json.loads(p.read_text(encoding="utf-8"))["runs"]
     assert "trigger" not in runs[0] and runs[1]["trigger"] == "auto" and runs[2]["trigger"] == "pb"
+
+
+
+def test_send_escapes_html(tmp_path, monkeypatch):
+    """10/21 첫 실행: 요청 본문 '--add <json>' 이 텔레그램 HTML 태그로 파싱돼 400 → 전송 전 이스케이프."""
+    _w(tmp_path / "ops" / "board.json", {"tasks": []})
+    _w(tmp_path / "docs" / "desk_kb" / "rounds" / "_requests.json",
+       {"requests": [{"id": "req-dev-y", "from": "ops", "to": "dev", "text": "board.py --add <json> & 확인", "opened": "2026-10-16", "status": "open"}]})
+    _w(tmp_path / "reports" / "accum.json", {"status": "ok", "n": 3})
+    sent = []
+    import screener.report as rep
+    monkeypatch.setattr(rep, "send_telegram", lambda text, **k: sent.append(text))
+    wd.run(NOW, tmp_path, apply=True, send=True, out=lambda *_: None, fresh_check=lambda: {"late": []}, first_seen={})
+    assert len(sent) == 1 and "<json>" not in sent[0] and "&lt;json&gt; &amp; 확인" in sent[0]

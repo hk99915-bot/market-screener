@@ -278,7 +278,9 @@ def run(now: datetime, root: Path = ROOT, apply: bool = False, send: bool = Fals
         else:
             try:
                 from screener.report import send_telegram
-                send_telegram(text)
+                import html
+                # send_telegram 은 HTML 모드 — 요청 본문의 '<json>' 같은 꺾쇠가 태그로 파싱돼 400(10/21 첫 실행 실패). 전부 이스케이프.
+                send_telegram(html.escape(text, quote=False))
                 result["sent"] = today
             except Exception as e:  # noqa: BLE001
                 out(f"::warning::watchdog 텔레그램 실패: {type(e).__name__}: {e}")
