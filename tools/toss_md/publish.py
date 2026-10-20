@@ -11,8 +11,8 @@
                   · 휴장 달력 요약 · asof/generated_at/published_at/source='toss'
 - crosscheck.json 최근 7거래일 토스 vs 기존 소스 괴리(괴리율·판정만, 원값 없음)
 - sectors.json    토스 섹터 계층 + 종목→말단 섹터(다중) — 하루 1회(10/21)
-- daily_bars.json 지수·국채·미장 지표 ETF 일봉 과거분(마지막 봉 제외, ≤520봉) — 새 날짜가 생길 때만 바뀜(10/21)
-- daily_today.json 키별 마지막 일봉 1개 — 10분 회차마다(10/21)
+- daily_bars.json 지수·국채·미장 지표 ETF 일봉 과거분(≤520봉) — 07:20 백필 스냅샷으로만 바뀜(하루 1커밋, 10/21)
+- daily_today.json 키별 스냅샷 이후 봉(보통 1개) — 10분 회차마다(10/21)
 넣지 않는 것: 원시 호가·체결·종목 시세, 계좌·토큰·키, 토스 rate(고객 매수환율), API 주소.
 터미널은 raw.githubusercontent.com/<저장소>/toss-live/live.json 을 직접 읽는다(screener/toss_live.py · 화면 tab_market/tab_detail).
 
@@ -682,25 +682,41 @@ def build_sectors(base: Path, now: datetime) -> dict | None:
 # daily_bars.json  = 키별 과거 봉(마지막 봉 제외) — 새 날짜가 생길 때만 바뀜(하루 1~2회 커밋)
 # daily_today.json = 키별 마지막 봉 1개 — 10분 회차마다 바뀜(수백 바이트)
 # 화면은 두 파일을 합쳐 쓴다(같은 날짜면 today 가 이김).
+DAILY_DIGITS = {"KR": 2, "BOND": 3, "US": 2}   # 소수 자릿수(지수 2·국채 3·미장 2) — 크기 최소화(10/21 PB)
+
+
+def _bar(key: str, mk: str, d: str, v: list) -> list:
+    nd = DAILY_DIGITS["BOND"] if "BOND" in key else DAILY_DIGITS[mk]
+    o, h, lo, c, vol = (list(v) + [None] * 5)[:5]
+    return [d, *[(round(float(x), nd) if x is not None else None) for x in (o, h, lo, c)], int(vol) if vol is not None else None]
+
+
 def build_daily(base: Path, now: datetime) -> tuple[dict | None, dict | None]:
+    """(daily_bars.json, daily_today.json).
+    과거분 = 07:20 백필 때 만든 스냅샷(daily_bars/_hist.json)만 — 하루 동안 내용이 그대로라 커밋도 하루 1번.
+    오늘 파일 = 키별로 스냅샷 마지막 날짜 이후의 봉 전부(보통 1개, 날짜가 바뀐 뒤엔 2개)."""
     keys = list(collect.DAILY_IND) + list(collect.DAILY_US)
+    try:
+        snap = json.loads((base / "daily_bars" / "_hist.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        snap = {"keys": {}}
     hist, today = {}, {}
     for k in keys:
         c = collect.daily_cache(base, k)
-        bars = sorted((c.get("bars") or {}).items())
-        if not bars:
-            continue
-        rows = [[d, *[_r(x, 4) if x is not None else None for x in v]] for d, v in bars]
         mk = c.get("mk") or ("KR" if k in collect.DAILY_IND else "US")
-        hist[k] = {"mk": mk, "tz": "KST" if mk == "KR" else "ET", "n": len(rows) - 1, "bars": rows[:-1]}
-        today[k] = {"bar": rows[-1], "updated": c.get("updated")}
-    if not today:
+        hb = [_bar(k, mk, d, v) for d, v in (snap.get("keys") or {}).get(k) or []]
+        if hb:
+            hist[k] = {"mk": mk, "tz": "KST" if mk == "KR" else "ET", "n": len(hb), "bars": hb}
+        cut = hb[-1][0] if hb else ""
+        tb = [_bar(k, mk, d, v) for d, v in sorted((c.get("bars") or {}).items()) if d > cut]
+        if tb:
+            today[k] = {"bars": tb, "bar": tb[-1], "updated": c.get("updated")}
+    if not today and not hist:
         return None, None
-    last_hist = max((v["bars"][-1][0] for v in hist.values() if v["bars"]), default=None)
-    h = {"source": "toss", "date": last_hist, "keys": hist,
-         "note": "토스 일봉 과거분(키별 마지막 봉 제외). bars = [날짜, 시, 고, 저, 종, 거래량]. 오늘 봉은 daily_today.json. 국채는 % 수익률."}
+    h = {"source": "toss", "date": max((v["bars"][-1][0] for v in hist.values()), default=None), "made": snap.get("made"), "keys": hist,
+         "note": "토스 일봉 과거분 — 07:20 백필 때만 갱신. bars = [날짜, 시, 고, 저, 종, 거래량(정수)], 소수 지수·미장 2·국채 3자리(% 수익률). 이후 봉은 daily_today.json."} if hist else None
     t = {"source": "toss", "asof": max((v["updated"] for v in today.values() if v.get("updated")), default=None), "keys": today,
-         "note": "키별 마지막 일봉 1개(10분 갱신: KOSPI·KOSDAQ 국장 창, SPY·QQQ·DIA·IWM·SOXX 미장 창). bar = [날짜, 시, 고, 저, 종, 거래량]."}
+         "note": "키별로 daily_bars.json 마지막 날짜 이후의 봉(bars, 보통 1개) + 마지막 봉(bar). 10분 갱신: KOSPI·KOSDAQ 국장 창, SPY·QQQ·DIA·IWM·SOXX 미장 창."} if today else None
     return h, t
 
 

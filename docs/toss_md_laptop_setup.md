@@ -188,7 +188,7 @@
 - `toss_md_daily`(08:30·18:30 달력·종목 목록)는 그대로. 겹치면 뒤에 온 쪽이 최대 4분 기다린다.
 - (10/21 01:4x 수정) 섹터 수집은 **30호출마다 잠금을 놓고 3초 쉰다** → 섹터를 받는 동안에도 실시간 작업이 끼어든다. 한 실행 25분 상한, 못 끝내면 `sectors_partial.json` 에 진행분을 두고 다음 실행이 이어 받는다.
   - 예전 코드로 이미 돌고 있는 섹터 수집이 있으면 끝날 때까지 실시간 작업이 막힌다 → `Stop-ScheduledTask toss_md_sectors`(또는 그 창 닫기) 후 `git pull`, 그리고 `python tools\toss_md\collect.py --group sectors --publish` 다시 실행(받은 만큼은 이어 받지 못하고 처음부터 — 예전 코드는 진행분을 안 남김).
-- 일봉(상단 지표 팝업 차트용, 10/21): `toss_md_sectors`(07:20)가 지수·국채 8 + 미장 ETF 7 = 15키를 키당 최대 3호출(200봉씩, ≤520봉)로 백필 → `toss_md_data\daily_bars\`. 실시간 작업은 오늘 봉만(국장 창 KOSPI·KOSDAQ 2회, 미장 창 SPY·QQQ·DIA·IWM·SOXX 5회). 공개는 toss-live 의 `daily_bars.json`(과거)·`daily_today.json`(오늘).
+- 일봉(상단 지표 팝업 차트용, 10/21): `toss_md_sectors`(07:20)가 지수·국채 8 + 미장 ETF 7 = 15키를 키당 최대 3호출(200봉씩, ≤520봉)로 백필 → `toss_md_data\daily_bars\`. 실시간 작업은 오늘 봉만(국장 창 KOSPI·KOSDAQ 2회, 미장 창 SPY·QQQ·DIA·IWM·SOXX 5회). 공개는 toss-live 의 `daily_bars.json`(과거 — 07:20 에만 갱신, 하루 1커밋)·`daily_today.json`(그 뒤 봉, 10분).
 - 국장 ETF·종목 현재가: 실시간 작업이 회차마다 `/prices` 1회(지표·ISA 코어·섹터 ETF 13개 + 운용회의 아이디어 + 시총 순, 200개)를 더 부른다 → 회차당 국장 7(+오늘 일봉 2) + 미장 8(+오늘 일봉 5) = 최대 22회.
 
 ```powershell

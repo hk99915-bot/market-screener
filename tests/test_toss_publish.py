@@ -148,7 +148,7 @@ def test_git_publish_branch_normal_push(repo, base):
     r1 = publish.run(base, now=NOW, repo=work, git=spy, reports=work / "reports")
     assert r1["status"] == "pushed"
     files = _git("ls-tree", "--name-only", "toss-live", cwd=bare).split()
-    assert files == ["crosscheck.json", "daily_bars.json", "daily_today.json", "live.json"]   # 브랜치엔 공개 요약만(일봉 2개 10/21 추가)
+    assert files == ["crosscheck.json", "daily_today.json", "live.json"]   # 공개 요약만 — 과거 일봉은 07:20 백필 스냅샷이 있을 때만(10/21)
     who = _git("log", "-1", "--format=%an <%ae>|%s", "toss-live", cwd=bare)
     assert who.startswith("toss-md <toss-md-bot@users.noreply.github.com>|toss: ")
     assert _git("rev-parse", "HEAD", cwd=work) == _git("rev-parse", "main", cwd=bare)   # main 은 그대로
@@ -392,9 +392,28 @@ def test_daily_bars_backfill_pagination_and_split(base):
     h, t = publish.build_daily(base, NOW)
     assert h["keys"]["KOSPI"]["bars"][-1][0] == "2026-10-19" and t["keys"]["KOSPI"]["bar"][0] == "2026-10-20"   # 과거·오늘 분리
     assert len(t["keys"]["KOSPI"]["bar"]) == 6 and h["keys"]["SPY"]["tz"] == "ET"
+    assert isinstance(h["keys"]["KOSPI"]["bars"][0][5], int)                      # 거래량 정수
     publish.assert_public(h)
     publish.assert_public(t)
     assert len(publish.render(t).encode()) < 4000      # 10분마다 바뀌는 파일은 작게
+
+
+def test_daily_hist_only_changes_at_backfill_and_rounding(base):
+    collect.run("sectors", dry_run=True, out=base.parent, now=NOW)
+    h1, _ = publish.build_daily(base, NOW)
+    # 07:20 이후 회차에서 새 날짜(10/21) 봉이 생겨도 과거 파일은 그대로, 오늘 파일이 10/20·10/21 둘 다 덮는다
+    c = collect.daily_cache(base, "KOSPI")
+    c["bars"]["2026-10-21"] = [5600.123456, 5610.987, 5590.5555, 5605.4444, 1234.0]
+    collect._save_daily(base, "KOSPI", c)
+    h2, t2 = publish.build_daily(base, NOW + timedelta(hours=10))
+    assert publish.render(h1) == publish.render(h2)
+    assert [b[0] for b in t2["keys"]["KOSPI"]["bars"]] == ["2026-10-20", "2026-10-21"]
+    assert t2["keys"]["KOSPI"]["bar"] == ["2026-10-21", 5600.12, 5610.99, 5590.56, 5605.44, 1234]   # 지수 2자리
+    c3 = collect.daily_cache(base, "KR_BOND_3Y")
+    c3["bars"]["2026-10-21"] = [3.123456, 3.2, 3.1, 3.15555, None]
+    collect._save_daily(base, "KR_BOND_3Y", c3)
+    _, t3 = publish.build_daily(base, NOW)
+    assert t3["keys"]["KR_BOND_3Y"]["bar"][1] == 3.123 and t3["keys"]["KR_BOND_3Y"]["bar"][5] is None      # 국채 3자리
 
 
 def test_daily_live_refresh_only_live_keys(tmp_path):

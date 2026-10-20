@@ -652,6 +652,15 @@ def refresh_daily(client, base: Path, keys, now: datetime, backfill: bool = Fals
         if backfill:
             c["backfilled"] = now.isoformat(timespec="seconds")
         _save_daily(base, key, c)
+    if backfill:   # 과거분 스냅샷 — 07:20 백필 때만 만든다(그 외 회차는 오늘 파일로만 커버 → daily_bars.json 커밋 하루 1번, 10/21 PB 용량)
+        snap = {}
+        for key in keys:
+            bars = sorted(daily_cache(base, key).get("bars", {}).items())
+            snap[key] = bars[:-1]
+        (base / "daily_bars").mkdir(parents=True, exist_ok=True)
+        tmp = base / "daily_bars" / "_hist.tmp"
+        tmp.write_text(json.dumps({"made": now.isoformat(timespec="seconds"), "keys": snap}, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(base / "daily_bars" / "_hist.json")
     return ok, fail, err
 
 
