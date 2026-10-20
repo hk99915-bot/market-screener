@@ -11,8 +11,7 @@
 - 응답 원문은 화면·로그에 찍지 않는다(파일에만 저장). 에러는 상태·code 만.
 - 동시 실행 금지: ~/.config/toss_md/collector.lock (토큰 재발급 시 이전 토큰이 무효가 되므로).
 
-[확인 필요: PILOT 의 market-indicators 하위 경로·파라미터 이름은 스펙 요약(원문 아님)에서 추정. 첫 실제 실행에서
- 404/400 이면 스펙 원문과 대조해 이 표만 고친다 — 화이트리스트(screener/toss_md.py)는 /market-indicators/* 를 이미 허용.]
+경로·파라미터는 겸이가 10/20 채팅에 준 OpenAPI 3.1 원문(v1.2.24)과 PB가 대조해 맞춤(10/20 23:5x). 404/400 이면 이 표만 고친다.
 """
 from __future__ import annotations
 
@@ -40,10 +39,11 @@ LOCK_STALE_SEC = 15 * 60
 
 # (이름, 그룹, 경로, 파라미터) — 1단계 파일럿 대상
 PILOT: list[tuple[str, str, str, dict]] = [
-    ("kospi_1m", "intraday", "/api/v1/market-indicators/indices/KOSPI/candles", {"interval": "1m", "count": 200}),
-    ("kosdaq_1m", "intraday", "/api/v1/market-indicators/indices/KOSDAQ/candles", {"interval": "1m", "count": 200}),
-    ("investor_value", "intraday", "/api/v1/market-indicators/investor-trading", {"market": "KOSPI"}),
-    ("usdkrw", "intraday", "/api/v1/exchange-rate", {"currencyPair": "USDKRW"}),
+    ("kospi_1m", "intraday", "/api/v1/market-indicators/KOSPI/candles", {"interval": "1m", "count": 200}),
+    ("kosdaq_1m", "intraday", "/api/v1/market-indicators/KOSDAQ/candles", {"interval": "1m", "count": 200}),
+    ("investor_value", "intraday", "/api/v1/market-indicators/KOSPI/investor-trading", {"interval": "1d", "count": 5}),
+    ("investor_value_kq", "intraday", "/api/v1/market-indicators/KOSDAQ/investor-trading", {"interval": "1d", "count": 5}),
+    ("usdkrw", "intraday", "/api/v1/exchange-rate", {"baseCurrency": "USD", "quoteCurrency": "KRW"}),
     ("calendar_kr", "daily", "/api/v1/market-calendar/KR", {}),
     ("calendar_us", "daily", "/api/v1/market-calendar/US", {}),
 ]

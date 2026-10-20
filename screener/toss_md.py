@@ -17,7 +17,7 @@
    토스는 클라이언트당 유효 토큰 1개(재발급 시 이전 토큰 즉시 무효) → **수집 주체는 노트북 1대뿐**.
 7. 429 는 Retry-After(초) 를 지킨다(최대 RETRY_MAX 회, 1회 대기 상한 RETRY_SLEEP_CAP 초).
 
-[확인 필요: REST 기본 주소 — 스펙 요약엔 WebSocket 주소만 있음. 기본값은 추정이고, 다르면 env 파일에 TOSS_MD_BASE_URL 로 덮는다.]
+REST 기본 주소는 OpenAPI 원문 servers.url(https://openapi.tossinvest.com) 기준. 바뀌면 env 의 TOSS_MD_BASE_URL 로 덮는다.
 """
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ from urllib.parse import urlencode
 log = logging.getLogger("toss_md")
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_BASE_URL = "https://openapi.tossinvest.com"  # [확인 필요] 위 docstring 참고
+DEFAULT_BASE_URL = "https://openapi.tossinvest.com"  # OpenAPI servers.url
 CONFIG_DIR = Path(os.environ.get("TOSS_MD_CONFIG_DIR", Path.home() / ".config" / "toss_md"))
 TOKEN_PATH = "/oauth2/token"
 TOKEN_MARGIN_SEC = 300          # 만료 5분 전이면 새로 받는다

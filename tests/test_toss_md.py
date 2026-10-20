@@ -96,7 +96,7 @@ ALLOWED = [
     "/api/v1/stocks/005930/program-trades", "/api/v1/stocks/005930/short-selling",
     "/api/v1/stocks/005930/credit-trades", "/api/v1/stocks/005930/securities-lending", "/api/v1/exchange-rate",
     "/api/v1/market-calendar/KR", "/api/v1/market-calendar/US", "/api/v1/rankings", "/api/v1/sectors",
-    "/api/v1/sectors/IT/stocks", "/api/v1/market-indicators/indices/KOSPI/candles",
+    "/api/v1/sectors/IT/stocks", "/api/v1/market-indicators/KOSPI/candles",
 ]
 
 
