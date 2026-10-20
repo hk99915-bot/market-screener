@@ -24,7 +24,7 @@
 - `git add -A` 금지. 경로 지정 add만.
 - **push 전 검사 훅**(`.githooks/pre-push` → `scripts/prepush_check.py`, 설치 `sh scripts/install_hooks.sh`)이 실패하면 고친 뒤 다시 push. `git push --no-verify`·`core.hooksPath` 해제 등 **우회 금지**(10/20 '푸시 금지' 무시 사고).
 - **커밋 접두**: 모든 데스크 커밋 메시지는 `<desk>:` 또는 `<desk> 라운드N:`로 시작(PB는 `pb:`). 팀 업무량 자동 집계(scripts/team_stats.py)가 이걸로 데스크를 센다 — 10/17 첫 집계에서 커밋 2/3가 미분류(PM VOC).
-- **에이전트 완료 통계**: PB는 에이전트가 끝날 때마다 `python3 scripts/team_run.py --owner … --task … --tokens … --tools … --sec … --model …` 로 즉시 기록(PM 소관). 나머지 지표(커밋·보드·요청·감사)는 main push 마다 `.github/workflows/team.yml` 이 자동 갱신(10/17 오너: 모든 작업 활성화 때 자동).
+- **에이전트 완료 통계**: PB는 에이전트가 끝날 때마다 `python3 scripts/team_run.py --owner … --task … --tokens … --tools … --sec … --model …` 로 즉시 기록(PM 소관). 나머지 지표(커밋·보드·요청·감사)는 `.github/workflows/team.yml` 이 매시 17분 자동 갱신(10/17 오너: 모든 작업 활성화 때 자동 → 10/21 감사 #5 로 push 트리거에서 매시로).
 
 ## 요청 응답 규약
 - 요청을 받은 데스크는 다음 라운드 파일에 `처리→<요청 데스크>: <무엇을 어떻게 / 또는 거절 사유>` 1줄로 닫는다. 안 닫히면 2영업일 뒤 watchdog·round_collect가 보드 P1로 올린다. 라운드 밖에서 닫을 땐 `python3 scripts/ask.py --close <id>`.

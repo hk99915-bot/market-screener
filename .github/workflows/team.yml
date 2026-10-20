@@ -1,10 +1,9 @@
 name: team
-# 팀 업무량(PM 소관) 자동 갱신 — 사람·에이전트가 main 에 push 할 때마다 (10/17 오너: "모든 작업이 활성화될 때 PM 은 자동으로")
-# 봇(GITHUB_TOKEN) push 는 워크플로를 다시 깨우지 않으므로 무한 반복 없음. 데이터·보고서만 바뀐 push 는 건너뜀.
+# 팀 업무량(PM 소관) 자동 갱신 — 매시 (10/17 오너 "PM 자동 갱신"을 매시로 충족). push 트리거는 push 마다 봇 커밋이 생겨 뺐음 (감사 10/21 #5).
+# 7일 집계라 8일치만 얕게 받는다. ops.yml 23:47·00:07 은 하루 마감용으로 그대로.
 on:
-  push:
-    branches: [main]
-    paths-ignore: ["reports/**", "data/**", "ops/team.json", "index.html"]
+  schedule:
+    - cron: "17 * * * *"   # 매시 17분 (정각 혼잡 회피)
   workflow_dispatch:
     inputs:
       commit:
@@ -23,7 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # 7일 커밋 집계에 이력 필요
+          fetch-depth: 1
+      - name: 8일치 이력만 (7일 커밋 집계)
+        run: git fetch -q --shallow-since="$(date -u -d '8 days ago' +%F)" origin main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -36,5 +37,5 @@ jobs:
           git config user.email "screener-bot@users.noreply.github.com"
           git add ops/team.json
           git diff --cached --quiet && exit 0
-          git commit -m "team: $(date -u +%FT%H:%M) (push 트리거)"
+          git commit -m "team: $(date -u +%FT%H:%M) (매시)"
           for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && break; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done

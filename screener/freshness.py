@@ -25,7 +25,7 @@ CONTRACT = ROOT / "ops" / "freshness.json"
 OUT = REPORT_DIR / "freshness.json"
 STATE = REPORT_DIR / "freshness_alert_state.json"
 _TS = re.compile(r"(?:(\d{4})-)?(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})")
-TEAM_IGNORE = ("reports", "data", "ops/team.json", "index.html")   # team.yml paths-ignore 와 같게
+TEAM_IGNORE = ("reports", "data", "ops/team.json", "index.html")   # 사람·에이전트 커밋 판별 (데이터·봇 산출물 경로 제외)
 
 
 def load_contract(path: Path | None = None) -> list[dict]:

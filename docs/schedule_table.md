@@ -77,7 +77,7 @@
 | 23:47 | ops.yml | 월화수목금토일 | cron 47 14 * * * | — |
 
 - live 매시 백업(`7 0-6`·`7 14-19`)은 '루프 재개' 트리거다: concurrency `live` 로 동시 1개, 루프가 끝난 뒤 대기열에서 깨어난 실행은 장 시간 밖이면 아무것도 안 한다(전: 1회 시세 커밋).
-- 수동 전용(요청형, dispatch 가 유일한 주체): `flowq.yml`(종목 수급 조회), `pb_call.yml`(PB 예약 세션 → 판단 기록). 이슈 트리거: `pick.yml`·`study.yml`. push 트리거: `team.yml`·`tests.yml`.
+- 수동 전용(요청형, dispatch 가 유일한 주체): `flowq.yml`(종목 수급 조회), `pb_call.yml`(PB 예약 세션 → 판단 기록). 이슈 트리거: `pick.yml`·`study.yml`. push 트리거: `tests.yml`. 매시: `team.yml`(17분, 10/21 push 트리거→매시).
 
 ## 4. 산출물 × 생산자
 | 산출물 | 주 실행 주체 (KST) | 다른 생산자 | 판정 |
@@ -100,7 +100,7 @@
 | health.json | health 일 22:00 | — | 단일 |
 | lab.json · scorecard_week · study_daily.json | lab 일 23:00 · scorecard 일 08:30 · study_daily 평일 07:10 | — | 단일 |
 | changelog · reports/ops · ops/BOARD.md | ops 23:47 | — | 단일 |
-| ops/team.json | ops 23:47·00:07 + team(push) — auto 블록 | PM 22:30 Claude 예약 — runs 블록 | 블록 분리 |
+| ops/team.json | ops 23:47·00:07 + team(매시 17분) — auto 블록 | PM 22:30 Claude 예약 — runs 블록 | 블록 분리 |
 | reports/english/* | Claude 예약 '오늘의 영어' 평일 07:18 | — | 단일(세션이 직접 커밋) |
 | (저장소 밖) ~/toss_md_data/* — 토스 시세 파일럿(지수 1분·투자자별 매매대금·USDKRW·KR/US 달력) | **겸이 노트북(파일럿, 공개 산출물 없음)** — Windows 작업 스케줄러 평일 09:00–15:50 10분마다 · 매일 08:30·18:30 | — (토큰 재발급 시 이전 토큰 무효 → 다른 주체 금지, GitHub Actions·러너 연결 금지) | 단일. 보드 `toss-md-pilot`, 가이드 docs/toss_md_laptop_setup.md |
 
