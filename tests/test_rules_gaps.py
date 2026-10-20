@@ -96,13 +96,28 @@ def test_secret_health_warns_and_clears(tmp_path, monkeypatch, caplog):
     monkeypatch.delenv("MY_RULES", raising=False)
     monkeypatch.setenv("MY_HOLDINGS", "x")
     with caplog.at_level("WARNING"):
-        assert alerts.secret_health("test", path=fp) == ["MY_RULES"]
+        assert alerts.secret_health("test", path=fp, intended={}) == ["MY_RULES"]
     assert "알림 비활성: MY_RULES 없음" in caplog.text
     h = json.loads(fp.read_text(encoding="utf-8"))["health"]
     assert [x["what"] for x in h] == ["알림 비활성: MY_RULES 없음"] and "x" not in json.dumps(h).replace("fix", "")
     monkeypatch.setenv("MY_RULES", "000660 1170000 touch")
-    assert alerts.secret_health("test", path=fp) == []
+    assert alerts.secret_health("test", path=fp, intended={}) == []
     assert json.loads(fp.read_text(encoding="utf-8"))["health"] == []
+
+
+def test_secret_intended_off_is_info_not_alarm(tmp_path, monkeypatch, caplog):
+    """10/21 겸이 결정: MY_RULES·MY_HOLDINGS 안 만든다 → 배지 경보(health)가 아니라 health_info. 예전 경보 줄은 옮겨진다."""
+    fp = tmp_path / "freshness.json"
+    fp.write_text(json.dumps({"health": [{"id": "secret:MY_RULES", "what": "알림 비활성: MY_RULES 없음", "since": "2026-10-19 09:02"}]}), encoding="utf-8")
+    monkeypatch.delenv("MY_RULES", raising=False)
+    monkeypatch.delenv("MY_HOLDINGS", raising=False)
+    with caplog.at_level("INFO"):
+        assert alerts.secret_health("test", path=fp) == ["MY_RULES", "MY_HOLDINGS"]
+    assert "⛔" not in caplog.text
+    o = json.loads(fp.read_text(encoding="utf-8"))
+    assert o["health"] == [] and [h["id"] for h in o["health_info"]] == ["secret:MY_RULES", "secret:MY_HOLDINGS"]
+    assert o["health_info"][0]["since"] == "2026-10-19 09:02" and "10/21 결정" in o["health_info"][0]["what"]
+    assert set(alerts.INTENDED_OFF) == {"MY_RULES", "MY_HOLDINGS"}
 
 
 def test_freshness_check_keeps_health(tmp_path):

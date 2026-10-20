@@ -207,26 +207,45 @@ SECRETS = ("MY_RULES", "MY_HOLDINGS")
 HEALTH_FILE = REPORT_DIR / "freshness.json"   # 'health' 목록 — 화면 신선도 배지가 '알림 비활성: <시크릿> 없음' 으로 표시
 
 
-def secret_health(source: str = "", names=SECRETS, path=None) -> list[str]:
+# 의도된 비활성 (10/21 겸이 결정: 알림용 secret MY_RULES·MY_HOLDINGS 를 만들지 않는다).
+# 없어도 경보(배지 BAD·⛔ WARNING)가 아니라 'health_info'(정보)로만 남긴다 — 화면 배지는 FR.health 만 BAD 로 센다.
+# 되돌리기: 이 표에서 이름을 빼면 다시 '알림 비활성' 경보.
+INTENDED_OFF = {"MY_RULES": "2026-10-21", "MY_HOLDINGS": "2026-10-21"}
+
+
+def secret_health(source: str = "", names=SECRETS, path=None, intended=None) -> list[str]:
     """없는 시크릿마다 WARNING 로그 + reports/freshness.json 'health' 항목, 생기면 항목 삭제. 반환: 없는 이름 목록.
+    INTENDED_OFF(의도된 비활성)에 있는 이름은 INFO 로그 + 'health_info' 항목(배지 경보 아님).
     공개 파일에는 '있다/없다'만 — 값·길이는 쓰지 않는다."""
     fp = path or HEALTH_FILE
+    off = INTENDED_OFF if intended is None else intended
     missing = [n for n in names if not os.environ.get(n, "").strip()]
     for n in missing:
-        log.warning("⛔ 알림 비활성: %s 없음 (%s) — touch·발동선·하드 바닥 감시가 꺼져 있음", n, source or "?")
+        if n in off:
+            log.info("알림 의도된 비활성: %s 없음 (%s, %s 결정)", n, source or "?", off[n])
+        else:
+            log.warning("⛔ 알림 비활성: %s 없음 (%s) — touch·발동선·하드 바닥 감시가 꺼져 있음", n, source or "?")
     try:
         cur = json.loads(fp.read_text(encoding="utf-8")) if fp.exists() else {}
     except Exception:  # noqa: BLE001
         cur = {}
-    rows = [h for h in (cur.get("health") or []) if not (str(h.get("id", "")).startswith("secret:") and h["id"][7:] in names)]
-    prev = {h["id"]: h for h in (cur.get("health") or [])}
+    mine = lambda h: str(h.get("id", "")).startswith("secret:") and h["id"][7:] in names  # noqa: E731
+    rows = [h for h in (cur.get("health") or []) if not mine(h)]
+    info = [h for h in (cur.get("health_info") or []) if not mine(h)]
+    prev = {h["id"]: h for h in (cur.get("health") or []) + (cur.get("health_info") or [])}
     now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
     for n in missing:
         hid = f"secret:{n}"
-        rows.append({"id": hid, "what": f"알림 비활성: {n} 없음", "since": (prev.get(hid) or {}).get("since") or now,
-                     "by": source, "fix": f"GitHub Settings → Secrets → {n} 생성"})
-    if rows != (cur.get("health") or []):
+        if n in off:
+            info.append({"id": hid, "what": f"의도된 비활성: {n} 없음 ({off[n][5:].replace('-', '/')} 결정)",
+                         "since": (prev.get(hid) or {}).get("since") or now, "by": source, "fix": "조치 불필요(오너 결정)"})
+        else:
+            rows.append({"id": hid, "what": f"알림 비활성: {n} 없음", "since": (prev.get(hid) or {}).get("since") or now,
+                         "by": source, "fix": f"GitHub Settings → Secrets → {n} 생성"})
+    if rows != (cur.get("health") or []) or info != (cur.get("health_info") or []):
         cur["health"] = rows
+        if info or "health_info" in cur:
+            cur["health_info"] = info
         try:
             fp.parent.mkdir(parents=True, exist_ok=True)
             fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
