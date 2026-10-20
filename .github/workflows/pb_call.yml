@@ -41,23 +41,7 @@ jobs:
           cp reports/decisions.json /tmp/dec.json
           for i in 1 2 3; do
             git fetch -q origin main && git reset -q --hard origin/main
-            python - <<'PY'
-          import json
-          new = json.load(open("/tmp/dec.json", encoding="utf-8"))
-          cur = json.load(open("reports/decisions.json", encoding="utf-8"))
-          ids = {x["id"]: x for x in cur["items"]}
-          for v in new["items"]:
-              if not v.get("pb_view"):
-                  continue
-              if v["id"] in ids:
-                  for k in ("PB", "PB🔥", "규칙"):
-                      if k in v["picks"]:
-                          ids[v["id"]]["picks"][k] = v["picks"][k]
-                  ids[v["id"]]["pb_view"] = v["pb_view"]
-              else:
-                  cur["items"].append(v)
-          open("reports/decisions.json", "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
-          PY
+            python scripts/merge_decisions.py pb /tmp/dec.json
             git add reports/decisions.json; git diff --cached --quiet && break
             git commit -qm "pb_call $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break
             sleep 5

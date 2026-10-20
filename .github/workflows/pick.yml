@@ -58,23 +58,7 @@ jobs:
           for i in 1 2 3; do
             git fetch -q origin main && git reset -q --hard origin/main
             [ -f /tmp/isa.json ] && cp /tmp/isa.json ops/isa_buys.json
-            python - <<'PY'
-          import json
-          new = json.load(open("/tmp/dec.json", encoding="utf-8"))
-          cur = json.load(open("reports/decisions.json", encoding="utf-8"))
-          mine = {x["id"]: x for x in new["items"]}
-          ids = [x["id"] for x in cur["items"]]
-          for k, v in mine.items():   # '-entry' · '-entry-us' · '-exit-*' 모두 같은 규칙으로 병합, '-ticket-*' 는 통째로 교체
-              if k in ids:
-                  for x in cur["items"]:
-                      if x["id"] == k:
-                          if v.get("kind") == "ticket":
-                              x.clear(); x.update(v); continue
-                          x["picks"] = {**x["picks"], **{s: v["picks"][s] for s in ("나", "나🔥") if s in v["picks"]}} if (v.get("kind") != "exit" or "PB" in x["picks"] and x["picks"]["PB"].get("by")) else v["picks"]
-              else:
-                  cur["items"].append(v)
-          open("reports/decisions.json", "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
-          PY
+            python scripts/merge_decisions.py pick /tmp/dec.json
             git add reports/decisions.json; [ -f ops/isa_buys.json ] && git add ops/isa_buys.json; git diff --cached --quiet && break
             git commit -qm "pick: ${{ github.event.issue.title }}" && git push -q origin HEAD:main && break
             sleep 5

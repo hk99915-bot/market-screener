@@ -90,12 +90,13 @@ jobs:
             if [ "$COMMIT" != "true" ]; then echo "읽기 전용 — 커밋 안 함 (commit=true 로 다시 실행)"; in_window || break; sleep 300; continue; fi
             # 다른 작업이 같은 파일을 커밋하면 rebase 가 충돌로 멈춰 이후 갱신이 전부 막힘 → 매번 원격 최신 위에 파일만 다시 얹는다
             rm -rf /tmp/lv; mkdir -p /tmp/lv; for p in reports/live.json reports/events.json reports/events_stats.json; do if [ -e "$p" ]; then cp "$p" /tmp/lv/; fi; done
-            if [ -e /tmp/duel_ran ]; then cp reports/decisions.json /tmp/lv/; fi
+            if [ -e /tmp/duel_ran ]; then cp reports/decisions.json /tmp/dec_live.json; fi   # 통째로 덮지 않고 병합 (감사 10/21 #1)
             if [ -e /tmp/ev/event_state.json ]; then cp /tmp/ev/event_state.json /tmp/lv/; fi   # 이벤트 중복 방지 상태(금액 0·보유 코드 해시)   # 판정한 회차에만 (다른 때 덮으면 제출된 겸이 판단이 지워짐)
             for i in 1 2 3; do
               git rebase --abort 2>/dev/null || true   # 진행 중인 rebase 없으면 실패 → bash -e 가 루프를 죽였음
               git fetch -q origin main && git reset -q --hard origin/main || { sleep 5; continue; }
               for f in /tmp/lv/*; do if [ -e "$f" ]; then cp "$f" reports/; fi; done   # 시세 실패로 비면 cp 실패 → bash -e 가 루프를 죽였음
+              if [ -e /tmp/duel_ran ]; then python scripts/merge_decisions.py live /tmp/dec_live.json; fi   # 직전에 push 된 pick 보존
               for p in reports/live.json reports/events.json reports/events_stats.json reports/decisions.json reports/event_state.json; do if [ -e "$p" ]; then git add "$p"; fi; done
               git diff --cached --quiet && break
               git commit -qm "live: $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break || true
