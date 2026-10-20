@@ -23,10 +23,10 @@ def test_cards_and_rough_day():
     ks = [c["k"] for c in I["cards"]]
     assert ks == ["vol", "fear", "basis", "frgn", "expiry"]
     vol = I["cards"][0]
-    assert vol["light"] == "red" and "감마 음수" in vol["easy"] and "60일" in vol["where"] and vol["grade"] == "검증전"
+    assert vol["light"] == "red" and "감마 음수" in vol["easy"] and "최근 60거래일" in vol["where"] and vol["grade"] == "검증전"
     fear = I["cards"][1]
-    assert "적은 편" in fear["easy"]                 # 절대 1.29 라도 과거(1.40~1.49) 대비 낮음을 말한다
-    assert "흔들릴 때 더 흔들리는" in I["one_line"] and "평소보다 많이" not in I["one_line"]
+    assert "경계 약함" in fear["easy"]                 # 절대 1.29 라도 과거(1.40~1.49) 대비 낮음을 말한다
+    assert "변동성 확대 국면" in I["one_line"] and "풋 포지션" not in I["one_line"]
     assert "레버리지" in I["so_what"] and "방향" in I["so_what"]
     assert I["cards"][3]["status"] == "데이터 없음"    # 외국인 선물 없음은 숨기지 않고 표시
     assert not I["stale"]

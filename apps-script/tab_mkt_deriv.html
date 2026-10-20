@@ -49,8 +49,8 @@ function dvGrade(lens){ const S=(DVX.s&&DVX.s.signals)||[]; const a=S.filter(x=>
 // 파생 한눈에 (10/20 겸이: "쉽고 직관적으로 파생 인사이트 따로 상단에") — reports/derivs.json insight 블록 (screener/derivs.py insight). 방향 신호 아님.
 function dvTop(d){
   const I=d&&d.insight;
-  if(!I||!I.cards) return `<div class="p c12" id="dvTop"><h2>파생 한눈에<small>reports/derivs.json</small></h2><div class="b mu" style="white-space:normal">인사이트 데이터 없음 — 다음 옵션 보드 수집 때 생성돼. 아래 상세는 그대로 볼 수 있어.</div></div>`;
-  const col={red:'#e5484d',amber:'var(--amber)',green:'#30a46c',gray:'var(--muted)'}, wd={red:'주의',amber:'눈여겨',green:'잔잔',gray:'없음'};
+  if(!I||!I.cards) return `<div class="p c12" id="dvTop"><h2>파생 한눈에<small>reports/derivs.json</small></h2><div class="b mu" style="white-space:normal">인사이트 데이터 없음 — 다음 옵션 보드 수집 시 생성 · 하단 상세는 정상 표시</div></div>`;
+  const col={red:'#e5484d',amber:'var(--amber)',green:'#30a46c',gray:'var(--muted)'}, wd={red:'주의',amber:'관찰',green:'안정',gray:'없음'};
   const cs=I.cards.map(c=>{ const off=c.status&&c.status!=='정상';
     return `<div class="dvtc" style="border:1px solid var(--line);border-left:4px solid ${col[c.light]||col.gray};padding:8px 10px;min-height:44px;line-height:1.45">
       <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:12px"><span><span style="color:${col[c.light]||col.gray}">●</span> <b>${esc(c.title)}</b></span><span style="white-space:nowrap">${dvB(c.grade)}</span></div>
@@ -61,7 +61,7 @@ function dvTop(d){
   return `<div class="p c12" id="dvTop"><h2>파생 한눈에<small>거래일 ${esc(I.asof||d.date||'—')}${d.asof?` · 생성 ${esc(d.asof)} KST`:''}${I.stale?' · <b class="dn">⚠ 지연</b>':''}</small></h2><div class="b" style="white-space:normal">
     <div style="font-size:15px;line-height:1.6;margin-bottom:8px"><b>${esc(I.one_line)}</b></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">${cs}</div>
-    <div style="margin-top:8px;padding:8px 10px;border:1px dashed var(--line);font-size:14px;line-height:1.6"><b>그래서 겸이는?</b> ${esc(I.so_what)} <span class="mu" style="font-size:11px">(매매 권고 아님 · 리스크 관점)</span></div>
+    <div style="margin-top:8px;padding:8px 10px;border:1px dashed var(--line);font-size:14px;line-height:1.6"><b>시사점(리스크 관점)</b> ${esc(I.so_what)} <span class="mu" style="font-size:11px">(매매 권고 아님)</span></div>
     <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.rule||'')}</div>
     <button class="sbtn" style="min-height:44px;margin-top:6px" onclick="const e=document.getElementById('dvSum'); if(e) e.scrollIntoView({behavior:'smooth',block:'start'})">상세 숫자·차트 ↓</button></div></div>`;
 }
