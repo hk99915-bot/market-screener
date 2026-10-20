@@ -181,6 +181,21 @@ function decLoad(){
   if(RENEGO===null){ RENEGO=false; try{ google.script.run.withSuccessHandler(t=>{try{RENEGO=JSON.parse(t);}catch(e){RENEGO={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{RENEGO={};}).getRenego(); }catch(e){ RENEGO={}; } }
   if(COOL===null){ COOL=false; google.script.run.withSuccessHandler(t=>{try{COOL=JSON.parse(t);}catch(e){COOL={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{COOL={};}).getCooldown(); }
 }
+/* 대결 박스 접기 (10/21 UXUI, 겸이 "진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임"): 390px 에서 박스가 1144px 를 먹어 브리프가 1449px 에서야 시작.
+   헤더 1줄(제목 + 오늘 상태 요약)은 항상 보이고, 본문만 접는다. 기본: 겸이(나) 제출 대기 판이 있으면 펼침(할 일 있음), 없으면 접힘.
+   겸이가 직접 열고 닫은 상태는 localStorage mt_duel_open 에 '최신 판 날짜'와 함께 기억 → 새 판이 열리면 기본값으로 돌아간다. */
+const DUEL_OK='mt_duel_open';
+function duelKey(live){ return live.length?String(live[0].date)+'|'+(live[0].market||''):''; }
+function duelOpen(live){ const dflt=live.some(it=>it.picks&&it.picks['나']&&it.picks['나'].pending);
+  try{ const v=JSON.parse(localStorage.getItem(DUEL_OK)||'null'); if(v&&v.k===duelKey(live)) return !!v.open; }catch(e){}
+  return dflt; }
+function duelSum(live,CD){ if(!live.length) return '진행 중 대결 없음 · 다음 14:55·22:00';
+  const it=live[0], st=p=>!p?'—':p.pending?'대기':p.cash?'현금':esc(String(p.name||p.ticker||'').slice(0,12));
+  return `${esc(String(it.date).slice(5))} ${duelIsUS(it)?'미장':'국장'} · 나: ${st(it.picks&&it.picks['나'])} · PB: ${st(it.picks&&it.picks['PB'])} · 마감 ${duelIsUS(it)?'09:30 ET':'15:30'}${live.length>1?` · 외 ${live.length-1}판`:''}${CD?' · ⏳쿨다운':''}`; }
+function duelTog(){ const b=$('#duelbody'), h=$('#dueltog'); if(!b||!h) return; const op=b.style.display==='none';
+  b.style.display=op?'':'none'; h.setAttribute('aria-expanded',op); h.firstElementChild.textContent=(op?'▾':'▸')+' 진입 타점 대결';
+  const live=(DEC&&DEC.items?[...DEC.items].filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result).reverse().slice(0,3):[]);
+  try{ localStorage.setItem(DUEL_OK,JSON.stringify({k:duelKey(live),open:op})); }catch(e){} }
 /* 대결 박스 (DAILY 상단·QUANT 시그널): 오늘·진행 중 대결 + 제출 위주로 짧게. 성적·기록 전체는 DAILY › 성적표 */
 function decBox(){
   decLoad(); if(!DEC||!DEC.items) return '';
@@ -208,7 +223,8 @@ function decBox(){
   setTimeout(()=>{ const g=$('#exgo'); if(!g) return; g.onclick=()=>{ const c=($('#excode').value||'').trim(), a=($('#examt').value||'').trim(), act=document.querySelector('input[name=exact]:checked'); if(!c) return;
     window.open(DUEL_IU(`exit ${c}${a?' '+a:''}`, act?act.value:'보유'),'_blank'); }; },0);
   const T=(S&&S.by_who)||{}, sum=['나','PB'].map(w=>T[w]?`<span style="margin-right:12px"><span class="mu">${w}</span> <b class="${T[w].cum_ret>=0?'up':'dn'}">${duelPc(T[w].cum_ret)}</b> <span class="mu">${T[w].win}승/${T[w].n}전</span></span>`:'').join('');
-  return `<div class="p" style="margin-bottom:10px"><h2>진입 타점 대결<small>오늘·진행 중 · 제출</small></h2><div class="b">
+  const op=duelOpen(live), sumLine=duelSum(live,CD);
+  return `<div class="p" id="duelbox" style="margin-bottom:10px"><h2 id="dueltog" role="button" tabindex="0" aria-expanded="${op}" onclick="duelTog()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();duelTog();}" style="min-height:44px;box-sizing:border-box;align-items:center;cursor:pointer;flex-wrap:wrap;gap:2px 8px"><span>${op?'▾':'▸'} 진입 타점 대결</span><small id="duelsum" style="white-space:normal;text-align:right">${sumLine}</small></h2><div class="b" id="duelbody" style="${op?'':'display:none'}">
    ${coolBar}
    <div style="font-size:12.5px;display:flex;flex-wrap:wrap;align-items:center;gap:4px">${sum||'<span class="mu">누적 성과 불러오는 중</span>'}<button class="sbtn" onclick="setView('score')">성적표 전체 →</button></div>
    ${live.length?live.map(it=>duelItemHtml(it,CD)).join(''):'<div class="mu" style="font-size:12px;margin-top:4px">진행 중 대결 없음 — 다음 판은 14:55(국장)·22:00(미장) 무렵 열림</div>'}

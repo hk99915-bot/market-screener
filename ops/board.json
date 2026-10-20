@@ -2814,6 +2814,24 @@
       ],
       "depends_on": [],
       "notes": "insight() 가 build() 에서 derivs.json 'insight' 블록 생성. 분위 표본 = data/deriv/daily.csv 옵션 열(2025-08-29~, 276일)·대표IV 16년(rep_iv, 소스 '확인 중'). 외국인 선물 4일뿐이라 분위 없음. VKOSPI 없음. 등급 전부 검증전/참고 — 방향 신호 아님."
+    },
+    {
+      "id": "daily-duel-collapse",
+      "title": "DAILY 상단 '진입 타점 대결' 접기 토글 — 헤더 1줄(제목+오늘 상태 요약)·44px·상태 기억",
+      "owner": "UXUI",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-21",
+      "repo": "public",
+      "files": [
+        "apps-script/tab_duel.html",
+        "index.html",
+        "scripts/ui_smoke.py",
+        "docs/desk_kb/uxui.md"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/21 '진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임'. 390px 실측: 대결 박스 1144px → 접힘 53px, DAILY RESEARCH BRIEF 시작 1449px → 359px(첫 화면 844px 안). 1300px: 742→46px, 브리프 913→217px. 기본값 = 겸이(나) 제출 대기 판 있으면 펼침, 없으면 접힘. 수동 상태는 localStorage mt_duel_open 에 최신 판 키와 함께 — 새 판이 열리면 기본값으로. ui_smoke check_duel_toggle 추가."
     }
   ]
 }

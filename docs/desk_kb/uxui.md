@@ -22,5 +22,9 @@ UXUI = 터미널(apps-script 탭 19개·텔레그램 메시지) 화면의 **정�
 - W3C, *Web Content Accessibility Guidelines (WCAG) 2.1*, 2018 — 1.4.3 대비, 2.5.5 대상 크기
 - 자체: scripts/ui_smoke.py · apps-script/*.html · 개발 D 보고(english-v2-ui, 10/21)
 
+## 첫 작업 기록
+- 10/21 daily-duel-collapse 실측(ui_smoke 390×844): DAILY 상단 '진입 타점 대결' 박스 1144px 가 데일리 브리프를 1449px(첫 화면 1.7장 아래)로 밀어냄 · 1300px 에선 742px·913px.
+- 바꾼 것: 대결 본문 접기 토글(헤더 44px + 요약 '날짜 시장 · 나 · PB · 마감'), 기본 = 겸이 제출 대기 판 있을 때만 펼침 → 브리프 359px(첫 화면 안)·1300px 217px. ui_smoke check_duel_toggle.
+
 ## 복기
 (아직 없음)
