@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-21T01:45+09:00",
+ "updated": "2026-10-21T01:47+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -1278,8 +1278,8 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-15",
-  "commits_total": 1631,
-  "commits_bot": 910,
+  "commits_total": 1638,
+  "commits_bot": 913,
   "commits_unmapped": 333,
   "audit_files": [
    "2026-10-17"
@@ -1325,10 +1325,10 @@
     "commits_7d": 54,
     "board": {
      "진행": 1,
-     "검수": 1,
+     "검수": 0,
      "대기": 6,
      "보류": 0,
-     "완료": 4
+     "완료": 5
     },
     "rounds": 0,
     "round_last": null,
@@ -1340,7 +1340,7 @@
     }
    },
    "PM": {
-    "commits_7d": 73,
+    "commits_7d": 76,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -1376,7 +1376,7 @@
     }
    },
    "감사": {
-    "commits_7d": 8,
+    "commits_7d": 9,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -1397,10 +1397,10 @@
     "commits_7d": 108,
     "board": {
      "진행": 2,
-     "검수": 25,
-     "대기": 14,
+     "검수": 22,
+     "대기": 16,
      "보류": 2,
-     "완료": 7
+     "완료": 10
     },
     "rounds": 1,
     "round_last": "2026-10-17",
@@ -1739,31 +1739,31 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 140,
-   "tokens": 24991651,
-   "tools": 5718,
-   "sec": 76264,
+   "runs": 143,
+   "tokens": 25588423,
+   "tools": 5774,
+   "sec": 77487,
    "days": 6,
    "per_day": {
-    "runs": 23.3,
-    "tokens": 4165275.2,
-    "tools": 953.0,
-    "sec": 12710.7
+    "runs": 23.8,
+    "tokens": 4264737.2,
+    "tools": 962.3,
+    "sec": 12914.5
    }
   }
  },
  "by_model": {
   "미지정": {
-   "runs": 41,
-   "tokens": 7042199,
-   "tools": 1938,
-   "sec": 33407,
+   "runs": 44,
+   "tokens": 7638971,
+   "tools": 1994,
+   "sec": 34630,
    "days": 4,
    "per_day": {
-    "runs": 10.2,
-    "tokens": 1760549.8,
-    "tools": 484.5,
-    "sec": 8351.8
+    "runs": 11.0,
+    "tokens": 1909742.8,
+    "tools": 498.5,
+    "sec": 8657.5
    }
   },
   "claude-fable-5-1": {
