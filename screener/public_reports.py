@@ -393,3 +393,12 @@ if __name__ == "__main__":
     o = run(probe=a.probe)
     ok = sum(1 for s in o["sources"] if s["status"] == "ok")
     print(f"공공 리포트: 소스 {ok}/{len(o['sources'])} ok · 목록 {len(o['items'])}건 · 신규 {o['added_new']}")
+    import os
+    if os.environ.get("GITHUB_ACTIONS"):   # 컨테이너에서 Actions 로그(blob)를 못 읽어 소스 표를 주석(annotation)으로 남긴다
+        tab = " | ".join(f"{s['id']}:{s['status']}:{s['n']}" + (f"({(s.get('reason') or '')[:60]})" if s['status'] == 'error' else "") for s in o["sources"])
+        try:
+            j = json.loads(JIANG.read_text(encoding="utf-8")) if not a.probe else {}
+        except Exception:  # noqa: BLE001
+            j = {}
+        js = j.get("status") or {}
+        print(f"::notice title=공공 리포트 소스 표::{tab} || jiang:{js.get('status')}:{js.get('n')}:{j.get('channel_id')}:{(js.get('reason') or '')[:80]}".replace("\n", " "))
