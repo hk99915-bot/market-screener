@@ -66,6 +66,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_eng(b, port)
         bad += await check_macro_popup(b, port)
         bad += await check_syn(b, port)
+        bad += await check_deriv_top(b, port)
         await b.close()
     return bad
 
@@ -99,6 +100,24 @@ async def check_fresh(b, port: int) -> int:
         print(f"{'OK ' if ok else 'BAD'} 신선도배지({label}) '{txt}'" + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await pg.close()
     return bad
+
+
+async def check_deriv_top(b, port: int) -> int:
+    """파생 탭 맨 위 '파생 한눈에'(10/20 겸이): 390px 에서 첫 패널 · 카드 4개+ · '그래서 겸이는?' · 버튼 44px · 가로 넘침 없음."""
+    pg = await b.new_page(viewport={"width": 390, "height": 844})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("setView('deriv')")
+    await pg.wait_for_timeout(2500)
+    r = await pg.evaluate("""(()=>{ const t=document.getElementById('dvTop'), f=document.querySelector('#root .p'); if(!t) return null;
+      const bt=t.querySelector('button'); return {first:f===t, n:t.querySelectorAll('.dvtc').length, so:t.innerText.includes('그래서 겸이는?'),
+      h:bt?bt.getBoundingClientRect().height:0, over:document.documentElement.scrollWidth-document.documentElement.clientWidth}; })()""")
+    ok = bool(r) and r["first"] and r["n"] >= 4 and r["so"] and r["h"] >= 44 and r["over"] <= 1 and not errs
+    print(f"{'OK ' if ok else 'BAD'} 파생 한눈에(390px) {r}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return not ok
 
 
 async def check_cmt_us(b, port: int) -> int:

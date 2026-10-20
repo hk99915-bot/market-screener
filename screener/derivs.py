@@ -263,6 +263,143 @@ def interpret(o: dict) -> list[str]:
     return L
 
 
+# ───── 파생 한눈에 (10/20 겸이: "쉽고 직관적으로 파생 인사이트 따로 상단에") ─────
+# 원칙(KB derivs.md): 방향(오른다/내린다)은 말하지 않는다 · 값마다 과거 대비 분위+표본 기간 · 등급 배지 · 없으면 '데이터 없음' 그대로.
+SIG = REPORT_DIR / "studies" / "derivs_signals.json"
+DAILY = REPORT_DIR.parent / "data" / "deriv" / "daily.csv"
+_RANK = ["A", "B", "C", "F", "검증전"]
+
+
+def _grades() -> dict:
+    try:
+        S = json.loads(SIG.read_text(encoding="utf-8")).get("signals") or []
+    except Exception:  # noqa: BLE001
+        return {}
+    g: dict = {}
+    for x in S:
+        a, b = g.get(x.get("lens_id")), x.get("grade")
+        if b in _RANK and (a is None or _RANK.index(b) < _RANK.index(a)):
+            g[x["lens_id"]] = b
+    return g
+
+
+def _daily() -> list[dict]:
+    import csv
+    try:
+        with open(DAILY, encoding="utf-8") as fh:
+            return list(csv.DictReader(fh))
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def _pctl(rows: list[dict], k: str, v, scale: float = 1.0) -> dict | None:
+    """v 의 과거 분위(0=가장 낮음). 표본 기간·일수를 같이 돌려준다."""
+    s = [(r["date"], _f(r.get(k))) for r in rows]
+    s = [(d, x * scale) for d, x in s if x is not None]
+    if v is None or len(s) < 20:
+        return None
+    p = sum(1 for _, x in s if x <= v) / len(s)
+    return {"p": round(p * 100), "from": s[0][0], "to": s[-1][0], "n": len(s)}
+
+
+def _where(q: dict | None) -> str:
+    if not q:
+        return "과거 비교 표본 부족"
+    p = q["p"]
+    w = "역대 최상단" if p >= 95 else "높은 편" if p >= 80 else "낮은 편" if p <= 20 else "보통"
+    return f"과거 {q['n']}일 중 {p}% 위치({w}) · {q['from']}~{q['to']}"
+
+
+def insight(o: dict, rows: list[dict] | None = None, grades: dict | None = None, today: date | None = None) -> dict:
+    """reports/derivs.json 'insight' 블록 — 한 줄 요약 · 신호등 카드 · '그래서 겸이는?'.
+    rows = data/deriv/daily.csv 행(dict, 문자열 값 허용), grades = lens_id→등급. 매매 신호 아님."""
+    rows = _daily() if rows is None else rows
+    grades = _grades() if grades is None else grades
+    today = today or date.today()
+    gr = lambda lens: grades.get(lens) or "검증전"   # noqa: E731 — 등록 안 된 렌즈는 검증전
+    opt = [r for r in rows if _f(r.get("pcr_oi")) is not None]
+    lag = None
+    if o.get("date"):
+        lag = (today - date.fromisoformat(o["date"])).days
+    stale = bool(o.get("stale")) or (lag is not None and lag > 4)
+    tag = ("지연 " + (o["stale"]["got"] if o.get("stale") else o.get("date", ""))) if stale else None
+    C = []
+
+    def card(k, title, value, light, where, easy, grade, status=None):
+        C.append({"k": k, "title": title, "value": value, "light": light, "where": where, "easy": easy,
+                  "grade": grade, "status": status or tag or "정상"})
+
+    iv, rv, gex = o.get("atm_iv"), o.get("rv20"), o.get("gex_bn")
+    if iv is None and gex is None:
+        card("vol", "흔들림 크기", "—", "gray", "", "옵션 데이터 없음", "참고", "데이터 없음")
+    else:
+        qi = _pctl(opt, "atm_iv", iv) if iv is not None else None
+        qr = _pctl(rows, "rep_iv", (iv or 0) * 100) if iv is not None else None
+        big = (qi and qi["p"] >= 80) or (gex is not None and gex < 0)
+        v = f"IV {iv*100:.0f}%" if iv is not None else "IV —"
+        v += f" · RV {rv*100:.0f}%" if rv else " · RV —"
+        easy = ("옵션값이 매기는 하루 출렁임 ≈ ±{:.1f}%. ".format(iv * 100 / 15.87) if iv else "")
+        if gex is not None:
+            easy += ("감마 음수 — 흔들릴 때 헤지 매매가 흔들림을 키우는 쪽" if gex < 0 else "감마 양수 — 헤지 매매가 흔들림을 누그러뜨리는 쪽")
+        w = _where(qi) + (f" · 대표IV 16년 기준 {qr['p']}%" if qr else "")
+        card("vol", "흔들림 크기", v + (f" · 감마 {gex:+,.0f}억" if gex is not None else ""), "red" if big else "green", w, easy, gr("options_gamma"))
+    p = o.get("pcr_oi")
+    if p is None:
+        card("fear", "겁먹음 정도 (PCR)", "—", "gray", "", "풋/콜 데이터 없음", "참고", "데이터 없음")
+    else:
+        q = _pctl(opt, "pcr_oi", p)
+        rel = q["p"] if q else 50   # 절대 수준(1.2)과 과거 대비 위치가 엇갈릴 수 있음 — 둘 다 말한다
+        lt = "amber" if (p >= 1.2 and rel >= 50) or rel >= 80 else "green"
+        easy = ("보험(풋)이 콜보다 {:.1f}배 쌓임".format(p) if p >= 1.2 else
+                "상승 베팅(콜)이 더 많음 — 들뜬 쪽" if p <= 0.7 else "보험·베팅이 비슷")
+        if p >= 1.2:
+            easy += " — 다만 과거 대비론 적은 편, 평소보다 덜 겁먹음" if rel <= 20 else " — 과거 대비도 많은 편, 겁먹은 쪽" if rel >= 80 else " — 과거 대비 보통"
+        card("fear", "겁먹음 정도 (PCR)", f"{p:.2f}", lt, _where(q), easy + " · 방향 신호 아님", gr("options_pcr"))
+    b = (o.get("fut") or {}).get("basis")
+    if b is None:
+        card("basis", "선물 프리미엄 (베이시스)", "—", "gray", "", "선물 데이터 없음", "참고", "데이터 없음")
+    else:
+        q = _pctl(opt, "basis", b)
+        th = next((_f(r.get("basis_theo")) for r in reversed(rows) if r.get("date") == o.get("date")), None)
+        easy = ("선물이 현물보다 쌈(백워데이션) — 급히 파는 헤지가 많을 때 나옴" if b < 0 else "선물이 현물보다 비쌈(콘탱고) — 보통 상태")
+        if th is not None:
+            easy += f" · 이론값 {th:+.2f}p 대비 {b-th:+.2f}p"
+        card("basis", "선물 프리미엄 (베이시스)", f"{b:+.2f}p", "amber" if b < 0 else "green", _where(q), easy, gr("fut_basis"))
+    ff = [(r["date"], _f(r.get("fut_frgn"))) for r in rows if _f(r.get("fut_frgn")) is not None]
+    if not ff:
+        card("frgn", "외국인 선물", "—", "gray", "", "외국인 선물 순매수 적재 전", "참고", "데이터 없음")
+    else:
+        d0, v0 = ff[-1]
+        s5 = sum(x for _, x in ff[-5:])
+        fst = "지연 " + d0 if d0 != o.get("date") else None
+        card("frgn", "외국인 선물", f"{v0:+,.0f}계약", "amber" if v0 < 0 else "green",
+             f"표본 {len(ff)}일뿐({ff[0][0]}~) — 분위 계산 불가" if len(ff) < 20 else f"최근 {min(5, len(ff))}일 합 {s5:+,.0f}",
+             ("오늘 외국인이 선물을 순매도" if v0 < 0 else "오늘 외국인이 선물을 순매수") + f" · 최근 {min(5, len(ff))}일 합 {s5:+,.0f}계약",
+             gr("fut_foreign_flow"), fst)
+    if o.get("expiry"):
+        dte = o.get("dte")
+        card("expiry", "만기·이벤트", f"{o['expiry'][5:]} (D-{dte})", "amber" if dte is not None and dte <= 5 else "green",
+             f"{o.get('front', '')}물 최근월 옵션 만기(둘째 목요일)",
+             "만기 주엔 포지션 정리로 흔들림이 커질 수 있음" if dte is not None and dte <= 5 else "만기까지 여유 — 만기 효과 아직 아님", "참고")
+    else:
+        card("expiry", "만기·이벤트", "—", "gray", "", "만기 정보 없음", "참고", "데이터 없음")
+    qf = _pctl(opt, "pcr_oi", p) if p is not None else None
+    fear = p is not None and p >= 1.2 and (qf is None or qf["p"] >= 50)
+    if gex is None and p is None:
+        one = "옵션 데이터가 없어 오늘은 해석 안 해."
+    elif gex is not None and gex < 0:
+        one = ("보험(풋)이 평소보다 많이 쌓여 있고, " if fear else "") + "시장이 흔들릴 때 더 흔들리는 자리야 — 브레이크보다 가속페달 쪽. 방향(오른다/내린다)은 몰라, 흔들림 크기 얘기야."
+    else:
+        one = ("보험(풋)은 평소보다 많이 쌓였지만 " if fear else "") + "헤지 매매가 흔들림을 눌러주는 자리야 — 충격 흡수 쪽. 방향은 몰라."
+    rough = (gex is not None and gex < 0) or any(c["k"] == "vol" and c["light"] == "red" for c in C)
+    so = ("레버리지·신용 새로 늘리지 말고, 사고팔 거면 하루에 몰지 말고 나눠서. 파생 숫자는 방향 근거로 쓰지 마."
+          if rough else "평소 규칙대로. 파생 숫자는 방향 근거가 아니야.")
+    if stale:
+        one = f"[{tag}] " + one
+    return {"one_line": one, "so_what": so, "cards": C, "stale": stale, "asof": o.get("date"),
+            "rule": "방향 신호 아님 · 분위=과거 표본 중 위치(0%=가장 낮음) · 등급은 reports/studies/derivs_signals.json"}
+
+
 def build(backfill: int = 20) -> dict:
     from .tradecal import is_session
     d = date.today()
@@ -333,6 +470,10 @@ def build(backfill: int = 20) -> dict:
     except Exception as e:  # noqa: BLE001
         log.info("코스피200 실현변동성 실패: %s", e)
     cur["notes"] = interpret(cur)
+    try:
+        cur["insight"] = insight(cur)
+    except Exception as e:  # noqa: BLE001 — 인사이트 실패가 옵션 보드를 막지 않게
+        log.warning("파생 인사이트 실패: %s", e)
     from zoneinfo import ZoneInfo   # 생성 시각은 KST (CI 러너 UTC 로 찍혀 화면 헤더가 9시간 어긋남 — 감사 경-3 10/17)
     cur["asof"] = datetime.now(ZoneInfo("Asia/Seoul")).strftime("%Y-%m-%d %H:%M")
     from .guard import write_json

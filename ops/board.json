@@ -2793,6 +2793,27 @@
         "research-views"
       ],
       "notes": "겸이 10/21 \"리포트들만 있지 말궁\". 애널 직접 구현(개발 외주 아님). 매일 fin.yml 03:30 research_views 수집 직후 생성. 전부 '증권가 집계'(우리 판단 아님), 톤 지수 검증전. 백필 행은 이력엔 쓰되 '신규'에서 제외. 한계: 섹터 등락은 위원회 테마 이름이 같은 것만(대부분 —), 영업일=평일 근사, 키워드 추이는 10/07·10/14 수집 확대분 포함. GAS 쪽은 Code.gs 붙여넣기 필요(getResearchSynthesis) — Pages 는 바로 동작."
+    },
+    {
+      "id": "deriv-insight",
+      "title": "파생 탭 맨 위 '파생 한눈에' — 한 줄 요약·신호등 카드 5(흔들림·PCR·베이시스·외국인 선물·만기)·'그래서 겸이는?'",
+      "owner": "파생",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-20",
+      "due": "2026-10-21",
+      "repo": "public",
+      "files": [
+        "screener/derivs.py",
+        "reports/derivs.json",
+        "apps-script/tab_mkt_deriv.html",
+        "index.html",
+        "scripts/ui_smoke.py",
+        "tests/test_derivs_insight.py",
+        "docs/desk_kb/derivs.md"
+      ],
+      "depends_on": [],
+      "notes": "insight() 가 build() 에서 derivs.json 'insight' 블록 생성. 분위 표본 = data/deriv/daily.csv 옵션 열(2025-08-29~, 276일)·대표IV 16년(rep_iv, 소스 '확인 중'). 외국인 선물 4일뿐이라 분위 없음. VKOSPI 없음. 등급 전부 검증전/참고 — 방향 신호 아님."
     }
   ]
 }

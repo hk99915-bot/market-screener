@@ -54,6 +54,9 @@
 - [자체연구-A(정보)] 야간선물 등락 → 다음 시초가 갭: R² 0.555, 기울기 1.03, 부호 적중 78%(|x|>1% 밤 93%). 시초가 예고 전용, 방향 가중 금지. (출처: derivs_signals §3 H8)
 - [자체연구-F] 외국인 현물 순매수는 '오늘 오른 이유' 이지 내일 신호가 아니다(H2·H3 F, SIGNAL1 대기 전략 악화). (출처: derivs_signals §4-1·§4-3)
 
+- [인사이트 문구 규칙 2026-10-20] '파생 한눈에'(derivs.json `insight`)는 방향(오른다/내린다)을 말하지 않는다 — 결론은 흔들림 크기·위치뿐, 비유 1개, "그래서 겸이는?"은 리스크 관점(레버리지·분할)만. 카드마다 값 + 과거 분위(표본 기간·일수) + 등급 배지(derivs_signals 렌즈 최상 등급, 미등록=검증전).
+- [인사이트 문구 규칙] 절대 수준과 과거 위치가 엇갈리면 둘 다 쓴다(예: PCR 1.29 는 '풋>콜'이지만 1년 중 2% → '평소보다 덜 겁먹음'). 데이터 없음·지연은 숨기지 말고 카드에 '데이터 없음/지연' 그대로.
+
 ## 출처
 - Hull, *Options, Futures, and Other Derivatives* 11판: 3장(헤지·베이시스 리스크·최소분산 비율·지수선물 헤지 §3.5), 5장(cost of carry), 10장(옵션시장·OI), 15장(변동성 연율화), 19장(그릭스·감마·델타 헤지 재조정).
 - CFA L1 Derivatives: Arbitrage, Replication and the Cost of Carry · Pricing and Valuation of Futures · Put-Call Parity.

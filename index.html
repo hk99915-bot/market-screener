@@ -2981,6 +2981,25 @@ function dvB(g){ g=g||'참고'; const c=(g==='A'||g==='B')?'tag g':g==='F'?'tag 
   return `<span class="${c}" style="${c==='tag mu'?'color:var(--muted);border-color:var(--line)':''}" title="검증 등급 (reports/studies/derivs_signals.json)">${g==='참고'?'참고':'등급 '+esc(g)}</span>`; }
 function dvGrade(lens){ const S=(DVX.s&&DVX.s.signals)||[]; const a=S.filter(x=>x.lens_id===lens).map(x=>x.grade); if(!a.length) return '참고';
   const rk=['A','B','C','F','검증전']; return a.sort((x,y)=>rk.indexOf(x)-rk.indexOf(y))[0]; }
+// 파생 한눈에 (10/20 겸이: "쉽고 직관적으로 파생 인사이트 따로 상단에") — reports/derivs.json insight 블록 (screener/derivs.py insight). 방향 신호 아님.
+function dvTop(d){
+  const I=d&&d.insight;
+  if(!I||!I.cards) return `<div class="p c12" id="dvTop"><h2>파생 한눈에<small>reports/derivs.json</small></h2><div class="b mu" style="white-space:normal">인사이트 데이터 없음 — 다음 옵션 보드 수집 때 생성돼. 아래 상세는 그대로 볼 수 있어.</div></div>`;
+  const col={red:'#e5484d',amber:'var(--amber)',green:'#30a46c',gray:'var(--muted)'}, wd={red:'주의',amber:'눈여겨',green:'잔잔',gray:'없음'};
+  const cs=I.cards.map(c=>{ const off=c.status&&c.status!=='정상';
+    return `<div class="dvtc" style="border:1px solid var(--line);border-left:4px solid ${col[c.light]||col.gray};padding:8px 10px;min-height:44px;line-height:1.45">
+      <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:12px"><span><span style="color:${col[c.light]||col.gray}">●</span> <b>${esc(c.title)}</b></span><span style="white-space:nowrap">${dvB(c.grade)}</span></div>
+      <div style="font-size:17px;margin:2px 0"><b>${esc(c.value)}</b> <span class="mu" style="font-size:11px">${wd[c.light]||''}</span></div>
+      <div style="font-size:13px;white-space:normal">${esc(c.easy)}</div>
+      ${c.where?`<div class="mu" style="font-size:11px;white-space:normal;margin-top:2px">${esc(c.where)}</div>`:''}
+      ${off?`<div style="font-size:11px;color:var(--dn);margin-top:2px">⚠ ${esc(c.status)}</div>`:''}</div>`; }).join('');
+  return `<div class="p c12" id="dvTop"><h2>파생 한눈에<small>거래일 ${esc(I.asof||d.date||'—')}${d.asof?` · 생성 ${esc(d.asof)} KST`:''}${I.stale?' · <b class="dn">⚠ 지연</b>':''}</small></h2><div class="b" style="white-space:normal">
+    <div style="font-size:15px;line-height:1.6;margin-bottom:8px"><b>${esc(I.one_line)}</b></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">${cs}</div>
+    <div style="margin-top:8px;padding:8px 10px;border:1px dashed var(--line);font-size:14px;line-height:1.6"><b>그래서 겸이는?</b> ${esc(I.so_what)} <span class="mu" style="font-size:11px">(매매 권고 아님 · 리스크 관점)</span></div>
+    <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.rule||'')}</div>
+    <button class="sbtn" style="min-height:44px;margin-top:6px" onclick="const e=document.getElementById('dvSum'); if(e) e.scrollIntoView({behavior:'smooth',block:'start'})">상세 숫자·차트 ↓</button></div></div>`;
+}
 function derivView(){
   dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv); dvLoad('g','getGammaStudy');
   if(DVX.d===false&&DVX.h===false) return '<div class="load">LOADING …</div>';
@@ -3000,7 +3019,7 @@ function derivView(){
     card('외국인 선물 순매수',ff?sg(ff.fut_frgn,0)+'<span class="mu" style="font-size:11px"> 계약</span>':'—',ff?`${esc(ff.date)} · 기관 ${sg(ff.fut_inst,0)} · 개인 ${sg(ff.fut_indiv,0)}`:'적재 전',dvGrade('fut_foreign_flow')),
     card('야간선물 (KRX 평균가)',nt?f(nt.night_vwap):'—',nt?`${esc(nt.date)} 세션 · 거래 ${num(nt.night_vol)}계약 · 다음날 시가 갭 예상용`:'데이터 없음',dvGrade('night_futures'))
   ].join('');
-  const sum=`<div class="p c12"><h2>파생 · 오늘 요약<small>코스피200 선물·옵션 · 거래일 ${esc(d.date||'—')}${d.asof?` · 생성 ${esc(d.asof)} KST`:''}</small></h2><div class="b" style="white-space:normal">
+  const sum=`<div class="p c12" id="dvSum"><h2>파생 · 오늘 요약<small>코스피200 선물·옵션 · 거래일 ${esc(d.date||'—')}${d.asof?` · 생성 ${esc(d.asof)} KST`:''}</small></h2><div class="b" style="white-space:normal">
     <div class="mu" style="font-size:12px;margin-bottom:6px">선물·옵션은 '시장이 어디에 돈을 걸었나'를 보여주는 위치 정보야. 아래 숫자는 모두 <b>방향 신호로 검증되지 않았어</b> — 흔들림·위치 참고만.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${cards}</div>
     <div style="margin-top:8px"><button class="sbtn" id="dvA8">📘 A8 선물·옵션 읽는 법 (스터디)</button> <span class="mu" style="font-size:11px">처음이면 이것부터 — 베이시스·PCR·벽·감마·야간선물·만기일</span></div></div></div>`;
@@ -3028,7 +3047,7 @@ function derivView(){
     <div class="mu" style="font-size:11px;margin-top:6px">${esc(S.grades_doc||'')} · 다중검정 m=${S.m??'?'}, α=${S.alpha_bonf??'?'}. 자세한 내용은 QUANT › 검증 스터디.</div></div></div>`:'';
   setTimeout(drawDerivHist,0);
   setTimeout(()=>{ const b=$('#dvA8'); if(b) b.onclick=dvGoA8; },0);
-  return `<div class="grid">${sum}${op}${hist}${vt}</div>`;
+  return `<div class="grid">${dvTop(d)}${sum}${op}${hist}${vt}</div>`;
 }
 function dvGoA8(){ setView('edu'); let n=0; const t=setInterval(()=>{ const m=document.getElementById('mod-A8'); if(m){ clearInterval(t); m.open=true; m.scrollIntoView({behavior:'smooth',block:'start'}); } else if(++n>50) clearInterval(t); },100); }
 function drawDerivHist(){
