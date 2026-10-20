@@ -55,7 +55,7 @@ jobs:
           MODE: ${{ inputs.mode || 'daily' }}
           SINCE: ${{ inputs.since || '2022-01-01' }}
           BUDGET: ${{ inputs.budget || '12' }}
-        run: python -m screener.accum "$MODE" --since "$SINCE" --budget-min "$BUDGET" 2>&1 | tee reports/logs/accum.log; exit ${PIPESTATUS[0]}
+        run: python -m screener.accum "$MODE" --since "$SINCE" --budget-min "$BUDGET" 2>&1 | sed -E 's/(로그인 ID:).*/\1 ***/' | tee reports/logs/accum.log; exit ${PIPESTATUS[0]}
       - name: 저장
         if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
