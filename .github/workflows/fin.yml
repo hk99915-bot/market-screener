@@ -50,14 +50,21 @@ jobs:
           # 빨리 끝나는 것부터 — DART 재무 백필이 3시간 제한을 다 써서 뒤 작업이 못 돌던 문제 (10/16)
           python -m screener.main --mode portfolios --no-send || true
           python -m screener.main --mode momentum --no-send || true
-          python -m screener.main --mode analysts --no-send || true
+          python -m screener.main --mode analysts --no-send || echo "::warning::analysts 실패 — reports/logs/analysts.log"
+          # 비종목 리포트 — 실패해도 다음 단계는 진행하되 묻히지 않게 경고 + reports/research_views.json status
+          python -m screener.main --mode research_views --no-send || echo "::warning::비종목 리포트 수집 실패/부분 — reports/research_views.json status 참조"
           python -m screener.main --mode fin --no-send || true
       - name: 저장
         if: always() && steps.g.outputs.commit == 'true'
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          for p in data/fin universe/dart_corp.csv universe/kr_shares.csv universe/sec_tickers.json data/research.parquet reports; do [ -e "$p" ] && git add -A "$p"; done; true
+          for p in data/fin universe/dart_corp.csv universe/kr_shares.csv universe/sec_tickers.json data/research.parquet data/research_views.parquet reports; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet && exit 0
           git commit -m "fin: $(date -u +%FT%H:%M)"
-          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done
+          # 10/19 18:33 UTC 실행: rebase 충돌(daily_brief·research.json 등) → 'rebase 진행 중'으로 재시도 3회 모두 실패했는데
+          # 마지막 sleep 의 종료코드 0 으로 단계가 '성공' 표시, 결과(애널리스트·재무)가 저장 안 됨 → briefing.yml 과 같은 방식으로
+          git stash -q -u 2>/dev/null || true
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && python -m screener.regress_git && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || { echo "::error::푸시 실패 — fin 결과가 저장되지 않음"; exit 1; }

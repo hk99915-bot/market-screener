@@ -36,11 +36,14 @@ KST = ZoneInfo("Asia/Seoul")
 
 BUY_WORDS = re.compile(r"(?i)buy|매수|outperform|overweight|비중확대|strong")
 SELL_WORDS = re.compile(r"(?i)sell|매도|underperform|underweight|비중축소|reduce")
+# 의견 없음 계열 (한경 실제 값: Not Rated·투자의견없음·nr·N/A·na) — 예전엔 '중립(1)'으로 세어
+# 매수→NR 이 '의견 하향'으로 잡혔다 (10/20 감사: 저장소 1,040건)
+NR_WORDS = re.compile(r"(?i)^\s*(n\s*/?\s*r|n\s*/?\s*a|not\s*rated|투자의견\s*없음|의견\s*없음|없음|-)\s*$")
 
 
 def opinion_rank(op: str | None) -> int:
-    """매수 2 / 중립 1 / 매도 0 / 없음 -1"""
-    if not op:
+    """매수 2 / 중립 1 / 매도 0 / 없음(Not Rated·N/A 포함) -1"""
+    if not op or NR_WORDS.match(op):
         return -1
     if SELL_WORDS.search(op):
         return 0
@@ -83,8 +86,26 @@ def make_key(d: date, code: str, broker: str) -> str:
 
 # ───────────── 네이버증권 ─────────────
 
+NAVER_LAST: dict = {}
+
+
+def write_status(sources: dict) -> None:
+    """종목 리포트 수집 출처별 상태 — 실패가 로그 WARNING 으로만 묻히지 않게 산출물로 남긴다 (10/20)."""
+    from .config import REPORT_DIR
+    try:
+        REPORT_DIR.mkdir(exist_ok=True)
+        ok = [k for k, v in sources.items() if v.get("status") == "ok"]
+        (REPORT_DIR / "research_status.json").write_text(json.dumps({
+            "checked_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"),
+            "overall": "ok" if len(ok) == len(sources) else ("partial" if ok else "error"),
+            "sources": sources}, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        log.warning("리포트 수집 상태 기록 실패: %s", e)
+
+
 def fetch_naver(since: date, max_pages: int = 60) -> list[dict]:
     out = []
+    NAVER_LAST.clear()
     for p in range(1, max_pages + 1):
         h = _get(f"https://finance.naver.com/research/company_list.naver?page={p}",
                  "https://finance.naver.com/research/", "euc-kr")
@@ -110,6 +131,9 @@ def fetch_naver(since: date, max_pages: int = 60) -> list[dict]:
                 "link": f"https://finance.naver.com/research/company_read.naver?nid={nid.group(1)}",
             })
         if p == 1 and found == 0:   # 진단: 파싱 0건이면 응답 일부를 남김 (reports/logs/naver_list.html)
+            shell = "_next/static" in h and "company_read" not in h
+            NAVER_LAST.update(app_shell=shell, reason=("layout_changed: Next.js 앱 화면(옛 표 없음, 10/15~)" if shell
+                                                       else f"파싱 0건 — 응답 {len(h)}자, tr {len(rows)}개"))
             try:
                 from .config import REPORT_DIR
                 (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
@@ -376,16 +400,23 @@ def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.Dat
     existing = set(store["key"].to_list()) if len(store) else set()
 
     hk, nv = [], []
+    st: dict[str, dict] = {}
     try:
         hk = fetch_hankyung(since)
         log.info("한경 %d건", len(hk))
+        st["한경"] = {"status": "ok" if hk else "empty", "n": len(hk), "reason": None}
     except Exception as e:  # noqa: BLE001
         log.warning("한경 수집 실패: %s", e)
+        st["한경"] = {"status": "error", "n": 0, "reason": f"{type(e).__name__}: {str(e)[:160]}"}
     try:
         nv = fetch_naver(since)
         log.info("네이버 %d건", len(nv))
+        st["네이버"] = {"status": "ok" if nv else ("layout_changed" if NAVER_LAST.get("app_shell") else "empty"),
+                       "n": len(nv), "reason": NAVER_LAST.get("reason")}
     except Exception as e:  # noqa: BLE001
         log.warning("네이버 수집 실패: %s", e)
+        st["네이버"] = {"status": "error", "n": 0, "reason": f"{type(e).__name__}: {str(e)[:160]}"}
+    write_status(st)
     if not hk and not nv:
         raise RuntimeError("리포트 수집 0건 — 두 사이트 모두 실패")
 

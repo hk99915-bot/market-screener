@@ -59,6 +59,7 @@ SHIM = """<script>
     getDisclosures: () => get('reports/disclosures.json'),
     getMacroSeries: () => get('reports/macro_series.json'),
     getAnalysts: () => get('reports/analysts.json'),
+    getResearchViews: () => get('reports/research_views.json'),
     getMomentum: m => get('reports/momentum_' + m + '.json'),
     getMomentumBt: () => get('reports/momentum_bt.json'),
     getDaily: () => get('reports/daily_brief.json'),

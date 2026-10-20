@@ -21,6 +21,7 @@
     getDisclosures: () => get('reports/disclosures.json'),
     getMacroSeries: () => get('reports/macro_series.json'),
     getAnalysts: () => get('reports/analysts.json'),
+    getResearchViews: () => get('reports/research_views.json'),
     getMomentum: m => get('reports/momentum_' + m + '.json'),
     getMomentumBt: () => get('reports/momentum_bt.json'),
     getDaily: () => get('reports/daily_brief.json'),
@@ -1458,14 +1459,33 @@ function rgOf(r){ return RV.rb==='s'?r.rg_s:r.rg_k; }
 function rgBadge(r){ const g=rgOf(r); if(!g) return ''; return ` <span class="tag ${RGC[g.l]||''}" style="font-size:10px;padding:0 4px" title="발간일 국면(regime_tag: 상승/조정/하락) · ${RV.rb==='s'?'종목':'코스피'} 기준 · 고점 대비 ${(g.dd*100).toFixed(0)}%${g.r20!=null?' · 20일 '+(g.r20*100).toFixed(0)+'%':''}${g.n<200?' · 관측 '+g.n+'일(고점 과소 가능)':''}">국면 ${g.l}</span>`; }
 function repOrd(o){ RV.o=o; try{localStorage.setItem('mt_rep_order',o);}catch(e){} render(); }
 const repCmp=(a,b)=>RV.o==='old'?a.localeCompare(b):b.localeCompare(a);
+// 리포트 종류(kind) 필터 (10/20 겸이: 섹터·채권·매크로·외환·파생·전략·인뎁스도) — 종목 = 기존 research.json, 나머지 = research_views.json (screener/report_kind.py 분류)
+const RKINDS=['종목','섹터','전략','매크로','채권','외환','파생','인뎁스','비종목 전체'];
+RV.k=(()=>{try{return localStorage.getItem('mt_rep_kind')||'종목';}catch(e){return '종목';}})();
+let RVW=null;
+function repKind(k){ RV.k=k; try{localStorage.setItem('mt_rep_kind',k);}catch(e){} render(); }
+function kindTabs(){ return `<span class="ctab">${RKINDS.map(k=>`<button class="${RV.k===k?'on':''}" onclick="repKind('${k}')">${k}${RVW&&RVW.kinds&&RVW.kinds[k]?` <span class="mu">${RVW.kinds[k].n}</span>`:''}</button>`).join('')}</span>`; }
+function rvwView(){
+  if(!RVW){ google.script.run.withSuccessHandler(t=>{try{RVW=JSON.parse(t);}catch(e){RVW={kinds:{}};} if(view==='rep') render();}).withFailureHandler(e=>{RVW={kinds:{},err:/404/.test(e.message)?'비종목 리포트 데이터가 아직 없습니다 (다음 수집 때 생성)':e.message}; if(view==='rep') render();}).getResearchViews(); return '<div class="load">LOADING …</div>'; }
+  const st=RVW.status||{}, src=st.sources||{};
+  const bad=Object.entries(src).filter(([k,v])=>v&&v.status!=='ok').map(([k,v])=>`${esc(k)}: ${esc(v.status)}${v.reason?' — '+esc(String(v.reason).slice(0,80)):''}`);
+  return `<div class="grid"><div class="p c12"><h2>RESEARCH${kindTabs()}<span class="ctab">${[7,30,90].map(d=>`<button class="${RV.d===d?'on':''}" onclick="RV.d=${d};render()">${d}D</button>`).join('')}</span><small id="rcnt"></small></h2>
+   <div class="b"><input id="rq" class="rq" placeholder="증권사 · 섹터 · 제목 검색" value="${esc(RV.q)}" oninput="RV.q=this.value;rvwFill()">${RVW.err?`<div class="err">${esc(RVW.err)}</div>`:''}${bad.length?`<div class="mu" style="font-size:11px">수집 상태 ${esc(st.overall||'')} · ${bad.join(' · ')}</div>`:''}<div id="rbody"></div></div></div></div>`;
+}
+function rvwFill(){ const b=$('#rbody'); if(!b||!RVW) return; const cut=new Date(Date.now()-RV.d*864e5+9*36e5).toISOString().slice(0,10), q=RV.q.trim().toLowerCase();
+  const ks=RV.k==='비종목 전체'?RKINDS.slice(1,8):[RV.k];
+  const it=ks.flatMap(k=>(((RVW.kinds||{})[k]||{}).recent||[]).map(r=>({...r,kind:k}))).filter(r=>r.date>=cut&&(!q||[r.broker,r.sector,r.title,r.analyst].join(' ').toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date));
+  b.innerHTML=it.length?`<table><tr><th class="l">날짜</th><th class="l">종류</th><th class="l">증권사</th><th class="l">제목</th></tr>${it.map(r=>`<tr><td class="l mu">${r.date}</td><td class="l" title="${esc(r.kind_reason||'')}">${esc(r.kind)}${r.sector?` <span class="mu">${esc(r.sector)}</span>`:''}</td><td class="l">${esc(r.broker||'')}${r.analyst?` <span class="mu">${esc(r.analyst)}</span>`:''}</td><td class="l">${r.link?`<a href="${esc(r.link)}" target="_blank">${esc(r.title||'원문')}</a>`:esc(r.title||'')}${r.summary&&r.summary!=='-'?`<div class="sm">${esc(r.summary)}</div>`:''}</td></tr>`).join('')}</table>`:'<div class="mu">해당 기간 리포트 없음</div>';
+  const c=$('#rcnt'); if(c) c.textContent=`${it.length}건 · 생성 ${RVW.generated_at||'—'}`; }
 function repView(){
+  if(RV.k!=='종목') return rvwView();
   if(!AN) loadAnalysts(()=>{ if(view==='rep'&&R) repFill(); });
   if(!R){ google.script.run.withSuccessHandler(t=>{try{R=JSON.parse(t);}catch(e){R={items:[],close:{}};} if(view==='rep') render();}).withFailureHandler(e=>{R={items:[],close:{},err:/404/.test(e.message)?'리서치 데이터가 아직 생성되지 않았습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='rep') render();}).getResearch(); return '<div class="load">LOADING …</div>'; }
   const btn=(k,v,l)=>`<button class="${RV[k]===v?'on':''}" onclick="RV['${k}']=${typeof v==='number'?v:`'${v}'`};render()">${l}</button>`;
-  return `<div class="grid"><div class="p c12"><h2>RESEARCH<span class="ctab">${btn('m','theme','테마별')}${btn('m','sector','업종별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><span class="ctab"><span class="mu" style="font-size:11px">국면</span>${[['k','코스피'],['s','종목']].map(([b,l])=>`<button class="${RV.rb===b?'on':''}" onclick="repRb('${b}')">${l}</button>`).join('')}${[['all','전체'],['상승','상승'],['조정','조정'],['하락','하락']].map(([f,l])=>`<button class="${RV.rf===f?'on':''}" onclick="RV.rf='${f}';render()">${l}</button>`).join('')}</span><span class="ctab">${[['count','많은순'],['new','최신순'],['old','오래된순']].map(([o,l])=>`<button class="${RV.o===o?'on':''}" onclick="repOrd('${o}')">${l}</button>`).join('')}</span><small id="rcnt"></small></h2>
+  return `<div class="grid"><div class="p c12"><h2>RESEARCH${kindTabs()}<span class="ctab">${btn('m','theme','테마별')}${btn('m','sector','업종별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><span class="ctab"><span class="mu" style="font-size:11px">국면</span>${[['k','코스피'],['s','종목']].map(([b,l])=>`<button class="${RV.rb===b?'on':''}" onclick="repRb('${b}')">${l}</button>`).join('')}${[['all','전체'],['상승','상승'],['조정','조정'],['하락','하락']].map(([f,l])=>`<button class="${RV.rf===f?'on':''}" onclick="RV.rf='${f}';render()">${l}</button>`).join('')}</span><span class="ctab">${[['count','많은순'],['new','최신순'],['old','오래된순']].map(([o,l])=>`<button class="${RV.o===o?'on':''}" onclick="repOrd('${o}')">${l}</button>`).join('')}</span><small id="rcnt"></small></h2>
    <div class="b"><input id="rq" class="rq" placeholder="종목 · 증권사 · 섹터 · 제목 검색" value="${esc(RV.q)}" oninput="RV.q=this.value;repFill()">${R.err?`<div class="err">${esc(R.err)}</div>`:''}<div id="rbody"></div></div></div></div>`;
 }
-function repFill(){ const b=$('#rbody'); if(!b||!R) return; const it=repFilter(); b.innerHTML=repBody(it); const c=$('#rcnt'); if(c) c.textContent=`${it.length}건 · ${new Set(it.map(r=>r.code)).size}종목 · 기준 ${R.asof||''}`; }
+function repFill(){ if(RV.k!=='종목') return rvwFill(); const b=$('#rbody'); if(!b||!R) return; const it=repFilter(); b.innerHTML=repBody(it); const c=$('#rcnt'); if(c) c.textContent=`${it.length}건 · ${new Set(it.map(r=>r.code)).size}종목 · 기준 ${R.asof||''}`; }
 function repFilter(){ const cut=new Date(Date.now()-RV.d*864e5+9*36e5).toISOString().slice(0,10), q=RV.q.trim().toLowerCase();
   return (R.items||[]).filter(r=>r.date>=cut&&(RV.rf==='all'||(rgOf(r)||{}).l===RV.rf)&&(!q||[r.name,r.code,r.broker,r.sector,r.theme,r.analyst,r.title].join(' ').toLowerCase().includes(q))); }
 function stockAgg(items){ const m=new Map(); for(const r of items){ if(!m.has(r.code)) m.set(r.code,{code:r.code,name:r.name,sector:r.sector||'기타',theme:r.theme||r.sector||'기타',rs:[]}); m.get(r.code).rs.push(r);}

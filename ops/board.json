@@ -2395,6 +2395,30 @@
       ],
       "depends_on": [],
       "notes": "PB 확인: 이슈 프리필 링크가 폰 텔레그램 내장 브라우저에서 무반응(pick 이슈 0건). 버튼 callback_data 'p|날짜|K/U|코드|청산'(≤64B) → TelegramHook.gs doPost(URL ?s= 비밀값 — GAS 는 헤더를 못 읽음 · 누른 사람 id==TG_OWNER_CHAT_ID · CacheService 10분) → 주인 PAT 로 pick 이슈 → pick.yml 기록 + 결과 텔레그램. getUpdates/setWebhook 사용처 없음(두 저장소). 남은 일: 겸이 배포(GH_TOKEN 에 Issues 쓰기 추가·스크립트 속성·웹앱 배포·tgSetWebhook) 후 실제 클릭 1회 확인 → 완료. 절차 docs/telegram_pick_buttons.md."
+    },
+    {
+      "id": "research-views",
+      "title": "비종목 리포트 트래킹(섹터·전략·매크로·채권·외환·파생·인뎁스) + 종목 리포트 수집 오류 감사",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-20",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "screener/report_kind.py",
+        "screener/research_views.py",
+        "screener/research.py",
+        "screener/dashboard.py",
+        "screener/main.py",
+        ".github/workflows/fin.yml",
+        "apps-script/tab_research.html",
+        "apps-script/Code.gs",
+        "scripts/build_pages.py",
+        "tests/test_research_views.py"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/20 요청. 감사(10/20 저장소 6,699건): ①네이버 종목분석 수집 0건 — 10/15~ 목록이 Next.js(Npay 증권) 화면으로 바뀌어 옛 표 파서가 매 실행 0건(WARNING 만), 저장소 source 100% 한경·증권사 12곳 ②opinion_rank 가 Not Rated·nr·N/A·투자의견없음(1,086건)을 '중립'으로 세어 의견 변화 399건 중 279건이 가짜 의견↑↓ → -1 로 수정(120건) ③fin.yml 저장 단계: 10/19 18:33 UTC 실행이 rebase 충돌 후 재시도 3회 실패했는데 '성공' 표시·결과 미저장 → -X theirs·regress_git·abort·실패 시 exit 1. 비종목: data/research_views.parquet·reports/research_views.json(status 출처별), 분류기 report_kind.classify(title, source_category, text, pages) 순수 함수. 한경 비CO report_type 은 목록 탭 링크에서 런타임으로 읽음(값 미확인). 남은 일: 첫 fin 실행(03:30 KST) 결과로 네이버 5종·한경 탭 실제 수집 여부 확인 → layout_changed 면 reports/logs/rv_*.html 로 새 파서, 네이버 종목분석 새 경로(API) 확인, backfill.yml·hist.yml 같은 푸시 루프 수정."
     }
   ]
 }

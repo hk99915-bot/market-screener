@@ -391,7 +391,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", choices=["KR", "US"])
     ap.add_argument("--mode", default="screen",
-                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot", "crash_check", "derivs", "freshness", "freshness_alert"])
+                    choices=["screen", "premarket_kr", "intraday_kr", "premarket_us", "intraday_us", "reports", "quotes", "dashboard", "dart", "fin", "detail_kr", "analysts", "momentum", "portfolios", "shares", "probe", "drivers", "etf", "pb", "themes", "study", "calendar", "committee", "close_kr", "duel", "duel_us", "pb_call", "health", "krxfix", "lab", "bonds", "japan", "views", "deriv_hist", "rebound", "valuation", "dotplot", "crash_check", "derivs", "freshness", "freshness_alert", "research_views"])
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--prices", help="Parquet 경로 (수집 생략)")
     ap.add_argument("--no-send", action="store_true")
@@ -620,6 +620,12 @@ def main() -> None:
             research.backfill_hankyung()
             print(analysts.build())
             dashboard.build()
+        elif a.mode == "research_views":   # 비종목 리포트(섹터·전략·매크로·채권·외환·파생·인뎁스) → data/research_views.parquet·reports/research_views.json (알림 없음)
+            from . import research_views
+            st = research_views.update()
+            print("비종목 리포트", st.get("overall"), {k: (v.get("status"), v.get("n")) for k, v in st["sources"].items()})
+            if st.get("overall") != "ok":   # 상태는 산출물에 남겼고, 워크플로가 경고로 드러내게 종료 코드 2
+                raise SystemExit(2)
         elif a.mode == "dart":        # 알림 없이 공시만 수집 (최근 7일)
             from . import dart
             df, n = dart.update(days=7)

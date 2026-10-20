@@ -181,6 +181,10 @@ def write_research(days: int = 180) -> int:
             if isinstance(it.get(f), str):
                 it[f] = surprise_guard(it[f])
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"), "days": days, "items": items, "close": close}
+    try:   # 수집 출처별 상태 (research.update_store → reports/research_status.json) — 네이버 0건 같은 실패를 화면·점검이 보게
+        out["status"] = json.loads((REPORT_DIR / "research_status.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        out["status"] = None
     (REPORT_DIR / "research.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     return len(items)
 
