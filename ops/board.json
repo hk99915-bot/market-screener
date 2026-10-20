@@ -47,7 +47,8 @@
         "ops-system",
         "gas-repaste"
       ],
-      "notes": "SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. | 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증. | 운영 10/17 결정C: 실행 이름으로 확인 — GAS = 'briefing [모드] commit=true', 같은 시각 cron = '예약 <cron>' 이 +12분 뒤 'GAS 가 슬롯 … 실행함 — cron 건너뜀' 로그로 끝나야 정상(scripts/slot_guard.py)."
+      "notes": "SYSTEM › 운영 상태의 'GAS 예약기' 표로 확인: 슬롯별 dispatch 도착 여부·지연(분), 같은 시각 GitHub 예약 중복 실행이 건너뛰어졌는지. | 10/16 미실행(재붙여넣기 선행). 다음 거래일 10/19 슬롯(08:40·14:25·15:45·16:40·22:20)으로 검증. | 운영 10/17 결정C: 실행 이름으로 확인 — GAS = 'briefing [모드] commit=true', 같은 시각 cron = '예약 <cron>' 이 +12분 뒤 'GAS 가 슬롯 … 실행함 — cron 건너뜀' 로그로 끝나야 정상(scripts/slot_guard.py).",
+      "escalated": "2026-10-21"
     },
     {
       "id": "close-swap-verify",
@@ -63,7 +64,8 @@
         "screener/data_krx.py"
       ],
       "depends_on": [],
-      "notes": "16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). | 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증."
+      "notes": "16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). | 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "rebalance-support",
@@ -92,7 +94,8 @@
         "apps-script/Index.html"
       ],
       "depends_on": [],
-      "notes": "사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. | 운영 10/17 결정C: Scheduler.gs 가 다시 바뀜(WINDOW_MIN 10·모든 슬롯 commit:'true'·SCHEDULER_VERSION). 체크리스트 docs/schedule_table.md §0 — tickTest 첫 줄 '예약기 버전 2026-10-18 결정C' 확인. 붙여넣기 전에도 commit=auto 로 커밋은 됨(호환)."
+      "notes": "사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. | 운영 10/17 결정C: Scheduler.gs 가 다시 바뀜(WINDOW_MIN 10·모든 슬롯 commit:'true'·SCHEDULER_VERSION). 체크리스트 docs/schedule_table.md §0 — tickTest 첫 줄 '예약기 버전 2026-10-18 결정C' 확인. 붙여넣기 전에도 commit=auto 로 커밋은 됨(호환).",
+      "escalated": "2026-10-21"
     },
     {
       "id": "memproxy-line",
@@ -109,7 +112,8 @@
       "depends_on": [
         "night-futures-line"
       ],
-      "notes": "패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후."
+      "notes": "패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "ai-credit",
@@ -312,7 +316,8 @@
         "screener/deriv_hist.py"
       ],
       "depends_on": [],
-      "notes": "실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시."
+      "notes": "실시간 밤 티커는 만들지 않음 — 08:50 장전 메시지·텔레그램 한 줄만. 데이터 소스(KRX 야간 K200F) 확인 필요, 거래량 적은 날 표시.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "deriv-hist",
@@ -329,7 +334,8 @@
         ".github/workflows/deriv_hist.yml"
       ],
       "depends_on": [],
-      "notes": "검증의 전제. 라이브 화면·텔레그램 추가 없음."
+      "notes": "검증의 전제. 라이브 화면·텔레그램 추가 없음.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "derivs-validate",
@@ -362,7 +368,8 @@
         "screener/derivs.py"
       ],
       "depends_on": [],
-      "notes": "검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). fc69e054 백필에서 재계산 확인(행사가 1 벽 0일, 콜 벽 결측 0일)."
+      "notes": "검수: dc0aacb9 정규식 수정 확인(1,087.5 → 1087.5 파싱 OK; 수정 전엔 행사가 1 로 둔갑). fc69e054 백필에서 재계산 확인(행사가 1 벽 0일, 콜 벽 결측 0일).",
+      "escalated": "2026-10-21"
     },
     {
       "id": "study-derivs",
@@ -393,7 +400,8 @@
         "scripts/build_pages.py"
       ],
       "depends_on": [],
-      "notes": "겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. 10:00~12:00 창. 오후 리뷰(sunday-review) 전에 끝내고 재클론·GAS 확인까지."
+      "notes": "겸이 승인(10/16 00:51): 10/18(일) 오전 실행. ①② 사전 준비, ③ 기록 정리는 실행 직전 겸이 최종 확인. 모든 예약·에이전트 일시 정지 후 진행, 이후 재클론. 10:00~12:00 창. 오후 리뷰(sunday-review) 전에 끝내고 재클론·GAS 확인까지.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "drivers-audit",
@@ -409,7 +417,8 @@
         "apps-script/Index.html"
       ],
       "depends_on": [],
-      "notes": "지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관"
+      "notes": "지주사·기계·운송 업종 체인 오매핑 제거, 매크로 가정 축소, 10년물 bp, 뉴스 반대말 규칙, 날짜별 보관",
+      "escalated": "2026-10-21"
     },
     {
       "id": "earn-cal-q3",
@@ -491,7 +500,8 @@
       ],
       "depends_on": [],
       "notes": "새 수집 없음 — reports/derivs.json·data/deriv/daily.csv·reports/studies/derivs_signals.json·live.json K200F 재사용.",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-10-21"
     },
     {
       "id": "cmt-v2",
@@ -510,7 +520,8 @@
       ],
       "depends_on": [],
       "notes": "새 키만 추가(기존 stance·scenarios·ideas·derivs 유지). reports/ideas_log.json·ideas_attrib.json 은 예약 실행이 생성. GAS 재붙여넣기: Index.html·Scheduler.gs. 컨센서스·선물 외국인 수급은 데이터 없음.",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-10-21"
     },
     {
       "id": "entry-signal-validate",
@@ -649,7 +660,8 @@
       "depends_on": [
         "gas-repaste"
       ],
-      "notes": "1ac92739. 다음 거래일 10/19 14:25 첫 실전 도착(GitHub cron·GAS 중복 억제) 확인 후 완료. 메시지에 개인 수치 없음 재확인."
+      "notes": "1ac92739. 다음 거래일 10/19 14:25 첫 실전 도착(GitHub cron·GAS 중복 억제) 확인 후 완료. 메시지에 개인 수치 없음 재확인.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "sunday-review",
@@ -662,7 +674,8 @@
       "repo": "private",
       "files": [],
       "depends_on": [],
-      "notes": "private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결)."
+      "notes": "private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결).",
+      "escalated": "2026-10-21"
     },
     {
       "id": "sunday-scorecard",
@@ -675,7 +688,8 @@
       "repo": "private",
       "files": [],
       "depends_on": [],
-      "notes": "private 저장소 전용(weekly-scorecard 확장). 10/18 첫 발행, 이후 매주 일요일. 안건 8-B 재발 방지 장치."
+      "notes": "private 저장소 전용(weekly-scorecard 확장). 10/18 첫 발행, 이후 매주 일요일. 안건 8-B 재발 방지 장치.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "alpha-baseline-fix",
@@ -690,7 +704,8 @@
       "depends_on": [
         "sunday-review"
       ],
-      "notes": "private 저장소 전용. 기준점 파일의 미장 평가는 10/15 종가로 적혀 있음 → 10/18 리뷰에서 1회 정정 후 잠금."
+      "notes": "private 저장소 전용. 기준점 파일의 미장 평가는 10/15 종가로 적혀 있음 → 10/18 리뷰에서 1회 정정 후 잠금.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "frm-audit",
@@ -703,7 +718,8 @@
       "repo": "private",
       "files": [],
       "depends_on": [],
-      "notes": "private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만."
+      "notes": "private 저장소 전용. 안건 8-A 결정의 입력. 결론은 '경보 vs 강제' 둘 중 하나로만.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "cio-memo",
@@ -716,7 +732,8 @@
       "repo": "private",
       "files": [],
       "depends_on": [],
-      "notes": "private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리."
+      "notes": "private 저장소 전용. 리뷰에서 읽을 1장. 새 규칙 제안 금지 — 기존 안건의 충돌만 정리.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "semis-cap-study",
@@ -732,7 +749,8 @@
         "reports/studies/semis_cap.json"
       ],
       "depends_on": [],
-      "notes": "결과 71f87fd9·c9fe8595: H1(밴드) C · H2(글라이드) A · H3(하락장 캡) F — 안건 7·8-A·8-C 의 데이터 근거. PB 검수 후 일요일 안건 팩에 등급 그대로 인용. 개인 비중 없이 파라미터만."
+      "notes": "결과 71f87fd9·c9fe8595: H1(밴드) C · H2(글라이드) A · H3(하락장 캡) F — 안건 7·8-A·8-C 의 데이터 근거. PB 검수 후 일요일 안건 팩에 등급 그대로 인용. 개인 비중 없이 파라미터만.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "gamma-verdict",
@@ -750,7 +768,8 @@
         "gamma-regime",
         "deriv-hist"
       ],
-      "notes": "deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지."
+      "notes": "deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "holdings-unify",
@@ -815,7 +834,8 @@
       "depends_on": [
         "integrity-p0-4"
       ],
-      "notes": "사용자가 저장소 Settings › Secrets 에서 직접. 값은 비율(0.40)만. 일요일 결정에 따라 0.35 로 바꿀 수 있으니 10/18 리뷰 후 재확인. · 10/17 감사 A-08·B-08 정정(개발): 'SEMI_CAP 0.40' 단일값은 넣지 않는다(defs 레짐 연동이 덮임). 내용은 `python3 scripts/secrets_gen.py show MY_RULES`(pb-private) 로 생성, 등록 후 `mark MY_RULES`."
+      "notes": "사용자가 저장소 Settings › Secrets 에서 직접. 값은 비율(0.40)만. 일요일 결정에 따라 0.35 로 바꿀 수 있으니 10/18 리뷰 후 재확인. · 10/17 감사 A-08·B-08 정정(개발): 'SEMI_CAP 0.40' 단일값은 넣지 않는다(defs 레짐 연동이 덮임). 내용은 `python3 scripts/secrets_gen.py show MY_RULES`(pb-private) 로 생성, 등록 후 `mark MY_RULES`.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "quant-data-etf-hist",
@@ -881,7 +901,8 @@
       "started": "2026-10-16",
       "due": "2026-10-18",
       "depends_on": [],
-      "notes": "개인 금액은 pb-private/scorecard/build_week.py 쪽에서, 공개는 비율만."
+      "notes": "개인 금액은 pb-private/scorecard/build_week.py 쪽에서, 공개는 비율만.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "edu-curriculum-v3",
@@ -939,7 +960,8 @@
         "edu-curriculum-v3",
         "edu-quiz-srs"
       ],
-      "notes": "일요일 오전. Index.html 잠금 필요."
+      "notes": "일요일 오전. Index.html 잠금 필요.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "desk-scoreboard-monthly",
@@ -956,7 +978,8 @@
       "started": "",
       "due": "2026-10-31",
       "depends_on": [],
-      "notes": "첫 회 10/31. 데스크 프롬프트 템플릿에 'KB+최근 복기 3건 읽기' 포함(HANDOFF)."
+      "notes": "첫 회 10/31. 데스크 프롬프트 템플릿에 'KB+최근 복기 3건 읽기' 포함(HANDOFF).",
+      "escalated": "2026-10-21"
     },
     {
       "id": "ra-sec-coverage",
@@ -976,7 +999,8 @@
       "depends_on": [
         "valuation-daily"
       ],
-      "notes": "컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지."
+      "notes": "컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "ra-etf-holdings-full",
@@ -992,7 +1016,8 @@
       "started": "",
       "due": "2026-10-23",
       "depends_on": [],
-      "notes": "현재 상위 7개만 저장됨."
+      "notes": "현재 상위 7개만 저장됨.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "peer-review-valuation",
@@ -1010,7 +1035,8 @@
       "depends_on": [
         "valuation-daily"
       ],
-      "notes": "피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당."
+      "notes": "피어는 애널 결론을 모른 채 같은 데이터로 먼저 쓴 뒤 대조. 불일치는 KB '차이'로. 트립와이어(HBM4 10/28·DRAM 프리미엄·자사주) 점검 담당.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "peer-earnings-preview",
@@ -1027,7 +1053,8 @@
       "depends_on": [
         "ra-sec-coverage"
       ],
-      "notes": "'한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함."
+      "notes": "'한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "ra-sector-frames",
@@ -1043,7 +1070,8 @@
       "started": "",
       "due": "2026-10-24",
       "depends_on": [],
-      "notes": "실존 애널 개인 페르소나 금지. 하우스 단위도 공개엔 이름 없이."
+      "notes": "실존 애널 개인 페르소나 금지. 하우스 단위도 공개엔 이름 없이.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "ra-house-scoreboard",
@@ -1058,7 +1086,8 @@
       "depends_on": [
         "ra-sector-frames"
       ],
-      "notes": "표본 n<10 하우스는 미표시. 개인명 저장 금지."
+      "notes": "표본 n<10 하우스는 미표시. 개인명 저장 금지.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "peer-bear-view",
@@ -1075,7 +1104,8 @@
       "depends_on": [
         "ra-sector-frames"
       ],
-      "notes": "지어낸 반대 금지 — 시장에 실존하는 뷰만."
+      "notes": "지어낸 반대 금지 — 시장에 실존하는 뷰만.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "valuation-daily",
@@ -1097,7 +1127,8 @@
       "started": "2026-10-16",
       "due": "2026-10-17",
       "depends_on": [],
-      "notes": "US 9종목(MU·SNDK·NVDA·INTC·TXN·KLAC·LRCX·TSM 등)은 fin 워크플로 SEC 수집 후 자동 채움(그 전엔 ⚠검증전). 20일 분해의 EPS₀ 는 archive/valuation 이 20일 쌓인 뒤 유효. GAS: Code.gs getValuation + Index.html 재붙여넣기 필요."
+      "notes": "US 9종목(MU·SNDK·NVDA·INTC·TXN·KLAC·LRCX·TSM 등)은 fin 워크플로 SEC 수집 후 자동 채움(그 전엔 ⚠검증전). 20일 분해의 EPS₀ 는 archive/valuation 이 20일 쌓인 뒤 유효. GAS: Code.gs getValuation + Index.html 재붙여넣기 필요.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "dotplot",
@@ -1115,7 +1146,8 @@
       "started": "2026-10-16",
       "due": "2026-10-17",
       "depends_on": [],
-      "notes": "규칙은 모듈 문서문자열. 장후 운용회의(reports 모드) 뒤 자동 호출. 지수·업종 수준만, 금액 없음."
+      "notes": "규칙은 모듈 문서문자열. 장후 운용회의(reports 모드) 뒤 자동 호출. 지수·업종 수준만, 금액 없음.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "dotplot-neutral-rule",
@@ -1133,7 +1165,8 @@
       "depends_on": [
         "dotplot"
       ],
-      "notes": "10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외."
+      "notes": "10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "crash-day-active",
@@ -1156,7 +1189,8 @@
       "started": "2026-10-16",
       "due": "2026-10-17",
       "depends_on": [],
-      "notes": "10/15 복기(급락일 종가 1등 신호에 모델 '관망'·PB 현금). 모델·알림만 변경, rules.txt 는 일요일 별도 결정. GAS Scheduler.gs 15:05 슬롯 재붙여넣기 필요."
+      "notes": "10/15 복기(급락일 종가 1등 신호에 모델 '관망'·PB 현금). 모델·알림만 변경, rules.txt 는 일요일 별도 결정. GAS Scheduler.gs 15:05 슬롯 재붙여넣기 필요.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "sec-ytd-bug",
@@ -1173,7 +1207,8 @@
       "started": "2026-10-17",
       "due": "2026-10-20",
       "depends_on": [],
-      "notes": "10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인. · 최종 판정(10/17 PB, 감사 요청): MU·SNDK 분기 순이익·매출은 누적치 아님 — 8-K 원문 대조 전부 일치(universe/fin_verified.json). P0 판정은 모양만 보고 내린 PB 오판(복기 9호). 실제 결함 = MU 현금흐름 1분기 공백(2fcf1180)·매출 태그 전환(8df55397). data.md 복기의 'MU 실제 누적' 문구는 데이터 데스크에 정정 요청."
+      "notes": "10/17 00:50 발견. MU ni 5.2→13.8→28.2→37.7, SNDK revenue 3.0→6.0→9.0. 검증 데스크가 DART 쪽 동일 문제 여부 확인. · 최종 판정(10/17 PB, 감사 요청): MU·SNDK 분기 순이익·매출은 누적치 아님 — 8-K 원문 대조 전부 일치(universe/fin_verified.json). P0 판정은 모양만 보고 내린 PB 오판(복기 9호). 실제 결함 = MU 현금흐름 1분기 공백(2fcf1180)·매출 태그 전환(8df55397). data.md 복기의 'MU 실제 누적' 문구는 데이터 데스크에 정정 요청.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "study-progress",
@@ -1197,7 +1232,8 @@
       "depends_on": [
         "edu-quiz-srs"
       ],
-      "notes": "첫 실전: 10/19(월) 07:10 메시지의 이슈 링크로 'study H2 done' 1건 → 답글·닫힘·progress 커밋 확인. 오답 큐는 해당 데스크가 KB '흔한 오해'에 반영 후 [x]. 모듈 id·날짜·정답 여부만(금액 없음). Index.html 병합은 edu-dev-handoff #4."
+      "notes": "첫 실전: 10/19(월) 07:10 메시지의 이슈 링크로 'study H2 done' 1건 → 답글·닫힘·progress 커밋 확인. 오답 큐는 해당 데스크가 KB '흔한 오해'에 반영 후 [x]. 모듈 id·날짜·정답 여부만(금액 없음). Index.html 병합은 edu-dev-handoff #4.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "index-split",
@@ -1218,7 +1254,8 @@
         "ops/LOCKS.md"
       ],
       "depends_on": [],
-      "notes": "탭 파일 14개가 각각 잠금 단위. GAS 에는 Index + tab_* 14개 + Code.gs 를 각각 파일로 만들어 붙여넣어야 함(목록 ops/README.md). 빌드 결과는 원본 코드 줄 그대로(주석·<script> 경계만 추가)."
+      "notes": "탭 파일 14개가 각각 잠금 단위. GAS 에는 Index + tab_* 14개 + Code.gs 를 각각 파일로 만들어 붙여넣어야 함(목록 ops/README.md). 빌드 결과는 원본 코드 줄 그대로(주석·<script> 경계만 추가).",
+      "escalated": "2026-10-21"
     },
     {
       "id": "mu-revenue-tag",
@@ -1272,7 +1309,8 @@
         "tests/test_rep_exec_signal.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/31: 미착수. 등급 C·F 위주라 결정 영향 가장 작음 — 4순위."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/31: 미착수. 등급 C·F 위주라 결정 영향 가장 작음 — 4순위.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "rep-entry-signals",
@@ -1289,7 +1327,8 @@
         "tests/test_rep_entry_signals.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/25: 미착수. 우선순위 2(122630 진입 신호 — 운용회의 인용 중). 사유: 검증 데스크 1인·라운드당 1~2건 처리 속도."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/25: 미착수. 우선순위 2(122630 진입 신호 — 운용회의 인용 중). 사유: 검증 데스크 1인·라운드당 1~2건 처리 속도.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "rep-rule-audit",
@@ -1306,7 +1345,8 @@
         "tests/test_rep_rule_audit.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/28: 미착수. T1~T18 범위가 커서 결정 걸린 T4·T5 만 먼저 재현 예정."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/28: 미착수. T1~T18 범위가 커서 결정 걸린 T4·T5 만 먼저 재현 예정.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "quiz-key-balance",
@@ -1326,7 +1366,8 @@
       "depends_on": [
         "study-progress"
       ],
-      "notes": "교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음."
+      "notes": "교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "macro-consensus-source",
@@ -1344,7 +1385,8 @@
       "due": "2026-11-14",
       "depends_on": [],
       "notes": "결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동.",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "audit-life-target-amount",
@@ -1379,7 +1421,8 @@
       "due": "2026-10-20",
       "depends_on": [],
       "notes": "10/17 발견: 두 시크릿이 처음부터 없어 발동선·PB 점검이 이틀간 미작동, 아무도 모름. '꺼짐'과 '조건 미충족'을 구분 표기.",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "pbview-amount-wording",
@@ -1397,7 +1440,8 @@
       "due": "2026-10-20",
       "depends_on": [],
       "notes": "감사 라운드1 PB 중: decisions.json pb_view '100만원·300만원' 금액 문장, n=12 기저율 등급 없음. 생성 프롬프트/템플릿 수정. · 10/21 감사: 기한 경과. decisions.json:187·295 모의 사이즈인데 '모의' 표기 없음, files 목록이 생성 경로와 불일치 — 정정 요청(reports/audit/2026-10-21.md #4)",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "detail-us-regress",
@@ -1438,7 +1482,8 @@
       "due": "2026-11-05",
       "depends_on": [],
       "notes": "Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17.",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "px-adjust-unify",
@@ -1456,7 +1501,8 @@
       "due": "2026-10-19",
       "depends_on": [],
       "notes": "외부감사 10/17 P1 확인. 원본 parquet에 ±45% 시가갭 373건/343종목(13개월) → 휴리스틱 자체가 과검출 의심(거래정지·900xxx). 실제 기업행위(KRX/DART) 대조 + 분할·병합·정지 회귀테스트.",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "bt-exec-lag",
@@ -1473,7 +1519,8 @@
       "due": "2026-10-20",
       "depends_on": [],
       "notes": "외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부.",
-      "desk": "백테스트"
+      "desk": "백테스트",
+      "escalated": "2026-10-21"
     },
     {
       "id": "sim-oos",
@@ -1492,7 +1539,8 @@
         "px-adjust-unify"
       ],
       "notes": "Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인.",
-      "desk": "퀀트"
+      "desk": "퀀트",
+      "escalated": "2026-10-21"
     },
     {
       "id": "score-calib",
@@ -1512,7 +1560,8 @@
         "px-adjust-unify"
       ],
       "notes": "외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시.",
-      "desk": "퀀트"
+      "desk": "퀀트",
+      "escalated": "2026-10-21"
     },
     {
       "id": "pub-whitelist",
@@ -1529,7 +1578,8 @@
       "due": "2026-10-31",
       "depends_on": [],
       "notes": "외부감사 5절. decisions.json은 모의거래 표기 확인됨. 실보유는 pb-private 유지.",
-      "desk": "검증"
+      "desk": "검증",
+      "escalated": "2026-10-21"
     },
     {
       "id": "guard-rest",
@@ -1586,7 +1636,8 @@
       "due": "2026-10-24",
       "depends_on": [],
       "notes": "애널 요청 10/17 (KoAct vs NDX 리포트 한계). 샌드박스 DNS 차단 → Actions에서 수집.",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "kr-accum",
@@ -1651,7 +1702,8 @@
         "us-accum"
       ],
       "notes": "실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다.",
-      "desk": "매크로"
+      "desk": "매크로",
+      "escalated": "2026-10-21"
     },
     {
       "id": "us-delisted-earnings",
@@ -1668,7 +1720,8 @@
       "due": "2026-11-07",
       "depends_on": [],
       "notes": "퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B).",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "schedule-single-accum",
@@ -1685,7 +1738,8 @@
       ],
       "depends_on": [],
       "notes": "운영 10/17: 퀀트 잠금 중이라 운영이 못 고침. us_accum.yml 과 같은 3줄(입력 commit 기본 false + 저장 단계 if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')). backfill 수동 실행은 commit=true. 고친 뒤 tests/test_schedule_single.py PENDING 에서 accum.yml 제거(안 빼면 테스트가 알려줌). | 퀀트 10/17: accum.yml 에 commit 입력(기본 false)+저장 조건 반영, tests/test_schedule_single.py PENDING 비움. 운영 확인 후 완료.",
-      "desk": "운영"
+      "desk": "운영",
+      "escalated": "2026-10-21"
     },
     {
       "id": "r9-alert-grade",
@@ -1801,7 +1855,8 @@
       "due": "2026-10-20",
       "depends_on": [],
       "notes": "결재 #14 ③. 기록 데스크/PB 가 포상 직후 한 줄 추가(예: {\"at\":\"2026-10-20 15:40\",\"what\":\"포상\"}). 없으면 매도만 쿨다운.",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-21"
     },
     {
       "id": "audit-ring-pb",
@@ -1884,7 +1939,8 @@
       ],
       "depends_on": [],
       "notes": "감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-21"
     },
     {
       "id": "audit-1017-minor",
@@ -1901,7 +1957,8 @@
       ],
       "depends_on": [],
       "notes": "표: docs/peer_reviews/2026-10-17_refactor_audit.md §2.2. 담당 열대로 데스크에 나눠 처리. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md",
-      "desk": "검증"
+      "desk": "검증",
+      "escalated": "2026-10-21"
     },
     {
       "id": "event-watch",
@@ -1921,7 +1978,8 @@
       "due": "2026-10-20",
       "depends_on": [],
       "notes": "오너 10/17 15시대 '사건이 터지면 바로'. 실행 주체 = live 루프(백그라운드 60초). 상태 reports/event_state.json(금액 0·보유 코드 해시). 검수: 10/20 09:00~ Actions live 로그에 '이벤트 감시:' 줄이 분마다 찍히는지. 남은 것(개발5 alerts.py 잠금 중이라 미반영): alerts.build 의 touch_lines() 결과에서 event_watch.load_state()['sent'] 의 'touch:<코드>' 를 빼는 2줄 — 안 하면 이벤트 감시가 보낸 터치를 14:25·16:20 규정 알림이 그날 한 번 더 보냄(기존 동작과 같음).",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-21"
     },
     {
       "id": "live-us-winter-window",
@@ -1938,7 +1996,8 @@
       "due": "2026-10-31",
       "depends_on": [],
       "notes": "안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성.",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-21"
     },
     {
       "id": "live-resume-gap",
@@ -1958,7 +2017,8 @@
         "event-watch"
       ],
       "notes": "안 A: 루프 끝(340분 상한·장중)에 gh workflow run live.yml -f commit=true (permissions actions: write 필요 — 권한 확대라 오너/운영 승인 후). 안 B: Scheduler.gs 에 live 재개 슬롯 14:20·04:00 추가(오너 붙여넣기). 실측: 10/15 15:07 cron → 20:19, 10/16 04:07 → 07:05.",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-21"
     },
     {
       "id": "dart-netcash",
@@ -1975,7 +2035,8 @@
       "due": "2026-10-31",
       "depends_on": [],
       "notes": "10/17 오너 질문(삼성 순현금 207조). 현재 cash=현금성자산만. 3Q 확정(10/30) 전에.",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-21"
     },
     {
       "id": "token-meter-real-usage",
@@ -1993,7 +2054,8 @@
       "due": "2026-11-05",
       "depends_on": [],
       "notes": "내무 요청(10/17 토큰 원가센터). 10/17 대조: runs.tokens 는 마지막 호출 컨텍스트 크기에 가까워 실제 누적 처리량의 약 1/30, 기록 누락도 있음(10/16 실측 37건 vs 기록 5건). team_run.py --transcript <agent jsonl> 로 message.id 중복 제거 합산 → runs 에 calls·cache_read·new 추가(기존 tokens 유지). team_stats by_owner_model 추가. 금액은 넣지 않음(토큰·건수만). pro-plan-round-scale(11/5) 입력.",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-21"
     },
     {
       "id": "hook-per-model-rows",
@@ -2007,7 +2069,8 @@
       "due": "2026-10-31",
       "depends_on": [],
       "notes": "내무 요청. 10/17 메인 대화가 두 모델로 섞였는데(약 1:3) CSV 는 마지막 모델 1개만 기록함. 소비 측(household 토큰 보고서)은 이미 모델별 행을 받을 수 있음.",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-21"
     },
     {
       "id": "activist-first-live-run",
@@ -2170,7 +2233,8 @@
       ],
       "depends_on": [],
       "notes": "겸이 10/17 지시. 데이터 = pb-private 2026-10-15-alloc 월수익률(시장 데이터만). 전략(자산배분) 검토 요청. | 대조(10/17): 월 리밸·비용 미차감으로 돌리면 매크로 금 보고서 5절과 일치(현행 10.81%·MDD −13.70%, 금10+국고 10.35%·−14.35%, 금10+NDX 10.98%·−15.98%). 화면 기본(비용 차감·연 1회)은 현행 10.53%·−16.13% — 차이 = ① 비용 연 약 0.44%p(배분 보고서 DRAG, 매크로는 미차감) ② 연 1회 리밸(2026-06~10 낙폭 −12.6%→−15.6%). 2008 구간은 배분 보고서 기준 07-11~09-02(매크로는 08-01~09-02: −2.0% vs 우리 계산 −2.5%, 경계 정의 차이 추정). 부트스트랩 10년 = 배분 보고서와 같은 정상 블록 L=12, 단 적립·평가 가정 다름(배수만).",
-      "desk": "퀀트"
+      "desk": "퀀트",
+      "escalated": "2026-10-21"
     },
     {
       "id": "lab-p1",
@@ -2204,7 +2268,8 @@
       "depends_on": [
         "lab-p1"
       ],
-      "notes": "컨테이너 SEC 연결 실패(000) → Actions(ubuntu, SEC User-Agent)로 13F-HR 수집·data 커밋 후 별도 사전등록 id로 검정. 설계는 reports/studies/lab_p1.json l3_13f."
+      "notes": "컨테이너 SEC 연결 실패(000) → Actions(ubuntu, SEC User-Agent)로 13F-HR 수집·data 커밋 후 별도 사전등록 id로 검정. 설계는 reports/studies/lab_p1.json l3_13f.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "data-consensus-hist",
@@ -2217,7 +2282,8 @@
       "repo": "public",
       "files": [],
       "depends_on": [],
-      "notes": "퀀트 요청(lab-p1 P1-T): 창고에 컨센서스 과거 이력 없음, data/dart.parquet 잠정실적 5일분(10/12~16)뿐 → P1-T는 확정 숫자 대용치(QoQ 개선+매출 YoY>0)로만 검정. 잠정실적 공시 이력(2021~) 적재되면 대용치 ① 재등록."
+      "notes": "퀀트 요청(lab-p1 P1-T): 창고에 컨센서스 과거 이력 없음, data/dart.parquet 잠정실적 5일분(10/12~16)뿐 → P1-T는 확정 숫자 대용치(QoQ 개선+매출 YoY>0)로만 검정. 잠정실적 공시 이력(2021~) 적재되면 대용치 ① 재등록.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "integrity-p0-1",
@@ -2230,7 +2296,8 @@
       "repo": "private",
       "files": [],
       "depends_on": [],
-      "notes": "pb-private scripts/integrity_check.py + tests 21건. 원장 🗳️ 기한·키, '미체결/예정' 문구↔체결 기록, HANDOFF·history·PLAN 잔존, holdings↔isa_holdings·미결제·예적금, 일정 날짜 불일치·요일, 시크릿 낡음. 정정 전 스냅샷 치명 3/중 8/경 5(종료 1), 현재 원장 치명 0/중 7/경 4. 연결(세션 시작 훅·22:30 기록 예약)은 오너 결정 후 — 예약 변경. 설계·결과: docs/integrity_dev_plan_2026-10-17.md"
+      "notes": "pb-private scripts/integrity_check.py + tests 21건. 원장 🗳️ 기한·키, '미체결/예정' 문구↔체결 기록, HANDOFF·history·PLAN 잔존, holdings↔isa_holdings·미결제·예적금, 일정 날짜 불일치·요일, 시크릿 낡음. 정정 전 스냅샷 치명 3/중 8/경 5(종료 1), 현재 원장 치명 0/중 7/경 4. 연결(세션 시작 훅·22:30 기록 예약)은 오너 결정 후 — 예약 변경. 설계·결과: docs/integrity_dev_plan_2026-10-17.md",
+      "escalated": "2026-10-21"
     },
     {
       "id": "integrity-p0-2",
@@ -2245,7 +2312,8 @@
       "depends_on": [
         "integrity-p0-1"
       ],
-      "notes": "설계만(10/17 밤). rules.txt 는 월 14:42 판단 입력 + [13] 22~07시 규칙 변경 금지 → 월 장 후 생성기 착수, 본문 개정은 일요일 오너 결정. 설계: docs/integrity_dev_plan_2026-10-17.md §2"
+      "notes": "설계만(10/17 밤). rules.txt 는 월 14:42 판단 입력 + [13] 22~07시 규칙 변경 금지 → 월 장 후 생성기 착수, 본문 개정은 일요일 오너 결정. 설계: docs/integrity_dev_plan_2026-10-17.md §2",
+      "escalated": "2026-10-21"
     },
     {
       "id": "integrity-p0-3",
@@ -2258,7 +2326,8 @@
       "repo": "public",
       "files": [],
       "depends_on": [],
-      "notes": "예약 변경 — 월 장 전 금지. 월 14:42 1회는 현 프롬프트로 돌고 PB가 결재 #2·#3 과 수동 대조. 장 후 오너 확인 뒤 교체. 설계: docs/integrity_dev_plan_2026-10-17.md §3"
+      "notes": "예약 변경 — 월 장 전 금지. 월 14:42 1회는 현 프롬프트로 돌고 PB가 결재 #2·#3 과 수동 대조. 장 후 오너 확인 뒤 교체. 설계: docs/integrity_dev_plan_2026-10-17.md §3",
+      "escalated": "2026-10-21"
     },
     {
       "id": "integrity-p0-4",
@@ -2271,7 +2340,8 @@
       "repo": "private",
       "files": [],
       "depends_on": [],
-      "notes": "pb-private scripts/secrets_gen.py show|write|check|mark — 생성본은 stdout·gitignore 경로만, 등록 기록은 해시만. MY_RULES 에 SEMI_CAP 단일값을 넣지 않음(defs 레짐 연동이 단일 출처, B-08). 실제 등록은 오너 직접. 공개 아침 점검 '낡음' 배지는 alerts/pb 경로(라이브) → 월 장 후. 설계: docs/integrity_dev_plan_2026-10-17.md §4"
+      "notes": "pb-private scripts/secrets_gen.py show|write|check|mark — 생성본은 stdout·gitignore 경로만, 등록 기록은 해시만. MY_RULES 에 SEMI_CAP 단일값을 넣지 않음(defs 레짐 연동이 단일 출처, B-08). 실제 등록은 오너 직접. 공개 아침 점검 '낡음' 배지는 alerts/pb 경로(라이브) → 월 장 후. 설계: docs/integrity_dev_plan_2026-10-17.md §4",
+      "escalated": "2026-10-21"
     },
     {
       "id": "integrity-p0-5",
@@ -2286,7 +2356,8 @@
       "depends_on": [
         "integrity-p0-1"
       ],
-      "notes": "설계 문서만(코드 X), 월 장 후 착수. 진행 중·대기 승인·예약·일요일 안건·커리어 절을 원장·이슈·예약 스냅샷에서 생성, 규칙 절은 CLAUDE.md 참조. 설계: docs/integrity_dev_plan_2026-10-17.md §5"
+      "notes": "설계 문서만(코드 X), 월 장 후 착수. 진행 중·대기 승인·예약·일요일 안건·커리어 절을 원장·이슈·예약 스냅샷에서 생성, 규칙 절은 CLAUDE.md 참조. 설계: docs/integrity_dev_plan_2026-10-17.md §5",
+      "escalated": "2026-10-21"
     },
     {
       "id": "my-tab-ledger-compare",
@@ -2307,7 +2378,8 @@
       "due": "2026-10-18",
       "depends_on": [
         "integrity-p0-4"
-      ]
+      ],
+      "escalated": "2026-10-21"
     },
     {
       "id": "gpt-daily-source-time",
@@ -2336,7 +2408,8 @@
       "repo": "public",
       "files": [],
       "depends_on": [],
-      "notes": "GPT 점검: live 12:08, daily 10:35, 공개 research 10:35·1564건·최신 발간 10/19. freshness 11:39: calendar 10/18로 지연, MY_RULES/MY_HOLDINGS 없음 경보. 실제 시크릿 값은 공개에 기록하지 않음. 수집 완료와 개인 알림 활성 구분. 캘린더 dashboard commit=true 재생성 후 검증 필요."
+      "notes": "GPT 점검: live 12:08, daily 10:35, 공개 research 10:35·1564건·최신 발간 10/19. freshness 11:39: calendar 10/18로 지연, MY_RULES/MY_HOLDINGS 없음 경보. 실제 시크릿 값은 공개에 기록하지 않음. 수집 완료와 개인 알림 활성 구분. 캘린더 dashboard commit=true 재생성 후 검증 필요.",
+      "escalated": "2026-10-21"
     },
     {
       "id": "us-committee-v2",
@@ -2853,6 +2926,202 @@
       ],
       "depends_on": [],
       "notes": "근거 reports/studies/cio_top3_review_2026-10-21.md §4·§5. 스위치 ON(screener/config.py CIO_TOP3_V2 = True) — 10/21 02:3x·02:4x·02:5x 겸이 명시 승인으로 [13] 예외 ON, 되돌리기는 그 한 줄 False. 범위 = TOP3 표시·모의 추적만(포트폴리오 한도·주문 경로 무관, Scope 테스트). ON 시뮬: 10/19·10/20 최종판 TOP3 실행 0·대기 3 → 실행 3·대기 0. P5 사전등록은 CIO."
+    },
+    {
+      "id": "req-behavior-ef3cf408",
+      "title": "[요청 승격] 교육→행동: kb:behavior#3에 Thaler & Johnson 1990 손실 쪽 조건(본전 회복 가능 시에만 위험",
+      "owner": "행동",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 행동 라운드 파일에 `처리→교육: …` 한 줄 또는 `python3 scripts/ask.py --close req-behavior-ef3cf408`."
+    },
+    {
+      "id": "req-cio-523f45e9",
+      "title": "[요청 승격] 피어리뷰→CIO: rules.txt에서 [5] 백스톱·[8] 이전·[12] 반등일 매도의 적용 범위가 '위성 북(D1 전체)'",
+      "owner": "CIO",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 CIO 라운드 파일에 `처리→피어리뷰: …` 한 줄 또는 `python3 scripts/ask.py --close req-cio-523f45e9`."
+    },
+    {
+      "id": "req-data-47bce057",
+      "title": "[요청 승격] 개발→데이터: 네이버 KOSPI `chg` 분모(전일 종가) 정의 1줄 + 반등일용 KRX 확정 전일 종가 필드 제공 여부",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→개발: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-47bce057`."
+    },
+    {
+      "id": "req-data-c4687197",
+      "title": "[요청 승격] 리스크→데이터: 2026-06-22~07-29 구간 반도체 개별주·섹터 ETF·KODEX 200·삼성전기 일봉(data/hi",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-c4687197`."
+    },
+    {
+      "id": "req-derivs-5cdb298e",
+      "title": "[요청 승격] 매크로→파생: 베이시스 '약세 괴리' 문장에 외국인 선물 순매수(`fut_frgn`)·USDKRW 5일 변화를 병기해 심리",
+      "owner": "파생",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 파생 라운드 파일에 `처리→매크로: …` 한 줄 또는 `python3 scripts/ask.py --close req-derivs-5cdb298e`."
+    },
+    {
+      "id": "req-dev-3b5b1223",
+      "title": "[요청 승격] 감사→개발: 보드 P0 `audit-life-target-amount`(tab_life.html:28 순자산 목표 금액 ",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-3b5b1223`."
+    },
+    {
+      "id": "req-dev-89c9aeed",
+      "title": "[요청 승격] 운영→개발: scripts/board.py 에 작업 추가 서브커맨드(`--add <json>`, validate 통과 시",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→운영: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-89c9aeed`."
+    },
+    {
+      "id": "req-dev-dee1f9ae",
+      "title": "[요청 승격] 데이터→개발: `scripts/retention.py`(드라이런 기본) 를 ops 워크플로에 어떻게 붙일지(실행 시점·--",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→데이터: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-dee1f9ae`."
+    },
+    {
+      "id": "req-edu-dff14251",
+      "title": "[요청 승격] 행동→교육: H2 concepts ②를 '24시간(현업 관행, kb:behavior#14)'과 '30분(결재 #14 ③,",
+      "owner": "교육",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 교육 라운드 파일에 `처리→행동: …` 한 줄 또는 `python3 scripts/ask.py --close req-edu-dff14251`."
+    },
+    {
+      "id": "req-frm-e3fda510",
+      "title": "[요청 승격] 채권→리스크: 스트레스 사건에 2022형(주식·채권 동반 하락) 추가 + 채권 ETF 위험 σ·D×Δy 병기(입력 숫자는 ",
+      "owner": "리스크",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 리스크 라운드 파일에 `처리→채권: …` 한 줄 또는 `python3 scripts/ask.py --close req-frm-e3fda510`."
+    },
+    {
+      "id": "req-macro-e0ef2a13",
+      "title": "[요청 승격] 파생→매크로: `macro_view.json` 칩에 코스피200 ATM IV(`reports/derivs.json` atm",
+      "owner": "매크로",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 매크로 라운드 파일에 `처리→파생: …` 한 줄 또는 `python3 scripts/ask.py --close req-macro-e0ef2a13`."
+    },
+    {
+      "id": "req-pb-71d9c381",
+      "title": "[요청 승격] 감사→PB: ① 보드 `sec-ytd-bug` notes 에 최종 판정 1줄(어느 종목이 YTD 누적이었는지, fin_v",
+      "owner": "PB",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-71d9c381`."
+    },
+    {
+      "id": "req-quant-892676d8",
+      "title": "[요청 승격] 검증→퀀트: crash_rebound §3 '5일 보유' 창 정의(매수일 i 기준 i+5 거래일 종가, 어느 캘린더)와 ",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-892676d8`."
+    },
+    {
+      "id": "req-verify-ee0a9f82",
+      "title": "[요청 승격] 퀀트→검증: replication_crash_rebound.json 을 push 하고 `meta` 에 `topic: cr",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-28",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-21",
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-ee0a9f82`."
     }
   ]
 }

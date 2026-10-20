@@ -1,0 +1,844 @@
+{
+ "checked_at": "2026-10-21 04:09 KST",
+ "date": "2026-10-21",
+ "counts": {
+  "zero": 0,
+  "fresh": 0,
+  "toss": 0,
+  "overdue": 42,
+  "waiting": 31,
+  "request": 14
+ },
+ "by_owner": {
+  "개발": [
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "repo-cleanup",
+    "msg": "마감 2026-10-18 지남 (대기) 저장소 대청소: 데이터 브랜치 분리·Pages Actions 배포·기록 ",
+    "task": "repo-cleanup"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "sunday-scorecard-auto",
+    "msg": "마감 2026-10-18 지남 (검수) 일요일 성적표 자동 생성: 규칙 준수·위반·알파(기준점 대비)·대결 전적",
+    "task": "sunday-scorecard-auto"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "edu-dev-handoff",
+    "msg": "마감 2026-10-19 지남 (대기) STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이",
+    "task": "edu-dev-handoff"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "dotplot",
+    "msg": "마감 2026-10-17 지남 (검수) 기명 점도표: 데스크별 자산(코스피·반도체·S&P500·미10년) 방향 ",
+    "task": "dotplot"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "dotplot-neutral-rule",
+    "msg": "마감 2026-10-20 지남 (대기) 점도표: '중립' 점은 기본 시나리오 확률 + 위/아래 전환 조건(fli",
+    "task": "dotplot-neutral-rule"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "crash-day-active",
+    "msg": "마감 2026-10-17 지남 (검수) 급락일 종가를 1차 신호로: _stance 급락일(≤−5%) → 분할 매",
+    "task": "crash-day-active"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "index-split",
+    "msg": "마감 2026-10-17 지남 (검수) Index.html 을 공용 셸 + tab_*.html 로 분리 (GAS",
+    "task": "index-split"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "secret-missing-warning",
+    "msg": "마감 2026-10-20 지남 (대기) 시크릿 없음(MY_RULES·MY_HOLDINGS) → 조용히 건너뛰지 ",
+    "task": "secret-missing-warning"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "pbview-amount-wording",
+    "msg": "마감 2026-10-20 지남 (대기) PB 의견 생성 텍스트에서 원화 금액 제거(비율·'모의' 표기)·기저율 ",
+    "task": "pbview-amount-wording"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "audit-ideas-basis",
+    "msg": "대기 4일 (등록 2026-10-17) ideas_log 채점 기준 불일치: entry·stop(기록 당시 원본",
+    "task": "audit-ideas-basis"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "audit-1017-minor",
+    "msg": "대기 4일 (등록 2026-10-17) 감사 경 L2~L13 묶음 (live 동시실행 대기·레짐 기본값/SEMI",
+    "task": "audit-1017-minor"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "event-watch",
+    "msg": "마감 2026-10-20 지남 (검수) 장중 이벤트 즉시 알림(60초) — touch·지수 −4/−5%·서킷/사",
+    "task": "event-watch"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "live-us-winter-window",
+    "msg": "대기 4일 (등록 2026-10-17) live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:3",
+    "task": "live-us-winter-window"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "live-resume-gap",
+    "msg": "대기 4일 (등록 2026-10-17) live 루프가 죽었을 때 이벤트 감시 공백 줄이기 — 매시 cron 은",
+    "task": "live-resume-gap"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "token-meter-real-usage",
+    "msg": "대기 4일 (등록 2026-10-17) 에이전트 토큰 실측 기록 — team_run 에 transcript 누적",
+    "task": "token-meter-real-usage"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "hook-per-model-rows",
+    "msg": "대기 4일 (등록 2026-10-17) 비공개 Stop 훅 usage CSV 를 날짜×모델 행으로 (한 날 모델",
+    "task": "hook-per-model-rows"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "integrity-p0-1",
+    "msg": "마감 2026-10-18 지남 (검수) 비공개 정합성 검사기 integrity_check.py (감사 P0-1 ",
+    "task": "integrity-p0-1"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "integrity-p0-2",
+    "msg": "대기 4일 (등록 2026-10-17) 결재 ✅ → rules.txt 반영 현황 블록 + 미반영 검사 (감사 P",
+    "task": "integrity-p0-2"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "integrity-p0-3",
+    "msg": "마감 2026-10-20 지남 (대기) 14:42 PB 예약 프롬프트 규칙 하드코딩 제거 (감사 P0-3 · C",
+    "task": "integrity-p0-3"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "integrity-p0-4",
+    "msg": "마감 2026-10-19 지남 (검수) MY_HOLDINGS·MY_RULES 시크릿 생성기 + 낡음 감지 (감사",
+    "task": "integrity-p0-4"
+   },
+   {
+    "kind": "waiting",
+    "owner": "개발",
+    "id": "integrity-p0-5",
+    "msg": "대기 4일 (등록 2026-10-17) HANDOFF 생성형 전환 (감사 P0-5)",
+    "task": "integrity-p0-5"
+   },
+   {
+    "kind": "overdue",
+    "owner": "개발",
+    "id": "my-tab-ledger-compare",
+    "msg": "마감 2026-10-18 지남 (검수) MY 탭 보유 관리 (a)+(b) — 브라우저 주 + 원장 대조(덮어쓰기",
+    "task": "my-tab-ledger-compare"
+   },
+   {
+    "kind": "request",
+    "owner": "개발",
+    "id": "req-dev-3b5b1223",
+    "msg": "[요청 승격] 감사→개발: 보드 P0 `audit-life-target-amount`(tab_life.html:28 순자산 목",
+    "task": "req-dev-3b5b1223"
+   },
+   {
+    "kind": "request",
+    "owner": "개발",
+    "id": "req-dev-89c9aeed",
+    "msg": "[요청 승격] 운영→개발: scripts/board.py 에 작업 추가 서브커맨드(`--add <json>`, validate",
+    "task": "req-dev-89c9aeed"
+   },
+   {
+    "kind": "request",
+    "owner": "개발",
+    "id": "req-dev-dee1f9ae",
+    "msg": "[요청 승격] 데이터→개발: `scripts/retention.py`(드라이런 기본) 를 ops 워크플로에 어떻게 붙일지(실행",
+    "task": "req-dev-dee1f9ae"
+   }
+  ],
+  "데이터": [
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "ra-sec-coverage",
+    "msg": "대기 5일 (등록 2026-10-16) RA: SEC·DART 커버리지 확장 — 반도체 바스켓 전체(PSI·SO",
+    "task": "ra-sec-coverage"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "ra-etf-holdings-full",
+    "msg": "대기 5일 (등록 2026-10-16) RA: ETF 구성종목 전체 목록 수집(PSI·SOXX·SMH·13926",
+    "task": "ra-etf-holdings-full"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "ra-sector-frames",
+    "msg": "대기 5일 (등록 2026-10-16) RA: 국장 리서치(research.json)에서 섹터별 분석 프레임(지",
+    "task": "ra-sector-frames"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "ra-house-scoreboard",
+    "msg": "대기 5일 (등록 2026-10-16) RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일",
+    "task": "ra-house-scoreboard"
+   },
+   {
+    "kind": "overdue",
+    "owner": "데이터",
+    "id": "sec-ytd-bug",
+    "msg": "마감 2026-10-20 지남 (검수) SEC 파서 YTD 누적치 결함 의심: 비(非)12월 결산사(MU 9월·",
+    "task": "sec-ytd-bug"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "macro-consensus-source",
+    "msg": "대기 4일 (등록 2026-10-17) 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_",
+    "task": "macro-consensus-source"
+   },
+   {
+    "kind": "overdue",
+    "owner": "데이터",
+    "id": "px-adjust-unify",
+    "msg": "마감 2026-10-19 지남 (검수) KR 가격 조정 경로 통일 — 원본/조정 스키마 분리, decisions",
+    "task": "px-adjust-unify"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "etf-pdf-nav",
+    "msg": "대기 4일 (등록 2026-10-17) ETF 일별 구성종목(PDF)·NAV 괴리 시계열 수집 — 0015B0부",
+    "task": "etf-pdf-nav"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "us-delisted-earnings",
+    "msg": "대기 4일 (등록 2026-10-17) US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 ",
+    "task": "us-delisted-earnings"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "dart-netcash",
+    "msg": "대기 4일 (등록 2026-10-17) DART 재무에 단기금융상품·차입금 수집 → 순현금 계산 (삼성 207조",
+    "task": "dart-netcash"
+   },
+   {
+    "kind": "waiting",
+    "owner": "데이터",
+    "id": "data-consensus-hist",
+    "msg": "대기 4일 (등록 2026-10-17) 턴어라운드 예측 데이터 과제 — 컨센서스 이력·DART 잠정실적 이력 적",
+    "task": "data-consensus-hist"
+   },
+   {
+    "kind": "request",
+    "owner": "데이터",
+    "id": "req-data-47bce057",
+    "msg": "[요청 승격] 개발→데이터: 네이버 KOSPI `chg` 분모(전일 종가) 정의 1줄 + 반등일용 KRX 확정 전일 종가 필드",
+    "task": "req-data-47bce057"
+   },
+   {
+    "kind": "request",
+    "owner": "데이터",
+    "id": "req-data-c4687197",
+    "msg": "[요청 승격] 리스크→데이터: 2026-06-22~07-29 구간 반도체 개별주·섹터 ETF·KODEX 200·삼성전기 일봉(",
+    "task": "req-data-c4687197"
+   }
+  ],
+  "퀀트": [
+   {
+    "kind": "overdue",
+    "owner": "퀀트",
+    "id": "semis-cap-study",
+    "msg": "마감 2026-10-18 지남 (검수) semis_cap 사전등록 검증 — 테마 한도 40% vs 35% vs ",
+    "task": "semis-cap-study"
+   },
+   {
+    "kind": "waiting",
+    "owner": "퀀트",
+    "id": "sim-oos",
+    "msg": "대기 4일 (등록 2026-10-17) 트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보",
+    "task": "sim-oos"
+   },
+   {
+    "kind": "waiting",
+    "owner": "퀀트",
+    "id": "score-calib",
+    "msg": "대기 4일 (등록 2026-10-17) 점수 보정 — Trend/Momentum/Reversal 분포·상한 도달",
+    "task": "score-calib"
+   },
+   {
+    "kind": "waiting",
+    "owner": "퀀트",
+    "id": "us-accum-pead",
+    "msg": "대기 4일 (등록 2026-10-17) S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 ",
+    "task": "us-accum-pead"
+   },
+   {
+    "kind": "overdue",
+    "owner": "퀀트",
+    "id": "schedule-single-accum",
+    "msg": "마감 2026-10-20 지남 (검수) accum.yml 수동 dispatch 읽기 전용 기본(commit 입력",
+    "task": "schedule-single-accum"
+   },
+   {
+    "kind": "overdue",
+    "owner": "퀀트",
+    "id": "isa-lab",
+    "msg": "마감 2026-10-19 지남 (검수) ISA 비중 실험실 — 슬라이더 백테스트(브라우저 계산)",
+    "task": "isa-lab"
+   },
+   {
+    "kind": "waiting",
+    "owner": "퀀트",
+    "id": "lab-l3-13f",
+    "msg": "대기 4일 (등록 2026-10-17) L3 구루 13F(Duquesne·국민연금 US) 수집 Actions 실",
+    "task": "lab-l3-13f"
+   },
+   {
+    "kind": "request",
+    "owner": "퀀트",
+    "id": "req-quant-892676d8",
+    "msg": "[요청 승격] 검증→퀀트: crash_rebound §3 '5일 보유' 창 정의(매수일 i 기준 i+5 거래일 종가, 어느 캘",
+    "task": "req-quant-892676d8"
+   }
+  ],
+  "PB": [
+   {
+    "kind": "overdue",
+    "owner": "PB",
+    "id": "gas-sched-verify",
+    "msg": "마감 2026-10-19 지남 (대기) GAS 예약기 실전 검증 (08:40 / 15:45 / 22:20)",
+    "task": "gas-sched-verify"
+   },
+   {
+    "kind": "overdue",
+    "owner": "PB",
+    "id": "close-swap-verify",
+    "msg": "마감 2026-10-19 지남 (대기) 16:20 잠정→확정 종가 교체 검증",
+    "task": "close-swap-verify"
+   },
+   {
+    "kind": "overdue",
+    "owner": "PB",
+    "id": "gas-repaste",
+    "msg": "마감 2026-10-17 지남 (대기) GAS 편집기 재붙여넣기 (Scheduler.gs: 16:40 deriv",
+    "task": "gas-repaste"
+   },
+   {
+    "kind": "waiting",
+    "owner": "PB",
+    "id": "memproxy-line",
+    "msg": "대기 6일 (등록 2026-10-15) 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄",
+    "task": "memproxy-line"
+   },
+   {
+    "kind": "overdue",
+    "owner": "PB",
+    "id": "my-rules-secret",
+    "msg": "마감 2026-10-17 지남 (대기) MY_RULES 시크릿 등록 — 결재 #2 touch 줄 (pb-priv",
+    "task": "my-rules-secret"
+   },
+   {
+    "kind": "overdue",
+    "owner": "PB",
+    "id": "user-cooldown-log",
+    "msg": "마감 2026-10-20 지남 (대기) 포상 시각을 ops/cooldown.json 에 기록(시각·라벨만) — ",
+    "task": "user-cooldown-log"
+   },
+   {
+    "kind": "request",
+    "owner": "PB",
+    "id": "req-pb-71d9c381",
+    "msg": "[요청 승격] 감사→PB: ① 보드 `sec-ytd-bug` notes 에 최종 판정 1줄(어느 종목이 YTD 누적이었는지, ",
+    "task": "req-pb-71d9c381"
+   }
+  ],
+  "파생": [
+   {
+    "kind": "overdue",
+    "owner": "파생",
+    "id": "night-futures-line",
+    "msg": "마감 2026-10-20 지남 (검수) 장전 브리핑에 야간선물 한 줄 (마감 등락 → 예상 시초가)",
+    "task": "night-futures-line"
+   },
+   {
+    "kind": "overdue",
+    "owner": "파생",
+    "id": "deriv-hist",
+    "msg": "마감 2026-10-20 지남 (검수) 수급·파생 일별 이력 적재 (투자자별 현물·선물, 프로그램, 베이시스, ",
+    "task": "deriv-hist"
+   },
+   {
+    "kind": "overdue",
+    "owner": "파생",
+    "id": "derivs-audit",
+    "msg": "마감 2026-10-20 지남 (검수) derivs.py 계산·문구 점검 (벽·PCR·감마·최대고통)",
+    "task": "derivs-audit"
+   },
+   {
+    "kind": "overdue",
+    "owner": "파생",
+    "id": "deriv-tab",
+    "msg": "마감 2026-10-17 지남 (검수) 터미널 '파생(DERIV)' 화면 — 흩어진 파생 정보(옵션 포지션·일별",
+    "task": "deriv-tab"
+   },
+   {
+    "kind": "waiting",
+    "owner": "파생",
+    "id": "gamma-verdict",
+    "msg": "대기 5일 (등록 2026-10-16) gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 ",
+    "task": "gamma-verdict"
+   },
+   {
+    "kind": "request",
+    "owner": "파생",
+    "id": "req-derivs-5cdb298e",
+    "msg": "[요청 승격] 매크로→파생: 베이시스 '약세 괴리' 문장에 외국인 선물 순매수(`fut_frgn`)·USDKRW 5일 변화를 ",
+    "task": "req-derivs-5cdb298e"
+   }
+  ],
+  "검증": [
+   {
+    "kind": "waiting",
+    "owner": "검증",
+    "id": "rep-exec-signal",
+    "msg": "대기 4일 (등록 2026-10-17) 독립 재현: exec_signal (KRX 69 업종 kr_sector_",
+    "task": "rep-exec-signal"
+   },
+   {
+    "kind": "waiting",
+    "owner": "검증",
+    "id": "rep-entry-signals",
+    "msg": "대기 4일 (등록 2026-10-17) 독립 재현: entry_signals (122630·KOSPI 실데이터)",
+    "task": "rep-entry-signals"
+   },
+   {
+    "kind": "waiting",
+    "owner": "검증",
+    "id": "rep-rule-audit",
+    "msg": "대기 4일 (등록 2026-10-17) 독립 재현: rule_audit (손절·트레일·부분익절·반등일·하락장 노",
+    "task": "rep-rule-audit"
+   },
+   {
+    "kind": "waiting",
+    "owner": "검증",
+    "id": "pub-whitelist",
+    "msg": "대기 4일 (등록 2026-10-17) 공개 산출물 화이트리스트 + 워크플로 contents:write 최소화 ",
+    "task": "pub-whitelist"
+   },
+   {
+    "kind": "request",
+    "owner": "검증",
+    "id": "req-verify-ee0a9f82",
+    "msg": "[요청 승격] 퀀트→검증: replication_crash_rebound.json 을 push 하고 `meta` 에 `topi",
+    "task": "req-verify-ee0a9f82"
+   }
+  ],
+  "리스크": [
+   {
+    "kind": "overdue",
+    "owner": "리스크",
+    "id": "sunday-scorecard",
+    "msg": "마감 2026-10-18 지남 (검수) 일요일 성적표 자동화 확장 — '규칙 간 정합성' 항목(테마 비중·VaR",
+    "task": "sunday-scorecard"
+   },
+   {
+    "kind": "overdue",
+    "owner": "리스크",
+    "id": "alpha-baseline-fix",
+    "msg": "마감 2026-10-18 지남 (대기) 알파 기준점 미장 분을 10/16 미장 종가로 정정 (단일 리셋 — 일요",
+    "task": "alpha-baseline-fix"
+   },
+   {
+    "kind": "overdue",
+    "owner": "리스크",
+    "id": "frm-audit",
+    "msg": "마감 2026-10-18 지남 (대기) FRM 한도(VaR·연 변동성) 감사 — 60일 실현 변동성 기준 재계산",
+    "task": "frm-audit"
+   },
+   {
+    "kind": "request",
+    "owner": "리스크",
+    "id": "req-frm-e3fda510",
+    "msg": "[요청 승격] 채권→리스크: 스트레스 사건에 2022형(주식·채권 동반 하락) 추가 + 채권 ETF 위험 σ·D×Δy 병기(입",
+    "task": "req-frm-e3fda510"
+   }
+  ],
+  "CIO": [
+   {
+    "kind": "overdue",
+    "owner": "CIO",
+    "id": "cmt-v2",
+    "msg": "마감 2026-10-17 지남 (검수) 운용회의 v2 — 멀티매니저 모닝 미팅 형식(신호등 결론·시계·탑다운·포",
+    "task": "cmt-v2"
+   },
+   {
+    "kind": "overdue",
+    "owner": "CIO",
+    "id": "cio-memo",
+    "msg": "마감 2026-10-18 지남 (대기) CIO 메모 — 레짐·글라이드 패스·밴드 안의 일관성 한 장 (안건 7·",
+    "task": "cio-memo"
+   },
+   {
+    "kind": "request",
+    "owner": "CIO",
+    "id": "req-cio-523f45e9",
+    "msg": "[요청 승격] 피어리뷰→CIO: rules.txt에서 [5] 백스톱·[8] 이전·[12] 반등일 매도의 적용 범위가 '위성 북",
+    "task": "req-cio-523f45e9"
+   }
+  ],
+  "PM": [
+   {
+    "kind": "overdue",
+    "owner": "PM",
+    "id": "sunday-review",
+    "msg": "마감 2026-10-18 지남 (진행) 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 priv",
+    "task": "sunday-review"
+   },
+   {
+    "kind": "waiting",
+    "owner": "PM",
+    "id": "desk-scoreboard-monthly",
+    "msg": "대기 5일 (등록 2026-10-16) 데스크 성적표·복기 월례: ideas_attrib·decisions ta",
+    "task": "desk-scoreboard-monthly"
+   },
+   {
+    "kind": "waiting",
+    "owner": "PM",
+    "id": "pro-plan-round-scale",
+    "msg": "대기 4일 (등록 2026-10-17) Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·",
+    "task": "pro-plan-round-scale"
+   }
+  ],
+  "피어리뷰": [
+   {
+    "kind": "overdue",
+    "owner": "피어리뷰",
+    "id": "peer-review-valuation",
+    "msg": "마감 2026-10-20 지남 (대기) 피어 리뷰: 애널 밸류에이션 모델(정상화 ROE·할인율·멀티플/EPS 분",
+    "task": "peer-review-valuation"
+   },
+   {
+    "kind": "waiting",
+    "owner": "피어리뷰",
+    "id": "peer-earnings-preview",
+    "msg": "대기 5일 (등록 2026-10-16) 피어: 실적 시즌 프리뷰 — 10/29 삼성·MU(12월)·하이닉스 컨센",
+    "task": "peer-earnings-preview"
+   },
+   {
+    "kind": "overdue",
+    "owner": "피어리뷰",
+    "id": "peer-bear-view",
+    "msg": "마감 2026-10-20 지남 (대기) 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대",
+    "task": "peer-bear-view"
+   }
+  ],
+  "애널": [
+   {
+    "kind": "overdue",
+    "owner": "애널",
+    "id": "drivers-audit",
+    "msg": "마감 2026-10-17 지남 (검수) EARNINGS DRIVERS 내용 감사 (체인 매핑·부호·문구) + 퀀",
+    "task": "drivers-audit"
+   },
+   {
+    "kind": "overdue",
+    "owner": "애널",
+    "id": "valuation-daily",
+    "msg": "마감 2026-10-17 지남 (검수) 반도체 밸류에이션 바스켓 일일 추적: PER/PBR·ROE·E/P−rf·",
+    "task": "valuation-daily"
+   }
+  ],
+  "운영": [
+   {
+    "kind": "overdue",
+    "owner": "운영",
+    "id": "rebound-alert",
+    "msg": "마감 2026-10-19 지남 (검수) 14:25 반등일 판정 알림 (--mode rebound, cron + ",
+    "task": "rebound-alert"
+   },
+   {
+    "kind": "overdue",
+    "owner": "운영",
+    "id": "gpt-terminal-followup-1019",
+    "msg": "마감 2026-10-19 지남 (대기) 터미널 점검 잔여: 알림 설정·캘린더 갱신",
+    "task": "gpt-terminal-followup-1019"
+   }
+  ],
+  "교육": [
+   {
+    "kind": "waiting",
+    "owner": "교육",
+    "id": "quiz-key-balance",
+    "msg": "대기 4일 (등록 2026-10-17) 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장",
+    "task": "quiz-key-balance"
+   },
+   {
+    "kind": "request",
+    "owner": "교육",
+    "id": "req-edu-dff14251",
+    "msg": "[요청 승격] 행동→교육: H2 concepts ②를 '24시간(현업 관행, kb:behavior#14)'과 '30분(결재 #",
+    "task": "req-edu-dff14251"
+   }
+  ],
+  "평가": [
+   {
+    "kind": "overdue",
+    "owner": "평가",
+    "id": "study-progress",
+    "msg": "마감 2026-10-20 지남 (검수) STUDY 진행 기록 이슈 경로: 'study <id> done' → s",
+    "task": "study-progress"
+   }
+  ],
+  "백테스트": [
+   {
+    "kind": "overdue",
+    "owner": "백테스트",
+    "id": "bt-exec-lag",
+    "msg": "마감 2026-10-20 지남 (검수) 포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 ",
+    "task": "bt-exec-lag"
+   }
+  ],
+  "행동": [
+   {
+    "kind": "request",
+    "owner": "행동",
+    "id": "req-behavior-ef3cf408",
+    "msg": "[요청 승격] 교육→행동: kb:behavior#3에 Thaler & Johnson 1990 손실 쪽 조건(본전 회복 가능 시",
+    "task": "req-behavior-ef3cf408"
+   }
+  ],
+  "매크로": [
+   {
+    "kind": "request",
+    "owner": "매크로",
+    "id": "req-macro-e0ef2a13",
+    "msg": "[요청 승격] 파생→매크로: `macro_view.json` 칩에 코스피200 ATM IV(`reports/derivs.jso",
+    "task": "req-macro-e0ef2a13"
+   }
+  ]
+ },
+ "escalated_new": 73,
+ "auto_closed": 0,
+ "messenger": {
+  "new": [
+   "겸이 → 운영: 테스트(2026-10-23)"
+  ],
+  "closed": [
+   "겸이 → 운영: 테스트(2026-10-23)"
+  ],
+  "promoted": [
+   "교육 → 행동: kb:behavior#3에 Thaler & Johnson 1990 손실 쪽 조건(본전 회복 가능 시에만 위험(2026-10-28)",
+   "피어리뷰 → CIO: rules.txt에서 [5] 백스톱·[8] 이전·[12] 반등일 매도의 적용 범위가 '위성 북(D1 전체)'(2026-10-28)",
+   "개발 → 데이터: 네이버 KOSPI `chg` 분모(전일 종가) 정의 1줄 + 반등일용 KRX 확정 전일 종가 필드 제공 여부(2026-10-28)",
+   "리스크 → 데이터: 2026-06-22~07-29 구간 반도체 개별주·섹터 ETF·KODEX 200·삼성전기 일봉(data/hi(2026-10-28)",
+   "매크로 → 파생: 베이시스 '약세 괴리' 문장에 외국인 선물 순매수(`fut_frgn`)·USDKRW 5일 변화를 병기해 심리(2026-10-28)",
+   "감사 → 개발: 보드 P0 `audit-life-target-amount`(tab_life.html:28 순자산 목표 금액 (2026-10-28)",
+   "운영 → 개발: scripts/board.py 에 작업 추가 서브커맨드(`--add <json>`, validate 통과 시(2026-10-28)",
+   "데이터 → 개발: `scripts/retention.py`(드라이런 기본) 를 ops 워크플로에 어떻게 붙일지(실행 시점·--(2026-10-28)",
+   "행동 → 교육: H2 concepts ②를 '24시간(현업 관행, kb:behavior#14)'과 '30분(결재 #14 ③,(2026-10-28)",
+   "채권 → 리스크: 스트레스 사건에 2022형(주식·채권 동반 하락) 추가 + 채권 ETF 위험 σ·D×Δy 병기(입력 숫자는 (2026-10-28)",
+   "파생 → 매크로: `macro_view.json` 칩에 코스피200 ATM IV(`reports/derivs.json` atm(2026-10-28)",
+   "감사 → PB: ① 보드 `sec-ytd-bug` notes 에 최종 판정 1줄(어느 종목이 YTD 누적이었는지, fin_v(2026-10-28)",
+   "검증 → 퀀트: crash_rebound §3 '5일 보유' 창 정의(매수일 i 기준 i+5 거래일 종가, 어느 캘린더)와 (2026-10-28)",
+   "퀀트 → 검증: replication_crash_rebound.json 을 push 하고 `meta` 에 `topic: cr(2026-10-28)"
+  ]
+ },
+ "first_seen": {
+  "accum-contract": "2026-10-17",
+  "active-flow-firstrun": "2026-10-17",
+  "active-flow-prereg-score": "2026-10-17",
+  "active-flow-schedule": "2026-10-17",
+  "active-fund-quarterly": "2026-10-17",
+  "activist-first-live-run": "2026-10-17",
+  "activist-prereg-entry": "2026-10-17",
+  "activist-roster-verify": "2026-10-17",
+  "activist-schedule-proposal": "2026-10-17",
+  "agreements-ledger": "2026-10-16",
+  "ai-credit": "2026-10-15",
+  "alpha-baseline-fix": "2026-10-16",
+  "audit-1017-minor": "2026-10-17",
+  "audit-fix-commit": "2026-10-17",
+  "audit-holding-stop-fixture": "2026-10-20",
+  "audit-ideas-basis": "2026-10-17",
+  "audit-krx-id-deriv": "2026-10-20",
+  "audit-life-target-amount": "2026-10-17",
+  "audit-macro-asof": "2026-10-17",
+  "audit-pb-direct-test": "2026-10-17",
+  "audit-ring-pb": "2026-10-17",
+  "battle-scoreboard": "2026-10-20",
+  "bt-exec-lag": "2026-10-17",
+  "cio-memo": "2026-10-16",
+  "cio-top3-fix": "2026-10-20",
+  "close-swap-verify": "2026-10-15",
+  "cmt-v2": "2026-10-16",
+  "core-weights": "2026-10-15",
+  "crash-day-active": "2026-10-16",
+  "daily-duel-collapse": "2026-10-20",
+  "dart-netcash": "2026-10-17",
+  "data-consensus-hist": "2026-10-17",
+  "deriv-hist": "2026-10-15",
+  "deriv-insight": "2026-10-20",
+  "deriv-tab": "2026-10-16",
+  "derivs-audit": "2026-10-15",
+  "derivs-validate": "2026-10-15",
+  "desk-scoreboard-monthly": "2026-10-16",
+  "detail-us-regress": "2026-10-17",
+  "dotplot": "2026-10-16",
+  "dotplot-neutral-rule": "2026-10-16",
+  "drivers-audit": "2026-10-15",
+  "earn-brief-pb": "2026-10-15",
+  "earn-cal-q3": "2026-10-15",
+  "edu-curriculum-v3": "2026-10-16",
+  "edu-dev-handoff": "2026-10-16",
+  "edu-quiz-srs": "2026-10-16",
+  "english-v2-ui": "2026-10-20",
+  "entry-signal-validate": "2026-10-16",
+  "etf-pdf-nav": "2026-10-17",
+  "event-watch": "2026-10-17",
+  "fib-lens": "2026-10-16",
+  "fib-validate": "2026-10-16",
+  "frm-audit": "2026-10-16",
+  "gamma-regime": "2026-10-16",
+  "gamma-verdict": "2026-10-16",
+  "gas-freshness": "2026-10-17",
+  "gas-repaste": "2026-10-15",
+  "gas-sched-verify": "2026-10-15",
+  "gpt-daily-source-time": "2026-10-19",
+  "gpt-terminal-followup-1019": "2026-10-19",
+  "guard-rest": "2026-10-17",
+  "holdings-unify": "2026-10-16",
+  "hook-per-model-rows": "2026-10-17",
+  "index-split": "2026-10-16",
+  "integrity-p0-1": "2026-10-17",
+  "integrity-p0-2": "2026-10-17",
+  "integrity-p0-3": "2026-10-17",
+  "integrity-p0-4": "2026-10-17",
+  "integrity-p0-5": "2026-10-17",
+  "isa-lab": "2026-10-17",
+  "japan": "2026-10-15",
+  "kr-accum": "2026-10-17",
+  "lab-l3-13f": "2026-10-17",
+  "lab-p1": "2026-10-17",
+  "lab-r2": "2026-10-15",
+  "life-health-panel": "2026-10-15",
+  "light-calibration": "2026-10-20",
+  "live-resume-gap": "2026-10-17",
+  "live-us-winter-window": "2026-10-17",
+  "macro-consensus-source": "2026-10-17",
+  "macro-popup-live": "2026-10-20",
+  "me-fire-slot": "2026-10-16",
+  "memproxy-line": "2026-10-15",
+  "mu-revenue-tag": "2026-10-16",
+  "my-isa-split": "2026-10-16",
+  "my-rules-secret": "2026-10-16",
+  "my-tab-ledger-compare": "2026-10-17",
+  "night-futures-line": "2026-10-15",
+  "ops-history": "2026-10-16",
+  "ops-system": "2026-10-15",
+  "order-ticket-form": "2026-10-16",
+  "pbfire-merge-fix": "2026-10-16",
+  "pbview-amount-wording": "2026-10-17",
+  "peer-bear-view": "2026-10-16",
+  "peer-earnings-preview": "2026-10-16",
+  "peer-review-valuation": "2026-10-16",
+  "phone-input": "2026-10-15",
+  "playbook-verify": "2026-10-15",
+  "pm-usage": "2026-10-15",
+  "pre-push-guard": "2026-10-20",
+  "pro-plan-round-scale": "2026-10-17",
+  "pub-whitelist": "2026-10-17",
+  "px-adjust-unify": "2026-10-17",
+  "quant-data-etf-hist": "2026-10-16",
+  "quant-replicate-studies": "2026-10-16",
+  "quiz-key-balance": "2026-10-17",
+  "r14-duel-guard": "2026-10-17",
+  "r3-semi-band": "2026-10-17",
+  "r9-alert-grade": "2026-10-17",
+  "ra-etf-holdings-full": "2026-10-16",
+  "ra-house-scoreboard": "2026-10-16",
+  "ra-sec-coverage": "2026-10-16",
+  "ra-sector-frames": "2026-10-16",
+  "rebalance-support": "2026-10-15",
+  "rebound-alert": "2026-10-16",
+  "rep-entry-signals": "2026-10-17",
+  "rep-exec-signal": "2026-10-17",
+  "rep-hollzzak": "2026-10-20",
+  "rep-rule-audit": "2026-10-17",
+  "rep-semis-cap": "2026-10-17",
+  "repo-cleanup": "2026-10-15",
+  "repo-size-stage1": "2026-10-20",
+  "requests-e": "2026-10-20",
+  "research-synthesis": "2026-10-20",
+  "research-views": "2026-10-20",
+  "rule-audit": "2026-10-16",
+  "schedule-single-accum": "2026-10-17",
+  "score-calib": "2026-10-17",
+  "sec-ytd-bug": "2026-10-16",
+  "secret-missing-warning": "2026-10-17",
+  "semis-cap-study": "2026-10-16",
+  "signal-tracking": "2026-10-20",
+  "sim-oos": "2026-10-17",
+  "study-derivs": "2026-10-15",
+  "study-hollzzak": "2026-10-20",
+  "study-progress": "2026-10-16",
+  "sunday-review": "2026-10-16",
+  "sunday-scorecard": "2026-10-16",
+  "sunday-scorecard-auto": "2026-10-16",
+  "tests-pytest": "2026-10-16",
+  "tg-pick-buttons": "2026-10-20",
+  "token-meter-real-usage": "2026-10-17",
+  "toss-md-pilot": "2026-10-20",
+  "toss-md-publish": "2026-10-20",
+  "toss-sectors": "2026-10-20",
+  "us-accum": "2026-10-17",
+  "us-accum-pead": "2026-10-17",
+  "us-committee-v2": "2026-10-20",
+  "us-delisted-earnings": "2026-10-17",
+  "us-entry-ideas": "2026-10-20",
+  "user-cooldown-log": "2026-10-17",
+  "user-gas-repaste-1017": "2026-10-17",
+  "uxui-audit": "2026-10-20",
+  "valuation-daily": "2026-10-16",
+  "view-registry": "2026-10-15",
+  "watchdog-b": "2026-10-20",
+  "weekly-scorecard": "2026-10-15"
+ },
+ "sent": null
+}
