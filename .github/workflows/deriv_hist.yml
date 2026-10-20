@@ -61,9 +61,9 @@ jobs:
         run: |
           T="${{ github.event.inputs.task || 'run' }}"
           if [ "$T" = "probe" ]; then
-            mkdir -p reports/logs; python scripts/probe_deriv_sources.py ${{ github.event.inputs.days != '0' && github.event.inputs.days || '' }} 2>&1 | tee reports/logs/deriv_probe.txt
+            mkdir -p reports/logs; python scripts/probe_deriv_sources.py ${{ github.event.inputs.days != '0' && github.event.inputs.days || '' }} 2>&1 | sed -E 's/(로그인 ID:).*/\1 ***/' | tee reports/logs/deriv_probe.txt
           else
-            mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" ${{ github.event.inputs.redo && format('--redo {0}', github.event.inputs.redo) || '' }} 2>&1 | tee reports/logs/deriv_hist.txt
+            mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" ${{ github.event.inputs.redo && format('--redo {0}', github.event.inputs.redo) || '' }} 2>&1 | sed -E 's/(로그인 ID:).*/\1 ***/' | tee reports/logs/deriv_hist.txt
           fi
       - name: 감마 레짐 검증 재계산 (scripts/study_gamma.py — 사전등록 기준, 표본 차면 자동 판정)
         if: steps.g.outputs.go == 'true' && github.event.inputs.task != 'probe'

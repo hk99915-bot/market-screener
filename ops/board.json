@@ -2685,7 +2685,7 @@
       "title": "감사 지적: deriv_hist 워크플로 로그에 KRX 로그인 ID 미마스킹 — accum 과 공통 마스킹 1곳으로",
       "owner": "개발",
       "priority": "P0",
-      "status": "대기",
+      "status": "검수",
       "started": null,
       "due": "2026-10-21",
       "repo": "public",
@@ -2695,7 +2695,7 @@
         "scripts/prepush_check.py"
       ],
       "depends_on": [],
-      "notes": "감사 지적 치명(10/21). reports/logs/deriv_hist.txt:4·deriv_probe.txt:4 — 감사가 줄만 *** 치환(§3-4 예외). 다음 cron 16:40 KST 전 deriv_hist.yml:64·66 tee 앞 마스킹 필요. 공개 이력 18커밋 잔존 → PB 가 오너에게 이력 처리/비밀번호 교체 보고. 출처 reports/audit/2026-10-21.md #1"
+      "notes": "감사 지적 치명(10/21). reports/logs/deriv_hist.txt:4·deriv_probe.txt:4 — 감사가 줄만 *** 치환(§3-4 예외). 다음 cron 16:40 KST 전 deriv_hist.yml:64·66 tee 앞 마스킹 필요. 공개 이력 18커밋 잔존 → PB 가 오너에게 이력 처리/비밀번호 교체 보고. 출처 reports/audit/2026-10-21.md #1 | 10/21 02:0x PB: deriv_hist.yml probe·hist tee 앞에 로그인 ID 마스킹 sed 추가(accum.yml 과 같은 방식)."
     },
     {
       "id": "audit-holding-stop-fixture",
