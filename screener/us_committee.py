@@ -627,9 +627,11 @@ def ideas_top_us(o: dict, peers: list[dict], acc: dict, cal: list[dict], today: 
             rows.append((sc, code, trend_ok, last.get("t")))
     # 동점 정렬: 매집 흔적 있음 → 이익 신호 큰 순 (F 등급이라 점수엔 0 이지만 '등급 상위 관찰' 우선)
     rows.sort(key=lambda x: (-x[0], x[1] not in has_acc, -drv.get(x[1], 0), x[1]))
-    out, cands = [], []
+    from .idea_tracking import v2_on, entry_floor, pick_top3, VALID
+    v2 = v2_on()   # 스위치 screener/config.CIO_TOP3_V2 (기본 OFF)
+    allr = []
     for sc, code, trend_ok, ref in rows:
-        if len(out) + len(cands) >= 5:
+        if len(allr) >= 5:
             break
         rb = risk_box(code)
         if not rb or rb["skip"]:
@@ -655,9 +657,20 @@ def ideas_top_us(o: dict, peers: list[dict], acc: dict, cal: list[dict], today: 
                "kill": [f"종가 {rb['stop']:,.2f} 하회 (손절, 협상 대상 아님)", "동의 원천이 반대로 바뀜 (이익 신호 −0.2 이하·50일선 이탈)",
                         "20거래일 안 +1R 미도달 (시간 손절)"],
                "sources": [{k: s[k] for k in ("k", "label", "side", "grade", "w")} for s in ss]}
-        (out if len(out) < 3 else cands).append(row)
+        if v2:
+            row["entry"] = entry_floor(rb["close"], rb["stop"], rb["atr_pct"])   # P3/D5
+            row["valid"] = dict(VALID)
+            if not cat:
+                row["catalyst_note"] = "없음"
+        allr.append(row)
+    exec_zero = None
+    if v2:
+        out, cands, exec_zero = pick_top3(allr, "US")
+    else:
+        out, cands = allr[:3], allr[3:]
     gr_note = ("매집 흔적 연구 등급 " + ", ".join(sorted({f'{k}:{v}' for k, v in grades.items()})) if grades else "매집 흔적 등급 미확인")
-    return {"items": out, "candidates": cands, "entry_gate": gate, "entry_gate_why": gate_why, "market": "US",
+    extra = {"rule": "v2", "exec_zero": exec_zero} if v2 else {}
+    return {**extra, "items": out, "candidates": cands, "entry_gate": gate, "entry_gate_why": gate_why, "market": "US",
             "formula": "확신 점수 = Σ 동의 원천 가중 − Σ 반대 (가중 = 등급 A1·B.8·C.6·검증전.3·F0). 원천 = 매집 흔적(us_accum, 신호별 연구 등급) · "
                        "이익 신호(peers_US drv ±0.2) · 추세(종가 vs 50일선). 높음 ≥1.2·중간 ≥0.6·낮음 >0, C 이상 동의 없으면 상한 중간. "
                        "진입·손절·목표 = 리스크 박스(손절 max(20일 저점, 종가−2×ATR14), 목표 2R), 사이즈 = 확신도 × 손익비/2 × 1% ÷ 손절폭(상한 15%). "

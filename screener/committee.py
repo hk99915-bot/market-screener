@@ -1129,6 +1129,8 @@ def _v2_ideas_top(o: dict, cal: list[dict], bu: dict, today: date, peers: list[d
     S, meta = _v2_sources(o, peers, today)
     views = _j("views.json", {}) or {}
     gate = (((o.get("stance") or {}).get("views") or {}).get("entry") or {}).get("gate")
+    from .idea_tracking import v2_on, v2_score, entry_floor, pick_top3, VALID
+    v2 = v2_on()   # 스위치 screener/config.CIO_TOP3_V2 (기본 OFF — OFF 면 아래 결과는 10/21 이전과 같다)
     rows = []
     for code, ss in S.items():
         agree = [s for s in ss if s["side"] == "agree"]
@@ -1140,13 +1142,23 @@ def _v2_ideas_top(o: dict, cal: list[dict], bu: dict, today: date, peers: list[d
             s["w"] = round(GRADE_W.get(s["grade"], 0.3) * m * (1 if s["side"] == "agree" else -1), 3)
             s["perf"] = note
             sc += s["w"]
+        if v2:
+            sc = v2_score([(s["k"], s["w"]) for s in ss])
         if sc <= 0:
             continue
         rows.append((sc, code, ss))
-    rows.sort(key=lambda x: -x[0])
+    if v2:   # D4 동점 정렬: 점수 → 촉매 있음 우선 → 코드
+        def _has_cat(code, ss):
+            return any(s["k"] in ("research:tp_up", "disclosure:plus") for s in ss) or any(
+                e.get("type") == "실적" and str(e.get("ticker")) == code and str(today) <= e.get("date", "") <= str(today + timedelta(days=14))
+                for e in cal)
+        rows.sort(key=lambda x: (-x[0], not _has_cat(x[1], x[2]), x[1]))
+    else:
+        rows.sort(key=lambda x: -x[0])
     out, cands = [], []
+    allr = []
     for sc, code, ss in rows:
-        if len(out) + len(cands) >= 10:
+        if len(allr) >= 10:
             break
         rb = _risk_box(code)
         if not rb or rb["skip"]:
@@ -1171,8 +1183,19 @@ def _v2_ideas_top(o: dict, cal: list[dict], bu: dict, today: date, peers: list[d
                         "20거래일 안 +1R 미도달 (시간 손절)"],
                "sources": [{k: s[k] for k in ("k", "label", "side", "grade", "w", "perf")} for s in ss],
                "lens": [_lens(views, "atr_stop")]}
-        (out if len(out) < 3 else cands).append(row)
-    return {"items": out, "candidates": cands, "entry_gate": gate,
+        if v2:
+            row["entry"] = entry_floor(rb["close"], rb["stop"], rb["atr_pct"])   # P3/D5
+            row["valid"] = dict(VALID)
+            if not cat:
+                row["catalyst_note"] = "없음"
+        allr.append(row)
+    exec_zero = None
+    if v2:
+        out, cands, exec_zero = pick_top3(allr, "KR")
+    else:
+        out, cands = allr[:3], allr[3:]
+    extra = {"rule": "v2", "exec_zero": exec_zero} if v2 else {}
+    return {**extra, "items": out, "candidates": cands, "entry_gate": gate,
             "formula": "확신 점수 = Σ 동의 원천 가중 − Σ 반대 원천 가중 (가중 = 검증 등급 A1·B.8·C.6·검증전.3·F0 × 원천 실제 성적 보정). "
                        "높음 ≥1.2·중간 ≥0.6·낮음 >0, C 이상 원천 동의 없으면 상한 중간. 사이즈(모델 북 %) = 확신도(1·.7·.4) × 손익비/2 × 1% ÷ 손절폭, 상한 15%. "
                        "진입·손절·목표 = 리스크 박스 규칙(손절 max(20일 저점, 종가−2×ATR14), 목표 2R).",
@@ -1420,9 +1443,10 @@ def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict
     try:
         _ideas_log_append(out)
         from .idea_tracking import run as track_ideas
-        out["idea_tracking"] = track_ideas(out)
+        out["idea_tracking"] = track_ideas(out)   # 확정판(장 마감 뒤 마지막 판) 캡처 — idea_tracking.capture (D1)
     except Exception as e:  # noqa: BLE001
-        log.info("아이디어 기록 실패: %s", e)
+        out["idea_tracking"] = {"error": f"{type(e).__name__}: {e}"}   # 0건 원인이 결과에 보이게 (D3)
+        log.warning("아이디어 기록 실패: %s", e)
     try:   # 신호 종목 forward 성과 누적 (accum·us_accum·sim_signals → reports/signal_tracking.json, 10/20)
         from . import signal_tracking
         st_ = signal_tracking.build()
@@ -1642,7 +1666,8 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
         from .idea_tracking import run as track_ideas
         out["idea_tracking_top"] = track_ideas(out, market="US")
     except Exception as e:  # noqa: BLE001
-        log.info("미장 아이디어 추적 실패: %s", e)
+        out["idea_tracking_top"] = {"error": f"{type(e).__name__}: {e}"}   # 0건 원인이 결과에 보이게 (D3)
+        log.warning("미장 아이디어 추적 실패: %s", e)
     out["footer"] = V2_FOOTER_US
     out["v"] = 2
 

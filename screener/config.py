@@ -10,6 +10,13 @@ DATA_DIR = ROOT / "data"          # Parquet 캐시 (gitignore)
 UNIVERSE_DIR = ROOT / "universe"  # 유니버스 CSV (커밋됨, 폴백용)
 REPORT_DIR = ROOT / "reports"
 
+# 운용회의 TOP3 v2 규칙 스위치 (CIO 진단 reports/studies/cio_top3_review_2026-10-21.md §5 P1~P3, 10/21 개발 데스크).
+# False = 기존 결과 그대로(10/21 01시 기준). True = P1 필수 5칸 없으면 TOP3 자격 없음 · P2 실행 후보 우선, 대기는 시장당 하루 1개,
+# 자기 참조 원천(exec_plan·committee_ideas) 합산 대신 max + 동점 정렬(촉매 있음 우선) · P3 진입 하한 = max(손절+0.5R, 종가−0.5×ATR).
+# 10/21 02:3x·02:4x·02:5x 겸이 명시 승인으로 [13](22:00~07:00 규칙 변경 금지) 예외 ON. 되돌리기 = 아래 한 줄을 False 로.
+# 범위: 운용회의 TOP3 표시·모의 추적(idea_tracking)만 — 포트폴리오 한도·주문 경로(pb 등)는 읽지 않음(tests/test_cio_top3_v2.py::Scope).
+CIO_TOP3_V2 = True
+
 
 @dataclass
 class MarketCfg:

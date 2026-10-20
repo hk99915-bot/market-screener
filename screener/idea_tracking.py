@@ -24,26 +24,108 @@ def number(v):
 def _mk(r):
     return r.get("market") or "KR"
 
+# 확정판(D1, 10/21 CIO 진단 cio_top3_review_2026-10-21 §4): 회의는 하루 7~8번 재생성되므로 '첫 판'이 아니라
+# 진입 판정 전 마지막 판을 기록한다. KR = 장 마감 뒤(asof ≥ 15:45 KST) 판만 캡처, 같은 날 뒤 판이 나오면 그 판으로 교체
+# (다음 거래일 시가 전이라 미래 참조 없음). US = KST 22:30(미장 개장) 전 판은 마지막 판으로 교체, 22:30 이후 판은
+# 그날 행이 없을 때만 캡처. 날짜가 바뀌거나(KR) 22:30 이 지나면(US) 원래 조건은 덮어쓰지 않는다 = '확정판 기준' 불변.
+KR_FINAL_FROM = "15:45"
+US_OPEN_KST = "22:30"
+SCHEMA = ("행 키: id · date · ticker(종목코드 — code 키는 없음, 원본 안에서는 original.s) · market(없으면 KR) · name · "
+          "proposed_at(기록한 확정판 asof) · captured_at · original(확정판 원본, 불변) · state(채점) · note(사후 주석, 원본 아님)")
+
+
 def capture(book, meeting, now, market="KR"):
-    """First three top proposals per date (per market), never overwrite original conditions."""
+    """그날 확정판 TOP3 를 기록. 확정 시점 이후 원래 조건은 덮어쓰지 않는다(위 주석)."""
     day = str(meeting.get("date", ""))
-    if day != now.strftime("%Y-%m-%d") or str(meeting.get("asof", ""))[:10] != day:
+    asof = str(meeting.get("asof", ""))
+    if day != now.strftime("%Y-%m-%d") or asof[:10] != day:
         return
+    hm = asof[11:16]
     rows = book.setdefault("rows", [])
-    existing = {r["ticker"] for r in rows if r["date"] == day and _mk(r) == market}
-    for idea in (meeting.get("ideas_top") or {}).get("items", [])[:3]:
+    mine = [r for r in rows if r["date"] == day and _mk(r) == market]
+    if market == "US":
+        replace = hm < US_OPEN_KST
+    else:
+        if hm < KR_FINAL_FROM:
+            return   # 장중 판은 기록하지 않음(evaluate 만)
+        replace = True
+    if mine and not replace:
+        return
+    if mine and any(r.get("state", {}).get("entry_date") or r.get("state", {}).get("price_date") for r in mine):
+        return   # 이미 가격 판정이 시작된 행은 절대 교체 안 함(방어)
+    top = [i for i in (meeting.get("ideas_top") or {}).get("items", [])[:3] if str(i.get("s", ""))]
+    if mine and [r["ticker"] for r in mine] == [str(i["s"]) for i in top] and \
+            all(r["original"] == i for r, i in zip(mine, top)):
+        return
+    if mine:
+        book["rows"] = rows = [r for r in rows if r not in mine]
+    for idea in top:
         code = str(idea.get("s", ""))
-        if code in existing or len(existing) >= 3:
+        if any(r["date"] == day and _mk(r) == market and r["ticker"] == code for r in rows):
             continue
-        original = copy.deepcopy(idea)
         row = {"id": ("US:" if market == "US" else "") + day + ":" + code, "date": day, "ticker": code,
-               "name": idea.get("n", code), "proposed_at": meeting["asof"],
+               "name": idea.get("n", code), "proposed_at": asof,
                "captured_at": now.strftime("%Y-%m-%d %H:%M KST"),
-               "original": original, "state": {"status": "waiting"}}
+               "original": copy.deepcopy(idea), "state": {"status": "waiting"}}
+        if mine:
+            row["replaced"] = "같은 날 앞선 판(" + ", ".join(sorted({r["proposed_at"] for r in mine})) + ") → 확정판으로 교체"
         if market == "US":
             row.update(market="US", ref=idea.get("ref"))
         rows.append(row)
-        existing.add(code)
+
+# ── TOP3 v2 규칙 (스위치 screener/config.CIO_TOP3_V2, 기본 OFF). 국장·미장 운용회의가 공용으로 쓴다. ──
+SELF_REF = ("exec_plan", "committee_ideas")   # 운용회의 자기 산출물 원천 — 합산하면 어제 고른 종목이 오늘 다시 상위 고정(D4)
+VALID = {"entry_days": 1, "hold_max": 20}     # P1 유효기간: 진입 1거래일, 보유 최대 20거래일
+
+
+def v2_on():
+    from . import config
+    return bool(getattr(config, "CIO_TOP3_V2", False))
+
+
+def v2_score(weights):
+    """weights = [(원천 키, 부호 있는 가중)]. 자기 참조 원천은 합산 대신 가장 큰 것 하나만(P2/D4)."""
+    own = [w for k, w in weights if k in SELF_REF]
+    return sum(w for k, w in weights if k not in SELF_REF) + (max(own) if own else 0.0)
+
+
+def entry_floor(close, stop, atr_pct):
+    """P3/D5 진입 하한 = max(손절 + 0.5R, 종가 − 0.5×ATR). R = 종가 − 손절. 상한(종가 + 0.5×ATR)은 그대로."""
+    return max(stop + 0.5 * (close - stop), close * (1 - 0.5 * atr_pct))
+
+
+def top3_ready(x):
+    """P1 필수 5칸: 진입 구간(하한·상한)·손절·목표·유효기간·촉매(없으면 catalyst_note '없음' 명시)."""
+    lo, hi, st, tg = (x.get(k) for k in ("entry", "entry_max", "stop", "target"))
+    if not all(number(v) for v in (lo, hi, st, tg)) or not st < lo <= hi < tg:
+        return False
+    v = x.get("valid") or {}
+    if not (v.get("entry_days") and v.get("hold_max")):
+        return False
+    cat = x.get("catalyst")
+    return isinstance(cat, list) and (bool(cat) or x.get("catalyst_note") == "없음")
+
+
+def pick_top3(rows, market="KR"):
+    """P2: 순위대로 정렬된 후보에서 TOP3 = 실행 후보 먼저, 3개 미만일 때만 대기 최대 1개. 5칸 결손은 자격 없음(P1).
+    실행 후보 0이면 사유 1줄 — 빈칸은 억지로 채우지 않는다. 반환 (items, candidates, exec_zero 사유|None)."""
+    ready = [r for r in rows if top3_ready(r)]
+    go = [r for r in ready if str(r.get("status", "")).startswith("실행")][:3]
+    wait = [r for r in ready if not str(r.get("status", "")).startswith("실행")][:1] if len(go) < 3 else []
+    pick = {id(r) for r in go + wait}
+    items = [r for r in rows if id(r) in pick]
+    cands = [r for r in rows if id(r) not in pick]
+    note = None
+    if not go:
+        why = {}
+        for r in ready:
+            k = str(r.get("status", "")).replace("대기 — ", "")
+            why[k] = why.get(k, 0) + 1
+        bad = len(rows) - len(ready)
+        note = (f"오늘 {market} 실행 0 — 후보 {len(rows)}개 중 " + (" · ".join(f"{k} {n}" for k, n in why.items()) or "자격 후보 없음")
+                + (f" · 필수 5칸 결손 {bad}" if bad else ""))
+    return items, cands, note
+
 
 def evaluate(row, bars):
     p = row["original"]
@@ -137,6 +219,8 @@ def run(meeting, now=None, market="KR"):
             row["state"] = {"status": "review", "reason": error}
         else:
             row["state"] = evaluate(row, by.get(row["ticker"], []))
+        if row.get("note"):
+            row["state"]["note"] = row["note"]
         # Non-price kill criteria need the contemporaneous sources, never future hindsight.
         current = next((x for x in (meeting.get("ideas_top") or {}).get("items", []) +
                         (meeting.get("ideas_top") or {}).get("candidates", [])
@@ -149,7 +233,14 @@ def run(meeting, now=None, market="KR"):
             if reversed_sources:
                 row["source_review"] = now.strftime("%Y-%m-%d %H:%M")
                 row["state"].update(status="review", reason="비가격 kill 조건 발동 — 실제 관측 시점 청산가 검증 필요")
-    book.update(asof=now.strftime("%Y-%m-%d %H:%M"), policy=POLICY, summary=summarize(book["rows"]),
+    errs = book.setdefault("errors", {})
+    if error:
+        errs[market] = {"at": now.strftime("%Y-%m-%d %H:%M"), "error": error}
+    else:
+        errs.pop(market, None)
+    if not errs:
+        book.pop("errors")
+    book.update(asof=now.strftime("%Y-%m-%d %H:%M"), policy=POLICY, schema=SCHEMA, summary=summarize(book["rows"]),
                 summary_by_market={m: summarize([r for r in book["rows"] if _mk(r) == m]) for m in ("KR", "US")})
     path.write_text(json.dumps(book, ensure_ascii=False, indent=1), encoding="utf-8")
     hist = REPORT_DIR / "idea_tracking"

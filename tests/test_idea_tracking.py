@@ -24,10 +24,13 @@ class TrackingTests(unittest.TestCase):
     def test_missing(self):
         self.assertEqual(evaluate(row(),[bar(h=None)])["status"],"review")
     def test_snapshot_immutable_max3(self):
-        now=datetime(2026,10,19,18,tzinfo=ZoneInfo("Asia/Seoul")); book={}
-        m={"date":"2026-10-19","asof":"2026-10-19 14:00","ideas_top":{"items":[{"s":str(i),"entry":100} for i in range(5)]}}
-        capture(book,m,now); m["ideas_top"]["items"][0]["entry"]=999; capture(book,m,now)
+        # 확정판(장 마감 뒤) 3건만, 원본은 사본 — 회의 dict 를 나중에 고쳐도 기록 불변. 날짜가 바뀌면 그날 행은 더 못 바꿈.
+        now=datetime(2026,10,19,20,tzinfo=ZoneInfo("Asia/Seoul")); book={}
+        m={"date":"2026-10-19","asof":"2026-10-19 19:00","ideas_top":{"items":[{"s":str(i),"entry":100} for i in range(5)]}}
+        capture(book,m,now); m["ideas_top"]["items"][0]["entry"]=999
         self.assertEqual(len(book["rows"]),3); self.assertEqual(book["rows"][0]["original"]["entry"],100)
+        capture(book,m,datetime(2026,10,20,9,tzinfo=ZoneInfo("Asia/Seoul")))
+        self.assertEqual(book["rows"][0]["original"]["entry"],100)
     def test_metrics_exclude_open_and_ambiguous(self):
         s=summarize([{"state":{"status":"open","ret":1,"entry_date":"d"}},{"state":{"status":"ambiguous","entry_date":"d"}},{"state":{"status":"not_entered"}},{"state":{"status":"target","entry_date":"d","ret":.1}}])
         self.assertEqual(s["closed"],1); self.assertEqual(s["hit_rate"],1); self.assertEqual(s["no_entry_rate"],.25)
@@ -52,7 +55,7 @@ class TrackingTests(unittest.TestCase):
         class Frame:
             def iter_rows(self, named=True):
                 return iter([dict(yf="000001.KS",date="2026-10-20",open=100,high=121,low=99,close=119)])
-        meeting={"date":"2026-10-19","asof":"2026-10-19 14:00","ideas_top":{"items":[dict(s="000001",n="fixture",side="롱",status="실행 후보",entry=100,entry_max=102,stop=90,target=120)]}}
+        meeting={"date":"2026-10-19","asof":"2026-10-19 17:00","ideas_top":{"items":[dict(s="000001",n="fixture",side="롱",status="실행 후보",entry=100,entry_max=102,stop=90,target=120)]}}
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(tracking,"REPORT_DIR",Path(tmp)), patch.dict(sys.modules,{"screener.prices":types.SimpleNamespace(load_kr=lambda **kw:Frame())}):
                 first=tracking.run(meeting,datetime(2026,10,19,18,tzinfo=ZoneInfo("Asia/Seoul")))
