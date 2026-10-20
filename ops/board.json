@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-19",
+  "updated": "2026-10-20",
   "owners": [
     "PB",
     "퀀트",
@@ -2356,6 +2356,24 @@
       ],
       "depends_on": [],
       "notes": "겸이 지적(10/20): committee_us 12키·6KB vs 국장 33키·55KB. 1차 = 미장 데이터로 가능한 것만."
+    },
+    {
+      "id": "toss-md-pilot",
+      "title": "토스 Open API 시세 전용 파일럿 (겸이 노트북 수집)",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "진행",
+      "started": "2026-10-20",
+      "due": "2026-10-31",
+      "repo": "public",
+      "files": [
+        "screener/toss_md.py",
+        "tools/toss_md/*",
+        "tests/test_toss_md.py",
+        "docs/toss_md_laptop_setup.md"
+      ],
+      "depends_on": [],
+      "notes": "겸이 결정 10/20: 시세 전용·노트북(Windows) 1대 수집, 매매는 미래에셋. 코드: GET+화이트리스트, 주문·계좌 경로·계좌 헤더 요청 전 차단, 키는 저장소 밖 env(600/icacls), 응답 원문 로그 금지, 수집 잠금 1개. 결과는 저장소 밖(~/toss_md_data) — 약관 재배포·자동수집 미확인이라 공개 산출물 없음. 남은 일: ①겸이 0단계 약관 확인 ②키 발급·IP 등록·dry-run·실제 1회 ③PILOT 하위 경로 스펙 원문 대조(첫 실행 404/400 시) ④1주 crosscheck 괴리 기록 후 채택 여부 결재."
     }
   ]
 }
