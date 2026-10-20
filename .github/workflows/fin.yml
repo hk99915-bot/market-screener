@@ -58,6 +58,7 @@ jobs:
           python -m screener.main --mode analysts --no-send || echo "::warning::analysts 실패 — reports/logs/analysts.log"
           # 비종목 리포트 — 실패해도 다음 단계는 진행하되 묻히지 않게 경고 + reports/research_views.json status
           python -m screener.main --mode research_views --no-send || echo "::warning::비종목 리포트 수집 실패/부분 — reports/research_views.json status 참조"
+          python -m screener.research_synthesis || echo "::warning::리서치 종합 실패 — reports/research_synthesis.json 은 전날 것 유지 (애널 research-synthesis)"
           python -m screener.main --mode fin --no-send || true
       - name: 저장
         if: always() && steps.g.outputs.commit == 'true'

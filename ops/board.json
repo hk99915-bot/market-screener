@@ -2769,6 +2769,30 @@
       "due": "2026-10-23",
       "repo": "public",
       "depends_on": []
+    },
+    {
+      "id": "research-synthesis",
+      "title": "리서치 종합 — RESEARCH 맨 위 증권가 집계 카드 7장(한 줄·톤·목표가 변화 맵·섹터 온도·테마 클러스터·거시/채권/외환·괴리·몰림) → reports/research_synthesis.json",
+      "owner": "애널",
+      "priority": "P2",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "screener/research_synthesis.py",
+        "tests/test_research_synthesis.py",
+        "apps-script/tab_research.html",
+        "apps-script/Code.gs",
+        "scripts/build_pages.py",
+        ".github/workflows/fin.yml",
+        "scripts/ui_smoke.py",
+        "docs/desk_kb/analyst.md"
+      ],
+      "depends_on": [
+        "research-views"
+      ],
+      "notes": "겸이 10/21 \"리포트들만 있지 말궁\". 애널 직접 구현(개발 외주 아님). 매일 fin.yml 03:30 research_views 수집 직후 생성. 전부 '증권가 집계'(우리 판단 아님), 톤 지수 검증전. 백필 행은 이력엔 쓰되 '신규'에서 제외. 한계: 섹터 등락은 위원회 테마 이름이 같은 것만(대부분 —), 영업일=평일 근사, 키워드 추이는 10/07·10/14 수집 확대분 포함. GAS 쪽은 Code.gs 붙여넣기 필요(getResearchSynthesis) — Pages 는 바로 동작."
     }
   ]
 }

@@ -60,6 +60,7 @@ function getMacroSeries() { return raw_('reports/macro_series.json'); }
 
 function getAnalysts() { return raw_('reports/analysts.json'); }
 function getResearchViews() { return raw_('reports/research_views.json'); }   // 비종목 리포트 (RESEARCH › 리서치 kind 필터)
+function getResearchSynthesis() { return raw_('reports/research_synthesis.json'); }   // 리서치 종합 (RESEARCH 맨 위, 애널 research-synthesis)
 
 function getMomentum(m) { return raw_(`reports/momentum_${m}.json`); }
 function getMomentumBt() { return raw_('reports/momentum_bt.json'); }

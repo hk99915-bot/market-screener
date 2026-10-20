@@ -65,6 +65,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_score(b, port)
         bad += await check_eng(b, port)
         bad += await check_macro_popup(b, port)
+        bad += await check_syn(b, port)
         await b.close()
     return bad
 
@@ -369,6 +370,28 @@ async def check_macro_popup(b, port: int) -> int:
     ok = all(res.values()) and not errs
     print(f"{'OK ' if ok else 'BAD'} 지표팝업 " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await ctx.close()
+    return not ok
+
+
+async def check_syn(b, port: int) -> int:
+    """RESEARCH 맨 위 '리서치 종합'(애널 research-synthesis): 390px 폭에서 카드 7장·라벨·가로 넘침 없음·리포트 목록이 아래에."""
+    pg = await b.new_page(viewport={"width": 390, "height": 844})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("try{localStorage.removeItem('mt_syn_open')}catch(e){}; RV.k='종목'; setView('rep')")
+    await pg.wait_for_timeout(3000)
+    J = pg.evaluate
+    res = {
+        "카드7": await J("document.querySelectorAll('#syn .syn').length") == 7,
+        "라벨": "증권가 집계" in await J("(document.querySelector('#syn')||{}).innerText||''"),
+        "목록아래": await J("(()=>{const s=document.querySelector('#syn'),r=document.querySelector('#rbody');return !!(s&&r&&(s.compareDocumentPosition(r)&Node.DOCUMENT_POSITION_FOLLOWING));})()"),
+        "넘침없음": await J("[...document.querySelectorAll('#syn, #syn *')].every(e=>e.getBoundingClientRect().right<=innerWidth+1)"),
+    }
+    ok = all(res.values()) and not errs
+    print(f"{'OK ' if ok else 'BAD'} 리서치종합(390px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
     return not ok
 
 
