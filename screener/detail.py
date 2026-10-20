@@ -474,6 +474,12 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
             from .config import UNIVERSE_DIR
             u = pl.read_csv(UNIVERSE_DIR / "kr.csv", schema_overrides={"symbol": pl.Utf8})
             mc = dict(zip(u["symbol"].to_list(), u["mcap"].to_list()))
+            try:   # 공식 섹터 WICS 일 1회 (보드 toss-sectors) — 실패해도 상세 생성은 계속, stale 기록
+                from . import sectors, wics
+                log.info("WICS: %s", wics.update_if_stale())
+                sectors.clear_cache()
+            except Exception as e:  # noqa: BLE001
+                log.warning("WICS 갱신 실패: %s", e)
             secs = universe.kr_sectors() or {}
             info = {s0: {"name": rows[s0]["name"], "sector": secs.get(s0), "mcap": mc.get(s0)} for s0 in syms if s0 in rows}
             drv = drivers.build(info, full.select("yf", "date", "close"), discl)
