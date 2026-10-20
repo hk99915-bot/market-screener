@@ -2415,10 +2415,11 @@
         "apps-script/tab_research.html",
         "apps-script/Code.gs",
         "scripts/build_pages.py",
-        "tests/test_research_views.py"
+        "tests/test_research_views.py",
+        "screener/naver_next_probe.py"
       ],
       "depends_on": [],
-      "notes": "겸이 10/20 요청. 감사(10/20 저장소 6,699건): ①네이버 종목분석 수집 0건 — 10/15~ 목록이 Next.js(Npay 증권) 화면으로 바뀌어 옛 표 파서가 매 실행 0건(WARNING 만), 저장소 source 100% 한경·증권사 12곳 ②opinion_rank 가 Not Rated·nr·N/A·투자의견없음(1,086건)을 '중립'으로 세어 의견 변화 399건 중 279건이 가짜 의견↑↓ → -1 로 수정(120건) ③fin.yml 저장 단계: 10/19 18:33 UTC 실행이 rebase 충돌 후 재시도 3회 실패했는데 '성공' 표시·결과 미저장 → -X theirs·regress_git·abort·실패 시 exit 1. 비종목: data/research_views.parquet·reports/research_views.json(status 출처별), 분류기 report_kind.classify(title, source_category, text, pages) 순수 함수. 한경 비CO report_type 은 목록 탭 링크에서 런타임으로 읽음(값 미확인). 남은 일: 첫 fin 실행(03:30 KST) 결과로 네이버 5종·한경 탭 실제 수집 여부 확인 → layout_changed 면 reports/logs/rv_*.html 로 새 파서, 네이버 종목분석 새 경로(API) 확인, backfill.yml·hist.yml 같은 푸시 루프 수정."
+      "notes": "겸이 10/20 요청. 감사(10/20 저장소 6,699건): ①네이버 종목분석 수집 0건 — 10/15~ 목록이 Next.js(Npay 증권) 화면으로 바뀌어 옛 표 파서가 매 실행 0건(WARNING 만), 저장소 source 100% 한경·증권사 12곳 ②opinion_rank 가 Not Rated·nr·N/A·투자의견없음(1,086건)을 '중립'으로 세어 의견 변화 399건 중 279건이 가짜 의견↑↓ → -1 로 수정(120건) ③fin.yml 저장 단계: 10/19 18:33 UTC 실행이 rebase 충돌 후 재시도 3회 실패했는데 '성공' 표시·결과 미저장 → -X theirs·regress_git·abort·실패 시 exit 1. 비종목: data/research_views.parquet·reports/research_views.json(status 출처별), 분류기 report_kind.classify(title, source_category, text, pages) 순수 함수. 한경 비CO report_type 은 목록 탭 링크에서 런타임으로 읽음(값 미확인). 남은 일: 첫 fin 실행(03:30 KST) 결과로 네이버 5종·한경 탭 실제 수집 여부 확인 → layout_changed 면 reports/logs/rv_*.html 로 새 파서, 네이버 종목분석 새 경로(API) 확인, backfill.yml·hist.yml 같은 푸시 루프 수정. | 10/21 00:5x 개발: 네이버 새 화면 데이터 경로 미확인 — 저장 응답(reports/logs/rv_naver_*.html 4만자·fixture 2만자)은 앞부분만 잘려 __NEXT_DATA__·self.__next_f 없음(CSS·청크 목록뿐, 청크 app/research/{company,industry}/page-*.js 확인). 이 컨테이너는 naver·pstatic 403. 탐침 screener/naver_next_probe.py(probe 모드에서 목록 6종 flight 데이터·JS 청크 API 문자열·발견 URL GET 을 로그 [NAVER_PROBE] 로 출력, 저장 없음) 작성했으나 세션 권한이 push·rebase 를 막아 미푸시 → Actions 미실행. 다음: 탐침 push → briefing.yml mode=probe commit=false 실행 → 로그에서 실제 경로 확인 → 종목·비종목 파서+실응답 픽스처."
     },
     {
       "id": "battle-scoreboard",
@@ -2565,6 +2566,26 @@
       ],
       "depends_on": [],
       "notes": "사전등록 0a32f3de(결과 전). 판정: H1 F · H2 검증전 · H3a F · H3b F(역방향 C) · H4a F · H4b C · H4c F(역방향 C). 2026 홀드아웃만 H2·H3 방향. 사이드카 실제 이력 없음(대용), 숏커버 메커니즘 검증 불가(short_hist 19일). 검수: 검증 데스크 재현."
+    },
+    {
+      "id": "pre-push-guard",
+      "title": "push 전 검사 강제 — .githooks/pre-push(board·check_functions·check_rules_terms·관련 pytest) 실패 시 push 차단",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-22",
+      "repo": "public",
+      "files": [
+        "scripts/prepush_check.py",
+        "scripts/install_hooks.sh",
+        ".githooks/pre-push",
+        "tests/test_prepush_check.py",
+        "CLAUDE.md",
+        "docs/desk_kb/LOOP.md"
+      ],
+      "depends_on": [],
+      "notes": "10/20 개발 에이전트가 check_functions '푸시 금지'를 명령 체인으로 넘김 → 종료 코드로 차단. 설치 sh scripts/install_hooks.sh(core.hooksPath=.githooks, 로컬 설정 — Actions 러너 checkout 엔 미적용, 워크플로에 hooksPath 설정 없음 grep 확인). 우회 금지 LOOP.md. 남은 일: 실제 origin push 1회로 훅 동작 확인(로컬 bare 원격으로는 확인)."
     }
   ]
 }

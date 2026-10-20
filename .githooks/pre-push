@@ -1,0 +1,6 @@
+#!/bin/sh
+# push 전 필수 검사 — 실패하면 push 차단 (scripts/prepush_check.py). 설치: sh scripts/install_hooks.sh
+# 우회(git push --no-verify) 금지 — docs/desk_kb/LOOP.md 커밋 규약.
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+PY="$(command -v python3 || command -v python)"
+exec "$PY" "$ROOT/scripts/prepush_check.py" --hook
