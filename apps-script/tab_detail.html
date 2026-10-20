@@ -153,7 +153,8 @@ let MAC_TIMER=null, MAC_KEY=null, MAC_DB=null, MAC_DB_T=0;
 function macLs(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){} return null; }
 function macStop(){ if(MAC_TIMER) clearInterval(MAC_TIMER); MAC_TIMER=null; MAC_KEY=null; }
 function macDbLoad(cb){ if(Date.now()-MAC_DB_T<60e3||typeof TOSS_BASE==='undefined'){ cb(); return; } MAC_DB_T=Date.now();
-  fetch(TOSS_BASE+'daily_bars.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MAC_DB=j&&j.src==='toss'?j:null;}).catch(()=>{MAC_DB=null;}).then(cb); }
+  const g=f=>fetch(TOSS_BASE+f+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>j&&j.source==='toss'&&j.keys?j:null).catch(()=>null);   // 404·형식 오류 → null(야후 폴백)
+  Promise.all([g('daily_bars.json'),g('daily_today.json')]).then(([p,t])=>{ MAC_DB=p?{past:p,today:t}:null; }).then(cb); }
 function macLoad(cb){ if(typeof tossLoad!=='function') return cb(); let k=0; const d=()=>{ if(++k===2) cb(); }; tossLoad(d); macDbLoad(d); }
 function macUsSess(){ const s=TOSS&&TOSS.us&&TOSS.us.session, a=Date.parse(s&&s.start||''), b=Date.parse(s&&s.end||''), n=Date.now(); return isNaN(a)||isNaN(b)?null:{on:n>=a&&n<=b,start:a}; }
 function macOn(m){ if(!m) return false; if(m.t==='us'){ const s=macUsSess(); return !!(s&&s.on); } return typeof tossInSession==='function'&&tossInSession(); }
@@ -169,9 +170,12 @@ function macSrc(key){ const m=MAC_TOSS[key]; if(!m||!TOSS) return null;
     return bars.length?{m,bars,asof:(q&&q.asof)||u.asof}:null; }
   const f=(TOSS.fx||{}).USDKRW; return f&&f.mid!=null?{m,bars:macFxPts(f),asof:f.asof}:null; }
 /* 일봉 원천: 토스 daily_bars.json — 지수 키 자체가 있을 때만(미장 지수를 ETF 일봉으로 바꾸지 않음) · 신선할 때만 */
-function macDaily(key){ const j=MAC_DB; if(!j) return null; const r=(j.bars&&j.bars[key])||(j.keys&&j.keys[key]&&(j.keys[key].bars||j.keys[key]))||(Array.isArray(j[key])?j[key]:null);
-  if(!Array.isArray(r)||r.length<2) return null; const asof=(j.keys&&j.keys[key]&&j.keys[key].asof)||j.asof, m=MAC_TOSS[key]||{t:'idx'};
-  if(!macFresh(m,asof)) return null; return {asof,rows:r.map(z=>({d:z[0],o:z[1],h:z[2],l:z[3],c:z[4],v:+(z[5]||0)}))}; }
+function macDaily(key){ const P=MAC_DB&&MAC_DB.past.keys[key], T=MAC_DB&&MAC_DB.today&&MAC_DB.today.keys&&MAC_DB.today.keys[key];
+  const TB=T&&(Array.isArray(T.bars)&&T.bars.length?T.bars:Array.isArray(T.bar)?[T.bar]:null);   // daily_today: bars(스냅샷 이후 봉 전부) 우선, 옛 형식 bar
+  if(!P||!Array.isArray(P.bars)||!TB) return null;   // 오늘 봉(daily_today) 없으면 야후(LIVE 보정된 오늘 봉)가 낫다
+  const asof=T.updated||MAC_DB.today.asof; if(!macFresh(MAC_TOSS[key]||{t:'idx'},asof)) return null;
+  const M=new Map(); P.bars.concat(TB).forEach(z=>M.set(z[0],z)); const B=[...M.values()].sort((a,b)=>a[0]<b[0]?-1:1);   // 같은 날짜면 today 우선
+  return B.length<2?null:{asof,rows:B.map(z=>({d:z[0],o:z[1],h:z[2],l:z[3],c:z[4],v:+(z[5]||0)}))}; }
 function macAgg(bars,u){ const n=+u||1, out=[]; let cur=null, ck=null;
   for(const r of bars){ const p=String(r[0]).split(':').map(Number), k=p.length===2&&!isNaN(p[0])?Math.floor((p[0]*60+p[1])/n):r[0];
     if(n>1&&cur&&k===ck){ cur.h=Math.max(cur.h,r[2]); cur.l=Math.min(cur.l,r[3]); cur.c=r[4]; cur.v+=+(r[5]||0); continue; }

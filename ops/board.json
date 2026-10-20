@@ -2729,7 +2729,7 @@
         "scripts/ui_smoke.py"
       ],
       "depends_on": [],
-      "notes": "토스 매핑: KOSPI·KOSDAQ 1분봉, USDKRW 매매기준율(수집 시점 누적 점, 브라우저 localStorage), SPX→SPY·NASDAQ→QQQ·SOX→SOXX 1분봉 '대용(ETF)'. 나머지(K200F·RUT·VIX·US10Y·JGB10Y·DXY·USDJPY·NIKKEI·TOPIX·WTI·GOLD·BTC) '토스 미제공 — 일봉'. 토스 분봉에 거래량 없음 → VWAP·거래량 막대 미표시(필드 생기면 자동). daily_bars.json(개발 A) 없으면 404 무시·야후. 미장 신선도 = us.session. tab_market 은 toss-sectors 잠금이라 도우미를 tab_detail 에 둠."
+      "notes": "토스 매핑: KOSPI·KOSDAQ 1분봉, USDKRW 매매기준율(수집 시점 누적 점, 브라우저 localStorage), SPX→SPY·NASDAQ→QQQ·SOX→SOXX 1분봉 '대용(ETF)'. 나머지(K200F·RUT·VIX·US10Y·JGB10Y·DXY·USDJPY·NIKKEI·TOPIX·WTI·GOLD·BTC) '토스 미제공 — 일봉'. 토스 분봉에 거래량 없음 → VWAP·거래량 막대 미표시(필드 생기면 자동). 일봉: daily_bars.json+daily_today.json(개발 A 스키마, 같은 날짜 today 우선) 있고 오늘 봉 신선·기간 봉 충분하면 토스, 아니면(404·형식 오류 포함) 야후 — 이어붙이기 없음. 미장 지수(SPX 등)는 일봉에 ETF 대용 안 씀. 미장 신선도 = us.session. tab_market 은 toss-sectors 잠금이라 도우미를 tab_detail 에 둠."
     }
   ]
 }

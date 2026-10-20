@@ -356,7 +356,8 @@ async def check_macro_popup(b, port: int) -> int:
     await pg.wait_for_timeout(800)
     res["미제공"] = "토스 미제공" in await J("$('#macbadge').innerText") and await J("document.querySelector(\"#mcunit button[data-u='1']\").disabled")
     # 토스 일봉(daily_bars) 100봉 주입 → 3M 은 토스 일봉, 1Y 버튼엔 '야후'(봉 부족 — 이어붙이지 않음)
-    await J("MAC_DB={src:'toss',asof:new Date().toISOString(),bars:{KOSPI:Array.from({length:100},(_,i)=>{const d=new Date(Date.UTC(2026,0,1+i)).toISOString().slice(0,10),v=1000+i;return [d,v,v+5,v-5,v+1,10];})}};"
+    await J("MAC_DB={past:{source:'toss',keys:{KOSPI:{mk:'KR',n:99,bars:Array.from({length:99},(_,i)=>{const d=new Date(Date.UTC(2026,0,1+i)).toISOString().slice(0,10),v=1000+i;return [d,v,v+5,v-5,v+1,10];})}}},"
+            "today:{source:'toss',asof:new Date().toISOString(),keys:{KOSPI:{bars:[['2026-12-30',1099,1104,1094,1100,10],['2026-12-31',1100,1105,1095,1101,10]],bar:['2026-12-31',1100,1105,1095,1101,10],updated:new Date().toISOString()}}}};"
             "MAC_DB_T=Date.now(); MRNG=63; openMacro('KOSPI')")
     await pg.wait_for_timeout(800)
     await pg.click("#mcunit button[data-u='D']")
