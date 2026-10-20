@@ -61,20 +61,22 @@ SOURCES: list[dict] = [
     # ── 한국은행 ──
     {"id": "bok_press", "group": "한은", "inst": "한국은행", "series": BOK_SERIES,
      "urls": ["https://www.bok.or.kr/portal/bbs/B0000338/news.rss?menuNo=200761",
-              "https://www.bok.or.kr/portal/bbs/B0000338/list.do?menuNo=200761"]},
+              "https://www.bok.or.kr/portal/bbs/B0000338/list.do?menuNo=200761",
+              "https://www.bok.or.kr/portal/bbs/B0000338/news.rss", "https://www.bok.or.kr/portal/bbs/B0000245/news.rss",
+              "https://www.bok.or.kr/portal/bbs/P0000559/news.rss"]},
     {"id": "bok_pub", "group": "한은", "inst": "한국은행", "series": BOK_SERIES,
      "urls": ["https://www.bok.or.kr/portal/bbs/P0002353/list.do?menuNo=200433",
               "https://www.bok.or.kr/portal/bbs/B0000217/list.do?menuNo=200144"]},
     # ── 정부·연구기관 ──
     {"id": "moef", "group": "정부·연구기관", "inst": "기재부", "series": [("그린북(최근 경제동향)", r"최근\s*경제동향|그린북", M)],
-     "urls": ["https://www.korea.kr/rss/dept_moef.xml"]},
+     "urls": ["https://www.korea.kr/rss/pressrelease.xml", "https://www.korea.kr/rss/dept_mosf.xml", "https://www.korea.kr/rss/policy.xml"]},
     {"id": "kostat", "group": "정부·연구기관", "inst": "통계청", "series": [("산업활동동향", r"산업활동동향", M), ("소비자물가", r"소비자물가", M)],
-     "urls": ["https://www.korea.kr/rss/dept_kostat.xml"]},
+     "urls": ["https://www.korea.kr/rss/pressrelease.xml", "https://www.korea.kr/rss/dept_kostat.xml", "https://www.korea.kr/rss/dept_mods.xml"]},
     {"id": "kdi", "group": "정부·연구기관", "inst": "KDI", "series": [("KDI 경제동향", r"경제동향", M), ("KDI 경제전망", r"경제전망", [5, 11]),
                                                                     ("KDI FOCUS", r"FOCUS|포커스", None)],
      "urls": ["https://www.kdi.re.kr/research/economy", "https://www.kdi.re.kr/research/focus", "https://www.kdi.re.kr/research/outlook"]},
     {"id": "kiet", "group": "정부·연구기관", "inst": "산업연구원", "series": [("KIET 보고서", r".", None)],
-     "urls": ["https://www.kiet.re.kr/research/economyList"]},
+     "urls": ["https://www.kiet.re.kr/research/paperList", "https://www.kiet.re.kr/kiet_web/main/"]},
     {"id": "kiep", "group": "정부·연구기관", "inst": "KIEP", "series": [("KIEP 보고서", r".", None)],
      "urls": ["https://www.kiep.go.kr/gallery.es?mid=a10101010000&bid=0001"]},
     {"id": "kif", "group": "정부·연구기관", "inst": "금융연구원", "series": [("KIF 보고서", r".", None)],
@@ -82,14 +84,14 @@ SOURCES: list[dict] = [
     {"id": "kcmi", "group": "정부·연구기관", "inst": "자본시장연구원", "series": [("KCMI 보고서", r".", None)],
      "urls": ["https://www.kcmi.re.kr/report/report_list"]},
     {"id": "nabo", "group": "정부·연구기관", "inst": "국회예산정책처", "series": [("NABO 보고서", r"경제|재정|전망|동향", None)],
-     "urls": ["https://www.nabo.go.kr/system/nsite/bbs/list.do?bbsId=N_BBS_0001"]},
+     "urls": ["https://www.nabo.go.kr/", "https://www.nabo.go.kr/ko/issue.do"]},
     # ── 시장기관 ──
     {"id": "fsc", "group": "시장기관", "inst": "금융위", "series": [("금융위 보도", r"자본시장|증권|공매도|밸류업|금융시장|가계부채|금융안정|PF", None)],
-     "urls": ["https://www.korea.kr/rss/dept_fsc.xml"]},
+     "urls": ["https://www.korea.kr/rss/pressrelease.xml", "https://www.korea.kr/rss/dept_fsc.xml"]},
     {"id": "fss", "group": "시장기관", "inst": "금감원", "series": [("금감원 증권시장 보도", r"증권|공시|불공정|공매도|펀드|자산운용|투자자", None)],
      "urls": ["https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218"]},
     {"id": "krx", "group": "시장기관", "inst": "한국거래소", "series": [("KRX 시장 동향·보도", r".", None)],
-     "urls": ["https://www.krx.co.kr/contents/COM/PressReleaseList.jsp"]},
+     "urls": ["https://www.krx.co.kr/", "https://open.krx.co.kr/contents/OPN/01/01040100/OPN01040100.jsp"]},
     {"id": "kofia", "group": "시장기관", "inst": "금융투자협회", "manual": "freesis 통계 포털(동적 화면) — 채권·펀드 동향 수동 확인",
      "series": [("채권·펀드 동향", r".", M)], "urls": []},
     {"id": "ksd", "group": "시장기관", "inst": "예탁결제원", "manual": "SEIBro 해외주식 결제 동향(동적 화면) — 수동 확인",
@@ -103,9 +105,10 @@ SOURCES: list[dict] = [
     {"id": "imf", "group": "해외", "inst": "IMF", "series": [("WEO", r"World Economic Outlook", [1, 4, 7, 10]),
                                                              ("GFSR", r"Global Financial Stability", [4, 10])],
      "urls": ["https://www.imf.org/en/Publications/RSS?language=eng&series=World%20Economic%20Outlook",
-              "https://www.imf.org/en/Publications/RSS?language=eng&series=Global%20Financial%20Stability%20Report"]},
+              "https://www.imf.org/en/Publications/RSS?language=eng&series=Global%20Financial%20Stability%20Report",
+              "https://www.imf.org/en/News/RSS?language=eng"]},
     {"id": "bis", "group": "해외", "inst": "BIS", "series": [("BIS Quarterly Review", r"Quarterly Review", [3, 6, 9, 12])],
-     "urls": ["https://www.bis.org/doclist/qtrpdf.rss", "https://www.bis.org/doclist/all_pressrels.rss"]},
+     "urls": ["https://www.bis.org/doclist/qtrpdf.rss", "https://www.bis.org/doclist/all_pressrels.rss", "https://www.bis.org/list/qtrpdf/index.htm"]},
 ]
 JIANG_HANDLE = "https://www.youtube.com/@PredictiveHistory"
 JIANG_TAGS = {"중국": r"China|Chinese|Beijing|Xi\b|Taiwan", "미국": r"America|American|\bUS\b|U\.S\.|United States|Trump|Biden",
@@ -213,18 +216,23 @@ def classify(src: dict, rows: list[dict]) -> list[dict]:
 def fetch_source(src: dict, get=_get) -> tuple[list[dict], dict]:
     if src.get("manual"):
         return [], {"status": "manual", "n": 0, "reason": src["manual"], "url": None}
-    errs, rows, used = [], [], None
+    errs, rows, used, diag = [], [], None, []
     for u in src["urls"]:
         try:
             t = _get(u) if get is None else get(u)
-            got = parse_feed(t) if t.lstrip().startswith("<?xml") or "<rss" in t[:500] or "<feed" in t[:500] else parse_html_list(t, u)
-            got = classify(src, got)
+            feed = t.lstrip().startswith("<?xml") or "<rss" in t[:500] or "<feed" in t[:500]
+            raw = parse_feed(t) if feed else parse_html_list(t, u)
+            got = classify(src, raw)
+            tm = re.search(r"<title[^>]*>(.*?)</title>", t, re.S | re.I)
+            diag.append(f"{u.split('/', 3)[-1][:40]} {len(t)}B {'feed' if feed else 'html'} a{len(A_RE.findall(t)) if not feed else 0} "
+                        f"d{len(D_RE.findall(t))} raw{len(raw)} hit{len(got)} '{_clean(tm.group(1), 30) if tm else ''}'")
             if got:
                 rows += got
                 used = used or u
         except Exception as e:  # noqa: BLE001
             errs.append(f"{u.split('/')[2]}: {type(e).__name__} {str(e)[:80]}")
-    st = {"status": "ok" if rows else ("error" if errs and len(errs) == len(src["urls"]) else "empty"),
+            diag.append(f"{u.split('/', 3)[-1][:40]} ERR {str(e)[:40]}")
+    st = {"diag": diag, "status": "ok" if rows else ("error" if errs and len(errs) == len(src["urls"]) else "empty"),
           "n": len(rows), "reason": "; ".join(errs)[:300] or None, "url": used}
     return rows, st
 
@@ -401,4 +409,6 @@ if __name__ == "__main__":
         except Exception:  # noqa: BLE001
             j = {}
         js = j.get("status") or {}
+        dg = " ## ".join(f"{s['id']}: " + " / ".join(s.get("diag") or []) for s in o["sources"] if s["status"] not in ("ok", "manual"))
+        print(f"::notice title=공공 리포트 진단::{dg[:3500]}")
         print(f"::notice title=공공 리포트 소스 표::{tab} || jiang:{js.get('status')}:{js.get('n')}:{j.get('channel_id')}:{(js.get('reason') or '')[:80]}".replace("\n", " "))
