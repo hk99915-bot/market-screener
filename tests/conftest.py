@@ -6,6 +6,16 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+# git 훅(pre-push → scripts/prepush_check.py → pytest) 안에서 돌면 GIT_DIR·GIT_INDEX_FILE 등 '저장소 위치' 변수가 상속돼
+# 테스트가 tmp 에서 부르는 git(init --bare·commit·reset)이 **실제 저장소**를 건드린다. 10/21 01시 사고 3회:
+# 메인 체크아웃 core.bare=true, 작업 브랜치에 author 't' 커밋('init'·'base 10/16') — test_toss_publish·test_freshness_guard.
+# 테스트 프로세스 시작 시 위치 변수만 지운다(자격 증명·프록시용 GIT_CONFIG_* 는 그대로).
+import os  # noqa: E402
+
+for _k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY", "GIT_COMMON_DIR",
+           "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX", "GIT_QUARANTINE_PATH"):
+    os.environ.pop(_k, None)
+
 
 import pytest  # noqa: E402
 
