@@ -184,7 +184,9 @@ def run() -> dict:
         out["close_cmp2"] = "ERR " + traceback.format_exc()[-600:]
     p = REPORT_DIR / "logs" / "probe.json"
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    for k in [k for k in out if k.startswith("wics_")]:   # 10/21 toss-sectors: 아래 json 저장이 실패해도 로그에 남게 먼저 출력
+        print(f"[WICS] {k} {json.dumps(out[k], ensure_ascii=False, default=str)[:1500]}", flush=True)
+    p.write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")   # date 객체(pykrx) 직렬화 실패 수정
     return {k: (v.get("status") if isinstance(v, dict) and "status" in v else "…") for k, v in out.items()}
 
 
