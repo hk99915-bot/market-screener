@@ -1,6 +1,6 @@
 {
- "date": "2026-10-19",
- "asof": "2026-10-19 19:23",
+ "date": "2026-10-20",
+ "asof": "2026-10-20 19:23",
  "assets": {
   "KOSPI": [
    {
@@ -37,7 +37,7 @@
     "stance": "중립",
     "conv": 1,
     "horizon": "5d",
-    "reason": "감마 음수(-736억) — 흔들림 크지만 방향 없음 · PCR 1.31 극단(검증전) — B 이상 방향 렌즈 없음",
+    "reason": "감마 음수(-1,103억) — 흔들림 크지만 방향 없음 — B 이상 방향 렌즈 없음",
     "tag": "flows",
     "refs": [
      "reports/derivs.json",
@@ -73,10 +73,10 @@
    {
     "desk": "리스크",
     "asset": "KOSPI",
-    "stance": "중립",
+    "stance": "매도",
     "conv": 1,
     "horizon": "5d",
-    "reason": "200일선 -10.2% · 20일 저점 위 +3.8%",
+    "reason": "200일선 아래(-13.6%) · 20일 저점까지 +0.0%",
     "tag": "risk",
     "refs": [
      "reports/macro_series.json",
@@ -86,10 +86,10 @@
    {
     "desk": "리스크",
     "asset": "KOSPI",
-    "stance": "중립",
+    "stance": "매도",
     "conv": 1,
     "horizon": "20d",
-    "reason": "200일선 -10.2% · 20일 저점 위 +3.8%",
+    "reason": "200일선 아래(-13.6%) · 20일 저점까지 +0.0%",
     "tag": "risk",
     "refs": [
      "reports/macro_series.json",
@@ -150,10 +150,10 @@
    {
     "desk": "겸이",
     "asset": "KOSPI",
-    "stance": "매도",
+    "stance": "매수",
     "conv": 1,
     "horizon": "5d",
-    "reason": "나 인버스 선택(KODEX 인버스)",
+    "reason": "나 선택 KODEX 레버리지",
     "tag": "signal",
     "refs": [
      "reports/decisions.json"
@@ -195,7 +195,7 @@
     "stance": "중립",
     "conv": 1,
     "horizon": "5d",
-    "reason": "감마 음수(-736억) — 흔들림 크지만 방향 없음 · PCR 1.31 극단(검증전) — B 이상 방향 렌즈 없음",
+    "reason": "감마 음수(-1,103억) — 흔들림 크지만 방향 없음 — B 이상 방향 렌즈 없음",
     "tag": "flows",
     "refs": [
      "reports/derivs.json",
@@ -392,7 +392,7 @@
     "stance": "중립",
     "conv": 1,
     "horizon": "5d",
-    "reason": "200일선 +5.3% · 20일 저점 위 +0.1%",
+    "reason": "200일선 +5.7% · 20일 저점 위 +0.5%",
     "tag": "risk",
     "refs": [
      "reports/macro_series.json",
@@ -405,7 +405,7 @@
     "stance": "중립",
     "conv": 1,
     "horizon": "20d",
-    "reason": "200일선 +5.3% · 20일 저점 위 +0.1%",
+    "reason": "200일선 +5.7% · 20일 저점 위 +0.5%",
     "tag": "risk",
     "refs": [
      "reports/macro_series.json",
@@ -430,7 +430,7 @@
     "stance": "중립",
     "conv": 1,
     "horizon": "20d",
-    "reason": "강세 36% · 약세 20% — 과반 없음",
+    "reason": "강세 22% · 약세 15% — 과반 없음",
     "tag": "regime",
     "refs": [
      "reports/committee.json#scenarios",
@@ -524,7 +524,7 @@
     "stance": "매도",
     "conv": 1,
     "horizon": "5d",
-    "reason": "5일 -15bp — 하락 지속",
+    "reason": "5일 -10bp — 하락 지속",
     "tag": "rates",
     "refs": [
      "reports/macro_view.json",
@@ -537,7 +537,7 @@
     "stance": "매도",
     "conv": 1,
     "horizon": "20d",
-    "reason": "5일 -15bp — 하락 지속",
+    "reason": "5일 -10bp — 하락 지속",
     "tag": "rates",
     "refs": [
      "reports/macro_view.json",
@@ -636,17 +636,17 @@
   ]
  },
  "closes": {
-  "KOSPI": 5768.01,
+  "KOSPI": 5552.74,
   "SEMI_KR": 110655.0,
-  "SPX": 7659.4399,
-  "US10Y": 5.098
+  "SPX": 7690.73,
+  "US10Y": 5.136
  },
  "note": "지수·업종 수준 판단만. 개인 보유·금액 없음. 규칙: screener/dotplot.py",
  "summary": {
   "KOSPI": {
    "counts": {
-    "매수": 1,
-    "중립": 6,
+    "매수": 2,
+    "중립": 5,
     "매도": 1
    },
    "tags": {
