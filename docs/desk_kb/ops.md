@@ -63,6 +63,11 @@ GAS 백업 예약기 슬롯(08:40·14:25·15:45·16:40·22:20)은 보드 `gas-sc
 - 잠금: 공유 파일(LOCKS.md 표)만, 파일 하나가 단위, 작은 커밋으로 즉시 푸시. 남의 잠금 안 지움.
 - 라운드 수집: `python3 scripts/round_collect.py --date D` (드라이런) → 출력 확인 → `--apply` → 보드가 바뀌었으면 `board.py --check` → 커밋. 모든 데스크가 라운드 파일을 다 쓴 뒤(21:10 라운드면 23:47 ops 전)에 돌린다.
 
+## watchdog · 요청 장부 (10/21 PM 안 B·E)
+- `scripts/watchdog.py` — ops.yml 00:07 KST 회차(`--apply --send`). 감지: 데이터 0건/실패(`reports/*_status.json`·research_views·research·accum) · 신선도(`screener/freshness.check` 재사용) · 토스 live.json · 보드 마감 초과 · 대기 3일+ · 요청 2영업일 미처리. 결과 `reports/watchdog.json`(owner별), 보드 `escalated: <날짜>`(우선순위 보존, BOARD.md 에 ⏫), 비작업 감지는 `wd-*` P1 작업(해소되면 자동 완료), 텔레그램 하루 1통(무이상 한 줄 + 📮 사내 메신저). 손으로: `python3 scripts/watchdog.py`(드라이런).
+- `scripts/ask.py --from <데스크> --to <데스크> --text … [--due YYYY-MM-DD]` — PB 경유 없이 요청 장부에 추가(기본 마감 2영업일). 처리 끝: `--close <id> [--by <데스크>]` 또는 라운드 파일 `처리→<요청 데스크>: …`. 겸이는 텔레그램 `ask <데스크> <내용>`(→ ask.yml).
+- 승격 규칙: 라운드 수 → **요청일부터 2영업일(KR 휴장 제외)**, `round_collect.promotions` 한 곳.
+
 ## 현업 vs 교과서
 - `[규정]` GitHub Docs "Events that trigger workflows › schedule": 예약 워크플로는 부하가 높은 시간대에 지연·누락될 수 있고 **매시 정각이 가장 밀린다**, 최소 간격 5분, 기본 브랜치의 최신 커밋 기준으로 돈다. → 우리 cron 이 :52·:47 같은 비정각인 이유. 지연이 수십 분일 수 있어 모드를 '시각'이 아니라 'cron 문자열'로 정한 것도 같은 근거.
 - `[경험]` 그래도 누락은 남는다 → GAS 백업 예약기(dispatch)로 이중화. 중복은 '먼저 온 쪽이 이김'으로 푼다.

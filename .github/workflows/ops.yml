@@ -1,7 +1,7 @@
 name: ops
 
 # 운영 기록 — 매일 23:47 KST. 변경 이력(changelog.json)·작업내역 보고(reports/ops/daily)·최근 24h 워크플로 실행 통계(runs.json)·작업 보드(BOARD.md).
-# + 팀 업무량 auto(ops/team.json, PM 소관) — 23:47 에 한 번, 날짜가 바뀐 00:07 KST 에 한 번 더(그 슬롯은 팀 업무량만).
+# + 팀 업무량 auto(ops/team.json, PM 소관) — 23:47 에 한 번, 날짜가 바뀐 00:07 KST 에 한 번 더(그 슬롯은 팀 업무량 + watchdog).
 on:
   schedule:
     - cron: "47 14 * * *"   # 23:47 KST (정각은 GitHub 가 자주 건너뜀 → 비정각)
@@ -49,12 +49,26 @@ jobs:
       - name: 팀 업무량 (PM — ops/team.json auto)
         run: python scripts/team_stats.py || echo "::warning::team_stats 실패 — 팀 업무량 미갱신(화면에 ⚠ 갱신 안 됨)"
 
+      - name: 감시 (watchdog — 데이터0·신선도·마감·대기·토스·요청 2영업일, 보드 escalated + 텔레그램 하루 1통 · 10/21 PM 안 B·E)
+        if: github.event.schedule == '7 15 * * *' || github.event_name == 'workflow_dispatch'
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
+        run: |
+          pip install -q polars requests   # send_telegram(screener.report) 의존 — pick.yml 과 같게
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.commit }}" != "true" ]; then
+            python scripts/watchdog.py || echo "::warning::watchdog 드라이런 실패"
+          else
+            python scripts/watchdog.py --apply --send || echo "::warning::watchdog 실패 — reports/watchdog.json 미갱신"
+            python scripts/board.py || true
+          fi
+
       - name: 저장
         if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add -A reports/changelog.json reports/ops ops/BOARD.md ops/team.json 2>/dev/null; true
+          git add -A reports/changelog.json reports/ops ops/BOARD.md ops/team.json reports/watchdog.json ops/board.json docs/desk_kb/rounds/_requests.json 2>/dev/null; true
           git diff --cached --quiet || git commit -m "ops: $(date -u +%FT%H:%M)"
           git stash -q -u 2>/dev/null || true
           ok=0

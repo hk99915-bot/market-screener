@@ -2730,6 +2730,45 @@
       ],
       "depends_on": [],
       "notes": "토스 매핑: KOSPI·KOSDAQ 1분봉, USDKRW 매매기준율(수집 시점 누적 점, 브라우저 localStorage), SPX→SPY·NASDAQ→QQQ·SOX→SOXX 1분봉 '대용(ETF)'. 나머지(K200F·RUT·VIX·US10Y·JGB10Y·DXY·USDJPY·NIKKEI·TOPIX·WTI·GOLD·BTC) '토스 미제공 — 일봉'. 토스 분봉에 거래량 없음 → VWAP·거래량 막대 미표시(필드 생기면 자동). 일봉: daily_bars.json+daily_today.json(개발 A 스키마, 같은 날짜 today 우선) 있고 오늘 봉 신선·기간 봉 충분하면 토스, 아니면(404·형식 오류 포함) 야후 — 이어붙이기 없음. 미장 지수(SPX 등)는 일봉에 ETF 대용 안 씀. 미장 신선도 = us.session. tab_market 은 toss-sectors 잠금이라 도우미를 tab_detail 에 둠."
+    },
+    {
+      "id": "watchdog-b",
+      "title": "감시 자동화(PM 안 B): scripts/watchdog.py — 데이터0·신선도·마감·대기3일·토스 감지, 보드 escalated, 텔레그램 하루 1통",
+      "files": [
+        "scripts/watchdog.py",
+        ".github/workflows/ops.yml",
+        "scripts/board.py",
+        "scripts/team_run.py",
+        "tests/test_watchdog.py"
+      ],
+      "notes": "10/21 겸이 B·E 도입 결정. ops.yml 00:07 KST 회차. 운영 도구(매매·한도 규칙 아님). 첫 실 실행 후 감지 건수·오탐 검수.",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-23",
+      "repo": "public",
+      "depends_on": []
+    },
+    {
+      "id": "requests-e",
+      "title": "요청 장부(PM 안 E)+사내 메신저: 2영업일 승격·scripts/ask.py·텔레그램 ask → ask.yml",
+      "files": [
+        "scripts/round_collect.py",
+        "scripts/ask.py",
+        ".github/workflows/ask.yml",
+        "apps-script/TelegramHook.gs",
+        "docs/desk_kb/ops.md",
+        "docs/telegram_pick_buttons.md"
+      ],
+      "notes": "겸이 할 일: TelegramHook.gs GAS 재붙여넣기 + 배포 관리 → 새 버전. 그 전엔 텔레그램 ask 무반응(기존 pick 은 그대로).",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-23",
+      "repo": "public",
+      "depends_on": []
     }
   ]
 }

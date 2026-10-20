@@ -1,0 +1,51 @@
+name: ask
+
+# 사내 메신저 — 저장소 주인(겸이)이 'ask <데스크>' 이슈를 열면(텔레그램 'ask <데스크> <내용>' → apps-script/TelegramHook.gs 가 대신 연다)
+# 요청 장부 docs/desk_kb/rounds/_requests.json 에 from='겸이' 로 추가(scripts/ask.py)하고 이슈를 닫는다. pick.yml 패턴 복제 (10/21 PM 안 E).
+# 2영업일 지나도 안 닫히면 watchdog(ops.yml 00:07 KST)이 보드 P1 승격, 매일 요약 '📮 사내 메신저' 절에 나온다.
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: ask
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: startsWith(github.event.issue.title, 'ask ') && github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 장부에 추가·저장
+        id: r
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
+          msg=""
+          for i in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            msg=$(python scripts/ask.py --issue-title "$TITLE" --issue-body "$BODY") || { echo "$msg"; break; }
+            git add docs/desk_kb/rounds/_requests.json; git diff --cached --quiet && break
+            git commit -qm "ask: $TITLE" && git push -q origin HEAD:main && break
+            sleep 5
+          done
+          echo "$msg"
+          { echo "msg<<EOF"; echo "$msg"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+      - name: 답글·닫기
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MSG: ${{ steps.r.outputs.msg }}
+        run: |
+          printf '%s\n' "${MSG:-처리 실패 — Actions 로그 확인}" | gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file -
+          gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}

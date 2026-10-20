@@ -71,7 +71,8 @@ def render(b: dict) -> str:
             due = t.get("due") or "—"
             if t.get("due") and t["due"] < td and s != "완료":
                 due = f"**{due} 지남**"
-            row = [t["priority"], f"`{t['id']}`", t["title"], t["owner"], t.get("started") or "—", due, files,
+            pri = t["priority"] + (f" ⏫P1 {t['escalated'][5:]}" if t.get("escalated") and t["priority"] != "P1" else " ⏫" if t.get("escalated") else "")   # watchdog 승격 표시(우선순위 보존, 10/21 B)
+            row = [pri, f"`{t['id']}`", t["title"], t["owner"], t.get("started") or "—", due, files,
                    ", ".join(f"`{d}`" for d in t.get("depends_on") or []) or "—", (t.get("notes") or "").replace("|", "/")]
             L.append("| " + " | ".join(row) + " |")
         L.append("")

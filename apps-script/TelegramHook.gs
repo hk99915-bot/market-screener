@@ -29,6 +29,8 @@
  *   callback_data "p|2026-10-21|U|SPY|s"    → 이슈 'pick-us 2026-10-21' / 본문 'SPY 1000000'
  *   callback_data "p|…|cash|…"              → 본문 '현금'      ·   "h|K" / "h|U" → 직접 입력 안내 답장
  *   텍스트 'pick 005930 시가' · 'pick 현금' · 'pick-us QQQ 5일' → 오늘(KST)·미장 세션(ET) 날짜로 같은 이슈
+ *   텍스트 'ask 퀀트 accum 백필 언제 돼?' → 이슈 'ask 퀀트' / 본문 '<내용>' → .github/workflows/ask.yml 이 요청 장부
+ *     (docs/desk_kb/rounds/_requests.json)에 from='겸이' 로 추가 후 이슈 닫기 (10/21 사내 메신저 — scripts/ask.py parse_ask_text 와 같은 규칙)
  */
 
 const TG_REPO = 'hk99915-bot/market-screener';
@@ -37,6 +39,9 @@ const TG_CB_EXIT = { K: { o: '시가', c: '종가', '5': '5일' }, U: { s: '', '
 const TG_CODE_RE = { K: /^[0-9A-Za-z]{6}$/, U: /^[A-Za-z][A-Za-z.\-]{0,5}$/ };
 const TG_TEXT_CODE_RE = { K: /^(?:[0-9A-Za-z]{6}|[A-Za-z.]{1,6})$/, U: TG_CODE_RE.U };   // apply_issue 와 같은 규칙
 const TG_DEDUP_SEC = 600;   // 10분
+// 데스크 키 → 이름 (scripts/round_collect.py DESKS 와 같아야 함 — tests/test_watchdog.py 가 대조)
+const TG_DESKS = { pb: 'PB', quant: '퀀트', bonds: '채권', frm: '리스크', backtest: '백테스트', life: 'LIFE', alloc: '자산배분', macro: '매크로', ops: '운영', pm: 'PM', health: '헬스', cio: 'CIO', derivs: '파생', analyst: '애널', dev: '개발', edu: '교육', data: '데이터', verify: '검증', eval: '평가', peer: '피어리뷰', behavior: '행동', audit: '감사' };
+const TG_ASK_USAGE = '형식: ask <데스크> <내용> — 데스크: ' + Object.keys(TG_DESKS).map(function (k) { return TG_DESKS[k]; }).join(' ');
 const TG_HELP = {
   K: '✍️ 직접 입력: 이 채팅에 이렇게 보내 줘 (15:30 전)\n'
     + 'pick 005930 시가   ← 종가 진입 → 다음날 시가 청산\n'
@@ -81,6 +86,20 @@ function tgParseText_(text, krDate, usDate) {
   return { title: title, body: toks.join(' ') };
 }
 
+/** 텍스트 → {title:'ask <데스크이름>', body} · {error} · null(ask 아님) (scripts/ask.py parse_ask_text 와 같음). */
+function tgParseAsk_(text) {
+  const t = String(text || '').trim();
+  const m = /^\/?ask(?=\s|$)\s*([\s\S]*)$/i.exec(t);
+  if (!m) return null;
+  const rest = m[1].trim();
+  const sp = rest.search(/\s/);
+  const head = sp < 0 ? rest : rest.slice(0, sp), body = sp < 0 ? '' : rest.slice(sp).trim();
+  let name = null;
+  Object.keys(TG_DESKS).forEach(function (k) { if (k === head.toLowerCase() || TG_DESKS[k] === head) name = TG_DESKS[k]; });
+  if (!name || !body) return { error: TG_ASK_USAGE };
+  return { title: 'ask ' + name, body: body };
+}
+
 /** update_id 는 봇마다 단조 증가 → 이미 처리한 최대값 이하면 재전송. */
 function tgIsNewUpdate_(updateId, lastSeen) {
   const last = Number(lastSeen);
@@ -115,7 +134,7 @@ function tgPlan_(upd, owner, krDate, usDate) {
   if (msg && typeof msg.text === 'string') {
     if (String((msg.from || {}).id) !== owner) return { kind: 'ignore', why: 'not-owner' };
     const chat = String(msg.chat.id);
-    const is = tgParseText_(msg.text, krDate, usDate);
+    const is = tgParseText_(msg.text, krDate, usDate) || tgParseAsk_(msg.text);
     if (!is) return { kind: 'ignore', why: 'not-pick' };
     if (is.error) return { kind: 'reply', chat: chat, text: is.error };
     return { kind: 'issue', chat: chat, key: 'tgt:' + is.title + '|' + is.body, issue: is };
@@ -169,8 +188,10 @@ function tgHandle_(e) {
   const res = tgCreateIssue_(plan.issue.title, plan.issue.body);
   if (res.ok) {
     if (plan.cqId) tgApi_('answerCallbackQuery', { callback_query_id: plan.cqId, text: '기록 접수 ✅' });
-    tgApi_('sendMessage', { chat_id: plan.chat,
-      text: '기록 접수 ✅ ' + plan.issue.title + ' · ' + plan.issue.body + '\n반영 결과(마감·쿨다운 확인)는 1~2분 뒤 따로 와. 바꾸고 싶으면 다른 버튼을 누르면 마지막 것이 남아.' });
+    const isAsk = plan.issue.title.indexOf('ask ') === 0;
+    tgApi_('sendMessage', { chat_id: plan.chat, text: isAsk
+      ? '📮 요청 접수 ✅ 겸이 → ' + plan.issue.title.slice(4) + ': ' + plan.issue.body + '\n장부 반영은 1~2분 뒤 이슈 답글로, 매일 00:07 요약의 📮 사내 메신저 절에 나와.'
+      : '기록 접수 ✅ ' + plan.issue.title + ' · ' + plan.issue.body + '\n반영 결과(마감·쿨다운 확인)는 1~2분 뒤 따로 와. 바꾸고 싶으면 다른 버튼을 누르면 마지막 것이 남아.' });
   } else {
     cache.remove(plan.key);   // 실패면 다시 누를 수 있게
     if (plan.cqId) tgApi_('answerCallbackQuery', { callback_query_id: plan.cqId, text: '기록 실패 ❌ ' + res.code, show_alert: true });
@@ -226,5 +247,5 @@ function tgDeleteWebhook() {
 }
 
 if (typeof module !== 'undefined') {   // node 테스트용 (GAS 에서는 module 이 없어 무시)
-  module.exports = { tgIsNewUpdate_, tgParseCallback_, tgParseText_, tgSecretOk_, tgPlan_, TG_HELP };
+  module.exports = { tgIsNewUpdate_, tgParseCallback_, tgParseText_, tgParseAsk_, tgSecretOk_, tgPlan_, TG_HELP, TG_DESKS };
 }

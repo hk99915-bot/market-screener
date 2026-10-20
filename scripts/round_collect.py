@@ -9,7 +9,8 @@ docs/desk_kb/rounds/<date>/*.md 를 읽어
        {"by_desk": {"ops": {"치명": 0, "중": 1, "경": 2}}}  또는  {"findings": [{"desk": "ops", "severity": "중"}, …]}
      (severity 는 치명/중/경 또는 critical/major/minor; 데스크는 영문 키·한글 이름 모두 받음)
   3) 요청 장부(docs/desk_kb/rounds/_requests.json)에 요청을 누적하고, 대상 데스크가 다음 라운드 파일에
-     `처리→<요청 데스크>: …` 를 쓰지 않아 **2라운드 연속 미처리**면 ops/board.json 에 P1 '대기' 작업으로 승격한다
+     `처리→<요청 데스크>: …` 를 쓰지 않아 **요청일부터 2영업일(KR) 지나도 미처리**면 ops/board.json 에 P1 '대기' 작업으로 승격한다
+     (10/21 PM 안 E: 라운드가 안 돌아도 승격되게 날짜 기준. scripts/watchdog.py 가 매일 00:07 같은 함수로 판정)
 
 기본은 **드라이런**: 바뀔 내용만 출력하고 아무 파일도 쓰지 않는다. 실제 반영은 --apply.
 
@@ -37,7 +38,7 @@ LEDGER = ROUNDS_DIR / "_requests.json"
 AUDIT_DIR = ROOT / "reports" / "audit"
 KST = timezone(timedelta(hours=9))
 
-PROMOTE_AFTER = 2          # 연속 미처리 라운드 수 → P1 승격
+PROMOTE_AFTER = 2          # 요청일 이후 경과 영업일(KR) 수 → P1 승격 (10/21 E: 라운드 수 → 날짜 기준)
 PROMOTE_DUE_DAYS = 7
 
 # 라운드 파일명(영문 소문자 키) ↔ 보드 담당 이름. 요청 줄은 어느 쪽으로 써도 받는다.
@@ -45,7 +46,7 @@ DESKS = {
     "pb": "PB", "quant": "퀀트", "bonds": "채권", "frm": "리스크", "backtest": "백테스트", "life": "LIFE",
     "alloc": "자산배분", "macro": "매크로", "ops": "운영", "pm": "PM", "health": "헬스", "cio": "CIO",
     "derivs": "파생", "analyst": "애널", "dev": "개발", "edu": "교육", "data": "데이터", "verify": "검증",
-    "eval": "평가", "peer": "피어리뷰", "behavior": "행동",
+    "eval": "평가", "peer": "피어리뷰", "behavior": "행동", "audit": "감사",
 }
 _KO2KEY = {v: k for k, v in DESKS.items()}
 
@@ -185,7 +186,7 @@ def append_scoreboard(text: str, rnd: str, parsed: list[dict], audit: dict | Non
             lines.append("")
         lines += [ROUND_HEAD, "", "라운드 파일(docs/desk_kb/rounds/<날짜>/<데스크>.md)에서 자동 수집 — `scripts/round_collect.py`. "
                   "✓ = 항목 작성, 요청수 = `요청→` 줄 수, VOC = `VOC:` 줄 유무(본문은 아래 절), "
-                  "감사 = reports/audit/<날짜>.json 의 치명/중/경 건수(없으면 —). 2라운드 연속 미처리 요청은 보드 P1 승격.", "",
+                  "감사 = reports/audit/<날짜>.json 의 치명/중/경 건수(없으면 —). 요청일부터 2영업일 미처리 요청은 보드 P1 승격.", "",
                   ROUND_COLS, ROUND_SEP]
     have = set()
     for ln in lines:
@@ -248,21 +249,37 @@ def update_ledger(ledger: dict, rnd: str, parsed: list[dict]) -> dict:
     return L
 
 
+def biz_days(a: str, b: str) -> int:
+    """a(요청일) 다음 날부터 b(오늘)까지 KR 영업일 수. 휴장일은 screener/tradecal.py 표(없으면 주말만 뺀다)."""
+    try:
+        sys.path.insert(0, str(ROOT))
+        from screener.tradecal import is_session
+        ok = lambda d: is_session("KR", d)
+    except Exception:  # noqa: BLE001
+        ok = lambda d: d.weekday() < 5
+    d0, d1 = date.fromisoformat(a[:10]), date.fromisoformat(b[:10])
+    return sum(ok(d0 + timedelta(days=i)) for i in range(1, (d1 - d0).days + 1))
+
+
 def promotions(ledger: dict, rnd: str, board: dict, after: int = PROMOTE_AFTER) -> list[dict]:
-    """승격 대상 요청 → 보드 작업(dict) 목록. 이미 보드에 같은 id 가 있거나 status 가 open 이 아니면 제외."""
+    """승격 대상 요청 → 보드 작업(dict) 목록. 요청일(opened)부터 rnd 까지 `after` 영업일 이상 open 이면 승격.
+    이미 보드에 같은 id 가 있거나 status 가 open 이 아니면 제외."""
     have = {t["id"] for t in board.get("tasks", [])}
     due = (date.fromisoformat(rnd) + timedelta(days=PROMOTE_DUE_DAYS)).isoformat()
     out = []
     for r in ledger.get("requests", []):
-        if r["status"] != "open" or r.get("pending_rounds", 0) < after or r["id"] in have:
+        if r["status"] != "open" or r["id"] in have or biz_days(r["opened"], rnd) < after:
             continue
+        nb = biz_days(r["opened"], rnd)
         out.append({
             "id": r["id"],
             "title": f"[요청 승격] {desk_owner(r['from'])}→{desk_owner(r['to'])}: {r['text'][:60]}",
             "owner": desk_owner(r["to"]), "priority": "P1", "status": "대기", "started": None, "due": due,
             "repo": "public", "files": [], "depends_on": [],
-            "notes": f"강화 루프 요청 {r['pending_rounds']}라운드 연속 미처리({r['opened']}~{rnd}) → 자동 승격(LOOP.md). "
-                     f"처리 후 {desk_owner(r['to'])} 라운드 파일에 `처리→{desk_owner(r['from'])}: …` 한 줄.",
+            "escalated": rnd,
+            "notes": f"요청 {nb}영업일 미처리({r['opened']}~{rnd}) → 자동 승격(LOOP.md·watchdog). "
+                     f"처리 후 {desk_owner(r['to'])} 라운드 파일에 `처리→{desk_owner(r['from'])}: …` 한 줄 또는 "
+                     f"`python3 scripts/ask.py --close {r['id']}`.",
         })
     return out
 
@@ -316,7 +333,7 @@ def run(rnd: str, rounds_dir: Path, scoreboard: Path, board: Path, ledger_path: 
     out(f"  스코어보드 추가 {n_rows}줄 · 장부 열린 요청 {sum(r['status'] == 'open' for r in new_ledger['requests'])}건")
     for r in new_ledger["requests"]:
         if r["status"] == "open":
-            out(f"    - {r['id']} {r['from']}→{r['to']} 미처리 {r['pending_rounds']}R: {r['text'][:50]}")
+            out(f"    - {r['id']} {r['from']}→{r['to']} 미처리 {r.get('pending_rounds', 0)}R: {r['text'][:50]}")
     for t in tasks:
         out(f"  보드 P1 승격: {t['id']} ({t['owner']}) {t['title']}")
     if not apply:
