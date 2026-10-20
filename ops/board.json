@@ -2499,6 +2499,24 @@
         "tests/test_tracking_1020.py"
       ],
       "notes": "🟡 = 가격선이 내재 1일 범위 절반 이내 또는 FOMC·CPI·고용·관심 종목(회의 아이디어·후보) 실적. 일반 지표는 시계에만. 미장은 섹터 의견 변경을 🟡 조건에서 뺌(① 줄에는 유지). 라벨 문구 유지. 과거판 재적용(scripts/light_calibration.py): 국장 18판 전 1/17/0 → 후 1/8/9, 미장 v2 1판 0/1/0 → 0/1/0. 뒤집는 조건: 2주간 🟢 날 실제 지수 1일 변동이 내재 범위를 넘는 비율이 🟡 날보다 높으면 문턱 재검토."
+    },
+    {
+      "id": "toss-sectors",
+      "title": "섹터 분류를 토스 섹터(3단계, 국장·미장 공통)로 — KRX 업종 '전기·전자' 401종목 뭉침 해소",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-31",
+      "repo": "public",
+      "files": [
+        "tools/toss_md/collect.py",
+        "screener/universe.py"
+      ],
+      "depends_on": [
+        "toss-md-publish"
+      ],
+      "notes": "겸이 10/21 00:5x '섹터 분류도 이상한데 토스 기준으로'. 노트북 일 1회 /sectors·/sectors/{id}/stocks(KR·US) 스냅샷. 다중 소속 → 대표 섹터 1개 규칙 필요(비중 한도 영향 — 겸이 결재). 전환일 기록·옛/새 분류 병행 계산. KRX 업종은 대조용 유지."
     }
   ]
 }
