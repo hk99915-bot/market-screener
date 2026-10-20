@@ -2561,7 +2561,7 @@
       "depends_on": [
         "toss-md-pilot"
       ],
-      "notes": "겸이 10/21 '지금부터 시작해' + PB 설계(최대한 최신·전용 브랜치). 노트북 collect --publish → toss-live 브랜치 루트 live.json·crosscheck.json 만(plumbing 커밋, 일반 push, 봇 신원 toss-md, 변화 없으면 커밋 없음). 공개: prices 현재값(지수·국채 2~30Y)·1분봉 OHLC(봉 시작 시각)·투자자 4분류 합계·USDKRW midRate·달력·대조 괴리율. 터미널: live.py 가 신선(장중 20분/장외 당일분)하면 KOSPI·KOSDAQ·USDKRW src=toss, 화면 MARKET›KR TOSS LIVE 패널·지수 서랍 INTRADAY 가 raw 직접 fetch(CORS *, 캐시 300초), 지연 시 네이버/야후. 신선도 kind=toss_md(장중 30분, 장외 마지막 거래일). 시뮬 72커밋/일 ≈ 38KiB/일(gc 후). 겸이 할 일: 가이드 ⑥(작업 재등록 --publish, 첫 push GCM 로그인). 검수 대기: 첫 실데이터로 수급 단위(원/백만원)·국채 심볼 2/5/20/30Y·investor-trading 레이트리밋 그룹 확인(10/24까지, publish.py --shape)."
+      "notes": "겸이 10/21 '지금부터 시작해' + PB 설계(최대한 최신·전용 브랜치). 노트북 collect --publish → toss-live 브랜치 루트 live.json·crosscheck.json 만(plumbing 커밋, 일반 push, 봇 신원 toss-md, 변화 없으면 커밋 없음). 공개: prices 현재값(지수·국채 2~30Y)·1분봉 OHLC(봉 시작 시각)·투자자 4분류 합계·USDKRW midRate·달력·대조 괴리율. 터미널: live.py 가 신선(장중 20분/장외 당일분)하면 KOSPI·KOSDAQ·USDKRW src=toss, 화면 MARKET›KR TOSS LIVE 패널·지수 서랍 INTRADAY 가 raw 직접 fetch(CORS *, 캐시 300초), 지연 시 네이버/야후. 신선도 kind=toss_md(장중 30분, 장외 마지막 거래일). 시뮬 72커밋/일 ≈ 38KiB/일(gc 후). 겸이 할 일: 가이드 ⑥(작업 재등록 --publish, 첫 push GCM 로그인). 검수 대기: 첫 실데이터로 수급 단위(원/백만원)·국채 심볼 2/5/20/30Y·investor-trading 레이트리밋 그룹 확인(10/24까지, publish.py --shape). | 10/21 01:5x 개발: 실측 --shape 반영 파서 수정(/prices 는 lastPrice 뿐 → 기준가 = 랭킹 basePrice → 일봉 캐시, 랭킹 price{} 중첩, 등락률 단위 교차판정, 세션 라벨 us_*, 달력 실측 꼴), 국장 ETF·종목 현재가 kr_quotes(+1호출), 일봉 daily_bars.json·daily_today.json(백필 07:20 키당 ≤3호출, 10분 회차 +2/+5), 섹터 수집 청크 잠금 양보·이어받기. 겸이 할 일: git pull 만."
     },
     {
       "id": "study-hollzzak",
