@@ -110,10 +110,10 @@
    $py   = (Get-Command python).Source
    $repo = "$HOME\market-screener"
 
-   # (가) 장중: 평일 09:00~15:50, 10분마다 — 지수 1분봉·매매대금·환율 (1분봉은 200개까지 받아 합치므로 10분 간격이면 빠짐 없음)
+   # (가) 장중: 평일 08:00~20:00, 10분마다 — NXT 프리마켓(08:00)·KRX 정규장·시간외·NXT 애프터마켓(~20:00) 포함 (10/21 겸이 요청). 지수·투자자 매매대금은 KRX 정규장에만 움직이고, 시간외·NXT 구간은 환율·종목 시세(추가 시) 몫
    $a1 = New-ScheduledTaskAction -Execute $py -Argument "tools\toss_md\collect.py --group intraday" -WorkingDirectory $repo
-   $t1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 09:00
-   $t1.Repetition = (New-ScheduledTaskTrigger -Once -At 09:00 -RepetitionInterval (New-TimeSpan -Minutes 10) -RepetitionDuration (New-TimeSpan -Hours 6 -Minutes 50)).Repetition
+   $t1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 08:00
+   $t1.Repetition = (New-ScheduledTaskTrigger -Once -At 08:00 -RepetitionInterval (New-TimeSpan -Minutes 10) -RepetitionDuration (New-TimeSpan -Hours 12)).Repetition
    $s  = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
    Register-ScheduledTask -TaskName "toss_md_intraday" -Action $a1 -Trigger $t1 -Settings $s
 
