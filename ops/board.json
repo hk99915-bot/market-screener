@@ -845,9 +845,9 @@
       ],
       "priority": "P1",
       "started": "2026-10-17",
-      "due": "2026-10-18",
+      "due": "2026-10-31",
       "depends_on": [],
-      "notes": "선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. | 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할."
+      "notes": "선배 코드 안 보고 명세(사전등록 머리말)만으로 다시 구현 → 결과 대조표. 불일치 시 등급 한 단계 강등. 일요일 10/18 오전 투입. 데이터: data/hist (screener.hist.load) 실제 ETF·KRX 업종지수 사용 — semis_cap(091160·139260·069500)·study.py 급락 후 122630·exec_signal 섹터(69 업종)·fib_levels·rule_audit 순. | 10/17 검증: crash_rebound §3 먼저 재현(6/6 일치, replication_crash_rebound.md). 나머지는 rep-* 4건으로 분할. | 10/21 진행: semis_cap H1 완료, 하위 rep-* 마감 재조정(10/23~10/31). 별도로 hollzzak 지수 재현 완료(rep-hollzzak)."
     },
     {
       "id": "order-ticket-form",
@@ -1245,9 +1245,9 @@
       "title": "독립 재현: semis_cap (091160·139260·069500 실데이터) — 밴드 45% 도달 빈도·글라이드 H1~H3 원 vs 재현 표",
       "owner": "검증",
       "priority": "P1",
-      "status": "대기",
-      "started": "",
-      "due": "2026-10-17",
+      "status": "진행",
+      "started": "2026-10-21",
+      "due": "2026-10-23",
       "repo": "public",
       "files": [
         "scripts/replicate_semis_cap.py",
@@ -1255,7 +1255,7 @@
         "tests/test_rep_semis_cap.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 검증: H1 재현 일치(replication_semis_cap.md, C·F·F 3/3, 45% 도달 45.6%). 남은 것 H2(원 등급 A — 1순위)·H3. 마감 10/17→10/23: 첫 출근 라운드가 crash_rebound·hollzzak 재현에 쓰였고 10/17~20 미착수."
     },
     {
       "id": "rep-exec-signal",
@@ -1264,7 +1264,7 @@
       "priority": "P1",
       "status": "대기",
       "started": "",
-      "due": "2026-10-17",
+      "due": "2026-10-31",
       "repo": "public",
       "files": [
         "scripts/replicate_exec_signal.py",
@@ -1272,7 +1272,7 @@
         "tests/test_rep_exec_signal.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/31: 미착수. 등급 C·F 위주라 결정 영향 가장 작음 — 4순위."
     },
     {
       "id": "rep-entry-signals",
@@ -1281,7 +1281,7 @@
       "priority": "P1",
       "status": "대기",
       "started": "",
-      "due": "2026-10-17",
+      "due": "2026-10-25",
       "repo": "public",
       "files": [
         "scripts/replicate_entry_signals.py",
@@ -1289,7 +1289,7 @@
         "tests/test_rep_entry_signals.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/25: 미착수. 우선순위 2(122630 진입 신호 — 운용회의 인용 중). 사유: 검증 데스크 1인·라운드당 1~2건 처리 속도."
     },
     {
       "id": "rep-rule-audit",
@@ -1298,7 +1298,7 @@
       "priority": "P1",
       "status": "대기",
       "started": "",
-      "due": "2026-10-17",
+      "due": "2026-10-28",
       "repo": "public",
       "files": [
         "scripts/replicate_rule_audit.py",
@@ -1306,7 +1306,7 @@
         "tests/test_rep_rule_audit.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/28: 미착수. T1~T18 범위가 커서 결정 걸린 T4·T5 만 먼저 재현 예정."
     },
     {
       "id": "quiz-key-balance",
