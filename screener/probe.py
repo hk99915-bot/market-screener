@@ -13,6 +13,11 @@ UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 
 def run() -> dict:
     out = {}
+    try:   # 10/21 네이버 리서치 Next.js 화면 데이터 경로 탐침 (로그 [NAVER_PROBE] 줄)
+        from . import naver_next_probe
+        out["naver_research_next"] = naver_next_probe.discover()
+    except Exception as e:  # noqa: BLE001
+        out["naver_research_next"] = {"error": str(e)}
     urls = {
         "naver_news_stock": "https://m.stock.naver.com/api/news/stock/000660?pageSize=5&page=1",
         "naver_news_list": "https://m.stock.naver.com/api/news/list?category=mainnews&pageSize=5&page=1",
