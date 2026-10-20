@@ -96,8 +96,16 @@ def _r(x, nd=2):
     return None if x is None else round(float(x), nd)
 
 
+def _vol(d: dict) -> int | None:
+    """1분봉 거래량(토스 'volume' 문자열) → 정수. 팝업 거래량 막대·VWAP 용 (10/21 실측 키)."""
+    try:
+        return int(float(d["volume"])) if d.get("volume") not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
 def bars(data, day: str) -> list[list]:
-    """그날(KST) 1분봉 → [["HH:MM", o, h, l, c], …] (분 단위 중복 제거, 시각순)."""
+    """그날(KST) 1분봉 → [["HH:MM", o, h, l, c, vol], …] (분 단위 중복 제거, 시각순; vol 없으면 None)."""
     by = {}
     for d in crosscheck._dicts(data):
         k = collect._row_key(d)
@@ -109,7 +117,7 @@ def bars(data, day: str) -> list[list]:
             continue
         o, h, lo = (crosscheck._num(d, ks) for ks in (_OPEN_K, _HIGH_K, _LOW_K))
         by[t.strftime("%H:%M")] = [t.strftime("%H:%M"), _r(o if o is not None else c), _r(h if h is not None else c),
-                                   _r(lo if lo is not None else c), _r(c)]
+                                   _r(lo if lo is not None else c), _r(c), _vol(d)]
     return [by[k] for k in sorted(by)]
 
 
@@ -554,7 +562,7 @@ def us_bars(datas: list) -> tuple[str | None, list[list]]:
             e = t.astimezone(collect.ET)
             o, h, lo = (crosscheck._num(d, ks) for ks in (_OPEN_K, _HIGH_K, _LOW_K))
             by.setdefault(e.date().isoformat(), {})[e.strftime("%H:%M")] = [
-                e.strftime("%H:%M"), _r(o if o is not None else c), _r(h if h is not None else c), _r(lo if lo is not None else c), _r(c)]
+                e.strftime("%H:%M"), _r(o if o is not None else c), _r(h if h is not None else c), _r(lo if lo is not None else c), _r(c), _vol(d)]
     if not by:
         return None, []
     day = max(by)

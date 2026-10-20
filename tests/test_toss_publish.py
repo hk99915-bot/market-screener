@@ -27,7 +27,8 @@ def test_build_summary_from_fixture(base):
     doc = publish.build(base, NOW)
     assert doc["source"] == "toss" and doc["date"] == "2026-10-20" and not doc["missing"]
     k = doc["indices"]["KOSPI"]
-    assert k["bars"][0] == ["15:26", 5552.22, 5553.22, 5551.22, 5552.22] and k["n"] == 5
+    assert k["bars"][0][:5] == ["15:26", 5552.22, 5553.22, 5551.22, 5552.22] and k["n"] == 5
+    assert len(k["bars"][0]) == 6   # 6번째 = 거래량(없으면 None) — 팝업 거래량·VWAP
     assert k["last"] == 5552.74   # 현재값은 prices(캔들보다 빠름)
     assert set(doc["flows"]["KOSPI"]) >= {"개인", "외국인", "기관", "기타법인", "date", "unit"}
     assert doc["flows"]["KOSPI"]["외국인"] == -80.0 and doc["flows"]["KOSPI"]["date"] == "2026-10-20"
@@ -94,7 +95,7 @@ def test_assert_public_refuses(bad):
 def test_render_fixed_format_and_size_cap(base):
     doc = publish.build(base, NOW)
     t1 = publish.render(doc)
-    assert t1 == publish.render(json.loads(t1)) and '["15:26", 5552.22, 5553.22, 5551.22, 5552.22]' in t1
+    assert t1 == publish.render(json.loads(t1)) and '["15:26", 5552.22, 5553.22, 5551.22, 5552.22, ' in t1
     big = json.loads(t1)
     big["indices"]["KOSPI"]["bars"] = [[f"b{i:04d}", 5000.0, 5001.0, 4999.0, 5000.5] for i in range(4000)]
     publish.fit_size(big, cap=60_000)
