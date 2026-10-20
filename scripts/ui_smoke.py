@@ -63,6 +63,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_my_ledger(b, port)
         bad += await check_cmt_us(b, port)
         bad += await check_score(b, port)
+        bad += await check_eng(b, port)
         await b.close()
     return bad
 
@@ -142,6 +143,84 @@ async def check_score(b, port: int) -> int:
         miss = [x for x in need if x not in txt] + ([] if "성적표" in sub else ["하위 탭"]) + ([] if "성적표 전체" in dl else ["DAILY 대결 박스 링크"])
         ok = not errs and not miss and sw <= iw + 1 and "원 (" not in txt
         print(f"{'OK ' if ok else 'BAD'} 성적표 {w}px {len(txt)}자 · 곡선 {svg} · 가로 {sw}/{iw}" + (f" · 에러: {errs[0][:160]}" if errs else "") + (f" · 빠짐: {miss}" if miss else ""))
+        bad += not ok
+        await pg.close()
+    return bad
+
+
+FIX = ROOT / "tests" / "fixtures"
+ENG_ORDER = ["오늘의 단어", "오늘의 영어", "문법 포인트", "시제 읽기", "복습 퀴즈", "독해 퀴즈", "시사 회화", "일상 회화", "OPIc 실전", "오늘의 인적성"]
+# 폰 폭에서 넘친 요소 · 44px 미만 터치 대상(보이는 버튼·select·summary)
+OVER_JS = """(()=>{const W=innerWidth, r=document.querySelector('#engv'); if(!r) return {over:['#engv 없음'],small:[]};
+ const over=[...r.querySelectorAll('*')].filter(e=>{const b=e.getBoundingClientRect(); return b.width&&b.right>W+1;}).slice(0,3).map(e=>e.tagName+'.'+e.className+' '+(e.textContent||'').slice(0,30));
+ const small=[...r.querySelectorAll('button,select,summary')].filter(e=>{const b=e.getBoundingClientRect(); return b.width&&b.height<44;}).slice(0,3).map(e=>e.tagName+' '+(e.textContent||'').slice(0,20)+' '+Math.round(e.getBoundingClientRect().height));
+ return {over,small};})()"""
+
+
+async def check_eng(b, port: int) -> int:
+    """STUDY › 오늘의 영어 (english-v2-ui, 10/21 스키마): 새 스키마 픽스처(390·1300px) + 옛 스키마(10/15, 390px).
+    순서(단어→본문→문법·시제→복습→독해→시사·일상 회화→OPIc→인적성) · 가로 넘침 없음 · 터치 44px · 고르기 전 해설 비공개 ·
+    첫 응답만 mt_eng_score_v1 · 사용 기록 eng_quiz · OPIc 타이머·자기평가 mt_opic_v1. 데이터는 tests/fixtures 를 route 로 주입(reports/ 무변경)."""
+    import json as _json
+    bad = 0
+    v2 = (FIX / "english_v2_sample.json").read_text(encoding="utf-8")
+    v1 = (FIX / "english_v1_2026-10-15.json").read_text(encoding="utf-8")
+    E2 = _json.loads(v2)
+    prof = _json.dumps({"survey_topics": ["카페 가기", "집에서 보내는 휴가"]}, ensure_ascii=False)
+    for label, body, w in (("새 스키마", v2, 390), ("새 스키마", v2, 1300), ("옛 스키마", v1, 390)):
+        pg = await b.new_page(viewport={"width": w, "height": 850})
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        def _ok(txt):   # route 핸들러는 인자 1개(route)만 — 기본값 인자를 두면 request 가 들어감
+            return lambda r: r.fulfill(status=200, content_type="application/json", body=txt)
+        await pg.route("**/reports/english/latest.json*", _ok(body))
+        await pg.route("**/reports/english/opic_profile.json*", _ok(prof) if body is v2 else (lambda r: r.fulfill(status=404, body="")))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1500)
+        await pg.evaluate("setView('eng')")
+        await pg.wait_for_timeout(2500)
+        txt = await pg.evaluate("document.querySelector('#root').innerText")
+        sw, iw = await pg.evaluate("[document.documentElement.scrollWidth, window.innerWidth]")
+        geo = await pg.evaluate(OVER_JS)
+        miss: list[str] = []
+        if body is v2:
+            pos = [txt.find(h) for h in ENG_ORDER]
+            if -1 in pos or pos != sorted(pos):
+                miss.append("순서 " + ",".join(f"{h}:{p}" for h, p in zip(ENG_ORDER, pos)))
+            q0 = E2["quiz"][0]
+            if q0["exp_ko"] in txt or E2["opic"]["combo"][0]["model_answer"] in txt:
+                miss.append("고르기 전 해설/모범답안 노출")
+            if "내 서베이 주제: 카페 가기" not in txt or "14일 정답률" not in txt:
+                miss.append("서베이 주제/배지")
+            await pg.click(f'[data-ch="EQ{E2["date"]}-0"][data-i="{q0["a"]}"]')
+            await pg.wait_for_timeout(200)
+            await pg.click(f'[data-ch="EQ{E2["date"]}-0"][data-i="0"]', force=True)   # 두 번째 응답은 무시(비활성)
+            await pg.wait_for_timeout(200)
+            st = await pg.evaluate("[JSON.parse(localStorage.getItem('mt_eng_score_v1')||'[]'), JSON.parse(localStorage.getItem('mt_usage_v1')||'{}')]")
+            sc, us = st
+            day = (list((us.get("d") or {}).values()) or [{}])[-1].get("e", {})
+            txt2 = await pg.evaluate("document.querySelector('#root').innerText")
+            if not (len(sc) == 1 and sc[0].get("ok") is True and sc[0].get("kind") == "quiz" and {"date", "idx", "choice", "ts"} <= set(sc[0])):
+                miss.append(f"채점 저장 {sc}")
+            if q0["exp_ko"] not in txt2:
+                miss.append("고른 뒤 해설 없음")
+            if day.get("eng_quiz") != 1 or day.get("eng_quiz_ok") != 1 or day.get("quiz", 0) < 1:
+                miss.append(f"사용 기록 {day}")
+            await pg.click('[data-otm="prep"]')
+            await pg.wait_for_timeout(1300)
+            clk = await pg.evaluate("(document.querySelector('#opclock')||{}).textContent||''")
+            await pg.click('[data-oself="ok"]')
+            op = await pg.evaluate("JSON.parse(localStorage.getItem('mt_opic_v1')||'[]')")
+            if not clk.startswith("준비") or len(op) != 1 or op[0].get("result") != "ok":
+                miss.append(f"OPIc 타이머/자기평가 '{clk}' {op}")
+        else:
+            if "오늘의 단어" not in txt or "독해 퀴즈" not in txt or "복습 퀴즈" in txt or "기본 주제" not in txt:
+                miss.append("옛 스키마 화면")
+        if w <= 400 and geo["small"]:
+            miss.append(f"터치<44px {geo['small']}")
+        ok = not errs and not miss and sw <= iw + 1 and not geo["over"]
+        print(f"{'OK ' if ok else 'BAD'} 영어({label}) {w}px {len(txt)}자 · 가로 {sw}/{iw}" + (f" · 넘침 {geo['over']}" if geo["over"] else "")
+              + (f" · 에러: {errs[0][:160]}" if errs else "") + (f" · {miss}" if miss else ""))
         bad += not ok
         await pg.close()
     return bad

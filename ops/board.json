@@ -2586,6 +2586,26 @@
       ],
       "depends_on": [],
       "notes": "10/20 개발 에이전트가 check_functions '푸시 금지'를 명령 체인으로 넘김 → 종료 코드로 차단. 설치 sh scripts/install_hooks.sh(core.hooksPath=.githooks, 로컬 설정 — Actions 러너 checkout 엔 미적용, 워크플로에 hooksPath 설정 없음 grep 확인). 우회 금지 LOOP.md. 남은 일: 실제 origin push 1회로 훅 동작 확인(로컬 bare 원격으로는 확인)."
+    },
+    {
+      "id": "english-v2-ui",
+      "title": "오늘의 영어 v2 화면 — 단어 카드·**굵게** 본문·복습/독해 버튼 채점(mt_eng_score_v1)·시사/일상 회화·OPIc 실전·14일 정답률 배지·390px",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-21",
+      "repo": "public",
+      "files": [
+        "apps-script/tab_study.html",
+        "apps-script/Index.html",
+        "scripts/ui_smoke.py",
+        "tests/test_english_v2_fixture.py",
+        "tests/fixtures/english_v2_sample.json",
+        "tests/fixtures/english_v1_2026-10-15.json"
+      ],
+      "depends_on": [],
+      "notes": "10/21 07:18 새 스키마(talk 배열 2종·opic) + 옛 스키마 하위 호환. 채점: 고르기 전 해설 DOM 비공개, 첫 응답만. 사용 기록 CSV 끝에 eng_review/_ok·eng_quiz/_ok 열(pb-private usage/intake.py 는 모르는 열을 무시 — 반영하려면 intake EVS 추가 필요). OPIc 자기평가만 mt_opic_v1(녹음 없음). 검수: 채점 데스크 — 폰에서 풀고 MY→사용 기록 내보내기."
     }
   ]
 }

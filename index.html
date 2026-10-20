@@ -2096,15 +2096,15 @@ function aptItem(x,key){
 function aptBind(items){
   const byK=Object.fromEntries(items.map(([x,k])=>[k,x]));
   const stopT=()=>{ if(!APTT) return null; clearInterval(APTT.iv); const s=Math.round((Date.now()-APTT.t0)/1000), k=APTT.k; const b=document.querySelector(`[data-tmr="${k}"]`); if(b) b.textContent='⏱ 시작'; APTT=null; return [k,s]; };
-  document.querySelectorAll('[data-tmr]').forEach(b=>b.onclick=()=>{ const k=b.dataset.tmr; const was=APTT&&APTT.k; const st=stopT(); if(was===k) return;
+  document.querySelectorAll('[data-tmr]').forEach(b=>{ if(!byK[b.dataset.tmr]) return; b.onclick=()=>{ const k=b.dataset.tmr; const was=APTT&&APTT.k; const st=stopT(); if(was===k) return;
     const tv=document.querySelector(`[data-tv="${k}"]`); const t0=Date.now(); b.textContent='⏹ 정지';
-    APTT={k,t0,iv:setInterval(()=>{ if(!document.body.contains(tv)){ clearInterval(APTT&&APTT.iv); APTT=null; return; } const s=Math.round((Date.now()-t0)/1000), lim=(byK[k]||{}).time_sec||60; tv.textContent=s+'초'; tv.style.color=s>lim?'var(--dn)':''; },500)}; });
-  document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{ const k=b.dataset.ch, x=byK[k]; if(!x) return; const i=+b.dataset.i;
+    APTT={k,t0,iv:setInterval(()=>{ if(!document.body.contains(tv)){ clearInterval(APTT&&APTT.iv); APTT=null; return; } const s=Math.round((Date.now()-t0)/1000), lim=(byK[k]||{}).time_sec||60; tv.textContent=s+'초'; tv.style.color=s>lim?'var(--dn)':''; },500)}; }; });
+  document.querySelectorAll('[data-ch]').forEach(b=>{ if(!byK[b.dataset.ch]) return; b.onclick=()=>{ const k=b.dataset.ch, x=byK[k]; if(!x) return; const i=+b.dataset.i;   // 영어 복습·독해(.engb)는 engBind 가 따로 묶음
     let t=null; if(APTT&&APTT.k===k){ const st=stopT(); t=st[1]; }
     const ok=i===x.a; APTS[k]={ok,t:t!=null?t:(APTS[k]||{}).t??null,at:new Date().toISOString().slice(0,10)}; eduPut('mt_apt_score',APTS);
     document.querySelectorAll(`[data-ch="${k}"]`).forEach(o=>{ const j=+o.dataset.i; o.style.borderColor=j===x.a?'var(--up)':(j===i?'var(--dn)':''); });
     const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
-    const d=b.closest('[data-apt]').querySelector('details'); if(d) d.open=true; aptTally(); });
+    const d=b.closest('[data-apt]').querySelector('details'); if(d) d.open=true; aptTally(); }; });
 }
 function aptTally(){
   const el=$('#apttally'); if(!el||!EDU||!EDU.aptitude) return;
@@ -2148,41 +2148,163 @@ function aptView(){
    ${APTF==='__past'?aptPast(A.past):''}${(!APTF||/GSAT|SKCT/.test(APTF))&&APTF!=='__past'?aptTypeMap(A.type_map):''}
    ${list.length?`<div class="p c12"><div class="b">${list.map(([x,k])=>aptItem(x,k)).join('')}</div></div>`:''}</div>`;
 }
-/* 오늘의 영어 + 오늘의 인적성(시장 데이터) */
+/* 오늘의 영어 v2 (english-v2-ui, 10/21 스키마) — 단어 카드 → 본문(**굵게**) → 문법·시제 → 복습·독해 퀴즈(버튼 채점) → 시사·일상 회화 → OPIc 실전 → 인적성.
+   옛 스키마(10/15~10/20: vocab 10·grammar 3·tense 4·review/talk/opic 없음)도 같은 함수로 렌더(하위 호환).
+   채점: 고르기 전엔 정답·해설을 DOM 에 넣지 않음(사전 커밋) · 같은 문항 첫 응답만 localStorage 'mt_eng_score_v1' 에 누적.
+   OPIc 자기평가만 'mt_opic_v1' (녹음·업로드 없음 — 개인정보·용량). */
+const ENGK='mt_eng_score_v1', OPK='mt_opic_v1', ENL='abcdefgh';
+let ENGS=eduGet(ENGK,[]); if(!Array.isArray(ENGS)) ENGS=[];
+let OPS=eduGet(OPK,[]); if(!Array.isArray(OPS)) OPS=[];
+let OPT=null; ENG.oq=0; ENG.prof=null;
 function engLoad(date){
   const set=t=>{ let o=null; try{ o=t?JSON.parse(t):null; }catch(e){} ENG.cur=o||{}; if(view==='eng') render(); };
-  ENG.cur=false;
+  ENG.cur=false; ENG.oq=0;
   const r=google.script.run.withSuccessHandler(set).withFailureHandler(()=>{ ENG.cur={}; if(view==='eng') render(); });
   date?r.getEnglishAt(date):r.getEnglishLatest();
 }
+// 내 OPIc 서베이 주제: reports/english/opic_profile.json (있으면) — 기존 getEnglishAt 경로 재사용(Code.gs·build_pages 무변경)
+function engProfile(){
+  if(ENG.prof!==null) return; ENG.prof=false;
+  google.script.run.withSuccessHandler(t=>{ let o=null; try{ o=t?JSON.parse(t):null; }catch(e){} ENG.prof=(o&&typeof o==='object')?o:{}; if(view==='eng'&&Object.keys(ENG.prof).length) render(); })
+    .withFailureHandler(()=>{ ENG.prof={}; }).getEnglishAt('opic_profile');
+}
 function engBody(E){
-  const ph=[]; let s=esc(E.body||'');
-  (E.vocab||[]).forEach((v,i)=>{ const w=esc(v.w); const j=s.indexOf(w); if(j<0) return; ph.push(`<span class="am" data-vw="${i}" title="${escA(v.ko)}" style="border-bottom:1px dotted var(--amber);cursor:pointer">${w}</span>`); s=s.slice(0,j)+'\u0001'+(ph.length-1)+'\u0002'+s.slice(j+w.length); });
-  s=s.replace(/\u0001(\d+)\u0002/g,(_,n)=>ph[+n]);
+  let s=esc(E.body||'');
+  if(/\*\*[^*\n]+\*\*/.test(s)) s=s.replace(/\*\*([^*\n]+)\*\*/g,'<b class="am">$1</b>');   // 새 스키마: 오늘의 단어는 **굵게**
+  else { const ph=[];   // 옛 스키마: vocab 단어에 점선 밑줄 + 눌러서 뜻
+    (E.vocab||[]).forEach((v,i)=>{ const w=esc(v.w); const j=s.indexOf(w); if(j<0) return; ph.push(`<span class="am" data-vw="${i}" title="${escA(v.ko)}" style="border-bottom:1px dotted var(--amber);cursor:pointer">${w}</span>`); s=s.slice(0,j)+'\u0001'+(ph.length-1)+'\u0002'+s.slice(j+w.length); });
+    s=s.replace(/\u0001(\d+)\u0002/g,(_,n)=>ph[+n]); }
   return s.split(/\n\n+/).map(p=>`<p style="margin:0 0 8px">${p}</p>`).join('');
 }
+const engGrid=h=>`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:8px">${h}</div>`;
+const engCard='border:1px solid var(--line);padding:8px 10px;min-width:0;line-height:1.6';
+function engVocab(V){
+  return engGrid(V.map(v=>`<div style="${engCard}"><div><b class="am" style="font-size:16px">${esc(v.w||'')}</b> ${v.ipa?`<span class="mu">${esc(v.ipa)}</span>`:''} <span class="mu" style="font-size:11px">${esc(v.pos||'')}</span></div>
+    <div style="font-size:13.5px">${esc(v.ko||'')}</div>${v.en_easy?`<div class="mu" style="font-size:12px">= ${esc(v.en_easy)}</div>`:''}
+    ${v.ex?`<div style="font-size:12.5px;margin-top:3px;border-left:2px solid var(--amber);padding-left:6px">${esc(v.ex)}</div>`:''}</div>`).join(''));
+}
+/* 복습·독해 퀴즈: 버튼 채점 */
+const engKey=(d,kind,i)=>(kind==='review'?'ER':'EQ')+d+'-'+i;
+const engRec=(d,kind,i)=>ENGS.find(r=>r.date===d&&r.kind===kind&&r.idx===i)||null;
+const engResTxt=ok=>ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
+const engMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
+const engExp=q=>`<div style="font-size:12.5px;margin-top:4px"><b class="am">정답 ${ENL[q.a]||''}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</div>`;
+function engQ(q,kind,i,d){
+  const k=engKey(d,kind,i), r=engRec(d,kind,i);
+  const lab=kind==='review'?`<span class="tag">복습 ${i+1}</span>${q.w?` <b class="am">${esc(q.w)}</b>`:''}${q.from_date?` <span class="mu" style="font-size:11px">${esc(q.from_date)} 단어</span>`:''}`:`<span class="tag">Q${i+1}</span>`;
+  return `<div style="border-bottom:1px solid var(--line);padding:8px 0">
+   <div style="margin-bottom:4px">${lab} <b>${esc(q.q||'')}</b> <span data-res="${escA(k)}" style="font-size:12px">${r?engResTxt(r.ok):''}</span></div>
+   <div style="display:flex;flex-direction:column;gap:4px">${(q.choices||[]).map((c,j)=>`<button class="sbtn engb" data-ch="${escA(k)}" data-i="${j}" data-qi="${i}" data-kind="${kind}" ${r?'disabled':''} style="${r?engMark(j,q.a,r.choice):''}">${ENL[j]}) ${esc(c)}</button>`).join('')}</div>
+   <div data-eexp="${escA(k)}">${r?engExp(q):''}</div></div>`;
+}
+function engStat(kind,days){ const cut=new Date(Date.now()-days*864e5).toISOString(); const a=ENGS.filter(r=>(!kind||r.kind===kind)&&String(r.ts||'')>=cut), ok=a.filter(r=>r.ok).length;
+  return {n:a.length,ok,p:a.length?ok/a.length:null,days:new Set(a.map(r=>r.date)).size}; }
+// 수준 근거(문구만 — 자동 변경 없음): 14일 정답률 80%↑ & 10일(≈2주 평일) 이상 → 레벨업 제안 · 50%↓(6문항 이상) → 레벨다운 제안
+function engBadge(){
+  const v=engStat('review',14), c=engStat('quiz',14), t=engStat('',14), pc=s=>s.n?`<b>${Math.round(s.p*100)}%</b> <span class="mu">(${s.ok}/${s.n})</span>`:'<span class="mu">—</span>';
+  const sug=t.n>=6&&t.p<=0.5?'<span class="tag r">레벨다운 제안</span>':(t.days>=10&&t.p>=0.8?'<span class="tag" style="color:var(--up)">레벨업 제안</span>':`<span class="mu">유지 · 근거 ${t.days}/10일</span>`);
+  return `<span class="mu">14일 정답률</span> 단어 ${pc(v)} · 내용 ${pc(c)} · ${sug}`;
+}
+function engBind(E,d){
+  const sets={review:E.review||[],quiz:E.quiz||[]};
+  document.querySelectorAll('.engb[data-ch]').forEach(b=>b.onclick=()=>{ if(b.disabled) return;
+    const kind=b.dataset.kind, i=+b.dataset.qi, k=b.dataset.ch, q=(sets[kind]||[])[i]; if(!q||engRec(d,kind,i)) return;   // 첫 응답만 채점
+    const c=+b.dataset.i, ok=c===q.a;
+    ENGS.push({date:d,kind,idx:i,choice:c,ok,ts:new Date().toISOString()}); if(ENGS.length>3000) ENGS=ENGS.slice(-3000); eduPut(ENGK,ENGS);
+    document.querySelectorAll('.engb[data-ch]').forEach(o=>{ if(o.dataset.ch!==k) return; o.disabled=true; o.style.cssText+=';'+engMark(+o.dataset.i,q.a,c); });
+    document.querySelectorAll('[data-res],[data-eexp]').forEach(el=>{ if(el.dataset.res===k) el.innerHTML=engResTxt(ok); if(el.dataset.eexp===k) el.innerHTML=engExp(q); });
+    const bd=$('#engbadge'); if(bd) bd.innerHTML=engBadge(); });
+}
+/* 회화: talk 은 [{kind:'시사'|'일상',...}] 배열 — 객체 1개(kind 없음)면 '회화' 1장 */
+const engTalks=T=>(Array.isArray(T)?T:(T?[T]:[])).filter(t=>t&&typeof t==='object');
+function engTalk(t,wide){
+  const who=[...new Set((t.dialogue||[]).map(x=>String(x.who||'')))];
+  const dl=(t.dialogue||[]).map(x=>{ const r=who.indexOf(String(x.who||''))%2===1;
+    return `<details style="max-width:88%;align-self:${r?'flex-end':'flex-start'};border:1px solid var(--line);border-radius:12px;padding:0 10px;${r?'background:rgba(255,176,0,.07)':''}"><summary style="list-style:none"><span class="mu" style="font-size:11px">${esc(x.who||'')}</span> ${esc(x.en||'')}</summary><div class="mu" style="font-size:12.5px;padding-bottom:6px">${esc(x.ko||'')}</div></details>`; }).join('');
+  const ex=(t.expressions||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:12.5px">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:11.5px">언제: ${esc(x.when_ko)}</div>`:''}${x.ex?`<div style="font-size:12px;border-left:2px solid var(--amber);padding-left:6px">${esc(x.ex)}</div>`:''}</div>`).join('');
+  const y=t.your_turn||null;
+  return `<div class="p ${wide?'c12':'c6'}"><h2>${esc(t.kind?t.kind+' 회화':'회화')}<small>${esc(t.topic||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.6;font-size:13px">
+   ${t.setting_ko?`<div class="mu" style="font-size:12px;margin-bottom:6px">상황: ${esc(t.setting_ko)}</div>`:''}
+   <div style="display:flex;flex-direction:column;gap:6px">${dl}</div><div class="mu" style="font-size:11px;margin:2px 0 8px">말풍선을 누르면 한국어</div>
+   ${ex?`<div class="am" style="font-size:12px;margin:6px 0 3px">표현 ${(t.expressions||[]).length}</div>${engGrid(ex)}`:''}
+   ${y?`<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:6px"><span class="tag">내 차례</span> <b>${esc(y.q_en||'')}</b>${y.hint_ko?`<div class="mu" style="font-size:12px">힌트: ${esc(y.hint_ko)}</div>`:''}
+     <details><summary class="am">▸ 모범답안 보기</summary><div style="padding-bottom:6px">${esc(y.sample_answer||'')}</div></details></div>`:''}</div></div>`;
+}
+/* OPIc 실전: 한 문항씩 · 준비 20초/말하기 90초 타이머 · 전략·모범답안은 접기 · 자기평가만 저장 */
+function engOpic(O,d){
+  const C=(O&&O.combo)||[]; if(!C.length) return '';
+  const i=Math.min(ENG.oq||0,C.length-1), q=C[i]||{}, last=[...OPS].reverse().find(r=>r.date===d&&r.idx===i);
+  const ph=[]; let ma=esc(q.model_answer||'');
+  (q.key_phrases||[]).forEach(p=>{ const e=esc(p.en||''); if(!e||!ma.includes(e)) return; ph.push(`<b class="am" style="border-bottom:1px solid var(--amber)">${e}</b>`); ma=ma.split(e).join('\u0001'+(ph.length-1)+'\u0002'); });
+  ma=ma.replace(/\u0001(\d+)\u0002/g,(_,n)=>ph[+n]);
+  const U=(O.useful||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:12.5px">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:11.5px">언제: ${esc(x.when_ko)}</div>`:''}</div>`).join('');
+  const selfTxt=r=>r?(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+` <span class="mu" style="font-size:11px">${esc(String(r.ts||'').slice(11,16))}</span>`:'';
+  return `<div class="p c12" id="opic"><h2>OPIc 실전<small>${esc(O.survey_topic||'')} · 문항 ${i+1}/${C.length}</small></h2><div class="b" style="white-space:normal;line-height:1.7;font-size:13px">
+   <div class="ovl" style="margin:0 0 8px">${C.map((c,j)=>`<button data-oq="${j}" class="${j===i?'on':''}">${j+1}. ${esc(c.type||'')}</button>`).join('')}</div>
+   <div style="font-size:15.5px;margin-bottom:2px"><b>${esc(q.q_en||'')}</b></div>
+   ${q.q_ko?`<details><summary class="mu">▸ 한국어 질문</summary><div style="padding-bottom:6px">${esc(q.q_ko)}</div></details>`:''}
+   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0">
+    <button class="sbtn opbig" data-otm="prep" data-sec="20" data-t="⏱ 준비 20초">⏱ 준비 20초</button><button class="sbtn opbig" data-otm="talk" data-sec="90" data-t="🎤 말하기 90초">🎤 말하기 90초</button>
+    <span id="opclock" style="font-size:22px;min-width:110px;text-align:center">—</span></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="mu" style="font-size:12px">자기평가</span><button class="sbtn" data-oself="ok">말했음</button><button class="sbtn" data-oself="stuck">막힘</button><span id="opres">${selfTxt(last)}</span></div>
+   <div class="mu" style="font-size:11.5px;margin:4px 0">먼저 스스로 말해 본 뒤 아래를 연다 (녹음·업로드 없음).</div>
+   <details><summary class="am">▸ 전략 보기</summary><div style="padding-bottom:6px">${esc(q.strategy_ko||'')}</div></details>
+   <details><summary class="am">▸ 모범답안 보기</summary><div style="padding-bottom:6px">${ma}</div>
+    ${(q.key_phrases||[]).length?`<div style="font-size:12.5px">${q.key_phrases.map(p=>`<div><b class="am">${esc(p.en||'')}</b> <span class="mu">${esc(p.ko||'')}</span></div>`).join('')}</div>`:''}</details>
+   ${U?`<div class="am" style="font-size:12px;margin:10px 0 3px">쓸만한 표현 ${(O.useful||[]).length}</div>${engGrid(U)}`:''}
+   ${O.practice_ko?`<div style="margin-top:8px;font-size:12.5px"><span class="tag">연습</span> ${esc(O.practice_ko)}</div>`:''}</div></div>`;
+}
+function opTimer(lbl,sec){
+  const c=$('#opclock'), btns=[...document.querySelectorAll('[data-otm]')], reset=()=>btns.forEach(b=>b.textContent=b.dataset.t);
+  if(OPT){ clearInterval(OPT.iv); const same=OPT.lbl===lbl; OPT=null; reset(); if(same){ if(c){ c.textContent='—'; c.style.color=''; } return; } }
+  const b=btns.find(x=>x.dataset.otm===lbl), t0=Date.now(); if(b) b.textContent='⏹ 멈춤';
+  const iv=setInterval(()=>{ if(!c||!document.body.contains(c)){ clearInterval(iv); if(OPT&&OPT.iv===iv) OPT=null; return; }
+    const left=sec-Math.floor((Date.now()-t0)/1000); c.textContent=left>0?`${lbl==='prep'?'준비':'말하기'} ${left}초`:'끝';
+    c.style.color=left<=10?'var(--dn)':''; if(left<=0){ clearInterval(iv); OPT=null; reset(); } },250);
+  OPT={lbl,iv};
+}
+function engOpicBind(O,d){
+  document.querySelectorAll('[data-oq]').forEach(b=>b.onclick=()=>{ if(OPT){ clearInterval(OPT.iv); OPT=null; } ENG.oq=+b.dataset.oq; render(); });
+  document.querySelectorAll('[data-otm]').forEach(b=>b.onclick=()=>opTimer(b.dataset.otm,+b.dataset.sec));
+  document.querySelectorAll('[data-oself]').forEach(b=>b.onclick=()=>{ const i=Math.min(ENG.oq||0,((O&&O.combo)||[]).length-1), q=((O&&O.combo)||[])[i]||{};
+    const r={date:d,idx:i,type:q.type||'',result:b.dataset.oself,ts:new Date().toISOString()}; OPS.push(r); if(OPS.length>2000) OPS=OPS.slice(-2000); eduPut(OPK,OPS);
+    const el=$('#opres'); if(el) el.innerHTML=(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+' <span class="mu" style="font-size:11px">기록됨</span>'; });
+}
+const ENGCSS=`<style>#engv{overflow-wrap:anywhere}#engv button,#engv select,#engv summary{min-height:44px;box-sizing:border-box}
+#engv summary{display:block;padding:11px 0;cursor:pointer}#engv summary::-webkit-details-marker{display:none}
+#engv .engb{text-align:left;white-space:normal;font-size:13px;padding:8px 10px}#engv .engb:disabled{cursor:default}
+#engv [data-oself]{min-width:88px}#engv .opbig{min-height:56px;font-size:16px;flex:1 1 140px}</style>`;
 function engView(){
   if(ENG.idx===null){ ENG.idx=false; google.script.run.withSuccessHandler(t=>{try{ENG.idx=JSON.parse(t)||{};}catch(e){ENG.idx={};} if(view==='eng') render();}).withFailureHandler(()=>{ENG.idx={};if(view==='eng') render();}).getEnglishIndex(); }
+  engProfile();
   if(ENG.cur===null) engLoad(ENG.sel);
   if(ENG.cur===false) return '<div class="load">LOADING …</div>';
-  const E=ENG.cur||{}, dates=((ENG.idx||{}).dates)||[];
-  const pick=`<div class="ovl" style="padding:8px 8px 0;align-items:center"><span class="mu" style="font-size:12px">날짜</span> <select id="engd" style="background:var(--panel);color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><option value="">최신</option>${dates.map(d=>`<option value="${escA(d)}" ${ENG.sel===d?'selected':''}>${esc(d)}</option>`).join('')}</select></div>`;
+  const E=ENG.cur||{}, d=E.date||'nodate', dates=((ENG.idx||{}).dates)||[];
+  const P=ENG.prof||{}, tp=[].concat(P.survey_topics||P.topics||P.survey_topic||[]).map(t=>typeof t==='string'?t:(t&&(t.ko||t.en||t.name))||'').filter(Boolean);
+  const head=`<div class="ovl" style="padding:8px 8px 0;align-items:center;flex-wrap:wrap;gap:6px"><span class="mu" style="font-size:12px">날짜</span> <select id="engd" style="background:var(--panel);color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><option value="">최신</option>${dates.map(x=>`<option value="${escA(x)}" ${ENG.sel===x?'selected':''}>${esc(x)}</option>`).join('')}</select>
+   <span id="engbadge" style="font-size:12px">${engBadge()}</span></div>
+   <div class="mu" style="padding:2px 8px 0;font-size:12px">OPIc ${tp.length?'내 서베이 주제: '+tp.map(esc).join(' · '):'기본 주제'}</div>`;
   setTimeout(()=>{ const s=$('#engd'); if(s) s.onchange=()=>{ ENG.sel=s.value||null; ENG.cur=null; render(); };
     document.querySelectorAll('[data-vw]').forEach(sp=>sp.onclick=()=>{ const n=sp.nextElementSibling; if(n&&n.dataset&&n.dataset.vk!=null){ n.remove(); return; } const v=(E.vocab||[])[+sp.dataset.vw]||{}; sp.insertAdjacentHTML('afterend',`<i class="mu" data-vk="1" style="font-style:normal;font-size:12px"> (${esc(v.ko)})</i>`); });
-    if(E.aptitude) aptBind(E.aptitude.map((x,i)=>[x,'E'+(E.date||'')+'-'+i])); },0);
-  if(!E.body) return pick+'<div class="grid"><div class="p c12"><h2>오늘의 영어</h2><div class="b mu">아직 오늘 자료 없음</div></div></div>';
-  return pick+`<div class="grid">
-   <div class="p c8"><h2>오늘의 영어<small>${esc(E.date||'')} · ${esc(E.level||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.75;font-size:13.5px">
-    <div style="font-size:15px;margin-bottom:6px"><b>${esc(E.title||'')}</b></div>${engBody(E)}
-    <div class="mu" style="font-size:11.5px">밑줄 단어를 누르면 뜻 표시</div>
-    <details style="margin-top:6px"><summary style="cursor:pointer" class="am">한국어 번역 보기</summary><div style="font-size:13px">${esc(E.ko||'').split(/\n\n+/).map(p=>`<p style="margin:4px 0 8px">${p}</p>`).join('')}</div></details>
+    if(E.aptitude) aptBind(E.aptitude.map((x,i)=>[x,'E'+(E.date||'')+'-'+i]));
+    engBind(E,d); engOpicBind(E.opic,d); },0);
+  if(!E.body) return ENGCSS+`<div id="engv">${head}<div class="grid"><div class="p c12"><h2>오늘의 영어</h2><div class="b mu">아직 오늘 자료 없음</div></div></div></div>`;
+  const V=E.vocab||[], R=E.review||[], Q=E.quiz||[], T=engTalks(E.talk), bold=/\*\*[^*\n]+\*\*/.test(E.body||'');
+  const qp=(t,arr,kind,note)=>arr.length?`<div class="p c6"><h2>${t}<small>${arr.length}문항 · ${note}</small></h2><div class="b" style="white-space:normal;font-size:13px;line-height:1.6">${arr.map((q,i)=>engQ(q,kind,i,d)).join('')}</div></div>`:'';
+  return ENGCSS+`<div id="engv">${head}<div class="grid">
+   ${V.length?`<div class="p c12"><h2>오늘의 단어<small>${V.length}개 · ${esc(E.date||'')} · ${esc(E.level||'')}</small></h2><div class="b" style="white-space:normal">${engVocab(V)}</div></div>`:''}
+   <div class="p c12"><h2>오늘의 영어<small>${esc(E.date||'')} · ${esc(E.level||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.75;font-size:14px;max-width:980px">
+    <div style="font-size:15.5px;margin-bottom:6px"><b>${esc(E.title||'')}</b></div>${engBody(E)}
+    <div class="mu" style="font-size:11.5px">${bold?'굵은 단어 = 오늘의 단어':'밑줄 단어를 누르면 뜻 표시'}</div>
+    <details style="margin-top:4px"><summary class="am">▸ 한국어 번역 보기</summary><div style="font-size:13px">${esc(E.ko||'').replace(/\*\*/g,'').split(/\n\n+/).map(p=>`<p style="margin:4px 0 8px">${p}</p>`).join('')}</div></details>
     ${(E.sources||[]).length?`<div class="mu" style="font-size:11.5px;margin-top:6px">출처: ${E.sources.map(s=>s.url?`<a href="${escA(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`:esc(s.title)).join(' · ')}</div>`:''}</div></div>
-   <div class="p c4"><h2>단어 ${(E.vocab||[]).length}</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.6">${(E.vocab||[]).map(v=>`<div style="margin-bottom:5px"><b class="am">${esc(v.w)}</b> <span class="mu">${esc(v.pos||'')}</span> ${esc(v.ko)}<div class="mu" style="font-size:11.5px">${esc(v.ex||'')}</div></div>`).join('')}</div></div>
    <div class="p c6"><h2>문법 포인트</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.grammar||[]).map(g=>`<div style="margin-bottom:10px"><b>${esc(g.point)}</b><div style="border-left:2px solid var(--amber);padding-left:8px;margin:3px 0" class="am">“${esc(g.quote)}”</div><div>${esc(g.explain_ko)}</div>${(g.examples||[]).length?`<div class="mu" style="font-size:12px">예) ${g.examples.map(esc).join(' / ')}</div>`:''}</div>`).join('')}</div></div>
    <div class="p c6"><h2>시제 읽기</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.tense||[]).map(t=>`<div style="margin-bottom:8px"><span class="am">“${esc(t.sentence)}”</span><div><span class="tag">${esc(t.tense)}</span> ${esc(t.why_ko)}</div></div>`).join('')}</div></div>
-   <div class="p c6"><h2>독해 퀴즈</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.quiz||[]).map((q,i)=>`<div style="margin-bottom:8px"><b>Q${i+1}. ${esc(q.q)}</b>${(q.choices||[]).map((c,j)=>`<div>${String.fromCharCode(97+j)}) ${esc(c)}</div>`).join('')}<details><summary class="mu" style="cursor:pointer">정답 보기</summary><b class="am">${String.fromCharCode(97+(q.a||0))}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</details></div>`).join('')}</div></div>
-   <div class="p c6"><h2>오늘의 인적성 (시장 데이터)<small>${(E.aptitude||[]).length}문항</small></h2><div class="b">${(E.aptitude||[]).map((x,i)=>aptItem({...x,id:'오늘 '+(i+1),sec:x.type},'E'+(E.date||'')+'-'+i)).join('')||'<span class="mu">아직 오늘 자료 없음</span>'}</div></div>
-  </div>`;
+   ${qp('복습 퀴즈',R,'review','지난 단어')}${qp('독해 퀴즈',Q,'quiz','본문 내용')}
+   ${T.map(t=>engTalk(t,T.length===1)).join('')}
+   ${engOpic(E.opic,d)}
+   <div class="p c12"><h2>오늘의 인적성 (시장 데이터)<small>${(E.aptitude||[]).length}문항</small></h2><div class="b">${(E.aptitude||[]).map((x,i)=>aptItem({...x,id:'오늘 '+(i+1),sec:x.type},'E'+(E.date||'')+'-'+i)).join('')||'<span class="mu">아직 오늘 자료 없음</span>'}</div></div>
+  </div></div>`;
 }
 </script>
 
@@ -3483,7 +3605,8 @@ load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadL
 (function(){
   const K='mt_usage_v1', KEEP=180, REPO='hk99915-bot/pb-private';
   const GRPS=['home','my','life','mkt','daily','res','quant','study','sys'];
-  const EVS=['detail','panel','duel','study_chk','quiz','quiz_ok','export'];
+  const EVS=['detail','panel','duel','study_chk','quiz','quiz_ok','export','eng_review','eng_review_ok','eng_quiz','eng_quiz_ok'];
+  const ENGE=['eng_review','eng_review_ok','eng_quiz','eng_quiz_ok'];   // 영어 복습(단어)·독해(내용) 퀴즈 — quiz/quiz_ok 에도 합산, 첫 응답만(english-v2-ui)
   const kst=()=>new Date(Date.now()+9*3600e3);              // KST 기준 날짜·시각
   const dkey=()=>kst().toISOString().slice(0,10);
   const hr=()=>kst().getUTCHours()+kst().getUTCMinutes()/60;
@@ -3515,18 +3638,18 @@ load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadL
     if(t.closest('.sym,[data-sym]')) bump('e','detail');
     const a=t.closest('a[href*="/issues/new"]'); if(a&&/title=(pick|exit|ticket)/i.test(a.href)) bump('e','duel');
     if(t.closest('#exgo')) bump('e','duel');
-    const ch=t.closest('[data-ch]'); if(ch){ const k=ch.dataset.ch; bump('e','quiz');
-      setTimeout(()=>{ const r=document.querySelector(`[data-res="${CSS.escape(k)}"]`); if(r&&/정답/.test(r.textContent)) bump('e','quiz_ok'); },0); }
+    const ch=t.closest('[data-ch]'); if(ch&&!ch.disabled){ const k=ch.dataset.ch, kd=ch.dataset.kind; bump('e','quiz'); if(kd) bump('e','eng_'+kd);
+      setTimeout(()=>{ const r=document.querySelector(`[data-res="${CSS.escape(k)}"]`); if(r&&/정답/.test(r.textContent)){ bump('e','quiz_ok'); if(kd) bump('e','eng_'+kd+'_ok'); } },0); }
   },true);
   document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.tagName==='DETAILS'&&d.open&&d===lastSum&&d.id!=='usagebox') bump('e','panel'); },true);
   document.addEventListener('change',e=>{ const c=e.target; if(c&&c.matches&&c.matches('[data-mchk]')&&c.checked) bump('e','study_chk'); },true);
 
   // ── 내보내기: 최근 7일(또는 마지막 내보내기 이후) 일별 CSV → 비공개 이슈 폼 ──
-  const HDR=['date','dev','sessions','first','last',...GRPS,'other','mkt_open_hours','night','detail','panel','duel','study_chk','quiz','quiz_ok','study_total','xl','top_sub'];
+  const HDR=['date','dev','sessions','first','last',...GRPS,'other','mkt_open_hours','night','detail','panel','duel','study_chk','quiz','quiz_ok','study_total','xl','top_sub',...ENGE];
   function rows(n){ const ks=Object.keys(S.d).sort().slice(-n);
     return ks.map(k=>{ const D=S.d[k], top=Object.entries(D.sv||{}).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([a,b])=>a+':'+b).join(';');
       return [k,S.dev,D.s||0,D.t0||'',D.t1||'',...GRPS.map(g=>(D.g||{})[g]||0),(D.g||{}).other||0,D.mh||0,D.nt||0,
-        ...['detail','panel','duel','study_chk','quiz','quiz_ok'].map(x=>(D.e||{})[x]||0),D.st||0,D.xl||0,top].join(','); }); }
+        ...['detail','panel','duel','study_chk','quiz','quiz_ok'].map(x=>(D.e||{})[x]||0),D.st||0,D.xl||0,top,...ENGE.map(x=>(D.e||{})[x]||0)].join(','); }); }
   function exportUrl(n){ const isoW=(()=>{ const d=kst(); d.setUTCHours(0,0,0,0); const w=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-w+3);
       const y=d.getUTCFullYear(), f=new Date(Date.UTC(y,0,4)); return y+'-W'+String(1+Math.round(((d-f)/864e5-3+((f.getUTCDay()+6)%7))/7)).padStart(2,'0'); })();
     const csv=[HDR.join(','),...rows(n)].join('\n');
@@ -3534,12 +3657,12 @@ load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadL
   function summary(){ const ks=Object.keys(S.d).sort(), last7=ks.filter(k=>k>=new Date(Date.now()+9*3600e3-6*864e5).toISOString().slice(0,10));
     const sum=(f)=>last7.reduce((a,k)=>a+f(S.d[k]),0);
     const g=GRPS.map(x=>[x,sum(D=>(D.g||{})[x]||0)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
-    return {days:last7.length, all:ks.length, ses:sum(D=>D.s||0), g, mh:sum(D=>D.mh||0), duel:sum(D=>(D.e||{}).duel||0), chk:sum(D=>(D.e||{}).study_chk||0), quiz:sum(D=>(D.e||{}).quiz||0), x:S.x}; }
+    return {days:last7.length, all:ks.length, ses:sum(D=>D.s||0), g, mh:sum(D=>D.mh||0), duel:sum(D=>(D.e||{}).duel||0), chk:sum(D=>(D.e||{}).study_chk||0), quiz:sum(D=>(D.e||{}).quiz||0), eng:ENGE.map(x=>sum(D=>(D.e||{})[x]||0)), x:S.x}; }
   function box(){ const s=summary();
     return `<details class="p c12" id="usagebox" style="margin-top:10px"><summary style="cursor:pointer;padding:6px 10px"><b>사용 기록</b> <span class="mu" style="font-size:11.5px">최근 7일 ${s.days}일 접속 · 세션 ${s.ses} · 이 브라우저에만 저장</span></summary>
      <div class="b" style="font-size:12px;line-height:1.7;white-space:normal">
       <div>탭별 열람(7일): ${s.g.map(([k,v])=>`<span style="margin-right:8px">${k.toUpperCase()} <b>${v}</b></span>`).join('')||'<span class="mu">아직 없음</span>'}</div>
-      <div>장중 시세 확인 <b>${s.mh}</b> · 대결 제출 클릭 <b>${s.duel}</b> · 스터디 체크 <b>${s.chk}</b> · 퀴즈 <b>${s.quiz}</b></div>
+      <div>장중 시세 확인 <b>${s.mh}</b> · 대결 제출 클릭 <b>${s.duel}</b> · 스터디 체크 <b>${s.chk}</b> · 퀴즈 <b>${s.quiz}</b> <span class="mu">(영어 단어 ${s.eng[1]}/${s.eng[0]} · 내용 ${s.eng[3]}/${s.eng[2]})</span></div>
       <div class="mu">기록 일수 ${s.all}일 · 마지막 내보내기 ${s.x||'없음'}</div>
       <div style="margin-top:6px"><button class="sbtn" id="usgexp">사용 기록 내보내기 (최근 7일 → 비공개 이슈)</button> <button class="sbtn" id="usgexp28">28일</button> <button class="sbtn" id="usgclr" style="margin-left:8px">기록 지우기</button></div>
       <div class="mu" style="font-size:11px">버튼을 누르면 비공개 저장소 이슈 폼이 채워진 채 열린다 → '제출'하면 usage/daily.csv·weekly.csv 에 반영. 주 1회(일요일 주간 리뷰 때) 권장.</div>
