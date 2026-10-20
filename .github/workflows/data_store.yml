@@ -1,0 +1,61 @@
+name: data_store
+run-name: "data_store ${{ github.event_name == 'workflow_dispatch' && format('[{0}] commit={1}', inputs.mode, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
+
+# 큰 데이터 파일 = 릴리스 자산 (repo-size-stage1, scripts/data_store.py · docs/data_store.md)
+# - 예약: 금 20:17 KST(11:17 UTC) 주간 스냅샷 data-YYYYMMDD — 복기·감사용 '그 주 값' 보존, 최근 8주만 유지.
+# - 수동 mode: snapshot | status | bootstrap(최초 이전: 작업 트리의 현재본을 data-latest 로 강제 업로드 + manifest 커밋)
+# 이 워크플로는 데이터를 만들지 않는다 — data-latest 를 받아(pull) 보존·점검만. git 커밋은 bootstrap 의 manifest 뿐(commit=true 일 때).
+on:
+  schedule:
+    - cron: "17 11 * * 5"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "snapshot | status | bootstrap"
+        required: true
+        default: "status"
+      commit:
+        description: "bootstrap 의 manifest 커밋 여부 (기본 false = 읽기 전용 — 결정 C)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data_store
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      MODE: ${{ inputs.mode || 'snapshot' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install polars
+      - name: 릴리스 자산 받기 (data-latest → 원래 경로)
+        run: python scripts/data_store.py pull
+      - name: 실행
+        run: |
+          case "$MODE" in
+            snapshot)  python scripts/data_store.py snapshot --keep 8 ;;
+            bootstrap) python scripts/data_store.py push --groups all --force --git-rev "$(git rev-parse HEAD)" ;;
+            *)         python scripts/data_store.py status ;;
+          esac
+      - name: manifest 저장 (bootstrap)
+        if: env.MODE == 'bootstrap' && inputs.commit == 'true'
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add data/data_store_manifest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data_store: bootstrap manifest $(date -u +%FT%H:%M)"
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || { echo "::error::manifest 푸시 실패"; exit 1; }
