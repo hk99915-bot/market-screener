@@ -2629,6 +2629,26 @@
       ],
       "depends_on": [],
       "notes": "PM 점검(.git 669MB, 11/5 1GB 예상). 옮김: kr_prices·signals·fin multi/full·hist *_daily 4·flows kr_inv 3 (7일 증가의 49%, 일회성 제외 63%). pull 10개·push 5개 워크플로, 주간 스냅샷 data-YYYYMMDD 8주(data_store.yml 금 20:17). 2단계(이력 재작성·reports/detail 이전)는 별도 결재."
+    },
+    {
+      "id": "rep-hollzzak",
+      "title": "독립 재현: hollzzak 지수 H1·H2·H3a·H3b (+base·122630 익일 종가) — 원 vs 재현 표·등급 대조",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "진행",
+      "started": "2026-10-21",
+      "due": "2026-10-21",
+      "repo": "public",
+      "files": [
+        "scripts/replicate_hollzzak.py",
+        "reports/studies/replication_hollzzak.md",
+        "reports/studies/replication_hollzzak.json",
+        "tests/test_replicate_hollzzak.py"
+      ],
+      "depends_on": [
+        "study-hollzzak"
+      ],
+      "notes": "명세(사전등록 §1~§7)만, 원 코드 미열람. §0(허용오차 SE식·뒤집힘 기준) 먼저 커밋 후 실행. H4(종목)는 범위 밖 — 다음 라운드. 22시 이후라 등급 변경은 제안만."
     }
   ]
 }
