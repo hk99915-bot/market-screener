@@ -254,15 +254,15 @@ def rate_group(path: str) -> str:
         return "MARKET_INDICATOR"
     if path.startswith(("/api/v1/exchange-rate", "/api/v1/market-calendar", "/api/v1/stocks")):
         return "MARKET_INFO"
-    # 10/21 us·sectors 그룹 — 이름은 heartbeat 표시용 [추정 — 첫 실행 Remaining 이 같이 줄면 같은 그룹]
+    # 10/21 us·sectors 그룹 — 그룹 이름은 원문 요약(MARKET_DATA·MARKET_DATA_CHART·RANKING·SECTOR), 경로 대응은 [추정]
     if path == "/api/v1/candles":
-        return "CHART"
+        return "MARKET_DATA_CHART"
     if path.startswith("/api/v1/rankings") or path == "/api/v1/sectors/rankings":
         return "RANKING"
     if path.startswith("/api/v1/sectors"):
         return "SECTOR"
     if path.startswith(("/api/v1/prices", "/api/v1/orderbook", "/api/v1/trades", "/api/v1/price-limits")):
-        return "PRICE"
+        return "MARKET_DATA"
     return "OTHER"
 
 

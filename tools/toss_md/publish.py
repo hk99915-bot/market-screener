@@ -578,12 +578,23 @@ def decide(state: dict, sig_full: str, sig_xc: str, now: datetime,
 Runner = Callable[..., tuple[int, str, str]]
 
 
+_GIT_LOCATION_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY", "GIT_COMMON_DIR",
+                      "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX")
+
+
+def clean_git_env() -> dict:
+    """git 훅 안에서 불려도(GIT_DIR 등 상속) cwd 저장소만 쓰게 — 10/21 pre-push 훅 → pytest 가 실제 저장소를
+    core.bare=true 로 바꾸고 't init' 커밋을 끼운 사고 재발 방지."""
+    import os
+    return {k: v for k, v in os.environ.items() if k not in _GIT_LOCATION_VARS}
+
+
 def git_runner(args: list[str], cwd: Path, data: str | None = None) -> tuple[int, str, str]:
     """봇 신원으로 git 실행 (노트북 git 설정 무시). 반환: (코드, stdout, stderr 마지막 줄 — URL 자격 증명 가림).
     stdin 은 바이트(UTF-8, LF 그대로)로 넘긴다 — Windows 텍스트 모드 CRLF 변환 방지."""
     cmd = ["git", "-c", f"user.name={BOT_NAME}", "-c", f"user.email={BOT_EMAIL}", *args]
     try:
-        p = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=180,
+        p = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=180, env=clean_git_env(),
                            input=data.encode("utf-8") if data is not None else None)
     except Exception as e:  # noqa: BLE001
         return 1, "", type(e).__name__

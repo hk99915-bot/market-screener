@@ -114,7 +114,8 @@ def test_decide_rules():
 
 # ── git: toss-live 브랜치에 일반 push (실제 git, 로컬 bare 원격) ─────────────────
 def _git(*a, cwd):
-    return subprocess.run(["git", *a], cwd=cwd, capture_output=True, text=True, check=True).stdout.strip()
+    # 훅(pre-push → pytest) 안에서 GIT_DIR 이 상속되면 tmp 가 아니라 실제 저장소를 건드린다(10/21 core.bare 사고) → 지운 env
+    return subprocess.run(["git", *a], cwd=cwd, capture_output=True, text=True, check=True, env=publish.clean_git_env()).stdout.strip()
 
 
 @pytest.fixture
@@ -180,7 +181,7 @@ def test_push_failure_marks_pending(base, tmp_path):
             return 1, "", "rejected"
         return publish.git_runner(args, cwd, data) if args[0] != "fetch" else (1, "", "no remote")
     work = tmp_path / "w"
-    subprocess.run(["git", "init", "-q", str(work)], check=True)
+    subprocess.run(["git", "init", "-q", str(work)], check=True, env=publish.clean_git_env())
     r = publish.run(base, now=NOW, repo=work, git=broken, reports=work / "reports")
     assert r["status"] == "fail"
     st = json.loads((base / "heartbeat.json").read_text())["publish"]
@@ -339,3 +340,10 @@ def test_git_publish_sectors_kept_and_message(repo, base):
     f.write_text(json.dumps(j))
     assert publish.run(base, now=NOW + timedelta(minutes=10), repo=work, reports=work / "reports")["status"] == "pushed"
     assert "sectors.json" in _git("ls-tree", "--name-only", "toss-live", cwd=bare).split()
+
+
+def test_git_env_ignores_hook_vars(tmp_path, monkeypatch):
+    monkeypatch.setenv("GIT_DIR", str(tmp_path / "real.git"))
+    monkeypatch.setenv("GIT_INDEX_FILE", str(tmp_path / "idx"))
+    env = publish.clean_git_env()
+    assert "GIT_DIR" not in env and "GIT_INDEX_FILE" not in env
