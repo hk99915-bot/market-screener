@@ -18,7 +18,16 @@ def run() -> dict:
         out["naver_research_next"] = naver_next_probe.discover()
     except Exception as e:  # noqa: BLE001
         out["naver_research_next"] = {"error": str(e)}
-    urls = {
+    from datetime import date as _d, timedelta as _td
+    _w = _d.today() - _td(days=1)
+    while _w.weekday() >= 5:
+        _w -= _td(days=1)
+    _wd = _w.strftime("%Y%m%d")
+    # 10/21 toss-sectors: WICS 무료 일일 수집 경로 확인 (컨테이너는 wiseindex 차단 → Actions 에서 탐침)
+    wics = {f"wics_{c}": f"https://www.wiseindex.com/Index/GetIndexComponets?ceil_yn=0&dt={_wd}&sec_cd={c}"
+            for c in ("G45", "G4530", "G25")}
+    wics["wics_page"] = "https://www.wiseindex.com/Index/Index#/G1010.0.Components"
+    urls = {**wics,
         "naver_news_stock": "https://m.stock.naver.com/api/news/stock/000660?pageSize=5&page=1",
         "naver_news_list": "https://m.stock.naver.com/api/news/list?category=mainnews&pageSize=5&page=1",
         "google_news": "https://news.google.com/rss/search?q=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4+when:7d&hl=ko&gl=KR&ceid=KR:ko",
