@@ -2508,18 +2508,31 @@
       "title": "섹터 분류를 토스 섹터(3단계, 국장·미장 공통)로 — KRX 업종 '전기·전자' 401종목 뭉침 해소",
       "owner": "개발",
       "priority": "P2",
-      "status": "대기",
-      "started": null,
+      "status": "검수",
+      "started": "2026-10-21",
       "due": "2026-10-31",
       "repo": "public",
       "files": [
         "tools/toss_md/collect.py",
-        "screener/universe.py"
+        "tools/toss_md/publish.py",
+        "screener/sectors.py",
+        "screener/wics.py",
+        "screener/universe.py",
+        "screener/pb.py",
+        "screener/detail.py",
+        "universe/us_sector.csv",
+        "universe/kr_wics.csv",
+        "apps-script/tab_market.html",
+        "tests/test_sectors.py",
+        "tests/test_wics.py",
+        "tests/test_toss_md.py",
+        "tests/test_toss_publish.py",
+        "tests/test_heatmap_ui.cjs"
       ],
       "depends_on": [
         "toss-md-pilot"
       ],
-      "notes": "겸이 10/21 00:5x '섹터 분류도 이상한데 토스 기준으로'. 노트북 일 1회 /sectors·/sectors/{id}/stocks(KR·US) 스냅샷. 다중 소속 → 대표 섹터 1개 규칙 필요(비중 한도 영향 — 겸이 결재). 전환일 기록·옛/새 분류 병행 계산. KRX 업종은 대조용 유지. | 10/21 00:4x 겸이(🌙, 낮 재확인): 공식 비중 한도=GICS(미장)/WICS(국장) 1종목1섹터, 테마·순환매·히트맵=토스 섹터. WICS 무료 일일 수집 가능 여부 데이터 데스크 확인 필요(불가 시 KRX 업종 세분화 대안)."
+      "notes": "겸이 10/21 00:5x '섹터 분류도 이상한데 토스 기준으로'. 노트북 일 1회 /sectors·/sectors/{id}/stocks(KR·US) 스냅샷. 다중 소속 → 대표 섹터 1개 규칙 필요(비중 한도 영향 — 겸이 결재). 전환일 기록·옛/새 분류 병행 계산. KRX 업종은 대조용 유지. | 10/21 00:4x 겸이(🌙, 낮 재확인): 공식 비중 한도=GICS(미장)/WICS(국장) 1종목1섹터, 테마·순환매·히트맵=토스 섹터. WICS 무료 일일 수집 가능 여부 데이터 데스크 확인 필요(불가 시 KRX 업종 세분화 대안). | 10/21 01:3x 개발: ① WICS 무료 일일 수집 가능(Actions 탐침 run 39453753347: wiseindex GetIndexComponets JSON, G45 681·G4530 반도체와반도체장비 165종목) → screener/wics.py 가 KR 상세 생성 때 일 1회 universe/kr_wics.csv(호출 100). 첫 실수집 전까지는 KRX 업종 대체(반도체 판정 None). ② 미장 GICS: us_sector.csv 에 gics_sub 추가, 야후→GICS 11 매핑표(screener/sectors.py), NDX 전용 11종 수동(확인 필요 10/31). ③ 토스 섹터: collect --group sectors(호출 1+2×말단 섹터, 0.5초 간격, 작업 toss_md_sectors 07:20) → publish 가 toss-live sectors.json(계층+종목→말단 다중, 금액 필드 없음). ④ 히트맵: 토스 중분류(depth1) 우선·기존 폴백·출처 표기·토글. ⑤ 비중 한도: pb.evaluate 에 semi_ex_new·sector_w_new 병행 필드, 판정 불변. 전환 = screener/sectors.OFFICIAL_LIMITS=True (07:00 이후 + 겸이 확인). 남은 일: 노트북 첫 sectors 실행 → 말단 섹터 수·호출 수 확인, 첫 WICS 실수집(no_l2) 확인, 전환 결재."
     },
     {
       "id": "toss-md-publish",
