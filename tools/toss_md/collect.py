@@ -50,7 +50,9 @@ PILOT: list[tuple[str, str, str, dict]] = [
     ("calendar_kr", "daily", "/api/v1/market-calendar/KR", {}),
     ("calendar_us", "daily", "/api/v1/market-calendar/US", {}),
 ]
-STOCKS_ALL = ("stocks_all", "daily", "/api/v1/stocks/all", {})
+# /stocks/all 은 market 이 필수 파라미터(OpenAPI 원문) — 시장별 1회씩. 10/21 첫 실제 실행에서 market 없이 불러 실패(LastTaskResult 1).
+STOCKS_ALL = [(f"stocks_all_{m.lower()}", "daily", "/api/v1/stocks/all", {"market": m})
+              for m in ("KOSPI", "KOSDAQ", "KR_ETC", "NYSE", "NASDAQ", "AMEX", "US_ETC")]
 
 log = logging.getLogger("toss_md.collect")
 
@@ -185,8 +187,7 @@ def run(group: str = "all", dry_run: bool = False, stocks_all: bool = False, out
 
     targets = [t for t in PILOT if group in ("all", t[1])]
     if stocks_all and group in ("all", "daily"):
-        if not (day / f"{STOCKS_ALL[0]}.json").exists():  # 일 1회
-            targets.append(STOCKS_ALL)
+        targets += [t for t in STOCKS_ALL if not (day / f"{t[0]}.json").exists()]  # 시장별 일 1회
 
     if client is None:
         if dry_run:

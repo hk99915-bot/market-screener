@@ -110,7 +110,7 @@ def test_allowed_paths_pass(client, path):
 
 
 def test_collector_pilot_paths_are_whitelisted():
-    for _n, _g, path, _p in collect.PILOT + [collect.STOCKS_ALL]:
+    for _n, _g, path, _p in collect.PILOT + collect.STOCKS_ALL:
         toss_md.check_request("GET", path, {})
 
 
@@ -238,7 +238,7 @@ def test_429_gives_up_when_retry_after_too_long(tmp_path):
 def test_collect_dry_run_writes_outside_repo(tmp_path):
     now = datetime(2026, 10, 20, 23, 40, tzinfo=collect.KST)
     s = collect.run("all", dry_run=True, stocks_all=True, out=tmp_path, now=now)
-    assert s["ok"] == len(collect.PILOT) + 1 and s["fail"] == 0
+    assert s["ok"] == len(collect.PILOT) + len(collect.STOCKS_ALL) and s["fail"] == 0
     day = tmp_path / "_dryrun" / "2026-10-20"
     rec = json.loads((day / "kospi_1m.json").read_text())
     assert rec["generated_at"] and rec["asof"].startswith("2026-10-20T15:30") and rec["asof_src"] == "response"
@@ -283,3 +283,8 @@ def test_crosscheck_flags_breach(tmp_path):
     assert st["KOSPI 종가"] == "ok" and st["KOSDAQ 종가"] == "breach" and st["USDKRW"] == "ok"
     assert st["KR 달력"] == "ok" and st["US 달력"] == "ok"
     assert res["tolerances"]["INDEX_CLOSE_TOL_PCT"] == crosscheck.INDEX_CLOSE_TOL_PCT
+
+
+def test_stocks_all_has_required_market_param():
+    # OpenAPI 원문: GET /api/v1/stocks/all 의 market 은 required
+    assert collect.STOCKS_ALL and all(p.get("market") for _n, _g, _path, p in collect.STOCKS_ALL)
