@@ -5,7 +5,7 @@
 
 비교 대상(기존 소스, 저장소 reports/ 와 screener/tradecal.py — git pull 로 최신화 후 실행):
 - 지수 종가: 토스 kospi_1m·kosdaq_1m 의 마지막 봉 close  vs  reports/macro_series.json series KOSPI·KOSDAQ 그날 종가
-- 환율:     토스 usdkrw rate                              vs  reports/macro_series.json USDKRW 그날 종가(야후, 없으면 reports/live.json)
+- 환율:     토스 usdkrw midRate(매매기준율, rate=매수환율은 안 씀) vs  reports/macro_series.json USDKRW 그날 종가(야후, 없으면 reports/live.json)
 - 휴장 달력: 토스 calendar_kr·calendar_us 의 날짜별 개장 여부 vs  screener.tradecal.is_session
 출력: ~/toss_md_data/YYYY-MM-DD/crosscheck.json (저장소 밖). 화면엔 항목별 괴리율·판정만.
 
@@ -38,7 +38,8 @@ try:
 except Exception:  # Windows 는 시스템 tz DB 가 없어 tzdata 패키지 필요 — 없으면 고정 +09:00 (한국은 서머타임 없음)
     KST = timezone(timedelta(hours=9), "KST")
 _CLOSE_KEYS = ("close", "closePrice", "lastPrice", "price")
-_RATE_KEYS = ("rate", "basePrice", "price", "close")
+# 환율은 매매기준율(mid)만 — 토스 rate 는 고객 매수환율(스프레드 포함)이라 야후 mid 와 비교·공개 불가 (10/21 PB). 없으면 None(no_data).
+_RATE_KEYS = ("midRate", "mid_rate", "midPrice")
 _OPEN_KEYS = ("isOpen", "open", "isTradingDay")
 _HOLI_KEYS = ("isHoliday", "holiday", "closed")
 
@@ -148,7 +149,8 @@ def compare(day: str, toss_dir: Path, reports: Path | None = None) -> dict:
     if fx_ref is None:  # 시계열에 그날 행이 아직 없으면 live.json 의 같은 날짜 값
         try:
             lv = json.loads((reports / "live.json").read_text(encoding="utf-8"))
-            it = next((i for i in lv.get("items", []) if i.get("key") == "USDKRW" and i.get("date") == day), None)
+            it = next((i for i in lv.get("items", []) if i.get("key") == "USDKRW" and i.get("date") == day
+                       and i.get("src") != "toss"), None)   # live.json 이 토스로 덮였으면 자기 대조가 되므로 제외
             if it and isinstance(it.get("last"), (int, float)):
                 fx_ref, fx_src = float(it["last"]), "reports/live.json(야후)"
         except Exception:

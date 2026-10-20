@@ -127,6 +127,10 @@ function macroComment(key,all){
   box.innerHTML=L.map(x=>'· '+x).join('<br>');
   if(typeof MV!=='undefined'&&MV===null){ MV=false; google.script.run.withSuccessHandler(t=>{try{MV=JSON.parse(t);}catch(e){MV={};} macroComment(key,all);}).withFailureHandler(()=>{MV={};}).getMacroView(); }
 }
+/* 지수 서랍의 INTRADAY 패널 — 토스 1분봉(toss-live). 도우미(tossLoad·tossFresh·tossSpark·srcBadge)는 tab_market.html */
+function tossIntraFill(key){ const el=$('#tossin'); if(!el) return; const t=TOSS&&(TOSS.indices||{})[key];
+  if(!t||!t.bars||!t.bars.length){ el.innerHTML=`<div class="mu">토스 1분봉 없음(${esc(TOSS_ERR||'수집 전')}) — CHART 의 LIVE(네이버)를 보세요</div>`; return; }
+  el.innerHTML=tossSpark(t.bars,960,160)+`<div class="mu" style="font-size:11px">${esc(TOSS.date||'')} · ${t.n}봉${t.thinned?` (${t.thinned}개 중 1개로 솎음)`:''} ${srcBadge('toss',t.asof)} ${tossFresh(t.asof)?'':'<span class="dn">지연 — 마지막 수집분(시세 표시는 네이버로 폴백)</span>'}</div>`; }
 let MRNG=252;
 function macroBars(key){
   const raw=(MS.series||{})[key]||((typeof CHS!=='undefined'&&CHS&&CHS.series)||{})[key]||[];
@@ -137,6 +141,9 @@ function macroBars(key){
     const kr=['KOSPI','KOSDAQ'].includes(key);
     if(last.d===today){ last.c=lv.last; last.h=Math.max(last.h,lv.last); last.l=Math.min(last.l,lv.last); last.live=true; }
     else if(kr ? lv.status==='OPEN' : false){ const p=last.c; b.push({d:today,o:p,h:Math.max(p,lv.last),l:Math.min(p,lv.last),c:lv.last,v:0,live:true}); } }
+  // 토스 1분봉이 오늘 것이고 신선하면 오늘 봉의 시가·고가·저가를 그걸로 (tab_market tossPick 과 같은 신선도)
+  const tb=typeof TOSS!=='undefined'&&TOSS&&(TOSS.indices||{})[key], x=b[b.length-1];
+  if(tb&&x&&x.live&&TOSS.date===x.d&&tb.bars&&tb.bars.length&&tossFresh(tb.asof)){ x.o=tb.bars[0][1]; x.h=Math.max(x.c,...tb.bars.map(r=>r[2])); x.l=Math.min(x.c,...tb.bars.map(r=>r[3])); x.toss=true; }
   return b;
 }
 function openMacro(key){
@@ -144,9 +151,10 @@ function openMacro(key){
   const show=()=>{const all=macroBars(key); if(!all.length){$('#dr-b').innerHTML='<div class="err">시계열 없음 (다음 스크리너 실행 때 생성)</div>';return;}
     const C=all.map(x=>x.c), last=C[C.length-1], ch=n=>C.length>n?last/C[C.length-1-n]-1:null;
     const hasOHLC=all.some(x=>x.h!==x.l);
-    $('#dr-s').innerHTML=`${num(last,2)} · 1D ${pct(ch(1))} · 1M ${pct(ch(21))} · 3M ${pct(ch(63))} · 1Y ${pct(ch(250))} · ${esc(all[all.length-1].d)}${all[all.length-1].live?' <span class="am">LIVE 반영</span>':''}`;
+    $('#dr-s').innerHTML=`${num(last,2)} · 1D ${pct(ch(1))} · 1M ${pct(ch(21))} · 3M ${pct(ch(63))} · 1Y ${pct(ch(250))} · ${esc(all[all.length-1].d)}${all[all.length-1].live?' <span class="am">LIVE 반영</span>':''}${(()=>{const lv=L&&L.items&&L.items.find(x=>x.key===key); return lv&&typeof srcBadge==='function'?srcBadge(lv.src,lv.asof||L.asof):'';})()}`;
     const R=[[63,'3M'],[126,'6M'],[252,'1Y'],[520,'2Y']];
-    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>${esc(key)}<span class="ctab">${R.map(([n,l])=>`<button data-r="${n}" class="${n===MRNG?'on':''}">${l}</button>`).join('')}</span><small>${hasOHLC?'일봉':'종가'} · SMA20/50/200 · 야후${['KOSPI','KOSDAQ'].includes(key)?'·네이버 실시간':''}</small></h2><div class="b"><canvas id="mcv" width="960" height="340"></canvas><div class="mu" style="font-size:11px;margin-top:4px" id="mcinfo"></div></div></div>
+    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>${esc(key)}<span class="ctab">${R.map(([n,l])=>`<button data-r="${n}" class="${n===MRNG?'on':''}">${l}</button>`).join('')}</span><small>${hasOHLC?'일봉':'종가'} · SMA20/50/200 · 야후${['KOSPI','KOSDAQ','USDKRW'].includes(key)?' · 오늘 봉: 토스(신선할 때)→'+(key==='USDKRW'?'야후':'네이버'):''}</small></h2><div class="b"><canvas id="mcv" width="960" height="340"></canvas><div class="mu" style="font-size:11px;margin-top:4px" id="mcinfo"></div></div></div>
+      ${['KOSPI','KOSDAQ'].includes(key)?`<div class="p c12"><h2>INTRADAY<small id="tossin-n">토스 1분봉 · 봉 시각 = 시작 시각</small></h2><div class="b" id="tossin"><div class="mu">불러오는 중…</div></div></div>`:''}
       <div class="p c12"><h2>COMMENT<small>규칙 기반 · 예측 아님</small></h2><div class="b" id="mccom" style="line-height:1.8;font-size:13px;white-space:normal"></div></div></div>`;
     document.querySelectorAll('#dr-b .ctab button').forEach(bt=>bt.onclick=()=>{MRNG=+bt.dataset.r; show();});
     const st=Math.max(0,all.length-MRNG), b=all.slice(st), n=b.length;
@@ -168,6 +176,7 @@ function openMacro(key){
     x.fillStyle='#777';const step=Math.ceil(n/(window.innerWidth<700?4:7));for(let i=0;i<n;i+=step)x.fillText(b[i].d.slice(2),X(i)-fs*2,H-fs*0.4);
     const s20=sma(20,n-1),s50=sma(50,n-1),s200=sma(200,n-1), hi52=Math.max(...C.slice(-250)), lo52=Math.min(...C.slice(-250));
     macroComment(key,all);
+    if(typeof tossLoad==='function'&&['KOSPI','KOSDAQ'].includes(key)) tossLoad(()=>tossIntraFill(key));
     $('#mcinfo').innerHTML=`<span style="color:#f5c542">SMA20 ${s20?num(s20,0):'—'}</span> · <span style="color:#c77dff">SMA50 ${s50?num(s50,0):'—'}</span> · <span style="color:#35d6e6">SMA200 ${s200?num(s200,0):'—'}</span> · 52주 고 ${num(hi52,2)} (${pct(last/hi52-1,1)}) / 저 ${num(lo52,2)} · 빨강=상승 파랑=하락${all[all.length-1].live?' · 노란 테두리=실시간 반영 봉':''}`;
   };
   if(MS) return show();

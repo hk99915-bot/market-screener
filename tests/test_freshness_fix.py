@@ -40,7 +40,9 @@ def _parse(fix: str) -> tuple[str, dict]:
 
 def test_every_item_has_a_command():
     cmds = _cmds()
-    assert len(cmds) == len(freshness.load_contract(ROOT / "ops" / "freshness.json")) >= 20
+    # kind=toss_md 는 워크플로가 아니라 겸이 노트북(작업 스케줄러)이 복구 주체 — gh 명령 없음 (10/21)
+    items = [i for i in freshness.load_contract(ROOT / "ops" / "freshness.json") if i.get("kind") != "toss_md"]
+    assert len(cmds) == len(items) >= 20
 
 
 @pytest.mark.parametrize("iid,fix", _cmds())

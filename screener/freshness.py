@@ -90,10 +90,17 @@ def _ready_today(now: datetime, hm: str, tz: str) -> datetime:
 
 def check_item(it: dict, now: datetime, root: Path = ROOT, last_commit: datetime | None = None) -> dict | None:
     """늦었으면 {id, path, expected, actual, mode, fix, desc} 반환, 정상이면 None."""
-    val, err = _read_value(root, it)
     kind = it.get("kind", "session")
+    if kind == "toss_md":   # 원격 브랜치 파일(toss-live/live.json) — 노트북 수집기가 멈추면 여기서 걸린다 (10/21)
+        from . import toss_live
+        val, err = toss_live.read_value(it.get("url") or toss_live.RAW_URL, it.get("key") or "published_at")
+    else:
+        val, err = _read_value(root, it)
     late = None
-    if kind == "session":
+    if kind == "toss_md":
+        from . import toss_live
+        late = toss_live.check_late(val, now, it)
+    elif kind == "session":
         exp = tradecal.expected_session(it["market"], now, it.get("ready"), it.get("tz"),
                                         int(it.get("day_offset") or 0), int(it.get("grace_min") or 0))
         act = guard.day(val)

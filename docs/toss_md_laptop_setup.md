@@ -1,20 +1,20 @@
 # 토스 시세 수집 — 겸이 노트북(Windows) 세팅 가이드
 
-작성 2026-10-20 · 개발 데스크 · 보드 `toss-md-pilot` · 코드 `screener/toss_md.py`, `tools/toss_md/` · 테스트 `tests/test_toss_md.py`
+작성 2026-10-20 (10/21 ⑥ publish 추가) · 개발 데스크 · 보드 `toss-md-pilot`·`toss-md-publish` · 코드 `screener/toss_md.py`, `tools/toss_md/` · 테스트 `tests/test_toss_md.py`
 
 **한 줄 요약:** 노트북을 "시세만 받아 적는 기록원"으로 만든다. 주문은 미래에셋에서 하므로 토스로는 **절대 주문하지 않고**, 코드도 주문·계좌 길을 아예 막아 두었다.
 
 > **꼭 지킬 것 3가지**
 > 1. 키(client_id·client_secret)는 **채팅(Claude·텔레그램·카톡)에 붙여 넣지 않는다.** 노트북의 비밀 파일에만 적는다.
 > 2. 수집기는 **이 노트북 1대에서만** 돌린다. 토스는 키 하나에 유효한 출입증(토큰)이 1장뿐이라, 다른 곳에서 새로 받으면 노트북 것이 바로 무효가 된다.
-> 3. 수집한 파일(`toss_md_data` 폴더)은 **저장소에 올리지 않는다.** 약관(재배포)을 아직 확인 못 했다.
+> 3. 수집한 원본 파일(`toss_md_data` 폴더)은 **저장소에 올리지 않는다.** 공개는 ⑥ publish 가 만든 **요약 2개**(지수·환율·수급 합계·대조 괴리율)만, 전용 브랜치 `toss-live` 로.
 
 ---
 
 ## 0단계 — 시작 전에 확인 (약관)
 비유: 도서관 자료를 복사해 가도 되는지, 친구에게 나눠 줘도 되는지부터 확인한다.
 - [ ] 토스증권 Open API **이용약관**에서 ① 받은 시세를 **다른 곳에 공개·재배포**해도 되는지 ② **자동 수집(프로그램으로 주기 호출)** 이 허용되는지 확인. → 결과를 PB에게 "허용/금지/불명확" 한 단어로만 알려 주기(약관 문장 통째 복사 불필요).
-- 확인 전까지: 수집은 노트북 안에서만, 공개 저장소·화면에는 쓰지 않는다. (현재 상태: **미확인**)
+- (현재 상태: **허용** — 10/20 23:5x 겸이 확인, 재배포·자동수집. 그래서 10/21부터 ⑥ publish 로 요약만 공개.)
 
 ## ① 토스 WTS에서 Open API 키 발급 + 허용 IP 등록
 비유: 건물 출입카드(키)를 받고, "이 집 주소(IP)에서 오는 사람만 들여보내 줘"라고 경비실에 등록하는 단계.
@@ -83,7 +83,7 @@
    python tools\toss_md\collect.py --group all --dry-run
    python tools\toss_md\crosscheck.py --dry-run --date 2026-10-20
    ```
-   → `toss_md collect: ok=6 fail=0` 처럼 나오면 OK. (dry-run 결과는 `$HOME\toss_md_data\_dryrun\` 아래)
+   → `toss_md collect: ok=8 fail=0` 처럼 나오면 OK. (dry-run 결과는 `$HOME\toss_md_data\_dryrun\` 아래)
 2. **실제 1회** (평일 장중이면 좋다):
    ```powershell
    python tools\toss_md\collect.py --group all
@@ -134,12 +134,55 @@
    - Windows 업데이트 재부팅 뒤에도 작업은 남지만, **로그인해야** 돈다(위 등록은 "로그인했을 때만" 방식 — 비밀번호를 작업에 저장하지 않으려고). 재부팅 뒤엔 한 번 로그인만 해 두기.
 4. **살아 있는지 보는 법:** `Get-Content "$HOME\toss_md_data\heartbeat.json"` 의 `last_success` 가 장중 10분 이내면 정상.
 
-## ⑥ GitHub "self-hosted runner"로 붙이지 말 것
+## ⑥ publish 켜기 — 터미널(Pages) 지수·장중 차트·환율·수급에 토스 연결 (10/21)
+비유: 기록원이 공책(원본)은 책상 서랍에 두고, **요약 한 장**만 게시판 옆 전용 칸(브랜치 `toss-live`)에 붙인다. 터미널은 그 칸을 읽고, 요약이 늦으면 예전 출처(네이버·야후)를 보여 준다.
+용어: 브랜치 = 저장소 안의 별도 칸. `toss-live` 에는 `live.json`·`crosscheck.json` 두 파일만 있고, main(본 게시판)에는 커밋하지 않는다.
+
+1. **먼저 확인 (한 번만):**
+   ```powershell
+   cd $HOME\market-screener
+   git pull
+   python tools\toss_md\publish.py --dry-run
+   ```
+   → `toss_md publish: dry_run (...)` 이면 OK. 미리보기는 `$HOME\toss_md_data\_dryrun\publish_preview\live.json`.
+2. **작업 스케줄러 인자에 `--publish` 추가** — 같은 이름으로 다시 등록(`-Force` 가 기존 것을 덮는다):
+   ```powershell
+   $py   = (Get-Command python).Source
+   $repo = "$HOME\market-screener"
+   $s  = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
+
+   # (가) 장중 10분마다 수집 + publish (바뀐 게 없으면 커밋 안 함)
+   $a1 = New-ScheduledTaskAction -Execute $py -Argument "tools\toss_md\collect.py --group intraday --publish" -WorkingDirectory $repo
+   $t1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 08:00
+   $t1.Repetition = (New-ScheduledTaskTrigger -Once -At 08:00 -RepetitionInterval (New-TimeSpan -Minutes 10) -RepetitionDuration (New-TimeSpan -Hours 12)).Repetition
+   Register-ScheduledTask -TaskName "toss_md_intraday" -Action $a1 -Trigger $t1 -Settings $s -Force
+
+   # (나) 08:30·18:30 달력·종목 목록 + publish (18:30 회차가 그날 대조(crosscheck)도 계산해 올린다)
+   $a2 = New-ScheduledTaskAction -Execute $py -Argument "tools\toss_md\collect.py --group all --stocks-all --publish" -WorkingDirectory $repo
+   $t2 = @((New-ScheduledTaskTrigger -Daily -At 08:30), (New-ScheduledTaskTrigger -Daily -At 18:30))
+   Register-ScheduledTask -TaskName "toss_md_daily" -Action $a2 -Trigger $t2 -Settings $s -Force
+   ```
+   - 간격을 두고 싶으면 인자 끝에 `--min-interval 30` (분). 기본 0 = 수집 회차마다(변화 있을 때만).
+3. **첫 push 때 GitHub 로그인 1회:** 처음 publish 가 돌 때 Git Credential Manager 가 **브라우저 로그인 창**을 띄운다(작업 스케줄러 실행 중엔 창을 못 띄울 수 있어 아래처럼 손으로 1회):
+   ```powershell
+   cd $HOME\market-screener
+   python tools\toss_md\collect.py --group intraday --publish
+   ```
+   → 브라우저에서 GitHub 로그인·승인 → 다음부터는 저장된 자격 증명으로 자동. 화면에 `toss_md publish: pushed (...)` 가 나오면 끝.
+   - **노트북 git 이름·이메일 설정은 필요 없다.** 스크립트가 커밋마다 봇 신원(`toss-md <toss-md-bot@users.noreply.github.com>`)을 쓴다 — 겸이 개인 이메일이 공개 이력에 남지 않는다.
+   - 커밋은 작업 폴더(main)를 건드리지 않는다. 평소처럼 `git pull` 해도 충돌 없음.
+4. **살아 있는지:** `Get-Content "$HOME\toss_md_data\heartbeat.json"` 의
+   - `publish.status` = `pushed`(올림) / `skipped:no_change`(바뀐 것 없음, 정상) / `fail`(아래 `publish.error` 한 줄만 PB 에 전달 — 다음 회차에 자동 재시도, `pending: true`).
+   - `rate_limit` = 그룹별 남은 호출 수(`remaining`) — 0 에 가까우면 PB 에 알리기.
+   - 터미널 MARKET › KR 의 **TOSS LIVE** 패널에 `토스 · n분 전` 배지가 보이면 연결 완료. 노트북이 멈추면 20분 뒤 네이버/야후로 자동 폴백, 상단 신선도 배지에 `toss_md` 가 뜬다.
+5. **파서 확인(첫 실데이터 1회):** `python tools\toss_md\publish.py --shape` → 파일별 **키 이름만**(값 없음) 출력. 수급·국채가 화면에 `—` 로 비면 이 출력을 PB 에 그대로 전달(개발이 키 이름을 맞춘다).
+
+## ⑦ GitHub "self-hosted runner"로 붙이지 말 것
 비유: 우리 저장소는 **공개 게시판**이다. 이 노트북을 GitHub 의 일꾼(self-hosted runner)으로 등록하면, 모르는 사람이 올린 글(PR)의 코드가 **이 노트북에서 실행**될 수 있다 — 그 코드는 서랍 속 키를 읽어 주문까지 낼 수 있다.
 - 그래서 수집은 **작업 스케줄러로만** 돌리고, GitHub Actions 와 연결하지 않는다.
 - 같은 이유로 토스 키를 **GitHub Secrets 에도 넣지 않는다**(수집 주체가 둘이 되고, IP도 안 맞는다).
 
-## ⑦ 키가 샜다고 의심될 때 (바로 할 일)
+## ⑧ 키가 샜다고 의심될 때 (바로 할 일)
 비유: 출입카드를 잃어버리면 카드부터 정지시키고, 그다음 경위를 본다.
 1. **즉시** 토스증권 WTS → Open API → 키 **폐기(삭제/재발급)**, 허용 IP 목록 **비우기**. [미확인, 확인 필요: WTS 에 키 폐기·IP 해제 기능이 실제로 있는지와 메뉴 위치 — 0단계 약관 확인 때 같이 확인]
    - 그 기능이 없으면: 토스증권 고객센터에 "Open API 키 정지" 요청.
@@ -158,3 +201,5 @@
 | 응답 내용이 로그에 남음 | 오류는 상태·code 만 | `test_error_body_not_logged` |
 | 수집 파일이 저장소로 | 출력 폴더가 저장소 안이면 거부 | `test_collect_refuses_repo_output` |
 | 두 대가 동시에 수집 | 잠금 파일 | `test_lock_blocks_second_collector` |
+| 공개 요약에 호가·계좌·토큰·매수환율 | 금지 키가 있으면 publish 전에 오류 | `test_public_files_have_no_forbidden_fields` |
+| 강제 push·이력 재작성 | 부모 있는 일반 커밋 + 일반 push 만 | `test_git_publish_branch_normal_push` |

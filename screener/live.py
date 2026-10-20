@@ -1,6 +1,7 @@
 """지수·매크로 준실시간 스냅샷 → reports/live.json (텔레그램 발송 없음).
 
 KOSPI·KOSDAQ 은 네이버 → pykrx(KRX) 순으로 받고, 나머지는 야후.
+그 위에 토스(toss-live 브랜치, 노트북 수집)가 신선하면 KOSPI·KOSDAQ·USDKRW 를 덮는다 — screener/toss_live.py (항목 src='toss').
 야후의 ^KS11 은 전일 종가가 틀리게 오는 경우가 있어(-5.5% 오표시 사례) 국내 지수에는 쓰지 않는다.
 """
 from __future__ import annotations
@@ -153,11 +154,18 @@ def snapshot() -> dict:
     except Exception as e:  # noqa: BLE001
         log.info("선물 실패: %s", e)
     now = datetime.now(KST)
+    # 토스 우선(10/21): toss-live 브랜치 live.json 이 신선하면 KOSPI·KOSDAQ·USDKRW 를 토스 값으로, 아니면 위 네이버/야후 그대로
+    try:
+        from . import toss_live
+        items, toss_blk = toss_live.overlay(items, toss_live.fetch(), now)
+    except Exception as e:  # noqa: BLE001
+        log.warning("토스 덮기 실패(기존 소스 유지): %s", e)
+        toss_blk = {"state": "error", "reason": type(e).__name__}
     # asof = 연도 포함 KST 분 단위 (guard-rest 10/17: updated_at '10-17 09:47 KST' 는 연도가 없어 역행 비교 불가 — 화면 호환용으로 유지)
     flag_lag(items)
     sess, tday = session_label(items, now)
     out = {"asof": now.strftime("%Y-%m-%d %H:%M"), "updated_at": now.strftime("%m-%d %H:%M KST"), "items": items,
-           "session": sess, "trade_date": tday}
+           "session": sess, "trade_date": tday, "toss": toss_blk}
     from .guard import write_json
     if write_json(REPORT_DIR / "live.json", out):   # 계약 + 분 단위 역행 가드 (같은 날 더 늦은 시각은 항상 허용)
         log.info("live.json %d개 지표", len(items))

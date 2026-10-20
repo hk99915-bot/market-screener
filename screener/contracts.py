@@ -31,6 +31,9 @@ CONTRACTS: dict[str, dict] = {
     "accum.json": {"v": 1, "date": "asof", "date_required": False, "required": {"asof": str, "generated_at": str, "status": str, "n": int}},
     "us_accum.json": {"v": 1, "date": "asof", "date_required": False,
                       "required": {"asof": str, "generated_at": str, "status": str, "n_scanned": int, "hits": list}},
+    # 토스 시세 요약(노트북 publish → toss-live 브랜치 live.json, 10/21). 원시 호가·계좌 없음 — tools/toss_md/publish.py assert_public
+    "toss_md/live.json": {"v": 1, "date": "asof", "required": {"asof": str, "generated_at": str, "source": str, "date": str,
+                                                               "indices": dict, "flows": dict, "fx": dict, "quotes": dict}},
 }
 
 

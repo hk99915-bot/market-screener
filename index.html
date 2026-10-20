@@ -356,6 +356,54 @@ function med(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)
      apps-script/Index.html 이 include('tab_market') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
+/* ───── 토스 시세(toss-live 브랜치 live.json — 겸이 노트북 10분 수집·publish, 10/21) ─────
+   신선하면 토스, 아니면 기존(네이버/야후/KRX). 신선도 규칙은 screener/toss_live.py 와 같다(바꾸면 둘 다):
+   장중 = asof 20분 이내 · 장 밖 = 날짜 ≥ 마지막 KR 거래일(live.json trade_date). raw CDN 캐시 최대 5분 → 캐시버스터 쿼리. */
+const TOSS_BASE='https://raw.githubusercontent.com/hk99915-bot/market-screener/toss-live/', TOSS_MAX_MIN=20;
+let TOSS=null, TOSS_XC=null, TOSS_T=0, TOSS_ERR='';
+function tossLoad(cb){
+  if(Date.now()-TOSS_T<60e3){ cb&&cb(); return; } TOSS_T=Date.now();
+  const g=f=>fetch(TOSS_BASE+f+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)));
+  Promise.all([g('live.json').then(j=>{TOSS=(j&&j.source==='toss')?j:null; TOSS_ERR=TOSS?'':'형식 오류';}).catch(e=>{TOSS=null; TOSS_ERR=String(e&&e.message||e);}),
+               g('crosscheck.json').then(j=>{TOSS_XC=j;}).catch(()=>{TOSS_XC=null;})])
+   .then(()=>{ const el=document.getElementById('tossbox'); if(el) el.innerHTML=tossBox(); cb&&cb(); });
+}
+function tossInSession(){ if(L&&L.session) return L.session==='LIVE';
+  const k=new Date(Date.now()+9*3600e3), wd=k.getUTCDay(), m=k.getUTCHours()*60+k.getUTCMinutes(); return wd>=1&&wd<=5&&m>=540&&m<930; }
+function tossAgeMin(ts){ const t=Date.parse(ts||''); return isNaN(t)?null:(Date.now()-t)/60e3; }
+function tossExpDay(){ return (L&&L.trade_date)||new Date(Date.now()+9*3600e3).toISOString().slice(0,10); }
+function tossFresh(ts){ if(!ts) return false; if(tossInSession()){ const a=tossAgeMin(ts); return a!=null&&a<=TOSS_MAX_MIN; } return String(ts).slice(0,10)>=tossExpDay(); }
+function srcBadge(src,ts){ const lab={toss:'토스',naver:'네이버',yahoo:'야후',krx:'KRX'}[src]||src||'—', a=src==='toss'?tossAgeMin(ts):null;
+  const when=a==null?'':a<90?` · ${Math.max(0,Math.round(a))}분 전`:` · ${esc(String(ts).slice(5,16).replace('T',' '))}`;
+  return `<span title="출처 ${esc(lab)}${ts?' · asof '+esc(ts):''}" style="display:inline-block;border:1px solid ${src==='toss'?'var(--amber)':'var(--line)'};color:${src==='toss'?'var(--amber)':'var(--muted)'};border-radius:3px;padding:0 4px;font-size:11px;margin-left:4px">${esc(lab)}${when}</span>`; }
+/* 표시값 고르기: 토스가 신선하면 토스, 아니면 live.json 항목(서버가 이미 토스로 덮었을 수도 — src 그대로 표시) */
+function tossPick(k){
+  const o=(L&&L.items||[]).find(x=>x.key===k), t=TOSS&&(k==='USDKRW'?(TOSS.fx||{}).USDKRW:(TOSS.indices||{})[k]), tv=t&&(k==='USDKRW'?t.mid:t.last);
+  if(tv!=null&&tossFresh(t.asof)){ const pc=t.prev_close||(o&&o.chg!=null&&o.last?o.last/(1+o.chg):null); return {v:tv,c:pc?tv/pc-1:null,src:'toss',ts:t.asof}; }
+  return o?{v:o.last,c:o.chg,src:o.src,ts:o.asof||(L&&L.asof)}:null; }
+function tossSpark(bars,w,h){ if(!bars||bars.length<2) return '<span class="mu">봉 없음</span>';
+  const C=bars.map(b=>b[4]), lo=Math.min(...bars.map(b=>b[3])), hi=Math.max(...bars.map(b=>b[2])), rg=(hi-lo)||1, n=bars.length;
+  const pts=C.map((c,i)=>`${(i/(n-1)*w).toFixed(1)},${(h-2-(c-lo)/rg*(h-4)).toFixed(1)}`).join(' '), up=C[n-1]>=bars[0][1];
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="장중 1분봉 종가 ${esc(bars[0][0])}~${esc(bars[n-1][0])}"><polyline fill="none" stroke="${up?'var(--up)':'var(--dn)'}" stroke-width="1.5" vector-effect="non-scaling-stroke" points="${pts}"/></svg><div class="mu" style="font-size:11px;display:flex;justify-content:space-between"><span>${esc(bars[0][0])} 시 ${num(bars[0][1],2)}</span><span>고 ${num(hi,2)} · 저 ${num(lo,2)}</span><span>${esc(bars[n-1][0])} ${num(C[n-1],2)}</span></div>`; }
+function tossBox(){
+  const T=TOSS, sg=v=>v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})}</span>`;
+  let h='';
+  if(!T) h+=`<div class="am" style="margin-bottom:6px">토스 데이터 못 읽음(${esc(TOSS_ERR||'로딩 중')}) — 아래 값은 기존 소스(네이버·야후)</div>`;
+  else { const a=tossAgeMin(T.published_at||T.generated_at), ok=tossFresh(T.asof);
+    h+=`<div class="mu" style="font-size:12px;margin-bottom:6px">토스 asof ${esc(String(T.asof||'').slice(5,16).replace('T',' '))} · publish ${a==null?'—':Math.round(a)+'분 전'} · ${ok?'<span class="up">신선 — 토스 우선</span>':'<span class="dn">지연 — 기존 소스로 폴백</span>'}${(T.missing||[]).length?` · <span class="am">빠짐: ${esc(T.missing.join(', '))}</span>`:''}</div>`; }
+  const rows=[['KOSPI','코스피',2],['KOSDAQ','코스닥',2],['USDKRW','원/달러(매매기준율)',2]].map(([k,lab,dg])=>{ const p=tossPick(k); if(!p) return '';
+    const bars=T&&(T.indices||{})[k]&&T.date>=tossExpDay()?T.indices[k].bars:null;
+    return `<tr><td class="l am">${lab}</td><td>${num(p.v,dg)}</td><td>${p.c==null?'—':pct(p.c,2)}</td><td class="l">${srcBadge(p.src,p.ts)}</td><td style="width:40%">${bars?tossSpark(bars,240,36):''}</td></tr>`; }).join('');
+  h+=`<table><tr><th class="l">지표</th><th>현재</th><th>1D</th><th class="l">출처</th><th class="l">장중(1분봉 종가)</th></tr>${rows}</table>`;
+  const Q=(T&&T.quotes)||{}, bk=Object.keys(Q).filter(k=>/BOND/.test(k)&&tossFresh(Q[k].asof)).sort((a,b)=>parseInt(a.replace(/\D/g,''))-parseInt(b.replace(/\D/g,'')));
+  if(bk.length) h+=`<div style="margin-top:6px"><span class="mu">국고채(%)</span> ${bk.map(k=>`${esc(k.replace('KR_BOND_',''))} <b>${Number(Q[k].last).toFixed(3)}</b>`).join(' · ')} ${srcBadge('toss',Q[bk[0]].asof)}</div>`;
+  const F=(T&&T.flows)||{}, fm=['KOSPI','KOSDAQ'].filter(m=>F[m]&&String(F[m].date||'')>=tossExpDay()&&(!tossInSession()||tossFresh(T.generated_at)));
+  h+=fm.length?`<table style="margin-top:6px"><tr><th class="l">수급(억원)</th><th>개인</th><th>외국인</th><th>기관</th><th>기타법인</th><th class="l">상태</th></tr>${fm.map(m=>{const f=F[m]; return `<tr><td class="l am">${m}</td><td>${sg(f['개인'])}</td><td>${sg(f['외국인'])}</td><td>${sg(f['기관'])}</td><td>${sg(f['기타법인'])}</td><td class="l mu" title="단위 환산 ${esc(f.unit_basis||'')} · 검증전(pykrx 확정치 대조 전)">${esc(f.date||'')} ${esc(f.status||'')}${srcBadge('toss',T.generated_at)}</td></tr>`;}).join('')}</table>`
+    :`<div class="mu" style="margin-top:6px">토스 수급 없음/지연 — 위 INTRADAY KR(네이버·KRX) 수급을 보세요</div>`;
+  const X=(TOSS_XC&&TOSS_XC.days)||[];
+  if(X.length) h+=`<div style="margin-top:8px"><span class="mu">토스 대조 ${X.length}거래일 (괴리율 %, 허용: 지수 ${TOSS_XC.tolerances.INDEX_CLOSE_TOL_PCT} · 환율 ${TOSS_XC.tolerances.FX_TOL_PCT})</span><table><tr><th class="l">날짜</th>${X[X.length-1].rows.map(r=>`<th>${esc(r.item)}</th>`).join('')}</tr>${X.slice().reverse().map(d=>`<tr><td class="l mu">${esc(d.date)}</td>${d.rows.map(r=>`<td class="${r.status==='breach'?'dn':r.status==='ok'?'':'mu'}">${r.diff_pct!=null?r.diff_pct.toFixed(3):r.mismatch_n!=null?'불일치 '+r.mismatch_n:esc(r.status)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+  return h; }
+setInterval(()=>{ if(document.getElementById('tossbox')) tossLoad(); },60e3);
 function sigTable(rows,market){
   if(!rows||!rows.length) return '<div class="mu">—</div>';
   const kr=market==='KR';
@@ -471,6 +519,7 @@ function marketView(mk){
   let h=`<div class="grid">
     <div class="p c4"><h2>BREADTH ${mk}</h2><div class="b">${breadthPanel(mk)}</div></div>
     <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 · 지표별 해설</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
+  if(mk==='KR'){ h+=`<div class="p c12"><h2>TOSS LIVE<small>토스 우선 · 지연 시 네이버/야후 · 지수·환율·국고채·수급 · 1주 대조</small></h2><div class="b" id="tossbox">${tossBox()}</div></div>`; setTimeout(()=>tossLoad(),0); }
   const mc=(D.state||{})['market_comment_'+mk];
   if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
   if(mk==='KR') h+=`<div class="p c12"><h2>ACCUM<small>외인·기관 매집 스캔 · KOSPI+KOSDAQ 주식(ETF·ETN·스팩 제외) · 검증전</small></h2><div class="b">${accumPanel()}</div></div>`;
@@ -3052,6 +3101,10 @@ function macroComment(key,all){
   box.innerHTML=L.map(x=>'· '+x).join('<br>');
   if(typeof MV!=='undefined'&&MV===null){ MV=false; google.script.run.withSuccessHandler(t=>{try{MV=JSON.parse(t);}catch(e){MV={};} macroComment(key,all);}).withFailureHandler(()=>{MV={};}).getMacroView(); }
 }
+/* 지수 서랍의 INTRADAY 패널 — 토스 1분봉(toss-live). 도우미(tossLoad·tossFresh·tossSpark·srcBadge)는 tab_market.html */
+function tossIntraFill(key){ const el=$('#tossin'); if(!el) return; const t=TOSS&&(TOSS.indices||{})[key];
+  if(!t||!t.bars||!t.bars.length){ el.innerHTML=`<div class="mu">토스 1분봉 없음(${esc(TOSS_ERR||'수집 전')}) — CHART 의 LIVE(네이버)를 보세요</div>`; return; }
+  el.innerHTML=tossSpark(t.bars,960,160)+`<div class="mu" style="font-size:11px">${esc(TOSS.date||'')} · ${t.n}봉${t.thinned?` (${t.thinned}개 중 1개로 솎음)`:''} ${srcBadge('toss',t.asof)} ${tossFresh(t.asof)?'':'<span class="dn">지연 — 마지막 수집분(시세 표시는 네이버로 폴백)</span>'}</div>`; }
 let MRNG=252;
 function macroBars(key){
   const raw=(MS.series||{})[key]||((typeof CHS!=='undefined'&&CHS&&CHS.series)||{})[key]||[];
@@ -3062,6 +3115,9 @@ function macroBars(key){
     const kr=['KOSPI','KOSDAQ'].includes(key);
     if(last.d===today){ last.c=lv.last; last.h=Math.max(last.h,lv.last); last.l=Math.min(last.l,lv.last); last.live=true; }
     else if(kr ? lv.status==='OPEN' : false){ const p=last.c; b.push({d:today,o:p,h:Math.max(p,lv.last),l:Math.min(p,lv.last),c:lv.last,v:0,live:true}); } }
+  // 토스 1분봉이 오늘 것이고 신선하면 오늘 봉의 시가·고가·저가를 그걸로 (tab_market tossPick 과 같은 신선도)
+  const tb=typeof TOSS!=='undefined'&&TOSS&&(TOSS.indices||{})[key], x=b[b.length-1];
+  if(tb&&x&&x.live&&TOSS.date===x.d&&tb.bars&&tb.bars.length&&tossFresh(tb.asof)){ x.o=tb.bars[0][1]; x.h=Math.max(x.c,...tb.bars.map(r=>r[2])); x.l=Math.min(x.c,...tb.bars.map(r=>r[3])); x.toss=true; }
   return b;
 }
 function openMacro(key){
@@ -3069,9 +3125,10 @@ function openMacro(key){
   const show=()=>{const all=macroBars(key); if(!all.length){$('#dr-b').innerHTML='<div class="err">시계열 없음 (다음 스크리너 실행 때 생성)</div>';return;}
     const C=all.map(x=>x.c), last=C[C.length-1], ch=n=>C.length>n?last/C[C.length-1-n]-1:null;
     const hasOHLC=all.some(x=>x.h!==x.l);
-    $('#dr-s').innerHTML=`${num(last,2)} · 1D ${pct(ch(1))} · 1M ${pct(ch(21))} · 3M ${pct(ch(63))} · 1Y ${pct(ch(250))} · ${esc(all[all.length-1].d)}${all[all.length-1].live?' <span class="am">LIVE 반영</span>':''}`;
+    $('#dr-s').innerHTML=`${num(last,2)} · 1D ${pct(ch(1))} · 1M ${pct(ch(21))} · 3M ${pct(ch(63))} · 1Y ${pct(ch(250))} · ${esc(all[all.length-1].d)}${all[all.length-1].live?' <span class="am">LIVE 반영</span>':''}${(()=>{const lv=L&&L.items&&L.items.find(x=>x.key===key); return lv&&typeof srcBadge==='function'?srcBadge(lv.src,lv.asof||L.asof):'';})()}`;
     const R=[[63,'3M'],[126,'6M'],[252,'1Y'],[520,'2Y']];
-    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>${esc(key)}<span class="ctab">${R.map(([n,l])=>`<button data-r="${n}" class="${n===MRNG?'on':''}">${l}</button>`).join('')}</span><small>${hasOHLC?'일봉':'종가'} · SMA20/50/200 · 야후${['KOSPI','KOSDAQ'].includes(key)?'·네이버 실시간':''}</small></h2><div class="b"><canvas id="mcv" width="960" height="340"></canvas><div class="mu" style="font-size:11px;margin-top:4px" id="mcinfo"></div></div></div>
+    $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2>${esc(key)}<span class="ctab">${R.map(([n,l])=>`<button data-r="${n}" class="${n===MRNG?'on':''}">${l}</button>`).join('')}</span><small>${hasOHLC?'일봉':'종가'} · SMA20/50/200 · 야후${['KOSPI','KOSDAQ','USDKRW'].includes(key)?' · 오늘 봉: 토스(신선할 때)→'+(key==='USDKRW'?'야후':'네이버'):''}</small></h2><div class="b"><canvas id="mcv" width="960" height="340"></canvas><div class="mu" style="font-size:11px;margin-top:4px" id="mcinfo"></div></div></div>
+      ${['KOSPI','KOSDAQ'].includes(key)?`<div class="p c12"><h2>INTRADAY<small id="tossin-n">토스 1분봉 · 봉 시각 = 시작 시각</small></h2><div class="b" id="tossin"><div class="mu">불러오는 중…</div></div></div>`:''}
       <div class="p c12"><h2>COMMENT<small>규칙 기반 · 예측 아님</small></h2><div class="b" id="mccom" style="line-height:1.8;font-size:13px;white-space:normal"></div></div></div>`;
     document.querySelectorAll('#dr-b .ctab button').forEach(bt=>bt.onclick=()=>{MRNG=+bt.dataset.r; show();});
     const st=Math.max(0,all.length-MRNG), b=all.slice(st), n=b.length;
@@ -3093,6 +3150,7 @@ function openMacro(key){
     x.fillStyle='#777';const step=Math.ceil(n/(window.innerWidth<700?4:7));for(let i=0;i<n;i+=step)x.fillText(b[i].d.slice(2),X(i)-fs*2,H-fs*0.4);
     const s20=sma(20,n-1),s50=sma(50,n-1),s200=sma(200,n-1), hi52=Math.max(...C.slice(-250)), lo52=Math.min(...C.slice(-250));
     macroComment(key,all);
+    if(typeof tossLoad==='function'&&['KOSPI','KOSDAQ'].includes(key)) tossLoad(()=>tossIntraFill(key));
     $('#mcinfo').innerHTML=`<span style="color:#f5c542">SMA20 ${s20?num(s20,0):'—'}</span> · <span style="color:#c77dff">SMA50 ${s50?num(s50,0):'—'}</span> · <span style="color:#35d6e6">SMA200 ${s200?num(s200,0):'—'}</span> · 52주 고 ${num(hi52,2)} (${pct(last/hi52-1,1)}) / 저 ${num(lo52,2)} · 빨강=상승 파랑=하락${all[all.length-1].live?' · 노란 테두리=실시간 반영 봉':''}`;
   };
   if(MS) return show();

@@ -243,6 +243,33 @@ def _retry_after(h: dict[str, str]) -> float:
         return 1.0  # HTTP-date 형식 등은 1초로 보수 처리
 
 
+# 레이트리밋 그룹 (OpenAPI 원문 v1.2.24, 10/21 PB: X-RateLimit-Limit/Remaining/Reset 은 그룹별).
+# MARKET_INDICATOR·MARKET_INDICATOR_CHART·MARKET_INFO 는 원문 이름, 경로→그룹 대응 중 investor-trading·stocks 는 [추정 — 첫 실데이터 Remaining 이 같이 줄면 같은 그룹].
+def rate_group(path: str) -> str:
+    if path == "/api/v1/market-indicators/prices":
+        return "MARKET_INDICATOR"
+    if path.startswith("/api/v1/market-indicators/") and path.endswith("/candles"):
+        return "MARKET_INDICATOR_CHART"
+    if path.startswith("/api/v1/market-indicators/"):
+        return "MARKET_INDICATOR"
+    if path.startswith(("/api/v1/exchange-rate", "/api/v1/market-calendar", "/api/v1/stocks")):
+        return "MARKET_INFO"
+    return "OTHER"
+
+
+def _rate_headers(h: dict[str, str]) -> dict | None:
+    h = {k.lower(): v for k, v in (h or {}).items()}
+    out = {}
+    for k in ("limit", "remaining", "reset"):
+        v = h.get(f"x-ratelimit-{k}")
+        if v is not None:
+            try:
+                out[k] = int(float(v))
+            except (TypeError, ValueError):
+                out[k] = str(v)[:32]
+    return out or None
+
+
 # ── 클라이언트 ───────────────────────────────────────────────────────────
 class TossMD:
     def __init__(self, cfg: dict[str, str] | None = None, transport: Transport | None = None,
@@ -254,6 +281,7 @@ class TossMD:
         self._sleep, self._clock = sleep, clock
         self._token: str | None = None
         self._exp: float = 0.0
+        self.rate_limits: dict[str, dict] = {}   # 그룹 → 마지막 {limit, remaining, reset} (heartbeat 기록용, 값은 숫자뿐)
 
     def __repr__(self) -> str:  # 키·토큰이 repr 로 새지 않게
         return "TossMD(<redacted>)"
@@ -265,6 +293,9 @@ class TossMD:
         url = self._cfg["base_url"] + path + query
         for attempt in range(RETRY_MAX + 1):
             r = self._t(method, url, headers, data)
+            rl = _rate_headers(r.headers)
+            if rl and path != TOKEN_PATH:
+                self.rate_limits[rate_group(path)] = rl
             if r.status != 429:
                 return r
             wait = _retry_after(r.headers)

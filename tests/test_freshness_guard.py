@@ -192,7 +192,7 @@ def test_contract_file_is_valid():
     assert len(ids) == len(set(ids)) >= 20
     assert "team" in ids and "detail_us" in ids and "derivs" in ids
     for i in items:
-        assert i["kind"] in ("session", "intraday", "team") and i.get("fix") and i.get("mode")
+        assert i["kind"] in ("session", "intraday", "team", "toss_md") and i.get("fix") and i.get("mode")
         if i["kind"] == "session":
             assert i["market"] in ("KR", "US") and ":" in i["ready"]
 
