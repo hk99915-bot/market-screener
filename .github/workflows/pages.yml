@@ -8,6 +8,8 @@ name: pages
 on:
   push:
     branches: [main]
+    # 시세·운영 파일만 바뀐 push 는 사이트 재빌드 안 함 — 화면이 raw 에서 직접 읽음 (build_pages.py raw(), 감사 10/21 #3)
+    paths-ignore: ["reports/live.json", "reports/events.json", "reports/events_stats.json", "reports/event_state.json", "ops/team.json", "ops/locks.json"]
   workflow_dispatch:
     inputs:
       deploy:

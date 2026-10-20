@@ -11,12 +11,13 @@
 (function(){
   const get = p => fetch(p + '?t=' + Date.now(), {cache: 'no-store'}).then(r => {
     if (!r.ok) throw new Error('HTTP ' + r.status + ' (' + p + ')'); return r.text(); });
+  // 자주 바뀌는 시세·운영 파일은 Pages 재배포를 기다리지 않고 raw 에서 직접 (CDN 캐시 최대 5분). pages.yml paths-ignore 와 짝 (감사 10/21 #3)
+  const raw = p => fetch('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/' + p + '?t=' + Date.now()).then(r => r.ok ? r.text() : get(p)).catch(() => get(p));
   const api = {
     getData: () => get('reports/dashboard.json').then(t => JSON.parse(t)),
     getStock: (m, s) => get('reports/detail/' + m + '/' + encodeURIComponent(s) + '.json'),
     getMarkdown: n => get('reports/' + n + '.md').catch(() => ''),
-    // live.json 은 자주 바뀌므로 Pages 재배포를 기다리지 않고 raw 에서 직접 (CDN 캐시 최대 5분)
-    getLive: () => fetch('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/live.json?t=' + Date.now()).then(r => r.ok ? r.text() : get('reports/live.json')).catch(() => get('reports/live.json').catch(() => '')),
+    getLive: () => raw('reports/live.json').catch(() => ''),
     getResearch: () => get('reports/research.json'),
     getDisclosures: () => get('reports/disclosures.json'),
     getMacroSeries: () => get('reports/macro_series.json'),
@@ -33,14 +34,14 @@
     getSignals: () => get('reports/signal_scores.json'),
     getMacroView: () => get('reports/macro_view.json'),
     getChainSeries: () => get('reports/chains.json'),
-    getEvents: () => get('reports/events_stats.json'),
+    getEvents: () => raw('reports/events_stats.json'),
     getMacroHist: () => get('reports/macro_hist.json'),
     getStudy: () => get('reports/studies/crash_rebound.json'),
     getLab: () => get('reports/lab.json'),
     getIsaLab: () => get('reports/isa_lab_returns.json'),
     getBoard: () => get('ops/board.json'),
-    getTeam: () => get('ops/team.json'),
-    getLocks: () => get('ops/locks.json'),
+    getTeam: () => raw('ops/team.json'),
+    getLocks: () => raw('ops/locks.json'),
     getChangelog: () => get('reports/changelog.json'),
     getOpsDaily: (d) => get('reports/ops/daily/' + d + '.md').catch(() => ''),
     getOpsRuns: () => get('reports/ops/runs.json'),
