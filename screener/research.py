@@ -32,6 +32,9 @@ UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 SCHEMA = {"key": pl.Utf8, "date": pl.Date, "source": pl.Utf8, "code": pl.Utf8, "name": pl.Utf8, "title": pl.Utf8,
           "broker": pl.Utf8, "opinion": pl.Utf8, "target": pl.Float64, "link": pl.Utf8, "collected_at": pl.Utf8,
           "summary": pl.Utf8, "analyst": pl.Utf8}
+# 공백 복구(백필) 행은 collected_at = "backfill <시각>" (기존 한경 백필과 같은 표시) — 신규·밤사이 리포트 알림,
+# 의견변경/몰림(crowding) 트리거에서 제외한다. 문자열 비교로 'b' > '2' 라 그냥 두면 '새 행'으로 잡힌다(10/21 밤사이 6,476건 버그).
+NAVER_GAP_FROM = date(2026, 10, 15)   # 네이버 화면 개편으로 수집 0건이 시작된 날 (reports/logs/naver_list.html, 보드 research-views)
 KST = ZoneInfo("Asia/Seoul")
 
 BUY_WORDS = re.compile(r"(?i)buy|매수|outperform|overweight|비중확대|strong")
@@ -360,6 +363,62 @@ def load_store() -> pl.DataFrame:
     return df.select(list(SCHEMA))
 
 
+def backfill_naver(start: date = NAVER_GAP_FROM, until: date | None = None) -> dict:
+    """네이버 종목분석 공백 복구 — start~until 행을 collected_at='backfill …' 로 저장소에 추가(텔레그램 없음).
+    중복 제거: 같은 nid(링크) 또는 같은 key(날짜|종목|증권사, 한경 우선)면 건너뜀."""
+    store = load_store()
+    rows = [r for r in fetch_naver(start) if until is None or r["date"] <= until]
+    keys = set(store["key"].to_list()) if len(store) else set()
+    links = set(store["link"].drop_nulls().to_list()) if len(store) else set()
+    now = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+    add, by_date = [], {}
+    for r in rows:
+        k = make_key(r["date"], r["code"], r["broker"])
+        if k in keys or r["link"] in links:
+            continue
+        keys.add(k)
+        links.add(r["link"])
+        add.append({**r, "key": k, "collected_at": "backfill " + now})
+        by_date[str(r["date"])] = by_date.get(str(r["date"]), 0) + 1
+    if add:
+        store = pl.concat([store, pl.DataFrame(add, schema=SCHEMA)]).unique("key", keep="first").sort("date", "code")
+        DATA_DIR.mkdir(exist_ok=True)
+        store.write_parquet(STORE)
+    out = {"status": NAVER_LAST.get("status", "error"), "fetched": len(rows), "added": len(add), "by_date": by_date,
+           "start": str(start), "dup_skipped": len(rows) - len(add)}
+    log.info("네이버 종목 백필 %s", out)
+    return out
+
+
+def is_backfill() -> pl.Expr:
+    return pl.col("collected_at").fill_null("").str.starts_with("backfill")
+
+
+def consensus_tp(store: pl.DataFrame, asof: date, days: int = 30) -> pl.DataFrame:
+    """종목별 컨센서스 목표가 = asof 기준 최근 days일 증권사별 최신 목표가의 중앙값 → [code, tp, n_brokers].
+    (10/21 밤사이 여력 버그: 수천 건 전체의 target.max() 를 써서 삼성 +189% 등)"""
+    if store.is_empty():
+        return pl.DataFrame(schema={"code": pl.Utf8, "tp": pl.Float64, "n_brokers": pl.UInt32})
+    return (store.filter((pl.col("date") <= asof) & (pl.col("date") > asof - timedelta(days=days)) & pl.col("target").is_not_null())
+                 .with_columns(pl.col("broker").map_elements(_norm_broker, return_dtype=pl.Utf8).alias("_b"))
+                 .sort("date").group_by("code", "_b").agg(pl.col("target").last())
+                 .group_by("code").agg(pl.col("target").median().alias("tp"), pl.len().cast(pl.UInt32).alias("n_brokers")))
+
+
+def overnight_reports(store: pl.DataFrame, today: date) -> pl.DataFrame:
+    """장전 '밤사이 리포트' = 직전 영업일 이후 발간분(발간일 기준), 백필 행 제외."""
+    if store.is_empty():
+        return store
+    from .tradecal import prev_session
+    return store.filter((pl.col("date") >= prev_session("KR", today)) & ~is_backfill())
+
+
+def naver_gap_open(start: date = NAVER_GAP_FROM) -> bool:
+    """저장소에 start 이후 네이버 행이 하나도 없으면 공백이 열려 있음(백필 1회만 돌게)."""
+    st = load_store()
+    return st.filter((pl.col("source") == "네이버") & (pl.col("date") >= start)).is_empty() if len(st) else True
+
+
 def update_store(backfill_days: int = 20, overlap_days: int = 2) -> tuple[pl.DataFrame, pl.DataFrame]:
     """증분 수집. 반환: (전체 저장소, 이번에 새로 추가된 행)."""
     store = load_store()
@@ -500,6 +559,7 @@ def crowding(store: pl.DataFrame, asof: date, days: int = 7, min_brokers: int = 
     if store.is_empty():
         return pl.DataFrame()
     rv = revisions(store).filter(pl.col("date") >= asof - timedelta(days=days))
+    rv = rv.filter(~is_backfill())   # 공백 복구 행은 트리거 제외
     return (rv.group_by("code").agg(
                 pl.col("name").last(), pl.col("broker").n_unique().alias("brokers"),
                 (pl.col("tp_chg") > 0.001).sum().alias("tp_up"), (pl.col("tp_chg") < -0.001).sum().alias("tp_down"),

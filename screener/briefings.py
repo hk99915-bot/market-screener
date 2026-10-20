@@ -87,13 +87,15 @@ def premarket_kr(send: bool = True) -> str:
         store = research.load_store()
     sig = _latest_signals("KR")
     cls_of = {r["symbol"]: r for r in sig.to_dicts()} if sig is not None else {}
-    cutoff = (now - timedelta(days=1)).replace(hour=16, minute=0).strftime("%Y-%m-%d %H:%M")
-    overnight = store.filter(pl.col("collected_at") >= cutoff) if len(store) else store
+    # 10/21: collected_at 문자열 비교는 'backfill …' 행을 전부 '밤사이'로 잡았다 → 발간일(직전 영업일 이후) 기준·백필 제외
+    overnight = research.overnight_reports(store, now.date())
     if len(overnight):
         L.append("")
         L.append(f"<b>[밤사이 리포트 {len(overnight)}건]</b>")
-        top = overnight.group_by("code", "name").agg(pl.len().alias("n"), pl.col("broker").n_unique().alias("b"),
-                                                     pl.col("target").max().alias("tp")).sort(["b", "n"], descending=True).head(8)
+        ctp = {r["code"]: r["tp"] for r in research.consensus_tp(store, now.date()).to_dicts()}   # 증권사별 최신 목표가 중앙값
+        top = (overnight.group_by("code", "name").agg(pl.len().alias("n"), pl.col("broker").n_unique().alias("b"))
+                        .sort(["b", "n"], descending=True).head(8)
+                        .with_columns(pl.col("code").replace_strict(ctp, default=None, return_dtype=pl.Float64).alias("tp")))
         for r in top.to_dicts():
             s = cls_of.get(r["code"], {})
             tag = f" · {CLASS_KO.get(s.get('class'), '')} T{s.get('trend_score', 0):.0f}" if s else ""
@@ -471,6 +473,7 @@ def reports_alert(send: bool = True, max_items: int = 15) -> str:
         log.warning("공시 갱신 실패: %s", e)
     since = DIGEST_MARK.read_text(encoding="utf-8").strip() if DIGEST_MARK.exists() else "0000"
     new = store.filter(pl.col("collected_at") > since)
+    new = new.filter(~research.is_backfill())   # 공백 복구(백필) 행은 '오늘의 리포트'·의견 변경 알림에서 제외 (10/21)
     now_s = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
     DIGEST_MARK.write_text(now_s, encoding="utf-8")
     if new.is_empty():

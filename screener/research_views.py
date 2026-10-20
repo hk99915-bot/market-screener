@@ -290,9 +290,13 @@ def update(backfill_days: int = 14, overlap_days: int = 3) -> dict:
     since = (store["date"].max() - timedelta(days=overlap_days)) if store.height else today - timedelta(days=backfill_days)
     raw: list[dict] = []
     sources: dict[str, dict] = {}
+    # 10/15~ 네이버 공백 복구(10/21): 저장소의 네이버 최초일이 공백 시작일보다 늦으면 그날부터 한 번 더 받는다(중복은 key·링크로 제거)
+    from .research import NAVER_GAP_FROM
+    nv = store.filter(pl.col("source") == "네이버") if store.height else store
+    nv_since = min(since, NAVER_GAP_FROM) if (nv.height == 0 or nv["date"].min() > NAVER_GAP_FROM) else since
     for cat in NAVER_CATS:
         try:
-            got, st = fetch_naver(cat, since)
+            got, st = fetch_naver(cat, nv_since)
             raw += got
         except Exception as e:  # noqa: BLE001
             st = {"status": "error", "n": 0, "reason": f"{type(e).__name__}: {str(e)[:160]}", "label": NAVER_CATS[cat][0]}
@@ -309,7 +313,15 @@ def update(backfill_days: int = 14, overlap_days: int = 3) -> dict:
     stamp = now.strftime("%Y-%m-%d %H:%M")
     recs = [to_record(r, stamp) for r in raw]
     existing = set(store["key"].to_list()) if store.height else set()
-    fresh = [r for r in recs if r["key"] not in existing]
+    links = set(store["link"].to_list()) if store.height else set()
+    fresh = [r for r in recs if r["key"] not in existing and r["link"] not in links]   # nid(링크) 중복도 제거
+    # 종목 리포트 공백 복구 — 이 모드는 텔레그램을 보내지 않으므로 여기서 1회 (backfill=True, 알림 트리거 제외)
+    try:
+        from . import research
+        if research.naver_gap_open():
+            sources["naver:company_backfill"] = research.backfill_naver()
+    except Exception as e:  # noqa: BLE001
+        sources["naver:company_backfill"] = {"status": "error", "reason": f"{type(e).__name__}: {str(e)[:160]}"}
     n_sum = enrich(fresh)
     store, n_add = merge(store, fresh)
     ok = [k for k, v in sources.items() if v.get("status") == "ok"]

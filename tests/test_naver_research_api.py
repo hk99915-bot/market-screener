@@ -95,3 +95,53 @@ def test_size_falls_back_on_400():
         return _page([3, 2], "2026-10-20", more=False)
     rows, diag = nra.fetch("economy", date(2026, 10, 1), get=get, pause=0)
     assert len(rows) == 2 and diag["size"] == 30
+
+
+def test_backfill_marks_flag_and_dedupes(monkeypatch, tmp_path):
+    """10/15~ 공백 복구: backfill=True, 같은 key(한경 우선)·같은 nid 는 건너뜀, crowding 트리거 제외."""
+    import polars as pl
+    monkeypatch.setattr(research, "STORE", tmp_path / "research.parquet")
+    monkeypatch.setattr(nra, "_get_json", lambda url: load("company") if "index" not in url else {"items": []})
+    first = nra.parse_item("company", load("company")["items"][0])
+    hk = {"key": research.make_key(first["date"], first["code"], first["broker"]), "date": first["date"], "source": "한경",
+          "code": first["code"], "name": first["name"], "title": "t", "broker": first["broker"], "opinion": "매수",
+          "target": 1.0, "link": "https://consensus.hankyung.com/x", "collected_at": "x", "summary": None,
+          "analyst": None}
+    pl.DataFrame([hk], schema=research.SCHEMA).write_parquet(research.STORE)
+    assert research.naver_gap_open(date(2026, 10, 15))
+    out = research.backfill_naver(date(2026, 10, 15))
+    assert out["added"] == 4 and out["dup_skipped"] == 1 and out["by_date"] == {"2026-10-20": 4}
+    st = research.load_store()
+    nv = st.filter(pl.col("source") == "네이버")
+    assert nv.height == 4 and all(c.startswith("backfill ") for c in nv["collected_at"])
+    assert not research.naver_gap_open(date(2026, 10, 15))
+    assert research.backfill_naver(date(2026, 10, 15))["added"] == 0          # 다시 돌려도 중복 0
+    cr = research.crowding(st, date(2026, 10, 20), min_brokers=1)
+    assert set(cr["code"].to_list()) == {first["code"]}                       # 백필 행만 있는 종목은 트리거에서 빠짐
+
+
+def test_backfill_rows_not_overnight():
+    """10/21 버그: collected_at='backfill …' 가 문자열 비교로 '밤사이'에 6,476건 잡힘 → 발간일 기준·백필 제외."""
+    import polars as pl
+    base = {"source": "한경", "name": "x", "title": "t", "opinion": "매수", "link": "", "summary": None, "analyst": None}
+    rows = [{**base, "key": "a", "date": date(2026, 10, 20), "code": "000001", "broker": "A", "target": 100.0,
+             "collected_at": "2026-10-20 19:10"},
+            {**base, "key": "b", "date": date(2026, 10, 20), "code": "000002", "broker": "A", "target": 100.0,
+             "collected_at": "backfill 2026-10-21 01:30"},
+            {**base, "key": "c", "date": date(2026, 10, 7), "code": "005930", "broker": "A", "target": 630000.0,
+             "collected_at": "2026-10-21 01:00"}]
+    st = pl.DataFrame(rows, schema=research.SCHEMA)
+    assert research.overnight_reports(st, date(2026, 10, 21))["key"].to_list() == ["a"]
+
+
+def test_consensus_tp_is_median_of_latest_per_broker():
+    import polars as pl
+    base = {"source": "한경", "name": "x", "title": "t", "opinion": "매수", "link": "", "summary": None, "analyst": None,
+            "collected_at": "", "code": "005930"}
+    rows = [{**base, "key": "1", "date": date(2026, 10, 1), "broker": "A증권", "target": 630000.0},   # A 의 옛 목표가
+            {**base, "key": "2", "date": date(2026, 10, 10), "broker": "A증권", "target": 300000.0},  # A 최신
+            {**base, "key": "3", "date": date(2026, 10, 12), "broker": "B증권", "target": 260000.0},
+            {**base, "key": "4", "date": date(2026, 10, 15), "broker": "C투자증권", "target": 280000.0},
+            {**base, "key": "5", "date": date(2026, 8, 1), "broker": "D증권", "target": 900000.0}]   # 30일 밖
+    c = research.consensus_tp(pl.DataFrame(rows, schema=research.SCHEMA), date(2026, 10, 20)).to_dicts()
+    assert c == [{"code": "005930", "tp": 280000.0, "n_brokers": 3}]
