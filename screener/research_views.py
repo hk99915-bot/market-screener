@@ -10,8 +10,8 @@
 - 네이버 리서치 목록 5종(산업·시황·투자정보·경제·채권). 열은 머리행 <th> 이름으로 찾는다(열 번호 가정 없음).
   2026-10-15 이후 company_list 가 Next.js 화면(Npay 증권)으로 바뀌어 옛 표가 안 나옴(reports/logs/naver_list.html)
   → 표가 없으면 status=layout_changed 로 남기고 응답 앞부분을 reports/logs/rv_<cat>.html 로 저장(다음 파서 근거).
-- 한경 컨센서스: 비CO report_type 값을 **목록 페이지의 탭 링크에서 읽어** 쓴다(값을 코드에 박지 않음 — 추정 금지).
-  탭을 못 찾으면 status=skipped(reason=report_type 탭 미발견).
+- 한경 컨센서스: 비CO report_type 값을 **목록 페이지의 '분류선택' 메뉴에서 읽어** 쓴다(값을 코드에 박지 않음 — 추정 금지).
+  10/21 실제 응답 확인: IN·MA·EC·DE·FE·BO·FU·QU·FC·ET (UP/DW 는 상향·하향 필터라 제외). 메뉴를 못 찾으면 status=skipped.
 """
 from __future__ import annotations
 
@@ -121,7 +121,10 @@ def parse_table(h: str, link_rx: str, base: str) -> tuple[list[dict], str]:
         href = htmlmod.unescape(lm.group(1))
         link = href if href.startswith("http") else base.rstrip("/") + "/" + href.lstrip("/")
         g = lambda f: (_strip(tds[cols[f]]) or None) if f in cols else None  # noqa: E731
-        out.append({"date": d, "title": g("title") or "", "broker": g("broker") or "", "analyst": g("analyst"),
+        # 제목 칸에는 숨은 요약 팝업(div.layerPop)이 같이 있어(한경 실제 구조) 링크 글자만 제목으로
+        ta = re.search(r"<a[^>]+href=[\"'][^\"']*" + link_rx + r"[^\"']*[\"'][^>]*>([\s\S]*?)</a>", tds[cols["title"]], flags=re.I)
+        title = _strip(ta.group(1)) if ta else g("title")
+        out.append({"date": d, "title": title or "", "broker": g("broker") or "", "analyst": g("analyst"),
                     "sector": g("sector"), "link": link})
     return out, ("ok" if out else "empty: 표는 있으나 행 0")
 
@@ -160,12 +163,23 @@ def fetch_naver(cat: str, since: date, max_pages: int = 5) -> tuple[list[dict], 
     return rows, {"status": "ok" if rows else "empty", "n": len(rows), "reason": diag, "label": label}
 
 
+HK_SKIP = {"CO", "UP", "DW"}   # 기업(종목 리포트는 research.py) · 상향/하향(필터, 종류 아님) — 사이트 분류 선택 메뉴 기준
+
+
 def hankyung_types(h: str) -> dict[str, str]:
-    """한경 컨센서스 목록 페이지의 탭 링크에서 report_type 값 → 탭 이름. CO(기업)는 제외."""
+    """한경 컨센서스 목록 페이지의 '분류선택' 메뉴에서 report_type 값 → 이름 (CO·상향·하향 제외).
+    실제 구조(2026-10-21 Actions 응답, tests/fixtures/hankyung_list_co_20261021.html):
+      <a href="javascript:_text_change('2','IN','산업')">산업</a> … IN 산업·MA 시장·EC 경제·DE 파생·FE [파생]외환·
+      BO [파생]채권·FU [파생]펀드·QU [파생]퀀트·FC [파생]해외·ET [파생]기타 · UP 상향·DW 하향"""
     out: dict[str, str] = {}
+    for code, name in re.findall(r"_text_change\('2',\s*'([A-Za-z]{2,4})',\s*'([^']{1,20})'\)", h):
+        if code.upper() not in HK_SKIP:
+            out.setdefault(code.upper(), name.strip())
+    if out:
+        return out
     for m in re.finditer(r"<a[^>]+href=[\"'][^\"']*report_type=([A-Za-z]{1,4})[^\"']*[\"'][^>]*>([\s\S]*?)</a>", h, flags=re.I):
         code, name = m.group(1).upper(), _strip(m.group(2))
-        if code != "CO" and name and code not in out and len(name) <= 12:
+        if code not in HK_SKIP and name and code not in out and len(name) <= 12:
             out[code] = name
     return out
 

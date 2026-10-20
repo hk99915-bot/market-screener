@@ -145,3 +145,25 @@ def test_update_records_failure_status(tmp_path, monkeypatch):
     d = json.loads((tmp_path / "rv.json").read_text(encoding="utf-8"))
     assert d["status"]["overall"] == "error" and "403" in d["status"]["sources"]["hankyung"]["reason"]
     assert not (tmp_path / "rv.parquet").exists()   # 새 행 없으면 저장소를 다시 쓰지 않음
+
+
+# ── 파서: 실제 응답(한경 컨센서스 목록, Actions 10/21 00:11 KST, 앞 40,000자) ──
+HKFIX = Path(__file__).parent / "fixtures" / "hankyung_list_co_20261021.html"
+
+
+def test_real_hankyung_types_from_menu():
+    t = rv.hankyung_types(HKFIX.read_text(encoding="utf-8"))
+    assert set(t) == {"IN", "MA", "EC", "DE", "FE", "BO", "FU", "QU", "FC", "ET"}
+    assert t["FE"] == "[파생]외환" and "CO" not in t and "UP" not in t
+    kinds = {c: report_kind.classify("제목", n)[0] for c, n in t.items()}
+    assert kinds == {"IN": "섹터", "MA": "전략", "EC": "매크로", "DE": "파생", "FE": "외환", "BO": "채권",
+                     "FU": "전략", "QU": "전략", "FC": "전략", "ET": "파생"}
+
+
+def test_real_hankyung_table_by_header_names():
+    rows, diag = rv.parse_table(HKFIX.read_text(encoding="utf-8"), r"report_idx=\d+", rv.HK)
+    assert diag == "ok" and len(rows) >= 5
+    r = rows[0]
+    assert r["date"] == date(2026, 10, 20) and r["broker"] and r["analyst"]
+    assert "report_idx=" in r["link"] and r["link"].startswith("https://consensus.hankyung.com/")
+    assert r["title"].count("(") <= 1          # 숨은 요약 팝업이 제목에 섞이지 않음

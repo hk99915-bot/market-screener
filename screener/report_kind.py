@@ -21,6 +21,7 @@ CATEGORY_RULES: list[tuple[re.Pattern, str]] = [
     (re.compile(r"채권|debenture|bond|fixed", re.I), "채권"),
     (re.compile(r"경제|economy|macro", re.I), "매크로"),
     (re.compile(r"외환|환율|\bfx\b|currency", re.I), "외환"),
+    (re.compile(r"퀀트|펀드|해외|quant|fund", re.I), "전략"),   # 한경 '[파생]퀀트·펀드·해외' — 사이트는 파생 묶음이지만 내용은 전략
     (re.compile(r"파생|derivative", re.I), "파생"),
     (re.compile(r"시황|시장|투자정보|전략|market|invest|strategy", re.I), "전략"),
 ]

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>한경 컨센서스</title>
+    <meta http-equiv="Content-Type" content="text/html;">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex">
+    <link rel="stylesheet" href="/css/common.css?v=20171065" type="text/css">
+    <link rel="stylesheet" href="/js/datePicker/css/ui-lightness/jquery-ui-1.10.2.custom.css" type="text/css">
+    <link rel="stylesheet" href="/js/datePicker/css/ui.daterangepicker.css" type="text/css">
+    <link rel="shortcut icon" href="https://www.hankyung.com/favicon.ico">
+	<script type="text/javascript" src="/js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="/js/common.js?v=20231221"></script>
+    <script type="text/javascript" src="/js/datePicker/jquery-calendar.js"></script>
+    <script type="text/javascript" src="/js/datePicker/daterangepicker.jQuery.js?v=20231221"></script>
+
+    <script src="//hkstatic.hankyung.com/js/ga/googleTagManager.js?v=20231221"></script>
+	<!-- GoogleAnalyticsObject -->
+	<!-- <script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-74932633-1', 'auto');
+		ga('require', 'linkid');
+		ga('require', 'displayfeatures');
+		ga('send', 'pageview');
+	</script> -->
+	<!-- //GoogleAnalyticsObject -->
+
+</head>
+<body>
+    <div id="wrap">
+<script type="text/javascript">
+    $(function(){
+        $('#sdate,#edate').daterangepicker({
+            arrows:false,
+            changeMonth: true,
+            changeYear: true
+        });
+
+        $( "#datepicker" ).datepicker({
+            inline: true,
+            changeMonth: true,
+            changeYear: true
+        });
+
+        $( "#dialog-link, #icons li" ).hover(
+            function() {
+                $( this ).addClass( "ui-state-hover" );
+            },
+            function() {
+                $( this ).removeClass( "ui-state-hover" );
+            }
+        );
+/*
+		$('#container .tabT01 li a').unbind('click').click(function(){
+			$('#f_search').attr('action', $(this).attr('href'));
+			$('#f_search').submit();
+			return false;
+		});
+*/
+    });
+
+    function _select_code(code,name){
+        document.getElementById('search_text').value = name;
+        document.getElementById('business_code').value = code;
+
+        $("#business_list").html("");
+        $("#business_list").hide();
+    }
+
+    function _text_change(type, value, name){
+        var key = "";
+        if(type=="1"){
+            key = "search_value";
+        }else if(type=="2"){
+            key = "report_type";
+        }
+
+        $("#_"+key).text(name);
+        document.getElementById(key).value = value;
+        if(document.getElementById(key).value!=""){
+            $(".fie0"+type+" dd").slideToggle();
+        }
+    }
+
+    function _search_text(){
+        var search_value = document.getElementById('search_value').value;
+        document.getElementById('business_code').value = "";
+        if(search_value=="BUSINESS"){
+            var search_text = document.getElementById('search_text').value;
+            if(search_text.length>=2){
+                $.getJSON('/analysis/search?callback=?&search_text='+search_text, function(data) {
+                    var str = "";
+                    $.each(data, function(key, val) {
+                        var index = val.BUSINESS_NAME.indexOf(search_text);
+                        str = str + '<a href="javascript:_select_code(\''+val.BUSINESS_CODE+'\',\''+val.BUSINESS_NAME+'\')">';
+                        if(index==0){
+                            str = str + '<strong>' + search_text + '</strong>';
+                            str = str + val.BUSINESS_NAME.substring(search_text.length, val.BUSINESS_NAME.length);
+                        }else if(index==-1){
+                            str = str + val.BUSINESS_NAME;
+                        }else{
+                            str = str + val.BUSINESS_NAME.substring(0, index);
+                            str = str + '<strong>' + search_text + '</strong>';
+                            str = str + val.BUSINESS_NAME.substring(search_text.length, val.BUSINESS_NAME.length);
+                        }
+                        str = str + '</a>';
+                    });
+                    $("#business_list").show();
+                    $("#business_list").html(str);
+                });
+            }else{
+                $("#business_list").html("");
+                $("#business_list").hide();
+            }
+        }
+    }
+$(function(){
+    _text_change('2','CO','기업');
+    $('.fieldset.fie02 dd').hide();
+});
+</script>
+        <!-- header -->
+        <div id="header">
+            <form id="f_search" name="f_search" method="GET">
+            <div class="hd_con">
+                <div class="logo"><a href="/"><img src="/images/bg_logo01.png" alt="한경컨센서스" /></a></div>
+                <!-- hd_top -->
+                <div class="hd_top">
+                    <!-- hd_inList -->
+                    <div class="hd_inList">
+                        <div class="top_input">
+                            <input id="sdate" type="text" value="2026-10-07" name="sdate" readonly> <span>~</span>
+                            <input id="edate" type="text" value="2026-10-21" name="edate" readonly>
+                            <input type="hidden" id="now_page" name="now_page" value="1">
+                            <input type="hidden" id="search_value" name="search_value" value="">
+                            <input type="hidden" id="report_type" name="report_type" value="CO">
+                            <input type="hidden" id="pagenum" name="pagenum" value="80">
+                        </div>
+                        <div class="fieldset fie01">
+                            <dl>
+                                <dt>
+                                    <a href="javascript:_text_change('1','','전체')" id="_search_value" data-value="">
+전체                                    </a>
+                                </dt>
+                                <dd class="disNone" id="search_value_select">
+                                    <a href="javascript:_text_change('1','REPORT_TITLE','제목')">제목(종목명)</a>
+                                    <a href="javascript:_text_change('1','REPORT_WRITER','작성자')">작성자</a>
+                                    <a href="javascript:_text_change('1','OFFICE_NAME','제공출처')">제공출처</a>
+                                </dd>
+                            </dl>
+                        </div>
+                        <script>
+                            $(".fie01 dt a").click(function(){
+                                $(".fie01 dd").slideToggle();
+                            });
+                        </script>
+                        <div class="fieldset fie02">
+                            <dl>
+                                <dt>
+                                    <a href="javascript:_text_change('2','','분류선택')" id="_report_type">
+기업                                    </a>
+                                </dt>
+                                <dd class="disNone" id="report_type_select">
+                                    <a href="javascript:_text_change('2','CO','기업')">기업</a>
+                                    <a href="javascript:_text_change('2','IN','산업')">산업</a>
+                                    <a href="javascript:_text_change('2','MA','시장')">시장</a>
+                                    <a href="javascript:_text_change('2','EC','경제')">경제</a>
+                                    <a href="javascript:_text_change('2','DE','파생')">파생</a>
+                                    <a href="javascript:_text_change('2','FE','[파생]외환')">[파생]외환</a>
+                                    <a href="javascript:_text_change('2','BO','[파생]채권')">[파생]채권</a>
+                                    <a href="javascript:_text_change('2','FU','[파생]펀드')">[파생]펀드</a>
+                                    <a href="javascript:_text_change('2','QU','[파생]퀀트')">[파생]퀀트</a>
+                                    <a href="javascript:_text_change('2','FC','[파생]해외')">[파생]해외</a>
+                                    <a href="javascript:_text_change('2','ET','[파생]기타')">[파생]기타</a>
+                                    <a href="javascript:_text_change('2','UP','상향')">상향</a>
+                                    <a href="javascript:_text_change('2','DW','하향')">하향</a>
+                                </dd>
+                            </dl>
+                        </div>
+                        <script>
+                            $(".fie02 dt a").click(function(){
+                                $(".fie02 dd").slideToggle();
+                            });
+                        </script>
+                        <div class="search01">
+                            <dl>
+                                <dt>
+                                    <input type="text" id="search_text" name="search_text" value="" autocomplete="off" onkeyup="_search_text()" onkeydown="javascript:_return(event);">
+                                    <input type="hidden" id="business_code" name="business_code" value="">
+                                </dt>
+                                <dd class="disNone" id="business_list"><!-- disNone disBlock -->
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <!-- //hd_inList -->
+                    <!-- btn_r -->
+                    <div class="btn_r">
+
+                       <a href="javascript:_search('/analysis/list')"><img src="/images/btn_search01.gif" alt="검색" /></a>
+                       <a href="javascript:_popup_open('/business/search?frame=analysis/layer',380,600, 'no')"><img src="/images/btn_event01.gif" alt="종목" /></a>
+                    </div>
+                    <!-- //btn_r -->
+                </div>
+                <!-- //hd_top -->
+            </div>
+            </form>
+        </div>
+        <!-- //header -->
+        <!-- container -->
+        <div id="container">
+            <!-- top_con -->
+            <div class="top_con">
+                <ul class="tabT01">
+                    <li class="tab01 "><a href="/analysis/list">전체</a></li>
+                    <li class="tab02 on"><a href="/analysis/list?skinType=business">기업</a></li>
+                    <li class="tab03 "><a href="/analysis/list?skinType=industry">산업</a></li>
+                    <li class="tab04 "><a href="/analysis/list?skinType=market">시장</a></li>
+                    <li class="tab05 "><a href="/analysis/list?skinType=derivative">파생</a></li>
+                    <li class="tab06 "><a href="/analysis/list?skinType=economy">경제</a></li>
+                    <li class="tab07 "><a href="/analysis/list?skinType=stock_good">상향</a></li>
+                    <li class="tab08 "><a href="/analysis/list?skinType=stock_bad">하향</a></li>
+                    <li class="tab09 "><a href="/business/list">기업정보</a></li>
+                </ul>
+            </div>
+            <!-- //top_con -->
+<div class="chart_popup" style="display:none;">
+    <div class="btn_wrap">
+        <button class="layer_close"></button>
+    </div>
+    <iframe src="" style="width:100%;height: 480px;border:none;" scrolling="no"></iframe>
+</div>
+<!-- contents -->
+            <div id="contents">
+                <div class="top_list">
+                    <div class="list_r">
+                        <p>LIST</p>
+                        <ul>
+                            <li ><a href="javascript:_Page_Link('/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&pagenum=20')">20</a></li>
+                            <li ><a href="javascript:_Page_Link('/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&pagenum=50')">50</a></li>
+                            <li class="on"><a href="javascript:_Page_Link('/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&pagenum=80')">80</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- table_style01 -->
+                <div class="table_style01">
+                    <table>
+                        <colgroup>
+                            <col width="78px"/>
+                            <col width="*"/>
+                            <col width="80px"/>
+                            <col width="140px"/>
+                            <col width="125px"/>
+                            <col width="135px"/>
+                            <col width="65px"/>
+                            <col width="42px"/>
+                            <col width="65px"/>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="first"><a href="javascript:_Order_Link(10000000,1000000,'/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&now_page=1')">작성일 <img src="/images/bg_table01.gif" alt="" /></a></th>
+                                <th><a href="javascript:_Order_Link(10000000,10000,'/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&now_page=1')">제목 <img src="/images/bg_table01.gif" alt="" /></a></th>
+                                <th><a href="javascript:_Order_Link(10000000,10,'/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&now_page=1')">적정가격 <img src="/images/bg_table01.gif" alt="" /></a></th>
+                                <th><a href="javascript:_Order_Link(10000000,1,'/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&now_page=1')">투자의견 <img src="/images/bg_table01.gif" alt="" /></a></th>
+                                <th><a href="javascript:_Order_Link(10000000,1000,'/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&now_page=1')">작성자 <img src="/images/bg_table01.gif" alt="" /></a></th>
+                                <th><a href="javascript:_Order_Link(10000000,100,'/analysis/list?&sdate=2026-10-07&edate=2026-10-21&report_type=CO&pagenum=80&order_type=&now_page=1')">제공출처 <img src="/images/bg_table01.gif" alt="" /></a></th>
+                                <th>기업정보</th>
+                                <th>차트</th>
+                                <th>첨부파일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                    <tr class="first">
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653138" onmouseover="$('#content_653138').show();" onmouseout="$('#content_653138').hide();" target="_blank">디어유(376300) 북미와 오프라인으로 확장되는 버블 </a>
+                                    <div class="layerPop">
+                                        <div id="content_653138" class="pop01 disNone">
+                                            <strong>디어유(376300) 북미와 오프라인으로 확장되는 버블 </strong>
+                                            <ul>
+                                                <li>북미와 오프라인으로 확장되는 버블 </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">0</td>
+                                <td>
+투자의견없음                                </td>
+                                <td>채윤석,정수현</td>
+                                <td>한국IR협의회</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=376300&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=376300&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=376300" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653138" title="261020_디어유(최종).pdf" target="_blank"><img src="/images/btn_attached.gif" alt="261020_디어유(최종).pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                        <tr>
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653137" onmouseover="$('#content_653137').show();" onmouseout="$('#content_653137').hide();" target="_blank">샘씨엔에스(252990) 3Q26 Preview: 영업이익 +84.6% YoY 전망</a>
+                                    <div class="layerPop">
+                                        <div id="content_653137" class="pop01 disNone">
+                                            <strong>샘씨엔에스(252990) 3Q26 Preview: 영업이익 +84.6% YoY 전망</strong>
+                                            <ul>
+                                                <li>3Q26 Preview: 영업이익 +84.6% YoY 전망</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">25,000</td>
+                                <td>
+Buy                                </td>
+                                <td>정홍식</td>
+                                <td>LS증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=252990&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=252990&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=252990" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653137" title="[261020 샘씨엔에스_온라인 - 3Q26 Preview]정홍식_1456_Online report _ 6~10p_샘씨엔에스.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="[261020 샘씨엔에스_온라인 - 3Q26 Preview]정홍식_1456_Online report _ 6~10p_샘씨엔에스.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                        <tr>
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653135" onmouseover="$('#content_653135').show();" onmouseout="$('#content_653135').hide();" target="_blank">현대로템(064350) 3Q26 Re: 양호한 수익성, 정상화될 추정치</a>
+                                    <div class="layerPop">
+                                        <div id="content_653135" class="pop01 disNone">
+                                            <strong>현대로템(064350) 3Q26 Re: 양호한 수익성, 정상화될 추정치</strong>
+                                            <ul>
+                                                <li>3Q26 Re: 양호한 수익성, 정상화될 추정치</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">150,000</td>
+                                <td>
+Buy                                </td>
+                                <td>백종민</td>
+                                <td>유안타증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=064350&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=064350&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=064350" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653135" title="20261020071010983_0_ko.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="20261020071010983_0_ko.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                        <tr>
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653134" onmouseover="$('#content_653134').show();" onmouseout="$('#content_653134').hide();" target="_blank">와이지엔터테인먼트(122870) 3Q26 Preview: 컨센서스 부합 전망</a>
+                                    <div class="layerPop">
+                                        <div id="content_653134" class="pop01 disNone">
+                                            <strong>와이지엔터테인먼트(122870) 3Q26 Preview: 컨센서스 부합 전망</strong>
+                                            <ul>
+                                                <li>3Q26 Preview: 컨센서스 부합 전망</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">56,000</td>
+                                <td>
+Buy                                </td>
+                                <td>이환욱</td>
+                                <td>유안타증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=122870&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=122870&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=122870" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653134" title="20261020072447377_0_ko.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="20261020072447377_0_ko.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                <tr class="last">
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653130" onmouseover="$('#content_653130').show();" onmouseout="$('#content_653130').hide();" target="_blank">F&F(383220) 중국 실적 눈높이 하향</a>
+                                    <div class="layerPop">
+                                        <div id="content_653130" class="pop01 disNone">
+                                            <strong>F&F(383220) 중국 실적 눈높이 하향</strong>
+                                            <ul>
+                                                <li>중국 실적 눈높이 하향</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">94,000</td>
+                                <td>
+매수                                </td>
+                                <td>형권훈</td>
+                                <td>SK증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=383220&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=383220&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=383220" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653130" title="20261019194238021_0_ko.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="20261019194238021_0_ko.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                    <tr class="first">
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653129" onmouseover="$('#content_653129').show();" onmouseout="$('#content_653129').hide();" target="_blank">현대로템(064350) 밸류 부담 낮아졌지만, 불확실성 해소는 필요 </a>
+                                    <div class="layerPop">
+                                        <div id="content_653129" class="pop01 disNone">
+                                            <strong>현대로템(064350) 밸류 부담 낮아졌지만, 불확실성 해소는 필요 </strong>
+                                            <ul>
+                                                <li>밸류 부담 낮아졌지만, 불확실성 해소는 필요 </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">180,000</td>
+                                <td>
+매수                                </td>
+                                <td>고서영</td>
+                                <td>SK증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=064350&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=064350&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=064350" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653129" title="20261020073545951_0_ko.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="20261020073545951_0_ko.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                        <tr>
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653128" onmouseover="$('#content_653128').show();" onmouseout="$('#content_653128').hide();" target="_blank">코세스(089890) 수주에서 실적으로, 다시 주목할 시점</a>
+                                    <div class="layerPop">
+                                        <div id="content_653128" class="pop01 disNone">
+                                            <strong>코세스(089890) 수주에서 실적으로, 다시 주목할 시점</strong>
+                                            <ul>
+                                                <li>수주에서 실적으로, 다시 주목할 시점</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">55,000</td>
+                                <td>
+매수                                </td>
+                                <td>허선재</td>
+                                <td>SK증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=089890&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=089890&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=089890" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653128" title="20261020073031581_0_ko.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="20261020073031581_0_ko.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                        <tr>
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653120" onmouseover="$('#content_653120').show();" onmouseout="$('#content_653120').hide();" target="_blank">삼성전기(009150) 실적 개선 속도를 주가가 못 따라간다</a>
+                                    <div class="layerPop">
+                                        <div id="content_653120" class="pop01 disNone">
+                                            <strong>삼성전기(009150) 실적 개선 속도를 주가가 못 따라간다</strong>
+                                            <ul>
+                                                <li>실적 개선 속도를 주가가 못 따라간다</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">1,750,000</td>
+                                <td>
+매수                                </td>
+                                <td>김운호, 고혁진</td>
+                                <td>IBK투자증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=009150&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=009150&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=009150" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653120" title="20261019134629720_ko.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="20261019134629720_ko.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                        <tr>
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653119" onmouseover="$('#content_653119').show();" onmouseout="$('#content_653119').hide();" target="_blank">삼성전기(009150) 패키지기판 수주 공시 코멘트: FC-BGA에 이어 BGA까지 </a>
+                                    <div class="layerPop">
+                                        <div id="content_653119" class="pop01 disNone">
+                                            <strong>삼성전기(009150) 패키지기판 수주 공시 코멘트: FC-BGA에 이어 BGA까지 </strong>
+                                            <ul>
+                                                <li>패키지기판 수주 공시 코멘트: FC-BGA에 이어 BGA까지 </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">2,100,000</td>
+                                <td>
+Buy                                </td>
+                                <td>고의영, 박정하</td>
+                                <td>iM증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=009150&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=009150&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                        <a href="/chart/view_frame?report_type=CO&business_code=009150" class="chart_btn"><img src="/images/btn_chart.gif" alt="차트" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+<a href="/analysis/downpdf?report_idx=653119" title="[20073410]_009150.pdf" target="_blank"><img src="/images/btn_attached.gif" alt="[20073410]_009150.pdf" /></a>                                    </div>
+                                </td>
+                            </tr>
+                                <tr class="last">
+                                <td class="first txt_number">2026-10-20</td>
+                                <td class="text_l">
+                                    <a href="/analysis/downpdf?report_idx=653118" onmouseover="$('#content_653118').show();" onmouseout="$('#content_653118').hide();" target="_blank">현대로템(064350) 3Q26: 낙폭 과대 구간 </a>
+                                    <div class="layerPop">
+                                        <div id="content_653118" class="pop01 disNone">
+                                            <strong>현대로템(064350) 3Q26: 낙폭 과대 구간 </strong>
+                                            <ul>
+                                                <li>3Q26: 낙폭 과대 구간 </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text_r txt_number">190,000</td>
+                                <td>
+Buy                                </td>
+                                <td>변용진, 이주원</td>
+                                <td>iM증권</td>
+                                <td>
+                                    <div class="dv_input">
+                                        <!-- <a href="javascript:_popup_open('http://media.kisline.com/highlight/mainHighlight.nice?paper_stock=064350&nav=1',1000,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a> -->
+                                        <a href="javascript:_popup_open('https://comp.kisline.com/hi/HI0100M010GE.nice?stockcd=064350&nav=1',1220,800,'yes')"><img src="/images/btn_info.gif" alt="기업정보" /></a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dv_input">
+                                   
