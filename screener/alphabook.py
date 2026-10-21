@@ -516,8 +516,13 @@ def update(o: dict, market: str = "KR", now: datetime | None = None, state_path:
     return blk
 
 
+DISC_PREFIX = "🧪 HF 재량·모의(가상 1,000억) — 겸이 실계좌 해당 없음"
+DISC_BANNED = ("매수하세요", "매도하세요", "사세요", "파세요", "사라", "팔아", "들어가", "계약", "행사가")
+
+
 def disc_line(path: Path | None = None) -> str | None:
-    """HF 재량 북(자율매매, 모의 — scripts/hf_book.py 장부) 텔레그램 1줄. 평가는 회의 라운드의 mark 값 그대로."""
+    """HF 재량 북(모의 — scripts/hf_book.py 장부) 텔레그램 1줄. PB 10/21 문구 규칙: 고정 접두, 결과만(방향·R·손익%),
+    계약 수·행사가·주문형/명령형 표현 금지(그건 장부·화면에만). 평가는 회의 라운드의 mark 값 그대로."""
     try:
         b = json.loads((path or _root() / "hf_discretion.json").read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
@@ -529,11 +534,13 @@ def disc_line(path: Path | None = None) -> str | None:
     for p in op[:3]:
         sgn = 1 if p.get("side") == "롱" else -1
         r = (p["last"] - p["entry"]) * sgn / p["r_unit"] if p.get("r_unit") else 0.0
-        n = 1e11 * p.get("weight", 0) / (p["entry"] * (1 if p.get("kind") == "stock" else 250_000)) if p.get("entry") else 0
-        unit = "주" if p.get("kind") == "stock" else "계약"
-        parts.append(f"{p['side']} {p['name']} {n:,.0f}{unit} {p['entry']:,.2f}→{p['last']:,.2f}({r:+.2f}R)")
+        pct = (p["last"] / p["entry"] - 1) * sgn if p.get("entry") else 0.0
+        what = {"fut": "지수 선물", "put": "지수 하락 보험", "call": "지수 상승 옵션"}.get(p.get("kind"), p.get("name") or "")
+        up = (sgn > 0) != (p.get("kind") == "put")      # 풋 보유 = 하락 쪽 노출
+        parts.append(f"{what} {'상승' if up else '하락'} 쪽 {r:+.2f}R({pct * 100:+.1f}%)")
     tail = f" · 청산 {len(cl)}건 평균 {sum(c['r'] for c in cl) / len(cl):+.2f}R" if cl else ""
-    return clean("  🎯 재량(자율·모의, 가상 AUM 1,000억): " + (" · ".join(parts) if parts else "포지션 없음") + tail)
+    ln = f"  {DISC_PREFIX}: " + (" · ".join(parts) if parts else "포지션 없음") + tail
+    return None if any(w in ln for w in DISC_BANNED) else clean(ln)
 
 
 def telegram_tail(o: dict) -> list[str]:

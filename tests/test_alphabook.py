@@ -152,8 +152,12 @@ def test_update_cash_when_no_passing_source(tmp_path, monkeypatch):
 def test_disc_line(tmp_path):
     p = tmp_path / "d.json"
     assert A.disc_line(p) is None
-    p.write_text(json.dumps({"open": [{"side": "롱", "kind": "fut", "name": "코스피200 선물", "entry": 893.05, "last": 910.1, "r_unit": 17.05, "weight": 0.1309}],
+    p.write_text(json.dumps({"open": [{"side": "롱", "kind": "fut", "name": "코스피200 선물", "entry": 893.05, "last": 910.1, "r_unit": 17.05, "weight": 0.065},
+                                      {"side": "롱", "kind": "put", "name": "코스피200 풋 847.5 (2026-11-12)", "entry": 20.84, "last": 10.42, "r_unit": 20.84}],
                              "closed": [{"r": -1.02}]}, ensure_ascii=False))
     ln = A.disc_line(p)
-    assert "롱 코스피200 선물 59계약 893.05→910.10(+1.00R)" in ln and "청산 1건 평균 -1.02R" in ln
-    assert not any(w in ln for w in ("젠장", "개소리", "빌어먹을", "제기랄"))
+    assert ln.strip().startswith(A.DISC_PREFIX)
+    assert "지수 선물 상승 쪽 +1.00R(+1.9%)" in ln and "지수 하락 보험 하락 쪽" in ln and "청산 1건 평균 -1.02R" in ln
+    # PB 문구 규칙: 계약 수·행사가·주문형/명령형·욕 없음
+    for w in A.DISC_BANNED + ("847.5", "59", "젠장", "개소리", "빌어먹을", "제기랄"):
+        assert w not in ln, w
