@@ -81,5 +81,37 @@ def main() -> None:
             print("F 실패", s, type(e).__name__, e)
 
 
+def full() -> None:
+    """실제 파이프라인 경로(data.fetch_prices, 배치 150·threads 8·400일)로 유니버스 전체 → 종목별 마지막 날짜 분포 + 원시 NaN 점검."""
+    import collections
+    import sys
+
+    import pandas as pd
+    import yfinance as yf
+    sys.path.insert(0, ".")
+    from screener import data
+    from screener.config import CFG
+    syms = [x.strip() for x in open("universe/us_index.csv", encoding="utf-8").read().split()[1:] if x.strip()]
+    px = data.fetch_prices(syms, "DIAG")
+    last = px.group_by("yf").agg(__import__("polars").col("date").max())
+    dist = collections.Counter(str(d) for d in last["date"].to_list())
+    print("FULL fetch_prices 종목", len(syms), "수신", last.height, "마지막날 분포", dict(dist))
+    lag = sorted(last.filter(last["date"] < max(last["date"]))["yf"].to_list())
+    print("마지막날 뒤처진 종목 수", len(lag), "예", lag[:15])
+    # 원시: 첫 배치 그대로 받아 마지막 2일 Close NaN 개수
+    start = (date.today() - timedelta(days=CFG.lookback_days)).isoformat()
+    raw = yf.download(syms[:CFG.batch_size], start=start, auto_adjust=True, group_by="ticker",
+                      threads=CFG.threads, progress=False, timeout=60)
+    idx = pd.to_datetime(raw.index)
+    print("원시 배치1 인덱스 마지막 3", [str(x.date()) for x in idx[-3:]])
+    for d in idx[-2:]:
+        row = raw.loc[d]
+        closes = row.xs("Close", level=1) if hasattr(row.index, "levels") else row
+        print("  ", d.date(), "Close NaN", int(closes.isna().sum()), "/", len(closes))
+
+
 if __name__ == "__main__":
-    main()
+    if os.environ.get("FULL") == "1":
+        full()
+    else:
+        main()

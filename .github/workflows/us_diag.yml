@@ -9,6 +9,10 @@ on:
         description: "쉼표 구분 yf 심볼"
         required: false
         default: "AAPL,MSFT,NVDA,SPY,BRK-B,JPM"
+      full:
+        description: "1 = 실제 fetch_prices 로 유니버스 전체 마지막 날 분포"
+        required: false
+        default: "0"
 
 permissions:
   contents: read
@@ -27,6 +31,7 @@ jobs:
       - name: 진단
         env:
           SYMS: ${{ inputs.syms }}
+          FULL: ${{ inputs.full }}
           PYTHONUNBUFFERED: "1"
         # 로그 원문(blob)은 컨테이너에서 못 받음 → 결과를 notice 주석(체크런 annotations API)으로도 남김
         run: |
