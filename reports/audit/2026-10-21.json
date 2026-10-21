@@ -1,383 +1,1724 @@
 {
  "date": "2026-10-21",
- "scope": "2026-10-21 00:00 KST ~ 12:40 KST. 공개 origin/main 커밋 383개(Claude 185·screener-bot 194·t 4, git log --since='2026-10-20 15:00 UTC') 전체 diff 정규식 + 비공개 pb-private 오늘 변경 12개 파일(life/·money/ 제외 — 오늘 변경 0건) + CI tests.yml 실행 이력 + live.yml 실행 이력. 야간분(01:5x 작성) 채점은 2026-10-21.md 1~5절, 이 JSON 은 하루 전체 2차 감사분. N1~N5 = 야간 1차 감사(주의→중) 이월분.",
- "files": 17,
+ "files": 100,
  "counts": {
-  "치명": 2,
-  "중": 15,
-  "경": 5,
-  "정보": 6
+  "치명": 1,
+  "중": 11,
+  "경": 92,
+  "정보": 57
  },
  "by_desk": {
-  "dev": {
-   "치명": 2,
-   "중": 7,
-   "경": 0
+  "pb": {
+   "치명": 0,
+   "중": 0,
+   "경": 17
+  },
+  "ORG": {
+   "치명": 0,
+   "중": 0,
+   "경": 1
   },
   "ops": {
    "치명": 0,
-   "중": 1,
-   "경": 0
+   "중": 0,
+   "경": 2
   },
-  "pb": {
+  "analyst": {
    "치명": 0,
-   "중": 6,
-   "경": 4
+   "중": 3,
+   "경": 28
   },
   "audit": {
    "치명": 0,
+   "중": 0,
+   "경": 4
+  },
+  "behavior": {
+   "치명": 0,
+   "중": 0,
+   "경": 3
+  },
+  "bonds": {
+   "치명": 0,
+   "중": 0,
+   "경": 2
+  },
+  "cio": {
+   "치명": 0,
    "중": 1,
-   "경": 0
+   "경": 5
+  },
+  "data": {
+   "치명": 0,
+   "중": 2,
+   "경": 3
+  },
+  "derivs": {
+   "치명": 0,
+   "중": 0,
+   "경": 2
+  },
+  "dev": {
+   "치명": 0,
+   "중": 0,
+   "경": 4
+  },
+  "edu": {
+   "치명": 0,
+   "중": 0,
+   "경": 6
+  },
+  "frm": {
+   "치명": 0,
+   "중": 0,
+   "경": 2
+  },
+  "macro": {
+   "치명": 0,
+   "중": 0,
+   "경": 2
   },
   "pm": {
    "치명": 0,
    "중": 0,
    "경": 1
+  },
+  "quant": {
+   "치명": 0,
+   "중": 3,
+   "경": 2
+  },
+  "realestate": {
+   "치명": 0,
+   "중": 0,
+   "경": 1
+  },
+  "peer": {
+   "치명": 0,
+   "중": 1,
+   "경": 6
+  },
+  "uxui": {
+   "치명": 0,
+   "중": 0,
+   "경": 1
+  },
+  "verify": {
+   "치명": 1,
+   "중": 1,
+   "경": 0
   }
  },
  "findings": [
   {
-   "id": "D1",
-   "file": "reports/logs/pdf_boxes.json",
-   "line": 272,
-   "desk": "dev",
-   "item": "(i) 실제 애널리스트 실명 + 회사 이메일 공개",
-   "severity": "치명",
-   "evidence": "봇 커밋 32774012(10/21 09:07 KST) 등 10/15 이후 10개 버전 모두 리포트 PDF 머리말의 '애널리스트 이름 + 회사 이메일' 1건 포함. 생성 경로 screener/research.py:264 가 PDF 디버그 덤프를 reports/logs/ 에 그대로 써서 briefing 이 커밋. 값은 이 문서에 옮기지 않음",
-   "action": "개발: 디버그 덤프에서 이메일·'Analyst <이름>' 패턴 마스킹 또는 pdf_boxes.json 커밋 제외(.gitignore). 공개 이력 10개 버전 잔존 → PB 가 오너에게 이력 처리 여부 보고(재작성 비권장, 야간 #1-b 와 같은 판단). 감사 직접 수정 예외는 (e) 금액만이라 감사는 줄을 고치지 않음",
-   "due": "2026-10-21",
-   "manual": true,
-   "status": "보드 P0 audit-analyst-email-log 등록"
-  },
-  {
-   "id": "D2",
-   "file": "(CI) .github/workflows/tests.yml",
-   "line": null,
-   "desk": "dev",
-   "item": "STANDARD §3 · LOOP 금지 '테스트 깨진 채 push'",
-   "severity": "중",
-   "evidence": "tests 빨강 구간 실측 10/20 15:57Z ~ 10/21 01:13Z(약 9시간 16분, 51회: 실패 32·취소 18·성공 1[3d7575d0]) — 지시서·ea387739 본문의 '23:44Z~' 보다 약 8시간 길다. 원인 2겹: 17873d5e(trial_log KeyError, 17:25Z 수정) + 64c1ae52(16:08Z 네이버 목록 API 경로 → test_research_views 실패, ea387739 01:13Z 수정). 그 사이 Claude 커밋 120개·t 커밋 4개 push, CIO 규칙 스위치 ON 커밋 e8be6e09(17:32Z)도 빨강 위에 올라감",
-   "action": "개발: push 전 검사에 'origin/main 최신 tests.yml 결론 = failure 이면 수리 커밋(tests/ 포함 또는 메시지 fix:)만 통과' 1단계 추가. ea387739 의 시작 시각 정정은 다음 개발 라운드 파일 1줄",
-   "due": "2026-10-24",
-   "manual": true
-  },
-  {
-   "id": "D3",
-   "file": "scripts/prepush_check.py",
-   "line": 7,
-   "desk": "dev",
-   "item": "(g) 검사 구조 — 로컬과 CI 조건 불일치",
-   "severity": "중",
-   "evidence": "pre-push 는 '바뀐 파일과 관련된 테스트만'(:7-10, tests_for) + 샌드박스는 외부망 차단, CI 는 외부망 열림. ea387739 원인 = 테스트가 rv._get 만 막아 CI 에선 네이버가 실제 성공 — 로컬에선 전체 실행이어도 통과했을 구조(네트워크 차이). 서브셋만의 문제가 아님",
-   "action": "개발: tests/conftest.py 에 외부 소켓 차단 기본값(필요한 테스트만 명시 허용) — CI 와 로컬이 같은 조건에서 돈다. tests/conftest.py 는 CORE 라 바꾸면 전체 실행",
-   "due": "2026-10-24",
-   "manual": true
-  },
-  {
-   "id": "D4",
-   "file": ".github/workflows/team.yml",
-   "line": 41,
-   "desk": "dev",
-   "item": "-X theirs 잔존(사람이 쓰는 파일 덮어쓰기 위험)",
-   "severity": "중",
-   "evidence": "team.yml:41 → ops/team.json(PB team_run 행) · deriv_hist.yml:80. 그 밖에 accum·data_store·fin·flowq·hist·lab·scorecard·screener·study_daily·us_accum 10개도 -X theirs(봇 전용 파일이라 위험 낮음), briefing.yml:150 은 수정 금지 잠금. ops.yml 은 61df0586 에서 제거 확인",
-   "action": "기존 요청 req-dev-cc84f898(마감 10/23) 로 추적 — 중복 요청 안 함",
-   "due": "2026-10-23",
-   "manual": true,
-   "status": "기존 요청 열림"
-  },
-  {
-   "id": "D5",
-   "file": "docs/desk_kb/rounds/2026-10-21/maint.md",
-   "line": 12,
-   "desk": "ops",
-   "item": "운영 루프 취소 승인 경로 없음",
-   "severity": "중",
-   "evidence": "10/21 11:04 KST(02:04:08Z) 유지보수 데스크가 장중 live.yml 실행 39518753409(09:01 루프)·대기 39530272167 를 취소하고 39530935464 를 commit=true 로 수동 dispatch. 매수 사이드카 발동일(10:53) 장중 이벤트 감시 루프. 기록은 라운드 파일 1줄뿐 — docs/schedule_table.md:17 은 수동 dispatch 기본값만 규정하고 '실행 중 운영 루프 취소' 승인·기록 절차는 어디에도 없음(git grep 'run cancel|실행 취소' 0건). 공백은 약 5초(취소 02:04:08 → 새 실행 02:04:13)로 피해는 확인 안 됨",
-   "action": "운영: schedule_table.md 에 1조 — 장중(09:00~15:30·22:30~05:00) live 루프 취소는 PB 승인 + 보드 노트 + 가능하면 장 마감 뒤; 취소 시각·run id 를 freshness 기록에",
-   "due": "2026-10-24",
-   "manual": true
-  },
-  {
-   "id": "D6",
-   "file": "docs/desk_kb/rounds/_requests.json",
-   "line": 335,
+   "file": "docs/bonds_short_duration_alts.md",
+   "line": 1,
    "desk": "pb",
-   "item": "(a) 틀린 숫자로 원인 단정",
-   "severity": "중",
-   "evidence": "req-data-75288029(PB, 10:14 KST) '마감 21시간 뒤 … 단순 지연 아닌 수집 경로 고장 의심' — 미장 10/20 마감은 10/21 05:00 KST 라 10:13 은 약 5시간 뒤. 23분 뒤 데이터 데스크 해소(:351) '야후 측 지연 ~5.5h, data.py 수정 불필요'. 같은 날 09:37 엔 원인이 '나왔다'고 보고(pb-private journal/auto_turns/2026-10-21.tsv:145) 후 10:14 다른 원인을 의심 — 확인 전 단정이 두 방향으로 오감",
-   "action": "PB: 자기 KB 복기 1건(시각 차는 식으로 적는다: 10:13 − 05:00 = 5h13m) + 데이터 데스크 진단 전 '원인' 단어 금지",
-   "due": "2026-10-24",
-   "manual": true
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #15 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
   },
   {
-   "id": "D7",
-   "file": "pb-private journal/2026-10-21.md",
+   "file": "docs/cleanup_proposal_2026-10-18.md",
+   "line": 73,
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/fin/multi.parquet ← | `data/fin/multi.parquet` · `full.parquet` | 12.3 + 4.3 MB | 10-16 | keep(오늘 수정) | 재무제표. `fin.yml` ",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/cleanup_proposal_2026-10-18.md",
+   "line": 74,
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/kr_prices.parquet ← | `data/kr_prices.parquet` | 8.2 MB | 10-16 | **keep + 감시** | 매일 재작성 → 이력이 가장 빨리 커지는 파일. 90일 뒤 저장소 크",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/cleanup_proposal_2026-10-18.md",
+   "line": 76,
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/signals.parquet ← | `data/signals.parquet` · `short_hist.parquet` · `deriv/` | 1.7 + 0.3 + 0.5 MB | 10-16 | **keep** |",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/cleanup_proposal_2026-10-18.md",
+   "line": 98,
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/kr_prices.parquet ← 3. **감시 2개** 등록: `data/kr_prices.parquet`, `reports/detail/*` 의 이력 비대화 — 11월 중순 `git count-objects -",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/cleanup_proposal_2026-10-18.md",
+   "line": 99,
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "archive/playbook-signals ← 4. **조건부 1개**: `study_playbook_signals.py` 는 렌즈 5개가 exec_signal 로 근거를 옮긴 뒤 보관 브랜치로 (`git checkout -b",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/ORG.md",
+   "line": 4,
+   "desk": "ORG",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "ops/townhall_2026-10-16 ← > 근거 대조: docs/desk_kb/*.md · ops/townhall_2026-10-16(비공개) · ops/team.json runs · ops/board.json owne",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/README.md",
+   "line": 26,
+   "desk": "ops",
+   "item": "(f) kb 앵커",
+   "severity": "경",
+   "evidence": "kb:derivs#basis — derivs.md 에 #basis 항목 없음",
+   "action": "항목 번호 확인",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/_scoreboard.md",
+   "line": 35,
+   "desk": "ops",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #1 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/analyst.md",
+   "line": 18,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "archive/valuation ← - **멀티플/EPS 분해**: ln(P₁/P₀) = ln(PER₁/PER₀) + ln(EPS₁/EPS₀). 로그수익률이라 세 항이 정확히 더해진다. '주가가 빠졌다'를 '배수가 ",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/analyst.md",
+   "line": 54,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "docs/valuation_notes/2026-10-17_activist_prereg.md ← - **우리 연구와의 차이(예정)**: 위 7% 는 공시 '전후' 창 기준. 우리가 실제로 살 수 있는 건 공시 다음 날부터라 사전등록(docs/valuation_notes/202",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/analyst.md",
+   "line": 62,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "중",
+   "evidence": "docs/desk_kb/activists.json ← - 행동주의 명단·근거: docs/desk_kb/activists.json (KR 9·US 9, 항목별 출처·등급). 수집기 screener/activist.py → reports",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/desk_kb/analyst.md",
+   "line": 62,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "중",
+   "evidence": "screener/activist.py ← - 행동주의 명단·근거: docs/desk_kb/activists.json (KR 9·US 9, 항목별 출처·등급). 수집기 screener/activist.py → reports",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/desk_kb/analyst.md",
+   "line": 62,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "중",
+   "evidence": "reports/activist.json ← - 행동주의 명단·근거: docs/desk_kb/activists.json (KR 9·US 9, 항목별 출처·등급). 수집기 screener/activist.py → reports",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/desk_kb/analyst.md",
+   "line": 24,
+   "desk": "analyst",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 2/4건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/audit.md",
+   "line": 81,
+   "desk": "audit",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "reports/logs/pdf_boxes.json ← - 2026-10-21 · 야간 1차 감사(#10)에서 '토큰·키·계좌·원화 금액 0건'이라 적었는데, 공개 로그 `reports/logs/pdf_boxes.json` 에 애널리스",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/audit.md",
+   "line": 55,
+   "desk": "audit",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 1/3건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/behavior.md",
+   "line": 51,
+   "desk": "behavior",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/behavior.md",
+   "line": 15,
+   "desk": "behavior",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 16/17건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/bonds.md",
+   "line": 43,
+   "desk": "bonds",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #15 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/bonds.md",
+   "line": 14,
+   "desk": "bonds",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 13/14건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/cio.md",
+   "line": 14,
+   "desk": "cio",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 5/5건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/data.md",
+   "line": 21,
+   "desk": "data",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "screener/active_funds.py ← - **실질 매매(자금 유입 효과 제거)** = 1CU 당 주식 수 변화율 s_t/s_{t-1} − 1. PDF 수량이 1CU 기준이라 설정·환매(자금 유출입)는 CU 개수만 바꾸",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/data.md",
+   "line": 52,
+   "desk": "data",
+   "item": "(f) 깨진 경로",
+   "severity": "중",
+   "evidence": "screener/active_funds.py ← - 액티브 ETF 종목코드: funetf·한경 마켓·investing·치킨스탁 검색 결과(2026-10-17) — 대상 명단과 출처 등급은 screener/active_funds.",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/desk_kb/derivs.md",
+   "line": 25,
+   "desk": "derivs",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/derivs.md",
+   "line": 21,
+   "desk": "derivs",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 3/4건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 17,
+   "desk": "dev",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 29,
+   "desk": "dev",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #10 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 30,
+   "desk": "dev",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "scripts/retention.py ← - 설계: `scripts/retention.py` — 기본 드라이런(삭제 후보만 `reports/logs/retention_YYYY-MM-DD.json` 에 기록), `--app",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 34,
+   "desk": "dev",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 60,
+   "desk": "dev",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/kr_prices.parquet ← - 옮긴 파일: `data/kr_prices.parquet`·`data/signals.parquet`·`data/fin/{multi,full}.parquet`·`data/hist/",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 60,
+   "desk": "dev",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/signals.parquet ← - 옮긴 파일: `data/kr_prices.parquet`·`data/signals.parquet`·`data/fin/{multi,full}.parquet`·`data/hist/",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 61,
+   "desk": "dev",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/data_store_status.json ← - `scripts/data_store.py pull|push|snapshot|status`(표준 라이브러리만). pull 실패 → 로컬 → 최신 주간 스냅샷 → git_rev 순",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/dev.md",
+   "line": 79,
+   "desk": "dev",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/edu.md",
+   "line": 34,
+   "desk": "edu",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "docs/desk_kb/_quiz_feedback.md ← 12. [경험] 평일 07:10 KST `study_daily.yml` → `reports/study_daily.json` + 텔레그램 ≤4줄(오늘 공부 / 퀴즈 / 완료 이슈 링",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/edu.md",
+   "line": 26,
+   "desk": "edu",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 1/8건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/frm.md",
+   "line": 22,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/frm.md",
+   "line": 67,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/frm.md",
+   "line": 69,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #1 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/frm.md",
+   "line": 4,
+   "desk": "frm",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 14/16건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/macro.md",
+   "line": 43,
+   "desk": "macro",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/macro.md",
+   "line": 14,
+   "desk": "macro",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 7/8건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/peer.md",
+   "line": 36,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "pb-private #7 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/pm.md",
+   "line": 19,
+   "desk": "pm",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 1/1건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/quant.md",
+   "line": 18,
+   "desk": "quant",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 5/6건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/realestate.md",
+   "line": 3,
+   "desk": "realestate",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 19/19건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/audit.md",
+   "line": 16,
+   "desk": "audit",
+   "item": "(e) 원화 금액",
+   "severity": "경",
+   "evidence": "100만원 ← b.md 로 이전 ③ decisions.json pb_view 문장의 '100만원/300만원'을 '1단위(모의 고정 사이즈)' 로 바꾸는 생성 코드 수정",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/audit.md",
+   "line": 16,
+   "desk": "audit",
+   "item": "(e) 원화 금액",
+   "severity": "경",
+   "evidence": "300만원 ← 이전 ③ decisions.json pb_view 문장의 '100만원/300만원'을 '1단위(모의 고정 사이즈)' 로 바꾸는 생성 코드 수정 여부 결정",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/behavior.md",
+   "line": 10,
+   "desk": "behavior",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/behavior.md",
+   "line": 17,
+   "desk": "behavior",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/behavior.md",
+   "line": 28,
+   "desk": "behavior",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/behavior.md",
+   "line": 25,
+   "desk": "behavior",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 1/2건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/bonds.md",
+   "line": 5,
+   "desk": "bonds",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #15 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/data.md",
+   "line": 6,
+   "desk": "data",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "scripts/retention.py ← 4. **피어(개발)** — 반대/요청: 결재 #10 ② 보존 규칙(archive 90일·signals/anomalies 10일)을 워크플로 커밋 단계에 \"한 줄 find -del",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/data.md",
+   "line": 6,
+   "desk": "data",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #10 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/data.md",
+   "line": 9,
+   "desk": "data",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "scripts/retention.py ← 요청→개발: `scripts/retention.py`(드라이런 기본) 를 ops 워크플로에 어떻게 붙일지(실행 시점·--apply 승인 경로) 설계 의견 1줄 + dev.md KB",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/data.md",
+   "line": null,
+   "desk": "data",
+   "item": "(6) VOC 줄 없음",
+   "severity": "중",
+   "evidence": "라운드 파일에 `VOC:` 줄 없음",
+   "action": "LOOP.md 6항 — VOC 1줄 추가",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/dev.md",
+   "line": 9,
+   "desk": "dev",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/edu.md",
+   "line": 5,
+   "desk": "edu",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/edu.md",
+   "line": 32,
+   "desk": "edu",
+   "item": "(f) kb 앵커",
+   "severity": "경",
+   "evidence": "kb:behavior#3에 — behavior.md 에 #3에 항목 없음",
+   "action": "항목 번호 확인",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/frm.md",
+   "line": 5,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #1 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/frm.md",
+   "line": 11,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/frm.md",
+   "line": 24,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #1 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/frm.md",
+   "line": 26,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #1 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/frm.md",
+   "line": 28,
+   "desk": "frm",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #1 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/macro.md",
+   "line": 10,
+   "desk": "macro",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/macro.md",
+   "line": 27,
+   "desk": "macro",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/ops.md",
+   "line": 7,
+   "desk": "ops",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "ops/runs.json ← [규정] GitHub Docs \"Events that trigger workflows › schedule\"(2026-10-17 열람): 예약은 고부하 때 지연·누락 가능, 정각이 ",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/peer.md",
+   "line": 3,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "pb-private #7 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/peer.md",
+   "line": 5,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "이슈 #7 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/desk_kb/rounds/2026-10-17/peer.md",
+   "line": 14,
+   "desk": "peer",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "docs/peer_reviews/2026-10-20_valuation.md ← - 다음 할 일: 보드 `peer-review-valuation`(P1, 10/20) — 애널 결론 안 보고 같은 데이터로 '대조 전 3줄' 먼저 쓴 뒤 `docs/peer_rev",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/uxui.md",
+   "line": 5,
+   "desk": "uxui",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "ops/agreements ← 2026-10-21 01:4x 신설(겸이 \"운영에 UXUI누나 채용해서 프론트엔드 한번 싹 손볼까? 정보위계 가독성 등등\" → \"그냥 추가해!\", 🌙 기록 — ops/agreeme",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/desk_kb/verify.md",
+   "line": 34,
+   "desk": "verify",
+   "item": "(e) 원화 금액",
+   "severity": "치명",
+   "evidence": "1만원 ← ·신뢰도 중] **qld_daily_dca (QLD·QQQ·SPY 매일 1만원 적립, 원화·세전, 데이터 1985-10~2026-10-20)**: 실",
+   "action": "즉시 해당 줄을 비율·단위로 치환 (감사 예외: 직접 수정, 커밋 '감사: 금액 누출 제거')",
+   "due": "2026-10-21"
+  },
+  {
+   "file": "docs/desk_kb/verify.md",
+   "line": 35,
+   "desk": "verify",
+   "item": "(b) 등급 없는 연구 인용",
+   "severity": "중",
+   "evidence": "- #12 [자체연구-서술(등급 대상 아님), 부분 재현·신뢰도 중] **laor_infinite_buy (V4.0 20분할, 원화·세전, 실 ETF 2010~2026-10-20)**: TQQQ는 IRR 22.4% vs 재현 22.5%, 복리 20.3% vs 20.2%, 최장 321일,",
+   "action": "같은 줄에 A/B/C/F/검증전 꼬리표 추가 (README 규칙)",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/hist_warehouse.md",
    "line": 26,
    "desk": "pb",
-   "item": "(b) 검증 범위 없는 '0건' 단정",
-   "severity": "중",
-   "evidence": "'PB 전체 스캔 결과 다른 토큰·키·이메일 0건' — 같은 시각 공개 저장소에 D1 이메일이 있었음(10/15~). 스캔 대상·정규식·범위가 적혀 있지 않음",
-   "action": "PB: 해당 줄에 '정정(10/21 감사 D7): 이메일 1건 미탐 — reports/logs/pdf_boxes.json' 덧붙임(원문 유지). 앞으로 '0건' 에는 범위·패턴 1줄",
-   "due": "2026-10-24",
-   "manual": true
-  },
-  {
-   "id": "D8",
-   "file": "reports/audit/2026-10-21.md",
-   "line": 21,
-   "desk": "audit",
-   "item": "(b) 감사 자신의 미탐",
-   "severity": "중",
-   "evidence": "야간 감사 #10 '토큰·키·계좌·원화 금액 정규식 0건' — 이메일 패턴을 돌리지 않아 D1 미탐. 자기 면제 없음(기준서 §3-6)",
-   "action": "감사: KB 복기 1건 + scripts/slop_audit.py (e)(i) 자동 규칙에 이메일 패턴(허용: noreply·anthropic·google 공식 도메인) 추가 요청은 다음 라운드에서 오탐률 측정 후",
-   "due": "2026-10-24",
-   "manual": true
-  },
-  {
-   "id": "D9",
-   "file": "pb-private ops/agreements.md",
-   "line": 62,
-   "desk": "pb",
-   "item": "거버넌스 — 불변 규칙 변경 요청 경위 미기록",
-   "severity": "중",
-   "evidence": "10/21 오전 레버리지 ETF 적립 요청 → 퀀트 연구 백테스트(reports/studies/2026-10-21_qld_daily_dca.md, '연구 전용' 표기 확인) + 'QLD 규칙 변경 의견 패널(리스크·행동)' 실행(ops/team.json:1526). 그러나 원장에 10/21 해당 항목 0건(grep QLD·냉각), 패널 산출물 파일 없음, '결정 안 됨·10/22 15:00 냉각'이 어디에도 없음. 원장 62행은 레버리지·인버스 금지 기한을 '불변'으로 둠 — 냉각 후 재논의는 불변 규칙에 없는 변경 경로를 여는 것이라 원장에 근거가 필요. 같은 대화에서 금지 목록(39행) 밖 레버리지 상품으로의 우회 언급(auto_turns:162) — 금지 목록 정의 공백",
-   "action": "PB(기록): 오늘 중 원장에 '기록(합의 아님)' 1줄 — 요청 원문 인용·PB 처리·패널 의견 파일 경로·냉각 시각·'불변 규칙이라 냉각 뒤에도 변경 경로 없음' 또는 겸이가 불변을 푸는 결정인지 구분. 금지 목록 정의 공백은 🗳️ 일요일 안건",
-   "due": "2026-10-21",
-   "manual": true
-  },
-  {
-   "id": "D10",
-   "file": "pb-private ops/glossary.md",
-   "line": 72,
-   "desk": "pb",
-   "item": "[13] 정의 먼저 위반",
-   "severity": "중",
-   "evidence": "8-E 확정(agreements.md:258·259, 08:5x) — 용어집 72행은 여전히 '8-E ISA 적용 여부 🗳️', 매수/매도 사이드카 구분 정의 없음. [13]은 '용어집 등록 후에만 신설·개정·집행'(agreements.md:96·135). rules.txt:22 '서킷·사이드카 발동일 장중 신규 진입 금지'에 ISA 계획 매수 예외 문구 없음 → 원문 충돌",
-   "action": "PB: 용어집 72행에 매수/매도 사이드카·서킷 정의 + 8-E 범위(ISA 계획 매수만) 등록, rules.txt:22 에 ISA 예외 참조 1줄(겸이 확인)",
-   "due": "2026-10-22",
-   "manual": true
-  },
-  {
-   "id": "D11",
-   "file": "pb-private ops/agreements.md",
-   "line": 257,
-   "desk": "pb",
-   "item": "예외가 예외로 기록되지 않음(변경 주기)",
-   "severity": "중",
-   "evidence": "[13] 변경 주기 파라미터=일요일·구조=월말(agreements.md:135, HANDOFF.md:15 '규칙(rules.txt) 변경만 일요일 리뷰'). 수요일 결정 4건 중 256(ISA C안)만 '⚠️ 규칙 예외' — 그것도 '위반 중 완화 금지' 예외만 적고 변경 주기 예외는 없음. 257(코어 종목 교체)·258·259(8-E)는 ✅ 일반 합의로 기록. rules.txt:10·91 은 여전히 '나스닥100 10(상한)'·기존 종목 → 실제 집행(C안)과 규칙 원문 불일치",
-   "action": "PB: 257~259 에 '변경 주기 예외(수요일, 겸이 직접)' 꼬리표, 256 에 같은 꼬리표 추가. rules.txt:10·91 갱신은 겸이 확인 1줄 받고 오늘~내일",
-   "due": "2026-10-22",
-   "manual": true
-  },
-  {
-   "id": "D12",
-   "file": "pb-private scribe/turn_hook.py",
-   "line": 71,
-   "desk": "pb",
-   "item": "(e) 경로 — 발화 원문 무필터 자동 커밋",
-   "severity": "중",
-   "evidence": "겸이 발화 앞 80자를 마스킹 없이 journal/auto_turns/ 로 30분마다 커밋. 오늘 계좌번호·토큰 패턴 0건 확인(10/20·10/21 tsv), 이미지는 저장 안 됨 — 그러나 계좌번호가 보이는 캡처를 올린 날이고, 붙여넣은 터미널 출력(PowerShell 줄)도 그대로 들어감(:4·:6·:57). 원장 규칙 '계좌번호 저장 금지·토큰 채팅 금지'를 지키는 장치가 없음",
-   "action": "기록: turn_hook 에 계좌번호·토큰·키 정규식 마스킹 1단계 + 테스트",
-   "due": "2026-10-24",
-   "manual": true
-  },
-  {
-   "id": "L1",
-   "file": "pb-private ops/agreements.md",
-   "line": 253,
-   "desk": "pb",
-   "item": "약속 미이행",
+   "item": "(e) 원화 금액",
    "severity": "경",
-   "evidence": "'07시 이후 리스크 데스크 의견 1줄 첨부 예정' — 254~259 에 첨부 없음(리스크 실행 기록은 ops/team.json 에 장중 재계산만)",
-   "action": "PB: 리스크 데스크 의견 1줄(무편집 인용) 첨부 또는 '첨부 안 함' 사유",
-   "due": "2026-10-21",
-   "manual": true
+   "evidence": "1,000원 ← -04 = 1000, volume null. 종목 조건: 전일 종가 ≥ 1,000원, |일간수익| ≤ 32%, 업종당 5종목 이상.",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
   },
   {
-   "id": "L2",
-   "file": "pb-private ops/agreements.md",
-   "line": 256,
-   "desk": "pb",
-   "item": "겸이 말 ≠ PB 해석 미구분",
-   "severity": "경",
-   "evidence": "256 '기존 금 보유는 매도하지 않고 신규 매수에서 금 0', 258 '서킷일 추가 매수는 결재 #15 로만 — 이번 결정은 계획 매수 시점만' — 인용 밖 문장인데 'PB 해석' 꼬리표 없음(193·218행은 붙어 있음). 258 '겸이 원문 그대로'·251 처리는 잘 구분됨",
-   "action": "PB: 두 문장에 '(PB 해석)'",
-   "due": "2026-10-28",
-   "manual": true
-  },
-  {
-   "id": "L3",
-   "file": "pb-private ops/agreements.md",
-   "line": 257,
-   "desk": "pb",
-   "item": "(a) 출처 없는 가격(설명용)",
-   "severity": "경",
-   "evidence": "기존 종목 '1주 약 17만원' 기준 시각·출처 없음(교체 종목은 '시세 9시 확인')",
-   "action": "PB: 기준 시각·출처 덧붙임",
-   "due": "2026-10-28",
-   "manual": true
-  },
-  {
-   "id": "L4",
-   "file": "pb-private journal/2026-10-21.md",
+   "file": "docs/integrity_dev_plan_2026-10-17.md",
    "line": 31,
    "desk": "pb",
-   "item": "VOC 근거 경로 누락",
+   "item": "(f) 깨진 경로",
    "severity": "경",
-   "evidence": "'데스크 보고 요지' 9개 데스크 중 내무만 파일 경로. 실제 호출은 ops/team.json runs 로 확인됨(내무·행동·CIO·리스크·자산배분·감사·PM·매크로·채권·파생 패널) — VOC 규칙 위반(대리 작성)은 아니나 '요지'라 원문 위치가 있어야 무편집 확인 가능",
-   "action": "PB: 각 줄에 산출물 경로 또는 '원문=대화만'",
-   "due": "2026-10-28",
-   "manual": true
+   "evidence": "scripts/rules_status.py ← # [결재 반영 현황 — 자동 생성, scripts/rules_status.py] 기준 <원장 최종 갱신>",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
   },
   {
-   "id": "L5",
-   "file": "ops/team.json",
-   "line": null,
-   "desk": "pm",
-   "item": "집계 키 혼재",
-   "severity": "경",
-   "evidence": "10/21 runs 의 owner 가 '애널'·'analyst', '개발'·'dev' 혼재 — scripts/team_stats.py 데스크별 합계가 갈림",
-   "action": "PM: team_run.py 에 owner 정규화(round_collect.desk_key) 1줄",
-   "due": "2026-10-28",
-   "manual": true
-  },
-  {
-   "id": "I1",
-   "file": "screener/sectors.py",
-   "line": 20,
-   "desk": "dev",
-   "item": "[13] 22~07시 준수 확인",
-   "severity": "정보",
-   "evidence": "섹터 공식 한도 스위치 OFFICIAL_LIMITS = False 유지(00:45 🌙 승인 '07:00 이후 적용'대로, 야간 변경 커밋 없음). CIO_TOP3_V2 = True(e8be6e09, 02:5x)는 agreements.md:253·255 에 겸이 명시 예외·범위(모의·표시)·되돌리기로 기록 — 예외가 예외로 기록됨",
-   "action": "—",
-   "due": null,
-   "manual": true
-  },
-  {
-   "id": "I2",
-   "file": "pb-private ops/agreements.md",
-   "line": 251,
+   "file": "docs/integrity_dev_plan_2026-10-17.md",
+   "line": 42,
    "desk": "pb",
-   "item": "[13] 위반 중 완화 금지 준수 확인",
-   "severity": "정보",
-   "evidence": "02:16 나스닥 15% 발언을 22~07시·위반 중 완화 두 사유로 결정 미적용 → 08:3x 겸이가 반대 의견을 듣고 직접 결정, 256 에 '⚠️ 규칙 예외'·반대 의견·사후 점검일(11/15) 기록",
-   "action": "—",
-   "due": null,
-   "manual": true
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "scripts/integrity_check.py ← - 교체안: 프롬프트에서 규칙 숫자 문장 전부 삭제 → \"① `pb:risk/rulebook.py` 상수와 `screener/defs.py` ② 원장 ✅ 결재(§7-1·7-3) ③",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
   },
   {
-   "id": "I3",
-   "file": "(공개·비공개 전체)",
-   "line": null,
-   "desk": "audit",
-   "item": "계좌번호 캡처 저장 여부",
+   "file": "docs/integrity_dev_plan_2026-10-17.md",
+   "line": 43,
+   "desk": "pb",
+   "item": "(f) 이슈 참조",
    "severity": "정보",
-   "evidence": "공개 오늘 diff(약 300MB, parquet 제외) 계좌번호 형식(3단·2단 하이픈 숫자, 날짜 제외) 0건 · '계좌번호' 키워드 1건 = tools/toss_md/publish.py 금지 키 목록 · 이미지 파일 추가 0건(main·data·toss-live·study-data 브랜치). 비공개 오늘 변경 12개 파일 0건(내무 원장은 '원본 행·계좌 미저장' 설계, household/import_banksalad.py:13), 이미지 추가 0건. 캡처는 세션 컨테이너 업로드 폴더에만 있음(저장소 아님, 휘발성). life/·money/ 는 지시대로 열지 않음 — 오늘 변경 0건",
-   "action": "—",
-   "due": null,
-   "manual": true
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
   },
   {
-   "id": "I4",
-   "file": "(공개 오늘 diff)",
-   "line": null,
-   "desk": "audit",
-   "item": "토큰·KRX ID·금액 재스캔",
+   "file": "docs/integrity_dev_plan_2026-10-17.md",
+   "line": 46,
+   "desk": "pb",
+   "item": "(f) 이슈 참조",
    "severity": "정보",
-   "evidence": "토큰 패턴 3건 = 자리표시자(docs/toss_md_laptop_setup.md 'github_pat_…')·가짜 테스트값(tests/test_dispatch.py) · '로그인 ID:' 추가 줄 3건 모두 *** · 원화 금액 후보 102건 = 공시·리포트 본문·세법 기준·QLD 연구의 '가상 금액' 표기·영어 문제(시장 순매수 공시 수치) — 개인 금액 0건",
-   "action": "—",
-   "due": null,
-   "manual": true
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
   },
   {
-   "id": "I5",
-   "file": ".github/workflows/deriv_hist.yml",
-   "line": 64,
-   "desk": "dev",
-   "item": "야간 치명 #1 재검수",
+   "file": "docs/integrity_dev_plan_2026-10-17.md",
+   "line": 47,
+   "desk": "pb",
+   "item": "(f) 이슈 참조",
    "severity": "정보",
-   "evidence": "45c92873 로 :64·:66 tee 앞 sed 마스킹 확인. 실제 실행 검증은 오늘 16:40 KST cron 뒤 reports/logs/deriv_hist.txt:4 재스캔 — 그때까지 보드 audit-krx-id-deriv 는 '검수' 유지",
-   "action": "감사: 16:40 이후 재스캔",
-   "due": "2026-10-21",
-   "manual": true
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
   },
   {
-   "id": "I6",
-   "file": "reports/studies/2026-10-21_qld_daily_dca.md",
-   "line": 1,
-   "desk": "quant",
-   "item": "연구 꼬리표 확인",
-   "severity": "정보",
-   "evidence": "첫 줄 '연구 전용 — 실계좌 레버리지·인버스 2027-04-15까지 금지(불변 규칙)·가상 금액·매매 지시 아님' 확인. 매매 지시문 없음",
-   "action": "—",
-   "due": null,
-   "manual": true
-  },
-  {
-   "id": "N1",
-   "file": "reports/logs/deriv_hist.txt",
+   "file": "docs/my_tab_holdings_plan.md",
    "line": 4,
-   "desk": "dev",
-   "item": "(e) KRX 로그인 ID 공개(야간 #1)",
-   "severity": "치명",
-   "evidence": "야간 감사 1절 #1 — 줄 치환 완료, 워크플로 45c92873 수정, 실행 검증 16:40 뒤(I5) (상세 reports/audit/2026-10-21.md)",
-   "action": "보드 audit-krx-id-deriv(검수)",
-   "due": "2026-10-21",
-   "manual": true,
-   "status": "조치 완료·실행 검증 대기"
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "docs/audits ← > 근거: 정합성 감사 `docs/peer_reviews/2026-10-17_integrity_audit.md`(→ docs/audits/ 이동 예정) B-16 · C-01 · C",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
   },
   {
-   "id": "N2",
-   "file": "screener/alerts.py",
+   "file": "docs/peer_reviews/2026-10-17_consistency_data.md",
+   "line": 31,
+   "desk": "peer",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/flows/kr_inv_2026.parquet ← - accum.json ↔ data/flows/kr_inv_2026.parquet(마지막 일자 10/16, 단위 백만원): 재계산 결과",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_consistency_ui.md",
+   "line": 43,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_consistency_ui.md",
+   "line": 48,
+   "desk": "peer",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "archive/dotplot/_index.json ← - SHIM 의 정적 경로 전부 저장소·Pages 산출물에 존재(ops/cooldown.json, ops/renego.json, studies/*, archive/{committe",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_consistency_ui.md",
+   "line": 59,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_consistency_ui.md",
+   "line": 66,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_external_audit_fixes.md",
+   "line": 14,
+   "desk": "peer",
+   "item": "(f) 깨진 경로",
+   "severity": "중",
+   "evidence": "data/kr_prices.parquet ← ### 2-1. 원본 시가 갭 373건 분류 (출처: `data/kr_prices.parquet` 2025-09-09~2026-10-16, 708,703행·2,827종목, 10/1",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 37,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 38,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #15 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 48,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #1 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 51,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 54,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #4 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 55,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 66,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 77,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #15 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 83,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 113,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_integrity_audit.md",
+   "line": 143,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #2 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_legacy_book.md",
+   "line": 4,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "pb-private #7 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_legacy_book.md",
+   "line": 6,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "pb-private #7 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_legacy_book.md",
+   "line": 48,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "pb-private #7 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_recheck.md",
+   "line": 3,
+   "desk": "peer",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "ops/voc_audit/2026-10-17_rules_vs_code.md ← 대상 감사: `2026-10-17_consistency_data.md`(M1~M4), `2026-10-17_consistency_ui.md`(중-1~중-5), pb-private ",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_recheck.md",
+   "line": 48,
+   "desk": "peer",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "views/build_personal.py ← | 5 개인 뷰 분모 | 해소 | `views/build_personal.py:95,116` `semi / den_b` |",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_refactor_audit.md",
+   "line": 29,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_refactor_audit.md",
+   "line": 36,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #3 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_refactor_audit.md",
+   "line": 41,
+   "desk": "peer",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/flows/kr_inv_2026.parquet ← | 경 L9 | 24ca45a6·84f19082·928184b8 | `.github/workflows/accum.yml` 저장 단계 | `data/flows/kr_inv_2026.",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_refactor_audit.md",
+   "line": 48,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_refactor_audit.md",
+   "line": 66,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/peer_reviews/2026-10-17_refactor_audit.md",
+   "line": 79,
+   "desk": "peer",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #9 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/rules_terms.md",
+   "line": 72,
+   "desk": "pb",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "docs/schedule_table.md",
+   "line": 89,
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "reports/public_reports.json ← | reports/public_reports.json · reports/views/jiang.json | fin 03:30 매일 (research_views 다음 · researc",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/schedule_table.md",
+   "line": 89,
+   "desk": "pb",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "reports/views/jiang.json ← | reports/public_reports.json · reports/views/jiang.json | fin 03:30 매일 (research_views 다음 · researc",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_consults/answers/behavior.md",
+   "line": 4,
+   "desk": "behavior",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 13/13건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_consults/answers/bonds.md",
+   "line": 5,
+   "desk": "bonds",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 17/17건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_consults/answers/cio.md",
+   "line": 30,
+   "desk": "cio",
+   "item": "(b) 등급 없는 연구 인용",
+   "severity": "중",
+   "evidence": "- 출처: `committee.py` `_scenarios`(buckets20: all/drop5/dd15/deep), `reports/studies/crash_rebound.json` buckets20, registry `scenario_base_rate` **C**(\"서술 통계, 오",
+   "action": "같은 줄에 A/B/C/F/검증전 꼬리표 추가 (README 규칙)",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/study_consults/answers/cio.md",
+   "line": 5,
+   "desk": "cio",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 13/13건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_consults/answers/derivs.md",
+   "line": 5,
+   "desk": "derivs",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 6/6건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_consults/answers/frm.md",
+   "line": 5,
+   "desk": "frm",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 11/11건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_consults/answers/macro.md",
+   "line": 5,
+   "desk": "macro",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 10/10건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_consults/answers/quant.md",
+   "line": 29,
+   "desk": "quant",
+   "item": "(b) 등급 없는 연구 인용",
+   "severity": "중",
+   "evidence": "- 예시 1: rule_audit T1 손절 −8%: −5/−12/2×ATR/없음이 모두 ±0.1%p 안 → 과최적화 **아님**(어디를 골라도 같음, 반대로 \"손절 폭은 중요하지 않다\"는 뜻). 반면 derivs_signals H7 감마 t 3.4는 IV를 통제하자 +0.44%p(t ",
+   "action": "같은 줄에 A/B/C/F/검증전 꼬리표 추가 (README 규칙)",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/study_consults/answers/quant.md",
+   "line": 66,
+   "desk": "quant",
+   "item": "(b) 등급 없는 연구 인용",
+   "severity": "중",
+   "evidence": "- 예시 1 — **0.3%p/년 차이가 n≈180 겹침 윈도에서 검출력 경계인 이유**: semis_cap BAND−CAP40M +0.35%p, p 0.029 → t≈2.2 → 표준오차 ≈0.16%p(NW 보정 후, 독립 정보량은 사실상 16년치). Bonferroni α 0.0071",
+   "action": "같은 줄에 A/B/C/F/검증전 꼬리표 추가 (README 규칙)",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/study_consults/answers/quant.md",
+   "line": 106,
+   "desk": "quant",
+   "item": "(b) 등급 없는 연구 인용",
+   "severity": "중",
+   "evidence": "- 예시 1: semis_cap OOS(2020~)는 반도체 초과수익 구간이라 H2 OOS +0.42%p는 그 경로의 성질. rule_audit T1 −5% 손절은 IS +0.21/OOS −0.05 — 경로 하나로는 \"OOS 운이 나빴다\"와 \"효과 없다\"를 못 가른다. 그래서 우리는 '",
+   "action": "같은 줄에 A/B/C/F/검증전 꼬리표 추가 (README 규칙)",
+   "due": "2026-10-24"
+  },
+  {
+   "file": "docs/study_consults/answers/quant.md",
+   "line": 4,
+   "desk": "quant",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 7/7건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_spec.md",
+   "line": 20,
+   "desk": "edu",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "docs/desk_kb/_quiz_feedback.md ← | `screener/study_progress.py` · `.github/workflows/study.yml` · `tests/test_study_progress.py` | 이슈",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_spec.md",
+   "line": 77,
+   "desk": "edu",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "reports/study_wrong.json ← **진행 저장(구현, 2026-10-17 — 평가 데스크)**: 학습자가 GitHub 이슈 `study <id> done`(본문 선택: `quiz <qid> <0~3>` 한 줄씩,",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/study_spec.md",
+   "line": 77,
+   "desk": "edu",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "docs/desk_kb/_quiz_feedback.md ← **진행 저장(구현, 2026-10-17 — 평가 데스크)**: 학습자가 GitHub 이슈 `study <id> done`(본문 선택: `quiz <qid> <0~3>` 한 줄씩,",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/toss_md_laptop_setup.md",
+   "line": 152,
+   "desk": "pb",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "117줄과 동일: $s = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -DontStopIfGoin",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/toss_md_laptop_setup.md",
+   "line": 156,
+   "desk": "pb",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "115줄과 동일: $t1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thur",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/toss_md_laptop_setup.md",
+   "line": 157,
+   "desk": "pb",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "116줄과 동일: $t1.Repetition = (New-ScheduledTaskTrigger -Once -At 08:00 -RepetitionInterval (",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/toss_md_laptop_setup.md",
+   "line": 162,
+   "desk": "pb",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "122줄과 동일: $t2 = @((New-ScheduledTaskTrigger -Daily -At 08:30), (New-ScheduledTaskTrigger -",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/toss_md_laptop_setup.md",
+   "line": 211,
+   "desk": "pb",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "115줄과 동일: $t1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thur",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/toss_md_laptop_setup.md",
+   "line": 256,
+   "desk": "pb",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "68줄과 동일: icacls $f /inheritance:r /grant:r \"$($env:USERNAME):F\"",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_cio_lab_review.md",
+   "line": 65,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/fin/multi ← | 펀더멘탈 | 확정 분기 영업이익·매출 YoY·QoQ, 흑자 전환 | **가능** 2020Q1~ (첫 YoY 신호 2021-06) | `data/fin/multi·full.par",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_cio_lab_review.md",
+   "line": 77,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "screener/regime_tag ← | 센티멘트 | VIX·환율·지수 국면 | **가능** | `reports/macro_series.json`, `screener/regime_tag` |",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_koact_vs_ndx.md",
+   "line": 63,
+   "desk": "analyst",
+   "item": "(e) 원화 금액",
+   "severity": "경",
+   "evidence": "8,700억 ← 금 60일 / 20일 | 101.9억 / 76.6억 | 6,564억 / 8,700억 | 5,120억 / 7,081억 | 종가×거래량, reports/det",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_koact_vs_ndx.md",
+   "line": 63,
+   "desk": "analyst",
+   "item": "(e) 원화 금액",
+   "severity": "경",
+   "evidence": "5,120억 ← 0일 | 101.9억 / 76.6억 | 6,564억 / 8,700억 | 5,120억 / 7,081억 | 종가×거래량, reports/detail/KR |",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_koact_vs_ndx.md",
+   "line": 63,
+   "desk": "analyst",
+   "item": "(e) 원화 금액",
+   "severity": "경",
+   "evidence": "7,081억 ← 9억 / 76.6억 | 6,564억 / 8,700억 | 5,120억 / 7,081억 | 종가×거래량, reports/detail/KR |",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_koact_vs_ndx.md",
+   "line": 65,
+   "desk": "analyst",
+   "item": "(e) 원화 금액",
+   "severity": "경",
+   "evidence": "5원 ← .028% | 0.003% | 0.019% | [가정: ETF 호가단위 5원] |",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_koact_vs_ndx.md",
+   "line": 70,
+   "desk": "analyst",
+   "item": "(e) 원화 금액",
+   "severity": "경",
+   "evidence": "721억 ← ,749억)의 약 60%이고 4~7월 고점권에 집중됐다(급락 기간에도 +721억). **펀드는 +54.6%인데 들어온 돈은 평균 −11.7%** — 고",
+   "action": "개인 금액 아님(공시·예시·모의 고정 사이즈) 확인 후 문맥에 '예시/공시' 명시 또는 비율로 치환",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_koact_vs_ndx.md",
+   "line": 94,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/kr_etf_daily.parquet ← - data/hist/kr_etf_daily.parquet (133690 수정종가), data/hist/us_daily.parquet (QQQ 수정종가, ^IXIC), report",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_koact_vs_ndx.md",
+   "line": 94,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/us_daily.parquet ← - data/hist/kr_etf_daily.parquet (133690 수정종가), data/hist/us_daily.parquet (QQQ 수정종가, ^IXIC), report",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_lab_p1_prereg.md",
+   "line": 11,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/fin/multi.parquet ← - 재무: `data/fin/multi.parquet`·`full.parquet` (OpenDART 주요계정·전체재무제표) → `screener.fin.all_quarterly()",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_lab_p1_prereg.md",
+   "line": 13,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/kr_index_daily.parquet ← - 지수: `data/hist/kr_index_daily.parquet` KOSPI 종가. 반도체: `data/hist` us_daily `^SOX` 종가.",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_memory.md",
+   "line": 4,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/us_daily.parquet ← 입력: reports/valuation.json(10/17, 금요일 종가 MU 878.84 · SNDK 1,299.30 · 삼성전자 215,500 · SK하이닉스 1,272,000",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_memory.md",
+   "line": 32,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/fin/full.parquet ← | SK하이닉스 | 2016~2025 (10년) | **23.6%** (매출 430.4조, 순이익 101.4조 합) | 86% ⚠ | 118% ⚠ | 2023~2025 DART 연",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_memory.md",
+   "line": 39,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/us_daily.parquet ← ETF·주가 수준(data/hist/us_daily.parquet) 으로 확인 가능한 범위:",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_memory.md",
+   "line": 46,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/kr_2018 ← | 2018 | SK하이닉스 | (KR 일봉은 data/hist/kr_2018 — 미계산, 검증전) | 기사 기준 −42% | 2018 PER 4.6 (Newsis 2026-07-",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_non_semi_sectors.md",
    "line": 8,
-   "desk": "dev",
-   "item": "(e) 실보유 종목 개인 손절가 노출(야간 #2)",
-   "severity": "중",
-   "evidence": "야간 감사 1절 #2 (상세 reports/audit/2026-10-21.md)",
-   "action": "보드 audit-holding-stop-fixture",
-   "due": "2026-10-24",
-   "manual": true,
-   "status": "대기"
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/kr_prices.parquet ← - 재현: 계산 스크립트는 세션 스크래치(저장소 밖)에서 돌렸다. 입력은 전부 저장소 파일 — `data/kr_prices.parquet`(1년 일봉), `data/hist/kr_",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
   },
   {
-   "id": "N3",
-   "file": "(작성자 신원)",
-   "line": null,
-   "desk": "dev",
-   "item": "작성자 t 4건(야간 #3)",
-   "severity": "중",
-   "evidence": "야간 감사 1절 #3 — 근본 수정 04621ec8 확인 (상세 reports/audit/2026-10-21.md)",
-   "action": "PM 집계 확인",
-   "due": "2026-10-24",
-   "manual": true,
-   "status": "원인 수정 완료"
+   "file": "docs/valuation_notes/2026-10-17_non_semi_sectors.md",
+   "line": 8,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/kr_etf_daily.parquet ← - 재현: 계산 스크립트는 세션 스크래치(저장소 밖)에서 돌렸다. 입력은 전부 저장소 파일 — `data/kr_prices.parquet`(1년 일봉), `data/hist/kr_",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
   },
   {
-   "id": "N4",
-   "file": "reports/decisions.json",
-   "line": 187,
-   "desk": "dev",
-   "item": "pbview-amount-wording 기한 경과(야간 #4)",
-   "severity": "중",
-   "evidence": "야간 감사 1절 #4 (상세 reports/audit/2026-10-21.md)",
-   "action": "보드 pbview-amount-wording",
-   "due": "2026-10-24",
-   "manual": true,
-   "status": "대기"
+   "file": "docs/valuation_notes/2026-10-17_non_semi_sectors.md",
+   "line": 8,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/us_daily.parquet ← - 재현: 계산 스크립트는 세션 스크래치(저장소 밖)에서 돌렸다. 입력은 전부 저장소 파일 — `data/kr_prices.parquet`(1년 일봉), `data/hist/kr_",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
   },
   {
-   "id": "N5",
-   "file": "tools/toss_md/collect.py",
-   "line": null,
-   "desk": "dev",
-   "item": "(g) 테스트 없는 로직 변경 7821fdb1(야간 #5)",
-   "severity": "중",
-   "evidence": "야간 감사 1절 #5 (상세 reports/audit/2026-10-21.md)",
-   "action": "개발",
-   "due": "2026-10-24",
-   "manual": true,
-   "status": "대기"
+   "file": "docs/valuation_notes/2026-10-17_non_semi_sectors_appendix.md",
+   "line": 59,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/us_daily.parquet ← 측정: US 는 SOXX, KR 은 삼성전자·SK하이닉스 50/50 대비. 일간 = 최근 250거래일(~10-15/16), 주간 = 최근 52주. '반도체 최악 10% 날' 평균은",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_realestate_longview.md",
+   "line": 4,
+   "desk": "analyst",
+   "item": "(f) kb 앵커",
+   "severity": "경",
+   "evidence": "kb:realestate#번호 — realestate.md 에 #번호 항목 없음",
+   "action": "항목 번호 확인",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_realestate_longview.md",
+   "line": 87,
+   "desk": "analyst",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 9/9건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_realestate_longview.md",
+   "line": 195,
+   "desk": "analyst",
+   "item": "(d) 길이 상한",
+   "severity": "경",
+   "evidence": "노트 195줄 > 150",
+   "action": "부록으로 분리 (STANDARD §4)",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_trend_expectancy_prereg.md",
+   "line": 4,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "ops/agreements.md ← 결재: 오너 승인 2026-10-17 14:09 (pb-private ops/agreements.md §7-3). 검증 보고 기한: **2026-10-24(토) 18:00 KST*",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "docs/valuation_notes/2026-10-17_us_accumulation.md",
+   "line": 4,
+   "desk": "analyst",
+   "item": "(f) 깨진 경로",
+   "severity": "경",
+   "evidence": "data/hist/us_daily.parquet ← 입력: data/hist/us_2010.parquet~us_2025.parquet(yfinance 수정주가, 현재 상위 300종목) + reports/detail/US/*.json",
+   "action": "실제 경로로 고치거나 '(예정)'·'(미생성)' 표기",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "reports/dotplot.md",
+   "line": 36,
+   "desk": "cio",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "26줄과 동일: - 퀀트 매수1 — 저점 +1% 위 마감 신호 충족(C — 참고) [신호]",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "reports/dotplot.md",
+   "line": 37,
+   "desk": "cio",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "27줄과 동일: - 파생 중립1 — 감마 음수(-1,103억) — 흔들림 크지만 방향 없음 — B 이상 방향 렌즈 없음 [수급]",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "reports/dotplot.md",
+   "line": 41,
+   "desk": "cio",
+   "item": "(d) 중복 문장",
+   "severity": "경",
+   "evidence": "31줄과 동일: - CIO 중립1 — 강세 44% · 약세 22% — 과반 없음 [레짐]",
+   "action": "한 번만 쓰고 참조",
+   "due": "2026-10-28"
+  },
+  {
+   "file": "reports/scorecard_week.md",
+   "line": 20,
+   "desk": "pb",
+   "item": "(f) 이슈 참조",
+   "severity": "정보",
+   "evidence": "결재 #14 — 비공개 저장소 이슈, 자동 확인 불가",
+   "action": "감사 수동 확인(이슈 존재·제목 일치)",
+   "due": "2026-11-04"
+  },
+  {
+   "file": "reports/valuation.md",
+   "line": 49,
+   "desk": "analyst",
+   "item": "(c) 확인 필요 기한 없음",
+   "severity": "경",
+   "evidence": "기한 없는 [확인 필요] 1/1건 (STANDARD §1)",
+   "action": "`[확인 필요: 무엇, 언제까지]` 형식으로",
+   "due": "2026-10-28"
   }
  ]
 }
