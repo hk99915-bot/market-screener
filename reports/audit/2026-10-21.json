@@ -1,0 +1,383 @@
+{
+ "date": "2026-10-21",
+ "scope": "2026-10-21 00:00 KST ~ 12:40 KST. 공개 origin/main 커밋 383개(Claude 185·screener-bot 194·t 4, git log --since='2026-10-20 15:00 UTC') 전체 diff 정규식 + 비공개 pb-private 오늘 변경 12개 파일(life/·money/ 제외 — 오늘 변경 0건) + CI tests.yml 실행 이력 + live.yml 실행 이력. 야간분(01:5x 작성) 채점은 2026-10-21.md 1~5절, 이 JSON 은 하루 전체 2차 감사분. N1~N5 = 야간 1차 감사(주의→중) 이월분.",
+ "files": 17,
+ "counts": {
+  "치명": 2,
+  "중": 15,
+  "경": 5,
+  "정보": 6
+ },
+ "by_desk": {
+  "dev": {
+   "치명": 2,
+   "중": 7,
+   "경": 0
+  },
+  "ops": {
+   "치명": 0,
+   "중": 1,
+   "경": 0
+  },
+  "pb": {
+   "치명": 0,
+   "중": 6,
+   "경": 4
+  },
+  "audit": {
+   "치명": 0,
+   "중": 1,
+   "경": 0
+  },
+  "pm": {
+   "치명": 0,
+   "중": 0,
+   "경": 1
+  }
+ },
+ "findings": [
+  {
+   "id": "D1",
+   "file": "reports/logs/pdf_boxes.json",
+   "line": 272,
+   "desk": "dev",
+   "item": "(i) 실제 애널리스트 실명 + 회사 이메일 공개",
+   "severity": "치명",
+   "evidence": "봇 커밋 32774012(10/21 09:07 KST) 등 10/15 이후 10개 버전 모두 리포트 PDF 머리말의 '애널리스트 이름 + 회사 이메일' 1건 포함. 생성 경로 screener/research.py:264 가 PDF 디버그 덤프를 reports/logs/ 에 그대로 써서 briefing 이 커밋. 값은 이 문서에 옮기지 않음",
+   "action": "개발: 디버그 덤프에서 이메일·'Analyst <이름>' 패턴 마스킹 또는 pdf_boxes.json 커밋 제외(.gitignore). 공개 이력 10개 버전 잔존 → PB 가 오너에게 이력 처리 여부 보고(재작성 비권장, 야간 #1-b 와 같은 판단). 감사 직접 수정 예외는 (e) 금액만이라 감사는 줄을 고치지 않음",
+   "due": "2026-10-21",
+   "manual": true,
+   "status": "보드 P0 audit-analyst-email-log 등록"
+  },
+  {
+   "id": "D2",
+   "file": "(CI) .github/workflows/tests.yml",
+   "line": null,
+   "desk": "dev",
+   "item": "STANDARD §3 · LOOP 금지 '테스트 깨진 채 push'",
+   "severity": "중",
+   "evidence": "tests 빨강 구간 실측 10/20 15:57Z ~ 10/21 01:13Z(약 9시간 16분, 51회: 실패 32·취소 18·성공 1[3d7575d0]) — 지시서·ea387739 본문의 '23:44Z~' 보다 약 8시간 길다. 원인 2겹: 17873d5e(trial_log KeyError, 17:25Z 수정) + 64c1ae52(16:08Z 네이버 목록 API 경로 → test_research_views 실패, ea387739 01:13Z 수정). 그 사이 Claude 커밋 120개·t 커밋 4개 push, CIO 규칙 스위치 ON 커밋 e8be6e09(17:32Z)도 빨강 위에 올라감",
+   "action": "개발: push 전 검사에 'origin/main 최신 tests.yml 결론 = failure 이면 수리 커밋(tests/ 포함 또는 메시지 fix:)만 통과' 1단계 추가. ea387739 의 시작 시각 정정은 다음 개발 라운드 파일 1줄",
+   "due": "2026-10-24",
+   "manual": true
+  },
+  {
+   "id": "D3",
+   "file": "scripts/prepush_check.py",
+   "line": 7,
+   "desk": "dev",
+   "item": "(g) 검사 구조 — 로컬과 CI 조건 불일치",
+   "severity": "중",
+   "evidence": "pre-push 는 '바뀐 파일과 관련된 테스트만'(:7-10, tests_for) + 샌드박스는 외부망 차단, CI 는 외부망 열림. ea387739 원인 = 테스트가 rv._get 만 막아 CI 에선 네이버가 실제 성공 — 로컬에선 전체 실행이어도 통과했을 구조(네트워크 차이). 서브셋만의 문제가 아님",
+   "action": "개발: tests/conftest.py 에 외부 소켓 차단 기본값(필요한 테스트만 명시 허용) — CI 와 로컬이 같은 조건에서 돈다. tests/conftest.py 는 CORE 라 바꾸면 전체 실행",
+   "due": "2026-10-24",
+   "manual": true
+  },
+  {
+   "id": "D4",
+   "file": ".github/workflows/team.yml",
+   "line": 41,
+   "desk": "dev",
+   "item": "-X theirs 잔존(사람이 쓰는 파일 덮어쓰기 위험)",
+   "severity": "중",
+   "evidence": "team.yml:41 → ops/team.json(PB team_run 행) · deriv_hist.yml:80. 그 밖에 accum·data_store·fin·flowq·hist·lab·scorecard·screener·study_daily·us_accum 10개도 -X theirs(봇 전용 파일이라 위험 낮음), briefing.yml:150 은 수정 금지 잠금. ops.yml 은 61df0586 에서 제거 확인",
+   "action": "기존 요청 req-dev-cc84f898(마감 10/23) 로 추적 — 중복 요청 안 함",
+   "due": "2026-10-23",
+   "manual": true,
+   "status": "기존 요청 열림"
+  },
+  {
+   "id": "D5",
+   "file": "docs/desk_kb/rounds/2026-10-21/maint.md",
+   "line": 12,
+   "desk": "ops",
+   "item": "운영 루프 취소 승인 경로 없음",
+   "severity": "중",
+   "evidence": "10/21 11:04 KST(02:04:08Z) 유지보수 데스크가 장중 live.yml 실행 39518753409(09:01 루프)·대기 39530272167 를 취소하고 39530935464 를 commit=true 로 수동 dispatch. 매수 사이드카 발동일(10:53) 장중 이벤트 감시 루프. 기록은 라운드 파일 1줄뿐 — docs/schedule_table.md:17 은 수동 dispatch 기본값만 규정하고 '실행 중 운영 루프 취소' 승인·기록 절차는 어디에도 없음(git grep 'run cancel|실행 취소' 0건). 공백은 약 5초(취소 02:04:08 → 새 실행 02:04:13)로 피해는 확인 안 됨",
+   "action": "운영: schedule_table.md 에 1조 — 장중(09:00~15:30·22:30~05:00) live 루프 취소는 PB 승인 + 보드 노트 + 가능하면 장 마감 뒤; 취소 시각·run id 를 freshness 기록에",
+   "due": "2026-10-24",
+   "manual": true
+  },
+  {
+   "id": "D6",
+   "file": "docs/desk_kb/rounds/_requests.json",
+   "line": 335,
+   "desk": "pb",
+   "item": "(a) 틀린 숫자로 원인 단정",
+   "severity": "중",
+   "evidence": "req-data-75288029(PB, 10:14 KST) '마감 21시간 뒤 … 단순 지연 아닌 수집 경로 고장 의심' — 미장 10/20 마감은 10/21 05:00 KST 라 10:13 은 약 5시간 뒤. 23분 뒤 데이터 데스크 해소(:351) '야후 측 지연 ~5.5h, data.py 수정 불필요'. 같은 날 09:37 엔 원인이 '나왔다'고 보고(pb-private journal/auto_turns/2026-10-21.tsv:145) 후 10:14 다른 원인을 의심 — 확인 전 단정이 두 방향으로 오감",
+   "action": "PB: 자기 KB 복기 1건(시각 차는 식으로 적는다: 10:13 − 05:00 = 5h13m) + 데이터 데스크 진단 전 '원인' 단어 금지",
+   "due": "2026-10-24",
+   "manual": true
+  },
+  {
+   "id": "D7",
+   "file": "pb-private journal/2026-10-21.md",
+   "line": 26,
+   "desk": "pb",
+   "item": "(b) 검증 범위 없는 '0건' 단정",
+   "severity": "중",
+   "evidence": "'PB 전체 스캔 결과 다른 토큰·키·이메일 0건' — 같은 시각 공개 저장소에 D1 이메일이 있었음(10/15~). 스캔 대상·정규식·범위가 적혀 있지 않음",
+   "action": "PB: 해당 줄에 '정정(10/21 감사 D7): 이메일 1건 미탐 — reports/logs/pdf_boxes.json' 덧붙임(원문 유지). 앞으로 '0건' 에는 범위·패턴 1줄",
+   "due": "2026-10-24",
+   "manual": true
+  },
+  {
+   "id": "D8",
+   "file": "reports/audit/2026-10-21.md",
+   "line": 21,
+   "desk": "audit",
+   "item": "(b) 감사 자신의 미탐",
+   "severity": "중",
+   "evidence": "야간 감사 #10 '토큰·키·계좌·원화 금액 정규식 0건' — 이메일 패턴을 돌리지 않아 D1 미탐. 자기 면제 없음(기준서 §3-6)",
+   "action": "감사: KB 복기 1건 + scripts/slop_audit.py (e)(i) 자동 규칙에 이메일 패턴(허용: noreply·anthropic·google 공식 도메인) 추가 요청은 다음 라운드에서 오탐률 측정 후",
+   "due": "2026-10-24",
+   "manual": true
+  },
+  {
+   "id": "D9",
+   "file": "pb-private ops/agreements.md",
+   "line": 62,
+   "desk": "pb",
+   "item": "거버넌스 — 불변 규칙 변경 요청 경위 미기록",
+   "severity": "중",
+   "evidence": "10/21 오전 레버리지 ETF 적립 요청 → 퀀트 연구 백테스트(reports/studies/2026-10-21_qld_daily_dca.md, '연구 전용' 표기 확인) + 'QLD 규칙 변경 의견 패널(리스크·행동)' 실행(ops/team.json:1526). 그러나 원장에 10/21 해당 항목 0건(grep QLD·냉각), 패널 산출물 파일 없음, '결정 안 됨·10/22 15:00 냉각'이 어디에도 없음. 원장 62행은 레버리지·인버스 금지 기한을 '불변'으로 둠 — 냉각 후 재논의는 불변 규칙에 없는 변경 경로를 여는 것이라 원장에 근거가 필요. 같은 대화에서 금지 목록(39행) 밖 레버리지 상품으로의 우회 언급(auto_turns:162) — 금지 목록 정의 공백",
+   "action": "PB(기록): 오늘 중 원장에 '기록(합의 아님)' 1줄 — 요청 원문 인용·PB 처리·패널 의견 파일 경로·냉각 시각·'불변 규칙이라 냉각 뒤에도 변경 경로 없음' 또는 겸이가 불변을 푸는 결정인지 구분. 금지 목록 정의 공백은 🗳️ 일요일 안건",
+   "due": "2026-10-21",
+   "manual": true
+  },
+  {
+   "id": "D10",
+   "file": "pb-private ops/glossary.md",
+   "line": 72,
+   "desk": "pb",
+   "item": "[13] 정의 먼저 위반",
+   "severity": "중",
+   "evidence": "8-E 확정(agreements.md:258·259, 08:5x) — 용어집 72행은 여전히 '8-E ISA 적용 여부 🗳️', 매수/매도 사이드카 구분 정의 없음. [13]은 '용어집 등록 후에만 신설·개정·집행'(agreements.md:96·135). rules.txt:22 '서킷·사이드카 발동일 장중 신규 진입 금지'에 ISA 계획 매수 예외 문구 없음 → 원문 충돌",
+   "action": "PB: 용어집 72행에 매수/매도 사이드카·서킷 정의 + 8-E 범위(ISA 계획 매수만) 등록, rules.txt:22 에 ISA 예외 참조 1줄(겸이 확인)",
+   "due": "2026-10-22",
+   "manual": true
+  },
+  {
+   "id": "D11",
+   "file": "pb-private ops/agreements.md",
+   "line": 257,
+   "desk": "pb",
+   "item": "예외가 예외로 기록되지 않음(변경 주기)",
+   "severity": "중",
+   "evidence": "[13] 변경 주기 파라미터=일요일·구조=월말(agreements.md:135, HANDOFF.md:15 '규칙(rules.txt) 변경만 일요일 리뷰'). 수요일 결정 4건 중 256(ISA C안)만 '⚠️ 규칙 예외' — 그것도 '위반 중 완화 금지' 예외만 적고 변경 주기 예외는 없음. 257(코어 종목 교체)·258·259(8-E)는 ✅ 일반 합의로 기록. rules.txt:10·91 은 여전히 '나스닥100 10(상한)'·기존 종목 → 실제 집행(C안)과 규칙 원문 불일치",
+   "action": "PB: 257~259 에 '변경 주기 예외(수요일, 겸이 직접)' 꼬리표, 256 에 같은 꼬리표 추가. rules.txt:10·91 갱신은 겸이 확인 1줄 받고 오늘~내일",
+   "due": "2026-10-22",
+   "manual": true
+  },
+  {
+   "id": "D12",
+   "file": "pb-private scribe/turn_hook.py",
+   "line": 71,
+   "desk": "pb",
+   "item": "(e) 경로 — 발화 원문 무필터 자동 커밋",
+   "severity": "중",
+   "evidence": "겸이 발화 앞 80자를 마스킹 없이 journal/auto_turns/ 로 30분마다 커밋. 오늘 계좌번호·토큰 패턴 0건 확인(10/20·10/21 tsv), 이미지는 저장 안 됨 — 그러나 계좌번호가 보이는 캡처를 올린 날이고, 붙여넣은 터미널 출력(PowerShell 줄)도 그대로 들어감(:4·:6·:57). 원장 규칙 '계좌번호 저장 금지·토큰 채팅 금지'를 지키는 장치가 없음",
+   "action": "기록: turn_hook 에 계좌번호·토큰·키 정규식 마스킹 1단계 + 테스트",
+   "due": "2026-10-24",
+   "manual": true
+  },
+  {
+   "id": "L1",
+   "file": "pb-private ops/agreements.md",
+   "line": 253,
+   "desk": "pb",
+   "item": "약속 미이행",
+   "severity": "경",
+   "evidence": "'07시 이후 리스크 데스크 의견 1줄 첨부 예정' — 254~259 에 첨부 없음(리스크 실행 기록은 ops/team.json 에 장중 재계산만)",
+   "action": "PB: 리스크 데스크 의견 1줄(무편집 인용) 첨부 또는 '첨부 안 함' 사유",
+   "due": "2026-10-21",
+   "manual": true
+  },
+  {
+   "id": "L2",
+   "file": "pb-private ops/agreements.md",
+   "line": 256,
+   "desk": "pb",
+   "item": "겸이 말 ≠ PB 해석 미구분",
+   "severity": "경",
+   "evidence": "256 '기존 금 보유는 매도하지 않고 신규 매수에서 금 0', 258 '서킷일 추가 매수는 결재 #15 로만 — 이번 결정은 계획 매수 시점만' — 인용 밖 문장인데 'PB 해석' 꼬리표 없음(193·218행은 붙어 있음). 258 '겸이 원문 그대로'·251 처리는 잘 구분됨",
+   "action": "PB: 두 문장에 '(PB 해석)'",
+   "due": "2026-10-28",
+   "manual": true
+  },
+  {
+   "id": "L3",
+   "file": "pb-private ops/agreements.md",
+   "line": 257,
+   "desk": "pb",
+   "item": "(a) 출처 없는 가격(설명용)",
+   "severity": "경",
+   "evidence": "기존 종목 '1주 약 17만원' 기준 시각·출처 없음(교체 종목은 '시세 9시 확인')",
+   "action": "PB: 기준 시각·출처 덧붙임",
+   "due": "2026-10-28",
+   "manual": true
+  },
+  {
+   "id": "L4",
+   "file": "pb-private journal/2026-10-21.md",
+   "line": 31,
+   "desk": "pb",
+   "item": "VOC 근거 경로 누락",
+   "severity": "경",
+   "evidence": "'데스크 보고 요지' 9개 데스크 중 내무만 파일 경로. 실제 호출은 ops/team.json runs 로 확인됨(내무·행동·CIO·리스크·자산배분·감사·PM·매크로·채권·파생 패널) — VOC 규칙 위반(대리 작성)은 아니나 '요지'라 원문 위치가 있어야 무편집 확인 가능",
+   "action": "PB: 각 줄에 산출물 경로 또는 '원문=대화만'",
+   "due": "2026-10-28",
+   "manual": true
+  },
+  {
+   "id": "L5",
+   "file": "ops/team.json",
+   "line": null,
+   "desk": "pm",
+   "item": "집계 키 혼재",
+   "severity": "경",
+   "evidence": "10/21 runs 의 owner 가 '애널'·'analyst', '개발'·'dev' 혼재 — scripts/team_stats.py 데스크별 합계가 갈림",
+   "action": "PM: team_run.py 에 owner 정규화(round_collect.desk_key) 1줄",
+   "due": "2026-10-28",
+   "manual": true
+  },
+  {
+   "id": "I1",
+   "file": "screener/sectors.py",
+   "line": 20,
+   "desk": "dev",
+   "item": "[13] 22~07시 준수 확인",
+   "severity": "정보",
+   "evidence": "섹터 공식 한도 스위치 OFFICIAL_LIMITS = False 유지(00:45 🌙 승인 '07:00 이후 적용'대로, 야간 변경 커밋 없음). CIO_TOP3_V2 = True(e8be6e09, 02:5x)는 agreements.md:253·255 에 겸이 명시 예외·범위(모의·표시)·되돌리기로 기록 — 예외가 예외로 기록됨",
+   "action": "—",
+   "due": null,
+   "manual": true
+  },
+  {
+   "id": "I2",
+   "file": "pb-private ops/agreements.md",
+   "line": 251,
+   "desk": "pb",
+   "item": "[13] 위반 중 완화 금지 준수 확인",
+   "severity": "정보",
+   "evidence": "02:16 나스닥 15% 발언을 22~07시·위반 중 완화 두 사유로 결정 미적용 → 08:3x 겸이가 반대 의견을 듣고 직접 결정, 256 에 '⚠️ 규칙 예외'·반대 의견·사후 점검일(11/15) 기록",
+   "action": "—",
+   "due": null,
+   "manual": true
+  },
+  {
+   "id": "I3",
+   "file": "(공개·비공개 전체)",
+   "line": null,
+   "desk": "audit",
+   "item": "계좌번호 캡처 저장 여부",
+   "severity": "정보",
+   "evidence": "공개 오늘 diff(약 300MB, parquet 제외) 계좌번호 형식(3단·2단 하이픈 숫자, 날짜 제외) 0건 · '계좌번호' 키워드 1건 = tools/toss_md/publish.py 금지 키 목록 · 이미지 파일 추가 0건(main·data·toss-live·study-data 브랜치). 비공개 오늘 변경 12개 파일 0건(내무 원장은 '원본 행·계좌 미저장' 설계, household/import_banksalad.py:13), 이미지 추가 0건. 캡처는 세션 컨테이너 업로드 폴더에만 있음(저장소 아님, 휘발성). life/·money/ 는 지시대로 열지 않음 — 오늘 변경 0건",
+   "action": "—",
+   "due": null,
+   "manual": true
+  },
+  {
+   "id": "I4",
+   "file": "(공개 오늘 diff)",
+   "line": null,
+   "desk": "audit",
+   "item": "토큰·KRX ID·금액 재스캔",
+   "severity": "정보",
+   "evidence": "토큰 패턴 3건 = 자리표시자(docs/toss_md_laptop_setup.md 'github_pat_…')·가짜 테스트값(tests/test_dispatch.py) · '로그인 ID:' 추가 줄 3건 모두 *** · 원화 금액 후보 102건 = 공시·리포트 본문·세법 기준·QLD 연구의 '가상 금액' 표기·영어 문제(시장 순매수 공시 수치) — 개인 금액 0건",
+   "action": "—",
+   "due": null,
+   "manual": true
+  },
+  {
+   "id": "I5",
+   "file": ".github/workflows/deriv_hist.yml",
+   "line": 64,
+   "desk": "dev",
+   "item": "야간 치명 #1 재검수",
+   "severity": "정보",
+   "evidence": "45c92873 로 :64·:66 tee 앞 sed 마스킹 확인. 실제 실행 검증은 오늘 16:40 KST cron 뒤 reports/logs/deriv_hist.txt:4 재스캔 — 그때까지 보드 audit-krx-id-deriv 는 '검수' 유지",
+   "action": "감사: 16:40 이후 재스캔",
+   "due": "2026-10-21",
+   "manual": true
+  },
+  {
+   "id": "I6",
+   "file": "reports/studies/2026-10-21_qld_daily_dca.md",
+   "line": 1,
+   "desk": "quant",
+   "item": "연구 꼬리표 확인",
+   "severity": "정보",
+   "evidence": "첫 줄 '연구 전용 — 실계좌 레버리지·인버스 2027-04-15까지 금지(불변 규칙)·가상 금액·매매 지시 아님' 확인. 매매 지시문 없음",
+   "action": "—",
+   "due": null,
+   "manual": true
+  },
+  {
+   "id": "N1",
+   "file": "reports/logs/deriv_hist.txt",
+   "line": 4,
+   "desk": "dev",
+   "item": "(e) KRX 로그인 ID 공개(야간 #1)",
+   "severity": "치명",
+   "evidence": "야간 감사 1절 #1 — 줄 치환 완료, 워크플로 45c92873 수정, 실행 검증 16:40 뒤(I5) (상세 reports/audit/2026-10-21.md)",
+   "action": "보드 audit-krx-id-deriv(검수)",
+   "due": "2026-10-21",
+   "manual": true,
+   "status": "조치 완료·실행 검증 대기"
+  },
+  {
+   "id": "N2",
+   "file": "screener/alerts.py",
+   "line": 8,
+   "desk": "dev",
+   "item": "(e) 실보유 종목 개인 손절가 노출(야간 #2)",
+   "severity": "중",
+   "evidence": "야간 감사 1절 #2 (상세 reports/audit/2026-10-21.md)",
+   "action": "보드 audit-holding-stop-fixture",
+   "due": "2026-10-24",
+   "manual": true,
+   "status": "대기"
+  },
+  {
+   "id": "N3",
+   "file": "(작성자 신원)",
+   "line": null,
+   "desk": "dev",
+   "item": "작성자 t 4건(야간 #3)",
+   "severity": "중",
+   "evidence": "야간 감사 1절 #3 — 근본 수정 04621ec8 확인 (상세 reports/audit/2026-10-21.md)",
+   "action": "PM 집계 확인",
+   "due": "2026-10-24",
+   "manual": true,
+   "status": "원인 수정 완료"
+  },
+  {
+   "id": "N4",
+   "file": "reports/decisions.json",
+   "line": 187,
+   "desk": "dev",
+   "item": "pbview-amount-wording 기한 경과(야간 #4)",
+   "severity": "중",
+   "evidence": "야간 감사 1절 #4 (상세 reports/audit/2026-10-21.md)",
+   "action": "보드 pbview-amount-wording",
+   "due": "2026-10-24",
+   "manual": true,
+   "status": "대기"
+  },
+  {
+   "id": "N5",
+   "file": "tools/toss_md/collect.py",
+   "line": null,
+   "desk": "dev",
+   "item": "(g) 테스트 없는 로직 변경 7821fdb1(야간 #5)",
+   "severity": "중",
+   "evidence": "야간 감사 1절 #5 (상세 reports/audit/2026-10-21.md)",
+   "action": "개발",
+   "due": "2026-10-24",
+   "manual": true,
+   "status": "대기"
+  }
+ ]
+}

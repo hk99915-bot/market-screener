@@ -489,6 +489,42 @@
    "status": "open"
   },
   {
+   "id": "req-dev-9384a4fc",
+   "from": "audit",
+   "to": "dev",
+   "text": "감사 D2·D3(중): CI 빨강 9h16m 동안 push 120건 — prepush 에 'origin/main 최신 tests.yml 실패면 수리 커밋만 통과' 단계, tests/conftest.py 외부 소켓 차단 기본값(로컬=CI 조건). ea387739 시작 시각(실제 15:57Z) 라운드 파일 정정 1줄",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-a4a651fd",
+   "from": "audit",
+   "to": "dev",
+   "text": "감사 D1(치명): reports/logs/pdf_boxes.json:272 실제 애널리스트 실명·회사 이메일 공개 — screener/research.py:264 디버그 덤프 마스킹 또는 커밋 제외 + 테스트 (보드 audit-analyst-email-log, reports/audit/2026-10-21.json)",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-21",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-cb19b1e0",
    "from": "frm",
    "to": "dev",
@@ -579,6 +615,24 @@
    "status": "open"
   },
   {
+   "id": "req-ops-6cec6000",
+   "from": "audit",
+   "to": "ops",
+   "text": "감사 D5(중): 장중 live.yml 루프 취소·재시작(10/21 02:04Z, run 39518753409) 승인 절차 없음 — schedule_table.md 에 'PB 승인+보드 노트+가능하면 장 마감 뒤, 취소 run id 기록' 1조",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-ops-c0481595",
    "from": "겸이",
    "to": "ops",
@@ -597,6 +651,96 @@
    "status": "done",
    "done": "2026-10-21",
    "done_at": "2026-10-21T02:04+09:00"
+  },
+  {
+   "id": "req-pb-0d7ffe28",
+   "from": "audit",
+   "to": "pb",
+   "text": "감사 D9(중, 오늘): 레버리지 불변 규칙 변경 요청 처리 경위가 원장에 없음 — '기록(합의 아님)' 1줄: 요청 인용·PB 처리·리스크/행동 패널 산출물 경로·냉각 시각·불변 규칙의 변경 경로 유무. 같은 날 L1(원장 253 리스크 의견 첨부 약속)도",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-21",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pb-23606b98",
+   "from": "audit",
+   "to": "pb",
+   "text": "감사 L2~L4(경): 원장 256·258 PB 해석 꼬리표 · 257 가격 출처·시각 · journal 10/21 데스크 요지 근거 경로",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pb-65b39a04",
+   "from": "audit",
+   "to": "pb",
+   "text": "감사 D6·D7(중)+D12: req-data-75288029 '21시간'(실제 약 5h) 복기 · journal 10/21:26 '이메일 0건' 정정 1줄(pdf_boxes 미탐) · 기록 데스크에 scribe/turn_hook.py:71 계좌·토큰 마스킹 전달 · D1 공개 이력 오너 보고",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pb-ec64b316",
+   "from": "audit",
+   "to": "pb",
+   "text": "감사 D10·D11(중): 8-E 확정 뒤 용어집 72행 미갱신·rules.txt:22 원문 충돌 / 수요일 규칙 변경 257~259 '변경 주기 예외' 꼬리표 없음, rules.txt:10·91 ≠ 집행(C안) — 겸이 확인 1줄 후 갱신",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-22",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pm-1dc0d451",
+   "from": "audit",
+   "to": "pm",
+   "text": "감사 L5(경): ops/team.json 10/21 runs owner 키 혼재(애널/analyst·개발/dev) — team_run.py 에서 desk_key 정규화",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:28+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-quant-58d16842",
