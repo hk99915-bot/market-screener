@@ -72,3 +72,46 @@ def fetch_macro() -> pl.DataFrame:
     except Exception as e:  # noqa: BLE001
         log.warning("매크로 수집 실패: %s", e)
         return pl.DataFrame(schema={"key": pl.Utf8, "date": pl.Date, "close": pl.Float64})
+
+
+# ── 마지막 날 토스 보충 (보드 us-eod-toss, 10/21 겸이 "야후가 아니라 토스로 하기로 했잖아") ─────────────────────
+# 야후가 장후 몇 시간 당일 종목봉을 안 주면(10/21: 10/20 봉 없음 → STALE) 노트북 수집기가 toss-live 에 올린 us_eod.json
+# ({date(ET), bars:{yf: [o,h,l,c,v]}})에서 **그 날짜 봉만** 붙인다. 이력은 야후 그대로. 파일 없음·날짜 다름 → 손대지 않음(기존 STALE).
+TOSS_EOD_URL = "https://raw.githubusercontent.com/hk99915-bot/market-screener/toss-live/us_eod.json"
+
+
+def load_toss_eod(url: str = TOSS_EOD_URL) -> dict | None:
+    import time
+
+    import requests
+    try:
+        r = requests.get(f"{url}?t={int(time.time())}", timeout=20)   # raw 캐시 최대 5분 → 캐시버스터
+        return r.json() if r.ok else None
+    except Exception as e:  # noqa: BLE001
+        log.warning("토스 us_eod.json 못 읽음: %s", e)
+        return None
+
+
+def fill_last_day(px: pl.DataFrame, want: date, eod: dict | None) -> tuple[pl.DataFrame, dict | None]:
+    """px(야후 long)에 want 날짜 봉이 없는 종목만 토스 봉으로 채움. 반환 (px, {src, date, filled, total, pct, label} | None)."""
+    if not eod or str(eod.get("date")) != want.isoformat() or px.is_empty():
+        return px, None
+    bars = eod.get("bars") or {}
+    syms = px["yf"].unique().to_list()
+    have = set(px.filter(pl.col("date") == want)["yf"].to_list())
+    rows = []
+    for s in syms:
+        v = bars.get(s)
+        if s in have or not isinstance(v, list) or len(v) < 5 or v[3] is None:
+            continue
+        o, h, lo, c = (float(x) if x is not None else float(v[3]) for x in v[:4])
+        rows.append({"yf": s, "date": want, "open": o, "high": h, "low": lo, "close": c, "volume": float(v[4] or 0)})
+    if not rows:
+        return px, None
+    add = pl.DataFrame(rows).with_columns(pl.col("date").cast(pl.Date)).select(px.columns).cast(px.schema)
+    out = pl.concat([px, add]).sort("yf", "date")
+    pct = round(100 * len(rows) / len(syms), 1)
+    info = {"src": "yahoo+toss", "date": want.isoformat(), "filled": len(rows), "total": len(syms), "pct": pct,
+            "label": f"src: 야후+토스 보충 {pct:g}%"}
+    log.info("마지막 날 토스 보충 %s: %d/%d 종목 (%s%%)", want, len(rows), len(syms), pct)
+    return out, info

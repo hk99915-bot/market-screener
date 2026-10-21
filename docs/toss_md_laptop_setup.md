@@ -191,6 +191,11 @@
 - 일봉(상단 지표 팝업 차트용, 10/21): `toss_md_sectors`(07:20)가 지수·국채 8 + 미장 ETF 7 = 15키를 키당 최대 3호출(200봉씩, ≤520봉)로 백필 → `toss_md_data\daily_bars\`. 실시간 작업은 오늘 봉만(국장 창 KOSPI·KOSDAQ 2회, 미장 창 SPY·QQQ·DIA·IWM·SOXX 5회). 공개는 toss-live 의 `daily_bars.json`(과거 — 07:20 에만 갱신, 하루 1커밋)·`daily_today.json`(그 뒤 봉, 10분).
 - 국장 ETF·종목 현재가: 실시간 작업이 회차마다 `/prices` 1회(지표·ISA 코어·섹터 ETF 13개 + 운용회의 아이디어 + 시총 순, 200개)를 더 부른다 → 회차당 국장 7(+오늘 일봉 2) + 미장 8(+오늘 일봉 5) = 최대 22회.
 
+- **미장 마감 EOD (10/21, 보드 `us-eod-toss`, 겸이 "야후가 아니라 토스로 하기로 했잖아")**: 야후가 장후 몇 시간 당일 종목봉을 안 줘서 US 스크리너가 STALE 나던 것(10/21 아침 10/20 봉 없음) 보충용.
+  - **새 작업 없음** — 이미 도는 `toss_md_live`(us 그룹)가 미 정규장 마감 후(ET 16:15 이후, 휴장표 기준 = 서머타임 **05:15**·11/2부터 **06:15** KST) 첫 회차에 하루 1번 S&P500∪NDX(약 520종목)를 `/api/v1/candles` 1d count=2 로 1회씩 부른다(0.5초 간격, 30호출마다 잠금 양보) → `toss_md_data\us_eod\<ET날짜>.json` → publish 가 toss-live `us_eod.json`.
+  - 그 회차만 약 6~7분 걸린다(평소 1분). 7분에 끊고 남은 건 다음 회차(10분 뒤)가 이어 받음 → screen_us(06:52) 전에 끝남. screener 는 야후 마지막 날이 비면 그 날짜 봉만 토스로 채우고 'src: 야후+토스 보충 n%' 로 표시(토스 파일 없거나 날짜 다르면 기존 STALE).
+  - **겸이 할 일: `cd $HOME\market-screener; git pull` 한 번만.** (PowerShell 작업 등록 없음.) 확인: 다음날 아침 `dir $HOME\toss_md_data\us_eod` 에 전날(ET) 날짜 파일, `missing` 이 수십 개 이상이면 심볼 꼴(BRK.B 등) 확인 필요 → PB 에 알려줘.
+
 ```powershell
 cd $HOME\market-screener
 git pull

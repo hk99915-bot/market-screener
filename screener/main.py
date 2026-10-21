@@ -65,6 +65,19 @@ def fetch_with_retry(fetch, market: str, now: datetime, tries: int = 3, sleep_s:
     return px, asof
 
 
+def us_toss_fill(px, asof, now: datetime, load=None):
+    """야후 최빈 기준일 < 기대 거래일이면 toss-live us_eod.json 의 그 날짜 봉만 붙임(보드 us-eod-toss). 반환 (px, info|None).
+    토스 파일 없음·날짜 다름 → (px, None) 그대로 → 아래 기준일 가드가 기존대로 STALE."""
+    from . import guard, tradecal
+    exp = tradecal.expected_session("US", now)
+    if asof is None or asof >= exp:
+        return px, None
+    px, info = data.fill_last_day(px, exp, (load or data.load_toss_eod)())
+    if info:
+        guard.record_fill("reports/detail/US/_index.json", "US 시세 마지막 날", info)
+    return px, info
+
+
 def run(market: str, live: bool = False, prices_path: str | None = None, no_send: bool = False) -> None:
     mc = CFG.kr if market == "KR" else CFG.us
     status = _status(mc.tz, live)
@@ -80,12 +93,14 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
 
     # 2) 시세
     now = datetime.now(ZoneInfo("Asia/Seoul"))
+    fill = None   # 마지막 날 토스 보충 정보(US, 야후 최빈 기준일 < 기대 거래일일 때만)
     if prices_path:
         px = pl.read_parquet(prices_path)
     elif market == "KR":
         px, _ = fetch_with_retry(data_krx.fetch_prices_krx, market, now)          # KRX 공식 데이터 (증분)
     else:
-        px, _ = fetch_with_retry(lambda: data.fetch_prices(uni["yf"].to_list(), market), market, now)
+        px, _asof = fetch_with_retry(lambda: data.fetch_prices(uni["yf"].to_list(), market), market, now)
+        px, fill = us_toss_fill(px, _asof, now)
     px = px.filter(pl.col("yf").is_in(uni["yf"].implode()))
     log.info("시세 %d행 / %d종목", len(px), px["yf"].n_unique())
 
@@ -143,6 +158,8 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
     # 5) 출력
     report.write_markdown(market, status, last, br, anom, mr, mc.top_n, nw)
     msg = report.telegram_summary(market, status, last, br, anom, mr, regime_line, mc.top_n, nw)
+    if fill:
+        msg += "\n" + fill["label"]
     tail = ""
     if status == "CONFIRMED" and not prices_path:
         try:
@@ -158,6 +175,7 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         if tail:
             dashboard.put_state(f"close_{market}", tail, asof=_sa)
         dashboard.put_state(f"telegram_{market}", msg, asof=_sa)
+        dashboard.put_state(f"price_src_{market}", fill["label"] if fill else "src: 야후", asof=_sa)
         try:
             from . import momentum
             momentum.ranks(full, last, market)

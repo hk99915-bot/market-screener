@@ -543,6 +543,107 @@ def collect_bases(client, day: Path, now: datetime, dry_run: bool = False, sleep
     return ok, fail, err
 
 
+# ── 미장 마감 EOD (보드 us-eod-toss, 10/21 겸이 "야후가 아니라 토스로 하기로 했잖아") ─────────────────────────
+# 야후가 장후 몇 시간 당일 종목봉을 안 주는 날(10/21: 10/20 봉 없음 → US 스크리너 STALE) screener 가 마지막 날 봉만 토스로 보충.
+# 실시간 작업(toss_md_live, 'us' 그룹)에 붙임 — 새 작업 등록 없음. 정규장 마감(ET 16:15 이후, 휴장표 tradecal) 첫 회차에 1회:
+# S&P500∪NDX(universe/us_index.csv, yf 꼴) 심볼마다 /api/v1/candles 1d count=2 → base/us_eod/<ET 날짜>.json.
+# 서머타임 05:15·겨울 06:15 KST 이후 첫 회차(screen_us 06:52 전). 청크 잠금·0.5초 간격·이어받기 = 기준가 캐시와 같음(상한만 7분 — 작업 제한 10분).
+US_EOD_AFTER_ET = (16, 15)
+US_EOD_COUNT = 2
+US_EOD_MAX_SEC = 7 * 60   # 실시간 작업 실행 제한 10분 안 — 못 끝내면 <날짜>.partial.json 을 다음 회차(10분 뒤)가 이어 받음
+
+
+def us_eod_day(now: datetime):
+    """지금 수집할 미장 마감일(ET date) — 오늘(ET)이 거래일이고 16:15 ET 이후면 그 날, 아니면 None."""
+    from screener import tradecal
+    if ET is None:
+        return None
+    et = now.astimezone(ET)
+    return et.date() if tradecal.is_session("US", et.date()) and (et.hour, et.minute) >= US_EOD_AFTER_ET else None
+
+
+def us_eod_symbols(root: Path = ROOT) -> list[str]:
+    """screener US 유니버스(S&P500 ∪ NDX 캐시) yf 꼴. 없으면 us_sector.csv."""
+    for f in ("us_index.csv", "us_sector.csv"):
+        try:
+            xs = [ln.split(",", 1)[0].strip().upper() for ln in (root / "universe" / f).read_text(encoding="utf-8").splitlines()[1:]]
+            xs = list(dict.fromkeys(x for x in xs if x))
+            if xs:
+                return xs
+        except Exception:  # noqa: BLE001
+            pass
+    return []
+
+
+def eod_bar(data, et_day: str) -> list | None:
+    """1d 캔들 응답 → et_day(ET) 봉 [o,h,l,c,v] 또는 None (파서는 일봉 캐시와 같은 _daily_rows)."""
+    rows, _ = _daily_rows(data, "US")
+    return rows.get(et_day)
+
+
+def collect_us_eod(client, base: Path, now: datetime, dry_run: bool = False, sleep=time.sleep,
+                   gap: float = SECTOR_GAP_SEC, lock_path: Path | None = None, lock_wait: float = 0.0,
+                   clock=time.time, symbols: list[str] | None = None) -> tuple[int, int, str | None]:
+    d = us_eod_day(now)
+    if d is None:
+        return 0, 0, None
+    out_dir = base / "us_eod"
+    f, part_f = out_dir / f"{d.isoformat()}.json", out_dir / f"{d.isoformat()}.partial.json"
+    if f.exists():
+        return 0, 0, None
+    out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        got = json.loads(part_f.read_text(encoding="utf-8")) if part_f.exists() else {}
+    except Exception:  # noqa: BLE001
+        got = {}
+    syms = symbols if symbols is not None else us_eod_symbols()
+    pending = [s for s in syms if s not in got]
+    ok = fail = 0
+    err = stopped = None
+    t0 = clock()
+
+    def save():
+        tmp = part_f.with_suffix(".tmp")
+        tmp.write_text(json.dumps(got, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(part_f)
+    for i in range(0, len(pending), SECTOR_CHUNK):
+        if clock() - t0 > US_EOD_MAX_SEC:
+            stopped = "시간 상한"
+            break
+        try:
+            with (Lock(lock_path, lock_wait) if lock_path else _NoLock()):
+                for sym in pending[i:i + SECTOR_CHUNK]:
+                    if not dry_run:
+                        sleep(gap)
+                    try:   # 토스 심볼은 점 꼴(BRK.B) [추정 — 첫 실행 missing 으로 확인], 키는 yf 꼴 그대로
+                        data = client.get("/api/v1/candles", {"symbol": sym.replace("-", "."), "interval": "1d", "count": US_EOD_COUNT})
+                        ok += 1
+                    except (toss_md.TossMDError, toss_md.ForbiddenRequest) as e:
+                        fail += 1
+                        err = f"us_eod: {e}"
+                        got[sym] = None
+                        continue
+                    got[sym] = eod_bar(data, d.isoformat())
+        except SystemExit as e:
+            stopped = f"잠금 {e}"
+            break
+        save()
+        if not dry_run and i + SECTOR_CHUNK < len(pending):
+            sleep(SECTOR_YIELD_SEC)
+    if stopped:
+        save()
+        return ok, fail + 1, f"us_eod: 중단({stopped})"
+    bars = {s: v for s, v in got.items() if v}
+    rec = {"date": d.isoformat(), "generated_at": now.isoformat(timespec="seconds"), "dry_run": dry_run,
+           "bars": bars, "n": len(bars), "missing": sorted(s for s, v in got.items() if not v)}
+    tmp = f.with_suffix(".tmp")
+    tmp.write_text(json.dumps(rec, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(f)
+    part_f.unlink(missing_ok=True)
+    log.info("미장 EOD %s: %d/%d 종목 · 호출 %d · 실패 %d", d, len(bars), len(got), ok + fail, fail)
+    return ok, fail, err
+
+
 def daily_closes(data, mk: str) -> list[list]:
     """1d 캔들 → [[시장 날짜, 종가], …] 날짜순. KR=KST 날짜, US=ET 날짜."""
     out = {}
@@ -723,7 +824,9 @@ def run(group: str = "all", dry_run: bool = False, stocks_all: bool = False, out
     if stocks_all and "daily" in want:
         targets += [t for t in STOCKS_ALL if not (day / f"{t[0]}.json").exists()]  # 시장별 일 1회
     do_sectors = "sectors" in want and not (day / "sectors.json").exists()
-    if not targets and not do_sectors and not ("sectors" in want and not (day / "bases.json").exists()):
+    eod_d = us_eod_day(now) if "us" in want else None
+    do_eod = bool(eod_d) and not (base / "us_eod" / f"{eod_d.isoformat()}.json").exists()
+    if not targets and not do_sectors and not do_eod and not ("sectors" in want and not (day / "bases.json").exists()):
         log.info("수집 대상 없음(세션 밖: %s)", skipped)
         return {"dir": str(day), "ok": 0, "fail": 0, "skipped": skipped, "host": "dry-run" if dry_run else socket.gethostname()}
 
@@ -748,6 +851,9 @@ def run(group: str = "all", dry_run: bool = False, stocks_all: bool = False, out
             fail, last_err = fail + 1, f"daily 백필: 잠금 {e}"
     if "sectors" in want and not (day / "bases.json").exists():   # 기준가 캐시(하루 1회)도 같은 작업에서
         o, f_, e = collect_bases(client, day, now, dry_run, lock_path=lock, lock_wait=lock_wait)
+        ok, fail, last_err = ok + o, fail + f_, e or last_err
+    if do_eod:   # 미장 마감 EOD(하루 1회, 청크 잠금) — 큰 잠금 밖에서
+        o, f_, e = collect_us_eod(client, base, now, dry_run, lock_path=lock, lock_wait=lock_wait)
         ok, fail, last_err = ok + o, fail + f_, e or last_err
     with Lock(lock, lock_wait):
         for name, _g, path, params in targets:

@@ -177,6 +177,22 @@ def record_stale(path: str, what: str, want, got) -> None:
     fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def record_fill(path: str, what: str, info: dict) -> None:
+    """목표 날짜를 다른 출처로 채운 경우(조용한 대체 금지 — stale 대신 출처 기록) reports/freshness.json 의 `filled` 에 남김.
+    info = {src, date, filled, total, pct, label} (screener.data.fill_last_day)."""
+    fp = _report_dir() / "freshness.json"
+    try:
+        cur = json.loads(fp.read_text(encoding="utf-8")) if fp.exists() else {}
+    except Exception:  # noqa: BLE001
+        cur = {}
+    item = {"at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "path": str(path), "what": what, **info}
+    rows = [r for r in (cur.get("filled") or []) if not (r.get("path") == item["path"] and r.get("date") == item.get("date"))]
+    cur["filled"] = (rows + [item])[-KEEP:]
+    log.info("보충 기록: %s %s %s", path, what, info.get("label"))
+    fp.parent.mkdir(parents=True, exist_ok=True)
+    fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
 def _label(v) -> str | None:
     t = stamp(v)
     return t.strftime("%Y-%m-%d %H:%M") if t else day(v)

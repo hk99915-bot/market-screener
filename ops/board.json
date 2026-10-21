@@ -3209,6 +3209,29 @@
       ],
       "depends_on": [],
       "notes": "A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력)."
+    },
+    {
+      "id": "us-eod-toss",
+      "title": "US 스크리너 마지막 날 봉을 토스 EOD 로 보충(야후 당일 종목봉 지연 STALE 해소)",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "tools/toss_md/collect.py",
+        "tools/toss_md/publish.py",
+        "screener/data.py",
+        "screener/main.py",
+        "screener/guard.py",
+        "tests/test_us_eod_toss.py",
+        "docs/toss_md_laptop_setup.md"
+      ],
+      "depends_on": [
+        "toss-md-publish"
+      ],
+      "notes": "겸이 10/21 09:5x '야후가 아니라 토스로 하기로 했잖아'. 10/21 US 스크리너 STALE(야후 10/20 종목봉 미제공). ① 수집: toss_md_live(us 그룹)에 붙임 — ET 16:15 이후 첫 회차 하루 1회 S&P500∪NDX(us_index.csv) candles 1d count=2, 0.5초 간격·청크 잠금·7분 상한 이어받기 → toss-live us_eod.json {date(ET), bars, n, missing}. 새 작업 등록 없음(겸이 git pull 만). ② screener US: 야후 최빈 기준일 < 기대 거래일이면 그 날짜 봉만 토스로 채움(이력은 야후), freshness.json filled·텔레그램·put_state price_src_US 에 'src: 야후+토스 보충 n%'. 파일 없음·날짜 불일치 → 기존 STALE. ③ 테스트 tests/test_us_eod_toss.py. 남은 일: 10/22 아침 첫 실수집 — missing 수(토스 심볼 점 꼴 BRK.B 추정 확인)·소요 시간·screen_us 06:52 보충 여부 확인. KR 범위 밖."
     }
   ]
 }

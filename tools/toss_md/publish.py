@@ -692,6 +692,24 @@ def build_sectors(base: Path, now: datetime) -> dict | None:
     return None
 
 
+# ── 미장 마감 EOD (보드 us-eod-toss) — us_eod.json: S&P500∪NDX 당일 1d 봉. screener 가 야후 마지막 날 누락 때만 보충 ──
+def build_us_eod(base: Path, now: datetime) -> dict | None:
+    d = base / "us_eod"
+    fs = sorted(x for x in d.glob("*.json") if ".partial" not in x.name) if d.exists() else []
+    for f in reversed(fs[-5:]):
+        try:
+            rec = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+        bars = {s: [round(float(x), 4) if x is not None else None for x in v[:4]] + [int(v[4]) if v[4] is not None else None]
+                for s, v in sorted((rec.get("bars") or {}).items()) if isinstance(v, list) and len(v) >= 5}
+        if not bars:
+            continue
+        return {"source": "toss", "date": rec.get("date"), "asof": rec.get("generated_at"), "bars": bars, "n": len(bars),
+                "missing": rec.get("missing") or [], "note": "date = ET 거래일 · bars = 심볼(yf 꼴) → [o,h,l,c,v] 정규장 1d 봉(무수정)"}
+    return None
+
+
 # ── 일봉 (10/21 겸이 "일봉도 토스데이터로 … 10분마다 최신화") — 커밋 크기 때문에 두 파일로 나눈다 ──────────────
 # daily_bars.json  = 키별 과거 봉(마지막 봉 제외) — 새 날짜가 생길 때만 바뀜(하루 1~2회 커밋)
 # daily_today.json = 키별 마지막 봉 1개 — 10분 회차마다 바뀜(수백 바이트)
@@ -963,7 +981,8 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
     xc = build_crosscheck(base, now, reports or repo / "reports")
     sec = build_sectors(base, now)
     dh, dt = build_daily(base, now)
-    extra = {n: x for n, x in (("sectors.json", sec), ("daily_bars.json", dh), ("daily_today.json", dt)) if x}
+    eod = build_us_eod(base, now)
+    extra = {n: x for n, x in (("sectors.json", sec), ("daily_bars.json", dh), ("daily_today.json", dt), ("us_eod.json", eod)) if x}
     assert_public(doc)
     assert_public(xc)
     for x in extra.values():
@@ -993,7 +1012,7 @@ def run(base: Path | None = None, now: datetime | None = None, repo: Path = ROOT
         return {"status": "fail", "decision": why, "error": st["error"]}
     contracts.stamp(Path("reports") / CONTRACT_PATH, doc)
     files = {"live.json": render(doc), "crosscheck.json": render(xc)}
-    for n in ("sectors.json", "daily_bars.json", "daily_today.json"):
+    for n in ("sectors.json", "daily_bars.json", "daily_today.json", "us_eod.json"):
         if n in extra:
             files[n] = render(extra[n])
         elif have_remote:   # 트리를 통째로 새로 만들므로, 이번에 못 만들면 원격 파일을 그대로 실어야 지워지지 않는다
