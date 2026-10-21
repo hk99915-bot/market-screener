@@ -2682,6 +2682,16 @@ function cmtBLCard(o){
   const bl=o.bottom_line||{}, c=({red:'var(--dn)',yellow:'var(--amber)',green:'var(--up)'})[bl.light]||'var(--amber)';
   return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 ${o.market==='US'?'미장':'국장'}${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
     <div class="b" style="line-height:1.75;white-space:normal;font-size:13px">${(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
+/* HF 데스크 운용회의 개입 4줄 + 알파북(모의) — screener/alphabook.py, reports/alphabook.json */
+function cmtHFCard(o){
+  const h=o.hf; if(!h||!(h.lines||[]).length) return '';
+  const s=h.stats||{}, pr=(h.proposals||[]), pc=v=>v==null?'—':(v>=0?'+':'')+(v*100).toFixed(2);
+  const lab=['알파북','제안','이견','틀린 것'];
+  const tb=pr.length?cmtTbl(['종목','소스','진입 구간','손절','1차','2차','크기','리스크'],pr.map(x=>`<tr><td class="l">${esc(x.name||x.code)}</td><td>${esc(x.src)}</td><td>${esc(Number(x.lo).toLocaleString('ko-KR',{maximumFractionDigits:2}))}~${esc(Number(x.hi).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="dn">${esc(Number(x.stop).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="up">${esc(Number(x.t1).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="up">${esc(Number(x.t2).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td><b>${(x.weight*100).toFixed(1)}%</b></td><td class="mu">${(x.risk_pct*100).toFixed(2)}%</td></tr>`)):'';
+  return `<div class="p c12" style="border:1px solid var(--dn)"><h2><span>🦈 HF 데스크 · 알파북 ${o.market==='US'?'미장':'국장'} <span class="mu" style="font-size:12px">${esc(h.state||'')}</span></span><small>모의(가상 1단위) · 누적 ${pc(s.cum)}% · 벤치 대비 ${pc(s.excess_cum)}%p · IR ${s.ir==null?'—':s.ir}</small></h2>
+    <div class="b" style="line-height:1.7;white-space:normal;font-size:13px">${(h.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b class="dn">${lab[i]||'·'}</b> ${esc(String(x).replace(/^[^:]+:\s*/,''))}</div>`).join('')}
+    ${h.say?`<div style="margin-top:6px;padding:4px 8px;border-left:3px solid var(--dn)"><i>“${esc(h.say)}”</i></div>`:''}${tb?'<div style="margin-top:6px">'+tb+'</div>':''}
+    <div class="mu" style="font-size:11px;margin-top:4px">${esc(h.note||'')} · 시장 배수 ${esc((h.scale||{}).why||'')}</div></div></div>`; }
 function cmtScenCards(o){
   return `<div style="display:flex;gap:8px;flex-wrap:wrap">${(o.scenarios||[]).map(s=>`<div style="flex:1;min-width:200px;border:1px solid var(--line);padding:8px 10px;line-height:1.6;white-space:normal">
      <div style="display:flex;justify-content:space-between;gap:6px"><b>${esc(s.name)}</b><b class="am" style="font-size:16px">${Math.round((s.prob||0)*100)}%</b></div>
@@ -2785,7 +2795,7 @@ function cmtV2Html(o){
   // 8. 성적
   sec.push(cmtSec(8,'성적 · 검증','회의 채점 · 시그널 판정',
     `${cmtList(T.lines)}<div class="am" style="font-size:11px;margin-top:8px">원천별 성적 (아이디어 추적${T.ideas_n?' · 기록 '+T.ideas_n+'건':''})</div>${(T.by_source||[]).length?cmtTbl(['원천','n','1R 도달','손절','평균 R','5일','20일','상태'],T.by_source.map(x=>`<tr><td class="l">${esc(x.k)}</td><td>${x.n}</td><td>${Math.round(x.hit1R*100)}%</td><td>${Math.round(x.stop*100)}%</td><td>${x.avgR>0?'+':''}${x.avgR}</td><td>${x.ret5!=null?pct(x.ret5,1):'—'}</td><td>${x.ret20!=null?pct(x.ret20,1):'—'}</td><td class="${x.status==='반영'?'up':'mu'}">${esc(x.status)}</td></tr>`)):'<div class="mu">채점 전 — 기록 후 5거래일 뒤부터</div>'}<div class="mu" style="font-size:11px">${esc(T.by_source_note||'')}</div><div class="mu" style="margin-top:6px">시그널 판정: ${Object.entries(o.validation||{}).map(([k,v])=>`${esc(k)} ${esc(v||'')}`).join(' · ')||'—'}</div>${sigTrackBox('KR')}`,false));
-  return `<div class="grid">${cmtBLCard(o)}${dotStripHtml()}${cmtSimFreshHtml(o)}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
+  return `<div class="grid">${cmtBLCard(o)}${cmtHFCard(o)}${dotStripHtml()}${cmtSimFreshHtml(o)}${sec.join('')}<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">9. ${esc(o.footer||bl.footer||'')}</div></div></div>`;
 }
 function derivPanel(d){
   const pr=d.oi_profile||[], mx=Math.max(1,...pr.map(x=>Math.max(x.c,x.p)));
@@ -2861,7 +2871,7 @@ function cmtUSView(){
     <div class="am" style="font-size:11px;margin-top:8px">아이디어 추적 · 모의 <span class="mu">제안 ${its.n??0} · 추적 ${its.tracked??0} · 종료 ${its.closed??0} · 적중 ${its.hit!=null?Math.round(its.hit*100)+'%':'—'} · 매수 후보 초과 ${pc2(its.long_excess)}</span></div>
     ${itr.length?cmtTbl(['제안일 · 종목','구분','기준 종가','경과일','수익','S&P500','초과','상태'],itr):'<div class="mu">추적 대상 없음</div>'}<div class="mu" style="font-size:11px">${esc((IT&&IT.note)||'')}</div>${sigTrackBox('US')}`,false));
   sec.push(cmtSec(7,'10일 이벤트','미장 실적·매크로',(o.events||[]).map(e=>`<div>${esc(e.date.slice(5))} ${e.imp>=3?'⭐':''} ${esc(e.name)} <span class="mu" style="font-size:11px">${esc(e.note||'')}</span></div>`).join('')||'<div class="mu">없음</div>',false));
-  return cmtTabs()+`<div class="grid">${o.bottom_line?cmtBLCard(o):''}
+  return cmtTabs()+`<div class="grid">${o.bottom_line?cmtBLCard(o):''}${cmtHFCard(o)}
    <div class="p c12"><h2>운용회의 · 미장<small>${esc(o.asof)} · 규칙 기반 · 검증 중</small></h2><div class="b" style="line-height:1.8;white-space:normal">${(o.head||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">결론</b> ${esc(o.verdict)}</div><div class="mu" style="font-size:12px;margin-top:4px">🔗 ${esc(o.kr_link||'')}</div></div></div>
    ${cmtSimFreshHtml(o)}${sec.join('')}${o.footer?`<div class="p c12"><div class="b mu" style="font-size:12px;white-space:normal">${esc(o.footer)}</div></div>`:''}</div>`;
 }

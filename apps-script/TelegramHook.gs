@@ -40,7 +40,7 @@ const TG_CODE_RE = { K: /^[0-9A-Za-z]{6}$/, U: /^[A-Za-z][A-Za-z.\-]{0,5}$/ };
 const TG_TEXT_CODE_RE = { K: /^(?:[0-9A-Za-z]{6}|[A-Za-z.]{1,6})$/, U: TG_CODE_RE.U };   // apply_issue 와 같은 규칙
 const TG_DEDUP_SEC = 600;   // 10분
 // 데스크 키 → 이름 (scripts/round_collect.py DESKS 와 같아야 함 — tests/test_watchdog.py 가 대조)
-const TG_DESKS = { pb: 'PB', quant: '퀀트', bonds: '채권', frm: '리스크', backtest: '백테스트', life: 'LIFE', alloc: '자산배분', macro: '매크로', ops: '운영', pm: 'PM', health: '헬스', cio: 'CIO', derivs: '파생', analyst: '애널', dev: '개발', edu: '교육', data: '데이터', verify: '검증', eval: '평가', peer: '피어리뷰', behavior: '행동', audit: '감사', maint: '유지보수', uxui: 'UXUI' };
+const TG_DESKS = { pb: 'PB', quant: '퀀트', bonds: '채권', frm: '리스크', backtest: '백테스트', life: 'LIFE', alloc: '자산배분', macro: '매크로', ops: '운영', pm: 'PM', health: '헬스', cio: 'CIO', derivs: '파생', analyst: '애널', dev: '개발', edu: '교육', data: '데이터', verify: '검증', eval: '평가', peer: '피어리뷰', behavior: '행동', audit: '감사', maint: '유지보수', uxui: 'UXUI', hf: 'HF' };
 const TG_ASK_USAGE = '형식: ask <데스크> <내용> — 데스크: ' + Object.keys(TG_DESKS).map(function (k) { return TG_DESKS[k]; }).join(' ');
 const TG_HELP = {
   K: '✍️ 직접 입력: 이 채팅에 이렇게 보내 줘 (15:30 전)\n'

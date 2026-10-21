@@ -689,14 +689,29 @@ def score() -> dict:
     return {"summary": summ, "recent": res["h5"][-5:]}
 
 
+def _hf_attach(out: dict, market: str) -> None:
+    """HF 데스크 알파북(모의) 갱신 + 운용회의 개입 4줄(out['hf']) — screener/alphabook.py. 실패는 out['hf'].error."""
+    try:
+        from . import alphabook
+        alphabook.update(out, market)
+    except Exception as e:  # noqa: BLE001
+        out["hf"] = {"error": f"{type(e).__name__}: {e}"}
+        log.warning("HF 알파북 실패(%s): %s", market, e)
+
+
+def _hf_tail(txt: str, o: dict) -> str:
+    tail = list(((o.get("hf") or {}).get("tg") or [])[:2])
+    return txt + ("\n" + "\n".join(tail) if tail else "")
+
+
 def telegram_text(o: dict) -> str:
-    """v2(bottom_line 있음)면 모닝 미팅 요약(25줄 이내), 아니면 예전 전체본."""
+    """v2(bottom_line 있음)면 모닝 미팅 요약(25줄 이내), 아니면 예전 전체본. 끝에 HF 알파북 1~2줄."""
     if o.get("bottom_line"):
         try:
-            return _telegram_v2(o)
+            return _hf_tail(_telegram_v2(o), o)
         except Exception as e:  # noqa: BLE001
             log.warning("텔레그램 v2 실패 → 예전 형식: %s", e)
-    return _telegram_text_v1(o)
+    return _hf_tail(_telegram_text_v1(o), o)
 
 
 def _telegram_text_v1(o: dict) -> str:
@@ -1470,6 +1485,7 @@ def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict
     except Exception as e:  # noqa: BLE001
         out["tradeplan"] = {"error": f"{type(e).__name__}: {e}"}
         log.warning("trade plan 부착 실패: %s", e)
+    _hf_attach(out, "KR")
     try:
         _ideas_log_append(out)
         from .idea_tracking import run as track_ideas
@@ -1688,6 +1704,7 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
     except Exception as e:  # noqa: BLE001
         out["tradeplan"] = {"error": f"{type(e).__name__}: {e}"}
         log.warning("미장 trade plan 부착 실패: %s", e)
+    _hf_attach(out, "US")
     try:
         _sf = _sim_fresh("US")
         if _sf:
@@ -1730,4 +1747,4 @@ def telegram_text_us(o: dict) -> str:
     if o["ideas"]["long"]:
         L.append("<b>[매수 후보]</b> " + ", ".join(f"{x['s']} {x['drv']:+.2f}" for x in o["ideas"]["long"][:6]))
     L.append("<i>" + o["kr_link"] + "</i>")
-    return "\n".join(L)
+    return _hf_tail("\n".join(L), o)

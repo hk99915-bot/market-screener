@@ -27,9 +27,22 @@ HF = 월가 헤지펀드 매니저 출신 운용역 누나. 겸이가 관망해�
 3. 이견: CIO 판정과 다르면 근거 1줄(데이터 경로)
 4. 틀린 것: 직전 제안 중 손절·실패 1줄
 
+## 알파 소스 (연구 결과)
+- #5 [자체연구-B] **알파 소스 교체 1차(2026-10-21, m=6 사전등록)**: 통과 1개 = B1 KR 52주 고점 근접(C/250일 고가 ≥ 0.95) — OOS +0.083R vs 기준선 −0.015R, 초과 +0.098R(t 2.78 > Bonferroni 2.39). 탈락: A1 KR 업종 RS F · A2 US 업종 RS F · B2 US 52주 F · C1 KR 수급 지속 F · D1 KR 목표가 상향 C(t 2.29, 진입 후보 아님). US 통과 0 → 미장 알파북 현금. 반대 근거: B1 학습(2010~19) 절대 E[R] −0.032R. (출처: reports/studies/2026-10-21_alpha_sources.md·.json)
+
+## 알파북 규칙 (screener/alphabook.py, 상태 reports/alphabook.json)
+- 진입 = tradeplan plan + 통과 소스 + 소스 OOS E[R] > 기준선. 결정 다음 봉 시가, 구간 밖 미진입 만료.
+- 크기 = 0.5% × 컨빅션 × 시장 배수(tradeplan.macro_filter, 바닥 0.25) ÷ 손절폭, 상한 15%·총노출 = 시장 배수 × 100%. 이벤트 당일만 신규 0.
+- 스탑 닿으면 다음 봉 시가 청산(예외 없음) · 1차 50% + 본전 스탑 · 2차 · 20거래일 시간 손절 · 비용 왕복 KR 0.45%·US 0.20%(tradeplan 비용 + 미끄러짐).
+- 성적 = 벤치(069500·SPY) 대비 일별 초과·누적·IR(20일 이상부터). 주간 채점 = 검증 데스크(독립).
+
+## 작업 기록
+- 2026-10-21 첫 업무(보드 hf-alphabook): 알파 소스 사전등록·검증(위 #5) → 알파북 엔진·테스트(tests/test_alphabook.py 13건) → 운용회의 KR·US `hf` 블록(4줄+말투 줄)·DAILY › 운용회의 HF 카드·텔레그램 1~2줄 → committee 모드 안에서 호출(briefing.yml 무수정). 첫 상태: KR 진입 대기 2건(KT&G·펌텍코리아, 10/22 시가 구간 체결 조건) · US 현금(탐색 중). 검증 데스크에 주간 채점 규약 요청.
+
 ## 출처
 - Grinold & Kahn, *Active Portfolio Management*, 2nd ed., 2000 — IR·기본법칙
-- 자체: reports/studies/2026-10-21_tradeplan_spec.md, screener/tradeplan.py
+- George & Hwang, "The 52-Week High and Momentum Investing", *Journal of Finance* 59(5), 2004 — B1 근거 문헌
+- 자체: reports/studies/2026-10-21_tradeplan_spec.md, screener/tradeplan.py, reports/studies/2026-10-21_alpha_sources.md
 
 ## 복기
 (아직 없음)

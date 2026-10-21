@@ -49,6 +49,7 @@ DESKS = {
     "eval": "평가", "peer": "피어리뷰", "behavior": "행동", "audit": "감사",
     "maint": "유지보수",   # 10/21 신설 (SRE, docs/desk_kb/maint.md)
     "uxui": "UXUI",   # 10/21 신설 (화면 위계·가독성, docs/desk_kb/uxui.md) — ask UXUI 로 요청 장부에 올라가게
+    "hf": "HF",       # 10/21 신설 (헤지펀드·알파북, docs/desk_kb/hf.md) — ask HF 로 요청 장부에
 }
 _KO2KEY = {v: k for k, v in DESKS.items()}
 
