@@ -62,7 +62,7 @@ def build_returns(df: pd.DataFrame, spread: float | None = None) -> tuple[pd.Dat
     ndx_syn = _r(d["^NDX_close"]) + a["ndx_div"] / 252
     qqq_real = _r(d["QQQ_adj"])
     ndx_tr = qqq_real.where(d["QQQ_adj"].notna() & d["QQQ_adj"].shift(1).notna(), ndx_syn + a["qqq_er"] / 252)
-    qqq = qqq_real.where(qqq_real.notna(), ndx_syn)   # 합성 QQQ = NDX + 배당 − 보수
+    qqq = qqq_real.where(qqq_real.notna(), ndx_syn - a["qqq_er"] / 252)   # 합성 QQQ = NDX + 배당 − 보수 (10/21 검증 정정 ②)
     # 2배
     qld_real = _r(d["QLD_adj"])
     real_mask = d["QLD_adj"].notna() & d["QLD_adj"].shift(1).notna()
@@ -106,7 +106,7 @@ def calibrate_spread(ndx_tr, rf, dt, qld_real, real_mask) -> float:
 
 def tracking(rets: pd.DataFrame, df: pd.DataFrame) -> dict:
     """합성 vs 실 QLD 추적오차: 보정 구간(IS)과 그 뒤(OOS) 분리."""
-    real = _r(df["QLD_adj"]).reindex(rets.index)
+    real = _r(df["QLD_adj"].dropna()).reindex(rets.index)   # 휴장 행 제거 뒤 수익률(10/21 검증 정정 ①)
     m = real.notna() & ~rets["qld_is_syn"]
     res = {}
     for name, sel in (("IS_2006_2015", m & (rets.index <= ASSUME["calib_end"])), ("OOS_2016_", m & (rets.index > ASSUME["calib_end"]))):
