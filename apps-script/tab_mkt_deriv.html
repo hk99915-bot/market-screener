@@ -79,7 +79,7 @@ function derivView(){
   const cards=[
     card('코스피200 현물',f(lv&&lv.spot!=null?lv.spot:(fu.spot??d.spot)),lv?`실시간(${esc(lv.src||'')}) · ${esc(lv.status||'')}`:`KRX ${esc(d.date||'')} 종가`,'참고'),
     card('코스피200 선물',f(lv?lv.last:fu.close),lv?`${pct(lv.chg,2)} · ${esc(fu.name||'')}`:esc(fu.name||''),'참고'),
-    `<div data-basis="1" style="flex:1;min-width:150px;cursor:pointer" title="누르면 설명·1년 이력">`+card('베이시스 (선물−현물) ↗',sg(lb),`${lb==null?'':lb>=0?'선물이 비쌈(콘탱고)':'선물이 쌈(백워데이션)'}${bt&&bt.basis_theo!=null?` · 이론값 ${f(bt.basis_theo)}`:''}`,dvGrade('fut_basis'))+`</div>`,
+    `<div data-basis="1" style="flex:1;min-width:150px;cursor:pointer" title="누르면 설명·1년 이력">`+card('베이시스 (선물−현물) ↗',sg(lb),`${lv?'장중 값':'확정 '+esc(d.date||'')}${lb==null?'':bt&&bt.basis_theo!=null?` · 이론값 ${f(bt.basis_theo)}(${esc(String(bt.date||'').slice(5))} 확정) 대비 <b>${sg(lb-bt.basis_theo)}</b> — ${lb-bt.basis_theo<=-1?'선물 저평가':lb-bt.basis_theo>=1?'선물 고평가':'이론값 근처'}`:` · ${lb>=0?'선물이 비쌈':'선물이 쌈(백워데이션)'} · 이론값 없음`}`,dvGrade('fut_basis'))+`</div>`,
     card('최근월 옵션 만기',d.expiry?esc(d.expiry.slice(5))+` <span class="am">D-${d.dte??'?'}</span>`:'—',`${esc(d.front||'')} 물 · 만기일엔 흔들림이 커질 수 있음`,'참고'),
     card('외국인 선물 순매수',ff?sg(ff.fut_frgn,0)+'<span class="mu" style="font-size:11px"> 계약</span>':'—',ff?`${esc(ff.date)} · 기관 ${sg(ff.fut_inst,0)} · 개인 ${sg(ff.fut_indiv,0)}`:'적재 전',dvGrade('fut_foreign_flow')),
     card('야간선물 (KRX 평균가)',nt?f(nt.night_vwap):'—',nt?`${esc(nt.date)} 세션 · 거래 ${num(nt.night_vol)}계약 · 다음날 시가 갭 예상용`:'데이터 없음',dvGrade('night_futures'))

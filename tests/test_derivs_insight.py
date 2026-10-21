@@ -39,3 +39,18 @@ def test_missing_and_stale():
     assert all(c["light"] == "gray" for c in I["cards"] if c["k"] != "frgn")
     assert {c["status"] for c in I["cards"]} == {"데이터 없음"}
     assert "레버리지" not in I["so_what"]
+
+
+def test_basis_vs_theo_intraday():
+    """10/21 PB 요청: 장중엔 전일 확정 이론값 대비 괴리로 판단, 부호만 보고 '정상' 표기 금지."""
+    rows = _rows()
+    last = rows[-1]["date"]                                   # 마지막 확정일, basis_theo 2.0
+    o = _o(date="2026-08-30", asof="2026-08-30 11:41", fut={"basis": 0.5})
+    b = [c for c in insight(o, rows, {}, today=date(2026, 8, 30))["cards"] if c["k"] == "basis"][0]
+    assert "장중 값(11:41)" in b["easy"] and "-1.50p" in b["easy"] and "저평가" in b["easy"] and last[5:] in b["easy"]
+    assert b["light"] == "amber"                              # 양수(+0.5)여도 이론 대비 −1.5p 면 경계
+    o2 = _o(date=last, asof=last + " 18:10", fut={"basis": 2.3})
+    b2 = [c for c in insight(o2, rows, {}, today=date.fromisoformat(last))["cards"] if c["k"] == "basis"][0]
+    assert "장중" not in b2["easy"] and "이론값 근처" in b2["easy"] and b2["light"] == "green"
+    b3 = [c for c in insight(_o(fut={"basis": 2.0}), [], {}, today=date(2026, 8, 29))["cards"] if c["k"] == "basis"][0]
+    assert "이론값 없음" in b3["easy"]

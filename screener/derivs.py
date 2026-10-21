@@ -310,6 +310,24 @@ def _where(q: dict | None) -> str:
     return f"최근 {q['n']}거래일({q['from']}~{q['to']}) 중 {p}% — {w}"
 
 
+def basis_theo_ref(rows: list[dict], on: str | None) -> tuple[float | None, str | None]:
+    """이론 베이시스 기준값 — `on` 이하 날짜 중 가장 최근 확정치(KRX THRY_BASIS). 장중엔 전일 확정치를 쓴다
+    (12월물 만기 전 배당 거의 0 → 하루 사이 이론값 변화는 잔존일·금리분뿐, 보통 0.1p 안). 10/21 PB 요청 req-derivs-909b54f9."""
+    for r in reversed(rows or []):
+        v = _f(r.get("basis_theo"))
+        if v is not None and (not on or str(r.get("date", "")) <= on):
+            return v, str(r.get("date"))
+    return None, None
+
+
+def intraday(o: dict) -> str | None:
+    """derivs.json 이 장중 스냅숏이면 'HH:MM' — 생성 시각이 거래일 15:45 KST 전. 확정(장 마감 뒤)이면 None."""
+    a, d = str(o.get("asof") or ""), str(o.get("date") or "")
+    if len(a) >= 16 and a[:10] == d and a[11:16] < "15:45":
+        return a[11:16]
+    return None
+
+
 def insight(o: dict, rows: list[dict] | None = None, grades: dict | None = None, today: date | None = None) -> dict:
     """reports/derivs.json 'insight' 블록 — 한 줄 요약 · 신호등 카드 · 시사점(리스크 관점).
     rows = data/deriv/daily.csv 행(dict, 문자열 값 허용), grades = lens_id→등급. 매매 신호 아님."""
@@ -358,11 +376,19 @@ def insight(o: dict, rows: list[dict] | None = None, grades: dict | None = None,
         card("basis", "선물 프리미엄 (베이시스)", "—", "gray", "", "선물 데이터 없음", "참고", "데이터 없음")
     else:
         q = _pctl(opt, "basis", b)
-        th = next((_f(r.get("basis_theo")) for r in reversed(rows) if r.get("date") == o.get("date")), None)
-        easy = ("선물 할인(백워데이션) — 매도 헤지 우위 시 출현" if b < 0 else "선물 프리미엄(콘탱고) — 통상 상태")
+        th, th_d = basis_theo_ref(rows, o.get("date"))
+        live = intraday(o)
         if th is not None:
-            easy += f" · 이론값 {th:+.2f}p 대비 {b-th:+.2f}p"
-        card("basis", "선물 프리미엄 (베이시스)", f"{b:+.2f}p", "amber" if b < 0 else "green", _where(q), easy, gr("fut_basis"))
+            dev = b - th
+            easy = (f"이론값 {th:+.2f}p({th_d[5:]} 확정) 대비 {dev:+.2f}p — "
+                    + ("선물 저평가(매도 헤지 우위 시 출현)" if dev <= -1 else "선물 고평가" if dev >= 1 else "이론값 근처(통상)"))
+            light = "amber" if dev <= -1 or b < 0 else "green"
+        else:
+            easy = ("선물 할인(백워데이션) — 매도 헤지 우위 시 출현" if b < 0 else "선물 프리미엄(콘탱고) · 이론값 없음 — 부호만으로 '정상' 판단 불가")
+            light = "amber" if b < 0 else "green"
+        if live:
+            easy = "장중 값(" + live + ") · " + easy
+        card("basis", "선물 프리미엄 (베이시스)", f"{b:+.2f}p", light, _where(q), easy, gr("fut_basis"))
     ff = [(r["date"], _f(r.get("fut_frgn"))) for r in rows if _f(r.get("fut_frgn")) is not None]
     if not ff:
         card("frgn", "외국인 선물", "—", "gray", "", "외국인 선물 순매수 적재 전", "참고", "데이터 없음")
