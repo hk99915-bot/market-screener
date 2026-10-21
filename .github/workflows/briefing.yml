@@ -120,6 +120,10 @@ jobs:
             python -m screener.main --mode ${{ steps.m.outputs.mode }}
           fi
 
+      - name: 리서치 종합 재생성 (리포트를 수집하는 모드 뒤 — 애널 research-synthesis, 실패해도 계속)
+        if: always() && steps.g.outputs.go == 'true' && contains(fromJSON('["premarket_kr","reports","dashboard"]'), steps.m.outputs.mode)
+        run: python -m screener.research_synthesis || echo "::warning::리서치 종합 재생성 실패 — 전 회차 것 유지"
+
       - name: 신선도 점검
         if: always() && steps.g.outputs.go == 'true'
         # 모든 모드 끝에 ops/freshness.json 계약 점검 → reports/freshness.json (텔레그램 없음, 아래 저장 단계가 커밋). 실패해도 저장은 진행

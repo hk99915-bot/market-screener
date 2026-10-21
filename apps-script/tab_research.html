@@ -83,7 +83,10 @@ function synSec(){
   const card=(t,sub,body,cls='c4')=>`<div class="p ${cls} syn"><h2>${t}<small>${sub}</small></h2><div class="b" style="font-size:12px">${body}</div></div>`;
   const tbl=(hd,rows)=>rows.length?`<table style="font-size:12px"><tr>${hd.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr>${rows.join('')}</table>`:'<div class="mu">해당 없음</div>';
   const nm=x=>x.code?`<span class="am sym" data-sym="${esc(x.code)}" data-mk="KR">${esc(x.name||x.code)}</span>`:esc(x.name||'');
-  const c1=card('오늘의 증권가 한 줄',`${esc(SYN.asof)} · 생성 ${esc(SYN.generated_at||'')}`,
+  const nx=(()=>{const k=new Date(Date.now()+9*36e5), hm=k.toISOString().slice(11,16), wd=k.getUTCDay(), sl=SYN.collect_slots||['08:50','19:10'];
+    if(wd>=1&&wd<=5){const n=sl.find(t=>t>hm); if(n) return '오늘 '+n;} for(let i=1;i<8;i++){const d=new Date(k.getTime()+i*864e5), w=d.getUTCDay(); if(w>=1&&w<=5) return `${d.toISOString().slice(5,10)} ${sl[0]}`;} return '—';})();
+  const badge=`<span class="tag" style="font-size:11px">기준 ${esc(SYN.asof||'')} · 수집 ${esc((SYN.collected_at||'—').slice(5,16))} · 다음 수집 ${esc(nx)}</span>${SYN.today_n?` <b class="up" style="font-size:12px">오늘 ${SYN.today_n}건</b>`:` <span class="mu" style="font-size:11px">오늘 발간분 아직 없음</span>`}`;
+  const c1=card('오늘의 증권가 한 줄',`생성 ${esc(SYN.generated_at||'')}`,
     `<div class="am" style="font-size:14px;line-height:1.5">${esc(h.text||'')}</div>
      <div style="margin-top:6px">전략·매크로 톤 5일 ${synTone((h.tone5||{}).index)} <span class="mu">(강 ${(h.tone5||{}).bull||0}·약 ${(h.tone5||{}).bear||0}·${(h.tone5||{}).n_docs||0}건)</span> · 20일 ${synTone((h.tone20||{}).index)} · 주별 ${tw}</div>
      <div class="mu" style="font-size:11px;margin-top:4px">${esc(SYN.label||'')} · 톤 = 어휘 사전 (강−약)/(강+약), 문맥 미반영 <b>검증전</b> · 신규(${esc(SYN.asof)} 발간·백필 제외) ${h.new_on_asof||0}건 ${synL(h.reports)} · 저장 종목 ${inp.stock_n||0}건(백필 ${inp.backfill_n||0}) ${Object.entries(inp.stock_by_source||{}).map(([k,v])=>esc(k)+' '+v).join('·')}</div>`,'c12');
@@ -119,7 +122,7 @@ function synSec(){
     `${(ge.videos||[]).map(v=>`<div style="margin-bottom:3px"><span class="mu">${esc((v.date||'').slice(5))}</span> <a href="${esc(v.link||'')}" target="_blank">${esc(v.title||'')}</a>${(v.tags||[]).length?` <span class="mu">${v.tags.map(esc).join('·')}</span>`:''}</div>`).join('')||'<div class="mu">수집 전 (Jiang Xueqin · Predictive History 유튜브 RSS)</div>'}
      ${Object.keys(ge.tags60||{}).length?`<div class="mu">60일 태그 ${Object.entries(ge.tags60).map(([k,v])=>esc(k)+' '+v).join(' · ')}</div>`:''}
      <div class="mu" style="font-size:11px;margin-top:4px">Jiang Xueqin(Predictive History) — 역사 유추·게임이론 논평. 제목·링크만, 내용 요약 안 함. 우리 판단·매매에 쓰지 않음 · 반증 어려움 비판 있음 · 예측 장부는 검증 데스크</div>`);
-  return `<details id="syn" class="sec" ${SYN_OPEN?'open':''} ontoggle="synToggle(this.open)" style="margin:0"><summary style="padding:6px 10px"><b class="am">리서치 종합</b> <span class="mu" style="font-size:11px">증권가 집계 · 우리 판단 아님 · 리포트 목록은 아래</span></summary><div class="grid">${c1}${c8}${c9}${c2}${c3}${c4}${c5}${c6}${c7}</div></details>`;
+  return `<details id="syn" class="sec" ${SYN_OPEN?'open':''} ontoggle="synToggle(this.open)" style="margin:0"><summary style="padding:6px 10px"><b class="am">리서치 종합</b> ${badge} <span class="mu" style="font-size:11px">증권가 집계 · 우리 판단 아님</span></summary><div class="grid">${c1}${c8}${c9}${c2}${c3}${c4}${c5}${c6}${c7}</div></details>`;
 }
 function rvwView(){
   if(!RVW){ google.script.run.withSuccessHandler(t=>{try{RVW=JSON.parse(t);}catch(e){RVW={kinds:{}};} if(view==='rep') render();}).withFailureHandler(e=>{RVW={kinds:{},err:/404/.test(e.message)?'비종목 리포트 데이터가 아직 없습니다 (다음 수집 때 생성)':e.message}; if(view==='rep') render();}).getResearchViews(); return '<div class="load">LOADING …</div>'; }

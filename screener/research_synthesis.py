@@ -316,6 +316,10 @@ def build(store: pl.DataFrame, views: pl.DataFrame, meta: dict[str, dict], commi
         "generated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"),
         "asof": str(asof),
         "label": LABEL,
+        "collected_at": (lambda c: c.max() if len(c) else None)(store.filter(~_is_backfill())["collected_at"]) if len(store) else None,
+        "today": str(today or datetime.now(KST).date()),
+        "today_n": store.filter(pl.col("date") == (today or datetime.now(KST).date())).height if len(store) else 0,
+        "collect_slots": ["08:50", "19:10"],   # 평일 premarket_kr·reports 가 수집 → 이 파일 재생성 (briefing.yml)
         "inputs": {"stock_n": store.height, "views_n": views.height, "backfill_n": n_backfill, "stock_by_source": by_src,
                    "new_on_asof": new_rows.height, "views_asof": str(views["date"].max()) if len(views) else None},
         "headline": {"text": headline, "tone5": tone5, "tone20": tone20, "tone_weekly": tone_weekly,
