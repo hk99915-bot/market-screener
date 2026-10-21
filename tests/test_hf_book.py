@@ -71,3 +71,18 @@ def test_us_es_and_spx_put(monkeypatch):
     with pytest.raises(SystemExit):
         H.add(b, _a(kind="spx_call", side="숏", strike=8000.0, expiry="2026-11-20"))
     assert H.open_risk(b) <= H.RISK_ALL + 1e-9
+
+
+def test_days_count_trading_days_not_marks():
+    b = {"open": [], "closed": []}
+    H.add(b, _a())
+    for _ in range(3):
+        H.mark(b)
+    assert b["open"][0]["days"] == 0          # 같은 거래일에 회의 3번 → 0일
+    D["date"] = "2026-10-22"
+    try:
+        H.mark(b)
+        H.mark(b)
+    finally:
+        D["date"] = "2026-10-21"
+    assert b["open"][0]["days"] == 1

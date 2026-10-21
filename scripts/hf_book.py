@@ -185,7 +185,10 @@ def mark(b: dict) -> list[dict]:
     for p in b["open"]:
         px = price(p, d)
         p["last"] = round(px, 4)
-        p["days"] += 1
+        md = us_last()["date"] if p["kind"] in US else d["date"]
+        if md != p.get("mark_d", p.get("asof")):     # 보유일 = 거래일 수(회의 횟수 아님)
+            p["days"] += 1
+            p["mark_d"] = md
         sgn = 1 if p["side"] == "롱" else -1
         why = None
         if p["kind"] in OPT:
