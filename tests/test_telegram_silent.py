@@ -50,8 +50,8 @@ def test_long_text_keeps_flag_on_every_chunk(posted, monkeypatch):
 
 def test_ring_table_is_exactly_five():
     assert set(alerts.RING_KINDS) == {"stop2", "dl0", "touch", "halt", "fresh"}
-    assert alerts.kind("2026-10-20:touch:000660") == "touch" and alerts.kind("stop2") == "stop2"
-    assert alerts.ring(["dl1", "touch:000660"]) and not alerts.ring(["dl2", "dl1", "stop1", "band", "crash"])
+    assert alerts.kind("2026-10-20:touch:000000") == "touch" and alerts.kind("stop2") == "stop2"
+    assert alerts.ring(["dl1", "touch:000000"]) and not alerts.ring(["dl2", "dl1", "stop1", "band", "crash"])
     assert alerts.silent() is True
     assert not hasattr(report, "loud")      # 본문 이모지로 소리를 정하던 옛 방식 제거
 
@@ -77,7 +77,7 @@ def _run_rules(monkeypatch, items):
     ([("band", "📐 반도체 발동선 초과")], True),            # 밴드 초과는 무음 (#9 목록 밖)
     ([("stop2", "⛔ 손절선 2일 연속 이탈")], False),
     ([("dl0", "⏰ 규정 [12] 집행 기한 D-day")], False),      # D-day 는 ⛔ 표시가 없어도 소리
-    ([("band", "📐"), ("touch:000660", "⛔ SK하이닉스 발동선 터치")], False),
+    ([("band", "📐"), ("touch:000000", "⛔ TEST01 발동선 터치")], False),
 ])
 def test_rules_alert_grading(monkeypatch, items, silent):
     assert _run_rules(monkeypatch, items) is silent

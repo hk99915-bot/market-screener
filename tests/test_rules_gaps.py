@@ -64,28 +64,28 @@ def test_unscoped_rule_still_applies_to_all(env):
 
 
 # ② 하드 바닥 -------------------------------------------------------------------------------------
-CTX = {"floors": {"005930": {"mk": "KR", "name": "삼성전자", "avg": 100000.0, "floor": 70000.0},
-                  "000660": {"mk": "KR", "name": "SK하이닉스", "avg": 1500000.0, "floor": 1050000.0},
-                  "MU": {"mk": "US", "name": "Micron", "avg": 100.0, "floor": 70.0}}}
+CTX = {"floors": {"000001": {"mk": "KR", "name": "TEST02", "avg": 100000.0, "floor": 70000.0},
+                  "000000": {"mk": "KR", "name": "TEST01", "avg": 13300.0, "floor": 8800.0},
+                  "TSTU": {"mk": "US", "name": "TEST-US", "avg": 100.0, "floor": 70.0}}}
 
 
 def test_floor_hits_ratio_only_and_touch_stricter():
-    q = {"005930": {"last": 71000, "low": 69500, "name": "삼성전자"}, "000660": {"last": 1100000, "low": 1100000, "name": "SK하이닉스"}}
-    hits = alerts.floor_hits(CTX, {"touch": {"000660": 1170000.0}}, q.get, "KR")
-    assert [h[0] for h in hits] == ["005930"]                       # 000660 은 더 엄격한 touch 1,170,000 이 담당
+    q = {"000001": {"last": 71000, "low": 69500, "name": "TEST02"}, "000000": {"last": 9300, "low": 9300, "name": "TEST01"}}
+    hits = alerts.floor_hits(CTX, {"touch": {"000000": 10000.0}}, q.get, "KR")
+    assert [h[0] for h in hits] == ["000001"]                       # 000000 은 더 엄격한 touch 10,000 이 담당
     line = hits[0][2]
     assert "하드 바닥" in line and defs.SEMI_HARD_FLOOR_STATE in line and "−30%" in line
     assert "70,000" not in line and "100,000" not in line and "69,500" not in line   # 평단·가격 미노출
-    assert alerts.floor_hits(CTX, {}, {"005930": {"last": 80000, "low": 75000}}.get, "KR") == []
+    assert alerts.floor_hits(CTX, {}, {"000001": {"last": 80000, "low": 75000}}.get, "KR") == []
     assert alerts.floor_hits(None, {}, q.get, "KR") == []
 
 
 def test_event_watch_floor_daily_hashed():
     st = {"sent": {}}
-    evs = event_watch.floor_events(CTX, {}, {"MU": {"last": 69.0, "low": 68.0}}, st, "2026-10-19", "US")
-    assert len(evs) == 1 and evs[0]["key"].startswith("floor:") and "MU" not in evs[0]["key"]
+    evs = event_watch.floor_events(CTX, {}, {"TSTU": {"last": 69.0, "low": 68.0}}, st, "2026-10-19", "US")
+    assert len(evs) == 1 and evs[0]["key"].startswith("floor:") and "TSTU" not in evs[0]["key"]
     st["sent"][evs[0]["key"]] = "x"
-    assert event_watch.floor_events(CTX, {}, {"MU": {"last": 69.0, "low": 68.0}}, st, "2026-10-19", "US") == []
+    assert event_watch.floor_events(CTX, {}, {"TSTU": {"last": 69.0, "low": 68.0}}, st, "2026-10-19", "US") == []
     assert alerts.kind(evs[0]["key"]) not in alerts.RING_KINDS     # 사전등록 — 소리 표 밖
 
 
@@ -100,7 +100,7 @@ def test_secret_health_warns_and_clears(tmp_path, monkeypatch, caplog):
     assert "알림 비활성: MY_RULES 없음" in caplog.text
     h = json.loads(fp.read_text(encoding="utf-8"))["health"]
     assert [x["what"] for x in h] == ["알림 비활성: MY_RULES 없음"] and "x" not in json.dumps(h).replace("fix", "")
-    monkeypatch.setenv("MY_RULES", "000660 1170000 touch")
+    monkeypatch.setenv("MY_RULES", "000000 10000 touch")
     assert alerts.secret_health("test", path=fp, intended={}) == []
     assert json.loads(fp.read_text(encoding="utf-8"))["health"] == []
 

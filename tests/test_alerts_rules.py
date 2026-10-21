@@ -73,15 +73,15 @@ def test_rules_defaults():
 
 
 def test_touch_rule_parses_and_fires(monkeypatch):
-    r = pb.rules("000660 1170000 touch\n005930 80000\nSEMI_CAP 0.40")
-    assert r["touch"] == {"000660": 1170000.0} and r["price"] == {"005930": 80000.0}
-    monkeypatch.setenv("MY_RULES", "000660 1170000 touch")
-    fake = {"000660": {"last": 1200000.0, "low": 1169000.0, "name": "SK하이닉스"}}
+    r = pb.rules("000000 10000 touch\n000001 80000\nSEMI_CAP 0.40")
+    assert r["touch"] == {"000000": 10000.0} and r["price"] == {"000001": 80000.0}
+    monkeypatch.setenv("MY_RULES", "000000 10000 touch")
+    fake = {"000000": {"last": 10300.0, "low": 9990.0, "name": "TEST01"}}
     out = alerts.touch_lines(fetch=lambda c: fake.get(c))
-    assert len(out) == 1 and out[0][0] == "touch:000660" and "예외 조건 충족" in out[0][1] and "장중 저가" in out[0][1]
-    fake["000660"]["low"] = 1171000.0            # 저가가 선 위 → 조용
+    assert len(out) == 1 and out[0][0] == "touch:000000" and "예외 조건 충족" in out[0][1] and "장중 저가" in out[0][1]
+    fake["000000"]["low"] = 10010.0            # 저가가 선 위 → 조용
     assert alerts.touch_lines(fetch=lambda c: fake.get(c)) == []
-    fake["000660"] = {"last": 1160000.0, "low": None, "name": "SK하이닉스"}   # 저가 키 없으면 현재가로
+    fake["000000"] = {"last": 9900.0, "low": None, "name": "TEST01"}   # 저가 키 없으면 현재가로
     assert "현재가" in alerts.touch_lines(fetch=lambda c: fake.get(c))[0][1]
 
 

@@ -5,7 +5,7 @@
 (b) 기한: env RULE_DEADLINE (YYYY-MM-DD, 기본 2026-10-22) → D-2 · D-1 · D-day 한 줄.
 (c) 발동선: MY_HOLDINGS 가 있고 반도체(전기 제외·지수 ETF 룩스루 제외) 비중 > SEMI_BAND(기본 0.45) → "📐 반도체 발동선 초과 — 다음 반등일 40%로".
 (e) 하드 바닥: [5] 개정안(사전등록 10/17, 10/31 도장 전) 반도체 보유분 평단 −30% 장중 터치 → ⛔ 한 줄(비율만, 키 floor:<해시>, 무음).
-    평단은 MY_HOLDINGS 에서 런타임에만(pb.risk_ctx). 000660 처럼 MY_RULES touch 가 더 엄격하면 touch(1,170,000)가 담당.
+    평단은 MY_HOLDINGS 에서 런타임에만(pb.risk_ctx). MY_RULES touch 가 더 엄격하면(가짜 예: 000000 바닥 8,800 < touch 10,000) touch 가 담당.
 시크릿 부재: MY_RULES·MY_HOLDINGS 가 없으면 WARNING + reports/freshness.json 'health' → 화면 배지 '알림 비활성: MY_RULES 없음' (secret_health).
 (d) 급락일 종가 매수 신호: 평일 15:05 KST(--mode crash_check) 코스피 장중 ≤ −4.5% → "⚡ 급락일 종가 매수 신호 … 15:20 동시호가" (1차 신호, 등급은 registry 인용).
 
@@ -35,14 +35,14 @@ DEFAULT_DEADLINE = "2026-10-22"
 RING_KINDS: dict[str, str] = {
     "stop2": "⛔ 손절선 2일 연속 종가 이탈 — 코스피 규정 [12] 5,451 선('stop2') + 보유 종목 기준가 MY_RULES price('stop2:<코드>', pb 아침 점검)",
     "dl0": "규정 [12] 집행 기한 D-day",
-    "touch": "발동선 장중 터치 (MY_RULES touch — 000660 결재 #2 예외 1회)",
+    "touch": "발동선 장중 터치 (MY_RULES touch — 보유 종목 결재 #2 예외 1회)",
     "halt": "서킷브레이커·사이드카 실제 발동",
     "fresh": "데이터 신선도 ⛔ (항목당 하루 1회)",
 }
 
 
 def kind(key: str) -> str:
-    """알림 키 → 종류. 'touch:000660' → 'touch', '2026-10-20:stop2' 처럼 날짜가 붙은 상태 키도 받는다."""
+    """알림 키 → 종류. 'touch:000000' → 'touch', '2026-10-20:stop2' 처럼 날짜가 붙은 상태 키도 받는다."""
     parts = str(key).split(":")
     if len(parts) > 1 and len(parts[0]) == 10 and parts[0][4] == "-":   # YYYY-MM-DD: 접두
         parts = parts[1:]
@@ -257,7 +257,7 @@ def secret_health(source: str = "", names=SECRETS, path=None, intended=None) -> 
 # ── [5] 개정안 하드 바닥 (사전등록 10/17, 10/31 도장 전): 반도체 보유분 평단 −30% 장중 터치 ──
 def floor_hits(ctx: dict | None, rules: dict | None, quote, mk: str = "KR") -> list[tuple[str, str, str]]:
     """ctx = pb.risk_ctx() (평단은 런타임 메모리에만), quote(code) → {'last','low','name'}. 반환 [(코드, 표시 이름, 문장)].
-    MY_RULES touch 줄이 있고 그 가격이 하드 바닥 이상이면(더 엄격 — 000660 1,170,000) touch 가 담당, 하드 바닥은 건너뜀.
+    MY_RULES touch 줄이 있고 그 가격이 하드 바닥 이상이면(더 엄격 — 가짜 예: 000000 touch 10,000) touch 가 담당, 하드 바닥은 건너뜀.
     문장은 비율만(평단·가격 없음)."""
     from .defs import SEMI_HARD_FLOOR, SEMI_HARD_FLOOR_STATE
     out = []

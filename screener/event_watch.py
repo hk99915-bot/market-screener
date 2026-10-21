@@ -11,7 +11,7 @@ live.yml 루프가 백그라운드로 약 60초마다 `python -m screener.event_
     stopx:<해시>:<날짜>          MY_RULES '<코드> <가격>'(종가 2일 손절선) 장중 이탈 — 무음 경고 (소리 나는 stop2 = 코스피 종가 2일 규칙은 그대로)
     hold5:<해시>:<날짜>          MY_HOLDINGS 국내 종목 장중 ≤ −5% — 무음
     floor:<해시>:<날짜>          [5] 개정안 하드 바닥(반도체 보유분 평단 −30%, 사전등록·10/31 도장 전) 장중 터치 — 무음(RING_KINDS 밖), 문장은 비율만.
-                                 평단은 MY_HOLDINGS 에서 런타임에만 계산(pb.risk_ctx). MY_RULES touch 가 더 엄격하면(000660 1,170,000) touch 가 담당
+                                 평단은 MY_HOLDINGS 에서 런타임에만 계산(pb.risk_ctx). MY_RULES touch 가 더 엄격하면(000000 10,000) touch 가 담당
   미장 (평일 09:30–16:00 뉴욕, 야후 1분봉)
     spx-3 / ndx-3 / vix+25:<날짜>  S&P500·나스닥100 ≤ −3%, VIX ≥ +25% — 무음
     usstop:<해시>:<날짜>         MY_RULES 미국 티커 손절선 장중 이탈 — 무음

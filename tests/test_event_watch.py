@@ -18,7 +18,7 @@ def q(last, chg, *, at=NOW, low=None, stop="TRADING", name=None):
 @pytest.fixture
 def st(tmp_path, monkeypatch):
     monkeypatch.setenv("EVENT_STATE", str(tmp_path / "ev.json"))
-    monkeypatch.setenv("MY_RULES", "000660 1000000 touch\n005930 200000\nMU 90")
+    monkeypatch.setenv("MY_RULES", "000000 1000000 touch\n005930 200000\nMU 90")
     monkeypatch.setattr(ew, "_news_halt_today", lambda day: set())
     return ew.load_state()
 
@@ -38,28 +38,28 @@ def rules():
 
 
 def test_touch_fires_once_ever_and_rings(st):
-    stocks = {"000660": q(1_010_000, -0.03, low=990_000, name="SK하이닉스")}
+    stocks = {"000000": q(1_010_000, -0.03, low=990_000, name="TEST01")}
     evs = ew.kr_events(NOW, calm(), stocks, rules(), {}, st)
-    assert [e["key"] for e in evs] == ["touch:000660"]
+    assert [e["key"] for e in evs] == ["touch:000000"]
     out, send = sender()
     res = ew.dispatch(evs, st, NOW, send)
     assert res["ring"] is True and out[0][1] is False and "발동선 터치" in out[0][0]
     later = NOW + timedelta(days=3)                       # 다른 날에도 다시 안 울림 (평생 1회)
-    stocks = {"000660": q(950_000, -0.05, at=later, low=940_000)}
+    stocks = {"000000": q(950_000, -0.05, at=later, low=940_000)}
     evs = ew.kr_events(later, calm(later), stocks, rules(), {}, st)
     assert not [e for e in evs if e["key"].startswith("touch:")]
 
 
 def test_touch_skipped_if_rules_alert_already_sent(st):
-    stocks = {"000660": q(990_000, -0.05)}
-    evs = ew.kr_events(NOW, calm(), stocks, rules(), {}, st, {"2026-10-19:touch:000660": "x"})
+    stocks = {"000000": q(990_000, -0.05)}
+    evs = ew.kr_events(NOW, calm(), stocks, rules(), {}, st, {"2026-10-19:touch:000000": "x"})
     assert not [e for e in evs if e["key"].startswith("touch:")]
 
 
 def test_stale_quotes_do_not_fire(st):
     old = NOW - timedelta(minutes=10)
     idx = {"KOSPI": q(5000, -0.09, at=old), "KOSDAQ": q(800, -0.06, at=old), "FUT": q(700, -0.07, at=old)}
-    stocks = {"000660": q(900_000, -0.10, at=old), "005930": q(150_000, -0.10, at=old)}
+    stocks = {"000000": q(900_000, -0.10, at=old), "005930": q(150_000, -0.10, at=old)}
     assert ew.kr_events(NOW, idx, stocks, rules(), {"005930": "x"}, st) == []
     no_ts = {"KOSPI": {"last": 5000, "chg": -0.09, "ts": None}}
     assert ew.kr_events(NOW, no_ts, {}, rules(), {}, st) == []
@@ -158,11 +158,11 @@ def test_rate_limit_batches_and_defers(st):
     out, send = sender()
     ew.dispatch([ew._ev("kospi-4:2026-10-20", "a")], st, NOW, send)
     t2 = NOW + timedelta(seconds=30)
-    res = ew.dispatch([ew._ev("kosdaq-4:2026-10-20", "b"), ew._ev("touch:000660", "c")], st, t2, send)
+    res = ew.dispatch([ew._ev("kosdaq-4:2026-10-20", "b"), ew._ev("touch:000000", "c")], st, t2, send)
     assert res["sent"] == [] and len(out) == 1 and len(res["queued"]) == 2
     t3 = NOW + timedelta(seconds=61)
     res = ew.dispatch([], st, t3, send)
-    assert len(out) == 2 and set(res["sent"]) == {"kosdaq-4:2026-10-20", "touch:000660"} and res["ring"] is True
+    assert len(out) == 2 and set(res["sent"]) == {"kosdaq-4:2026-10-20", "touch:000000"} and res["ring"] is True
     assert "b" in out[1][0] and "c" in out[1][0]
 
 
@@ -171,14 +171,14 @@ def test_ring_mapping_uses_table_only():
     for k in ("kospi-4:2026-10-20", "kosdaq-5:2026-10-20", "hold5:ab:2026-10-20", "stopx:ab:2026-10-20",
               "spx-3:2026-10-20", "ndx-3:2026-10-20", "vix+25:2026-10-20", "usstop:ab:2026-10-20"):
         assert alerts.silent([k]), k
-    assert alerts.ring(["halt:KOSPI:cb1:2026-10-20"]) and alerts.ring(["touch:000660"])
+    assert alerts.ring(["halt:KOSPI:cb1:2026-10-20"]) and alerts.ring(["touch:000000"])
 
 
 def test_state_roundtrip_keeps_touch(st):
-    st["sent"] = {"touch:000660": "2026-01-01 10:00", **{f"kospi-4:2026-01-{i:02d}": f"2026-01-{i:02d}" for i in range(1, 29)}}
+    st["sent"] = {"touch:000000": "2026-01-01 10:00", **{f"kospi-4:2026-01-{i:02d}": f"2026-01-{i:02d}" for i in range(1, 29)}}
     ew.save_state(st)
     again = ew.load_state()
-    assert "touch:000660" in again["sent"] and again["queue"] == []
+    assert "touch:000000" in again["sent"] and again["queue"] == []
 
 
 def test_run_outside_session_is_noop(st):
