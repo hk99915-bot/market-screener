@@ -251,10 +251,13 @@
     "2026-10-17"
    ],
    "pending_rounds": 1,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-verify-ee0a9f82",
    "promoted": "2026-10-21",
-   "promoted_at": "2026-10-21T04:09+09:00"
+   "promoted_at": "2026-10-21T04:09+09:00",
+   "done": "2026-10-21",
+   "done_at": "2026-10-21T12:20+09:00",
+   "done_by": "검증"
   },
   {
    "id": "req-alloc-4ce23c16",
@@ -609,6 +612,24 @@
    "done": "2026-10-21",
    "done_at": "2026-10-21T10:50+09:00",
    "done_by": "퀀트"
+  },
+  {
+   "id": "req-quant-9282fc25",
+   "from": "verify",
+   "to": "quant",
+   "text": "qld_daily_dca 재현(replication_qld_dca.md) 결과 정정 3건: ① study_qld_dca.py tracking()이 전체 CSV 행에 _r()을 걸어 휴장 다음날 수익률이 빠짐(IS 2,399→2,314일·OOS 2,715→2,612일) — §6 실 QLD CAGR 13.9%/33.0%는 전 거래일 기준 18.2%/31.1%, 표본 외 합성−실 차 −0.16%p로 정정 ② 합성 QQQ(1999-03 이전)에 보수 0.20% 차감 누락(주석과 코드 불일치) ③ §5 'spread +0.656%'는 QQQ 보수 2배(0.4%p) 흡수분 포함 — 순 차입 ≈0.26%로 재표기. 또 trial_log.json에 2026-10-21_qld_daily_dca·replication_qld_dca topic 분류 요청. 결론(7/2/1·IRR) 영향 없음.",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:20+09:00",
+   "due": "2026-10-23",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   }
  ],
  "updated": "2026-10-21"

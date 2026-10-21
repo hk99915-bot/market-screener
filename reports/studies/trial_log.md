@@ -23,8 +23,9 @@
 | lab_p1 | 2026-10-16 | earnings_yoy | 6 | m | 0.00833 | 1 | — | — |
 | lab_p1_screen | 2026-10-16 | (미분류) | — | 미등록 | — | — | — | — |
 | playbook_signals | 2026-10-15 | crash_entry | — | 미등록 | — | 32 | — | 급락일 종가(B)보다 나은 신호 없음 → 다음 연구(entry_signals)로 재정의 |
-| replication_crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 재현 표 — m 없음, −5% 사건 27일 일치 |
+| replication_crash_rebound | 2026-10-16 | crash_entry | 0 | m | — | — | — | 재현 표 — m 없음, −5% 사건 27일 일치 |
 | replication_hollzzak |  | (미분류) | — | 미등록 | — | — | F2 F(역방향 C)1 검증전1 | — |
+| replication_qld_dca | 2026-10-20 | (미분류) | 0 | m | — | — | — | — |
 | replication_semis_cap |  | (미분류) | — | 미등록 | — | — | — | — |
 | rule_audit | 2026-10-16 | rules | 18 | params.m | 0.00278 | — | C6 F12 | — |
 | semis_cap | 2026-10-16 | semis_cap | 7 | prereg.m | 0.00714 | — | A1 C1 F5 | — |
@@ -45,7 +46,7 @@
 | earnings_yoy | lab_p1 | 6 | 1 | 7 | 0.00714 |
 | semis_cap | semis_cap | 7 | 0 | 7 | 0.00714 |
 | fib | fib_levels | 4 | 0 | 4 | 0.0125 |
-| (미분류) | 2026-10-21_qld_daily_dca, lab_p1_screen, replication_hollzzak, replication_semis_cap | 0 | 0 | 0 | None |
+| (미분류) | 2026-10-21_qld_daily_dca, lab_p1_screen, replication_hollzzak, replication_qld_dca, replication_semis_cap | 0 | 0 | 0 | None |
 
 ## 3. 시도 기록 (날짜 · 가설 · 파라미터 · 결과 · 버린 이유)
 
