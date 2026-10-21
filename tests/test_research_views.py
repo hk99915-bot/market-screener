@@ -136,9 +136,17 @@ def test_update_records_failure_status(tmp_path, monkeypatch):
     monkeypatch.setattr(rv, "DATA_DIR", tmp_path)
     monkeypatch.setattr(rv, "REPORT_DIR", tmp_path)
 
+    # 종목 백필 분기(research.backfill_naver)가 실제 data/research.parquet 를 읽고 쓰지 않게
+    monkeypatch.setattr(research, "STORE", tmp_path / "research.parquet")
+    monkeypatch.setattr(research, "DATA_DIR", tmp_path)
+
     def boom(*a, **k):
         raise ConnectionError("403")
+    # 네트워크 출구 둘 다 막는다: 한경·요약 = rv._get, 네이버 = 목록 API(10/21 64c1ae52~ researches/v2, nra._get_json).
+    # rv._get 만 막으면 외부망이 열린 CI 에서 네이버가 실제로 성공해 overall='ok' 가 됨(10/20 23:44Z~ tests 빨강).
+    from screener import naver_research_api as nra
     monkeypatch.setattr(rv, "_get", boom)
+    monkeypatch.setattr(nra, "_get_json", boom)
     st = rv.update()
     assert st["overall"] == "error"
     assert all(v["status"] == "error" for v in st["sources"].values())
