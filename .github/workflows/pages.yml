@@ -37,10 +37,15 @@ jobs:
       - name: data 브랜치 갱신 (DATA_BRANCH_US·KR=1 이고 main 에 그 상세가 있을 때 — 한 번에 같이 써야 다른 쪽이 안 지워짐)
         if: vars.DATA_BRANCH_US == '1' || vars.DATA_BRANCH_KR == '1'
         run: |
-          P=""
-          if [ "${{ vars.DATA_BRANCH_US }}" = "1" ] && [ -s reports/detail/US/_index.json ]; then P="$P reports/detail/US"; fi
-          if [ "${{ vars.DATA_BRANCH_KR }}" = "1" ] && [ -s reports/detail/KR/_index.json ]; then P="$P reports/detail/KR"; fi
-          [ -z "$P" ] || python3 scripts/data_branch.py push $P || echo "::warning::data 브랜치 갱신 실패 — main 판으로 게시"
+          P=""; MISS=""
+          for m in US KR; do
+            on="${{ vars.DATA_BRANCH_US }}"; [ $m = KR ] && on="${{ vars.DATA_BRANCH_KR }}"
+            [ "$on" = "1" ] || continue
+            if [ -s reports/detail/$m/_index.json ]; then P="$P reports/detail/$m"; else MISS="$MISS $m"; fi
+          done
+          # 고아 커밋은 넘긴 폴더만 담음 → 켜 둔 폴더가 하나라도 비면 push 자체를 건너뜀 (한쪽만 올리면 다른 쪽이 data 에서 지워짐 — 포니테일 검수 10/21 #5)
+          if [ -n "$MISS" ]; then echo "::warning::data 브랜치 갱신 건너뜀 — main 에 상세 색인 없음:$MISS (기존 data 판 유지)"
+          elif [ -n "$P" ]; then python3 scripts/data_branch.py push $P || echo "::warning::data 브랜치 갱신 실패 — main 판으로 게시"; fi
       - name: 사이트 합치기 (main + data/US·KR 상세, 역행이면 main 판 유지)
         run: python3 scripts/data_branch.py site --out _site reports/detail/US reports/detail/KR
       - name: US 상세 경로 확인
