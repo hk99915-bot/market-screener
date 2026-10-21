@@ -1,0 +1,42 @@
+name: event_driven_data
+
+# 일회성 연구 데이터 수집 (퀀트·매크로·파생, 10/21 겸이 '매크로 필터 보류 말고 이벤트를 이용하는 전략'). workflow_dispatch 전용 · 텔레그램 없음.
+# 컨테이너가 야후·FRED·연준·BLS 차단 → 여기서 받아 study-data/event-driven-<run_id> 브랜치에만 올림(main 미변경). 끝나면 이 파일 삭제 가능.
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "all | idx | earn"
+        required: false
+        default: "all"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 수집
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python scripts/fetch_event_driven.py "${{ github.event.inputs.stage || 'all' }}" | tee fetch.txt
+          python - <<'PY'
+          t = open("fetch.txt", encoding="utf-8").read()
+          print("::notice title=fetch::" + t.replace("%", "%25").replace("\r", "").replace("\n", "%0A")[-3500:])
+          PY
+      - name: 브랜치에 올리기
+        run: |
+          git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
+          git checkout -B study-data/event-driven-${{ github.run_id }}
+          git add -f data/study/event
+          git commit -qm "data: event_driven 원자료 (일회성)"
+          git push origin study-data/event-driven-${{ github.run_id }}
