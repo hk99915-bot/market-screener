@@ -256,18 +256,18 @@ def clean(s: str) -> str:
 
 
 def say_line(st: dict, prop: list[dict], last_loss: dict | None, n_pass: int, src: dict | None) -> str:
-    """말투 줄(욕 허용, 숫자 칸과 분리). 우선순위: 직전 손절 → 제안 → 통과 소스 0 → 대기."""
+    """말투 줄(터미널·텔레그램 = 공개 보고서 → 욕 없음, 냉정한 톤만 · 10/21 겸이 지정). 우선순위: 직전 손절 → 제안 → 통과 소스 0 → 대기."""
     if last_loss:
-        s = f"젠장, {last_loss.get('name') or last_loss['code']} 손절 맞았어({last_loss['r']:+.2f}R). 깨끗하게 잘랐고 다음."
+        s = f"{last_loss.get('name') or last_loss['code']} 손절({last_loss['r']:+.2f}R). 규칙대로 잘랐다. 다음."
     elif prop:
         x = prop[0]
         s = f"52주 고점 밀어붙이는 놈만 잡는다 — {x.get('name') or x['code']}, 스탑 깨지면 묻지도 따지지도 않고 다음 봉 시가에 자른다."
     elif n_pass == 0:
         ev, base = (src or {}).get("ev_r"), (src or {}).get("base_ev_r")
-        s = ("이 장에서 롱 타령은 개소리야 — " + (f"기대값 {ev:+.2f}R, 기준선 {base:+.2f}R 밑. " if _num(ev) and _num(base) else "통과한 소스가 하나도 없어. ")
+        s = ("이 장에서 롱 타령은 근거 없다 — " + (f"기대값 {ev:+.2f}R, 기준선 {base:+.2f}R 밑. " if _num(ev) and _num(base) else "통과한 소스가 하나도 없어. ")
              + "현금 들고 사냥감 찾는 중.")
     else:
-        s = "덫은 깔아놨어. 걸리는 놈이 없으면 안 쏜다 — 빌어먹을 추격 매수는 안 해."
+        s = "덫은 깔아놨다. 걸리는 게 없으면 안 쏜다 — 추격 매수는 없다."
     return clean(s)
 
 

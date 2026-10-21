@@ -113,20 +113,20 @@ def test_hf_block_four_lines_format():
     assert 1 <= len(b["tg"]) <= 2
     loss = {"code": "X", "name": "테스트", "r": -1.03, "why": "스탑 닿음 → 다음 봉 시가 청산", "exit_d": "2026-10-20"}
     b2 = _block(None, loss)
-    assert b2["lines"][3].startswith("틀린 것: 테스트") and b2["say"].startswith("젠장")
+    assert b2["lines"][3].startswith("틀린 것: 테스트") and b2["say"].startswith("테스트 손절")
     b3 = _block(None, None, "지켜보기", {"A1": {"pass": False, "grade": "F", "test": {"ev_r": 0.098}, "base_test": {"ev_r": 0.12}}})
-    assert "개소리" in b3["say"] and "+0.10R" in b3["say"]
+    assert "근거 없다" in b3["say"] and "+0.10R" in b3["say"]
 
 
 def test_tone_banned_words():
-    """욕은 시장·포지션·자기 실수에만 — 혐오·차별 표현 0건(숫자 줄엔 욕도 0)."""
+    """터미널·텔레그램(공개 보고서)엔 욕 0 · 혐오·차별 표현 0 (10/21 겸이 지정)."""
     PROFANE = ("젠장", "개소리", "빌어먹을", "제기랄")
     loss = {"code": "X", "name": "테스트", "r": -1.0, "why": "스탑", "exit_d": "2026-10-20"}
     pr = A.order(_plan(), SRC, A.size(_plan(), 1.0, 0.0, SCALE), "2026-10-21")
     for blk in (_block([pr]), _block(None, loss), _block(), _block(None, None, "매수", {})):
         txt = json.dumps(blk, ensure_ascii=False).replace(" ", "")
         assert not any(w in txt for w in A.BANNED)
-        assert not any(w in ln for ln in blk["lines"] for w in PROFANE)
+        assert not any(w in txt for w in PROFANE)
     assert A.clean("젠장 병신 같은 장") == ""
     assert A.clean("젠장, 손절 맞았어") == "젠장, 손절 맞았어"
 
