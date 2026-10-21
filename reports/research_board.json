@@ -94,22 +94,49 @@
   {
    "id": "us_spikes",
    "name": "미장 잡주 하루 폭등 뒤 롱 편승 vs 숏",
-   "stage": "backtest",
+   "stage": "verify",
    "verdict": "진행",
    "owner": "퀀트",
    "src": "겸이 10/21",
-   "result": "§0 사전등록 커밋(+30%·거래량 5배·$1~20·시총<$2B, 롱 L1·L5 / 숏 S5·S20 차입비용 포함). 원자료 수집 중",
-   "gate": "결과 §1~ 커밋 → 등급. 공매도·레버리지 실계좌 2027-04-15 금지, 롱도 위성 북 해금 전엔 모의만",
-   "due": null,
-   "action": "없음 — 결과 나오면 보드에 뜸",
+   "result": "롱 편승 F(D0 종가→D+1 중앙 −5.6%), T30 숏 C/F, T100 숏 D+1 시가→D+5 평균 +10.0%·중앙 +16.1% B(상한 — 생존편향·차입 검증전). 숏불가 상위 25% 가정 시 −3.1%",
+   "gate": "퀀트가 재현 정정 5건 반영 → T100 숏 '차입 가능 여부 기록 모의 추적' 결재(오너). 공매도 실계좌 2027-04-15 금지",
+   "due": "2026-10-23",
+   "action": "결과 읽기 — 롱 편승은 없음, 숏은 실행(차입) 검증 전",
    "lock": true,
    "files": {
-    "study": "reports/studies/2026-10-21_us_smallcap_spikes.md"
+    "study": "reports/studies/2026-10-21_us_smallcap_spikes.md",
+    "rep": "reports/studies/replication_us_spikes.md"
    },
    "auto": [
     "reports/studies/2026-10-21_us_smallcap_spikes.md"
    ],
+   "rep": "검증 재현 일치(replication_us_spikes.md) — 결론 유지, D+1 종가 진입이면 T100 +4.7%, 최악 −864% 라벨(ORGO 자료 오류)·조정가 필터 숫자 정정 5건 요청",
    "updated": "2026-10-21"
+  },
+  {
+   "id": "us_spikes_intraday",
+   "name": "미장 잡주 폭등 장중 분봉 단타 (ORB·VWAP·첫 눌림·페이드·정지 재개 + 브래킷)",
+   "stage": "backtest",
+   "verdict": "보류",
+   "owner": "퀀트 → 개발(토스 1m)",
+   "src": "겸이 10/21 '당연히 분봉 단타지'",
+   "result": "야후 5분봉 60일(43거래일), 트리거 248·D+1 127건. 16개 규칙 전부 비용 후 음수(F14·검증전2) — 트리거 롱→마감 −5.0%(중앙 −7.4). 브래킷 672칸 탐색 최선 검증 +3.3%(n 33, p 0.094, 우연 범위). 등급 상한 C(가설)",
+   "gate": "토스 1m 깊이 탐침(req-dev-838025ff) → 백필 표본 ≥300거래일에서 같은 규칙 재검정(새 §0)",
+   "due": "2026-10-23",
+   "action": "없음 — 결과 읽기만(실계좌·모의 편입 안 함)",
+   "lock": true,
+   "files": {
+    "study": "reports/studies/2026-10-21_us_spikes_intraday.md"
+   },
+   "auto": [
+    "reports/studies/2026-10-21_us_spikes_intraday.json"
+   ],
+   "grades": "reports/studies/2026-10-21_us_spikes_intraday.json",
+   "updated": "2026-10-21",
+   "grade_counts": {
+    "F": 14,
+    "검증전": 2
+   }
   },
   {
    "id": "crash_entry",
@@ -303,15 +330,20 @@
    "verdict": "보류",
    "owner": "퀀트",
    "src": "자산배분 기준선",
-   "result": "매일 연장되는 백테스트 곡선 — 규칙 고정일이 기록돼 있지 않아 표본 외(모의) 구간을 따로 볼 수 없음",
+   "result": "매일 연장되는 백테스트 곡선. 규칙 고정일 = 2026-10-17(8종 공통 — screener/portfolios.py 마지막 규칙 변경 d6165c69 '월말 종가 신호 → 다음 거래일 종가 체결', 최초 63c61bef 10-15). 그 뒤 구간(2026-10-19~)이 표본 외 모의",
    "view": "pf",
-   "gate": "전략별 규칙 고정일 기록 → 그 뒤 구간을 모의 추적으로 분리 표시",
-   "due": null,
+   "gate": "규칙 고정일(2026-10-17) 뒤 구간을 모의 추적으로 분리 표시(UXUI·퀀트) → 60거래일 뒤(≈2027-01-15) 첫 판정",
+   "due": "2027-01-15",
    "action": "없음",
    "files": {},
    "auto": [
     "reports/portfolios.json"
    ],
+   "rule_fixed": {
+    "all": "2026-10-17",
+    "commit": "d6165c69",
+    "src": "git log -- screener/portfolios.py (커밋 2개: 63c61bef 10-15 생성, d6165c69 10-17 체결 시차 변경)"
+   },
    "updated": "2026-10-21"
   },
   {
@@ -506,14 +538,35 @@
    "updated": null
   }
  ],
- "unregistered": [],
+ "unregistered": [
+  {
+   "study": "2026-10-21_event_driven",
+   "date": "2026-10-21",
+   "file": "reports/studies/2026-10-21_event_driven.md"
+  },
+  {
+   "study": "2026-10-21_laor_ib_qld",
+   "date": "2026-10-21",
+   "file": "reports/studies/2026-10-21_laor_ib_qld.md"
+  },
+  {
+   "study": "2026-10-21_tradeplan_calib",
+   "date": "2026-10-21",
+   "file": "reports/studies/2026-10-21_tradeplan_calib.json"
+  },
+  {
+   "study": "2026-10-21_tradeplan_spec",
+   "date": "2026-10-21",
+   "file": "reports/studies/2026-10-21_tradeplan_spec.md"
+  }
+ ],
  "quant_requests": [
   {
-   "id": "req-quant-9282fc25",
+   "id": "req-quant-1a18770f",
    "from": "verify",
    "opened": "2026-10-21",
    "due": "2026-10-23",
-   "text": "qld_daily_dca 재현(replication_qld_dca.md) 결과 정정 3건: ① study_qld_dca.py tracking()이 전체 CSV 행에 _r()을 걸어 휴장 다음날 수익률이 빠짐(IS 2,399→2,314일·OOS 2,7…"
+   "text": "us_smallcap_spikes 재현(replication_us_spikes.md §3) 정정 5건: ① 결론2·§2 최악 −864% 라벨 SMX→ORGO 2019-01-08(vol20=0·$150 정체시세 자료오류), SMX는 D+20 −7,13…"
   },
   {
    "id": "req-quant-b3040280",
@@ -521,13 +574,6 @@
    "opened": "2026-10-21",
    "due": "2026-10-23",
    "text": "라오어 V4.0 재현(replication_laor_ib.md) 정정 4건: ① study_laor_ib.step() 매수 전/후반 판정을 당일 매도 전 T로(현재 쿼터매도 후 T로 같은 날 재판정 = 종가 정보 누수, SOXL IRR 27.0→24…"
-  },
-  {
-   "id": "req-quant-b487e8bc",
-   "from": "uxui",
-   "opened": "2026-10-21",
-   "due": "2026-10-23",
-   "text": "연구 보드(QUANT 첫 탭) 원장 ops/research_pipeline.json: 라오어·잡주 폭등·모의 포트폴리오 카드의 다음 관문 마감일 기입 + 모의 포트폴리오 전략별 규칙 고정일 기록(표본 외 구간 분리용). 단계·판정 바뀌면 원장 수정 …"
   }
  ]
 }
