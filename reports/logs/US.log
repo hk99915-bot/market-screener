@@ -1,46 +1,43 @@
-2026-10-21 00:29:38,885 INFO screener.universe: US 유니버스 nasdaqtrader: 5865종목
-2026-10-21 00:29:38,888 INFO screener.universe: US 지수 유니버스 523종목 (S&P500 ∪ NDX)
-2026-10-21 00:29:38,888 INFO screener: US 유니버스 523종목
-2026-10-21 00:29:52,110 ERROR yfinance: 
-1 Failed download:
-2026-10-21 00:29:52,110 ERROR yfinance: ['ACGL']: OperationalError('database is locked')
-2026-10-21 00:29:52,308 INFO screener.data: US 시세 배치 1/4
-2026-10-21 00:30:04,410 INFO screener.data: US 시세 배치 2/4
-2026-10-21 00:30:17,624 INFO screener.data: US 시세 배치 3/4
-2026-10-21 00:30:23,475 INFO screener.data: US 시세 배치 4/4
-2026-10-21 00:30:23,504 WARNING screener: US 시세 최빈 기준일 2026-10-19 < 기대 거래일 2026-10-20 (시도 1/3)
-2026-10-21 00:31:58,661 INFO screener.data: US 시세 배치 1/4
-2026-10-21 00:32:04,342 INFO screener.data: US 시세 배치 2/4
-2026-10-21 00:32:09,984 INFO screener.data: US 시세 배치 3/4
-2026-10-21 00:32:12,809 INFO screener.data: US 시세 배치 4/4
-2026-10-21 00:32:12,837 WARNING screener: US 시세 최빈 기준일 2026-10-19 < 기대 거래일 2026-10-20 (시도 2/3)
-2026-10-21 00:33:48,098 INFO screener.data: US 시세 배치 1/4
-2026-10-21 00:33:53,646 INFO screener.data: US 시세 배치 2/4
-2026-10-21 00:33:59,683 INFO screener.data: US 시세 배치 3/4
-2026-10-21 00:34:03,287 INFO screener.data: US 시세 배치 4/4
-2026-10-21 00:34:03,316 WARNING screener: US 시세 최빈 기준일 2026-10-19 < 기대 거래일 2026-10-20 (시도 3/3)
-2026-10-21 00:34:03,317 INFO screener: 시세 142986행 / 523종목
-2026-10-21 00:34:03,544 WARNING screener.guard: stale 기록: reports/detail/US/_index.json US 시세 기준일 (목표 2026-10-20 · 사용 2026-10-19)
-2026-10-21 00:34:03,544 WARNING screener: US 기준일 2026-10-19 가 기대 거래일보다 과거 — [STALE] 로 표시
-2026-10-21 00:34:03,547 INFO screener: 필터 후 519종목 · 기준일 2026-10-19 · STALE
-2026-10-21 00:34:04,705 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-21 00:34:07,205 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-21 00:34:07,239 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
-2026-10-21 00:34:07,588 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-21 00:34:07,678 INFO matplotlib.font_manager: generated new fontManager
-2026-10-21 00:34:28,659 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-21 00:34:31,817 INFO screener.live: live.json 17개 지표
-2026-10-21 00:34:31,853 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (-0.13) — 주된 요인: 나스닥 −, 미 10년 금리 −, 원/달러 + · 20일 코스피 -15.0% vs S&P -0.7% (격차 -14.3%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
-2026-10-21 00:34:40,815 INFO screener.momentum: 모멘텀 순위 US 518종목
-2026-10-21 00:34:42,559 INFO screener.drivers: 미장 이익 드라이버 523종목
-2026-10-21 00:34:42,883 INFO screener.detail: 미장 재무 요약 508종목
-2026-10-21 00:34:43,368 INFO screener.valuation: US 가치평가 517종목 (검증전 108)
-2026-10-21 00:34:44,140 INFO screener.detail: detail/US: 523종목, 28060 KB
-2026-10-21 00:34:44,142 INFO screener.detail: sim_signals_US: 스캔 519 · 통과 0 · 기대 우연 0.8
-2026-10-21 00:35:10,114 INFO screener.etf: ETF US 64개 (26s)
-2026-10-21 00:35:10,174 INFO screener.dashboard: dashboard.json 갱신 (107263 bytes)
-2026-10-21 00:35:10,632 INFO screener.dashboard: 리서치 국면 태그 1703건
-2026-10-21 00:35:10,651 INFO screener.dashboard: research.json 1703건
-2026-10-21 00:35:10,657 INFO screener.dashboard: disclosures.json 526건
-2026-10-21 00:35:10,683 INFO screener.daily: 데일리 리포트: 리포트 243건, 테마 27개, 통합 체크 0개
-2026-10-21 00:35:10,698 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
+2026-10-21 01:07:53,413 INFO screener.universe: US 유니버스 nasdaqtrader: 5865종목
+2026-10-21 01:07:53,417 INFO screener.universe: US 지수 유니버스 523종목 (S&P500 ∪ NDX)
+2026-10-21 01:07:53,417 INFO screener: US 유니버스 523종목
+2026-10-21 01:08:10,205 INFO screener.data: US 시세 배치 1/4
+2026-10-21 01:08:21,374 INFO screener.data: US 시세 배치 2/4
+2026-10-21 01:08:33,829 INFO screener.data: US 시세 배치 3/4
+2026-10-21 01:08:39,453 INFO screener.data: US 시세 배치 4/4
+2026-10-21 01:08:39,487 WARNING screener: US 시세 최빈 기준일 2026-10-19 < 기대 거래일 2026-10-20 (시도 1/3)
+2026-10-21 01:10:15,158 INFO screener.data: US 시세 배치 1/4
+2026-10-21 01:10:22,774 INFO screener.data: US 시세 배치 2/4
+2026-10-21 01:10:31,993 INFO screener.data: US 시세 배치 3/4
+2026-10-21 01:10:36,372 INFO screener.data: US 시세 배치 4/4
+2026-10-21 01:10:36,403 WARNING screener: US 시세 최빈 기준일 2026-10-19 < 기대 거래일 2026-10-20 (시도 2/3)
+2026-10-21 01:12:12,285 INFO screener.data: US 시세 배치 1/4
+2026-10-21 01:12:21,006 INFO screener.data: US 시세 배치 2/4
+2026-10-21 01:12:29,612 INFO screener.data: US 시세 배치 3/4
+2026-10-21 01:12:33,542 INFO screener.data: US 시세 배치 4/4
+2026-10-21 01:12:33,574 WARNING screener: US 시세 최빈 기준일 2026-10-19 < 기대 거래일 2026-10-20 (시도 3/3)
+2026-10-21 01:12:33,717 INFO screener: 시세 142986행 / 523종목
+2026-10-21 01:12:33,967 WARNING screener.guard: stale 기록: reports/detail/US/_index.json US 시세 기준일 (목표 2026-10-20 · 사용 2026-10-19)
+2026-10-21 01:12:33,967 WARNING screener: US 기준일 2026-10-19 가 기대 거래일보다 과거 — [STALE] 로 표시
+2026-10-21 01:12:33,970 INFO screener: 필터 후 519종목 · 기준일 2026-10-19 · STALE
+2026-10-21 01:12:35,101 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-21 01:12:37,202 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-21 01:12:37,291 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-10-21 01:12:38,200 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-21 01:12:38,520 INFO matplotlib.font_manager: generated new fontManager
+2026-10-21 01:12:52,549 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-21 01:12:55,215 INFO screener.live: live.json 17개 지표
+2026-10-21 01:12:55,270 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (-0.13) — 주된 요인: 나스닥 −, 미 10년 금리 −, 원/달러 + · 20일 코스피 -15.0% vs S&P -0.7% (격차 -14.4%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
+2026-10-21 01:13:04,614 INFO screener.momentum: 모멘텀 순위 US 518종목
+2026-10-21 01:13:06,639 INFO screener.drivers: 미장 이익 드라이버 523종목
+2026-10-21 01:13:06,996 INFO screener.detail: 미장 재무 요약 508종목
+2026-10-21 01:13:07,445 INFO screener.valuation: US 가치평가 517종목 (검증전 108)
+2026-10-21 01:13:08,247 INFO screener.detail: detail/US: 523종목, 28060 KB
+2026-10-21 01:13:08,250 INFO screener.detail: sim_signals_US: 스캔 519 · 통과 0 · 기대 우연 0.8
+2026-10-21 01:13:31,376 INFO screener.etf: ETF US 64개 (23s)
+2026-10-21 01:13:31,443 INFO screener.dashboard: dashboard.json 갱신 (107362 bytes)
+2026-10-21 01:13:31,927 INFO screener.dashboard: 리서치 국면 태그 1703건
+2026-10-21 01:13:31,948 INFO screener.dashboard: research.json 1703건
+2026-10-21 01:13:31,955 INFO screener.dashboard: disclosures.json 526건
+2026-10-21 01:13:31,983 INFO screener.daily: 데일리 리포트: 리포트 243건, 테마 27개, 통합 체크 0개
+2026-10-21 01:13:32,000 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
