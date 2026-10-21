@@ -1,0 +1,47 @@
+name: us_spikes_data
+
+# 일회성 연구 데이터 수집 (퀀트, 10/21 겸이 '미장 잡주 폭등주 롱 편승/숏' 사건연구). workflow_dispatch 전용 · 텔레그램 없음.
+# 컨테이너가 야후·SEC 차단 → 여기서 받아 study-data/us-spikes-<run_id> 브랜치에만 올림(main 미변경). 끝나면 이 파일 삭제 가능.
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "all | prices | sec | extra"
+        required: false
+        default: "all"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 170
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 수집
+        env:
+          PYTHONUNBUFFERED: "1"
+          STAGE: ${{ inputs.stage }}
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+        run: |
+          python scripts/fetch_us_spikes.py | tee fetch.txt
+          python - <<'PY'
+          t = open("fetch.txt", encoding="utf-8").read()
+          tail = "\n".join([l for l in t.splitlines() if not l.startswith("chunk ")][-60:])
+          print("::notice title=fetch::" + tail.replace("%", "%25").replace("\r", "").replace("\n", "%0A")[:3500])
+          PY
+      - name: 브랜치에 올리기
+        if: always()
+        run: |
+          git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
+          git checkout -B study-data/us-spikes-${{ github.run_id }}
+          cp fetch.txt data/study/spikes/fetch_log.txt || true
+          git add -f data/study/spikes
+          git commit -qm "data: us_spikes 원자료 (일회성)"
+          git push origin study-data/us-spikes-${{ github.run_id }}
