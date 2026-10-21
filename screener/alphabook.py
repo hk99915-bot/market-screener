@@ -529,9 +529,11 @@ def disc_line(path: Path | None = None) -> str | None:
     for p in op[:3]:
         sgn = 1 if p.get("side") == "롱" else -1
         r = (p["last"] - p["entry"]) * sgn / p["r_unit"] if p.get("r_unit") else 0.0
-        parts.append(f"{p['side']} {p['name']} {p['entry']:,.2f}→{p['last']:,.2f}({r:+.2f}R)")
+        n = 1e11 * p.get("weight", 0) / (p["entry"] * (1 if p.get("kind") == "stock" else 250_000)) if p.get("entry") else 0
+        unit = "주" if p.get("kind") == "stock" else "계약"
+        parts.append(f"{p['side']} {p['name']} {n:,.0f}{unit} {p['entry']:,.2f}→{p['last']:,.2f}({r:+.2f}R)")
     tail = f" · 청산 {len(cl)}건 평균 {sum(c['r'] for c in cl) / len(cl):+.2f}R" if cl else ""
-    return clean("  🎯 재량(자율·모의): " + (" · ".join(parts) if parts else "포지션 없음") + tail)
+    return clean("  🎯 재량(자율·모의, 가상 AUM 1,000억): " + (" · ".join(parts) if parts else "포지션 없음") + tail)
 
 
 def telegram_tail(o: dict) -> list[str]:

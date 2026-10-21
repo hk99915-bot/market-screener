@@ -9,7 +9,7 @@
 상태 reports/hf_discretion.json. 가상 1단위 모의 — 실계좌 주문 아님. 체계 북(screener/alphabook.py)과 따로 채점.
 가격: 주식 = screener.prices.load_kr 종가, 선물 = data/deriv/daily.csv fut_close(없으면 k200_close),
 옵션 = 코스피200 블랙숄즈(σ = atm_iv, 없으면 VKOSPI/100, r 2.5%) — 실제 호가 아님(근사 표기).
-한도: 1건 리스크 0.25% · 열린 리스크 합 1.0% · 동시 6건. 옵션 매수는 프리미엄 전액 = 리스크.
+가상 AUM 1,000억(계약 수 표기용). 한도: 1건 리스크 0.25% · 열린 리스크 합 1.0% · 동시 6건. 옵션 매수는 프리미엄 전액 = 리스크.
 """
 from __future__ import annotations
 
@@ -25,6 +25,8 @@ sys.path.insert(0, str(ROOT))
 STATE = ROOT / "reports" / "hf_discretion.json"
 KST = timezone(timedelta(hours=9))
 RISK_1, RISK_ALL, MAX_OPEN = 0.0025, 0.01, 6
+AUM = 100_000_000_000      # 가상 AUM 1,000억원(겸이 10/21 지정 — 계약 수 감 잡기용, 실제 돈 아님)
+MULT = 250_000             # 코스피200 선물·옵션 승수(원/pt)
 RATE = 0.025
 COST = {"stock": 0.0045, "fut": 0.0004, "put": 0.02, "call": 0.02}   # 왕복(옵션은 프리미엄 대비 호가 폭 가정)
 HOLD = {"stock": 20, "fut": 10}
@@ -165,6 +167,14 @@ def mark(b: dict) -> list[dict]:
     return out
 
 
+def qty(p: dict) -> str:
+    """가상 AUM 기준 수량 — 선물·옵션 계약, 주식 주."""
+    notional = AUM * p["weight"]
+    if p["kind"] == "stock":
+        return f"{notional / p['entry']:,.0f}주"
+    return f"{notional / (p['entry'] * MULT):,.0f}계약"
+
+
 def show(b: dict) -> list[str]:
     d = deriv_last()
     ls = [f"재량 북: 열린 {len(b['open'])}건 · 열린 리스크 {open_risk(b) * 100:.2f}% (한도 1.00%) · 청산 {len(b['closed'])}건"
@@ -172,10 +182,10 @@ def show(b: dict) -> list[str]:
     for p in b["open"]:
         cur = r_of(p, p["last"])
         lv = f"손절 {p['stop']:,.2f} · 1차 {p['t1']:,.2f}" if p["stop"] is not None else f"최대손실 = 프리미엄 · 익절 {p['t1']:,.2f}"
-        ls.append(f"- {p['side']} {p['name']} 진입 {p['entry']:,.2f} → {p['last']:,.2f} ({cur:+.2f}R) · {lv} · 크기 {p['weight'] * 100:.2f}% · 근거: {p['why']}")
+        ls.append(f"- {p['side']} {p['name']} 진입 {p['entry']:,.2f} → {p['last']:,.2f} ({cur:+.2f}R) · {lv} · 크기 {p['weight'] * 100:.2f}% ({qty(p)}) · 근거: {p['why']}")
     for p in b["closed"][-3:]:
         ls.append(f"- 청산 {p['side']} {p['name']} {p['r']:+.2f}R ({p['exit_why']}, {p['exit_d']})")
-    ls.append(f"(가격 기준 {d['date']} · 옵션 = BS 근사 σ {d['iv']:.1%} · 모의)")
+    ls.append(f"(가격 기준 {d['date']} · 옵션 = BS 근사 σ {d['iv']:.1%} · 가상 AUM {AUM / 1e8:,.0f}억 · 모의)")
     return ls
 
 
