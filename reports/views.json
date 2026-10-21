@@ -1,6 +1,6 @@
 {
- "asof": "2026-10-20 19:23",
- "date": "2026-10-20",
+ "asof": "2026-10-21 09:07",
+ "date": "2026-10-21",
  "registry_updated": "2026-10-16",
  "summary": {
   "entry": {
@@ -69,15 +69,14 @@
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.4 · 최약 CIFR -69%, IREN -64%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.9 · 최약 CIFR -69%, IREN -64%"
     },
     {
-     "id": "ovr-2026-10-15-circuit",
-     "name": "이벤트 예외",
-     "state": "예외",
-     "grade": "—",
-     "line": "10/15 코스피 장중 −9% 서킷 이후 4거래일: 신규 진입은 평소 1차 비중의 절반까지만, 레버리지 상품 신규 없음",
-     "expires": "2026-10-20"
+     "id": "event_calendar",
+     "name": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
+     "state": "당일 있음",
+     "grade": "검증전",
+     "line": "10-21 Meta Platforms 실적, 10-28 FOMC 금리 결정, 10-28 Microsoft 실적, 10-28 Alphabet 실적"
     }
    ],
    "reference": [
@@ -209,7 +208,7 @@
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.4 · 최약 CIFR -69%, IREN -64%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.9 · 최약 CIFR -69%, IREN -64%"
     }
    ],
    "reference": [
@@ -270,7 +269,7 @@
     {
      "id": "event_calendar",
      "name": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
-     "state": "없음",
+     "state": "당일 있음",
      "grade": "검증전"
     },
     {
@@ -341,7 +340,7 @@
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.4 · 최약 CIFR -69%, IREN -64%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.9 · 최약 CIFR -69%, IREN -64%"
     }
    ],
    "reference": [
@@ -414,7 +413,9 @@
    ]
   }
  },
- "changes": [],
+ "changes": [
+  "진입 주의 새로: 핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)"
+ ],
  "lenses": [
   {
    "id": "kr_regime",
@@ -486,7 +487,7 @@
    "alert": false,
    "gate": {},
    "note": "강등된 신호 — 진입 근거로 인용 금지",
-   "asof": "2026-10-20 15:50"
+   "asof": "2026-10-21 09:07"
   },
   {
    "id": "foreign_flow",
@@ -506,7 +507,7 @@
    "bias": "bear",
    "alert": false,
    "gate": {},
-   "note": "-0.54조 (마감)",
+   "note": "-0.54조 (마감, 오늘 아님)",
    "asof": "2026-10-20 15:49"
   },
   {
@@ -574,7 +575,7 @@
    "alert": false,
    "gate": {},
    "note": "근거 '20일 −15% 이상 하락 중' n=176",
-   "asof": "2026-10-20 15:50"
+   "asof": "2026-10-21 09:07"
   },
   {
    "id": "stock_trend_score",
@@ -678,7 +679,7 @@
    "bias": "bear",
    "alert": true,
    "gate": {},
-   "note": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.4 · 최약 CIFR -69%, IREN -64%",
+   "note": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -57.4%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, WULF, CRWV, CORZ, NBIS), HYG 1M -1.7%, VIX 18.9 · 최약 CIFR -69%, IREN -64%",
    "asof": "2026-10-19"
   },
   {
@@ -740,7 +741,7 @@
    },
    "review_by": "2026-12-15",
    "state": "평온",
-   "value": -0.0024,
+   "value": -0.0025,
    "bias": null,
    "alert": false,
    "gate": {},
@@ -765,7 +766,7 @@
    "bias": null,
    "alert": false,
    "gate": {},
-   "note": "60일 상관 0.724",
+   "note": "60일 상관 0.726",
    "asof": "2026-10-20"
   },
   {
@@ -822,7 +823,7 @@
    "alert": false,
    "gate": {},
    "note": "5거래일 뒤부터 채점",
-   "asof": "2026-10-20 15:50"
+   "asof": "2026-10-21 09:07"
   },
   {
    "id": "event_calendar",
@@ -837,12 +838,12 @@
     "allocation": "none"
    },
    "review_by": "2026-11-15",
-   "state": "없음",
-   "value": 0,
+   "state": "당일 있음",
+   "value": 5,
    "bias": null,
-   "alert": false,
+   "alert": true,
    "gate": {},
-   "note": "",
+   "note": "10-21 Meta Platforms 실적, 10-28 FOMC 금리 결정, 10-28 Microsoft 실적, 10-28 Alphabet 실적",
    "asof": null
   },
   {
@@ -1273,7 +1274,8 @@
   }
  ],
  "overrides": {
-  "active": [
+  "active": [],
+  "expired": [
    {
     "id": "ovr-2026-10-15-circuit",
     "scope": "entry",
@@ -1283,8 +1285,7 @@
     "created": "2026-10-16",
     "expires": "2026-10-20"
    }
-  ],
-  "expired": []
+  ]
  },
  "lifecycle": {
   "후보": [
