@@ -15,6 +15,8 @@
  *    확인: 함수 tickTest 실행 → 로그에 오늘 시간표와 실행 여부가 찍힘
  * 갱신 (코드만 바뀐 경우): 기존 프로젝트에서 전체 선택 → 이 파일로 교체 → 저장 → tickTest 실행.
  *    install 은 다시 안 해도 됨(트리거는 함수 이름 tick 으로 걸려 있음). 체크리스트: docs/schedule_table.md 맨 위
+ * 이중화(10/21): 노트북 tools/dispatch/dispatch.py 가 이 SCHEDULE 표를 그대로 읽어 같은 슬롯을 +2분부터 보낸다(GAS 가 이미 보냈으면 안 보냄).
+ *    둘 다 보내도 scripts/slot_guard.py 가 먼저 만들어진 run 만 실행. 표를 바꾸면 노트북은 git pull 만 하면 된다.
  */
 const REPO = 'hk99915-bot/market-screener';
 const WEEKDAY = [1, 2, 3, 4, 5];        // 월~금 (KST)
@@ -50,7 +52,7 @@ const SCHEDULE = [
 // commit: 'true' — 워크플로는 수동 실행을 기본 읽기 전용(커밋 안 함)으로 돌린다. 예약 실행기만 커밋 권한을 명시.
 // 슬롯을 더하거나 빼면 tests/test_schedule_single.py 가 워크플로 쪽 가드와 맞는지 검사한다.
 
-const SCHEDULER_VERSION = '2026-10-18 결정C';   // tickTest 첫 줄에 찍힘 — 붙여넣기 확인용
+const SCHEDULER_VERSION = '2026-10-21 이중화';   // tickTest 첫 줄에 찍힘 — 붙여넣기 확인용
 const WINDOW_MIN = 10;   // 예정 시각 이후 이 시간 안에만 실행 (cron 대기 12분보다 짧게 — 늦게 깨어나도 몰아서 보내지 않음)
 
 function kstNow_() {
@@ -94,9 +96,10 @@ function cleanup_(props, today) {
 }
 
 function install() {
-  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+  // tick 트리거만 지우고 다시 만든다 — 같은 프로젝트의 tgPoll(TelegramHook.gs) 트리거는 건드리지 않는다(10/21: 예전엔 전부 지워 텔레그램 버튼이 죽음)
+  ScriptApp.getProjectTriggers().forEach(t => { if (t.getHandlerFunction() === 'tick') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('tick').timeBased().everyMinutes(5).create();
-  console.log('설치 완료: 5분마다 tick 실행');
+  console.log('설치 완료: 5분마다 tick 실행 · 트리거 ' + ScriptApp.getProjectTriggers().map(t => t.getHandlerFunction()).join(','));
 }
 
 function tickTest() {

@@ -226,7 +226,48 @@ Start-ScheduledTask -TaskName "toss_md_live"
 - 그래서 수집은 **작업 스케줄러로만** 돌리고, GitHub Actions 와 연결하지 않는다.
 - 같은 이유로 토스 키를 **GitHub Secrets 에도 넣지 않는다**(수집 주체가 둘이 되고, IP도 안 맞는다).
 
-## ⑧ 키가 샜다고 의심될 때 (바로 할 일)
+## ⑧ 정시 dispatcher — GAS 예약기 이중화 (10/21, 겸이 "지금 나온 이야기 다 ㄱㄱ")
+비유: 알람시계(GAS)가 하나뿐이라 10/21 아침 08:40·08:50 에 안 울렸다 → 노트북에 **두 번째 알람시계**를 둔다. 둘 다 울려도 일은 한 번만 한다.
+- 하는 일: 2분마다 `apps-script/Scheduler.gs` 시간표(단일 출처 — 표를 따로 두지 않음)를 읽어, 지금이 슬롯 **예정 +2~10분**이고 GAS 가 아직 안 보냈으면 GitHub 에 그 워크플로 실행 요청(workflow_dispatch) 1번.
+- 둘 다 보내면: `scripts/slot_guard.py` 가 **먼저 만들어진 실행만** 돌리고 뒤엣것은 건너뛴다(테스트 `test_double_dispatch_gas_and_laptop_first_wins`).
+- 하트비트: 매 실행 `~\toss_md_data\dispatcher.json` → 토스 publish 가 `live.json` 의 `dispatcher_heartbeat` 로 공개 → 장중 30분마다 `heartbeat.yml` 이 "슬롯 +20분인데 실행 요청 0건"이면 텔레그램 즉시 1통.
+- 쓰는 권한: 이 저장소의 **Actions 만**(실행 요청·실행 목록). 계좌·주문·토스 키와 무관. 토큰은 화면·로그에 안 찍힌다(상태 코드만).
+
+### ⑧-1 GitHub 토큰 만들기 (5분, 채팅으로 보내지 않는다)
+1. github.com → 오른쪽 위 사진 → **Settings** → 맨 아래 **Developer settings** → **Personal access tokens → Fine-grained tokens** → **Generate new token**.
+2. Token name `laptop-dispatch` · Expiration **90일**(만료일을 달력에 적기) · Resource owner `hk99915-bot`.
+3. Repository access: **Only select repositories → market-screener** 하나만.
+4. Permissions → Repository permissions → **Actions: Read and write** 하나만(나머지는 No access 그대로).
+5. Generate → 나온 `github_pat_…` 값을 **복사만** 해 둔다(다음 단계에서 메모장에 바로 붙여넣기).
+
+### ⑧-2 비밀 파일 + 작업 등록 (PowerShell)
+```powershell
+cd $HOME\market-screener
+git pull
+New-Item -ItemType Directory -Force "$HOME\.config\gh_dispatch" | Out-Null
+notepad "$HOME\.config\gh_dispatch\env"
+#   메모장에 한 줄:  GH_DISPATCH_TOKEN=github_pat_여기에붙여넣기   → 저장(파일 형식: 모든 파일, 이름 env)
+$f = "$HOME\.config\gh_dispatch\env"
+icacls $f /inheritance:r /grant:r "$($env:USERNAME):F"
+icacls $f                      # 내 계정 한 줄만 보여야 한다 (넓으면 dispatcher 가 실행 거부 — ③과 같은 규칙)
+
+# 점검: 지금 보낼 슬롯만 출력 (토큰 안 씀)
+python tools\dispatch\dispatch.py --dry-run --now 2026-10-22T08:52     # → "[dry-run] 보낼 슬롯 …08:50|briefing.yml|premarket_kr"
+
+# 등록: 매일 00:00 시작 · 2분마다 · 24시간 (주말 02:00 backfill·03:30 fin, 화~토 새벽 미장 슬롯 포함)
+$py = (Get-Command python).Source
+$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 2)
+$a = New-ScheduledTaskAction -Execute $py -Argument "tools\dispatch\dispatch.py" -WorkingDirectory "$HOME\market-screener"
+$t = New-ScheduledTaskTrigger -Daily -At 00:00
+$t.Repetition = (New-ScheduledTaskTrigger -Once -At 00:00 -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration (New-TimeSpan -Hours 24)).Repetition
+Register-ScheduledTask -TaskName "gh_dispatch" -Action $a -Trigger $t -Settings $s -Force
+Start-ScheduledTask -TaskName "gh_dispatch"
+Get-Content "$HOME\toss_md_data\dispatcher.json"     # last_run 이 방금 시각이면 OK (last_error null)
+```
+- 시간표가 바뀌면 노트북은 `git pull` 만(표는 Scheduler.gs 한 곳).
+- 토큰 만료·의심 시: GitHub 에서 토큰 **Revoke** → `Disable-ScheduledTask gh_dispatch` → 새 토큰으로 ⑧-1부터. 그동안은 GAS + cron 대기(+12분)가 돈다.
+
+## ⑨ 키가 샜다고 의심될 때 (바로 할 일)
 비유: 출입카드를 잃어버리면 카드부터 정지시키고, 그다음 경위를 본다.
 1. **즉시** 토스증권 WTS → Open API → 키 **폐기(삭제/재발급)**, 허용 IP 목록 **비우기**. [미확인, 확인 필요: WTS 에 키 폐기·IP 해제 기능이 실제로 있는지와 메뉴 위치 — 0단계 약관 확인 때 같이 확인]
    - 그 기능이 없으면: 토스증권 고객센터에 "Open API 키 정지" 요청.

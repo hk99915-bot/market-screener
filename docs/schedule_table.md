@@ -5,7 +5,7 @@
 ## 0. 오너 붙여넣기 체크리스트 (1회, 5분)
 1. GitHub 에서 `apps-script/Scheduler.gs` 를 열어 전체 복사 (Raw 버튼).
 2. script.google.com → 기존 예약기 프로젝트 → 코드 전체 선택 → 붙여넣기로 교체 → 저장. 스크립트 속성 `GH_TOKEN`·트리거는 그대로 둔다(install 다시 안 함).
-3. 함수 `tickTest` 실행 → 로그 첫 줄이 `예약기 버전 2026-10-18 결정C · 창 10분` 인지 확인.
+3. 함수 `tickTest` 실행 → 로그 첫 줄이 `예약기 버전 2026-10-21 이중화 · 창 10분` 인지 확인 (10/21: install 은 tick 트리거만 갈아끼움 — tgPoll 은 그대로. TelegramHook.gs 도 같이 붙여넣고 `tgInstallPolling` 1회 → tgPoll 5분).
 4. 다음 슬롯 뒤 Actions 탭에서 실행 이름이 `briefing [premarket_kr] commit=true` 형태인지 확인.
 5. 시각: 슬롯 창(예정 시각~+10분) 밖에서 붙여넣기. 일요일이면 02:00–02:10, 03:30–03:40 만 피하면 된다(그날 GAS 슬롯은 이 둘뿐).
 - 붙여넣기 전에도 안전: 구버전 GAS 는 commit 입력을 안 보내므로 워크플로가 `commit=auto` 로 받는다 → 슬롯 시각(+25분) 안이면 커밋. 그래서 월요일 08:50 장전 알림은 붙여넣기 여부와 무관하게 돈다.

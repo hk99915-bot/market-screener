@@ -252,13 +252,15 @@ function tgPoll() {
   }
 }
 
-/** 편집기에서 1회 실행: 웹훅 해제(밀린 업데이트는 버리지 않음) + tgPoll 1분 트리거 설치. */
+/** 편집기에서 1회 실행: 웹훅 해제(밀린 업데이트는 버리지 않음) + tgPoll 5분 트리거 설치(기존 tgPoll 트리거는 지우고 다시 — 1분짜리 교체).
+ *  한도 계산(10/21): 무료 계정 트리거 총 실행시간 ≈ 90분/일. 1분 = 1440회 × 실행 2~3초 ≈ 48~72분 + tick 288회 ≈ 5~10분 → 한도 근처
+ *  (10/21 08:40·08:50 tick 미발송 의심 원인) · 5분 = 288회 × 2~3초 ≈ 10~15분 → tick 포함 약 25분 이내. 버튼 반응은 최대 5분 늦어진다. */
 function tgInstallPolling() {
   tgApi_('deleteWebhook', { drop_pending_updates: false });
-  const has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'tgPoll'; });
-  if (!has) ScriptApp.newTrigger('tgPoll').timeBased().everyMinutes(1).create();
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'tgPoll') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('tgPoll').timeBased().everyMinutes(5).create();
   tgPoll();
-  console.log('폴링 설치 완료 — 트리거 tgPoll 1분. 웹훅 상태: ' + tgApi_('getWebhookInfo', {}).getContentText());
+  console.log('폴링 설치 완료 — 트리거 tgPoll 5분. 웹훅 상태: ' + tgApi_('getWebhookInfo', {}).getContentText());
 }
 
 /** 되돌리기: tgPoll 트리거 삭제 (그다음 tgSetWebhook 실행하면 웹훅 모드). */

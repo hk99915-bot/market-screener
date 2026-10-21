@@ -3187,6 +3187,28 @@
       ],
       "depends_on": [],
       "notes": "#1 59c6cc7c(08:36 KST push, 테스트 tests/test_merge_decisions.py) · #4 c7ff8d8b · #5 7cbdce8e · #3 b55ae9ad · #6 03877440(1단계 이중 기록만, DATA_BRANCH_KR 변수로 켬). 감사 데스크 확인 필요: detail/KR 읽는 곳 = 화면 getStock·getStockIndex(Pages 상대경로 → site 합치기에 KR 포함), apps-script/Code.gs raw_ main 경로(57·72행), 파이썬 소비자 committee·us_accum·etf·japan·research_synthesis·ticket·pb·battle_scoreboard·fwd_perf·decisions·duel·detail·calendar_ev·valuation_daily·study 스크립트 — 모두 main 작업 트리를 읽으므로 1단계에선 안 깨짐. 2단계(main 에서 KR 제거)는 이 소비 워크플로 전부 data_branch pull + Code.gs 경로 변경·GAS 재배포 필요 → 보류. Pages paths-ignore 효과는 Source=GitHub Actions 전환 뒤부터."
+    },
+    {
+      "id": "dispatch-redundancy",
+      "title": "실행 이중화 A1~A3 (겸이 10/21 09:3x 승인) — 노트북 정시 dispatcher·하트비트 감시·tgPoll 5분·install 이 tick 만 교체",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-21",
+      "repo": "public",
+      "files": [
+        "tools/dispatch/dispatch.py",
+        "scripts/slot_guard.py",
+        "scripts/watchdog.py",
+        ".github/workflows/heartbeat.yml",
+        "tools/toss_md/publish.py",
+        "apps-script/Scheduler.gs",
+        "apps-script/TelegramHook.gs",
+        "docs/toss_md_laptop_setup.md"
+      ],
+      "depends_on": [],
+      "notes": "A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력)."
     }
   ]
 }

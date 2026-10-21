@@ -7,6 +7,7 @@
   toss     토스 live.json(origin/toss-live) 신선도 — 같은 계약의 toss_md 항목
   overdue  보드 마감 초과 — ops/board.json due < 오늘, 상태 완료 아님
   waiting  대기 3일+ — 상태 '대기' 이고 보드에 처음 들어온 날(git 이력·이전 watchdog.json)부터 3일 이상 (마감 초과면 그쪽으로만)
+  executor 정시 실행기 20분+ 무소식 — --executor (heartbeat.yml 장중 30분마다, 즉시 텔레그램 · 10/21 A2)
   request  요청 장부 2영업일 미처리 — scripts/round_collect.promotions (라운드 없이도 매일 판정, 보드 P1 '대기' 작업 추가)
 
 결과
@@ -296,13 +297,80 @@ def run(now: datetime, root: Path = ROOT, apply: bool = False, send: bool = Fals
     return result
 
 
+# ── 정시 실행기 하트비트 (10/21 A2 — GAS 예약기 정지 08:40·08:50 미발송) ─────────────────────────────
+# 하루 1통 묶음과 별개: heartbeat.yml 이 장중 30분마다 --executor --send 로 부른다(커밋 없음).
+# GAS 하트비트 = 슬롯마다 남는 workflow_dispatch run 자체, 노트북 하트비트 = toss-live live.json 'dispatcher_heartbeat'.
+# 알림은 무음 — RING_KINDS(결재 #9) 다섯 종류 밖이고, defs.TELEGRAM_ALL_SILENT=True 라 소리는 어차피 꺼져 있다.
+EXEC_STALE_MIN = 20     # 슬롯 예정 + 이 시간까지 dispatch 가 없으면 '무소식'
+EXEC_CHECK_MIN = 30     # heartbeat.yml 간격 — [STALE, STALE+CHECK) 안의 슬롯만 봐서 같은 슬롯을 두 번 알리지 않는다
+
+
+def detect_executor(now: datetime, gas: dict, runs_of, laptop_hb: dict | None) -> list[dict]:
+    """runs_of(wf, since_utc) → workflow_dispatch run 목록. 슬롯 창 [예정+20, 예정+50) 의 미dispatch 슬롯 + 노트북 하트비트 20분+."""
+    import slot_guard as g
+    k = now.astimezone(KST)
+    nm, dow = k.hour * 60 + k.minute, k.isoweekday() % 7
+    out, checking = [], False
+    for s in gas["slots"]:
+        late = nm - s["min"]
+        if dow not in s["days"] or not (EXEC_STALE_MIN <= late < EXEC_STALE_MIN + EXEC_CHECK_MIN):
+            continue
+        checking = True
+        since = (k - timedelta(minutes=late + g.SINCE_PAD_MIN)).replace(second=0, microsecond=0).astimezone(timezone.utc)
+        try:
+            hit = g.primary_ran(runs_of(s["wf"], since), g.gas_key(s), since)
+        except Exception as e:  # noqa: BLE001
+            out.append(F("executor", "개발", f"api-{s['time']}", f"실행 목록 조회 실패 {type(e).__name__} — {s['time']} 확인 불가")); continue
+        if not hit:
+            out.append(F("executor", "개발", f"{s['time']}-{s['wf']}-{g.gas_key(s)}",
+                         f"{s['time']} {s['wf']} [{g.gas_key(s)}] {late}분째 dispatch 없음 — GAS·노트북 둘 다 무소식"))
+    if checking:
+        lr = (laptop_hb or {}).get("last_run")
+        try:
+            age = (k - datetime.fromisoformat(lr)).total_seconds() / 60 if lr else None
+        except ValueError:
+            age = None
+        if age is None or age >= EXEC_STALE_MIN:
+            out.append(F("executor", "개발", "laptop", "노트북 dispatcher 하트비트 " + (f"{age:.0f}분 전" if age is not None else "없음")))
+    return out
+
+
+def run_executor(now: datetime, send: bool = False, out=print, runs_of=None, laptop_hb=None) -> list[dict]:
+    import slot_guard as g
+    if runs_of is None:
+        runs_of = g.list_runs
+    if laptop_hb is None:
+        try:
+            from screener import toss_live
+            laptop_hb = (toss_live.fetch() or {}).get("dispatcher_heartbeat")
+        except Exception:  # noqa: BLE001
+            laptop_hb = None
+    fs = detect_executor(now, g.parse_gas(), runs_of, laptop_hb)
+    slots = [f for f in fs if f["id"] != "laptop"]
+    text = (f"⏰ 정시 실행기 무소식 {now.astimezone(KST):%H:%M}\n" + "\n".join("· " + f["msg"] for f in fs)
+            + "\n→ GAS tickTest·노트북 dispatcher 확인 (docs/toss_md_laptop_setup.md ⑧)") if fs else ""
+    out(text or f"executor {now.astimezone(KST):%H:%M} — 이상 없음")
+    if send and slots:   # 노트북 하트비트만 늦은 건(GAS 는 정상 dispatch) 출력만 — 슬롯 누락일 때만 텔레그램
+        try:
+            from screener.report import send_telegram
+            import html
+            send_telegram(html.escape(text, quote=False))
+        except Exception as e:  # noqa: BLE001
+            out(f"::warning::executor 텔레그램 실패: {type(e).__name__}")
+    return fs
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--send", action="store_true", help="텔레그램 하루 1통 (--apply 와 함께 — 보낸 날을 watchdog.json 에 기록)")
     ap.add_argument("--now", help="YYYY-MM-DDTHH:MM (테스트·재현용, KST)")
+    ap.add_argument("--executor", action="store_true", help="정시 실행기 하트비트만 (heartbeat.yml, 장중 30분마다)")
     a = ap.parse_args(argv)
     now = datetime.fromisoformat(a.now).replace(tzinfo=KST) if a.now else datetime.now(KST)
+    if a.executor:
+        run_executor(now, send=a.send)
+        return 0
     run(now, apply=a.apply, send=a.send and a.apply)
     return 0
 

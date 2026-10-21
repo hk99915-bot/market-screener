@@ -203,3 +203,21 @@ def test_send_escapes_html(tmp_path, monkeypatch):
     monkeypatch.setattr(rep, "send_telegram", lambda text, **k: sent.append(text))
     wd.run(NOW, tmp_path, apply=True, send=True, out=lambda *_: None, fresh_check=lambda: {"late": []}, first_seen={})
     assert len(sent) == 1 and "<json>" not in sent[0] and "&lt;json&gt; &amp; 확인" in sent[0]
+
+
+def test_executor_stale_slot_and_laptop_heartbeat():
+    """10/21 A2: 08:40·08:50 슬롯이 dispatch 0건이면 09:13 점검에서 둘 다 걸린다. dispatch 가 있으면 안 걸림, 창 밖이면 안 봄."""
+    import slot_guard as g
+    gas = g.parse_gas()
+    now = datetime(2026, 10, 21, 9, 13, tzinfo=wd.KST)
+    hb_ok = {"last_run": "2026-10-21T09:12:00+09:00"}
+    fs = wd.detect_executor(now, gas, lambda wf, since: [], hb_ok)
+    assert sorted(f["id"] for f in fs) == ["08:40-live.yml-", "08:50-briefing.yml-premarket_kr"]
+    ran = [{"id": 5, "event": "workflow_dispatch", "display_title": "briefing [premarket_kr] commit=true",
+            "conclusion": None, "created_at": "2026-10-20T23:51:00Z"},
+           {"id": 6, "event": "workflow_dispatch", "display_title": "live commit=true",
+            "conclusion": None, "created_at": "2026-10-20T23:41:00Z"}]
+    assert wd.detect_executor(now, gas, lambda wf, since: ran, hb_ok) == []
+    stale = wd.detect_executor(now, gas, lambda wf, since: ran, {"last_run": "2026-10-21T08:30:00+09:00"})
+    assert [f["id"] for f in stale] == ["laptop"]
+    assert wd.detect_executor(datetime(2026, 10, 21, 12, 30, tzinfo=wd.KST), gas, lambda wf, since: [], None) == []

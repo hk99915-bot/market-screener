@@ -194,3 +194,21 @@ def test_us_slot_day_shift():
     plan = g.fallback_plan(GAS, "briefing.yml", "intraday_us", "52 18 * * 1-5", kst(2026, 10, 17, 4, 0))   # 토 04:00
     assert plan and plan["slot"]["time"] == "03:52"
     assert g.fallback_plan(GAS, "briefing.yml", "intraday_us", "52 18 * * 1-5", kst(2026, 10, 19, 4, 0)) is None   # 월 04:00 (일 UTC 발화 없음)
+
+
+def test_double_dispatch_gas_and_laptop_first_wins():
+    """10/21 A1 이중화: GAS(run 100)·노트북(run 101)이 같은 슬롯 dispatch → 101 만 건너뜀. 다른 키·API 실패는 실행."""
+    now = kst(2026, 10, 21, 8, 53)
+    runs = [dict(_run("briefing [premarket_kr] commit=true", kst(2026, 10, 21, 8, 51)), id=100),
+            dict(_run("briefing [premarket_kr] commit=true", kst(2026, 10, 21, 8, 52)), id=101)]
+    f = lambda wf, since: runs  # noqa: E731
+    second = g.decide("briefing.yml", "premarket_kr", "workflow_dispatch", "", "true", now=now, runs_fn=f, gas=GAS, run_id="101")
+    first = g.decide("briefing.yml", "premarket_kr", "workflow_dispatch", "", "true", now=now, runs_fn=f, gas=GAS, run_id="100")
+    assert second["go"] is False and first["go"] is True and first["commit"] is True
+
+    def boom(wf, since):
+        raise OSError("api")
+    assert g.decide("briefing.yml", "premarket_kr", "workflow_dispatch", "", "true", now=now, runs_fn=boom, gas=GAS, run_id="101")["go"]
+    # 슬롯 밖 수동 commit=true 는 확인 안 함(그대로 실행)
+    assert g.decide("briefing.yml", "premarket_kr", "workflow_dispatch", "", "true", now=kst(2026, 10, 21, 12, 0),
+                    runs_fn=boom, gas=GAS, run_id="101")["go"]

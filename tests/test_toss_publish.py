@@ -431,3 +431,11 @@ def test_daily_live_refresh_only_live_keys(tmp_path):
     collect.run("us", dry_run=True, out=tmp_path, now=now, client=C())
     daily = [(p, q) for p, q in seen if q.get("interval") == "1d"]
     assert sorted(q["symbol"] for _p, q in daily) == sorted(collect.DAILY_LIVE_US) and all(q["count"] == 2 for _p, q in daily)
+
+
+def test_dispatcher_heartbeat_published(base):
+    """10/21 A2: 노트북 dispatcher 하트비트(dispatcher.json)를 live.json 에 3필드만 싣는다(done 목록 등은 비공개)."""
+    (base / "dispatcher.json").write_text(json.dumps({"last_run": "2026-10-21T09:00:00+09:00", "done": ["x"],
+                                                      "last_error": None}), encoding="utf-8")
+    doc = publish.build(base, NOW)
+    assert doc["dispatcher_heartbeat"] == {"last_run": "2026-10-21T09:00:00+09:00", "last_dispatch": None, "last_error": None}

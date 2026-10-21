@@ -1,0 +1,33 @@
+name: heartbeat
+
+# 정시 실행기 하트비트 감시 (10/21 A2 — 08:40·08:50 GAS 슬롯 미발송 사고). 장중 30분마다, 커밋 없음.
+# 슬롯 예정 +20~50분에 workflow_dispatch 가 하나도 없으면(GAS·노트북 dispatcher 둘 다 무소식) 텔레그램 즉시 1통(무음).
+# 노트북 하트비트는 toss-live live.json 'dispatcher_heartbeat'. 로직: scripts/watchdog.py detect_executor.
+on:
+  schedule:
+    - cron: "13,43 23 * * 0-4"   # 08:13·08:43 KST 월~금
+    - cron: "13,43 0-8 * * 1-5"  # 09:13 ~ 17:43 KST 월~금
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 정시 실행기 무소식 감지
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
+        run: python scripts/watchdog.py --executor --send

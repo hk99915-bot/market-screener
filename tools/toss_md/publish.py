@@ -339,6 +339,12 @@ def build(base: Path, now: datetime) -> dict:
     if us:
         doc["us"] = us
     doc["missing"] = missing
+    try:
+        dh = json.loads((base / "dispatcher.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        dh = None   # 노트북 정시 dispatcher 하트비트(tools/dispatch, 10/21 A2) — watchdog --executor 가 읽는다
+    if isinstance(dh, dict) and dh.get("last_run"):
+        doc["dispatcher_heartbeat"] = {k: dh.get(k) for k in ("last_run", "last_dispatch", "last_error")}
     ts_all = [t for t in (to_kst(a) for a in asofs) if t]
     doc["asof"] = max(ts_all).isoformat(timespec="seconds") if ts_all else doc["generated_at"]
     return doc

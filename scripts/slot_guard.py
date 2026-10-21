@@ -14,6 +14,8 @@
 3) workflow_dispatch(수동·GAS) → 실행은 하되 커밋은 입력 commit 으로:
      true → 커밋 · false → 읽기 전용 · auto(기본) → GAS 슬롯 시각 + AUTO_WINDOW_MIN 안이면 커밋(구버전 GAS 호환), 아니면 읽기 전용.
    10/17 detail_us 수동 실행이 US 상세 기준일을 10/16→10/15 로 되돌린 사고의 재발 방지.
+4) 이중화(10/21): GAS 와 노트북 dispatcher(tools/dispatch)가 같은 슬롯을 둘 다 dispatch 하면 먼저 만들어진 run 만 실행
+   (earlier_dispatch — 슬롯 창 안·커밋 dispatch 끼리, run id 작은 쪽 우선).
 
 실행 구분용 run-name: 수동은 '<이름> [<키>] commit=<값>', 예약은 '<이름> 예약 <cron>' — 가드가 display_title 로 찾는다.
 """
@@ -275,12 +277,32 @@ def list_runs(wf: str, since: datetime) -> list[dict]:
         return json.load(f).get("workflow_runs", [])
 
 
+def earlier_dispatch(gas: dict, wf: str, key: str, now_utc: datetime, run_id, runs_fn=list_runs):
+    """실행 이중화(10/21 A1): GAS 와 노트북 dispatcher 가 같은 슬롯을 둘 다 보내면 **먼저 만들어진 run 만** 실행.
+    지금이 GAS 슬롯 창 안일 때, 같은 키·슬롯의 커밋 dispatch 중 run id 가 더 작은 것이 있으면 그 id. API 실패는 None(fail-open)."""
+    now_kst = now_utc.astimezone(KST)
+    s = gas_slot_near(gas, wf, key, now_kst, AUTO_WINDOW_MIN)
+    if not s:
+        return None
+    late = (now_kst.hour * 60 + now_kst.minute - s["min"]) % 1440
+    since = (now_kst - timedelta(minutes=late + SINCE_PAD_MIN)).replace(second=0, microsecond=0).astimezone(timezone.utc)
+    try:
+        hits = [r for r in primary_ran(runs_fn(wf, since), key, since) if int(r.get("id") or 0) < int(run_id)]
+    except Exception as e:  # noqa: BLE001
+        print(f"::warning::slot_guard 이중 dispatch 확인 실패({e}) — 그대로 실행(fail-open)")
+        return None
+    return min(int(r["id"]) for r in hits) if hits else None
+
+
 def decide(wf: str, key: str, event: str, cron: str, commit_input: str, now: datetime | None = None,
-           runs_fn=list_runs, sleep_fn=time.sleep, gas: dict | None = None) -> dict:
+           runs_fn=list_runs, sleep_fn=time.sleep, gas: dict | None = None, run_id: str | None = None) -> dict:
     gas = parse_gas() if gas is None else gas
     now = now or datetime.now(timezone.utc)
     if event == "workflow_dispatch":
         c, why = dispatch_commit(commit_input, gas, wf, key, now)
+        dup = earlier_dispatch(gas, wf, key, now, run_id, runs_fn) if c and run_id else None
+        if dup:
+            return {"go": False, "commit": False, "reason": f"같은 슬롯 dispatch 가 먼저 있음(run {dup}) — GAS·노트북 이중 dispatch 중 뒤엣것 건너뜀"}
         return {"go": True, "commit": c, "reason": why}
     if event != "schedule" or not cron:
         return {"go": True, "commit": True, "reason": f"{event} — 단독 실행 주체"}
@@ -320,7 +342,7 @@ def main() -> int:
     key = a.key
     if key is None:
         key = os.environ.get("KEY_INPUT", "") if event == "workflow_dispatch" else CRON_KEY.get(a.wf, "")
-    d = decide(a.wf, key, event, cron, os.environ.get("COMMIT_INPUT", ""))
+    d = decide(a.wf, key, event, cron, os.environ.get("COMMIT_INPUT", ""), run_id=os.environ.get("GITHUB_RUN_ID"))
     print(f"slot_guard {a.wf} [{key}] {event} {cron} → go={d['go']} commit={d['commit']} · {d['reason']}")
     out = os.environ.get("GITHUB_OUTPUT")
     if out:
