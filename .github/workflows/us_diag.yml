@@ -1,0 +1,31 @@
+name: us_diag
+
+# 진단 전용 (req-data-75288029, 10/21 데이터): 야후 US 일봉 마지막 날이 왜 안 오는지 호출 방식별로 찍는다.
+# workflow_dispatch 전용 · 산출물 커밋 없음 · 텔레그램 없음. 로그만 본다(gh run view --log).
+on:
+  workflow_dispatch:
+    inputs:
+      syms:
+        description: "쉼표 구분 yf 심볼"
+        required: false
+        default: "AAPL,MSFT,NVDA,SPY,BRK-B,JPM"
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 진단
+        env:
+          SYMS: ${{ inputs.syms }}
+          PYTHONUNBUFFERED: "1"
+        run: python scripts/us_diag.py
