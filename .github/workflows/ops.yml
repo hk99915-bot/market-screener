@@ -49,6 +49,9 @@ jobs:
       - name: 팀 업무량 (PM — ops/team.json auto)
         run: python scripts/team_stats.py || echo "::warning::team_stats 실패 — 팀 업무량 미갱신(화면에 ⚠ 갱신 안 됨)"
 
+      - name: 연구 보드 (QUANT › 연구 보드 — 연구 파일 날짜·미등록 연구·퀀트 앞 요청, UXUI·퀀트 10/21)
+        run: python scripts/research_board.py --build || echo "::warning::research_board 실패 — 연구 보드 미갱신(ops/research_pipeline.json 확인)"
+
       - name: 감시 (watchdog — 데이터0·신선도·마감·대기·토스·요청 2영업일, 보드 escalated + 텔레그램 하루 1통 · 10/21 PM 안 B·E)
         if: github.event.schedule == '7 15 * * *' || github.event_name == 'workflow_dispatch'
         env:
@@ -71,7 +74,7 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          files="reports/changelog.json reports/ops ops/BOARD.md ops/team.json reports/watchdog.json ops/board.json docs/desk_kb/rounds/_requests.json"
+          files="reports/changelog.json reports/ops ops/BOARD.md ops/team.json reports/watchdog.json ops/board.json docs/desk_kb/rounds/_requests.json reports/research_board.json"
           git add -A $files 2>/dev/null; true
           git diff --cached --quiet || git commit -m "ops: $(date -u +%FT%H:%M)"
           mine=$(git rev-parse HEAD)
@@ -88,6 +91,7 @@ jobs:
             if [ "$WD" = true ]; then python scripts/watchdog.py --apply >/dev/null || true; fi   # --send 없음 = 텔레그램 재전송 없음
             if [ "$NIGHT" = true ]; then python scripts/changelog.py --days 3 >/dev/null || true; fi
             python scripts/board.py >/dev/null || true
+            python scripts/research_board.py --build >/dev/null || true
             git add -A $files 2>/dev/null; true
             git diff --cached --quiet && { ok=1; break; }
             git commit -qm "ops: $(date -u +%FT%H:%M) (원격 최신 위 재생성)" || true

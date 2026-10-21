@@ -18,12 +18,12 @@ TABS = includes_of(SHELL)
 # 분리 전 화면이 갖고 있던 상단 탭(data-g)·하위 화면(view 키)·고정 요소 id — 하나라도 빠지면 탭이 조용히 사라진 것
 GROUPS = ["home", "my", "life", "mkt", "daily", "res", "quant", "study", "sys"]
 VIEWS = ["home", "my", "life", "kr", "us", "heat", "mdkr", "mdus", "bond", "deriv", "daily", "cmt", "score", "views", "brief",
-         "rep", "val", "dart", "chain", "sig", "study", "lab", "mom", "pf", "isa", "edu", "apt", "eng", "sysb", "sysc", "syso"]
+         "rep", "val", "dart", "rb", "chain", "sig", "study", "lab", "mom", "pf", "isa", "edu", "apt", "eng", "sysb", "sysc", "syso"]
 IDS = ["brand", "stb", "clock", "gen", "sq", "sres", "tape", "subt", "root", "bd", "dr", "dr-t", "dr-s", "dr-x", "dr-b"]
 # 탭 파일마다 반드시 있어야 하는 대표 함수 (파일을 옮기거나 지웠을 때 바로 드러나게)
 OWNS = {"tab_market": ["marketView", "heatView", "mdView"], "tab_home": ["homeView"], "tab_daily": ["dailyView", "viewsView", "briefView"],
         "tab_my": ["myView", "myRun", "myFetch", "myRender"], "tab_life": ["lifeView"], "tab_research": ["repView", "valView", "dartView"],
-        "tab_quant": ["chainView", "sigView", "studyView", "labView", "momView", "pfView"], "tab_bond": ["bondView", "bondNow"], "tab_isalab": ["ilabView", "ilabEval", "ilabBoot"],
+        "tab_quant": ["chainView", "sigView", "studyView", "labView", "momView", "pfView"], "tab_bond": ["bondView", "bondNow"], "tab_rboard": ["rbView", "rbWeek"], "tab_isalab": ["ilabView", "ilabEval", "ilabBoot"],
         "tab_study": ["eduView", "aptView", "engView"], "tab_committee": ["cmtView", "cmtUSView", "dotStripHtml"],
         "tab_duel": ["decBox", "ticketBox", "scoreView"], "tab_mkt_deriv": ["derivView"], "tab_mkt_macro": ["macroView"], "tab_system": ["sysBoardView", "sysChgView", "sysOpsView", "SYSV"],
         "tab_detail": ["openDetail", "renderDetail", "drawChart"]}

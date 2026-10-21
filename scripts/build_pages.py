@@ -77,6 +77,7 @@ SHIM = """<script>
     getStudy: () => get('reports/studies/crash_rebound.json'),
     getLab: () => get('reports/lab.json'),
     getIsaLab: () => get('reports/isa_lab_returns.json'),
+    getResearchBoard: () => get('reports/research_board.json'),
     getBoard: () => get('ops/board.json'),
     getTeam: () => raw('ops/team.json'),
     getLocks: () => raw('ops/locks.json'),

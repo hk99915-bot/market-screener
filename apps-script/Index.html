@@ -111,6 +111,8 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 .subtabs{display:none;gap:4px;padding:6px 8px 0;overflow-x:auto;scrollbar-width:none}.subtabs.on{display:flex}.subtabs::-webkit-scrollbar{display:none}
 .subtabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:12.5px;padding:4px 10px;cursor:pointer;letter-spacing:.04em}
 .subtabs button.on{color:var(--amber);border-bottom-color:var(--amber)}
+.subtabs.two{flex-wrap:wrap}.subt2{flex:0 0 100%;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:4px 0 2px}.subt2::-webkit-scrollbar{display:none}
+.subtabs .subt2 button{min-height:44px;border:1px solid var(--line);border-radius:3px;font-size:12px;padding:0 10px}.subtabs .subt2 button.on{border-color:var(--amber)}
 /* ── 모바일 ── */
 html,body{overflow-x:hidden}
 .clock,#gen{white-space:nowrap}
@@ -284,6 +286,7 @@ function med(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)
 <?!= include('tab_life') ?>
 <?!= include('tab_research') ?>
 <?!= include('tab_quant') ?>
+<?!= include('tab_rboard') ?>
 <?!= include('tab_isalab') ?>
 <?!= include('tab_bond') ?>
 <?!= include('tab_study') ?>
@@ -376,7 +379,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -384,16 +387,19 @@ const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
-  quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오'],['isa','ISA 실험실']],
+  quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
 GROUPS.sys=[['sysb','작업 보드'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
+// QUANT 하위 화면 두 번째 줄 (UXUI·퀀트 10/21 연구 보드): 옛 화면 키 그대로 → setView('lab') 같은 기존 링크·사용 기록 유지
+const SUBV={rb:[['rb','보드'],['study','검증 스터디'],['lab','전략 연구소']],sig:[['sig','시그널 검증'],['mom','모멘텀']],pf:[['pf','모의 포트폴리오'],['isa','ISA 실험실']]};
+const SUBP={}; for(const [p,a] of Object.entries(SUBV)) for(const [k] of a) SUBP[k]=p;
 const LASTV={}; let GRP='home';
-function groupOf(v){ for(const [g,a] of Object.entries(GROUPS)) if(a.some(x=>x[0]===v)) return g; return 'home'; }
+function groupOf(v){ v=SUBP[v]||v; for(const [g,a] of Object.entries(GROUPS)) if(a.some(x=>x[0]===v)) return g; return 'home'; }
 function setView(v){ GRP=groupOf(v); LASTV[GRP]=v; view=v;
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.g===GRP));
-  const sub=GROUPS[GRP], st=$('#subt');
-  st.classList.toggle('on',sub.length>1);
-  st.innerHTML=sub.length>1?sub.map(([k,n])=>`<button data-v="${k}" class="${k===v?'on':''}">${n}</button>`).join(''):'';
+  const sub=GROUPS[GRP], st=$('#subt'), pv=SUBP[v]||v;
+  st.classList.toggle('on',sub.length>1); st.classList.toggle('two',!!SUBV[pv]);
+  st.innerHTML=sub.length>1?sub.map(([k,n])=>`<button data-v="${k}" class="${k===pv?'on':''}">${n}</button>`).join('')+(SUBV[pv]?`<div class="subt2">${SUBV[pv].map(([k,n])=>`<button data-v="${k}" class="${k===v?'on':''}">${n}</button>`).join('')}</div>`:''):'';
   st.querySelectorAll('button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
   render(); }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const g=b.dataset.g; setView(LASTV[g]||GROUPS[g][0][0]);});

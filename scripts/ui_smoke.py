@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 QUICK = ["home", "edu", "apt", "rep", "deriv", "bond", "my"]
 VIEWS: list[str] = []   # 비우면 페이지의 GROUPS 에서 전체 뷰를 읽는다 (탭이 늘면 자동 포함)
-ALL_JS = "[...new Set(Object.values(GROUPS).flat().map(x=>x[0]))]"
+ALL_JS = "[...new Set([...Object.values(GROUPS).flat(),...Object.values(typeof SUBV==='object'?SUBV:{}).flat()].map(x=>x[0]))]"   # SUBV = QUANT 두 번째 줄(10/21)
 MIN_ALL = 29   # 10/17 기준 전체 뷰 수 — 이보다 적게 읽히면 GROUPS 파싱 실패로 보고 BAD
 SERVE = ROOT
 
@@ -69,6 +69,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_deriv_top(b, port)
         bad += await check_duel_toggle(b, port)
         bad += await check_macro_bond_top(b, port)
+        bad += await check_research_board(b, port)
         await b.close()
     return bad
 
@@ -120,6 +121,39 @@ async def check_deriv_top(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} 파생 한눈에(390px) {r}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok
+
+
+async def check_research_board(b, port: int) -> int:
+    """QUANT › 연구 보드(UXUI·퀀트 10/21, 7→4 탭): QUANT 기본 화면 = 연구 보드 · 390px 첫 화면(844px) 안에 단계 5칸(44px)·판정 개수·
+    이번 주 할 일·도전(ask 퀀트) · 가로 넘침 없음 · 두 번째 줄로 옛 화면(검증 스터디·전략 연구소·모멘텀·ISA) 이동 시 상위 탭 강조 유지."""
+    bad = 0
+    for w, h in ((390, 844), (1300, 900)):
+        pg = await b.new_page(viewport={"width": w, "height": h})
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1500)
+        await pg.evaluate("document.querySelector('.tabs button[data-g=quant]').click()")
+        await pg.wait_for_timeout(2500)
+        r = await pg.evaluate("""(()=>{ const t=document.getElementById('rbTop'), f=document.querySelector('#root .p'); if(!t) return {v:view};
+          const st=[...t.querySelectorAll('.rbst button')], ch=t.querySelector('.rbch'), W=innerWidth;
+          const over=[...document.querySelectorAll('#root *, #subt *')].filter(e=>{const b=e.getBoundingClientRect(); return b.width&&b.right>W+1;}).length;
+          return {v:view, first:f===t, n:st.length, h:Math.min(...st.map(x=>x.getBoundingClientRect().height)), txt:t.innerText.includes('이번 주 할 일')&&t.innerText.includes('겸이 할 일'),
+            ask:!!ch&&ch.innerText.includes('ask 퀀트'), bottom:Math.round(ch?ch.getBoundingClientRect().bottom:9999), over,
+            cards:document.querySelectorAll('#root .rbc').length, sub2:[...document.querySelectorAll('#subt .subt2 button')].map(x=>x.textContent+':'+Math.round(x.getBoundingClientRect().height))}; })()""")
+        nav = []
+        for v, top, chip in (("lab", "연구 보드", "전략 연구소"), ("mom", "시그널·모멘텀", "모멘텀"), ("isa", "모의·ISA", "ISA 실험실"), ("study", "연구 보드", "검증 스터디")):
+            await pg.evaluate(f"(([...document.querySelectorAll('#subt .subt2 button')].find(x=>x.dataset.v==={v!r}))||{{click:()=>setView({v!r})}}).click()")
+            await pg.wait_for_timeout(1200)
+            on = await pg.evaluate("[[...document.querySelectorAll('#subt > button.on')].map(x=>x.textContent).join(), [...document.querySelectorAll('#subt .subt2 button.on')].map(x=>x.textContent).join(), view, document.querySelector('.tabs button.on').dataset.g]")
+            if on != [top, chip, v, "quant"]:
+                nav.append(f"{v}:{on}")
+        ok = (r.get("first") and r["n"] == 5 and r["h"] >= 44 and r["txt"] and r["ask"] and r["bottom"] <= h and r["over"] == 0
+              and r["cards"] >= 15 and len(r["sub2"]) == 3 and all(int(x.rsplit(":", 1)[1]) >= 44 for x in r["sub2"]) and not nav and not errs)
+        print(f"{'OK ' if ok else 'BAD'} 연구 보드 {w}px {r}" + (f" · 이동 {nav}" if nav else "") + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        bad += not ok
+        await pg.close()
+    return bad
 
 
 async def check_cmt_us(b, port: int) -> int:

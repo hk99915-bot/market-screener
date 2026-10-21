@@ -2909,6 +2909,32 @@
       "notes": "겸이 10/21 '진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임'. 390px 실측: 대결 박스 1144px → 접힘 53px, DAILY RESEARCH BRIEF 시작 1449px → 359px(첫 화면 844px 안). 1300px: 742→46px, 브리프 913→217px. 기본값 = 겸이(나) 제출 대기 판 있으면 펼침, 없으면 접힘. 수동 상태는 localStorage mt_duel_open 에 최신 판 키와 함께 — 새 판이 열리면 기본값으로. ui_smoke check_duel_toggle 추가."
     },
     {
+      "id": "uxui-quant",
+      "title": "QUANT 7탭 → 연구 보드 + 4탭 — 아이디어→백테스트→독립 검증→모의 추적→실계좌 후보 한 화면, 단계별 개수·이번 주 할 일·도전(ask 퀀트)",
+      "owner": "UXUI",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-21",
+      "repo": "public",
+      "files": [
+        "apps-script/tab_rboard.html",
+        "apps-script/Index.html",
+        "apps-script/Code.gs",
+        "scripts/build_pages.py",
+        "index.html",
+        "scripts/research_board.py",
+        "ops/research_pipeline.json",
+        "reports/research_board.json",
+        "scripts/ui_smoke.py",
+        "tests/test_research_board.py",
+        ".github/workflows/ops.yml",
+        "reports/uxui/2026-10-21_quant_tabs.md"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/21 12시대 '퀀트에 많은 게 있는데 관리가 안 되고 도전이 잘 안 되고 직관적이지 않음, UXUI누나랑 협업'. 진단(reports/uxui/2026-10-21_quant_tabs.md): 7탭 중 첫 화면 결론 0, 전략 연구소 390px 7,830px(9.3장), 오늘 연구 3건(QLD·라오어·잡주) 화면에 없음. 구현: QUANT = 연구 보드(기본)·시그널·모멘텀·모의·ISA·공급망 + 두 번째 줄로 옛 화면 유지. 원장 ops/research_pipeline.json 21건 → research_board.py --build(ops.yml 23:47·00:07). 390px 첫 화면 안 단계 5칸·판정·겸이 할 일·이번 주 할 일·도전(하단 721px). GAS 붙여넣기: Index.html·tab_rboard.html(신규)·Code.gs. 검수 = 퀀트·검증이 원장을 직접 갱신하는지 1주 관찰."
+    },
+    {
       "id": "cio-top3-fix",
       "title": "운용회의 TOP3 — D1 확정판 캡처·D2 소급 행 주석·D3 미장 추적 실패 기록 + P1~P3 스위치(CIO_TOP3_V2)",
       "owner": "개발",
