@@ -3341,17 +3341,23 @@
       "title": "감사 지적: 리포트 PDF 디버그 덤프(reports/logs/pdf_boxes.json)에 실제 애널리스트 실명·회사 이메일 공개 — 마스킹 또는 커밋 제외",
       "owner": "개발",
       "priority": "P0",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2026-10-21",
       "repo": "public",
       "files": [
         "screener/research.py",
+        "screener/redact.py",
+        "screener/probe.py",
+        "scripts/prepush_check.py",
+        "tests/test_redact.py",
         "reports/logs/pdf_boxes.json",
+        "reports/logs/probe.json",
         ".gitignore"
       ],
       "depends_on": [],
-      "notes": "감사 지적 치명(10/21 2차 D1). pdf_boxes.json:272 ← research.py:264 _PDF_DEBUG 덤프, 10/15 이후 10개 버전. 이메일·'Analyst <이름>' 마스킹 또는 덤프 커밋 제외 + 테스트. 공개 이력은 PB→오너 보고(재작성 비권장). 출처 reports/audit/2026-10-21.json D1"
+      "notes": "감사 지적 치명(10/21 2차 D1). pdf_boxes.json:272 ← research.py:264 _PDF_DEBUG 덤프, 10/15 이후 10개 버전. 이메일·'Analyst <이름>' 마스킹 또는 덤프 커밋 제외 + 테스트. 공개 이력은 PB→오너 보고(재작성 비권장). 출처 reports/audit/2026-10-21.json D1 → 10/21 개발 완료: pdf_boxes.json 추적 해제(.gitignore)·현재본 삭제, research._debug_boxes(버린 상자 텍스트 제외·본문 이메일 가림)·summarize_text 이메일 가림, probe.json 응답 머리 이메일 2건 가림(공용 RSS 주소, 개인 아님)+probe.py 저장 시 가림, pre-push 공개 이메일 검사 추가(허용 noreply·users.noreply.github.com·예약 도메인), tests/test_redact.py. 이력 처리(그대로/filter-repo+force/비공개)는 오너 결정 대기.",
+      "done": "2026-10-21"
     }
   ]
 }

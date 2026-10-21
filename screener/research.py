@@ -25,6 +25,7 @@ import polars as pl
 import requests
 
 from .config import DATA_DIR
+from .redact import mask_emails
 
 log = logging.getLogger(__name__)
 STORE = DATA_DIR / "research.parquet"
@@ -184,13 +185,25 @@ def summarize_text(txt: str, max_chars: int = 500) -> str:
         keep.append(s if s.endswith((".", "다", "음", "함", "임", "됨")) else s)
         if sum(len(x) for x in keep) >= max_chars:
             break
-    out = ". ".join(x.rstrip(".") for x in keep)
+    out = mask_emails(". ".join(x.rstrip(".") for x in keep))   # 10/21 감사 D1: 연락처가 요약에 섞여도 공개 저장 금지
     return (out + ".")[:max_chars] if out else ""
 
 
 HEADER_RX = re.compile(r"Company\s*Report|Industry\s*Report|\(\d{6}\)|\b(BUY|HOLD|SELL|Buy|Hold|Sell)\s*\((M|U|D|N|유지|상향|하향)\)|"
                        r"목표주가|현재주가|상승여력|직전\s*목표|투자의견|시가총액|Analyst|RA\b|\d{4}[.\-]\d{2}[.\-]\d{2}")
 _PDF_DEBUG: list[dict] = []
+
+
+def _debug_boxes(boxes: list[dict]) -> list[dict]:
+    """레이아웃 디버그용 상자 기록 — 개인정보 제외 (10/21 감사 D1: 애널리스트 실명·회사 이메일이 공개 로그에 저장됨).
+    버린 상자(머리글·사이드바·작성자 칸)는 글자 수만, 본문으로 고른 상자만 앞 90자를 이메일 가린 채 남긴다."""
+    out = []
+    for b in boxes:
+        d = {k: v for k, v in b.items() if k != "t"}
+        t = re.sub(r"\s+", " ", b.get("t") or "")
+        d["t"] = mask_emails(t)[:90] if b.get("keep") else f"[{len(t)}자 생략]"
+        out.append(d)
+    return out
 
 
 def _main_column_text(data: bytes) -> str:
@@ -231,7 +244,7 @@ def _main_column_text(data: bytes) -> str:
         boxes.append({"x0": round(b["x0"]), "y1": round(b["y1"]), "w": round(b["w"]), "keep": keep, "t": b["t"]})
     if len(_PDF_DEBUG) < 4:
         _PDF_DEBUG.append({"W": round(W), "H": round(H), "main_x0": main_x0, "right": round(right),
-                           "boxes": [{**{k: v for k, v in b.items() if k != "t"}, "t": re.sub(r"\s+", " ", b["t"])[:90]} for b in boxes]})
+                           "boxes": _debug_boxes(boxes)})
     kept = [b for b in boxes if b["keep"]]
     if not kept:
         return ""
@@ -261,6 +274,7 @@ def dump_pdf_debug() -> None:
     if _PDF_DEBUG:
         from .config import REPORT_DIR
         (REPORT_DIR / "logs").mkdir(parents=True, exist_ok=True)
+        # 공개 저장소 커밋 제외(.gitignore) — 실행 환경 안에서만 보는 진단 파일. 내용도 _debug_boxes 로 개인정보 제외
         (REPORT_DIR / "logs" / "pdf_boxes.json").write_text(json.dumps(_PDF_DEBUG, ensure_ascii=False, indent=1), encoding="utf-8")
 
 

@@ -186,7 +186,8 @@ def run() -> dict:
     p.parent.mkdir(parents=True, exist_ok=True)
     for k in [k for k in out if k.startswith("wics_")]:   # 10/21 toss-sectors: 아래 json 저장이 실패해도 로그에 남게 먼저 출력
         print(f"[WICS] {k} {json.dumps(out[k], ensure_ascii=False, default=str)[:1500]}", flush=True)
-    p.write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")   # date 객체(pykrx) 직렬화 실패 수정
+    from .redact import mask_emails   # 10/21 감사 D1 후속: 응답 머리(RSS webMaster 등)의 이메일을 공개 로그에 남기지 않음
+    p.write_text(mask_emails(json.dumps(out, ensure_ascii=False, indent=1, default=str)), encoding="utf-8")   # date 객체(pykrx) 직렬화 실패 수정
     return {k: (v.get("status") if isinstance(v, dict) and "status" in v else "…") for k, v in out.items()}
 
 

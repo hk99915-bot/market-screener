@@ -7,7 +7,10 @@
   1) python3 scripts/board.py --check
   2) python3 scripts/check_functions.py
   3) python3 scripts/check_rules_terms.py
-  4) pytest 서브셋 — push 될 커밋들이 바꾼 파일과 관련된 테스트만:
+  4) 공개 저장소 이메일 검사 — push 될 커밋들이 추가한 줄에 허용 목록 밖 이메일이 있으면 차단 (10/21 감사 D1:
+     애널리스트 실명·이메일이 공개 로그에 저장됨). 허용: noreply@anthropic.com, *@users.noreply.github.com,
+     example.com·.test·.invalid 등 예약 도메인 (screener/redact.py). 값은 출력하지 않고 파일·개수만.
+  5) pytest 서브셋 — push 될 커밋들이 바꾼 파일과 관련된 테스트만:
      tests/test_*.py 를 직접 바꿨으면 그 파일, screener/X.py·scripts/X.py 를 바꿨으면 그 모듈 이름을
      import/언급하는 테스트. 공용 모듈(CORE)이 바뀌었거나 서브셋이 MAX_SUBSET 개를 넘으면 전체(≈15초).
 사용: python3 scripts/prepush_check.py [--base <rev>] [--all]   (훅은 stdin 의 push 범위로 base 를 정한다)
@@ -81,6 +84,46 @@ def tests_for(files: list[str]) -> list[str] | None:
     return sorted(picked)
 
 
+def added_lines(base: str | None, head: str = "HEAD") -> dict[str, list[str]]:
+    """push 범위에서 추가된 줄 (파일별). 바이너리는 git 이 줄을 주지 않으므로 자동 제외."""
+    if not base:
+        base = git("merge-base", head, "origin/main") or "origin/main"
+    out = git("diff", "--no-color", "--no-ext-diff", "-U0", f"{base}..{head}")
+    res: dict[str, list[str]] = {}
+    cur = None
+    for ln in out.splitlines():
+        if ln.startswith("+++ "):
+            cur = ln[6:] if ln.startswith("+++ b/") else None
+        elif cur and ln.startswith("+") and not ln.startswith("+++"):
+            res.setdefault(cur, []).append(ln[1:])
+    return res
+
+
+def email_hits(added: dict[str, list[str]]) -> dict[str, int]:
+    """허용 목록 밖 이메일 개수 (파일별). 값은 돌려주지 않는다 — 출력·로그에 남기지 않기 위해."""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from screener.redact import public_emails
+    hits = {}
+    for f, lines in added.items():
+        n = sum(len(public_emails(x)) for x in lines)
+        if n:
+            hits[f] = n
+    return hits
+
+
+def email_check(base: str | None, head: str = "HEAD") -> bool:
+    hits = email_hits(added_lines(base, head))
+    if not hits:
+        print("  ✓ 공개 이메일 검사 (허용 목록 밖 0건)")
+        return True
+    print(f"  ✗ 공개 이메일 검사 — 허용 목록 밖 이메일 {sum(hits.values())}건 (값은 표시 안 함):")
+    for f, n in sorted(hits.items()):
+        print(f"      {f}: {n}건")
+    print("    → 값을 지우거나 가린 뒤(screener/redact.mask_emails) 커밋을 고쳐 다시 push. 예시는 analyst@example.com 처럼 예약 도메인")
+    return False
+
+
 def run(name: str, cmd: list[str]) -> bool:
     t = time.time()
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=clean_env())
@@ -106,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     ok = run("board --check", [py, "scripts/board.py", "--check"])
     ok &= run("check_functions", [py, "scripts/check_functions.py"])
     ok &= run("check_rules_terms", [py, "scripts/check_rules_terms.py"])
+    ok &= email_check(a.base, a.head)
     files = changed_files(a.base, a.head)
     sel = None if a.all else tests_for(files)
     if sel is None:
