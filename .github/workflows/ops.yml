@@ -65,12 +65,31 @@ jobs:
 
       - name: 저장
         if: always() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
+        env:
+          WD: ${{ github.event.schedule == '7 15 * * *' || github.event_name == 'workflow_dispatch' }}
+          NIGHT: ${{ github.event.schedule != '7 15 * * *' }}
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add -A reports/changelog.json reports/ops ops/BOARD.md ops/team.json reports/watchdog.json ops/board.json docs/desk_kb/rounds/_requests.json 2>/dev/null; true
+          files="reports/changelog.json reports/ops ops/BOARD.md ops/team.json reports/watchdog.json ops/board.json docs/desk_kb/rounds/_requests.json"
+          git add -A $files 2>/dev/null; true
           git diff --cached --quiet || git commit -m "ops: $(date -u +%FT%H:%M)"
+          mine=$(git rev-parse HEAD)
           git stash -q -u 2>/dev/null || true
+          # -X theirs 금지(포니테일 검수 10/21 #3): board.json·_requests.json 은 사람(데스크·ask.py)도 쓰는 파일이라 rebase 로 덮으면 그새 들어온 수정이 사라짐.
+          # push 가 거부되면 원격 최신으로 reset → 로컬 생성기를 그 위에서 다시 돌려 커밋. runs.json(API 수집)·watchdog.json(sent·first_seen)만 이번 판을 가져옴.
           ok=0
-          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          for i in 1 2 3 4; do
+            git push origin HEAD:main && { ok=1; break; }
+            sleep $((i*5))
+            git fetch -q origin main && git reset -q --hard origin/main || continue
+            for f in reports/ops/runs.json reports/watchdog.json; do git checkout "$mine" -- "$f" 2>/dev/null || true; done
+            python scripts/team_stats.py >/dev/null || true
+            if [ "$WD" = true ]; then python scripts/watchdog.py --apply >/dev/null || true; fi   # --send 없음 = 텔레그램 재전송 없음
+            if [ "$NIGHT" = true ]; then python scripts/changelog.py --days 3 >/dev/null || true; fi
+            python scripts/board.py >/dev/null || true
+            git add -A $files 2>/dev/null; true
+            git diff --cached --quiet && { ok=1; break; }
+            git commit -qm "ops: $(date -u +%FT%H:%M) (원격 최신 위 재생성)" || true
+          done
           [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"; true
