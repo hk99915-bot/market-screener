@@ -1,6 +1,6 @@
 {
  "version": 1,
- "asof": "2026-10-21 10:30",
+ "asof": "2026-10-21 11:41",
  "policy": "모의 추적: 제안일 다음 첫 거래일 시가가 원래 진입 구간 안일 때만 진입. 다음 시가가 구간 밖이면 미진입 만료. 대기 제안은 미진입. 종가가 손절선 미만이면 종가 손절. 목표는 고가 도달 시 목표가(시가 갭 상승은 시가). 같은 날 목표·종가 손절 동시 충족은 판정 보류. 20거래일 안 +1R 미도달 시 종가 시간 손절. 비용 0.05%, 실거래 아님.",
  "rows": [
   {
@@ -528,16 +528,82 @@
     "status": "not_entered",
     "reason": "대기 — 촉매 없음"
    }
+  },
+  {
+   "id": "US:2026-10-21:VEEV",
+   "date": "2026-10-21",
+   "ticker": "VEEV",
+   "name": "Veeva Systems Inc. Class A Common Stock",
+   "proposed_at": "2026-10-21 11:41",
+   "captured_at": "2026-10-21 11:41 KST",
+   "original": {
+    "s": "VEEV",
+    "n": "Veeva Systems Inc. Class A Common Stock",
+    "g": "헬스케어",
+    "side": "롱",
+    "conv": "중간",
+    "score": 0.6,
+    "size": 0.10646958952679678,
+    "entry": 313.4321428571429,
+    "entry_max": 323.90785714285715,
+    "stop": 297.71857142857147,
+    "stop_pct": 0.06574647306438808,
+    "target": 360.5728571428571,
+    "payoff": 2.0,
+    "atr_pct": 0.03287323653219405,
+    "catalyst": [],
+    "status": "대기 — 촉매 없음",
+    "ref": "2026-10-20",
+    "kill": [
+     "종가 297.72 하회 (손절, 협상 대상 아님)",
+     "동의 원천이 반대로 바뀜 (이익 신호 −0.2 이하·50일선 이탈)",
+     "20거래일 안 +1R 미도달 (시간 손절)"
+    ],
+    "sources": [
+     {
+      "k": "us_accum",
+      "label": "매집 흔적 S3·S6·S9 (10-20)",
+      "side": "agree",
+      "grade": "F",
+      "w": 0.0
+     },
+     {
+      "k": "us_drv",
+      "label": "이익 신호 +0.56",
+      "side": "agree",
+      "grade": "검증전",
+      "w": 0.3
+     },
+     {
+      "k": "us_trend",
+      "label": "종가 ≥ 50일선 (+17.1%)",
+      "side": "agree",
+      "grade": "검증전",
+      "w": 0.3
+     }
+    ],
+    "valid": {
+     "entry_days": 1,
+     "hold_max": 20
+    },
+    "catalyst_note": "없음"
+   },
+   "state": {
+    "status": "not_entered",
+    "reason": "대기 — 촉매 없음"
+   },
+   "market": "US",
+   "ref": "2026-10-20"
   }
  ],
  "summary": {
-  "proposals": 9,
+  "proposals": 10,
   "closed": 0,
   "hit_rate": null,
   "avg_return": null,
   "no_entry_rate": 1.0,
-  "no_entry": 6,
-  "resolved": 6
+  "no_entry": 7,
+  "resolved": 7
  },
  "schema": "행 키: id · date · ticker(종목코드 — code 키는 없음, 원본 안에서는 original.s) · market(없으면 KR) · name · proposed_at(기록한 확정판 asof) · captured_at · original(확정판 원본, 불변) · state(채점) · note(사후 주석, 원본 아님)",
  "summary_by_market": {
@@ -551,13 +617,13 @@
    "resolved": 6
   },
   "US": {
-   "proposals": 0,
+   "proposals": 1,
    "closed": 0,
    "hit_rate": null,
    "avg_return": null,
-   "no_entry_rate": null,
-   "no_entry": 0,
-   "resolved": 0
+   "no_entry_rate": 1.0,
+   "no_entry": 1,
+   "resolved": 1
   }
  }
 }
