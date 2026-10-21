@@ -68,6 +68,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_syn(b, port)
         bad += await check_deriv_top(b, port)
         bad += await check_duel_toggle(b, port)
+        bad += await check_macro_bond_top(b, port)
         await b.close()
     return bad
 
@@ -447,6 +448,47 @@ async def check_duel_toggle(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} 대결접기(390px) 기본={'펼침' if first else '접힘'} " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok
+
+
+BOND_LATE = {"checked_at": "2026-10-21 12:00", "n": 21, "late": [{"id": "bonds", "path": "reports/bonds.json", "expected": "2026-10-21", "actual": "2026-10-20",
+              "mode": "briefing", "fix": "gh workflow run briefing.yml -f mode=bonds", "desc": "채권 화면"}]}
+
+
+async def check_macro_bond_top(b, port: int) -> int:
+    """MARKET › MACRO 첫 화면(macro-tab)·채권 '지금 채권 상황 3줄'(bonds-summary), 10/21 겸이: 390px 에서 첫 패널 · 결론(바람·격차 / 수준·방향·의미)이
+    첫 화면(844px) 안 · 기준 배지 · 가로 넘침 없음 · 신선도 계약 late(bonds) 주입 시 ⚠ STALE · dataLag 판정(오래된 날짜만 늦음)."""
+    import json as _json
+    bad = 0
+    for label, body in (("실파일", None), ("bonds 늦음 주입", _json.dumps(BOND_LATE, ensure_ascii=False))):
+        pg = await b.new_page(viewport={"width": 390, "height": 844})
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        if body:
+            await pg.route("**/reports/freshness.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(2000)
+        res: dict = {}
+        await pg.evaluate("setView('macro')")
+        await pg.wait_for_timeout(3000)
+        m = await pg.evaluate("""(()=>{ const t=document.getElementById('macTop'), f=document.querySelector('#root .p'), g=document.getElementById('macGap'), w=document.getElementById('macWind');
+          if(!t) return null; const tx=t.innerText; return {first:f===t, bot:Math.max(g?g.getBoundingClientRect().bottom:9999, w?w.getBoundingClientRect().bottom:9999),
+          wind:tx.includes('매크로 바람'), gap:!!g&&tx.includes('격차'), asof:!!t.querySelector('.asof'), tiles:t.querySelectorAll('.mct').length,
+          need:['금리','기준금리','환율','유가','다음 주요 일정','FOMC'].every(w=>tx.includes(w)), stale:tx.includes('STALE'),
+          over:[...document.querySelectorAll('#root *')].some(e=>e.getBoundingClientRect().right>innerWidth+1&&!e.closest('table')),
+          lag:dataLag('KR','2020-01-02',0)!==''&&dataLag('KR',mkPhase('KR').last,0)==='' }; })()""")
+        res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and (m["stale"] if body else True)
+        await pg.evaluate("setView('bond')")
+        await pg.wait_for_timeout(3000)
+        n = await pg.evaluate("""(()=>{ const t=document.getElementById('bondNow'), f=document.querySelector('#root .p'); if(!t) return null; const tx=t.innerText;
+          return {first:f===t, bot:t.querySelector('.b').children[2].getBoundingClientRect().bottom, three:['수준','방향','의미','국고 3년','미 10년','10Y−3Y','손익분기'].every(w=>tx.includes(w)),
+          asof:!!t.querySelector('.asof'), stale:tx.includes('STALE'), over:[...t.querySelectorAll('*')].some(e=>e.getBoundingClientRect().right>innerWidth+1)}; })()""")
+        res["채권3줄"] = bool(n) and n["first"] and n["bot"] <= 844 and n["three"] and n["asof"] and not n["over"] and (n["stale"] if body else True)
+        ok = all(res.values()) and not errs
+        bad += not ok
+        print(f"{'OK ' if ok else 'BAD'} MACRO·채권3줄(390px, {label}) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
+              + ("" if ok else f" · macro={m} · bond={n}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        await pg.close()
+    return bad
 
 
 if __name__ == "__main__":

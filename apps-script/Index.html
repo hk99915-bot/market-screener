@@ -290,6 +290,7 @@ function med(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)
 <?!= include('tab_committee') ?>
 <?!= include('tab_duel') ?>
 <?!= include('tab_mkt_deriv') ?>
+<?!= include('tab_mkt_macro') ?>
 <?!= include('tab_system') ?>
 <?!= include('tab_detail') ?>
 <script>
@@ -363,6 +364,10 @@ function nextSlot(times,days){ const k=new Date(Date.now()+9*3600e3); for(let d=
     if(!days.includes(wd)) continue; for(const hm of times){ const [h,m]=hm.split(':').map(Number); if(d||h*60+m>k.getUTCHours()*60+k.getUTCMinutes()) return (d?(t.getUTCMonth()+1)+'/'+t.getUTCDate()+' ':'')+hm; } } return '—'; }
 function asofTag(at,times,days,ids){ const I=[].concat(ids||[]), hit=FR?[...(FR.late||[]),...(FR.stale_today||[])].find(x=>I.includes(x.id)||I.includes(x.path)):null;
   return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||hit.want||'?')+' · 실제 '+(hit.actual||hit.got||hit.used||'?')+(hit.note?' · '+hit.note:'')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
+/* 날짜 지연 STALE (10/21 macro-tab·bonds-summary): 계약(freshness.json)에 없는 산출물·하위 항목도 '그 시장의 마지막 마감 거래일'보다 오래되면 STALE.
+   dataLag(mk,ds,slack) → 늦으면 설명 문자열(아니면 ''), slack = 허용 거래일 수(미 국채 FRED·Treasury 는 하루 늦게 공개 → 1). staleTag = asofTag + 그 판정. */
+function dataLag(mk,ds,slack){ if(!ds) return '날짜 없음'; let want=mkPhase(mk).last; for(let i=0;i<(slack||0);i++) want=prevTD(mk,want); const d=String(ds).slice(0,10); return d<want?`${mk} 데이터 ${d} < 기대 ${want}`:''; }
+function staleTag(at,times,days,ids,lag){ const h=asofTag(at,times,days,ids); if(!lag||h.includes('STALE')) return h; return h.replace('class="asof"','class="asof stale"').replace(/title="[^"]*"/,`title="${esc(lag)}"`).replace(/<\/span>$/,' · ⚠ STALE</span>'); }
 function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ const first=!FR; try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); if(first&&FR&&D) render(); /* B2: 첫 신선도 도착 시 기준일 배지 STALE 반영 */ }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
 document.addEventListener('click',e=>{ if(e.target.closest('#fresh')) freshPop(); });
 function render(){
@@ -371,12 +376,12 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
-  mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
+  mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오'],['isa','ISA 실험실']],

@@ -2043,13 +2043,13 @@ function bondView(){
   const cu=o.credit_us;
   setTimeout(drawBondHist,0);
   const _u10=(U['10Y']||{}).v, _u10m=(U['10Y']||{}).m1, _cs=(S.us_10_2||{}).v, _aa=(S.kr_aa||{}).v, _aam=(S.kr_aa||{}).m1, _cr=((o.corr||{}).rows||o.corr||[]);
-  const easy=`<div class="p c12"><h2>처음이면 이것만<small>채권 탭 3줄 요약</small></h2><div class="b" style="line-height:1.8;white-space:normal">
+  const easy=`<div class="p c12"><h2>처음이면 이것만<small>채권 기초 3가지 (현재 상황은 위 3줄)</small></h2><div class="b" style="line-height:1.8;white-space:normal">
    <div>① <b>금리가 오르면 채권값은 내려가</b> (시소). 미국 10년 금리 ${_u10!=null?_u10.toFixed(2)+'%':'—'}${_u10m!=null?` · 한 달 새 ${_u10m>0?'+':''}${_u10m.toFixed(0)}bp(0.01%p 단위) ${_u10m>0?'올랐어 → 채권값↓, 성장주·반도체에도 부담':'내렸어 → 채권값↑'}`:''}.</div>
    <div>② <b>짧은 금리 &lt; 긴 금리면 정상</b>, 뒤집히면(역전) 경기 걱정 신호야. 지금 미국 10년−2년 ${_cs!=null?(_cs*100>0?'+':'')+(_cs*100).toFixed(0)+'bp → '+(_cs>0?'정상':'역전'):'—'}.</div>
    <div>③ <b>회사채 − 국채 금리 차이(신용 스프레드)가 벌어지면</b> 돈 빌려주기 무섭다는 뜻 = 위험 회피. 지금 한국 AA− ${_aa!=null?(_aa*100).toFixed(0)+'bp':'—'}${_aam!=null?` (한 달 ${_aam>0?'+':''}${_aam.toFixed(0)}bp) → ${Math.abs(_aam)<10?'조용해':'움직이는 중'}`:''}.</div>
    <div class="mu" style="font-size:12px;margin-top:4px">나머지 표·차트는 이 세 가지를 자세히 본 거야. 모르는 칸은 건너뛰어도 돼 — STUDY 탭 '채권 기초'에서 차근차근.</div></div></div>`;
   const aic=aiCreditPanel(o.ai_credit,o);
-  return `<div class="grid">${easy}${aic}
+  return `<div class="grid">${bondNow(o)}${easy}${aic}
    <div class="p c6"><h2>핵심 숫자<small>데이터 ${esc(o.asof||'—')} · 생성 ${esc(o.generated_at||'')} KST</small></h2><div class="b">${key}</div></div>
    <div class="p c6"><h2>해석<small>규칙 기반 · 숫자 인용</small></h2><div class="b" style="line-height:1.75;white-space:normal">${(o.notes||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}
      <div class="mu" style="font-size:10.5px;margin-top:8px;line-height:1.5">데이터 소스<br>${src}</div></div></div>
@@ -2069,6 +2069,30 @@ function bondView(){
    <div class="p c12"><h2>채권 ETF<small>데이터 ${esc(o.asof||'—')} · 가격 · 수익률 (분배금 포함 수정주가)</small></h2><div class="b" style="overflow-x:auto"><table><tr><th class="l">ETF</th><th>종가</th><th>1D</th><th>1M</th><th>1Y</th><th>D(근사)</th><th class="l">역할</th></tr>${etf}</table></div></div>
    <div class="p c12"><h2>채권 읽는 법<small>현재 숫자 대입</small></h2><div class="b" style="line-height:1.75;white-space:normal">${(o.guide||[]).map((g,i)=>`<details class="sec"${i<2?' open':''}><summary><b>${esc(g.t)}</b></summary><div style="padding:2px 4px 6px">${esc(g.b)}</div></details>`).join('')}</div></div>
   </div>`;
+}
+/* 지금 채권 상황 3줄 (10/21 겸이 "채권에도 현 상황 최상단에 요약 영역", 보드 bonds-summary) — 수준·방향·의미. 숫자는 bonds.json 그대로,
+   문장 규칙 = 채권 KB docs/desk_kb/bonds.md #7(손익분기 = 1년 이자 ÷ D) #11(ETF 상시 만기) #13(커브 4분면, |Δ기울기| ≥ 10bp 일 때만 분류). */
+function bondNow(o){
+  const U=o.us.chg||{}, K=o.kr.chg||{}, S=o.spreads||{}, k3=K['3Y']||{}, k10=K['10Y']||{}, u10=U['10Y']||{}, sl=S.kr_10_3||{};
+  const f=c=>c&&c.v!=null?c.v.toFixed(2)+'%':'—';
+  const bp=x=>x==null?'—':`<span class="${x>0?'dn':x<0?'up':'mu'}">${x>0?'+':''}${Number(x).toFixed(0)}bp</span>`;
+  const dir=(a,b,who)=>a==null||b==null?`${who} —`:a<0&&b<0?`${who} 금리↓(채권값↑)`:a>0&&b>0?`${who} 금리↑(채권값↓)`:`${who} 혼조`;
+  let curve='';
+  if(sl.v!=null){ const d=sl.m1==null?null:Math.round(sl.m1), a3=k3.m1, a10=k10.m1;   // 표시값(정수 bp)으로 판정 — '−10bp: 변화 작음' 같은 어긋남 방지
+    const q=d==null||a3==null||a10==null?'':Math.abs(d)<10?'변화 작음(±10bp 안)':d>0?(Math.abs(a3)>Math.abs(a10)?'불 스티프닝(단기 금리가 더 내림)':'베어 스티프닝(장기 금리가 더 오름)'):(Math.abs(a3)>Math.abs(a10)?'베어 플래트닝(단기 금리가 더 오름)':'불 플래트닝(장기 금리가 더 내림)');
+    curve=` · 기울기 한 10Y−3Y <b>${sl.v*100>0?'+':''}${(sl.v*100).toFixed(0)}bp</b> (1개월 ${bp(d)}${q?': '+q:''})`; }
+  const dk=(o.duration||[]).find(d=>d.n==='국고채 3년');
+  let mean='<span class="mu">국고 3년 듀레이션 데이터 없음</span>';
+  if(dk&&dk.be_bp!=null&&dk.dur){ const m=k3.m1, px=m==null?null:-dk.dur*m/100;
+    mean=`국고 3년 보유 관점: 손익분기 <b>+${dk.be_bp}bp</b> (1년 이자 ${dk.carry.toFixed(2)}% ÷ D ${dk.dur.toFixed(2)}) — 1년 새 금리가 이보다 덜 오르면 이자가 가격 손실을 덮음.${m!=null?` 1개월 변화 ${bp(m)} ≈ 가격 ${px>0?'+':''}${px.toFixed(1)}%(−D×Δ금리, 근사).`:''} 국고채 3년 ETF는 만기 없음(D≈2.8 근사) → 3년 이상 들고 가는 돈.`; }
+  const kp=mkPhase('KR'), kt=tzParts('Asia/Seoul');
+  const lag=[dataLag('KR',o.kr.asof,(kp.last===kp.today&&kt.hm<22*60)?1:0),dataLag('US',o.us.asof,1)].filter(Boolean).join(' · ');   // 국고 민평 21:00 생성 · 미 국채 하루 늦게 공개
+  const tag=staleTag(o.generated_at?String(o.generated_at).slice(5,16):o.asof,['21:00'],[1,2,3,4,5],['bonds','reports/bonds.json'],lag);
+  return `<div class="p c12" id="bondNow"><h2>지금 채권 상황 3줄<small>bonds.json${tag}</small></h2><div class="b" style="line-height:1.75;white-space:normal">
+    <div><b class="am">수준</b> 국고 3년 <b>${f(k3)}</b> · 국고 10년 <b>${f(k10)}</b> · 미 10년 <b>${f(u10)}</b></div>
+    <div><b class="am">방향</b> 1주 ${bp(k3.w1)} · ${bp(k10.w1)} · ${bp(u10.w1)} / 1개월 ${bp(k3.m1)} · ${bp(k10.m1)} · ${bp(u10.m1)} → ${dir(k3.m1,k10.m1,'한국')} · ${dir(u10.m1,u10.m1,'미국')}${curve}</div>
+    <div><b class="am">의미</b> ${mean}</div>
+    <div class="mu" style="font-size:11px">순서 = 국고3Y · 국고10Y · 미10Y. 한국 KRX 장외 민평 ${esc(mdDay(o.kr.asof))} · 미국 Treasury ${esc(mdDay(o.us.asof))} 기준. 금리↑ <span class="dn">빨강</span>(채권값↓). 해석은 채권 KB 규칙(#7·#11·#13) — 추정 없음.</div></div></div>`;
 }
 function aiCreditPanel(a,o){ o=o||{};
   if(!a||!a.alert) return '';
@@ -3174,6 +3198,76 @@ function drawDerivHist(){
 }
 </script>
 
+<!-- tab_mkt_macro.html — MARKET › MACRO — macroView (10/21 겸이 "리서치나 마켓에 매크로가 없는 듯", 보드 macro-tab).
+     흩어져 있던 매크로 산출물을 한 화면 결론으로: macro_view.json(바람·환율·유가·금·코스피 vs S&P) · bonds.json(한·미 금리) · calendar.json(일정·발표 결과).
+     새 데이터·getter 없음(Code.gs 그대로). 문구 근거 = docs/desk_kb/macro.md #3(바람 점수) #5(20일 격차 ±8%p) #15(읽는 순서) #16(USDKRW).
+     전역 도우미($·esc·num·pct·render·setView·asofTag·staleTag·dataLag·mkPhase)는 Index.html, 지표 해설 표 macroPanel 은 tab_market.html. -->
+<script>
+let MCX=null;
+function mcLoad(){ MCX={};
+  const g=(k,fn)=>google.script.run.withSuccessHandler(t=>{ try{ MCX[k]=typeof t==='string'?JSON.parse(t):(t||{}); }catch(e){ MCX[k]={}; } if(view==='macro') render(); })
+    .withFailureHandler(()=>{ MCX[k]={}; if(view==='macro') render(); })[fn]();
+  g('mv','getMacroView'); g('bd','getBonds'); g('cal','getCalendar'); }
+const mcBp=x=>x==null?'—':`<span class="${x>0?'dn':x<0?'up':'mu'}">${x>0?'+':''}${Number(x).toFixed(0)}bp</span>`;   // 금리↑ = 채권값↓ → 빨강 (채권 탭과 같은 색 규칙)
+const mcMd=ds=>ds?(+String(ds).slice(5,7))+'/'+(+String(ds).slice(8,10)):'—';
+function mcDday(ds){ const t=tzParts('Asia/Seoul').ds, d=Math.round((Date.parse(ds+'T00:00:00Z')-Date.parse(t+'T00:00:00Z'))/864e5); return d===0?'오늘':d>0?'D-'+d:'D+'+(-d); }
+function macroView(){
+  if(MCX===null){ mcLoad(); return '<div class="load">LOADING …</div>'; }
+  const MV=MCX.mv, BD=MCX.bd, CAL=MCX.cal;
+  if(!MV||!BD||!CAL) return '<div class="load">LOADING …</div>';
+  const R={}; (MV.rows||[]).forEach(r=>R[r.key]=r);
+  const tile=(t,body,foot)=>`<div class="mct" style="border:1px solid var(--line);padding:6px 8px;line-height:1.55;min-width:0"><div class="am" style="font-size:12px;font-weight:700">${t}</div>${body}${foot?`<div class="mu" style="font-size:10.5px;white-space:normal">${foot}</div>`:''}</div>`;
+  const mvTag=staleTag(MV.asof,['08:50','10:30','11:35','13:30','14:15','15:45','19:10'],[1,2,3,4,5],['reports/macro_view.json'],dataLag('KR',MV.asof,0));
+  // ① 결론: 바람(macroview 문장) + 한국만 하락 격차 (KB #5)
+  let wind='<div class="mu">매크로 바람 데이터 없음 (reports/macro_view.json)</div>';
+  if(MV.score!=null){ const col=MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)', s1=String(MV.summary||'').split(' · ')[0];
+    wind=`<div style="font-size:13.5px"><b style="color:${col}">${esc(s1||('매크로 바람 '+(MV.label||'')+' ('+MV.score+')'))}</b></div>
+      <div class="mu" style="font-size:11px">점수 −1~+1 = Σ(가중치 × 지표 영향) · 한국 지수는 결과라 제외 · <b>검증전</b>(가중치 사후 설정 — 참고만)</div>`; }
+  const K=R.KOSPI, S=R.SPX; let gap='';
+  if(K&&S&&K.chg20!=null&&S.chg20!=null){ const g=(K.chg20-S.chg20)*100;
+    const why=g<-8?'한국 고유 요인 쪽(규칙: 격차 < −8%p) — 매크로 반전만으론 회복 근거 부족':g>8?'한국이 강함(규칙: 격차 > +8%p)':'격차 작음(±8%p 안) — 매크로와 같이 움직임';
+    gap=`<div id="macGap" style="margin-top:4px;font-size:13px;white-space:normal">한국만 하락 격차: 20일 코스피 ${pct(K.chg20,1)} vs S&amp;P ${pct(S.chg20,1)} = <b class="${g<0?'dn':'up'}">${g>0?'+':''}${g.toFixed(1)}%p</b> → ${why}</div>`; }
+  const top=`<div class="p c12" id="macTop"><h2>MACRO 한눈에<small>reports/macro_view.json${mvTag}</small></h2><div class="b" style="white-space:normal">
+    <div id="macWind" style="border:1px solid var(--line);border-left:4px solid ${MV.score==null?'var(--line)':MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)'};padding:6px 9px;line-height:1.6">${wind}${gap}</div>`;
+  // ② 금리 (bonds.json — 미 Treasury·한 KRX 장외 민평)
+  const U=(BD.us||{}).chg||{}, KR=(BD.kr||{}).chg||{};
+  const rr=(lab,c)=>c&&c.v!=null?`<div style="display:flex;justify-content:space-between;gap:6px"><span>${lab}</span><span><b>${c.v.toFixed(2)}%</b> <span style="font-size:11px">1M ${mcBp(c.m1)}</span></span></div>`:`<div class="mu">${lab} —</div>`;
+  const ua=(BD.us||{}).asof, ka=(BD.kr||{}).asof;
+  const bdTag=staleTag(BD.generated_at?String(BD.generated_at).slice(5,16):BD.asof,['21:00'],[1,2,3,4,5],['bonds'],dataLag('US',ua,1)||'');
+  const kLag=(()=>{ const p=mkPhase('KR'), t=tzParts('Asia/Seoul'); return dataLag('KR',ka,(p.last===p.today&&t.hm<22*60)?1:0); })();   // 국고채 민평은 장 마감 뒤 21:00 생성분부터
+  const rates=tile('금리 · 10년 · 2년',rr('미 10Y',U['10Y'])+rr('미 2Y',U['2Y'])+rr('한 10Y',KR['10Y'])+rr('한 2Y',KR['2Y']),
+    `미 Treasury ${mcMd(ua)} · 한 KRX 장외(민평) ${mcMd(ka)}${kLag?' <b class="dn">⚠ STALE 한국</b>':''} · bonds.json${bdTag}`);
+  // ③ 기준금리 · 다음 회의 (calendar.json) — 정책금리 시리즈는 산출물에 없음 → 단기금리를 '대용'으로만
+  const today=tzParts('Asia/Seoul').ds, EV=(CAL.events||[]).filter(e=>e.type==='매크로');
+  const nx=re=>EV.filter(e=>e.date>=today&&re.test(e.name)).sort((a,b)=>a.date<b.date?-1:1)[0];
+  const fomc=nx(/FOMC/), bok=nx(/금통위|한은|한국은행/), boj=nx(/BOJ/);
+  const calTag=staleTag(CAL.asof,['08:50'],[1,2,3,4,5],['calendar'],dataLag('KR',CAL.asof,0));
+  const pol=tile('기준금리 · 다음 회의',
+    `<div>정책금리 값: <span class="mu">데이터 없음</span> <span class="mu" style="font-size:11px">(산출물에 시리즈 없음 — 데이터 데스크 요청)</span></div>
+     <div style="font-size:12px">대용(기준금리 아님): 미 3M ${U['3M']&&U['3M'].v!=null?U['3M'].v.toFixed(2)+'%':'—'} · 한 CD91 ${KR.CD&&KR.CD.v!=null?KR.CD.v.toFixed(2)+'%':'—'}</div>
+     <div>FOMC ${fomc?`<b>${mcMd(fomc.date)}</b> (${mcDday(fomc.date)}) <span class="mu" style="font-size:11px">${esc(fomc.note||'')}</span>`:'<span class="mu">일정 없음</span>'}</div>
+     <div>금통위 ${bok?`<b>${mcMd(bok.date)}</b> (${mcDday(bok.date)})`:'<span class="mu">calendar.json 미등록</span>'}${boj?` · BOJ <b>${mcMd(boj.date)}</b> (${mcDday(boj.date)})`:''}</div>`,
+    `calendar.json (연준·BOJ 공식 일정)${calTag}`);
+  // ④ 환율 · ⑤ 유가·금 (macro_view rows — 일봉)
+  const mr=(k,lab,dg,unit)=>{ const r=R[k]; return r&&r.last!=null?`<div style="display:flex;justify-content:space-between;gap:6px"><span>${lab}</span><span><b>${unit==='$'?'$':''}${num(r.last,dg)}</b> <span style="font-size:11px">20일 ${pct(r.chg20,1)}</span></span></div>`:`<div class="mu">${lab} —</div>`; };
+  const rd=ks=>{ const ds=[...new Set(ks.map(k=>R[k]&&R[k].date).filter(Boolean))]; return ds.map(mcMd).join('·')||'—'; };
+  const fx=tile('환율',mr('USDKRW','원/달러',1)+mr('DXY','달러지수',2)+mr('USDJPY','엔/달러',2),
+    `원/달러 ↑ = 원화 약세 = 외국인 환차손(매크로 KB #16) · 일봉 ${rd(['USDKRW','DXY','USDJPY'])} · macro_view.json`);
+  const cmd=tile('유가 · 금',mr('WTI','WTI',2,'$')+mr('GOLD','금',0,'$'),`달러 기준 · 일봉 ${rd(['WTI','GOLD'])} · macro_view.json`);
+  // ⑥ 다음 주요 일정 (중요도 ★2 이상)
+  const up=EV.filter(e=>e.date>=today&&(e.imp||0)>=2).sort((a,b)=>a.date<b.date?-1:1).slice(0,4);
+  const sch=tile('다음 주요 일정',up.length?up.map(e=>`<div style="display:flex;gap:6px"><b style="min-width:38px">${mcMd(e.date)}</b><span class="mu" style="min-width:34px">${mcDday(e.date)}</span><span style="white-space:normal">${esc(e.name)}${(e.imp||0)>=3?' <span class="am">★</span>':''}</span></div>`).join(''):'<div class="mu">예정된 ★2 이상 매크로 일정 없음</div>',
+    `★ = 중요도 3 (결과 전 레버리지·방향 베팅 금지 대상, 매크로 KB #12) · calendar.json`);
+  const grid=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:6px;margin-top:8px">${rates}${pol}${fx}${cmd}${sch}</div>
+    <div class="mu" style="font-size:11px;margin-top:6px">금리 색 = 채권 가격 기준(금리↑ <span class="dn">빨강</span>) · 지수·환율 색 = 값의 방향. 숫자는 산출물 그대로이고 해석 문장은 규칙(매크로 KB) 기반 — 추정 없음. <button class="sbtn" onclick="setView('bond')" style="min-height:32px">채권 탭 →</button></div></div></div>`;
+  // 최근 발표 (calendar result = calendar_ev.release_line — 직전 대비 · 개정 전, 컨센서스 없음)
+  const done=(CAL.events||[]).filter(e=>e.type==='매크로'&&e.date<=today&&(e.result||[]).length).sort((a,b)=>a.date<b.date?1:-1).slice(0,3);
+  const rel=done.length?`<div class="p c12"><h2>최근 발표<small>직전 대비 · 개정 전 잠정치 · 컨센서스 없음 (매크로 KB #2)</small></h2><div class="b" style="white-space:normal;line-height:1.65">${done.map(e=>`<div><b>${mcMd(e.date)}</b> ${esc(e.name)} — ${e.result.map(esc).join(' · ')}</div>`).join('')}</div></div>`:'';
+  const tbl=typeof macroPanel==='function'?`<div class="p c12"><h2>지표 전체 · 해설<small>매크로 바람 구성 지표 · ▸ 누르면 해설 · 지표명 누르면 차트</small></h2><div class="b">${macroPanel('KR')}</div></div>`:'';
+  return `<div class="grid">${top}${grid}${rel}${tbl}</div>`;
+}
+</script>
+
 <!-- tab_system.html — SYSTEM 탭 — 작업 보드·변경 이력·운영 상태 (sysBoardView·sysChgView·sysOpsView·SYSV).
      apps-script/Index.html 이 include('tab_system') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
@@ -3848,6 +3942,10 @@ function nextSlot(times,days){ const k=new Date(Date.now()+9*3600e3); for(let d=
     if(!days.includes(wd)) continue; for(const hm of times){ const [h,m]=hm.split(':').map(Number); if(d||h*60+m>k.getUTCHours()*60+k.getUTCMinutes()) return (d?(t.getUTCMonth()+1)+'/'+t.getUTCDate()+' ':'')+hm; } } return '—'; }
 function asofTag(at,times,days,ids){ const I=[].concat(ids||[]), hit=FR?[...(FR.late||[]),...(FR.stale_today||[])].find(x=>I.includes(x.id)||I.includes(x.path)):null;
   return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||hit.want||'?')+' · 실제 '+(hit.actual||hit.got||hit.used||'?')+(hit.note?' · '+hit.note:'')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
+/* 날짜 지연 STALE (10/21 macro-tab·bonds-summary): 계약(freshness.json)에 없는 산출물·하위 항목도 '그 시장의 마지막 마감 거래일'보다 오래되면 STALE.
+   dataLag(mk,ds,slack) → 늦으면 설명 문자열(아니면 ''), slack = 허용 거래일 수(미 국채 FRED·Treasury 는 하루 늦게 공개 → 1). staleTag = asofTag + 그 판정. */
+function dataLag(mk,ds,slack){ if(!ds) return '날짜 없음'; let want=mkPhase(mk).last; for(let i=0;i<(slack||0);i++) want=prevTD(mk,want); const d=String(ds).slice(0,10); return d<want?`${mk} 데이터 ${d} < 기대 ${want}`:''; }
+function staleTag(at,times,days,ids,lag){ const h=asofTag(at,times,days,ids); if(!lag||h.includes('STALE')) return h; return h.replace('class="asof"','class="asof stale"').replace(/title="[^"]*"/,`title="${esc(lag)}"`).replace(/<\/span>$/,' · ⚠ STALE</span>'); }
 function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ const first=!FR; try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); if(first&&FR&&D) render(); /* B2: 첫 신선도 도착 시 기준일 배지 STALE 반영 */ }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
 document.addEventListener('click',e=>{ if(e.target.closest('#fresh')) freshPop(); });
 function render(){
@@ -3856,12 +3954,12 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
-  mkt:[['kr','KR'],['us','US'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
+  mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
   quant:[['chain','공급망'],['sig','시그널 검증'],['study','검증 스터디'],['lab','전략 연구소'],['mom','모멘텀'],['pf','모의 포트폴리오'],['isa','ISA 실험실']],

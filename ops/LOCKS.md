@@ -34,6 +34,7 @@
 | `apps-script/tab_committee.html` | DAILY › 운용회의 (점도표 띠 포함) |
 | `apps-script/tab_duel.html` | 대결·주문표 (DAILY·시그널 화면에 끼워짐) |
 | `apps-script/tab_mkt_deriv.html` | MARKET › 파생 |
+| `apps-script/tab_mkt_macro.html` | MARKET › MACRO |
 | `apps-script/tab_system.html` | SYSTEM › 작업 보드·변경 이력·운영 상태 |
 | `apps-script/tab_detail.html` | 종목 상세 서랍·차트 (모든 탭 공용) |
 

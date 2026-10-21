@@ -23,9 +23,9 @@ IDS = ["brand", "stb", "clock", "gen", "sq", "sres", "tape", "subt", "root", "bd
 # 탭 파일마다 반드시 있어야 하는 대표 함수 (파일을 옮기거나 지웠을 때 바로 드러나게)
 OWNS = {"tab_market": ["marketView", "heatView", "mdView"], "tab_home": ["homeView"], "tab_daily": ["dailyView", "viewsView", "briefView"],
         "tab_my": ["myView", "myRun", "myFetch", "myRender"], "tab_life": ["lifeView"], "tab_research": ["repView", "valView", "dartView"],
-        "tab_quant": ["chainView", "sigView", "studyView", "labView", "momView", "pfView"], "tab_bond": ["bondView"], "tab_isalab": ["ilabView", "ilabEval", "ilabBoot"],
+        "tab_quant": ["chainView", "sigView", "studyView", "labView", "momView", "pfView"], "tab_bond": ["bondView", "bondNow"], "tab_isalab": ["ilabView", "ilabEval", "ilabBoot"],
         "tab_study": ["eduView", "aptView", "engView"], "tab_committee": ["cmtView", "cmtUSView", "dotStripHtml"],
-        "tab_duel": ["decBox", "ticketBox", "scoreView"], "tab_mkt_deriv": ["derivView"], "tab_system": ["sysBoardView", "sysChgView", "sysOpsView", "SYSV"],
+        "tab_duel": ["decBox", "ticketBox", "scoreView"], "tab_mkt_deriv": ["derivView"], "tab_mkt_macro": ["macroView"], "tab_system": ["sysBoardView", "sysChgView", "sysOpsView", "SYSV"],
         "tab_detail": ["openDetail", "renderDetail", "drawChart"]}
 
 
