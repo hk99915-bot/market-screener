@@ -17,6 +17,8 @@
 - #1 [교과서] **SLO(서비스 수준 목표)**: 산출물별 '언제까지 갱신돼야 하는가'. 우리 계약 = `ops/freshness.json`(기대 시각) → 측정 = `reports/freshness.json`(late·stale). 위반 = 장애.
 - #2 [교과서] **장애 분류**: (1) 진짜 지연(소스·실행 주체 멈춤) (2) 오탐(계약 기대 시각이 실제 실행보다 이름) (3) 잔존(해결됐는데 안 지워짐) (4) 거짓 표시(데이터는 맞는데 화면이 틀린 상태를 보여줌). 고치는 사람·방법이 다르다.
 - #3 [자체연구-검증전] **실행 주체**: GAS 예약기(정시 dispatch) · GitHub cron(10/21 실측 06:52 예약이 09:11 실행 — 지연 2h19m, 누락 다수) · 노트북 dispatcher(10/21 신설, 겸이 PAT 등록 전) · PB 수동. cron 은 백업으로만 믿는다.
+  - 실측(10/21 `gh run list -w heatmap.yml`): 10/20 예약 18회(12,42 × 13–21 UTC) 중 실행 3회(17:56Z·21:33Z·00:06Z), 정규장 창 안은 1회. live.yml 08:40 cron 이 10:57 KST에 깨어남(2h17m). → 장중 주기 산출물은 **GAS 가 띄우는 live 루프에 편승**이 기본(maint-heatmap).
+- #4 [교과서] **데이터 파이프라인 SLI = 신선도·커버리지·정확도**: 신선도 = 기준 시각 이내 갱신된 비율, 커버리지 = 기대 대비 처리된 비율. 우리 적용: 히트맵 `asof`(신선도, 계약 heatmap_kr 30분·heatmap_us 60분) + `collected/expected`(커버리지, 80% 미만이면 안 씀). 화면은 둘 다 보여준다(기준 HH:MM · n/N종목 · STALE).
 
 ## 매일 점검표 (장 시작 전 08:30 · 장 마감 후 16:40 · 미장 마감 후 07:10)
 1. `reports/freshness.json` late·stale_today 0인가 — 아니면 분류(#2)하고 복구.
@@ -30,7 +32,8 @@
 
 ## 출처
 - Google, *Site Reliability Engineering*, O'Reilly 2016 — 4장 SLO
+- Google, *The Site Reliability Workbook*, O'Reilly 2018 — 2장 Implementing SLOs(SLI 유형 표: 파이프라인 = freshness·coverage·correctness)
 - 자체: ops/freshness.json · reports/freshness.json · scripts/ui_smoke.py · .github/workflows/*.yml
 
 ## 복기
-(아직 없음)
+- 10/21 maint-heatmap: KR 1차 소스(네이버 marketValue 목록·polling 다종목)를 샌드박스 네트워크 차단으로 **실측 없이** 순서만 정해 배포 → 왜: 확인 수단(gh 로그)을 배포 뒤에야 씀 → 다음부터: 새 소스는 첫 실행 로그(`KR heatmap … via <소스>`)를 라운드 파일에 적고 나서 '복구'라고 말한다. 3순위 basic(event_watch 와 같은 실측 엔드포인트)을 안전망으로 둔 이유.

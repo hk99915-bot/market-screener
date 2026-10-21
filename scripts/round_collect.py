@@ -47,6 +47,7 @@ DESKS = {
     "alloc": "자산배분", "macro": "매크로", "ops": "운영", "pm": "PM", "health": "헬스", "cio": "CIO",
     "derivs": "파생", "analyst": "애널", "dev": "개발", "edu": "교육", "data": "데이터", "verify": "검증",
     "eval": "평가", "peer": "피어리뷰", "behavior": "행동", "audit": "감사",
+    "maint": "유지보수",   # 10/21 신설 (SRE, docs/desk_kb/maint.md)
 }
 _KO2KEY = {v: k for k, v in DESKS.items()}
 
