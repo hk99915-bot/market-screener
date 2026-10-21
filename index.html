@@ -531,14 +531,35 @@ function intradayPanel(){
     const tot=(q.up||0)+(q.down||0);
     return `<tr><td class="l am">${m}</td><td>${sgn(x['외국인'])}</td><td>${sgn(x['기관'])}</td><td>${sgn(x['개인'])}</td><td>${sgn(q.prog_total)}</td><td>${q.up!=null?`<span class="up">${q.up}</span>/<span class="dn">${q.down}</span>`:'—'}</td><td>${tot?`<span class="${q.down/tot>0.6?'dn':q.up/tot>0.6?'up':'am'}">${Math.round(q.down/tot*100)}%</span>`:'—'}</td></tr>`;};
   const top=(sn.KOSPI&&sn.KOSPI.top)||[];
-  return `<div class="p c12"><h2>${fin||v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${m0.at} 기준 · ${esc(v.phase||'장중 잠정')}${fin?` · 장중 판단 ${esc(String(s.at).slice(11))} 값은 아래`:''}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원${asofTag(m0.at,fin?['10:30']:['13:30','15:45','10:30'].sort(),[1,2,3,4,5],fin?['close_snapshot']:['intraday_kr'])}</small></h2><div class="b">
+  // 제목은 날짜(KST)로 판단 (10/21 겸이 '왜 홈에 closed kr이 자꾸'): 오늘 첫 장중 판단(10:30) 전엔 어제 13:34 < 어제 15:49 라 fin=true → 장중인데 'CLOSE KR'(어제 값)이던 문제.
+  const P=mkPhase('KR'), sD=mkDayOf('KR',s.at), mD=mkDayOf('KR',m0.at), sess=P.ph==='live'||P.ph==='post';
+  const wait=sess&&sD<P.today&&mD<P.today;   // 거래일 장중·장후인데 오늘 판단·마감 둘 다 없음 → 직전 값을 흐리게
+  const ttl=mD===P.today?(fin||v.phase==='마감'?'CLOSE KR':'INTRADAY KR'):sess?'INTRADAY KR':`KR 직전 마감 (${mdDay(mD)})`;
+  const ban=wait?`<div class="am" style="margin-bottom:6px;white-space:normal">오늘 장중 판단 대기 · 직전 값 = ${mdDay(mD)} ${fin?'마감':'장중'} (다음 판단 ${esc(nextSlot(['10:30','13:30'],[1,2,3,4,5]))})</div>`:'';
+  const sT=sD===P.today?String(s.at).slice(11):mdDay(sD)+' '+String(s.at).slice(11);
+  return `<div class="p c12"><h2>${ttl}<small>${m0.at} 기준 · ${esc(v.phase||'장중 잠정')}${fin?` · 장중 판단 ${esc(sT)} 값은 아래`:''}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원${asofTag(m0.at,fin&&!wait?['10:30']:['13:30','15:45','10:30'].sort(),[1,2,3,4,5],fin&&!wait?['close_snapshot']:['intraday_kr','close_snapshot'])}</small></h2><div class="b">${ban}<div style="${wait?'opacity:.5':''}">
    <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
    ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
-   ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(String(s.at).slice(11))} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div>`;
+   ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(sT)} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div></div>`;
 }
+/* 상태 조각이 '지금 유효한 값'인지 (10/21) — 아니면 제목에 날짜를 붙이고 흐리게, 홈에선 아래로. 반환 {old, tag} 또는 null.
+   KR 은 KST 날짜, US 는 뉴욕 날짜(mkDayOf). CLOSE 는 오늘 마감분(장 끝난 뒤)만 old=false. */
+function stInfo(key){ const s=(D.state||{})[key]; if(!s||!s.value) return null;
+  const K=mkPhase('KR'), U=mkPhase('US'), kd=mkDayOf('KR',s.at), ud=mkDayOf('US',s.at), yest=d=>d===prevTD('KR',K.today)&&Date.parse(K.today)-Date.parse(d)===864e5;
+  const wait=(d,last)=>d<last?` · ${mdDay(last)} 마감분 대기`:'';
+  switch(key){
+    case 'close_KR': { const f=K.ph==='post'&&kd===K.today;
+      return {old:!f,ttl:f?'':`${yest(kd)?'어제':'직전'} 마감 KR (${mdDay(kd)})`,tag:wait(kd,K.last)}; }
+    case 'premarket_kr': { const f=kd===K.today; return {old:!f,tag:f?'':`${mdDay(kd)} 장전 (지난 값)`}; }
+    case 'intraday_kr': { const f=kd===K.today; return {old:!f,tag:f?'':`${mdDay(kd)} 장중 (지난 값)`}; }
+    case 'close_US': { const f=ud>=U.last; return {old:!f,ttl:`CLOSE US (${mdDay(ud)} 미장)`,tag:wait(ud,U.last)}; }
+    case 'intraday_us': { const f=U.ph==='live'&&ud===U.today; return {old:!f,tag:`US ${mdDay(ud)} 장중${f?'':' (지난 세션)'}`}; }
+    case 'premarket_us': { const f=ud===U.today&&(U.ph==='pre'||U.ph==='live'); return {old:!f,tag:`US ${mdDay(ud)} 개장 전${f?'':' (지난 값)'}`}; }
+  } return {old:false,tag:''}; }
 function pre(key,title){
   const s=(D.state||{})[key]; if(!s||!s.value) return '';
-  return `<div class="p c6"><h2>${title}<small>${s.at}</small></h2><div class="b"><div class="tg">${tgHtml(s.value)}</div></div></div>`;
+  const i=stInfo(key)||{}, tg=String(i.tag||'').replace(/^ · /,'');
+  return `<div class="p c6"${i.old?' style="opacity:.6"':''}><h2>${esc(i.ttl||title)}<small>${s.at}${tg?' · '+esc(tg):''}</small></h2><div class="b"><div class="tg">${tgHtml(s.value)}</div></div></div>`;
 }
 function marketView(mk){
   const S=D[mk.toLowerCase()]||{}; const sec=S.sections||{};
@@ -761,7 +782,11 @@ function homeView(){
   const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
   const w=D.watchlist||[];
   const kh=+Utilities_kstHour(), usTime=kh>=21||kh<7;
-  const usBlock=pre('intraday_us','INTRADAY US')+pre('premarket_us','PREMARKET US')+`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`+(usTime?'':pre('close_US','CLOSE US'));
+  // 지난 값(어제 마감·지난 세션 — stInfo.old)은 날짜를 붙여 맨 아래로 (10/21 겸이: 장중에 홈 위쪽 'CLOSE KR'이 어제 마감이었음)
+  const B=(k,t)=>({h:pre(k,t),old:!!(stInfo(k)||{}).old}), pick=(L,o)=>L.filter(x=>x.old===o).map(x=>x.h).join('');
+  const usL=[B('intraday_us','INTRADAY US'),B('premarket_us','PREMARKET US'),{h:`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`,old:false}].concat(usTime?[]:[B('close_US','CLOSE US')]);
+  const krL=[B('premarket_kr','PREMARKET KR'),B('close_KR','CLOSE KR')].concat(usTime?[B('close_US','CLOSE US')]:[]).concat([B('intraday_kr','INTRADAY KR')]);
+  const usBlock=pick(usL,false), oldBlk=pick(krL,true)+pick(usL,true);
   let h=`<div class="grid">${usTime?usBlock:''}${intradayPanel()}
    <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
    <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
@@ -772,7 +797,7 @@ function homeView(){
    <div class="p c12"><h2>CALENDAR<small>실적·FOMC·CPI·만기 · 📌 = 내 보유</small></h2><div class="b" id="homecal">${calPanel()}</div></div>
    <div class="p c6"><h2>LATEST RESEARCH<small>${(D.reports||[]).length}</small></h2><div class="b">${repTable((D.reports||[]).slice(0,14))}</div></div>`;
   setTimeout(homeMyFill,0);
-  h+=pre('premarket_kr','PREMARKET KR')+pre('close_KR','CLOSE KR')+(usTime?pre('close_US','CLOSE US'):'')+pre('intraday_kr','INTRADAY KR')+(usTime?'':usBlock);
+  h+=pick(krL,false)+(usTime?'':usBlock)+(oldBlk?`<div class="p c12 mu" style="font-size:11.5px;padding:4px 8px">지난 값 — 날짜 확인 (오늘 것이 나오면 위로 올라감)</div>${oldBlk}`:'');
   if(CMTU===null) homeCusLoad();
   return h+'</div>';
 }
@@ -3767,26 +3792,44 @@ function genHdr(){ const g=$('#gen'); if(!g) return; const hm=x=>{ const m=Strin
       if(m&&wd>=1&&wd<=5&&mins>=540&&mins<=930){ const lt=Date.UTC(m[1]?+m[1]:k.getUTCFullYear(),+m[2]-1,+m[3],+m[4],+m[5]); warn=(k.getTime()-lt)>20*60e3; } }catch(e){}
     const ls=liveSess(); t+=' · '+(warn?'⚠️ ':'')+(ls.s==='CLOSE'?`CLOSE${ls.d?'('+ls.d.slice(5)+')':''} `:'LIVE ')+(hm(lu)||lu); }
   g.textContent=t; }
+/* 장 상태 (10/21 겸이 '왜 홈에 closed kr이 자꾸 뜨나') — 날짜(현지) 기준: CLOSE 는 '오늘 마감분'일 때만, 지난 값은 날짜를 붙이고 흐리게.
+   휴장표 HOL 은 screener/tradecal.py HOLIDAYS 와 같아야 한다(tests/test_session_phase_ui.py 가 대조). 표 밖 날짜는 요일만. */
+const HOL={KR:'2026-01-01 2026-02-16 2026-02-17 2026-02-18 2026-03-02 2026-05-01 2026-05-05 2026-05-25 2026-06-03 2026-08-17 2026-09-24 2026-09-25 2026-10-05 2026-10-09 2026-12-25 2026-12-31 2027-01-01 2027-02-05 2027-02-08 2027-03-01 2027-05-05 2027-05-13 2027-08-16 2027-09-14 2027-09-15 2027-09-16 2027-10-04 2027-10-11 2027-12-27 2027-12-31'.split(' '),
+  US:'2026-01-01 2026-01-19 2026-02-16 2026-04-03 2026-05-25 2026-06-19 2026-07-03 2026-09-07 2026-11-26 2026-12-25 2027-01-01 2027-01-18 2027-02-15 2027-03-26 2027-05-31 2027-06-18 2027-07-05 2027-09-06 2027-11-25 2027-12-24'.split(' ')};
+const MKTZ={KR:'Asia/Seoul',US:'America/New_York'}, MKSESS={KR:[540,930],US:[570,960]};   // 정규장(현지 분) 09:00~15:30 · 09:30~16:00
+function tzParts(tz,t){ const f=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(t||new Date()), g=k=>(f.find(x=>x.type===k)||{}).value;
+  return {ds:`${g('year')}-${g('month')}-${g('day')}`, hm:(+g('hour')%24)*60+(+g('minute'))}; }
+function isTD(mk,ds){ const wd=new Date(ds+'T00:00:00Z').getUTCDay(); return wd>0&&wd<6&&!HOL[mk].includes(ds); }
+function prevTD(mk,ds){ let t=Date.parse(ds+'T00:00:00Z'); for(let i=0;i<20;i++){ t-=864e5; const d=new Date(t).toISOString().slice(0,10); if(isTD(mk,d)) return d; } return ds; }
+// {ph: pre|live|post|off, today: 현지 오늘, last: 마지막으로 마감이 끝난 거래일}
+function mkPhase(mk,t){ const {ds,hm}=tzParts(MKTZ[mk],t), [o,c]=MKSESS[mk];
+  if(!isTD(mk,ds)) return {ph:'off',today:ds,last:prevTD(mk,ds)};
+  return {ph:hm<o?'pre':hm<c?'live':'post',today:ds,last:hm<c?prevTD(mk,ds):ds}; }
+// 상태 시각 'YYYY-MM-DD HH:MM'(KST) → 그 시장의 현지 날짜 (US 는 뉴욕 날짜 — 06:55 KST 마감 코멘트 = 전날 미장)
+function mkDayOf(mk,at){ const m=String(at||'').match(/(\d{4})-(\d\d)-(\d\d)[ T](\d\d):(\d\d)/); if(!m) return String(at||'').slice(0,10);
+  return mk==='KR'?`${m[1]}-${m[2]}-${m[3]}`:tzParts(MKTZ.US,new Date(Date.UTC(+m[1],m[2]-1,+m[3],+m[4]-9,+m[5]))).ds; }
+const mdDay=ds=>ds?(+ds.slice(5,7))+'/'+(+ds.slice(8,10)):'—';
 /* 데이터 신선도 배지 (재발방지대책 D, 10/17): reports/freshness.json 의 late(계약 대비 늦음) + regress_today(역행 차단) */
 let FR=null;
 function freshBadge(){ const el=$('#fresh'); if(!el) return; if(!FR){ el.className='fresh'; el.textContent=''; return; }
   const n=(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length, hm=String(FR.checked_at||'').slice(11,16), H=FR.health||[];
   // 알림 비활성(시크릿 부재 — alerts.secret_health, 감사 10/17 #26): 늦은 데이터보다 먼저 보인다
-  el.className='fresh '+(n||H.length?'bad':'ok'); el.textContent=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · 늦은 데이터 ${n}`:''):n?`⚠ 늦은 데이터 ${n}`:`데이터 정상 · 점검 ${hm||'—'}`; }
+  const kn=(FR.late||[]).filter(x=>x.note).length, nt=`늦은 데이터 ${n}${kn?` (원인 확인·조치 중 ${kn})`:''}`;   // 진짜 지연 = ops/freshness_known.json 사정 한 줄 (10/21)
+  el.className='fresh '+(n||H.length?'bad':'ok'); el.textContent=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · ${nt}`:''):n?`⚠ ${nt}`:`데이터 정상 · 점검 ${hm||'—'}`; }
 function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[], S=FR.stale_today||[];
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent='데이터 신선도';$('#dr-s').textContent=' 점검 '+esc(FR.checked_at||'')+' KST · 계약 '+(FR.n||0)+'항목';
-  const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:11px">${esc(x.desc||'')}</div></td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
+  const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:11px">${esc(x.desc||'')}</div>${x.note?`<div class="am" style="font-size:11px;white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
   const rr=R.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">기존 ${esc(x.existing)}</td><td class="l dn">새 ${esc(x.new)} (차단)</td><td class="l mu">${esc(x.mode||'')}</td><td class="l mu">${esc(x.at||'')}</td></tr>`).join('');
   const H=FR.health||[];
   $('#dr-b').innerHTML=(H.length?`<h3>알림 비활성 ${H.length}</h3><table><tr><th class="l">항목</th><th class="l">부터</th><th class="l">발견</th><th class="l">복구</th></tr>${H.map(h=>`<tr><td class="l dn">${esc(h.what)}</td><td class="l">${esc(h.since||'')}</td><td class="l mu">${esc(h.by||'')}</td><td class="l">${esc(h.fix||'')}</td></tr>`).join('')}</table>`:'')+(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
     +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:11px">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
-    +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
+    +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}${x.note?`<div class="am" style="font-size:11px;white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
 /* 기준일 배지 (10/21 B2 겸이 승인): '기준 <시각> · 다음 갱신 <시각>' + 계약(freshness.json late·stale_today, id 또는 path)에 걸리면 빨간 ⚠ STALE.
    times = KST 'HH:MM' 목록, days = 요일(0=일) — 다음 갱신은 그 표에서 지금 이후 첫 슬롯. */
 function nextSlot(times,days){ const k=new Date(Date.now()+9*3600e3); for(let d=0;d<8;d++){ const t=new Date(k.getTime()+d*864e5), wd=t.getUTCDay();
     if(!days.includes(wd)) continue; for(const hm of times){ const [h,m]=hm.split(':').map(Number); if(d||h*60+m>k.getUTCHours()*60+k.getUTCMinutes()) return (d?(t.getUTCMonth()+1)+'/'+t.getUTCDate()+' ':'')+hm; } } return '—'; }
 function asofTag(at,times,days,ids){ const I=[].concat(ids||[]), hit=FR?[...(FR.late||[]),...(FR.stale_today||[])].find(x=>I.includes(x.id)||I.includes(x.path)):null;
-  return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||'?')+' · 실제 '+(hit.actual||hit.used||'?')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
+  return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||hit.want||'?')+' · 실제 '+(hit.actual||hit.got||hit.used||'?')+(hit.note?' · '+hit.note:'')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
 function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ const first=!FR; try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); if(first&&FR&&D) render(); /* B2: 첫 신선도 도착 시 기준일 배지 STALE 반영 */ }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
 document.addEventListener('click',e=>{ if(e.target.closest('#fresh')) freshPop(); });
 function render(){

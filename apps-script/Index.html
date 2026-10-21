@@ -325,26 +325,44 @@ function genHdr(){ const g=$('#gen'); if(!g) return; const hm=x=>{ const m=Strin
       if(m&&wd>=1&&wd<=5&&mins>=540&&mins<=930){ const lt=Date.UTC(m[1]?+m[1]:k.getUTCFullYear(),+m[2]-1,+m[3],+m[4],+m[5]); warn=(k.getTime()-lt)>20*60e3; } }catch(e){}
     const ls=liveSess(); t+=' · '+(warn?'⚠️ ':'')+(ls.s==='CLOSE'?`CLOSE${ls.d?'('+ls.d.slice(5)+')':''} `:'LIVE ')+(hm(lu)||lu); }
   g.textContent=t; }
+/* 장 상태 (10/21 겸이 '왜 홈에 closed kr이 자꾸 뜨나') — 날짜(현지) 기준: CLOSE 는 '오늘 마감분'일 때만, 지난 값은 날짜를 붙이고 흐리게.
+   휴장표 HOL 은 screener/tradecal.py HOLIDAYS 와 같아야 한다(tests/test_session_phase_ui.py 가 대조). 표 밖 날짜는 요일만. */
+const HOL={KR:'2026-01-01 2026-02-16 2026-02-17 2026-02-18 2026-03-02 2026-05-01 2026-05-05 2026-05-25 2026-06-03 2026-08-17 2026-09-24 2026-09-25 2026-10-05 2026-10-09 2026-12-25 2026-12-31 2027-01-01 2027-02-05 2027-02-08 2027-03-01 2027-05-05 2027-05-13 2027-08-16 2027-09-14 2027-09-15 2027-09-16 2027-10-04 2027-10-11 2027-12-27 2027-12-31'.split(' '),
+  US:'2026-01-01 2026-01-19 2026-02-16 2026-04-03 2026-05-25 2026-06-19 2026-07-03 2026-09-07 2026-11-26 2026-12-25 2027-01-01 2027-01-18 2027-02-15 2027-03-26 2027-05-31 2027-06-18 2027-07-05 2027-09-06 2027-11-25 2027-12-24'.split(' ')};
+const MKTZ={KR:'Asia/Seoul',US:'America/New_York'}, MKSESS={KR:[540,930],US:[570,960]};   // 정규장(현지 분) 09:00~15:30 · 09:30~16:00
+function tzParts(tz,t){ const f=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(t||new Date()), g=k=>(f.find(x=>x.type===k)||{}).value;
+  return {ds:`${g('year')}-${g('month')}-${g('day')}`, hm:(+g('hour')%24)*60+(+g('minute'))}; }
+function isTD(mk,ds){ const wd=new Date(ds+'T00:00:00Z').getUTCDay(); return wd>0&&wd<6&&!HOL[mk].includes(ds); }
+function prevTD(mk,ds){ let t=Date.parse(ds+'T00:00:00Z'); for(let i=0;i<20;i++){ t-=864e5; const d=new Date(t).toISOString().slice(0,10); if(isTD(mk,d)) return d; } return ds; }
+// {ph: pre|live|post|off, today: 현지 오늘, last: 마지막으로 마감이 끝난 거래일}
+function mkPhase(mk,t){ const {ds,hm}=tzParts(MKTZ[mk],t), [o,c]=MKSESS[mk];
+  if(!isTD(mk,ds)) return {ph:'off',today:ds,last:prevTD(mk,ds)};
+  return {ph:hm<o?'pre':hm<c?'live':'post',today:ds,last:hm<c?prevTD(mk,ds):ds}; }
+// 상태 시각 'YYYY-MM-DD HH:MM'(KST) → 그 시장의 현지 날짜 (US 는 뉴욕 날짜 — 06:55 KST 마감 코멘트 = 전날 미장)
+function mkDayOf(mk,at){ const m=String(at||'').match(/(\d{4})-(\d\d)-(\d\d)[ T](\d\d):(\d\d)/); if(!m) return String(at||'').slice(0,10);
+  return mk==='KR'?`${m[1]}-${m[2]}-${m[3]}`:tzParts(MKTZ.US,new Date(Date.UTC(+m[1],m[2]-1,+m[3],+m[4]-9,+m[5]))).ds; }
+const mdDay=ds=>ds?(+ds.slice(5,7))+'/'+(+ds.slice(8,10)):'—';
 /* 데이터 신선도 배지 (재발방지대책 D, 10/17): reports/freshness.json 의 late(계약 대비 늦음) + regress_today(역행 차단) */
 let FR=null;
 function freshBadge(){ const el=$('#fresh'); if(!el) return; if(!FR){ el.className='fresh'; el.textContent=''; return; }
   const n=(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length, hm=String(FR.checked_at||'').slice(11,16), H=FR.health||[];
   // 알림 비활성(시크릿 부재 — alerts.secret_health, 감사 10/17 #26): 늦은 데이터보다 먼저 보인다
-  el.className='fresh '+(n||H.length?'bad':'ok'); el.textContent=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · 늦은 데이터 ${n}`:''):n?`⚠ 늦은 데이터 ${n}`:`데이터 정상 · 점검 ${hm||'—'}`; }
+  const kn=(FR.late||[]).filter(x=>x.note).length, nt=`늦은 데이터 ${n}${kn?` (원인 확인·조치 중 ${kn})`:''}`;   // 진짜 지연 = ops/freshness_known.json 사정 한 줄 (10/21)
+  el.className='fresh '+(n||H.length?'bad':'ok'); el.textContent=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · ${nt}`:''):n?`⚠ ${nt}`:`데이터 정상 · 점검 ${hm||'—'}`; }
 function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[], S=FR.stale_today||[];
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent='데이터 신선도';$('#dr-s').textContent=' 점검 '+esc(FR.checked_at||'')+' KST · 계약 '+(FR.n||0)+'항목';
-  const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:11px">${esc(x.desc||'')}</div></td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
+  const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:11px">${esc(x.desc||'')}</div>${x.note?`<div class="am" style="font-size:11px;white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
   const rr=R.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">기존 ${esc(x.existing)}</td><td class="l dn">새 ${esc(x.new)} (차단)</td><td class="l mu">${esc(x.mode||'')}</td><td class="l mu">${esc(x.at||'')}</td></tr>`).join('');
   const H=FR.health||[];
   $('#dr-b').innerHTML=(H.length?`<h3>알림 비활성 ${H.length}</h3><table><tr><th class="l">항목</th><th class="l">부터</th><th class="l">발견</th><th class="l">복구</th></tr>${H.map(h=>`<tr><td class="l dn">${esc(h.what)}</td><td class="l">${esc(h.since||'')}</td><td class="l mu">${esc(h.by||'')}</td><td class="l">${esc(h.fix||'')}</td></tr>`).join('')}</table>`:'')+(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
     +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:11px">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
-    +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
+    +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}${x.note?`<div class="am" style="font-size:11px;white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
 /* 기준일 배지 (10/21 B2 겸이 승인): '기준 <시각> · 다음 갱신 <시각>' + 계약(freshness.json late·stale_today, id 또는 path)에 걸리면 빨간 ⚠ STALE.
    times = KST 'HH:MM' 목록, days = 요일(0=일) — 다음 갱신은 그 표에서 지금 이후 첫 슬롯. */
 function nextSlot(times,days){ const k=new Date(Date.now()+9*3600e3); for(let d=0;d<8;d++){ const t=new Date(k.getTime()+d*864e5), wd=t.getUTCDay();
     if(!days.includes(wd)) continue; for(const hm of times){ const [h,m]=hm.split(':').map(Number); if(d||h*60+m>k.getUTCHours()*60+k.getUTCMinutes()) return (d?(t.getUTCMonth()+1)+'/'+t.getUTCDate()+' ':'')+hm; } } return '—'; }
 function asofTag(at,times,days,ids){ const I=[].concat(ids||[]), hit=FR?[...(FR.late||[]),...(FR.stale_today||[])].find(x=>I.includes(x.id)||I.includes(x.path)):null;
-  return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||'?')+' · 실제 '+(hit.actual||hit.used||'?')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
+  return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||hit.want||'?')+' · 실제 '+(hit.actual||hit.got||hit.used||'?')+(hit.note?' · '+hit.note:'')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
 function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ const first=!FR; try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); if(first&&FR&&D) render(); /* B2: 첫 신선도 도착 시 기준일 배지 STALE 반영 */ }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
 document.addEventListener('click',e=>{ if(e.target.closest('#fresh')) freshPop(); });
 function render(){

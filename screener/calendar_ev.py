@@ -10,8 +10,16 @@ import json
 import re
 import logging
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from .config import REPORT_DIR
+
+KST = ZoneInfo("Asia/Seoul")
+
+
+def _today() -> date:
+    """KST 오늘. 러너는 UTC 라 date.today()·datetime.now() 가 09:00 KST 전엔 전날 — 10/19·10/20 premarket(08:58 KST) 캘린더 asof 가 전날로 찍혀 신선도 '늦음' 오탐(10/21 개발)."""
+    return datetime.now(KST).date()
 
 log = logging.getLogger(__name__)
 OUT = REPORT_DIR / "calendar.json"
@@ -102,7 +110,7 @@ def _bls_all() -> dict:
         return _BLS
     import requests
     ids = {v.split("/")[-1]: k for k, v in DBN.items()}
-    y = date.today().year
+    y = _today().year
     r = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data/", json={"seriesid": list(ids), "startyear": str(y - 2), "endyear": str(y)}, timeout=40)
     r.raise_for_status()
     for srs in (r.json().get("Results") or {}).get("series") or []:
@@ -125,7 +133,7 @@ def _fresh(obs: list[tuple[str, float]], max_days: int = 130) -> bool:
         d = date.fromisoformat(per if len(per) == 10 else per + "-01")
     except ValueError:
         return False
-    return (date.today() - d).days <= max_days
+    return (_today() - d).days <= max_days
 
 
 def _fred(sid: str) -> list[tuple[str, float]]:
@@ -185,7 +193,7 @@ def releases() -> dict:
         old = json.loads(REL.read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
         old = {"series": {}, "log": []}
-    today = str(date.today())
+    today = str(_today())
     for grp, lst in IND.items():
         for sid, how, label in lst:
             try:
@@ -253,7 +261,7 @@ def _fmt(x: dict) -> str:
 
 def _attach(ev: list[dict], rel: dict) -> None:
     """지난 매크로 이벤트에 결과 붙이기: 발표일~+4일 사이에 처음 보인 새 값 우선, 없으면 그 지표의 가장 최근 이벤트에 현재 최신값."""
-    today = date.today()
+    today = _today()
     keymap = [("CPI", "CPI"), ("고용", "고용"), ("PCE", "PCE"), ("GDP", "GDP"), ("FOMC", "FOMC"), ("PPI", "PPI")]
     last_ev = {}
     for e in ev:
@@ -325,7 +333,7 @@ def _earn_dates(tickers: list[str], suffix: str = "") -> dict[str, str]:
 
 
 def build(days: int = 75) -> dict:
-    today = date.today()
+    today = _today()
     end = today + timedelta(days=days)
     start = today - timedelta(days=60)
     ev = []
@@ -407,7 +415,7 @@ def build(days: int = 75) -> dict:
         _attach(ev, releases())
     except Exception as e:  # noqa: BLE001
         log.warning("지표 결과 실패: %s", e)
-    out = {"asof": datetime.now().strftime("%Y-%m-%d %H:%M"), "events": ev, "moves": _moves(),
+    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "events": ev, "moves": _moves(),
            "note": "실적일은 야후 기준 예정일(회사 확정 전 추정 포함) — '회사 확정' 표시분은 회사 발표로 확인. 매크로 일정은 연준·BLS·BEA 공식 일정 기준."}
     OUT.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     log.info("캘린더 %d건", len(ev))
@@ -419,5 +427,5 @@ def upcoming(n_days: int = 2) -> list[dict]:
         ev = json.loads(OUT.read_text(encoding="utf-8")).get("events", [])
     except Exception:  # noqa: BLE001
         return []
-    t = date.today()
+    t = _today()
     return [e for e in ev if t <= date.fromisoformat(e["date"]) <= t + timedelta(days=n_days)]

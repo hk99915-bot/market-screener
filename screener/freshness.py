@@ -24,6 +24,8 @@ ROOT = REPORT_DIR.parent
 CONTRACT = ROOT / "ops" / "freshness.json"
 OUT = REPORT_DIR / "freshness.json"
 STATE = REPORT_DIR / "freshness_alert_state.json"
+KNOWN = ROOT / "ops" / "freshness_known.json"   # 진짜 지연의 원인·담당·조치 (화면 한 줄, 10/21 오너 '늦은 데이터 오류가 자꾸')
+_DAY = re.compile(r"\d{4}-\d{2}-\d{2}")
 _TS = re.compile(r"(?:(\d{4})-)?(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})")
 TEAM_IGNORE = ("reports", "data", "ops/team.json", "index.html")   # 사람·에이전트 커밋 판별 (데이터·봇 산출물 경로 제외)
 
@@ -125,6 +127,8 @@ def check_item(it: dict, now: datetime, root: Path = ROOT, last_commit: datetime
             need = max(need, last_commit) if need else last_commit
         if need and (ts is None or ts < need):
             late = (f"{need.astimezone(KST):%Y-%m-%d %H:%M} 이후", ts.strftime("%Y-%m-%d %H:%M") if ts else None)
+    if late and it.get("since") and (_DAY.search(str(late[0])) or [""])[0] < it["since"]:
+        late = None   # 계약 도입(since) 전 날짜를 요구하면 오탐 — 10/21 00:34 toss_md 계약 추가 → 00:38 '10/20 장중 publish' 늦음(첫 publish 00:48)
     if not late:
         return None
     return {"id": it["id"], "path": it["path"], "expected": late[0], "actual": late[1] or (err or "날짜 없음"),
@@ -158,8 +162,19 @@ def check(now: datetime | None = None, root: Path = ROOT, items: list[dict] | No
     except Exception:  # noqa: BLE001
         prev = {}
     blocked = prev.get("regress_blocked") or []
-    stale = prev.get("stale") or []
-    today = now.astimezone(KST).strftime("%Y-%m-%d")
+    stale = [x for x in (prev.get("stale") or []) if not stale_resolved(x, root)]
+    notes = load_known(root)
+    for x in late:
+        n = notes.get((x["id"], str(x["expected"])[:10]))
+        if n:
+            x["note"] = n
+    by_path = {x["path"]: x["note"] for x in late if x.get("note")}
+    for x in stale:   # 같은 파일의 '이전 값 대체'에도 같은 사정 한 줄
+        if x.get("path") in by_path:
+            x["note"] = by_path[x["path"]]
+        else:
+            x.pop("note", None)
+    today =now.astimezone(KST).strftime("%Y-%m-%d")
     out = {"checked_at": now.astimezone(KST).strftime("%Y-%m-%d %H:%M"), "n": len(items), "late": late,
            "regress_today": [b for b in blocked if str(b.get("at", "")).startswith(today)],
            "regress_blocked": blocked, "stale_today": [x for x in stale if str(x.get("at", "")).startswith(today)],
@@ -170,6 +185,37 @@ def check(now: datetime | None = None, root: Path = ROOT, items: list[dict] | No
         out_p.parent.mkdir(parents=True, exist_ok=True)
         out_p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     log.info("신선도: %d항목 중 늦음 %d · 오늘 역행 차단 %d", len(items), len(late), len(out["regress_today"]))
+    return out
+
+
+def stale_resolved(x: dict, root: Path = ROOT) -> bool:
+    """stale 기록이 이미 해소됐나 — 그 파일의 현재 기준일(asof 또는 json 날짜) ≥ 목표일이면 해소(목록에서 뺌).
+    10/19 macro_series KOSPI(목표 10/19, 사용 10/16) 가 파일이 10/21 로 갱신된 뒤에도 '대체 사용' 목록에 계속 남던 문제(10/21)."""
+    want = (_DAY.search(str(x.get("want") or "")) or [None])[0]
+    if not want:
+        return False
+    p = root / str(x.get("path") or "")
+    if not p.is_file() or p.suffix != ".json":
+        return False
+    try:
+        obj = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return False
+    cur = guard.day(obj.get("asof")) if isinstance(obj, dict) and obj.get("asof") else guard.json_day(obj)
+    return bool(cur) and cur >= want
+
+
+def load_known(root: Path = ROOT) -> dict:
+    """ops/freshness_known.json → {(id, 기대일): '원인 · 담당 · 조치'}. 진짜 지연은 늦음 그대로 두고 화면에 사정 한 줄."""
+    try:
+        rows = json.loads((root / "ops" / KNOWN.name).read_text(encoding="utf-8")).get("items") or []
+    except Exception:  # noqa: BLE001
+        return {}
+    out = {}
+    for r in rows:
+        txt = f"원인: {r.get('cause', '?')} · 담당: {r.get('owner', '?')} · 조치 중: {r.get('action', '?')}"
+        for i in r.get("ids") or []:
+            out[(i, str(r.get("expected", ""))[:10])] = txt
     return out
 
 

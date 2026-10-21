@@ -174,14 +174,35 @@ function intradayPanel(){
     const tot=(q.up||0)+(q.down||0);
     return `<tr><td class="l am">${m}</td><td>${sgn(x['외국인'])}</td><td>${sgn(x['기관'])}</td><td>${sgn(x['개인'])}</td><td>${sgn(q.prog_total)}</td><td>${q.up!=null?`<span class="up">${q.up}</span>/<span class="dn">${q.down}</span>`:'—'}</td><td>${tot?`<span class="${q.down/tot>0.6?'dn':q.up/tot>0.6?'up':'am'}">${Math.round(q.down/tot*100)}%</span>`:'—'}</td></tr>`;};
   const top=(sn.KOSPI&&sn.KOSPI.top)||[];
-  return `<div class="p c12"><h2>${fin||v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${m0.at} 기준 · ${esc(v.phase||'장중 잠정')}${fin?` · 장중 판단 ${esc(String(s.at).slice(11))} 값은 아래`:''}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원${asofTag(m0.at,fin?['10:30']:['13:30','15:45','10:30'].sort(),[1,2,3,4,5],fin?['close_snapshot']:['intraday_kr'])}</small></h2><div class="b">
+  // 제목은 날짜(KST)로 판단 (10/21 겸이 '왜 홈에 closed kr이 자꾸'): 오늘 첫 장중 판단(10:30) 전엔 어제 13:34 < 어제 15:49 라 fin=true → 장중인데 'CLOSE KR'(어제 값)이던 문제.
+  const P=mkPhase('KR'), sD=mkDayOf('KR',s.at), mD=mkDayOf('KR',m0.at), sess=P.ph==='live'||P.ph==='post';
+  const wait=sess&&sD<P.today&&mD<P.today;   // 거래일 장중·장후인데 오늘 판단·마감 둘 다 없음 → 직전 값을 흐리게
+  const ttl=mD===P.today?(fin||v.phase==='마감'?'CLOSE KR':'INTRADAY KR'):sess?'INTRADAY KR':`KR 직전 마감 (${mdDay(mD)})`;
+  const ban=wait?`<div class="am" style="margin-bottom:6px;white-space:normal">오늘 장중 판단 대기 · 직전 값 = ${mdDay(mD)} ${fin?'마감':'장중'} (다음 판단 ${esc(nextSlot(['10:30','13:30'],[1,2,3,4,5]))})</div>`:'';
+  const sT=sD===P.today?String(s.at).slice(11):mdDay(sD)+' '+String(s.at).slice(11);
+  return `<div class="p c12"><h2>${ttl}<small>${m0.at} 기준 · ${esc(v.phase||'장중 잠정')}${fin?` · 장중 판단 ${esc(sT)} 값은 아래`:''}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원${asofTag(m0.at,fin&&!wait?['10:30']:['13:30','15:45','10:30'].sort(),[1,2,3,4,5],fin&&!wait?['close_snapshot']:['intraday_kr','close_snapshot'])}</small></h2><div class="b">${ban}<div style="${wait?'opacity:.5':''}">
    <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
    ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
-   ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(String(s.at).slice(11))} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div>`;
+   ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(sT)} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div></div>`;
 }
+/* 상태 조각이 '지금 유효한 값'인지 (10/21) — 아니면 제목에 날짜를 붙이고 흐리게, 홈에선 아래로. 반환 {old, tag} 또는 null.
+   KR 은 KST 날짜, US 는 뉴욕 날짜(mkDayOf). CLOSE 는 오늘 마감분(장 끝난 뒤)만 old=false. */
+function stInfo(key){ const s=(D.state||{})[key]; if(!s||!s.value) return null;
+  const K=mkPhase('KR'), U=mkPhase('US'), kd=mkDayOf('KR',s.at), ud=mkDayOf('US',s.at), yest=d=>d===prevTD('KR',K.today)&&Date.parse(K.today)-Date.parse(d)===864e5;
+  const wait=(d,last)=>d<last?` · ${mdDay(last)} 마감분 대기`:'';
+  switch(key){
+    case 'close_KR': { const f=K.ph==='post'&&kd===K.today;
+      return {old:!f,ttl:f?'':`${yest(kd)?'어제':'직전'} 마감 KR (${mdDay(kd)})`,tag:wait(kd,K.last)}; }
+    case 'premarket_kr': { const f=kd===K.today; return {old:!f,tag:f?'':`${mdDay(kd)} 장전 (지난 값)`}; }
+    case 'intraday_kr': { const f=kd===K.today; return {old:!f,tag:f?'':`${mdDay(kd)} 장중 (지난 값)`}; }
+    case 'close_US': { const f=ud>=U.last; return {old:!f,ttl:`CLOSE US (${mdDay(ud)} 미장)`,tag:wait(ud,U.last)}; }
+    case 'intraday_us': { const f=U.ph==='live'&&ud===U.today; return {old:!f,tag:`US ${mdDay(ud)} 장중${f?'':' (지난 세션)'}`}; }
+    case 'premarket_us': { const f=ud===U.today&&(U.ph==='pre'||U.ph==='live'); return {old:!f,tag:`US ${mdDay(ud)} 개장 전${f?'':' (지난 값)'}`}; }
+  } return {old:false,tag:''}; }
 function pre(key,title){
   const s=(D.state||{})[key]; if(!s||!s.value) return '';
-  return `<div class="p c6"><h2>${title}<small>${s.at}</small></h2><div class="b"><div class="tg">${tgHtml(s.value)}</div></div></div>`;
+  const i=stInfo(key)||{}, tg=String(i.tag||'').replace(/^ · /,'');
+  return `<div class="p c6"${i.old?' style="opacity:.6"':''}><h2>${esc(i.ttl||title)}<small>${s.at}${tg?' · '+esc(tg):''}</small></h2><div class="b"><div class="tg">${tgHtml(s.value)}</div></div></div>`;
 }
 function marketView(mk){
   const S=D[mk.toLowerCase()]||{}; const sec=S.sections||{};

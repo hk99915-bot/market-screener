@@ -86,7 +86,11 @@ function homeView(){
   const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
   const w=D.watchlist||[];
   const kh=+Utilities_kstHour(), usTime=kh>=21||kh<7;
-  const usBlock=pre('intraday_us','INTRADAY US')+pre('premarket_us','PREMARKET US')+`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`+(usTime?'':pre('close_US','CLOSE US'));
+  // 지난 값(어제 마감·지난 세션 — stInfo.old)은 날짜를 붙여 맨 아래로 (10/21 겸이: 장중에 홈 위쪽 'CLOSE KR'이 어제 마감이었음)
+  const B=(k,t)=>({h:pre(k,t),old:!!(stInfo(k)||{}).old}), pick=(L,o)=>L.filter(x=>x.old===o).map(x=>x.h).join('');
+  const usL=[B('intraday_us','INTRADAY US'),B('premarket_us','PREMARKET US'),{h:`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`,old:false}].concat(usTime?[]:[B('close_US','CLOSE US')]);
+  const krL=[B('premarket_kr','PREMARKET KR'),B('close_KR','CLOSE KR')].concat(usTime?[B('close_US','CLOSE US')]:[]).concat([B('intraday_kr','INTRADAY KR')]);
+  const usBlock=pick(usL,false), oldBlk=pick(krL,true)+pick(usL,true);
   let h=`<div class="grid">${usTime?usBlock:''}${intradayPanel()}
    <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
    <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
@@ -97,7 +101,7 @@ function homeView(){
    <div class="p c12"><h2>CALENDAR<small>실적·FOMC·CPI·만기 · 📌 = 내 보유</small></h2><div class="b" id="homecal">${calPanel()}</div></div>
    <div class="p c6"><h2>LATEST RESEARCH<small>${(D.reports||[]).length}</small></h2><div class="b">${repTable((D.reports||[]).slice(0,14))}</div></div>`;
   setTimeout(homeMyFill,0);
-  h+=pre('premarket_kr','PREMARKET KR')+pre('close_KR','CLOSE KR')+(usTime?pre('close_US','CLOSE US'):'')+pre('intraday_kr','INTRADAY KR')+(usTime?'':usBlock);
+  h+=pick(krL,false)+(usTime?'':usBlock)+(oldBlk?`<div class="p c12 mu" style="font-size:11.5px;padding:4px 8px">지난 값 — 날짜 확인 (오늘 것이 나오면 위로 올라감)</div>${oldBlk}`:'');
   if(CMTU===null) homeCusLoad();
   return h+'</div>';
 }

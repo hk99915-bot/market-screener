@@ -1,0 +1,8 @@
+{
+ "_doc": "진짜 지연(데이터 원천이 실제로 늦음)은 신선도 '늦음'을 지우지 않고 화면에 원인·담당·조치 한 줄을 붙인다 (screener/freshness.py load_known, 10/21 오너 '늦은 데이터 오류가 자꾸'). ids + expected(기대일)가 맞는 late 항목에만 붙고, 해소되면 late 에서 빠지므로 저절로 안 보인다. 끝난 항목은 지워도 된다.",
+ "items": [
+  {"ids": ["detail_us", "latest_us", "momentum_us", "peers_us"], "expected": "2026-10-20",
+   "cause": "야후가 10/20 미국 종목 일봉을 아직 안 줌(원천 지연)", "owner": "개발",
+   "action": "토스 EOD 로 마지막 날 봉 보충(보드 us-eod-toss, 검수 중)", "since": "2026-10-21 10:30"}
+ ]
+}
