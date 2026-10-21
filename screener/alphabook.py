@@ -499,6 +499,11 @@ def update(o: dict, market: str = "KR", now: datetime | None = None, state_path:
     blk.update({"asof": today, "cut": cut, "stats": st, "scale": scale, "proposals": prop, "rejected": rejected[:5],
                 "sources": {k: {"grade": c.get("grade"), "pass": bool(c.get("pass"))} for k, c in srcs.items() if SRC_MARKET.get(k) == market},
                 "state": "운용" if st["n_pos"] else "진입 대기(다음 봉 시가)" if book["pending"] else ("탐색 중(현금)" if not pass_keys else "대기(현금)")})
+    if market == "KR":
+        dl = disc_line()
+        if dl:
+            blk["disc"] = dl
+            blk["tg"] = list(blk["tg"]) + [dl]
     o["hf"] = blk
     S.setdefault("books", {})[market] = book
     S.update({"v": 1, "updated": now.strftime("%Y-%m-%d %H:%M KST"), "mock": True, "unit": "가상 1단위(NAV 1.0)",
@@ -511,5 +516,23 @@ def update(o: dict, market: str = "KR", now: datetime | None = None, state_path:
     return blk
 
 
+def disc_line(path: Path | None = None) -> str | None:
+    """HF 재량 북(자율매매, 모의 — scripts/hf_book.py 장부) 텔레그램 1줄. 평가는 회의 라운드의 mark 값 그대로."""
+    try:
+        b = json.loads((path or _root() / "hf_discretion.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+    op, cl = b.get("open") or [], b.get("closed") or []
+    if not op and not cl:
+        return None
+    parts = []
+    for p in op[:3]:
+        sgn = 1 if p.get("side") == "롱" else -1
+        r = (p["last"] - p["entry"]) * sgn / p["r_unit"] if p.get("r_unit") else 0.0
+        parts.append(f"{p['side']} {p['name']} {p['entry']:,.2f}→{p['last']:,.2f}({r:+.2f}R)")
+    tail = f" · 청산 {len(cl)}건 평균 {sum(c['r'] for c in cl) / len(cl):+.2f}R" if cl else ""
+    return clean("  🎯 재량(자율·모의): " + (" · ".join(parts) if parts else "포지션 없음") + tail)
+
+
 def telegram_tail(o: dict) -> list[str]:
-    return list(((o.get("hf") or {}).get("tg") or [])[:2])
+    return list(((o.get("hf") or {}).get("tg") or [])[:3])

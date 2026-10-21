@@ -700,12 +700,12 @@ def _hf_attach(out: dict, market: str) -> None:
 
 
 def _hf_tail(txt: str, o: dict) -> str:
-    tail = list(((o.get("hf") or {}).get("tg") or [])[:2])
+    tail = list(((o.get("hf") or {}).get("tg") or [])[:3])
     return txt + ("\n" + "\n".join(tail) if tail else "")
 
 
 def telegram_text(o: dict) -> str:
-    """v2(bottom_line 있음)면 모닝 미팅 요약(25줄 이내), 아니면 예전 전체본. 끝에 HF 알파북 1~2줄."""
+    """v2(bottom_line 있음)면 모닝 미팅 요약(25줄 이내), 아니면 예전 전체본. 끝에 HF 알파북 1~2줄 + 재량 북 1줄."""
     if o.get("bottom_line"):
         try:
             return _hf_tail(_telegram_v2(o), o)

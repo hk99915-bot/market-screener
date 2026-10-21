@@ -147,3 +147,13 @@ def test_update_cash_when_no_passing_source(tmp_path, monkeypatch):
     assert "통과 소스 0" in blk["lines"][1]
     S = json.loads((tmp_path / "ab.json").read_text(encoding="utf-8"))
     assert S["books"]["US"]["cash"] == 1.0 and S["mock"] is True
+
+
+def test_disc_line(tmp_path):
+    p = tmp_path / "d.json"
+    assert A.disc_line(p) is None
+    p.write_text(json.dumps({"open": [{"side": "롱", "name": "코스피200 선물", "entry": 893.05, "last": 910.1, "r_unit": 17.05}],
+                             "closed": [{"r": -1.02}]}, ensure_ascii=False))
+    ln = A.disc_line(p)
+    assert "롱 코스피200 선물 893.05→910.10(+1.00R)" in ln and "청산 1건 평균 -1.02R" in ln
+    assert not any(w in ln for w in ("젠장", "개소리", "빌어먹을", "제기랄"))
