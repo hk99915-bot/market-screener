@@ -28,4 +28,11 @@ jobs:
         env:
           SYMS: ${{ inputs.syms }}
           PYTHONUNBUFFERED: "1"
-        run: python scripts/us_diag.py
+        # 로그 원문(blob)은 컨테이너에서 못 받음 → 결과를 notice 주석(체크런 annotations API)으로도 남김
+        run: |
+          python scripts/us_diag.py | tee diag.txt
+          python - <<'PY'
+          t = open("diag.txt", encoding="utf-8").read()
+          for i in range(0, len(t), 3500):
+              print("::notice title=diag%d::" % (i // 3500) + t[i:i + 3500].replace("%", "%25").replace("\r", "").replace("\n", "%0A"))
+          PY

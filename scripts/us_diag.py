@@ -19,7 +19,7 @@ def show(tag, df):
     if df is None or len(df) == 0:
         print("  (빈 결과)")
         return
-    print(df.tail(5).to_string())
+    print(df.tail(3).to_string())
 
 
 def main() -> None:
