@@ -2,7 +2,7 @@
  "version": 1,
  "schema_version": 1,
  "asof": "2026-10-21",
- "generated_at": "2026-10-21 09:02 KST",
+ "generated_at": "2026-10-21 09:31 KST",
  "bench": {
   "KR": {
    "ticker": "069500",
@@ -40,7 +40,7 @@
    "unrated": 0
   },
   "규칙": {
-   "n": 2,
+   "n": 3,
    "win": 0,
    "trades": 0,
    "hit": null,
@@ -52,16 +52,16 @@
    "unrated": 0
   },
   "나": {
-   "n": 5,
-   "win": 3,
-   "trades": 4,
-   "hit": 0.75,
-   "cum_ret": 0.0629,
-   "comp_ret": 0.0619,
+   "n": 6,
+   "win": 4,
+   "trades": 5,
+   "hit": 0.8,
+   "cum_ret": 0.1036,
+   "comp_ret": 0.10512,
    "avg_ex": 0.02262,
    "n_ex": 3,
    "open": 2,
-   "unrated": 2
+   "unrated": 1
   },
   "나🔥": {
    "n": 0,
@@ -103,7 +103,7 @@
     "unrated": 0
    },
    "규칙": {
-    "n": 1,
+    "n": 2,
     "win": 0,
     "trades": 0,
     "hit": null,
@@ -115,16 +115,16 @@
     "unrated": 0
    },
    "나": {
-    "n": 4,
-    "win": 3,
-    "trades": 3,
+    "n": 5,
+    "win": 4,
+    "trades": 4,
     "hit": 1.0,
-    "cum_ret": 0.0944,
-    "comp_ret": 0.09643,
+    "cum_ret": 0.1351,
+    "comp_ret": 0.14106,
     "avg_ex": 0.02262,
     "n_ex": 3,
     "open": 1,
-    "unrated": 1
+    "unrated": 0
    },
    "나🔥": {
     "n": 0,
@@ -235,6 +235,10 @@
    [
     "2026-10-20",
     0.0
+   ],
+   [
+    "2026-10-20",
+    0.0
    ]
   ],
   "나": [
@@ -251,12 +255,16 @@
     0.0944
    ],
    [
+    "2026-10-21",
+    0.1351
+   ],
+   [
     "2026-10-20",
-    0.0629
+    0.1036
    ],
    [
     "2026-10-21",
-    0.0629
+    0.1036
    ]
   ],
   "나🔥": []
@@ -360,8 +368,8 @@
    "date": "2026-10-20",
    "market": "KR",
    "title": "진입 타점 대결",
-   "state": "진행",
-   "winner": null,
+   "state": "확정",
+   "winner": "나",
    "rows": [
     {
      "who": "나",
@@ -369,11 +377,16 @@
      "ticker": "122630",
      "entry": "close",
      "exit": "next_open",
-     "status": "진입 대기",
-     "ret": null,
-     "entry_px_date": "2026-10-20",
-     "why": "종가 진입 — 다음 거래일부터 평가",
-     "marks": {}
+     "status": "확정",
+     "ret": 0.0407,
+     "end": "2026-10-21",
+     "bench": null,
+     "ex": null,
+     "win": true,
+     "why": "2026-10-20 종가 67,170 → 2026-10-21 시가 69,940",
+     "marks": {
+      "2026-10-21": 0.0407
+     }
     },
     {
      "who": "PB",
@@ -392,12 +405,14 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
+     "status": "확정",
      "ret": 0.0,
      "bench": null,
      "ex": null,
      "why": "현금 유지",
-     "marks": {}
+     "marks": {
+      "2026-10-20": 0.0
+     }
     }
    ]
   },
