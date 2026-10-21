@@ -48,10 +48,25 @@ def indep_count(idx: list[int], h: int = 20) -> int:
     return n
 
 
+HOLD5_DEF = ("5일 보유 = 매수일 j(122630 야후 일봉 캘린더의 행 번호) 종가 매수 → j+5 행 종가 매도. "
+             "코스피 캘린더가 아니라 122630 캘린더 기준, j+5 행이 아직 없으면(최근 사건) 표본에서 빠진다.")
+
+
+def run_meta(k: list[dict], lv: list[dict]) -> dict:
+    """재현용 실행 정보(req-quant-892676d8, 검증 10/17): 보유 창 정의 + 데이터 마지막 날 + 실행 시각·커밋.
+    n 차이(예 26 vs 25)는 대개 마지막 사건의 j+5 행이 실행 시점에 있었는지로 갈린다."""
+    import os
+    from datetime import datetime, timezone
+    return {"hold5_def": HOLD5_DEF, "cost_roundtrip": 0.0005,
+            "kospi_last": k[-1]["d"] if k else None, "lev_last": lv[-1]["d"] if lv else None,
+            "run_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+            "git_sha": (os.environ.get("GITHUB_SHA") or "")[:8] or None}
+
+
 def run() -> dict:
     k = _dl("^KS11", "1999-01-01")
     lv = _dl("122630.KS", "2010-01-01")
-    out = {"kospi_from": k[0]["d"] if k else None, "lev_from": lv[0]["d"] if lv else None}
+    out = {"meta": run_meta(k, lv), "kospi_from": k[0]["d"] if k else None, "lev_from": lv[0]["d"] if lv else None}
     c = [x["c"] for x in k]
     ds = [x["d"] for x in k]
     ret = [None] + [c[i] / c[i - 1] - 1 for i in range(1, len(c))]

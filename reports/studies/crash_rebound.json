@@ -1,4 +1,13 @@
 {
+ "meta": {
+  "hold5_def": "5일 보유 = 매수일 j(122630 야후 일봉 캘린더의 행 번호) 종가 매수 → j+5 행 종가 매도. 코스피 캘린더가 아니라 122630 캘린더 기준, j+5 행이 아직 없으면(최근 사건) 표본에서 빠진다.",
+  "cost_roundtrip": 0.0005,
+  "kospi_last": null,
+  "lev_last": null,
+  "run_at_utc": "2026-10-15T06:12Z",
+  "git_sha": "6f9965c8",
+  "note": "사후 기입(퀀트 10/21, req-quant-892676d8): 이 파일은 커밋 6f9965c8(briefing study, 2026-10-15 06:12 UTC = 15:12 KST) 산출. 당시 데이터 마지막 날은 기록되지 않았다(장중 실행이라 10/15 행이 부분 봉일 수 있음) → n 26 vs 재현 25 차이의 원인은 검증전. 다음 실행부터 screener.study.run_meta 가 kospi_last·lev_last·git_sha 를 자동 기록."
+ },
  "kospi_from": "1999-01-04",
  "lev_from": "2010-02-22",
  "base": {
