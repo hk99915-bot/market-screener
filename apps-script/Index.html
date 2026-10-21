@@ -23,6 +23,7 @@
   .fresh{margin-left:8px;font-size:11px;cursor:pointer;white-space:nowrap}
   .fresh.ok{color:var(--muted)} .fresh.bad{color:#fff;background:#c62828;padding:1px 7px;border-radius:3px;font-weight:700}
   html.xl .fresh.bad{background:#c00000}
+  .asof{margin-left:8px;font-size:11px;color:var(--muted);font-weight:400} .asof.stale{color:#fff;background:#c62828;padding:1px 6px;border-radius:3px;font-weight:700}
   .tape{white-space:nowrap;overflow:hidden;background:#070707;border-bottom:1px solid var(--line);padding:4px 0}
   .tape .tk{display:inline-block;white-space:nowrap;animation:tk 60s linear infinite;will-change:transform}
   .tape:hover .tk{animation-play-state:paused}
@@ -338,7 +339,13 @@ function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[
   $('#dr-b').innerHTML=(H.length?`<h3>알림 비활성 ${H.length}</h3><table><tr><th class="l">항목</th><th class="l">부터</th><th class="l">발견</th><th class="l">복구</th></tr>${H.map(h=>`<tr><td class="l dn">${esc(h.what)}</td><td class="l">${esc(h.since||'')}</td><td class="l mu">${esc(h.by||'')}</td><td class="l">${esc(h.fix||'')}</td></tr>`).join('')}</table>`:'')+(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
     +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:11px">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
     +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
-function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
+/* 기준일 배지 (10/21 B2 겸이 승인): '기준 <시각> · 다음 갱신 <시각>' + 계약(freshness.json late·stale_today, id 또는 path)에 걸리면 빨간 ⚠ STALE.
+   times = KST 'HH:MM' 목록, days = 요일(0=일) — 다음 갱신은 그 표에서 지금 이후 첫 슬롯. */
+function nextSlot(times,days){ const k=new Date(Date.now()+9*3600e3); for(let d=0;d<8;d++){ const t=new Date(k.getTime()+d*864e5), wd=t.getUTCDay();
+    if(!days.includes(wd)) continue; for(const hm of times){ const [h,m]=hm.split(':').map(Number); if(d||h*60+m>k.getUTCHours()*60+k.getUTCMinutes()) return (d?(t.getUTCMonth()+1)+'/'+t.getUTCDate()+' ':'')+hm; } } return '—'; }
+function asofTag(at,times,days,ids){ const I=[].concat(ids||[]), hit=FR?[...(FR.late||[]),...(FR.stale_today||[])].find(x=>I.includes(x.id)||I.includes(x.path)):null;
+  return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||'?')+' · 실제 '+(hit.actual||hit.used||'?')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
+function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ const first=!FR; try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); if(first&&FR&&D) render(); /* B2: 첫 신선도 도착 시 기준일 배지 STALE 반영 */ }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
 document.addEventListener('click',e=>{ if(e.target.closest('#fresh')) freshPop(); });
 function render(){
   if(!D) return;

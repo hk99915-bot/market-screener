@@ -753,6 +753,29 @@ def _telegram_text_v1(o: dict) -> str:
 # 기존 키(stance·scenarios·ideas·derivs …)는 그대로 두고 새 키만 더한다 (14:42 PB 예약 작업이 기존 키를 읽음).
 V2_FOOTER = "실계좌 적용: VIEW 게이트 통과 항목만 (개인 북은 비공개 PB 판단 참조)"
 LIGHTS = {"red": "🔴 오늘 행동 필요", "yellow": "🟡 지켜보기", "green": "🟢 할 일 없음"}
+BUY_STANCES = ("분할 매수", "비중 확대", "매수")   # 신호등 🔴(후보 기준)을 허용하는 판정 — 관망·중립·방어·비중 축소는 아님
+
+
+def _live_buy(stance) -> bool:
+    from .config import SATELLITE_LIVE
+    return bool(SATELLITE_LIVE) and stance in BUY_STANCES
+
+
+def _mock_gate(bl: dict, ideas: dict) -> dict:
+    """B1(10/21): 실계좌 위성 해금 전(또는 판정이 매수 쪽 아님)이면 TOP3 '실행 후보'는 행동이 아니라 모의 추적 —
+    🔴 이 아닌 신호등을 🟡 '모의 추적 후보 n개(…)' 로. 텔레그램·화면 모두 bl['label'] 을 그대로 쓴다."""
+    n = sum(1 for x in (ideas or {}).get("items", []) if str(x.get("status", "")).startswith("실행"))
+    if not n or bl.get("light") == "red" or _live_buy(bl.get("stance")):
+        return bl
+    from .config import SATELLITE_LIVE
+    why = "실계좌 위성 해금 전" if not SATELLITE_LIVE else f"판정 {bl.get('stance') or '—'} — 실계좌 신규 없음"
+    note = f"TOP3 실행 후보 {n}개는 모의 추적만({why}) — 실계좌로 옮기지 않음"
+    lines = list(bl.get("lines") or [])
+    if bl.get("light") == "green" and len(lines) >= 3:
+        lines[2] = f"할 일: 판정 유지 · {note}. 하지 말 일: 모의 후보 추격 매수"
+    elif len(lines) >= 3:
+        lines[2] = lines[2] + f" · {note}"
+    return {**bl, "light": "yellow", "label": f"🟡 모의 추적 후보 {n}개({why})", "lines": lines, "mock_n": n}
 
 
 def _ev_time(e: dict) -> str | None:
@@ -1389,7 +1412,7 @@ def _v2_bottom_line(o: dict, k: dict, prev: dict | None, delta: str | None, cloc
     ev_today = [c for c in clock if c["kind"] == "이벤트"]
     gate_fail = (ideas.get("entry_gate") == "fail")
     reg_flip = any(str(x).startswith("레짐 전환") for x in macro.get("changed", []))
-    if flip or reg_flip or (new_go and not gate_fail):
+    if flip or reg_flip or (new_go and not gate_fail and _live_buy(st_)):   # B1: 후보 기준 🔴 은 위성 해금 + 매수 쪽 판정일 때만
         light = "red"
     elif hi_ev or near:
         light = "yellow"
@@ -1437,7 +1460,8 @@ def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict
         out["asymmetry"] = out["hedges"].get("asymmetry")
     try:
         clock = _v2_clock(out, k, der, cal, today, (out.get("positioning") or {}).get("implied"))
-        out["bottom_line"] = _v2_bottom_line(out, k, prev, delta, clock, out.get("ideas_top") or {}, out.get("macro") or {}, session)
+        out["bottom_line"] = _mock_gate(_v2_bottom_line(out, k, prev, delta, clock, out.get("ideas_top") or {}, out.get("macro") or {}, session),
+                                        out.get("ideas_top") or {})
     except Exception as e:  # noqa: BLE001
         log.warning("운용회의 v2 bottom_line 실패: %s", e)
     try:
@@ -1649,7 +1673,7 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
     try:
         it = out.get("ideas_top") or {}
         watch = {str(x.get("s")) for x in (it.get("items") or []) + (it.get("candidates") or [])} | {x["s"] for x in (out.get("ideas") or {}).get("long", [])}
-        out["bottom_line"] = U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US, watch)
+        out["bottom_line"] = _mock_gate(U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US, watch), it)
     except Exception as e:  # noqa: BLE001
         log.warning("미장 v2 bottom_line 실패: %s", e)
     try:

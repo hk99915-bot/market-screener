@@ -17,6 +17,10 @@ REPORT_DIR = ROOT / "reports"
 # 범위: 운용회의 TOP3 표시·모의 추적(idea_tracking)만 — 포트폴리오 한도·주문 경로(pb 등)는 읽지 않음(tests/test_cio_top3_v2.py::Scope).
 CIO_TOP3_V2 = True
 
+# 실계좌 위성(신규 종목) 해금 여부 — 운용회의 신호등 표시만 (10/21 겸이 승인 B1). False 면 TOP3 '실행 후보'는 🟡 '모의 추적 후보 n개'
+# (🔴 '오늘 행동 필요'는 해금 + 판정이 매수 쪽일 때만 후보로 켠다). 원장은 읽지 않는다 — 해금되면 이 한 줄을 True 로.
+SATELLITE_LIVE = False
+
 
 @dataclass
 class MarketCfg:

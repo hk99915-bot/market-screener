@@ -145,7 +145,7 @@ function cmtV2Html(o){
   const sec=[];
   // 0. 결론 · 오늘의 시계
   const clk=(bl.clock||[]).map(c=>`<tr><td class="l ${c.kind==='이벤트'?'am':'mu'}" style="white-space:nowrap">${esc(c.t)}</td><td class="l" style="white-space:normal">${esc(c.what)}</td></tr>`);
-  sec.push(cmtSec(0,'결론 · 오늘의 시계','신호등 = 오늘 행동 필요 / 지켜보기 / 할 일 없음',
+  sec.push(cmtSec(0,'결론 · 오늘의 시계','신호등 = 🔴 오늘 행동 필요(위성 해금 + 매수 쪽 판정) / 🟡 지켜보기·모의 추적 후보(해금 전) / 🟢 할 일 없음',
     (clk.length?cmtTbl(['시각','무엇'],clk):'<div class="mu">시계 항목 없음</div>')
     +`<div style="margin-top:8px">${(o.head||[]).map(x=>'<div class="mu">• '+esc(x)+'</div>').join('')}</div>`
     +`<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">시나리오</b> ${esc(o.verdict||'')}</div>`,true));

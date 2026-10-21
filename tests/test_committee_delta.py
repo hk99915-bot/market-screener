@@ -32,3 +32,18 @@ def test_delta_line_stance_kept_and_missing_fields(monkeypatch):
 def test_delta_line_none_without_previous(monkeypatch):
     monkeypatch.setattr(committee, "_prev_meeting", lambda session: None)
     assert committee._delta_line({"last": 1.0}, [], {"stance": "중립"}, {}, "장후") is None
+
+
+def test_mock_gate_b1(monkeypatch):
+    """B1(10/21): 위성 해금 전 + 판정 관망 + TOP3 실행 후보 → 🔴 대신 🟡 '모의 추적 후보 n개'. 해금 + 매수 쪽이면 원래대로."""
+    from screener import config
+    ideas = {"items": [{"s": "A", "status": "실행 후보"}, {"s": "B", "status": "실행 후보"}, {"s": "C", "status": "대기"}]}
+    bl = {"light": "green", "label": committee.LIGHTS["green"], "stance": "관망", "lines": ["a", "b", "c"]}
+    monkeypatch.setattr(config, "SATELLITE_LIVE", False)
+    g = committee._mock_gate(bl, ideas)
+    assert g["light"] == "yellow" and g["label"] == "🟡 모의 추적 후보 2개(실계좌 위성 해금 전)" and "모의 추적만" in g["lines"][2]
+    assert committee._mock_gate(bl, {"items": []}) is bl
+    monkeypatch.setattr(config, "SATELLITE_LIVE", True)
+    assert committee._mock_gate({**bl, "stance": "분할 매수"}, ideas)["light"] == "green"
+    assert "판정 관망" in committee._mock_gate(bl, ideas)["label"]
+    assert committee._live_buy("분할 매수") and not committee._live_buy("관망")
