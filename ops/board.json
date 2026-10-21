@@ -3003,14 +3003,15 @@
       "title": "[요청 승격] 감사→개발: 보드 P0 `audit-life-target-amount`(tab_life.html:28 순자산 목표 금액 ",
       "owner": "개발",
       "priority": "P1",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2026-10-28",
       "repo": "public",
       "files": [],
       "depends_on": [],
       "escalated": "2026-10-21",
-      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-3b5b1223`."
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-3b5b1223`.",
+      "done": "2026-10-21"
     },
     {
       "id": "req-dev-89c9aeed",
@@ -3031,14 +3032,15 @@
       "title": "[요청 승격] 데이터→개발: `scripts/retention.py`(드라이런 기본) 를 ops 워크플로에 어떻게 붙일지(실행 시점·--",
       "owner": "개발",
       "priority": "P1",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2026-10-28",
       "repo": "public",
       "files": [],
       "depends_on": [],
       "escalated": "2026-10-21",
-      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→데이터: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-dee1f9ae`."
+      "notes": "요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→데이터: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-dee1f9ae`.",
+      "done": "2026-10-21"
     },
     {
       "id": "req-edu-dff14251",
@@ -3295,6 +3297,44 @@
       ],
       "depends_on": [],
       "notes": "10/21 10:5x 겸이 '히트맵 업뎃안됨, 유지보수 데스크 신설해야겠다' — 주간 결정으로 데스크 신설. PB 1차 확인: KR 히트맵 소스 peers_KR.json(16:20 일 1회) · US heatmap.yml cron 12,42 13-21 UTC인데 10/20 13Z 이후 3회만 실행(asof 02:57 KST). | 10/21 11:05 유지보수: 원인 확정 — KR 장중 경로 없음(설계 공백) · US cron 10/20 18회 중 3회(창 안 1회). 고침 0f715f60: heatmap_kr.py + live 루프 편승(KR 5분·US 15분) + 화면 기준 HH:MM·다음 갱신·장중 미갱신 STALE + 신선도 계약 heatmap_kr/us. 실측 KR 11:05 1272/1272. 남은 확인: US 22:45 KST 이후 asof · GAS tab_market.html 재붙여넣기(gas-repaste)."
+    },
+    {
+      "id": "macro-tab",
+      "title": "MARKET › MACRO 서브탭 신설 — 첫 화면 결론(매크로 바람·한미 금리·환율·유가·금·다음 일정·코스피 vs S&P 격차) + 출처·기준시각·STALE",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "진행",
+      "started": "2026-10-21",
+      "due": "2026-10-22",
+      "repo": "public",
+      "files": [
+        "apps-script/tab_mkt_macro.html",
+        "apps-script/Index.html",
+        "scripts/ui_smoke.py",
+        "ops/README.md",
+        "ops/LOCKS.md",
+        "tests/test_index_split.py"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/21 12시대 \"리서치나 마켓에 매크로가 없는 듯\". 근거 KB docs/desk_kb/macro.md #3·#5·#15·#16. 데이터는 기존 산출물만(macro_view·bonds·calendar·macro_releases) — Code.gs 변경 없음.",
+      "desk": "개발"
+    },
+    {
+      "id": "bonds-summary",
+      "title": "채권 탭 최상단 '지금 채권 상황 3줄'(수준·방향·의미) 카드 — 국고3Y·10Y·미10Y, 1주·1개월 변화, 10Y−3Y 기울기, 채권 KB 근거 한 줄 + 출처·기준일·STALE",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "진행",
+      "started": "2026-10-21",
+      "due": "2026-10-22",
+      "repo": "public",
+      "files": [
+        "apps-script/tab_bond.html",
+        "scripts/ui_smoke.py"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/21 12시대 \"채권에도 현 상황 최상단에 요약 영역 만들어줘\". 근거 KB docs/desk_kb/bonds.md #7·#11·#13.",
+      "desk": "개발"
     }
   ]
 }
