@@ -1,6 +1,46 @@
 {
- "asof": null,
- "days": [],
+ "asof": "2026-10-21",
+ "days": [
+  {
+   "breach": 2,
+   "date": "2026-10-21",
+   "no_data": 0,
+   "rows": [
+    {
+     "diff_pct": 0.2293,
+     "item": "KOSPI 종가",
+     "status": "breach",
+     "tol_pct": 0.05
+    },
+    {
+     "diff_pct": 0.0985,
+     "item": "KOSDAQ 종가",
+     "status": "breach",
+     "tol_pct": 0.05
+    },
+    {
+     "diff_pct": 0.0189,
+     "item": "USDKRW",
+     "status": "ok",
+     "tol_pct": 0.5
+    },
+    {
+     "checked": 3,
+     "item": "KR 달력",
+     "mismatch_n": 0,
+     "status": "ok",
+     "tol": 0
+    },
+    {
+     "checked": 3,
+     "item": "US 달력",
+     "mismatch_n": 0,
+     "status": "ok",
+     "tol": 0
+    }
+   ]
+  }
+ ],
  "note": "토스 수집분 vs 기존 소스(macro_series·tradecal) 괴리율·판정만. 원값 미포함.",
  "source": "toss",
  "tolerances": {
