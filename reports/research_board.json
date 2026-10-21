@@ -70,21 +70,24 @@
   },
   {
    "id": "laor_ib",
-   "name": "라오어 무한매수 (SOXL·TQQQ 분할매수)",
-   "stage": "backtest",
+   "name": "라오어 무한매수 V4.0 (SOXL·TQQQ)",
+   "stage": "verify",
    "verdict": "진행",
-   "owner": "퀀트",
+   "owner": "퀀트 → 검증",
    "src": "겸이 10/21",
-   "result": "원자료 수집 단계 — laor_ib_data.yml 이 study-data 브랜치에 가격·환율 CSV 저장. 보고서·§0 아직 없음",
-   "gate": "§0 사전등록(규칙 명세·비용·비교 기준) 커밋 → 결과 보고서 2026-10-21_laor_infinite_buy.md",
+   "result": "실 ETF 2010~ 원금 고정 IRR TQQQ 22.4%·SOXL 27.0% < 단순 보유 43.0%·37.4%, 원금 대비 최대 평가손 −56%·−53%. 합성 구간 TQQQ 2000-08 사이클 −92% (서술 백테스트, 신뢰도 하~중 — 규칙 2차 자료)",
+   "rep": "검증 §0 사전등록 커밋 — 재현 실행 전",
+   "gate": "검증 재현 6항목 판정(replication_laor_ib.md). 실계좌는 2027-04-15 전 불가",
    "due": null,
-   "action": "없음 — 결과 나오면 보드에 뜸",
+   "action": "결과 읽기 — 판단 기준은 사이클 중앙값이 아니라 '한 사이클 −90%와 원금 재충전을 감당하나'(보고서 결론 5)",
    "lock": true,
    "files": {
-    "code": "scripts/fetch_laor_ib.py"
+    "study": "reports/studies/2026-10-21_laor_infinite_buy.md",
+    "rep": "reports/studies/replication_laor_ib.md"
    },
    "auto": [
-    "scripts/fetch_laor_ib.py"
+    "reports/studies/2026-10-21_laor_infinite_buy.md",
+    "reports/studies/replication_laor_ib.md"
    ],
    "updated": "2026-10-21"
   },
