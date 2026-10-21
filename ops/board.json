@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-21",
+  "updated": "2026-10-22",
   "owners": [
     "PB",
     "퀀트",
@@ -1277,7 +1277,8 @@
         "sec-ytd-bug"
       ],
       "notes": "SNDK는 revenue 있음, MU만 없음 → Revenues / RevenueFromContractWithCustomerExcludingAssessedTax 태그 폴백 확인. 8-K 대조값 FQ4 54.23B, FQ3 41.46B. 10/17 fin_verified.json 에 기록. 10/17 애널 원인 분석: sec.py parse() 가 분기를 만든 첫 태그에서 break → 옛 태그(Revenues/SalesRevenueNet)가 2019 이전 분기만 만들고 끝나는 '태그 전환' 가설(검증전) — docs/desk_kb/data.md '애널 요청' 참조. 가이던스 PER 은 fin_guidance.json last_revenue 로 우회 중. | 10/17 데이터: 가설1 코드로 확인(첫 태그 break) → parse() 태그별 분기 병합(같은 분기말은 앞선 태그 우선)으로 수정 + 합성 테스트 2건(tests/test_sec_parse.py). 실데이터 대조(FQ4 54.23B 1% 이내)는 SEC_USER_AGENT 워크플로 다음 실행 후 → 검수.",
-      "desk": "데이터"
+      "desk": "데이터",
+      "escalated": "2026-10-22"
     },
     {
       "id": "rep-semis-cap",
@@ -2431,7 +2432,8 @@
         "tests/test_us_committee.py"
       ],
       "depends_on": [],
-      "notes": "겸이 지적(10/20): committee_us 12키·6KB vs 국장 33키·55KB → 26키·약 22KB. 추가: bottom_line·macro(레짐·σ·S&P 20일 요인 분해 금리/달러/VIX, 나스닥 별도)·rotation·hedges·asymmetry·premortem·track·scorecard·validation·idea_tracking·sim_fresh·footer·v. 섹터 판정 수정: 드라이버만 → (2×드라이버+0.6×가격추세)/3, 국장 체인 점수 구성·문턱(0.3/−0.15) — 반도체 확대→중립. scenario_basis 에 독립 20일 블록(n_indep, study 다음 실행 때 정확값·그 전엔 범위). 못 한 것: 미장 옵션 체인 미수집 → 풋 이론가·볼록 헤지 없음 / 포지셔닝·수급·리서치·공시 미장 데이터 없음 / 섹터 사후 채점 미구현. 검수: 다음 committee 실행 후 committee_us.json v=2 확인, 10/27 이후 첫 5일 채점."
+      "notes": "겸이 지적(10/20): committee_us 12키·6KB vs 국장 33키·55KB → 26키·약 22KB. 추가: bottom_line·macro(레짐·σ·S&P 20일 요인 분해 금리/달러/VIX, 나스닥 별도)·rotation·hedges·asymmetry·premortem·track·scorecard·validation·idea_tracking·sim_fresh·footer·v. 섹터 판정 수정: 드라이버만 → (2×드라이버+0.6×가격추세)/3, 국장 체인 점수 구성·문턱(0.3/−0.15) — 반도체 확대→중립. scenario_basis 에 독립 20일 블록(n_indep, study 다음 실행 때 정확값·그 전엔 범위). 못 한 것: 미장 옵션 체인 미수집 → 풋 이론가·볼록 헤지 없음 / 포지셔닝·수급·리서치·공시 미장 데이터 없음 / 섹터 사후 채점 미구현. 검수: 다음 committee 실행 후 committee_us.json v=2 확인, 10/27 이후 첫 5일 채점.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "toss-md-pilot",
@@ -2695,7 +2697,8 @@
         "tests/fixtures/english_v1_2026-10-15.json"
       ],
       "depends_on": [],
-      "notes": "10/21 07:18 새 스키마(talk 배열 2종·opic) + 옛 스키마 하위 호환. 채점: 고르기 전 해설 DOM 비공개, 첫 응답만. 사용 기록 CSV 끝에 eng_review/_ok·eng_quiz/_ok 열(pb-private usage/intake.py 는 모르는 열을 무시 — 반영하려면 intake EVS 추가 필요). OPIc 자기평가만 mt_opic_v1(녹음 없음). 검수: 채점 데스크 — 폰에서 풀고 MY→사용 기록 내보내기."
+      "notes": "10/21 07:18 새 스키마(talk 배열 2종·opic) + 옛 스키마 하위 호환. 채점: 고르기 전 해설 DOM 비공개, 첫 응답만. 사용 기록 CSV 끝에 eng_review/_ok·eng_quiz/_ok 열(pb-private usage/intake.py 는 모르는 열을 무시 — 반영하려면 intake EVS 추가 필요). OPIc 자기평가만 mt_opic_v1(녹음 없음). 검수: 채점 데스크 — 폰에서 풀고 MY→사용 기록 내보내기.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "repo-size-stage1",
@@ -2770,7 +2773,8 @@
         "scripts/prepush_check.py"
       ],
       "depends_on": [],
-      "notes": "감사 지적 치명(10/21). reports/logs/deriv_hist.txt:4·deriv_probe.txt:4 — 감사가 줄만 *** 치환(§3-4 예외). 다음 cron 16:40 KST 전 deriv_hist.yml:64·66 tee 앞 마스킹 필요. 공개 이력 18커밋 잔존 → PB 가 오너에게 이력 처리/비밀번호 교체 보고. 출처 reports/audit/2026-10-21.md #1 | 10/21 02:0x PB: deriv_hist.yml probe·hist tee 앞에 로그인 ID 마스킹 sed 추가(accum.yml 과 같은 방식)."
+      "notes": "감사 지적 치명(10/21). reports/logs/deriv_hist.txt:4·deriv_probe.txt:4 — 감사가 줄만 *** 치환(§3-4 예외). 다음 cron 16:40 KST 전 deriv_hist.yml:64·66 tee 앞 마스킹 필요. 공개 이력 18커밋 잔존 → PB 가 오너에게 이력 처리/비밀번호 교체 보고. 출처 reports/audit/2026-10-21.md #1 | 10/21 02:0x PB: deriv_hist.yml probe·hist tee 앞에 로그인 ID 마스킹 sed 추가(accum.yml 과 같은 방식).",
+      "escalated": "2026-10-22"
     },
     {
       "id": "audit-holding-stop-fixture",
@@ -2805,7 +2809,8 @@
         "scripts/ui_smoke.py"
       ],
       "depends_on": [],
-      "notes": "토스 매핑: KOSPI·KOSDAQ 1분봉, USDKRW 매매기준율(수집 시점 누적 점, 브라우저 localStorage), SPX→SPY·NASDAQ→QQQ·SOX→SOXX 1분봉 '대용(ETF)'. 나머지(K200F·RUT·VIX·US10Y·JGB10Y·DXY·USDJPY·NIKKEI·TOPIX·WTI·GOLD·BTC) '토스 미제공 — 일봉'. 토스 분봉에 거래량 없음 → VWAP·거래량 막대 미표시(필드 생기면 자동). 일봉: daily_bars.json+daily_today.json(개발 A 스키마, 같은 날짜 today 우선) 있고 오늘 봉 신선·기간 봉 충분하면 토스, 아니면(404·형식 오류 포함) 야후 — 이어붙이기 없음. 미장 지수(SPX 등)는 일봉에 ETF 대용 안 씀. 미장 신선도 = us.session. tab_market 은 toss-sectors 잠금이라 도우미를 tab_detail 에 둠."
+      "notes": "토스 매핑: KOSPI·KOSDAQ 1분봉, USDKRW 매매기준율(수집 시점 누적 점, 브라우저 localStorage), SPX→SPY·NASDAQ→QQQ·SOX→SOXX 1분봉 '대용(ETF)'. 나머지(K200F·RUT·VIX·US10Y·JGB10Y·DXY·USDJPY·NIKKEI·TOPIX·WTI·GOLD·BTC) '토스 미제공 — 일봉'. 토스 분봉에 거래량 없음 → VWAP·거래량 막대 미표시(필드 생기면 자동). 일봉: daily_bars.json+daily_today.json(개발 A 스키마, 같은 날짜 today 우선) 있고 오늘 봉 신선·기간 봉 충분하면 토스, 아니면(404·형식 오류 포함) 야후 — 이어붙이기 없음. 미장 지수(SPX 등)는 일봉에 ETF 대용 안 씀. 미장 신선도 = us.session. tab_market 은 toss-sectors 잠금이라 도우미를 tab_detail 에 둠.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "watchdog-b",
@@ -2889,7 +2894,8 @@
         "docs/desk_kb/derivs.md"
       ],
       "depends_on": [],
-      "notes": "insight() 가 build() 에서 derivs.json 'insight' 블록 생성. 분위 표본 = data/deriv/daily.csv 옵션 열(2025-08-29~, 276일)·대표IV 16년(rep_iv, 소스 '확인 중'). 외국인 선물 4일뿐이라 분위 없음. VKOSPI 없음. 등급 전부 검증전/참고 — 방향 신호 아님."
+      "notes": "insight() 가 build() 에서 derivs.json 'insight' 블록 생성. 분위 표본 = data/deriv/daily.csv 옵션 열(2025-08-29~, 276일)·대표IV 16년(rep_iv, 소스 '확인 중'). 외국인 선물 4일뿐이라 분위 없음. VKOSPI 없음. 등급 전부 검증전/참고 — 방향 신호 아님.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "daily-duel-collapse",
@@ -2907,7 +2913,8 @@
         "docs/desk_kb/uxui.md"
       ],
       "depends_on": [],
-      "notes": "겸이 10/21 '진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임'. 390px 실측: 대결 박스 1144px → 접힘 53px, DAILY RESEARCH BRIEF 시작 1449px → 359px(첫 화면 844px 안). 1300px: 742→46px, 브리프 913→217px. 기본값 = 겸이(나) 제출 대기 판 있으면 펼침, 없으면 접힘. 수동 상태는 localStorage mt_duel_open 에 최신 판 키와 함께 — 새 판이 열리면 기본값으로. ui_smoke check_duel_toggle 추가."
+      "notes": "겸이 10/21 '진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임'. 390px 실측: 대결 박스 1144px → 접힘 53px, DAILY RESEARCH BRIEF 시작 1449px → 359px(첫 화면 844px 안). 1300px: 742→46px, 브리프 913→217px. 기본값 = 겸이(나) 제출 대기 판 있으면 펼침, 없으면 접힘. 수동 상태는 localStorage mt_duel_open 에 최신 판 키와 함께 — 새 판이 열리면 기본값으로. ui_smoke check_duel_toggle 추가.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "uxui-quant",
@@ -2933,7 +2940,8 @@
         "reports/uxui/2026-10-21_quant_tabs.md"
       ],
       "depends_on": [],
-      "notes": "겸이 10/21 12시대 '퀀트에 많은 게 있는데 관리가 안 되고 도전이 잘 안 되고 직관적이지 않음, UXUI누나랑 협업'. 진단(reports/uxui/2026-10-21_quant_tabs.md): 7탭 중 첫 화면 결론 0, 전략 연구소 390px 7,830px(9.3장), 오늘 연구 3건(QLD·라오어·잡주) 화면에 없음. 구현: QUANT = 연구 보드(기본)·시그널·모멘텀·모의·ISA·공급망 + 두 번째 줄로 옛 화면 유지. 원장 ops/research_pipeline.json 21건 → research_board.py --build(ops.yml 23:47·00:07). 390px 첫 화면 안 단계 5칸·판정·겸이 할 일·이번 주 할 일·도전(하단 740px). GAS 붙여넣기: Index.html·tab_rboard.html(신규)·Code.gs. 검수 = 퀀트·검증이 원장을 직접 갱신하는지 1주 관찰."
+      "notes": "겸이 10/21 12시대 '퀀트에 많은 게 있는데 관리가 안 되고 도전이 잘 안 되고 직관적이지 않음, UXUI누나랑 협업'. 진단(reports/uxui/2026-10-21_quant_tabs.md): 7탭 중 첫 화면 결론 0, 전략 연구소 390px 7,830px(9.3장), 오늘 연구 3건(QLD·라오어·잡주) 화면에 없음. 구현: QUANT = 연구 보드(기본)·시그널·모멘텀·모의·ISA·공급망 + 두 번째 줄로 옛 화면 유지. 원장 ops/research_pipeline.json 21건 → research_board.py --build(ops.yml 23:47·00:07). 390px 첫 화면 안 단계 5칸·판정·겸이 할 일·이번 주 할 일·도전(하단 740px). GAS 붙여넣기: Index.html·tab_rboard.html(신규)·Code.gs. 검수 = 퀀트·검증이 원장을 직접 갱신하는지 1주 관찰.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "cio-top3-fix",
@@ -2954,7 +2962,8 @@
         "tests/test_idea_tracking.py"
       ],
       "depends_on": [],
-      "notes": "근거 reports/studies/cio_top3_review_2026-10-21.md §4·§5. 스위치 ON(screener/config.py CIO_TOP3_V2 = True) — 10/21 02:3x·02:4x·02:5x 겸이 명시 승인으로 [13] 예외 ON, 되돌리기는 그 한 줄 False. 범위 = TOP3 표시·모의 추적만(포트폴리오 한도·주문 경로 무관, Scope 테스트). ON 시뮬: 10/19·10/20 최종판 TOP3 실행 0·대기 3 → 실행 3·대기 0. P5 사전등록은 CIO."
+      "notes": "근거 reports/studies/cio_top3_review_2026-10-21.md §4·§5. 스위치 ON(screener/config.py CIO_TOP3_V2 = True) — 10/21 02:3x·02:4x·02:5x 겸이 명시 승인으로 [13] 예외 ON, 되돌리기는 그 한 줄 False. 범위 = TOP3 표시·모의 추적만(포트폴리오 한도·주문 경로 무관, Scope 테스트). ON 시뮬: 10/19·10/20 최종판 TOP3 실행 0·대기 3 → 실행 3·대기 0. P5 사전등록은 CIO.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "req-behavior-ef3cf408",
@@ -3219,7 +3228,8 @@
         "apps-script/tab_home.html"
       ],
       "depends_on": [],
-      "notes": "#1 59c6cc7c(08:36 KST push, 테스트 tests/test_merge_decisions.py) · #4 c7ff8d8b · #5 7cbdce8e · #3 b55ae9ad · #6 03877440(1단계 이중 기록만, DATA_BRANCH_KR 변수로 켬). 감사 데스크 확인 필요: detail/KR 읽는 곳 = 화면 getStock·getStockIndex(Pages 상대경로 → site 합치기에 KR 포함), apps-script/Code.gs raw_ main 경로(57·72행), 파이썬 소비자 committee·us_accum·etf·japan·research_synthesis·ticket·pb·battle_scoreboard·fwd_perf·decisions·duel·detail·calendar_ev·valuation_daily·study 스크립트 — 모두 main 작업 트리를 읽으므로 1단계에선 안 깨짐. 2단계(main 에서 KR 제거)는 이 소비 워크플로 전부 data_branch pull + Code.gs 경로 변경·GAS 재배포 필요 → 보류. Pages paths-ignore 효과는 Source=GitHub Actions 전환 뒤부터."
+      "notes": "#1 59c6cc7c(08:36 KST push, 테스트 tests/test_merge_decisions.py) · #4 c7ff8d8b · #5 7cbdce8e · #3 b55ae9ad · #6 03877440(1단계 이중 기록만, DATA_BRANCH_KR 변수로 켬). 감사 데스크 확인 필요: detail/KR 읽는 곳 = 화면 getStock·getStockIndex(Pages 상대경로 → site 합치기에 KR 포함), apps-script/Code.gs raw_ main 경로(57·72행), 파이썬 소비자 committee·us_accum·etf·japan·research_synthesis·ticket·pb·battle_scoreboard·fwd_perf·decisions·duel·detail·calendar_ev·valuation_daily·study 스크립트 — 모두 main 작업 트리를 읽으므로 1단계에선 안 깨짐. 2단계(main 에서 KR 제거)는 이 소비 워크플로 전부 data_branch pull + Code.gs 경로 변경·GAS 재배포 필요 → 보류. Pages paths-ignore 효과는 Source=GitHub Actions 전환 뒤부터.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "dispatch-redundancy",
@@ -3241,7 +3251,8 @@
         "docs/toss_md_laptop_setup.md"
       ],
       "depends_on": [],
-      "notes": "A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력)."
+      "notes": "A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력).",
+      "escalated": "2026-10-22"
     },
     {
       "id": "us-eod-toss",
@@ -3287,7 +3298,8 @@
         "index.html"
       ],
       "depends_on": [],
-      "notes": "B1 config.SATELLITE_LIVE=False · committee._mock_gate(KR·US 공용): TOP3 실행 후보가 있고 🔴 아님 → 🟡 '모의 추적 후보 n개(실계좌 위성 해금 전)', 후보 기준 🔴 은 해금+매수 쪽 판정(BUY_STANCES)만. 판정 전환·레짐 전환 🔴 은 그대로(해석 — 겸이 확인 필요). 텔레그램·화면 모두 bottom_line.label. B2 asofTag(Index.html): '기준 · 다음 갱신' + freshness.json late/stale_today 매칭 시 빨간 ⚠ STALE — KR(16:20)·US(06:52) 스크리너 섹션 헤더, INTRADAY/CLOSE KR 헤더."
+      "notes": "B1 config.SATELLITE_LIVE=False · committee._mock_gate(KR·US 공용): TOP3 실행 후보가 있고 🔴 아님 → 🟡 '모의 추적 후보 n개(실계좌 위성 해금 전)', 후보 기준 🔴 은 해금+매수 쪽 판정(BUY_STANCES)만. 판정 전환·레짐 전환 🔴 은 그대로(해석 — 겸이 확인 필요). 텔레그램·화면 모두 bottom_line.label. B2 asofTag(Index.html): '기준 · 다음 갱신' + freshness.json late/stale_today 매칭 시 빨간 ⚠ STALE — KR(16:20)·US(06:52) 스크리너 섹션 헤더, INTRADAY/CLOSE KR 헤더.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "signal-scorecard",
@@ -3303,7 +3315,8 @@
         "index.html"
       ],
       "depends_on": [],
-      "notes": "accum·us_accum·sim_kr·sim_us × h5/h20/h60 avg_ex·med_ex·hit·n, n<30 '판단 금지(표본 부족)' 배지, 사후 재계산 비중(origin_counts recompute/전체, 현재 3453/3781≈91%) 표시. '전략 탭(판단 성적표 있는 탭)' = DAILY › 성적표로 해석."
+      "notes": "accum·us_accum·sim_kr·sim_us × h5/h20/h60 avg_ex·med_ex·hit·n, n<30 '판단 금지(표본 부족)' 배지, 사후 재계산 비중(origin_counts recompute/전체, 현재 3453/3781≈91%) 표시. '전략 탭(판단 성적표 있는 탭)' = DAILY › 성적표로 해석.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "maint-heatmap",
@@ -3407,7 +3420,8 @@
         "docs/desk_kb/STANDARD.md"
       ],
       "depends_on": [],
-      "notes": "10/21 겸이 13시대 지시 + 상시 규칙('운용회의에도'). 협업 패널(CIO·퀀트·애널·매크로·FRM). 보정: KR 기하 E[R] F, US C(베타), accum 검증전. 다음 briefing 실행부터 committee*.json plan 필드. 화면 표시는 tradeplan-ui."
+      "notes": "10/21 겸이 13시대 지시 + 상시 규칙('운용회의에도'). 협업 패널(CIO·퀀트·애널·매크로·FRM). 보정: KR 기하 E[R] F, US C(베타), accum 검증전. 다음 briefing 실행부터 committee*.json plan 필드. 화면 표시는 tradeplan-ui.",
+      "escalated": "2026-10-22"
     },
     {
       "id": "tradeplan-ui",
