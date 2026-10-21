@@ -705,8 +705,11 @@ def build_us_eod(base: Path, now: datetime) -> dict | None:
                 for s, v in sorted((rec.get("bars") or {}).items()) if isinstance(v, list) and len(v) >= 5}
         if not bars:
             continue
-        return {"source": "toss", "date": rec.get("date"), "asof": rec.get("generated_at"), "bars": bars, "n": len(bars),
-                "missing": rec.get("missing") or [], "note": "date = ET 거래일 · bars = 심볼(yf 꼴) → [o,h,l,c,v] 정규장 1d 봉(무수정)"}
+        prev = {s: [str(v[0])] + [round(float(x), 4) if x is not None else None for x in v[1:5]] + [int(v[5]) if v[5] is not None else None]
+                for s, v in sorted((rec.get("prev") or {}).items()) if s in bars and isinstance(v, list) and len(v) >= 6}
+        return {"source": "toss", "date": rec.get("date"), "asof": rec.get("generated_at"), "bars": bars, "prev": prev, "n": len(bars),
+                "missing": rec.get("missing") or [],
+                "note": "date = ET 거래일 · bars = 심볼(yf 꼴) → [o,h,l,c,v] 정규장 1d 봉(무수정) · prev = 직전 거래일 [날짜,o,h,l,c,v](screener 검증 게이트용)"}
     return None
 
 

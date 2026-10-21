@@ -3220,18 +3220,21 @@
       "due": "2026-10-24",
       "repo": "public",
       "files": [
-        "tools/toss_md/collect.py",
-        "tools/toss_md/publish.py",
+        "docs/toss_md_laptop_setup.md",
+        "reports/toss_eod_check.json",
+        "screener/config.py",
         "screener/data.py",
-        "screener/main.py",
         "screener/guard.py",
+        "screener/main.py",
+        "tests/test_toss_eod_gate.py",
         "tests/test_us_eod_toss.py",
-        "docs/toss_md_laptop_setup.md"
+        "tools/toss_md/collect.py",
+        "tools/toss_md/publish.py"
       ],
       "depends_on": [
         "toss-md-publish"
       ],
-      "notes": "겸이 10/21 09:5x '야후가 아니라 토스로 하기로 했잖아'. 10/21 US 스크리너 STALE(야후 10/20 종목봉 미제공). ① 수집: toss_md_live(us 그룹)에 붙임 — ET 16:15 이후 첫 회차 하루 1회 S&P500∪NDX(us_index.csv) candles 1d count=2, 0.5초 간격·청크 잠금·7분 상한 이어받기 → toss-live us_eod.json {date(ET), bars, n, missing}. 새 작업 등록 없음(겸이 git pull 만). ② screener US: 야후 최빈 기준일 < 기대 거래일이면 그 날짜 봉만 토스로 채움(이력은 야후), freshness.json filled·텔레그램·put_state price_src_US 에 'src: 야후+토스 보충 n%'. 파일 없음·날짜 불일치 → 기존 STALE. ③ 테스트 tests/test_us_eod_toss.py. 남은 일: 10/22 아침 첫 실수집 — missing 수(토스 심볼 점 꼴 BRK.B 추정 확인)·소요 시간·screen_us 06:52 보충 여부 확인. KR 범위 밖."
+      "notes": "겸이 10/21 09:5x '야후가 아니라 토스로 하기로 했잖아'. 10/21 US 스크리너 STALE(야후 10/20 종목봉 미제공). ① 수집: toss_md_live(us 그룹)에 붙임 — ET 16:15 이후 첫 회차 하루 1회 S&P500∪NDX(us_index.csv) candles 1d count=3(전날 봉 포함), 0.5초 간격·청크 잠금·7분 상한 이어받기 → toss-live us_eod.json {date(ET), bars, n, missing}. 새 작업 등록 없음(겸이 git pull 만). ② screener US: 야후 최빈 기준일 < 기대 거래일이면 그 날짜 봉만 토스로 채움(이력은 야후), freshness.json filled·텔레그램·put_state price_src_US 에 'src: 야후+토스 보충 n%'. 파일 없음·날짜 불일치 → 기존 STALE. ③ 테스트 tests/test_us_eod_toss.py. 남은 일: 10/22 아침 첫 실수집 — missing 수(토스 심볼 점 꼴 BRK.B 추정 확인)·소요 시간·screen_us 06:52 보충 여부 확인. KR 범위 밖. ④ 10/21 오너 '토스 보충이 실데이터로 검증 안 됐으면 검증을 하고 넣어' → 검증 게이트: 보충 직전 us_eod.json prev(직전 거래일 봉)를 야후 같은 날짜 봉과 종목별 대조 — 종가 |괴리| ≤0.1%·겹침 ≥90%·일치 ≥98%(screener/config.py TOSS_EOD_*) 통과 때만 보충, 불일치·미대조 종목은 개별 제외, 불통과 → 보충 없이 STALE + '토스 검증 불통과(일치 x%·겹침 y%)'(텔레그램·price_src_US·freshness stale what). 결과 reports/toss_eod_check.json(요약만·최근 30회). count 2→3: toss-live daily_today 실측 21:10 ET 응답에 다음 ET 날짜 야간거래 봉(DIA 10/21 V432)이 붙음 → 늦은 회차 대비. 테스트 tests/test_toss_eod_gate.py(daily_today 실 1d 봉 SPY·QQQ·DIA·IWM·SOXX 픽스처, 야후 값은 픽스처). 미확인: 야후 실값 대조(컨테이너 야후 차단) — 10/22 첫 실수집 후 toss_eod_check.json 의 match_pct·max_dev 로 확인."
     },
     {
       "id": "display-clarity",

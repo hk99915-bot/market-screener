@@ -72,8 +72,24 @@ def us_toss_fill(px, asof, now: datetime, load=None):
     exp = tradecal.expected_session("US", now)
     if asof is None or asof >= exp:
         return px, None
-    px, info = data.fill_last_day(px, exp, (load or data.load_toss_eod)())
+    eod = (load or data.load_toss_eod)()
+    if not eod or str(eod.get("date")) != exp.isoformat():
+        return px, None
+    # 실데이터 검증 게이트(10/21 오너 "검증을 하고 넣어"): 토스 prev(직전 거래일) vs 야후 같은 날짜 봉 → 통과해야 보충, 불일치 종목 개별 제외
+    chk = data.check_toss_eod(px, exp, eod)
+    try:
+        data.write_toss_check(chk, guard._report_dir() / "toss_eod_check.json")
+    except Exception as e:  # noqa: BLE001
+        log.warning("토스 검증 기록 실패: %s", e)
+    summ = {k: chk[k] for k in ("overlap_pct", "match_pct", "max_dev_pct", "n_failed", "pass")}
+    if not chk["pass"]:
+        why = f"토스 검증 불통과(일치 {chk['match_pct']:g}%·겹침 {chk['overlap_pct']:g}%)"
+        log.warning("%s — 보충 안 함(STALE 유지). 최대 괴리 %s %s%%", why, chk["max_dev_sym"], chk["max_dev_pct"])
+        return px, {"src": "yahoo", "applied": False, "date": exp.isoformat(), "check": summ, "reason": why,
+                    "label": f"src: 야후 · {why}"}
+    px, info = data.fill_last_day(px, exp, eod, only=chk["ok_syms"])
     if info:
+        info.update(applied=True, check=summ, label=info["label"] + f" (토스 검증 일치 {chk['match_pct']:g}%)")
         guard.record_fill("reports/detail/US/_index.json", "US 시세 마지막 날", info)
     return px, info
 
@@ -120,7 +136,9 @@ def run(market: str, live: bool = False, prices_path: str | None = None, no_send
         if verdict == "stale":
             status = "STALE"
             from . import tradecal
-            guard.record_stale(f"reports/detail/{market}/_index.json", f"{market} 시세 기준일", tradecal.expected_session(market, now), asof)
+            guard.record_stale(f"reports/detail/{market}/_index.json",
+                               f"{market} 시세 기준일" + (f" · {fill['reason']}" if fill and fill.get("reason") else ""),
+                               tradecal.expected_session(market, now), asof)
             log.warning("%s 기준일 %s 가 기대 거래일보다 과거 — [STALE] 로 표시", market, asof)
     last = last.filter(pl.col("date") == asof)
     last_all = last                                   # 종목 상세는 필터와 무관하게 전 종목

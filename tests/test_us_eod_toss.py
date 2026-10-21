@@ -40,14 +40,16 @@ def test_collect_us_eod_after_close_once(tmp_path):
     c = _Client()
     ok, fail, err = collect.collect_us_eod(c, tmp_path, now, dry_run=True, symbols=["AAPL", "BRK-B", "ZZZ"])
     assert (ok, fail, err) == (3, 0, None)
-    assert c.calls[1] == ("/api/v1/candles", {"symbol": "BRK.B", "interval": "1d", "count": 2})
+    assert c.calls[1] == ("/api/v1/candles", {"symbol": "BRK.B", "interval": "1d", "count": 3})
     rec = json.loads((tmp_path / "us_eod" / "2026-10-20.json").read_text(encoding="utf-8"))
     assert rec["date"] == "2026-10-20" and rec["n"] == 2 and rec["missing"] == ["ZZZ"]
     assert rec["bars"]["BRK-B"] == [10.5, 12.0, 10.1, 11.8, 2500.0]
+    assert rec["prev"]["BRK-B"] == ["2026-10-19", 10.0, 11.0, 9.5, 10.5, 1000.0]   # 검증 게이트용 전날 봉
     assert collect.collect_us_eod(c, tmp_path, now, dry_run=True, symbols=["AAPL"]) == (0, 0, None)   # 하루 1회
     pub = publish.build_us_eod(tmp_path, now)
     publish.assert_public(pub)
     assert pub["date"] == "2026-10-20" and pub["bars"]["AAPL"][3] == 11.8
+    assert pub["prev"]["AAPL"] == ["2026-10-19", 10.0, 11.0, 9.5, 10.5, 1000] and "ZZZ" not in pub["prev"]
 
 
 def test_collect_us_eod_skips_before_close(tmp_path):
@@ -62,14 +64,15 @@ def _yahoo_px():
                          "close": 1.0, "volume": 1.0}).with_columns(pl.col("date").cast(pl.Date))
 
 
-EOD = {"date": "2026-10-20", "bars": {"AAPL": [10.5, 12.0, 10.1, 11.8, 2500], "MSFT": [1, 2, 0.5, 1.5, 9]}}
+EOD = {"date": "2026-10-20", "bars": {"AAPL": [10.5, 12.0, 10.1, 11.8, 2500], "MSFT": [1, 2, 0.5, 1.5, 9]},
+       "prev": {s: ["2026-10-19", 1.0, 1.0, 1.0, 1.0, 1] for s in ("AAPL", "MSFT", "NVDA")}}   # 전날 = 야후와 일치 → 게이트 통과
 NOW = datetime(2026, 10, 21, 6, 52, tzinfo=KST)   # screen_us 슬롯 — 기대 거래일 10/20
 
 
 def test_fill_last_day_from_toss(tmp_path, monkeypatch):
     monkeypatch.setattr(guard, "_report_dir", lambda: tmp_path)
     px, info = smain.us_toss_fill(_yahoo_px(), date(2026, 10, 19), NOW, load=lambda: EOD)
-    assert info["filled"] == 2 and info["total"] == 3 and info["label"] == "src: 야후+토스 보충 66.7%"
+    assert info["filled"] == 2 and info["total"] == 3 and info["label"] == "src: 야후+토스 보충 66.7% (토스 검증 일치 100%)"
     last = px.group_by("yf").agg(pl.col("date").max())
     assert last["date"].mode()[0] == date(2026, 10, 20)   # 기준일 10/20 → STALE 아님
     assert px.filter((pl.col("yf") == "AAPL") & (pl.col("date") == date(2026, 10, 20)))["close"][0] == 11.8

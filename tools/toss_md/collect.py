@@ -546,10 +546,11 @@ def collect_bases(client, day: Path, now: datetime, dry_run: bool = False, sleep
 # ── 미장 마감 EOD (보드 us-eod-toss, 10/21 겸이 "야후가 아니라 토스로 하기로 했잖아") ─────────────────────────
 # 야후가 장후 몇 시간 당일 종목봉을 안 주는 날(10/21: 10/20 봉 없음 → US 스크리너 STALE) screener 가 마지막 날 봉만 토스로 보충.
 # 실시간 작업(toss_md_live, 'us' 그룹)에 붙임 — 새 작업 등록 없음. 정규장 마감(ET 16:15 이후, 휴장표 tradecal) 첫 회차에 1회:
-# S&P500∪NDX(universe/us_index.csv, yf 꼴) 심볼마다 /api/v1/candles 1d count=2 → base/us_eod/<ET 날짜>.json.
+# S&P500∪NDX(universe/us_index.csv, yf 꼴) 심볼마다 /api/v1/candles 1d count=3(전날 봉 = 검증 게이트용) → base/us_eod/<ET 날짜>.json.
 # 서머타임 05:15·겨울 06:15 KST 이후 첫 회차(screen_us 06:52 전). 청크 잠금·0.5초 간격·이어받기 = 기준가 캐시와 같음(상한만 7분 — 작업 제한 10분).
 US_EOD_AFTER_ET = (16, 15)
-US_EOD_COUNT = 2
+US_EOD_COUNT = 3   # [전전날, 전날, 당일] — 전날 봉은 screener 검증 게이트(야후 같은 날짜 봉과 대조)용. 2 → 3 (10/21 실측: 21:10 ET
+#                    응답에 다음 ET 날짜 야간거래 봉이 붙음(daily_today DIA 10/21 V432) → 늦은 회차면 count=2 로는 전날 봉이 밀려남)
 US_EOD_MAX_SEC = 7 * 60   # 실시간 작업 실행 제한 10분 안 — 못 끝내면 <날짜>.partial.json 을 다음 회차(10분 뒤)가 이어 받음
 
 
@@ -579,6 +580,13 @@ def eod_bar(data, et_day: str) -> list | None:
     """1d 캔들 응답 → et_day(ET) 봉 [o,h,l,c,v] 또는 None (파서는 일봉 캐시와 같은 _daily_rows)."""
     rows, _ = _daily_rows(data, "US")
     return rows.get(et_day)
+
+
+def eod_prev_bar(data, et_day: str) -> list | None:
+    """같은 응답에서 et_day 직전 날짜 봉 [날짜, o,h,l,c,v] — screener 검증 게이트(야후 같은 날짜 봉과 대조)용."""
+    rows, _ = _daily_rows(data, "US")
+    ds = sorted(d for d in rows if d < et_day)
+    return [ds[-1], *rows[ds[-1]]] if ds else None
 
 
 def collect_us_eod(client, base: Path, now: datetime, dry_run: bool = False, sleep=time.sleep,
@@ -623,7 +631,8 @@ def collect_us_eod(client, base: Path, now: datetime, dry_run: bool = False, sle
                         err = f"us_eod: {e}"
                         got[sym] = None
                         continue
-                    got[sym] = eod_bar(data, d.isoformat())
+                    b = eod_bar(data, d.isoformat())
+                    got[sym] = {"bar": b, "prev": eod_prev_bar(data, d.isoformat())} if b else None
         except SystemExit as e:
             stopped = f"잠금 {e}"
             break
@@ -633,9 +642,11 @@ def collect_us_eod(client, base: Path, now: datetime, dry_run: bool = False, sle
     if stopped:
         save()
         return ok, fail + 1, f"us_eod: 중단({stopped})"
-    bars = {s: v for s, v in got.items() if v}
+    got = {s: ({"bar": v, "prev": None} if isinstance(v, list) else v) for s, v in got.items()}   # 옛 partial(봉만) 호환
+    bars = {s: v["bar"] for s, v in got.items() if v and v.get("bar")}
+    prev = {s: v["prev"] for s, v in got.items() if v and v.get("bar") and v.get("prev")}
     rec = {"date": d.isoformat(), "generated_at": now.isoformat(timespec="seconds"), "dry_run": dry_run,
-           "bars": bars, "n": len(bars), "missing": sorted(s for s, v in got.items() if not v)}
+           "bars": bars, "prev": prev, "n": len(bars), "missing": sorted(s for s, v in got.items() if not (v and v.get("bar")))}
     tmp = f.with_suffix(".tmp")
     tmp.write_text(json.dumps(rec, ensure_ascii=False), encoding="utf-8")
     tmp.replace(f)
