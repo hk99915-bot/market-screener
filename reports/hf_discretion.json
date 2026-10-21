@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "note": "HF 재량 북 — 가상 1단위 모의, 실계좌 주문 아님. 옵션 가격 = BS 근사.",
+ "open": [
+  {
+   "id": "2026-10-21-1",
+   "kind": "fut",
+   "side": "롱",
+   "why": "V자 반등 44%(premortem)·외국인 현물 +6,602억, 손절=오늘 저점 환산 아래, 목표=감마 전환점 928",
+   "src": "reports/committee.json premortem·positioning·derivs",
+   "code": "K200F",
+   "name": "코스피200 선물",
+   "asof": "2026-10-21",
+   "entry": 893.05,
+   "stop": 876.0,
+   "t1": 928.0,
+   "t2": null,
+   "r_unit": 17.049999999999955,
+   "weight": 0.1309,
+   "risk": 0.0025,
+   "hold": 10,
+   "stop_pct": 0.0191,
+   "days": 0,
+   "last": 893.05
+  },
+  {
+   "id": "2026-10-21-2",
+   "kind": "put",
+   "side": "롱",
+   "why": "선물 롱 꼬리 보험 — IV 46% < 실현 50%(옵션 쌈)·감마 음수·FOMC 10-28",
+   "src": "reports/committee.json derivs·hedges",
+   "code": "K200O",
+   "name": "코스피200 풋 847.5 (2026-11-12)",
+   "strike": 847.5,
+   "expiry": "2026-11-12",
+   "asof": "2026-10-21",
+   "iv": 0.4616,
+   "spot": 891.04,
+   "entry": 20.8376,
+   "stop": null,
+   "t1": 41.6752,
+   "r_unit": 20.837598508338317,
+   "weight": 0.0025,
+   "risk": 0.0025,
+   "hold": null,
+   "days": 0,
+   "last": 20.8376
+  }
+ ],
+ "closed": [],
+ "asof": "2026-10-21 20:01"
+}
