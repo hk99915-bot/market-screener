@@ -26,7 +26,8 @@
     "감사",
     "기록",
     "내무",
-    "부동산"
+    "부동산",
+    "유지보수"
   ],
   "tasks": [
     {
@@ -3272,6 +3273,23 @@
       ],
       "depends_on": [],
       "notes": "accum·us_accum·sim_kr·sim_us × h5/h20/h60 avg_ex·med_ex·hit·n, n<30 '판단 금지(표본 부족)' 배지, 사후 재계산 비중(origin_counts recompute/전체, 현재 3453/3781≈91%) 표시. '전략 탭(판단 성적표 있는 탭)' = DAILY › 성적표로 해석."
+    },
+    {
+      "id": "maint-heatmap",
+      "title": "유지보수 첫 업무: 히트맵 장중 미갱신(KR=일 1회 peers, US=cron 누락) 원인 확정·장중 갱신·기준 시각 표기",
+      "owner": "유지보수",
+      "priority": "P1",
+      "status": "진행",
+      "started": "2026-10-21",
+      "due": "2026-10-22",
+      "repo": "public",
+      "files": [
+        "docs/desk_kb/maint.md",
+        "apps-script/tab_market.html",
+        ".github/workflows/heatmap.yml"
+      ],
+      "depends_on": [],
+      "notes": "10/21 10:5x 겸이 '히트맵 업뎃안됨, 유지보수 데스크 신설해야겠다' — 주간 결정으로 데스크 신설. PB 1차 확인: KR 히트맵 소스 peers_KR.json(16:20 일 1회) · US heatmap.yml cron 12,42 13-21 UTC인데 10/20 13Z 이후 3회만 실행(asof 02:57 KST)."
     }
   ]
 }
