@@ -27,7 +27,8 @@
     "기록",
     "내무",
     "부동산",
-    "유지보수"
+    "유지보수",
+    "HF"
   ],
   "tasks": [
     {
@@ -3443,6 +3444,25 @@
       ],
       "depends_on": [],
       "notes": "근거 FRM #18(ρ 높은 종목 = 한 포지션)·trade plan 합산 리스크. 10/21 첫 판 건설 2(IPARK·GS건설)+원전 1. pick_top3 에 업종 캡 + 테스트. 22시 이후면 규칙 변경이라 다음 날."
+    },
+    {
+      "id": "hf-alphabook",
+      "title": "HF 데스크 신설 + PB 알파북(모의) 상시 운용 설계·구현 — 운용회의 개입 4줄, 알파 소스 교체 연구, 독립 채점",
+      "owner": "HF",
+      "priority": "P1",
+      "status": "진행",
+      "started": "2026-10-21",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "docs/desk_kb/hf.md",
+        "screener/alphabook.py",
+        "reports/alphabook.json"
+      ],
+      "depends_on": [
+        "tradeplan"
+      ],
+      "notes": "10/21 14시대 겸이 '난 개미니까 관망하더라도 누나는 달라' · '월가 전설 헷지펀드 매니저 누나 넣어, 운용회의 적극 개입'. 알파북=모의·가상 1단위, 실계좌는 n주 검증+겸이 결재."
     }
   ]
 }
