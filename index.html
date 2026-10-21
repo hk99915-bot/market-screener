@@ -101,6 +101,7 @@
   .fresh{margin-left:8px;font-size:11px;cursor:pointer;white-space:nowrap}
   .fresh.ok{color:var(--muted)} .fresh.bad{color:#fff;background:#c62828;padding:1px 7px;border-radius:3px;font-weight:700}
   html.xl .fresh.bad{background:#c00000}
+  .asof{margin-left:8px;font-size:11px;color:var(--muted);font-weight:400} .asof.stale{color:#fff;background:#c62828;padding:1px 6px;border-radius:3px;font-weight:700}
   .tape{white-space:nowrap;overflow:hidden;background:#070707;border-bottom:1px solid var(--line);padding:4px 0}
   .tape .tk{display:inline-block;white-space:nowrap;animation:tk 60s linear infinite;will-change:transform}
   .tape:hover .tk{animation-play-state:paused}
@@ -530,7 +531,7 @@ function intradayPanel(){
     const tot=(q.up||0)+(q.down||0);
     return `<tr><td class="l am">${m}</td><td>${sgn(x['외국인'])}</td><td>${sgn(x['기관'])}</td><td>${sgn(x['개인'])}</td><td>${sgn(q.prog_total)}</td><td>${q.up!=null?`<span class="up">${q.up}</span>/<span class="dn">${q.down}</span>`:'—'}</td><td>${tot?`<span class="${q.down/tot>0.6?'dn':q.up/tot>0.6?'up':'am'}">${Math.round(q.down/tot*100)}%</span>`:'—'}</td></tr>`;};
   const top=(sn.KOSPI&&sn.KOSPI.top)||[];
-  return `<div class="p c12"><h2>${fin||v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${m0.at} 기준 · ${esc(v.phase||'장중 잠정')}${fin?` · 장중 판단 ${esc(String(s.at).slice(11))} 값은 아래`:''}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원</small></h2><div class="b">
+  return `<div class="p c12"><h2>${fin||v.phase==='마감'?'CLOSE KR':'INTRADAY KR'}<small>${m0.at} 기준 · ${esc(v.phase||'장중 잠정')}${fin?` · 장중 판단 ${esc(String(s.at).slice(11))} 값은 아래`:''}${v.kospi?` · 코스피 ${num(v.kospi,2)} (${pct(v.kospi_chg,2)})`:''} · 억원${asofTag(m0.at,fin?['10:30']:['13:30','15:45','10:30'].sort(),[1,2,3,4,5],fin?['close_snapshot']:['intraday_kr'])}</small></h2><div class="b">
    <table><tr><th class="l">시장</th><th>외국인</th><th>기관</th><th>개인</th><th>프로그램</th><th>상승/하락</th><th>하락비율</th></tr>${row('KOSPI')}${row('KOSDAQ')}</table>
    ${top.length?`<div style="margin-top:6px"><span class="mu">시총 상위</span> ${top.map(t=>`<span class="sym am" data-sym="${esc(t.code)}" data-mk="KR" style="cursor:pointer">${esc(t.name)}</span> ${pct((t.chg||0)/100,1)}`).join(' · ')}</div>`:''}
    ${(v.notes||[]).length?`<div style="margin-top:6px;line-height:1.7;white-space:normal"><span class="am">해석 · ${esc(String(s.at).slice(11))} 판단 시점</span>${v.notes.map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div>`:''}${closeNote()}</div></div>`;
@@ -550,7 +551,8 @@ function marketView(mk){
   if(mc&&mc.value) h+=`<div class="p c12"><h2>READ</h2><div class="b am">${esc(mc.value)}</div></div>`;
   if(mk==='KR') h+=`<div class="p c12"><h2>ACCUM<small>외인·기관 매집 스캔 · KOSPI+KOSDAQ 주식(ETF·ETN·스팩 제외) · 검증전</small></h2><div class="b">${accumPanel()}</div></div>`;
   if(mk==='KR') h+=`<div class="p c12"><h2>JAPAN<small>도쿄도 9시 개장 · 일본 반도체 장비·메모리·MLCC vs 한국 · 엔 캐리</small></h2><div class="b">${japanPanel()}</div></div>`;
-  for(const [k,t] of SEC){const s=sec[k]; if(!s) continue; h+=`<div class="p c12"><h2>${t}<small>top ${s.rows.length} / ${s.total}</small></h2><div class="b">${sigTable(s.rows,mk)}</div></div>`;}
+  const sTag=mk==='KR'?asofTag(S.asof,['16:20'],[1,2,3,4,5],['latest_kr','momentum_kr']):asofTag(S.asof,['06:52'],[2,3,4,5,6],['latest_us','momentum_us']);   // B2: 스크리너 기준일
+  for(const [k,t] of SEC){const s=sec[k]; if(!s) continue; h+=`<div class="p c12"><h2>${t}<small>top ${s.rows.length} / ${s.total}${sTag}</small></h2><div class="b">${sigTable(s.rows,mk)}</div></div>`;}
   const an=(D.anomalies||{})[mk]||[];
   if(an.length) h+=`<div class="p c12"><h2>ANOMALIES<small>vol≥3× or gap≥5%</small></h2><div class="b"><table><tr><th class="l">SYM</th><th class="l">NAME</th><th>1D</th><th>GAP</th><th>VOL×</th><th class="l">CLS</th></tr>${an.map(r=>`<tr><td class="l am sym" data-sym="${esc(r.symbol)}" data-mk="${mk}">${esc(r.symbol)}</td><td class="l">${esc(r.name)}</td><td>${pct(r.ret1)}</td><td>${pct(r.gap)}</td><td class="am">${(r.vol_ratio??0).toFixed(1)}</td><td class="l mu">${CLS[r.class]||''}</td></tr>`).join('')}</table></div></div>`;
   h+=pre('close_'+mk,'CLOSE COMMENT')+pre('telegram_'+mk,'TELEGRAM SUMMARY')+'</div>';
@@ -2558,7 +2560,7 @@ function cmtV2Html(o){
   const sec=[];
   // 0. 결론 · 오늘의 시계
   const clk=(bl.clock||[]).map(c=>`<tr><td class="l ${c.kind==='이벤트'?'am':'mu'}" style="white-space:nowrap">${esc(c.t)}</td><td class="l" style="white-space:normal">${esc(c.what)}</td></tr>`);
-  sec.push(cmtSec(0,'결론 · 오늘의 시계','신호등 = 오늘 행동 필요 / 지켜보기 / 할 일 없음',
+  sec.push(cmtSec(0,'결론 · 오늘의 시계','신호등 = 🔴 오늘 행동 필요(위성 해금 + 매수 쪽 판정) / 🟡 지켜보기·모의 추적 후보(해금 전) / 🟢 할 일 없음',
     (clk.length?cmtTbl(['시각','무엇'],clk):'<div class="mu">시계 항목 없음</div>')
     +`<div style="margin-top:8px">${(o.head||[]).map(x=>'<div class="mu">• '+esc(x)+'</div>').join('')}</div>`
     +`<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">시나리오</b> ${esc(o.verdict||'')}</div>`,true));
@@ -2941,6 +2943,21 @@ function decBox(){
      <button id="exgo" class="sbtn">제출 (깃허브 이슈)</button> <div id="exlbl" class="mu" style="font-size:11px"></div></details>
    <div class="mu" style="font-size:11px;margin-top:4px">진입 타점 대결은 매 거래일 14:55 무렵(국장, 15:30 마감) · 22:00 무렵(미장, 09:30 ET 개장 전 마감) 텔레그램으로 열림 · 모의 기록</div></div></div>`;
 }
+/* 신호 성적 카드 (10/21 C 겸이 승인): reports/signal_tracking.json by_src — 원천별 5·20·60일 시장 중앙값 대비 초과.
+   n<30 이면 '판단 금지(표본 부족)', 사후 재계산(recompute) 비중을 함께 보인다(당시 화면 노출분 아님). */
+let SIGSC=null;
+function sigScoreCard(){
+  if(SIGSC===null){ SIGSC={loading:true}; getJSONrel('reports/signal_tracking.json').then(d=>{SIGSC=d; if(view==='score') render();}).catch(()=>{SIGSC={error:true}; if(view==='score') render();}); }
+  if(SIGSC.loading) return '<div class="mu">신호 성적 불러오는 중…</div>';
+  if(SIGSC.error||!SIGSC.by_src) return '<div class="am">신호 성적 자료 없음(signal_tracking.json)</div>';
+  const d=SIGSC, NM={accum:'국장 매집',us_accum:'미장 매집',sim_kr:'국장 추세(모의)',sim_us:'미장 추세(모의)'};
+  const pc=v=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(1)+'%';
+  const cell=h=>!h||!h.n?'<td class="mu">대기</td>':`<td><span class="${h.avg_ex>=0?'up':'dn'}">${pc(h.avg_ex)}</span> <span class="mu">중앙 ${pc(h.med_ex)} · 적중 ${Math.round(h.hit*100)}% · n ${h.n}</span>${h.n<30?' <span class="tag r">판단 금지(표본 부족)</span>':''}</td>`;
+  const rows=Object.entries(d.by_src).map(([k,v])=>`<tr><td class="l">${esc(NM[k]||k)}</td><td>${v.n_events??'—'}</td>${cell(v.h5)}${cell(v.h20)}${cell(v.h60)}</tr>`).join('');
+  const oc=d.origin_counts||{}, tot=Object.values(oc).reduce((a,b)=>a+(b||0),0), rc=tot?Math.round((oc.recompute||0)/tot*100):0;
+  return `<table><tr><th class="l">원천</th><th>신호</th><th class="l">5일 초과</th><th class="l">20일 초과</th><th class="l">60일 초과</th></tr>${rows}</table>
+    <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">기준 ${esc(d.generated_at||d.asof||'—')} · 사후 재계산 비중 <b class="${rc>=50?'dn':''}">${rc}%</b>(${oc.recompute||0}/${tot}, KR 매집만 — 당시 화면 노출분 아님) · 실시간 ${oc.live||0} · 게시본 복원 ${(oc.archive||0)+(oc.git||0)} · 비용 미반영 · 모의 · 검증전</div>`;
+}
 /* DAILY › 성적표 (하위 탭, 10/20 겸이 "판단 성적표가 너무 길다" → 분리) */
 function scoreView(){
   decLoad(); const S=bsbLoad();
@@ -2958,6 +2975,7 @@ function scoreView(){
    <div class="p c12"><h2>대결 누적 성과판<small>판별 · 참가자별 수익률 · 벤치 대비 · 보유 중 평가</small></h2><div class="b">
      ${B.length?B.slice(0,5).map(bsbBattleHtml).join('')+more(B,5,bsbBattleHtml,'지난 판'):'<div class="mu">기록 없음</div>'}
      <details style="margin-top:6px"><summary class="mu" style="font-size:12px;cursor:pointer">외부 일별 평가 스냅샷 (battle_daily)</summary>${battleDailyBox()}</details></div></div>
+   <div class="p c12"><h2>신호 성적<small>원천별 · 신호일 이후 시장 중앙값 대비 초과 · n&lt;30 판단 금지</small></h2><div class="b">${sigScoreCard()}</div></div>
    <div class="p c12"><h2>주문표<small>규정 [4] · 실현 R</small></h2><div class="b">${D.items?ticketBox(D,IU):''}</div></div>
    <div class="p c12"><h2>판단 기록<small>최근 3건 · 판단 근거·PB 판단·채점</small></h2><div class="b">
      ${items.slice(0,3).map(it=>duelItemHtml(it,CD)).join('')||'<div class="mu">기록 없음</div>'}${more(items,3,it=>duelItemHtml(it,CD),'지난 기록')}</div></div></div>`;
@@ -3763,7 +3781,13 @@ function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[
   $('#dr-b').innerHTML=(H.length?`<h3>알림 비활성 ${H.length}</h3><table><tr><th class="l">항목</th><th class="l">부터</th><th class="l">발견</th><th class="l">복구</th></tr>${H.map(h=>`<tr><td class="l dn">${esc(h.what)}</td><td class="l">${esc(h.since||'')}</td><td class="l mu">${esc(h.by||'')}</td><td class="l">${esc(h.fix||'')}</td></tr>`).join('')}</table>`:'')+(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
     +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:11px">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
     +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
-function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
+/* 기준일 배지 (10/21 B2 겸이 승인): '기준 <시각> · 다음 갱신 <시각>' + 계약(freshness.json late·stale_today, id 또는 path)에 걸리면 빨간 ⚠ STALE.
+   times = KST 'HH:MM' 목록, days = 요일(0=일) — 다음 갱신은 그 표에서 지금 이후 첫 슬롯. */
+function nextSlot(times,days){ const k=new Date(Date.now()+9*3600e3); for(let d=0;d<8;d++){ const t=new Date(k.getTime()+d*864e5), wd=t.getUTCDay();
+    if(!days.includes(wd)) continue; for(const hm of times){ const [h,m]=hm.split(':').map(Number); if(d||h*60+m>k.getUTCHours()*60+k.getUTCMinutes()) return (d?(t.getUTCMonth()+1)+'/'+t.getUTCDate()+' ':'')+hm; } } return '—'; }
+function asofTag(at,times,days,ids){ const I=[].concat(ids||[]), hit=FR?[...(FR.late||[]),...(FR.stale_today||[])].find(x=>I.includes(x.id)||I.includes(x.path)):null;
+  return `<span class="asof${hit?' stale':''}" title="${hit?esc((hit.path||'')+' 기대 '+(hit.expected||'?')+' · 실제 '+(hit.actual||hit.used||'?')):'데이터 신선도 계약 통과'}">기준 ${esc(at||'—')} · 다음 갱신 ${esc(nextSlot(times,days))}${hit?' · ⚠ STALE':''}</span>`; }
+function loadFresh(){ try{ google.script.run.withSuccessHandler(t=>{ const first=!FR; try{ FR=t?JSON.parse(t):null; }catch(e){ FR=null; } freshBadge(); if(first&&FR&&D) render(); /* B2: 첫 신선도 도착 시 기준일 배지 STALE 반영 */ }).withFailureHandler(()=>{ FR=null; freshBadge(); }).getFreshness(); }catch(e){} }
 document.addEventListener('click',e=>{ if(e.target.closest('#fresh')) freshPop(); });
 function render(){
   if(!D) return;
