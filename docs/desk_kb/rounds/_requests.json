@@ -254,6 +254,168 @@
    "promoted_at": "2026-10-21T04:09+09:00"
   },
   {
+   "id": "req-alloc-4ce23c16",
+   "from": "pb",
+   "to": "alloc",
+   "text": "ISA 나스닥100 코어 TIGER(133690)→KODEX(379810) 변경 사후 비교: 보수·추종오차·분배 방식·거래량",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-cio-eebfe618",
+   "from": "pb",
+   "to": "cio",
+   "text": "TOP3 v2 첫 판 건설 2개+원전 1 — 섹터 분산 조건(시장당 같은 업종 최대 1~2) 필요 여부 판단",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-23",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-1fd3dc04",
+   "from": "bonds",
+   "to": "data",
+   "text": "국고 3Y 같은 날 출처별 3~4bp 차(bonds.json KRX 3.84 vs committee·토스 3.879) 원인 확인 후 단일 출처 지정",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-4e390b32",
+   "from": "derivs",
+   "to": "data",
+   "text": "VKOSPI 일별 수집 추가(저장소에 데이터 0) — 파생 한눈에 카드 변동성 칸에 쓰임",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-f194d85b",
+   "from": "dev",
+   "to": "data",
+   "text": "US 스크리너 STALE 시 1~2시간 뒤 detail_us 자동 재실행 + 사유 '야후 종목봉 지연' 표시(10/21 야후 10/20 봉 미제공)",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-222c2386",
+   "from": "audit",
+   "to": "dev",
+   "text": "실보유 종목 개인 손절가가 공개 코드·테스트에 있음(alerts.py:8·260, test_rules_gaps.py:74·103, test_alerts_rules.py:76-78) → 가짜 예시 값으로 교체 (보드 audit-holding-stop-fixture)",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-8d80aab2",
+   "from": "pm",
+   "to": "dev",
+   "text": "watchdog 첫 실행 87건 — '오늘 새로 생긴 것' vs '원래 밀린 것' 구분 표시 + 마감 변경 횟수 집계",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-cb19b1e0",
+   "from": "frm",
+   "to": "dev",
+   "text": "MY탭 손절선 칸을 '규칙 바닥(평단 −30%, 결재 #2)'과 '기술 신호(detail bear.stop)' 두 줄로 분리 — 하이닉스 1,170,000 vs 1,183,000 혼동",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-23",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-frm-022b1614",
+   "from": "pb",
+   "to": "frm",
+   "text": "CIO_TOP3_V2 ON(진입 하한 완화)에 대한 리스크 의견 1줄 — 하락장 칼날 잡기 빈도",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-22",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-ops-c0481595",
    "from": "겸이",
    "to": "ops",
@@ -272,6 +434,24 @@
    "status": "done",
    "done": "2026-10-21",
    "done_at": "2026-10-21T02:04+09:00"
+  },
+  {
+   "id": "req-quant-58d16842",
+   "from": "verify",
+   "to": "quant",
+   "text": "semis_cap 원 보고서 인용 '매도 횟수 1/9' → 재현 기준 '약 1/8'로 정정 제안 반영",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T09:36+09:00",
+   "due": "2026-10-23",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   }
  ],
  "updated": "2026-10-21"
