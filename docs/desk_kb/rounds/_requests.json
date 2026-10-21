@@ -338,6 +338,24 @@
    "status": "open"
   },
   {
+   "id": "req-data-2ff2a4e7",
+   "from": "quant",
+   "to": "data",
+   "text": "국내 증권사(토스 우선) 미장 조건주문 범위 확인: 정규장 vs 프리·애프터·주간거래, 스탑 리밋/스탑 마켓(서버 감시 vs 거래소 주문), OCO·브래킷(목표+손절 동시) 가능 여부, LULD 정지 중 감시주문 동작, 현행 수수료·환전 우대 요율. 공개 검색으론 미확인(10/21). 근거 reports/studies/2026-10-21_us_spikes_intraday.md §0-3·§5",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:49+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-4e390b32",
    "from": "derivs",
    "to": "data",
@@ -489,6 +507,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-0d73cae1",
+   "from": "quant",
+   "to": "dev",
+   "text": "잡주 폭등 1m 기록기(노트북·토스): 매 장 마감 뒤 당일 정규장 고가 ≥ 전일 종가+30% 종목(원가격 $1~20)의 프리·정규·애프터 1m 저장 + LULD 정지 RSS 같이. 데이터 데스크와 저장 위치 합의. 설계 reports/studies/2026-10-21_us_spikes_intraday.md §6",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:49+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-222c2386",
    "from": "audit",
    "to": "dev",
@@ -517,6 +553,24 @@
    "opened": "2026-10-21",
    "opened_at": "2026-10-21T10:37+09:00",
    "due": "2026-10-22",
+   "via": "ask",
+   "seen": [
+    "2026-10-21"
+   ],
+   "checked": [
+    "2026-10-21"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-838025ff",
+   "from": "quant",
+   "to": "dev",
+   "text": "토스 1m 깊이 탐침(노트북 일회성): 대형주 1(AAPL)·잡주 2(최근 폭등 종목) 1m 을 /api/v1/candles nextBefore 로 끝까지(상한 50페이지) → 가장 오래된 봉 날짜·프리/애프터 포함 여부·상폐 종목 조회 가능 여부를 toss-live 에 작은 json 으로(16:00 이후 노트북 자동 pull 로 오늘 밤). 깊이 충분하면 2단계: reports/studies/2026-10-21_us_smallcap_spikes 사건일(D0·D+1) 1m 백필(0.5초 간격·429 재시도·청크 잠금 기존 패턴, 여러 밤 분할). 근거 reports/studies/2026-10-21_us_spikes_intraday.md §6",
+   "opened": "2026-10-21",
+   "opened_at": "2026-10-21T12:49+09:00",
+   "due": "2026-10-23",
    "via": "ask",
    "seen": [
     "2026-10-21"
