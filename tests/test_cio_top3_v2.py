@@ -151,7 +151,8 @@ class SwitchOn(unittest.TestCase):
 
 class Scope(unittest.TestCase):   # 적용 범위 = 운용회의 TOP3 표시·모의 추적. 포트폴리오 한도·주문 경로(pb 등)는 이 스위치·ideas_top 을 안 읽음
     def test_switch_only_in_committee_paths(self):
-        allowed = {"screener/config.py", "screener/committee.py", "screener/us_committee.py", "screener/idea_tracking.py"}
+        allowed = {"screener/config.py", "screener/committee.py", "screener/us_committee.py", "screener/idea_tracking.py",
+                   "screener/tradeplan.py"}   # 10/21 trade plan: 운용회의 TOP3 표시·모의 추적에 plan 부착 (같은 범위)
         hits = {str(p.relative_to(ROOT)) for d in ("screener", "scripts") for p in (ROOT / d).rglob("*.py")
                 if re.search(r"CIO_TOP3_V2|v2_on\(|pick_top3|entry_floor", p.read_text(encoding="utf-8"))}
         self.assertLessEqual(hits, allowed)

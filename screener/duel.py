@@ -68,6 +68,14 @@ def pb_call() -> dict:
                    + (f". 과거 레버리지 기준 승률 {s.get('up',0)*100:.0f}%·평균 {s.get('avg',0)*100:+.1f}%·최악 {s.get('worst',0)*100:+.1f}% (n={s.get('n')})" if s else ""))
         else:
             why = "급락 중 범위 하단 — 반등 힘 부족"
+    if pick.get("ticker"):   # 매매 계획 표준 — 규칙 픽에도 진입·스탑·목표·필터 (10/21 trade plan)
+        try:
+            from .tradeplan import duel_plan
+            pl_ = duel_plan(pick["ticker"], hold_days=1)
+            if pl_:
+                pick["plan"] = pl_
+        except Exception as e:  # noqa: BLE001
+            log.info("타점 대결 plan 실패: %s", e)
     return {"pick": pick, "why": why, "lines": lines}
 
 

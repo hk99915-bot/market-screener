@@ -3385,6 +3385,64 @@
       "depends_on": [],
       "notes": "감사 지적 치명(10/21 2차 D1). pdf_boxes.json:272 ← research.py:264 _PDF_DEBUG 덤프, 10/15 이후 10개 버전. 이메일·'Analyst <이름>' 마스킹 또는 덤프 커밋 제외 + 테스트. 공개 이력은 PB→오너 보고(재작성 비권장). 출처 reports/audit/2026-10-21.json D1 → 10/21 개발 완료: pdf_boxes.json 추적 해제(.gitignore)·현재본 삭제, research._debug_boxes(버린 상자 텍스트 제외·본문 이메일 가림)·summarize_text 이메일 가림, probe.json 응답 머리 이메일 2건 가림(공용 RSS 주소, 개인 아님)+probe.py 저장 시 가림, pre-push 공개 이메일 검사 추가(허용 noreply·users.noreply.github.com·예약 도메인), tests/test_redact.py. 이력 처리(그대로/filter-repo+force/비공개)는 오너 결정 대기.",
       "done": "2026-10-21"
+    },
+    {
+      "id": "tradeplan",
+      "title": "매매 계획 표준(trade plan) — 스펙·보정·screener/tradeplan.py·운용회의 KR/US·타점 대결·시그널 카드 부착, 계획 없는 매수 문구 가드",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-21",
+      "due": "2026-10-21",
+      "repo": "public",
+      "files": [
+        "screener/tradeplan.py",
+        "scripts/study_tradeplan.py",
+        "tests/test_tradeplan.py",
+        "screener/committee.py",
+        "screener/duel.py",
+        "reports/studies/2026-10-21_tradeplan_spec.md",
+        "reports/studies/2026-10-21_tradeplan_calib.json",
+        "docs/desk_kb/STANDARD.md"
+      ],
+      "depends_on": [],
+      "notes": "10/21 겸이 13시대 지시 + 상시 규칙('운용회의에도'). 협업 패널(CIO·퀀트·애널·매크로·FRM). 보정: KR 기하 E[R] F, US C(베타), accum 검증전. 다음 briefing 실행부터 committee*.json plan 필드. 화면 표시는 tradeplan-ui."
+    },
+    {
+      "id": "tradeplan-ui",
+      "title": "trade plan 화면 표시 — DAILY 운용회의 TOP3·실행 대본·헤지·시그널 카드에 plan.line + 확률/E[R]/등급 배지, 텔레그램 TOP3 줄에 1차·2차·확률",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "apps-script/*",
+        "index.html",
+        "views/*",
+        "screener/committee.py"
+      ],
+      "depends_on": [
+        "tradeplan"
+      ],
+      "notes": "데이터는 committee.json·committee_us.json 의 ideas_top.items[].plan / stance.exec.cands[].plan / hedges.hedges[].plan / sim_fresh.items[].plan / tradeplan 블록. 스펙 reports/studies/2026-10-21_tradeplan_spec.md. UXUI 와 배치 협의."
+    },
+    {
+      "id": "top3-sector-cap",
+      "title": "TOP3 업종 분산 캡 — 같은 업종(g) TOP3 최대 1, 나머지는 candidates (CIO 처리 req-cio-eebfe618)",
+      "owner": "CIO",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "screener/idea_tracking.py",
+        "tests/test_cio_top3_v2.py"
+      ],
+      "depends_on": [],
+      "notes": "근거 FRM #18(ρ 높은 종목 = 한 포지션)·trade plan 합산 리스크. 10/21 첫 판 건설 2(IPARK·GS건설)+원전 1. pick_top3 에 업종 캡 + 테스트. 22시 이후면 규칙 변경이라 다음 날."
     }
   ]
 }

@@ -1464,6 +1464,12 @@ def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict
                                         out.get("ideas_top") or {})
     except Exception as e:  # noqa: BLE001
         log.warning("운용회의 v2 bottom_line 실패: %s", e)
+    try:   # 매매 계획 표준(trade plan) — TOP3·실행 대본·시그널 카드·헤지·'할 일' 줄 (10/21 겸이 상시 규칙, screener/tradeplan.py)
+        from . import tradeplan
+        tradeplan.attach(out, "KR", today)
+    except Exception as e:  # noqa: BLE001
+        out["tradeplan"] = {"error": f"{type(e).__name__}: {e}"}
+        log.warning("trade plan 부착 실패: %s", e)
     try:
         _ideas_log_append(out)
         from .idea_tracking import run as track_ideas
@@ -1676,6 +1682,12 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
         out["bottom_line"] = _mock_gate(U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US, watch), it)
     except Exception as e:  # noqa: BLE001
         log.warning("미장 v2 bottom_line 실패: %s", e)
+    try:   # 매매 계획 표준(trade plan) — 미장 TOP3·시그널 카드·헤지·'할 일' 줄
+        from . import tradeplan
+        tradeplan.attach(out, "US", today)
+    except Exception as e:  # noqa: BLE001
+        out["tradeplan"] = {"error": f"{type(e).__name__}: {e}"}
+        log.warning("미장 trade plan 부착 실패: %s", e)
     try:
         _sf = _sim_fresh("US")
         if _sf:
