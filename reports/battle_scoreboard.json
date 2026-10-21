@@ -2,7 +2,7 @@
  "version": 1,
  "schema_version": 1,
  "asof": "2026-10-21",
- "generated_at": "2026-10-21 13:29 KST",
+ "generated_at": "2026-10-21 19:24 KST",
  "bench": {
   "KR": {
    "ticker": "069500",
@@ -37,7 +37,7 @@
    "avg_ex": -5e-05,
    "n_ex": 1,
    "open": 1,
-   "unrated": 0
+   "unrated": 1
   },
   "규칙": {
    "n": 3,
@@ -54,12 +54,12 @@
   "나": {
    "n": 6,
    "win": 4,
-   "trades": 5,
-   "hit": 0.8,
+   "trades": 6,
+   "hit": 0.667,
    "cum_ret": 0.1036,
    "comp_ret": 0.10512,
-   "avg_ex": 0.00817,
-   "n_ex": 4,
+   "avg_ex": 0.01037,
+   "n_ex": 5,
    "open": 2,
    "unrated": 1
   },
@@ -100,7 +100,7 @@
     "avg_ex": -5e-05,
     "n_ex": 1,
     "open": 0,
-    "unrated": 0
+    "unrated": 1
    },
    "규칙": {
     "n": 2,
@@ -117,12 +117,12 @@
    "나": {
     "n": 5,
     "win": 4,
-    "trades": 4,
-    "hit": 1.0,
+    "trades": 5,
+    "hit": 0.8,
     "cum_ret": 0.1351,
     "comp_ret": 0.14106,
-    "avg_ex": 0.02262,
-    "n_ex": 3,
+    "avg_ex": 0.02176,
+    "n_ex": 4,
     "open": 1,
     "unrated": 0
    },
@@ -280,14 +280,16 @@
    "rows": [
     {
      "who": "나",
-     "name": "현금",
-     "ticker": null,
-     "entry": null,
-     "exit": null,
+     "name": "KODEX 레버리지",
+     "ticker": "122630",
+     "entry": "close",
+     "exit": "next_open",
      "status": "확정",
      "ret": 0.0,
+     "end": "2026-10-21",
      "bench": null,
      "ex": null,
+     "win": false,
      "why": "현금 유지",
      "marks": {
       "2026-10-21": 0.0
@@ -307,6 +309,31 @@
      "marks": {
       "2026-10-21": 0.0
      }
+    },
+    {
+     "who": "PB🔥",
+     "name": "KODEX 레버리지",
+     "ticker": "122630",
+     "entry": "close",
+     "exit": "next_open",
+     "status": "진입 대기",
+     "ret": null,
+     "entry_px_date": "2026-10-21",
+     "why": "종가 진입 — 다음 거래일부터 평가",
+     "marks": {}
+    },
+    {
+     "who": "규칙",
+     "name": "현금",
+     "ticker": null,
+     "entry": null,
+     "exit": null,
+     "status": "현금",
+     "ret": 0.0,
+     "bench": null,
+     "ex": null,
+     "why": "현금 유지",
+     "marks": {}
     }
    ]
   },
@@ -380,8 +407,8 @@
      "status": "확정",
      "ret": 0.0407,
      "end": "2026-10-21",
-     "bench": null,
-     "ex": null,
+     "bench": 0.02152,
+     "ex": 0.01918,
      "win": true,
      "why": "2026-10-20 종가 67,170 → 2026-10-21 시가 69,940",
      "marks": {
@@ -646,13 +673,14 @@
      "entry": "close",
      "exit": "trail",
      "status": "보유 중",
-     "ret": -0.05197,
-     "mark_date": "2026-10-20",
-     "bench": -0.02298,
-     "ex": -0.02899,
+     "ret": -0.03783,
+     "mark_date": "2026-10-21",
+     "bench": 0.01049,
+     "ex": -0.04832,
      "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
      "marks": {
-      "2026-10-20": -0.05197
+      "2026-10-20": -0.05197,
+      "2026-10-21": -0.03783
      }
     },
     {
@@ -662,13 +690,14 @@
      "entry": "close",
      "exit": "d5_close",
      "status": "보유 중",
-     "ret": -0.01449,
-     "mark_date": "2026-10-20",
-     "bench": -0.02298,
-     "ex": 0.00849,
+     "ret": 0.00824,
+     "mark_date": "2026-10-21",
+     "bench": 0.01049,
+     "ex": -0.00224,
      "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
      "marks": {
-      "2026-10-20": -0.01449
+      "2026-10-20": -0.01449,
+      "2026-10-21": 0.00824
      },
      "marks_ext": {
       "2026-10-19": 0.01698
