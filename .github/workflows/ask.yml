@@ -32,17 +32,20 @@ jobs:
           BODY: ${{ github.event.issue.body }}
         run: |
           git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
-          msg=""
+          msg=""; ok=0
           for i in 1 2 3; do
             git fetch -q origin main && git reset -q --hard origin/main
-            msg=$(python scripts/ask.py --issue-title "$TITLE" --issue-body "$BODY") || { echo "$msg"; break; }
-            git add docs/desk_kb/rounds/_requests.json; git diff --cached --quiet && break
-            git commit -qm "ask: $TITLE" && git push -q origin HEAD:main && break
+            msg=$(python scripts/ask.py --issue-title "$TITLE" --issue-body "$BODY") || { echo "$msg"; ok=1; break; }   # 형식 오류 답글은 그대로 전달
+            git add docs/desk_kb/rounds/_requests.json; git diff --cached --quiet && { ok=1; break; }
+            git commit -qm "ask: $TITLE" && git push -q origin HEAD:main && { ok=1; break; }
             sleep 5
           done
+          # push 3회 실패 → 성공 답글·이슈 닫기 금지(포니테일 검수 10/21 #2). 이슈가 열린 채 남아 재시도 가능
+          [ $ok = 1 ] || { echo "::error::요청 장부 push 3회 실패 — 이슈를 닫지 않음"; exit 1; }
           echo "$msg"
           { echo "msg<<EOF"; echo "$msg"; echo "EOF"; } >> "$GITHUB_OUTPUT"
       - name: 답글·닫기
+        if: success()
         env:
           GH_TOKEN: ${{ github.token }}
           MSG: ${{ steps.r.outputs.msg }}
