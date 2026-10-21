@@ -399,6 +399,15 @@ def test_daily_bars_backfill_pagination_and_split(base):
     assert len(publish.render(t).encode()) < 4000      # 10분마다 바뀌는 파일은 작게
 
 
+def test_daily_today_capped_when_hist_snapshot_missing(base):
+    """포니테일 검수 10/21 #7: 과거 스냅샷(_hist.json)이 비면 캐시 전체가 오늘 파일로 가지 않게 최근 2봉만."""
+    collect.run("sectors", dry_run=True, out=base.parent, now=NOW)
+    (base / "daily_bars" / "_hist.json").unlink(missing_ok=True)
+    h, t = publish.build_daily(base, NOW)
+    assert h is None or "KOSPI" not in h["keys"]
+    assert [b[0] for b in t["keys"]["KOSPI"]["bars"]] == ["2026-10-19", "2026-10-20"]
+
+
 def test_daily_hist_only_changes_at_backfill_and_rounding(base):
     collect.run("sectors", dry_run=True, out=base.parent, now=NOW)
     h1, _ = publish.build_daily(base, NOW)

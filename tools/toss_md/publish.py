@@ -741,6 +741,8 @@ def build_daily(base: Path, now: datetime) -> tuple[dict | None, dict | None]:
             hist[k] = {"mk": mk, "tz": "KST" if mk == "KR" else "ET", "n": len(hb), "bars": hb}
         cut = hb[-1][0] if hb else ""
         tb = [_bar(k, mk, d, v) for d, v in sorted((c.get("bars") or {}).items()) if d > cut]
+        if not hb:
+            tb = tb[-2:]   # 과거 스냅샷이 비면 캐시 전체가 '오늘 파일'로 쏟아짐(10분마다 큰 커밋) → 최근 2봉만 (포니테일 검수 10/21 #7)
         if tb:
             today[k] = {"bars": tb, "bar": tb[-1], "updated": c.get("updated")}
     if not today and not hist:
