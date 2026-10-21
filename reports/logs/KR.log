@@ -1,50 +1,115 @@
-2026-10-21 06:51:04,039 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-21 06:51:04,632 INFO matplotlib.font_manager: generated new fontManager
-2026-10-21 06:51:15,698 INFO screener.universe: KR 유니버스 _kr_pykrx: 2554종목
-2026-10-21 06:51:15,699 INFO screener: KR 유니버스 1293종목
-2026-10-21 06:51:17,626 INFO screener.data_krx: KRX 2026-10-14: 2651행
-2026-10-21 06:51:19,599 INFO screener.data_krx: KRX 2026-10-15: 2651행
-2026-10-21 06:51:21,394 INFO screener.data_krx: KRX 2026-10-16: 2649행
-2026-10-21 06:51:23,392 INFO screener.data_krx: KRX 2026-10-19: 2646행
-2026-10-21 06:51:25,287 INFO screener.data_krx: KRX 2026-10-20: 2648행
-2026-10-21 06:51:27,493 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
-2026-10-21 06:53:40,030 INFO screener.data_krx: KRX 2026-10-21 잠정 종가 → 야후 정규장 종가 교체: 2648/2649종목 확인, 6종목 값 변경
-2026-10-21 06:53:40,031 INFO screener.data_krx: KRX 2026-10-21: 2649행 (잠정)
-2026-10-21 06:53:40,382 INFO screener: 시세 337699행 / 1279종목
-2026-10-21 06:53:41,513 INFO screener: 필터 후 745종목 · 기준일 2026-10-21 · CONFIRMED
-2026-10-21 06:53:42,059 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-21 06:53:44,099 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-21 06:53:44,157 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
-2026-10-21 06:54:01,610 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-21 06:54:03,885 INFO screener.live: live.json 17개 지표
-2026-10-21 06:54:03,973 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (-0.12) — 주된 요인: 나스닥 −, 미 10년 금리 −, 원/달러 + · 20일 코스피 -14.6% vs S&P -0.7% (격차 -13.9%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
-2026-10-21 06:54:14,563 INFO screener.momentum: 모멘텀 순위 KR 738종목
-2026-10-21 06:54:53,824 INFO screener.detail: 일괄 수급 2672종목
-2026-10-21 06:54:55,163 INFO screener.detail: 재무 요약 1251종목
-2026-10-21 06:54:55,611 INFO screener.valuation: 가치평가 1224종목
-2026-10-21 06:56:19,096 WARNING screener.wics: WICS 중분류 못 찾은 종목 71 (대분류만 기록)
-2026-10-21 06:56:19,099 INFO screener.wics: WICS 2026-10-20: 2454종목 · 중분류 27개 · 중분류 없음 71 · 호출 100
-2026-10-21 06:56:19,099 INFO screener.detail: WICS: {'status': 'updated', 'asof': '2026-10-20', 'calls': 100, 'n': 2454, 'no_l2': 71, 'l2_groups': 27}
-2026-10-21 06:56:29,415 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: DX-Y.NYB"}}}
-2026-10-21 06:56:51,444 INFO screener.drivers: 체인 프록시 87개
-2026-10-21 07:03:56,718 INFO screener.drivers: 뉴스 413종목 (헤드라인 6127건)
-2026-10-21 07:03:57,110 INFO screener.detail: 이익 드라이버 1275종목
-2026-10-21 07:19:52,524 INFO screener.shorts: 공매도 잔고 1일 추가
-2026-10-21 07:19:52,545 INFO screener.detail: 공매도 2762종목
-2026-10-21 07:19:52,846 INFO screener.track: 기술 시그널 과거 1일 복원
-2026-10-21 07:19:52,896 INFO screener.track: 시그널 스냅샷 2026-10-21 1275종목 (누적 254일)
-2026-10-21 07:19:58,806 INFO screener.detail: detail/KR: 1275종목, 73412 KB
-2026-10-21 07:19:58,810 INFO screener.detail: sim_signals_KR: 스캔 1257 · 통과 0 · 기대 우연 2.4
-2026-10-21 07:25:53,617 INFO screener.etf: ETF KR 218개 (355s)
-2026-10-21 07:25:53,792 INFO screener.etf: 액티브 ETF 합의도: ETF 18/18 · 종목 20
-2026-10-21 07:25:54,004 INFO screener.dashboard: dashboard.json 갱신 (107901 bytes)
-2026-10-21 07:25:54,906 INFO screener.dashboard: 리서치 국면 태그 1703건
-2026-10-21 07:25:54,940 INFO screener.dashboard: research.json 1703건
-2026-10-21 07:25:54,949 INFO screener.dashboard: disclosures.json 526건
-2026-10-21 07:25:54,999 INFO screener.daily: 데일리 리포트: 리포트 243건, 테마 27개, 통합 체크 0개
-2026-10-21 07:25:56,550 INFO screener.report: 텔레그램 전송 완료 (2개 메시지)
-2026-10-21 07:25:57,253 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-21 07:25:57,282 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
-2026-10-21 07:25:57,290 INFO screener.alerts: 알림 의도된 비활성: MY_RULES 없음 (alerts, 2026-10-21 결정)
-2026-10-21 07:25:57,290 INFO screener.alerts: 알림 의도된 비활성: MY_HOLDINGS 없음 (alerts, 2026-10-21 결정)
-2026-10-21 07:25:57,308 INFO screener.alerts: 손절선: 손절선 5,451 위 ✅ · 코스피 5,736 vs 기준 5,451 (+5.2%)
+2026-10-21 13:00:09,900 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-21 13:00:09,932 INFO matplotlib.font_manager: generated new fontManager
+2026-10-21 13:00:22,856 INFO screener.universe: KR 유니버스 _kr_pykrx: 2554종목
+2026-10-21 13:00:22,857 INFO screener: KR 유니버스 1293종목
+2026-10-21 13:00:25,193 INFO screener.data_krx: KRX 2026-10-15: 2651행
+2026-10-21 13:00:27,470 INFO screener.data_krx: KRX 2026-10-16: 2649행
+2026-10-21 13:00:29,492 INFO screener.data_krx: KRX 2026-10-19: 2646행
+2026-10-21 13:00:32,329 INFO screener.data_krx: KRX 2026-10-20: 2648행
+2026-10-21 13:00:47,138 ERROR yfinance: 
+1 Failed download:
+2026-10-21 13:00:47,139 ERROR yfinance: ['322000.KS']: OperationalError('database is locked')
+2026-10-21 13:03:12,320 INFO screener.data_krx: KRX 2026-10-21 잠정 종가 → 야후 정규장 종가 교체: 2647/2649종목 확인, 0종목 값 변경
+2026-10-21 13:03:12,320 INFO screener.data_krx: KRX 2026-10-21: 2649행 (잠정)
+2026-10-21 13:03:12,619 INFO screener: 시세 337699행 / 1279종목
+2026-10-21 13:03:13,774 INFO screener: 필터 후 745종목 · 기준일 2026-10-21 · CONFIRMED
+2026-10-21 13:03:14,866 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-21 13:03:16,977 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-21 13:03:17,038 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-10-21 13:03:23,510 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-21 13:03:26,451 WARNING screener.live: live SPX 마지막 봉 2026-10-20 < 같은 시장 2026-10-21 — 지연 표시
+2026-10-21 13:03:26,451 WARNING screener.live: live NASDAQ 마지막 봉 2026-10-20 < 같은 시장 2026-10-21 — 지연 표시
+2026-10-21 13:03:26,451 WARNING screener.live: live RUT 마지막 봉 2026-10-20 < 같은 시장 2026-10-21 — 지연 표시
+2026-10-21 13:03:26,455 INFO screener.live: live.json 17개 지표
+2026-10-21 13:03:26,521 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (-0.08) — 주된 요인: 나스닥 −, S&P500 +, 원/달러 + · 20일 코스피 -14.6% vs S&P -0.7% (격차 -13.9%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
+2026-10-21 13:03:38,758 INFO screener.momentum: 모멘텀 순위 KR 738종목
+2026-10-21 13:04:16,934 INFO screener.detail: 일괄 수급 2672종목
+2026-10-21 13:04:18,179 INFO screener.detail: 재무 요약 1251종목
+2026-10-21 13:04:18,629 INFO screener.valuation: 가치평가 1224종목
+2026-10-21 13:05:47,917 WARNING screener.wics: WICS 중분류 못 찾은 종목 71 (대분류만 기록)
+2026-10-21 13:05:47,920 INFO screener.wics: WICS 2026-10-21: 2455종목 · 중분류 27개 · 중분류 없음 71 · 호출 100
+2026-10-21 13:05:47,920 INFO screener.detail: WICS: {'status': 'updated', 'asof': '2026-10-21', 'calls': 100, 'n': 2455, 'no_l2': 71, 'l2_groups': 27}
+2026-10-21 13:05:53,983 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:54,720 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:55,366 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:56,027 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:56,700 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:57,394 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:58,182 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:58,845 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:05:59,818 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:00,528 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:01,205 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:01,868 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:02,512 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:03,181 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:03,917 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:04,621 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:05,257 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:05,914 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:06,600 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:07,300 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:07,996 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:08,769 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:09,508 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:10,143 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:10,830 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:11,485 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:12,258 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:13,092 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:13,772 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:14,509 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:15,165 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:15,896 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:16,524 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:17,237 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:17,928 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:18,619 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:19,313 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:20,179 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:20,899 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:21,691 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:22,380 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:23,069 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:23,764 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:24,417 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:25,038 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:25,701 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:26,417 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:27,060 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:27,673 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:28,509 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:29,140 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:29,830 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:30,491 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:31,152 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:31,940 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:32,638 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:33,320 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:33,963 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:34,737 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:35,404 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:36,094 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:36,775 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:37,462 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-21 13:06:37,943 INFO screener.drivers: 체인 프록시 87개
+2026-10-21 13:13:57,712 INFO screener.drivers: 뉴스 413종목 (헤드라인 6275건)
+2026-10-21 13:13:58,120 INFO screener.detail: 이익 드라이버 1275종목
+2026-10-21 13:29:53,773 INFO screener.shorts: 공매도 잔고 1일 추가
+2026-10-21 13:29:53,792 INFO screener.detail: 공매도 2761종목
+2026-10-21 13:29:53,999 INFO screener.track: 시그널 스냅샷 2026-10-21 1275종목 (누적 254일)
+2026-10-21 13:29:59,954 INFO screener.detail: detail/KR: 1275종목, 73397 KB
+2026-10-21 13:29:59,959 INFO screener.detail: sim_signals_KR: 스캔 1257 · 통과 0 · 기대 우연 2.4
+2026-10-21 13:36:32,075 INFO screener.etf: ETF KR 218개 (392s)
+2026-10-21 13:36:32,076 INFO screener.etf: 액티브 ETF 합의도: 오늘(2026-10-21) 이미 집계 — 유지
+2026-10-21 13:36:32,253 INFO screener.dashboard: dashboard.json 갱신 (107593 bytes)
+2026-10-21 13:36:33,085 INFO screener.dashboard: 리서치 국면 태그 1725건
+2026-10-21 13:36:33,117 INFO screener.dashboard: research.json 1725건
+2026-10-21 13:36:33,126 INFO screener.dashboard: disclosures.json 606건
+2026-10-21 13:36:33,177 INFO screener.daily: 데일리 리포트: 리포트 265건, 테마 27개, 통합 체크 0개
+2026-10-21 13:36:34,715 INFO screener.report: 텔레그램 전송 완료 (2개 메시지)
+2026-10-21 13:36:35,355 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-21 13:36:35,382 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
+2026-10-21 13:36:35,390 INFO screener.alerts: 알림 의도된 비활성: MY_RULES 없음 (alerts, 2026-10-21 결정)
+2026-10-21 13:36:35,391 INFO screener.alerts: 알림 의도된 비활성: MY_HOLDINGS 없음 (alerts, 2026-10-21 결정)
+2026-10-21 13:36:35,406 INFO screener.alerts: 손절선: 손절선 5,451 위 ✅ · 코스피 5,736 vs 기준 5,451 (+5.2%)
