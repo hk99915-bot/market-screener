@@ -1,0 +1,2342 @@
+{
+ "assume": {
+  "engine": "scripts/study_laor_ib.py (불변, import)",
+  "laor_assume": {
+   "fee": 0.001,
+   "fx_spread": 0.0025,
+   "seed_krw": 40000000,
+   "tax_rate": 0.22,
+   "tax_deduct_krw": 2500000,
+   "er": {
+    "TQQQ": 0.0084,
+    "SOXL": 0.0075
+   },
+   "div": {
+    "TQQQ": 0.007,
+    "SOXL": 0.01
+   },
+   "calib_end": "2026-12-31",
+   "diag_split": "2017-12-31",
+   "qqq_er": 0.002,
+   "ndx_div": 0.007
+  },
+  "qld_assume": {
+   "daily_krw": 10000,
+   "fx_spread": 0.0025,
+   "fee_buy": 0.001,
+   "fee_sell": 0.001,
+   "qld_er": 0.0095,
+   "qqq_er": 0.002,
+   "spy_er": 0.0009,
+   "ndx_div": 0.007,
+   "spx_div": 0.03,
+   "calib_end": "2015-12-31"
+  },
+  "plans": {
+   "A_2/3스케일(10−T,+10%)": {
+    "rule": "V4.0_20",
+    "base": 10.0
+   },
+   "B_TQQQ그대로(15−1.5T,+15%)": {
+    "rule": "V4.0_20",
+    "base": 15.0
+   },
+   "C_V2.2(10−T/2,+10%,40분할)": {
+    "rule": "V2.2_40",
+    "base": 10.0
+   }
+  },
+  "high_proxy": "QLD 고가 = 전일 종가 × (1 + 2·(NDX 고가/NDX 전일 종가 − 1)) [가정]",
+  "order_T": "직전 거래일 T 로 전반/후반 판정(step_prevT) — 원 엔진의 같은 날 T 재판정(미래 정보) 제거",
+  "units": "IRR·복리 CAGR·mult_krw = 원화(환전 포함). 사이클 수익률(cycle_ret)·원금 대비 최대 평가손(max_eval_loss_vs_seed·min_eq)·복리 MDD(mdd_equity)·min_vs_start = 달러 기준(사이클 안 환율 변화 제외)",
+  "fill_sens": {
+   "base": 1.0,
+   "고가−0.5%": 0.9950248756218907,
+   "고가=종가(장중 체결 없음)": 0.0
+  }
+ },
+ "meta": {
+  "spread": 0.00656,
+  "first": "1985-10-02",
+  "real_first": "2006-06-22"
+ },
+ "windows": {
+  "real": "2006-06-22",
+  "common_tqqq": "2010-02-12"
+ },
+ "plans": {
+  "A_2/3스케일(10−T,+10%)": {
+   "real": {
+    "start": "2006-06-22",
+    "end": "2026-10-20",
+    "years": 20.33,
+    "n_cycles": 76,
+    "open_cycle": {
+     "start": "2026-09-23",
+     "end": null,
+     "days": 27,
+     "ret": -0.032,
+     "min_eq": -0.0425,
+     "exhaust": 0,
+     "T": 13.38,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.5364,
+     "p10": 0.002,
+     "med": 0.0329,
+     "p90": 0.0724,
+     "max": 0.2999
+    },
+    "cycle_days": {
+     "min": 9.0,
+     "p10": 20.0,
+     "med": 68.0,
+     "p90": 214.5,
+     "max": 545.0
+    },
+    "cycle_ann_med": 0.2471,
+    "usd_irr_fixed_seed": 0.0963,
+    "krw_irr_fixed_seed": 0.0947,
+    "krw_irr_fixed_seed_after_tax": 0.0816,
+    "max_eval_loss_vs_seed": -0.6646,
+    "worst_cycle": {
+     "start": "2008-08-12",
+     "end": "2009-03-23",
+     "days": 223,
+     "ret": -0.5364,
+     "min_eq": -0.6646,
+     "exhaust": 4
+    },
+    "longest_cycle": {
+     "start": "2016-07-15",
+     "end": "2018-01-11",
+     "days": 545,
+     "ret": 0.2999,
+     "min_eq": -0.0036,
+     "exhaust": 0
+    },
+    "exhaust_events": 27,
+    "exhaust_cycles": 10,
+    "exhaust_realized_loss_vs_seed": -1.2501,
+    "exhaust_cycles_ret": [
+     -0.0533,
+     0.0203,
+     -0.5364,
+     -0.0048,
+     0.0342,
+     -0.133,
+     -0.0006,
+     -0.1842,
+     -0.046,
+     0.0275
+    ],
+    "syn_cycles": 0,
+    "loss_cycles": 8,
+    "cash_share_mean": 0.63,
+    "sum_profit_seeds": 3.183,
+    "sum_loss_refill_seeds": 0.96
+   },
+   "compound_real": {
+    "cagr_usd": 0.0932,
+    "mult_usd": 6.114,
+    "cagr_krw": 0.1115,
+    "mult_krw": 8.572,
+    "mdd_equity": -0.6884,
+    "min_vs_start": -0.5839
+   },
+   "common_tqqq": {
+    "start": "2010-02-12",
+    "end": "2026-10-20",
+    "years": 16.68,
+    "n_cycles": 61,
+    "open_cycle": {
+     "start": "2026-09-23",
+     "end": null,
+     "days": 27,
+     "ret": -0.032,
+     "min_eq": -0.0425,
+     "exhaust": 0,
+     "T": 13.38,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.1842,
+     "p10": 0.0047,
+     "med": 0.0334,
+     "p90": 0.0724,
+     "max": 0.2999
+    },
+    "cycle_days": {
+     "min": 9.0,
+     "p10": 19.0,
+     "med": 67.0,
+     "p90": 226.0,
+     "max": 545.0
+    },
+    "cycle_ann_med": 0.2462,
+    "usd_irr_fixed_seed": 0.1554,
+    "krw_irr_fixed_seed": 0.1474,
+    "krw_irr_fixed_seed_after_tax": 0.1273,
+    "max_eval_loss_vs_seed": -0.3889,
+    "worst_cycle": {
+     "start": "2020-02-11",
+     "end": "2020-04-17",
+     "days": 66,
+     "ret": -0.133,
+     "min_eq": -0.3889,
+     "exhaust": 1
+    },
+    "longest_cycle": {
+     "start": "2016-07-15",
+     "end": "2018-01-11",
+     "days": 545,
+     "ret": 0.2999,
+     "min_eq": -0.0036,
+     "exhaust": 0
+    },
+    "exhaust_events": 17,
+    "exhaust_cycles": 7,
+    "exhaust_realized_loss_vs_seed": -0.5792,
+    "exhaust_cycles_ret": [
+     -0.0048,
+     0.0342,
+     -0.133,
+     -0.0006,
+     -0.1842,
+     -0.046,
+     0.0275
+    ],
+    "syn_cycles": 0,
+    "loss_cycles": 6,
+    "cash_share_mean": 0.642,
+    "sum_profit_seeds": 2.661,
+    "sum_loss_refill_seeds": 0.37
+   },
+   "compound_common_tqqq": {
+    "cagr_usd": 0.1358,
+    "mult_usd": 8.366,
+    "cagr_krw": 0.1453,
+    "mult_krw": 9.62,
+    "mdd_equity": -0.3913,
+    "min_vs_start": -0.0645
+   },
+   "full": {
+    "start": "1985-10-02",
+    "end": "2026-10-20",
+    "years": 41.05,
+    "n_cycles": 207,
+    "open_cycle": {
+     "start": "2026-09-23",
+     "end": null,
+     "days": 27,
+     "ret": -0.032,
+     "min_eq": -0.0425,
+     "exhaust": 0,
+     "T": 13.38,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.6296,
+     "p10": -0.0029,
+     "med": 0.0299,
+     "p90": 0.0634,
+     "max": 0.2999
+    },
+    "cycle_days": {
+     "min": 1.0,
+     "p10": 11.0,
+     "med": 42.0,
+     "p90": 185.8,
+     "max": 545.0
+    },
+    "cycle_ann_med": 0.3993,
+    "usd_irr_fixed_seed": 0.0974,
+    "krw_irr_fixed_seed": 0.0782,
+    "krw_irr_fixed_seed_after_tax": 0.0604,
+    "max_eval_loss_vs_seed": -0.7875,
+    "worst_cycle": {
+     "start": "2000-08-25",
+     "end": "2001-05-21",
+     "days": 269,
+     "ret": -0.6296,
+     "min_eq": -0.7875,
+     "exhaust": 4
+    },
+    "longest_cycle": {
+     "start": "2016-07-15",
+     "end": "2018-01-11",
+     "days": 545,
+     "ret": 0.2999,
+     "min_eq": -0.0036,
+     "exhaust": 0
+    },
+    "exhaust_events": 57,
+    "exhaust_cycles": 28,
+    "exhaust_realized_loss_vs_seed": -3.4421,
+    "exhaust_cycles_ret": [
+     -0.0376,
+     -0.193,
+     -0.0207,
+     -0.0187,
+     -0.1992,
+     -0.0248,
+     -0.0153,
+     -0.0421,
+     0.0416,
+     0.0362,
+     -0.1346,
+     -0.6296,
+     -0.2214,
+     0.0103,
+     -0.4706,
+     0.0071,
+     0.0203,
+     -0.0602,
+     -0.0533,
+     0.0203,
+     -0.5364,
+     -0.0048,
+     0.0342,
+     -0.133,
+     -0.0006,
+     -0.1842,
+     -0.046,
+     0.0275
+    ],
+    "syn_cycles": 132,
+    "loss_cycles": 23,
+    "cash_share_mean": 0.613,
+    "sum_profit_seeds": 6.807,
+    "sum_loss_refill_seeds": 3.044
+   },
+   "compound_full": {
+    "cagr_usd": 0.067,
+    "mult_usd": 14.341,
+    "cagr_krw": 0.0773,
+    "mult_krw": 21.234,
+    "mdd_equity": -0.906,
+    "min_vs_start": -0.1965
+   },
+   "stress": {
+    "2000형(닷컴 고점)": {
+     "start": "2000-03-01",
+     "end": "2005-03-01",
+     "years": 5.0,
+     "n_cycles": 25,
+     "open_cycle": {
+      "start": "2004-11-04",
+      "end": null,
+      "days": 117,
+      "ret": 0.0035,
+      "min_eq": -0.0456,
+      "exhaust": 0,
+      "T": 8.24,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.6296,
+      "p10": -0.1867,
+      "med": 0.0253,
+      "p90": 0.0482,
+      "max": 0.0688
+     },
+     "cycle_days": {
+      "min": 3.0,
+      "p10": 5.8,
+      "med": 39.0,
+      "p90": 198.4,
+      "max": 272.0
+     },
+     "cycle_ann_med": 0.4316,
+     "usd_irr_fixed_seed": -0.1221,
+     "krw_irr_fixed_seed": -0.1682,
+     "krw_irr_fixed_seed_after_tax": -0.1732,
+     "max_eval_loss_vs_seed": -0.7875,
+     "worst_cycle": {
+      "start": "2000-08-25",
+      "end": "2001-05-21",
+      "days": 269,
+      "ret": -0.6296,
+      "min_eq": -0.7875,
+      "exhaust": 4
+     },
+     "longest_cycle": {
+      "start": "2004-01-06",
+      "end": "2004-10-04",
+      "days": 272,
+      "ret": 0.0203,
+      "min_eq": -0.1078,
+      "exhaust": 1
+     },
+     "exhaust_events": 17,
+     "exhaust_cycles": 7,
+     "exhaust_realized_loss_vs_seed": -1.5521,
+     "exhaust_cycles_ret": [
+      -0.1346,
+      -0.6296,
+      -0.2214,
+      0.0103,
+      -0.4706,
+      0.0071,
+      0.0203
+     ],
+     "syn_cycles": 25,
+     "loss_cycles": 4,
+     "cash_share_mean": 0.507,
+     "sum_profit_seeds": 0.628,
+     "sum_loss_refill_seeds": 1.456
+    },
+    "2008형(금융위기 전)": {
+     "start": "2007-10-01",
+     "end": "2012-10-01",
+     "years": 5.0,
+     "n_cycles": 19,
+     "open_cycle": {
+      "start": "2012-08-08",
+      "end": null,
+      "days": 54,
+      "ret": 0.0149,
+      "min_eq": -0.0001,
+      "exhaust": 0,
+      "T": 9.53,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.5364,
+      "p10": -0.0065,
+      "med": 0.0334,
+      "p90": 0.0614,
+      "max": 0.1209
+     },
+     "cycle_days": {
+      "min": 9.0,
+      "p10": 22.6,
+      "med": 59.0,
+      "p90": 204.6,
+      "max": 262.0
+     },
+     "cycle_ann_med": 0.2961,
+     "usd_irr_fixed_seed": 0.0213,
+     "krw_irr_fixed_seed": 0.0199,
+     "krw_irr_fixed_seed_after_tax": 0.0122,
+     "max_eval_loss_vs_seed": -0.6646,
+     "worst_cycle": {
+      "start": "2008-08-12",
+      "end": "2009-03-23",
+      "days": 223,
+      "ret": -0.5364,
+      "min_eq": -0.6646,
+      "exhaust": 4
+     },
+     "longest_cycle": {
+      "start": "2010-10-18",
+      "end": "2011-07-07",
+      "days": 262,
+      "ret": 0.1209,
+      "min_eq": -0.0014,
+      "exhaust": 0
+     },
+     "exhaust_events": 10,
+     "exhaust_cycles": 3,
+     "exhaust_realized_loss_vs_seed": -0.6706,
+     "exhaust_cycles_ret": [
+      -0.0554,
+      0.0203,
+      -0.5364
+     ],
+     "syn_cycles": 0,
+     "loss_cycles": 2,
+     "cash_share_mean": 0.591,
+     "sum_profit_seeds": 0.703,
+     "sum_loss_refill_seeds": 0.592
+    },
+    "2022형(긴축 하락 전)": {
+     "start": "2021-11-01",
+     "end": "2026-10-20",
+     "years": 4.97,
+     "n_cycles": 22,
+     "open_cycle": {
+      "start": "2026-09-23",
+      "end": null,
+      "days": 27,
+      "ret": -0.032,
+      "min_eq": -0.0425,
+      "exhaust": 0,
+      "T": 13.38,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.1733,
+      "p10": -0.0415,
+      "med": 0.0281,
+      "p90": 0.0649,
+      "max": 0.0831
+     },
+     "cycle_days": {
+      "min": 9.0,
+      "p10": 15.6,
+      "med": 74.0,
+      "p90": 165.1,
+      "max": 185.0
+     },
+     "cycle_ann_med": 0.3051,
+     "usd_irr_fixed_seed": 0.0697,
+     "krw_irr_fixed_seed": 0.0924,
+     "krw_irr_fixed_seed_after_tax": 0.0767,
+     "max_eval_loss_vs_seed": -0.3345,
+     "worst_cycle": {
+      "start": "2022-03-30",
+      "end": "2022-07-29",
+      "days": 121,
+      "ret": -0.1733,
+      "min_eq": -0.3345,
+      "exhaust": 5
+     },
+     "longest_cycle": {
+      "start": "2024-11-08",
+      "end": "2025-05-12",
+      "days": 185,
+      "ret": 0.0275,
+      "min_eq": -0.2073,
+      "exhaust": 4
+     },
+     "exhaust_events": 14,
+     "exhaust_cycles": 4,
+     "exhaust_realized_loss_vs_seed": -0.4175,
+     "exhaust_cycles_ret": [
+      -0.068,
+      -0.1733,
+      -0.046,
+      0.0275
+     ],
+     "syn_cycles": 0,
+     "loss_cycles": 4,
+     "cash_share_mean": 0.603,
+     "sum_profit_seeds": 0.709,
+     "sum_loss_refill_seeds": 0.289
+    }
+   },
+   "stress_compound": {
+    "2000형(닷컴 고점)": {
+     "cagr_usd": -0.2449,
+     "mult_usd": 0.246,
+     "cagr_krw": -0.2647,
+     "mult_krw": 0.215,
+     "mdd_equity": -0.8863,
+     "min_vs_start": -0.8814
+    },
+    "2008형(금융위기 전)": {
+     "cagr_usd": -0.0251,
+     "mult_usd": 0.88,
+     "cagr_krw": 0.011,
+     "mult_krw": 1.056,
+     "mdd_equity": -0.6883,
+     "min_vs_start": -0.6767
+    },
+    "2022형(긴축 하락 전)": {
+     "cagr_usd": 0.0732,
+     "mult_usd": 1.42,
+     "cagr_krw": 0.0993,
+     "mult_krw": 1.6,
+     "mdd_equity": -0.4228,
+     "min_vs_start": -0.3962
+    }
+   },
+   "rolling": {
+    "n": 493,
+    "n_done": 492,
+    "days": {
+     "p10": 10.1,
+     "med": 50.5,
+     "p90": 191.5,
+     "max": 589.0
+    },
+    "share_over_1y": 0.0163,
+    "share_over_2y": 0.0,
+    "ret": {
+     "min": -0.6267,
+     "p10": -0.0105,
+     "med": 0.0298
+    },
+    "loss_share": 0.1199,
+    "min_eq": {
+     "worst": -0.7859,
+     "p10": -0.1455,
+     "med": -0.0214
+    },
+    "exhaust_share": 0.1339,
+    "worst": [
+     {
+      "start": "2000-09-01",
+      "done": true,
+      "days": 262,
+      "ret": -0.626741921778059,
+      "min_eq": -0.7858720509033523,
+      "exhaust": 4,
+      "syn": true
+     },
+     {
+      "start": "2002-03-01",
+      "done": true,
+      "days": 236,
+      "ret": -0.48807284605144785,
+      "min_eq": -0.6193874750190007,
+      "exhaust": 5,
+      "syn": true
+     },
+     {
+      "start": "2008-09-02",
+      "done": true,
+      "days": 157,
+      "ret": -0.3935845277310728,
+      "min_eq": -0.5773083466672775,
+      "exhaust": 2,
+      "syn": false
+     }
+    ],
+    "longest": [
+     {
+      "start": "2016-06-01",
+      "done": true,
+      "days": 589,
+      "ret": 0.3349449326256062,
+      "min_eq": -0.05005787714989807,
+      "exhaust": 0,
+      "syn": false
+     },
+     {
+      "start": "2016-07-01",
+      "done": true,
+      "days": 559,
+      "ret": 0.3154920127221934,
+      "min_eq": -0.0008246832130988091,
+      "exhaust": 0,
+      "syn": false
+     },
+     {
+      "start": "2016-08-01",
+      "done": true,
+      "days": 528,
+      "ret": 0.292744346893405,
+      "min_eq": -0.014604783070664151,
+      "exhaust": 0,
+      "syn": false
+     }
+    ]
+   },
+   "fill_sens": {
+    "base": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0947,
+      "longest_cycle": {
+       "start": "2016-07-15",
+       "end": "2018-01-11",
+       "days": 545,
+       "ret": 0.2999,
+       "min_eq": -0.0036,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.6646,
+      "n_cycles": 76
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1474,
+      "longest_cycle": {
+       "start": "2016-07-15",
+       "end": "2018-01-11",
+       "days": 545,
+       "ret": 0.2999,
+       "min_eq": -0.0036,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.3889,
+      "n_cycles": 61
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0782,
+      "longest_cycle": {
+       "start": "2016-07-15",
+       "end": "2018-01-11",
+       "days": 545,
+       "ret": 0.2999,
+       "min_eq": -0.0036,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.7875,
+      "n_cycles": 207
+     }
+    },
+    "고가−0.5%": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0949,
+      "longest_cycle": {
+       "start": "2016-07-19",
+       "end": "2018-01-11",
+       "days": 541,
+       "ret": 0.3049,
+       "min_eq": -0.0023,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.6646,
+      "n_cycles": 75
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1373,
+      "longest_cycle": {
+       "start": "2016-07-19",
+       "end": "2018-01-11",
+       "days": 541,
+       "ret": 0.3049,
+       "min_eq": -0.0023,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.3889,
+      "n_cycles": 60
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0795,
+      "longest_cycle": {
+       "start": "2016-07-19",
+       "end": "2018-01-11",
+       "days": 541,
+       "ret": 0.3049,
+       "min_eq": -0.0023,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.7875,
+      "n_cycles": 197
+     }
+    },
+    "고가=종가(장중 체결 없음)": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0945,
+      "longest_cycle": {
+       "start": "2016-07-19",
+       "end": "2018-01-11",
+       "days": 541,
+       "ret": 0.3049,
+       "min_eq": -0.0023,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.6525,
+      "n_cycles": 69
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1383,
+      "longest_cycle": {
+       "start": "2016-07-19",
+       "end": "2018-01-11",
+       "days": 541,
+       "ret": 0.3049,
+       "min_eq": -0.0023,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.3889,
+      "n_cycles": 55
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0769,
+      "longest_cycle": {
+       "start": "2016-07-19",
+       "end": "2018-01-11",
+       "days": 541,
+       "ret": 0.3049,
+       "min_eq": -0.0023,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.7875,
+      "n_cycles": 177
+     }
+    }
+   },
+   "orig_engine_ref": {
+    "real": {
+     "krw_irr_fixed_seed": 0.0958,
+     "max_eval_loss_vs_seed": -0.6646,
+     "n_cycles": 76
+    },
+    "common_tqqq": {
+     "krw_irr_fixed_seed": 0.1493,
+     "max_eval_loss_vs_seed": -0.3889,
+     "n_cycles": 61
+    }
+   }
+  },
+  "B_TQQQ그대로(15−1.5T,+15%)": {
+   "real": {
+    "start": "2006-06-22",
+    "end": "2026-10-20",
+    "years": 20.33,
+    "n_cycles": 21,
+    "open_cycle": {
+     "start": "2026-05-11",
+     "end": null,
+     "days": 162,
+     "ret": 0.0632,
+     "min_eq": -0.0551,
+     "exhaust": 0,
+     "T": 10.45,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.4179,
+     "p10": -0.0686,
+     "med": 0.0605,
+     "p90": 0.2617,
+     "max": 0.847
+    },
+    "cycle_days": {
+     "min": 22.0,
+     "p10": 28.0,
+     "med": 179.0,
+     "p90": 1005.0,
+     "max": 1656.0
+    },
+    "cycle_ann_med": 0.2446,
+    "usd_irr_fixed_seed": 0.0914,
+    "krw_irr_fixed_seed": 0.0955,
+    "krw_irr_fixed_seed_after_tax": 0.0816,
+    "max_eval_loss_vs_seed": -0.5919,
+    "worst_cycle": {
+     "start": "2006-06-22",
+     "end": "2009-03-23",
+     "days": 1005,
+     "ret": -0.4179,
+     "min_eq": -0.5919,
+     "exhaust": 3
+    },
+    "longest_cycle": {
+     "start": "2015-10-29",
+     "end": "2020-05-11",
+     "days": 1656,
+     "ret": 0.7633,
+     "min_eq": -0.1692,
+     "exhaust": 3
+    },
+    "exhaust_events": 10,
+    "exhaust_cycles": 4,
+    "exhaust_realized_loss_vs_seed": -0.748,
+    "exhaust_cycles_ret": [
+     -0.4179,
+     0.7633,
+     -0.1307,
+     -0.0686
+    ],
+    "syn_cycles": 0,
+    "loss_cycles": 3,
+    "cash_share_mean": 0.616,
+    "sum_profit_seeds": 3.184,
+    "sum_loss_refill_seeds": 0.617
+   },
+   "compound_real": {
+    "cagr_usd": 0.1013,
+    "mult_usd": 7.114,
+    "cagr_krw": 0.1198,
+    "mult_krw": 9.974,
+    "mdd_equity": -0.679,
+    "min_vs_start": -0.5919
+   },
+   "common_tqqq": {
+    "start": "2010-02-12",
+    "end": "2026-10-20",
+    "years": 16.68,
+    "n_cycles": 17,
+    "open_cycle": {
+     "start": "2026-05-11",
+     "end": null,
+     "days": 162,
+     "ret": 0.0632,
+     "min_eq": -0.0551,
+     "exhaust": 0,
+     "T": 10.45,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.1307,
+     "p10": -0.0062,
+     "med": 0.0815,
+     "p90": 0.4623,
+     "max": 0.847
+    },
+    "cycle_days": {
+     "min": 22.0,
+     "p10": 27.8,
+     "med": 209.0,
+     "p90": 821.6,
+     "max": 1656.0
+    },
+    "cycle_ann_med": 0.1798,
+    "usd_irr_fixed_seed": 0.1501,
+    "krw_irr_fixed_seed": 0.1513,
+    "krw_irr_fixed_seed_after_tax": 0.1286,
+    "max_eval_loss_vs_seed": -0.271,
+    "worst_cycle": {
+     "start": "2021-11-08",
+     "end": "2022-07-29",
+     "days": 263,
+     "ret": -0.1307,
+     "min_eq": -0.271,
+     "exhaust": 1
+    },
+    "longest_cycle": {
+     "start": "2015-10-29",
+     "end": "2020-05-11",
+     "days": 1656,
+     "ret": 0.7633,
+     "min_eq": -0.1692,
+     "exhaust": 3
+    },
+    "exhaust_events": 7,
+    "exhaust_cycles": 3,
+    "exhaust_realized_loss_vs_seed": -0.2448,
+    "exhaust_cycles_ret": [
+     0.7633,
+     -0.1307,
+     -0.0686
+    ],
+    "syn_cycles": 0,
+    "loss_cycles": 2,
+    "cash_share_mean": 0.625,
+    "sum_profit_seeds": 2.915,
+    "sum_loss_refill_seeds": 0.199
+   },
+   "compound_common_tqqq": {
+    "cagr_usd": 0.1445,
+    "mult_usd": 9.499,
+    "cagr_krw": 0.1541,
+    "mult_krw": 10.923,
+    "mdd_equity": -0.3519,
+    "min_vs_start": -0.074
+   },
+   "full": {
+    "start": "1985-10-02",
+    "end": "2026-10-20",
+    "years": 41.05,
+    "n_cycles": 88,
+    "open_cycle": {
+     "start": "2026-05-11",
+     "end": null,
+     "days": 162,
+     "ret": 0.0632,
+     "min_eq": -0.0551,
+     "exhaust": 0,
+     "T": 10.45,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.6763,
+     "p10": -0.0411,
+     "med": 0.0518,
+     "p90": 0.153,
+     "max": 0.847
+    },
+    "cycle_days": {
+     "min": 3.0,
+     "p10": 18.0,
+     "med": 54.0,
+     "p90": 336.6,
+     "max": 1900.0
+    },
+    "cycle_ann_med": 0.4739,
+    "usd_irr_fixed_seed": 0.0963,
+    "krw_irr_fixed_seed": 0.094,
+    "krw_irr_fixed_seed_after_tax": 0.0726,
+    "max_eval_loss_vs_seed": -0.791,
+    "worst_cycle": {
+     "start": "2000-09-01",
+     "end": "2001-11-07",
+     "days": 432,
+     "ret": -0.6763,
+     "min_eq": -0.791,
+     "exhaust": 7
+    },
+    "longest_cycle": {
+     "start": "2004-01-09",
+     "end": "2009-03-23",
+     "days": 1900,
+     "ret": -0.4376,
+     "min_eq": -0.6057,
+     "exhaust": 3
+    },
+    "exhaust_events": 38,
+    "exhaust_cycles": 11,
+    "exhaust_realized_loss_vs_seed": -2.4197,
+    "exhaust_cycles_ret": [
+     -0.2261,
+     -0.2245,
+     -0.0327,
+     0.3165,
+     -0.0976,
+     -0.6763,
+     -0.4612,
+     -0.4376,
+     0.7633,
+     -0.1307,
+     -0.0686
+    ],
+    "syn_cycles": 67,
+    "loss_cycles": 12,
+    "cash_share_mean": 0.601,
+    "sum_profit_seeds": 6.876,
+    "sum_loss_refill_seeds": 2.464
+   },
+   "compound_full": {
+    "cagr_usd": 0.0747,
+    "mult_usd": 19.223,
+    "cagr_krw": 0.085,
+    "mult_krw": 28.462,
+    "mdd_equity": -0.8886,
+    "min_vs_start": -0.27
+   },
+   "stress": {
+    "2000형(닷컴 고점)": {
+     "start": "2000-03-01",
+     "end": "2005-03-01",
+     "years": 5.0,
+     "n_cycles": 15,
+     "open_cycle": {
+      "start": "2004-01-09",
+      "end": null,
+      "days": 417,
+      "ret": -0.003,
+      "min_eq": -0.1276,
+      "exhaust": 0,
+      "T": 8.79,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.6922,
+      "p10": -0.3312,
+      "med": 0.0437,
+      "p90": 0.062,
+      "max": 0.1151
+     },
+     "cycle_days": {
+      "min": 9.0,
+      "p10": 9.8,
+      "med": 46.0,
+      "p90": 243.0,
+      "max": 428.0
+     },
+     "cycle_ann_med": 0.4775,
+     "usd_irr_fixed_seed": -0.1098,
+     "krw_irr_fixed_seed": -0.1636,
+     "krw_irr_fixed_seed_after_tax": -0.171,
+     "max_eval_loss_vs_seed": -0.7996,
+     "worst_cycle": {
+      "start": "2000-09-05",
+      "end": "2001-11-07",
+      "days": 428,
+      "ret": -0.6922,
+      "min_eq": -0.7996,
+      "exhaust": 7
+     },
+     "longest_cycle": {
+      "start": "2000-09-05",
+      "end": "2001-11-07",
+      "days": 428,
+      "ret": -0.6922,
+      "min_eq": -0.7996,
+      "exhaust": 7
+     },
+     "exhaust_events": 17,
+     "exhaust_cycles": 3,
+     "exhaust_realized_loss_vs_seed": -1.2371,
+     "exhaust_cycles_ret": [
+      -0.1362,
+      -0.6922,
+      -0.4612
+     ],
+     "syn_cycles": 15,
+     "loss_cycles": 3,
+     "cash_share_mean": 0.498,
+     "sum_profit_seeds": 0.614,
+     "sum_loss_refill_seeds": 1.29
+    },
+    "2008형(금융위기 전)": {
+     "start": "2007-10-01",
+     "end": "2012-10-01",
+     "years": 5.0,
+     "n_cycles": 6,
+     "open_cycle": {
+      "start": "2011-10-17",
+      "end": null,
+      "days": 350,
+      "ret": 0.1717,
+      "min_eq": -0.0717,
+      "exhaust": 0,
+      "T": 10.62,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.5262,
+      "p10": -0.2461,
+      "med": 0.055,
+      "p90": 0.1788,
+      "max": 0.1926
+     },
+     "cycle_days": {
+      "min": 28.0,
+      "p10": 34.5,
+      "med": 218.5,
+      "p90": 481.5,
+      "max": 539.0
+     },
+     "cycle_ann_med": 0.2232,
+     "usd_irr_fixed_seed": 0.0241,
+     "krw_irr_fixed_seed": 0.0141,
+     "krw_irr_fixed_seed_after_tax": 0.0075,
+     "max_eval_loss_vs_seed": -0.6678,
+     "worst_cycle": {
+      "start": "2007-10-01",
+      "end": "2009-03-23",
+      "days": 539,
+      "ret": -0.5262,
+      "min_eq": -0.6678,
+      "exhaust": 3
+     },
+     "longest_cycle": {
+      "start": "2007-10-01",
+      "end": "2009-03-23",
+      "days": 539,
+      "ret": -0.5262,
+      "min_eq": -0.6678,
+      "exhaust": 3
+     },
+     "exhaust_events": 3,
+     "exhaust_cycles": 1,
+     "exhaust_realized_loss_vs_seed": -0.4095,
+     "exhaust_cycles_ret": [
+      -0.5262
+     ],
+     "syn_cycles": 0,
+     "loss_cycles": 1,
+     "cash_share_mean": 0.588,
+     "sum_profit_seeds": 0.502,
+     "sum_loss_refill_seeds": 0.526
+    },
+    "2022형(긴축 하락 전)": {
+     "start": "2021-11-01",
+     "end": "2026-10-20",
+     "years": 4.97,
+     "n_cycles": 8,
+     "open_cycle": {
+      "start": "2026-05-11",
+      "end": null,
+      "days": 162,
+      "ret": 0.0632,
+      "min_eq": -0.0551,
+      "exhaust": 0,
+      "T": 10.45,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.1247,
+      "p10": -0.0855,
+      "med": 0.0868,
+      "p90": 0.1602,
+      "max": 0.1643
+     },
+     "cycle_days": {
+      "min": 22.0,
+      "p10": 90.6,
+      "med": 194.0,
+      "p90": 331.1,
+      "max": 336.0
+     },
+     "cycle_ann_med": 0.1798,
+     "usd_irr_fixed_seed": 0.0917,
+     "krw_irr_fixed_seed": 0.1182,
+     "krw_irr_fixed_seed_after_tax": 0.1024,
+     "max_eval_loss_vs_seed": -0.266,
+     "worst_cycle": {
+      "start": "2021-11-01",
+      "end": "2022-07-29",
+      "days": 270,
+      "ret": -0.1247,
+      "min_eq": -0.266,
+      "exhaust": 1
+     },
+     "longest_cycle": {
+      "start": "2025-05-14",
+      "end": "2026-04-15",
+      "days": 336,
+      "ret": 0.1643,
+      "min_eq": -0.0098,
+      "exhaust": 0
+     },
+     "exhaust_events": 4,
+     "exhaust_cycles": 2,
+     "exhaust_realized_loss_vs_seed": -0.0737,
+     "exhaust_cycles_ret": [
+      -0.1247,
+      -0.0686
+     ],
+     "syn_cycles": 0,
+     "loss_cycles": 2,
+     "cash_share_mean": 0.603,
+     "sum_profit_seeds": 0.637,
+     "sum_loss_refill_seeds": 0.193
+    }
+   },
+   "stress_compound": {
+    "2000형(닷컴 고점)": {
+     "cagr_usd": -0.2366,
+     "mult_usd": 0.259,
+     "cagr_krw": -0.2567,
+     "mult_krw": 0.227,
+     "mdd_equity": -0.8792,
+     "min_vs_start": -0.8713
+    },
+    "2008형(금융위기 전)": {
+     "cagr_usd": -0.0235,
+     "mult_usd": 0.888,
+     "cagr_krw": 0.0126,
+     "mult_krw": 1.065,
+     "mdd_equity": -0.6785,
+     "min_vs_start": -0.6678
+    },
+    "2022형(긴축 하락 전)": {
+     "cagr_usd": 0.0965,
+     "mult_usd": 1.58,
+     "cagr_krw": 0.1232,
+     "mult_krw": 1.781,
+     "mdd_equity": -0.3515,
+     "min_vs_start": -0.3249
+    }
+   },
+   "rolling": {
+    "n": 493,
+    "n_done": 487,
+    "days": {
+     "p10": 21.0,
+     "med": 169.0,
+     "p90": 1187.8,
+     "max": 1907.0
+    },
+    "share_over_1y": 0.3101,
+    "share_over_2y": 0.2033,
+    "ret": {
+     "min": -0.6763,
+     "p10": -0.4099,
+     "med": 0.0537
+    },
+    "loss_share": 0.191,
+    "min_eq": {
+     "worst": -0.791,
+     "p10": -0.585,
+     "med": -0.0553
+    },
+    "exhaust_share": 0.2982,
+    "worst": [
+     {
+      "start": "2000-09-01",
+      "done": true,
+      "days": 432,
+      "ret": -0.6763124278335048,
+      "min_eq": -0.7910085031408702,
+      "exhaust": 7,
+      "syn": true
+     },
+     {
+      "start": "2000-11-01",
+      "done": true,
+      "days": 201,
+      "ret": -0.42396266196209875,
+      "min_eq": -0.6725854207107994,
+      "exhaust": 4,
+      "syn": true
+     },
+     {
+      "start": "2007-12-03",
+      "done": true,
+      "days": 476,
+      "ret": -0.5292324291823407,
+      "min_eq": -0.6699550079690099,
+      "exhaust": 4,
+      "syn": false
+     }
+    ],
+    "longest": [
+     {
+      "start": "2004-01-02",
+      "done": true,
+      "days": 1907,
+      "ret": -0.4290506975932741,
+      "min_eq": -0.599719756342243,
+      "exhaust": 3,
+      "syn": false
+     },
+     {
+      "start": "2004-02-02",
+      "done": true,
+      "days": 1876,
+      "ret": -0.4292166539426544,
+      "min_eq": -0.5998361047600208,
+      "exhaust": 3,
+      "syn": false
+     },
+     {
+      "start": "2004-03-01",
+      "done": true,
+      "days": 1848,
+      "ret": -0.4082017691049066,
+      "min_eq": -0.5851030221766205,
+      "exhaust": 3,
+      "syn": false
+     }
+    ]
+   },
+   "fill_sens": {
+    "base": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0955,
+      "longest_cycle": {
+       "start": "2015-10-29",
+       "end": "2020-05-11",
+       "days": 1656,
+       "ret": 0.7633,
+       "min_eq": -0.1692,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.5919,
+      "n_cycles": 21
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1513,
+      "longest_cycle": {
+       "start": "2015-10-29",
+       "end": "2020-05-11",
+       "days": 1656,
+       "ret": 0.7633,
+       "min_eq": -0.1692,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.271,
+      "n_cycles": 17
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.094,
+      "longest_cycle": {
+       "start": "2004-01-09",
+       "end": "2009-03-23",
+       "days": 1900,
+       "ret": -0.4376,
+       "min_eq": -0.6057,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.791,
+      "n_cycles": 88
+     }
+    },
+    "고가−0.5%": {
+     "real": {
+      "krw_irr_fixed_seed": 0.096,
+      "longest_cycle": {
+       "start": "2015-10-29",
+       "end": "2020-05-11",
+       "days": 1656,
+       "ret": 0.7633,
+       "min_eq": -0.1692,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.5879,
+      "n_cycles": 19
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1508,
+      "longest_cycle": {
+       "start": "2015-10-29",
+       "end": "2020-05-11",
+       "days": 1656,
+       "ret": 0.7633,
+       "min_eq": -0.1692,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.2287,
+      "n_cycles": 15
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0915,
+      "longest_cycle": {
+       "start": "2004-01-12",
+       "end": "2009-03-23",
+       "days": 1897,
+       "ret": -0.4442,
+       "min_eq": -0.6103,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.791,
+      "n_cycles": 78
+     }
+    },
+    "고가=종가(장중 체결 없음)": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0964,
+      "longest_cycle": {
+       "start": "2015-10-29",
+       "end": "2020-06-09",
+       "days": 1685,
+       "ret": 0.8116,
+       "min_eq": -0.1692,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.5879,
+      "n_cycles": 17
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1502,
+      "longest_cycle": {
+       "start": "2015-10-29",
+       "end": "2020-06-09",
+       "days": 1685,
+       "ret": 0.8116,
+       "min_eq": -0.1692,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.2287,
+      "n_cycles": 13
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0831,
+      "longest_cycle": {
+       "start": "2004-01-13",
+       "end": "2009-03-23",
+       "days": 1896,
+       "ret": -0.4253,
+       "min_eq": -0.5971,
+       "exhaust": 3
+      },
+      "max_eval_loss_vs_seed": -0.7996,
+      "n_cycles": 69
+     }
+    }
+   },
+   "orig_engine_ref": {
+    "real": {
+     "krw_irr_fixed_seed": 0.1003,
+     "max_eval_loss_vs_seed": -0.581,
+     "n_cycles": 21
+    },
+    "common_tqqq": {
+     "krw_irr_fixed_seed": 0.1509,
+     "max_eval_loss_vs_seed": -0.2394,
+     "n_cycles": 17
+    }
+   }
+  },
+  "C_V2.2(10−T/2,+10%,40분할)": {
+   "real": {
+    "start": "2006-06-22",
+    "end": "2026-10-20",
+    "years": 20.33,
+    "n_cycles": 79,
+    "open_cycle": {
+     "start": "2026-09-23",
+     "end": null,
+     "days": 27,
+     "ret": -0.0216,
+     "min_eq": -0.0279,
+     "exhaust": 0,
+     "T": 15.5,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.5189,
+     "p10": 0.0133,
+     "med": 0.0314,
+     "p90": 0.0589,
+     "max": 0.1025
+    },
+    "cycle_days": {
+     "min": 6.0,
+     "p10": 22.6,
+     "med": 63.0,
+     "p90": 197.0,
+     "max": 346.0
+    },
+    "cycle_ann_med": 0.2087,
+    "usd_irr_fixed_seed": 0.0812,
+    "krw_irr_fixed_seed": 0.0836,
+    "krw_irr_fixed_seed_after_tax": 0.0742,
+    "max_eval_loss_vs_seed": -0.6698,
+    "worst_cycle": {
+     "start": "2008-04-21",
+     "end": "2009-04-02",
+     "days": 346,
+     "ret": -0.5189,
+     "min_eq": -0.6698,
+     "exhaust": 9
+    },
+    "longest_cycle": {
+     "start": "2008-04-21",
+     "end": "2009-04-02",
+     "days": 346,
+     "ret": -0.5189,
+     "min_eq": -0.6698,
+     "exhaust": 9
+    },
+    "exhaust_events": 17,
+    "exhaust_cycles": 5,
+    "exhaust_realized_loss_vs_seed": -0.8046,
+    "exhaust_cycles_ret": [
+     -0.0166,
+     -0.5189,
+     -0.1437,
+     -0.0086,
+     0.0197
+    ],
+    "syn_cycles": 0,
+    "loss_cycles": 4,
+    "cash_share_mean": 0.687,
+    "sum_profit_seeds": 2.637,
+    "sum_loss_refill_seeds": 0.688
+   },
+   "compound_real": {
+    "cagr_usd": 0.0844,
+    "mult_usd": 5.189,
+    "cagr_krw": 0.1025,
+    "mult_krw": 7.275,
+    "mdd_equity": -0.6865,
+    "min_vs_start": -0.5978
+   },
+   "common_tqqq": {
+    "start": "2010-02-12",
+    "end": "2026-10-20",
+    "years": 16.68,
+    "n_cycles": 65,
+    "open_cycle": {
+     "start": "2026-09-23",
+     "end": null,
+     "days": 27,
+     "ret": -0.0216,
+     "min_eq": -0.0279,
+     "exhaust": 0,
+     "T": 15.5,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.1437,
+     "p10": 0.0135,
+     "med": 0.0317,
+     "p90": 0.0593,
+     "max": 0.1025
+    },
+    "cycle_days": {
+     "min": 6.0,
+     "p10": 20.4,
+     "med": 68.0,
+     "p90": 191.8,
+     "max": 308.0
+    },
+    "cycle_ann_med": 0.1954,
+    "usd_irr_fixed_seed": 0.1334,
+    "krw_irr_fixed_seed": 0.1288,
+    "krw_irr_fixed_seed_after_tax": 0.114,
+    "max_eval_loss_vs_seed": -0.3433,
+    "worst_cycle": {
+     "start": "2021-11-03",
+     "end": "2022-08-01",
+     "days": 271,
+     "ret": -0.1437,
+     "min_eq": -0.3433,
+     "exhaust": 4
+    },
+    "longest_cycle": {
+     "start": "2018-05-15",
+     "end": "2019-03-19",
+     "days": 308,
+     "ret": 0.0536,
+     "min_eq": -0.1648,
+     "exhaust": 0
+    },
+    "exhaust_events": 6,
+    "exhaust_cycles": 3,
+    "exhaust_realized_loss_vs_seed": -0.205,
+    "exhaust_cycles_ret": [
+     -0.1437,
+     -0.0086,
+     0.0197
+    ],
+    "syn_cycles": 0,
+    "loss_cycles": 2,
+    "cash_share_mean": 0.702,
+    "sum_profit_seeds": 2.234,
+    "sum_loss_refill_seeds": 0.152
+   },
+   "compound_common_tqqq": {
+    "cagr_usd": 0.1273,
+    "mult_usd": 7.381,
+    "cagr_krw": 0.1368,
+    "mult_krw": 8.488,
+    "mdd_equity": -0.3569,
+    "min_vs_start": -0.035
+   },
+   "full": {
+    "start": "1985-10-02",
+    "end": "2026-10-20",
+    "years": 41.05,
+    "n_cycles": 200,
+    "open_cycle": {
+     "start": "2026-09-23",
+     "end": null,
+     "days": 27,
+     "ret": -0.0216,
+     "min_eq": -0.0279,
+     "exhaust": 0,
+     "T": 15.5,
+     "mode": "normal"
+    },
+    "cycle_ret": {
+     "min": -0.8031,
+     "p10": 0.0061,
+     "med": 0.0261,
+     "p90": 0.0533,
+     "max": 0.1025
+    },
+    "cycle_days": {
+     "min": 1.0,
+     "p10": 12.0,
+     "med": 45.0,
+     "p90": 187.0,
+     "max": 446.0
+    },
+    "cycle_ann_med": 0.291,
+    "usd_irr_fixed_seed": 0.0803,
+    "krw_irr_fixed_seed": 0.0644,
+    "krw_irr_fixed_seed_after_tax": 0.0496,
+    "max_eval_loss_vs_seed": -0.89,
+    "worst_cycle": {
+     "start": "2000-08-25",
+     "end": "2001-11-14",
+     "days": 446,
+     "ret": -0.8031,
+     "min_eq": -0.89,
+     "exhaust": 21
+    },
+    "longest_cycle": {
+     "start": "2000-08-25",
+     "end": "2001-11-14",
+     "days": 446,
+     "ret": -0.8031,
+     "min_eq": -0.89,
+     "exhaust": 21
+    },
+    "exhaust_events": 60,
+    "exhaust_cycles": 13,
+    "exhaust_realized_loss_vs_seed": -2.6007,
+    "exhaust_cycles_ret": [
+     -0.0828,
+     -0.0303,
+     -0.1496,
+     -0.0711,
+     -0.0164,
+     -0.8031,
+     -0.492,
+     -0.0023,
+     -0.0166,
+     -0.5189,
+     -0.1437,
+     -0.0086,
+     0.0197
+    ],
+    "syn_cycles": 123,
+    "loss_cycles": 14,
+    "cash_share_mean": 0.659,
+    "sum_profit_seeds": 5.455,
+    "sum_loss_refill_seeds": 2.381
+   },
+   "compound_full": {
+    "cagr_usd": 0.0422,
+    "mult_usd": 5.465,
+    "cagr_krw": 0.0523,
+    "mult_krw": 8.092,
+    "mdd_equity": -0.9414,
+    "min_vs_start": -0.5764
+   },
+   "stress": {
+    "2000형(닷컴 고점)": {
+     "start": "2000-03-01",
+     "end": "2005-03-01",
+     "years": 5.0,
+     "n_cycles": 19,
+     "open_cycle": {
+      "start": "2004-12-06",
+      "end": null,
+      "days": 85,
+      "ret": -0.04,
+      "min_eq": -0.0849,
+      "exhaust": 0,
+      "T": 20.38,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.8031,
+      "p10": -0.1115,
+      "med": 0.0277,
+      "p90": 0.0446,
+      "max": 0.0577
+     },
+     "cycle_days": {
+      "min": 15.0,
+      "p10": 20.8,
+      "med": 42.0,
+      "p90": 284.2,
+      "max": 446.0
+     },
+     "cycle_ann_med": 0.3138,
+     "usd_irr_fixed_seed": -0.1364,
+     "krw_irr_fixed_seed": -0.1857,
+     "krw_irr_fixed_seed_after_tax": -0.189,
+     "max_eval_loss_vs_seed": -0.89,
+     "worst_cycle": {
+      "start": "2000-08-25",
+      "end": "2001-11-14",
+      "days": 446,
+      "ret": -0.8031,
+      "min_eq": -0.89,
+      "exhaust": 21
+     },
+     "longest_cycle": {
+      "start": "2000-08-25",
+      "end": "2001-11-14",
+      "days": 446,
+      "ret": -0.8031,
+      "min_eq": -0.89,
+      "exhaust": 21
+     },
+     "exhaust_events": 32,
+     "exhaust_cycles": 3,
+     "exhaust_realized_loss_vs_seed": -1.3707,
+     "exhaust_cycles_ret": [
+      -0.0164,
+      -0.8031,
+      -0.492
+     ],
+     "syn_cycles": 19,
+     "loss_cycles": 3,
+     "cash_share_mean": 0.492,
+     "sum_profit_seeds": 0.503,
+     "sum_loss_refill_seeds": 1.311
+    },
+    "2008형(금융위기 전)": {
+     "start": "2007-10-01",
+     "end": "2012-10-01",
+     "years": 5.0,
+     "n_cycles": 17,
+     "open_cycle": {
+      "start": "2012-08-08",
+      "end": null,
+      "days": 54,
+      "ret": 0.0089,
+      "min_eq": -0.0004,
+      "exhaust": 0,
+      "T": 11.84,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.5189,
+      "p10": -0.0131,
+      "med": 0.0314,
+      "p90": 0.0513,
+      "max": 0.0725
+     },
+     "cycle_days": {
+      "min": 26.0,
+      "p10": 31.6,
+      "med": 70.0,
+      "p90": 192.2,
+      "max": 346.0
+     },
+     "cycle_ann_med": 0.1913,
+     "usd_irr_fixed_seed": -0.0051,
+     "krw_irr_fixed_seed": 0.0087,
+     "krw_irr_fixed_seed_after_tax": 0.0024,
+     "max_eval_loss_vs_seed": -0.6698,
+     "worst_cycle": {
+      "start": "2008-04-21",
+      "end": "2009-04-02",
+      "days": 346,
+      "ret": -0.5189,
+      "min_eq": -0.6698,
+      "exhaust": 9
+     },
+     "longest_cycle": {
+      "start": "2008-04-21",
+      "end": "2009-04-02",
+      "days": 346,
+      "ret": -0.5189,
+      "min_eq": -0.6698,
+      "exhaust": 9
+     },
+     "exhaust_events": 12,
+     "exhaust_cycles": 2,
+     "exhaust_realized_loss_vs_seed": -0.6385,
+     "exhaust_cycles_ret": [
+      -0.0531,
+      -0.5189
+     ],
+     "syn_cycles": 0,
+     "loss_cycles": 2,
+     "cash_share_mean": 0.631,
+     "sum_profit_seeds": 0.533,
+     "sum_loss_refill_seeds": 0.572
+    },
+    "2022형(긴축 하락 전)": {
+     "start": "2021-11-01",
+     "end": "2026-10-20",
+     "years": 4.97,
+     "n_cycles": 23,
+     "open_cycle": {
+      "start": "2026-09-23",
+      "end": null,
+      "days": 27,
+      "ret": -0.0216,
+      "min_eq": -0.0279,
+      "exhaust": 0,
+      "T": 15.5,
+      "mode": "normal"
+     },
+     "cycle_ret": {
+      "min": -0.1418,
+      "p10": 0.0082,
+      "med": 0.0261,
+      "p90": 0.0463,
+      "max": 0.0583
+     },
+     "cycle_days": {
+      "min": 6.0,
+      "p10": 16.0,
+      "med": 41.0,
+      "p90": 163.6,
+      "max": 273.0
+     },
+     "cycle_ann_med": 0.2623,
+     "usd_irr_fixed_seed": 0.0839,
+     "krw_irr_fixed_seed": 0.1021,
+     "krw_irr_fixed_seed_after_tax": 0.0878,
+     "max_eval_loss_vs_seed": -0.3417,
+     "worst_cycle": {
+      "start": "2021-11-01",
+      "end": "2022-08-01",
+      "days": 273,
+      "ret": -0.1418,
+      "min_eq": -0.3417,
+      "exhaust": 4
+     },
+     "longest_cycle": {
+      "start": "2021-11-01",
+      "end": "2022-08-01",
+      "days": 273,
+      "ret": -0.1418,
+      "min_eq": -0.3417,
+      "exhaust": 4
+     },
+     "exhaust_events": 6,
+     "exhaust_cycles": 3,
+     "exhaust_realized_loss_vs_seed": -0.2048,
+     "exhaust_cycles_ret": [
+      -0.1418,
+      -0.0086,
+      0.0197
+     ],
+     "syn_cycles": 0,
+     "loss_cycles": 2,
+     "cash_share_mean": 0.664,
+     "sum_profit_seeds": 0.614,
+     "sum_loss_refill_seeds": 0.15
+    }
+   },
+   "stress_compound": {
+    "2000형(닷컴 고점)": {
+     "cagr_usd": -0.3113,
+     "mult_usd": 0.155,
+     "cagr_krw": -0.3294,
+     "mult_krw": 0.136,
+     "mdd_equity": -0.932,
+     "min_vs_start": -0.927
+    },
+    "2008형(금융위기 전)": {
+     "cagr_usd": -0.0498,
+     "mult_usd": 0.775,
+     "cagr_krw": -0.0146,
+     "mult_krw": 0.929,
+     "mdd_equity": -0.6964,
+     "min_vs_start": -0.6874
+    },
+    "2022형(긴축 하락 전)": {
+     "cagr_usd": 0.0882,
+     "mult_usd": 1.522,
+     "cagr_krw": 0.1147,
+     "mult_krw": 1.715,
+     "mdd_equity": -0.356,
+     "min_vs_start": -0.3417
+    }
+   },
+   "rolling": {
+    "n": 493,
+    "n_done": 492,
+    "days": {
+     "p10": 13.0,
+     "med": 51.0,
+     "p90": 190.0,
+     "max": 439.0
+    },
+    "share_over_1y": 0.002,
+    "share_over_2y": 0.0,
+    "ret": {
+     "min": -0.812,
+     "p10": 0.0038,
+     "med": 0.0275
+    },
+    "loss_share": 0.0874,
+    "min_eq": {
+     "worst": -0.8995,
+     "p10": -0.1264,
+     "med": -0.0146
+    },
+    "exhaust_share": 0.071,
+    "worst": [
+     {
+      "start": "2000-09-01",
+      "done": true,
+      "days": 439,
+      "ret": -0.8120355760973673,
+      "min_eq": -0.899451880177984,
+      "exhaust": 20,
+      "syn": true
+     },
+     {
+      "start": "2008-05-01",
+      "done": true,
+      "days": 336,
+      "ret": -0.5405769768725865,
+      "min_eq": -0.6860803317987552,
+      "exhaust": 9,
+      "syn": false
+     },
+     {
+      "start": "2002-03-01",
+      "done": true,
+      "days": 248,
+      "ret": -0.5244803310505444,
+      "min_eq": -0.677509737069506,
+      "exhaust": 10,
+      "syn": true
+     }
+    ],
+    "longest": [
+     {
+      "start": "2000-09-01",
+      "done": true,
+      "days": 439,
+      "ret": -0.8120355760973673,
+      "min_eq": -0.899451880177984,
+      "exhaust": 20,
+      "syn": true
+     },
+     {
+      "start": "2008-05-01",
+      "done": true,
+      "days": 336,
+      "ret": -0.5405769768725865,
+      "min_eq": -0.6860803317987552,
+      "exhaust": 9,
+      "syn": false
+     },
+     {
+      "start": "2002-01-02",
+      "done": true,
+      "days": 306,
+      "ret": -0.514889611548103,
+      "min_eq": -0.6770411202840265,
+      "exhaust": 10,
+      "syn": true
+     }
+    ]
+   },
+   "fill_sens": {
+    "base": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0836,
+      "longest_cycle": {
+       "start": "2008-04-21",
+       "end": "2009-04-02",
+       "days": 346,
+       "ret": -0.5189,
+       "min_eq": -0.6698,
+       "exhaust": 9
+      },
+      "max_eval_loss_vs_seed": -0.6698,
+      "n_cycles": 79
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1288,
+      "longest_cycle": {
+       "start": "2018-05-15",
+       "end": "2019-03-19",
+       "days": 308,
+       "ret": 0.0536,
+       "min_eq": -0.1648,
+       "exhaust": 0
+      },
+      "max_eval_loss_vs_seed": -0.3433,
+      "n_cycles": 65
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0644,
+      "longest_cycle": {
+       "start": "2000-08-25",
+       "end": "2001-11-14",
+       "days": 446,
+       "ret": -0.8031,
+       "min_eq": -0.89,
+       "exhaust": 21
+      },
+      "max_eval_loss_vs_seed": -0.89,
+      "n_cycles": 200
+     }
+    },
+    "고가−0.5%": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0848,
+      "longest_cycle": {
+       "start": "2008-04-21",
+       "end": "2009-04-02",
+       "days": 346,
+       "ret": -0.5189,
+       "min_eq": -0.6698,
+       "exhaust": 9
+      },
+      "max_eval_loss_vs_seed": -0.6698,
+      "n_cycles": 75
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.1282,
+      "longest_cycle": {
+       "start": "2018-06-06",
+       "end": "2019-03-19",
+       "days": 286,
+       "ret": 0.043,
+       "min_eq": -0.1768,
+       "exhaust": 1
+      },
+      "max_eval_loss_vs_seed": -0.3433,
+      "n_cycles": 62
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0608,
+      "longest_cycle": {
+       "start": "2000-08-25",
+       "end": "2001-11-19",
+       "days": 451,
+       "ret": -0.8024,
+       "min_eq": -0.89,
+       "exhaust": 21
+      },
+      "max_eval_loss_vs_seed": -0.89,
+      "n_cycles": 191
+     }
+    },
+    "고가=종가(장중 체결 없음)": {
+     "real": {
+      "krw_irr_fixed_seed": 0.0818,
+      "longest_cycle": {
+       "start": "2008-04-29",
+       "end": "2009-04-03",
+       "days": 339,
+       "ret": -0.5397,
+       "min_eq": -0.6861,
+       "exhaust": 9
+      },
+      "max_eval_loss_vs_seed": -0.6861,
+      "n_cycles": 73
+     },
+     "common_tqqq": {
+      "krw_irr_fixed_seed": 0.131,
+      "longest_cycle": {
+       "start": "2018-06-06",
+       "end": "2019-03-20",
+       "days": 287,
+       "ret": 0.0431,
+       "min_eq": -0.1768,
+       "exhaust": 1
+      },
+      "max_eval_loss_vs_seed": -0.3433,
+      "n_cycles": 60
+     },
+     "full": {
+      "krw_irr_fixed_seed": 0.0581,
+      "longest_cycle": {
+       "start": "2000-08-25",
+       "end": "2001-11-19",
+       "days": 451,
+       "ret": -0.8024,
+       "min_eq": -0.89,
+       "exhaust": 21
+      },
+      "max_eval_loss_vs_seed": -0.89,
+      "n_cycles": 177
+     }
+    }
+   },
+   "orig_engine_ref": {
+    "real": {
+     "krw_irr_fixed_seed": 0.0825,
+     "max_eval_loss_vs_seed": -0.6698,
+     "n_cycles": 78
+    },
+    "common_tqqq": {
+     "krw_irr_fixed_seed": 0.125,
+     "max_eval_loss_vs_seed": -0.3433,
+     "n_cycles": 64
+    }
+   }
+  }
+ },
+ "stress_hold": {
+  "2000형(닷컴 고점)": {
+   "QLD": {
+    "cagr_usd": -0.4653,
+    "cagr_krw": -0.4794,
+    "cagr_krw_after_tax": -0.4794,
+    "mdd": -0.9873,
+    "min_vs_start": -0.9851,
+    "mult_krw": 0.038
+   },
+   "QQQ": {
+    "cagr_usd": -0.1883,
+    "cagr_krw": -0.2096,
+    "cagr_krw_after_tax": -0.2096,
+    "mdd": -0.8296,
+    "min_vs_start": -0.8136,
+    "mult_krw": 0.309
+   }
+  },
+  "2008형(금융위기 전)": {
+   "QLD": {
+    "cagr_usd": 0.0299,
+    "cagr_krw": 0.068,
+    "cagr_krw_after_tax": 0.0567,
+    "mdd": -0.8313,
+    "min_vs_start": -0.8121,
+    "mult_krw": 1.39
+   },
+   "QQQ": {
+    "cagr_usd": 0.0637,
+    "cagr_krw": 0.1031,
+    "cagr_krw_after_tax": 0.0855,
+    "mdd": -0.534,
+    "min_vs_start": -0.5069,
+    "mult_krw": 1.633
+   }
+  },
+  "2022형(긴축 하락 전)": {
+   "QLD": {
+    "cagr_usd": 0.1641,
+    "cagr_krw": 0.1924,
+    "cagr_krw_after_tax": 0.1615,
+    "mdd": -0.6368,
+    "min_vs_start": -0.6058,
+    "mult_krw": 2.396
+   },
+   "QQQ": {
+    "cagr_usd": 0.1385,
+    "cagr_krw": 0.1662,
+    "cagr_krw_after_tax": 0.1389,
+    "mdd": -0.3512,
+    "min_vs_start": -0.3234,
+    "mult_krw": 2.146
+   }
+  }
+ },
+ "compare": {
+  "qld_hold_real": {
+   "cagr_usd": 0.2499,
+   "cagr_krw": 0.2708,
+   "cagr_krw_after_tax": 0.2555,
+   "mdd": -0.8313,
+   "min_vs_start": -0.6882,
+   "mult_krw": 130.604
+  },
+  "qqq_hold_real": {
+   "cagr_usd": 0.1641,
+   "cagr_krw": 0.1836,
+   "cagr_krw_after_tax": 0.1698,
+   "mdd": -0.534,
+   "min_vs_start": -0.3261,
+   "mult_krw": 30.783
+  },
+  "qld_hold_common_tqqq": {
+   "cagr_usd": 0.3242,
+   "cagr_krw": 0.3354,
+   "cagr_krw_after_tax": 0.3158,
+   "mdd": -0.6368,
+   "min_vs_start": -0.0742,
+   "mult_krw": 124.63
+  },
+  "qqq_hold_common_tqqq": {
+   "cagr_usd": 0.1926,
+   "cagr_krw": 0.2026,
+   "cagr_krw_after_tax": 0.1858,
+   "mdd": -0.3512,
+   "min_vs_start": -0.0247,
+   "mult_krw": 21.73
+  },
+  "qld_hold_full": {
+   "cagr_usd": 0.1876,
+   "cagr_krw": 0.199,
+   "cagr_krw_after_tax": 0.1917,
+   "mdd": -0.989,
+   "min_vs_start": -0.0666,
+   "mult_krw": 1717.926
+  },
+  "qqq_hold_full": {
+   "cagr_usd": 0.1516,
+   "cagr_krw": 0.1626,
+   "cagr_krw_after_tax": 0.1556,
+   "mdd": -0.8296,
+   "min_vs_start": -0.033,
+   "mult_krw": 485.388
+  },
+  "tqqq_ib_v40_20_cited": {
+   "real": {
+    "start": "2010-02-12",
+    "krw_irr_fixed_seed": 0.2236,
+    "krw_irr_fixed_seed_after_tax": 0.1874,
+    "max_eval_loss_vs_seed": -0.5572,
+    "longest_cycle": {
+     "start": "2017-02-22",
+     "end": "2018-01-09",
+     "days": 321,
+     "ret": 0.2796,
+     "min_eq": -0.0018,
+     "exhaust": 0
+    },
+    "exhaust_events": 18
+   },
+   "compound_real": {
+    "cagr_usd": 0.1933,
+    "mult_usd": 19.078,
+    "cagr_krw": 0.2033,
+    "mult_krw": 21.939,
+    "mdd_equity": -0.5598,
+    "min_vs_start": -0.0909
+   },
+   "compound_full": {
+    "cagr_usd": 0.0732,
+    "mult_usd": 18.177,
+    "cagr_krw": 0.0835,
+    "mult_krw": 26.912,
+    "mdd_equity": -0.9863,
+    "min_vs_start": -0.6163
+   },
+   "full_irr": 0.1252,
+   "full_irr_after_tax": 0.0981,
+   "stress_compound": {
+    "2000형(닷컴 고점)": {
+     "cagr_usd": -0.4229,
+     "mult_usd": 0.064,
+     "cagr_krw": -0.4381,
+     "mult_krw": 0.056,
+     "mdd_equity": -0.9816,
+     "min_vs_start": -0.9804
+    },
+    "2008형(금융위기 전)": {
+     "cagr_usd": -0.0385,
+     "mult_usd": 0.822,
+     "cagr_krw": -0.0028,
+     "mult_krw": 0.986,
+     "mdd_equity": -0.8389,
+     "min_vs_start": -0.8261
+    },
+    "2022형(긴축 하락 전)": {
+     "cagr_usd": 0.0827,
+     "mult_usd": 1.484,
+     "cagr_krw": 0.1091,
+     "mult_krw": 1.672,
+     "mdd_equity": -0.584,
+     "min_vs_start": -0.56
+    }
+   },
+   "stress": {
+    "2000형(닷컴 고점)": {
+     "krw_irr_fixed_seed": -0.1564,
+     "worst_cycle": {
+      "start": "2000-08-25",
+      "end": "2001-11-07",
+      "days": 439,
+      "ret": -0.918,
+      "min_eq": -0.961,
+      "exhaust": 7
+     }
+    },
+    "2008형(금융위기 전)": {
+     "krw_irr_fixed_seed": 0.0362,
+     "worst_cycle": {
+      "start": "2008-08-12",
+      "end": "2009-03-23",
+      "days": 223,
+      "ret": -0.69,
+      "min_eq": -0.8193,
+      "exhaust": 4
+     }
+    },
+    "2022형(긴축 하락 전)": {
+     "krw_irr_fixed_seed": 0.1036,
+     "worst_cycle": {
+      "start": "2022-03-30",
+      "end": "2022-07-29",
+      "days": 121,
+      "ret": -0.2896,
+      "min_eq": -0.4834,
+      "exhaust": 4
+     }
+    }
+   }
+  },
+  "qld_daily_dca_cited": {
+   "irr_krw_2006_06": 0.309,
+   "loss_vs_paid_min": -0.568,
+   "src": "reports/studies/2026-10-21_qld_daily_dca.md §1"
+  }
+ },
+ "high_proxy_check": {
+  "real_high": {
+   "krw_irr": 0.2236,
+   "cagr_krw": 0.2033,
+   "n_cycles": 63,
+   "max_eval_loss": -0.5572
+  },
+  "proxy_high": {
+   "krw_irr": 0.2264,
+   "cagr_krw": 0.204,
+   "n_cycles": 60,
+   "max_eval_loss": -0.5572
+  },
+  "day_high_ret_gap": {
+   "mean": -0.00024,
+   "mae": 0.00114
+  }
+ },
+ "high_proxy_check_prevT": {
+  "real_high": {
+   "krw_irr": 0.2251,
+   "cagr_krw": 0.2022,
+   "n_cycles": 62,
+   "max_eval_loss": -0.5572
+  },
+  "proxy_high": {
+   "krw_irr": 0.2253,
+   "cagr_krw": 0.2013,
+   "n_cycles": 60,
+   "max_eval_loss": -0.5572
+  },
+  "day_high_ret_gap": {
+   "mean": -0.00024,
+   "mae": 0.00114
+  }
+ },
+ "data_end": "2026-10-20"
+}

@@ -116,6 +116,27 @@
    "unregistered_trials": 28,
    "unregistered_note": "explore 14조건 × 숏 D+5·D+20 월별 NW 검정 = 28 (등급 상한 C). 비용·손절 격자·생존편향·자료품질은 등록 가설의 민감도라 시도에 안 셈",
    "discarded": "롱 편승 H1·H2 F, T30 숏 H3·H5 C·H4 F(평균≈0, 꼬리 손실). T100 숏 H6 B(상한) — 차입 가능성 검증전이라 모의 추적 후보로만"
+  },
+  "2026-10-21_laor_ib_qld": {
+   "topic": "laor_ib",
+   "question": "라오어 무한매수 V4.0/V2.2를 QLD(2배)에 — 파라미터 3안(2/3 스케일·TQQQ 그대로·V2.2) 사이클 수익·최대 평가손·소진(서술)",
+   "unregistered_trials": 0,
+   "unregistered_note": "3안·두 창(실 QLD 2006-06~ / TQQQ 실 구간 2010-02~)·1985~·스트레스 3구간은 결과 전 고정. 엔진은 study_laor_ib.py 그대로 import",
+   "discarded": "채택 판단 대상 아님(연구 전용 — 실계좌 레버리지 2027-04-15까지 금지)"
+  },
+  "2026-10-21_qld_daily_dca": {
+   "topic": "qld_daily_dca",
+   "question": "QLD 매일 1만원 적립 IRR·원금 대비 손실·수면기간 vs QQQ·S&P500(서술)",
+   "unregistered_trials": 0,
+   "unregistered_note": "서술 백테스트 — 가설 m 없음. 10/21 검증 요청(req-quant-9282fc25)으로 분류 추가",
+   "discarded": "채택 판단 대상 아님(연구 전용 — 실계좌 레버리지 2027-04-15까지 금지)"
+  },
+  "replication_qld_dca": {
+   "topic": "qld_daily_dca",
+   "question": "검증 데스크 독립 재현 — qld_daily_dca 숫자 일치 여부",
+   "unregistered_trials": 0,
+   "unregistered_note": "재현(새 가설 아님). 10/21 검증 요청(req-quant-9282fc25)으로 분류 추가",
+   "discarded": "—"
   }
  },
  "trials": [
@@ -245,6 +266,15 @@
    "result": "n 5,948(T100 710). H1 F(−3.1%) · H2 F(−5.1%) · H3 C(+0.4%, 중앙 +5.3%) · H4 F · H5 C · H6 B(+10.0%, IS p 0.00008, OOS +9.7%). 숏불가 상위25% 가정 시 H6 −3.1%",
    "discarded_why": "실계좌 공매도 2027-04-15까지 금지. 생존편향(현재 상장만)·차입 실측 없음 → T100 숏은 모의 추적 제안까지",
    "study": "2026-10-21_us_smallcap_spikes"
+  },
+  {
+   "date": "2026-10-21",
+   "topic": "laor_ib",
+   "hypothesis": "(서술 백테스트, 가설검정 아님) 라오어 무한매수를 QLD(나스닥100 2배)에 적용 — 파라미터 3안 [가정: A V4.0 20분할 10−T·+10%, B V4.0 20분할 15−1.5T·+15%, C V2.2 40분할 10−T/2·+10%]의 원금 고정 IRR(세후)·복리 CAGR·최대 평가손·최장 사이클·소진을 QLD 보유·QLD 매일 적립·TQQQ 무한매수·QQQ 보유와 비교",
+   "params": "QLD 1985-10~2026-10-20, 실 QLD 2006-06~ · 이전 합성(10/21 QLD 적립 연구 build_returns 재사용, spread 0.656%), 고가 = 전일 종가×(1+2×NDX 고가 수익) 근사, 주문 판정 = 직전 거래일 T(검증 지적 누수 제거, step_prevT), 체결 민감도 3종(고가 −0.5%·고가=종가), 엔진·비용·세금 가정은 study_laor_ib.py 그대로",
+   "result": "TQQQ 실 구간과 같은 창(2010-02~) 원화 복리 A 14.5%/B 15.4%/C 13.7% vs QLD 보유 33.5%·QQQ 보유 20.3%·TQQQ 무한매수(정정 엔진) 20.2%. 실 QLD 창(2006-06~) 원금 고정 원화 IRR 세후 8.2/8.2/7.4%(QLD 적립 30.9%). 원금 대비 최대 평가손(달러) −66/−59/−67%(2008). 최장 사이클 B 1,656~1,685일(1985~ 1,896~1,900일 −44%). 1985~ 원화 복리 7.7/8.5/5.2% vs QLD 보유 19.9%",
+   "discarded_why": "채택 판단 대상 아님(연구 전용). 2배는 목표가(+10~15%) 도달이 느려 현금이 60~70% 노는 비용이 3배보다 크다",
+   "study": "2026-10-21_laor_ib_qld"
   }
  ]
 }
