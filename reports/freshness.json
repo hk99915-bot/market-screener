@@ -1,44 +1,7 @@
 {
- "checked_at": "2026-10-21 10:30",
+ "checked_at": "2026-10-21 10:39",
  "n": 24,
- "late": [
-  {
-   "id": "detail_us",
-   "path": "reports/detail/US/_index.json",
-   "expected": "2026-10-20",
-   "actual": "2026-10-19",
-   "mode": "briefing screen_us (06:52 KST)",
-   "fix": "gh workflow run briefing.yml -f mode=detail_us -f commit=true",
-   "desc": "US 종목 상세 — US 마감 다음날 07:30 KST 이후"
-  },
-  {
-   "id": "latest_us",
-   "path": "reports/latest_US.md",
-   "expected": "2026-10-20",
-   "actual": "2026-10-19",
-   "mode": "briefing screen_us (06:52 KST)",
-   "fix": "gh workflow run briefing.yml -f mode=detail_us -f commit=true",
-   "desc": "US 스크리너 요약"
-  },
-  {
-   "id": "momentum_us",
-   "path": "reports/momentum_US.json",
-   "expected": "2026-10-20",
-   "actual": "2026-10-19",
-   "mode": "briefing screen_us (06:52 KST)",
-   "fix": "gh workflow run briefing.yml -f mode=detail_us -f commit=true",
-   "desc": "US 모멘텀 순위"
-  },
-  {
-   "id": "peers_us",
-   "path": "reports/peers_US.json",
-   "expected": "2026-10-20",
-   "actual": "2026-10-19",
-   "mode": "briefing screen_us (06:52 KST)",
-   "fix": "gh workflow run briefing.yml -f mode=detail_us -f commit=true",
-   "desc": "US 동종 비교"
-  }
- ],
+ "late": [],
  "regress_today": [],
  "regress_blocked": [
   {
