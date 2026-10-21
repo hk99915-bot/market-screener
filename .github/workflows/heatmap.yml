@@ -2,6 +2,7 @@ name: US heatmap
 on:
   schedule:
     # 30-minute target cadence, DST/winter both covered. Calendar gate includes early closes.
+    # 10/21 유지보수: GitHub cron 누락(10/20 18회 중 3회 실행) → 주 실행은 live.yml 미장 루프 편승(약 15분), 이 cron 은 백업.
     - cron: "12,42 13-21 * * 1-5"
   workflow_dispatch:
     inputs:

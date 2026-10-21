@@ -234,11 +234,12 @@ function squarify(items,x,y,w,h){ // items: [{v,...}] → [{...,x,y,w,h}]
     if(w>=h){ x+=thick; w-=thick; } else { y+=thick; h-=thick; } rest=rest.slice(i); }
   return out; }
 
-// US heatmap uses a separate scheduled feed; closing 5D/20D statistics remain untouched.
-let HMUS=null, HMUS_AT=0, HMUS_BUSY=false, HMUS_ERR='';
-async function heatRefreshUS(){
-  if(HMUS_BUSY||Date.now()-HMUS_AT<60000)return;
-  HMUS_BUSY=true; HMUS_AT=Date.now();
+// 1D 장중 피드 (보드 maint-heatmap 10/21 유지보수): KR = heatmap_KR.json(live.yml 국장 루프 약 5분), US = heatmap_US.json(live.yml 미장 루프 약 15분 + heatmap.yml cron 백업).
+// 5D/20D·시총·분류는 마감 통계(peers_*.json) 그대로. 피드가 없거나 지난 거래일이면 peers 종가 + '장중 미갱신' STALE.
+let HMLV={KR:null,US:null}, HMLV_AT={KR:0,US:0}, HMLV_BUSY={}, HMLV_ERR={KR:'',US:''};
+async function heatRefresh(mk){
+  if(HMLV_BUSY[mk]||Date.now()-HMLV_AT[mk]<60000)return;
+  HMLV_BUSY[mk]=true; HMLV_AT[mk]=Date.now();
   const ctrl=new AbortController(), timer=setTimeout(()=>ctrl.abort(),12000);
   const get=async file=>{
     const r=await fetch('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/'+file+'?t='+Date.now(),{signal:ctrl.signal,cache:'no-store'});
@@ -246,20 +247,37 @@ async function heatRefreshUS(){
     return r.json();
   };
   try{
-    const [q,p]=await Promise.allSettled([get('heatmap_US.json'),get('peers_US.json')]);
+    const [q,p]=await Promise.allSettled([get('heatmap_'+mk+'.json'),mk==='US'?get('peers_US.json'):Promise.reject(0)]);
     if(p.status==='fulfilled'&&Array.isArray(p.value.rows))PEERS.US=p.value;
-    if(q.status==='fulfilled'&&Array.isArray(q.value.rows)){HMUS=q.value;HMUS_ERR='';}
-    else HMUS_ERR='장중 갱신 확인 실패 · 표시된 기준시각 확인';
-  }catch(e){HMUS_ERR='장중 갱신 확인 실패 · 표시된 기준시각 확인';}
-  finally{clearTimeout(timer);HMUS_BUSY=false;if(view==='heat'&&HMK==='US')render();}
+    if(q.status==='fulfilled'&&Array.isArray(q.value.rows)){HMLV[mk]=q.value;HMLV_ERR[mk]='';}
+    else HMLV_ERR[mk]='장중 갱신 확인 실패 · 표시된 기준시각 확인';
+  }catch(e){HMLV_ERR[mk]='장중 갱신 확인 실패 · 표시된 기준시각 확인';}
+  finally{clearTimeout(timer);HMLV_BUSY[mk]=false;HMUS=HMLV.US;if(view==='heat'&&HMK===mk)render();}
 }
+let HMUS=null;   // 예전 이름 호환(check_functions 이름 보존) — 새 코드는 HMLV·heatRefresh(mk)
+function heatRefreshUS(){ return heatRefresh('US'); }
 function heatSource(mk,metric,base,live){
-  if(mk!=='US'||metric!=='r1'||!live||live.trade_date<(base.asof||''))return {rows:base.rows||[],label:(base.asof||'')+' 종가'};
+  if(metric!=='r1'||!live||!Array.isArray(live.rows)||live.trade_date<(base.asof||''))return {rows:base.rows||[],label:(base.asof||'')+' 종가',live:false};
   const quotes=new Map(live.rows.map(r=>[r.s,r]));
-  return {rows:(base.rows||[]).filter(r=>quotes.has(r.s)).map(r=>({...r,r1:quotes.get(r.s).r1})),
+  return {rows:(base.rows||[]).filter(r=>quotes.has(r.s)).map(r=>({...r,r1:quotes.get(r.s).r1})),live:true,
     label:live.trade_date+' '+(live.session==='LIVE'?'장중 스냅샷 · 지연 가능':'정규장 마감')+' · 수집 '+live.asof+' · '+live.collected+'/'+live.expected+'종목'};
 }
-setInterval(()=>{if(view==='heat'&&HMK==='US'&&!document.hidden)heatRefreshUS();},60000);
+// 히트맵 기준 배지: asofTag('기준 HH:MM · 다음 갱신') 재사용 + 장중(1D)인데 피드가 오래됐거나(KR 20분·US 45분) 없으면 ⚠ STALE '장중 미갱신'.
+// ph = mkPhase(mk).ph, now = ms — 테스트에서 주입. 다음 갱신 = 장중이면 주기(KR 5·US 15분) 다음 칸, 아니면 다음 장 시작 뒤 첫 칸(KST).
+const HMSTEP={KR:5,US:15}, HMMAX={KR:20,US:45};
+function heatBadge(mk,metric,live,src,ph,now){
+  const hm2=m=>String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+  const at=live&&live.asof?String(live.asof).replace(/ KST$/,''):'';
+  const ts=at?Date.parse(at.replace(' ','T')+':00+09:00'):NaN, age=isFinite(ts)?Math.round((now-ts)/60000):null;
+  const step=HMSTEP[mk], k=new Date(now+9*3600e3);
+  let times=[hm2(540+step)], days=[1,2,3,4,5];
+  if(ph==='live'){ times=[hm2(Math.ceil((k.getUTCHours()*60+k.getUTCMinutes()+1)/step)*step)]; days=[k.getUTCDay()]; }
+  else if(mk==='US'){ const et=tzParts(MKTZ.US,new Date(now)), ks=tzParts(MKTZ.KR,new Date(now)); let off=ks.hm-et.hm; if(ks.ds!==et.ds) off+=1440; times=[hm2((570+off+step)%1440)]; }
+  const tag=asofTag(src.live?at:(at||'—'),times,days,['heatmap_'+mk.toLowerCase()]);
+  const stale=metric==='r1'&&ph==='live'&&(!src.live||age==null||age>HMMAX[mk]);
+  return tag+(stale?` <span class="asof stale" title="장중인데 1D 피드가 ${HMMAX[mk]}분 넘게 안 바뀜 — 화면 값은 ${src.live?'마지막 수집':'전 거래일 종가'}">${tag.includes('STALE')?'':'⚠ STALE · '}장중 미갱신${age!=null?` (${age}분 전)`:''}</span>`:'');
+}
+setInterval(()=>{if(view==='heat'&&!document.hidden)heatRefresh(HMK);},60000);
 
 /* 히트맵 분류 (보드 toss-sectors, 10/21 겸이: 테마·순환매·히트맵 = 토스 섹터) — 토스 섹터 중분류(depth 1) 우선, 없는 종목은 기존 분류(peers g:
    미장 GICS·반도체, 국장 테마·KRX 업종) 폴백. 토스 섹터는 다중 소속 → 한 종목이 여러 섹터 칸에 나올 수 있다(섹터 평균은 각각 정확). */
@@ -277,10 +295,10 @@ function tsecD1(mk){ if(!TSEC) return null; if(TSEC_MAP[mk]) return TSEC_MAP[mk]
 function heatGroups(mk,rows){ const M=HMSRC==='toss'?tsecD1(mk):null; if(!M) return {rows,nT:0};
   let nT=0; const out=[]; rows.forEach(r=>{const g=M[tsecSym(mk,r.s)]; if(g){ nT++; g.forEach(x=>out.push({...r,g:x})); } else out.push(r);}); return {rows:out,nT}; }
 function heatView(){
-  if(HMK==='US')heatRefreshUS();
+  heatRefresh(HMK);
   tsecLoad(()=>{ if(view==='heat') render(); });
   const mk=HMK; if(!PEERS[mk]){ peersLoad(mk,()=>{ if(view==='heat') render(); }); return '<div class="load">LOADING …</div>'; }
-  const source=heatSource(mk,HMM,PEERS[mk],HMUS);
+  const source=heatSource(mk,HMM,PEERS[mk],HMLV[mk]), hb=heatBadge(mk,HMM,HMLV[mk],source,mkPhase(mk).ph,Date.now());
   const rows0=source.rows.filter(r=>r[HMM]!=null&&(r.mc||0)>0);
   const HG=heatGroups(mk,rows0), rows=HG.rows;
   const old=mk==='US'?'GICS 섹터·반도체(기존)':'테마·KRX 업종(기존)';
@@ -309,8 +327,8 @@ function heatView(){
     document.querySelectorAll('[data-hmsrc]').forEach(b=>b.onclick=()=>{HMSRC=b.dataset.hmsrc;HMG=null;render();});
     document.querySelectorAll('text.hg').forEach(t=>t.onclick=()=>{HMG=t.dataset.g;render();});
     const back=$('#hmback'); if(back) back.onclick=()=>{HMG=null;render();}; },0);
-  return `<div class="grid"><div class="p c12"><h2>HEATMAP<small>${esc(source.label)}</small></h2><div class="b">
-    <div class="mu">${mk==='US'?esc(HMUS_ERR||'장중 목표 30분 간격 · 휴장 제외 · 5D/20D는 마감 기준'):''}</div><div class="ovl">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)}<span class="mu" style="margin:0 4px">|</span>${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}<span class="mu" style="margin:0 4px">|</span>${btn('hms','mc',mk==='KR'?'시총 크기':'거래대금 크기',HMS)}${btn('hms','eq','같은 크기',HMS)}<span class="mu" style="margin:0 4px">|</span>${btn('hmn',10,'상위10',HMN)}${btn('hmn',25,'상위25',HMN)}${btn('hmn',60,'상위60',HMN)}<span class="mu" style="margin:0 4px">|</span>${btn('hmsrc','toss','토스 섹터',HMSRC)}${btn('hmsrc','old','기존 분류',HMSRC)}</div>
+  return `<div class="grid"><div class="p c12"><h2>HEATMAP<small>${esc(source.label)} · ${hb}</small></h2><div class="b">
+    <div class="mu">${esc(HMLV_ERR[mk]||(mk==='US'?'1D 장중 약 15분 간격(live 루프·cron 백업) · 휴장 제외 · 5D/20D는 마감 기준':'1D 장중 약 5분 간격(live 루프, 네이버 현재가) · 5D/20D·시총은 전 거래일 마감 기준'))}</div><div class="ovl">${btn('hmk','KR','국장',HMK)}${btn('hmk','US','미장',HMK)}<span class="mu" style="margin:0 4px">|</span>${btn('hmm','r1','1D',HMM)}${btn('hmm','r5','5D',HMM)}${btn('hmm','r20','20D',HMM)}<span class="mu" style="margin:0 4px">|</span>${btn('hms','mc',mk==='KR'?'시총 크기':'거래대금 크기',HMS)}${btn('hms','eq','같은 크기',HMS)}<span class="mu" style="margin:0 4px">|</span>${btn('hmn',10,'상위10',HMN)}${btn('hmn',25,'상위25',HMN)}${btn('hmn',60,'상위60',HMN)}<span class="mu" style="margin:0 4px">|</span>${btn('hmsrc','toss','토스 섹터',HMSRC)}${btn('hmsrc','old','기존 분류',HMSRC)}</div>
     <div class="mu" id="hmsrc" style="font-size:11px;margin:2px 0">${srcLab}</div>
     ${HMG?`<div style="margin:4px 0"><button id="hmback" class="tag">← 전체 보기</button> <b>${esc(HMG)}</b> 확대 중</div>`:'<div class="mu" style="font-size:11px;margin:4px 0">테마 이름을 누르면 그 테마만 확대 · 종목을 누르면 상세</div>'}
     <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;max-width:100%;height:auto;font-family:inherit">${svg}</svg>
