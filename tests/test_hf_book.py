@@ -58,3 +58,16 @@ def test_stop_closes():
     finally:
         D["fut"] = 900.0
     assert out and out[0]["exit_why"].startswith("손절") and out[0]["r"] < -1
+
+
+def test_us_es_and_spx_put(monkeypatch):
+    U = {"date": "2026-10-20", "spx": 7700.0, "ndx": 26400.0, "iv": 0.18, "usdkrw": 1325.0}
+    monkeypatch.setattr(H, "us_last", lambda: dict(U))
+    b = {"open": [], "closed": []}
+    p = H.add(b, _a(kind="es", stop=7550.0, t1=7950.0))
+    assert p["market"] == "US" and p["entry"] == 7700.0 and "계약" in H.qty(p)
+    o = H.add(b, _a(kind="spx_put", strike=7300.0, expiry="2026-11-20", stop=None))
+    assert 0 < o["entry"] < 7700 and o["stop"] is None
+    with pytest.raises(SystemExit):
+        H.add(b, _a(kind="spx_call", side="숏", strike=8000.0, expiry="2026-11-20"))
+    assert H.open_risk(b) <= H.RISK_ALL + 1e-9

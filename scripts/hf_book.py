@@ -9,6 +9,8 @@
 상태 reports/hf_discretion.json. 가상 1단위 모의 — 실계좌 주문 아님. 체계 북(screener/alphabook.py)과 따로 채점.
 가격: 주식 = screener.prices.load_kr 종가, 선물 = data/deriv/daily.csv fut_close(없으면 k200_close),
 옵션 = 코스피200 블랙숄즈(σ = atm_iv, 없으면 VKOSPI/100, r 2.5%) — 실제 호가 아님(근사 표기).
+미장(10/21 겸이 지정): us_stock = reports/detail/US 종가, es/nq = macro_series SPX·NASDAQ 종합(NQ 근사), spx_put/spx_call = SPX 블랙숄즈(σ = VIX/100).
+한도는 국장·미장 합산(열린 리스크 1.0%).
 가상 AUM 1,000억(계약 수 표기용). 한도: 1건 리스크 0.25% · 열린 리스크 합 1.0% · 동시 6건. 옵션 매수는 프리미엄 전액 = 리스크.
 """
 from __future__ import annotations
@@ -28,8 +30,12 @@ RISK_1, RISK_ALL, MAX_OPEN = 0.0025, 0.01, 6
 AUM = 100_000_000_000      # 가상 AUM 1,000억원(겸이 10/21 지정 — 계약 수 감 잡기용, 실제 돈 아님)
 MULT = 250_000             # 코스피200 선물·옵션 승수(원/pt)
 RATE = 0.025
-COST = {"stock": 0.0045, "fut": 0.0004, "put": 0.02, "call": 0.02}   # 왕복(옵션은 프리미엄 대비 호가 폭 가정)
-HOLD = {"stock": 20, "fut": 10}
+COST = {"stock": 0.0045, "fut": 0.0004, "put": 0.02, "call": 0.02,      # 왕복(옵션은 프리미엄 대비 호가 폭 가정)
+        "us_stock": 0.002, "es": 0.0002, "nq": 0.0002, "spx_put": 0.01, "spx_call": 0.01}
+HOLD = {"stock": 20, "fut": 10, "us_stock": 20, "es": 10, "nq": 10}
+OPT = ("put", "call", "spx_put", "spx_call")
+US = ("us_stock", "es", "nq", "spx_put", "spx_call")
+US_MULT = {"es": 50, "nq": 20, "spx_put": 100, "spx_call": 100}   # 달러/pt (NQ 는 나스닥 종합으로 근사)
 
 
 def ncdf(x):
@@ -72,7 +78,30 @@ def stock_last(code: str) -> tuple[str, float, str]:
     return str(df["date"][-1])[:10], float(df["close"][-1]), nm
 
 
+def us_last() -> dict:
+    """미장 기준값 — reports/macro_series.json (SPX·NASDAQ 종합·VIX·USDKRW 마지막 봉)."""
+    s = json.loads((ROOT / "reports" / "macro_series.json").read_text(encoding="utf-8"))["series"]
+    c = lambda k: s[k][-1][4]  # noqa: E731
+    return {"date": s["SPX"][-1][0], "spx": c("SPX"), "ndx": c("NASDAQ"), "iv": c("VIX") / 100, "usdkrw": c("USDKRW")}
+
+
+def us_stock_last(t: str) -> tuple[str, float]:
+    from screener.fwd_perf import us_bars
+    bars = us_bars([t]).get(t)
+    if not bars:
+        raise SystemExit(f"가격 없음: {t} (reports/detail/US/{t}.json)")
+    return bars[-1]["date"][:10], float(bars[-1]["close"])
+
+
 def price(p: dict, d: dict) -> float:
+    if p["kind"] in US:
+        u = us_last()
+        if p["kind"] == "us_stock":
+            return us_stock_last(p["code"])[1]
+        if p["kind"] in ("es", "nq"):
+            return u["spx"] if p["kind"] == "es" else u["ndx"]
+        t = (date.fromisoformat(p["expiry"]) - date.fromisoformat(u["date"])).days / 365
+        return bs(p["kind"][4:], u["spx"], p["strike"], t, u["iv"])
     if p["kind"] == "stock":
         return stock_last(p["code"])[1]
     if p["kind"] == "fut":
@@ -109,6 +138,20 @@ def add(b: dict, a) -> dict:
     elif a.kind == "fut":
         px = d["fut"]
         p.update(code="K200F", name="코스피200 선물", asof=d["date"])
+    elif a.kind == "us_stock":
+        dt, px = us_stock_last(a.code)
+        p.update(code=a.code, name=a.name or a.code, asof=dt, market="US")
+    elif a.kind in ("es", "nq"):
+        u = us_last()
+        px = u["spx"] if a.kind == "es" else u["ndx"]
+        p.update(code=a.kind.upper(), name="S&P500 선물(ES)" if a.kind == "es" else "나스닥 선물(NQ, 종합지수 근사)", asof=u["date"], market="US")
+    elif a.kind in ("spx_put", "spx_call"):
+        if a.side != "롱":
+            raise SystemExit("옵션 매도는 금지 — 꼬리 위험 (reports/studies/2026-10-21_hf_ls_vol.md V1)")
+        u = us_last()
+        p.update(code="SPXO", name=f"S&P500 {'풋' if a.kind == 'spx_put' else '콜'} {a.strike:g} ({a.expiry})",
+                 strike=a.strike, expiry=a.expiry, asof=u["date"], iv=round(u["iv"], 4), spot=u["spx"], market="US")
+        px = price(p, d)
     else:
         if a.side != "롱":
             raise SystemExit("옵션 매도는 금지 — 국장 VRP ≈ 0 (reports/studies/2026-10-21_hf_ls_vol.md V1)")
@@ -116,7 +159,7 @@ def add(b: dict, a) -> dict:
                  strike=a.strike, expiry=a.expiry, asof=d["date"], iv=round(d["iv"], 4), spot=d["k200"])
         px = price(p, d)
     p["entry"] = round(px, 4)
-    if a.kind in ("put", "call"):
+    if a.kind in OPT:
         p.update(stop=None, t1=round(px * 2, 4), r_unit=px, weight=round(risk, 5), risk=round(risk, 5), hold=None)
     else:
         if a.stop is None or (a.stop - px) * sgn >= 0:
@@ -145,8 +188,8 @@ def mark(b: dict) -> list[dict]:
         p["days"] += 1
         sgn = 1 if p["side"] == "롱" else -1
         why = None
-        if p["kind"] in ("put", "call"):
-            if d["date"] >= p["expiry"]:
+        if p["kind"] in OPT:
+            if (us_last()["date"] if p["kind"] in US else d["date"]) >= p["expiry"]:
                 why = "만기"
             elif px >= p["t1"]:
                 why = "프리미엄 2배 — 절반 아니고 전량 익절(재량 북 단순화)"
@@ -158,7 +201,7 @@ def mark(b: dict) -> list[dict]:
             elif p["days"] >= p["hold"]:
                 why = "시간 손절"
         if why:
-            p.update(exit=round(px, 4), exit_d=d["date"], exit_why=why, r=round(r_of(p, px), 3))
+            p.update(exit=round(px, 4), exit_d=us_last()["date"] if p["kind"] in US else d["date"], exit_why=why, r=round(r_of(p, px), 3))
             b["closed"].append(p)
             out.append(p)
         else:
@@ -170,6 +213,11 @@ def mark(b: dict) -> list[dict]:
 def qty(p: dict) -> str:
     """가상 AUM 기준 수량 — 선물·옵션 계약, 주식 주."""
     notional = AUM * p["weight"]
+    if p["kind"] in US:
+        usd = notional / us_last()["usdkrw"]
+        if p["kind"] == "us_stock":
+            return f"{usd / p['entry']:,.0f}주"
+        return f"{usd / (p['entry'] * US_MULT[p['kind']]):,.0f}계약"
     if p["kind"] == "stock":
         return f"{notional / p['entry']:,.0f}주"
     return f"{notional / (p['entry'] * MULT):,.0f}계약"
@@ -193,7 +241,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
     a1 = sp.add_parser("add")
-    a1.add_argument("--kind", choices=["stock", "fut", "put", "call"], required=True)
+    a1.add_argument("--kind", choices=["stock", "fut", "put", "call", "us_stock", "es", "nq", "spx_put", "spx_call"], required=True)
     a1.add_argument("--side", choices=["롱", "숏"], default="롱")
     a1.add_argument("--code")
     a1.add_argument("--name")

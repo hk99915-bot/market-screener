@@ -535,8 +535,9 @@ def disc_line(path: Path | None = None) -> str | None:
         sgn = 1 if p.get("side") == "롱" else -1
         r = (p["last"] - p["entry"]) * sgn / p["r_unit"] if p.get("r_unit") else 0.0
         pct = (p["last"] / p["entry"] - 1) * sgn if p.get("entry") else 0.0
-        what = {"fut": "지수 선물", "put": "지수 하락 보험", "call": "지수 상승 옵션"}.get(p.get("kind"), p.get("name") or "")
-        up = (sgn > 0) != (p.get("kind") == "put")      # 풋 보유 = 하락 쪽 노출
+        what = {"fut": "지수 선물", "put": "지수 하락 보험", "call": "지수 상승 옵션", "es": "미 S&P 선물", "nq": "미 나스닥 선물",
+                "spx_put": "미 S&P 하락 보험", "spx_call": "미 S&P 상승 옵션"}.get(p.get("kind"), p.get("name") or "")
+        up = (sgn > 0) != (p.get("kind") in ("put", "spx_put"))      # 풋 보유 = 하락 쪽 노출
         parts.append(f"{what} {'상승' if up else '하락'} 쪽 {r:+.2f}R({pct * 100:+.1f}%)")
     tail = f" · 청산 {len(cl)}건 평균 {sum(c['r'] for c in cl) / len(cl):+.2f}R" if cl else ""
     ln = f"  {DISC_PREFIX}: " + (" · ".join(parts) if parts else "포지션 없음") + tail
