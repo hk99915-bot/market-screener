@@ -137,10 +137,21 @@ jobs:
         if: always() && steps.g.outputs.commit == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          KRX_ID: ${{ secrets.KRX_ID }}             # 아래 decisions 재채점(_bars_kr → refresh_recent)용
+          KRX_PW: ${{ secrets.KRX_PW }}
+          KRX_BACKEND: ${{ vars.KRX_BACKEND || 'pykrx' }}
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
           python scripts/data_store.py push --groups signals || echo "::error::data_store push 실패 — briefing 큰 데이터가 릴리스에 저장되지 않음(data/data_store_status.json)"
+          # decisions.json(겸이·PB pick 이 들어오는 파일)은 아래 -X theirs rebase 에서 빼서 따로 저장 (포니테일 검수 10/21 #1 — 옛 판이 새 pick 을 덮을 수 있었음).
+          # 이번 실행 판은 채점 결과(result)를 지운 사본만 남기고(duel_us 새 항목·규칙 슬롯용) 작업 트리는 HEAD 로 되돌린다.
+          dec=0
+          if ! git diff --quiet HEAD -- reports/decisions.json reports/battle_scoreboard.json; then
+            python -c "import json; d=json.load(open('reports/decisions.json', encoding='utf-8')); [i.pop('result', None) for i in d.get('items', [])]; json.dump(d, open('/tmp/dec_brief.json', 'w', encoding='utf-8'), ensure_ascii=False)" || echo "::warning::decisions 사본 실패 — 원격 최신 위 재채점만"
+            git checkout HEAD -- reports/decisions.json reports/battle_scoreboard.json
+            dec=1
+          fi
           for p in reports universe data/research.parquet data/research_views.parquet data/dart.parquet data/short_hist.parquet data/data_store_manifest.json; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "briefing: ${{ steps.m.outputs.mode }} $(date -u +%FT%H:%M)"
           # 커밋 대상이 아닌 변경(예: 실행 중 교정된 data/kr_prices.parquet)이 남아 있으면 pull --rebase 가 거부돼 푸시가 조용히 실패함 → 치워둔다
@@ -148,4 +159,20 @@ jobs:
           # 역행 검사: rebase 뒤 HEAD 의 산출물 날짜가 원격 main 보다 과거면 그 파일은 원격 판으로 되돌림 (10/17 detail_us 역행 — 수동·주말 실행 포함)
           ok=0
           for i in 1 2 3 4; do git pull --rebase -X theirs origin main && python -m screener.regress_git && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
-          [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"; true
+          [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"
+          # decisions.json: live.yml 처럼 매 시도 원격 최신으로 reset → 이번 판 병합(없는 항목·슬롯만) → 원격 pick 위에서 재채점 → push
+          if [ $dec = 1 ]; then
+            dok=0
+            for i in 1 2 3; do
+              git rebase --abort 2>/dev/null || true
+              git fetch -q origin main && git reset -q --hard origin/main || { sleep 5; continue; }
+              if [ -s /tmp/dec_brief.json ]; then python scripts/merge_decisions.py live /tmp/dec_brief.json || echo "::warning::decisions 병합 실패"; fi
+              python -c "from screener import decisions; decisions.score()" || echo "::warning::decisions 재채점 실패"
+              git add reports/decisions.json reports/battle_scoreboard.json
+              if git diff --cached --quiet; then dok=1; break; fi
+              if git commit -qm "briefing: ${{ steps.m.outputs.mode }} decisions $(date -u +%FT%H:%M)" && git push -q origin HEAD:main; then dok=1; break; fi
+              sleep 5
+            done
+            [ $dok = 1 ] || echo "::warning::decisions.json 푸시 실패 — 성적표 채점이 저장되지 않음(다음 채점 회차에 다시 채점)"
+          fi
+          true
