@@ -3038,13 +3038,14 @@ function duelCurve(curve){
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:${H}px;display:block"><line x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" style="stroke:var(--line);stroke-dasharray:3 3"/>${lines}</svg>
     <div style="font-size:11px;display:flex;gap:10px;flex-wrap:wrap">${ws.map(w=>`<span><b style="color:${DUEL_COL[w]||'var(--amber)'}">━</b> ${esc(w)} ${duelPc(curve[w][curve[w].length-1][1])}</span>`).join('')}<span class="mu">${lo<0?'최저 '+duelPc(lo):''} · 점선 0%</span></div>`;
 }
-/* 요약 카드: 누적 수익률(확정 판 단순 합)·승/전·진입 판 승률·벤치마크 대비 */
+/* 요약 카드: 합계(실현+미실현)·실현(확정 판 단순 합)·미실현(보유 중 평가 합)·승/전·진입 판 승률·벤치마크 대비 */
 function duelCards(S,whoF){
   const T=(S&&S.by_who)||{}; const ws=Object.keys(T).filter(w=>!whoF||whoF(w)).sort((a,b)=>(['나','PB','나🔥','PB🔥','규칙'].indexOf(a)+9)%9-(['나','PB','나🔥','PB🔥','규칙'].indexOf(b)+9)%9);
   if(!ws.length) return '<div class="mu" style="font-size:11px">누적 성과판 생성 전</div>';
   return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px">${ws.map(w=>{const t=T[w]; return `<div style="border:1px solid var(--line);border-top:2px solid ${DUEL_COL[w]||'var(--line)'};padding:6px 8px;min-width:0">
      <div class="mu" style="font-size:11px">${esc(w)}${w==='나🔥'?DUEL_UNL:''}</div>
-     <div style="font-size:16px"><b class="${t.cum_ret>=0?'up':'dn'}">${duelPc(t.cum_ret)}</b></div>
+     <div style="font-size:16px"><b class="${(t.total!=null?t.total:t.cum_ret)>=0?'up':'dn'}">${duelPc(t.total!=null?t.total:t.cum_ret)}</b> <span class="mu" style="font-size:10.5px">합계</span></div>
+     <div style="font-size:11.5px">실현 <b class="${t.cum_ret>=0?'up':'dn'}">${duelPc(t.cum_ret)}</b> · 미실현 ${t.unrealized!=null?`<b class="${t.unrealized>=0?'up':'dn'}">${duelPc(t.unrealized)}</b>`:'—'}</div>
      <div style="font-size:11.5px">${t.win}승 / ${t.n}전 · 진입 ${t.trades}판 승률 ${t.hit!=null?Math.round(t.hit*100)+'%':'—'}</div>
      <div class="mu" style="font-size:11px">벤치 대비 ${t.avg_ex!=null?duelPc(t.avg_ex)+' (n='+t.n_ex+')':'—'}${t.open?` · 보유 ${t.open}`:''}${t.unrated?` · 미평가 ${t.unrated}`:''}</div></div>`;}).join('')}</div>`;
 }

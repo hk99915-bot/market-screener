@@ -211,12 +211,33 @@ def _score_ticket(it: dict, items: list[dict]) -> dict | None:
             "detail": f"매수가 {e:,.2f} → {when} {sell:,.2f}", "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
 
 
+def _stale_result(it: dict) -> bool:
+    """채점 뒤 바뀐 픽: 결과에 없는 참가자가 있거나, 종목 픽인데 결과가 '현금 유지'면 다시 채점."""
+    res = it.get("result") or {}
+    if res.get("void") or it.get("kind") == "ticket" or not it.get("picks"):
+        return False
+    for w, p in it["picks"].items():
+        if p.get("pending"):
+            continue
+        r = res.get(w)
+        if r is None or (p.get("ticker") and r.get("detail") == "현금 유지"):
+            return True
+    return False
+
+
 def score() -> int:
     d = load()
     n = 0
+    today = datetime.now().strftime("%Y-%m-%d")
     for it in d["items"]:
+        if it.get("result") and _stale_result(it):
+            log.info("채점 무효화(채점 뒤 제출된 픽) %s", it["id"])
+            it.pop("result")
         if it.get("result"):
             continue
+        if (it.get("kind") != "ticket" and it.get("date", "") >= today
+                and all(p.get("cash") or p.get("pending") for p in (it.get("picks") or {}).values())):
+            continue   # 당일 전원 현금 판은 마감 뒤 채점 (10/21 00:02 미리 채점돼 14:48 픽이 묻힌 사고)
         if it.get("kind") == "ticket":   # 주문표: 별도 채점 (거부된 건 기록만)
             if str(it.get("verdict", "")).startswith("⛔"):
                 it["result"] = {"void": "거부된 주문표 — 채점 제외", "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}

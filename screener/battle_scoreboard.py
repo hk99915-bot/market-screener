@@ -147,6 +147,10 @@ def _tally(rows: list[dict]) -> dict:
             "cum_ret": round(cum, 5), "comp_ret": round(comp - 1, 5),
             "avg_ex": round(sum(exs) / len(exs), 5) if exs else None, "n_ex": len(exs),
             "open": sum(1 for r in rows if r["status"] == "보유 중"),
+            # 실현 = 확정 판 합(cum_ret 와 같음) · 미실현 = 보유 중 판 평가 합(최근 확정 종가) · 합계 = 둘의 합 (판마다 같은 비중)
+            "realized": round(cum, 5),
+            "unrealized": round(sum(r["ret"] for r in rows if r["status"] == "보유 중" and r.get("ret") is not None), 5),
+            "total": round(cum + sum(r["ret"] for r in rows if r["status"] == "보유 중" and r.get("ret") is not None), 5),
             "unrated": sum(1 for r in rows if r["status"] in ("미평가", "진입 대기"))}
 
 
