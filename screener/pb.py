@@ -153,11 +153,11 @@ def isa_bucket(s: str, name: str) -> str | None:
     n = (name or "").upper()
     if s == "360750" or "S&P" in n or s in ("SPY", "IVV", "VOO", "SPLG"):
         return "S&P500"
-    if s == "133690" or "나스닥" in n or "NDX" in n or s in ("QQQ", "QQQM"):
+    if s in ("133690", "379810") or "나스닥" in n or "NDX" in n or s in ("QQQ", "QQQM"):
         return "NDX"
     if s in ("148070", "305080", "152380") or re.search(r"국고채|국채|KTB", n):
         return "KTB"
-    if s == "132030" or re.search(r"골드|금선물|GOLD", n) or s in ("GLD", "IAU"):
+    if s in ("132030", "411060") or re.search(r"골드|금선물|금현물|GOLD", n) or s in ("GLD", "IAU"):
         return "Gold"
     if s == "069500" or (re.search(r"(^|\s)200(\s|$)|코스피", n) and not re.search(r"IT|반도체|인버스|레버리지|선물인버스", n)):
         return "K200"

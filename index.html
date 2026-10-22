@@ -937,13 +937,13 @@ function myParse(txt){ const out=[]; let book='sat'; for(const ln of txt.split(/
     else { // 끝의 숫자 최대 2개 = 수량·평단, 나머지 = 종목 (이름에 공백·숫자 허용: "TIGER 200 IT 5 30000")
       let k2=p.length; const nums=[]; while(k2>1&&nums.length<2&&n(p[k2-1])!=null){ nums.unshift(n(p[k2-1])); k2--; }
       out.push({key:p.slice(0,k2).join(' '), qty:nums.length?nums[0]:0, avg:nums.length>1?nums[1]:null, book}); } } return out; }
-// ISA 코어 목표 (안건 8): S&P500 40 · NDX 10 · K200 15 · 국고채 20 · 금 15, 밴드 ±5%p
-const ISA_TARGET=[['S&P500',0.40],['NDX',0.10],['K200',0.15],['KTB',0.20],['Gold',0.15]], ISA_BAND=0.05;
+// ISA 코어 목표 (안건 8 → 10/21 C안 오너 예외): S&P500 40 · NDX 15(상한) · K200 15 · 국고채 20 · 금 10(상한), 밴드 ±5%p — screener/defs.py ISA_TARGET 과 같게
+const ISA_TARGET=[['S&P500',0.40],['NDX',0.15],['K200',0.15],['KTB',0.20],['Gold',0.10]], ISA_BAND=0.05;
 function isaBucket(s,nm){ const n=String(nm||'').toUpperCase();
   if(s==='360750'||n.includes('S&P')||['SPY','IVV','VOO','SPLG'].includes(s)) return 'S&P500';
-  if(s==='133690'||n.includes('나스닥')||n.includes('NDX')||['QQQ','QQQM'].includes(s)) return 'NDX';
+  if(['133690','379810'].includes(s)||n.includes('나스닥')||n.includes('NDX')||['QQQ','QQQM'].includes(s)) return 'NDX';
   if(['148070','305080','152380'].includes(s)||/국고채|국채|KTB/.test(n)) return 'KTB';
-  if(s==='132030'||/골드|금선물|GOLD/.test(n)||['GLD','IAU'].includes(s)) return 'Gold';
+  if(['132030','411060'].includes(s)||/골드|금선물|금현물|GOLD/.test(n)||['GLD','IAU'].includes(s)) return 'Gold';
   if(s==='069500'||(/(^|\s)200(\s|$)|코스피/.test(n)&&!/IT|반도체|인버스|레버리지/.test(n))) return 'K200';
   return null; }
 // 반도체 분류 (pb.py semi_class 와 동일): 'semi' = 한도 산입(반도체 체인·미국 반도체·반도체/IT 섹터 ETF 전액), 'elec' = 전기·IT 하드웨어(상관 테마, 보조 수치),

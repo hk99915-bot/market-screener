@@ -27,7 +27,7 @@ SEMI_BAND = 0.45          # denominator=D2 테마 밴드 발동선 45%
 LOSS_LIMIT = 0.12         # denominator=D2 누적 손실 한도 (구 규칙)
 STRESS_LIMIT = 0.15       # denominator=D2 스트레스 −15%
 ISA_BAND = 0.05           # 코어 북 목표 비중 ±5%p
-ISA_TARGET = {"S&P500": 0.40, "NDX": 0.10, "K200": 0.15, "KTB": 0.20, "Gold": 0.15}   # 코어 북 목표 (안건 8)
+ISA_TARGET = {"S&P500": 0.40, "NDX": 0.15, "K200": 0.15, "KTB": 0.20, "Gold": 0.10}   # 코어 북 목표 (안건 8 → 10/21 C안 오너 예외: NDX 15 상한·금 10 상한)
 
 # 결재 #3 (10/17 14:09 도장): 반도체 밴드 레짐 연동 — denominator=D2 (b) 투자자산+예적금
 SEMI_REGIME_CAP = {"하락장": 0.35, "회복확인": 0.40, "상승장": 0.40}   # 레짐별 목표(상한). 넘으면 반도체 신규 매수 금지
