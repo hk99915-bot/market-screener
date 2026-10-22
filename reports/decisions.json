@@ -1161,10 +1161,21 @@
      "submitted": "21:17"
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:20"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "QQQ",
+     "name": "Invesco QQQ Trust",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "same_close",
+     "by": "공격 PB",
+     "at": "21:20"
     }
    },
    "basis": {
@@ -1175,6 +1186,137 @@
      "VIX 16.68",
      "나스닥 26,703 (+1.05%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. 미 운용회의(20:54) 결론은 기본 시나리오 박스권 63%, '할 일 없음'. S&P500 7,757은 5일 고점과 같고 52주 고점 대비 -0.8%로 상단 근처라 손익비가 낮다. VIX 18.2(+9%)로 경계가 올라가는 중이며, 검증된 미장 진입 신호가 없다(후보 규칙 검증전·역방향 성적). 진입 재개 조건: S&P500 20일 저점 7,652 이탈 후 회복, 또는 검증 통과 신호.",
+    "lines": [
+     "미 운용회의 20:54: 박스권 63%, 결론 '할 일 없음'",
+     "S&P500 7,757 = 5일 고점, 52주 고점 대비 -0.8% — 상단 근처",
+     "VIX 18.2(+9%) 경계 상승, 미장 진입 후보 규칙은 검증전·역방향 성적",
+     "레드팀: 박스 상단에서 현금이면 실적 랠리로 고점 돌파 시 기회비용이 생긴다."
+    ],
+    "conviction": "보통",
+    "at": "21:20",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — committee_us 박스권 63%·할 일 없음"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "위성 북 신규 진입 불가 — 하락장 특칙·위성 해금(11/16) 전, 레버리지 금지."
+    },
+    "views_asof": "2026-10-22 19:37",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 0/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매수",
+      "b": "bull"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 5 / 축소 2",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 전",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 4건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "나스닥 전일 +1.1%·20일 -0.9%로 박스 하단 쪽, 실적 시즌 대형 기술주 기대에 하루 모멘텀 연장을 노린 모의 진입. 시가 진입·당일 종가 청산, 손절 -1.5%·목표 +2%. 근거 신호는 검증전. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.02,
+      "stop": -0.015,
+      "rr": 1.33,
+      "win_rate": null,
+      "n": null,
+      "basis": "검증전 — 일중 모멘텀 연장 가정"
+     }
+    }
    }
   }
  ],
