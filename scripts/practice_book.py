@@ -60,7 +60,9 @@ def mark(b: dict) -> list[dict]:
     for p in b["open"]:
         bars = H.bars(p["market"], p["code"])
         if p["status"] == "대기":
-            nb = [x for x in bars if x["t"][:10] > p["created"][:10] and x.get("o")]
+            cd, ct = p["created"][:10], p["created"][11:16]
+            same_ok = p["market"] == "US" and ct < "22:30"          # 미장: 같은 KST 날짜 봉 = 그날 22:30 KST 개장 세션
+            nb = [x for x in bars if (x["t"][:10] > cd or (same_ok and x["t"][:10] == cd)) and x.get("o")]
             if not nb:
                 keep.append(p)
                 continue

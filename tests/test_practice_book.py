@@ -47,3 +47,10 @@ def test_gap_stop():
 def test_bad_levels():
     with pytest.raises(SystemExit):
         P.add({"open": [], "closed": []}, "X", 120, 110, "t")
+
+
+def test_us_same_day_session_fills():
+    b = {"open": [], "closed": []}
+    P.add(b, "X", 92, 112, "t", market="US", now=datetime(2026, 10, 22, 16, 30, tzinfo=KST))
+    P.mark(b)
+    assert b["open"][0]["entry"] == 100 and b["open"][0]["entry_d"] == "2026-10-22"
