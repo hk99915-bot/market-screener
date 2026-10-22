@@ -983,10 +983,23 @@
      "submitted": "15:02"
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "15:05"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "122630",
+     "name": "KODEX 레버리지",
+     "notional": 2000000.0,
+     "entry": "close",
+     "exit": "next_open",
+     "by": "공격 PB",
+     "at": "15:05",
+     "lev_cap": "레버리지 +2배 보유 상한 1일(결재 #14)",
+     "lev_drag": "리셋 비용: KODEX 레버리지 +2배 일일 리셋 — 2일 보유·지수 ±3% 왕복 가정: 지수 -0.09% → 2배 기대 -0.18% vs 실제 -0.36% (끌림 -0.18%p). 보유 길수록·흔들릴수록 커진다"
     }
    },
    "basis": {
@@ -997,6 +1010,138 @@
      "장중 범위 안 위치 3% (0=저점, 100=고점)",
      "외국인 현물 -0.27조 · 프로그램 비차익 -4,420억"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. 코스피 14:57 5,495(-4.2%)로 급락일이나 1차 신호(종가 ≤ -5%, 등급 B)는 미충족이고 20일선 6,415 대비 -14% 아래·회복 0일로 2차 신호도 미충족. 외국인 현물 -0.27조·프로그램 비차익 -4,420억으로 매도 압력이 마감까지 이어지는 중. 진입 재개 조건: 종가 -5% 이하(1차) 또는 20일선 2일 연속 회복. stance.exec(관망)과 일치.",
+    "lines": [
+     "코스피 14:57 5,495 (-4.2%), 장중 범위 하단 3% — 1차 신호(종가 ≤ -5%) 미충족",
+     "외국인 현물 -0.27조·프로그램 비차익 -4,420억 — 마감까지 매도 압력",
+     "20일선 6,415 대비 -14%, 회복 0일 — 2차 신호 미충족",
+     "레드팀: -5% 문턱을 0.8%p 남기고 현금이면, 종가 급반등 시 기회비용이 생긴다."
+    ],
+    "conviction": "보통",
+    "at": "15:05",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 1·2차 신호 미충족(committee stance.exec)"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "위성 북 신규 진입 불가 — 실행 대본 1·2차 신호 미충족, 위성 해금(11/16) 전."
+    },
+    "crash_day_cash": false,
+    "views_asof": "2026-10-22 14:20",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 0/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매수",
+      "b": "bull"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 강세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 4 / 축소 2",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 전",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 7건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "코스피 -4.2%·장중 범위 하단 3% 위치에서 하루 기술적 반등을 노린 모의 진입. 1차 신호(-5%)에 0.8%p 못 미쳐 등급 근거는 약함(검증전). 손절 -3%(지수 -1.5%), 목표 +4%(지수 +2%). 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.04,
+      "stop": -0.03,
+      "rr": 1.33,
+      "win_rate": null,
+      "n": null,
+      "basis": "급락일 -5% 미충족 구간 — 검증전"
+     }
+    }
    }
   }
  ],
