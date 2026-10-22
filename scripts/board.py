@@ -3,6 +3,8 @@
   python scripts/board.py                      # 검증 + BOARD.md 생성
   python scripts/board.py --set lab-r2 검수     # 상태 변경 (완료/진행이면 날짜 자동 기입) + 생성
   python scripts/board.py --check              # 검증만 (잘못되면 종료코드 1)
+  python scripts/board.py --add '{"id":..,"title":..,"owner":..,"priority":"P1","status":"대기"}'
+                                               # 작업 추가 — validate 통과할 때만 기록 (생략한 선택 필드는 기본값)
 """
 from __future__ import annotations
 
@@ -90,12 +92,45 @@ def render(b: dict) -> str:
     return "\n".join(L)
 
 
+REQUIRED = ["id", "title", "owner", "priority", "status"]
+OPTIONAL_DEFAULTS = {"started": None, "due": None, "files": [], "depends_on": [], "notes": ""}
+
+
+def add_task(b: dict, task: dict) -> list[str]:
+    """task 를 b 에 추가. validate 가 통과하면 [] 를 돌려주고 b 를 바꾼다, 아니면 오류 목록만 돌려주고 b 는 그대로."""
+    miss = [f for f in REQUIRED if not task.get(f)]
+    if miss:
+        return [f"{task.get('id', '?')}: 필수 필드 없음 {miss}"]
+    t = {**{k: (v.copy() if isinstance(v, list) else v) for k, v in OPTIONAL_DEFAULTS.items()}, **task}
+    trial = {**b, "tasks": [*b.get("tasks", []), t]}
+    errs = validate(trial)
+    if errs:
+        return errs
+    b["tasks"].append(t)
+    b["updated"] = today()
+    return []
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--set", nargs=2, metavar=("ID", "STATUS"))
+    ap.add_argument("--add", metavar="JSON", help="작업 1건(JSON 객체) 추가 — validate 통과 시에만 기록")
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
     b = load()
+    if a.add:
+        try:
+            task = json.loads(a.add)
+        except ValueError as e:
+            print(f"✗ --add JSON 해석 실패: {e}", file=sys.stderr); return 1
+        if not isinstance(task, dict):
+            print("✗ --add 는 JSON 객체 1건이어야 함", file=sys.stderr); return 1
+        errs = add_task(b, task)
+        for e in errs:
+            print("✗", e, file=sys.stderr)
+        if errs:
+            return 1
+        BOARD.write_text(json.dumps(b, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if a.set:
         tid, st = a.set
         t = next((x for x in b["tasks"] if x["id"] == tid), None)
