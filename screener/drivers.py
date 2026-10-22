@@ -134,6 +134,13 @@ CHAINS: dict[str, dict] = {
     "telecom": {"name": "통신", "codes": ["017670", "030200", "032640"],
                 "proxies": [("VZ", "버라이즌", "통신 방어주", 1), ("^TNX", "미 10년물", "할인율", -1)],
                 "macro": {"US10Y": -1}},
+    # 사이버보안 (10/22 겸이 "보안이 점점 중요해질 듯") — 국내 보안 SW 는 미국 보안 플랫폼 사이클·IT 예산을 따라간다 [가정]
+    "cybersecurity": {"name": "사이버보안", "codes": ["053800", "263860", "042510", "136540", "203650", "067920", "150900"],
+                      "proxies": [("CRWD", "크라우드스트라이크", "엔드포인트 보안 동일 사이클", 1), ("PANW", "팔로알토", "네트워크·플랫폼 보안 동일 사이클", 1),
+                                  ("FTNT", "포티넷", "방화벽 장비 보안 동일 사이클", 1), ("ZS", "지스케일러", "클라우드 보안(제로트러스트) 동일 사이클", 1),
+                                  ("NET", "클라우드플레어", "엣지 네트워크·보안 동일 사이클", 1), ("CIBR", "사이버보안 ETF", "업황 심리", 1),
+                                  ("^TNX", "미 10년물", "할인율(성장 SW 밸류에이션)", -1)],
+                      "macro": {"US10Y": -1}},
     "entertainment": {"name": "엔터", "codes": ["352820", "041510", "035900", "122870"],
                       "proxies": [("LYV", "라이브네이션", "공연 수요", 1), ("SPOT", "스포티파이", "음원 수요", 1)],
                       "macro": {"KRW": 1}},
@@ -148,6 +155,8 @@ SECTOR_FALLBACK = [("기타금융", None), ("은행", "banks"), ("증권", "brok
 FACTORS = {"KOSPI": ("^KS11", "코스피"), "KRW": ("KRW=X", "원/달러(상승=원화 약세)"), "WTI": ("CL=F", "WTI 유가"),
            "US10Y": ("^TNX", "미 10년 금리"), "SOX": ("^SOX", "필라델피아 반도체"), "CU": ("HG=F", "구리"),
            "SPX": ("^GSPC", "S&P500"), "DXY": ("DX-Y.NYB", "달러인덱스")}
+# 미장 사이버보안 커버리지(universe/us_watch.csv 10/22) — 프록시 밖 종목도 사이버보안 체인에 붙인다
+US_CYBER = {"CRWD", "PANW", "FTNT", "ZS", "NET", "OKTA", "S", "CYBR", "CHKP", "QLYS", "TENB", "RPD", "VRNS", "BUG", "CIBR", "HACK"}
 US_LAG = {"WTI", "US10Y", "SOX", "CU", "SPX", "DXY"}   # 미국 장은 한국 장 마감 뒤 → 전일 값으로 맞춘다
 
 
@@ -754,6 +763,8 @@ def build(codes_info: dict[str, dict], prices: pl.DataFrame, discl: dict, news_l
                 usmap[t] = c["name"]
     for t in ("NVDA", "AMD", "AVGO", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "INTC", "QCOM", "TXN", "ADI", "MRVL", "ARM", "SMH", "SOXX", "PSI", "SOXL"):
         usmap.setdefault(t, "미국 반도체")
+    for t in US_CYBER:
+        usmap.setdefault(t, CHAINS["cybersecurity"]["name"])
     (REPORT_DIR / "chains_view.json").write_text(json.dumps({"asof": prox.get("asof"), "chains": chains, "factors": moves, "us_map": usmap},
                                                             ensure_ascii=False, default=str), encoding="utf-8")
     return out
@@ -850,6 +861,8 @@ def build_us(codes: list[str], prices: pl.DataFrame) -> dict[str, dict]:
                 usmap[t] = k
     for t in US_SEMI:
         usmap.setdefault(t, "semi_equip")
+    for t in US_CYBER:
+        usmap.setdefault(t, "cybersecurity")
     try:
         eps = fetch_us_eps(codes)
     except Exception as e:  # noqa: BLE001

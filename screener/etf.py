@@ -32,7 +32,8 @@ KR_MUST = ["114800", "252670", "122630", "069500", "102110", "139260", "091160",
 US_LIST = ["SPY", "QQQ", "DIA", "IWM", "VOO", "VTI", "SCHD", "SOXX", "SMH", "PSI", "XLK", "XLE", "XLF", "XLV", "XLY", "XLP",
            "XLI", "XLU", "XLB", "XLRE", "XLC", "TLT", "IEF", "SHY", "HYG", "JNK", "LQD", "BKLN", "BND", "GLD", "SLV", "USO", "UNG", "UUP",
            "ARKK", "TQQQ", "SQQQ", "SOXL", "SOXS", "SH", "PSQ", "SDS", "UVXY", "EEM", "EWY", "EWJ", "FXI", "KWEB", "VEA", "VWO",
-           "IBIT", "JEPI", "JEPQ", "KRE", "KBE", "ITA", "URA", "LIT", "TAN", "XBI", "IBB", "MAGS", "COPX", "GDX"]
+           "IBIT", "JEPI", "JEPQ", "KRE", "KBE", "ITA", "URA", "LIT", "TAN", "XBI", "IBB", "MAGS", "COPX", "GDX",
+           "BUG", "CIBR", "HACK"]   # 사이버보안 ETF (10/22 겸이 요청)
 # 국내 주식형 액티브 ETF (데이터 데스크 10/17 확인 명단 — 출처 등급은 git 이력 screener/active_funds.py TARGETS).
 # overlay = 커버드콜(옵션 매도 섞임) — 주식 부분만 비교.
 KR_ACTIVE = {"385720": "TIME 코스피액티브", "385710": "TIME K이노베이션액티브", "441800": "TIME Korea플러스배당액티브",
