@@ -181,12 +181,74 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
             "counts": {"total": len(ideas), **{k: v for k, v in by.items()}}, "ideas": top, "macro": macro_tilts(series)}
 
 
+WATCH = ROOT / "reports" / "hf_watch.json"
+DART_KEEP = ("수주·계약", "임원·주요주주 매매", "지분 5%", "자사주", "IR·공정공시", "실적", "타법인 투자", "정기보고서")
+
+
+def _flow_both(fn: str) -> tuple[int, int] | None:
+    import re
+    m = re.search(r"외국인 ([+-]?\d+)억 · 기관 ([+-]?\d+)억", fn or "")
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def watch_status(w: dict, root: Path = ROOT, today: date | None = None) -> dict:
+    """감시 종목 선행 조건 점검 — 켜진 조건이 있으면 '체크리스트 재실행' (매수 신호 아님, 검증전)."""
+    today = today or datetime.now(KST).date()
+    d = _load(root / "reports" / "detail" / w["market"] / f"{w['code']}.json") or {}
+    ch = [b for b in (d.get("chart") or []) if b.get("c")]
+    on, off = [], []
+    if len(ch) >= 30:
+        c = [float(b["c"]) for b in ch]
+        v = [float(b.get("v") or 0) for b in ch]
+        v20 = sum(v[-21:-1]) / 20 if len(v) > 21 else 0
+        s200 = ch[-1].get("s200")
+        r1 = c[-1] / c[-2] - 1
+        (on if v20 and v[-1] >= 2 * v20 and r1 > 0 and not (v[-1] >= 3 * v20 and c[-1] >= max(c[-20:])) else off).append(
+            f"거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 {v[-1] / v20 if v20 else 0:.1f}배 {r1 * 100:+.1f}%")
+        if s200:
+            (on if c[-1] >= float(s200) and min(c[-5:]) >= float(s200) * 0.98 else off).append(f"200일선 {float(s200):,.0f} 지지(5일 저점 −2% 안): 종가 {c[-1]:,.0f}")
+    fb = _flow_both(d.get("flow_note") or "")
+    if fb:
+        (on if fb[0] > 0 and fb[1] > 0 else off).append(f"외국인·기관 5일 동반 순매수: 외국인 {fb[0]:+d}억 · 기관 {fb[1]:+d}억")
+    peers = w.get("peers") or []
+    if peers and len(ch) >= 21:
+        def r20(code):
+            dd = _load(root / "reports" / "detail" / w["market"] / f"{code}.json") or {}
+            cc = [float(b["c"]) for b in (dd.get("chart") or []) if b.get("c")]
+            return cc[-1] / cc[-6] - 1 if len(cc) >= 6 else None
+        pr = [x for x in (r20(p) for p in peers) if x is not None]
+        me = float(ch[-1]["c"]) / float(ch[-6]["c"]) - 1
+        if pr:
+            med = sorted(pr)[len(pr) // 2]
+            (on if me > med else off).append(f"동종 대비 5일 상대강도: {me * 100:+.1f}% vs 동종 중앙 {med * 100:+.1f}%")
+    try:
+        import polars as pl
+        dart = pl.read_parquet(root / "data" / "dart.parquet").filter(pl.col("code") == w["code"])
+        dart = dart.filter(pl.col("category").is_in(list(DART_KEEP)))
+        rec = [(str(r["date"]), r["category"], r["title"]) for r in dart.sort("date", descending=True).head(5).iter_rows(named=True)
+               if (today - date.fromisoformat(str(r["date"])[:10])).days <= 7]
+        (on if rec else off).append("DART 7일: " + ("; ".join(f"{x[0]} {x[1]} {x[2]}" for x in rec) if rec else "공급계약·임원매수·지분·자사주·IR 없음"))
+    except Exception:  # noqa: BLE001
+        off.append("DART: data/dart.parquet 없음")
+    for x in w.get("industry") or []:
+        off.append("업종 선행(수동 확인): " + x)
+    return {"code": w["code"], "name": d.get("name") or w["code"], "on": on, "off": off,
+            "action": "체크리스트 재실행" if (any(x.startswith(("외국인", "거래량", "DART")) for x in on) or len(on) >= 3) else "대기", "status": "검증전 — 감시 조건(매수 신호 아님)", "reason": w.get("reason")}
+
+
+def watch_all(root: Path = ROOT) -> list[dict]:
+    ws = (_load(root / "reports" / "hf_watch.json") or {}).get("watch") or []
+    return [watch_status(w, root) for w in ws]
+
+
 def lines(o: dict) -> list[str]:
     ls = [f"아이디어 {o['asof']}: 후보 {o['counts']['total']}개 중 상위 {len(o['ideas'])}"]
     for x in o["ideas"]:
         ls.append(f"{x['rank']:>2}. [{x['type']}] {x['market']} {x['name']}{' ' + x['code'] if x.get('code') else ''} — {x['direction']} · {x['evidence']} · {x['status'].split(' — ')[0]}")
     for m in o["macro"]:
         ls.append(f" 매크로: {m['driver']} → 수혜 {m['benefit']} / 피해 {m['hurt']}")
+    for w in o.get("watch") or []:
+        ls.append(f" 감시 {w['name']}: {w['action']} — 켜짐 {len(w['on'])}: " + (" / ".join(w["on"]) if w["on"] else "없음"))
     if not o["macro"]:
         ls.append(" 매크로: 임계 넘은 변화 없음(금리 ±15bp·달러 ±1.5%·WTI ±10%·VIX +30%·원달러 ±1.5%)")
     return ls
@@ -194,6 +256,7 @@ def lines(o: dict) -> list[str]:
 
 def main():
     o = build()
+    o["watch"] = watch_all()
     OUT.write_text(json.dumps(o, ensure_ascii=False, indent=1), encoding="utf-8")
     print("\n".join(lines(o)))
 

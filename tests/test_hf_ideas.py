@@ -75,3 +75,18 @@ def test_forward_records_and_scores(tmp_path):
         assert ev[0]["fade"] > 0
     assert st["summary"]["verdict"].startswith("추적 중")
     assert F.is_s4(ch, k) and not F.is_s4(ch, k - 1)
+
+
+def test_watch_status_strong_vs_context(tmp_path):
+    ch = _chart()
+    for b in ch:
+        b["s200"] = 9_000.0
+    _write(tmp_path, "KR", "W1", ch)
+    w = {"code": "W1", "market": "KR", "reason": "t"}
+    st = I.watch_status(w, root=tmp_path)
+    assert st["action"] == "대기" and any("200일선" in x for x in st["on"])     # 배경 조건만 → 대기
+    p = tmp_path / "reports" / "detail" / "KR" / "W1.json"
+    d = json.loads(p.read_text())
+    d["flow_note"] = "5일 외국인 +12억 · 기관 +3억 — 동반 매수"
+    p.write_text(json.dumps(d, ensure_ascii=False))
+    assert I.watch_status(w, root=tmp_path)["action"] == "체크리스트 재실행"
