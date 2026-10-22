@@ -158,3 +158,16 @@ def test_us_es_and_spx_put():
     assert 0 < o["entry"] < 7700 and o["stop"] is None and o["plan"]["rr"] == 1.0
     with pytest.raises(SystemExit):
         H.add(b, _a(kind="spx_call", side="숏", strike=8000.0, expiry="2026-11-20"))
+
+
+def test_exit_next_open(monkeypatch):
+    bars = [{"t": "2026-10-20", "o": 100.0, "h": 101, "l": 99, "c": 100.0, "v": 1e9},
+            {"t": "2026-10-21", "o": 100.0, "h": 101, "l": 99, "c": 100.0, "v": 1e9}]
+    monkeypatch.setattr(H, "bars", lambda market, code: bars)
+    b = _b()
+    p = H.add(b, _a(kind="us_stock", code="XX", stop=80.0, t1=130.0))
+    p["exit_next_open"] = {"after": "2026-10-21", "why": "t"}
+    assert H.mark(b) == [] and b["open"]                       # 다음 봉 없음 → 대기
+    bars.append({"t": "2026-10-22", "o": 95.0, "h": 96, "l": 90, "c": 92.0, "v": 1e9})
+    out = H.mark(b)
+    assert out and out[0]["exit"] == 95.0 and out[0]["exit_why"].startswith("사전 결정 시가 청산") and not b["open"]

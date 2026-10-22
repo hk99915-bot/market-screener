@@ -138,6 +138,18 @@ def last_bar(p: dict) -> dict | None:
     return None
 
 
+def next_open(p: dict, after: str) -> tuple[str, float] | None:
+    """after(포함하지 않음) 다음 첫 봉의 (날짜, 시가). 주식 = 상세 차트, es/nq = macro_series SPX·NASDAQ 시가. 그 외 None."""
+    if p["kind"] in ("stock", "us_stock"):
+        bs_ = [x for x in bars(mkt(p), p["code"]) if x["t"][:10] > after and x.get("o")]
+        return (bs_[0]["t"][:10], float(bs_[0]["o"])) if bs_ else None
+    if p["kind"] in ("es", "nq"):
+        s = json.loads((ROOT / "reports" / "macro_series.json").read_text(encoding="utf-8"))["series"]["SPX" if p["kind"] == "es" else "NASDAQ"]
+        xs = [x for x in s if x[0] > after]
+        return (xs[0][0], float(xs[0][1])) if xs else None
+    return None
+
+
 def price(p: dict, d: dict) -> float:
     if p["kind"] in US:
         u = us_last()
@@ -395,9 +407,10 @@ def _idx_ret(market: str, d0: str, d1: str) -> float | None:
             s = {r["date"]: float(r["k200_close"]) for r in csv.DictReader(open(ROOT / "data" / "deriv" / "daily.csv", encoding="utf-8")) if r.get("k200_close")}
         else:
             s = {x[0]: x[4] for x in json.loads((ROOT / "reports" / "macro_series.json").read_text(encoding="utf-8"))["series"]["NASDAQ"]}
+        if d1 not in s:                              # 청산일 지수 종가가 아직 없으면 귀속 보류(0으로 잡으면 전부 알파로 오기록)
+            return None
         a = [v for k, v in sorted(s.items()) if k <= d0]
-        z = [v for k, v in sorted(s.items()) if k <= d1]
-        return z[-1] / a[-1] - 1 if a and z else None
+        return s[d1] / a[-1] - 1 if a else None
     except Exception:  # noqa: BLE001
         return None
 
@@ -407,7 +420,7 @@ def close_pos(b: dict, p: dict, px: float, d: str, why: str):
     p.update(exit=round(px, 4), exit_d=d, exit_why=why, r=round(r_of(p, px), 3))
     if p["kind"] not in OPT:
         ar = px / p["entry"] - 1
-        ir = _idx_ret(mkt(p), p.get("asof", d), d)
+        ir = ar if p["kind"] in ("fut", "es", "nq") else _idx_ret(mkt(p), p.get("asof", d), d)   # 지수 선물 = 전부 베타
         if ir is not None:
             be = p.get("beta") or 1.0
             p["attr"] = {"asset_ret": round(ar, 4), "idx_ret": round(ir, 4), "beta": be,
@@ -451,6 +464,15 @@ def mark(b: dict) -> list[dict]:
             p["mark_d"] = md
         sgn = 1 if p["side"] == "롱" else -1
         why, fill = None, px
+        xo = p.get("exit_next_open")                 # 사전 결정: 결정일 이후 첫 봉 시가에 청산
+        if xo:
+            ob = next_open(p, xo["after"])
+            if ob:
+                close_pos(b, p, ob[1], ob[0], "사전 결정 시가 청산 — " + xo["why"])
+                out.append(p)
+                continue
+            keep.append(p)
+            continue
         if p["kind"] in OPT:
             if md >= p["expiry"]:
                 why = "만기"
@@ -578,6 +600,15 @@ def main(argv=None):
         a1.add_argument("--" + k.replace("_", "-"), dest=k, type=float if k == "p_win" else str)
     a1.add_argument("--why", required=True)
     a1.add_argument("--src", required=True)
+    a2 = sp.add_parser("exit-open", help="다음 봉 시가 청산 예약(주식·es·nq)")
+    a2.add_argument("--id", required=True)
+    a2.add_argument("--after", required=True, help="이 날짜(시장 현지 거래일) 다음 첫 봉")
+    a2.add_argument("--why", required=True)
+    a3 = sp.add_parser("close-now", help="장중 수동 청산(재량) — 가격 근거 필수")
+    a3.add_argument("--id", required=True)
+    a3.add_argument("--px", type=float, required=True)
+    a3.add_argument("--d", required=True)
+    a3.add_argument("--why", required=True)
     sp.add_parser("mark")
     sp.add_parser("show")
     a = ap.parse_args(argv)
@@ -586,6 +617,19 @@ def main(argv=None):
         p = add(b, a)
         save(b)
         print(json.dumps(p, ensure_ascii=False))
+    elif a.cmd == "exit-open":
+        p = next(x for x in b["open"] if x["id"] == a.id)
+        if next_open(p, a.after) is None and p["kind"] not in ("stock", "us_stock", "es", "nq"):
+            raise SystemExit("시가 청산은 주식·es·nq 만 — 나머지는 close-now")
+        p["exit_next_open"] = {"after": a.after, "why": a.why, "at": datetime.now(KST).strftime("%Y-%m-%d %H:%M")}
+        save(b)
+    elif a.cmd == "close-now":
+        p = next(x for x in b["open"] if x["id"] == a.id)
+        b["open"] = [x for x in b["open"] if x["id"] != a.id]
+        close_pos(b, p, a.px, a.d, "장중 재량 청산 — " + a.why)
+        book_limits(b, datetime.now(KST).strftime("%Y-%m-%d"))
+        save(b)
+        print(f"청산 {p['name']} {p['r']:+.2f}R")
     elif a.cmd == "mark":
         for p in mark(b):
             print(f"청산 {p['name']} {p['r']:+.2f}R — {p['exit_why']}")
