@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-22 03:58 KST",
+ "generated_at": "2026-10-23 03:52 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,10 +16,10 @@
  "first": "2026-10-15",
  "days": [
   {
-   "date": "2026-10-22",
-   "total": 49,
+   "date": "2026-10-23",
+   "total": 47,
    "work": 2,
-   "auto": 47,
+   "auto": 45,
    "by": {
     "bot": 2
    },
@@ -30,10 +30,10 @@
      "n": 1,
      "items": [
       {
-       "sha": "ed7bcd9d",
-       "time": "00:22",
+       "sha": "78fc865a",
+       "time": "00:23",
        "kind": "bot",
-       "summary": "team: 2026-10-21T15:22 (매시)",
+       "summary": "team: 2026-10-22T15:23 (매시)",
        "areas": [
         "ops"
        ],
@@ -50,8 +50,8 @@
      "n": 1,
      "items": [
       {
-       "sha": "2423c209",
-       "time": "03:00",
+       "sha": "b225a0b3",
+       "time": "02:57",
        "kind": "bot",
        "summary": "US heatmap: scheduled quote refresh",
        "areas": [
@@ -64,16 +64,845 @@
     }
    ],
    "auto_updates": {
-    "n": 47,
-    "label": "자동 갱신 47회",
+    "n": 45,
+    "label": "자동 갱신 45회",
     "kinds": {
-     "live": 45,
-     "health": 1,
-     "briefing": 1
+     "live": 44,
+     "health": 1
     }
    },
    "tasks": {
     "ops-system": 1
+   }
+  },
+  {
+   "date": "2026-10-22",
+   "total": 235,
+   "work": 56,
+   "auto": 179,
+   "by": {
+    "bot": 13,
+    "agent": 43
+   },
+   "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 3,
+     "items": [
+      {
+       "sha": "df887faf",
+       "time": "14:00",
+       "kind": "agent",
+       "summary": "gas: 화면 HTML 을 GitHub 에서 직접 읽기 — 붙여넣기·재배포 없이 자동 반영",
+       "areas": [
+        "web"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "53aeb2f2",
+       "time": "12:46",
+       "kind": "agent",
+       "summary": "fix: ISA 코어 바구니 — 금현물(411060)·나스닥(379810) 분류 + 목표 C안(NDX 15·금 10) 반영",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": [
+        "index-split",
+        "r9-alert-grade",
+        "r3-semi-band",
+        "r14-duel-guard",
+        "audit-ring-pb",
+        "audit-1017-minor",
+        "my-tab-ledger-compare",
+        "toss-sectors"
+       ]
+      },
+      {
+       "sha": "197375af",
+       "time": "11:25",
+       "kind": "agent",
+       "summary": "fix: 대결 성적표 — 채점 뒤 제출된 픽 재채점(10/21 겸이 122630 '현금 유지' 오채점) + 실현·미실현·합계 표시",
+       "areas": [
+        "web",
+        "engine"
+       ],
+       "files": 4,
+       "tasks": [
+        "me-fire-slot",
+        "rebound-alert",
+        "order-ticket-form",
+        "index-split",
+        "px-adjust-unify",
+        "r14-duel-guard",
+        "battle-scoreboard",
+        "daily-duel-collapse",
+        "signal-scorecard"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 4,
+     "items": [
+      {
+       "sha": "972e92d8",
+       "time": "20:42",
+       "kind": "agent",
+       "summary": "dev: premarket_us 에서 미장 운용회의(build_us+HF 블록) 웹 재생성 — 실적 갭 반영, 텔레그램 없음 (req-dev-54eba83d ①)",
+       "areas": [
+        "engine"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f7ddb00d",
+       "time": "20:41",
+       "kind": "agent",
+       "summary": "maint: 52주 고점 없는 신규 상장 '고점 대비 -100%' 오표시 수정 — None 이면 '상장 6개월 미만' (req-maint-44cf5828)",
+       "areas": [
+        "engine",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "fc1bbf8a",
+       "time": "16:55",
+       "kind": "agent",
+       "summary": "dev: 사이버보안 커버리지 — ETF BUG·CIBR·HACK, 관찰 종목 10, '사이버보안' 체인",
+       "areas": [
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 5,
+       "tasks": [
+        "drivers-audit",
+        "guard-rest"
+       ]
+      },
+      {
+       "sha": "ba5eeaed",
+       "time": "12:41",
+       "kind": "agent",
+       "summary": "derivs: 베이시스 문장에 외국인 선물 순매수·원/달러 5일 변화 병기 (req-derivs-5cdb298e)",
+       "areas": [
+        "engine",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": [
+        "derivs-audit",
+        "deriv-insight"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 12,
+     "items": [
+      {
+       "sha": "b02a4e94",
+       "time": "22:41",
+       "kind": "agent",
+       "summary": "pm: 10/22 메인 대화 사용량(22:30 대조)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "313adf17",
+       "time": "19:17",
+       "kind": "bot",
+       "summary": "team: 2026-10-22T10:17 (매시)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8aca052b",
+       "time": "16:57",
+       "kind": "agent",
+       "summary": "pm: 개발 사이버보안 커버리지 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a6641acb",
+       "time": "16:56",
+       "kind": "agent",
+       "summary": "pm: 애널 BUG 리서치 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "45c3db55",
+       "time": "16:41",
+       "kind": "agent",
+       "summary": "rounds: HF↔FRM 토론(재진입·VaR 기준선) 기록·장부 3건·사용량",
+       "areas": [
+        "ops",
+        "docs",
+        "etc"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "51462a8d",
+       "time": "13:56",
+       "kind": "bot",
+       "summary": "team: 2026-10-22T04:56 (매시)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "7db3aca3",
+       "time": "12:42",
+       "kind": "agent",
+       "summary": "dev: board.py --add <json> — validate 통과 시에만 기록 + 테스트 (req-dev-89c9aeed)",
+       "areas": [
+        "ops",
+        "tools",
+        "etc"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system",
+        "watchdog-b"
+       ]
+      },
+      {
+       "sha": "35b572f0",
+       "time": "12:32",
+       "kind": "agent",
+       "summary": "pm: HF 139260 매도 의견 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "c1502389",
+       "time": "08:26",
+       "kind": "bot",
+       "summary": "team: 2026-10-21T23:26 (매시)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "f4f6bd90",
+       "time": "05:13",
+       "kind": "bot",
+       "summary": "team: 2026-10-21T20:13 (매시)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "48ab127c",
+       "time": "04:14",
+       "kind": "bot",
+       "summary": "운영 — 2026-10-21T19:14 (원격 최신 위 재생성)",
+       "areas": [
+        "ops",
+        "data"
+       ],
+       "files": 4,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "ed7bcd9d",
+       "time": "00:22",
+       "kind": "bot",
+       "summary": "team: 2026-10-21T15:22 (매시)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 9,
+     "items": [
+      {
+       "sha": "a613cc64",
+       "time": "16:31",
+       "kind": "agent",
+       "summary": "hf: 겸이 연습 장부(practice_book, 모의·금액 없음) + 첫 기록 하이닉스(다음 시가 체결 대기)",
+       "areas": [
+        "tools",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "0da84bb9",
+       "time": "16:26",
+       "kind": "agent",
+       "summary": "hf: 진입 전 세 줄 도우미(three_lines) — 코드만 넣으면 손절·목표·손익분기·경고 자동, 이유·버릴 조건은 후보에서 고르기",
+       "areas": [
+        "tools"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "54f8b40e",
+       "time": "16:17",
+       "kind": "agent",
+       "summary": "hf: 감시 목록에 BUG(사이버보안 ETF) 추가 — 데이터 없음 처리, 데이터 데스크 수집 요청",
+       "areas": [
+        "tools",
+        "data",
+        "etc"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "068aabe4",
+       "time": "15:01",
+       "kind": "agent",
+       "summary": "hf: 장중 매매 — 장중가(live·heatmap) 사용, 하이닉스 1차 롱+K200 헤지 장중 실행, 헤지 크기 수정, 장중 회차 매시 신설",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 4,
+       "tasks": [
+        "hf-alphabook"
+       ]
+      },
+      {
+       "sha": "1c868d31",
+       "time": "14:57",
+       "kind": "agent",
+       "summary": "hf: 가동 원칙 — 열린 리스크 한도 2.0%·가동률 50% 하한 경고, 아이디어 '수급 이탈 숏' 추가",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 6,
+       "tasks": [
+        "hf-alphabook"
+       ]
+      },
+      {
+       "sha": "8e845aeb",
+       "time": "12:30",
+       "kind": "agent",
+       "summary": "hf: 감시 목록(선행 조건 — 수급 전환·거래량 상승일·DART·200일선·동종 상대강도) + 비엠티 등록",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 5,
+       "tasks": [
+        "hf-alphabook"
+       ]
+      },
+      {
+       "sha": "e6d42e33",
+       "time": "11:58",
+       "kind": "agent",
+       "summary": "hf: 10-22 점심 — K200 선물 손절 −1.26R, 실적 페어 논지 실패 → 오늘 밤 시가 정리 예약, 풋 유지, 신규 없음 (exit-open·close-now·귀속 보류 수정)",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "58316451",
+       "time": "07:19",
+       "kind": "agent",
+       "summary": "hf: 아이디에이션(hf_ideas — 실적·거래량·52주·체인·매크로, S4 회피 우선)·S4 페이드 전진 추적(hf_forward, 10/22~)",
+       "areas": [
+        "tools",
+        "data"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "b6a6cbe1",
+       "time": "07:16",
+       "kind": "agent",
+       "summary": "hf: 재량 북 실무화 — 체크리스트 10칸·R:R·손익분기·E[R] 게이트·컨빅션×변동성 크기·유동성·헤지 순 리스크·북 손실 한도·S4 추격 금지·갭 체결·귀속·Brier, 위험 보고(hf_risk)",
+       "areas": [
+        "tools",
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 14,
+     "items": [
+      {
+       "sha": "e5559e0c",
+       "time": "22:31",
+       "kind": "agent",
+       "summary": "hf: 10-22 미장 회차 — 재량 없음(BUG 조건 미충족 패스, VLO 취소 유지), 페어 시가 정리 대기",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "a3ea0344",
+       "time": "20:42",
+       "kind": "agent",
+       "summary": "pb: 사내 메신저 라운드 20:41 기록 — 처리 2·닫음 1·보류 4",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d65f6ff1",
+       "time": "15:56",
+       "kind": "agent",
+       "summary": "hf: 10-22 장후 회차 — 신규 없음(늦은 숏·추격 롱 배제), 가동률 52%, 내일·미장 계획 유지",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "18f2f6d0",
+       "time": "15:40",
+       "kind": "agent",
+       "summary": "hf: VLO 조건부 롱 취소 — 미장 52주 고점 추격 초과 −0.073R(B2 F), 50일선 +12%",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "9fc18f96",
+       "time": "15:35",
+       "kind": "agent",
+       "summary": "hf: 10-22 미장 계획 사전 기록 — 페어 시가 정리, VLO 조건부 롱(conv low), WDC 패스, 지수 조건부",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "c07483b2",
+       "time": "15:33",
+       "kind": "agent",
+       "summary": "hf: 10-23 장초 시나리오 계획 사전 기록(갭업·보합·갭다운·약세 경보)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "04c75019",
+       "time": "15:14",
+       "kind": "agent",
+       "summary": "hf: 15:14 급락일 종가 조건 미충족 — 진입 없음",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "31833ef2",
+       "time": "15:08",
+       "kind": "agent",
+       "summary": "hf: 10-22 15:08 장중 회차 — 급락일 조건 미충족, 변경 없음",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "ee84ca52",
+       "time": "14:55",
+       "kind": "agent",
+       "summary": "hf: 하이닉스 분할 롱 사전 결정 — 15:55 종가 1차(1/3), 외국인 3일·실적 확인 시 추가, 풋 절반 익절로 리스크 자리",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "e34ef0ce",
+       "time": "14:43",
+       "kind": "agent",
+       "summary": "hf: 10-22 급락 원인 진단 — 외국인 반도체 노출 축소·하이닉스 고유 부담, 페어 보류 근거",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "bb92ad09",
+       "time": "14:41",
+       "kind": "agent",
+       "summary": "hf: 10-22 장중 아이디어 — 조건부 급락일 종가 롱 사전 기록, 풋 관리, 미장 정유 검토 후보",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "35248ced",
+       "time": "12:43",
+       "kind": "agent",
+       "summary": "pb: 사내 메신저 라운드 12:41 기록 — 처리 2·닫음 2·보류 3·결재 2건 접수",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "57a9930e",
+       "time": "12:14",
+       "kind": "agent",
+       "summary": "hf: 비엠티 기각(E[R] −0.17R·동행 가설 반대), HF 직접 선정 KT&G 롱(저베타 방어·B1·기관 매수, E[R] +0.12)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "ba8768fb",
+       "time": "07:19",
+       "kind": "agent",
+       "summary": "hf: hf.md 재량 북 실무 규칙 — 체크리스트·E[R] 게이트·컨빅션 크기·추격 금지·북 손실 한도·위험 보고·라운드 순서",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": [
+        "hf-alphabook"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 9,
+     "items": [
+      {
+       "sha": "3c846b5c",
+       "time": "21:18",
+       "kind": "bot",
+       "summary": "pick: pick-us 2026-10-22",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "82e9897d",
+       "time": "20:58",
+       "kind": "bot",
+       "summary": "브리핑 — premarket_us decisions 2026-10-22T11:58",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "645b5174",
+       "time": "19:39",
+       "kind": "bot",
+       "summary": "브리핑 — reports decisions 2026-10-22T10:39",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "f20fa20f",
+       "time": "16:33",
+       "kind": "agent",
+       "summary": "hf: 겸이 연습 장부 2번째 — NVDA(다음 미장 시가 체결 대기)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "01d4f297",
+       "time": "16:15",
+       "kind": "agent",
+       "summary": "hf: 미장 계획에 BUG(사이버보안 ETF) 검토 조건 추가",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9e0ee941",
+       "time": "13:35",
+       "kind": "bot",
+       "summary": "브리핑 — intraday_kr decisions 2026-10-22T04:35",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "56dc10d0",
+       "time": "10:35",
+       "kind": "bot",
+       "summary": "브리핑 — intraday_kr decisions 2026-10-22T01:35",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "f949ecca",
+       "time": "09:00",
+       "kind": "bot",
+       "summary": "브리핑 — premarket_kr decisions 2026-10-22T00:00",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "2423c209",
+       "time": "03:00",
+       "kind": "bot",
+       "summary": "US heatmap: scheduled quote refresh",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "etc",
+     "label": "기타",
+     "n": 5,
+     "items": [
+      {
+       "sha": "cef38263",
+       "time": "20:42",
+       "kind": "agent",
+       "summary": "pb: 요청 장부 — req-maint-44cf5828 닫음",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a78fe827",
+       "time": "17:47",
+       "kind": "agent",
+       "summary": "data: 토스 수집 목록 — 사이버보안 ETF(BUG·CIBR·HACK) + ISA 코어(379810·114260·411060)·418670 고정",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": [
+        "toss-md-pilot",
+        "toss-sectors",
+        "toss-md-publish",
+        "us-eod-toss"
+       ]
+      },
+      {
+       "sha": "2335bebd",
+       "time": "17:47",
+       "kind": "agent",
+       "summary": "ask: req-dev-35255757 닫음(토스 379810 수집)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9da613fd",
+       "time": "16:56",
+       "kind": "agent",
+       "summary": "ask: 애널→데이터 418670·BUG 일봉 수집",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5bf79de0",
+       "time": "14:22",
+       "kind": "agent",
+       "summary": "ask: PB→LIFE 인수인계",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 179,
+    "label": "자동 갱신 179회",
+    "kinds": {
+     "live": 150,
+     "briefing": 16,
+     "health": 2,
+     "pb_call": 2,
+     "ops": 1,
+     "fin": 1,
+     "english": 1,
+     "study_daily": 1,
+     "us_accum": 1,
+     "pick": 1,
+     "deriv": 1,
+     "report": 1,
+     "accum": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 12,
+    "battle-scoreboard": 6,
+    "hf-alphabook": 4,
+    "index-split": 2,
+    "r14-duel-guard": 2,
+    "toss-sectors": 2,
+    "me-fire-slot": 1,
+    "rebound-alert": 1,
+    "order-ticket-form": 1,
+    "px-adjust-unify": 1,
+    "daily-duel-collapse": 1,
+    "signal-scorecard": 1,
+    "derivs-audit": 1,
+    "deriv-insight": 1,
+    "watchdog-b": 1,
+    "r9-alert-grade": 1,
+    "r3-semi-band": 1,
+    "audit-ring-pb": 1,
+    "audit-1017-minor": 1,
+    "my-tab-ledger-compare": 1,
+    "drivers-audit": 1,
+    "guard-rest": 1,
+    "toss-md-pilot": 1,
+    "toss-md-publish": 1,
+    "us-eod-toss": 1
    }
   },
   {
