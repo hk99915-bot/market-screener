@@ -19,7 +19,7 @@ def stock_comment(r: dict, max_parts: int = 3) -> str:
     vr = _g(r, "vol_ratio", 1.0)
     rsi, adx = _g(r, "rsi14", 50.0), _g(r, "adx14", 0.0)
     dist = _g(r, "dist_sma20_atr", 0.0)
-    fh = _g(r, "from_high52", -1.0)
+    fh = r.get("from_high52")   # None = 고점 산출 불가(상장 약 6개월 미만) — 기본값 −100% 로 채우면 신규 상장이 '고점 대비 −100%' 로 보임
     c = _g(r, "close", 0.0)
     s20, s50, s200 = _g(r, "sma20"), _g(r, "sma50"), _g(r, "sma200")
     h0, h1, h2 = _g(r, "macd_hist"), _g(r, "macd_hist_p1"), _g(r, "macd_hist_p2")
@@ -40,9 +40,11 @@ def stock_comment(r: dict, max_parts: int = 3) -> str:
             parts.append((0, "거래량 실린 하락 — 눌림보다 이탈 가능성"))
 
     # ── 위치: 52주 고점·이평선 ──
-    if fh is not None and fh >= -0.02:
+    if fh is None:
+        parts.append((3, "상장 6개월 미만 — 52주 고점 산출 불가"))
+    elif fh >= -0.02:
         parts.append((1, "52주 신고가권"))
-    elif fh is not None and fh <= -0.4 and cls in ("TREND_SHORT", "COUNTERTREND_BOUNCE"):
+    elif fh <= -0.4 and cls in ("TREND_SHORT", "COUNTERTREND_BOUNCE"):
         parts.append((3, f"52주 고점 대비 {fh*100:.0f}%"))
     if s20 and s50 and c:
         if cls == "PULLBACK_IN_UPTREND":
