@@ -54,3 +54,13 @@ def test_basis_vs_theo_intraday():
     assert "장중" not in b2["easy"] and "이론값 근처" in b2["easy"] and b2["light"] == "green"
     b3 = [c for c in insight(_o(fut={"basis": 2.0}), [], {}, today=date(2026, 8, 29))["cards"] if c["k"] == "basis"][0]
     assert "이론값 없음" in b3["easy"]
+
+
+def test_basis_split_without_date_or_data_is_none(monkeypatch):
+    from screener import derivs
+    assert derivs._basis_split(None) is None
+    monkeypatch.setattr(derivs, "_daily", lambda: [{"date": "2026-10-21", "fut_frgn": "-8165.0"}])
+    monkeypatch.setattr(derivs, "REPORT_DIR", derivs.REPORT_DIR / "_nope")
+    out = derivs._basis_split("2026-10-21")
+    assert "외국인 선물 순매수 -8,165계약" in out and "원/달러" not in out
+    assert derivs._basis_split("2026-01-01") is None

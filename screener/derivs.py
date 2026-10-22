@@ -225,6 +225,28 @@ def _read(d: date) -> dict | None:
     return {"date": str(d), "fut": f, **s}
 
 
+def _basis_split(on: str | None) -> str | None:
+    """베이시스 옆에 병기할 두 값 — 외국인 선물 순매수(daily.csv fut_frgn)·원/달러 5거래일 변화(macro_series USDKRW).
+    심리 요인(선물 매수·매도 쏠림)과 환 헤지 요인을 눈으로 갈라 보라는 병기일 뿐, 원인 판정은 하지 않는다. 값이 없으면 None."""
+    if not on:
+        return None
+    parts = []
+    row = next((r for r in reversed(_daily()) if r.get("date") == on), None)
+    v = _f(row.get("fut_frgn")) if row else None
+    if v is not None:
+        parts.append(f"외국인 선물 순매수 {v:+,.0f}계약")
+    try:
+        ser = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8"))["series"]["USDKRW"]
+        ser = [r for r in ser if r[0] <= on]
+        if len(ser) > 5 and ser[-1][0] == on:
+            parts.append(f"원/달러 5일 {(ser[-1][4] / ser[-6][4] - 1) * 100:+.1f}%")
+    except Exception:  # noqa: BLE001
+        pass
+    if not parts:
+        return None
+    return "베이시스 병기: " + " · ".join(parts) + " — 선물 쏠림(심리)과 환 헤지 중 무엇이 큰지는 이 두 값을 나란히 보고 판단, 원인 단정 금지"
+
+
 def interpret(o: dict) -> list[str]:
     """초보용 한 줄 해석. 원칙: 검증 안 된 것은 '방향 신호'로 말하지 않는다 (reports/studies/derivs_signals.md)."""
     if not o or not o.get("spot"):
@@ -258,6 +280,10 @@ def interpret(o: dict) -> list[str]:
     if f.get("basis") is not None:
         L.append(f"선물 베이시스 {f['basis']:+.2f}p — " + ("선물이 현물보다 쌈(백워데이션). 배당·금리 이론값 대비로 봐야 정확 — 큰 음수가 며칠 이어지면 매도 헤지 쏠림" if f["basis"] < 0 else
                                                       "선물이 현물보다 비쌈(콘탱고) — 보통 상태"))
+    if f.get("basis") is not None:
+        extra = _basis_split(o.get("date"))
+        if extra:
+            L.append(extra)
     if o.get("max_pain"):   # 참고용 — 근거 약해 맨 뒤로 (텔레그램 상위 4줄에서 빠짐)
         L.append(f"(참고) 최대 고통 {o['max_pain']:.1f} — 옵션 매수자 손실이 최대인 만기 지수. '끌려간다'는 가설은 근거 약함, 매매 근거로 쓰지 말 것")
     return L
