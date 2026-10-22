@@ -204,6 +204,8 @@ def watch_status(w: dict, root: Path = ROOT, today: date | None = None) -> dict:
     d = _load(root / "reports" / "detail" / w["market"] / f"{w['code']}.json") or {}
     ch = [b for b in (d.get("chart") or []) if b.get("c")]
     on, off = [], []
+    if not ch:
+        off.append(f"가격 데이터 없음 — reports/detail/{w['market']}/{w['code']}.json 미수집(데이터 데스크 요청), 회의 때 웹 시세로 확인")
     if len(ch) >= 30:
         c = [float(b["c"]) for b in ch]
         v = [float(b.get("v") or 0) for b in ch]
