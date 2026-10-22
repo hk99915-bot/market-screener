@@ -3,7 +3,8 @@
  * GitHub private 저장소의 reports/dashboard.json 을 읽어 터미널 스타일로 표시.
  *
  * 설치
- * 1) script.google.com → 새 프로젝트 → Code.gs 붙여넣기, 그리고 HTML 파일을 하나씩 만들어 붙여넣기:
+ * 1) script.google.com → 새 프로젝트 → Code.gs 붙여넣기. (10/22~ 화면 HTML 은 GitHub 에서 직접 읽으므로 붙여넣기 불필요 —
+ *    아래 HTML 파일은 GitHub 접근 실패 때 대체용으로만 쓰인다.) 예전 방식:
  *      Index.html(공용 셸) + apps-script/tab_*.html 전부 (파일 이름은 확장자 없이 tab_daily 처럼; 목록은 ops/README.md)
  *    Index.html 의 <?!= include('tab_daily') ?> 를 아래 include() 가 같은 이름의 HTML 파일 내용으로 바꾼다.
  * 2) 프로젝트 설정 → 스크립트 속성:
@@ -14,7 +15,9 @@
 
 function doGet() {
   // 템플릿으로 평가해야 <?!= include('tab_x') ?> 가 풀린다 (createHtmlOutputFromFile 은 그대로 출력)
-  return HtmlService.createTemplateFromFile('Index').evaluate()
+  // 10/22 겸이 "업데이트될 때마다 gas 업데이트하는 게 귀찮은데": 화면(Index·tab_*)은 GitHub main 의 apps-script/ 에서 직접 읽는다
+  // → HTML 붙여넣기·새 버전 배포 불필요. GitHub 실패 시 이 프로젝트 안의 같은 이름 파일로 대체(예전 방식).
+  return HtmlService.createTemplate(html_('Index')).evaluate()
     .setTitle('MARKET TERMINAL')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -22,7 +25,32 @@ function doGet() {
 
 // 탭 파일 끼워 넣기 — Index.html 의 <?!= include('tab_daily') ?> 가 이 함수를 부른다. 파일이 없으면 GAS 가 오류를 낸다 (이름 확인).
 function include(name) {
-  return HtmlService.createHtmlOutputFromFile(name).getContent();
+  return html_(name);
+}
+
+// apps-script/<name>.html — GitHub(5분 캐시) 우선, 실패하면 GAS 프로젝트 안 파일. 캐시는 키당 100KB 제한이라 90KB 조각으로 나눠 저장.
+function html_(name) {
+  const cache = CacheService.getScriptCache(), key = 'html2:' + name;
+  try {
+    const n = Number(cache.get(key + ':n') || 0);
+    if (n > 0) {
+      const parts = cache.getAll(Array.from({ length: n }, (_, i) => key + ':' + i));
+      const txt = Array.from({ length: n }, (_, i) => parts[key + ':' + i]).join('');
+      if (txt && Array.from({ length: n }, (_, i) => parts[key + ':' + i]).every(x => x != null)) return txt;
+    }
+  } catch (e) {}
+  try {
+    const txt = raw_('apps-script/' + name + '.html');
+    try {
+      const CH = 90000, n = Math.ceil(txt.length / CH), o = {};
+      for (let i = 0; i < n; i++) o[key + ':' + i] = txt.slice(i * CH, (i + 1) * CH);
+      o[key + ':n'] = String(n);
+      cache.putAll(o, 300);
+    } catch (e) {}
+    return txt;
+  } catch (e) {
+    return HtmlService.createHtmlOutputFromFile(name).getContent();
+  }
 }
 
 function raw_(path) {
