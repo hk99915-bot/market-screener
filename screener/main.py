@@ -738,6 +738,12 @@ def main() -> None:
                     bonds.build()
                 except Exception as e:  # noqa: BLE001
                     log.warning("채권 실패: %s", e)
+            if a.mode == "premarket_us":   # 미장 운용회의 웹 갱신(텔레그램 없음) — 19:20 이후 실적 갭·HF 블록 반영 (겸이 10/21 22:18)
+                try:
+                    from . import committee
+                    committee.build_us()
+                except Exception as e:  # noqa: BLE001
+                    log.warning("미장 운용회의(premarket_us) 실패: %s", e)
             if a.mode == "premarket_us":   # 22:00 KST — 미장 진입 타점 대결 (규칙 판정 + 텔레그램)
                 try:
                     from . import duel
