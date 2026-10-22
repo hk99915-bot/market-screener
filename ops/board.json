@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-22",
+  "updated": "2026-10-23",
   "owners": [
     "PB",
     "퀀트",
@@ -2677,7 +2677,8 @@
         "docs/desk_kb/LOOP.md"
       ],
       "depends_on": [],
-      "notes": "10/20 개발 에이전트가 check_functions '푸시 금지'를 명령 체인으로 넘김 → 종료 코드로 차단. 설치 sh scripts/install_hooks.sh(core.hooksPath=.githooks, 로컬 설정 — Actions 러너 checkout 엔 미적용, 워크플로에 hooksPath 설정 없음 grep 확인). 우회 금지 LOOP.md. origin push 3회 훅 통과 확인(10/21). core.bare=true 면 차단 검사 추가(PB 10/21 지시). 10/21 core.bare=true 원인: 훅 안 pytest 가 GIT_DIR·GIT_INDEX_FILE 을 물려받아 tmp git 명령이 실제 저장소에 적용 → 훅·prepush_check 에서 GIT_* 제거(이중 차단, conftest 는 A 수정)."
+      "notes": "10/20 개발 에이전트가 check_functions '푸시 금지'를 명령 체인으로 넘김 → 종료 코드로 차단. 설치 sh scripts/install_hooks.sh(core.hooksPath=.githooks, 로컬 설정 — Actions 러너 checkout 엔 미적용, 워크플로에 hooksPath 설정 없음 grep 확인). 우회 금지 LOOP.md. origin push 3회 훅 통과 확인(10/21). core.bare=true 면 차단 검사 추가(PB 10/21 지시). 10/21 core.bare=true 원인: 훅 안 pytest 가 GIT_DIR·GIT_INDEX_FILE 을 물려받아 tmp git 명령이 실제 저장소에 적용 → 훅·prepush_check 에서 GIT_* 제거(이중 차단, conftest 는 A 수정).",
+      "escalated": "2026-10-23"
     },
     {
       "id": "english-v2-ui",
@@ -2719,7 +2720,8 @@
         "docs/schedule_table.md"
       ],
       "depends_on": [],
-      "notes": "PM 점검(.git 669MB, 11/5 1GB 예상). 옮김: kr_prices·signals·fin multi/full·hist *_daily 4·flows kr_inv 3 (7일 증가의 49%, 일회성 제외 63%). pull 10개·push 5개 워크플로, 주간 스냅샷 data-YYYYMMDD 8주(data_store.yml 금 20:17). 2단계(이력 재작성·reports/detail 이전)는 별도 결재."
+      "notes": "PM 점검(.git 669MB, 11/5 1GB 예상). 옮김: kr_prices·signals·fin multi/full·hist *_daily 4·flows kr_inv 3 (7일 증가의 49%, 일회성 제외 63%). pull 10개·push 5개 워크플로, 주간 스냅샷 data-YYYYMMDD 8주(data_store.yml 금 20:17). 2단계(이력 재작성·reports/detail 이전)는 별도 결재.",
+      "escalated": "2026-10-23"
     },
     {
       "id": "rep-hollzzak",
@@ -2756,7 +2758,8 @@
         "reports/uxui/"
       ],
       "depends_on": [],
-      "notes": "10/21 01:4x 겸이 '그냥 추가해!'로 데스크 신설(🌙 기록). 시작은 팝업 차트 작업(macro-popup-live) 끝난 뒤 — 같은 화면 파일 충돌 방지. 첫 산출물은 코드 수정 없이 진단서. 평가 기준 = 핵심 숫자 탐색 시간·첫 화면 결론 유무."
+      "notes": "10/21 01:4x 겸이 '그냥 추가해!'로 데스크 신설(🌙 기록). 시작은 팝업 차트 작업(macro-popup-live) 끝난 뒤 — 같은 화면 파일 충돌 방지. 첫 산출물은 코드 수정 없이 진단서. 평가 기준 = 핵심 숫자 탐색 시간·첫 화면 결론 유무.",
+      "escalated": "2026-10-23"
     },
     {
       "id": "audit-krx-id-deriv",
@@ -3204,7 +3207,8 @@
       "depends_on": [
         "public-reports"
       ],
-      "notes": "애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈."
+      "notes": "애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈.",
+      "escalated": "2026-10-23"
     },
     {
       "id": "ponytail-fixes",
@@ -3337,7 +3341,8 @@
         "tests/test_heatmap_kr.py"
       ],
       "depends_on": [],
-      "notes": "10/21 10:5x 겸이 '히트맵 업뎃안됨, 유지보수 데스크 신설해야겠다' — 주간 결정으로 데스크 신설. PB 1차 확인: KR 히트맵 소스 peers_KR.json(16:20 일 1회) · US heatmap.yml cron 12,42 13-21 UTC인데 10/20 13Z 이후 3회만 실행(asof 02:57 KST). | 10/21 11:05 유지보수: 원인 확정 — KR 장중 경로 없음(설계 공백) · US cron 10/20 18회 중 3회(창 안 1회). 고침 0f715f60: heatmap_kr.py + live 루프 편승(KR 5분·US 15분) + 화면 기준 HH:MM·다음 갱신·장중 미갱신 STALE + 신선도 계약 heatmap_kr/us. 실측 KR 11:05 1272/1272. 남은 확인: US 22:45 KST 이후 asof · GAS tab_market.html 재붙여넣기(gas-repaste)."
+      "notes": "10/21 10:5x 겸이 '히트맵 업뎃안됨, 유지보수 데스크 신설해야겠다' — 주간 결정으로 데스크 신설. PB 1차 확인: KR 히트맵 소스 peers_KR.json(16:20 일 1회) · US heatmap.yml cron 12,42 13-21 UTC인데 10/20 13Z 이후 3회만 실행(asof 02:57 KST). | 10/21 11:05 유지보수: 원인 확정 — KR 장중 경로 없음(설계 공백) · US cron 10/20 18회 중 3회(창 안 1회). 고침 0f715f60: heatmap_kr.py + live 루프 편승(KR 5분·US 15분) + 화면 기준 HH:MM·다음 갱신·장중 미갱신 STALE + 신선도 계약 heatmap_kr/us. 실측 KR 11:05 1272/1272. 남은 확인: US 22:45 KST 이후 asof · GAS tab_market.html 재붙여넣기(gas-repaste).",
+      "escalated": "2026-10-23"
     },
     {
       "id": "macro-tab",
@@ -3358,7 +3363,8 @@
       ],
       "depends_on": [],
       "notes": "겸이 10/21 12시대 \"리서치나 마켓에 매크로가 없는 듯\". 근거 KB docs/desk_kb/macro.md #3·#5·#15·#16. 데이터는 기존 산출물만(macro_view·bonds·calendar·macro_releases) — Code.gs 변경 없음.",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-23"
     },
     {
       "id": "bonds-summary",
@@ -3375,7 +3381,8 @@
       ],
       "depends_on": [],
       "notes": "겸이 10/21 12시대 \"채권에도 현 상황 최상단에 요약 영역 만들어줘\". 근거 KB docs/desk_kb/bonds.md #7·#11·#13.",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-10-23"
     },
     {
       "id": "audit-analyst-email-log",
@@ -3481,6 +3488,468 @@
         "tradeplan"
       ],
       "notes": "10/21 14시대 겸이 '난 개미니까 관망하더라도 누나는 달라' · '월가 전설 헷지펀드 매니저 누나 넣어, 운용회의 적극 개입'. 알파북=모의·가상 1단위, 실계좌는 n주 검증+겸이 결재. | 10/21 1차 완료: 알파 소스 m=6 사전등록 → B1 KR 52주 고점 근접만 B 통과(초과 +0.098R t 2.78), US 통과 0(현금). 알파북 엔진·테스트 13건·운용회의 hf 4줄·HF 카드·텔레그램 1~2줄, committee 모드 안 호출(briefing.yml 무수정). 남은 것: 검증 주간 채점 규약(req-verify-ef13d7a3)·US EPS 이력(req-data-751d13c7)·첫 회의 뒤 PERSONAS#hf."
+    },
+    {
+      "id": "req-alloc-4ce23c16",
+      "title": "[요청 승격] PB→자산배분: ISA 나스닥100 코어 TIGER(133690)→KODEX(379810) 변경 사후 비교: 보수·추종오차·",
+      "owner": "자산배분",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 자산배분 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-alloc-4ce23c16`."
+    },
+    {
+      "id": "req-data-1fd3dc04",
+      "title": "[요청 승격] 채권→데이터: 국고 3Y 같은 날 출처별 3~4bp 차(bonds.json KRX 3.84 vs committee·토스 3",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→채권: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-1fd3dc04`."
+    },
+    {
+      "id": "req-data-25c610af",
+      "title": "[요청 승격] HF→데이터: HF 재량 북 실무화용 데이터 이력 요청: ①미장 옵션 체인(SPX·SPY·QQQ·대형주, 일별 IV·스큐·",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-25c610af`."
+    },
+    {
+      "id": "req-data-2964da3f",
+      "title": "[요청 승격] 개발→데이터: MACRO 탭 '기준금리' 칸이 '데이터 없음' — 정책금리 시리즈(FRED DFEDTARU·DFEDTARL",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→개발: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-2964da3f`."
+    },
+    {
+      "id": "req-data-2ff2a4e7",
+      "title": "[요청 승격] 퀀트→데이터: 국내 증권사(토스 우선) 미장 조건주문 범위 확인: 정규장 vs 프리·애프터·주간거래, 스탑 리밋/스탑 마켓",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-2ff2a4e7`."
+    },
+    {
+      "id": "req-data-4e390b32",
+      "title": "[요청 승격] 파생→데이터: VKOSPI 일별 수집 추가(저장소에 데이터 0) — 파생 한눈에 카드 변동성 칸에 쓰임",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→파생: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-4e390b32`."
+    },
+    {
+      "id": "req-data-5046a78b",
+      "title": "[요청 승격] 매크로→데이터: macro_series 에 한국 국고 3년·미 10년 TIPS(실질금리) 일봉 추가 — trade plan ",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→매크로: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-5046a78b`."
+    },
+    {
+      "id": "req-data-751d13c7",
+      "title": "[요청 승격] HF→데이터: reports/us_eps.json(chg30·chg90) 일별 스냅숏 이력 적재(parquet: 날짜·티커",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-751d13c7`."
+    },
+    {
+      "id": "req-data-7ff634a5",
+      "title": "[요청 승격] 퀀트→데이터: SOXL 기초지수 변경일·지수명(PHLX SOX→?) 확인 — laor_infinite_buy §5·§6 2",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-7ff634a5`."
+    },
+    {
+      "id": "req-data-866790c9",
+      "title": "[요청 승격] 퀀트→데이터: 해외 레버리지 ETP(QLD 등) 현행 거래 요건(사전교육·기본예탁금) 출처·기준일 확인 — reports/",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-866790c9`."
+    },
+    {
+      "id": "req-data-88dfbe9f",
+      "title": "[요청 승격] 퀀트→데이터: 미장 소형주 숏 연구(reports/studies/2026-10-21_us_smallcap_spikes.md",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-88dfbe9f`."
+    },
+    {
+      "id": "req-data-d16cfea5",
+      "title": "[요청 승격] 유지보수→데이터: KR 히트맵(heatmap_KR.json, live 국장 루프 5분)이 네이버 모바일 시총 목록·pollin",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-d16cfea5`."
+    },
+    {
+      "id": "req-dev-0d73cae1",
+      "title": "[요청 승격] 퀀트→개발: 잡주 폭등 1m 기록기(노트북·토스): 매 장 마감 뒤 당일 정규장 고가 ≥ 전일 종가+30% 종목(원가격 ",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-0d73cae1`."
+    },
+    {
+      "id": "req-dev-516bf7e6",
+      "title": "[요청 승격] CIO→개발: trade plan 화면 표시(보드 tradeplan-ui, UXUI 배치 포함): committee*.js",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-516bf7e6`."
+    },
+    {
+      "id": "req-dev-54eba83d",
+      "title": "[요청 승격] 겸이→개발: ① 미장 운용회의 22:15 KST 슬롯: 현재 committee_us 는 committee·reports ",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-54eba83d`."
+    },
+    {
+      "id": "req-dev-838025ff",
+      "title": "[요청 승격] 퀀트→개발: 토스 1m 깊이 탐침(노트북 일회성): 대형주 1(AAPL)·잡주 2(최근 폭등 종목) 1m 을 /api/v",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-838025ff`."
+    },
+    {
+      "id": "req-dev-8d80aab2",
+      "title": "[요청 승격] PM→개발: watchdog 첫 실행 87건 — '오늘 새로 생긴 것' vs '원래 밀린 것' 구분 표시 + 마감 변경 ",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PM: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-8d80aab2`."
+    },
+    {
+      "id": "req-dev-9384a4fc",
+      "title": "[요청 승격] 감사→개발: 감사 D2·D3(중): CI 빨강 9h16m 동안 push 120건 — prepush 에 'origin/ma",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-9384a4fc`."
+    },
+    {
+      "id": "req-dev-cb19b1e0",
+      "title": "[요청 승격] 리스크→개발: MY탭 손절선 칸을 '규칙 바닥(평단 −30%, 결재 #2)'과 '기술 신호(detail bear.stop)",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-cb19b1e0`."
+    },
+    {
+      "id": "req-dev-cc84f898",
+      "title": "[요청 승격] PB→개발: team.yml:41 -X theirs 가 ops/team.json(PB team_run 행)을 덮을 수 있",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-cc84f898`."
+    },
+    {
+      "id": "req-dev-fc677ec8",
+      "title": "[요청 승격] PB→개발: US STALE이면 08:52 KST detail_us 1회 자동 재시도 슬롯(briefing 잠금 해제 1",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-fc677ec8`."
+    },
+    {
+      "id": "req-maint-a38820c6",
+      "title": "[요청 승격] PB→유지보수: 10/21 10:53 매수 사이드카 — 텔레그램 알림이 실제 발동 대비 몇 분 늦었는지 측정(뉴스 경로 vs",
+      "owner": "유지보수",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 유지보수 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-maint-a38820c6`."
+    },
+    {
+      "id": "req-ops-6cec6000",
+      "title": "[요청 승격] 감사→운영: 감사 D5(중): 장중 live.yml 루프 취소·재시작(10/21 02:04Z, run 3951875340",
+      "owner": "운영",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 운영 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-ops-6cec6000`."
+    },
+    {
+      "id": "req-pb-23606b98",
+      "title": "[요청 승격] 감사→PB: 감사 L2~L4(경): 원장 256·258 PB 해석 꼬리표 · 257 가격 출처·시각 · journal 1",
+      "owner": "PB",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-23606b98`."
+    },
+    {
+      "id": "req-pb-65b39a04",
+      "title": "[요청 승격] 감사→PB: 감사 D6·D7(중)+D12: req-data-75288029 '21시간'(실제 약 5h) 복기 · jour",
+      "owner": "PB",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-65b39a04`."
+    },
+    {
+      "id": "req-pb-ec64b316",
+      "title": "[요청 승격] 감사→PB: 감사 D10·D11(중): 8-E 확정 뒤 용어집 72행 미갱신·rules.txt:22 원문 충돌 / 수요일",
+      "owner": "PB",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-ec64b316`."
+    },
+    {
+      "id": "req-pm-1dc0d451",
+      "title": "[요청 승격] 감사→PM: 감사 L5(경): ops/team.json 10/21 runs owner 키 혼재(애널/analyst·개발/",
+      "owner": "PM",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 PM 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-pm-1dc0d451`."
+    },
+    {
+      "id": "req-quant-1a18770f",
+      "title": "[요청 승격] 검증→퀀트: us_smallcap_spikes 재현(replication_us_spikes.md §3) 정정 5건: ① ",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-1a18770f`."
+    },
+    {
+      "id": "req-quant-4abdbeaf",
+      "title": "[요청 승격] 겸이→퀀트: 미장 운용회의 매수후보·회피 규칙(drv≥0.4+20일≤−3% / drv≤−0.2+20일≥+5%) 사후 4일",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-4abdbeaf`."
+    },
+    {
+      "id": "req-quant-b3040280",
+      "title": "[요청 승격] 검증→퀀트: 라오어 V4.0 재현(replication_laor_ib.md) 정정 4건: ① study_laor_ib.s",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-b3040280`."
+    },
+    {
+      "id": "req-verify-53fd7992",
+      "title": "[요청 승격] HF→검증: req-verify-ef13d7a3 에 추가: HF 재량 북(reports/hf_discretion.json",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-53fd7992`."
+    },
+    {
+      "id": "req-verify-ef13d7a3",
+      "title": "[요청 승격] HF→검증: 알파북(screener/alphabook.py·reports/alphabook.json) 주간 독립 채점 규",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-ef13d7a3`."
+    },
+    {
+      "id": "req-verify-fae5c299",
+      "title": "[요청 승격] UXUI→검증: 연구 보드 원장 ops/research_pipeline.json: 재현 끝나면(rep-semis-cap·re",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-30",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-23",
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→UXUI: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-fae5c299`."
     }
   ]
 }
