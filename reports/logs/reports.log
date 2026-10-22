@@ -1,39 +1,94 @@
-2026-10-21 10:12:55,628 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-21 10:12:55,659 INFO matplotlib.font_manager: generated new fontManager
-2026-10-21 10:12:59,879 INFO screener.data_krx: KRX 2026-10-15: 2651행
-2026-10-21 10:13:01,269 INFO screener.data_krx: KRX 2026-10-16: 2649행
-2026-10-21 10:13:03,555 INFO screener.data_krx: KRX 2026-10-19: 2646행
-2026-10-21 10:13:05,364 INFO screener.data_krx: KRX 2026-10-20: 2648행
-2026-10-21 10:13:07,240 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
-2026-10-21 10:16:09,985 INFO screener.data_krx: KRX 2026-10-21 잠정 종가 → 야후 정규장 종가 교체: 2648/2649종목 확인, 2087종목 값 변경
-2026-10-21 10:16:09,985 INFO screener.data_krx: KRX 2026-10-21: 2649행 (잠정)
-2026-10-21 10:16:11,459 INFO screener.decisions: 판단 성적표 채점 0건
-2026-10-21 10:17:12,933 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 10:18:13,029 WARNING screener.calendar_ev: FRED PCEPILFE 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 10:19:13,125 WARNING screener.calendar_ev: FRED A191RL1Q225SBEA 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 10:20:13,221 WARNING screener.calendar_ev: FRED DFEDTARU 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 10:20:13,234 INFO screener.calendar_ev: 캘린더 81건
-2026-10-21 10:20:14,038 INFO screener.research: 한경 62건
-2026-10-21 10:20:17,590 INFO screener.research: 네이버 118건
-2026-10-21 10:20:25,203 INFO screener.research: 리포트 요약 3건 수집
-2026-10-21 10:20:25,209 INFO screener.research: 리포트 저장소 6865건 (신규 22)
-2026-10-21 10:20:33,772 INFO screener.dart: DART 공시 2951건 저장 (신규 376)
-2026-10-21 10:20:34,551 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-21 10:20:34,571 INFO screener.dashboard: dashboard.json 갱신 (107973 bytes)
-2026-10-21 10:20:34,949 INFO screener.dashboard: 리서치 국면 태그 1725건
-2026-10-21 10:20:34,969 INFO screener.dashboard: research.json 1725건
-2026-10-21 10:20:34,976 INFO screener.dashboard: disclosures.json 606건
-2026-10-21 10:20:35,008 INFO screener.daily: 데일리 리포트: 리포트 265건, 테마 27개, 통합 체크 0개
-2026-10-21 10:20:35,626 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-21 10:20:46,145 INFO screener.derivs: 옵션 포지션: PCR 1.27 GEX -689.9억 flip 928.2
-2026-10-21 10:20:46,414 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
-2026-10-21 10:20:50,291 INFO screener.committee: 운용회의 자료 생성
-2026-10-21 10:20:50,495 INFO screener.committee: 미장 운용회의 생성
-2026-10-21 10:20:51,135 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-21 10:20:51,763 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-21 10:20:52,401 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-21 10:20:52,445 INFO screener.dashboard: dashboard.json 갱신 (107624 bytes)
-2026-10-21 10:20:52,821 INFO screener.dashboard: 리서치 국면 태그 1725건
-2026-10-21 10:20:52,841 INFO screener.dashboard: research.json 1725건
-2026-10-21 10:20:52,849 INFO screener.dashboard: disclosures.json 606건
-2026-10-21 10:20:52,876 INFO screener.daily: 데일리 리포트: 리포트 265건, 테마 27개, 통합 체크 0개
+2026-10-22 10:14:46,539 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-22 10:14:46,668 INFO matplotlib.font_manager: generated new fontManager
+2026-10-22 10:14:51,800 INFO screener.data_krx: KRX 2026-10-16: 2649행
+2026-10-22 10:14:53,230 INFO screener.data_krx: KRX 2026-10-19: 2646행
+2026-10-22 10:14:54,650 INFO screener.data_krx: KRX 2026-10-20: 2648행
+2026-10-22 10:14:56,083 INFO screener.data_krx: KRX 2026-10-21: 2649행
+2026-10-22 10:14:58,406 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
+2026-10-22 10:16:47,740 INFO screener.data_krx: KRX 2026-10-22 잠정 종가 → 야후 정규장 종가 교체: 2650/2651종목 확인, 2185종목 값 변경
+2026-10-22 10:16:47,740 INFO screener.data_krx: KRX 2026-10-22: 2651행 (잠정)
+2026-10-22 10:16:49,244 INFO screener.decisions: 판단 성적표 채점 0건
+2026-10-22 10:16:49,403 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,404 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,406 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,408 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,409 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,409 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,416 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,421 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,505 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,508 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,508 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,510 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,512 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,513 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,515 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,516 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,583 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,585 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,586 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,588 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,590 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,591 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,592 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,607 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,675 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,675 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,676 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,677 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,679 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,679 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,783 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,784 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,786 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,787 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,787 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,789 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,791 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,811 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,880 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,881 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,883 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,884 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,886 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,887 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,889 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,890 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,958 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,961 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,963 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,963 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,965 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,965 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,966 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:16:49,967 ERROR yfinance: HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-10-22 10:17:50,450 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 10:18:50,543 WARNING screener.calendar_ev: FRED PCEPILFE 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 10:19:50,626 WARNING screener.calendar_ev: FRED A191RL1Q225SBEA 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 10:20:51,007 WARNING screener.calendar_ev: FRED DFEDTARU 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 10:20:51,021 INFO screener.calendar_ev: 캘린더 40건
+2026-10-22 10:20:52,549 INFO screener.research: 한경 60건
+2026-10-22 10:20:56,016 INFO screener.research: 네이버 127건
+2026-10-22 10:21:04,810 INFO screener.research: 리포트 요약 2건 수집
+2026-10-22 10:21:04,819 INFO screener.research: 리포트 저장소 7022건 (신규 26)
+2026-10-22 10:21:14,054 INFO screener.dart: DART 공시 3334건 저장 (신규 374)
+2026-10-22 10:21:14,905 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-22 10:21:14,931 INFO screener.dashboard: dashboard.json 갱신 (106045 bytes)
+2026-10-22 10:21:15,699 INFO screener.dashboard: 리서치 국면 태그 1841건
+2026-10-22 10:21:15,726 INFO screener.dashboard: research.json 1841건
+2026-10-22 10:21:15,735 INFO screener.dashboard: disclosures.json 686건
+2026-10-22 10:21:15,790 INFO screener.daily: 데일리 리포트: 리포트 292건, 테마 29개, 통합 체크 0개
+2026-10-22 10:21:16,509 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-22 10:37:06,458 WARNING screener.derivs: KRX 옵션 2026-10-22 실패(1): ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2026-10-22 10:37:27,530 INFO screener.derivs: 옵션 포지션: PCR 1.26 GEX -907.2억 flip 908.9
+2026-10-22 10:37:27,825 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
+2026-10-22 10:37:35,988 INFO screener.committee: 운용회의 자료 생성
+2026-10-22 10:37:36,246 INFO screener.committee: 미장 운용회의 생성
+2026-10-22 10:37:37,091 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-22 10:37:37,773 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-22 10:37:38,463 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-22 10:37:38,514 INFO screener.dashboard: dashboard.json 갱신 (106214 bytes)
+2026-10-22 10:37:39,263 INFO screener.dashboard: 리서치 국면 태그 1841건
+2026-10-22 10:37:39,289 INFO screener.dashboard: research.json 1841건
+2026-10-22 10:37:39,298 INFO screener.dashboard: disclosures.json 686건
+2026-10-22 10:37:39,341 INFO screener.daily: 데일리 리포트: 리포트 292건, 테마 29개, 통합 체크 0개

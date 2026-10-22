@@ -1,7 +1,17 @@
 {
- "checked_at": "2026-10-22 16:59",
+ "checked_at": "2026-10-22 19:37",
  "n": 26,
- "late": [],
+ "late": [
+  {
+   "id": "team",
+   "path": "ops/team.json",
+   "expected": "2026-10-22 17:47 이후",
+   "actual": "2026-10-22 13:56",
+   "mode": "team.yml (매시 17분) · ops.yml (00:07 KST)",
+   "fix": "gh workflow run team.yml -f commit=true",
+   "desc": "팀 업무량 — 마지막 사람·에이전트 커밋 후 90분 이내, 매일 00:07 이후 당일"
+  }
+ ],
  "regress_today": [],
  "regress_blocked": [
   {
