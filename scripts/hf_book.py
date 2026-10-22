@@ -79,7 +79,46 @@ def bs_delta(kind: str, s: float, k: float, t: float, sig: float, r: float = RAT
     return ncdf(d1) if kind == "call" else ncdf(d1) - 1
 
 
+def _today_kst() -> str:
+    return datetime.now(KST).strftime("%Y-%m-%d")
+
+
+def live_k200() -> dict | None:
+    """장중 코스피200(reports/live.json K200F last·spot — 약 5~10분 간격, 1분봉 아님). 오늘 값이 아니면 None."""
+    try:
+        lj = json.loads((ROOT / "reports" / "live.json").read_text(encoding="utf-8"))
+        if not str(lj.get("asof", "")).startswith(_today_kst()):
+            return None
+        it = next(x for x in lj.get("items", []) if x.get("key") == "K200F")
+        if it.get("last") and it.get("spot"):
+            return {"fut": float(it["last"]), "k200": float(it["spot"]), "asof": lj["asof"]}
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def live_kr_stock(code: str) -> tuple[str, float] | None:
+    """장중 종목가(reports/heatmap_KR.json — 약 5~10분 간격). 오늘 값이 아니면 None."""
+    try:
+        h = json.loads((ROOT / "reports" / "heatmap_KR.json").read_text(encoding="utf-8"))
+        if not str(h.get("asof", "")).startswith(_today_kst()):
+            return None
+        r = next((x for x in h.get("rows", []) if x.get("s") == code), None)
+        return (h["asof"], float(r["close"])) if r and r.get("close") else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def deriv_last() -> dict:
+    """코스피200·선물·IV — data/deriv/daily.csv 마지막 행, 오늘 장중이면 live.json 값으로 덮음(날짜 = 오늘)."""
+    d = _deriv_close()
+    lv = live_k200()
+    if lv and _today_kst() > d["date"]:
+        d.update(date=_today_kst(), k200=lv["k200"], fut=lv["fut"], live=lv["asof"])
+    return d
+
+
+def _deriv_close() -> dict:
     import csv
     rows = list(csv.DictReader(open(ROOT / "data" / "deriv" / "daily.csv", encoding="utf-8")))
     last = rows[-1]
@@ -107,6 +146,9 @@ def detail_name(market: str, code: str) -> str | None:
 
 
 def stock_last(code: str) -> tuple[str, float, str]:
+    lv = live_kr_stock(code)
+    if lv:
+        return _today_kst(), lv[1], detail_name("KR", code) or code
     bs_ = bars("KR", code)
     if not bs_:
         raise SystemExit(f"가격 없음: {code} (reports/detail/KR/{code}.json)")
@@ -378,11 +420,10 @@ def add(b: dict, a) -> dict:
                 w2 = LIQ_FRAC * adv / AUM
                 p["sizing"]["liq_cut"] = f"명목 {AUM * w / 1e8:,.0f}억 > 20일 평균 거래대금 10% {LIQ_FRAC * adv / 1e8:,.0f}억 → {w * 100:.2f}%→{w2 * 100:.2f}%"
                 w = w2
-        if par:
+        if par:                                       # 헤지 다리 = 부모 베타가중 명목(리스크 기준 크기 무시), --risk 로 지정 시 그 명목 상한 1.5배
             pw = sum(x["weight"] * abs(x.get("beta") or 1.0) for x in b["open"] if x["id"] in par)
-            if w > 1.5 * pw:
-                w = 1.5 * pw
-                p["sizing"]["hedge_cap"] = "헤지 명목 ≤ 부모 베타가중 명목 × 1.5"
+            w = min(w, 1.5 * pw) if getattr(a, "risk", None) else pw
+            p["sizing"]["hedge"] = f"부모 베타가중 명목 {pw * 100:.2f}%"
         p.update(weight=round(w, 4), risk=round(w * stop_pct, 5))
     p["beta"] = beta_of(a.kind, getattr(a, "code", None))
     p["days"] = 0
