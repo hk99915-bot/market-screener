@@ -131,10 +131,13 @@
     "2026-10-17"
    ],
    "pending_rounds": 1,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-dev-89c9aeed",
    "promoted": "2026-10-21",
-   "promoted_at": "2026-10-21T04:09+09:00"
+   "promoted_at": "2026-10-21T04:09+09:00",
+   "done": "2026-10-22",
+   "done_at": "2026-10-22T12:43+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-dee1f9ae",
@@ -1176,7 +1179,43 @@
    ],
    "pending_rounds": 0,
    "status": "open"
+  },
+  {
+   "id": "req-pb-036d2f5b",
+   "from": "frm",
+   "to": "pb",
+   "text": "결재 필요: pb.py STRESS_SCENARIOS(결재 #3 구속 한도 −15%)에 2022형(주식·채권 동반 하락) 사건 추가 여부 — 구속 한도 대상 시나리오 수가 늘어 위반 판정이 바뀔 수 있음. 입력 숫자 bonds #12·#16(기준일 2026-10-16), 채권 ETF σ·D×Δy는 계기판 병기(비구속)로 먼저 제안 [req-frm-e3fda510]",
+   "opened": "2026-10-22",
+   "opened_at": "2026-10-22T12:43+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-22"
+   ],
+   "checked": [
+    "2026-10-22"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pb-8a75f2cf",
+   "from": "audit",
+   "to": "pb",
+   "text": "결재 필요: decisions.json pb_view 문장 '100만원/300만원' → '1단위(모의 고정 사이즈)' 로 바꾸는 생성 코드 수정 여부 (공개 저장소 금액 비노출 원칙과 일치; 개인 금액 아님, 모의 사이즈 문구). ① sec-ytd-bug 최종 판정은 보드 notes 에 이미 있음(MU·SNDK 누적 아님, fin_verified.json) ② behavior.md 복기→pb.md 이전은 pb.md 부재로 보류 [req-pb-71d9c381]",
+   "opened": "2026-10-22",
+   "opened_at": "2026-10-22T12:43+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-22"
+   ],
+   "checked": [
+    "2026-10-22"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   }
  ],
- "updated": "2026-10-21"
+ "updated": "2026-10-22"
 }
