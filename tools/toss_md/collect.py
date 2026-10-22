@@ -63,7 +63,8 @@ PILOT: list[tuple[str, str, str, dict]] = [
 # 대상 심볼 = 지표 ETF 고정 20 + committee_us 아이디어 + universe/us_top.csv(5일 거래대금 순, 공개 목록) 로 200개까지.
 # 개인 보유(MY 탭·MY_HOLDINGS)는 쓰지 않는다. 1분봉은 SPY·QQQ·SOXX 3개만.
 US_ETFS = ("SPY", "QQQ", "DIA", "IWM", "SOXX", "SMH", "XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLB", "XLU",
-           "XLRE", "XLC", "TLT", "HYG", "GLD")
+           "XLRE", "XLC", "TLT", "HYG", "GLD",
+           "BUG", "CIBR", "HACK")   # 10/22 겸이 사이버보안 ETF 커버리지(screener/etf.py US_LIST 와 같게)
 US_SPARK = ("SPY", "QQQ", "SOXX")
 US_MAX_SYMBOLS = 200   # /api/v1/prices 한 번 최대 200개 (OpenAPI 원문)
 US_RANKS = (("us_rank_amount", "MARKET_TRADING_AMOUNT", "realtime"),
@@ -97,7 +98,8 @@ def us_symbols(root: Path = ROOT) -> list[str]:
 # ── 국장 종목·ETF 현재가 (10/21 겸이 "ETF도 트래킹되지?") — intraday 그룹에 /api/v1/prices 1회 추가 ─────────────
 # 지표·ISA 코어 ETF 고정(공개 코드: screener/pb.isa_bucket 과 같은 목록 + 대표 지수·섹터 ETF) → 운용회의 아이디어 → 시총 순(universe/kr.csv). 개인 보유 미사용.
 KR_ETFS = ("069500", "229200", "360750", "133690", "148070", "305080", "152380", "132030",   # KODEX200·코스닥150·ISA 코어(S&P·NDX·KTB·골드)
-           "091160", "139260", "122630", "114800", "252670")                                  # 반도체·IT 섹터 ETF · 레버리지·인버스(시장 심리)
+           "091160", "139260", "122630", "114800", "252670",                                  # 반도체·IT 섹터 ETF · 레버리지·인버스(시장 심리)
+           "379810", "114260", "411060", "418670")   # 10/22: ISA 코어 C안(KODEX 나스닥100·국고채3년·ACE 금현물, req-dev-35255757) · TIGER 글로벌AI사이버보안
 KR_MAX_SYMBOLS = 200
 
 
