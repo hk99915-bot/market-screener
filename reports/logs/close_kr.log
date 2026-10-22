@@ -1,31 +1,32 @@
-2026-10-21 06:44:40,612 INFO screener.live: live.json 17개 지표
-2026-10-21 06:44:45,909 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': -11317.0, '외국인': 6602.0, '기관': -715.0}, 'KOSDAQ': {'개인': 516.0, '외국인': -1720.0, '기관': 1047.0}}
-2026-10-21 06:44:52,392 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-21 06:44:52,502 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
-2026-10-21 06:44:53,998 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-21 06:44:54,407 INFO matplotlib.font_manager: generated new fontManager
-2026-10-21 06:45:15,016 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-21 06:45:17,182 INFO screener.live: live.json 17개 지표
-2026-10-21 06:45:17,226 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (-0.12) — 주된 요인: 나스닥 −, 미 10년 금리 −, 원/달러 + · 20일 코스피 -14.8% vs S&P -0.7% (격차 -14.1%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
-2026-10-21 06:45:24,563 INFO screener.bonds: 채권: US10Y 5.12 KR10Y 4.17 소스 {'us_treasury': 'ok 450일 (마지막 2026-10-20)', 'kr_krx': 'ok 11일 (2026-10-05~, 마지막 2026-10-21)', 'etf_yahoo': 'ok 9/9', 'ai_credit_yahoo': 'ok 11/11'}
-2026-10-21 06:45:24,584 INFO screener.dashboard: dashboard.json 갱신 (106598 bytes)
-2026-10-21 06:45:25,240 INFO screener.dashboard: 리서치 국면 태그 1703건
-2026-10-21 06:45:25,262 INFO screener.dashboard: research.json 1703건
-2026-10-21 06:45:25,270 INFO screener.dashboard: disclosures.json 526건
-2026-10-21 06:45:25,307 INFO screener.daily: 데일리 리포트: 리포트 243건, 테마 27개, 통합 체크 0개
-2026-10-21 06:45:25,340 INFO screener.daily: 데일리 리포트: 리포트 243건, 테마 27개, 통합 체크 0개
-2026-10-21 06:45:31,784 INFO screener.derivs: 옵션 포지션: PCR 1.27 GEX -765.2억 flip 930.9
-2026-10-21 06:45:32,322 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: ^TOPX"}}}
-2026-10-21 06:45:32,450 ERROR yfinance: $^TOPX: possibly delisted; no timezone found
-2026-10-21 06:45:32,452 ERROR yfinance: 
+2026-10-22 06:49:37,836 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
+2026-10-22 06:49:40,091 INFO screener.live: live.json 17개 지표
+2026-10-22 06:49:47,917 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': 3817.0, '외국인': 614.0, '기관': -4637.0}, 'KOSDAQ': {'개인': 2209.0, '외국인': -1200.0, '기관': -1002.0}}
+2026-10-22 06:49:57,827 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-22 06:49:57,920 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-10-22 06:49:58,333 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-22 06:49:58,430 INFO matplotlib.font_manager: generated new fontManager
+2026-10-22 06:50:22,213 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-22 06:50:25,015 INFO screener.live: live.json 17개 지표
+2026-10-22 06:50:25,074 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.12, 전일 +0.07) — 변화 없음 · 20일 코스피 -19.6% vs S&P +0.7% (격차 -20.3%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
+2026-10-22 06:50:32,650 INFO screener.bonds: 채권: US10Y 5.13 KR10Y 4.148 소스 {'us_treasury': 'ok 451일 (마지막 2026-10-21)', 'kr_krx': 'ok 12일 (2026-10-06~, 마지막 2026-10-22)', 'etf_yahoo': 'ok 9/9', 'ai_credit_yahoo': 'ok 11/11'}
+2026-10-22 06:50:32,677 INFO screener.dashboard: dashboard.json 갱신 (108448 bytes)
+2026-10-22 06:50:33,531 INFO screener.dashboard: 리서치 국면 태그 1815건
+2026-10-22 06:50:33,558 INFO screener.dashboard: research.json 1815건
+2026-10-22 06:50:33,568 INFO screener.dashboard: disclosures.json 608건
+2026-10-22 06:50:33,620 INFO screener.daily: 데일리 리포트: 리포트 266건, 테마 29개, 통합 체크 0개
+2026-10-22 06:50:33,669 INFO screener.daily: 데일리 리포트: 리포트 266건, 테마 29개, 통합 체크 0개
+2026-10-22 06:50:40,148 INFO screener.derivs: 옵션 포지션: PCR 1.26 GEX -907.8억 flip 908.9
+2026-10-22 06:50:40,830 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: ^TOPX"}}}
+2026-10-22 06:50:40,921 ERROR yfinance: $^TOPX: possibly delisted; no timezone found
+2026-10-22 06:50:40,921 ERROR yfinance: 
 1 Failed download:
-2026-10-21 06:45:32,452 ERROR yfinance: ['^TOPX']: possibly delisted; no timezone found
-2026-10-21 06:45:34,568 INFO screener.japan: 일본: 특이 없음
-2026-10-21 06:45:34,881 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
-2026-10-21 06:45:39,829 INFO screener.committee: 운용회의 자료 생성
-2026-10-21 06:46:40,807 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 06:47:40,875 WARNING screener.calendar_ev: FRED PCEPILFE 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 06:48:41,044 WARNING screener.calendar_ev: FRED A191RL1Q225SBEA 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 06:49:41,110 WARNING screener.calendar_ev: FRED DFEDTARU 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
-2026-10-21 06:49:41,121 INFO screener.calendar_ev: 캘린더 82건
-2026-10-21 06:49:41,134 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
+2026-10-22 06:50:40,922 ERROR yfinance: ['^TOPX']: possibly delisted; no timezone found
+2026-10-22 06:50:45,063 INFO screener.japan: 일본: 일본: 닛케이 -2.6% · 日 메모리(Kioxia) -6.8% vs SK하이닉스 +5.8% (60일 상관 0.79) (일본 패널)
+2026-10-22 06:50:45,499 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
+2026-10-22 06:50:51,691 INFO screener.committee: 운용회의 자료 생성
+2026-10-22 06:51:52,578 WARNING screener.calendar_ev: FRED PCEPI 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 06:52:52,652 WARNING screener.calendar_ev: FRED PCEPILFE 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 06:53:52,727 WARNING screener.calendar_ev: FRED A191RL1Q225SBEA 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 06:54:52,780 WARNING screener.calendar_ev: FRED DFEDTARU 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=60)
+2026-10-22 06:54:52,793 INFO screener.calendar_ev: 캘린더 81건
+2026-10-22 06:54:52,809 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
