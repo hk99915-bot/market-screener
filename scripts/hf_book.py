@@ -17,7 +17,7 @@ S&P 옵션 = 블랙숄즈(σ = VIX/100) — 옵션은 실제 호가 아님(근�
 - 체크리스트 10칸 필수(재무·내러티브·포지셔닝·매크로·시나리오·헤지·논지 붕괴·촉매·주관 승률·승률 근거) — 비면 거부.
 - R:R(1차 목표)·손익분기 승률 1/(1+R:R)·E[R] = p×RR − (1−p) 자동 계산, E[R] ≤ 0 거부. 청산 때 승률 보정(Brier) 기록.
 - 크기 = 컨빅션 리스크(low 0.15% · mid 0.25% · high 0.40%, 승률 근거 '주관'이면 low) × 변동성 조정(일 변동성 2% 기준, 0.5~1배),
-  종목 명목 ≤ 20일 평균 거래대금 10%(넘으면 자동 축소). 열린 리스크 합 1.0%(국장·미장 합산), 헤지 다리(--hedge-of)는 0으로 계산.
+  종목 명목 ≤ 20일 평균 거래대금 10%(넘으면 자동 축소). 열린 리스크 합 2.0%(국장·미장 합산, 10/22 겸이 "기관이면 어떤 장에서도 돈 버는 게 역할"), 가동률 50% 하한, 헤지 다리(--hedge-of)는 0으로 계산.
 - 국장 '거래량 3배 + 20일 신고가' 신호 0~2일 안 종목 추격 롱 금지(reports/studies/2026-10-21_hf_desk_signals.md S4).
 - 북 손실 한도: 고점 대비 −3% → 신규 금지(총노출 절반 권고), −5% → 전량 정리·14일 정지, 최근 5거래일 −2% → 신규 금지.
 - 손절은 종가 기준, 갭(시가가 이미 손절 밖)이면 시가 체결로 기록. 옵션 매도 금지.
@@ -35,7 +35,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 STATE = ROOT / "reports" / "hf_discretion.json"
 KST = timezone(timedelta(hours=9))
-RISK_ALL, MAX_OPEN = 0.01, 8
+RISK_ALL, MAX_OPEN = 0.02, 12
+UTIL_MIN = 0.5                     # 가동률 하한(열린 리스크 ÷ 한도) — 미만이면 회의에서 롱·숏 양쪽으로 채우거나 '없음 이유' 기록
 RISK_1 = 0.004                     # 1건 상한 = high 컨빅션
 CONV = {"low": 0.0015, "mid": 0.0025, "high": 0.0040}
 VOL_REF = 0.02                     # 변동성 조정 기준 일 변동성
@@ -362,7 +363,7 @@ def add(b: dict, a) -> dict:
     if not par:
         risk_t = min(risk_t, getattr(a, "risk", None) or RISK_1, RISK_1, room)
         if risk_t <= 0:
-            raise SystemExit("열린 리스크 합 1.0% 한도 꽉 참")
+            raise SystemExit(f"열린 리스크 합 {RISK_ALL * 100:.1f}% 한도 꽉 참")
     p["sizing"] = {"conv": conv, "risk_conv": CONV[conv], "daily_vol": round(vol, 4) if vol else None, "vol_factor": round(vf, 2)}
     if a.kind in OPT:
         w = risk_t
@@ -552,9 +553,12 @@ def perf_lines(b: dict) -> list[str]:
 def show(b: dict) -> list[str]:
     d = deriv_last()
     lim = b.get("limits") or {}
-    ls = [f"재량 북: 열린 {len(b['open'])}건 · 열린 리스크(헤지 순) {open_risk(b) * 100:.2f}% (한도 1.00%) · 청산 {len(b['closed'])}건"
+    util = open_risk(b) / RISK_ALL
+    ls = [f"재량 북: 열린 {len(b['open'])}건 · 열린 리스크(헤지 순) {open_risk(b) * 100:.2f}% (한도 {RISK_ALL * 100:.2f}%, 가동률 {util:.0%}) · 청산 {len(b['closed'])}건"
           + (f" · 평균 {sum(x['r'] for x in b['closed']) / len(b['closed']):+.2f}R · 적중 {sum(x['r'] > 0 for x in b['closed'])}/{len(b['closed'])}" if b["closed"] else "")
           + (f" · 손익 {lim['pnl'] * 100:+.3f}% (고점 대비 {lim['dd'] * 100:+.3f}%)" if lim.get("pnl") is not None else "")]
+    if util < UTIL_MIN and not lim.get("ban_new"):
+        ls.append(f"⚠️ 가동률 {util:.0%} < {UTIL_MIN:.0%} — 이번 회의에서 롱·숏 양쪽 아이디어로 E[R] > 0 포지션을 채우거나 '없음 이유'를 기록(쉬는 건 자리 값 못 함)")
     if lim.get("ban_new") or lim.get("halt_until"):
         ls.append(f"⛔ 한도: {lim.get('why') or ''}" + (f" · 정지 ~{lim['halt_until']}" if lim.get("halt_until") else ""))
     for p in b["open"]:

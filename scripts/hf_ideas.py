@@ -60,6 +60,8 @@ def stock_feats(ch: list[dict]) -> dict | None:
         "hi_break": c[-1] > max(prior), "lo_break": c[-1] < min(prior),
         "s4": v20 > 0 and v[-1] >= 3 * v20 and c[-1] >= max(c[-20:]),
         "n": len(prior),
+        "ret20": c[-1] / c[-21] - 1,
+        "below50": bool(ch[-1].get("s50")) and c[-1] < float(ch[-1]["s50"]),
     }
 
 
@@ -124,6 +126,7 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
                 chains.setdefault((mk, ch["key"]), {"market": mk, "name": ch.get("name"), "score": ch["score"], "members": []})["members"].append(d.get("name") or code)
             if not ft or ft["adv"] < LIQ[mk]:
                 continue
+            ft["flow"] = _flow_both(d.get("flow_note") or "")
             feats[(mk, code)] = (d.get("name") or code, ft)
             latest[mk] = max(latest.get(mk, ""), ft["t"])
     for (mk, code), (nm, ft) in feats.items():
@@ -148,6 +151,10 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
                           "direction": ("추격 주의(S4 유사) — 롱은 눌림 확인 뒤" if chase else "롱 후보(수급 유입)") if up else "숏 후보(물량 출회)",
                           "evidence": f"거래량 {ft['vr']:.1f}배 · 1일 {ft['ret1'] * 100:+.1f}%",
                           "status": STATUS["vol"] + (" · S4 유사(국장 거래량 3배+상승 추격 = 반대 근거)" if chase else ""), "src": src})
+        if mk == "KR" and ft["adv"] >= 1e10 and ft["ret20"] <= -0.10 and ft["below50"] and ft["flow"] and ft["flow"][0] < 0 and ft["flow"][1] < 0:
+            ideas.append({**base, "type": "수급 이탈 숏", "score": 0.3 + abs(ft["ret20"]),
+                          "direction": "숏 후보(종목선물·대차 가능 대형주만)", "evidence": f"외국인 {ft['flow'][0]:+d}억·기관 {ft['flow'][1]:+d}억 5일 동반 매도 · 20일 {ft['ret20'] * 100:+.1f}% · 50일선 아래",
+                          "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)", "src": src + " · flow_note"})
         if ft["hi_break"] and not (mk == "KR" and ft["s4"]):      # 같은 날 S4 면 고점 돌파 롱 후보로 안 올림(추격 금지 우선)
             ideas.append({**base, "type": "52주 고점 돌파", "score": 0.5 + max(ft["ret5"], 0),
                           "direction": "롱 후보" if mk == "KR" else "참고(미장 B2 F)",

@@ -1,14 +1,14 @@
 {
  "v": 1,
  "asof": "2026-10-22",
- "generated_at": "2026-10-22 12:30 KST",
+ "generated_at": "2026-10-22 14:57 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 122,
+  "total": 141,
   "거래량 급증": 3,
   "거래량 돌파(추격 금지)": 3,
-  "52주 고점 돌파": 3,
-  "업종 체인": 1
+  "52주 고점 돌파": 2,
+  "수급 이탈 숏": 2
  },
  "ideas": [
   {
@@ -124,29 +124,31 @@
    "rank": 8
   },
   {
-   "market": "US",
-   "code": null,
-   "name": "정유",
-   "type": "업종 체인",
-   "score": 0.61,
-   "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.61 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
-   "status": "검증전 — 업종 체인 점수(detail drivers)",
-   "src": "reports/detail/*/<코드>.json drivers.chain",
+   "market": "KR",
+   "code": "267270",
+   "name": "HD건설기계",
+   "asof": "2026-10-21",
+   "close": 93900.0,
+   "type": "수급 이탈 숏",
+   "score": 0.639,
+   "direction": "숏 후보(종목선물·대차 가능 대형주만)",
+   "evidence": "외국인 -13억·기관 -16억 5일 동반 매도 · 20일 -33.9% · 50일선 아래",
+   "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
+   "src": "reports/detail/KR/267270.json chart · flow_note",
    "rank": 9
   },
   {
-   "market": "US",
-   "code": "HLT",
-   "name": "Hilton Worldwide Holdings Inc. Common Stock ",
+   "market": "KR",
+   "code": "267250",
+   "name": "HD현대",
    "asof": "2026-10-21",
-   "close": 362.25,
-   "type": "52주 고점 돌파",
-   "score": 0.604,
-   "direction": "참고(미장 B2 F)",
-   "evidence": "종가 250일 최고 경신 · 5일 +10.4%",
-   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
-   "src": "reports/detail/US/HLT.json chart",
+   "close": 147800.0,
+   "type": "수급 이탈 숏",
+   "score": 0.636,
+   "direction": "숏 후보(종목선물·대차 가능 대형주만)",
+   "evidence": "외국인 -39억·기관 -36억 5일 동반 매도 · 20일 -33.6% · 50일선 아래",
+   "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
+   "src": "reports/detail/KR/267250.json chart · flow_note",
    "rank": 10
   }
  ],

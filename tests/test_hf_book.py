@@ -74,7 +74,7 @@ def test_option_sell_banned_and_total_risk_cap():
     b = _b()
     with pytest.raises(SystemExit):
         H.add(b, _a(kind="put", side="숏", strike=850.0, expiry="2026-11-12"))
-    for _ in range(3):                         # 0.4% + 0.4% + 남은 0.2%
+    for _ in range(5):                         # 0.4% × 5 = 2.0%
         H.add(b, _a(kind="put", strike=850.0, expiry="2026-11-12", conv="high"))
     assert H.open_risk(b) <= H.RISK_ALL + 1e-9
     with pytest.raises(SystemExit, match="한도"):
@@ -171,3 +171,11 @@ def test_exit_next_open(monkeypatch):
     bars.append({"t": "2026-10-22", "o": 95.0, "h": 96, "l": 90, "c": 92.0, "v": 1e9})
     out = H.mark(b)
     assert out and out[0]["exit"] == 95.0 and out[0]["exit_why"].startswith("사전 결정 시가 청산") and not b["open"]
+
+
+def test_utilization_warning():
+    b = _b()
+    assert any("가동률" in x and "⚠️" in x for x in H.show(b))
+    for _ in range(3):
+        H.add(b, _a(kind="put", strike=850.0, expiry="2026-11-12", conv="high"))    # 1.2% / 2.0% = 60%
+    assert not any("⚠️ 가동률" in x for x in H.show(b))
