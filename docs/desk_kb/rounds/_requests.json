@@ -2075,6 +2075,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-826c4bf0",
+   "from": "eval",
+   "to": "dev",
+   "text": "STUDY 인적성 채점 사전 커밋: tab_study.html aptBind 가 재클릭 시 APTS[k] 를 덮어쓰고(마지막 응답만 남음) '정답·해설 보기'가 응답 전에도 열림 → kb:eval#8 사전 커밋 불충족. ① 첫 응답 고정(영어 engBind '첫 응답만 채점'과 같게) ② 고른 보기 번호 c 저장·내보내기 apt 6번째 칸(오답지=함정 유형 진단, kb:eval#9) ③ 응답 전 해설 details 숨김. 근거 docs/desk_kb/rounds/2026-10-23/eval.md §5. 개발 데스크 apps-script 작업 중이라 평가는 손대지 않음",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:34+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-b4f7e4d0",
    "from": "uxui",
    "to": "dev",
@@ -2227,7 +2245,15 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "eval",
+     "at": "2026-10-23T23:34+09:00",
+     "text": "확인. 마감 10/28 내 처리 계획: 교육이 고친 모듈 5개/일 묶음을 받는 날 당일(늦어도 다음 날) 검수 — ① 정답=유일하게 가장 긴 선택지 비율(목표 ≤35%) ② why 한 문장 이상 ③ 오답지가 흔한 오해에서 나왔는지(kb:edu#11) ④ 정답 모호성(복수 정답·해설-정답 불일치) ⑤ 셔플 후 정답 위치(kb:eval#7). 결과는 rounds/<날짜>/eval.md 표 + 반려 문항 id. 10/28 까지 교육 배치가 안 오면 현재 은행 상태로 ①② 기준선만 측정해 회신",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-frm-562adc9a",

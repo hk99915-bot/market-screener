@@ -189,3 +189,58 @@ def test_daily_quiz_skips_answered(study, bank):
     progress = {"done": [], "quiz": [{"qid": i, "module": "H2", "ok": True, "date": "2026-10-20"} for i in ids[:-1]], "unlocked": [], "modules": {}}
     o = study_daily.build(date(2026, 10, 21), study, bank, srs, progress, None)
     assert o["quiz"]["id"] == ids[-1]
+
+
+# ── STUDY 탭 내보내기 (v1 UTC · v2 KST) ──
+V1 = {"v": 1, "sent": "2026-10-23", "issue": 17,
+      "done": {"0-1": "2026-10-15", "0-4": "2026-10-18"},
+      "apt": [["E2026-10-23-0", 0, None, "2026-10-22"],     # 출제일 = UTC+1 → KST 10/23 확정
+              ["E2026-10-16-1", 1, 4, "2026-10-18"],        # 출제일보다 늦게 풂 → KST 10/18 또는 10/19 (U)
+              ["N7", 0, 30, "2026-10-18"]],
+      "eng": [["2026-10-22", "r", 0, 1], ["2026-10-22", "q", 1, 0], ["2026-10-23", "q", 0, 1]],
+      "op": []}
+
+
+def test_apply_export_v1_merge_and_idempotent(study):
+    p = sp.apply_export({}, V1, study)
+    assert [(d["id"], d["date"], d["tz"]) for d in p["done"]] == [("0-1", "2026-10-15", "U"), ("0-4", "2026-10-18", "U")]
+    assert p["apt"]["E2026-10-23-0"] == {"ok": 0, "sec": None, "date": "2026-10-23", "tz": "K"}
+    assert p["apt"]["E2026-10-16-1"]["tz"] == "U" and p["apt"]["N7"]["sec"] == 30
+    assert p["eng"]["2026-10-22|q|1"] == {"ok": 0, "date": "2026-10-22", "tz": "C"}
+    s = p["summary"]
+    assert s["apt"] == {"n": 3, "ok": 1, "rate": 0.333} and s["eng_review"]["rate"] == 1.0 and s["eng_quiz"]["n"] == 2
+    assert s["done_modules"] == 2 and p["last"] == "2026-10-23" and p["exports"] == [{"v": 1, "sent": "2026-10-23", "issue": 17}]
+    assert p["streak"] == 2                                   # 10/18(일) 뒤 10/19~21 평일 결손 → 10/22~23
+    assert p["modules"]["0-4"]["next_due"] == "2026-10-19"
+    assert sp.apply_export(p, V1, study) == p                 # 같은 내보내기 재적용 → 동일(멱등)
+
+
+def test_apply_export_latest_wins_and_v2_kst(study):
+    p = sp.apply_export({}, V1, study)
+    v2 = {"v": 2, "tz": "KST", "sent": "2026-10-24",
+          "done": {"0-4": "2026-10-24"},
+          "apt": [["N7", 1, 20, "2026-10-24", "K"], ["E2026-10-16-1", 0, 9, "2026-10-17", "U"]],   # 옛 날짜 행은 최신을 못 덮음
+          "eng": [["2026-10-22", "q", 1, 1, "2026-10-24"]], "op": [["2026-10-24", 0, "IM3", "2026-10-24"]]}
+    q = sp.apply_export(p, v2, study)
+    assert q["apt"]["N7"] == {"ok": 1, "sec": 20, "date": "2026-10-24", "tz": "K"}
+    assert q["apt"]["E2026-10-16-1"]["ok"] == 1
+    assert q["eng"]["2026-10-22|q|1"] == {"ok": 1, "date": "2026-10-24", "tz": "K"}
+    assert [d["date"] for d in q["done"] if d["id"] == "0-4"] == ["2026-10-24"]          # 체크박스 = 모듈당 1행, 최신
+    assert q["op_count"] == 1 and "IM3" not in json.dumps(q, ensure_ascii=False)          # OPIc 자기평가 내용은 공개 파일에 안 남김
+    assert q["last"] == "2026-10-24" and len(q["exports"]) == 2
+
+
+def test_apply_export_keeps_issue_records_and_reads_issue_body(tmp_path, study):
+    root = _tmp_root(tmp_path)
+    sp.apply_issue("study H2 done", "min 10", "2026-10-21T01:00:00Z", root=root)
+    body = "학습 기록\n\n```json\n" + json.dumps(V1) + "\n```\n"
+    (tmp_path / "body.md").write_text(body, encoding="utf-8")
+    s = sp.apply_export_file(str(tmp_path / "body.md"), root=root)
+    p = json.loads((root / "reports" / "study_progress.json").read_text(encoding="utf-8"))
+    assert {"H2", "0-1", "0-4"} <= {d["id"] for d in p["done"]} and s["done_modules"] == 3
+    assert p["streak"] == 3                                   # 10/21(H2 이슈)·10/22·10/23
+
+
+def test_apply_export_unknown_module_skipped(study):
+    p = sp.apply_export({}, {"v": 2, "tz": "KST", "done": {"ZZ9": "2026-10-23"}, "apt": [], "eng": []}, study)
+    assert p["done"] == [] and p["summary"]["done_modules"] == 0

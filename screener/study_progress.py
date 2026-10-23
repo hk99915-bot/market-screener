@@ -11,6 +11,9 @@
   {"note", "done":[{id,date,min}], "quiz":[{qid,module,answer,correct,ok,date}], "streak", "last",
    "unlocked":[id…],                                 ← 게이트(index.json gate) 밖 모듈 중 '앞 모듈 done'으로 열린 것
    "modules":{id:{done:[날짜], stage, next_due, scores:[[날짜, 비율]]}}}   ← study_daily 복습 선택용 파생 뷰
+  + STUDY 탭 내보내기(apply_export) → "apt":{문항id:{ok,sec,date,tz}}, "eng":{"출제일|r/q|idx":{ok,date,tz}},
+    "exports":[{v,sent,issue}], "summary":{비율·횟수}  (원자료 JSON 은 pb-private study/ 에만 둔다)
+  날짜는 모두 KST. tz "K" = 한국 날짜 확정, "U" = 옛(v1) UTC 날짜 → 한국 날짜는 같은 날 또는 +1일.
 오답은 reports/study_wrong.json 에 쌓고 docs/desk_kb/_quiz_feedback.md 큐에 한 줄 추가한다
 (모듈·데스크·개념·오답 — 해당 데스크 KB '흔한 오해' 후보, 피드백 루프). 금액·보유 없음. 네트워크 없음.
 
@@ -32,7 +35,7 @@ KST = ZoneInfo("Asia/Seoul")
 REPO = "hk99915-bot/market-screener"
 INTERVALS = [1, 3, 7, 21]
 TRACK_DESK = {"H": "behavior", "R": "frm", "D": "derivs", "Q": "quant", "M": "cio", "A": "behavior", "0": "macro", "B": "quant"}
-INITIAL = {"note": "10/17 시작, 출석은 done 이슈 기준", "done": [], "quiz": [], "streak": 0, "last": None, "unlocked": [], "modules": {}}
+INITIAL = {"note": "10/17 시작, 출석 = done 이슈 + STUDY 내보내기 활동일(KST)", "done": [], "quiz": [], "streak": 0, "last": None, "unlocked": [], "modules": {}}
 
 TITLE_RE = re.compile(r"^\s*study\s+([0-9A-Za-z][\w-]*)\s+done\s*$", re.I)
 QUIZ_RE = re.compile(r"^\s*quiz\s+(\S+)\s+([0-3])\s*$", re.I)
@@ -207,8 +210,8 @@ def apply(progress: dict, parsed: dict, bank: dict, study: dict, today: date) ->
         if (qid, day) in answered:
             continue
         p["quiz"].append({"qid": qid, "module": g["module"], "answer": ans, "correct": g["correct"], "ok": g["ok"], "date": day})
-    p["streak"] = streak([d["date"] for d in p["done"]])
-    p["last"] = day
+    p["streak"] = streak(activity_dates(p))
+    p["last"] = max([day] + activity_dates(p))
     p["modules"] = derive_modules(p["done"], p["quiz"])
     opened = unlock_next(p, study, mid)
     # 답글
@@ -230,6 +233,127 @@ def apply(progress: dict, parsed: dict, bank: dict, study: dict, today: date) ->
     if opened:
         lines.append(f"🔓 다음 모듈 열림: {opened} {titles.get(opened, '').split(' — ')[0]} — 완료 시 `study {opened} done`")
     return p, graded, lines
+
+
+# ───────────────────────── STUDY 탭 내보내기 (10/23~) ─────────────────────────
+E_ID_RE = re.compile(r"^E(\d{4}-\d{2}-\d{2})-\d+$")
+JSON_BLOCK_RE = re.compile(r"```json\s*(\{.*?\})\s*```", re.S)
+
+
+def activity_dates(p: dict) -> list[str]:
+    """출석 판정용 활동일(KST) — done 이슈·내보내기 done·인적성 응답일·영어 응답일."""
+    ds = [d["date"] for d in p.get("done", []) if d.get("date")]
+    ds += [r["date"] for r in (p.get("apt") or {}).values() if r.get("date")]
+    ds += [r["date"] for r in (p.get("eng") or {}).values() if r.get("date")]
+    return sorted(set(ds))
+
+
+def load_export(src) -> dict:
+    """dict · JSON 파일 경로 · 이슈 본문(```json 블록) 중 하나 → 내보내기 dict."""
+    if isinstance(src, dict):
+        return src
+    s = str(src)
+    if len(s) < 4096 and Path(s).exists():
+        s = Path(s).read_text(encoding="utf-8")
+    m = JSON_BLOCK_RE.search(s)
+    return json.loads(m.group(1) if m else s)
+
+
+def _apt_date(item_id: str, d: str | None, tz: str) -> tuple[str | None, str]:
+    """인적성 응답일 → (KST 날짜, 'K'|'U'). v1(UTC) 날짜 d 의 한국 날짜는 d 또는 d+1.
+    오늘의 인적성 E<출제일>-i 는 출제일(KST) 전에 풀 수 없으므로 출제일 = d+1 이면 KST d+1 로 확정한다."""
+    if not d or tz == "K":
+        return d, "K"
+    m = E_ID_RE.match(item_id)
+    nxt = (date.fromisoformat(d) + timedelta(days=1)).isoformat()
+    if m and m.group(1) == nxt:
+        return nxt, "K"
+    return d, "U"
+
+
+def _newer(old: dict | None, new: dict) -> bool:
+    """같은 항목이면 더 늦은 날짜(동일 날짜면 새로 들어온 것)를 남긴다."""
+    return old is None or (new.get("date") or "") >= (old.get("date") or "")
+
+
+def _summary(p: dict) -> dict:
+    rate = lambda ok, n: round(ok / n, 3) if n else None  # noqa: E731
+    apt = list((p.get("apt") or {}).values())
+    eng = p.get("eng") or {}
+    out = {"apt": {"n": len(apt), "ok": sum(r["ok"] for r in apt)},
+           "apt_timed": {"n": sum(1 for r in apt if r.get("sec") is not None)}}
+    out["apt"]["rate"] = rate(out["apt"]["ok"], out["apt"]["n"])
+    for k, name in (("r", "eng_review"), ("q", "eng_quiz")):
+        rs = [r for key, r in eng.items() if key.split("|")[1] == k]
+        out[name] = {"n": len(rs), "ok": sum(r["ok"] for r in rs), "rate": rate(sum(r["ok"] for r in rs), len(rs))}
+    out["done_modules"] = len({d["id"] for d in p.get("done", [])})
+    out["active_days"] = len(activity_dates(p))
+    return out
+
+
+def apply_export(progress: dict, export, study: dict | None = None) -> dict:
+    """STUDY 탭 '📤 학습 기록 보내기' JSON(v1 UTC · v2 KST) → 진행 파일에 병합. 같은 항목은 최신, 다시 넣어도 같은 결과(멱등).
+
+    v1 {v:1, sent, done{id:날짜}, apt[[id, ok, 초|None, UTC 날짜]], eng[[출제일, r|q, idx, ok]], op[]}
+    v2 {v:2, tz:'KST', ...} apt 5번째 칸 'K'|'U', eng 5번째 칸 = 푼 날(KST), op 4번째 칸 = 푼 날.
+    공개 파일에는 문항·모듈 id 와 정답 여부·초·날짜만 남긴다(원자료·OPIc 자기평가 내용은 넣지 않음, 횟수만)."""
+    x = load_export(export)
+    v = int(x.get("v", 1))
+    kst = v >= 2 or str(x.get("tz", "")).upper() == "KST"
+    p = {**copy.deepcopy(INITIAL), **copy.deepcopy(progress or {})}
+    p["note"] = INITIAL["note"]
+    p.setdefault("apt", {})
+    p.setdefault("eng", {})
+    p.setdefault("exports", [])
+    # 완료 모듈: 내보내기 done 은 체크박스라 모듈당 날짜 1개 → 같은 모듈의 export 행은 최신으로 교체
+    titles = _titles(study or {})
+    new_done = []
+    for mid, d in sorted((x.get("done") or {}).items(), key=lambda kv: (kv[1] or "", kv[0])):
+        if not d or (titles and mid not in titles):
+            continue
+        tz = "K" if kst else "U"
+        if any(r["id"] == mid and r["date"] == d for r in p["done"]):
+            continue
+        old = [r for r in p["done"] if r["id"] == mid and r.get("src") == "export"]
+        if old and old[0]["date"] > d:
+            continue
+        p["done"] = [r for r in p["done"] if not (r["id"] == mid and r.get("src") == "export")]
+        p["done"].append({"id": mid, "date": d, "min": None, "src": "export", "tz": tz})
+        new_done.append(mid)
+    p["done"].sort(key=lambda r: (r["date"], r["id"]))
+    for row in x.get("apt") or []:
+        qid, ok, sec, d = (list(row) + [None] * 5)[:4]
+        tz_in = (row[4] if len(row) > 4 and row[4] else ("K" if kst else "U"))
+        day, tz = _apt_date(str(qid), d, str(tz_in).upper())
+        rec = {"ok": 1 if ok else 0, "sec": sec if isinstance(sec, (int, float)) else None, "date": day, "tz": tz}
+        if _newer(p["apt"].get(qid), rec):
+            p["apt"][qid] = rec
+    for row in x.get("eng") or []:
+        cd, kind, idx, ok = (list(row) + [None] * 4)[:4]
+        solved = row[4] if len(row) > 4 and row[4] else None
+        rec = {"ok": 1 if ok else 0, "date": solved or cd, "tz": "K" if solved else "C"}   # C = 출제일(푼 날 미기록, v1)
+        key = f"{cd}|{kind}|{idx}"
+        if _newer(p["eng"].get(key), rec):
+            p["eng"][key] = rec
+    p["op_count"] = max(int(p.get("op_count") or 0), len(x.get("op") or []))
+    tag = {"v": v, "sent": x.get("sent"), "issue": x.get("issue")}
+    if tag not in p["exports"]:
+        p["exports"].append(tag)
+    p["streak"] = streak(activity_dates(p))
+    p["last"] = (activity_dates(p) or [None])[-1]
+    p["modules"] = derive_modules([{"id": r["id"], "date": r["date"]} for r in p["done"]], p["quiz"])
+    for mid in new_done:
+        unlock_next(p, study or {}, mid)
+    p["summary"] = _summary(p)
+    return p
+
+
+def apply_export_file(export, root: Path = ROOT) -> dict:
+    """reports/study_progress.json 에 내보내기 반영 후 저장. 반환 = summary."""
+    pp = root / "reports" / "study_progress.json"
+    p = apply_export(_j(pp, copy.deepcopy(INITIAL)), export, _j(root / "content" / "study.json", {}))
+    _dump(pp, p)
+    return p["summary"]
 
 
 def append_wrong(graded: list[dict], today: date, root: Path = ROOT) -> int:
@@ -283,11 +407,17 @@ def apply_issue(title: str, body: str | None, created_at: str | None = None, roo
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--title", required=True)
+    ap.add_argument("--title")
     ap.add_argument("--body", default="")
     ap.add_argument("--created")
+    ap.add_argument("--export", help="STUDY 탭 내보내기 JSON 경로(또는 이슈 본문 파일)")
     a = ap.parse_args()
-    print(apply_issue(a.title, a.body.replace("\\n", "\n"), a.created))
+    if a.export:
+        print(json.dumps(apply_export_file(a.export), ensure_ascii=False))
+    elif a.title:
+        print(apply_issue(a.title, a.body.replace("\\n", "\n"), a.created))
+    else:
+        ap.error("--title 또는 --export")
 
 
 if __name__ == "__main__":
