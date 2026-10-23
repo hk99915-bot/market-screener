@@ -55,16 +55,16 @@ function ilabView(){
   const dg=D.assets.map(a=>`${esc(D.names[a])} ${(D.drag[a]*100).toFixed(1)}%`).join(' · ');
   setTimeout(ilabRecalc,0);
   return `<div class="grid">
-  <div class="p c12"><div class="b" style="font-size:12px;color:var(--amber)">⚠ 2004-01~${esc(D.months[D.months.length-1])} 한 구간 백테스트 — 금 강세장 포함·과최적화 주의, 미래 보장 아님. 데이터 기준일 ${isaAsof(D)}. 비용 가정(연, 월 1/12 차감): ${dg}. 세금·매매비용 미반영.</div></div>
+  <div class="p c12"><div class="b" style="font-size:var(--fs-2);color:var(--amber)">⚠ 2004-01~${esc(D.months[D.months.length-1])} 한 구간 백테스트 — 금 강세장 포함·과최적화 주의, 미래 보장 아님. 데이터 기준일 ${isaAsof(D)}. 비용 가정(연, 월 1/12 차감): ${dg}. 세금·매매비용 미반영.</div></div>
   <div class="p c4"><h2>비중<small id="ilsum"></small></h2><div class="b">
     <div style="margin-bottom:6px">${pre}</div>${sl}
-    <div style="margin-top:8px"><button class="sbtn" onclick="ilabNorm()">합계 100%로 맞추기</button> <span class="mu" style="font-size:11px">합계가 100이 아니어도 계산은 비율로 정규화</span></div>
+    <div style="margin-top:8px"><button class="sbtn" onclick="ilabNorm()">합계 100%로 맞추기</button> <span class="mu" style="font-size:var(--fs-1)">합계가 100이 아니어도 계산은 비율로 정규화</span></div>
     <div style="margin-top:8px">리밸런싱: ${rb}</div>
     <div style="margin-top:4px"><label><input type="checkbox" ${S.cost?'checked':''} onchange="ILAB_ST.cost=this.checked;ILABBT=null;ilabRecalc()"> 비용 차감</label>
-      &nbsp; <label>월 적립 <input type="number" min="1" value="${S.contrib}" style="width:70px" onchange="ILAB_ST.contrib=Math.max(1,+this.value||100);ilabRecalc()"></label> <span class="mu" style="font-size:11px">(단위 자유 · 브라우저 안에서만 계산, 저장·전송 안 함)</span></div>
+      &nbsp; <label>월 적립 <input type="number" min="1" value="${S.contrib}" style="width:70px" onchange="ILAB_ST.contrib=Math.max(1,+this.value||100);ilabRecalc()"></label> <span class="mu" style="font-size:var(--fs-1)">(단위 자유 · 브라우저 안에서만 계산, 저장·전송 안 함)</span></div>
   </div></div>
   <div class="p c8"><h2>현행 ISA vs 선택<small>${esc(D.months[0])}~${esc(D.months[D.months.length-1])} · ${D.months.length}개월 · 원화</small></h2><div class="b" id="ilout"></div></div>
-  <div class="p c12"><h2>누적 곡선 (일시금 1 → 배수)<small><label><input type="checkbox" ${S.log?'checked':''} onchange="ILAB_ST.log=this.checked;ilabRecalc()"> 로그</label></small></h2><div class="b"><div id="ilch" style="height:280px"></div><div class="mu" style="font-size:11px"><span style="color:var(--muted)">━ 현행 ISA 40/10/15/20/15</span> &nbsp; <span style="color:var(--amber)">━ 선택</span></div></div></div>
+  <div class="p c12"><h2>누적 곡선 (일시금 1 → 배수)<small><label><input type="checkbox" ${S.log?'checked':''} onchange="ILAB_ST.log=this.checked;ilabRecalc()"> 로그</label></small></h2><div class="b"><div id="ilch" style="height:280px"></div><div class="mu" style="font-size:var(--fs-1)"><span style="color:var(--muted)">━ 현행 ISA 40/10/15/20/15</span> &nbsp; <span style="color:var(--amber)">━ 선택</span></div></div></div>
   <div class="p c12"><h2>블록 부트스트랩 10년<small>평균 12개월 블록 · 2,000 경로 · 원형</small></h2><div class="b" id="ilbt">${ILABBT?ilabBootHtml(true):ilabBootIdle()}</div></div>
   </div>`;
 }
@@ -88,7 +88,7 @@ function ilabRecalc(){
    ${row('연환산 IRR',B.dca.irr,X.dca.irr,p1,pp,1)}${row('최종 / 넣은 돈',B.dca.mult,X.dca.mult,mx,dmx,1)}${row('최악 평가손 (넣은 돈 대비)',B.dca.under,X.dca.under,p1,pp,1)}${row('잔고 기준 최대낙폭',B.dca.bal_mdd,X.dca.bal_mdd,p1,pp,1)}
    <tr><td class="l am" colspan="4">위기 구간 (일시금 누적수익률)</td></tr>
    ${Object.keys(X.crisis).map(k=>row(esc(k),B.crisis[k],X.crisis[k],p1,pp,1)).join('')}</table>
-   <div class="mu" style="font-size:11px;margin-top:4px">최종 금액 예: 월 ${num(S.contrib)} 적립이면 넣은 돈 ${num(S.contrib*D.months.length)} → 현행 ${num(B.dcurve[B.dcurve.length-1])} · 선택 ${num(X.dcurve[X.dcurve.length-1])}. 낙폭은 수익률(시간가중) 기준, 잔고 기준은 새 돈이 들어와 작아 보인다.</div>`;
+   <div class="mu" style="font-size:var(--fs-1);margin-top:4px">최종 금액 예: 월 ${num(S.contrib)} 적립이면 넣은 돈 ${num(S.contrib*D.months.length)} → 현행 ${num(B.dcurve[B.dcurve.length-1])} · 선택 ${num(X.dcurve[X.dcurve.length-1])}. 낙폭은 수익률(시간가중) 기준, 잔고 기준은 새 돈이 들어와 작아 보인다.</div>`;
   o.innerHTML=h; ilabChart(B.curve,X.curve);
   const bt=$('#ilbt'); if(bt) bt.innerHTML=ILABBT?ilabBootHtml(true):ilabBootIdle();
 }
@@ -115,9 +115,9 @@ function ilabCanvas(el,b,x,cv){
 }
 function ilabRunBoot(){ const bt=$('#ilbt'); if(bt) bt.innerHTML='<span class="mu">계산 중 …</span>';
   setTimeout(()=>{ const S=ILAB_ST; ILABBT={b:ilabBoot(ILAB,ilabBase(),S.rebal,S.cost,2000,120,12,7), x:ilabBoot(ILAB,S.w,S.rebal,S.cost,2000,120,12,7)}; const e=$('#ilbt'); if(e) e.innerHTML=ilabBootHtml(true); },20); }
-function ilabBootIdle(){ return `<button class="sbtn" onclick="ilabRunBoot()">실행 (약 1초)</button> <span class="mu" style="font-size:11px">과거 ${ILAB.months.length}개월을 평균 12개월 덩어리로 섞어 10년 경로를 만든다 — 과거 분포 안에서만 섞으므로 금 강세장 편향이 그대로 남는다</span>`; }
+function ilabBootIdle(){ return `<button class="sbtn" onclick="ilabRunBoot()">실행 (약 1초)</button> <span class="mu" style="font-size:var(--fs-1)">과거 ${ILAB.months.length}개월을 평균 12개월 덩어리로 섞어 10년 경로를 만든다 — 과거 분포 안에서만 섞으므로 금 강세장 편향이 그대로 남는다</span>`; }
 function ilabBootHtml(btn){ const B=ILABBT.b, X=ILABBT.x, p1=v=>(v*100).toFixed(1)+'%', mx=v=>v.toFixed(2)+'배';
-  return (btn?`<button class="sbtn" onclick="ilabRunBoot()">다시 실행</button> <span class="mu" style="font-size:11px">비중·옵션을 바꾸면 결과가 지워진다 — 다시 실행</span>`:'')+
+  return (btn?`<button class="sbtn" onclick="ilabRunBoot()">다시 실행</button> <span class="mu" style="font-size:var(--fs-1)">비중·옵션을 바꾸면 결과가 지워진다 — 다시 실행</span>`:'')+
   `<table style="margin-top:6px"><tr><th class="l">10년 (2,000 경로)</th><th>현행 중앙값</th><th>현행 하위10%</th><th>선택 중앙값</th><th>선택 하위10%</th></tr>
   <tr><td class="l">일시금 CAGR</td><td>${p1(B.cagr_med)}</td><td>${p1(B.cagr_p10)}</td><td><b>${p1(X.cagr_med)}</b></td><td><b>${p1(X.cagr_p10)}</b></td></tr>
   <tr><td class="l">월 적립 최종/넣은 돈</td><td>${mx(B.mult_med)}</td><td>${mx(B.mult_p10)}</td><td><b>${mx(X.mult_med)}</b></td><td><b>${mx(X.mult_p10)}</b></td></tr>

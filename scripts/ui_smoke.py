@@ -72,6 +72,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_macro_bond_top(b, port)
         bad += await check_research_board(b, port)
         bad += await check_msg_popup(b, port)
+        bad += await check_uxui_rest(b, port)
         await b.close()
     return bad
 
@@ -534,6 +535,52 @@ async def check_msg_popup(b, port: int) -> int:
     ok = all(res.values()) and not errs
     print(f"{'OK ' if ok else 'BAD'} 💬팝업(390px) 본문={body}px 머리={head}px " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
           + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return not ok
+
+
+SMALL_JS = """(()=>{ let n=0; for(const e of document.querySelectorAll('body *')){ if(e.closest('details:not([open])')||e.closest('canvas,svg')) continue;
+  if(![...e.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())) continue; const r=e.getBoundingClientRect(); if(!r.width||!r.height) continue;
+  if(parseFloat(getComputedStyle(e).fontSize)<11) n++; } return n; })()"""
+
+
+async def check_uxui_rest(b, port: int) -> int:
+    """UXUI Top10 남은 3건(10/24 결재 appr-uxui-top10-next), 390px:
+    ① 💬 = 머리(.top) 안 버튼(떠 있지 않음) → 본문을 가리는 고정 요소 0 · 누르면 팝업 · 머리 가로 넘침 없음
+    ② 가로 스크롤 표(KR·운용회의)를 오른쪽으로 밀어도 첫 열이 상자 왼쪽에 붙어 있음(sticky)
+    ③ 글자 4단계: 보이는 글자 중 11px 미만 0 (home·kr·daily·score·cmt·sysb·msg)."""
+    pg = await b.new_page(viewport={"width": 390, "height": 844}, has_touch=True)
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    J = pg.evaluate
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    res: dict = {}
+    fab = await J("""(()=>{ const f=document.getElementById('mgfab'); if(!f) return null; const r=f.getBoundingClientRect();
+      return {inTop:!!f.closest('.top'), pos:getComputedStyle(f).position, w:r.width, h:r.height,
+        floats:[...document.querySelectorAll('body *')].filter(e=>getComputedStyle(e).position==='fixed'&&e.offsetWidth&&e.offsetHeight&&!e.closest('#mgpop,.drawer,.backdrop,#dr,#bd')).length,
+        over:[...document.querySelectorAll('.top *')].some(e=>e.offsetWidth&&e.getBoundingClientRect().right>innerWidth+1&&!e.closest('.tabs'))}; })()""")
+    res["💬머리안"] = bool(fab) and fab["inTop"] and fab["pos"] != "fixed" and fab["w"] >= 44 and fab["floats"] == 0 and not fab["over"]
+    await pg.click("#mgfab")
+    await pg.wait_for_timeout(1500)
+    res["💬팝업"] = await J("!!document.getElementById('mgpop')")
+    await J("mgPop(false)")
+    small = {}
+    stick = {}
+    for v in ("home", "kr", "daily", "score", "cmt", "sysb", "msg"):
+        await J(f"setView({v!r})")
+        await pg.wait_for_timeout(2500)
+        small[v] = await J(SMALL_JS)
+        if v in ("kr", "cmt"):
+            stick[v] = await J("""(()=>{ const box=[...document.querySelectorAll('#root .hscr')].find(e=>e.querySelector('table td')); if(!box) return 'no-hscr';
+              const td=[...box.querySelectorAll('table tr>:first-child')].find(c=>!c.hasAttribute('colspan')&&c.offsetWidth); if(!td) return 'no-td';
+              box.scrollLeft=400; const bl=box.getBoundingClientRect().left, tl=td.getBoundingClientRect().left;
+              return box.scrollLeft>0&&Math.abs(tl-bl)<=12 ? 'ok' : `td ${tl|0} box ${bl|0} sl ${box.scrollLeft}`; })()""")
+    res["첫열고정"] = all(x == "ok" for x in stick.values())
+    res["작은글자0"] = not any(small.values())
+    ok = all(res.values()) and not errs
+    print(f"{'OK ' if ok else 'BAD'} UXUI남은3건(390px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
+          + f" · 11px미만 {small} · 첫열 {stick}" + ("" if res["💬머리안"] else f" · 💬={fab}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok
 

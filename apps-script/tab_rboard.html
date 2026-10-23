@@ -4,26 +4,26 @@
      첫 화면(390px) = 단계별 개수 · 판정 개수 · 이번 주 할 일 · 도전(ask 퀀트). '이번 주'는 브라우저 KST 날짜로 계산. -->
 <style>
 .rbst{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px}
-.rbst button{min-height:44px;word-break:keep-all;background:#111;border:1px solid var(--line);color:var(--txt);font:inherit;font-size:11px;line-height:1.25;padding:3px 2px;cursor:pointer;text-align:center}
-.rbst button b{display:block;font-size:17px;color:var(--amber)}
+.rbst button{min-height:44px;word-break:keep-all;background:#111;border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-1);line-height:1.25;padding:3px 2px;cursor:pointer;text-align:center}
+.rbst button b{display:block;font-size:var(--fs-4);color:var(--amber)}
 .rbst button.lk b{color:var(--muted)}
-.rbvd{font-size:12px;margin:2px 0 6px}
+.rbvd{font-size:var(--fs-2);margin:2px 0 6px}
 .rbvd span{margin-right:10px;white-space:nowrap}
-.rbwk{margin:0;padding:0;list-style:none;font-size:12px}
+.rbwk{margin:0;padding:0;list-style:none;font-size:var(--fs-2)}
 .rbwk li{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid #1c1c1c;white-space:normal}
 .rbwk.one li span.t{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rbwk .dd{flex:0 0 46px;font-weight:700;text-align:right}
-.rbch{margin-top:6px;padding:6px 8px;border:1px dashed var(--amber-dim);font-size:12px;line-height:1.6;white-space:normal}
+.rbch{margin-top:6px;padding:6px 8px;border:1px dashed var(--amber-dim);font-size:var(--fs-2);line-height:1.6;white-space:normal}
 .rbch code{color:var(--amber);background:#161616;padding:0 4px}
 .rbcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px}
-.rbc{border:1px solid var(--line);padding:6px 8px;font-size:12px;line-height:1.55;white-space:normal;background:#090909;min-width:0}
+.rbc{border:1px solid var(--line);padding:6px 8px;font-size:var(--fs-2);line-height:1.55;white-space:normal;background:#090909;min-width:0}
 .rbc .hd{display:flex;gap:6px;align-items:baseline}
 .rbc .hd b{color:var(--txt)}
 .rbc .k{color:var(--muted)}
 .rbc .lnk{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.rbc .lnk a,.rbc .lnk button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--line);background:#111;color:var(--cyan);font:inherit;font-size:11.5px;cursor:pointer}
-.rbvb{display:inline-block;padding:0 5px;border:1px solid;font-size:10.5px;flex:0 0 auto}
-.rbgate{font-size:11.5px;color:var(--muted);white-space:normal;margin:0 0 6px}
+.rbc .lnk a,.rbc .lnk button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--line);background:#111;color:var(--cyan);font:inherit;font-size:var(--fs-1);cursor:pointer}
+.rbvb{display:inline-block;padding:0 5px;border:1px solid;font-size:var(--fs-1);flex:0 0 auto}
+.rbgate{font-size:var(--fs-1);color:var(--muted);white-space:normal;margin:0 0 6px}
 </style>
 <script>
 let RB=null;
@@ -57,27 +57,27 @@ function rbView(){
   const cnt={}, vcnt={}; I.forEach(it=>{cnt[it.stage]=(cnt[it.stage]||0)+1; vcnt[it.verdict]=(vcnt[it.verdict]||0)+1;});
   const live=(cnt[S[S.length-1]&&S[S.length-1].id]||0);
   const strip=S.map((s,i)=>{ const act=I.filter(it=>it.stage===s.id&&it.verdict!=='폐기').length, lk=s.id==='live';
-    return `<button data-rbs="${esc(s.id)}" class="${lk?'lk':''}" title="관문: ${esc(s.gate)}"><b>${lk&&!live?'🔒':(cnt[s.id]||0)}</b>${esc(s.name)}${!lk&&cnt[s.id]?`<div class="mu" style="font-size:10px">진행·보류 ${act}</div>`:lk?'<div class="mu" style="font-size:10px">해금 전</div>':''}</button>`; }).join('');
+    return `<button data-rbs="${esc(s.id)}" class="${lk?'lk':''}" title="관문: ${esc(s.gate)}"><b>${lk&&!live?'🔒':(cnt[s.id]||0)}</b>${esc(s.name)}${!lk&&cnt[s.id]?`<div class="mu" style="font-size:var(--fs-1)">진행·보류 ${act}</div>`:lk?'<div class="mu" style="font-size:var(--fs-1)">해금 전</div>':''}</button>`; }).join('');
   const vd=['통과','진행','보류','폐기'].map(v=>`<span><b style="color:${RB_VC[v]}">${v}</b> ${vcnt[v]||0}</span>`).join('');
   const wk=rbWeek(RB,today), me=rbOwnerTodo(RB);
-  const wkHtml=wk.length?`<ul class="rbwk one">${wk.slice(0,5).map(w=>`<li title="${esc(w.full||w.txt)}"><span class="dd">${w.n<0?`<span class="dn">${-w.n}일↑</span>`:w.n===0?'<span class="am">오늘</span>':'D-'+w.n}</span><span class="t">${esc(w.txt)} · ${esc(w.who)}</span></li>`).join('')}</ul>${wk.length>5?`<div class="mu" style="font-size:11px">+${wk.length-5}건 더 — 아래 카드</div>`:''}`:'<div class="mu">이번 주 마감 없음</div>';
-  const meHtml=me.length?`<div style="font-size:12px;margin:0 0 6px"><b class="am">겸이 할 일 ${me.length}</b> ${me.map(it=>`<a href="#rb_${esc(it.id)}">${esc(it.name)}</a> <span class="mu">${esc(it.action.split(' — ')[0])}</span>`).join(' · ')}</div>`:'<div class="mu" style="font-size:12px;margin:0 0 6px">겸이 할 일 없음 — 읽기만</div>';
+  const wkHtml=wk.length?`<ul class="rbwk one">${wk.slice(0,5).map(w=>`<li title="${esc(w.full||w.txt)}"><span class="dd">${w.n<0?`<span class="dn">${-w.n}일↑</span>`:w.n===0?'<span class="am">오늘</span>':'D-'+w.n}</span><span class="t">${esc(w.txt)} · ${esc(w.who)}</span></li>`).join('')}</ul>${wk.length>5?`<div class="mu" style="font-size:var(--fs-1)">+${wk.length-5}건 더 — 아래 카드</div>`:''}`:'<div class="mu">이번 주 마감 없음</div>';
+  const meHtml=me.length?`<div style="font-size:var(--fs-2);margin:0 0 6px"><b class="am">겸이 할 일 ${me.length}</b> ${me.map(it=>`<a href="#rb_${esc(it.id)}">${esc(it.name)}</a> <span class="mu">${esc(it.action.split(' — ')[0])}</span>`).join(' · ')}</div>`:'<div class="mu" style="font-size:var(--fs-2);margin:0 0 6px">겸이 할 일 없음 — 읽기만</div>';
   const ch=RB.challenge||{};
   const top=`<div class="p c12" id="rbTop"><h2>연구 보드<small>아이디어 → 백테스트 → 독립 검증 → 모의 추적 → 실계좌 후보 · 자료 ${esc(RB.asof||'—')}</small></h2><div class="b">
     <div class="rbst">${strip}</div>
     <div class="rbvd">${vd}<span class="mu">총 ${I.length}건</span></div>
-    ${meHtml}<div class="am" style="font-size:12px;margin-bottom:2px">이번 주 할 일 ${wk.length} <span class="mu">(${esc(today)}부터 7일 안 마감 · 지난 것 포함)</span></div>${wkHtml}
+    ${meHtml}<div class="am" style="font-size:var(--fs-2);margin-bottom:2px">이번 주 할 일 ${wk.length} <span class="mu">(${esc(today)}부터 7일 안 마감 · 지난 것 포함)</span></div>${wkHtml}
     <div class="rbch"><b class="am">도전</b> 새 아이디어·다음 실험 → 텔레그램 <code>ask 퀀트 &lt;아이디어&gt;</code> · 한 줄이면 됨(무엇을/어느 시장/왜) · 2영업일 안 답, 퀀트가 사전등록해 1단계에 올림</div>
   </div></div>`;
   const sec=S.map((s,i)=>{ const its=I.filter(it=>it.stage===s.id).sort((a,b)=>['진행','보류','통과','폐기'].indexOf(a.verdict)-['진행','보류','통과','폐기'].indexOf(b.verdict)||String(b.updated||'').localeCompare(String(a.updated||'')));
     const alive=its.filter(it=>it.verdict!=='폐기'), dead=its.filter(it=>it.verdict==='폐기');
     return `<div class="p c12" id="rbs_${esc(s.id)}"><h2>${i+1}. ${esc(s.name)}<small>${its.length}건</small></h2><div class="b">
       <div class="rbgate">관문 → 다음 단계: ${esc(s.gate)} <span class="mu">(${esc(s.kb||'')})</span></div>
-      ${alive.length?`<div class="rbcards">${alive.map(rbCard).join('')}</div>`:`<div class="mu" style="font-size:12px">${s.id==='live'?'비어 있음 — 해금 전(레버리지·인버스·공매도 2027-04-15, 롱 위성 북은 해금 결재 뒤)':'비어 있음'}</div>`}
+      ${alive.length?`<div class="rbcards">${alive.map(rbCard).join('')}</div>`:`<div class="mu" style="font-size:var(--fs-2)">${s.id==='live'?'비어 있음 — 해금 전(레버리지·인버스·공매도 2027-04-15, 롱 위성 북은 해금 결재 뒤)':'비어 있음'}</div>`}
       ${dead.length?`<details style="margin-top:6px"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="mu">폐기 ${dead.length}건 (F = 효과 0, 다시 보려면 '무엇이 다른가'와 함께 ask)</summary><div class="rbcards" style="margin-top:4px">${dead.map(rbCard).join('')}</div></details>`:''}
     </div></div>`; }).join('');
   const rq=(RB.quant_requests||[]), un=(RB.unregistered||[]);
-  const chall=`<div class="p c12"><h2>도전 · 제출함<small>퀀트 앞 열린 요청 ${rq.length} · 미등록 연구 ${un.length}</small></h2><div class="b" style="font-size:12px;line-height:1.7;white-space:normal">
+  const chall=`<div class="p c12"><h2>도전 · 제출함<small>퀀트 앞 열린 요청 ${rq.length} · 미등록 연구 ${un.length}</small></h2><div class="b" style="font-size:var(--fs-2);line-height:1.7;white-space:normal">
     <div>${esc(ch.how||'')}</div><div class="mu">${esc(ch.rules||'')}</div>
     ${rq.length?`<ul class="rbwk" style="margin-top:4px">${rq.map(r=>`<li><span class="dd">${rbDD(r.due)}</span><span><span class="mu">${esc(r.from)} · ${esc(r.id)}</span> ${esc(r.text)}</span></li>`).join('')}</ul>`:'<div class="mu">열린 요청 없음 — 첫 아이디어를 내 봐</div>'}
     ${un.length?`<div style="margin-top:4px"><b class="dn">미등록 연구</b> ${un.map(u=>`<a href="${RB_GH+esc(u.file)}" target="_blank">${esc(u.study)}</a> <span class="mu">${esc(u.date||'')}</span>`).join(' · ')}</div>`:''}

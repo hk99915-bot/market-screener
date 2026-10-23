@@ -12,10 +12,10 @@ function dailyPick(){
       if(d==='latest'){ DSEL=null; DB=DLATEST||null; render(); return; }
       DSEL=d; google.script.run.withSuccessHandler(t=>{try{DB=JSON.parse(t);}catch(e){DB={};} render();}).getDailyAt(d); };
     document.querySelectorAll('[data-dstep]').forEach(b=>b.onclick=()=>{ const i=days.findIndex(x=>x.date===(DSEL||days[0].date)); const j=Math.min(days.length-1,Math.max(0,i+(+b.dataset.dstep))); sel.value=j===0&&!DSEL?'latest':days[j].date; if(j===0) sel.value='latest'; sel.onchange(); }); },0);
-  return `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span class="mu" style="font-size:12px">지난 브리프</span>
+  return `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span class="mu" style="font-size:var(--fs-2)">지난 브리프</span>
     <button data-dstep="1" class="sbtn">◀ 이전</button>
     <select id="dsel" style="background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:4px 6px;max-width:72vw"><option value="latest" ${!DSEL?'selected':''}>최신</option>${days.map(x=>`<option value="${esc(x.date)}" ${DSEL===x.date?'selected':''}>${esc(x.date)} · ${esc(String(x.headline||'').slice(0,40))}</option>`).join('')}</select>
-    <button data-dstep="-1" class="sbtn">다음 ▶</button>${DSEL?`<span class="am" style="font-size:12px">${esc(DSEL)} 기록 보는 중</span>`:''}</div>`;
+    <button data-dstep="-1" class="sbtn">다음 ▶</button>${DSEL?`<span class="am" style="font-size:var(--fs-2)">${esc(DSEL)} 기록 보는 중</span>`:''}</div>`;
 }
 function dailyView(){ const _h=dailyView0(); return _h.startsWith('<div class="load"')?_h:`<div class="grid" style="padding-bottom:0"><div class="c12">${dailyPick()}${DSEL?'':decBox()}</div></div>`+_h; }
 function dailyView0(){
@@ -25,7 +25,7 @@ function dailyView0(){
   const th=o.themes.map(t=>{const tones=Object.entries(t.tones).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}`).join(', ');
     return `<tr><td class="l am">${esc(t.theme)}</td><td>${t.n}</td><td>${t.stocks}</td><td><b class="${t.pos_share>=0.6?'up':t.pos_share<0.4?'dn':'am'}">${Math.round(t.pos_share*100)}%</b></td><td class="l">${esc((t.topics||[]).join(', '))}</td><td>${t.tp_up||t.tp_down?`<span class="up">↑${t.tp_up}</span> <span class="dn">↓${t.tp_down}</span>`:'—'}</td><td class="l mu">${esc(t.top_stocks.join(', '))}</td></tr><tr class="sub on"><td></td><td colspan="6">${(t.views||[]).map(v=>`<div>· ${esc(v)}</div>`).join('')}<div class="mu">톤: ${esc(tones)}</div></td></tr>`;}).join('');
   return `<div class="grid">
-   <div class="p c12"><h2>DAILY RESEARCH BRIEF<small>${esc(o.asof)} · 최근 ${o.days}일 리포트 ${o.n_reports}건 · 규칙 기반</small></h2><div class="b"><div class="bv am" style="font-size:16px">${esc(o.headline)}</div></div></div>
+   <div class="p c12"><h2>DAILY RESEARCH BRIEF<small>${esc(o.asof)} · 최근 ${o.days}일 리포트 ${o.n_reports}건 · 규칙 기반</small></h2><div class="b"><div class="bv am" style="font-size:var(--fs-4)">${esc(o.headline)}</div></div></div>
    <div class="p c4"><h2>1. TOP-DOWN</h2><div class="b">${(o.topdown.markets||[]).map(x=>`<div>${tgHtml(x)}</div>`).join('')}<div style="margin-top:6px">${(o.topdown.regime||[]).map(x=>`<div>• ${tgHtml(x)}</div>`).join('')}</div></div></div>
    <div class="p c8"><h2>3. 통합 판단<small>탑다운 × 바텀업</small></h2><div class="b">${(o.links||[]).length?o.links.map(x=>`<div style="margin-bottom:6px">▶ ${esc(x)}</div>`).join(''):'<div class="mu">특이 연결 신호 없음</div>'}
      <div class="mu" style="margin-top:8px">리포트 공통 화두: ${Object.entries(o.topics||{}).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')}</div></div></div>
@@ -47,25 +47,25 @@ function viewsView(){
   const tl=x=>x==null?'<span class="mu">— (가중 렌즈 신호 없음)</span>':`<b class="${x>0?'up':x<0?'dn':'mu'}">${x>0?'+':''}${x.toFixed(2)}</b>`;
   const col=d=>{ const s=VW.summary[d]||{};
     const gates=(s.gates||[]).map(g=>`<div>${gr(g.result)} ${esc(g.name)} ${gb(g.grade)} <span class="mu">${esc(g.state)}</span></div>`).join('');
-    const priv=(s.private_gates||[]).length?`<div class="mu" style="font-size:11px">개인 게이트 ${(s.private_gates||[]).length}개 — 비공개 저장소에서 판정: ${(s.private_gates||[]).map(g=>esc(g.name)).join(' · ')}</div>`:'';
+    const priv=(s.private_gates||[]).length?`<div class="mu" style="font-size:var(--fs-1)">개인 게이트 ${(s.private_gates||[]).length}개 — 비공개 저장소에서 판정: ${(s.private_gates||[]).map(g=>esc(g.name)).join(' · ')}</div>`:'';
     const wts=(s.weights||[]).map(w=>`<div>${w.sign==null?'<span class="mu">·</span>':w.sign>0?'<b class="up">+1</b>':w.sign<0?'<b class="dn">−1</b>':'<span class="mu">0</span>'} ${esc(w.name)} ${gb(w.grade)} <span class="mu">${esc(w.state)}</span></div>`).join('');
-    const al=(s.alerts||[]).map(a=>`<div><b class="am">!</b> ${esc(a.name)}${a.expires?` <span class="mu">(~${esc(a.expires)})</span>`:''}<div class="mu" style="font-size:11px;white-space:normal">${esc(a.line||'')}</div></div>`).join('');
+    const al=(s.alerts||[]).map(a=>`<div><b class="am">!</b> ${esc(a.name)}${a.expires?` <span class="mu">(~${esc(a.expires)})</span>`:''}<div class="mu" style="font-size:var(--fs-1);white-space:normal">${esc(a.line||'')}</div></div>`).join('');
     const ov=s.gate==='fail'?'<b class="dn">불통과</b>':s.gate==='pass'?'<b class="up">통과</b>':`<span class="mu">${esc(s.gate||'—')}</span>`;
-    return `<div class="p c4"><h2>${esc(s.label||d)}<small>공개 게이트 ${ov}</small></h2><div class="b" style="white-space:normal;font-size:12px;line-height:1.7">
-      <div class="am" style="font-size:11px">게이트</div>${gates||'<div class="mu">공개 게이트 없음</div>'}${priv}
-      <div class="am" style="font-size:11px;margin-top:6px">가중 기울기 ${tl(s.tilt)}</div>${wts||'<div class="mu">가중 렌즈 없음</div>'}
-      <div class="am" style="font-size:11px;margin-top:6px">주의 ${(s.alerts||[]).length}</div>${al||'<div class="mu">없음</div>'}
-      <div class="mu" style="font-size:11px;margin-top:6px">참고 ${(s.reference||[]).length}개 — 근거로 인용 시 '참고' 표시</div></div></div>`; };
+    return `<div class="p c4"><h2>${esc(s.label||d)}<small>공개 게이트 ${ov}</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.7">
+      <div class="am" style="font-size:var(--fs-1)">게이트</div>${gates||'<div class="mu">공개 게이트 없음</div>'}${priv}
+      <div class="am" style="font-size:var(--fs-1);margin-top:6px">가중 기울기 ${tl(s.tilt)}</div>${wts||'<div class="mu">가중 렌즈 없음</div>'}
+      <div class="am" style="font-size:var(--fs-1);margin-top:6px">주의 ${(s.alerts||[]).length}</div>${al||'<div class="mu">없음</div>'}
+      <div class="mu" style="font-size:var(--fs-1);margin-top:6px">참고 ${(s.reference||[]).length}개 — 근거로 인용 시 '참고' 표시</div></div></div>`; };
   const ls=(VW.lenses||[]).slice().sort((a,b)=>(a.family==='personal')-(b.family==='personal'));
   const rows=ls.map(L=>{ const r=L.roles||{}; const st=String(L.status||'');
-    return `<tr><td class="l"><b>${esc(L.name_ko)}</b><div class="mu" style="font-size:10px">${esc(L.id)} · ${esc(L.family)}</div></td>
-      <td class="l" style="white-space:normal;min-width:160px">${L.state==='n/a'?'<span class="mu">n/a</span>':L.state==='private'?'<span class="mu">비공개</span>':`<b class="${L.bias==='bull'?'up':L.bias==='bear'?'dn':''}">${esc(L.state)}</b>`}<div class="mu" style="font-size:11px">${esc(L.note||'')}</div></td>
+    return `<tr><td class="l"><b>${esc(L.name_ko)}</b><div class="mu" style="font-size:var(--fs-1)">${esc(L.id)} · ${esc(L.family)}</div></td>
+      <td class="l" style="white-space:normal;min-width:160px">${L.state==='n/a'?'<span class="mu">n/a</span>':L.state==='private'?'<span class="mu">비공개</span>':`<b class="${L.bias==='bull'?'up':L.bias==='bear'?'dn':''}">${esc(L.state)}</b>`}<div class="mu" style="font-size:var(--fs-1)">${esc(L.note||'')}</div></td>
       ${['entry','exit','allocation'].map(d=>`<td class="${RC[r[d]||'none']}">${RL[r[d]||'none']}</td>`).join('')}
       <td>${gb(L.grade)}</td><td class="${st==='채택'?'up':st==='강등'||st==='폐기'?'dn':st==='후보'?'am':'mu'}">${esc(st)}</td><td class="mu">${esc(L.review_by||'')}</td></tr>`; }).join('');
   const lc=VW.lifecycle||{};
-  const lint=(VW.lint||[]).length?`<div class="dn" style="font-size:12px;white-space:normal">점검: ${(VW.lint||[]).map(esc).join(' · ')}</div>`:'';
-  const ch=(VW.changes||[]).length?`<div class="am" style="font-size:12px;white-space:normal">직전 거래일 대비 변화: ${(VW.changes||[]).map(esc).join(' · ')}</div>`:'';
-  return `<div class="grid"><div class="p c12"><h2>VIEWS — 관점 레지스트리<small>${esc(VW.asof||'')} · 레지스트리 ${esc(VW.registry_updated||'')}</small></h2><div class="b" style="white-space:normal;font-size:12px;line-height:1.7">
+  const lint=(VW.lint||[]).length?`<div class="dn" style="font-size:var(--fs-2);white-space:normal">점검: ${(VW.lint||[]).map(esc).join(' · ')}</div>`:'';
+  const ch=(VW.changes||[]).length?`<div class="am" style="font-size:var(--fs-2);white-space:normal">직전 거래일 대비 변화: ${(VW.changes||[]).map(esc).join(' · ')}</div>`:'';
+  return `<div class="grid"><div class="p c12"><h2>VIEWS — 관점 레지스트리<small>${esc(VW.asof||'')} · 레지스트리 ${esc(VW.registry_updated||'')}</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.7">
     <div class="mu">${esc(VW.how_to_use||'')}</div>${ch}${lint}
     <div style="margin-top:4px">${Object.entries(lc).filter(([k,v])=>v.length).map(([k,v])=>`<span class="tag ${k==='채택'?'g':k==='강등'||k==='폐기'?'r':''}">${esc(k)} ${v.length}</span>`).join('')}</div></div></div>
     ${['entry','exit','allocation'].map(col).join('')}

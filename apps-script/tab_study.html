@@ -10,7 +10,7 @@ function eduPut(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){
 const MQK='mt_quiz_log'; let EDQ=eduGet(MQK,[]); if(!Array.isArray(EDQ)) EDQ=[];   // 모듈 확인문제 기록 (아래 mqItem, req-dev-29f439ce)
 document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('.mqb,.mqr,.mqs'); if(!t||t.disabled) return;
   const k=t.dataset.ch||t.dataset.mqr, F=mqFind(k); if(!F) return; const sel=x=>[...document.querySelectorAll(x)].filter(el=>el.dataset.res===k||el.dataset.mqx===k||el.dataset.mqa===k);
-  if(t.classList.contains('mqr')){ sel('[data-mqx]').forEach(el=>el.innerHTML=mqExp(F.q,F.P)); sel('[data-mqa]').forEach(el=>el.innerHTML=`<span class="mu" style="font-size:12px;align-self:center">내 답은?</span><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="1" style="min-height:44px">맞혔어</button><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="0" style="min-height:44px">틀렸어</button>`); return; }
+  if(t.classList.contains('mqr')){ sel('[data-mqx]').forEach(el=>el.innerHTML=mqExp(F.q,F.P)); sel('[data-mqa]').forEach(el=>el.innerHTML=`<span class="mu" style="font-size:var(--fs-2);align-self:center">내 답은?</span><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="1" style="min-height:44px">맞혔어</button><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="0" style="min-height:44px">틀렸어</button>`); return; }
   if(t.classList.contains('mqs')){ const ok=t.dataset.ok==='1'; mqLog(k,F,null,ok,true); sel('[data-res]').forEach(el=>el.innerHTML=mqRes(mqFirst(k))); sel('[data-mqa]').forEach(el=>el.innerHTML=''); return; }
   const c=+t.dataset.i, ok=c===F.P.a; mqLog(k,F,c,ok,false); const r=mqFirst(k);
   document.querySelectorAll('.mqb[data-ch]').forEach(o=>{ if(o.dataset.ch!==k) return; o.disabled=true; o.style.cssText+=';'+mqMark(+o.dataset.i,F.P.a,r.choice); });
@@ -51,19 +51,19 @@ function eduVal(k){
   return null;
 }
 function eduChips(keys){
-  return (keys||[]).map(k=>{ const o=eduVal(k); return `<span style="display:inline-block;margin:2px 10px 2px 0"><span class="mu">${esc(EDK[k]||k)}</span> ${o?`<b>${esc(o.v)}</b> <span class="mu" style="font-size:11px">${esc(o.s||'')}${o.d?' · '+esc(o.d):''}</span>`:'<span class="mu">— 데이터 없음</span>'}</span>`; }).join('');
+  return (keys||[]).map(k=>{ const o=eduVal(k); return `<span style="display:inline-block;margin:2px 10px 2px 0"><span class="mu">${esc(EDK[k]||k)}</span> ${o?`<b>${esc(o.v)}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(o.s||'')}${o.d?' · '+esc(o.d):''}</span>`:'<span class="mu">— 데이터 없음</span>'}</span>`; }).join('');
 }
 function eduFillLive(){ document.querySelectorAll('[data-live]').forEach(el=>{ el.innerHTML=eduChips(el.dataset.live.split(',').filter(Boolean)); }); }
 function eduAll(){ return ((EDU&&EDU.tracks)||[]).flatMap(t=>t.modules.map(m=>({...m,_t:t.id}))); }
 function eduProg(){
   const all=eduAll(), n=all.length, d=all.filter(m=>EDONE[m.id]).length;
-  const el=$('#eduprog'); if(el) el.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px"><span>전체 진행 <b>${d}</b> / ${n} 모듈</span><span class="mu">${n?Math.round(d/n*100):0}%</span></div><div class="bar"><i style="width:${n?d/n*100:0}%"></i></div>`+
-    (EDU.tracks||[]).map(t=>{ const a=t.modules.length, b=t.modules.filter(m=>EDONE[m.id]).length; return `<div style="display:flex;align-items:center;gap:8px;font-size:11.5px"><span style="width:150px" class="mu">${esc(t.title.replace(/^트랙 /,''))}</span><div class="bar" style="flex:1;margin:0"><i style="width:${a?b/a*100:0}%"></i></div><span style="width:44px;text-align:right">${b}/${a}</span></div>`; }).join('');
+  const el=$('#eduprog'); if(el) el.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:var(--fs-2)"><span>전체 진행 <b>${d}</b> / ${n} 모듈</span><span class="mu">${n?Math.round(d/n*100):0}%</span></div><div class="bar"><i style="width:${n?d/n*100:0}%"></i></div>`+
+    (EDU.tracks||[]).map(t=>{ const a=t.modules.length, b=t.modules.filter(m=>EDONE[m.id]).length; return `<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-1)"><span style="width:150px" class="mu">${esc(t.title.replace(/^트랙 /,''))}</span><div class="bar" style="flex:1;margin:0"><i style="width:${a?b/a*100:0}%"></i></div><span style="width:44px;text-align:right">${b}/${a}</span></div>`; }).join('');
   document.querySelectorAll('[data-mdone]').forEach(x=>{ const ok=!!EDONE[x.dataset.mdone]; x.textContent=ok?'✓ 완료':''; });
   document.querySelectorAll('[data-rchip]').forEach(x=>{ x.style.color=EDONE[x.dataset.rchip]?'var(--up)':''; });
 }
 // 출처 태그([consult:데스크#q1]·(kb:데스크#3))는 본문에 그대로 두면 읽기 어려움(10/17 겸이) → 작은 ⓢ 로 접고 마우스를 올리면 출처
-function citeFmt(h){ const sup=t=>`<sup class="mu" style="font-size:9px;opacity:.55;cursor:help" title="출처: ${t}">ⓢ</sup>`;
+function citeFmt(h){ const sup=t=>`<sup class="mu" style="font-size:var(--fs-1);opacity:.55;cursor:help" title="출처: ${t}">ⓢ</sup>`;
   return String(h).replace(/\s*(?:[\[(]((?:consult|kb):[^\])]*)[\])]|\b((?:consult|kb):[\w-]+#[\w.]+))/g,(_,a,b)=>sup(a||b)).replace(/[,·]\s*(<sup)/g,'$1'); }
 const escC=t=>citeFmt(esc(t));
 /* 모듈 확인문제 '고르고 채점' (교육 req-dev-29f439ce · STUDY Dev handoff #6, 10/23): 예전엔 summary 안에 정답이 미리 들어 있는 펼침이라 인출이 안 됐다.
@@ -78,37 +78,37 @@ function mqParse(q){ const st=String(q.q||'');
   if(i>0){ const ch=st.slice(i).split(/[①-⑩]/).map(x=>x.trim()).filter(Boolean), a=MQN.indexOf(String(q.a||'').trim()[0]); if(ch.length>=2&&a>=0&&a<ch.length) return {stem:st.slice(0,i).trim(),ch,a}; }
   if(q.t==='O/X'){ const a=String(q.a||'').trim().toUpperCase()[0]; if(a==='O'||a==='X') return {stem:st,ch:['O','X'],a:a==='O'?0:1,ox:true}; }
   return {stem:st,ch:null,a:null}; }
-const mqRes=r=>r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>')+(r.self?' <span class="mu" style="font-size:11px">(자기 채점)</span>':''):'';
+const mqRes=r=>r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>')+(r.self?' <span class="mu" style="font-size:var(--fs-1)">(자기 채점)</span>':''):'';
 const mqMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
-function mqExp(q,P){ return `<div style="margin:3px 0 4px 16px;font-size:12.5px"><b class="am">정답: ${P.ch?(P.ox?'':MQN[P.a]+' ')+escC(P.ch[P.a]):escC(q.a)}</b><div class="mu">${escC(q.why||'')}</div></div>`; }
+function mqExp(q,P){ return `<div style="margin:3px 0 4px 16px;font-size:var(--fs-2)"><b class="am">정답: ${P.ch?(P.ox?'':MQN[P.a]+' ')+escC(P.ch[P.a]):escC(q.a)}</b><div class="mu">${escC(q.why||'')}</div></div>`; }
 function mqItem(mid,q,i){ const k='mq:'+mid+':'+i, P=mqParse(q), r=mqFirst(k), ka=escA(k);
   const btn=P.ch?`<div style="display:flex;flex-direction:${P.ox?'row':'column'};gap:4px;margin:3px 0 0 16px">${P.ch.map((c,j)=>`<button class="sbtn mqb" data-ch="${ka}" data-i="${j}" ${r?'disabled':''} style="text-align:left;white-space:normal;min-height:44px;${P.ox?'min-width:64px;text-align:center;':''}${r?mqMark(j,P.a,r.choice):''}">${P.ox?escC(c):MQN[j]+' '+escC(c)}</button>`).join('')}</div>`
     :(r?'':`<div style="margin:3px 0 0 16px;display:flex;flex-wrap:wrap;gap:4px" data-mqa="${ka}"><button class="sbtn mqr" data-mqr="${ka}" style="min-height:44px">먼저 답을 떠올리고 → 답 보기</button></div>`);
-  return `<div class="mqi" style="margin:6px 0"><div><span class="mu">Q${i+1} [${escC(q.t||'')}]</span> ${escC(P.stem)} <span data-res="${ka}" style="font-size:12px">${mqRes(r)}</span></div>${btn}<div data-mqx="${ka}">${r?mqExp(q,P):''}</div></div>`; }
+  return `<div class="mqi" style="margin:6px 0"><div><span class="mu">Q${i+1} [${escC(q.t||'')}]</span> ${escC(P.stem)} <span data-res="${ka}" style="font-size:var(--fs-2)">${mqRes(r)}</span></div>${btn}<div data-mqx="${ka}">${r?mqExp(q,P):''}</div></div>`; }
 function mqFind(k){ const m=String(k).match(/^mq:(.+):(\d+)$/); if(!m) return null; const mod=eduAll().find(x=>x.id===m[1]); const q=mod&&(mod.quiz||[])[+m[2]]; return q?{mod:m[1],qi:+m[2],q,P:mqParse(q)}:null; }
 function mqLog(k,F,choice,ok,self){ if(mqFirst(k)) return false; EDQ.push({date:eduKst(),mod:F.mod,qi:F.qi,choice,ok,self:self?1:0,ts:new Date().toISOString()});
   if(EDQ.length>3000) EDQ=EDQ.slice(-3000); eduPut(MQK,EDQ); return true; }
 function eduModule(m){
   const esc=escC;   // 바깥 esc 는 Index 의 top-level const 라 globalThis 에 없음(10/17 STUDY 멈춤 원인) → 바깥에서 감싼 escC 사용
   const lvl='★'.repeat(m.level||1)+'☆'.repeat(Math.max(0,3-(m.level||1)));
-  const sec=(t,h)=>h?`<div class="am" style="font-size:12px;margin:10px 0 3px">${t}</div>${h}`:'';
+  const sec=(t,h)=>h?`<div class="am" style="font-size:var(--fs-2);margin:10px 0 3px">${t}</div>${h}`:'';
   const ul=a=>a&&a.length?`<ul style="margin:2px 0 2px 18px;padding:0">${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
   return `<div style="display:flex;gap:8px;align-items:flex-start;border-bottom:1px solid var(--line);padding:4px 0">
    <input type="checkbox" data-mchk="${escA(m.id)}" ${EDONE[m.id]?'checked':''} title="완료 체크" style="margin-top:7px;accent-color:var(--amber)">
    <details class="sec" id="mod-${escA(m.id)}" style="flex:1;min-width:0;margin:0;white-space:normal">
     <summary><b class="am">${esc(m.id)}</b> ${esc(m.title)} ${m.weak?'<span class="tag r">겸이 약점</span>':''}
-     <span class="mu" style="font-size:11px">${(m.tags||[]).map(esc).join(' · ')} · 난이도 ${lvl} · 약 ${m.hours}h</span> <span class="up" data-mdone="${escA(m.id)}" style="font-size:11px"></span></summary>
-    <div style="line-height:1.7;font-size:13px;max-width:980px;word-break:keep-all;overflow-wrap:anywhere">
+     <span class="mu" style="font-size:var(--fs-1)">${(m.tags||[]).map(esc).join(' · ')} · 난이도 ${lvl} · 약 ${m.hours}h</span> <span class="up" data-mdone="${escA(m.id)}" style="font-size:var(--fs-1)"></span></summary>
+    <div style="line-height:1.7;font-size:var(--fs-2);max-width:980px;word-break:keep-all;overflow-wrap:anywhere">
      <div style="margin:6px 0"><span class="tag">한 줄 요약</span> <b>${esc(m.summary)}</b></div>
      <div style="border-left:2px solid var(--amber);padding:2px 0 2px 10px;margin:6px 0"><span class="mu">생활 비유 —</span> ${esc(m.analogy)}</div>
-     ${m.prereq&&m.prereq.length?`<div style="font-size:12px"><span class="mu">먼저 볼 것:</span> ${m.prereq.map(p=>`<a href="#" data-goto="${escA(p)}">${esc(p)}</a>`).join(' · ')}</div>`:''}
-     ${sec('용어 박스',m.terms&&m.terms.length?`<div class="kv" style="font-size:12.5px">${m.terms.map(t=>`<div>${esc(t.t)}</div><div>${esc(t.d)}</div>`).join('')}</div>`:'')}
+     ${m.prereq&&m.prereq.length?`<div style="font-size:var(--fs-2)"><span class="mu">먼저 볼 것:</span> ${m.prereq.map(p=>`<a href="#" data-goto="${escA(p)}">${esc(p)}</a>`).join(' · ')}</div>`:''}
+     ${sec('용어 박스',m.terms&&m.terms.length?`<div class="kv" style="font-size:var(--fs-2)">${m.terms.map(t=>`<div>${esc(t.t)}</div><div>${esc(t.d)}</div>`).join('')}</div>`:'')}
      ${sec('핵심 개념',ul(m.concepts))}
-     ${sec('공식',(m.formulas||[]).map(f=>`<div style="margin:4px 0;padding:4px 8px;border:1px solid var(--line)"><b>${esc(f.f)}</b>${f.v&&f.v.length?`<div class="mu" style="font-size:12px">${f.v.map(v=>`${esc(v.s)}: ${esc(v.m)}`).join(' · ')}</div>`:''}${f.note?`<div class="mu" style="font-size:11.5px">※ ${esc(f.note)}</div>`:''}</div>`).join(''))}
+     ${sec('공식',(m.formulas||[]).map(f=>`<div style="margin:4px 0;padding:4px 8px;border:1px solid var(--line)"><b>${esc(f.f)}</b>${f.v&&f.v.length?`<div class="mu" style="font-size:var(--fs-2)">${f.v.map(v=>`${esc(v.s)}: ${esc(v.m)}`).join(' · ')}</div>`:''}${f.note?`<div class="mu" style="font-size:var(--fs-1)">※ ${esc(f.note)}</div>`:''}</div>`).join(''))}
      ${sec('쉬운 숫자 예시',m.example?`<div>${esc(m.example)}</div>`:'')}
-     ${m.today?sec('오늘 시장에서',`<div>${esc(m.today.text)}</div>${m.today.keys&&m.today.keys.length?`<div data-live="${escA(m.today.keys.join(','))}" style="font-size:12px;margin-top:2px">${eduChips(m.today.keys)}</div>`:''}`):''}
+     ${m.today?sec('오늘 시장에서',`<div>${esc(m.today.text)}</div>${m.today.keys&&m.today.keys.length?`<div data-live="${escA(m.today.keys.join(','))}" style="font-size:var(--fs-2);margin-top:2px">${eduChips(m.today.keys)}</div>`:''}`):''}
      ${sec('흔한 실수',ul(m.mistakes))}
-     ${sec('확인문제 <span class="mu" style="font-size:11px">— 골라서 채점 · 고르기 전엔 정답이 화면에 없음 · 첫 응답만 기록</span>',(m.quiz||[]).map((q,i)=>mqItem(m.id,q,i)).join(''))}
+     ${sec('확인문제 <span class="mu" style="font-size:var(--fs-1)">— 골라서 채점 · 고르기 전엔 정답이 화면에 없음 · 첫 응답만 기록</span>',(m.quiz||[]).map((q,i)=>mqItem(m.id,q,i)).join(''))}
     </div></details></div>`;
 }
 function eduView(){
@@ -119,16 +119,16 @@ function eduView(){
   setTimeout(eduBind,0);
   return `<div class="grid">
    <div class="p c8"><h2>학습 로드맵<small>${esc(EDU.updated||'')} · 총 약 ${R.total_hours||'—'}시간</small></h2><div class="b" style="white-space:normal;line-height:1.7">
-    <div class="mu" style="font-size:12px;margin-bottom:6px">${esc(EDU.intro||'')}</div>
-    ${(R.steps||[]).map(s=>`<div style="margin:6px 0"><b>${esc(s.name)}</b> <span class="mu">약 ${s.hours}h</span><div style="font-size:12px">${s.ids.map(i=>`<a href="#" data-goto="${escA(i)}" data-rchip="${escA(i)}" title="${escA((byId[i]||{}).title||'')}">${esc(i)}</a>`).join(' → ')}</div><div class="mu" style="font-size:11.5px">${esc(s.note||'')}</div></div>`).join('')}
-    <div style="font-size:12px;margin-top:6px">${esc(R.pace||'')}</div>
-    <div style="font-size:12px;margin-top:4px"><span class="am">병행 트랙</span> ${esc(R.parallel||'')}</div>
-    <div class="mu" style="font-size:12px;margin-top:4px">공부법: ${esc(R.how||'')}</div></div></div>
+    <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">${esc(EDU.intro||'')}</div>
+    ${(R.steps||[]).map(s=>`<div style="margin:6px 0"><b>${esc(s.name)}</b> <span class="mu">약 ${s.hours}h</span><div style="font-size:var(--fs-2)">${s.ids.map(i=>`<a href="#" data-goto="${escA(i)}" data-rchip="${escA(i)}" title="${escA((byId[i]||{}).title||'')}">${esc(i)}</a>`).join(' → ')}</div><div class="mu" style="font-size:var(--fs-1)">${esc(s.note||'')}</div></div>`).join('')}
+    <div style="font-size:var(--fs-2);margin-top:6px">${esc(R.pace||'')}</div>
+    <div style="font-size:var(--fs-2);margin-top:4px"><span class="am">병행 트랙</span> ${esc(R.parallel||'')}</div>
+    <div class="mu" style="font-size:var(--fs-2);margin-top:4px">공부법: ${esc(R.how||'')}</div></div></div>
    <div class="p c4"><h2>진행률<small>이 브라우저에 저장</small></h2><div class="b" id="eduprog" style="white-space:normal"></div>
-    <div class="b" style="white-space:normal;font-size:12px;border-top:1px solid var(--line)"><span class="am">TESAT</span> <span class="mu">${esc((EDU.tesat||{}).note||'')} ${esc((EDU.tesat||{}).news_source||'')}</span></div></div>
+    <div class="b" style="white-space:normal;font-size:var(--fs-2);border-top:1px solid var(--line)"><span class="am">TESAT</span> <span class="mu">${esc((EDU.tesat||{}).note||'')} ${esc((EDU.tesat||{}).news_source||'')}</span></div></div>
    <div class="p c12"><div class="b"><div class="ovl" style="margin:0">${EDU.tracks.map(t=>`<button data-trk="${escA(t.id)}">${esc(t.title)}</button>`).join('')}<button data-exp="1">모두 펼치기</button><button data-exp="0">모두 접기</button></div></div></div>
    ${EDU.tracks.map(t=>`<div class="p c12" id="trk-${escA(t.id)}"><h2>${esc(t.title)} <small>${t.badge?esc(t.badge)+' · ':''}${t.modules.length}개 모듈</small></h2><div class="b" style="white-space:normal">
-     <div class="mu" style="font-size:12px;margin-bottom:4px">${esc(t.desc||'')}</div>${t.modules.map(eduModule).join('')}</div></div>`).join('')}
+     <div class="mu" style="font-size:var(--fs-2);margin-bottom:4px">${esc(t.desc||'')}</div>${t.modules.map(eduModule).join('')}</div></div>`).join('')}
   </div>`;
 }
 function eduBind(){
@@ -143,14 +143,14 @@ let APTF='', APTT=null;
 function aptItem(x,key){
   const r=APTS[key], tb=x.table;
   return `<div style="border-bottom:1px solid var(--line);padding:8px 0;white-space:normal;line-height:1.65;max-width:980px" data-apt="${escA(key)}">
-   <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.id||'')}</b><span class="tag">${esc(x.sec||x.type||'')}</span><span class="mu" style="font-size:11.5px">${esc(x.sub||'')} · 목표 ${x.time_sec||60}초</span>
+   <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.id||'')}</b><span class="tag">${esc(x.sec||x.type||'')}</span><span class="mu" style="font-size:var(--fs-1)">${esc(x.sub||'')} · 목표 ${x.time_sec||60}초</span>
     <button class="sbtn" data-tmr="${escA(key)}" style="margin-left:auto">⏱ 시작</button><span data-tv="${escA(key)}" style="min-width:56px;text-align:right">${r&&r.t!=null?r.t+'초':'0초'}</span>
-    <span data-res="${escA(key)}" style="font-size:12px">${r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>'):''}</span></div>
-   ${x.passage?`<div style="border-left:2px solid var(--amber);padding:2px 0 2px 10px;margin:4px 0;font-size:12.5px">${esc(x.passage)}</div>`:''}
-   ${tb?`<div style="overflow-x:auto;margin:4px 0"><div class="mu" style="font-size:11.5px">${esc(tb.cap||'')}</div><table style="width:auto;min-width:280px"><tr>${tb.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${tb.rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${i?'':'l'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
+    <span data-res="${escA(key)}" style="font-size:var(--fs-2)">${r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>'):''}</span></div>
+   ${x.passage?`<div style="border-left:2px solid var(--amber);padding:2px 0 2px 10px;margin:4px 0;font-size:var(--fs-2)">${esc(x.passage)}</div>`:''}
+   ${tb?`<div style="overflow-x:auto;margin:4px 0"><div class="mu" style="font-size:var(--fs-1)">${esc(tb.cap||'')}</div><table style="width:auto;min-width:280px"><tr>${tb.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${tb.rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${i?'':'l'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
    <div style="margin:4px 0"><b>${esc(x.q)}</b></div>
    <div style="display:flex;flex-direction:column;gap:3px">${x.choices.map((c,i)=>`<button class="sbtn" data-ch="${escA(key)}" data-i="${i}" style="text-align:left;white-space:normal">${'①②③④⑤⑥'[i]||i+1} ${esc(c)}</button>`).join('')}</div>
-   <details style="margin-top:4px" ${r?'open':''}><summary class="mu" style="cursor:pointer;font-size:12px">정답·해설 보기</summary><div style="font-size:12.5px;margin:2px 0 0 14px"><b class="am">정답 ${'①②③④⑤⑥'[x.a]||x.a+1}</b> — ${esc(x.exp||x.exp_ko||'')}${x.why?`<div>근거: ${esc(x.why)}</div>`:''}${x.tip?`<div class="mu">⏩ 시간 단축: ${esc(x.tip)}</div>`:''}</div></details></div>`;
+   <details style="margin-top:4px" ${r?'open':''}><summary class="mu" style="cursor:pointer;font-size:var(--fs-2)">정답·해설 보기</summary><div style="font-size:var(--fs-2);margin:2px 0 0 14px"><b class="am">정답 ${'①②③④⑤⑥'[x.a]||x.a+1}</b> — ${esc(x.exp||x.exp_ko||'')}${x.why?`<div>근거: ${esc(x.why)}</div>`:''}${x.tip?`<div class="mu">⏩ 시간 단축: ${esc(x.tip)}</div>`:''}</div></details></div>`;
 }
 function aptBind(items){
   const byK=Object.fromEntries(items.map(([x,k])=>[k,x]));
@@ -177,20 +177,20 @@ function aptPast(P){
   if(!P||!P.items) return '';
   const areas=P.areas||[...new Set(P.items.map(x=>x.area))];
   const one=x=>`<div style="border-bottom:1px solid var(--line);padding:6px 0;white-space:normal;line-height:1.6">
-   <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.year+' '+x.booklet+' '+x.no)}</b><span class="tag">${esc(x.type)}</span><span class="mu" style="font-size:11.5px">${esc(x.topic)} · 권장 ${x.time_sec}초</span>
-    <a href="${escA(x.url)}" target="_blank" rel="noopener noreferrer" style="margin-left:auto;font-size:12px">기출 · 원문 보기 ↗</a></div>
-   <details style="margin-top:2px"><summary class="mu" style="cursor:pointer;font-size:12px">전략·함정</summary><div style="font-size:12.5px;margin:2px 0 0 14px">
+   <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.year+' '+x.booklet+' '+x.no)}</b><span class="tag">${esc(x.type)}</span><span class="mu" style="font-size:var(--fs-1)">${esc(x.topic)} · 권장 ${x.time_sec}초</span>
+    <a href="${escA(x.url)}" target="_blank" rel="noopener noreferrer" style="margin-left:auto;font-size:var(--fs-2)">기출 · 원문 보기 ↗</a></div>
+   <details style="margin-top:2px"><summary class="mu" style="cursor:pointer;font-size:var(--fs-2)">전략·함정</summary><div style="font-size:var(--fs-2);margin:2px 0 0 14px">
     <div><b>전략</b> ${esc(x.strategy)}</div><div><b class="dn">함정</b> ${esc(x.trap)}</div>
-    <div class="mu" style="font-size:11px">${esc(x.exam)} · 시행 ${esc(x.date)} · <a href="${escA(x.checked_via)}" target="_blank" rel="noopener noreferrer">번호 확인(2차 자료)</a></div></div></details></div>`;
+    <div class="mu" style="font-size:var(--fs-1)">${esc(x.exam)} · 시행 ${esc(x.date)} · <a href="${escA(x.checked_via)}" target="_blank" rel="noopener noreferrer">번호 확인(2차 자료)</a></div></div></details></div>`;
   return `<div class="p c12"><h2>${esc(P.title||'PSAT 기출')}<small>${P.items.length}문항 메타 · 원문 미수록</small></h2><div class="b" style="white-space:normal">
-   <div class="mu" style="font-size:12px;margin-bottom:4px">${esc(P.note||'')}</div><div class="mu" style="font-size:11.5px;margin-bottom:6px">⏱ ${esc(P.time_rule||'')}</div>
-   ${areas.map(a=>`<h3 style="margin:8px 0 2px;font-size:13px">${esc(a)} <small class="mu">${P.items.filter(x=>x.area===a).length}</small></h3>${P.items.filter(x=>x.area===a).map(one).join('')}`).join('')}</div></div>`;
+   <div class="mu" style="font-size:var(--fs-2);margin-bottom:4px">${esc(P.note||'')}</div><div class="mu" style="font-size:var(--fs-1);margin-bottom:6px">⏱ ${esc(P.time_rule||'')}</div>
+   ${areas.map(a=>`<h3 style="margin:8px 0 2px;font-size:var(--fs-2)">${esc(a)} <small class="mu">${P.items.filter(x=>x.area===a).length}</small></h3>${P.items.filter(x=>x.area===a).map(one).join('')}`).join('')}</div></div>`;
 }
 function aptTypeMap(T){
   if(!T||!T.rows) return '';
   return `<div class="p c12"><h2>유형 지도<small>${esc(T.cap||'')}</small></h2><div class="b" style="white-space:normal;overflow-x:auto">
    <table style="width:auto;min-width:320px"><tr>${T.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${T.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'':'l'}" style="white-space:normal">${esc(c)}</td>`).join('')}</tr>`).join('')}</table>
-   <div class="mu" style="font-size:11.5px;margin-top:4px">${esc(T.note||'')}</div></div></div>`;
+   <div class="mu" style="font-size:var(--fs-1);margin-top:4px">${esc(T.note||'')}</div></div></div>`;
 }
 function aptView(){
   eduLoad();
@@ -201,9 +201,9 @@ function aptView(){
     document.querySelectorAll('[data-aptf]').forEach(b=>b.onclick=()=>{ APTF=b.dataset.aptf; render(); });
     const rs=$('#aptreset'); if(rs) rs.onclick=()=>{ if(!confirm('인적성 채점 기록을 지울까요?')) return; Object.keys(APTS).forEach(k=>{ if(!/^E\d/.test(k)) delete APTS[k]; }); eduPut('mt_apt_score',APTS); render(); }; },0);
   return `<div class="grid"><div class="p c12"><h2>${esc(A.title)}<small>${A.items.length}문항 · 자체 제작${A.past?` · 기출 메타 ${A.past.items.length}`:''}</small></h2><div class="b" style="white-space:normal">
-    <div class="mu" style="font-size:12px;margin-bottom:6px">${esc(A.note||'')}</div>
+    <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">${esc(A.note||'')}</div>
     <div id="apttally"></div><div class="ovl" style="margin-top:6px"><button data-aptf="" class="${APTF?'':'on'}">전체</button>${(A.sections||[]).map(s=>`<button data-aptf="${escA(s)}" class="${APTF===s?'on':''}">${esc(s)}</button>`).join('')}${A.past?`<button data-aptf="__past" class="${APTF==='__past'?'on':''}">PSAT 기출 ↗</button>`:''}<button id="aptreset">기록 초기화</button></div>
-    <div class="mu" style="font-size:11.5px">⏱ 시작 → 풀고 → 선택지 클릭하면 시간이 기록되고 채점된다. 목표 시간을 넘기면 시간이 빨간색.</div></div></div>
+    <div class="mu" style="font-size:var(--fs-1)">⏱ 시작 → 풀고 → 선택지 클릭하면 시간이 기록되고 채점된다. 목표 시간을 넘기면 시간이 빨간색.</div></div></div>
    ${APTF==='__past'?aptPast(A.past):''}${(!APTF||/GSAT|SKCT/.test(APTF))&&APTF!=='__past'?aptTypeMap(A.type_map):''}
    ${list.length?`<div class="p c12"><div class="b">${list.map(([x,k])=>aptItem(x,k)).join('')}</div></div>`:''}</div>`;
 }
@@ -238,21 +238,21 @@ function engBody(E){
 const engGrid=h=>`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:8px">${h}</div>`;
 const engCard='border:1px solid var(--line);padding:8px 10px;min-width:0;line-height:1.6';
 function engVocab(V){
-  return engGrid(V.map(v=>`<div style="${engCard}"><div><b class="am" style="font-size:16px">${esc(v.w||'')}</b> ${v.ipa?`<span class="mu">${esc(v.ipa)}</span>`:''} <span class="mu" style="font-size:11px">${esc(v.pos||'')}</span></div>
-    <div style="font-size:13.5px">${esc(v.ko||'')}</div>${v.en_easy?`<div class="mu" style="font-size:12px">= ${esc(v.en_easy)}</div>`:''}
-    ${v.ex?`<div style="font-size:12.5px;margin-top:3px;border-left:2px solid var(--amber);padding-left:6px">${esc(v.ex)}</div>`:''}</div>`).join(''));
+  return engGrid(V.map(v=>`<div style="${engCard}"><div><b class="am" style="font-size:var(--fs-4)">${esc(v.w||'')}</b> ${v.ipa?`<span class="mu">${esc(v.ipa)}</span>`:''} <span class="mu" style="font-size:var(--fs-1)">${esc(v.pos||'')}</span></div>
+    <div style="font-size:var(--fs-3)">${esc(v.ko||'')}</div>${v.en_easy?`<div class="mu" style="font-size:var(--fs-2)">= ${esc(v.en_easy)}</div>`:''}
+    ${v.ex?`<div style="font-size:var(--fs-2);margin-top:3px;border-left:2px solid var(--amber);padding-left:6px">${esc(v.ex)}</div>`:''}</div>`).join(''));
 }
 /* 복습·독해 퀴즈: 버튼 채점 */
 const engKey=(d,kind,i)=>(kind==='review'?'ER':'EQ')+d+'-'+i;
 const engRec=(d,kind,i)=>ENGS.find(r=>r.date===d&&r.kind===kind&&r.idx===i)||null;
 const engResTxt=ok=>ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
 const engMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
-const engExp=q=>`<div style="font-size:12.5px;margin-top:4px"><b class="am">정답 ${ENL[q.a]||''}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</div>`;
+const engExp=q=>`<div style="font-size:var(--fs-2);margin-top:4px"><b class="am">정답 ${ENL[q.a]||''}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</div>`;
 function engQ(q,kind,i,d){
   const k=engKey(d,kind,i), r=engRec(d,kind,i);
-  const lab=kind==='review'?`<span class="tag">복습 ${i+1}</span>${q.w?` <b class="am">${esc(q.w)}</b>`:''}${q.from_date?` <span class="mu" style="font-size:11px">${esc(q.from_date)} 단어</span>`:''}`:`<span class="tag">Q${i+1}</span>`;
+  const lab=kind==='review'?`<span class="tag">복습 ${i+1}</span>${q.w?` <b class="am">${esc(q.w)}</b>`:''}${q.from_date?` <span class="mu" style="font-size:var(--fs-1)">${esc(q.from_date)} 단어</span>`:''}`:`<span class="tag">Q${i+1}</span>`;
   return `<div style="border-bottom:1px solid var(--line);padding:8px 0">
-   <div style="margin-bottom:4px">${lab} <b>${esc(q.q||'')}</b> <span data-res="${escA(k)}" style="font-size:12px">${r?engResTxt(r.ok):''}</span></div>
+   <div style="margin-bottom:4px">${lab} <b>${esc(q.q||'')}</b> <span data-res="${escA(k)}" style="font-size:var(--fs-2)">${r?engResTxt(r.ok):''}</span></div>
    <div style="display:flex;flex-direction:column;gap:4px">${(q.choices||[]).map((c,j)=>`<button class="sbtn engb" data-ch="${escA(k)}" data-i="${j}" data-qi="${i}" data-kind="${kind}" ${r?'disabled':''} style="${r?engMark(j,q.a,r.choice):''}">${ENL[j]}) ${esc(c)}</button>`).join('')}</div>
    <div data-eexp="${escA(k)}">${r?engExp(q):''}</div></div>`;
 }
@@ -279,14 +279,14 @@ const engTalks=T=>(Array.isArray(T)?T:(T?[T]:[])).filter(t=>t&&typeof t==='objec
 function engTalk(t,wide){
   const who=[...new Set((t.dialogue||[]).map(x=>String(x.who||'')))];
   const dl=(t.dialogue||[]).map(x=>{ const r=who.indexOf(String(x.who||''))%2===1;
-    return `<details style="max-width:88%;align-self:${r?'flex-end':'flex-start'};border:1px solid var(--line);border-radius:12px;padding:0 10px;${r?'background:rgba(255,176,0,.07)':''}"><summary style="list-style:none"><span class="mu" style="font-size:11px">${esc(x.who||'')}</span> ${esc(x.en||'')}</summary><div class="mu" style="font-size:12.5px;padding-bottom:6px">${esc(x.ko||'')}</div></details>`; }).join('');
-  const ex=(t.expressions||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:12.5px">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:11.5px">언제: ${esc(x.when_ko)}</div>`:''}${x.ex?`<div style="font-size:12px;border-left:2px solid var(--amber);padding-left:6px">${esc(x.ex)}</div>`:''}</div>`).join('');
+    return `<details style="max-width:88%;align-self:${r?'flex-end':'flex-start'};border:1px solid var(--line);border-radius:12px;padding:0 10px;${r?'background:rgba(255,176,0,.07)':''}"><summary style="list-style:none"><span class="mu" style="font-size:var(--fs-1)">${esc(x.who||'')}</span> ${esc(x.en||'')}</summary><div class="mu" style="font-size:var(--fs-2);padding-bottom:6px">${esc(x.ko||'')}</div></details>`; }).join('');
+  const ex=(t.expressions||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:var(--fs-2)">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:var(--fs-1)">언제: ${esc(x.when_ko)}</div>`:''}${x.ex?`<div style="font-size:var(--fs-2);border-left:2px solid var(--amber);padding-left:6px">${esc(x.ex)}</div>`:''}</div>`).join('');
   const y=t.your_turn||null;
-  return `<div class="p ${wide?'c12':'c6'}"><h2>${esc(t.kind?t.kind+' 회화':'회화')}<small>${esc(t.topic||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.6;font-size:13px">
-   ${t.setting_ko?`<div class="mu" style="font-size:12px;margin-bottom:6px">상황: ${esc(t.setting_ko)}</div>`:''}
-   <div style="display:flex;flex-direction:column;gap:6px">${dl}</div><div class="mu" style="font-size:11px;margin:2px 0 8px">말풍선을 누르면 한국어</div>
-   ${ex?`<div class="am" style="font-size:12px;margin:6px 0 3px">표현 ${(t.expressions||[]).length}</div>${engGrid(ex)}`:''}
-   ${y?`<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:6px"><span class="tag">내 차례</span> <b>${esc(y.q_en||'')}</b>${y.hint_ko?`<div class="mu" style="font-size:12px">힌트: ${esc(y.hint_ko)}</div>`:''}
+  return `<div class="p ${wide?'c12':'c6'}"><h2>${esc(t.kind?t.kind+' 회화':'회화')}<small>${esc(t.topic||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.6;font-size:var(--fs-2)">
+   ${t.setting_ko?`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">상황: ${esc(t.setting_ko)}</div>`:''}
+   <div style="display:flex;flex-direction:column;gap:6px">${dl}</div><div class="mu" style="font-size:var(--fs-1);margin:2px 0 8px">말풍선을 누르면 한국어</div>
+   ${ex?`<div class="am" style="font-size:var(--fs-2);margin:6px 0 3px">표현 ${(t.expressions||[]).length}</div>${engGrid(ex)}`:''}
+   ${y?`<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:6px"><span class="tag">내 차례</span> <b>${esc(y.q_en||'')}</b>${y.hint_ko?`<div class="mu" style="font-size:var(--fs-2)">힌트: ${esc(y.hint_ko)}</div>`:''}
      <details><summary class="am">▸ 모범답안 보기</summary><div style="padding-bottom:6px">${esc(y.sample_answer||'')}</div></details></div>`:''}</div></div>`;
 }
 /* OPIc 실전: 한 문항씩 · 준비 20초/말하기 90초 타이머 · 전략·모범답안은 접기 · 자기평가만 저장 */
@@ -296,22 +296,22 @@ function engOpic(O,d){
   const ph=[]; let ma=esc(q.model_answer||'');
   (q.key_phrases||[]).forEach(p=>{ const e=esc(p.en||''); if(!e||!ma.includes(e)) return; ph.push(`<b class="am" style="border-bottom:1px solid var(--amber)">${e}</b>`); ma=ma.split(e).join('\u0001'+(ph.length-1)+'\u0002'); });
   ma=ma.replace(/\u0001(\d+)\u0002/g,(_,n)=>ph[+n]);
-  const U=(O.useful||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:12.5px">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:11.5px">언제: ${esc(x.when_ko)}</div>`:''}</div>`).join('');
-  const selfTxt=r=>r?(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+` <span class="mu" style="font-size:11px">${esc(String(r.ts||'').slice(11,16))}</span>`:'';
-  return `<div class="p c12" id="opic"><h2>OPIc 실전<small>${esc(O.survey_topic||'')} · 문항 ${i+1}/${C.length}</small></h2><div class="b" style="white-space:normal;line-height:1.7;font-size:13px">
+  const U=(O.useful||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:var(--fs-2)">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:var(--fs-1)">언제: ${esc(x.when_ko)}</div>`:''}</div>`).join('');
+  const selfTxt=r=>r?(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+` <span class="mu" style="font-size:var(--fs-1)">${esc(String(r.ts||'').slice(11,16))}</span>`:'';
+  return `<div class="p c12" id="opic"><h2>OPIc 실전<small>${esc(O.survey_topic||'')} · 문항 ${i+1}/${C.length}</small></h2><div class="b" style="white-space:normal;line-height:1.7;font-size:var(--fs-2)">
    <div class="ovl" style="margin:0 0 8px">${C.map((c,j)=>`<button data-oq="${j}" class="${j===i?'on':''}">${j+1}. ${esc(c.type||'')}</button>`).join('')}</div>
-   <div style="font-size:15.5px;margin-bottom:2px"><b>${esc(q.q_en||'')}</b></div>
+   <div style="font-size:var(--fs-4);margin-bottom:2px"><b>${esc(q.q_en||'')}</b></div>
    ${q.q_ko?`<details><summary class="mu">▸ 한국어 질문</summary><div style="padding-bottom:6px">${esc(q.q_ko)}</div></details>`:''}
    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0">
     <button class="sbtn opbig" data-otm="prep" data-sec="20" data-t="⏱ 준비 20초">⏱ 준비 20초</button><button class="sbtn opbig" data-otm="talk" data-sec="90" data-t="🎤 말하기 90초">🎤 말하기 90초</button>
-    <span id="opclock" style="font-size:22px;min-width:110px;text-align:center">—</span></div>
-   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="mu" style="font-size:12px">자기평가</span><button class="sbtn" data-oself="ok">말했음</button><button class="sbtn" data-oself="stuck">막힘</button><span id="opres">${selfTxt(last)}</span></div>
-   <div class="mu" style="font-size:11.5px;margin:4px 0">먼저 스스로 말해 본 뒤 아래를 연다 (녹음·업로드 없음).</div>
+    <span id="opclock" style="font-size:var(--fs-4);min-width:110px;text-align:center">—</span></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="mu" style="font-size:var(--fs-2)">자기평가</span><button class="sbtn" data-oself="ok">말했음</button><button class="sbtn" data-oself="stuck">막힘</button><span id="opres">${selfTxt(last)}</span></div>
+   <div class="mu" style="font-size:var(--fs-1);margin:4px 0">먼저 스스로 말해 본 뒤 아래를 연다 (녹음·업로드 없음).</div>
    <details><summary class="am">▸ 전략 보기</summary><div style="padding-bottom:6px">${esc(q.strategy_ko||'')}</div></details>
    <details><summary class="am">▸ 모범답안 보기</summary><div style="padding-bottom:6px">${ma}</div>
-    ${(q.key_phrases||[]).length?`<div style="font-size:12.5px">${q.key_phrases.map(p=>`<div><b class="am">${esc(p.en||'')}</b> <span class="mu">${esc(p.ko||'')}</span></div>`).join('')}</div>`:''}</details>
-   ${U?`<div class="am" style="font-size:12px;margin:10px 0 3px">쓸만한 표현 ${(O.useful||[]).length}</div>${engGrid(U)}`:''}
-   ${O.practice_ko?`<div style="margin-top:8px;font-size:12.5px"><span class="tag">연습</span> ${esc(O.practice_ko)}</div>`:''}</div></div>`;
+    ${(q.key_phrases||[]).length?`<div style="font-size:var(--fs-2)">${q.key_phrases.map(p=>`<div><b class="am">${esc(p.en||'')}</b> <span class="mu">${esc(p.ko||'')}</span></div>`).join('')}</div>`:''}</details>
+   ${U?`<div class="am" style="font-size:var(--fs-2);margin:10px 0 3px">쓸만한 표현 ${(O.useful||[]).length}</div>${engGrid(U)}`:''}
+   ${O.practice_ko?`<div style="margin-top:8px;font-size:var(--fs-2)"><span class="tag">연습</span> ${esc(O.practice_ko)}</div>`:''}</div></div>`;
 }
 function opTimer(lbl,sec){
   const c=$('#opclock'), btns=[...document.querySelectorAll('[data-otm]')], reset=()=>btns.forEach(b=>b.textContent=b.dataset.t);
@@ -327,12 +327,12 @@ function engOpicBind(O,d){
   document.querySelectorAll('[data-otm]').forEach(b=>b.onclick=()=>opTimer(b.dataset.otm,+b.dataset.sec));
   document.querySelectorAll('[data-oself]').forEach(b=>b.onclick=()=>{ const i=Math.min(ENG.oq||0,((O&&O.combo)||[]).length-1), q=((O&&O.combo)||[])[i]||{};
     const r={date:d,idx:i,type:q.type||'',result:b.dataset.oself,ts:new Date().toISOString()}; OPS.push(r); if(OPS.length>2000) OPS=OPS.slice(-2000); eduPut(OPK,OPS);
-    const el=$('#opres'); if(el) el.innerHTML=(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+' <span class="mu" style="font-size:11px">기록됨</span>'; });
+    const el=$('#opres'); if(el) el.innerHTML=(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+' <span class="mu" style="font-size:var(--fs-1)">기록됨</span>'; });
 }
 const ENGCSS=`<style>#engv{overflow-wrap:anywhere}#engv button,#engv select,#engv summary{min-height:44px;box-sizing:border-box}
 #engv summary{display:block;padding:11px 0;cursor:pointer}#engv summary::-webkit-details-marker{display:none}
-#engv .engb{text-align:left;white-space:normal;font-size:13px;padding:8px 10px}#engv .engb:disabled{cursor:default}
-#engv [data-oself]{min-width:88px}#engv .opbig{min-height:56px;font-size:16px;flex:1 1 140px}</style>`;
+#engv .engb{text-align:left;white-space:normal;font-size:var(--fs-2);padding:8px 10px}#engv .engb:disabled{cursor:default}
+#engv [data-oself]{min-width:88px}#engv .opbig{min-height:56px;font-size:var(--fs-4);flex:1 1 140px}</style>`;
 function engView(){
   if(ENG.idx===null){ ENG.idx=false; google.script.run.withSuccessHandler(t=>{try{ENG.idx=JSON.parse(t)||{};}catch(e){ENG.idx={};} if(view==='eng') render();}).withFailureHandler(()=>{ENG.idx={};if(view==='eng') render();}).getEnglishIndex(); }
   engProfile();
@@ -340,25 +340,25 @@ function engView(){
   if(ENG.cur===false) return '<div class="load">LOADING …</div>';
   const E=ENG.cur||{}, d=E.date||'nodate', dates=((ENG.idx||{}).dates)||[];
   const P=ENG.prof||{}, tp=[].concat(P.survey_topics||P.topics||P.survey_topic||[]).map(t=>typeof t==='string'?t:(t&&(t.ko||t.en||t.name))||'').filter(Boolean);
-  const head=`<div class="ovl" style="padding:8px 8px 0;align-items:center;flex-wrap:wrap;gap:6px"><span class="mu" style="font-size:12px">날짜</span> <select id="engd" style="background:var(--panel);color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><option value="">최신</option>${dates.map(x=>`<option value="${escA(x)}" ${ENG.sel===x?'selected':''}>${esc(x)}</option>`).join('')}</select>
-   <span id="engbadge" style="font-size:12px">${engBadge()}</span></div>
-   <div class="mu" style="padding:2px 8px 0;font-size:12px">OPIc ${tp.length?'내 서베이 주제: '+tp.map(esc).join(' · '):'기본 주제'}</div>`;
+  const head=`<div class="ovl" style="padding:8px 8px 0;align-items:center;flex-wrap:wrap;gap:6px"><span class="mu" style="font-size:var(--fs-2)">날짜</span> <select id="engd" style="background:var(--panel);color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><option value="">최신</option>${dates.map(x=>`<option value="${escA(x)}" ${ENG.sel===x?'selected':''}>${esc(x)}</option>`).join('')}</select>
+   <span id="engbadge" style="font-size:var(--fs-2)">${engBadge()}</span></div>
+   <div class="mu" style="padding:2px 8px 0;font-size:var(--fs-2)">OPIc ${tp.length?'내 서베이 주제: '+tp.map(esc).join(' · '):'기본 주제'}</div>`;
   setTimeout(()=>{ const s=$('#engd'); if(s) s.onchange=()=>{ ENG.sel=s.value||null; ENG.cur=null; render(); };
-    document.querySelectorAll('[data-vw]').forEach(sp=>sp.onclick=()=>{ const n=sp.nextElementSibling; if(n&&n.dataset&&n.dataset.vk!=null){ n.remove(); return; } const v=(E.vocab||[])[+sp.dataset.vw]||{}; sp.insertAdjacentHTML('afterend',`<i class="mu" data-vk="1" style="font-style:normal;font-size:12px"> (${esc(v.ko)})</i>`); });
+    document.querySelectorAll('[data-vw]').forEach(sp=>sp.onclick=()=>{ const n=sp.nextElementSibling; if(n&&n.dataset&&n.dataset.vk!=null){ n.remove(); return; } const v=(E.vocab||[])[+sp.dataset.vw]||{}; sp.insertAdjacentHTML('afterend',`<i class="mu" data-vk="1" style="font-style:normal;font-size:var(--fs-2)"> (${esc(v.ko)})</i>`); });
     if(E.aptitude) aptBind(E.aptitude.map((x,i)=>[x,'E'+(E.date||'')+'-'+i]));
     engBind(E,d); engOpicBind(E.opic,d); },0);
   if(!E.body) return ENGCSS+`<div id="engv">${head}<div class="grid"><div class="p c12"><h2>오늘의 영어</h2><div class="b mu">아직 오늘 자료 없음</div></div></div></div>`;
   const V=E.vocab||[], R=E.review||[], Q=E.quiz||[], T=engTalks(E.talk), bold=/\*\*[^*\n]+\*\*/.test(E.body||'');
-  const qp=(t,arr,kind,note)=>arr.length?`<div class="p c6"><h2>${t}<small>${arr.length}문항 · ${note}</small></h2><div class="b" style="white-space:normal;font-size:13px;line-height:1.6">${arr.map((q,i)=>engQ(q,kind,i,d)).join('')}</div></div>`:'';
+  const qp=(t,arr,kind,note)=>arr.length?`<div class="p c6"><h2>${t}<small>${arr.length}문항 · ${note}</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.6">${arr.map((q,i)=>engQ(q,kind,i,d)).join('')}</div></div>`:'';
   return ENGCSS+`<div id="engv">${head}<div class="grid">
    ${V.length?`<div class="p c12"><h2>오늘의 단어<small>${V.length}개 · ${esc(E.date||'')} · ${esc(E.level||'')}</small></h2><div class="b" style="white-space:normal">${engVocab(V)}</div></div>`:''}
-   <div class="p c12"><h2>오늘의 영어<small>${esc(E.date||'')} · ${esc(E.level||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.75;font-size:14px;max-width:980px">
-    <div style="font-size:15.5px;margin-bottom:6px"><b>${esc(E.title||'')}</b></div>${engBody(E)}
-    <div class="mu" style="font-size:11.5px">${bold?'굵은 단어 = 오늘의 단어':'밑줄 단어를 누르면 뜻 표시'}</div>
-    <details style="margin-top:4px"><summary class="am">▸ 한국어 번역 보기</summary><div style="font-size:13px">${esc(E.ko||'').replace(/\*\*/g,'').split(/\n\n+/).map(p=>`<p style="margin:4px 0 8px">${p}</p>`).join('')}</div></details>
-    ${(E.sources||[]).length?`<div class="mu" style="font-size:11.5px;margin-top:6px">출처: ${E.sources.map(s=>s.url?`<a href="${escA(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`:esc(s.title)).join(' · ')}</div>`:''}</div></div>
-   <div class="p c6"><h2>문법 포인트</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.grammar||[]).map(g=>`<div style="margin-bottom:10px"><b>${esc(g.point)}</b><div style="border-left:2px solid var(--amber);padding-left:8px;margin:3px 0" class="am">“${esc(g.quote)}”</div><div>${esc(g.explain_ko)}</div>${(g.examples||[]).length?`<div class="mu" style="font-size:12px">예) ${g.examples.map(esc).join(' / ')}</div>`:''}</div>`).join('')}</div></div>
-   <div class="p c6"><h2>시제 읽기</h2><div class="b" style="white-space:normal;font-size:12.5px;line-height:1.65">${(E.tense||[]).map(t=>`<div style="margin-bottom:8px"><span class="am">“${esc(t.sentence)}”</span><div><span class="tag">${esc(t.tense)}</span> ${esc(t.why_ko)}</div></div>`).join('')}</div></div>
+   <div class="p c12"><h2>오늘의 영어<small>${esc(E.date||'')} · ${esc(E.level||'')}</small></h2><div class="b" style="white-space:normal;line-height:1.75;font-size:var(--fs-3);max-width:980px">
+    <div style="font-size:var(--fs-4);margin-bottom:6px"><b>${esc(E.title||'')}</b></div>${engBody(E)}
+    <div class="mu" style="font-size:var(--fs-1)">${bold?'굵은 단어 = 오늘의 단어':'밑줄 단어를 누르면 뜻 표시'}</div>
+    <details style="margin-top:4px"><summary class="am">▸ 한국어 번역 보기</summary><div style="font-size:var(--fs-2)">${esc(E.ko||'').replace(/\*\*/g,'').split(/\n\n+/).map(p=>`<p style="margin:4px 0 8px">${p}</p>`).join('')}</div></details>
+    ${(E.sources||[]).length?`<div class="mu" style="font-size:var(--fs-1);margin-top:6px">출처: ${E.sources.map(s=>s.url?`<a href="${escA(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`:esc(s.title)).join(' · ')}</div>`:''}</div></div>
+   <div class="p c6"><h2>문법 포인트</h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.65">${(E.grammar||[]).map(g=>`<div style="margin-bottom:10px"><b>${esc(g.point)}</b><div style="border-left:2px solid var(--amber);padding-left:8px;margin:3px 0" class="am">“${esc(g.quote)}”</div><div>${esc(g.explain_ko)}</div>${(g.examples||[]).length?`<div class="mu" style="font-size:var(--fs-2)">예) ${g.examples.map(esc).join(' / ')}</div>`:''}</div>`).join('')}</div></div>
+   <div class="p c6"><h2>시제 읽기</h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.65">${(E.tense||[]).map(t=>`<div style="margin-bottom:8px"><span class="am">“${esc(t.sentence)}”</span><div><span class="tag">${esc(t.tense)}</span> ${esc(t.why_ko)}</div></div>`).join('')}</div></div>
    ${qp('복습 퀴즈',R,'review','지난 단어')}${qp('독해 퀴즈',Q,'quiz','본문 내용')}
    ${T.map(t=>engTalk(t,T.length===1)).join('')}
    ${engOpic(E.opic,d)}
@@ -387,6 +387,6 @@ function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-b
   try{ navigator.clipboard.writeText(P.body).then(go,()=>{ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); }); }catch(e){ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); } }
 function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync'); if(b) b.onclick=eduSync; },0);
   const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length+(EDQ||[]).length;
-  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:12.5px"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:var(--fs-2)"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
 { const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
 </script>

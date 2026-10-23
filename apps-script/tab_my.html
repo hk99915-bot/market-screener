@@ -87,7 +87,7 @@ async function myDigest(t){ try{ const b=await crypto.subtle.digest('SHA-256',ne
 function myDiff(a,b){ const ca={}; myNorm(a).split('\n').filter(Boolean).forEach(l=>ca[l]=(ca[l]||0)+1);
   const onlyB=[]; myNorm(b).split('\n').filter(Boolean).forEach(l=>{ if(ca[l]) ca[l]--; else onlyB.push(l); });
   const onlyA=[]; for(const [l,n] of Object.entries(ca)) for(let i=0;i<n;i++) onlyA.push(l); return {onlyA,onlyB,n:onlyA.length+onlyB.length}; }
-const myDiffHtml=(d,la,lb)=>`<div style="font-size:12px;line-height:1.6;margin-top:4px">${d.onlyA.map(l=>`<div class="dn">− ${esc(la)}: ${esc(l)}</div>`).join('')}${d.onlyB.map(l=>`<div class="up">+ ${esc(lb)}: ${esc(l)}</div>`).join('')||''}${d.n?'':'<div class="mu">차이 없음</div>'}</div>`;
+const myDiffHtml=(d,la,lb)=>`<div style="font-size:var(--fs-2);line-height:1.6;margin-top:4px">${d.onlyA.map(l=>`<div class="dn">− ${esc(la)}: ${esc(l)}</div>`).join('')}${d.onlyB.map(l=>`<div class="up">+ ${esc(lb)}: ${esc(l)}</div>`).join('')||''}${d.n?'':'<div class="mu">차이 없음</div>'}</div>`;
 let MYLEDGER=null, MYPEND=null;   // 원장 텍스트는 이 창 메모리에만 (저장하지 않음)
 const _hm=()=>new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
 // 원장 받기: 예전엔 받은 값으로 확인 없이 덮어씀 → 이제 브라우저 값이 비어 있을 때만 채우고, 다르면 확인창(기본 = 내 것 유지)
@@ -105,10 +105,10 @@ function mySync(cb){ const tk=ghTok(); if(!tk){ MYSYNC={st:'토큰 없음'}; cb&
     .catch(e=>{ MYSYNC={st:'실패('+e.message+') — 토큰 권한·만료 확인'}; cb&&cb(false); }); }
 // 확인창: 원장 값으로 바꿀지 / 유지할지 / 차이 보기. 아무것도 안 누르면 유지
 function myAsk(){ const e=$('#myask'); if(!e) return; if(!MYPEND){ e.innerHTML=''; return; } const d=myDiff(myLoad(),MYPEND);
-  e.innerHTML=`<div style="border:1px solid var(--amber);padding:6px 8px;margin:6px 0;font-size:12px;max-width:640px"><b class="am">원장(holdings.txt)과 이 브라우저 보유가 달라요 — ${d.n}줄.</b> <span class="mu">고르기 전까진 브라우저 값 그대로 써요.</span><br>
+  e.innerHTML=`<div style="border:1px solid var(--amber);padding:6px 8px;margin:6px 0;font-size:var(--fs-2);max-width:640px"><b class="am">원장(holdings.txt)과 이 브라우저 보유가 달라요 — ${d.n}줄.</b> <span class="mu">고르기 전까진 브라우저 값 그대로 써요.</span><br>
     <button id="myaskkeep" class="sbtn" style="margin-top:4px">내 것 유지</button> <button id="myasktake" class="sbtn">원장 값으로 바꾸기</button> <button id="myaskdiff" class="sbtn">차이 보기</button>
     <div id="myaskd" style="display:none">${myDiffHtml(d,'브라우저에만','원장에만')}</div>
-    <div class="mu" style="font-size:11px;margin-top:4px">원장이 낡았으면 '백업 → 복사' 해서 PB 에게 대화로 전달 → PB 가 체결 확인 후 holdings.txt 반영 (화면은 원장에 쓰지 않음)</div></div>`;
+    <div class="mu" style="font-size:var(--fs-1);margin-top:4px">원장이 낡았으면 '백업 → 복사' 해서 PB 에게 대화로 전달 → PB 가 체결 확인 후 holdings.txt 반영 (화면은 원장에 쓰지 않음)</div></div>`;
   $('#myaskdiff').onclick=()=>{ const x=$('#myaskd'); x.style.display=x.style.display==='none'?'':'none'; };
   $('#myaskkeep').onclick=()=>{ MYPEND=null; MYSYNC.st='내 것 유지 — 원장과 다름 '+d.n+'줄'; alertMsg(MYSYNC.st+(MYSYNC.at?' · '+MYSYNC.at:'')); myAsk(); myBadges(); };
   $('#myasktake').onclick=()=>{ const c=MYPEND; MYPEND=null; mySave(c,'sync'); const ta=$('#myta'); if(ta) ta.value=c; MYSYNC.st='원장 값으로 바꿈'; alertMsg(MYSYNC.st+(MYSYNC.at?' · '+MYSYNC.at:'')); myAsk(); myBadges(); myRun(); }; }
@@ -142,7 +142,7 @@ function mdLite(md){ const L=String(md).split('\n'), out=[]; let tb=null, ul=fal
   const inl=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank">$1</a>');
   const flush=()=>{ if(tb){ out.push('<table>'+tb.filter(r=>!/^\s*\|?\s*:?-{2,}/.test(r)).map((r,k)=>'<tr>'+r.replace(/^\s*\||\|\s*$/g,'').split('|').map(c=>k?`<td class="l">${inl(c.trim())}</td>`:`<th class="l">${inl(c.trim())}</th>`).join('')+'</tr>').join('')+'</table>'); tb=null; } if(ul){ out.push('</ul>'); ul=false; } };
   for(const l of L){ if(/^\s*\|/.test(l)){ if(ul){out.push('</ul>');ul=false;} (tb=tb||[]).push(l); continue; } if(tb) flush();
-    const h=l.match(/^(#{1,4})\s+(.*)/); if(h){ flush(); out.push(`<div class="am" style="font-size:${15-h[1].length}px;margin:10px 0 4px;font-weight:700">${inl(h[2])}</div>`); continue; }
+    const h=l.match(/^(#{1,4})\s+(.*)/); if(h){ flush(); out.push(`<div class="am" style="font-size:var(${['--fs-4','--fs-3','--fs-3','--fs-2'][h[1].length-1]});margin:10px 0 4px;font-weight:700">${inl(h[2])}</div>`); continue; }
     const li=l.match(/^\s*[-*]\s+(\[( |x)\]\s+)?(.*)/); if(li){ if(!ul){ out.push('<ul style="margin:2px 0 2px 18px;padding:0">'); ul=true; } out.push(`<li>${li[1]?(li[2]==='x'?'☑ ':'☐ '):''}${inl(li[3])}</li>`); continue; }
     flush(); out.push(l.trim()?`<div>${inl(l)}</div>`:'<div style="height:6px"></div>'); }
   flush(); return out.join(''); }
@@ -153,15 +153,15 @@ async function jrList(){ const b=$('#myjrb'); if(!b) return; b.innerHTML='불러
     const today=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
     b.innerHTML=`<div style="margin:4px 0;line-height:2"><span class="am">일기</span> ${JRL.j.map(d=>`<button class="sbtn" data-jr="journal/${d}.md">${d.slice(5)}</button>`).join(' ')} <span class="am" style="margin-left:8px">히스토리</span> ${JRL.h.map(d=>`<button class="sbtn" data-jr="history/${d}.md">${d}</button>`).join(' ')}</div>
      <div style="border:1px solid var(--line);padding:6px 8px;margin:6px 0"><b class="am">오늘 한 줄 회고</b> <span class="mu">→ journal/<input id="jrd" value="${today}" style="width:92px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:1px 4px">.md 에 저장</span><br>
-      <textarea id="jrt" rows="3" placeholder="오늘 가장 잘한 판단 / 다시 하면 바꿀 것 / 내일 하나" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:6px;margin-top:4px"></textarea>
+      <textarea id="jrt" rows="3" placeholder="오늘 가장 잘한 판단 / 다시 하면 바꿀 것 / 내일 하나" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-3);padding:6px;margin-top:4px"></textarea>
       <div><button id="jrsave" class="sbtn">저장</button> <span id="jrmsg" class="mu"></span></div></div>
-     <div id="jrv" style="font-size:13px;line-height:1.7;white-space:normal;color:var(--txt)"></div>`;
+     <div id="jrv" style="font-size:var(--fs-2);line-height:1.7;white-space:normal;color:var(--txt)"></div>`;
     b.querySelectorAll('[data-jr]').forEach(x=>x.onclick=()=>jrShow(x.dataset.jr));
     $('#jrsave').onclick=jrSave;
     if(JRL.j.length) jrShow('journal/'+JRL.j[0]+'.md');
   }catch(e){ b.innerHTML=`<span class="dn">${esc(e.message)}</span>`; } }
 async function jrShow(path){ const v=$('#jrv'); if(!v) return; v.innerHTML='불러오는 중…';
-  try{ const f=await ghGet(path); v.innerHTML=`<div class="mu" style="font-size:11px">${esc(path)} · 비공개</div>`+mdLite(_ub64u(f.content)); }catch(e){ v.innerHTML=`<span class="dn">${esc(e.message)}</span>`; } }
+  try{ const f=await ghGet(path); v.innerHTML=`<div class="mu" style="font-size:var(--fs-1)">${esc(path)} · 비공개</div>`+mdLite(_ub64u(f.content)); }catch(e){ v.innerHTML=`<span class="dn">${esc(e.message)}</span>`; } }
 // 회고 저장: ① 토큰에 쓰기 권한이 있으면 journal 파일에 직접 추가 ② 없으면(403·404) 비공개 저장소 이슈 '회고 YYYY-MM-DD' 작성 화면을 열고 기록 데스크가 다음 슬롯에 일기로 옮김
 async function jrSave(){ const d=($('#jrd').value||'').trim(), t=($('#jrt').value||'').trim(), m=$('#jrmsg'); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!t){ m.textContent='날짜·내용 확인'; return; }
   const now=new Date(Date.now()+9*36e5).toISOString().slice(11,16), path='journal/'+d+'.md', line=`- [x] 회고 (겸이 ${now}): ${t.replace(/\n+/g,' / ')}`;
@@ -193,24 +193,24 @@ function myView(){
     const mj=$('#myjr'); if(mj) mj.addEventListener('toggle',e=>{ if(e.target.open) jrList(); });
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
   return `<div class="grid"><div class="p c12"><h2>MY PB<small>보유 자산 분석 · 비공개 저장소(pb-private)에서 자동 동기화 · 공개 서버로 전송 없음</small></h2><div class="b">
-    <div style="font-size:12px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="am">비공개 저장소 연동</span> <span id="mysync" class="mu">${ghTok()?esc(MYSYNC.st||'대기'):ghLocked()?'🔒 PIN 으로 잠김':'토큰 미설정'}</span>${ghLocked()?`<input id="mypin" type="password" inputmode="text" autocomplete="off" placeholder="PIN" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="mypinb" class="sbtn">열기</button> <span id="mypinmsg" class="dn" style="font-size:11px"></span> <a href="#" id="mypinforget" class="mu" style="font-size:11px">PIN 기억 지우기</a>`:''}
+    <div style="font-size:var(--fs-2);margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="am">비공개 저장소 연동</span> <span id="mysync" class="mu">${ghTok()?esc(MYSYNC.st||'대기'):ghLocked()?'🔒 PIN 으로 잠김':'토큰 미설정'}</span>${ghLocked()?`<input id="mypin" type="password" inputmode="text" autocomplete="off" placeholder="PIN" style="width:90px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <button id="mypinb" class="sbtn">열기</button> <span id="mypinmsg" class="dn" style="font-size:var(--fs-1)"></span> <a href="#" id="mypinforget" class="mu" style="font-size:var(--fs-1)">PIN 기억 지우기</a>`:''}
       <button id="mysyncb" class="sbtn">원장과 대조</button> <span id="mybadge">${myBadgeHtml()}</span>
-      <details style="display:inline"><summary class="mu" style="cursor:pointer;font-size:11px">토큰 설정</summary>
-        <div class="mu" style="font-size:11px;line-height:1.6;max-width:560px">깃허브 → Settings → Developer settings → Fine-grained tokens → Repository access: <b>pb-private만</b> · Permissions: <b>Contents: Read-only</b>. 토큰은 이 브라우저에만 저장돼요(회사 PC엔 저장 금지). 비우고 저장하면 삭제.</div>
-        <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <label class="mu" style="font-size:11px;margin-left:6px"><input id="mytokses" type="checkbox"> 이 창에서만 (탭 닫으면 삭제 · 회사 PC용)</label> <span class="mu" style="font-size:11px;margin-left:6px">또는 PIN 잠금 기억:</span> <input id="mytokpin" type="password" autocomplete="new-password" placeholder="PIN 6자+" style="width:100px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <span class="mu" style="font-size:11px">(PIN 을 넣고 저장하면 다음부턴 PIN 만 입력 — 회사 PC 추천)</span> <button id="mytokb" class="sbtn">저장</button></details></div>
+      <details style="display:inline"><summary class="mu" style="cursor:pointer;font-size:var(--fs-1)">토큰 설정</summary>
+        <div class="mu" style="font-size:var(--fs-1);line-height:1.6;max-width:560px">깃허브 → Settings → Developer settings → Fine-grained tokens → Repository access: <b>pb-private만</b> · Permissions: <b>Contents: Read-only</b>. 토큰은 이 브라우저에만 저장돼요(회사 PC엔 저장 금지). 비우고 저장하면 삭제.</div>
+        <input id="mytok" type="password" placeholder="github_pat_…" style="width:240px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <label class="mu" style="font-size:var(--fs-1);margin-left:6px"><input id="mytokses" type="checkbox"> 이 창에서만 (탭 닫으면 삭제 · 회사 PC용)</label> <span class="mu" style="font-size:var(--fs-1);margin-left:6px">또는 PIN 잠금 기억:</span> <input id="mytokpin" type="password" autocomplete="new-password" placeholder="PIN 6자+" style="width:100px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"> <span class="mu" style="font-size:var(--fs-1)">(PIN 을 넣고 저장하면 다음부턴 PIN 만 입력 — 회사 PC 추천)</span> <button id="mytokb" class="sbtn">저장</button></details></div>
     <div id="myask"></div>
-    <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
-    <div class="mu" style="font-size:12px;margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code> · <code>예적금 9000000</code>(반도체 한도 분모에만 더함)<br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
-    <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:14px;padding:8px">${esc(txt)}</textarea>
+    <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
+    <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code> · <code>예적금 9000000</code>(반도체 한도 분모에만 더함)<br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
+    <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-3);padding:8px">${esc(txt)}</textarea>
     <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
-    <details id="mybak" style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">백업 · 내보내기/가져오기 (holdings.txt 형식)</summary>
-      <div class="mu" style="font-size:11px;line-height:1.6;margin-bottom:4px">브라우저 데이터를 지우면 보유 입력이 사라져요 — 주 1회 백업. <b>개인 값이라 텔레그램·공개 저장소에 붙이지 말 것</b>, PB 에게는 대화로. 원장(holdings.txt)에는 쓰지 않아요.</div>
-      <button id="mycopy" class="sbtn">복사</button> <button id="mydl" class="sbtn">파일로 저장</button> <label class="sbtn" style="display:inline-block">파일 가져오기<input id="myfile" type="file" accept=".txt,text/plain" style="display:none"></label> <span id="mybakmsg" class="mu" style="font-size:12px"></span>
-      <textarea id="myimp" rows="3" placeholder="가져올 내용 붙여넣기 → 미리보기 (적용 전 차이 확인)" style="display:block;width:100%;max-width:640px;margin-top:6px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:13px;padding:6px"></textarea>
+    <details id="mybak" style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">백업 · 내보내기/가져오기 (holdings.txt 형식)</summary>
+      <div class="mu" style="font-size:var(--fs-1);line-height:1.6;margin-bottom:4px">브라우저 데이터를 지우면 보유 입력이 사라져요 — 주 1회 백업. <b>개인 값이라 텔레그램·공개 저장소에 붙이지 말 것</b>, PB 에게는 대화로. 원장(holdings.txt)에는 쓰지 않아요.</div>
+      <button id="mycopy" class="sbtn">복사</button> <button id="mydl" class="sbtn">파일로 저장</button> <label class="sbtn" style="display:inline-block">파일 가져오기<input id="myfile" type="file" accept=".txt,text/plain" style="display:none"></label> <span id="mybakmsg" class="mu" style="font-size:var(--fs-2)"></span>
+      <textarea id="myimp" rows="3" placeholder="가져올 내용 붙여넣기 → 미리보기 (적용 전 차이 확인)" style="display:block;width:100%;max-width:640px;margin-top:6px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:6px"></textarea>
       <button id="myimpv" class="sbtn" style="margin-top:4px">미리보기</button><div id="myimpd"></div></details>
     <div id="myout" style="margin-top:12px"></div>
-    <details id="mycorr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">교정 리포트 (비공개 · 눌러서 열기)</summary><div id="mycorrb" class="mu" style="font-size:12px">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
-    <details id="myjr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:13px;padding:4px 0">일기 · 운용 히스토리 · 회고 쓰기 (비공개 · 눌러서 열기)</summary><div id="myjrb" class="mu" style="font-size:12px">토큰 연결 후 열면 목록이 뜸</div></details>
+    <details id="mycorr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">교정 리포트 (비공개 · 눌러서 열기)</summary><div id="mycorrb" class="mu" style="font-size:var(--fs-2)">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
+    <details id="myjr" style="margin-top:14px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">일기 · 운용 히스토리 · 회고 쓰기 (비공개 · 눌러서 열기)</summary><div id="myjrb" class="mu" style="font-size:var(--fs-2)">토큰 연결 후 열면 목록이 뜸</div></details>
     </div></div></div>`;
 }
 // 교정 리포트: pb-private/analysis/latest.json → 이미지·보고서를 토큰으로 직접 받아 이 브라우저에서만 표시 (공개 서버 경유 없음)
@@ -234,16 +234,16 @@ function corrCharts(W){ CORR=W; const box=$('#mycint'); if(!box) return;
     return `<tr><td class="l">${m}</td><td class="${col(a)}"><b>${pc(a)}</b></td><td class="${col(k)}">${pc(k)}</td><td class="${col(u)}">${pc(u)}</td><td class="l" style="width:40%">${bar(a,a<0?'--dn':'--up')}${bar(k,'--muted')}</td></tr>`; }).join('');
   const hrow=W.hold.map(([b,n,w,p])=>`<tr><td class="l">${esc(b)}</td><td>${n}</td><td>${(w*100).toFixed(0)}%</td><td class="${col(p)}">${f(p)}</td></tr>`).join('');
   const crow=W.cls.map(([b,n,w,p])=>`<tr><td class="l">${esc(b)}</td><td>${n}</td><td>${(w*100).toFixed(0)}%</td><td class="${col(p)}">${f(p)}</td></tr>`).join('');
-  box.innerHTML=`<div class="am" style="font-size:12px">계좌 평가액 vs 넣은 돈 vs 지수 반사실 <span class="mu">(드래그·확대 가능, 아래 손익 차트와 연동)</span></div>
-   <div id="cq1" style="height:300px;margin-top:4px"></div><div id="cq1l" class="mu" style="font-size:11px;margin:2px 0 8px"></div>
-   <div class="am" style="font-size:12px">돈 손익 (평가액 − 순입금)</div><div id="cq2" style="height:160px;margin-top:4px"></div>
-   <div class="am" style="font-size:12px;margin-top:12px">코스피 위 매매 <span class="mu">▲매수 ▼매도 · 주황=레버리지·인버스 · 날짜를 누르면 그날 매매 목록</span>
+  box.innerHTML=`<div class="am" style="font-size:var(--fs-2)">계좌 평가액 vs 넣은 돈 vs 지수 반사실 <span class="mu">(드래그·확대 가능, 아래 손익 차트와 연동)</span></div>
+   <div id="cq1" style="height:300px;margin-top:4px"></div><div id="cq1l" class="mu" style="font-size:var(--fs-1);margin:2px 0 8px"></div>
+   <div class="am" style="font-size:var(--fs-2)">돈 손익 (평가액 − 순입금)</div><div id="cq2" style="height:160px;margin-top:4px"></div>
+   <div class="am" style="font-size:var(--fs-2);margin-top:12px">코스피 위 매매 <span class="mu">▲매수 ▼매도 · 주황=레버리지·인버스 · 날짜를 누르면 그날 매매 목록</span>
      <label style="margin-left:8px"><input type="checkbox" id="cqus"> 미국 매매도 표시</label></div>
-   <div id="cq3" style="height:300px;margin-top:4px"></div><div id="cq3d" style="font-size:12px;margin-top:6px;line-height:1.6"></div>
-   <div class="grid" style="margin-top:12px"><div class="c6"><div class="am" style="font-size:12px">월별 수익률 (시간가중) vs 지수</div><table><tr><th class="l">월</th><th>내 계좌</th><th>KOSPI</th><th>S&P(원화)</th><th class="l"></th></tr>${mrow}</table></div>
-   <div class="c6"><div class="am" style="font-size:12px">보유 기간별 실현손익</div><table><tr><th class="l">보유</th><th>건수</th><th>승률</th><th>손익</th></tr>${hrow}</table>
-   <div class="am" style="font-size:12px;margin-top:10px">진입 유형별 (실현+미실현)</div><table><tr><th class="l">유형</th><th>건수</th><th>승률</th><th>손익</th></tr>${crow}</table>
-   <div class="mu" style="font-size:11px;margin-top:6px">레버리지·인버스 ${f(+W.lev.True)} · 일반 ${f(+W.lev.False)} / 반도체 ${f(+W.semi.True)} · 그 외 ${f(+W.semi.False)}</div></div></div>`;
+   <div id="cq3" style="height:300px;margin-top:4px"></div><div id="cq3d" style="font-size:var(--fs-2);margin-top:6px;line-height:1.6"></div>
+   <div class="grid" style="margin-top:12px"><div class="c6"><div class="am" style="font-size:var(--fs-2)">월별 수익률 (시간가중) vs 지수</div><table><tr><th class="l">월</th><th>내 계좌</th><th>KOSPI</th><th>S&P(원화)</th><th class="l"></th></tr>${mrow}</table></div>
+   <div class="c6"><div class="am" style="font-size:var(--fs-2)">보유 기간별 실현손익</div><table><tr><th class="l">보유</th><th>건수</th><th>승률</th><th>손익</th></tr>${hrow}</table>
+   <div class="am" style="font-size:var(--fs-2);margin-top:10px">진입 유형별 (실현+미실현)</div><table><tr><th class="l">유형</th><th>건수</th><th>승률</th><th>손익</th></tr>${crow}</table>
+   <div class="mu" style="font-size:var(--fs-1);margin-top:6px">레버리지·인버스 ${f(+W.lev.True)} · 일반 ${f(+W.lev.False)} / 반도체 ${f(+W.semi.True)} · 그 외 ${f(+W.semi.False)}</div></div></div>`;
   setTimeout(()=>corrDraw(),0);
 }
 function corrDraw(){ const W=CORR; if(!W||!window.LightweightCharts) return;
@@ -279,13 +279,13 @@ function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) retur
     R=R.slice().sort((a,c)=>a.date<c.date?1:-1);
     b.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span class="am">리포트 히스토리</span>
       <select id="mycsel" style="background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:2px 4px">${R.map((r,k)=>`<option value="${k}">${esc(r.date)} · ${esc(r.title||'')}</option>`).join('')}</select>
-      <span class="mu" style="font-size:11px">${R.length}건 · 새 분석이 쌓이면 여기 추가돼</span></div><div id="mycone"></div>`;
+      <span class="mu" style="font-size:var(--fs-1)">${R.length}건 · 새 분석이 쌓이면 여기 추가돼</span></div><div id="mycone"></div>`;
     const load=k=>{ const r=R[k]; const metaP=r.latest?'analysis/latest.json':r.dir+'/meta.json';
       $('#mycone').innerHTML='<div class="mu">불러오는 중…</div>';
       pbGet(metaP).then(t=>{ const o=JSON.parse(t); const dir=o.dir||r.dir;
         $('#mycone').innerHTML=`<div style="margin-bottom:8px" class="mu">기준 ${esc(o.date)}</div><table style="max-width:640px">${(o.kpis||[]).map(k=>`<tr><td class="l">${esc(k[0])}</td><td><b>${esc(k[1])}</b></td></tr>`).join('')}</table>`+
           (o.comment?`<details open style="margin-top:12px"><summary style="cursor:pointer" class="am">PB 코멘트 · 처방</summary><div id="myccom" style="line-height:1.7;margin-top:6px">불러오는 중…</div></details>`:'')+
-          `<div id="mycint" style="margin-top:12px"></div><details style="margin-top:12px"><summary style="cursor:pointer" class="am">정적 차트 이미지</summary>`+(o.images||[]).map((im,i)=>`<div style="margin-top:12px"><div class="am" style="font-size:12px">${esc(im[0])}</div><img id="mycimg${i}" alt="" style="max-width:100%;border:1px solid var(--line);margin-top:4px"></div>`).join('')+`</details>`+
+          `<div id="mycint" style="margin-top:12px"></div><details style="margin-top:12px"><summary style="cursor:pointer" class="am">정적 차트 이미지</summary>`+(o.images||[]).map((im,i)=>`<div style="margin-top:12px"><div class="am" style="font-size:var(--fs-2)">${esc(im[0])}</div><img id="mycimg${i}" alt="" style="max-width:100%;border:1px solid var(--line);margin-top:4px"></div>`).join('')+`</details>`+
           `<details style="margin-top:12px"><summary style="cursor:pointer" class="am">전체 보고서</summary><div id="mycrep" style="line-height:1.6;margin-top:6px">불러오는 중…</div></details>`;
         if(o.comment) pbGet(dir+'/'+o.comment).then(t=>{ const e=$('#myccom'); if(e) e.innerHTML=mdLite(t); }).catch(()=>{});
         if(o.web) pbGet(dir+'/'+o.web).then(t=>corrCharts(JSON.parse(t))).catch(()=>{});
@@ -477,13 +477,13 @@ function myRender(hs,cash,miss){
   const isaPanel=hasIsa?`<div class="p" style="margin-bottom:8px"><h2>ISA 코어<small>${DENOM_TERMS.a}의 ${W(isaTot/NAV)} · 목표 S&P40/NDX10/K200 15/국고채20/금15 · 밴드 ±${(ISA_BAND*100).toFixed(0)}%p · 적립으로 맞춤(매도 아님)</small></h2><div class="b"><table><tr><th class="l">바구니</th><th>지금</th><th>목표</th><th>차이</th><th>상태</th></tr>
      ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="up">밴드 안 ✅</span>':d>0?'<span class="dn">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
      ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${KW(cIsa)} — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>
-     <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">ISA 코어 ${KW(isaTot)}. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
+     <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">ISA 코어 ${KW(isaTot)}. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
   const bandPanel=`<div class="p" style="margin-bottom:8px" id="mysemiband"><h2>반도체 밴드 · 결재 #3<small>레짐 연동 ${Object.entries(SEMI_REGIME_CAP).map(([k,v])=>k+' '+W(v)).join(' / ')} · 발동선 ${W(SEMI_BAND)} · 하단 ${W(SEMI_FLOOR)} · 분모 ${DENL} · 비율만</small></h2><div class="b" style="white-space:normal">
      <div style="margin-bottom:6px">레짐 <b class="am">${RG.regime}</b> <span class="mu">(${esc(RG.src)} · 고점 대비 ${RG.dd==null?'—':pct(RG.dd,0)} · 20일선 위 ${RG.above20}일)</span> → 상한 <b>${W(CAPR)}</b></div>
      <table><tr><th class="l">삼성전기</th><th>반도체 비중</th><th>상한까지</th><th>판정</th></tr>
       <tr><td class="l">제외 (기본)</td><td><b>${W(semi/DEN)}</b></td><td>${((CAPR-semi/DEN)*100).toFixed(1)}%p</td><td class="l">${bEx.t}</td></tr>
       <tr><td class="l">포함</td><td><b>${W((semi+swing)/DEN)}</b></td><td>${((CAPR-(semi+swing)/DEN)*100).toFixed(1)}%p</td><td class="l">${bIn.t}</td></tr></table>
-     <div class="mu" style="font-size:11px;margin:2px 0 8px">삼성전기 포함 여부는 11/15 리뷰에서 결정 — 그때까지 두 줄 병기(성적표 동일).</div>
+     <div class="mu" style="font-size:var(--fs-1);margin:2px 0 8px">삼성전기 포함 여부는 11/15 리뷰에서 결정 — 그때까지 두 줄 병기(성적표 동일).</div>
      <div><b>글라이드</b> ${SEMI_GLIDE_BY.slice(5)}까지 ${W(SEMI_GLIDE_TARGET)} <span class="mu">[가정: 가격 불변 · 반도체 매도 없음 · ISA 적립 매월 ${IM.day}일${IM.amt?` · 월 적립 = 분모의 ${(IM.amt/DEN*100).toFixed(1)}%`:' · <b>ISA적립 줄 없음 — 적립 0 가정</b> (보유 입력에 <code>ISA적립 &lt;월 금액&gt; [일]</code>)'}]</span></div>
      <table><tr><th class="l">날짜</th><th class="l">무엇</th><th>예상 비중</th><th>목표선</th><th></th></tr>${GL.points.map(p=>`<tr><td class="l">${p.d.slice(5)}</td><td class="l mu">${p.what}</td><td>${(p.x*100).toFixed(1)}%</td><td class="mu">${(p.line*100).toFixed(1)}%</td><td class="l">${p.x<=p.line+0.0005?'<span class="up">✓</span>':'<span class="am">▲</span>'}</td></tr>`).join('')}</table>
      <div style="margin:4px 0 8px">${GL.need>0.0005?`11월 말 ${W(SEMI_GLIDE_TARGET)}에 적립만으로는 부족 — 추가 축소 <b>분모의 ${(GL.need*100).toFixed(1)}%p</b> (반등일 매도 또는 적립 증액)`:'<span class="up">적립만으로 11월 말 목표 도달 ✅</span>'}</div>
@@ -492,18 +492,18 @@ function myRender(hs,cash,miss){
        ${VAROVER?'<b class="dn">⛔ 반도체 신규 매수 금지</b> — 계기판 플래그(강제 매도 없음). 한도 아래로 내려오면 자동 해제.':'<span class="mu">한도 안 — 플래그 없음 (계기판, 판정 아님)</span>'} <span class="mu">· σ ${P60.length}일 · 정규 근사 2.326σ</span></div>
    </div></div>`;
   $('#myout').innerHTML=`
-   <div class="mu" style="font-size:12px;margin-bottom:6px"><label style="float:right;cursor:pointer"><input type="checkbox" id="myratio" ${RO?'checked':''}> 비율만 보기</label>분모: ${DENOM_TERMS.a}(위성+ISA+현금) · 반도체·스트레스 ${DENL} ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 상한 ${W(CAPR)}(${RG.regime}) · 발동선 ${W(SEMI_BAND)}</div>
+   <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px"><label style="float:right;cursor:pointer"><input type="checkbox" id="myratio" ${RO?'checked':''}> 비율만 보기</label>분모: ${DENOM_TERMS.a}(위성+ISA+현금) · 반도체·스트레스 ${DENL} ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 상한 ${W(CAPR)}(${RG.regime}) · 발동선 ${W(SEMI_BAND)}</div>
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-     ${[[DENOM_TERMS.a,RO?'100% (비율만)':K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체 / +전기 · 분모 '+(SAV>0?DENOM_TERMS.b:DENOM_TERMS.a),`${W(semi/DEN)} / ${W(semiElec/DEN)}`],['주식 손익',cost?`${pct(tot/cost-1,1)}${RO?'':` (${KW(tot-cost)})`}`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95% · '+DENOM_TERMS.a,RO?pct(-Pm.var,1):K(Pm.var*NAV)+'원'],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:11px">${k}</div><b>${x}</b></div>`).join('')}
+     ${[[DENOM_TERMS.a,RO?'100% (비율만)':K(NAV)+'원'],['주식 / 현금',`${W(tot/NAV)} / ${W((cK+cU)/NAV)}`],['반도체 / +전기 · 분모 '+(SAV>0?DENOM_TERMS.b:DENOM_TERMS.a),`${W(semi/DEN)} / ${W(semiElec/DEN)}`],['주식 손익',cost?`${pct(tot/cost-1,1)}${RO?'':` (${KW(tot-cost)})`}`:'—'],['샤프 (1년)',F(Pm.sh)],['변동성',W(Pm.vol)],['최대낙폭',pct(Pm.mdd,0)],['하루 VaR 95% · '+DENOM_TERMS.a,RO?pct(-Pm.var,1):K(Pm.var*NAV)+'원'],['베타 KOSPI / SOX',`${F(Pm.bK)} / ${F(Pm.bX)}`]].map(([k,x])=>`<div style="flex:1;min-width:140px;border:1px solid var(--line);padding:6px 10px"><div class="mu" style="font-size:var(--fs-1)">${k}</div><b>${x}</b></div>`).join('')}
    </div>
-   <div class="p" style="margin-bottom:8px"><h2>PB 의견<small>규칙 기반 · 지난 1년 데이터 · 성과 검증 전</small></h2><div class="b" style="line-height:1.8;font-size:13px;white-space:normal">${op.map(x=>'· '+x).join('<br>')}</div></div>
+   <div class="p" style="margin-bottom:8px"><h2>PB 의견<small>규칙 기반 · 지난 1년 데이터 · 성과 검증 전</small></h2><div class="b" style="line-height:1.8;font-size:var(--fs-2);white-space:normal">${op.map(x=>'· '+x).join('<br>')}</div></div>
    ${bandPanel}
    ${isaPanel}
    <div class="p" style="margin-bottom:8px"><h2>보유<small>위험기여 = 포트 변동 중 이 종목 몫</small></h2><div class="b"><table><tr><th class="l">종목</th><th>비중</th><th>손익</th><th>위험기여</th><th>β KOSPI</th><th>β SOX</th><th>1년 변동성</th><th>드라이버</th></tr>
     ${A.sort((a,b)=>b.val-a.val).map(a=>{const dv=(a.etf?((a.d.etf||{}).look||{}).drv:(a.d.drivers||{}).score); return `<tr><td class="l am sym" data-sym="${esc(a.h.r.s)}" data-mk="${a.mk}">${esc(a.name)}${a.etf?' <span class="tag">ETF</span>':''}${a.book==='isa'?' <span class="tag">ISA</span>':''}</td><td>${W(a.w)}</td><td>${a.cb?pct(a.val/a.cb-1,1):'—'}</td><td class="${a.rc>a.w*1.3?'dn':''}">${W(a.rc)}</td><td>${F(a.bK)}</td><td>${F(a.bX)}</td><td class="mu">${W(a.vol)}</td><td style="color:${col(dv)}">${dv!=null?(dv>0?'+':'')+dv.toFixed(2):'—'}</td></tr>`;}).join('')}
     ${cK?`<tr><td class="l mu">원화 현금</td><td>${W(cK/NAV)}</td><td colspan="6" class="mu l">연 3% 가정</td></tr>`:''}${cU?`<tr><td class="l mu">달러 현금</td><td>${W(cU/NAV)}</td><td colspan="6" class="mu l">원/달러 변동이 수익 · 포트와 상관 ${F(Pm.cFX)}</td></tr>`:''}</table></div></div>
    <div class="grid" style="padding:0;margin-bottom:8px">
-    <div class="p c6"><h2>실질 보유<small>ETF를 구성종목으로 풀어서</small></h2><div class="b"><table>${realL.slice(0,12).map(x=>`<tr><td class="l">${esc(x.name)} <span class="mu" style="font-size:11px">${esc(x.src.join('+'))}</span></td><td>${K(x.val)}</td><td>${W(x.val/NAV)}</td></tr>`).join('')}</table></div></div>
+    <div class="p c6"><h2>실질 보유<small>ETF를 구성종목으로 풀어서</small></h2><div class="b"><table>${realL.slice(0,12).map(x=>`<tr><td class="l">${esc(x.name)} <span class="mu" style="font-size:var(--fs-1)">${esc(x.src.join('+'))}</span></td><td>${K(x.val)}</td><td>${W(x.val/NAV)}</td></tr>`).join('')}</table></div></div>
     <div class="p c6"><h2>체인 노출<small>주식 대비</small></h2><div class="b">${chainL.map(([k,v])=>`<div class="bg"><span class="bl" style="width:130px">${esc(k)}</span><span class="bt"><i class="am" style="width:${Math.min(v/tot*100,100)}%"></i></span><b>${W(v/tot)}</b></div>`).join('')}</div></div>
    </div>
    <div class="grid" style="padding:0;margin-bottom:8px">
@@ -514,17 +514,17 @@ function myRender(hs,cash,miss){
       <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${KW(stF)}</b> (${pct(stF/DEN,1)})</div>
       <div>하루 손실이 이보다 클 확률 5%: <b>${KW(Pm.var*NAV)}</b> · 그런 날 평균 ${KW(Pm.cvar*NAV)}</div></div></div>
     <div class="p c6"><h2>헷지안<small>5거래일 수익률 · 최근 1년</small></h2><div class="b">
-      <div class="am" style="font-size:12px">① 인버스 (단기 보험)</div><table><tr><th class="l">수단</th><th>상관</th><th>25% 헷지</th><th>감소</th><th>100% 헷지</th><th>감소</th></tr>
+      <div class="am" style="font-size:var(--fs-2)">① 인버스 (단기 보험)</div><table><tr><th class="l">수단</th><th>상관</th><th>25% 헷지</th><th>감소</th><th>100% 헷지</th><th>감소</th></tr>
       ${hedge.filter(h=>h.ty==='inv').map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td>${h.amt>0?KW(h.amt/4):'—'}</td><td>${h.amt>0?W(h.red25):'—'}</td><td class="mu">${h.amt>0?KW(h.amt):'—'}</td><td class="mu">${h.amt>0?W(h.red):'—'}</td></tr>`).join('')}</table>
-      <div class="am" style="font-size:12px;margin-top:8px">② 분산 (주식 10%p를 옮기면)</div><table><tr><th class="l">수단</th><th>상관</th><th>변동성 감소</th><th>1년 수익</th></tr>
+      <div class="am" style="font-size:var(--fs-2);margin-top:8px">② 분산 (주식 10%p를 옮기면)</div><table><tr><th class="l">수단</th><th>상관</th><th>변동성 감소</th><th>1년 수익</th></tr>
       ${hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).map(h=>`<tr><td class="l"><span class="am sym" data-sym="${esc(h.sy)}" data-mk="${h.m}" style="cursor:pointer">${esc(h.nm)}</span></td><td>${F(h.rho)}</td><td class="${h.red>0?'up':'dn'}">${W(h.red)}</td><td>${pct(h.ret1y,0)}</td></tr>`).join('')}</table>
-      <div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">① 필요 금액 = 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 인버스·레버리지는 일간 재조정으로 오래 들면 손실이 쌓임. ② 상관이 낮거나 음수일수록 분산 효과. 과거 1년 상관이라 위기 때는 바뀔 수 있음(물가 충격엔 채권도 같이 빠짐).</div></div></div>
+      <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">① 필요 금액 = 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 인버스·레버리지는 일간 재조정으로 오래 들면 손실이 쌓임. ② 상관이 낮거나 음수일수록 분산 효과. 과거 1년 상관이라 위기 때는 바뀔 수 있음(물가 충격엔 채권도 같이 빠짐).</div></div></div>
    </div>
    ${pf?`<div class="p" style="margin-bottom:8px"><h2>모의 전략과 비교<small>2011~ 월간 · 원화</small></h2><div class="b"><table><tr><th class="l">전략</th><th>연수익</th><th>변동성</th><th>샤프</th><th>최대낙폭</th><th class="l">지금 배분</th></tr>
       <tr><td class="l am">내 포트 (최근 1년)</td><td>${pct(Pm.ret,1)}</td><td>${W(Pm.vol)}</td><td>${F(Pm.sh)}</td><td>${pct(Pm.mdd,0)}</td><td class="l mu">반도체 중심</td></tr>
-      ${pf.filter(x=>!/스트래들/.test(x.name)).map(x=>`<tr><td class="l">${esc(x.name)}</td><td>${pct(x.stats.cagr,1)}</td><td>${W(x.stats.vol)}</td><td>${F(x.stats.sharpe)}</td><td>${pct(x.stats.mdd,0)}</td><td class="l mu" style="white-space:normal;font-size:11px">${Object.entries(x.now||{}).filter(([k,w])=>Math.abs(w)>0.005).map(([k,w])=>`${esc(k)} ${W(w)}`).join(' · ')}</td></tr>`).join('')}</table>
-      <div class="mu" style="font-size:11px;margin-top:4px">내 포트는 1년, 전략은 15년 성과라 직접 비교는 거칠다. 핵심은 변동성·낙폭 대비 수익 구조.</div></div></div>`:''}
+      ${pf.filter(x=>!/스트래들/.test(x.name)).map(x=>`<tr><td class="l">${esc(x.name)}</td><td>${pct(x.stats.cagr,1)}</td><td>${W(x.stats.vol)}</td><td>${F(x.stats.sharpe)}</td><td>${pct(x.stats.mdd,0)}</td><td class="l mu" style="white-space:normal;font-size:var(--fs-1)">${Object.entries(x.now||{}).filter(([k,w])=>Math.abs(w)>0.005).map(([k,w])=>`${esc(k)} ${W(w)}`).join(' · ')}</td></tr>`).join('')}</table>
+      <div class="mu" style="font-size:var(--fs-1);margin-top:4px">내 포트는 1년, 전략은 15년 성과라 직접 비교는 거칠다. 핵심은 변동성·낙폭 대비 수익 구조.</div></div></div>`:''}
    ${miss.length?`<div class="mu" style="margin-top:6px">인식 못 한 종목: ${esc(miss.join(', '))}</div>`:''}
-   <div class="mu" style="font-size:11px;margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
+   <div class="mu" style="font-size:var(--fs-1);margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
 }
 </script>

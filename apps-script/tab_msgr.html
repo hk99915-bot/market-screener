@@ -7,55 +7,55 @@
 <style>
 .mgtop{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
 .mgseg{display:flex;border:1px solid var(--line)}
-.mgseg button{min-height:40px;background:none;border:0;border-right:1px solid var(--line);color:var(--muted);font:inherit;font-size:13px;padding:0 12px;cursor:pointer}
+.mgseg button{min-height:40px;background:none;border:0;border-right:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-2);padding:0 12px;cursor:pointer}
 .mgseg button:last-child{border-right:0}
 .mgseg button.on{color:#000;background:var(--amber)}
-.mgsel{min-height:40px;background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:13px;padding:0 8px}
-.mgsum{font-size:12px;color:var(--muted);margin:0 0 6px}
+.mgsel{min-height:40px;background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:0 8px}
+.mgsum{font-size:var(--fs-2);color:var(--muted);margin:0 0 6px}
 .mgsum b{color:var(--txt)}
-.mgday{margin:14px 0 2px;font-size:11px;color:var(--muted);letter-spacing:.08em}
+.mgday{margin:14px 0 2px;font-size:var(--fs-1);color:var(--muted);letter-spacing:.08em}
 .mgit{border-top:1px solid #1c1c1c;white-space:normal}
 .mgit>summary{list-style:none;display:flex;gap:10px;align-items:flex-start;padding:10px 0;cursor:pointer}
 .mgit>summary::-webkit-details-marker{display:none}
-.mgav{position:relative;flex:0 0 48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#000}
+.mgav{position:relative;flex:0 0 48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:var(--fs-2);font-weight:700;color:#000}
 .mgln{min-width:0;flex:1}
-.mgwho{font-size:13px;line-height:1.4}
+.mgwho{font-size:var(--fs-2);line-height:1.4}
 .mgwho b{color:var(--txt)}
 .mgwho .ar{color:var(--muted);margin:0 3px}
 .mgdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle}
-.mgone{font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:1px}
+.mgone{font-size:var(--fs-2);color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:1px}
 .mgit[open] .mgone{display:none}
-.mgbadge{font-size:10.5px;color:var(--amber);margin-left:6px}
-.mgbody{padding:0 0 12px 40px;font-size:13.5px;line-height:1.7}
+.mgbadge{font-size:var(--fs-1);color:var(--amber);margin-left:6px}
+.mgbody{padding:0 0 12px 40px;font-size:var(--fs-3);line-height:1.7}
 .mgtxt{color:var(--txt)}
-.mgmeta{font-size:11px;color:var(--muted);margin-top:4px}
+.mgmeta{font-size:var(--fs-1);color:var(--muted);margin-top:4px}
 .mgrep{margin-top:10px;display:flex;gap:8px}
-.mgrep .mgav{flex-basis:40px;height:40px;font-size:11px}
+.mgrep .mgav{flex-basis:40px;height:40px;font-size:var(--fs-1)}
 .mgrep .bx{min-width:0;flex:1;border-left:2px solid var(--amber);padding-left:9px}
-.mgrep .hd{font-size:12px;color:var(--muted)}
+.mgrep .hd{font-size:var(--fs-2);color:var(--muted)}
 .mgrep .hd b{color:var(--amber)}
-.mgproxy{margin-top:8px;font-size:12px;color:var(--muted)}
+.mgproxy{margin-top:8px;font-size:var(--fs-2);color:var(--muted)}
 .mgproxy summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
 .mgproxy p{margin:4px 0 0;border-left:2px solid var(--line);padding-left:9px}
-.mgempty{color:var(--muted);font-size:13px;padding:16px 0}
+.mgempty{color:var(--muted);font-size:var(--fs-2);padding:16px 0}
 .mgbox{max-height:70vh;overflow-y:auto;padding-right:4px}
 .mgb2{display:flex;gap:8px;margin:10px 0;white-space:normal}
-.mgb2 .mgbub{display:inline-block;max-width:100%;background:#151515;border:1px solid var(--line);border-radius:2px 12px 12px 12px;padding:7px 10px;font-size:13.5px;line-height:1.6;color:var(--txt);overflow-wrap:anywhere}
+.mgb2 .mgbub{display:inline-block;max-width:100%;background:#151515;border:1px solid var(--line);border-radius:2px 12px 12px 12px;padding:7px 10px;font-size:var(--fs-3);line-height:1.6;color:var(--txt);overflow-wrap:anywhere}
 .mgb2.me{flex-direction:row-reverse;text-align:right}
 .mgb2.me .mgbub{border-radius:12px 2px 12px 12px;border-color:var(--amber-dim);text-align:left}
 .mgb2.chat .mgbub{background:none;border-style:dashed;color:var(--muted)}
-.mgt{font-size:10.5px;color:var(--muted);margin-left:6px}
-.mgq{font-size:11.5px;color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
-.mgsys{text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0;white-space:normal}
-#mgfab{position:fixed;right:16px;bottom:16px;z-index:18;transition:opacity .2s,transform .2s;width:56px;height:56px;border-radius:50%;border:0;background:var(--amber);color:#000;font-size:24px;cursor:pointer;box-shadow:0 4px 18px #000a}
-#mgpop{position:fixed;right:16px;bottom:84px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:#0a0a0a;border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
+.mgt{font-size:var(--fs-1);color:var(--muted);margin-left:6px}
+.mgq{font-size:var(--fs-1);color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
+.mgsys{text-align:center;font-size:var(--fs-1);color:var(--muted);margin:8px 0;white-space:normal}
+#mgfab{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:40px;padding:0 6px;background:none;border:1px solid var(--amber-dim);border-radius:3px;color:var(--txt);font-size:var(--fs-4);cursor:pointer}
+#mgfab.on{background:var(--amber);color:#000}
+@media (max-width:700px){#mgfab{margin-left:auto}#mgfab+#sqb{margin-left:0}}
+#mgpop{position:fixed;right:16px;bottom:16px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:#0a0a0a;border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
 #mgpop .mgph{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:#111;border-bottom:1px solid var(--line);cursor:move;touch-action:none}
-#mgpop .mgph button{margin-left:auto;min-width:40px;min-height:40px;background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
+#mgpop .mgph button{margin-left:auto;min-width:40px;min-height:40px;background:none;border:0;color:var(--muted);font-size:var(--fs-icon);cursor:pointer}
 #mgpop .mgpb{flex:1;overflow:auto;padding:6px}
 #mgpop .grid{display:block}#mgpop .p h2{display:none}#mgpop .mgbox{max-height:none}
-/* UXUI 재진단 Top10 #3 (10/23): 💬 버튼이 상세 창·표·맨 아래 접기 줄을 가림 → z-index 18(상세 창 배경 19·창 20 아래) · 본문 맨 아래 88px 여백 · 스크롤 중 숨김(멈추면 다시) */
-#root{padding-bottom:88px}
-#mgfab.mgscr{opacity:0;transform:translateY(24px);pointer-events:none}
+/* UXUI 재진단 Top10 #3 (10/23) → 남은 '첫 화면 가림'(10/24 결재 appr-uxui-top10-next): 떠 있는 56px 원 버튼 대신 머리(.top) 🔍 옆 44px 버튼 — 본문 위에 뜨는 것 0. 폰에선 머리와 같이 스크롤 중 숨고 위로 올리면 다시 */
 @media (max-width:600px){#mgpop{right:0;left:0;bottom:0;width:100vw;height:86vh}}
 .mgpfc{border-radius:18px}@media (max-width:600px){.mgnav{background:#0003!important;width:36px!important}}@media (max-width:600px){.mgpfc{border-radius:0;height:100dvh!important;width:100vw;aspect-ratio:auto!important}}
 .mgpf .bn{height:170px;background-size:cover;background-position:center}
@@ -70,17 +70,17 @@ function mgPopFill(){ const w=document.getElementById('mgpop'); if(w) w.querySel
 /* 💬 팝업은 최신(맨 아래)부터 (UXUI 재진단 Top10 #2, 10/23): 팝업에선 스크롤 박스가 #mgbox 가 아니라 바깥 .mgpb → 대화 목록이 있을 때 .mgpb 도 맨 아래로 */
 function mgPbEnd(box){ const pb=box&&box.closest('.mgpb'); if(pb) pb.scrollTop=pb.scrollHeight; }
 function mgPop(open){ let w=document.getElementById('mgpop');
-  if(!open||view==='msg'){ if(w) w.remove(); MGPOP=false; return; }
+  if(!open||view==='msg'){ if(w) w.remove(); MGPOP=false; const f=document.getElementById('mgfab'); if(f) f.classList.remove('on'); return; }
   if(!w){ w=document.createElement('div'); w.id='mgpop'; w.setAttribute('role','dialog'); w.setAttribute('aria-label','사내톡');
-    w.innerHTML='<div class="mgph"><b>💬 사내톡</b><span class="mu" style="font-size:11px">끌어서 옮기기</span><button type="button" aria-label="닫기">×</button></div><div class="mgpb"></div>';
+    w.innerHTML='<div class="mgph"><b>💬 사내톡</b><span class="mu" style="font-size:var(--fs-1)">끌어서 옮기기</span><button type="button" aria-label="닫기">×</button></div><div class="mgpb"></div>';
     document.body.appendChild(w); w.querySelector('.mgph button').onclick=()=>mgPop(false);
     const h=w.querySelector('.mgph'); h.onpointerdown=e=>{ if(e.target.closest('button')||innerWidth<=600) return; const r=w.getBoundingClientRect(), dx=e.clientX-r.left, dy=e.clientY-r.top;
       const mv=ev=>{ w.style.left=Math.max(0,Math.min(innerWidth-r.width,ev.clientX-dx))+'px'; w.style.top=Math.max(0,Math.min(innerHeight-60,ev.clientY-dy))+'px'; w.style.right='auto'; w.style.bottom='auto'; };
       const up=()=>{ removeEventListener('pointermove',mv); removeEventListener('pointerup',up); }; addEventListener('pointermove',mv); addEventListener('pointerup',up); }; }
   MGPOP=true; mgPopFill(); }
 setTimeout(()=>{ if(document.getElementById('mgfab')) return; const b=document.createElement('button'); b.id='mgfab'; b.type='button'; b.title='사내톡'; b.setAttribute('aria-label','사내톡 열기'); b.textContent='💬';
-  b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); }; document.body.appendChild(b);
-  let t=null; addEventListener('scroll',()=>{ b.classList.add('mgscr'); clearTimeout(t); t=setTimeout(()=>b.classList.remove('mgscr'),500); },{passive:true}); },0);
+  b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); b.classList.toggle('on',MGPOP); };
+  const T=document.querySelector('.top'), q=document.getElementById('sqb'); if(q&&q.parentNode===T) T.insertBefore(b,q); else if(T) T.appendChild(b); else document.body.appendChild(b); },0);
 const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스',realestate:'부동산',scribe:'기록',household:'내무',compliance:'컴플라이언스',posrisk:'포지션리스크','겸이':'겸이'};
 const MG_DOT={open:'var(--amber)',promoted:'var(--dn)',done:'var(--up)'};
 const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
@@ -92,7 +92,7 @@ function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'var(--ambe
 /* 원본 보기(10/23 겸이 "한 번씩 더 누르면 원본, 크기 조절 가능하게") — 휠·핀치·두 번 탭(1x↔2.5x)·끌기·＋/－ */
 function mgZoom(src){ if(!src) return; const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:#000;z-index:120;overflow:hidden;touch-action:none';
   o.innerHTML=`<img src="${src}" alt="" draggable="false" style="position:absolute;left:50%;top:50%;max-width:100vw;max-height:100vh;transform-origin:center;user-select:none;will-change:transform">
-    <div style="position:absolute;right:8px;top:8px;display:flex;gap:6px">${['－','＋','×'].map(t=>`<button type="button" data-z="${t}" style="min-width:44px;min-height:44px;border:0;border-radius:50%;background:#0009;color:#fff;font-size:20px;cursor:pointer">${t}</button>`).join('')}</div>`;
+    <div style="position:absolute;right:8px;top:8px;display:flex;gap:6px">${['－','＋','×'].map(t=>`<button type="button" data-z="${t}" style="min-width:44px;min-height:44px;border:0;border-radius:50%;background:#0009;color:#fff;font-size:var(--fs-icon);cursor:pointer">${t}</button>`).join('')}</div>`;
   const im=o.querySelector('img'); let s=1,x=0,y=0; const P=new Map(); let d0=0,s0=1,lt=0;
   const ap=()=>{ im.style.transform=`translate(calc(-50% + ${x}px),calc(-50% + ${y}px)) scale(${s})`; }; ap();
   const zs=v=>{ s=Math.max(1,Math.min(6,v)); if(s===1){ x=0; y=0; } ap(); };
@@ -118,18 +118,18 @@ const MG_ORG=[
 function mgOrgNode(k,big){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k)||{name:mgNm(k)}; const sz=big?64:48;
   return `<div data-mgp="${esc(k)}" role="button" tabindex="0" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:0;width:${big?84:68}px">
     <img src="${MG_IMG}${encodeURIComponent(k)}.png" alt="" loading="lazy" style="width:${sz}px;height:${sz}px;border-radius:38%;object-fit:cover;object-position:50% 22%;background:#222;border:1px solid var(--line)" onerror="this.style.visibility='hidden'">
-    <div style="font-size:11.5px;text-align:center;line-height:1.25;overflow-wrap:anywhere"><b>${esc(P.name||k)}</b>${P.age?`<span class="mu"> ${P.age}</span>`:''}</div></div>`; }
+    <div style="font-size:var(--fs-1);text-align:center;line-height:1.25;overflow-wrap:anywhere"><b>${esc(P.name||k)}</b>${P.age?`<span class="mu"> ${P.age}</span>`:''}</div></div>`; }
 function mgOrg(){
-  const box=(t,sub,ks)=>`<div style="border:1px solid var(--line);padding:8px;min-width:0"><div style="font-size:12.5px;color:var(--amber)"><b>${esc(t)}</b> <span class="mu" style="font-size:11px">${esc(sub)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${ks.map(k=>mgOrgNode(k)).join('')}</div></div>`;
+  const box=(t,sub,ks)=>`<div style="border:1px solid var(--line);padding:8px;min-width:0"><div style="font-size:var(--fs-2);color:var(--amber)"><b>${esc(t)}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(sub)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${ks.map(k=>mgOrgNode(k)).join('')}</div></div>`;
   return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0 10px">
-      <div style="border:1px solid var(--amber);padding:6px 14px;font-size:13px"><b>겸이</b> <span class="mu" style="font-size:11px">결재권자</span></div>
+      <div style="border:1px solid var(--amber);padding:6px 14px;font-size:var(--fs-2)"><b>겸이</b> <span class="mu" style="font-size:var(--fs-1)">결재권자</span></div>
       <div style="width:1px;height:12px;background:var(--line)"></div>
-      ${mgOrgNode('pb',true)}<div class="mu" style="font-size:11px">창구·종합·추천</div>
+      ${mgOrgNode('pb',true)}<div class="mu" style="font-size:var(--fs-1)">창구·종합·추천</div>
       <div style="width:1px;height:12px;background:var(--line)"></div></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:8px">${MG_ORG.map(([t,s,ks])=>box(t,s,ks)).join('')}</div>
     <div style="margin-top:8px">${box('독립 검증실','겸이 직속 · 어느 본부에도 안 속함 · 무편집 발행권',['verify','peer','audit'])}</div>
-    <details style="margin-top:8px"><summary class="mu" style="cursor:pointer;min-height:40px;display:flex;align-items:center;font-size:12px">프론트 · 미들 · 백 (기관 대응표)</summary>
-      <div style="font-size:12.5px;line-height:1.7;white-space:normal"><b>프론트</b>(판단·운용) PB·CIO·자산배분·매크로·채권·부동산·애널·퀀트·파생·HF<br><b>미들</b>(통제·측정 = 2선) 리스크·행동·컴플라이언스·포지션리스크·PM·검증<br><b>백</b>(처리·기록·인프라) 운영·데이터·개발·기록·내무·유지보수·UXUI<br><b>3선 방어</b>(독립) 감사·피어리뷰 (+검증)<br><b>지원</b> 교육·평가·LIFE</div></details>`;
+    <details style="margin-top:8px"><summary class="mu" style="cursor:pointer;min-height:40px;display:flex;align-items:center;font-size:var(--fs-2)">프론트 · 미들 · 백 (기관 대응표)</summary>
+      <div style="font-size:var(--fs-2);line-height:1.7;white-space:normal"><b>프론트</b>(판단·운용) PB·CIO·자산배분·매크로·채권·부동산·애널·퀀트·파생·HF<br><b>미들</b>(통제·측정 = 2선) 리스크·행동·컴플라이언스·포지션리스크·PM·검증<br><b>백</b>(처리·기록·인프라) 운영·데이터·개발·기록·내무·유지보수·UXUI<br><b>3선 방어</b>(독립) 감사·피어리뷰 (+검증)<br><b>지원</b> 교육·평가·LIFE</div></details>`;
 }
 /* 👥 프로필 — 카톡처럼 세로 전체 배경 + 아래쪽 프사·이름·상태메시지. 배경·프사를 한 번 더 누르면 원본(mgZoom).
    배경: assets/avatars/bg/<key>.jpg|png (없으면 profiles.json bg 그라디언트) · 데이터 msgr_feed.profiles */
@@ -141,26 +141,26 @@ function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) r
   o.innerHTML=`<div data-blur style="position:absolute;inset:-60px;background:${g};background-size:cover;background-position:center;filter:blur(28px) brightness(.45)"></div>
     <div data-ph class="mgpfc" style="position:relative;height:min(100dvh,940px);aspect-ratio:9/16;max-width:100vw;background:${g};background-size:cover;background-position:center;display:flex;flex-direction:column;overflow:hidden;cursor:zoom-in;box-shadow:0 10px 60px #000">
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,#0006 0,#0000 22%,#0000 48%,#000c 100%);pointer-events:none"></div>
-    <button type="button" data-x style="position:absolute;left:8px;top:8px;z-index:2;min-height:44px;min-width:44px;background:none;border:0;color:#fff;font-size:26px;cursor:pointer;text-shadow:0 1px 4px #000" aria-label="닫기">×</button>
+    <button type="button" data-x style="position:absolute;left:8px;top:8px;z-index:2;min-height:44px;min-width:44px;background:none;border:0;color:#fff;font-size:var(--fs-icon);cursor:pointer;text-shadow:0 1px 4px #000" aria-label="닫기">×</button>
     <div data-card style="margin-top:auto;position:relative;z-index:1;text-align:center;color:#fff;padding:0 16px 18px;cursor:default;text-shadow:0 1px 3px #000a">
       <img data-av src="${av}" alt="" style="width:104px;height:104px;border-radius:38%;object-fit:cover;object-position:50% 22%;cursor:zoom-in;background:#333;box-shadow:0 2px 10px #0008" onerror="this.style.visibility='hidden'">
-      <div style="margin-top:8px;font-size:19px;font-weight:700">${esc(P.name)}</div>
-      ${P.msg?`<div style="margin-top:3px;font-size:14px;opacity:.95">${esc(P.msg)}</div>`:''}
-      ${P.bgm?`<div style="display:inline-block;margin-top:8px;font-size:12px;background:#ffffff26;border-radius:14px;padding:4px 10px">🎵 ${esc(P.bgm)}</div>`:''}
-      <details style="margin:12px auto 0;max-width:460px;text-align:left;background:#000a;border-radius:10px;padding:0 12px;font-size:13px;line-height:1.6;text-shadow:none">
+      <div style="margin-top:8px;font-size:var(--fs-4);font-weight:700">${esc(P.name)}</div>
+      ${P.msg?`<div style="margin-top:3px;font-size:var(--fs-3);opacity:.95">${esc(P.msg)}</div>`:''}
+      ${P.bgm?`<div style="display:inline-block;margin-top:8px;font-size:var(--fs-2);background:#ffffff26;border-radius:14px;padding:4px 10px">🎵 ${esc(P.bgm)}</div>`:''}
+      <details style="margin:12px auto 0;max-width:460px;text-align:left;background:#000a;border-radius:10px;padding:0 12px;font-size:var(--fs-2);line-height:1.6;text-shadow:none">
         <summary style="min-height:40px;display:flex;align-items:center;cursor:pointer;color:#ddd">${esc(P.dept)} · ${P.age}세 · 더보기</summary>
         <div style="padding-bottom:10px">${esc(P.line)}
         ${P.hobby?`<div style="margin-top:4px"><span class="am">취미</span> ${esc(P.hobby)}</div>`:''}
         ${P.role?`<div style="margin-top:4px"><span class="am">담당</span> ${esc(P.role)}</div>`:''}
-        <div style="margin-top:6px;color:#bbb;font-size:12px">받은 요청(진행 중) ${P.open_in} · 보낸 요청 ${P.sent} · 직접 답장 ${P.replies}</div>
+        <div style="margin-top:6px;color:#bbb;font-size:var(--fs-2)">받은 요청(진행 중) ${P.open_in} · 보낸 요청 ${P.sent} · 직접 답장 ${P.replies}</div>
         ${P.last_chat?`<div style="margin-top:6px;border-left:2px solid var(--amber);padding-left:8px">최근 사담: ${esc(P.last_chat)}</div>`:''}</div></details>
     </div></div>`;
   const tryBg=ex=>{ const u=`${MG_IMG}bg/${encodeURIComponent(k)}.${ex}`, i=new Image(); i.onload=()=>{ bgSrc=u; o.querySelectorAll('[data-ph],[data-blur]').forEach(el=>el.style.backgroundImage=`url('${u}')`); }; i.onerror=()=>{ if(ex==='jpg') tryBg('png'); }; i.src=u; }; tryBg('jpg');
   o.onclick=e=>{ if(o._sw){ o._sw=0; return; } if(e.target.closest('[data-nav]')) return mgProfGo(o,k,+e.target.closest('[data-nav]').dataset.nav); if(e.target.closest('[data-x]')) return mgProfClose(o); if(e.target.closest('[data-av]')) return mgZoom(av); if(e.target.closest('[data-card]')) return; if(!e.target.closest('[data-ph]')) return mgProfClose(o); if(bgSrc) mgZoom(bgSrc); };
   /* 옆으로 넘기기(10/23 겸이 "프로필 창에서 옆으로 넘겨서 다른 누나들 볼 수 있게") — 폰: 좌우 스와이프 · PC: 양옆 ‹ › 버튼·←/→ 키 · 순서 = 프로필 목록(부서별) */
   const L=((MG&&MG.profiles)||[]), idx=L.findIndex(p=>p.key===k), ph=o.querySelector('[data-ph]');
-  if(L.length>1){ ['-1','1'].forEach(d=>{ const b=document.createElement('button'); b.type='button'; b.dataset.nav=d; b.className='mgnav'; b.setAttribute('aria-label',d==='1'?'다음 누나':'이전 누나'); b.textContent=d==='1'?'›':'‹'; b.style.cssText=`position:absolute;top:50%;${d==='1'?'right':'left'}:8px;transform:translateY(-50%);z-index:3;width:44px;height:64px;border:0;border-radius:12px;background:#0006;color:#fff;font-size:30px;cursor:pointer`; o.appendChild(b); });
-    const cnt=document.createElement('div'); cnt.style.cssText='position:absolute;right:12px;top:14px;z-index:2;color:#fff;font-size:12px;text-shadow:0 1px 3px #000'; cnt.textContent=`${idx+1} / ${L.length}`; ph.appendChild(cnt); }
+  if(L.length>1){ ['-1','1'].forEach(d=>{ const b=document.createElement('button'); b.type='button'; b.dataset.nav=d; b.className='mgnav'; b.setAttribute('aria-label',d==='1'?'다음 누나':'이전 누나'); b.textContent=d==='1'?'›':'‹'; b.style.cssText=`position:absolute;top:50%;${d==='1'?'right':'left'}:8px;transform:translateY(-50%);z-index:3;width:44px;height:64px;border:0;border-radius:12px;background:#0006;color:#fff;font-size:var(--fs-icon);cursor:pointer`; o.appendChild(b); });
+    const cnt=document.createElement('div'); cnt.style.cssText='position:absolute;right:12px;top:14px;z-index:2;color:#fff;font-size:var(--fs-2);text-shadow:0 1px 3px #000'; cnt.textContent=`${idx+1} / ${L.length}`; ph.appendChild(cnt); }
   let sx=null, sy=0; ph.addEventListener('pointerdown',e=>{ if(e.pointerType==='mouse') return; sx=e.clientX; sy=e.clientY; });
   ph.addEventListener('pointerup',e=>{ if(sx==null) return; const dx=e.clientX-sx, dy=e.clientY-sy; sx=null; if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){ o._sw=1; mgProfGo(o,k,dx<0?1:-1); } });
   o._key=ev=>{ if(ev.key==='ArrowRight') mgProfGo(o,k,1); else if(ev.key==='ArrowLeft') mgProfGo(o,k,-1); else if(ev.key==='Escape') mgProfClose(o); }; document.addEventListener('keydown',o._key);
@@ -169,8 +169,8 @@ function mgProfGrid(){ const L=(MG&&MG.profiles)||[]; if(!L.length) return '<div
   const by={}; L.forEach(p=>(by[p.dept]=by[p.dept]||[]).push(p));
   return Object.entries(by).map(([d,ps])=>`<div class="mgday">${esc(d)}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,44vw),1fr));gap:8px">${ps.map(p=>`<button type="button" data-mgp="${esc(p.key)}" style="text-align:left;background:#0d0d0d;border:1px solid var(--line);color:var(--txt);font:inherit;padding:8px;cursor:pointer;min-width:0;white-space:normal">
     <img src="${MG_IMG}${encodeURIComponent(p.key)}.png" alt="" loading="lazy" style="width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 20%" onerror="this.style.display='none'">
-    <div style="margin-top:4px"><b>${esc(p.name)}</b> <span class="mu" style="font-size:11px">${p.age}</span></div>
-    <div class="mu" style="font-size:11.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.msg||p.line)}</div></button>`).join('')}</div>`).join(''); }
+    <div style="margin-top:4px"><b>${esc(p.name)}</b> <span class="mu" style="font-size:var(--fs-1)">${p.age}</span></div>
+    <div class="mu" style="font-size:var(--fs-1);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.msg||p.line)}</div></button>`).join('')}</div>`).join(''); }
 function mgT(s){ return String(s||'').replace('T',' ').slice(0,16); }
 /* 필터 — 순수 함수. st: live(진행 중+마감 지남)·voc(VOC 회신 있는 것)·done·all */
 function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||(st==='live'&&x.status!=='done')||(st==='voc'&&(x.replies||[]).some(p=>p.voc))||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk)); }
@@ -199,7 +199,7 @@ function mgPrivView(seg,sel){
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; mgPbEnd(box); },0);
   if(MGP&&MGP._need_token){ setTimeout(()=>{ const sv=document.getElementById('mgtksv'); if(sv) sv.onclick=()=>{ const v=(document.getElementById('mgtk').value||'').trim(); if(!v) return; try{ localStorage.setItem('pbPrivTok',v); }catch(e){} MGP=null; mgRe(); }; },0);
     feed=`<div class="mgempty" style="white-space:normal;line-height:1.7">🔒 이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
-      <span class="mu" style="font-size:12px">토큰은 이 브라우저에만 저장돼(저장소·채팅·서버로 안 감). 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained token ↗</a> → Repository access: <b>Only select → pb-private</b> → Permissions: <b>Contents = Read-only</b> → 만료 90일</span><br>
+      <span class="mu" style="font-size:var(--fs-2)">토큰은 이 브라우저에만 저장돼(저장소·채팅·서버로 안 감). 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained token ↗</a> → Repository access: <b>Only select → pb-private</b> → Permissions: <b>Contents = Read-only</b> → 만료 90일</span><br>
       <input id="mgtk" type="password" autocomplete="off" placeholder="github_pat_…" style="min-height:40px;width:min(100%,360px);background:#111;color:var(--txt);border:1px solid var(--line);padding:0 8px;font:inherit">
       <button id="mgtksv" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">저장하고 열기</button></div>`; }
   const forget=(()=>{ try{ return !!localStorage.getItem('pbPrivTok'); }catch(e){ return false; } })()?` · <a href="#" onclick="try{localStorage.removeItem('pbPrivTok')}catch(e){};MGP=null;mgRe();return false">이 기기 토큰 지우기</a>`:'';

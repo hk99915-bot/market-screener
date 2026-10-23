@@ -21,7 +21,7 @@ function openBasis(){
       ${[hi,0,lo].map(v=>`<text x="4" y="${Y(v)+4}" fill="#777" font-size="12" font-family="monospace">${v.toFixed(1)}</text>`).join('')}
       <path d="${path('theo')}" fill="none" stroke="#777" stroke-width="1.2" stroke-dasharray="3 3"/><path d="${path('basis')}" fill="none" stroke="#fc3" stroke-width="2"/>
       ${[0,Math.floor(n/2),n-1].map(i=>`<text x="${X(i)-30}" y="${H-6}" fill="#777" font-size="12" font-family="monospace">${esc(b[i].date)}</text>`).join('')}</svg></div></div>
-     <div class="p c12"><h2>읽는 법<small>비유 → 용어 → 공식</small></h2><div class="b" style="line-height:1.8;white-space:normal;font-size:13px">
+     <div class="p c12"><h2>읽는 법<small>비유 → 용어 → 공식</small></h2><div class="b" style="line-height:1.8;white-space:normal;font-size:var(--fs-2)">
       <b>비유</b> — 다음 달 받을 물건을 오늘 미리 사면 보통 웃돈(보관비·이자)을 얹어 준다. 웃돈이 붙으면 <b>콘탱고</b>, 오히려 할인되면 <b>백워데이션</b>.<br>
       <b>용어</b> — 베이시스 = 코스피200 선물 − 현물(포인트). 이론값 = 현물 × (금리 − 배당수익률) × 남은 기간. 실제가 이론보다 많이 낮으면 선물을 급히 파는 쪽(헤지·공포)이 많다는 뜻.<br>
       <b>공식</b> — 이론 베이시스 ≈ S × (r − d) × t/365. 예: S 878, r 3.0%, d 1.5%, t 30일 → 878 × 0.015 × 30/365 ≈ 1.08p.<br>
@@ -53,16 +53,16 @@ function dvTop(d){
   const col={red:'#e5484d',amber:'var(--amber)',green:'#30a46c',gray:'var(--muted)'}, wd={red:'주의',amber:'관찰',green:'안정',gray:'없음'};
   const cs=I.cards.map(c=>{ const off=c.status&&c.status!=='정상';
     return `<div class="dvtc" style="border:1px solid var(--line);border-left:4px solid ${col[c.light]||col.gray};padding:8px 10px;min-height:44px;line-height:1.45">
-      <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:12px"><span><span style="color:${col[c.light]||col.gray}">●</span> <b>${esc(c.title)}</b></span><span style="white-space:nowrap">${dvB(c.grade)}</span></div>
-      <div style="font-size:17px;margin:2px 0"><b>${esc(c.value)}</b> <span class="mu" style="font-size:11px">${wd[c.light]||''}</span></div>
-      <div style="font-size:13px;white-space:normal">${esc(c.easy)}</div>
-      ${c.where?`<div class="mu" style="font-size:11px;white-space:normal;margin-top:2px">${esc(c.where)}</div>`:''}
-      ${off?`<div style="font-size:11px;color:var(--dn);margin-top:2px">⚠ ${esc(c.status)}</div>`:''}</div>`; }).join('');
+      <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:var(--fs-2)"><span><span style="color:${col[c.light]||col.gray}">●</span> <b>${esc(c.title)}</b></span><span style="white-space:nowrap">${dvB(c.grade)}</span></div>
+      <div style="font-size:var(--fs-4);margin:2px 0"><b>${esc(c.value)}</b> <span class="mu" style="font-size:var(--fs-1)">${wd[c.light]||''}</span></div>
+      <div style="font-size:var(--fs-2);white-space:normal">${esc(c.easy)}</div>
+      ${c.where?`<div class="mu" style="font-size:var(--fs-1);white-space:normal;margin-top:2px">${esc(c.where)}</div>`:''}
+      ${off?`<div style="font-size:var(--fs-1);color:var(--dn);margin-top:2px">⚠ ${esc(c.status)}</div>`:''}</div>`; }).join('');
   return `<div class="p c12" id="dvTop"><h2>파생 한눈에<small>거래일 ${esc(I.asof||d.date||'—')}${d.asof?` · 생성 ${esc(d.asof)} KST`:''}${I.stale?' · <b class="dn">⚠ 지연</b>':''}</small></h2><div class="b" style="white-space:normal">
-    <div style="font-size:15px;line-height:1.6;margin-bottom:8px"><b>${esc(I.one_line)}</b></div>
+    <div style="font-size:var(--fs-3);line-height:1.6;margin-bottom:8px"><b>${esc(I.one_line)}</b></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">${cs}</div>
-    <div style="margin-top:8px;padding:8px 10px;border:1px dashed var(--line);font-size:14px;line-height:1.6"><b>시사점(리스크 관점)</b> ${esc(I.so_what)} <span class="mu" style="font-size:11px">(매매 권고 아님)</span></div>
-    <div class="mu" style="font-size:11px;margin-top:6px">${esc(I.rule||'')}</div>
+    <div style="margin-top:8px;padding:8px 10px;border:1px dashed var(--line);font-size:var(--fs-3);line-height:1.6"><b>시사점(리스크 관점)</b> ${esc(I.so_what)} <span class="mu" style="font-size:var(--fs-1)">(매매 권고 아님)</span></div>
+    <div class="mu" style="font-size:var(--fs-1);margin-top:6px">${esc(I.rule||'')}</div>
     <button class="sbtn" style="min-height:44px;margin-top:6px" onclick="const e=document.getElementById('dvSum'); if(e) e.scrollIntoView({behavior:'smooth',block:'start'})">상세 숫자·차트 ↓</button></div></div>`;
 }
 function derivView(){
@@ -74,31 +74,31 @@ function derivView(){
   const f=(v,dg=2)=>v==null||isNaN(v)?'—':Number(v).toLocaleString('ko-KR',{minimumFractionDigits:dg,maximumFractionDigits:dg});
   const sg=(v,dg=2)=>v==null?'—':(v>0?'+':'')+f(v,dg);
   const fu=d.fut||{}, ff=last('fut_frgn'), nt=last('night_vwap'), bt=last('basis_theo');
-  const card=(t,v,sub,g)=>`<div style="flex:1;min-width:150px;border:1px solid var(--line);padding:6px 10px;line-height:1.5"><div class="mu" style="font-size:11px">${t} ${dvB(g)}</div><div style="font-size:18px"><b>${v}</b></div><div class="mu" style="font-size:11px;white-space:normal">${sub||''}</div></div>`;
+  const card=(t,v,sub,g)=>`<div style="flex:1;min-width:150px;border:1px solid var(--line);padding:6px 10px;line-height:1.5"><div class="mu" style="font-size:var(--fs-1)">${t} ${dvB(g)}</div><div style="font-size:var(--fs-4)"><b>${v}</b></div><div class="mu" style="font-size:var(--fs-1);white-space:normal">${sub||''}</div></div>`;
   const lb=lv&&lv.basis!=null?lv.basis:fu.basis;
   const cards=[
     card('코스피200 현물',f(lv&&lv.spot!=null?lv.spot:(fu.spot??d.spot)),lv?`실시간(${esc(lv.src||'')}) · ${esc(lv.status||'')}`:`KRX ${esc(d.date||'')} 종가`,'참고'),
     card('코스피200 선물',f(lv?lv.last:fu.close),lv?`${pct(lv.chg,2)} · ${esc(fu.name||'')}`:esc(fu.name||''),'참고'),
     `<div data-basis="1" style="flex:1;min-width:150px;cursor:pointer" title="누르면 설명·1년 이력">`+card('베이시스 (선물−현물) ↗',sg(lb),`${lv?'장중 값':'확정 '+esc(d.date||'')}${lb==null?'':bt&&bt.basis_theo!=null?` · 이론값 ${f(bt.basis_theo)}(${esc(String(bt.date||'').slice(5))} 확정) 대비 <b>${sg(lb-bt.basis_theo)}</b> — ${lb-bt.basis_theo<=-1?'선물 저평가':lb-bt.basis_theo>=1?'선물 고평가':'이론값 근처'}`:` · ${lb>=0?'선물이 비쌈':'선물이 쌈(백워데이션)'} · 이론값 없음`}`,dvGrade('fut_basis'))+`</div>`,
     card('최근월 옵션 만기',d.expiry?esc(d.expiry.slice(5))+` <span class="am">D-${d.dte??'?'}</span>`:'—',`${esc(d.front||'')} 물 · 만기일엔 흔들림이 커질 수 있음`,'참고'),
-    card('외국인 선물 순매수',ff?sg(ff.fut_frgn,0)+'<span class="mu" style="font-size:11px"> 계약</span>':'—',ff?`${esc(ff.date)} · 기관 ${sg(ff.fut_inst,0)} · 개인 ${sg(ff.fut_indiv,0)}`:'적재 전',dvGrade('fut_foreign_flow')),
+    card('외국인 선물 순매수',ff?sg(ff.fut_frgn,0)+'<span class="mu" style="font-size:var(--fs-1)"> 계약</span>':'—',ff?`${esc(ff.date)} · 기관 ${sg(ff.fut_inst,0)} · 개인 ${sg(ff.fut_indiv,0)}`:'적재 전',dvGrade('fut_foreign_flow')),
     card('야간선물 (KRX 평균가)',nt?f(nt.night_vwap):'—',nt?`${esc(nt.date)} 세션 · 거래 ${num(nt.night_vol)}계약 · 다음날 시가 갭 예상용`:'데이터 없음',dvGrade('night_futures'))
   ].join('');
   const sum=`<div class="p c12" id="dvSum"><h2>파생 · 오늘 요약<small>코스피200 선물·옵션 · 거래일 ${esc(d.date||'—')}${d.asof?` · 생성 ${esc(d.asof)} KST`:''}</small></h2><div class="b" style="white-space:normal">
-    <div class="mu" style="font-size:12px;margin-bottom:6px">선물·옵션은 '시장이 어디에 돈을 걸었나'를 보여주는 위치 정보야. 아래 숫자는 모두 <b>방향 신호로 검증되지 않았어</b> — 흔들림·위치 참고만.</div>
+    <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">선물·옵션은 '시장이 어디에 돈을 걸었나'를 보여주는 위치 정보야. 아래 숫자는 모두 <b>방향 신호로 검증되지 않았어</b> — 흔들림·위치 참고만.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${cards}</div>
-    <div style="margin-top:8px"><button class="sbtn" id="dvA8">📘 A8 선물·옵션 읽는 법 (스터디)</button> <span class="mu" style="font-size:11px">처음이면 이것부터 — 베이시스·PCR·벽·감마·야간선물·만기일</span></div></div></div>`;
+    <div style="margin-top:8px"><button class="sbtn" id="dvA8">📘 A8 선물·옵션 읽는 법 (스터디)</button> <span class="mu" style="font-size:var(--fs-1)">처음이면 이것부터 — 베이시스·PCR·벽·감마·야간선물·만기일</span></div></div></div>`;
   // 2) 옵션 포지션 — 운용회의 패널 재사용(derivPanel), 제목에 등급 배지 + 한 줄 해설만 덧붙임
   let op='';
   if(d&&d.oi_profile){ op=derivPanel(d)
     .replace('<h2>',`<h2>${dvB(dvGrade('options_pcr'))} `)
-    .replace('<div class="b" style="white-space:normal">',`<div class="b" style="white-space:normal"><div class="mu" style="font-size:12px;margin-bottom:6px">풋/콜 비율(PCR)·벽·최대고통·감마·IV는 옵션 시장의 '쏠림'이야. PCR ${dvB(dvGrade('options_pcr'))} · 감마 ${dvB(dvGrade('options_gamma'))} · 벽·최대고통·IV ${dvB('참고')} — 방향 예측용이 아님.</div>`); }
+    .replace('<div class="b" style="white-space:normal">',`<div class="b" style="white-space:normal"><div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">풋/콜 비율(PCR)·벽·최대고통·감마·IV는 옵션 시장의 '쏠림'이야. PCR ${dvB(dvGrade('options_pcr'))} · 감마 ${dvB(dvGrade('options_gamma'))} · 벽·최대고통·IV ${dvB('참고')} — 방향 예측용이 아님.</div>`); }
   else op='<div class="p c12"><div class="b mu">옵션 포지션(reports/derivs.json) 불러오기 전</div></div>';
   // 3) 일별 이력 차트
   const ser=(k)=>R.filter(r=>r[k]!=null).length;
-  const hc=(id,t,g,desc)=>`<div class="p c6"><h2>${t} ${dvB(g)}<small id="${id}l"></small></h2><div class="b" style="white-space:normal"><div class="mu" style="font-size:11px;margin-bottom:4px">${desc}</div><div id="${id}" style="height:200px"></div></div></div>`;
+  const hc=(id,t,g,desc)=>`<div class="p c6"><h2>${t} ${dvB(g)}<small id="${id}l"></small></h2><div class="b" style="white-space:normal"><div class="mu" style="font-size:var(--fs-1);margin-bottom:4px">${desc}</div><div id="${id}" style="height:200px"></div></div></div>`;
   const nff=ser('fut_frgn');
-  const hist=R.length?`<div class="p c12"><h2>일별 이력<small>data/deriv/daily.csv · ${esc(R[0].date)}~${esc(R[R.length-1].date)} · 옵션·선물 열은 2025-08-29~</small></h2><div class="b mu" style="font-size:12px;white-space:normal">하루 한 번 쌓이는 기록. 선이 한쪽으로 쏠린 정도를 보는 용도 — 꺾였다고 사고팔 근거가 되진 않아(아래 검증 현황 참고).</div></div>
+  const hist=R.length?`<div class="p c12"><h2>일별 이력<small>data/deriv/daily.csv · ${esc(R[0].date)}~${esc(R[R.length-1].date)} · 옵션·선물 열은 2025-08-29~</small></h2><div class="b mu" style="font-size:var(--fs-2);white-space:normal">하루 한 번 쌓이는 기록. 선이 한쪽으로 쏠린 정도를 보는 용도 — 꺾였다고 사고팔 근거가 되진 않아(아래 검증 현황 참고).</div></div>
     ${hc('dvc1','베이시스',dvGrade('fut_basis'),'선물−현물(포인트). 0 아래 = 선물이 쌈 → 헤지·공포가 많을 때 자주 나옴. 점선 = 금리·배당으로 계산한 이론값.')}
     ${hc('dvc2','풋/콜 비율 (PCR)',dvGrade('options_pcr'),'1보다 크면 풋(하락 대비 보험)이 콜보다 많음. OI = 쌓인 계약, 거래량 = 그날 거래.')}
     ${hc('dvc3','감마 노출 · 억원/1%',dvGrade('options_gamma'),'음수 = 시장이 흔들릴 때 헤지 매매가 흔들림을 키우는 쪽(근사·가정 있음). 방향이 아니라 흔들림 크기 참고.'+((DVX.g&&DVX.g.ui_line)?`<br><span title="${esc(DVX.g.summary_ko||'')}">${esc(DVX.g.ui_line)} · reports/studies/gamma_regime.json</span>`:''))}
@@ -106,10 +106,10 @@ function derivView(){
   // 4) 검증 현황 표
   const sigs=S.signals||[];
   const vt=sigs.length?`<div class="p c12"><h2>검증 현황<small>reports/studies/derivs_signals.json · 등록 ${esc(S.registered||'')} · 계산 ${esc(S.computed||'')}</small></h2><div class="b" style="white-space:normal">
-    <div style="border:1px solid var(--dn);padding:6px 10px;margin-bottom:8px;font-size:12px">⚠ <b>방향 신호로 쓰지 말 것.</b> 아래 가설은 대부분 '검증 전'(표본 부족) 또는 'F'(효과 없음)야. A 등급인 야간선물도 '다음날 시초가 예상' 산수 확인일 뿐 매매 신호가 아니야.</div>
+    <div style="border:1px solid var(--dn);padding:6px 10px;margin-bottom:8px;font-size:var(--fs-2)">⚠ <b>방향 신호로 쓰지 말 것.</b> 아래 가설은 대부분 '검증 전'(표본 부족) 또는 'F'(효과 없음)야. A 등급인 야간선물도 '다음날 시초가 예상' 산수 확인일 뿐 매매 신호가 아니야.</div>
     <div style="overflow-x:auto"><table><tr><th class="l">ID</th><th class="l">가설</th><th>등급</th><th>표본</th><th>p(IS)</th><th>p(OOS)</th><th class="l">메모</th></tr>
-    ${sigs.map(x=>`<tr><td class="l mu">${esc(x.id)}</td><td class="l" style="white-space:normal;min-width:160px">${esc(x.name)}</td><td>${dvB(x.grade)}</td><td>${x.n??'—'}</td><td class="mu">${x.p_is!=null?x.p_is.toFixed(3):'—'}</td><td class="mu">${x.p_oos!=null?x.p_oos.toFixed(3):'—'}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:200px">${esc(x.note||'')}</td></tr>`).join('')}</table></div>
-    <div class="mu" style="font-size:11px;margin-top:6px">${esc(S.grades_doc||'')} · 다중검정 m=${S.m??'?'}, α=${S.alpha_bonf??'?'}. 자세한 내용은 QUANT › 검증 스터디.</div></div></div>`:'';
+    ${sigs.map(x=>`<tr><td class="l mu">${esc(x.id)}</td><td class="l" style="white-space:normal;min-width:160px">${esc(x.name)}</td><td>${dvB(x.grade)}</td><td>${x.n??'—'}</td><td class="mu">${x.p_is!=null?x.p_is.toFixed(3):'—'}</td><td class="mu">${x.p_oos!=null?x.p_oos.toFixed(3):'—'}</td><td class="l mu" style="white-space:normal;font-size:var(--fs-1);min-width:200px">${esc(x.note||'')}</td></tr>`).join('')}</table></div>
+    <div class="mu" style="font-size:var(--fs-1);margin-top:6px">${esc(S.grades_doc||'')} · 다중검정 m=${S.m??'?'}, α=${S.alpha_bonf??'?'}. 자세한 내용은 QUANT › 검증 스터디.</div></div></div>`:'';
   setTimeout(drawDerivHist,0);
   setTimeout(()=>{ const b=$('#dvA8'); if(b) b.onclick=dvGoA8; },0);
   return `<div class="grid">${dvTop(d)}${sum}${op}${hist}${vt}</div>`;

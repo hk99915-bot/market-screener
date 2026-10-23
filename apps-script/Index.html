@@ -10,9 +10,13 @@
     --bg:#000; --panel:#0b0b0b; --line:#2a2a2a; --amber:#ff9a1f; --amber-dim:#9a5f14;
     --txt:#e8e8e8; --muted:#8a8a8a; --up:#2fd05a; --dn:#ff4b4b; --blue:#4aa3ff; --cyan:#35d6e6;
     --mono:"IBM Plex Mono","Consolas","Menlo","Noto Sans Mono CJK KR",monospace;
+    /* 글자 크기 4단계 (UXUI Top10 #10, 10/24 결재 appr-uxui-top10-next) — 화면 글자는 이 4개만. 픽셀 직접 쓰기 금지(tests/test_font_tokens.py · 고치기 python3 scripts/font_tokens.py --fix)
+       1 보조(시각·단위·주석·태그) 11px · 2 본문·표 12.5px · 3 강조·소제목 14px · 4 제목·큰 숫자 17px · 아이콘(글자 아님: 💬 ✕ › 등) 24px */
+    --fs-1:11px; --fs-2:12.5px; --fs-3:14px; --fs-4:17px; --fs-icon:24px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--txt);font:12.5px/1.45 var(--mono);-webkit-font-smoothing:antialiased}
+  small{font-size:var(--fs-1)}   /* 브라우저 기본 smaller(본문의 83% = 10.4px) → 4단계 1 */
+  html,body{margin:0;background:var(--bg);color:var(--txt);font:var(--fs-2)/1.45 var(--mono);-webkit-font-smoothing:antialiased}
   a{color:var(--cyan);text-decoration:none}
   .top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 12px;background:#111;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
   .brand{color:var(--amber);font-weight:700;letter-spacing:.12em}
@@ -22,10 +26,10 @@
   #sqb{display:none}
   .tabs button{background:#1a1a1a;color:var(--muted);border:1px solid var(--line);padding:4px 10px;font:inherit;cursor:pointer;letter-spacing:.06em}
   .tabs button.on{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}
-  .fresh{margin-left:8px;font-size:11px;cursor:pointer;white-space:nowrap}
+  .fresh{margin-left:8px;font-size:var(--fs-1);cursor:pointer;white-space:nowrap}
   .fresh.ok{color:var(--muted)} .fresh.bad{color:#fff;background:#c62828;padding:1px 7px;border-radius:3px;font-weight:700}
   html.xl .fresh.bad{background:#c00000}
-  .asof{margin-left:8px;font-size:11px;color:var(--muted);font-weight:400} .asof.stale{color:#fff;background:#c62828;padding:1px 6px;border-radius:3px;font-weight:700}
+  .asof{margin-left:8px;font-size:var(--fs-1);color:var(--muted);font-weight:400} .asof.stale{color:#fff;background:#c62828;padding:1px 6px;border-radius:3px;font-weight:700}
   .tape{white-space:nowrap;overflow:hidden;background:#070707;border-bottom:1px solid var(--line);padding:4px 0}
   .tape .tk{display:inline-block;white-space:nowrap;animation:tk 60s linear infinite;will-change:transform}
   .tape:hover .tk{animation-play-state:paused}
@@ -40,7 +44,7 @@
   .tape .ti.lv b{color:#000;background:var(--amber);padding:0 6px;border-radius:2px}
   .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;padding:8px}
   .p{background:var(--panel);border:1px solid var(--line);min-width:0}
-  .p h2{margin:0;padding:5px 8px;background:#161616;color:var(--amber);font-size:11.5px;letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  .p h2{margin:0;padding:5px 8px;background:#161616;color:var(--amber);font-size:var(--fs-1);letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
   .p h2 small{color:var(--muted);font-weight:400;letter-spacing:0}
   .p .b{padding:6px 8px;overflow:auto}
   .c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
@@ -56,7 +60,7 @@
   .kv div:nth-child(odd){color:var(--muted)}
   .bar{height:6px;background:#1c1c1c;position:relative;margin:2px 0 6px}
   .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber)}
-  .tag{display:inline-block;padding:0 5px;border:1px solid var(--amber-dim);color:var(--amber);font-size:10.5px;margin-right:4px}
+  .tag{display:inline-block;padding:0 5px;border:1px solid var(--amber-dim);color:var(--amber);font-size:var(--fs-1);margin-right:4px}
   .tag.g{border-color:#1f6b33;color:var(--up)}.tag.r{border-color:#7a2020;color:var(--dn)}.tag.b{border-color:#2a4f7a;color:var(--blue)}
   pre{margin:0;white-space:pre-wrap;color:#d0d0d0;font:inherit}
   .err{background:#2a0e0e;color:#ffb3b3;border:1px solid #5a1a1a;padding:6px 8px;margin:8px}
@@ -65,86 +69,86 @@
   .load{padding:40px;text-align:center;color:var(--muted);letter-spacing:.2em}
   .md{padding:10px 14px;max-width:1200px;overflow-x:auto}   /* KR·US 전종목 표가 390px 밖 855px 까지 잘려 못 봤음 → 가로 스크롤 (UXUI 재진단 Top10 #10) */
   .md table{white-space:normal}
-  .md h1,.md h2{color:var(--amber);letter-spacing:.08em;font-size:13px;margin:14px 0 6px}
+  .md h1,.md h2{color:var(--amber);letter-spacing:.08em;font-size:var(--fs-2);margin:14px 0 6px}
   td.sym{cursor:pointer;text-decoration:underline dotted}
   .px{cursor:pointer;text-decoration:underline dotted;color:var(--amber)}
   .drawer{position:fixed;top:0;right:0;bottom:0;width:min(980px,100vw);background:#070707;border-left:1px solid var(--amber-dim);z-index:20;overflow:auto;box-shadow:-10px 0 30px #000;display:none}
   .drawer.on{display:block}
   .drawer .hd{position:sticky;top:0;z-index:3;background:#111;border-bottom:1px solid var(--line);padding:8px 12px;display:flex;gap:14px;align-items:baseline}
-  .drawer .hd b{color:var(--amber);font-size:15px;letter-spacing:.06em}
+  .drawer .hd b{color:var(--amber);font-size:var(--fs-3);letter-spacing:.06em}
   .drawer .hd .x{margin-left:auto;cursor:pointer;color:var(--muted);border:1px solid var(--line);padding:2px 8px}
   .drawer .grid{padding:8px}
   #cv,#mcv,#mbt,#pfc{display:block;width:100%;height:260px;background:#050505}
   .sc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .sc div.k{border:1px solid var(--line);padding:6px 8px}
-  .sc .t{letter-spacing:.1em;font-size:11px;margin-bottom:4px}
+  .sc .t{letter-spacing:.1em;font-size:var(--fs-1);margin-bottom:4px}
   .backdrop{position:fixed;inset:0;background:#0008;z-index:19;display:none}.backdrop.on{display:block}
-.ctab{margin-left:8px}.ctab button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:1px 8px;margin-left:4px;cursor:pointer}.ctab button.on{color:var(--amber);border-color:var(--amber)}
-.lvbar{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;margin-bottom:6px}.lvbar i{font-style:normal;color:var(--muted)}
+.ctab{margin-left:8px}.ctab button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-1);padding:1px 8px;margin-left:4px;cursor:pointer}.ctab button.on{color:var(--amber);border-color:var(--amber)}
+.lvbar{display:flex;flex-wrap:wrap;gap:14px;font-size:var(--fs-2);margin-bottom:6px}.lvbar i{font-style:normal;color:var(--muted)}
 .nvtab{margin:0 0 6px 0}.live .nv{width:100%;max-width:700px;background:#fff;display:block}
-.live iframe{width:100%;height:440px;border:0;display:block}.live .lk{margin-top:6px;font-size:12px}.live .lk a{color:var(--blue);margin-right:12px}
+.live iframe{width:100%;height:440px;border:0;display:block}.live .lk{margin-top:6px;font-size:var(--fs-2)}.live .lk a{color:var(--blue);margin-right:12px}
 .rq{width:100%;max-width:420px;background:#050505;border:1px solid var(--line);color:var(--txt);font:inherit;padding:5px 8px;margin-bottom:8px}
-tr.sub{display:none}tr.sub.on{display:table-row}tr.sub td{font-size:12px;line-height:1.7;padding-bottom:8px;text-align:left}td.tg{cursor:pointer;color:var(--amber);width:14px}
+tr.sub{display:none}tr.sub.on{display:table-row}tr.sub td{font-size:var(--fs-2);line-height:1.7;padding-bottom:8px;text-align:left}td.tg{cursor:pointer;color:var(--amber);width:14px}
 details.cmts>summary{list-style:none;cursor:pointer}details.cmts>summary::-webkit-details-marker{display:none}details.cmts>summary h2 span::before{content:"▸ "}details.cmts[open]>summary h2 span::before{content:"▾ "}details.cmts:not([open])>summary h2{border-bottom:0}
 details.sec{margin-bottom:10px}details.sec summary{cursor:pointer;padding:4px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
-.rp{padding:4px 0;border-bottom:1px dashed #1c1c1c}.rp .sm{color:#bdbdbd;font-size:12px;line-height:1.6;margin:2px 0 2px 12px}
+.rp{padding:4px 0;border-bottom:1px dashed #1c1c1c}.rp .sm{color:#bdbdbd;font-size:var(--fs-2);line-height:1.6;margin:2px 0 2px 12px}
 tr.sub td,.rp,.rp *,.sm,.sm *{white-space:normal!important;word-break:keep-all;overflow-wrap:anywhere}.rp{max-width:1100px}
-.an{margin-left:6px;color:#ddd}.an i{font-style:normal;color:var(--muted);font-size:11px;margin-left:6px}
-.tone{font-size:11px;border:1px solid currentColor;padding:0 5px;margin-left:4px;border-radius:2px}.tone i{font-style:normal;opacity:.8}
-.rp .sm .k{display:inline-block;min-width:34px;color:var(--amber);font-size:11px;margin-right:6px}.rp .sm ul{margin:2px 0 2px 40px;padding:0}.rp .sm li{margin:0}
+.an{margin-left:6px;color:#ddd}.an i{font-style:normal;color:var(--muted);font-size:var(--fs-1);margin-left:6px}
+.tone{font-size:var(--fs-1);border:1px solid currentColor;padding:0 5px;margin-left:4px;border-radius:2px}.tone i{font-style:normal;opacity:.8}
+.rp .sm .k{display:inline-block;min-width:34px;color:var(--amber);font-size:var(--fs-1);margin-right:6px}.rp .sm ul{margin:2px 0 2px 40px;padding:0}.rp .sm li{margin:0}
 td.mac{cursor:pointer;text-decoration:underline dotted}
 .simt td,.simt th{padding:3px 8px}
-.bv{font-size:14px;margin-bottom:2px}.bv b{font-size:16px;margin-right:4px}
-.bg{display:flex;align-items:center;gap:6px;margin:4px 0}.bg .bl{width:84px;color:var(--muted);font-size:12px}.bg b{width:64px;text-align:right;font-size:12px}
+.bv{font-size:var(--fs-3);margin-bottom:2px}.bv b{font-size:var(--fs-4);margin-right:4px}
+.bg{display:flex;align-items:center;gap:6px;margin:4px 0}.bg .bl{width:84px;color:var(--muted);font-size:var(--fs-2)}.bg b{width:64px;text-align:right;font-size:var(--fs-2)}
 .bg .bt{position:relative;flex:1;height:8px;background:#151515}.bg .bt i{position:absolute;left:0;top:0;bottom:0}.bg .bt u{position:absolute;top:-2px;bottom:-2px;width:1px;background:#555}
 .bg .bt i.up,.bg .bs i.up{background:var(--up)}.bg .bt i.dn,.bg .bs i.dn{background:var(--dn)}.bg .bt i.am{background:var(--amber)}
 .bg .bs{flex:1;height:8px;display:flex;background:#151515}.bg .bs i{display:block;height:100%}
 .bsv{width:100%;height:46px;display:block}.bsv .pl{fill:none;stroke:var(--amber);stroke-width:1.5}.bsv .g60{stroke:var(--up);stroke-dasharray:3 3;opacity:.6}.bsv .g40{stroke:var(--dn);stroke-dasharray:3 3;opacity:.6}.bsv .pd{fill:var(--amber)}
-.tg{font-size:13px;line-height:1.6}
-.rp .rt{margin:2px 0 2px 12px;font-size:12px}
-.srch{position:relative;margin-left:16px}.srch input{width:260px;background:#050505;border:1px solid var(--line);color:var(--txt);font:inherit;font-size:12px;padding:4px 8px}
+.tg{font-size:var(--fs-2);line-height:1.6}
+.rp .rt{margin:2px 0 2px 12px;font-size:var(--fs-2)}
+.srch{position:relative;margin-left:16px}.srch input{width:260px;background:#050505;border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-2);padding:4px 8px}
 .srch input:focus{outline:none;border-color:var(--amber)}#sres{position:absolute;top:100%;left:0;right:0;background:#0b0b0b;border:1px solid var(--line);z-index:50;display:none;max-height:360px;overflow:auto}
-#sres div{padding:4px 8px;cursor:pointer;font-size:12px}#sres div.on,#sres div:hover{background:#1a1a1a;color:var(--amber)}#sres i{font-style:normal;color:var(--muted);margin-left:6px}
+#sres div{padding:4px 8px;cursor:pointer;font-size:var(--fs-2)}#sres div.on,#sres div:hover{background:#1a1a1a;color:var(--amber)}#sres i{font-style:normal;color:var(--muted);margin-left:6px}
 @media (max-width:760px){.srch input{width:150px}}
 .mvt td.mac{white-space:normal;min-width:84px;max-width:120px;line-height:1.3}.mvt tr.mvr{cursor:pointer}
-@media (max-width:700px){.mvt .hm{display:none}.mvt td,.mvt th{padding:4px 4px;font-size:12px}}
-.ovl{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.ovl button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:2px 8px;cursor:pointer;border-radius:2px}
+@media (max-width:700px){.mvt .hm{display:none}.mvt td,.mvt th{padding:4px 4px;font-size:var(--fs-2)}}
+.ovl{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.ovl button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-1);padding:2px 8px;cursor:pointer;border-radius:2px}
 .ovl button.on{color:var(--c,var(--amber));border-color:var(--c,var(--amber))}
 .subtabs{display:none;gap:4px;padding:6px 8px 0;overflow-x:auto;scrollbar-width:none}.subtabs.on{display:flex}.subtabs::-webkit-scrollbar{display:none}
-.subtabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:12.5px;padding:4px 10px;cursor:pointer;letter-spacing:.04em}
+.subtabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:var(--fs-2);padding:4px 10px;cursor:pointer;letter-spacing:.04em}
 .subtabs button.on{color:var(--amber);border-bottom-color:var(--amber)}
 .subtabs.two{flex-wrap:wrap}.subt2{flex:0 0 100%;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:4px 0 2px}.subt2::-webkit-scrollbar{display:none}
-.subtabs .subt2 button{min-height:44px;border:1px solid var(--line);border-radius:3px;font-size:12px;padding:0 10px}.subtabs .subt2 button.on{border-color:var(--amber)}
+.subtabs .subt2 button{min-height:44px;border:1px solid var(--line);border-radius:3px;font-size:var(--fs-2);padding:0 10px}.subtabs .subt2 button.on{border-color:var(--amber)}
 /* ── 모바일 ── */
 html,body{overflow-x:hidden}
 .clock,#gen{white-space:nowrap}
 @media (max-width:700px){
-  html,body{font-size:13.5px;line-height:1.55}
+  html,body{font-size:var(--fs-3);line-height:1.55}
   .top{flex-wrap:wrap;gap:6px 6px;padding:6px 10px}
-  .brand{font-size:13px;letter-spacing:.06em}
-  .clock{font-size:11.5px}
+  .brand{font-size:var(--fs-2);letter-spacing:.06em}
+  .clock{font-size:var(--fs-1)}
   #gen{display:none}
   .clock{display:none}   /* 폰은 상태 표시줄에 시각이 있음 — 머리 첫 줄을 한 줄로 (Top10 #8) */
-  .srch{order:3;margin-left:0;flex:1 1 100%}.srch input{width:100%;font-size:15px;padding:7px 10px}
+  .srch{order:3;margin-left:0;flex:1 1 100%}.srch input{width:100%;font-size:var(--fs-3);padding:7px 10px}
   .tabs{order:4;flex:1 1 100%;margin-left:0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
   .tabs::-webkit-scrollbar{display:none}
-  .tabs button{flex:0 0 auto;padding:7px 11px;font-size:12.5px;min-height:44px}
+  .tabs button{flex:0 0 auto;padding:7px 11px;font-size:var(--fs-2);min-height:44px}
   /* UXUI 재진단 Top10 #8 (10/23): 폰 머리 148px 상시 고정 → 검색창은 🔍 로 접고, 아래로 스크롤하면 머리 숨김(위로 올리면 다시), 탭 44px + 오른쪽 '›' */
-  #sqb{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-width:44px;min-height:40px;background:none;border:1px solid var(--line);color:var(--txt);font-size:16px;cursor:pointer}
+  #sqb{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-width:44px;min-height:40px;background:none;border:1px solid var(--line);color:var(--txt);font-size:var(--fs-4);cursor:pointer}
   .srch{display:none}.top.sopen .srch{display:block}
   .top{transition:transform .2s ease}.top.hid{transform:translateY(-100%)}
-  .top::after{content:'›';position:absolute;right:0;bottom:2px;height:44px;width:28px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:20px;color:var(--amber);background:linear-gradient(90deg,transparent,#111 55%);pointer-events:none}
+  .top::after{content:'›';position:absolute;right:0;bottom:2px;height:44px;width:28px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:var(--fs-icon);color:var(--amber);background:linear-gradient(90deg,transparent,#111 55%);pointer-events:none}
   .top.tend::after{display:none}
   html.xl .top::after{display:none}
-  .tape .ti{padding:0 12px;font-size:13px}
+  .tape .ti{padding:0 12px;font-size:var(--fs-2)}
   .grid{gap:8px;padding:6px}
-  .p h2{font-size:12px;padding:7px 9px;flex-wrap:wrap;gap:2px 8px}
+  .p h2{font-size:var(--fs-2);padding:7px 9px;flex-wrap:wrap;gap:2px 8px}
   .p .b{padding:8px 9px}
-  th,td{padding:4px 7px;font-size:12.5px}
+  th,td{padding:4px 7px;font-size:var(--fs-2)}
   .drawer{width:100vw;border-left:0}
   .drawer .hd{flex-wrap:wrap;gap:4px 10px;padding:8px 10px}
-  .drawer .hd b{font-size:15px}
-  .drawer .hd #dr-s{font-size:12px;flex:1 1 100%;order:3}
+  .drawer .hd b{font-size:var(--fs-3)}
+  .drawer .hd #dr-s{font-size:var(--fs-2);flex:1 1 100%;order:3}
   .drawer .grid{padding:6px}
   .drawer .p{grid-column:span 12!important}
   #cv{height:220px}
@@ -159,16 +163,16 @@ html,body{overflow-x:hidden}
 /* 엑셀 스킨 (사무실 모드): 흰 바탕·회색 격자·맑은고딕, 음수만 빨강(엑셀 기본 서식처럼), 차트는 밝게 반전 */
 html.xl{--bg:#fff;--panel:#fff;--line:#d4d4d4;--amber:#000;--amber-dim:#444;--txt:#000;--muted:#595959;--up:#000;--dn:#c00000;--blue:#000;--cyan:#000;
   --mono:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
-html.xl body{font-size:13px;background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:72px 21px;padding-bottom:30px}
+html.xl body{font-size:var(--fs-2);background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:72px 21px;padding-bottom:30px}
 html.xl .top{background:#f3f3f3;color:#333;border-bottom:1px solid #d4d4d4;padding:4px 10px}
 html.xl .top .brand,html.xl .top #clock,html.xl .top #gen{color:#333;letter-spacing:0;font-weight:400}
 html.xl #stb{color:#666;border-color:#c6c6c6}
 html.xl .srch input{background:#fff;color:#000;border:1px solid #c6c6c6;border-radius:2px}
 html.xl #xlrib,html.xl #xlfx{display:flex}
 #xlrib,#xlfx{display:none}
-#xlrib{gap:18px;padding:5px 12px;background:#f3f3f3;border-bottom:1px solid #d4d4d4;font:13px "Malgun Gothic",sans-serif;color:#333;overflow-x:auto;white-space:nowrap}
+#xlrib{gap:18px;padding:5px 12px;background:#f3f3f3;border-bottom:1px solid #d4d4d4;font:var(--fs-2) "Malgun Gothic",sans-serif;color:#333;overflow-x:auto;white-space:nowrap}
 #xlrib b{color:#333;border-bottom:2px solid #8a8a8a;font-weight:400}
-#xlfx{gap:8px;align-items:center;padding:3px 8px;background:#fff;border-bottom:1px solid #d4d4d4;font:13px "Malgun Gothic",sans-serif}
+#xlfx{gap:8px;align-items:center;padding:3px 8px;background:#fff;border-bottom:1px solid #d4d4d4;font:var(--fs-2) "Malgun Gothic",sans-serif}
 #xlfx span:first-child{width:70px;border:1px solid #d4d4d4;padding:1px 6px;color:#333}
 #xlfx i{color:#888;font-style:italic}
 html.xl .tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#f3f3f3;border-top:1px solid #c6c6c6;justify-content:flex-start;gap:0;padding:0 6px;flex-wrap:nowrap;overflow-x:auto}
@@ -204,10 +208,11 @@ html.xl .drawer .hd b{color:#000;letter-spacing:0}
 html.xl .am{color:#000}
 html.xl a{color:#0563c1}
 html.stealth .brand{letter-spacing:0}
-#stb{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:2px 6px;cursor:pointer;margin-left:4px}
-.sbtn{background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:12px;padding:4px 8px;cursor:pointer}
+#stb{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-1);padding:2px 6px;cursor:pointer;margin-left:4px}
+.sbtn{background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:4px 8px;cursor:pointer}
 /* 숨은 표 열 표시 (UXUI 재진단 Top10 #10, 10/23): 가로로 밀어야 보이는 표에 '→ 더 있음' 줄 + 오른쪽 그림자. 끝까지 밀면 사라짐 */
-.hmore{font-size:11.5px;color:var(--amber);padding:2px 8px 0;text-align:right}.hmore.end{visibility:hidden}
+.hmore{font-size:var(--fs-1);color:var(--amber);padding:2px 8px 0;text-align:right}.hmore.end{visibility:hidden}
+.hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line),4px 0 6px -4px #000}   /* 표 첫 열 고정 (UXUI Top10 #10, 10/24): 가로로 밀어도 종목명 열이 남음 */
 .hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(255,154,31,.45),transparent) right/12px 100% no-repeat scroll}
 html.xl .hmore{color:#595959}
 /* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5): 공시 474·인적성 376 링크·버튼이 44px 미만 → 터치 화면에서만 목록 링크·작은 버튼·접기 줄을 44px 로 */
@@ -264,7 +269,7 @@ function simTable(m){
   const row=(name,desc,k,mode)=>{const r=m[k][mode], f=mode==='long'&&fr[k]; return `<tr${f?' class="simfresh" style="background:rgba(47,208,90,.12);outline:1px solid var(--up)"':''}><td class="l">${name}${f?` <span class="tag" style="border-color:var(--up);color:var(--up)" title="참고(C) — 1년 거래 ${f.trades}회 표본, 수백 종목 동시 검색이라 일부는 우연">🟢 오늘 켜짐 · 승률 하한 ${Math.round(f.wilson_lo*100)}%</span>`:''}</td><td class="l mu">${desc}</td><td>${P(r.ret)}</td><td>${P(r.ret-m.bh)}</td><td>${P(r.mdd)}</td><td>${r.trades}</td><td>${r.win==null?'—':(r.win*100).toFixed(0)+'%'}</td><td class="l">${pos(r.pos)}${r.pos?` <span class="mu">${r.entry_date} 진입 ${num(r.entry_px)}</span> ${P(r.open_ret)}`:''}</td></tr>`;};
   return `<table class="simt"><tr><th class="l">전략</th><th class="l">방식</th><th>누적수익</th><th>보유대비</th><th>MDD</th><th>거래</th><th>승률</th><th class="l">현재 포지션 · 진입 후 손익</th></tr>
     ${row('이평 추세 롱','종가>50일선 & 20>50 이면 보유','ma','long')}${row('이평 추세 롱숏','위 조건이면 롱, 반대면 숏','ma','ls')}${row('PSAR 롱','종가>PSAR 이면 보유','psar','long')}${row('PSAR 롱숏','종가>PSAR 롱, 아니면 숏','psar','ls')}
-    <tr><td class="l">단순 보유</td><td class="l mu">기간 시작에 사서 보유</td><td>${P(m.bh)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td></td></tr></table>${(m.fresh||[]).length?`<div class="mu" style="font-size:11px;margin-top:4px">🟢 = 마지막·직전 거래일에 켜진 롱 전략 중 거래 6회 이상·승률 Wilson 95% 하한 50% 초과. 참고(C): 종목당 1년 표본이고 전 종목을 동시에 검색하므로 일부는 우연 — 신호·근거일 뿐 매매 지시 아님.</div>`:''}`;
+    <tr><td class="l">단순 보유</td><td class="l mu">기간 시작에 사서 보유</td><td>${P(m.bh)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td></td></tr></table>${(m.fresh||[]).length?`<div class="mu" style="font-size:var(--fs-1);margin-top:4px">🟢 = 마지막·직전 거래일에 켜진 롱 전략 중 거래 6회 이상·승률 Wilson 95% 하한 50% 초과. 참고(C): 종목당 1년 표본이고 전 종목을 동시에 검색하므로 일부는 우연 — 신호·근거일 뿐 매매 지시 아님.</div>`:''}`;
 }
 function finTable(f,kr){
   const q=(f&&f.quarters)||[]; if(!q.length) return `<div class="mu">재무 데이터 없음 (${kr?'DART':'SEC'} 수집 대기 중이거나 대상 밖)</div>`;
@@ -378,12 +383,12 @@ function freshBadge(){ const el=$('#fresh'); if(!el) return; if(!FR){ el.classNa
   el.className='fresh '+(n||H.length?'bad':'ok'); el.textContent=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · ${nt}`:''):n?`⚠ ${nt}`:`데이터 정상 · 점검 ${hm||'—'}`; }
 function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[], S=FR.stale_today||[];
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent='데이터 신선도';$('#dr-s').textContent=' 점검 '+esc(FR.checked_at||'')+' KST · 계약 '+(FR.n||0)+'항목';
-  const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:11px">${esc(x.desc||'')}</div>${x.note?`<div class="am" style="font-size:11px;white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
+  const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:var(--fs-1)">${esc(x.desc||'')}</div>${x.note?`<div class="am" style="font-size:var(--fs-1);white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
   const rr=R.map(x=>`<tr><td class="l">${esc(x.path)}</td><td class="l">기존 ${esc(x.existing)}</td><td class="l dn">새 ${esc(x.new)} (차단)</td><td class="l mu">${esc(x.mode||'')}</td><td class="l mu">${esc(x.at||'')}</td></tr>`).join('');
   const H=FR.health||[];
   $('#dr-b').innerHTML=(H.length?`<h3>알림 비활성 ${H.length}</h3><table><tr><th class="l">항목</th><th class="l">부터</th><th class="l">발견</th><th class="l">복구</th></tr>${H.map(h=>`<tr><td class="l dn">${esc(h.what)}</td><td class="l">${esc(h.since||'')}</td><td class="l mu">${esc(h.by||'')}</td><td class="l">${esc(h.fix||'')}</td></tr>`).join('')}</table>`:'')+(L2.length?`<h3>늦은 산출물 ${L2.length}</h3><table><tr><th class="l">파일</th><th class="l">기대</th><th class="l">실제</th><th class="l">담당 모드</th><th class="l">복구 명령</th></tr>${rows}</table>`:'<div class="mu">계약 대비 늦은 산출물 없음</div>')
-    +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:11px">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
-    +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:11px">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}${x.note?`<div class="am" style="font-size:11px;white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
+    +(R.length?`<h3 style="margin-top:12px">오늘 역행 차단 ${R.length}</h3><div class="mu" style="font-size:var(--fs-1)">더 과거 날짜로 덮어쓰려던 실행을 막았음 — 화면 값은 기존(더 최신) 그대로</div><table><tr><th class="l">파일</th><th class="l">기존</th><th class="l">새 값</th><th class="l">모드</th><th class="l">시각</th></tr>${rr}</table>`:'')
+    +(S.length?`<h3 style="margin-top:12px">오늘 이전 값 대체 ${S.length}</h3><div class="mu" style="font-size:var(--fs-1)">목표 날짜를 못 받아 이전 값을 표시 중(stale)</div><table><tr><th class="l">파일</th><th class="l">항목</th><th class="l">목표</th><th class="l">사용</th><th class="l">모드</th></tr>${S.map(x=>`<tr><td class="l">${esc(x.path)}${x.note?`<div class="am" style="font-size:var(--fs-1);white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.what)}</td><td class="l">${esc(x.want??'')}</td><td class="l dn">${esc(x.got??'')}</td><td class="l mu">${esc(x.mode||'')}</td></tr>`).join('')}</table>`:''); }
 /* 기준일 배지 (10/21 B2 겸이 승인): '기준 <시각> · 다음 갱신 <시각>' + 계약(freshness.json late·stale_today, id 또는 path)에 걸리면 빨간 ⚠ STALE.
    times = KST 'HH:MM' 목록, days = 요일(0=일) — 다음 갱신은 그 표에서 지금 이후 첫 슬롯. */
 function nextSlot(times,days){ const k=new Date(Date.now()+9*3600e3); for(let d=0;d<8;d++){ const t=new Date(k.getTime()+d*864e5), wd=t.getUTCDay();
@@ -527,13 +532,13 @@ load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadL
     const g=GRPS.map(x=>[x,sum(D=>(D.g||{})[x]||0)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
     return {days:last7.length, all:ks.length, ses:sum(D=>D.s||0), g, mh:sum(D=>D.mh||0), duel:sum(D=>(D.e||{}).duel||0), chk:sum(D=>(D.e||{}).study_chk||0), quiz:sum(D=>(D.e||{}).quiz||0), eng:ENGE.map(x=>sum(D=>(D.e||{})[x]||0)), x:S.x}; }
   function box(){ const s=summary();
-    return `<details class="p c12" id="usagebox" style="margin-top:10px"><summary style="cursor:pointer;padding:6px 10px"><b>사용 기록</b> <span class="mu" style="font-size:11.5px">최근 7일 ${s.days}일 접속 · 세션 ${s.ses} · 이 브라우저에만 저장</span></summary>
-     <div class="b" style="font-size:12px;line-height:1.7;white-space:normal">
+    return `<details class="p c12" id="usagebox" style="margin-top:10px"><summary style="cursor:pointer;padding:6px 10px"><b>사용 기록</b> <span class="mu" style="font-size:var(--fs-1)">최근 7일 ${s.days}일 접속 · 세션 ${s.ses} · 이 브라우저에만 저장</span></summary>
+     <div class="b" style="font-size:var(--fs-2);line-height:1.7;white-space:normal">
       <div>탭별 열람(7일): ${s.g.map(([k,v])=>`<span style="margin-right:8px">${k.toUpperCase()} <b>${v}</b></span>`).join('')||'<span class="mu">아직 없음</span>'}</div>
       <div>장중 시세 확인 <b>${s.mh}</b> · 대결 제출 클릭 <b>${s.duel}</b> · 스터디 체크 <b>${s.chk}</b> · 퀴즈 <b>${s.quiz}</b> <span class="mu">(영어 단어 ${s.eng[1]}/${s.eng[0]} · 내용 ${s.eng[3]}/${s.eng[2]})</span></div>
       <div class="mu">기록 일수 ${s.all}일 · 마지막 내보내기 ${s.x||'없음'}</div>
       <div style="margin-top:6px"><button class="sbtn" id="usgexp">사용 기록 내보내기 (최근 7일 → 비공개 이슈)</button> <button class="sbtn" id="usgexp28">28일</button> <button class="sbtn" id="usgclr" style="margin-left:8px">기록 지우기</button></div>
-      <div class="mu" style="font-size:11px">버튼을 누르면 비공개 저장소 이슈 폼이 채워진 채 열린다 → '제출'하면 usage/daily.csv·weekly.csv 에 반영. 주 1회(일요일 주간 리뷰 때) 권장.</div>
+      <div class="mu" style="font-size:var(--fs-1)">버튼을 누르면 비공개 저장소 이슈 폼이 채워진 채 열린다 → '제출'하면 usage/daily.csv·weekly.csv 에 반영. 주 1회(일요일 주간 리뷰 때) 권장.</div>
      </div></details>`; }
   function inject(){ try{ if(typeof view==='undefined'||(view!=='my'&&view!=='syso')) return; const r=document.getElementById('root'); if(!r||document.getElementById('usagebox')) return;
       r.insertAdjacentHTML('beforeend',box());

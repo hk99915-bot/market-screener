@@ -57,9 +57,9 @@ function repRb(b){ RV.rb=b; try{localStorage.setItem('mt_rep_rb',b);}catch(e){} 
 const RGC={'상승':'up','조정':'am','하락':'dn'};
 // 국면 용어 = screener/regime_tag.py 그대로 '상승/조정/하락' ('~장' 붙이지 않음 — 결재 #3 레짐 '상승장/회복확인/하락장'과 다른 체계, 감사 경-6)
 // '서프라이즈'는 같은 줄에 컨센서스(예상치) 기준이 있을 때만 — 없으면 인용 표시 (screener/calendar_ev.surprise_guard 와 같은 규칙, 감사 경-7)
-function surpNote(t){ t=String(t||''); return /서프라이즈|깜짝\s*실적/.test(t)&&!/컨센|예상치|기대치|시장\s*예상/.test(t)&&!/컨센서스 수치 없음/.test(t)?' <span class="mu" style="font-size:10px">(증권사 표현 인용 · 컨센서스 수치 없음)</span>':''; }
+function surpNote(t){ t=String(t||''); return /서프라이즈|깜짝\s*실적/.test(t)&&!/컨센|예상치|기대치|시장\s*예상/.test(t)&&!/컨센서스 수치 없음/.test(t)?' <span class="mu" style="font-size:var(--fs-1)">(증권사 표현 인용 · 컨센서스 수치 없음)</span>':''; }
 function rgOf(r){ return RV.rb==='s'?r.rg_s:r.rg_k; }
-function rgBadge(r){ const g=rgOf(r); if(!g) return ''; return ` <span class="tag ${RGC[g.l]||''}" style="font-size:10px;padding:0 4px" title="발간일 국면(regime_tag: 상승/조정/하락) · ${RV.rb==='s'?'종목':'코스피'} 기준 · 고점 대비 ${(g.dd*100).toFixed(0)}%${g.r20!=null?' · 20일 '+(g.r20*100).toFixed(0)+'%':''}${g.n<200?' · 관측 '+g.n+'일(고점 과소 가능)':''}">국면 ${g.l}</span>`; }
+function rgBadge(r){ const g=rgOf(r); if(!g) return ''; return ` <span class="tag ${RGC[g.l]||''}" style="font-size:var(--fs-1);padding:0 4px" title="발간일 국면(regime_tag: 상승/조정/하락) · ${RV.rb==='s'?'종목':'코스피'} 기준 · 고점 대비 ${(g.dd*100).toFixed(0)}%${g.r20!=null?' · 20일 '+(g.r20*100).toFixed(0)+'%':''}${g.n<200?' · 관측 '+g.n+'일(고점 과소 가능)':''}">국면 ${g.l}</span>`; }
 function repOrd(o){ RV.o=o; try{localStorage.setItem('mt_rep_order',o);}catch(e){} render(); }
 const repCmp=(a,b)=>RV.o==='old'?a.localeCompare(b):b.localeCompare(a);
 // 리포트 종류(kind) 필터 (10/20 겸이: 섹터·채권·매크로·외환·파생·전략·인뎁스도) — 종목 = 기존 research.json, 나머지 = research_views.json (screener/report_kind.py 분류)
@@ -80,16 +80,16 @@ function synSec(){
   if(SYN.err) return `<div class="grid" id="syn"><div class="p c12"><h2>리서치 종합</h2><div class="b mu">${esc(SYN.err)}</div></div></div>`;
   const h=SYN.headline||{}, r=SYN.revisions||{}, d5=r.d5||{}, d20=r.d20||{}, c=r.consensus||{}, inp=SYN.inputs||{};
   const tw=(h.tone_weekly||[]).map(w=>`<span title="${esc(w.week)} 주 · ${w.n_docs}건">${w.index==null?'·':synTone(w.index)}</span>`).join(' ');
-  const card=(t,sub,body,cls='c4')=>`<div class="p ${cls} syn"><h2>${t}<small>${sub}</small></h2><div class="b" style="font-size:12px">${body}</div></div>`;
-  const tbl=(hd,rows)=>rows.length?`<table style="font-size:12px"><tr>${hd.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr>${rows.join('')}</table>`:'<div class="mu">해당 없음</div>';
+  const card=(t,sub,body,cls='c4')=>`<div class="p ${cls} syn"><h2>${t}<small>${sub}</small></h2><div class="b" style="font-size:var(--fs-2)">${body}</div></div>`;
+  const tbl=(hd,rows)=>rows.length?`<table style="font-size:var(--fs-2)"><tr>${hd.map((x,i)=>`<th class="${i?'':'l'}">${x}</th>`).join('')}</tr>${rows.join('')}</table>`:'<div class="mu">해당 없음</div>';
   const nm=x=>x.code?`<span class="am sym" data-sym="${esc(x.code)}" data-mk="KR">${esc(x.name||x.code)}</span>`:esc(x.name||'');
   const nx=(()=>{const k=new Date(Date.now()+9*36e5), hm=k.toISOString().slice(11,16), wd=k.getUTCDay(), sl=SYN.collect_slots||['08:50','19:10'];
     if(wd>=1&&wd<=5){const n=sl.find(t=>t>hm); if(n) return '오늘 '+n;} for(let i=1;i<8;i++){const d=new Date(k.getTime()+i*864e5), w=d.getUTCDay(); if(w>=1&&w<=5) return `${d.toISOString().slice(5,10)} ${sl[0]}`;} return '—';})();
-  const badge=`<span class="tag" style="font-size:11px">기준 ${esc(SYN.asof||'')} · 수집 ${esc((SYN.collected_at||'—').slice(5,16))} · 다음 수집 ${esc(nx)}</span>${SYN.today_n?` <b class="up" style="font-size:12px">오늘 ${SYN.today_n}건</b>`:` <span class="mu" style="font-size:11px">오늘 발간분 아직 없음</span>`}`;
+  const badge=`<span class="tag" style="font-size:var(--fs-1)">기준 ${esc(SYN.asof||'')} · 수집 ${esc((SYN.collected_at||'—').slice(5,16))} · 다음 수집 ${esc(nx)}</span>${SYN.today_n?` <b class="up" style="font-size:var(--fs-2)">오늘 ${SYN.today_n}건</b>`:` <span class="mu" style="font-size:var(--fs-1)">오늘 발간분 아직 없음</span>`}`;
   const c1=card('오늘의 증권가 한 줄',`생성 ${esc(SYN.generated_at||'')}`,
-    `<div class="am" style="font-size:14px;line-height:1.5">${esc(h.text||'')}</div>
+    `<div class="am" style="font-size:var(--fs-3);line-height:1.5">${esc(h.text||'')}</div>
      <div style="margin-top:6px">전략·매크로 톤 5일 ${synTone((h.tone5||{}).index)} <span class="mu">(강 ${(h.tone5||{}).bull||0}·약 ${(h.tone5||{}).bear||0}·${(h.tone5||{}).n_docs||0}건)</span> · 20일 ${synTone((h.tone20||{}).index)} · 주별 ${tw}</div>
-     <div class="mu" style="font-size:11px;margin-top:4px">${esc(SYN.label||'')} · 톤 = 어휘 사전 (강−약)/(강+약), 문맥 미반영 <b>검증전</b> · 신규(${esc(SYN.asof)} 발간·백필 제외) ${h.new_on_asof||0}건 ${synL(h.reports)} · 저장 종목 ${inp.stock_n||0}건(백필 ${inp.backfill_n||0}) ${Object.entries(inp.stock_by_source||{}).map(([k,v])=>esc(k)+' '+v).join('·')}</div>`,'c12');
+     <div class="mu" style="font-size:var(--fs-1);margin-top:4px">${esc(SYN.label||'')} · 톤 = 어휘 사전 (강−약)/(강+약), 문맥 미반영 <b>검증전</b> · 신규(${esc(SYN.asof)} 발간·백필 제외) ${h.new_on_asof||0}건 ${synL(h.reports)} · 저장 종목 ${inp.stock_n||0}건(백필 ${inp.backfill_n||0}) ${Object.entries(inp.stock_by_source||{}).map(([k,v])=>esc(k)+' '+v).join('·')}</div>`,'c12');
   const rv=(x,dir)=>`<tr><td class="l">${nm(x)} <span class="mu">${esc(x.theme||'')}</span></td><td>${x.up}/${x.down}</td><td>${pct(x.med_tp_chg,0)}</td><td>${synL(x.reports)}</td></tr>`;
   const c2=card('목표가·의견 변화 맵',`5일 상향 ${d5.up||0}·하향 ${d5.down||0} / 20일 ${d20.up||0}·${d20.down||0}`,
     `<div>의견 상향 ${d20.op_up||0} · 하향 ${d20.op_down||0} (20일) · 컨센 목표가 20일 중앙 ${pct(c.median_chg_20d,1)||'—'} <span class="mu">(${c.n_codes||0}종목)</span></div>
@@ -98,56 +98,56 @@ function synSec(){
      <div class="mu" style="margin-top:4px">컨센 변화 ↑ ${(c.top_up||[]).slice(0,3).map(x=>`${nm(x)} ${pct(x.chg,0)}`).join(' · ')||'—'}<br>컨센 변화 ↓ ${(c.top_down||[]).slice(0,3).map(x=>`${nm(x)} ${pct(x.chg,0)}`).join(' · ')||'—'}</div>`);
   const sr=(SYN.sectors||{}).rows||[];
   const c3=card('섹터 온도',`20일 · 섹터 리포트 ${(SYN.sectors||{}).sector_reports_20d||0}건`,
-    tbl(['테마','건수','상향비율','20일 등락'],sr.slice(0,8).map(x=>`<tr><td class="l">${esc(x.theme)}</td><td>${x.n}</td><td>${x.up_ratio==null?'—':`<span class="${x.up_ratio>=0.6?'up':x.up_ratio<=0.4?'dn':'mu'}">${Math.round(x.up_ratio*100)}%</span> <span class="mu">${x.up}/${x.down}</span>`}</td><td>${x.r20==null?'<span class="mu">—</span>':pct(x.r20,1)}</td></tr>`))+`<div class="mu" style="font-size:11px">등락 = 위원회 테마 시세(이름이 같은 테마만) · 섹터 리포트 ${synL((SYN.sectors||{}).sector_links)}</div>`);
+    tbl(['테마','건수','상향비율','20일 등락'],sr.slice(0,8).map(x=>`<tr><td class="l">${esc(x.theme)}</td><td>${x.n}</td><td>${x.up_ratio==null?'—':`<span class="${x.up_ratio>=0.6?'up':x.up_ratio<=0.4?'dn':'mu'}">${Math.round(x.up_ratio*100)}%</span> <span class="mu">${x.up}/${x.down}</span>`}</td><td>${x.r20==null?'<span class="mu">—</span>':pct(x.r20,1)}</td></tr>`))+`<div class="mu" style="font-size:var(--fs-1)">등락 = 위원회 테마 시세(이름이 같은 테마만) · 섹터 리포트 ${synL((SYN.sectors||{}).sector_links)}</div>`);
   const th=SYN.themes||{};
   const c4=card('테마 클러스터',`제목·요약 키워드 · 5주 (${esc((th.weeks||[])[0]||'')}~)`,
-    tbl(['키워드','2주','5주 추이'],(th.rows||[]).slice(0,8).map(x=>`<tr><td class="l am">${esc(x.kw)}</td><td>${x.n2w}</td><td class="mu">${(x.weekly||[]).join(' → ')}</td></tr>`))+`<div class="mu" style="font-size:11px">10/07 비종목·10/14 네이버 종목 수집 확대 전 주는 과소 — 추이는 수집량 증가분 포함</div>`);
+    tbl(['키워드','2주','5주 추이'],(th.rows||[]).slice(0,8).map(x=>`<tr><td class="l am">${esc(x.kw)}</td><td>${x.n2w}</td><td class="mu">${(x.weekly||[]).join(' → ')}</td></tr>`))+`<div class="mu" style="font-size:var(--fs-1)">10/07 비종목·10/14 네이버 종목 수집 확대 전 주는 과소 — 추이는 수집량 증가분 포함</div>`);
   const mc=SYN.macro||{};
   const c5=card('거시·채권·외환 뷰',`20일 ${mc.n||0}건 · 공통 ${(mc.keywords||[]).slice(0,5).map(k=>esc(k.kw)).join('·')}`,
     (mc.items||[]).slice(0,6).map(x=>`<div style="margin-bottom:4px"><span class="mu">${esc(x.date.slice(5))} ${esc(x.kind)} ${esc(x.broker||'')}</span> <a href="${esc(x.link||'')}" target="_blank">${esc(x.title||'')}</a>${x.line?`<div class="mu">${esc(x.line)}</div>`:''}</div>`).join('')||'<div class="mu">해당 없음</div>');
   const dv=SYN.divergence||[];
   const c6=card('괴리 경고',`우리 위원회 vs 증권가 · ${dv.length}건`,
-    dv.length?dv.slice(0,6).map(x=>`<div style="margin-bottom:4px"><b class="dn">${esc(x.type)}</b> ${x.code?nm(x):esc(x.theme||'')} — ${esc(x.ours)} ↔ <span class="am">${esc(x.street)}</span> ${synL(x.reports)}</div>`).join('')+'<div class="mu" style="font-size:11px">경보용 — 어느 쪽이 맞는지는 판정 아님</div>':'<div class="mu">괴리 없음</div>');
+    dv.length?dv.slice(0,6).map(x=>`<div style="margin-bottom:4px"><b class="dn">${esc(x.type)}</b> ${x.code?nm(x):esc(x.theme||'')} — ${esc(x.ours)} ↔ <span class="am">${esc(x.street)}</span> ${synL(x.reports)}</div>`).join('')+'<div class="mu" style="font-size:var(--fs-1)">경보용 — 어느 쪽이 맞는지는 판정 아님</div>':'<div class="mu">괴리 없음</div>');
   const cw=SYN.crowding||[];
   const c7=card('몰림 (crowding)','5영업일 리포트 급증',
-    tbl(['종목','5일','사','배수','여력'],cw.slice(0,6).map(x=>`<tr><td class="l">${nm(x)}</td><td>${x.n5}</td><td>${x.brokers}</td><td>×${x.x}</td><td>${x.tp_upside==null?'—':pct(x.tp_upside,0)}</td></tr>`))+`<div class="mu" style="font-size:11px">배수 = 5일 건수 ÷ 직전 60영업일 5일 평균(최소 0.5) · 여력 = 컨센 목표가/종가(목표가 인플레 주의)</div>`);
+    tbl(['종목','5일','사','배수','여력'],cw.slice(0,6).map(x=>`<tr><td class="l">${nm(x)}</td><td>${x.n5}</td><td>${x.brokers}</td><td>×${x.x}</td><td>${x.tp_upside==null?'—':pct(x.tp_upside,0)}</td></tr>`))+`<div class="mu" style="font-size:var(--fs-1)">배수 = 5일 건수 ÷ 직전 60영업일 5일 평균(최소 0.5) · 여력 = 컨센 목표가/종가(목표가 인플레 주의)</div>`);
   const dg=SYN.digest||{};
   const dgI=x=>`<details class="dg" style="margin:3px 0;border-left:2px solid var(--line);padding-left:6px"><summary style="cursor:pointer"><span class="mu">${esc((x.date||'').slice(5))}</span> ${esc(x.title||'')}${x.status==='ok'?'':' <span class="mu">· 요약 재료 없음</span>'}</summary>
     <div style="margin:3px 0"><b class="am">① 내용</b><ul style="margin:2px 0 2px 16px;padding:0">${(x.summary||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
     <b class="am">② 뷰</b> ${esc(x.view||'')}<br><b class="am">③ 우리 해석</b> ${esc(x.our_take||'')}
-    <div class="mu" style="font-size:11px">${esc(x.grade||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')} · <a href="${esc(x.link||'')}" target="_blank">원문</a></div></div></details>`;
+    <div class="mu" style="font-size:var(--fs-1)">${esc(x.grade||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')} · <a href="${esc(x.link||'')}" target="_blank">원문</a></div></div></details>`;
   const dgL=(arr,what)=>`<div class="mu" style="margin-top:6px">요약·뷰·우리 해석 (데스크 작성 · 탭하면 펼침)</div>${(arr||[]).map(dgI).join('')||`<div class="mu">${what} 요약 아직 없음 (reports/views/digest.json — 매일 데스크 에이전트 작성)</div>`}`;
   const pb=SYN.public||{}, ps=pb.sources||{};
   // 공공 리포트 (10/23 겸이 "링크 어차피 다 깨지니까 우리 요약/뷰를 더 앞으로"): 발간물마다 '우리 한 줄 뷰'가 제목보다 먼저·크게,
   // 탭하면 3종(내용·기관 뷰·우리 해석) 전문, 원문 링크는 맨 아래 작게. 요약 없으면 '요약 대기'. 운영 숫자(소스 ok·수동)는 맨 뒤 작게.
   const pbI=x=>x.status==='ok'?`<details class="dg" style="margin:0 0 6px 0;border-left:3px solid var(--amber);padding-left:7px"><summary style="cursor:pointer;list-style:none">
-    <div style="font-size:14px;font-weight:600;line-height:1.4">${esc(x.one_line||'')}</div>
-    <div class="mu" style="font-size:11px;margin-top:1px">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')} · ${esc(x.title||'')}${x.confidence?` · 신뢰도 ${esc(x.confidence)}`:''}${/미확인/.test(x.source_checked||'')?' · <b class="dn">원문 미확인·검증전</b>':''} <span class="am">▸ 3종</span></div></summary>
+    <div style="font-size:var(--fs-3);font-weight:600;line-height:1.4">${esc(x.one_line||'')}</div>
+    <div class="mu" style="font-size:var(--fs-1);margin-top:1px">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')} · ${esc(x.title||'')}${x.confidence?` · 신뢰도 ${esc(x.confidence)}`:''}${/미확인/.test(x.source_checked||'')?' · <b class="dn">원문 미확인·검증전</b>':''} <span class="am">▸ 3종</span></div></summary>
     <div style="margin:4px 0 2px 0"><b class="am">① 핵심 내용</b><ul style="margin:2px 0 2px 16px;padding:0">${(x.summary||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
     <b class="am">② ${esc(x.inst||'기관')}의 뷰·톤</b> ${esc(x.view||'')}<br><b class="am">③ 우리 해석</b> ${esc(x.our_take||'')}
-    <div class="mu" style="font-size:10px;margin-top:3px">${esc(x.grade||'')} · ${esc(x.source_checked||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div></details>`
-    :`<div style="margin:0 0 6px 0;border-left:3px solid var(--line);padding-left:7px"><span style="font-size:11px;border:1px solid var(--line);border-radius:3px;padding:0 4px" class="mu">요약 대기</span> <span style="font-size:12px">${esc(x.title||'')}</span>
-    <div class="mu" style="font-size:10px">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')}${x.series?` · ${esc(x.series)}`:''}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div>`;
+    <div class="mu" style="font-size:var(--fs-1);margin-top:3px">${esc(x.grade||'')} · ${esc(x.source_checked||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div></details>`
+    :`<div style="margin:0 0 6px 0;border-left:3px solid var(--line);padding-left:7px"><span style="font-size:var(--fs-1);border:1px solid var(--line);border-radius:3px;padding:0 4px" class="mu">요약 대기</span> <span style="font-size:var(--fs-2)">${esc(x.title||'')}</span>
+    <div class="mu" style="font-size:var(--fs-1)">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')}${x.series?` · ${esc(x.series)}`:''}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div>`;
   const pbRows=pb.items30||null;   // 기본 = 최근 3건 한 줄 뷰만, 나머지 '더 보기' (UXUI 재진단 Top10 #9, 10/23 · 패널 1,310px). 기준은 애널 회신(req-analyst-b697c8bc) 오면 교체
   const c8=card('공공 리포트',`한은·정부/연구기관·시장기관·해외 · 30일 · 우리 한 줄 뷰 먼저${pb.pending_n?` · 요약 대기 ${pb.pending_n}`:''}`,
     pb.status!=='ok'?'<div class="mu">공공 리포트 수집 전 (매일 03:30 Actions 수집 — reports/public_reports.json)</div>':
     `${pbRows?(pbRows.slice(0,3).map(pbI).join('')||'<div class="mu">최근 30일 발간물 없음</div>')+(pbRows.length>3?`<details id="pubMore"><summary class="am" style="cursor:pointer;min-height:44px;display:flex;align-items:center">더 보기 ${pbRows.length-3}건</summary>${pbRows.slice(3).map(pbI).join('')}</details>`:''):dgL(dg.public,'공공 리포트')}
-     <div class="mu" style="font-size:11px;margin-top:6px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요): ${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>
-     <div class="mu" style="font-size:10px;margin-top:3px">요약·뷰·해석 = 데스크 작성(reports/views/digest.json) · 원문 링크는 기관 사정으로 깨질 수 있음 · 수집 소스 ok ${ps.ok||0}${ps.manual?` · 수동 ${ps.manual}`:''}${ps.error?` · 막힘 ${ps.error}`:''}${ps.empty?` · 빈 응답 ${ps.empty}`:''} · 30일 ${(pb.groups||[]).map(g=>`${esc(g.group)} ${g.n30}`).join(' · ')}</div>`,'c8');
+     <div class="mu" style="font-size:var(--fs-1);margin-top:6px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요): ${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>
+     <div class="mu" style="font-size:var(--fs-1);margin-top:3px">요약·뷰·해석 = 데스크 작성(reports/views/digest.json) · 원문 링크는 기관 사정으로 깨질 수 있음 · 수집 소스 ok ${ps.ok||0}${ps.manual?` · 수동 ${ps.manual}`:''}${ps.error?` · 막힘 ${ps.error}`:''}${ps.empty?` · 빈 응답 ${ps.empty}`:''} · 30일 ${(pb.groups||[]).map(g=>`${esc(g.group)} ${g.n30}`).join(' · ')}</div>`,'c8');
   const ge=SYN.geo||{};
   const c9=card('지정학 뷰',`외부 논평 · 검증전 · 참고 뷰`,
     `${(ge.videos||[]).map(v=>`<div style="margin-bottom:3px"><span class="mu">${esc((v.date||'').slice(5))}</span> <a href="${esc(v.link||'')}" target="_blank">${esc(v.title||'')}</a>${(v.tags||[]).length?` <span class="mu">${v.tags.map(esc).join('·')}</span>`:''}</div>`).join('')||'<div class="mu">수집 전 (Jiang Xueqin · Predictive History 유튜브 RSS)</div>'}
      ${Object.keys(ge.tags60||{}).length?`<div class="mu">60일 태그 ${Object.entries(ge.tags60).map(([k,v])=>esc(k)+' '+v).join(' · ')}</div>`:''}
      ${dgL(dg.geo,'영상')}
-     <div class="mu" style="font-size:11px;margin-top:4px">Jiang Xueqin(Predictive History) — 역사 유추·게임이론 논평. 요약은 자막·설명 확보분만(없으면 '재료 없음'). 우리 판단·매매에 쓰지 않음 · 반증 어려움 비판 있음 · 예측 장부는 검증 데스크</div>`);
-  return `<details id="syn" class="sec" ${SYN_OPEN?'open':''} ontoggle="synToggle(this.open)" style="margin:0"><summary style="padding:6px 10px"><b class="am">리서치 종합</b> ${badge} <span class="mu" style="font-size:11px">증권가 집계 · 우리 판단 아님</span></summary><div class="grid">${c1}${c8}${c9}${c2}${c3}${c4}${c5}${c6}${c7}</div></details>`;
+     <div class="mu" style="font-size:var(--fs-1);margin-top:4px">Jiang Xueqin(Predictive History) — 역사 유추·게임이론 논평. 요약은 자막·설명 확보분만(없으면 '재료 없음'). 우리 판단·매매에 쓰지 않음 · 반증 어려움 비판 있음 · 예측 장부는 검증 데스크</div>`);
+  return `<details id="syn" class="sec" ${SYN_OPEN?'open':''} ontoggle="synToggle(this.open)" style="margin:0"><summary style="padding:6px 10px"><b class="am">리서치 종합</b> ${badge} <span class="mu" style="font-size:var(--fs-1)">증권가 집계 · 우리 판단 아님</span></summary><div class="grid">${c1}${c8}${c9}${c2}${c3}${c4}${c5}${c6}${c7}</div></details>`;
 }
 function rvwView(){
   if(!RVW){ google.script.run.withSuccessHandler(t=>{try{RVW=JSON.parse(t);}catch(e){RVW={kinds:{}};} if(view==='rep') render();}).withFailureHandler(e=>{RVW={kinds:{},err:/404/.test(e.message)?'비종목 리포트 데이터가 아직 없습니다 (다음 수집 때 생성)':e.message}; if(view==='rep') render();}).getResearchViews(); return '<div class="load">LOADING …</div>'; }
   const st=RVW.status||{}, src=st.sources||{};
   const bad=Object.entries(src).filter(([k,v])=>v&&v.status!=='ok').map(([k,v])=>`${esc(k)}: ${esc(v.status)}${v.reason?' — '+esc(String(v.reason).slice(0,80)):''}`);
   return `${synSec()}<div class="grid"><div class="p c12"><h2>RESEARCH${kindTabs()}<span class="ctab">${[7,30,90].map(d=>`<button class="${RV.d===d?'on':''}" onclick="RV.d=${d};render()">${d}D</button>`).join('')}</span><small id="rcnt"></small></h2>
-   <div class="b"><input id="rq" class="rq" placeholder="증권사 · 섹터 · 제목 검색" value="${esc(RV.q)}" oninput="RV.q=this.value;rvwFill()">${RVW.err?`<div class="err">${esc(RVW.err)}</div>`:''}${bad.length?`<div class="mu" style="font-size:11px">수집 상태 ${esc(st.overall||'')} · ${bad.join(' · ')}</div>`:''}<div id="rbody"></div></div></div></div>`;
+   <div class="b"><input id="rq" class="rq" placeholder="증권사 · 섹터 · 제목 검색" value="${esc(RV.q)}" oninput="RV.q=this.value;rvwFill()">${RVW.err?`<div class="err">${esc(RVW.err)}</div>`:''}${bad.length?`<div class="mu" style="font-size:var(--fs-1)">수집 상태 ${esc(st.overall||'')} · ${bad.join(' · ')}</div>`:''}<div id="rbody"></div></div></div></div>`;
 }
 function rvwFill(){ const b=$('#rbody'); if(!b||!RVW) return; const cut=new Date(Date.now()-RV.d*864e5+9*36e5).toISOString().slice(0,10), q=RV.q.trim().toLowerCase();
   const ks=RV.k==='비종목 전체'?RKINDS.slice(1,8):[RV.k];
@@ -159,7 +159,7 @@ function repView(){
   if(!AN) loadAnalysts(()=>{ if(view==='rep'&&R) repFill(); });
   if(!R){ google.script.run.withSuccessHandler(t=>{try{R=JSON.parse(t);}catch(e){R={items:[],close:{}};} if(view==='rep') render();}).withFailureHandler(e=>{R={items:[],close:{},err:/404/.test(e.message)?'리서치 데이터가 아직 생성되지 않았습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='rep') render();}).getResearch(); return '<div class="load">LOADING …</div>'; }
   const btn=(k,v,l)=>`<button class="${RV[k]===v?'on':''}" onclick="RV['${k}']=${typeof v==='number'?v:`'${v}'`};render()">${l}</button>`;
-  return `${synSec()}<div class="grid"><div class="p c12"><h2>RESEARCH${kindTabs()}<span class="ctab">${btn('m','theme','테마별')}${btn('m','sector','업종별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><span class="ctab"><span class="mu" style="font-size:11px">국면</span>${[['k','코스피'],['s','종목']].map(([b,l])=>`<button class="${RV.rb===b?'on':''}" onclick="repRb('${b}')">${l}</button>`).join('')}${[['all','전체'],['상승','상승'],['조정','조정'],['하락','하락']].map(([f,l])=>`<button class="${RV.rf===f?'on':''}" onclick="RV.rf='${f}';render()">${l}</button>`).join('')}</span><span class="ctab">${[['count','많은순'],['new','최신순'],['old','오래된순']].map(([o,l])=>`<button class="${RV.o===o?'on':''}" onclick="repOrd('${o}')">${l}</button>`).join('')}</span><small id="rcnt"></small></h2>
+  return `${synSec()}<div class="grid"><div class="p c12"><h2>RESEARCH${kindTabs()}<span class="ctab">${btn('m','theme','테마별')}${btn('m','sector','업종별')}${btn('m','stock','종목별')}${btn('m','all','전체')}</span><span class="ctab">${[7,30,90,180].map(d=>btn('d',d,d+'D')).join('')}</span><span class="ctab"><span class="mu" style="font-size:var(--fs-1)">국면</span>${[['k','코스피'],['s','종목']].map(([b,l])=>`<button class="${RV.rb===b?'on':''}" onclick="repRb('${b}')">${l}</button>`).join('')}${[['all','전체'],['상승','상승'],['조정','조정'],['하락','하락']].map(([f,l])=>`<button class="${RV.rf===f?'on':''}" onclick="RV.rf='${f}';render()">${l}</button>`).join('')}</span><span class="ctab">${[['count','많은순'],['new','최신순'],['old','오래된순']].map(([o,l])=>`<button class="${RV.o===o?'on':''}" onclick="repOrd('${o}')">${l}</button>`).join('')}</span><small id="rcnt"></small></h2>
    <div class="b"><input id="rq" class="rq" placeholder="종목 · 증권사 · 섹터 · 제목 검색" value="${esc(RV.q)}" oninput="RV.q=this.value;repFill()">${R.err?`<div class="err">${esc(R.err)}</div>`:''}<div id="rbody"></div></div></div></div>`;
 }
 function repFill(){ if(RV.k!=='종목') return rvwFill(); const b=$('#rbody'); if(!b||!R) return; const it=repFilter(); b.innerHTML=repBody(it); const c=$('#rcnt'); if(c) c.textContent=`${it.length}건 · ${new Set(it.map(r=>r.code)).size}종목 · 기준 ${R.asof||''}`; }
