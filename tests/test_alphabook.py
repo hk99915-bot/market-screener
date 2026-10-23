@@ -169,3 +169,16 @@ def test_disc_line(tmp_path):
     # PB 문구 규칙: 계약 수·행사가·주문형/명령형·욕 없음
     for w in A.DISC_BANNED + ("847.5", "59", "젠장", "개소리", "빌어먹을", "제기랄"):
         assert w not in ln, w
+
+
+def test_fill_resizes_down_to_order_risk():
+    """체결가가 기준가보다 위(스탑에서 멀어짐)면 비중을 줄여 실현 리스크 ≤ 주문 리스크. 아래 체결이어도 상향 안 함 (10/23 KT&G 0.218% vs 0.187%)."""
+    b, sz = _book_with(_plan(stop=95.0))
+    A.step_day(b, "2026-10-02", {"X": {"o": 101.0, "h": 102, "l": 100, "c": 101}}, 1000)
+    p = b["positions"][0]
+    real = p["qty"] * (p["entry"] - p["stop"])
+    assert real <= sz["risk_pct"] + 1e-9 and "체결가 재조정" in b["fills"][-1]["why"]
+    b2, sz2 = _book_with(_plan(stop=95.0))
+    A.step_day(b2, "2026-10-02", {"X": {"o": 99.0, "h": 100, "l": 98, "c": 99}}, 1000)
+    p2 = b2["positions"][0]
+    assert abs(p2["qty"] * 99.0 - sz2["weight"]) < 1e-9 and "재조정" not in b2["fills"][-1]["why"]

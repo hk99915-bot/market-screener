@@ -161,14 +161,18 @@ def step_day(book: dict, d: str, bars: dict, bench_close: float | None) -> dict:
             continue
         nav = nav_of(book)
         e = b["o"]
-        qty = o["weight"] * nav / e
+        w = o["weight"]
+        if _num(o.get("risk_pct")) and o["risk_pct"] > 0 and e > o["stop"]:
+            # 체결가로 크기 재조정(축소만): 실현 리스크 = 비중 × (체결가−스탑)/체결가 ≤ 주문 리스크. 상향은 안 함(주문 때 남은 노출 기준).
+            w = min(w, o["risk_pct"] / ((e - o["stop"]) / e))
+        qty = w * nav / e
         if qty <= 0 or o["stop"] >= e:
             continue
         p = {"code": o["code"], "name": o.get("name"), "src": o["src"], "entry_d": d, "entry": e, "qty": qty, "qty0": qty,
              "stop": o["stop"], "stop0": o["stop"], "r_unit": e - o["stop"], "t1": o["t1"], "t2": o["t2"], "hold_t2": o["hold_t2"],
              "hold": o.get("hold", HOLD), "days": 0, "t1_done": False, "mark": e}
         book["positions"].append(p)
-        _fill(book, "buy", p, e, 1.0, d, f"{o['src']} 시가 진입")
+        _fill(book, "buy", p, e, 1.0, d, f"{o['src']} 시가 진입" + (f" · 체결가 재조정 {o['weight']*100:.2f}%→{w*100:.2f}%" if w < o["weight"] - 1e-9 else ""))
     for p in list(book["positions"]):
         b = bars.get(p["code"])
         if not b or not all(_num(b.get(k)) for k in "ohlc"):
