@@ -4,7 +4,7 @@
 원칙: **한국인 실사 증명사진 스타일 유지**(10/22 겸이 "웹툰 말고 한국인 실사 증명사진") — 대신 사람마다 **얼굴형·헤어·안경·옷 색·인상**을 겹치지 않게 지정. 실존 인물(연예인·인플루언서) 닮게 하지 않음, 노출·선정적 연출 금지.
 
 > **10/24 개편** — 겸이 "헷지 데이터 개발 uxui 교육 평가 내무 검증 피어는 현상유지, 나머지는 성숙하고 관능적으로, OL미, 팜므파탈적이되, 나이·성격·강아지상·고양이상·뱀상·햄스터상·화려함·순수함·도화살·카리스마·부드러움·섹시·근육질 몸매 등 페르소나 더 강화".
-> → **A군 9명 현상유지**(아래 표 A, 이미 만든 사진이 있으면 다시 안 만듦) · **B군 19명 재생성**(표 B).
+> → **A군 9명 현상유지**(아래 표 A, 이미 만든 사진이 있으면 다시 안 만듦) · **B군 19명 재생성**(표 B) — 프사는 증명사진 구도, 분위기는 배경사진에서.
 > 수위: 매혹은 **눈빛·표정·메이크업·헤어·핏**으로만. 옷은 끝까지 입은 일상·오피스 차림, 노출·속옷·선정 포즈 없음(생성기 정책 + 공개 저장소). 성인(28~36) 그대로, 실존 인물 닮게 하지 않음.
 
 ## A군 — 현상유지 9명 (기존 공통 프롬프트)
@@ -22,8 +22,9 @@
 | hf | HF 34 | 날카로운 V라인 | 단정한 긴 슬릭 백, 흑발 | 없음 | 검정 블레이저 + 셔츠 깃 세움 | 검정 | 차갑게 내려봄 |
 | uxui | UXUI 30 | 둥근 얼굴 | 숏단발 + 브릿지(보라 끝) | 투명 컬러테 | 라벤더 오버핏 셔츠 | 라벤더 | 호기심 |
 
-## B군 — 재생성 19명 (새 공통 프롬프트)
-> Photorealistic Korean editorial profile portrait of an adult woman, head to upper chest, polished magazine-style beauty lighting on a plain backdrop in the given color, mature, alluring and confident aura, chic office-lady (OL) styling, refined makeup, natural skin texture, tasteful and fully clothed (no cleavage focus, no lingerie, no suggestive pose), not resembling any real person, 1:1 square, 1024px. Person details:
+## B군 — 재생성 19명 (증명사진 구도 + 페르소나 스타일링)
+> 10/24 겸이 "ㅇㅇ 그렇게 ㄱㄱ" — 프사는 **증명사진 구도 유지**(A군과 톤 통일, 작은 원형 아바타에서 구분), 페르소나는 상(相)·메이크업·헤어·옷·눈빛·고개 각도로. **성숙·매혹·화려함은 배경사진(bg/PROMPTS.md)에서 크게.**
+> Photorealistic Korean ID/profile photo (jeungmyeong-sajin framing), front-facing, head and shoulders, centered, plain studio background in the given color, soft even studio lighting, natural skin texture, mature confident adult woman with refined office-lady (OL) styling and makeup, persona shown only through face type, makeup, hair, outfit, gaze and a slight head tilt, tasteful and fully clothed, not resembling any real person, 1:1 square, 1024px. Person details:
 
 생성 문장: 공통 + "Korean woman, age N, <상(相)> face type, <얼굴·메이크업>, <헤어>, wearing <옷>, background <배경>, mood <키워드>, expression <표정·포즈>".
 
@@ -52,6 +53,6 @@
 ## 작업 규칙
 1. A군은 기존 사진 유지(없을 때만 A군 공통 프롬프트로 생성). B군 19명만 새 공통 프롬프트 + 표 한 줄로 생성.
 2. 저장: `assets/avatars/<키>.png`(덮어쓰기) — 512px 이상 정사각, 300KB 안팎.
-3. **배경사진**(`assets/avatars/bg/<키>.jpg`): B군은 새 프사를 참조로 다시 생성 — `bg/PROMPTS.md` 의 프롬프트 끝에 이 줄을 덧붙임: *"Styling: mature, chic and alluring everyday look matching her profile mood (<키워드>), fully clothed, tasteful."* A군은 그대로.
+3. **배경사진**(`assets/avatars/bg/<키>.jpg`): B군은 새 프사를 참조로 `bg/PROMPTS.md` 의 새 페르소나 장면 프롬프트로 다시 생성(10/24 개편 — 원본 `profiles.json` bg_prompt). A군은 그대로.
 4. 같은 상(相)이 둘인 쌍(강아지 pb·analyst·ops / 고양이 behavior·life / 토끼 bonds·derivs / 햄스터 quant·scribe / 뱀 compliance·audit / 사슴 alloc·maint)은 헤어·안경·옷 색이 겹치지 않게 표대로 유지. 다 만든 뒤 28장을 사내톡 › 🏢 조직도에 띄워 놓고 닮은 2명이 보이면 헤어나 안경을 하나 더 바꿈.
 5. 생성기가 거부하면 '관능·섹시' 단어를 빼고 *elegant, alluring, confident* 로 낮춰 재시도 — 노출을 늘리는 방향으로 우회하지 않음.

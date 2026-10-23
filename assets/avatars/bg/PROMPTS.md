@@ -1,5 +1,7 @@
 # 사내톡 프로필 배경 — 생성 작업 지시서 (Codex·GPT 용)
 
+> **10/24 개편**: B군 19명(AVATAR_PROMPTS.md 표 B)은 페르소나 장면으로 새로 씀 — 성숙·OL·상(相) 분위기는 프사가 아니라 배경에서 크게 살림(겸이 "ㅇㅇ 그렇게 ㄱㄱ"). A군 9명은 그대로.
+
 10/23 겸이 "배경사진 각 누나들의 일상적인 사진으로, 얼굴 나오게". 원본 데이터는 `assets/avatars/profiles.json` 의 `bg_prompt` (이 파일은 그걸 작업 순서로 펼친 것 — 프롬프트를 고치려면 profiles.json 을 고치고 이 표를 다시 만들 것).
 
 ## 작업 규칙
@@ -15,55 +17,55 @@
 
 - 참조: `assets/avatars/pb.png` → 저장: `assets/avatars/bg/pb.jpg`
 
-> Same woman as the attached profile photo (Korean, 29), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Warm small cafe table by a rainy window in a Seoul alley at dusk, latte and a fish-shaped pastry bag, open notebook with pen, soft string lights. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 29), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: soft, affectionate and quietly flirtatious (dohwasal charm). Outfit: cream knit cardigan over a silk blouse, thin gold necklace (fully clothed, tasteful, no revealing styling). Scene: Cozy wine bar counter in Yeonnam-dong at night, warm amber bulbs, a glass of rosé and a small plate, she turns toward the camera with an eye-smile, chin resting on her hand. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### cio
 
 - 참조: `assets/avatars/cio.png` → 저장: `assets/avatars/bg/cio.jpg`
 
-> Same woman as the attached profile photo (Korean, 36), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Quiet Saturday morning desk in a Seoul apartment, fountain pen and ink bottle beside an open hardbound book, neat stack of binders, soft window light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 36), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: commanding, glamorous charisma. Outfit: tailored navy double-breasted suit, pearl brooch, sleek black bob (fully clothed, tasteful, no revealing styling). Scene: High-floor hotel lounge bar overlooking Seoul's night skyline, she sits upright in a velvet armchair holding a whisky glass, looking straight at the camera with a composed closed-lip smile. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### alloc
 
 - 참조: `assets/avatars/alloc.png` → 저장: `assets/avatars/bg/alloc.jpg`
 
-> Same woman as the attached profile photo (Korean, 36), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Corner seat of a quiet neighborhood cafe in Seoul, the same ceramic latte cup on a wooden table, small potted plant, phone face-down, calm afternoon light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 36), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: pure, serene and elegant. Outfit: beige trench coat with a silk scarf, low bun (fully clothed, tasteful, no revealing styling). Scene: Early morning walk under golden ginkgo trees at Deoksugung stone-wall road, holding a paper coffee cup, gentle sidelong glance, soft autumn light. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### macro
 
 - 참조: `assets/avatars/macro.png` → 저장: `assets/avatars/bg/macro.jpg`
 
-> Same woman as the attached profile photo (Korean, 34), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Sunday kitchen table covered with newspaper clippings, scissors, washi tape and a hand-written monthly calendar, coffee mug, morning sun. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 34), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: intellectual and quietly seductive. Outfit: black turtleneck and checked blazer, thick black-framed glasses, red lips (fully clothed, tasteful, no revealing styling). Scene: Late-night corner of an old bookstore-cafe, stacks of foreign newspapers, she looks up over her glasses from a book, warm desk lamp light. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### bonds
 
 - 참조: `assets/avatars/bonds.png` → 저장: `assets/avatars/bg/bonds.jpg`
 
-> Same woman as the attached profile photo (Korean, 35), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Cozy sofa corner at night with a half-finished grey knitted scarf, yarn balls and needles, warm floor lamp, cup of barley tea, Korean apartment living room. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 35), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: gentle, graceful and calm. Outfit: grey cashmere turtleneck, pearl earrings (fully clothed, tasteful, no revealing styling). Scene: Quiet classical concert hall lobby during intermission, holding a program booklet, soft smile, warm chandelier light. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### realestate
 
 - 참조: `assets/avatars/realestate.png` → 저장: `assets/avatars/bg/realestate.jpg`
 
-> Same woman as the attached profile photo (Korean, 33), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Narrow old Seoul alley with hanok rooftops and brick walls in late afternoon light, camera strap around her wrist. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 33), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: glamorous, sun-kissed and athletic. Outfit: camel leather jacket over a white top, gold hoops, pixie cut (fully clothed, tasteful, no revealing styling). Scene: Rooftop terrace in Seongsu at golden hour with brick buildings behind, leaning on the railing with toned shoulders, confident laugh. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### quant
 
 - 참조: `assets/avatars/quant.png` → 저장: `assets/avatars/bg/quant.jpg`
 
-> Same woman as the attached profile photo (Korean, 31), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Board game night table from above, dice, wooden tokens and cards, a notebook with tally marks and a small histogram sketch, warm pendant light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 31), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: innocent yet chic. Outfit: navy knit over a white collar, round clear glasses, high ponytail (fully clothed, tasteful, no revealing styling). Scene: Neon-lit board game cafe at night, holding a die between two fingers near her face, deadpan look with one eyebrow slightly raised. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### analyst
 
 - 참조: `assets/avatars/analyst.png` → 저장: `assets/avatars/bg/analyst.jpg`
 
-> Same woman as the attached profile photo (Korean, 30), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Weekend desk with an open PC case, unbranded motherboard, memory sticks and screwdriver, installing a part, soft daylight, small Seoul studio apartment. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 30), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: bright, glamorous and bubbly. Outfit: white silk blouse, slim skirt suit, ash-brown long waves, glossy pink lips (fully clothed, tasteful, no revealing styling). Scene: Busy Yeouido street at dusk with office towers lit up, ID lanyard swinging, laughing mid-step and tilting her head toward the camera. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### derivs
 
 - 참조: `assets/avatars/derivs.png` → 저장: `assets/avatars/bg/derivs.jpg`
 
-> Same woman as the attached profile photo (Korean, 32), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Half-finished 1000-piece jigsaw puzzle on a wooden table, pieces sorted into labeled trays, desk lamp at night, cup of tea. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 32), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: dohwasal allure, meticulous. Outfit: mustard silk blouse with high-waisted slacks, blunt bob with straight bangs, cherry lips (fully clothed, tasteful, no revealing styling). Scene: Afternoon dessert cafe, an open planner with neat color tabs, pen tip resting on her lips, a small knowing smile. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### data
 
@@ -75,25 +77,25 @@
 
 - 참조: `assets/avatars/frm.png` → 저장: `assets/avatars/bg/frm.jpg`
 
-> Same woman as the attached profile photo (Korean, 35), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Small boxing gym at night, worn red heavy bag hanging, wrapped gloves resting on a bench, dim warm lights, Seoul neighborhood. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 35), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: charismatic and strong, toned athletic build. Outfit: black athletic zip-up jacket (fully zipped), short sporty ponytail (fully clothed, tasteful, no revealing styling). Scene: Boxing gym after training, wrapped hands, leaning on the ropes with arms crossed, steady unsmiling stare, gritty overhead light. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### behavior
 
 - 참조: `assets/avatars/behavior.png` → 저장: `assets/avatars/bg/behavior.jpg`
 
-> Same woman as the attached profile photo (Korean, 34), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Binoculars and a small field notebook on a wooden bench beside Han River reeds at dawn, egrets in soft mist, quiet and still. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 34), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: sensual, mysterious observer. Outfit: olive silk shirt buttoned to the top, loose side braid, wine-colored lips (fully clothed, tasteful, no revealing styling). Scene: Dim jazz bar corner booth, candle on the table, half-lidded sidelong glance as if quietly reading the room. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### pm
 
 - 참조: `assets/avatars/pm.png` → 저장: `assets/avatars/bg/pm.jpg`
 
-> Same woman as the attached profile photo (Korean, 33), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Minimalist campsite in a Korean pine forest at evening, one folding chair, small lantern, enamel mug, short checklist clipped to a table. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 33), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: soft, warm and maturely tired. Outfit: grey knit cardigan over a shirt, thin silver ring, shoulder-length hair tucked behind ears (fully clothed, tasteful, no revealing styling). Scene: Late-evening convenience store window seat, a cup of instant noodles and a canned coffee, tired but tender smile. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### ops
 
 - 참조: `assets/avatars/ops.png` → 저장: `assets/avatars/bg/ops.jpg`
 
-> Same woman as the attached profile photo (Korean, 35), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Granite mountain trail near Seoul at sunrise, wearing a small backpack, checklist card tucked in a side pocket, city skyline in morning haze. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 35), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: healthy, toned and cheerful. Outfit: rolled-sleeve orange shirt, sports watch, low ponytail (fully clothed, tasteful, no revealing styling). Scene: Mountain ridge trail at Bukhansan in the morning, toned forearms gripping trekking poles, wide refreshing smile with the city below. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### dev
 
@@ -105,7 +107,7 @@
 
 - 참조: `assets/avatars/scribe.png` → 저장: `assets/avatars/bg/scribe.jpg`
 
-> Same woman as the attached profile photo (Korean, 28), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Film camera on a sunny cafe windowsill in the morning, small notebook with times jotted, film canisters, iced coffee, Seoul street softly blurred outside. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 28), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: pure, shy youngest-member charm. Outfit: striped knit with a white collar, short bob with see-through bangs (fully clothed, tasteful, no revealing styling). Scene: Small stationery shop in Mangwon-dong, holding a cute notebook up near her face, shy smile. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### edu
 
@@ -129,7 +131,7 @@
 
 - 참조: `assets/avatars/life.png` → 저장: `assets/avatars/bg/life.jpg`
 
-> Same woman as the attached profile photo (Korean, 32), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Han River running path in Seoul at dawn, track curving along the water, bridge in pink morning light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 32), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: sexy healthy fitness glow, toned athletic body. Outfit: mint running jacket zipped to the neck, sports headband and ponytail (fully clothed, tasteful, no revealing styling). Scene: Han River running path at sunrise after a run, slightly flushed cheeks, toned arms, bright open smile. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### verify
 
@@ -147,7 +149,7 @@
 
 - 참조: `assets/avatars/audit.png` → 저장: `assets/avatars/bg/audit.jpg`
 
-> Same woman as the attached profile photo (Korean, 36), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Narrow used bookstore aisle in Seoul with towering stacks of old books, dusty afternoon light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 36), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: stern, elegant charisma. Outfit: dark grey suit with pearl earrings, chignon, half-moon horn-rimmed glasses, burgundy lips (fully clothed, tasteful, no revealing styling). Scene: Quiet museum gallery, standing before a large painting, looking down slightly over her glasses with a strict, composed expression. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### hf
 
@@ -165,16 +167,16 @@
 
 - 참조: `assets/avatars/maint.png` → 저장: `assets/avatars/bg/maint.jpg`
 
-> Same woman as the attached profile photo (Korean, 31), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Small apartment balcony garden in Seoul, rows of potted herbs and succulents, watering can, a phone timer beside a bicycle tool kit, gentle morning light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 31), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: pure and easygoing. Outfit: denim work shirt, bandana, short tied hair (fully clothed, tasteful, no revealing styling). Scene: Sunny bicycle repair corner of a neighborhood alley, a wrench in hand, calm smile, small potted plants around. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### compliance
 
 - 참조: `assets/avatars/compliance.png` → 저장: `assets/avatars/bg/compliance.jpg`
 
-> Same woman as the attached profile photo (Korean, 33), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Indoor public swimming pool in Seoul early morning, sitting at the pool edge with swim cap and goggles in hand, lane ropes and lane-direction arrows on the tiles, calm blue water, soft overhead light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 33), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: femme fatale, cool and precise. Outfit: wine high-neck blouse and thin black cardigan, black cat-eye half-rim glasses, deep red lips (fully clothed, tasteful, no revealing styling). Scene: Back seat of a taxi on a rainy Seoul night, city lights blurred on the wet window, head slightly tilted, cool appraising gaze. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
 
 ### posrisk
 
 - 참조: `assets/avatars/posrisk.png` → 저장: `assets/avatars/bg/posrisk.jpg`
 
-> Same woman as the attached profile photo (Korean, 30), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Cramped second-hand record shop in a Seoul alley, flipping through crates of vinyl LPs, handwritten price stickers, warm tungsten light, a small notebook with tallies on the counter. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+> Same woman as the attached profile photo (Korean, 30), keep her face identical. Candid lifestyle photo of her, face clearly visible, mood: innocent and sharply calculating. Outfit: charcoal knit vest over a white shirt with rolled sleeves, wristwatch, thin gold hexagon glasses, light freckles (fully clothed, tasteful, no revealing styling). Scene: Weekend flea market stall, checking her wristwatch while holding a vintage item, one eyebrow raised in a calculating look. Photorealistic editorial smartphone photo, natural light, vertical 9:16, no text, no logos.
