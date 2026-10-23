@@ -3495,73 +3495,103 @@ function sysOpsView(){
 const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 </script>
 
-<!-- tab_msgr.html — SYSTEM › 사내톡 (msgView). 10/23 겸이 "사내톡방에서 누나들끼리 업무요청하고 응답하는거 보고싶다" → "터미널에 사내톡 탭 만들어줘 자동갱신되게, 그리고 실제 누나들의 voc로".
+<!-- tab_msgr.html — SYSTEM › 사내톡 (msgView). 10/23 겸이 "사내톡방에서 누나들끼리 업무요청하고 응답하는거 보고싶다" → "터미널에 사내톡 탭 만들어줘 자동갱신되게, 그리고 실제 누나들의 voc로"
+     → "너무 혼잡해서 잘 못 읽힌다"(같은 날): 기본은 '진행 중'만, 요청은 한 줄 요약 + 탭하면 펼침, 데스크 필터는 드롭다운, 대행 기록은 접음.
      데이터: reports/msgr_feed.md (내용은 JSON — scripts/msgr_feed.py ← docs/desk_kb/rounds/_requests.json + 메신저 라운드 기록). 매시 team.yml·ask.yml 이 갱신.
      getMarkdown('msgr_feed') 를 쓰는 이유: 새 getter 없이 Code.gs 재붙여넣기 불필요.
-     회신 말풍선: VOC = 그 데스크 에이전트를 실제로 호출해 받은 답(무편집, scripts/ask.py --reply --voc) · 대행 = 진행자·PB 가 대신 적은 처리 기록(데스크 발언으로 인용 금지). -->
+     회신: VOC = 그 데스크 에이전트를 실제로 호출해 받은 답(무편집, scripts/ask.py --reply --voc) · 대행 = 진행자·PB 가 대신 적은 처리 기록(데스크 발언으로 인용 금지).
+     프로필 사진: 다음 단계(겸이 10/23 "나중에 각 누나들 프로필사진도") — 지금은 이니셜 원. -->
 <style>
-.mgst{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;font-size:12px}
-.mgst span{border:1px solid var(--line);padding:3px 8px;background:#111}
-.mgst b{font-size:15px;margin-right:4px}
-.mgf{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
-.mgf button{min-height:36px;background:#111;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12px;padding:0 10px;cursor:pointer}
-.mgf button.on{color:var(--amber);border-color:var(--amber)}
-.mgday{margin:12px 0 4px;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.06em}
-.mgm{display:flex;gap:8px;margin:8px 0;white-space:normal}
-.mgav{flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#000}
-.mgb{min-width:0;flex:1}
-.mgw{font-size:12px}
-.mgw b{color:var(--txt)}
-.mgw .mu{font-size:11px}
-.mgbb{border:1px solid var(--line);background:#0d0d0d;padding:6px 9px;margin-top:2px;font-size:12.5px;line-height:1.6;overflow-wrap:anywhere}
-.mgmeta{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
-.mgpill{border:1px solid currentColor;padding:0 6px}
-.mgr{margin:4px 0 0 40px;display:flex;gap:6px;white-space:normal}
-.mgr .mgav{flex-basis:24px;height:24px;font-size:9.5px}
-.mgr .mgbb{background:#141414}
-.mgr.voc .mgbb{border-color:var(--amber-dim)}
-.mgtag{font-size:10px;border:1px solid;padding:0 5px;margin-left:4px}
-.mgsys{margin:3px 0 0 40px;font-size:11px;color:var(--muted);white-space:normal}
+.mgtop{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.mgseg{display:flex;border:1px solid var(--line)}
+.mgseg button{min-height:40px;background:none;border:0;border-right:1px solid var(--line);color:var(--muted);font:inherit;font-size:13px;padding:0 12px;cursor:pointer}
+.mgseg button:last-child{border-right:0}
+.mgseg button.on{color:#000;background:var(--amber)}
+.mgsel{min-height:40px;background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:13px;padding:0 8px}
+.mgsum{font-size:12px;color:var(--muted);margin:0 0 6px}
+.mgsum b{color:var(--txt)}
+.mgday{margin:14px 0 2px;font-size:11px;color:var(--muted);letter-spacing:.08em}
+.mgit{border-top:1px solid #1c1c1c;white-space:normal}
+.mgit>summary{list-style:none;display:flex;gap:10px;align-items:flex-start;padding:10px 0;cursor:pointer}
+.mgit>summary::-webkit-details-marker{display:none}
+.mgav{position:relative;flex:0 0 30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#000}
+.mgln{min-width:0;flex:1}
+.mgwho{font-size:13px;line-height:1.4}
+.mgwho b{color:var(--txt)}
+.mgwho .ar{color:var(--muted);margin:0 3px}
+.mgdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle}
+.mgone{font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:1px}
+.mgit[open] .mgone{display:none}
+.mgbadge{font-size:10.5px;color:var(--amber);margin-left:6px}
+.mgbody{padding:0 0 12px 40px;font-size:13.5px;line-height:1.7}
+.mgtxt{color:var(--txt)}
+.mgmeta{font-size:11px;color:var(--muted);margin-top:4px}
+.mgrep{margin-top:10px;display:flex;gap:8px}
+.mgrep .mgav{flex-basis:24px;height:24px;font-size:9.5px}
+.mgrep .bx{min-width:0;flex:1;border-left:2px solid var(--amber);padding-left:9px}
+.mgrep .hd{font-size:12px;color:var(--muted)}
+.mgrep .hd b{color:var(--amber)}
+.mgproxy{margin-top:8px;font-size:12px;color:var(--muted)}
+.mgproxy summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
+.mgproxy p{margin:4px 0 0;border-left:2px solid var(--line);padding-left:9px}
+.mgempty{color:var(--muted);font-size:13px;padding:16px 0}
+.mgbox{max-height:70vh;overflow-y:auto;padding-right:4px}
+.mgb2{display:flex;gap:8px;margin:10px 0;white-space:normal}
+.mgb2 .mgbub{display:inline-block;max-width:100%;background:#151515;border:1px solid var(--line);border-radius:2px 12px 12px 12px;padding:7px 10px;font-size:13.5px;line-height:1.6;color:var(--txt);overflow-wrap:anywhere}
+.mgb2.me{flex-direction:row-reverse;text-align:right}
+.mgb2.me .mgbub{border-radius:12px 2px 12px 12px;border-color:var(--amber-dim);text-align:left}
+.mgt{font-size:10.5px;color:var(--muted);margin-left:6px}
+.mgq{font-size:11.5px;color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
+.mgsys{text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0;white-space:normal}
 </style>
 <script>
-let MG=null, MGS='all', MGD='all';
-const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크(FRM)',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스','겸이':'겸이'};
-const MG_ST={open:['열림','var(--amber)'],promoted:['마감 지남·P1','var(--dn)'],done:['닫힘','var(--up)']};
+let MG=null, MGS='live', MGD='all';
+const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스','겸이':'겸이'};
+const MG_DOT={open:'var(--amber)',promoted:'var(--dn)',done:'var(--up)'};
+const MG_STN={open:'진행 중',promoted:'마감 지남',done:'완료'};
 function mgNm(k){ return MG_NM[k]||k||'?'; }
 function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%360; return h; }
-function mgAv(k){ return `<div class="mgav" aria-hidden="true" style="background:${k==='겸이'?'var(--amber)':`hsl(${mgHue(k)} 45% 62%)`}">${esc(mgNm(k).slice(0,2))}</div>`; }
+const MG_IMG='https://raw.githubusercontent.com/hk99915-bot/market-screener/main/assets/avatars/';   // 프로필 사진(겸이가 GPT 로 만들어 올림, assets/avatars/<키>.png) — 없으면 이니셜 원
+function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'var(--amber)':`hsl(${mgHue(k)} 45% 62%)`;
+  return `<div class="mgav" aria-hidden="true" style="background:${bg};overflow:hidden"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()"></div>`; }
 function mgT(s){ return String(s||'').replace('T',' ').slice(0,16); }
-/* 필터 — 순수 함수(테스트용) */
-function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk||(x.replies||[]).some(p=>p.by===desk))); }
+/* 필터 — 순수 함수. st: live(진행 중+마감 지남)·voc(VOC 회신 있는 것)·done·all */
+function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||(st==='live'&&x.status!=='done')||(st==='voc'&&(x.replies||[]).some(p=>p.voc))||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk)); }
+/* 대화 흐름(10/23 겸이 "대화가 이어진다는 느낌이 안 드네"): 요청·답장·완료를 시각순 한 줄 타임라인으로 — 오래된 것 위, 최신 아래(톡방처럼 맨 아래로 스크롤).
+   답장 말풍선엔 원 요청 한 줄 인용. 같은 문장 반복(대행 기록이 요청을 되풀이)은 접어서 시스템 줄 1개로. — 순수 함수(테스트용) */
+function mgEvents(items){ const ev=[];
+  for(const x of items||[]){ const t0=x.opened_at||x.opened||'';
+    ev.push({t:t0,k:'req',x});
+    const seen=new Set([String(x.text||'').slice(0,40)]);
+    for(const p of x.replies||[]){ const key=String(p.text||'').slice(0,40); if(seen.has(key)) continue; seen.add(key);
+      ev.push({t:p.at||t0,k:p.voc?'voc':'px',x,p}); }
+    if(x.status==='done'&&x.done_at) ev.push({t:x.done_at,k:'done',x});
+  }
+  ev.sort((a,b)=>String(a.t).localeCompare(String(b.t))); return ev; }
+function mgBub(who,to,txt,t,quote,mine){ return `<div class="mgb2${mine?' me':''}">${mgAv(who)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(who))}</b>${to?`<span class="ar">→</span>${esc(mgNm(to))}`:''}<span class="mgt">${esc(mgT(t).slice(11))}</span></div>${quote?`<div class="mgq">↳ ${esc(quote)}</div>`:''}<div class="mgbub">${esc(txt)}</div></div></div>`; }
 function msgView(){
   if(MG===null){ MG=false; google.script.run.withSuccessHandler(t=>{ try{ MG=t?JSON.parse(t):{}; }catch(e){ MG={}; } if(view==='msg') render(); }).withFailureHandler(()=>{ MG={}; if(view==='msg') render(); }).getMarkdown('msgr_feed'); return '<div class="load">LOADING …</div>'; }
   if(!MG||!MG.items) return '<div class="grid"><div class="p c12"><div class="b mu">사내톡 데이터 없음 — python3 scripts/msgr_feed.py (reports/msgr_feed.md, 매시 team.yml 이 갱신)</div></div></div>';
   const S=MG.status||{}, items=mgFilter(MG.items,MGS,MGD);
   const desks=[...new Set(MG.items.flatMap(x=>[x.from,x.to]))].sort((a,b)=>mgNm(a).localeCompare(mgNm(b),'ko'));
-  const fb=(k,l,cur,attr)=>`<button class="${cur===k?'on':''}" data-${attr}="${esc(k)}">${esc(l)}</button>`;
+  const seg=[['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체']]
+    .map(([k,l])=>`<button class="${MGS===k?'on':''}" data-mgs="${k}">${esc(l)}</button>`).join('');
+  const sel=`<select class="mgsel" id="mgsel" aria-label="누나 고르기"><option value="all">모든 누나</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`;
   let last='', feed='';
-  for(const x of items){
-    const d=String(x.opened_at||x.opened||'').slice(0,10);
-    if(d!==last){ feed+=`<div class="mgday">${esc(d)}</div>`; last=d; }
-    const st=MG_ST[x.status]||[x.status,'var(--muted)'];
-    feed+=`<div class="mgm">${mgAv(x.from)}<div class="mgb"><div class="mgw"><b>${esc(mgNm(x.from))}</b> <span class="mu">→ ${esc(mgNm(x.to))} · ${esc(mgT(x.opened_at||x.opened).slice(11)||'')}</span></div>
-      <div class="mgbb">${esc(x.text)}</div>
-      <div class="mgmeta"><span class="mgpill" style="color:${st[1]}">${esc(st[0])}</span><span>${esc(x.id)}</span>${x.due?`<span>마감 ${esc(x.due)}</span>`:''}</div></div></div>`;
-    for(const p of x.replies||[]){
-      const tag=p.voc?'<span class="mgtag" style="color:var(--amber)">VOC</span>':'<span class="mgtag" style="color:var(--muted)">대행</span>';
-      feed+=`<div class="mgr${p.voc?' voc':''}">${mgAv(p.by)}<div class="mgb"><div class="mgw"><b>${esc(mgNm(p.by))}</b>${tag} <span class="mu">${esc(mgT(p.at))}${p.sec&&!p.voc?' · 라운드 '+esc(p.sec):''}</span></div><div class="mgbb">${esc(p.text)}</div></div></div>`;
-    }
-    if(x.status==='done') feed+=`<div class="mgsys">✅ ${esc(mgNm(x.done_by||x.to))} 닫음 ${esc(mgT(x.done_at))}${x.resolution?' · '+esc(x.resolution):''}</div>`;
-    else if(x.status==='promoted') feed+=`<div class="mgsys">⚠️ 마감 지나 보드 P1 승격 ${esc(mgT(x.promoted_at))}</div>`;
+  for(const e of mgEvents(items)){ const d=String(e.t).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
+    const q=String(e.x.text||'').slice(0,46)+(String(e.x.text||'').length>46?'…':'');
+    if(e.k==='req') feed+=mgBub(e.x.from,e.x.to,e.x.text,e.t,'',e.x.from==='겸이');
+    else if(e.k==='voc') feed+=mgBub(e.p.by,e.x.from,e.p.text,e.t,`${mgNm(e.x.from)}: ${q}`,false);
+    else if(e.k==='px') feed+=`<div class="mgsys" title="${esc(e.p.text)}">📝 진행자 기록(${esc(mgNm(e.x.to))} 건) · ${esc(String(e.p.text).slice(0,60))}${String(e.p.text).length>60?'…':''}</div>`;
+    else feed+=`<div class="mgsys">✅ ${esc(mgNm(e.x.done_by||e.x.to))} 완료 — ${esc(q)}</div>`;
   }
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; render(); });
-    document.querySelectorAll('[data-mgd]').forEach(b=>b.onclick=()=>{ MGD=b.dataset.mgd; render(); }); },0);
-  return `<div class="grid"><div class="p c12"><h2>사내톡<small>데스크끼리 요청·회신 · 자료 ${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
-    <div class="mgst"><span><b>${MG.n}</b>요청</span><span style="color:var(--amber)"><b>${S.open||0}</b>열림</span><span style="color:var(--dn)"><b>${S.promoted||0}</b>마감 지남</span><span style="color:var(--up)"><b>${S.done||0}</b>닫힘</span><span><b>${MG.n_reply||0}</b>회신 달림</span><span style="color:var(--amber)"><b>${MG.n_voc||0}</b>VOC 회신</span></div>
-    <div class="mgf">${[['all','전체'],['open','열림'],['promoted','마감 지남'],['done','닫힘']].map(([k,l])=>fb(k,l,MGS,'mgs')).join('')}</div>
-    <div class="mgf">${fb('all','모든 누나',MGD,'mgd')}${desks.map(k=>fb(k,mgNm(k),MGD,'mgd')).join('')}</div>
-    <div class="mu" style="font-size:11px;white-space:normal">VOC = 그 데스크 에이전트가 직접 쓴 회신(무편집) · 대행 = 라운드 진행자·PB 가 대신 적은 처리 기록. 요청 보내기: 텔레그램 <code>ask &lt;데스크&gt; &lt;내용&gt;</code></div>
-    ${feed||'<div class="mu" style="margin-top:8px">조건에 맞는 요청 없음</div>'}
+    const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; render(); };
+    const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
+  return `<div class="grid"><div class="p c12"><h2>사내톡<small>${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
+    <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
+    <p class="mgsum">오래된 대화가 위, 최신이 아래 · ↳ = 어떤 요청에 대한 답장인지 · 📝 진행자 기록은 누나 본인 말 아님</p>
+    <div class="mgbox" id="mgbox">${feed||'<div class="mgempty">여기엔 아직 없어</div>'}</div>
   </div></div></div>`;
 }
 </script>
