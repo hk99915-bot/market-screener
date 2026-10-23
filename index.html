@@ -2604,6 +2604,29 @@ function engView(){
    <div class="p c12"><h2>오늘의 인적성 (시장 데이터)<small>${(E.aptitude||[]).length}문항</small></h2><div class="b">${(E.aptitude||[]).map((x,i)=>aptItem({...x,id:'오늘 '+(i+1),sec:x.type},'E'+(E.date||'')+'-'+i)).join('')||'<span class="mu">아직 오늘 자료 없음</span>'}</div></div>
   </div></div>`;
 }
+
+/* 📤 학습 기록 보내기 (10/23 겸이 "폰으로 맨날 했는데 ㅠㅠ") — STUDY 기록은 이 폰 localStorage 에만 쌓여 평가 데스크가 0 으로 봤다.
+   MY 탭 회고와 같은 길: pb-private 이슈 '학습기록 YYYY-MM-DD' 작성 창을 열고(겸이가 제출) 기록 데스크가 다음 슬롯에 걷어 평가 데스크에 넘긴다. 토큰·서버 경유 없음, 비율·횟수만. */
+function eduSyncPayload(){
+  const day=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+  const apt=Object.entries(APTS||{}).map(([k,v])=>[k,v&&v.ok?1:0,v&&v.t!=null?v.t:null,v&&v.at||null]);
+  const eng=(ENGS||[]).map(r=>[r.date,r.kind==='review'?'r':r.kind==='quiz'?'q':String(r.kind||''),r.idx,r.ok?1:0]);
+  const op=(OPS||[]).map(r=>[r.date,r.idx,r.result]);
+  const sumE=k=>{ const a=(ENGS||[]).filter(r=>!k||r.kind===k), ok=a.filter(r=>r.ok).length; return `${ok}/${a.length}`; };
+  const aok=apt.filter(x=>x[1]).length;
+  const head=`학습 기록 (터미널 STUDY · ${day} 보냄)\n- 커리큘럼 완료 모듈 ${Object.keys(EDONE||{}).length}개\n- 영어 단어 복습 ${sumE('review')} · 독해 퀴즈 ${sumE('quiz')} · 응답 날짜 ${new Set((ENGS||[]).map(r=>r.date)).size}일\n- 인적성 ${aok}/${apt.length}\n- OPIc 자기평가 ${op.length}회\n\n`;
+  const raw=JSON.stringify({v:1,sent:day,done:EDONE||{},apt,eng,op});
+  return {day,head,body:head+'```json\n'+raw+'\n```\n\n(기록 데스크 → reports/study_progress 반영·평가 데스크 채점용. 금액·건강 정보 없음)'};
+}
+function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-bot/pb-private/issues/new?title='+encodeURIComponent('학습기록 '+P.day);
+  const u=base+'&body='+encodeURIComponent(P.body), m=document.getElementById('edusyncm');
+  if(u.length<7500){ window.open(u,'_blank'); if(m) m.textContent='깃허브 이슈 작성 창을 열었어 — [Submit] 누르면 끝 (기록 누나가 걷어 감)'; return; }
+  const go=()=>{ window.open(base+'&body='+encodeURIComponent(P.head+'(아래에 붙여넣기)\n\n'),'_blank'); if(m) m.textContent='기록이 길어서 클립보드에 복사했어 — 열린 창 본문에 길게 눌러 붙여넣고 [Submit]'; };
+  try{ navigator.clipboard.writeText(P.body).then(go,()=>{ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); }); }catch(e){ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); } }
+function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync'); if(b) b.onclick=eduSync; },0);
+  const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length;
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:12.5px"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
+{ const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
 </script>
 
 <!-- tab_committee.html — DAILY › 운용회의 — v1/v2 회의록·기명 점도표 띠·파생 패널·미장 회의·지난 회의 (cmtView·dotStripHtml·cmtUSView).
