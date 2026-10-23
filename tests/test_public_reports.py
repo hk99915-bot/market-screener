@@ -112,3 +112,48 @@ def test_digest_file_schema():
         assert all(i.get(k) for k in ("id", "src", "date", "title", "link", "summary", "view", "our_take", "grade", "by", "written_at")), i["id"]
         assert isinstance(i["summary"], list) and len(i["summary"]) <= 5
         assert i["status"] == "ok" or "재료 없음" in i["summary"][0]
+
+
+def test_fix_link_known_broken():
+    """10/23 매크로 확인: 한은 RSS 링크 menuNo 빈칸 → 404, 기재부 mofe.go.kr(www 없음) → DNS 실패."""
+    assert pr.fix_link("https://www.bok.or.kr/portal/bbs/B0000245/view.do?nttId=1&menuNo=").endswith("menuNo=200761")
+    assert pr.fix_link("http://mofe.go.kr/nw/x.do?a=1") == "https://www.mofe.go.kr/nw/x.do?a=1"
+    assert pr.fix_link("https://fed/m1") == "https://fed/m1" and pr.fix_link(None) is None
+
+
+def test_public_items30_one_line_first_and_pending():
+    """공공 리포트 카드(10/23 겸이 "우리 요약/뷰를 더 앞으로"): 30일 발간물마다 digest 연결 — 3종+한 줄 뷰 있으면 ok, 없으면 '요약 대기'."""
+    t = date(2026, 10, 23)
+    rows = [{"key": "k1", "src": "fed", "group": "해외", "inst": "Fed", "series": "FOMC 의사록", "title": "Minutes", "date": "2026-10-07",
+             "link": "l1", "collected_at": "x"},
+            {"key": "k2", "src": "bok_press", "group": "한은", "inst": "한국은행", "series": "금통위 의사록", "title": "의사록", "date": "2026-10-13",
+             "link": "https://www.bok.or.kr/v.do?menuNo=", "collected_at": "x"},
+            {"key": "old", "src": "bok_press", "group": "한은", "inst": "한국은행", "series": "국제수지", "title": "옛것", "date": "2026-08-01",
+             "link": "l", "collected_at": "x"}]
+    pub = pr.build_output(rows, {}, t, "n")
+    full = {"summary": ["s"], "view": "v", "our_take": "o", "one_line": "한 줄", "grade": "A", "confidence": "중", "source_checked": "원문 확인"}
+    dg = {"items": [dict(full, id="k1", src="fed", date="2026-10-07", title="FOMC 의사록"),
+                    dict(full, id="k2", src="bok_press", date="2026-10-13", one_line=""),            # 한 줄 뷰 없음 → 대기
+                    dict(full, id="aud", src="bok_audit", date="2026-10-23", title="국감 발언", link="la"),  # 수집 밖 1차 자료
+                    dict(full, id="j", src="jiang", date="2026-10-20")]}                           # 지정학 영상은 이 카드 아님
+    c = rs.public_card(pub, t, dg)
+    assert [r["id"] for r in c["items30"]] == ["aud", "k2", "k1"] and c["pending_n"] == 1
+    k1 = c["items30"][2]
+    assert k1["status"] == "ok" and k1["one_line"] == "한 줄" and k1["inst"] == "Fed" and k1["link"] == "l1" and k1["title"] == "FOMC 의사록"
+    assert c["items30"][1]["status"] == "요약 대기" and "one_line" not in c["items30"][1]
+    assert c["items30"][1]["link"].endswith("menuNo=200761")   # 저장된 깨진 링크도 build_output 이 보정
+    assert c["items30"][0]["inst"] == "한국은행"
+    assert [p["key"] for p in pr.pending(pub, dg, t)] == ["k2"]
+    assert rs.public_card(None, t)["items30"] == []
+
+
+def test_digest_public_items_have_one_line():
+    """digest.json 공공 리포트 항목 = 한 줄 뷰·신뢰도·원문 확인 여부 필수(매크로 KB '공공 리포트 3종 작성 규칙')."""
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).resolve().parents[1] / "reports/views/digest.json").read_text(encoding="utf-8"))
+    pub = [i for i in d["items"] if i["src"] != "jiang"]
+    assert pub
+    for i in pub:
+        assert i.get("one_line") and i.get("confidence") in ("상", "중", "하") and i.get("source_checked"), i["id"]
+        assert ("원문 확인" in i["source_checked"]) or ("미확인" in i["source_checked"] and "검증전" in i["source_checked"]), i["id"]

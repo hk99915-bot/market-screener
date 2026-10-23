@@ -443,8 +443,14 @@ async def check_syn(b, port: int) -> int:
         "카드9": await J("document.querySelectorAll('#syn .syn').length") == 9,
         "공공·지정학": all(k in syn_txt for k in ("공공 리포트", "지정학 뷰", "참고 뷰")),
         # STANDARD §4(10/23 겸이 '링크만 말고 내용·해석까지'): digest 가 있으면 펼침 항목이 있고, 펼치면 세 칸이 보인다
-        "요약펼침": await J("(()=>{const n=((SYN||{}).digest||{}), k=(n.public||[]).length+(n.geo||[]).length, d=[...document.querySelectorAll('#syn details.dg')];"
-                         "if(d.length!==k) return false; if(!k) return true; d[0].open=true; const t=d[0].innerText; return ['① 내용','② 뷰','③ 우리 해석'].every(w=>t.includes(w));})()"),
+        # 공공 리포트(10/23 겸이 "우리 요약/뷰를 더 앞으로"): items30 중 요약 있는 것 = 펼침(첫 줄 = 한 줄 뷰, 펼치면 3종 + 맨 아래 '링크 깨질 수 있음'), 없는 것 = '요약 대기'
+        "요약펼침": await J("(()=>{const P=((SYN||{}).public||{}), n=((SYN||{}).digest||{}), rows=P.items30||null, okN=rows?rows.filter(r=>r.status==='ok').length:(n.public||[]).length,"
+                         " k=okN+(n.geo||[]).length, d=[...document.querySelectorAll('#syn details.dg')]; if(d.length!==k) return false; if(!k) return true;"
+                         " if(!rows) {d[0].open=true; return ['① 내용','② 뷰','③ 우리 해석'].every(w=>d[0].innerText.includes(w));}"
+                         " const w=[...document.querySelectorAll('#syn .syn')].find(c=>c.querySelector('h2').innerText.startsWith('공공 리포트')); if(!w) return false;"
+                         " const ds=w.querySelectorAll('details.dg'); if(ds.length!==okN) return false; if((w.innerText.match(/요약 대기/g)||[]).length<rows.length-okN) return false;"
+                         " if(!okN) return true; const f=ds[0]; const first=rows.find(r=>r.status==='ok'); if(!f.querySelector('summary').innerText.trim().startsWith(first.one_line.slice(0,12))) return false;"
+                         " f.open=true; const t=f.innerText; return ['① 핵심 내용','③ 우리 해석','링크 깨질 수 있음'].every(x=>t.includes(x)) && t.indexOf('링크 깨질 수 있음')>t.indexOf('③ 우리 해석');})()"),
         "라벨": "증권가 집계" in syn_txt,
         "목록아래": await J("(()=>{const s=document.querySelector('#syn'),r=document.querySelector('#rbody');return !!(s&&r&&(s.compareDocumentPosition(r)&Node.DOCUMENT_POSITION_FOLLOWING));})()"),
         "넘침없음": await J("[...document.querySelectorAll('#syn, #syn *')].every(e=>e.getBoundingClientRect().right<=innerWidth+1)"),

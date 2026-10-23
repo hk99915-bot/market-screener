@@ -125,10 +125,29 @@ def _match(a: str, b: str) -> bool:
     return bool(ta & tb) or (a and b and (a in b or b in a))
 
 
-def public_card(pub: dict | None, today: date) -> dict:
-    """공공 리포트(reports/public_reports.json) → 기관 묶음별 한 줄 + 최근 7일 새 발간 + 다음 발간(규칙 추정)."""
+PUB_ROW_KEYS = ("one_line", "summary", "view", "our_take", "grade", "confidence", "source_checked", "by", "written_at")
+INST_OF_SRC = {"bok_audit": ("한국은행", "한은")}
+
+
+def _pub_row(i: dict | None, d: dict | None) -> dict:
+    """발간물 1건 = 수집 행(i) + 데스크 요약(d, digest.json 같은 id). 요약 없으면 status '요약 대기'."""
+    from .public_reports import digest_ok
+    base = i or {}
+    inst, group = INST_OF_SRC.get((d or {}).get("src"), ((d or {}).get("inst") or "", (d or {}).get("group") or ""))
+    row = {"id": base.get("key") or (d or {}).get("id"), "date": base.get("date") or (d or {}).get("date"),
+           "inst": base.get("inst") or inst, "group": base.get("group") or group, "series": base.get("series") or (d or {}).get("series") or "",
+           "title": (d or {}).get("title") or base.get("title"), "link": base.get("link") or (d or {}).get("link"),
+           "status": "ok" if digest_ok(d) else "요약 대기"}
+    if row["status"] == "ok":
+        row.update({k: d.get(k) for k in PUB_ROW_KEYS})
+    return row
+
+
+def public_card(pub: dict | None, today: date, digest: dict | None = None) -> dict:
+    """공공 리포트(reports/public_reports.json) → 30일 발간물별 '우리 한 줄 뷰'+3종(reports/views/digest.json, 10/23 겸이 "우리 요약/뷰를 더 앞으로")
+    + 기관 묶음별 한 줄 + 최근 7일 새 발간 + 다음 발간(규칙 추정)."""
     if not pub:
-        return {"status": "없음", "groups": [], "new7": [], "calendar": [], "sources": {}}
+        return {"status": "없음", "groups": [], "new7": [], "calendar": [], "sources": {}, "items30": [], "pending_n": 0}
     items = pub.get("items") or []
     c7, c30 = str(today - timedelta(days=7)), str(today - timedelta(days=30))
     groups = []
@@ -144,8 +163,13 @@ def public_card(pub: dict | None, today: date) -> dict:
     srcs = {}
     for s in pub.get("sources") or []:
         srcs[s["status"]] = srcs.get(s["status"], 0) + 1
+    dm = {d.get("id"): d for d in (digest or {}).get("items") or [] if d.get("src") != "jiang"}
+    rows = [_pub_row(i, dm.get(i["key"])) for i in items if (i.get("date") or "") >= c30]
+    seen = {r["id"] for r in rows}
+    rows += [_pub_row(None, d) for k, d in dm.items() if k not in seen and (d.get("date") or "") >= c30]   # 수집 밖 1차 자료(국감 발언 등)
+    rows.sort(key=lambda r: r.get("date") or "", reverse=True)
     return {"status": "ok", "asof": pub.get("asof"), "groups": groups, "new7": new7, "calendar": cal, "sources": srcs,
-            "label": pub.get("label")}
+            "label": pub.get("label"), "items30": rows, "pending_n": sum(r["status"] != "ok" for r in rows)}
 
 
 def geo_card(j: dict | None) -> dict:
@@ -344,7 +368,7 @@ def build(store: pl.DataFrame, views: pl.DataFrame, meta: dict[str, dict], commi
         "themes": {"weeks": [str(w) for w in weeks], "rows": clusters},
         "macro": {"items": macro_items, "n": mfx.height if len(vs) else 0, "keywords": [{"kw": k, "n": n} for k, n in mk.most_common(8)]},
         "divergence": div[:10],
-        "public": public_card(public, today or datetime.now(KST).date()),
+        "public": public_card(public, today or datetime.now(KST).date(), digest),
         "geo": geo_card(jiang),
         "digest": digest_card(digest),
         "crowding": crowd,

@@ -4,12 +4,13 @@
 - reports/public_reports.json : 소스 표(ok/empty/error/manual) · 발간 목록(기관·시리즈·제목·발간일·링크·요약≤500자) · '다음 발간' 캘린더(규칙 추정)
 - reports/views/jiang.json     : Predictive History(Jiang Xueqin) 유튜브 새 영상 제목·날짜·링크 + 제목 기반 태그만(전사·요약 안 함)
 - reports/views/jiang_predictions.json : 사람이 채우는 예측 장부(판정은 검증 데스크) — 없을 때만 빈 장부 생성
-실행: python -m screener.public_reports [--probe]   (fin.yml 03:30, research_views 다음 · research_synthesis 앞)
+실행: python -m screener.public_reports [--probe | --pending]   (fin.yml 03:30, research_views 다음 · research_synthesis 앞)
 컨테이너는 외부 사이트가 막혀 있어 Actions 에서만 실수집된다.
 
 규칙
 - 원문 복제 금지: 제목·링크·발간일·RSS 가 주는 요약(≤500자)만.
 - 백필: 소스를 처음 수집할 때 들어온 행, 그리고 처음 보는데 발간 14일 지난 행은 collected_at='backfill …' — '신규 수집' 집계·알림 제외.
+- 요약·뷰·우리 해석(3종)+한 줄 뷰는 reports/views/digest.json(id = items[].key, 데스크 작성). --pending 이 빈 칸 목록.
 - 등급: 공공 리포트 = 1차 자료 목록(우리 판단 아님). Jiang = '참고 뷰(외부 논평·검증전)' — 우리 판단·매매에 쓰지 않음.
 """
 from __future__ import annotations
@@ -265,6 +266,33 @@ def next_expected(series: list, last_by_series: dict[str, date], today: date) ->
     return out
 
 
+def fix_link(u: str | None) -> str | None:
+    """알려진 깨진 링크 보정(10/23 매크로 확인): 한은 RSS 링크는 menuNo 가 비어 404 → 아무 메뉴 번호나 붙이면 열림,
+    기재부 mofe.go.kr(www 없음)은 DNS 실패 → www."""
+    if not u:
+        return u
+    if "bok.or.kr" in u and u.endswith("menuNo="):
+        u += "200761"
+    return re.sub(r"^https?://mofe\.go\.kr/", "https://www.mofe.go.kr/", u)
+
+
+DIGEST = VIEWS / "digest.json"
+THREE = ("summary", "view", "our_take")
+
+
+def digest_ok(d: dict | None) -> bool:
+    """STANDARD §4: 세 칸(내용·뷰·우리 해석)이 다 있어야 '요약 있음'. 한 줄 뷰(one_line)는 화면 첫 줄 — 없으면 대기."""
+    return bool(d) and all(d.get(k) for k in THREE + ("one_line",))
+
+
+def pending(pub: dict | None, digest: dict | None, today: date, days: int = 30) -> list[dict]:
+    """최근 days일 발간물 중 digest 세 칸·한 줄 뷰가 없는 것 = 데스크 작업 목록(매크로 KB '공공 리포트 3종 작성 규칙')."""
+    dm = {i.get("id"): i for i in (digest or {}).get("items") or []}
+    cut = str(today - timedelta(days=days))
+    return [{k: i.get(k) for k in ("key", "date", "inst", "series", "title", "link")}
+            for i in (pub or {}).get("items") or [] if (i.get("date") or "") >= cut and not digest_ok(dm.get(i["key"]))]
+
+
 def merge(old: list[dict], new: list[dict], src_id: str, inst: str, group: str, now: str, today: date) -> tuple[list[dict], int]:
     keys = {o["key"] for o in old}
     first = not any(o.get("src") == src_id for o in old)
@@ -277,7 +305,7 @@ def merge(old: list[dict], new: list[dict], src_id: str, inst: str, group: str, 
         d = r.get("date")
         bf = first or (d is not None and (today - d).days > BACKFILL_AGE)
         old.append({"key": k, "src": src_id, "group": group, "inst": inst, "series": r["series"], "title": r["title"],
-                    "date": str(d) if d else None, "link": r.get("link"), "summary": _clean(r.get("summary")),
+                    "date": str(d) if d else None, "link": fix_link(r.get("link")), "summary": _clean(r.get("summary")),
                     "collected_at": ("backfill " if bf else "") + now})
         added += 0 if bf else 1
     return old, added
@@ -285,6 +313,7 @@ def merge(old: list[dict], new: list[dict], src_id: str, inst: str, group: str, 
 
 def build_output(items: list[dict], status: dict, today: date, now: str) -> dict:
     cut = str(today - timedelta(days=KEEP_DAYS))
+    items = [dict(i, link=fix_link(i.get("link"))) for i in items]   # 이미 저장된 행도 보정(키는 그대로 → digest 연결 유지)
     items = sorted([i for i in items if (i.get("date") or "9999") >= cut], key=lambda i: (i.get("date") or "", i["key"]), reverse=True)
     cal = []
     for s in SOURCES:
@@ -403,7 +432,19 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     ap = argparse.ArgumentParser()
     ap.add_argument("--probe", action="store_true", help="저장 없이 소스별 결과와 앞 3건만 출력")
+    ap.add_argument("--pending", action="store_true", help="수집 없이: 최근 30일 발간물 중 digest 3종·한 줄 뷰가 없는 것(데스크 작업 목록)")
     a = ap.parse_args()
+    if a.pending:
+        def _j(p):
+            try:
+                return json.loads(p.read_text(encoding="utf-8"))
+            except Exception:  # noqa: BLE001
+                return None
+        todo = pending(_j(OUT), _j(DIGEST), datetime.now(KST).date())
+        for r in todo:
+            print(f"{r['key']} {r['date']} [{r['inst']}·{r['series']}] {r['title'][:60]} {r['link']}")
+        print(f"요약 대기 {len(todo)}건 — reports/views/digest.json 에 id=key 로 3종+one_line 작성 (docs/desk_kb/macro.md '공공 리포트 3종')")
+        raise SystemExit(0)
     o = run(probe=a.probe)
     ok = sum(1 for s in o["sources"] if s["status"] == "ok")
     print(f"공공 리포트: 소스 {ok}/{len(o['sources'])} ok · 목록 {len(o['items'])}건 · 신규 {o['added_new']}")

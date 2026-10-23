@@ -118,11 +118,22 @@ function synSec(){
     <div class="mu" style="font-size:11px">${esc(x.grade||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')} · <a href="${esc(x.link||'')}" target="_blank">원문</a></div></div></details>`;
   const dgL=(arr,what)=>`<div class="mu" style="margin-top:6px">요약·뷰·우리 해석 (데스크 작성 · 탭하면 펼침)</div>${(arr||[]).map(dgI).join('')||`<div class="mu">${what} 요약 아직 없음 (reports/views/digest.json — 매일 데스크 에이전트 작성)</div>`}`;
   const pb=SYN.public||{}, ps=pb.sources||{};
-  const c8=card('공공 리포트',`한은·정부/연구기관·시장기관·해외 · 소스 ok ${ps.ok||0}${ps.manual?` · 수동 ${ps.manual}`:''}${ps.error?` · 막힘 ${ps.error}`:''}`,
+  // 공공 리포트 (10/23 겸이 "링크 어차피 다 깨지니까 우리 요약/뷰를 더 앞으로"): 발간물마다 '우리 한 줄 뷰'가 제목보다 먼저·크게,
+  // 탭하면 3종(내용·기관 뷰·우리 해석) 전문, 원문 링크는 맨 아래 작게. 요약 없으면 '요약 대기'. 운영 숫자(소스 ok·수동)는 맨 뒤 작게.
+  const pbI=x=>x.status==='ok'?`<details class="dg" style="margin:0 0 6px 0;border-left:3px solid var(--amber);padding-left:7px"><summary style="cursor:pointer;list-style:none">
+    <div style="font-size:14px;font-weight:600;line-height:1.4">${esc(x.one_line||'')}</div>
+    <div class="mu" style="font-size:11px;margin-top:1px">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')} · ${esc(x.title||'')}${x.confidence?` · 신뢰도 ${esc(x.confidence)}`:''}${/미확인/.test(x.source_checked||'')?' · <b class="dn">원문 미확인·검증전</b>':''} <span class="am">▸ 3종</span></div></summary>
+    <div style="margin:4px 0 2px 0"><b class="am">① 핵심 내용</b><ul style="margin:2px 0 2px 16px;padding:0">${(x.summary||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+    <b class="am">② ${esc(x.inst||'기관')}의 뷰·톤</b> ${esc(x.view||'')}<br><b class="am">③ 우리 해석</b> ${esc(x.our_take||'')}
+    <div class="mu" style="font-size:10px;margin-top:3px">${esc(x.grade||'')} · ${esc(x.source_checked||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div></details>`
+    :`<div style="margin:0 0 6px 0;border-left:3px solid var(--line);padding-left:7px"><span style="font-size:11px;border:1px solid var(--line);border-radius:3px;padding:0 4px" class="mu">요약 대기</span> <span style="font-size:12px">${esc(x.title||'')}</span>
+    <div class="mu" style="font-size:10px">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')}${x.series?` · ${esc(x.series)}`:''}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div>`;
+  const pbRows=pb.items30||null;
+  const c8=card('공공 리포트',`한은·정부/연구기관·시장기관·해외 · 30일 · 우리 한 줄 뷰 먼저${pb.pending_n?` · 요약 대기 ${pb.pending_n}`:''}`,
     pb.status!=='ok'?'<div class="mu">공공 리포트 수집 전 (매일 03:30 Actions 수집 — reports/public_reports.json)</div>':
-    `${(pb.groups||[]).map(g=>`<div style="margin-bottom:3px"><b class="am">${esc(g.group)}</b> <span class="mu">30일 ${g.n30}건</span> ${(g.links||[]).map(x=>`<a href="${esc(x.link||'')}" target="_blank" title="${esc(x.date||'')}">${esc((x.title||'').slice(0,34))}</a>`).join(' · ')||'<span class="mu">수집분 없음</span>'}</div>`).join('')}
-     <div class="mu" style="margin-top:4px">최근 7일 새 발간</div>${(pb.new7||[]).slice(0,6).map(x=>`<div><span class="mu">${esc((x.date||'').slice(5))} ${esc(x.inst)}</span> <a href="${esc(x.link||'')}" target="_blank">${esc(x.title)}</a></div>`).join('')||'<div class="mu">없음</div>'}
-     <div class="mu" style="margin-top:4px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요)</div><div>${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>${dgL(dg.public,'공공 리포트')}`,'c8');
+    `${pbRows?(pbRows.map(pbI).join('')||'<div class="mu">최근 30일 발간물 없음</div>'):dgL(dg.public,'공공 리포트')}
+     <div class="mu" style="font-size:11px;margin-top:6px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요): ${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>
+     <div class="mu" style="font-size:10px;margin-top:3px">요약·뷰·해석 = 데스크 작성(reports/views/digest.json) · 원문 링크는 기관 사정으로 깨질 수 있음 · 수집 소스 ok ${ps.ok||0}${ps.manual?` · 수동 ${ps.manual}`:''}${ps.error?` · 막힘 ${ps.error}`:''}${ps.empty?` · 빈 응답 ${ps.empty}`:''} · 30일 ${(pb.groups||[]).map(g=>`${esc(g.group)} ${g.n30}`).join(' · ')}</div>`,'c8');
   const ge=SYN.geo||{};
   const c9=card('지정학 뷰',`외부 논평 · 검증전 · 참고 뷰`,
     `${(ge.videos||[]).map(v=>`<div style="margin-bottom:3px"><span class="mu">${esc((v.date||'').slice(5))}</span> <a href="${esc(v.link||'')}" target="_blank">${esc(v.title||'')}</a>${(v.tags||[]).length?` <span class="mu">${v.tags.map(esc).join('·')}</span>`:''}</div>`).join('')||'<div class="mu">수집 전 (Jiang Xueqin · Predictive History 유튜브 RSS)</div>'}

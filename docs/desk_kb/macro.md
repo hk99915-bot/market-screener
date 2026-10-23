@@ -47,6 +47,12 @@
 25. [자체연구-검증전] 지정학 축 `reports/views/geopolitics.json`(데스크 작성, Actions 안 씀): 호르무즈·홍해·러-우 가스·희토류 수출통제·반도체 수출통제·대만해협·한반도·관세 232 — 축마다 상태·전달 경로·관찰 지표(commodities 키)·트리거, 외부 자료 3칸(STANDARD §4). 속보 감지는 `events.py` PAT_BIG '해상 요충지'·'핵심광물 수출통제'. 운용회의 D-day: **2026-11-10**(중국 희토류 통제 유예 만료)·11-27(갈륨·게르마늄 유예).
 26. [현업 관행] 지정학 → 가격 읽기 순서: ① 물량(통항·수출 허가) ② 위험 프리미엄(브렌트−WTI·REMX) ③ 한국 경로(원/달러·업종). 헤드라인(합의 '발표')보다 물량 숫자로 확인. 반대 근거: 미사일 발사류는 지수 영향이 며칠 — 자체 이벤트 스터디 없음(검증전).
 
+## 공공 리포트 3종 작성 규칙 (2026-10-23 겸이 "링크 어차피 다 깨지니까 우리 요약/뷰를 더 앞으로")
+27. [현업 관행] 발간물마다 `reports/views/digest.json`(id = `public_reports.json` key)에 **한 줄 뷰 + 3종**. 빈 칸 목록 = `python -m screener.public_reports --pending`(30일), 화면은 '요약 대기' 배지. 한 줄 뷰 = "기관이 무엇을 바꿨고 → 금리·환율·업종 중 무엇이 움직이나" 1문장(개인 금액·보유 금지, 매매 지시 아님).
+   - ① 내용: 숫자 3~5줄, **원문(결정문·의사록 PDF·전망 본문)** 에서. 못 읽으면 `source_checked` = '원문 미확인(2차 보도·검증전)' + 신뢰도 하. 날짜 함정 확인(예: KDI 목록 10/15 = 8/19 발간물 재게시 → '새 전망' 아님).
+   - ② 기관 뷰·톤: **직전 같은 문서와의 문구 차이**로 판정(한은 '견조한'→'높은 성장세', 기재부 '견조' 유지, FOMC 'most participants' 추가 인상). 매파/비둘기는 반대 재료 1개를 같이 적는다(예: 18차 의사록 = 금융불균형 명분 매파 vs 취약부문 우려 비둘기).
+   - ③ 우리 해석: 시장 가격과 맞대 본다 — 국고 3Y − 기준금리, 미 2Y − FF 상단(÷25bp = 반영 횟수), 원/달러 20일, 코스피−S&P 격차(#5). 신뢰도 상/중/하 + **뒤집히는 조건(다음 발표 날짜)**. 함의가 없으면 "포트 함의 없음"이라고 쓰고 닫는다(감독 홍보·연구 제언류).
+
 ## 출처
 - 교과서·공식 자료: Dalio "How the Economic Machine Works"(2013) / 한국은행 통화정책 파급경로·통화신용정책보고서(중립금리 재추정) / CFA L1 Economics(Business Cycles, Monetary and Fiscal Policy) / FRED 시리즈 노트(CPIAUCSL·CPILFESL·PAYEMS·UNRATE·PPIFIS·DGS10). 2차 자료·요약 확인, 원문 `[확인 필요: 원문 대조, 2026-10-30]`.
 - 자체: `screener/commodities.py`, `reports/commodities.json`, `reports/views/geopolitics.json`, `screener/macroview.py`, `reports/macro_view.json`, `reports/macro_releases.json`, `screener/calendar_ev.py`, `reports/committee.json` macro, `views/registry.json`(`macro_wind`·`kr_regime`·`us10y`·`foreign_flow`·`event_calendar`).
