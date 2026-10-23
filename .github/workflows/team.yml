@@ -38,4 +38,16 @@ jobs:
           git add ops/team.json
           git diff --cached --quiet && exit 0
           git commit -m "team: $(date -u +%FT%H:%M) (매시)"
-          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && break; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          # -X theirs 금지(포니테일 #1, req-dev-cc84f898): ops/team.json 의 runs 는 PB team_run 이 쓰는 행이라 rebase 로 이번 판이 덮으면 그새 들어온 행이 사라짐.
+          # push 가 거부되면 원격 최신으로 reset → team_stats(auto 블록만 씀, runs·earlier 는 건드리지 않음)를 그 위에서 다시 돌려 커밋.
+          ok=0
+          for i in 1 2 3 4; do
+            git push origin HEAD:main && { ok=1; break; }
+            sleep $((i*5))
+            git fetch -q --shallow-since="$(date -u -d '8 days ago' +%F)" origin main && git reset -q --hard origin/main || continue
+            python scripts/team_stats.py >/dev/null || true
+            git add ops/team.json
+            git diff --cached --quiet && { ok=1; break; }
+            git commit -qm "team: $(date -u +%FT%H:%M) (원격 최신 위 재생성)" || true
+          done
+          [ $ok = 1 ] || echo "::warning::푸시 실패 — 결과가 저장되지 않음"; true
