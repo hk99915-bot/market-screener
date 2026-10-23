@@ -499,6 +499,41 @@
       "basis": "NASDAQ 일봉 2024-09~2026-10, 직전 2일 -1.5% 이하 후 시가→종가 (n=76, 평균 +0.18%×3배 근사, 레버리지 감가 미반영)"
      }
     }
+   },
+   "result": {
+    "나": {
+     "ret": -0.0657,
+     "pnl": -122129,
+     "buy": 1348.82,
+     "sell": 1260.93,
+     "detail": "2026-10-16 시가 1,348.82 → 2026-10-22 종가 1,260.93"
+    },
+    "PB": {
+     "ret": 0.0,
+     "pnl": 0.0,
+     "detail": "현금 유지"
+    },
+    "규칙": {
+     "ret": 0.0,
+     "pnl": 0.0,
+     "detail": "현금 유지"
+    },
+    "PB🔥": {
+     "ret": -0.0662,
+     "pnl": -198733,
+     "buy": 73.01,
+     "sell": 68.21,
+     "detail": "2026-10-16 시가 73.01 → 2026-10-16 종가 68.21"
+    },
+    "나🔥": {
+     "ret": -0.1891,
+     "pnl": -189056,
+     "buy": 101.19,
+     "sell": 82.11,
+     "detail": "2026-10-16 시가 101.19 → 2026-10-22 종가 82.11"
+    },
+    "winner": "PB",
+    "scored_at": "2026-10-23 01:35"
    }
   },
   {
@@ -1142,6 +1177,34 @@
       "basis": "급락일 -5% 미충족 구간 — 검증전"
      }
     }
+   },
+   "result": {
+    "나": {
+     "ret": -0.0419,
+     "pnl": -41911,
+     "buy": 66770.0,
+     "sell": 64005.0,
+     "detail": "2026-10-22 종가 66,770 → 2026-10-23 시가 64,005"
+    },
+    "PB": {
+     "ret": 0.0,
+     "pnl": 0.0,
+     "detail": "현금 유지"
+    },
+    "규칙": {
+     "ret": 0.0,
+     "pnl": 0.0,
+     "detail": "현금 유지"
+    },
+    "PB🔥": {
+     "ret": -0.0419,
+     "pnl": -83822,
+     "buy": 66770.0,
+     "sell": 64005.0,
+     "detail": "2026-10-22 종가 66,770 → 2026-10-23 시가 64,005"
+    },
+    "winner": "PB",
+    "scored_at": "2026-10-23 01:35"
    }
   },
   {
@@ -1351,18 +1414,18 @@
  "tally": {
   "나": {
    "win": 4,
-   "n": 7,
-   "pnl": 78127,
-   "trades": 7,
-   "hit": 0.571,
+   "n": 9,
+   "pnl": -85913,
+   "trades": 9,
+   "hit": 0.444,
    "avg_win": 0.0338,
-   "avg_loss": -0.0272,
-   "payoff": 1.24,
-   "ev": 0.0076
+   "avg_loss": -0.0378,
+   "payoff": 0.89,
+   "ev": -0.006
   },
   "PB": {
-   "win": 2,
-   "n": 5,
+   "win": 4,
+   "n": 7,
    "pnl": 0.0,
    "trades": 0,
    "hit": null,
@@ -1373,7 +1436,7 @@
   },
   "규칙": {
    "win": 1,
-   "n": 5,
+   "n": 7,
    "pnl": 0.0,
    "trades": 0,
    "hit": null,
@@ -1384,32 +1447,56 @@
   },
   "PB🔥": {
    "win": 0,
-   "n": 3,
-   "pnl": -77964,
-   "trades": 3,
+   "n": 5,
+   "pnl": -360519,
+   "trades": 5,
    "hit": 0.0,
    "avg_win": null,
-   "avg_loss": -0.0146,
+   "avg_loss": -0.0304,
    "payoff": null,
-   "ev": -0.0146
+   "ev": -0.0304
+  },
+  "나🔥": {
+   "win": 0,
+   "n": 1,
+   "pnl": -189056,
+   "trades": 1,
+   "hit": 0.0,
+   "avg_win": null,
+   "avg_loss": -0.1891,
+   "payoff": null,
+   "ev": -0.1891,
+   "by_basis": {
+    "감": {
+     "n": 1,
+     "pnl": -189056,
+     "beat_me": 0,
+     "trades": 1,
+     "hit": 0.0,
+     "avg_win": null,
+     "avg_loss": -0.1891,
+     "payoff": null,
+     "ev": -0.1891
+    }
+   }
   }
  },
  "tally_by_market": {
   "KR": {
    "나": {
     "win": 4,
-    "n": 5,
-    "pnl": 110450,
-    "trades": 5,
-    "hit": 0.8,
+    "n": 6,
+    "pnl": 68539,
+    "trades": 6,
+    "hit": 0.667,
     "avg_win": 0.0338,
-    "avg_loss": -0.0209,
-    "payoff": 1.62,
-    "ev": 0.0228
+    "avg_loss": -0.0314,
+    "payoff": 1.08,
+    "ev": 0.012
    },
    "PB": {
-    "win": 1,
-    "n": 4,
+    "win": 2,
+    "n": 5,
     "pnl": 0.0,
     "trades": 0,
     "hit": null,
@@ -1420,6 +1507,52 @@
    },
    "규칙": {
     "win": 0,
+    "n": 4,
+    "pnl": 0.0,
+    "trades": 0,
+    "hit": null,
+    "avg_win": null,
+    "avg_loss": null,
+    "payoff": null,
+    "ev": null
+   },
+   "PB🔥": {
+    "win": 0,
+    "n": 3,
+    "pnl": -134976,
+    "trades": 3,
+    "hit": 0.0,
+    "avg_win": null,
+    "avg_loss": -0.0241,
+    "payoff": null,
+    "ev": -0.0241
+   }
+  },
+  "US": {
+   "나": {
+    "win": 0,
+    "n": 3,
+    "pnl": -154452,
+    "trades": 3,
+    "hit": 0.0,
+    "avg_win": null,
+    "avg_loss": -0.0421,
+    "payoff": null,
+    "ev": -0.0421
+   },
+   "PB": {
+    "win": 2,
+    "n": 2,
+    "pnl": 0.0,
+    "trades": 0,
+    "hit": null,
+    "avg_win": null,
+    "avg_loss": null,
+    "payoff": null,
+    "ev": null
+   },
+   "규칙": {
+    "win": 1,
     "n": 3,
     "pnl": 0.0,
     "trades": 0,
@@ -1432,59 +1565,24 @@
    "PB🔥": {
     "win": 0,
     "n": 2,
-    "pnl": -51154,
+    "pnl": -225543,
     "trades": 2,
     "hit": 0.0,
     "avg_win": null,
-    "avg_loss": -0.0152,
+    "avg_loss": -0.0398,
     "payoff": null,
-    "ev": -0.0152
-   }
-  },
-  "US": {
-   "나": {
-    "win": 0,
-    "n": 2,
-    "pnl": -32323,
-    "trades": 2,
-    "hit": 0.0,
-    "avg_win": null,
-    "avg_loss": -0.0304,
-    "payoff": null,
-    "ev": -0.0304
+    "ev": -0.0398
    },
-   "규칙": {
-    "win": 1,
-    "n": 2,
-    "pnl": 0.0,
-    "trades": 0,
-    "hit": null,
-    "avg_win": null,
-    "avg_loss": null,
-    "payoff": null,
-    "ev": null
-   },
-   "PB": {
-    "win": 1,
-    "n": 1,
-    "pnl": 0.0,
-    "trades": 0,
-    "hit": null,
-    "avg_win": null,
-    "avg_loss": null,
-    "payoff": null,
-    "ev": null
-   },
-   "PB🔥": {
+   "나🔥": {
     "win": 0,
     "n": 1,
-    "pnl": -26810,
+    "pnl": -189056,
     "trades": 1,
     "hit": 0.0,
     "avg_win": null,
-    "avg_loss": -0.0134,
+    "avg_loss": -0.1891,
     "payoff": null,
-    "ev": -0.0134
+    "ev": -0.1891
    }
   }
  }
