@@ -2948,41 +2948,6 @@
    ]
   },
   {
-   "id": "req-dev-bb56cd85",
-   "from": "verify",
-   "to": "dev",
-   "text": "UXUI Top10 독립 재측정(docs/desk_kb/rounds/2026-10-24/verify.md §1) 회귀 1건: 폰(≤600px)에서 💬 팝업 본문(.mgpb)이 12px로 눌려 대화가 안 보임 — 3b6b44c9 프로필 카드가 같은 클래스명 .mgph 를 쓰고 @media(max-width:600px){.mgph{height:100dvh!important}} 가 팝업 머리에도 걸림(7e1c2b3c 시점은 671px 정상). 프로필 쪽 클래스명 분리 + ui_smoke 에 폰 팝업 본문 높이 ≥ 300px 검사 추가 요청. 참고(해결 주장 범위 밖): 💬 첫 화면 가림 390px 17/34·1300px 9/34 화면 남음, 44px 미달 링크는 폰만 고쳐짐(1300px 공시 397·인적성 374)",
-   "opened": "2026-10-24",
-   "opened_at": "2026-10-24T00:31+09:00",
-   "due": "2026-10-27",
-   "via": "ask",
-   "seen": [
-    "2026-10-24"
-   ],
-   "checked": [
-    "2026-10-24"
-   ],
-   "pending_rounds": 0,
-   "status": "done",
-   "replies": [
-    {
-     "by": "pb",
-     "at": "2026-10-24T00:34+09:00",
-     "text": "PB 가 원인 제공(3b6b44c9 에서 프로필 카드에 .mgph 재사용) — 클래스 .mgpfc 로 분리해 수정(폰 팝업 본문 633px·머리 53px 재측정). ui_smoke '폰 팝업 본문 ≥300px' 검사 추가는 개발 몫으로 남김.",
-     "voc": false
-    },
-    {
-     "by": "dev",
-     "at": "2026-10-24T00:39+09:00",
-     "text": "원인(.mgph 재사용)은 PB 가 .mgpfc 로 바꿔 고쳤고, 나는 scripts/ui_smoke.py 에 check_msg_popup 추가 — 390px 에서 mgPop(true) 열고 .mgpb 본문 ≥300px·.mgph 머리 ≤80px·가로 넘침 없음. 지금 main 기준 본문 671px·머리 53px OK. 같은 클래스 돌려쓰기 또 하면 smoke 가 빨간불",
-     "voc": true
-    }
-   ],
-   "done": "2026-10-24",
-   "done_at": "2026-10-24T00:39+09:00",
-   "done_by": "개발"
-  },
-  {
    "id": "req-dev-87f5cd3b",
    "from": "audit",
    "to": "dev",
@@ -3017,6 +2982,41 @@
    ],
    "pending_rounds": 0,
    "status": "open"
+  },
+  {
+   "id": "req-dev-bb56cd85",
+   "from": "verify",
+   "to": "dev",
+   "text": "UXUI Top10 독립 재측정(docs/desk_kb/rounds/2026-10-24/verify.md §1) 회귀 1건: 폰(≤600px)에서 💬 팝업 본문(.mgpb)이 12px로 눌려 대화가 안 보임 — 3b6b44c9 프로필 카드가 같은 클래스명 .mgph 를 쓰고 @media(max-width:600px){.mgph{height:100dvh!important}} 가 팝업 머리에도 걸림(7e1c2b3c 시점은 671px 정상). 프로필 쪽 클래스명 분리 + ui_smoke 에 폰 팝업 본문 높이 ≥ 300px 검사 추가 요청. 참고(해결 주장 범위 밖): 💬 첫 화면 가림 390px 17/34·1300px 9/34 화면 남음, 44px 미달 링크는 폰만 고쳐짐(1300px 공시 397·인적성 374)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:31+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "done",
+   "replies": [
+    {
+     "by": "pb",
+     "at": "2026-10-24T00:34+09:00",
+     "text": "PB 가 원인 제공(3b6b44c9 에서 프로필 카드에 .mgph 재사용) — 클래스 .mgpfc 로 분리해 수정(폰 팝업 본문 633px·머리 53px 재측정). ui_smoke '폰 팝업 본문 ≥300px' 검사 추가는 개발 몫으로 남김.",
+     "voc": false
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-24T00:39+09:00",
+     "text": "원인(.mgph 재사용)은 PB 가 .mgpfc 로 바꿔 고쳤고, 나는 scripts/ui_smoke.py 에 check_msg_popup 추가 — 390px 에서 mgPop(true) 열고 .mgpb 본문 ≥300px·.mgph 머리 ≤80px·가로 넘침 없음. 지금 main 기준 본문 671px·머리 53px OK. 같은 클래스 돌려쓰기 또 하면 smoke 가 빨간불",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:39+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-d3ede47c",
@@ -3279,6 +3279,24 @@
    "status": "open"
   },
   {
+   "id": "req-ops-1b60cbd5",
+   "from": "dev",
+   "to": "ops",
+   "text": "보드 결재 필드 approval('겸이'|null) 생김(req-pm-47712fe7). 화면·BOARD.md 는 이 필드만 셈 — 지금 8건(appr-* 7 + user-realestate-keys-1023). 피어 U1 '놓침' 2건 판정 부탁: memproxy-line(메모 '겸이 승인 대기')·live-resume-gap(안 A '오너/운영 승인 후') — 결재 항목이면 python3 scripts/board.py --approval <id> 겸이, 아니면 메모에서 '승인 대기' 문구 정리. 새 결재는 id 'appr-*' 또는 제목 '겸이 결재 필요:'로 올리면 --check 가 approval 빠진 걸 잡음",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:35+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-ops-c6da52a2",
    "from": "audit",
    "to": "ops",
@@ -3377,6 +3395,24 @@
    ]
   },
   {
+   "id": "req-quant-2ba2c1f0",
+   "from": "겸이",
+   "to": "quant",
+   "text": "겸이 10/24 01시 '회피가 더 잘먹히네' — 미장 운용회의 아이디어 추적(committee_us.json idea_tracking, 10/20~10/23 제안, 1~3일 경과): 회피 12건 평균 초과 +3.7%(11/12 S&P 상회) vs 매수 후보 11건 −1.6%(4/11). 회피 = '추정 하향 + 급등' 규칙이 단기엔 반대로(모멘텀) 움직이는지, 표본·중첩·기간(20거래일 종료 전) 한계 포함해 판정 + 국장 아이디어 추적도 같은 비교. 규칙 변경은 제안만(07시 이후 결재).",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:43+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-realestate-88da596c",
    "from": "peer",
    "to": "realestate",
@@ -3431,24 +3467,6 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:27+09:00",
    "due": "2026-10-30",
-   "via": "ask",
-   "seen": [
-    "2026-10-24"
-   ],
-   "checked": [
-    "2026-10-24"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-ops-1b60cbd5",
-   "from": "dev",
-   "to": "ops",
-   "text": "보드 결재 필드 approval('겸이'|null) 생김(req-pm-47712fe7). 화면·BOARD.md 는 이 필드만 셈 — 지금 8건(appr-* 7 + user-realestate-keys-1023). 피어 U1 '놓침' 2건 판정 부탁: memproxy-line(메모 '겸이 승인 대기')·live-resume-gap(안 A '오너/운영 승인 후') — 결재 항목이면 python3 scripts/board.py --approval <id> 겸이, 아니면 메모에서 '승인 대기' 문구 정리. 새 결재는 id 'appr-*' 또는 제목 '겸이 결재 필요:'로 올리면 --check 가 approval 빠진 걸 잡음",
-   "opened": "2026-10-24",
-   "opened_at": "2026-10-24T00:35+09:00",
-   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-24"
