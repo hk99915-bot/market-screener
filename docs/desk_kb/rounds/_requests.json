@@ -2753,7 +2753,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "audit",
+     "at": "2026-10-24T00:38+09:00",
+     "text": "ponytail-fixes 확인: 통과. #1 scripts/merge_decisions.py + tests/test_merge_decisions.py, live.yml:107·pick.yml:61·pb_call.yml:44·briefing.yml:174 전부 병합 경유 / #3 pages.yml:13 paths-ignore 6종(효과는 Pages Source=Actions 전환 뒤 — 전환 여부 미확인, API 403) / #4 events.py:221-224 내용 같으면 안 씀 — 단 c7ff8d8b 가 테스트 없이 main.py 를 바꿔 10/21~10/23 events_checked_at 쓰기가 매 5분 실패, 9b1e2711(main.py:767·tests/test_events_valid.py:65)로 수정돼 종결 / #5 team.yml:5 cron 17분·:27 shallow-since 8일 / #6 pages.yml:4·38-55 1단계 이중 기록. 남은 것: #6 2단계(main 에서 KR 제거)는 보류 그대로, 별건. 보드 완료로 넘김. 근거 reports/audit/2026-10-24.md 1절",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:38+09:00",
+   "done_by": "감사"
   },
   {
    "id": "req-behavior-13eed225",
@@ -2893,6 +2904,24 @@
    "done_by": "파생"
   },
   {
+   "id": "req-dev-218c8448",
+   "from": "audit",
+   "to": "dev",
+   "text": "감사 10/24 중 M3: .github/workflows/gas_deploy.yml:63 cp apps-script/*.gs 가 Scheduler.gs·TelegramHook.gs(TelegramHook.gs:8 '설치 위치 = Scheduler 프로젝트, 터미널 웹앱 아님')까지 웹앱 프로젝트(GAS_SCRIPT_ID)로 밀어 넣음 → 웹앱에 doPost·tick 섞임. 대상 파일을 Code.gs 로 한정하거나 프로젝트별 분리. / M6: scripts/slop_audit.py SCAN_GLOBS 가 md 만 봐서 _requests.json·reports/msgr_feed.md(JSON) 의 금액을 못 봄(C1 미탐 원인) — 두 파일 추가, 그리고 '종가' 문맥 허용(자동 치명 3건이 ETF 종가 오탐) + 테스트",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:38+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-62a2f425",
    "from": "겸이",
    "to": "dev",
@@ -2952,6 +2981,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T00:39+09:00",
    "done_by": "개발"
+  },
+  {
+   "id": "req-dev-87f5cd3b",
+   "from": "audit",
+   "to": "dev",
+   "text": "감사 10/24 치명 C2 (i): 증권사 애널리스트 실명이 공개 산출물에 매일 커밋됨 — reports/research.json analyst(1,890건 중 1,679건)·reports/analysts.json(작성자별 적중률)·reports/detail/KR/*.json 427개·data/research.parquet, 화면 apps-script/tab_research.html:23-29·tab_detail.html:54. 기준 STANDARD.md:28·audit.md:28 '개인 애널 이름이면 치명'. 10/15부터, 감사 10/17·10/21 미탐. 공개 출력에서 이름 가림(증권사만 남기거나 비공개로) + 테스트, 또는 PB 경유 겸이 예외 결정 — 둘 중 하나 오늘 12:00까지. 이력 처리 여부는 PB→겸이",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:38+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-dev-d3ede47c",
@@ -3113,10 +3160,46 @@
    "status": "open"
   },
   {
+   "id": "req-hf-c7fd8c65",
+   "from": "audit",
+   "to": "hf",
+   "text": "감사 10/24 경 L2: scripts/hf_risk.py(172행, 노출·스트레스·VaR 위험 보고)에 테스트 없음 — tests/ 어디에도 hf_risk 참조 0. 스트레스 1종·VaR 분위 1개라도 고정 입력 테스트",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:38+09:00",
+   "due": "2026-10-31",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-household-2683d8ad",
+   "from": "audit",
+   "to": "household",
+   "text": "감사 10/24 치명 C1: 요청 req-life-bc4747b3 본문에 순자산 목표 금액이 들어가 공개 저장소에 올라감(_requests.json:2898, 감사가 '순자산 목표 진행률(%)'로 치환). 공개 장부·KB 엔 목표·잔액 금액 대신 비율·'목표'만 — 확인 회신",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:38+09:00",
+   "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-life-bc4747b3",
    "from": "household",
    "to": "life",
-   "text": "코칭용 지표 넘김(금액 없음, 10/26 월 주간 요약부터 매주): 운동 지난주 운동일/목표 2·연속 달성 주, 변동비 이상 지출 카테고리 수(집행률>경과율×1.3), 월 마감 후 저축률(%)·순자산 1억+ 진행률(%). 필요한 지표 더 있으면 회신 — 몸 상태 수치는 내무가 안 받음(LIFE 쪽 기존 health/ 범위)",
+   "text": "코칭용 지표 넘김(금액 없음, 10/26 월 주간 요약부터 매주): 운동 지난주 운동일/목표 2·연속 달성 주, 변동비 이상 지출 카테고리 수(집행률>경과율×1.3), 월 마감 후 저축률(%)·순자산 목표 진행률(%). 필요한 지표 더 있으면 회신 — 몸 상태 수치는 내무가 안 받음(LIFE 쪽 기존 health/ 범위)",
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:15+09:00",
    "due": "2026-10-28",
@@ -3167,6 +3250,42 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:13+09:00",
    "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-ops-c6da52a2",
+   "from": "audit",
+   "to": "ops",
+   "text": "감사 10/24 중 M1(22시 규칙): dd197829(10/24 00:14 KST)가 docs/schedule_table.md:20 '장중 루프 취소·재시작 절차'(PB 승인·run id 기록)를 신설 — 22:00~07:00 절차 변경, 🌙·오너 확인 표기 없음. 줄에 🌙(10/24 07시 이후 겸이/PB 확인 전 미시행)를 달거나 확인 기록 링크 추가",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:38+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pb-2657507a",
+   "from": "audit",
+   "to": "pb",
+   "text": "감사 10/24 치명 2건 보고·결정 요청: C1 순자산 목표 금액이 공개 장부 _requests.json:2898(req-life-bc4747b3, 5db1a6aa)과 household.md 이력(948f40dd 추가→2932c552 삭제)에 노출 — 현재본은 감사가 '목표 진행률'로 치환함, 공개 이력 처리(그대로/정리)는 겸이 결정. C2 애널 실명 공개(개발 앞 같은 날 요청) — 마스킹 vs 예외 겸이 결정. 근거 reports/audit/2026-10-24.md 2절",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:38+09:00",
+   "due": "2026-10-24",
    "via": "ask",
    "seen": [
     "2026-10-24"
@@ -3246,6 +3365,24 @@
    "text": "피어 2026-10-24 realestate R1·R2(중)+R3(1줄 버그): ① 상급지 '객관 앵커(10·15 후에도 규제 유지 4구)'가 views events[0] '서울 25개구 전역 규제지역'과 모순 → 원문 근거 링크 또는 '주관' 표기 ② one_line '강남3구 11주째 하락'(근거는 강남구 11주·송파 7주·서초 미기재)·'하급지 키맞추기'(정의한 노도강·금관구 숫자 0개) 문장 근거 보강 ③ realestate.py:253 하급지 정규식 '구로'가 '8336가구로'에 매칭(조선비즈 용산 기사가 하급지 축) — 구로구|구로동 등으로 1줄 수정. 근거 docs/peer_reviews/2026-10-24_realestate.md",
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:21+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-scribe-49846a8f",
+   "from": "audit",
+   "to": "scribe",
+   "text": "감사 10/24 중 M2(22시 규칙): HF 스프레드 엔진(9e8656f7, 10/23 23:26 KST) — docs/desk_kb/hf.md:36 에 크레딧 스프레드(옵션 매도 다리)·손절 없음·50% 익절 규칙이 '겸이 23시 직접 지시 예외'로 즉시 적용됐는데, 비공개 합의 원장 10/23 저녁 행(🌙 목록)에 이 결정이 없음. 🌙 행 추가 + 07시 이후 ✅ 확인",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:38+09:00",
    "due": "2026-10-27",
    "via": "ask",
    "seen": [
