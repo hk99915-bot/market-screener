@@ -24,6 +24,7 @@ import hf_book as H  # noqa: E402
 STATE = ROOT / "reports" / "practice_book.json"
 KST = timezone(timedelta(hours=9))
 HOLD = 20
+RULES = ["손절가를 매수 전에 안 적으면 안 산다 — 겸이 1호 규칙(10/23, −20% 손실 38번의 원인)"]
 COST = {"KR": 0.0045, "US": 0.002}      # 왕복 비용(세금·수수료·슬리피지) — hf_book 국장 주식·미장 주식과 같은 가정
 
 
@@ -99,7 +100,8 @@ def mark(b: dict) -> list[dict]:
 
 def show(b: dict) -> list[str]:
     cl = b["closed"]
-    ls = [f"연습 장부: 보유·대기 {len(b['open'])} · 청산 {len(cl)} / 목표 20건 (R = 비용 차감: 국장 {COST['KR']:.2%}·미장 {COST['US']:.1%} 왕복)"]
+    ls = [f"규칙 {i}. {r}" for i, r in enumerate(RULES, 1)]
+    ls.append(f"연습 장부: 보유·대기 {len(b['open'])} · 청산 {len(cl)} / 목표 20건 (R = 비용 차감: 국장 {COST['KR']:.2%}·미장 {COST['US']:.1%} 왕복)")
     if cl:
         rs = [x["r"] for x in cl]
         w = [r for r in rs if r > 0]
