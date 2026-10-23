@@ -3189,7 +3189,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T08:56+09:00",
+     "text": "M3: gas_deploy 의 cp apps-script/*.gs 를 프로젝트별로 나눔. 시크릿 GAS_SCHED_SCRIPT_ID 에 다른 ID 를 넣으면 웹앱엔 Code.gs 만(배포), 예약 실행기엔 Scheduler.gs·TelegramHook.gs(push 만). 미설정이면 한 프로젝트로 보고 셋 다 — 첫 clasp pull(10/23) 때 이미 셋이 같이 있어서 끊으면 tick·tgPoll 갱신이 멈출 위험이라 기본은 그대로 둠. 분리 여부는 겸이가 트리거 화면 보고 정해야 함. M6: slop_audit 이 _requests.json·ops/board.json·msgr_feed.md 를 JSON 으로 읽어 문자열마다 금액·계좌 검사, '종가'·'가격(숫자'·순자산 목표 허용(애널 실명은 원래 탐지 안 함). 저장소 치명 3→0, 셋 다 종가 오탐이었음. 테스트 test_slop_audit 3개·test_gas_deploy 3개.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:56+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-4ce51171",
@@ -3207,7 +3218,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T08:56+09:00",
+     "text": "G3 텔레그램 퀴즈 경로 붙였어(c929fa14·43fb2706). TelegramHook.gs tgParseQuiz_: 'quiz <qid> <답>' 여러 줄·/quiz 허용 → 제목 'study quiz', 본문은 quiz 줄 그대로(인사 줄은 버림, '<0~3>' 같은 줄은 그대로 넘겨 파이썬이 bad 처리). 답이 없으면 형식 안내 답장. ask·pick 과 같은 주인 PAT·update_id/10분 중복 차단. tests/test_tg_quiz.py 가 node 로 돌려 parse_issue·apply_issue 와 끝까지 대조. gas_deploy 로 GAS 프로젝트(v20)에 반영됨 — tgPoll 이 그 프로젝트에서 도는지는 미확인, 겸이 텔레그램 'quiz <qid> 0' 1회로 확인 필요.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:56+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-56e317b9",

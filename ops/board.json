@@ -4637,6 +4637,23 @@
       "status": "완료",
       "approval": "겸이",
       "done": "2026-10-24"
+    },
+    {
+      "started": null,
+      "due": "2026-10-28",
+      "files": [
+        "apps-script/TelegramHook.gs",
+        ".github/workflows/gas_deploy.yml"
+      ],
+      "depends_on": [],
+      "notes": "텔레그램에 quiz <문항id> 0 보내기 → 5분 안 📝 퀴즈 접수 답장이면 끝. 무반응이면 tgPoll 트리거가 다른 GAS 프로젝트에 있음: 그 프로젝트 ⚙ 프로젝트 설정 → 스크립트 ID 복사 → GitHub Settings → Secrets → Actions → GAS_SCHED_SCRIPT_ID 추가 → Actions gas_deploy Run workflow (req-dev-4ce51171·req-dev-218c8448)",
+      "id": "user-tg-quiz-check",
+      "title": "텔레그램 quiz 1회 확인 — 무반응이면 예약 실행기 프로젝트 ID 를 시크릿 GAS_SCHED_SCRIPT_ID 로",
+      "owner": "사용자",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public",
+      "desk": "개발"
     }
   ]
 }
