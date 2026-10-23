@@ -4,7 +4,7 @@ const H = fs.readFileSync('index.html', 'utf8');
 const js = (H.match(/<script>([\s\S]*?)<\/script>/g) || []).map(b => b.replace(/<\/?script>/g, '')).join('\n;\n');
 const i = js.indexOf('const esc=s=>'); const escLine = js.slice(i, js.indexOf('\n', i));
 const t = js.slice(js.indexOf('function citeFmt('), js.indexOf('function eduView('));
-const EDONE = {}; const eduChips = () => ''; const escA = s => String(s);
+const EDONE = {}; const EDQ = []; const eduChips = () => ''; const escA = s => String(s);
 eval(escLine + '\n' + t + '\n;globalThis.eduModule=eduModule;');
 let n = 0;
 for (const f of fs.readdirSync('content/study').filter(f => f.startsWith('track_'))) {

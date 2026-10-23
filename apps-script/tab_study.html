@@ -7,6 +7,14 @@ let EDU=null; const EDL={ms:null,rel:null,der:null,bnd:null}; const ENG={idx:nul
 const escA=s=>esc(s).replace(/"/g,'&quot;');
 function eduGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function eduPut(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+const MQK='mt_quiz_log'; let EDQ=eduGet(MQK,[]); if(!Array.isArray(EDQ)) EDQ=[];   // 모듈 확인문제 기록 (아래 mqItem, req-dev-29f439ce)
+document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('.mqb,.mqr,.mqs'); if(!t||t.disabled) return;
+  const k=t.dataset.ch||t.dataset.mqr, F=mqFind(k); if(!F) return; const sel=x=>[...document.querySelectorAll(x)].filter(el=>el.dataset.res===k||el.dataset.mqx===k||el.dataset.mqa===k);
+  if(t.classList.contains('mqr')){ sel('[data-mqx]').forEach(el=>el.innerHTML=mqExp(F.q,F.P)); sel('[data-mqa]').forEach(el=>el.innerHTML=`<span class="mu" style="font-size:12px;align-self:center">내 답은?</span><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="1" style="min-height:44px">맞혔어</button><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="0" style="min-height:44px">틀렸어</button>`); return; }
+  if(t.classList.contains('mqs')){ const ok=t.dataset.ok==='1'; mqLog(k,F,null,ok,true); sel('[data-res]').forEach(el=>el.innerHTML=mqRes(mqFirst(k))); sel('[data-mqa]').forEach(el=>el.innerHTML=''); return; }
+  const c=+t.dataset.i, ok=c===F.P.a; mqLog(k,F,c,ok,false); const r=mqFirst(k);
+  document.querySelectorAll('.mqb[data-ch]').forEach(o=>{ if(o.dataset.ch!==k) return; o.disabled=true; o.style.cssText+=';'+mqMark(+o.dataset.i,F.P.a,r.choice); });
+  sel('[data-res]').forEach(el=>el.innerHTML=mqRes(r)); sel('[data-mqx]').forEach(el=>el.innerHTML=mqExp(F.q,F.P)); });
 /* 날짜는 한국 기준(KST) — 10/23 겸이 "한국 날짜 기준으로 트래킹되게". 10/23 이전 인적성 at·완료일은 UTC 날짜로 저장돼 있음(하루 밀릴 수 있음) */
 function eduKst(t){ const ms=t?Date.parse(t):Date.now(); return isNaN(ms)?null:new Date(ms+9*36e5).toISOString().slice(0,10); }
 let EDONE=eduGet('mt_study_done',{}); let APTS=eduGet('mt_apt_score',{});
@@ -58,6 +66,28 @@ function eduProg(){
 function citeFmt(h){ const sup=t=>`<sup class="mu" style="font-size:9px;opacity:.55;cursor:help" title="출처: ${t}">ⓢ</sup>`;
   return String(h).replace(/\s*(?:[\[(]((?:consult|kb):[^\])]*)[\])]|\b((?:consult|kb):[\w-]+#[\w.]+))/g,(_,a,b)=>sup(a||b)).replace(/[,·]\s*(<sup)/g,'$1'); }
 const escC=t=>citeFmt(esc(t));
+/* 모듈 확인문제 '고르고 채점' (교육 req-dev-29f439ce · STUDY Dev handoff #6, 10/23): 예전엔 summary 안에 정답이 미리 들어 있는 펼침이라 인출이 안 됐다.
+   사전 커밋 — 고르기(또는 '답 보기') 전엔 정답·해설을 DOM 에 넣지 않는다(데이터는 메모리 EDU 에만). 같은 문항 첫 응답만 localStorage 'mt_quiz_log' 에 누적
+   ({date,mod,qi,choice,ok,self,ts} — mt_eng_score_v1 과 같은 배열 패턴) → 📤 학습 기록 보내기(eduSyncPayload)에 quiz 로 포함.
+   보기: v3 choices/answer → 그대로, 문제 안 ①②… → 잘라서 보기, O/X → O·X 두 개, 계산·응용(보기 없음) → '답 보기' 후 맞혔어/틀렸어 자기 채점. */
+const MQN='①②③④⑤⑥⑦⑧⑨⑩';
+function mqFirst(k){ for(const r of EDQ) if('mq:'+r.mod+':'+r.qi===k) return r; return null; }
+function mqParse(q){ const st=String(q.q||'');
+  if(Array.isArray(q.choices)&&q.choices.length&&q.answer!=null) return {stem:st,ch:q.choices,a:+q.answer};
+  const i=st.search(/[①-⑩]/);
+  if(i>0){ const ch=st.slice(i).split(/[①-⑩]/).map(x=>x.trim()).filter(Boolean), a=MQN.indexOf(String(q.a||'').trim()[0]); if(ch.length>=2&&a>=0&&a<ch.length) return {stem:st.slice(0,i).trim(),ch,a}; }
+  if(q.t==='O/X'){ const a=String(q.a||'').trim().toUpperCase()[0]; if(a==='O'||a==='X') return {stem:st,ch:['O','X'],a:a==='O'?0:1,ox:true}; }
+  return {stem:st,ch:null,a:null}; }
+const mqRes=r=>r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>')+(r.self?' <span class="mu" style="font-size:11px">(자기 채점)</span>':''):'';
+const mqMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
+function mqExp(q,P){ return `<div style="margin:3px 0 4px 16px;font-size:12.5px"><b class="am">정답: ${P.ch?(P.ox?'':MQN[P.a]+' ')+escC(P.ch[P.a]):escC(q.a)}</b><div class="mu">${escC(q.why||'')}</div></div>`; }
+function mqItem(mid,q,i){ const k='mq:'+mid+':'+i, P=mqParse(q), r=mqFirst(k), ka=escA(k);
+  const btn=P.ch?`<div style="display:flex;flex-direction:${P.ox?'row':'column'};gap:4px;margin:3px 0 0 16px">${P.ch.map((c,j)=>`<button class="sbtn mqb" data-ch="${ka}" data-i="${j}" ${r?'disabled':''} style="text-align:left;white-space:normal;min-height:44px;${P.ox?'min-width:64px;text-align:center;':''}${r?mqMark(j,P.a,r.choice):''}">${P.ox?escC(c):MQN[j]+' '+escC(c)}</button>`).join('')}</div>`
+    :(r?'':`<div style="margin:3px 0 0 16px;display:flex;flex-wrap:wrap;gap:4px" data-mqa="${ka}"><button class="sbtn mqr" data-mqr="${ka}" style="min-height:44px">먼저 답을 떠올리고 → 답 보기</button></div>`);
+  return `<div class="mqi" style="margin:6px 0"><div><span class="mu">Q${i+1} [${escC(q.t||'')}]</span> ${escC(P.stem)} <span data-res="${ka}" style="font-size:12px">${mqRes(r)}</span></div>${btn}<div data-mqx="${ka}">${r?mqExp(q,P):''}</div></div>`; }
+function mqFind(k){ const m=String(k).match(/^mq:(.+):(\d+)$/); if(!m) return null; const mod=eduAll().find(x=>x.id===m[1]); const q=mod&&(mod.quiz||[])[+m[2]]; return q?{mod:m[1],qi:+m[2],q,P:mqParse(q)}:null; }
+function mqLog(k,F,choice,ok,self){ if(mqFirst(k)) return false; EDQ.push({date:eduKst(),mod:F.mod,qi:F.qi,choice,ok,self:self?1:0,ts:new Date().toISOString()});
+  if(EDQ.length>3000) EDQ=EDQ.slice(-3000); eduPut(MQK,EDQ); return true; }
 function eduModule(m){
   const esc=escC;   // 바깥 esc 는 Index 의 top-level const 라 globalThis 에 없음(10/17 STUDY 멈춤 원인) → 바깥에서 감싼 escC 사용
   const lvl='★'.repeat(m.level||1)+'☆'.repeat(Math.max(0,3-(m.level||1)));
@@ -78,7 +108,7 @@ function eduModule(m){
      ${sec('쉬운 숫자 예시',m.example?`<div>${esc(m.example)}</div>`:'')}
      ${m.today?sec('오늘 시장에서',`<div>${esc(m.today.text)}</div>${m.today.keys&&m.today.keys.length?`<div data-live="${escA(m.today.keys.join(','))}" style="font-size:12px;margin-top:2px">${eduChips(m.today.keys)}</div>`:''}`):''}
      ${sec('흔한 실수',ul(m.mistakes))}
-     ${sec('확인문제 <span class="mu" style="font-size:11px">— 눌러서 정답</span>',(m.quiz||[]).map((q,i)=>`<details style="margin:3px 0"><summary style="cursor:pointer"><span class="mu">Q${i+1} [${esc(q.t)}]</span> ${esc(q.q)}</summary><div style="margin:2px 0 4px 16px"><b class="am">정답: ${esc(q.a)}</b><div class="mu" style="font-size:12.5px">${esc(q.why)}</div></div></details>`).join(''))}
+     ${sec('확인문제 <span class="mu" style="font-size:11px">— 골라서 채점 · 고르기 전엔 정답이 화면에 없음 · 첫 응답만 기록</span>',(m.quiz||[]).map((q,i)=>mqItem(m.id,q,i)).join(''))}
     </div></details></div>`;
 }
 function eduView(){
@@ -343,10 +373,11 @@ function eduSyncPayload(){
   const apt=Object.entries(APTS||{}).map(([k,v])=>[k,v&&v.ok?1:0,v&&v.t!=null?v.t:null,v&&v.at||null,v&&v.tz==='KST'?'K':'U']);   // 5번째: 날짜 기준 K=한국·U=옛 UTC
   const eng=(ENGS||[]).map(r=>[r.date,r.kind==='review'?'r':r.kind==='quiz'?'q':String(r.kind||''),r.idx,r.ok?1:0,r.ts?eduKst(r.ts):null]);   // 5번째: 푼 날(한국)
   const op=(OPS||[]).map(r=>[r.date,r.idx,r.result,r.ts?eduKst(r.ts):null]);
+  const quiz=(EDQ||[]).map(r=>[r.date,r.mod,r.qi,r.ok?1:0,r.choice,r.self?1:0]), qok=quiz.filter(x=>x[3]).length;   // 모듈 확인문제 (mt_quiz_log, req-dev-29f439ce) — date 는 한국 기준
   const sumE=k=>{ const a=(ENGS||[]).filter(r=>!k||r.kind===k), ok=a.filter(r=>r.ok).length; return `${ok}/${a.length}`; };
   const aok=apt.filter(x=>x[1]).length;
-  const head=`학습 기록 (터미널 STUDY · ${day} 보냄)\n- 커리큘럼 완료 모듈 ${Object.keys(EDONE||{}).length}개\n- 영어 단어 복습 ${sumE('review')} · 독해 퀴즈 ${sumE('quiz')} · 응답 날짜 ${new Set((ENGS||[]).map(r=>r.date)).size}일\n- 인적성 ${aok}/${apt.length}\n- OPIc 자기평가 ${op.length}회\n\n`;
-  const raw=JSON.stringify({v:2,tz:'KST',sent:day,done:EDONE||{},apt,eng,op});
+  const head=`학습 기록 (터미널 STUDY · ${day} 보냄)\n- 커리큘럼 완료 모듈 ${Object.keys(EDONE||{}).length}개\n- 영어 단어 복습 ${sumE('review')} · 독해 퀴즈 ${sumE('quiz')} · 응답 날짜 ${new Set((ENGS||[]).map(r=>r.date)).size}일\n- 인적성 ${aok}/${apt.length}\n- 모듈 확인문제 ${qok}/${quiz.length}\n- OPIc 자기평가 ${op.length}회\n\n`;
+  const raw=JSON.stringify({v:2,tz:'KST',sent:day,done:EDONE||{},apt,eng,op,quiz});
   return {day,head,body:head+'```json\n'+raw+'\n```\n\n(기록 데스크 → reports/study_progress 반영·평가 데스크 채점용. 금액·건강 정보 없음)'};
 }
 function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-bot/pb-private/issues/new?title='+encodeURIComponent('학습기록 '+P.day);
@@ -355,7 +386,7 @@ function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-b
   const go=()=>{ window.open(base+'&body='+encodeURIComponent(P.head+'(아래에 붙여넣기)\n\n'),'_blank'); if(m) m.textContent='기록이 길어서 클립보드에 복사했어 — 열린 창 본문에 길게 눌러 붙여넣고 [Submit]'; };
   try{ navigator.clipboard.writeText(P.body).then(go,()=>{ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); }); }catch(e){ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); } }
 function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync'); if(b) b.onclick=eduSync; },0);
-  const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length;
+  const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length+(EDQ||[]).length;
   return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:12.5px"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
 { const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
 </script>
