@@ -78,12 +78,13 @@ def parse_issue(title: str, body: str | None) -> dict | None:
         q = QUIZ_RE.match(line)
         if q:
             ans = q.group(2).strip()
-            if re.fullmatch(r"[0-3]", ans):
-                out["quiz"].append((q.group(1), int(ans)))
+            idx = re.fullmatch(r"([0-3])\s*(?:\)|번)?", ans)   # '3'·'3)'(텔레그램 보기 표기)·'3번'
+            if idx:
+                out["quiz"].append((q.group(1), int(idx.group(1))))
             elif len(ans) >= 2 and not ans.startswith("<") and not ans.isdigit() and (_TEXT_ANS.search(ans) or re.search(r"\d", ans)):
                 out["quiz"].append((q.group(1), ans))       # 문장 답 → grade 에서 선택지로 해석
-            elif not ans.isdigit():
-                out["bad"].append(line)   # 'quiz H2-b3 <0~3>' 처럼 번호를 안 바꾼 줄
+            else:
+                out["bad"].append(line)   # '<0~3>' 그대로·범위 밖 번호('4'·'10') — 조용히 버리지 않는다(STANDARD §3)
             continue
         if line.lower().startswith("quiz"):
             out["bad"].append(line)   # 'quiz H2-b3 <0~3>' 처럼 번호를 안 바꾼 줄

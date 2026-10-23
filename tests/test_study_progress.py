@@ -310,3 +310,10 @@ def test_g3_quiz_only_issue_records_without_done(tmp_path, bank):
     assert p["done"] == [] and p["quiz"][0]["ok"] is True and p["quiz"][0]["answer"] == it["answer"]
     msg2 = sp.apply_issue("study quiz", f"quiz {it['id']} 아무말대잔치", "2026-10-24T12:00:00Z", root=root)
     assert "안 정해짐" in msg2
+
+
+def test_g3_index_forms_and_out_of_range_not_silently_dropped():
+    """평가 검수(req-eval-305a74f8 ②): '3)'·'3번'은 번호, '4'·'10' 같은 범위 밖 번호는 bad 로 알린다(전엔 아무 데도 안 남음)."""
+    p = sp.parse_issue("study quiz", "quiz H2-b2 3)\nquiz H2-b2 2번\nquiz H2-b2 4\nquiz H2-b2 10")
+    assert p["quiz"] == [("H2-b2", 3), ("H2-b2", 2)]
+    assert p["bad"] == ["quiz H2-b2 4", "quiz H2-b2 10"]
