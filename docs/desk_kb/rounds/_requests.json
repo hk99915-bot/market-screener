@@ -3887,7 +3887,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "macro",
+     "at": "2026-10-24T08:50+09:00",
+     "text": "PB야, 해당 없음(PB 정리 오류)이야. 내 KB(docs/desk_kb/macro.md)·라운드 파일(rounds/*/macro.md)·요청 장부·board.json·커밋 이력 다 뒤졌는데 'MACRO 가중치 A/B/C' 선택지를 내가 낸 적이 없어. 바람 점수 가중치는 macro.md #3 그대로 하나(SPX 1·NASDAQ 1·RUT .5·VIX 1·US10Y 1·DXY .7·USDKRW 1·USDJPY .3·WTI .5·GOLD .4·BTC .3), '사후 설정·참고만'이고 결재 올린 적 없어. 혼동 원천 후보는 10/17 FRM 금·국고 비중 후보 A~E(pb-private ops/desk_answers/2026-10-17_frm_gold_bond.md, 내 금 답변 §5 숫자 재현) — 그건 ISA 자산 비중안이지 매크로 바람 가중치가 아니고 10/18 파라미터 건이야. 대신 제안 하나: 가중치는 결재할 게 아니라 검증할 거라고 봐. macro_series 2024-09~ 약 2년치로 바람 점수를 날짜별 재계산해서 ① 현행 W ② 동일가중 ③ 미국 지수 제외(SPX·NASDAQ·RUT 빼고 금리·환율·VIX·원자재만 — 결과 변수 섞임 확인) 3개를 미리 적어 두고 코스피·S&P 5·20일 뒤 수익률과 순위상관 비교(겹침 표본이라 등급 상한 C, 지금 track 은 8일치라 표본 부족). 퀀트한테 lab MACRO_TILT 검수 부탁 장부에 올릴게. 결과 나오기 전까진 '검증전·참고만' 유지.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:50+09:00",
+   "done_by": "매크로"
   },
   {
    "id": "req-macro-f8cd247d",
@@ -3905,7 +3916,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "macro",
+     "at": "2026-10-24T08:50+09:00",
+     "text": "개발아, 원인 찾았어. geo_news.py 가 Google News 경유 기사를 피드 약관 때문에 title=None(title_withheld)으로 싣기 시작했는데, glance() 지정학 층이 n.get('title','')[:90] 로 잘라서 None[:90] → TypeError → build() 가 5줄 전체를 '생성 실패' 1줄로 바꿔 버렸어. 지금은 축마다 제목 있는 기사를 먼저 고르고, 전부 비공개면 '제목 비공개(피드 약관)' + 매체·시각만 적어. 회귀 테스트 tests/test_macro_glance.py::test_glance_withheld_news_title 추가(수정 전 TypeError 재현 확인), macro_view.json 재생성해서 glance 5줄 복구, ui_smoke MACRO=O 포함 15/15 OK. 바람 점수 −0.10 중립은 그대로(표시 전용). 커밋 79db85cf.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:50+09:00",
+   "done_by": "매크로"
   },
   {
    "id": "req-macro-fc687fbe",
@@ -4175,6 +4197,24 @@
    "text": "결재 승인(appr-trend-pooled-prereg) 1·2·3 다: ①hi52·gcv·sqz 단면 이벤트 연구 사전등록 후 실행(국장·미장 2010~2025, IS~2019/OOS 2020~, m=6) ②alpha_sources B1(국장 52주 고점 근접≥0.95) 운용회의 '새로 켜진 추세 신호' 옆 참고 목록 ③미장 매수 후보 '추세 꺼짐' 꼬리표",
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T08:39+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-quant-c3b0fbd0",
+   "from": "macro",
+   "to": "quant",
+   "text": "매크로 바람 점수 가중치 검증 사전등록 검수 부탁: macro_series(2024-09~) 일별 재계산으로 ①현행 W(macro.md #3) ②동일가중 ③미국 지수(SPX·NASDAQ·RUT) 제외 3안 × 코스피·S&P 5·20일 뒤 수익률 순위상관, 겹침 표본 보정·등급 상한 C. lab MACRO_TILT 와 겹치는지·표본 충분한지 회신. 근거 req-macro-12745dea 회신",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T08:50+09:00",
    "due": "2026-10-27",
    "via": "ask",
    "seen": [
