@@ -18,6 +18,7 @@ docs/desk_kb/rounds/<date>/*.md 를 읽어
   python3 scripts/round_collect.py --date 2026-10-17 --apply
 
 라운드 파일 규약(LOOP.md): 1~5 항목 각 3줄 이내, 마지막 줄 `요청→<데스크>: …`.
+드릴(10/24 G1): 라운드 파일 `드릴: <id> <내 답>` 줄은 scripts/drill_grade.py 가 채점해 `## 드릴 표` 에 싣는다.
 응답 규약(이 스크립트가 추가): 요청을 받은 데스크는 자기 라운드 파일에 `처리→<요청 데스크>: …` 한 줄 — 그래야 장부가 닫힌다.
 """
 from __future__ import annotations
@@ -31,6 +32,9 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import drill_grade  # noqa: E402  (드릴 채점 — 교육 G1)
+
 ROUNDS_DIR = ROOT / "docs" / "desk_kb" / "rounds"
 SCOREBOARD = ROOT / "docs" / "desk_kb" / "_scoreboard.md"
 BOARD = ROOT / "ops" / "board.json"
@@ -323,6 +327,9 @@ def run(rnd: str, rounds_dir: Path, scoreboard: Path, board: Path, ledger_path: 
         except json.JSONDecodeError as e:
             out(f"감사 파일 JSON 오류 — 감사 열 '—' 처리: {audit_p} ({e})")
     new_sb, n_rows = append_scoreboard(sb_text, rnd, parsed, audit)
+    # 드릴 채점 (10/24 겸이 결재 G1, 교육): 라운드 파일 `드릴: <id> <내 답>` → content/drills 키로 채점 → `## 드릴 표`
+    drills = drill_grade.grade_round(rd, drill_grade.load_keys())
+    new_sb, n_drill = drill_grade.append_drill_table(new_sb, rnd, drills)
     ledger = json.loads(ledger_path.read_text(encoding="utf-8")) if ledger_path.exists() else {}
     new_ledger = update_ledger(ledger, rnd, parsed)
     bd = json.loads(board.read_text(encoding="utf-8"))
@@ -338,7 +345,9 @@ def run(rnd: str, rounds_dir: Path, scoreboard: Path, board: Path, ledger_path: 
     for p in parsed:
         for v in p.get("voc") or []:
             out(f"  VOC {p['desk']}: {v[:60]}")
-    out(f"  스코어보드 추가 {n_rows}줄 · 장부 열린 요청 {sum(r['status'] == 'open' for r in new_ledger['requests'])}건")
+    for r in drill_grade.drill_rows(rnd, drills):
+        out("  드릴 " + r)
+    out(f"  스코어보드 추가 {n_rows}줄 · 드릴 표 {n_drill}줄 · 장부 열린 요청 {sum(r['status'] == 'open' for r in new_ledger['requests'])}건")
     for r in new_ledger["requests"]:
         if r["status"] == "open":
             out(f"    - {r['id']} {r['from']}→{r['to']} 미처리 {r.get('pending_rounds', 0)}R: {r['text'][:50]}")

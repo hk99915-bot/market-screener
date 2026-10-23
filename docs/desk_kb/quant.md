@@ -68,4 +68,4 @@
 ## 10년차 기준 (2026-10-23 교육)
 - 체크리스트: ① 문턱은 연구 안 m 이 아니라 **주제 전체 시도 N** 으로 함께 보고(#13·#30), 새 팩터 주장은 t ≥ 3.0 `[논문: Harvey–Liu–Zhu 2016 RFS, #12]` ② 채택 전 Deflated Sharpe·과최적화 확률(PBO) 중 하나를 붙인다 `[논문-B: Bailey & López de Prado 2014(#5), Bailey et al. 2017 PBO]` [확인 필요: PBO 논문 서지(J. Comput. Finance), 2026-10-30] ③ 비용·용량·체결 가정과 OOS 기간을 §0 에 먼저 고정 `[교과서: CFA L2 Quant·AFML 11장]`
 - 격차: 감사 '중' 6건(2회 합 최다 — reports/audit/2026-10-17.json·2026-10-21.json, 등급 꼬리표 누락형)·시도 N 1150 중 등록 전 탐색 748(reports/studies/trial_log.md §0) — 탐색이 등록보다 많다.
-- 드릴: trial_log 전체 N 1150 일 때 Bonferroni α 와 accum_signals pen h20(t 3.47) 통과 여부는? **답:** α = 0.05/1150 ≈ 4.3e-5 → 양측 정규 문턱 z ≈ 4.09 → t 3.47 미통과. 연구 내 m 24(α 0.00208, z ≈ 3.08)로는 통과 — 등급은 그대로 두고 "주제 전체 N 기준 미통과"를 같은 줄에 병기한다.
+- 드릴 [quant-d1]: trial_log 전체 N 1150 일 때 Bonferroni α 와 accum_signals pen h20(t 3.47) 통과 여부는? — 답·채점 키 `content/drills/quant.json`(라운드 파일에 `드릴: quant-d1 <내 답>` 을 먼저 쓰고 열 것, round_collect 채점 · G1 10/24)
