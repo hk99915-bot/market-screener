@@ -3926,6 +3926,30 @@ function mgZoom(src){ if(!src) return; const o=document.createElement('div'); o.
 
 function mgProfClose(o){ if(o._key) document.removeEventListener('keydown',o._key); o.remove(); }
 function mgProfGo(o,k,d){ const L=((MG&&MG.profiles)||[]); if(L.length<2) return; const i=L.findIndex(p=>p.key===k), n=L[(i+d+L.length)%L.length]; mgProfClose(o); mgProf(n.key); }
+/* 🏢 조직도(10/24 겸이 "조직도도 그려줘") — docs/desk_kb/ORG.md(10/17 본부 구조) 그대로. 본부 대표는 소집·취합만, 지시권 없음. 노드 누르면 프로필(문서 위임 클릭). */
+const MG_ORG=[
+  ['투자전략본부','대표 CIO',['cio','alloc','macro','bonds','realestate','hf']],
+  ['리서치본부','대표 퀀트',['quant','analyst','derivs','data']],
+  ['리스크본부','대표 리스크',['frm','behavior']],
+  ['운영본부','대표 PM',['pm','ops','dev','scribe','uxui','maint']],
+  ['교육본부','대표 교육',['edu','eval']],
+  ['생활본부','대표 내무',['household','life']]];
+function mgOrgNode(k,big){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k)||{name:mgNm(k)}; const sz=big?64:48;
+  return `<div data-mgp="${esc(k)}" role="button" tabindex="0" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:0;width:${big?84:68}px">
+    <img src="${MG_IMG}${encodeURIComponent(k)}.png" alt="" loading="lazy" style="width:${sz}px;height:${sz}px;border-radius:38%;object-fit:cover;object-position:50% 22%;background:#222;border:1px solid var(--line)" onerror="this.style.visibility='hidden'">
+    <div style="font-size:11.5px;text-align:center;line-height:1.25;overflow-wrap:anywhere"><b>${esc(P.name||k)}</b>${P.age?`<span class="mu"> ${P.age}</span>`:''}</div></div>`; }
+function mgOrg(){
+  const box=(t,sub,ks)=>`<div style="border:1px solid var(--line);padding:8px;min-width:0"><div style="font-size:12.5px;color:var(--amber)"><b>${esc(t)}</b> <span class="mu" style="font-size:11px">${esc(sub)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${ks.map(k=>mgOrgNode(k)).join('')}</div></div>`;
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0 10px">
+      <div style="border:1px solid var(--amber);padding:6px 14px;font-size:13px"><b>겸이</b> <span class="mu" style="font-size:11px">결재권자</span></div>
+      <div style="width:1px;height:12px;background:var(--line)"></div>
+      ${mgOrgNode('pb',true)}<div class="mu" style="font-size:11px">창구·종합·추천</div>
+      <div style="width:1px;height:12px;background:var(--line)"></div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:8px">${MG_ORG.map(([t,s,ks])=>box(t,s,ks)).join('')}</div>
+    <div style="margin-top:8px">${box('독립 검증실','겸이 직속 · 어느 본부에도 안 속함 · 무편집 발행권',['verify','peer','audit'])}</div>
+    <details style="margin-top:8px"><summary class="mu" style="cursor:pointer;min-height:40px;display:flex;align-items:center;font-size:12px">프론트 · 미들 · 백 (기관 대응표)</summary>
+      <div style="font-size:12.5px;line-height:1.7;white-space:normal"><b>프론트</b>(판단·운용) PB·CIO·자산배분·매크로·채권·부동산·애널·퀀트·파생·HF<br><b>미들</b>(통제·측정) 리스크·행동·운영·PM·검증<br><b>백</b>(처리·기록·인프라) 데이터·개발·기록·내무·유지보수·UXUI<br><b>3선 방어</b>(독립) 감사·피어리뷰 (+검증)<br><b>지원</b> 교육·평가·LIFE</div></details>`;
+}
 /* 👥 프로필 — 카톡처럼 세로 전체 배경 + 아래쪽 프사·이름·상태메시지. 배경·프사를 한 번 더 누르면 원본(mgZoom).
    배경: assets/avatars/bg/<key>.jpg|png (없으면 profiles.json bg 그라디언트) · 데이터 msgr_feed.profiles */
 function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) return;
@@ -3981,7 +4005,7 @@ function mgEvents(items,chat){ const ev=(chat||[]).map(c=>({t:c.at||'',k:'chat',
   }
   ev.sort((a,b)=>String(a.t).localeCompare(String(b.t))); return ev; }
 function mgBub(who,to,txt,t,quote,mine){ return `<div class="mgb2${mine?' me':''}">${mgAv(who)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(who))}</b>${to?`<span class="ar">→</span>${esc(mgNm(to))}`:''}<span class="mgt">${esc(mgT(t).slice(11))}</span></div>${quote?`<div class="mgq">↳ ${esc(quote)}</div>`:''}<div class="mgbub">${esc(txt)}</div></div></div>`; }
-function seg0(S){ return [['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체'],['priv','🔒 비공개 사담'],['prof','👥 프로필']]
+function seg0(S){ return [['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체'],['priv','🔒 비공개 사담'],['prof','👥 프로필'],['org','🏢 조직도']]
     .map(([k,l])=>`<button class="${MGS===k?'on':''}" data-mgs="${k}">${esc(l)}</button>`).join(''); }
 function sel0(desks){ return `<select class="mgsel" id="mgsel" aria-label="누나 고르기"><option value="all">모든 누나</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`; }
 /* 🔒 비공개 사담방 — pb-private chat/private_chat.json. 10/23 겸이 "아티팩트를 터미널에 이식, 터미널 버전 하나로만" → 유일한 보는 곳. GAS = Code.gs getPrivate(PRIVATE_TOKEN), 공개 Pages = 이 기기 localStorage 토큰. */
@@ -4012,6 +4036,8 @@ function msgView(){
   const desks=[...new Set(MG.items.flatMap(x=>[x.from,x.to]))].sort((a,b)=>mgNm(a).localeCompare(mgNm(b),'ko'));
   const seg=seg0(S);
   if(MGS==='priv') return mgPrivView(seg,sel0(desks));
+  if(MGS==='org'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
+    return `<div class="grid"><div class="p c12"><h2>사내톡 · 🏢 조직도<small>docs/desk_kb/ORG.md · 본부는 묶음(상하 아님) · 얼굴 누르면 프로필</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgOrg()}</div></div></div>`; }
   if(MGS==='prof'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
     return `<div class="grid"><div class="p c12"><h2>사내톡 · 👥 프로필<small>${(MG.profiles||[]).length}명 · 사진 탭하면 크게</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgProfGrid()}</div></div></div>`; }
   const sel=sel0(desks);
