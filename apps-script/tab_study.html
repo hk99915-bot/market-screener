@@ -7,6 +7,8 @@ let EDU=null; const EDL={ms:null,rel:null,der:null,bnd:null}; const ENG={idx:nul
 const escA=s=>esc(s).replace(/"/g,'&quot;');
 function eduGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function eduPut(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+/* 날짜는 한국 기준(KST) — 10/23 겸이 "한국 날짜 기준으로 트래킹되게". 10/23 이전 인적성 at·완료일은 UTC 날짜로 저장돼 있음(하루 밀릴 수 있음) */
+function eduKst(t){ return new Date((t?Date.parse(t):Date.now())+9*36e5).toISOString().slice(0,10); }
 let EDONE=eduGet('mt_study_done',{}); let APTS=eduGet('mt_apt_score',{});
 const EDV=['edu','apt','eng'];
 function eduLoad(){
@@ -101,7 +103,7 @@ function eduView(){
 }
 function eduBind(){
   eduProg(); eduFillLive();
-  document.querySelectorAll('[data-mchk]').forEach(c=>c.onchange=()=>{ const id=c.dataset.mchk; if(c.checked) EDONE[id]=new Date().toISOString().slice(0,10); else delete EDONE[id]; eduPut('mt_study_done',EDONE); eduProg(); });
+  document.querySelectorAll('[data-mchk]').forEach(c=>c.onchange=()=>{ const id=c.dataset.mchk; if(c.checked) EDONE[id]=eduKst(); else delete EDONE[id]; eduPut('mt_study_done',EDONE); eduProg(); });
   document.querySelectorAll('[data-goto]').forEach(a=>a.onclick=e=>{ e.preventDefault(); const d=document.getElementById('mod-'+a.dataset.goto); if(d){ d.open=true; d.scrollIntoView({behavior:'smooth',block:'start'}); } });
   document.querySelectorAll('[data-trk]').forEach(b=>b.onclick=()=>{ const d=document.getElementById('trk-'+b.dataset.trk); if(d) d.scrollIntoView({behavior:'smooth',block:'start'}); });
   document.querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{ document.querySelectorAll('details[id^="mod-"]').forEach(d=>d.open=b.dataset.exp==='1'); });
@@ -128,7 +130,7 @@ function aptBind(items){
     APTT={k,t0,iv:setInterval(()=>{ if(!document.body.contains(tv)){ clearInterval(APTT&&APTT.iv); APTT=null; return; } const s=Math.round((Date.now()-t0)/1000), lim=(byK[k]||{}).time_sec||60; tv.textContent=s+'초'; tv.style.color=s>lim?'var(--dn)':''; },500)}; }; });
   document.querySelectorAll('[data-ch]').forEach(b=>{ if(!byK[b.dataset.ch]) return; b.onclick=()=>{ const k=b.dataset.ch, x=byK[k]; if(!x) return; const i=+b.dataset.i;   // 영어 복습·독해(.engb)는 engBind 가 따로 묶음
     let t=null; if(APTT&&APTT.k===k){ const st=stopT(); t=st[1]; }
-    const ok=i===x.a; APTS[k]={ok,t:t!=null?t:(APTS[k]||{}).t??null,at:new Date().toISOString().slice(0,10)}; eduPut('mt_apt_score',APTS);
+    const ok=i===x.a; APTS[k]={ok,t:t!=null?t:(APTS[k]||{}).t??null,at:eduKst(),tz:'KST'}; eduPut('mt_apt_score',APTS);
     document.querySelectorAll(`[data-ch="${k}"]`).forEach(o=>{ const j=+o.dataset.i; o.style.borderColor=j===x.a?'var(--up)':(j===i?'var(--dn)':''); });
     const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
     const d=b.closest('[data-apt]').querySelector('details'); if(d) d.open=true; aptTally(); }; });
@@ -337,14 +339,14 @@ function engView(){
 /* 📤 학습 기록 보내기 (10/23 겸이 "폰으로 맨날 했는데 ㅠㅠ") — STUDY 기록은 이 폰 localStorage 에만 쌓여 평가 데스크가 0 으로 봤다.
    MY 탭 회고와 같은 길: pb-private 이슈 '학습기록 YYYY-MM-DD' 작성 창을 열고(겸이가 제출) 기록 데스크가 다음 슬롯에 걷어 평가 데스크에 넘긴다. 토큰·서버 경유 없음, 비율·횟수만. */
 function eduSyncPayload(){
-  const day=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
-  const apt=Object.entries(APTS||{}).map(([k,v])=>[k,v&&v.ok?1:0,v&&v.t!=null?v.t:null,v&&v.at||null]);
-  const eng=(ENGS||[]).map(r=>[r.date,r.kind==='review'?'r':r.kind==='quiz'?'q':String(r.kind||''),r.idx,r.ok?1:0]);
-  const op=(OPS||[]).map(r=>[r.date,r.idx,r.result]);
+  const day=eduKst();
+  const apt=Object.entries(APTS||{}).map(([k,v])=>[k,v&&v.ok?1:0,v&&v.t!=null?v.t:null,v&&v.at||null,v&&v.tz==='KST'?'K':'U']);   // 5번째: 날짜 기준 K=한국·U=옛 UTC
+  const eng=(ENGS||[]).map(r=>[r.date,r.kind==='review'?'r':r.kind==='quiz'?'q':String(r.kind||''),r.idx,r.ok?1:0,r.ts?eduKst(r.ts):null]);   // 5번째: 푼 날(한국)
+  const op=(OPS||[]).map(r=>[r.date,r.idx,r.result,r.ts?eduKst(r.ts):null]);
   const sumE=k=>{ const a=(ENGS||[]).filter(r=>!k||r.kind===k), ok=a.filter(r=>r.ok).length; return `${ok}/${a.length}`; };
   const aok=apt.filter(x=>x[1]).length;
   const head=`학습 기록 (터미널 STUDY · ${day} 보냄)\n- 커리큘럼 완료 모듈 ${Object.keys(EDONE||{}).length}개\n- 영어 단어 복습 ${sumE('review')} · 독해 퀴즈 ${sumE('quiz')} · 응답 날짜 ${new Set((ENGS||[]).map(r=>r.date)).size}일\n- 인적성 ${aok}/${apt.length}\n- OPIc 자기평가 ${op.length}회\n\n`;
-  const raw=JSON.stringify({v:1,sent:day,done:EDONE||{},apt,eng,op});
+  const raw=JSON.stringify({v:2,tz:'KST',sent:day,done:EDONE||{},apt,eng,op});
   return {day,head,body:head+'```json\n'+raw+'\n```\n\n(기록 데스크 → reports/study_progress 반영·평가 데스크 채점용. 금액·건강 정보 없음)'};
 }
 function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-bot/pb-private/issues/new?title='+encodeURIComponent('학습기록 '+P.day);
