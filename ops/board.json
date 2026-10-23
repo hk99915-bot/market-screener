@@ -4465,6 +4465,123 @@
       ],
       "notes": "10/24 겸이 결재 신설. 계획 = posrisk.md '첫 산출물 계획'(매일 16:50 북별 표 / 매주 사용률 추이·HF 자기 점검 대조). 실행은 PB 승인 후. ISA 는 비공개에서 계산, 공개엔 이탈 %p 만. 코드는 승인 뒤.",
       "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-25",
+      "files": [
+        "docs/desk_kb/frm.md"
+      ],
+      "depends_on": [
+        "appr-frm-agenda-a"
+      ],
+      "notes": "10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-frm-cb131a3e (due 2026-10-25). 결재 항목 appr-frm-agenda-a(완료).",
+      "id": "impl-frm-stress-july",
+      "title": "리스크 구속 스트레스 시나리오를 7월 실측(개인 북 −15.3%, 바닥 집행 시 −9.8%)으로 교체 — KB·코드·리포트 반영",
+      "owner": "리스크",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-27",
+      "files": [
+        "apps-script/*.html",
+        "scripts/ui_smoke.py"
+      ],
+      "depends_on": [
+        "appr-uxui-top10-next"
+      ],
+      "notes": "10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-dev-f2523553 (due 2026-10-27). 결재 항목 appr-uxui-top10-next(완료).",
+      "id": "impl-uxui-top10-next",
+      "title": "UXUI 남은 3건(첫 화면 💬 가림·표 첫 열 고정·글자 4단계 규칙) 구현 + ui_smoke",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-25",
+      "files": [
+        "screener/sectors.py",
+        "tests/test_sectors.py"
+      ],
+      "depends_on": [
+        "appr-toss-sectors-switch"
+      ],
+      "notes": "10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-dev-6f153023 (due 2026-10-25). 결재 항목 appr-toss-sectors-switch(완료).",
+      "id": "impl-sectors-official-switch",
+      "title": "screener/sectors.OFFICIAL_LIMITS=True 전환 — 병행 필드(semi_ex_new·sector_w_new) 차이 먼저 확인·기록, 테스트",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-25",
+      "files": [
+        "apps-script/tab_duel.html"
+      ],
+      "depends_on": [
+        "appr-pick-gate-start"
+      ],
+      "notes": "10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-behavior-3ea7111b (due 2026-10-25). 결재 항목 appr-pick-gate-start(완료).",
+      "id": "impl-pick-gate-start",
+      "title": "대결 '나' 게이트 ①계획 칸 강제 ②당일 쿨다운 — 10/23 19:00 제출분부터 적용(개발 협조 필요시 장부)",
+      "owner": "행동",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-25",
+      "files": [
+        "docs/desk_kb/hf.md"
+      ],
+      "depends_on": [
+        "appr-hf-independence"
+      ],
+      "notes": "10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-hf-efebb666 (due 2026-10-25). 결재 항목 appr-hf-independence(완료).",
+      "id": "impl-hf-independence",
+      "title": "HF 세 북 독립성 규칙 3개(같은 날 같은 방향: ①같은 종목 금지 ②재량 북 순베타 ≤ 열린 리스크 절반 ③두 북이 안 쓰는 데이터 1개 필수) — 규칙·코드 반영",
+      "owner": "HF",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-27",
+      "files": [
+        "docs/desk_kb/edu.md"
+      ],
+      "depends_on": [
+        "appr-edu-g1-g4"
+      ],
+      "notes": "10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-edu-9af40f50 (due 2026-10-27). 결재 항목 appr-edu-g1-g4(완료).",
+      "id": "impl-edu-g1-g4",
+      "title": "교육 G1~G4 진행(드릴 답 별도 키 파일·채점 / 검증기 실패 승격 시점 / 퀴즈 응답 텔레그램 수집 / 데스크 블라인드)",
+      "owner": "교육",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-25",
+      "files": [],
+      "depends_on": [],
+      "notes": "10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-data-7d1a8334 (due 2026-10-25). 보드에 대응 appr-* 항목 없음(요청 장부로만 승인 전달).",
+      "id": "impl-krx-deriv-probe",
+      "title": "KRX 파생 데이터 — 기존 KRX_API_KEY 로 파생 엔드포인트 시험(probe), 실패 시에만 겸이에게 서비스 신청 요청",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public"
     }
   ]
 }
