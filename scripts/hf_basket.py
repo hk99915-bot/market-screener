@@ -93,6 +93,10 @@ def build(b: dict, risk: float = RISK_DEF, top_n: int = TOP_N) -> dict:
 
 
 def open_basket(b: dict, risk: float = RISK_DEF, now: datetime | None = None) -> dict:
+    now = now or datetime.now(H.KST)
+    mins = now.hour * 60 + now.minute
+    if now.weekday() < 5 and 9 * 60 <= mins < 15 * 60:
+        raise SystemExit("바스켓 진입은 15:00 이후(종가 근처)만 — 연구 정의 = 종가 리밸런싱. 10/23 장중 −2% 한복판 진입 → 반등 정면으로 맞은 반성")
     bk = b.setdefault("baskets", {"open": [], "closed": []})
     if bk["open"]:
         raise SystemExit("열린 바스켓이 있음 — 21거래일 뒤 리밸런싱(중복 진입 금지)")
@@ -102,7 +106,6 @@ def open_basket(b: dict, risk: float = RISK_DEF, now: datetime | None = None) ->
     if H.open_risk(b) + risk > H.RISK_ALL + 1e-12:
         raise SystemExit(f"열린 리스크 {H.open_risk(b) * 100:.2f}% + 바스켓 {risk * 100:.2f}% > 한도 {H.RISK_ALL * 100:.2f}%")
     x = build(b, risk)
-    now = now or datetime.now(H.KST)
     x.update({"id": f"BK-{now:%Y%m%d}", "name": "바스켓 Q1b", "kind": "Q1b", "src": SRC, "created": now.strftime("%Y-%m-%d %H:%M"), "asof": H.deriv_last()["date"],
               "days": 0, "hold": HOLD, "stop": -risk, "cost_in": round(SIDE_COST * x["gross"], 6), "pnl": round(-SIDE_COST * x["gross"], 6)})
     bk["open"].append(x)

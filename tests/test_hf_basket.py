@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+from datetime import datetime
+
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -9,6 +11,7 @@ import hf_basket as B  # noqa: E402
 import hf_book as H  # noqa: E402
 
 N = 40
+AFTER = datetime(2026, 10, 23, 15, 25, tzinfo=H.KST)
 VOLS = {f"{i:06d}": 0.005 + i * 0.001 for i in range(N)}      # 000000 = 최저 변동, 000039 = 최고
 PX = {c: 10000.0 for c in VOLS}
 D = {"date": "2026-10-23", "k200": 840.0, "fut": 840.0, "iv": 0.5}
@@ -51,15 +54,15 @@ def test_held_codes_excluded():
 
 def test_open_counts_risk_and_cost():
     b = _b()
-    x = B.open_basket(b, risk=0.004)
+    x = B.open_basket(b, risk=0.004, now=AFTER)
     assert H.open_risk(b) == pytest.approx(0.004) and x["pnl"] == pytest.approx(-B.SIDE_COST * x["gross"], abs=2e-6)
     with pytest.raises(SystemExit, match="열린 바스켓"):
-        B.open_basket(b)
+        B.open_basket(b, now=AFTER)
 
 
 def test_pnl_sign_and_stop():
     b = _b()
-    B.open_basket(b, risk=0.004)
+    B.open_basket(b, risk=0.004, now=AFTER)
     for c in ("000036", "000037", "000038", "000039"):
         PX[c] = 9000.0                                                  # 숏 다리 −10% → 이익
     assert B.mark(b) == [] and b["baskets"]["open"][0]["pnl"] > 0
@@ -71,7 +74,7 @@ def test_pnl_sign_and_stop():
 
 def test_time_exit_after_21_trading_days():
     b = _b()
-    B.open_basket(b)
+    B.open_basket(b, now=AFTER)
     for i in range(B.HOLD):
         D["date"] = f"2026-11-{i + 1:02d}"
         out = B.mark(b)
@@ -80,6 +83,11 @@ def test_time_exit_after_21_trading_days():
 
 def test_book_mark_and_show_include_basket():
     b = _b()
-    B.open_basket(b)
+    B.open_basket(b, now=AFTER)
     H.mark(b)
     assert any("바스켓 BK-" in x for x in H.show(b)) and "pnl" in b["limits"]
+
+
+def test_intraday_entry_blocked():
+    with pytest.raises(SystemExit, match="15:00 이후"):
+        B.open_basket(_b(), now=datetime(2026, 10, 23, 12, 10, tzinfo=H.KST))
