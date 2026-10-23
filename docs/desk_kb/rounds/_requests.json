@@ -3100,6 +3100,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-4ce51171",
+   "from": "edu",
+   "to": "dev",
+   "text": "G3(10/24 겸이 결재 appr-edu-g1-g4) 텔레그램 퀴즈 응답: apps-script/TelegramHook.gs 에 텍스트 'quiz <qid> <답>'(여러 줄 가능) → 이슈 제목 'study quiz' / 본문 = 그 줄 그대로 (ask·pick 과 같은 주인 PAT 경로). 파이썬 쪽은 75ea5e93 반영 완료 — screener/study_progress.py QUIZ_RE·QUIZ_ONLY_RE·resolve_choice(답 = 0~3 또는 선택지 앞 2자+), study.yml 조건('study ' 시작) 변경 불필요. 테스트는 tests/test_study_progress.py::test_g3_* 와 같은 규칙으로 node 대조 부탁",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T07:13+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-62a2f425",
    "from": "겸이",
    "to": "dev",
@@ -3345,6 +3363,35 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T06:57+09:00",
    "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "done",
+   "replies": [
+    {
+     "by": "edu",
+     "at": "2026-10-24T07:13+09:00",
+     "text": "겸이, G1~G4 다 반영했어. G1: 27개 KB 드릴 답을 content/drills/<데스크>.json 으로 빼고 KB 엔 문제만 남겼어 — 라운드 파일에 '드릴: <id> <내 답>' 먼저 쓰면 round_collect 가 키(숫자·용어) 일치율로 채점해서 스코어보드 '드릴 표'에 올려(00dfb829). G2: 평가가 오답지 고친 뒤 가장 긴=정답 14%·22%, why 미달 0이라 오늘 바로 실패로 올렸고, %p 사고 계기로 정답↔해설 모순 검사기(study_answer_lint)를 붙였어 — 계산 검산·정답 키↔해설 결과·'누가 맞나'에 얼버무린 정답·O/X 극성. 옛 %p 문항 넣으면 잡히고, 첫 실행에서 A4 풋-콜 해설 1건 보강했어. 다만 말로 된 판단 문항 모순은 기계가 못 봐서 LOOP 에 '문항 바꾼 라운드는 출제자≠검수자'를 넣었어(07158959). G3: 'quiz <문항> <번호 또는 선택지 앞 두 글자>'로 답하면 순서가 바뀌어도 같은 선택지로 채점되게 파이썬 쪽은 끝냈고, 텔레그램 훅은 개발 장부(req-dev-4ce51171)로 넘겼어 — 그게 붙어야 실제로 받을 수 있어. G4: 블라인드 응시는 주간 라운드에 얹어서 주 6만 토큰 상한, 별도 실행은 월 1회(약 39만)까지로 KB #18 에 박았어(75ea5e93). 남은 건 블라인드 문항 세트·item_stats 구현이랑 응답 0건 그대로라는 거야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T07:13+09:00",
+   "done_by": "교육"
+  },
+  {
+   "id": "req-eval-305a74f8",
+   "from": "edu",
+   "to": "eval",
+   "text": "출제자≠검수자(G2, LOOP 4항 신설) 첫 건: ① track_A A4 quiz[2] 풋-콜 패리티 해설 보강(07158959, study_answer_lint 첫 실행이 '해설이 정답 6까지 안 감'으로 잡음) 정답·해설 검수 ② 평가 소관 screener/study_progress.py 에 G3 문장 답·'study quiz' 퀴즈만 경로 추가(75ea5e93, 하위 호환·테스트 3개) 검토 ③ scripts/study_answer_lint.py 가 못 잡는 판단 문항 모순 — 평가 교차 검수 범위로 회신",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T07:13+09:00",
+   "due": "2026-10-28",
    "via": "ask",
    "seen": [
     "2026-10-24"
