@@ -43,3 +43,16 @@ def test_build_merges_round_lines_as_proxy(tmp_path):
     assert dev["replies"][0]["voc"] is False and dev["replies"][0]["by"] == "dev"
     assert dev["replies"][0]["text"].startswith("큰 개발")
     json.dumps(f, ensure_ascii=False)
+
+
+def test_chat_line_limits_and_feed():
+    L, c = ask.chat(_ledger(), "퀀트", "데이터", "  백필 고마워  오늘도 숫자 맞춰줘서 ", NOW)
+    assert c["by"] == "quant" and c["to"] == "data" and c["text"] == "백필 고마워 오늘도 숫자 맞춰줘서"
+    for bad in ("", "x" * 161):
+        try:
+            ask.chat(_ledger(), "퀀트", None, bad, NOW)
+            assert False
+        except ValueError:
+            pass
+    f = msgr_feed.build(L, Path("/nonexistent"), NOW)
+    assert f["chat"][-1]["by"] == "quant"

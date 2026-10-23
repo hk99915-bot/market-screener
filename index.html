@@ -3540,6 +3540,7 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 .mgb2 .mgbub{display:inline-block;max-width:100%;background:#151515;border:1px solid var(--line);border-radius:2px 12px 12px 12px;padding:7px 10px;font-size:13.5px;line-height:1.6;color:var(--txt);overflow-wrap:anywhere}
 .mgb2.me{flex-direction:row-reverse;text-align:right}
 .mgb2.me .mgbub{border-radius:12px 2px 12px 12px;border-color:var(--amber-dim);text-align:left}
+.mgb2.chat .mgbub{background:none;border-style:dashed;color:var(--muted)}
 .mgt{font-size:10.5px;color:var(--muted);margin-left:6px}
 .mgq{font-size:11.5px;color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
 .mgsys{text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0;white-space:normal}
@@ -3559,7 +3560,7 @@ function mgT(s){ return String(s||'').replace('T',' ').slice(0,16); }
 function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||(st==='live'&&x.status!=='done')||(st==='voc'&&(x.replies||[]).some(p=>p.voc))||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk)); }
 /* 대화 흐름(10/23 겸이 "대화가 이어진다는 느낌이 안 드네"): 요청·답장·완료를 시각순 한 줄 타임라인으로 — 오래된 것 위, 최신 아래(톡방처럼 맨 아래로 스크롤).
    답장 말풍선엔 원 요청 한 줄 인용. 같은 문장 반복(대행 기록이 요청을 되풀이)은 접어서 시스템 줄 1개로. — 순수 함수(테스트용) */
-function mgEvents(items){ const ev=[];
+function mgEvents(items,chat){ const ev=(chat||[]).map(c=>({t:c.at||'',k:'chat',c}));
   for(const x of items||[]){ const t0=x.opened_at||x.opened||'';
     ev.push({t:t0,k:'req',x});
     const seen=new Set([String(x.text||'').slice(0,40)]);
@@ -3578,7 +3579,8 @@ function msgView(){
     .map(([k,l])=>`<button class="${MGS===k?'on':''}" data-mgs="${k}">${esc(l)}</button>`).join('');
   const sel=`<select class="mgsel" id="mgsel" aria-label="누나 고르기"><option value="all">모든 누나</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`;
   let last='', feed='';
-  for(const e of mgEvents(items)){ const d=String(e.t).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
+  for(const e of mgEvents(items,(MG.chat||[]).filter(c=>MGS!=='done'&&(MGD==='all'||c.by===MGD||c.to===MGD)))){ const d=String(e.t).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
+    if(e.k==='chat'){ feed+=`<div class="mgb2 chat">${mgAv(e.c.by)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(e.c.by))}</b>${e.c.to?`<span class="ar">→</span>${esc(mgNm(e.c.to))}`:''}<span class="mgt">${esc(mgT(e.t).slice(11))} · 사담</span></div><div class="mgbub">${esc(e.c.text)}</div></div></div>`; continue; }
     const q=String(e.x.text||'').slice(0,46)+(String(e.x.text||'').length>46?'…':'');
     if(e.k==='req') feed+=mgBub(e.x.from,e.x.to,e.x.text,e.t,'',e.x.from==='겸이');
     else if(e.k==='voc') feed+=mgBub(e.p.by,e.x.from,e.p.text,e.t,`${mgNm(e.x.from)}: ${q}`,false);
@@ -3590,7 +3592,7 @@ function msgView(){
     const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
   return `<div class="grid"><div class="p c12"><h2>사내톡<small>${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
     <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
-    <p class="mgsum">오래된 대화가 위, 최신이 아래 · ↳ = 어떤 요청에 대한 답장인지 · 📝 진행자 기록은 누나 본인 말 아님</p>
+    <p class="mgsum">오래된 대화가 위, 최신이 아래 · ↳ = 어떤 요청에 대한 답장인지 · 📝 진행자 기록은 누나 본인 말 아님 · 점선 = 사담(잡담, 업무 근거 아님)</p>
     <div class="mgbox" id="mgbox">${feed||'<div class="mgempty">여기엔 아직 없어</div>'}</div>
   </div></div></div>`;
 }

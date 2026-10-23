@@ -65,7 +65,8 @@ def build(ledger: dict, rounds: Path, now: datetime) -> dict:
     st = {}
     for x in items:
         st[x["status"]] = st.get(x["status"], 0) + 1
-    return {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st,
+    chat = sorted(ledger.get("chat", []), key=lambda c: c.get("at") or "")[-200:]   # 사담(ask.py --chat) 최근 200줄
+    return {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st, "chat": chat,
             "n_reply": sum(1 for x in items if x["replies"]),
             "n_voc": sum(1 for x in items for p in x["replies"] if p.get("voc")),
             "items": items}
