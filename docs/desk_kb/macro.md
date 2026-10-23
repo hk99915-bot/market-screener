@@ -40,9 +40,16 @@
 ## 우리 연구와의 차이
 17. [자체연구-검증전] 매크로 바람과 코스피: 2026-10-16 바람 중립(+0.10)인데 코스피 20일 −15.2%(S&P +1.4%) — 매크로 점수는 **한국 고유 충격(업종 쏠림)을 못 잡는다**. 바람은 참고, 레짐(C)이 상한. 바람 점수의 예측력은 lab MACRO_TILT 대기(데이터 부족). (출처: `reports/macro_view.json`, registry `macro_wind`)
 
+## 원자재 · 지정학 역량 (2026-10-23 겸이 "지정학 뷰 추가 · 원자재 트래킹 강화")
+22. [자체연구-검증전] 원자재 계기판 `screener/commodities.py` → `reports/commodities.json`(화면 MARKET › MACRO '원자재'). 18개 + 파생 4: 에너지(WTI·브렌트·RBOB·난방유·헨리허브·TTF), 비철(구리·알루미늄·아연·DBB·COPX·PICK), 희토류·전략광물(REMX·MP·LIT), 귀금속(금·은·백금). 지표마다 수준·1주(5거래일)·1개월(21거래일)·52주 위치·한국 업종 연결(설명, 권유 아님). **표시 전용 — 바람 점수(#3) 제외.**
+23. [교과서] 3-2-1 크랙 = (2×RBOB×42 + 난방유×42 − 3×WTI) ÷ 3 $/bbl — 미 걸프 정제마진 대용. 한국 정유의 기준은 싱가포르 복합마진(무료 소스 없음 → **미확인**), 그래서 '방향'만. 스프레드·마진·비율(크랙·브렌트−WTI·금/은·구리/금)은 % 대신 **단위 차이**로 읽는다(0 근처 분모 왜곡).
+24. [현업 관행] 미확인 처리: 니켈(LME 무료 없음·JJN 단종·NI=F 없음), 아연 ZNC=F(호가 정체 — 최근 20일 고유값 ≤3이면 자동 미확인), JKM·희토류 산화물 현물(유료). 프록시는 이름에 'ETF/대용'을 붙이고, 7일 넘게 묵은 값도 미확인.
+25. [자체연구-검증전] 지정학 축 `reports/views/geopolitics.json`(데스크 작성, Actions 안 씀): 호르무즈·홍해·러-우 가스·희토류 수출통제·반도체 수출통제·대만해협·한반도·관세 232 — 축마다 상태·전달 경로·관찰 지표(commodities 키)·트리거, 외부 자료 3칸(STANDARD §4). 속보 감지는 `events.py` PAT_BIG '해상 요충지'·'핵심광물 수출통제'. 운용회의 D-day: **2026-11-10**(중국 희토류 통제 유예 만료)·11-27(갈륨·게르마늄 유예).
+26. [현업 관행] 지정학 → 가격 읽기 순서: ① 물량(통항·수출 허가) ② 위험 프리미엄(브렌트−WTI·REMX) ③ 한국 경로(원/달러·업종). 헤드라인(합의 '발표')보다 물량 숫자로 확인. 반대 근거: 미사일 발사류는 지수 영향이 며칠 — 자체 이벤트 스터디 없음(검증전).
+
 ## 출처
 - 교과서·공식 자료: Dalio "How the Economic Machine Works"(2013) / 한국은행 통화정책 파급경로·통화신용정책보고서(중립금리 재추정) / CFA L1 Economics(Business Cycles, Monetary and Fiscal Policy) / FRED 시리즈 노트(CPIAUCSL·CPILFESL·PAYEMS·UNRATE·PPIFIS·DGS10). 2차 자료·요약 확인, 원문 `[확인 필요: 원문 대조, 2026-10-30]`.
-- 자체: `screener/macroview.py`, `reports/macro_view.json`, `reports/macro_releases.json`, `screener/calendar_ev.py`, `reports/committee.json` macro, `views/registry.json`(`macro_wind`·`kr_regime`·`us10y`·`foreign_flow`·`event_calendar`).
+- 자체: `screener/commodities.py`, `reports/commodities.json`, `reports/views/geopolitics.json`, `screener/macroview.py`, `reports/macro_view.json`, `reports/macro_releases.json`, `screener/calendar_ev.py`, `reports/committee.json` macro, `views/registry.json`(`macro_wind`·`kr_regime`·`us10y`·`foreign_flow`·`event_calendar`).
 
 ## 복기 (틀린 판단 → 왜 → 다음부터)
 - 2026-10-16 · 아직 채점된 판단 없음(매크로 바람 성적은 `macro_view.json` track이 쌓이는 중). 다음부터: 바람 라벨을 인용할 때 항상 '검증전'과 코스피–S&P 격차를 같이 적는다 — 중립 라벨만 보면 오늘 같은 한국 고유 급락을 놓친다.

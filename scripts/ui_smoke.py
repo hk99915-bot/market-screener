@@ -492,7 +492,7 @@ BOND_LATE = {"checked_at": "2026-10-21 12:00", "n": 21, "late": [{"id": "bonds",
 
 
 async def check_macro_bond_top(b, port: int) -> int:
-    """MARKET › MACRO 첫 화면(macro-tab)·채권 '지금 채권 상황 3줄'(bonds-summary), 10/21 겸이: 390px 에서 첫 패널 · 결론(바람·격차 / 수준·방향·의미)이
+    """MARKET › MACRO 첫 화면(macro-tab, 10/23 원자재 macCmd·지정학 macGeo 패널 포함)·채권 '지금 채권 상황 3줄'(bonds-summary), 10/21 겸이: 390px 에서 첫 패널 · 결론(바람·격차 / 수준·방향·의미)이
     첫 화면(844px) 안 · 기준 배지 · 가로 넘침 없음 · 신선도 계약 late(bonds) 주입 시 ⚠ STALE · dataLag 판정(오래된 날짜만 늦음)."""
     import json as _json
     bad = 0
@@ -512,8 +512,9 @@ async def check_macro_bond_top(b, port: int) -> int:
           wind:tx.includes('매크로 바람'), gap:!!g&&tx.includes('격차'), asof:!!t.querySelector('.asof'), tiles:t.querySelectorAll('.mct').length,
           need:['금리','기준금리','환율','유가','다음 주요 일정','FOMC'].every(w=>tx.includes(w)), stale:tx.includes('STALE'),
           over:[...document.querySelectorAll('#root *')].some(e=>e.getBoundingClientRect().right>innerWidth+1&&!e.closest('table')),
-          lag:dataLag('KR','2020-01-02',0)!==''&&dataLag('KR',mkPhase('KR').last,0)==='' }; })()""")
-        res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and (m["stale"] if body else True)
+          lag:dataLag('KR','2020-01-02',0)!==''&&dataLag('KR',mkPhase('KR').last,0)==='',
+          cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
+        res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and m["cmd"] and m["geo"] and (m["stale"] if body else True)
         await pg.evaluate("setView('bond')")
         await pg.wait_for_timeout(3000)
         n = await pg.evaluate("""(()=>{ const t=document.getElementById('bondNow'), f=document.querySelector('#root .p'); if(!t) return null; const tx=t.innerText;

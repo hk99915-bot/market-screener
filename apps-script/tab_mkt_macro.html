@@ -1,13 +1,13 @@
 <!-- tab_mkt_macro.html — MARKET › MACRO — macroView (10/21 겸이 "리서치나 마켓에 매크로가 없는 듯", 보드 macro-tab).
      흩어져 있던 매크로 산출물을 한 화면 결론으로: macro_view.json(바람·환율·유가·금·코스피 vs S&P) · bonds.json(한·미 금리) · calendar.json(일정·발표 결과).
-     새 데이터·getter 없음(Code.gs 그대로). 문구 근거 = docs/desk_kb/macro.md #3(바람 점수) #5(20일 격차 ±8%p) #15(읽는 순서) #16(USDKRW).
+     10/23 매크로: 원자재(commodities.json · getCommodities)·지정학 축(views/geopolitics.json · getGeopolitics) 패널 추가 — 첫 화면(macTop) 아래, 표시 전용. 문구 근거 = docs/desk_kb/macro.md #3(바람 점수) #5(20일 격차 ±8%p) #15(읽는 순서) #16(USDKRW).
      전역 도우미($·esc·num·pct·render·setView·asofTag·staleTag·dataLag·mkPhase)는 Index.html, 지표 해설 표 macroPanel 은 tab_market.html. -->
 <script>
 let MCX=null;
 function mcLoad(){ MCX={};
   const g=(k,fn)=>google.script.run.withSuccessHandler(t=>{ try{ MCX[k]=typeof t==='string'?JSON.parse(t):(t||{}); }catch(e){ MCX[k]={}; } if(view==='macro') render(); })
     .withFailureHandler(()=>{ MCX[k]={}; if(view==='macro') render(); })[fn]();
-  g('mv','getMacroView'); g('bd','getBonds'); g('cal','getCalendar'); }
+  g('mv','getMacroView'); g('bd','getBonds'); g('cal','getCalendar'); g('cm','getCommodities'); g('geo','getGeopolitics'); }
 const mcBp=x=>x==null?'—':`<span class="${x>0?'dn':x<0?'up':'mu'}">${x>0?'+':''}${Number(x).toFixed(0)}bp</span>`;   // 금리↑ = 채권값↓ → 빨강 (채권 탭과 같은 색 규칙)
 const mcMd=ds=>ds?(+String(ds).slice(5,7))+'/'+(+String(ds).slice(8,10)):'—';
 function mcDday(ds){ const t=tzParts('Asia/Seoul').ds, d=Math.round((Date.parse(ds+'T00:00:00Z')-Date.parse(t+'T00:00:00Z'))/864e5); return d===0?'오늘':d>0?'D-'+d:'D+'+(-d); }
@@ -67,6 +67,49 @@ function macroView(){
   const done=(CAL.events||[]).filter(e=>e.type==='매크로'&&e.date<=today&&(e.result||[]).length).sort((a,b)=>a.date<b.date?1:-1).slice(0,3);
   const rel=done.length?`<div class="p c12"><h2>최근 발표<small>직전 대비 · 개정 전 잠정치 · 컨센서스 없음 (매크로 KB #2)</small></h2><div class="b" style="white-space:normal;line-height:1.65">${done.map(e=>`<div><b>${mcMd(e.date)}</b> ${esc(e.name)} — ${e.result.map(esc).join(' · ')}</div>`).join('')}</div></div>`:'';
   const tbl=typeof macroPanel==='function'?`<div class="p c12"><h2>지표 전체 · 해설<small>매크로 바람 구성 지표 · ▸ 누르면 해설 · 지표명 누르면 차트</small></h2><div class="b">${macroPanel('KR')}</div></div>`:'';
-  return `<div class="grid">${top}${grid}${rel}${tbl}</div>`;
+  return `<div class="grid">${top}${grid}${mcCmdPanel(MCX.cm,R)}${mcGeoPanel(MCX.geo,MCX.cm,R)}${rel}${tbl}</div>`;
+}
+// 원자재 (10/23 겸이 "원자재 트래킹 더 강화, 정유 구리 알루미늄 등, 비철금속, 희토류") — reports/commodities.json (screener/commodities.py)
+// 표시 전용 · 바람 점수 제외. 업종 연결 = 설명(매수 권유 아님). 못 받는 지표는 '미확인' + 이유 그대로.
+const mcSg=(x,dg)=>x==null?'—':`<span class="${x>0?'up':x<0?'dn':'mu'}">${x>0?'+':''}${(x*100).toFixed(dg==null?1:dg)}%</span>`;
+const mcDf=(x,u)=>x==null?'—':`<span class="${x>0?'up':x<0?'dn':'mu'}">${x>0?'+':''}${Number(x).toFixed(2)}${u||''}</span>`;
+function mcPos(p){ if(p==null) return '<span class="mu">—</span>'; const w=Math.round(p*100);
+  return `<span title="52주 위치 ${w}% (0=저점 100=고점)" style="display:inline-block;width:46px;height:7px;border:1px solid var(--line);position:relative;vertical-align:middle"><span style="position:absolute;left:calc(${w}% - 2px);top:-2px;width:4px;height:9px;background:${p>=0.8?'var(--up)':p<=0.2?'var(--dn)':'var(--amber)'}"></span></span> <span style="font-size:10.5px">${w}%</span>`; }
+function mcCmdPanel(CM){
+  if(!CM) return '<div class="p c12" id="macCmd"><h2>원자재</h2><div class="b"><div class="load">LOADING …</div></div></div>';
+  const rows=CM.rows||[]; if(!rows.length) return `<div class="p c12" id="macCmd"><h2>원자재</h2><div class="b mu">데이터 없음 (reports/commodities.json${(CM.errors||[]).length?' — '+esc(CM.errors[0]):''})</div></div>`;
+  const cmTag=staleTag(CM.asof,['15:45','16:20','06:52'],[1,2,3,4,5],['reports/commodities.json'],dataLag('US',CM.asof,1));
+  const fmt=r=>r.last==null?'—':(r.unit&&r.unit.startsWith('$/')||r.unit==='$'?'$':'')+num(r.last,r.last>=1000?0:r.last>=20?1:2)+(r.unit&&!/^\$$/.test(r.unit)?` <span class="mu" style="font-size:10px">${esc(r.unit.replace(/^\$/,''))}</span>`:'');
+  const line=r=>{ const d=r.group==='파생', bad=r.status!=='ok';
+    return `<details class="mcc" style="border-top:1px solid var(--line);padding:3px 0"><summary style="display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;cursor:pointer;list-style:none">
+      <b style="flex:1 1 150px;min-width:0;white-space:normal;font-size:12.5px">${esc(r.name)}</b>
+      ${bad?`<span class="mu" style="font-size:11px">미확인</span>`:`<span style="min-width:72px;text-align:right">${fmt(r)}</span>
+      <span style="font-size:11px">1주 ${d?mcDf(r.d1w):mcSg(r.chg1w)}</span><span style="font-size:11px">1개월 ${d?mcDf(r.d1m):mcSg(r.chg1m)}</span>${mcPos(r.pos52)}`}</summary>
+      <div style="font-size:11.5px;white-space:normal;line-height:1.55;padding:2px 0 4px 8px">${r.what?`<div>${esc(r.what)}</div>`:''}<div><b>한국 업종 연결</b> ${esc(r.kr||'')}</div><div class="mu">${esc(r.note||'')}${r.sym?' · '+esc(r.sym):''}${r.date?' · '+mcMd(r.date):''}</div></div></details>`; };
+  const grp=(CM.groups||[]).map(g=>{ const rs=rows.filter(r=>r.group===g), un=(CM.unavailable||[]).filter(u=>u.group===g);
+    if(!rs.length&&!un.length) return '';
+    return `<div style="margin-top:6px"><div class="am" style="font-size:12px;font-weight:700">${esc(g)}</div>${rs.map(line).join('')}${un.map(u=>`<div style="border-top:1px solid var(--line);padding:3px 0;font-size:11.5px;white-space:normal"><b>${esc(u.name)}</b> <span class="mu">미확인 — ${esc(u.why)}</span></div>`).join('')}</div>`; }).join('');
+  return `<div class="p c12" id="macCmd"><h2>원자재 · 에너지 · 비철 · 희토류 · 귀금속<small>reports/commodities.json${cmTag}</small></h2><div class="b" style="white-space:normal">
+    <div style="font-size:12.5px"><b>${esc(CM.summary||'')}</b></div>
+    <div class="mu" style="font-size:10.5px">${esc(CM.label||'')} · ${esc(CM.src||'')} · 파생(스프레드·마진·비율)은 % 대신 단위 차이 · 줄 누르면 업종 연결</div>${grp}</div></div>`;
+}
+// 지정학 축 (10/23 겸이 "지정학 뷰 다른거 추가할거있으면 더 추가") — reports/views/geopolitics.json(매크로 데스크 작성) + 관찰 지표 현재값(commodities·macro_view)
+function mcGeoPanel(G,CM,R){
+  if(!G) return '<div class="p c12" id="macGeo"><h2>지정학 축</h2><div class="b"><div class="load">LOADING …</div></div></div>';
+  const ax=G.axes||[]; if(!ax.length) return '<div class="p c12" id="macGeo"><h2>지정학 축</h2><div class="b mu">데이터 없음 (reports/views/geopolitics.json)</div></div>';
+  const C={}; ((CM&&CM.rows)||[]).forEach(r=>C[r.key]=r);
+  const wv=k=>{ const c=C[k]; if(c&&c.status==='ok') return `${esc(c.name.replace(/\(.*?\)/g,''))} ${num(c.last,c.last>=1000?0:2)} <span style="font-size:10.5px">1개월 ${c.group==='파생'?mcDf(c.d1m):mcSg(c.chg1m,0)}</span>`;
+    const m=R[k]; if(m&&m.last!=null) return `${esc((m.name||k).replace(/\(.*?\)/g,''))} ${num(m.last,m.last>=1000?0:2)} <span style="font-size:10.5px">20일 ${pct(m.chg20,1)}</span>`; return `${esc(k)} <span class="mu">미확인</span>`; };
+  const lv=l=>`<span style="font-size:10.5px;padding:0 4px;border:1px solid ${l==='높음'?'var(--dn)':'var(--amber)'};color:${l==='높음'?'var(--dn)':'var(--amber)'}">${esc(l||'')}</span>`;
+  const src=s=>`<div style="border-left:2px solid var(--line);padding-left:6px;margin-top:4px"><div><b>${esc(s.title)}</b> <span class="mu">${esc(s.date||'')}</span> ${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener" class="mu">원문</a>`:''}</div>
+    <div>① 내용 ${esc(s.summary||'')}</div><div>② 그 기관의 뷰 ${esc(s.view||'')}</div><div>③ 우리 해석 ${esc(s.our_take||'')}</div></div>`;
+  const body=ax.map(a=>`<details class="mcg" style="border-top:1px solid var(--line);padding:4px 0"><summary style="cursor:pointer;white-space:normal;line-height:1.55"><b>${esc(a.name)}</b> ${lv(a.level)}
+      <div style="font-size:11.5px">${(a.watch||[]).map(wv).join(' · ')}</div></summary>
+    <div style="font-size:11.5px;white-space:normal;line-height:1.6;padding:2px 0 4px 8px">
+      <div><b>현재</b> ${esc(a.status||'')}</div><div><b>전달 경로</b> ${esc(a.path||'')}</div>
+      <div><b>트리거</b><ul style="margin:2px 0 2px 16px;padding:0">${(a.triggers||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
+      ${(a.sources||[]).map(src).join('')}</div></details>`).join('');
+  return `<div class="p c12" id="macGeo"><h2>지정학 축 · 시장 전달 경로<small>reports/views/geopolitics.json · ${esc(G.updated||'')}</small></h2><div class="b" style="white-space:normal">
+    <div class="mu" style="font-size:10.5px">${esc(G.grade||'')} · 축 누르면 상태·경로·트리거·외부자료 3칸(STANDARD §4)</div>${body}</div></div>`;
 }
 </script>

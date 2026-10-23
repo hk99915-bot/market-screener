@@ -336,6 +336,11 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
             macroview.build()
         except Exception as e:  # noqa: BLE001
             log.warning("매크로 해설 실패: %s", e)
+        try:   # 원자재 트래킹(매크로 10/23) — 같은 일정에 편승, 실패해도 매크로 시계열엔 영향 없음
+            from . import commodities
+            commodities.build()
+        except Exception as e:  # noqa: BLE001
+            log.warning("원자재 트래킹 실패: %s", e)
     except Exception as e:  # noqa: BLE001
         log.warning("매크로 시계열 저장 실패: %s", e)
 
