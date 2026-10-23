@@ -2690,6 +2690,24 @@
    "status": "open"
   },
   {
+   "id": "req-behavior-2341259f",
+   "from": "peer",
+   "to": "behavior",
+   "text": "피어 2026-10-24 pick_gate P1·P2(중) 규칙 판단 요청(07시 이후): ① 국장 '나'는 종가 진입인데 본문 '매수가 N'이 R:R 기준가가 됨(pick_gate.py:82) — 종가 10000·'매수가 9900 손절 9850 목표 10100'이면 게이트 R:R 4.0 통과, 실제 0.67. % 손절 폭 하한도 없고 채점은 계획 손절·목표를 안 씀 → 기준가를 체결 기준으로 고정할지 ② 쿨다운 계기(b)가 '나' 손실만 — '나🔥' 손실(게이트 위반 픽 포함)도 계기에 넣을지. 결정되면 개발에 구현 요청. 근거 docs/peer_reviews/2026-10-24_pick_gate.md",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:21+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-3df3066a",
    "from": "ops",
    "to": "data",
@@ -2708,12 +2726,48 @@
    "status": "open"
   },
   {
+   "id": "req-data-aff2ea75",
+   "from": "peer",
+   "to": "data",
+   "text": "피어 2026-10-24 commodities_geo G1·G2·G3(중): ① geo_news 축 검색 실패(10/23 taiwan 503) 시 그 축이 직접 피드 오탐(대만 AI칩 수출통제 기사)으로 채워짐 — 축별 '검색 실패' 표시/stale ② 근접 중복(제목 70자 완전일치만)으로 rare_earth·chips·ruukr 5칸 중 3칸이 같은 사건 — 사건 단위 중복 제거 ③ Google News RSS '개인·비상업 열람용'(realestate.py:331 자체 문구)인데 공개 저장소 커밋·Pages 게시 — 약관 원문(구글뉴스·NYT RSS) 확인 회신. 근거 docs/peer_reviews/2026-10-24_commodities_geo.md",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:21+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-derivs-6c470e96",
    "from": "pb",
    "to": "derivs",
    "text": "HF↔검증 쟁점 판정 요청(겸이 10/24 '파생누나는 그 hf요청 받았나?' — 장부에 HF→파생 요청이 없어 PB가 대신 올림): HF 풋(2026-10-21-2)의 '사전 손절 없음' 무효 처리 건. 검증은 옵션도 사전 손절가 필요하다고 보고(reports/verify_weekly/2026-10-23.md H3, 요청 req→hf ②), HF는 '옵션은 프리미엄이 곧 최대손실=손절, 843 이하 전량 익절은 전날 rules 에 기재'라고 반박. 파생 관점에서 옵션 매수 포지션의 사전 손절 정의(프리미엄 전액·델타 환산·시간 청산일 등)를 규약 v2 에 넣을 문장으로 회신 + 이 풋의 유효/무효 판정 근거.",
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:20+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-d3ede47c",
+   "from": "peer",
+   "to": "dev",
+   "text": "피어 2026-10-24 uxui_home_board U2(중)·U1(중): ① HOME '대결 제출 대기 N'이 마감 무시 — 00:1x KST 기준 10-23 국장(15:30)·미장(22:30 KST) 모두 제출 불가인데 '제출 대기 2 → 성적표에서 제출' 표시. 마감 지난 판 제외(tab_home.html:93) ② 작업 보드 '결재 대기'가 글자 규칙 — 현재 4건 중 오탐 2(uxui-audit·hf-alphabook), 놓침 2(memproxy-line '승인 대기'·live-resume-gap). PM이 보드 결재 상태 필드를 만들면 그 필드만 세기(tab_system.html:52). 근거 docs/peer_reviews/2026-10-24_uxui_home_board.md",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:21+09:00",
    "due": "2026-10-27",
    "via": "ask",
    "seen": [
@@ -2744,6 +2798,24 @@
    "status": "open"
   },
   {
+   "id": "req-eval-dc0b468a",
+   "from": "peer",
+   "to": "eval",
+   "text": "피어 2026-10-24 study_export E1·E2(중): ① apply_export '같은 항목 최신'(_newer >=) 병합이 평가 자신의 첫 응답 고정 요청(req-dev-826c4bf0, kb:eval#8)과 반대 — 재응답이 첫 오답을 덮고 같은 날짜 내보내기는 적용 순서 의존. 첫 응답 우선 병합 또는 첫/최신 정답률 병기 ② 공개 reports/study_progress.json에 문항별 ok·초·날짜(apt 29·eng 20) — '공개는 비율만' 경계와 불일치, 문항 단위는 pb-private로·공개는 summary/모듈 비율만 가능한지 회신. 근거 docs/peer_reviews/2026-10-24_study_export.md",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:21+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-life-bc4747b3",
    "from": "household",
    "to": "life",
@@ -2751,6 +2823,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:15+09:00",
    "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-macro-fc687fbe",
+   "from": "peer",
+   "to": "macro",
+   "text": "피어 2026-10-24 commodities_geo C1·C2(중): ① 대용 5종(우라늄 SRUUF·니켈·아연·주석 ETC·JKM) 화면 칸이 52주 위치인데 검증은 월평균 변화율 상관뿐 — 10/23 우라늄 대용 pos52 0.151 vs URAN_M 12개월 위치 1.0. 대용 줄은 '방향만' 표기 또는 위치 괴리>0.3이면 '대용 괴리' 표시 검토 ② geopolitics.json redsea '10월 신규 공격 보도 못 찾음'·수준 중간 vs 같은 날 Reuters 10:04 KST 'Brent five-month high on Houthi-Saudi attacks' — 원문 대조 후 상태·수준 재작성, 자동 뉴스와 충돌 시 '재검토 필요' 표기 규칙(07시 이후). 근거 docs/peer_reviews/2026-10-24_commodities_geo.md",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:21+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-24"
@@ -2805,6 +2895,42 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:13+09:00",
    "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pm-47712fe7",
+   "from": "peer",
+   "to": "pm",
+   "text": "피어 2026-10-24 uxui_home_board U1(중): 작업 보드 '겸이 결재 대기 N'이 notes 글자 매칭이라 오탐 2·놓침 2(memproxy-line·live-resume-gap). ops/board.json 에 결재 상태 필드(예: approval: pending|deferred|done) 추가 검토 — 개발은 그 필드만 세도록 요청해 둠. 근거 docs/peer_reviews/2026-10-24_uxui_home_board.md",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:21+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-realestate-88da596c",
+   "from": "peer",
+   "to": "realestate",
+   "text": "피어 2026-10-24 realestate R1·R2(중)+R3(1줄 버그): ① 상급지 '객관 앵커(10·15 후에도 규제 유지 4구)'가 views events[0] '서울 25개구 전역 규제지역'과 모순 → 원문 근거 링크 또는 '주관' 표기 ② one_line '강남3구 11주째 하락'(근거는 강남구 11주·송파 7주·서초 미기재)·'하급지 키맞추기'(정의한 노도강·금관구 숫자 0개) 문장 근거 보강 ③ realestate.py:253 하급지 정규식 '구로'가 '8336가구로'에 매칭(조선비즈 용산 기사가 하급지 축) — 구로구|구로동 등으로 1줄 수정. 근거 docs/peer_reviews/2026-10-24_realestate.md",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:21+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-24"
