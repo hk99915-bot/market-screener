@@ -149,9 +149,14 @@ function getPrivate(name) {
   const OK = { chat: 'chat/private_chat.json' };
   const path = OK[name];
   const token = PropertiesService.getScriptProperties().getProperty('PRIVATE_TOKEN');
-  if (!path || !token) return '';
-  const res = UrlFetchApp.fetch('https://raw.githubusercontent.com/hk99915-bot/pb-private/main/' + path, {
-    muteHttpExceptions: true, headers: { Authorization: 'token ' + token },
-  });
-  return res.getResponseCode() === 200 ? res.getContentText() : '';
+  if (!path) return JSON.stringify({ _err: '허용 안 된 이름' });
+  if (!token) return JSON.stringify({ _err: 'PRIVATE_TOKEN 스크립트 속성 없음(이름 철자 확인)' });
+  try {
+    const res = UrlFetchApp.fetch('https://raw.githubusercontent.com/hk99915-bot/pb-private/main/' + path, {
+      muteHttpExceptions: true, headers: { Authorization: 'token ' + token },
+    });
+    const c = res.getResponseCode();
+    if (c === 200) return res.getContentText();
+    return JSON.stringify({ _err: 'GitHub ' + c + (c === 404 || c === 401 ? ' — 토큰 저장소 범위(pb-private)·Contents 읽기 권한·만료 확인' : '') });
+  } catch (e) { return JSON.stringify({ _err: String(e).slice(0, 120) }); }
 }
