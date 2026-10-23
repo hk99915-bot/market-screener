@@ -10,7 +10,7 @@
 
 검사 항목: 필수 필드 · id 중복 · prereq 존재·순환 · quiz choices 4개·answer 범위 · est_min ≤ 20(v3) ·
           v3 핵심 개념/공식/실수의 출처 태그([consult:…] [kb:…] [reports/studies/…] [교육 보충]) ·
-          로드맵 id 존재 · 인적성(선택지 5·정답 위치 분포·기출 메타 필드·https) · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 2주 게이트(open 정확히 15) · 금지어 · study.json 동기화.
+          로드맵 id 존재 · 정답 위치·가장 긴 선택지·why 한 문장(G2 실패) · 정답↔해설·계산 모순(study_answer_lint) · 인적성(선택지 5·정답 위치 분포·기출 메타 필드·https) · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 2주 게이트(open 정확히 15) · 금지어 · study.json 동기화.
 """
 from __future__ import annotations
 
@@ -21,6 +21,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import study_answer_lint  # noqa: E402  (정답↔해설 모순 검사, 같은 scripts/ 폴더)
+
 SRC = ROOT / "content" / "study"
 OUT = ROOT / "content" / "study.json"
 
@@ -147,7 +150,11 @@ def check_quiz(q: dict, where: str, c: Check, require_v3: bool) -> None:
 
 
 KEY_MAX_SHARE = 0.40      # 4지선다 한 위치 ≤ 40% (무작위 기대 25%, kb:edu#5①)
-LONGEST_WARN_SHARE = 0.50  # '가장 긴 선택지 = 정답' 비중 경고선 (kb:edu#5③, Haladyna 2002)
+# 10/24 겸이 결재 G2(appr-edu-g1-g4): 기준 도달 뒤 경고 → 실패 승격. 승격 시점 실측(평가 교차 검수 311ad30a 뒤)
+#   quiz_bank 17/125(14%)·모듈 quiz 21/95(22%) ≤ 35% · why 한 문장 미만 0/220 → 오늘 승격.
+LONGEST_FAIL_SHARE = 0.35  # '가장 긴 선택지 = 정답' 비중 실패선 (무작위 기대 ≈25% + 10%p, kb:edu#5③, Haladyna 2002)
+LONGEST_WARN_SHARE = 0.30  # 실패선 5%p 앞 조기 경고
+WHY_MIN_CHARS = 15         # why 에서 인용 태그를 뺀 근거 문장 최소 글자 (kb:edu#7b)
 
 
 def check_key_balance(items: list, where: str, c: Check) -> None:
@@ -159,8 +166,15 @@ def check_key_balance(items: list, where: str, c: Check) -> None:
     if top / len(qs) > KEY_MAX_SHARE:
         c.err(f"{where}: 같은 정답 위치 {top}/{len(qs)} > {KEY_MAX_SHARE:.0%} — python scripts/quiz_shuffle.py --write (kb:edu#5①)")
     lg = sum(1 for q in qs if len(str(q["choices"][q["answer"]])) > max(len(str(x)) for j, x in enumerate(q["choices"]) if j != q["answer"]))
-    if lg / len(qs) > LONGEST_WARN_SHARE:
-        c.warn(f"{where}: 정답이 유일하게 가장 긴 선택지 {lg}/{len(qs)} ({lg / len(qs):.0%}) > {LONGEST_WARN_SHARE:.0%} — 오답지 길이 보강 필요 (kb:edu#5③)")
+    if lg / len(qs) > LONGEST_FAIL_SHARE:
+        c.err(f"{where}: 정답이 유일하게 가장 긴 선택지 {lg}/{len(qs)} ({lg / len(qs):.0%}) > {LONGEST_FAIL_SHARE:.0%} — 오답지 길이 보강 (kb:edu#5③, G2 승격)")
+    elif lg / len(qs) > LONGEST_WARN_SHARE:
+        c.warn(f"{where}: 정답이 유일하게 가장 긴 선택지 {lg}/{len(qs)} ({lg / len(qs):.0%}) > {LONGEST_WARN_SHARE:.0%} — 실패선 {LONGEST_FAIL_SHARE:.0%} 접근 (kb:edu#5③)")
+
+
+def why_thin(q: dict) -> bool:
+    """why 가 인용 태그뿐/한 문장 미만 (kb:edu#7b)."""
+    return len(CITE.sub("", re.sub(r"\[[^\]]*\]", "", str(q.get("why", "")))).strip()) < WHY_MIN_CHARS
 
 
 APT_PAST_REQ = ["id", "exam", "year", "date", "booklet", "no", "area", "type", "topic", "strategy", "trap", "time_sec", "url", "checked_via"]
@@ -319,11 +333,21 @@ def check_all(S: dict) -> Check:
             if top > 3:
                 c.err(f"quiz_bank: {mid} 같은 정답 위치 {top}/{len(ans)} > 3 (kb:edu#7c)")
         check_key_balance(all_items, "quiz_bank", c)
-        tag_only = sum(1 for it in all_items if len(CITE.sub("", re.sub(r"\[[^\]]*\]", "", str(it.get("why", "")))).strip()) < 15)
-        if tag_only:
-            c.warn(f"quiz_bank: why 가 인용 태그뿐/한 문장 미만 {tag_only}/{len(all_items)} — 오답자가 읽을 근거 한 문장 필요 (kb:edu#7b)")
-    # 모듈 v3 quiz 도 같은 기준 (2026-10-23 셔플: scripts/quiz_shuffle.py)
+        for it in all_items:
+            if why_thin(it):
+                c.err(f"quiz_bank.{it.get('id')}: why 가 인용 태그뿐/한 문장 미만 — 오답자가 읽을 근거 한 문장 (kb:edu#7b, G2 승격)")
+    # 모듈 quiz 도 같은 기준 (2026-10-23 셔플: scripts/quiz_shuffle.py · 10/24 G2 승격)
     check_key_balance([q for m in mods.values() for q in (m.get("quiz") or []) if "choices" in q], "모듈 quiz", c)
+    for mid, m in mods.items():
+        for i, q in enumerate(m.get("quiz") or []):
+            if why_thin(q):
+                c.err(f"{mid}.quiz[{i}]: why 가 한 문장 미만 — 오답자가 읽을 근거 한 문장 (kb:edu#7b, G2 승격)")
+    # 정답 ↔ 해설·계산 모순 (10/24 %p 정답 오류 계기, scripts/study_answer_lint.py)
+    ae, aw = study_answer_lint.lint(S)
+    for e in ae:
+        c.err(f"정답↔해설: {e}")
+    for w in aw:
+        c.warn(f"정답↔해설: {w}")
     # 2주 게이트: 열린 모듈 정확히 15개, 나머지 전부 잠김, 겹침 없음
     gate = idx.get("gate")
     if gate is None:

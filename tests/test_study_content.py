@@ -72,7 +72,7 @@ def _mini():
            "summary": "s", "analogy": "a", "terms": [{"t": "a", "d": "b"}], "concepts": ["c [교육 보충]"],
            "formulas": [{"name": "n", "f": "f", "example": "e", "src": "[교육 보충]"}], "example": "e",
            "market_hook": {"tab": "HOME", "fields": ["x"], "read": "r"}, "terminal_lookup": "l", "rule_link": "r", "pitfalls": ["p [교육 보충]"],
-           "quiz": [{"kind": "knowledge", "q": "q", "choices": ["a", "b", "c", "d"], "answer": 0, "why": "w"}] * 3,
+           "quiz": [{"kind": "knowledge", "q": "q", "choices": ["a", "b", "c", "d"], "answer": 0, "why": "정의 그대로라 a 가 맞고 나머지는 흔한 오해다."}] * 3,
            "next_door": "n", "srs": {"intervals": [1, 3, 7, 21]}, "sources": ["교육 보충"]}
     idx = {"version": 3, "updated": "2026-10-16", "title": "t", "intro": "i", "tesat": {}, "track_order": ["X"],
            "roadmap": {"order": ["X1"], "steps": [{"name": "s", "ids": ["X1"]}]}}
@@ -319,3 +319,28 @@ def test_quiz_shuffle_idempotent_and_meaning_preserving(S):
     assert all(qs.same_meaning(a, b) for a, b in zip(ref, flat))
     assert [q["answer"] for q in flat] == [q["answer"] for q in ref]     # 이미 균등 → 다시 돌려도 그대로
     assert warns == []
+
+
+# ── G2 승격(10/24 겸이 결재 appr-edu-g1-g4): '가장 긴 선택지=정답' >35%·why 한 문장 미만 → 실패 ──
+def test_g2_longest_choice_share_fails_above_35pct(S):
+    qb = copy.deepcopy(S["quiz_bank"])
+    for it in qb["items"]:                                                # 10/17 상태 재현: 정답만 길게
+        it["choices"][it["answer"]] = str(it["choices"][it["answer"]]) + " — 이유까지 붙인 가장 긴 선택지 문장"
+    msg = "\n".join(scc.check_all({**S, "quiz_bank": qb}).errors)
+    assert "가장 긴 선택지" in msg and "G2 승격" in msg
+
+
+def test_g2_real_content_under_longest_threshold(S):
+    for items in (S["quiz_bank"]["items"], [q for t in S["tracks"] for m in t["modules"] for q in m.get("quiz", []) if "choices" in q]):
+        lg = sum(1 for q in items if len(str(q["choices"][q["answer"]])) > max(len(str(x)) for j, x in enumerate(q["choices"]) if j != q["answer"]))
+        assert lg / len(items) <= scc.LONGEST_FAIL_SHARE, (lg, len(items))
+
+
+def test_g2_tag_only_why_fails(S):
+    qb = copy.deepcopy(S["quiz_bank"])
+    qb["items"][0]["why"] = "[kb:behavior#3]"
+    errs = scc.check_all({**S, "quiz_bank": qb}).errors
+    assert any(qb["items"][0]["id"] in e and "why" in e for e in errs)
+    S2 = _mini()
+    S2["tracks"][0]["modules"][0]["quiz"] = [dict(S2["tracks"][0]["modules"][0]["quiz"][0], why="[교육 보충]")] * 3
+    assert any("why 가 한 문장 미만" in e for e in scc.check_all(S2).errors)
