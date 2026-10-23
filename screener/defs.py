@@ -62,6 +62,9 @@ HARD_STOP = 0.08            # 실효 손절 = max(주문표 손절가, 매수가
 RISK_PCT_DEFAULT = 0.25     # denominator=D5 1회 리스크 1단계 0.25%
 TELEGRAM_ALL_SILENT = True   # 오너 10/17 15시대 "전체 무음으로 해조" — 모든 텔레그램 무음(RING_KINDS 표는 보존, 되돌릴 땐 False)
 COOLDOWN_MIN = 30           # 매도·판정·포상 후 신규 주문표 금지(분, 결재 #14 ③)
+# 겸이 10/23 18시대 결재 ①② (행동 데스크 처방 · 모의 타점 대결 '나' 칸 한정, 실계좌 규칙 아님) — screener/pick_gate.py
+PICK_MIN_RR = 1.5           # ① '나' 픽 계획 칸 R:R 하한 (1.5 = 통과). 미달·빈 칸이면 '나🔥'(감)로 분류
+PICK_GATE_FROM = "2026-10-23 19:00"   # ①② 적용 시작(제출 시각 KST) — 이전 제출·채점분 소급 없음
 RENEGO_WARN_AT = 2          # 같은 규칙 재협상 n회째부터 주문표 ⛔ '재협상 2회째' + 사유 칸 필수 (오너 승인 10/17 14:09)
 RENEGO_REASON_MIN = 10      # 재협상 사유 최소 글자 수 (agreements §7-4 — 'ㅇ' 1자 통과 금지, 감사 10/17 #24)
 RENEGO_SCOPE = {"POS_BACKSTOP": "backstop"}   # 규칙 id → 관련 주문표 범위. 표에 없으면 모든 주문표 (renego.relates)
@@ -80,7 +83,7 @@ TERMS = {
     "MIN_RR": "주문표 R:R", "HARD_STOP": "실효 손절", "RISK_PCT_DEFAULT": "1회 리스크", "COOLDOWN_MIN": "쿨다운",
     "SEMI_REGIME_CAP": "테마 밴드 40/45/30", "SEMI_FLOOR": "테마 밴드 40/45/30", "SEMI_GLIDE_TARGET": "테마 밴드 40/45/30",
     "VAR99_LIMIT": "VaR99 (1일)", "VAR99_LIMIT_BEAR": "VaR99 (1일)",
-    "POS_BACKSTOP": "백스톱", "SEMI_HARD_FLOOR": "백스톱",
+    "POS_BACKSTOP": "백스톱", "SEMI_HARD_FLOOR": "백스톱", "PICK_MIN_RR": "대결 계획 칸", "PICK_GATE_FROM": "대결 계획 칸",
 }
 
 # 규칙 파일에서 숫자로 재정의하면 안 되는 지역 이름 (모듈 내 별칭 포함)

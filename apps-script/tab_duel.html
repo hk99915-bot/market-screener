@@ -136,17 +136,32 @@ const duelPc=(v,d=1)=>v==null||!Number.isFinite(v)?'—':(v>0?'+':'')+(v*100).to
 function duelPick(p,it,CD){
   const tm=t=>new Date(t+9*36e5).toISOString().slice(11,16);
   const US_CH=[['SPY 1000000','SPY'],['QQQ 1000000','QQQ'],['SOXX 1000000','SOXX'],['SQQQ 1000000','SQQQ'],['현금','현금']], KR_CH=[['069500 1000000 시가','KODEX 200'],['122630 1000000 시가','레버리지'],['114800 1000000 시가','인버스'],['현금','현금']];
-  return p.pending?`<span class="am">제출 대기</span> <span style="font-size:11px">${(duelIsUS(it)?US_CH:KR_CH).map(([b,n])=>CD&&b!=='현금'?`<span class="mu" title="쿨다운 — ${tm(CD.until)} 이후">${n}⏳</span>`:`<a target="_blank" href="${DUEL_IU((duelIsUS(it)?'pick-us ':'pick ')+it.date,b)}">${n}</a>`).join(' · ')}</span>`
+  return p.pending?`<span class="am">제출 대기</span> <span style="font-size:11px">${(duelIsUS(it)?US_CH:KR_CH).map(([b,n])=>CD&&b!=='현금'?`<span class="mu" title="쿨다운 — ${tm(CD.until)} 이후">${n}⏳</span>`:`<a target="_blank" data-dt="${esc((duelIsUS(it)?'pick-us ':'pick ')+it.date)}" data-db="${esc(b)}" onclick="duelPlanGo(this)" href="${DUEL_IU((duelIsUS(it)?'pick-us ':'pick ')+it.date,b)}">${n}</a>`).join(' · ')}</span>`
     :p.cash?esc(p.label||'현금 유지'):`${esc(p.name||p.ticker)}${p.submitted?` <span class="mu" style="font-size:11px">(${esc(p.submitted)} 제출)</span>`:''}`
+      +(p.reclass?`<div class="am" style="font-size:10.5px">↪ '나'→'나🔥'(감): ${esc(p.reclass)}</div>`:'')+duelPlanTxt(p.plan)+(p.cooldown?`<div class="mu" style="font-size:10.5px">⏳ ${esc(p.cooldown)}</div>`:'')
       +(p.lev_cap?`<div class="am" style="font-size:10.5px">⏱ ${esc(p.lev_cap)}</div>`:levTag((p.name||'')+' '+(p.ticker||'')))+(p.lev_cap&&p.lev_drag?`<div class="mu" style="font-size:10.5px">${esc(p.lev_drag)}</div>`:'');
 }
+/* 결재 10/23 ①② (모의 대결 '나' 칸 한정): 계획 칸(손절·목표·R:R≥PICK_MIN_RR·근거) 비거나 미달 → '나🔥'(감). 판정은 서버(screener/pick_gate.py), 여기는 입력·표시만 */
+const PICK_MIN_RR=1.5, DPL_IS='background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:2px 4px;';
+function duelPlanTxt(pl){ if(!pl) return ''; const f=(v,pc)=>v!=null?Number(v).toLocaleString():pc!=null?(pc>0?'+':'')+(pc*100).toFixed(1)+'%':'—';
+  return `<div class="mu" style="font-size:10.5px">계획: 손절 ${f(pl.stop,pl.stop_pct)} · 목표 ${f(pl.target,pl.target_pct)} · R:R ${pl.rr!=null?'1:'+Number(pl.rr).toFixed(2):'—'}${pl.why?' · '+esc(pl.why):''}</div>`; }
+function duelPlanBox(it){ const k=esc(it.id);
+  return `<div class="dpl" data-k="${k}" style="font-size:11px;margin-top:4px;line-height:2">'나' 계획 칸: 손절 <input class="dps" value="-2" style="${DPL_IS}width:40px">% 목표 <input class="dpt" value="+3" style="${DPL_IS}width:40px">% 근거 <input class="dpw" placeholder="한 줄" style="${DPL_IS}width:130px"> <span class="dpr mu">R:R 1:1.50</span>
+    <div class="mu" style="font-size:10.5px;line-height:1.4">빈 칸이거나 R:R 1:${PICK_MIN_RR} 미만 → '나🔥'(감)로 채점 · 그날 실계좌 매도·포상·'나' 손실 확정 뒤엔 현금·비레버리지·비반도체만 '나' · 현금은 계획 불필요 · 텔레그램 버튼은 계획 칸이 없어 '나🔥' — 텍스트로: pick 069500 시가 손절 -2% 목표 +3% 근거 …</div></div>`; }
+function duelPlanRR(box){ if(!box) return null; const s=Math.abs(parseFloat(box.querySelector('.dps').value)), t=parseFloat(box.querySelector('.dpt').value);
+  const rr=s>0&&t>0?t/s:null, e=box.querySelector('.dpr'); if(e){ e.textContent='R:R '+(rr!=null?'1:'+rr.toFixed(2):'—'); e.className='dpr '+(rr!=null&&rr+1e-9>=PICK_MIN_RR?'up':'dn'); } return rr; }
+function duelPlanGo(a){ const box=a.closest('[data-duel]')&&a.closest('[data-duel]').querySelector('.dpl'); const b=a.dataset.db||'';
+  if(!box||b==='현금') return; duelPlanRR(box); const v=c=>box.querySelector(c).value.trim(), s=v('.dps'), t=v('.dpt'), w=v('.dpw');
+  const plan=[s?`손절 -${String(s).replace(/^[-+]/,'')}%`:'', t?`목표 +${String(t).replace(/^[-+]/,'')}%`:'', w?`근거: ${w}`:''].filter(Boolean).join('\n');
+  a.href=DUEL_IU(a.dataset.dt, plan?b+'\n'+plan:b); }
+document.addEventListener('input',e=>{ if(e.target&&e.target.closest&&e.target.closest('.dpl')) duelPlanRR(e.target.closest('.dpl')); });
 function duelItemHtml(it,CD){ const r=it.result;
-  return `<div style="border-top:1px solid var(--line);padding:8px 0;line-height:1.6;white-space:normal">
+  return `<div data-duel="${esc(it.id)}" style="border-top:1px solid var(--line);padding:8px 0;line-height:1.6;white-space:normal">
       <div><span class="mu">${esc(it.date.slice(5))}</span> ${duelMkTag(it)} <b>${esc(it.title)}</b> ${r?(r.void?`<span class="mu" style="font-size:11px">${esc(r.void)}</span>`:r.winner?`<span class="tag">${esc(r.winner)} 승</span>`:'<span class="tag">무승부</span>'):'<span class="mu" style="font-size:11px">채점 대기</span>'}</div>
       <div class="mu" style="font-size:11.5px">${esc(it.note||'')}</div>
       ${it.basis?`<div style="font-size:11.5px;border-left:2px solid var(--amber);padding-left:6px;margin-top:3px"><span class="am">판단 시점 ${esc(String(it.basis.at).slice(5))}</span> <span class="mu">${esc(it.basis.src||'')}</span>${(it.basis.lines||[]).map(x=>'<div>· '+esc(x)+'</div>').join('')}</div>`:''}
       ${it.pb_view?`<div style="font-size:12px;border-left:2px solid #c77dff;padding-left:6px;margin-top:3px"><b style="color:#c77dff">PB 판단 ${esc(it.pb_view.at||'')}</b>${it.pb_view.conviction?` <span class="mu">확신 ${esc(it.pb_view.conviction)}</span>`:''}<div>${esc(it.pb_view.why||'')}</div>${planHtml(it.pb_view.plan)}${it.pb_view.real?`<div style="font-size:12px">💼 실전 적용: <b>${it.pb_view.real.ok?'가능':'규칙상 비추천'}</b>${it.pb_view.real.size_pct!=null?` · 총자산의 ${(it.pb_view.real.size_pct*100).toFixed(0)}% 이내`:''}${it.pb_view.real.note?' — '+esc(it.pb_view.real.note):''}</div>`:''}${it.pb_view.bold?`<div style="font-size:12px">🔥 <b>공격 PB</b> <span class="mu">(모의 전용)</span> ${esc(it.pb_view.bold.why||'')}${levTag(it.pb_view.bold.why)}</div>${planHtml(it.pb_view.bold.plan)}`:''}${(it.pb_view.lines||[]).map(x=>'<div class="mu">· '+esc(x)+'</div>').join('')}</div>`:''}
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${Object.keys(it.picks).map(w=>`<div style="flex:1;min-width:130px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}${w==='나🔥'?DUEL_UNL:''}</span><div style="font-size:12.5px">${duelPick(it.picks[w],it,CD)}</div>${r&&r[w]?`<div class="${r[w].ret>=0?'up':'dn'}" style="font-size:12px">${duelPc(r[w].ret,2)}</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div></div>`;
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${Object.keys(it.picks).map(w=>`<div style="flex:1;min-width:130px;border:1px solid #1e1e1e;padding:4px 8px"><span class="mu" style="font-size:11px">${esc(w)}${w==='나🔥'?DUEL_UNL:''}</span><div style="font-size:12.5px">${duelPick(it.picks[w],it,CD)}</div>${r&&r[w]?`<div class="${r[w].ret>=0?'up':'dn'}" style="font-size:12px">${duelPc(r[w].ret,2)}</div><div class="mu" style="font-size:10.5px">${esc(r[w].detail||'')}</div>`:''}</div>`).join('')}</div>${!r&&it.picks&&it.picks['나']&&it.picks['나'].pending?duelPlanBox(it):''}</div>`;
 }
 /* 누적 곡선 미니 차트 (참가자별 확정 판 수익률 단순 합) — 폭 100%, 높이 90px */
 const DUEL_COL={'나':'var(--up)','PB':'#c77dff','나🔥':'#ffb703','PB🔥':'#4cc9f0','규칙':'var(--muted)'};

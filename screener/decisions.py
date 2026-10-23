@@ -255,7 +255,8 @@ def score() -> int:
         if len(live) < len(it["picks"]):
             if it["date"] >= datetime.now().strftime("%Y-%m-%d"):
                 continue   # 당일엔 제출을 더 기다림
-            if "나" not in live or len(live) < 2:
+            moved = (live.get("나🔥") or {}).get("reclass")   # 결재 10/23 ①②: '나'가 '나🔥'로 옮겨진 판은 '나' 미제출이어도 채점
+            if ("나" not in live and not moved) or len(live) < 2:
                 it["result"] = {"void": "나 미제출 — 채점 제외" if "나" not in live else "상대 판단 없음 — 채점 제외",
                                 "scored_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
                 continue

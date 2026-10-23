@@ -20,6 +20,8 @@ from datetime import datetime
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
+from . import pick_gate
+from .defs import PICK_MIN_RR
 from .config import REPORT_DIR
 
 log = logging.getLogger(__name__)
@@ -162,6 +164,11 @@ def pick_keyboard(date: str, market: str = "KR") -> dict:
     return {"inline_keyboard": rows}
 
 
+PLAN_HINT_KR = (f"<i>'나' 인정 = 손절·목표·근거 + R:R≥{PICK_MIN_RR:g} (빈 칸·미달·당일 쿨다운 위반은 '나🔥' — 버튼도 계획 칸이 없어 '나🔥'). "
+                "텍스트로: pick 069500 시가 손절 -2% 목표 +3% 근거 …</i>")
+PLAN_HINT_US = PLAN_HINT_KR.replace("pick 069500 시가", "pick-us QQQ")
+
+
 def run(send: bool = True) -> dict | None:
     from . import decisions
     now = datetime.now(KST)
@@ -188,7 +195,7 @@ def run(send: bool = True) -> dict | None:
            "<b>겸이 판단은?</b> 15:30 전까지 — 아래 버튼 (안 되면 링크)",
            f"<a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
            f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url(d, '종목코드 금액 시가')}\">직접 입력</a>"
-           f" · <a href=\"{issue_url_bold(d)}\">🔥공격 픽</a>"]
+           f" · <a href=\"{issue_url_bold(d)}\">🔥공격 픽</a>", PLAN_HINT_KR]
     if send:
         from .report import send_telegram
         send_telegram("\n".join(msg), reply_markup=pick_keyboard(d, "KR"))
@@ -404,7 +411,7 @@ def run_us(send: bool = True) -> dict | None:
            "<b>규칙</b>: " + ("현금 유지" if p.get("cash") else f"{p['name']} {NOTIONAL//10000}만 · 시가 진입 → 당일 종가 청산"),
            "  " + c["why"], "<i>PB 판단은 따로 옴</i>", "",
            f"<b>겸이 판단은?</b> 미장 시작(09:30 ET = {dl:%H:%M} KST) 전까지 — 아래 버튼 (안 되면 링크)",
-           _us_links(d)]
+           _us_links(d), PLAN_HINT_US]
     if send:
         from .report import send_telegram
         send_telegram("\n".join(msg), reply_markup=pick_keyboard(d, "US"))
@@ -426,6 +433,7 @@ def _apply_issue_us(title: str, body: str, created_at: str) -> str:
     if t >= dl:
         return f"{d} 미장 시작(09:30 ET = {dl.astimezone(KST):%m-%d %H:%M} KST) 이후 제출({tk:%m-%d %H:%M} KST)이라 반영하지 않았어. 시가 진입이라 개장 전에만 받아."
     first = (body or "").strip().splitlines()[0].strip() if (body or "").strip() else ""
+    first, plan_tail = pick_gate.split_head(first)   # 결재 10/23 ①: 계획 칸 분리
     if first.startswith("현금") or first.lower() == "cash":
         pick = {"cash": True}
     else:
@@ -446,11 +454,14 @@ def _apply_issue_us(title: str, body: str, created_at: str) -> str:
         it = _us_item(d) | {"note": "PB 판정 없음(겸이 단독 기록)"}
         it["picks"]["PB"] = {"cash": True}
         data["items"].append(it)
+    slot, pick, extra = _gate(pick, plan_tail, body, tk, it, data, decisions)
+    if slot == "나🔥":
+        pick = pick | {"unlock_evidence": False}   # 결재 #14
     ln = pick.get("lev_drag") or lev_note_for_pick(pick, "US")
-    it["picks"]["나"] = pick | {"submitted": tk.strftime("%H:%M")} | ({"lev_drag": ln} if ln else {})
+    it["picks"][slot] = pick | {"submitted": tk.strftime("%H:%M")} | ({"lev_drag": ln} if ln else {})
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    return (f"기록 완료 ✅ 미장 {d} 나: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 시가 진입 → {US_EX_LBL[pick['exit']]} 청산")
-            + f" (제출 {tk:%H:%M} KST)" + (f"\n⏱ {pick['lev_cap']}" if pick.get("lev_cap") else "") + (f"\n⚠ {ln}" if ln else ""))
+    return (f"기록 완료 ✅ 미장 {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 시가 진입 → {US_EX_LBL[pick['exit']]} 청산")
+            + f" (제출 {tk:%H:%M} KST)" + _gate_lines(pick, extra) + (f"\n⏱ {pick['lev_cap']}" if pick.get("lev_cap") else "") + (f"\n⚠ {ln}" if ln else ""))
 
 
 def apply_issue(title: str, body: str, created_at: str) -> str:
@@ -475,12 +486,13 @@ def apply_issue(title: str, body: str, created_at: str) -> str:
               "picks": {"나": {"pending": True}, "PB": {"cash": True}}}
         data["items"].append(it)
     first = (body or "").strip().splitlines()[0].strip() if (body or "").strip() else ""
+    first, plan_tail = pick_gate.split_head(first)   # 결재 10/23 ①: 첫 줄 뒤쪽 '손절·목표·근거' 는 계획 칸 (금액·청산 판정에서 뺌)
     if first.startswith("현금") or first.lower() == "cash":
         pick = {"cash": True}
     else:
         toks = first.replace(",", "").split()
         if not toks or not re.fullmatch(r"[0-9A-Za-z]{6}|[A-Za-z.]{1,6}", toks[0]):
-            return "본문 첫 줄을 '종목코드 [금액] [시가|종가|5일]' 또는 '현금'으로 적어줘."
+            return "본문 첫 줄을 '종목코드 [금액] [시가|종가|5일] [손절 −2% 목표 +3% 근거 …]' 또는 '현금'으로 적어줘."
         amt = next((float(x) for x in toks[1:] if re.fullmatch(r"\d+(\.\d+)?", x)), NOTIONAL)
         ex = "trail" if ("끌고" in first or "추세" in first or "trail" in first.lower()) else "next_close" if "종가" in first else "d5_close" if "5일" in first else "next_open"
         pick = {"ticker": toks[0], "name": NAMES.get(toks[0], toks[0]), "notional": amt, "entry": "close", "exit": ex}
@@ -490,16 +502,55 @@ def apply_issue(title: str, body: str, created_at: str) -> str:
         pick = lev_cap(pick, "KR")
     tl = (title or "").strip().lower()
     slot = "나🔥" if ("🔥" in tl or tl.startswith("pick-bold")) else "나"
+    extra: dict = {}
     if slot == "나🔥":
         lines = [x.strip() for x in (body or "").strip().splitlines()[1:] if x.strip()]
         why = re.sub(r"^근거\s*[:：]\s*", "", lines[0]) if lines else ""
         pick = pick | {"why": why or "감", "basis": "판단" if why and why != "감" else "감"} | ({} if pick.get("cash") else {"notional": float(NOTIONAL)})   # 공격 픽은 100만 고정
+    else:
+        slot, pick, extra = _gate(pick, plan_tail, body, t, it, data, decisions)
     ln = pick.get("lev_drag") or lev_note_for_pick(pick, "KR")
     if slot == "나🔥":
         pick = pick | {"unlock_evidence": False}   # 결재 #14: 나🔥 는 레버리지 해금 근거에서 제외 (표시 라벨 · 새 기록부터)
     it["picks"][slot] = pick | {"submitted": t.strftime("%H:%M")} | ({"lev_drag": ln} if ln else {})
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    return f"기록 완료 ✅ {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})" + (f"\n⏱ {pick['lev_cap']}" if pick.get("lev_cap") else "") + (f"\n⚠ {ln}" if ln else "")
+    return (f"기록 완료 ✅ {d} {slot}: " + ("현금" if pick.get("cash") else f"{pick['name']} {pick['notional']:,.0f}원 · 종가 진입 → " + {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"}[pick["exit"]] + " 청산") + f" (제출 {t:%H:%M})"
+            + _gate_lines(pick, extra) + (f"\n⏱ {pick['lev_cap']}" if pick.get("lev_cap") else "") + (f"\n⚠ {ln}" if ln else ""))
+
+
+def _gate(pick: dict, plan_tail: str, body: str, t: datetime, it: dict, data: dict, decisions) -> tuple[str, dict, dict]:
+    """'나' 제출 → 계획 칸·당일 쿨다운 게이트(pick_gate, 겸이 10/23 결재 ①②). 어기면 '나🔥'(감)로 옮기고 이유를 pick['reclass'] 에.
+    옮길 때 같은 판에 먼저 낸 '나' 가 있으면 취소(제출 대기로) — '마지막 제출이 남는다' 규칙 그대로. 반환 (slot, pick, 메시지용 덧붙임)."""
+    plan_text = "\n".join([plan_tail, *(body or "").strip().splitlines()[1:]])
+    slot, pick, reasons = pick_gate.classify(pick, plan_text, t, it, data.get("items") or [],
+                                             ref_fn=lambda c, d: pick_gate.ref_price(c, d), score_fn=decisions._score_pick)
+    extra = {}
+    if reasons:
+        why = (pick.get("plan") or {}).get("why") or "감"
+        pick = pick | {"why": why, "basis": "감", "notional": float(NOTIONAL), "reclass": " · ".join(reasons)}   # 감 칸 = 공격 픽과 같은 100만 고정
+        old = it["picks"].get("나") or {}
+        if not old.get("pending"):
+            extra["cancelled"] = old.get("submitted") or "?"
+            it["picks"]["나"] = {"pending": True}
+        if (it["picks"].get("나🔥") or {}).get("submitted"):
+            extra["over_bold"] = it["picks"]["나🔥"]["submitted"]
+    return slot, pick, extra
+
+
+def _gate_lines(pick: dict, extra: dict) -> str:
+    out = []
+    if pick.get("reclass"):
+        out.append(f"↪ '나'가 아니라 '나🔥'(감)로 분류 — {pick['reclass']}")
+        if extra.get("cancelled"):
+            out.append(f"  (앞서 낸 '나'({extra['cancelled']} 제출)는 취소 — 마지막 제출이 남음)")
+        if extra.get("over_bold"):
+            out.append(f"  (앞서 낸 '나🔥'({extra['over_bold']} 제출)는 이걸로 바뀜)")
+    pl = pick_gate.plan_text_line(pick)
+    if pl:
+        out.append(pl)
+    if pick.get("cooldown"):
+        out.append("⏳ " + pick["cooldown"])
+    return "".join("\n" + x for x in out)
 
 
 # ── 매도 타점 대결: '지금 팔까(손절·익절) 말까' ─────────────────────────────
