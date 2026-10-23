@@ -97,6 +97,14 @@ def test_scan_52w():
     assert [h["code"] for h in hits] == ["A"]
 
 
+def test_chase_s4_excluded():
+    base = [{"t": f"d{i}", "c": 100.0, "v": 1000} for i in range(25)]
+    assert not A.chase_s4(base)
+    assert A.chase_s4(base + [{"t": "x", "c": 110.0, "v": 3000}])           # 3배 + 20일 최고 종가
+    assert not A.chase_s4(base + [{"t": "x", "c": 110.0, "v": 2900}])       # 거래량 미달
+    assert not A.chase_s4(base + [{"t": "x", "c": 99.0, "v": 5000}])        # 신고가 아님
+
+
 def _block(prop=None, loss=None, cio="관망", srcs=None):
     st = {"n_pos": 1, "gross": 0.12, "today_excess": 0.0031, "cum": 0.01, "bench_cum": 0.005, "excess_cum": 0.005, "ir": None, "ir_note": "표본 3일 < 20 — IR 미산출"}
     srcs = srcs if srcs is not None else {"B1": {"pass": True, "grade": "B", "test": {"ev_r": 0.083}, "base_test": {"ev_r": -0.015}}}

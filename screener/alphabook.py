@@ -244,6 +244,19 @@ def scan_52w(bars_by_code: dict, market: str = "KR", th: float = HI52_TH) -> lis
     return sorted(out, key=lambda x: (-x["prox"], -x["val20"]))
 
 
+S4_VOL = 3.0                 # 2026-10-21_hf_desk_signals S4: 거래량 ≥ 20일 평균 × 3 + 종가 = 20일 최고 종가 → 10일 −1.3~−1.7%(t −7.4/−6.2, F)
+
+
+def chase_s4(b: list[dict]) -> bool:
+    """마지막 봉이 S4(거래량 터진 돌파 추격) 정의에 걸리면 True — B1 이어도 신규 롱 제외(10/23 HF 고도화)."""
+    b = [x for x in b if _num(x.get("c"))]
+    if len(b) < 21:
+        return False
+    v = [x.get("v") or 0 for x in b]
+    v20 = sum(v[-21:-1]) / 20
+    return v20 > 0 and v[-1] >= S4_VOL * v20 and b[-1]["c"] >= max(x["c"] for x in b[-20:])
+
+
 # ───────────── 운용회의 개입 문장 (규칙 문장, LLM 아님) ─────────────
 
 BANNED = ("병신", "장애인같", "틀딱", "한남", "김치녀", "짱깨", "쪽바리", "흑형", "급식충", "맘충", "홍어", "똥남아", "게이같", "정신병자", "애자")
@@ -468,6 +481,9 @@ def update(o: dict, market: str = "KR", now: datetime | None = None, state_path:
             for h in hits[:40]:
                 if len(prop) >= MAX_NEW:
                     break
+                if chase_s4(ub.get(h["code"]) or []):
+                    rejected.append({"code": h["code"], "name": names.get(h["code"]), "why": ["S4 추격(거래량 3배 + 20일 최고 종가 — 10일 −1.3~−1.7%, F)"]})
+                    continue
                 p = tradeplan.plan_for(h["code"], "KR", o, ctx, calib, cal, now.date(), [{"k": "hi52", "side": "agree", "label": "52주 고점 근접"}], names.get(h["code"]))
                 if not p:
                     p = tradeplan.build_plan(ub.get(h["code"]) or [], market="KR", ctx=ctx, calib=calib, code=h["code"], name=names.get(h["code"]))
