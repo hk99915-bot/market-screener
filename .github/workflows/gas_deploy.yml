@@ -1,0 +1,67 @@
+# GAS 자동 배포 — 10/23 겸이 "폰으로 gas 업데이트하기가 너무 빡세네, 전체선택이 안 됨" → "너가 해줄 수 있나?"
+# apps-script/*.gs 가 main 에 바뀌면 clasp 로 Apps Script 프로젝트에 밀어 넣고, 기존 웹앱 배포(같은 URL)를 새 버전으로 올린다.
+# 화면 HTML(Index·tab_*)은 Code.gs 가 GitHub 에서 직접 읽으므로 여기 대상이 아님(.gs 만).
+#
+# 한 번만 설정(오너, PC 필요 · 약 10분) — 토큰·코드는 채팅에 붙이지 말고 GitHub Secrets 에만:
+#  ① https://script.google.com/home/usersettings → "Google Apps Script API" 켜기
+#  ② PC 터미널: npm i -g @google/clasp@2.4.2 → clasp login (브라우저 로그인) → 홈 폴더의 .clasprc.json 내용 전체 복사
+#  ③ GitHub 저장소 Settings → Secrets and variables → Actions → New repository secret:
+#       CLASPRC_JSON      = ②의 .clasprc.json 내용
+#       GAS_SCRIPT_ID     = Apps Script 편집기 → 프로젝트 설정 → 스크립트 ID
+#       GAS_DEPLOYMENT_ID = 배포 → 배포 관리 → 웹 앱의 배포 ID (AKfy… 로 시작)
+#  ④ Actions → gas_deploy → Run workflow 로 첫 실행 확인. 이후 Code.gs 변경은 push 만으로 반영.
+# 시크릿이 없으면 아무것도 하지 않고 성공으로 끝난다(안내만).
+name: gas_deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps-script/*.gs"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gas-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 설정 확인
+        id: cfg
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          GAS_SCRIPT_ID: ${{ secrets.GAS_SCRIPT_ID }}
+          GAS_DEPLOYMENT_ID: ${{ secrets.GAS_DEPLOYMENT_ID }}
+        run: |
+          if [ -z "$CLASPRC_JSON" ] || [ -z "$GAS_SCRIPT_ID" ] || [ -z "$GAS_DEPLOYMENT_ID" ]; then
+            echo "::notice::GAS 자동 배포 미설정 — 워크플로 상단 ①~④ 를 한 번 하면 켜진다."
+            echo "ok=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=1" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.ok == '1'
+        with:
+          node-version: "20"
+      - name: clasp 로 밀어 넣기·웹앱 새 버전
+        if: steps.cfg.outputs.ok == '1'
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          GAS_SCRIPT_ID: ${{ secrets.GAS_SCRIPT_ID }}
+          GAS_DEPLOYMENT_ID: ${{ secrets.GAS_DEPLOYMENT_ID }}
+        run: |
+          npm i -g @google/clasp@2.4.2 >/dev/null
+          printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json
+          mkdir -p /tmp/gas && cd /tmp/gas
+          printf '{"scriptId":"%s","rootDir":".","fileExtension":"gs"}' "$GAS_SCRIPT_ID" > .clasp.json
+          clasp pull                       # 매니페스트(appsscript.json)·대체용 HTML 은 프로젝트에 있는 그대로 유지
+          cp "$GITHUB_WORKSPACE"/apps-script/*.gs .
+          clasp push -f
+          clasp deploy -i "$GAS_DEPLOYMENT_ID" -d "auto ${GITHUB_SHA::7}"
+          echo "배포 완료: ${GITHUB_SHA::7} → 웹앱 같은 URL 새 버전"
