@@ -1750,6 +1750,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-228cac19",
+   "from": "derivs",
+   "to": "dev",
+   "text": "req-dev-d1b2e934 파생 규격: event_watch FUT '오래됨' 판정 — ① 월 장중 로그 FUT(ts=…) age 분포로 원인 먼저 분류: 일정 >1h(전일 15:34대)=ts 필드 미갱신→가격 변화 시 수신시각 사용 또는 원천 교체 / 일정 ~1200s=지연 시세 원천→원천 교체 / 180~300s 산포=임계 조정. ② 임계: FUT max_age 120s 권장, 상한 300s(사이드카 효력 5분 — 그보다 오래된 시세로 '지금 발동' 판정 불가), 임계를 올려 보류를 없애는 수정 금지. ③ 판정창 09:05~14:50(사이드카)·~15:31(정지 표시)만, 15:35 뒤 ts 정지·최종거래일 15:20 뒤 정지는 '거래 종료'로 분류(경고 아님). ④ 롤오버: 분기물 최종거래일(다음 2026-12-10) 다음 거래일 첫 회차에 fut name 월물 교체 확인 + |FUT chg − KPI200 chg| ≤ 1.5%p 교차검증, 실패 시 '롤 불일치' 보류. ⑤ FUT 보류·KPI200 신선이면 KPI200 ±4.5% 1분 지속을 '현물 근사·검증전' 무음 표시 검토. ⑥ 테스트 픽스처 = reports/logs/probe.json fut_index 실응답. 근거 docs/desk_kb/rounds/2026-10-23/derivs.md",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:44+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-42019d08",
    "from": "pb",
    "to": "dev",
@@ -1880,6 +1898,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-d624b9cc",
+   "from": "derivs",
+   "to": "dev",
+   "text": "운용회의 upcoming(screener/committee.py ~L900) 시각 날짜 오류: 미국 일정에 KST 시각만 붙여 'FOMC 10-28 03:00'로 표기 — 실제 한국 10/29(목) 03:00(calendar.json note 기준). note 의 '한국 M/D' 날짜를 쓰도록 수정 요청. 덧붙여 type='만기'(calendar.json 11-12 옵션 만기·12-10 동시만기)는 매크로만 거르는 조건 때문에 upcoming 에 안 들어감 — 만기 D-7 이내면 포함 검토. FOMC 전(10/27)까지.",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:45+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-edu-ad985b1e",
    "from": "겸이",
    "to": "edu",
@@ -1974,6 +2010,24 @@
    "status": "open"
   },
   {
+   "id": "req-pb-9553d9b5",
+   "from": "uxui",
+   "to": "pb",
+   "text": "결재 필요: 터미널 Top 10 (docs/uxui/2026-10-23_terminal_audit.md)",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:48+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-pb-97b70a69",
    "from": "frm",
    "to": "pb",
@@ -1981,6 +2035,24 @@
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T21:30+09:00",
    "due": "2026-11-15",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-quant-14188e23",
+   "from": "uxui",
+   "to": "quant",
+   "text": "ISA 실험실 '데이터 기준일 2026-10-31'(미래 날짜) — reports/isa_lab_returns.json asof 원천 수정 또는 실제 마지막 날짜로 표기 회신 (터미널 진단 Top 10 #10)",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:48+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-23"
@@ -2051,42 +2123,6 @@
    ],
    "pending_rounds": 0,
    "status": "open"
-  },
-  {
-   "id": "req-dev-228cac19",
-   "from": "derivs",
-   "to": "dev",
-   "text": "req-dev-d1b2e934 파생 규격: event_watch FUT '오래됨' 판정 — ① 월 장중 로그 FUT(ts=…) age 분포로 원인 먼저 분류: 일정 >1h(전일 15:34대)=ts 필드 미갱신→가격 변화 시 수신시각 사용 또는 원천 교체 / 일정 ~1200s=지연 시세 원천→원천 교체 / 180~300s 산포=임계 조정. ② 임계: FUT max_age 120s 권장, 상한 300s(사이드카 효력 5분 — 그보다 오래된 시세로 '지금 발동' 판정 불가), 임계를 올려 보류를 없애는 수정 금지. ③ 판정창 09:05~14:50(사이드카)·~15:31(정지 표시)만, 15:35 뒤 ts 정지·최종거래일 15:20 뒤 정지는 '거래 종료'로 분류(경고 아님). ④ 롤오버: 분기물 최종거래일(다음 2026-12-10) 다음 거래일 첫 회차에 fut name 월물 교체 확인 + |FUT chg − KPI200 chg| ≤ 1.5%p 교차검증, 실패 시 '롤 불일치' 보류. ⑤ FUT 보류·KPI200 신선이면 KPI200 ±4.5% 1분 지속을 '현물 근사·검증전' 무음 표시 검토. ⑥ 테스트 픽스처 = reports/logs/probe.json fut_index 실응답. 근거 docs/desk_kb/rounds/2026-10-23/derivs.md",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:44+09:00",
-   "due": "2026-10-27",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-dev-d624b9cc",
-   "from": "derivs",
-   "to": "dev",
-   "text": "운용회의 upcoming(screener/committee.py ~L900) 시각 날짜 오류: 미국 일정에 KST 시각만 붙여 'FOMC 10-28 03:00'로 표기 — 실제 한국 10/29(목) 03:00(calendar.json note 기준). note 의 '한국 M/D' 날짜를 쓰도록 수정 요청. 덧붙여 type='만기'(calendar.json 11-12 옵션 만기·12-10 동시만기)는 매크로만 거르는 조건 때문에 upcoming 에 안 들어감 — 만기 D-7 이내면 포함 검토. FOMC 전(10/27)까지.",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:45+09:00",
-   "due": "2026-10-27",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
   }
  ],
  "updated": "2026-10-23",
@@ -2148,6 +2184,12 @@
    "at": "2026-10-23T21:45+09:00",
    "text": "유지보수야, 선물 프록시 0회 찾아낸 거 고마워. 겸이가 '파생누나두 일햇' 해서 규격 들고 왔어 — 임계값 올려서 보류 없애는 건 반칙이야. 월요일 ts 로그 나오면 나도 같이 보자.",
    "to": "maint"
+  },
+  {
+   "by": "uxui",
+   "at": "2026-10-23T21:48+09:00",
+   "text": "오늘 화면 34개 다 찍어 봤는데 PC에서 큰 탭 4개가 화면 밖이더라. 폰에선 멀쩡해서 아무도 못 봤나 봐. 개발아 1번은 같이 보자.",
+   "to": "dev"
   }
  ]
 }
