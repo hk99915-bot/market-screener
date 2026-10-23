@@ -1287,7 +1287,7 @@
       "priority": "P1",
       "status": "진행",
       "started": "2026-10-21",
-      "due": "2026-10-23",
+      "due": "2026-10-27",
       "repo": "public",
       "files": [
         "scripts/replicate_semis_cap.py",
@@ -1295,7 +1295,7 @@
         "tests/test_rep_semis_cap.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 검증: H1 재현 일치(replication_semis_cap.md, C·F·F 3/3, 45% 도달 45.6%). 남은 것 H2(원 등급 A — 1순위)·H3. 마감 10/17→10/23: 첫 출근 라운드가 crash_rebound·hollzzak 재현에 쓰였고 10/17~20 미착수."
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 검증: H1 재현 일치(replication_semis_cap.md, C·F·F 3/3, 45% 도달 45.6%). 남은 것 H2(원 등급 A — 1순위)·H3. 마감 10/17→10/23: 첫 출근 라운드가 crash_rebound·hollzzak 재현에 쓰였고 10/17~20 미착수. | 10/23 검증: H2·H3 미착수 — 이번 주 알파북·HF 주간 채점 규약(req-verify-ef13d7a3·53fd7992)에 라운드를 씀. 마감 10/23→10/27(H2 원 A 1순위)."
     },
     {
       "id": "rep-exec-signal",
@@ -1322,7 +1322,7 @@
       "priority": "P1",
       "status": "대기",
       "started": "",
-      "due": "2026-10-25",
+      "due": "2026-10-28",
       "repo": "public",
       "files": [
         "scripts/replicate_entry_signals.py",
@@ -1330,7 +1330,7 @@
         "tests/test_rep_entry_signals.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/25: 미착수. 우선순위 2(122630 진입 신호 — 운용회의 인용 중). 사유: 검증 데스크 1인·라운드당 1~2건 처리 속도.",
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/25: 미착수. 우선순위 2(122630 진입 신호 — 운용회의 인용 중). 사유: 검증 데스크 1인·라운드당 1~2건 처리 속도. | 10/23 검증: 미착수, 마감 10/25(일)→10/28. 순서 semis H2(10/27) → entry_signals(10/28) → rule_audit T4·T5(10/30) → exec_signal(10/31).",
       "escalated": "2026-10-21"
     },
     {
@@ -1340,7 +1340,7 @@
       "priority": "P1",
       "status": "대기",
       "started": "",
-      "due": "2026-10-28",
+      "due": "2026-10-30",
       "repo": "public",
       "files": [
         "scripts/replicate_rule_audit.py",
@@ -1348,7 +1348,7 @@
         "tests/test_rep_rule_audit.py"
       ],
       "depends_on": [],
-      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/28: 미착수. T1~T18 범위가 커서 결정 걸린 T4·T5 만 먼저 재현 예정.",
+      "notes": "22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. | 10/21 마감 10/17→10/28: 미착수. T1~T18 범위가 커서 결정 걸린 T4·T5 만 먼저 재현 예정. | 10/23 검증: 미착수, 마감 10/28→10/30(T4·T5 먼저).",
       "escalated": "2026-10-21"
     },
     {
@@ -3950,6 +3950,23 @@
       "depends_on": [],
       "escalated": "2026-10-23",
       "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→UXUI: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-fae5c299`."
+    },
+    {
+      "started": "2026-10-23",
+      "due": "2026-10-30",
+      "files": [
+        "scripts/verify_weekly.py",
+        "tests/test_verify_weekly.py",
+        "reports/verify_weekly/"
+      ],
+      "depends_on": [],
+      "notes": "요청 req-verify-ef13d7a3·req-verify-53fd7992(HF). 10/23 1회차 완료. 다음: 10/30 2회차 + schedule_table 등록(금 장후 자동 실행은 운영 데스크와 협의) · 8주 누적 판정은 청산 n≥10부터. 원 코드 import 금지(독립성).",
+      "id": "verify-weekly-score",
+      "title": "주간 독립 채점(매주 금 장후): 알파북 KR·US + HF 재량 북 — scripts/verify_weekly.py 규약 v1 → reports/verify_weekly/<날짜>.md",
+      "owner": "검증",
+      "priority": "P2",
+      "status": "진행",
+      "repo": "public"
     }
   ]
 }

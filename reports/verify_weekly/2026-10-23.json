@@ -1,0 +1,344 @@
+{
+ "asof": "2026-10-23",
+ "protocol": "v1",
+ "alphabook": {
+  "KR": {
+   "bench": "069500",
+   "nav_rows": [
+    {
+     "d": "2026-10-20",
+     "book": 1.0,
+     "rep": 1.0,
+     "ok": true
+    },
+    {
+     "d": "2026-10-21",
+     "book": 1.0,
+     "rep": 1.0,
+     "ok": true
+    },
+    {
+     "d": "2026-10-22",
+     "book": 0.999793,
+     "rep": 0.9997931968740379,
+     "ok": true
+    },
+    {
+     "d": "2026-10-23",
+     "book": 0.998883,
+     "rep": 0.9988830828274506,
+     "ok": true
+    }
+   ],
+   "side_cost_implied": 0.0022500000000000853,
+   "cum": -0.0011169171725493587,
+   "bench_cum": 0.0036885482104778156,
+   "excess_cum": -0.004805465383027174,
+   "n_days": 3,
+   "ir": null,
+   "book_stats": {
+    "nav": 0.998883,
+    "cum": -0.00112,
+    "bench_cum": 0.00369,
+    "excess_cum": -0.00481,
+    "today_excess": -0.007267,
+    "ir": null,
+    "ir_note": "표본 3일 < 20 — IR 미산출",
+    "n_closed": 0,
+    "hit": null,
+    "avg_r": null,
+    "n_pos": 3,
+    "gross": 0.0725,
+    "n_days": 4
+   },
+   "closed_r": {
+    "n": 0
+   },
+   "expect": {
+    "B1": {
+     "t1_first": 0.36,
+     "stop": 0.46,
+     "ev_r": 0.083
+    }
+   },
+   "violations": [],
+   "warnings": [
+    "033780 체결가 기준 리스크 0.218% > 주문 0.187%×1.1 (주문 기준가 대비 체결가 불리 — 크기를 체결가로 다시 맞추지 않음)"
+   ],
+   "stop_decision": {
+    "verdict": "판정 보류(n 부족)",
+    "n": 0,
+    "mean": null,
+    "se": null
+   }
+  },
+  "US": {
+   "bench": "SPY",
+   "nav_rows": [
+    {
+     "d": "2026-10-20",
+     "book": 1.0,
+     "rep": 1.0,
+     "ok": true
+    },
+    {
+     "d": "2026-10-21",
+     "book": 1.0,
+     "rep": 1.0,
+     "ok": true
+    },
+    {
+     "d": "2026-10-22",
+     "book": 1.0,
+     "rep": 1.0,
+     "ok": true
+    }
+   ],
+   "side_cost_implied": null,
+   "cum": 0.0,
+   "bench_cum": -0.006618555360509593,
+   "excess_cum": 0.006618555360509593,
+   "n_days": 2,
+   "ir": null,
+   "book_stats": {
+    "nav": 1.0,
+    "cum": 0.0,
+    "bench_cum": -0.00662,
+    "excess_cum": 0.00662,
+    "today_excess": 0.01181,
+    "ir": null,
+    "ir_note": "표본 2일 < 20 — IR 미산출",
+    "n_closed": 0,
+    "hit": null,
+    "avg_r": null,
+    "n_pos": 0,
+    "gross": 0.0,
+    "n_days": 3
+   },
+   "closed_r": {
+    "n": 0
+   },
+   "expect": {
+    "B1": {
+     "t1_first": 0.36,
+     "stop": 0.46,
+     "ev_r": 0.083
+    }
+   },
+   "violations": [],
+   "warnings": [],
+   "stop_decision": {
+    "verdict": "판정 보류(n 부족)",
+    "n": 0,
+    "mean": null,
+    "se": null
+   }
+  }
+ },
+ "hf": {
+  "rows": [
+   {
+    "id": "2026-10-21-3",
+    "kind": "us_stock",
+    "side": "롱",
+    "code": "META",
+    "mkt": "US",
+    "r": -0.017,
+    "pnl": -4.25e-05,
+    "bench_pnl": 0.00010926727781028695,
+    "excess": -0.00015176727781028695,
+    "hedge": false,
+    "invalid": [],
+    "option_defined_risk": false
+   },
+   {
+    "id": "2026-10-21-1",
+    "kind": "fut",
+    "side": "롱",
+    "code": "K200F",
+    "mkt": "KR",
+    "r": -1.256,
+    "pnl": -0.00157,
+    "bench_pnl": -0.002640020155646379,
+    "excess": 0.001070020155646379,
+    "hedge": false,
+    "invalid": [],
+    "option_defined_risk": false
+   },
+   {
+    "id": "2026-10-21-4",
+    "kind": "us_stock",
+    "side": "롱",
+    "code": "LRCX",
+    "mkt": "US",
+    "r": -0.619,
+    "pnl": -0.0015475,
+    "bench_pnl": -9.199791951108333e-05,
+    "excess": -0.0014555020804889168,
+    "hedge": false,
+    "invalid": [],
+    "option_defined_risk": false
+   },
+   {
+    "id": "2026-10-21-5",
+    "kind": "nq",
+    "side": "숏",
+    "code": "NQ",
+    "mkt": "US",
+    "r": 0.168,
+    "pnl": 9.240000000000001e-05,
+    "bench_pnl": 0.00014560821793121103,
+    "excess": -5.3208217931211024e-05,
+    "hedge": true,
+    "invalid": [],
+    "option_defined_risk": false
+   },
+   {
+    "id": "2026-10-21-6",
+    "kind": "us_stock",
+    "side": "숏",
+    "code": "META",
+    "mkt": "US",
+    "r": 0.205,
+    "pnl": 0.0005124999999999999,
+    "bench_pnl": 0.00013766595149859953,
+    "excess": 0.0003748340485014004,
+    "hedge": false,
+    "invalid": [],
+    "option_defined_risk": false
+   },
+   {
+    "id": "2026-10-21-2",
+    "kind": "put",
+    "side": "롱",
+    "code": "K200O",
+    "mkt": "KR",
+    "r": 1.231,
+    "pnl": 0.0030775000000000004,
+    "bench_pnl": 0.0,
+    "excess": 0.0030775000000000004,
+    "hedge": false,
+    "invalid": [
+     "사전 손절"
+    ],
+    "option_defined_risk": true
+   },
+   {
+    "id": "2026-10-22-9",
+    "kind": "fut",
+    "side": "숏",
+    "code": "K200F",
+    "mkt": "KR",
+    "r": 0.264,
+    "pnl": 7.656e-05,
+    "bench_pnl": -5.366394399066532e-05,
+    "excess": 0.00013022394399066532,
+    "hedge": true,
+    "invalid": [],
+    "option_defined_risk": false
+   },
+   {
+    "id": "2026-10-21-7",
+    "kind": "stock",
+    "side": "롱",
+    "code": "033780",
+    "mkt": "KR",
+    "r": -0.649,
+    "pnl": -0.0014083300000000002,
+    "bench_pnl": -0.001525726443088294,
+    "excess": 0.00011739644308829378,
+    "hedge": false,
+    "invalid": [],
+    "option_defined_risk": false
+   }
+  ],
+  "pnl_rep": -0.0011378971828665569,
+  "pnl_book": -0.00116,
+  "pnl_ok": true,
+  "excess_sum": 0.003109497014996324,
+  "r_all": {
+   "n": 8,
+   "hit": 0.5,
+   "hit_ci": [
+    0.21521252682444186,
+    0.7847874731755582
+   ],
+   "mean": -0.08412499999999999,
+   "median": 0.07550000000000001,
+   "se": 0.26662161775364623,
+   "bins": {
+    "≤−1": 1,
+    "−1~0": 3,
+    "0~1.5": 4,
+    ">1.5": 0
+   }
+  },
+  "r_nohedge": {
+   "n": 6,
+   "hit": 0.3333333333333333,
+   "hit_ci": [
+    0.09676933255921683,
+    0.7000116786584712
+   ],
+   "mean": -0.18416666666666665,
+   "median": -0.318,
+   "se": 0.3528960580366091,
+   "bins": {
+    "≤−1": 1,
+    "−1~0": 3,
+    "0~1.5": 2,
+    ">1.5": 0
+   }
+  },
+  "brier": [
+   0.22625,
+   2
+  ],
+  "invalid_n": 1,
+  "n": 8,
+  "overlap_days": {
+   "2026-10-19": {
+    "PB🔥": 1
+   },
+   "2026-10-21": {
+    "PB🔥": 1,
+    "HF재량": 1
+   },
+   "2026-10-22": {
+    "알파북": 1,
+    "PB🔥": 1,
+    "HF재량": 1
+   },
+   "2026-10-23": {
+    "알파북": 1,
+    "PB🔥": 1,
+    "HF재량": 1
+   }
+  },
+  "overlap": {
+   "HF재량~PB🔥": {
+    "days_both": 3,
+    "same": 3,
+    "ratio": 1.0
+   },
+   "HF재량~알파북": {
+    "days_both": 2,
+    "same": 2,
+    "ratio": 1.0
+   },
+   "PB🔥~알파북": {
+    "days_both": 2,
+    "same": 2,
+    "ratio": 1.0
+   }
+  },
+  "same_code": [
+   "033780 KT&G — 알파북·HF 재량 같은 방향(롱)"
+  ],
+  "corr": "미산출(일별 표본 < 20)"
+ },
+ "inputs": {
+  "alphabook_updated": "2026-10-23 20:54 KST",
+  "hf_asof": "2026-10-23 15:56"
+ }
+}

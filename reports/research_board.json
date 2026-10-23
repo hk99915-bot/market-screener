@@ -146,9 +146,9 @@
    "owner": "퀀트 → 검증",
    "src": "10/15 급락",
    "result": "확인 신호 후보 5개 F, '급락일 종가' C(경보만) → 확인 신호를 기다리지 않기. 같은 질문 시도 N 68 → α(N) 0.00074 (trial_log)",
-   "rep": "crash_rebound 6/6 재현 · entry_signals·exec_signal 재현 대기",
+   "rep": "crash_rebound 6/6 재현 · entry_signals 미착수(검증 마감 10/25→10/28, req-verify-fae5c299 회신) · exec_signal 대기",
    "gate": "검증 rep-entry-signals 재현 (그 뒤 rep-exec-signal 10/31)",
-   "due": "2026-10-25",
+   "due": "2026-10-28",
    "action": "없음",
    "view": "study",
    "files": {
@@ -208,9 +208,9 @@
    "owner": "퀀트 → 검증",
    "src": "운용 규칙",
    "result": "H2 글라이드 A(+0.34%p, 효과 작음·표본 기간 성질), H1 밴드−상한 +0.35%p C, H3 F",
-   "rep": "H1 재현 일치(+0.32%p, p 0.026 → C 유지) · H2·H3 재현 진행",
+   "rep": "H1 재현 일치(+0.32%p, p 0.026 → C 유지) · H2(원 A)·H3 미착수 — 검증 마감 10/23→10/27(req-verify-fae5c299 회신)",
    "gate": "검증 rep-semis-cap H2·H3 재현",
-   "due": "2026-10-23",
+   "due": "2026-10-27",
    "action": "없음 — 규칙 반영은 재현 뒤 오너 결재",
    "files": {
     "study": "reports/studies/semis_cap.md",
@@ -237,8 +237,9 @@
    "owner": "퀀트 → 검증",
    "src": "rules.txt",
    "result": "18개 검정 C6·F12 — 현 규칙을 바꿀 B 이상 근거 없음",
-   "gate": "검증 rep-rule-audit 재현",
-   "due": "2026-10-28",
+   "rep": "미착수 — 결정 걸린 T4·T5 먼저, 검증 마감 10/30(req-verify-fae5c299 회신)",
+   "gate": "검증 rep-rule-audit 재현(T4·T5 먼저)",
+   "due": "2026-10-30",
    "action": "없음",
    "files": {
     "study": "reports/studies/rule_audit.md",
@@ -274,7 +275,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/accum_signals.json",
-   "updated": "2026-10-22",
+   "updated": "2026-10-23",
    "grade_counts": {}
   },
   {
@@ -297,7 +298,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/trend_expectancy.json",
-   "updated": "2026-10-22",
+   "updated": "2026-10-23",
    "grade_counts": {
     "F": 1,
     "C": 1
@@ -321,7 +322,7 @@
    "auto": [
     "reports/signal_scores.json"
    ],
-   "updated": "2026-10-22"
+   "updated": "2026-10-23"
   },
   {
    "id": "model_pf",
@@ -583,16 +584,19 @@
    "study": "2026-10-21_tradeplan_spec",
    "date": "2026-10-21",
    "file": "reports/studies/2026-10-21_tradeplan_spec.md"
+  },
+  {
+   "study": "2026-10-23_hf_bab_recheck",
+   "date": "2026-10-23",
+   "file": "reports/studies/2026-10-23_hf_bab_recheck.md"
+  },
+  {
+   "study": "2026-10-23_us_r20_reversal",
+   "date": "2026-10-23",
+   "file": "reports/studies/2026-10-23_us_r20_reversal.md"
   }
  ],
  "quant_requests": [
-  {
-   "id": "req-quant-1a18770f",
-   "from": "verify",
-   "opened": "2026-10-21",
-   "due": "2026-10-23",
-   "text": "us_smallcap_spikes 재현(replication_us_spikes.md §3) 정정 5건: ① 결론2·§2 최악 −864% 라벨 SMX→ORGO 2019-01-08(vol20=0·$150 정체시세 자료오류), SMX는 D+20 −7,13…"
-  },
   {
    "id": "req-quant-4abdbeaf",
    "from": "겸이",
@@ -601,11 +605,11 @@
    "text": "미장 운용회의 매수후보·회피 규칙(drv≥0.4+20일≤−3% / drv≤−0.2+20일≥+5%) 사후 4일 성적 역방향(매수 3/12·−1.5%p, 회피 12/15 상승 +1.7%p). 가격 조건 부분(20일 반전) 1999~ S&P500 구성종목…"
   },
   {
-   "id": "req-quant-b3040280",
-   "from": "verify",
-   "opened": "2026-10-21",
-   "due": "2026-10-23",
-   "text": "라오어 V4.0 재현(replication_laor_ib.md) 정정 4건: ① study_laor_ib.step() 매수 전/후반 판정을 당일 매도 전 T로(현재 쿼터매도 후 T로 같은 날 재판정 = 종가 정보 누수, SOXL IRR 27.0→24…"
+   "id": "req-quant-d242da52",
+   "from": "pb",
+   "opened": "2026-10-23",
+   "due": "2026-10-30",
+   "text": "미장 운용회의 매수 후보가 이익 드라이버(drv)만으로 정렬돼 7일 연속 같은 종목(DELL·HOOD 7/7, SMCI 6/7) — DELL r20 −15%처럼 가격이 반대로 가도 상위 유지. 성적 5거래일 S&P 대비 −4.4%·적중 0%(n=2)…"
   }
  ]
 }
