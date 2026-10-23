@@ -80,27 +80,45 @@ function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%3
 const MG_IMG='https://raw.githubusercontent.com/hk99915-bot/market-screener/main/assets/avatars/';   // 프로필 사진(겸이가 GPT 로 만들어 올림, assets/avatars/<키>.png) — 없으면 이니셜 원
 function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'var(--amber)':`hsl(${mgHue(k)} 45% 62%)`;
   return `<div class="mgav" role="button" tabindex="0" title="프로필" data-mgp="${esc(k)}" style="background:${bg};overflow:hidden;cursor:pointer"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()"></div>`; }
-function mgZoom(src){ const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);display:grid;place-items:center;z-index:120;cursor:zoom-out'; o.innerHTML=`<img src="${src}" alt="" style="width:min(92vw,560px);max-height:92vh;object-fit:contain;border-radius:12px">`; o.onclick=()=>o.remove(); document.body.appendChild(o); }
+/* 원본 보기(10/23 겸이 "한 번씩 더 누르면 원본, 크기 조절 가능하게") — 휠·핀치·두 번 탭(1x↔2.5x)·끌기·＋/－ */
+function mgZoom(src){ if(!src) return; const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:#000;z-index:120;overflow:hidden;touch-action:none';
+  o.innerHTML=`<img src="${src}" alt="" draggable="false" style="position:absolute;left:50%;top:50%;max-width:100vw;max-height:100vh;transform-origin:center;user-select:none;will-change:transform">
+    <div style="position:absolute;right:8px;top:8px;display:flex;gap:6px">${['－','＋','×'].map(t=>`<button type="button" data-z="${t}" style="min-width:44px;min-height:44px;border:0;border-radius:50%;background:#0009;color:#fff;font-size:20px;cursor:pointer">${t}</button>`).join('')}</div>`;
+  const im=o.querySelector('img'); let s=1,x=0,y=0; const P=new Map(); let d0=0,s0=1,lt=0;
+  const ap=()=>{ im.style.transform=`translate(calc(-50% + ${x}px),calc(-50% + ${y}px)) scale(${s})`; }; ap();
+  const zs=v=>{ s=Math.max(1,Math.min(6,v)); if(s===1){ x=0; y=0; } ap(); };
+  o.querySelectorAll('[data-z]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); const t=b.dataset.z; if(t==='×') o.remove(); else zs(s*(t==='＋'?1.5:1/1.5)); });
+  o.addEventListener('wheel',e=>{ e.preventDefault(); zs(s*(e.deltaY<0?1.15:1/1.15)); },{passive:false});
+  o.onpointerdown=e=>{ if(e.target.closest('[data-z]')) return; o.setPointerCapture(e.pointerId); P.set(e.pointerId,{x:e.clientX,y:e.clientY}); if(P.size===2){ const [a,b]=[...P.values()]; d0=Math.hypot(a.x-b.x,a.y-b.y); s0=s; }
+    const now=Date.now(); if(P.size===1&&now-lt<300) zs(s>1?1:2.5); lt=now; };
+  o.onpointermove=e=>{ const q=P.get(e.pointerId); if(!q) return; if(P.size===2){ P.set(e.pointerId,{x:e.clientX,y:e.clientY}); const [a,b]=[...P.values()]; zs(s0*Math.hypot(a.x-b.x,a.y-b.y)/(d0||1)); return; }
+    if(s>1){ x+=e.clientX-q.x; y+=e.clientY-q.y; ap(); } P.set(e.pointerId,{x:e.clientX,y:e.clientY}); };
+  o.onpointerup=o.onpointercancel=e=>{ P.delete(e.pointerId); };
+  document.body.appendChild(o); }
 
-/* 👥 프로필 창 (10/23 겸이 "누나들 프로필 다 볼 수 있게, 프로필 창도") — msgr_feed.profiles(CHARACTERS.md 표 + 신설 데스크) */
+/* 👥 프로필 — 카톡처럼 세로 전체 배경 + 아래쪽 프사·이름·상태메시지. 배경·프사를 한 번 더 누르면 원본(mgZoom).
+   배경: assets/avatars/bg/<key>.jpg|png (없으면 profiles.json bg 그라디언트) · 데이터 msgr_feed.profiles */
 function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) return;
-  const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.86);display:grid;place-items:center;z-index:99;padding:16px';
-  const bg=`url('${MG_IMG}bg/${encodeURIComponent(k)}.jpg') center/cover no-repeat, ${P.bg||'linear-gradient(135deg,#222,#444)'}`;
-  o.innerHTML=`<div class="mgpf" style="background:#111;border:1px solid var(--line);max-width:520px;width:100%;max-height:94vh;overflow:auto;white-space:normal;position:relative">
-    <button type="button" data-x style="position:absolute;right:6px;top:6px;z-index:2;min-height:40px;min-width:40px;background:#0008;border:0;border-radius:50%;color:#fff;font-size:20px;cursor:pointer" aria-label="닫기">×</button>
-    <div class="bn" style="background:${esc(bg)}"></div>
-    <img src="${MG_IMG}${encodeURIComponent(k)}.png" alt="" style="display:block;width:min(220px,60vw);height:min(220px,60vw);border-radius:50%;object-fit:cover;object-position:50% 22%;border:4px solid #111;margin:-110px auto 0;position:relative;background:#222;cursor:zoom-in" onclick="mgZoom(this.src)" onerror="this.style.visibility='hidden'">
-    <div style="padding:6px 14px 14px;text-align:center">
-    <div style="font-size:18px"><b>${esc(P.name)}</b> <span class="mu" style="font-size:13px">${esc(P.dept)} · ${P.age}세</span></div>
-    ${P.msg?`<div style="margin-top:4px;font-size:14px">“${esc(P.msg)}”</div>`:''}
-    ${P.bgm?`<div class="mu" style="margin-top:4px;font-size:12px">🎵 ${esc(P.bgm)}</div>`:''}
-    <div style="text-align:left;margin-top:10px;font-size:13.5px;line-height:1.6">${esc(P.line)}</div>
-    ${P.hobby?`<div style="text-align:left;margin-top:4px;font-size:12.5px"><span class="am">취미</span> ${esc(P.hobby)}</div>`:''}
-    ${P.role?`<div style="text-align:left;margin-top:4px;font-size:12.5px"><span class="am">담당</span> ${esc(P.role)}</div>`:''}
-    <div class="mu" style="text-align:left;margin-top:8px;font-size:12px">받은 요청(진행 중) ${P.open_in} · 보낸 요청 ${P.sent} · 직접 답장 ${P.replies}</div>
-    ${P.last_chat?`<div style="text-align:left;margin-top:6px;font-size:12.5px;border-left:2px solid var(--amber);padding-left:8px">최근 사담: ${esc(P.last_chat)}</div>`:''}
-  </div></div>`;
-  o.onclick=e=>{ if(e.target===o||e.target.closest('[data-x]')) o.remove(); }; document.body.appendChild(o); }
+  const av=`${MG_IMG}${encodeURIComponent(k)}.png`, o=document.createElement('div'); let bgSrc='';
+  o.style.cssText=`position:fixed;inset:0;z-index:99;background:${P.bg||'linear-gradient(160deg,#333,#111)'};background-size:cover;background-position:center;display:flex;flex-direction:column;cursor:zoom-in;white-space:normal`;
+  o.innerHTML=`<div style="position:absolute;inset:0;background:linear-gradient(180deg,#0006 0,#0000 22%,#0000 48%,#000c 100%);pointer-events:none"></div>
+    <button type="button" data-x style="position:absolute;left:8px;top:8px;z-index:2;min-height:44px;min-width:44px;background:none;border:0;color:#fff;font-size:26px;cursor:pointer;text-shadow:0 1px 4px #000" aria-label="닫기">×</button>
+    <div data-card style="margin-top:auto;position:relative;z-index:1;text-align:center;color:#fff;padding:0 16px 18px;cursor:default;text-shadow:0 1px 3px #000a">
+      <img data-av src="${av}" alt="" style="width:104px;height:104px;border-radius:38%;object-fit:cover;object-position:50% 22%;cursor:zoom-in;background:#333;box-shadow:0 2px 10px #0008" onerror="this.style.visibility='hidden'">
+      <div style="margin-top:8px;font-size:19px;font-weight:700">${esc(P.name)}</div>
+      ${P.msg?`<div style="margin-top:3px;font-size:14px;opacity:.95">${esc(P.msg)}</div>`:''}
+      ${P.bgm?`<div style="display:inline-block;margin-top:8px;font-size:12px;background:#ffffff26;border-radius:14px;padding:4px 10px">🎵 ${esc(P.bgm)}</div>`:''}
+      <details style="margin:12px auto 0;max-width:460px;text-align:left;background:#000a;border-radius:10px;padding:0 12px;font-size:13px;line-height:1.6;text-shadow:none">
+        <summary style="min-height:40px;display:flex;align-items:center;cursor:pointer;color:#ddd">${esc(P.dept)} · ${P.age}세 · 더보기</summary>
+        <div style="padding-bottom:10px">${esc(P.line)}
+        ${P.hobby?`<div style="margin-top:4px"><span class="am">취미</span> ${esc(P.hobby)}</div>`:''}
+        ${P.role?`<div style="margin-top:4px"><span class="am">담당</span> ${esc(P.role)}</div>`:''}
+        <div style="margin-top:6px;color:#bbb;font-size:12px">받은 요청(진행 중) ${P.open_in} · 보낸 요청 ${P.sent} · 직접 답장 ${P.replies}</div>
+        ${P.last_chat?`<div style="margin-top:6px;border-left:2px solid var(--amber);padding-left:8px">최근 사담: ${esc(P.last_chat)}</div>`:''}</div></details>
+    </div>`;
+  const tryBg=ex=>{ const u=`${MG_IMG}bg/${encodeURIComponent(k)}.${ex}`, i=new Image(); i.onload=()=>{ bgSrc=u; o.style.backgroundImage=`url('${u}')`; }; i.onerror=()=>{ if(ex==='jpg') tryBg('png'); }; i.src=u; }; tryBg('jpg');
+  o.onclick=e=>{ if(e.target.closest('[data-x]')) return o.remove(); if(e.target.closest('[data-av]')) return mgZoom(av); if(e.target.closest('[data-card]')) return; if(bgSrc) mgZoom(bgSrc); };
+  document.body.appendChild(o); }
 function mgProfGrid(){ const L=(MG&&MG.profiles)||[]; if(!L.length) return '<div class="mgempty">프로필 데이터 없음 — scripts/msgr_feed.py</div>';
   const by={}; L.forEach(p=>(by[p.dept]=by[p.dept]||[]).push(p));
   return Object.entries(by).map(([d,ps])=>`<div class="mgday">${esc(d)}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,44vw),1fr));gap:8px">${ps.map(p=>`<button type="button" data-mgp="${esc(p.key)}" style="text-align:left;background:#0d0d0d;border:1px solid var(--line);color:var(--txt);font:inherit;padding:8px;cursor:pointer;min-width:0;white-space:normal">
