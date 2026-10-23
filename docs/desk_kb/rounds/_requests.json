@@ -53,10 +53,21 @@
     "2026-10-17"
    ],
    "pending_rounds": 1,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-47bce057",
    "promoted": "2026-10-21",
-   "promoted_at": "2026-10-21T04:09+09:00"
+   "promoted_at": "2026-10-21T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-23T16:32+09:00",
+     "text": "결론: 네이버 KOSPI chg(fluctuationsRatio) 분모는 전일 KRX 확정 종가이고, 소수 2자리로 잘려 last/(1+chg) 역산 오차가 최대 ±0.005%p(코스피 5,500 기준 ±0.3pt)야 — 대조 1건: 10/15 KPI200 네이버 '전일' 936.82 = pykrx 10/14 종가 936.82(B등급, 1표본). 확정 전일 종가 필드는 줄게: live.kr_naver()가 이제 prev(closePrice − compareToPreviousClosePrice, 등락률과 0.01%p 안에서 맞을 때만)를 싣고 rebound.judge가 그걸 우선 써(prev_src=diff, 없으면 기존 역산). scripts/retention.py 초안은 3조건(드라이런 기본·로그 reports/logs/retention_YYYY-MM-DD.json / --apply 때만 git rm / git ls-files 추적 파일만) 반영, 나이는 파일명 날짜 기준, 테스트 4건, 커밋 09e5de7f, 10/23 기준 후보 0건. 남은 일은 개발 쪽 ops.yml 연결(드라이런 매일·dispatch apply)이고, archive/*/_index.json 은 날짜가 없어 건너뛰니 삭제 뒤 인덱스 갱신은 거기서 챙겨줘.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T16:32+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-c4687197",
@@ -71,10 +82,21 @@
     "2026-10-17"
    ],
    "pending_rounds": 1,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-c4687197",
    "promoted": "2026-10-21",
-   "promoted_at": "2026-10-21T04:09+09:00"
+   "promoted_at": "2026-10-21T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-23T16:32+09:00",
+     "text": "결론: 이미 있어 — 2026-06-22~07-29 27거래일, 결측 0. 개별주는 data/kr_prices.parquet(2025-09-09~2026-10-20, 2,828종목; 005930·000660·042700·009150 각 27행), ETF는 data/hist/kr_etf_daily(069500·091160·091230·396500 각 27행), 지수는 kr_index_daily, SOXX·MU는 us_daily야. 구간 종가 수익률(출처 yfinance·pykrx, 일간 ±30% 넘는 갭 없음 = 분할 아티팩트 아님): KODEX 200 −39.6%, KODEX 반도체 −47.8%, 삼성전자 −41.0%, SK하이닉스 −52.0%, 삼성전기 −53.8%, KOSPI −37.9% — SOXX 기준 −30% 가정보다 국장은 훨씬 깊었어. 보존: kr_prices는 롤링 창이라 이 구간은 2027-08쯤까지 남고, 2027-01부터 backfill이 data/hist/kr_2026.parquet로 굳히니 재생(#9)에 쓰는 동안 빠질 일은 없어.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T16:32+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-derivs-5cdb298e",
@@ -359,7 +381,15 @@
    "status": "promoted",
    "task_id": "req-data-25c610af",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-23T16:32+09:00",
+     "text": "결론: 6종 중 백필 가능 2, 앞으로 쌓는 것만 가능 2, 무료 원천 없음 2라서 장부는 열어 둘게. ④ DART: dart.py는 KEEP_DAYS 400인데 하루 3일치만 받아 지금 3,354건(10/12~10/23)뿐 — OpenDART list.json 백필로 2015~ 가능(DART_API_KEY, 일 2만 콜 한도라 분할), 1순위 10/30까지 / ⑤ 국장 공매도 잔고는 잔고 공시가 2016-06부터라 그때부터 pykrx 백필 가능(현재 short_hist.parquet 58,026행, 09/15~10/19), 2순위 11/6까지 — 대차잔고와 ⑥ 종목선물은 무료 원천이 없어(KRX 정보데이터는 이 세션 403) 불가, 대안은 공매도 잔고+거래비중과 지수선물(data/deriv/daily.csv 2010~). ③ 애널 추정치 변화(yfinance eps_trend)·② 미장 공매도 잔고(sharesShort, 월 2회)는 과거 이력이 유료라 불가, 대안은 오늘부터 일일 스냅샷 적재로 3순위 11/6 시작. ① 미장 옵션 체인 이력도 유료(ORATS·CBOE급)라 불가, 대안은 SPY·QQQ+대형주 20종 체인 일일 스냅샷(ATM IV·스큐) 적재와 ^VIX·^SKEW 일봉 이력으로 4순위 11/13 — 단계 끝날 때마다 여기 회신할게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-2964da3f",
