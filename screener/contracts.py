@@ -24,7 +24,8 @@ CONTRACTS: dict[str, dict] = {
     "valuation.json": {"v": 1, "date": "asof", "required": {"asof": str, "generated_at": str, "rows": list, "basket": dict}},
     "bonds.json": {"v": 1, "date": "asof", "date_required": False, "required": {"generated_at": str, "us": dict, "kr": dict}},
     "daily_brief.json": {"v": 1, "date": "asof", "required": {"asof": str, "headline": str}},
-    "macro_view.json": {"v": 1, "date": "asof", "required": {"asof": str, "rows": list}},
+    # glance(10/24 매크로): '한눈에' 층별 줄 — macroview.glance(숫자 자동) + views/macro_glance.json(데스크 해석). 표시 전용, 점수 불변
+    "macro_view.json": {"v": 1, "date": "asof", "required": {"asof": str, "rows": list, "glance": list}},
     "japan.json": {"v": 1, "date": "date", "required": {"asof": str, "date": str}},
     # 원자재 트래킹(매크로 10/23): 전부 실패하면 asof=None 이므로 날짜 비어도 허용(rows 의 status='미확인' 이 신호). 화면: MARKET › MACRO (getCommodities)
     "commodities.json": {"v": 1, "date": "asof", "date_required": False, "required": {"generated_at": str, "rows": list}},

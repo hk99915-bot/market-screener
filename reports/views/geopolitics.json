@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "updated": "2026-10-23 KST",
+ "updated": "2026-10-24 KST (redsea 정정)",
  "writer": "매크로 데스크(Claude 세션 에이전트) — 10/23 겸이 \"지정학 뷰 다른거 추가할거있으면 더 추가\". Actions 는 이 파일을 쓰지 않는다(LLM 키 없음) → 데스크 라운드에서 갱신.",
  "rule": "축마다 현재 상태 · 시장 전달 경로(자산) · 관찰 지표(reports/commodities.json·macro_view.json 키) · 트리거(뒤집힘 조건). 외부 자료는 STANDARD §4 세 칸(① 내용 ② 그 기관의 뷰 ③ 우리 해석). 뉴스는 WebSearch 2026-10-23 요약 — 2차 보도, 원문 대조 전(검증전).",
  "relation": "RESEARCH › 지정학 뷰(Jiang 외부 논평, public_reports.py)는 '한 사람의 해석', 이 파일은 '축별 계기판'. 뉴스 속보 감지는 screener/events.py PAT_BIG(지정학 충격·해상 요충지·핵심광물 수출통제).",
@@ -32,11 +32,11 @@
    "id": "redsea",
    "name": "홍해 · 바브엘만데브 · 해운",
    "level": "중간",
-   "status": "2025-10 가자 휴전 후 후티의 상선 공격은 멈췄으나 희망봉 우회는 상당 부분 지속, 수에즈 통항은 위기 전 아래. 2026-07 무렵 후티가 사우디 해상 봉쇄 선언 보도(유조선 일부 항로 변경). 10월 확인된 신규 공격 보도는 찾지 못함(2026-10-23 검색).",
+   "status": "2025-10 가자 휴전 후 후티의 상선 공격은 멈췄으나 희망봉 우회는 상당 부분 지속, 수에즈 통항은 위기 전 아래. 2026-07 무렵 후티가 사우디 해상 봉쇄 선언 보도(유조선 일부 항로 변경). [정정 10/24 00:5x — 피어리뷰 C2] 10/23 22:31 판의 '10월 신규 공격 보도 못 찾음'은 틀림: 같은 날 헤드라인 Reuters 10/23 10:04 KST 'Brent crude hits more than five-month high on Houthi-Saudi attacks, UAE oil spill', Washington Post 10/23 06:09 KST 'U.S. orders some diplomats to leave Saudi Arabia amid Houthi attacks', OilPrice 10/23 14:33 KST 'Brent Hits $114 as Houthi Attacks Threaten Saudi Energy Infrastructure'(geo_news.json 자동 수집 · 제목만, 원문 미확인). 공격 대상이 사우디 에너지 시설인지 홍해 상선인지는 원문 대조 전 미확인 → 수준 '중간' 유지·재검토 필요 [확인 필요: Reuters 10/23 원문 — 상선 공격 포함 여부, 2026-10-27, 매크로].",
    "path": "운항 거리↑ → 컨테이너·탱커 운임↑ → 해운 +·수출 물류비 −, 유럽행 리드타임↑. 브렌트 프리미엄 일부.",
    "watch": ["BRENT_WTI", "BRENT"],
    "triggers": [
-    "악화: 후티 상선 공격 재개 보도 또는 이란 충돌 재확전 → 해운 운임 급등 경로(해운 업종 +, 수출 물류비 −)",
+    "악화: 후티 상선 공격 재개 보도(홍해·바브엘만데브 선박 대상) 또는 이란 충돌 재확전 → 해운 운임 급등 경로(해운 업종 +, 수출 물류비 −). 사우디 육상 에너지 시설 공격은 이 축이 아니라 호르무즈·원유 축(브렌트)으로 읽는다(10/24 정의 추가)",
     "완화: 주요 선사 수에즈 복귀 발표 → 운임 정상화(해운 업종 −)"
    ],
    "sources": [

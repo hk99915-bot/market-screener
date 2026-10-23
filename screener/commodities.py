@@ -83,6 +83,9 @@ SOURCE_NOTES = [
     "야후 NI=F·SN=F·JJN·JJU: 데이터 없음 · ZNC=F: 호가 정체(거래 0) · LTH=F·COB=F·UX=F: 3개월 1행",
 ]
 GROUPS = ["에너지", "비철", "희토류·전략광물", "귀금속"]
+# 대용(ETC·신탁·ETF로 원자재 가격을 대신하는 것) — 검증한 건 월평균 '변화율' 상관뿐이라 52주 위치(수준)는 실물과 다를 수 있다
+# (피어리뷰 2026-10-24 C1: SRUUF pos52 0.15 vs 공식 월평균 URAN_M 1.0). 화면·note 는 위치 대신 '대용 — 수준 비교 불가', 변화율만.
+PROXY = {"URANIUM", "ZINC", "NICKEL", "TIN", "DBB", "LIT", "REMX"}
 
 
 def stats(rows: list[tuple[str, float]], today: date | None = None) -> dict:
@@ -204,6 +207,8 @@ def note(r: dict) -> str:
     if r.get("status") != "ok":
         return f"미확인 — {r.get('why', '')}"
     p, m = r.get("pos52"), r.get("chg1m")
+    if r.get("proxy"):
+        return "대용 — 수준 비교 불가(변화율만)" + ("" if m is None else " · 1개월 급등(≥+10%)" if m >= 0.10 else " · 1개월 급락(≤−10%)" if m <= -0.10 else "")
     band = ("52주 고점권" if p is not None and p >= 0.9 else "52주 상단" if p is not None and p >= 0.7 else
             "52주 저점권" if p is not None and p <= 0.1 else "52주 하단" if p is not None and p <= 0.3 else "52주 중간")
     if r.get("group") == "파생":   # 스프레드·마진·비율은 % 변화가 왜곡(0 근처 분모) → 단위 차이로
@@ -241,7 +246,7 @@ def build(fetch=None, fetch_monthly=None) -> dict:
         rs = raw.get(sym) or []
         series[key] = rs
         s = stats(rs) if rs else {"status": "미확인", "why": f"야후 {sym} 데이터 없음"}
-        rows.append({"key": key, "sym": sym, "name": name, "unit": unit, "group": grp, "kr": kr, **s})
+        rows.append({"key": key, "sym": sym, "name": name, "unit": unit, "group": grp, "kr": kr, **s, **({"proxy": True} if key in PROXY else {})})
     try:
         mraw = fetch_monthly([m for _, m, *_ in MONTHLY])
     except Exception as e:  # noqa: BLE001

@@ -508,14 +508,14 @@ async def check_macro_bond_top(b, port: int) -> int:
         res: dict = {}
         await pg.evaluate("setView('macro')")
         await pg.wait_for_timeout(3000)
-        m = await pg.evaluate("""(()=>{ const t=document.getElementById('macTop'), f=document.querySelector('#root .p'), g=document.getElementById('macGap'), w=document.getElementById('macWind');
+        m = await pg.evaluate("""(()=>{ const t=document.getElementById('macTop'), f=document.querySelector('#root .p'), g=document.getElementById('macGap'), w=document.getElementById('macWind'), gl=document.getElementById('macGlance');
           if(!t) return null; const tx=t.innerText; return {first:f===t, bot:Math.max(g?g.getBoundingClientRect().bottom:9999, w?w.getBoundingClientRect().bottom:9999),
           wind:tx.includes('매크로 바람'), gap:!!g&&tx.includes('격차'), asof:!!t.querySelector('.asof'), tiles:t.querySelectorAll('.mct').length,
           need:['금리','기준금리','환율','유가','다음 주요 일정','FOMC'].every(w=>tx.includes(w)), stale:tx.includes('STALE'),
           over:[...document.querySelectorAll('#root *')].some(e=>e.getBoundingClientRect().right>innerWidth+1&&!e.closest('table')),
           lag:dataLag('KR','2020-01-02',0)!==''&&dataLag('KR',mkPhase('KR').last,0)==='',
-          cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
-        res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and m["cmd"] and m["geo"] and (m["stale"] if body else True)
+          glance:!!gl&&gl.querySelectorAll('.mgl').length>=5&&gl.getBoundingClientRect().bottom<=844&&gl.innerText.includes('데스크 해석'), cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
+        res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and m["cmd"] and m["geo"] and m["glance"] and (m["stale"] if body else True)
         await pg.evaluate("setView('bond')")
         await pg.wait_for_timeout(3000)
         n = await pg.evaluate("""(()=>{ const t=document.getElementById('bondNow'), f=document.querySelector('#root .p'); if(!t) return null; const tx=t.innerText;

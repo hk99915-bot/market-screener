@@ -162,6 +162,178 @@ def iv_chip() -> dict | None:
                      + " — 표시 전용, 바람 점수 제외(검증전)"}
 
 
+def _jload(name: str):
+    try:
+        return json.loads((REPORT_DIR / name).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _md(ds) -> str:
+    s = str(ds or "")
+    return f"{int(s[5:7])}/{int(s[8:10])}" if len(s) >= 10 and s[4] == "-" else (s or "—")
+
+
+def _foreign20(n: int = 20) -> dict | None:
+    """data/deriv/daily.csv(KRX 확정, 억원) 최근 n거래일 외국인·기관·개인 현물 순매수 합."""
+    import csv
+    from .config import DATA_DIR
+    try:
+        with open(DATA_DIR / "deriv" / "daily.csv", encoding="utf-8") as f:
+            rows = [r for r in csv.DictReader(f) if r.get("spot_frgn") not in (None, "")]
+    except Exception:  # noqa: BLE001
+        return None
+    if len(rows) < n:
+        return None
+    t = rows[-n:]
+    s = lambda k: sum(float(r[k] or 0) for r in t)   # noqa: E731
+    return {"frgn": s("spot_frgn"), "inst": s("spot_inst"), "indiv": s("spot_indiv"), "from": t[0]["date"], "to": t[-1]["date"]}
+
+
+def _jo(x_eok: float) -> str:
+    return f"{x_eok / 10000:+.1f}조"
+
+
+GEO_SHORT = {"hormuz": "호르무즈", "redsea": "홍해", "ruukr": "러-우 가스", "rare_earth": "희토류 통제", "chips": "반도체 통제",
+             "taiwan": "대만해협", "korea": "한반도", "tariff": "관세 232"}
+
+
+def glance(stats: dict, today: str | None = None) -> list[dict]:
+    """'MACRO 한눈에' 층별 한 줄 (10/24 겸이 "추가된 데이터 기반으로 더 자세해야") — **표시 전용, 바람 점수·규칙 불변**.
+    숫자 = 산출물에서 자동(각 줄 src·asof), 해석 = reports/views/macro_glance.json(데스크 작성, desk 필드로 복사).
+    한 층이라도 재료가 없으면 그 층 line 에 '데이터 없음(파일)'을 쓰고 빠뜨리지 않는다(조용한 대체 금지)."""
+    from datetime import datetime, timedelta, timezone
+    import re
+    today = today or datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
+    V = _jload("views/macro_glance.json") or {}
+    L = V.get("layers") or {}
+
+    def row(i, t, line, src, asof, verified="검증전", short=None):
+        d = L.get(i) or {}
+        return {"id": i, "title": t, "short": short or line, "line": line, "src": src, "asof": asof, "label": verified,
+                "desk": ({"take": d.get("take"), "flip": d.get("flip"), "grade": d.get("grade"), "asof": V.get("updated")}
+                         if d.get("take") else None)}
+    out = []
+    # ① 금리·통화 — bonds(국고3Y·미2Y) + realestate(ECOS 기준금리) + 데스크 입력 FF 상단(digest 근거)
+    bd = _jload("bonds.json") or {}
+    k3 = ((bd.get("kr") or {}).get("chg") or {}).get("3Y") or {}
+    u2 = ((bd.get("us") or {}).get("chg") or {}).get("2Y") or {}
+    base = next((r for r in ((_jload("realestate.json") or {}).get("rates") or []) if r.get("key") == "BOK_BASE" and r.get("status") == "ok"), None)
+    fed = (V.get("policy") or {}).get("fed_upper")
+    parts = []
+    if k3.get("v") is not None:
+        parts.append(f"국고3Y {k3['v']:.2f}%" + (f"(기준 {base['last']:.2f}% {(k3['v'] - base['last']) * 100:+.0f}bp" if base else "(기준금리 미확인")
+                     + (f"·1M {k3['m1']:+.0f}bp)" if k3.get("m1") is not None else ")"))
+    if u2.get("v") is not None:
+        parts.append(f"미2Y {u2['v']:.2f}%" + (f"(FF상단 {fed:.2f}% {(u2['v'] - fed) * 100:+.0f}bp≈인상 {(u2['v'] - fed) / 0.25:.1f}회분" if fed else "(FF상단 미확인")
+                     + (f"·1M {u2['m1']:+.0f}bp)" if u2.get("m1") is not None else ")"))
+    sh = []
+    if k3.get("v") is not None:
+        sh.append(f"국고3Y {k3['v']:.2f}%" + (f"(기준{(k3['v'] - base['last']) * 100:+.0f}bp)" if base else ""))
+    if u2.get("v") is not None:
+        sh.append(f"미2Y {u2['v']:.2f}%" + (f"(FF상단{(u2['v'] - fed) * 100:+.0f}bp≈{(u2['v'] - fed) / 0.25:.1f}회)" if fed else ""))
+    out.append(row("rates", "금리", " · ".join(parts) or "데이터 없음(bonds.json)",
+                   "bonds.json · realestate.json(ECOS) · views/digest.json",
+                   f"국고 {_md(k3.get('date'))} · 미 {_md(u2.get('date'))}" + (f" · 기준 {base['month']}" if base else ""), short=" · ".join(sh) or None))
+    # ② 원자재 압력 — commodities(브렌트·TTF·구리/금), 52주 위치
+    cm = _jload("commodities.json") or {}
+    C = {r["key"]: r for r in (cm.get("rows") or []) if r.get("status") == "ok"}
+
+    def cl(k, nm, dg=1, unit=""):
+        r = C.get(k)
+        if not r or r.get("last") is None:
+            return f"{nm} 미확인"
+        m1 = f"1M {r['chg1m'] * 100:+.0f}%" if r.get("chg1m") is not None else ""
+        p = f"52주 {r['pos52'] * 100:.0f}%" if r.get("pos52") is not None else ""
+        return f"{nm} {unit}{r['last']:,.{dg}f}(" + "·".join(x for x in (m1, p) if x) + ")"
+    cp = [cl("BRENT", "브렌트", 1, "$"), cl("TTF", "TTF", 1, "€")]
+    cu, au, ca = C.get("COPPER"), C.get("GOLD"), C.get("CU_AU")
+    if ca and ca.get("last") is not None:
+        why = ""
+        if cu and au and cu.get("chg1m") is not None and au.get("chg1m") is not None and (ca.get("d1m") or 0) > 0:
+            how = f"구리 1M {cu['chg1m'] * 100:+.0f}%·금 {au['chg1m'] * 100:+.0f}%"
+            why = (f" ← 금이 더 빠진 몫({how}), 구리 강세 아님" if cu["chg1m"] < 0 and au["chg1m"] < 0 else
+                   f" ← 구리 강세({how})" if cu["chg1m"] > 0 else f" ({how})")
+        cp.append(f"구리/금 {ca['last']:.2f}(52주 {ca['pos52'] * 100:.0f}%){why}" if ca.get("pos52") is not None else f"구리/금 {ca['last']:.2f}")
+    else:
+        cp.append("구리/금 미확인")
+    def cs(k, nm, unit=""):
+        r = C.get(k)
+        return (f"{nm} {unit}{r['last']:,.0f}(52주 {r['pos52'] * 100:.0f}%)" if r and r.get("last") is not None and r.get("pos52") is not None else f"{nm} 미확인")
+    sh = [cs("BRENT", "브렌트", "$"), cs("TTF", "TTF", "€")]
+    if ca and ca.get("pos52") is not None:
+        sh.append(f"구리/금 52주 {ca['pos52'] * 100:.0f}%" + ("=금 하락 몫" if "금이 더 빠진" in cp[-1] else ""))
+    out.append(row("cmd", "원자재", " · ".join(cp) if C else "데이터 없음(commodities.json)",
+                   "commodities.json", _md(cm.get("asof")), short=" · ".join(sh) if C else None))
+    # ③ 지정학 상위 2축 — views/geopolitics(수준) + geo_news(최근 헤드라인 1줄, 자동)
+    G = _jload("views/geopolitics.json") or {}
+    GN = _jload("geo_news.json") or {}
+    NA = {a.get("id"): a for a in (GN.get("axes") or [])}
+    rank = {"높음": 0, "중간": 1, "낮음": 2}
+    ax = sorted(G.get("axes") or [], key=lambda a: rank.get(a.get("level"), 3))[:2]
+    gl, gs = [], []
+    for a in ax:
+        n = ((NA.get(a.get("id")) or {}).get("items") or [None])[0]
+        nt = (f" — 뉴스(자동): {(n.get('title', '')[:90] + ('…' if len(n.get('title', '')) > 90 else ''))} ({n.get('src', '')} {_md(n.get('time'))})" if n else " — 최근 매칭 뉴스 없음")
+        gl.append(f"{a.get('name')}[{a.get('level')}]{nt}")
+        gs.append(f"{GEO_SHORT.get(a.get('id'), a.get('name'))}[{a.get('level')}]")
+    n0 = next((((NA.get(a.get("id")) or {}).get("items") or [None])[0] for a in ax if ((NA.get(a.get("id")) or {}).get("items"))), None)
+    out.append(row("geo", "지정학", " / ".join(gl) or "데이터 없음(views/geopolitics.json)",
+                   "views/geopolitics.json · geo_news.json(자동 RSS)", f"축 {str(G.get('updated') or '—')[:10]} · 뉴스 {str(GN.get('generated_at') or '—')[:16]}",
+                   short=(" · ".join(gs) + (f" — 자동: {n0.get('title', '')} ({_md(n0.get('time'))})" if n0 else "")) if gs else None))
+    # ④ 한국 고유 요인 — 격차(규칙 #5 그대로) + 원인 후보를 데이터로 확인되는 것만 (반도체 2종목·외국인 20일·환율)
+    kr, us = stats.get("KOSPI"), stats.get("SPX")
+    kl, f20, ks = [], None, []
+    if kr and us and kr.get("chg20") is not None and us.get("chg20") is not None:
+        gap = kr["chg20"] - us["chg20"]
+        kl.append(f"격차 {gap * 100:+.1f}%p")
+        ks.append(f"격차 {gap * 100:+.1f}%p ←")
+        sem = []
+        for code, nm in (("005930", "삼성전자"), ("000660", "SK하이닉스")):
+            d = _jload(f"detail/KR/{code}.json") or {}
+            r20 = (d.get("stats") or {}).get("ret20")
+            if isinstance(r20, (int, float)):
+                sem.append((nm, r20, d.get("asof")))
+        if len(sem) == 2:
+            avg = sum(s[1] for s in sem) / 2
+            ks.append(f"반도체 {'○' if avg <= kr['chg20'] else '✕'}(2종목 평균 {avg * 100:+.0f}%)")
+            kl.append(("반도체 쏠림 ○" if avg <= kr["chg20"] else "반도체 쏠림 ✕") + f"({'·'.join(f'{s[0]} {s[1] * 100:+.0f}%' for s in sem)} vs 코스피 {kr['chg20'] * 100:+.0f}%"
+                      + (f"·코스닥 {stats['KOSDAQ']['chg20'] * 100:+.0f}%" if stats.get("KOSDAQ") and stats["KOSDAQ"].get("chg20") is not None else "") + ")")
+        else:
+            kl.append("반도체 쏠림 미확인(detail 없음)")
+        f20 = _foreign20()
+        ks.append(f"외국인 {'○' if f20['frgn'] < 0 else '✕'}(20일 {_jo(f20['frgn'])})" if f20 else "외국인 미확인")
+        kl.append((("외국인 매도 ○" if f20["frgn"] < 0 else "외국인 매도 ✕") + f"(20일 현물 외국인 {_jo(f20['frgn'])}·기관 {_jo(f20['inst'])}·개인 {_jo(f20['indiv'])})")
+                  if f20 else "외국인 수급 미확인(deriv/daily.csv 없음)")
+        fx = stats.get("USDKRW")
+        if fx and fx.get("chg20") is not None:
+            ks.append(f"환율 {'○' if fx['chg20'] > 0.015 else '✕'}(원/달러 {fx['chg20'] * 100:+.1f}%)")
+            kl.append(("환율 ○" if fx["chg20"] > 0.015 else "환율 ✕") + f"(원/달러 20일 {fx['chg20'] * 100:+.1f}%" + (", 원화 강세라 원인 아님)" if fx["chg20"] < -0.015 else ")"))
+        kl.append("반도체 지수 기여도 미확인(시총 비중 산출물 없음)")
+    src_dt = f20["to"] if f20 else None
+    out.append(row("kr", "한국 고유", " · ".join(kl) or "데이터 없음(macro_series KOSPI·SPX)",
+                   "macro_view(macro_series) · detail/KR/005930·000660 · data/deriv/daily.csv(KRX)",
+                   f"코스피 {_md(kr.get('date') if kr else None)} · 수급 {_md(src_dt)}", short=" ".join(ks) or None))
+    # ⑤ 다음 1주 이벤트 3개 — calendar(매크로 ★3 → 한국 반도체 실적 ★3 묶음 → 매크로 ★2)
+    cal = _jload("calendar.json") or {}
+    end = (datetime.strptime(today, "%Y-%m-%d") + timedelta(days=7)).strftime("%Y-%m-%d")
+    ev = [e for e in (cal.get("events") or []) if today <= str(e.get("date", "")) <= end]
+
+    def kst(e):
+        m = re.search(r"한국\s*(\d{1,2}/\d{1,2}\s*)?(\d{1,2}:\d{2})", str(e.get("note") or ""))
+        return (f"{(m.group(1) or _md(e['date'])).strip()} {m.group(2)}" if m else _md(e["date"]))
+    mac = sorted([e for e in ev if e.get("type") == "매크로"], key=lambda e: (-(e.get("imp") or 0), e["date"]))
+    pick = [f"{kst(e)} {e['name'].replace(' 금리 결정', '')}{'★' if (e.get('imp') or 0) >= 3 else ''}" for e in mac if (e.get("imp") or 0) >= 3]
+    semi = sorted([e for e in ev if e.get("type") == "실적" and (e.get("imp") or 0) >= 3 and e.get("name", "").startswith(("SK하이닉스", "삼성전자"))], key=lambda e: e["date"])
+    if semi:
+        pick.insert(1, "반도체 실적 " + "·".join(f"{e['name'].replace(' 실적', '')} {_md(e['date'])}" for e in semi) + "★")
+    pick += [f"{kst(e)} {e['name']}" for e in mac if (e.get("imp") or 0) == 2]
+    out.append(row("events", "다음 1주", " · ".join(pick[:3]) or "7일 안 ★ 일정 없음",
+                   "calendar.json", f"{_md(today)}~{_md(end)} · 생성 {str(cal.get('asof') or '—')[:16]}", verified="일정(공식·회사 확정)",
+                   short=" · ".join(re.sub(r"\s*\(.*?\)", "", x).replace("반도체 실적 ", "").replace("SK하이닉스", "하이닉스") for x in pick[:3]) or None))
+    return out
+
+
 def build() -> dict:
     try:
         ms = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8"))["series"]
@@ -208,6 +380,12 @@ def build() -> dict:
     chip = iv_chip()   # 표시 전용 칩 — rows 에 넣지 않음(점수·rows 소비처 영향 0)
     if chip:
         out["chips"] = [chip]
+    try:   # 한눈에 층별 줄 — 표시 전용(점수·rows 영향 0). 실패해도 바람 산출은 막지 않는다
+        out["glance"] = glance(stats)
+    except Exception as e:  # noqa: BLE001
+        log.warning("한눈에 층별 줄 실패: %s", e)
+        out["glance"] = [{"id": "err", "title": "층별 요약", "line": f"데이터 없음(생성 실패: {type(e).__name__})", "src": "screener/macroview.py",
+                          "asof": None, "label": "검증전", "desk": None}]
     from .guard import write_json
     write_json(REPORT_DIR / "macro_view.json", out, default=str)
     try:

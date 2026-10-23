@@ -112,3 +112,11 @@ def test_build_monthly_rows_marked_and_excluded_from_movers(tmp_path, monkeypatc
     m = [r for r in out["rows"] if r.get("freq") == "월간"]
     assert len(m) == len(cm.MONTHLY) and all(r["status"] == "ok" and r["note"].startswith("월간") for r in m)
     assert "없음" in out["summary"] and out["asof"] is None   # 일간이 전부 없으면 날짜 비움(월간 날짜로 대체 안 함)
+
+
+def test_proxy_rows_drop_level_band():
+    """피어리뷰 10/24 C1: 대용(ETC·신탁·ETF)은 52주 위치(수준) 문구를 쓰지 않고 '대용 — 수준 비교 불가' + 변화율만."""
+    assert {"URANIUM", "NICKEL", "ZINC", "REMX"} <= cm.PROXY and "BRENT" not in cm.PROXY
+    n = cm.note({"status": "ok", "pos52": 0.05, "chg1m": -0.2, "proxy": True})
+    assert n.startswith("대용 — 수준 비교 불가") and "52주" not in n and "급락" in n
+    assert cm.note({"status": "ok", "pos52": 0.05, "chg1m": 0.0}).startswith("52주 저점권")
