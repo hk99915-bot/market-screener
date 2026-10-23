@@ -267,7 +267,7 @@ def say_line(st: dict, prop: list[dict], last_loss: dict | None, n_pass: int, sr
         s = ("이 장에서 롱 타령은 근거 없다 — " + (f"기대값 {ev:+.2f}R, 기준선 {base:+.2f}R 밑. " if _num(ev) and _num(base) else "통과한 소스가 하나도 없어. ")
              + "현금 들고 사냥감 찾는 중.")
     else:
-        s = "덫은 깔아놨다. 걸리는 게 없으면 안 쏜다 — 추격 매수는 없다."
+        s = ""          # 대기 상태는 말투 줄 생략(10/23 겸이 — 숫자 줄로 충분)
     return clean(s)
 
 
