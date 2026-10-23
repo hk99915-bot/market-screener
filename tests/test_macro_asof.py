@@ -82,6 +82,7 @@ def test_1620_stop_check_logs_and_records_when_kospi_stale(rep, monkeypatch, cap
     """월 10/19(거래일) 16:20: KOSPI 끝 행 10/16 → 경고 로그 + freshness stale 기록(조용한 건너뜀 금지)."""
     monkeypatch.setattr(alerts, "band_line", lambda: (None, None))
     monkeypatch.setattr(alerts, "touch_lines", lambda: [])
+    monkeypatch.setenv("RULE_STOP_LEVEL", "5451")   # 10/22 뒤엔 기본선이 committee.json 롤링으로 바뀌어(stop_level) 시계 의존 → 선 고정
     _write(rep, {"KOSPI": [_row("2026-10-15", 5300.0), _row("2026-10-16", 5300.0)], "BTC": [_row("2026-10-19")]})
     with caplog.at_level(logging.WARNING, logger="screener.alerts"):
         alerts.build(at_close=True, today=date(2026, 10, 19))
