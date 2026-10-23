@@ -108,7 +108,15 @@ def var_es(e_kr: float, e_us: float, n: int = 250) -> tuple[float, float, int] |
     return -pl[k - 1], -sum(pl[:k]) / k, len(pl)
 
 
+def _with_baskets(b: dict) -> dict:
+    """바스켓(hf_basket) 다리를 주식 포지션처럼 펼쳐 노출·테마·스트레스·VaR 에 넣는다."""
+    legs = [{"kind": "stock", "side": l["side"], "weight": l["w"], "code": l["code"], "name": l["name"], "beta": l["beta"]}
+            for x in (b.get("baskets") or {}).get("open") or [] for l in x["legs"]]
+    return {**b, "open": b["open"] + legs} if legs else b
+
+
 def report_lines(b: dict) -> list[str]:
+    b = _with_baskets(b)
     if not b["open"]:
         return ["위험: 열린 포지션 없음"]
     d, u = _ctx()

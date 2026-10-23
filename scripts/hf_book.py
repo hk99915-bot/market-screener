@@ -234,7 +234,12 @@ def counted_risk(p: dict, ids: set) -> float:
 
 def open_risk(b: dict) -> float:
     ids = _open_ids(b)
-    return sum(counted_risk(p, ids) for p in b["open"])
+    return sum(counted_risk(p, ids) for p in b["open"]) + sum(x["risk"] for x in (b.get("baskets") or {}).get("open") or [])
+
+
+def _basket():
+    import hf_basket
+    return hf_basket
 
 
 # ── 변동성·유동성·S4 ─────────────────────────────────────────────
@@ -475,7 +480,9 @@ def close_pos(b: dict, p: dict, px: float, d: str, why: str):
 
 def book_limits(b: dict, today: str) -> dict:
     """장부 손익 곡선(nav: 거래일별 마지막 값) → 고점 대비·5거래일 손실로 한도 판정."""
-    pnl = sum(x["r"] * x["risk"] for x in b["closed"]) + sum(pnl_book(x) for x in b["open"])
+    bk = b.get("baskets") or {}
+    pnl = (sum(x["r"] * x["risk"] for x in b["closed"]) + sum(pnl_book(x) for x in b["open"])
+           + sum(x["pnl"] for x in (bk.get("open") or []) + (bk.get("closed") or [])))       # 바스켓(hf_basket) 손익 포함
     nav = [x for x in b["nav"] if x["d"] != today] + [{"d": today, "pnl": round(pnl, 5)}]
     b["nav"] = nav[-400:]
     peak = max(0.0, max(x["pnl"] for x in nav))
@@ -497,6 +504,8 @@ def book_limits(b: dict, today: str) -> dict:
 def mark(b: dict) -> list[dict]:
     d = deriv_last()
     out, keep = [], []
+    if (b.get("baskets") or {}).get("open"):
+        out += _basket().mark(b)
     for p in b["open"]:
         px = price(p, d)
         p["last"] = round(px, 4)
@@ -545,6 +554,8 @@ def mark(b: dict) -> list[dict]:
             close_pos(b, p, p["last"], md, "북 손실 한도 −5% — 전량 정리")
             out.append(p)
         b["open"] = []
+    if lim.get("flat") and (b.get("baskets") or {}).get("open"):
+        out += _basket().close_all(b, "북 손실 한도 −5% — 전량 정리")
     return out
 
 
@@ -595,7 +606,8 @@ def show(b: dict) -> list[str]:
     d = deriv_last()
     lim = b.get("limits") or {}
     util = open_risk(b) / RISK_ALL
-    ls = [f"재량 북: 열린 {len(b['open'])}건 · 열린 리스크(헤지 순) {open_risk(b) * 100:.2f}% (한도 {RISK_ALL * 100:.2f}%, 가동률 {util:.0%}) · 청산 {len(b['closed'])}건"
+    nbk = len((b.get("baskets") or {}).get("open") or [])
+    ls = [f"재량 북: 열린 {len(b['open'])}건" + (f" + 바스켓 {nbk}" if nbk else "") + f" · 열린 리스크(헤지 순) {open_risk(b) * 100:.2f}% (한도 {RISK_ALL * 100:.2f}%, 가동률 {util:.0%}) · 청산 {len(b['closed'])}건"
           + (f" · 평균 {sum(x['r'] for x in b['closed']) / len(b['closed']):+.2f}R · 적중 {sum(x['r'] > 0 for x in b['closed'])}/{len(b['closed'])}" if b["closed"] else "")
           + (f" · 손익 {lim['pnl'] * 100:+.3f}% (고점 대비 {lim['dd'] * 100:+.3f}%)" if lim.get("pnl") is not None else "")]
     if util < UTIL_MIN and not lim.get("ban_new"):
@@ -612,6 +624,8 @@ def show(b: dict) -> list[str]:
         kl = f" · 논지 붕괴: {ck['kill']}" if ck.get("kill") else ""
         ct = f" · 촉매 {ck['catalyst']}" if ck.get("catalyst") else ""
         ls.append(f"- {p['side']} {p['name']} 진입 {p['entry']:,.2f} → {p['last']:,.2f} ({cur:+.2f}R) · {lv} · 크기 {p['weight'] * 100:.2f}% ({qty(p)}){pm}{hg}{ct}{kl} · 근거: {p['why']}")
+    if b.get("baskets"):
+        ls += _basket().lines(b)
     for p in b["closed"][-3:]:
         ls.append(f"- 청산 {p['side']} {p['name']} {p['r']:+.2f}R ({p['exit_why']}, {p['exit_d']})")
     ls += perf_lines(b)
