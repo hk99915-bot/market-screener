@@ -70,6 +70,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_duel_toggle(b, port)
         bad += await check_macro_bond_top(b, port)
         bad += await check_research_board(b, port)
+        bad += await check_msg_popup(b, port)
         await b.close()
     return bad
 
@@ -484,6 +485,30 @@ async def check_duel_toggle(b, port: int) -> int:
     res["성적표본문"] = await J("view==='score'&&!!document.querySelector('#duelbody')")
     ok = all(res.values()) and not errs
     print(f"{'OK ' if ok else 'BAD'} 대결1줄(390px) 높이={h}px " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return not ok
+
+
+async def check_msg_popup(b, port: int) -> int:
+    """💬 사내톡 팝업 폰(390px): 본문(.mgpb) 높이 ≥ 300px · 머리(.mgph) ≤ 80px · 가로 넘침 없음.
+    req-dev-bb56cd85(검증 10/24): 프로필 카드가 .mgph 클래스를 재사용해 폰에서 머리가 100dvh 를 먹고 본문이 12px 로 눌린 회귀."""
+    pg = await b.new_page(viewport={"width": 390, "height": 844})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    J = pg.evaluate
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await J("setView('home')")
+    await pg.wait_for_timeout(1500)
+    await J("mgPop(true)")
+    await pg.wait_for_timeout(2000)
+    body = await J("(document.querySelector('#mgpop .mgpb')||{offsetHeight:0}).offsetHeight")
+    head = await J("(document.querySelector('#mgpop .mgph')||{offsetHeight:9999}).offsetHeight")
+    res = {"본문300+": body >= 300, "머리80-": head <= 80,
+           "넘침없음": await J("[...document.querySelectorAll('#mgpop, #mgpop *')].every(e=>e.getBoundingClientRect().right<=innerWidth+1)")}
+    ok = all(res.values()) and not errs
+    print(f"{'OK ' if ok else 'BAD'} 💬팝업(390px) 본문={body}px 머리={head}px " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
+          + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok
 
