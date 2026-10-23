@@ -28,6 +28,8 @@ CONTRACTS: dict[str, dict] = {
     "japan.json": {"v": 1, "date": "date", "required": {"asof": str, "date": str}},
     # 원자재 트래킹(매크로 10/23): 전부 실패하면 asof=None 이므로 날짜 비어도 허용(rows 의 status='미확인' 이 신호). 화면: MARKET › MACRO (getCommodities)
     "commodities.json": {"v": 1, "date": "asof", "date_required": False, "required": {"generated_at": str, "rows": list}},
+    # 지정학 뉴스(데이터 10/23): 공개 RSS 헤드라인 축별 매칭. 화면: MARKET › MACRO 지정학 축 '최근 뉴스' (getGeoNews)
+    "geo_news.json": {"v": 1, "date": "asof", "required": {"asof": str, "generated_at": str, "axes": list, "feeds": list}},
     "macro_series.json": {"v": 1, "date": "asof", "required": {"asof": str, "fmt": str, "series": dict}},
     # 매집 스캔(데이터 요청 10/17): 실패 시 asof=None 으로 쓰므로 날짜는 비어도 허용(status='fail' 이 신호). 화면: MARKET › ACCUM (getAccum/getUsAccum)
     "accum.json": {"v": 1, "date": "asof", "date_required": False, "required": {"asof": str, "generated_at": str, "status": str, "n": int}},

@@ -73,6 +73,7 @@ SHIM = """<script>
     getMacroView: () => get('reports/macro_view.json'),
     getCommodities: () => get('reports/commodities.json'),
     getGeopolitics: () => get('reports/views/geopolitics.json'),
+    getGeoNews: () => get('reports/geo_news.json'),
     getChainSeries: () => get('reports/chains.json'),
     getEvents: () => raw('reports/events_stats.json'),
     getMacroHist: () => get('reports/macro_hist.json'),

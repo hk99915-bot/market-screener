@@ -26,6 +26,14 @@
 - 애널 요청 `mu-revenue-tag`(10/17): MU 매출 0행 원인 = parse() FLOW 루프가 첫 태그에서 `break` + 2019 필터 → 태그 병합으로 수정(위 오해 2). 검증 기준: FQ4(2026-09-03) 매출이 fin_verified.json 과 1% 안.
 - 미결: SK하이닉스 2026Q2 DART 단독분기 매출 < 순이익 — 분기 차감(누적−전분기) 오류 의심, 사업보고서 원문 대조 필요 `[자체연구-검증전]`.
 
+## 소스 목록 — 원자재·지정학 뉴스 (2026-10-23, req-data-3dda8f42 · 겸이 "야후파이낸스나 토스에 원자재 선물? 지정학은 뉴스트래킹")
+- **쓰는 원자재 일간 대용(야후)**: 니켈 `NICK.L`·아연 `ZINC.L`(WisdomTree ETC, LSE, $) · 주석 `TINM.MI`(WisdomTree, 밀라노, €, 거래 얇음) · JKM `JKM=F`(NYMEX 정산가, 장내 거래량 0) · 우라늄 `SRUUF`(Sprott 실물 신탁). ETC 가격은 $/t 가 아니라 증권 가격 — 방향·변화율만. `[자체연구-B: 2026-10-23 실조회]`
+- **대조(reconciliation)**: 위 일간 대용의 월평균 변화율 vs FRED IMF 월평균, 최근 24개월 상관 — 니켈 0.99+ · 아연 0.95 · 주석 0.95 · JKM↔일본 LNG 0.97 · 우라늄 0.93. `[자체연구-B: 24표본, 1회]` → 승격 근거(10년차 기준 ③).
+- **월간 공식 수준(FRED fredgraph.csv, 키 불필요)**: PNICKUSDM·PZINCUSDM·PTINUSDM·PNGASJPUSDM·PURANUSDM — commodities.json `freq='월간'`, 화면 '월간 N월'. **주의:** FRED 는 브라우저/커스텀 UA 로 읽기 타임아웃, 기본 requests UA 는 0.5초(10/23 실측, 샌드박스 프록시 경유) — 첫 타임아웃이면 나머지 건너뜀.
+- **못 쓰는 것(이유)**: 야후 `NI=F`·`SN=F`·`JJN`·`JJU` 없음 · `ZNC=F` 호가 정체(거래 0 → ZINC.L 로 교체) · `LTH=F`·`COB=F`·`UX=F` 3개월 1행 · **`CB=F` 는 코발트가 아니라 버터 선물** · FRED 코발트·리튬 시리즈 없음 · 싱가포르 복합정제마진·희토류 산화물 현물 = 유료 · 토스증권 Open API(v1.2.24) 원자재·선물 없음(시장지표 8종: 코스피·코스닥·국채), 웹 크롤링은 약관 금지 · investing.com 403+약관 · westmetall 접속되나 LME 가격 재배포 라이선스 → 저장 안 함 · EIA API 키 필요(시크릿 없음).
+- **지정학 뉴스 RSS(screener/geo_news.py → reports/geo_news.json)**: 직접 = BBC World·BBC Business·Al Jazeera·Guardian World·NYT World·NPR World·Yonhap(영문)·gCaptain·OilPrice·야후 파이낸스 헤드라인 RSS(CL=F 등, 간헐 오류 페이지) / 검색 = Google News RSS 축별 8쿼리(로이터·AP 기사 제목도 여기로 들어옴, 연속 호출 시 간헐 503 → 3초 뒤 1회 재시도). 실패: AP index.rss 403 · CNBC 403 · DW 404 · 로이터 공개 RSS 2020 종료.
+- **흔한 오해**: "키워드 매칭 헤드라인 = 축 상태 변화" → 아니다. 제목만 매칭(관세는 상대국·품목 동반 필요 — 첫 실행에 미 국내 정치 기사 섞임), 원문 미대조. 축 상태·해석은 매크로 데스크 손 갱신(geopolitics.json)만이 판단. `[경험]`
+
 ## 복기
 - **2026-10-17 'YTD 누적 버그' 판정** — 틀림: 10/16 14:47 MU ni 5.2→13.8→28.2→37.7 모양만 보고 P0 "파서 결함"으로 올렸고, 15:25 수정 때 넣은 모양 가드(CUM_RATIO 1.8)가 SNDK revenue 3.0→6.0→9.0 을 같은 누적 버그로 '검증전' 처리했다. → 왜: MU 는 실제 누적치 누수(맞음)였지만 SNDK 는 분사 직후 정상 성장이었고, 두 경우를 모양으로는 구분할 수 없다는 걸 원문(8-K) 대조(23:43) 전까지 인정하지 않았다. → 다음부터: 파서 버그 의심은 (1) start/end 기간(일수)으로 누적 여부를 **구조적으로** 판정하고, (2) 모양 휴리스틱은 플래그만, 확정·해제는 fin_verified.json 원문 대조로만 한다. 같은 날 MU '매출 0행'도 모양이 아니라 코드 경로(첫 태그 break)로 먼저 확인했다.
 

@@ -341,6 +341,11 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
             commodities.build()
         except Exception as e:  # noqa: BLE001
             log.warning("원자재 트래킹 실패: %s", e)
+        try:   # 지정학 축 뉴스 자동 트래킹(데이터 10/23) — 공개 RSS 제목 키워드 매칭, 실패해도 매크로엔 영향 없음
+            from . import geo_news
+            geo_news.build()
+        except Exception as e:  # noqa: BLE001
+            log.warning("지정학 뉴스 실패: %s", e)
     except Exception as e:  # noqa: BLE001
         log.warning("매크로 시계열 저장 실패: %s", e)
 
