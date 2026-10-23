@@ -340,9 +340,13 @@ def build(days: int = 75) -> dict:
     # 지난 실적 일정은 야후가 다음 예정일만 주므로 이전 calendar.json 에서 이어받음
     try:
         prev = json.loads(OUT.read_text(encoding="utf-8")).get("events", [])
-        ev += [e for e in prev if e.get("type") == "실적" and start <= date.fromisoformat(e["date"]) < today - timedelta(days=1)]
+        # 10/23 개발: 예전엔 '< 오늘-1' 만 이어받아, 발표 다음날 야후가 다음 분기 날짜로 넘어가면 그 이벤트가 사라졌다
+        # (META·LRCX·TSLA 10/21 → 10/22 19:20 실행에서 소실). 지난 실적은 전부 이어받고, 같은 종목의 새 날짜가 30일 안이면(일정 변경) 뒤에서 버린다.
+        carried = [e for e in prev if e.get("type") == "실적" and start <= date.fromisoformat(e["date"]) < today]
+        ev += carried
     except Exception:  # noqa: BLE001
-        pass
+        prev = []
+    keep = {(e.get("ticker"), e["date"]): e for e in prev if e.get("type") == "실적"}   # 발표 전 저장한 컨센·결과를 새 판으로 넘김
     for d, n, note, imp in MACRO:
         if start <= date.fromisoformat(d) <= end:
             ev.append({"date": d, "type": "매크로", "name": n, "note": note, "imp": imp})
@@ -407,7 +411,11 @@ def build(days: int = 75) -> dict:
              "imp": max(imp, vf[2]) if vf else imp}
         if vf:
             e["confirmed"] = True
+        for k in ("cons", "res", "result"):
+            if (keep.get((t, d)) or {}).get(k):
+                e[k] = keep[(t, d)][k]
         ev.append(e)
+    ev = drop_moved(ev)
     seen = set()
     ev = [e for e in ev if not ((e["date"], e["name"]) in seen or seen.add((e["date"], e["name"])))]
     ev.sort(key=lambda e: (e["date"], -e["imp"]))
@@ -415,11 +423,290 @@ def build(days: int = 75) -> dict:
         _attach(ev, releases())
     except Exception as e:  # noqa: BLE001
         log.warning("지표 결과 실패: %s", e)
+    try:
+        attach_earn(ev, today)
+    except Exception as e:  # noqa: BLE001
+        log.warning("실적 결과 첨부 실패: %s", e)
     out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "events": ev, "moves": _moves(),
            "note": "실적일은 야후 기준 예정일(회사 확정 전 추정 포함) — '회사 확정' 표시분은 회사 발표로 확인. 매크로 일정은 연준·BLS·BEA 공식 일정 기준."}
     OUT.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     log.info("캘린더 %d건", len(ev))
     return out
+
+
+# ───────────── 실적 결과 자동 첨부 (req-dev-4f89d244, 10/23 개발) ─────────────
+# 지난 실적 이벤트(발표일~+5일)에 ① 미장 EPS 실제 vs 컨센·서프라이즈(야후 earnings_dates), 매출 실제(야후 분기 손익) vs 발표 전 저장한 컨센
+# ② 국장 DART 잠정실적 공시 연결(수치 파싱은 다음 단계) ③ 다음 거래일 종목 반응 %. 가이던스는 출처 있는 수집원이 없어 아직 안 붙인다(지어내지 않음).
+# 실패는 조용히 넘기지 않는다: e["result"] 에 "데이터 없음(원인)" 한 줄.
+EARN_WINDOW = 5      # 발표일 뒤 며칠까지 결과를 다시 찾나 (미장은 KST 다음날 아침 반영이라 +1 여유)
+CONS_AHEAD = 7       # 발표 며칠 전부터 컨센(EPS·매출)을 저장하나 — 발표 뒤엔 야후 '0q' 가 다음 분기로 넘어가 사라짐
+KNAME = {"META": "메타", "MSFT": "MSFT", "GOOGL": "구글", "AMZN": "아마존", "ORCL": "오라클"}
+
+
+def drop_moved(ev: list[dict]) -> list[dict]:
+    """이어받은 지난 실적 중, 같은 종목의 다른 날짜가 1~30일 뒤에 있으면(야후 추정일 → 정정) 지난 쪽을 버린다."""
+    by = {}
+    for e in ev:
+        if e.get("type") == "실적" and e.get("ticker"):
+            by.setdefault(e["ticker"], set()).add(e["date"])
+    out = []
+    for e in ev:
+        if e.get("type") == "실적" and e.get("ticker") and not e.get("res"):
+            d0 = date.fromisoformat(e["date"])
+            if any(0 < (date.fromisoformat(d) - d0).days <= 30 for d in by[e["ticker"]]):
+                continue
+        out.append(e)
+    return out
+
+
+def _num(x):
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    return None if v != v else v   # NaN
+
+
+def _big(v: float | None, cur: str = "$") -> str:
+    if v is None:
+        return "—"
+    a = abs(v)
+    if cur == "$":
+        return f"${v/1e9:,.1f}B" if a >= 1e9 else f"${v/1e6:,.0f}M"
+    return f"{v/1e12:,.1f}조" if a >= 1e12 else f"{v/1e8:,.0f}억"
+
+
+def surprise_pct(act: float | None, est: float | None) -> float | None:
+    """서프라이즈 % = (실제 − 컨센) / |컨센|. 컨센 0·없음이면 None."""
+    if act is None or est is None or est == 0:
+        return None
+    return (act - est) / abs(est)
+
+
+def reaction(closes: list[tuple[str, float]], d0: str, timing: str) -> tuple[float | None, str | None]:
+    """발표 반응 % — 장 마감 후(amc) 발표: 발표일 종가 → 다음 거래일 종가, 장 전(bmo): 전 거래일 종가 → 발표일 종가.
+    closes = [(YYYY-MM-DD, 종가)] 오름차순. 반응일 종가가 아직 없으면 (None, None)."""
+    days = [d for d, _ in closes]
+    px = dict(closes)
+    if timing == "bmo":
+        if d0 not in px:
+            return None, None
+        i = days.index(d0)
+        if i == 0:
+            return None, None
+        return px[d0] / px[days[i - 1]] - 1, d0
+    base = [d for d in days if d <= d0]
+    nxt = [d for d in days if d > d0]
+    if not base or not nxt:
+        return None, None
+    return px[nxt[0]] / px[base[-1]] - 1, nxt[0]
+
+
+def us_line(r: dict) -> list[str]:
+    """미장 결과 dict → 표시 줄. r: eps_act·eps_est·eps_sur(%)·rev_act·rev_est·react·react_day·date_fix."""
+    L = []
+    if r.get("eps_act") is not None:
+        sur = r.get("eps_sur")
+        if sur is None:
+            sur = surprise_pct(r["eps_act"], r.get("eps_est"))
+        L.append(f"EPS {r['eps_act']:.2f} vs 컨센 {r['eps_est']:.2f}" if r.get("eps_est") is not None else f"EPS {r['eps_act']:.2f} (컨센 없음)")
+        if sur is not None:
+            L[-1] += f" ({sur*100:+.1f}%)"
+    if r.get("rev_act") is not None:
+        rs = surprise_pct(r["rev_act"], r.get("rev_est"))
+        L.append(f"매출 {_big(r['rev_act'])}" + (f" vs 컨센 {_big(r['rev_est'])} ({rs*100:+.1f}%)" if rs is not None else " (발표 전 컨센 미저장)"))
+    elif r.get("eps_act") is not None:
+        L.append("매출 실제 미반영(야후 분기 손익 갱신 대기)")
+    if r.get("react") is not None:
+        L.append(f"주가 반응 {r['react']*100:+.1f}% ({r['react_day'][5:]} 종가)")
+    elif r.get("eps_act") is not None:
+        L.append("주가 반응 대기(다음 거래일 종가 전)")
+    if r.get("date_fix"):
+        L.append(f"발표일 정정 {r['date_fix']} (야후 earnings_dates)")
+    return [" · ".join(L)] if L else []
+
+
+def short(e: dict) -> str:
+    """운용회의 한 줄용 짧은 결과: 'EPS +5.1% · 반응 −3.2%'."""
+    r = e.get("res") or {}
+    p = []
+    sur = r.get("eps_sur") if r.get("eps_sur") is not None else surprise_pct(r.get("eps_act"), r.get("eps_est"))
+    if sur is not None:
+        p.append(f"EPS {sur*100:+.0f}%")
+    if r.get("react") is not None:
+        p.append(f"반응 {r['react']*100:+.1f}%")
+    if r.get("dart"):
+        p.append("잠정 공시")
+    return "·".join(p)
+
+
+def capex_line(events: list[dict], today: date) -> str:
+    """미장 운용회의 '한국 메모리 판단의 선행 지표' 줄 — 날짜는 캘린더에서(하드코딩 금지, 10/23 META 불일치 재발 방지)."""
+    xs = [e for e in events if e.get("type") == "실적" and e.get("ticker") in CAPEX
+          and today - timedelta(days=10) <= date.fromisoformat(e["date"]) <= today + timedelta(days=21)]
+    xs.sort(key=lambda e: e["date"])
+    parts = []
+    for e in xs:
+        s = short(e)
+        parts.append(f"{e['date'][5:].replace('-', '/')} {KNAME.get(e['ticker'], e['ticker'])}"
+                     + ("" if e.get("confirmed") or e.get("res") else "(추정일)") + (f" {s}" if s else ""))
+    cap = "빅테크 설비투자 가이던스(" + (", ".join(parts) if parts else "캘린더에 3주 안 일정 없음") + ")"
+    return "한국 메모리 판단의 선행 지표: " + cap + " · 마이크론 EPS 추정 · TSMC 가이던스"
+
+
+def _yf_closes(sym: str, d0: date) -> list[tuple[str, float]]:
+    import yfinance as yf
+    h = yf.Ticker(sym).history(start=str(d0 - timedelta(days=10)), end=str(d0 + timedelta(days=10)), auto_adjust=False)
+    return [(str(i)[:10], float(c)) for i, c in zip(h.index, h["Close"]) if c == c]
+
+
+def _us_cons(t: str) -> dict:
+    import yfinance as yf
+    tk = yf.Ticker(t)
+    out = {}
+    try:
+        out["eps"] = _num(tk.earnings_estimate.loc["0q", "avg"])
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        out["rev"] = _num(tk.revenue_estimate.loc["0q", "avg"])
+    except Exception:  # noqa: BLE001
+        pass
+    return {k: v for k, v in out.items() if v is not None}
+
+
+def _us_fetch(t: str, d0: date, cons: dict | None) -> dict:
+    """야후: earnings_dates(실제 EPS·컨센·서프라이즈·발표 시각) + 분기 손익(매출) + 종가(반응)."""
+    import yfinance as yf
+    tk = yf.Ticker(t)
+    r: dict = {}
+    ed = tk.get_earnings_dates(limit=8)
+    row, when = None, None
+    if ed is not None and len(ed):
+        for ts, x in ed.iterrows():
+            dd = ts.date() if hasattr(ts, "date") else date.fromisoformat(str(ts)[:10])
+            if abs((dd - d0).days) <= 3 and _num(x.get("Reported EPS")) is not None:
+                row, when = x, ts
+                break
+    if row is None:
+        return {"err": "야후 earnings_dates 에 실제 EPS 없음(발표 전이거나 미반영)"}
+    ad = when.date()
+    if ad != d0:
+        r["date_fix"] = str(ad)
+    r["eps_act"] = _num(row.get("Reported EPS"))
+    r["eps_est"] = _num(row.get("EPS Estimate"))
+    sp = _num(row.get("Surprise(%)"))
+    r["eps_sur"] = sp / 100 if sp is not None else None
+    hr = getattr(when, "hour", 16)
+    timing = "bmo" if hr < 10 else "amc"
+    r["timing"] = timing
+    try:
+        qi = tk.quarterly_income_stmt
+        if qi is not None and "Total Revenue" in qi.index:
+            for col in qi.columns:
+                pe = col.date() if hasattr(col, "date") else date.fromisoformat(str(col)[:10])
+                if 0 < (ad - pe).days <= 100:
+                    r["rev_act"] = _num(qi.loc["Total Revenue", col])
+                    r["rev_period"] = str(pe)
+                    break
+    except Exception as e:  # noqa: BLE001
+        log.info("%s 분기 매출 실패: %s", t, e)
+    if cons and cons.get("rev") is not None:
+        r["rev_est"] = cons["rev"]
+    try:
+        r["react"], r["react_day"] = reaction(_yf_closes(t, ad), str(ad), timing)
+    except Exception as e:  # noqa: BLE001
+        log.info("%s 반응 종가 실패: %s", t, e)
+    return r
+
+
+def _kr_fetch(code: str, d0: date) -> dict:
+    """국장: DART 잠정실적 공시 연결(data/dart.parquet) + 발표일 반응(장 전 공시가 보통 → 전일 종가 → 발표일 종가)."""
+    r: dict = {}
+    try:
+        import polars as pl
+        from . import dart
+        df = dart.load()
+        if len(df):
+            hit = df.filter((pl.col("code") == code) & (pl.col("date") >= d0 - timedelta(days=1)) & (pl.col("date") <= d0 + timedelta(days=4))
+                            & pl.col("title").str.contains("잠정|손익구조"))
+            if len(hit):
+                x = hit.sort("date").row(0, named=True)
+                r["dart"] = {"title": x["title"], "rcept_no": x["rcept_no"], "date": str(x["date"]), "link": dart.link(x["rcept_no"])}
+    except Exception as e:  # noqa: BLE001
+        log.info("%s DART 조회 실패: %s", code, e)
+    try:
+        r["react"], r["react_day"] = reaction(_yf_closes(code + ".KS", d0), str(d0), "bmo")
+    except Exception as e:  # noqa: BLE001
+        log.info("%s 반응 종가 실패: %s", code, e)
+    return r
+
+
+def kr_line(r: dict, note: str = "") -> list[str]:
+    L = []
+    if r.get("dart"):
+        L.append(f"DART {r['dart']['date'][5:]} {r['dart']['title'][:30]} — 수치는 공시 원문(영업익·매출 파싱 준비 중)")
+    m = re.search(r"컨센[^·]*?영업익[^·0-9]*([0-9.,]+)\s*조", note or "")
+    if m:
+        L.append(f"컨센 영업익 {m.group(1)}조(캘린더 메모)")
+    if r.get("react") is not None:
+        L.append(f"주가 반응 {r['react']*100:+.1f}% ({r['react_day'][5:]} 종가)")
+    return [" · ".join(L)] if L else []
+
+
+def attach_earn(ev: list[dict], today: date, fetch_us=None, fetch_kr=None, fetch_cons=None) -> int:
+    """실적 이벤트: 발표 전 CONS_AHEAD 일 안이면 컨센 저장, 발표일~+EARN_WINDOW 일이면 결과 첨부(이미 반응까지 있으면 건너뜀)."""
+    fetch_us = fetch_us or _us_fetch
+    fetch_kr = fetch_kr or _kr_fetch
+    fetch_cons = fetch_cons or _us_cons
+    todo_c, todo_r = [], []
+    for e in ev:
+        if e.get("type") != "실적" or not e.get("ticker"):
+            continue
+        d0 = date.fromisoformat(e["date"])
+        if e.get("market") == "US" and today <= d0 <= today + timedelta(days=CONS_AHEAD) and (e.get("cons") or {}).get("asof") != str(today):
+            todo_c.append(e)
+        if d0 <= today <= d0 + timedelta(days=EARN_WINDOW) and not ((e.get("res") or {}).get("react") is not None):
+            todo_r.append(e)
+    from concurrent.futures import ThreadPoolExecutor
+
+    def cons(e):
+        try:
+            c = fetch_cons(e["ticker"])
+            if c:
+                e["cons"] = {**c, "asof": str(today)}
+        except Exception as x:  # noqa: BLE001
+            log.info("%s 컨센 저장 실패: %s", e["ticker"], x)
+
+    def res(e):
+        d0 = date.fromisoformat(e["date"])
+        try:
+            if e.get("market") == "US":
+                r = fetch_us(e["ticker"], d0, e.get("cons"))
+            else:
+                r = fetch_kr(e["ticker"], d0)
+        except Exception as x:  # noqa: BLE001
+            r = {"err": f"{type(x).__name__}: {str(x)[:80]}"}
+        if r.get("err") and not e.get("res"):
+            e["result"] = [f"데이터 없음({r['err']})"]
+            return
+        if r.get("err"):
+            return
+        e["res"] = {k: v for k, v in r.items() if v is not None}
+        e["result"] = us_line(r) if e.get("market") == "US" else kr_line(r, e.get("note", ""))
+        if not e["result"]:
+            e["result"] = ["데이터 없음(결과 수집원에 아직 없음)"]
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        list(ex.map(cons, todo_c))
+        list(ex.map(res, todo_r))
+    for e in todo_r:   # 발표일 정정 — 실제 발표 시각 기준으로 옮긴다
+        fx = (e.get("res") or {}).get("date_fix")
+        if fx:
+            e["date_orig"] = e["date"]
+            e["date"] = fx
+            e.setdefault("res", {}).pop("date_fix", None)
+            e["note"] = (e.get("note") or "") + f" · 발표일 정정 {e['date_orig']}→{fx}(야후 earnings_dates)"
+    return len(todo_r)
 
 
 def upcoming(n_days: int = 2) -> list[dict]:

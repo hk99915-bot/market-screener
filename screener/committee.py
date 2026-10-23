@@ -21,7 +21,7 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from .config import DATA_DIR, REPORT_DIR
-from .calendar_ev import release_line
+from .calendar_ev import capex_line, release_line
 
 KST = ZoneInfo("Asia/Seoul")
 
@@ -505,6 +505,12 @@ def build(session: str = "장후") -> dict:
            "derivs": {k3: der.get(k3) for k3 in ("date", "spot", "pcr_oi", "pcr_vol", "max_pain", "call_wall", "put_wall", "gex_bn", "flip", "atm_iv", "rv20", "skew", "expiry", "dte", "notes", "oi_profile", "hist", "fut")} if der else None,
            "validation": {k2: v.get("verdict") for k2, v in sig.items()}, "scorecard": dec.get("tally", {}),
            "crash_day": stance.get("crash_day") or crash_flag(k)}
+    try:   # 매수 후보 '연속 N일째'·신규 표시 (표시만, 산식 불변 — req-dev-42019d08)
+        from . import streak as _stk
+        _hr = (json.loads(HIST.read_text(encoding="utf-8")) if HIST.exists() else {}).get("rows") or []
+        out["ideas_streak"] = _stk.mark(out["ideas"]["long"], _hr, out["date"])
+    except Exception as e:  # noqa: BLE001
+        log.warning("매수 후보 연속일 표시 실패: %s", e)
     try:   # 새로 켜진 추세 신호 (종목 상세 TREND SIMULATION, 참고 C) — 없으면 키 자체를 뺀다
         _sf = _sim_fresh("KR")
         if _sf:
@@ -745,7 +751,10 @@ def _telegram_text_v1(o: dict) -> str:
           + " / 축소: " + (", ".join(f"{r['chain']}({r['score']:+.2f})" for r in dn) or "—")]
     lg = o["ideas"]["long"][:5]
     if lg:
-        L.append("<b>[매수 후보]</b> " + ", ".join(f"{x['n']}{'(반도체)' if x['semi'] else ''} 드라이버 {x['drv']:+.2f}" for x in lg))
+        from .streak import tag as _stag
+        L.append("<b>[매수 후보]</b> " + ", ".join(f"{x['n']}{_stag(x)}{'(반도체)' if x['semi'] else ''} 드라이버 {x['drv']:+.2f}" for x in lg))
+        if (o.get("ideas_streak") or {}).get("line"):
+            L.append("  · " + o["ideas_streak"]["line"])
     av = o["ideas"]["avoid"][:4]
     if av:
         L.append("<b>[회피]</b> " + ", ".join(f"{x['n']} 드라이버 {x['drv']:+.2f}" for x in av))
@@ -1633,7 +1642,13 @@ def build_us() -> dict:
                       + _indep_suffix(sbf),
            "scenarios": scen, "scenario_basis": {"basis": basis, **sbf}, "sectors": secs, "sector_note": U.SECTOR_NOTE,
            "ideas": {"long": [f(r) for r in longs[:10]], "avoid": [f(r) for r in avoid[:8]]}, "events": ev[:12],
-           "kr_link": "한국 메모리 판단의 선행 지표: 빅테크 설비투자 가이던스(10/21 메타, 10/28 MSFT·구글, 10/29 아마존) · 마이크론 EPS 추정 · TSMC 가이던스"}
+           "kr_link": capex_line(cal, today)}   # 날짜·결과는 캘린더에서 (10/23 '10/21 메타' 하드코딩 불일치 제거, req-dev-4f89d244)
+    try:   # 매수 후보 '연속 N일째'·신규 표시 (표시만, 산식 불변 — req-dev-42019d08)
+        from . import streak as _stk
+        _hr = (json.loads(U.HIST_US.read_text(encoding="utf-8")) if U.HIST_US.exists() else {}).get("rows") or []
+        out["ideas_streak"] = _stk.mark(out["ideas"]["long"], _hr, out["date"])
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 매수 후보 연속일 표시 실패: %s", e)
     try:
         _v2_build_us(out, k, p, cal, today)
     except Exception as e:  # noqa: BLE001
@@ -1745,6 +1760,9 @@ def telegram_text_us(o: dict) -> str:
     if tl:
         L.append("<i>성적: " + tl[0] + "</i>")
     if o["ideas"]["long"]:
-        L.append("<b>[매수 후보]</b> " + ", ".join(f"{x['s']} {x['drv']:+.2f}" for x in o["ideas"]["long"][:6]))
+        from .streak import tag as _stag
+        L.append("<b>[매수 후보]</b> " + ", ".join(f"{x['s']}{_stag(x)} {x['drv']:+.2f}" for x in o["ideas"]["long"][:6]))
+        if (o.get("ideas_streak") or {}).get("line"):
+            L.append("  · " + o["ideas_streak"]["line"])
     L.append("<i>" + o["kr_link"] + "</i>")
     return _hf_tail("\n".join(L), o)
