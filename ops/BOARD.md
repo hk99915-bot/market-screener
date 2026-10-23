@@ -4,6 +4,8 @@
 
 기준일 2026-10-24 · 작업 237개 · 진행 7 · 검수 11 · 대기 73 · 보류 3 · 완료 143
 
+**결재 대기 8:** `user-realestate-keys-1023` (겸이 · 보류), `appr-frm-agenda-a` (겸이), `appr-uxui-top10-next` (겸이), `appr-pick-gate-start` (겸이), `appr-hf-independence` (겸이), `appr-alloc-1115` (겸이), `appr-edu-g1-g4` (겸이), `appr-toss-sectors-switch` (겸이)
+
 **기한 지남:** `ra-sec-coverage` (2026-10-21)
 
 ## 진행 (7)

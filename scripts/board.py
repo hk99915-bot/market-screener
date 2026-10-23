@@ -3,6 +3,7 @@
   python scripts/board.py                      # 검증 + BOARD.md 생성
   python scripts/board.py --set lab-r2 검수     # 상태 변경 (완료/진행이면 날짜 자동 기입) + 생성
   python scripts/board.py --check              # 검증만 (잘못되면 종료코드 1)
+  python scripts/board.py --approval appr-x 겸이  # 결재 필드 설정 ('-' 면 비움) + 생성
   python scripts/board.py --add '{"id":..,"title":..,"owner":..,"priority":"P1","status":"대기"}'
                                                # 작업 추가 — validate 통과할 때만 기록 (생략한 선택 필드는 기본값)
 """
@@ -22,6 +23,22 @@ KST = timezone(timedelta(hours=9))
 STATUSES = ["진행", "검수", "대기", "보류", "완료"]   # 표시 순서
 PRIORITIES = ["P0", "P1", "P2", "P3"]
 FIELDS = ["id", "title", "owner", "priority", "status", "started", "due", "files", "depends_on", "notes"]
+# 결재 필드 (선택, req-pm-47712fe7 · 피어 2026-10-24 U1): approval = 결재자 이름(지금은 '겸이'만) | 없음/null.
+# 미완료 + approval 있음 = '결재 대기' (화면 tab_system sysApprOpen·BOARD.md 가 이 필드만 센다 — 글자 판정 금지).
+# 운영 관례(10/24 0c77b0c1)와 호환: id 'appr-*' 또는 제목 '겸이 결재 필요' 로 시작하는 미완료 작업은 approval 필수.
+APPROVERS = ["겸이"]
+APPR_ID_PREFIX = "appr-"
+APPR_TITLE_PREFIX = "겸이 결재 필요"
+
+
+def needs_approval(t: dict) -> bool:
+    """운영 관례상 결재 항목인가 (id·제목 접두)."""
+    return str(t.get("id", "")).startswith(APPR_ID_PREFIX) or str(t.get("title", "")).startswith(APPR_TITLE_PREFIX)
+
+
+def approval_open(tasks: list[dict]) -> list[dict]:
+    """결재 대기 = 완료 아닌 작업 중 approval 이 채워진 것 (tab_system.html sysApprOpen 과 같은 규칙)."""
+    return [t for t in tasks if t.get("status") != "완료" and t.get("approval")]
 
 
 def today() -> str:
@@ -46,6 +63,11 @@ def validate(b: dict) -> list[str]:
             errs.append(f"{tid}: 상태 '{t.get('status')}' 는 {STATUSES} 중 하나여야 함")
         if t.get("priority") not in PRIORITIES:
             errs.append(f"{tid}: 우선순위 '{t.get('priority')}' 는 P0~P3")
+        ap = t.get("approval")
+        if ap is not None and ap not in APPROVERS:
+            errs.append(f"{tid}: approval '{ap}' 는 {APPROVERS} 중 하나 또는 null")
+        if needs_approval(t) and t.get("status") != "완료" and not ap:
+            errs.append(f"{tid}: 결재 항목(id '{APPR_ID_PREFIX}*'·제목 '{APPR_TITLE_PREFIX}')인데 approval 없음 — \"approval\": \"겸이\"")
     for t in b.get("tasks", []):
         for d in t.get("depends_on") or []:
             if d not in ids:
@@ -61,6 +83,9 @@ def render(b: dict) -> str:
          "> 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.", "",
          f"기준일 {td} · 작업 {len(tasks)}개 · " + " · ".join(f"{s} {sum(t['status'] == s for t in tasks)}" for s in STATUSES), ""]
     late = [t for t in tasks if t.get("due") and t["due"] < td and t["status"] != "완료"]
+    appr = approval_open(tasks)
+    if appr:
+        L += [f"**결재 대기 {len(appr)}:** " + ", ".join(f"`{t['id']}` ({t['approval']}{' · ' + t['status'] if t['status'] == '보류' else ''})" for t in appr), ""]
     if late:
         L += ["**기한 지남:** " + ", ".join(f"`{t['id']}` ({t['due']})" for t in late), ""]
     for s in STATUSES:
@@ -116,6 +141,7 @@ def main() -> int:
     ap.add_argument("--set", nargs=2, metavar=("ID", "STATUS"))
     ap.add_argument("--add", metavar="JSON", help="작업 1건(JSON 객체) 추가 — validate 통과 시에만 기록")
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--approval", nargs=2, metavar=("ID", "WHO"), help="결재 필드 설정 (WHO='-' 면 비움)")
     a = ap.parse_args()
     b = load()
     if a.add:
@@ -141,6 +167,19 @@ def main() -> int:
             t["started"] = today()
         if st == "완료":
             t["done"] = today()
+        b["updated"] = today()
+        BOARD.write_text(json.dumps(b, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if a.approval:
+        tid, who = a.approval
+        t = next((x for x in b["tasks"] if x["id"] == tid), None)
+        if not t:
+            print(f"작업 '{tid}' 없음", file=sys.stderr); return 1
+        t["approval"] = None if who == "-" else who
+        aerrs = validate(b)
+        for e in aerrs:
+            print("✗", e, file=sys.stderr)
+        if aerrs:
+            return 1
         b["updated"] = today()
         BOARD.write_text(json.dumps(b, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     errs = validate(b)

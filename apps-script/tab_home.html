@@ -82,15 +82,22 @@ function homeCusHtml(){ const o=CMTU; if(!o) return '<div class="mu">불러오�
     `<div class="mu" style="font-size:11px;margin-top:4px">${esc(o.asof||'')} · 자세히는 운용회의 탭 US</div>`; }
 function homeCusLoad(){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} const e=$('#homecus'); if(e) e.innerHTML=homeCusHtml(); if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={}; if(view==='cmt') render();}).getCommitteeUS(); }
 /* HOME 오늘 결론 3칸 (UXUI 재진단 Top10 #7, 10/23 겸이 승인): 첫 화면이 지수 등락·문장 덩어리라 9.5장을 내려야 결론이 보였다.
-   ① 시장 국면 = 200일선 위 비율(BREADTH 판정과 같은 기준 60/40%) + 매크로 바람(macro_view.json) ② 오늘 내 할 일 = 대결 제출 대기·쿨다운·원장 차이 ③ 늦은 데이터 = 신선도 계약(freshness.json).
+   ① 시장 국면 = 200일선 위 비율(BREADTH 판정과 같은 기준 60/40%) + 매크로 바람(macro_view.json) ② 오늘 내 할 일 = 대결 제출 대기(마감 전만)·쿨다운·원장 차이 ③ 늦은 데이터 = 신선도 계약(freshness.json).
    새 판단을 만들지 않고 이미 있는 판정만 모은다. */
+/* 대결 제출 마감(epoch ms) — screener/duel.py 와 같은 기준: 국장 = 그날 15:30 KST 까지 받음(apply_issue '>1530' 거부 → 15:31:00 전),
+   미장 = 그날 09:30 ET 전(us_open_kst·_apply_issue_us 't >= dl' 거부, 서머타임은 America/New_York 으로 계산). */
+function duelDeadlineMs(it){ const [y,m,d]=String(it.date||'').split('-').map(Number); if(!y||!m||!d) return NaN;
+  if(it.market==='US'){ const h=+new Date(Date.UTC(y,m-1,d,12)).toLocaleString('en-US',{timeZone:'America/New_York',hour:'numeric',hourCycle:'h23'}); return Date.UTC(y,m-1,d,9+(12-h),30); }
+  return Date.UTC(y,m-1,d,15-9,31); }
+/* '나' 제출 대기 = 채점 전 진입 판 중 '나' pending 이고 아직 제출 마감 전인 판 수 */
+function homePendDuel(items,now){ return (items||[]).filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result&&it.picks&&it.picks['나']&&it.picks['나'].pending&&now<duelDeadlineMs(it)).length; }
 function homeConc(){
   const bv=mk=>{ const b=(D.breadth||[]).filter(x=>x.market===mk), L=b[b.length-1]; if(!L||L.pct_above200==null) return `<span class="mu">${mk} —</span>`;
     const p=L.pct_above200, l=p>=0.6?'강세':p>=0.4?'중립':'약세'; return `<span>${mk} <b class="${p>=0.6?'up':p>=0.4?'am':'dn'}">${l}</b> <span class="mu">${Math.round(p*100)}%</span></span>`; };
   if(MV===null&&typeof macroPanel==='function') macroPanel('KR');   // 매크로 바람 불러오기(도착하면 render)
   const mw=MV&&MV.score!=null?`<div>매크로 바람 <b style="color:${MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)'}">${esc(MV.label||'')} (${MV.score>0?'+':''}${Number(MV.score).toFixed(2)})</b></div>`:'<div class="mu">매크로 바람 불러오는 중</div>';
   if(typeof decLoad==='function') decLoad();
-  const live=DEC&&DEC.items?DEC.items.filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result):null, pend=live?live.filter(it=>it.picks&&it.picks['나']&&it.picks['나'].pending).length:null;
+  const pend=DEC&&DEC.items?homePendDuel(DEC.items,Date.now()):null;   // 제출 마감 지난 판은 제외(피어 2026-10-24 U2)
   const CD=typeof decCD==='function'?decCD():null;
   const todo=[pend==null?'<div class="mu">대결 불러오는 중</div>':pend?`<div><a href="#" onclick="setView('score');return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="dn">대결 제출 대기 ${pend}</b>&nbsp;→ 성적표에서 제출</a></div>`:'<div class="mu">대결 제출 대기 없음</div>',
     CD?'<div class="dn">⏳ 쿨다운 중 — 새 모의 베팅 금지</div>':'', homeLedgerLine()].join('');
