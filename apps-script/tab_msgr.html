@@ -51,7 +51,7 @@
 let MG=null, MGS='live', MGD='all';
 const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스','겸이':'겸이'};
 const MG_DOT={open:'var(--amber)',promoted:'var(--dn)',done:'var(--up)'};
-const MG_STN={open:'진행 중',promoted:'마감 지남',done:'완료'};
+const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
 function mgNm(k){ return MG_NM[k]||k||'?'; }
 function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%360; return h; }
 const MG_IMG='https://raw.githubusercontent.com/hk99915-bot/market-screener/main/assets/avatars/';   // 프로필 사진(겸이가 GPT 로 만들어 올림, assets/avatars/<키>.png) — 없으면 이니셜 원
