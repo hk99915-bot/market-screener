@@ -155,15 +155,50 @@ def stock_last(code: str) -> tuple[str, float, str]:
     return bs_[-1]["t"][:10], float(bs_[-1]["c"]), detail_name("KR", code) or code
 
 
+def live_us() -> dict | None:
+    """미장 장중값 — reports/live.json SPX·NASDAQ·VIX·USDKRW(야후, 22:20 KST 미장 루프 약 5~10분). 항목 date = 미장 거래일."""
+    try:
+        lj = json.loads((ROOT / "reports" / "live.json").read_text(encoding="utf-8"))
+        it = {x.get("key"): x for x in lj.get("items", [])}
+        spx, ndx = it.get("SPX") or {}, it.get("NASDAQ") or {}
+        if not (spx.get("last") and ndx.get("last") and spx.get("date")):
+            return None
+        out = {"date": spx["date"], "spx": float(spx["last"]), "ndx": float(ndx["last"]), "live": lj.get("asof")}
+        if (it.get("VIX") or {}).get("last"):
+            out["iv"] = float(it["VIX"]["last"]) / 100
+        if (it.get("USDKRW") or {}).get("last"):
+            out["usdkrw"] = float(it["USDKRW"]["last"])
+        return out
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def us_last() -> dict:
-    """미장 기준값 — reports/macro_series.json (SPX·NASDAQ 종합·VIX·USDKRW 마지막 봉)."""
+    """미장 기준값 — reports/macro_series.json 마지막 봉, live.json 미장 값이 더 새 거래일이면 그걸로 덮음(10/23 — 장중 미장 반영)."""
     s = json.loads((ROOT / "reports" / "macro_series.json").read_text(encoding="utf-8"))["series"]
     c = lambda k: s[k][-1][4]  # noqa: E731
-    return {"date": s["SPX"][-1][0], "spx": c("SPX"), "ndx": c("NASDAQ"), "iv": c("VIX") / 100, "usdkrw": c("USDKRW")}
+    d = {"date": s["SPX"][-1][0], "spx": c("SPX"), "ndx": c("NASDAQ"), "iv": c("VIX") / 100, "usdkrw": c("USDKRW")}
+    lv = live_us()
+    if lv and lv["date"] > d["date"]:
+        d.update(lv)
+    return d
+
+
+def live_us_stock(t: str) -> tuple[str, float] | None:
+    """미장 종목 장중가 — reports/heatmap_US.json(약 15분, 행 date = 미장 거래일)."""
+    try:
+        h = json.loads((ROOT / "reports" / "heatmap_US.json").read_text(encoding="utf-8"))
+        r = next((x for x in h.get("rows", []) if x.get("s") == t), None)
+        return (r["date"], float(r["close"])) if r and r.get("close") and r.get("date") else None
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def us_stock_last(t: str) -> tuple[str, float]:
     bs_ = bars("US", t)
+    lv = live_us_stock(t)
+    if lv and (not bs_ or lv[0] > bs_[-1]["t"][:10]):
+        return lv
     if not bs_:
         raise SystemExit(f"가격 없음: {t} (reports/detail/US/{t}.json)")
     return bs_[-1]["t"][:10], float(bs_[-1]["c"])

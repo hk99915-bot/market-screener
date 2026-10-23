@@ -179,3 +179,22 @@ def test_utilization_warning():
     for _ in range(3):
         H.add(b, _a(kind="put", strike=850.0, expiry="2026-11-12", conv="high"))    # 1.2% / 2.0% = 60%
     assert not any("⚠️ 가동률" in x for x in H.show(b))
+
+
+
+_US_LAST, _US_STOCK_LAST = H.us_last, H.us_stock_last      # autouse 픽스처가 us_last 를 바꾸기 전 원본
+
+
+def test_us_live_overlay(tmp_path, monkeypatch):
+    import json as _j
+    (tmp_path / "reports").mkdir()
+    ser = {k: [["2026-10-22", 0, 0, 0, v, 0]] for k, v in (("SPX", 7663.0), ("NASDAQ", 26009.0), ("VIX", 19.0), ("USDKRW", 1325.0))}
+    (tmp_path / "reports" / "macro_series.json").write_text(_j.dumps({"series": ser}))
+    (tmp_path / "reports" / "live.json").write_text(_j.dumps({"asof": "2026-10-23 23:06", "items": [
+        {"key": "SPX", "last": 7628.3, "date": "2026-10-23"}, {"key": "NASDAQ", "last": 25994.0, "date": "2026-10-23"}]}))
+    (tmp_path / "reports" / "heatmap_US.json").write_text(_j.dumps({"rows": [{"s": "NVDA", "close": 211.95, "date": "2026-10-23"}]}))
+    monkeypatch.setattr(H, "ROOT", tmp_path)
+    u = _US_LAST()
+    assert u["date"] == "2026-10-23" and u["spx"] == 7628.3 and u["iv"] == 0.19          # VIX 는 live 에 없으면 일봉 값
+    monkeypatch.setattr(H, "bars", lambda m, c: [{"t": "2026-10-22", "c": 212.21}])
+    assert _US_STOCK_LAST("NVDA") == ("2026-10-23", 211.95)
