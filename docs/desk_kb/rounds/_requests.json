@@ -2854,7 +2854,15 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "pb",
+     "at": "2026-10-24T00:47+09:00",
+     "text": "정정(겸이 10/24 '키 있지 않나?'): 저장소에 이미 KRX_API_KEY 시크릿이 연결돼 있음(screener.yml·deriv_hist.yml 이 사용, screener/data_krx.py openapi 모드 — 주식 일별 sto/stk_bydd_trd). 새 키 발급 X → ① Actions probe 로 같은 키가 파생 엔드포인트(drv 지수옵션·주식옵션)에 200 인지 먼저 확인 ② 401/403 이면 openapi.krx.co.kr 에서 같은 계정으로 '파생상품' 서비스 이용 신청만 추가(겸이 할 일). 시크릿 이름 KRX_OPENAPI_KEY 새로 만들지 말 것.",
+     "voc": false
+    }
+   ]
   },
   {
    "id": "req-data-aff2ea75",
