@@ -69,3 +69,19 @@ def test_evaluate_exposes_stress_ratio(tmp_path, monkeypatch):
     st = [ln for ln in b.splitlines() if ln.startswith("• 스트레스 2026-07")]
     assert len(st) == 1 and ("-14.2%" in st[0] or "-14.3%" in st[0])
     assert "원" not in st[0]   # 비율만 — 금액 금지
+
+
+def test_measured_reference_scenario_not_binding():
+    """FRM 10/23: '2026-07m' 실측 재생은 참고(binding False) — 코어 ETF 는 실측 전체 손실, ⛔ 판정엔 안 씀."""
+    sc = pb.STRESS_SCENARIOS["2026-07m"]
+    assert sc["binding"] is False and pb.STRESS_SCENARIOS["2026-07"].get("binding", True)
+    rows = ROWS + [{"book": "isa", "s": "069500", "name": "KODEX 200", "v": 1000.0, "semi": False, "elec": False, "look": 300.0, "isa": "K200"},
+                   {"book": "isa", "s": "114260", "name": "KODEX 국고채3년", "v": 500.0, "semi": False, "elec": False, "look": 0.0, "isa": "KTB"}]
+    # semi 1000×−0.50 + elec 500×−0.60 + 룩스루 500×−0.50 + K200 1000×−0.41(룩스루 이중 계산 없음) + KTB 0 = −1460
+    assert pb.stress_loss(rows, 5500.0, "2026-07m") == pytest.approx(-1460 / 5500)
+    # 기존 구속 시나리오는 그대로: 코어 ETF 는 룩스루만
+    assert pb.stress_loss(rows, 5500.0, "2026-07") == pytest.approx((-300 - 120 - 150 - 90) / 5500)
+    ev = {"stress": {"2026-07": -0.10, "2026-07m": -0.20}, "stress_denom": "D2"}
+    assert "✅" in pb.stress_line(ev)              # 판정은 구속 시나리오만
+    ref = pb.stress_ref_lines(ev)
+    assert len(ref) == 1 and "-20.0%" in ref[0] and "⛔" not in ref[0] and "원" not in ref[0]

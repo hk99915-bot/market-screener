@@ -186,6 +186,12 @@ def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains
 #   그 외(코어 지수 ETF 나머지·국채·금·현금) 0 — 반도체 단일 요인 충격만 재생한다 (코스피 β 전염은 MY 탭 'β 추정' 줄이 따로 본다).
 STRESS_SCENARIOS = {
     "2026-07": {"label": "2026-07 재현(반도체 −30%)", "semi": -0.30, "elec": -0.24, "look": -0.30},
+    # 참고(binding False — 구속 한도 판정·⛔ 에 안 씀, 11/15 리뷰 안건 전 계기판). FRM 2026-10-23 실측 재생(kb:frm#9·#26):
+    #   구간 = 코스피 실제 고점→저점 2026-06-22 → 07-30 (−38.6%, data/hist/kr_index_daily). 원천 data/hist/kr_etf_daily·data/kr_prices 종가.
+    #   semi = KODEX 반도체 −50.3% · elec = 삼성전기 −60.5%(반도체보다 깊음 — ρ 0.8×−30 가정 기각) · look = semi 와 같게
+    #   core = 코어 바구니 원화 ETF 실측 전체 손실(룩스루 대신): K200 KODEX 200 −40.8% · S&P500 TIGER −8.4% · NDX KODEX −15.9% · KTB 국고채3년 +0.3%→0 · Gold KRX금 −4.2%
+    "2026-07m": {"label": "참고: 2026-07 실측 재생(06/22→07/30)", "semi": -0.50, "elec": -0.60, "look": -0.50, "binding": False,
+                 "core": {"K200": -0.41, "S&P500": -0.08, "NDX": -0.16, "KTB": 0.0, "Gold": -0.04}},
 }
 from .defs import STRESS_LIMIT   # 0.15 — 어느 시나리오도 −15% 초과 금지 (scorecard_week [11] 스트레스 와 같은 수치)
 STRESS_DENOMINATORS = ("D2", "D1", "EQ")   # docs/rules_terms.md §0: D2 전체 투자자산(기본, 결재 #1 (b) 가정) · D1 위성 북 · EQ 주식만(참고)
@@ -217,9 +223,23 @@ def stress_loss(rows: list[dict], denom: float, scenario: str = "2026-07", books
             pnl += r["v"] * sc["semi"]
         elif r.get("elec"):
             pnl += r["v"] * sc["elec"]
+        elif sc.get("core") and (b := r.get("isa") or isa_bucket(r.get("s", ""), r.get("name", ""))) in sc["core"]:
+            pnl += r["v"] * sc["core"][b]                # 코어 지수·채권·금 ETF 는 실측 전체 손실 (룩스루 이중 계산 안 함)
         else:
             pnl += (r.get("look") or 0.0) * sc["look"]   # look = 평가액 × 지수 ETF 속 반도체 룩스루 비중
     return pnl / denom
+
+
+def stress_ref_lines(ev: dict) -> list[str]:
+    """참고 시나리오(binding False) 줄 — 비율만, ⛔ 없음(구속 한도 판정은 stress_line 의 '2026-07' 만). 11/15 리뷰 전 계기판."""
+    out = []
+    for k, sc in STRESS_SCENARIOS.items():
+        if sc.get("binding", True) or k not in (ev.get("stress") or {}):
+            continue
+        x = ev["stress"][k]
+        over = " (−15% 밖 — 참고, 판정 아님)" if x < -STRESS_LIMIT - 0.0005 else ""
+        out.append(f"  └ {sc['label']}: {x*100:+.1f}% (분모 {ev['stress_denom']} · 계기판){over}")
+    return out
 
 
 def stress_line(ev: dict, scenario: str = "2026-07") -> str:
@@ -540,6 +560,7 @@ def brief_keys() -> tuple[str | None, list[str]]:
     L.append(semi_line(ev))
     L += band_lines(ev)
     L.append(stress_line(ev))   # 비율만 (금액 금지)
+    L += stress_ref_lines(ev)   # 참고 실측 재생 (구속 아님)
     L += isa_lines(ev)
     for code, px in price_rules.items():
         r = next((x for x in rows if x["s"].upper() == code), None)
