@@ -2891,7 +2891,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T00:51+09:00",
+     "text": "G1~G3 처리(a1a30ed7). G1: 축 검색 실패면 그 축은 이전 값 유지+stale{why,since,kept}·stale_axes, MACRO 지정학에 앰버 '검색 실패·이전 값' 표시 — 직접 피드·다른 축 검색 매칭으로 새로 안 채움. 10/24 00:33 실행에서 taiwan 503 재현(이전 값 4건 유지 확인) → 원인은 연속 6번째 호출 제한(단독 200)이라 검색 간격 1초·재시도 3·10초 넣고 00:34 재실행 18/18 성공, taiwan 축이 SCMP·FT·대만 국방부 등 해협·군사 기사로 바뀜. G2: 축 안 같은 사건(같은 링크 대상 / 제목 단어 자카드 ≥0.4 / 짧은 쪽 60%·5단어 겹침) 1칸, 직접 피드판 우선. 10/23 산출물 대조: 같은 사건 쌍 0.45~1.0·다른 사건 ≤0.31 → rare_earth TSMC 3→1, chips 젠슨 황 3→1. 남은 것: 단어 거의 안 겹치는 같은 사건(Oleshky 휴전 BBC/Guardian 다른 각도)은 못 잡아 00:34 ruukr 5칸 중 2칸 — S2 집계 때 같이 셈. G3: Google News RSS <copyright> 원문 확인 — 'solely for ... personal feed reader for personal, non-commercial use. Any other use ... expressly prohibited' → 공개 산출물에 Google News 경유 제목 비공개(title=null+title_withheld, 매체·시각·축·링크만), geo_news·realestate 공통 public_item(부동산 앞 req-realestate-2fb64833 공유). NYT(비상업 블로그·출처 표기 허용)·NPR(개인 사이트 표시·발췌·링크 허용) 원문 확인, BBC·Guardian·AJ·연합 등은 RSS 전용 조항 못 찾음 → 보수적으로 제목·매체·링크만 유지 [확인 필요 10/31]. R4 철회 조건은 미충족 — 매체·시각·링크 게시도 엄밀히는 '그 밖의 이용'이라 완전 해소는 Google News 검색 중단(로이터·AP 대체 직접 피드 없음)이고 이건 겸이 결재 사항. 과거 git 이력의 제목은 force 금지라 남음. 근거 docs/desk_kb/data.md 소스 목록.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:51+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-derivs-6c470e96",
