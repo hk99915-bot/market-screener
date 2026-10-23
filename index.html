@@ -3492,6 +3492,77 @@ function sysOpsView(){
 const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 </script>
 
+<!-- tab_msgr.html — SYSTEM › 사내톡 (msgView). 10/23 겸이 "사내톡방에서 누나들끼리 업무요청하고 응답하는거 보고싶다" → "터미널에 사내톡 탭 만들어줘 자동갱신되게, 그리고 실제 누나들의 voc로".
+     데이터: reports/msgr_feed.md (내용은 JSON — scripts/msgr_feed.py ← docs/desk_kb/rounds/_requests.json + 메신저 라운드 기록). 매시 team.yml·ask.yml 이 갱신.
+     getMarkdown('msgr_feed') 를 쓰는 이유: 새 getter 없이 Code.gs 재붙여넣기 불필요.
+     회신 말풍선: VOC = 그 데스크 에이전트를 실제로 호출해 받은 답(무편집, scripts/ask.py --reply --voc) · 대행 = 진행자·PB 가 대신 적은 처리 기록(데스크 발언으로 인용 금지). -->
+<style>
+.mgst{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;font-size:12px}
+.mgst span{border:1px solid var(--line);padding:3px 8px;background:#111}
+.mgst b{font-size:15px;margin-right:4px}
+.mgf{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.mgf button{min-height:36px;background:#111;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12px;padding:0 10px;cursor:pointer}
+.mgf button.on{color:var(--amber);border-color:var(--amber)}
+.mgday{margin:12px 0 4px;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.06em}
+.mgm{display:flex;gap:8px;margin:8px 0;white-space:normal}
+.mgav{flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#000}
+.mgb{min-width:0;flex:1}
+.mgw{font-size:12px}
+.mgw b{color:var(--txt)}
+.mgw .mu{font-size:11px}
+.mgbb{border:1px solid var(--line);background:#0d0d0d;padding:6px 9px;margin-top:2px;font-size:12.5px;line-height:1.6;overflow-wrap:anywhere}
+.mgmeta{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
+.mgpill{border:1px solid currentColor;padding:0 6px}
+.mgr{margin:4px 0 0 40px;display:flex;gap:6px;white-space:normal}
+.mgr .mgav{flex-basis:24px;height:24px;font-size:9.5px}
+.mgr .mgbb{background:#141414}
+.mgr.voc .mgbb{border-color:var(--amber-dim)}
+.mgtag{font-size:10px;border:1px solid;padding:0 5px;margin-left:4px}
+.mgsys{margin:3px 0 0 40px;font-size:11px;color:var(--muted);white-space:normal}
+</style>
+<script>
+let MG=null, MGS='all', MGD='all';
+const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크(FRM)',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스','겸이':'겸이'};
+const MG_ST={open:['열림','var(--amber)'],promoted:['마감 지남·P1','var(--dn)'],done:['닫힘','var(--up)']};
+function mgNm(k){ return MG_NM[k]||k||'?'; }
+function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%360; return h; }
+function mgAv(k){ return `<div class="mgav" aria-hidden="true" style="background:${k==='겸이'?'var(--amber)':`hsl(${mgHue(k)} 45% 62%)`}">${esc(mgNm(k).slice(0,2))}</div>`; }
+function mgT(s){ return String(s||'').replace('T',' ').slice(0,16); }
+/* 필터 — 순수 함수(테스트용) */
+function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk||(x.replies||[]).some(p=>p.by===desk))); }
+function msgView(){
+  if(MG===null){ MG=false; google.script.run.withSuccessHandler(t=>{ try{ MG=t?JSON.parse(t):{}; }catch(e){ MG={}; } if(view==='msg') render(); }).withFailureHandler(()=>{ MG={}; if(view==='msg') render(); }).getMarkdown('msgr_feed'); return '<div class="load">LOADING …</div>'; }
+  if(!MG||!MG.items) return '<div class="grid"><div class="p c12"><div class="b mu">사내톡 데이터 없음 — python3 scripts/msgr_feed.py (reports/msgr_feed.md, 매시 team.yml 이 갱신)</div></div></div>';
+  const S=MG.status||{}, items=mgFilter(MG.items,MGS,MGD);
+  const desks=[...new Set(MG.items.flatMap(x=>[x.from,x.to]))].sort((a,b)=>mgNm(a).localeCompare(mgNm(b),'ko'));
+  const fb=(k,l,cur,attr)=>`<button class="${cur===k?'on':''}" data-${attr}="${esc(k)}">${esc(l)}</button>`;
+  let last='', feed='';
+  for(const x of items){
+    const d=String(x.opened_at||x.opened||'').slice(0,10);
+    if(d!==last){ feed+=`<div class="mgday">${esc(d)}</div>`; last=d; }
+    const st=MG_ST[x.status]||[x.status,'var(--muted)'];
+    feed+=`<div class="mgm">${mgAv(x.from)}<div class="mgb"><div class="mgw"><b>${esc(mgNm(x.from))}</b> <span class="mu">→ ${esc(mgNm(x.to))} · ${esc(mgT(x.opened_at||x.opened).slice(11)||'')}</span></div>
+      <div class="mgbb">${esc(x.text)}</div>
+      <div class="mgmeta"><span class="mgpill" style="color:${st[1]}">${esc(st[0])}</span><span>${esc(x.id)}</span>${x.due?`<span>마감 ${esc(x.due)}</span>`:''}</div></div></div>`;
+    for(const p of x.replies||[]){
+      const tag=p.voc?'<span class="mgtag" style="color:var(--amber)">VOC</span>':'<span class="mgtag" style="color:var(--muted)">대행</span>';
+      feed+=`<div class="mgr${p.voc?' voc':''}">${mgAv(p.by)}<div class="mgb"><div class="mgw"><b>${esc(mgNm(p.by))}</b>${tag} <span class="mu">${esc(mgT(p.at))}${p.sec&&!p.voc?' · 라운드 '+esc(p.sec):''}</span></div><div class="mgbb">${esc(p.text)}</div></div></div>`;
+    }
+    if(x.status==='done') feed+=`<div class="mgsys">✅ ${esc(mgNm(x.done_by||x.to))} 닫음 ${esc(mgT(x.done_at))}${x.resolution?' · '+esc(x.resolution):''}</div>`;
+    else if(x.status==='promoted') feed+=`<div class="mgsys">⚠️ 마감 지나 보드 P1 승격 ${esc(mgT(x.promoted_at))}</div>`;
+  }
+  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; render(); });
+    document.querySelectorAll('[data-mgd]').forEach(b=>b.onclick=()=>{ MGD=b.dataset.mgd; render(); }); },0);
+  return `<div class="grid"><div class="p c12"><h2>사내톡<small>데스크끼리 요청·회신 · 자료 ${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
+    <div class="mgst"><span><b>${MG.n}</b>요청</span><span style="color:var(--amber)"><b>${S.open||0}</b>열림</span><span style="color:var(--dn)"><b>${S.promoted||0}</b>마감 지남</span><span style="color:var(--up)"><b>${S.done||0}</b>닫힘</span><span><b>${MG.n_reply||0}</b>회신 달림</span><span style="color:var(--amber)"><b>${MG.n_voc||0}</b>VOC 회신</span></div>
+    <div class="mgf">${[['all','전체'],['open','열림'],['promoted','마감 지남'],['done','닫힘']].map(([k,l])=>fb(k,l,MGS,'mgs')).join('')}</div>
+    <div class="mgf">${fb('all','모든 누나',MGD,'mgd')}${desks.map(k=>fb(k,mgNm(k),MGD,'mgd')).join('')}</div>
+    <div class="mu" style="font-size:11px;white-space:normal">VOC = 그 데스크 에이전트가 직접 쓴 회신(무편집) · 대행 = 라운드 진행자·PB 가 대신 적은 처리 기록. 요청 보내기: 텔레그램 <code>ask &lt;데스크&gt; &lt;내용&gt;</code></div>
+    ${feed||'<div class="mu" style="margin-top:8px">조건에 맞는 요청 없음</div>'}
+  </div></div></div>`;
+}
+</script>
+
 <!-- tab_detail.html — 종목 상세 서랍(모든 탭 공용) — 가치평가·드라이버·피어·매크로 팝업·차트 (openDetail·renderDetail·drawChart).
      apps-script/Index.html 이 include('tab_detail') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
@@ -4059,7 +4130,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -4069,7 +4140,7 @@ const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
   quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
-GROUPS.sys=[['sysb','작업 보드'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
+GROUPS.sys=[['sysb','작업 보드'],['msg','사내톡'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
 // QUANT 하위 화면 두 번째 줄 (UXUI·퀀트 10/21 연구 보드): 옛 화면 키 그대로 → setView('lab') 같은 기존 링크·사용 기록 유지
 const SUBV={rb:[['rb','보드'],['study','검증 스터디'],['lab','전략 연구소']],sig:[['sig','시그널 검증'],['mom','모멘텀']],pf:[['pf','모의 포트폴리오'],['isa','ISA 실험실']]};
 const SUBP={}; for(const [p,a] of Object.entries(SUBV)) for(const [k] of a) SUBP[k]=p;

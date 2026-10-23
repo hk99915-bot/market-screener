@@ -36,7 +36,8 @@ jobs:
           for i in 1 2 3; do
             git fetch -q origin main && git reset -q --hard origin/main
             msg=$(python scripts/ask.py --issue-title "$TITLE" --issue-body "$BODY") || { echo "$msg"; ok=1; break; }   # 형식 오류 답글은 그대로 전달
-            git add docs/desk_kb/rounds/_requests.json; git diff --cached --quiet && { ok=1; break; }
+            python scripts/msgr_feed.py >/dev/null || true   # 사내톡 탭 즉시 반영
+            git add docs/desk_kb/rounds/_requests.json reports/msgr_feed.md; git diff --cached --quiet && { ok=1; break; }
             git commit -qm "ask: $TITLE" && git push -q origin HEAD:main && { ok=1; break; }
             sleep 5
           done

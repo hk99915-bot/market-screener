@@ -295,6 +295,7 @@ function med(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)
 <?!= include('tab_mkt_deriv') ?>
 <?!= include('tab_mkt_macro') ?>
 <?!= include('tab_system') ?>
+<?!= include('tab_msgr') ?>
 <?!= include('tab_detail') ?>
 <script>
 /* ───── 공용: 라이브 시세 띠·헤더 시각·render·탭 전환·부트스트랩 ───── */
@@ -379,7 +380,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
@@ -389,7 +390,7 @@ const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
   quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
-GROUPS.sys=[['sysb','작업 보드'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
+GROUPS.sys=[['sysb','작업 보드'],['msg','사내톡'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
 // QUANT 하위 화면 두 번째 줄 (UXUI·퀀트 10/21 연구 보드): 옛 화면 키 그대로 → setView('lab') 같은 기존 링크·사용 기록 유지
 const SUBV={rb:[['rb','보드'],['study','검증 스터디'],['lab','전략 연구소']],sig:[['sig','시그널 검증'],['mom','모멘텀']],pf:[['pf','모의 포트폴리오'],['isa','ISA 실험실']]};
 const SUBP={}; for(const [p,a] of Object.entries(SUBV)) for(const [k] of a) SUBP[k]=p;

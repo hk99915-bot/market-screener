@@ -4,6 +4,7 @@
   python3 scripts/ask.py --from 퀀트 --to 데이터 --text "accum 60일 이력 백필 일정 회신" --due 2026-10-24
   python3 scripts/ask.py --from 겸이 --to 매크로 --text "..."            # 겸이(오너)도 같은 장부 — 텔레그램 'ask <데스크> <내용>'
   python3 scripts/ask.py --close req-data-1a2b3c4d [--by 데이터]           # 처리 끝 → 닫기
+  python3 scripts/ask.py --reply req-data-1a2b3c4d --by 데이터 --text "..." --voc   # 회신(사내톡) — --voc = 데스크 에이전트가 직접 쓴 말
   python3 scripts/ask.py --issue-title "ask 퀀트" --issue-body "..."       # ask.yml (GitHub 이슈) 경로, from=겸이
 
 마감(--due) 기본 = 요청일 + 2영업일(KR). 2영업일 지나도 open 이면 watchdog(매일 00:07 KST)·round_collect 가 보드 P1 승격.
@@ -95,6 +96,24 @@ def close(ledger: dict, rid: str, by: str | None, now: datetime) -> tuple[dict, 
     raise KeyError(rid)
 
 
+def reply(ledger: dict, rid: str, by: str, text: str, voc: bool, now: datetime) -> tuple[dict, dict]:
+    """요청에 회신 1건 추가(사내톡 탭 말풍선, 10/23 겸이 "실제 누나들의 voc로").
+    voc=True = 그 데스크 에이전트를 실제로 호출해 받은 답을 무편집으로 옮긴 것. False = 진행자·PB 대행 요약."""
+    L = json.loads(json.dumps(ledger))
+    k = OWNER if by == OWNER else desk_ok(by)
+    if not k:
+        raise ValueError(f"모르는 데스크: by={by}")
+    text = text.strip()
+    if not text:
+        raise ValueError("회신 내용이 비었음")
+    for r in L.get("requests", []):
+        if r["id"] == rid:
+            r.setdefault("replies", []).append({"by": k, "at": now.astimezone(KST).strftime("%Y-%m-%dT%H:%M+09:00"),
+                                                "text": text, "voc": bool(voc)})
+            return L, r
+    raise KeyError(rid)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--from", dest="frm")
@@ -103,6 +122,8 @@ def main(argv=None) -> int:
     ap.add_argument("--due", help="YYYY-MM-DD (기본 2영업일 뒤)")
     ap.add_argument("--close", metavar="ID")
     ap.add_argument("--by")
+    ap.add_argument("--reply", metavar="ID")
+    ap.add_argument("--voc", action="store_true", help="--reply 가 데스크 에이전트 실제 발언(무편집)일 때")
     ap.add_argument("--issue-title")
     ap.add_argument("--issue-body", default="")
     ap.add_argument("--ledger", type=Path, default=rc.ROUNDS_DIR / "_requests.json")
@@ -110,7 +131,12 @@ def main(argv=None) -> int:
     now = datetime.now(KST)
     led = json.loads(a.ledger.read_text(encoding="utf-8")) if a.ledger.exists() else {}
     try:
-        if a.close:
+        if a.reply:
+            if not (a.by and a.text):
+                ap.error("--reply 는 --by --text 필요")
+            L, r = reply(led, a.reply, a.by, a.text, a.voc, now)
+            msg = f"💬 회신 {r['id']} · {a.by}{' (VOC)' if a.voc else ' (대행)'}"
+        elif a.close:
             L, r = close(led, a.close, a.by, now)
             msg = f"닫음 {r['id']} ({rc.desk_owner(r['from'])} → {rc.desk_owner(r['to'])})"
         else:

@@ -30,12 +30,14 @@ jobs:
           python-version: "3.12"
       - name: 팀 업무량 갱신
         run: python scripts/team_stats.py || echo "::warning::team_stats 실패"
+      - name: 사내톡 피드 갱신 (SYSTEM › 사내톡, 10/23 겸이 "자동갱신되게")
+        run: python scripts/msgr_feed.py || echo "::warning::msgr_feed 실패"
       - name: 저장
         if: (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          git add ops/team.json
+          git add ops/team.json reports/msgr_feed.md
           git diff --cached --quiet && exit 0
           git commit -m "team: $(date -u +%FT%H:%M) (매시)"
           # -X theirs 금지(포니테일 #1, req-dev-cc84f898): ops/team.json 의 runs 는 PB team_run 이 쓰는 행이라 rebase 로 이번 판이 덮으면 그새 들어온 행이 사라짐.
@@ -46,7 +48,8 @@ jobs:
             sleep $((i*5))
             git fetch -q --shallow-since="$(date -u -d '8 days ago' +%F)" origin main && git reset -q --hard origin/main || continue
             python scripts/team_stats.py >/dev/null || true
-            git add ops/team.json
+            python scripts/msgr_feed.py >/dev/null || true
+            git add ops/team.json reports/msgr_feed.md
             git diff --cached --quiet && { ok=1; break; }
             git commit -qm "team: $(date -u +%FT%H:%M) (원격 최신 위 재생성)" || true
           done
