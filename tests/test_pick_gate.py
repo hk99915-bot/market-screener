@@ -167,3 +167,32 @@ def test_reclassified_battle_still_scored(dec, monkeypatch):
     d = json.loads(dec.read_text(encoding="utf-8"))
     r = d["items"][0]["result"]
     assert "void" not in r and r["나🔥"]["ret"] == 0.01 and d["tally"]["나🔥"]["by_basis"]["감"]["n"] == 1
+
+
+# ── 소급 점검(10/24 결재 appr-pick-gate-start: 10/23 19:00 제출분부터, 표시만) ──
+def test_audit_flags_bypass_only_after_start(dec):
+    items = [
+        {"id": "2026-10-23-entry", "date": "2026-10-23", "kind": "entry",
+         "picks": {"나": {"ticker": "122630", "name": "KODEX 레버리지", "submitted": "15:02"}}},                 # 적용 전 → 대상 아님
+        {"id": "2026-10-23-entry-us", "date": "2026-10-23", "kind": "entry", "market": "US",
+         "picks": {"나": {"ticker": "SOXX", "name": "SOXX", "submitted": "21:17"}}},                           # 계획 없이 '나' → 위반
+        {"id": f"{D}-entry", "date": D, "kind": "entry",
+         "picks": {"나": {"ticker": "069500", "submitted": "14:00", "plan": {"stop_pct": -0.02, "target_pct": 0.03, "why": "x", "rr": 1.5}},
+                   "나🔥": {"ticker": "122630", "submitted": "13:00", "reclass": "계획 칸 비어 있음(근거)"}}},
+        {"id": "2026-10-27-entry", "date": "2026-10-27", "kind": "entry", "picks": {"나": {"cash": True, "submitted": "10:00"}}},
+    ]
+    rows = {(r["id"], r["slot"]): r for r in pick_gate.audit(items, events=[], semi_fn=lambda m, c: False)}
+    assert ("2026-10-23-entry", "나") not in rows
+    v = rows[("2026-10-23-entry-us", "나")]
+    assert v["status"] == "위반" and "계획 칸 비어 있음" in v["reasons"][0]
+    assert rows[(f"{D}-entry", "나")]["status"] == "통과" and rows[(f"{D}-entry", "나🔥")]["status"] == "재분류"
+    assert rows[("2026-10-27-entry", "나")]["status"] == "현금"
+
+
+def test_audit_apply_marks_without_moving(dec):
+    import scripts.pick_gate_audit as pga
+    _seed(dec, [{"id": "2026-10-23-entry-us", "date": "2026-10-23", "kind": "entry", "market": "US",
+                 "picks": {"나": {"ticker": "SOXX", "name": "SOXX", "submitted": "21:17"}}}])
+    pga.main(["--apply"])
+    pk = _picks(dec, "2026-10-23-entry-us")
+    assert "나🔥" not in pk and pk["나"]["ticker"] == "SOXX" and "게이트 위반" in pk["나"]["gate_audit"]

@@ -239,3 +239,46 @@ def plan_text_line(pick: dict) -> str | None:
     f = lambda k, kp: (f"{p[k]:,.2f}".rstrip("0").rstrip(".") if k in p else _pct(p[kp]) if kp in p else "—")  # noqa: E731
     return f"계획: 손절 {f('stop', 'stop_pct')} · 목표 {f('target', 'target_pct')} · R:R " + (f"1:{p['rr']:.2f}" if p.get("rr") is not None else "—") + \
         (f" · 근거 {p['why']}" if p.get("why") else "")
+
+
+def audit(items: list[dict], *, events=None, semi_fn=None) -> list[dict]:
+    """소급 점검(겸이 10/24 결재 appr-pick-gate-start: '10/23 19:00 제출분부터' — 삭제 없이 표시만).
+    PICK_GATE_FROM 이후 제출된 '나'·'나🔥' 픽마다 한 행: {id, slot, submitted, status, reasons}.
+    status = '통과'(제출 때 게이트 통과 = plan 있음·reclass 없음) / '재분류'(게이트가 '나🔥'로 옮김) /
+             '위반'(게이트를 안 거친 '나' — 버튼·수동 기록 등. 지금 기준으로 다시 판정한 사유) / '현금'.
+    제출 시각 = 판 날짜 + submitted(KST HH:MM). 미장 판은 KST 저녁 제출이 대부분이라 같은 날짜로 본다(새벽 제출은 하루 늦게 잡힐 수 있음)."""
+    out = []
+    for it in items:
+        if it.get("kind") != "entry":
+            continue
+        for slot in ("나", "나🔥"):
+            p = (it.get("picks") or {}).get(slot) or {}
+            sub = p.get("submitted")
+            if p.get("pending") or not sub:
+                continue
+            try:
+                t = datetime.fromisoformat(f"{it['date']} {sub}").replace(tzinfo=KST)
+            except ValueError:
+                continue
+            if not gate_active(t):
+                continue
+            row = {"id": it["id"], "slot": slot, "submitted": f"{it['date']} {sub}", "reasons": []}
+            if p.get("cash"):
+                row["status"] = "현금"
+            elif p.get("reclass"):
+                row["status"], row["reasons"] = "재분류", [p["reclass"]]
+            elif slot == "나🔥":
+                row["status"] = "직접 '나🔥'"   # 처음부터 감 칸 — 게이트 대상 아님
+            elif p.get("plan") and p["plan"].get("rr") is not None:
+                row["status"] = "통과"
+            else:
+                plan = {k: v for k, v in (p.get("plan") or {}).items()}
+                rr, note = plan_rr(plan, plan.get("ref"))
+                rs = plan_gaps(plan, rr, note)
+                cd = day_cooldown(t, it, items, events or [], None)
+                v = cooldown_violation(p, it.get("market") or "KR", semi_fn) if cd else None
+                if v:
+                    rs.append(f"{cd} — ({v})")
+                row["status"], row["reasons"] = ("위반" if rs else "통과"), rs
+            out.append(row)
+    return out
