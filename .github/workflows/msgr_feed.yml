@@ -1,0 +1,52 @@
+# 사내톡 피드 즉시 갱신 — 10/24 겸이 "톡방 업데이트가 왜 이렇게 느리지"
+# 요청 장부(_requests.json)·메신저 라운드 기록·프로필이 main 에 push 되면 바로 reports/msgr_feed.md 를 다시 만든다.
+# (기존: team.yml 매시 17분 1회 — GitHub 예약 지연까지 겹치면 1~2시간 늦음. team.yml 매시 갱신은 그대로 두고 이건 보조.)
+# 봇 push(GITHUB_TOKEN)는 워크플로를 다시 깨우지 않아 루프 없음. 연달아 push 되면 최신 것만 남김(cancel-in-progress).
+name: msgr_feed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/desk_kb/rounds/_requests.json"
+      - "docs/desk_kb/rounds/*-msg-*.md"
+      - "docs/desk_kb/CHARACTERS.md"
+      - "assets/avatars/profiles.json"
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: msgr-feed
+  cancel-in-progress: true
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 피드 생성
+        run: python scripts/msgr_feed.py
+      - name: 저장
+        if: github.event_name == 'push' || inputs.commit == 'true'
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add reports/msgr_feed.md
+          git diff --cached --quiet && exit 0
+          git commit -q -m "msgr: 사내톡 피드 $(date -u +%FT%H:%M) (push 즉시)"
+          for i in 1 2 3; do
+            git push -q origin HEAD:main && exit 0
+            git pull -q --rebase origin main || { git rebase --abort; git fetch -q origin main; git reset -q --hard origin/main; python scripts/msgr_feed.py; git add reports/msgr_feed.md; git diff --cached --quiet && exit 0; git commit -q -m "msgr: 사내톡 피드 재생성"; }
+          done
+          echo "::warning::msgr_feed push 실패 — team.yml 매시 갱신이 따라잡음"
