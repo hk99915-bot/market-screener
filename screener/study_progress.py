@@ -4,8 +4,10 @@
 
 이슈 형식
   제목  study <module_id> done
-  본문  quiz <qid> <answer_index>     (선택, 한 줄에 하나. answer_index 0~3)
+  본문  quiz <qid> <답>               (선택, 한 줄에 하나. 답 = 번호 0~3 또는 선택지 문장 앞부분 2자+)
         min <n>                      (선택, 걸린 분)
+  퀴즈만(모듈 완료 아님): 제목 `study quiz` + 본문 `quiz <qid> <답>` — 텔레그램 답장 'quiz H2-b2 브레이크' 경로
+  (10/24 겸이 결재 G3: 퀴즈 응답 텔레그램 수집 허용. 문장 답은 선택지 순서가 바뀌어도 같은 선택지로 채점 — 10/23 셔플 오채점 방지)
 
 파일  reports/study_progress.json
   {"note", "done":[{id,date,min}], "quiz":[{qid,module,answer,correct,ok,date}], "streak", "last",
@@ -40,7 +42,9 @@ TRACK_DESK = {"H": "behavior", "R": "frm", "D": "derivs", "Q": "quant", "M": "ci
 INITIAL = {"note": "10/17 시작, 출석 = done 이슈 + STUDY 내보내기 활동일(KST)", "done": [], "quiz": [], "streak": 0, "last": None, "unlocked": [], "modules": {}}
 
 TITLE_RE = re.compile(r"^\s*study\s+([0-9A-Za-z][\w-]*)\s+done\s*$", re.I)
-QUIZ_RE = re.compile(r"^\s*quiz\s+(\S+)\s+([0-3])\s*$", re.I)
+QUIZ_RE = re.compile(r"^\s*quiz\s+(\S+)\s+(.+?)\s*$", re.I)
+QUIZ_ONLY_RE = re.compile(r"^\s*study\s+quiz\s*$", re.I)
+_TEXT_ANS = re.compile(r"[가-힣A-Za-z]")
 MIN_RE = re.compile(r"^\s*min(?:utes)?\s*[=: ]\s*(\d{1,3})\s*$", re.I)
 
 
@@ -65,14 +69,21 @@ def issue_url_study(module_id: str, body: str = "") -> str:
 def parse_issue(title: str, body: str | None) -> dict | None:
     """`study <id> done` + 본문 `quiz <qid> <idx>`·`min <n>` → {id, quiz:[(qid, idx)], min}. 형식이 아니면 None."""
     m = TITLE_RE.match(title or "")
-    if not m:
+    quiz_only = bool(QUIZ_ONLY_RE.match(title or ""))
+    if not m and not quiz_only:
         return None
-    out: dict = {"id": m.group(1), "quiz": [], "min": None, "bad": []}
+    out: dict = {"id": None if quiz_only else m.group(1), "quiz_only": quiz_only, "quiz": [], "min": None, "bad": []}
     for line in (body or "").splitlines():
         line = line.strip()
         q = QUIZ_RE.match(line)
         if q:
-            out["quiz"].append((q.group(1), int(q.group(2))))
+            ans = q.group(2).strip()
+            if re.fullmatch(r"[0-3]", ans):
+                out["quiz"].append((q.group(1), int(ans)))
+            elif len(ans) >= 2 and not ans.startswith("<") and not ans.isdigit() and (_TEXT_ANS.search(ans) or re.search(r"\d", ans)):
+                out["quiz"].append((q.group(1), ans))       # 문장 답 → grade 에서 선택지로 해석
+            elif not ans.isdigit():
+                out["bad"].append(line)   # 'quiz H2-b3 <0~3>' 처럼 번호를 안 바꾼 줄
             continue
         if line.lower().startswith("quiz"):
             out["bad"].append(line)   # 'quiz H2-b3 <0~3>' 처럼 번호를 안 바꾼 줄
@@ -84,10 +95,33 @@ def parse_issue(title: str, body: str | None) -> dict | None:
 
 
 # ───────────────────────── 채점 ─────────────────────────
-def grade(bank: dict, qid: str, answer: int) -> dict | None:
+def _squash(s: str) -> str:
+    return re.sub(r"[\s\W_]+", "", str(s), flags=re.U).lower()
+
+
+def resolve_choice(choices: list, text: str) -> int | None:
+    """문장 답 → 선택지 번호. 앞부분 일치가 하나면 그것, 아니면 포함 일치가 하나면 그것, 그 외 None(모호·불일치)."""
+    t = _squash(text)
+    if len(t) < 2:
+        return None
+    for pred in (lambda c: c.startswith(t), lambda c: t in c):
+        hit = [i for i, c in enumerate(choices) if pred(_squash(c))]
+        if len(hit) == 1:
+            return hit[0]
+        if len(hit) > 1:
+            return None
+    return None
+
+
+def grade(bank: dict, qid: str, answer: int | str) -> dict | None:
     item = next((q for q in (bank or {}).get("items", []) if q.get("id") == qid), None)
     if not item:
         return None
+    if isinstance(answer, str):
+        idx = resolve_choice(list(item.get("choices", [])), answer)
+        if idx is None:
+            return {"qid": qid, "unmatched": answer, "choices": list(item.get("choices", []))}
+        answer = idx
     correct = int(item.get("answer", -1))
     return {"qid": qid, "module": item.get("module"), "answer": answer, "correct": correct, "ok": answer == correct,
             "q": item.get("q", ""), "choices": list(item.get("choices", [])), "why": item.get("why", ""),
@@ -192,33 +226,42 @@ def apply(progress: dict, parsed: dict, bank: dict, study: dict, today: date) ->
     """진행 파일에 반영. 반환 (progress, 채점 결과[], 답글 줄[])."""
     p = {**copy.deepcopy(INITIAL), **copy.deepcopy(progress or {})}
     mid, day = parsed["id"], today.isoformat()
+    quiz_only = bool(parsed.get("quiz_only"))
     titles = _titles(study)
     lines: list[str] = []
-    if mid not in titles and titles:
+    if not quiz_only and mid not in titles and titles:
         lines.append(f"⚠️ 모듈 '{mid}' 는 content/study.json 에 없습니다. 기록하지 않았습니다.")
         return p, [], lines
-    if not any(d["id"] == mid and d["date"] == day for d in p["done"]):
+    if not quiz_only and not any(d["id"] == mid and d["date"] == day for d in p["done"]):
         p["done"].append({"id": mid, "date": day, "min": parsed.get("min")})
     graded: list[dict] = []
     for b in parsed.get("bad", []):
-        lines.append(f"⚠️ 퀴즈 줄 형식 오류 '{b}' — `quiz <qid> <0~3>` (번호는 0·1·2·3 중 하나).")
+        lines.append(f"⚠️ 퀴즈 줄 형식 오류 '{b}' — `quiz <qid> <0~3 또는 선택지 앞 2자 이상>`.")
     answered = {(q["qid"], q["date"]) for q in p["quiz"]}
     for qid, ans in parsed["quiz"]:
         g = grade(bank, qid, ans)
         if g is None:
             lines.append(f"⚠️ 문항 '{qid}' 없음 — quiz_bank id 를 확인하세요.")
             continue
+        if "unmatched" in g:
+            opts = " / ".join(f"{i}) {c}" for i, c in enumerate(g["choices"]))
+            lines.append(f"⚠️ {qid} 답 '{g['unmatched']}' 이 선택지 하나로 안 정해짐 — 앞부분을 더 쓰거나 번호로: {opts}")
+            continue
         graded.append(g)
+        ans = g["answer"]
         if (qid, day) in answered:
             continue
         p["quiz"].append({"qid": qid, "module": g["module"], "answer": ans, "correct": g["correct"], "ok": g["ok"], "date": day})
     p["streak"] = streak(activity_dates(p))
     p["last"] = max([day] + activity_dates(p))
     p["modules"] = derive_modules(p["done"], p["quiz"])
-    opened = unlock_next(p, study, mid)
+    opened = None if quiz_only else unlock_next(p, study, mid)
     # 답글
     t = titles.get(mid, "")
-    lines.insert(0, f"✅ {mid} {t.split(' — ')[0]} 완료 기록 ({day}{', ' + str(parsed['min']) + '분' if parsed.get('min') else ''}).")
+    if quiz_only:
+        lines.insert(0, f"📝 퀴즈 {len(graded)}문항 기록 ({day}) — 모듈 완료는 `study <id> done`.")
+    else:
+        lines.insert(0, f"✅ {mid} {t.split(' — ')[0]} 완료 기록 ({day}{', ' + str(parsed['min']) + '분' if parsed.get('min') else ''}).")
     for g in graded:
         mark = "정답" if g["ok"] else "오답"
         lines.append(f"{'🟢' if g['ok'] else '🔴'} {g['qid']} {mark} — 내 답: {g['choices'][g['answer']]} / 정답: {g['choices'][g['correct']]}. {g['why']}")
@@ -228,7 +271,7 @@ def apply(progress: dict, parsed: dict, bank: dict, study: dict, today: date) ->
             lines.append(f"   ⚔️ {d.get('desk')} 데스크 답: {g['choices'][pick] if isinstance(pick, int) and 0 <= pick < len(g['choices']) else '—'}")
         if not g["ok"]:
             lines.append(f"   → docs/desk_kb/_quiz_feedback.md 큐에 추가({g['desk']} '흔한 오해' 후보)")
-    m = p["modules"].get(mid, {})
+    m = p["modules"].get(mid, {}) if mid else {}
     if m.get("next_due"):
         lines.append(f"🔁 다음 복습: {m['next_due']} (단계 {m.get('stage', 0)}/4, 간격 1·3·7·21일)")
     lines.append(f"📅 출석 {p['streak']}일 연속")
@@ -448,7 +491,7 @@ def append_wrong(graded: list[dict], today: date, root: Path = ROOT) -> int:
 def apply_issue(title: str, body: str | None, created_at: str | None = None, root: Path = ROOT) -> str:
     parsed = parse_issue(title, body)
     if not parsed:
-        return "형식: 제목 `study <module_id> done`, 본문(선택) `quiz <qid> <0~3>` 한 줄씩, `min <n>`."
+        return "형식: 제목 `study <module_id> done`(또는 퀴즈만 `study quiz`), 본문(선택) `quiz <qid> <0~3 또는 선택지 앞 2자+>` 한 줄씩, `min <n>`."
     today = datetime.now(KST).date()
     if created_at:
         try:

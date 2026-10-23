@@ -1,4 +1,5 @@
 """STUDY 진행 기록 — 이슈 파싱·채점·오답 피드백 큐·2주 게이트·출석·study_daily 연동 (네트워크 없음)."""
+import copy
 import json
 import shutil
 import sys
@@ -273,3 +274,39 @@ def test_apply_export_keeps_issue_records_and_reads_issue_body(tmp_path, study):
 def test_apply_export_unknown_module_skipped(study):
     p = sp.apply_export({}, {"v": 2, "tz": "KST", "done": {"ZZ9": "2026-10-23"}, "apt": [], "eng": []}, study)
     assert p["done"] == [] and p["summary"]["done_modules"] == 0
+
+
+# ── G3(10/24 겸이 결재): 퀴즈 응답 텔레그램 수집 — 문장 답·퀴즈만 이슈 ──
+def test_g3_text_answer_resolves_by_choice_text(bank):
+    it = bank["items"][0]
+    right = it["choices"][it["answer"]]
+    p = sp.parse_issue("study quiz", f"quiz {it['id']} {right[:6]}\nquiz {it['id']} 2\nquiz {it['id']} <0~3>")
+    assert p["quiz_only"] and p["id"] is None and p["quiz"][0] == (it["id"], right[:6]) and p["quiz"][1] == (it["id"], 2)
+    assert p["bad"] == [f"quiz {it['id']} <0~3>"]
+    g = sp.grade(bank, it["id"], right[:6])
+    assert g["ok"] and g["answer"] == it["answer"]
+    assert sp.resolve_choice(["손익분기 승률", "손익비", "손절"], "손") is None          # 1자 → 모호
+    assert sp.resolve_choice(["손익분기 승률", "손익비", "손절"], "손익") is None        # 앞부분 2개 일치 → 모호
+    assert sp.resolve_choice(["손익분기 승률", "손익비", "손절"], "손익비") == 1
+    assert sp.resolve_choice(["+42.9%", "+30%", "+60%"], "42.9") == 0                     # 포함 일치
+
+
+def test_g3_text_answer_survives_choice_reorder(bank):
+    it = copy.deepcopy(bank["items"][0])
+    right = it["choices"][it["answer"]]
+    it["choices"] = it["choices"][::-1]
+    it["answer"] = it["choices"].index(right)
+    g = sp.grade({"items": [it]}, it["id"], right)
+    assert g["ok"]
+
+
+def test_g3_quiz_only_issue_records_without_done(tmp_path, bank):
+    root = _tmp_root(tmp_path)
+    it = next(q for q in bank["items"] if q["module"] == "R1")
+    right = it["choices"][it["answer"]]
+    msg = sp.apply_issue("study quiz", f"quiz {it['id']} {right}", "2026-10-24T12:00:00Z", root=root)
+    assert "퀴즈 1문항 기록" in msg and "정답" in msg
+    p = json.loads((root / "reports" / "study_progress.json").read_text(encoding="utf-8"))
+    assert p["done"] == [] and p["quiz"][0]["ok"] is True and p["quiz"][0]["answer"] == it["answer"]
+    msg2 = sp.apply_issue("study quiz", f"quiz {it['id']} 아무말대잔치", "2026-10-24T12:00:00Z", root=root)
+    assert "안 정해짐" in msg2

@@ -158,7 +158,7 @@ def telegram_text(o: dict) -> str:
         ch = " / ".join(f"{i}){c}" for i, c in enumerate(q["choices"]))
         second.append(f"❓ [{q['module']}] {q['q']} — {ch}")
     if o.get("issue_url"):
-        second.append(f"📝 완료·답 기록(이슈 '{o['issue_title']}', 본문 quiz <qid> <번호>): {o['issue_url']}")
+        second.append(f"📝 완료·답 기록(이슈 '{o['issue_title']}', 본문 quiz <qid> <번호 또는 선택지 앞 2자>): {o['issue_url']}")
     if second:
         lines.append(" · ".join(second))
     return "\n".join(lines[:2])
