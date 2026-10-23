@@ -50,7 +50,8 @@ COST = {"stock": 0.0045, "fut": 0.0004, "put": 0.02, "call": 0.02,      # 왕복
         "us_stock": 0.002, "es": 0.0002, "nq": 0.0002, "spx_put": 0.01, "spx_call": 0.01}
 HOLD = {"stock": 20, "fut": 10, "us_stock": 20, "es": 10, "nq": 10}
 OPT = ("put", "call", "spx_put", "spx_call")
-US = ("us_stock", "es", "nq", "spx_put", "spx_call")
+US = ("us_stock", "es", "nq", "spx_put", "spx_call", "us_spread")
+SPREAD = ("spread", "us_spread")   # 손실 제한 수직 스프레드(scripts/hf_spread.py) — 국장 코스피200·개별주식옵션 / 미장 SPX·개별주
 US_MULT = {"es": 50, "nq": 20, "spx_put": 100, "spx_call": 100}   # 달러/pt (NQ 는 나스닥 종합으로 근사)
 CHECK = ("fund", "narrative", "positioning", "macro", "scenarios", "hedge", "kill", "catalyst", "p_win", "p_src")
 CHECK_KO = {"fund": "재무·추정치", "narrative": "뉴스·촉매", "positioning": "거래량·수급·공매도·옵션 내재", "macro": "매크로 관계",
@@ -228,7 +229,32 @@ def next_open(p: dict, after: str) -> tuple[str, float] | None:
     return None
 
 
+def _k(x: float) -> str:
+    return f"{x:,.0f}" if x >= 1000 else f"{x:g}"
+
+
+def spread_state(p: dict, d: dict | None = None) -> dict:
+    """스프레드 기초자산 현재값 — S·날짜·IV·계약당 원화 승수(1단위 = 기초 1주·1pt)."""
+    import hf_spread as SP
+    und = p["und"]
+    if und == "K200":
+        d = d or deriv_last()
+        return {"s": d["k200"], "date": d["date"], "iv": d["iv"], "mult": MULT}
+    if und == "SPX":
+        u = us_last()
+        return {"s": u["spx"], "date": u["date"], "iv": u["iv"], "mult": US_MULT["spx_put"] * u["usdkrw"]}
+    if p["kind"] == "spread":
+        dt, px, _ = stock_last(und)
+        return {"s": px, "date": dt, "iv": SP.stock_iv(daily_vol("stock", und)) or p.get("iv"), "mult": SP.MULT_KR_STOCK}
+    dt, px = us_stock_last(und)
+    return {"s": px, "date": dt, "iv": SP.stock_iv(daily_vol("us_stock", und)) or p.get("iv"), "mult": SP.MULT_US * us_last()["usdkrw"]}
+
+
 def price(p: dict, d: dict) -> float:
+    if p["kind"] in SPREAD:
+        import hf_spread as SP
+        st = spread_state(p, d)
+        return SP.value(bs, p["right"], st["s"], p["k_long"], p["k_short"], SP.years(p["expiry"], st["date"]), st["iv"])
     if p["kind"] in US:
         u = us_last()
         if p["kind"] == "us_stock":
@@ -414,6 +440,24 @@ def add(b: dict, a) -> dict:
         p.update(code="SPXO", name=f"S&P500 {'풋' if a.kind == 'spx_put' else '콜'} {a.strike:g} ({a.expiry})",
                  strike=a.strike, expiry=a.expiry, asof=u["date"], iv=round(u["iv"], 4), spot=u["spx"], market="US")
         px = price(p, d)
+    elif a.kind in SPREAD:
+        import hf_spread as SP
+        if a.side != "롱" or not (a.und and a.right and a.strike and a.strike2 and a.expiry):
+            raise SystemExit("스프레드 = --side 롱 --und (K200|SPX|종목코드) --right put|call --strike 매수행사가 --strike2 매도행사가 --expiry")
+        und = a.und.upper() if not a.und.isdigit() else a.und
+        if a.kind == "spread" and und != "K200" and not und.isdigit():
+            raise SystemExit("국장 스프레드 기초 = K200 또는 6자리 종목코드")
+        if a.kind == "us_spread" and und.isdigit():
+            raise SystemExit("미장 스프레드 기초 = SPX 또는 미장 티커")
+        p.update(und=und, right=a.right, k_long=a.strike, k_short=a.strike2, expiry=a.expiry, market="US" if a.kind == "us_spread" else "KR")
+        st = spread_state(p, d)
+        if not st["iv"]:
+            raise SystemExit(f"IV 없음 — {und} 변동성 데이터 부족")
+        sp = SP.plan(bs, a.right, st["s"], a.strike, a.strike2, SP.years(a.expiry, st["date"]), st["iv"])
+        nm = {"K200": "코스피200", "SPX": "S&P500"}.get(und) or (a.name or detail_name(p["market"], und) or und)
+        p.update(code=und, name=f"{nm} {'풋' if a.right == 'put' else '콜'} {sp['type']} 스프레드 {_k(a.strike)}/{_k(a.strike2)} ({a.expiry})",
+                 asof=st["date"], spot=st["s"], iv=round(st["iv"], 4), spread=sp, mult_krw=st["mult"], cost_unit=round(sp["cost_unit"], 6))
+        px = sp["v0"]
     else:
         if a.side != "롱":
             raise SystemExit("옵션 매도는 금지 — 국장 VRP ≈ 0 (reports/studies/2026-10-21_hf_ls_vol.md V1)")
@@ -425,6 +469,9 @@ def add(b: dict, a) -> dict:
     if a.kind in OPT:
         rr = 1.0                                       # 익절 = 프리미엄 2배, 최대손실 = 프리미엄
         t1 = round(px * 2, 4)
+    elif a.kind in SPREAD:
+        rr = p["spread"]["rr_take"]                    # 익절 = 최대이익 50%, 최대손실 = 행사가 폭으로 막힘
+        t1 = round(p["spread"]["t1"], 4)
     else:
         if a.stop is None or (a.stop - px) * sgn >= 0:
             raise SystemExit("손절가 없거나 방향이 틀림 — 손절 없는 계획은 안 받아")
@@ -438,7 +485,7 @@ def add(b: dict, a) -> dict:
         raise SystemExit(f"기대값 {pm['ev_r']:+.2f}R ≤ 0 (R:R {pm['rr']:.2f}, 승률 {pm['p_win']:.0%} < 손익분기 {pm['p_be']:.0%}) — 안 들어간다")
     p["plan"] = pm
     # 크기
-    vol = None if a.kind in OPT else daily_vol(a.kind, getattr(a, "code", None))
+    vol = None if a.kind in OPT + SPREAD else daily_vol(a.kind, getattr(a, "code", None))
     vf = vol_factor(vol)
     room = RISK_ALL - open_risk(b)
     risk_t = CONV[conv] * vf
@@ -450,6 +497,10 @@ def add(b: dict, a) -> dict:
     if a.kind in OPT:
         w = risk_t
         p.update(stop=None, t1=t1, r_unit=px, weight=round(w, 5), risk=round(w, 5), hold=None)
+    elif a.kind in SPREAD:
+        ml = p["spread"]["max_loss"]
+        p.update(stop=None, t1=t1, r_unit=round(ml, 6), weight=round(risk_t, 5), risk=round(risk_t, 5), hold=None,
+                 contracts=round(risk_t * AUM / (ml * p["mult_krw"]), 2))
     else:
         stop_pct = abs(px - a.stop) / px
         w = min(risk_t / stop_pct, 0.15)
@@ -465,7 +516,8 @@ def add(b: dict, a) -> dict:
             w = min(w, 1.5 * pw) if getattr(a, "risk", None) else pw
             p["sizing"]["hedge"] = f"부모 베타가중 명목 {pw * 100:.2f}%"
         p.update(weight=round(w, 4), risk=round(w * stop_pct, 5))
-    p["beta"] = beta_of(a.kind, getattr(a, "code", None))
+    p["beta"] = (1.0 if p.get("und") in ("K200", "SPX") else beta_of("stock" if a.kind == "spread" else "us_stock", p["und"])) if a.kind in SPREAD \
+        else beta_of(a.kind, getattr(a, "code", None))
     p["days"] = 0
     p["last"] = p["entry"]
     b["open"].append(p)
@@ -474,6 +526,8 @@ def add(b: dict, a) -> dict:
 
 def r_of(p: dict, px: float) -> float:
     sgn = 1 if p["side"] == "롱" else -1
+    if p.get("cost_unit") is not None:                 # 스프레드: 비용 = 두 다리 프리미엄 × 2% (진입 가치가 음수(크레딧)일 수 있어 따로)
+        return (px - p["entry"]) * sgn / p["r_unit"] - p["cost_unit"] / p["r_unit"]
     return (px - p["entry"]) * sgn / p["r_unit"] - COST[p["kind"]] * p["entry"] / p["r_unit"]
 
 
@@ -500,7 +554,7 @@ def _idx_ret(market: str, d0: str, d1: str) -> float | None:
 def close_pos(b: dict, p: dict, px: float, d: str, why: str):
     sgn = 1 if p["side"] == "롱" else -1
     p.update(exit=round(px, 4), exit_d=d, exit_why=why, r=round(r_of(p, px), 3))
-    if p["kind"] not in OPT:
+    if p["kind"] not in OPT + SPREAD:
         ar = px / p["entry"] - 1
         ir = ar if p["kind"] in ("fut", "es", "nq") else _idx_ret(mkt(p), p.get("asof", d), d)   # 지수 선물 = 전부 베타
         if ir is not None:
@@ -559,7 +613,12 @@ def mark(b: dict) -> list[dict]:
                 continue
             keep.append(p)
             continue
-        if p["kind"] in OPT:
+        if p["kind"] in SPREAD:
+            if md >= p["expiry"]:
+                why = "만기 — 내재가치 정산"
+            elif px >= p["t1"]:
+                why = "최대이익 50% — 익절"
+        elif p["kind"] in OPT:
             if md >= p["expiry"]:
                 why = "만기"
             elif px >= p["t1"]:
@@ -597,6 +656,8 @@ def mark(b: dict) -> list[dict]:
 def qty(p: dict) -> str:
     """가상 AUM 기준 수량 — 선물·옵션 계약, 주식 주."""
     notional = AUM * p["weight"]
+    if p["kind"] in SPREAD:
+        return f"{p['contracts']:,.0f}계약(스프레드, 최대손실 기준)"
     if p["kind"] in US:
         usd = notional / us_last()["usdkrw"]
         if p["kind"] == "us_stock":
@@ -651,7 +712,8 @@ def show(b: dict) -> list[str]:
         ls.append(f"⛔ 한도: {lim.get('why') or ''}" + (f" · 정지 ~{lim['halt_until']}" if lim.get("halt_until") else ""))
     for p in b["open"]:
         cur = r_of(p, p["last"])
-        lv = f"손절 {p['stop']:,.2f} · 1차 {p['t1']:,.2f}" if p["stop"] is not None else f"최대손실 = 프리미엄 · 익절 {p['t1']:,.2f}"
+        lv = (f"손절 {p['stop']:,.2f} · 1차 {p['t1']:,.2f}" if p["stop"] is not None else
+              f"최대손실 = 행사가 폭 − 받은 돈(1R) · 익절 {p['t1']:,.2f}(최대이익 50%)" if p["kind"] in SPREAD else f"최대손실 = 프리미엄 · 익절 {p['t1']:,.2f}")
         pl = p.get("plan") or {}
         pm = f" · R:R {pl['rr']:.2f} 승률 {pl['p_win']:.0%}(손익분기 {pl['p_be']:.0%}) E[R] {pl['ev_r']:+.2f}" if pl.get("rr") is not None else ""
         hg = f" · 헤지({','.join(p['hedge_of'])})" if p.get("hedge_of") else ""
@@ -677,7 +739,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
     a1 = sp.add_parser("add")
-    a1.add_argument("--kind", choices=["stock", "fut", "put", "call", "us_stock", "es", "nq", "spx_put", "spx_call"], required=True)
+    a1.add_argument("--kind", choices=["stock", "fut", "put", "call", "us_stock", "es", "nq", "spx_put", "spx_call", "spread", "us_spread"], required=True)
+    a1.add_argument("--und", help="스프레드 기초: K200 | SPX | 종목코드·티커")
+    a1.add_argument("--right", choices=["put", "call"], help="스프레드 권리")
+    a1.add_argument("--strike2", type=float, help="스프레드 매도 다리 행사가(--strike = 매수 다리)")
     a1.add_argument("--side", choices=["롱", "숏"], default="롱")
     a1.add_argument("--code")
     a1.add_argument("--name")

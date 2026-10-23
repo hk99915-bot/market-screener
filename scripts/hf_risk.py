@@ -47,8 +47,18 @@ def _opt_state(p, d, u):
     return spot, iv, t, (p["kind"][4:] if us else p["kind"])
 
 
+def _spread_now(p, d):
+    import hf_spread as SP
+    st = H.spread_state(p, d)
+    return st, SP.years(p["expiry"], st["date"])
+
+
 def exposure(p, d, u) -> float:
     """장부 대비 델타 노출(부호 있음, 베타 전)."""
+    if p["kind"] in H.SPREAD:
+        import hf_spread as SP
+        st, t = _spread_now(p, d)
+        return SP.delta(H.bs_delta, p["right"], st["s"], p["k_long"], p["k_short"], t, st["iv"]) * st["s"] * p["contracts"] * st["mult"] / H.AUM
     if p["kind"] in H.OPT:
         spot, iv, t, k = _opt_state(p, d, u)
         units = p["weight"] / p["entry"] if p["entry"] else 0.0
@@ -63,6 +73,13 @@ def beta(p) -> float:
 
 
 def theme(p) -> str:
+    if p["kind"] in H.SPREAD:
+        und = p.get("und")
+        if und == "K200":
+            return "반도체"
+        if und == "SPX":
+            return "미 지수"
+        return theme({**p, "kind": "stock" if p["kind"] == "spread" else "us_stock", "code": und})
     if p["kind"] in ("fut", "put", "call"):
         return "반도체"          # 코스피200 = 삼성전자·SK하이닉스 비중이 커서 반도체 테마로 묶는다
     if p["kind"] == "stock":
@@ -80,6 +97,13 @@ def stress_pnl(b, d, u, k200, ndx, mkr, mus) -> float:
     tot = 0.0
     es_b = H.beta_of("es", None)
     for p in b["open"]:
+        if p["kind"] in H.SPREAD:
+            import hf_spread as SP
+            st, t = _spread_now(p, d)
+            shock = (ndx if p["kind"] in H.US else k200) * (p.get("beta") or 1.0)
+            new = SP.value(H.bs, p["right"], st["s"] * (1 + shock), p["k_long"], p["k_short"], max(t - 5 / 365, 0), st["iv"] * (mus if p["kind"] in H.US else mkr))
+            tot += (new - p["last"]) * p["contracts"] * st["mult"] / H.AUM
+            continue
         if p["kind"] in H.OPT:
             spot, iv, t, k = _opt_state(p, d, u)
             shock = (es_b * ndx) if p["kind"] in H.US else k200

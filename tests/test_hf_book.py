@@ -198,3 +198,51 @@ def test_us_live_overlay(tmp_path, monkeypatch):
     assert u["date"] == "2026-10-23" and u["spx"] == 7628.3 and u["iv"] == 0.19          # VIX 는 live 에 없으면 일봉 값
     monkeypatch.setattr(H, "bars", lambda m, c: [{"t": "2026-10-22", "c": 212.21}])
     assert _US_STOCK_LAST("NVDA") == ("2026-10-23", 211.95)
+
+
+def test_spread_payoff_bounds():
+    import hf_spread as SP
+    assert SP.payoff_range("put", 900, 850) == (0.0, 50.0)          # 베어 풋 데빗
+    assert SP.payoff_range("put", 850, 900) == (-50.0, 0.0)         # 불 풋 크레딧
+    assert SP.payoff_range("call", 900, 950) == (0.0, 50.0)
+    with pytest.raises(SystemExit):
+        SP.plan(H.bs, "put", 900, 900, 900, 0.1, 0.4)
+
+
+def test_spread_debit_and_credit_sizing():
+    b = _b()
+    deb = H.add(b, _a(kind="spread", und="K200", right="put", strike=900.0, strike2=850.0, expiry="2026-11-12",
+                      stop=None, t1=None, p_win=0.6))
+    sp = deb["spread"]
+    assert sp["type"] == "데빗" and deb["r_unit"] == pytest.approx(sp["max_loss"], rel=1e-4)
+    assert deb["risk"] == pytest.approx(H.CONV["mid"]) and deb["contracts"] > 0                     # 최대손실 = 리스크 예산
+    with pytest.raises(SystemExit, match="기대값"):                                                  # 크레딧 = 손익비 낮음 → 승률 80% 로는 안 들어감
+        H.add(b, _a(kind="spread", und="K200", right="put", strike=800.0, strike2=860.0, expiry="2026-11-12",
+                    stop=None, t1=None, p_win=0.8))
+    cr = H.add(b, _a(kind="spread", und="K200", right="put", strike=800.0, strike2=860.0, expiry="2026-11-12",
+                     stop=None, t1=None, p_win=0.95))
+    assert cr["spread"]["type"] == "크레딧" and cr["entry"] < 0 and cr["r_unit"] > 0
+    assert H.r_of(cr, cr["entry"]) < 0                                                              # 진입 즉시 비용만큼 음수
+    with pytest.raises(SystemExit, match="스프레드"):
+        H.add(b, _a(kind="spread", side="숏", und="K200", right="put", strike=900.0, strike2=850.0, expiry="2026-11-12"))
+
+
+def test_spread_take_profit_and_expiry():
+    b = _b()
+    p = H.add(b, _a(kind="spread", und="K200", right="put", strike=900.0, strike2=850.0, expiry="2026-11-12",
+                    stop=None, t1=None, p_win=0.6))
+    D["k200"] = 820.0                                             # 크게 하락 → 스프레드 가치 ↑ → 50% 익절
+    try:
+        out = H.mark(b)
+    finally:
+        D["k200"] = 900.0
+    assert out and out[0]["exit_why"].startswith("최대이익 50%") and out[0]["r"] > 0
+    b2 = _b()
+    H.add(b2, _a(kind="spread", und="K200", right="call", strike=920.0, strike2=960.0, expiry="2026-10-30",
+                 stop=None, t1=None, p_win=0.6))
+    D["date"] = "2026-10-30"
+    try:
+        out = H.mark(b2)
+    finally:
+        D["date"] = "2026-10-21"
+    assert out and out[0]["exit_why"].startswith("만기") and out[0]["r"] < -0.9                      # 900 < 920 → 0 정산 ≈ −1R
