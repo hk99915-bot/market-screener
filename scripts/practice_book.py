@@ -6,6 +6,7 @@
   python3 scripts/practice_book.py show     # 성적표(건수·적중·평균 R·손익비)
 
 상태 reports/practice_book.json — 금액 없음(가격·R·%만). 모의 전용, 실계좌 주문 아님.
+R·수익률은 왕복 비용 차감(국장 0.45%·미장 0.2%) 뒤 숫자.
 체결: 장 마감 뒤 등록 → 다음 거래일 시가(차트 o), 장중 등록 → 그 시각 장중가(heatmap_KR). 손절·목표 = 종가 기준, 갭으로 넘으면 시가 체결.
 """
 from __future__ import annotations
@@ -23,6 +24,7 @@ import hf_book as H  # noqa: E402
 STATE = ROOT / "reports" / "practice_book.json"
 KST = timezone(timedelta(hours=9))
 HOLD = 20
+COST = {"KR": 0.0045, "US": 0.002}      # 왕복 비용(세금·수수료·슬리피지) — hf_book 국장 주식·미장 주식과 같은 가정
 
 
 def load() -> dict:
@@ -52,7 +54,8 @@ def add(b: dict, code: str, stop: float, target: float, line: str, market: str =
 
 
 def _r(p, px):
-    return (px - p["entry"]) / (p["entry"] - p["stop"])
+    """비용 차감 R — 왕복 비용(진입가 × COST)을 1R(진입 − 손절)로 나눠 뺀다."""
+    return (px - p["entry"] - COST[p["market"]] * p["entry"]) / (p["entry"] - p["stop"])
 
 
 def mark(b: dict) -> list[dict]:
@@ -83,7 +86,7 @@ def mark(b: dict) -> list[dict]:
         if not why and p["days"] >= HOLD:
             why, px, d = "20거래일 시간 정리", float(after[-1]["c"]), after[-1]["t"][:10]
         if why:
-            p.update(exit=px, exit_d=d, exit_why=why, r=round(_r(p, px), 3), ret=round(px / p["entry"] - 1, 4), status="청산")
+            p.update(exit=px, exit_d=d, exit_why=why, r=round(_r(p, px), 3), ret=round(px / p["entry"] - 1 - COST[p["market"]], 4), status="청산")
             b["closed"].append(p)
             out.append(p)
         else:
@@ -96,7 +99,7 @@ def mark(b: dict) -> list[dict]:
 
 def show(b: dict) -> list[str]:
     cl = b["closed"]
-    ls = [f"연습 장부: 보유·대기 {len(b['open'])} · 청산 {len(cl)} / 목표 20건"]
+    ls = [f"연습 장부: 보유·대기 {len(b['open'])} · 청산 {len(cl)} / 목표 20건 (R = 비용 차감: 국장 {COST['KR']:.2%}·미장 {COST['US']:.1%} 왕복)"]
     if cl:
         rs = [x["r"] for x in cl]
         w = [r for r in rs if r > 0]

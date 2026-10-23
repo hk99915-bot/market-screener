@@ -54,3 +54,9 @@ def test_us_same_day_session_fills():
     P.add(b, "X", 92, 112, "t", market="US", now=datetime(2026, 10, 22, 16, 30, tzinfo=KST))
     P.mark(b)
     assert b["open"][0]["entry"] == 100 and b["open"][0]["entry_d"] == "2026-10-22"
+
+
+def test_cost_deducted_from_r():
+    p = {"entry": 100.0, "stop": 90.0, "market": "KR"}
+    assert P._r(p, 110.0) == pytest.approx((10 - 0.45) / 10)
+    assert P._r({**p, "market": "US"}, 90.0) == pytest.approx((-10 - 0.2) / 10)
