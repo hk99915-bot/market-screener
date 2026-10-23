@@ -409,6 +409,72 @@ def p_night_sweep():
     print("param sweep done")
 
 
+# KRX OPEN API(openapi.krx.co.kr) 파생·지수·채권 엔드포인트 — 같은 KRX_API_KEY 로 서비스별 이용 승인 여부 확인 (req-data-7d1a8334, 10/24)
+# 서비스는 API 별로 따로 '이용 신청'·승인돼야 200. 미승인이면 401(respCode/respMsg). 키 값은 절대 출력하지 않는다.
+KRX_OPENAPI = [
+    ("sto/stk_bydd_trd", "유가증권 일별매매정보(대조군 — screener 가 이미 사용)"),
+    ("idx/drvprod_dd_trd", "파생상품지수 시세정보(VKOSPI 등)"),
+    ("drv/fut_bydd_trd", "선물 일별매매정보(주식선물 외)"),
+    ("drv/eqsfu_stk_bydd_trd", "주식선물(유가) 일별매매정보"),
+    ("drv/eqkfu_ksq_bydd_trd", "주식선물(코스닥) 일별매매정보"),
+    ("drv/opt_bydd_trd", "옵션 일별매매정보(주식옵션 외)"),
+    ("drv/eqsop_bydd_trd", "주식옵션(유가) 일별매매정보"),
+    ("drv/eqkop_bydd_trd", "주식옵션(코스닥) 일별매매정보"),
+    ("bon/kts_bydd_trd", "국채전문유통시장 일별매매정보"),
+]
+OPENAPI_BASE = "https://data-dbg.krx.co.kr/svc/apis/"
+
+
+def _mask(t: str, key: str) -> str:
+    return t.replace(key, "***") if key else t
+
+
+def p_krx_openapi():
+    import os
+    key = os.environ.get("KRX_API_KEY", "")
+    if not key:
+        print("KRX_API_KEY 없음 — Actions(deriv_hist.yml task=probe)에서만 실행")
+        return
+    today = datetime.now(KST).date()
+    days = [today - timedelta(days=b) for b in range(1, 8) if (today - timedelta(days=b)).weekday() < 5]
+    summary = []
+    for ep, nm in KRX_OPENAPI:
+        verdict, cols, n_rows, used = "?", [], 0, None
+        for d in days:  # OPEN API 는 D+1 아침 갱신 → 최근 영업일부터 거슬러 첫 행 있는 날
+            try:
+                r = requests.get(OPENAPI_BASE + ep, headers={"AUTH_KEY": key}, params={"basDd": d.strftime("%Y%m%d")}, timeout=30)
+            except Exception as e:  # noqa: BLE001
+                verdict = f"ERR {type(e).__name__}"
+                break
+            body = _mask(r.text[:300].replace("\n", " "), key)
+            try:
+                j = r.json()
+            except Exception:  # noqa: BLE001
+                j = None
+            if r.status_code != 200 or not isinstance(j, dict) or "OutBlock_1" not in j:
+                code = (j or {}).get("respCode") if isinstance(j, dict) else None
+                msg = (j or {}).get("respMsg") if isinstance(j, dict) else None
+                verdict = f"HTTP {r.status_code} respCode={code} respMsg={msg}" + ("" if j else f" body={body[:160]}")
+                break
+            rows = j.get("OutBlock_1") or []
+            used, n_rows = d, len(rows)
+            if rows:
+                cols = list(rows[0].keys())
+                verdict = "200 OK"
+                print(f"[{ep}] {d} rows {len(rows)} cols {cols}")
+                pick = [x for x in rows if "200" in str(x.get("ISU_NM", "")) or "VKOSPI" in str(x.get("IDX_NM", "")).upper()][:2] or rows[:2]
+                print("  sample", _mask(json.dumps(pick, ensure_ascii=False), key)[:900])
+                break
+            verdict = "200 빈 행"
+        iv = [c for c in cols if "VOLT" in c.upper() or c.upper().endswith("_IV")]
+        quote = [c for c in cols if any(k in c.upper() for k in ("BID", "ASK", "QUOT", "HOGA"))]
+        summary.append((ep, nm, verdict, used, n_rows, iv, quote))
+        print(f"[{ep}] {nm} → {verdict} (기준일 {used}, 행 {n_rows})", flush=True)
+    print("\nSUMMARY endpoint | 서비스 | 판정 | 기준일 | 행 | IV열 | 호가열")
+    for ep, nm, v, d, n, iv, q in summary:
+        print(f"SUMMARY {ep} | {nm} | {v} | {d} | {n} | {iv or '-'} | {q or '-'}")
+
+
 if __name__ == "__main__":
     only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
     for nm in only:

@@ -5,6 +5,7 @@ run-name: "deriv-hist ${{ github.event_name == 'workflow_dispatch' && format('[{
 # 수급·파생 일별 이력 적재 — 평일 16:40 KST (KRX 확정치 반영 후). 텔레그램 없음.
 # 결과: data/deriv/daily.csv (하루 1행). GitHub 예약은 자주 늦거나 건너뜀 → GAS 백업 예약기에서도 workflow_dispatch 로 부를 것.
 # 수동: task=backfill (days=과거 영업일 수) · task=probe (소스 탐침 → reports/logs/deriv_probe.txt, days 칸에 탐침 이름을 넣으면 그것만)
+#   KRX OPEN API 파생 서비스 승인 확인: task=probe days=krx_openapi commit=false (읽기 전용 — 결과는 실행 로그 SUMMARY 줄, 키는 *** 처리)
 on:
   schedule:
     - cron: "40 7 * * 1-5"
