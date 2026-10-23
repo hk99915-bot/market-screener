@@ -60,6 +60,7 @@ async def run(views: list[str], port: int) -> int:
             print(f"{'OK ' if ok else 'BAD'} {v:6s} {len(txt):6d}자" + (f" · 에러: {errs[0][:160]}" if errs else "") + (" · LOADING/빈 화면" if stuck else ""))
         bad += await check_fresh(b, port)
         bad += await check_us_detail(b, port)
+        bad += await check_oneliner(b, port)
         bad += await check_my_ledger(b, port)
         bad += await check_cmt_us(b, port)
         bad += await check_score(b, port)
@@ -303,6 +304,30 @@ async def check_us_detail(b, port: int, sym: str = "AAPL") -> int:
     ok = found and got.get("_index.json") == 200 and got.get(f"{sym}.json") == 200 and len(body) > 200 \
         and not body.startswith("LOADING") and "상세 데이터가 없습니다" not in body and not errs
     print(f"{'OK ' if ok else 'BAD'} US상세 검색={'O' if found else 'X'} 색인={got.get('_index.json')} {sym}={got.get(sym + '.json')} 팝업 {len(body)}자"
+          + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return not ok
+
+
+async def check_oneliner(b, port: int) -> int:
+    """종목 상세 머리 한 줄 설명(데이터 10/24, reports/company_oneliner.json): 390px 에서 US 주식·KR 주식·KR ETF 상세 열면
+    #dr-o 에 한 줄(또는 '설명 대기') · 가로 넘침 없음 · 페이지 에러 없음."""
+    pg = await b.new_page(viewport={"width": 390, "height": 844})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    res = []
+    for sym, mk in (("AAPL", "US"), ("005930", "KR"), ("069500", "KR")):
+        await pg.evaluate(f"openDetail({sym!r}, {mk!r})")
+        await pg.wait_for_timeout(2500)
+        r = await pg.evaluate("""(()=>{const o=document.querySelector('#dr-o'), d=document.querySelector('#dr');
+          return {t:(o&&o.innerText||'').trim(), over: d? d.scrollWidth-d.clientWidth : -1,
+                  ow: o? o.scrollWidth-o.clientWidth : -1};})()""")
+        res.append((sym, r))
+        await pg.evaluate("closeDetail()")
+    ok = not errs and all(r["t"] and r["over"] <= 0 and r["ow"] <= 0 for _, r in res)
+    print(f"{'OK ' if ok else 'BAD'} 한줄설명(390px) " + " · ".join(f"{s}='{r['t'][:24]}' 넘침{r['over']}" for s, r in res)
           + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok

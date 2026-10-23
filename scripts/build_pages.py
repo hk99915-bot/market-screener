@@ -76,6 +76,7 @@ SHIM = """<script>
     getRealEstate: () => get('reports/realestate.json'),
     getRealEstateView: () => get('reports/views/realestate.json'),
     getGeoNews: () => get('reports/geo_news.json'),
+    getOneliners: () => get('reports/company_oneliner.json'),
     getChainSeries: () => get('reports/chains.json'),
     getEvents: () => raw('reports/events_stats.json'),
     getMacroHist: () => get('reports/macro_hist.json'),

@@ -38,6 +38,7 @@
     getRealEstate: () => get('reports/realestate.json'),
     getRealEstateView: () => get('reports/views/realestate.json'),
     getGeoNews: () => get('reports/geo_news.json'),
+    getOneliners: () => get('reports/company_oneliner.json'),
     getChainSeries: () => get('reports/chains.json'),
     getEvents: () => raw('reports/events_stats.json'),
     getMacroHist: () => get('reports/macro_hist.json'),
@@ -4148,6 +4149,16 @@ function rvFill(sym,mk){
 }
 /* ───── 종목 상세 ───── */
 const DET={};
+// 종목 한 줄 설명(데이터 10/24, 겸이 "이 회사가 뭐 하는 회사인지 한 줄") — reports/company_oneliner.json 한 번 받아 캐시, 상세 머리(종목명 아래)에 표시
+let ONL=null, ONL_REQ=false, ONL_CUR=null;
+function oneBox(sym,mk){ ONL_CUR=[sym,mk]; if(ONL) return `<div id="dr-o" style="padding:6px 12px 0;font-size:12.5px;line-height:1.5;white-space:normal;overflow-wrap:anywhere">${oneTxt(sym,mk)}</div>`;
+  if(!ONL_REQ){ ONL_REQ=true; const done=()=>{ const el=$('#dr-o'); if(el&&ONL_CUR) el.innerHTML=oneTxt(ONL_CUR[0],ONL_CUR[1]); };
+    google.script.run.withSuccessHandler(t=>{try{ONL=JSON.parse(t)||{};}catch(e){ONL={};} done();}).withFailureHandler(()=>{ONL={};done();}).getOneliners(); }
+  return '<div id="dr-o" style="padding:6px 12px 0;font-size:12.5px;line-height:1.5;white-space:normal;overflow-wrap:anywhere"></div>'; }
+function oneTxt(sym,mk){ const r=ONL&&ONL[mk]&&ONL[mk][sym]; if(!ONL||!ONL[mk]) return '';
+  if(!r||!r.line) return '<span class="mu">설명 대기</span>';
+  const ind=r.industry&&/[가-힣]/.test(r.industry)&&!r.line.includes(r.industry)?` <span class="mu">· ${esc(r.industry)}</span>`:'';
+  return `<span title="${esc(ONL.src_note||'')}">${esc(r.line)}</span>${ind}`; }
 function openDetail(sym,mk){
   if(!AN) loadAnalysts();
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent=sym;$('#dr-s').textContent='';$('#dr-b').innerHTML='<div class="load">LOADING …</div>';
@@ -4350,7 +4361,7 @@ function renderEtf(sym,mk,s){
   const col=x=>x==null?'var(--muted)':x>0.15?'var(--up)':x<-0.15?'var(--dn)':'var(--amber)', sg=x=>x==null?'—':(x>0?'+':'')+x.toFixed(2);
   $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`ETF${e.inverse?' · <span class="dn">인버스</span>':''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${esc(s.asof||'')}${s.asof_label?` <span class="${s.asof_label.startsWith('장중')?'am':'mu'}">${esc(s.asof_label)}</span>`:''}`;
   const ch=Object.entries(lk.chains||{});
-  let h=`<div class="grid">
+  let h=oneBox(sym,mk)+`<div class="grid">
    <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">1Y</button><button data-c="live">LIVE</button></span><small id="ch-note">일봉</small></h2><div class="b" id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div>
    <div class="p c6"><h2>ETF<small>${esc(e.issuer||e.family||'')}</small></h2><div class="b" style="line-height:1.7">
      ${e.base?`<div>기초지수 <b>${esc(e.base)}</b></div>`:''}${e.category?`<div>분류 <b>${esc(e.category)}</b></div>`:''}
@@ -4378,7 +4389,7 @@ function renderDetail(sym,mk,s){
   $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market}${s.theme?` · <span class="am">${esc(s.theme)}</span>`:''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · ${esc(s.asof||'')}${s.asof_label?` <span class="${s.asof_label.startsWith('장중')?'am':'mu'}">${esc(s.asof_label)}</span>`:''}`;
   const kv=o=>`<div class="kv">${Object.entries(o).map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;
   const lvl=v=>v==null?'—':num(v,kr?0:2);
-  let h=`<div class="grid">
+  let h=oneBox(sym,mk)+`<div class="grid">
    <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">1Y</button><button data-c="live">LIVE</button></span><small id="ch-note">SMA20 · SMA50 · 20D box · TP</small></h2><div class="b">${ovBar()}<div id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div></div>
    <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
    <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<div style="margin-top:6px;max-height:340px;overflow:auto">${rs.items.map(repLine).join('')}</div>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>

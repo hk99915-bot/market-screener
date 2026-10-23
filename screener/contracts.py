@@ -34,6 +34,9 @@ CONTRACTS: dict[str, dict] = {
     # 부동산 트래킹(부동산 10/23): R-ONE 주간(키 있을 때)·ECOS·리츠·뉴스. 화면: MARKET › 부동산(예정, 설계서 docs/realestate/2026-10-23_tab_design.md)
     "realestate.json": {"v": 1, "date": "asof", "required": {"asof": str, "generated_at": str, "prices": dict, "rates": list,
                                                              "reits": list, "news": list, "unavailable": list}},
+    # 종목 한 줄 설명(데이터 10/24, 겸이 "이 회사가 뭐 하는 회사인지 한 줄"). 화면: 종목 상세 머리 (getOneliners). 근거 첫 문장은 _ev 파일
+    "company_oneliner.json": {"v": 1, "date": "asof", "required": {"asof": str, "src_note": str, "KR": dict, "US": dict}},
+    "company_oneliner_ev.json": {"v": 1, "date": "asof", "required": {"asof": str, "KR": dict, "US": dict}},
     "macro_series.json": {"v": 1, "date": "asof", "required": {"asof": str, "fmt": str, "series": dict}},
     # 매집 스캔(데이터 요청 10/17): 실패 시 asof=None 으로 쓰므로 날짜는 비어도 허용(status='fail' 이 신호). 화면: MARKET › ACCUM (getAccum/getUsAccum)
     "accum.json": {"v": 1, "date": "asof", "date_required": False, "required": {"asof": str, "generated_at": str, "status": str, "n": int}},

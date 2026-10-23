@@ -468,6 +468,14 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         except Exception as e:  # noqa: BLE001
             log.warning("종목별 공시 실패: %s", e)
 
+    try:   # 종목 한 줄 설명 증분(데이터 10/24) — ETF·유형·KIND 줄 + 새 종목 야후 근거 60개. 실패해도 상세 생성 계속
+        import os
+        if not os.environ.get("PYTEST_CURRENT_TEST"):   # 테스트에서 네트워크 금지
+            from . import oneliner
+            log.info("한 줄 설명: %s", oneliner.update(market, budget=60))
+    except Exception as e:  # noqa: BLE001
+        log.warning("한 줄 설명 갱신 실패: %s", e)
+
     if market == "KR":
         try:
             from . import drivers, universe

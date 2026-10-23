@@ -40,6 +40,13 @@
 - **축 단위 stale(G1)·사건 중복(G2)** (10/24): 축 검색 실패 → 그 축은 이전 파일 값 유지 + `stale{why,since,kept}`(연속 실패면 since 최초 유지), 화면 앰버 표시. 같은 사건 = 같은 링크 대상 또는 제목 단어 자카드 ≥0.4 또는 짧은 쪽 60%·5단어 겹침(10/23 산출물 대조: 같은 사건 0.45~1.0, 다른 사건 ≤0.31). 검색 호출 간격 1초 + 재시도 3·10초 — 10/23 23:03·10/24 00:33 두 번 다 6번째 검색(taiwan)만 503, 단독 호출 200 `[자체연구-B: 2회]`. 남은 것: 'Oleshky 휴전'처럼 단어가 거의 안 겹치는 같은 사건은 못 잡음(00:34 ruukr 5칸 중 2칸).
 - **흔한 오해**: "키워드 매칭 헤드라인 = 축 상태 변화" → 아니다. 제목만 매칭(관세는 상대국·품목 동반 필요 — 첫 실행에 미 국내 정치 기사 섞임), 원문 미대조. 축 상태·해석은 매크로 데스크 손 갱신(geopolitics.json)만이 판단. `[경험]`
 
+## 소스 목록 — 종목 한 줄 설명 (2026-10-24, 겸이 "각 티커에서 이 회사가 뭐 하는 회사인지 한 줄")
+- **산출물**: reports/company_oneliner.json(화면용 line·industry·src) + reports/company_oneliner_ev.json(근거 첫 문장 ≤200자, 원문 전문 저장 안 함). 생성 screener/oneliner.py, 상세 생성 때 증분(detail.py, 야후 60개/회). 화면 = 종목 상세 머리 종목명 아래(getOneliners).
+- **쓰는 것**: 야후 quoteSummary assetProfile(sector·industry·longBusinessSummary) — `yfinance Ticker.info` 는 401(Invalid Crumb), fc.yahoo.com 쿠키 + getcrumb 직접 호출은 됨. **UA 는 짧은 'Mozilla/5.0'** — 긴 크롬 UA·curl_cffi 는 getcrumb 429. 연속 1,500회쯤 뒤 getcrumb 'Too Many Requests'(평문) → 10~20분 쉬면 풀림. `[자체연구-B: 2026-10-24 실조회]`
+- **한국어 한 줄은 데이터 에이전트가 근거를 읽고 쓴다**(src='yahoo+agent', 30~45자, 홍보·수치·전망 금지 — oneliner.check_line). ETF 는 상세 json etf.base 로 기계 생성(KR) / 손으로(US 67개, src='etf+agent').
+- **못 쓴 것**: KRX KIND 상장법인목록(업종·주요제품) — 이 컨테이너 403(Akamai), Actions 에서는 미확인(코드는 시도 후 실패 시 야후로). DART company.json(업종코드) — 키(DART_API_KEY)는 Actions 에만. 야후 프로필 없는 신규 상장·소형주는 '설명 대기'.
+- **흔한 오해**: "야후 industry = 한국 업종 분류" → 아니다. 야후 영문 분류(예: 삼성전자 'Consumer Electronics')는 공식 섹터가 아님 — 공식 섹터는 WICS(universe/kr_wics.csv). 화면은 한글 업종만 덧붙인다. `[경험]`
+
 ## 복기
 - **2026-10-17 'YTD 누적 버그' 판정** — 틀림: 10/16 14:47 MU ni 5.2→13.8→28.2→37.7 모양만 보고 P0 "파서 결함"으로 올렸고, 15:25 수정 때 넣은 모양 가드(CUM_RATIO 1.8)가 SNDK revenue 3.0→6.0→9.0 을 같은 누적 버그로 '검증전' 처리했다. → 왜: MU 는 실제 누적치 누수(맞음)였지만 SNDK 는 분사 직후 정상 성장이었고, 두 경우를 모양으로는 구분할 수 없다는 걸 원문(8-K) 대조(23:43) 전까지 인정하지 않았다. → 다음부터: 파서 버그 의심은 (1) start/end 기간(일수)으로 누적 여부를 **구조적으로** 판정하고, (2) 모양 휴리스틱은 플래그만, 확정·해제는 fin_verified.json 원문 대조로만 한다. 같은 날 MU '매출 0행'도 모양이 아니라 코드 경로(첫 태그 break)로 먼저 확인했다.
 
