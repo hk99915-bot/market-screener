@@ -842,15 +842,22 @@ function homeCusHtml(){ const o=CMTU; if(!o) return '<div class="mu">불러오�
     `<div class="mu" style="font-size:11px;margin-top:4px">${esc(o.asof||'')} · 자세히는 운용회의 탭 US</div>`; }
 function homeCusLoad(){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} const e=$('#homecus'); if(e) e.innerHTML=homeCusHtml(); if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={}; if(view==='cmt') render();}).getCommitteeUS(); }
 /* HOME 오늘 결론 3칸 (UXUI 재진단 Top10 #7, 10/23 겸이 승인): 첫 화면이 지수 등락·문장 덩어리라 9.5장을 내려야 결론이 보였다.
-   ① 시장 국면 = 200일선 위 비율(BREADTH 판정과 같은 기준 60/40%) + 매크로 바람(macro_view.json) ② 오늘 내 할 일 = 대결 제출 대기·쿨다운·원장 차이 ③ 늦은 데이터 = 신선도 계약(freshness.json).
+   ① 시장 국면 = 200일선 위 비율(BREADTH 판정과 같은 기준 60/40%) + 매크로 바람(macro_view.json) ② 오늘 내 할 일 = 대결 제출 대기(마감 전만)·쿨다운·원장 차이 ③ 늦은 데이터 = 신선도 계약(freshness.json).
    새 판단을 만들지 않고 이미 있는 판정만 모은다. */
+/* 대결 제출 마감(epoch ms) — screener/duel.py 와 같은 기준: 국장 = 그날 15:30 KST 까지 받음(apply_issue '>1530' 거부 → 15:31:00 전),
+   미장 = 그날 09:30 ET 전(us_open_kst·_apply_issue_us 't >= dl' 거부, 서머타임은 America/New_York 으로 계산). */
+function duelDeadlineMs(it){ const [y,m,d]=String(it.date||'').split('-').map(Number); if(!y||!m||!d) return NaN;
+  if(it.market==='US'){ const h=+new Date(Date.UTC(y,m-1,d,12)).toLocaleString('en-US',{timeZone:'America/New_York',hour:'numeric',hourCycle:'h23'}); return Date.UTC(y,m-1,d,9+(12-h),30); }
+  return Date.UTC(y,m-1,d,15-9,31); }
+/* '나' 제출 대기 = 채점 전 진입 판 중 '나' pending 이고 아직 제출 마감 전인 판 수 */
+function homePendDuel(items,now){ return (items||[]).filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result&&it.picks&&it.picks['나']&&it.picks['나'].pending&&now<duelDeadlineMs(it)).length; }
 function homeConc(){
   const bv=mk=>{ const b=(D.breadth||[]).filter(x=>x.market===mk), L=b[b.length-1]; if(!L||L.pct_above200==null) return `<span class="mu">${mk} —</span>`;
     const p=L.pct_above200, l=p>=0.6?'강세':p>=0.4?'중립':'약세'; return `<span>${mk} <b class="${p>=0.6?'up':p>=0.4?'am':'dn'}">${l}</b> <span class="mu">${Math.round(p*100)}%</span></span>`; };
   if(MV===null&&typeof macroPanel==='function') macroPanel('KR');   // 매크로 바람 불러오기(도착하면 render)
   const mw=MV&&MV.score!=null?`<div>매크로 바람 <b style="color:${MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)'}">${esc(MV.label||'')} (${MV.score>0?'+':''}${Number(MV.score).toFixed(2)})</b></div>`:'<div class="mu">매크로 바람 불러오는 중</div>';
   if(typeof decLoad==='function') decLoad();
-  const live=DEC&&DEC.items?DEC.items.filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result):null, pend=live?live.filter(it=>it.picks&&it.picks['나']&&it.picks['나'].pending).length:null;
+  const pend=DEC&&DEC.items?homePendDuel(DEC.items,Date.now()):null;   // 제출 마감 지난 판은 제외(피어 2026-10-24 U2)
   const CD=typeof decCD==='function'?decCD():null;
   const todo=[pend==null?'<div class="mu">대결 불러오는 중</div>':pend?`<div><a href="#" onclick="setView('score');return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="dn">대결 제출 대기 ${pend}</b>&nbsp;→ 성적표에서 제출</a></div>`:'<div class="mu">대결 제출 대기 없음</div>',
     CD?'<div class="dn">⏳ 쿨다운 중 — 새 모의 베팅 금지</div>':'', homeLedgerLine()].join('');
@@ -3717,6 +3724,8 @@ function sysPlanHtml(M){   // 요금제(Pro / Max 5x)·모델별 runs 합계 —
     <table style="font-size:11.5px"><tr><th class="l">구분</th><th class="l">이름</th><th>실행</th><th>토큰</th><th>도구</th><th>소요</th><th>일수</th><th class="l">일평균 (실행·토큰·도구·소요)</th></tr>${tr('요금제',P)}${tr('모델',D)}</table>
     <div class="mu" style="font-size:11px;margin-top:2px">토큰 = 에이전트가 처리한 토큰(작업량)이지 요금제 사용량(한도) 자체가 아님 · 일평균 = 실행이 있던 날 기준</div></div>`;
 }
+/* 결재 대기 작업 = 완료 아닌 작업 중 approval(결재자, 예 '겸이')이 채워진 것. 보드 결재 필드(req-pm-47712fe7) 단일 원천 — 글자 판정 금지(피어 2026-10-24 U1). */
+function sysApprOpen(T){ return (T||[]).filter(t=>t.status!=='완료'&&!!t.approval); }
 function sysBoardView(){
   sysLoad('board','getBoard'); sysLoad('locks','getLocks'); sysLoad('team','getTeam');
   if(SYS.board===false) return '<div class="load">LOADING …</div>';
@@ -3729,9 +3738,9 @@ function sysBoardView(){
     return `<tr id="sysrow-${esc(t.id)}"><td class="l">${sysPr(t.priority)}</td><td class="l" style="white-space:normal;min-width:180px"><b>${esc(t.title)}</b><div class="mu" style="font-size:11px">${esc(t.id)}${dep?' · 선행 '+dep:''}</div></td><td class="l am">${esc(sysNm(t.owner))}</td><td class="mu">${esc(t.started||'—')}</td><td class="${late?'dn':soon?'am':''}">${esc(t.due||'—')}${late?' 지남':soon?' 오늘':''}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:140px">${t.repo==='private'?'private 전용':(t.files||[]).map(esc).join('<br>')||'—'}</td><td class="l" style="white-space:normal;font-size:11px;min-width:200px">${esc(t.notes||'')}</td></tr>`; };
   const cnt=ST.map(s=>`${s} ${T.filter(t=>t.status===s).length}`).join(' · ');
   // 맨 위 결재 줄 (UXUI 재진단 Top10 #6, 10/23 겸이 승인): 업무량 표 1,637px 가 맨 위라 작업 보드가 2장 아래였다 → '겸이 결재 대기 N · 늦은 일 N' 먼저, 업무량 표는 접어서 아래로.
-  // 결재 대기 = 미완료 중 담당이 사용자(겸이)이거나 제목·메모에 '겸이 결재'·'결재 대기'·'결재 필요'가 있는 작업 (보드에 결재 상태 칸이 없어 글자로 판정 — 자체 규칙)
-  const open=T.filter(t=>t.status!=='완료'), apr=open.filter(t=>/^(사용자|겸이)$/.test(t.owner||'')||/겸이 결재|결재 대기|결재 필요/.test((t.title||'')+' '+(t.notes||''))), late=open.filter(t=>t.due&&t.due<td);
-  const chip=t=>`<a href="#sysrow-${esc(t.id)}" style="display:inline-flex;align-items:center;min-height:44px;margin-right:10px">${sysPr(t.priority)}${esc(t.title.slice(0,40))}${t.title.length>40?'…':''} <span class="mu" style="margin-left:4px">${esc(sysNm(t.owner))}</span></a>`;
+  // 결재 대기 = 보드 결재 필드(approval, req-pm-47712fe7)만 센다 — 글자 규칙 폐기(피어 2026-10-24 U1: 오탐 2·놓침 2). 필드 규칙은 scripts/board.py validate.
+  const open=T.filter(t=>t.status!=='완료'), apr=sysApprOpen(T), late=open.filter(t=>t.due&&t.due<td);
+  const chip=t=>`<a href="#sysrow-${esc(t.id)}" style="display:inline-flex;align-items:center;min-height:44px;margin-right:10px">${sysPr(t.priority)}${esc(t.title.slice(0,40))}${t.title.length>40?'…':''} <span class="mu" style="margin-left:4px">${esc(sysNm(t.owner))}${t.approval&&t.status==='보류'?' · 보류'+(t.due?' ~'+esc(String(t.due).slice(5)):''):''}</span></a>`;
   const appr=`<div class="p c12" id="sysappr"><div class="b" style="white-space:normal;line-height:1.6"><div style="font-size:14px"><b class="${apr.length?'dn':'mu'}">🖊 겸이 결재 대기 ${apr.length}</b> · <b class="${late.length?'am':'mu'}">⏰ 늦은 일 ${late.length}</b> <span class="mu" style="font-size:12px">· 진행 ${T.filter(t=>t.status==='진행').length} · 검수 ${T.filter(t=>t.status==='검수').length} · 대기 ${T.filter(t=>t.status==='대기').length}</span></div>
     ${apr.length?`<div style="font-size:12.5px">${apr.map(chip).join('')}</div>`:''}${late.length?`<details style="font-size:12.5px"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="mu">늦은 일 ${late.length}개 보기</summary>${late.sort((a,b)=>String(a.due).localeCompare(String(b.due))).map(t=>`<div>${chip(t)}<span class="dn">${esc(t.due)}</span></div>`).join('')}</details>`:''}</div></div>`;
   let h=`<div class="grid">${appr}<div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;
