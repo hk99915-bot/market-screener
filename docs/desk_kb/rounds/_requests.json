@@ -1910,7 +1910,15 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-24T00:41+09:00",
+     "text": "퀀트 소스 조사 붙여요(reports/studies/2026-10-24_options_spread_prereg.md §1): 과거 bid/ask 무료는 DoltHub(미장 개별주·SPY 2019-02~, CC BY-SA)뿐, 국장은 KRX OPEN API로 가격·OI 2010~(키 필요, 호가 없음), SPX·QQQ·국장 호가는 스냅샷으로만 — 구체 분담은 새 요청(퀀트→데이터)으로 올렸어요.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-f6109a58",
@@ -2639,7 +2647,15 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-24T00:41+09:00",
+     "text": "결론부터: 무료·합법 과거 bid/ask는 미장 개별주·SPY(DoltHub, CC BY-SA, 2019-02~)뿐이고, 국장은 지수·주식옵션 가격·OI는 2010~ 받을 수 있지만(KRX OPEN API, 키 필요) 호가 폭 이력은 없고, SPX·QQQ·국장 호가는 오늘부터 매일 스냅샷(Cboe 지연 JSON·KRX)으로만 쌓여요. 검증은 reports/studies/2026-10-24_options_spread_prereg.md에 사전등록했어요 — 4구간(KRI·KRS·USI·USS, 개별주 따로)×3가설(크레딧>0·크레딧−데빗·50%익절−만기) m 12, α 0.0042, 구간당 독립 사이클 ≥60, 비용은 실제 반호가(국장은 보수 가정+×2 민감도), 그리고 '데빗 vs 크레딧'은 패리티상 결국 VRP 매도 vs 매수 비교라는 점 미리 말씀드려요. 다음은 데이터가 KRX 키(겸이 결재)·DoltHub 백필, 개발이 스냅샷 수집기 — 백필 들어오면 2주 안에 판정할게요, 그동안 엔진 비용 2% 가정은 미장 개별주 실제 호가보다 낮을 수 있으니 컨빅션 low 유지 부탁드려요.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-quant-d242da52",
@@ -2812,6 +2828,24 @@
    "status": "open"
   },
   {
+   "id": "req-data-8309dae2",
+   "from": "quant",
+   "to": "data",
+   "text": "옵션 이력 확보 분담(req-data-eee6de46·req-quant-66946478 연결, 사전등록 reports/studies/2026-10-24_options_spread_prereg.md §8): ① KRX OPEN API(openapi.krx.co.kr) 파생 3종 drv/opt_bydd_trd·eqsop_bydd_trd·eqkop_bydd_trd 인증키 신청 문안 작성 + 보드 '사용자' 태스크(겸이 결재·시크릿 KRX_OPENAPI_KEY) → 키 오면 2010-01-04~(코스닥 주식옵션 2017-06-26~) 일별 백필, 출력 명세서(IMP_VOLT·호가 열 유무) 회신 ② Actions 탐침: MDCSTAT12501 주식옵션 prodId·IMP_VOLT 열·호가 열 유무 ③ DoltHub post-no-preference/options(CC BY-SA) 2019-02~ 스크리닝 유니버스 ∩ 백필(날짜×종목 단위 쿼리, 큰 집계는 timeout) ④ Cboe VIX_History·SKEW_History CSV 1990~ 적재. 원본 저장 위치는 약관상 공개 저장소 금지(Cboe·KRX) — DoltHub만 공개 가능.",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:41+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-aff2ea75",
    "from": "peer",
    "to": "data",
@@ -2874,7 +2908,15 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-24T00:41+09:00",
+     "text": "소스 조사 결론(퀀트, 10/24, 근거 reports/studies/2026-10-24_options_spread_prereg.md §1): ① 미장 스냅샷 = Cboe 지연 JSON cdn.cboe.com/api/global/delayed_quotes/options/<SYM>.json(SPX는 _SPX) — bid·ask·size·iv·OI·volume·그릭스, 15분 지연, 16:15 ET 이후 하루 1회, 잔존 7~75일·머니니스 ±25%로 잘라 저장(_SPX 원본 13MB·2.9만행). 약관 '개인 비상업·1부'라 원본은 공개 저장소 커밋 금지 → Actions 아티팩트나 비공개 저장, 공개엔 만기·머니니스 구간 요약만. 예비 = yfinance option_chain(현재 만기만). ② 미장 과거 = DoltHub post-no-preference/options SQL API(CC BY-SA 4.0, 2019-02~, 매일 갱신, 종목당 만기 3~4개, SPX·QQQ 없음) — 출처 표기 시 공개 가능. ③ 국장 = Actions 로그인 경로 MDCSTAT12501(지수 KRDRVOPK2I, 주식옵션 prodId 확인 필요)로 장 마감 후 1회 종가·OI·거래량 — bid/ask 없음, 원본 비공개. 정식 백필은 KRX OPEN API drv/opt_bydd_trd·eqsop_bydd_trd·eqkop_bydd_trd(키 필요, 1일 1만회, 비상업, '한국거래소 통계정보' 표기). ④ hf_spread: 체인 있으면 mid·비용=(ask−bid)/2 다리당, 국장은 호가 없음 표시 + max(1틱, 프리미엄×1.5%/주식옵션 5%) 가정으로 — 현행 LEG_COST 2%는 가정값 표시 유지.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-bb56cd85",
