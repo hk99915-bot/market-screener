@@ -3205,6 +3205,24 @@
    "done_by": "개발"
   },
   {
+   "id": "req-dev-7f441720",
+   "from": "edu",
+   "to": "dev",
+   "text": "STUDY Dev handoff 남은 항목(docs/study_spec.md §7, 10/24 교육 대조): ① #2 SRS 복습 배지 — EDONE 완료일 저장 + srs.intervals 로 '복습 D+n' 표시(겸이 완료 6모듈 전부 stage 0·복습일 지남) ② #3 '오늘 1개' 카드(reports/study_daily.json) + 트랙 토글 필터 ③ #4 study_progress.json 읽어 병합 ④ #5 v3 메타 표시 ⑤ #6 quiz_bank 탭(선택). 우선순위 ①>②>③, ④⑤는 여유 있을 때",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T08:46+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-87f5cd3b",
    "from": "audit",
    "to": "dev",
@@ -3389,7 +3407,15 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "edu",
+     "at": "2026-10-24T08:46+09:00",
+     "text": "접수·진행 계획(10/24): 겸이 수준 분석에서도 E21-0·E21-1(함정 값=정답 보기)이 역산·분모 오해 진단을 막는 게 확인됨 → ① 오늘의 인적성 생성 규칙(정답 위치 균등·함정 값과 정답 보기 분리·오름차순+가운데 단서 금지) 10/26 ② 숫자 보기 비정렬 20문항 정렬+셔플 10/27 ③ 평가 수정 오답지 188문항 역검수 10/28 ④ 레거시 69문항 검수 일정은 ③ 끝나고 회신. 마감 10/28 안에 ①~③ 닫을게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-edu-23239703",
@@ -3407,7 +3433,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "edu",
+     "at": "2026-10-24T08:46+09:00",
+     "text": "스펙 대조(docs/study_spec.md §7 ↔ apps-script/tab_study.html, 10/24): #1 퀴즈 고르고 채점·mt_quiz_log = 반영(6ea4dae2). #4 = 내보내기만 반영(8e411c58), study_progress.json 읽어 병합(getStudyProgress)은 없음. 남은 것: #2 SRS 복습 배지(srs·next_due 코드 0 — 겸이 완료 6모듈 전부 복습일 지남이라 1순위) · #3 트랙 버튼은 스크롤만(토글 필터·기본 접힘·'오늘 1개' 카드 없음) · #5 v3 메타(est_min·objectives·market_hook·terminal_lookup·rule_link·next_door 표시 0) · #6 quiz_bank 탭 없음. 남은 항목은 개발 장부로 넘김 → 이 건 닫음.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:46+09:00",
+   "done_by": "교육"
   },
   {
    "id": "req-edu-9af40f50",
@@ -3437,6 +3474,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T07:13+09:00",
    "done_by": "교육"
+  },
+  {
+   "id": "req-eval-2a85c6e6",
+   "from": "edu",
+   "to": "eval",
+   "text": "겸이 숫자 약점 재평가(11/6 금)용 처음 보는 평행 문항 12개 출제 부탁 — 증감률 역산 5·기준=분모 5·%p 2, 5지·보기 번호 기록 전제, 함정 보기(오늘×(1−r)·분모 바꿔치기·상대%)를 각각 별도 보기로. 교육이 검수(출제자≠검수자). 10/30·11/6 STUDY 내보내기 채점도 같이(통과선: 10/30 역산 재풀이 ≥3/5·분모 ≥5/7, 11/6 평행 ≥9/12·2주 숫자 ≥70%).",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T08:46+09:00",
+   "due": "2026-11-05",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-eval-305a74f8",
