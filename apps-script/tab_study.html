@@ -8,7 +8,7 @@ const escA=s=>esc(s).replace(/"/g,'&quot;');
 function eduGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function eduPut(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 /* 날짜는 한국 기준(KST) — 10/23 겸이 "한국 날짜 기준으로 트래킹되게". 10/23 이전 인적성 at·완료일은 UTC 날짜로 저장돼 있음(하루 밀릴 수 있음) */
-function eduKst(t){ return new Date((t?Date.parse(t):Date.now())+9*36e5).toISOString().slice(0,10); }
+function eduKst(t){ const ms=t?Date.parse(t):Date.now(); return isNaN(ms)?null:new Date(ms+9*36e5).toISOString().slice(0,10); }
 let EDONE=eduGet('mt_study_done',{}); let APTS=eduGet('mt_apt_score',{});
 const EDV=['edu','apt','eng'];
 function eduLoad(){
