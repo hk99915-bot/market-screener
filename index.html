@@ -1653,17 +1653,24 @@ function synSec(){
   const cw=SYN.crowding||[];
   const c7=card('몰림 (crowding)','5영업일 리포트 급증',
     tbl(['종목','5일','사','배수','여력'],cw.slice(0,6).map(x=>`<tr><td class="l">${nm(x)}</td><td>${x.n5}</td><td>${x.brokers}</td><td>×${x.x}</td><td>${x.tp_upside==null?'—':pct(x.tp_upside,0)}</td></tr>`))+`<div class="mu" style="font-size:11px">배수 = 5일 건수 ÷ 직전 60영업일 5일 평균(최소 0.5) · 여력 = 컨센 목표가/종가(목표가 인플레 주의)</div>`);
+  const dg=SYN.digest||{};
+  const dgI=x=>`<details class="dg" style="margin:3px 0;border-left:2px solid var(--line);padding-left:6px"><summary style="cursor:pointer"><span class="mu">${esc((x.date||'').slice(5))}</span> ${esc(x.title||'')}${x.status==='ok'?'':' <span class="mu">· 요약 재료 없음</span>'}</summary>
+    <div style="margin:3px 0"><b class="am">① 내용</b><ul style="margin:2px 0 2px 16px;padding:0">${(x.summary||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+    <b class="am">② 뷰</b> ${esc(x.view||'')}<br><b class="am">③ 우리 해석</b> ${esc(x.our_take||'')}
+    <div class="mu" style="font-size:11px">${esc(x.grade||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')} · <a href="${esc(x.link||'')}" target="_blank">원문</a></div></div></details>`;
+  const dgL=(arr,what)=>`<div class="mu" style="margin-top:6px">요약·뷰·우리 해석 (데스크 작성 · 탭하면 펼침)</div>${(arr||[]).map(dgI).join('')||`<div class="mu">${what} 요약 아직 없음 (reports/views/digest.json — 매일 데스크 에이전트 작성)</div>`}`;
   const pb=SYN.public||{}, ps=pb.sources||{};
   const c8=card('공공 리포트',`한은·정부/연구기관·시장기관·해외 · 소스 ok ${ps.ok||0}${ps.manual?` · 수동 ${ps.manual}`:''}${ps.error?` · 막힘 ${ps.error}`:''}`,
     pb.status!=='ok'?'<div class="mu">공공 리포트 수집 전 (매일 03:30 Actions 수집 — reports/public_reports.json)</div>':
     `${(pb.groups||[]).map(g=>`<div style="margin-bottom:3px"><b class="am">${esc(g.group)}</b> <span class="mu">30일 ${g.n30}건</span> ${(g.links||[]).map(x=>`<a href="${esc(x.link||'')}" target="_blank" title="${esc(x.date||'')}">${esc((x.title||'').slice(0,34))}</a>`).join(' · ')||'<span class="mu">수집분 없음</span>'}</div>`).join('')}
      <div class="mu" style="margin-top:4px">최근 7일 새 발간</div>${(pb.new7||[]).slice(0,6).map(x=>`<div><span class="mu">${esc((x.date||'').slice(5))} ${esc(x.inst)}</span> <a href="${esc(x.link||'')}" target="_blank">${esc(x.title)}</a></div>`).join('')||'<div class="mu">없음</div>'}
-     <div class="mu" style="margin-top:4px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요)</div><div>${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>`,'c8');
+     <div class="mu" style="margin-top:4px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요)</div><div>${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>${dgL(dg.public,'공공 리포트')}`,'c8');
   const ge=SYN.geo||{};
   const c9=card('지정학 뷰',`외부 논평 · 검증전 · 참고 뷰`,
     `${(ge.videos||[]).map(v=>`<div style="margin-bottom:3px"><span class="mu">${esc((v.date||'').slice(5))}</span> <a href="${esc(v.link||'')}" target="_blank">${esc(v.title||'')}</a>${(v.tags||[]).length?` <span class="mu">${v.tags.map(esc).join('·')}</span>`:''}</div>`).join('')||'<div class="mu">수집 전 (Jiang Xueqin · Predictive History 유튜브 RSS)</div>'}
      ${Object.keys(ge.tags60||{}).length?`<div class="mu">60일 태그 ${Object.entries(ge.tags60).map(([k,v])=>esc(k)+' '+v).join(' · ')}</div>`:''}
-     <div class="mu" style="font-size:11px;margin-top:4px">Jiang Xueqin(Predictive History) — 역사 유추·게임이론 논평. 제목·링크만, 내용 요약 안 함. 우리 판단·매매에 쓰지 않음 · 반증 어려움 비판 있음 · 예측 장부는 검증 데스크</div>`);
+     ${dgL(dg.geo,'영상')}
+     <div class="mu" style="font-size:11px;margin-top:4px">Jiang Xueqin(Predictive History) — 역사 유추·게임이론 논평. 요약은 자막·설명 확보분만(없으면 '재료 없음'). 우리 판단·매매에 쓰지 않음 · 반증 어려움 비판 있음 · 예측 장부는 검증 데스크</div>`);
   return `<details id="syn" class="sec" ${SYN_OPEN?'open':''} ontoggle="synToggle(this.open)" style="margin:0"><summary style="padding:6px 10px"><b class="am">리서치 종합</b> ${badge} <span class="mu" style="font-size:11px">증권가 집계 · 우리 판단 아님</span></summary><div class="grid">${c1}${c8}${c9}${c2}${c3}${c4}${c5}${c6}${c7}</div></details>`;
 }
 function rvwView(){

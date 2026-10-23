@@ -167,6 +167,10 @@ def parse_feed(text: str) -> list[dict]:
                 d["summary"] = _clean(c.text)
             elif n == "videoId":
                 d["vid"] = (c.text or "").strip()
+            elif n == "group" and not d["summary"]:   # 유튜브 Atom: media:group > media:description (영상 설명, ≤500자 발췌)
+                for g in c:
+                    if loc(g.tag) == "description":
+                        d["summary"] = _clean(g.text)
         if d["title"]:
             out.append(d)
     return out
@@ -330,9 +334,11 @@ def run_jiang(get=_get, now: str = "", today: date | None = None) -> dict:
     first = not vids
     for r in rows:
         if r["link"] in vids:
+            if r.get("summary") and not vids[r["link"]].get("desc"):
+                vids[r["link"]]["desc"] = r["summary"]   # 기존 영상도 피드에 남아 있는 동안 설명 발췌를 채운다
             continue
         vids[r["link"]] = {"date": str(r["date"]) if r["date"] else None, "title": r["title"], "link": r["link"],
-                           "tags": tag_title(r["title"]), "collected_at": ("backfill " if first else "") + now}
+                           "tags": tag_title(r["title"]), "desc": r.get("summary"), "collected_at": ("backfill " if first else "") + now}
     v = sorted(vids.values(), key=lambda x: x.get("date") or "", reverse=True)[:200]
     tc: dict[str, int] = {}
     for x in v:
@@ -342,7 +348,7 @@ def run_jiang(get=_get, now: str = "", today: date | None = None) -> dict:
     out = {"schema_version": 1, "asof": str(today), "generated_at": now, "channel": JIANG_HANDLE, "channel_id": cid,
            "who": "Jiang Xueqin(蒋学勤) · Predictive History — 역사 유추+게임이론 지정학 논평",
            "grade": "참고 뷰(외부 논평·검증전) — 우리 판단·매매에 쓰지 않음. 반증 어려움·학술 엄밀성 비판 있음",
-           "method": "유튜브 채널 RSS 의 제목·날짜·링크만. 내용 전사·요약 안 함. 태그 = 제목 영어 키워드 사전(JIANG_TAGS)",
+           "method": "유튜브 채널 RSS 의 제목·날짜·링크 + 영상 설명 발췌(desc ≤500자, 요약 재료). 자막 전사는 저장소 밖(개발 요청). 요약은 reports/views/digest.json(데스크 작성). 태그 = 제목 영어 키워드 사전(JIANG_TAGS)",
            "status": st, "videos": v, "tags60": dict(sorted(tc.items(), key=lambda kv: -kv[1]))}
     return out
 

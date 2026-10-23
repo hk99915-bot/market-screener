@@ -149,7 +149,7 @@ def public_card(pub: dict | None, today: date) -> dict:
 
 
 def geo_card(j: dict | None) -> dict:
-    """외부 지정학 논평(Jiang Xueqin) — 제목·날짜·링크·태그만, 참고 뷰."""
+    """외부 지정학 논평(Jiang Xueqin) — 제목·날짜·링크·태그(요약은 digest_card), 참고 뷰."""
     if not j:
         return {"status": "없음", "videos": [], "tags60": {}}
     return {"status": (j.get("status") or {}).get("status"), "who": j.get("who"), "grade": j.get("grade"),
@@ -157,9 +157,24 @@ def geo_card(j: dict | None) -> dict:
             "tags60": j.get("tags60") or {}, "asof": j.get("asof")}
 
 
+DIGEST_KEYS = ("id", "src", "date", "title", "link", "status", "summary", "view", "our_take", "grade", "by", "written_at")
+
+
+def digest_card(dg: dict | None, n: int = 6) -> dict:
+    """외부 자료 요약(reports/views/digest.json, 데스크 에이전트 작성 — STANDARD §4 10/23) → 공공·지정학 카드별 최근 n건.
+    세 칸(summary·view·our_take) 중 빠진 게 있으면 그 항목은 내보내지 않는다(링크만 금지)."""
+    if not dg:
+        return {"status": "없음", "public": [], "geo": []}
+    ok = [{k: i.get(k) for k in DIGEST_KEYS} for i in dg.get("items") or []
+          if i.get("summary") and i.get("view") and i.get("our_take")]
+    ok.sort(key=lambda i: i.get("date") or "", reverse=True)
+    return {"status": "ok", "updated": dg.get("updated"),
+            "public": [i for i in ok if i.get("src") != "jiang"][:n], "geo": [i for i in ok if i.get("src") == "jiang"][:n]}
+
+
 def build(store: pl.DataFrame, views: pl.DataFrame, meta: dict[str, dict], committee: dict | None,
           details: dict[str, dict] | None = None, today: date | None = None,
-          public: dict | None = None, jiang: dict | None = None) -> dict:
+          public: dict | None = None, jiang: dict | None = None, digest: dict | None = None) -> dict:
     """순수 함수 — 테스트는 합성 데이터로 이걸 부른다. meta: code→{name,sector,theme}."""
     details = details or {}
     committee = committee or {}
@@ -331,6 +346,7 @@ def build(store: pl.DataFrame, views: pl.DataFrame, meta: dict[str, dict], commi
         "divergence": div[:10],
         "public": public_card(public, today or datetime.now(KST).date()),
         "geo": geo_card(jiang),
+        "digest": digest_card(digest),
         "crowding": crowd,
         "method": {
             "window": "발간일 기준 · 영업일 = 평일 근사(공휴일 미반영)",
@@ -369,7 +385,8 @@ def run() -> dict | None:
             if code not in meta:
                 meta[code] = {"name": d.get("name"), "theme": d.get("theme")}
     out = build(store, views, meta, _load_json(REPORT_DIR / "committee.json"), details,
-                public=_load_json(REPORT_DIR / "public_reports.json"), jiang=_load_json(REPORT_DIR / "views" / "jiang.json"))
+                public=_load_json(REPORT_DIR / "public_reports.json"), jiang=_load_json(REPORT_DIR / "views" / "jiang.json"),
+                digest=_load_json(REPORT_DIR / "views" / "digest.json"))
     if write_json(OUT, out, key="asof"):
         log.info("research_synthesis.json — %s", out["headline"]["text"])
     return out

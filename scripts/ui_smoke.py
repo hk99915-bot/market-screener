@@ -429,7 +429,7 @@ async def check_macro_popup(b, port: int) -> int:
 
 
 async def check_syn(b, port: int) -> int:
-    """RESEARCH 맨 위 '리서치 종합'(애널 research-synthesis·public-reports): 390px 폭에서 카드 9장(공공 리포트·지정학 뷰 포함)·라벨·가로 넘침 없음·리포트 목록이 아래에."""
+    """RESEARCH 맨 위 '리서치 종합'(애널 research-synthesis·public-reports): 390px 폭에서 카드 9장(공공 리포트·지정학 뷰 포함)·요약 펼침(digest 세 칸)·라벨·가로 넘침 없음·리포트 목록이 아래에."""
     pg = await b.new_page(viewport={"width": 390, "height": 844})
     errs: list[str] = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -442,6 +442,9 @@ async def check_syn(b, port: int) -> int:
     res = {
         "카드9": await J("document.querySelectorAll('#syn .syn').length") == 9,
         "공공·지정학": all(k in syn_txt for k in ("공공 리포트", "지정학 뷰", "참고 뷰")),
+        # STANDARD §4(10/23 겸이 '링크만 말고 내용·해석까지'): digest 가 있으면 펼침 항목이 있고, 펼치면 세 칸이 보인다
+        "요약펼침": await J("(()=>{const n=((SYN||{}).digest||{}), k=(n.public||[]).length+(n.geo||[]).length, d=[...document.querySelectorAll('#syn details.dg')];"
+                         "if(d.length!==k) return false; if(!k) return true; d[0].open=true; const t=d[0].innerText; return ['① 내용','② 뷰','③ 우리 해석'].every(w=>t.includes(w));})()"),
         "라벨": "증권가 집계" in syn_txt,
         "목록아래": await J("(()=>{const s=document.querySelector('#syn'),r=document.querySelector('#rbody');return !!(s&&r&&(s.compareDocumentPosition(r)&Node.DOCUMENT_POSITION_FOLLOWING));})()"),
         "넘침없음": await J("[...document.querySelectorAll('#syn, #syn *')].every(e=>e.getBoundingClientRect().right<=innerWidth+1)"),

@@ -9,9 +9,10 @@ RSS = """<?xml version="1.0" encoding="UTF-8"?><rss><channel>
 <pubDate>Wed, 08 Oct 2026 18:00:00 GMT</pubDate><description>&lt;p&gt;The Federal Reserve released minutes&lt;/p&gt;</description></item>
 <item><title>Federal Reserve Board announces enforcement action</title><link>https://fed/x</link><pubDate>Thu, 09 Oct 2026 18:00:00 GMT</pubDate></item>
 </channel></rss>"""
-ATOM = """<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:yt="http://www.youtube.com/xml/schemas/2015">
+ATOM = """<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/">
 <entry><yt:videoId>abc</yt:videoId><title>Game Theory #12: Why Iran and Israel Go to War</title>
-<link rel="alternate" href="https://www.youtube.com/watch?v=abc"/><published>2026-10-18T12:00:00+00:00</published></entry>
+<link rel="alternate" href="https://www.youtube.com/watch?v=abc"/><published>2026-10-18T12:00:00+00:00</published>
+<media:group><media:title>t</media:title><media:description>In this lecture we use game theory to explain the war.</media:description></media:group></entry>
 </feed>"""
 HTML = """<ul><li><a href="/portal/view.do?id=1">2026년 9월 소비자동향조사 결과</a><span>2026.09.24</span></li>
 <li><a href="/portal/view.do?id=2">금융안정보고서(2026년 6월)</a><span>2026-06-25</span></li><li><a href="/m">메뉴</a></li></ul>"""
@@ -65,7 +66,14 @@ def test_jiang_feed_and_ledger(tmp_path, monkeypatch):
     assert j["channel_id"] == "UC1234567890123456789012" and j["status"]["status"] == "ok"
     v = j["videos"][0]
     assert v["tags"] == ["중동", "전쟁", "게임이론"] and v["collected_at"].startswith("backfill")
-    assert "참고 뷰" in j["grade"] and set(v) == {"date", "title", "link", "tags", "collected_at"}   # 전사·요약 없음
+    assert "참고 뷰" in j["grade"] and set(v) == {"date", "title", "link", "tags", "desc", "collected_at"}   # 전사 없음, 설명 발췌만
+    assert v["desc"].startswith("In this lecture") and len(v["desc"]) <= 500
+    # 기존 영상(설명 없던 행)도 피드에 남아 있으면 desc 채움 — 이미 있는 desc 는 덮지 않음
+    import json as _j
+    old = dict(j, videos=[dict(v, desc=None)])
+    (tmp_path / "jiang.json").write_text(_j.dumps(old), encoding="utf-8")
+    j2 = pr.run_jiang(get=lambda u: ATOM, now="m", today=date(2026, 10, 22))
+    assert j2["videos"][0]["desc"].startswith("In this lecture") and j2["videos"][0]["collected_at"].startswith("backfill")
     assert pr.ensure_ledger() and not pr.ensure_ledger()
     import json
     led = json.loads((tmp_path / "jiang_predictions.json").read_text(encoding="utf-8"))
@@ -82,3 +90,25 @@ def test_synthesis_cards():
     assert any(x["series"] == "금융안정보고서" and x["next"] == "2026-12" for x in c["calendar"])
     assert c["sources"]["ok"] == 1 and c["sources"]["미실행"] == len(pr.SOURCES) - 1
     assert rs.public_card(None, t)["status"] == "없음" and rs.geo_card(None)["videos"] == []
+
+
+def test_digest_card_three_fields():
+    """STANDARD §4(10/23 겸이): 외부 자료는 요약·뷰·우리 해석 세 칸 — 하나라도 비면 카드에 안 나간다(링크만 금지)."""
+    full = {"id": "a", "src": "bok_press", "date": "2026-10-22", "title": "t", "link": "l", "summary": ["s"], "view": "v",
+            "our_take": "o", "grade": "B", "by": "애널", "written_at": "w"}
+    dg = {"updated": "u", "items": [full, dict(full, id="b", our_take=""), dict(full, id="c", src="jiang", date="2026-10-11"),
+                                    dict(full, id="d", date="2026-10-01")]}
+    c = rs.digest_card(dg)
+    assert [i["id"] for i in c["public"]] == ["a", "d"] and [i["id"] for i in c["geo"]] == ["c"]
+    assert rs.digest_card(None)["status"] == "없음"
+
+
+def test_digest_file_schema():
+    """reports/views/digest.json — 항목마다 세 칸 + 작성자·시각, 재료 없음은 정직하게 표시."""
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).resolve().parents[1] / "reports/views/digest.json").read_text(encoding="utf-8"))
+    for i in d["items"]:
+        assert all(i.get(k) for k in ("id", "src", "date", "title", "link", "summary", "view", "our_take", "grade", "by", "written_at")), i["id"]
+        assert isinstance(i["summary"], list) and len(i["summary"]) <= 5
+        assert i["status"] == "ok" or "재료 없음" in i["summary"][0]
