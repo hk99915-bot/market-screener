@@ -1646,12 +1646,48 @@
    "done_by": "bonds"
   },
   {
+   "id": "req-bonds-ebfaf9a6",
+   "from": "alloc",
+   "to": "bonds",
+   "text": "11/15 ISA 리뷰 Q2(미국채 편입) 근거용: 원/달러 1년 스왑포인트(환헤지 비용)·국고3년 금리 현재값(기준일 명시) — docs/desk_kb/rounds/2026-10-23/alloc_isa_review.md §2(e)",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:47+09:00",
+   "due": "2026-11-06",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-26d5938d",
    "from": "realestate",
    "to": "data",
    "text": "부동산 주간 트래킹용 데이터 원천 확보 검토: 한국부동산원 주간 아파트 가격동향(시군구), 국토부 실거래가 API(서울·경기남부), 전세가율 — 접근 가능 여부·키 필요 여부·갱신 주기 회신",
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T21:31+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-5b659e78",
+   "from": "alloc",
+   "to": "data",
+   "text": "KODEX 미국나스닥100(379810) ① kr_etf_daily 일봉 수집 추가(지금 상세 json 260일뿐) ② 현행 분배 정책(투자설명서, TR→분배형 전환 여부) ③ 379810·133690 운용사 공시 추적오차(연)·최근 4회 분배율 — 근거 docs/valuation_notes/2026-10-23_ndx_core_tiger_vs_kodex.md §1·§2",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:47+09:00",
    "due": "2026-10-30",
    "via": "ask",
    "seen": [
@@ -1743,6 +1779,24 @@
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T20:47+09:00",
    "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-f6109a58",
+   "from": "analyst",
+   "to": "data",
+   "text": "ECOS·KRX 접속 열림(10/23 22시) — req-data-a555e088 백필 가능",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T22:10+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-23"
@@ -1902,6 +1956,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-d08bcc86",
+   "from": "analyst",
+   "to": "dev",
+   "text": "외부 자료 요약 재료 수집(10/23 겸이 '링크만 말고 내용·해석까지'): ① Jiang 영상 자막(youtube-transcript-api 등 — requirements 영향·Actions IP 차단 여부 확인) ② public_reports 본문 텍스트(한은·기재부 PDF/HTML, pdfminer 이미 있음)를 git 이 아닌 데이터 릴리스(scripts/data_store.py 새 그룹 'digest_src', 항목별 ≤8천자)로 저장 → 데스크 에이전트가 pull 해서 reports/views/digest.json 작성. 공개 저장소에 전문 금지. 오늘 애널이 RSS media:description 발췌(jiang.json desc ≤500자)까지만 넣음.",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:53+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-d1b2e934",
    "from": "maint",
    "to": "dev",
@@ -1927,6 +1999,24 @@
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T21:45+09:00",
    "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-dbd49e21",
+   "from": "macro",
+   "to": "dev",
+   "text": "calendar.json 에 '날짜 미정' 매크로 이벤트 길 추가 요청: screener/calendar_ev.py MACRO 는 (확정 날짜, …) 튜플만 받아 '한은 잠재성장률 워킹페이퍼(연말 공개, 날짜 미정 — 총재 10/23 국감 발언, 일부 보도 12월)'를 넣을 자리가 없다. 가짜 날짜(12-31 등)를 넣으면 D-day 가 지어낸 값이 됨. 제안: TENTATIVE 목록(이름·기한 '2026-12'·메모·imp 2·tentative:true) → tab_mkt_macro '다음 주요 일정'에 '날짜 미정' 줄로만, upcoming()/D-day·이벤트일 금지 규칙엔 미포함. 같은 길로 금통위 2026-11·2027 일정(한은 공식 확인 후)도 등록 — 지금 '기준금리' 타일이 'calendar.json 미등록'.",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:49+09:00",
+   "due": "2026-10-30",
    "via": "ask",
    "seen": [
     "2026-10-23"
@@ -1965,6 +2055,24 @@
    "done": "2026-10-23",
    "done_at": "2026-10-23T21:58+09:00",
    "done_by": "edu"
+  },
+  {
+   "id": "req-frm-562adc9a",
+   "from": "alloc",
+   "to": "frm",
+   "text": "코어 룩스루를 실제 상품 사양(금 411060 원화 금)으로 재계산해 11/15 안건 A 표에 병기 — 2026-11-06까지",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:48+09:00",
+   "due": "2026-11-06",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-frm-9c118642",
@@ -2079,6 +2187,24 @@
    "status": "open"
   },
   {
+   "id": "req-quant-00175d13",
+   "from": "analyst",
+   "to": "quant",
+   "text": "scripts/study_ktb_vs_ust.py 한은 기준금리 표(BOK)가 2025-05 2.50% 에서 멈춤 — 10/22 통화정책방향 RSS 는 3.00%·'두 차례 인상' 명시. 인상 회차·날짜 확인해 표 갱신+ISA 채권 슬리브 결과(UST-H 헤지비용·BOK 인상기 레짐) 재계산 여부 회신. 근거 reports/views/digest.json id 23a9bbe0dc76441e",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T21:53+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-quant-14188e23",
    "from": "uxui",
    "to": "quant",
@@ -2147,114 +2273,6 @@
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T21:44+09:00",
    "due": "2026-10-30",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-bonds-ebfaf9a6",
-   "from": "alloc",
-   "to": "bonds",
-   "text": "11/15 ISA 리뷰 Q2(미국채 편입) 근거용: 원/달러 1년 스왑포인트(환헤지 비용)·국고3년 금리 현재값(기준일 명시) — docs/desk_kb/rounds/2026-10-23/alloc_isa_review.md §2(e)",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:47+09:00",
-   "due": "2026-11-06",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-data-5b659e78",
-   "from": "alloc",
-   "to": "data",
-   "text": "KODEX 미국나스닥100(379810) ① kr_etf_daily 일봉 수집 추가(지금 상세 json 260일뿐) ② 현행 분배 정책(투자설명서, TR→분배형 전환 여부) ③ 379810·133690 운용사 공시 추적오차(연)·최근 4회 분배율 — 근거 docs/valuation_notes/2026-10-23_ndx_core_tiger_vs_kodex.md §1·§2",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:47+09:00",
-   "due": "2026-10-30",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-frm-562adc9a",
-   "from": "alloc",
-   "to": "frm",
-   "text": "코어 룩스루를 실제 상품 사양(금 411060 원화 금)으로 재계산해 11/15 안건 A 표에 병기 — 2026-11-06까지",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:48+09:00",
-   "due": "2026-11-06",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-dev-dbd49e21",
-   "from": "macro",
-   "to": "dev",
-   "text": "calendar.json 에 '날짜 미정' 매크로 이벤트 길 추가 요청: screener/calendar_ev.py MACRO 는 (확정 날짜, …) 튜플만 받아 '한은 잠재성장률 워킹페이퍼(연말 공개, 날짜 미정 — 총재 10/23 국감 발언, 일부 보도 12월)'를 넣을 자리가 없다. 가짜 날짜(12-31 등)를 넣으면 D-day 가 지어낸 값이 됨. 제안: TENTATIVE 목록(이름·기한 '2026-12'·메모·imp 2·tentative:true) → tab_mkt_macro '다음 주요 일정'에 '날짜 미정' 줄로만, upcoming()/D-day·이벤트일 금지 규칙엔 미포함. 같은 길로 금통위 2026-11·2027 일정(한은 공식 확인 후)도 등록 — 지금 '기준금리' 타일이 'calendar.json 미등록'.",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:49+09:00",
-   "due": "2026-10-30",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-dev-d08bcc86",
-   "from": "analyst",
-   "to": "dev",
-   "text": "외부 자료 요약 재료 수집(10/23 겸이 '링크만 말고 내용·해석까지'): ① Jiang 영상 자막(youtube-transcript-api 등 — requirements 영향·Actions IP 차단 여부 확인) ② public_reports 본문 텍스트(한은·기재부 PDF/HTML, pdfminer 이미 있음)를 git 이 아닌 데이터 릴리스(scripts/data_store.py 새 그룹 'digest_src', 항목별 ≤8천자)로 저장 → 데스크 에이전트가 pull 해서 reports/views/digest.json 작성. 공개 저장소에 전문 금지. 오늘 애널이 RSS media:description 발췌(jiang.json desc ≤500자)까지만 넣음.",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:53+09:00",
-   "due": "2026-10-30",
-   "via": "ask",
-   "seen": [
-    "2026-10-23"
-   ],
-   "checked": [
-    "2026-10-23"
-   ],
-   "pending_rounds": 0,
-   "status": "open"
-  },
-  {
-   "id": "req-quant-00175d13",
-   "from": "analyst",
-   "to": "quant",
-   "text": "scripts/study_ktb_vs_ust.py 한은 기준금리 표(BOK)가 2025-05 2.50% 에서 멈춤 — 10/22 통화정책방향 RSS 는 3.00%·'두 차례 인상' 명시. 인상 회차·날짜 확인해 표 갱신+ISA 채권 슬리브 결과(UST-H 헤지비용·BOK 인상기 레짐) 재계산 여부 회신. 근거 reports/views/digest.json id 23a9bbe0dc76441e",
-   "opened": "2026-10-23",
-   "opened_at": "2026-10-23T21:53+09:00",
-   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-23"
@@ -2355,6 +2373,11 @@
    "at": "2026-10-23T21:58+09:00",
    "text": "오늘 25개 KB 다 열어봤는데 밀린 요청 1등이 데이터 19건이더라. 겸이는 '빠르게 다 해버려' 모드라 내가 대신 드릴만 남겨 뒀어. 다음 라운드엔 결측 6행부터 같이 보자.",
    "to": "data"
+  },
+  {
+   "by": "analyst",
+   "at": "2026-10-23T22:10+09:00",
+   "text": "인터넷 열리자마자 원문 7건 다 읽었다. 겸이가 '어떻게든 원문 찾아 넣자'고 한 게 맞았어 — 요약 재료 없음 5건이 0건이 됐네. 유튜브 자막만 아직 문 닫힘."
   }
  ]
 }
