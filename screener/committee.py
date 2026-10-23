@@ -809,6 +809,20 @@ def _ev_time(e: dict) -> str | None:
     return m.group(1).zfill(5) if m else None
 
 
+def _ev_kst_date(e: dict) -> str:
+    """이벤트의 한국 날짜(YYYY-MM-DD). 캘린더 date 는 현지(미국) 날짜라 메모 '한국 M/D' 가 있으면 그 날짜를 쓴다
+    (예: FOMC date 10-28, 메모 '10/28 14:00 ET → 한국 10/29 03:00' → 10-29). 없으면 date 그대로. req-dev-d624b9cc"""
+    import re as _re
+    d = str(e.get("date") or "")
+    m = _re.search(r"한국\s*(\d{1,2})/(\d{1,2})", str(e.get("note") or ""))
+    if not m or len(d) < 10:
+        return d
+    y, mo = int(d[:4]), int(m.group(1))
+    if mo < int(d[5:7]):   # 12/31 ET → 한국 1/1
+        y += 1
+    return f"{y:04d}-{mo:02d}-{int(m.group(2)):02d}"
+
+
 def _series_move(ms: dict, key: str, bp: bool = False) -> dict | None:
     """macro_series 마지막 하루 변화와 60일 일간 변화 표준편차 대비 크기(z). bp=True 면 금리(%) 차이를 bp 로."""
     rows = ms.get(key) or []
@@ -902,9 +916,9 @@ def _v2_macro(mv: dict, prev: dict | None) -> dict:
             d = date.fromisoformat(e["date"])
         except Exception:  # noqa: BLE001
             continue
-        if e.get("type") == "매크로" and today <= d <= today + timedelta(days=7) and e.get("imp", 1) >= 2:
+        if ((e.get("type") == "매크로" and e.get("imp", 1) >= 2) or e.get("type") == "만기") and today <= d <= today + timedelta(days=7):   # 만기 D-7 포함(req-dev-d624b9cc)
             tm = _ev_time(e)
-            up.append(f"{e['date'][5:]}{' ' + tm if tm else ''} {e['name']}" + (" ★" if e.get("imp", 1) >= 3 else ""))
+            up.append(f"{_ev_kst_date(e)[5:]}{' ' + tm if tm else ''} {e['name']}" + (" ★" if e.get("imp", 1) >= 3 else ""))
     if prev and rg.get("label"):
         pr = ((prev.get("macro") or {}).get("regime") or {}).get("label")
         if pr and pr != rg["label"]:
@@ -1402,13 +1416,13 @@ def _v2_clock(o: dict, k: dict, der: dict, cal: list[dict], today: date, im: dic
     watch = {str(x.get("s")) for x in (it.get("items") or []) + (it.get("candidates") or [])}
     C = []
     for e in cal:
-        if e.get("date") == str(today) and e.get("type") not in ("시장 이벤트",):
+        if _ev_kst_date(e) == str(today) and e.get("type") not in ("시장 이벤트",):   # 한국 날짜 기준(req-dev-d624b9cc)
             C.append({"t": _ev_time(e) or "시각 미정", "what": e["name"] + (" ★" if e.get("imp", 1) >= 3 else ""), "kind": "이벤트",
                       "hi": high_event(e, watch)})
     tm = today + timedelta(days=1)
     for e in cal:   # 내일 새벽(한국 00:00~08:59) 미국 이벤트도 오늘 밤 시계에 포함
         t = _ev_time(e)
-        if e.get("date") == str(tm) and t and t < "09:00":
+        if _ev_kst_date(e) == str(tm) and t and t < "09:00":
             C.append({"t": "내일 " + t, "what": e["name"], "kind": "이벤트", "hi": high_event(e, watch)})
     C.sort(key=lambda x: x["t"])
     last = k.get("last")
