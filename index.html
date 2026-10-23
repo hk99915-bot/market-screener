@@ -35,6 +35,8 @@
     getMacroView: () => get('reports/macro_view.json'),
     getCommodities: () => get('reports/commodities.json'),
     getGeopolitics: () => get('reports/views/geopolitics.json'),
+    getRealEstate: () => get('reports/realestate.json'),
+    getRealEstateView: () => get('reports/views/realestate.json'),
     getGeoNews: () => get('reports/geo_news.json'),
     getChainSeries: () => get('reports/chains.json'),
     getEvents: () => raw('reports/events_stats.json'),
@@ -2322,6 +2324,66 @@ function drawBondHist(){
 }
 </script>
 
+<!-- tab_realestate.html — MARKET › 부동산 (reView). 10/23 겸이 "마켓에 부동산 누나 추가" → 이름 '부동산'(대체투자 아님) · "마켓에 부동산 탭이 아직 안 뜨네".
+     설계: docs/realestate/2026-10-23_tab_design.md (부동산 데스크). 데이터: reports/realestate.json(자동 — ECOS·리츠·뉴스, screener/realestate.py) + reports/views/realestate.json(데스크 해석, 손으로).
+     빈 상태: prices.status '키 필요' → 숫자 0 으로 채우지 않고 views.weekly_snapshot(2차 보도·검증전) 표시. 390px 가로 스크롤 금지. -->
+<style>
+.recards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.recard{border:1px solid var(--line);padding:8px;min-width:0}
+.recard .v{font-size:18px;font-weight:700;margin-top:2px}
+.redesk{border:1px solid #6b6b6b;background:#141414;padding:8px 10px;margin:6px 0;white-space:normal}
+.redesk .lb{font-size:11px;color:var(--muted);letter-spacing:.06em}
+.reauto .lb{font-size:11px;color:var(--muted)}
+.rebadge{display:inline-block;font-size:10.5px;border:1px solid var(--line);padding:0 5px;margin-left:4px;color:var(--muted)}
+.relist{margin:4px 0;padding:0;list-style:none}
+.relist li{border-top:1px solid #1c1c1c;padding:6px 0;white-space:normal;font-size:13px}
+.re details>summary{cursor:pointer;min-height:40px;display:flex;align-items:center}
+</style>
+<script>
+let REJ=null, REV=null;
+function reLoad(){ if(REJ!==null) return; REJ=false; REV=false;
+  google.script.run.withSuccessHandler(t=>{ try{ REJ=JSON.parse(t); }catch(e){ REJ={}; } if(view==='re') render(); }).withFailureHandler(()=>{ REJ={}; if(view==='re') render(); }).getRealEstate();
+  google.script.run.withSuccessHandler(t=>{ try{ REV=JSON.parse(t); }catch(e){ REV={}; } if(view==='re') render(); }).withFailureHandler(()=>{ REV={}; if(view==='re') render(); }).getRealEstateView(); }
+function rePct(x,d){ return x==null?'—':((x>0?'+':'')+(x*100).toFixed(d==null?1:d)+'%'); }
+function reView(){
+  reLoad();
+  if(REJ===false||REV===false) return '<div class="load">LOADING …</div>';
+  const J=REJ||{}, V=REV||{}, S=V.weekly_snapshot||{}, sale=S.sale||{};
+  const noKey=!J.prices||J.prices.status==='키 필요';
+  /* ① 데스크 한 줄 뷰 */
+  const top=V.one_line?`<div class="redesk"><div class="lb">부동산 누나 한 줄 · ${esc(V.updated||'')} <span class="rebadge">${esc(V.one_line_status||'')}</span> <span class="rebadge">신뢰도 ${esc(V.confidence||'—')}</span></div><div style="margin-top:3px;font-size:14px;line-height:1.6">${esc(V.one_line)}</div>${V.flip?`<details><summary class="mu" style="font-size:12px">뒤집힘 조건</summary><div class="mu" style="font-size:12px">${esc(V.flip)}</div></details>`:''}</div>`:'';
+  /* ② 권역 카드 3장 — 키 없으면 주간 스냅샷(2차 보도·검증전) */
+  const pick=(...ks)=>{ for(const k of ks) if(sale[k]) return [k,sale[k]]; return null; };
+  const card=(t,row)=>`<div class="recard"><div class="mu" style="font-size:11.5px">${esc(t)}</div>${row?`<div class="v">${esc(String(row[1]).split(' ')[0])}</div><div class="mu" style="font-size:11px;line-height:1.4">${esc(row[0])} ${esc(String(row[1]).split(' ').slice(1).join(' '))}</div>`:'<div class="mu" style="font-size:12px;margin-top:4px">부동산원 키 등록 대기</div>'}</div>`;
+  const cards=`<div class="recards">${card('상급지',pick('강남구','서초구','송파구'))}${card('하급지',pick('강북14개구','성북·서대문'))}${card('경기남부',pick('화성 병점구','수도권'))}</div>
+    <div class="mu" style="font-size:11px;margin-top:4px">${noKey?`가격 = ${esc(S.label||'2차 보도 요약')} · ${esc(S.week||'')}`:'가격 = 부동산원 R-ONE'} · 권역 정의는 주관 포함(${esc(V.regions_def||'설계서 §2')})</div>`;
+  /* ③ 금리·대출 한 줄 (ECOS 1차) */
+  const rates=(J.rates||[]).map(r=>`<li><b>${esc(r.name)}</b> ${r.last==null?'—':esc(String(r.last))+esc(r.unit||'')} <span class="mu">(${esc(r.month||'')} · 1개월 ${r.chg1m==null?'—':(r.chg1m>0?'+':'')+r.chg1m} · 6개월 ${r.chg6m==null?'—':(r.chg6m>0?'+':'')+r.chg6m})</span><div class="mu" style="font-size:12px">${esc(r.what||'')}</div></li>`).join('');
+  const ratesTake=V.rates_take?`<div class="redesk"><div class="lb">데스크 해석 · 부동산</div><div style="font-size:13px">${esc(V.rates_take.our_take||'')}</div></div>`:'';
+  /* ④ 정책·이벤트 */
+  const ev=(V.events||[]).map(e=>`<li><b>${esc(e.date)}</b> ${esc(e.what)} <span class="mu">· ${esc(e.status||'')}</span><div class="mu" style="font-size:11.5px">${esc(e.src||'')}</div></li>`).join('');
+  /* 데스크 메모(STANDARD §4 세 칸) */
+  const takes=(V.takes||[]).map(t=>`<details class="redesk"><summary><span style="font-size:13.5px">${esc(t.title)}</span><span class="rebadge">${esc(t.src||'')} ${esc(t.date||'')}</span>${t.source_checked===false?'<span class="rebadge" style="color:#e66">검증전</span>':''}</summary>
+      <div style="font-size:13px;line-height:1.6"><div><span class="am">① 내용</span> ${esc(t.summary||'')}</div><div><span class="am">② 그쪽 뷰</span> ${esc(t.view||'')}</div><div><span class="am">③ 우리 해석</span> ${esc(t.our_take||'')}</div>${t.url?`<div class="mu" style="font-size:11px;margin-top:3px"><a href="${esc(t.url)}" target="_blank" rel="noopener">원문 링크(깨질 수 있음)</a></div>`:''}</div></details>`).join('');
+  /* 리츠 */
+  const reits=(J.reits||[]).filter(r=>r.status==='ok').map(r=>`<li><b>${esc(r.name)}</b> <span class="mu">${esc(r.what||'')}</span><div style="font-size:12.5px">1주 ${rePct(r.chg1w)} · 1개월 ${rePct(r.chg1m)} · 52주 위치 ${r.pos52==null?'—':Math.round(r.pos52*100)+'%'}</div></li>`).join('');
+  const reitsTake=V.reits_take?`<div class="redesk"><div class="lb">데스크 해석 · 리츠</div><div style="font-size:13px">${esc(V.reits_take.our_take||'')}</div></div>`:'';
+  /* 자동 뉴스(7축) */
+  const news=(J.news||[]).map(n=>`<details class="reauto"><summary><b style="font-size:13px">${esc(n.name)}</b><span class="rebadge">자동 · ${(n.items||[]).length}</span>${n.items&&n.items[0]?`<span class="mu" style="font-size:12px;margin-left:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1">${esc(n.items[0].title)}</span>`:''}</summary>
+      <ul class="relist">${(n.items||[]).map(i=>`<li>${esc(i.title)} <span class="mu" style="font-size:11px">· ${esc(i.src||'')} ${esc(i.time||'')}${i.link?` · <a href="${esc(i.link)}" target="_blank" rel="noopener">링크</a>`:''}</span></li>`).join('')}</ul></details>`).join('');
+  const unav=(J.unavailable||[]).map(u=>`<li><b>${esc(u.name)}</b> <span class="rebadge">${esc(u.status||'')}</span><div class="mu" style="font-size:12px">${esc(u.why||'')}</div></li>`).join('');
+  return `<div class="grid re"><div class="p c12"><h2>부동산<small>${esc(J.asof||'—')} · 자동 수집 + 데스크 해석</small></h2><div class="b">
+    ${top}${cards}
+    <h3 style="font-size:13px;margin:12px 0 2px;color:var(--amber)">금리·대출 <span class="mu" style="font-size:11px">ECOS 1차</span></h3><ul class="relist">${rates||'<li class="mu">데이터 없음</li>'}</ul>${ratesTake}
+    <h3 style="font-size:13px;margin:12px 0 2px;color:var(--amber)">정책·이벤트</h3><ul class="relist">${ev||'<li class="mu">없음</li>'}</ul>
+    ${takes?`<h3 style="font-size:13px;margin:12px 0 2px;color:var(--amber)">데스크 메모 <span class="mu" style="font-size:11px">내용·그쪽 뷰·우리 해석</span></h3>${takes}`:''}
+    <details><summary><b style="font-size:13px">리츠·인프라 ${(J.reits||[]).filter(r=>r.status==='ok').length}종</b></summary><ul class="relist">${reits}</ul>${reitsTake}</details>
+    <h3 style="font-size:13px;margin:12px 0 2px;color:var(--amber)">뉴스 <span class="mu" style="font-size:11px">자동 수집 — 데스크 해석 아님</span></h3>${news||'<div class="mu">없음</div>'}
+    <details><summary class="mu" style="font-size:12px">아직 못 쓰는 데이터 ${(J.unavailable||[]).length}</summary><ul class="relist">${unav}</ul></details>
+  </div></div></div>`;
+}
+</script>
+
 <!-- tab_study.html — STUDY 탭 — 커리큘럼·인적성·오늘의 영어 (eduView·aptView·engView).
      apps-script/Index.html 이 include('tab_study') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
@@ -4513,12 +4575,12 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
 }
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
-  mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['deriv','파생']],
+  mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['re','부동산'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
   quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
