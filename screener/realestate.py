@@ -108,9 +108,10 @@ def group_prices(series: dict[str, list[tuple[str, float]]]) -> list[dict]:
             mrows.append({"name": label, "cls": hit, **(idx_stats(series[hit]) if hit else
                                                          {"status": "미확인", "why": "R-ONE 지역 이름 매칭 실패(권역 정의 확인)"})})
         ok = [m for m in mrows if m["status"] == "ok"]
+        # pos52_avg = 소속 지역 52주 위치의 단순평균 — '권역 지수의 52주 위치'가 아님(지역마다 고저 시점 다름, 피어 10/24 R4)
         avg = lambda k: round(sum(m[k] for m in ok) / len(ok), 3) if ok and all(m.get(k) is not None for m in ok) else None  # noqa: E731
         out.append({"id": gid, "name": gname, "n_ok": len(ok), "n": len(mrows), "chg1w": avg("chg1w"), "chg4w": avg("chg4w"),
-                    "chg52w": avg("chg52w"), "pos52": avg("pos52"), "week": max((m["week"] for m in ok), default=None), "members": mrows})
+                    "chg52w": avg("chg52w"), "pos52_avg": avg("pos52"), "week": max((m["week"] for m in ok), default=None), "members": mrows})
     return out
 
 
@@ -191,6 +192,9 @@ def rate_row(key: str, name: str, unit: str, what: str, s: list[tuple[str, float
     return r
 
 
+SAMPLE_KEY_NOTE = "sample(시험용 공개 키 — ECOS 정책 변경 시 예고 없이 끊길 수 있음, 개인키 결재 a391f778 보류 중 · 피어 10/24 R7)"
+
+
 def fetch_rates(fetch_json, key: str | None, today: date) -> list[dict]:
     k = key or "sample"
     start = (today.replace(day=1) - timedelta(days=280)).strftime("%Y%m")   # 샘플 키 10행 한도 안 — 최근 약 9~10개월
@@ -198,7 +202,7 @@ def fetch_rates(fetch_json, key: str | None, today: date) -> list[dict]:
     for rk, code, item, name, unit, what in RATES:
         try:
             s = parse_ecos(fetch_json(ECOS.format(key=k, code=code, start=start, end=today.strftime("%Y%m"), item=item), None))
-            out.append(rate_row(rk, name, unit, what, s, today))
+            out.append({**rate_row(rk, name, unit, what, s, today), "ecos_key": "개인키" if key else SAMPLE_KEY_NOTE})
         except Exception as e:  # noqa: BLE001
             out.append({"key": rk, "name": name, "unit": unit, "what": what, "status": "미확인", "why": f"ECOS 실패: {str(e)[:80]}"})
     return out
@@ -242,7 +246,7 @@ def fetch_reits(fetch) -> list[dict]:
 # ── 뉴스 (Google News 검색 RSS, 한국어) ──
 GN_KR = "https://news.google.com/rss/search?q={q}&hl=ko&gl=KR&ceid=KR:ko"
 NEWS_DAYS, PER_AXIS, PER_SRC = 7, 5, 2
-CUE = r"아파트|집값|부동산|전세|전셋|매매|분양|재건축|재개발|청약|주택|입주|단지|정비|토허|토지거래허가|주담대|DSR|LTV|신도시"
+CUE = r"아파트|집값|부동산|전세|전셋|매매|분양|재건축|재개발|청약|주택|입주|(?<!산업)(?<!산업 )단지|정비|토허|토지거래허가|주담대|DSR|LTV|신도시"
 # 축 id → (이름, 제목 정규식, 검색어). 제목에 CUE 도 있어야 채택(수원 축구·용인 반도체 공장 기사 등 오탐 제거)
 NEWS_AXES: dict[str, tuple[str, str, str]] = {
     "policy": ("정책·대출·세제", r"대책|규제|DSR|LTV|주담대|대출|토지거래허가|토허|조정대상|투기과열|보유세|양도세|취득세|재산세|국토부|국토교통부|금융위|공급 확대|공급대책",
@@ -250,7 +254,7 @@ NEWS_AXES: dict[str, tuple[str, str, str]] = {
     "market": ("시장 동향(지수·거래)", r"부동산원|KB.{0,4}(시세|통계)|아파트값|집값|전셋값|매매가격|전세가격|거래량|미분양|신고가",
                "아파트값 부동산원 OR 서울 집값 OR 전셋값"),
     "core": ("서울 상급지", r"강남|서초|송파|용산|압구정|반포|잠실|대치|한강벨트", "(강남 OR 서초 OR 송파 OR 용산) 아파트"),
-    "lower": ("서울 하급지", r"노원|도봉|강북구|노도강|금천|관악|구로|금관구|중랑|외곽", "(노원 OR 도봉 OR 노도강 OR 금관구) 아파트"),
+    "lower": ("서울 하급지", r"노원|도봉|강북구|노도강|금천|관악|구로[구동]|(?<![가-힣])구로(?![가-힣])|금관구|중랑|외곽", "(노원 OR 도봉 OR 노도강 OR 금관구) 아파트"),
     "gg_south": ("경기남부", r"분당|판교|수원|영통|광교|용인|수지|동탄|화성|병점|평택|과천|안양|평촌|경기 ?남부|반도체 ?벨트",
                  "(분당 OR 수원 OR 동탄 OR 용인 OR 과천 OR 평택) 아파트"),
     "redev": ("재개발·재건축", r"재개발|재건축|정비사업|관리처분|사업시행|조합원|신속통합|모아타운|정비구역|선도지구", "재건축 OR 재개발 OR 정비사업"),
@@ -399,7 +403,8 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
         "asof": today.isoformat(),
         "generated_at": now.astimezone(KST).strftime("%Y-%m-%d %H:%M KST"),
         "regions": [{"id": g, "name": n, "members": [m for m, _ in ms]} for g, n, ms in REGIONS],
-        "region_note": "권역 정의 = 부동산 데스크 사전등록(2026-10-23, 주관) — 상급지: 10·15 대책(2025) 이후에도 조정대상·투기과열 유지된 강남3구·용산 · "
+        "region_note": "권역 정의 = 부동산 데스크 사전등록(2026-10-23, 주관) — 상급지: 강남3구·용산 = 시장 통용 묶음(주관). 역사적 근거 = 2023-01-05 규제지역 "
+                       "일괄 해제 때 유일하게 남은 4구(뉴시스 2023-01-03, 2차) — 10·15 대책(2025)으로 서울 25개구 전역이 규제지역이 된 뒤로는 규제 기준으로 구분 안 됨 · "
                        "하급지: 시장 통용 '노도강·금관구'(언론 관행) · 경기남부: 부동산원 경부1·2권. 권역 값 = 소속 지역 변동률 단순평균(가중 아님)",
         "prices": prices,
         "rates": rates,

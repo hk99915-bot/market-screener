@@ -74,7 +74,7 @@ def test_group_prices_regions_and_average():
     g = {x["id"]: x for x in re_.group_prices(re_.series_by_region(rows))}
     core = g["core"]
     assert core["n_ok"] == 1 and core["chg1w"] < 0 and core["members"][1]["status"] == "미확인"   # 서초 없음 → 미확인, 평균은 있는 것만
-    assert g["lower"]["chg1w"] > 0 and g["lower"]["pos52"] == 1.0
+    assert g["lower"]["chg1w"] > 0 and g["lower"]["pos52_avg"] == 1.0 and "pos52" not in g["lower"]
     st = re_.idx_stats([("a", 100.0), ("b", 101.0)])
     assert st["chg1w"] == 1.0 and st["chg4w"] is None
 
@@ -93,6 +93,23 @@ def test_news_cue_filter():
     assert re_.match_news("수원 삼성, 홈경기 승리") == []          # 지역명만 있고 부동산 단서 없음
     assert "redev" in re_.match_news("재건축 조합원 지위 양도 제한 완화 검토")
     assert set(re_.match_news("서울 아파트값 89주 연속 상승…강남3구 하락")) >= {"market", "core"}
+
+
+def test_news_lower_guro_boundary():
+    # 피어 10/24 R3: '8336가구로' 의 '구로'가 하급지 축에 걸리던 버그
+    assert "lower" not in re_.match_news("재건축·재개발로 2~3년 내 사라지는 집, ‘4만8249가구’… 용산구 8336가구로 ‘최다’")
+    assert "lower" not in re_.match_news("조합원 요구로 재건축 일정 연기")
+    assert "lower" in re_.match_news("구로구 아파트값 상승")
+    assert "lower" in re_.match_news("구로동 재개발 단지 시공사 선정")
+    assert "lower" in re_.match_news("금천·구로 아파트 거래 늘어")
+    assert "lower" in re_.match_news("서울 구로 아파트 신고가")
+
+
+def test_news_cue_excludes_industrial_complex():
+    # 피어 10/24 경: CUE '단지'가 '산업단지'를 통과시키던 것
+    assert re_.match_news("용인 반도체 산업단지 착공") == []
+    assert re_.match_news("평택 산업 단지 조성") == []
+    assert "gg_south" in re_.match_news("동탄 대단지 입주 시작")
 
 
 def test_build_without_key_marks_prices_key_needed(tmp_path, monkeypatch):
