@@ -3222,6 +3222,11 @@ function decLoad(){
 }
 /* 대결 1줄 (UXUI 재진단 Top10 #5, 10/23 겸이 승인 — 이전 10/21 접기 토글 대체): DAILY·시그널에선 대결이 펼친 채 2,522px 라 브리프가 3.3장 아래로 밀렸다.
    DAILY·시그널 = 1줄(오늘 상태 요약 + 제출 대기 배지 + 열기 →), 대결 본문(제출·매도 대결·쿨다운)은 DAILY › 성적표 맨 위 한 곳. */
+// 10/21 접기 토글 이름 유지(옛 onclick·기록 호환): 이제 토글 대신 성적표로 이동, mt_duel_open 은 더 안 씀
+const DUEL_OK='mt_duel_open';
+function duelKey(live){ return live&&live.length?String(live[0].date)+'|'+(live[0].market||''):''; }
+function duelOpen(){ return false; }
+function duelTog(){ setView('score'); }
 function duelSum(live,CD){ if(!live.length) return '진행 중 대결 없음 · 다음 14:55·22:00';
   const it=live[0], st=p=>!p?'—':p.pending?'대기':p.cash?'현금':esc(String(p.name||p.ticker||'').slice(0,12));
   return `${esc(String(it.date).slice(5))} ${duelIsUS(it)?'미장':'국장'} · 나: ${st(it.picks&&it.picks['나'])} · PB: ${st(it.picks&&it.picks['PB'])} · 마감 ${duelIsUS(it)?'09:30 ET':'15:30'}${live.length>1?` · 외 ${live.length-1}판`:''}${CD?' · ⏳쿨다운':''}`; }
