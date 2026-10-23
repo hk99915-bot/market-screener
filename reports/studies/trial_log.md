@@ -4,19 +4,26 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1127** (등록 m 합 379 + 등록 전 탐색 748) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1150** (등록 m 합 402 + 등록 전 탐색 748) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
 | 연구 | 날짜 | 주제 | m | 읽은 자리 | α(m) | 등록 전 탐색 | 등급 분포 | 버린 이유 |
 |---|---|---|---|---|---|---|---|---|
 | 2026-10-21_alpha_sources | 2026-10-21 | alpha_source | 6 | m | 0.00833 | 1 | — | A1·A2·B2·C1 F, D1 C(방향만, t 2.29<2.39). B1(KR 52주 고점 근접)만 B 통과 → 알파북 KR 진입 후보 소스 |
+| 2026-10-21_hf_classics | 2026-10-21 | (미분류) | 5 | m | 0.01 | — | — | — |
+| 2026-10-21_hf_desk_signals | 2026-10-21 | (미분류) | 6 | m | 0.00833 | — | — | — |
+| 2026-10-21_hf_desk_signals_forward |  | (미분류) | — | 미등록 | — | — | — | — |
+| 2026-10-21_hf_ls_vol | 2026-10-21 | (미분류) | 5 | m | 0.01 | — | — | — |
 | 2026-10-21_laor_ib_qld |  | laor_ib | — | 미등록 | — | — | — | 채택 판단 대상 아님(연구 전용 — 실계좌 레버리지 2027-04-15까지 금지) |
 | 2026-10-21_laor_infinite_buy |  | laor_ib | — | 미등록 | — | 1 | — | 채택 판단 대상 아님(연구 전용 — 실계좌 레버리지 2027-04-15까지 금지) |
 | 2026-10-21_qld_daily_dca |  | qld_daily_dca | — | 미등록 | — | — | — | 채택 판단 대상 아님(연구 전용 — 실계좌 레버리지 2027-04-15까지 금지) |
 | 2026-10-21_tradeplan_calib | 2026-10-21 | trade_plan | 54 | m | 0.00093 | — | — | ATR 3.0 스탑(KR OOS 최상)은 손절폭 15% 캡으로 후보 44~48% 탈락 = 선택 효과 → 채택 안 함 |
 | 2026-10-21_us_smallcap_spikes |  | us_spike | 6 | m | 0.00833 | 28 | B1 C2 F3 | 롱 편승 H1·H2 F, T30 숏 H3·H5 C·H4 F(평균≈0, 꼬리 손실). T100 숏 H6 B(상한) — 차입 가능성 검증전이라 모의 추적 후보로만 |
 | 2026-10-21_us_spikes_intraday | 2026-10-21 | us_spike | 16 | m | 0.00313 | 672 | F14 검증전2 | 16개 규칙 전부 비용 후 음수(F 14·검증전 2). 브래킷 672칸 중 검증 양(+) 'P1 첫 눌림 TP+20/SL−12' +3.3%(n 33, p 0.094)는 우연 범위 — 토스 1m 백필 재검정 단일 후보로만 |
+| 2026-10-23_hf_bab_recheck | 2026-10-23 | (미분류) | 3 | m | 0.01667 | — | — | — |
+| 2026-10-23_us_long_sort |  | us_committee_px | 2 | m | 0.025 | — | — | (a) r20>0 은 5·20일 모두 현행보다 나쁨 C(역방향). (b) Δdrv·실제 drv 비교 검증전(거래일 7개) → 현행 유지, H_b 사전등록 |
+| 2026-10-23_us_r20_reversal |  | us_committee_px | 2 | m | 0.025 | — | — | HA·HB B(+0.095%p/−0.144%p, 4일) — 방향만 맞고 크기는 비용 수준. drv 미검정 → 규칙 검증전 유지 |
 | accum_signals | 2026-10-17 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -49,6 +56,7 @@
 | crash_entry | crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 32 | 36 | 68 | 0.00074 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
 | kr_accum | accum_signals | 24 | 0 | 24 | 0.00208 |
+| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, lab_p1_screen, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_us_spikes | 19 | 0 | 19 | 0.00263 |
 | rules | rule_audit | 18 | 0 | 18 | 0.00278 |
 | us_accum | us_accum | 9 | 9 | 18 | 0.00278 |
 | derivs | derivs_signals, gamma_regime | 13 | 0 | 13 | 0.00385 |
@@ -56,10 +64,10 @@
 | alpha_source | 2026-10-21_alpha_sources | 6 | 1 | 7 | 0.00714 |
 | earnings_yoy | lab_p1 | 6 | 1 | 7 | 0.00714 |
 | semis_cap | semis_cap | 7 | 0 | 7 | 0.00714 |
+| us_committee_px | 2026-10-23_us_long_sort, 2026-10-23_us_r20_reversal | 4 | 0 | 4 | 0.0125 |
 | fib | fib_levels | 4 | 0 | 4 | 0.0125 |
 | laor_ib | 2026-10-21_laor_ib_qld, 2026-10-21_laor_infinite_buy | 0 | 1 | 1 | 0.05 |
 | qld_daily_dca | 2026-10-21_qld_daily_dca, replication_qld_dca | 0 | 0 | 0 | None |
-| (미분류) | lab_p1_screen, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_us_spikes | 0 | 0 | 0 | None |
 
 ## 3. 시도 기록 (날짜 · 가설 · 파라미터 · 결과 · 버린 이유)
 
