@@ -26,6 +26,9 @@ S&P 옵션 = 블랙숄즈(σ = VIX/100) — 옵션은 실제 호가 아님(근�
   ② 재량 북 그 시장 순베타 손실(베타조정 델타 노출 × 지수 −10% 충격) ≤ 그 시장 열린 리스크 절반 — 넘으면 K200F/ES 숏 먼저
   ③ --indep 에 두 북이 안 쓰는 데이터 1개(저장소 경로, committee.json·tradeplan·alphabook·decisions.json 단독 불가). 헤지 다리는 면제.
   탈락은 사유와 함께 reports/hf_discretion.json rejected 에 남기고, 통과한 겹침 진입은 consensus=True(채점 '합의 노출' 분리용).
+- 페어 진입(10/24 겸이 "롱이랑 헤지를 한 번에 같이 넣어", req-hf-a1a96e88): add --beta-hedge auto|<비율> → 같은 트랜잭션에
+  반대 방향 K200F(국장)/ES(미장) 다리(pair=True, hedge_of=부모) — auto = ② 절반 한도를 맞추는 최소 베타조정 델타, 비율 = 부모
+  베타조정 델타 × 비율(≤ 1.5). 둘 중 하나라도 검증 실패면 둘 다 미기록. 페어 헤지는 자체 손절·목표·시간 손절 없이 부모 청산 때 같이 청산.
 """
 from __future__ import annotations
 
@@ -60,6 +63,7 @@ SPREAD = ("spread", "us_spread")   # 손실 제한 수직 스프레드(scripts/h
 US_MULT = {"es": 50, "nq": 20, "spx_put": 100, "spx_call": 100}   # 달러/pt (NQ 는 나스닥 종합으로 근사)
 INDEP_SHOCK = 0.10                 # ② 순베타 손실 충격 = 지수 −10%(scripts/hf_risk.py STRESS '국장 단독 급락'과 같은 크기, 미장도 같게) [가정]
 INDEP_FRAC = 0.5                   # ② 순베타 손실 ≤ 열린 리스크 × 0.5
+HEDGE_CAP = 1.5                    # 헤지 명목 ≤ 부모 베타가중 × 1.5 (기존 --hedge-of 규칙과 같음)
 INDEP_SHARED = ("committee.json", "tradeplan", "alphabook", "decisions.json", "alpha_sources")   # ③ 두 북이 이미 쓰는 입력
 INVERSE = {"114800", "252670", "SOXS", "SQQQ", "SPXU", "SH", "PSQ", "SDS"}                    # 인버스 = 숏 방향(verify_weekly 와 같은 목록)
 CHECK = ("fund", "narrative", "positioning", "macro", "scenarios", "hedge", "kill", "catalyst", "p_win", "p_src")
@@ -430,11 +434,12 @@ def other_books(market: str, today: str) -> list[dict]:
     return out
 
 
-def net_beta_loss(b: dict, market: str, extra: dict | None = None) -> float:
+def net_beta_loss(b: dict, market: str, extra: dict | list | None = None) -> float:
     """그 시장 재량 북 순베타 노출(베타조정 델타, 헤지 다리·바스켓 포함) × 지수 충격 — 부호 있음(+ = 시장 하락 때 손실)."""
     import hf_risk as R
     d, u = deriv_last(), us_last()
-    ps = [p for p in b["open"] if (p.get("market") or "KR") == market] + ([extra] if extra else [])
+    ex_ = [extra] if isinstance(extra, dict) else list(extra or [])
+    ps = [p for p in b["open"] if (p.get("market") or "KR") == market] + ex_
     nb = 0.0
     for p in ps:
         try:
@@ -474,7 +479,7 @@ def _reject(b: dict, p: dict, rule: str, why: str, today: str):
     raise IndepReject(f"독립성 {rule} 탈락 — {why} (appr-hf-independence)")
 
 
-def independence(b: dict, p: dict, a, today: str | None = None, others: list[dict] | None = None) -> dict | None:
+def independence(b: dict, p: dict, a, today: str | None = None, others: list[dict] | None = None, hedge: dict | None = None) -> dict | None:
     """같은 날 같은 방향 겹침이면 ①②③ 검사. 헤지 다리는 면제(순베타를 줄이는 쪽)."""
     if p.get("hedge_of"):
         return None
@@ -490,15 +495,71 @@ def independence(b: dict, p: dict, a, today: str | None = None, others: list[dic
     dup = [o for o in same if o["code"] == code]
     if dup:
         _reject(b, p, "①같은 종목", f"{code} {p.get('name', '')} — {', '.join(o['book'] for o in dup)} 와 같은 날 같은 방향", today)
-    loss, half = net_beta_loss(b, mk, p) * dr, INDEP_FRAC * market_risk(b, mk, p)
+    loss, half = net_beta_loss(b, mk, [p] + ([hedge] if hedge else [])) * dr, INDEP_FRAC * market_risk(b, mk, p)
     if loss > half + 1e-12:
         hx = "K200F 숏" if mk == "KR" else "ES 숏"
         _reject(b, p, "②순베타", f"{mk} 순베타 손실(지수 {INDEP_SHOCK:.0%} 충격) {loss * 100:.3f}% > 열린 리스크 절반 {half * 100:.3f}% — "
-                f"{hx}로 순베타를 먼저 낮추거나 크기를 줄여서", today)
+                f"--beta-hedge auto 로 다시({hx} 페어 다리 자동) 또는 크기를 줄여서", today)
     bad = indep_source_ok(getattr(a, "indep", None))
     if bad:
         _reject(b, p, "③독립 데이터", bad, today)
-    return {"books": books, "beta_loss": round(loss, 5), "half_risk": round(half, 5), "indep": a.indep}
+    return {"books": books, "beta_loss": round(loss, 5), "half_risk": round(half, 5), "indep": a.indep,
+            **({"pair_hedge": hedge["id"]} if hedge else {})}
+
+
+def pair_hedge(b: dict, p: dict, how: str) -> dict | None:
+    """부모 p 의 반대 방향 지수 선물 다리(K200F/ES). auto = ② 절반 한도를 맞추는 최소 크기(필요 없으면 None), 숫자 = 부모 베타조정 델타 × 비율."""
+    import hf_risk as R
+    mk, dr = p.get("market") or "KR", direction(p)
+    d, u = deriv_last(), us_last()
+    try:
+        bd = abs(R.exposure(p, d, u) * R.beta(p))
+    except Exception:  # noqa: BLE001
+        bd = abs(p["weight"] * (p.get("beta") or 1.0))
+    if how == "auto":
+        need = (net_beta_loss(b, mk, [p]) * dr - INDEP_FRAC * market_risk(b, mk, p)) / INDEP_SHOCK
+        if need <= 1e-9:
+            return None
+        tag = "auto(② 절반 한도 최소)"
+    else:
+        try:
+            r = float(how)
+        except ValueError:
+            raise SystemExit("--beta-hedge = auto 또는 비율(0 < x ≤ 1.5)") from None
+        if not 0 < r <= HEDGE_CAP:
+            raise SystemExit(f"--beta-hedge 비율 {r} — 0 < x ≤ {HEDGE_CAP}")
+        need, tag = r * bd, f"부모 베타조정 델타 × {r:g}"
+    if need > HEDGE_CAP * bd + 1e-9:
+        raise SystemExit(f"페어 헤지 필요 베타 명목 {need * 100:.2f}% > 부모 베타가중 {bd * 100:.2f}% × {HEDGE_CAP} — 크기를 줄이거나 다른 노출부터 정리")
+    if mk == "KR":
+        kind, px, hb, nm, asof = "fut", d["fut"], 1.0, "코스피200 선물", d["date"]
+    else:
+        kind, px, hb, nm, asof = "es", u["spx"], abs(beta_of("es", None)) or 1.0, "S&P500 선물(ES)", u["date"]
+    w = math.ceil(need / hb * 1e5) / 1e5
+    hid = f"{p['id'].rsplit('-', 1)[0]}-{int(p['id'].rsplit('-', 1)[1]) + 1}"
+    return {"id": hid, "kind": kind, "side": "숏" if dr > 0 else "롱", "code": "K200F" if kind == "fut" else "ES",
+            "name": f"{nm} — {p.get('name')} 페어 헤지", "asof": asof, "market": mk, "why": f"페어 베타 헤지({tag}) — 부모 {p['id']}",
+            "src": p.get("src"), "conv": p.get("conv"), "hedge_of": [p["id"]], "pair": True, "entry": round(px, 4), "stop": None, "t1": None,
+            "hold": None, "r_unit": round(px * INDEP_SHOCK, 4), "weight": w, "risk": round(w * INDEP_SHOCK, 6), "beta": hb,
+            "sizing": {"pair": f"{tag} · 부모 베타조정 델타 {bd * 100:.2f}% → 헤지 명목 {w * 100:.2f}%"}, "days": 0, "last": round(px, 4)}
+
+
+def close_orphan_pairs(b: dict, out: list | None = None) -> list[dict]:
+    """부모가 닫힌 페어 헤지를 같은 회차 가격으로 같이 청산."""
+    ids, keep, done, d = _open_ids(b), [], [], None
+    for h in b["open"]:
+        if h.get("pair") and not any(x in ids for x in (h.get("hedge_of") or [])):
+            d = d or deriv_last()
+            px = price(h, d)
+            h["last"] = round(px, 4)
+            close_pos(b, h, px, us_last()["date"] if h["kind"] in US else d["date"], "페어 헤지 — 부모 청산 연동")
+            done.append(h)
+        else:
+            keep.append(h)
+    b["open"] = keep
+    if out is not None:
+        out += done
+    return done
 
 
 # ── 진입 ──────────────────────────────────────────────────────
@@ -637,12 +698,18 @@ def add(b: dict, a) -> dict:
         p.update(weight=round(w, 4), risk=round(w * stop_pct, 5))
     p["beta"] = (1.0 if p.get("und") in ("K200", "SPX") else beta_of("stock" if a.kind == "spread" else "us_stock", p["und"])) if a.kind in SPREAD \
         else beta_of(a.kind, getattr(a, "code", None))
-    ov = independence(b, p, a)
+    bh = getattr(a, "beta_hedge", None)
+    h = pair_hedge(b, p, bh) if bh and not par else None     # 원자성: 검증이 다 끝난 뒤에만 둘 다 기록
+    ov = independence(b, p, a, hedge=h)
     if ov:
         p.update(consensus=True, independence=ov)
     p["days"] = 0
     p["last"] = p["entry"]
+    if h:
+        p["pair_hedge"] = h["id"]
     b["open"].append(p)
+    if h:
+        b["open"].append(h)
     return p
 
 
@@ -735,6 +802,9 @@ def mark(b: dict) -> list[dict]:
                 continue
             keep.append(p)
             continue
+        if p.get("pair"):                            # 페어 헤지 = 부모 따라 청산(close_orphan_pairs)
+            keep.append(p)
+            continue
         if p["kind"] in SPREAD:
             if md >= p["expiry"]:
                 why = "만기 — 내재가치 정산"
@@ -762,6 +832,7 @@ def mark(b: dict) -> list[dict]:
         else:
             keep.append(p)
     b["open"] = keep
+    close_orphan_pairs(b, out)
     today = datetime.now(KST).strftime("%Y-%m-%d")
     lim = book_limits(b, today)
     if lim.get("flat") and b["open"]:
@@ -834,7 +905,7 @@ def show(b: dict) -> list[str]:
         ls.append(f"⛔ 한도: {lim.get('why') or ''}" + (f" · 정지 ~{lim['halt_until']}" if lim.get("halt_until") else ""))
     for p in b["open"]:
         cur = r_of(p, p["last"])
-        lv = (f"손절 {p['stop']:,.2f} · 1차 {p['t1']:,.2f}" if p["stop"] is not None else
+        lv = ("페어 헤지 — 부모 청산 때 같이" if p.get("pair") else f"손절 {p['stop']:,.2f} · 1차 {p['t1']:,.2f}" if p["stop"] is not None else
               f"최대손실 = 행사가 폭 − 받은 돈(1R) · 익절 {p['t1']:,.2f}(최대이익 50%)" if p["kind"] in SPREAD else f"최대손실 = 프리미엄 · 익절 {p['t1']:,.2f}")
         pl = p.get("plan") or {}
         pm = f" · R:R {pl['rr']:.2f} 승률 {pl['p_win']:.0%}(손익분기 {pl['p_be']:.0%}) E[R] {pl['ev_r']:+.2f}" if pl.get("rr") is not None else ""
@@ -879,6 +950,7 @@ def main(argv=None):
     a1.add_argument("--hedge-of", dest="hedge_of", help="헤지 대상 포지션 id(쉼표 구분)")
     for k in CHECK:
         a1.add_argument("--" + k.replace("_", "-"), dest=k, type=float if k == "p_win" else str)
+    a1.add_argument("--beta-hedge", dest="beta_hedge", help="페어 진입: auto(독립성 ② 절반 한도 최소) | 비율(부모 베타조정 델타 ×, ≤1.5) — K200F/ES 반대 다리 동시 기록")
     a1.add_argument("--indep", help="독립성 ③: 알파북·PB 픽이 안 쓰는 데이터 1개(저장소 경로 + 무엇을 봤나) — 같은 날 같은 방향일 때 필수")
     a1.add_argument("--why", required=True)
     a1.add_argument("--src", required=True)
@@ -903,6 +975,8 @@ def main(argv=None):
             raise
         save(b)
         print(json.dumps(p, ensure_ascii=False))
+        if p.get("pair_hedge"):
+            print(json.dumps(next(x for x in b["open"] if x["id"] == p["pair_hedge"]), ensure_ascii=False))
     elif a.cmd == "exit-open":
         p = next(x for x in b["open"] if x["id"] == a.id)
         if next_open(p, a.after) is None and p["kind"] not in ("stock", "us_stock", "es", "nq"):
@@ -913,6 +987,8 @@ def main(argv=None):
         p = next(x for x in b["open"] if x["id"] == a.id)
         b["open"] = [x for x in b["open"] if x["id"] != a.id]
         close_pos(b, p, a.px, a.d, "장중 재량 청산 — " + a.why)
+        for h in close_orphan_pairs(b):
+            print(f"페어 헤지 청산 {h['name']} {h['r']:+.2f}R")
         book_limits(b, datetime.now(KST).strftime("%Y-%m-%d"))
         save(b)
         print(f"청산 {p['name']} {p['r']:+.2f}R")

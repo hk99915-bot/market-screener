@@ -319,3 +319,62 @@ def test_other_books_reads_alphabook_and_pb(tmp_path, monkeypatch):
     monkeypatch.setattr(H, "ROOT", tmp_path)
     o = OTHER_BOOKS("KR", "2026-10-24")
     assert {(x["book"], x["code"], x["dir"]) for x in o} == {("알파북", "033780", 1), ("알파북", "012030", 1), ("PB🔥", "252670", -1)}
+
+
+# ── 페어 진입(10/24 겸이 "롱이랑 헤지를 한 번에", req-hf-a1a96e88) ──
+def test_pair_auto_passes_net_beta_and_links(monkeypatch):
+    monkeypatch.setattr(H, "other_books", lambda market, today: AB_LONG)
+    b = _b()
+    with pytest.raises(H.IndepReject, match="--beta-hedge auto"):          # 안내 문구
+        H.add(b, _a(indep="data/deriv/daily.csv 베이시스"))
+    p = H.add(b, _a(indep="data/deriv/daily.csv 베이시스", beta_hedge="auto"))
+    h = b["open"][-1]
+    assert [x["id"] for x in b["open"]] == [p["id"], h["id"]] and p["pair_hedge"] == h["id"]
+    assert h["pair"] and h["hedge_of"] == [p["id"]] and h["kind"] == "fut" and h["side"] == "숏"
+    assert p["independence"]["beta_loss"] <= p["independence"]["half_risk"] + 1e-9
+    assert H.open_risk(b) == pytest.approx(p["risk"])                     # 헤지 다리 = 순 리스크 0
+    # auto = 최소 크기: 한도 바로 위로만(헤지 명목 ≤ 부모 비중)
+    assert h["weight"] <= p["weight"] and h["weight"] * H.INDEP_SHOCK >= p["weight"] * H.INDEP_SHOCK - p["risk"] * H.INDEP_FRAC - 1e-6
+
+
+def test_pair_ratio_and_us_es(monkeypatch):
+    b = _b()
+    p = H.add(b, _a(beta_hedge="0.5"))
+    assert b["open"][-1]["weight"] == pytest.approx(0.5 * p["weight"], abs=1e-5)
+    u = H.add(b, _a(kind="us_stock", code="LRCX", stop=200.0, t1=300.0, beta_hedge="1"))
+    assert b["open"][-1]["kind"] == "es" and b["open"][-1]["hedge_of"] == [u["id"]] and b["open"][-1]["market"] == "US"
+
+
+def test_pair_atomic(monkeypatch):
+    monkeypatch.setattr(H, "other_books", lambda market, today: AB_LONG)
+    b = _b()
+    with pytest.raises(H.IndepReject, match="③독립 데이터"):              # 헤지는 맞췄지만 ③ 실패 → 둘 다 미기록
+        H.add(b, _a(beta_hedge="auto", indep=None))
+    assert b["open"] == []
+    with pytest.raises(SystemExit, match="비율"):
+        H.add(b, _a(beta_hedge="2"))
+    with pytest.raises(SystemExit, match="기대값"):                         # 부모 검증 실패 → 헤지도 없음
+        H.add(b, _a(beta_hedge="1", p_win=0.2))
+    assert b["open"] == []
+
+
+def test_pair_closes_with_parent():
+    b = _b()
+    p = H.add(b, _a(beta_hedge="1"))
+    D["fut"] = 870.0                                                        # 부모 손절 880 아래
+    try:
+        out = H.mark(b)
+    finally:
+        D["fut"] = 900.0
+    assert b["open"] == [] and {x["id"] for x in out} == {p["id"], p["pair_hedge"]}
+    hc = next(x for x in b["closed"] if x.get("pair"))
+    assert hc["exit_why"].startswith("페어 헤지") and hc["r"] > 0           # 숏 헤지는 하락에 이익
+    b2 = _b()
+    H.add(b2, _a(beta_hedge="1"))
+    H.mark(b2)                                                              # 부모 살아 있으면 헤지도 유지(자체 손절 없음)
+    assert len(b2["open"]) == 2
+    b2["open"] = [x for x in b2["open"] if x.get("pair")]                    # close-now 와 같은 경로
+    assert len(H.close_orphan_pairs(b2)) == 1 and b2["open"] == []
+    b3 = _b()
+    H.add(b3, _a(beta_hedge="1"))
+    assert any("페어 헤지 — 부모 청산 때 같이" in x for x in H.show(b3))
