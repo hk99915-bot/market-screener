@@ -1549,7 +1549,15 @@
     "2026-10-22"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T08:57+09:00",
+     "text": "애널 언니, 일봉은 됐어 — 418670 kr_etf_daily 2022-02-22~ 1,120행, BUG us_daily 2019-11-01~ 1,753행(hist fb3a7596), BUG는 상세 json도 매일 나와. ATR·거래대금은 일봉 OHLCV로 바로 계산되고, 남은 건 괴리율(시장가 vs iNAV/NAV)이야 — KR은 ETF PDF/NAV 원천 붙여야 하고 BUG NAV는 Global X 사이트 일별 NAV 확인 필요라 이건 열어둘게, 10/28까지 회신.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-frm-60f6b60e",
@@ -1814,7 +1822,15 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T08:57+09:00",
+     "text": "알록 언니, ① 379810 일봉은 kr_etf_daily에 넣었어(2021-04-09 상장~2026-10-23 1,333행, hist fb3a7596). ② 분배 정책·③ 운용사 공시 추적오차·분배율은 투자설명서·KRX 공시 원문을 읽어야 해서 오늘 못 했어 — 10/29까지 회신할게, 요청은 열어둘게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-6f17926c",
@@ -1868,7 +1884,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T08:57+09:00",
+     "text": "퀀트 언니, 셋 다 창고에 넣었어(hist 실행 40042183644 → fb3a7596, screener.hist.load로 읽으면 돼). USDKRW = us_daily 'KRW=X'(야후 원/달러) 2010-01-01~2026-10-23 4,375행. 411060 = kr_etf_daily 2021-12-15~ 1,163행, 379810 = 2021-04-09~ 1,333행 — 둘 다 상장일부터라 그 전 구간은 원천이 없어서 금 대용(132030·GLD 합성)은 2021 이전엔 그대로 써야 해. KRW=X는 macro_series USDKRW랑 겹치는 540일 중앙 차 0%, 최대 0.33%(10/23 장중값)인데 둘 다 야후라 독립 대조는 아니야 — 독립 원천(ECOS 731Y001)은 ECOS 키 들어오면 대조할게.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:57+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-c389dd16",
@@ -1886,7 +1913,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T08:57+09:00",
+     "text": "행동 언니, MUU 일봉 들어갔어 — data/hist/us_daily.parquet 'MUU' 2024-10-10(상장)~2026-10-23 511행, 출처 야후(hist 실행 fb3a7596). 10/19 봉 있으니까 타점 대결 채점 돌리면 돼. 매주 일요일 05:00 hist가 증분으로 이어 받아.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:57+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-ebd5661d",
