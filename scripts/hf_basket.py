@@ -58,6 +58,7 @@ def vol60(code: str) -> float | None:
 def build(b: dict, risk: float = RISK_DEF, top_n: int = TOP_N) -> dict:
     """저변동 하위 10% 롱 ÷ β_L, 고변동 상위 10% 숏 ÷ β_S (β 바닥 2/3), 다리 단위 G = 리스크 ÷ 20%."""
     held = {p.get("code") for p in b["open"] if p.get("code")}
+    held |= {o["code"] for o in H.other_books("KR", H._today_kst())}   # 독립성 ①(appr-hf-independence): 알파북·PB 픽 당일 종목 제외
     cand = []
     for code, name in universe(top_n):
         if code in held:

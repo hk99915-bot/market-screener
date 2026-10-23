@@ -29,6 +29,7 @@ def _env(monkeypatch):
     monkeypatch.setattr(H, "adv_krw", lambda kind, c: 1e13)
     monkeypatch.setattr(H, "deriv_last", lambda: dict(D))
     monkeypatch.setattr(H, "bars", lambda m, c: [])
+    monkeypatch.setattr(H, "other_books", lambda market, today: [])
 
 
 def _b():

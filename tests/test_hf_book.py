@@ -1,4 +1,5 @@
 """HF 재량 북(scripts/hf_book.py) — 체크리스트·기대값·컨빅션 크기·헤지 순 리스크·S4 추격 금지·북 손실 한도·보정."""
+import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -7,6 +8,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import hf_book as H  # noqa: E402
+
+OTHER_BOOKS = H.other_books          # autouse 픽스처가 빈 목록으로 바꾸기 전 원본
 
 D = {"date": "2026-10-21", "k200": 900.0, "fut": 900.0, "iv": 0.4}
 U = {"date": "2026-10-20", "spx": 7700.0, "ndx": 26400.0, "iv": 0.18, "usdkrw": 1325.0}
@@ -32,6 +35,7 @@ def _env(monkeypatch):
     monkeypatch.setattr(H, "daily_vol", lambda kind, code, n=20: 0.01)
     monkeypatch.setattr(H, "beta_of", lambda kind, code, n=60: 1.0)
     monkeypatch.setattr(H, "bars", lambda market, code: [])
+    monkeypatch.setattr(H, "other_books", lambda market, today: [])
 
 
 def test_bs_parity_and_delta():
@@ -246,3 +250,72 @@ def test_spread_take_profit_and_expiry():
     finally:
         D["date"] = "2026-10-21"
     assert out and out[0]["exit_why"].startswith("만기") and out[0]["r"] < -0.9                      # 900 < 920 → 0 정산 ≈ −1R
+
+
+# ── 북 독립성(10/24 결재 appr-hf-independence) ──
+AB_LONG = [{"book": "알파북", "code": "033780", "name": "KT&G", "dir": 1}, {"book": "PB🔥", "code": "102110", "name": "TIGER 200", "dir": 1}]
+
+
+def _stock_env(monkeypatch):
+    bars = [{"t": f"2026-10-{i + 1:02d}", "o": 100, "h": 101, "l": 99, "c": 100.0, "v": 1e9} for i in range(20)]
+    monkeypatch.setattr(H, "bars", lambda market, code: bars)
+
+
+def test_indep_same_code_rejected_and_logged(monkeypatch):
+    _stock_env(monkeypatch)
+    monkeypatch.setattr(H, "other_books", lambda market, today: AB_LONG)
+    b = _b()
+    with pytest.raises(H.IndepReject, match="①같은 종목"):
+        H.add(b, _a(kind="stock", code="033780", stop=80.0, t1=130.0, indep="data/deriv/daily.csv 외국인 선물 순매수"))
+    r = b["rejected"][-1]
+    assert r["rule"] == "①같은 종목" and r["code"] == "033780" and not b["open"]
+    p = H.add(b, _a(kind="stock", side="숏", code="033780", stop=120.0, t1=70.0))   # 반대 방향은 겹침 아님 — ③ 없이 통과
+    assert not p.get("consensus")
+
+
+def test_indep_net_beta_cap(monkeypatch):
+    monkeypatch.setattr(H, "other_books", lambda market, today: AB_LONG)
+    b = _b()
+    with pytest.raises(H.IndepReject, match="②순베타"):       # K200F 롱 손절 2.2% → 비중 ≈11% → 순베타 손실 1.1% ≫ 리스크 0.25%의 절반
+        H.add(b, _a(indep="data/deriv/daily.csv 베이시스"))
+    assert b["rejected"][-1]["rule"] == "②순베타"
+    _stock_env(monkeypatch)                                     # 종목 롱 손절 −25%: 순베타 손실 = β1×w×10% = 리스크 × 0.4 ≤ 절반
+    p = H.add(b, _a(kind="stock", code="000001", stop=75.0, t1=140.0, indep="data/deriv/daily.csv 외국인 선물 순매수"))
+    assert p["consensus"] and p["independence"]["beta_loss"] <= p["independence"]["half_risk"]
+
+
+def test_indep_requires_unshared_data(monkeypatch):
+    _stock_env(monkeypatch)
+    monkeypatch.setattr(H, "other_books", lambda market, today: AB_LONG)
+    for bad in (None, "", "reports/committee.json lenses", "느낌상 좋다", "reports/없는파일.json"):
+        b = _b()
+        with pytest.raises(H.IndepReject, match="③독립 데이터"):
+            H.add(b, _a(kind="stock", code="000001", stop=75.0, t1=140.0, indep=bad))
+        assert b["rejected"][-1]["rule"] == "③독립 데이터"
+
+
+def test_indep_hedge_leg_and_other_market_exempt(monkeypatch):
+    b = _b()
+    par = H.add(b, _a(kind="fut", side="숏", stop=920.0, t1=860.0))          # 숏은 롱 두 북과 반대 — 겹침 아님
+    monkeypatch.setattr(H, "other_books", lambda market, today: AB_LONG if market == "KR" else [])
+    hg = H.add(b, _a(kind="fut", stop=880.0, t1=940.0, hedge_of=par["id"]))  # 헤지 다리 면제
+    us = H.add(b, _a(kind="es", stop=7550.0, t1=8000.0))                    # 미장엔 다른 북 노출 없음
+    assert not hg.get("consensus") and not us.get("consensus")
+
+
+def test_direction_of_options_and_spreads():
+    assert H.direction({"kind": "put", "side": "롱"}) == -1 and H.direction({"kind": "spx_call", "side": "롱"}) == 1
+    assert H.direction({"kind": "spread", "side": "롱", "k_long": 900, "k_short": 950}) == 1     # 불 콜(데빗)
+    assert H.direction({"kind": "spread", "side": "롱", "k_long": 900, "k_short": 850}) == -1    # 베어 풋(데빗)
+
+
+def test_other_books_reads_alphabook_and_pb(tmp_path, monkeypatch):
+    (tmp_path / "reports").mkdir()
+    (tmp_path / "reports" / "alphabook.json").write_text(json.dumps({"books": {"KR": {"positions": [{"code": "033780", "name": "KT&G"}],
+                                                                                  "pending": [{"code": "012030", "name": "DB"}]}}}))
+    (tmp_path / "reports" / "decisions.json").write_text(json.dumps({"items": [
+        {"kind": "entry", "date": "2026-10-24", "picks": {"PB🔥": {"ticker": "252670", "name": "KODEX 200선물인버스2X"}, "PB": {"cash": True}}},
+        {"kind": "entry", "date": "2026-10-23", "picks": {"PB🔥": {"ticker": "102110", "name": "TIGER 200"}}}]}, ensure_ascii=False))
+    monkeypatch.setattr(H, "ROOT", tmp_path)
+    o = OTHER_BOOKS("KR", "2026-10-24")
+    assert {(x["book"], x["code"], x["dir"]) for x in o} == {("알파북", "033780", 1), ("알파북", "012030", 1), ("PB🔥", "252670", -1)}

@@ -21,6 +21,11 @@ S&P 옵션 = 블랙숄즈(σ = VIX/100) — 옵션은 실제 호가 아님(근�
 - 국장 '거래량 3배 + 20일 신고가' 신호 0~2일 안 종목 추격 롱 금지(reports/studies/2026-10-21_hf_desk_signals.md S4).
 - 북 손실 한도: 고점 대비 −3% → 신규 금지(총노출 절반 권고), −5% → 전량 정리·14일 정지, 최근 5거래일 −2% → 신규 금지.
 - 손절은 종가 기준, 갭(시가가 이미 손절 밖)이면 시가 체결로 기록. 옵션 매도 금지.
+- 북 독립성(10/24 겸이 결재 appr-hf-independence, 근거 reports/verify_weekly/2026-10-23.md H4 — 3북 같은 방향 7/7): 신규가 같은 날
+  같은 시장의 알파북(보유·대기 주문)·PB 픽(decisions.json PB·PB🔥, 그날 진입)과 같은 방향이면 ① 같은 종목 금지
+  ② 재량 북 그 시장 순베타 손실(베타조정 델타 노출 × 지수 −10% 충격) ≤ 그 시장 열린 리스크 절반 — 넘으면 K200F/ES 숏 먼저
+  ③ --indep 에 두 북이 안 쓰는 데이터 1개(저장소 경로, committee.json·tradeplan·alphabook·decisions.json 단독 불가). 헤지 다리는 면제.
+  탈락은 사유와 함께 reports/hf_discretion.json rejected 에 남기고, 통과한 겹침 진입은 consensus=True(채점 '합의 노출' 분리용).
 """
 from __future__ import annotations
 
@@ -53,6 +58,10 @@ OPT = ("put", "call", "spx_put", "spx_call")
 US = ("us_stock", "es", "nq", "spx_put", "spx_call", "us_spread")
 SPREAD = ("spread", "us_spread")   # 손실 제한 수직 스프레드(scripts/hf_spread.py) — 국장 코스피200·개별주식옵션 / 미장 SPX·개별주
 US_MULT = {"es": 50, "nq": 20, "spx_put": 100, "spx_call": 100}   # 달러/pt (NQ 는 나스닥 종합으로 근사)
+INDEP_SHOCK = 0.10                 # ② 순베타 손실 충격 = 지수 −10%(scripts/hf_risk.py STRESS '국장 단독 급락'과 같은 크기, 미장도 같게) [가정]
+INDEP_FRAC = 0.5                   # ② 순베타 손실 ≤ 열린 리스크 × 0.5
+INDEP_SHARED = ("committee.json", "tradeplan", "alphabook", "decisions.json", "alpha_sources")   # ③ 두 북이 이미 쓰는 입력
+INVERSE = {"114800", "252670", "SOXS", "SQQQ", "SPXU", "SH", "PSQ", "SDS"}                    # 인버스 = 숏 방향(verify_weekly 와 같은 목록)
 CHECK = ("fund", "narrative", "positioning", "macro", "scenarios", "hedge", "kill", "catalyst", "p_win", "p_src")
 CHECK_KO = {"fund": "재무·추정치", "narrative": "뉴스·촉매", "positioning": "거래량·수급·공매도·옵션 내재", "macro": "매크로 관계",
             "scenarios": "시나리오 손익(최악 포함)", "hedge": "헤지", "kill": "논지 붕괴 조건", "catalyst": "다음 촉매",
@@ -382,6 +391,116 @@ def beta_of(kind: str, code: str | None, n: int = 60) -> float:
         return 1.0
 
 
+# ── 북 독립성(10/24 결재 appr-hf-independence) ─────────────────────
+class IndepReject(SystemExit):
+    """독립성 규칙 탈락 — main 이 rejected 기록을 저장한 뒤 종료."""
+
+
+def direction(p: dict) -> int:
+    """시장 방향 부호: 롱 +1·숏 −1, 풋 매수 −1, 스프레드 = 매도 행사가가 매수 행사가보다 높으면 +1(불 콜 데빗·불 풋 크레딧)."""
+    if p["kind"] in SPREAD:
+        return 1 if p["k_short"] > p["k_long"] else -1
+    s = 1 if p["side"] == "롱" else -1
+    return -s if p["kind"] in ("put", "spx_put") else s
+
+
+def other_books(market: str, today: str) -> list[dict]:
+    """같은 날 같은 시장의 다른 두 북 노출 — 알파북(보유·대기 주문, 롱 전용) + PB 픽(decisions.json 그날 entry 의 PB·PB🔥)."""
+    out = []
+    try:
+        ab = json.loads((ROOT / "reports" / "alphabook.json").read_text(encoding="utf-8"))["books"].get(market) or {}
+        for x in list(ab.get("positions") or []) + list(ab.get("pending") or []):
+            out.append({"book": "알파북", "code": x["code"], "name": x.get("name"), "dir": 1})
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        dec = json.loads((ROOT / "reports" / "decisions.json").read_text(encoding="utf-8"))
+        for it in dec.get("items") or []:
+            if it.get("kind") != "entry" or it.get("date") != today:
+                continue
+            for who in ("PB", "PB🔥"):
+                pk = (it.get("picks") or {}).get(who) or {}
+                t = pk.get("ticker")
+                if not t or ("KR" if t[:1].isdigit() else "US") != market:
+                    continue
+                inv = t in INVERSE or "인버스" in (pk.get("name") or "")
+                out.append({"book": who, "code": t, "name": pk.get("name"), "dir": -1 if inv else 1})
+    except Exception:  # noqa: BLE001
+        pass
+    return out
+
+
+def net_beta_loss(b: dict, market: str, extra: dict | None = None) -> float:
+    """그 시장 재량 북 순베타 노출(베타조정 델타, 헤지 다리·바스켓 포함) × 지수 충격 — 부호 있음(+ = 시장 하락 때 손실)."""
+    import hf_risk as R
+    d, u = deriv_last(), us_last()
+    ps = [p for p in b["open"] if (p.get("market") or "KR") == market] + ([extra] if extra else [])
+    nb = 0.0
+    for p in ps:
+        try:
+            ex = R.exposure(p, d, u)
+        except Exception:  # noqa: BLE001
+            ex = direction(p) * (p.get("weight") or 0)
+        nb += ex * R.beta(p)
+    if market == "KR":
+        nb += sum(x.get("net_beta") or 0 for x in (b.get("baskets") or {}).get("open") or [])
+    return nb * INDEP_SHOCK
+
+
+def market_risk(b: dict, market: str, extra: dict | None = None) -> float:
+    ids = _open_ids(b)
+    r = sum(counted_risk(p, ids) for p in b["open"] if (p.get("market") or "KR") == market) + (extra["risk"] if extra else 0)
+    if market == "KR":
+        r += sum(x["risk"] for x in (b.get("baskets") or {}).get("open") or [])
+    return r
+
+
+def indep_source_ok(txt: str | None) -> str | None:
+    """③ 두 북이 안 쓰는 데이터 — 저장소에 있는 경로 1개 이상, 공유 입력(INDEP_SHARED)만 적으면 불가. 문제면 사유 문자열."""
+    if not txt or not str(txt).strip():
+        return "--indep 빈 칸"
+    toks = [t.strip(" ,;()[]·") for t in str(txt).split()]
+    paths = [t for t in toks if "/" in t or t.endswith((".json", ".csv", ".md"))]
+    own = [t for t in paths if not any(s in t for s in INDEP_SHARED) and (ROOT / t.split("#")[0]).exists()]
+    if not own:
+        return f"--indep 에 두 북이 안 쓰는 저장소 데이터 경로가 없음(공유 입력 {', '.join(INDEP_SHARED)} 단독 불가): {txt}"
+    return None
+
+
+def _reject(b: dict, p: dict, rule: str, why: str, today: str):
+    b.setdefault("rejected", []).append({"d": today, "at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "kind": p["kind"], "code": p.get("code"),
+                                         "name": p.get("name"), "side": p["side"], "rule": rule, "why": why})
+    b["rejected"] = b["rejected"][-50:]
+    raise IndepReject(f"독립성 {rule} 탈락 — {why} (appr-hf-independence)")
+
+
+def independence(b: dict, p: dict, a, today: str | None = None, others: list[dict] | None = None) -> dict | None:
+    """같은 날 같은 방향 겹침이면 ①②③ 검사. 헤지 다리는 면제(순베타를 줄이는 쪽)."""
+    if p.get("hedge_of"):
+        return None
+    today = today or _today_kst()
+    mk = p.get("market") or "KR"
+    others = other_books(mk, today) if others is None else others
+    dr = direction(p)
+    same = [o for o in others if o["dir"] == dr]
+    if not same:
+        return None
+    books = sorted({o["book"] for o in same})
+    code = p.get("und") if p["kind"] in SPREAD else p.get("code")
+    dup = [o for o in same if o["code"] == code]
+    if dup:
+        _reject(b, p, "①같은 종목", f"{code} {p.get('name', '')} — {', '.join(o['book'] for o in dup)} 와 같은 날 같은 방향", today)
+    loss, half = net_beta_loss(b, mk, p) * dr, INDEP_FRAC * market_risk(b, mk, p)
+    if loss > half + 1e-12:
+        hx = "K200F 숏" if mk == "KR" else "ES 숏"
+        _reject(b, p, "②순베타", f"{mk} 순베타 손실(지수 {INDEP_SHOCK:.0%} 충격) {loss * 100:.3f}% > 열린 리스크 절반 {half * 100:.3f}% — "
+                f"{hx}로 순베타를 먼저 낮추거나 크기를 줄여서", today)
+    bad = indep_source_ok(getattr(a, "indep", None))
+    if bad:
+        _reject(b, p, "③독립 데이터", bad, today)
+    return {"books": books, "beta_loss": round(loss, 5), "half_risk": round(half, 5), "indep": a.indep}
+
+
 # ── 진입 ──────────────────────────────────────────────────────
 def checklist(a) -> dict:
     miss = [CHECK_KO[k] for k in CHECK if getattr(a, k, None) in (None, "")]
@@ -518,6 +637,9 @@ def add(b: dict, a) -> dict:
         p.update(weight=round(w, 4), risk=round(w * stop_pct, 5))
     p["beta"] = (1.0 if p.get("und") in ("K200", "SPX") else beta_of("stock" if a.kind == "spread" else "us_stock", p["und"])) if a.kind in SPREAD \
         else beta_of(a.kind, getattr(a, "code", None))
+    ov = independence(b, p, a)
+    if ov:
+        p.update(consensus=True, independence=ov)
     p["days"] = 0
     p["last"] = p["entry"]
     b["open"].append(p)
@@ -757,6 +879,7 @@ def main(argv=None):
     a1.add_argument("--hedge-of", dest="hedge_of", help="헤지 대상 포지션 id(쉼표 구분)")
     for k in CHECK:
         a1.add_argument("--" + k.replace("_", "-"), dest=k, type=float if k == "p_win" else str)
+    a1.add_argument("--indep", help="독립성 ③: 알파북·PB 픽이 안 쓰는 데이터 1개(저장소 경로 + 무엇을 봤나) — 같은 날 같은 방향일 때 필수")
     a1.add_argument("--why", required=True)
     a1.add_argument("--src", required=True)
     a2 = sp.add_parser("exit-open", help="다음 봉 시가 청산 예약(주식·es·nq)")
@@ -773,7 +896,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     b = load()
     if a.cmd == "add":
-        p = add(b, a)
+        try:
+            p = add(b, a)
+        except IndepReject:
+            save(b)                                    # 탈락 사유 기록(rejected)은 남긴다
+            raise
         save(b)
         print(json.dumps(p, ensure_ascii=False))
     elif a.cmd == "exit-open":
