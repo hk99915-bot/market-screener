@@ -112,6 +112,7 @@ SHIM = """<script>
     getUsAccum: () => get('reports/us_accum.json'),
     getCooldown: () => get('ops/cooldown.json'),
     getRenego: () => get('ops/renego.json'),
+    getPrivate: () => Promise.resolve(''),   // 🔒 비공개 사담방은 GAS(PRIVATE_TOKEN)에서만 — 공개 Pages 엔 없음
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };

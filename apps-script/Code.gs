@@ -144,3 +144,14 @@ function getAccum() { return raw_('reports/accum.json'); }   // KR 매집 스캔
 function getUsAccum() { return raw_('reports/us_accum.json'); }   // US 매집 흔적 (screener/us_accum.py) — contracts.py 등록
 function getCooldown() { return raw_('ops/cooldown.json'); }   // 결재 #14 포상·장외 매도 시각 (모의 베팅 30분 쿨다운 카운트다운)
 function getRenego() { return raw_('ops/renego.json'); }   // 재협상 카운터 (규칙 id·날짜·횟수만) — 주문표 ⛔ '재협상 2회째' + 사유 칸
+// 🔒 비공개 사담방 (10/23 겸이 "비공개사담방") — pb-private 의 허용 목록 파일만 읽는다. 스크립트 속성 PRIVATE_TOKEN(pb-private Contents 읽기 전용 PAT) 없으면 빈 문자열.
+function getPrivate(name) {
+  const OK = { chat: 'chat/private_chat.json' };
+  const path = OK[name];
+  const token = PropertiesService.getScriptProperties().getProperty('PRIVATE_TOKEN');
+  if (!path || !token) return '';
+  const res = UrlFetchApp.fetch('https://raw.githubusercontent.com/hk99915-bot/pb-private/main/' + path, {
+    muteHttpExceptions: true, headers: { Authorization: 'token ' + token },
+  });
+  return res.getResponseCode() === 200 ? res.getContentText() : '';
+}
