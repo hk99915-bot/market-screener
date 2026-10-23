@@ -43,7 +43,7 @@ def test_prevT_no_same_day_half_rejudge():
     mod.step_prevT(p_fix, rule, 15.0, 1.0, 0.995, 0.995, 1.0, 0.0)
     mod._ORIG_STEP(p_orig, rule, 15.0, 1.0, 0.995, 0.995, 1.0, 0.0)
     assert abs(p_fix.T - 10.5 * 0.75) < 1e-9          # 후반: 종가 > 별지점−0.01% 라 매수 없음
-    assert p_orig.T > p_fix.T                          # 원 엔진은 전반으로 재판정해 평단 LOC ½ 매수(+0.5)
+    assert abs(p_orig.T - p_fix.T) < 1e-9              # 10/23 엔진 본체가 T0 로 고쳐져(검증 요청) 원 엔진도 같은 날 재판정 안 함
     assert L.step is mod._ORIG_STEP                    # 컨텍스트 밖에서는 원 엔진 그대로
 
 

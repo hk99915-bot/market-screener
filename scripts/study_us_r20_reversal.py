@@ -23,6 +23,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "reports/studies/2026-10-23_us_r20_reversal.json"
 H, LO, HI, SPLIT = 4, -0.03, 0.05, "2019-12-31"
+STRESS = {"2020-02~04": ("2020-02-15", "2020-04-30"), "2022": ("2022-01-01", "2022-12-31")}   # 등록 밖 참고
 
 
 def p_one(t: float, sign: int) -> float:
@@ -68,9 +69,10 @@ def run(files: list[str]) -> dict:
         s = g[k]
         isx, oos = s[s.index <= SPLIT], s[s.index > SPLIT]
         r = {"name": name, "all": summarize(s, sign), "IS": summarize(isx, sign), "OOS": summarize(oos, sign)}
-        p, om = r["all"].get("p_one", 1), r["OOS"].get("mean", 0) * sign
-        same = r["IS"].get("mean", 0) * sign > 0 and om > 0
-        r["grade"] = "A" if p < 0.025 and same else "B" if p < 0.025 else "C" if p < 0.10 else "F"
+        p = r["all"].get("p_one", 1)
+        # 등급 상한 B: 유니버스가 현재 상장 종목(생존편향)·하락장 구간은 등록 밖 참고(아래 stress)·비용 미반영
+        r["grade"] = "B" if p < 0.025 else "C" if p < 0.10 else "F"
+        r["stress_mean_pct"] = {nm: round(float(s[a:b].mean()) * 100, 3) for nm, (a, b) in STRESS.items() if len(s[a:b])}
         out["H"][k] = r
     return out
 

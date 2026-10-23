@@ -210,6 +210,7 @@ def step(p: Pos, rule: dict, base: float, prev_close: float, close: float, high:
     left = N - p.T
     unit = (p.cash / left if left > 0 else 0.0) if rule["unit"] == "cash" else p.seed / N
     avg0 = p.avg
+    T0 = p.T                                         # 주문은 당일 매도 전 T 로 정해진다(매도 뒤 T 로 같은 날 재판정 = 종가 정보 누수, 검증 10/21)
     # 매도: 지정가(장중 고가) → LOC 쿼터(종가)
     sold_tgt = high >= tgt
     if sold_tgt:
@@ -224,7 +225,7 @@ def step(p: Pos, rule: dict, base: float, prev_close: float, close: float, high:
         return None
     # 매수
     star_buy = star - 0.01 * star / 100              # 별지점 −0.01 (가격 수준 무관하게 0.01% 로 근사)
-    if p.T < N / 2:
+    if T0 < N / 2:
         if close <= avg0:
             _buy(p, unit / 2, close, fee)
             p.T += 0.5
