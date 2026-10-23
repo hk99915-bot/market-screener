@@ -1616,10 +1616,21 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:55"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "SOXX",
+     "name": "iShares Semiconductor ETF",
+     "notional": 3000000.0,
+     "entry": "open",
+     "exit": "same_close",
+     "by": "공격 PB",
+     "at": "21:55"
     }
    },
    "basis": {
@@ -1630,6 +1641,137 @@
      "VIX 19.03",
      "나스닥 26,009 (-2.60%)"
     ]
+   },
+   "pb_view": {
+    "why": "PB 현금 유지. S&P500 7,663(−1.2%)이 20일 저점(약세 전환선) 7,652 바로 위(−0.2%)라 방향 판정 전 단계, 운용회의 결론 '신규 행동 없음'. TOP1 후보 E[R] +0.10R 로 기준선 +0.12R 미달, 매수 후보 정렬은 퀀트 검정상 가격 확인 필터 근거 없음(10/23). 미 10년 금리 20일 −21bp 는 우호이나 단독 진입 근거로 쓰지 않음. 재진입 조건: 7,652 이탈 후 종가 회복 또는 5일 고점 7,757 돌파.",
+    "lines": [
+     "S&P500 7,663, 20일 저점 7,652 대비 −0.2%, 5일 고점 7,757, 52주 고점 7,819.",
+     "VIX 19.0, 미 10년 4.95%(20일 −21bp), 운용회의 🟡 지켜보기·박스권 63%.",
+     "전일 SOX −6.72%, 장비·광통신 −11~12% — 업종 쏠림 하락.",
+     "레드팀: 7,652 이탈이 확정되면 약세 전환 신호라 현금 유지가 옳지만, 이탈 없이 반등하면 반발 첫날을 놓친다."
+    ],
+    "conviction": "낮음",
+    "at": "21:55",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 약세 전환선 근접, 후보 기대값 기준선 미달"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "신규 진입 불가 — 개인 게이트 satellite_cap·frm_limits(반도체 신규) fail, 위성 해금 전."
+    },
+    "views_asof": "2026-10-23 19:23",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 1/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 6 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 1회 · 5일 초과 +0.5%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 8건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "공격 PB 매수. 전일 필라델피아반도체 −6.72%·LRCX −11.8% 등 장비주 투매 다음 날 단기 반발 겨냥(1개월 단기 반전 효과 — 퀀트 10/23 장기 검정에서 20일 하락 종목이 우세). 손절 −3%, 목표 +4%, 손익비 1.33. 당일 반발 승률은 검증전. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.04,
+      "stop": -0.03,
+      "rr": 1.33,
+      "win_rate": null,
+      "n": null,
+      "basis": "급락 다음 날 반발(검증전)·단기 반전(퀀트 10/23 참고)"
+     }
+    }
    }
   }
  ],
