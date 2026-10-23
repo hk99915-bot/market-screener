@@ -3570,9 +3570,31 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 .mgt{font-size:10.5px;color:var(--muted);margin-left:6px}
 .mgq{font-size:11.5px;color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
 .mgsys{text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0;white-space:normal}
+#mgfab{position:fixed;right:16px;bottom:16px;z-index:30;width:56px;height:56px;border-radius:50%;border:0;background:var(--amber);color:#000;font-size:24px;cursor:pointer;box-shadow:0 4px 18px #000a}
+#mgpop{position:fixed;right:16px;bottom:84px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:#0a0a0a;border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
+#mgpop .mgph{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:#111;border-bottom:1px solid var(--line);cursor:move;touch-action:none}
+#mgpop .mgph button{margin-left:auto;min-width:40px;min-height:40px;background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
+#mgpop .mgpb{flex:1;overflow:auto;padding:6px}
+#mgpop .grid{display:block}#mgpop .p h2{display:none}#mgpop .mgbox{max-height:none}
+@media (max-width:600px){#mgpop{right:0;left:0;bottom:0;width:100vw;height:86vh}}
+.mgpf .bn{height:120px;background-size:cover;background-position:center}
 </style>
 <script>
-let MG=null, MGS='live', MGD='all', MGP=null;
+let MG=null, MGS='live', MGD='all', MGP=null, MGPOP=false;
+/* 💬 팝업 채팅방(10/23 겸이 "사내톡이 팝업 채팅방처럼 열리게") — 모든 탭 오른쪽 아래 버튼 → 떠 있는 창에 같은 사내톡(msgView). 사내톡 탭 안에선 탭 그대로. */
+function mgRe(load){ if(MGPOP) mgPopFill(); else if(!load||view==='msg') render(); }
+function mgPopFill(){ const w=document.getElementById('mgpop'); if(w) w.querySelector('.mgpb').innerHTML=msgView(); }
+function mgPop(open){ let w=document.getElementById('mgpop');
+  if(!open||view==='msg'){ if(w) w.remove(); MGPOP=false; return; }
+  if(!w){ w=document.createElement('div'); w.id='mgpop'; w.setAttribute('role','dialog'); w.setAttribute('aria-label','사내톡');
+    w.innerHTML='<div class="mgph"><b>💬 사내톡</b><span class="mu" style="font-size:11px">끌어서 옮기기</span><button type="button" aria-label="닫기">×</button></div><div class="mgpb"></div>';
+    document.body.appendChild(w); w.querySelector('.mgph button').onclick=()=>mgPop(false);
+    const h=w.querySelector('.mgph'); h.onpointerdown=e=>{ if(e.target.closest('button')||innerWidth<=600) return; const r=w.getBoundingClientRect(), dx=e.clientX-r.left, dy=e.clientY-r.top;
+      const mv=ev=>{ w.style.left=Math.max(0,Math.min(innerWidth-r.width,ev.clientX-dx))+'px'; w.style.top=Math.max(0,Math.min(innerHeight-60,ev.clientY-dy))+'px'; w.style.right='auto'; w.style.bottom='auto'; };
+      const up=()=>{ removeEventListener('pointermove',mv); removeEventListener('pointerup',up); }; addEventListener('pointermove',mv); addEventListener('pointerup',up); }; }
+  MGPOP=true; mgPopFill(); }
+setTimeout(()=>{ if(document.getElementById('mgfab')) return; const b=document.createElement('button'); b.id='mgfab'; b.type='button'; b.title='사내톡'; b.setAttribute('aria-label','사내톡 열기'); b.textContent='💬';
+  b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); }; document.body.appendChild(b); },0);
 const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스',realestate:'부동산',scribe:'기록',household:'내무','겸이':'겸이'};
 const MG_DOT={open:'var(--amber)',promoted:'var(--dn)',done:'var(--up)'};
 const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
@@ -3580,8 +3602,34 @@ function mgNm(k){ return MG_NM[k]||k||'?'; }
 function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%360; return h; }
 const MG_IMG='https://raw.githubusercontent.com/hk99915-bot/market-screener/main/assets/avatars/';   // 프로필 사진(겸이가 GPT 로 만들어 올림, assets/avatars/<키>.png) — 없으면 이니셜 원
 function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'var(--amber)':`hsl(${mgHue(k)} 45% 62%)`;
-  return `<div class="mgav" aria-hidden="true" style="background:${bg};overflow:hidden"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()" onclick="mgZoom(this.src)"></div>`; }
+  return `<div class="mgav" role="button" tabindex="0" title="프로필" data-mgp="${esc(k)}" style="background:${bg};overflow:hidden;cursor:pointer"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()"></div>`; }
 function mgZoom(src){ const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);display:grid;place-items:center;z-index:99;cursor:zoom-out'; o.innerHTML=`<img src="${src}" alt="" style="width:min(80vw,420px);border-radius:12px">`; o.onclick=()=>o.remove(); document.body.appendChild(o); }
+
+/* 👥 프로필 창 (10/23 겸이 "누나들 프로필 다 볼 수 있게, 프로필 창도") — msgr_feed.profiles(CHARACTERS.md 표 + 신설 데스크) */
+function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) return;
+  const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.86);display:grid;place-items:center;z-index:99;padding:16px';
+  const bg=`url('${MG_IMG}bg/${encodeURIComponent(k)}.jpg') center/cover no-repeat, ${P.bg||'linear-gradient(135deg,#222,#444)'}`;
+  o.innerHTML=`<div class="mgpf" style="background:#111;border:1px solid var(--line);max-width:420px;width:100%;max-height:92vh;overflow:auto;white-space:normal;position:relative">
+    <button type="button" data-x style="position:absolute;right:6px;top:6px;z-index:2;min-height:40px;min-width:40px;background:#0008;border:0;border-radius:50%;color:#fff;font-size:20px;cursor:pointer" aria-label="닫기">×</button>
+    <div class="bn" style="background:${esc(bg)}"></div>
+    <img src="${MG_IMG}${encodeURIComponent(k)}.png" alt="" style="display:block;width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #111;margin:-60px auto 0;position:relative;background:#222" onerror="this.style.visibility='hidden'">
+    <div style="padding:6px 14px 14px;text-align:center">
+    <div style="font-size:18px"><b>${esc(P.name)}</b> <span class="mu" style="font-size:13px">${esc(P.dept)} · ${P.age}세</span></div>
+    ${P.msg?`<div style="margin-top:4px;font-size:14px">“${esc(P.msg)}”</div>`:''}
+    ${P.bgm?`<div class="mu" style="margin-top:4px;font-size:12px">🎵 ${esc(P.bgm)}</div>`:''}
+    <div style="text-align:left;margin-top:10px;font-size:13.5px;line-height:1.6">${esc(P.line)}</div>
+    ${P.hobby?`<div style="text-align:left;margin-top:4px;font-size:12.5px"><span class="am">취미</span> ${esc(P.hobby)}</div>`:''}
+    ${P.role?`<div style="text-align:left;margin-top:4px;font-size:12.5px"><span class="am">담당</span> ${esc(P.role)}</div>`:''}
+    <div class="mu" style="text-align:left;margin-top:8px;font-size:12px">받은 요청(진행 중) ${P.open_in} · 보낸 요청 ${P.sent} · 직접 답장 ${P.replies}</div>
+    ${P.last_chat?`<div style="text-align:left;margin-top:6px;font-size:12.5px;border-left:2px solid var(--amber);padding-left:8px">최근 사담: ${esc(P.last_chat)}</div>`:''}
+  </div></div>`;
+  o.onclick=e=>{ if(e.target===o||e.target.closest('[data-x]')) o.remove(); }; document.body.appendChild(o); }
+function mgProfGrid(){ const L=(MG&&MG.profiles)||[]; if(!L.length) return '<div class="mgempty">프로필 데이터 없음 — scripts/msgr_feed.py</div>';
+  const by={}; L.forEach(p=>(by[p.dept]=by[p.dept]||[]).push(p));
+  return Object.entries(by).map(([d,ps])=>`<div class="mgday">${esc(d)}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">${ps.map(p=>`<button type="button" data-mgp="${esc(p.key)}" style="text-align:left;background:#0d0d0d;border:1px solid var(--line);color:var(--txt);font:inherit;padding:8px;cursor:pointer;min-width:0;white-space:normal">
+    <img src="${MG_IMG}${encodeURIComponent(p.key)}.png" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover" onerror="this.style.display='none'">
+    <div style="margin-top:4px"><b>${esc(p.name)}</b> <span class="mu" style="font-size:11px">${p.age}</span></div>
+    <div class="mu" style="font-size:11.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.msg||p.line)}</div></button>`).join('')}</div>`).join(''); }
 function mgT(s){ return String(s||'').replace('T',' ').slice(0,16); }
 /* 필터 — 순수 함수. st: live(진행 중+마감 지남)·voc(VOC 회신 있는 것)·done·all */
 function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||(st==='live'&&x.status!=='done')||(st==='voc'&&(x.replies||[]).some(p=>p.voc))||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk)); }
@@ -3597,17 +3645,17 @@ function mgEvents(items,chat){ const ev=(chat||[]).map(c=>({t:c.at||'',k:'chat',
   }
   ev.sort((a,b)=>String(a.t).localeCompare(String(b.t))); return ev; }
 function mgBub(who,to,txt,t,quote,mine){ return `<div class="mgb2${mine?' me':''}">${mgAv(who)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(who))}</b>${to?`<span class="ar">→</span>${esc(mgNm(to))}`:''}<span class="mgt">${esc(mgT(t).slice(11))}</span></div>${quote?`<div class="mgq">↳ ${esc(quote)}</div>`:''}<div class="mgbub">${esc(txt)}</div></div></div>`; }
-function seg0(S){ return [['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체'],['priv','🔒 비공개 사담']]
+function seg0(S){ return [['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체'],['priv','🔒 비공개 사담'],['prof','👥 프로필']]
     .map(([k,l])=>`<button class="${MGS===k?'on':''}" data-mgs="${k}">${esc(l)}</button>`).join(''); }
 function sel0(desks){ return `<select class="mgsel" id="mgsel" aria-label="누나 고르기"><option value="all">모든 누나</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`; }
 /* 🔒 비공개 사담방 — pb-private chat/private_chat.json (Code.gs getPrivate, PRIVATE_TOKEN). 공개 Pages 에선 안내만. */
 function mgPrivView(seg,sel){
-  if(MGP===null){ MGP=false; google.script.run.withSuccessHandler(t=>{ try{ MGP=t?JSON.parse(t):{}; }catch(e){ MGP={}; } if(view==='msg') render(); }).withFailureHandler(()=>{ MGP={}; if(view==='msg') render(); }).getPrivate('chat'); }
+  if(MGP===null){ MGP=false; google.script.run.withSuccessHandler(t=>{ try{ MGP=t?JSON.parse(t):{}; }catch(e){ MGP={}; } mgRe(1); }).withFailureHandler(()=>{ MGP={}; mgRe(1); }).getPrivate('chat'); }
   const C=(MGP&&MGP.chat)||[], by=k=>{ const x=Object.keys(MG_NM).find(q=>MG_NM[q]===k); return x||k; };
   let last='', feed='';
   for(const c of C.filter(c=>MGD==='all'||by(c.by)===MGD||by(c.to)===MGD)){ const d=String(c.at||'').slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
     feed+=`<div class="mgb2 chat">${mgAv(by(c.by))}<div class="mgln"><div class="mgwho"><b>${esc(c.by)}</b>${c.to?`<span class="ar">→</span>${esc(c.to)}`:''}<span class="mgt">${esc(mgT(c.at).slice(11))}</span></div><div class="mgbub">${esc(c.text)}</div></div></div>`; }
-  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; render(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; render(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
+  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
   const empty=(MGP&&MGP._err)?`<div class="mgempty">🔒 사담방 연결 안 됨 — ${esc(MGP._err)} · <a href="https://claude.ai/artifact/5PJEbNYiE4S4apDL1LXvE8" target="_blank">사담방 열기 ↗</a></div>`:MGP===false?'<div class="load">LOADING …</div>':(MGP&&MGP.chat)?'<div class="mgempty">아직 조용해 — 누나들이 루프·라운드 끝에 한마디씩 남겨</div>':'<div class="mgempty">🔒 비공개 사담은 claude.ai 비공개 페이지에서 봐 — <a href="https://claude.ai/artifact/5PJEbNYiE4S4apDL1LXvE8" target="_blank">사담방 열기 ↗</a> (터미널에서 바로 보려면 GAS PRIVATE_TOKEN, 선택)</div>';
   return `<div class="grid"><div class="p c12"><h2>사내톡 · 🔒 비공개 사담<small>pb-private · 겸이만</small></h2><div class="b">
     <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
@@ -3615,12 +3663,15 @@ function mgPrivView(seg,sel){
     <div class="mgbox" id="mgbox">${feed||empty}</div></div></div></div>`;
 }
 function msgView(){
-  if(MG===null){ MG=false; google.script.run.withSuccessHandler(t=>{ try{ MG=t?JSON.parse(t):{}; }catch(e){ MG={}; } if(view==='msg') render(); }).withFailureHandler(()=>{ MG={}; if(view==='msg') render(); }).getMarkdown('msgr_feed'); return '<div class="load">LOADING …</div>'; }
+  if(view==='msg'&&MGPOP) mgPop(false);
+  if(MG===null){ MG=false; google.script.run.withSuccessHandler(t=>{ try{ MG=t?JSON.parse(t):{}; }catch(e){ MG={}; } mgRe(1); }).withFailureHandler(()=>{ MG={}; mgRe(1); }).getMarkdown('msgr_feed'); return '<div class="load">LOADING …</div>'; }
   if(!MG||!MG.items) return '<div class="grid"><div class="p c12"><div class="b mu">사내톡 데이터 없음 — python3 scripts/msgr_feed.py (reports/msgr_feed.md, 매시 team.yml 이 갱신)</div></div></div>';
   const S=MG.status||{}, items=mgFilter(MG.items,MGS,MGD);
   const desks=[...new Set(MG.items.flatMap(x=>[x.from,x.to]))].sort((a,b)=>mgNm(a).localeCompare(mgNm(b),'ko'));
   const seg=seg0(S);
   if(MGS==='priv') return mgPrivView(seg,sel0(desks));
+  if(MGS==='prof'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); document.querySelectorAll('[data-mgp]').forEach(b=>b.onclick=()=>mgProf(b.dataset.mgp)); },0);
+    return `<div class="grid"><div class="p c12"><h2>사내톡 · 👥 프로필<small>${(MG.profiles||[]).length}명 · 사진 탭하면 크게</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgProfGrid()}</div></div></div>`; }
   const sel=sel0(desks);
   let last='', feed='';
   for(const e of mgEvents(items,(MG.chat||[]).filter(c=>MGS!=='done'&&(MGD==='all'||c.by===MGD||c.to===MGD)))){ const d=String(e.t).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
@@ -3631,8 +3682,9 @@ function msgView(){
     else if(e.k==='px') feed+=`<div class="mgsys" title="${esc(e.p.text)}">📝 진행자 기록(${esc(mgNm(e.x.to))} 건) · ${esc(String(e.p.text).slice(0,60))}${String(e.p.text).length>60?'…':''}</div>`;
     else feed+=`<div class="mgsys">✅ ${esc(mgNm(e.x.done_by||e.x.to))} 완료 — ${esc(q)}</div>`;
   }
-  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; render(); });
-    const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; render(); };
+  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); });
+    const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); };
+    document.querySelectorAll('[data-mgp]').forEach(b=>b.onclick=()=>mgProf(b.dataset.mgp));
     const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
   return `<div class="grid"><div class="p c12"><h2>사내톡<small>${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
     <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>

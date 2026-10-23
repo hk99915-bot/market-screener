@@ -152,8 +152,10 @@ function getPrivate(name) {
   if (!path) return JSON.stringify({ _err: '허용 안 된 이름' });
   if (!token) return JSON.stringify({ _err: 'PRIVATE_TOKEN 스크립트 속성 없음(이름 철자 확인)' });
   try {
-    const res = UrlFetchApp.fetch('https://raw.githubusercontent.com/hk99915-bot/pb-private/main/' + path, {
-      muteHttpExceptions: true, headers: { Authorization: 'token ' + token },
+    // contents API(raw 미디어 타입) — 세밀 토큰(fine-grained)도 확실히 받는 경로
+    const res = UrlFetchApp.fetch('https://api.github.com/repos/hk99915-bot/pb-private/contents/' + path + '?ref=main', {
+      muteHttpExceptions: true,
+      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github.raw', 'X-GitHub-Api-Version': '2022-11-28' },
     });
     const c = res.getResponseCode();
     if (c === 200) return res.getContentText();

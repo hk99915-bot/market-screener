@@ -1,0 +1,185 @@
+{
+ "_doc": "사내톡 프로필 꾸미기 — 상태 메시지(msg)·배경(bg: CSS 그라디언트 대체값)·배경사진 프롬프트(bg_prompt)·프로필 뮤직(bgm: 'Artist - Title' 표기만, 음원 재생 없음)·취미(hobby). 10/23 겸이 '각 누나들의 설정에 맞게 각자 프로필, 프로필 메시지, 배경사진, 배경음악 등 알아서 설정'·'좀더 사적인 내용이어도돼'·'배경사진은 증명사진이 아닌 일상사진'. 초안은 사내톡 프로필 패널 에이전트가 각 캐릭터 시트(docs/desk_kb/CHARACTERS.md, HF·UXUI·유지보수는 각 KB 머리말) 기준으로 작성 — 창작 설정이며 데스크 실제 발언 아님, 각 데스크가 자기 줄을 직접 고쳐도 됨. 배경사진은 assets/avatars/bg/<key>.jpg(겸이가 bg_prompt로 생성해 올림), 없으면 bg 그라디언트. 공개 저장소: 개인 금액·건강·연애 금지.",
+ "pb": {
+  "msg": "퇴근길 붕어빵 두 개면 오늘 복기 끝 🐟",
+  "bg": "linear-gradient(135deg,#f6d5c9,#fbe9e1)",
+  "bg_prompt": "Warm small cafe table by a rainy window in a Seoul alley at dusk, latte and a fish-shaped pastry bag, open notebook with pen, soft string lights, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "아이유 - 밤편지",
+  "hobby": "퇴근 후 동네 디저트 탐방"
+ },
+ "cio": {
+  "msg": "주말엔 만년필 필사. 미결정 시 기본값=휴식",
+  "bg": "linear-gradient(135deg,#1f2a44,#3d4f7a)",
+  "bg_prompt": "Quiet Saturday morning desk in a Seoul apartment, fountain pen and ink bottle beside an open hardbound book, neat stack of binders, soft window light, hands only, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Hans Zimmer - Time",
+  "hobby": "만년필 필사"
+ },
+ "alloc": {
+  "msg": "매주 화요일, 같은 카페 같은 자리 같은 라떼.",
+  "bg": "linear-gradient(135deg,#e3dccb,#f4efe4)",
+  "bg_prompt": "Corner seat of a quiet neighborhood cafe in Seoul, the same ceramic latte cup on a wooden table, small potted plant, phone face-down, calm afternoon light, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Brian Eno - An Ending (Ascent)",
+  "hobby": "같은 카페 루틴"
+ },
+ "macro": {
+  "msg": "일요일 신문 스크랩 중. 각주 스티커 새로 삼¹",
+  "bg": "linear-gradient(135deg,#0f3d3e,#4a8f8b)",
+  "bg_prompt": "Sunday kitchen table covered with newspaper clippings, scissors, washi tape and a hand-written monthly calendar, coffee mug, morning sun, hands visible only, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Radiohead - Everything In Its Right Place",
+  "hobby": "신문 스크랩·손 캘린더"
+ },
+ "bonds": {
+  "msg": "퇴근 후엔 뜨개질. 코 하나도 안 빠뜨려.",
+  "bg": "linear-gradient(135deg,#d9dce3,#9aa3b5)",
+  "bg_prompt": "Cozy sofa corner at night with a half-finished grey knitted scarf, yarn balls and needles, warm floor lamp, cup of barley tea, Korean apartment living room, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Bill Evans - Peace Piece",
+  "hobby": "뜨개질"
+ },
+ "realestate": {
+  "msg": "주말엔 골목 산책. 사진은 2차 확인용이에요",
+  "bg": "linear-gradient(135deg,#c8b89a,#efe6d6)",
+  "bg_prompt": "Narrow old Seoul alley with hanok rooftops and brick walls in late afternoon light, seen from a walker's point of view, camera strap in hand, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "자이언티 - 양화대교",
+  "hobby": "골목 산책·건축 사진"
+ },
+ "quant": {
+  "msg": "보드게임 이겨도 실력인지 운인지 표본 부족.",
+  "bg": "linear-gradient(135deg,#0b1d33,#2f6690)",
+  "bg_prompt": "Board game night table from above, dice, wooden tokens and cards, a notebook with tally marks and a small histogram sketch, warm pendant light, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Daft Punk - Harder, Better, Faster, Stronger",
+  "hobby": "보드게임 승률 기록"
+ },
+ "analyst": {
+  "msg": "주말엔 PC 조립. 부품 사랑은 소속감 아님 주의",
+  "bg": "linear-gradient(135deg,#3a1c71,#d76d77)",
+  "bg_prompt": "Weekend desk with an open PC case, unbranded motherboard, memory sticks and screwdriver, hands installing a part, soft daylight, small Seoul studio apartment, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "NewJeans - Ditto",
+  "hobby": "PC 조립"
+ },
+ "derivs": {
+  "msg": "1000피스 퍼즐, 가장자리부터 라벨 붙여 분류 중",
+  "bg": "linear-gradient(135deg,#f0e3c9,#e8c98f)",
+  "bg_prompt": "Half-finished 1000-piece jigsaw puzzle on a wooden table, pieces sorted into labeled trays, desk lamp at night, cup of tea, hands only, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Chopin - Nocturne Op.9 No.2",
+  "hobby": "직소 퍼즐"
+ },
+ "data": {
+  "msg": "라벨기 새로 삼. 냉장고까지 라벨링 완료 ✔",
+  "bg": "linear-gradient(135deg,#d6ebd8,#a8cfae)",
+  "bg_prompt": "Neatly organized pantry shelf with identical glass jars, each with a blank white label, a label maker on the counter, clean morning light, Korean apartment kitchen, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Nujabes - Aruarian Dance",
+  "hobby": "수납 정리·라벨링"
+ },
+ "frm": {
+  "msg": "샌드백은 숫자보다 정직해. 주 3회 출석.",
+  "bg": "linear-gradient(135deg,#2b0a0a,#8e1b1b)",
+  "bg_prompt": "Small boxing gym at night, worn red heavy bag hanging, wrapped gloves resting on a bench, dim warm lights, empty room, Seoul neighborhood, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Billie Eilish - bad guy",
+  "hobby": "복싱"
+ },
+ "behavior": {
+  "msg": "주말엔 탐조. 새도 들뜬 직후에 날아가더라",
+  "bg": "linear-gradient(135deg,#dce6cf,#b9c9a3)",
+  "bg_prompt": "Binoculars and a small field notebook on a wooden bench beside Han River reeds at dawn, egrets in soft mist, quiet and still, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Norah Jones - Don't Know Why",
+  "hobby": "탐조(새 관찰)"
+ },
+ "pm": {
+  "msg": "주말 할 일 3개로 줄임. 그중 하나는 낮잠.",
+  "bg": "linear-gradient(135deg,#5a5a5a,#a0a0a0)",
+  "bg_prompt": "Minimalist campsite in a Korean pine forest at evening, one folding chair, small lantern, enamel mug, short checklist clipped to a table, nobody around, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "혁오 - TOMBOY",
+  "hobby": "미니멀 캠핑"
+ },
+ "ops": {
+  "msg": "등산 짐도 체크리스트로. 하산까지 세야 끝.",
+  "bg": "linear-gradient(135deg,#cfe0ea,#8fb3c9)",
+  "bg_prompt": "Granite mountain trail near Seoul at sunrise, hiker seen from behind with backpack, checklist card tucked in a side pocket, city skyline in morning haze, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Kraftwerk - Computer Love",
+  "hobby": "새벽 등산"
+ },
+ "dev": {
+  "msg": "키보드 스위치 또 바꿈. 이번엔 진짜 마지막임",
+  "bg": "linear-gradient(135deg,#0d1117,#30363d)",
+  "bg_prompt": "Late-night desk with a custom mechanical keyboard and keycap puller, scattered switches, dual monitors glowing with code, instant noodle cup, hands typing, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "The Weeknd - Blinding Lights",
+  "hobby": "기계식 키보드 커스텀"
+ },
+ "scribe": {
+  "msg": "필름카메라로 하루 기록 중. 시각은 꼭 적음 ⏰",
+  "bg": "linear-gradient(135deg,#f5e9d0,#fff6e5)",
+  "bg_prompt": "Film camera on a sunny cafe windowsill in the morning, small notebook with times jotted, film canisters, iced coffee, Seoul street softly blurred outside, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "볼빨간사춘기 - 우주를 줄게",
+  "hobby": "필름카메라 일상 기록"
+ },
+ "edu": {
+  "msg": "원데이클래스 또 신청함. 이번 달 세 개째…",
+  "bg": "linear-gradient(135deg,#f3e6cc,#e9c46a)",
+  "bg_prompt": "Pottery one-day class workshop, hands shaping clay on a spinning wheel, rows of unglazed cups on shelves, warm afternoon light, Seoul studio, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Coldplay - Viva La Vida",
+  "hobby": "원데이클래스 수집"
+ },
+ "eval": {
+  "msg": "방탈출은 힌트 0개. 채점은 나가는 문에서.",
+  "bg": "linear-gradient(135deg,#f2d8de,#e88aa5)",
+  "bg_prompt": "Dimly lit puzzle room with an old wooden chest, brass padlock and a ring of keys on a table, hands holding a key, moody warm spotlight, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "LE SSERAFIM - ANTIFRAGILE",
+  "hobby": "방탈출"
+ },
+ "household": {
+  "msg": "일요일엔 밑반찬. 냉장고도 현금흐름이야.",
+  "bg": "linear-gradient(135deg,#e8e1d3,#c9b79c)",
+  "bg_prompt": "Korean home kitchen counter on Sunday morning, homemade side dishes in glass containers, cutting board, hands packing lids, sunlight through window, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "김광석 - 서른 즈음에",
+  "hobby": "밑반찬 만들기"
+ },
+ "life": {
+  "msg": "6시 러닝·7시 샤워·8시 출근. 블록 지킴 🏃",
+  "bg": "linear-gradient(135deg,#d3f0e1,#57cc99)",
+  "bg_prompt": "Han River running path in Seoul at dawn, empty track curving along the water, bridge in pink morning light, runner's shoes and shadow only, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Avicii - Wake Me Up",
+  "hobby": "새벽 러닝·시간 블록"
+ },
+ "verify": {
+  "msg": "같은 레시피로 두 번 구움. 재현 성공 🍞",
+  "bg": "linear-gradient(135deg,#dde3f0,#a7b4d6)",
+  "bg_prompt": "Two identical loaves of bread cooling side by side on a rack, digital kitchen scale and a written recipe card, flour-dusted counter, soft kitchen light, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Max Richter - On the Nature of Daylight",
+  "hobby": "베이킹(계량 집착)"
+ },
+ "peer": {
+  "msg": "다들 극찬한 영화, 나 혼자 별 두 개 줌.",
+  "bg": "linear-gradient(135deg,#1e3d2f,#4f7c5d)",
+  "bg_prompt": "Empty seats of a small independent cinema in Seoul, screen glowing before the film, a single ticket stub and notebook on an armrest, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Muse - Uprising",
+  "hobby": "독립영화·반대 리뷰"
+ },
+ "audit": {
+  "msg": "주말엔 헌책방. 판본·쪽수 확인하고 삼.",
+  "bg": "linear-gradient(135deg,#d5d5dd,#7d7d8f)",
+  "bg_prompt": "Narrow used bookstore aisle in Seoul with towering stacks of old books, a hand pulling one volume out, dusty afternoon light, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Bach - Cello Suite No.1 in G Major, BWV 1007: Prelude",
+  "hobby": "헌책방 순례"
+ },
+ "hf": {
+  "msg": "클라이밍: 안 잡히면 바로 놓고 다음 홀드.",
+  "bg": "linear-gradient(135deg,#000000,#434343)",
+  "bg_prompt": "Indoor bouldering gym after work, chalked hand reaching for a hold on a steep wall, chalk dust in the air, climber seen from behind, dramatic lighting, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Kendrick Lamar - HUMBLE.",
+  "hobby": "볼더링"
+ },
+ "uxui": {
+  "msg": "전시 가면 작품보다 캡션 위계부터 봄.",
+  "bg": "linear-gradient(135deg,#e9d6f2,#b388eb)",
+  "bg_prompt": "Minimal white art gallery in Seoul, empty bench facing large abstract paintings, small blank wall captions, soft diffused skylight, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "검정치마 - EVERYTHING",
+  "hobby": "전시회 관람"
+ },
+ "maint": {
+  "msg": "화분 물 주기도 알림 걸어 둠. 조용히 마를까봐",
+  "bg": "linear-gradient(135deg,#d6e2d4,#6b8f71)",
+  "bg_prompt": "Small apartment balcony garden in Seoul, rows of potted herbs and succulents, watering can, a phone timer beside a bicycle tool kit, gentle morning light, photorealistic, candid, no people's faces, no text, no logos, 16:9",
+  "bgm": "Fleetwood Mac - Dreams",
+  "hobby": "베란다 식물·자전거 정비"
+ }
+}

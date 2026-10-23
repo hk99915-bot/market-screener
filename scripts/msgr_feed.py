@@ -49,6 +49,45 @@ def round_replies(rounds: Path) -> dict[str, list[dict]]:
     return out
 
 
+NAME2KEY = {"PB": "pb", "CIO": "cio", "자산배분": "alloc", "매크로": "macro", "채권": "bonds", "부동산·대체": "realestate", "퀀트": "quant",
+            "애널": "analyst", "파생": "derivs", "데이터": "data", "리스크(FRM)": "frm", "행동": "behavior", "PM": "pm", "운영": "ops",
+            "개발": "dev", "기록": "scribe", "교육": "edu", "평가": "eval", "내무": "household", "LIFE": "life", "검증": "verify",
+            "피어리뷰": "peer", "감사": "audit"}
+# CHARACTERS.md 표에 없는 데스크(10/21 신설) — 나이는 10/23 프로필 사진 프롬프트 설정, 한 줄은 각 KB 머리말 요약
+EXTRA = [("hf", "HF", "헤지펀드", 34, "피도 눈물도 없는 알파북 운용역 — 숫자로 깔보고 리스크로 증명함"),
+         ("uxui", "UXUI", "운영", 30, "겸이가 핵심 숫자를 몇 초 만에 찾는지 재는 화면 위계 담당"),
+         ("maint", "유지보수", "운영", 31, "멈추거나 늦은 걸 제일 먼저 잡는 SRE — 조용한 실패 사냥꾼")]
+ROLE = {"realestate": "정책·뉴스·서울 상급지/하급지·경기남부 집값·재개발·신도시 트래킹(10/23)",
+        "household": "자산(순자산)·뱅샐·운동 등 숫자 트래킹(10/23)", "life": "코칭 — 목표·실행 점검(10/23)",
+        "edu": "전 데스크 10년차 기준 강화(10/23)"}
+
+
+def profiles(chars: Path) -> list[dict]:
+    """프로필 창용 — docs/desk_kb/CHARACTERS.md '한눈에' 표 + 신설 데스크. 사진은 assets/avatars/<key>.png(탭이 직접 읽음)."""
+    out = []
+    try:
+        for ln in chars.read_text(encoding="utf-8").splitlines():
+            c = [x.strip() for x in ln.strip().strip("|").split("|")]
+            if len(c) == 4 and c[2].isdigit():
+                nm = c[1].replace("*", "")
+                k = NAME2KEY.get(nm)
+                if k:
+                    out.append({"key": k, "name": nm, "dept": c[0], "age": int(c[2]), "line": c[3], "role": ROLE.get(k, "")})
+    except OSError:
+        pass
+    have = {p["key"] for p in out}
+    out += [{"key": k, "name": n, "dept": d, "age": a, "line": l, "role": ROLE.get(k, "")} for k, n, d, a, l in EXTRA if k not in have]
+    # 꾸미기(상태 메시지·배경·프로필 뮤직·취미) — assets/avatars/profiles.json. 배경사진은 탭이 assets/avatars/bg/<key>.jpg 를 직접 읽고 없으면 bg 그라디언트
+    try:
+        deco = json.loads((ROOT / "assets" / "avatars" / "profiles.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        deco = {}
+    for p in out:
+        d = deco.get(p["key"]) or {}
+        p.update({f: d[f] for f in ("msg", "bg", "bgm", "hobby") if d.get(f)})
+    return out
+
+
 def build(ledger: dict, rounds: Path, now: datetime) -> dict:
     rr = round_replies(rounds)
     items = []
@@ -66,7 +105,15 @@ def build(ledger: dict, rounds: Path, now: datetime) -> dict:
     for x in items:
         st[x["status"]] = st.get(x["status"], 0) + 1
     chat = sorted(ledger.get("chat", []), key=lambda c: c.get("at") or "")[-200:]   # 사담(ask.py --chat) 최근 200줄
-    return {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st, "chat": chat,
+    prof = profiles(rounds.parent / "CHARACTERS.md")
+    for p in prof:
+        k = p["key"]
+        p["open_in"] = sum(1 for x in items if x.get("to") == k and x.get("status") != "done")
+        p["sent"] = sum(1 for x in items if x.get("from") == k)
+        p["replies"] = sum(1 for x in items for r in x.get("replies", []) if r.get("by") == k and r.get("voc"))
+        last = [c for c in chat if c.get("by") == k]
+        p["last_chat"] = last[-1]["text"] if last else ""
+    return {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st, "chat": chat, "profiles": prof,
             "n_reply": sum(1 for x in items if x["replies"]),
             "n_voc": sum(1 for x in items for p in x["replies"] if p.get("voc")),
             "items": items}
