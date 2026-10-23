@@ -58,6 +58,8 @@
 </style>
 <script>
 let MG=null, MGS='live', MGD='all', MGP=null, MGPOP=false;
+/* 프사·이름 누르면 프로필 — 문서 전체 위임이라 사내톡 탭·🔒 비공개 사담·💬 팝업 어디서든 (10/23 겸이 "비공개 사내톡에서도 클릭하면 프로필") */
+document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-mgp]'); if(t&&MG&&MG.profiles) mgProf(t.dataset.mgp); });
 /* 💬 팝업 채팅방(10/23 겸이 "사내톡이 팝업 채팅방처럼 열리게") — 모든 탭 오른쪽 아래 버튼 → 떠 있는 창에 같은 사내톡(msgView). 사내톡 탭 안에선 탭 그대로. */
 function mgRe(load){ if(MGPOP) mgPopFill(); else if(!load||view==='msg') render(); }
 function mgPopFill(){ const w=document.getElementById('mgpop'); if(w) w.querySelector('.mgpb').innerHTML=msgView(); }
@@ -149,7 +151,7 @@ function mgPrivView(seg,sel){
   const C=(MGP&&MGP.chat)||[], by=k=>{ const x=Object.keys(MG_NM).find(q=>MG_NM[q]===k); return x||k; };
   let last='', feed='';
   for(const c of C.filter(c=>MGD==='all'||by(c.by)===MGD||by(c.to)===MGD)){ const d=String(c.at||'').slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
-    feed+=`<div class="mgb2 chat">${mgAv(by(c.by))}<div class="mgln"><div class="mgwho"><b>${esc(c.by)}</b>${c.to?`<span class="ar">→</span>${esc(c.to)}`:''}<span class="mgt">${esc(mgT(c.at).slice(11))}</span></div><div class="mgbub">${esc(c.text)}</div></div></div>`; }
+    feed+=`<div class="mgb2 chat">${mgAv(by(c.by))}<div class="mgln"><div class="mgwho"><b data-mgp="${esc(by(c.by))}" style="cursor:pointer">${esc(c.by)}</b>${c.to?`<span class="ar">→</span>${esc(c.to)}`:''}<span class="mgt">${esc(mgT(c.at).slice(11))}</span></div><div class="mgbub">${esc(c.text)}</div></div></div>`; }
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
   if(MGP&&MGP._need_token){ setTimeout(()=>{ const sv=document.getElementById('mgtksv'); if(sv) sv.onclick=()=>{ const v=(document.getElementById('mgtk').value||'').trim(); if(!v) return; try{ localStorage.setItem('pbPrivTok',v); }catch(e){} MGP=null; mgRe(); }; },0);
     feed=`<div class="mgempty" style="white-space:normal;line-height:1.7">🔒 이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
@@ -171,7 +173,7 @@ function msgView(){
   const desks=[...new Set(MG.items.flatMap(x=>[x.from,x.to]))].sort((a,b)=>mgNm(a).localeCompare(mgNm(b),'ko'));
   const seg=seg0(S);
   if(MGS==='priv') return mgPrivView(seg,sel0(desks));
-  if(MGS==='prof'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); document.querySelectorAll('[data-mgp]').forEach(b=>b.onclick=()=>mgProf(b.dataset.mgp)); },0);
+  if(MGS==='prof'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
     return `<div class="grid"><div class="p c12"><h2>사내톡 · 👥 프로필<small>${(MG.profiles||[]).length}명 · 사진 탭하면 크게</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgProfGrid()}</div></div></div>`; }
   const sel=sel0(desks);
   let last='', feed='';
@@ -185,7 +187,7 @@ function msgView(){
   }
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); });
     const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); };
-    document.querySelectorAll('[data-mgp]').forEach(b=>b.onclick=()=>mgProf(b.dataset.mgp));
+   
     const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
   return `<div class="grid"><div class="p c12"><h2>사내톡<small>${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
     <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
