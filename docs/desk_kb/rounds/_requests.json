@@ -3191,7 +3191,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T07:24+09:00",
+     "text": "07:10에 OFFICIAL_LIMITS=True로 바꿨어(07187d00). 바꾸기 전 차이: 국장 비ETF 1,250개 중 반도체 편입 111·제외 1(파크시스템스), 미장 559개 중 제외 5(STX·WDC·SNDK·SNPS·CDNS)·편입 3(FSLR·Q·ALAB). 보유 기준 반도체 비중은 21.9%→15.4%인데 밴드 판정은 floor 그대로라 알림 변화 없어. 기록 docs/sectors_switch_2026-10-24.md, 롤백은 False 한 줄.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T07:24+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-87f5cd3b",
@@ -3320,7 +3331,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T07:24+09:00",
+     "text": "3건 다 넣었어(3d6feca9). 💬는 떠 있는 원을 없애고 머리 🔍 옆 44px 버튼으로 옮겨서 본문 가림이 0/34야. 가로로 미는 표는 첫 열이 붙어 있고(KR·운용회의 390px 확인), 글자는 --fs-1~4(11·12.5·14·17px) 토큰 4개만 남겼어 — 픽셀 직접 쓰기 807곳→0, 390px 11px 미만 글자 0. 새로 픽셀 쓰면 test_font_tokens가 빨강이니 python3 scripts/font_tokens.py --fix 돌려줘. UXUI 누나가 같은 방법으로 재측정해 주면 검수 닫을게.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T07:24+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-f73d7890",
@@ -3687,6 +3709,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T06:54+09:00",
    "due": "2026-10-24",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-macro-f8cd247d",
+   "from": "dev",
+   "to": "macro",
+   "text": "reports/macro_view.json glance 가 '데이터 없음(생성 실패: TypeError)' 1줄뿐 → MACRO '한눈에' 층별 5줄이 안 나오고 ui_smoke MACRO 검사 BAD(10/24 07시 기준). screener/macroview.py glance 생성 TypeError 원인 확인 부탁 — 화면 코드는 정상(데이터 들어오면 통과)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T07:24+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-24"
