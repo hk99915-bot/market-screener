@@ -10,6 +10,10 @@
   4) 공개 저장소 이메일 검사 — push 될 커밋들이 추가한 줄에 허용 목록 밖 이메일이 있으면 차단 (10/21 감사 D1:
      애널리스트 실명·이메일이 공개 로그에 저장됨). 허용: noreply@anthropic.com, *@users.noreply.github.com,
      example.com·.test·.invalid 등 예약 도메인 (screener/redact.py). 값은 출력하지 않고 파일·개수만.
+  4b) CI 빨강 게이트 (감사 D2, 10/21 CI 빨강 9h16m 동안 push 120건): origin/main 의 최신 완료된 tests.yml 실행이 실패면,
+     tests.yml 이 도는 경로(screener/ scripts/ tests/ docs/ requirements.txt .github/workflows/ Scheduler.gs)를 바꾸는 push 는
+     커밋 메시지에 `[ci-fix]` 가 있는 '수리 커밋'일 때만 통과. 데이터·reports 만 바꾸는 push 는 영향 없음.
+     조회 실패(네트워크·API 제한)는 통과(fail-open, 경고만) — 훅이 내 push 를 이유 없이 막지 않게. 끄기: PREPUSH_CI_GATE=0 (환경변수, 사용은 기록 대상).
   5) pytest 서브셋 — push 될 커밋들이 바꾼 파일과 관련된 테스트만:
      tests/test_*.py 를 직접 바꿨으면 그 파일, screener/X.py·scripts/X.py 를 바꿨으면 그 모듈 이름을
      import/언급하는 테스트. 공용 모듈(CORE)이 바뀌었거나 서브셋이 MAX_SUBSET 개를 넘으면 전체(≈15초).
@@ -124,6 +128,61 @@ def email_check(base: str | None, head: str = "HEAD") -> bool:
     return False
 
 
+CI_PATHS = ("screener/", "scripts/", "tests/", "docs/", "requirements.txt", ".github/workflows/", "apps-script/Scheduler.gs")
+CI_FIX_TAG = "[ci-fix]"
+
+
+def _origin_slug() -> str | None:
+    m = re.search(r"github\.com[/:]([\w.-]+/[\w.-]+?)(?:\.git)?/?$", git("remote", "get-url", "origin"))
+    return m.group(1) if m else None
+
+
+def latest_tests_run(slug: str | None = None, fetch=None) -> dict | None:
+    """origin/main 의 가장 최근 '완료된' tests.yml 실행 → {conclusion, sha, url}. 못 가져오면 None."""
+    slug = slug or _origin_slug()
+    if not slug:
+        return None
+    url = f"https://api.github.com/repos/{slug}/actions/workflows/tests.yml/runs?branch=main&status=completed&per_page=1"
+    try:
+        if fetch is None:
+            import json
+            import urllib.request
+            req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "prepush-check"})
+            with urllib.request.urlopen(req, timeout=6) as r:
+                data = json.load(r)
+        else:
+            data = fetch(url)
+        run0 = (data.get("workflow_runs") or [None])[0]
+        return {"conclusion": run0.get("conclusion"), "sha": (run0.get("head_sha") or "")[:8], "url": run0.get("html_url")} if run0 else None
+    except Exception:   # noqa: BLE001 — 조회 실패는 통과(fail-open)
+        return None
+
+
+def ci_gate_decision(run0: dict | None, files: list[str], messages: str) -> tuple[bool, str]:
+    """(통과?, 사유). 빨강이 아니거나 조회 실패면 통과, 빨강이면 CI 경로를 건드리는 push 는 [ci-fix] 커밋만."""
+    if run0 is None:
+        return True, "tests.yml 최신 실행 조회 실패 — 건너뜀(fail-open)"
+    if run0.get("conclusion") != "failure":
+        return True, f"origin/main tests.yml 최신 = {run0.get('conclusion')} ({run0.get('sha')})"
+    touched = [f for f in files if f.startswith(CI_PATHS)]
+    if not touched:
+        return True, f"origin/main tests.yml 빨강({run0.get('sha')}) — 이 push 는 CI 경로를 바꾸지 않음(데이터만)"
+    if CI_FIX_TAG in messages:
+        return True, f"origin/main tests.yml 빨강({run0.get('sha')}) — {CI_FIX_TAG} 수리 커밋 통과"
+    return False, (f"origin/main tests.yml 이 실패({run0.get('sha')} {run0.get('url') or ''}) — 수리 커밋만 push 가능. "
+                   f"원인을 고치는 커밋 메시지에 {CI_FIX_TAG} 를 넣어라(CI 경로 변경 {len(touched)}개: {', '.join(touched[:3])}…)")
+
+
+def ci_gate(base: str | None, head: str = "HEAD") -> bool:
+    if os.environ.get("PREPUSH_CI_GATE") == "0":
+        print("  - CI 빨강 게이트 꺼짐(PREPUSH_CI_GATE=0)")
+        return True
+    files = changed_files(base, head)
+    ok, why = ci_gate_decision(latest_tests_run(), files, git("log", "--format=%B", f"{base or 'origin/main'}..{head}"))
+    print(f"  {'✓' if ok else '✗'} CI 빨강 게이트 — {why}")
+    return ok
+
+
 def run(name: str, cmd: list[str]) -> bool:
     t = time.time()
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=clean_env())
@@ -150,6 +209,7 @@ def main(argv: list[str] | None = None) -> int:
     ok &= run("check_functions", [py, "scripts/check_functions.py"])
     ok &= run("check_rules_terms", [py, "scripts/check_rules_terms.py"])
     ok &= email_check(a.base, a.head)
+    ok &= ci_gate(a.base, a.head)
     files = changed_files(a.base, a.head)
     sel = None if a.all else tests_for(files)
     if sel is None:

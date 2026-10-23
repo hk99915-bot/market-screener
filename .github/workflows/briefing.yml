@@ -19,6 +19,7 @@ on:
     - cron: "52 18 * * 1-5"   # 03:52 KST 미장 후반 (마감 직전)
     - cron: "10 10 * * 1-5"   # 19:10 KST 신규 리포트 (하루 1회, 당일 발간분 모음)
     - cron: "52 21 * * 1-5"   # 06:52 KST 미장 마감 스크리너 + 매크로 (S&P500 ∪ NDX)
+    - cron: "52 23 * * 1-5"   # 08:52 KST US STALE 이면 detail_us 1회 재시도 (req-dev-fc677ec8 — 06:52 에 야후가 전일 봉을 늦게 준 날. 15:30 이후 잠금과 무관, 최신이면 건너뜀)
     - cron: "10 22 * * 1-5"   # 07:10 KST 반도체 밸류에이션 바스켓 (06:52 미장 마감 스크리너가 detail/US 종가를 갱신한 뒤에 돌아야 함 — 06:40은 전일 종가로 계산되던 순서 버그) · 비율만 · 참고 등급 — KR 종가분은 16:20 스크리너 안에서 갱신
   workflow_dispatch:
     inputs:
@@ -72,6 +73,7 @@ jobs:
             "10 10 * * 1-5") MODE=reports ;;
             "52 21 * * 1-5") MODE=screen_us ;;
             "10 22 * * 1-5") MODE=valuation ;;
+            "52 23 * * 1-5") MODE=detail_us_retry ;;
             *) MODE=skip ;;
           esac
           # 예약 시각보다 150분 넘게 밀렸으면 낡은 브리핑이 되므로 건너뜀
@@ -114,6 +116,9 @@ jobs:
             echo "예약 시각과 맞지 않거나 GAS 가 이미 실행한 슬롯 — 건너뜀"
           elif [ "${{ steps.m.outputs.mode }}" = "screen_us" ]; then
             python -m screener.main --market US
+          elif [ "${{ steps.m.outputs.mode }}" = "detail_us_retry" ]; then
+            # 08:52 KST 재시도: 06:52 screen_us 가 STALE 로 끝났을 때만. 최신이면 건너뜀(커밋할 변경 없음). 기준일 역행은 main.asof_decision 이 차단
+            if python scripts/us_stale_check.py; then python -m screener.main --market US --no-send; fi
           elif [ "${{ steps.m.outputs.mode }}" = "detail_us" ]; then
             python -m screener.main --market US --no-send   # 미장 상세만 재생성 (텔레그램 없음)
           else

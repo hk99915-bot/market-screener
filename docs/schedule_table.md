@@ -47,6 +47,7 @@
 | 08:30 | scorecard.yml | 일 | cron 30 23 * * 6 | — |
 | 08:40 | live.yml | 월화수목금 | GAS(주) + cron 40 23 * * 0-4(대기) | — |
 | 08:50 | briefing.yml [premarket_kr] | 월화수목금 | GAS(주) + cron 50 23 * * 0-4(대기) | — |
+| 08:52 | briefing.yml [detail_us_retry] | 화수목금토 | cron 52 23 * * 1-5 | — |
 | 09:07 | live.yml | 월화수목금 | cron 7 0-6 * * 1-5 | — |
 | 10:07 | live.yml | 월화수목금 | cron 7 0-6 * * 1-5 | — |
 | 10:30 | briefing.yml [intraday_kr] | 월화수목금 | GAS(주) + cron 30 1 * * 1-5(대기) | — |
