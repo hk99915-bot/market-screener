@@ -3786,7 +3786,7 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 #root{padding-bottom:88px}
 #mgfab.mgscr{opacity:0;transform:translateY(24px);pointer-events:none}
 @media (max-width:600px){#mgpop{right:0;left:0;bottom:0;width:100vw;height:86vh}}
-.mgph{border-radius:18px}@media (max-width:600px){.mgph{border-radius:0;height:100dvh!important;width:100vw;aspect-ratio:auto!important}}
+.mgph{border-radius:18px}@media (max-width:600px){.mgnav{background:#0003!important;width:36px!important}}@media (max-width:600px){.mgph{border-radius:0;height:100dvh!important;width:100vw;aspect-ratio:auto!important}}
 .mgpf .bn{height:170px;background-size:cover;background-position:center}
 </style>
 <script>
@@ -3834,6 +3834,8 @@ function mgZoom(src){ if(!src) return; const o=document.createElement('div'); o.
   o.onpointerup=o.onpointercancel=e=>{ P.delete(e.pointerId); };
   document.body.appendChild(o); }
 
+function mgProfClose(o){ if(o._key) document.removeEventListener('keydown',o._key); o.remove(); }
+function mgProfGo(o,k,d){ const L=((MG&&MG.profiles)||[]); if(L.length<2) return; const i=L.findIndex(p=>p.key===k), n=L[(i+d+L.length)%L.length]; mgProfClose(o); mgProf(n.key); }
 /* 👥 프로필 — 카톡처럼 세로 전체 배경 + 아래쪽 프사·이름·상태메시지. 배경·프사를 한 번 더 누르면 원본(mgZoom).
    배경: assets/avatars/bg/<key>.jpg|png (없으면 profiles.json bg 그라디언트) · 데이터 msgr_feed.profiles */
 function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) return;
@@ -3859,7 +3861,14 @@ function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) r
         ${P.last_chat?`<div style="margin-top:6px;border-left:2px solid var(--amber);padding-left:8px">최근 사담: ${esc(P.last_chat)}</div>`:''}</div></details>
     </div></div>`;
   const tryBg=ex=>{ const u=`${MG_IMG}bg/${encodeURIComponent(k)}.${ex}`, i=new Image(); i.onload=()=>{ bgSrc=u; o.querySelectorAll('[data-ph],[data-blur]').forEach(el=>el.style.backgroundImage=`url('${u}')`); }; i.onerror=()=>{ if(ex==='jpg') tryBg('png'); }; i.src=u; }; tryBg('jpg');
-  o.onclick=e=>{ if(e.target.closest('[data-x]')) return o.remove(); if(e.target.closest('[data-av]')) return mgZoom(av); if(e.target.closest('[data-card]')) return; if(!e.target.closest('[data-ph]')) return o.remove(); if(bgSrc) mgZoom(bgSrc); };
+  o.onclick=e=>{ if(o._sw){ o._sw=0; return; } if(e.target.closest('[data-nav]')) return mgProfGo(o,k,+e.target.closest('[data-nav]').dataset.nav); if(e.target.closest('[data-x]')) return mgProfClose(o); if(e.target.closest('[data-av]')) return mgZoom(av); if(e.target.closest('[data-card]')) return; if(!e.target.closest('[data-ph]')) return mgProfClose(o); if(bgSrc) mgZoom(bgSrc); };
+  /* 옆으로 넘기기(10/23 겸이 "프로필 창에서 옆으로 넘겨서 다른 누나들 볼 수 있게") — 폰: 좌우 스와이프 · PC: 양옆 ‹ › 버튼·←/→ 키 · 순서 = 프로필 목록(부서별) */
+  const L=((MG&&MG.profiles)||[]), idx=L.findIndex(p=>p.key===k), ph=o.querySelector('[data-ph]');
+  if(L.length>1){ ['-1','1'].forEach(d=>{ const b=document.createElement('button'); b.type='button'; b.dataset.nav=d; b.className='mgnav'; b.setAttribute('aria-label',d==='1'?'다음 누나':'이전 누나'); b.textContent=d==='1'?'›':'‹'; b.style.cssText=`position:absolute;top:50%;${d==='1'?'right':'left'}:8px;transform:translateY(-50%);z-index:3;width:44px;height:64px;border:0;border-radius:12px;background:#0006;color:#fff;font-size:30px;cursor:pointer`; o.appendChild(b); });
+    const cnt=document.createElement('div'); cnt.style.cssText='position:absolute;right:12px;top:14px;z-index:2;color:#fff;font-size:12px;text-shadow:0 1px 3px #000'; cnt.textContent=`${idx+1} / ${L.length}`; ph.appendChild(cnt); }
+  let sx=null, sy=0; ph.addEventListener('pointerdown',e=>{ if(e.pointerType==='mouse') return; sx=e.clientX; sy=e.clientY; });
+  ph.addEventListener('pointerup',e=>{ if(sx==null) return; const dx=e.clientX-sx, dy=e.clientY-sy; sx=null; if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){ o._sw=1; mgProfGo(o,k,dx<0?1:-1); } });
+  o._key=ev=>{ if(ev.key==='ArrowRight') mgProfGo(o,k,1); else if(ev.key==='ArrowLeft') mgProfGo(o,k,-1); else if(ev.key==='Escape') mgProfClose(o); }; document.addEventListener('keydown',o._key);
   document.body.appendChild(o); }
 function mgProfGrid(){ const L=(MG&&MG.profiles)||[]; if(!L.length) return '<div class="mgempty">프로필 데이터 없음 — scripts/msgr_feed.py</div>';
   const by={}; L.forEach(p=>(by[p.dept]=by[p.dept]||[]).push(p));
