@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-23 · 작업 222개 · 진행 8 · 검수 64 · 대기 95 · 보류 2 · 완료 53
+기준일 2026-10-23 · 작업 222개 · 진행 8 · 검수 64 · 대기 94 · 보류 2 · 완료 54
 
 **기한 지남:** `gas-sched-verify` (2026-10-19), `close-swap-verify` (2026-10-19), `gas-repaste` (2026-10-17), `night-futures-line` (2026-10-20), `deriv-hist` (2026-10-20), `derivs-audit` (2026-10-20), `repo-cleanup` (2026-10-18), `drivers-audit` (2026-10-17), `deriv-tab` (2026-10-17), `cmt-v2` (2026-10-17), `rebound-alert` (2026-10-19), `sunday-review` (2026-10-18), `sunday-scorecard` (2026-10-18), `alpha-baseline-fix` (2026-10-18), `frm-audit` (2026-10-18), `cio-memo` (2026-10-18), `semis-cap-study` (2026-10-18), `my-rules-secret` (2026-10-17), `sunday-scorecard-auto` (2026-10-18), `edu-dev-handoff` (2026-10-19), `ra-sec-coverage` (2026-10-21), `peer-review-valuation` (2026-10-20), `peer-bear-view` (2026-10-20), `valuation-daily` (2026-10-17), `dotplot` (2026-10-17), `dotplot-neutral-rule` (2026-10-20), `crash-day-active` (2026-10-17), `sec-ytd-bug` (2026-10-20), `study-progress` (2026-10-20), `index-split` (2026-10-17), `mu-revenue-tag` (2026-10-21), `secret-missing-warning` (2026-10-20), `pbview-amount-wording` (2026-10-20), `px-adjust-unify` (2026-10-19), `bt-exec-lag` (2026-10-20), `schedule-single-accum` (2026-10-20), `user-cooldown-log` (2026-10-20), `event-watch` (2026-10-20), `isa-lab` (2026-10-19), `integrity-p0-1` (2026-10-18), `integrity-p0-3` (2026-10-20), `integrity-p0-4` (2026-10-19), `my-tab-ledger-compare` (2026-10-18), `gpt-terminal-followup-1019` (2026-10-19), `us-committee-v2` (2026-10-21), `pre-push-guard` (2026-10-22), `english-v2-ui` (2026-10-21), `repo-size-stage1` (2026-10-22), `audit-krx-id-deriv` (2026-10-21), `macro-popup-live` (2026-10-21), `deriv-insight` (2026-10-21), `daily-duel-collapse` (2026-10-21), `uxui-quant` (2026-10-21), `cio-top3-fix` (2026-10-21), `ponytail-fixes` (2026-10-21), `dispatch-redundancy` (2026-10-21), `display-clarity` (2026-10-21), `signal-scorecard` (2026-10-21), `maint-heatmap` (2026-10-22), `macro-tab` (2026-10-22), `bonds-summary` (2026-10-22), `tradeplan` (2026-10-21)
 
@@ -88,7 +88,7 @@
 | P2 | `toss-sectors` | 섹터 분류를 토스 섹터(3단계, 국장·미장 공통)로 — KRX 업종 '전기·전자' 401종목 뭉침 해소 | 개발 | 2026-10-21 | 2026-10-31 | `tools/toss_md/collect.py`<br>`tools/toss_md/publish.py`<br>`screener/sectors.py`<br>`screener/wics.py`<br>`screener/universe.py`<br>`screener/pb.py`<br>`screener/detail.py`<br>`universe/us_sector.csv`<br>`universe/kr_wics.csv`<br>`apps-script/tab_market.html`<br>`tests/test_sectors.py`<br>`tests/test_wics.py`<br>`tests/test_toss_md.py`<br>`tests/test_toss_publish.py`<br>`tests/test_heatmap_ui.cjs` | `toss-md-pilot` | 겸이 10/21 00:5x '섹터 분류도 이상한데 토스 기준으로'. 노트북 일 1회 /sectors·/sectors/{id}/stocks(KR·US) 스냅샷. 다중 소속 → 대표 섹터 1개 규칙 필요(비중 한도 영향 — 겸이 결재). 전환일 기록·옛/새 분류 병행 계산. KRX 업종은 대조용 유지. / 10/21 00:4x 겸이(🌙, 낮 재확인): 공식 비중 한도=GICS(미장)/WICS(국장) 1종목1섹터, 테마·순환매·히트맵=토스 섹터. WICS 무료 일일 수집 가능 여부 데이터 데스크 확인 필요(불가 시 KRX 업종 세분화 대안). / 10/21 01:3x 개발: ① WICS 무료 일일 수집 가능(Actions 탐침 run 39453753347: wiseindex GetIndexComponets JSON, G45 681·G4530 반도체와반도체장비 165종목) → screener/wics.py 가 KR 상세 생성 때 일 1회 universe/kr_wics.csv(호출 100). 첫 실수집 전까지는 KRX 업종 대체(반도체 판정 None). ② 미장 GICS: us_sector.csv 에 gics_sub 추가, 야후→GICS 11 매핑표(screener/sectors.py), NDX 전용 11종 수동(확인 필요 10/31). ③ 토스 섹터: collect --group sectors(호출 1+2×말단 섹터, 0.5초 간격, 작업 toss_md_sectors 07:20) → publish 가 toss-live sectors.json(계층+종목→말단 다중, 금액 필드 없음). ④ 히트맵: 토스 중분류(depth1) 우선·기존 폴백·출처 표기·토글. ⑤ 비중 한도: pb.evaluate 에 semi_ex_new·sector_w_new 병행 필드, 판정 불변. 전환 = screener/sectors.OFFICIAL_LIMITS=True (07:00 이후 + 겸이 확인). 남은 일: 노트북 첫 sectors 실행 → 말단 섹터 수·호출 수 확인, 첫 WICS 실수집(no_l2) 확인, 전환 결재. |
 | P3 | `study-derivs` | STUDY 모듈: 선물·옵션 읽는 법 (초보용) | 파생 | 2026-10-16 | 2026-10-23 | `content/study.json` | — |  |
 
-## 대기 (95)
+## 대기 (94)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -123,7 +123,6 @@
 | P1 ⏫ | `req-macro-e0ef2a13` | [요청 승격] 파생→매크로: `macro_view.json` 칩에 코스피200 ATM IV(`reports/derivs.json` atm | 매크로 | — | 2026-10-28 | — | — | 요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 매크로 라운드 파일에 `처리→파생: …` 한 줄 또는 `python3 scripts/ask.py --close req-macro-e0ef2a13`. |
 | P1 ⏫ | `req-pb-71d9c381` | [요청 승격] 감사→PB: ① 보드 `sec-ytd-bug` notes 에 최종 판정 1줄(어느 종목이 YTD 누적이었는지, fin_v | PB | — | 2026-10-28 | — | — | 요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-71d9c381`. |
 | P1 ⏫ | `rep-rule-audit` | 독립 재현: rule_audit (손절·트레일·부분익절·반등일·하락장 노출 T1~T18) — 기대값·손익비 원 vs 재현 표 | 검증 | — | 2026-10-30 | `scripts/replicate_rule_audit.py`<br>`reports/studies/replication_rule_audit.md`<br>`tests/test_rep_rule_audit.py` | — | 22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. / 10/21 마감 10/17→10/28: 미착수. T1~T18 범위가 커서 결정 걸린 T4·T5 만 먼저 재현 예정. / 10/23 검증: 미착수, 마감 10/28→10/30(T4·T5 먼저). |
-| P1 ⏫ | `req-alloc-4ce23c16` | [요청 승격] PB→자산배분: ISA 나스닥100 코어 TIGER(133690)→KODEX(379810) 변경 사후 비교: 보수·추종오차· | 자산배분 | — | 2026-10-30 | — | — | 요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 자산배분 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-alloc-4ce23c16`. |
 | P1 ⏫ | `req-data-1fd3dc04` | [요청 승격] 채권→데이터: 국고 3Y 같은 날 출처별 3~4bp 차(bonds.json KRX 3.84 vs committee·토스 3 | 데이터 | — | 2026-10-30 | — | — | 요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→채권: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-1fd3dc04`. |
 | P1 ⏫ | `req-data-25c610af` | [요청 승격] HF→데이터: HF 재량 북 실무화용 데이터 이력 요청: ①미장 옵션 체인(SPX·SPY·QQQ·대형주, 일별 IV·스큐· | 데이터 | — | 2026-10-30 | — | — | 요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-25c610af`. |
 | P1 ⏫ | `req-data-2964da3f` | [요청 승격] 개발→데이터: MACRO 탭 '기준금리' 칸이 '데이터 없음' — 정책금리 시리즈(FRED DFEDTARU·DFEDTARL | 데이터 | — | 2026-10-30 | — | — | 요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→개발: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-2964da3f`. |
@@ -195,7 +194,7 @@
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 
-## 완료 (53)
+## 완료 (54)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -228,6 +227,7 @@
 | P1 ⏫ | `req-dev-dee1f9ae` | [요청 승격] 데이터→개발: `scripts/retention.py`(드라이런 기본) 를 ops 워크플로에 어떻게 붙일지(실행 시점·-- | 개발 | — | 2026-10-28 | — | — | 요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→데이터: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-dee1f9ae`. |
 | P1 ⏫ | `req-quant-892676d8` | [요청 승격] 검증→퀀트: crash_rebound §3 '5일 보유' 창 정의(매수일 i 기준 i+5 거래일 종가, 어느 캘린더)와  | 퀀트 | — | 2026-10-28 | — | — | 요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-892676d8`. |
 | P1 ⏫ | `req-verify-ee0a9f82` | [요청 승격] 퀀트→검증: replication_crash_rebound.json 을 push 하고 `meta` 에 `topic: cr | 검증 | — | 2026-10-28 | — | — | 요청 3영업일 미처리(2026-10-17~2026-10-21) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-ee0a9f82`. |
+| P1 ⏫ | `req-alloc-4ce23c16` | [요청 승격] PB→자산배분: ISA 나스닥100 코어 TIGER(133690)→KODEX(379810) 변경 사후 비교: 보수·추종오차· | 자산배분 | — | 2026-10-30 | — | — | 요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 자산배분 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-alloc-4ce23c16`. |
 | P1 | `ai-credit` | AI 인프라 신용 감시 | 채권 | 2026-10-15 | — | `screener/bonds.py`<br>`screener/committee.py`<br>`apps-script/Index.html` | — | 업종 국지 신용 스트레스 경보(정상/주의/경계) → 운용회의 head 한 줄 + 채권 탭 섹션. 10/15 첫 커밋. |
 | P1 | `core-weights` | 코어 자산배분 최적 비중 | 자산배분 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |
 | P1 | `pm-usage` | 사용 기록(로컬 집계)·내보내기 + PM 지표 체계 | PM | 2026-10-15 | — | `apps-script/Index.html` | — | 웹은 일별 횟수만 localStorage 에 저장, 내보내기는 비공개 저장소 이슈 폼으로. 리포트·지표 정의는 private. |
