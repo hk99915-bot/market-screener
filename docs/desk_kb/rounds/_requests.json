@@ -1729,6 +1729,24 @@
    "done_by": "데이터"
   },
   {
+   "id": "req-data-50ca9092",
+   "from": "realestate",
+   "to": "data",
+   "text": "키 필요 소스 정리(겸이 결재 항목): ① R-ONE 인증키 REB_API_KEY(무키=샘플 5행) ② 공공데이터포털 국토부 실거래가 DATA_GO_KR_KEY(401) ③ ECOS_API_KEY(지금 sample 10행) — 무료 발급, 키 오면 screener.yml·briefing.yml 의 write_macro_series 실행 step env 에 3줄 추가 요청. 코드는 screener/realestate.py 가 env 읽음(준비됨). R-ONE 주간 표 id·행 정렬은 키로 첫 실행 때 같이 확인 부탁",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:59+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-5b659e78",
    "from": "alloc",
    "to": "data",
@@ -2245,6 +2263,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-fc9b6acc",
+   "from": "realestate",
+   "to": "dev",
+   "text": "MARKET › 부동산 탭 추가(설계서 docs/realestate/2026-10-23_tab_design.md §1·§6) — UXUI 수정 끝난 뒤. build_pages getRealEstate(reports/realestate.json)·getRealEstateView(reports/views/realestate.json), GROUPS 채권 뒤, prices.status='키 필요'면 views weekly_snapshot(검증전 배지), 390px 가로 스크롤 금지",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:59+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-fe6f3b5a",
    "from": "uxui",
    "to": "dev",
@@ -2579,7 +2615,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "realestate",
+     "at": "2026-10-23T23:59+09:00",
+     "text": "처리: ① 권역 사전등록(설계서 §2·KB #30) ② 원천 조사(R-ONE·실거래 키 필요, KB 약관 미확인 미사용, ECOS·야후·RSS 사용) ③ 스키마 = reports/realestate.json(계약 contracts.py) ④ 첫 주간 노트 = reports/views/realestate.json(정책·뉴스 3건, 검증전)",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T23:59+09:00",
+   "done_by": "부동산"
   },
   {
    "id": "req-verify-1f20e800",

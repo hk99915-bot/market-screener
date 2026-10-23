@@ -346,6 +346,11 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
             geo_news.build()
         except Exception as e:  # noqa: BLE001
             log.warning("지정학 뉴스 실패: %s", e)
+        try:   # 부동산 트래킹(부동산 10/23) — R-ONE(키 있을 때)·ECOS·리츠·뉴스, 실패해도 매크로엔 영향 없음
+            from . import realestate
+            realestate.build()
+        except Exception as e:  # noqa: BLE001
+            log.warning("부동산 트래킹 실패: %s", e)
     except Exception as e:  # noqa: BLE001
         log.warning("매크로 시계열 저장 실패: %s", e)
 
