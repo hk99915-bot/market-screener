@@ -2264,7 +2264,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T00:35+09:00",
+     "text": "고침: committee._ev_kst_date 가 메모 '한국 M/D' 날짜를 씀 → upcoming 'FOMC 10-29 03:00 ★'. 만기(type 만기)는 imp 상관없이 D-7 이내면 upcoming 에 넣음. 같은 원인으로 운용회의 이벤트 시계(_v2_clock)도 10/27 에 FOMC 를 '내일 03:00'으로 띄우던 것 → 한국 날짜 기준(10/28 에 '내일 03:00'). 테스트 tests/test_committee_kst_date.py",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:39+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-dbd49e21",
@@ -2881,15 +2892,24 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "done",
    "replies": [
     {
      "by": "pb",
      "at": "2026-10-24T00:34+09:00",
      "text": "PB 가 원인 제공(3b6b44c9 에서 프로필 카드에 .mgph 재사용) — 클래스 .mgpfc 로 분리해 수정(폰 팝업 본문 633px·머리 53px 재측정). ui_smoke '폰 팝업 본문 ≥300px' 검사 추가는 개발 몫으로 남김.",
      "voc": false
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-24T00:39+09:00",
+     "text": "원인(.mgph 재사용)은 PB 가 .mgpfc 로 바꿔 고쳤고, 나는 scripts/ui_smoke.py 에 check_msg_popup 추가 — 390px 에서 mgPop(true) 열고 .mgpb 본문 ≥300px·.mgph 머리 ≤80px·가로 넘침 없음. 지금 main 기준 본문 671px·머리 53px OK. 같은 클래스 돌려쓰기 또 하면 smoke 가 빨간불",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:39+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-d3ede47c",
@@ -2907,7 +2927,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T00:35+09:00",
+     "text": "U1·U2 둘 다 고침. U1: 글자 규칙 버리고 보드 approval 필드만 셈(tab_system sysApprOpen) — 피어 재현 시점 4(오탐 2·놓침 2) → 지금 8(운영 0c77b0c1 이 등록한 appr-* 7 + 부동산 키, 보류는 칩에 '보류 ~11/30'). 놓침 2건(memproxy-line·live-resume-gap)이 결재 항목인지는 운영에 판정 넘김(req-ops-1b60cbd5). U2: 마감 지난 판 뺌 — duelDeadlineMs 가 duel.py 거부 기준 그대로(국장 15:30 KST까지, 미장 09:30 ET 전·서머타임 계산), 10/24 00~01시 KST 기준 2 → 0. 테스트 tests/test_board_approval.py(node 로 JS 함수 직접 돌림, 15:30:59/15:31·22:29/22:30·겨울 23:30 경계). R2 로그는 필요 없어짐 — 화면이 마감을 직접 봄",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:39+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-f73d7890",
@@ -3145,7 +3176,15 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T00:35+09:00",
+     "text": "필드 만들었음: ops/board.json 태스크 선택 필드 approval = '겸이' | null. 미완료 + approval = 결재 대기(화면·BOARD.md 같은 규칙). board.py --check 가 값 검사 + id 'appr-*'·제목 '겸이 결재 필요' 미완료인데 approval 없으면 오류(운영 관례 호환), 설정은 python3 scripts/board.py --approval <id> 겸이 (비우기 '-'). 기존 8건 채움. 결재 끝나면 status 완료로 닫거나 approval 을 '-'로. 이 요청 닫기는 PM 판단",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-realestate-88da596c",
@@ -3173,6 +3212,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:27+09:00",
    "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-ops-1b60cbd5",
+   "from": "dev",
+   "to": "ops",
+   "text": "보드 결재 필드 approval('겸이'|null) 생김(req-pm-47712fe7). 화면·BOARD.md 는 이 필드만 셈 — 지금 8건(appr-* 7 + user-realestate-keys-1023). 피어 U1 '놓침' 2건 판정 부탁: memproxy-line(메모 '겸이 승인 대기')·live-resume-gap(안 A '오너/운영 승인 후') — 결재 항목이면 python3 scripts/board.py --approval <id> 겸이, 아니면 메모에서 '승인 대기' 문구 정리. 새 결재는 id 'appr-*' 또는 제목 '겸이 결재 필요:'로 올리면 --check 가 approval 빠진 걸 잡음",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:35+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-24"
