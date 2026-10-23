@@ -136,6 +136,9 @@ def _fresh(obs: list[tuple[str, float]], max_days: int = 130) -> bool:
     return (_today() - d).days <= max_days
 
 
+_FRED_DOWN: dict = {}  # 한 실행 안에서 첫 타임아웃 뒤 나머지 FRED 직접 호출 건너뜀 (releases() 시작 때 초기화)
+
+
 def _fred(sid: str) -> list[tuple[str, float]]:
     """우선순위: BLS API → DBnomics → FRED. 오래된(4개월+) 값은 버림 — 미러가 멈춰 있으면 틀린 '최신값'이 됨."""
     if sid in DBN:
@@ -157,8 +160,14 @@ def _fred(sid: str) -> list[tuple[str, float]]:
     import io
 
     import requests
-    r = requests.get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}", timeout=(10, 60),
-                     headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36", "Accept": "text/csv,*/*"})
+    if _FRED_DOWN.get("why"):
+        raise RuntimeError(f"FRED 건너뜀 — 이번 실행 앞선 실패({_FRED_DOWN['why']})")
+    # UA 는 requests 기본값 — 브라우저 UA 는 FRED 가 읽기 타임아웃(10/23 실측 15초+ vs 기본 0.8초, req-data-fb0157f5)
+    try:
+        r = requests.get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}", timeout=(10, 20))
+    except requests.Timeout as e:
+        _FRED_DOWN["why"] = f"{sid} 타임아웃"
+        raise RuntimeError(f"FRED {sid} 타임아웃: {e}") from e
     r.raise_for_status()
     out = []
     for row in list(csv.reader(io.StringIO(r.text)))[1:]:
@@ -166,7 +175,9 @@ def _fred(sid: str) -> list[tuple[str, float]]:
             out.append((row[0], float(row[1])))
         except (ValueError, IndexError):
             continue
-    if not _fresh(out, 200):
+    # 분기 시리즈(GDP)는 날짜=분기 첫날 → 다음 속보 직전엔 ~210일 묵음이 정상 (10/23 GDP 2026-04-01 이 200일 컷에 걸림)
+    q = len(out) >= 2 and out[-1][0][:7] != out[-2][0][:7] and int(out[-1][0][5:7]) % 3 == 1 and int(out[-2][0][5:7]) % 3 == 1
+    if not _fresh(out, 240 if q else 200):
         raise ValueError(f"FRED {sid} 오래된 값 {out[-1][0] if out else None}")
     return out
 
@@ -194,6 +205,7 @@ def releases() -> dict:
     except Exception:  # noqa: BLE001
         old = {"series": {}, "log": []}
     today = str(_today())
+    _FRED_DOWN.clear()
     for grp, lst in IND.items():
         for sid, how, label in lst:
             try:

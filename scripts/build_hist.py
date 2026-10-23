@@ -43,7 +43,8 @@ NET_SRC = ("pykrx", "yfinance")
 WARNINGS: list[str] = []
 
 # 국내 ETF: screener.etf.KR_MUST (헷지·레버리지·섹터 필수 목록) + 연구에서 자주 쓰는 것
-KR_ETF_EXTRA = ["114260", "148070", "091170", "091180", "157450", "152100"]
+KR_ETF_EXTRA = ["114260", "148070", "091170", "091180", "157450", "152100",
+                "379810", "411060", "418670"]  # 10/24 퀀트 ISA 코어(req-data-b372d367)·알록(5b659e78)·애널 사이버보안(c77cf2b8)
 KR_INDEX = {"^KS11": "KOSPI", "^KS200": "KOSPI200", "^KQ11": "KOSDAQ"}           # yfinance → 창고 심볼
 KRX_INDEX = {"1001": "KOSPI", "1028": "KOSPI200", "2001": "KOSDAQ"}              # pykrx 지수 코드
 MACRO_MAP = {"KOSPI": ("kr_index_daily", "KOSPI"), "KOSDAQ": ("kr_index_daily", "KOSDAQ"),
@@ -55,7 +56,8 @@ US_SYMBOLS = ["SPY", "QQQ", "IWM", "DIA", "SOXX", "SMH", "PSI", "XLK", "XLE", "X
               "FXI", "KWEB", "URA", "LIT", "XBI", "GDX", "COPX", "ITA", "KRE", "IBIT",
               "MU", "SNDK", "NVDA", "AVGO", "AMD", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "WDC", "STX",
               "MSFT", "AAPL", "AMZN", "GOOGL", "META", "TSLA",
-              "^GSPC", "^IXIC", "^SOX", "^VIX", "^TNX", "^RUT", "^DJI"]
+              "^GSPC", "^IXIC", "^SOX", "^VIX", "^TNX", "^RUT", "^DJI",
+              "MUU", "BUG", "KRW=X"]  # 10/24 행동 MUU(c389dd16)·애널 BUG(c77cf2b8)·퀀트 USDKRW 2010~(b372d367, 야후 KRW=X = 원/달러)
 
 
 def kr_etf_codes() -> list[str]:

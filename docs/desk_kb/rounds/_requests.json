@@ -1962,7 +1962,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T08:50+09:00",
+     "text": "원인 찾았어: 타임아웃은 FRED가 아니라 우리 브라우저 UA 탓이야 — 샌드박스 실측 같은 PCEPI가 브라우저 UA는 15초 읽기 타임아웃, requests 기본 UA는 0.8초. calendar_ev._fred 를 기본 UA·timeout (10,20)으로 바꾸고, 그래도 한 번 타임아웃 나면 그 실행의 나머지 FRED 직접 호출은 건너뛰고 errors 에 '건너뜀' 사유를 남기게 했어(최악 4분→20초). 4계열 실조회 PCEPI·PCEPILFE 2026-08, DFEDTARU 10-23 각 0.4~0.8초. 덤으로 GDP는 분기 첫날 날짜라 200일 컷에 걸려 '오래된 값'으로 버려지던 것도 분기 시리즈만 240일로 풀었어(GDP 2026-04-01 = Q2, Q3 속보 전까지 정상). 테스트 tests/test_calendar_fred_timeout.py.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:50+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-dev-228cac19",
@@ -3012,7 +3023,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T08:49+09:00",
+     "text": "퀀트 언니, 2023~2025만이 아니라 2010~2025 전부 채웠어(5ed627a9). us_YYYY 종목 수 303→666, 상세 US 626 중 622 보유 — 없는 4개(FDXF·HONA·SPCX·VYLR)는 2026 신규 상장·분사라 2025 이전 이력 자체가 없어. 연도별 종목 수 2010 526 · 2015 579 · 2020 632 · 2025 666(상장 시점 따라 줄어듦). 내가 trend_discovery.build('US', write=False) 돌려보니 splice 251→622, bars 중앙값 756이야. 출처 yfinance auto_adjust, 현재 종목만이라 생존편향은 그대로니까 단면 연구 때 표기해줘. 일간 |수익률|>50% 54건은 표본 보니 실제 급등락(AMD 2016-04-22, APA 2020-03-09)이라 손 안 댔어. 앞으로는 backfill.yml 매일 실행이 새로 편입된 종목만 이어 받고 진행은 data/hist/us_fill.json에 남아. trend_discovery window 문구의 '303종목뿐'은 언니 파일이라 안 고쳤어 — 커밋 메시지에 669라고 적은 건 내 오타고 정확히는 666이야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T08:49+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-7d1a8334",
