@@ -22,6 +22,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCAN_GLOBS = ["docs/**/*.md", "reports/*.md", "content/**/*.md"]
+# JSON 장부(감사 10/24 M6 — C1 미탐 원인): 요청 장부·보드·사내톡 피드(.md 지만 내용은 JSON). 문자열 값만 꺼내 (e) 금액·계좌만 본다
+JSON_GLOBS = ["docs/desk_kb/rounds/*.json", "ops/board.json", "reports/msgr_feed.md"]
 OUT_DIR = Path("reports/audit")
 IGNORE_MARK = "slop:ok"
 DUE_DAYS = {"치명": 0, "중": 3, "경": 7, "정보": 14}
@@ -32,7 +34,10 @@ KNOWN_EXT = ("md", "py", "json", "csv", "parquet", "html", "txt", "yml", "yaml",
 # (e) 금액 — 천 단위 쉼표+원 / 만원·억원·천만원·백만원 / 숫자+원·억 (뒤에 한글이 붙으면 '원화·원문·억제' 류이므로 제외)
 AMOUNT_RE = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만\s?원|억\s?원|천만\s?원|백만\s?원|원(?![가-힣\w/])|억(?![가-힣\w]))")
 ALLOW_CTX = re.compile(r"승수|액면|비유|예시|예:|가상|환율|원/달러|달러|목표가|거래대금|순매수|순매도|차익|시가총액|영업이익|매출|순이익|"
-                       r"양도세|과세|세금|공시|기준가|최소 단위|지수|포인트|캡|한도 예|월세|시세|가격 \d|주가|gex|감마|외국인|현물|선물|명목|계약|포상")
+                       r"양도세|과세|세금|공시|기준가|최소 단위|지수|포인트|캡|한도 예|월세|시세|가격\s?\(?\d|주가|종가|gex|감마|외국인|현물|선물|명목|계약|포상|"
+                       r"(?:순자산|자산)\s?목표|목표\s?(?:순자산|자산|금액)")
+# ↑ '종가'(ETF·종목 1주 가격, 10/24 M6 오탐 3건) · 순자산 '목표' 금액(10/24 겸이 "목표 금액 ㄱㅊ", STANDARD 5) 은 허용.
+#   애널리스트·증권사 실명은 자동 탐지 대상 아님(10/24 겸이 "애널리스트 실명 ㄱㅊ").
 PERSONAL_CTX = re.compile(r"보유|평단|매입가|계좌|연봉|월급|순자산|예적금|잔고|적립|투자금|원금|내 |나의|진입 금액|실제 금액")
 ACCOUNT_RE = re.compile(r"(?<![\d-])(\d{3,6}-\d{2,6}-\d{4,8}|\d{10,14})(?![\d-])")
 
@@ -127,6 +132,45 @@ def scan_amounts(text: str, rel: str, today: date) -> list[dict]:
             sev = "치명" if re.search(r"계좌|account", ln, re.I) else "중"
             out.append(finding(rel, i, "(e) 계좌번호 의심", sev, tok + " ← " + ln.strip()[:120],
                                "번호를 지우고 '(비공개)'로 치환, 공개 이력 정리 여부 PB 보고", today))
+    return out
+
+
+def _json_strings(o, path="$", owner=None):
+    """JSON → (경로, 문자열, 주인 데스크) — 주인 = 가장 가까운 dict 의 by/from/owner(데스크 키)."""
+    if isinstance(o, dict):
+        own = next((o[k] for k in ("by", "from", "owner") if isinstance(o.get(k), str) and re.fullmatch(r"[a-z_]+", o[k])), owner)
+        for k, v in o.items():
+            yield from _json_strings(v, f"{path}.{k}", own)
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            yield from _json_strings(v, f"{path}[{i}]", owner)
+    elif isinstance(o, str):
+        yield path, o, owner
+
+
+def _is_json_ledger(rel: str) -> bool:
+    return any(Path(rel).match(g) or rel == g for g in JSON_GLOBS) or rel.endswith(".json")
+
+
+def scan_json_amounts(text: str, rel: str, today: date) -> list[dict] | None:
+    """JSON 장부의 문자열 값마다 scan_amounts. 파싱 실패면 None(→ 호출부가 일반 텍스트로 본다)."""
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return None
+    lines = text.splitlines()
+    out = []
+    for jp, s, own in _json_strings(data):
+        hits = scan_amounts(s, rel, today)
+        if not hits:
+            continue
+        needle = json.dumps(s, ensure_ascii=False)[1:41]
+        ln = next((i for i, x in enumerate(lines, 1) if needle in x), None) if len(lines) > 1 else None
+        for f in hits:
+            f["line"] = ln
+            f["evidence"] = (jp + " " + f["evidence"])[:200]
+            f["desk"] = own or ("pb" if "desk_kb/rounds/" in rel else f["desk"])
+        out += hits
     return out
 
 
@@ -302,8 +346,8 @@ def collect_paths(root: Path, paths: list[str] | None) -> list[Path]:
     if paths:
         return [root / p if not Path(p).is_absolute() else Path(p) for p in paths]
     found: list[Path] = []
-    for g in SCAN_GLOBS:
-        found += sorted(root.glob(g))
+    for g in SCAN_GLOBS + JSON_GLOBS:
+        found += [p for p in sorted(root.glob(g)) if p not in found]
     out_abs = (root / OUT_DIR).resolve()
     return [p for p in found if p.is_file() and out_abs not in p.resolve().parents]
 
@@ -317,6 +361,11 @@ def audit(root: Path, today: date, paths: list[str] | None = None, git: bool = T
         except ValueError:
             rel = str(p)
         text = p.read_text(encoding="utf-8", errors="replace")
+        if _is_json_ledger(rel) or text.lstrip()[:1] in ("{", "["):
+            js = scan_json_amounts(text, rel, today)
+            if js is not None:            # JSON 장부: 금액·계좌만 (경로·등급·길이 검사는 md 산출물용)
+                findings += js
+                continue
         findings += scan_amounts(text, rel, today)
         findings += scan_refs(text, rel, root, today)
         findings += scan_grade_tags(text, rel, today)

@@ -108,3 +108,34 @@ def test_slop_ok_marker_skips_line(tmp_path):
     _mk(tmp_path, "docs/z.md", "예: 패턴은 '계좌 잔고 1,000,000원' 꼴 <!-- slop:ok -->\n")
     res = sa.audit(tmp_path, TODAY, git=False)
     assert res["findings"] == []
+
+
+# ── 감사 10/24 M6: JSON 장부 스캔 · '종가'·순자산 목표 허용 ──
+def test_json_ledgers_scanned_for_amounts(tmp_path):
+    req = {"requests": [{"id": "req-x", "from": "frm", "text": "내 계좌 잔고 12,345,678원 보유"},
+                        {"id": "req-y", "from": "quant", "text": "ETF 1주 25,475원(10/23 종가)"}]}
+    _mk(tmp_path, "docs/desk_kb/rounds/_requests.json", json.dumps(req, ensure_ascii=False, indent=1))
+    _mk(tmp_path, "reports/msgr_feed.md", json.dumps({"chat": [{"by": "dev", "text": "투자금 3억 넣었어"}]}, ensure_ascii=False))
+    _mk(tmp_path, "ops/board.json", json.dumps({"tasks": [{"id": "t", "notes": "평단 52,300원"}]}, ensure_ascii=False, indent=1))
+    res = sa.audit(tmp_path, TODAY, git=False)
+    crit = sorted((f["file"], f["desk"]) for f in res["findings"] if f["severity"] == "치명")
+    assert crit == [("docs/desk_kb/rounds/_requests.json", "frm"), ("ops/board.json", "pb"), ("reports/msgr_feed.md", "dev")]
+    req_f = next(f for f in res["findings"] if f["file"].endswith("_requests.json"))
+    assert req_f["line"] and req_f["evidence"].startswith("$.requests[0].text")
+    # JSON 은 금액·계좌만 — 길이·경로 검사 같은 md 전용 지적은 안 나온다
+    assert {f["item"] for f in res["findings"]} == {"(e) 원화 금액"}
+
+
+def test_close_price_and_net_worth_target_allowed(tmp_path):
+    _mk(tmp_path, "docs/z.md", "- 1주 가격 25,475원 vs 170,375원(10/23 종가) → 정수 주 적립 잔차\n"
+                               "- 교체 실익은 1주 가격(25,475 vs 170,375원)이라 적립 잔차만\n"
+                               "- 순자산 목표 10억 (겸이 10/24 예외)\n- 내 순자산 3억\n")
+    res = sa.audit(tmp_path, TODAY, git=False)
+    amt = [f for f in res["findings"] if f["item"] == "(e) 원화 금액"]
+    assert [(f["line"], f["severity"]) for f in amt] == [(4, "치명")]   # 실제 잔고 금액은 그대로 치명
+
+
+def test_broken_json_falls_back_to_text(tmp_path):
+    _mk(tmp_path, "reports/msgr_feed.md", '{"chat": [ 깨진 JSON 내 계좌 잔고 1,000,000원')
+    res = sa.audit(tmp_path, TODAY, git=False)
+    assert any(f["severity"] == "치명" and f["line"] == 1 for f in res["findings"])

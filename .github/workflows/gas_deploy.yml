@@ -11,6 +11,14 @@
 #       GAS_DEPLOYMENT_ID = 배포 → 배포 관리 → 웹 앱의 배포 ID (AKfy… 로 시작)
 #  ④ Actions → gas_deploy → Run workflow 로 첫 실행 확인. 이후 Code.gs 변경은 push 만으로 반영.
 # 시크릿이 없으면 아무것도 하지 않고 성공으로 끝난다(안내만).
+#
+# 프로젝트별 대상 (감사 10/24 M3, req-dev-218c8448) — 전엔 apps-script/*.gs 전부를 웹앱 프로젝트에 밀어 doPost·tick 이 섞였다.
+#   웹앱 프로젝트(GAS_SCRIPT_ID)     ← Code.gs 만 (+ 웹앱 새 버전 배포)
+#   예약 실행기 프로젝트(GAS_SCHED_SCRIPT_ID, 선택) ← Scheduler.gs·TelegramHook.gs (배포 없음 — tick·tgPoll 은 시간 트리거라 저장된 코드로 돈다)
+#     같은 프로젝트 하나에 다 들어 있으면 GAS_SCHED_SCRIPT_ID = GAS_SCRIPT_ID 로 넣는다(그러면 세 파일을 한 번에 push).
+#     GAS_SCHED_SCRIPT_ID 가 없으면 Scheduler.gs·TelegramHook.gs 는 자동 반영 안 됨(안내만) — 편집기에 직접 붙여넣기.
+#   어느 프로젝트가 예약 실행기인지: 그 프로젝트 편집기 왼쪽 ⏰ 트리거 화면에 tick·tgPoll 이 걸려 있는 쪽.
+#   두 프로젝트 모두 clasp pull 로 현재 파일을 받은 뒤 해당 파일만 덮어쓰므로, 대상 밖 파일은 지우지도 바꾸지도 않는다.
 name: gas_deploy
 
 on:
@@ -38,7 +46,11 @@ jobs:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
           GAS_SCRIPT_ID: ${{ secrets.GAS_SCRIPT_ID }}
           GAS_DEPLOYMENT_ID: ${{ secrets.GAS_DEPLOYMENT_ID }}
+          GAS_SCHED_SCRIPT_ID: ${{ secrets.GAS_SCHED_SCRIPT_ID }}
         run: |
+          if [ -z "$GAS_SCHED_SCRIPT_ID" ]; then
+            echo "::notice::GAS_SCHED_SCRIPT_ID 미설정 — Scheduler.gs·TelegramHook.gs 는 자동 반영 안 됨(웹앱엔 Code.gs 만). 예약 실행기 프로젝트 스크립트 ID 를 시크릿으로 넣으면 켜진다."
+          fi
           if [ -z "$CLASPRC_JSON" ] || [ -z "$GAS_SCRIPT_ID" ] || [ -z "$GAS_DEPLOYMENT_ID" ]; then
             echo "::notice::GAS 자동 배포 미설정 — 워크플로 상단 ①~④ 를 한 번 하면 켜진다."
             echo "ok=0" >> "$GITHUB_OUTPUT"
@@ -55,13 +67,27 @@ jobs:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
           GAS_SCRIPT_ID: ${{ secrets.GAS_SCRIPT_ID }}
           GAS_DEPLOYMENT_ID: ${{ secrets.GAS_DEPLOYMENT_ID }}
+          GAS_SCHED_SCRIPT_ID: ${{ secrets.GAS_SCHED_SCRIPT_ID }}
         run: |
+          set -e
           npm i -g @google/clasp@2.4.2 >/dev/null
           printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json
-          mkdir -p /tmp/gas && cd /tmp/gas
-          printf '{"scriptId":"%s","rootDir":".","fileExtension":"gs"}' "$GAS_SCRIPT_ID" > .clasp.json
-          clasp pull                       # 매니페스트(appsscript.json)·대체용 HTML 은 프로젝트에 있는 그대로 유지
-          cp "$GITHUB_WORKSPACE"/apps-script/*.gs .
-          clasp push -f
+          SRC="$GITHUB_WORKSPACE/apps-script"
+          WEB_FILES="Code.gs"
+          SCHED_FILES="Scheduler.gs TelegramHook.gs"
+          [ "$GAS_SCHED_SCRIPT_ID" = "$GAS_SCRIPT_ID" ] && WEB_FILES="$WEB_FILES $SCHED_FILES"   # 한 프로젝트에 다 있는 경우
+          push_to() {   # $1 = 스크립트 ID, $2 = 작업 폴더, 나머지 = 덮어쓸 .gs (대상 밖 파일은 pull 한 그대로)
+            id="$1"; dir="$2"; shift 2
+            mkdir -p "$dir" && cd "$dir"
+            printf '{"scriptId":"%s","rootDir":".","fileExtension":"gs"}' "$id" > .clasp.json
+            clasp pull                     # 매니페스트(appsscript.json)·대체용 HTML·다른 .gs 는 프로젝트에 있는 그대로 유지
+            for f in "$@"; do cp "$SRC/$f" .; done
+            clasp push -f
+          }
+          push_to "$GAS_SCRIPT_ID" /tmp/gas_web $WEB_FILES
           clasp deploy -i "$GAS_DEPLOYMENT_ID" -d "auto ${GITHUB_SHA::7}"
-          echo "배포 완료: ${GITHUB_SHA::7} → 웹앱 같은 URL 새 버전"
+          echo "웹앱 배포 완료: ${GITHUB_SHA::7} ($WEB_FILES) → 같은 URL 새 버전"
+          if [ -n "$GAS_SCHED_SCRIPT_ID" ] && [ "$GAS_SCHED_SCRIPT_ID" != "$GAS_SCRIPT_ID" ]; then
+            push_to "$GAS_SCHED_SCRIPT_ID" /tmp/gas_sched $SCHED_FILES
+            echo "예약 실행기 반영 완료: ${GITHUB_SHA::7} ($SCHED_FILES) — 배포 불필요(시간 트리거)"
+          fi

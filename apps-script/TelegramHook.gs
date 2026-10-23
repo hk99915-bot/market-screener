@@ -31,6 +31,9 @@
  *   텍스트 'pick 005930 시가' · 'pick 현금' · 'pick-us QQQ 5일' → 오늘(KST)·미장 세션(ET) 날짜로 같은 이슈
  *   텍스트 'ask 퀀트 accum 백필 언제 돼?' → 이슈 'ask 퀀트' / 본문 '<내용>' → .github/workflows/ask.yml 이 요청 장부
  *     (docs/desk_kb/rounds/_requests.json)에 from='겸이' 로 추가 후 이슈 닫기 (10/21 사내 메신저 — scripts/ask.py parse_ask_text 와 같은 규칙)
+ *   텍스트 'quiz H2-b2 브레이크'(여러 줄 가능) → 이슈 'study quiz' / 본문 = quiz 줄 그대로 → .github/workflows/study.yml 이
+ *     screener/study_progress.py(QUIZ_RE·resolve_choice — 답 = 0~3 또는 선택지 앞 2자+)로 채점·기록 (10/24 겸이 결재 G3, req-dev-4ce51171
+ *     — tests/test_tg_quiz.py 가 node 로 대조)
  */
 
 const TG_REPO = 'hk99915-bot/market-screener';
@@ -53,6 +56,7 @@ const TG_HELP = {
     + 'pick-us QQQ 1000000 5일   ← 5거래일째 종가\n'
     + 'pick-us 현금',
 };
+const TG_QUIZ_USAGE = '형식: quiz <문항id> <답> — 답 = 번호 0~3 또는 선택지 앞부분 2자+ (여러 문항은 줄마다 한 줄). 예: quiz H2-b2 브레이크';
 const TG_TEXT_USAGE = '형식: pick 종목코드 [금액] [시가|종가|5일] · pick 현금 · pick-us TICKER [금액] [5일]';
 
 // ── 순수 함수 (GAS 서비스 안 씀 → node 로 테스트) ─────────────────────────────────────────
@@ -100,6 +104,17 @@ function tgParseAsk_(text) {
   return { title: 'ask ' + name, body: body };
 }
 
+/** 텍스트 → {title:'study quiz', body} · {error} · null(quiz 아님) (screener/study_progress.py QUIZ_RE 와 같은 줄 규칙).
+ *  첫 줄이 quiz 로 시작할 때만. quiz 로 시작하는 줄은 (앞 '/' 만 떼고) 그대로 본문에 — 채점·'번호 안 바꾼 줄' 판정은 파이썬 몫.
+ *  quiz 아닌 줄(인사 등)은 버린다. 문항id·답이 둘 다 있는 줄이 하나도 없으면 형식 안내. */
+function tgParseQuiz_(text) {
+  const lines = String(text || '').split(/\r?\n/).map(function (l) { return l.trim().replace(/^\//, ''); }).filter(Boolean);
+  if (!lines.length || !/^quiz(?=\s|$)/i.test(lines[0])) return null;
+  const keep = lines.filter(function (l) { return /^quiz(?=\s|$)/i.test(l); });
+  if (!keep.some(function (l) { return /^quiz\s+\S+\s+\S/i.test(l); })) return { error: TG_QUIZ_USAGE };
+  return { title: 'study quiz', body: keep.join('\n') };
+}
+
 /** update_id 는 봇마다 단조 증가 → 이미 처리한 최대값 이하면 재전송. */
 function tgIsNewUpdate_(updateId, lastSeen) {
   const last = Number(lastSeen);
@@ -134,7 +149,7 @@ function tgPlan_(upd, owner, krDate, usDate) {
   if (msg && typeof msg.text === 'string') {
     if (String((msg.from || {}).id) !== owner) return { kind: 'ignore', why: 'not-owner' };
     const chat = String(msg.chat.id);
-    const is = tgParseText_(msg.text, krDate, usDate) || tgParseAsk_(msg.text);
+    const is = tgParseText_(msg.text, krDate, usDate) || tgParseAsk_(msg.text) || tgParseQuiz_(msg.text);
     if (!is) return { kind: 'ignore', why: 'not-pick' };
     if (is.error) return { kind: 'reply', chat: chat, text: is.error };
     return { kind: 'issue', chat: chat, key: 'tgt:' + is.title + '|' + is.body, issue: is };
@@ -193,7 +208,10 @@ function tgProcess_(upd, props) {
   if (res.ok) {
     if (plan.cqId) tgApi_('answerCallbackQuery', { callback_query_id: plan.cqId, text: '기록 접수 ✅' });
     const isAsk = plan.issue.title.indexOf('ask ') === 0;
-    tgApi_('sendMessage', { chat_id: plan.chat, text: isAsk
+    const isQuiz = plan.issue.title === 'study quiz';
+    tgApi_('sendMessage', { chat_id: plan.chat, text: isQuiz
+      ? '📝 퀴즈 접수 ✅ ' + plan.issue.body.split('\n').length + '문항\n채점 결과는 1~2분 뒤 이슈 답글로(study.yml).'
+      : isAsk
       ? '📮 요청 접수 ✅ 겸이 → ' + plan.issue.title.slice(4) + ': ' + plan.issue.body + '\n장부 반영은 1~2분 뒤 이슈 답글로, 매일 00:07 요약의 📮 사내 메신저 절에 나와.'
       : '기록 접수 ✅ ' + plan.issue.title + ' · ' + plan.issue.body + '\n반영 결과(마감·쿨다운 확인)는 1~2분 뒤 따로 와. 바꾸고 싶으면 다른 버튼을 누르면 마지막 것이 남아.' });
   } else {
@@ -293,5 +311,5 @@ function tgDeleteWebhook() {
 }
 
 if (typeof module !== 'undefined') {   // node 테스트용 (GAS 에서는 module 이 없어 무시)
-  module.exports = { tgIsNewUpdate_, tgParseCallback_, tgParseText_, tgParseAsk_, tgSecretOk_, tgPlan_, TG_HELP, TG_DESKS };
+  module.exports = { tgIsNewUpdate_, tgParseCallback_, tgParseText_, tgParseAsk_, tgParseQuiz_, tgSecretOk_, tgPlan_, TG_HELP, TG_DESKS };
 }
