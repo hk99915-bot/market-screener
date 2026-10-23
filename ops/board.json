@@ -4582,6 +4582,24 @@
       "priority": "P1",
       "status": "대기",
       "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "scripts/probe_deriv_sources.py",
+        ".github/workflows/deriv_hist.yml"
+      ],
+      "depends_on": [],
+      "notes": "10/24 데이터: deriv_hist.yml probe(run 40031132390, commit=false) 로그에 KRX_API_KEY 값이 빈 칸(설정된 시크릿은 ***로 찍힘, KRX_ID·KRX_PW 는 ***) → 저장소에 KRX_API_KEY 시크릿 미등록. 겸이 할 일: ① openapi.krx.co.kr 로그인 → API 인증키 신청 ② 서비스 이용 신청(서비스 목록 원문 이름): 파생상품 — 옵션 일별매매정보 (주식옵션外)·주식옵션(유가) 일별매매정보·주식옵션(코스닥) 일별매매정보·선물 일별매매정보 (주식선물外)·주식선물(유가) 일별매매정보 / 지수 — 파생상품지수 시세정보(VKOSPI) / 채권 — 국채전문유통시장 일별매매정보(국고 백필) / (선택) 주식 — 유가증권·코스닥 일별매매정보 ③ GitHub Settings › Secrets › Actions 에 이름 KRX_API_KEY 로 등록(채팅으로 키 주지 말 것). 끝나면 데이터가 deriv_hist.yml task=probe days=krx_openapi commit=false 재실행해 엔드포인트별 200 확인.",
+      "id": "user-krx-openapi-key",
+      "title": "KRX OPEN API 인증키 발급 + 파생 서비스 이용 신청 + 저장소 시크릿 KRX_API_KEY 등록 (10/24 probe: 시크릿이 Actions 에 빈 값)",
+      "owner": "사용자",
+      "desk": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public",
+      "approval": null
     }
   ]
 }

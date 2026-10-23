@@ -47,6 +47,12 @@
 - **못 쓴 것**: KRX KIND 상장법인목록(업종·주요제품) — 이 컨테이너 403(Akamai), Actions 에서는 미확인(코드는 시도 후 실패 시 야후로). DART company.json(업종코드) — 키(DART_API_KEY)는 Actions 에만. 야후 프로필 없는 신규 상장·소형주는 '설명 대기'.
 - **흔한 오해**: "야후 industry = 한국 업종 분류" → 아니다. 야후 영문 분류(예: 삼성전자 'Consumer Electronics')는 공식 섹터가 아님 — 공식 섹터는 WICS(universe/kr_wics.csv). 화면은 한글 업종만 덧붙인다. `[경험]`
 
+## 소스 목록 — KRX OPEN API (2026-10-24, req-data-7d1a8334)
+- **서비스 목록 원문**(openapi.krx.co.kr OPPINFO004, 10/24 실조회, 제공 기간 2010~): 파생 6종 = 선물 일별매매정보 (주식선물外)·주식선물(유가)·주식선물(코스닥, 2015-08-03~)·옵션 일별매매정보 (주식옵션外)·주식옵션(유가)·주식옵션(코스닥, 2017-06-26~) / 지수 = 파생상품지수 시세정보 / 채권 = 국채전문유통시장 일별매매정보. API 별로 이용 신청·승인이 따로. `[규정-A: 서비스 목록 원문]`
+- **탐침**: `scripts/probe_deriv_sources.py krx_openapi` (deriv_hist.yml task=probe days=krx_openapi commit=false) — 엔드포인트 drv/{fut,eqsfu_stk,eqkfu_ksq,opt,eqsop,eqkop}_bydd_trd·idx/drvprod_dd_trd·bon/kts_bydd_trd·대조군 sto/stk_bydd_trd. 응답: 틀린 키 = HTTP 401 `respMsg=Unauthorized Key`(샌드박스에서 직접 확인 — 접속은 됨).
+- **10/24 결과**: Actions 로그에 `KRX_API_KEY:` 빈 값(등록된 시크릿은 *** 로 찍힘) → **시크릿 미등록**, 엔드포인트 호출 전 종료. 'KRX_API_KEY 이미 있음'은 워크플로가 이름만 참조한 것(KRX_BACKEND 기본 pykrx 라 안 쓰여서 드러나지 않음). 겸이 할 일 = 보드 user-krx-openapi-key.
+- **흔한 오해**: "워크플로 yml 에 secrets.X 가 있으면 시크릿이 있다" → 아니다. 미등록 시크릿은 빈 문자열로 조용히 들어간다. 확인은 실행 로그 env 블록(*** vs 빈 칸)으로. `[경험]`
+
 ## 복기
 - **2026-10-17 'YTD 누적 버그' 판정** — 틀림: 10/16 14:47 MU ni 5.2→13.8→28.2→37.7 모양만 보고 P0 "파서 결함"으로 올렸고, 15:25 수정 때 넣은 모양 가드(CUM_RATIO 1.8)가 SNDK revenue 3.0→6.0→9.0 을 같은 누적 버그로 '검증전' 처리했다. → 왜: MU 는 실제 누적치 누수(맞음)였지만 SNDK 는 분사 직후 정상 성장이었고, 두 경우를 모양으로는 구분할 수 없다는 걸 원문(8-K) 대조(23:43) 전까지 인정하지 않았다. → 다음부터: 파서 버그 의심은 (1) start/end 기간(일수)으로 누적 여부를 **구조적으로** 판정하고, (2) 모양 휴리스틱은 플래그만, 확정·해제는 fin_verified.json 원문 대조로만 한다. 같은 날 MU '매출 0행'도 모양이 아니라 코드 경로(첫 태그 break)로 먼저 확인했다.
 
