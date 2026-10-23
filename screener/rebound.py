@@ -25,10 +25,16 @@ def judge(q: dict | None = None) -> dict | None:
     last, chg = q.get("last"), q.get("chg")
     if not last or chg is None:
         return None
-    prev = last / (1 + chg)   # denominator: 전일 KRX 확정 종가(prev) — 반등일 = 14:30 현재가 ≥ prev × (1 + THRESHOLD)
+    # denominator: 전일 KRX 확정 종가(prev) — 반등일 = 14:30 현재가 ≥ prev × (1 + THRESHOLD).
+    # 네이버 basic 의 compareToPreviousClosePrice 로 복원한 prev 가 있으면 그것(정확), 없으면 반올림된 등락률 역산.
+    if q.get("prev"):
+        prev, prev_src = float(q["prev"]), "diff"
+        chg = last / prev - 1
+    else:
+        prev, prev_src = last / (1 + chg), "ratio"
     now = datetime.now(KST)
     return {"date": now.strftime("%Y-%m-%d"), "time": now.strftime("%H:%M"), "last": round(last, 2), "prev": round(prev, 2),
-            "thr": round(prev * (1 + THRESHOLD), 2), "chg": round(chg, 4), "ok": chg >= THRESHOLD, "src": q.get("src"), "status": q.get("status")}
+            "thr": round(prev * (1 + THRESHOLD), 2), "chg": round(chg, 4), "ok": chg >= THRESHOLD, "src": q.get("src"), "prev_src": prev_src, "status": q.get("status")}
 
 
 def text(j: dict) -> str:

@@ -13,6 +13,7 @@
 ## 정의
 - **companyfacts 태그 전환(tag switch)**: 한 회사의 같은 재무 항목이 연도에 따라 다른 us-gaap 요소로 태그되는 현상. 대표: ASC 606(2018 회계연도부터) 도입 때 매출이 `SalesRevenueNet`/`Revenues` → `RevenueFromContractWithCustomerExcludingAssessedTax` 로 옮겨감. 태그를 하나만 고르는 파서는 옛 연도 또는 새 연도 한쪽만 얻는다. `[규정]`
 
+- **네이버 지수 `chg`(fluctuationsRatio) 분모**: 전일 KRX 확정 종가. 식 = (closePrice − 전일)/전일 × 100, 소수 2자리(%)로 잘림 → `last/(1+chg)` 역산 오차 최대 ±0.005%p(코스피 5,500 기준 ±0.3pt). 정확한 전일 = `closePrice − compareToPreviousClosePrice`(basic, 부호는 compareToPreviousPrice.code) 또는 integration `totalInfos[code=lastClosePrice]`. 대조 1건: 10/15 KPI200 네이버 '전일' 936.82 = pykrx 10/14 종가 936.82(data/hist/kr_index_daily). `[자체연구-B: 1표본, 원문 API 문서 없음]` → screener/live.py `prev`·rebound.py `prev_src` (2026-10-23).
 - **PDF(Portfolio Deposit File, 납입자산구성내역)**: ETF 가 매 영업일 공시하는 1CU(설정 단위) 당 구성종목·수량. 국내 상장 ETF 는 액티브 포함 전부 일간 공시 → 액티브 ETF 는 **일간 편입·편출 추적 가능**. `[규정-B: 거래소 ETF 공시 관행, 이 세션은 KRX 원문 접속 불가(프록시 403) — 조항 번호 미확인]`
 - **액티브 공모펀드 보유 공시**: 자산운용보고서(분기, 자본시장법상 3개월마다 교부) + 금투협 전자공시 — 상위 보유 위주·기준일 후 수주 지연 → **분기·부분 데이터**. 일간 신호로 쓰면 안 됨(2단계 후보). `[규정-B: 법 조항 원문 미확인]`
 - **액티브 ETF 상관계수 요건**: 비교지수 대비 일간 수익률 상관계수 0.7 이상 유지(패시브 0.9). 3개월 연속 미달 시 상장폐지 대상, 상장 1년 미만 유예. 2026년 9월까지 이 사유로 액티브 ETF 5개 상폐(한투 4종 포함). 폐지 법안(자본시장법 개정)은 발의 예고 후 지연 — 현 상태 미확인. `[언론-B: 머니투데이 2026-09-07·파이낸셜뉴스 2026-08-18·뉴시스 2026-08-14·더벨 2026-06-15, 상장규정 원문 미확인]` → 뜻: 국내 주식형 액티브 ETF 는 '벤치마크 ± 일부 베팅'이라 **편입 신호의 대부분은 지수 비중 근처의 미세 조정**, 진짜 신호는 비중 밖 신규 편입·큰 수량 변화에 있다.

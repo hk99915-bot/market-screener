@@ -42,7 +42,17 @@ def kr_naver() -> dict:
                 ratio = 0.0
             elif code not in ("1", "2"):  # 코드가 없으면 원래 부호를 믿는다
                 ratio = _num(j["fluctuationsRatio"]) / 100
-            out[k] = {"last": last, "chg": ratio, "src": "naver", "status": j.get("marketStatus")}
+            # 분모 = 전일 KRX 확정 종가. 네이버 fluctuationsRatio 는 소수 2자리(%)로 잘려 역산 오차가 최대 ±0.005%p
+            # (코스피 5,500 기준 ±0.3pt) → 절대 변화 compareToPreviousClosePrice 로 전일 종가를 정확히 복원해 같이 싣는다.
+            prev = None
+            try:
+                diff = abs(_num(j["compareToPreviousClosePrice"]))
+                p = last - diff if ratio > 0 else last + diff if ratio < 0 else last
+                if p > 0 and abs(last / p - 1 - ratio) <= 0.0001:   # 등락률과 어긋나면(반올림 0.005%p 초과) 쓰지 않음
+                    prev = p
+            except (KeyError, TypeError, ValueError):
+                pass
+            out[k] = {"last": last, "chg": ratio, "prev": prev, "src": "naver", "status": j.get("marketStatus")}
         except Exception as e:  # noqa: BLE001
             log.warning("네이버 %s 실패: %s", k, e)
     return out
