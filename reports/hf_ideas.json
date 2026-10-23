@@ -1,15 +1,14 @@
 {
  "v": 1,
  "asof": "2026-10-23",
- "generated_at": "2026-10-23 11:56 KST",
+ "generated_at": "2026-10-23 12:16 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 251,
+  "total": 347,
   "거래량 급증": 3,
   "거래량 돌파(추격 금지)": 3,
-  "52주 고점 돌파": 1,
-  "업종 체인": 2,
-  "수급 이탈 숏": 1
+  "내러티브 초기": 3,
+  "52주 고점 돌파": 1
  },
  "ideas": [
   {
@@ -84,6 +83,20 @@
   },
   {
    "market": "KR",
+   "code": "009540",
+   "name": "HD한국조선해양",
+   "asof": "2026-10-22",
+   "close": 252000.0,
+   "type": "내러티브 초기",
+   "score": 0.75,
+   "direction": "롱 후보(공시 나왔는데 아직 안 오름)",
+   "evidence": "DART 7일 4건: 2026-10-21 IR·공정공시; 2026-10-21 수주·계약 · 20일 -25.3%",
+   "status": "검증전 — 공시 뒤 미반영(겸이 '보고 사면 늦잖아' 시스템화, 공시 이벤트 연구 전)",
+   "src": "data/dart.parquet · reports/detail/KR/009540.json chart",
+   "rank": 6
+  },
+  {
+   "market": "KR",
    "code": "077500",
    "name": "유니퀘스트",
    "asof": "2026-10-22",
@@ -94,7 +107,7 @@
    "evidence": "거래량 7.0배 · 20일 신고가 · 1일 +14.6%",
    "status": "회피 — 국장 거래량 3배+20일 신고가 추격 F(t −7.4/−6.2), 페이드는 전진 추적 중(scripts/hf_forward.py)",
    "src": "reports/detail/KR/077500.json chart",
-   "rank": 6
+   "rank": 7
   },
   {
    "market": "US",
@@ -108,44 +121,34 @@
    "evidence": "종가 250일 최고 경신 · 5일 +19.1%",
    "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
    "src": "reports/detail/US/HAS.json chart",
-   "rank": 7
-  },
-  {
-   "market": "KR",
-   "code": null,
-   "name": "정유",
-   "type": "업종 체인",
-   "score": 0.64,
-   "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.64 · 구성 예: S-Oil, GS, SK이노베이션",
-   "status": "검증전 — 업종 체인 점수(detail drivers)",
-   "src": "reports/detail/*/<코드>.json drivers.chain",
    "rank": 8
   },
   {
-   "market": "US",
-   "code": null,
-   "name": "정유",
-   "type": "업종 체인",
-   "score": 0.64,
-   "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.64 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
-   "status": "검증전 — 업종 체인 점수(detail drivers)",
-   "src": "reports/detail/*/<코드>.json drivers.chain",
+   "market": "KR",
+   "code": "000720",
+   "name": "현대건설",
+   "asof": "2026-10-22",
+   "close": 93000.0,
+   "type": "내러티브 초기",
+   "score": 0.65,
+   "direction": "롱 후보(공시 나왔는데 아직 안 오름)",
+   "evidence": "DART 7일 3건: 2026-10-22 수주·계약; 2026-10-20 IR·공정공시 · 20일 -25.5%",
+   "status": "검증전 — 공시 뒤 미반영(겸이 '보고 사면 늦잖아' 시스템화, 공시 이벤트 연구 전)",
+   "src": "data/dart.parquet · reports/detail/KR/000720.json chart",
    "rank": 9
   },
   {
    "market": "KR",
-   "code": "375500",
-   "name": "DL이앤씨",
+   "code": "010120",
+   "name": "LS ELECTRIC",
    "asof": "2026-10-22",
-   "close": 58500.0,
-   "type": "수급 이탈 숏",
-   "score": 0.627,
-   "direction": "숏 후보(종목선물·대차 가능 대형주만)",
-   "evidence": "외국인 -23억·기관 -12억 5일 동반 매도 · 20일 -32.7% · 50일선 아래",
-   "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
-   "src": "reports/detail/KR/375500.json chart · flow_note",
+   "close": 161400.0,
+   "type": "내러티브 초기",
+   "score": 0.65,
+   "direction": "롱 후보(공시 나왔는데 아직 안 오름)",
+   "evidence": "DART 7일 3건: 2026-10-21 IR·공정공시; 2026-10-21 IR·공정공시 · 20일 -23.7%",
+   "status": "검증전 — 공시 뒤 미반영(겸이 '보고 사면 늦잖아' 시스템화, 공시 이벤트 연구 전)",
+   "src": "data/dart.parquet · reports/detail/KR/010120.json chart",
    "rank": 10
   }
  ],
@@ -165,6 +168,17 @@
    "src": "reports/macro_series.json"
   }
  ],
+ "gap": {
+  "us_date": "2026-10-22",
+  "nasdaq": -0.026,
+  "beta": 0.587,
+  "t": 13.0,
+  "n": 488,
+  "pred_gap": -0.0138,
+  "band": 0.0222,
+  "status": "검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)",
+  "src": "data/deriv/daily.csv · reports/macro_series.json NASDAQ"
+ },
  "watch": [
   {
    "code": "086670",

@@ -62,7 +62,36 @@ def stock_feats(ch: list[dict]) -> dict | None:
         "n": len(prior),
         "ret20": c[-1] / c[-21] - 1,
         "below50": bool(ch[-1].get("s50")) and c[-1] < float(ch[-1]["s50"]),
+        **_ext50(c),
+        "hi250": c[-1] / max(c[-250:]),
     }
+
+
+def _ext50(c: list[float]) -> dict:
+    """50일선 이격(종가 ÷ 50일 평균 − 1)과 그 종목 직전 250일 이격 분포의 90번째 값 — '늦음' 판정용."""
+    if len(c) < 60:
+        return {"ext50": None, "ext50_p90": None}
+    ex = [c[i] / (sum(c[i - 49:i + 1]) / 50) - 1 for i in range(max(49, len(c) - 250), len(c))]
+    hist = sorted(ex[:-1])
+    return {"ext50": ex[-1], "ext50_p90": hist[int(0.9 * (len(hist) - 1))] if len(hist) >= 20 else None}
+
+
+LATE_RET20 = 0.25
+
+
+def late_flags(mk: str, ft: dict) -> list[str]:
+    """'늦었다' 판정(겸이 10/22 "VLO 너무 늦은 거 아닌가" 를 시스템화) — 롱 후보에만 붙인다. 2개 이상이면 늦음.
+    근거: S4 추격(F, t −7.4) · 미장 52주 고점 추격(B2 F) · 50일선 이격 상위 10%·20일 +25% 는 검증전 경험칙."""
+    f = []
+    if mk == "KR" and ft.get("s4"):
+        f.append("거래량 3배 + 20일 신고가(S4 F)")
+    if mk == "US" and ft.get("hi250", 0) >= 0.95:
+        f.append("미장 52주 고점 5% 안(B2 F)")
+    if ft.get("ext50") is not None and ft.get("ext50_p90") is not None and ft["ext50"] > ft["ext50_p90"] and ft["ext50"] > 0.10:
+        f.append(f"50일선 +{ft['ext50'] * 100:.0f}% (자기 1년 이격 상위 10%)")
+    if ft.get("ret20", 0) >= LATE_RET20:
+        f.append(f"20일 +{ft['ret20'] * 100:.0f}%")
+    return f
 
 
 def macro_tilts(series: dict) -> list[dict]:
@@ -112,6 +141,7 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
             if 0 <= (dd - today).days <= 7:
                 earn[(e.get("market") or "US", e["ticker"])] = e["date"]
     ideas, chains = [], {}
+    dart = _dart_recent(root, today)
     latest = {}
     feats = {}
     for mk in ("KR", "US"):
@@ -151,6 +181,11 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
                           "direction": ("추격 주의(S4 유사) — 롱은 눌림 확인 뒤" if chase else "롱 후보(수급 유입)") if up else "숏 후보(물량 출회)",
                           "evidence": f"거래량 {ft['vr']:.1f}배 · 1일 {ft['ret1'] * 100:+.1f}%",
                           "status": STATUS["vol"] + (" · S4 유사(국장 거래량 3배+상승 추격 = 반대 근거)" if chase else ""), "src": src})
+        if mk == "KR" and code in dart and ft["ret20"] < 0.10 and not ft["s4"]:
+            rec = dart[code]
+            ideas.append({**base, "type": "내러티브 초기", "score": 0.35 + 0.1 * len(rec),
+                          "direction": "롱 후보(공시 나왔는데 아직 안 오름)", "evidence": f"DART 7일 {len(rec)}건: " + "; ".join(f"{d} {c}" for d, c, _ in rec[:2]) + f" · 20일 {ft['ret20'] * 100:+.1f}%",
+                          "status": "검증전 — 공시 뒤 미반영(겸이 '보고 사면 늦잖아' 시스템화, 공시 이벤트 연구 전)", "src": "data/dart.parquet · " + src})
         if mk == "KR" and ft["adv"] >= 1e10 and ft["ret20"] <= -0.10 and ft["below50"] and ft["flow"] and ft["flow"][0] < 0 and ft["flow"][1] < 0:
             ideas.append({**base, "type": "수급 이탈 숏", "score": 0.3 + abs(ft["ret20"]),
                           "direction": "숏 후보(종목선물·대차 가능 대형주만)", "evidence": f"외국인 {ft['flow'][0]:+d}억·기관 {ft['flow'][1]:+d}억 5일 동반 매도 · 20일 {ft['ret20'] * 100:+.1f}% · 50일선 아래",
@@ -171,6 +206,14 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
                       "direction": "롱 후보 업종" if c["score"] > 0 else "숏 후보 업종",
                       "evidence": f"체인 점수 {c['score']:+.2f} · 구성 예: {', '.join(c['members'][:3])}", "status": STATUS["chain"],
                       "src": "reports/detail/*/<코드>.json drivers.chain"})
+    for x in ideas:
+        if x.get("code") and x["direction"].startswith("롱"):
+            lf = late_flags(x["market"], feats[(x["market"], x["code"])][1])
+            if lf:
+                x["late"] = lf
+            if len(lf) >= 2:
+                x["direction"] = "늦음 — " + x["direction"]
+                x["score"] *= 0.5
     by, top = {}, []
     for x in sorted(ideas, key=lambda x: -x["score"]):
         if by.get(x["type"], 0) >= PER_TYPE:
@@ -185,7 +228,60 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
     series = ((_load(root / "reports" / "macro_series.json") or {}).get("series")) or {}
     return {"v": 1, "asof": today.isoformat(), "generated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"),
             "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
-            "counts": {"total": len(ideas), **{k: v for k, v in by.items()}}, "ideas": top, "macro": macro_tilts(series)}
+            "counts": {"total": len(ideas), **{k: v for k, v in by.items()}}, "ideas": top, "macro": macro_tilts(series),
+            "gap": us_kr_gap(series, root)}
+
+
+def _dart_recent(root: Path, today: date, days: int = 7) -> dict:
+    """{code: [(날짜, 분류, 제목)]} — 내러티브 초기 후보용(수주·자사주 취득·IR·타법인 투자)."""
+    try:
+        import polars as pl
+        keep = ("수주·계약", "자사주", "IR·공정공시", "타법인 투자")       # 임원·지분 보고는 매수·매도 구분이 제목에 없어 제외
+        d = pl.read_parquet(root / "data" / "dart.parquet").filter(pl.col("category").is_in(list(keep)))
+    except Exception:  # noqa: BLE001
+        return {}
+    out = {}
+    for r in d.sort("date", descending=True).iter_rows(named=True):
+        ds = str(r["date"])[:10]
+        if r["category"] == "자사주" and "취득" not in (r.get("title") or ""):
+            continue                                                  # 처분·소각 외 — 취득만
+        if 0 <= (today - date.fromisoformat(ds)).days <= days:
+            out.setdefault(r["code"], []).append((ds, r["category"], r.get("title") or ""))
+    return out
+
+
+def us_kr_gap(series: dict, root: Path = ROOT) -> dict | None:
+    """방향 콜 시스템화(겸이 10/22 "나였음 숏친다") — 전날 밤 나스닥 수익률 → 코스피 시가 갭 회귀(설명용, 검증전).
+    data/deriv/daily.csv 시가·전일 종가 × macro_series NASDAQ. 국장 시가는 이미 반영된 가격이라 매매 신호가 아니라 장초 계획 기준선."""
+    import bisect
+    import csv
+    nq = {x[0]: x[4] for x in series.get("NASDAQ") or []}
+    try:
+        rows = [r for r in csv.DictReader(open(root / "data" / "deriv" / "daily.csv", encoding="utf-8")) if r.get("kospi_open") and r.get("kospi_close")]
+    except Exception:  # noqa: BLE001
+        return None
+    nd = sorted(nq)
+    pairs = []
+    for i in range(1, len(rows)):
+        d = rows[i]["date"]
+        j = bisect.bisect_left(nd, d) - 1
+        if j < 1 or nd[j] < rows[i - 1]["date"]:
+            continue
+        pairs.append((nq[nd[j]] / nq[nd[j - 1]] - 1, float(rows[i]["kospi_open"]) / float(rows[i - 1]["kospi_close"]) - 1))
+    if len(pairs) < 60:
+        return None
+    n = len(pairs)
+    mx, my = sum(x for x, _ in pairs) / n, sum(y for _, y in pairs) / n
+    sxx = sum((x - mx) ** 2 for x, _ in pairs)
+    b = sum((x - mx) * (y - my) for x, y in pairs) / sxx
+    a = my - b * mx
+    res = [y - a - b * x for x, y in pairs]
+    sd = (sum(e * e for e in res) / (n - 2)) ** 0.5
+    last = nd[-1]
+    us = nq[last] / nq[nd[-2]] - 1
+    return {"us_date": last, "nasdaq": round(us, 4), "beta": round(b, 3), "t": round(b / (sd / sxx ** 0.5), 1), "n": n,
+            "pred_gap": round(a + b * us, 4), "band": round(1.64 * sd, 4), "status": "검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)",
+            "src": "data/deriv/daily.csv · reports/macro_series.json NASDAQ"}
 
 
 WATCH = ROOT / "reports" / "hf_watch.json"
@@ -253,11 +349,15 @@ def watch_all(root: Path = ROOT) -> list[dict]:
 def lines(o: dict) -> list[str]:
     ls = [f"아이디어 {o['asof']}: 후보 {o['counts']['total']}개 중 상위 {len(o['ideas'])}"]
     for x in o["ideas"]:
-        ls.append(f"{x['rank']:>2}. [{x['type']}] {x['market']} {x['name']}{' ' + x['code'] if x.get('code') else ''} — {x['direction']} · {x['evidence']} · {x['status'].split(' — ')[0]}")
+        ls.append(f"{x['rank']:>2}. [{x['type']}] {x['market']} {x['name']}{' ' + x['code'] if x.get('code') else ''} — {x['direction']} · {x['evidence']} · {x['status'].split(' — ')[0]}"
+                  + (f" · 늦음 근거: {', '.join(x['late'])}" if x.get("late") else ""))
     for m in o["macro"]:
         ls.append(f" 매크로: {m['driver']} → 수혜 {m['benefit']} / 피해 {m['hurt']}")
     for w in o.get("watch") or []:
         ls.append(f" 감시 {w['name']}: {w['action']} — 켜짐 {len(w['on'])}: " + (" / ".join(w["on"]) if w["on"] else "없음"))
+    g = o.get("gap")
+    if g:
+        ls.append(f" 장초 기준선: 나스닥 {g['us_date']} {g['nasdaq'] * 100:+.1f}% → 코스피 시가 예상 {g['pred_gap'] * 100:+.1f}% (±{g['band'] * 100:.1f}%, β {g['beta']} t {g['t']}, n={g['n']}, 검증전)")
     if not o["macro"]:
         ls.append(" 매크로: 임계 넘은 변화 없음(금리 ±15bp·달러 ±1.5%·WTI ±10%·VIX +30%·원달러 ±1.5%)")
     return ls

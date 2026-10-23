@@ -90,3 +90,36 @@ def test_watch_status_strong_vs_context(tmp_path):
     d["flow_note"] = "5일 외국인 +12억 · 기관 +3억 — 동반 매수"
     p.write_text(json.dumps(d, ensure_ascii=False))
     assert I.watch_status(w, root=tmp_path)["action"] == "체크리스트 재실행"
+
+
+def test_late_flags_need_two():
+    ft = {"s4": True, "ext50": 0.30, "ext50_p90": 0.15, "ret20": 0.10, "hi250": 1.0}
+    assert len(I.late_flags("KR", ft)) == 2                                   # S4 + 이격 상위 10%
+    assert I.late_flags("KR", {**ft, "s4": False, "ext50": 0.05}) == []
+    assert any("B2" in x for x in I.late_flags("US", {**ft, "s4": False}))   # 미장 52주 고점 근처
+
+
+def test_us_kr_gap_regression(tmp_path):
+    import csv
+    nd, rows, px, k = [], [], 100.0, 2500.0
+    d = date(2024, 1, 1)
+    for i in range(120):
+        while d.weekday() >= 5:
+            d += timedelta(days=1)
+        r = 0.01 * ((i * 7) % 5 - 2)                                       # 결정적 나스닥 수익률
+        px *= 1 + r
+        nd.append([d.isoformat(), px, px, px, px, 0])
+        nxt = d + timedelta(days=1)
+        while nxt.weekday() >= 5:
+            nxt += timedelta(days=1)
+        o = k * (1 + 0.5 * r)
+        rows.append({"date": nxt.isoformat(), "kospi_open": o, "kospi_close": o})
+        k = o
+        d = nxt
+    (tmp_path / "data" / "deriv").mkdir(parents=True)
+    with open(tmp_path / "data" / "deriv" / "daily.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["date", "kospi_open", "kospi_close"])
+        w.writeheader()
+        w.writerows(rows)
+    g = I.us_kr_gap({"NASDAQ": nd}, tmp_path)
+    assert g and abs(g["beta"] - 0.5) < 0.05 and g["status"].startswith("검증전")
