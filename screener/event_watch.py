@@ -428,8 +428,8 @@ def run(now: datetime | None = None, send=None) -> dict:
         if missing:
             log.warning("이벤트 감시: 데이터 없음(네이버 지수 %s 실패)", ",".join(missing))
         stale = [k for k, v in idx.items() if v and not fresh(v, now, FRESH_KR_SEC)]
-        if stale:
-            log.warning("이벤트 감시: 오래된 시세 %s — 알림 보류", ",".join(stale))
+        if stale:   # 시세 시각(ts)도 남긴다 — FUT 가 10/21·10/23 장중 매 회차 보류(선물 프록시 경로 0회 작동), 원인 확인용(유지보수 10/23)
+            log.warning("이벤트 감시: 오래된 시세 %s — 알림 보류", ",".join(f"{k}(ts={idx[k].get('ts')!r})" for k in stale))
         try:
             a_sent = json.loads(alerts.STATE.read_text(encoding="utf-8")).get("sent", {})
         except Exception:  # noqa: BLE001

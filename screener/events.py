@@ -135,6 +135,8 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
             new.append({"date": today, "time": now.strftime("%H:%M"), "market": k, "type": "경보:" + lvl, "source": "지수",
                         "title": f"{k} {c*100:+.2f}% ({it.get('last'):,.2f})"})
             have.add((today, k, "경보:" + lvl))
+    for e in new:   # 계측(유지보수 10/23, req-maint-a38820c6): time = 뉴스·시세 시각, seen_at = 우리가 잡은 시각, sent_at = 텔레그램 성공 시각 → 지연 = sent_at − time
+        e["seen_at"] = now.strftime("%H:%M:%S")
     if new or st.get("_dropped"):
         st.pop("_dropped", None)
         st["events"] = sorted(ev + new, key=lambda e: (e["date"], e.get("time", "")), reverse=True)[:300]
@@ -149,6 +151,10 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
                     f"• {e['time']} {e['market']} <b>{e['type']}</b> — {e['title']}" for e in new)
                     + "\n\n과거 서킷 다음날 통계: 웹 HOME › EVENTS",
                     disable_notification=silent(_not_yet_rung(halt_keys(new), today)))   # 결재 #9: 서킷·사이드카 실제 발동만 소리, 근접 경보·급변 뉴스는 무음
+                sent = datetime.now(KST).strftime("%H:%M:%S")
+                for e in new:
+                    e["sent_at"] = sent
+                OUT.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 텔레그램 실패: %s", e)
     return new

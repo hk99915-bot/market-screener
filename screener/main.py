@@ -764,8 +764,7 @@ def main() -> None:
     except Exception as e:  # noqa: BLE001
         _record_error(e)
         raise
-    else:
-        from .config import REPORT_DIR
+    else:   # 모듈 상단 REPORT_DIR 사용 — 여기서 다시 import 하면 main() 전체에서 지역 변수가 돼 quotes 분기가 UnboundLocalError (10/21~10/23 '이벤트 추적 실패' 매 5분, 유지보수 10/23)
         (REPORT_DIR / "last_error.txt").unlink(missing_ok=True)
 
 
