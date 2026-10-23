@@ -243,6 +243,8 @@ def _dart_recent(root: Path, today: date, days: int = 7) -> dict:
     out = {}
     for r in d.sort("date", descending=True).iter_rows(named=True):
         ds = str(r["date"])[:10]
+        if "정정" in (r.get("title") or "") or "안내공시" in (r.get("title") or ""):
+            continue                                                  # 기재정정·안내공시 = 새 소식 아님(10/23 현대건설 정정 공시 오탐)
         if r["category"] == "자사주" and "취득" not in (r.get("title") or ""):
             continue                                                  # 처분·소각 외 — 취득만
         if 0 <= (today - date.fromisoformat(ds)).days <= days:
