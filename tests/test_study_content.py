@@ -275,3 +275,47 @@ def test_aptitude_check_catches_bad(S):
     scc.check_aptitude(A, c)
     msg = "\n".join(c.errors)
     assert "https" in msg and "'trap'" in msg and "choices" in msg
+
+
+# ── 교육 2026-10-23: 정답 위치 균등화 (kb:edu#5①·#7c, scripts/quiz_shuffle.py) ──
+def test_quiz_bank_key_positions_balanced(S):
+    items = S["quiz_bank"]["items"]
+    n = len(items)
+    counts = [sum(1 for it in items if it["answer"] == i) for i in range(4)]
+    assert all(0.20 <= k / n <= 0.30 for k in counts), counts           # 무작위 기대 25% ± 5%p (셔플 전 1번 115/125)
+    per: dict = {}
+    for it in items:
+        per.setdefault(it["module"], []).append(it["answer"])
+    assert max(max(a.count(i) for i in range(4)) for a in per.values()) <= 2   # 모듈 5문항 = 2·1·1·1
+    for it in items:                                                      # duel.pick 은 여전히 유효한 선택지
+        assert 0 <= it["duel"]["pick"] < 4
+
+
+def test_module_quiz_key_positions_balanced(S):
+    qs = [q for t in S["tracks"] for m in t["modules"] for q in m.get("quiz", []) if "choices" in q]
+    counts = [sum(1 for q in qs if q["answer"] == i) for i in range(4)]
+    assert all(0.20 <= k / len(qs) <= 0.30 for k in counts), counts
+
+
+def test_key_balance_check_catches_skew(S):
+    qb = copy.deepcopy(S["quiz_bank"])
+    for it in qb["items"]:                                                # 10/17 상태 재현: 정답을 전부 1번 자리로
+        a = it["choices"].pop(it["answer"])
+        it["choices"].insert(1, a)
+        it["answer"] = 1
+    c = scc.check_all({**S, "quiz_bank": qb})
+    msg = "\n".join(c.errors)
+    assert "같은 정답 위치" in msg and "kb:edu#7c" in msg
+
+
+def test_quiz_shuffle_idempotent_and_meaning_preserving(S):
+    import quiz_shuffle as qs
+    by: dict = {}
+    for it in S["quiz_bank"]["items"]:
+        by.setdefault(it["module"], []).append(it)
+    out, warns = qs.balance(list(by.items()))
+    flat = [q for _, g in out for q in g]
+    ref = [q for g in by.values() for q in g]
+    assert all(qs.same_meaning(a, b) for a, b in zip(ref, flat))
+    assert [q["answer"] for q in flat] == [q["answer"] for q in ref]     # 이미 균등 → 다시 돌려도 그대로
+    assert warns == []

@@ -146,6 +146,23 @@ def check_quiz(q: dict, where: str, c: Check, require_v3: bool) -> None:
             c.err(f"{where}: 구형 quiz 는 t/q/a/why")
 
 
+KEY_MAX_SHARE = 0.40      # 4지선다 한 위치 ≤ 40% (무작위 기대 25%, kb:edu#5①)
+LONGEST_WARN_SHARE = 0.50  # '가장 긴 선택지 = 정답' 비중 경고선 (kb:edu#5③, Haladyna 2002)
+
+
+def check_key_balance(items: list, where: str, c: Check) -> None:
+    """정답 위치 쏠림(실패)·가장 긴 선택지=정답 패턴(경고). 4지선다만 센다."""
+    qs = [q for q in items if isinstance(q.get("answer"), int) and isinstance(q.get("choices"), list) and len(q["choices"]) == 4]
+    if len(qs) < 8:
+        return
+    top = max(sum(1 for q in qs if q["answer"] == i) for i in range(4))
+    if top / len(qs) > KEY_MAX_SHARE:
+        c.err(f"{where}: 같은 정답 위치 {top}/{len(qs)} > {KEY_MAX_SHARE:.0%} — python scripts/quiz_shuffle.py --write (kb:edu#5①)")
+    lg = sum(1 for q in qs if len(str(q["choices"][q["answer"]])) > max(len(str(x)) for j, x in enumerate(q["choices"]) if j != q["answer"]))
+    if lg / len(qs) > LONGEST_WARN_SHARE:
+        c.warn(f"{where}: 정답이 유일하게 가장 긴 선택지 {lg}/{len(qs)} ({lg / len(qs):.0%}) > {LONGEST_WARN_SHARE:.0%} — 오답지 길이 보강 필요 (kb:edu#5③)")
+
+
 APT_PAST_REQ = ["id", "exam", "year", "date", "booklet", "no", "area", "type", "topic", "strategy", "trap", "time_sec", "url", "checked_via"]
 
 
@@ -296,6 +313,17 @@ def check_all(S: dict) -> Check:
             share = sum(1 for it in all_items if it.get("kind") == "situation") / len(all_items)
             if share < 0.7:
                 c.err(f"quiz_bank: 상황 판단 문제 비중 {share:.0%} < 70% (consult:pb_learner#L8)")
+        for mid, its in per.items():
+            ans = [it.get("answer") for it in its if isinstance(it.get("answer"), int)]
+            top = max((ans.count(i) for i in range(4)), default=0)
+            if top > 3:
+                c.err(f"quiz_bank: {mid} 같은 정답 위치 {top}/{len(ans)} > 3 (kb:edu#7c)")
+        check_key_balance(all_items, "quiz_bank", c)
+        tag_only = sum(1 for it in all_items if len(CITE.sub("", re.sub(r"\[[^\]]*\]", "", str(it.get("why", "")))).strip()) < 15)
+        if tag_only:
+            c.warn(f"quiz_bank: why 가 인용 태그뿐/한 문장 미만 {tag_only}/{len(all_items)} — 오답자가 읽을 근거 한 문장 필요 (kb:edu#7b)")
+    # 모듈 v3 quiz 도 같은 기준 (2026-10-23 셔플: scripts/quiz_shuffle.py)
+    check_key_balance([q for m in mods.values() for q in (m.get("quiz") or []) if "choices" in q], "모듈 quiz", c)
     # 2주 게이트: 열린 모듈 정확히 15개, 나머지 전부 잠김, 겹침 없음
     gate = idx.get("gate")
     if gate is None:
