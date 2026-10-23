@@ -31,7 +31,8 @@ def watched() -> list[tuple[str, str | None]]:
     """(경로, 날짜 키). 신선도 계약의 파일 + 날짜가 파일명에 없는 주요 산출물."""
     items = json.loads((ROOT / "ops" / "freshness.json").read_text(encoding="utf-8"))["items"]
     out = {(i["path"], i.get("key")) for i in items if i.get("kind", "session") == "session" and "." not in str(i.get("key") or "")}
-    out |= {("reports/sim_signals_KR.json", None), ("reports/sim_signals_US.json", None), ("reports/macro_view.json", None),
+    out |= {("reports/sim_signals_KR.json", None), ("reports/sim_signals_US.json", None),
+            ("reports/trend_discovery_KR.json", None), ("reports/trend_discovery_US.json", None), ("reports/macro_view.json", None),
             ("reports/japan.json", "date")}
     return sorted(out, key=lambda x: x[0])
 

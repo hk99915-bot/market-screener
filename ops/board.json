@@ -4600,6 +4600,41 @@
       "status": "대기",
       "repo": "public",
       "approval": null
+    },
+    {
+      "started": "2026-10-24",
+      "due": "2026-10-24",
+      "files": [
+        "screener/trend_discovery.py",
+        "reports/trend_discovery_KR.json",
+        "reports/trend_discovery_US.json",
+        "reports/studies/2026-10-24_trend_discovery.md"
+      ],
+      "depends_on": [],
+      "notes": "겸이 10/24. 정식 규칙 불변·탐색 상한 C·주문표 근거 불가. detail.build 뒤 매일(KR screener.yml·US briefing.yml). 전진 추적 signal_tracking disc_kr/us — 11/20 재판정",
+      "id": "quant-trend-discovery",
+      "title": "신규 추세 진입 신호 발굴 — 탐색 레이어(근접·새 전략군·업종, 국장·미장)",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "완료",
+      "done": "2026-10-24"
+    },
+    {
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "reports/studies/2026-10-24_trend_discovery.md"
+      ],
+      "depends_on": [
+        "quant-trend-discovery"
+      ],
+      "notes": "§5 제안 1·2(+§6 미장 매수 후보 추세 꺼짐 꼬리표). 07시 이후 결재. 정식 기준 변경이라 구현 보류",
+      "id": "appr-trend-pooled-prereg",
+      "title": "겸이 결재 필요: 새 추세 진입 전략군 합산 이벤트 연구 사전등록 + KR 52주 고점 근접(B1, B) 운용회의 참고 목록",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "대기",
+      "approval": "겸이"
     }
   ]
 }

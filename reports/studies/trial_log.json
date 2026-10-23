@@ -170,6 +170,20 @@
    "question": "매수후보 정렬: 가격 확인(r20>0) vs Δdrv vs 현행",
    "unregistered_trials": 0,
    "discarded": "(a) r20>0 은 5·20일 모두 현행보다 나쁨 C(역방향). (b) Δdrv·실제 drv 비교 검증전(거래일 7개) → 현행 유지, H_b 사전등록"
+  },
+  "2026-10-24_trend_discovery": {
+   "topic": "trend_sim",
+   "question": "정식 '새로 켜진 추세 신호' 0건의 원인과, 근접·새 전략군(52주 신고가·골든크로스+거래량·변동성 수축 돌파)·업종 집계 탐색 레이어로 후보가 생기는가(우연 대비)",
+   "unregistered_trials": 18,
+   "unregistered_note": "시장 2 × (탐색 전략 5[hi52·gcv·sqz·ma3·psar3] + 근접 띠 3[Wilson 0.45~0.5·t하한 −0.5%p~0·fresh 3~5일] + 업종 집계 1) = 18 계열. 업종 집계 안의 검정은 KR 30·US 14개(Bonferroni 업종 수). 정식 규칙 불변.",
+   "discarded": "탐색 통과 KR 2·US 2 vs 우연 기대 13.4·8.7(이항 p 1.00) → 우연과 구분 안 됨. 새 전략군은 종목별 3년 거래 0~5회라 종목별 검정 불가 → 합산(pooled) 사전등록 제안으로"
+  },
+  "2026-10-24_avoid_vs_long": {
+   "topic": "committee_ideas",
+   "question": "운용회의 '회피'(추정 하향+급등)가 '매수 후보'보다 단기 초과수익이 높은가(겸이 10/24 관찰)",
+   "unregistered_trials": 6,
+   "unregistered_note": "사후 질문(결과 관찰 뒤). 시장 2 × h 1·3·5 = 6. m 미등록",
+   "discarded": "US 회피−매수 h1 +1.8%p(t 1.27, 날짜 6)·h3 +2.5%p(t 1.19, 4) vs KR 반대 h3 −1.8%p(t −1.56, 4) → 검증전, 시장 간 부호 불일치"
   }
  },
  "trials": [
@@ -334,6 +348,24 @@
    "result": "B1 B(OOS +0.083R vs 기준선 −0.015R, 초과 +0.098R t 2.78, 학습 초과 +0.043) · D1 C(방향만, OOS +0.18R 초과 +0.24 t 2.29, n 602) · A1 F(초과 −0.026) · A2 F(−0.022) · B2 F(−0.073) · C1 F(−0.051). D2(US EPS 상향)·E(이벤트 드리븐) 데이터 없음 → m 밖 검증전",
    "discarded_why": "A1·A2·B2·C1 기준선 못 넘음. D1 은 2년 표본 Bonferroni 미달 — 표본 늘면 재검. B1 학습 절대 E[R] 음수(−0.032R) = 반대 근거, 등급 상한 B",
    "study": "2026-10-21_alpha_sources"
+  },
+  {
+   "date": "2026-10-24",
+   "topic": "trend_sim",
+   "hypothesis": "탐색 레이어: (a) 정식 전략 근접(Wilson 0.45~0.5·t하한 −0.5%p~0·fresh 3~5일) (b) 새 추세 진입 전략 hi52·gcv·sqz + 정식 전략 3년 창 (c) 업종 쏠림 — 각 통과 수가 귀무 우연 기대보다 많다",
+   "params": "reports/detail chart 260봉 + data/hist 연도별(KR 1204/1467·US 251/599 종목 이어붙임, 최대 756봉), 종가 체결·왕복 0.25%, 정식 문턱 그대로(Wilson>0.5·n≥6 / t하한>0·n≥8), 새로 켜짐 = 진입 ≤4거래일. 국장 HF S4 추격 패턴은 후보 제외(chase). 코드 screener/trend_discovery.py, 기준일 KR 10-23·US 10-22",
+   "result": "정식 깔때기: US 슬롯 1056 → 보유 494 → fresh≤2일 64 → 거래≥6 52 → 통과 0; fresh 무시해도 Wilson 통과 0(KR 2)·t하한 3(KR 5). 근접 US 2(우연 6.5)·KR 0(9.5). 탐색 통과 US 2(JPM·BNY psar3)·KR 2(타이거일렉·방림 psar3), 우연 8.7·13.4, 이항 p 1.00. 업종 Bonferroni 통과 US 금융(39/76, p 0.003)·KR 건설·부동산(14/42, p 0.0004)",
+   "discarded_why": "우연과 구분 안 됨 · 새 전략군 종목별 표본 부족 → 합산 사전등록 제안(결재)·전진 추적(signal_tracking disc_kr/us)",
+   "study": "2026-10-24_trend_discovery"
+  },
+  {
+   "date": "2026-10-24",
+   "topic": "committee_ideas",
+   "hypothesis": "운용회의 회피 목록이 매수 후보보다 1·3·5거래일 초과수익이 높다(사후, req-quant-2ba2c1f0)",
+   "params": "committee_us_hist·committee_hist 10/14~10/23 7회의, 진입 = 기준 종가, 초과 = detail 유니버스 중앙값 대비, 날짜 단위 t",
+   "result": "US 회피−매수 h1 +1.8%p t1.27(6일)·h3 +2.5%p t1.19(4일)·h5 +7.2%p(2일) / KR h1 −0.2%p·h3 −1.8%p t−1.56·h5 −3.2%p → 시장 간 반대 부호. US 매수 후보 중 이평 추세 켜짐 1%(70건 중 1)",
+   "discarded_why": "검증전(독립 날짜 ≤6, 20거래일 미완) — 11/20 재판정",
+   "study": "2026-10-24_avoid_vs_long"
   }
  ]
 }

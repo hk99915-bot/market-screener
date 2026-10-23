@@ -4,6 +4,7 @@
   accum      KR 매집 신호 상위 목록 (reports/accum.json top[tag], MARKET 탭 매집 패널) — 태그별(분배 distrib 는 약세 신호)
   us_accum   US 매집 흔적 (reports/us_accum.json hits) — 화면 getter 만 있고 탭 패널 없음(표기)
   sim_kr/us  새로 켜진 추세 신호 (reports/sim_signals_<KR|US>.json rows, 운용회의 '새로 켜진 추세 신호')
+  disc_kr/us 추세 탐색 레이어 (reports/trend_discovery_<KR|US>.json — 근접 nm·탐색 통과 x·새 전략 new·국장 추격 chase(약세 방향))
 추적하지 않는 것(중복·성격 다름): 운용회의 ideas_top TOP3 = screener/idea_tracking.py(진입 규칙 모의추적) ·
   entry_signals(지수 급락 타점, 종목 아님) · alerts(보유 규정 알림, 종목 신호 아님).
 
@@ -38,6 +39,8 @@ SOURCES = [
     {"src": "us_accum", "market": "US", "file": "reports/us_accum.json", "screen": "화면 패널 없음(getUsAccum getter만)", "tracked": True},
     {"src": "sim_kr", "market": "KR", "file": "reports/sim_signals_KR.json", "screen": "DAILY › 운용회의 '새로 켜진 추세 신호'", "tracked": True},
     {"src": "sim_us", "market": "US", "file": "reports/sim_signals_US.json", "screen": "DAILY › 운용회의(미장) '새로 켜진 추세 신호'", "tracked": True},
+    {"src": "disc_kr", "market": "KR", "file": "reports/trend_discovery_KR.json", "screen": "화면 패널 없음(탐색 레이어 — 주문표 근거 불가)", "tracked": True},
+    {"src": "disc_us", "market": "US", "file": "reports/trend_discovery_US.json", "screen": "화면 패널 없음(탐색 레이어 — 주문표 근거 불가)", "tracked": True},
     {"src": "ideas_top", "market": "KR·US", "file": "reports/idea_tracking.json", "screen": "DAILY › 운용회의 트레이드 아이디어",
      "tracked": False, "why": "screener/idea_tracking.py 가 진입 규칙 모의추적 — 중복 안 함"},
     {"src": "entry_signals", "market": "KR", "file": "reports/studies/entry_signals.json", "screen": "QUANT › 검증 스터디",
@@ -82,6 +85,19 @@ def extract(src: str, d: dict) -> list[dict]:
                 out.append({"date": str(r.get("entry_date") or d.get("asof") or "")[:10], "src": src,
                             "tag": str(r.get("strategy") or "trend"), "code": str(r["s"]), "name": r.get("n"),
                             "market": mk, "side": 1})
+    elif src in ("disc_kr", "disc_us"):
+        # 추세 탐색 레이어(screener/trend_discovery.py) — 전진 추적으로만 검증(사전등록 전 탐색, 상한 C). 태그: 층:전략
+        mk = "KR" if src == "disc_kr" else "US"
+        ex = d.get("explore") or {}
+        picks = [("nm", r) for r in (d.get("near_miss") or {}).get("rows") or []]
+        picks += [("x", r) for r in ex.get("rows") or [] if r.get("pass_wilson") or r.get("pass_exp")]
+        picks += [("new", r) for r in (ex.get("fresh_new") or {}).get("rows") or []]
+        picks += [("chase", r) for r in (ex.get("chase") or {}).get("rows") or []]
+        for layer, r in picks:
+            if r.get("s"):
+                out.append({"date": str(r.get("entry_date") or d.get("asof") or "")[:10], "src": src,
+                            "tag": f"{layer}:{r.get('strategy')}", "code": str(r["s"]), "name": r.get("n"), "market": mk,
+                            "side": -1 if layer == "chase" else 1})
     return [x for x in out if len(x["date"]) == 10]
 
 

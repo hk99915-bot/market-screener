@@ -1,0 +1,337 @@
+{
+ "study": "2026-10-24_trend_discovery",
+ "grade": "탐색(사전등록 전) · 상한 C",
+ "not_for_orders": true,
+ "note": "매일 산출은 reports/trend_discovery_{KR,US}.json(screener/trend_discovery.py, detail.build 뒤). 이 파일은 2026-10-24 실행 요약. 등록 가설 없음(m 미등록) — 시도 수는 trial_log.json unregistered_trials 18.",
+ "m_unregistered": 18,
+ "markets": {
+  "KR": {
+   "asof": "2026-10-23",
+   "diagnosis": {
+    "n_scanned": 1233,
+    "slots": 2466,
+    "pos_now": 445,
+    "fresh_le": {
+     "2d": 56,
+     "5d": 174,
+     "10d": 259
+    },
+    "fresh_le_trades6": {
+     "2d": 49,
+     "5d": 156,
+     "10d": 228
+    },
+    "pass_ignoring_fresh": {
+     "wilson": 2,
+     "exp": 5
+    },
+    "pass_pos_any_age": {
+     "wilson": 0,
+     "exp": 0
+    },
+    "sim_days_median": 223,
+    "sim_days_min": 63,
+    "winrate_median_trades6": 0.3,
+    "winrate_p75_trades6": 0.417,
+    "read": "fresh(진입 ≤ 직전 거래일)를 풀어도 통과가 늘지 않으면 묶는 조건은 승률·표본(창)이다. 'pass_ignoring_fresh' = 보유·진입일 무시하고 문턱만 본 통과 슬롯 수(상한)."
+   },
+   "near_miss": {
+    "m": {
+     "wilson_band": 49,
+     "exp_band": 44,
+     "stale_pass": 107
+    },
+    "expected_chance": {
+     "wilson_band": 1.76,
+     "exp_band": 1.01,
+     "stale_pass": 6.72
+    },
+    "n": 0
+   },
+   "explore": {
+    "m_wilson": 178,
+    "m_exp": 176,
+    "n_pass": 2,
+    "expected_chance": 13.42,
+    "binom_p": 1.0,
+    "n_candidates": 171,
+    "by_strategy": {
+     "hi52": {
+      "fresh": 3,
+      "eligible_w": 0,
+      "eligible_e": 0,
+      "pass": 0,
+      "chase": 0
+     },
+     "gcv": {
+      "fresh": 12,
+      "eligible_w": 0,
+      "eligible_e": 0,
+      "pass": 0,
+      "chase": 0
+     },
+     "sqz": {
+      "fresh": 13,
+      "eligible_w": 3,
+      "eligible_e": 2,
+      "pass": 0,
+      "chase": 5
+     },
+     "ma3": {
+      "fresh": 31,
+      "eligible_w": 25,
+      "eligible_e": 24,
+      "pass": 0,
+      "chase": 2
+     },
+     "psar3": {
+      "fresh": 150,
+      "eligible_w": 150,
+      "eligible_e": 150,
+      "pass": 2,
+      "chase": 18
+     }
+    },
+    "pooled": {
+     "hi52": {
+      "trades": 2652,
+      "exp": 0.0513,
+      "win": 0.34,
+      "t_naive": 4.16
+     },
+     "gcv": {
+      "trades": 4077,
+      "exp": 0.0372,
+      "win": 0.326,
+      "t_naive": 3.76
+     },
+     "sqz": {
+      "trades": 5303,
+      "exp": 0.0087,
+      "win": 0.303,
+      "t_naive": 2.89
+     },
+     "ma3": {
+      "trades": 21287,
+      "exp": 0.0104,
+      "win": 0.221,
+      "t_naive": 4.41
+     },
+     "psar3": {
+      "trades": 36346,
+      "exp": 0.0065,
+      "win": 0.355,
+      "t_naive": 6.75
+     }
+    },
+    "bars_median": 756,
+    "splice": {
+     "spliced": 1204,
+     "chart_only": 263
+    }
+   },
+   "chase_n": 25,
+   "accum_x_n": 57,
+   "fresh_new_n": 23,
+   "sectors_top": [
+    {
+     "g": "건설·부동산",
+     "n": 42,
+     "on": 14,
+     "rate": 0.333,
+     "lift": 2.65,
+     "p_upper": 0.0004,
+     "bonf_pass": true
+    },
+    {
+     "g": "일반서비스",
+     "n": 41,
+     "on": 12,
+     "rate": 0.293,
+     "lift": 2.33,
+     "p_upper": 0.0036,
+     "bonf_pass": false
+    },
+    {
+     "g": "바이오·헬스케어",
+     "n": 132,
+     "on": 23,
+     "rate": 0.174,
+     "lift": 1.39,
+     "p_upper": 0.0651,
+     "bonf_pass": false
+    }
+   ],
+   "multiple_testing": {
+    "m_total": 554,
+    "expected_chance_total": 22.91,
+    "observed_total": 2,
+    "note": "근접·탐색 목록은 같은 날 수백~천여 종목 × 5전략을 동시에 본 결과. 우연 기대와 관측이 비슷하면 '우연과 구분 안 됨'. 탐색 전략 3개(hi52·gcv·sqz)는 결과를 본 뒤 정한 것이 아니라 오늘 처음 정의했지만 사전등록 전이라 상한 C · 시도 일지 trial_log 기록."
+   }
+  },
+  "US": {
+   "asof": "2026-10-22",
+   "diagnosis": {
+    "n_scanned": 528,
+    "slots": 1056,
+    "pos_now": 494,
+    "fresh_le": {
+     "2d": 64,
+     "5d": 129,
+     "10d": 258
+    },
+    "fresh_le_trades6": {
+     "2d": 52,
+     "5d": 102,
+     "10d": 223
+    },
+    "pass_ignoring_fresh": {
+     "wilson": 0,
+     "exp": 3
+    },
+    "pass_pos_any_age": {
+     "wilson": 0,
+     "exp": 1
+    },
+    "sim_days_median": 228,
+    "sim_days_min": 200,
+    "winrate_median_trades6": 0.333,
+    "winrate_p75_trades6": 0.455,
+    "read": "fresh(진입 ≤ 직전 거래일)를 풀어도 통과가 늘지 않으면 묶는 조건은 승률·표본(창)이다. 'pass_ignoring_fresh' = 보유·진입일 무시하고 문턱만 본 통과 슬롯 수(상한)."
+   },
+   "near_miss": {
+    "m": {
+     "wilson_band": 52,
+     "exp_band": 45,
+     "stale_pass": 50
+    },
+    "expected_chance": {
+     "wilson_band": 1.98,
+     "exp_band": 1.39,
+     "stale_pass": 3.12
+    },
+    "n": 2
+   },
+   "explore": {
+    "m_wilson": 130,
+    "m_exp": 114,
+    "n_pass": 2,
+    "expected_chance": 8.7,
+    "binom_p": 0.9986,
+    "n_candidates": 166,
+    "by_strategy": {
+     "hi52": {
+      "fresh": 39,
+      "eligible_w": 1,
+      "eligible_e": 0,
+      "pass": 0,
+      "chase": 1
+     },
+     "gcv": {
+      "fresh": 10,
+      "eligible_w": 0,
+      "eligible_e": 0,
+      "pass": 0,
+      "chase": 1
+     },
+     "sqz": {
+      "fresh": 85,
+      "eligible_w": 15,
+      "eligible_e": 7,
+      "pass": 0,
+      "chase": 0
+     },
+     "ma3": {
+      "fresh": 56,
+      "eligible_w": 34,
+      "eligible_e": 30,
+      "pass": 0,
+      "chase": 1
+     },
+     "psar3": {
+      "fresh": 80,
+      "eligible_w": 80,
+      "eligible_e": 77,
+      "pass": 2,
+      "chase": 0
+     }
+    },
+    "pooled": {
+     "hi52": {
+      "trades": 887,
+      "exp": 0.0414,
+      "win": 0.369,
+      "t_naive": 3.44
+     },
+     "gcv": {
+      "trades": 457,
+      "exp": 0.0549,
+      "win": 0.403,
+      "t_naive": 2.72
+     },
+     "sqz": {
+      "trades": 1964,
+      "exp": 0.0102,
+      "win": 0.352,
+      "t_naive": 2.73
+     },
+     "ma3": {
+      "trades": 6064,
+      "exp": 0.0194,
+      "win": 0.286,
+      "t_naive": 5.5
+     },
+     "psar3": {
+      "trades": 11103,
+      "exp": 0.0066,
+      "win": 0.394,
+      "t_naive": 6.81
+     }
+    },
+    "bars_median": 260,
+    "splice": {
+     "chart_only": 348,
+     "spliced": 251
+    }
+   },
+   "chase_n": 0,
+   "accum_x_n": 17,
+   "fresh_new_n": 134,
+   "sectors_top": [
+    {
+     "g": "금융",
+     "n": 76,
+     "on": 39,
+     "rate": 0.513,
+     "lift": 1.45,
+     "p_upper": 0.003,
+     "bonf_pass": true
+    },
+    {
+     "g": "부동산",
+     "n": 30,
+     "on": 16,
+     "rate": 0.533,
+     "lift": 1.51,
+     "p_upper": 0.0325,
+     "bonf_pass": false
+    },
+    {
+     "g": "경기소비재",
+     "n": 47,
+     "on": 21,
+     "rate": 0.447,
+     "lift": 1.27,
+     "p_upper": 0.1172,
+     "bonf_pass": false
+    }
+   ],
+   "multiple_testing": {
+    "m_total": 391,
+    "expected_chance_total": 15.19,
+    "observed_total": 4,
+    "note": "근접·탐색 목록은 같은 날 수백~천여 종목 × 5전략을 동시에 본 결과. 우연 기대와 관측이 비슷하면 '우연과 구분 안 됨'. 탐색 전략 3개(hi52·gcv·sqz)는 결과를 본 뒤 정한 것이 아니라 오늘 처음 정의했지만 사전등록 전이라 상한 C · 시도 일지 trial_log 기록."
+   }
+  }
+ }
+}

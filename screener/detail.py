@@ -619,6 +619,13 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
         log.info("sim_signals_%s: 스캔 %d · 통과 %d · 기대 우연 %.1f", market, ss["n_scanned"], ss["n_pass"], ss["expected_chance"])
     except Exception as e:  # noqa: BLE001
         log.warning("추세 신호 집계 실패: %s", e)
+    try:   # 탐색 레이어(근접·새 전략군·업종) — 정식 규칙 불변, 등급 탐색·상한 C, 주문표 근거 불가 (퀀트 10/24)
+        from . import trend_discovery
+        td = trend_discovery.build(market)
+        log.info("trend_discovery_%s: 근접 %s · 탐색 통과 %s (우연 기대 %s)", market, (td.get("near_miss") or {}).get("n"),
+                 (td.get("explore") or {}).get("n_pass"), (td.get("explore") or {}).get("expected_chance"))
+    except Exception as e:  # noqa: BLE001
+        log.warning("추세 탐색 레이어 실패: %s", e)
     try:
         from . import etf
         etf.build(market)

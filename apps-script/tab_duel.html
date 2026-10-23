@@ -254,7 +254,7 @@ function sigScoreCard(){
   if(SIGSC===null){ SIGSC={loading:true}; getJSONrel('reports/signal_tracking.json').then(d=>{SIGSC=d; if(view==='score') render();}).catch(()=>{SIGSC={error:true}; if(view==='score') render();}); }
   if(SIGSC.loading) return '<div class="mu">신호 성적 불러오는 중…</div>';
   if(SIGSC.error||!SIGSC.by_src) return '<div class="am">신호 성적 자료 없음(signal_tracking.json)</div>';
-  const d=SIGSC, NM={accum:'국장 매집',us_accum:'미장 매집',sim_kr:'국장 추세(모의)',sim_us:'미장 추세(모의)'};
+  const d=SIGSC, NM={accum:'국장 매집',us_accum:'미장 매집',sim_kr:'국장 추세(모의)',sim_us:'미장 추세(모의)',disc_kr:'국장 추세 탐색(C)',disc_us:'미장 추세 탐색(C)'};
   const pc=v=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(1)+'%';
   const cell=h=>!h||!h.n?'<td class="mu">대기</td>':`<td><span class="${h.avg_ex>=0?'up':'dn'}">${pc(h.avg_ex)}</span> <span class="mu">중앙 ${pc(h.med_ex)} · 적중 ${Math.round(h.hit*100)}% · n ${h.n}</span>${h.n<30?' <span class="tag r">판단 금지(표본 부족)</span>':''}</td>`;
   const rows=Object.entries(d.by_src).map(([k,v])=>`<tr><td class="l">${esc(NM[k]||k)}</td><td>${v.n_events??'—'}</td>${cell(v.h5)}${cell(v.h20)}${cell(v.h60)}</tr>`).join('');

@@ -36,6 +36,14 @@ CRISES = [
 ]
 
 
+# 원천 CSV 마지막 행은 월말 라벨(2026-10-31)이지만 실제 데이터는 이 날까지 — asof 는 실제 마지막 날(uxui req-quant-14188e23, 미래 날짜 표기 수정)
+DATA_THRU = "2026-10-15"
+
+
+def _asof(last_label: str) -> str:
+    return DATA_THRU if last_label[:7] == DATA_THRU[:7] and last_label > DATA_THRU else last_label
+
+
 def build(src: Path = SRC_DEFAULT, out: Path = OUT_DEFAULT) -> dict:
     rows = list(csv.DictReader(src.open(encoding="utf-8")))
     hdr = list(rows[0].keys())
@@ -44,7 +52,7 @@ def build(src: Path = SRC_DEFAULT, out: Path = OUT_DEFAULT) -> dict:
     R = {a: [round(float(r[a]), 6) for r in rows] for a in ASSETS}
     o = {
         "schema_version": 1,
-        "asof": rows[-1]["date"],
+        "asof": _asof(rows[-1]["date"]),
         "note": "2026-10 은 10/15 까지의 부분 월. 원화 기준 월수익률(비용 차감 전) — 화면이 drag 를 월 1/12씩 뺀다.",
         "source": "pb-private analysis/2026-10-15-alloc (SPY·QQQ·IEF·GLD × KRW=X, 069500·114260·148070 + 이전 구간 대용치)",
         "assets": ASSETS, "names": NAMES, "drag": DRAG, "months": months, "r": R,

@@ -18,6 +18,7 @@ CONTRACTS: dict[str, dict] = {
     "momentum_KR.json": {"v": 1, "date": "asof", "required": {"asof": str, "market": str, "n": int, "top": list, "bottom": list}},
     "momentum_US.json": {"v": 1, "date": "asof", "required": {"asof": str, "market": str, "n": int, "top": list, "bottom": list}},
     "sim_signals_*.json": {"v": 1, "date": "asof", "required": {"asof": str, "market": str}},
+    "trend_discovery_*.json": {"v": 1, "date": "asof", "required": {"asof": str, "market": str, "grade": str, "use": str}},
     "derivs.json": {"v": 1, "date": "date", "required": {"date": str, "asof": str, "spot": (int, float)}},
     "committee.json": {"v": 1, "date": "date", "required": {"asof": str, "date": str, "session": str, "head": list, "verdict": str}},
     "committee_us.json": {"v": 1, "date": "date", "required": {"asof": str, "date": str, "head": list, "verdict": str}},
