@@ -2,9 +2,9 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-24 · 작업 237개 · 진행 7 · 검수 11 · 대기 73 · 보류 3 · 완료 143
+기준일 2026-10-24 · 작업 238개 · 진행 7 · 검수 11 · 대기 74 · 보류 3 · 완료 143
 
-**결재 대기 8:** `user-realestate-keys-1023` (겸이 · 보류), `appr-frm-agenda-a` (겸이), `appr-uxui-top10-next` (겸이), `appr-pick-gate-start` (겸이), `appr-hf-independence` (겸이), `appr-alloc-1115` (겸이), `appr-edu-g1-g4` (겸이), `appr-toss-sectors-switch` (겸이)
+**결재 대기 9:** `user-realestate-keys-1023` (겸이 · 보류), `appr-frm-agenda-a` (겸이), `appr-uxui-top10-next` (겸이), `appr-pick-gate-start` (겸이), `appr-hf-independence` (겸이), `appr-alloc-1115` (겸이), `appr-edu-g1-g4` (겸이), `appr-toss-sectors-switch` (겸이), `appr-risk-hq-staffing` (겸이)
 
 **기한 지남:** `ra-sec-coverage` (2026-10-21)
 
@@ -36,7 +36,7 @@
 | P2 ⏫P1 10-21 | `quiz-key-balance` | 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why) | 교육 | — | 2026-10-31 | `content/study/quiz_bank.json`<br>`scripts/study_content_check.py`<br>`tests/test_study_content.py` | `study-progress` | 교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 셔플·검증기 분포 규칙은 78b05b61 로 끝. why 한 문장(태그만 문항) 보강 |
 | P2 | `toss-sectors` | 섹터 분류를 토스 섹터(3단계, 국장·미장 공통)로 — KRX 업종 '전기·전자' 401종목 뭉침 해소 | 개발 | 2026-10-21 | 2026-10-31 | `tools/toss_md/collect.py`<br>`tools/toss_md/publish.py`<br>`screener/sectors.py`<br>`screener/wics.py`<br>`screener/universe.py`<br>`screener/pb.py`<br>`screener/detail.py`<br>`universe/us_sector.csv`<br>`universe/kr_wics.csv`<br>`apps-script/tab_market.html`<br>`tests/test_sectors.py`<br>`tests/test_wics.py`<br>`tests/test_toss_md.py`<br>`tests/test_toss_publish.py`<br>`tests/test_heatmap_ui.cjs` | `toss-md-pilot` | 겸이 10/21 00:5x '섹터 분류도 이상한데 토스 기준으로'. 노트북 일 1회 /sectors·/sectors/{id}/stocks(KR·US) 스냅샷. 다중 소속 → 대표 섹터 1개 규칙 필요(비중 한도 영향 — 전환 결재는 appr-toss-sectors-switch). 전환일 기록·옛/새 분류 병행 계산. KRX 업종은 대조용 유지. / 10/21 00:4x 겸이(🌙, 낮 재확인): 공식 비중 한도=GICS(미장)/WICS(국장) 1종목1섹터, 테마·순환매·히트맵=토스 섹터. WICS 무료 일일 수집 가능 여부 데이터 데스크 확인 필요(불가 시 KRX 업종 세분화 대안). / 10/21 01:3x 개발: ① WICS 무료 일일 수집 가능(Actions 탐침 run 39453753347: wiseindex GetIndexComponets JSON, G45 681·G4530 반도체와반도체장비 165종목) → screener/wics.py 가 KR 상세 생성 때 일 1회 universe/kr_wics.csv(호출 100). 첫 실수집 전까지는 KRX 업종 대체(반도체 판정 None). ② 미장 GICS: us_sector.csv 에 gics_sub 추가, 야후→GICS 11 매핑표(screener/sectors.py), NDX 전용 11종 수동(확인 필요 10/31). ③ 토스 섹터: collect --group sectors(호출 1+2×말단 섹터, 0.5초 간격, 작업 toss_md_sectors 07:20) → publish 가 toss-live sectors.json(계층+종목→말단 다중, 금액 필드 없음). ④ 히트맵: 토스 중분류(depth1) 우선·기존 폴백·출처 표기·토글. ⑤ 비중 한도: pb.evaluate 에 semi_ex_new·sector_w_new 병행 필드, 판정 불변. 전환 = screener/sectors.OFFICIAL_LIMITS=True (07:00 이후 + 겸이 확인). 남은 일: 노트북 첫 sectors 실행 → 말단 섹터 수·호출 수 확인, 첫 WICS 실수집(no_l2) 확인, 전환 결재. / 10/24 운영 점검: 검수 유지. 남은 것: toss-live sectors.json·universe/kr_wics.csv 수집은 확인. 공식 비중 한도 전환은 결재 작업 appr-toss-sectors-switch |
 
-## 대기 (73)
+## 대기 (74)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -86,6 +86,7 @@
 | P1 ⏫ | `rep-exec-signal` | 독립 재현: exec_signal (KRX 69 업종 kr_sector_daily) — S1~S15 승률·평균 원 vs 재현 표 | 검증 | — | 2026-10-31 | `scripts/replicate_exec_signal.py`<br>`reports/studies/replication_exec_signal.md`<br>`tests/test_rep_exec_signal.py` | — | 22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. / 10/21 마감 10/17→10/31: 미착수. 등급 C·F 위주라 결정 영향 가장 작음 — 4순위. |
 | P1 ⏫ | `sim-oos` | 트렌드 시뮬 표본외 검증 — 규칙 고정 구간/검증 구간 분리, 종목수 보정, B&H·섹터 대비 | 퀀트 | — | 2026-10-31 | `screener/detail.py`<br>`reports/studies/trial_log.json` | `px-adjust-unify` | Wilson 하한·trial log는 이미 있음. 남은 것 = OOS·벤치마크·NaN(PSAR 초기) 중립 처리 확인. / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 착수 흔적 없음(커밋 0) — 10/24 마감 비현실 |
 | P1 | `appr-alloc-1115` | 겸이 결재 필요: 자산배분 11/15 ISA 안건 Q1~Q4(금 현행 유지·미국채 불채택·방어 슬롯 30% 명문화·305080 분류 분리, 비중 변경 0) 권고대로 갈까? | 사용자 | — | 2026-11-15 | `docs/desk_kb/rounds/2026-10-23/alloc_isa_review.md` | — | 10/24 운영 점검: 결재 항목 등록. 근거 alloc_isa_review.md §3. 데이터(10/30)·채권(11/06) 회신 붙인 뒤 11/15 결정. |
+| P2 | `appr-risk-hq-staffing` | 겸이 결재 필요: 리스크본부 충원 — 새 데스크(①컴플라이언스: 운영에서 분리, 규칙·한도 실시간 준수 감시 ②포지션·유동성 리스크: 모의 북(HF·대결)·ISA 한도 노출 매일 점검) 중 무엇을 둘까? 리스크·운영 데스크 의견 받은 뒤 결정 | 사용자 | — | 2026-10-27 | `docs/desk_kb/ORG.md` | — | 10/24 01시대 겸이 "리스크본부 충원이 좀 필요하겠네" — 조직도(사내톡 🏢)에서 리스크본부 2명(FRM·행동)뿐. 조직 변경이라 22~07시 이후 결정. PB 초안 후보: 컴플라이언스(운영 겸직 분리)·포지션/유동성 리스크. 리스크(FRM)·운영 데스크 의견 요청(req) 후 결재. |
 | P2 ⏫P1 10-21 | `peer-earnings-preview` | 피어: 실적 시즌 프리뷰 — 10/29 삼성·MU(12월)·하이닉스 컨센서스 대비 시나리오 3개(상·기본·하)와 주가 반응 통계(과거 실적일 ±1일) | 피어리뷰 | — | 2026-10-27 | `reports/studies/earnings_reaction.md` | `ra-sec-coverage` | '한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함. |
 | P2 ⏫P1 10-21 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 개발 | — | 2026-10-28 | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. / 10/24 운영 점검: 확인 요청 중(req-edu-23239703, 회신 마감 2026-10-28) — 10/23 6ea4dae2·8e411c58 반영분 대비 남은 스펙 |
 | P2 ⏫P1 10-21 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 피어리뷰 | — | 2026-10-28 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. / 10/24 운영 점검: 확인 요청 중(req-peer-fb30b165, 회신 마감 2026-10-28) — 10/16 이후 산출물 0 — 계속/폐기 |
