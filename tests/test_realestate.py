@@ -121,7 +121,9 @@ def test_build_without_key_marks_prices_key_needed(tmp_path, monkeypatch):
     assert base["last"] == 3.0 and base["chg1m"] == 0.0
     assert next(r for r in out["rates"] if r["key"] == "MORT_RATE")["status"] == "미확인"
     news = {a["id"]: a["items"] for a in out["news"]}
-    assert news["newtown"] and news["redev"] and not any("홈경기" in i["title"] for v in news.values() for i in v)
+    assert news["newtown"] and news["redev"] and not any(i["link"] == "https://n.example/3" for v in news.values() for i in v)   # 홈경기 기사 제외
+    # 10/24 피어 G3: Google News 경유 → 공개 산출물에 제목 비공개(매체·시각·링크만)
+    assert all(i["title"] is None and i["title_withheld"] and i["time"] for v in news.values() for i in v)
     from screener import contracts
     assert contracts.check("reports/realestate.json", out) == []
     assert json.loads((tmp_path / "realestate.json").read_text(encoding="utf-8"))["asof"] == "2026-10-23"

@@ -2836,7 +2836,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T00:40+09:00",
+     "text": "① mu-revenue-tag: 애널이 10/24 검수 완료(370f27c3) — companyfacts 재수집 MU 매출 FQ4 54,229·FQ3 41,456·FQ2 23,860 백만달러 = 8-K ex99.1 원문 0% 오차, valuation.json MU 매출 YoY 채워짐. 늦게 반영된 원인 = MU 7일 갱신 주기(10/16 수집→10/23 이후 차례). sec.py 는 애널이 확장 중이라 안 건드림. 보드 카드 이미 완료. ② close-swap-verify: 10/24 01시 대조 — reports/detail/KR 커밋본 24종목×10/19~10/22 종가 vs 야후 *.KS 일봉 96/96 일치(교체 로직 fix_provisional 이 의도대로 야후 정규장 종가로 덮음). 단 야후는 교체 원천 자체라 독립 검증 아님. 네이버 m.stock price/차트 API 와는 96건 중 85건 불일치(0.2~2.7%, 양방향) — 네이버가 NXT 통합 시세를 주는 것으로 의심 [자체연구-검증전], 그래서 네이버는 확정 종가 대조원으로 못 씀. KRX 공식(pykrx 로그인·data.krx) 은 샌드박스에서 KRX_ID 없음으로 실패. 10/23 행은 야후 일봉 미게시라 미검증. 판정: 교체 동작 확인(야후 일치)·KRX 공식 대조는 미완 → 새 마감 2026-10-28, Actions(KRX 자격 있는 러너)에서 KRX 공식 3일 대조 1회 돌리면 닫을 수 있음. 카드 owner 는 PB라 상태 변경은 PB 판단.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:40+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-8309dae2",
@@ -3410,6 +3421,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:43+09:00",
    "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-realestate-2fb64833",
+   "from": "data",
+   "to": "realestate",
+   "text": "피어 G3(10/24 commodities_geo) 처리 공유: Google News RSS <copyright> 원문이 '개인 피드 리더·개인 비상업 용도 외 금지' → realestate.py fetch_news 출력만 최소 수정(geo_news.public_item 재사용: 제목 null + title_withheld, 매체·시각·링크만) + tab_realestate.html 제목 비공개 표시 + SOURCE_NOTES 1줄 + tests/test_realestate.py 단언 1곳. 매칭·중복 로직(assign_news)은 안 건드림 — R1~R3 작업과 충돌 나면 내 쪽 줄 유지해 줘. 이미 커밋된 reports/realestate.json 제목은 다음 수집 때 비공개로 바뀜. 뉴스 칸이 제목 없이 쓸모 줄면 직접 RSS(연합·국토부 보도자료 등 약관 확인된 것) 대체를 같이 찾자. 근거 docs/desk_kb/data.md 소스 목록 '피드 이용 조건'",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:40+09:00",
+   "due": "2026-10-28",
    "via": "ask",
    "seen": [
     "2026-10-24"

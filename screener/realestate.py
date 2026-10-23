@@ -312,9 +312,8 @@ def fetch_news(fetch_text, now: datetime, sleep=None) -> tuple[list[dict], list[
         except Exception as e:  # noqa: BLE001
             feeds.append({"name": f"Google News: {a}", "ok": False, "err": str(e)[:120]})
     res = assign_news(items, now)
-    fmt = lambda d: d.astimezone(KST).strftime("%Y-%m-%d %H:%M")  # noqa: E731
-    axes = [{"id": a, "name": NEWS_AXES[a][0], "items": [{"title": r["title"], "src": r["src"], "time": fmt(r["when"]), "link": r["link"]}
-                                                         for r in res[a]]} for a in NEWS_AXES]
+    from .geo_news import public_item   # 10/24 피어 G3: Google News 경유 = 공개 산출물에 제목 비공개(매체·시각·링크만) — geo_news 와 같은 규칙
+    axes = [{"id": a, "name": NEWS_AXES[a][0], "items": [public_item({**r, "via": "검색"}) for r in res[a]]} for a in NEWS_AXES]
     return axes, feeds
 
 
@@ -332,7 +331,7 @@ UNAVAILABLE = [
 SOURCE_NOTES = [
     "R-ONE(한국부동산원) 오픈API: 무키 호출도 200 이지만 샘플 모드 — 1회 5행, pIndex 무시(표 목록 738개 중 앞 5개만 반복, 2026-10-23 실측). 키는 R-ONE 회원가입 후 무료 발급",
     "ECOS(한국은행) 오픈API: 'sample' 키로 1회 10행까지 실측 확인(기준금리 722Y001·주담대 121Y006·주택관련대출 151Y005). 운영은 무료 개인키(ECOS_API_KEY) 권고",
-    "Google News 검색 RSS: 피드 저작권 문구상 개인·비상업 열람용 — 제목·매체·시각·링크만 저장(geo_news 와 같은 원칙), 본문 복제 안 함",
+    "Google News 검색 RSS: 피드 <copyright> 원문 '개인 피드 리더·개인 비상업 용도 외 금지'(2026-10-24 실조회) → 공개 산출물엔 제목 비공개, 매체·시각·링크만(geo_news 와 같은 규칙, 데이터 data.md 소스 목록). 제목은 매칭에만 쓰고 저장 안 함",
     "정책 원문(국토부·금융위 보도자료): korea.kr 부처 RSS 경로 404, molit.go.kr RSS 연결 끊김(2026-10-23) → 뉴스 축 '정책'으로 대신 찾고 원문 링크는 데스크 해석(views)에서 확인",
     "야후 *.KS 리츠: 2026-10-23 10종 일봉 정상(screener.data.fetch_prices 경로). 국내 '리츠 지수' 자체는 무료 시계열 미확인 → 리츠 ETF 2종으로 대용",
 ]
