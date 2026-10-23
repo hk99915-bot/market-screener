@@ -2759,7 +2759,7 @@
         "docs/uxui/"
       ],
       "depends_on": [],
-      "notes": "10/21 01:4x 겸이 '그냥 추가해!'로 데스크 신설(🌙 기록). 시작은 팝업 차트 작업(macro-popup-live) 끝난 뒤 — 같은 화면 파일 충돌 방지. 첫 산출물은 코드 수정 없이 진단서. 평가 기준 = 핵심 숫자 탐색 시간·첫 화면 결론 유무. | 10/23 22시 진단서 docs/uxui/2026-10-23_terminal_audit.md(34화면·Top 10) — 겸이 결재 대기. 결재 후 1·4·6·7(난이도 하) 묶음부터 개발. | 10/23 23시 재진단 docs/uxui/2026-10-23_terminal_recheck.md(겸이 '현상황으로 재진단'): 이전 Top 10 해결 0·부분 1·미해결 9, 신규 💬 가림·팝업 옛 대화부터·tgHtml 링크 노출. 새 Top 10 — 1~4(1줄) 개발 장부 req-dev-fe6f3b5a·509c3f0c·331c57b5·b4f7e4d0.",
+      "notes": "10/21 01:4x 겸이 '그냥 추가해!'로 데스크 신설(🌙 기록). 시작은 팝업 차트 작업(macro-popup-live) 끝난 뒤 — 같은 화면 파일 충돌 방지. 첫 산출물은 코드 수정 없이 진단서. 평가 기준 = 핵심 숫자 탐색 시간·첫 화면 결론 유무. | 10/23 22시 진단서 docs/uxui/2026-10-23_terminal_audit.md(34화면·Top 10) — 겸이 결재 대기. 결재 후 1·4·6·7(난이도 하) 묶음부터 개발. | 10/23 23시 재진단 docs/uxui/2026-10-23_terminal_recheck.md(겸이 '현상황으로 재진단'): 이전 Top 10 해결 0·부분 1·미해결 9, 신규 💬 가림·팝업 옛 대화부터·tgHtml 링크 노출. 새 Top 10 — 1~4(1줄) 개발 장부 req-dev-fe6f3b5a·509c3f0c·331c57b5·b4f7e4d0. | 10/23 밤 개발 구현 → uxui-top10-impl(검수). UXUI 같은 방법 재측정 부탁.",
       "escalated": "2026-10-23"
     },
     {
@@ -2917,7 +2917,7 @@
         "docs/desk_kb/uxui.md"
       ],
       "depends_on": [],
-      "notes": "겸이 10/21 '진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임'. 390px 실측: 대결 박스 1144px → 접힘 53px, DAILY RESEARCH BRIEF 시작 1449px → 359px(첫 화면 844px 안). 1300px: 742→46px, 브리프 913→217px. 기본값 = 겸이(나) 제출 대기 판 있으면 펼침, 없으면 접힘. 수동 상태는 localStorage mt_duel_open 에 최신 판 키와 함께 — 새 판이 열리면 기본값으로. ui_smoke check_duel_toggle 추가.",
+      "notes": "겸이 10/21 '진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임'. 390px 실측: 대결 박스 1144px → 접힘 53px, DAILY RESEARCH BRIEF 시작 1449px → 359px(첫 화면 844px 안). 1300px: 742→46px, 브리프 913→217px. 기본값 = 겸이(나) 제출 대기 판 있으면 펼침, 없으면 접힘. 수동 상태는 localStorage mt_duel_open 에 최신 판 키와 함께 — 새 판이 열리면 기본값으로. ui_smoke check_duel_toggle 추가. | 10/23 Top10 #5 로 접기 토글 → 1줄 바(본문은 성적표)로 대체(uxui-top10-impl).",
       "escalated": "2026-10-22"
     },
     {
@@ -3970,6 +3970,35 @@
       "priority": "P2",
       "status": "진행",
       "repo": "public"
+    },
+    {
+      "id": "uxui-top10-impl",
+      "title": "UXUI 재진단 새 Top 10 구현(탭 줄바꿈·💬 팝업/버튼·KR 요약 링크·대결 1줄·결재 줄·HOME 결론·폰 머리·MACRO/RESEARCH 접기·숨은 열/44px/ISA) + STUDY 확인문제 고르고 채점",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "started": "2026-10-23",
+      "due": "2026-10-24",
+      "repo": "public",
+      "files": [
+        "apps-script/Index.html",
+        "apps-script/tab_msgr.html",
+        "apps-script/tab_market.html",
+        "apps-script/tab_duel.html",
+        "apps-script/tab_system.html",
+        "apps-script/tab_home.html",
+        "apps-script/tab_mkt_macro.html",
+        "apps-script/tab_research.html",
+        "apps-script/tab_isalab.html",
+        "apps-script/tab_study.html",
+        "index.html",
+        "scripts/ui_smoke.py",
+        "tests/js/study_smoke.js"
+      ],
+      "depends_on": [
+        "uxui-audit"
+      ],
+      "notes": "UXUI 재진단 새 Top 10 + req-dev-29f439ce 구현(겸이 10/23 23:3x '제안대루 싹다 수정'). 같은 측정(Playwright 390·768·1024·1300·1440) 전→후: #1 탭 클릭 가능 768 0→9·1024 0→9·1300 4→9·1440 6→9 / #2 💬 팝업 scrollTop 0/17,011→맨 아래 / #3 💬 z 30→18(상세 창 위 가림 해소)·맨 아래 가림 390 32→0/34·1300 22→0/34·여백 0→88px·스크롤 중 숨김 / #4 KR 요약 <a href> 원문 15→0 / #5 대결 2,522→89px·브리프 y 2,826→410 / #6 결재 줄 y 206·작업 보드 y 1,950→453 / #7 HOME 오늘 결론 카드 y 170 / #8 폰 머리 .top 148→약 104px·탭 35→44px·'›' / #9 MACRO 6.4→3.8장(원자재 2,170→540px·지정학 923→276px)·공공 리포트 1,310→631px·KR·US 매크로 블록 709→196px / #10 숨은 열 표시 0→9(KR)·전종목 잘림 838→0·터치 44 미만 공시 459→8·인적성 363→2·커리큘럼 102→68·리서치 92→32·ISA 미래 기준일 표시 제거 / STUDY 확인문제 정답 DOM 270→0·고르고 채점(mt_quiz_log→📤 학습 기록). 남은 것: 첫 화면 💬 가림(고정 버튼 특성, 스크롤 중 숨김으로 완화)·표 첫 열 고정·글자 4단계 규칙(UXUI)·ISA 원천 asof(퀀트 req-quant-14188e23)·펼침 기준 회신 대기(req-macro-997b29e5·req-analyst-b697c8bc)."
     }
   ]
 }

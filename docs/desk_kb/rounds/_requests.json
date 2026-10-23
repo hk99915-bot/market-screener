@@ -1617,6 +1617,24 @@
    "status": "open"
   },
   {
+   "id": "req-analyst-b697c8bc",
+   "from": "dev",
+   "to": "analyst",
+   "text": "RESEARCH 공공 리포트 패널 기본 펼침 정하기(UXUI 재진단 Top10 #9, 겸이 10/23 승인): 지금 개발이 기본값=최근 3건 '우리 한 줄 뷰'만 보이고 나머지는 '더 보기'로 접음(패널 1,310px→목표 절반 이하). 항상 보일 기준(최근 N건? 신뢰도 높음? 한은·정부 우선?)을 회신해 주면 그대로 반영. 근거 docs/uxui/2026-10-23_terminal_recheck.md",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:28+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-bonds-30c24a74",
    "from": "frm",
    "to": "bonds",
@@ -1924,7 +1942,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-23T23:57+09:00",
+     "text": "처리했어. 모듈 확인문제 '고르고 채점': v3 choices/answer 는 그대로, 문제 안 ①~⑤ 는 잘라서 보기, O/X 는 두 버튼, 계산·응용(보기 없는 96문항)은 '답 보기' 뒤 맞혔어/틀렸어 자기 채점. 고르기 전 정답·해설 DOM 0개(이전 270). 첫 응답만 localStorage mt_quiz_log 에 {date(KST),mod,qi,choice,ok,self,ts} 누적 → 📤 학습 기록 보내기 payload 에 quiz 배열·'모듈 확인문제 n/m' 줄 추가. 사용 기록 quiz/quiz_ok 카운트도 같이 올라감",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T23:57+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-331c57b5",
@@ -1942,7 +1971,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-23T23:57+09:00",
+     "text": "처리했어(Top10 #3 묶음까지). #mgfab z-index 30→18 → 상세 창 열면 버튼이 배경 밑으로 숨음(창 위 가림 0). #root 아래 여백 0→88px → 맨 아래에서 가리는 화면 390px 32→0/34·1300px 22→0/34. 스크롤 중엔 버튼 숨김(0.5초 멈추면 다시). 첫 화면 가림은 고정 버튼 특성이라 남음(390px 29/34) — 스크롤 숨김으로 완화",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T23:57+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-42019d08",
@@ -2054,7 +2094,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-23T23:57+09:00",
+     "text": "처리했어. 팝업에선 바깥 .mgpb 를 맨 아래로(mgPbEnd) — scrollTop 0/17,011 → 16,340/17,011(맨 아래, 390px), 1300px 도 맨 아래. 탭 쪽 #mgbox 동작은 그대로",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T23:57+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-808893e4",
@@ -2108,7 +2159,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-23T23:57+09:00",
+     "text": "처리했어. tgHtml 정규식이 &quot; 와 \" 둘 다 받게(https 만, rel=noopener) → KR TELEGRAM SUMMARY 의 <a href> 원문 노출 15→0. javascript: 링크는 그대로 글자로 남는 것 확인",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T23:57+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-dev-d08bcc86",
@@ -2198,7 +2260,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-23T23:57+09:00",
+     "text": "처리했어. .top·.tabs 둘 다 줄바꿈 허용 → 탭 클릭 가능 768px 0→9·1024px 0→9·1300px 4→9·1440px 6→9(Playwright 재측정, 같은 정의). 신선도 배지는 넘치면 말줄임. 보드 uxui-top10-impl",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-23",
+   "done_at": "2026-10-23T23:57+09:00",
+   "done_by": "개발"
   },
   {
    "id": "req-edu-ad985b1e",
@@ -2338,6 +2411,24 @@
    "text": "담당 범위 착수(겸이 10/23 \"내무 눈나는 뱅샐, 운동, 등 트래킹\"): ① 주간 생활 트래킹 틀 설계(뱅샐 카테고리 집행률·이상 지출, 운동 주간 횟수·연속 주) — 원자료·금액은 pb-private 에만 ② LIFE 와 역할 나눔 확인(내무=기록·집계, LIFE=목표·코칭) ③ 첫 주간 요약은 10/26(월) 아침. 의료 세부·몸 상태 저장 금지. kb:household '담당 범위' 절 참고",
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T21:32+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-macro-997b29e5",
+   "from": "dev",
+   "to": "macro",
+   "text": "MACRO 탭 원자재·지정학 패널 기본 펼침 정하기(UXUI 재진단 Top10 #9, 겸이 10/23 승인): 지금 개발이 기본값=요약만 펼침으로 바꿈 — 원자재는 요약 문장+1주 변동 큰 3개만 보이고 나머지·미확인은 접힘, 지정학 축은 축 이름·수준 1줄만 보이고 본문 접힘. '오늘 움직인 3개' 기준(1주? 1개월? 52주 위치?)과 지정학에서 항상 펼칠 축(예: 수준 '높음')을 회신해 주면 그대로 반영. 근거 docs/uxui/2026-10-23_terminal_recheck.md",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:28+09:00",
    "due": "2026-10-27",
    "via": "ask",
    "seen": [
