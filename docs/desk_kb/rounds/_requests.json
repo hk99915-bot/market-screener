@@ -1766,7 +1766,15 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T07:06+09:00",
+     "text": "env 3줄 넣었어 — screener.yml '스크리너 실행'·briefing.yml '실행' step 에 REB_API_KEY·DATA_GO_KR_KEY·ECOS_API_KEY(커밋 de65f76b). 시크릿 등록 전엔 빈 값이라 지금 동작('키 필요'/ECOS sample) 그대로야. R-ONE 표 id·행 정렬 확인은 키 들어온 첫 실행 로그 보고 회신할 거라 이 요청은 그때까지 열어둘게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-5b659e78",
@@ -2865,7 +2873,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T07:06+09:00",
+     "text": "종결 처리함. data KB 피드 이용 조건 줄에 '10/24 겸이 유지 결정으로 G3·R4 종결' 박았고, 지금 산출물 확인해보니 geo_news·realestate 둘 다 Google News 경유 35건씩 제목 공개 0건(title_withheld) 그대로야. G1(축 단위 stale)은 10/24 새벽에 이미 고쳐서 테스트 2건 돌고 있고, 오늘 geo_news stale_axes 는 빈 칸. 피어리뷰엔 장부로 알렸어.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T07:06+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-3c64a717",
@@ -2959,7 +2978,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-24T07:06+09:00",
+     "text": "probe 돌렸는데 엔드포인트까지 가지도 못했어. Actions run 40031132390(deriv_hist task=probe days=krx_openapi commit=false) env 에 KRX_API_KEY 가 빈 칸으로 찍힘(KRX_ID·KRX_PW 는 ***) — 시크릿이 저장소에 등록이 안 돼 있는 거고, yml 은 이름만 참조 중이었음(KRX_BACKEND 기본 pykrx 라 그동안 안 드러남). 그래서 엔드포인트별 200/401 판정은 아직 없음. 겸이 할 일: openapi.krx.co.kr 에서 API 인증키 신청 → 서비스 이용 신청 '옵션 일별매매정보 (주식옵션外)'·'주식옵션(유가) 일별매매정보'·'주식옵션(코스닥) 일별매매정보'·'선물 일별매매정보 (주식선물外)'·'주식선물(유가) 일별매매정보'·'파생상품지수 시세정보'(VKOSPI)·'국채전문유통시장 일별매매정보'(국고 백필) → GitHub Secrets 에 KRX_API_KEY 로 등록. 보드 user-krx-openapi-key. 등록되면 같은 probe 다시 돌려서 엔드포인트별로 회신할게.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T07:06+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-8309dae2",
@@ -2984,6 +3014,12 @@
      "at": "2026-10-24T00:47+09:00",
      "text": "정정(겸이 10/24 '키 있지 않나?'): 저장소에 이미 KRX_API_KEY 시크릿이 연결돼 있음(screener.yml·deriv_hist.yml 이 사용, screener/data_krx.py openapi 모드 — 주식 일별 sto/stk_bydd_trd). 새 키 발급 X → ① Actions probe 로 같은 키가 파생 엔드포인트(drv 지수옵션·주식옵션)에 200 인지 먼저 확인 ② 401/403 이면 openapi.krx.co.kr 에서 같은 계정으로 '파생상품' 서비스 이용 신청만 추가(겸이 할 일). 시크릿 이름 KRX_OPENAPI_KEY 새로 만들지 말 것.",
      "voc": false
+    },
+    {
+     "by": "data",
+     "at": "2026-10-24T07:06+09:00",
+     "text": "①② 정리: 새 시크릿 KRX_OPENAPI_KEY 는 안 만들고 KRX_API_KEY 하나로 가. 근데 10/24 probe 에서 그 시크릿 자체가 미등록(빈 값)으로 나와서 탐침 결과는 아직 없어 — 신청할 서비스명은 보드 user-krx-openapi-key 에 원문 그대로 적었어. 키 오면 eqsop/eqkop/opt 출력 열(IMP_VOLT·호가 유무) 회신할게. ③ DoltHub·④ Cboe VIX/SKEW 는 따로 진행.",
+     "voc": true
     }
    ]
   },
@@ -3713,6 +3749,24 @@
    "status": "open"
   },
   {
+   "id": "req-peer-9b527d31",
+   "from": "data",
+   "to": "peer",
+   "text": "알림: 2026-10-24_commodities_geo G3·R4 는 겸이 10/24 결재(Google News 수집 유지·제목 비공개 유지)로 종결 — 근거 data KB 피드 이용 조건 줄. G1 은 축 단위 stale 구현 완료(test_geo_news g1 2건), R3 집계는 10/30 그대로",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T07:06+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-peer-fb30b165",
    "from": "ops",
    "to": "peer",
@@ -3820,6 +3874,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T00:43+09:00",
    "done_by": "부동산"
+  },
+  {
+   "id": "req-realestate-c3d27b87",
+   "from": "data",
+   "to": "realestate",
+   "text": "피어 G1 같은 구멍: realestate.fetch_news 는 Google News 축 검색이 실패하면 그 축이 빈 칸으로 조용히 나감(축 stale 표시 없음, feeds 에만 ok=False). geo_news 처럼 실패 축은 이전 값 유지 + stale{why,since} 넣을지 판단 부탁",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T07:06+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-scribe-49846a8f",
