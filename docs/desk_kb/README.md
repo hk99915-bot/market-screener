@@ -4,9 +4,9 @@
 
 | 본부 | 데스크 → KB 파일 |
 |---|---|
-| 투자전략 | CIO `cio.md` · 자산배분 `allocation.md` · 매크로 `macro.md` · 채권 `bonds.md` · 부동산·대체 `realestate.md` · 헤지펀드 `hf.md`(10/21 신설) |
+| 투자전략 | CIO `cio.md` · 자산배분 `allocation.md` · 매크로 `macro.md` · 채권 `bonds.md` · 부동산 `realestate.md` · 헤지펀드 `hf.md`(10/21 신설) |
 | 리서치 | 퀀트 `quant.md` · 애널 `analyst.md` · 파생 `derivs.md` · 데이터 `data.md` |
-| 리스크 | 리스크(FRM) `frm.md` · 행동 `behavior.md` |
+| 리스크 | 리스크(FRM) `frm.md` · 행동 `behavior.md` · 컴플라이언스 `compliance.md`(10/24 신설) · 포지션리스크 `posrisk.md`(10/24 신설) |
 | 운영 | PM `pm.md` · 운영 `ops.md` · 개발 `dev.md` · 기록 `scribe.md` · UXUI `uxui.md`(10/21 신설) · 유지보수 `maint.md`(10/21 신설) |
 | 교육 | 교육 `edu.md` · 평가 `eval.md` |
 | 생활 | 내무 `household.md` · LIFE `life.md` |

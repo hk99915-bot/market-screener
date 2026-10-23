@@ -48,6 +48,7 @@ DESKS = {
     "alloc": "자산배분", "macro": "매크로", "ops": "운영", "pm": "PM", "health": "헬스", "cio": "CIO",
     "derivs": "파생", "analyst": "애널", "dev": "개발", "edu": "교육", "data": "데이터", "verify": "검증",
     "eval": "평가", "peer": "피어리뷰", "behavior": "행동", "audit": "감사", "record": "기록", "uxui": "UXUI",
+    "compliance": "컴플라이언스", "posrisk": "포지션리스크",   # 10/24 리스크본부 신설
 }
 # 한글 별칭 → 보드 이름 (커밋·잠금에 쓰인 다른 이름)
 ALIASES = {"팀장(PB)": "PB", "팀장": "PB", "FRM": "리스크", "frm": "리스크"}

@@ -28,7 +28,9 @@
     "내무",
     "부동산",
     "유지보수",
-    "HF"
+    "HF",
+    "컴플라이언스",
+    "포지션리스크"
   ],
   "tasks": [
     {
@@ -4404,17 +4406,55 @@
       "started": null,
       "due": "2026-10-27",
       "files": [
-        "docs/desk_kb/ORG.md"
+        "docs/desk_kb/ORG.md",
+        "docs/desk_kb/compliance.md",
+        "docs/desk_kb/posrisk.md"
       ],
       "depends_on": [],
-      "notes": "10/24 01시대 겸이 \"리스크본부 충원이 좀 필요하겠네\" — 조직도(사내톡 🏢)에서 리스크본부 2명(FRM·행동)뿐. 조직 변경이라 22~07시 이후 결정. PB 초안 후보: 컴플라이언스(운영 겸직 분리)·포지션/유동성 리스크. 리스크(FRM)·운영 데스크 의견 요청(req) 후 결재.",
+      "notes": "10/24 01시대 겸이 \"리스크본부 충원이 좀 필요하겠네\" — 조직도(사내톡 🏢)에서 리스크본부 2명(FRM·행동)뿐. 조직 변경이라 22~07시 이후 결정. PB 초안 후보: 컴플라이언스(운영 겸직 분리)·포지션/유동성 리스크. 리스크(FRM)·운영 데스크 의견 요청(req) 후 결재. → 10/24 01시대 겸이 결재(🌙, 조직 추가 — 매매 규칙·한도·등급 변경 아님): \"컴플라이언스 누나 … 포지션·유동성 리스크 누나 … ㅇㅇ 이렇게 신규 채용해야겠다\". ①컴플라이언스(compliance, docs/desk_kb/compliance.md) ②포지션리스크(posrisk, docs/desk_kb/posrisk.md) 신설, 리스크본부 4명, 운영 컴플 겸직 해제(ops.md). 키 등록·ORG·캐릭터는 운영 처리. FRM 의견 요청(req-frm-eb456140)은 결정 뒤라 '두 KB 경계 검토' 새 요청으로 대체.",
       "id": "appr-risk-hq-staffing",
       "title": "겸이 결재 필요: 리스크본부 충원 — 새 데스크(①컴플라이언스: 운영에서 분리, 규칙·한도 실시간 준수 감시 ②포지션·유동성 리스크: 모의 북(HF·대결)·ISA 한도 노출 매일 점검) 중 무엇을 둘까? 리스크·운영 데스크 의견 받은 뒤 결정",
       "owner": "사용자",
       "desk": "리스크",
       "priority": "P2",
-      "status": "대기",
+      "status": "완료",
       "approval": "겸이",
+      "repo": "public"
+    },
+    {
+      "id": "comp-first-output",
+      "title": "컴플라이언스 첫 산출물 — 감시 조항 커버리지 표(조항 번호·점검 코드 행·사전/사후·자동/수동/없음) + 미커버 조항별 최소 자동화 제안 1개씩",
+      "owner": "컴플라이언스",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "reports/compliance/2026-10-31_coverage.md",
+        "docs/desk_kb/compliance.md"
+      ],
+      "depends_on": [
+        "appr-risk-hq-staffing"
+      ],
+      "notes": "10/24 겸이 결재 신설. 계획 = compliance.md '첫 산출물 계획'(매일 장후 사전·사후 점검·위반 로그 / 매주 커버리지·열린 위반). 실행은 PB 승인 후. 공개엔 조항 번호·건수·비율만(원문 pb-private/rules.txt). 규칙 문언·수치 변경 없음.",
+      "repo": "public"
+    },
+    {
+      "id": "posrisk-first-output",
+      "title": "포지션리스크 첫 산출물 — 모의 북 3개(알파북·재량 북·대결)+ISA 노출 1회 점검(한도 사용률 신호등·HHI·유동성/만기 버킷·최대손실 합·스트레스 사용률) + 매일 스크립트 설계 초안",
+      "owner": "포지션리스크",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "reports/posrisk/2026-10-31.md",
+        "docs/desk_kb/posrisk.md"
+      ],
+      "depends_on": [
+        "appr-risk-hq-staffing"
+      ],
+      "notes": "10/24 겸이 결재 신설. 계획 = posrisk.md '첫 산출물 계획'(매일 16:50 북별 표 / 매주 사용률 추이·HF 자기 점검 대조). 실행은 PB 승인 후. ISA 는 비공개에서 계산, 공개엔 이탈 %p 만. 코드는 승인 뒤.",
       "repo": "public"
     }
   ]

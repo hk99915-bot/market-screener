@@ -9,7 +9,7 @@
 3. 금지: 글자·로고·브랜드, 노출·선정적 연출, 실존 인물 닮게 하기, 다른 사람 얼굴.
 4. 터미널(사내톡 › 👥 프로필)은 이 경로를 바로 읽음 — 없으면 그라디언트. 커밋만 하면 반영(5분 캐시).
 
-## 목록 (26명)
+## 목록 (28명)
 
 ### pb
 
@@ -166,3 +166,15 @@
 - 참조: `assets/avatars/maint.png` → 저장: `assets/avatars/bg/maint.jpg`
 
 > Same woman as the attached profile photo (Korean, 31), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Small apartment balcony garden in Seoul, rows of potted herbs and succulents, watering can, a phone timer beside a bicycle tool kit, gentle morning light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+
+### compliance
+
+- 참조: `assets/avatars/compliance.png` → 저장: `assets/avatars/bg/compliance.jpg`
+
+> Same woman as the attached profile photo (Korean, 33), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Indoor public swimming pool in Seoul early morning, sitting at the pool edge with swim cap and goggles in hand, lane ropes and lane-direction arrows on the tiles, calm blue water, soft overhead light. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
+
+### posrisk
+
+- 참조: `assets/avatars/posrisk.png` → 저장: `assets/avatars/bg/posrisk.jpg`
+
+> Same woman as the attached profile photo (Korean, 30), keep her face identical. Candid everyday photo of her, face clearly visible, natural relaxed expression, casual outfit. Scene: Cramped second-hand record shop in a Seoul alley, flipping through crates of vinyl LPs, handwritten price stickers, warm tungsten light, a small notebook with tallies on the counter. Photorealistic smartphone photo, natural light, vertical 9:16, no text, no logos.
