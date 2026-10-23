@@ -133,10 +133,16 @@ function mgPrivView(seg,sel){
   for(const c of C.filter(c=>MGD==='all'||by(c.by)===MGD||by(c.to)===MGD)){ const d=String(c.at||'').slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
     feed+=`<div class="mgb2 chat">${mgAv(by(c.by))}<div class="mgln"><div class="mgwho"><b>${esc(c.by)}</b>${c.to?`<span class="ar">→</span>${esc(c.to)}`:''}<span class="mgt">${esc(mgT(c.at).slice(11))}</span></div><div class="mgbub">${esc(c.text)}</div></div></div>`; }
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
+  if(MGP&&MGP._need_token){ setTimeout(()=>{ const sv=document.getElementById('mgtksv'); if(sv) sv.onclick=()=>{ const v=(document.getElementById('mgtk').value||'').trim(); if(!v) return; try{ localStorage.setItem('pbPrivTok',v); }catch(e){} MGP=null; mgRe(); }; },0);
+    feed=`<div class="mgempty" style="white-space:normal;line-height:1.7">🔒 이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
+      <span class="mu" style="font-size:12px">토큰은 이 브라우저에만 저장돼(저장소·채팅·서버로 안 감). 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained token ↗</a> → Repository access: <b>Only select → pb-private</b> → Permissions: <b>Contents = Read-only</b> → 만료 90일</span><br>
+      <input id="mgtk" type="password" autocomplete="off" placeholder="github_pat_…" style="min-height:40px;width:min(100%,360px);background:#111;color:var(--txt);border:1px solid var(--line);padding:0 8px;font:inherit">
+      <button id="mgtksv" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">저장하고 열기</button></div>`; }
+  const forget=(()=>{ try{ return !!localStorage.getItem('pbPrivTok'); }catch(e){ return false; } })()?` · <a href="#" onclick="try{localStorage.removeItem('pbPrivTok')}catch(e){};MGP=null;mgRe();return false">이 기기 토큰 지우기</a>`:'';
   const empty=(MGP&&MGP._err)?`<div class="mgempty">🔒 사담방 연결 안 됨 — ${esc(MGP._err)} · <a href="https://claude.ai/artifact/5PJEbNYiE4S4apDL1LXvE8" target="_blank">사담방 열기 ↗</a></div>`:MGP===false?'<div class="load">LOADING …</div>':(MGP&&MGP.chat)?'<div class="mgempty">아직 조용해 — 누나들이 루프·라운드 끝에 한마디씩 남겨</div>':'<div class="mgempty">🔒 비공개 사담은 claude.ai 비공개 페이지에서 봐 — <a href="https://claude.ai/artifact/5PJEbNYiE4S4apDL1LXvE8" target="_blank">사담방 열기 ↗</a> (터미널에서 바로 보려면 GAS PRIVATE_TOKEN, 선택)</div>';
   return `<div class="grid"><div class="p c12"><h2>사내톡 · 🔒 비공개 사담<small>pb-private · 겸이만</small></h2><div class="b">
     <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
-    <p class="mgsum">비공개라 금액·보유 얘기도 해 · 건강·연애는 여기서도 금지 · 잡담이라 업무 근거 아님</p>
+    <p class="mgsum">비공개라 금액·보유 얘기도 해 · 건강·연애는 여기서도 금지 · 잡담이라 업무 근거 아님${forget}</p>
     <div class="mgbox" id="mgbox">${feed||empty}</div></div></div></div>`;
 }
 function msgView(){

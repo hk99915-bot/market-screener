@@ -114,7 +114,17 @@ SHIM = """<script>
     getUsAccum: () => get('reports/us_accum.json'),
     getCooldown: () => get('ops/cooldown.json'),
     getRenego: () => get('ops/renego.json'),
-    getPrivate: () => Promise.resolve(''),   // 🔒 비공개 사담방은 GAS(PRIVATE_TOKEN)에서만 — 공개 Pages 엔 없음
+    // 🔒 비공개 사담방 — 공개 Pages 엔 토큰이 없다. 10/23 겸이 선택: "이 폰에만 토큰 저장" → 이 기기 브라우저 localStorage('pbPrivTok')에만 두고
+    //    GitHub contents API 로 직접 읽는다(저장소·채팅·서버로 안 감). 권장 토큰: fine-grained · pb-private 하나 · Contents 읽기 전용 · 만료 있음.
+    getPrivate: (name) => {
+      let tok = ''; try { tok = localStorage.getItem('pbPrivTok') || ''; } catch (e) {}
+      if (name !== 'chat') return Promise.resolve(JSON.stringify({ _err: '허용 안 된 이름' }));
+      if (!tok) return Promise.resolve(JSON.stringify({ _need_token: true }));
+      return fetch('https://api.github.com/repos/hk99915-bot/pb-private/contents/chat/private_chat.json?ref=main', {
+        headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github.raw', 'X-GitHub-Api-Version': '2022-11-28' }, cache: 'no-store',
+      }).then(r => r.ok ? r.text() : JSON.stringify({ _err: 'GitHub ' + r.status + (r.status === 401 || r.status === 404 ? ' — 토큰 만료·권한(pb-private Contents 읽기) 확인' : ''), _need_token: r.status === 401 }))
+        .catch(e => JSON.stringify({ _err: String(e).slice(0, 100) }));
+    },
   };
   function runner(ok, fail) {
     const r = { withSuccessHandler: f => runner(f, fail), withFailureHandler: f => runner(ok, f) };
