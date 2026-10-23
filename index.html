@@ -3515,7 +3515,7 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 .mgit{border-top:1px solid #1c1c1c;white-space:normal}
 .mgit>summary{list-style:none;display:flex;gap:10px;align-items:flex-start;padding:10px 0;cursor:pointer}
 .mgit>summary::-webkit-details-marker{display:none}
-.mgav{position:relative;flex:0 0 30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#000}
+.mgav{position:relative;flex:0 0 48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#000}
 .mgln{min-width:0;flex:1}
 .mgwho{font-size:13px;line-height:1.4}
 .mgwho b{color:var(--txt)}
@@ -3528,7 +3528,7 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 .mgtxt{color:var(--txt)}
 .mgmeta{font-size:11px;color:var(--muted);margin-top:4px}
 .mgrep{margin-top:10px;display:flex;gap:8px}
-.mgrep .mgav{flex-basis:24px;height:24px;font-size:9.5px}
+.mgrep .mgav{flex-basis:40px;height:40px;font-size:11px}
 .mgrep .bx{min-width:0;flex:1;border-left:2px solid var(--amber);padding-left:9px}
 .mgrep .hd{font-size:12px;color:var(--muted)}
 .mgrep .hd b{color:var(--amber)}
@@ -3555,7 +3555,8 @@ function mgNm(k){ return MG_NM[k]||k||'?'; }
 function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%360; return h; }
 const MG_IMG='https://raw.githubusercontent.com/hk99915-bot/market-screener/main/assets/avatars/';   // 프로필 사진(겸이가 GPT 로 만들어 올림, assets/avatars/<키>.png) — 없으면 이니셜 원
 function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'var(--amber)':`hsl(${mgHue(k)} 45% 62%)`;
-  return `<div class="mgav" aria-hidden="true" style="background:${bg};overflow:hidden"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()"></div>`; }
+  return `<div class="mgav" aria-hidden="true" style="background:${bg};overflow:hidden"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()" onclick="mgZoom(this.src)"></div>`; }
+function mgZoom(src){ const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);display:grid;place-items:center;z-index:99;cursor:zoom-out'; o.innerHTML=`<img src="${src}" alt="" style="width:min(80vw,420px);border-radius:12px">`; o.onclick=()=>o.remove(); document.body.appendChild(o); }
 function mgT(s){ return String(s||'').replace('T',' ').slice(0,16); }
 /* 필터 — 순수 함수. st: live(진행 중+마감 지남)·voc(VOC 회신 있는 것)·done·all */
 function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||(st==='live'&&x.status!=='done')||(st==='voc'&&(x.replies||[]).some(p=>p.voc))||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk)); }
