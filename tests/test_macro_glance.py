@@ -88,3 +88,19 @@ def test_glance_not_in_score(tmp_path, monkeypatch):
     assert a["score"] == b["score"] and a["rows"] == b["rows"] and a["summary"] == b["summary"]
     assert len(a["glance"]) == 5 and a["glance"][0]["desk"] and not b["glance"][0]["desk"]
     assert st   # fixture 사용
+
+
+def test_glance_withheld_news_title(tmp_path, monkeypatch):
+    """geo_news 가 Google News 경유 항목을 title=None(title_withheld)으로 실을 때 — 10/24 TypeError 회귀.
+    한눈에 5줄이 그대로 나오고, 제목 있는 항목을 우선, 전부 비공개면 매체·시각만."""
+    st = _fixture(tmp_path, monkeypatch)
+    _w(tmp_path / "reports", "geo_news.json", {"generated_at": "2026-10-24 07:03 KST", "axes": [
+        {"id": "hormuz", "items": [{"title": None, "title_withheld": "피드 약관", "src": "VOA", "time": "2026-10-24 05:33"},
+                                   {"title": "Tanker traffic resumes", "src": "BBC", "time": "2026-10-24 05:00"}]},
+        {"id": "rare_earth", "items": [{"title": None, "title_withheld": "피드 약관", "src": "Seoul Economic Daily",
+                                        "time": "2026-10-23 22:18"}]}]})
+    g = {r["id"]: r for r in macroview.glance(st, today="2026-10-24")}
+    assert len(g) == 5 and "err" not in g
+    assert "Tanker traffic resumes" in g["geo"]["line"] and "None" not in g["geo"]["line"]
+    assert "제목 비공개" in g["geo"]["line"] and "Seoul Economic Daily" in g["geo"]["line"]
+    assert "None" not in g["geo"]["short"]

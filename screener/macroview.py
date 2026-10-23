@@ -272,15 +272,24 @@ def glance(stats: dict, today: str | None = None) -> list[dict]:
     rank = {"높음": 0, "중간": 1, "낮음": 2}
     ax = sorted(G.get("axes") or [], key=lambda a: rank.get(a.get("level"), 3))[:2]
     gl, gs = [], []
+    def pick_news(aid):
+        # geo_news 는 Google News 경유 항목을 title=None(+title_withheld, 피드 약관)으로 싣는다 — 제목 있는 항목 우선,
+        # 전부 비공개면 매체·시각만(10/24 TypeError: None[:90] 로 한눈에 전체가 '생성 실패' 1줄이 됐던 원인)
+        its = [n for n in ((NA.get(aid) or {}).get("items") or []) if isinstance(n, dict)]
+        return next((n for n in its if n.get("title")), its[0] if its else None)
+
+    def ttl(n, k=90):
+        t = n.get("title") or ""
+        return (t[:k] + ("…" if len(t) > k else "")) if t else "제목 비공개(피드 약관)"
     for a in ax:
-        n = ((NA.get(a.get("id")) or {}).get("items") or [None])[0]
-        nt = (f" — 뉴스(자동): {(n.get('title', '')[:90] + ('…' if len(n.get('title', '')) > 90 else ''))} ({n.get('src', '')} {_md(n.get('time'))})" if n else " — 최근 매칭 뉴스 없음")
+        n = pick_news(a.get("id"))
+        nt = (f" — 뉴스(자동): {ttl(n)} ({n.get('src') or ''} {_md(n.get('time'))})" if n else " — 최근 매칭 뉴스 없음")
         gl.append(f"{a.get('name')}[{a.get('level')}]{nt}")
         gs.append(f"{GEO_SHORT.get(a.get('id'), a.get('name'))}[{a.get('level')}]")
-    n0 = next((((NA.get(a.get("id")) or {}).get("items") or [None])[0] for a in ax if ((NA.get(a.get("id")) or {}).get("items"))), None)
+    n0 = next((n for n in (pick_news(a.get("id")) for a in ax) if n), None)
     out.append(row("geo", "지정학", " / ".join(gl) or "데이터 없음(views/geopolitics.json)",
                    "views/geopolitics.json · geo_news.json(자동 RSS)", f"축 {str(G.get('updated') or '—')[:10]} · 뉴스 {str(GN.get('generated_at') or '—')[:16]}",
-                   short=(" · ".join(gs) + (f" — 자동: {n0.get('title', '')} ({_md(n0.get('time'))})" if n0 else "")) if gs else None))
+                   short=(" · ".join(gs) + (f" — 자동: {ttl(n0, 200) if n0.get('title') else (n0.get('src') or '') + ' 제목 비공개'} ({_md(n0.get('time'))})" if n0 else "")) if gs else None))
     # ④ 한국 고유 요인 — 격차(규칙 #5 그대로) + 원인 후보를 데이터로 확인되는 것만 (반도체 2종목·외국인 20일·환율)
     kr, us = stats.get("KOSPI"), stats.get("SPX")
     kl, f20, ks = [], None, []
