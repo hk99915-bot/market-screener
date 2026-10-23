@@ -19,10 +19,20 @@ reports/detail 차트(o·h·l·c)·data/deriv/daily.csv 만 읽어 다시 계산
   H1 동일 노출 초과: 각 회차 손익(R×리스크) − 같은 부호·같은 명목을 KR=코스피200 선물(fut_close)·US=SPY 에 같은 기간 둔 손익.
      옵션은 델타 미상 → 벤치 0(표기). 장부 손익 재현: Σ청산 R×리스크 + 열린 회차 평가 vs 장부 nav[] 마지막 pnl, 허용오차 0.0001.
   H2 청산 R 분포·적중률(헤지 다리 포함/제외 둘 다), 주관 승률 있는 회차는 Brier.
-  H3 무효: trade plan(진입·손절·1차 목표) · 사전 손절 · 청산 사유 중 하나라도 없으면 성적 무효(문언). 옵션 매수의 '손절 없음'은
-     문언상 무효로 세되 '정의된 위험(프리미엄)'으로 따로 표기 — HF 해석 회신 대기.
+     v2 — 페어 헤지 다리(pair=True·hedge_of=[부모], hf_book --beta-hedge, 803cfb4e)는 자체 trade plan 이 없고 R 단위가 채점용이
+     아니므로(진입가×10%) R 분포·Brier 에서 뺀다. 손익은 부모 회차에 묶어 '묶음 손익'(부모+페어 다리)으로만 반영(H1 합계는 그대로).
+  H3 무효: trade plan(진입·손절·1차 목표) · 사전 손절 · 청산 사유 중 하나라도 없으면 성적 무효(문언). 페어 헤지 다리는 대상 아님(v2).
+     v2 옵션·스프레드(req-verify-ed663038 파생 회신): ① 1R = 최대손실 전액(단일 옵션 r_unit = 프리미엄, 스프레드 r_unit = max_loss)
+     이고 risk > 0 이면 '사전 손절' 인정(정의된 위험), ①이 깨지면 무효. ② 시간 청산일(time_exit 또는 hold) ③ 논지 붕괴 수준
+     (thesis_stop) ④ 이벤트 뒤 IV 재평가(iv_review) 중 빠진 칸은 '주의'(무효 아님) — req-verify-1f20e800 '시간 청산일 미기재' 경고 포함.
   H4 겹침: 날짜별 KR 순노출 부호(HF 재량·알파북·PB 픽 decisions.json) — 같은 날 둘 다 노출일 때 같은 방향 비율, 같은 종목 같은 방향 건수.
      일별 수익 상관은 표본 20일 미만이면 미산출.
+     v2 합의 노출(req-verify-1f20e800·747e1bd3, HF 독립성 규칙 c0b69930): ⓐ 날짜 기준 — 같은 날 같은 부호 북 ≥ 2(세 북 전부 = 3)
+     인 날 수 ⓑ 진입 기준 — consensus=True 진입(independence.books 1개 = 두 북·2개 = 세 북)의 묶음 손익·평균 R 을 비합의 진입과
+     따로 집계(합산 금지) ⓒ 플래그 누락 — 규칙 시행일(10/24) 이후 KR 비헤지 진입 중, 진입일 다른 북이 같은 부호인데 consensus 없음
+     ⓓ ③ 연결률(형식 칸 판정 지표) — consensus 진입의 independence.indep 경로 중 공유 입력이 아닌 파일이 진입일 시점 git 판에
+     그 종목(또는 기초자산) 코드를 담고 있고 진입 전 7일 안에 갱신된 비율. 청산 아닌 진입 n ≥ 10 부터 판정: < 50% '형식 칸',
+     50~80% '경고', ≥ 80% '실질'. n < 10 은 '판정 보류(n 부족)'.
 산출: reports/verify_weekly/<날짜>.json · .md (개인 금액·보유 없음 — 가상 1단위 모의 장부만).
 사용: python3 scripts/verify_weekly.py [--date YYYY-MM-DD] [--write]
 """
@@ -37,11 +47,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "reports" / "verify_weekly"
+PROTOCOL = "v2"   # v1 10/23 · v2 10/24(페어 다리 묶음·옵션 정의된 위험·합의 노출) — 10/30 채점부터
 TOL = 0.0001
 BENCH = {"KR": "069500", "US": "SPY"}
 EXPECT = {"B1": {"t1_first": 0.36, "stop": 0.46, "ev_r": 0.083}}
 BASELINE_R = -0.015
 RISK_BASE, WEIGHT_CAP = 0.005, 0.15
+OPT_KINDS = ("put", "call", "spx_put", "spx_call")
+SPREAD_KINDS = ("spread", "us_spread")
+US_KINDS = ("us_stock", "es", "nq", "spx_put", "spx_call", "us_spread")
+INDEP_SHARED = ("committee.json", "tradeplan", "alphabook", "decisions.json")   # HF KB 독립성 ③ 공유 입력(명세 옮겨 적음)
+INDEP_RULE_D = "2026-10-24"                                                     # appr-hf-independence 시행일
 INVERSE = {"114800", "252670", "SOXS", "SQQQ", "SPXU", "SH", "PSQ", "SDS"}
 
 
@@ -137,6 +153,117 @@ def overlap(days: dict) -> dict:
             res[f"{a}~{b}"] = {"days_both": len(both), "same": sum(x == y for x, y in both),
                                "ratio": (sum(x == y for x, y in both) / len(both)) if both else None}
     return res
+
+
+def exposure_sign(p: dict) -> int:
+    """지수 노출 부호 — 롱 +1·숏 −1, 풋 매수는 숏 노출."""
+    return (1 if p["side"] == "롱" else -1) * (-1 if p["kind"] == "put" else 1)
+
+
+def is_pair_leg(p: dict) -> bool:
+    """페어 헤지 다리(v2) — pair=True 이고 부모(hedge_of)가 있는 회차. 일반 헤지(자체 plan 있음)는 아님."""
+    return bool(p.get("pair")) and bool(p.get("hedge_of"))
+
+
+def bundle_pnl(rows: list[dict]) -> dict:
+    """rows [{id, pnl, pair_of}] → {부모 id: 부모 손익 + 그 부모에 묶인 페어 다리 손익}. 부모가 rows 에 없는 다리는 '_orphan'."""
+    out = {x["id"]: x["pnl"] for x in rows if not x.get("pair_of")}
+    for x in rows:
+        if x.get("pair_of"):
+            if x["pair_of"] in out:
+                out[x["pair_of"]] += x["pnl"]
+            else:
+                out.setdefault("_orphan", 0.0)
+                out["_orphan"] += x["pnl"]
+    return out
+
+
+def option_check(p: dict) -> dict:
+    """옵션·스프레드 H3(v2): ① 정의된 위험 = 1R 이 최대손실 전액 ② 시간 청산일 ③ 논지 붕괴 ④ IV 재평가 — ②~④ 누락은 주의."""
+    k = p.get("kind")
+    if k not in OPT_KINDS + SPREAD_KINDS:
+        return {"applies": False}
+    ru, risk = p.get("r_unit"), p.get("risk") or 0
+    full = (p.get("spread") or {}).get("max_loss") if k in SPREAD_KINDS else p.get("entry")
+    defined = isinstance(ru, (int, float)) and isinstance(full, (int, float)) and full > 0 and risk > 0 \
+        and abs(ru - full) <= 1e-6 * max(1.0, abs(full))
+    chk = p.get("check") or {}
+    caution = [lab for lab, keys in (("시간 청산일", ("time_exit", "hold")), ("논지 붕괴 수준", ("thesis_stop",)),
+                                     ("IV 재평가", ("iv_review",))) if not any(p.get(x) or chk.get(x) for x in keys)]
+    return {"applies": True, "defined_risk": defined, "caution": caution}
+
+
+def consensus_days(days: dict) -> dict:
+    """days {d: {book: sign}} → 같은 부호(0 제외) 북 ≥2 인 날 수·세 북 전부 같은 날 수."""
+    two = three = 0
+    for v in days.values():
+        for s in (1, -1):
+            k = sum(1 for x in v.values() if x == s)
+            if k >= 2:
+                two += 1
+                three += k >= 3
+                break
+    return {"days": len(days), "ge2": two, "all3": three}
+
+
+def missing_flags(entries: list[dict], days: dict, since: str = INDEP_RULE_D) -> list[str]:
+    """시행일 이후 KR 비헤지 진입 중 진입일 다른 북이 같은 부호인데 consensus 표시 없는 id."""
+    out = []
+    for p in entries:
+        if p.get("hedge_of") or (p.get("market") or "KR") != "KR" or (p.get("asof") or "") < since or p.get("consensus"):
+            continue
+        sgn = exposure_sign(p)
+        if any(b != "HF재량" and s == sgn for b, s in (days.get(p["asof"]) or {}).items()):
+            out.append(p["id"])
+    return out
+
+
+def indep_paths(txt: str | None) -> list[str]:
+    toks = [t.strip(" ,;()[]·") for t in str(txt or "").split()]
+    return [t.split("#")[0] for t in toks if ("/" in t or t.endswith((".json", ".csv", ".md")))
+            and not any(s in t for s in INDEP_SHARED)]
+
+
+def _file_at(path: str, day: str) -> tuple[str | None, str | None]:
+    """(진입일 끝 시점 git 판 내용, 그 판 커밋일) — 이력 없으면 작업 사본(커밋일 None)."""
+    import subprocess
+    try:
+        h = subprocess.run(["git", "-C", str(ROOT), "log", "-1", f"--before={day} 23:59:59 +0900", "--format=%h %cs", "--", path],
+                           capture_output=True, text=True, timeout=30).stdout.split()
+        if h:
+            return subprocess.run(["git", "-C", str(ROOT), "show", f"{h[0]}:{path}"], capture_output=True, text=True,
+                                  timeout=30).stdout, h[1]
+    except Exception:
+        pass
+    f = ROOT / path
+    return (f.read_text(errors="ignore"), None) if f.is_file() else (None, None)
+
+
+def _codes(p: dict) -> list[str]:
+    c = [x for x in (p.get("code"), p.get("und")) if x]
+    if any(str(x).startswith("K200") for x in c):
+        c += ["K200", "코스피200", "kospi200"]
+    return c
+
+
+def indep_linked(p: dict, reader=_file_at, fresh_days: int = 7) -> bool:
+    """③ 연결: 공유 입력이 아닌 indep 경로 중 하나가 진입일 판에 종목 코드를 담고, 진입 전 fresh_days 일 안에 갱신됨."""
+    from datetime import date
+    d0 = date.fromisoformat(p["asof"])
+    for path in indep_paths((p.get("independence") or {}).get("indep")):
+        txt, cd = reader(path, p["asof"])
+        if not txt or not any(c in txt for c in _codes(p)):
+            continue
+        if cd is None or (d0 - date.fromisoformat(cd)).days <= fresh_days:
+            return True
+    return False
+
+
+def linkage_verdict(linked: int, n: int, min_n: int = 10) -> str:
+    if n < min_n:
+        return f"판정 보류(n {n} < {min_n})"
+    r = linked / n
+    return "형식 칸" if r < 0.5 else ("경고" if r < 0.8 else "실질")
 
 
 # ───────────── 파일 읽기 ─────────────
@@ -275,28 +402,40 @@ def score_hf(hf: dict, ab: dict, decisions: dict, asof: str) -> dict:
         r, risk = p.get("r"), p.get("risk") or 0
         pnl = (r or 0) * risk
         pnl_closed += pnl
-        mkt = p.get("market") or ("US" if p["kind"] in ("us_stock", "es", "nq", "spx_put", "spx_call") else "KR")
+        mkt = p.get("market") or ("US" if p["kind"] in US_KINDS else "KR")
         sgn = 1 if p["side"] == "롱" else -1
         idx = fut if mkt == "KR" else spy
         d0, d1 = p.get("asof"), p.get("exit_d")
-        opt = p["kind"] in ("put", "call", "spx_put", "spx_call")
+        opt = p["kind"] in OPT_KINDS + SPREAD_KINDS
         bpnl = None
         if not opt and idx.get(d0) and idx.get(d1):
             bpnl = sgn * (p.get("weight") or 0) * (idx[d1] / idx[d0] - 1)
         elif opt:
             bpnl = 0.0
-        missing = [k for k, ok in (("plan", p.get("entry") and (p.get("stop") or opt) and p.get("t1")),
-                                   ("사전 손절", p.get("stop") is not None), ("청산 사유", p.get("exit_why"))) if not ok]
+        pair = is_pair_leg(p)
+        oc = option_check(p)
+        if pair:                                        # v2: 페어 다리 — plan 없음이 정상, 무효·R 분포 대상 아님
+            missing = []
+        else:
+            stop_ok = p.get("stop") is not None or (oc["applies"] and oc["defined_risk"])
+            missing = [k for k, ok in (("plan", p.get("entry") and (p.get("stop") is not None or opt) and p.get("t1")),
+                                       ("사전 손절", stop_ok), ("청산 사유", p.get("exit_why"))) if not ok]
         rows.append({"id": p["id"], "kind": p["kind"], "side": p["side"], "code": p.get("code"), "mkt": mkt,
                      "r": r, "pnl": pnl, "bench_pnl": bpnl, "excess": None if bpnl is None else pnl - bpnl,
-                     "hedge": bool(p.get("hedge_of")), "invalid": missing, "option_defined_risk": opt and p.get("stop") is None})
-        if isinstance(r, (int, float)):
+                     "hedge": bool(p.get("hedge_of")), "pair_of": (p.get("hedge_of") or [None])[0] if pair else None,
+                     "invalid": missing, "option_defined_risk": bool(oc.get("defined_risk")),
+                     "caution": oc.get("caution") or [], "consensus": bool(p.get("consensus")),
+                     "consensus_books": len((p.get("independence") or {}).get("books") or [])})
+        if isinstance(r, (int, float)) and not pair:
             rs_all.append(r)
             if not p.get("hedge_of"):
                 rs_nohedge.append(r)
             pw = (p.get("plan") or {}).get("p_win") or (p.get("check") or {}).get("p_win")
             if isinstance(pw, (int, float)):
                 brier.append((pw - (1.0 if r > 0 else 0.0)) ** 2)
+    bundles = bundle_pnl(rows)
+    for x in rows:
+        x["pnl_bundle"] = bundles.get(x["id"]) if not x["pair_of"] else None
     pnl_open = 0.0
     for p in hf.get("open") or []:
         if p.get("r_unit") and p.get("last") and p.get("entry"):
@@ -306,14 +445,15 @@ def score_hf(hf: dict, ab: dict, decisions: dict, asof: str) -> dict:
         pnl_open += bk.get("pnl") or 0
     book_pnl = (hf.get("nav") or [{}])[-1].get("pnl")
     rep = pnl_closed + pnl_open
-    valid = [x for x in rows if not x["invalid"]]
+    scored = [x for x in rows if not x["pair_of"]]
+    valid = [x for x in scored if not x["invalid"]]
     ex = [x["excess"] for x in rows if x["excess"] is not None]
     # H4 겹침 — KR 날짜별 순노출 부호
     days: dict = {}
     for p in list(hf.get("closed") or []) + list(hf.get("open") or []):
-        if (p.get("market") or "KR") != "KR" or p["kind"] in ("us_stock", "es", "nq", "spx_put", "spx_call"):
+        if (p.get("market") or "KR") != "KR" or p["kind"] in US_KINDS:
             continue
-        sgn = (1 if p["side"] == "롱" else -1) * (-1 if p["kind"] == "put" else 1)
+        sgn = exposure_sign(p)
         for d in sorted(fut):
             if p.get("asof") and p["asof"] <= d <= (p.get("exit_d") or asof) and d >= "2026-10-19":
                 days.setdefault(d, {}).setdefault("_hf", 0.0)
@@ -338,9 +478,32 @@ def score_hf(hf: dict, ab: dict, decisions: dict, asof: str) -> dict:
     for d, v in days.items():
         if "_hf" in v:
             v["HF재량"] = sign_of(v.pop("_hf"))
+    # H4 v2 합의 노출 — 진입 기준(consensus 플래그) · 날짜 기준 · 플래그 누락 · ③ 연결률
+    entries = list(hf.get("closed") or []) + list(hf.get("open") or [])
+    cons_e = [p for p in entries if p.get("consensus") and not p.get("hedge_of")]
+    by_id = {x["id"]: x for x in scored}
+
+    def grp(xs):
+        cl = [by_id[i] for i in xs if i in by_id]
+        rs = [x["r"] for x in cl if isinstance(x["r"], (int, float))]
+        return {"n_closed": len(cl), "pnl_bundle": sum(x["pnl_bundle"] or 0 for x in cl), "r": r_summary(rs)}
+    non_cons = [x["id"] for x in scored if not x["hedge"] and not x["consensus"]]
+    linked = [p["id"] for p in cons_e if indep_linked(p)]
+    consensus = {"entries": [{"id": p["id"], "code": p.get("code"), "side": p["side"], "asof": p.get("asof"),
+                              "books": (p.get("independence") or {}).get("books"), "indep": (p.get("independence") or {}).get("indep"),
+                              "pair_hedge": (p.get("independence") or {}).get("pair_hedge"), "linked": p["id"] in linked,
+                              "open": p not in (hf.get("closed") or [])} for p in cons_e],
+                 "two_books": grp([p["id"] for p in cons_e if len((p.get("independence") or {}).get("books") or []) <= 1]),
+                 "three_books": grp([p["id"] for p in cons_e if len((p.get("independence") or {}).get("books") or []) >= 2]),
+                 "non_consensus": grp(non_cons), "days": consensus_days(days),
+                 "missing_flag": missing_flags(entries, days),
+                 "linkage": {"linked": len(linked), "n": len(cons_e), "rate": len(linked) / len(cons_e) if cons_e else None,
+                             "verdict": linkage_verdict(len(linked), len(cons_e))}}
     return {"rows": rows, "pnl_rep": rep, "pnl_book": book_pnl, "pnl_ok": book_pnl is not None and abs(rep - book_pnl) <= TOL,
             "excess_sum": sum(ex) if ex else None, "r_all": r_summary(rs_all), "r_nohedge": r_summary(rs_nohedge),
-            "brier": (st.mean(brier), len(brier)) if brier else None, "invalid_n": len(rows) - len(valid), "n": len(rows),
+            "brier": (st.mean(brier), len(brier)) if brier else None, "invalid_n": len(scored) - len(valid), "n": len(scored),
+            "pair_n": len(rows) - len(scored), "pair_orphan_pnl": bundles.get("_orphan"),
+            "caution_n": sum(1 for x in scored if x["caution"]), "consensus": consensus,
             "overlap_days": {d: days[d] for d in sorted(days)}, "overlap": overlap(days), "same_code": same_code,
             "corr": "미산출(일별 표본 < 20)"}
 
@@ -348,7 +511,7 @@ def score_hf(hf: dict, ab: dict, decisions: dict, asof: str) -> dict:
 def render(res: dict) -> str:
     def pct(x, n=2):
         return "—" if x is None else f"{x * 100:+.{n}f}%"
-    L = [f"# 주간 독립 채점 — {res['asof']} (검증 데스크, 규약 v1)", "",
+    L = [f"# 주간 독립 채점 — {res['asof']} (검증 데스크, 규약 {res.get('protocol', 'v1')})", "",
          "> 가상 1단위 모의 장부만. 원 코드(alphabook.py·hf_book.py) 미사용 — 체결 기록 + 원 가격으로 재계산. 규약: scripts/verify_weekly.py 머리말.", ""]
     L.append("## A. 알파북")
     L.append("| 시장 | NAV 재현 | 누적 | 벤치 누적 | 초과 누적 | IR | 청산 n | 위반 | 경고 | 중단 판정 |")
@@ -369,14 +532,28 @@ def render(res: dict) -> str:
           f"- H1 장부 손익 재현: 재현 {pct(h['pnl_rep'], 3)} vs 장부 {pct(h['pnl_book'], 3)} → {'일치' if h['pnl_ok'] else '불일치'}(허용 0.01%p). "
           f"동일 노출(KR 코스피200 선물·US SPY, 옵션 0) 대비 초과 합 {pct(h['excess_sum'], 3)}. "
           "주의: 벤치는 진입일·청산일 **종가** 근사 — 선물 회차의 '초과'는 장중 청산 시각 차이일 뿐 알파가 아니다.",
-          f"- H2 청산 R(전체 n {h['r_all']['n']}): 적중 {pct(h['r_all'].get('hit'), 0)} · 평균 {h['r_all'].get('mean', 0):+.3f}R · 중앙 {h['r_all'].get('median', 0):+.3f}R · "
+          f"- H2 청산 R(페어 다리 제외 전체 n {h['r_all']['n']}): 적중 {pct(h['r_all'].get('hit'), 0)} · 평균 {h['r_all'].get('mean', 0):+.3f}R · 중앙 {h['r_all'].get('median', 0):+.3f}R · "
           f"분포 {h['r_all'].get('bins')} / 헤지 다리 제외 n {h['r_nohedge']['n']} 평균 {h['r_nohedge'].get('mean', 0):+.3f}R · "
-          f"Brier {('%.3f (n %d)' % h['brier']) if h['brier'] else '—'}",
-          f"- H3 무효(문언): {h['invalid_n']}/{h['n']}회차", "",
-          "| id | 종류 | 방향 | R | 손익 | 동일노출 | 초과 | 무효 사유 |", "|---|---|---|---|---|---|---|---|"]
+          f"Brier {('%.3f (n %d)' % h['brier']) if h['brier'] else '—'} · 페어 헤지 다리 {h.get('pair_n', 0)}건은 부모 묶음 손익으로만"
+          + (f" (부모 없는 다리 손익 {pct(h['pair_orphan_pnl'], 3)} ⚠)" if h.get("pair_orphan_pnl") is not None else ""),
+          f"- H3 무효(문언): {h['invalid_n']}/{h['n']}회차 · 옵션 주의(시간 청산일·논지 붕괴·IV 재평가 누락, 무효 아님) {h.get('caution_n', 0)}회차", "",
+          "| id | 종류 | 방향 | R | 손익 | 묶음 손익 | 동일노출 | 초과 | 무효 사유 | 주의 |", "|---|---|---|---|---|---|---|---|---|---|"]
     for x in h["rows"]:
-        L.append(f"| {x['id']} | {x['kind']}{'(헤지)' if x['hedge'] else ''} | {x['side']} | {x['r']:+.3f} | {pct(x['pnl'], 3)} | "
-                 f"{pct(x['bench_pnl'], 3)} | {pct(x['excess'], 3)} | {', '.join(x['invalid']) or '—'}{' (옵션 정의된 위험)' if x['option_defined_risk'] else ''} |")
+        kind = x["kind"] + (f"(페어→{x['pair_of']})" if x.get("pair_of") else "(헤지)" if x["hedge"] else "") + ("·합의" if x.get("consensus") else "")
+        inv = "페어 다리 — 채점 제외" if x.get("pair_of") else (", ".join(x["invalid"]) or "—") + (" (옵션 정의된 위험)" if x["option_defined_risk"] else "")
+        L.append(f"| {x['id']} | {kind} | {x['side']} | {x['r']:+.3f} | {pct(x['pnl'], 3)} | {pct(x.get('pnl_bundle'), 3)} | "
+                 f"{pct(x['bench_pnl'], 3)} | {pct(x['excess'], 3)} | {inv} | {', '.join(x.get('caution') or []) or '—'} |")
+    c = h.get("consensus")
+    if c:
+        def g(k):
+            v = c[k]
+            m = v["r"].get("mean")
+            return f"청산 {v['n_closed']} · 묶음 손익 {pct(v['pnl_bundle'], 3)} · 평균 {'—' if m is None else f'{m:+.3f}R'}"
+        lk = c["linkage"]
+        L += ["", f"- H4 합의 노출(v2): 날짜 기준 같은 부호 ≥2북 {c['days']['ge2']}/{c['days']['days']}일 · 세 북 전부 {c['days']['all3']}일 / "
+              f"진입 기준 consensus {len(c['entries'])}건 — 두 북 {g('two_books')} | 세 북 {g('three_books')} | 비합의 {g('non_consensus')} (합산 금지)",
+              f"- 플래그 누락(시행 {INDEP_RULE_D} 이후 같은 부호인데 consensus 없음): {', '.join(c['missing_flag']) or '없음'}",
+              f"- ③ 연결률(독립 데이터 경로가 진입일 판에 종목을 담고 7일 안 갱신): {lk['linked']}/{lk['n']} → {lk['verdict']}"]
     L += ["", "- H4 겹침(KR 날짜별 순노출 부호): " + json.dumps(h["overlap_days"], ensure_ascii=False),
           "- 쌍별 같은 방향 비율: " + "; ".join(f"{k} {v['same']}/{v['days_both']}" for k, v in h["overlap"].items()),
           "- 같은 종목 같은 방향: " + ("; ".join(h["same_code"]) or "없음"), f"- 일별 수익 상관: {h['corr']}", ""]
@@ -392,7 +569,7 @@ def main(argv=None) -> int:
     hf = json.loads((ROOT / "reports" / "hf_discretion.json").read_text())
     dec = json.loads((ROOT / "reports" / "decisions.json").read_text())
     asof = a.date or max(b["last_bar"] for b in ab["books"].values() if b.get("last_bar"))
-    res = {"asof": asof, "protocol": "v1", "alphabook": score_alphabook(ab, asof), "hf": score_hf(hf, ab, dec, asof),
+    res = {"asof": asof, "protocol": PROTOCOL, "alphabook": score_alphabook(ab, asof), "hf": score_hf(hf, ab, dec, asof),
            "inputs": {"alphabook_updated": ab.get("updated"), "hf_asof": hf.get("asof")}}
     md = render(res)
     if a.write:
