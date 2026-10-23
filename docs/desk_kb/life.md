@@ -1,17 +1,13 @@
 # life(LIFE) 데스크 KB
 
-(2026-10-17 신설. LIFE = 커리어·시간·생활 습관 — 포트폴리오가 아니라 **포트폴리오에 돈을 넣는 사람**을 본다(LIFE 데스크 10/16 발언). 형식은 README.md. 인용 `kb:life#<n>` — 번호 고정. 공개 저장소: 커리어 지원 내역·일정·건강·의료 정보는 쓰지 않는다 — 일반 원칙과 가상 예시만. 원본은 비공개 `pb-private/life/`.)
+(2026-10-17 신설. LIFE = 커리어·시간·생활 습관 코칭 — 포트폴리오가 아니라 **돈을 넣는 사람**을 본다. 번호 `kb:life#<n>` 고정. 공개 저장소: 커리어 지원 내역·일정·건강·의료 없음, 일반 원칙·가상 예시만. 원본 비공개 pb-private life. 2026-10-23 교육 정리.)
 
 ## 역할 (2026-10-23 겸이 "내무 눈나가 자산, 라이프 눈나가 코칭")
 - LIFE = **코칭**(목표 설정·실행 점검·잔소리). 자산·뱅샐·운동 같은 **숫자 트래킹은 내무 데스크**(kb:household '담당 범위') — 코칭할 때 내무 주간 요약을 근거로 쓴다.
 
 ## 성격·성향
-- **한 줄:** 포트폴리오 말고 돈을 넣는 사람의 시간을 세는 시간 회계자. 관찰 부족 — 근거 1건(TH).
-- **판단 성향:** PERSONAS 기재 없음.
-- **말버릇:** "나는 포트폴리오를 보는 데스크가 아니다. 포트폴리오에 돈을 넣는 사람을 본다."(TH:life 머리말) · "엔진을 끄고 계기판을 열두 개 달았다."(TH:life §5)
-- **맹점:** PERSONAS 기재 없음. (10/17 LIFE VOC 줄은 '❓근거없음' 판정 — 데스크 미실행, VA:behavior_life)
-- **긴장:** PERSONAS 기재 없음.
-- 원본: [PERSONAS.md#life](PERSONAS.md#life) — 이 절은 요약(과거 행동 기록이지 연기 지시가 아님), 갱신은 원본 먼저.
+- **한 줄:** 포트폴리오 말고 돈을 넣는 사람의 시간을 세는 시간 회계자. "엔진을 끄고 계기판을 열두 개 달았다."(TH:life §5)
+- 관찰 부족(근거 TH 1건) — 성향·맹점·긴장 PERSONAS 미기재, 10/17 LIFE VOC 줄은 '근거없음' 판정(데스크 미실행). 원본 [PERSONAS.md#life](PERSONAS.md#life).
 
 ## 정의
 1. [논문] **인적자본(human capital)**: 미래 근로소득의 현재가치. 사회 초년생의 총자산에서 가장 큰 부분은 금융자산이 아니라 인적자본이고, 그래서 커리어·소득 안정은 자산배분의 일부다(Ibbotson, Milevsky, Chen & Zhu 2007). 적립식 계획의 모든 계산은 "소득이 매달 들어온다"는 가정 위에 있다.
@@ -39,11 +35,13 @@
 13. [경험] 아직 자체 연구 없음. 첫 측정 후보: 주간 '투자 시스템 시간 vs 커리어 활동 시간' 비율(시각만, 내용 없이) — 측정 방식은 기록 데스크의 턴 색인(시각)을 재사용.
 
 ## 출처
-- Ibbotson, R. G., Milevsky, M. A., Chen, P. & Zhu, K. X. (2007) *Lifetime Financial Advice: Human Capital, Asset Allocation, and Insurance*, CFA Institute Research Foundation.
-- Buehler, R., Griffin, D. & Ross, M. (1994) "Exploring the 'Planning Fallacy'", *Journal of Personality and Social Psychology* 67(3).
-- Gollwitzer, P. M. (1999) "Implementation Intentions: Strong Effects of Simple Plans", *American Psychologist* 54(7).
-- 확인 방법: 2026-10-17 기억 기반 서지 — 권·호·쪽 `[확인 필요: 원문 대조, 2026-10-24까지]`.
-- 내부: 비공개 `pb-private/ops/townhall_2026-10-16/life.md`(LIFE 데스크 10/16 발언, 일반 원칙만 옮김).
+- Ibbotson, Milevsky, Chen & Zhu 2007 *Lifetime Financial Advice* (CFA Institute RF) · Buehler, Griffin & Ross 1994 *JPSP* 67(3) · Gollwitzer 1999 *Am. Psychologist* 54(7) — 기억 기반 서지 `[확인 필요: 원문 대조, 2026-10-24까지]`
+- 내부: 비공개 pb-private townhall 2026-10-16 life 발언(일반 원칙만)
 
 ## 복기 (틀린 판단 → 왜 → 다음부터)
 - (빈 칸 — 첫 채점 대상: 시간 예산 첫 측정 주의 상한 준수 여부)
+
+## 10년차 기준 (2026-10-23 교육)
+- 체크리스트: ① 목표는 행동 단위 실행 의도(if-then)로 쪼개 주간 점검 `[논문: Gollwitzer 1999, #5]` ② 시간 견적은 외부 관점(과거 실제 소요)으로 `[논문: Buehler 1994, #4]` ③ 코칭 근거 = 내무 주간 숫자 + 지난 약속 이행률, 잔소리는 1개 행동에만 `[현업 관행: 코칭 GROW 모델]` [확인 필요: GROW 원 출처(Whitmore), 2026-10-30]
+- 격차: 복기 빈칸·첫 측정(#13 시간 비율) 미실행 — 정의는 있고 데이터가 없다(관찰 부족, PERSONAS).
+- 드릴: 가상 — 마감까지 72시간, 수면 24·근무 16·고정 20·약속 8. 실제 가용과 if-then 한 줄은? **답:** 72 − 68 = 4시간(#6). "내일 19:00 퇴근 지하철에 타면 → 지원서 1문항 초안 30분" 처럼 시각·장소·행동을 박는다. '3일 남았다'로 말하지 않는다.
