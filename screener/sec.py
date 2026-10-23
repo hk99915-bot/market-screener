@@ -8,7 +8,9 @@ SEC 는 User-Agent 에 연락처를 요구한다 → 환경변수 SEC_USER_AGENT
   2분기 = 6개월 − 1분기, 3분기 = 9개월 − 6개월, 4분기 = 연간(10-K) − 9개월. 앞 누적이 빠지면 그 분기는 비워 둔다.
   12월 결산이 아닌 회사(MU 8~9월·SNDK 6~7월)도 시작일 사슬이라 같은 식으로 처리된다.
 - 재무상태(시점 값): 분기 말 값.
-종목당 7일마다 갱신(하루 약 1/7씩 순환).
+회전 배치(10/24 겸이 "전종목으로 나눠서 천천히 꾸준히"): 실행당 SEC_BUDGET(기본 80)종목 — 우선 목록(반도체 바스켓) 먼저,
+나머지는 마지막 확인이 오래된 순. 이미 받은 종목은 submissions 의 최신 정기보고서(10-Q/10-K/20-F…) 제출일이
+지난번과 같으면 companyfacts 를 다시 받지 않는다(증분). 진행 상태 = data/fin/sec_progress.json (확인·수집·실패·CIK 없음·IFRS).
 """
 from __future__ import annotations
 
@@ -16,7 +18,7 @@ import json
 import logging
 import os
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 import polars as pl
 import requests
@@ -27,6 +29,9 @@ log = logging.getLogger(__name__)
 FIN = DATA_DIR / "fin"
 OUT = FIN / "us_quarterly.parquet"
 STAMP = FIN / "us_stamp.json"
+PROGRESS = FIN / "sec_progress.json"   # 종목별 {cik, checked, fetched, last_filed, status, err, rows} + 요약·완주 예상
+PERIODIC = ("10-Q", "10-K", "10-Q/A", "10-K/A", "10-KT", "20-F", "20-F/A", "40-F", "40-F/A")
+BUDGET = 80                            # 실행당 종목 수 기본값(환경변수 SEC_BUDGET) — 약 560종목 ÷ 80 ≈ 7일 한 바퀴
 TICKERS = UNIVERSE_DIR / "sec_tickers.json"
 SCHEMA = {"ticker": pl.Utf8, "end": pl.Utf8, "item": pl.Utf8, "value": pl.Float64, "derived": pl.Boolean}   # derived: 누적 차분으로 만든 분기 값
 
@@ -154,33 +159,102 @@ def parse(facts: dict) -> list[dict]:
     return rows
 
 
-def update(tickers: list[str], refresh_days: int = 7, budget: int = 200) -> int:
+def last_periodic_filed(sub: dict) -> str | None:
+    """submissions JSON 에서 최신 정기보고서(10-Q/10-K/20-F/40-F) 제출일 (YYYY-MM-DD). 없으면 None."""
+    r = (sub.get("filings") or {}).get("recent") or {}
+    ds = [d for f, d in zip(r.get("form") or [], r.get("filingDate") or []) if f in PERIODIC and d]
+    return max(ds) if ds else None
+
+
+def plan(tickers: list[str], stamp: dict, now: float, refresh_days: int, budget: int, priority: list[str] | None = None) -> list[str]:
+    """이번 실행에서 확인할 종목(최대 budget). 갱신 주기(refresh_days)가 지난 것만.
+    순서: 우선 목록(입력 순서) → 나머지는 마지막 확인(stamp)이 오래된 순(한 번도 안 받은 종목 = 0 이 맨 앞)."""
+    pri = [t for t in dict.fromkeys(priority or []) if t in set(tickers)]
+    due = [t for t in dict.fromkeys(tickers) if now - stamp.get(t, 0) > refresh_days * 86400]
+    ps = set(pri)
+    first = [t for t in pri if t in set(due)]
+    rest = sorted((t for t in due if t not in ps), key=lambda t: (stamp.get(t, 0), t))
+    return (first + rest)[:budget]
+
+
+def progress_summary(prog: dict, universe: list[str], budget: int, today: date | None = None) -> dict:
+    """전체 n 중 수집 완료·미수집·실패·CIK 없음 수와 완주 예상일(미수집 ÷ 실행당 종목, 하루 1회 실행 가정)."""
+    from datetime import timedelta
+    per = prog.get("tickers", {})
+    st = {t: (per.get(t) or {}).get("status", "never") for t in universe}
+    cnt: dict[str, int] = {}
+    for v in st.values():
+        cnt[v] = cnt.get(v, 0) + 1
+    got = sum(1 for t in universe if (per.get(t) or {}).get("fetched"))
+    pending = sum(1 for t in universe if not (per.get(t) or {}).get("checked") and st[t] != "no_cik")
+    days = -(-pending // budget) if budget else None
+    today = today or date.today()
+    return {"universe": len(universe), "fetched_ever": got, "pending_first_check": pending, "by_status": cnt,
+            "budget_per_run": budget, "eta_first_cycle": (today + timedelta(days=days)).isoformat() if days is not None else None,
+            "eta_basis": "미확인 종목 ÷ 실행당 종목 수, fin.yml 하루 1회(03:30 KST) 가정"}
+
+
+def update(tickers: list[str], refresh_days: int = 7, budget: int | None = None, priority: list[str] | None = None) -> int:
     if not ua():
         log.info("SEC_USER_AGENT 없음 — 미장 재무 건너뜀")
         return 0
+    budget = budget if budget is not None else int(os.environ.get("SEC_BUDGET", BUDGET))
     FIN.mkdir(parents=True, exist_ok=True)
     stamp = json.loads(STAMP.read_text()) if STAMP.exists() else {}
+    prog = json.loads(PROGRESS.read_text()) if PROGRESS.exists() else {}
+    per = prog.setdefault("tickers", {})
     cmap = ticker_map()
     old = pl.read_parquet(OUT) if OUT.exists() else pl.DataFrame(schema=SCHEMA)
     if "derived" not in old.columns:   # 예전 파일: 차분 여부 모름 → null
         old = old.with_columns(pl.lit(None, dtype=pl.Boolean).alias("derived"))
+    have = set(old["ticker"].unique().to_list()) if not old.is_empty() else set()
+    universe = list(dict.fromkeys((priority or []) + list(tickers)))
+    for t in universe:
+        if t not in cmap:   # 상장폐지·인수(예: CYBR)·티커 변경 — 조용히 빼지 않고 기록
+            per[t] = {**per.get(t, {}), "status": "no_cik"}
     now = time.time()
-    todo = [t for t in tickers if t in cmap and now - stamp.get(t, 0) > refresh_days * 86400][:budget]
-    new = []
+    nowiso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    todo = plan([t for t in universe if t in cmap], stamp, now, refresh_days, budget, priority)
+    new, n_fetch = [], 0
     for t in todo:
+        e = {**per.get(t, {}), "cik": cmap[t], "checked": nowiso}
         try:
-            rows = parse(_get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cmap[t]:010d}.json"))
-            new += [{"ticker": t, **r} for r in rows if r["end"] >= "2019-01-01"]
+            cik = f"{cmap[t]:010d}"
+            lf = last_periodic_filed(_get(f"https://data.sec.gov/submissions/CIK{cik}.json"))
+            if lf and e.get("fetched") and e.get("last_filed") == lf and e.get("status") in ("ok", "unchanged", "ifrs", "no_data") \
+                    and (t in have or e.get("status") != "ok"):
+                if e.get("status") in ("ok", "unchanged"):   # 새 정기보고서 없음 → companyfacts 생략(증분). ifrs·no_data 는 상태 유지
+                    e.update(status="unchanged", err=None)
+            else:
+                facts = _get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json")
+                n_fetch += 1
+                rows = [r for r in parse(facts) if r["end"] >= "2019-01-01"]
+                if rows:
+                    new += [{"ticker": t, **r} for r in rows]
+                flows = sum(1 for r in rows if r["item"] in ("revenue", "op", "ni"))
+                if flows:
+                    e.update(status="ok", fetched=nowiso, last_filed=lf, rows=len(rows), err=None)
+                else:   # 20-F(연간만)·IFRS 제출사: 시점 값(주식 수 등)만 있거나 아무것도 없음 — 분기 손익 없음을 기록
+                    tax = sorted((facts.get("facts") or {}).keys())
+                    e.update(status="ifrs" if "ifrs-full" in tax else "no_data", fetched=nowiso, last_filed=lf, rows=len(rows),
+                             err=f"us-gaap 분기 손익 없음 (taxonomy {','.join(tax) or '없음'})")
             stamp[t] = now
-        except Exception as e:  # noqa: BLE001
-            log.warning("SEC %s 실패: %s", t, e)
+        except Exception as ex:  # noqa: BLE001
+            e.update(status="fail", err=f"{type(ex).__name__}: {ex}"[:200])
+            log.warning("SEC %s 실패: %s", t, ex)
+        per[t] = e
     if new:
         add = pl.DataFrame(new, schema=SCHEMA)
         done = set(add["ticker"].unique().to_list())
         df = pl.concat([old.filter(~pl.col("ticker").is_in(sorted(done))), add])
         df.write_parquet(OUT)
     STAMP.write_text(json.dumps(stamp))
-    log.info("SEC 재무 %d종목 갱신 (남은 대상은 다음 실행)", len(todo))
+    prog.update({"_doc": "SEC companyfacts 회전 수집 진행 상태 (screener/sec.py update). status: ok=이번 수집 · unchanged=새 정기보고서 없어 생략 · "
+                         "fail=요청 실패 · no_cik=SEC 티커 목록에 없음 · ifrs=IFRS 제출사(us-gaap 없음, 미지원) · no_data=분기 값 없음 · never=아직 차례 안 옴",
+                 "updated": nowiso, "last_run": {"checked": len(todo), "companyfacts": n_fetch, "rows_added": len(new)},
+                 "summary": progress_summary(prog, universe, budget)})
+    PROGRESS.write_text(json.dumps(prog, ensure_ascii=False, indent=0, sort_keys=True))
+    log.info("SEC 재무 %d종목 확인(companyfacts %d) — 남은 대상은 다음 실행", len(todo), n_fetch)
     return len(todo)
 
 

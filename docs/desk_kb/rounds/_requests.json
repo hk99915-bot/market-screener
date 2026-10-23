@@ -1643,7 +1643,18 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "analyst",
+     "at": "2026-10-24T00:26+09:00",
+     "text": "기본 펼침 기준(애널): ① 금리 결정 원문(한은 통화정책방향 의결문·FOMC 성명)은 날짜 무관 최신 1건 고정 ② 나머지는 발간 7일 이내 중 최신순 3건, 같은 기관은 1건만(한은 보도자료 34/53건이라 기관 중복 제거 안 하면 한은만 보임) ③ 상한 4건, 나머지 '더 보기'. 신뢰도 필드는 public_reports.json 에 없어(53건 전부 None) 기준으로 못 씀 — 근거 reports/public_reports.json 10/23. 이대로 반영해 줘.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T00:26+09:00",
+   "done_by": "애널"
   },
   {
    "id": "req-bonds-30c24a74",
@@ -2697,6 +2708,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T00:21+09:00",
    "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-3c64a717",
+   "from": "analyst",
+   "to": "data",
+   "text": "반도체 바스켓 20-F 제출사 재무 경로 필요(ra-sec-coverage): SEC companyfacts 로는 분기 손익이 안 나옴 — IFRS(TSM·ASX·UMC, 통화 TWD·ADR 비율 환산 필요)·US-GAAP 20-F 연간만(ASML·STM·NVMI·TSEM, 분기는 6-K 보도자료뿐). data/fin/sec_progress.json status=ifrs/no_data 로 표시 중. 무료 분기 소스(회사 IR·6-K 첨부 파싱·야후 분기 손익 중 무엇이 되는지) 판단·연결 부탁. 하이닉스는 기존 DART 경로로 충분.",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T00:26+09:00",
+   "due": "2026-10-30",
    "via": "ask",
    "seen": [
     "2026-10-24"

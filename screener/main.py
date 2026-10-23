@@ -646,12 +646,12 @@ def main() -> None:
             try:
                 from . import sec
                 from .config import UNIVERSE_DIR
+                from .universe import us_watch
                 us = pl.read_csv(UNIVERSE_DIR / "us_index.csv")["yf"].to_list() if (UNIVERSE_DIR / "us_index.csv").exists() else []
-                # 우선 수집 목록(보유·관심 ETF 구성종목) — 실행당 200종목 예산이라 앞에 둬야 먼저 받음 (10/16)
-                if (UNIVERSE_DIR / "us_priority.csv").exists():
-                    pri = pl.read_csv(UNIVERSE_DIR / "us_priority.csv")["yf"].to_list()
-                    us = pri + [t for t in us if t not in set(pri)]
-                print("SEC", sec.update(us))
+                us += sorted(us_watch() - set(us))   # 스크리닝 유니버스(heatmap_US = 지수 ∪ 관찰) 전체 — 10/24 겸이 '전종목 나눠서 꾸준히'
+                # 우선 수집 목록(반도체 바스켓 PSI·SOXX 구성 + 관심 종목) — 실행당 예산(SEC_BUDGET) 앞순위 (10/16·10/24)
+                pri = pl.read_csv(UNIVERSE_DIR / "us_priority.csv")["yf"].to_list() if (UNIVERSE_DIR / "us_priority.csv").exists() else []
+                print("SEC", sec.update(us, priority=pri))
             except Exception as e:  # noqa: BLE001
                 log.warning("SEC 재무 실패: %s", e)
             from . import fin

@@ -49,6 +49,54 @@ BASKET = [
     {"sym": "LRCX", "mk": "US", "name": "Lam Research"},
     {"sym": "TSM", "mk": "US", "name": "TSMC(ADR)"},
 ]
+SEMIS_PATH = "universe/semis_basket.json"   # PSI·SOXX 공개 보유 목록(N-PORT) 합집합 — 10/24 ra-sec-coverage
+
+
+def basket_members(path: str | None = None) -> list[dict]:
+    """고정 BASKET(KR 5 + US 핵심 11) 뒤에 semis_basket.json 의 US 종목 중 없는 것을 붙인다(ETF 비중 큰 순, 입력 순서 유지).
+    파일이 없거나 깨지면 고정 BASKET 만 — 조용히 줄이지 않도록 로그."""
+    from pathlib import Path
+    out = [dict(b) for b in BASKET]
+    have = {b["sym"] for b in out}
+    try:
+        j = json.loads(Path(path or SEMIS_PATH).read_text(encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001
+        log.warning("반도체 바스켓 확장 목록 없음(%s) — 고정 %d종목만", e, len(out))
+        return out
+    asof = " · ".join(f"{k} {v}" for k, v in (j.get("asof") or {}).items())
+    for m in j.get("members") or []:
+        if m.get("sym") in have:
+            for b in out:
+                if b["sym"] == m["sym"]:
+                    b["etf_w"] = m.get("etf") or {}
+            continue
+        out.append({"sym": m["sym"], "mk": "US", "name": m.get("name") or m["sym"], "etf_w": m.get("etf") or {}, "basket_src": f"N-PORT {asof}"})
+        have.add(m["sym"])
+    return out
+
+
+def sec_status() -> dict:
+    """data/fin/sec_progress.json 의 종목별 status (ifrs·no_data·fail 이면 행 flags 에 원인 표시). 없으면 {}."""
+    try:
+        from .sec import PROGRESS
+        return {t: (v or {}).get("status") for t, v in json.loads(PROGRESS.read_text()).get("tickers", {}).items()}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+STALE_DAYS = 200   # 최근 분기말이 이보다 오래되면(분기 공시 45일 + 여유) 검증전
+
+
+def stale_quarter(end: str, today: date) -> bool:
+    try:
+        return (today - date.fromisoformat(end[:10])).days > STALE_DAYS
+    except ValueError:
+        return False
+
+
+SEC_STATUS_NOTE = {"ifrs": "IFRS 20-F 제출사 — SEC us-gaap 분기 없음(미지원, 데이터 데스크 요청)", "no_data": "SEC 분기 값 없음(20-F 연간만 등)",
+                   "fail": "SEC 수집 실패(다음 실행 재시도)", "no_cik": "SEC 티커 목록에 없음", "never": "SEC 수집 차례 전"}
+
 ETFS = [{"sym": "PSI", "mk": "US", "name": "PSI(반도체)"}, {"sym": "SOXX", "mk": "US", "name": "SOXX"},
         {"sym": "139260", "mk": "KR", "name": "TIGER 200 IT"}]
 
@@ -445,7 +493,9 @@ def build(send: bool = False) -> dict:
     prev = _prev_archive(today)
     prev_rows = {r["sym"]: r for r in (prev or {}).get("rows", [])}
     rows = []
-    for b in BASKET:
+    sst = sec_status()
+    earn = {r["sym"]: r for r in (_json(REPORT_DIR / "earnings_cal.json").get("rows") or [])}   # screener/earnings_cal.py (야후, 추정)
+    for b in basket_members():
         det = _detail(b["mk"], b["sym"])
         price = det.get("close")
         asof = det.get("asof")
@@ -464,6 +514,17 @@ def build(send: bool = False) -> dict:
              "data_date": m.get("period"), "src": "SEC" if b["mk"] == "US" else "DART", **m}
         if price is None:
             r["flags"] = (r.get("flags") or []) + ["가격 없음(detail 미생성)"]
+        ec = earn.get(b["sym"])
+        if ec and ec.get("date"):
+            r["earn"] = {"date": ec["date"], "past": ec.get("past"), "eps_cons_0q": ec.get("eps_avg"), "n_est": ec.get("eps_n"), "src": "야후(추정)"}
+        last_end = str((q[-1].get("end") if q else None) or "")[:10]
+        if last_end and stale_quarter(last_end, today):   # 예: 20-F 제출사가 예전에 낸 10-Q 몇 개만 남은 경우(TSEM 2024-06) — 옛 이익으로 PER 금지
+            r["verified"] = False
+            r["flags"] = (r.get("flags") or []) + [f"검증전: 재무 오래됨(최근 분기 {last_end}, {STALE_DAYS}일+)"]
+        if b["mk"] == "US" and not m.get("n_quarters"):
+            note = SEC_STATUS_NOTE.get(sst.get(b["sym"]) or "never")
+            if note:
+                r["flags"] = (r.get("flags") or []) + [note]
         rows.append(r)
     etfs = []
     for e in ETFS:

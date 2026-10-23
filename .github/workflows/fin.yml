@@ -51,6 +51,7 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
           FIN_BUDGET_MIN: "45"   # DART 수집 벽시계 예산(분) — 나눠서 천천히, 매일 이어받음
+          SEC_BUDGET: "80"       # SEC companyfacts 회전 배치(실행당 종목) — 스크리닝 유니버스 약 560종목 ≈ 7일 한 바퀴, 반도체 바스켓 우선 (10/24)
         run: |
           # 빨리 끝나는 것부터 — DART 재무 백필이 3시간 제한을 다 써서 뒤 작업이 못 돌던 문제 (10/16)
           python -m screener.main --mode portfolios --no-send || true
@@ -60,6 +61,7 @@ jobs:
           python -m screener.main --mode research_views --no-send || echo "::warning::비종목 리포트 수집 실패/부분 — reports/research_views.json status 참조"
           python -m screener.public_reports || echo "::warning::공공 리포트·지정학 피드 수집 실패/부분 — reports/public_reports.json sources 참조 (애널 public-reports)"
           python -m screener.research_synthesis || echo "::warning::리서치 종합 실패 — reports/research_synthesis.json 은 전날 것 유지 (애널 research-synthesis)"
+          python -m screener.earnings_cal || echo "::warning::반도체 바스켓 실적일·컨센 실패 — reports/earnings_cal.json 은 전날 것 유지 (애널 ra-sec-coverage)"
           python -m screener.main --mode fin --no-send || true
       - name: 저장
         if: always() && steps.g.outputs.commit == 'true'
