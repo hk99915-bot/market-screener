@@ -3351,6 +3351,9 @@ function macroView(){
   if(K&&S&&K.chg20!=null&&S.chg20!=null){ const g=(K.chg20-S.chg20)*100;
     const why=g<-8?'한국 고유 요인 쪽(규칙: 격차 < −8%p) — 매크로 반전만으론 회복 근거 부족':g>8?'한국이 강함(규칙: 격차 > +8%p)':'격차 작음(±8%p 안) — 매크로와 같이 움직임';
     gap=`<div id="macGap" style="margin-top:4px;font-size:13px;white-space:normal">한국만 하락 격차: 20일 코스피 ${pct(K.chg20,1)} vs S&amp;P ${pct(S.chg20,1)} = <b class="${g<0?'dn':'up'}">${g>0?'+':''}${g.toFixed(1)}%p</b> → ${why}</div>`; }
+  // 코스피200 ATM IV 칩 (파생 요청 req-macro-e0ef2a13) — 표시 전용 · 바람 점수 제외 · 검증전
+  const IVc=(MV.chips||[]).find(c=>c.key==='K200_ATM_IV');
+  if(IVc&&IVc.iv!=null) gap+=`<div id="macIV" style="margin-top:4px;font-size:12px;white-space:normal">코스피200 ATM IV <b>${(IVc.iv*100).toFixed(1)}%</b> → 하루 1σ ≈ <b>±${(IVc.day_1s*100).toFixed(1)}%</b> <span class="mu" style="font-size:11px">(연율 ÷ √252 · 흔들림 크기, 방향 아님 · 점수 제외 · <b>검증전</b> · derivs.json ${mcMd(IVc.date)})</span></div>`;
   const top=`<div class="p c12" id="macTop"><h2>MACRO 한눈에<small>reports/macro_view.json${mvTag}</small></h2><div class="b" style="white-space:normal">
     <div id="macWind" style="border:1px solid var(--line);border-left:4px solid ${MV.score==null?'var(--line)':MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)'};padding:6px 9px;line-height:1.6">${wind}${gap}</div>`;
   // ② 금리 (bonds.json — 미 Treasury·한 KRX 장외 민평)

@@ -142,6 +142,26 @@ W = {"SPX": 1.0, "NASDAQ": 1.0, "RUT": 0.5, "VIX": 1.0, "US10Y": 1.0, "DXY": 0.7
 ORDER = ["KOSPI", "KOSDAQ", "SPX", "NASDAQ", "RUT", "NIKKEI", "TOPIX", "VIX", "US10Y", "JGB10Y", "DXY", "USDKRW", "USDJPY", "WTI", "GOLD", "BTC"]
 
 
+def iv_chip() -> dict | None:
+    """코스피200 ATM 내재변동성 칩 (파생 요청 req-macro-e0ef2a13, 10/23) — **표시 전용, 바람 점수 제외, 검증전**.
+    reports/derivs.json atm_iv(연율) ÷ √252 = 옵션 가격이 내포한 '하루 1σ'. 방향 아님, 흔들림 크기 참고."""
+    try:
+        d = json.loads((REPORT_DIR / "derivs.json").read_text(encoding="utf-8"))
+        iv = float(d["atm_iv"])
+    except Exception:  # noqa: BLE001
+        return None
+    if not (0 < iv < 3):
+        return None
+    rv = d.get("rv20")
+    day = iv / 252 ** 0.5
+    return {"key": "K200_ATM_IV", "name": "코스피200 ATM 내재변동성", "iv": round(iv, 4), "day_1s": round(day, 4),
+            "rv20": round(float(rv), 4) if isinstance(rv, (int, float)) else None, "date": d.get("date"),
+            "label": "검증전", "scored": False,
+            "state": f"ATM IV {iv*100:.1f}% → 하루 1σ ≈ ±{day*100:.1f}% (연율 ÷ √252)"
+                     + (f" · 실현 20일 {float(rv)*100:.0f}%" if isinstance(rv, (int, float)) else "")
+                     + " — 표시 전용, 바람 점수 제외(검증전)"}
+
+
 def build() -> dict:
     try:
         ms = json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8"))["series"]
@@ -185,6 +205,9 @@ def build() -> dict:
         pass
     out = {"asof": max((r["date"] for r in rows), default=None), "score": round(score, 2) if score is not None else None,
            "label": label, "summary": summary, "rows": rows}
+    chip = iv_chip()   # 표시 전용 칩 — rows 에 넣지 않음(점수·rows 소비처 영향 0)
+    if chip:
+        out["chips"] = [chip]
     from .guard import write_json
     write_json(REPORT_DIR / "macro_view.json", out, default=str)
     try:
