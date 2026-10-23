@@ -18,7 +18,7 @@ MY_HOLDINGS 형식 (웹 MY 탭과 동일, 한 줄에 하나 — 위성 북, 그 
 분모는 항상 순자산 = 위성 + ISA + 현금(원화·달러). 반도체 비중은 '반도체(전기 제외)' 를 기본으로, '반도체+전기(상관 테마)' 를 보조로 보인다.
 지수 ETF(KODEX 200·S&P500·나스닥100 …) 속 반도체 룩스루는 한도 계산에서 빼고 '참고 경보' 한 줄로만 보인다 (합의 1-④).
 섹터 ETF(TIGER 200 IT·KODEX 반도체·SOXX·SMH·PSI …)는 전액 반도체로 센다. 텔레그램에는 비율만 보낸다 (금액 없음).
-스트레스(결재 #3): '2026-07 재현(반도체 −30%)' 손실률을 비율로 계산해 규칙 점검에 한 줄 — 분모는 evaluate(stress_denominator_code=) 로 고른다 (기본 D2).
+스트레스(결재 #3): '2026-07 실측(06/22→07/30, 반도체 −50%, 10/24 결재)' 손실률을 비율로 계산해 규칙 점검에 한 줄 — 분모는 evaluate(stress_denominator_code=) 로 고른다 (기본 D2).
 """
 from __future__ import annotations
 
@@ -181,17 +181,17 @@ def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains
 
 
 # ---------------------------------------------------------------- 스트레스 (결재 #3: 구속 한도 = 스트레스 −15%, VaR·ES 는 계기판)
-# 2026-07 재현 — 반도체 −30% 가정 (SOXX 2026-06-22 → 07-29 −29%, kb:frm#9 사건 재생). 충격은 분류별 비율:
-#   semi(한도 산입 반도체·섹터 ETF 전액) −30% · elec(전기·IT 하드웨어, 상관 테마 ρ≈0.8 가정, kb:frm#8·#23) −24% · 지수 ETF 룩스루 분은 −30% × 룩스루 비중
-#   그 외(코어 지수 ETF 나머지·국채·금·현금) 0 — 반도체 단일 요인 충격만 재생한다 (코스피 β 전염은 MY 탭 'β 추정' 줄이 따로 본다).
+# 2026-07 실측 재생 — 구속 시나리오 (겸이 결재 appr-frm-agenda-a 10/24: SOXX 대리 −30% 가정 → 실측 교체, req-frm-cb131a3e).
+#   구간 = 코스피 실제 고점→저점 2026-06-22 → 07-30 (−38.6%, data/hist/kr_index_daily) — 포트 경로 최대 낙폭(kb:frm#26). 원천 data/hist/kr_etf_daily·data/kr_prices 종가.
+#   semi(한도 산입 반도체·섹터 ETF 전액) = KODEX 반도체 −50.3% · elec(전기·IT 하드웨어) = 삼성전기 −60.5%(반도체보다 깊음 — 옛 ρ0.8×−30 가정 기각, kb:frm 복기 #3)
+#   look = 지수 ETF 속 반도체 룩스루분 × −50% · core = 코어 바구니 원화 ETF 실측 전체 손실(룩스루 대신, 이중 계산 없음):
+#   K200 KODEX 200 −40.8% · S&P500 TIGER −8.4% · NDX KODEX −15.9% · KTB 국고채3년 +0.3%→0 · Gold KODEX 골드선물 −4.2% (reports/studies/2026-10-23_frm_replay_2026-07.md §1)
+#   하드 바닥(평단 −30%) 집행 효과는 판정에 넣지 않는다 — 바닥은 집행 전제가 깨지면 0 (안건 D 이중 장치). 개인 북 재생: 바닥 미적용 −15.3% / 집행 시 −9.8% (비율만).
+#   옛 가정(semi −30 · elec −24 · look −30 · 코어 0)은 git 이력. 롤백 = 아래 한 줄을 그 값으로.
+#   binding False 인 키를 추가하면 stress_ref_lines 가 참고 줄(⛔ 없음)로만 보인다.
 STRESS_SCENARIOS = {
-    "2026-07": {"label": "2026-07 재현(반도체 −30%)", "semi": -0.30, "elec": -0.24, "look": -0.30},
-    # 참고(binding False — 구속 한도 판정·⛔ 에 안 씀, 11/15 리뷰 안건 전 계기판). FRM 2026-10-23 실측 재생(kb:frm#9·#26):
-    #   구간 = 코스피 실제 고점→저점 2026-06-22 → 07-30 (−38.6%, data/hist/kr_index_daily). 원천 data/hist/kr_etf_daily·data/kr_prices 종가.
-    #   semi = KODEX 반도체 −50.3% · elec = 삼성전기 −60.5%(반도체보다 깊음 — ρ 0.8×−30 가정 기각) · look = semi 와 같게
-    #   core = 코어 바구니 원화 ETF 실측 전체 손실(룩스루 대신): K200 KODEX 200 −40.8% · S&P500 TIGER −8.4% · NDX KODEX −15.9% · KTB 국고채3년 +0.3%→0 · Gold KRX금 −4.2%
-    "2026-07m": {"label": "참고: 2026-07 실측 재생(06/22→07/30)", "semi": -0.50, "elec": -0.60, "look": -0.50, "binding": False,
-                 "core": {"K200": -0.41, "S&P500": -0.08, "NDX": -0.16, "KTB": 0.0, "Gold": -0.04}},
+    "2026-07": {"label": "2026-07 실측(06/22→07/30, 반도체 −50%)", "semi": -0.50, "elec": -0.60, "look": -0.50,
+                "core": {"K200": -0.41, "S&P500": -0.08, "NDX": -0.16, "KTB": 0.0, "Gold": -0.04}},
 }
 from .defs import STRESS_LIMIT   # 0.15 — 어느 시나리오도 −15% 초과 금지 (scorecard_week [11] 스트레스 와 같은 수치)
 STRESS_DENOMINATORS = ("D2", "D1", "EQ")   # docs/rules_terms.md §0: D2 전체 투자자산(기본, 결재 #1 (b) 가정) · D1 위성 북 · EQ 주식만(참고)
@@ -231,7 +231,7 @@ def stress_loss(rows: list[dict], denom: float, scenario: str = "2026-07", books
 
 
 def stress_ref_lines(ev: dict) -> list[str]:
-    """참고 시나리오(binding False) 줄 — 비율만, ⛔ 없음(구속 한도 판정은 stress_line 의 '2026-07' 만). 11/15 리뷰 전 계기판."""
+    """참고 시나리오(binding False) 줄 — 비율만, ⛔ 없음(구속 한도 판정은 stress_line 의 '2026-07' 만). 현재 참고 키 없음(10/24 결재로 실측이 구속으로 승격)."""
     out = []
     for k, sc in STRESS_SCENARIOS.items():
         if sc.get("binding", True) or k not in (ev.get("stress") or {}):
@@ -560,7 +560,7 @@ def brief_keys() -> tuple[str | None, list[str]]:
     L.append(semi_line(ev))
     L += band_lines(ev)
     L.append(stress_line(ev))   # 비율만 (금액 금지)
-    L += stress_ref_lines(ev)   # 참고 실측 재생 (구속 아님)
+    L += stress_ref_lines(ev)   # binding False 참고 시나리오 (현재 없음 — 있으면 ⛔ 없이 1줄씩)
     L += isa_lines(ev)
     for code, px in price_rules.items():
         r = next((x for x in rows if x["s"].upper() == code), None)

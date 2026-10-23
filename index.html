@@ -1018,6 +1018,8 @@ function isaBucket(s,nm){ const n=String(nm||'').toUpperCase();
   if(['132030','411060'].includes(s)||/골드|금선물|금현물|GOLD/.test(n)||['GLD','IAU'].includes(s)) return 'Gold';
   if(s==='069500'||(/(^|\s)200(\s|$)|코스피/.test(n)&&!/IT|반도체|인버스|레버리지/.test(n))) return 'K200';
   return null; }
+// 구속 스트레스 '2026-07 실측' 충격 (pb.py STRESS_SCENARIOS['2026-07'] 과 같게 — tests/test_pb_stress.py 대조, 결재 appr-frm-agenda-a 10/24)
+const STRESS_0726={semi:-0.50,elec:-0.60,look:-0.50,core:{'K200':-0.41,'S&P500':-0.08,'NDX':-0.16,'KTB':0.0,'Gold':-0.04}};
 // 반도체 분류 (pb.py semi_class 와 동일): 'semi' = 한도 산입(반도체 체인·미국 반도체·반도체/IT 섹터 ETF 전액), 'elec' = 전기·IT 하드웨어(상관 테마, 보조 수치),
 // 지수 ETF(KODEX 200·S&P500 …)는 한도 밖 — 속의 반도체 룩스루는 lookW 로 돌려 '참고 경보' 로만 보인다 (합의 1-④)
 const SEMI_ETFS=['139260','091160','PSI','SOXX','SMH','SOXL','SOXQ','XSD','SMHX','396500','395160','449450'];
@@ -1401,8 +1403,9 @@ function myRender(hs,cash,miss){
   const chainL=Object.entries(chains).sort((x,y)=>y[1]-x[1]);
   // 스트레스
   const stK=A.reduce((s,a)=>s+a.val*a.bK*-0.10,0), stX=A.reduce((s,a)=>s+a.val*a.bX*-0.15,0);
-  // 결재 #3 구속 한도: '2026-07 재현(반도체 −30%)' — pb.py STRESS_SCENARIOS 와 같은 충격(semi −30% · elec −24% · 지수 ETF 룩스루 −30%×비중), 분모 (b) DEN(투자자산+예적금, 결재 #1 — 감사 10/17 #2). 화면엔 비율만(금액 금지).
-  const stS=A.reduce((s,a)=>{const c=semiClass(a); return s+a.val*(c.kind==='semi'?-0.30:c.kind==='elec'?-0.24:c.lookW*-0.30);},0), STRESS_LIMIT=0.15;
+  // 결재 #3 구속 한도: '2026-07 실측(06/22→07/30)' — 10/24 결재(appr-frm-agenda-a)로 SOXX 대리 −30% → 실측 교체. pb.py STRESS_SCENARIOS['2026-07'] 과 같은 충격(STRESS_0726, tests/test_pb_stress.py 가 대조):
+  // semi −50% · elec −60% · 코어 바구니 ETF 실측 전체 손실(K200 −41 · S&P −8 · NDX −16 · 국고 0 · 금 −4) · 그 밖 지수 ETF 는 반도체 룩스루 −50%×비중. 분모 (b) DEN(투자자산+예적금, 결재 #1 — 감사 10/17 #2). 화면엔 비율만(금액 금지).
+  const stS=A.reduce((s,a)=>{const c=semiClass(a), b=isaBucket(a.h.r.s,a.d.name); return s+(c.kind==='semi'?a.val*STRESS_0726.semi:c.kind==='elec'?a.val*STRESS_0726.elec:b&&b in STRESS_0726.core?a.val*STRESS_0726.core[b]:a.val*c.lookW*STRESS_0726.look);},0), STRESS_LIMIT=0.15;
   const usdV=A.filter(a=>a.mk==='US').reduce((s,a)=>s+a.val,0)+cU, stF=usdV*0.05;
   // 헷지
   // 한·미 장 시차 때문에 일간 상관은 과소평가 → 5거래일 수익률로 헷지 계산
@@ -1485,7 +1488,7 @@ function myRender(hs,cash,miss){
     <div class="p c6"><h2>스트레스 테스트<small>종목별 1년 베타로 추정 · 분모 ${DENL}</small></h2><div class="b" style="line-height:1.9">
       <div>코스피 −10% → <b class="dn">${KW(stK)}</b> (${pct(stK/DEN,1)})</div>
       <div>미 반도체(SOXX) −15% → <b class="dn">${KW(stX)}</b> (${pct(stX/DEN,1)})</div>
-      <div>2026-07 재현(반도체 −30%) → <b class="dn">${pct(stS/DEN,1)}</b> ${stS/DEN<-STRESS_LIMIT?'<b class="dn">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 ${DENL} · 비율만)</span></div>
+      <div>2026-07 실측(06/22→07/30, 반도체 −50%) → <b class="dn">${pct(stS/DEN,1)}</b> ${stS/DEN<-STRESS_LIMIT?'<b class="dn">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 ${DENL} · 비율만)</span></div>
       <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${KW(stF)}</b> (${pct(stF/DEN,1)})</div>
       <div>하루 손실이 이보다 클 확률 5%: <b>${KW(Pm.var*NAV)}</b> · 그런 날 평균 ${KW(Pm.cvar*NAV)}</div></div></div>
     <div class="p c6"><h2>헷지안<small>5거래일 수익률 · 최근 1년</small></h2><div class="b">
