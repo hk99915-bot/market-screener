@@ -128,10 +128,10 @@ function synSec(){
     <div class="mu" style="font-size:10px;margin-top:3px">${esc(x.grade||'')} · ${esc(x.source_checked||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div></details>`
     :`<div style="margin:0 0 6px 0;border-left:3px solid var(--line);padding-left:7px"><span style="font-size:11px;border:1px solid var(--line);border-radius:3px;padding:0 4px" class="mu">요약 대기</span> <span style="font-size:12px">${esc(x.title||'')}</span>
     <div class="mu" style="font-size:10px">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')}${x.series?` · ${esc(x.series)}`:''}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div>`;
-  const pbRows=pb.items30||null;
+  const pbRows=pb.items30||null;   // 기본 = 최근 3건 한 줄 뷰만, 나머지 '더 보기' (UXUI 재진단 Top10 #9, 10/23 · 패널 1,310px). 기준은 애널 회신(req-analyst-b697c8bc) 오면 교체
   const c8=card('공공 리포트',`한은·정부/연구기관·시장기관·해외 · 30일 · 우리 한 줄 뷰 먼저${pb.pending_n?` · 요약 대기 ${pb.pending_n}`:''}`,
     pb.status!=='ok'?'<div class="mu">공공 리포트 수집 전 (매일 03:30 Actions 수집 — reports/public_reports.json)</div>':
-    `${pbRows?(pbRows.map(pbI).join('')||'<div class="mu">최근 30일 발간물 없음</div>'):dgL(dg.public,'공공 리포트')}
+    `${pbRows?(pbRows.slice(0,3).map(pbI).join('')||'<div class="mu">최근 30일 발간물 없음</div>')+(pbRows.length>3?`<details id="pubMore"><summary class="am" style="cursor:pointer;min-height:44px;display:flex;align-items:center">더 보기 ${pbRows.length-3}건</summary>${pbRows.slice(3).map(pbI).join('')}</details>`:''):dgL(dg.public,'공공 리포트')}
      <div class="mu" style="font-size:11px;margin-top:6px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요): ${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>
      <div class="mu" style="font-size:10px;margin-top:3px">요약·뷰·해석 = 데스크 작성(reports/views/digest.json) · 원문 링크는 기관 사정으로 깨질 수 있음 · 수집 소스 ok ${ps.ok||0}${ps.manual?` · 수동 ${ps.manual}`:''}${ps.error?` · 막힘 ${ps.error}`:''}${ps.empty?` · 빈 응답 ${ps.empty}`:''} · 30일 ${(pb.groups||[]).map(g=>`${esc(g.group)} ${g.n30}`).join(' · ')}</div>`,'c8');
   const ge=SYN.geo||{};

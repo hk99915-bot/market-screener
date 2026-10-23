@@ -81,6 +81,27 @@ function homeCusHtml(){ const o=CMTU; if(!o) return '<div class="mu">불러오�
     ((o.scenarios||[]).length?`<table style="margin-top:6px">${o.scenarios.map(sc=>`<tr><td class="l">${esc(sc.name)}</td><td>${sc.prob!=null?(sc.prob*100).toFixed(0)+'%':'—'}</td></tr>`).join('')}</table>`:'')+
     `<div class="mu" style="font-size:11px;margin-top:4px">${esc(o.asof||'')} · 자세히는 운용회의 탭 US</div>`; }
 function homeCusLoad(){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} const e=$('#homecus'); if(e) e.innerHTML=homeCusHtml(); if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={}; if(view==='cmt') render();}).getCommitteeUS(); }
+/* HOME 오늘 결론 3칸 (UXUI 재진단 Top10 #7, 10/23 겸이 승인): 첫 화면이 지수 등락·문장 덩어리라 9.5장을 내려야 결론이 보였다.
+   ① 시장 국면 = 200일선 위 비율(BREADTH 판정과 같은 기준 60/40%) + 매크로 바람(macro_view.json) ② 오늘 내 할 일 = 대결 제출 대기·쿨다운·원장 차이 ③ 늦은 데이터 = 신선도 계약(freshness.json).
+   새 판단을 만들지 않고 이미 있는 판정만 모은다. */
+function homeConc(){
+  const bv=mk=>{ const b=(D.breadth||[]).filter(x=>x.market===mk), L=b[b.length-1]; if(!L||L.pct_above200==null) return `<span class="mu">${mk} —</span>`;
+    const p=L.pct_above200, l=p>=0.6?'강세':p>=0.4?'중립':'약세'; return `<span>${mk} <b class="${p>=0.6?'up':p>=0.4?'am':'dn'}">${l}</b> <span class="mu">${Math.round(p*100)}%</span></span>`; };
+  if(MV===null&&typeof macroPanel==='function') macroPanel('KR');   // 매크로 바람 불러오기(도착하면 render)
+  const mw=MV&&MV.score!=null?`<div>매크로 바람 <b style="color:${MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)'}">${esc(MV.label||'')} (${MV.score>0?'+':''}${Number(MV.score).toFixed(2)})</b></div>`:'<div class="mu">매크로 바람 불러오는 중</div>';
+  if(typeof decLoad==='function') decLoad();
+  const live=DEC&&DEC.items?DEC.items.filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result):null, pend=live?live.filter(it=>it.picks&&it.picks['나']&&it.picks['나'].pending).length:null;
+  const CD=typeof decCD==='function'?decCD():null;
+  const todo=[pend==null?'<div class="mu">대결 불러오는 중</div>':pend?`<div><a href="#" onclick="setView('score');return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="dn">대결 제출 대기 ${pend}</b>&nbsp;→ 성적표에서 제출</a></div>`:'<div class="mu">대결 제출 대기 없음</div>',
+    CD?'<div class="dn">⏳ 쿨다운 중 — 새 모의 베팅 금지</div>':'', homeLedgerLine()].join('');
+  const n=FR?(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length:null;
+  const cell=(t,b)=>`<div style="border:1px solid var(--line);padding:6px 9px;min-width:0;line-height:1.6"><div class="am" style="font-size:12px;font-weight:700">${t}</div>${b}</div>`;
+  return `<div class="p c12" id="homeconc"><h2>오늘 결론<small>이미 있는 판정만 모음 · 매매 지시 아님</small></h2><div class="b" style="white-space:normal;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:6px">
+    ${cell('시장 국면',`<div style="display:flex;gap:12px;flex-wrap:wrap">${bv('KR')}${bv('US')}</div>${mw}<div class="mu" style="font-size:11.5px">200일선 위 종목 비율 60%↑ 강세 · 40%↓ 약세</div>`)}
+    ${cell('오늘 내 할 일',todo)}
+    ${cell('늦은 데이터',n==null?'<div class="mu">점검 불러오는 중</div>':`<a href="#" onclick="freshPop();return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="${n?'dn':'up'}">${n?`⚠ ${n}건`:'0건 · 정상'}</b>&nbsp;${n?'→ 무엇이 늦었나':''}</a>`)}
+  </div></div>`;
+}
 function homeView(){
   const kr=D.kr||{},us=D.us||{};
   const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
@@ -91,7 +112,7 @@ function homeView(){
   const usL=[B('intraday_us','INTRADAY US'),B('premarket_us','PREMARKET US'),{h:`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`,old:false}].concat(usTime?[]:[B('close_US','CLOSE US')]);
   const krL=[B('premarket_kr','PREMARKET KR'),B('close_KR','CLOSE KR')].concat(usTime?[B('close_US','CLOSE US')]:[]).concat([B('intraday_kr','INTRADAY KR')]);
   const usBlock=pick(usL,false), oldBlk=pick(krL,true)+pick(usL,true);
-  let h=`<div class="grid">${usTime?usBlock:''}${intradayPanel()}
+  let h=`<div class="grid">${homeConc()}${usTime?usBlock:''}${intradayPanel()}
    <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
    <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
    <div class="p c3"><h2>KR CLASSES<small>${kr.asof||''}</small></h2><div class="b">${cc(kr)}</div></div>

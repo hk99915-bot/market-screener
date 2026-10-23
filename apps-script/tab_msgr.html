@@ -47,12 +47,15 @@
 .mgt{font-size:10.5px;color:var(--muted);margin-left:6px}
 .mgq{font-size:11.5px;color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
 .mgsys{text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0;white-space:normal}
-#mgfab{position:fixed;right:16px;bottom:16px;z-index:30;width:56px;height:56px;border-radius:50%;border:0;background:var(--amber);color:#000;font-size:24px;cursor:pointer;box-shadow:0 4px 18px #000a}
+#mgfab{position:fixed;right:16px;bottom:16px;z-index:18;transition:opacity .2s,transform .2s;width:56px;height:56px;border-radius:50%;border:0;background:var(--amber);color:#000;font-size:24px;cursor:pointer;box-shadow:0 4px 18px #000a}
 #mgpop{position:fixed;right:16px;bottom:84px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:#0a0a0a;border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
 #mgpop .mgph{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:#111;border-bottom:1px solid var(--line);cursor:move;touch-action:none}
 #mgpop .mgph button{margin-left:auto;min-width:40px;min-height:40px;background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
 #mgpop .mgpb{flex:1;overflow:auto;padding:6px}
 #mgpop .grid{display:block}#mgpop .p h2{display:none}#mgpop .mgbox{max-height:none}
+/* UXUI 재진단 Top10 #3 (10/23): 💬 버튼이 상세 창·표·맨 아래 접기 줄을 가림 → z-index 18(상세 창 배경 19·창 20 아래) · 본문 맨 아래 88px 여백 · 스크롤 중 숨김(멈추면 다시) */
+#root{padding-bottom:88px}
+#mgfab.mgscr{opacity:0;transform:translateY(24px);pointer-events:none}
 @media (max-width:600px){#mgpop{right:0;left:0;bottom:0;width:100vw;height:86vh}}
 .mgpf .bn{height:170px;background-size:cover;background-position:center}
 </style>
@@ -63,6 +66,8 @@ document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closes
 /* 💬 팝업 채팅방(10/23 겸이 "사내톡이 팝업 채팅방처럼 열리게") — 모든 탭 오른쪽 아래 버튼 → 떠 있는 창에 같은 사내톡(msgView). 사내톡 탭 안에선 탭 그대로. */
 function mgRe(load){ if(MGPOP) mgPopFill(); else if(!load||view==='msg') render(); }
 function mgPopFill(){ const w=document.getElementById('mgpop'); if(w) w.querySelector('.mgpb').innerHTML=msgView(); }
+/* 💬 팝업은 최신(맨 아래)부터 (UXUI 재진단 Top10 #2, 10/23): 팝업에선 스크롤 박스가 #mgbox 가 아니라 바깥 .mgpb → 대화 목록이 있을 때 .mgpb 도 맨 아래로 */
+function mgPbEnd(box){ const pb=box&&box.closest('.mgpb'); if(pb) pb.scrollTop=pb.scrollHeight; }
 function mgPop(open){ let w=document.getElementById('mgpop');
   if(!open||view==='msg'){ if(w) w.remove(); MGPOP=false; return; }
   if(!w){ w=document.createElement('div'); w.id='mgpop'; w.setAttribute('role','dialog'); w.setAttribute('aria-label','사내톡');
@@ -73,7 +78,8 @@ function mgPop(open){ let w=document.getElementById('mgpop');
       const up=()=>{ removeEventListener('pointermove',mv); removeEventListener('pointerup',up); }; addEventListener('pointermove',mv); addEventListener('pointerup',up); }; }
   MGPOP=true; mgPopFill(); }
 setTimeout(()=>{ if(document.getElementById('mgfab')) return; const b=document.createElement('button'); b.id='mgfab'; b.type='button'; b.title='사내톡'; b.setAttribute('aria-label','사내톡 열기'); b.textContent='💬';
-  b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); }; document.body.appendChild(b); },0);
+  b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); }; document.body.appendChild(b);
+  let t=null; addEventListener('scroll',()=>{ b.classList.add('mgscr'); clearTimeout(t); t=setTimeout(()=>b.classList.remove('mgscr'),500); },{passive:true}); },0);
 const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스',realestate:'부동산',scribe:'기록',household:'내무','겸이':'겸이'};
 const MG_DOT={open:'var(--amber)',promoted:'var(--dn)',done:'var(--up)'};
 const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
@@ -152,7 +158,7 @@ function mgPrivView(seg,sel){
   let last='', feed='';
   for(const c of C.filter(c=>MGD==='all'||by(c.by)===MGD||by(c.to)===MGD)){ const d=String(c.at||'').slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
     feed+=`<div class="mgb2 chat">${mgAv(by(c.by))}<div class="mgln"><div class="mgwho"><b data-mgp="${esc(by(c.by))}" style="cursor:pointer">${esc(c.by)}</b>${c.to?`<span class="ar">→</span>${esc(c.to)}`:''}<span class="mgt">${esc(mgT(c.at).slice(11))}${c.src==='panel'?' · 패널 대필(본인 아님)':''}</span></div>${c.re?`<div class="mgq">↳ ${esc(c.re.by||'')}: ${esc(String(c.re.text||'').slice(0,60))}</div>`:''}<div class="mgbub">${esc(c.text)}</div></div></div>`; }
-  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
+  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; mgPbEnd(box); },0);
   if(MGP&&MGP._need_token){ setTimeout(()=>{ const sv=document.getElementById('mgtksv'); if(sv) sv.onclick=()=>{ const v=(document.getElementById('mgtk').value||'').trim(); if(!v) return; try{ localStorage.setItem('pbPrivTok',v); }catch(e){} MGP=null; mgRe(); }; },0);
     feed=`<div class="mgempty" style="white-space:normal;line-height:1.7">🔒 이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
       <span class="mu" style="font-size:12px">토큰은 이 브라우저에만 저장돼(저장소·채팅·서버로 안 감). 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained token ↗</a> → Repository access: <b>Only select → pb-private</b> → Permissions: <b>Contents = Read-only</b> → 만료 90일</span><br>
@@ -188,7 +194,7 @@ function msgView(){
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); });
     const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); };
    
-    const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
+    const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; mgPbEnd(box); },0);
   return `<div class="grid"><div class="p c12"><h2>사내톡<small>${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
     <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
     <p class="mgsum">오래된 대화가 위, 최신이 아래 · ↳ = 어떤 요청에 대한 답장인지 · 📝 진행자 기록은 누나 본인 말 아님 · 점선 = 사담(잡담, 업무 근거 아님)</p>

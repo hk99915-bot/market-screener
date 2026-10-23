@@ -197,7 +197,7 @@ async def check_score(b, port: int) -> int:
         await pg.wait_for_timeout(2500)
         dl = await pg.evaluate("document.querySelector('#root').textContent")   # textContent: 대결 박스가 접혀 있어도(UXUI 10/21) 링크가 있는지 본다
         need = ["성적표", "대결 누적 성과판", "판단 기록"]
-        miss = [x for x in need if x not in txt] + ([] if "성적표" in sub else ["하위 탭"]) + ([] if "성적표 전체" in dl else ["DAILY 대결 박스 링크"])
+        miss = [x for x in need if x not in txt] + ([] if "성적표" in sub else ["하위 탭"]) + ([] if "성적표에서 열기" in dl else ["DAILY 대결 박스 링크"])
         ok = not errs and not miss and sw <= iw + 1 and "원 (" not in txt
         print(f"{'OK ' if ok else 'BAD'} 성적표 {w}px {len(txt)}자 · 곡선 {svg} · 가로 {sw}/{iw}" + (f" · 에러: {errs[0][:160]}" if errs else "") + (f" · 빠짐: {miss}" if miss else ""))
         bad += not ok
@@ -462,33 +462,28 @@ async def check_syn(b, port: int) -> int:
 
 
 async def check_duel_toggle(b, port: int) -> int:
-    """DAILY 상단 '진입 타점 대결' 접기(UXUI 10/21): 390px 에서 헤더 44px 이상·요약 1줄 보임·클릭하면 본문 토글·새로고침 뒤 상태 기억·가로 넘침 없음."""
+    """DAILY 상단 '진입 타점 대결' 1줄(UXUI 재진단 Top10 #5, 10/23 — 10/21 접기 토글 대체): 390px 에서 1줄 바 44px 이상·100px 이하·요약 보임·
+    브리프가 첫 화면(844px) 안·가로 넘침 없음 · 누르면 DAILY › 성적표로 가고 거기 대결 본문(#duelbody)이 있음."""
     pg = await b.new_page(viewport={"width": 390, "height": 844})
     errs: list[str] = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
     J = pg.evaluate
-
-    async def open_daily(clear: bool) -> None:
-        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
-        await pg.wait_for_timeout(1500)
-        await J(("try{localStorage.removeItem('mt_duel_open')}catch(e){}; " if clear else "") + "setView('daily')")
-        await pg.wait_for_timeout(3500)
-
-    shown = "(()=>{const b=document.querySelector('#duelbody');return !!b&&b.style.display!=='none';})()"
-    await open_daily(True)
-    first = await J(shown)
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await J("setView('daily')")
+    await pg.wait_for_timeout(3500)
+    h = await J("(document.querySelector('#duelbox')||{offsetHeight:0}).offsetHeight")
     res = {
-        "헤더44": await J("(document.querySelector('#dueltog')||{offsetHeight:0}).offsetHeight>=44"),
-        "요약": "나:" in await J("(document.querySelector('#duelsum')||{}).innerText||''"),
+        "1줄": 44 <= h <= 100,
+        "요약": "나:" in await J("(document.querySelector('#duelsum')||{}).innerText||''") or "대결 없음" in await J("(document.querySelector('#duelsum')||{}).innerText||''"),
+        "넘침없음": await J("[...document.querySelectorAll('#duelbox, #duelbox *')].every(e=>e.getBoundingClientRect().right<=innerWidth+1)"),
+        "브리프첫화면": await J("(()=>{const e=[...document.querySelectorAll('#root *')].find(x=>/DAILY RESEARCH BRIEF/.test(x.textContent)&&x.children.length<3); return !!e&&e.getBoundingClientRect().top<844;})()"),
     }
     await pg.click("#dueltog")
-    await pg.wait_for_timeout(300)
-    res["토글"] = await J(shown) == (not first)
-    res["넘침없음"] = await J("[...document.querySelectorAll('#duelbox, #duelbox *')].every(e=>e.getBoundingClientRect().right<=innerWidth+1)")
-    await open_daily(False)
-    res["기억"] = await J(shown) == (not first)
+    await pg.wait_for_timeout(3000)
+    res["성적표본문"] = await J("view==='score'&&!!document.querySelector('#duelbody')")
     ok = all(res.values()) and not errs
-    print(f"{'OK ' if ok else 'BAD'} 대결접기(390px) 기본={'펼침' if first else '접힘'} " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    print(f"{'OK ' if ok else 'BAD'} 대결1줄(390px) 높이={h}px " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok
 

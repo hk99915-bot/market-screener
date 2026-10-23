@@ -3,6 +3,11 @@
      계산 로직은 ILAB_CALC 블록(순수 함수) — tests/test_isa_lab.py 가 node 로 꺼내 screener/isa_lab.py 기준 구현과 숫자 대조.
      월 적립 금액은 '100(단위 자유)' 기본값 · 결과는 배수·% 로만 · 입력값은 저장·전송하지 않는다. -->
 <script>
+/* ISA 기준일 표시 (UXUI 재진단 Top10 #10, 10/23): isa_lab_returns.json asof 가 마지막 '월'의 말일(2026-10-31)이라 미래 날짜로 보였다.
+   오늘(KST)보다 뒤면 날짜 대신 'YYYY-MM (부분 월)' + note 로 표기. 원천 수정은 퀀트(req-quant-14188e23). */
+function isaAsof(D){ const a=String(D.asof||''), today=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+  if(a&&a>today) return `${esc(D.note?String(D.note).split('.')[0]:a.slice(0,7)+' 부분 월')} <span class="mu">(원천 asof 가 월말 표기라 미래 날짜 — 표시 안 함)</span>`;
+  return `${esc(a||'—')}${D.note?' ('+esc(String(D.note).split('.')[0])+')':''}`; }
 /* ILAB_CALC_BEGIN — DOM 없는 순수 계산 (screener/isa_lab.py 와 같은 정의·같은 순서) */
 function ilabNet(D,cost){ const A=D.assets; return D.months.map((_,t)=>A.map(a=>D.r[a][t]-(cost?D.drag[a]/12:0))); }
 function ilabW(D,wm){ const w=D.assets.map(a=>+(wm[a]||0)); const s=w.reduce((x,y)=>x+y,0); return s>0?w.map(x=>x/s):w; }
@@ -50,7 +55,7 @@ function ilabView(){
   const dg=D.assets.map(a=>`${esc(D.names[a])} ${(D.drag[a]*100).toFixed(1)}%`).join(' · ');
   setTimeout(ilabRecalc,0);
   return `<div class="grid">
-  <div class="p c12"><div class="b" style="font-size:12px;color:var(--amber)">⚠ 2004-01~${esc(D.months[D.months.length-1])} 한 구간 백테스트 — 금 강세장 포함·과최적화 주의, 미래 보장 아님. 데이터 기준일 ${esc(D.asof)} (마지막 달은 10/15 까지 부분 월). 비용 가정(연, 월 1/12 차감): ${dg}. 세금·매매비용 미반영.</div></div>
+  <div class="p c12"><div class="b" style="font-size:12px;color:var(--amber)">⚠ 2004-01~${esc(D.months[D.months.length-1])} 한 구간 백테스트 — 금 강세장 포함·과최적화 주의, 미래 보장 아님. 데이터 기준일 ${isaAsof(D)}. 비용 가정(연, 월 1/12 차감): ${dg}. 세금·매매비용 미반영.</div></div>
   <div class="p c4"><h2>비중<small id="ilsum"></small></h2><div class="b">
     <div style="margin-bottom:6px">${pre}</div>${sl}
     <div style="margin-top:8px"><button class="sbtn" onclick="ilabNorm()">합계 100%로 맞추기</button> <span class="mu" style="font-size:11px">합계가 100이 아니어도 계산은 비율로 정규화</span></div>

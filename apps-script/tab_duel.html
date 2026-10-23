@@ -193,27 +193,17 @@ function bsbBattleHtml(b){
 }
 function decCD(){ return DEC&&DEC.items?coolUntil(DEC):null; }
 function decLoad(){
-  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); }
-  if(RENEGO===null){ RENEGO=false; try{ google.script.run.withSuccessHandler(t=>{try{RENEGO=JSON.parse(t);}catch(e){RENEGO={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{RENEGO={};}).getRenego(); }catch(e){ RENEGO={}; } }
-  if(COOL===null){ COOL=false; google.script.run.withSuccessHandler(t=>{try{COOL=JSON.parse(t);}catch(e){COOL={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{COOL={};}).getCooldown(); }
+  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(['sig','daily','score','home'].includes(view)) render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); }
+  if(RENEGO===null){ RENEGO=false; try{ google.script.run.withSuccessHandler(t=>{try{RENEGO=JSON.parse(t);}catch(e){RENEGO={};} if(['sig','daily','score','home'].includes(view)) render();}).withFailureHandler(()=>{RENEGO={};}).getRenego(); }catch(e){ RENEGO={}; } }
+  if(COOL===null){ COOL=false; google.script.run.withSuccessHandler(t=>{try{COOL=JSON.parse(t);}catch(e){COOL={};} if(['sig','daily','score','home'].includes(view)) render();}).withFailureHandler(()=>{COOL={};}).getCooldown(); }
 }
-/* 대결 박스 접기 (10/21 UXUI, 겸이 "진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임"): 390px 에서 박스가 1144px 를 먹어 브리프가 1449px 에서야 시작.
-   헤더 1줄(제목 + 오늘 상태 요약)은 항상 보이고, 본문만 접는다. 기본: 겸이(나) 제출 대기 판이 있으면 펼침(할 일 있음), 없으면 접힘.
-   겸이가 직접 열고 닫은 상태는 localStorage mt_duel_open 에 '최신 판 날짜'와 함께 기억 → 새 판이 열리면 기본값으로 돌아간다. */
-const DUEL_OK='mt_duel_open';
-function duelKey(live){ return live.length?String(live[0].date)+'|'+(live[0].market||''):''; }
-function duelOpen(live){ const dflt=live.some(it=>it.picks&&it.picks['나']&&it.picks['나'].pending);
-  try{ const v=JSON.parse(localStorage.getItem(DUEL_OK)||'null'); if(v&&v.k===duelKey(live)) return !!v.open; }catch(e){}
-  return dflt; }
+/* 대결 1줄 (UXUI 재진단 Top10 #5, 10/23 겸이 승인 — 이전 10/21 접기 토글 대체): DAILY·시그널에선 대결이 펼친 채 2,522px 라 브리프가 3.3장 아래로 밀렸다.
+   DAILY·시그널 = 1줄(오늘 상태 요약 + 제출 대기 배지 + 열기 →), 대결 본문(제출·매도 대결·쿨다운)은 DAILY › 성적표 맨 위 한 곳. */
 function duelSum(live,CD){ if(!live.length) return '진행 중 대결 없음 · 다음 14:55·22:00';
   const it=live[0], st=p=>!p?'—':p.pending?'대기':p.cash?'현금':esc(String(p.name||p.ticker||'').slice(0,12));
   return `${esc(String(it.date).slice(5))} ${duelIsUS(it)?'미장':'국장'} · 나: ${st(it.picks&&it.picks['나'])} · PB: ${st(it.picks&&it.picks['PB'])} · 마감 ${duelIsUS(it)?'09:30 ET':'15:30'}${live.length>1?` · 외 ${live.length-1}판`:''}${CD?' · ⏳쿨다운':''}`; }
-function duelTog(){ const b=$('#duelbody'), h=$('#dueltog'); if(!b||!h) return; const op=b.style.display==='none';
-  b.style.display=op?'':'none'; h.setAttribute('aria-expanded',op); h.firstElementChild.textContent=(op?'▾':'▸')+' 진입 타점 대결';
-  const live=(DEC&&DEC.items?[...DEC.items].filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result).reverse().slice(0,3):[]);
-  try{ localStorage.setItem(DUEL_OK,JSON.stringify({k:duelKey(live),open:op})); }catch(e){} }
 /* 대결 박스 (DAILY 상단·QUANT 시그널): 오늘·진행 중 대결 + 제출 위주로 짧게. 성적·기록 전체는 DAILY › 성적표 */
-function decBox(){
+function decBox(full){
   decLoad(); if(!DEC||!DEC.items) return '';
   const CD=decCD(); if(CD) setTimeout(coolTick,0);
   const tm=t=>new Date(t+9*36e5).toISOString().slice(11,16);
@@ -239,10 +229,11 @@ function decBox(){
   setTimeout(()=>{ const g=$('#exgo'); if(!g) return; g.onclick=()=>{ const c=($('#excode').value||'').trim(), a=($('#examt').value||'').trim(), act=document.querySelector('input[name=exact]:checked'); if(!c) return;
     window.open(DUEL_IU(`exit ${c}${a?' '+a:''}`, act?act.value:'보유'),'_blank'); }; },0);
   const T=(S&&S.by_who)||{}, sum=['나','PB'].map(w=>T[w]?`<span style="margin-right:12px"><span class="mu">${w}</span> <b class="${T[w].cum_ret>=0?'up':'dn'}">${duelPc(T[w].cum_ret)}</b> <span class="mu">${T[w].win}승/${T[w].n}전</span></span>`:'').join('');
-  const op=duelOpen(live), sumLine=duelSum(live,CD);
-  return `<div class="p" id="duelbox" style="margin-bottom:10px"><h2 id="dueltog" role="button" tabindex="0" aria-expanded="${op}" onclick="duelTog()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();duelTog();}" style="min-height:44px;box-sizing:border-box;align-items:center;cursor:pointer;flex-wrap:wrap;gap:2px 8px"><span>${op?'▾':'▸'} 진입 타점 대결</span><small id="duelsum" style="white-space:normal;text-align:right">${sumLine}</small></h2><div class="b" id="duelbody" style="${op?'':'display:none'}">
+  const sumLine=duelSum(live,CD), pend=live.some(it=>it.picks&&it.picks['나']&&it.picks['나'].pending);
+  if(!full) return `<div class="p" id="duelbox" style="margin-bottom:10px"><div id="dueltog" role="button" tabindex="0" onclick="setView('score')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setView('score');}" title="대결 본문·제출은 DAILY › 성적표" style="min-height:44px;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;padding:4px 10px;cursor:pointer"><b class="am" style="letter-spacing:.06em">진입 타점 대결</b>${pend?'<span class="tag r" style="font-size:11.5px">제출 대기</span>':''}${CD?'<span class="tag r" style="font-size:11.5px">⏳ 쿨다운</span>':''}<span id="duelsum" class="mu" style="flex:1 1 160px;min-width:0;white-space:normal;font-size:12px">${sumLine}</span><span class="am" style="white-space:nowrap">성적표에서 열기 →</span></div></div>`;
+  return `<div class="p c12" id="duelbox"><h2>진입 타점 대결<small id="duelsum" style="white-space:normal;text-align:right">${sumLine}</small></h2><div class="b" id="duelbody" style="white-space:normal">
    ${coolBar}
-   <div style="font-size:12.5px;display:flex;flex-wrap:wrap;align-items:center;gap:4px">${sum||'<span class="mu">누적 성과 불러오는 중</span>'}<button class="sbtn" onclick="setView('score')">성적표 전체 →</button></div>
+   <div style="font-size:12.5px;display:flex;flex-wrap:wrap;align-items:center;gap:4px">${sum||'<span class="mu">누적 성과 불러오는 중</span>'}</div>
    ${live.length?live.map(it=>duelItemHtml(it,CD)).join(''):'<div class="mu" style="font-size:12px;margin-top:4px">진행 중 대결 없음 — 다음 판은 14:55(국장)·22:00(미장) 무렵 열림</div>'}
    <details style="border-top:1px solid var(--line);margin-top:8px;padding-top:6px;font-size:12.5px;line-height:1.8;white-space:normal"><summary><b class="am">매도 타점 대결 열기</b> <span class="mu" style="font-size:11px">팔까 말까 — PB가 규칙으로 판정, 5거래일 뒤 종가로 채점</span></summary>
      <span style="position:relative;display:inline-block;max-width:100%"><input id="exq" placeholder="내 보유에서 검색 (예: mu, 하이닉스)" autocomplete="off" style="width:210px;max-width:100%;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><div id="exres" class="mu" style="display:none;position:absolute;z-index:30;left:0;top:100%;min-width:240px;max-height:260px;overflow:auto;background:var(--panel);border:1px solid var(--line);font-size:12px"></div></span><input id="excode" type="hidden"><input id="exmk" type="hidden">
@@ -275,7 +266,9 @@ function scoreView(){
   const mkLine=m=>{const T=mk(m), ws=Object.keys(T).filter(w=>T[w].n); return ws.length?`<div style="font-size:11.5px"><span class="mu" style="display:inline-block;width:34px">${m==='US'?'미장':'국장'}</span>${ws.map(w=>`<span style="margin-right:10px">${esc(w)} <b class="${T[w].cum_ret>=0?'up':'dn'}">${duelPc(T[w].cum_ret)}</b> <span class="mu">${T[w].win}/${T[w].n}</span></span>`).join('')}</div>`:'';};
   const more=(arr,k,fn,label)=>arr.length>k?`<details><summary class="mu" style="font-size:12px;cursor:pointer">${label} 더 보기 (${arr.length-k})</summary>${arr.slice(k).map(fn).join('')}</details>`:'';
   const IU=DUEL_IU;
-  return `<div class="grid"><div class="p c12"><h2>성적표<small>나 vs PB · 확정 판 수익률 누적 · 비율만</small></h2><div class="b" style="white-space:normal">
+  const shown=new Set([...(D.items||[])].filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result).reverse().slice(0,3).map(it=>it.id));   // 위 대결 칸에 나온 진행 중 판은 판단 기록에서 빼서 두 번 안 보이게
+  const past=items.filter(it=>!shown.has(it.id));
+  return `<div class="grid">${decBox(true)}<div class="p c12"><h2>성적표<small>나 vs PB · 확정 판 수익률 누적 · 비율만</small></h2><div class="b" style="white-space:normal">
      ${S&&S.error?'<div class="am">누적 성과판(battle_scoreboard.json) 불러오기 실패</div>':duelCards(S)}
      <div style="margin-top:8px">${duelCurve(S&&S.curve)}</div>
      <div style="margin-top:6px">${mkLine('KR')}${mkLine('US')}</div>
@@ -286,6 +279,6 @@ function scoreView(){
    <div class="p c12"><h2>신호 성적<small>원천별 · 신호일 이후 시장 중앙값 대비 초과 · n&lt;30 판단 금지</small></h2><div class="b">${sigScoreCard()}</div></div>
    <div class="p c12"><h2>주문표<small>규정 [4] · 실현 R</small></h2><div class="b">${D.items?ticketBox(D,IU):''}</div></div>
    <div class="p c12"><h2>판단 기록<small>최근 3건 · 판단 근거·PB 판단·채점</small></h2><div class="b">
-     ${items.slice(0,3).map(it=>duelItemHtml(it,CD)).join('')||'<div class="mu">기록 없음</div>'}${more(items,3,it=>duelItemHtml(it,CD),'지난 기록')}</div></div></div>`;
+     ${past.slice(0,3).map(it=>duelItemHtml(it,CD)).join('')||'<div class="mu">기록 없음</div>'}${more(past,3,it=>duelItemHtml(it,CD),'지난 기록')}</div></div></div>`;
 }
 </script>

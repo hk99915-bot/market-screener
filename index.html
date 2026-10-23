@@ -107,10 +107,12 @@
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--txt);font:12.5px/1.45 var(--mono);-webkit-font-smoothing:antialiased}
   a{color:var(--cyan);text-decoration:none}
-  .top{display:flex;align-items:center;gap:14px;padding:6px 12px;background:#111;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 12px;background:#111;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
   .brand{color:var(--amber);font-weight:700;letter-spacing:.12em}
   .clock{color:var(--muted)}
-  .tabs{display:flex;gap:2px;margin-left:auto}
+  .tabs{display:flex;flex-wrap:wrap;gap:2px;margin-left:auto}   /* UXUI 재진단 Top10 #1 (10/23): .top 한 줄 1,643px → 1300px 5개·768/1024px 9개 탭이 화면 밖. 줄바꿈 허용 */
+  .fresh{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  #sqb{display:none}
   .tabs button{background:#1a1a1a;color:var(--muted);border:1px solid var(--line);padding:4px 10px;font:inherit;cursor:pointer;letter-spacing:.06em}
   .tabs button.on{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}
   .fresh{margin-left:8px;font-size:11px;cursor:pointer;white-space:nowrap}
@@ -154,7 +156,7 @@
   .spark{display:flex;align-items:flex-end;gap:1px;height:34px}
   .spark i{flex:1;background:var(--amber-dim)}.spark i.last{background:var(--amber)}
   .load{padding:40px;text-align:center;color:var(--muted);letter-spacing:.2em}
-  .md{padding:10px 14px;max-width:1200px}
+  .md{padding:10px 14px;max-width:1200px;overflow-x:auto}   /* KR·US 전종목 표가 390px 밖 855px 까지 잘려 못 봤음 → 가로 스크롤 (UXUI 재진단 Top10 #10) */
   .md table{white-space:normal}
   .md h1,.md h2{color:var(--amber);letter-spacing:.08em;font-size:13px;margin:14px 0 6px}
   td.sym{cursor:pointer;text-decoration:underline dotted}
@@ -211,14 +213,22 @@ html,body{overflow-x:hidden}
 .clock,#gen{white-space:nowrap}
 @media (max-width:700px){
   html,body{font-size:13.5px;line-height:1.55}
-  .top{flex-wrap:wrap;gap:6px 10px;padding:6px 10px}
+  .top{flex-wrap:wrap;gap:6px 6px;padding:6px 10px}
   .brand{font-size:13px;letter-spacing:.06em}
   .clock{font-size:11.5px}
   #gen{display:none}
+  .clock{display:none}   /* 폰은 상태 표시줄에 시각이 있음 — 머리 첫 줄을 한 줄로 (Top10 #8) */
   .srch{order:3;margin-left:0;flex:1 1 100%}.srch input{width:100%;font-size:15px;padding:7px 10px}
   .tabs{order:4;flex:1 1 100%;margin-left:0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
   .tabs::-webkit-scrollbar{display:none}
-  .tabs button{flex:0 0 auto;padding:7px 11px;font-size:12.5px}
+  .tabs button{flex:0 0 auto;padding:7px 11px;font-size:12.5px;min-height:44px}
+  /* UXUI 재진단 Top10 #8 (10/23): 폰 머리 148px 상시 고정 → 검색창은 🔍 로 접고, 아래로 스크롤하면 머리 숨김(위로 올리면 다시), 탭 44px + 오른쪽 '›' */
+  #sqb{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-width:44px;min-height:40px;background:none;border:1px solid var(--line);color:var(--txt);font-size:16px;cursor:pointer}
+  .srch{display:none}.top.sopen .srch{display:block}
+  .top{transition:transform .2s ease}.top.hid{transform:translateY(-100%)}
+  .top::after{content:'›';position:absolute;right:0;bottom:2px;height:44px;width:28px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:20px;color:var(--amber);background:linear-gradient(90deg,transparent,#111 55%);pointer-events:none}
+  .top.tend::after{display:none}
+  html.xl .top::after{display:none}
   .tape .ti{padding:0 12px;font-size:13px}
   .grid{gap:8px;padding:6px}
   .p h2{font-size:12px;padding:7px 9px;flex-wrap:wrap;gap:2px 8px}
@@ -289,6 +299,16 @@ html.xl a{color:#0563c1}
 html.stealth .brand{letter-spacing:0}
 #stb{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:11px;padding:2px 6px;cursor:pointer;margin-left:4px}
 .sbtn{background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:12px;padding:4px 8px;cursor:pointer}
+/* 숨은 표 열 표시 (UXUI 재진단 Top10 #10, 10/23): 가로로 밀어야 보이는 표에 '→ 더 있음' 줄 + 오른쪽 그림자. 끝까지 밀면 사라짐 */
+.hmore{font-size:11.5px;color:var(--amber);padding:2px 8px 0;text-align:right}.hmore.end{visibility:hidden}
+.hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(255,154,31,.45),transparent) right/12px 100% no-repeat scroll}
+html.xl .hmore{color:#595959}
+/* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5): 공시 474·인적성 376 링크·버튼이 44px 미만 → 터치 화면에서만 목록 링크·작은 버튼·접기 줄을 44px 로 */
+@media (pointer:coarse){
+  .sbtn,.ctab button,.ovl button{min-height:44px}
+  #root summary{min-height:44px;box-sizing:border-box}
+  #root td a,#root .rp a{display:inline-block;min-height:44px;min-width:44px;padding-top:12px;box-sizing:border-box}
+}
 </style>
 </head>
 <body>
@@ -297,6 +317,7 @@ html.stealth .brand{letter-spacing:0}
   <span class="clock" id="clock">—</span>
   <span class="mu" id="gen"></span>
   <span id="fresh" class="fresh" title="데이터 신선도 (ops/freshness.json 계약)"></span>
+  <button id="sqb" type="button" aria-label="종목 검색 열기" title="종목 검색">🔍</button>
   <div class="srch"><input id="sq" placeholder="종목·티커 검색 (예: 삼성전자, 005930, NVDA)" autocomplete="off"><div id="sres"></div></div>
   <div class="tabs">
     <button class="on" data-g="home">HOME</button><button data-g="my">MY</button><button data-g="life">LIFE</button><button data-g="mkt">MARKET</button>
@@ -491,6 +512,12 @@ function macroPanel(mk){
   const reg=(D.state||{})['regime_'+mk];
   return `<table><tr><th class="l">KEY</th><th>LAST</th><th>1D</th><th>20D</th><th>vs50D</th><th class="l">REG</th></tr>`+m.value.map(d=>`<tr><td class="l am mac" data-key="${esc(d.key)}">${d.key}</td><td>${num(d.last,2)}</td><td>${pct(d.chg1)}</td><td>${pct(d.chg20)}</td><td>${pct(d.vs_sma50)}</td><td class="l mu">${d.regime}</td></tr>`).join('')+`</table>`+(reg&&reg.value?`<div class="mu" style="margin-top:4px">${esc(reg.value)}</div>`:'');
 }
+/* KR·US 화면 매크로는 1줄 + MACRO 탭 링크 (UXUI 재진단 Top10 #9, 10/23 겸이 승인): 같은 지표 표가 KR·US·MACRO 에 반복돼 KR 13.5장·US 11.1장. 표·해설은 MACRO 탭 한 곳 */
+function macroLine(mk){ const t=macroPanel(mk);
+  if(!(MV&&MV.rows&&MV.rows.length)) return t;
+  const col=MV.score==null?'var(--muted)':MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)';
+  return `<div style="border:1px solid ${col};padding:6px 9px;line-height:1.6;font-size:12.5px;white-space:normal"><b style="color:${col}">${esc(MV.label||'')}${MV.score!=null?` (${MV.score>0?'+':''}${Number(MV.score).toFixed(2)})`:''}</b> ${esc((MV.summary||'').replace(/^매크로 바람 \S+ /,''))}</div>
+    <button class="sbtn" onclick="setView('macro')" style="min-height:44px;margin-top:6px">MACRO 탭 — 지표 ${MV.rows.length}개 표·해설 →</button>`; }
 let JP=null;
 function japanPanel(){   // 일본: 닛케이·TOPIX·엔·JGB + 한국 종목과 연결된 일본 피어 그룹 (reports/japan.json)
   if(JP===null){ JP=false; google.script.run.withSuccessHandler(t=>{try{JP=JSON.parse(t);}catch(e){JP={};} render();}).withFailureHandler(()=>{JP={};}).getJapan(); }
@@ -533,7 +560,7 @@ function accumPanel(){   // reports/accum.json (screener/accum.py, 평일 18:37 
 document.addEventListener('click',e=>{ const t=e.target.closest('.acck'); if(!t) return; ACCK=t.dataset.k; render(); });
 function tgHtml(v){  // 텔레그램 HTML(b·i·a)만 살리고 나머지는 이스케이프
   let t=esc(String(v)).replace(/&amp;(amp|lt|gt|quot|#39);/g,'&$1;');   // 텔레그램용으로 이미 이스케이프된 &amp; 이중 처리 방지
-  t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=&quot;(https?:[^&]*?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank">$2</a>');
+  t=t.replace(/&lt;(\/?)(b|i)&gt;/g,'<$1$2>').replace(/&lt;a href=(?:&quot;|")(https?:[^"<>\s]*?)(?:&quot;|")&gt;([\s\S]*?)&lt;\/a&gt;/g,'<a href="$1" target="_blank" rel="noopener">$2</a>');   // esc() 는 " 를 안 바꿈 → &quot; 와 " 둘 다 (UXUI 재진단 Top10 #4, 10/23)
   return t.replace(/([+-]\d[\d,]*\.?\d*(?:%|억|조))/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`).replace(/\n/g,'<br>');
 }
 function closeNote(){ const c=(D.state||{})['close_snapshot'], s=(D.state||{})['intraday_snapshot'];
@@ -582,7 +609,7 @@ function marketView(mk){
   const S=D[mk.toLowerCase()]||{}; const sec=S.sections||{};
   let h=`<div class="grid">
     <div class="p c4"><h2>BREADTH ${mk}</h2><div class="b">${breadthPanel(mk)}</div></div>
-    <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 · 지표별 해설</small></h2><div class="b">${macroPanel(mk)}</div></div>`;
+    <div class="p c8"><h2>MACRO CONTEXT<small>매크로 바람 한 줄 · 지표별 해설은 MACRO 탭</small></h2><div class="b">${macroLine(mk)}</div></div>`;
   if(mk==='US'){ h+=`<div class="p c12"><h2>TOSS LIVE US<small>토스 미장 4세션(데이·프리·정규·애프터) · 지연 시 기존 소스 · ETF·랭킹·섹터</small></h2><div class="b" id="tossusbox">${tossUsBox()}</div></div>`; setTimeout(()=>tossLoad(),0); }
   if(mk==='KR'){ h+=`<div class="p c12"><h2>TOSS LIVE<small>토스 우선 · 지연 시 네이버/야후 · 지수·환율·국고채·수급 · 1주 대조</small></h2><div class="b" id="tossbox">${tossBox()}</div></div>`; setTimeout(()=>tossLoad(),0); }
   const mc=(D.state||{})['market_comment_'+mk];
@@ -812,6 +839,27 @@ function homeCusHtml(){ const o=CMTU; if(!o) return '<div class="mu">불러오�
     ((o.scenarios||[]).length?`<table style="margin-top:6px">${o.scenarios.map(sc=>`<tr><td class="l">${esc(sc.name)}</td><td>${sc.prob!=null?(sc.prob*100).toFixed(0)+'%':'—'}</td></tr>`).join('')}</table>`:'')+
     `<div class="mu" style="font-size:11px;margin-top:4px">${esc(o.asof||'')} · 자세히는 운용회의 탭 US</div>`; }
 function homeCusLoad(){ CMTU=false; google.script.run.withSuccessHandler(t=>{try{CMTU=JSON.parse(t);}catch(e){CMTU={};} const e=$('#homecus'); if(e) e.innerHTML=homeCusHtml(); if(view==='cmt') render();}).withFailureHandler(()=>{CMTU={}; if(view==='cmt') render();}).getCommitteeUS(); }
+/* HOME 오늘 결론 3칸 (UXUI 재진단 Top10 #7, 10/23 겸이 승인): 첫 화면이 지수 등락·문장 덩어리라 9.5장을 내려야 결론이 보였다.
+   ① 시장 국면 = 200일선 위 비율(BREADTH 판정과 같은 기준 60/40%) + 매크로 바람(macro_view.json) ② 오늘 내 할 일 = 대결 제출 대기·쿨다운·원장 차이 ③ 늦은 데이터 = 신선도 계약(freshness.json).
+   새 판단을 만들지 않고 이미 있는 판정만 모은다. */
+function homeConc(){
+  const bv=mk=>{ const b=(D.breadth||[]).filter(x=>x.market===mk), L=b[b.length-1]; if(!L||L.pct_above200==null) return `<span class="mu">${mk} —</span>`;
+    const p=L.pct_above200, l=p>=0.6?'강세':p>=0.4?'중립':'약세'; return `<span>${mk} <b class="${p>=0.6?'up':p>=0.4?'am':'dn'}">${l}</b> <span class="mu">${Math.round(p*100)}%</span></span>`; };
+  if(MV===null&&typeof macroPanel==='function') macroPanel('KR');   // 매크로 바람 불러오기(도착하면 render)
+  const mw=MV&&MV.score!=null?`<div>매크로 바람 <b style="color:${MV.score>0.15?'var(--up)':MV.score<-0.15?'var(--dn)':'var(--amber)'}">${esc(MV.label||'')} (${MV.score>0?'+':''}${Number(MV.score).toFixed(2)})</b></div>`:'<div class="mu">매크로 바람 불러오는 중</div>';
+  if(typeof decLoad==='function') decLoad();
+  const live=DEC&&DEC.items?DEC.items.filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result):null, pend=live?live.filter(it=>it.picks&&it.picks['나']&&it.picks['나'].pending).length:null;
+  const CD=typeof decCD==='function'?decCD():null;
+  const todo=[pend==null?'<div class="mu">대결 불러오는 중</div>':pend?`<div><a href="#" onclick="setView('score');return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="dn">대결 제출 대기 ${pend}</b>&nbsp;→ 성적표에서 제출</a></div>`:'<div class="mu">대결 제출 대기 없음</div>',
+    CD?'<div class="dn">⏳ 쿨다운 중 — 새 모의 베팅 금지</div>':'', homeLedgerLine()].join('');
+  const n=FR?(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length:null;
+  const cell=(t,b)=>`<div style="border:1px solid var(--line);padding:6px 9px;min-width:0;line-height:1.6"><div class="am" style="font-size:12px;font-weight:700">${t}</div>${b}</div>`;
+  return `<div class="p c12" id="homeconc"><h2>오늘 결론<small>이미 있는 판정만 모음 · 매매 지시 아님</small></h2><div class="b" style="white-space:normal;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:6px">
+    ${cell('시장 국면',`<div style="display:flex;gap:12px;flex-wrap:wrap">${bv('KR')}${bv('US')}</div>${mw}<div class="mu" style="font-size:11.5px">200일선 위 종목 비율 60%↑ 강세 · 40%↓ 약세</div>`)}
+    ${cell('오늘 내 할 일',todo)}
+    ${cell('늦은 데이터',n==null?'<div class="mu">점검 불러오는 중</div>':`<a href="#" onclick="freshPop();return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="${n?'dn':'up'}">${n?`⚠ ${n}건`:'0건 · 정상'}</b>&nbsp;${n?'→ 무엇이 늦었나':''}</a>`)}
+  </div></div>`;
+}
 function homeView(){
   const kr=D.kr||{},us=D.us||{};
   const cc=o=>{const c=o.class_counts||{};return `<div class="kv">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${CLS[k]||k}</div><div>${v}</div>`).join('')}</div>`;};
@@ -822,7 +870,7 @@ function homeView(){
   const usL=[B('intraday_us','INTRADAY US'),B('premarket_us','PREMARKET US'),{h:`<div class="p c6"><h2>US COMMITTEE<small>미장 운용회의 요약</small></h2><div class="b" id="homecus">${homeCusHtml()}</div></div>`,old:false}].concat(usTime?[]:[B('close_US','CLOSE US')]);
   const krL=[B('premarket_kr','PREMARKET KR'),B('close_KR','CLOSE KR')].concat(usTime?[B('close_US','CLOSE US')]:[]).concat([B('intraday_kr','INTRADAY KR')]);
   const usBlock=pick(usL,false), oldBlk=pick(krL,true)+pick(usL,true);
-  let h=`<div class="grid">${usTime?usBlock:''}${intradayPanel()}
+  let h=`<div class="grid">${homeConc()}${usTime?usBlock:''}${intradayPanel()}
    <div class="p c3"><h2>KR BREADTH</h2><div class="b">${breadthPanel('KR')}</div></div>
    <div class="p c3"><h2>US BREADTH</h2><div class="b">${breadthPanel('US')}</div></div>
    <div class="p c3"><h2>KR CLASSES<small>${kr.asof||''}</small></h2><div class="b">${cc(kr)}</div></div>
@@ -1683,10 +1731,10 @@ function synSec(){
     <div class="mu" style="font-size:10px;margin-top:3px">${esc(x.grade||'')} · ${esc(x.source_checked||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div></details>`
     :`<div style="margin:0 0 6px 0;border-left:3px solid var(--line);padding-left:7px"><span style="font-size:11px;border:1px solid var(--line);border-radius:3px;padding:0 4px" class="mu">요약 대기</span> <span style="font-size:12px">${esc(x.title||'')}</span>
     <div class="mu" style="font-size:10px">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')}${x.series?` · ${esc(x.series)}`:''}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div>`;
-  const pbRows=pb.items30||null;
+  const pbRows=pb.items30||null;   // 기본 = 최근 3건 한 줄 뷰만, 나머지 '더 보기' (UXUI 재진단 Top10 #9, 10/23 · 패널 1,310px). 기준은 애널 회신(req-analyst-b697c8bc) 오면 교체
   const c8=card('공공 리포트',`한은·정부/연구기관·시장기관·해외 · 30일 · 우리 한 줄 뷰 먼저${pb.pending_n?` · 요약 대기 ${pb.pending_n}`:''}`,
     pb.status!=='ok'?'<div class="mu">공공 리포트 수집 전 (매일 03:30 Actions 수집 — reports/public_reports.json)</div>':
-    `${pbRows?(pbRows.map(pbI).join('')||'<div class="mu">최근 30일 발간물 없음</div>'):dgL(dg.public,'공공 리포트')}
+    `${pbRows?(pbRows.slice(0,3).map(pbI).join('')||'<div class="mu">최근 30일 발간물 없음</div>')+(pbRows.length>3?`<details id="pubMore"><summary class="am" style="cursor:pointer;min-height:44px;display:flex;align-items:center">더 보기 ${pbRows.length-3}건</summary>${pbRows.slice(3).map(pbI).join('')}</details>`:''):dgL(dg.public,'공공 리포트')}
      <div class="mu" style="font-size:11px;margin-top:6px">다음 발간 (월 단위 규칙 추정 · 공식 일정표 확인 필요): ${(pb.calendar||[]).slice(0,8).map(c=>`<span style="white-space:nowrap">${esc(c.next.slice(2))} ${esc(c.inst)} ${esc(c.series)}</span>`).join(' · ')||'—'}</div>
      <div class="mu" style="font-size:10px;margin-top:3px">요약·뷰·해석 = 데스크 작성(reports/views/digest.json) · 원문 링크는 기관 사정으로 깨질 수 있음 · 수집 소스 ok ${ps.ok||0}${ps.manual?` · 수동 ${ps.manual}`:''}${ps.error?` · 막힘 ${ps.error}`:''}${ps.empty?` · 빈 응답 ${ps.empty}`:''} · 30일 ${(pb.groups||[]).map(g=>`${esc(g.group)} ${g.n30}`).join(' · ')}</div>`,'c8');
   const ge=SYN.geo||{};
@@ -2013,6 +2061,11 @@ function rbView(){
      계산 로직은 ILAB_CALC 블록(순수 함수) — tests/test_isa_lab.py 가 node 로 꺼내 screener/isa_lab.py 기준 구현과 숫자 대조.
      월 적립 금액은 '100(단위 자유)' 기본값 · 결과는 배수·% 로만 · 입력값은 저장·전송하지 않는다. -->
 <script>
+/* ISA 기준일 표시 (UXUI 재진단 Top10 #10, 10/23): isa_lab_returns.json asof 가 마지막 '월'의 말일(2026-10-31)이라 미래 날짜로 보였다.
+   오늘(KST)보다 뒤면 날짜 대신 'YYYY-MM (부분 월)' + note 로 표기. 원천 수정은 퀀트(req-quant-14188e23). */
+function isaAsof(D){ const a=String(D.asof||''), today=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+  if(a&&a>today) return `${esc(D.note?String(D.note).split('.')[0]:a.slice(0,7)+' 부분 월')} <span class="mu">(원천 asof 가 월말 표기라 미래 날짜 — 표시 안 함)</span>`;
+  return `${esc(a||'—')}${D.note?' ('+esc(String(D.note).split('.')[0])+')':''}`; }
 /* ILAB_CALC_BEGIN — DOM 없는 순수 계산 (screener/isa_lab.py 와 같은 정의·같은 순서) */
 function ilabNet(D,cost){ const A=D.assets; return D.months.map((_,t)=>A.map(a=>D.r[a][t]-(cost?D.drag[a]/12:0))); }
 function ilabW(D,wm){ const w=D.assets.map(a=>+(wm[a]||0)); const s=w.reduce((x,y)=>x+y,0); return s>0?w.map(x=>x/s):w; }
@@ -2060,7 +2113,7 @@ function ilabView(){
   const dg=D.assets.map(a=>`${esc(D.names[a])} ${(D.drag[a]*100).toFixed(1)}%`).join(' · ');
   setTimeout(ilabRecalc,0);
   return `<div class="grid">
-  <div class="p c12"><div class="b" style="font-size:12px;color:var(--amber)">⚠ 2004-01~${esc(D.months[D.months.length-1])} 한 구간 백테스트 — 금 강세장 포함·과최적화 주의, 미래 보장 아님. 데이터 기준일 ${esc(D.asof)} (마지막 달은 10/15 까지 부분 월). 비용 가정(연, 월 1/12 차감): ${dg}. 세금·매매비용 미반영.</div></div>
+  <div class="p c12"><div class="b" style="font-size:12px;color:var(--amber)">⚠ 2004-01~${esc(D.months[D.months.length-1])} 한 구간 백테스트 — 금 강세장 포함·과최적화 주의, 미래 보장 아님. 데이터 기준일 ${isaAsof(D)}. 비용 가정(연, 월 1/12 차감): ${dg}. 세금·매매비용 미반영.</div></div>
   <div class="p c4"><h2>비중<small id="ilsum"></small></h2><div class="b">
     <div style="margin-bottom:6px">${pre}</div>${sl}
     <div style="margin-top:8px"><button class="sbtn" onclick="ilabNorm()">합계 100%로 맞추기</button> <span class="mu" style="font-size:11px">합계가 100이 아니어도 계산은 비율로 정규화</span></div>
@@ -2278,6 +2331,14 @@ let EDU=null; const EDL={ms:null,rel:null,der:null,bnd:null}; const ENG={idx:nul
 const escA=s=>esc(s).replace(/"/g,'&quot;');
 function eduGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function eduPut(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+const MQK='mt_quiz_log'; let EDQ=eduGet(MQK,[]); if(!Array.isArray(EDQ)) EDQ=[];   // 모듈 확인문제 기록 (아래 mqItem, req-dev-29f439ce)
+document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('.mqb,.mqr,.mqs'); if(!t||t.disabled) return;
+  const k=t.dataset.ch||t.dataset.mqr, F=mqFind(k); if(!F) return; const sel=x=>[...document.querySelectorAll(x)].filter(el=>el.dataset.res===k||el.dataset.mqx===k||el.dataset.mqa===k);
+  if(t.classList.contains('mqr')){ sel('[data-mqx]').forEach(el=>el.innerHTML=mqExp(F.q,F.P)); sel('[data-mqa]').forEach(el=>el.innerHTML=`<span class="mu" style="font-size:12px;align-self:center">내 답은?</span><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="1" style="min-height:44px">맞혔어</button><button class="sbtn mqs" data-ch="${escA(k)}" data-ok="0" style="min-height:44px">틀렸어</button>`); return; }
+  if(t.classList.contains('mqs')){ const ok=t.dataset.ok==='1'; mqLog(k,F,null,ok,true); sel('[data-res]').forEach(el=>el.innerHTML=mqRes(mqFirst(k))); sel('[data-mqa]').forEach(el=>el.innerHTML=''); return; }
+  const c=+t.dataset.i, ok=c===F.P.a; mqLog(k,F,c,ok,false); const r=mqFirst(k);
+  document.querySelectorAll('.mqb[data-ch]').forEach(o=>{ if(o.dataset.ch!==k) return; o.disabled=true; o.style.cssText+=';'+mqMark(+o.dataset.i,F.P.a,r.choice); });
+  sel('[data-res]').forEach(el=>el.innerHTML=mqRes(r)); sel('[data-mqx]').forEach(el=>el.innerHTML=mqExp(F.q,F.P)); });
 /* 날짜는 한국 기준(KST) — 10/23 겸이 "한국 날짜 기준으로 트래킹되게". 10/23 이전 인적성 at·완료일은 UTC 날짜로 저장돼 있음(하루 밀릴 수 있음) */
 function eduKst(t){ const ms=t?Date.parse(t):Date.now(); return isNaN(ms)?null:new Date(ms+9*36e5).toISOString().slice(0,10); }
 let EDONE=eduGet('mt_study_done',{}); let APTS=eduGet('mt_apt_score',{});
@@ -2329,6 +2390,28 @@ function eduProg(){
 function citeFmt(h){ const sup=t=>`<sup class="mu" style="font-size:9px;opacity:.55;cursor:help" title="출처: ${t}">ⓢ</sup>`;
   return String(h).replace(/\s*(?:[\[(]((?:consult|kb):[^\])]*)[\])]|\b((?:consult|kb):[\w-]+#[\w.]+))/g,(_,a,b)=>sup(a||b)).replace(/[,·]\s*(<sup)/g,'$1'); }
 const escC=t=>citeFmt(esc(t));
+/* 모듈 확인문제 '고르고 채점' (교육 req-dev-29f439ce · STUDY Dev handoff #6, 10/23): 예전엔 summary 안에 정답이 미리 들어 있는 펼침이라 인출이 안 됐다.
+   사전 커밋 — 고르기(또는 '답 보기') 전엔 정답·해설을 DOM 에 넣지 않는다(데이터는 메모리 EDU 에만). 같은 문항 첫 응답만 localStorage 'mt_quiz_log' 에 누적
+   ({date,mod,qi,choice,ok,self,ts} — mt_eng_score_v1 과 같은 배열 패턴) → 📤 학습 기록 보내기(eduSyncPayload)에 quiz 로 포함.
+   보기: v3 choices/answer → 그대로, 문제 안 ①②… → 잘라서 보기, O/X → O·X 두 개, 계산·응용(보기 없음) → '답 보기' 후 맞혔어/틀렸어 자기 채점. */
+const MQN='①②③④⑤⑥⑦⑧⑨⑩';
+function mqFirst(k){ for(const r of EDQ) if('mq:'+r.mod+':'+r.qi===k) return r; return null; }
+function mqParse(q){ const st=String(q.q||'');
+  if(Array.isArray(q.choices)&&q.choices.length&&q.answer!=null) return {stem:st,ch:q.choices,a:+q.answer};
+  const i=st.search(/[①-⑩]/);
+  if(i>0){ const ch=st.slice(i).split(/[①-⑩]/).map(x=>x.trim()).filter(Boolean), a=MQN.indexOf(String(q.a||'').trim()[0]); if(ch.length>=2&&a>=0&&a<ch.length) return {stem:st.slice(0,i).trim(),ch,a}; }
+  if(q.t==='O/X'){ const a=String(q.a||'').trim().toUpperCase()[0]; if(a==='O'||a==='X') return {stem:st,ch:['O','X'],a:a==='O'?0:1,ox:true}; }
+  return {stem:st,ch:null,a:null}; }
+const mqRes=r=>r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>')+(r.self?' <span class="mu" style="font-size:11px">(자기 채점)</span>':''):'';
+const mqMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
+function mqExp(q,P){ return `<div style="margin:3px 0 4px 16px;font-size:12.5px"><b class="am">정답: ${P.ch?(P.ox?'':MQN[P.a]+' ')+escC(P.ch[P.a]):escC(q.a)}</b><div class="mu">${escC(q.why||'')}</div></div>`; }
+function mqItem(mid,q,i){ const k='mq:'+mid+':'+i, P=mqParse(q), r=mqFirst(k), ka=escA(k);
+  const btn=P.ch?`<div style="display:flex;flex-direction:${P.ox?'row':'column'};gap:4px;margin:3px 0 0 16px">${P.ch.map((c,j)=>`<button class="sbtn mqb" data-ch="${ka}" data-i="${j}" ${r?'disabled':''} style="text-align:left;white-space:normal;min-height:44px;${P.ox?'min-width:64px;text-align:center;':''}${r?mqMark(j,P.a,r.choice):''}">${P.ox?escC(c):MQN[j]+' '+escC(c)}</button>`).join('')}</div>`
+    :(r?'':`<div style="margin:3px 0 0 16px;display:flex;flex-wrap:wrap;gap:4px" data-mqa="${ka}"><button class="sbtn mqr" data-mqr="${ka}" style="min-height:44px">먼저 답을 떠올리고 → 답 보기</button></div>`);
+  return `<div class="mqi" style="margin:6px 0"><div><span class="mu">Q${i+1} [${escC(q.t||'')}]</span> ${escC(P.stem)} <span data-res="${ka}" style="font-size:12px">${mqRes(r)}</span></div>${btn}<div data-mqx="${ka}">${r?mqExp(q,P):''}</div></div>`; }
+function mqFind(k){ const m=String(k).match(/^mq:(.+):(\d+)$/); if(!m) return null; const mod=eduAll().find(x=>x.id===m[1]); const q=mod&&(mod.quiz||[])[+m[2]]; return q?{mod:m[1],qi:+m[2],q,P:mqParse(q)}:null; }
+function mqLog(k,F,choice,ok,self){ if(mqFirst(k)) return false; EDQ.push({date:eduKst(),mod:F.mod,qi:F.qi,choice,ok,self:self?1:0,ts:new Date().toISOString()});
+  if(EDQ.length>3000) EDQ=EDQ.slice(-3000); eduPut(MQK,EDQ); return true; }
 function eduModule(m){
   const esc=escC;   // 바깥 esc 는 Index 의 top-level const 라 globalThis 에 없음(10/17 STUDY 멈춤 원인) → 바깥에서 감싼 escC 사용
   const lvl='★'.repeat(m.level||1)+'☆'.repeat(Math.max(0,3-(m.level||1)));
@@ -2349,7 +2432,7 @@ function eduModule(m){
      ${sec('쉬운 숫자 예시',m.example?`<div>${esc(m.example)}</div>`:'')}
      ${m.today?sec('오늘 시장에서',`<div>${esc(m.today.text)}</div>${m.today.keys&&m.today.keys.length?`<div data-live="${escA(m.today.keys.join(','))}" style="font-size:12px;margin-top:2px">${eduChips(m.today.keys)}</div>`:''}`):''}
      ${sec('흔한 실수',ul(m.mistakes))}
-     ${sec('확인문제 <span class="mu" style="font-size:11px">— 눌러서 정답</span>',(m.quiz||[]).map((q,i)=>`<details style="margin:3px 0"><summary style="cursor:pointer"><span class="mu">Q${i+1} [${esc(q.t)}]</span> ${esc(q.q)}</summary><div style="margin:2px 0 4px 16px"><b class="am">정답: ${esc(q.a)}</b><div class="mu" style="font-size:12.5px">${esc(q.why)}</div></div></details>`).join(''))}
+     ${sec('확인문제 <span class="mu" style="font-size:11px">— 골라서 채점 · 고르기 전엔 정답이 화면에 없음 · 첫 응답만 기록</span>',(m.quiz||[]).map((q,i)=>mqItem(m.id,q,i)).join(''))}
     </div></details></div>`;
 }
 function eduView(){
@@ -2614,10 +2697,11 @@ function eduSyncPayload(){
   const apt=Object.entries(APTS||{}).map(([k,v])=>[k,v&&v.ok?1:0,v&&v.t!=null?v.t:null,v&&v.at||null,v&&v.tz==='KST'?'K':'U']);   // 5번째: 날짜 기준 K=한국·U=옛 UTC
   const eng=(ENGS||[]).map(r=>[r.date,r.kind==='review'?'r':r.kind==='quiz'?'q':String(r.kind||''),r.idx,r.ok?1:0,r.ts?eduKst(r.ts):null]);   // 5번째: 푼 날(한국)
   const op=(OPS||[]).map(r=>[r.date,r.idx,r.result,r.ts?eduKst(r.ts):null]);
+  const quiz=(EDQ||[]).map(r=>[r.date,r.mod,r.qi,r.ok?1:0,r.choice,r.self?1:0]), qok=quiz.filter(x=>x[3]).length;   // 모듈 확인문제 (mt_quiz_log, req-dev-29f439ce) — date 는 한국 기준
   const sumE=k=>{ const a=(ENGS||[]).filter(r=>!k||r.kind===k), ok=a.filter(r=>r.ok).length; return `${ok}/${a.length}`; };
   const aok=apt.filter(x=>x[1]).length;
-  const head=`학습 기록 (터미널 STUDY · ${day} 보냄)\n- 커리큘럼 완료 모듈 ${Object.keys(EDONE||{}).length}개\n- 영어 단어 복습 ${sumE('review')} · 독해 퀴즈 ${sumE('quiz')} · 응답 날짜 ${new Set((ENGS||[]).map(r=>r.date)).size}일\n- 인적성 ${aok}/${apt.length}\n- OPIc 자기평가 ${op.length}회\n\n`;
-  const raw=JSON.stringify({v:2,tz:'KST',sent:day,done:EDONE||{},apt,eng,op});
+  const head=`학습 기록 (터미널 STUDY · ${day} 보냄)\n- 커리큘럼 완료 모듈 ${Object.keys(EDONE||{}).length}개\n- 영어 단어 복습 ${sumE('review')} · 독해 퀴즈 ${sumE('quiz')} · 응답 날짜 ${new Set((ENGS||[]).map(r=>r.date)).size}일\n- 인적성 ${aok}/${apt.length}\n- 모듈 확인문제 ${qok}/${quiz.length}\n- OPIc 자기평가 ${op.length}회\n\n`;
+  const raw=JSON.stringify({v:2,tz:'KST',sent:day,done:EDONE||{},apt,eng,op,quiz});
   return {day,head,body:head+'```json\n'+raw+'\n```\n\n(기록 데스크 → reports/study_progress 반영·평가 데스크 채점용. 금액·건강 정보 없음)'};
 }
 function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-bot/pb-private/issues/new?title='+encodeURIComponent('학습기록 '+P.day);
@@ -2626,7 +2710,7 @@ function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-b
   const go=()=>{ window.open(base+'&body='+encodeURIComponent(P.head+'(아래에 붙여넣기)\n\n'),'_blank'); if(m) m.textContent='기록이 길어서 클립보드에 복사했어 — 열린 창 본문에 길게 눌러 붙여넣고 [Submit]'; };
   try{ navigator.clipboard.writeText(P.body).then(go,()=>{ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); }); }catch(e){ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); } }
 function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync'); if(b) b.onclick=eduSync; },0);
-  const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length;
+  const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length+(EDQ||[]).length;
   return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:12.5px"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
 { const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
 </script>
@@ -3132,27 +3216,17 @@ function bsbBattleHtml(b){
 }
 function decCD(){ return DEC&&DEC.items?coolUntil(DEC):null; }
 function decLoad(){
-  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); }
-  if(RENEGO===null){ RENEGO=false; try{ google.script.run.withSuccessHandler(t=>{try{RENEGO=JSON.parse(t);}catch(e){RENEGO={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{RENEGO={};}).getRenego(); }catch(e){ RENEGO={}; } }
-  if(COOL===null){ COOL=false; google.script.run.withSuccessHandler(t=>{try{COOL=JSON.parse(t);}catch(e){COOL={};} if(['sig','daily','score'].includes(view)) render();}).withFailureHandler(()=>{COOL={};}).getCooldown(); }
+  if(DEC===null){ DEC=false; google.script.run.withSuccessHandler(t=>{try{DEC=JSON.parse(t);}catch(e){DEC={};} if(['sig','daily','score','home'].includes(view)) render();}).withFailureHandler(()=>{DEC={};}).getDecisions(); }
+  if(RENEGO===null){ RENEGO=false; try{ google.script.run.withSuccessHandler(t=>{try{RENEGO=JSON.parse(t);}catch(e){RENEGO={};} if(['sig','daily','score','home'].includes(view)) render();}).withFailureHandler(()=>{RENEGO={};}).getRenego(); }catch(e){ RENEGO={}; } }
+  if(COOL===null){ COOL=false; google.script.run.withSuccessHandler(t=>{try{COOL=JSON.parse(t);}catch(e){COOL={};} if(['sig','daily','score','home'].includes(view)) render();}).withFailureHandler(()=>{COOL={};}).getCooldown(); }
 }
-/* 대결 박스 접기 (10/21 UXUI, 겸이 "진입타점대결 토글로 닫게 — 운용회의가 잘 안 보임"): 390px 에서 박스가 1144px 를 먹어 브리프가 1449px 에서야 시작.
-   헤더 1줄(제목 + 오늘 상태 요약)은 항상 보이고, 본문만 접는다. 기본: 겸이(나) 제출 대기 판이 있으면 펼침(할 일 있음), 없으면 접힘.
-   겸이가 직접 열고 닫은 상태는 localStorage mt_duel_open 에 '최신 판 날짜'와 함께 기억 → 새 판이 열리면 기본값으로 돌아간다. */
-const DUEL_OK='mt_duel_open';
-function duelKey(live){ return live.length?String(live[0].date)+'|'+(live[0].market||''):''; }
-function duelOpen(live){ const dflt=live.some(it=>it.picks&&it.picks['나']&&it.picks['나'].pending);
-  try{ const v=JSON.parse(localStorage.getItem(DUEL_OK)||'null'); if(v&&v.k===duelKey(live)) return !!v.open; }catch(e){}
-  return dflt; }
+/* 대결 1줄 (UXUI 재진단 Top10 #5, 10/23 겸이 승인 — 이전 10/21 접기 토글 대체): DAILY·시그널에선 대결이 펼친 채 2,522px 라 브리프가 3.3장 아래로 밀렸다.
+   DAILY·시그널 = 1줄(오늘 상태 요약 + 제출 대기 배지 + 열기 →), 대결 본문(제출·매도 대결·쿨다운)은 DAILY › 성적표 맨 위 한 곳. */
 function duelSum(live,CD){ if(!live.length) return '진행 중 대결 없음 · 다음 14:55·22:00';
   const it=live[0], st=p=>!p?'—':p.pending?'대기':p.cash?'현금':esc(String(p.name||p.ticker||'').slice(0,12));
   return `${esc(String(it.date).slice(5))} ${duelIsUS(it)?'미장':'국장'} · 나: ${st(it.picks&&it.picks['나'])} · PB: ${st(it.picks&&it.picks['PB'])} · 마감 ${duelIsUS(it)?'09:30 ET':'15:30'}${live.length>1?` · 외 ${live.length-1}판`:''}${CD?' · ⏳쿨다운':''}`; }
-function duelTog(){ const b=$('#duelbody'), h=$('#dueltog'); if(!b||!h) return; const op=b.style.display==='none';
-  b.style.display=op?'':'none'; h.setAttribute('aria-expanded',op); h.firstElementChild.textContent=(op?'▾':'▸')+' 진입 타점 대결';
-  const live=(DEC&&DEC.items?[...DEC.items].filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result).reverse().slice(0,3):[]);
-  try{ localStorage.setItem(DUEL_OK,JSON.stringify({k:duelKey(live),open:op})); }catch(e){} }
 /* 대결 박스 (DAILY 상단·QUANT 시그널): 오늘·진행 중 대결 + 제출 위주로 짧게. 성적·기록 전체는 DAILY › 성적표 */
-function decBox(){
+function decBox(full){
   decLoad(); if(!DEC||!DEC.items) return '';
   const CD=decCD(); if(CD) setTimeout(coolTick,0);
   const tm=t=>new Date(t+9*36e5).toISOString().slice(11,16);
@@ -3178,10 +3252,11 @@ function decBox(){
   setTimeout(()=>{ const g=$('#exgo'); if(!g) return; g.onclick=()=>{ const c=($('#excode').value||'').trim(), a=($('#examt').value||'').trim(), act=document.querySelector('input[name=exact]:checked'); if(!c) return;
     window.open(DUEL_IU(`exit ${c}${a?' '+a:''}`, act?act.value:'보유'),'_blank'); }; },0);
   const T=(S&&S.by_who)||{}, sum=['나','PB'].map(w=>T[w]?`<span style="margin-right:12px"><span class="mu">${w}</span> <b class="${T[w].cum_ret>=0?'up':'dn'}">${duelPc(T[w].cum_ret)}</b> <span class="mu">${T[w].win}승/${T[w].n}전</span></span>`:'').join('');
-  const op=duelOpen(live), sumLine=duelSum(live,CD);
-  return `<div class="p" id="duelbox" style="margin-bottom:10px"><h2 id="dueltog" role="button" tabindex="0" aria-expanded="${op}" onclick="duelTog()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();duelTog();}" style="min-height:44px;box-sizing:border-box;align-items:center;cursor:pointer;flex-wrap:wrap;gap:2px 8px"><span>${op?'▾':'▸'} 진입 타점 대결</span><small id="duelsum" style="white-space:normal;text-align:right">${sumLine}</small></h2><div class="b" id="duelbody" style="${op?'':'display:none'}">
+  const sumLine=duelSum(live,CD), pend=live.some(it=>it.picks&&it.picks['나']&&it.picks['나'].pending);
+  if(!full) return `<div class="p" id="duelbox" style="margin-bottom:10px"><div id="dueltog" role="button" tabindex="0" onclick="setView('score')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setView('score');}" title="대결 본문·제출은 DAILY › 성적표" style="min-height:44px;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;padding:4px 10px;cursor:pointer"><b class="am" style="letter-spacing:.06em">진입 타점 대결</b>${pend?'<span class="tag r" style="font-size:11.5px">제출 대기</span>':''}${CD?'<span class="tag r" style="font-size:11.5px">⏳ 쿨다운</span>':''}<span id="duelsum" class="mu" style="flex:1 1 160px;min-width:0;white-space:normal;font-size:12px">${sumLine}</span><span class="am" style="white-space:nowrap">성적표에서 열기 →</span></div></div>`;
+  return `<div class="p c12" id="duelbox"><h2>진입 타점 대결<small id="duelsum" style="white-space:normal;text-align:right">${sumLine}</small></h2><div class="b" id="duelbody" style="white-space:normal">
    ${coolBar}
-   <div style="font-size:12.5px;display:flex;flex-wrap:wrap;align-items:center;gap:4px">${sum||'<span class="mu">누적 성과 불러오는 중</span>'}<button class="sbtn" onclick="setView('score')">성적표 전체 →</button></div>
+   <div style="font-size:12.5px;display:flex;flex-wrap:wrap;align-items:center;gap:4px">${sum||'<span class="mu">누적 성과 불러오는 중</span>'}</div>
    ${live.length?live.map(it=>duelItemHtml(it,CD)).join(''):'<div class="mu" style="font-size:12px;margin-top:4px">진행 중 대결 없음 — 다음 판은 14:55(국장)·22:00(미장) 무렵 열림</div>'}
    <details style="border-top:1px solid var(--line);margin-top:8px;padding-top:6px;font-size:12.5px;line-height:1.8;white-space:normal"><summary><b class="am">매도 타점 대결 열기</b> <span class="mu" style="font-size:11px">팔까 말까 — PB가 규칙으로 판정, 5거래일 뒤 종가로 채점</span></summary>
      <span style="position:relative;display:inline-block;max-width:100%"><input id="exq" placeholder="내 보유에서 검색 (예: mu, 하이닉스)" autocomplete="off" style="width:210px;max-width:100%;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;padding:3px 6px"><div id="exres" class="mu" style="display:none;position:absolute;z-index:30;left:0;top:100%;min-width:240px;max-height:260px;overflow:auto;background:var(--panel);border:1px solid var(--line);font-size:12px"></div></span><input id="excode" type="hidden"><input id="exmk" type="hidden">
@@ -3214,7 +3289,9 @@ function scoreView(){
   const mkLine=m=>{const T=mk(m), ws=Object.keys(T).filter(w=>T[w].n); return ws.length?`<div style="font-size:11.5px"><span class="mu" style="display:inline-block;width:34px">${m==='US'?'미장':'국장'}</span>${ws.map(w=>`<span style="margin-right:10px">${esc(w)} <b class="${T[w].cum_ret>=0?'up':'dn'}">${duelPc(T[w].cum_ret)}</b> <span class="mu">${T[w].win}/${T[w].n}</span></span>`).join('')}</div>`:'';};
   const more=(arr,k,fn,label)=>arr.length>k?`<details><summary class="mu" style="font-size:12px;cursor:pointer">${label} 더 보기 (${arr.length-k})</summary>${arr.slice(k).map(fn).join('')}</details>`:'';
   const IU=DUEL_IU;
-  return `<div class="grid"><div class="p c12"><h2>성적표<small>나 vs PB · 확정 판 수익률 누적 · 비율만</small></h2><div class="b" style="white-space:normal">
+  const shown=new Set([...(D.items||[])].filter(it=>it.kind!=='ticket'&&it.kind!=='exit'&&!it.result).reverse().slice(0,3).map(it=>it.id));   // 위 대결 칸에 나온 진행 중 판은 판단 기록에서 빼서 두 번 안 보이게
+  const past=items.filter(it=>!shown.has(it.id));
+  return `<div class="grid">${decBox(true)}<div class="p c12"><h2>성적표<small>나 vs PB · 확정 판 수익률 누적 · 비율만</small></h2><div class="b" style="white-space:normal">
      ${S&&S.error?'<div class="am">누적 성과판(battle_scoreboard.json) 불러오기 실패</div>':duelCards(S)}
      <div style="margin-top:8px">${duelCurve(S&&S.curve)}</div>
      <div style="margin-top:6px">${mkLine('KR')}${mkLine('US')}</div>
@@ -3225,7 +3302,7 @@ function scoreView(){
    <div class="p c12"><h2>신호 성적<small>원천별 · 신호일 이후 시장 중앙값 대비 초과 · n&lt;30 판단 금지</small></h2><div class="b">${sigScoreCard()}</div></div>
    <div class="p c12"><h2>주문표<small>규정 [4] · 실현 R</small></h2><div class="b">${D.items?ticketBox(D,IU):''}</div></div>
    <div class="p c12"><h2>판단 기록<small>최근 3건 · 판단 근거·PB 판단·채점</small></h2><div class="b">
-     ${items.slice(0,3).map(it=>duelItemHtml(it,CD)).join('')||'<div class="mu">기록 없음</div>'}${more(items,3,it=>duelItemHtml(it,CD),'지난 기록')}</div></div></div>`;
+     ${past.slice(0,3).map(it=>duelItemHtml(it,CD)).join('')||'<div class="mu">기록 없음</div>'}${more(past,3,it=>duelItemHtml(it,CD),'지난 기록')}</div></div></div>`;
 }
 </script>
 
@@ -3470,12 +3547,17 @@ function mcCmdPanel(CM){
       ${bad?`<span class="mu" style="font-size:11px">미확인</span>`:`<span style="min-width:72px;text-align:right">${fmt(r)}</span>
       <span style="font-size:11px">1주 ${d?mcDf(r.d1w):mcSg(r.chg1w)}</span><span style="font-size:11px">1개월 ${d?mcDf(r.d1m):mcSg(r.chg1m)}</span>${mcPos(r.pos52)}`}</summary>
       <div style="font-size:11.5px;white-space:normal;line-height:1.55;padding:2px 0 4px 8px">${r.what?`<div>${esc(r.what)}</div>`:''}<div><b>한국 업종 연결</b> ${esc(r.kr||'')}</div><div class="mu">${esc(r.note||'')}${r.sym?' · '+esc(r.sym):''}${r.date?' · '+mcMd(r.date):''}</div></div></details>`; };
+  // 기본 = 요약 + '오늘 움직인 3개'만 (UXUI 재진단 Top10 #9, 10/23 겸이 승인 · 패널 1,614px) — 1주 변동 절댓값 큰 3개(파생·월간·미확인 제외), 나머지는 아래 접힘. 기준은 매크로 회신(req-macro-997b29e5) 오면 교체
+  const mv3=rows.filter(r=>r.status==='ok'&&r.group!=='파생'&&r.freq!=='월간'&&r.chg1w!=null).sort((a,b)=>Math.abs(b.chg1w)-Math.abs(a.chg1w)).slice(0,3);
+  const top3=mv3.length?`<div style="margin-top:6px"><div class="am" style="font-size:12px;font-weight:700">이번 주 가장 많이 움직인 3개 <span class="mu" style="font-weight:400">(1주 변동 절댓값)</span></div>${mv3.map(line).join('')}</div>`:'';
+  const nRest=rows.length+(CM.unavailable||[]).length;
   const grp=(CM.groups||[]).map(g=>{ const rs=rows.filter(r=>r.group===g), un=(CM.unavailable||[]).filter(u=>u.group===g);
     if(!rs.length&&!un.length) return '';
     return `<div style="margin-top:6px"><div class="am" style="font-size:12px;font-weight:700">${esc(g)}</div>${rs.map(line).join('')}${un.map(u=>`<div style="border-top:1px solid var(--line);padding:3px 0;font-size:11.5px;white-space:normal"><b>${esc(u.name)}</b> <span class="mu">미확인 — ${esc(u.why)}</span></div>`).join('')}</div>`; }).join('');
   return `<div class="p c12" id="macCmd"><h2>원자재 · 에너지 · 비철 · 희토류 · 귀금속<small>reports/commodities.json${cmTag}</small></h2><div class="b" style="white-space:normal">
     <div style="font-size:12.5px"><b>${esc(CM.summary||'')}</b></div>
-    <div class="mu" style="font-size:10.5px">${esc(CM.label||'')} · ${esc(CM.src||'')} · 파생(스프레드·마진·비율)은 % 대신 단위 차이 · 줄 누르면 업종 연결</div>${grp}
+    <div class="mu" style="font-size:10.5px">${esc(CM.label||'')} · ${esc(CM.src||'')} · 파생(스프레드·마진·비율)은 % 대신 단위 차이 · 줄 누르면 업종 연결</div>${top3}
+    <details id="macCmdAll" style="margin-top:6px"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="am">전체 ${nRest}개 보기 (그룹별 · 미확인 포함)</summary>${grp}</details>
     ${(CM.source_notes||[]).length?`<details style="margin-top:6px;font-size:11px"><summary class="mu" style="cursor:pointer">조사했지만 안 쓰는 소스 ${CM.source_notes.length}개 (데이터 데스크 10/23)</summary><ul style="margin:2px 0 2px 16px;padding:0;white-space:normal">${CM.source_notes.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></details>`:''}</div></div>`;
 }
 // 지정학 축 (10/23 겸이 "지정학 뷰 다른거 추가할거있으면 더 추가") — reports/views/geopolitics.json(매크로 데스크 작성) + 관찰 지표 현재값(commodities·macro_view)
@@ -3504,9 +3586,13 @@ function mcGeoPanel(G,CM,R,GN){
       <div><b>현재</b> ${esc(a.status||'')}</div><div><b>전달 경로</b> ${esc(a.path||'')}</div>
       <div><b>트리거</b><ul style="margin:2px 0 2px 16px;padding:0">${(a.triggers||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
       ${(a.sources||[]).map(src).join('')}</div></div></details>`).join('');
+  // 기본 = 축 이름·수준 1줄만 (UXUI 재진단 Top10 #9 · 패널 607px) — 축별 지표·뉴스·해석은 펼치면. 항상 펼칠 축은 매크로 회신(req-macro-997b29e5) 오면 반영
+  const brief=ax.map(a=>`<span style="display:inline-flex;align-items:center;gap:4px;margin:0 10px 2px 0">${esc(a.name)} ${lv(a.level)}</span>`).join('');
   return `<div class="p c12" id="macGeo"><h2>지정학 축 · 시장 전달 경로<small>reports/views/geopolitics.json · ${esc(G.updated||'')}</small></h2><div class="b" style="white-space:normal">
+    <div style="font-size:12.5px;line-height:1.7">${brief}</div>
+    <details id="macGeoAll"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="am">축 ${ax.length}개 자세히 (지표·뉴스·데스크 해석)</summary>
     <div class="mu" style="font-size:10.5px">${esc(G.grade||'')} · 축 누르면 상태·경로·트리거·외부자료 3칸(STANDARD §4)</div>
-    <div class="mu" style="font-size:10.5px">${mcAuto} 줄(점선) = 공개 RSS 헤드라인 자동 수집(reports/geo_news.json${GN&&GN.feeds?` · 피드 ${GN.feeds.filter(f=>f.ok).length}/${GN.feeds.length} 성공`:''}) — 키워드 매칭일 뿐 데스크 판단 아님 · 앰버 실선 = 매크로 데스크가 쓴 해석</div>${body}</div></div>`;
+    <div class="mu" style="font-size:10.5px">${mcAuto} 줄(점선) = 공개 RSS 헤드라인 자동 수집(reports/geo_news.json${GN&&GN.feeds?` · 피드 ${GN.feeds.filter(f=>f.ok).length}/${GN.feeds.length} 성공`:''}) — 키워드 매칭일 뿐 데스크 판단 아님 · 앰버 실선 = 매크로 데스크가 쓴 해석</div>${body}</details></div></div>`;
 }
 </script>
 
@@ -3537,7 +3623,7 @@ function sysTeamHtml(T){   // 팀원별 업무량 — ops/team.json: runs(완료
   const au=M.auto||{}, cell=v=>v?v:'<span class="mu">—</span>';
   const pr=a=>{ if(!a) return '<span class="mu">—</span>'; const b=a.board||{}; return (b['진행']||b['검수'])?`${b['진행']||0}/${b['검수']||0}`:'<span class="mu">—</span>'; };
   const ad=a=>{ const x=(a&&a.audit)||{}; const t=[x['치명']?`<span class="dn">치명 ${x['치명']}</span>`:'',x['중']?`<span class="am">중 ${x['중']}</span>`:'',x['경']?`<span class="mu">경 ${x['경']}</span>`:''].filter(Boolean).join(' '); return t||'<span class="mu">—</span>'; };
-  return `<div class="p c12"><h2>팀 업무량<small>ops/team.json · PM 소관 · 갱신 ${esc(up||'—')}${stale}</small></h2><div class="b"><table><tr><th class="l">담당</th><th>완료 작업</th><th>도구 호출</th><th class="l"></th><th>소요</th><th>토큰</th><th>7일 커밋</th><th>진행/검수</th><th>요청 대기</th><th class="l">감사</th><th>보드 미완</th></tr>${rows.map(([k,o])=>`<tr><td class="l am">${esc(k)}</td><td>${o.n}${o.early?` <span class="mu">+${o.early}</span>`:''}</td><td>${o.tools||'—'}</td><td class="l" style="min-width:90px"><div style="height:6px;background:var(--amber);opacity:.8;width:${Math.round(o.tools/mx*100)}%"></div></td><td class="mu">${o.sec?Math.round(o.sec/60)+'분':'—'}</td><td class="mu">${o.tok?(o.tok/1000).toFixed(0)+'k':'—'}</td><td>${cell(o.a&&o.a.commits_7d)}</td><td>${pr(o.a)}</td><td>${o.a&&o.a.req_open?`<span class="am">${o.a.req_open}</span>`:'<span class="mu">—</span>'}</td><td class="l" style="font-size:11px">${ad(o.a)}</td><td>${o.open||'—'}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">완료 작업·도구·소요·토큰 = 에이전트 완료 통계(runs, PB→PM 기록) · +N = 수치 기록 전 초기 작업 · 7일 커밋·진행/검수·요청 대기·감사 = scripts/team_stats.py 자동(최근 ${au.window_days||7}일, 커밋 ${au.commits_total??'—'} 중 봇 ${au.commits_bot??'—'}·미분류 ${au.commits_unmapped??'—'}) · 감사 = reports/audit 치명/중/경</div>${sysPlanHtml(M)}</div></div>`;
+  return `<details class="p c12 cmts" id="systeam"><summary><h2><span>팀 업무량</span><small>ops/team.json · PM 소관 · 갱신 ${esc(up||'—')}${stale} · 눌러서 펼침</small></h2></summary><div class="b"><table><tr><th class="l">담당</th><th>완료 작업</th><th>도구 호출</th><th class="l"></th><th>소요</th><th>토큰</th><th>7일 커밋</th><th>진행/검수</th><th>요청 대기</th><th class="l">감사</th><th>보드 미완</th></tr>${rows.map(([k,o])=>`<tr><td class="l am">${esc(k)}</td><td>${o.n}${o.early?` <span class="mu">+${o.early}</span>`:''}</td><td>${o.tools||'—'}</td><td class="l" style="min-width:90px"><div style="height:6px;background:var(--amber);opacity:.8;width:${Math.round(o.tools/mx*100)}%"></div></td><td class="mu">${o.sec?Math.round(o.sec/60)+'분':'—'}</td><td class="mu">${o.tok?(o.tok/1000).toFixed(0)+'k':'—'}</td><td>${cell(o.a&&o.a.commits_7d)}</td><td>${pr(o.a)}</td><td>${o.a&&o.a.req_open?`<span class="am">${o.a.req_open}</span>`:'<span class="mu">—</span>'}</td><td class="l" style="font-size:11px">${ad(o.a)}</td><td>${o.open||'—'}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px;margin-top:4px;white-space:normal">완료 작업·도구·소요·토큰 = 에이전트 완료 통계(runs, PB→PM 기록) · +N = 수치 기록 전 초기 작업 · 7일 커밋·진행/검수·요청 대기·감사 = scripts/team_stats.py 자동(최근 ${au.window_days||7}일, 커밋 ${au.commits_total??'—'} 중 봇 ${au.commits_bot??'—'}·미분류 ${au.commits_unmapped??'—'}) · 감사 = reports/audit 치명/중/경</div>${sysPlanHtml(M)}</div></details>`;
 }
 function sysPlanHtml(M){   // 요금제(Pro / Max 5x)·모델별 runs 합계 — team.json by_plan·by_model (scripts/team_stats.py)
   const P=M.by_plan||{}, D=M.by_model||{}; if(!Object.keys(P).length&&!Object.keys(D).length) return '';
@@ -3557,9 +3643,15 @@ function sysBoardView(){
   const ids=new Set(T.map(t=>t.id)), st=Object.fromEntries(T.map(t=>[t.id,t.status]));
   const row=t=>{ const late=t.due&&t.due<td&&t.status!=='완료', soon=!late&&t.due&&t.due<=td&&t.status!=='완료';
     const dep=(t.depends_on||[]).map(d=>`<span class="${ids.has(d)&&st[d]!=='완료'?'am':'mu'}">${esc(d)}</span>`).join(', ');
-    return `<tr><td class="l">${sysPr(t.priority)}</td><td class="l" style="white-space:normal;min-width:180px"><b>${esc(t.title)}</b><div class="mu" style="font-size:11px">${esc(t.id)}${dep?' · 선행 '+dep:''}</div></td><td class="l am">${esc(sysNm(t.owner))}</td><td class="mu">${esc(t.started||'—')}</td><td class="${late?'dn':soon?'am':''}">${esc(t.due||'—')}${late?' 지남':soon?' 오늘':''}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:140px">${t.repo==='private'?'private 전용':(t.files||[]).map(esc).join('<br>')||'—'}</td><td class="l" style="white-space:normal;font-size:11px;min-width:200px">${esc(t.notes||'')}</td></tr>`; };
+    return `<tr id="sysrow-${esc(t.id)}"><td class="l">${sysPr(t.priority)}</td><td class="l" style="white-space:normal;min-width:180px"><b>${esc(t.title)}</b><div class="mu" style="font-size:11px">${esc(t.id)}${dep?' · 선행 '+dep:''}</div></td><td class="l am">${esc(sysNm(t.owner))}</td><td class="mu">${esc(t.started||'—')}</td><td class="${late?'dn':soon?'am':''}">${esc(t.due||'—')}${late?' 지남':soon?' 오늘':''}</td><td class="l mu" style="white-space:normal;font-size:11px;min-width:140px">${t.repo==='private'?'private 전용':(t.files||[]).map(esc).join('<br>')||'—'}</td><td class="l" style="white-space:normal;font-size:11px;min-width:200px">${esc(t.notes||'')}</td></tr>`; };
   const cnt=ST.map(s=>`${s} ${T.filter(t=>t.status===s).length}`).join(' · ');
-  let h=`<div class="grid">${sysTeamHtml(T)}<div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;
+  // 맨 위 결재 줄 (UXUI 재진단 Top10 #6, 10/23 겸이 승인): 업무량 표 1,637px 가 맨 위라 작업 보드가 2장 아래였다 → '겸이 결재 대기 N · 늦은 일 N' 먼저, 업무량 표는 접어서 아래로.
+  // 결재 대기 = 미완료 중 담당이 사용자(겸이)이거나 제목·메모에 '겸이 결재'·'결재 대기'·'결재 필요'가 있는 작업 (보드에 결재 상태 칸이 없어 글자로 판정 — 자체 규칙)
+  const open=T.filter(t=>t.status!=='완료'), apr=open.filter(t=>/^(사용자|겸이)$/.test(t.owner||'')||/겸이 결재|결재 대기|결재 필요/.test((t.title||'')+' '+(t.notes||''))), late=open.filter(t=>t.due&&t.due<td);
+  const chip=t=>`<a href="#sysrow-${esc(t.id)}" style="display:inline-flex;align-items:center;min-height:44px;margin-right:10px">${sysPr(t.priority)}${esc(t.title.slice(0,40))}${t.title.length>40?'…':''} <span class="mu" style="margin-left:4px">${esc(sysNm(t.owner))}</span></a>`;
+  const appr=`<div class="p c12" id="sysappr"><div class="b" style="white-space:normal;line-height:1.6"><div style="font-size:14px"><b class="${apr.length?'dn':'mu'}">🖊 겸이 결재 대기 ${apr.length}</b> · <b class="${late.length?'am':'mu'}">⏰ 늦은 일 ${late.length}</b> <span class="mu" style="font-size:12px">· 진행 ${T.filter(t=>t.status==='진행').length} · 검수 ${T.filter(t=>t.status==='검수').length} · 대기 ${T.filter(t=>t.status==='대기').length}</span></div>
+    ${apr.length?`<div style="font-size:12.5px">${apr.map(chip).join('')}</div>`:''}${late.length?`<details style="font-size:12.5px"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="mu">늦은 일 ${late.length}개 보기</summary>${late.sort((a,b)=>String(a.due).localeCompare(String(b.due))).map(t=>`<div>${chip(t)}<span class="dn">${esc(t.due)}</span></div>`).join('')}</details>`:''}</div></div>`;
+  let h=`<div class="grid">${appr}<div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;
   for(const s of ST){ const g=T.filter(t=>t.status===s).sort((a,b)=>pk(a)-pk(b)||String(a.due||'9').localeCompare(String(b.due||'9'))); if(!g.length) continue;
     h+=`<div class="am" style="margin:8px 0 2px;font-weight:700">${s} <span class="mu">${g.length}</span></div><table><tr><th class="l">우선</th><th class="l">작업</th><th class="l">담당</th><th>시작</th><th>기한</th><th class="l">파일</th><th class="l">메모</th></tr>${g.map(row).join('')}</table>`; }
   const share={}; T.filter(t=>t.status==='진행'||t.status==='검수').forEach(t=>(t.files||[]).forEach(f=>(share[f]=share[f]||[]).push(t.id)));
@@ -3568,6 +3660,7 @@ function sysBoardView(){
   h+=`</div></div>`;
   const L=(SYS.locks&&SYS.locks.locks)||[];
   const age=s=>{ const t=Date.parse(s); return isNaN(t)?null:(Date.now()-t)/3600e3; };
+  h+=sysTeamHtml(T);
   h+=`<div class="p c12"><h2>파일 잠금<small>ops/locks.json · 규칙 ops/LOCKS.md</small></h2><div class="b">${SYS.locks===false?'<span class="mu">LOADING …</span>':L.length?`<table><tr><th class="l">파일</th><th class="l">담당</th><th class="l">작업</th><th>시작</th></tr>${L.map(x=>{ const a=age(x.since); return `<tr><td class="l">${esc(x.file)}</td><td class="l am">${esc(sysNm(x.owner))}</td><td class="l">${esc(x.task||'')}</td><td class="${a>6?'dn':'mu'}">${esc(x.since||'')}${a>6?` · ${Math.round(a)}시간 방치`:''}</td></tr>`; }).join('')}</table>`:'<span class="mu">잠금 없음</span>'}</div></div></div>`;
   return h;
 }
@@ -3678,12 +3771,15 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 .mgt{font-size:10.5px;color:var(--muted);margin-left:6px}
 .mgq{font-size:11.5px;color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
 .mgsys{text-align:center;font-size:11.5px;color:var(--muted);margin:8px 0;white-space:normal}
-#mgfab{position:fixed;right:16px;bottom:16px;z-index:30;width:56px;height:56px;border-radius:50%;border:0;background:var(--amber);color:#000;font-size:24px;cursor:pointer;box-shadow:0 4px 18px #000a}
+#mgfab{position:fixed;right:16px;bottom:16px;z-index:18;transition:opacity .2s,transform .2s;width:56px;height:56px;border-radius:50%;border:0;background:var(--amber);color:#000;font-size:24px;cursor:pointer;box-shadow:0 4px 18px #000a}
 #mgpop{position:fixed;right:16px;bottom:84px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:#0a0a0a;border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
 #mgpop .mgph{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:#111;border-bottom:1px solid var(--line);cursor:move;touch-action:none}
 #mgpop .mgph button{margin-left:auto;min-width:40px;min-height:40px;background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
 #mgpop .mgpb{flex:1;overflow:auto;padding:6px}
 #mgpop .grid{display:block}#mgpop .p h2{display:none}#mgpop .mgbox{max-height:none}
+/* UXUI 재진단 Top10 #3 (10/23): 💬 버튼이 상세 창·표·맨 아래 접기 줄을 가림 → z-index 18(상세 창 배경 19·창 20 아래) · 본문 맨 아래 88px 여백 · 스크롤 중 숨김(멈추면 다시) */
+#root{padding-bottom:88px}
+#mgfab.mgscr{opacity:0;transform:translateY(24px);pointer-events:none}
 @media (max-width:600px){#mgpop{right:0;left:0;bottom:0;width:100vw;height:86vh}}
 .mgpf .bn{height:170px;background-size:cover;background-position:center}
 </style>
@@ -3694,6 +3790,8 @@ document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closes
 /* 💬 팝업 채팅방(10/23 겸이 "사내톡이 팝업 채팅방처럼 열리게") — 모든 탭 오른쪽 아래 버튼 → 떠 있는 창에 같은 사내톡(msgView). 사내톡 탭 안에선 탭 그대로. */
 function mgRe(load){ if(MGPOP) mgPopFill(); else if(!load||view==='msg') render(); }
 function mgPopFill(){ const w=document.getElementById('mgpop'); if(w) w.querySelector('.mgpb').innerHTML=msgView(); }
+/* 💬 팝업은 최신(맨 아래)부터 (UXUI 재진단 Top10 #2, 10/23): 팝업에선 스크롤 박스가 #mgbox 가 아니라 바깥 .mgpb → 대화 목록이 있을 때 .mgpb 도 맨 아래로 */
+function mgPbEnd(box){ const pb=box&&box.closest('.mgpb'); if(pb) pb.scrollTop=pb.scrollHeight; }
 function mgPop(open){ let w=document.getElementById('mgpop');
   if(!open||view==='msg'){ if(w) w.remove(); MGPOP=false; return; }
   if(!w){ w=document.createElement('div'); w.id='mgpop'; w.setAttribute('role','dialog'); w.setAttribute('aria-label','사내톡');
@@ -3704,7 +3802,8 @@ function mgPop(open){ let w=document.getElementById('mgpop');
       const up=()=>{ removeEventListener('pointermove',mv); removeEventListener('pointerup',up); }; addEventListener('pointermove',mv); addEventListener('pointerup',up); }; }
   MGPOP=true; mgPopFill(); }
 setTimeout(()=>{ if(document.getElementById('mgfab')) return; const b=document.createElement('button'); b.id='mgfab'; b.type='button'; b.title='사내톡'; b.setAttribute('aria-label','사내톡 열기'); b.textContent='💬';
-  b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); }; document.body.appendChild(b); },0);
+  b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); }; document.body.appendChild(b);
+  let t=null; addEventListener('scroll',()=>{ b.classList.add('mgscr'); clearTimeout(t); t=setTimeout(()=>b.classList.remove('mgscr'),500); },{passive:true}); },0);
 const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스',realestate:'부동산',scribe:'기록',household:'내무','겸이':'겸이'};
 const MG_DOT={open:'var(--amber)',promoted:'var(--dn)',done:'var(--up)'};
 const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
@@ -3783,7 +3882,7 @@ function mgPrivView(seg,sel){
   let last='', feed='';
   for(const c of C.filter(c=>MGD==='all'||by(c.by)===MGD||by(c.to)===MGD)){ const d=String(c.at||'').slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
     feed+=`<div class="mgb2 chat">${mgAv(by(c.by))}<div class="mgln"><div class="mgwho"><b data-mgp="${esc(by(c.by))}" style="cursor:pointer">${esc(c.by)}</b>${c.to?`<span class="ar">→</span>${esc(c.to)}`:''}<span class="mgt">${esc(mgT(c.at).slice(11))}${c.src==='panel'?' · 패널 대필(본인 아님)':''}</span></div>${c.re?`<div class="mgq">↳ ${esc(c.re.by||'')}: ${esc(String(c.re.text||'').slice(0,60))}</div>`:''}<div class="mgbub">${esc(c.text)}</div></div></div>`; }
-  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
+  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; mgPbEnd(box); },0);
   if(MGP&&MGP._need_token){ setTimeout(()=>{ const sv=document.getElementById('mgtksv'); if(sv) sv.onclick=()=>{ const v=(document.getElementById('mgtk').value||'').trim(); if(!v) return; try{ localStorage.setItem('pbPrivTok',v); }catch(e){} MGP=null; mgRe(); }; },0);
     feed=`<div class="mgempty" style="white-space:normal;line-height:1.7">🔒 이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
       <span class="mu" style="font-size:12px">토큰은 이 브라우저에만 저장돼(저장소·채팅·서버로 안 감). 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained token ↗</a> → Repository access: <b>Only select → pb-private</b> → Permissions: <b>Contents = Read-only</b> → 만료 90일</span><br>
@@ -3819,7 +3918,7 @@ function msgView(){
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); });
     const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); };
    
-    const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; },0);
+    const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; mgPbEnd(box); },0);
   return `<div class="grid"><div class="p c12"><h2>사내톡<small>${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
     <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
     <p class="mgsum">오래된 대화가 위, 최신이 아래 · ↳ = 어떤 요청에 대한 답장인지 · 📝 진행자 기록은 누나 본인 말 아님 · 점선 = 사담(잡담, 업무 근거 아님)</p>
@@ -4422,6 +4521,19 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const g=b.da
 function load(){
   google.script.run.withSuccessHandler(d=>{D=d;render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
 }
+/* 숨은 표 열 '→ 더 있음' (UXUI 재진단 Top10 #10, 10/23): 화면을 그린 뒤 가로 스크롤 상자(.b·overflow 지정 div)를 찾아 위에 한 줄 표시. 끝까지 밀면 숨김 */
+function hMore(){ const r=$('#root'); if(!r) return;
+  r.querySelectorAll('.b,.md,div[style*="overflow"]').forEach(e=>{ if(e.dataset.hm) { const m=e.previousElementSibling; if(m&&m.classList.contains('hmore')) m.classList.toggle('end',e.scrollLeft+e.clientWidth>=e.scrollWidth-4); return; }
+    if(!e.clientWidth||e.scrollWidth<=e.clientWidth+8||!/(auto|scroll)/.test(getComputedStyle(e).overflowX)) return;
+    e.dataset.hm='1'; e.classList.add('hscr'); const m=document.createElement('div'); m.className='hmore'; m.textContent='→ 오른쪽에 열 더 있음 · 옆으로 밀기'; e.before(m);
+    e.addEventListener('scroll',()=>m.classList.toggle('end',e.scrollLeft+e.clientWidth>=e.scrollWidth-4),{passive:true}); }); }
+{ let hmT=null; const q=()=>{ clearTimeout(hmT); hmT=setTimeout(hMore,250); }; new MutationObserver(q).observe($('#root'),{childList:true,subtree:true}); addEventListener('resize',q); }
+/* 폰 머리 접기 (UXUI 재진단 Top10 #8, 10/23): 🔍 = 검색창 열기 · 아래로 스크롤 중 머리 숨김(위로 올리거나 맨 위면 다시) · 탭 줄 끝까지 밀면 '›' 숨김 */
+(function(){ const T=document.querySelector('.top'), B=$('#sqb'), tb=document.querySelector('.tabs'); if(!T||!B||!tb) return;
+  B.onclick=()=>{ const o=T.classList.toggle('sopen'); T.classList.remove('hid'); if(o) setTimeout(()=>{ const q=$('#sq'); if(q) q.focus(); },0); };
+  let ly=scrollY;
+  addEventListener('scroll',()=>{ const y=scrollY; if(innerWidth<=700&&!T.classList.contains('sopen')){ if(y>ly+4&&y>160) T.classList.add('hid'); else if(y<ly-4||y<160) T.classList.remove('hid'); } else T.classList.remove('hid'); ly=y; },{passive:true});
+  const te=()=>T.classList.toggle('tend',tb.scrollLeft+tb.clientWidth>=tb.scrollWidth-2); tb.addEventListener('scroll',te,{passive:true}); addEventListener('resize',te); setTimeout(te,0); })();
 load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000); setInterval(loadFresh, 5*60*1000);
 </script>
 <script>
