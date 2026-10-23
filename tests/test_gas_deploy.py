@@ -24,6 +24,8 @@ def test_web_gets_code_only_unless_same_project():
     web = run.index('push_to "$GAS_SCRIPT_ID"'); dep = run.index("clasp deploy"); sched = run.index('push_to "$GAS_SCHED_SCRIPT_ID"')
     assert web < dep < sched                                      # 웹앱만 배포(새 버전), 예약 실행기는 push 만
     assert "clasp deploy" not in run[sched:]
+    # 미설정이면 한 프로젝트로 보고 셋 다 웹앱 프로젝트에 (예약 실행기 자동 반영이 끊기지 않게)
+    assert run.index('GAS_SCHED_SCRIPT_ID="${GAS_SCHED_SCRIPT_ID:-$GAS_SCRIPT_ID}"') < run.index('[ "$GAS_SCHED_SCRIPT_ID" = "$GAS_SCRIPT_ID" ]')
 
 
 def test_every_listed_gs_exists():

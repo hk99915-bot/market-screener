@@ -42,7 +42,7 @@
 - 10/21 [운영] 영어 v2 화면(test_english_v2_fixture) · 릴리스 자산 이전(test_data_store) · 지표 팝업(ui_smoke check_macro_popup) — 모두 revert 롤백. 미처리: #fresh 배지 390px 넘침.
 - 10/23 [운영] 캘린더 실적 결과 1단계(test_calendar_earn·test_streak) · '나' 게이트(test_pick_gate) · US STALE 08:52 재시도·CI 빨강 게이트·소켓 차단·BTC(test_us_stale_check·test_prepush_ci_gate·test_no_external_socket·test_btc) — 모두 revert 롤백.
 - 10/24 UXUI 남은 3건(💬 머리 버튼·표 첫 열 sticky·글자 4단계 토큰 `scripts/font_tokens.py`): tests/test_font_tokens.py·ui_smoke check_uxui_rest · revert · 모든 탭 글자 크기. 10/24 [운영] 공식 섹터 전환 `sectors.OFFICIAL_LIMITS=True`: test_sectors · 롤백 False · MY 반도체 밴드·한도 알림 입력(docs/sectors_switch_2026-10-24.md).
-- 10/24 [운영] 텔레그램 'quiz <qid> <답>' → 이슈 'study quiz'(G3, TelegramHook.gs tgParseQuiz_): tests/test_tg_quiz.py(node 대조) · revert · 텔레그램 답장·study.yml. gas_deploy 대상 분리(감사 M3 — 웹앱=Code.gs, 예약 실행기=시크릿 GAS_SCHED_SCRIPT_ID): tests/test_gas_deploy.py · revert · GAS 배포. slop_audit JSON 장부 스캔·'종가'·순자산 목표 허용(M6): tests/test_slop_audit.py · revert · 감사 집계.
+- 10/24 [운영] 텔레그램 'quiz <qid> <답>' → 이슈 'study quiz'(G3, TelegramHook.gs tgParseQuiz_): tests/test_tg_quiz.py(node 대조) · revert · 텔레그램 답장·study.yml. gas_deploy 대상 분리(감사 M3 — 시크릿 GAS_SCHED_SCRIPT_ID 가 다른 ID 면 웹앱=Code.gs·예약 실행기=Scheduler·TelegramHook, 미설정=한 프로젝트로 보고 셋 다): tests/test_gas_deploy.py · revert · GAS 배포. slop_audit JSON 장부 스캔·'종가'·순자산 목표 허용(M6): tests/test_slop_audit.py · revert · 감사 집계.
 
 ## 출처
 - Telegram Bot API sendMessage(core.telegram.org, 원문 미확인) · ops/LOCKS.md · ops/README.md · .github/workflows/tests.yml
