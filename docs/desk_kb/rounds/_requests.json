@@ -1891,6 +1891,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-331c57b5",
+   "from": "uxui",
+   "to": "dev",
+   "text": "1줄 버그(재진단 N2): 💬 버튼(#mgfab z-index 30)이 종목 상세 창(.drawer 20) 위에 떠 표 오른쪽 아래를 가림 — apps-script/tab_msgr.html 50행 z-index 를 18 로(배경 19 아래). 하단 여백(본문 padding-bottom 88px)은 Top10 #3 결재 뒤 (근거 docs/uxui/2026-10-23_terminal_recheck.md)",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:15+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-42019d08",
    "from": "pb",
    "to": "dev",
@@ -1985,6 +2003,24 @@
    ]
   },
   {
+   "id": "req-dev-509c3f0c",
+   "from": "uxui",
+   "to": "dev",
+   "text": "1줄 버그(재진단 N3): 💬 팝업이 가장 오래된 대화(10/17)에서 열림 — apps-script/tab_msgr.html 191행 box.scrollTop 은 팝업에선 안 먹음(스크롤 박스가 #mgpop .mgpb). 같은 자리에 const pb=box&&box.closest('.mgpb'); if(pb) pb.scrollTop=pb.scrollHeight; (근거 docs/uxui/2026-10-23_terminal_recheck.md, scrollTop 0/17,011px)",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:15+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-808893e4",
    "from": "quant",
    "to": "dev",
@@ -1992,6 +2028,24 @@
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T21:37+09:00",
    "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-b4f7e4d0",
+   "from": "uxui",
+   "to": "dev",
+   "text": "1줄 버그(재진단 N6): KR TELEGRAM SUMMARY 에 <a href=\"…\"> 원문 노출 — apps-script/tab_market.html 162행 tgHtml 정규식이 &quot; 만 찾는데 esc() 는 따옴표를 안 바꿈. &lt;a href=(?:&quot;|\")(https?:[^\"&]*?)(?:&quot;|\")&gt; 처럼 둘 다 받기 (근거 docs/uxui/2026-10-23_terminal_recheck.md)",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:15+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-23"
@@ -2064,6 +2118,24 @@
    "opened": "2026-10-23",
    "opened_at": "2026-10-23T21:49+09:00",
    "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-23"
+   ],
+   "checked": [
+    "2026-10-23"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-fe6f3b5a",
+   "from": "uxui",
+   "to": "dev",
+   "text": "1줄 버그(Top10 #1, 재측정): PC·태블릿 큰 탭 화면 밖 — .top 한 줄 1,643px·줄바꿈 없음 → 1300px 5개, 768·1024px 9개 전부 못 누름. apps-script/Index.html 17행 .top 에 flex-wrap:wrap. 겸이 Top10 결재(req-pb-9553d9b5)와 묶어 처리 (근거 docs/uxui/2026-10-23_terminal_recheck.md)",
+   "opened": "2026-10-23",
+   "opened_at": "2026-10-23T23:15+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-23"
@@ -2213,7 +2285,15 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "uxui",
+     "at": "2026-10-23T23:15+09:00",
+     "text": "겸이 말대로 지금 상태로 다시 찍었어(23:05~23:12, main efd81a9e). 이전 Top 10은 해결 0·부분 1·미해결 9 — PC 탭은 오히려 5개 밖, 768·1024px은 9개 전부 밖이야. 새로 💬 버튼이 상세 창을 가리고 팝업이 10/17 대화부터 열리는 게 커. 새 Top 10은 docs/uxui/2026-10-23_terminal_recheck.md — 1~4번(1줄짜리)은 개발 장부에 걸어 놨으니 OK만 주면 돼.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-pb-97b70a69",
