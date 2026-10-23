@@ -11,8 +11,9 @@
   {"note", "done":[{id,date,min}], "quiz":[{qid,module,answer,correct,ok,date}], "streak", "last",
    "unlocked":[id…],                                 ← 게이트(index.json gate) 밖 모듈 중 '앞 모듈 done'으로 열린 것
    "modules":{id:{done:[날짜], stage, next_due, scores:[[날짜, 비율]]}}}   ← study_daily 복습 선택용 파생 뷰
-  + STUDY 탭 내보내기(apply_export) → "apt":{문항id:{ok,sec,date,tz}}, "eng":{"출제일|r/q|idx":{ok,date,tz}},
-    "exports":[{v,sent,issue}], "summary":{비율·횟수}  (원자료 JSON 은 pb-private study/ 에만 둔다)
+  + STUDY 탭 내보내기(apply_export) → "days":[활동일], "exports":[{v,sent,issue}], "summary":{영역·유형별 비율·횟수}
+    문항 단위 기록(문항id → 정답 여부·초·날짜)은 공개 파일에 두지 않는다 — pb-private study/items.json 에만
+    (10/24 피어리뷰 E2: 공개는 비율만). 같은 문항은 **첫 응답 고정**(E1, kb:eval#8 사전 커밋 · req-dev-826c4bf0).
   날짜는 모두 KST. tz "K" = 한국 날짜 확정, "U" = 옛(v1) UTC 날짜 → 한국 날짜는 같은 날 또는 +1일.
 오답은 reports/study_wrong.json 에 쌓고 docs/desk_kb/_quiz_feedback.md 큐에 한 줄 추가한다
 (모듈·데스크·개념·오답 — 해당 데스크 KB '흔한 오해' 후보, 피드백 루프). 금액·보유 없음. 네트워크 없음.
@@ -24,6 +25,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -243,6 +245,7 @@ JSON_BLOCK_RE = re.compile(r"```json\s*(\{.*?\})\s*```", re.S)
 def activity_dates(p: dict) -> list[str]:
     """출석 판정용 활동일(KST) — done 이슈·내보내기 done·인적성 응답일·영어 응답일."""
     ds = [d["date"] for d in p.get("done", []) if d.get("date")]
+    ds += [d for d in p.get("days") or [] if d]
     ds += [r["date"] for r in (p.get("apt") or {}).values() if r.get("date")]
     ds += [r["date"] for r in (p.get("eng") or {}).values() if r.get("date")]
     return sorted(set(ds))
@@ -271,18 +274,39 @@ def _apt_date(item_id: str, d: str | None, tz: str) -> tuple[str | None, str]:
     return d, "U"
 
 
-def _newer(old: dict | None, new: dict) -> bool:
-    """같은 항목이면 더 늦은 날짜(동일 날짜면 새로 들어온 것)를 남긴다."""
-    return old is None or (new.get("date") or "") >= (old.get("date") or "")
+def _rank(r: dict) -> tuple:
+    """첫 응답 판정 순서: 날짜가 이른 것 → 같은 날이면 오답 먼저(사전 커밋 보수 원칙) → 초 → tz. 전순서라 적용 순서와 무관."""
+    sec = r.get("sec")
+    return (r.get("date") or "9999-12-31", r.get("ok", 1), sec if isinstance(sec, (int, float)) else 1e9, r.get("tz") or "")
 
 
-def _summary(p: dict) -> dict:
+def _first(old: dict | None, new: dict) -> bool:
+    """같은 항목이면 **첫 응답**을 남긴다(kb:eval#8). 같은 날짜 내보내기 여러 개도 순서와 무관하게 같은 결과(결정적)."""
+    return old is None or _rank(new) < _rank(old)
+
+
+APT_SERIES = {"E": "오늘의 인적성", "N": "유형 대응", "M": "암산", "G": "GSAT 수리", "R": "GSAT 추리", "L": "언어논리", "D": "자료해석"}
+
+
+def _summary(p: dict, items: dict | None = None) -> dict:
+    """공개용 집계 — 영역·유형별 비율·횟수만(문항 id 없음)."""
     rate = lambda ok, n: round(ok / n, 3) if n else None  # noqa: E731
-    apt = list((p.get("apt") or {}).values())
-    eng = p.get("eng") or {}
+    src = items if items is not None else p
+    apt_d = src.get("apt") or {}
+    apt = list(apt_d.values())
+    eng = src.get("eng") or {}
     out = {"apt": {"n": len(apt), "ok": sum(r["ok"] for r in apt)},
            "apt_timed": {"n": sum(1 for r in apt if r.get("sec") is not None)}}
     out["apt"]["rate"] = rate(out["apt"]["ok"], out["apt"]["n"])
+    by: dict = {}
+    for qid, r in sorted(apt_d.items()):
+        k = APT_SERIES.get(str(qid)[:1], "기타")
+        b = by.setdefault(k, {"n": 0, "ok": 0})
+        b["n"] += 1
+        b["ok"] += r["ok"]
+    for b in by.values():
+        b["rate"] = rate(b["ok"], b["n"])
+    out["apt_by"] = by
     for k, name in (("r", "eng_review"), ("q", "eng_quiz")):
         rs = [r for key, r in eng.items() if key.split("|")[1] == k]
         out[name] = {"n": len(rs), "ok": sum(r["ok"] for r in rs), "rate": rate(sum(r["ok"] for r in rs), len(rs))}
@@ -291,8 +315,20 @@ def _summary(p: dict) -> dict:
     return out
 
 
-def apply_export(progress: dict, export, study: dict | None = None) -> dict:
-    """STUDY 탭 '📤 학습 기록 보내기' JSON(v1 UTC · v2 KST) → 진행 파일에 병합. 같은 항목은 최신, 다시 넣어도 같은 결과(멱등).
+def _item_dates(items: dict) -> list[str]:
+    return sorted({r["date"] for k in ("apt", "eng") for r in (items.get(k) or {}).values() if r.get("date")})
+
+
+def apply_export(progress: dict, export, study: dict | None = None, items: dict | None = None) -> dict:
+    """공개 진행 파일만 돌려준다(문항 단위 기록 없음). 문항 단위 상태까지 필요하면 merge_export."""
+    return merge_export(progress, export, study, items)[0]
+
+
+def merge_export(progress: dict, export, study: dict | None = None, items: dict | None = None) -> tuple[dict, dict]:
+    """STUDY 탭 '📤 학습 기록 보내기' JSON(v1 UTC · v2 KST) → (공개 진행 파일, 비공개 문항 상태).
+    같은 문항은 첫 응답 고정(_first), 다시 넣어도·순서를 바꿔 넣어도 같은 결과(멱등·가환).
+    items = pb-private study/items.json {"apt":{문항id:{ok,sec,date,tz}}, "eng":{"출제일|r/q|idx":{ok,date,tz}}}.
+    None 이면 옛 공개 파일의 apt·eng 를 옮겨 온다(1회 이전).
 
     v1 {v:1, sent, done{id:날짜}, apt[[id, ok, 초|None, UTC 날짜]], eng[[출제일, r|q, idx, ok]], op[]}
     v2 {v:2, tz:'KST', ...} apt 5번째 칸 'K'|'U', eng 5번째 칸 = 푼 날(KST), op 4번째 칸 = 푼 날.
@@ -302,8 +338,11 @@ def apply_export(progress: dict, export, study: dict | None = None) -> dict:
     kst = v >= 2 or str(x.get("tz", "")).upper() == "KST"
     p = {**copy.deepcopy(INITIAL), **copy.deepcopy(progress or {})}
     p["note"] = INITIAL["note"]
-    p.setdefault("apt", {})
-    p.setdefault("eng", {})
+    it = copy.deepcopy(items) if items is not None else {"apt": p.get("apt") or {}, "eng": p.get("eng") or {}}
+    it.setdefault("apt", {})
+    it.setdefault("eng", {})
+    p.pop("apt", None)
+    p.pop("eng", None)
     p.setdefault("exports", [])
     # 완료 모듈: 내보내기 done 은 체크박스라 모듈당 날짜 1개 → 같은 모듈의 export 행은 최신으로 교체
     titles = _titles(study or {})
@@ -326,32 +365,53 @@ def apply_export(progress: dict, export, study: dict | None = None) -> dict:
         tz_in = (row[4] if len(row) > 4 and row[4] else ("K" if kst else "U"))
         day, tz = _apt_date(str(qid), d, str(tz_in).upper())
         rec = {"ok": 1 if ok else 0, "sec": sec if isinstance(sec, (int, float)) else None, "date": day, "tz": tz}
-        if _newer(p["apt"].get(qid), rec):
-            p["apt"][qid] = rec
+        if _first(it["apt"].get(qid), rec):
+            it["apt"][qid] = rec
     for row in x.get("eng") or []:
         cd, kind, idx, ok = (list(row) + [None] * 4)[:4]
         solved = row[4] if len(row) > 4 and row[4] else None
         rec = {"ok": 1 if ok else 0, "date": solved or cd, "tz": "K" if solved else "C"}   # C = 출제일(푼 날 미기록, v1)
         key = f"{cd}|{kind}|{idx}"
-        if _newer(p["eng"].get(key), rec):
-            p["eng"][key] = rec
+        if _first(it["eng"].get(key), rec):
+            it["eng"][key] = rec
     p["op_count"] = max(int(p.get("op_count") or 0), len(x.get("op") or []))
     tag = {"v": v, "sent": x.get("sent"), "issue": x.get("issue")}
     if tag not in p["exports"]:
         p["exports"].append(tag)
+    p["days"] = sorted(set(p.get("days") or []) | set(_item_dates(it)))
     p["streak"] = streak(activity_dates(p))
     p["last"] = (activity_dates(p) or [None])[-1]
     p["modules"] = derive_modules([{"id": r["id"], "date": r["date"]} for r in p["done"]], p["quiz"])
     for mid in new_done:
         unlock_next(p, study or {}, mid)
-    p["summary"] = _summary(p)
-    return p
+    p["summary"] = _summary(p, it)
+    return p, it
 
 
-def apply_export_file(export, root: Path = ROOT) -> dict:
-    """reports/study_progress.json 에 내보내기 반영 후 저장. 반환 = summary."""
+def private_dir(root: Path = ROOT) -> Path | None:
+    """문항 단위 상태 저장 위치 — 환경변수 STUDY_PRIVATE_DIR, 없으면 형제 체크아웃 pb-private/study (있을 때만)."""
+    env = os.environ.get("STUDY_PRIVATE_DIR")
+    if env:
+        return Path(env)
+    for base in (root.parent, Path.home(), Path("/home/user")):
+        d = base / "pb-private" / "study"
+        if d.is_dir():
+            return d
+    return None
+
+
+def apply_export_file(export, root: Path = ROOT, priv: Path | None = None) -> dict:
+    """reports/study_progress.json(공개, 집계만) + pb-private study/items.json(문항 단위) 에 반영. 반환 = summary.
+    비공개 경로가 없으면 문항 상태를 잃으므로 조용히 넘기지 않고 멈춘다."""
+    priv = priv or private_dir(root)
+    if priv is None:
+        raise SystemExit("pb-private study/ 경로 없음 — STUDY_PRIVATE_DIR 지정 필요(문항 단위 기록은 공개 저장소에 쓰지 않음)")
     pp = root / "reports" / "study_progress.json"
-    p = apply_export(_j(pp, copy.deepcopy(INITIAL)), export, _j(root / "content" / "study.json", {}))
+    ip = Path(priv) / "items.json"
+    items = _j(ip, None)
+    p, it = merge_export(_j(pp, copy.deepcopy(INITIAL)), export, _j(root / "content" / "study.json", {}), items)
+    Path(priv).mkdir(parents=True, exist_ok=True)
+    _dump(ip, {"note": "STUDY 문항 단위 상태(첫 응답 고정) — 공개 저장소에 올리지 않는다. screener/study_progress.merge_export", **it})
     _dump(pp, p)
     return p["summary"]
 

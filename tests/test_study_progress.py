@@ -202,32 +202,58 @@ V1 = {"v": 1, "sent": "2026-10-23", "issue": 17,
 
 
 def test_apply_export_v1_merge_and_idempotent(study):
-    p = sp.apply_export({}, V1, study)
+    p, it = sp.merge_export({}, V1, study)
     assert [(d["id"], d["date"], d["tz"]) for d in p["done"]] == [("0-1", "2026-10-15", "U"), ("0-4", "2026-10-18", "U")]
-    assert p["apt"]["E2026-10-23-0"] == {"ok": 0, "sec": None, "date": "2026-10-23", "tz": "K"}
-    assert p["apt"]["E2026-10-16-1"]["tz"] == "U" and p["apt"]["N7"]["sec"] == 30
-    assert p["eng"]["2026-10-22|q|1"] == {"ok": 0, "date": "2026-10-22", "tz": "C"}
+    assert it["apt"]["E2026-10-23-0"] == {"ok": 0, "sec": None, "date": "2026-10-23", "tz": "K"}
+    assert it["apt"]["E2026-10-16-1"]["tz"] == "U" and it["apt"]["N7"]["sec"] == 30
+    assert it["eng"]["2026-10-22|q|1"] == {"ok": 0, "date": "2026-10-22", "tz": "C"}
     s = p["summary"]
     assert s["apt"] == {"n": 3, "ok": 1, "rate": 0.333} and s["eng_review"]["rate"] == 1.0 and s["eng_quiz"]["n"] == 2
+    assert s["apt_by"]["오늘의 인적성"] == {"n": 2, "ok": 1, "rate": 0.5} and s["apt_by"]["유형 대응"]["n"] == 1
     assert s["done_modules"] == 2 and p["last"] == "2026-10-23" and p["exports"] == [{"v": 1, "sent": "2026-10-23", "issue": 17}]
     assert p["streak"] == 2                                   # 10/18(일) 뒤 10/19~21 평일 결손 → 10/22~23
     assert p["modules"]["0-4"]["next_due"] == "2026-10-19"
-    assert sp.apply_export(p, V1, study) == p                 # 같은 내보내기 재적용 → 동일(멱등)
+    assert sp.merge_export(p, V1, study, it) == (p, it)       # 같은 내보내기 재적용 → 동일(멱등)
 
 
-def test_apply_export_latest_wins_and_v2_kst(study):
+def test_public_file_has_no_item_level_records(study):
+    """피어리뷰 E2(10/24): 공개 진행 파일엔 문항 id·정답 여부·초가 없다 — 영역·유형별 비율·횟수·모듈 id·streak 만."""
     p = sp.apply_export({}, V1, study)
+    blob = json.dumps(p, ensure_ascii=False)
+    assert "apt" not in {k for k in p if k != "summary"} and "eng" not in p
+    assert "E2026-10-23-0" not in blob and "N7" not in blob and "2026-10-22|q|1" not in blob
+    # 옛 공개 파일(apt·eng 포함)은 1회 이전: 비공개 상태로 옮기고 공개에서 지운다
+    legacy = {"apt": {"N7": {"ok": 0, "sec": 30, "date": "2026-10-18", "tz": "U"}}, "eng": {}}
+    q, it = sp.merge_export(legacy, {"v": 2, "tz": "KST", "apt": [], "eng": []}, study)
+    assert "apt" not in q and it["apt"]["N7"]["ok"] == 0 and q["summary"]["apt"]["n"] == 1 and "2026-10-18" in q["days"]
+
+
+def test_apply_export_first_response_fixed_and_v2_kst(study):
+    """피어리뷰 E1(10/24): 같은 문항은 첫 응답 고정(kb:eval#8) — 나중에 다시 풀어 맞혀도 첫 오답이 남는다."""
+    p, it = sp.merge_export({}, V1, study)
     v2 = {"v": 2, "tz": "KST", "sent": "2026-10-24",
           "done": {"0-4": "2026-10-24"},
-          "apt": [["N7", 1, 20, "2026-10-24", "K"], ["E2026-10-16-1", 0, 9, "2026-10-17", "U"]],   # 옛 날짜 행은 최신을 못 덮음
+          "apt": [["N7", 1, 20, "2026-10-24", "K"], ["E2026-10-16-1", 0, 9, "2026-10-17", "U"]],   # 더 이른 날짜 행은 첫 응답으로 대체
           "eng": [["2026-10-22", "q", 1, 1, "2026-10-24"]], "op": [["2026-10-24", 0, "IM3", "2026-10-24"]]}
-    q = sp.apply_export(p, v2, study)
-    assert q["apt"]["N7"] == {"ok": 1, "sec": 20, "date": "2026-10-24", "tz": "K"}
-    assert q["apt"]["E2026-10-16-1"]["ok"] == 1
-    assert q["eng"]["2026-10-22|q|1"] == {"ok": 1, "date": "2026-10-24", "tz": "K"}
+    q, it2 = sp.merge_export(p, v2, study, it)
+    assert it2["apt"]["N7"] == {"ok": 0, "sec": 30, "date": "2026-10-18", "tz": "U"}              # 첫 오답 유지
+    assert it2["apt"]["E2026-10-16-1"] == {"ok": 0, "sec": 9, "date": "2026-10-17", "tz": "U"}    # 더 이른 응답이 첫 응답
+    assert it2["eng"]["2026-10-22|q|1"]["ok"] == 0
     assert [d["date"] for d in q["done"] if d["id"] == "0-4"] == ["2026-10-24"]          # 체크박스 = 모듈당 1행, 최신
     assert q["op_count"] == 1 and "IM3" not in json.dumps(q, ensure_ascii=False)          # OPIc 자기평가 내용은 공개 파일에 안 남김
     assert q["last"] == "2026-10-24" and len(q["exports"]) == 2
+
+
+def test_same_day_exports_order_independent(study):
+    """같은 날짜 내보내기 두 개를 어느 순서로 넣어도 결과가 같다(피어리뷰 채점 S1)."""
+    a = {"v": 2, "tz": "KST", "sent": "2026-10-24", "apt": [["N7", 1, 20, "2026-10-24", "K"]], "eng": [["2026-10-24", "q", 0, 1, "2026-10-24"]]}
+    b = {"v": 2, "tz": "KST", "sent": "2026-10-24", "apt": [["N7", 0, 35, "2026-10-24", "K"]], "eng": [["2026-10-24", "q", 0, 0, "2026-10-24"]]}
+    pa, ia = sp.merge_export({}, a, study)
+    pab, iab = sp.merge_export(pa, b, study, ia)
+    pb_, ib = sp.merge_export({}, b, study)
+    pba, iba = sp.merge_export(pb_, a, study, ib)
+    assert iab["apt"] == iba["apt"] and iab["eng"] == iba["eng"]
+    assert pab["summary"] == pba["summary"] and iab["apt"]["N7"]["ok"] == 0                 # 같은 날이면 오답 먼저(보수)
 
 
 def test_apply_export_keeps_issue_records_and_reads_issue_body(tmp_path, study):
@@ -235,8 +261,11 @@ def test_apply_export_keeps_issue_records_and_reads_issue_body(tmp_path, study):
     sp.apply_issue("study H2 done", "min 10", "2026-10-21T01:00:00Z", root=root)
     body = "학습 기록\n\n```json\n" + json.dumps(V1) + "\n```\n"
     (tmp_path / "body.md").write_text(body, encoding="utf-8")
-    s = sp.apply_export_file(str(tmp_path / "body.md"), root=root)
+    priv = tmp_path / "priv"
+    s = sp.apply_export_file(str(tmp_path / "body.md"), root=root, priv=priv)
     p = json.loads((root / "reports" / "study_progress.json").read_text(encoding="utf-8"))
+    items = json.loads((priv / "items.json").read_text(encoding="utf-8"))
+    assert "apt" not in p and items["apt"]["N7"]["ok"] == 0          # 문항 단위는 비공개 쪽에만
     assert {"H2", "0-1", "0-4"} <= {d["id"] for d in p["done"]} and s["done_modules"] == 3
     assert p["streak"] == 3                                   # 10/21(H2 이슈)·10/22·10/23
 
