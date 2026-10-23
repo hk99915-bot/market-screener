@@ -41,6 +41,7 @@
 - 10/20 [운영] 대결 인라인 버튼 + GAS 웹훅: tests/test_tg_pick_buttons.py · GAS `tgDeleteWebhook` · duel 메시지(docs/telegram_pick_buttons.md).
 - 10/21 [운영] 영어 v2 화면(test_english_v2_fixture) · 릴리스 자산 이전(test_data_store) · 지표 팝업(ui_smoke check_macro_popup) — 모두 revert 롤백. 미처리: #fresh 배지 390px 넘침.
 - 10/23 [운영] 캘린더 실적 결과 1단계(test_calendar_earn·test_streak) · '나' 게이트(test_pick_gate) · US STALE 08:52 재시도·CI 빨강 게이트·소켓 차단·BTC(test_us_stale_check·test_prepush_ci_gate·test_no_external_socket·test_btc) — 모두 revert 롤백.
+- 10/24 UXUI 남은 3건(💬 머리 버튼·표 첫 열 sticky·글자 4단계 토큰 `scripts/font_tokens.py`): tests/test_font_tokens.py·ui_smoke check_uxui_rest · revert · 모든 탭 글자 크기. 10/24 [운영] 공식 섹터 전환 `sectors.OFFICIAL_LIMITS=True`: test_sectors · 롤백 False · MY 반도체 밴드·한도 알림 입력(docs/sectors_switch_2026-10-24.md).
 
 ## 출처
 - Telegram Bot API sendMessage(core.telegram.org, 원문 미확인) · ops/LOCKS.md · ops/README.md · .github/workflows/tests.yml

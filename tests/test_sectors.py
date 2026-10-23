@@ -21,9 +21,9 @@ def test_gics_eleven_and_yahoo_map_complete():
     assert set(sectors.YAHOO_TO_GICS.values()) == set(sectors.GICS_KO)
 
 
-def test_switch_off_by_default():
-    # 07:00 이후 + 겸이 확인 전까지는 예전 판정 — 바꾸면 이 테스트도 같이 바꾼다
-    assert sectors.OFFICIAL_LIMITS is False
+def test_switch_on_since_1024():
+    # 10/24 07:10 KST 전환(겸이 결재 appr-toss-sectors-switch) — 롤백하면 이 테스트도 같이 False 로
+    assert sectors.OFFICIAL_LIMITS is True
 
 
 def test_official_us_and_kr(tmp_path, monkeypatch):
@@ -50,11 +50,12 @@ def test_repo_us_sector_has_gics_sub():
     assert sectors.semi_official("US", "NVDA") is True and sectors.semi_official("US", "MSFT") is False
 
 
-def test_pb_evaluate_parallel_fields_keep_old_judgment(monkeypatch):
-    """새 기준은 *_new 필드로만 — 스위치 False 면 semi_ex(판정 입력)는 예전 값 그대로."""
+def test_pb_evaluate_switch_picks_basis(monkeypatch):
+    """스위치 False(롤백) 면 semi_ex(판정 입력) = 예전 값, True(10/24~ 기본) 면 공식 섹터 값. 병행 필드(*_old·*_new)는 둘 다 계속 나간다."""
     from screener import pb
     if not (pb._index() or {}):
         pytest.skip("detail 색인 없음")
+    monkeypatch.setattr(pb.sectors, "OFFICIAL_LIMITS", False)
     ev = pb.evaluate("NVDA 10\nAAPL 10\n현금 100\n")
     if ev is None:
         pytest.skip("detail 없음")
@@ -65,3 +66,12 @@ def test_pb_evaluate_parallel_fields_keep_old_judgment(monkeypatch):
     monkeypatch.setattr(pb.sectors, "OFFICIAL_LIMITS", True)
     ev2 = pb.evaluate("NVDA 10\nAAPL 10\n현금 100\n")
     assert ev2["semi_ex"] == ev2["semi_ex_new"] and ev2["sector_basis"]["using"] == "new"
+    assert "semi_ex_old" in ev2 and ev2["sector_basis"]["switch"] is True
+
+
+def test_switch_moves_storage_and_eda_out_of_semi():
+    """전환으로 판정이 바뀌는 대표 종목(10/24 기록): GICS 하위산업 기준 — 스토리지(STX·WDC·SNDK)·EDA(SNPS·CDNS)는 반도체 아님, FSLR 은 반도체."""
+    sectors.clear_cache()
+    for t in ("STX", "WDC", "SNDK", "SNPS", "CDNS"):
+        assert sectors.semi_official("US", t) is False, t
+    assert sectors.semi_official("US", "FSLR") is True

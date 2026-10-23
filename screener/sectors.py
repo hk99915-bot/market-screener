@@ -8,6 +8,8 @@
 전환 스위치: OFFICIAL_LIMITS. False 동안 비중 한도 판정은 예전(체인 기반 semi_class) 그대로이고,
 새 기준은 '병행 계산 필드'(pb.evaluate 의 semi_ex_new·sector_w_new 등)로만 나간다.
 True 로 바꾸는 조건: 10/21 07:00 이후 + 겸이 확인(보드 toss-sectors). 롤백 = False.
+**2026-10-24 07:10 KST 전환(True)** — 겸이 결재 appr-toss-sectors-switch(10/24 07시대 "싹다 ㄱㄱ"), req-dev-6f153023.
+전환 전 차이(10/23 detail 기준): 국장 비ETF 1,250 중 반도체 편입 +111·제외 −1, 미장 559 중 +3·−5, 보유 기준 반도체 비중 21.9%→15.4%(밴드 판정 불변) — docs/sectors_switch_2026-10-24.md.
 """
 from __future__ import annotations
 
@@ -17,7 +19,7 @@ from pathlib import Path
 
 from .config import UNIVERSE_DIR
 
-OFFICIAL_LIMITS = False   # 전환 스위치 — True 면 반도체 한도 판정이 공식 섹터(GICS/WICS) 기준으로 바뀐다
+OFFICIAL_LIMITS = True   # 전환 스위치 — True(10/24~) = 반도체 한도 판정이 공식 섹터(GICS/WICS) 기준. 롤백 = False
 
 # GICS 11 섹터 → 화면·파일에서 쓰는 한글 짧은 이름 (universe/us_sector.csv 가 이미 이 이름을 쓴다 — valuation.US_FIN_SECTORS="금융")
 GICS_KO = {"Information Technology": "IT", "Health Care": "헬스케어", "Financials": "금융", "Consumer Discretionary": "경기소비재",
