@@ -204,3 +204,83 @@ def test_area_news_alias_and_title_withheld():
              {"title": "양천구 축제 개막", "src": "B", "when": NOW, "link": "l2"}]   # 부동산 단서 없음 → 제외
     out = re_.area_news(items, NOW)
     assert [x["link"] for x in out["양천구"]] == ["l1"] and out["양천구"][0]["title"] is None
+
+
+# ── 국토부 RTMS 서울 25개 구 집계(데이터 10/24) — 가짜 XML, 네트워크 없음 ──
+def _xml(items, total=None, code="000"):
+    body = "".join("<item>" + "".join(f"<{k}>{v}</{k}>" for k, v in it.items()) + "</item>" for it in items)
+    return (f"<response><header><resultCode>{code}</resultCode><resultMsg>OK</resultMsg></header><body><items>{body}</items>"
+            f"<totalCount>{len(items) if total is None else total}</totalCount></body></response>").encode()
+
+
+def _tr(amt, area, by="2005", cancel=""):
+    return {"dealAmount": amt, "excluUseAr": area, "buildYear": by, "cdealType": cancel}
+
+
+def test_rtms_months_excludes_current():
+    assert re_.rtms_months(date(2026, 10, 24)) == ["202607", "202608", "202609"]
+    assert re_.rtms_months(date(2026, 2, 3)) == ["202511", "202512", "202601"]
+
+
+def test_parse_rtms_xml_and_error():
+    items, total = re_.parse_rtms_xml(_xml([_tr("95,000", "59.9")], total=7))
+    assert items[0]["dealAmount"] == "95,000" and total == 7
+    try:
+        re_.parse_rtms_xml(_xml([], code="30"))
+        assert False, "오류 코드는 예외"
+    except ValueError as e:
+        assert "30" in str(e)
+
+
+def test_summarize_gu_bands_cancel_jeonse():
+    trades = [_tr("60,000", "59.8"), _tr("80,000", "59.9", "1995"), _tr("99,000", "59.9", cancel="O"),   # 취소 1건 제외
+              _tr("100,000", "84.9"), _tr("120,000", "84.5"), _tr("140,000", "84.1"), _tr("160,000", "84.7", "1990"),
+              _tr("50,000", "40.0")]                                                                        # 밴드 밖
+    rents = [{"deposit": "65,000", "monthlyRent": "0", "excluUseAr": "84.9"}, {"deposit": "75,000", "monthlyRent": "", "excluUseAr": "84.0"},
+             {"deposit": "10,000", "monthlyRent": "120", "excluUseAr": "84.0"}]                              # 월세 제외
+    s = re_.summarize_gu(trades, rents)
+    assert s["n"] == 7 and s["n_cancel"] == 1 and s["n_jeonse"] == 2
+    assert s["p59"] == 7.0 and s["n59"] == 2 and s["entry"] == "중"
+    assert s["p84"] == 13.0 and s["p84_q1"] == 12.0 and s["n84"] == 4
+    assert s["j84"] == 7.0 and s["jeonse_ratio"] == 54
+    assert s["pre1999"] == round(2 / 7 * 100)
+    assert re_.entry_level(6.99) == "하" and re_.entry_level(12) == "상" and re_.entry_level(None) is None
+
+
+def test_fetch_rtms_paginates():
+    calls = []
+
+    def get(url, params):
+        calls.append(params["pageNo"])
+        n = re_.RTMS_ROWS if params["pageNo"] == "1" else 3
+        return _xml([_tr("1", "59")] * n, total=re_.RTMS_ROWS + 3)
+    assert len(re_.fetch_rtms(get, re_.RTMS_TRADE, "11110", "202609", "K")) == re_.RTMS_ROWS + 3 and calls == ["1", "2"]
+
+
+def test_seoul_trades_skip_failed_and_no_key_leak():
+    key = "SECRET+KEY/=="
+
+    def get(url, params):
+        assert params["serviceKey"] == key
+        if params["LAWD_CD"] == "11110":
+            raise RuntimeError(f"boom https://apis.data.go.kr/x?serviceKey={key}&LAWD_CD=11110")
+        if "Trade" in url:
+            return _xml([_tr("65,000", "59.5"), _tr("130,000", "84.0")])
+        return _xml([{"deposit": "70,000", "monthlyRent": "0", "excluUseAr": "84.0"}])
+    out = re_.fetch_seoul_trades(get, key, date(2026, 10, 24))
+    assert out["status"] == "부분" and out["n_ok"] == 24 and [f["id"] for f in out["failed"]] == ["종로구"]
+    assert out["districts"]["강남구"]["entry"] == "하" and out["districts"]["강남구"]["jeonse_ratio"] == 54
+    assert out["period"] == "202607~202609"
+    dumped = json.dumps(out, ensure_ascii=False)
+    assert key not in dumped and urllib.parse.quote(key, safe="") not in dumped and "serviceKey=***" in dumped
+
+
+def test_seoul_trades_no_key_and_daily_reuse():
+    assert re_.fetch_seoul_trades(lambda u, p: b"", None, date(2026, 10, 24))["status"] == "키 필요"
+    prev = {"status": "ok", "asof": "2026-10-24", "districts": {"강남구": {"p59": 20}}}
+
+    def boom(u, p):
+        raise AssertionError("같은 날 재호출 금지")
+    assert re_.fetch_seoul_trades(boom, "K", date(2026, 10, 24), prev)["reused"] is True
+    kept = re_.fetch_seoul_trades(boom, None, date(2026, 10, 25), prev)
+    assert kept["reused"] and kept["districts"]["강남구"]["p59"] == 20

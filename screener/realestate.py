@@ -11,7 +11,8 @@
 - news: Google News 검색 RSS(한국어) 축별 — 파서·중복키는 geo_news 재사용. 제목·매체·시각·링크만(본문 저장 안 함, 제목은 비공개 — G3).
   축 검색이 실패하면 그 축은 이전 값 유지 + stale{why,since,kept}, 최상위 stale_axes(10/24 c3d27b87, geo_news G1 과 같은 규칙).
 - regions: 권역 정의 + 지도 칸(서울 25구·경기 21시) 값·출처 단계·칸별 뉴스 + 지오(assets/realestate_map.json, CC BY 3.0) — 10/24.
-못 쓰는 소스(국토부 실거래가 API 키, KB 약관 미확인)는 unavailable·source_notes 에 이유와 함께.
+- seoul_trades: 국토부 RTMS 서울 25개 구 최근 3개월 매매·전세 집계(DATA_GO_KR_KEY 있을 때, 하루 1회 — 10/24).
+못 쓰는 소스(KB 약관 미확인 등)는 unavailable·source_notes 에 이유와 함께.
 실행: write_macro_series 끝(geo_news 다음, 15:45·16:20·06:52 편승). 수동 `python -m screener.realestate`.
 표시 전용 — 매크로 바람 점수·매매 신호에 넣지 않는다. 권역 정의는 데스크 주관(설계서 §2), 권역 값 = 소속 지역 변동률 단순평균(가중 아님).
 """
@@ -457,6 +458,184 @@ SOURCE_NOTES = [
 ]
 
 
+
+# ── 국토부 RTMS 실거래(10/24 겸이 "부동산 다 터미널에") — 서울 25개 구 최근 3개월 매매(취소 제외)·전월세(전세=월세 0) 구별 집계 ──
+# 엔드포인트·필드·취소 제외 로직 = scripts/probe_deriv_sources.py p_seoul_apt(실호출 검증, docs/realestate/2026-10-24_seoul_trades.md).
+# 키(DATA_GO_KR_KEY)는 요청 파라미터로만 쓰고 로그·json·오류 문구에 남기지 않는다(_scrub).
+# 호출량 25구×3개월×2API(+페이지) → 하루 1회만(같은 날 재실행은 이전 정상값 재사용).
+RTMS_BASE = "https://apis.data.go.kr/1613000/"
+RTMS_TRADE = ("RTMSDataSvcAptTradeDev", "getRTMSDataSvcAptTradeDev")
+RTMS_RENT = ("RTMSDataSvcAptRent", "getRTMSDataSvcAptRent")
+RTMS_ROWS = 1000
+RTMS_MAX_PAGES = 10
+GU_CODES = {"종로구": "11110", "중구": "11140", "용산구": "11170", "성동구": "11200", "광진구": "11215", "동대문구": "11230",
+            "중랑구": "11260", "성북구": "11290", "강북구": "11305", "도봉구": "11320", "노원구": "11350", "은평구": "11380",
+            "서대문구": "11410", "마포구": "11440", "양천구": "11470", "강서구": "11500", "구로구": "11530", "금천구": "11545",
+            "영등포구": "11560", "동작구": "11590", "관악구": "11620", "서초구": "11650", "강남구": "11680", "송파구": "11710", "강동구": "11740"}
+ENTRY_RULE = "진입 난이도(가격만): 하 = 59㎡ 중위 7억 미만 · 중 = 7~12억 · 상 = 12억 이상"
+
+
+def _scrub(msg: str, key: str | None) -> str:
+    """오류 문구에서 서비스키 제거(원문·URL 인코딩·serviceKey= 파라미터 모두)."""
+    msg = re.sub(r"(?i)serviceKey=[^&\s'\"]+", "serviceKey=***", str(msg))
+    if key:
+        for k in {key, urllib.parse.quote(key, safe=""), urllib.parse.quote_plus(key)}:
+            msg = msg.replace(k, "***")
+    return msg[:160]
+
+
+def rtms_months(today: date, n: int = 3) -> list[str]:
+    """최근 n개 '완결 월'(이번 달 제외 — 신고 기한 30일이라 이번 달은 덜 참). 10/24 → 202607·08·09."""
+    y, m, out = today.year, today.month, []
+    for _ in range(n):
+        m -= 1
+        if m == 0:
+            y, m = y - 1, 12
+        out.append(f"{y}{m:02d}")
+    return sorted(out)
+
+
+def parse_rtms_xml(content: bytes | str) -> tuple[list[dict], int | None]:
+    """RTMS XML → (item dict 목록, totalCount). resultCode 가 정상(0/00/000)이 아니면 ValueError(코드·메시지만, 키 없음)."""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(content.encode("utf-8") if isinstance(content, str) else content)
+    code = (root.findtext(".//resultCode") or root.findtext(".//returnReasonCode") or "").strip()
+    if code and code.strip("0") != "":
+        msg = (root.findtext(".//resultMsg") or root.findtext(".//returnAuthMsg") or "").strip()
+        raise ValueError(f"RTMS 응답 오류 {code} {msg}"[:120])
+    items = [{c.tag: (c.text or "").strip() for c in it} for it in root.iter("item")]
+    tc = root.findtext(".//totalCount")
+    try:
+        total = int(tc) if tc is not None else None
+    except ValueError:
+        total = None
+    return items, total
+
+
+def _num(s) -> float | None:
+    try:
+        return float(str(s).replace(",", "").strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def area_band(a) -> str | None:
+    """전용면적 → '59'(55~65㎡) · '84'(80~90㎡) · None."""
+    v = _num(a)
+    if v is None:
+        return None
+    return "59" if 55 <= v < 65 else ("84" if 80 <= v < 90 else None)
+
+
+def is_cancelled(x: dict) -> bool:
+    """해제(취소) 거래 — cdealType 값이 있으면(예: 'O') 제외."""
+    return bool((x.get("cdealType") or "").strip())
+
+
+def is_jeonse(x: dict) -> bool:
+    """전세 = 월세 0(또는 빈 값)."""
+    return (x.get("monthlyRent") or "0").replace(",", "").strip() in ("0", "")
+
+
+def entry_level(p59: float | None) -> str | None:
+    if p59 is None:
+        return None
+    return "하" if p59 < 7 else ("중" if p59 < 12 else "상")
+
+
+def summarize_gu(trades: list[dict], rents: list[dict]) -> dict:
+    """구 하나의 매매·전세 item → 집계(금액 억 원, 소수 2자리). 매매는 취소 제외, 전세는 월세 0 만."""
+    import statistics
+
+    def eok(x, k):
+        v = _num(x.get(k))
+        return None if v is None else v / 10000
+
+    tr = [x for x in trades if not is_cancelled(x)]
+    js = [x for x in rents if is_jeonse(x)]
+    p59 = [v for v in (eok(x, "dealAmount") for x in tr if area_band(x.get("excluUseAr")) == "59") if v is not None]
+    p84 = sorted(v for v in (eok(x, "dealAmount") for x in tr if area_band(x.get("excluUseAr")) == "84") if v is not None)
+    j84 = [v for v in (eok(x, "deposit") for x in js if area_band(x.get("excluUseAr")) == "84") if v is not None]
+    md = lambda v: round(statistics.median(v), 2) if v else None  # noqa: E731
+    old = sum(1 for x in tr if (_num(x.get("buildYear")) or 9999) < 2000)
+    m59, m84, mj = md(p59), md(p84), md(j84)
+    return {"n": len(tr), "n_cancel": len(trades) - len(tr), "n_jeonse": len(js),
+            "p59": m59, "n59": len(p59), "p84": m84, "n84": len(p84),
+            "p84_q1": round(p84[len(p84) // 4], 2) if len(p84) >= 4 else None,
+            "j84": mj, "nj84": len(j84),
+            "jeonse_ratio": round(mj / m84 * 100) if mj and m84 else None,
+            "pre1999": round(old / len(tr) * 100) if tr else None,
+            "entry": entry_level(m59)}
+
+
+def fetch_rtms(get, svc: tuple[str, str], cd: str, ym: str, key: str) -> list[dict]:
+    """한 구·한 달·한 API 전 페이지. get(url, params) → bytes. 실패는 예외(호출자가 구 단위로 건너뜀)."""
+    out: list[dict] = []
+    for page in range(1, RTMS_MAX_PAGES + 1):
+        items, total = parse_rtms_xml(get(RTMS_BASE + svc[0] + "/" + svc[1],
+                                          {"serviceKey": key, "LAWD_CD": cd, "DEAL_YMD": ym, "numOfRows": str(RTMS_ROWS), "pageNo": str(page)}))
+        out += items
+        if len(items) < RTMS_ROWS or (total is not None and len(out) >= total):
+            break
+    return out
+
+
+def _prev_trades() -> dict | None:
+    try:
+        return json.loads(OUT.read_text(encoding="utf-8")).get("seoul_trades")
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def fetch_seoul_trades(get, key: str | None, today: date, prev: dict | None = None, sleep=None) -> dict:
+    """서울 25개 구 RTMS 집계 → reports/realestate.json 'seoul_trades'. 키 없음 → '키 필요'(이전 정상값 있으면 유지).
+    같은 날 이미 받은 정상값이 있으면 재호출 안 함(하루 1회). 실패 구는 failed 에 이름·오류 형식만(키 제거)."""
+    base = {"unit": "억 원(중위·하위25% = 전용 59㎡ 55~65 · 84㎡ 80~90) · 전세가율 = 84㎡ 전세 중위 ÷ 매매 중위 · 구축 = 1999년 이전 준공 비중(매매 건수)",
+            "entry_rule": ENTRY_RULE,
+            "src": "국토교통부 아파트 매매(상세)·전월세 실거래가 — 공공데이터포털 apis.data.go.kr (1차, 신고 기준·해제 거래 제외)",
+            "label": "표시 전용 · 매매 신호 아님"}
+    good = bool(prev) and prev.get("status") in ("ok", "부분")
+    if good and prev.get("asof") == today.isoformat():
+        return {**prev, "reused": True}
+    if not key:
+        if good:
+            return {**prev, "reused": True, "why": "DATA_GO_KR_KEY 없음(이 실행 경로) — 이전 수집값 유지"}
+        return {"status": "키 필요", "why": "DATA_GO_KR_KEY 없음 — 공공데이터포털 키 등록 필요", **base}
+    months = rtms_months(today)
+    districts, failed = {}, []
+    for gu, cd in GU_CODES.items():
+        try:
+            tr, rent = [], []
+            for ym in months:
+                tr += fetch_rtms(get, RTMS_TRADE, cd, ym, key)
+                rent += fetch_rtms(get, RTMS_RENT, cd, ym, key)
+                if sleep:
+                    sleep(0.2)
+            districts[gu] = {"code": cd, **summarize_gu(tr, rent)}
+        except Exception as e:  # noqa: BLE001
+            failed.append({"id": gu, "why": _scrub(f"{type(e).__name__}: {e}", key)})
+    n_ok = len(districts)
+    status = "ok" if n_ok == len(GU_CODES) else ("부분" if n_ok else "실패")
+    log.info("부동산 RTMS: 성공 구 %d/%d · 실패 %s", n_ok, len(GU_CODES), ",".join(f["id"] for f in failed) or "없음")
+    if status == "실패" and good:
+        return {**prev, "reused": True, "why": f"이번 수집 전 구 실패({failed[0]['why'] if failed else ''}) — 이전 값 유지"}
+    return {"status": status, "asof": today.isoformat(), "period": f"{months[0]}~{months[-1]}", "months": months,
+            "n_ok": n_ok, "n_total": len(GU_CODES), "failed": failed, "districts": districts, **base}
+
+
+def _fetch_bytes(url: str, params: dict | None) -> bytes:
+    import requests
+    last = None
+    for _ in range(2):
+        try:
+            r = requests.get(url, params=params, timeout=(10, 30))
+            r.raise_for_status()
+            return r.content
+        except Exception as e:  # noqa: BLE001 — 예외 문구엔 URL(키 포함)이 들어갈 수 있어 형식·HTTP 코드만 남김
+            last = RuntimeError(f"{type(e).__name__} (HTTP {getattr(getattr(e, 'response', None), 'status_code', '-')})")
+    raise last  # type: ignore[misc]
+
+
 def _fetch_json(url: str, params: dict | None) -> dict:
     import requests
     last = None
@@ -479,7 +658,8 @@ def _fetch_text(url: str) -> str:
     return r.text
 
 
-def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | None = None, sleep=None, env=None) -> dict | None:
+def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | None = None, sleep=None, env=None,
+          fetch_bytes=None, prev_trades=None) -> dict | None:
     """주입 가능한 fetch 들(테스트는 네트워크 없이). 전 섹션 실패면 쓰지 않고 None + stale 기록."""
     live = fetch_json is None
     fetch_json = fetch_json or _fetch_json
@@ -512,7 +692,13 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
     except Exception as e:  # noqa: BLE001
         news, feeds, anews = [], [], {}
         errors.append(f"뉴스 실패: {e}")
-    ok_any = (prices.get("status") in ("ok", "부분") or any(r.get("status") == "ok" for r in rates)
+    try:
+        trades = fetch_seoul_trades(fetch_bytes or (_fetch_bytes if live else (lambda u, p: b"")), env.get("DATA_GO_KR_KEY"), today,
+                                    _prev_trades() if prev_trades is None else (prev_trades or None), sleep)
+    except Exception as e:  # noqa: BLE001
+        trades = {"status": "실패", "why": _scrub(f"RTMS 집계 실패: {e}", env.get("DATA_GO_KR_KEY"))}
+        errors.append(trades["why"])
+    ok_any = (trades.get("status") in ("ok", "부분") or prices.get("status") in ("ok", "부분") or any(r.get("status") == "ok" for r in rates)
               or any(r.get("status") == "ok" for r in reits) or any(f.get("ok") for f in feeds))
     if not ok_any:
         from .guard import record_stale
@@ -532,7 +718,8 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
         "news": news,
         "feeds": feeds,
         "stale_axes": sorted(a["id"] for a in news if a.get("stale")),
-        "unavailable": UNAVAILABLE,
+        "seoul_trades": trades,
+        "unavailable": [u for u in UNAVAILABLE if not (u["key"] == "MOLIT_RTMS" and trades.get("status") in ("ok", "부분"))],
         "source_notes": SOURCE_NOTES,
         "errors": errors,
         "label": "표시 전용 · 매매 신호 아님 · 뉴스는 제목 키워드 매칭(해석 아님, 검증전) · 데스크 해석은 reports/views/realestate.json",

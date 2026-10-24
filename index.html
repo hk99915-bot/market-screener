@@ -2383,7 +2383,8 @@ function drawBondHist(){
 
 <!-- tab_realestate.html — MARKET › 부동산 (reView). 10/23 겸이 "마켓에 부동산 누나 추가" → 이름 '부동산'(대체투자 아님) · "마켓에 부동산 탭이 아직 안 뜨네".
      설계: docs/realestate/2026-10-23_tab_design.md (부동산 데스크). 데이터: reports/realestate.json(자동 — ECOS·리츠·뉴스, screener/realestate.py) + reports/views/realestate.json(데스크 해석, 손으로).
-     빈 상태: prices.status '키 필요' → 숫자 0 으로 채우지 않고 views.weekly_snapshot(2차 보도·검증전) 표시. 390px 가로 스크롤 금지. -->
+     빈 상태: prices.status '키 필요' → 숫자 0 으로 채우지 않고 views.weekly_snapshot(2차 보도·검증전) 표시. 390px 가로 스크롤 금지.
+     서울 25개 구 실거래 지도(데이터 10/24): seoul_trades(국토부 RTMS) → 없으면 views.district_takes 수치, 경계 = regions.geo. -->
 <style>
 .recards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .recard{border:1px solid var(--line);padding:8px;min-width:0}
@@ -2395,6 +2396,26 @@ function drawBondHist(){
 .relist{margin:4px 0;padding:0;list-style:none}
 .relist li{border-top:1px solid var(--line);padding:6px 0;white-space:normal;font-size:var(--fs-2)}
 .re details>summary{cursor:pointer;min-height:40px;display:flex;align-items:center}
+.retogs{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.retog{font:inherit;font-size:var(--fs-2);min-height:32px;padding:2px 10px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);cursor:pointer}
+.retog.on{border-color:var(--amber);background:var(--amber);color:var(--on-amber)}
+.remap{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px;align-items:start}
+@media (max-width:700px){.remap{grid-template-columns:minmax(0,1fr)}}
+.remapbox{position:relative;width:100%}
+.remapbox svg{display:block;width:100%;height:auto}
+.remapbox path{stroke:var(--line);stroke-width:.6;vector-effect:non-scaling-stroke;cursor:pointer;outline:none}
+.remapbox path:hover,.remapbox path:focus-visible{stroke:var(--txt);stroke-width:2}
+.remapbox path.on{stroke:var(--amber);stroke-width:2.5}
+.relab{position:absolute;transform:translate(-50%,-50%);pointer-events:none;font-size:var(--fs-1);line-height:1.15;text-align:center;color:var(--txt);white-space:nowrap;text-shadow:0 0 2px var(--bg),0 0 2px var(--bg),0 0 3px var(--bg)}
+.relab i{display:none;font-style:normal;font-weight:700}
+@media (min-width:701px){.relab i{display:block}}
+.relegend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:var(--fs-1);margin-top:4px}
+.relegend b{display:inline-block;width:12px;height:12px;border:1px solid var(--line);vertical-align:-2px;margin-right:3px}
+.regu{border:1px solid var(--line);background:var(--bg3);padding:8px 10px;white-space:normal;min-width:0}
+.regt{border-collapse:collapse;font-size:var(--fs-2);width:100%}
+.regt td,.regt th{border-top:1px solid var(--line);padding:3px 6px;text-align:right;white-space:nowrap}
+.regt td:first-child,.regt th:first-child{text-align:left}
+.regt.wide th{background:var(--bg2);font-weight:700}
 </style>
 <script>
 let REJ=null, REV=null;
@@ -2402,6 +2423,61 @@ function reLoad(){ if(REJ!==null) return; REJ=false; REV=false;
   google.script.run.withSuccessHandler(t=>{ try{ REJ=JSON.parse(t); }catch(e){ REJ={}; } if(view==='re') render(); }).withFailureHandler(()=>{ REJ={}; if(view==='re') render(); }).getRealEstate();
   google.script.run.withSuccessHandler(t=>{ try{ REV=JSON.parse(t); }catch(e){ REV={}; } if(view==='re') render(); }).withFailureHandler(()=>{ REV={}; if(view==='re') render(); }).getRealEstateView(); }
 function rePct(x,d){ return x==null?'—':((x>0?'+':'')+(x*100).toFixed(d==null?1:d)+'%'); }
+/* 서울 25개 구 실거래 지도(데이터 10/24 겸이 "표 말고 지도") — 경계 = J.regions.geo(assets/realestate_map.json, geoBoundaries CC BY 3.0, 저장소 정적),
+   숫자 = J.seoul_trades(국토부 RTMS 자동, 하루 1회) → 없으면 V.district_takes(데스크 문서 수치). 색 = --ch1 농도(토큰), 범례에 구간 숫자. */
+let RE_M='p59', RE_SEL=null;
+const RE_MET={p59:{nm:'59㎡ 중위(진입 난이도)',cuts:[7,12],lab:['하 · 7억 미만','중 · 7~12억','상 · 12억 이상'],fmt:v=>v.toFixed(1)+'억'},
+  jr:{nm:'전세가율(84㎡)',cuts:[50,60,70],lab:['50% 미만','50~60%','60~70%','70% 이상'],fmt:v=>Math.round(v)+'%'},
+  old:{nm:'구축 비중(1999년 이전)',cuts:[20,40,60],lab:['20% 미만','20~40%','40~60%','60% 이상'],fmt:v=>Math.round(v)+'%'}};
+function reSel(id){ RE_SEL=(RE_SEL===id?null:id); render(); }
+function reMetric(m){ RE_M=m; render(); }
+function reKey(e,id){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); reSel(id); } }
+function reGuRows(J,V){
+  const T=J.seoul_trades||{}, live=(T.status==='ok'||T.status==='부분')&&T.districts, DT=V.district_takes||{};
+  const rows={};
+  Object.keys(live?T.districts:DT).filter(k=>!k.startsWith('_')).forEach(k=>{
+    const id=live?k:(k.endsWith('구')?k:k+'구'), t=DT[id]||DT[id.replace(/구$/,'')]||{}, d=live?T.districts[k]:t;
+    rows[id]={id, p59:d.p59??null, p84:d.p84??null, q1:d.p84_q1??null, j84:d.j84??null, jr:d.jeonse_ratio??null, old:d.pre1999??null,
+      n:d.n??null, n59:d.n59, n84:d.n84, entry:d.entry||t.entry||null, take:t};
+  });
+  return {rows, live, T};
+}
+function reSeoulMap(J,V){
+  const G=((J.regions||{}).geo||{}), areas=(G.areas||[]).filter(a=>a.sido==='서울');
+  const {rows, live, T}=reGuRows(J,V);
+  if(!Object.keys(rows).length) return '';
+  const M=RE_MET[RE_M], key=RE_M, nb=M.cuts.length+1, pct=nb===3?[18,50,85]:[15,38,62,85];
+  const bin=v=>{ if(v==null) return -1; let i=0; while(i<M.cuts.length&&v>=M.cuts[i]) i++; return i; };
+  const fill=i=>i<0?'var(--bg2)':`color-mix(in srgb, var(--ch1) ${pct[i]}%, var(--bg))`;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  areas.forEach(a=>{ const n=(a.d.match(/-?\d+(\.\d+)?/g)||[]).map(Number); for(let i=0;i+1<n.length;i+=2){ x0=Math.min(x0,n[i]); x1=Math.max(x1,n[i]); y0=Math.min(y0,n[i+1]); y1=Math.max(y1,n[i+1]); } });
+  const pad=2, W=(x1-x0)+pad*2, H=(y1-y0)+pad*2;
+  const short=id=>id==='중구'?'중구':id.replace(/구$/,'');
+  const val=(r)=>r?r[key]:null;
+  const svg=areas.length?`<svg viewBox="${(x0-pad).toFixed(1)} ${(y0-pad).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" role="group" aria-label="서울 25개 구 지도 — ${esc(M.nm)}">${areas.map(a=>{ const r=rows[a.id], v=val(r);
+      return `<path d="${a.d}" fill="${fill(bin(v))}" class="${RE_SEL===a.id?'on':''}" tabindex="0" role="button" aria-pressed="${RE_SEL===a.id}" aria-label="${esc(a.id)} ${esc(M.nm)} ${v==null?'미확인':esc(M.fmt(v))}" onclick="reSel('${esc(a.id)}')" onkeydown="reKey(event,'${esc(a.id)}')"><title>${esc(a.id)} · ${v==null?'미확인':esc(M.fmt(v))}</title></path>`; }).join('')}</svg>
+    ${areas.map(a=>{ const r=rows[a.id], v=val(r); return `<span class="relab" style="left:${((a.cx-x0+pad)/W*100).toFixed(1)}%;top:${((a.cy-y0+pad)/H*100).toFixed(1)}%">${esc(short(a.id))}<i>${v==null?'—':esc(M.fmt(v))}</i></span>`; }).join('')}`
+    :'<div class="mu" style="font-size:var(--fs-2)">지도 경계 없음 — python -m screener.realestate_geo 로 재생성</div>';
+  const legend=`<div class="relegend">${M.lab.map((l,i)=>`<span><b style="background:${fill(i)}"></b>${esc(l)}</span>`).join('')}<span><b style="background:var(--bg2)"></b>미확인</span></div>`;
+  const tog=Object.entries(RE_MET).map(([k,m])=>`<button type="button" class="retog${k===RE_M?' on':''}" aria-pressed="${k===RE_M}" onclick="reMetric('${k}')">${esc(m.nm.split('(')[0])}</button>`).join('');
+  const f=(v,u)=>v==null?'—':(u==='억'?v.toFixed(2)+'억':Math.round(v)+u);
+  const s=RE_SEL&&rows[RE_SEL];
+  const card=s?`<div class="regu"><div style="font-size:var(--fs-3);font-weight:700">${esc(s.id)} <span class="rebadge">진입 ${esc(s.entry||'—')}</span></div>
+      <table class="regt"><tr><td>59㎡ 중위</td><td>${f(s.p59,'억')}${s.n59!=null?` <span class="mu">n ${s.n59}</span>`:''}</td></tr>
+      <tr><td>84㎡ 중위</td><td>${f(s.p84,'억')}${s.n84!=null?` <span class="mu">n ${s.n84}</span>`:''}</td></tr>
+      <tr><td>84㎡ 하위25%</td><td>${f(s.q1,'억')}</td></tr><tr><td>84㎡ 전세 중위</td><td>${f(s.j84,'억')}</td></tr>
+      <tr><td>전세가율</td><td>${f(s.jr,'%')}</td></tr><tr><td>구축 비중</td><td>${f(s.old,'%')}</td></tr><tr><td>매매 n(3개월)</td><td>${s.n??'—'}</td></tr></table>
+      ${s.take&&s.take.line?`<details open><summary style="font-size:var(--fs-2)"><b>부동산 데스크 한 줄</b>&nbsp;${esc(s.take.line)}</summary><div style="font-size:var(--fs-2);line-height:1.6"><div class="am">장점</div><ul class="relist">${(s.take.pros||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul><div class="am">단점</div><ul class="relist">${(s.take.cons||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div></details>`:''}</div>`
+    :`<div class="regu mu" style="font-size:var(--fs-2)">구를 누르면(또는 Tab → Enter) 여기에 그 구 숫자·데스크 한 줄·장단점이 나와요.</div>`;
+  const ids=Object.keys(rows).sort((a,b)=>(rows[b].p59??-1)-(rows[a].p59??-1));
+  const table=`<details><summary class="mu" style="font-size:var(--fs-2)">표로 보기 · ${ids.length}개 구</summary><div style="overflow-x:auto"><table class="regt wide"><tr><th>구</th><th>59㎡ 중위</th><th>84㎡ 중위</th><th>84㎡ 하위25%</th><th>전세가율</th><th>구축</th><th>n</th><th>진입</th></tr>${ids.map(i=>{ const r=rows[i]; return `<tr><td>${esc(i)}</td><td>${f(r.p59,'억')}</td><td>${f(r.p84,'억')}</td><td>${f(r.q1,'억')}</td><td>${f(r.jr,'%')}</td><td>${f(r.old,'%')}</td><td>${r.n??'—'}</td><td>${esc(r.entry||'—')}</td></tr>`; }).join('')}</table></div></details>`;
+  const src=live?`숫자 = ${esc(T.src||'국토부 RTMS')} · ${esc(T.period||'')} · 수집 ${esc(T.asof||'')} · 성공 ${T.n_ok??'—'}/${T.n_total??25}개 구${(T.failed||[]).length?` · 실패 ${esc(T.failed.map(x=>x.id).join('·'))}`:''}`
+    :`숫자 = 데스크 문서(docs/realestate/2026-10-24_seoul_trades.md · 국토부 RTMS 2026-07~09) — 자동 수집 ${esc(T.status||'대기')}`;
+  return `<h3 style="font-size:var(--fs-2);margin:12px 0 2px;color:var(--amber)">서울 25개 구 실거래 <span class="mu" style="font-size:var(--fs-1)">${live?'국토부 1차 · 자동':'데스크 문서 수치'}</span></h3>
+    <div class="retogs" role="group" aria-label="지도 색 기준">${tog}</div>
+    <div class="remap"><div><div class="remapbox">${svg}</div>${legend}</div>${card}</div>${table}
+    <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">${src} · ${esc((V.district_takes||{})._entry_rule||T.entry_rule||'')} · 한 줄·장단점 = 부동산 데스크(views) · ${esc(((G.source||{}).attribution)||'')} · 표시 전용, 매매 신호 아님</div>`;
+}
 function reView(){
   reLoad();
   if(REJ===false||REV===false) return '<div class="load">LOADING …</div>';
@@ -2431,6 +2507,7 @@ function reView(){
   const unav=(J.unavailable||[]).map(u=>`<li><b>${esc(u.name)}</b> <span class="rebadge">${esc(u.status||'')}</span><div class="mu" style="font-size:var(--fs-2)">${esc(u.why||'')}</div></li>`).join('');
   return `<div class="grid re"><div class="p c12"><h2>부동산<small>${esc(J.asof||'—')} · 자동 수집 + 데스크 해석</small></h2><div class="b">
     ${top}${cards}
+    ${reSeoulMap(J,V)}
     <h3 style="font-size:var(--fs-2);margin:12px 0 2px;color:var(--amber)">금리·대출 <span class="mu" style="font-size:var(--fs-1)">ECOS 1차</span></h3><ul class="relist">${rates||'<li class="mu">데이터 없음</li>'}</ul>${ratesTake}
     <h3 style="font-size:var(--fs-2);margin:12px 0 2px;color:var(--amber)">정책·이벤트</h3><ul class="relist">${ev||'<li class="mu">없음</li>'}</ul>
     ${takes?`<h3 style="font-size:var(--fs-2);margin:12px 0 2px;color:var(--amber)">데스크 메모 <span class="mu" style="font-size:var(--fs-1)">내용·그쪽 뷰·우리 해석</span></h3>${takes}`:''}
