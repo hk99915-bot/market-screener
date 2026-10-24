@@ -181,3 +181,26 @@ def test_news_axis_failure_without_previous_is_empty_stale(tmp_path, monkeypatch
     rd = next(a for a in out["news"] if a["id"] == "redev")
     assert rd["items"] == [] and rd["stale"] == {"why": "Google News 검색 실패(timeout) — 이전 값 유지", "since": None, "kept": 0}
     assert out["stale_axes"] == ["redev"]
+
+
+def test_regions_block_stage_priority_and_geo():
+    """지도 칸(10/24): R-ONE 1차 > 2차 스냅샷(검증전) > 미확인 — 숫자를 지어내지 않음 · 지오 자산은 출처·라이선스 포함."""
+    prices = {"status": "ok", "sale_areas": {"강남구": {"status": "ok", "week": "202642", "chg1w": -0.3, "chg4w": -1.0, "pos52": 0.2}}}
+    snap = {"_week": "W", "_src": "S", "강남구": {"sale_1w": 9.9}, "양천구": {"sale_1w": 0.16, "src": "세계일보"}, "마포구": {"why": "미보도"}}
+    r = re_.build_regions(prices, {"양천구": [{"title": None, "src": "x"}]}, snap)
+    a = {x["id"]: x for x in r["areas"]}
+    assert len(a) == 46 and a["강남구"]["stage"] == "1차" and a["강남구"]["sale_1w"] == -0.3
+    assert a["양천구"]["stage"].startswith("2차") and a["양천구"]["sale_1w"] == 0.16 and a["양천구"]["week"] == "W" and a["양천구"]["news"]
+    assert a["마포구"]["stage"] == "미확인" and "sale_1w" not in a["마포구"] and a["마포구"]["why"] == "미보도"
+    assert a["강남구"]["groups"] == ["core"] and r["n_valued"] == 2
+    geo = r["geo"]
+    assert geo and geo["source"]["license"] == "CC BY 3.0" and "geoBoundaries" in geo["source"]["attribution"]
+    ids = {x["id"] for x in geo["areas"]}
+    assert set(a) <= ids and all(x["d"].startswith("M") for x in geo["areas"])
+
+
+def test_area_news_alias_and_title_withheld():
+    items = [{"title": "목동 재건축 아파트 신고가", "src": "A", "when": NOW, "link": "l1"},
+             {"title": "양천구 축제 개막", "src": "B", "when": NOW, "link": "l2"}]   # 부동산 단서 없음 → 제외
+    out = re_.area_news(items, NOW)
+    assert [x["link"] for x in out["양천구"]] == ["l1"] and out["양천구"][0]["title"] is None

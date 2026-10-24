@@ -4912,6 +4912,22 @@
       "status": "대기",
       "repo": "public",
       "desk": "개발"
+    },
+    {
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "screener/realestate.py"
+      ],
+      "depends_on": [],
+      "notes": "부동산 10/24: 개별 단지 실거래 추적(상세는 비공개 저장소)과 권역 거래량(KB #18 선행 지표)은 국토부 실거래 API 없이는 2차 재가공 사이트 숫자뿐(원본 미대조). R-ONE·ECOS 는 11/30 보류 유지, 이 키 1개만 앞당김 제안. 절차(키는 채팅으로 받지 않음): ① data.go.kr 회원가입 → 국토교통부_아파트 매매 실거래가 자료 활용신청(무료, 자동승인 보통 1~2시간) ② 마이페이지 일반 인증키(Decoding) 복사 ③ GitHub 저장소 Settings → Secrets and variables → Actions → New repository secret 이름 DATA_GO_KR_KEY ④ 데이터 데스크가 workflow env 1줄(req-data-50ca9092 방식) ⑤ 부동산이 수집 코드(거래량·신고가 비중) 추가. 뒤집힘: 개별 단지 추적이 급하지 않으면 11/30 보류 유지. 기존 user-realestate-keys-1023(3종 보류)과 별개.",
+      "id": "appr-realestate-rtms-early",
+      "title": "겸이 결재 필요: 국토부 실거래가 키(DATA_GO_KR_KEY)만 11/30 보류에서 앞당겨 지금 발급·등록할까?",
+      "owner": "사용자",
+      "priority": "P2",
+      "status": "대기",
+      "desk": "부동산",
+      "approval": "겸이"
     }
   ]
 }

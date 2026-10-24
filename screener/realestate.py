@@ -10,6 +10,7 @@
 - reits: 야후 일봉(screener.data.fetch_prices) — 상장 리츠·리츠 ETF·건설 ETF. 통계는 commodities.stats 재사용(1주·1개월·52주 위치).
 - news: Google News 검색 RSS(한국어) 축별 — 파서·중복키는 geo_news 재사용. 제목·매체·시각·링크만(본문 저장 안 함, 제목은 비공개 — G3).
   축 검색이 실패하면 그 축은 이전 값 유지 + stale{why,since,kept}, 최상위 stale_axes(10/24 c3d27b87, geo_news G1 과 같은 규칙).
+- regions: 권역 정의 + 지도 칸(서울 25구·경기 21시) 값·출처 단계·칸별 뉴스 + 지오(assets/realestate_map.json, CC BY 3.0) — 10/24.
 못 쓰는 소스(국토부 실거래가 API 키, KB 약관 미확인)는 unavailable·source_notes 에 이유와 함께.
 실행: write_macro_series 끝(geo_news 다음, 15:45·16:20·06:52 편승). 수동 `python -m screener.realestate`.
 표시 전용 — 매크로 바람 점수·매매 신호에 넣지 않는다. 권역 정의는 데스크 주관(설계서 §2), 권역 값 = 소속 지역 변동률 단순평균(가중 아님).
@@ -43,6 +44,22 @@ REGIONS: list[tuple[str, str, list[tuple[str, str]]]] = [
                                         ("수원 영통구", r"^경기>.*영통구$"), ("용인 수지구", r"^경기>.*수지구$"),
                                         ("화성시(동탄 포함)", r"^경기>.*화성시$|^경기>.*동탄구$"), ("안양 동안구", r"^경기>.*동안구$")]),
 ]
+# ── 지도 칸(10/24 겸이 "서울·경기권 지도") — 서울 25개 구 + 경기 시. 지오 = assets/realestate_map.json(screener/realestate_geo.py, CC BY 3.0).
+# 칸 id = 자산 id(한글 이름). R-ONE 매칭 정규식 · 뉴스 별칭(제목 매칭, 공개 산출물엔 제목 비공개) · 소속 권역(설계서 §2).
+_GU = ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구",
+       "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"]
+_GG = ["성남시", "용인시", "수원시", "화성시", "안양시", "광명시", "부천시", "고양시", "하남시", "과천시", "군포시", "의왕시", "시흥시",
+       "안산시", "오산시", "김포시", "구리시", "남양주시", "의정부시", "평택시", "광주시"]
+_ALIAS = {"양천구": "양천|목동", "중구": r"서울 ?중구|(?<![가-힣])중구 ?(신당|중림)", "구로구": r"구로[구동]|(?<![가-힣])구로(?![가-힣])",
+          "강북구": r"강북구", "성남시": "성남|분당|판교", "수원시": "수원|영통|광교", "용인시": "용인|수지|기흥", "화성시": "화성|동탄|병점",
+          "안양시": "안양|평촌|동안구", "고양시": "고양|일산", "광주시": r"경기 ?광주|광주시(?!.*광역)", "광명시": "광명", "하남시": "하남|미사"}
+AREA_GROUPS = {"강남구": ["core"], "서초구": ["core"], "송파구": ["core"], "용산구": ["core"],
+               **{g: ["lower"] for g in ["노원구", "도봉구", "강북구", "금천구", "관악구", "구로구"]},
+               **{g: ["gg_south_city"] for g in ["성남시", "과천시", "수원시", "용인시", "화성시", "안양시"]}}
+AREAS: list[dict] = ([{"id": g, "sido": "서울", "rx": rf"^서울>.*>{g}$", "news": _ALIAS.get(g, g[:-1] if len(g) > 2 else g)} for g in _GU]
+                     + [{"id": g, "sido": "경기", "rx": rf"^경기>.*>{g}$", "news": _ALIAS.get(g, g[:-1])} for g in _GG])
+AREA_NEWS_MAX = 3
+VIEWS = REPORT_DIR / "views" / "realestate.json"
 RONE = "https://www.reb.or.kr/r-one/openapi/{}.do"
 WEEKS_KEEP = 60   # 52주 위치 + 여유
 
@@ -140,7 +157,8 @@ def fetch_rone(fetch_json, key: str | None) -> dict:
         cls = {}
         for r in last:
             cls.setdefault(r.get("CLS_FULLNM") or r.get("CLS_NM") or "", r.get("CLS_ID"))
-        want = {k: v for k, v in cls.items() if any(re.search(rx, k) for _, _, ms in REGIONS for _, rx in ms)}
+        rxs = [rx for _, _, ms in REGIONS for _, rx in ms] + [a["rx"] for a in AREAS]
+        want = {k: v for k, v in cls.items() if any(re.search(rx, k) for rx in rxs)}
         rows: list[dict] = []
         for nm, cid in want.items():
             t, rs = rone_rows(_rone_get(fetch_json, "SttsApiTblData", KEY=key, STATBL_ID=sid, DTACYCLE_CD="WK", CLS_ID=cid,
@@ -152,6 +170,17 @@ def fetch_rone(fetch_json, key: str | None) -> dict:
             rows += rs
         ser = {k: v[-WEEKS_KEEP:] for k, v in series_by_region(rows).items()}
         out[kind] = group_prices(ser)
+        out[f"{kind}_areas"] = area_stats(ser)
+    return out
+
+
+def area_stats(series: dict[str, list[tuple[str, float]]]) -> dict[str, dict]:
+    """지도 칸별 R-ONE 지수 통계 {칸 id: idx_stats}. 매칭 안 되면 빠짐(화면 '미확인')."""
+    out = {}
+    for a in AREAS:
+        hit = next((k for k in series if re.search(a["rx"], k)), None)
+        if hit:
+            out[a["id"]] = {"cls": hit, **idx_stats(series[hit])}
     return out
 
 
@@ -295,7 +324,70 @@ def assign_news(items: list[dict], now: datetime) -> dict[str, list[dict]]:
     return res
 
 
-def fetch_news(fetch_text, now: datetime, sleep=None) -> tuple[list[dict], list[dict]]:
+def area_news(items: list[dict], now: datetime) -> dict[str, list[dict]]:
+    """지도 칸별 최근 기사(제목에 부동산 단서 + 칸 별칭). 중복·7일 규칙은 assign_news 와 같음. 공개 출력은 public_item(제목 비공개)."""
+    from .geo_news import norm_key, public_item
+    cut, seen, uniq = now - timedelta(days=NEWS_DAYS), set(), []
+    for r in sorted(items, key=lambda r: r.get("when") or cut, reverse=True):
+        k = norm_key(r.get("title") or "")
+        if not k or k in seen or r.get("when") is None or r["when"] < cut or r["when"] > now + timedelta(hours=1):
+            continue
+        seen.add(k)
+        uniq.append(r)
+    out: dict[str, list[dict]] = {}
+    for a in AREAS:
+        rx = re.compile(a["news"])
+        hits = [public_item({**r, "via": "검색"}) for r in uniq if _CUE.search(r["title"]) and rx.search(r["title"])][:AREA_NEWS_MAX]
+        if hits:
+            out[a["id"]] = hits
+    return out
+
+
+def _area_snapshot() -> tuple[dict, dict]:
+    """데스크 해석 파일의 지도 스냅샷(2차 보도·검증전)·칸별 해석 → (area_snapshot, area_takes). 없음·깨짐 → 빈 dict."""
+    try:
+        v = json.loads(VIEWS.read_text(encoding="utf-8"))
+        return v.get("area_snapshot") or {}, v.get("area_takes") or {}
+    except Exception:  # noqa: BLE001
+        return {}, {}
+
+
+def build_regions(prices: dict, anews: dict[str, list[dict]], snap: dict | None = None) -> dict:
+    """reports/realestate.json 'regions' 블록: 권역 정의(groups) + 지도 칸(areas: 값·출처 단계·뉴스) + 지오(assets/realestate_map.json).
+    값 우선순위: R-ONE 1차(키 있을 때) → 데스크 2차 보도 스냅샷(views.area_snapshot, 검증전) → 미확인. 숫자를 지어내지 않는다."""
+    from .realestate_geo import load_asset
+    if snap is None:
+        snap = _area_snapshot()[0]
+    meta = {k: v for k, v in snap.items() if k.startswith("_")}
+    sa, ja = prices.get("sale_areas") or {}, prices.get("jeonse_areas") or {}
+    areas = []
+    for a in AREAS:
+        aid, row = a["id"], {"id": a["id"], "sido": a["sido"], "groups": AREA_GROUPS.get(a["id"], [])}
+        r1, j1, s2 = sa.get(aid), ja.get(aid), snap.get(aid)
+        if r1 and r1.get("status") == "ok":
+            row.update(stage="1차", src="부동산원 R-ONE 주간", week=r1.get("week"), sale_1w=r1.get("chg1w"), sale_4w=r1.get("chg4w"),
+                       pos52=r1.get("pos52"), jeonse_1w=(j1 or {}).get("chg1w"))
+        elif isinstance(s2, dict) and s2.get("sale_1w") is not None:
+            row.update(stage="2차 보도·검증전", src=s2.get("src") or meta.get("_src"), week=s2.get("week") or meta.get("_week"),
+                       **{k: s2.get(k) for k in ("sale_1w", "sale_1w_prev", "jeonse_1w", "jeonse_ratio", "rep") if s2.get(k) is not None})
+        else:
+            row.update(stage="미확인", why=(s2.get("why") if isinstance(s2, dict) else None) or "구별 숫자 미보도·R-ONE 키 대기")
+        row["news"] = anews.get(aid, [])
+        areas.append(row)
+    geo = load_asset()
+    return {
+        "groups": [{"id": g, "name": n, "members": [m for m, _ in ms]} for g, n, ms in REGIONS],
+        "areas": areas,
+        "n_valued": sum(1 for r in areas if r["stage"] != "미확인"),
+        "unit": "주간 매매가격 변동률 %(부동산원 주간 아파트, 전주 대비) — 전세가율 % 는 보도에 있을 때만",
+        "legend": [-0.2, 0.0, 0.1, 0.3],
+        "legend_note": "구간 경계(%): ≤−0.2 · −0.2~0 · 0~0.1 · 0.1~0.3 · ≥0.3 — 색과 함께 숫자 표기(색만으로 의미 전달 금지)",
+        "geo": geo,
+        "geo_note": None if geo else "assets/realestate_map.json 없음 — python -m screener.realestate_geo 로 재생성",
+    }
+
+
+def fetch_news(fetch_text, now: datetime, sleep=None, area_out: dict | None = None) -> tuple[list[dict], list[dict]]:
     from .geo_news import parse_feed
     items, feeds = [], []
     for a, (name, _, q) in NEWS_AXES.items():
@@ -314,6 +406,8 @@ def fetch_news(fetch_text, now: datetime, sleep=None) -> tuple[list[dict], list[
         except Exception as e:  # noqa: BLE001
             feeds.append({"name": f"Google News: {a}", "ok": False, "err": str(e)[:120]})
     res = assign_news(items, now)
+    if area_out is not None:
+        area_out.update(area_news(items, now))
     from .geo_news import public_item   # 10/24 피어 G3: Google News 경유 = 공개 산출물에 제목 비공개(매체·시각·링크만) — geo_news 와 같은 규칙
     # 10/24 req-realestate-c3d27b87(geo_news G1 과 같은 규칙): 축 검색 실패 → 다른 축 검색에서 들어온 기사로 새로 채우지 않고
     # 이전 파일 값(최근 NEWS_DAYS 일 안 항목만, 제목 비공개 재적용) + stale{why,since,kept}. 조용한 빈 칸 금지(LOOP 금지 3).
@@ -413,9 +507,10 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
         reits = []
         errors.append(f"리츠 수집 실패: {e}")
     try:
-        news, feeds = fetch_news(fetch_text, now, sleep)
+        anews: dict = {}
+        news, feeds = fetch_news(fetch_text, now, sleep, area_out=anews)
     except Exception as e:  # noqa: BLE001
-        news, feeds = [], []
+        news, feeds, anews = [], [], {}
         errors.append(f"뉴스 실패: {e}")
     ok_any = (prices.get("status") in ("ok", "부분") or any(r.get("status") == "ok" for r in rates)
               or any(r.get("status") == "ok" for r in reits) or any(f.get("ok") for f in feeds))
@@ -427,7 +522,7 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
     out = {
         "asof": today.isoformat(),
         "generated_at": now.astimezone(KST).strftime("%Y-%m-%d %H:%M KST"),
-        "regions": [{"id": g, "name": n, "members": [m for m, _ in ms]} for g, n, ms in REGIONS],
+        "regions": build_regions(prices, anews),
         "region_note": "권역 정의 = 부동산 데스크 사전등록(2026-10-23, 주관) — 상급지: 강남3구·용산 = 시장 통용 묶음(주관). 역사적 근거 = 2023-01-05 규제지역 "
                        "일괄 해제 때 유일하게 남은 4구(뉴시스 2023-01-03, 2차) — 10·15 대책(2025)으로 서울 25개구 전역이 규제지역이 된 뒤로는 규제 기준으로 구분 안 됨 · "
                        "하급지: 시장 통용 '노도강·금관구'(언론 관행) · 경기남부: 부동산원 경부1·2권. 권역 값 = 소속 지역 변동률 단순평균(가중 아님)",

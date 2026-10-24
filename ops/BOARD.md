@@ -2,9 +2,9 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-24 · 작업 265개 · 진행 8 · 검수 10 · 대기 82 · 보류 5 · 완료 160
+기준일 2026-10-24 · 작업 266개 · 진행 8 · 검수 10 · 대기 83 · 보류 5 · 완료 160
 
-**결재 대기 3:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이), `appr-edu-xlearn` (겸이)
+**결재 대기 4:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이), `appr-edu-xlearn` (겸이), `appr-realestate-rtms-early` (겸이)
 
 **기한 지남:** `ra-sec-coverage` (2026-10-21)
 
@@ -36,7 +36,7 @@
 | P1 | `tg-pick-buttons` | 텔레그램 대결 '내 선택은?' 인라인 버튼 + GAS 웹훅 → pick 이슈 | 개발 | 2026-10-20 | 2026-10-31 | `screener/duel.py`<br>`screener/report.py`<br>`apps-script/TelegramHook.gs`<br>`.github/workflows/pick.yml`<br>`tests/test_tg_pick_buttons.py`<br>`docs/telegram_pick_buttons.md` | — | PB 확인: 이슈 프리필 링크가 폰 텔레그램 내장 브라우저에서 무반응(pick 이슈 0건). 버튼 callback_data 'p/날짜/K/U/코드/청산'(≤64B) → TelegramHook.gs doPost(URL ?s= 비밀값 — GAS 는 헤더를 못 읽음 · 누른 사람 id==TG_OWNER_CHAT_ID · CacheService 10분) → 주인 PAT 로 pick 이슈 → pick.yml 기록 + 결과 텔레그램. getUpdates/setWebhook 사용처 없음(두 저장소). 남은 일: 겸이 배포(GH_TOKEN 에 Issues 쓰기 추가·스크립트 속성·웹앱 배포·tgSetWebhook) 후 실제 클릭 1회 확인 → 완료. 절차 docs/telegram_pick_buttons.md. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 실제 텔레그램 버튼 클릭 1회 → pick 이슈 기록 확인(GAS 는 10/23 clasp 자동 배포) |
 | P2 ⏫P1 10-21 | `quiz-key-balance` | 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why) | 교육 | — | 2026-10-31 | `content/study/quiz_bank.json`<br>`scripts/study_content_check.py`<br>`tests/test_study_content.py` | `study-progress` | 교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 셔플·검증기 분포 규칙은 78b05b61 로 끝. why 한 문장(태그만 문항) 보강 |
 
-## 대기 (82)
+## 대기 (83)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -96,6 +96,7 @@
 | P2 ⏫P1 10-21 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
 | P2 | `heatmap-gics-wics` | 히트맵 섹터 묶음 토스 섹터 → 공식 GICS(미장)/WICS(국장) 1종목 1섹터 (sectors.py OFFICIAL_LIMITS 원천, 테마·순환매는 토스 유지) | 개발 | — | 2026-10-30 | `screener/heatmap_kr.py`<br>`screener/heatmap.py`<br>`screener/sectors.py` | — | 10/24 겸이 "GICS/WICS로 히트맵도 통일". 화 11시(사용 한도 초기화) 이후 착수. |
 | P2 | `nxt-session` | NXT(넥스트레이드) 프리·애프터 세션 반영 — 라이브·히트맵·오늘 봉 세션 필드, 정규장 일봉과 NXT 시세 분리, NXT 애프터 HH:MM 라벨 | 개발 | — | 2026-10-30 | `screener/live.py`<br>`screener/heatmap_kr.py`<br>`screener/intraday_last.py` | — | 10/24 겸이 "NXT 애프터마켓 시간대 반영". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수. |
+| P2 | `appr-realestate-rtms-early` | 겸이 결재 필요: 국토부 실거래가 키(DATA_GO_KR_KEY)만 11/30 보류에서 앞당겨 지금 발급·등록할까? | 사용자 | — | 2026-10-31 | `screener/realestate.py` | — | 부동산 10/24: 개별 단지 실거래 추적(상세는 비공개 저장소)과 권역 거래량(KB #18 선행 지표)은 국토부 실거래 API 없이는 2차 재가공 사이트 숫자뿐(원본 미대조). R-ONE·ECOS 는 11/30 보류 유지, 이 키 1개만 앞당김 제안. 절차(키는 채팅으로 받지 않음): ① data.go.kr 회원가입 → 국토교통부_아파트 매매 실거래가 자료 활용신청(무료, 자동승인 보통 1~2시간) ② 마이페이지 일반 인증키(Decoding) 복사 ③ GitHub 저장소 Settings → Secrets and variables → Actions → New repository secret 이름 DATA_GO_KR_KEY ④ 데이터 데스크가 workflow env 1줄(req-data-50ca9092 방식) ⑤ 부동산이 수집 코드(거래량·신고가 비중) 추가. 뒤집힘: 개별 단지 추적이 급하지 않으면 11/30 보류 유지. 기존 user-realestate-keys-1023(3종 보류)과 별개. |
 | P2 ⏫P1 10-21 | `audit-ideas-basis` | ideas_log 채점 기준 불일치: entry·stop(기록 당시 원본가) vs load_kr 조정 봉 → 이후 분할·병합 종목 가짜 손절/1R | 개발 | 2026-10-17 | 2026-10-31 | `screener/committee.py` | — | 감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료 / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — xfail(strict) 테스트 그대로 — 미착수 |
 | P2 | `comp-first-output` | 컴플라이언스 첫 산출물 — 감시 조항 커버리지 표(조항 번호·점검 코드 행·사전/사후·자동/수동/없음) + 미커버 조항별 최소 자동화 제안 1개씩 | 컴플라이언스 | — | 2026-10-31 | `reports/compliance/2026-10-31_coverage.md`<br>`docs/desk_kb/compliance.md` | `appr-risk-hq-staffing` | 10/24 겸이 결재 신설. 계획 = compliance.md '첫 산출물 계획'(매일 장후 사전·사후 점검·위반 로그 / 매주 커버리지·열린 위반). 실행은 PB 승인 후. 공개엔 조항 번호·건수·비율만(원문 pb-private/rules.txt). 규칙 문언·수치 변경 없음. |
 | P2 ⏫P1 10-21 | `dart-netcash` | DART 재무에 단기금융상품·차입금 수집 → 순현금 계산 (삼성 207조 주장 검증 불가 사례) | 데이터 | — | 2026-10-31 | `screener/dart.py`<br>`screener/fin.py` | — | 10/17 오너 질문(삼성 순현금 207조). 현재 cash=현금성자산만. 3Q 확정(10/30) 전에. |
