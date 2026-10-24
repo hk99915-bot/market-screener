@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-24 · 작업 267개 · 진행 8 · 검수 10 · 대기 83 · 보류 4 · 완료 162
+기준일 2026-10-24 · 작업 268개 · 진행 8 · 검수 10 · 대기 83 · 보류 5 · 완료 162
 
 **결재 대기 3:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이), `appr-edu-xlearn` (겸이)
 
@@ -96,7 +96,7 @@
 | P2 | `edu-home-track-2` | 내 집 마련 트랙 J 2회차: J7~J14(시세 읽기·시스템·경매 기초·권리분석·공매/경락대출·기타 경로 비교표·내 집=소비재이자 자산·실거주1채+금융 vs 추가 매수) — 화 11:00 한도 초기화 뒤 | 교육 | — | 2026-10-30 | `content/study/track_J.json`<br>`content/study/index.json` | — | 10/24 1회차 J1~J6 완료(절약 모드로 중단). 경매(대법원 법원경매정보·온비드·민사집행법)·자산증식 렌즈(양도세·종부세·금융자산 비교) 공식 출처 + 확인일. 부동산 사실 검수·평가 문항 검수 회신 반영 포함. |
 | P2 ⏫P1 10-21 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
 | P2 | `heatmap-gics-wics` | 히트맵 섹터 묶음 토스 섹터 → 공식 GICS(미장)/WICS(국장) 1종목 1섹터 (sectors.py OFFICIAL_LIMITS 원천, 테마·순환매는 토스 유지) | 개발 | — | 2026-10-30 | `screener/heatmap_kr.py`<br>`screener/heatmap.py`<br>`screener/sectors.py` | — | 10/24 겸이 "GICS/WICS로 히트맵도 통일". 화 11시(사용 한도 초기화) 이후 착수. |
-| P2 | `nxt-session` | NXT(넥스트레이드) 프리·애프터 세션 반영 — 라이브·히트맵·오늘 봉 세션 필드, 정규장 일봉과 NXT 시세 분리, NXT 애프터 HH:MM 라벨 | 개발 | — | 2026-10-30 | `screener/live.py`<br>`screener/heatmap_kr.py`<br>`screener/intraday_last.py` | — | 10/24 겸이 "NXT 애프터마켓 시간대 반영". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수. / 지수 부분 10/24 반영: live.json "nxt" 키(toss_live.nxt_indices). 남은 것: live 루프 창이 08:40~15:50 이라 NXT 애프터 15:50~20:00 은 갱신 안 됨(live.yml 창 확장·커밋 비용 판단), 종목·히트맵·오늘 봉 세션 필드, 화면 라벨. |
+| P2 | `nxt-session` | NXT(넥스트레이드) 프리·애프터 세션 반영 — 라이브·히트맵·오늘 봉 세션 필드, 정규장 일봉과 NXT 시세 분리, NXT 애프터 HH:MM 라벨 | 개발 | — | 2026-10-30 | `screener/live.py`<br>`screener/heatmap_kr.py`<br>`screener/intraday_last.py` | — | 10/24 겸이 "NXT 애프터마켓 시간대 반영". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수. / 지수 부분 10/24 반영: live.json "nxt" 키(toss_live.nxt_indices). 남은 것: live 루프 창이 08:40~15:50 이라 NXT 애프터 15:50~20:00 은 갱신 안 됨(live.yml 창 확장·커밋 비용 판단), 종목·히트맵·오늘 봉 세션 필드, 화면 라벨. / 10/24 16시대 겸이(PB 제안 인용 "저녁 NXT는 노트북 토스 수집기만으로 따로 올리는 쪽이 더 쌀 수도") → 방향: live.yml 창(08:40~15:50) 확장 안 함. 15:50~20:00 NXT 애프터는 노트북 토스 수집기(toss-live 브랜치 publish)만으로 nxt 키 갱신 — Actions 비용 0 증가. 노트북 꺼지면 NXT 칸 "수집 중단" 표시. 착수 화 11시 이후. |
 | P2 ⏫P1 10-21 | `audit-ideas-basis` | ideas_log 채점 기준 불일치: entry·stop(기록 당시 원본가) vs load_kr 조정 봉 → 이후 분할·병합 종목 가짜 손절/1R | 개발 | 2026-10-17 | 2026-10-31 | `screener/committee.py` | — | 감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료 / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — xfail(strict) 테스트 그대로 — 미착수 |
 | P2 | `comp-first-output` | 컴플라이언스 첫 산출물 — 감시 조항 커버리지 표(조항 번호·점검 코드 행·사전/사후·자동/수동/없음) + 미커버 조항별 최소 자동화 제안 1개씩 | 컴플라이언스 | — | 2026-10-31 | `reports/compliance/2026-10-31_coverage.md`<br>`docs/desk_kb/compliance.md` | `appr-risk-hq-staffing` | 10/24 겸이 결재 신설. 계획 = compliance.md '첫 산출물 계획'(매일 장후 사전·사후 점검·위반 로그 / 매주 커버리지·열린 위반). 실행은 PB 승인 후. 공개엔 조항 번호·건수·비율만(원문 pb-private/rules.txt). 규칙 문언·수치 변경 없음. |
 | P2 ⏫P1 10-21 | `dart-netcash` | DART 재무에 단기금융상품·차입금 수집 → 순현금 계산 (삼성 207조 주장 검증 불가 사례) | 데이터 | — | 2026-10-31 | `screener/dart.py`<br>`screener/fin.py` | — | 10/17 오너 질문(삼성 순현금 207조). 현재 cash=현금성자산만. 3Q 확정(10/30) 전에. |
@@ -124,11 +124,12 @@
 | P3 ⏫P1 10-23 | `jiang-prediction-ledger` | Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기) | 검증 | — | 2026-11-07 | `reports/views/jiang_predictions.json` | `public-reports` | 애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈. |
 | P3 ⏫P1 10-21 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
-## 보류 (4)
+## 보류 (5)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P2 | `org-rnr` | 사내톡 🏢 조직도 옆 📋 RnR 보기 — 층·리스크본부 경계·29명 하는 것/안 하는 것·한도 초과 사건 흐름, ui_smoke check_org_rnr | 프론트 | 2026-10-24 | 2026-10-28 | `apps-script/tab_msgr.html`<br>`scripts/ui_smoke.py`<br>`reports/org_rnr.md` | — | 10/24 PB 지시(겸이 ㅇㅇ). 구현 끝·미배포: 브랜치 front-org-rnr-wip(6f409220) — 데이터 reports/org_rnr.md(ORG.md+각 KB 경계, 29명) 기존 getMarkdown 로 읽음(새 getter 없음), check_org_rnr 기본·엑셀×390·1300 OK·데스크 1명 빼면 BAD. 겸이 주간 한도 절약(PB 10/24)으로 보류 — 화 11시 이후 재개: main 기준 rebase·index 재빌드·운영 내용 검수·개발 계약 회신 뒤 push. |
+| P2 | `macro-governor-shin` | 신현송 한은 총재 뷰 트래킹 — 발언·간담회·의사록·국회 답변 장부화 + 금통위 결정·시장 사후 대조 + 매크로 탭 카드 | 매크로 | 2026-10-24 | 2026-11-07 | `reports/views/governor_shin.json`<br>`docs/desk_kb/macro.md` | — | 10/24 겸이 "진짜 마지막으로 작업예약, 신현송 총재 뷰 트래킹, 메신저랑 작업 보드에만 업뎃" — 예약만. 요청 req-macro-1384f2aa. 주간 한도 절약 — 화 10/27 11시 이후 착수(겸이 ㄱㄱ 뒤). 화면은 착수 때 프론트 장부 1건. |
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 | P2 | `user-realestate-keys-1023` | 겸이 결재 필요(보류 11/30): 부동산 데이터 키 3종(R-ONE·실거래가·ECOS) 무료 발급 후 저장소 시크릿 등록할까? | 사용자 | — | 2026-11-30 | `screener/realestate.py` | — | 부동산 10/23: 키 없으면 부동산원 주간 가격 칸이 키 필요로 비어 있음(데스크 2차 보도 스냅샷으로 대체). 발급 후 데이터 데스크가 workflow env 3줄 추가(req-data-50ca9092). 설계서 docs/realestate/2026-10-23_tab_design.md §5 / 10/24 운영 점검: 보류 — 겸이 10/23 '나중에 하자'(a391f778), 기한 11/30 |
