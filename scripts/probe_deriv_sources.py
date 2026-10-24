@@ -483,14 +483,20 @@ def p_datagokr():
     if not key:
         return
     B = "https://apis.data.go.kr"
-    fsc = {"resultType": "json", "numOfRows": "3", "pageNo": "1", "basDt": "20261023"}
+    fsc = {"resultType": "json", "numOfRows": "3", "pageNo": "1", "basDt": "20261022"}
     eps = [
         ("주식시세", B + "/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo", fsc),
         ("지수시세", B + "/1160100/service/GetMarketIndexInfoService/getStockMarketIndex", fsc),
         ("채권시세", B + "/1160100/service/GetBondSecuritiesInfoService/getBondPriceInfo", fsc),
-        ("파생-주식선물", B + "/1160100/service/GetDerivativeProductInfoService/getStockFuturesPriceInfo", fsc),
-        ("파생-옵션", B + "/1160100/service/GetDerivativeProductInfoService/getOptionsPriceInfo", fsc),
-        ("파생-선물", B + "/1160100/service/GetDerivativeProductInfoService/getFuturesPriceInfo", fsc),
+        ("파생V2-getStockFuturesPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getStockFuturesPriceInfo", fsc),
+        ("파생V2-getStockOptionsPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getStockOptionsPriceInfo", fsc),
+        ("파생V2-getFuturesPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getFuturesPriceInfo", fsc),
+        ("파생V2-getOptionsPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getOptionsPriceInfo", fsc),
+        ("파생V2-getIndexFuturesPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getIndexFuturesPriceInfo", fsc),
+        ("파생V2-getIndexOptionsPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getIndexOptionsPriceInfo", fsc),
+        ("파생V2-getCommodityFuturesPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getCommodityFuturesPriceInfo", fsc),
+        ("파생V2-getBondFuturesPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getBondFuturesPriceInfo", fsc),
+        ("파생V2-getCurrencyFuturesPriceInfo", B + "/1160100/GetDerivativeProductInfoService_V2/getCurrencyFuturesPriceInfo", fsc),
         ("매매실거래상세", B + "/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev", {"LAWD_CD": "11470", "DEAL_YMD": "202609", "numOfRows": "3", "pageNo": "1"}),
         ("전월세실거래", B + "/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent", {"LAWD_CD": "11470", "DEAL_YMD": "202609", "numOfRows": "3", "pageNo": "1"}),
     ]
