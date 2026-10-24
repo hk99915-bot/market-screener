@@ -11,7 +11,7 @@
 .rbvd span{margin-right:10px;white-space:nowrap}
 .rbwk{margin:0;padding:0;list-style:none;font-size:var(--fs-2)}
 .rbwk li{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid #1c1c1c;white-space:normal}
-.rbwk.one li span.t{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rbwk.one li span.t{flex:1 1 auto;min-width:0;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}   /* 10/24 R3: 한 줄 줄임표 → 두 줄까지(넘치면 title) */
 .rbwk .dd{flex:0 0 46px;font-weight:700;text-align:right}
 .rbch{margin-top:6px;padding:6px 8px;border:1px dashed var(--amber-dim);font-size:var(--fs-2);line-height:1.6;white-space:normal}
 .rbch code{color:var(--amber);background:#161616;padding:0 4px}
@@ -57,7 +57,7 @@ function rbView(){
   const cnt={}, vcnt={}; I.forEach(it=>{cnt[it.stage]=(cnt[it.stage]||0)+1; vcnt[it.verdict]=(vcnt[it.verdict]||0)+1;});
   const live=(cnt[S[S.length-1]&&S[S.length-1].id]||0);
   const strip=S.map((s,i)=>{ const act=I.filter(it=>it.stage===s.id&&it.verdict!=='폐기').length, lk=s.id==='live';
-    return `<button data-rbs="${esc(s.id)}" class="${lk?'lk':''}" title="관문: ${esc(s.gate)}"><b>${lk&&!live?'🔒':(cnt[s.id]||0)}</b>${esc(s.name)}${!lk&&cnt[s.id]?`<div class="mu" style="font-size:var(--fs-1)">진행·보류 ${act}</div>`:lk?'<div class="mu" style="font-size:var(--fs-1)">해금 전</div>':''}</button>`; }).join('');
+    return `<button data-rbs="${esc(s.id)}" class="${lk?'lk':''}" title="관문: ${esc(s.gate)}"><b>${lk&&!live?'🔒':(cnt[s.id]||0)}</b>${esc(s.name)}${!lk&&cnt[s.id]?`<div class="mu" style="font-size:var(--fs-1);white-space:nowrap" title="진행·보류 ${act}">진행 ${act}</div>`:lk?'<div class="mu" style="font-size:var(--fs-1)">해금 전</div>':''}</button>`; }).join('');
   const vd=['통과','진행','보류','폐기'].map(v=>`<span><b style="color:${RB_VC[v]}">${v}</b> ${vcnt[v]||0}</span>`).join('');
   const wk=rbWeek(RB,today), me=rbOwnerTodo(RB);
   const wkHtml=wk.length?`<ul class="rbwk one">${wk.slice(0,5).map(w=>`<li title="${esc(w.full||w.txt)}"><span class="dd">${w.n<0?`<span class="dn">${-w.n}일↑</span>`:w.n===0?'<span class="am">오늘</span>':'D-'+w.n}</span><span class="t">${esc(w.txt)} · ${esc(w.who)}</span></li>`).join('')}</ul>${wk.length>5?`<div class="mu" style="font-size:var(--fs-1)">+${wk.length-5}건 더 — 아래 카드</div>`:''}`:'<div class="mu">이번 주 마감 없음</div>';

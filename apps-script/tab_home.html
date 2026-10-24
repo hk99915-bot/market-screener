@@ -39,10 +39,12 @@ function calPanel(){
     return mob?`<span style="display:inline-block;width:6px;height:6px;border-radius:3px;background:${col};margin:1px"></span>`
       :`<div style="font-size:var(--fs-1);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid ${col};padding-left:3px;margin-top:2px;color:${my?'#ffcc33':'#ccc'}">${my?'📌':''}${esc(e.name.replace(/ 실적$/,''))}${e.type==='실적'?'':''}</div>`;};
   let cells=''; for(let k=0;k<off;k++) cells+='<div></div>';
-  const MV=CAL.moves||{}, mc=v=>v==null?'':`<span style="color:${v>0?'var(--up)':v<0?'var(--dn)':'#888'}">${v>0?'+':''}${(v*100).toFixed(1)}</span>`;
+  const MV=CAL.moves||{}, mc=v=>v==null?'':`<span style="color:${v>0?'var(--up)':v<0?'var(--dn)':'#888'}">${v>0?'+':''}${(v*100).toFixed(mob&&Math.abs(v)>=.1?0:1)}</span>`;
   for(let d=1;d<=dim;d++){ const ds=`${CALM}-${String(d).padStart(2,'0')}`, ev=by[ds]||[], dow=(off+d-1)%7, mv=MV[ds];
-    const mvl=mv?`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden">${mv.KOSPI!=null?(mob?'K':'코')+mc(mv.KOSPI):''}${mv.SPX!=null?' '+(mob?'S':'S&P')+mc(mv.SPX):''}</div>`:'';
-    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:3px;cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
+    // 폰(칸 폭 ≈41px): 'K+1.9 S+0.2' 한 줄은 11px 에서 S&P 값이 통째로 잘림(UXUI 10/24 R2) → 글자는 그대로, 내용을 두 줄로 나눈다(|등락| ≥10% 는 정수)
+    const mvl=mv?(mob?`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap">${mv.KOSPI!=null?'<div>K'+mc(mv.KOSPI)+'</div>':''}${mv.SPX!=null?'<div>S'+mc(mv.SPX)+'</div>':''}</div>`
+      :`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden">${mv.KOSPI!=null?'코'+mc(mv.KOSPI):''}${mv.SPX!=null?' S&P'+mc(mv.SPX):''}</div>`):'';
+    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:${mob?'3px 1px':'3px'};cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
       <div style="font-size:var(--fs-1);color:${dow===0?'#ff6b6b':dow===6?'#6ba8ff':'#999'}">${d}${ev.some(e=>e.imp>=3)?' ⭐':''}${ev.some(e=>e.result)?' ✓':''}</div>${mvl}${ev.slice(0,mob?8:4).map(chip).join('')}${!mob&&ev.length>4?`<div class="mu" style="font-size:var(--fs-1)">+${ev.length-4}</div>`:''}</div>`; }
   const sel=CALSEL&&(by[CALSEL]||MV[CALSEL])?(by[CALSEL]||[]):null, smv=CALSEL?MV[CALSEL]:null;
   setTimeout(()=>{ document.querySelectorAll('.calc').forEach(c=>c.onclick=()=>{ if(!by[c.dataset.d]&&!MV[c.dataset.d]) return; CALSEL=c.dataset.d; $('#homecal').innerHTML=calPanel(); });

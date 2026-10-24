@@ -73,6 +73,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_research_board(b, port)
         bad += await check_msg_popup(b, port)
         bad += await check_uxui_rest(b, port)
+        bad += await check_head_clip(b, port)
         await b.close()
     return bad
 
@@ -583,6 +584,55 @@ async def check_uxui_rest(b, port: int) -> int:
           + f" · 11px미만 {small} · 첫열 {stick}" + ("" if res["💬머리안"] else f" · 💬={fab}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok
+
+
+# 잘림 기준선(UXUI 10/24 재검수 정의: 자기 글자를 가진 요소가 overflow≠visible 또는 ellipsis 인데 scrollWidth > clientWidth+1, 팝업·상세 창 제외).
+# 10/24 R1~R4 고친 뒤 실측(main + req-dev-26f063bc). 뷰별로 이보다 늘면 BAD — 줄여서 고쳤으면 숫자도 같이 내린다. 없는 뷰 = 0.
+CLIP_BASE = {390: {"re": 4, "sysb": 1}, 1300: {"home": 2}}
+CLIP_1300 = ("home", "rb", "kr", "eng")      # PC 는 UXUI 가 회귀를 본 화면만 (시간 절약)
+CLIP_JS = """(()=>{ const out=[]; for(const e of document.querySelectorAll('#root *')){ if(!e.offsetWidth||e.closest('#mgpop,.drawer,#dr')) continue;
+  if(![...e.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())) continue; const cs=getComputedStyle(e);
+  if((cs.overflowX!=='visible'||cs.textOverflow==='ellipsis')&&e.scrollWidth>e.clientWidth+1) out.push((e.innerText||'').trim().slice(0,30)); } return out; })()"""
+HEAD_MAX = 110   # 390px 머리(.top) 높이 상한 — 10/24 R1: 💬 44px 들어오며 105→151px
+
+
+async def check_head_clip(b, port: int) -> int:
+    """UXUI 10/24 재검수(req-dev-26f063bc): ① 390px 머리 .top ≤110px · 💬·🔍 44px·같은 줄 — 실파일과 늦음 주입(빨간 배지) 둘 다
+    ② 연구 보드 단계 카드 ≤60px(R4: 56→71) ③ 잘림 기준선 CLIP_BASE 보다 늘어난 뷰 0 (390px 전체 뷰 + 1300px CLIP_1300)."""
+    import json as _json
+    bad = 0
+    for label, body in (("실파일", None), ("늦음 주입", _json.dumps(LATE, ensure_ascii=False))):
+        pg = await b.new_page(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+        if body:
+            await pg.route("**/reports/freshness.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(2500)
+        h = await pg.evaluate("""(()=>{ const g=id=>{const e=document.getElementById(id); if(!e||!e.offsetWidth) return null; const r=e.getBoundingClientRect(); return {t:r.top|0,h:r.height|0}};
+          return {top:document.querySelector('.top').getBoundingClientRect().height|0, fab:g('mgfab'), sqb:g('sqb'), fresh:(document.getElementById('fresh')||{}).textContent||''}; })()""")
+        ok = h["top"] <= HEAD_MAX and all(h[k] and h[k]["h"] >= 44 for k in ("fab", "sqb")) and h["fab"]["t"] == h["sqb"]["t"] \
+            and (("bad" in await pg.evaluate("document.getElementById('fresh').className")) if body else True)
+        bad += not ok
+        print(f"{'OK ' if ok else 'BAD'} 머리높이(390px, {label}) .top {h['top']}px ≤{HEAD_MAX} · 💬 {h['fab']} · 🔍 {h['sqb']} · 배지 '{h['fresh']}'")
+        await pg.close()
+    over: dict = {}
+    for w, views in ((390, None), (1300, CLIP_1300)):
+        pg = await b.new_page(viewport={"width": w, "height": 844}, has_touch=w < 700, is_mobile=w < 700)
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(2000)
+        for v in views or await pg.evaluate(ALL_JS):
+            await pg.evaluate(f"setView({v!r})")
+            await pg.wait_for_timeout(1800)
+            got = await pg.evaluate(CLIP_JS)
+            if len(got) > CLIP_BASE[w].get(v, 0):
+                over[f"{v}@{w}"] = f"{len(got)}>{CLIP_BASE[w].get(v, 0)} {got[:3]}"
+            if v == "rb" and w == 390:
+                ch = await pg.evaluate("Math.max(0,...[...document.querySelectorAll('.rbst button')].map(x=>x.getBoundingClientRect().height|0))")
+                if ch > 60:
+                    over["rb 단계 카드"] = f"{ch}px > 60"
+        await pg.close()
+    bad += bool(over)
+    print(f"{'OK ' if not over else 'BAD'} 잘림 기준선(390 전체·1300 {'/'.join(CLIP_1300)}) 증가 {len(over)}" + (f" · {over}" if over else ""))
+    return bad
 
 
 BOND_LATE = {"checked_at": "2026-10-21 12:00", "n": 21, "late": [{"id": "bonds", "path": "reports/bonds.json", "expected": "2026-10-21", "actual": "2026-10-20",

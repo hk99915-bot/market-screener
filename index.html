@@ -230,7 +230,12 @@ html,body{overflow-x:hidden}
   .tabs::-webkit-scrollbar{display:none}
   .tabs button{flex:0 0 auto;padding:7px 11px;font-size:var(--fs-2);min-height:44px}
   /* UXUI 재진단 Top10 #8 (10/23): 폰 머리 148px 상시 고정 → 검색창은 🔍 로 접고, 아래로 스크롤하면 머리 숨김(위로 올리면 다시), 탭 44px + 오른쪽 '›' */
-  #sqb{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-width:44px;min-height:40px;background:none;border:1px solid var(--line);color:var(--txt);font-size:var(--fs-4);cursor:pointer}
+  /* UXUI 10/24 재검수 R1(req-dev-26f063bc): 💬 44px 가 들어오며 첫 줄(브랜드+◐+신선도 143px+💬+🔍 ≈ 420px)이 넘쳐 🔍 이 혼자 둘째 줄 → .top 105→151px.
+     택1 = ① 신선도 배지를 폰에서 짧게('✓ 06:58' / '⚠ 늦음 2', 전체 문장은 누르면 팝업·title) + 남는 폭은 배지가 줄어들며 흡수(min-width:0).
+     ①을 고른 이유: 코드 한 곳(배지)만 바뀌고 💬·🔍 둘 다 머리에 남는다(②는 브랜드를 잃고, ③은 탭 줄 스크롤 끝에 💬 가 숨음). 뒤집힐 조건: 폰에서 배지 전체 문장을 봐야 한다는 겸이 피드백. */
+  .fresh{margin-left:0;flex:0 1 auto;min-width:0}   /* 짧은 글자는 freshBadge 가 폰 폭에서 넣는다(전체 문장은 title·팝업) */
+  #stb,#sqb,#mgfab{flex:none}
+  #sqb{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-width:44px;min-height:44px;background:none;border:1px solid var(--line);color:var(--txt);font-size:var(--fs-4);cursor:pointer}
   .srch{display:none}.top.sopen .srch{display:block}
   .top{transition:transform .2s ease}.top.hid{transform:translateY(-100%)}
   .top::after{content:'›';position:absolute;right:0;bottom:2px;height:44px;width:28px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:var(--fs-icon);color:var(--amber);background:linear-gradient(90deg,transparent,#111 55%);pointer-events:none}
@@ -311,12 +316,12 @@ html.stealth .brand{letter-spacing:0}
 .hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line),4px 0 6px -4px #000}   /* 표 첫 열 고정 (UXUI Top10 #10, 10/24): 가로로 밀어도 종목명 열이 남음 */
 .hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(255,154,31,.45),transparent) right/12px 100% no-repeat scroll}
 html.xl .hmore{color:#595959}
-/* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5): 공시 474·인적성 376 링크·버튼이 44px 미만 → 터치 화면에서만 목록 링크·작은 버튼·접기 줄을 44px 로 */
-@media (pointer:coarse){
-  .sbtn,.ctab button,.ovl button{min-height:44px}
-  #root summary{min-height:44px;box-sizing:border-box}
-  #root td a,#root .rp a{display:inline-block;min-height:44px;min-width:44px;padding-top:12px;box-sizing:border-box}
-}
+/* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
+   10/24 재검수(req-dev-26f063bc): 터치 화면만 → PC 포함 전체(1300px 공시 411·인적성 336 미달). 엑셀(xl) 위장 모드만 촘촘하게 둔다. */
+html:not(.xl) .sbtn,html:not(.xl) .ctab button,html:not(.xl) .ovl button{min-height:44px}
+html:not(.xl) #root summary{min-height:44px;box-sizing:border-box}
+html:not(.xl) #root td a,html:not(.xl) #root .rp a{display:inline-block;min-height:44px;min-width:44px;padding-top:12px;box-sizing:border-box}
+html:not(.xl) #root td:has(> a + a){white-space:normal}   /* 한 칸에 짧은 링크 여럿(리서치 종합 '원문' LS SK): 44px 상자가 옆으로 붙어 표가 넘침 → 줄을 바꿔 세로로 */
 </style>
 </head>
 <body>
@@ -805,10 +810,12 @@ function calPanel(){
     return mob?`<span style="display:inline-block;width:6px;height:6px;border-radius:3px;background:${col};margin:1px"></span>`
       :`<div style="font-size:var(--fs-1);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid ${col};padding-left:3px;margin-top:2px;color:${my?'#ffcc33':'#ccc'}">${my?'📌':''}${esc(e.name.replace(/ 실적$/,''))}${e.type==='실적'?'':''}</div>`;};
   let cells=''; for(let k=0;k<off;k++) cells+='<div></div>';
-  const MV=CAL.moves||{}, mc=v=>v==null?'':`<span style="color:${v>0?'var(--up)':v<0?'var(--dn)':'#888'}">${v>0?'+':''}${(v*100).toFixed(1)}</span>`;
+  const MV=CAL.moves||{}, mc=v=>v==null?'':`<span style="color:${v>0?'var(--up)':v<0?'var(--dn)':'#888'}">${v>0?'+':''}${(v*100).toFixed(mob&&Math.abs(v)>=.1?0:1)}</span>`;
   for(let d=1;d<=dim;d++){ const ds=`${CALM}-${String(d).padStart(2,'0')}`, ev=by[ds]||[], dow=(off+d-1)%7, mv=MV[ds];
-    const mvl=mv?`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden">${mv.KOSPI!=null?(mob?'K':'코')+mc(mv.KOSPI):''}${mv.SPX!=null?' '+(mob?'S':'S&P')+mc(mv.SPX):''}</div>`:'';
-    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:3px;cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
+    // 폰(칸 폭 ≈41px): 'K+1.9 S+0.2' 한 줄은 11px 에서 S&P 값이 통째로 잘림(UXUI 10/24 R2) → 글자는 그대로, 내용을 두 줄로 나눈다(|등락| ≥10% 는 정수)
+    const mvl=mv?(mob?`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap">${mv.KOSPI!=null?'<div>K'+mc(mv.KOSPI)+'</div>':''}${mv.SPX!=null?'<div>S'+mc(mv.SPX)+'</div>':''}</div>`
+      :`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden">${mv.KOSPI!=null?'코'+mc(mv.KOSPI):''}${mv.SPX!=null?' S&P'+mc(mv.SPX):''}</div>`):'';
+    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:${mob?'3px 1px':'3px'};cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
       <div style="font-size:var(--fs-1);color:${dow===0?'#ff6b6b':dow===6?'#6ba8ff':'#999'}">${d}${ev.some(e=>e.imp>=3)?' ⭐':''}${ev.some(e=>e.result)?' ✓':''}</div>${mvl}${ev.slice(0,mob?8:4).map(chip).join('')}${!mob&&ev.length>4?`<div class="mu" style="font-size:var(--fs-1)">+${ev.length-4}</div>`:''}</div>`; }
   const sel=CALSEL&&(by[CALSEL]||MV[CALSEL])?(by[CALSEL]||[]):null, smv=CALSEL?MV[CALSEL]:null;
   setTimeout(()=>{ document.querySelectorAll('.calc').forEach(c=>c.onclick=()=>{ if(!by[c.dataset.d]&&!MV[c.dataset.d]) return; CALSEL=c.dataset.d; $('#homecal').innerHTML=calPanel(); });
@@ -1996,7 +2003,7 @@ function drawBt(bt){ const cv=$('#mbt'); if(!cv||!bt||!bt.curve) return; const W
 .rbvd span{margin-right:10px;white-space:nowrap}
 .rbwk{margin:0;padding:0;list-style:none;font-size:var(--fs-2)}
 .rbwk li{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid #1c1c1c;white-space:normal}
-.rbwk.one li span.t{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rbwk.one li span.t{flex:1 1 auto;min-width:0;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}   /* 10/24 R3: 한 줄 줄임표 → 두 줄까지(넘치면 title) */
 .rbwk .dd{flex:0 0 46px;font-weight:700;text-align:right}
 .rbch{margin-top:6px;padding:6px 8px;border:1px dashed var(--amber-dim);font-size:var(--fs-2);line-height:1.6;white-space:normal}
 .rbch code{color:var(--amber);background:#161616;padding:0 4px}
@@ -2042,7 +2049,7 @@ function rbView(){
   const cnt={}, vcnt={}; I.forEach(it=>{cnt[it.stage]=(cnt[it.stage]||0)+1; vcnt[it.verdict]=(vcnt[it.verdict]||0)+1;});
   const live=(cnt[S[S.length-1]&&S[S.length-1].id]||0);
   const strip=S.map((s,i)=>{ const act=I.filter(it=>it.stage===s.id&&it.verdict!=='폐기').length, lk=s.id==='live';
-    return `<button data-rbs="${esc(s.id)}" class="${lk?'lk':''}" title="관문: ${esc(s.gate)}"><b>${lk&&!live?'🔒':(cnt[s.id]||0)}</b>${esc(s.name)}${!lk&&cnt[s.id]?`<div class="mu" style="font-size:var(--fs-1)">진행·보류 ${act}</div>`:lk?'<div class="mu" style="font-size:var(--fs-1)">해금 전</div>':''}</button>`; }).join('');
+    return `<button data-rbs="${esc(s.id)}" class="${lk?'lk':''}" title="관문: ${esc(s.gate)}"><b>${lk&&!live?'🔒':(cnt[s.id]||0)}</b>${esc(s.name)}${!lk&&cnt[s.id]?`<div class="mu" style="font-size:var(--fs-1);white-space:nowrap" title="진행·보류 ${act}">진행 ${act}</div>`:lk?'<div class="mu" style="font-size:var(--fs-1)">해금 전</div>':''}</button>`; }).join('');
   const vd=['통과','진행','보류','폐기'].map(v=>`<span><b style="color:${RB_VC[v]}">${v}</b> ${vcnt[v]||0}</span>`).join('');
   const wk=rbWeek(RB,today), me=rbOwnerTodo(RB);
   const wkHtml=wk.length?`<ul class="rbwk one">${wk.slice(0,5).map(w=>`<li title="${esc(w.full||w.txt)}"><span class="dd">${w.n<0?`<span class="dn">${-w.n}일↑</span>`:w.n===0?'<span class="am">오늘</span>':'D-'+w.n}</span><span class="t">${esc(w.txt)} · ${esc(w.who)}</span></li>`).join('')}</ul>${wk.length>5?`<div class="mu" style="font-size:var(--fs-1)">+${wk.length-5}건 더 — 아래 카드</div>`:''}`:'<div class="mu">이번 주 마감 없음</div>';
@@ -3880,7 +3887,7 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 .mgt{font-size:var(--fs-1);color:var(--muted);margin-left:6px}
 .mgq{font-size:var(--fs-1);color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
 .mgsys{text-align:center;font-size:var(--fs-1);color:var(--muted);margin:8px 0;white-space:normal}
-#mgfab{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:40px;padding:0 6px;background:none;border:1px solid var(--amber-dim);border-radius:3px;color:var(--txt);font-size:var(--fs-4);cursor:pointer}
+#mgfab{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 6px;background:none;border:1px solid var(--amber-dim);border-radius:3px;color:var(--txt);font-size:var(--fs-4);cursor:pointer}
 #mgfab.on{background:var(--amber);color:#000}
 @media (max-width:700px){#mgfab{margin-left:auto}#mgfab+#sqb{margin-left:0}}
 #mgpop{position:fixed;right:16px;bottom:16px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:#0a0a0a;border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
@@ -4626,7 +4633,8 @@ function freshBadge(){ const el=$('#fresh'); if(!el) return; if(!FR){ el.classNa
   const n=(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length, hm=String(FR.checked_at||'').slice(11,16), H=FR.health||[];
   // 알림 비활성(시크릿 부재 — alerts.secret_health, 감사 10/17 #26): 늦은 데이터보다 먼저 보인다
   const kn=(FR.late||[]).filter(x=>x.note).length, nt=`늦은 데이터 ${n}${kn?` (원인 확인·조치 중 ${kn})`:''}`;   // 진짜 지연 = ops/freshness_known.json 사정 한 줄 (10/21)
-  el.className='fresh '+(n||H.length?'bad':'ok'); el.textContent=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · ${nt}`:''):n?`⚠ ${nt}`:`데이터 정상 · 점검 ${hm||'—'}`; }
+  el.className='fresh '+(n||H.length?'bad':'ok'); const lng=H.length?'⚠ '+H.map(h=>h.what).join(' · ')+(n?` · ${nt}`:''):n?`⚠ ${nt}`:`데이터 정상 · 점검 ${hm||'—'}`;
+  el.title=lng+' — 누르면 상세'; el.textContent=matchMedia('(max-width:700px)').matches?(H.length?'⚠ 알림 '+H.length+(n?' · 늦음 '+n:''):n?'⚠ 늦음 '+n:'✓ '+(hm||'—')):lng; }
 function freshPop(){ if(!FR) return; const L2=FR.late||[], R=FR.regress_today||[], S=FR.stale_today||[];
   $('#dr').classList.add('on');$('#bd').classList.add('on');$('#dr-t').textContent='데이터 신선도';$('#dr-s').textContent=' 점검 '+esc(FR.checked_at||'')+' KST · 계약 '+(FR.n||0)+'항목';
   const rows=L2.map(x=>`<tr><td class="l">${esc(x.path)}<div class="mu" style="font-size:var(--fs-1)">${esc(x.desc||'')}</div>${x.note?`<div class="am" style="font-size:var(--fs-1);white-space:normal">${esc(x.note)}</div>`:''}</td><td class="l">${esc(x.expected)}</td><td class="l dn">${esc(x.actual)}</td><td class="l mu">${esc(x.mode||'')}</td><td class="l"><code>${esc(x.fix||'')}</code></td></tr>`).join('');
