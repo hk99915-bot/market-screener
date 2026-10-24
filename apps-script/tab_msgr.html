@@ -9,8 +9,8 @@
 .mgseg{display:flex;border:1px solid var(--line)}
 .mgseg button{min-height:40px;background:none;border:0;border-right:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-2);padding:0 12px;cursor:pointer}
 .mgseg button:last-child{border-right:0}
-.mgseg button.on{color:#000;background:var(--amber)}
-.mgsel{min-height:40px;background:#111;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:0 8px}
+.mgseg button.on{color:var(--on-amber);background:var(--amber)}
+.mgsel{min-height:40px;background:var(--bg2);color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:0 8px}
 .mgsum{font-size:var(--fs-2);color:var(--muted);margin:0 0 6px}
 .mgsum b{color:var(--txt)}
 .mgday{margin:14px 0 2px;font-size:var(--fs-1);color:var(--muted);letter-spacing:.08em}
@@ -40,7 +40,7 @@
 .mgempty{color:var(--muted);font-size:var(--fs-2);padding:16px 0}
 .mgbox{max-height:70vh;overflow-y:auto;padding-right:4px}
 .mgb2{display:flex;gap:8px;margin:10px 0;white-space:normal}
-.mgb2 .mgbub{display:inline-block;max-width:100%;background:#151515;border:1px solid var(--line);border-radius:2px 12px 12px 12px;padding:7px 10px;font-size:var(--fs-3);line-height:1.6;color:var(--txt);overflow-wrap:anywhere}
+.mgb2 .mgbub{display:inline-block;max-width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:2px 12px 12px 12px;padding:7px 10px;font-size:var(--fs-3);line-height:1.6;color:var(--txt);overflow-wrap:anywhere}
 .mgb2.me{flex-direction:row-reverse;text-align:right}
 .mgb2.me .mgbub{border-radius:12px 2px 12px 12px;border-color:var(--amber-dim);text-align:left}
 .mgb2.chat .mgbub{background:none;border-style:dashed;color:var(--muted)}
@@ -48,10 +48,10 @@
 .mgq{font-size:var(--fs-1);color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
 .mgsys{text-align:center;font-size:var(--fs-1);color:var(--muted);margin:8px 0;white-space:normal}
 #mgfab{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 6px;background:none;border:1px solid var(--amber-dim);border-radius:3px;color:var(--txt);font-size:var(--fs-4);cursor:pointer}
-#mgfab.on{background:var(--amber);color:#000}
+#mgfab.on{background:var(--amber);color:var(--on-amber)}
 @media (max-width:700px){#mgfab{margin-left:auto}#mgfab+#sqb{margin-left:0}}
-#mgpop{position:fixed;right:16px;bottom:16px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:#0a0a0a;border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
-#mgpop .mgph{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:#111;border-bottom:1px solid var(--line);cursor:move;touch-action:none}
+#mgpop{position:fixed;right:16px;bottom:16px;z-index:31;width:min(440px,calc(100vw - 32px));height:min(72vh,680px);background:var(--panel);border:1px solid var(--amber-dim,#555);box-shadow:0 10px 40px #000;display:flex;flex-direction:column}
+#mgpop .mgph{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:var(--bg2);border-bottom:1px solid var(--line);cursor:move;touch-action:none}
 #mgpop .mgph button{margin-left:auto;min-width:40px;min-height:40px;background:none;border:0;color:var(--muted);font-size:var(--fs-icon);cursor:pointer}
 #mgpop .mgpb{flex:1;overflow:auto;padding:6px}
 #mgpop .grid{display:block}#mgpop .p h2{display:none}#mgpop .mgbox{max-height:none}
@@ -87,7 +87,7 @@ const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
 function mgNm(k){ return MG_NM[k]||k||'?'; }
 function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%360; return h; }
 const MG_IMG='https://raw.githubusercontent.com/hk99915-bot/market-screener/main/assets/avatars/';   // 프로필 사진(겸이가 GPT 로 만들어 올림, assets/avatars/<키>.png) — 없으면 이니셜 원
-function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'var(--amber)':`hsl(${mgHue(k)} 45% 62%)`;
+function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'#ff9a1f':`hsl(${mgHue(k)} 45% 62%)`;
   return `<div class="mgav" role="button" tabindex="0" title="프로필" data-mgp="${esc(k)}" style="background:${bg};overflow:hidden;cursor:pointer"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()"></div>`; }
 /* 원본 보기(10/23 겸이 "한 번씩 더 누르면 원본, 크기 조절 가능하게") — 휠·핀치·두 번 탭(1x↔2.5x)·끌기·＋/－ */
 function mgZoom(src){ if(!src) return; const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:#000;z-index:120;overflow:hidden;touch-action:none';
@@ -167,7 +167,7 @@ function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) r
   document.body.appendChild(o); }
 function mgProfGrid(){ const L=(MG&&MG.profiles)||[]; if(!L.length) return '<div class="mgempty">프로필 데이터 없음 — scripts/msgr_feed.py</div>';
   const by={}; L.forEach(p=>(by[p.dept]=by[p.dept]||[]).push(p));
-  return Object.entries(by).map(([d,ps])=>`<div class="mgday">${esc(d)}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,44vw),1fr));gap:8px">${ps.map(p=>`<button type="button" data-mgp="${esc(p.key)}" style="text-align:left;background:#0d0d0d;border:1px solid var(--line);color:var(--txt);font:inherit;padding:8px;cursor:pointer;min-width:0;white-space:normal">
+  return Object.entries(by).map(([d,ps])=>`<div class="mgday">${esc(d)}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,44vw),1fr));gap:8px">${ps.map(p=>`<button type="button" data-mgp="${esc(p.key)}" style="text-align:left;background:var(--panel);border:1px solid var(--line);color:var(--txt);font:inherit;padding:8px;cursor:pointer;min-width:0;white-space:normal">
     <img src="${MG_IMG}${encodeURIComponent(p.key)}.png" alt="" loading="lazy" style="width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 20%" onerror="this.style.display='none'">
     <div style="margin-top:4px"><b>${esc(p.name)}</b> <span class="mu" style="font-size:var(--fs-1)">${p.age}</span></div>
     <div class="mu" style="font-size:var(--fs-1);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.msg||p.line)}</div></button>`).join('')}</div>`).join(''); }
@@ -200,8 +200,8 @@ function mgPrivView(seg,sel){
   if(MGP&&MGP._need_token){ setTimeout(()=>{ const sv=document.getElementById('mgtksv'); if(sv) sv.onclick=()=>{ const v=(document.getElementById('mgtk').value||'').trim(); if(!v) return; try{ localStorage.setItem('pbPrivTok',v); }catch(e){} MGP=null; mgRe(); }; },0);
     feed=`<div class="mgempty" style="white-space:normal;line-height:1.7">🔒 이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
       <span class="mu" style="font-size:var(--fs-2)">토큰은 이 브라우저에만 저장돼(저장소·채팅·서버로 안 감). 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained token ↗</a> → Repository access: <b>Only select → pb-private</b> → Permissions: <b>Contents = Read-only</b> → 만료 90일</span><br>
-      <input id="mgtk" type="password" autocomplete="off" placeholder="github_pat_…" style="min-height:40px;width:min(100%,360px);background:#111;color:var(--txt);border:1px solid var(--line);padding:0 8px;font:inherit">
-      <button id="mgtksv" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">저장하고 열기</button></div>`; }
+      <input id="mgtk" type="password" autocomplete="off" placeholder="github_pat_…" style="min-height:40px;width:min(100%,360px);background:var(--bg2);color:var(--txt);border:1px solid var(--line);padding:0 8px;font:inherit">
+      <button id="mgtksv" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">저장하고 열기</button></div>`; }
   const forget=(()=>{ try{ return !!localStorage.getItem('pbPrivTok'); }catch(e){ return false; } })()?` · <a href="#" onclick="try{localStorage.removeItem('pbPrivTok')}catch(e){};MGP=null;mgRe();return false">이 기기 토큰 지우기</a>`:'';
   const empty=(MGP&&MGP._err)?`<div class="mgempty">🔒 사담방 연결 안 됨 — ${esc(MGP._err)}</div>`:MGP===false?'<div class="load">LOADING …</div>':(MGP&&MGP.chat)?'<div class="mgempty">아직 조용해 — 누나들이 루프·라운드 끝에 한마디씩 남겨</div>':'<div class="mgempty">🔒 사담을 못 불러왔어 — 새로고침해 봐 (공개 Pages 면 이 기기 토큰, GAS 면 PRIVATE_TOKEN)</div>';
   return `<div class="grid"><div class="p c12"><h2>사내톡 · 🔒 비공개 사담<small>pb-private · 겸이만</small></h2><div class="b">
