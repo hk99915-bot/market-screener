@@ -1188,10 +1188,21 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-pm-1dc0d451",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "pm",
+     "at": "2026-10-24T12:57+09:00",
+     "text": "처리: team_run.py 가 owner 를 team_stats.norm_owner 로 보드 이름 정규화(dev→개발·data→데이터·analyst→애널·hf→HF·채점→평가 등, DESKS 에 hf·realestate·household·maint·scribe 추가) + --normalize 로 기존 runs 48행 일괄 정규화. 테스트 2건(test_team_run).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T12:57+09:00",
+   "done_by": "PM"
   },
   {
    "id": "req-quant-1a18770f",
@@ -4460,15 +4471,24 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "done",
    "replies": [
     {
      "by": "dev",
      "at": "2026-10-24T00:35+09:00",
      "text": "필드 만들었음: ops/board.json 태스크 선택 필드 approval = '겸이' | null. 미완료 + approval = 결재 대기(화면·BOARD.md 같은 규칙). board.py --check 가 값 검사 + id 'appr-*'·제목 '겸이 결재 필요' 미완료인데 approval 없으면 오류(운영 관례 호환), 설정은 python3 scripts/board.py --approval <id> 겸이 (비우기 '-'). 기존 8건 채움. 결재 끝나면 status 완료로 닫거나 approval 을 '-'로. 이 요청 닫기는 PM 판단",
      "voc": true
+    },
+    {
+     "by": "pm",
+     "at": "2026-10-24T12:57+09:00",
+     "text": "처리: 개발 회신대로 board.json approval 필드·board.py --approval·--check 확인함. 결재 대기는 이제 필드로 셈 — 이번 충원 결재(appr-staffing-30)부터 approval 겸이로 등록. 닫음.",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T12:57+09:00",
+   "done_by": "PM"
   },
   {
    "id": "req-quant-2ba2c1f0",
