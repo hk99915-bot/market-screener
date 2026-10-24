@@ -136,9 +136,10 @@ def test_bad_format_message():
 # ── 2주 게이트 ──
 def test_two_week_gate_15_open(study):
     g = study["gate"]
-    assert len(g["open"]) == 15 and len(g["locked"]) == 52 and g["unlock_rule"] == "앞 모듈 done 이슈"
-    assert g["open"][:10] == study["roadmap"]["first_two_weeks"] and g["open"][0] == "H2"
     mods = {m["id"]: m for t in study["tracks"] for m in t["modules"]}
+    # locked = 전체 − 15 (10/24 트랙 J 추가로 52 → 58; 모듈 수 하드코딩 대신 파생)
+    assert len(g["open"]) == 15 and len(g["locked"]) == len(mods) - 15 and g["unlock_rule"] == "앞 모듈 done 이슈"
+    assert g["open"][:10] == study["roadmap"]["first_two_weeks"] and g["open"][0] == "H2"
     assert sum(1 for m in mods.values() if not m["locked"]) == 15
     assert all(m["unlock_rule"] == "앞 모듈 done 이슈" and m["open_until"] is None for m in mods.values() if m["locked"])
     assert all(m["open_until"] == g["open_until"] for m in mods.values() if not m["locked"])
