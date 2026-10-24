@@ -4753,8 +4753,8 @@
       "title": "프론트 첫 라운드 — KB front.md 읽기·드릴 front-d1 풀이 + 화면 파일 다크 전용 하드코딩 색 2곳 토큰화(skin_audit·ui_smoke 통과)",
       "owner": "프론트",
       "priority": "P2",
-      "status": "대기",
-      "started": null,
+      "status": "진행",
+      "started": "2026-10-24",
       "due": "2026-10-31",
       "files": [
         "apps-script/tab_*.html",
@@ -4785,6 +4785,40 @@
       "priority": "P2",
       "repo": "public",
       "approval": "겸이"
+    },
+    {
+      "started": "2026-10-24",
+      "due": "2026-10-28",
+      "files": [
+        "apps-script/tab_msgr.html",
+        "scripts/ui_smoke.py",
+        "reports/org_rnr.md"
+      ],
+      "depends_on": [],
+      "notes": "10/24 PB 지시(겸이 ㅇㅇ). 구현 끝·미배포: 브랜치 front-org-rnr-wip(6f409220) — 데이터 reports/org_rnr.md(ORG.md+각 KB 경계, 29명) 기존 getMarkdown 로 읽음(새 getter 없음), check_org_rnr 기본·엑셀×390·1300 OK·데스크 1명 빼면 BAD. 겸이 주간 한도 절약(PB 10/24)으로 보류 — 화 11시 이후 재개: main 기준 rebase·index 재빌드·운영 내용 검수·개발 계약 회신 뒤 push.",
+      "id": "org-rnr",
+      "title": "사내톡 🏢 조직도 옆 📋 RnR 보기 — 층·리스크본부 경계·29명 하는 것/안 하는 것·한도 초과 사건 흐름, ui_smoke check_org_rnr",
+      "owner": "프론트",
+      "priority": "P2",
+      "status": "보류",
+      "repo": "public",
+      "desk": "프론트"
+    },
+    {
+      "started": "",
+      "due": "2026-10-28",
+      "files": [
+        "apps-script/Index.html"
+      ],
+      "depends_on": [],
+      "notes": "10/24 PB 지시. 개발 장중 오버레이(잠금 task intraday-bar, live.yml) 데이터 계약·장부 요청 오면 착수. 겸이 주간 한도 절약 — 화 11시 이후.",
+      "id": "popup-intraday-bar",
+      "title": "종목 팝업 차트 오늘 잠정 봉 + 장중 HH:MM 토스 라벨 — 개발 장중 오버레이 데이터 계약 받은 뒤",
+      "owner": "프론트",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public",
+      "desk": "프론트"
     }
   ]
 }
