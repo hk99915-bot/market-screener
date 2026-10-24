@@ -519,6 +519,50 @@ def p_datagokr():
     print("SUMMARY 주택금융공사 전세자금대출 금리 | endpoint 미확인 — 활용신청 상세 페이지 요청주소 확인 필요")
 
 
+def p_seoul_apt():
+    """서울 25개 구 아파트 매매·전세 실거래 요약(최근 3개월) — 국토부 API, 키 미출력. 10/24 겸이 '현실적으로 접근 가능한 범위 추천·서울 지역별 코멘트'."""
+    import os, statistics, xml.etree.ElementTree as ET
+    key = os.environ.get("DATA_GO_KR_KEY", "")
+    if not key:
+        print("key set: False"); return
+    GU = {"11110":"종로","11140":"중구","11170":"용산","11200":"성동","11215":"광진","11230":"동대문","11260":"중랑","11290":"성북","11305":"강북","11320":"도봉","11350":"노원","11380":"은평","11410":"서대문","11440":"마포","11470":"양천","11500":"강서","11530":"구로","11545":"금천","11560":"영등포","11590":"동작","11620":"관악","11650":"서초","11680":"강남","11710":"송파","11740":"강동"}
+    months = ["202607", "202608", "202609"]
+    B = "https://apis.data.go.kr/1613000/"
+    def fetch(svc, op, cd, ym):
+        out = []
+        for page in range(1, 6):
+            try:
+                r = requests.get(B + svc + "/" + op, params={"serviceKey": key, "LAWD_CD": cd, "DEAL_YMD": ym, "numOfRows": "1000", "pageNo": str(page)}, timeout=25)
+                root = ET.fromstring(r.content)
+            except Exception:
+                break
+            items = root.findall(".//item")
+            out += [{c.tag: (c.text or "").strip() for c in it} for it in items]
+            if len(items) < 1000:
+                break
+        return out
+    def band(a):
+        a = float(a or 0)
+        return "59" if 55 <= a < 65 else ("84" if 80 <= a < 90 else None)
+    print("SUMMARY 구 | 매매n(3개월) | 59㎡ 중위(억) n | 84㎡ 중위(억) n | 84㎡ 하위25%(억) | 84㎡ 전세 중위(억) n | 전세가율84 | 1999년 이전 비중")
+    for cd, nm in GU.items():
+        tr, rent = [], []
+        for ym in months:
+            tr += [x for x in fetch("RTMSDataSvcAptTradeDev", "getRTMSDataSvcAptTradeDev", cd, ym) if not x.get("cdealType")]
+            rent += [x for x in fetch("RTMSDataSvcAptRent", "getRTMSDataSvcAptRent", cd, ym) if (x.get("monthlyRent") or "0").replace(",", "") in ("0", "")]
+        def amt(x, k):
+            try: return float((x.get(k) or "0").replace(",", "")) / 10000
+            except Exception: return None
+        p59 = [amt(x, "dealAmount") for x in tr if band(x.get("excluUseAr")) == "59"]
+        p84 = [amt(x, "dealAmount") for x in tr if band(x.get("excluUseAr")) == "84"]
+        j84 = [amt(x, "deposit") for x in rent if band(x.get("excluUseAr")) == "84"]
+        old = [x for x in tr if (x.get("buildYear") or "9999") < "2000"]
+        md = lambda v: round(statistics.median(v), 2) if v else None
+        q1 = round(sorted(p84)[len(p84)//4], 2) if len(p84) >= 4 else None
+        jr = round(md(j84) / md(p84) * 100) if p84 and j84 else None
+        print(f"SUMMARY {nm} | {len(tr)} | {md(p59)} {len(p59)} | {md(p84)} {len(p84)} | {q1} | {md(j84)} {len(j84)} | {jr}% | {round(len(old)/len(tr)*100) if tr else '-'}%")
+
+
 if __name__ == "__main__":
     only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
     for nm in only:
