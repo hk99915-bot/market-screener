@@ -60,3 +60,21 @@ def test_cost_deducted_from_r():
     p = {"entry": 100.0, "stop": 90.0, "market": "KR"}
     assert P._r(p, 110.0) == pytest.approx((10 - 0.45) / 10)
     assert P._r({**p, "market": "US"}, 90.0) == pytest.approx((-10 - 0.2) / 10)
+
+
+def test_trend_trailing_stop_weekly():
+    b = {"open": [], "closed": []}
+    BARS.clear()
+    d0 = datetime(2026, 10, 5)
+    for i in range(30):                                                  # 6주, 매일 +1 상승
+        t = (d0 + timedelta(days=i)).date()
+        if t.weekday() >= 5:
+            continue
+        BARS.append({"t": t.isoformat(), "o": 100 + i, "h": 101 + i, "l": 99 + i, "c": 100 + i})
+    with pytest.raises(SystemExit, match="trail"):
+        P.add(b, "X", 90, None, "t", market="US", now=datetime(2026, 10, 4, 12, 0, tzinfo=KST))
+    p = P.add(b, "X", 90, None, "t", market="US", now=datetime(2026, 10, 4, 12, 0, tzinfo=KST), trail=True)
+    assert P.mark(b) == [] and p["stop"] > 90 and p["stop0"] == 90                 # 손절이 올라감, 1R 은 첫 손절 기준
+    BARS.append({"t": "2026-11-09", "o": 120, "h": 120, "l": 100, "c": 101})       # 올린 손절 아래 마감
+    out = P.mark(b)
+    assert out and out[0]["exit_why"].startswith("추세 이탈") and out[0]["r"] > 0
