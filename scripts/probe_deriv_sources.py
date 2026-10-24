@@ -475,6 +475,39 @@ def p_krx_openapi():
         print(f"SUMMARY {ep} | {nm} | {v} | {d} | {n} | {iv or '-'} | {q or '-'}")
 
 
+def p_datagokr():
+    """data.go.kr 승인 7건(10/24 겸이) 탐침 — 키 DATA_GO_KR_KEY(일반 인증키 Decoding), 키 값·응답 원문은 출력하지 않음."""
+    import os
+    key = os.environ.get("DATA_GO_KR_KEY", "")
+    print("key set:", bool(key))
+    if not key:
+        return
+    B = "https://apis.data.go.kr"
+    fsc = {"resultType": "json", "numOfRows": "3", "pageNo": "1", "basDt": "20261023"}
+    eps = [
+        ("주식시세", B + "/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo", fsc),
+        ("지수시세", B + "/1160100/service/GetMarketIndexInfoService/getStockMarketIndex", fsc),
+        ("채권시세", B + "/1160100/service/GetBondSecuritiesInfoService/getBondPriceInfo", fsc),
+        ("파생-주식선물", B + "/1160100/service/GetDerivativeProductInfoService/getStockFuturesPriceInfo", fsc),
+        ("파생-옵션", B + "/1160100/service/GetDerivativeProductInfoService/getOptionsPriceInfo", fsc),
+        ("파생-선물", B + "/1160100/service/GetDerivativeProductInfoService/getFuturesPriceInfo", fsc),
+        ("매매실거래상세", B + "/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev", {"LAWD_CD": "11470", "DEAL_YMD": "202609", "numOfRows": "3", "pageNo": "1"}),
+        ("전월세실거래", B + "/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent", {"LAWD_CD": "11470", "DEAL_YMD": "202609", "numOfRows": "3", "pageNo": "1"}),
+    ]
+    for nm, url, q in eps:
+        try:
+            r = requests.get(url, params={**q, "serviceKey": key}, timeout=20)
+            t = r.text
+            code = re.search(r"<resultCode>([^<]*)</resultCode>|\"resultCode\"\s*:\s*\"([^\"]*)\"", t)
+            tot = re.search(r"<totalCount>(\d+)</totalCount>|\"totalCount\"\s*:\s*(\d+)", t)
+            fields = sorted(set(re.findall(r"<(\w+)>[^<]*</\1>", t)))[:25] or sorted(set(re.findall(r"\"(\w+)\"\s*:", t)))[:25]
+            msg = re.search(r"<returnAuthMsg>([^<]*)|<resultMsg>([^<]*)|\"resultMsg\"\s*:\s*\"([^\"]*)\"", t)
+            print(f"SUMMARY {nm} | HTTP {r.status_code} | code {next((g for g in (code.groups() if code else ()) if g), '-')} | total {next((g for g in (tot.groups() if tot else ()) if g), '-')} | msg {next((g for g in (msg.groups() if msg else ()) if g), '-')[:60]} | fields {','.join(fields)}")
+        except Exception as e:
+            print(f"SUMMARY {nm} | ERR {type(e).__name__}")
+    print("SUMMARY 주택금융공사 전세자금대출 금리 | endpoint 미확인 — 활용신청 상세 페이지 요청주소 확인 필요")
+
+
 if __name__ == "__main__":
     only = sys.argv[1:] or ["pykrx_flows", "krx_futboard", "krx_screens", "krx_inv_guess", "naver_pc", "naver_mobile", "esignal_investing"]
     for nm in only:
