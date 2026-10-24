@@ -63,6 +63,7 @@
   .bar{height:6px;background:#1c1c1c;position:relative;margin:2px 0 6px}
   .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber)}
   .tag{display:inline-block;padding:0 5px;border:1px solid var(--amber-dim);color:var(--amber);font-size:var(--fs-1);margin-right:4px}
+  button.tag{background:none;cursor:pointer}   /* 버튼으로 쓴 태그(HOME 달력 ◀▶): 브라우저 기본 회색 바탕에 주황 글자 대비 1.85 → 바탕 없음 (10/24 대비 점검) */
   .tag.g{border-color:#1f6b33;color:var(--up)}.tag.r{border-color:#7a2020;color:var(--dn)}.tag.b{border-color:#2a4f7a;color:var(--blue)}
   pre{margin:0;white-space:pre-wrap;color:#d0d0d0;font:inherit}
   .err{background:#2a0e0e;color:#ffb3b3;border:1px solid #5a1a1a;padding:6px 8px;margin:8px}
@@ -182,7 +183,7 @@ html.xl #xlrib,html.xl #xlfx{display:flex}
 #xlrib b{color:#333;border-bottom:2px solid #8a8a8a;font-weight:400}
 #xlfx{gap:8px;align-items:center;padding:3px 8px;background:#fff;border-bottom:1px solid #d4d4d4;font:var(--fs-2) "Malgun Gothic",sans-serif}
 #xlfx span:first-child{width:70px;border:1px solid #d4d4d4;padding:1px 6px;color:#333}
-#xlfx i{color:#888;font-style:italic}
+#xlfx i{color:#595959;font-style:italic}
 html.xl .tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#f3f3f3;border-top:1px solid #c6c6c6;justify-content:flex-start;gap:0;padding:0 6px;flex-wrap:nowrap;overflow-x:auto}
 html.xl .tabs button{background:#f3f3f3;color:#333;border:0;border-right:1px solid #d4d4d4;letter-spacing:0;padding:5px 16px;font-weight:400}
 html.xl .tabs button.on{background:#fff;color:#000;border-bottom:2px solid #8a8a8a;font-weight:600}

@@ -159,6 +159,7 @@
   .bar{height:6px;background:#1c1c1c;position:relative;margin:2px 0 6px}
   .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber)}
   .tag{display:inline-block;padding:0 5px;border:1px solid var(--amber-dim);color:var(--amber);font-size:var(--fs-1);margin-right:4px}
+  button.tag{background:none;cursor:pointer}   /* 버튼으로 쓴 태그(HOME 달력 ◀▶): 브라우저 기본 회색 바탕에 주황 글자 대비 1.85 → 바탕 없음 (10/24 대비 점검) */
   .tag.g{border-color:#1f6b33;color:var(--up)}.tag.r{border-color:#7a2020;color:var(--dn)}.tag.b{border-color:#2a4f7a;color:var(--blue)}
   pre{margin:0;white-space:pre-wrap;color:#d0d0d0;font:inherit}
   .err{background:#2a0e0e;color:#ffb3b3;border:1px solid #5a1a1a;padding:6px 8px;margin:8px}
@@ -278,7 +279,7 @@ html.xl #xlrib,html.xl #xlfx{display:flex}
 #xlrib b{color:#333;border-bottom:2px solid #8a8a8a;font-weight:400}
 #xlfx{gap:8px;align-items:center;padding:3px 8px;background:#fff;border-bottom:1px solid #d4d4d4;font:var(--fs-2) "Malgun Gothic",sans-serif}
 #xlfx span:first-child{width:70px;border:1px solid #d4d4d4;padding:1px 6px;color:#333}
-#xlfx i{color:#888;font-style:italic}
+#xlfx i{color:#595959;font-style:italic}
 html.xl .tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#f3f3f3;border-top:1px solid #c6c6c6;justify-content:flex-start;gap:0;padding:0 6px;flex-wrap:nowrap;overflow-x:auto}
 html.xl .tabs button{background:#f3f3f3;color:#333;border:0;border-right:1px solid #d4d4d4;letter-spacing:0;padding:5px 16px;font-weight:400}
 html.xl .tabs button.on{background:#fff;color:#000;border-bottom:2px solid #8a8a8a;font-weight:600}
@@ -1206,7 +1207,7 @@ function myView(){
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
     <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code> · <code>예적금 9000000</code>(반도체 한도 분모에만 더함)<br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
     <textarea id="myta" rows="9" style="width:100%;max-width:640px;background:#050505;color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-3);padding:8px">${esc(txt)}</textarea>
-    <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:#000;border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
+    <div><button id="mygo" style="margin-top:6px;background:var(--amber);color:var(--on-amber);border:0;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer">분석</button></div></details>
     <details id="mybak" style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">백업 · 내보내기/가져오기 (holdings.txt 형식)</summary>
       <div class="mu" style="font-size:var(--fs-1);line-height:1.6;margin-bottom:4px">브라우저 데이터를 지우면 보유 입력이 사라져요 — 주 1회 백업. <b>개인 값이라 텔레그램·공개 저장소에 붙이지 말 것</b>, PB 에게는 대화로. 원장(holdings.txt)에는 쓰지 않아요.</div>
       <button id="mycopy" class="sbtn">복사</button> <button id="mydl" class="sbtn">파일로 저장</button> <label class="sbtn" style="display:inline-block">파일 가져오기<input id="myfile" type="file" accept=".txt,text/plain" style="display:none"></label> <span id="mybakmsg" class="mu" style="font-size:var(--fs-2)"></span>
@@ -2010,24 +2011,24 @@ function drawBt(bt){ const cv=$('#mbt'); if(!cv||!bt||!bt.curve) return; const W
      첫 화면(390px) = 단계별 개수 · 판정 개수 · 이번 주 할 일 · 도전(ask 퀀트). '이번 주'는 브라우저 KST 날짜로 계산. -->
 <style>
 .rbst{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px}
-.rbst button{min-height:44px;word-break:keep-all;background:#111;border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-1);line-height:1.25;padding:3px 2px;cursor:pointer;text-align:center}
+.rbst button{min-height:44px;word-break:keep-all;background:var(--bg2);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-1);line-height:1.25;padding:3px 2px;cursor:pointer;text-align:center}
 .rbst button b{display:block;font-size:var(--fs-4);color:var(--amber)}
 .rbst button.lk b{color:var(--muted)}
 .rbvd{font-size:var(--fs-2);margin:2px 0 6px}
 .rbvd span{margin-right:10px;white-space:nowrap}
 .rbwk{margin:0;padding:0;list-style:none;font-size:var(--fs-2)}
-.rbwk li{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid #1c1c1c;white-space:normal}
+.rbwk li{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid var(--line);white-space:normal}
 .rbwk.one li span.t{flex:1 1 auto;min-width:0;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}   /* 10/24 R3: 한 줄 줄임표 → 두 줄까지(넘치면 title) */
 .rbwk .dd{flex:0 0 46px;font-weight:700;text-align:right}
 .rbch{margin-top:6px;padding:6px 8px;border:1px dashed var(--amber-dim);font-size:var(--fs-2);line-height:1.6;white-space:normal}
-.rbch code{color:var(--amber);background:#161616;padding:0 4px}
+.rbch code{color:var(--amber);background:var(--bg3);padding:0 4px}
 .rbcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px}
-.rbc{border:1px solid var(--line);padding:6px 8px;font-size:var(--fs-2);line-height:1.55;white-space:normal;background:#090909;min-width:0}
+.rbc{border:1px solid var(--line);padding:6px 8px;font-size:var(--fs-2);line-height:1.55;white-space:normal;background:var(--panel);min-width:0}
 .rbc .hd{display:flex;gap:6px;align-items:baseline}
 .rbc .hd b{color:var(--txt)}
 .rbc .k{color:var(--muted)}
 .rbc .lnk{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.rbc .lnk a,.rbc .lnk button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--line);background:#111;color:var(--cyan);font:inherit;font-size:var(--fs-1);cursor:pointer}
+.rbc .lnk a,.rbc .lnk button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--line);background:var(--bg2);color:var(--cyan);font:inherit;font-size:var(--fs-1);cursor:pointer}
 .rbvb{display:inline-block;padding:0 5px;border:1px solid;font-size:var(--fs-1);flex:0 0 auto}
 .rbgate{font-size:var(--fs-1);color:var(--muted);white-space:normal;margin:0 0 6px}
 </style>
@@ -2368,12 +2369,12 @@ function drawBondHist(){
 .recards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .recard{border:1px solid var(--line);padding:8px;min-width:0}
 .recard .v{font-size:var(--fs-4);font-weight:700;margin-top:2px}
-.redesk{border:1px solid #6b6b6b;background:#141414;padding:8px 10px;margin:6px 0;white-space:normal}
+.redesk{border:1px solid #6b6b6b;background:var(--bg3);padding:8px 10px;margin:6px 0;white-space:normal}
 .redesk .lb{font-size:var(--fs-1);color:var(--muted);letter-spacing:.06em}
 .reauto .lb{font-size:var(--fs-1);color:var(--muted)}
 .rebadge{display:inline-block;font-size:var(--fs-1);border:1px solid var(--line);padding:0 5px;margin-left:4px;color:var(--muted)}
 .relist{margin:4px 0;padding:0;list-style:none}
-.relist li{border-top:1px solid #1c1c1c;padding:6px 0;white-space:normal;font-size:var(--fs-2)}
+.relist li{border-top:1px solid var(--line);padding:6px 0;white-space:normal;font-size:var(--fs-2)}
 .re details>summary{cursor:pointer;min-height:40px;display:flex;align-items:center}
 </style>
 <script>
@@ -2810,7 +2811,7 @@ function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-b
   try{ navigator.clipboard.writeText(P.body).then(go,()=>{ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); }); }catch(e){ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); } }
 function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync'); if(b) b.onclick=eduSync; },0);
   const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length+(EDQ||[]).length;
-  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:var(--fs-2)"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:#000;border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:var(--fs-2)"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
 { const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
 </script>
 
@@ -3890,7 +3891,7 @@ const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
 .mgsum{font-size:var(--fs-2);color:var(--muted);margin:0 0 6px}
 .mgsum b{color:var(--txt)}
 .mgday{margin:14px 0 2px;font-size:var(--fs-1);color:var(--muted);letter-spacing:.08em}
-.mgit{border-top:1px solid #1c1c1c;white-space:normal}
+.mgit{border-top:1px solid var(--line);white-space:normal}
 .mgit>summary{list-style:none;display:flex;gap:10px;align-items:flex-start;padding:10px 0;cursor:pointer}
 .mgit>summary::-webkit-details-marker{display:none}
 .mgav{position:relative;flex:0 0 48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:var(--fs-2);font-weight:700;color:#000}

@@ -4,24 +4,24 @@
      첫 화면(390px) = 단계별 개수 · 판정 개수 · 이번 주 할 일 · 도전(ask 퀀트). '이번 주'는 브라우저 KST 날짜로 계산. -->
 <style>
 .rbst{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px}
-.rbst button{min-height:44px;word-break:keep-all;background:#111;border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-1);line-height:1.25;padding:3px 2px;cursor:pointer;text-align:center}
+.rbst button{min-height:44px;word-break:keep-all;background:var(--bg2);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-1);line-height:1.25;padding:3px 2px;cursor:pointer;text-align:center}
 .rbst button b{display:block;font-size:var(--fs-4);color:var(--amber)}
 .rbst button.lk b{color:var(--muted)}
 .rbvd{font-size:var(--fs-2);margin:2px 0 6px}
 .rbvd span{margin-right:10px;white-space:nowrap}
 .rbwk{margin:0;padding:0;list-style:none;font-size:var(--fs-2)}
-.rbwk li{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid #1c1c1c;white-space:normal}
+.rbwk li{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid var(--line);white-space:normal}
 .rbwk.one li span.t{flex:1 1 auto;min-width:0;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}   /* 10/24 R3: 한 줄 줄임표 → 두 줄까지(넘치면 title) */
 .rbwk .dd{flex:0 0 46px;font-weight:700;text-align:right}
 .rbch{margin-top:6px;padding:6px 8px;border:1px dashed var(--amber-dim);font-size:var(--fs-2);line-height:1.6;white-space:normal}
-.rbch code{color:var(--amber);background:#161616;padding:0 4px}
+.rbch code{color:var(--amber);background:var(--bg3);padding:0 4px}
 .rbcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px}
-.rbc{border:1px solid var(--line);padding:6px 8px;font-size:var(--fs-2);line-height:1.55;white-space:normal;background:#090909;min-width:0}
+.rbc{border:1px solid var(--line);padding:6px 8px;font-size:var(--fs-2);line-height:1.55;white-space:normal;background:var(--panel);min-width:0}
 .rbc .hd{display:flex;gap:6px;align-items:baseline}
 .rbc .hd b{color:var(--txt)}
 .rbc .k{color:var(--muted)}
 .rbc .lnk{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.rbc .lnk a,.rbc .lnk button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--line);background:#111;color:var(--cyan);font:inherit;font-size:var(--fs-1);cursor:pointer}
+.rbc .lnk a,.rbc .lnk button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--line);background:var(--bg2);color:var(--cyan);font:inherit;font-size:var(--fs-1);cursor:pointer}
 .rbvb{display:inline-block;padding:0 5px;border:1px solid;font-size:var(--fs-1);flex:0 0 auto}
 .rbgate{font-size:var(--fs-1);color:var(--muted);white-space:normal;margin:0 0 6px}
 </style>

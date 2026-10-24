@@ -74,6 +74,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_msg_popup(b, port)
         bad += await check_uxui_rest(b, port)
         bad += await check_head_clip(b, port)
+        bad += await check_xl(b, port)
         bad += await check_hf_why(b, port)
         await b.close()
     return bad
@@ -674,6 +675,62 @@ async def check_hf_why(b, port: int) -> int:
         print(f"{'OK ' if ok else 'BAD'} HF 진입 근거 이름표·배지({w}px) " + ("HF 블록 없음(검사 건너뜀)" if r.get("nohf") else f"이름표 {r.get('keys')} · 배지 {r.get('vs')} · 색 {r.get('color')} · 글자 {r.get('fs')} · 넘침 {r.get('over')}")
               + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await pg.close()
+    return bad
+
+
+async def check_xl(b, port: int) -> int:
+    """엑셀 스킨(html.xl, localStorage mt_skin='xl') 상시 검사 — 10/24 겸이 "엑셀버전도 다 자동수정되는거지?"·"톡방이 검정색"(req-dev-0d1eee58).
+    390·1300px 35개 화면 전부: 글자 대비 미달 0(본문 4.5·큰 글자/기호 3) · 가로 넘침 0 · 11px 미만 0 · 잘림 ≤ CLIP_BASE.
+    + 사내톡 7개 구역 대비 0 · 머리(390): .top ≤110·💬/🔍 44px 같은 줄·시트 탭 하단 고정 · 목록 44px 규칙은 xl 제외(촘촘)
+    + HF 근거 판정 배지는 색(xl --up=#000) 말고 글자(+·−·중립)로 구분 · 달력 K/S 두 줄. 측정 정의·전 화면 표는 scripts/skin_audit.py."""
+    import skin_audit as sa
+    bad = 0
+    for w in (390, 1300):
+        ctx, pg = await sa.page(b, port, w, "xl")
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        res: dict = {}
+        hd = await pg.evaluate("""(()=>{ const g=s=>{const e=document.querySelector(s); if(!e||!e.offsetWidth) return null; const r=e.getBoundingClientRect(); return {t:r.top|0,h:r.height|0,b:r.bottom|0}};
+          return {xl:document.documentElement.classList.contains('xl'), top:g('.top'), fab:g('#mgfab'), sqb:g('#sqb'), tabs:g('.tabs'), tpos:getComputedStyle(document.querySelector('.tabs')).position}; })()""")
+        res["xl켜짐"] = hd["xl"]
+        res["머리"] = hd["top"]["h"] <= HEAD_MAX and hd["fab"] and hd["fab"]["h"] >= 44 and hd["tabs"]["b"] >= 840 and hd["tpos"] == "fixed" \
+            and (w > 700 or (hd["sqb"] and hd["sqb"]["h"] >= 44 and hd["sqb"]["t"] == hd["fab"]["t"]))
+        fail: dict = {}
+        hc = await pg.evaluate(f"({sa.CONTRAST_JS})('.top *,.tape *,#subt *,.tabs *,#xlrib *,#xlfx *')")
+        if hc["bad"]:
+            fail["머리 대비"] = hc["bad"][:2]
+        for v in await pg.evaluate(ALL_JS):
+            await pg.evaluate(f"setView({v!r})")
+            await pg.wait_for_timeout(1800)
+            m = await sa.measure(pg, w)
+            if m["contrast"] or m["over"] or m["small"] or m["clip"] > CLIP_BASE[w].get(v, 0):
+                fail[v] = {k: m[k] for k in ("contrast", "over", "small", "clip")} | {"ex": m["ex"][:2]}
+            if v == "apt" and w == 390:
+                h = await pg.evaluate("Math.max(0,...[...document.querySelectorAll('#root .sbtn')].filter(e=>e.offsetWidth).map(e=>e.getBoundingClientRect().height|0))")
+                res["44px제외"] = 0 < h and await pg.evaluate("Math.min(...[...document.querySelectorAll('#root .sbtn')].filter(e=>e.offsetWidth).map(e=>e.getBoundingClientRect().height|0))") < 44
+            if v == "cmt":
+                res["HF배지글자"] = await pg.evaluate("""(()=>{ if(typeof cmtHFWhy!=='function') return false; const d=document.createElement('div');
+                  d.innerHTML=cmtHFWhy(['근거 펀더 + 실적 상향','근거 내러 − 수급 이탈','근거 센티 중립']); document.getElementById('root').appendChild(d);
+                  const t=[...d.querySelectorAll('.hfv')].map(e=>e.textContent.trim()); const c=[...d.querySelectorAll('.hfv')].map(e=>getComputedStyle(e).color); d.remove();
+                  return t.join(',')==='+,−,중립'; })()""")
+            if v == "home" and w == 390:
+                res["달력KS"] = await pg.evaluate(r"""(()=>{ const c=[...document.querySelectorAll('.calc')].find(c=>/K[+\-−]/.test(c.innerText)&&/S[+\-−]/.test(c.innerText)); if(!c) return 'none';
+                  const t=c.innerText.split('\n').map(x=>x.trim()); return t.some(x=>/^K[+\-−]/.test(x))&&t.some(x=>/^S[+\-−]/.test(x)); })()""") in (True, "none")
+            if v == "msg":
+                segs = await pg.evaluate("[...document.querySelectorAll('#root [data-mgs]')].map(b=>b.dataset.mgs)")
+                for sg in segs:
+                    await pg.click(f"#root [data-mgs='{sg}']")
+                    await pg.wait_for_timeout(1500)
+                    c = await pg.evaluate(f"({sa.CONTRAST_JS})('#root *')")
+                    if c["bad"]:
+                        fail[f"msg:{sg}"] = c["bad"][:2]
+                await pg.click("#root [data-mgs='live']") if "live" in segs else None
+        res["전화면"] = not fail
+        ok = all(res.values()) and not errs
+        bad += not ok
+        print(f"{'OK ' if ok else 'BAD'} 엑셀스킨({w}px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
+              + f" · 머리 {hd['top']['h']}px" + (f" · 실패 {fail}" if fail else "") + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        await ctx.close()
     return bad
 
 
