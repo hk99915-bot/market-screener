@@ -55,9 +55,14 @@
    - ② 기관 뷰·톤: **직전 같은 문서와의 문구 차이**로 판정(한은 '견조한'→'높은 성장세', 기재부 '견조' 유지, FOMC 'most participants' 추가 인상). 매파/비둘기는 반대 재료 1개를 같이 적는다(예: 18차 의사록 = 금융불균형 명분 매파 vs 취약부문 우려 비둘기).
    - ③ 우리 해석: 시장 가격과 맞대 본다 — 국고 3Y − 기준금리, 미 2Y − FF 상단(÷25bp = 반영 횟수), 원/달러 20일, 코스피−S&P 격차(#5). 신뢰도 상/중/하 + **뒤집히는 조건(다음 발표 날짜)**. 함의가 없으면 "포트 함의 없음"이라고 쓰고 닫는다(감독 홍보·연구 제언류).
 
+## 애널리스트 뷰 트래킹 (2026-10-24 겸이 "대신증권 원자재 최진영 리포트, 뷰 트래킹")
+29. [자체연구-검증전] `reports/views/analyst_cmdty.json` — 원자재는 목표가가 없어 `screener/analysts.py`(종목 목표가 틀)에 안 맞음 → 콜 단위(날짜·자산·방향·숫자 목표·기간·근거·출처·px_at/px_now·status)로 따로 적는다. 첫 대상 대신 최진영: 2025-10~2026-08 리포트 6건 → 콜 14개, 채점 완료 n=4(적중 3·빗나감 1, 적중 3개가 모두 구리 계열) → **성향 판단 보류**. 공통 틀 = '유동성 순환(귀금속→비철→에너지→농산물, 18~20개월 후행)'.
+   - 우리 뷰와 차이: 그는 귀금속 '중립'·에너지 '확대(유가 하락=매수)'·구리 연내 $16,000 — 우리(`macro_glance` cmd)는 에너지를 **물가→금리 상방 비용**으로, 구리/금 52주 고점을 **금 하락 몫(성장 신호 아님)** 으로 읽는다. 방향(에너지 강세 지속)은 같고, 의미(투자 기회 vs 한국 비용)와 구리 해석이 다르다.
+   - 갱신(수동, 자동화는 데이터 요청 장부): ① 네이버 리서치 API `invest`·`economy` 를 query=원자재·금·유가·구리, broker 대신으로 조회(size ≤ 50, 같은 제목 재게시는 최초일 1건) ② 새 리포트 → 콜 추가(숫자 목표는 뉴스 인용이면 src_kind '요약 출처') ③ px_now 는 yfinance 연속 선물(GC·SI·HG·CL·BZ·NG·ALI·ZC·ZW·ZS) — commodities.json 은 최신값만·롤 시점 달라 섞지 않음 ④ 기간 끝난 콜만 status 확정, 조건부 뷰는 조건 미충족 시 '채점 제외'. 니켈·소프트(코코아·커피·원당)는 가격 미수집 → 미확인.
+
 ## 출처
 - 교과서·공식 자료: Dalio "How the Economic Machine Works"(2013) / 한국은행 통화정책 파급경로·통화신용정책보고서(중립금리 재추정) / CFA L1 Economics(Business Cycles, Monetary and Fiscal Policy) / FRED 시리즈 노트(CPIAUCSL·CPILFESL·PAYEMS·UNRATE·PPIFIS·DGS10). 2차 자료·요약 확인, 원문 `[확인 필요: 원문 대조, 2026-10-30]`.
-- 자체: `screener/commodities.py`, `reports/commodities.json`, `reports/views/geopolitics.json`, `screener/macroview.py`, `reports/macro_view.json`, `reports/macro_releases.json`, `screener/calendar_ev.py`, `reports/committee.json` macro, `views/registry.json`(`macro_wind`·`kr_regime`·`us10y`·`foreign_flow`·`event_calendar`).
+- 자체: `reports/views/analyst_cmdty.json`, `screener/commodities.py`, `reports/commodities.json`, `reports/views/geopolitics.json`, `screener/macroview.py`, `reports/macro_view.json`, `reports/macro_releases.json`, `screener/calendar_ev.py`, `reports/committee.json` macro, `views/registry.json`(`macro_wind`·`kr_regime`·`us10y`·`foreign_flow`·`event_calendar`).
 
 ## 복기 (틀린 판단 → 왜 → 다음부터)
 - 2026-10-16 · 아직 채점된 판단 없음(매크로 바람 성적은 `macro_view.json` track이 쌓이는 중). 다음부터: 바람 라벨을 인용할 때 항상 '검증전'과 코스피–S&P 격차를 같이 적는다 — 중립 라벨만 보면 오늘 같은 한국 고유 급락을 놓친다.
