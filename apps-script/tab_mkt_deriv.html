@@ -134,8 +134,8 @@ function drawDerivHist(){
     const s0=c1.addLineSeries({color:'rgba(0,0,0,0)',lineWidth:1,priceLineVisible:false,lastValueVisible:false}); if(b) { s0.setData(b.map(x=>({time:x.time,value:0}))); zero(s0); }
     leg('dvc1',[`<span style="color:var(--amber)">━ 실제 ${lastv(b,2)}</span>`,`<span class="mu">┅ 이론 ${lastv(t,2)}</span>`]); c1.timeScale().fitContent(); }
   // 2 PCR
-  const c2=mk('dvc2',v=>v.toFixed(2)); if(c2){ const a=line(c2,'pcr_oi','--amber',2), v=line(c2,'pcr_vol','--blue',1.5);
-    leg('dvc2',[`<span style="color:var(--amber)">━ OI ${lastv(a,2)}</span>`,`<span style="color:var(--blue)">━ 거래량 ${lastv(v,2)}</span>`]); c2.timeScale().fitContent(); }
+  const c2=mk('dvc2',v=>v.toFixed(2)); if(c2){ const a=line(c2,'pcr_oi','--ch1',2), v=line(c2,'pcr_vol','--ch2',1.5);   /* --ch1·--ch2: 엑셀 스킨에서도 두 선이 다른 색, 범례 색은 선 표식만(req-dev-06b280d5) */
+    leg('dvc2',[`<span style="color:var(--ch1)">━</span> OI ${lastv(a,2)}`,`<span style="color:var(--ch2)">━</span> 거래량 ${lastv(v,2)}`]); c2.timeScale().fitContent(); }
   // 3 감마 (0 기준 위/아래 색)
   const c3=mk('dvc3',v=>v.toFixed(0)); if(c3){ const d=pts('gex_bn'); if(d.length){
     const s=c3.addBaselineSeries({baseValue:{type:'price',price:0},topLineColor:cv('--up'),bottomLineColor:cv('--dn'),topFillColor1:'rgba(0,0,0,0)',topFillColor2:'rgba(0,0,0,0)',bottomFillColor1:'rgba(0,0,0,0)',bottomFillColor2:'rgba(0,0,0,0)',lineWidth:2,priceLineVisible:false}); s.setData(d); zero(s); }

@@ -11,6 +11,8 @@
     --txt:#e8e8e8; --muted:#8a8a8a; --up:#2fd05a; --dn:#ff4b4b; --blue:#4aa3ff; --cyan:#35d6e6;
     /* 겹 배경·강조 위 글자 (10/24 엑셀 스킨 대비 req-dev-0d1eee58): 하드코딩 #111·#151515·#0a0a0a 대신 — html.xl 이 밝은 값으로 바꾼다 */
     --bg2:#111; --bg3:#161616; --on-amber:#000;
+    /* 차트 두 계열 색 (10/24 req-dev-06b280d5): 기본 = 주황·파랑, 엑셀 = 엑셀 차트 팔레트(파랑 #4472c4 · 진한 주황 #c55a11) — xl 에서 --amber·--blue 가 둘 다 #000 이라 선 구분 불가 */
+    --ch1:var(--amber); --ch2:var(--blue);
     --mono:"IBM Plex Mono","Consolas","Menlo","Noto Sans Mono CJK KR",monospace;
     /* 글자 크기 4단계 (UXUI Top10 #10, 10/24 결재 appr-uxui-top10-next) — 화면 글자는 이 4개만. 픽셀 직접 쓰기 금지(tests/test_font_tokens.py · 고치기 python3 scripts/font_tokens.py --fix)
        1 보조(시각·단위·주석·태그) 11px · 2 본문·표 12.5px · 3 강조·소제목 14px · 4 제목·큰 숫자 17px · 아이콘(글자 아님: 💬 ✕ › 등) 24px */
@@ -74,6 +76,7 @@
   .md table{white-space:normal}
   .md h1,.md h2{color:var(--amber);letter-spacing:.08em;font-size:var(--fs-2);margin:14px 0 6px}
   td.sym{cursor:pointer;text-decoration:underline dotted}
+  a.il{text-decoration:underline dotted;text-underline-offset:2px}   /* 문장 속 링크 = 점선 밑줄(색만으로 구분 금지, WCAG 1.4.1 · req-dev-3d26f6e6). 붙이기는 decoInline() */
   .px{cursor:pointer;text-decoration:underline dotted;color:var(--amber)}
   .drawer{position:fixed;top:0;right:0;bottom:0;width:min(980px,100vw);background:#070707;border-left:1px solid var(--amber-dim);z-index:20;overflow:auto;box-shadow:-10px 0 30px #000;display:none}
   .drawer.on{display:block}
@@ -170,7 +173,7 @@ html,body{overflow-x:hidden}
 /* 스텔스: 흑백 + 밝은 바탕(반전) — 색 신호 없이 숫자 부호(+/−)로만 읽음 */
 /* 엑셀 스킨 (사무실 모드): 흰 바탕·회색 격자·맑은고딕, 음수만 빨강(엑셀 기본 서식처럼), 차트는 밝게 반전 */
 html.xl{--bg:#fff;--panel:#fff;--line:#d4d4d4;--amber:#000;--amber-dim:#444;--txt:#000;--muted:#595959;--up:#000;--dn:#c00000;--blue:#000;--cyan:#000;
-  --bg2:#f3f3f3;--bg3:#f7f7f7;--on-amber:#fff;
+  --bg2:#f3f3f3;--bg3:#f7f7f7;--on-amber:#fff;--ch1:#4472c4;--ch2:#c55a11;
   --mono:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
 html.xl body{font-size:var(--fs-2);background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:72px 21px;padding-bottom:30px}
 html.xl .top{background:#f3f3f3;color:#333;border-bottom:1px solid #d4d4d4;padding:4px 10px}
@@ -210,6 +213,7 @@ html.xl polyline[style*="#c77dff"]{stroke:#7030a0!important} html.xl b[style*="c
 html.xl polyline[style*="#4cc9f0"]{stroke:#0b6e8a!important} html.xl polyline[style*="#ffb703"]{stroke:#8a5a00!important}
 /* ③ 링크: 엑셀 하이퍼링크처럼 밑줄 — 회색 문장 속 파랑 링크가 명도 대비 1.19 로 색만으로 구분됨(WCAG 1.4.1). 버튼처럼 생긴 링크(칩·.lnk)는 제외 */
 html.xl #root a{text-decoration:underline}
+html.xl .xe{filter:grayscale(1);opacity:.8}   /* 본문 컬러 이모지 → 회색(엑셀 위장, req-dev-06b280d5). 감싸기는 아래 decoInline() */
 html.xl #root a[style*="inline-flex"],html.xl #root .lnk a,html.xl #root a.sbtn{text-decoration:none}
 /* ④ 머리 아이콘 💬 🔍 ◐ 컬러 이모지 → 회색(엑셀 리본 아이콘처럼) */
 html.xl .top button,html.xl .top #mgfab,html.xl .top #sqb{filter:grayscale(1)}
@@ -482,6 +486,24 @@ function hMore(){ const r=$('#root'); if(!r) return;
   let ly=scrollY;
   addEventListener('scroll',()=>{ const y=scrollY; if(innerWidth<=700&&!T.classList.contains('sopen')){ if(y>ly+4&&y>160) T.classList.add('hid'); else if(y<ly-4||y<160) T.classList.remove('hid'); } else T.classList.remove('hid'); ly=y; },{passive:true});
   const te=()=>T.classList.toggle('tend',tb.scrollLeft+tb.clientWidth>=tb.scrollWidth-2); tb.addEventListener('scroll',te,{passive:true}); addEventListener('resize',te); setTimeout(te,0); })();
+/* 문장 속 링크·이모지 표시 (10/24 UXUI 재검수 req-dev-3d26f6e6·06b280d5) — 화면 파일 30개를 고치지 않고 그려진 DOM 에 붙인다(새 화면도 자동).
+   ① 부모가 자기 글자를 가진 a(문장 속 링크) → class il(점선 밑줄). 칩·버튼형(.tag·.sbtn·inline-flex·block)은 제외.
+   ② 보이는 글자 속 컬러 이모지 → <span class="xe">(엑셀 스킨에서만 회색; 기본 스킨은 모양 그대로). 머리(.top)는 UXUI 가 버튼째 회색 처리.
+   새로 그려진 노드만 처리(MutationObserver) — 화면 전환당 수 ms. */
+const DECO_EMO=/(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic}|[\u{1F3FB}-\u{1F3FF}])*)/u;
+function decoInline(root){ if(!root||root.nodeType!==1) return;
+  root.querySelectorAll('a:not(.il)').forEach(a=>{ const p=a.parentElement; if(!p||a.closest('.top,.tabs,#xlrib')) return; const cs=getComputedStyle(a);
+    if(a.classList.contains('tag')||a.classList.contains('sbtn')||/flex|block|grid/.test(cs.display)) return;
+    if([...p.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())) a.classList.add('il'); });
+  const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{ const e=n.parentElement; if(!e||e.closest('script,style,textarea,.xe,.top,canvas,svg')) return NodeFilter.FILTER_REJECT;
+    return DECO_EMO.test(n.textContent)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP; }});
+  const ns=[]; while(tw.nextNode()) ns.push(tw.currentNode);
+  ns.forEach(n=>{ const f=document.createDocumentFragment(); n.textContent.split(DECO_EMO).forEach((t,i)=>{ if(!t) return; if(i%2){ const sp=document.createElement('span'); sp.className='xe'; sp.textContent=t; f.appendChild(sp); } else f.appendChild(document.createTextNode(t)); }); n.replaceWith(f); });
+}
+(function(){ let q=new Set(), on=false; const run=()=>{ on=false; const L=[...q]; q.clear(); L.forEach(n=>{ if(n.isConnected) decoInline(n); }); };
+  new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes){ if(n.nodeType===1) q.add(n); else if(n.nodeType===3&&n.parentElement) q.add(n.parentElement); }
+    if(q.size&&!on){ on=true; requestAnimationFrame(run); } }).observe(document.body,{childList:true,subtree:true});
+  decoInline(document.body); })();
 load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadLive, 60*1000); setInterval(loadFresh, 5*60*1000);
 </script>
 <script>

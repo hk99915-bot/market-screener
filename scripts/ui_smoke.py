@@ -76,6 +76,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_head_clip(b, port)
         bad += await check_xl(b, port)
         bad += await check_xl_beyond(b, port)
+        bad += await check_links_pcr(b, port)
         bad += await check_hf_why(b, port)
         await b.close()
     return bad
@@ -736,8 +737,8 @@ async def check_xl(b, port: int) -> int:
             await pg.evaluate(f"setView({v!r})")
             await pg.wait_for_timeout(1800)
             m = await sa.measure(pg, w)
-            if m["contrast"] or m["over"] or m["small"] or m["clip"] > CLIP_BASE[w].get(v, 0):
-                fail[v] = {k: m[k] for k in ("contrast", "over", "small", "clip")} | {"ex": m["ex"][:2]}
+            if m["contrast"] or m["over"] or m["small"] or m["emoji"] or m["clip"] > CLIP_BASE[w].get(v, 0):   # emoji = 회색 처리 안 된 컬러 이모지(req-dev-06b280d5)
+                fail[v] = {k: m[k] for k in ("contrast", "over", "small", "clip", "emoji")} | {"ex": m["ex"][:2]}
             if v == "apt" and w == 390:
                 h = await pg.evaluate("Math.max(0,...[...document.querySelectorAll('#root .sbtn')].filter(e=>e.offsetWidth).map(e=>e.getBoundingClientRect().height|0))")
                 res["44px제외"] = 0 < h and await pg.evaluate("Math.min(...[...document.querySelectorAll('#root .sbtn')].filter(e=>e.offsetWidth).map(e=>e.getBoundingClientRect().height|0))") < 44
@@ -764,6 +765,34 @@ async def check_xl(b, port: int) -> int:
         print(f"{'OK ' if ok else 'BAD'} 엑셀스킨({w}px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
               + f" · 머리 {hd['top']['h']}px" + (f" · 실패 {fail}" if fail else "") + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await ctx.close()
+    return bad
+
+
+async def check_links_pcr(b, port: int) -> int:
+    """UXUI 10/24 엑셀 재검수 후속(req-dev-3d26f6e6·06b280d5):
+    ① 기본 스킨 1300px 35화면: 문장 속 링크 중 밑줄 없이 색으로만 구분되는 것 0 (skin_audit LINK_JS, 점선 밑줄 a.il)
+    ② 파생 PCR 차트 두 선 색이 기본·엑셀 둘 다 서로 다름(--ch1·--ch2) ③ 기본 스킨은 이모지 모양 그대로(.xe 회색은 엑셀만)."""
+    import skin_audit as sa
+    bad = 0
+    fail: dict = {}
+    ctx, pg = await sa.page(b, port, 1300, "def")
+    for v in await pg.evaluate(ALL_JS):
+        await pg.evaluate(f"setView({v!r})")
+        await pg.wait_for_timeout(1500)
+        lk = await pg.evaluate(sa.LINK_JS)
+        if lk["bad"]:
+            fail[v] = lk
+    res = {"링크밑줄": not fail}
+    res["기본이모지컬러"] = await pg.evaluate("(()=>{ const e=document.querySelector('#root .xe,body .xe'); return !e||!/grayscale/.test(getComputedStyle(e).filter); })()")
+    await ctx.close()
+    for skin in ("def", "xl"):
+        ctx, pg = await sa.page(b, port, 1300, skin)
+        c = await pg.evaluate("(()=>{ const cs=getComputedStyle(document.documentElement); return [cs.getPropertyValue('--ch1').trim(), cs.getPropertyValue('--ch2').trim()]; })()")
+        res[f"PCR색({skin})"] = bool(c[0]) and c[0] != c[1]
+        await ctx.close()
+    ok = all(res.values())
+    bad += not ok
+    print(f"{'OK ' if ok else 'BAD'} 링크·PCR(1300px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 링크 미달 {fail}" if fail else ""))
     return bad
 
 

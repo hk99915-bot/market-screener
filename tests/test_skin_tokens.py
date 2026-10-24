@@ -25,3 +25,15 @@ def test_tokens_defined_for_both_skins():
     xl = s[s.index("html.xl{"): s.index("}", s.index("html.xl{"))]
     for t in ("--bg2", "--bg3", "--on-amber", "--panel", "--txt"):
         assert t + ":" in root and t + ":" in xl, t
+
+
+def test_inline_link_and_emoji_rules():
+    """req-dev-3d26f6e6: 문장 속 링크 점선 밑줄(a.il) · req-dev-06b280d5: 엑셀에서만 이모지 회색(.xe) + 차트 두 계열 토큰."""
+    s = (APPS / "Index.html").read_text(encoding="utf-8")
+    assert "a.il{text-decoration:underline dotted" in s and "function decoInline(" in s and "MutationObserver" in s
+    assert "html.xl .xe{filter:grayscale(1)" in s and not re.search(r"(?<!html\.xl )\.xe\{", s)   # 기본 스킨 이모지는 그대로
+    root = s[s.index(":root{"): s.index("}", s.index(":root{"))]
+    xl = s[s.index("html.xl{"): s.index("}", s.index("html.xl{"))]
+    assert "--ch1:" in root and "--ch2:" in root and "--ch1:#" in xl and "--ch2:#" in xl
+    d = (APPS / "tab_mkt_deriv.html").read_text(encoding="utf-8")
+    assert "'pcr_oi','--ch1'" in d and "'pcr_vol','--ch2'" in d

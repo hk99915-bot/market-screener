@@ -50,6 +50,18 @@ DARK_JS = """(()=>{ const P=s=>{const m=String(s).match(/rgba?\\(([^)]+)\\)/); i
  let n=0; for(const e of document.querySelectorAll('#root *')){ if(!e.offsetWidth||e.offsetWidth<=8||e.offsetHeight<=8||e.closest('details:not([open])')||e.tagName==='CANVAS'||e.tagName==='IMG') continue;
    const b=P(getComputedStyle(e).backgroundColor); if(b&&b[3]>.5&&L(b)<.05) n++; } return n; })()"""
 
+# 컬러 이모지(엑셀 위장, req-dev-06b280d5): 보이는 글자 속 \p{Extended_Pictographic} 중 조상에 grayscale 필터가 없는 것(머리 .top 포함 안 함).
+EMOJI_JS = r"""(()=>{ let n=0; const re=/\p{Extended_Pictographic}/gu; const tw=document.createTreeWalker(document.getElementById('root'),NodeFilter.SHOW_TEXT);
+ while(tw.nextNode()){ const t=tw.currentNode, e=t.parentElement; if(!e||!e.offsetWidth||e.closest('details:not([open]) > :not(summary),script,style')) continue; const m=t.textContent.match(re); if(!m) continue;
+   let g=false; for(let p=e;p;p=p.parentElement){ if(/grayscale/.test(getComputedStyle(p).filter)){ g=true; break; } } if(!g) n+=m.length; } return n; })()"""
+# 문장 속 링크 구분(req-dev-3d26f6e6, WCAG 1.4.1 G183): 부모가 자기 글자를 가진 보이는 a 중 밑줄 없고 주변 글자와 명도 대비 3:1 미만.
+LINK_JS = r"""(()=>{ const P=s=>{const m=String(s).match(/rgba?\(([^)]+)\)/); const a=m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return a;};
+ const L=c=>{const f=v=>{v/=255; return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}; return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2])};
+ let n=0, bad=0; for(const a of document.querySelectorAll('#root a')){ const p=a.parentElement; if(!a.offsetWidth||!p||![...p.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())) continue;
+   const cs=getComputedStyle(a); if(a.classList.contains('tag')||a.classList.contains('sbtn')||/flex|block|grid/.test(cs.display)) continue; n++;
+   const x=L(P(cs.color)), y=L(P(getComputedStyle(p).color)), cr=(Math.max(x,y)+.05)/(Math.min(x,y)+.05);
+   if(cr<3&&!/underline/.test(cs.textDecorationLine)) bad++; } return {n, bad}; })()"""
+
 
 async def page(b, port: int, w: int, skin: str):
     ctx = await b.new_context(viewport={"width": w, "height": 844}, has_touch=w < 700, is_mobile=w < 700)
@@ -62,7 +74,9 @@ async def page(b, port: int, w: int, skin: str):
 
 async def measure(pg, w: int) -> dict:
     c = await pg.evaluate(f"({CONTRAST_JS})('#root *')")
+    lk = await pg.evaluate(LINK_JS)
     return {"contrast": len(c["bad"]), "n": c["n"], "ex": c["bad"][:3], "over": len(await pg.evaluate(OVER_JS)),
+            "emoji": await pg.evaluate(EMOJI_JS), "link": lk["bad"], "links": lk["n"],
             "clip": len(await pg.evaluate(u.CLIP_JS)), "small": await pg.evaluate(u.SMALL_JS), "dark": await pg.evaluate(DARK_JS)}
 
 
@@ -77,7 +91,7 @@ async def main(a) -> int:
         for w in a.widths:
             ctx, pg = await page(b, port, w, a.skin)
             hc = await pg.evaluate(f"({CONTRAST_JS})('.top *,.tape *,#subt *,.tabs *,#xlrib *,#xlfx *')")
-            rows.setdefault("(머리·탭)", {})[w] = {"contrast": len(hc["bad"]), "n": hc["n"], "ex": hc["bad"][:3], "over": 0, "clip": 0, "small": 0, "dark": 0}
+            rows.setdefault("(머리·탭)", {})[w] = {"contrast": len(hc["bad"]), "n": hc["n"], "ex": hc["bad"][:3], "over": 0, "clip": 0, "small": 0, "dark": 0, "emoji": 0, "link": 0, "links": 0}
             for v in a.views or await pg.evaluate(u.ALL_JS):
                 await pg.evaluate(f"setView({v!r})")
                 await pg.wait_for_timeout(1800)
@@ -86,16 +100,16 @@ async def main(a) -> int:
     srv.shutdown()
     W = a.widths
     print(f"| 화면 | " + " | ".join(f"대비 미달 {w}" for w in W) + " | " + " | ".join(f"넘침 {w}" for w in W) + " | "
-          + " | ".join(f"잘림 {w}" for w in W) + " | 11px미만 | 어두운 배경 |")
-    print("|" + "---|" * (3 * len(W) + 3))
-    tot = {k: 0 for k in ("contrast", "over", "clip", "small", "dark")}
+          + " | ".join(f"잘림 {w}" for w in W) + " | 11px미만 | 어두운 배경 | 컬러 이모지 | 링크 구분 미달 |")
+    print("|" + "---|" * (3 * len(W) + 5))
+    tot = {k: 0 for k in ("contrast", "over", "clip", "small", "dark", "emoji", "link")}
     for v, r in rows.items():
         for x in r.values():
             for k in tot:
                 tot[k] += x[k]
         print(f"| {v} | " + " | ".join(f"{r[w]['contrast']}/{r[w]['n']}" for w in W) + " | " + " | ".join(str(r[w]["over"]) for w in W) + " | "
-              + " | ".join(str(r[w]["clip"]) for w in W) + f" | {sum(r[w]['small'] for w in W)} | {sum(r[w]['dark'] for w in W)} |")
-    print(f"\n합계({a.skin}, {'·'.join(map(str, W))}px): 대비 미달 {tot['contrast']} · 넘침 {tot['over']} · 잘림 {tot['clip']} · 11px미만 {tot['small']} · 어두운 배경 {tot['dark']}")
+              + " | ".join(str(r[w]["clip"]) for w in W) + f" | {sum(r[w]['small'] for w in W)} | {sum(r[w]['dark'] for w in W)} | {'/'.join(str(r[w]['emoji']) for w in W)} | {'/'.join(str(r[w]['link']) for w in W)} |")
+    print(f"\n합계({a.skin}, {'·'.join(map(str, W))}px): 대비 미달 {tot['contrast']} · 넘침 {tot['over']} · 잘림 {tot['clip']} · 11px미만 {tot['small']} · 어두운 배경 {tot['dark']} · 컬러 이모지 {tot['emoji']} · 링크 구분 미달 {tot['link']}")
     if a.detail:
         for v, r in rows.items():
             for w in W:
