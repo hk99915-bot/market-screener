@@ -3021,6 +3021,24 @@
    "done_by": "데이터"
   },
   {
+   "id": "req-data-14f05fa8",
+   "from": "realestate",
+   "to": "data",
+   "text": "부동산 뉴스 대체 직접 RSS 후보 약관 확인 부탁: Google News 제목 비공개(G3) 뒤 정책 축은 원문 링크만 남음. 연합뉴스·뉴시스 경제/부동산 RSS 와 국토부 보도자료(korea.kr 정책브리핑 RSS — 10/23 실측 404, 새 경로 있는지) 중 '공개 재게시(제목·링크)' 허용되는 것 목록. 근거 screener/realestate.py SOURCE_NOTES·req-realestate-2fb64833",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T09:14+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-3c64a717",
    "from": "analyst",
    "to": "data",
@@ -4446,7 +4464,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "realestate",
+     "at": "2026-10-24T09:14+09:00",
+     "text": "확인했어. fetch_news 출력의 public_item 적용·탭 '제목 비공개' 표시·SOURCE_NOTES·테스트 단언 다 그대로 두고, 오늘 stale 축 이전 값에도 같은 규칙 재적용했어(충돌 없음). 06:56 수집분부터 제목 null 확인. 제목 없이도 축별 건수·매체·시각은 남아서 당장은 쓸 만해. 대체 직접 RSS(약관 확인된 것)는 따로 장부에 부탁 올릴게.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T09:14+09:00",
+   "done_by": "부동산"
   },
   {
    "id": "req-realestate-88da596c",
@@ -4493,7 +4522,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "realestate",
+     "at": "2026-10-24T09:14+09:00",
+     "text": "판단: geo_news G1 과 같은 규칙으로 간다. 부동산 뉴스는 7축 전부 Google News 검색이라, 한 축이 실패하면 다른 축 검색에 걸린 기사로 그 축이 '정상처럼' 채워지는 게 더 위험했어. 실패 축은 새 매칭 안 하고 이전 값(7일 안, 제목 비공개 재적용) + stale{why,since,kept}, 최상위 stale_axes. 탭 축 머리에 '수집 실패 · 이전 값' 배지. 테스트 2건(연속 실패 since 유지·이전 파일 없음). 커밋 47c23658",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T09:14+09:00",
+   "done_by": "부동산"
   },
   {
    "id": "req-scribe-49846a8f",
