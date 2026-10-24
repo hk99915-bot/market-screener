@@ -4886,7 +4886,7 @@
         "screener/intraday_last.py"
       ],
       "depends_on": [],
-      "notes": "10/24 겸이 \"NXT 애프터마켓 시간대 반영\". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수. | 지수 부분 10/24 반영: live.json \"nxt\" 키(toss_live.nxt_indices). 남은 것: live 루프 창이 08:40~15:50 이라 NXT 애프터 15:50~20:00 은 갱신 안 됨(live.yml 창 확장·커밋 비용 판단), 종목·히트맵·오늘 봉 세션 필드, 화면 라벨.",
+      "notes": "10/24 겸이 \"NXT 애프터마켓 시간대 반영\". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수. | 지수 부분 10/24 반영: live.json \"nxt\" 키(toss_live.nxt_indices). 남은 것: live 루프 창이 08:40~15:50 이라 NXT 애프터 15:50~20:00 은 갱신 안 됨(live.yml 창 확장·커밋 비용 판단), 종목·히트맵·오늘 봉 세션 필드, 화면 라벨. | 10/24 16시대 겸이(PB 제안 인용 \"저녁 NXT는 노트북 토스 수집기만으로 따로 올리는 쪽이 더 쌀 수도\") → 방향: live.yml 창(08:40~15:50) 확장 안 함. 15:50~20:00 NXT 애프터는 노트북 토스 수집기(toss-live 브랜치 publish)만으로 nxt 키 갱신 — Actions 비용 0 증가. 노트북 꺼지면 NXT 칸 \"수집 중단\" 표시. 착수 화 11시 이후.",
       "id": "nxt-session",
       "title": "NXT(넥스트레이드) 프리·애프터 세션 반영 — 라이브·히트맵·오늘 봉 세션 필드, 정규장 일봉과 NXT 시세 분리, NXT 애프터 HH:MM 라벨",
       "owner": "개발",
