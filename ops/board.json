@@ -30,7 +30,8 @@
     "유지보수",
     "HF",
     "컴플라이언스",
-    "포지션리스크"
+    "포지션리스크",
+    "프론트"
   ],
   "tasks": [
     {
@@ -979,7 +980,7 @@
     {
       "id": "edu-dev-handoff",
       "title": "STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준",
-      "owner": "개발",
+      "owner": "프론트",
       "status": "대기",
       "priority": "P2",
       "repo": "public",
@@ -994,9 +995,9 @@
         "edu-curriculum-v3",
         "edu-quiz-srs"
       ],
-      "notes": "일요일 오전. Index.html 잠금 필요. | 10/24 운영 점검: 확인 요청 중(req-edu-23239703, 회신 마감 2026-10-28) — 10/23 6ea4dae2·8e411c58 반영분 대비 남은 스펙",
+      "notes": "일요일 오전. Index.html 잠금 필요. | 10/24 운영 점검: 확인 요청 중(req-edu-23239703, 회신 마감 2026-10-28) — 10/23 6ea4dae2·8e411c58 반영분 대비 남은 스펙 | 10/24 운영: 담당 개발→프론트 재배정(appr-staffing-30 프론트 신설 — 화면 구현 이관, docs/desk_kb/front.md·dev.md 경계)",
       "escalated": "2026-10-21",
-      "desk": "개발"
+      "desk": "프론트"
     },
     {
       "id": "desk-scoreboard-monthly",
@@ -3557,7 +3558,7 @@
     {
       "id": "tradeplan-ui",
       "title": "trade plan 화면 표시 — DAILY 운용회의 TOP3·실행 대본·헤지·시그널 카드에 plan.line + 확률/E[R]/등급 배지, 텔레그램 TOP3 줄에 1차·2차·확률",
-      "owner": "개발",
+      "owner": "프론트",
       "priority": "P2",
       "status": "대기",
       "started": null,
@@ -3572,8 +3573,8 @@
       "depends_on": [
         "tradeplan"
       ],
-      "notes": "데이터는 committee.json·committee_us.json 의 ideas_top.items[].plan / stance.exec.cands[].plan / hedges.hedges[].plan / sim_fresh.items[].plan / tradeplan 블록. 스펙 reports/studies/2026-10-21_tradeplan_spec.md. UXUI 와 배치 협의. | 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 미착수. req-dev-516bf7e6 와 같은 일(중복 — 이 작업으로 추적)",
-      "desk": "개발",
+      "notes": "데이터는 committee.json·committee_us.json 의 ideas_top.items[].plan / stance.exec.cands[].plan / hedges.hedges[].plan / sim_fresh.items[].plan / tradeplan 블록. 스펙 reports/studies/2026-10-21_tradeplan_spec.md. UXUI 와 배치 협의. | 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 미착수. req-dev-516bf7e6 와 같은 일(중복 — 이 작업으로 추적) | 10/24 운영: 담당 개발→프론트 재배정(appr-staffing-30 프론트 신설 — 화면 구현 이관, docs/desk_kb/front.md·dev.md 경계)",
+      "desk": "프론트",
       "escalated": "2026-10-24"
     },
     {
@@ -3816,7 +3817,7 @@
     {
       "id": "req-dev-516bf7e6",
       "title": "[요청 승격] CIO→개발: trade plan 화면 표시(보드 tradeplan-ui, UXUI 배치 포함): committee*.js",
-      "owner": "개발",
+      "owner": "프론트",
       "priority": "P1",
       "status": "대기",
       "started": null,
@@ -3825,8 +3826,8 @@
       "files": [],
       "depends_on": [],
       "escalated": "2026-10-23",
-      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-516bf7e6`. | 10/24 운영 점검: 중복: tradeplan-ui 와 같은 일 — 진행은 tradeplan-ui 로 추적",
-      "desk": "개발"
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-516bf7e6`. | 10/24 운영 점검: 중복: tradeplan-ui 와 같은 일 — 진행은 tradeplan-ui 로 추적 | 10/24 운영: 담당 개발→프론트 재배정(appr-staffing-30 프론트 신설 — 화면 구현 이관, docs/desk_kb/front.md·dev.md 경계) — 요청 닫기는 `python3 scripts/ask.py --close req-dev-516bf7e6 --by 프론트`",
+      "desk": "프론트"
     },
     {
       "id": "req-dev-54eba83d",
@@ -3891,7 +3892,7 @@
     {
       "id": "req-dev-cb19b1e0",
       "title": "[요청 승격] 리스크→개발: MY탭 손절선 칸을 '규칙 바닥(평단 −30%, 결재 #2)'과 '기술 신호(detail bear.stop)",
-      "owner": "개발",
+      "owner": "프론트",
       "priority": "P1",
       "status": "대기",
       "started": null,
@@ -3900,8 +3901,8 @@
       "files": [],
       "depends_on": [],
       "escalated": "2026-10-23",
-      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-cb19b1e0`.",
-      "desk": "개발"
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-cb19b1e0`. | 10/24 운영: 담당 개발→프론트 재배정(appr-staffing-30 프론트 신설 — 화면 구현 이관, docs/desk_kb/front.md·dev.md 경계) — 요청 닫기는 `python3 scripts/ask.py --close req-dev-cb19b1e0 --by 프론트`",
+      "desk": "프론트"
     },
     {
       "id": "req-dev-cc84f898",
@@ -4721,7 +4722,7 @@
         "docs/desk_kb/rounds/2026-10-24/pm_staffing.md"
       ],
       "depends_on": [],
-      "notes": "10/24 겸이 \"2명 더 채용해서 30명 맞춰야겠다, 어디 본부 하지?\" — PM 진단(team.json 7일·요청 장부·보드). 조직 변경은 결재 뒤(기록·ORG·KB). 2주 뒤(11/07) 데이터 승격·개발 미결 재측정 | 10/24 13시대 겸이 \"충원 3번으로 ㄱㄱ\": A 프론트 개발(운영본부) 지금 채용, B 데이터 엔지니어는 11/07 판정(데이터 승격 ≤4·개발 미결 ≤12 이면 대안으로 충분, 아니면 채용). 등록 운영(req)",
+      "notes": "10/24 겸이 \"2명 더 채용해서 30명 맞춰야겠다, 어디 본부 하지?\" — PM 진단(team.json 7일·요청 장부·보드). 조직 변경은 결재 뒤(기록·ORG·KB). 2주 뒤(11/07) 데이터 승격·개발 미결 재측정 | 10/24 13시대 겸이 \"충원 3번으로 ㄱㄱ\": A 프론트 개발(운영본부) 지금 채용, B 데이터 엔지니어는 11/07 판정(데이터 승격 ≤4·개발 미결 ≤12 이면 대안으로 충분, 아니면 채용). 등록 운영(req) | 10/24 운영 등록 완료(req-ops-43fedd70): 키 front·KB front.md·ORG·CHARACTERS·PERSONAS·round_collect·TG_DESKS·team_stats·msgr_feed·tab_msgr·profiles·AVATAR_PROMPTS 29행·bg/PROMPTS·dev.md 경계, 보드 화면 대기 4건 재배정",
       "id": "appr-staffing-30",
       "title": "겸이 결재 필요: 신규 2명 — A 프론트 개발(운영본부)·B 데이터 엔지니어(리서치본부) / 예비 트레이딩(실행)·결재 비서 / 대안 충원 없이 재배치+WIP 상한",
       "owner": "PM",
@@ -4746,6 +4747,25 @@
       "notes": "10/24 겸이 충원 3번 — PM 판정 기준. 11/07 PM이 숫자 측정 후 결재 올림",
       "desk": "PM",
       "approval": "겸이"
+    },
+    {
+      "id": "front-first-round",
+      "title": "프론트 첫 라운드 — KB front.md 읽기·드릴 front-d1 풀이 + 화면 파일 다크 전용 하드코딩 색 2곳 토큰화(skin_audit·ui_smoke 통과)",
+      "owner": "프론트",
+      "priority": "P2",
+      "status": "대기",
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "apps-script/tab_*.html",
+        "docs/desk_kb/rounds/*/front.md"
+      ],
+      "depends_on": [
+        "appr-staffing-30"
+      ],
+      "notes": "10/24 겸이 결재 신설(운영 등록). 하드코딩 위치 = grep '#111\\|#151515' apps-script/tab_*.html (10/24 2곳). 탭 파일 잠금 --owner 프론트. 이관 작업(tradeplan-ui 등)은 이 라운드 뒤 우선순위대로.",
+      "repo": "public",
+      "desk": "프론트"
     }
   ]
 }

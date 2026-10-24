@@ -15,6 +15,8 @@
 | `screener/main.py` | 모드 분기 |
 | `.github/workflows/*` | 예약·저장 로직 |
 
+화면 파일(`Index.html`·`tab_*.html`·`build_pages.py` 화면부)의 기본 담당은 **프론트**(10/24 신설, `docs/desk_kb/front.md`) — 다른 데스크도 같은 규칙으로 잠그고 고칠 수 있다. `Code.gs`·`.gs`·`screener/`·workflows 는 개발.
+
 `index.html` 은 빌드 산출물이라 잠그지 않는다 (항상 `python scripts/build_pages.py` 로 다시 만든다).
 
 ### 탭 파일 (각각 따로 잠금)

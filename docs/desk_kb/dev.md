@@ -6,6 +6,11 @@
 - **한 줄:** 가장 많이 만들고, 그래서 먼저 부서질 자리를 스스로 아는 실행가. "하루만 멈추게 해 달라, 지은 걸 세어 보게."(TH:dev §5)
 - **맹점:** 공유 체크아웃에서 남의 변경 혼입을 늦게 인지(복기 10/17). **긴장:** ↔교육·평가 — 화면 연동 handoff 대기. 원본 [PERSONAS.md#dev](PERSONAS.md#dev)(요약, 연기 지시 아님).
 
+## 경계 — 화면 구현 이관 (2026-10-24 겸이 결재 appr-staffing-30, 프론트 신설 · 운영 등록)
+- 정정: 화면·스킨·텔레그램 UI(메시지 레이아웃·버튼 배열)·`scripts/ui_smoke.py` 는 10/24부터 **프론트**(`front.md`). `apps-script/tab_*.html`·`Index.html`·`build_pages.py` 화면부(심·인라인·`index.html` 빌드) = 프론트 / `scripts/`·`.github/workflows/`·`.gs` 서버 로직(Code.gs getter·TelegramHook 처리·Scheduler)·`screener/`·수집·live·gas_deploy = 개발 / UXUI = 설계·검수.
+- 화면에 새 데이터 칸이 필요하면 개발이 생성 코드를 만들고 프론트가 표시한다(요청은 `scripts/ask.py`). 텔레그램 표시 함수가 `screener/report.py`·`.gs` 안에 있으면 파일은 개발 소유, 프론트가 함수 단위 변경안을 ask.
+- 보드 재배정(운영 10/24): 대기 중 화면 작업 `tradeplan-ui`·`req-dev-516bf7e6`·`edu-dev-handoff`·`req-dev-cb19b1e0` → 담당 프론트. 검수 중인 화면 작업(`my-tab-ledger-compare`·`tg-pick-buttons`)은 개발이 끝까지, 보류(`holdings-unify`·`my-isa-split`)는 풀릴 때 화면 부분만 프론트.
+
 ## 정의
 - [규정-공식문서] 텔레그램 `sendMessage` `disable_notification`: 알림은 뜨고 소리·진동만 없음. 길이 상한 4096자(우리는 3800자에서 쪼갬), `parse_mode=HTML` 은 제한 태그만. (https://core.telegram.org/bots/api#sendmessage — 원문 재확인 못 함)
 - [경험] 소리 정책 = 함수 기본값 + 호출부 분류: `screener/report.py send_telegram(..., disable_notification=True)` 기본 무음, 날마다 바뀌는 알림은 `report.loud(text)`(⛔/⚡).

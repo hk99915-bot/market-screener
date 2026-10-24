@@ -58,6 +58,7 @@ DESKS = {
     "household": "내무",
     "compliance": "컴플라이언스",   # 10/24 겸이 결재 — 리스크본부 신설(운영에서 분리, 규칙·한도 준수 감시, docs/desk_kb/compliance.md)
     "posrisk": "포지션리스크",   # 10/24 겸이 결재 — 리스크본부 신설(모의 북·ISA 노출·유동성 매일 점검, docs/desk_kb/posrisk.md)
+    "front": "프론트",   # 10/24 겸이 결재 appr-staffing-30 — 운영본부 신설(화면 구현, 개발에서 이관, docs/desk_kb/front.md)
     "hf": "HF",       # 10/21 신설 (헤지펀드·알파북, docs/desk_kb/hf.md) — ask HF 로 요청 장부에
 }
 _KO2KEY = {v: k for k, v in DESKS.items()}

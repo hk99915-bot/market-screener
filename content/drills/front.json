@@ -1,0 +1,46 @@
+{
+ "_doc": "데스크 10년차 드릴 답·채점 키 (10/24 겸이 결재 G1). KB 에는 문제만 — 라운드 파일에 `드릴: <id> <내 답>` 을 먼저 적고, round_collect 가 scripts/drill_grade.py 로 채점해 _scoreboard.md '드릴 표'에 싣는다. 이 파일은 답을 쓴 뒤에 연다.",
+ "desk": "front",
+ "items": [
+  {
+   "id": "front-d1",
+   "q": "새 카드 배경을 #151515 로, 버튼 높이를 36px 로 넣으려 한다(폰 390px). 무엇을 바꾸고 무엇으로 검사하나?",
+   "answer": "색은 하드코딩 대신 토큰 var(--bg2)(또는 --bg3·--panel) — 엑셀 스킨에서 검정 바탕 검정 글자가 되기 때문. 버튼은 44px 목표(24px 미만은 결함, WCAG 2.2 2.5.8 AA / 2.5.5 AAA). 검사: build_pages.py 로 index.html 다시 만들고 ui_smoke(390·1300) + skin_audit --skin xl(대비 미달 0) + test_skin_tokens.",
+   "keys": [
+    {
+     "t": [
+      "토큰",
+      "--bg2",
+      "--bg3",
+      "--panel",
+      "token"
+     ]
+    },
+    {
+     "n": 44
+    },
+    {
+     "t": [
+      "ui_smoke"
+     ]
+    },
+    {
+     "t": [
+      "skin_audit",
+      "test_skin_tokens",
+      "엑셀 스킨",
+      "xl"
+     ]
+    },
+    {
+     "t": [
+      "build_pages"
+     ]
+    }
+   ],
+   "pass": 0.6,
+   "src": "docs/desk_kb/front.md ## 10년차 기준",
+   "added": "2026-10-24"
+  }
+ ]
+}

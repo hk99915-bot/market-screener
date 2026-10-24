@@ -13,7 +13,7 @@
 3. 금지: 글자·로고·브랜드, 노출·선정적 연출, 실존 인물 닮게 하기, 다른 사람 얼굴.
 4. 터미널(사내톡 › 👥 프로필)은 이 경로를 바로 읽음 — 없으면 그라디언트. 커밋만 하면 반영(5분 캐시).
 
-## 목록 (28명)
+## 목록 (29명)
 
 ### pb
 
@@ -183,3 +183,9 @@
 - 참조: `assets/avatars/posrisk.png` → 저장: `assets/avatars/bg/posrisk.jpg`
 
 > Same woman as the attached profile photo (Korean, 30), keep her face identical. Realistic smartphone selfie she took herself with the front camera at arm's length (one arm partly visible or mirror selfie where natural), slight front-camera wide-angle perspective, eye contact with the lens, face clearly visible and identical to the profile photo, mood: innocent and sharply calculating. Outfit: charcoal knit vest over a white shirt with rolled sleeves, wristwatch, thin gold hexagon glasses, light freckles (fully clothed, tasteful, no revealing styling). Scene: Weekend flea market stall, checking her wristwatch while holding a vintage item, one eyebrow raised in a calculating look. Looks exactly like an unedited photo straight from an iPhone 17 front camera (18MP Center Stage selfie camera, ~23mm-equivalent wide, f/1.9): Apple Smart HDR and Deep Fusion rendering, Apple's natural slightly warm color science, gentle HDR highlight roll-off on windows and lamps, subtle edge sharpening and slight noise in shadows, default Camera app with no Portrait blur, in a mirror selfie the phone's back is plain with no visible logo; real-life imperfect lighting, natural skin texture with pores and fine flyaway hairs, no beauty filter, no airbrushing, slight noise and mild motion softness like an everyday Instagram story, believable background clutter, not a studio shot, not CGI, not illustration. Vertical 9:16, no text, no logos.
+
+### front
+
+- 참조: `assets/avatars/front.png` → 저장: `assets/avatars/bg/front.jpg` (10/24 13시대 신설 — 프사부터 만든 뒤 참조로 넣을 것)
+
+> Same woman as the attached profile photo (Korean, 30), keep her face identical. Realistic smartphone selfie she took herself with the front camera at arm's length (one arm partly visible or mirror selfie where natural), slight front-camera wide-angle perspective, eye contact with the lens, face clearly visible and identical to the profile photo, mood: glamorous and playful, quick-witted creator energy. Outfit: cobalt blue satin shirt blouse over a white inner top, thin silver ear cuff, long S-curl dark cherry-brown hair (fully clothed, tasteful, no revealing styling). Scene: Small nail-art studio table in Hapjeong in the evening, she holds one hand up beside her face to show freshly painted glossy gradient nails, a laptop next to her showing colorful abstract interface blocks with no readable text, color swatch chips and nail polish bottles scattered, playful half smile with one eye slightly narrowed. Looks exactly like an unedited photo straight from an iPhone 17 front camera (18MP Center Stage selfie camera, ~23mm-equivalent wide, f/1.9): Apple Smart HDR and Deep Fusion rendering, Apple's natural slightly warm color science, gentle HDR highlight roll-off on windows and lamps, subtle edge sharpening and slight noise in shadows, default Camera app with no Portrait blur, in a mirror selfie the phone's back is plain with no visible logo; real-life imperfect lighting, natural skin texture with pores and fine flyaway hairs, no beauty filter, no airbrushing, slight noise and mild motion softness like an everyday Instagram story, believable background clutter, not a studio shot, not CGI, not illustration. Vertical 9:16, no text, no logos.
