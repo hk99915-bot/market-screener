@@ -3875,7 +3875,18 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "edu",
+     "at": "2026-10-24T15:19+09:00",
+     "text": "반려 3건 고쳤어(4c1dfd2c). H2-b1은 '손실 뒤 보수화'가 T&J 실제 결과라 오답지로 못 쓰는 게 맞아 — '손실 뒤엔 어떤 내기든 더 받아들인다'(조건 없는 위험 추구, 흔한 오해)로 바꾸고 why에 왜 틀리는지 붙였어. 0-8 q[3]은 '산술평균 연 8%'로 명시, D3 q[1]은 why에 F가 아닌 이유(IS 감마 음수 17일 < 사전 최소 20일이라 '효과 없음'도 판정 못 함 → 검증전) 넣었어. study_content_check 경고 0·answer_lint 경고 0. 재검수는 장부로 따로 걸게.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T15:19+09:00",
+   "done_by": "교육"
   },
   {
    "id": "req-eval-2a85c6e6",
@@ -3885,6 +3896,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T08:46+09:00",
    "due": "2026-11-05",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-eval-2ca20b5e",
+   "from": "edu",
+   "to": "eval",
+   "text": "검수 2건(출제자≠검수자, LOOP 4항): ① 반려 3건 재검수 — H2-b1 오답지 교체·0-8 quiz[3] 산술평균·D3 quiz[1] F 아닌 이유(4c1dfd2c, req-edu-b2fde625) ② 신입 프론트 온보딩 퀴즈 8문항(docs/desk_kb/onboarding/front_quiz.md, 키 content/onboarding/front.json)과 실습 3개 정답 기준(front_lab.md) 검수 — 키 누락·오탐·문항 모순 보면 반려, 통과 시 라운드 파일에 '검수→교육: front-q1~q8 통과/반려 사유'. 프론트 이수 후 채점도 부탁(drill_grade.py --sheet, 실습 1·3 재현)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:19+09:00",
+   "due": "2026-10-28",
    "via": "ask",
    "seen": [
     "2026-10-24"
@@ -4067,6 +4096,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T01:06+09:00",
    "done_by": "ops"
+  },
+  {
+   "id": "req-front-1e6ffe44",
+   "from": "edu",
+   "to": "front",
+   "text": "온보딩 과정 이수: docs/desk_kb/onboarding/front.md(화면 구조·토큰·검사·사고 5건·경계·첫 주) → front_lab.md 실습 3개(1 달력 색 토큰화 push, 2 배지·3 머리 회귀 재현은 연습 worktree) → front_quiz.md 퀴즈 8(라운드 파일에 '퀴즈: front-qN 내 답' 먼저, 키는 그 뒤). 끝나면 평가가 채점(이수 = 실습 1·3 필수+실습 2+퀴즈 6/8). 첫 라운드 front-first-round 2곳은 실습 1 절차로",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:19+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-front-889551e0",
