@@ -13,6 +13,12 @@
   python3 scripts/drill_grade.py --check                       # KB↔키 파일 정합(답이 KB 에 남았나·id 누락)
   python3 scripts/drill_grade.py --grade frm-d1 --text "황 …"   # 한 건 채점
   python3 scripts/drill_grade.py --round 2026-10-24 [--apply]  # 라운드 파일의 드릴: 줄 채점 → 드릴 표 (round_collect 가 같은 함수 사용)
+
+온보딩 확인 퀴즈(10/24 교육, 신입 프론트 온보딩 — 같은 G1 규칙): 문제는 `docs/desk_kb/onboarding/<desk>.md` 의 `- 퀴즈 [<desk>-qN]: …` 줄,
+키는 `content/onboarding/<desk>.json`(문서엔 답 없음). 응시자는 답안 파일에 `퀴즈: <id> <내 답>` 줄을 먼저 쓰고, 채점은 검수 데스크(평가)가 한다.
+  python3 scripts/drill_grade.py --sheet docs/desk_kb/rounds/2026-10-27/front.md   # 답안의 퀴즈:·드릴: 줄 채점 (키 = 드릴 + 온보딩)
+  python3 scripts/drill_grade.py --grade front-q3 --text "…"                        # 온보딩 문항도 같은 --grade
+  --check 는 온보딩 문서↔키 정합(답이 문서에 남았나·id 누락·키 형식)도 본다.
 """
 from __future__ import annotations
 
@@ -27,10 +33,14 @@ KEYS_DIR = ROOT / "content" / "drills"
 KB_DIR = ROOT / "docs" / "desk_kb"
 ROUNDS_DIR = KB_DIR / "rounds"
 SCOREBOARD = KB_DIR / "_scoreboard.md"
+ONB_KEYS_DIR = ROOT / "content" / "onboarding"
+ONB_DOC_DIR = KB_DIR / "onboarding"
 PASS = 0.6
 
 DRILL_LINE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?드릴(?:\*\*)?\s*[:：]\s*([a-z_]+-d\d+)\s+(.+?)\s*$")
 KB_DRILL = re.compile(r"^- 드릴(?:\s*\[([a-z_]+-d\d+)\])?\s*[:(]")
+QUIZ_LINE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?퀴즈(?:\*\*)?\s*[:：]\s*([a-z_]+-q\d+)\s+(.+?)\s*$")
+DOC_QUIZ = re.compile(r"^- 퀴즈(?:\s*\[([a-z_]+-q\d+)\])?\s*[:(]")
 DRILL_HEAD = "## 드릴 표"
 DRILL_COLS = "| 라운드 | 데스크 | 드릴 | 점수 | 판정 | 놓친 키 |"
 DRILL_SEP = "|---|---|---|---|---|---|"
@@ -43,6 +53,57 @@ def load_keys(keys_dir: Path = KEYS_DIR) -> dict[str, dict]:
         d = json.loads(p.read_text(encoding="utf-8"))
         for it in d.get("items", []):
             out[it["id"]] = {**it, "desk": d.get("desk", p.stem)}
+    return out
+
+
+def load_onboarding(keys_dir: Path = ONB_KEYS_DIR) -> dict[str, dict]:
+    """온보딩 확인 퀴즈 키 (content/onboarding/<desk>.json) — 드릴과 같은 키 형식, id 는 <desk>-qN."""
+    return load_keys(keys_dir) if keys_dir.exists() else {}
+
+
+def check_onboarding(doc_dir: Path = ONB_DOC_DIR, keys_dir: Path = ONB_KEYS_DIR) -> list[str]:
+    """온보딩 문서에 답이 없고, 문서의 퀴즈 id ↔ 키가 1:1 이고, 키 형식이 맞고, 모범답이 자기 키로 통과하는지."""
+    errs = []
+    keys = load_onboarding(keys_dir)
+    for qid, it in keys.items():
+        if not it.get("q") or not it.get("answer") or not it.get("keys"):
+            errs.append(f"{qid}: q·answer·keys 필요")
+            continue
+        for k in it["keys"]:
+            if not (isinstance(k.get("n"), (int, float)) or (isinstance(k.get("t"), list) and k["t"])):
+                errs.append(f"{qid}: 키 형식 오류 {k}")
+        if not re.fullmatch(rf"{re.escape(it['desk'])}-q\d+", qid):
+            errs.append(f"{qid}: id 형식 ≠ '{it['desk']}-qN'")
+        if grade(it, it["answer"])["score"] < 1.0:
+            errs.append(f"{qid}: 모범답이 자기 키를 다 못 맞힘 {grade(it, it['answer'])['miss']}")
+    seen = set()
+    for p in sorted(doc_dir.glob("*.md")) if doc_dir.exists() else []:
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            m = DOC_QUIZ.match(ln)
+            if not m:
+                continue
+            if "**답:**" in ln or "정답:" in ln:
+                errs.append(f"{p.name}: 퀴즈 답이 문서에 남음 — content/onboarding/{p.stem}.json 로 (G1)")
+            if not m.group(1):
+                errs.append(f"{p.name}: 퀴즈 id 없음 — '- 퀴즈 [{p.stem}-qN]: …'")
+            elif m.group(1) not in keys:
+                errs.append(f"{p.name}: 퀴즈 {m.group(1)} 키 없음 (content/onboarding/{p.stem}.json)")
+            else:
+                seen.add(m.group(1))
+    for qid in sorted(set(keys) - seen):
+        errs.append(f"{qid}: 키는 있는데 온보딩 문서에 문제 줄이 없음")
+    return errs
+
+
+def grade_sheet(text: str, keys: dict[str, dict]) -> list[dict]:
+    """답안 텍스트의 `퀴즈: <id> <답>`·`드릴: <id> <답>` 줄 채점. 모르는 id 는 score None."""
+    out = []
+    for ln in text.splitlines():
+        m = QUIZ_LINE.match(ln) or DRILL_LINE.match(ln)
+        if not m:
+            continue
+        qid, ans = m.group(1), m.group(2)
+        out.append(grade(keys[qid], ans) if qid in keys else {"id": qid, "score": None, "pass": False, "hit": [], "miss": ["id 없음"]})
     return out
 
 
@@ -180,14 +241,24 @@ def main(argv=None) -> int:
     ap.add_argument("--text", default="")
     ap.add_argument("--round")
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--sheet", help="답안 파일(퀴즈:·드릴: 줄) 채점")
     a = ap.parse_args(argv)
     if a.check:
-        errs = check()
+        errs = check() + check_onboarding()
         for e in errs:
             print("FAIL", e)
-        print(f"{'ok' if not errs else str(len(errs)) + ' errors'}: 드릴 {len(load_keys())}개")
+        print(f"{'ok' if not errs else str(len(errs)) + ' errors'}: 드릴 {len(load_keys())}개 · 온보딩 퀴즈 {len(load_onboarding())}개")
         return 1 if errs else 0
-    keys = load_keys()
+    keys = {**load_keys(), **load_onboarding()}
+    if a.sheet:
+        res = grade_sheet(Path(a.sheet).read_text(encoding="utf-8"), keys)
+        for r in res:
+            sc = "—" if r["score"] is None else f"{r['score']:.0%}"
+            print(f"| {r['id']} | {sc} | {'통과' if r['pass'] else '미달'} | {', '.join(r['miss']) or '—'} |")
+        q = [r for r in res if r["id"].split("-")[-1].startswith("q")]
+        if q:
+            print(f"퀴즈 통과 {sum(r['pass'] for r in q)}/{len(q)}")
+        return 0
     if a.grade:
         if a.grade not in keys:
             print(f"드릴 id 없음: {a.grade}")

@@ -1,0 +1,296 @@
+{
+ "_doc": "프론트 온보딩 확인 퀴즈 답·채점 키 (교육 출제 10/24, 검수·채점 평가 — 출제자≠검수자). 문제는 docs/desk_kb/onboarding/front_quiz.md. G1 규칙: 라운드 파일에 `퀴즈: <id> <내 답>` 을 먼저 쓰고 이 파일을 연다. 채점 python3 scripts/drill_grade.py --sheet <답안 파일>.",
+ "desk": "front",
+ "course": "front-onboarding",
+ "items": [
+  {
+   "id": "front-q1",
+   "q": "tab_home.html 달력 색 변경 — 편집 전~push 뒤 순서와 index.html 을 손으로 고치면 안 되는 이유",
+   "answer": "① python3 scripts/lock.py take apps-script/tab_home.html --owner 프론트 → 잠금 커밋 바로 push ② 자기 worktree 에서 토큰(var(--line) 등)으로 편집 ③ python3 scripts/build_pages.py 로 index.html 재빌드 ④ pytest(test_skin_tokens·test_font_tokens)·skin_audit 두 스킨·ui_smoke 390·1300 ⑤ front: 접두 커밋, 경로 지정 add, pull --rebase 후 push(--no-verify 금지) ⑥ lock.py drop 으로 잠금 해제 push. index.html 은 build_pages.py 가 만드는 산출물이라 다음 빌드에 덮어써지고 GAS 는 apps-script/ 원본을 읽으므로 손 수정은 사라지거나 두 화면이 달라진다.",
+   "keys": [
+    {
+     "t": [
+      "lock.py",
+      "잠금",
+      "LOCKS"
+     ]
+    },
+    {
+     "t": [
+      "build_pages"
+     ]
+    },
+    {
+     "t": [
+      "산출물",
+      "덮어",
+      "자동 생성",
+      "생성물"
+     ]
+    },
+    {
+     "t": [
+      "ui_smoke",
+      "skin_audit"
+     ]
+    },
+    {
+     "t": [
+      "drop",
+      "해제",
+      "unlock"
+     ]
+    }
+   ],
+   "src": "docs/desk_kb/onboarding/front.md §1·§5 · ops/LOCKS.md · scripts/build_pages.py",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  },
+  {
+   "id": "front-q2",
+   "q": "getMacroView 가 GAS·Pages 에서 각각 무엇으로 바뀌나, 새 getter 는 어디·누구",
+   "answer": "GAS: Code.gs 의 getMacroView() 가 raw_() 로 GitHub raw 의 reports/macro_view.json 을 토큰으로 읽어 문자열로 돌려준다. Pages: build_pages.py 의 SHIM(심)이 google.script.run 을 흉내 내 fetch('reports/macro_view.json') 로 같은 파일을 읽는다. 새 getter 는 Code.gs 와 build_pages.py SHIM 두 곳에 짝으로 넣어야 하고, 둘 다 개발 소관·잠금 파일이라 프론트는 개발에 ask 한다.",
+   "keys": [
+    {
+     "t": [
+      "Code.gs"
+     ]
+    },
+    {
+     "t": [
+      "SHIM",
+      "심"
+     ]
+    },
+    {
+     "t": [
+      "fetch"
+     ]
+    },
+    {
+     "t": [
+      "짝",
+      "두 곳",
+      "둘 다",
+      "양쪽"
+     ]
+    },
+    {
+     "t": [
+      "개발"
+     ]
+    }
+   ],
+   "src": "apps-script/Code.gs raw_() · scripts/build_pages.py SHIM · docs/desk_kb/front.md 경계 표",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  },
+  {
+   "id": "front-q3",
+   "q": "background:var(--amber);color:#000 이 엑셀 스킨에서 어떻게 되나·고치기·막는 테스트",
+   "answer": "엑셀 스킨(html.xl)에선 --amber 가 #000 이라 검정 바탕에 검정 글자(대비 1:1)가 된다(10/24 사내톡 b466d965 와 같은 꼴). 글자를 color:var(--on-amber) 로 바꾸면 기본 #000, 엑셀 #fff 가 된다. tests/test_skin_tokens.py 의 BLACK_ON_AMBER 정규식이 막고, 브라우저로는 skin_audit --skin xl·ui_smoke check_xl 이 잡는다.",
+   "keys": [
+    {
+     "t": [
+      "--on-amber"
+     ]
+    },
+    {
+     "t": [
+      "검정 바탕",
+      "검정 위 검정",
+      "1:1",
+      "대비 1"
+     ]
+    },
+    {
+     "t": [
+      "test_skin_tokens"
+     ]
+    },
+    {
+     "t": [
+      "xl",
+      "엑셀"
+     ]
+    }
+   ],
+   "src": "apps-script/Index.html :root·html.xl · tests/test_skin_tokens.py · b466d965",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  },
+  {
+   "id": "front-q4",
+   "q": "font-size:13px → 어느 토큰·어떤 테스트·자동 고치기 명령",
+   "answer": "--fs-2(12.5px, 본문·표)로 바꾼다 — 13 은 12.5 와 14 중 12.5 가 더 가깝다. tests/test_font_tokens.py 의 test_no_raw_px_font_size 가 빨강이 되고, python3 scripts/font_tokens.py --fix 가 가장 가까운 단계 토큰으로 바꿔 쓴다.",
+   "keys": [
+    {
+     "t": [
+      "--fs-2"
+     ]
+    },
+    {
+     "n": 12.5
+    },
+    {
+     "t": [
+      "test_font_tokens"
+     ]
+    },
+    {
+     "t": [
+      "--fix"
+     ]
+    }
+   ],
+   "src": "scripts/font_tokens.py · tests/test_font_tokens.py test_nearest_step_mapping",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  },
+  {
+   "id": "front-q5",
+   "q": "목록 버튼 최소 높이(폰·PC 마우스·엑셀)·근거·전부 44px 의 결과",
+   "answer": "손가락 기기(@media any-pointer:coarse) 44px — WCAG 2.5.5 AAA 목표 44×44. 마우스만 있는 PC 28px — WCAG 2.2 2.5.8 AA 최소 24px + 여유 4px. 엑셀(html.xl) 위장 모드는 둘 다 빼고 촘촘하게. PC 까지 전부 44px(ffb03804)로 했더니 1300px 공시 화면이 9,063→18,922px 로 2.1배, 35화면 합 +13% 길어져 9b2ffd4f 에서 44/28 절충(+3.1%).",
+   "keys": [
+    {
+     "n": 44
+    },
+    {
+     "n": 28
+    },
+    {
+     "n": 24
+    },
+    {
+     "t": [
+      "coarse",
+      "any-pointer"
+     ]
+    },
+    {
+     "t": [
+      "2배",
+      "2.1배",
+      "+13%",
+      "13%",
+      "두 배"
+     ]
+    }
+   ],
+   "src": "apps-script/Index.html any-pointer 블록 · docs/uxui/2026-10-24_pc44_decision.md · 9b2ffd4f",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  },
+  {
+   "id": "front-q6",
+   "q": "머리 회귀 높이·상한·검사 함수·1300 에서 안 보인 이유",
+   "answer": "3d6feca9 에서 💬 를 머리 안 44px 버튼으로 옮기자 390px 첫 줄(브랜드+◐+신선도 배지+💬+🔍)이 폭을 넘어 🔍 이 둘째 줄로 떨어져 .top 105→151px. ffb03804 에서 폰 배지를 짧게 해 109px, 상한 HEAD_MAX = 110px 을 ui_smoke check_head_clip 이 본다(실파일·늦음 주입 둘 다, 💬·🔍 44px 같은 줄). 1300px 은 폭이 넓어 첫 줄에 다 들어가 높이가 안 변하므로 PC 에서만 보면 못 찾는다.",
+   "keys": [
+    {
+     "n": 151
+    },
+    {
+     "n": 110
+    },
+    {
+     "t": [
+      "check_head_clip"
+     ]
+    },
+    {
+     "t": [
+      "한 줄",
+      "첫 줄",
+      "넓",
+      "폭"
+     ]
+    },
+    {
+     "t": [
+      "둘째 줄",
+      "줄바꿈",
+      "두 줄"
+     ]
+    }
+   ],
+   "src": "scripts/ui_smoke.py HEAD_MAX·check_head_clip · 3d6feca9 · ffb03804",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  },
+  {
+   "id": "front-q7",
+   "q": "차트 검정 상자 원인·skin_audit 자 밖 두 가지·대신 보는 함수",
+   "answer": "엑셀 스킨의 html.xl canvas{filter:invert(1) hue-rotate(180deg)} 반전이, 이미 색 토큰(cv('--panel'))으로 밝게 그린 lightweight-charts 캔버스에도 걸려 이중 반전 → 채권·파생·ISA 캔버스 42개가 검정 상자(a0992379 10/15 부터). skin_audit 는 canvas·svg 안과 background-image(그라디언트·사진) 위 글자를 못 잰다. ui_smoke check_xl_beyond 가 토큰 차트 반전 없음·대결 곡선 3:1·달력 선택·프로필 더보기를 따로 본다.",
+   "keys": [
+    {
+     "t": [
+      "반전",
+      "invert"
+     ]
+    },
+    {
+     "t": [
+      "canvas",
+      "캔버스"
+     ]
+    },
+    {
+     "t": [
+      "svg",
+      "background-image",
+      "그라디언트"
+     ]
+    },
+    {
+     "t": [
+      "check_xl_beyond"
+     ]
+    }
+   ],
+   "src": "apps-script/Index.html html.xl canvas · scripts/skin_audit.py 정의 · df0a1f16",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  },
+  {
+   "id": "front-q8",
+   "q": "한눈에 생성 실패 원인(스키마)·get 기본값 함정·프론트가 할 일/하지 말 일",
+   "answer": "데이터 스키마 변경: geo_news 가 피드 약관 때문에 제목을 title=None(title_withheld)으로 싣기 시작했는데 macroview.glance() 가 n.get('title','')[:90] 를 해서 None[:90] TypeError → glance 전체가 '생성 실패' 1줄로 대체. dict.get 의 기본값 '' 은 키가 없을 때만 쓰이고 값이 None 이면 None 이 그대로 나온다 → (n.get('title') or '')[:90], JS 는 (x.title||'').slice(0,90). 프론트는 화면에서 값을 지어내거나 오류를 숨기지 말고 '데이터 없음(원인)'을 보이고, 생성 코드는 담당(매크로·개발·데이터)에 ask 로 넘긴다.",
+   "keys": [
+    {
+     "t": [
+      "None"
+     ]
+    },
+    {
+     "t": [
+      "스키마",
+      "schema"
+     ]
+    },
+    {
+     "t": [
+      "키가 없을 때",
+      "or ''",
+      "||''",
+      "|| ''"
+     ]
+    },
+    {
+     "t": [
+      "데이터 없음"
+     ]
+    },
+    {
+     "t": [
+      "ask",
+      "요청",
+      "장부"
+     ]
+    }
+   ],
+   "src": "screener/macroview.py · tests/test_macro_glance.py · 79db85cf · docs/desk_kb/front.md 경계",
+   "pass": 0.6,
+   "added": "2026-10-24"
+  }
+ ]
+}
