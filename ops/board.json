@@ -4829,14 +4829,15 @@
         "screener/toss_live.py"
       ],
       "depends_on": [],
-      "notes": "10/24 겸이 \"라이브도 토스 기준\" → 데이터 측정(req-dev-a4d03413)으로 토스 1차 보류, 겸이 최종 결정 대기. 반영: 히트맵 종목 네이버 1차·토스 폴백(정규장·신선만), 장 밖 토스 지수 덮기 금지, 15:30~15:45 provisional. 장중 지수 토스 덮기(10/21 결정)는 그대로. Actions 는 토스 직접 호출 불가(허용 IP+토큰 1개).",
+      "notes": "10/24 겸이 \"라이브도 토스 기준\" → 데이터 측정(req-dev-a4d03413)으로 토스 1차 보류, 겸이 최종 결정 대기. 반영: 히트맵 종목 네이버 1차·토스 폴백(정규장·신선만), 장 밖 토스 지수 덮기 금지, 15:30~15:45 provisional. 장중 지수 토스 덮기(10/21 결정)는 그대로. Actions 는 토스 직접 호출 불가(허용 IP+토큰 1개). | 10/24 16시 겸이 \"지수도 네이버로, 근데 NXT 지수는 토스로\" 반영: toss_live.overlay 정규장 지수 네이버 1차(네이버 실패 시만 토스), live.json nxt 키(nxt_pre 08:00~08:50·nxt_after 15:30~20:00, src toss — 정규장 items·일봉에 안 섞음), 15:30~15:45 provisional 유지.",
       "id": "toss-first-live",
-      "title": "국장 라이브 출처 — 토스 1차 전환 보류(네이버 1차·토스 폴백), 장 마감 뒤 토스 지수 덮기 금지·15:30~15:45 잠정",
+      "title": "국장 라이브 지수 출처 — 겸이 결정 10/24: 정규장 네이버 1차·토스 폴백, NXT 시간대 지수 = 토스(별도 키)",
       "owner": "개발",
       "priority": "P1",
-      "status": "보류",
+      "status": "완료",
       "repo": "public",
-      "desk": "개발"
+      "desk": "개발",
+      "done": "2026-10-24"
     },
     {
       "started": "2026-10-24",
@@ -4885,7 +4886,7 @@
         "screener/intraday_last.py"
       ],
       "depends_on": [],
-      "notes": "10/24 겸이 \"NXT 애프터마켓 시간대 반영\". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수.",
+      "notes": "10/24 겸이 \"NXT 애프터마켓 시간대 반영\". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수. | 지수 부분 10/24 반영: live.json \"nxt\" 키(toss_live.nxt_indices). 남은 것: live 루프 창이 08:40~15:50 이라 NXT 애프터 15:50~20:00 은 갱신 안 됨(live.yml 창 확장·커밋 비용 판단), 종목·히트맵·오늘 봉 세션 필드, 화면 라벨.",
       "id": "nxt-session",
       "title": "NXT(넥스트레이드) 프리·애프터 세션 반영 — 라이브·히트맵·오늘 봉 세션 필드, 정규장 일봉과 NXT 시세 분리, NXT 애프터 HH:MM 라벨",
       "owner": "개발",

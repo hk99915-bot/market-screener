@@ -187,7 +187,9 @@ def snapshot() -> dict:
     except Exception:  # noqa: BLE001
         pass
     out = {"asof": now.strftime("%Y-%m-%d %H:%M"), "updated_at": now.strftime("%m-%d %H:%M KST"), "items": items,
-           "session": sess, "trade_date": tday, "toss": toss_blk}
+           "session": sess, "trade_date": tday, "toss": toss_blk,
+           # NXT 시간대 지수(토스) — 정규장 items 와 별도 키, 없으면 빈 dict (10/24 겸이 "NXT 지수는 토스로")
+           "nxt": toss_blk.get("nxt") or {}}
     from .guard import write_json
     if write_json(REPORT_DIR / "live.json", out):   # 계약 + 분 단위 역행 가드 (같은 날 더 늦은 시각은 항상 허용)
         log.info("live.json %d개 지표", len(items))

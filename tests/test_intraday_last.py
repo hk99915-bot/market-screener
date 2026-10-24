@@ -127,7 +127,9 @@ def test_toss_index_overlay_blocked_after_close():
     assert out[0]["src"] == "naver" and out[0]["last"] == 5533.7 and "KRX 종가 우선" in blk["skipped"]["KOSPI"]
     doc["indices"]["KOSPI"]["asof"] = "2026-10-22T11:00:00+09:00"
     out, blk = T.overlay([dict(x) for x in items], doc, datetime(2026, 10, 22, 11, 5, tzinfo=KST))
-    assert out[0]["src"] == "toss"
+    assert out[0]["src"] == "naver"                       # 10/24 겸이: 정규장도 네이버 1차
+    out, blk = T.overlay([], doc, datetime(2026, 10, 22, 11, 5, tzinfo=KST))
+    assert out[0]["src"] == "toss"                        # 네이버 실패(항목 없음) → 토스 폴백
 
 
 def test_live_marks_provisional_window():

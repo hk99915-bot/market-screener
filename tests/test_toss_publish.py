@@ -209,14 +209,16 @@ def _items():
 
 
 def test_overlay_uses_fresh_toss_in_session():
+    # 10/24 겸이 "지수도 네이버로": 정규장 지수는 네이버 1차 — 네이버 항목이 있으면 토스로 안 덮음, 네이버 실패(항목 없음)면 토스 폴백
     now = datetime(2026, 10, 21, 10, 30, tzinfo=KST)
     items, blk = toss_live.overlay(_items(), _doc("2026-10-21T10:15:00+09:00"), now)
     by = {x["key"]: x for x in items}
-    assert blk["state"] == "fresh" and set(blk["used"]) == {"KOSPI", "KOSDAQ", "USDKRW"}
-    assert by["KOSPI"]["src"] == "toss" and by["KOSPI"]["fallback_src"] == "naver" and by["KOSPI"]["status"] == "OPEN"
-    assert by["KOSPI"]["chg"] == pytest.approx(5600 / (5500 / 1.01) - 1)   # 전일 종가 = 네이버 last/(1+chg)
-    assert by["KOSDAQ"]["chg"] == pytest.approx(790 / 780 - 1)            # 토스 전일 종가 우선
+    assert blk["state"] == "fresh" and set(blk["used"]) == {"USDKRW"} and "네이버 1차" in blk["skipped"]["KOSPI"]
+    assert by["KOSPI"]["src"] == "naver" and by["KOSPI"]["last"] == 5500.0
     assert by["USDKRW"]["last"] == 1330.0 and by["USDKRW"]["src"] == "toss"
+    items, blk = toss_live.overlay([x for x in _items() if x["key"] == "USDKRW"], _doc("2026-10-21T10:15:00+09:00"), now)
+    by = {x["key"]: x for x in items}
+    assert by["KOSPI"]["src"] == "toss" and by["KOSDAQ"]["chg"] == pytest.approx(790 / 780 - 1)   # 네이버 실패 → 토스 폴백(토스 전일 종가)
     assert blk["flows"]["KOSPI"]["외국인"] == -1.0
 
 
@@ -448,3 +450,17 @@ def test_dispatcher_heartbeat_published(base):
                                                       "last_error": None}), encoding="utf-8")
     doc = publish.build(base, NOW)
     assert doc["dispatcher_heartbeat"] == {"last_run": "2026-10-21T09:00:00+09:00", "last_dispatch": None, "last_error": None}
+
+
+def test_nxt_indices_separate_key():
+    """10/24 겸이 "NXT 지수는 토스로": NXT 프리 08:00~08:50·애프터 15:30~20:00 에만 별도 'nxt' 키, 정규장 items 는 그대로."""
+    doc = _doc("2026-10-21T16:10:00+09:00")
+    items, blk = toss_live.overlay(_items(), doc, datetime(2026, 10, 21, 16, 15, tzinfo=KST))
+    by = {x["key"]: x for x in items}
+    assert by["KOSPI"]["src"] == "naver" and blk["nxt"]["KOSPI"]["session"] == "nxt_after" and blk["nxt"]["KOSPI"]["src"] == "toss"
+    assert blk["nxt"]["KOSPI"]["last"] == 5600.0
+    assert toss_live.nxt_session(datetime(2026, 10, 21, 8, 30, tzinfo=KST)) == "nxt_pre"
+    assert toss_live.nxt_session(datetime(2026, 10, 21, 11, 0, tzinfo=KST)) is None
+    assert toss_live.nxt_session(datetime(2026, 10, 21, 20, 0, tzinfo=KST)) is None
+    assert toss_live.nxt_session(datetime(2026, 10, 24, 16, 0, tzinfo=KST)) is None        # 토요일
+    assert toss_live.nxt_indices(_doc("2026-10-21T15:40:00+09:00"), datetime(2026, 10, 21, 16, 15, tzinfo=KST)) == {}   # 35분 전 = 오래됨

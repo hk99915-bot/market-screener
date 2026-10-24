@@ -80,6 +80,10 @@ def overlay(items: list[dict], doc: dict | None, now: datetime, max_age_min: int
         v = (doc.get(sec) or {}).get(sub) or {}
         last = v.get("mid") if sec == "fx" else v.get("last")
         ok, why = fresh_ts(v.get("asof"), now, max_age_min) if last else (False, "값 없음")
+        if ok and sec == "indices" and tradecal.in_session("KR", now) and (by.get(key) or {}).get("src") in ("naver", "krx"):
+            # 10/24 겸이 "지수도 네이버로": 정규장 지수 1차 = 네이버. 토스는 네이버(→KRX)가 실패해 항목이 없을 때만 폴백
+            # (10/21 '장중 지수 토스로 덮기' 대체). 네이버 지연은 응답에 시각이 없어 판정 못 함 → 실패 시 폴백만.
+            ok, why = False, "정규장 — 네이버 1차(토스 폴백 대기)"
         if ok and sec == "indices" and not tradecal.in_session("KR", now):
             # 장 밖(마감 뒤·개장 전)엔 지수를 토스로 덮지 않는다 — 동시호가 15:20~15:30 값 고정으로 10/21·22·23 15:34 KRX 종가와
             # −13.1/+6.2/−3.2pt 차(10/22 5,539.94 = 토스), req-dev-a4d03413 ②. 장 밖 지수 = 네이버→KRX 종가.
@@ -103,6 +107,9 @@ def overlay(items: list[dict], doc: dict | None, now: datetime, max_age_min: int
         else:
             items.append(new)
         blk["used"].append(key)
+    nxt = nxt_indices(doc, now, max_age_min)   # NXT 시간대 지수 = 토스, 정규장 값과 별도 키(종가·일봉에 안 섞음)
+    if nxt:
+        blk["nxt"] = nxt
     fl = {}
     for mk, f in (doc.get("flows") or {}).items():
         ok, why = fresh_flows(doc, f, now, max_age_min)
@@ -114,6 +121,36 @@ def overlay(items: list[dict], doc: dict | None, now: datetime, max_age_min: int
         blk["flows"] = fl
     blk["state"] = "fresh" if blk["used"] else "stale"
     return items, blk
+
+
+# NXT(넥스트레이드) 시간대 — 프리 08:00~08:50 · 애프터 15:30~20:00 (KST, NXT 공시 기준 [확인 필요: 넥스트레이드 공식 거래시간 공지 재확인, 2026-10-30])
+NXT_SESSIONS = (("nxt_pre", "08:00", "08:50"), ("nxt_after", "15:30", "20:00"))
+
+
+def nxt_session(now: datetime) -> str | None:
+    loc = now.astimezone(KST)
+    if not tradecal.is_session("KR", loc.date()):
+        return None
+    hm = loc.strftime("%H:%M")
+    return next((k for k, a, b in NXT_SESSIONS if a <= hm < b), None)
+
+
+def nxt_indices(doc: dict | None, now: datetime, max_age_min: int = MAX_AGE_MIN) -> dict:
+    """10/24 겸이 "NXT 지수는 토스로": NXT 시간대에만 토스 KOSPI·KOSDAQ 을 {키: {last, chg, asof, session, src:'toss'}} 로.
+    live.json 'nxt' 별도 키 — 정규장 items(KRX 종가)·일봉에는 절대 합치지 않는다. 신선(asof 가 max_age_min 이내)할 때만."""
+    ses = nxt_session(now)
+    if not ses or not doc:
+        return {}
+    out = {}
+    for key in ("KOSPI", "KOSDAQ"):
+        v = (doc.get("indices") or {}).get(key) or {}
+        t = guard.stamp(v.get("asof"))
+        if not v.get("last") or t is None or (now - t).total_seconds() / 60 > max_age_min:
+            continue
+        pc = v.get("prev_close")
+        out[key] = {"last": float(v["last"]), "chg": (float(v["last"]) / pc - 1) if pc else None, "asof": v.get("asof"),
+                    "session": ses, "src": "toss"}
+    return out
 
 
 def _get_path(obj, key: str):
