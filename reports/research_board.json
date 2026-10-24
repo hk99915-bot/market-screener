@@ -275,7 +275,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/accum_signals.json",
-   "updated": "2026-10-23",
+   "updated": "2026-10-24",
    "grade_counts": {}
   },
   {
@@ -298,7 +298,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/trend_expectancy.json",
-   "updated": "2026-10-23",
+   "updated": "2026-10-24",
    "grade_counts": {
     "F": 1,
     "C": 1
@@ -445,7 +445,7 @@
    "auto": [
     "reports/studies/ktb_vs_ust.json"
    ],
-   "updated": "2026-10-17"
+   "updated": "2026-10-23"
   },
   {
    "id": "fib",
@@ -611,39 +611,43 @@
    "file": "reports/studies/2026-10-23_us_r20_reversal.md"
   },
   {
+   "study": "2026-10-24_avoid_vs_long",
+   "date": null,
+   "file": "reports/studies/2026-10-24_avoid_vs_long.json"
+  },
+  {
    "study": "2026-10-24_options_spread_prereg",
    "date": "2026-10-24",
    "file": "reports/studies/2026-10-24_options_spread_prereg.md"
+  },
+  {
+   "study": "2026-10-24_trend_discovery",
+   "date": "2026-10-24",
+   "file": "reports/studies/2026-10-24_trend_discovery.md"
+  },
+  {
+   "study": "2026-10-24_trend_events",
+   "date": "2026-10-24",
+   "file": "reports/studies/2026-10-24_trend_events.md"
+  },
+  {
+   "study": "2026-10-24_trend_events_rerun_us666",
+   "date": null,
+   "file": "reports/studies/2026-10-24_trend_events_rerun_us666.json"
+  },
+  {
+   "study": "trend_expectancy_verify",
+   "date": null,
+   "file": "reports/studies/trend_expectancy_verify.json"
   }
  ],
  "quant_requests": [
   {
-   "id": "req-quant-00175d13",
-   "from": "analyst",
-   "opened": "2026-10-23",
-   "due": "2026-10-27",
-   "text": "scripts/study_ktb_vs_ust.py 한은 기준금리 표(BOK)가 2025-05 2.50% 에서 멈춤 — 10/22 통화정책방향 RSS 는 3.00%·'두 차례 인상' 명시. 인상 회차·날짜 확인해 표 갱신+ISA 채권 슬리브 결과(US…"
-  },
-  {
-   "id": "req-quant-14188e23",
-   "from": "uxui",
-   "opened": "2026-10-23",
-   "due": "2026-10-27",
-   "text": "ISA 실험실 '데이터 기준일 2026-10-31'(미래 날짜) — reports/isa_lab_returns.json asof 원천 수정 또는 실제 마지막 날짜로 표기 회신 (터미널 진단 Top 10 #10)"
-  },
-  {
-   "id": "req-quant-66946478",
-   "from": "hf",
-   "opened": "2026-10-23",
-   "due": "2026-10-27",
-   "text": "퀀트 데스크께 — 옵션 호가 이력 확보·검증 설계 같이 부탁드려요. 오늘 HF 재량 북에 스프레드 엔진(scripts/hf_spread.py, 수직 스프레드·최대손실 = 1R)을 붙였는데 가격이 BS 근사라 검증을 못 하고 있어요. 부탁: ① 코스피…"
-  },
-  {
-   "id": "req-quant-2ba2c1f0",
-   "from": "겸이",
+   "id": "req-quant-c3b0fbd0",
+   "from": "macro",
    "opened": "2026-10-24",
    "due": "2026-10-27",
-   "text": "겸이 10/24 01시 '회피가 더 잘먹히네' — 미장 운용회의 아이디어 추적(committee_us.json idea_tracking, 10/20~10/23 제안, 1~3일 경과): 회피 12건 평균 초과 +3.7%(11/12 S&P 상회) vs …"
+   "text": "매크로 바람 점수 가중치 검증 사전등록 검수 부탁: macro_series(2024-09~) 일별 재계산으로 ①현행 W(macro.md #3) ②동일가중 ③미국 지수(SPX·NASDAQ·RUT) 제외 3안 × 코스피·S&P 5·20일 뒤 수익률 순위…"
   }
  ]
 }
