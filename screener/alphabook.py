@@ -272,13 +272,30 @@ def clean(s: str) -> str:
     return "" if any(w in t for w in BANNED) else s
 
 
-def say_line(st: dict, prop: list[dict], last_loss: dict | None, n_pass: int, src: dict | None) -> str:
-    """말투 줄(터미널·텔레그램 = 공개 보고서 → 욕 없음, 냉정한 톤만 · 10/21 겸이 지정). 우선순위: 직전 손절 → 제안 → 통과 소스 0 → 대기."""
+def entry_why(x: dict, market: str, srcs: dict | None = None, today: date | None = None) -> dict | None:
+    """제안 1건의 진입 근거(기술·기대값·리스크·뒤집힘 + 펀더·내러티브·센티) — screener/entry_why.py. 실패는 None(문장 생략)."""
+    try:
+        from . import entry_why as EW
+        g = ((srcs or {}).get(x.get("src")) or {}).get("grade")
+        return EW.build(x, market, grade=g, today=today)
+    except Exception as e:  # noqa: BLE001
+        log.warning("알파북 진입 근거 실패(%s): %s", x.get("code"), e)
+        return None
+
+
+def say_line(st: dict, prop: list[dict], last_loss: dict | None, n_pass: int, src: dict | None, why: dict | None = None) -> str:
+    """말투 줄(터미널·텔레그램 = 공개 보고서 → 욕 없음, 냉정한 톤만 · 10/21 겸이 지정). 우선순위: 직전 손절 → 제안 → 통과 소스 0 → 대기.
+    제안 = 캐치프레이즈 대신 진입 근거 문장(10/24 겸이 "왜 진입하는지로") — why(entry_why) 없으면 order dict 숫자만으로."""
     if last_loss:
         s = f"{last_loss.get('name') or last_loss['code']} 손절({last_loss['r']:+.2f}R). 규칙대로 잘랐다. 다음."
     elif prop:
         x = prop[0]
-        s = f"52주 고점 밀어붙이는 놈만 잡는다 — {x.get('name') or x['code']}, 스탑 깨지면 묻지도 따지지도 않고 다음 봉 시가에 자른다."
+        if why:
+            s = why["tech"] + ". " + why["risk"] + "."
+        else:
+            s = (f"{x.get('name') or x['code']} = {x.get('src')} 통과 소스 신호"
+                 + (f", 소스 OOS E[R] {x['ev_r']:+.3f}R vs 기준선 {x['base_ev_r']:+.3f}R" if _num(x.get("ev_r")) and _num(x.get("base_ev_r")) else "")
+                 + f". 손절 {x['stop']:,.2f} 닿으면 다음 봉 시가 청산.")
     elif n_pass == 0:
         ev, base = (src or {}).get("ev_r"), (src or {}).get("base_ev_r")
         s = ("이 장에서 롱 타령은 근거 없다 — " + (f"기대값 {ev:+.2f}R, 기준선 {base:+.2f}R 밑. " if _num(ev) and _num(base) else "통과한 소스가 하나도 없어. ")
@@ -312,7 +329,8 @@ def hf_block(market: str, st: dict, prop: list[dict], no_prop_why: str | None, c
         l3 = f"이견: 없음 — CIO 판정 '{cio_s}', 알파북 노출 {st['gross']*100:.0f}% 방향 같음"
     l4 = (f"틀린 것: {last_loss.get('name') or last_loss['code']} {last_loss['why']} {last_loss['r']:+.2f}R ({last_loss['exit_d']})" if last_loss
           else "틀린 것: 아직 없음 — 청산 0건(첫 손절은 이 줄 첫머리에 박는다)")
-    say = say_line(st, prop, last_loss, len(pas), _first_src(srcs, market))
+    why = entry_why(prop[0], market, srcs) if prop else None
+    say = say_line(st, prop, last_loss, len(pas), _first_src(srcs, market), why)
     if prop:
         x = prop[0]
         px = (lambda v: f"{v:,.0f}") if market == "KR" else (lambda v: f"{v:,.2f}")
@@ -321,9 +339,12 @@ def hf_block(market: str, st: dict, prop: list[dict], no_prop_why: str | None, c
     else:
         tp = "제안 없음 — " + (no_prop_why or "")[:80]
     tg = [f"🦈 <b>[HF 알파북 {market}]</b> 포지션 {st['n_pos']} · 노출 {st['gross']*100:.0f}% · 오늘 초과 {exs*100:+.2f}%p · {tp}"]
-    if say:
+    if why:
+        tg += ["  └ " + clean(x) for x in why["tg"] if clean(x)]
+    elif say:
         tg.append("  └ " + say)
-    return {"v": 1, "lines": [l1, l2, l3, l4], "say": say, "tg": tg, "mock": True,
+    lines = [l1, l2, l3, l4] + [clean(x) for x in (why or {}).get("long", []) if clean(x)]   # 4줄 형식 + 진입 근거 펼침
+    return {"v": 1, "lines": lines, "say": say, "tg": tg, "mock": True, "why": why,
             "note": "알파북 = 가상 1단위 모의(실계좌 근거 아님). 규칙 문장(LLM 아님) — screener/alphabook.py"}
 
 
@@ -565,4 +586,4 @@ def disc_line(path: Path | None = None) -> str | None:
 
 
 def telegram_tail(o: dict) -> list[str]:
-    return list(((o.get("hf") or {}).get("tg") or [])[:3])
+    return list(((o.get("hf") or {}).get("tg") or [])[:6])      # 머리 1 + 진입 근거 4 + 재량 1 (10/24)

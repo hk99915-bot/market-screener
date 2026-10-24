@@ -728,7 +728,7 @@ def _hf_attach(out: dict, market: str) -> None:
 
 
 def _hf_tail(txt: str, o: dict) -> str:
-    tail = list(((o.get("hf") or {}).get("tg") or [])[:3])
+    tail = list(((o.get("hf") or {}).get("tg") or [])[:6])     # 머리 1 + 진입 근거 4(10/24 겸이 "왜 진입하는지로") + 재량 1
     return txt + ("\n" + "\n".join(tail) if tail else "")
 
 

@@ -114,11 +114,12 @@ def _block(prop=None, loss=None, cio="관망", srcs=None):
 def test_hf_block_four_lines_format():
     pr = A.order(_plan(), SRC, A.size(_plan(), 1.0, 0.0, SCALE), "2026-10-21")
     b = _block([pr])
-    assert len(b["lines"]) == 4
-    assert [x.split(":")[0] for x in b["lines"]] == ["알파북 현재(KR)", "이번 제안", "이견", "틀린 것"]
+    assert len(b["lines"]) >= 4                                  # 4줄 형식 + 진입 근거 펼침(10/24)
+    assert [x.split(":")[0] for x in b["lines"][:4]] == ["알파북 현재(KR)", "이번 제안", "이견", "틀린 것"]
+    assert any(x.startswith("근거 펀더") for x in b["lines"][4:])
     assert "R" in b["lines"][1] and "크기" in b["lines"][1]
     assert b["lines"][2].startswith("이견: CIO 판정 '관망'")
-    assert 1 <= len(b["tg"]) <= 2
+    assert 2 <= len(b["tg"]) <= 5 and "52주 고점 밀어붙이는" not in b["say"]
     loss = {"code": "X", "name": "테스트", "r": -1.03, "why": "스탑 닿음 → 다음 봉 시가 청산", "exit_d": "2026-10-20"}
     b2 = _block(None, loss)
     assert b2["lines"][3].startswith("틀린 것: 테스트") and b2["say"].startswith("테스트 손절")
@@ -182,3 +183,58 @@ def test_fill_resizes_down_to_order_risk():
     A.step_day(b2, "2026-10-02", {"X": {"o": 99.0, "h": 100, "l": 98, "c": 99}}, 1000)
     p2 = b2["positions"][0]
     assert abs(p2["qty"] * 99.0 - sz2["weight"]) < 1e-9 and "재조정" not in b2["fills"][-1]["why"]
+
+
+
+# ── 진입 근거 문장(10/24 겸이 "왜 진입하는지로" · "펀더 내러 센티 다 드러나게") ──
+def _ew_root(tmp_path, det=None, accum=None, research=None, trend=None):
+    import json as _json
+    (tmp_path / "reports" / "detail" / "KR").mkdir(parents=True)
+    (tmp_path / "docs" / "valuation_notes").mkdir(parents=True)
+    if det is not None:
+        (tmp_path / "reports" / "detail" / "KR" / "000001.json").write_text(_json.dumps(det, ensure_ascii=False))
+    for nm, v in (("accum.json", accum), ("research.json", research), ("trend_discovery_KR.json", trend)):
+        if v is not None:
+            (tmp_path / "reports" / nm).write_text(_json.dumps(v, ensure_ascii=False))
+    return tmp_path
+
+
+def _ew_order():
+    return {"code": "000001", "name": "테스트", "src": "B1", "lo": 99.0, "hi": 101.0, "stop": 86.2, "t1": 120.7, "t2": 141.4, "weight": 0.009,
+            "risk_pct": 0.00125, "line": "진입 99~101 · 손절 86(−13.8%) · 1차 121(1.5R)", "ev_r": 0.0828, "base_ev_r": -0.0149, "prox": 0.95}
+
+
+def test_entry_why_no_data_is_unverified(tmp_path):
+    from datetime import date
+    from screener import entry_why as EW
+    w = EW.build(_ew_order(), "KR", grade="B", today=date(2026, 10, 24), root=_ew_root(tmp_path))
+    assert all(a["v"] == "미확인" and a["score"] is None for a in w["axes"].values())
+    assert "펀더 미확인" in w["tg"][2] and "내러 미확인" in w["tg"][2] and w["tg"][3] == "센티 미확인"
+    assert not w["weak"] and "hi52" not in w["tech"]                 # 연구 파일 없으면 hi52 문구도 없음(지어내지 않음)
+    assert "E[R] +0.083R" in w["risk"] and "−13.8%" in w["risk"] and "리스크 0.125%" in w["risk"] and "뒤집힘" in w["risk"]
+    assert all(len(x) <= 90 for x in w["tg"])
+
+
+def test_entry_why_axes_from_data_and_weak_flag(tmp_path):
+    from datetime import date
+    from screener import entry_why as EW
+    det = {"close": 100.0, "theme": "AI·소프트웨어",
+           "valuation": {"group_upside": {"current": -0.25}},
+           "financials": {"quarters": [{"year": 2025, "q": 2, "op": 100.0, "period": "2025Q2"}, {"year": 2026, "q": 2, "op": 70.0, "period": "2026Q2"}]},
+           "flows": [{"외국인": -1.0, "기관": -2.0} for _ in range(5)]}
+    root = _ew_root(tmp_path, det=det, accum={"status": "ok", "top": {"accum": [{"code": "999999", "tags": ["accum"]}]}},
+                    research={"items": [{"code": "000001", "date": "2026-10-20", "tone": "부정(하향)", "broker": "가증권"}]},
+                    trend={"sectors": {"rows": [{"g": "AI·소프트웨어", "lift": 0.5, "p_upper": 0.9, "bonf_pass": False}]}})
+    w = EW.build(_ew_order(), "KR", grade="B", today=date(2026, 10, 24), root=root)
+    ax = w["axes"]
+    assert ax["펀더"]["v"] == "−" and "적정가 −25.0%" in ax["펀더"]["why"] and "−30.0%" in ax["펀더"]["why"]
+    assert ax["내러"]["v"] == "−" and "부정 1" in ax["내러"]["why"] and "0.50배" in ax["내러"]["why"]
+    assert ax["센티"]["v"] == "−" and "매집 신호 없음" in ax["센티"]["why"]
+    assert w["weak"] and w["tg"][3].endswith("근거 약함") and "[flows]" in w["tg"][3]
+    assert "2,000" not in " ".join(w["long"])                           # 입력에 없는 값 안 나옴
+    assert "뒤집힘 종가 < 100(250일 고점 95%)" in w["risk"]               # 100 / 0.95 × 0.95
+
+
+def test_say_line_fallback_without_why():
+    s = A.say_line({}, [_ew_order()], None, 1, None)
+    assert "B1" in s and "+0.083R" in s and "밀어붙이는" not in s
