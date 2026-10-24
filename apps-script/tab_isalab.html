@@ -105,7 +105,7 @@ function ilabChart(b,x){
   add(b,cv('--muted'),1); add(x,cv('--amber'),2); c.timeScale().fitContent();
 }
 function ilabCanvas(el,b,x,cv){
-  el.innerHTML='<canvas style="width:100%;height:100%"></canvas>'; const c=el.firstChild, W=c.width=el.clientWidth*2, H=c.height=el.clientHeight*2, g=c.getContext('2d'), pl=20, pr=110, pt=16, pb=36;
+  el.innerHTML='<canvas class="tokc" style="width:100%;height:100%"></canvas>'; const c=el.firstChild, W=c.width=el.clientWidth*2, H=c.height=el.clientHeight*2, g=c.getContext('2d'), pl=20, pr=110, pt=16, pb=36;
   const lg=ILAB_ST.log, f=v=>lg?Math.log(v):v, all=b.concat(x), lo=f(Math.min(...all,1)), hi=f(Math.max(...all)), n=b.length;
   const X=i=>pl+(W-pl-pr)*i/(n-1), Y=v=>pt+(H-pt-pb)*(1-(f(v)-lo)/(hi-lo||1));
   g.font='22px monospace'; g.fillStyle=cv('--muted'); g.strokeStyle=cv('--line'); g.lineWidth=1;

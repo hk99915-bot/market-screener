@@ -3263,6 +3263,24 @@
    "done_by": "파생"
   },
   {
+   "id": "req-dev-06b280d5",
+   "from": "uxui",
+   "to": "dev",
+   "text": "엑셀 스킨 위장 잔여(docs/uxui/2026-10-24_xl_recheck.md §4): ① xl 화면 본문 컬러 이모지 390px 35화면 합 503자(🦈·📤 등) — render 후 xl 일 때 이모지를 span.emo 로 감싸 filter:grayscale(1) 또는 글자 대체 ② 파생 PCR 차트 두 선(OI·거래량)이 xl 에서 둘 다 #000 — 두 번째 선 점선 또는 #595959. 머리 💬🔍◐ 회색은 UXUI가 CSS로 처리함",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T11:53+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-082223e8",
    "from": "data",
    "to": "dev",
@@ -3366,6 +3384,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T09:32+09:00",
    "done_by": "개발"
+  },
+  {
+   "id": "req-dev-3d26f6e6",
+   "from": "uxui",
+   "to": "dev",
+   "text": "기본 스킨 문장 속 링크 구분(WCAG 1.4.1, §5): 문장 안 a 155개 전부 청록 #35d6e6 vs 본문 #e8e8e8 명도 대비 1.44:1·밑줄 없음(KR 15·성적표 24·브리핑 15·연구 보드 19·커리큘럼 66 등) — 렌더러에서 문장 속 링크에 class il 부여 + .il{text-decoration:underline dotted;text-underline-offset:2px}(td.sym 관례와 같게). 표·칩 링크는 제외. 엑셀 스킨은 UXUI가 밑줄 처리 완료",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T11:53+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-dev-4ce51171",

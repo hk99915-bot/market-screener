@@ -75,6 +75,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_uxui_rest(b, port)
         bad += await check_head_clip(b, port)
         bad += await check_xl(b, port)
+        bad += await check_xl_beyond(b, port)
         bad += await check_hf_why(b, port)
         await b.close()
     return bad
@@ -676,6 +677,38 @@ async def check_hf_why(b, port: int) -> int:
               + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await pg.close()
     return bad
+
+
+async def check_xl_beyond(b, port: int) -> int:
+    """UXUI 10/24 엑셀 스킨 재검수(docs/uxui/2026-10-24_xl_recheck.md) — skin_audit 자(글자 대비) 밖 그림·상태 4건, 1300px:
+    ① 색 토큰 차트(#root lightweight-charts)는 반전 안 함(검정 상자 금지) — 첫 차트 화면 바탕이 밝은가 ② 대결 곡선 선 대비 ≥3:1(흰 바탕)
+    ③ HOME 달력 선택일이 다른 날과 구별(테두리/외곽선) ④ 프로필 '더보기' 글자색 ≠ 바탕(흰 바탕 흰 글자 금지)."""
+    import skin_audit as sa
+    ctx, pg = await sa.page(b, port, 1300, "xl")
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    res: dict = {}
+    await pg.evaluate("setView('deriv')")
+    await pg.wait_for_timeout(2500)
+    res["토큰차트반전없음"] = await pg.evaluate("(()=>{ const c=[...document.querySelectorAll('#root .tv-lightweight-charts canvas')]; return c.length>0 && c.every(x=>getComputedStyle(x).filter==='none'); })()")
+    await pg.evaluate("setView('score')")
+    await pg.wait_for_timeout(2500)
+    res["대결곡선3:1"] = await pg.evaluate(r"""(()=>{ const L=c=>{const f=v=>{v/=255; return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}; return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2])};
+      const ps=[...document.querySelectorAll('#root svg polyline')].filter(e=>e.getBoundingClientRect().width>0); if(!ps.length) return true;
+      return ps.every(e=>{ const m=getComputedStyle(e).stroke.match(/\d+/g); if(!m) return true; const l=L(m.slice(0,3).map(Number)); return 1.05/(l+.05)>=3; }); })()""")
+    await pg.evaluate("setView('home')")
+    await pg.wait_for_timeout(2000)
+    res["달력선택"] = await pg.evaluate("""(()=>{ const cs=[...document.querySelectorAll('.calc')]; const t=cs.find(x=>getComputedStyle(x).cursor==='pointer'); if(!t) return true; t.click();
+      return new Promise(r=>setTimeout(()=>{ const s=[...document.querySelectorAll('.calc')].find(x=>x.dataset.d===t.dataset.d); r(!!s&&getComputedStyle(s).outlineStyle==='solid'); },400)); })()""")
+    await pg.evaluate("setView('msg')")
+    await pg.wait_for_timeout(2500)
+    res["프로필더보기"] = await pg.evaluate("""(()=>{ const k=((typeof MG==='object'&&MG&&MG.profiles)||[]).map(p=>p.key)[0]; if(!k) return true; mgProf(k);
+      const d=document.querySelector('[data-card] details'); if(!d) return false; d.open=true; const t=d.querySelector('div'); const c=getComputedStyle(t).color, bg=getComputedStyle(d).backgroundColor;
+      const ok=c!==bg; document.querySelectorAll('[data-card]').forEach(e=>e.closest('div[style*="z-index:99"]')&&e.closest('div[style*="z-index:99"]').remove()); return ok; })()""")
+    ok = all(res.values()) and not errs
+    print(f"{'OK ' if ok else 'BAD'} 엑셀 스킨 그림·상태(1300px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await ctx.close()
+    return not ok
 
 
 async def check_xl(b, port: int) -> int:

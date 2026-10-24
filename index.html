@@ -297,6 +297,20 @@ html.xl [style*="color:#9a9a9a"],html.xl [style*="color:#999"],html.xl [style*="
 html.xl [style*="color:#4cc9f0"]{color:#0b6e8a!important;border-color:#0b6e8a!important} html.xl [style*="color:#ffb703"]{color:#8a5a00!important}   /* 대결 범례·미장 태그(밝은 하늘·노랑 → 흰 바탕 4.5:1) */
 html.xl [style*="border:1px solid #1"],html.xl [style*="border-top:1px solid #1"]{border-color:#d4d4d4!important}
 html.xl canvas{filter:invert(1) hue-rotate(180deg)}
+/* UXUI 10/24 엑셀 스킨 재검수(docs/uxui/2026-10-24_xl_recheck.md) — 자(skin_audit) 밖 4건:
+   ① 색 토큰(cv('--panel'))으로 그리는 차트(채권·파생·ISA·LIFE·MY, #root 안 lightweight-charts·.tokc)는 이미 흰 바탕인데 위 반전이 한 번 더 걸려 검정 상자 → 반전 제외.
+      반전은 하드코딩 다크 색으로 그리는 차트(종목 상세 창·퀀트 pf/mom)에만 남는다. */
+html.xl #root .tv-lightweight-charts canvas,html.xl canvas.tokc{filter:none}
+/* ② 대결 성적 곡선: 범례 ━ 는 위 규칙으로 검정(#c77dff→#000)인데 선은 보라·하늘·노랑 그대로(흰 바탕 2.69·1.92·1.7:1, 범례와 짝 안 맞음) → 선·범례를 같은 엑셀 차트 색으로 */
+html.xl polyline[style*="#c77dff"]{stroke:#7030a0!important} html.xl b[style*="color:#c77dff"]{color:#7030a0!important}
+html.xl polyline[style*="#4cc9f0"]{stroke:#0b6e8a!important} html.xl polyline[style*="#ffb703"]{stroke:#8a5a00!important}
+/* ③ 링크: 엑셀 하이퍼링크처럼 밑줄 — 회색 문장 속 파랑 링크가 명도 대비 1.19 로 색만으로 구분됨(WCAG 1.4.1). 버튼처럼 생긴 링크(칩·.lnk)는 제외 */
+html.xl #root a{text-decoration:underline}
+html.xl #root a[style*="inline-flex"],html.xl #root .lnk a,html.xl #root a.sbtn{text-decoration:none}
+/* ④ 머리 아이콘 💬 🔍 ◐ 컬러 이모지 → 회색(엑셀 리본 아이콘처럼) */
+html.xl .top button,html.xl .top #mgfab,html.xl .top #sqb{filter:grayscale(1)}
+/* ⑤ 프로필 카드 '더보기': 배경 #000a 가 [style*="background:#0"] 규칙에 흰색으로 바뀌는데 글자는 흰색 상속 → 흰 바탕 흰 글자(대비 1.0) */
+html.xl [data-card] details{color:#000}
 html.xl #lwleg,html.xl #lwrsi div{text-shadow:none!important;color:#000!important}
 html.xl #lwleg span[style*="#e8c547"]{color:#7a5c00!important}
 html.xl *{text-shadow:none!important}
@@ -830,7 +844,7 @@ function calPanel(){
     // 폰(칸 폭 ≈41px): 'K+1.9 S+0.2' 한 줄은 11px 에서 S&P 값이 통째로 잘림(UXUI 10/24 R2) → 글자는 그대로, 내용을 두 줄로 나눈다(|등락| ≥10% 는 정수)
     const mvl=mv?(mob?`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap">${mv.KOSPI!=null?'<div>K'+mc(mv.KOSPI)+'</div>':''}${mv.SPX!=null?'<div>S'+mc(mv.SPX)+'</div>':''}</div>`
       :`<div style="font-size:var(--fs-1);letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden">${mv.KOSPI!=null?'코'+mc(mv.KOSPI):''}${mv.SPX!=null?' S&P'+mc(mv.SPX):''}</div>`):'';
-    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};padding:${mob?'3px 1px':'3px'};cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
+    cells+=`<div class="calc" data-d="${ds}" style="min-height:${mob?50:92}px;border:1px solid ${ds===today?'var(--amber)':'#1e1e1e'};background:${ds===CALSEL?'#1a1408':'#0a0a0a'};${ds===CALSEL?'outline:2px solid var(--amber);outline-offset:-2px;':''}padding:${mob?'3px 1px':'3px'};cursor:${ev.length||mv?'pointer':'default'};overflow:hidden">
       <div style="font-size:var(--fs-1);color:${dow===0?'#ff6b6b':dow===6?'#6ba8ff':'#999'}">${d}${ev.some(e=>e.imp>=3)?' ⭐':''}${ev.some(e=>e.result)?' ✓':''}</div>${mvl}${ev.slice(0,mob?8:4).map(chip).join('')}${!mob&&ev.length>4?`<div class="mu" style="font-size:var(--fs-1)">+${ev.length-4}</div>`:''}</div>`; }
   const sel=CALSEL&&(by[CALSEL]||MV[CALSEL])?(by[CALSEL]||[]):null, smv=CALSEL?MV[CALSEL]:null;
   setTimeout(()=>{ document.querySelectorAll('.calc').forEach(c=>c.onclick=()=>{ if(!by[c.dataset.d]&&!MV[c.dataset.d]) return; CALSEL=c.dataset.d; $('#homecal').innerHTML=calPanel(); });
@@ -2203,7 +2217,7 @@ function ilabChart(b,x){
   add(b,cv('--muted'),1); add(x,cv('--amber'),2); c.timeScale().fitContent();
 }
 function ilabCanvas(el,b,x,cv){
-  el.innerHTML='<canvas style="width:100%;height:100%"></canvas>'; const c=el.firstChild, W=c.width=el.clientWidth*2, H=c.height=el.clientHeight*2, g=c.getContext('2d'), pl=20, pr=110, pt=16, pb=36;
+  el.innerHTML='<canvas class="tokc" style="width:100%;height:100%"></canvas>'; const c=el.firstChild, W=c.width=el.clientWidth*2, H=c.height=el.clientHeight*2, g=c.getContext('2d'), pl=20, pr=110, pt=16, pb=36;
   const lg=ILAB_ST.log, f=v=>lg?Math.log(v):v, all=b.concat(x), lo=f(Math.min(...all,1)), hi=f(Math.max(...all)), n=b.length;
   const X=i=>pl+(W-pl-pr)*i/(n-1), Y=v=>pt+(H-pt-pb)*(1-(f(v)-lo)/(hi-lo||1));
   g.font='22px monospace'; g.fillStyle=cv('--muted'); g.strokeStyle=cv('--line'); g.lineWidth=1;
