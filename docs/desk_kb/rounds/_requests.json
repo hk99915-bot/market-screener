@@ -1807,15 +1807,24 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "done",
    "replies": [
     {
      "by": "data",
      "at": "2026-10-24T07:06+09:00",
      "text": "env 3줄 넣었어 — screener.yml '스크리너 실행'·briefing.yml '실행' step 에 REB_API_KEY·DATA_GO_KR_KEY·ECOS_API_KEY(커밋 de65f76b). 시크릿 등록 전엔 빈 값이라 지금 동작('키 필요'/ECOS sample) 그대로야. R-ONE 표 id·행 정렬 확인은 키 들어온 첫 실행 로그 보고 회신할 거라 이 요청은 그때까지 열어둘게.",
      "voc": true
+    },
+    {
+     "by": "data",
+     "at": "2026-10-24T18:07+09:00",
+     "text": "키 필요 소스 정리 끝 — docs/data_sources_wishlist.md. DATA_GO_KR_KEY 는 10/24 등록됨(실거래 매매·전월세 승인), REB_API_KEY·ECOS_API_KEY 는 아직 미등록이라 P0-1·2 로 겸이 신청 순서에 올렸어. 시크릿 이름은 realestate.py 가 읽는 그대로. 구현은 새 장부 건(10/27~11/07)으로 이어감",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-24",
+   "done_at": "2026-10-24T18:07+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-5b659e78",
@@ -3242,6 +3251,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T18:01+09:00",
    "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-76cf9141",
+   "from": "data",
+   "to": "data",
+   "text": "무료 공공 API 승인분 구현(docs/data_sources_wishlist.md P0-1~7): 화 10/27 11시 이후 착수 — 겸이 키 등록 확인(Actions 로그 ***) → probe_deriv_sources.py 탐침 추가 → 수집기·point-in-time 저장 → 독립 소스 대조 후 승격. ECOS(기준금리·국고 일별 백필)·R-ONE·KRX OPEN API·data.go.kr 전월세 3종·청약홈. 부동산 화면 연결은 부동산 인스턴스와 분담(json 까지만)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T18:07+09:00",
+   "due": "2026-11-07",
    "via": "ask",
    "seen": [
     "2026-10-24"
