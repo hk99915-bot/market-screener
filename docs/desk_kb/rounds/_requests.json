@@ -3021,6 +3021,24 @@
    "done_by": "행동"
   },
   {
+   "id": "req-bonds-d3eab49e",
+   "from": "겸이",
+   "to": "bonds",
+   "text": "금융위 채권시세 V2(312종목, 수익률 OHLC)·채권지수 V2(ytm·듀레이션) 열림 — 국고 3Y 출처별 3~4bp 차(req-data-1fd3dc04) 공식 기준 지정·bonds.json 원천 재검토. 화 11시 이후",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T17:33+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-compliance-39223a83",
    "from": "edu",
    "to": "compliance",
@@ -3217,6 +3235,24 @@
    "done_by": "데이터"
   },
   {
+   "id": "req-data-784ffc43",
+   "from": "겸이",
+   "to": "data",
+   "text": "data.go.kr 승인 API 수집기·터미널 반영(docs/data_go_kr_apis.md, 탐침 run 40078360285 전부 200): T+1 일일 수집(주식·지수·채권지수·파생지수·채권·옵션·주식선물 → data/·reports/), KRX 확정 종가 자동 대조, 과거 백필 범위 확인, 주택금융공사 금리 엔드포인트 확인. 화 11시 이후 착수",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T17:33+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-7d1a8334",
    "from": "겸이",
    "to": "data",
@@ -3334,6 +3370,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T00:27+09:00",
    "done_by": "파생"
+  },
+  {
+   "id": "req-derivs-cd54b890",
+   "from": "겸이",
+   "to": "derivs",
+   "text": "옵션 iptVlty(IV)·opnint·주식선물 opnint 공식 T+1 데이터 열림(docs/data_go_kr_apis.md) — 스프레드 엔진 IV 를 VKOSPI·실현변동성 근사 → 실측 IV 로, 스큐·풋콜 OI·파생지수(VKOSPI 포함 여부) 활용 설계. 데이터 수집기 후 연결. 화 11시 이후",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T17:33+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-dev-06b280d5",
@@ -4482,6 +4536,24 @@
    "status": "open"
   },
   {
+   "id": "req-hf-e379cf37",
+   "from": "겸이",
+   "to": "hf",
+   "text": "공식 옵션 IV·미결제·주식선물 미결제·파생지수 데이터 열림(docs/data_go_kr_apis.md) — 재량 북 진입 근거(entry_why 센티·포지셔닝 축)와 옵션·스프레드 체크리스트에 활용 설계. 화 11시 이후",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T17:33+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-hf-efebb666",
    "from": "겸이",
    "to": "hf",
@@ -5074,6 +5146,24 @@
    "done_by": "부동산"
   },
   {
+   "id": "req-realestate-4b04eae0",
+   "from": "겸이",
+   "to": "realestate",
+   "text": "국토부 매매(상세)·전월세 실거래 API 작동(양천 9월 98·641건) — 신트리 원자료 재대조(비공개)·전세가율 원자료 계산·지도 거래량 칸·2차 보도 스냅숏 대체. 주택금융공사 전세대출 금리는 엔드포인트 확인 후. 화 11시 이후",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T17:33+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-realestate-6beefa2a",
    "from": "edu",
    "to": "realestate",
@@ -5366,6 +5456,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T08:47+09:00",
    "done_by": "검증"
+  },
+  {
+   "id": "req-verify-cb391f74",
+   "from": "겸이",
+   "to": "verify",
+   "text": "금융위 주식·지수 V2(KRX 확정 T+1) 열림 — 종가 정합성(네이버·토스·야후 잠정) 자동 대조 기준, 백테스트 데이터 생존편향 점검(상장폐지 포함 여부)에 활용. 화 11시 이후",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T17:33+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-verify-ed663038",
