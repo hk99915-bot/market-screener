@@ -758,9 +758,10 @@ function heatView(){
   const W=Math.min(window.innerWidth-28,1400), H=Math.round(window.innerWidth<700?W*1.5:Math.min(W*0.62,820));
   const gl=squarify(groups,0,0,W,H);
   let svg='';
+  /* 그룹 상자·제목은 색 토큰(10/24 front-first-round): 상자 --bg2·틈 --bg·제목 --txt, 그룹 등락% = 타일과 같은 관례(KR 오름 빨강 --dn·내림 --blue / US 오름 --up·내림 --dn). 타일 색 colr() 은 그림이라 두 스킨 공통 */
   for(const G of gl){ const hdr=G.h>40&&G.w>60?16:0;
-    svg+=`<g><rect x="${G.x}" y="${G.y}" width="${G.w}" height="${G.h}" fill="#111" stroke="#000" stroke-width="2"/>`;
-    if(hdr) svg+=`<text class="hg" data-g="${esc(G.g)}" x="${G.x+4}" y="${G.y+12}" font-size="11" fill="#ddd" style="cursor:pointer">${esc(G.g)} <tspan fill="${G.avg>=0?(mk==='KR'?'#ff7b7b':'#6fe08a'):(mk==='KR'?'#7fb3ff':'#ff7b7b')}">${(G.avg*100).toFixed(1)}%</tspan></text>`;
+    svg+=`<g><rect x="${G.x}" y="${G.y}" width="${G.w}" height="${G.h}" stroke-width="2" style="fill:var(--bg2);stroke:var(--bg)"/>`;
+    if(hdr) svg+=`<text class="hg" data-g="${esc(G.g)}" x="${G.x+4}" y="${G.y+12}" font-size="11" style="cursor:pointer;fill:var(--txt)">${esc(G.g)} <tspan style="fill:${G.avg>=0?(mk==='KR'?'var(--dn)':'var(--up)'):(mk==='KR'?'var(--blue)':'var(--dn)')}">${(G.avg*100).toFixed(1)}%</tspan></text>`;
     const tl=squarify(G.a.map(r=>({...r,v:HMS==='eq'?1:r.mc})),G.x+1,G.y+hdr+1,Math.max(G.w-2,1),Math.max(G.h-hdr-2,1));
     for(const t of tl){ const fs=Math.max(8,Math.min(15,Math.sqrt(t.w*t.h)/6)); const lab=t.w>34&&t.h>20;
       svg+=`<g class="sym" data-sym="${esc(t.s)}" data-mk="${mk}" style="cursor:pointer"><rect x="${t.x}" y="${t.y}" width="${Math.max(t.w-1,0)}" height="${Math.max(t.h-1,0)}" fill="${colr(t[HMM])}"><title>${esc(t.n)} ${(t[HMM]*100).toFixed(1)}%</title></rect>`;
