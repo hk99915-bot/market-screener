@@ -2,9 +2,9 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-24 · 작업 251개 · 진행 7 · 검수 9 · 대기 76 · 보류 3 · 완료 156
+기준일 2026-10-24 · 작업 253개 · 진행 7 · 검수 9 · 대기 77 · 보류 3 · 완료 157
 
-**결재 대기 1:** `user-realestate-keys-1023` (겸이 · 보류)
+**결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-trend-events-adopt` (겸이)
 
 **기한 지남:** `ra-sec-coverage` (2026-10-21)
 
@@ -34,7 +34,7 @@
 | P1 | `tg-pick-buttons` | 텔레그램 대결 '내 선택은?' 인라인 버튼 + GAS 웹훅 → pick 이슈 | 개발 | 2026-10-20 | 2026-10-31 | `screener/duel.py`<br>`screener/report.py`<br>`apps-script/TelegramHook.gs`<br>`.github/workflows/pick.yml`<br>`tests/test_tg_pick_buttons.py`<br>`docs/telegram_pick_buttons.md` | — | PB 확인: 이슈 프리필 링크가 폰 텔레그램 내장 브라우저에서 무반응(pick 이슈 0건). 버튼 callback_data 'p/날짜/K/U/코드/청산'(≤64B) → TelegramHook.gs doPost(URL ?s= 비밀값 — GAS 는 헤더를 못 읽음 · 누른 사람 id==TG_OWNER_CHAT_ID · CacheService 10분) → 주인 PAT 로 pick 이슈 → pick.yml 기록 + 결과 텔레그램. getUpdates/setWebhook 사용처 없음(두 저장소). 남은 일: 겸이 배포(GH_TOKEN 에 Issues 쓰기 추가·스크립트 속성·웹앱 배포·tgSetWebhook) 후 실제 클릭 1회 확인 → 완료. 절차 docs/telegram_pick_buttons.md. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 실제 텔레그램 버튼 클릭 1회 → pick 이슈 기록 확인(GAS 는 10/23 clasp 자동 배포) |
 | P2 ⏫P1 10-21 | `quiz-key-balance` | 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why) | 교육 | — | 2026-10-31 | `content/study/quiz_bank.json`<br>`scripts/study_content_check.py`<br>`tests/test_study_content.py` | `study-progress` | 교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 셔플·검증기 분포 규칙은 78b05b61 로 끝. why 한 문장(태그만 문항) 보강 |
 
-## 대기 (76)
+## 대기 (77)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -109,6 +109,7 @@
 | P2 ⏫P1 10-21 | `token-meter-real-usage` | 에이전트 토큰 실측 기록 — team_run 에 transcript 누적(calls·cache_read·신규) 옵션 + team_stats 데스크×모델 표 | 개발 | — | 2026-11-05 | `scripts/team_run.py`<br>`scripts/team_stats.py`<br>`tests/test_team_stats.py` | — | 내무 요청(10/17 토큰 원가센터). 10/17 대조: runs.tokens 는 마지막 호출 컨텍스트 크기에 가까워 실제 누적 처리량의 약 1/30, 기록 누락도 있음(10/16 실측 37건 vs 기록 5건). team_run.py --transcript <agent jsonl> 로 message.id 중복 제거 합산 → runs 에 calls·cache_read·new 추가(기존 tokens 유지). team_stats by_owner_model 추가. 금액은 넣지 않음(토큰·건수만). pro-plan-round-scale(11/5) 입력. |
 | P2 ⏫P1 10-21 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
 | P2 ⏫P1 10-21 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
+| P2 | `appr-trend-events-adopt` | 겸이 결재 필요: 국장 hi52(A)·gcv·sqz(B) sim_signals_KR 정식 편입(바스켓 전제·추격 제외·확신도 low) | 퀀트 | — | 2026-11-20 | `reports/studies/2026-10-24_trend_events.md` | `quant-trend-events` | §4 제안. 조건: 11/20 전진 추적 disc_kr new:* 20거래일 n≥30 같은 부호. 미장 미편입(F·C). 07시 이후 결재 |
 | P2 ⏫P1 10-21 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
 | P3 ⏫P1 10-21 | `audit-1017-minor` | 감사 경 L2~L13 묶음 (live 동시실행 대기·레짐 기본값/SEMI_CAP 덮임·prices join 순서·valuation asof·data_branch lease·us_accum 입력·accum 저장 크기·team ⛔·회고 커미터·flowq 테스트·detail rets 크기) | 개발 | 2026-10-17 | 2026-10-31 | `screener/pb.py`<br>`screener/prices.py`<br>`scripts/data_branch.py` | — | 표: docs/peer_reviews/2026-10-17_refactor_audit.md §2.2. 담당 열대로 데스크에 나눠 처리. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 착수 흔적 없음(커밋 0) — 10/24 마감 비현실 |
 | P3 ⏫P1 10-21 | `hook-per-model-rows` | 비공개 Stop 훅 usage CSV 를 날짜×모델 행으로 (한 날 모델이 섞이면 원가 오판) | 개발 | — | 2026-10-31 | private 전용 | — | 내무 요청. 10/17 메인 대화가 두 모델로 섞였는데(약 1:3) CSV 는 마지막 모델 1개만 기록함. 소비 측(household 토큰 보고서)은 이미 모델별 행을 받을 수 있음. / 10/24 운영 점검: 상태 회신 요청 req-pb-584233b1(10/28) |
@@ -123,7 +124,7 @@
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 | P2 | `user-realestate-keys-1023` | 겸이 결재 필요(보류 11/30): 부동산 데이터 키 3종(R-ONE·실거래가·ECOS) 무료 발급 후 저장소 시크릿 등록할까? | 사용자 | — | 2026-11-30 | `screener/realestate.py` | — | 부동산 10/23: 키 없으면 부동산원 주간 가격 칸이 키 필요로 비어 있음(데스크 2차 보도 스냅샷으로 대체). 발급 후 데이터 데스크가 workflow env 3줄 추가(req-data-50ca9092). 설계서 docs/realestate/2026-10-23_tab_design.md §5 / 10/24 운영 점검: 보류 — 겸이 10/23 '나중에 하자'(a391f778), 기한 11/30 |
 
-## 완료 (156)
+## 완료 (157)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -266,6 +267,7 @@
 | P2 | `battle-scoreboard` | 대결 누적 성과판(참가자별 누적 수익률·승패·벤치마크·일별 마킹) + 성적표 하위 탭 분리 | 개발 | 2026-10-20 | 2026-10-27 | `screener/battle_scoreboard.py`<br>`screener/decisions.py`<br>`apps-script/tab_duel.html`<br>`apps-script/Index.html`<br>`reports/battle_scoreboard.json`<br>`scripts/ui_smoke.py`<br>`tests/test_tracking_1020.py`<br>`tests/test_index_split.py` | — | decisions.score() 끝에서 reports/battle_scoreboard.json 생성(확정=decisions 채점, 보유 중=최근 확정 종가 평가·누적 미합산, 벤치 KR KODEX 200·US SPY 같은 창, 미제출·가격 없음=미평가, 금액·notional 미기록). battle_daily(외부 스냅샷)는 marks_ext 로만 병합. 화면: DAILY 대결 박스는 진행 중·제출만, DAILY › 성적표 하위 탭(요약 카드·누적 곡선·판별 칩·최근 3건+더 보기). 롤백=커밋 revert. 검수: 다음 채점(07:xx 장전) 후 파일 갱신·화면 확인. / 10/24 운영 점검: 완료 확인(done 2026-10-24) — 근거 170de52c · reports/battle_scoreboard.json 10/23 |
 | P2 | `impl-uxui-top10-next` | UXUI 남은 3건(첫 화면 💬 가림·표 첫 열 고정·글자 4단계 규칙) 구현 + ui_smoke | 개발 | — | 2026-10-27 | `apps-script/*.html`<br>`scripts/ui_smoke.py` | `appr-uxui-top10-next` | 10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-dev-f2523553 (due 2026-10-27). 결재 항목 appr-uxui-top10-next(완료). / 10/24 UXUI 검수: 3d6feca9 로 구현 확인(💬 고정 요소 0/35·11px 미만 0·주 표 첫 열 고정). 회귀(폰 머리 151px 등)는 req-dev-26f063bc. |
 | P2 | `light-calibration` | 신호등 🟡 고착 보정(가격선 0.5×내재 범위·고중요 이벤트만) | 개발 | 2026-10-20 | 2026-10-27 | `screener/committee.py`<br>`screener/us_committee.py`<br>`scripts/light_calibration.py`<br>`tests/test_tracking_1020.py` | — | 🟡 = 가격선이 내재 1일 범위 절반 이내 또는 FOMC·CPI·고용·관심 종목(회의 아이디어·후보) 실적. 일반 지표는 시계에만. 미장은 섹터 의견 변경을 🟡 조건에서 뺌(① 줄에는 유지). 라벨 문구 유지. 과거판 재적용(scripts/light_calibration.py): 국장 18판 전 1/17/0 → 후 1/8/9, 미장 v2 1판 0/1/0 → 0/1/0. 뒤집는 조건: 2주간 🟢 날 실제 지수 1일 변동이 내재 범위를 넘는 비율이 🟡 날보다 높으면 문턱 재검토. / 10/24 운영 점검: 완료 확인(done 2026-10-24) — 근거 170de52c · scripts/light_calibration.py |
+| P2 | `quant-trend-events` | 결재 1·2·3 이행 — 추세 진입 단면 이벤트 연구(KR hi52 A·gcv/sqz B, US F/C) · B1 참고 목록 · 미장 추세 꺼짐 꼬리표 | 퀀트 | 2026-10-24 | 2026-10-27 | `docs/valuation_notes/2026-10-24_trend_events_prereg.md`<br>`scripts/study_trend_events.py`<br>`reports/studies/2026-10-24_trend_events.md`<br>`screener/committee.py`<br>`apps-script/tab_committee.html` | — | req-quant-b95c828b. 사전등록 b78281f2(결과 전). trend_expectancy §6 검증·req-quant-00175d13 한은 표 함께 |
 | P2 | `signal-tracking` | 신호 종목 forward 성과 누적(+5/+20/+60거래일, 시장 중앙값 대비) | 개발 | 2026-10-20 | 2026-10-27 | `screener/signal_tracking.py`<br>`screener/fwd_perf.py`<br>`screener/committee.py`<br>`apps-script/tab_committee.html`<br>`reports/signal_tracking.json`<br>`reports/signal_tracking/*`<br>`tests/test_tracking_1020.py` | — | 원천: accum(KR 매집 태그별)·us_accum·sim_signals KR/US. ideas_top 은 idea_tracking 중복이라 제외, entry_signals·alerts 는 종목 신호 아님. 국장 운용회의 생성마다 갱신(briefing reports/ 커밋). 복원: archive/accum·git 이력(게시본) + KR 매집 data/flows 재계산 160거래일·5일 간격(origin recompute, 당시 화면 노출분 아님). 같은 원천·태그·종목 20일 안 재등장은 계속. 표본 중첩·비용 미반영·검증전. / 10/24 운영 점검: 완료 확인(done 2026-10-24) — 근거 170de52c · reports/signal_tracking.json 10/23 |
 | P2 | `us-entry-ideas` | 미장 매수 진입 후보 ideas_top(US) + idea_tracking 모의추적 편입 | 개발 | 2026-10-20 | 2026-10-27 | `screener/us_committee.py`<br>`screener/committee.py`<br>`screener/idea_tracking.py`<br>`apps-script/tab_committee.html`<br>`tests/test_tracking_1020.py` | — | 원천 = us_accum 매집 흔적(연구 등급 가중, 현재 S1~S9 전부 F → 가중 0, 근거로만 표시) + 이익 신호 drv ±0.2 + 종가 vs 50일선. 리스크 박스·형식 국장과 동일, 3+2개. 시장 게이트 = S&P 레짐 하락장이면 불통과. 실행 = 14일 안 실적 촉매+확신 중간 이상+게이트 통과+50일선 위. 현재 미장 실적 캘린더가 소수라 대부분 '대기 — 촉매 없음'. 모의추적: idea_tracking.json market=US, 제안 뒤 처음 열리는 세션 시가 진입(22:30 KST 이후 제안은 그날 세션 제외). / 10/24 운영 점검: 완료 확인(done 2026-10-24) — 근거 170de52c · committee_us.json ideas_top |
 | P2 | `appr-trend-pooled-prereg` | 겸이 결재 필요: 새 추세 진입 전략군 합산 이벤트 연구 사전등록 + KR 52주 고점 근접(B1, B) 운용회의 참고 목록 | 퀀트 | — | 2026-10-31 | `reports/studies/2026-10-24_trend_discovery.md` | `quant-trend-discovery` | §5 제안 1·2(+§6 미장 매수 후보 추세 꺼짐 꼬리표). 07시 이후 결재. 정식 기준 변경이라 구현 보류 / 10/24 겸이 "퀀트 제안 1 2 3 다 ㄱㄱ": ①새 전략군 3개 단면 이벤트 연구 사전등록 ②B1 국장 52주 고점 근접 운용회의 참고 목록 ③미장 매수 후보 추세 꺼짐 꼬리표. 구현 퀀트(req) |

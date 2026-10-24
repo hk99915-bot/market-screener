@@ -371,9 +371,31 @@ def _sim_fresh(market: str = "KR") -> dict | None:
                       "ret": r.get("ret"), "bh": r.get("bh"), "entry_date": r.get("entry_date"),
                       "line": f"{r.get('n') or r['s']} · {r.get('label') or r.get('strategy')} · 승률 {r.get('wins')}/{r.get('trades')}"
                               f"(하한 {(r.get('wilson_lo') or 0)*100:.0f}%) · {vs}"})
+    b1 = _b1_ref(market)
     return {"asof": d["asof"], "market": market, "n_scanned": d.get("n_scanned"), "n_pass": d.get("n_pass", len(d.get("rows") or [])),
             "n_eligible": d.get("n_eligible"), "expected_chance": d.get("expected_chance"), "grade": d.get("grade"),
-            "criteria": d.get("criteria"), "items": items, **({"exp": ex} if ex else {})}
+            "criteria": d.get("criteria"), "items": items, **({"exp": ex} if ex else {}), **({"b1": b1} if b1 else {})}
+
+
+def _b1_ref(market: str) -> dict | None:
+    """KR 52주 고점 근접(alpha_sources B1) 참고 목록 — reports/trend_discovery_KR.json b1_ref (겸이 결재 10/24 ②). 표시 전용·주문 근거 아님."""
+    if market != "KR":
+        return None
+    td = _j("trend_discovery_KR.json", {}) or {}
+    b = td.get("b1_ref")
+    if not b or not _fresh_age_ok(td.get("asof")):
+        return None
+    return {**b, "asof": td.get("asof")}
+
+
+def _trend_off(sym: str, market: str = "US") -> bool | None:
+    """정식 이평 추세 롱(detail sim ma.long) 이 지금 보유 아님 = '추세 꺼짐'. 파일·시뮬 없으면 None (겸이 결재 10/24 ③, 표시만·규칙 불변)."""
+    try:
+        d = json.loads((REPORT_DIR / "detail" / market / f"{sym}.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+    r = ((d.get("sim") or {}).get("ma") or {}).get("long") or {}
+    return None if not r else r.get("pos") != 1
 
 
 def _fresh_age_ok(asof) -> bool:
@@ -1628,6 +1650,7 @@ def build_us() -> dict:
     avoid.sort(key=lambda r: r["drv"])
     f = lambda r: {"s": r["s"], "n": r["n"], "g": r["g"], "drv": r.get("drv"), "r20": r.get("r20"), "r5": r.get("r5")}  # noqa: E731
     cal = (_j("calendar.json", {}) or {}).get("events", [])
+    fl = lambda r: {**f(r), "trend_off": _trend_off(r["s"], "US")}  # noqa: E731  # 매수 후보 '추세 꺼짐' 꼬리표(10/24 ③, 선정 규칙 불변)
     today = _kst_today()
     ev = [e for e in cal if today <= date.fromisoformat(e["date"]) <= today + timedelta(days=10) and (e.get("market") == "US" or e["type"] == "매크로")]
     head = []
@@ -1655,7 +1678,9 @@ def build_us() -> dict:
            "verdict": f"가장 가능성 높은 시나리오: {best['name']} ({(best['prob'] or 0)*100:.0f}%) — 근거: 1999년 이후 S&P500 '{basis}' {p.get('n') or 0}회"
                       + _indep_suffix(sbf),
            "scenarios": scen, "scenario_basis": {"basis": basis, **sbf}, "sectors": secs, "sector_note": U.SECTOR_NOTE,
-           "ideas": {"long": [f(r) for r in longs[:10]], "avoid": [f(r) for r in avoid[:8]]}, "events": ev[:12],
+           "ideas": {"long": [fl(r) for r in longs[:10]], "avoid": [f(r) for r in avoid[:8]],
+                     "trend_off_note": "추세 꺼짐 = 정식 이평 추세 롱(종가>SMA50·SMA20>SMA50) 미보유 — 10/14~23 매수 후보 70건 중 69건(reports/studies/2026-10-24_trend_discovery.md §6). 표시만, 선정 규칙 불변."},
+           "events": ev[:12],
            "kr_link": capex_line(cal, today)}   # 날짜·결과는 캘린더에서 (10/23 '10/21 메타' 하드코딩 불일치 제거, req-dev-4f89d244)
     try:   # 매수 후보 '연속 N일째'·신규 표시 (표시만, 산식 불변 — req-dev-42019d08)
         from . import streak as _stk

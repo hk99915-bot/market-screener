@@ -1,0 +1,140 @@
+{
+ "prereg": "docs/valuation_notes/2026-10-17_trend_expectancy_prereg.md §3",
+ "repro": {
+  "KR": {
+   "study_asof": "2026-10-23",
+   "pipeline_asof": "2026-10-23",
+   "study_pass": [],
+   "pipeline_pass": [],
+   "same": true,
+   "m_study": 45,
+   "m_pipeline": 44,
+   "repro_rate": 1.0,
+   "pass_by_theme": {}
+  },
+  "US": {
+   "study_asof": "2026-10-23",
+   "pipeline_asof": "2026-10-23",
+   "study_pass": [],
+   "pipeline_pass": [],
+   "same": true,
+   "m_study": 49,
+   "m_pipeline": 46,
+   "repro_rate": 0.983,
+   "pass_by_theme": {}
+  }
+ },
+ "history": {
+  "by_market": {
+   "KR": {
+    "2026-10-19": {
+     "commit": "bb6b82c6",
+     "k": 0,
+     "m": 135,
+     "wilson_pass": 0,
+     "rows": []
+    },
+    "2026-10-20": {
+     "commit": "9bdacfae",
+     "k": 1,
+     "m": 100,
+     "wilson_pass": 1,
+     "rows": [
+      "308430"
+     ]
+    },
+    "2026-10-21": {
+     "commit": "50e027e9",
+     "k": 0,
+     "m": 95,
+     "wilson_pass": 0,
+     "rows": []
+    },
+    "2026-10-22": {
+     "commit": "db12003c",
+     "k": 1,
+     "m": 84,
+     "wilson_pass": 0,
+     "rows": [
+      "317400"
+     ]
+    },
+    "2026-10-23": {
+     "commit": "1ccf509e",
+     "k": 0,
+     "m": 44,
+     "wilson_pass": 0,
+     "rows": []
+    }
+   },
+   "US": {
+    "2026-10-19": {
+     "commit": "114f9790",
+     "k": 0,
+     "m": 35,
+     "wilson_pass": 0,
+     "rows": []
+    },
+    "2026-10-20": {
+     "commit": "3c0c16de",
+     "k": 0,
+     "m": 22,
+     "wilson_pass": 0,
+     "rows": []
+    },
+    "2026-10-21": {
+     "commit": "e9f7878e",
+     "k": 0,
+     "m": 37,
+     "wilson_pass": 0,
+     "rows": []
+    },
+    "2026-10-22": {
+     "commit": "f9391ac7",
+     "k": 0,
+     "m": 45,
+     "wilson_pass": 0,
+     "rows": []
+    },
+    "2026-10-23": {
+     "commit": "e1b47034",
+     "k": 0,
+     "m": 46,
+     "wilson_pass": 0,
+     "rows": []
+    }
+   }
+  },
+  "k": 2,
+  "m": 643,
+  "expected": 32.15,
+  "binom_p": 1.0,
+  "wilson_pass_total": 1,
+  "note": "같은 종목·전략이 연속 기준일에 다시 세일 수 있어 m 은 독립 검정 수가 아님(낙관적)."
+ },
+ "descriptive": {
+  "date": "2026-10-16",
+  "to": "5거래일 뒤 종가",
+  "universe_n": 626,
+  "universe_median": 0.01,
+  "pass": {
+   "n": 1,
+   "syms": [
+    "IEX"
+   ],
+   "mean_ex": -0.0376
+  },
+  "nonpass": {
+   "n": 78,
+   "mean_ex": 0.0028,
+   "median_ex": 0.0093
+  },
+  "note": "서술만 — n 이 작아 등급을 올리지 않음(사전등록 §3-3). 10/16 상태는 현재 chart 를 10/16 까지 잘라 재구성(250봉 창 시작이 며칠 다를 수 있음)."
+ },
+ "flip": {
+  "repro_mismatch": false,
+  "n_pass_window": 2,
+  "theme_70": "통과 0~1건이라 판정 불가"
+ },
+ "recommendation": "병기 유지, C"
+}

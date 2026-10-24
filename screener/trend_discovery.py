@@ -181,6 +181,9 @@ def signals(cols: dict) -> dict[str, list[int]]:
         w = c[i - 19:i + 1]
         m = sum(w) / 20
         bw[i] = 4 * (sum((x - m) ** 2 for x in w) / 20) ** 0.5 / m if m else None
+    import pandas as pd
+    thr = pd.Series([float("nan") if x is None else x for x in bw]).shift(1).rolling(250, min_periods=120).quantile(
+        0.2, interpolation="lower").to_numpy()
     out = {k: [0] * n for k in EXPLORE_STRATS}
     st = {"hi52": 0, "gcv": 0, "sqz": 0}
     for i in range(n):
@@ -200,12 +203,9 @@ def signals(cols: dict) -> dict[str, list[int]]:
         # sqz
         if st["sqz"]:
             st["sqz"] = 0 if c[i] < s20[i] else 1
-        elif i >= 140:
-            hist_bw = sorted(x for x in bw[max(0, i - 250):i] if x is not None)
-            if len(hist_bw) >= 120:
-                p20 = hist_bw[int(0.2 * len(hist_bw))]
-                if any(x is not None and x <= p20 for x in bw[i - 5:i]) and c[i] > max(h[i - 20:i]):
-                    st["sqz"] = 1
+        elif i >= 140 and thr[i] == thr[i]:   # 사전등록 2026-10-24_trend_events §1 과 같은 백분위(pandas rolling quantile 'lower')
+            if any(x is not None and x <= thr[i] for x in bw[i - 5:i]) and c[i] > max(h[i - 20:i]):
+                st["sqz"] = 1
         out["hi52"][i], out["gcv"][i], out["sqz"][i] = st["hi52"], st["gcv"], st["sqz"]
         out["ma3"][i] = 1 if (c[i] > s50[i] and s20[i] > s50[i]) else 0
     ps = psar_np(np.array(h, float), np.array(l, float), np.array(c, float))
@@ -465,6 +465,43 @@ def sectors(stocks: dict, fresh_any: dict[str, bool]) -> dict:
             "rows": rows, "note": "새로 켜짐(정식·탐색 아무 전략, 진입 ≤ 4거래일) 비율의 업종 쏠림. 업종 n ≥ 5 만. 이항 위꼬리 p — 같은 업종 종목은 상관이라 낙관적."}
 
 
+B1_MIN_VAL, B1_MIN_PX, B1_RATIO, B1_TOP = 1e9, 1000.0, 0.95, 15
+
+
+def b1_ref(stocks: dict) -> dict:
+    """KR 52주 고점 근접(alpha_sources B1, B 등급) 오늘 해당 종목 — 운용회의 참고 목록(겸이 결재 10/24, req-quant-b95c828b ②).
+    정의 = scripts/study_alpha_sources.py features: 종가 / 250일 최고 고가 ≥ 0.95 · 20일 평균 거래대금 ≥ 10억원 · 종가 ≥ 1,000원.
+    '새로' = 직전 거래일엔 0.95 미만. 등급은 연구(진입 규칙 tradeplan·H20) 기준이지 이 목록 자체의 검증이 아님 — 주문 근거 아님."""
+    rows = []
+    try:   # alpha_sources 와 같게 업종 분류(universe/kr_sector.csv) 있는 종목만 — ETF·채권형 제외
+        import csv
+        with open(REPORT_DIR.parent / "universe" / "kr_sector.csv", encoding="utf-8") as fh:
+            secs = {r["code"]: r["sector"] for r in csv.DictReader(fh)}
+    except Exception:  # noqa: BLE001
+        secs = None
+    for sym, v in stocks.items():
+        ch = v["chart"]
+        if len(ch) < 251 or (secs is not None and sym not in secs):
+            continue
+        c = [b["c"] for b in ch]
+        h = [b.get("h") or b["c"] for b in ch]
+        vol = [b.get("v") or 0 for b in ch]
+        val20 = sum(c[i] * vol[i] for i in range(-20, 0)) / 20
+        if val20 < B1_MIN_VAL or c[-1] < B1_MIN_PX:
+            continue
+        hi, hi_prev = max(h[-250:]), max(h[-251:-1])
+        ratio, prev = c[-1] / hi, c[-2] / hi_prev
+        if ratio >= B1_RATIO:
+            rows.append({"s": sym, "n": v["name"], "g": v.get("g"), "ratio": round(ratio, 3), "new": prev < B1_RATIO,
+                         "val20_eok": round(val20 / 1e8)})
+    rows.sort(key=lambda x: (not x["new"], -x["ratio"]))
+    return {"label": "B · 참고(주문 근거 아님)", "src": "reports/studies/2026-10-21_alpha_sources.md B1",
+            "rule": "종가/250일 최고 고가 ≥ 0.95 · 20일 거래대금 ≥ 10억 · 종가 ≥ 1,000원 · 업종 분류 있는 종목(ETF 제외)",
+            "grade_note": ("B1 은 2010~2025 tradeplan 진입(다음날 시가·struct 손절·H20) 기준 OOS 초과 +0.098R(t 2.78) — 학습 구간 절대 E[R] 음수(−0.032R). "
+                           "이 목록은 신호 해당 종목일 뿐 계획·크기 없음 → 주문표 근거 불가."),
+            "n": len(rows), "n_new": sum(r["new"] for r in rows), "rows": rows[:B1_TOP]}
+
+
 def _accum_syms(market: str) -> set[str]:
     if market == "US":
         d = _j(REPORT_DIR / "us_accum.json", {}) or {}
@@ -504,6 +541,7 @@ def build(market: str, write: bool = True, detail_dir: Path | None = None, hist_
         "near_miss": nm,
         "explore": ex,
         "sectors": sectors(stocks, fresh_any),
+        **({"b1_ref": b1_ref(stocks)} if market == "KR" else {}),
         "multiple_testing": {
             "m_total": sum(nm["m"].values()) + ex["m_wilson"] + ex["m_exp"],
             "expected_chance_total": round(sum(nm["expected_chance"].values()) + ex["expected_chance"], 2),

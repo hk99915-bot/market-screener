@@ -4,7 +4,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1174** (등록 m 합 402 + 등록 전 탐색 772) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1180** (등록 m 합 408 + 등록 전 탐색 772) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -26,6 +26,7 @@
 | 2026-10-23_us_r20_reversal |  | us_committee_px | 2 | m | 0.025 | — | — | HA·HB B(+0.095%p/−0.144%p, 4일) — 방향만 맞고 크기는 비용 수준. drv 미검정 → 규칙 검증전 유지 |
 | 2026-10-24_avoid_vs_long |  | committee_ideas | — | 미등록 | — | 6 | — | US 회피−매수 h1 +1.8%p(t 1.27, 날짜 6)·h3 +2.5%p(t 1.19, 4) vs KR 반대 h3 −1.8%p(t −1.56, 4) → 검증전, 시장 간 부호 불일치 |
 | 2026-10-24_trend_discovery |  | trend_sim | — | 미등록 | — | 18 | — | 탐색 통과 KR 2·US 2 vs 우연 기대 13.4·8.7(이항 p 1.00) → 우연과 구분 안 됨. 새 전략군은 종목별 3년 거래 0~5회라 종목별 검정 불가 → 합산(pooled) 사전등록 제안으로 |
+| 2026-10-24_trend_events |  | trend_sim | 6 | m | 0.00833 | — | A1 B2 C1 F2 | KR hi52 A·gcv B·sqz B, US hi52 F·gcv C·sqz F. 주제 N 197 기준은 sqz KR 만 통과(병기). 편입은 다음 결재 |
 | accum_signals | 2026-10-17 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -34,7 +35,7 @@
 | fib_levels | 2026-10-15 | fib | 4 | m | 0.0125 | — | F1 | 렌즈 등급 F |
 | gamma_regime | 2026-10-16 | derivs | 3 | m | 0.01667 | — | C1 검증전4 | IS 감마음수 17일<20 → 검증전, next_eval 대기 |
 | hollzzak | 2026-10-16 | crash_entry | 7 | m | 0.00714 | 4 | C1 F3 F(역방향 C)2 검증전1 | H1 F(방향 같으나 풀링 p 0.12)·H2 검증전(재폭락 2010~25 n 9)·H3a F·H3b F(역방향 C)·H4a F(설계↔검증 부호 반대)·H4b C·H4c F(역방향 C) |
-| ktb_vs_ust | 2026-10-17 | bond_sleeve | 11 | m | 0.00455 | — | — | 슬리브 간 장기·믹스 성과 구별 불가 → 선택은 정성(채권·매크로)과 환노출 한도로 |
+| ktb_vs_ust | 2026-10-23 | bond_sleeve | 11 | m | 0.00455 | — | — | 슬리브 간 장기·믹스 성과 구별 불가 → 선택은 정성(채권·매크로)과 환노출 한도로 |
 | lab_p1 | 2026-10-16 | earnings_yoy | 6 | m | 0.00833 | 1 | — | — |
 | lab_p1_screen | 2026-10-16 | (미분류) | — | 미등록 | — | — | — | — |
 | playbook_signals | 2026-10-15 | crash_entry | — | 미등록 | — | 32 | — | 급락일 종가(B)보다 나은 신호 없음 → 다음 연구(entry_signals)로 재정의 |
@@ -47,6 +48,7 @@
 | rule_audit | 2026-10-16 | rules | 18 | params.m | 0.00278 | — | C6 F12 | — |
 | semis_cap | 2026-10-16 | semis_cap | 7 | prereg.m | 0.00714 | — | A1 C1 F5 | — |
 | trend_expectancy | 2026-10-17 | trend_sim | 173 | prereg.m | 0.00029 | — | C1 F1 | — |
+| trend_expectancy_verify |  | (미분류) | — | 미등록 | — | — | — | — |
 | us_accum | 2026-10-17 | us_accum | 9 | prereg.m | 0.00556 | 9 | F9 | 9개 모두 F(IS 20일 초과 −0.23~−0.60%p, 비용 0.25%). S8 갭 60일 OOS 평균 +2.28%p 이나 중앙값 −2.23%p → 소수 대박(생존편향 의심) |
 
 ## 2. 주제별 N (같은 질문의 반복 검정)
@@ -54,11 +56,11 @@
 | 주제 | 연구 | 등록 m 합 | 등록 전 탐색 | N | α(N) |
 |---|---|---|---|---|---|
 | us_spike | 2026-10-21_us_smallcap_spikes, 2026-10-21_us_spikes_intraday | 22 | 700 | 722 | 7e-05 |
-| trend_sim | 2026-10-24_trend_discovery, trend_expectancy | 173 | 18 | 191 | 0.00026 |
+| trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, trend_expectancy | 179 | 18 | 197 | 0.00025 |
 | crash_entry | crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 32 | 36 | 68 | 0.00074 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
 | kr_accum | accum_signals | 24 | 0 | 24 | 0.00208 |
-| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, lab_p1_screen, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_us_spikes | 19 | 0 | 19 | 0.00263 |
+| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, lab_p1_screen, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_us_spikes, trend_expectancy_verify | 19 | 0 | 19 | 0.00263 |
 | rules | rule_audit | 18 | 0 | 18 | 0.00278 |
 | us_accum | us_accum | 9 | 9 | 18 | 0.00278 |
 | derivs | derivs_signals, gamma_regime | 13 | 0 | 13 | 0.00385 |
@@ -96,5 +98,6 @@
 | 2026-10-21 | alpha_source | (사전등록 m=6) A1 KR 업종 내 60일 RS 상위20% · A2 US 같은 정의 · B1 KR 52주 고점 근접 ≥0.95 · B2 US 같은 정의 · C1 KR 외인+기관 20일 중 14일+ 순매수·강도 상위20% · D1 KR 애널 목표가 상향 → OOS E[R] − 기준선 > 0 | tradeplan 엔진(struct 스탑·1.5/3.0 분할·H20·다음날 시가·비용 KR 0.25%/US 0.10%), KR·US 2010~2025 분할 2020 / C1 2024-11~2026-10 분할 2025-09 / D1 2024-10~ 분할 2025-10, 신호일 군집 SE, 초과 t = 초과 ÷ √(SE²+SE²), Bonferroni z 2.39 | B1 B(OOS +0.083R vs 기준선 −0.015R, 초과 +0.098R t 2.78, 학습 초과 +0.043) · D1 C(방향만, OOS +0.18R 초과 +0.24 t 2.29, n 602) · A1 F(초과 −0.026) · A2 F(−0.022) · B2 F(−0.073) · C1 F(−0.051). D2(US EPS 상향)·E(이벤트 드리븐) 데이터 없음 → m 밖 검증전 | A1·A2·B2·C1 기준선 못 넘음. D1 은 2년 표본 Bonferroni 미달 — 표본 늘면 재검. B1 학습 절대 E[R] 음수(−0.032R) = 반대 근거, 등급 상한 B | 2026-10-21_alpha_sources |
 | 2026-10-24 | trend_sim | 탐색 레이어: (a) 정식 전략 근접(Wilson 0.45~0.5·t하한 −0.5%p~0·fresh 3~5일) (b) 새 추세 진입 전략 hi52·gcv·sqz + 정식 전략 3년 창 (c) 업종 쏠림 — 각 통과 수가 귀무 우연 기대보다 많다 | reports/detail chart 260봉 + data/hist 연도별(KR 1204/1467·US 251/599 종목 이어붙임, 최대 756봉), 종가 체결·왕복 0.25%, 정식 문턱 그대로(Wilson>0.5·n≥6 / t하한>0·n≥8), 새로 켜짐 = 진입 ≤4거래일. 국장 HF S4 추격 패턴은 후보 제외(chase). 코드 screener/trend_discovery.py, 기준일 KR 10-23·US 10-22 | 정식 깔때기: US 슬롯 1056 → 보유 494 → fresh≤2일 64 → 거래≥6 52 → 통과 0; fresh 무시해도 Wilson 통과 0(KR 2)·t하한 3(KR 5). 근접 US 2(우연 6.5)·KR 0(9.5). 탐색 통과 US 2(JPM·BNY psar3)·KR 2(타이거일렉·방림 psar3), 우연 8.7·13.4, 이항 p 1.00. 업종 Bonferroni 통과 US 금융(39/76, p 0.003)·KR 건설·부동산(14/42, p 0.0004) | 우연과 구분 안 됨 · 새 전략군 종목별 표본 부족 → 합산 사전등록 제안(결재)·전진 추적(signal_tracking disc_kr/us) | 2026-10-24_trend_discovery |
 | 2026-10-24 | committee_ideas | 운용회의 회피 목록이 매수 후보보다 1·3·5거래일 초과수익이 높다(사후, req-quant-2ba2c1f0) | committee_us_hist·committee_hist 10/14~10/23 7회의, 진입 = 기준 종가, 초과 = detail 유니버스 중앙값 대비, 날짜 단위 t | US 회피−매수 h1 +1.8%p t1.27(6일)·h3 +2.5%p t1.19(4일)·h5 +7.2%p(2일) / KR h1 −0.2%p·h3 −1.8%p t−1.56·h5 −3.2%p → 시장 간 반대 부호. US 매수 후보 중 이평 추세 켜짐 1%(70건 중 1) | 검증전(독립 날짜 ≤6, 20거래일 미완) — 11/20 재판정 | 2026-10-24_avoid_vs_long |
+| 2026-10-24 | trend_sim | (사전등록 m=6) hi52·gcv·sqz × KR·US: OOS(2020~25) 20거래일 달평균 초과 > 0 | data/hist 2010~2025, 상태 0→1 이벤트, 종목·전략 20일 겹침 제외, 유동성 alpha_sources LIQ, |일간|>40% 창 제외, t+1 시가→t+21 종가, 비용 0.25%, 기준선 같은 날 유동 종목 중앙값, 달 단위 t, Bonferroni t≥2.39 | KR hi52 +1.98% t3.31(A) · gcv +1.47% t3.19(B) · sqz +1.64% t5.29(B) / US hi52 +0.45% t1.42(F) · gcv +1.12% t1.83(C) · sqz −0.21%(F). KR OOS 중앙값 음(−0.8~−1.6%) |  | 2026-10-24_trend_events |
 
 읽는 법: 주제 N 이 연구 m 의 2배를 넘으면(crash_entry 처럼) 그 주제의 C 등급은 '방향'이 아니라 '우연일 수 있는 방향'으로 읽는다. 새 연구 §0 에 그 주제의 현재 N 을 한 줄 적는다.

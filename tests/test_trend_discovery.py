@@ -62,3 +62,50 @@ def test_build_labels_and_blocks(tmp_path):
     assert set(ex["by_strategy"]) == set(T.EXPLORE_STRATS)
     assert ex["chase"]["exclude_from_candidates"] is False and T.CHASE["KR"]["exclude"] is True
     assert out["multiple_testing"]["m_total"] >= 0 and "expected_chance_total" in out["multiple_testing"]
+
+
+def test_event_study_states_match_daily_layer():
+    """사전등록 2026-10-24_trend_events 의 진입 정의 = 일일 레이어(trend_discovery.signals) 0→1 전환."""
+    import random
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import numpy as np
+    import study_trend_events as E
+    rng = random.Random(7)
+    c, v = [100.0], []
+    for i in range(700):
+        c.append(c[-1] * (1 + rng.gauss(0.0006, 0.02)))
+    v = [1000 + rng.random() * 2000 for _ in c]
+    h = [x * 1.01 for x in c]
+    cols = {"t": [str(i) for i in range(len(c))], "o": c, "h": h, "l": [x * 0.99 for x in c], "c": c, "v": v}
+    sig = T.signals(cols)
+    ev = E.states(np.array(c), np.array(h), np.array(v))
+    for k in ("hi52", "gcv", "sqz"):
+        s = sig[k]
+        on = [i for i in range(1, len(s)) if s[i] == 1 and s[i - 1] == 0]
+        assert on == list(np.flatnonzero(ev[k])), k
+
+
+def test_b1_ref_rule():
+    def ch(n, last):
+        out = _chart([100.0] * (n - 1) + [last], [2_000_000] * n)
+        return out
+    stocks = {"111111": {"name": "A", "chart": ch(260, 99.0)}, "222222": {"name": "B", "chart": ch(260, 80.0)}}
+    b = T.b1_ref(stocks)
+    syms = {r["s"] for r in b["rows"]}
+    # kr_sector.csv 에 없는 가짜 코드는 업종 필터로 빠질 수 있어 '미해당 종목이 안 들어감'만 검사
+    assert "222222" not in syms
+    assert "주문 근거 아님" in b["label"]
+
+
+def test_committee_trend_off_and_b1(tmp_path, monkeypatch):
+    from screener import committee as C
+    (tmp_path / "detail" / "US").mkdir(parents=True)
+    (tmp_path / "detail" / "US" / "AAA.json").write_text(json.dumps({"sim": {"ma": {"long": {"pos": 0}}}}), encoding="utf-8")
+    (tmp_path / "detail" / "US" / "BBB.json").write_text(json.dumps({"sim": {"ma": {"long": {"pos": 1}}}}), encoding="utf-8")
+    monkeypatch.setattr(C, "REPORT_DIR", tmp_path)
+    assert C._trend_off("AAA") is True and C._trend_off("BBB") is False and C._trend_off("ZZZ") is None
+    assert C._b1_ref("US") is None
+    (tmp_path / "trend_discovery_KR.json").write_text(json.dumps({"asof": str(C._kst_today()), "b1_ref": {"label": "B · 참고(주문 근거 아님)", "rows": []}}), encoding="utf-8")
+    assert C._b1_ref("KR")["label"].startswith("B")

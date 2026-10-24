@@ -4656,6 +4656,42 @@
       "status": "대기",
       "repo": "public",
       "desk": "개발"
+    },
+    {
+      "started": "2026-10-24",
+      "due": "2026-10-27",
+      "files": [
+        "docs/valuation_notes/2026-10-24_trend_events_prereg.md",
+        "scripts/study_trend_events.py",
+        "reports/studies/2026-10-24_trend_events.md",
+        "screener/committee.py",
+        "apps-script/tab_committee.html"
+      ],
+      "depends_on": [],
+      "notes": "req-quant-b95c828b. 사전등록 b78281f2(결과 전). trend_expectancy §6 검증·req-quant-00175d13 한은 표 함께",
+      "id": "quant-trend-events",
+      "title": "결재 1·2·3 이행 — 추세 진입 단면 이벤트 연구(KR hi52 A·gcv/sqz B, US F/C) · B1 참고 목록 · 미장 추세 꺼짐 꼬리표",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "완료",
+      "done": "2026-10-24"
+    },
+    {
+      "started": null,
+      "due": "2026-11-20",
+      "files": [
+        "reports/studies/2026-10-24_trend_events.md"
+      ],
+      "depends_on": [
+        "quant-trend-events"
+      ],
+      "notes": "§4 제안. 조건: 11/20 전진 추적 disc_kr new:* 20거래일 n≥30 같은 부호. 미장 미편입(F·C). 07시 이후 결재",
+      "id": "appr-trend-events-adopt",
+      "title": "겸이 결재 필요: 국장 hi52(A)·gcv·sqz(B) sim_signals_KR 정식 편입(바스켓 전제·추격 제외·확신도 low)",
+      "owner": "퀀트",
+      "priority": "P2",
+      "status": "대기",
+      "approval": "겸이"
     }
   ]
 }
