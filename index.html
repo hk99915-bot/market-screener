@@ -316,12 +316,21 @@ html.stealth .brand{letter-spacing:0}
 .hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line),4px 0 6px -4px #000}   /* 표 첫 열 고정 (UXUI Top10 #10, 10/24): 가로로 밀어도 종목명 열이 남음 */
 .hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(255,154,31,.45),transparent) right/12px 100% no-repeat scroll}
 html.xl .hmore{color:#595959}
-/* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
-   10/24 재검수(req-dev-26f063bc): 터치 화면만 → PC 포함 전체(1300px 공시 411·인적성 336 미달). 엑셀(xl) 위장 모드만 촘촘하게 둔다. */
-html:not(.xl) .sbtn,html:not(.xl) .ctab button,html:not(.xl) .ovl button{min-height:44px}
-html:not(.xl) #root summary{min-height:44px;box-sizing:border-box}
-html:not(.xl) #root td a,html:not(.xl) #root .rp a{display:inline-block;min-height:44px;min-width:44px;padding-top:12px;box-sizing:border-box}
-html:not(.xl) #root td:has(> a + a){white-space:normal}   /* 한 칸에 짧은 링크 여럿(리서치 종합 '원문' LS SK): 44px 상자가 옆으로 붙어 표가 넘침 → 줄을 바꿔 세로로 */
+/* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5 AAA): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
+   10/24 UXUI 결정(docs/uxui/2026-10-24_pc44_decision.md): 손가락이 있는 기기(any-pointer:coarse — 폰·태블릿·터치 노트북) = 44px,
+   마우스만 있는 PC = 28px(WCAG 2.2 2.5.8 AA 24px + 여유 4px). 전체 44px(ffb03804)은 1300px 35화면 +13%(공시 2.1배)라 밀도 손실이 커서 절충.
+   엑셀(xl) 위장 모드는 둘 다 빼고 촘촘하게. 되돌리기: 아래 두 블록을 ffb03804 의 한 블록으로. */
+@media (any-pointer:coarse){
+  html:not(.xl) .sbtn,html:not(.xl) .ctab button,html:not(.xl) .ovl button{min-height:44px}
+  html:not(.xl) #root summary{min-height:44px;box-sizing:border-box}
+  html:not(.xl) #root td a,html:not(.xl) #root .rp a{display:inline-block;min-height:44px;min-width:44px;padding-top:12px;box-sizing:border-box}
+}
+@media not (any-pointer:coarse){
+  html:not(.xl) .sbtn,html:not(.xl) .ctab button,html:not(.xl) .ovl button{min-height:28px}
+  html:not(.xl) #root summary{min-height:28px;box-sizing:border-box}
+  html:not(.xl) #root td a,html:not(.xl) #root .rp a{display:inline-block;min-height:28px;min-width:28px;padding-top:4px;box-sizing:border-box}
+}
+html:not(.xl) #root td:has(> a + a){white-space:normal}   /* 한 칸에 짧은 링크 여럿(리서치 종합 '원문' LS SK): 넓힌 상자가 옆으로 붙어 표가 넘침 → 줄을 바꿔 세로로 */
 </style>
 </head>
 <body>
@@ -2912,13 +2921,30 @@ function cmtBLCard(o){
   return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 ${o.market==='US'?'미장':'국장'}${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
     <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
 /* HF 데스크 운용회의 개입 4줄 + 알파북(모의) — screener/alphabook.py, reports/alphabook.json */
+/* HF 진입 근거 펼침 줄(screener/entry_why.py build().long, ab3d0ce2) 이름표·판정 배지 — UXUI 10/24 req-uxui-ce6484a5.
+   '근거 기술 — …'→왜 · '근거 기대값·리스크 — …'→값 · '근거 펀더|내러|센티 +|중립|−|미확인 …'→축 이름 + 배지 · '근거 약함 — …'→약함. 모르는 줄은 '·' 그대로 */
+const HF_VB={'+':'var(--up)','−':'var(--dn)','중립':'var(--muted)','미확인':'var(--amber)'};
+function cmtHFWhyParse(x){ x=String(x); let m;
+  if((m=/^근거 기술 — ([\s\S]*)$/.exec(x))) return {k:'왜',t:m[1]};
+  if((m=/^근거 기대값·리스크 — ([\s\S]*)$/.exec(x))) return {k:'값',t:m[1]};
+  if((m=/^근거 (펀더|내러|센티) (\+|−|-|중립|미확인)(?:\s+([\s\S]*))?$/.exec(x))) return {k:m[1],v:m[2]==='-'?'−':m[2],t:m[3]||(m[2]==='미확인'?'재료 없음':'')};
+  if((m=/^근거 약함 — ([\s\S]*)$/.exec(x))) return {k:'약함',t:m[1],w:1};
+  return {k:'·',t:x}; }
+function cmtHFWhy(ls){
+  if(!ls.length) return '';
+  const row=r=>{ const c=r.v?HF_VB[r.v]:'';
+    return `<div class="hfw" style="display:flex;gap:6px;align-items:baseline;margin:2px 0;min-width:0"><b class="dn" style="flex:0 0 2.6em">${esc(r.k)}</b>`
+      +(r.v?`<span class="tag hfv" title="${esc(r.k)} 판정 ${esc(r.v)}" style="flex:none;border-color:${c};color:${c};min-width:2.2em;text-align:center">${esc(r.v)}</span>`:'')
+      +`<span style="min-width:0;overflow-wrap:anywhere${r.w?';color:var(--dn)':''}">${esc(r.t)}</span></div>`; };
+  return `<div class="hfwhy" style="margin-top:6px;padding-top:4px;border-top:1px solid var(--line)"><div class="mu" style="font-size:var(--fs-1)">진입 근거 — 왜·값 + 펀더·내러·센티 (+ 좋음 · 중립 · − 나쁨 · 미확인 = 재료 없음)</div>${ls.map(x=>row(cmtHFWhyParse(x))).join('')}</div>`; }
 function cmtHFCard(o){
   const h=o.hf; if(!h||!(h.lines||[]).length) return '';
   const s=h.stats||{}, pr=(h.proposals||[]), pc=v=>v==null?'—':(v>=0?'+':'')+(v*100).toFixed(2);
   const lab=['알파북','제안','이견','틀린 것'];
   const tb=pr.length?cmtTbl(['종목','소스','진입 구간','손절','1차','2차','크기','리스크'],pr.map(x=>`<tr><td class="l">${esc(x.name||x.code)}</td><td>${esc(x.src)}</td><td>${esc(Number(x.lo).toLocaleString('ko-KR',{maximumFractionDigits:2}))}~${esc(Number(x.hi).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="dn">${esc(Number(x.stop).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="up">${esc(Number(x.t1).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="up">${esc(Number(x.t2).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td><b>${(x.weight*100).toFixed(1)}%</b></td><td class="mu">${(x.risk_pct*100).toFixed(2)}%</td></tr>`)):'';
   return `<div class="p c12" style="border:1px solid var(--dn)"><h2><span>🦈 HF 데스크 · 알파북 ${o.market==='US'?'미장':'국장'} <span class="mu" style="font-size:var(--fs-2)">${esc(h.state||'')}</span></span><small>모의(가상 1단위) · 누적 ${pc(s.cum)}% · 벤치 대비 ${pc(s.excess_cum)}%p · IR ${s.ir==null?'—':s.ir}</small></h2>
-    <div class="b" style="line-height:1.7;white-space:normal;font-size:var(--fs-2)">${(h.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b class="dn">${lab[i]||'·'}</b> ${esc(String(x).replace(/^[^:]+:\s*/,''))}</div>`).join('')}
+    <div class="b" style="line-height:1.7;white-space:normal;font-size:var(--fs-2)">${(h.lines||[]).slice(0,4).map((x,i)=>`<div style="margin:2px 0"><b class="dn">${lab[i]||'·'}</b> ${esc(String(x).replace(/^[^:]+:\s*/,''))}</div>`).join('')}
+    ${cmtHFWhy((h.lines||[]).slice(4))}
     ${h.say?`<div style="margin-top:6px;padding:4px 8px;border-left:3px solid var(--dn)"><i>“${esc(h.say)}”</i></div>`:''}${tb?'<div style="margin-top:6px">'+tb+'</div>':''}
     <div class="mu" style="font-size:var(--fs-1);margin-top:4px">${esc(h.note||'')} · 시장 배수 ${esc((h.scale||{}).why||'')}</div></div></div>`; }
 function cmtScenCards(o){
@@ -3764,7 +3790,7 @@ function sysBoardView(){
   // 맨 위 결재 줄 (UXUI 재진단 Top10 #6, 10/23 겸이 승인): 업무량 표 1,637px 가 맨 위라 작업 보드가 2장 아래였다 → '겸이 결재 대기 N · 늦은 일 N' 먼저, 업무량 표는 접어서 아래로.
   // 결재 대기 = 보드 결재 필드(approval, req-pm-47712fe7)만 센다 — 글자 규칙 폐기(피어 2026-10-24 U1: 오탐 2·놓침 2). 필드 규칙은 scripts/board.py validate.
   const open=T.filter(t=>t.status!=='완료'), apr=sysApprOpen(T), late=open.filter(t=>t.due&&t.due<td);
-  const chip=t=>`<a href="#sysrow-${esc(t.id)}" style="display:inline-flex;align-items:center;min-height:44px;margin-right:10px">${sysPr(t.priority)}${esc(t.title.slice(0,40))}${t.title.length>40?'…':''} <span class="mu" style="margin-left:4px">${esc(sysNm(t.owner))}${t.approval&&t.status==='보류'?' · 보류'+(t.due?' ~'+esc(String(t.due).slice(5)):''):''}</span></a>`;
+  const chip=t=>`<a href="#sysrow-${esc(t.id)}" style="display:inline-flex;align-items:center;min-height:44px;margin-right:10px"><span style="flex:none">${sysPr(t.priority)}</span>${esc(t.title.slice(0,40))}${t.title.length>40?'…':''} <span class="mu" style="margin-left:4px">${esc(sysNm(t.owner))}${t.approval&&t.status==='보류'?' · 보류'+(t.due?' ~'+esc(String(t.due).slice(5)):''):''}</span></a>`;
   const appr=`<div class="p c12" id="sysappr"><div class="b" style="white-space:normal;line-height:1.6"><div style="font-size:var(--fs-3)"><b class="${apr.length?'dn':'mu'}">🖊 겸이 결재 대기 ${apr.length}</b> · <b class="${late.length?'am':'mu'}">⏰ 늦은 일 ${late.length}</b> <span class="mu" style="font-size:var(--fs-2)">· 진행 ${T.filter(t=>t.status==='진행').length} · 검수 ${T.filter(t=>t.status==='검수').length} · 대기 ${T.filter(t=>t.status==='대기').length}</span></div>
     ${apr.length?`<div style="font-size:var(--fs-2)">${apr.map(chip).join('')}</div>`:''}${late.length?`<details style="font-size:var(--fs-2)"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="mu">늦은 일 ${late.length}개 보기</summary>${late.sort((a,b)=>String(a.due).localeCompare(String(b.due))).map(t=>`<div>${chip(t)}<span class="dn">${esc(t.due)}</span></div>`).join('')}</details>`:''}</div></div>`;
   let h=`<div class="grid">${appr}<div class="p c12"><h2>작업 보드<small>${esc(B.updated||'')} 기준 · ${T.length}개 · ${cnt}</small></h2><div class="b">`;

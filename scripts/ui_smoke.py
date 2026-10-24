@@ -74,6 +74,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_msg_popup(b, port)
         bad += await check_uxui_rest(b, port)
         bad += await check_head_clip(b, port)
+        bad += await check_hf_why(b, port)
         await b.close()
     return bad
 
@@ -229,7 +230,8 @@ async def check_eng(b, port: int) -> int:
     E2 = _json.loads(v2)
     prof = _json.dumps({"survey_topics": ["카페 가기", "집에서 보내는 휴가"]}, ensure_ascii=False)
     for label, body, w in (("새 스키마", v2, 390), ("새 스키마", v2, 1300), ("옛 스키마", v1, 390)):
-        pg = await b.new_page(viewport={"width": w, "height": 850})
+        # 390px = 폰(손가락) 에뮬 — 10/24 UXUI 결정: 44px 는 any-pointer:coarse 기기, 마우스 PC 는 28px(docs/uxui/2026-10-24_pc44_decision.md)
+        pg = await b.new_page(viewport={"width": w, "height": 850}, has_touch=w < 700)
         errs: list[str] = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
         def _ok(txt):   # route 핸들러는 인자 1개(route)만 — 기본값 인자를 두면 request 가 들어감
@@ -588,7 +590,7 @@ async def check_uxui_rest(b, port: int) -> int:
 
 # 잘림 기준선(UXUI 10/24 재검수 정의: 자기 글자를 가진 요소가 overflow≠visible 또는 ellipsis 인데 scrollWidth > clientWidth+1, 팝업·상세 창 제외).
 # 10/24 R1~R4 고친 뒤 실측(main + req-dev-26f063bc). 뷰별로 이보다 늘면 BAD — 줄여서 고쳤으면 숫자도 같이 내린다. 없는 뷰 = 0.
-CLIP_BASE = {390: {"re": 4, "sysb": 1}, 1300: {"home": 2}}
+CLIP_BASE = {390: {"re": 4}, 1300: {"home": 2}}   # sysb 1→0: 10/24 UXUI 결재 칩 P2 배지 flex:none
 CLIP_1300 = ("home", "rb", "kr", "eng")      # PC 는 UXUI 가 회귀를 본 화면만 (시간 절약)
 CLIP_JS = """(()=>{ const out=[]; for(const e of document.querySelectorAll('#root *')){ if(!e.offsetWidth||e.closest('#mgpop,.drawer,#dr')) continue;
   if(![...e.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())) continue; const cs=getComputedStyle(e);
@@ -632,6 +634,46 @@ async def check_head_clip(b, port: int) -> int:
         await pg.close()
     bad += bool(over)
     print(f"{'OK ' if not over else 'BAD'} 잘림 기준선(390 전체·1300 {'/'.join(CLIP_1300)}) 증가 {len(over)}" + (f" · {over}" if over else ""))
+    return bad
+
+
+# HF 진입 근거 펼침 줄(screener/entry_why.py build().long 형식 — tests/test_hf_why_labels.py 가 형식을 고정). 실데이터에 제안이 없는 날도 검사되게 주입.
+HF_WHY_FIX = ["근거 기술 — 테스트 = B1 52주 고점 근접(종가/250일 고가 95.0%)·사전등록 B · S4 추격 아님 · 퀀트 hi52 KR B(20일 초과 +1.2%), 단 종목 중앙값 −0.4%·분산 전제",
+              "근거 기대값·리스크 — E[R] +0.083R vs 기준선 −0.015R · 손절 86(−13.8%)·1차 손익비 1.5R · 크기 0.9%=리스크 0.125% · 뒤집힘 종가 < 100(250일 고점 95%) → B1 해제",
+              "근거 펀더 − 적정가 −25.0% · 2026Q2 영업이익 전년비 −30.0% (detail.valuation·detail.financials)",
+              "근거 내러 미확인", "근거 센티 + 외국인·기관 5일 순매수 (detail.flows)", "근거 펀더 중립 실적 변화 없음 (detail.financials)",
+              "근거 약함 — 세 축 중 − 2개 이상(표시만, 규칙 불변)"]
+
+
+async def check_hf_why(b, port: int) -> int:
+    """UXUI 10/24 req-uxui-ce6484a5: 운용회의 HF 카드 진입 근거 펼침 줄 = 이름표(왜·값·펀더·내러·센티·약함) + 판정 배지(+·중립·−·미확인, 색 토큰).
+    390·1300px · 가로 넘침 0(390px) · 배지 4종 색이 --up/--muted/--dn/--amber · 펼침 없는 날엔 블록 없음."""
+    import json as _json
+    bad = 0
+    for w in (390, 1300):
+        pg = await b.new_page(viewport={"width": w, "height": 844}, has_touch=w < 700, is_mobile=w < 700)
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(2000)
+        await pg.evaluate("setView('cmt')")
+        await pg.wait_for_timeout(2500)
+        r = await pg.evaluate("""(fix)=>{ if(typeof CMT!=='object'||!CMT||!CMT.hf||!(CMT.hf.lines||[]).length) return {nohf:true};
+          const none=!document.querySelector('#root .hfwhy')===((CMT.hf.lines||[]).length<=4);
+          CMT.hf.lines=CMT.hf.lines.slice(0,4).concat(fix); render();
+          const box=document.querySelector('#root .hfwhy'); if(!box) return {none, box:false};
+          const rows=[...box.querySelectorAll('.hfw')].map(d=>({k:d.querySelector('b').textContent, v:(d.querySelector('.hfv')||{}).textContent||'', c:d.querySelector('.hfv')?getComputedStyle(d.querySelector('.hfv')).color:''}));
+          const css=n=>{const t=document.createElement('span'); t.style.color=`var(${n})`; document.body.appendChild(t); const c=getComputedStyle(t).color; t.remove(); return c;};
+          const tok={'+':css('--up'),'−':css('--dn'),'중립':css('--muted'),'미확인':css('--amber')};
+          const fs=[...box.querySelectorAll('*')].map(e=>parseFloat(getComputedStyle(e).fontSize));
+          return {none, box:true, keys:rows.map(x=>x.k).join(','), vs:rows.filter(x=>x.v).map(x=>x.v).join(','), color:rows.filter(x=>x.v).every(x=>x.c===tok[x.v]),
+            fs:[...new Set(fs)].sort(), over:document.scrollingElement.scrollWidth>innerWidth+1||[...box.querySelectorAll('*')].some(e=>e.getBoundingClientRect().right>innerWidth+1)}; }""", HF_WHY_FIX)
+        ok = (r.get("nohf") or (r["box"] and r["none"] and r["keys"] == "왜,값,펀더,내러,센티,펀더,약함" and r["vs"] == "−,미확인,+,중립" and r["color"]
+              and all(x in (11, 12.5, 14, 17) for x in r["fs"]) and not r["over"])) and not errs
+        bad += not ok
+        print(f"{'OK ' if ok else 'BAD'} HF 진입 근거 이름표·배지({w}px) " + ("HF 블록 없음(검사 건너뜀)" if r.get("nohf") else f"이름표 {r.get('keys')} · 배지 {r.get('vs')} · 색 {r.get('color')} · 글자 {r.get('fs')} · 넘침 {r.get('over')}")
+              + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        await pg.close()
     return bad
 
 

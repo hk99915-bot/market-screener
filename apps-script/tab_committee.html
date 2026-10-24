@@ -110,13 +110,30 @@ function cmtBLCard(o){
   return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 ${o.market==='US'?'미장':'국장'}${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
     <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
 /* HF 데스크 운용회의 개입 4줄 + 알파북(모의) — screener/alphabook.py, reports/alphabook.json */
+/* HF 진입 근거 펼침 줄(screener/entry_why.py build().long, ab3d0ce2) 이름표·판정 배지 — UXUI 10/24 req-uxui-ce6484a5.
+   '근거 기술 — …'→왜 · '근거 기대값·리스크 — …'→값 · '근거 펀더|내러|센티 +|중립|−|미확인 …'→축 이름 + 배지 · '근거 약함 — …'→약함. 모르는 줄은 '·' 그대로 */
+const HF_VB={'+':'var(--up)','−':'var(--dn)','중립':'var(--muted)','미확인':'var(--amber)'};
+function cmtHFWhyParse(x){ x=String(x); let m;
+  if((m=/^근거 기술 — ([\s\S]*)$/.exec(x))) return {k:'왜',t:m[1]};
+  if((m=/^근거 기대값·리스크 — ([\s\S]*)$/.exec(x))) return {k:'값',t:m[1]};
+  if((m=/^근거 (펀더|내러|센티) (\+|−|-|중립|미확인)(?:\s+([\s\S]*))?$/.exec(x))) return {k:m[1],v:m[2]==='-'?'−':m[2],t:m[3]||(m[2]==='미확인'?'재료 없음':'')};
+  if((m=/^근거 약함 — ([\s\S]*)$/.exec(x))) return {k:'약함',t:m[1],w:1};
+  return {k:'·',t:x}; }
+function cmtHFWhy(ls){
+  if(!ls.length) return '';
+  const row=r=>{ const c=r.v?HF_VB[r.v]:'';
+    return `<div class="hfw" style="display:flex;gap:6px;align-items:baseline;margin:2px 0;min-width:0"><b class="dn" style="flex:0 0 2.6em">${esc(r.k)}</b>`
+      +(r.v?`<span class="tag hfv" title="${esc(r.k)} 판정 ${esc(r.v)}" style="flex:none;border-color:${c};color:${c};min-width:2.2em;text-align:center">${esc(r.v)}</span>`:'')
+      +`<span style="min-width:0;overflow-wrap:anywhere${r.w?';color:var(--dn)':''}">${esc(r.t)}</span></div>`; };
+  return `<div class="hfwhy" style="margin-top:6px;padding-top:4px;border-top:1px solid var(--line)"><div class="mu" style="font-size:var(--fs-1)">진입 근거 — 왜·값 + 펀더·내러·센티 (+ 좋음 · 중립 · − 나쁨 · 미확인 = 재료 없음)</div>${ls.map(x=>row(cmtHFWhyParse(x))).join('')}</div>`; }
 function cmtHFCard(o){
   const h=o.hf; if(!h||!(h.lines||[]).length) return '';
   const s=h.stats||{}, pr=(h.proposals||[]), pc=v=>v==null?'—':(v>=0?'+':'')+(v*100).toFixed(2);
   const lab=['알파북','제안','이견','틀린 것'];
   const tb=pr.length?cmtTbl(['종목','소스','진입 구간','손절','1차','2차','크기','리스크'],pr.map(x=>`<tr><td class="l">${esc(x.name||x.code)}</td><td>${esc(x.src)}</td><td>${esc(Number(x.lo).toLocaleString('ko-KR',{maximumFractionDigits:2}))}~${esc(Number(x.hi).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="dn">${esc(Number(x.stop).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="up">${esc(Number(x.t1).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td class="up">${esc(Number(x.t2).toLocaleString('ko-KR',{maximumFractionDigits:2}))}</td><td><b>${(x.weight*100).toFixed(1)}%</b></td><td class="mu">${(x.risk_pct*100).toFixed(2)}%</td></tr>`)):'';
   return `<div class="p c12" style="border:1px solid var(--dn)"><h2><span>🦈 HF 데스크 · 알파북 ${o.market==='US'?'미장':'국장'} <span class="mu" style="font-size:var(--fs-2)">${esc(h.state||'')}</span></span><small>모의(가상 1단위) · 누적 ${pc(s.cum)}% · 벤치 대비 ${pc(s.excess_cum)}%p · IR ${s.ir==null?'—':s.ir}</small></h2>
-    <div class="b" style="line-height:1.7;white-space:normal;font-size:var(--fs-2)">${(h.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b class="dn">${lab[i]||'·'}</b> ${esc(String(x).replace(/^[^:]+:\s*/,''))}</div>`).join('')}
+    <div class="b" style="line-height:1.7;white-space:normal;font-size:var(--fs-2)">${(h.lines||[]).slice(0,4).map((x,i)=>`<div style="margin:2px 0"><b class="dn">${lab[i]||'·'}</b> ${esc(String(x).replace(/^[^:]+:\s*/,''))}</div>`).join('')}
+    ${cmtHFWhy((h.lines||[]).slice(4))}
     ${h.say?`<div style="margin-top:6px;padding:4px 8px;border-left:3px solid var(--dn)"><i>“${esc(h.say)}”</i></div>`:''}${tb?'<div style="margin-top:6px">'+tb+'</div>':''}
     <div class="mu" style="font-size:var(--fs-1);margin-top:4px">${esc(h.note||'')} · 시장 배수 ${esc((h.scale||{}).why||'')}</div></div></div>`; }
 function cmtScenCards(o){

@@ -220,12 +220,21 @@ html.stealth .brand{letter-spacing:0}
 .hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line),4px 0 6px -4px #000}   /* 표 첫 열 고정 (UXUI Top10 #10, 10/24): 가로로 밀어도 종목명 열이 남음 */
 .hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(255,154,31,.45),transparent) right/12px 100% no-repeat scroll}
 html.xl .hmore{color:#595959}
-/* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
-   10/24 재검수(req-dev-26f063bc): 터치 화면만 → PC 포함 전체(1300px 공시 411·인적성 336 미달). 엑셀(xl) 위장 모드만 촘촘하게 둔다. */
-html:not(.xl) .sbtn,html:not(.xl) .ctab button,html:not(.xl) .ovl button{min-height:44px}
-html:not(.xl) #root summary{min-height:44px;box-sizing:border-box}
-html:not(.xl) #root td a,html:not(.xl) #root .rp a{display:inline-block;min-height:44px;min-width:44px;padding-top:12px;box-sizing:border-box}
-html:not(.xl) #root td:has(> a + a){white-space:normal}   /* 한 칸에 짧은 링크 여럿(리서치 종합 '원문' LS SK): 44px 상자가 옆으로 붙어 표가 넘침 → 줄을 바꿔 세로로 */
+/* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5 AAA): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
+   10/24 UXUI 결정(docs/uxui/2026-10-24_pc44_decision.md): 손가락이 있는 기기(any-pointer:coarse — 폰·태블릿·터치 노트북) = 44px,
+   마우스만 있는 PC = 28px(WCAG 2.2 2.5.8 AA 24px + 여유 4px). 전체 44px(ffb03804)은 1300px 35화면 +13%(공시 2.1배)라 밀도 손실이 커서 절충.
+   엑셀(xl) 위장 모드는 둘 다 빼고 촘촘하게. 되돌리기: 아래 두 블록을 ffb03804 의 한 블록으로. */
+@media (any-pointer:coarse){
+  html:not(.xl) .sbtn,html:not(.xl) .ctab button,html:not(.xl) .ovl button{min-height:44px}
+  html:not(.xl) #root summary{min-height:44px;box-sizing:border-box}
+  html:not(.xl) #root td a,html:not(.xl) #root .rp a{display:inline-block;min-height:44px;min-width:44px;padding-top:12px;box-sizing:border-box}
+}
+@media not (any-pointer:coarse){
+  html:not(.xl) .sbtn,html:not(.xl) .ctab button,html:not(.xl) .ovl button{min-height:28px}
+  html:not(.xl) #root summary{min-height:28px;box-sizing:border-box}
+  html:not(.xl) #root td a,html:not(.xl) #root .rp a{display:inline-block;min-height:28px;min-width:28px;padding-top:4px;box-sizing:border-box}
+}
+html:not(.xl) #root td:has(> a + a){white-space:normal}   /* 한 칸에 짧은 링크 여럿(리서치 종합 '원문' LS SK): 넓힌 상자가 옆으로 붙어 표가 넘침 → 줄을 바꿔 세로로 */
 </style>
 </head>
 <body>
