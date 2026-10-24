@@ -104,6 +104,8 @@ function getSignals() { return raw_('reports/signal_scores.json'); }
 function getMacroView() { return raw_('reports/macro_view.json'); }
 function getCommodities() { return raw_('reports/commodities.json'); }   // MARKET › MACRO 원자재 (screener/commodities.py, 매크로 10/23)
 function getGeopolitics() { return raw_('reports/views/geopolitics.json'); }   // MARKET › MACRO 지정학 축 (매크로 데스크 작성)
+function getAnalystCmdty() { return raw_('reports/views/analyst_cmdty.json'); }   // MARKET › MACRO 애널리스트 원자재 뷰 (매크로 데스크 트래킹)
+function getMacroCmdty() { return raw_('reports/views/macro_cmdty.json'); }   // MARKET › MACRO 원자재 현상황·관계성·지정학 시나리오 (macro_cmdty_view.md 화면용)
 function getRealEstate() { return raw_('reports/realestate.json'); }   // MARKET › 부동산 (screener/realestate.py, 부동산 10/23)
 function getRealEstateView() { return raw_('reports/views/realestate.json'); }   // MARKET › 부동산 데스크 해석
 function getOneliners() { return raw_('reports/company_oneliner.json'); }   // 종목 상세 머리 한 줄 설명 (screener/oneliner.py, 데이터 10/24)
@@ -130,6 +132,8 @@ function getDerivs() { return raw_('reports/derivs.json'); }
 function getDerivHist() { return raw_('data/deriv/daily.csv'); }
 function getDerivSignals() { return raw_('reports/studies/derivs_signals.json'); }
 function getGammaStudy() { return raw_('reports/studies/gamma_regime.json'); }
+function getDerivsResearch() { return raw_('reports/views/derivs_research.json'); }   // MARKET › 파생 리서치 산출물 (금융위 V2 탐침·스프레드 사전등록)
+function getHfLsVol() { return raw_('reports/studies/2026-10-21_hf_ls_vol.json'); }   // MARKET › 파생 분산 매도·롱숏 검증 (HF)
 function getMacroReleases() { return raw_('reports/macro_releases.json'); }
 function getEnglishLatest() { return raw_('reports/english/latest.json'); }
 function getEnglishAt(d) { return raw_('reports/english/' + d + '.json'); }

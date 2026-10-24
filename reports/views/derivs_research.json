@@ -1,0 +1,44 @@
+{
+ "meta": {
+  "asof": "2026-10-24",
+  "note": "파생 관련 리서치 중 화면에 아직 안 나온 것 모음 — 원본 md 의 숫자·문장을 옮긴 것(프론트 10/24 수작업 1회). 숫자가 다르면 원본 md 가 맞음. 방향 신호 아님.",
+  "srcs": ["docs/data_go_kr_apis.md", "reports/studies/2026-10-24_options_spread_prereg.md", "reports/studies/2026-10-21_hf_ls_vol.json"]
+ },
+ "probe": {
+  "title": "금융위 V2 파생 API 탐침",
+  "src": "docs/data_go_kr_apis.md",
+  "asof": "2026-10-24 17:32 KST · 기준일 basDt=20261022",
+  "how": "scripts/probe_deriv_sources.py datagokr (deriv_hist.yml task=probe, 읽기 전용) · run 40078360285",
+  "rule": "금융위 API 는 전부 _V2 서비스·오퍼레이션(옛 /service/... 주소는 403). T+1(기준일 다음 영업일 갱신 — 정확한 시각 확인 필요), 실시간 아님. 트래픽 각 1만/일.",
+  "cols": ["데이터", "오퍼레이션", "행 수(10/22)", "주요 필드", "쓰임"],
+  "rows": [
+   ["파생상품지수", "getDerivationProductMarketIndex_V2", "322", "idxNm·clpr·fltRt·trqu (코스피200 선물지수·변동성지수 등 — VKOSPI 포함 여부 확인)", "파생·HF"],
+   ["옵션", "getOptionsPriceInfo_V2", "20,974", "iptVlty(내재변동성)·opnint(미결제)·nxtDdBsPrc·clpr·trqu·prdCtg", "파생·HF (스프레드 엔진 IV 실측화·스큐·풋콜 OI)"],
+   ["주식선물", "getStockFuturesPriceInfo_V2", "3,678", "opnint·sptPrc(현물)·stmPrc·clpr", "파생·HF (포지셔닝)"]
+  ],
+  "gaps": [
+   "400 난 파생 후보(지수선물·지수옵션·상품/채권/통화선물·주식옵션 이름)는 오퍼레이션명 추정 실패 — 상세기능 목록으로 확인 필요.",
+   "코스피200 선물 일별은 아직 미확인(파생지수·옵션으로 일부 대체 가능성)."
+  ]
+ },
+ "prereg": {
+  "title": "수직 스프레드 소스 검증 — 사전 등록",
+  "src": "reports/studies/2026-10-24_options_spread_prereg.md",
+  "by": "퀀트 데스크 · 2026-10-24 (요청 req-quant-66946478, HF→퀀트)",
+  "status": "설계만, 실행 X — 결과 숫자 없음(호가 이력 수집 전). 관련 시도 N = m 12 + V1·V2 2 = 14 → α(14) ≈ 0.0036",
+  "prior": "hf_ls_vol V1 국장 분산 매도 −5.0%p t −3.06 F · V2 F → 국장 변동성 매도 쪽 사전 기대는 음(−)",
+  "cols": ["#", "소스", "과거 이력", "bid/ask", "판정"],
+  "rows": [
+   ["K1", "KRX 정보데이터시스템 옵션 전종목 시세(screener/derivs.py)", "2012~ 행사가별 백필 가능 [확인 필요]", "없음", "지수 옵션 일별 이력 1순위"],
+   ["K2", "KRX OPEN API 옵션 일별매매", "지수 옵션 2010~ · 주식옵션 2010~/2017~", "없음", "개별주식옵션 전 종목 백필 정식 경로 — 키 = 겸이 결재"],
+   ["K3", "공공데이터포털 금융위 파생상품시세", "2020-01~(확인 필요) · T+1", "없음", "K2 보다 짧고 제약 같음 → 예비"],
+   ["U1", "Cboe 지연 시세 JSON", "현재 스냅샷만(15분 지연)", "있음", "미장 일일 스냅샷 1순위 — 원본 공개 저장 불가"],
+   ["U2", "DoltHub options (CC BY-SA 4.0)", "2019-02-09~2026-10-22", "있음", "미장 과거 호가 유일한 무료 경로(SPX·QQQ·IWM 없음)"],
+   ["U3", "야후 option_chain", "현재 만기만", "있음", "U1 장애 시 예비"],
+   ["U4", "Nasdaq option-chain", "현재만", "있음", "비채택(약관 미확인)"],
+   ["U5", "Cboe VIX·SKEW 이력", "1990-01-02~2026-10-22", "—", "국면 변수"],
+   ["U6", "Cboe 풋콜비율 일별", "아카이브 ~2019/2012 끊김", "—", "서술 변수만"]
+  ],
+  "conclusion": "무료·합법 과거 bid/ask 는 미장 개별주·SPY(U2)뿐. 국장은 과거 가격·OI 2010~ 가능, 호가 폭 이력은 무료 경로 없음. SPX·QQQ·국장 호가는 오늘부터 매일 스냅샷으로만 쌓임. Cboe·KRX 원본은 공개 저장소 커밋 금지 → 공개 저장소엔 파생 요약만."
+ }
+}

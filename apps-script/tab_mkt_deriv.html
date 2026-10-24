@@ -33,7 +33,7 @@ function openBasis(){
 document.addEventListener('click',e=>{ const c=e.target.closest('[data-basis]'); if(c&&!c.closest('.tape')) openBasis(); });
 
 /* ───── 파생(DERIV) 화면: 흩어진 파생 정보 모음 — reports/derivs.json · data/deriv/daily.csv · reports/studies/derivs_signals.json · live.json K200F (새 수집 없음) ───── */
-const DVX={d:null,h:null,s:null,g:null}; let DVCH=[];
+const DVX={d:null,h:null,s:null,g:null,r:null,v:null}; let DVCH=[];
 function dvLoad(k,fn,parse){ if(DVX[k]!==null) return; DVX[k]=false; const r=google.script.run;
   if(typeof r[fn]!=='function'){ DVX[k]={}; return; }
   r.withSuccessHandler(t=>{ try{ DVX[k]=parse?parse(t):(typeof t==='string'?JSON.parse(t):(t||{})); }catch(e){ DVX[k]={}; } if(view==='deriv') render(); })
@@ -66,7 +66,7 @@ function dvTop(d){
     <button class="sbtn" style="min-height:44px;margin-top:6px" onclick="const e=document.getElementById('dvSum'); if(e) e.scrollIntoView({behavior:'smooth',block:'start'})">상세 숫자·차트 ↓</button></div></div>`;
 }
 function derivView(){
-  dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv); dvLoad('g','getGammaStudy');
+  dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv); dvLoad('g','getGammaStudy'); dvLoad('r','getDerivsResearch'); dvLoad('v','getHfLsVol');
   if(DVX.d===false&&DVX.h===false) return '<div class="load">LOADING …</div>';
   const d=DVX.d||{}, R=(DVX.h&&DVX.h.rows)||[], S=DVX.s||{};
   const lv=((L&&L.items)||[]).find(x=>x.key==='K200F')||null;
@@ -112,7 +112,7 @@ function derivView(){
     <div class="mu" style="font-size:var(--fs-1);margin-top:6px">${esc(S.grades_doc||'')} · 다중검정 m=${S.m??'?'}, α=${S.alpha_bonf??'?'}. 자세한 내용은 QUANT › 검증 스터디.</div></div></div>`:'';
   setTimeout(drawDerivHist,0);
   setTimeout(()=>{ const b=$('#dvA8'); if(b) b.onclick=dvGoA8; },0);
-  return `<div class="grid">${dvTop(d)}${sum}${op}${hist}${vt}</div>`;
+  return `<div class="grid">${dvTop(d)}${sum}${op}${hist}${vt}${dvResearch(DVX.r,DVX.v)}</div>`;
 }
 function dvGoA8(){ setView('edu'); let n=0; const t=setInterval(()=>{ const m=document.getElementById('mod-A8'); if(m){ clearInterval(t); m.open=true; m.scrollIntoView({behavior:'smooth',block:'start'}); } else if(++n>50) clearInterval(t); },100); }
 function drawDerivHist(){
@@ -144,5 +144,28 @@ function drawDerivHist(){
   const fd=pts('fut_frgn'); if(fd.length>=2){ const c4=mk('dvc4',v=>v.toFixed(0)); if(c4){
     const s=c4.addHistogramSeries({priceLineVisible:false}); s.setData(fd.map(x=>({time:x.time,value:x.value,color:x.value>=0?cv('--up'):cv('--dn')}))); c4.timeScale().fitContent(); leg('dvc4',[`최근 ${lastv(fd,0)}`]); } }
   else { const e=$('#dvc4'); if(e){ e.style.height='auto'; e.innerHTML=fd.length?`<div style="padding:12px 0">${esc(fd[0].time)} · <b class="${fd[0].value>=0?'up':'dn'}">${fd[0].value>0?'+':''}${num(fd[0].value)}</b> 계약</div>`:'<div class="mu">데이터 없음</div>'; } }
+}
+// 파생 리서치 산출물 (10/24 겸이 "지금 리서치된 건 다 터미널에") — 화면에 없던 것만: 분산 매도·롱숏 검증(reports/studies/2026-10-21_hf_ls_vol.json) ·
+// 금융위 V2 탐침·스프레드 사전등록(reports/views/derivs_research.json = docs/data_go_kr_apis.md·options_spread_prereg.md 화면용). 방향 신호 아님.
+function dvResearch(R,V){
+  if(R===false||V===false||R===null||V===null) return '<div class="p c12" id="dvRes"><h2>파생 리서치 산출물</h2><div class="b"><div class="load">LOADING …</div></div></div>';
+  const tb=(cols,rows)=>`<div style="overflow-x:auto"><table><tr>${cols.map(c=>`<th class="l">${esc(c)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map((v,i)=>`<td class="l" style="white-space:normal;min-width:${i===0?60:100}px;font-size:var(--fs-1)">${esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+  const sec=(id,t,sm,body)=>`<details id="${id}" style="border-top:1px solid var(--line);margin-top:4px"><summary style="cursor:pointer;min-height:44px;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px"><b class="am">${t}</b><span class="mu" style="font-size:var(--fs-1)">${sm}</span></summary><div style="white-space:normal;padding:2px 0 6px">${body}</div></details>`;
+  let out='';
+  const C=V&&V.cells?Object.values(V.cells):[];
+  if(C.length){ const f=(x,d)=>x==null?'—':Number(x).toFixed(d);
+    const rows=C.map(c=>{ const t=c.test||{}, i=c.train||{}; return `<tr><td class="l mu">${esc(c.key)}</td><td class="l" style="white-space:normal;min-width:160px">${esc(c.desc)}</td><td>${dvB(c.grade)}</td><td>${t.n??'—'}</td><td>${f(t.mean,c.key[0]==='V'?2:4)}</td><td>${f(t.t,2)}</td><td>${f(t.sharpe,2)}</td><td class="mu">${f(i.t,2)}</td></tr>`; }).join('');
+    out+=sec('dvResLsv','분산 매도 · 롱숏 검증',`HF · ${esc(V.asof||'')} · m=${V.m??'?'} · 통과 ${(V.pass||[]).length}/${C.length}`,
+      `<div style="overflow-x:auto"><table><tr><th class="l">ID</th><th class="l">전략</th><th>등급</th><th>OOS n</th><th>OOS 평균</th><th>OOS t</th><th>OOS 샤프</th><th>IS t</th></tr>${rows}</table></div>
+      <div class="mu" style="font-size:var(--fs-1);margin-top:4px">분할 ${esc(V.split||'')} 이후 = OOS · 본페로니 t ${V.t_bonf??'?'} · 단위: L = 수익률(소수), V = 베가 단위 %p · 사전등록 ${esc(V.prereg||'')} · 국장 변동성 매도(V1·V2)는 F — 프리미엄 매도 사전 기대 음(−)</div>`); }
+  const P=R&&R.probe;
+  if(P) out+=sec('dvResProbe',esc(P.title),`${esc(P.asof||'')} · ${esc(P.src||'')}`,
+    `<div style="font-size:var(--fs-1)">${esc(P.rule||'')}</div>${tb(P.cols,P.rows)}<ul style="margin:4px 0 0 16px;padding:0;font-size:var(--fs-1)">${(P.gaps||[]).map(g=>`<li>${esc(g)}</li>`).join('')}</ul><div class="mu" style="font-size:var(--fs-1)">${esc(P.how||'')}</div>`);
+  const Q=R&&R.prereg;
+  if(Q) out+=sec('dvResPre',esc(Q.title),`<span class="tag" style="color:var(--muted);border-color:var(--line)">설계만 · 결과 없음</span> ${esc(Q.by||'')}`,
+    `<div style="font-size:var(--fs-1)"><b>상태</b> ${esc(Q.status||'')}</div><div style="font-size:var(--fs-1)"><b>사전 기대</b> ${esc(Q.prior||'')}</div>${tb(Q.cols,Q.rows)}<div style="font-size:var(--fs-1);margin-top:4px"><b>결론</b> ${esc(Q.conclusion||'')}</div><div class="mu" style="font-size:var(--fs-1)">${esc(Q.src||'')}</div>`);
+  if(!out) return '<div class="p c12" id="dvRes"><h2>파생 리서치 산출물</h2><div class="b mu">데이터 없음 (reports/views/derivs_research.json · reports/studies/2026-10-21_hf_ls_vol.json)</div></div>';
+  return `<div class="p c12" id="dvRes"><h2>파생 리서치 산출물<small>${esc((R&&R.meta&&R.meta.asof)||'')} · 방향 신호 아님</small></h2><div class="b" style="white-space:normal">
+    <div class="mu" style="font-size:var(--fs-1)">${esc((R&&R.meta&&R.meta.note)||'')}</div>${out}</div></div>`;
 }
 </script>

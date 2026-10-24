@@ -47,7 +47,9 @@ fetch → rebase → (잠금) → 편집 → check_functions → build → check
    - push 가 거절되면(그새 남이 푸시) 4번을 처음부터 반복.
 5. **잠금 해제 + 보드** — `python scripts/lock.py drop --owner "<내 이름>"`, `python scripts/board.py --set <id> 검수`(또는 완료) 후 함께 커밋·푸시.
 
-## GAS 웹앱에 붙여넣기 (화면 파일 분리 후)
+## GAS 웹앱 반영 (자동 — 수동 붙여넣기 없음)
+
+**GAS 반영 자동: HTML 은 Code.gs 가 GitHub 직접 읽음, .gs 는 gas_deploy.yml(clasp) — 수동 붙여넣기 없음.** 아래 목록은 GAS 프로젝트 파일 구성 참고용(처음 프로젝트를 새로 만들 때만).
 
 script.google.com 프로젝트에는 **폴더가 없다**. 아래 파일을 각각 같은 이름으로 만들어 붙여넣는다 (HTML 파일은 `파일 추가 → HTML`, 이름은 확장자 없이 `tab_daily` 처럼 — 처음 한 번만 만들고, 그 뒤로는 바뀐 파일만 덮어쓴다).
 `Index.html` 의 `<?!= include('tab_x') ?>` 를 `Code.gs` 의 `include()` 가 같은 이름의 파일 내용으로 바꾼다. 파일 하나라도 빠지면 웹앱이 `No HTML file named tab_x` 오류로 열리지 않는다.
@@ -74,7 +76,7 @@ script.google.com 프로젝트에는 **폴더가 없다**. 아래 파일을 각�
 | 18 | `tab_isalab` | HTML | QUANT › ISA 실험실 (비중 슬라이더 백테스트, 데이터 getIsaLab) |
 | 19 | `tab_mkt_macro` | HTML | MARKET › MACRO (매크로 한눈에 — 기존 getter getMacroView·getBonds·getCalendar) |
 
-붙여넣은 뒤 `배포 → 배포 관리 → 새 버전` 으로 갱신. GitHub Pages(`index.html`) 는 `python scripts/build_pages.py` 가 include 를 인라인해 한 파일로 만든다.
+main push 때 gas_deploy.yml 이 clasp 로 .gs 를 배포한다. GitHub Pages(`index.html`) 는 `python scripts/build_pages.py` 가 include 를 인라인해 한 파일로 만든다.
 
 ## 커밋 메시지
 

@@ -27,7 +27,7 @@
 
 ## 정의
 - #1 [규정-초안] **디자인 토큰**: 색·글자·간격을 이름 붙은 변수로 두고 화면은 이름만 쓴다(W3C Design Tokens Community Group 형식 초안). 우리 = `var(--bg2/--bg3/--panel/--on-amber)`·글자 4단계 `--fs-1~4`. 화면 파일에 `#111`·`#151515` 같은 색을 직접 쓰면 엑셀 스킨에서 검정 바탕 검정 글자(kb:dev 10/24 교훈).
-- #2 [자체 규약] **빌드 경로**: `apps-script/Index.html`(+`include('tab_x')`) → `python3 scripts/build_pages.py` → 루트 `index.html`(Pages). `index.html` 은 산출물이라 손으로 고치지 않고 잠그지 않는다. GAS 반영은 재붙여넣기(ops/README.md 목록).
+- #2 [자체 규약] **빌드 경로**: `apps-script/Index.html`(+`include('tab_x')`) → `python3 scripts/build_pages.py` → 루트 `index.html`(Pages). `index.html` 은 산출물이라 손으로 고치지 않고 잠그지 않는다. GAS 반영 자동: HTML 은 Code.gs 가 GitHub 직접 읽음, .gs 는 gas_deploy.yml(clasp) — 수동 붙여넣기 없음.
 - #3 [규정] **WCAG 2.2**: 본문 대비 4.5:1(1.4.3), 터치 대상 24×24px 최소(2.5.8, AA) · 44×44px 목표(2.1 2.5.5, AAA) — kb:uxui#2·#4.
 - #4 [교과서-B] **Core Web Vitals**: 상호작용 반응 INP ≤ 200ms, 레이아웃 흔들림 CLS ≤ 0.1, 첫 큰 그림 LCP ≤ 2.5s(75백분위). (출처: Google web.dev "Web Vitals" `[확인 필요: 현행 임계값 원문, 2026-10-31]`) 우리는 아직 안 잰다(격차).
 - #5 [경험] `overflow-x:hidden` 이면 scrollWidth 로 폰 넘침을 못 잡는다 → 요소 `getBoundingClientRect().right` 검사(kb:dev 10/21).

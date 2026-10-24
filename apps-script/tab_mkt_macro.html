@@ -1,13 +1,14 @@
 <!-- tab_mkt_macro.html — MARKET › MACRO — macroView (10/21 겸이 "리서치나 마켓에 매크로가 없는 듯", 보드 macro-tab).
      흩어져 있던 매크로 산출물을 한 화면 결론으로: macro_view.json(바람·환율·유가·금·코스피 vs S&P) · bonds.json(한·미 금리) · calendar.json(일정·발표 결과).
      10/23 매크로: 원자재(commodities.json · getCommodities)·지정학 축(views/geopolitics.json · getGeopolitics) 패널 추가 — 첫 화면(macTop) 아래, 표시 전용. 문구 근거 = docs/desk_kb/macro.md #3(바람 점수) #5(20일 격차 ±8%p) #15(읽는 순서) #16(USDKRW).
+     10/24 프론트: 애널리스트 원자재 뷰(views/analyst_cmdty.json · getAnalystCmdty) + 원자재 현상황·관계성·지정학 시나리오(views/macro_cmdty.json · getMacroCmdty, md 원본) — 원자재 패널 아래.
      전역 도우미($·esc·num·pct·render·setView·asofTag·staleTag·dataLag·mkPhase)는 Index.html, 지표 해설 표 macroPanel 은 tab_market.html. -->
 <script>
 let MCX=null;
 function mcLoad(){ MCX={};
   const g=(k,fn)=>google.script.run.withSuccessHandler(t=>{ try{ MCX[k]=typeof t==='string'?JSON.parse(t):(t||{}); }catch(e){ MCX[k]={}; } if(view==='macro') render(); })
     .withFailureHandler(()=>{ MCX[k]={}; if(view==='macro') render(); })[fn]();
-  g('mv','getMacroView'); g('bd','getBonds'); g('cal','getCalendar'); g('cm','getCommodities'); g('geo','getGeopolitics'); g('gn','getGeoNews'); }
+  g('mv','getMacroView'); g('bd','getBonds'); g('cal','getCalendar'); g('cm','getCommodities'); g('geo','getGeopolitics'); g('gn','getGeoNews'); g('ac','getAnalystCmdty'); g('mc','getMacroCmdty'); }
 const mcBp=x=>x==null?'—':`<span class="${x>0?'dn':x<0?'up':'mu'}">${x>0?'+':''}${Number(x).toFixed(0)}bp</span>`;   // 금리↑ = 채권값↓ → 빨강 (채권 탭과 같은 색 규칙)
 const mcMd=ds=>ds?(+String(ds).slice(5,7))+'/'+(+String(ds).slice(8,10)):'—';
 function mcDday(ds){ const t=tzParts('Asia/Seoul').ds, d=Math.round((Date.parse(ds+'T00:00:00Z')-Date.parse(t+'T00:00:00Z'))/864e5); return d===0?'오늘':d>0?'D-'+d:'D+'+(-d); }
@@ -67,7 +68,7 @@ function macroView(){
   const done=(CAL.events||[]).filter(e=>e.type==='매크로'&&e.date<=today&&(e.result||[]).length).sort((a,b)=>a.date<b.date?1:-1).slice(0,3);
   const rel=done.length?`<div class="p c12"><h2>최근 발표<small>직전 대비 · 개정 전 잠정치 · 컨센서스 없음 (매크로 KB #2)</small></h2><div class="b" style="white-space:normal;line-height:1.65">${done.map(e=>`<div><b>${mcMd(e.date)}</b> ${esc(e.name)} — ${e.result.map(esc).join(' · ')}</div>`).join('')}</div></div>`:'';
   const tbl=typeof macroPanel==='function'?`<div class="p c12"><h2>지표 전체 · 해설<small>매크로 바람 구성 지표 · ▸ 누르면 해설 · 지표명 누르면 차트</small></h2><div class="b">${macroPanel('KR')}</div></div>`:'';
-  return `<div class="grid">${top}${grid}${mcCmdPanel(MCX.cm,R)}${mcGeoPanel(MCX.geo,MCX.cm,R,MCX.gn)}${rel}${tbl}</div>`;
+  return `<div class="grid">${top}${grid}${mcCmdPanel(MCX.cm,R)}${mcAnaPanel(MCX.ac)}${mcCmdViews(MCX.mc)}${mcGeoPanel(MCX.geo,MCX.cm,R,MCX.gn)}${rel}${tbl}</div>`;
 }
 // 한눈에 층별 줄 (10/24 겸이 "추가된 데이터 기반으로 더 자세해야") — macro_view.json glance(macroview.glance: 숫자 자동) + desk(reports/views/macro_glance.json 데스크 해석).
 // 표시 전용 · 바람 점수·격차 규칙 불변. 숫자 줄 = 산출물 그대로(출처·기준일), 앰버 '데스크 해석' = 매크로 작성(누르면 뒤집힘 조건·등급).
@@ -155,5 +156,52 @@ function mcGeoPanel(G,CM,R,GN){
     <details id="macGeoAll"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="am">축 ${ax.length}개 자세히 (지표·뉴스·데스크 해석)</summary>
     <div class="mu" style="font-size:var(--fs-1)">${esc(G.grade||'')} · 축 누르면 상태·경로·트리거·외부자료 3칸(STANDARD §4)</div>
     <div class="mu" style="font-size:var(--fs-1)">${mcAuto} 줄(점선) = 공개 RSS 헤드라인 자동 수집(reports/geo_news.json${GN&&GN.feeds?` · 피드 ${GN.feeds.filter(f=>f.ok).length}/${GN.feeds.length} 성공`:''}${GN&&(GN.stale_axes||[]).length?` · <span class="am">검색 실패 축 ${esc(GN.stale_axes.join(', '))}(이전 값)</span>`:''}) — 키워드 매칭일 뿐 데스크 판단 아님 · Google News 경유는 약관상 제목 비공개 · 앰버 실선 = 매크로 데스크가 쓴 해석</div>${body}</details></div></div>`;
+}
+// 애널리스트 원자재 뷰 (10/24 겸이 "대신 최진영 리포트·유튜브 수집해서 원자재 매크로뷰" · req-front-f12de830) — reports/views/analyst_cmdty.json(매크로 데스크 트래킹)
+// 표시 전용 · 적중률 단정 문구 금지(n<10) — 채점 n·'판단 보류'만. 요약 출처·제목만 본 영상은 회색 배지.
+const mcGray=t=>`<span class="tag" style="color:var(--muted);border-color:var(--line)">${esc(t)}</span>`;
+function mcStB(s){ s=String(s||''); const c=s.startsWith('적중')?'tag g':s.startsWith('빗나감')?'tag r':s.startsWith('진행중')?'tag':'';
+  return c?`<span class="${c}" style="white-space:nowrap">${esc(s)}</span>`:mcGray(s); }
+function mcAnaPanel(A){
+  if(!A) return '<div class="p c12" id="macAna"><h2>애널리스트 원자재 뷰</h2><div class="b"><div class="load">LOADING …</div></div></div>';
+  const C=A.calls||[], M=A.meta||{}; if(!C.length) return '<div class="p c12" id="macAna"><h2>애널리스트 원자재 뷰</h2><div class="b mu">데이터 없음 (reports/views/analyst_cmdty.json)</div></div>';
+  const hit=C.filter(c=>String(c.status).startsWith('적중')).length, miss=C.filter(c=>String(c.status).startsWith('빗나감')).length, n=hit+miss;
+  const who=(A.analysts||[]).map(a=>`<b>${esc(a.broker)} ${esc(a.name)}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(a.coverage||'')}</span>`).join(' · ');
+  const px=v=>v==null?'—':num(v,v>=1000?0:v>=20?1:2);
+  const rows=C.slice().sort((a,b)=>a.date<b.date?1:-1).map(c=>`<tr><td class="l" style="white-space:nowrap">${esc(c.date)}</td><td class="l" style="white-space:normal;min-width:90px">${esc(c.asset)}</td>
+    <td class="l" style="white-space:normal;min-width:150px">${esc(c.dir)}${c.target?`<div class="am" style="font-size:var(--fs-1)">목표 ${esc(c.target)}</div>`:''}${c.band?`<div class="am" style="font-size:var(--fs-1)">밴드 ${esc(c.band)}</div>`:''}<div class="mu" style="font-size:var(--fs-1)">기간 ${esc(c.horizon||'—')}</div></td>
+    <td style="white-space:nowrap">${px(c.px_at)} → ${px(c.px_now)}<div style="font-size:var(--fs-1)">${mcSg(c.chg)}</div></td>
+    <td>${mcStB(c.status)}</td>
+    <td class="l" style="white-space:normal;min-width:160px;font-size:var(--fs-1)"><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.title)}</a> ${c.src_kind==='youtube'?mcGray('영상'+(c.channel?' · '+c.channel:'')):mcGray(c.src_kind||'요약 출처')}${c.note?`<div class="mu">${esc(c.note)}</div>`:''}</td></tr>`).join('');
+  const V=A.videos||[];
+  const vid=V.map(v=>{ const t=/제목만/.test(v.seen||''); return `<div style="border-top:1px solid var(--line);padding:3px 0;line-height:1.5;font-size:var(--fs-1);overflow-wrap:anywhere"><span class="mu">${esc(v.date)}</span> <a href="${esc(v.url)}" target="_blank" rel="noopener noreferrer" style="font-size:var(--fs-2)">${esc(v.title)}</a> <span class="mu">— ${esc(v.channel||'')}</span> ${t?mcGray('제목만'):`<span class="tag">${esc(v.seen||'')}</span>`}${v.claims&&v.claims!=='—'?`<div class="mu">${esc(v.claims)}</div>`:''}</div>`; }).join('');
+  return `<div class="p c12" id="macAna"><h2>애널리스트 원자재 뷰<small>reports/views/analyst_cmdty.json · ${esc(M.asof||'')} · 가격 ${esc(M.px_asof||'')}</small></h2><div class="b" style="white-space:normal">
+    <div style="font-size:var(--fs-2)">${who}</div>
+    <div style="border:1px solid var(--line);border-left:4px solid var(--amber);padding:4px 8px;margin:6px 0;font-size:var(--fs-2)">채점 n=${n} (적중 ${hit} · 빗나감 ${miss}) · 나머지 ${C.length-n}개 진행중·미도래·채점 제외 · <b class="am">판단 보류</b> <span class="mu" style="font-size:var(--fs-1)">(n&lt;10 — 적중률 단정 금지)</span>${M.scored?`<div class="mu" style="font-size:var(--fs-1)">${esc(M.scored)}</div>`:''}</div>
+    <div style="overflow-x:auto"><table><tr><th class="l">날짜</th><th class="l">자산</th><th class="l">방향 / 목표</th><th>리포트일 → 현재</th><th>상태</th><th class="l">출처</th></tr>${rows}</table></div>
+    <div class="mu" style="font-size:var(--fs-1);margin-top:4px">채점: ${esc(M.scoring||'')}</div>
+    <details id="macAnaVid" style="margin-top:6px"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="am">출연 영상 ${V.length}건 (자막·본편 미시청 — 제목·설명란만)</summary>${vid}</details>
+    <details style="margin-top:4px;font-size:var(--fs-1)"><summary class="mu" style="cursor:pointer;min-height:44px;display:flex;align-items:center">수집 출처·한계</summary><div class="mu" style="white-space:normal">${esc(M.source_note||'')}</div></details></div></div>`;
+}
+// 원자재 현상황·관계성·지정학 시나리오 (10/24 매크로 원자재 뷰) — reports/views/macro_cmdty.json = docs/desk_kb/rounds/2026-10-24/macro_cmdty_view.md 화면용(같은 숫자, md 가 원본)
+const mcTb=(cols,rows,cell)=>`<div style="overflow-x:auto"><table><tr>${cols.map((c,i)=>`<th${i===0||i===cols.length-1||!cell?' class="l"':''}>${esc(c)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map((v,i)=>cell&&typeof v==='number'?`<td>${cell(v)}</td>`:`<td class="l" style="white-space:normal;min-width:${i===0?90:110}px;font-size:var(--fs-1)">${esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const mcR=v=>`<span style="${Math.abs(v)>=0.4?'font-weight:700':''}" class="${Math.abs(v)>=0.4?'am':''}">${v>0?'+':''}${v.toFixed(2)}</span>`;
+const mcSrcTag=M=>`views/macro_cmdty.json · ${esc(M.asof||'')} · 가격 ${esc(M.px_asof||'')}`;
+function mcCmdViews(X){
+  if(!X) return '<div class="p c12" id="macCmdNow"><h2>원자재 현상황</h2><div class="b"><div class="load">LOADING …</div></div></div>';
+  const M=X.meta||{}, N=X.now, R=X.relations, L=X.gold_liquidity, G=X.geo;
+  if(!N&&!R&&!G) return '<div class="p c12" id="macCmdNow"><h2>원자재 현상황</h2><div class="b mu">데이터 없음 (reports/views/macro_cmdty.json)</div></div>';
+  const foot=`<div class="mu" style="font-size:var(--fs-1);margin-top:4px">${esc(M.author||'')} · 원본 ${esc(M.src_md||'')} · ${esc(M.grade||'')} · ${esc(M.disclaimer||'')}</div>`;
+  const ul=a=>(a||[]).length?`<ul style="margin:4px 0 0 16px;padding:0;font-size:var(--fs-1)">${a.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:'';
+  const now=N?`<div class="p c12" id="macCmdNow"><h2>${esc(N.title)}<small>${mcSrcTag(M)}</small></h2><div class="b" style="white-space:normal">${mcTb(N.cols,N.rows)}${ul(N.notes)}${foot}</div></div>`:'';
+  const gl=L?`<details id="macGoldLq" style="margin-top:6px"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center" class="am">${esc(L.title)} — ${esc(L.one_line||'')}</summary>
+    <div class="mu" style="font-size:var(--fs-1)">${esc(L.sample||'')}</div>${mcTb(L.lead_cols,L.lead_rows)}<div class="am" style="font-size:var(--fs-2);margin-top:6px">설명력(4주 블록 금 로그수익률 회귀 R²)</div>${mcTb(L.r2_cols,L.r2_rows)}
+    <div style="font-size:var(--fs-1);margin-top:4px">${esc(L.now||'')}</div><div class="mu" style="font-size:var(--fs-1)">한계: ${esc(L.limits||'')}</div></details>`:'';
+  const rel=R?`<div class="p c12" id="macRel"><h2>${esc(R.title)} · 유가·금리·금·비철<small>${mcSrcTag(M)} · 금리 ${esc(M.rates_asof||'')}</small></h2><div class="b" style="white-space:normal">
+    <div class="mu" style="font-size:var(--fs-1)">${esc(R.sample||'')} · |r|≥0.4 굵게</div>${mcTb(R.cols,R.rows,mcR)}${ul(R.notes)}${gl}${foot}</div></div>`:'';
+  const geo=G?`<div class="p c12" id="macGeoSc"><h2>${esc(G.title)} <span class="tag">주관</span><small>${mcSrcTag(M)}</small></h2><div class="b" style="white-space:normal">
+    <div style="font-size:var(--fs-1)"><span class="tag">주관</span> 확률 = 매크로 데스크 주관 · <b>검증전</b> — ${esc(G.sample||'')}</div>${mcTb(G.cols,G.rows)}
+    <div class="mu" style="font-size:var(--fs-1);margin-top:4px;overflow-wrap:anywhere">출처: ${(G.sources||[]).map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>`).join(' · ')}</div>${foot}</div></div>`:'';
+  return now+rel+geo;
 }
 </script>
