@@ -502,6 +502,49 @@ def b1_ref(stocks: dict) -> dict:
             "n": len(rows), "n_new": sum(r["new"] for r in rows), "rows": rows[:B1_TOP]}
 
 
+ADOPT_GRADES = {"hi52": "A", "gcv": "B", "sqz": "B"}   # reports/studies/2026-10-24_trend_events.json (국장, OOS 2020~25)
+
+
+def _kr_secs() -> dict | None:
+    try:
+        import csv
+        with open(REPORT_DIR.parent / "universe" / "kr_sector.csv", encoding="utf-8") as fh:
+            return {r["code"]: r["sector"] for r in csv.DictReader(fh)}
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _liq_ok(ch: list[dict]) -> bool:
+    """연구와 같은 유동성: 20일 평균 거래대금 ≥ 10억원 · 종가 ≥ 1,000원."""
+    if len(ch) < 20:
+        return False
+    val20 = sum(b["c"] * (b.get("v") or 0) for b in ch[-20:]) / 20
+    return val20 >= B1_MIN_VAL and ch[-1]["c"] >= B1_MIN_PX
+
+
+def adopt_pending(fresh_rows: list[dict], stocks: dict | None = None) -> dict:
+    """국장 새 추세 진입(hi52·gcv·sqz) '편입 대기' 목록 — 겸이 결재 10/24 (req-quant-d5d2f400). 오늘 켜진 것(진입 ≤ 4거래일)·
+    HF S4 추격 패턴 제외(chase 로 이미 빠짐)·확신도 low 고정. 판정 상태는 reports/trend_adopt.json(scripts/trend_adopt_judge.py)."""
+    try:
+        st = json.loads((REPORT_DIR / "studies" / "2026-10-24_trend_events.json").read_text(encoding="utf-8"))
+        grades = {k: st["grades"].get(f"{k}_KR", g) for k, g in ADOPT_GRADES.items()}
+    except Exception:  # noqa: BLE001
+        grades = dict(ADOPT_GRADES)
+    judge = _j(REPORT_DIR / "trend_adopt.json", {}) or {}
+    secs = _kr_secs()   # 업종 분류 있는 종목만(ETF 제외) — 연구 유니버스와 맞춤
+    rows = [{"s": r["s"], "n": r.get("n"), "g": r.get("sector"), "strategy": r["strategy"], "label": EXPLORE_STRATS[r["strategy"]],
+             "grade": grades.get(r["strategy"]), "age": r["age"], "entry_date": r.get("entry_date"), "conv": "low",
+             "accum": r.get("accum")}
+            for r in fresh_rows if r.get("strategy") in ADOPT_GRADES and not r.get("chase")
+            and (secs is None or r["s"] in secs) and (stocks is None or _liq_ok(stocks.get(r["s"], {}).get("chart") or []))]
+    rows.sort(key=lambda x: (x["age"], {"A": 0, "B": 1}.get(x["grade"], 9), x["strategy"]))
+    return {"label": "새 추세 진입 — 편입 대기(전진 추적 중, 11/20 판정)", "tag": "주문 근거 아님",
+            "basket": "분산 전제 — 연구에서 이벤트 중앙값은 음(−0.8~−1.6%), 평균(+1.5~2.0%p/20일)은 소수 종목이 만든다. 한 종목 집중 금지.",
+            "grades": grades, "conv": "low", "exclude": "HF 4차 S4 추격 패턴(거래량 3배+20일 최고 종가) 제외 · ETF 제외 · 연구와 같은 유동성(20일 거래대금 ≥ 10억·종가 ≥ 1,000원)",
+            "src": "reports/studies/2026-10-24_trend_events.md", "judge": judge.get("strategies"), "judge_date": judge.get("judge_date", "2026-11-20"),
+            "n": len(rows), "rows": rows[:20]}
+
+
 def _accum_syms(market: str) -> set[str]:
     if market == "US":
         d = _j(REPORT_DIR / "us_accum.json", {}) or {}
@@ -541,7 +584,7 @@ def build(market: str, write: bool = True, detail_dir: Path | None = None, hist_
         "near_miss": nm,
         "explore": ex,
         "sectors": sectors(stocks, fresh_any),
-        **({"b1_ref": b1_ref(stocks)} if market == "KR" else {}),
+        **({"b1_ref": b1_ref(stocks), "adopt_pending": adopt_pending((ex.get("fresh_new") or {}).get("rows") or [], stocks)} if market == "KR" else {}),
         "multiple_testing": {
             "m_total": sum(nm["m"].values()) + ex["m_wilson"] + ex["m_exp"],
             "expected_chance_total": round(sum(nm["expected_chance"].values()) + ex["expected_chance"], 2),

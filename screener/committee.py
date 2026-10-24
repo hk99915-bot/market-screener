@@ -372,9 +372,10 @@ def _sim_fresh(market: str = "KR") -> dict | None:
                       "line": f"{r.get('n') or r['s']} · {r.get('label') or r.get('strategy')} · 승률 {r.get('wins')}/{r.get('trades')}"
                               f"(하한 {(r.get('wilson_lo') or 0)*100:.0f}%) · {vs}"})
     b1 = _b1_ref(market)
+    ad = _adopt_pending(market)
     return {"asof": d["asof"], "market": market, "n_scanned": d.get("n_scanned"), "n_pass": d.get("n_pass", len(d.get("rows") or [])),
             "n_eligible": d.get("n_eligible"), "expected_chance": d.get("expected_chance"), "grade": d.get("grade"),
-            "criteria": d.get("criteria"), "items": items, **({"exp": ex} if ex else {}), **({"b1": b1} if b1 else {})}
+            "criteria": d.get("criteria"), "items": items, **({"exp": ex} if ex else {}), **({"b1": b1} if b1 else {}), **({"adopt": ad} if ad else {})}
 
 
 def _b1_ref(market: str) -> dict | None:
@@ -383,6 +384,18 @@ def _b1_ref(market: str) -> dict | None:
         return None
     td = _j("trend_discovery_KR.json", {}) or {}
     b = td.get("b1_ref")
+    if not b or not _fresh_age_ok(td.get("asof")):
+        return None
+    return {**b, "asof": td.get("asof")}
+
+
+def _adopt_pending(market: str) -> dict | None:
+    """국장 새 추세 진입(hi52 A·gcv/sqz B) '편입 대기' 목록 — reports/trend_discovery_KR.json adopt_pending (겸이 결재 10/24, req-quant-d5d2f400).
+    분산 전제·확신도 low·추격 제외·주문 근거 아님. 미장 없음. 판정(11/20~)은 scripts/trend_adopt_judge.py → 보드 결재, 자동 승격 없음."""
+    if market != "KR":
+        return None
+    td = _j("trend_discovery_KR.json", {}) or {}
+    b = td.get("adopt_pending")
     if not b or not _fresh_age_ok(td.get("asof")):
         return None
     return {**b, "asof": td.get("asof")}

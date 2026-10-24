@@ -109,3 +109,35 @@ def test_committee_trend_off_and_b1(tmp_path, monkeypatch):
     assert C._b1_ref("US") is None
     (tmp_path / "trend_discovery_KR.json").write_text(json.dumps({"asof": str(C._kst_today()), "b1_ref": {"label": "B · 참고(주문 근거 아님)", "rows": []}}), encoding="utf-8")
     assert C._b1_ref("KR")["label"].startswith("B")
+
+
+def test_adopt_judge_rules(tmp_path):
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import trend_adopt_judge as J
+    (tmp_path / "reports" / "signal_tracking").mkdir(parents=True)
+    (tmp_path / "ops").mkdir()
+    evs = [{"src": "disc_kr", "tag": "adopt:hi52", "fwd": {"h20": {"ex": 0.01}}} for _ in range(30)]
+    evs += [{"src": "disc_kr", "tag": "adopt:gcv", "fwd": {"h20": {"ex": -0.01}}} for _ in range(30)]
+    evs += [{"src": "disc_kr", "tag": "adopt:sqz", "fwd": {"h20": {"ex": 0.05}}} for _ in range(29)]
+    evs += [{"src": "disc_kr", "tag": "new:sqz", "fwd": {"h20": {"ex": 0.05}}}]   # 필터 전 — 판정 대상 아님
+    (tmp_path / "reports" / "signal_tracking" / "2026-11.json").write_text(json.dumps(evs), encoding="utf-8")
+    early = J.judge("2026-11-19", tmp_path)
+    assert not early["due"] and early["strategies"]["hi52"]["status"] == "전진 추적 중"
+    r = J.judge("2026-11-20", tmp_path)
+    assert [r["strategies"][k]["status"] for k in ("hi52", "gcv", "sqz")] == ["정식 후보", "폐기 후보", "보류"]
+    assert r["auto_promote"] is False and r["ref_new_all"]["sqz"]["n"] == 1
+    (tmp_path / "ops" / "board.json").write_text(json.dumps({"tasks": []}), encoding="utf-8")
+    assert J.board_add(r, tmp_path) is True and J.board_add(r, tmp_path) is False   # 같은 달 1회
+    b = json.loads((tmp_path / "ops" / "board.json").read_text(encoding="utf-8"))
+    assert b["tasks"][0]["approval"] == "겸이" and b["tasks"][0]["id"] == "appr-trend-adopt-judge-2026-11"
+    assert J.board_add(J.judge("2026-11-25", tmp_path), tmp_path) is False
+
+
+def test_adopt_pending_excludes_chase_and_us():
+    rows = [{"s": "X", "strategy": "hi52", "age": 0, "chase": True}, {"s": "Y", "strategy": "ma3", "age": 0}]
+    a = T.adopt_pending(rows)
+    assert a["n"] == 0 and a["conv"] == "low" and "주문 근거 아님" in a["tag"] and "분산" in a["basket"]
+    from screener import committee as C
+    assert C._adopt_pending("US") is None

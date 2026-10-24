@@ -93,6 +93,7 @@ def extract(src: str, d: dict) -> list[dict]:
         picks += [("x", r) for r in ex.get("rows") or [] if r.get("pass_wilson") or r.get("pass_exp")]
         picks += [("new", r) for r in (ex.get("fresh_new") or {}).get("rows") or []]
         picks += [("chase", r) for r in (ex.get("chase") or {}).get("rows") or []]
+        picks += [("adopt", r) for r in (d.get("adopt_pending") or {}).get("rows") or []]   # 국장 편입 대기 목록(유동성·ETF 제외 후) — trend_adopt_judge 판정 대상
         for layer, r in picks:
             if r.get("s"):
                 out.append({"date": str(r.get("entry_date") or d.get("asof") or "")[:10], "src": src,

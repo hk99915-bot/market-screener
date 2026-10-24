@@ -63,6 +63,7 @@ jobs:
             python scripts/watchdog.py || echo "::warning::watchdog 드라이런 실패"
           else
             python scripts/watchdog.py --apply --send || echo "::warning::watchdog 실패 — reports/watchdog.json 미갱신"
+            python scripts/trend_adopt_judge.py --apply || echo "::warning::trend_adopt_judge 실패 — 국장 새 추세 진입 판정 미갱신(reports/trend_adopt.json)"   # 10/24 결재 req-quant-d5d2f400
             python scripts/board.py || true
           fi
 
@@ -74,7 +75,7 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          files="reports/changelog.json reports/ops ops/BOARD.md ops/team.json reports/watchdog.json ops/board.json docs/desk_kb/rounds/_requests.json reports/research_board.json"
+          files="reports/changelog.json reports/ops ops/BOARD.md ops/team.json reports/watchdog.json ops/board.json docs/desk_kb/rounds/_requests.json reports/research_board.json reports/trend_adopt.json"
           git add -A $files 2>/dev/null; true
           git diff --cached --quiet || git commit -m "ops: $(date -u +%FT%H:%M)"
           mine=$(git rev-parse HEAD)
@@ -89,6 +90,7 @@ jobs:
             for f in reports/ops/runs.json reports/watchdog.json; do git checkout "$mine" -- "$f" 2>/dev/null || true; done
             python scripts/team_stats.py >/dev/null || true
             if [ "$WD" = true ]; then python scripts/watchdog.py --apply >/dev/null || true; fi   # --send 없음 = 텔레그램 재전송 없음
+            if [ "$WD" = true ]; then python scripts/trend_adopt_judge.py --apply >/dev/null || true; fi
             if [ "$NIGHT" = true ]; then python scripts/changelog.py --days 3 >/dev/null || true; fi
             python scripts/board.py >/dev/null || true
             python scripts/research_board.py --build >/dev/null || true
