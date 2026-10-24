@@ -1,5 +1,6 @@
 """부동산 트래킹(screener/realestate.py) — 부동산 데스크 10/23. 네트워크 없음(가짜 R-ONE·ECOS·RSS)."""
 import json
+import urllib.parse
 from datetime import date, datetime, timezone
 
 from screener import realestate as re_
@@ -148,3 +149,35 @@ def test_build_all_fail_keeps_previous(tmp_path, monkeypatch):
         raise RuntimeError("offline")
     assert re_.build(fetch_json=boom, fetch_text=boom, fetch_prices=boom, now=NOW, env={"REB_API_KEY": "k"}) is None
     assert not (tmp_path / "realestate.json").exists() and calls
+
+
+def test_news_axis_failure_keeps_previous_and_marks_stale(tmp_path, monkeypatch):
+    """10/24 req-realestate-c3d27b87: 축 검색 실패가 빈 칸으로 조용히 나가던 구멍 → 이전 값(7일 창 안) + stale, 최상위 stale_axes."""
+    monkeypatch.setattr(re_, "OUT", tmp_path / "realestate.json")
+    q = re_.NEWS_AXES["policy"][2]
+    fail = lambda u: (_ for _ in ()).throw(RuntimeError("503 Server Error")) if urllib.parse.quote(q) in u else RSS  # noqa: E731
+    prev = {"generated_at": "2026-10-23 06:52 KST", "news": [{"id": "policy", "name": "정책", "items": [
+        {"title": "옛 제목 노출", "src": "뉴시스", "time": "2026-10-22 09:00", "link": "https://news.google.com/rss/articles/a"},
+        {"title": None, "src": "MTN", "time": "2026-10-10 09:00", "link": "https://news.google.com/rss/articles/old"}]}]}
+    (tmp_path / "realestate.json").write_text(json.dumps(prev), encoding="utf-8")
+    out = re_.build(fetch_json=fake_json, fetch_text=fail, fetch_prices=lambda s: {}, now=NOW, env={})
+    ax = {a["id"]: a for a in out["news"]}
+    pol = ax["policy"]
+    assert out["stale_axes"] == ["policy"] and "503" in pol["stale"]["why"] and pol["stale"]["since"] == "2026-10-23 06:52 KST"
+    assert [i["link"] for i in pol["items"]] == ["https://news.google.com/rss/articles/a"] and pol["stale"]["kept"] == 1   # 7일 밖 제외
+    assert pol["items"][0]["title"] is None and pol["items"][0]["title_withheld"]   # 이전 값에도 G3 재적용
+    assert "stale" not in ax["newtown"] and ax["newtown"]["items"]
+    from screener import contracts
+    assert contracts.check("reports/realestate.json", out) == []
+    out2 = re_.build(fetch_json=fake_json, fetch_text=fail, fetch_prices=lambda s: {}, now=NOW, env={})   # 연속 실패 → since 최초 유지
+    assert next(a for a in out2["news"] if a["id"] == "policy")["stale"]["since"] == "2026-10-23 06:52 KST"
+
+
+def test_news_axis_failure_without_previous_is_empty_stale(tmp_path, monkeypatch):
+    monkeypatch.setattr(re_, "OUT", tmp_path / "realestate.json")
+    q = re_.NEWS_AXES["redev"][2]
+    fail = lambda u: (_ for _ in ()).throw(RuntimeError("timeout")) if urllib.parse.quote(q) in u else RSS  # noqa: E731
+    out = re_.build(fetch_json=fake_json, fetch_text=fail, fetch_prices=lambda s: {}, now=NOW, env={})
+    rd = next(a for a in out["news"] if a["id"] == "redev")
+    assert rd["items"] == [] and rd["stale"] == {"why": "Google News 검색 실패(timeout) — 이전 값 유지", "since": None, "kept": 0}
+    assert out["stale_axes"] == ["redev"]

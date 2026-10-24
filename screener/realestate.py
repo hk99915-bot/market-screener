@@ -8,13 +8,15 @@
 - rates: 한은 ECOS — 기준금리 · 예금은행 주담대 신규취급 금리 · 예금은행 주택관련대출 잔액(전월 대비 증감).
   ECOS_API_KEY 없으면 공개 'sample' 키(1회 10행)로 최근 10개월만 — 샘플 키는 시험용이라 키 등록 권고(source_notes).
 - reits: 야후 일봉(screener.data.fetch_prices) — 상장 리츠·리츠 ETF·건설 ETF. 통계는 commodities.stats 재사용(1주·1개월·52주 위치).
-- news: Google News 검색 RSS(한국어) 축별 — 파서·중복키는 geo_news 재사용. 제목·매체·시각·링크만(본문 저장 안 함).
+- news: Google News 검색 RSS(한국어) 축별 — 파서·중복키는 geo_news 재사용. 제목·매체·시각·링크만(본문 저장 안 함, 제목은 비공개 — G3).
+  축 검색이 실패하면 그 축은 이전 값 유지 + stale{why,since,kept}, 최상위 stale_axes(10/24 c3d27b87, geo_news G1 과 같은 규칙).
 못 쓰는 소스(국토부 실거래가 API 키, KB 약관 미확인)는 unavailable·source_notes 에 이유와 함께.
 실행: write_macro_series 끝(geo_news 다음, 15:45·16:20·06:52 편승). 수동 `python -m screener.realestate`.
 표시 전용 — 매크로 바람 점수·매매 신호에 넣지 않는다. 권역 정의는 데스크 주관(설계서 §2), 권역 값 = 소속 지역 변동률 단순평균(가중 아님).
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -313,8 +315,32 @@ def fetch_news(fetch_text, now: datetime, sleep=None) -> tuple[list[dict], list[
             feeds.append({"name": f"Google News: {a}", "ok": False, "err": str(e)[:120]})
     res = assign_news(items, now)
     from .geo_news import public_item   # 10/24 피어 G3: Google News 경유 = 공개 산출물에 제목 비공개(매체·시각·링크만) — geo_news 와 같은 규칙
-    axes = [{"id": a, "name": NEWS_AXES[a][0], "items": [public_item({**r, "via": "검색"}) for r in res[a]]} for a in NEWS_AXES]
+    # 10/24 req-realestate-c3d27b87(geo_news G1 과 같은 규칙): 축 검색 실패 → 다른 축 검색에서 들어온 기사로 새로 채우지 않고
+    # 이전 파일 값(최근 NEWS_DAYS 일 안 항목만, 제목 비공개 재적용) + stale{why,since,kept}. 조용한 빈 칸 금지(LOOP 금지 3).
+    failed = {f["name"].split(": ", 1)[1]: f.get("err", "") for f in feeds if not f["ok"]}
+    prev_gen, prev = _prev_news() if failed else (None, {})
+    cut_s = (now - timedelta(days=NEWS_DAYS)).astimezone(KST).strftime("%Y-%m-%d %H:%M")
+    axes = []
+    for a in NEWS_AXES:
+        if a in failed:
+            p = prev.get(a) or {}
+            since = (p.get("stale") or {}).get("since") or (prev_gen if p else None)   # 연속 실패면 최초 수집 시각 유지
+            keep = [public_item({**x, "via": "검색"}) for x in p.get("items", []) if (x.get("time") or "") >= cut_s]
+            axes.append({"id": a, "name": NEWS_AXES[a][0], "items": keep,
+                         "stale": {"why": f"Google News 검색 실패({failed[a][:60]}) — 이전 값 유지", "since": since, "kept": len(keep)}})
+            log.warning("부동산 뉴스: 축 %s 검색 실패 — 이전 값 %d건 유지(stale)", a, len(keep))
+        else:
+            axes.append({"id": a, "name": NEWS_AXES[a][0], "items": [public_item({**r, "via": "검색"}) for r in res[a]]})
     return axes, feeds
+
+
+def _prev_news() -> tuple[str | None, dict[str, dict]]:
+    """이전 realestate.json → (generated_at, {뉴스 축 id: 축}). 없음·깨짐 → (None, {})."""
+    try:
+        d = json.loads(OUT.read_text(encoding="utf-8"))
+        return d.get("generated_at"), {a["id"]: a for a in d.get("news", [])}
+    except Exception:  # noqa: BLE001
+        return None, {}
 
 
 UNAVAILABLE = [
@@ -410,6 +436,7 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
         "reits": reits,
         "news": news,
         "feeds": feeds,
+        "stale_axes": sorted(a["id"] for a in news if a.get("stale")),
         "unavailable": UNAVAILABLE,
         "source_notes": SOURCE_NOTES,
         "errors": errors,
