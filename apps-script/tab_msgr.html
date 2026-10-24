@@ -61,7 +61,7 @@
 .mgpf .bn{height:170px;background-size:cover;background-position:center}
 </style>
 <script>
-let MG=null, MGS='live', MGD='all', MGP=null, MGPOP=false;
+let MG=null, MGS='live', MGD='all', MGP=null, MGPOP=false, MGR=null;
 /* 프사·이름 누르면 프로필 — 문서 전체 위임이라 사내톡 탭·🔒 비공개 사담·💬 팝업 어디서든 (10/23 겸이 "비공개 사내톡에서도 클릭하면 프로필") */
 document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-mgp]'); if(t&&MG&&MG.profiles) mgProf(t.dataset.mgp); });
 /* 💬 팝업 채팅방(10/23 겸이 "사내톡이 팝업 채팅방처럼 열리게") — 모든 탭 오른쪽 아래 버튼 → 떠 있는 창에 같은 사내톡(msgView). 사내톡 탭 안에선 탭 그대로. */
@@ -119,6 +119,28 @@ function mgOrgNode(k,big){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k)||{
   return `<div data-mgp="${esc(k)}" role="button" tabindex="0" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:0;width:${big?84:68}px">
     <img src="${MG_IMG}${encodeURIComponent(k)}.png" alt="" loading="lazy" style="width:${sz}px;height:${sz}px;border-radius:38%;object-fit:cover;object-position:50% 22%;background:#222;border:1px solid var(--line)" onerror="this.style.visibility='hidden'">
     <div style="font-size:var(--fs-1);text-align:center;line-height:1.25;overflow-wrap:anywhere"><b>${esc(P.name||k)}</b>${P.age?`<span class="mu"> ${P.age}</span>`:''}</div></div>`; }
+/* 📋 RnR (10/24 겸이 ㅇㅇ, PB 지시 → 프론트) — 데이터 = reports/org_rnr.md(JSON, 원천 docs/desk_kb/ORG.md + 각 KB 경계 줄) 하나만 읽음, 화면 하드코딩 금지.
+   getter 는 기존 getMarkdown('org_rnr')(Code.gs raw_('reports/<name>.md') · Pages SHIM 같은 경로) — 새 getter 없음. 줄 고침은 데이터 파일에서(운영·각 데스크). */
+function mgRnr(){
+  if(MGR===null){ MGR=false; google.script.run.withSuccessHandler(t=>{ try{ MGR=t?JSON.parse(t):{_err:'빈 응답 — reports/org_rnr.md 없음'}; }catch(e){ MGR={_err:'org_rnr.md 가 JSON 아님'}; } mgRe(1); }).withFailureHandler(e=>{ MGR={_err:'불러오기 실패 — '+String((e&&e.message)||e).slice(0,80)}; mgRe(1); }).getMarkdown('org_rnr'); return '<div class="load">LOADING …</div>'; }
+  if(MGR===false) return '<div class="load">LOADING …</div>';
+  const R=MGR||{}, D=R.desks||[];
+  if(!D.length) return `<div class="mgempty">RnR 데이터 없음(${esc(R._err||'desks 비어 있음')}) — reports/org_rnr.md</div>`;
+  const nm=k=>{ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); return (P&&P.name)||mgNm(k); };
+  const who=k=>`<b data-mgp="${esc(k)}" role="button" tabindex="0" style="cursor:pointer;color:var(--amber)">${esc(nm(k))}</b>`;
+  const card='border:1px solid var(--line);padding:8px;min-width:0;overflow-wrap:anywhere;white-space:normal;line-height:1.55;font-size:var(--fs-2)';
+  const grid='display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:6px';
+  const lay=(R.layers||[]).map(L=>`<div style="${card}"><b>${esc(L.layer)}</b> <span class="mu">${esc(L.what)}</span><div style="font-size:var(--fs-1)">${D.filter(x=>x.layer===L.layer).map(x=>esc(nm(x.key))).join(' · ')}</div>${L.note?`<div class="mu" style="font-size:var(--fs-1)">${esc(L.note)}</div>`:''}</div>`).join('');
+  const risk=(R.risk_split||[]).map(x=>`<div style="${card}">${who(x.key)} <span>${esc(x.what)}</span></div>`).join('');
+  const bu=(R.bureaus||[...new Set(D.map(x=>x.bureau))]).map(b=>{ const ds=D.filter(x=>x.bureau===b); if(!ds.length) return '';
+    return `<div style="margin-top:8px"><div style="font-size:var(--fs-2)"><b>${esc(b)}</b> <span class="mu" style="font-size:var(--fs-1)">${ds.length}명</span></div><div class="rnrl" style="${grid};margin-top:4px">${ds.map(x=>`<div class="rnr" data-k="${esc(x.key)}" style="${card}">${who(x.key)} <span class="mu" style="font-size:var(--fs-1)">${esc(x.layer||'')}</span>
+      <div><span class="up">하는 것</span> ${esc(x.does||'')}</div><div><span class="dn">안 하는 것</span> ${esc(x.dont||'')}</div><div class="mu" style="font-size:var(--fs-1)">근거 ${esc(x.src||'')}</div></div>`).join('')}</div></div>`; }).join('');
+  const F=R.flow||{}, fl=(F.steps||[]).map((x,i)=>`<li class="rnrf" style="margin:3px 0;overflow-wrap:anywhere">${who(x.key)} — ${esc(x.what)}</li>`).join('');
+  return `<p class="mgsum" style="white-space:normal">${esc(R.principle||'')}${R.status?` <span class="mu">· ${esc(R.status)} · ${esc(R.asof||'')}</span>`:''}</p>
+    <div style="font-size:var(--fs-2);margin-top:6px"><b>층 — 판단이냐 통제냐 처리냐</b></div><div style="${grid};margin-top:4px">${lay}</div>
+    <div style="font-size:var(--fs-2);margin-top:8px"><b>리스크본부 안 경계</b> <span class="mu" style="font-size:var(--fs-1)">감사는 이 넷도 사후·독립으로 봄</span></div><div style="${grid};margin-top:4px">${risk}</div>
+    ${fl?`<div style="${card};margin-top:8px"><b>${esc(F.title||'사건 흐름')}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(F.note||'')}</span><ol style="margin:4px 0 0;padding-left:20px">${fl}</ol></div>`:''}
+    <div style="font-size:var(--fs-2);margin-top:8px"><b>${D.length}명 RnR</b> <span class="mu" style="font-size:var(--fs-1)">이름 누르면 프로필 · 줄 고침은 reports/org_rnr.md</span></div>${bu}`; }
 function mgOrg(){
   const box=(t,sub,ks)=>`<div style="border:1px solid var(--line);padding:8px;min-width:0"><div style="font-size:var(--fs-2);color:var(--amber)"><b>${esc(t)}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(sub)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${ks.map(k=>mgOrgNode(k)).join('')}</div></div>`;
   return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0 10px">
@@ -186,7 +208,7 @@ function mgEvents(items,chat){ const ev=(chat||[]).map(c=>({t:c.at||'',k:'chat',
   }
   ev.sort((a,b)=>String(a.t).localeCompare(String(b.t))); return ev; }
 function mgBub(who,to,txt,t,quote,mine){ return `<div class="mgb2${mine?' me':''}">${mgAv(who)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(who))}</b>${to?`<span class="ar">→</span>${esc(mgNm(to))}`:''}<span class="mgt">${esc(mgT(t).slice(11))}</span></div>${quote?`<div class="mgq">↳ ${esc(quote)}</div>`:''}<div class="mgbub">${esc(txt)}</div></div></div>`; }
-function seg0(S){ return [['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체'],['priv','🔒 비공개 사담'],['prof','👥 프로필'],['org','🏢 조직도']]
+function seg0(S){ return [['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체'],['priv','🔒 비공개 사담'],['prof','👥 프로필'],['org','🏢 조직도'],['rnr','📋 RnR']]
     .map(([k,l])=>`<button class="${MGS===k?'on':''}" data-mgs="${k}">${esc(l)}</button>`).join(''); }
 function sel0(desks){ return `<select class="mgsel" id="mgsel" aria-label="누나 고르기"><option value="all">모든 누나</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`; }
 /* 🔒 비공개 사담방 — pb-private chat/private_chat.json. 10/23 겸이 "아티팩트를 터미널에 이식, 터미널 버전 하나로만" → 유일한 보는 곳. GAS = Code.gs getPrivate(PRIVATE_TOKEN), 공개 Pages = 이 기기 localStorage 토큰. */
@@ -219,6 +241,8 @@ function msgView(){
   if(MGS==='priv') return mgPrivView(seg,sel0(desks));
   if(MGS==='org'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
     return `<div class="grid"><div class="p c12"><h2>사내톡 · 🏢 조직도<small>docs/desk_kb/ORG.md · 본부는 묶음(상하 아님) · 얼굴 누르면 프로필</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgOrg()}</div></div></div>`; }
+  if(MGS==='rnr'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
+    return `<div class="grid"><div class="p c12"><h2>사내톡 · 📋 RnR<small>reports/org_rnr.md ← docs/desk_kb/ORG.md·각 KB 경계 · 하는 것/안 하는 것</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgRnr()}</div></div></div>`; }
   if(MGS==='prof'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
     return `<div class="grid"><div class="p c12"><h2>사내톡 · 👥 프로필<small>${(MG.profiles||[]).length}명 · 사진 탭하면 크게</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgProfGrid()}</div></div></div>`; }
   const sel=sel0(desks);
