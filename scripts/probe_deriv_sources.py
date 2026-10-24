@@ -497,6 +497,7 @@ def p_datagokr():
         ("파생V2-getCommodityFuturesPriceInfo_V2", B + "/1160100/GetDerivativeProductInfoService_V2/getCommodityFuturesPriceInfo_V2", fsc),
         ("파생V2-getBondFuturesPriceInfo_V2", B + "/1160100/GetDerivativeProductInfoService_V2/getBondFuturesPriceInfo_V2", fsc),
         ("파생V2-getCurrencyFuturesPriceInfo_V2", B + "/1160100/GetDerivativeProductInfoService_V2/getCurrencyFuturesPriceInfo_V2", fsc),
+        ("파생V2-getDerivationProductMarketIndeX_V2", B + "/1160100/GetDerivativeProductInfoService_V2/getDerivationProductMarketIndeX_V2", fsc),
         ("파생V2-getDerivationProductMarketIndex_V2", B + "/1160100/GetDerivativeProductInfoService_V2/getDerivationProductMarketIndex_V2", fsc),
         ("주식V2", B + "/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2", fsc),
         ("지수V2", B + "/1160100/GetMarketIndexInfoService_V2/getStockMarketIndex_V2", fsc),
