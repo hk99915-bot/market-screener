@@ -379,7 +379,7 @@
    "topic": "trend_sim",
    "hypothesis": "(사전등록 m=6) hi52·gcv·sqz × KR·US: OOS(2020~25) 20거래일 달평균 초과 > 0",
    "params": "data/hist 2010~2025, 상태 0→1 이벤트, 종목·전략 20일 겹침 제외, 유동성 alpha_sources LIQ, |일간|>40% 창 제외, t+1 시가→t+21 종가, 비용 0.25%, 기준선 같은 날 유동 종목 중앙값, 달 단위 t, Bonferroni t≥2.39",
-   "result": "KR hi52 +1.98% t3.31(A) · gcv +1.47% t3.19(B) · sqz +1.64% t5.29(B) / US hi52 +0.45% t1.42(F) · gcv +1.12% t1.83(C) · sqz −0.21%(F). KR OOS 중앙값 음(−0.8~−1.6%)",
+   "result": "KR hi52 +1.98% t3.31(A) · gcv +1.47% t3.19(B) · sqz +1.64% t5.29(B) / US hi52 +0.45% t1.42(F) · gcv +1.12% t1.83(C) · sqz −0.21%(F). KR OOS 중앙값 음(−0.8~−1.6%) · 재실행(US 666종목 백필): hi52 F·gcv F(C→F)·sqz F",
    "discarded_why": "",
    "study": "2026-10-24_trend_events"
   }

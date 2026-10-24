@@ -425,7 +425,7 @@ def explore(stocks: dict, hist: dict, market: str, accum_syms: set[str]) -> dict
     nbars.sort()
     return {
         "strategies": EXPLORE_STRATS, "fresh": f"보유 중 + 진입 ≤ {FRESH_EXPLORE}거래일 전",
-        "window": f"최대 {MAX_BARS}거래일(hist+chart 이어붙임 — US 연도별 hist 는 303종목뿐이라 나머지는 chart 260봉, hi52 사실상 못 켜짐) · 종가 체결 · 왕복 0.25% · 문턱은 정식과 같음(Wilson>0.5·n≥6 / t 하한>0·n≥8)",
+        "window": f"최대 {MAX_BARS}거래일(hist+chart 이어붙임 — 이어붙이지 못한 종목은 chart 260봉뿐이라 hi52 사실상 못 켜짐, splice 칸 참고) · 종가 체결 · 왕복 0.25% · 문턱은 정식과 같음(Wilson>0.5·n≥6 / t 하한>0·n≥8)",
         "bars_median": nbars[len(nbars) // 2] if nbars else None, "splice": splice_cnt,
         "m_wilson": m_w, "m_exp": m_e, "n_pass": n_pass, "expected_chance": round(exp_total, 2),
         "binom_p": round(binom_tail(n_pass, m_tot, exp_total / m_tot), 4) if m_tot else None,
