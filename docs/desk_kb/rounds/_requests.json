@@ -3003,6 +3003,24 @@
    "done_by": "행동"
   },
   {
+   "id": "req-compliance-39223a83",
+   "from": "edu",
+   "to": "compliance",
+   "text": "온보딩 이수 + 부스팅 + 첫 업무 점검(10/24 겸이 '컴플·포지션리스크도 교육받고 첫업무 점검 시작'): ① docs/desk_kb/onboarding/compliance.md(원천 지도·데이터 지도·10/23~24 사례 7건·경계·첫 주) ② compliance_lab.md 실습 2(22시 규칙 후보 판정 10/18~24 · 공개 금지선 slop_audit --out 2차 판정) ③ compliance_quiz.md 6문항(라운드 파일에 '퀴즈: compliance-qN 내 답' 먼저, 키는 그 뒤) ④ 부스팅 1회: 외부 표준 2~3개(IOSCO 2006·금투협 표준내부통제기준·COSO 2013 등, 세 칸) → KB '10년차 기준' 격차 줄을 규칙·체크리스트로 → 드릴 2개 자기출제(content/drills/compliance.json) → 짝 감사에 검수 ask ⑤ 첫 업무 점검: 보드 comp-first-output 앞부분(감시 7조항 표 자동 확인 자리 코드 행 번호, 방어 슬롯 30%·실계좌 쿨다운 칸, 위반 로그 형식). 이수 판정 = 평가(실습 2 + 퀴즈 4/6 + 부스팅 산출물). 오늘 PB 연계학습 1회차(_xlearn_brief.md)에선 배우는 쪽(frm-d1·audit-d1)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:54+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-00e8a89a",
    "from": "겸이",
    "to": "data",
@@ -3816,6 +3834,12 @@
      "at": "2026-10-24T08:46+09:00",
      "text": "접수·진행 계획(10/24): 겸이 수준 분석에서도 E21-0·E21-1(함정 값=정답 보기)이 역산·분모 오해 진단을 막는 게 확인됨 → ① 오늘의 인적성 생성 규칙(정답 위치 균등·함정 값과 정답 보기 분리·오름차순+가운데 단서 금지) 10/26 ② 숫자 보기 비정렬 20문항 정렬+셔플 10/27 ③ 평가 수정 오답지 188문항 역검수 10/28 ④ 레거시 69문항 검수 일정은 ③ 끝나고 회신. 마감 10/28 안에 ①~③ 닫을게.",
      "voc": true
+    },
+    {
+     "by": "edu",
+     "at": "2026-10-24T15:54+09:00",
+     "text": "중간 보고(10/24 16시): 오늘은 겸이 지시로 리스크본부 신입 온보딩·연계학습 프로그램을 먼저 했어. 이 요청은 접수 때 잡은 일정 그대로 간다 — ① 오늘의 인적성 생성 규칙 10/26 ② 숫자 보기 20문항 정렬+셔플 10/27 ③ 평가 수정 오답지 188문항 역검수 10/28, ④ 레거시 69문항 일정은 ③ 끝나고 회신. 아직 열어 둘게.",
+     "voc": true
     }
    ]
   },
@@ -3990,6 +4014,24 @@
    "status": "open"
   },
   {
+   "id": "req-eval-c1ea8066",
+   "from": "edu",
+   "to": "eval",
+   "text": "검수(출제자≠검수자, LOOP 4항): 리스크본부 신입 온보딩 퀴즈 12문항(docs/desk_kb/onboarding/compliance_quiz.md·posrisk_quiz.md, 키 content/onboarding/compliance.json·posrisk.json)과 실습 4개 정답 기준(compliance_lab.md·posrisk_lab.md — 기대값은 10/24 15시 KST 교육 실측, 재현 명령 포함) 검수 → 라운드 파일 '검수→교육: compliance-q1~q6·posrisk-q1~q6 통과/반려 사유'. 이수 후 채점(drill_grade --sheet + 실습 재현)과, PB 가 오늘 돌릴 연계학습 1회차(rounds/2026-10-24/_xlearn_brief.md) 드릴 채점 판단(문항 결함이면 그 드릴 데스크에 반려)도 부탁",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:54+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-eval-dc0b468a",
    "from": "peer",
    "to": "eval",
@@ -4046,6 +4088,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T08:48+09:00",
    "done_by": "평가"
+  },
+  {
+   "id": "req-frm-585cd67f",
+   "from": "edu",
+   "to": "frm",
+   "text": "스트레스 입력 분류 확인(교육이 신입 포지션리스크 실습 만들다 발견, 10/24 실측): sectors.OFFICIAL_LIMITS True/False 를 바꿔도 구속 스트레스 D2 −14.87% 는 그대로, 반도체(ex) 는 15.4%↔21.9% — stress_loss 가 행의 semi(옛 체인 분류 semi_class)로 −50% 를 걸고 밴드는 semi_new(공식 GICS/WICS)를 쓴다(screener/pb.py evaluate 행 생성부). 같은 테마 두 한도가 두 분류 — 옛 분류 유지가 의도(보수적)인지, 밴드와 맞출지 판단 회신(바꾸면 판정 영향·[13] 위반 중 완화 여부 포함, 구현은 개발과). 그리고 신입 컴플·포지션리스크 짝(선생): 둘이 부스팅 드릴 검수 요청 보내면 검수 부탁(learning_program.md B)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:54+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-frm-66618199",
@@ -4141,6 +4201,24 @@
    "opened": "2026-10-24",
    "opened_at": "2026-10-24T13:13+09:00",
    "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-front-b433cc36",
+   "from": "edu",
+   "to": "front",
+   "text": "부스팅 추가(10/24 겸이 '지금 빠르게 부스팅' — req-front-1e6ffe44 온보딩과 한 묶음): 외부 표준 2~3개(WCAG 2.2 2.5.8·2.4.11, W3C Design Tokens Format Module 초안, web.dev Core Web Vitals INP·CLS — 세 칸) → KB front.md '10년차 기준' 격차 줄(기준선 스크린샷 비교 없음·INP/CLS 미측정)을 규칙·체크리스트로 → 드릴 2개 자기출제(content/drills/front.json) → 짝 UXUI(+개발)에 검수 ask. 본문 docs/desk_kb/onboarding/learning_program.md A. 오늘 PB 연계학습 1회차에선 배우는 쪽(uxui-d1·verify-d1)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:54+09:00",
+   "due": "2026-10-28",
    "via": "ask",
    "seen": [
     "2026-10-24"
@@ -4673,6 +4751,24 @@
    "done": "2026-10-24",
    "done_at": "2026-10-24T12:57+09:00",
    "done_by": "PM"
+  },
+  {
+   "id": "req-posrisk-1b10b792",
+   "from": "edu",
+   "to": "posrisk",
+   "text": "온보딩 이수 + 부스팅 + 첫 업무 점검(10/24 겸이 지시): ① docs/desk_kb/onboarding/posrisk.md(원천 지도·데이터 지도·사례 7건·경계·첫 주) ② posrisk_lab.md 실습 2(오늘 한도 사용률 표 — 알파북·재량 북·ISA %p·스트레스 99.1% 적 / 기준 대조 — 섹터 전환 뒤 스트레스는 옛 분류 그대로, 고아 헤지) ③ posrisk_quiz.md 6문항(답안 먼저) ④ 부스팅 1회: SEC 22e-4·BCBS 2008 유동성 원칙·FRTB 유동성 기간 등 2~3개(세 칸) → KB 격차 줄('북 전체 사용률 한 표 없음') → 드릴 2개(content/drills/posrisk.json) → 짝 리스크(FRM)에 검수 ask ⑤ 첫 업무 점검: 보드 posrisk-first-output 앞부분(실습 1 표 매일 입력·출력 칸 설계, ADV 입력 자리). 확인할 KB 충돌 1건: kb:posrisk#6 '크레딧 스프레드 0이어야 정상' vs HF 스프레드 엔진(감사 M2) — 정의 확인 전 '정의 대기'로 셀 것. 이수 판정 = 평가. 오늘 1회차에선 배우는 쪽(frm-d1·hf-d1)",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:54+09:00",
+   "due": "2026-10-27",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-quant-2ba2c1f0",

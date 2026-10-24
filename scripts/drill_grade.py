@@ -14,8 +14,8 @@
   python3 scripts/drill_grade.py --grade frm-d1 --text "황 …"   # 한 건 채점
   python3 scripts/drill_grade.py --round 2026-10-24 [--apply]  # 라운드 파일의 드릴: 줄 채점 → 드릴 표 (round_collect 가 같은 함수 사용)
 
-온보딩 확인 퀴즈(10/24 교육, 신입 프론트 온보딩 — 같은 G1 규칙): 문제는 `docs/desk_kb/onboarding/<desk>.md` 의 `- 퀴즈 [<desk>-qN]: …` 줄,
-키는 `content/onboarding/<desk>.json`(문서엔 답 없음). 응시자는 답안 파일에 `퀴즈: <id> <내 답>` 줄을 먼저 쓰고, 채점은 검수 데스크(평가)가 한다.
+온보딩 확인 퀴즈(10/24 교육 — 프론트·컴플라이언스·포지션리스크 과정, 같은 G1 규칙): 문제는 `docs/desk_kb/onboarding/<desk>[_quiz].md` 의 `- 퀴즈 [<desk>-qN]: …` 줄,
+키는 `content/onboarding/<desk>.json`(문서엔 답 없음, 과정 = 파일 하나, 문서 이름 앞부분 = 퀴즈 id 의 데스크). 응시자는 답안 파일에 `퀴즈: <id> <내 답>` 줄을 먼저 쓰고, 채점은 검수 데스크(평가)가 한다.
   python3 scripts/drill_grade.py --sheet docs/desk_kb/rounds/2026-10-27/front.md   # 답안의 퀴즈:·드릴: 줄 채점 (키 = 드릴 + 온보딩)
   python3 scripts/drill_grade.py --grade front-q3 --text "…"                        # 온보딩 문항도 같은 --grade
   --check 는 온보딩 문서↔키 정합(답이 문서에 남았나·id 누락·키 형식)도 본다.
@@ -86,8 +86,10 @@ def check_onboarding(doc_dir: Path = ONB_DOC_DIR, keys_dir: Path = ONB_KEYS_DIR)
                 errs.append(f"{p.name}: 퀴즈 답이 문서에 남음 — content/onboarding/{p.stem}.json 로 (G1)")
             if not m.group(1):
                 errs.append(f"{p.name}: 퀴즈 id 없음 — '- 퀴즈 [{p.stem}-qN]: …'")
+            elif m.group(1).rsplit("-q", 1)[0] != p.stem.split("_")[0]:
+                errs.append(f"{p.name}: 퀴즈 {m.group(1)} 가 다른 과정 문서에 있음 — '{p.stem.split('_')[0]}-qN' 만 (과정별 문서·키 1:1)")
             elif m.group(1) not in keys:
-                errs.append(f"{p.name}: 퀴즈 {m.group(1)} 키 없음 (content/onboarding/{p.stem}.json)")
+                errs.append(f"{p.name}: 퀴즈 {m.group(1)} 키 없음 (content/onboarding/{m.group(1).rsplit('-q', 1)[0]}.json)")
             else:
                 seen.add(m.group(1))
     for qid in sorted(set(keys) - seen):

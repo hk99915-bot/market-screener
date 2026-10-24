@@ -1,4 +1,4 @@
-"""신입 온보딩 확인 퀴즈(교육 10/24, 프론트 온보딩) — 문서엔 문제만, 키는 content/onboarding, 채점 drill_grade (G1 같은 규칙). 네트워크 없음."""
+"""신입 온보딩 확인 퀴즈(교육 10/24, 프론트·컴플라이언스·포지션리스크) — 문서엔 문제만, 키는 content/onboarding, 채점 drill_grade (G1 같은 규칙). 네트워크 없음."""
 import sys
 from pathlib import Path
 
@@ -38,3 +38,25 @@ def test_grade_sheet_reads_quiz_and_drill_lines():
     res = {r["id"]: r for r in G.grade_sheet(sheet, keys)}
     assert res["front-q4"]["pass"] and res["front-q4"]["score"] == 1.0
     assert res["front-q9"]["score"] is None and not res["front-d1"]["pass"]
+
+
+def test_risk_courses_six_items_and_doc_text_does_not_pass():
+    """10/24 리스크본부 신입 2명 과정 — 6문항씩, 문서의 문제 문장을 그대로 답으로 내도 통과 못 함(문두에 키 노출 금지)."""
+    keys = G.load_onboarding()
+    for desk in ("compliance", "posrisk"):
+        q = {k: v for k, v in keys.items() if v["desk"] == desk}
+        assert sorted(q) == [f"{desk}-q{i}" for i in range(1, 7)], desk
+        doc = (G.ONB_DOC_DIR / f"{desk}_quiz.md").read_text(encoding="utf-8")
+        for ln in doc.splitlines():
+            m = G.DOC_QUIZ.match(ln)
+            if m and m.group(1) in q:
+                assert not G.grade(q[m.group(1)], ln)["pass"], m.group(1)
+                assert q[m.group(1)].get("src") and len(q[m.group(1)]["keys"]) >= 4
+
+
+def test_check_catches_quiz_in_wrong_course_doc(tmp_path):
+    doc, keys = tmp_path / "doc", tmp_path / "keys"
+    doc.mkdir(); keys.mkdir()
+    (keys / "aa.json").write_text('{"desk":"aa","items":[{"id":"aa-q1","q":"q","answer":"a 1","keys":[{"n":1}]}]}', encoding="utf-8")
+    (doc / "bb_quiz.md").write_text("- 퀴즈 [aa-q1]: 남의 과정 문서에 들어간 문제\n", encoding="utf-8")
+    assert any("다른 과정 문서" in e for e in G.check_onboarding(doc, keys))

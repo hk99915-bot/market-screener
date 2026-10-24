@@ -2,9 +2,9 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-24 · 작업 257개 · 진행 7 · 검수 9 · 대기 78 · 보류 3 · 완료 160
+기준일 2026-10-24 · 작업 258개 · 진행 7 · 검수 9 · 대기 79 · 보류 3 · 완료 160
 
-**결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
+**결재 대기 3:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이), `appr-edu-xlearn` (겸이)
 
 **기한 지남:** `ra-sec-coverage` (2026-10-21)
 
@@ -34,7 +34,7 @@
 | P1 | `tg-pick-buttons` | 텔레그램 대결 '내 선택은?' 인라인 버튼 + GAS 웹훅 → pick 이슈 | 개발 | 2026-10-20 | 2026-10-31 | `screener/duel.py`<br>`screener/report.py`<br>`apps-script/TelegramHook.gs`<br>`.github/workflows/pick.yml`<br>`tests/test_tg_pick_buttons.py`<br>`docs/telegram_pick_buttons.md` | — | PB 확인: 이슈 프리필 링크가 폰 텔레그램 내장 브라우저에서 무반응(pick 이슈 0건). 버튼 callback_data 'p/날짜/K/U/코드/청산'(≤64B) → TelegramHook.gs doPost(URL ?s= 비밀값 — GAS 는 헤더를 못 읽음 · 누른 사람 id==TG_OWNER_CHAT_ID · CacheService 10분) → 주인 PAT 로 pick 이슈 → pick.yml 기록 + 결과 텔레그램. getUpdates/setWebhook 사용처 없음(두 저장소). 남은 일: 겸이 배포(GH_TOKEN 에 Issues 쓰기 추가·스크립트 속성·웹앱 배포·tgSetWebhook) 후 실제 클릭 1회 확인 → 완료. 절차 docs/telegram_pick_buttons.md. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 실제 텔레그램 버튼 클릭 1회 → pick 이슈 기록 확인(GAS 는 10/23 clasp 자동 배포) |
 | P2 ⏫P1 10-21 | `quiz-key-balance` | 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why) | 교육 | — | 2026-10-31 | `content/study/quiz_bank.json`<br>`scripts/study_content_check.py`<br>`tests/test_study_content.py` | `study-progress` | 교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 셔플·검증기 분포 규칙은 78b05b61 로 끝. why 한 문장(태그만 문항) 보강 |
 
-## 대기 (78)
+## 대기 (79)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -89,6 +89,7 @@
 | P2 ⏫P1 10-21 | `peer-bear-view` | 피어: 매주 '가장 비관적인 하우스 뷰'를 대표해 애널 밸류에이션에 반대 의견서 — 실존 뷰 인용(요약·수치만) | 피어리뷰 | — | 2026-10-28 | `docs/peer_review/bear_YYYY-MM-DD.md` | `ra-sector-frames` | 지어낸 반대 금지 — 시장에 실존하는 뷰만. / 10/24 운영 점검: 확인 요청 중(req-peer-fb30b165, 회신 마감 2026-10-28) — 10/16 이후 산출물 0 — 계속/폐기 |
 | P2 ⏫P1 10-21 | `ra-house-scoreboard` | RA(비공개 출력): 증권사 하우스별 목표가 달성률·의견 변경 후 20일 수익률·낙관 편향(목표가 인플레) 스코어보드 — 참고 경보용, 가중치 아님 | 데이터 | — | 2026-10-28 | private 전용 | `ra-sector-frames` | 표본 n<10 하우스는 미표시. 개인명 저장 금지. |
 | P2 | `user-tg-quiz-check` | 텔레그램 quiz 1회 확인 — 무반응이면 예약 실행기 프로젝트 ID 를 시크릿 GAS_SCHED_SCRIPT_ID 로 | 사용자 | — | 2026-10-28 | `apps-script/TelegramHook.gs`<br>`.github/workflows/gas_deploy.yml` | — | 텔레그램에 quiz <문항id> 0 보내기 → 5분 안 📝 퀴즈 접수 답장이면 끝. 무반응이면 tgPoll 트리거가 다른 GAS 프로젝트에 있음: 그 프로젝트 ⚙ 프로젝트 설정 → 스크립트 ID 복사 → GitHub Settings → Secrets → Actions → GAS_SCHED_SCRIPT_ID 추가 → Actions gas_deploy Run workflow (req-dev-4ce51171·req-dev-218c8448) |
+| P2 | `appr-edu-xlearn` | 겸이 결재 필요: 연계학습 금요일 주간 라운드 상설(본부 안·밖 짝 + 본부 세션, 증분 주 ≈ 22만 토큰, 새 예약 없음) | 사용자 | — | 2026-10-30 | `docs/desk_kb/onboarding/learning_program.md`<br>`docs/desk_kb/LOOP.md`<br>`docs/desk_kb/rounds/2026-10-24/_xlearn_brief.md` | — | 10/24 겸이 "자체학습도, 누나들 서로 연계학습도" · "오늘 일단 한번 갈겨" — 1회차는 PB 가 오늘 실행(브리프). 상설 = 금 21:10 주간 라운드에 칸 추가(가르치기 노트+드릴 2 / 짝 드릴 블라인드 / 반박·검수 / 본부 몫). 토큰: 증분 주 ≈ 22만(learning_program E) + G4 블라인드 6만(기존). 첫 주 실측 1.5배 초과면 문항 1개·노트 8줄. 반대 근거: 같은 모델끼리라 독립 아님 — 문항 결함·KB 공백 탐지용. |
 | P2 ⏫P1 10-21 | `gamma-verdict` | gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터) | 파생 | — | 2026-10-30 | `reports/studies/gamma_regime.json` | `gamma-regime`, `deriv-hist` | deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. |
 | P2 ⏫P1 10-21 | `audit-ideas-basis` | ideas_log 채점 기준 불일치: entry·stop(기록 당시 원본가) vs load_kr 조정 봉 → 이후 분할·병합 종목 가짜 손절/1R | 개발 | 2026-10-17 | 2026-10-31 | `screener/committee.py` | — | 감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료 / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — xfail(strict) 테스트 그대로 — 미착수 |
 | P2 | `comp-first-output` | 컴플라이언스 첫 산출물 — 감시 조항 커버리지 표(조항 번호·점검 코드 행·사전/사후·자동/수동/없음) + 미커버 조항별 최소 자동화 제안 1개씩 | 컴플라이언스 | — | 2026-10-31 | `reports/compliance/2026-10-31_coverage.md`<br>`docs/desk_kb/compliance.md` | `appr-risk-hq-staffing` | 10/24 겸이 결재 신설. 계획 = compliance.md '첫 산출물 계획'(매일 장후 사전·사후 점검·위반 로그 / 매주 커버리지·열린 위반). 실행은 PB 승인 후. 공개엔 조항 번호·건수·비율만(원문 pb-private/rules.txt). 규칙 문언·수치 변경 없음. |
