@@ -38,6 +38,7 @@
 - [경험] GAS 웹앱 doPost 는 요청 헤더를 못 읽는다 → secret_token 대신 URL `?s=` 검증(10/20 tg-pick-buttons).
 - [경험] `overflow-x:hidden` 이면 scrollWidth 로 폰 넘침을 못 잡는다 → 요소 `getBoundingClientRect().right` 검사. Playwright route 는 나중 등록이 먼저 매칭(10/21).
 - [경험] 실적 이어받기를 '< 오늘−1' 로 두면 발표 다음날 야후가 다음 분기로 넘어가 이벤트가 사라진다 → '< 오늘' 전부 + 30일 안 재일정만 버림(10/23).
+- [경험] 토스 Open API 는 Actions 에서 못 부른다(허용 IP 등록제 + 클라이언트당 토큰 1개 — 재발급 시 이전 토큰 즉시 무효) → 수집 주체는 노트북 1대, 서버 쪽은 toss-live 브랜치 live.json 을 읽어 신선할 때만 덮는다(10/24).
 - [경험] 스킨은 토큰만 바꾼다 → 화면 파일에 다크 색(#111·#151515)을 직접 쓰면 엑셀 스킨에서 검정 바탕 검정 글자(10/24 톡방). 새 색은 var(--bg2/--bg3/--panel/--on-amber), 검사는 test_skin_tokens·check_xl.
 - [경험] KR 픽은 종가 진입이라 제출 때 기준가가 없다 → 손절·목표를 % 로 받으면 R:R 계산 가능(10/23 pick_gate).
 
@@ -48,6 +49,7 @@
 - 10/21 [운영] 영어 v2 화면(test_english_v2_fixture) · 릴리스 자산 이전(test_data_store) · 지표 팝업(ui_smoke check_macro_popup) — 모두 revert 롤백. 미처리: #fresh 배지 390px 넘침.
 - 10/23 [운영] 캘린더 실적 결과 1단계(test_calendar_earn·test_streak) · '나' 게이트(test_pick_gate) · US STALE 08:52 재시도·CI 빨강 게이트·소켓 차단·BTC(test_us_stale_check·test_prepush_ci_gate·test_no_external_socket·test_btc) — 모두 revert 롤백.
 - 10/24 UXUI 남은 3건(💬 머리 버튼·표 첫 열 sticky·글자 4단계 토큰 `scripts/font_tokens.py`): tests/test_font_tokens.py·ui_smoke check_uxui_rest · revert · 모든 탭 글자 크기. 10/24 [운영] 공식 섹터 전환 `sectors.OFFICIAL_LIMITS=True`: test_sectors · 롤백 False · MY 반도체 밴드·한도 알림 입력(docs/sectors_switch_2026-10-24.md).
+- 10/24 [운영] 종목 상세 장중 오늘 일봉 reports/intraday_last.json schema 2(KR 네이버 polling 당일 O·H·L·V·전일 종가 5분, US 야후 정규장 일봉 15분, 갭·메움) + 히트맵 polling 먼저·토스 폴백(정규장만) + 장 밖 토스 지수 덮기 금지·15:30~15:45 provisional: tests/test_intraday_last.py · revert · live.yml 커밋 목록·히트맵 출처 문구·프론트 차트(장부).
 - 10/24 문장 속 링크 점선 밑줄(a.il)·엑셀 이모지 회색(.xe)·PCR 차트 --ch1/--ch2(req-dev-3d26f6e6·06b280d5): Index decoInline(MutationObserver, 그려진 DOM 에 붙임) · tests/test_skin_tokens.py·ui_smoke check_links_pcr·check_xl emoji · revert · 모든 화면 링크 모양·엑셀 이모지·파생 PCR 색.
 - 10/24 엑셀 스킨 전수(req-dev-0d1eee58): 다크 전용 하드코딩 배경 → 토큰 --bg2·--bg3·--panel·--on-amber, xl 대비 미달 628→0(390·1300 합): tests/test_skin_tokens.py·ui_smoke check_xl·scripts/skin_audit.py(측정 정의) · revert · 사내톡·연구 보드·부동산·MY·STUDY·HOME·대결 색.
 - 10/24 UXUI 재검수 회귀(req-dev-26f063bc): 폰 머리 151→109px(신선도 배지 폰 짧게, 💬·🔍 44px)·달력 K/S 두 줄·연구 보드 두 줄·단계 카드 56px·목록 44px PC 확대: ui_smoke check_head_clip(머리 ≤110·잘림 기준선 CLIP_BASE) · revert · 모든 탭 머리·공시/인적성 PC 길이(+13%).

@@ -3,6 +3,9 @@
 KOSPI·KOSDAQ 은 네이버 → pykrx(KRX) 순으로 받고, 나머지는 야후.
 그 위에 토스(toss-live 브랜치, 노트북 수집)가 신선하면 KOSPI·KOSDAQ·USDKRW 를 덮는다 — screener/toss_live.py (항목 src='toss').
 야후의 ^KS11 은 전일 종가가 틀리게 오는 경우가 있어(-5.5% 오표시 사례) 국내 지수에는 쓰지 않는다.
+10/24: 장 밖(마감 뒤·개장 전) 지수는 토스로 덮지 않음(KRX 종가 우선, toss_live.overlay), 15:30~15:45 국내 지수·선물 provisional=True(종가 확정 전).
+토스 1차 전환은 데이터 측정(req-dev-a4d03413: 시세 나이 중앙 5.1분·동시호가 고정값) 뒤 보류 — 겸이 결정 대기. 선물(K200F)은 토스에 없어 네이버.
+토스는 GitHub Actions 에서 직접 못 부름(허용 IP 등록제 + 클라이언트당 토큰 1개 → 노트북 1대 수집, toss-live 브랜치, screener/toss_md.py).
 """
 from __future__ import annotations
 
@@ -174,6 +177,15 @@ def snapshot() -> dict:
     # asof = 연도 포함 KST 분 단위 (guard-rest 10/17: updated_at '10-17 09:47 KST' 는 연도가 없어 역행 비교 불가 — 화면 호환용으로 유지)
     flag_lag(items)
     sess, tday = session_label(items, now)
+    # 15:30~15:45 = KRX 종가 확정 전(동시호가 체결 반영 중) → 국내 지수·선물에 잠정 표시 (req-dev-a4d03413 ①, heatmap_kr 와 같은 창)
+    try:
+        from . import tradecal
+        if tradecal.is_session("KR", now.date()) and "15:30" <= now.strftime("%H:%M") < "15:45":
+            for x in items:
+                if x.get("key") in (*KR_KEYS, "K200F"):
+                    x["provisional"] = True
+    except Exception:  # noqa: BLE001
+        pass
     out = {"asof": now.strftime("%Y-%m-%d %H:%M"), "updated_at": now.strftime("%m-%d %H:%M KST"), "items": items,
            "session": sess, "trade_date": tday, "toss": toss_blk}
     from .guard import write_json

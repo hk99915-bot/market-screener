@@ -43,7 +43,7 @@ def test_list_then_polling_then_basic():
         code = url.split("/stock/")[1].split("/")[0]
         return item(code, 100, "3", "2")
     out, used = H.collect(codes, get)
-    assert set(out) == set(codes) and used == ["list", "polling", "basic"]
+    assert set(out) == set(codes) and used == ["polling", "list", "basic"]   # 10/24 polling 먼저(당일 시가·고저·거래량)
     assert out["000007"]["r1"] == pytest.approx(-0.02)
     assert sum("/basic" in u for u in calls) == 3   # 80% 미만일 때 모자란 3종목만 종목별
 

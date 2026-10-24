@@ -80,6 +80,10 @@ def overlay(items: list[dict], doc: dict | None, now: datetime, max_age_min: int
         v = (doc.get(sec) or {}).get(sub) or {}
         last = v.get("mid") if sec == "fx" else v.get("last")
         ok, why = fresh_ts(v.get("asof"), now, max_age_min) if last else (False, "값 없음")
+        if ok and sec == "indices" and not tradecal.in_session("KR", now):
+            # 장 밖(마감 뒤·개장 전)엔 지수를 토스로 덮지 않는다 — 동시호가 15:20~15:30 값 고정으로 10/21·22·23 15:34 KRX 종가와
+            # −13.1/+6.2/−3.2pt 차(10/22 5,539.94 = 토스), req-dev-a4d03413 ②. 장 밖 지수 = 네이버→KRX 종가.
+            ok, why = False, "장 밖 — KRX 종가 우선(토스 지수 덮기 금지)"
         if not ok:
             blk["skipped"][key] = why
             continue

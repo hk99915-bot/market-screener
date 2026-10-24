@@ -4223,6 +4223,38 @@
    "done_by": "프론트"
   },
   {
+   "id": "req-front-75d54530",
+   "from": "dev",
+   "to": "front",
+   "text": "종목 상세 팝업 차트(chart·1y)에 '오늘 장중 잠정 봉' 붙이기 — 데이터는 reports/intraday_last.json(월 09:00부터 KR 5분·US 15분, live 루프). 계약(screener/intraday_last.py 머리말): {schema:1, asof, fields:[o,h,l,c,r1,src], KR|US:{trade_date, session LIVE|CLOSE, asof, n, src:{toss,naver|yahoo}, ohlc:observed|bar|mixed, q:{코드:[o,h,l,c,r1,'t'|'n'|'y']}}}. 규칙: ① 상세 chart 마지막 t < trade_date 일 때만 붙임(마감 뒤 EOD 오면 자동 사라짐) ② 잠정 표시(점선 등)+라벨 '장중 HH:MM 토스/네이버/야후' ③ ohlc=observed 면 '관측 근사(5분)' 툴팁 ④ session=LIVE 인데 asof 20분 초과면 안 붙임. 테스트 tests/test_intraday_last.py 가 계약 고정. 보드 intraday-bar.",
+   "opened": "2026-10-24",
+   "opened_at": "2026-10-24T15:45+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-24"
+   ],
+   "checked": [
+    "2026-10-24"
+   ],
+   "pending_rounds": 0,
+   "status": "open",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-24T15:48+09:00",
+     "text": "사양 갱신(schema 2 — 겸이 '1y 차트에 오늘 일봉'·'갭상/갭하' 추가). fields=[o,h,l,c,v,pc,r1,src,x,gap,gk,gf]. o·h·l·v = 출처 당일 필드(KR 네이버 polling 정규장 KRX, US 야후 정규장 일봉 — 프리·애프터 미포함) x=1, 필드 없는 종목만 5분 관측 근사 x=0. c = 현재가(KR 토스 우선 t·네이버 n, US 야후 y). pc = 전일 종가. 표시: ① 1Y 일봉 chart 마지막 t < trade_date 일 때만 끝에 오늘 봉(O·H·L·C·V), c1y 끝에도 [trade_date, c] ② s20·s50·s200 은 오늘 c 포함해 화면에서 재계산((직전 N−1 EOD 종가 + c)/N), 거래량 막대에 v ③ 잠정(점선 테두리)+라벨 '장중 HH:MM 토스/네이버/야후', x=0 이면 '고저 관측 근사(5분)' 툴팁 ④ 오늘 봉 옆 갭 배지: gk U '갭상 +1.8%' · D '갭하 −1.2%' · gf=1 이면 '· 메움' · 양봉/음봉 = c≥o/c<o · gap null(시가 필드 없음)이면 배지 없음(추정 금지). 문턱 gap_band ±0.5% ④ session=LIVE 인데 asof 20분 초과면 안 붙임. 예: 10/23 삼성전자 o 206,000 pc 214,500 → 갭하 −4.0% · 메움(고가 215,500). 계약 원문 screener/intraday_last.py 머리말, 테스트 tests/test_intraday_last.py.",
+     "voc": true
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-24T16:00+09:00",
+     "text": "정정: KR 현재가 출처 = 네이버 1차(n)·토스 폴백(t, 시가 필드 없음 → x=0·갭 null). KR 15:30~15:45 는 블록에 provisional:true → 오늘 봉·지수 '잠정' 표시. 나머지 계약 그대로(schema 2).",
+     "voc": true
+    }
+   ]
+  },
+  {
    "id": "req-front-889551e0",
    "from": "ops",
    "to": "front",

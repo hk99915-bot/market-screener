@@ -4819,6 +4819,99 @@
       "status": "대기",
       "repo": "public",
       "desk": "프론트"
+    },
+    {
+      "started": "2026-10-24",
+      "due": "2026-10-30",
+      "files": [
+        "screener/heatmap_kr.py",
+        "screener/live.py",
+        "screener/toss_live.py"
+      ],
+      "depends_on": [],
+      "notes": "10/24 겸이 \"라이브도 토스 기준\" → 데이터 측정(req-dev-a4d03413)으로 토스 1차 보류, 겸이 최종 결정 대기. 반영: 히트맵 종목 네이버 1차·토스 폴백(정규장·신선만), 장 밖 토스 지수 덮기 금지, 15:30~15:45 provisional. 장중 지수 토스 덮기(10/21 결정)는 그대로. Actions 는 토스 직접 호출 불가(허용 IP+토큰 1개).",
+      "id": "toss-first-live",
+      "title": "국장 라이브 출처 — 토스 1차 전환 보류(네이버 1차·토스 폴백), 장 마감 뒤 토스 지수 덮기 금지·15:30~15:45 잠정",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "보류",
+      "repo": "public",
+      "desk": "개발"
+    },
+    {
+      "started": "2026-10-24",
+      "due": "2026-10-28",
+      "files": [
+        "screener/intraday_last.py",
+        "screener/heatmap_kr.py",
+        "screener/heatmap.py",
+        ".github/workflows/live.yml",
+        "tests/test_intraday_last.py"
+      ],
+      "depends_on": [],
+      "notes": "10/24 겸이 \"1y 차트에 오늘 일봉\"·\"갭상/갭하\". 데이터 끝 — 계약 screener/intraday_last.py 머리말, 화면은 프론트 popup-intraday-bar(req-front-75d54530). 검수 = 10/26(월) 장중 파일 갱신·15:30~15:45 provisional·마감 뒤 EOD 교체.",
+      "id": "intraday-bar",
+      "title": "종목 상세 1Y 차트 장중 오늘 일봉 — reports/intraday_last.json schema 2(O·H·L·C·V·전일 종가·갭·메움, KR 5분·US 15분)",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수",
+      "repo": "public",
+      "desk": "개발"
+    },
+    {
+      "started": null,
+      "due": "2026-10-30",
+      "files": [
+        "screener/heatmap_kr.py",
+        "screener/heatmap.py",
+        "screener/sectors.py"
+      ],
+      "depends_on": [],
+      "notes": "10/24 겸이 \"GICS/WICS로 히트맵도 통일\". 화 11시(사용 한도 초기화) 이후 착수.",
+      "id": "heatmap-gics-wics",
+      "title": "히트맵 섹터 묶음 토스 섹터 → 공식 GICS(미장)/WICS(국장) 1종목 1섹터 (sectors.py OFFICIAL_LIMITS 원천, 테마·순환매는 토스 유지)",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public",
+      "desk": "개발"
+    },
+    {
+      "started": null,
+      "due": "2026-10-30",
+      "files": [
+        "screener/live.py",
+        "screener/heatmap_kr.py",
+        "screener/intraday_last.py"
+      ],
+      "depends_on": [],
+      "notes": "10/24 겸이 \"NXT 애프터마켓 시간대 반영\". 네이버 polling overMarketPriceInfo(tradingSessionType AFTER_MARKET)에 NXT 값이 따로 있음(10/24 확인). 세션 시각은 공식 확인 후. 화 11시 이후 착수.",
+      "id": "nxt-session",
+      "title": "NXT(넥스트레이드) 프리·애프터 세션 반영 — 라이브·히트맵·오늘 봉 세션 필드, 정규장 일봉과 NXT 시세 분리, NXT 애프터 HH:MM 라벨",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public",
+      "desk": "개발"
+    },
+    {
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "apps-script/tab_detail.html",
+        "screener/intraday_last.py"
+      ],
+      "depends_on": [
+        "intraday-bar"
+      ],
+      "notes": "10/24 겸이 \"액티브 차트 그려줘, 캡처가 아니라\". 분봉 원천(GAS UrlFetch 프록시 vs 사전 생성: 보유·관심·히트맵 상위 N) 설계 판단 필요. 화 11시 이후 착수.",
+      "id": "detail-active-chart",
+      "title": "종목 상세 실시간 탭 — 네이버 PNG 캡처·TradingView iframe → 우리 데이터 액티브 캔버스 차트(일봉+오늘 봉·장중 분봉) 데이터 계약·서버, 화면은 프론트",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public",
+      "desk": "개발"
     }
   ]
 }

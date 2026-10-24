@@ -52,6 +52,34 @@ def quote_rows(peers, frames, target):
     return rows
 
 
+def bar_rows(rows, frames, target):
+    """heatmap 행 + 같은 다운로드의 target 날짜 일봉 O·H·L·Volume·전일 Close (정규장 일봉 — 프리·애프터 미포함).
+    없으면 o·h·l 빼고 — intraday_last 가 관측 근사(x=0)·갭 없음으로."""
+    import pandas as pd
+    out = []
+    for r in rows:
+        x = dict(r, src="yahoo")
+        f = frames.get(r["s"])
+        try:
+            if f is not None and len(f):
+                idx = [str(pd.Timestamp(i).date()) for i in f.index]
+                if str(target) in idx:
+                    i = idx.index(str(target))
+                    b = f.iloc[i]
+                    o, h, l = float(b["Open"]), float(b["High"]), float(b["Low"])
+                    if o > 0 and h > 0 and l > 0:
+                        x.update(o=o, h=h, l=l)
+                        v = b.get("Volume") if hasattr(b, "get") else None
+                        if v is not None and v == v and float(v) > 0:
+                            x["v"] = float(v)
+                        if i > 0 and float(f.iloc[i - 1]["Close"]) > 0:
+                            x["pc"] = float(f.iloc[i - 1]["Close"])
+        except (KeyError, TypeError, ValueError, IndexError):
+            pass
+        out.append(x)
+    return out
+
+
 def run(once=False):
     import yfinance as yf
     now = datetime.now(ET)
@@ -83,6 +111,11 @@ def run(once=False):
         raise RuntimeError("Refusing older US heatmap")
     p.write_text(dumps(out, ensure_ascii=False), encoding="utf-8")
     print(f"US heatmap {target} {status}: {len(rows)}/{len(symbols)}")
+    try:   # 종목 상세 차트 '오늘 봉' 오버레이 — 야후 일봉의 그날 O·H·L 을 그대로 (screener/intraday_last.py)
+        from . import intraday_last
+        intraday_last.update("US", bar_rows(rows, frames, target), target, status, now)
+    except Exception as e:  # noqa: BLE001
+        print(f"intraday_last US 실패: {e}")
     return out
 
 

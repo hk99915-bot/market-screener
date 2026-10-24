@@ -85,8 +85,9 @@ jobs:
             if ! in_window && [ $first -eq 0 ]; then echo "장 시간 종료"; break; fi
             first=0
             python -m screener.main --mode quotes --no-send || true
-            # 히트맵 1D 장중 갱신 (보드 maint-heatmap 10/21 유지보수): KR 매 회차(약 5분) · US 3회차마다(약 15분, heatmap.yml cron 누락 대비 편승).
+            # 히트맵 1D 장중 갱신 (보드 maint-heatmap 10/21 유지보수): KR 매 회차(약 5분, 10/24부터 토스 우선·네이버 폴백) · US 3회차마다(약 15분, heatmap.yml cron 누락 대비 편승).
             # 창 밖이면 각 모듈이 바로 끝남(KR 09:00~15:50 · US 정규장+30분). 실패해도 루프는 계속 — 화면 기준 시각·STALE·신선도 계약이 잡는다.
+            # 같은 시세로 reports/intraday_last.json(종목 상세 차트 '오늘 잠정 봉', screener/intraday_last.py)도 갱신 — 상세 2천 파일 재작성 대신(10/24)
             timeout 170 python -m screener.heatmap_kr || true
             if [ $((hm_i % 3)) -eq 0 ]; then timeout 240 python -m screener.heatmap || true; fi
             hm_i=$((hm_i + 1))
@@ -95,7 +96,7 @@ jobs:
             if [ $dow -le 5 ] && [ $hm -ge 1450 ] && [ $hm -le 1515 ]; then python -m screener.main --mode duel && touch /tmp/duel_ran || true; fi
             if [ "$COMMIT" != "true" ]; then echo "읽기 전용 — 커밋 안 함 (commit=true 로 다시 실행)"; in_window || break; sleep 300; continue; fi
             # 다른 작업이 같은 파일을 커밋하면 rebase 가 충돌로 멈춰 이후 갱신이 전부 막힘 → 매번 원격 최신 위에 파일만 다시 얹는다
-            rm -rf /tmp/hm; mkdir -p /tmp/hm; for p in reports/heatmap_KR.json reports/heatmap_US.json; do if [ -e "$p" ]; then cp "$p" /tmp/hm/; fi; done   # 히트맵은 asof 가 새로울 때만 얹음(heatmap.yml 이 먼저 쓴 더 새 값 보존)
+            rm -rf /tmp/hm; mkdir -p /tmp/hm; for p in reports/heatmap_KR.json reports/heatmap_US.json reports/intraday_last.json; do if [ -e "$p" ]; then cp "$p" /tmp/hm/; fi; done   # 히트맵은 asof 가 새로울 때만 얹음(heatmap.yml 이 먼저 쓴 더 새 값 보존)
             rm -rf /tmp/lv; mkdir -p /tmp/lv; for p in reports/live.json reports/events.json reports/events_stats.json; do if [ -e "$p" ]; then cp "$p" /tmp/lv/; fi; done
             if [ -e /tmp/duel_ran ]; then cp reports/decisions.json /tmp/dec_live.json; fi   # 통째로 덮지 않고 병합 (감사 10/21 #1)
             if [ -e /tmp/ev/event_state.json ]; then cp /tmp/ev/event_state.json /tmp/lv/; fi   # 이벤트 중복 방지 상태(금액 0·보유 코드 해시)   # 판정한 회차에만 (다른 때 덮으면 제출된 겸이 판단이 지워짐)
@@ -105,7 +106,7 @@ jobs:
               for f in /tmp/lv/*; do if [ -e "$f" ]; then cp "$f" reports/; fi; done   # 시세 실패로 비면 cp 실패 → bash -e 가 루프를 죽였음
               for f in /tmp/hm/*; do if [ -e "$f" ]; then python -m screener.heatmap_kr --put "$f" "reports/$(basename "$f")" || true; fi; done
               if [ -e /tmp/duel_ran ]; then python scripts/merge_decisions.py live /tmp/dec_live.json; fi   # 직전에 push 된 pick 보존
-              for p in reports/live.json reports/events.json reports/events_stats.json reports/decisions.json reports/event_state.json reports/heatmap_KR.json reports/heatmap_US.json; do if [ -e "$p" ]; then git add "$p"; fi; done
+              for p in reports/live.json reports/events.json reports/events_stats.json reports/decisions.json reports/event_state.json reports/heatmap_KR.json reports/heatmap_US.json reports/intraday_last.json; do if [ -e "$p" ]; then git add "$p"; fi; done
               git diff --cached --quiet && break
               git commit -qm "live: $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break || true
               sleep 5
