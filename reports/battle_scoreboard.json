@@ -1,8 +1,8 @@
 {
  "version": 1,
  "schema_version": 1,
- "asof": "2026-10-23",
- "generated_at": "2026-10-23 20:55 KST",
+ "asof": "2026-10-26",
+ "generated_at": "2026-10-26 08:56 KST",
  "bench": {
   "KR": {
    "ticker": "069500",
@@ -43,10 +43,10 @@
    "realized": -0.1519,
    "unrealized": 0,
    "total": -0.1519,
-   "unrated": 1
+   "unrated": 0
   },
   "규칙": {
-   "n": 8,
+   "n": 9,
    "win": 0,
    "trades": 0,
    "hit": null,
@@ -61,19 +61,19 @@
    "unrated": 0
   },
   "나": {
-   "n": 10,
+   "n": 11,
    "win": 4,
-   "trades": 10,
-   "hit": 0.4,
-   "cum_ret": -0.1447,
-   "comp_ret": -0.1449,
-   "avg_ex": -0.01197,
-   "n_ex": 10,
+   "trades": 11,
+   "hit": 0.364,
+   "cum_ret": -0.2302,
+   "comp_ret": -0.21801,
+   "avg_ex": -0.01775,
+   "n_ex": 11,
    "open": 0,
-   "realized": -0.1447,
+   "realized": -0.2302,
    "unrealized": 0,
-   "total": -0.1447,
-   "unrated": 1
+   "total": -0.2302,
+   "unrated": 0
   },
   "나🔥": {
    "n": 1,
@@ -121,7 +121,7 @@
     "realized": -0.0723,
     "unrealized": 0,
     "total": -0.0723,
-    "unrated": 1
+    "unrated": 0
    },
    "규칙": {
     "n": 5,
@@ -201,7 +201,7 @@
     "unrated": 0
    },
    "규칙": {
-    "n": 3,
+    "n": 4,
     "win": 0,
     "trades": 0,
     "hit": null,
@@ -216,19 +216,19 @@
     "unrated": 0
    },
    "나": {
-    "n": 3,
+    "n": 4,
     "win": 0,
-    "trades": 3,
+    "trades": 4,
     "hit": 0.0,
-    "cum_ret": -0.1264,
-    "comp_ret": -0.12155,
-    "avg_ex": -0.03798,
-    "n_ex": 3,
+    "cum_ret": -0.2119,
+    "comp_ret": -0.19666,
+    "avg_ex": -0.04737,
+    "n_ex": 4,
     "open": 0,
-    "realized": -0.1264,
+    "realized": -0.2119,
     "unrealized": 0,
-    "total": -0.1264,
-    "unrated": 1
+    "total": -0.2119,
+    "unrated": 0
    },
    "나🔥": {
     "n": 1,
@@ -318,6 +318,10 @@
     0.0
    ],
    [
+    "2026-10-19",
+    0.0
+   ],
+   [
     "2026-10-20",
     0.0
    ],
@@ -360,24 +364,28 @@
     -0.0619
    ],
    [
+    "2026-10-23",
+    -0.1474
+   ],
+   [
     "2026-10-21",
-    -0.0212
+    -0.1067
    ],
    [
     "2026-10-20",
-    -0.0527
+    -0.1382
    ],
    [
     "2026-10-22",
-    -0.0736
+    -0.1591
    ],
    [
     "2026-10-23",
-    -0.1155
+    -0.201
    ],
    [
     "2026-10-22",
-    -0.1447
+    -0.2302
    ]
   ],
   "나🔥": [
@@ -393,7 +401,7 @@
    "date": "2026-10-23",
    "market": "US",
    "title": "미장 진입 타점 대결",
-   "state": "진행",
+   "state": "제외",
    "winner": null,
    "rows": [
     {
@@ -409,13 +417,13 @@
     },
     {
      "who": "PB",
-     "name": "미제출",
+     "name": "현금",
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "미제출",
+     "status": "제외",
      "ret": null,
-     "why": "제출 없음 — 미평가",
+     "why": "나 미제출 — 채점 제외",
      "marks": {}
     },
     {
@@ -424,11 +432,20 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
-     "ret": 0.0,
-     "bench": null,
-     "ex": null,
-     "why": "현금 유지",
+     "status": "제외",
+     "ret": null,
+     "why": "나 미제출 — 채점 제외",
+     "marks": {}
+    },
+    {
+     "who": "PB🔥",
+     "name": "iShares Semiconductor ETF",
+     "ticker": "SOXX",
+     "entry": "open",
+     "exit": "same_close",
+     "status": "제외",
+     "ret": null,
+     "why": "나 미제출 — 채점 제외",
      "marks": {}
     }
    ]
@@ -438,7 +455,7 @@
    "date": "2026-10-23",
    "market": "KR",
    "title": "진입 타점 대결",
-   "state": "진행",
+   "state": "제외",
    "winner": null,
    "rows": [
     {
@@ -458,11 +475,9 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
-     "ret": 0.0,
-     "bench": null,
-     "ex": null,
-     "why": "현금 유지",
+     "status": "제외",
+     "ret": null,
+     "why": "나 미제출 — 채점 제외",
      "marks": {}
     },
     {
@@ -471,10 +486,9 @@
      "ticker": "102110",
      "entry": "close",
      "exit": "next_open",
-     "status": "진입 대기",
+     "status": "제외",
      "ret": null,
-     "entry_px_date": "2026-10-23",
-     "why": "종가 진입 — 다음 거래일부터 평가",
+     "why": "나 미제출 — 채점 제외",
      "marks": {}
     },
     {
@@ -483,11 +497,9 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
-     "ret": 0.0,
-     "bench": null,
-     "ex": null,
-     "why": "현금 유지",
+     "status": "제외",
+     "ret": null,
+     "why": "나 미제출 — 채점 제외",
      "marks": {}
     }
    ]
@@ -869,8 +881,8 @@
    "date": "2026-10-19",
    "market": "US",
    "title": "미장 진입 타점 대결",
-   "state": "진행",
-   "winner": null,
+   "state": "확정",
+   "winner": "규칙",
    "rows": [
     {
      "who": "나",
@@ -878,10 +890,16 @@
      "ticker": "MUU",
      "entry": "open",
      "exit": "d5_close",
-     "status": "미평가",
-     "ret": null,
-     "why": "가격 원천에 종목 없음(detail·kr_prices) — 평가 보류",
-     "marks": {}
+     "status": "확정",
+     "ret": -0.0855,
+     "end": "2026-10-23",
+     "bench": -0.00996,
+     "ex": -0.07554,
+     "win": false,
+     "why": "2026-10-19 시가 26.24 → 2026-10-23 종가 24.01",
+     "marks": {
+      "2026-10-23": -0.0855
+     }
     },
     {
      "who": "PB",
@@ -900,12 +918,14 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
+     "status": "확정",
      "ret": 0.0,
      "bench": null,
      "ex": null,
      "why": "현금 유지",
-     "marks": {}
+     "marks": {
+      "2026-10-19": 0.0
+     }
     }
    ]
   },
