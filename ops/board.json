@@ -5050,6 +5050,23 @@
       "owner": "PM",
       "desk": "PM",
       "priority": "P1"
+    },
+    {
+      "started": null,
+      "due": "2026-10-31",
+      "files": [
+        "pb-private:life/nw_auto.py",
+        "pb-private:life/money/nw_auto_base.json"
+      ],
+      "depends_on": [],
+      "notes": "10/25 겸이 '앞으로도 그냥 뱅샐이랑 거래내역 주면 되게끔'. 현재 증권 밖 기준(nw_auto_base.json)은 10/25 실측으로 수동 재기준함. 목표: 뱅샐 xlsx 자산 탭(은행·전자금융·청약·DC)을 읽어 base 자동 재계산, 증권사 거래내역 CSV로 현금·ISA 이체 flows 자동 매칭, 뱅샐-증권사 불일치(예: DL 등 잔여 연동) 경고. 개인 금액은 비공개 저장소에만. 화 10/27 11시 이후, 'ㄱㄱ' 후 착수.",
+      "id": "life-banksalad-ingest",
+      "title": "LIFE 탭 입력 단순화: 뱅샐 내보내기(자산 탭 포함)+거래내역만 주면 자동 반영되게 (증권 밖 기준 자동 재계산·교차검증)",
+      "owner": "내무",
+      "desk": "내무",
+      "priority": "P1",
+      "status": "보류",
+      "repo": "private"
     }
   ]
 }
