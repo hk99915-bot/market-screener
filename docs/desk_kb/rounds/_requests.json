@@ -546,10 +546,21 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-751d13c7",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "done": "2026-10-25",
+   "done_at": "2026-10-25T19:07+09:00",
+   "done_by": "데이터",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-25T19:07+09:00",
+     "text": "reports/us_eps_hist.parquet(date·ticker·period 0y/+1y·cur·chg30·chg90, 5,295행) 적재 시작 — 아카이브 복원 10/18~10/24(5스냅숏) + 이후 screener 실행마다 drivers.fetch_us_eps 가 upsert(screener/us_eps_hist.py, 테스트 3건). 한계: 10/15~16 은 보관된 적 없어 복원 불가, 휴일·미실행일은 행 없음(채우지 않음), 5일치라 D2 검정은 아직 표본 부족 — 누적 후 재시도(수주 단위).",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-75288029",

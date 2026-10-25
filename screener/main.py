@@ -303,6 +303,11 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
                 o, h, lo = r(x.get("open")) or c, r(x.get("high")) or c, r(x.get("low")) or c
                 rows.append([str(x["date"]), o, max(h, o, c), min(lo, o, c), c, int(x.get("volume") or 0)])
             ser[k] = rows
+        try:   # 금리 일봉 2종(국고 3년·미 10년 TIPS, req-data-5046a78b) — 실패하면 아래 prev 병합이 이전 값을 stale 로 유지
+            from . import rate_series
+            rate_series.merge_into(ser)
+        except Exception as e:  # noqa: BLE001
+            log.warning("금리 시계열 실패: %s", e)
         try:   # 이번 수집에서 빠진 지표(야후 일시 실패)는 이전 파일 값을 유지 — 화면에서 지표가 사라지지 않게
             prev = _json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8")).get("series", {})
             for k, v in prev.items():
