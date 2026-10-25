@@ -815,6 +815,8 @@ def fetch_us_eps(tickers: list[str], max_age_h: float = 6) -> dict:
     from .guard import write_json
     write_json(US_EPS, {"asof": _now, "generated_at": _now_iso(), "data": data}, default=str)   # asof 역행 차단
     _archive("us_eps", {"asof": _now, "data": data})
+    from . import us_eps_hist
+    us_eps_hist.record(_now, data)   # 일별 스냅숏 이력 (req-data-751d13c7)
     log.info("미장 EPS 추정 %d종목", len(data))
     return data
 
