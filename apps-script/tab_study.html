@@ -250,7 +250,8 @@ const engMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'bo
 const engExp=q=>`<div style="font-size:var(--fs-2);margin-top:4px"><b class="am">정답 ${ENL[q.a]||''}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</div>`;
 function engQ(q,kind,i,d){
   const k=engKey(d,kind,i), r=engRec(d,kind,i);
-  const lab=kind==='review'?`<span class="tag">복습 ${i+1}</span>${q.w?` <b class="am">${esc(q.w)}</b>`:''}${q.from_date?` <span class="mu" style="font-size:var(--fs-1)">${esc(q.from_date)} 단어</span>`:''}`:`<span class="tag">Q${i+1}</span>`;
+  const hideW=kind==='review'&&!r&&/_{3,}/.test(q.q||'');   // 빈칸 문제는 정답 단어를 푼 뒤에 공개(10/25 겸이: 머리 단어가 정답이라 무조건 맞힘)
+  const lab=kind==='review'?`<span class="tag">복습 ${i+1}</span>${q.w?` <b class="am" data-engw="${escA(k)}"${hideW?' style="display:none"':''}>${esc(q.w)}</b>`:''}${q.from_date?` <span class="mu" style="font-size:var(--fs-1)">${esc(q.from_date)} 단어</span>`:''}`:`<span class="tag">Q${i+1}</span>`;
   return `<div style="border-bottom:1px solid var(--line);padding:8px 0">
    <div style="margin-bottom:4px">${lab} <b>${esc(q.q||'')}</b> <span data-res="${escA(k)}" style="font-size:var(--fs-2)">${r?engResTxt(r.ok):''}</span></div>
    <div style="display:flex;flex-direction:column;gap:4px">${(q.choices||[]).map((c,j)=>`<button class="sbtn engb" data-ch="${escA(k)}" data-i="${j}" data-qi="${i}" data-kind="${kind}" ${r?'disabled':''} style="${r?engMark(j,q.a,r.choice):''}">${ENL[j]}) ${esc(c)}</button>`).join('')}</div>
@@ -271,6 +272,7 @@ function engBind(E,d){
     const c=+b.dataset.i, ok=c===q.a;
     ENGS.push({date:d,kind,idx:i,choice:c,ok,ts:new Date().toISOString()}); if(ENGS.length>3000) ENGS=ENGS.slice(-3000); eduPut(ENGK,ENGS);
     document.querySelectorAll('.engb[data-ch]').forEach(o=>{ if(o.dataset.ch!==k) return; o.disabled=true; o.style.cssText+=';'+engMark(+o.dataset.i,q.a,c); });
+    document.querySelectorAll('[data-engw]').forEach(el=>{ if(el.dataset.engw===k) el.style.display=''; });
     document.querySelectorAll('[data-res],[data-eexp]').forEach(el=>{ if(el.dataset.res===k) el.innerHTML=engResTxt(ok); if(el.dataset.eexp===k) el.innerHTML=engExp(q); });
     const bd=$('#engbadge'); if(bd) bd.innerHTML=engBadge(); });
 }
