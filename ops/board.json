@@ -6,13 +6,11 @@
   "퀀트",
   "채권",
   "리스크",
-  "백테스트",
   "LIFE",
   "자산배분",
   "매크로",
   "운영",
   "PM",
-  "헬스",
   "CIO",
   "파생",
   "애널",
@@ -31,7 +29,8 @@
   "HF",
   "컴플라이언스",
   "포지션리스크",
-  "프론트"
+  "프론트",
+  "UXUI"
  ],
  "tasks": [
   {
@@ -214,7 +213,7 @@
   {
    "id": "playbook-verify",
    "title": "실행 대본 신호 검증",
-   "owner": "백테스트",
+   "owner": "퀀트",
    "priority": "P2",
    "status": "완료",
    "started": "2026-10-15",
@@ -276,7 +275,7 @@
   {
    "id": "life-health-panel",
    "title": "LIFE 탭 건강 패널 (체성분 차트·운동·e1RM)",
-   "owner": "헬스",
+   "owner": "LIFE",
    "priority": "P2",
    "status": "완료",
    "started": "2026-10-15",
@@ -1573,7 +1572,7 @@
   {
    "id": "bt-exec-lag",
    "title": "포트폴리오 백테스트 체결 시점 분리 — 월말 종가 신호 → 다음 거래일 체결, 비용·환전·분배금 명시",
-   "owner": "백테스트",
+   "owner": "퀀트",
    "status": "완료",
    "priority": "P1",
    "repo": "public",
@@ -1585,7 +1584,7 @@
    "due": "2026-10-20",
    "depends_on": [],
    "notes": "외부감사 P1 확인: weights(m)와 수익률 기준가가 같은 me.loc[m] 종가. COST는 있음. 수정 전/후 CAGR·Sharpe 차이 표 첨부. | 10/24 운영 점검: 완료 확인(done 2026-10-24) — 근거 d6165c69 · tests/test_portfolios.py 통과",
-   "desk": "백테스트",
+   "desk": "퀀트",
    "escalated": "2026-10-21",
    "done": "2026-10-24"
   },
