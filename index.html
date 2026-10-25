@@ -2422,6 +2422,17 @@ function drawBondHist(){
 .regt.wide th{background:var(--bg2);font-weight:700}
 .relvs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 8px}
 @media (max-width:700px){.relvs{grid-template-columns:minmax(0,1fr)}}
+.repvlist{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.repvit{font:inherit;font-size:var(--fs-2);text-align:left;min-height:44px;padding:6px 10px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);cursor:pointer;white-space:normal;min-width:0}
+.repvit.on{border-color:var(--amber)}
+.repvit small{display:block;font-size:var(--fs-1);color:var(--muted)}
+.repvmd{border:1px solid var(--line);background:var(--bg3);padding:8px 10px;margin-top:6px;white-space:normal;min-width:0;overflow-wrap:anywhere;font-size:var(--fs-2);line-height:1.6}
+.repvmd h4{font-size:var(--fs-3);margin:10px 0 4px;color:var(--amber)}
+.repvmd ul,.repvmd ol{margin:2px 0 2px 18px;padding:0}
+.repvtw{overflow-x:auto;max-width:100%}
+.repvtw table{border-collapse:collapse;font-size:var(--fs-2)}
+.repvtw td,.repvtw th{border-top:1px solid var(--line);padding:3px 6px;text-align:left}
+.repvtw th{background:var(--bg2);font-weight:700}
 </style>
 <script>
 let REJ=null, REV=null;
@@ -2497,6 +2508,47 @@ function reLongView(V){
     ${ax?`<details><summary class="mu" style="font-size:var(--fs-2)">근거 축 ${Object.keys(L.axes).length}개 (인구·공급·규제·양극화·레버리지)</summary><ul class="relist">${ax}</ul></details>`:''}
     <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">${esc(L._grade||'')} · 다음 점검: ${esc(L.next_check||'—')} · 출처 ${esc(L._src||'')} · 표시 전용, 매매 신호 아님</div>`;
 }
+/* ───── 🔒 내 계획(비공개): pb-private/realestate/web_manifest.json → 항목 md. 토큰(mt_gh_tok)은 이 브라우저에만, pbGet(MY 탭)으로 직접 읽음 — 공개 서버·저장소 경유 없음 ───── */
+let REPV={st:'idle',items:[],upd:'',err:'',open:-1,doc:null,docErr:'',busy:false};
+const REPV_MAN='realestate/web_manifest.json';
+function rePvErr(e,what){ const c=String((e&&e.message)||e);
+  if(c==='404') return what+' 없음(404) — 부동산 누나가 아직 올리지 않았거나 경로가 달라요.';
+  if(c==='401') return '토큰이 거절됐어요(401) — 만료·오타일 수 있어요. MY 탭에서 토큰을 다시 저장하세요.';
+  if(c==='403') return '권한 없음 또는 호출 한도(403) — 토큰에 pb-private Contents: Read 가 있는지 확인하고 잠시 뒤 다시 시도하세요.';
+  return what+' 읽기 실패('+c+') — 네트워크를 확인하고 다시 시도하세요.'; }
+function rePvPath(p){ p=String(p||''); if(!/^[^\\:*?"<>|\x00-\x1f]+\.md$/i.test(p)||p.split('/').some(x=>x===''||x==='..'||x==='.')||p.charAt(0)==='/') return null; return p.split('/').map(encodeURIComponent).join('/'); }
+function rePvInl(t){ return esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<b>$1</b>'); }
+function rePvMd(md){ const out=[]; let tb=null, ls=null;
+  const fl=()=>{ if(tb){ const rows=tb.filter(r=>!/^\s*\|?\s*:?-{2,}[\s:|-]*$/.test(r)).map(r=>r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|'));
+      if(rows.length){ const [h,...b]=rows; out.push('<div class="repvtw"><table><tr>'+h.map(c=>'<th>'+rePvInl(c.trim())+'</th>').join('')+'</tr>'+b.map(r=>'<tr>'+r.map(c=>'<td>'+rePvInl(c.trim())+'</td>').join('')+'</tr>').join('')+'</table></div>'); } tb=null; }
+    if(ls){ out.push('</'+ls+'>'); ls=null; } };
+  String(md||'').replace(/\r/g,'').split('\n').forEach(l=>{
+    if(/^\s*\|/.test(l)){ if(ls){ out.push('</'+ls+'>'); ls=null; } (tb=tb||[]).push(l); return; }
+    if(tb) fl();
+    let m=l.match(/^(#{1,6})\s+(.*)/); if(m){ fl(); out.push('<h4>'+rePvInl(m[2])+'</h4>'); return; }
+    m=l.match(/^\s*([-*·]|\d+\.)\s+(.*)/); if(m){ const k=/\d/.test(m[1])?'ol':'ul'; if(ls!==k){ if(ls) out.push('</'+ls+'>'); out.push('<'+k+'>'); ls=k; } out.push('<li>'+rePvInl(m[2])+'</li>'); return; }
+    fl(); out.push(l.trim()?'<div>'+rePvInl(l)+'</div>':'<div style="height:6px"></div>'); });
+  fl(); return out.join(''); }
+function rePvSec(){ return '<div class="p c12"><h2>🔒 내 계획(비공개)<small>pb-private 에서 이 브라우저로 직접 읽음 · 토큰은 이 브라우저에만</small></h2><div class="b" id="repvb" style="white-space:normal"></div></div>'; }
+function rePvFill(){ const b=document.getElementById('repvb'); if(!b) return;
+  const tk=(typeof ghTok==='function')?ghTok():'';
+  if(!tk){ const lk=(typeof ghLocked==='function')&&ghLocked();
+    b.innerHTML='<div class="mu" style="font-size:var(--fs-2)">🔒 잠겨 있어요. '+(lk?'MY 탭에서 PIN 을 입력해 잠금을 풀면':'MY 탭에서 읽기 전용 토큰을 저장하면')+' 여기에 내 계획이 열려요. <a href="#" onclick="setView(\'my\');return false">MY 탭으로</a></div>'; return; }
+  if(REPV.st==='idle'){ REPV.st='load'; pbGet(REPV_MAN).then(t=>{ const o=JSON.parse(t); REPV.items=(Array.isArray(o.items)?o.items:[]).filter(x=>x&&rePvPath(x.path)).sort((a,c)=>(Number(a.order)||0)-(Number(c.order)||0)); REPV.upd=String(o.updated||''); REPV.st='ok'; })
+      .catch(e=>{ REPV.st='err'; REPV.err=(String(e&&e.message)==='404')?'목록 파일 없음 — 부동산 누나가 realestate/web_manifest.json 을 아직 올리지 않았어요. 올라오면 다시 시도하세요.':rePvErr(e,'목록'); }).then(()=>{ if(view==='re') rePvFill(); }); }
+  let h='';
+  if(REPV.st==='load'||REPV.st==='idle') h='<div class="mu">불러오는 중…</div>';
+  else if(REPV.st==='err') h='<div class="am" style="font-size:var(--fs-2)">'+esc(REPV.err)+' <a href="#" onclick="rePvReset();return false">다시 시도</a></div>';
+  else if(!REPV.items.length) h='<div class="mu">목록이 비어 있어요. <a href="#" onclick="rePvReset();return false">새로고침</a></div>';
+  else { h='<div class="mu" style="font-size:var(--fs-1)">목록 갱신 '+esc(REPV.upd||'—')+' · <a href="#" onclick="rePvReset();return false">새로고침</a></div><div class="repvlist">'
+      +REPV.items.map((x,i)=>'<button type="button" class="repvit'+(i===REPV.open?' on':'')+'" aria-pressed="'+(i===REPV.open)+'" onclick="rePvOpen('+i+')">'+esc(x.title||x.path)+(x.note?'<small>'+esc(x.note)+'</small>':'')+'</button>').join('')+'</div>';
+    if(REPV.open>=0){ h+= REPV.busy?'<div class="mu">여는 중…</div>':REPV.docErr?'<div class="am" style="font-size:var(--fs-2)">'+esc(REPV.docErr)+'</div>':REPV.doc!=null?'<div class="repvmd">'+rePvMd(REPV.doc)+'</div>':''; } }
+  b.innerHTML=h; }
+function rePvReset(){ REPV={st:'idle',items:[],upd:'',err:'',open:-1,doc:null,docErr:'',busy:false}; rePvFill(); }
+function rePvOpen(i){ const x=REPV.items[i], p=x&&rePvPath(x.path); if(!p) return;
+  if(REPV.open===i&&!REPV.docErr){ REPV.open=-1; REPV.doc=null; rePvFill(); return; }
+  REPV.open=i; REPV.doc=null; REPV.docErr=''; REPV.busy=true; rePvFill();
+  pbGet(p).then(t=>{ if(REPV.open!==i) return; REPV.doc=t; }).catch(e=>{ if(REPV.open!==i) return; REPV.docErr=rePvErr(e,'문서'); }).then(()=>{ if(REPV.open===i){ REPV.busy=false; if(view==='re') rePvFill(); } }); }
 function reView(){
   reLoad();
   if(REJ===false||REV===false) return '<div class="load">LOADING …</div>';
@@ -2524,6 +2576,7 @@ function reView(){
   const news=(J.news||[]).map(n=>`<details class="reauto"><summary><b style="font-size:var(--fs-2)">${esc(n.name)}</b><span class="rebadge">자동 · ${(n.items||[]).length}</span>${n.stale?'<span class="rebadge" style="color:var(--amber);border-color:var(--amber)">수집 실패 · 이전 값</span>':''}${n.items&&n.items[0]?`<span class="mu" style="font-size:var(--fs-2);margin-left:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1">${n.items[0].title!=null?esc(n.items[0].title):esc((n.items[0].src||'')+' · '+(n.items[0].time||''))}</span>`:''}</summary>
       ${n.stale?`<div class="am" style="font-size:var(--fs-1);white-space:normal">⚠ 이 축 Google News 검색 실패 — 이전 값 ${n.stale.kept??0}건 유지(stale${n.stale.since?' · '+esc(n.stale.since)+' 수집분':' · 이전 값 없음'}) · ${esc(n.stale.why||'')}</div>`:''}<ul class="relist">${(n.items||[]).map(i=>`<li>${i.title!=null?esc(i.title):`<span class="mu" title="${esc(i.title_withheld||'')}">[제목 비공개 · Google News 약관]</span>`} <span class="mu" style="font-size:var(--fs-1)">· ${esc(i.src||'')} ${esc(i.time||'')}${i.link?` · <a href="${esc(i.link)}" target="_blank" rel="noopener">링크</a>`:''}</span></li>`).join('')}</ul></details>`).join('');
   const unav=(J.unavailable||[]).map(u=>`<li><b>${esc(u.name)}</b> <span class="rebadge">${esc(u.status||'')}</span><div class="mu" style="font-size:var(--fs-2)">${esc(u.why||'')}</div></li>`).join('');
+  setTimeout(rePvFill,0);
   return `<div class="grid re"><div class="p c12"><h2>부동산<small>${esc(J.asof||'—')} · 자동 수집 + 데스크 해석</small></h2><div class="b">
     ${top}${cards}
     ${reSeoulMap(J,V)}
@@ -2534,7 +2587,8 @@ function reView(){
     <details><summary><b style="font-size:var(--fs-2)">리츠·인프라 ${(J.reits||[]).filter(r=>r.status==='ok').length}종</b></summary><ul class="relist">${reits}</ul>${reitsTake}</details>
     <h3 style="font-size:var(--fs-2);margin:12px 0 2px;color:var(--amber)">뉴스 <span class="mu" style="font-size:var(--fs-1)">자동 수집 — 데스크 해석 아님</span></h3>${news||'<div class="mu">없음</div>'}
     <details><summary class="mu" style="font-size:var(--fs-2)">아직 못 쓰는 데이터 ${(J.unavailable||[]).length}</summary><ul class="relist">${unav}</ul></details>
-  </div></div></div>`;
+  </div></div>${rePvSec()}</div>`;
+  /* rePvFill 은 그려진 뒤 */
 }
 </script>
 

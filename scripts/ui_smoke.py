@@ -62,6 +62,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_us_detail(b, port)
         bad += await check_oneliner(b, port)
         bad += await check_my_ledger(b, port)
+        bad += await check_re_private(b, port)
         bad += await check_cmt_us(b, port)
         bad += await check_score(b, port)
         bad += await check_eng(b, port)
@@ -401,6 +402,65 @@ def _toss_fixture() -> str:
           "quotes": {k: {"asof": iso, "last": 1.0} for k in ("SPY", "QQQ", "SOXX")}}
     return _json.dumps({"source": "toss", "date": now.strftime("%Y-%m-%d"), "asof": iso, "indices": idx,
                         "fx": {"USDKRW": {"asof": iso, "mid": 1000.0}}, "quotes": {}, "us": us})
+
+
+# 가짜 부동산 비공개 목록·문서(개인 값 아님) — '🔒 내 계획(비공개)' 스모크용
+FAKE_REPV_MAN = '{"updated":"2000-01-01","items":[{"path":"realestate/b.md","title":"두번째 가짜","note":"n2","order":2},{"path":"realestate/a.md","title":"첫번째 가짜","note":"n1","order":1},{"path":"../evil.md","title":"나쁜 경로","order":0}]}'
+FAKE_REPV_DOC = ("# 가짜 제목\n\n본문 **강조** <img src=x onerror=\"window.__xss=1\"> <script>window.__xss=2</script>\n\n- 항목 하나\n- 항목 둘\n\n"
+                 "| 열A | 열B | 열C | 열D | 열E | 열F |\n|---|---|---|---|---|---|\n| " + " | ".join(["가나다라마바사아자차카타파하" * 2] * 6) + " |\n")
+
+
+async def check_re_private(b, port: int) -> int:
+    """부동산 탭 '🔒 내 계획(비공개)': 토큰 없으면 잠금 안내만(pb-private 호출 0) · 있으면 manifest order 순 목록(../ 경로 제외) → 눌러 md 렌더(HTML 이스케이프, 표 감싸기) · 404 는 사람 말. 390px 가로 스크롤 없음. API 는 가짜 응답."""
+    res = {}
+    for mode in ("none", "ok", "nofile"):
+        pg = await b.new_page(viewport={"width": 390, "height": 800})
+        errs: list[str] = []
+        calls: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        tok = "" if mode == "none" else "localStorage.setItem('mt_gh_tok','smoke');"
+        await pg.add_init_script(f"try{{ if(!sessionStorage.getItem('_sm')){{ sessionStorage.setItem('_sm','1'); localStorage.clear(); {tok} }} }}catch(e){{}}")
+
+        def mk(mode, calls):   # route 핸들러는 인자 1개짜리여야 한다(기본값 인자는 Playwright 가 request 로 채움)
+          def h(r):
+            u = r.request.url
+            calls.append(u)
+            if mode == "nofile" or "/contents/" not in u:
+                return r.fulfill(status=404, body="{}")
+            if "web_manifest.json" in u:
+                return r.fulfill(status=200, content_type="text/plain", body=FAKE_REPV_MAN)
+            if "realestate/a.md" in u:
+                return r.fulfill(status=200, content_type="text/plain", body=FAKE_REPV_DOC)
+            return r.fulfill(status=404, body="{}")
+          return h
+        await pg.route("https://api.github.com/**", mk(mode, calls))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1200)
+        await pg.evaluate("setView('re')")
+        await pg.wait_for_timeout(2200)
+        txt = await pg.evaluate("(document.querySelector('#repvb')||{}).textContent||''")
+        out = {"txt": txt, "calls": len(calls)}
+        if mode == "ok":
+            out["items"] = await pg.evaluate("[...document.querySelectorAll('.repvit')].map(e=>e.firstChild.textContent)")
+            await pg.evaluate("document.querySelectorAll('.repvit')[0].click()")
+            await pg.wait_for_timeout(800)
+            out["md"] = await pg.evaluate("(document.querySelector('.repvmd')||{}).innerHTML||''")
+            out["xss"] = await pg.evaluate("!!window.__xss")
+            out["imgs"] = await pg.evaluate("document.querySelectorAll('.repvmd img,.repvmd script').length")
+            out["wrap"] = await pg.evaluate("!!document.querySelector('.repvmd .repvtw table')")
+            out["hs"] = await pg.evaluate("document.documentElement.scrollWidth>window.innerWidth+1")
+            out["over"] = await pg.evaluate("[...document.querySelectorAll('.repvmd *')].filter(e=>!e.closest('.repvtw')&&e.getBoundingClientRect().right>window.innerWidth+1).length")
+        res[mode] = (out, errs)
+        await pg.close()
+    n, nerr = res["none"][0], res["none"][1]
+    o, oerr = res["ok"][0], res["ok"][1]
+    f, ferr = res["nofile"][0], res["nofile"][1]
+    pbcalls = lambda d: d["calls"]
+    ok = ("잠겨" in n["txt"] and n["calls"] == 0 and o["items"] == ["첫번째 가짜", "두번째 가짜"] and "가짜 제목" in o["md"] and "<b>강조</b>" in o["md"]
+          and not o["xss"] and o["imgs"] == 0 and o["wrap"] and not o["hs"] and o["over"] == 0 and "목록 파일 없음" in f["txt"] and not (nerr or oerr or ferr))
+    print(f"{'OK ' if ok else 'BAD'} 부동산비공개 토큰없음='{n['txt'][:14]}'(호출 {n['calls']}) 목록={o['items']} 이스케이프={'O' if not o['xss'] and o['imgs']==0 else 'X'} 표감쌈={'O' if o['wrap'] else 'X'} 가로스크롤={'있음' if o['hs'] or o['over'] else '없음'} 404='{f['txt'][:12]}'"
+          + (f" · 에러: {(nerr or oerr or ferr)[0][:160]}" if (nerr or oerr or ferr) else ""))
+    return not ok
 
 
 async def check_macro_popup(b, port: int) -> int:
