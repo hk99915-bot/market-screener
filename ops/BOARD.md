@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-25 · 작업 284개 · 진행 8 · 검수 11 · 대기 82 · 보류 20 · 완료 163
+기준일 2026-10-25 · 작업 285개 · 진행 8 · 검수 11 · 대기 82 · 보류 21 · 완료 163
 
 **결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
 
@@ -124,7 +124,7 @@
 | P3 ⏫P1 10-23 | `jiang-prediction-ledger` | Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기) | 검증 | — | 2026-11-07 | `reports/views/jiang_predictions.json` | `public-reports` | 애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈. |
 | P3 ⏫P1 10-21 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
-## 보류 (20)
+## 보류 (21)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -136,6 +136,7 @@
 | P1 | `full-integrity-recheck` | 전체 정합성 재검증 1회 (주간 한도 초기화 직후): 숫자·문서·화면·보드·원장 상호 대조 | 감사 | — | 2026-11-05 | private 전용 | — | 10/25 겸이 '전체 정합성 재검증하는 것도 주간한도 풀리면 한 번 해야지'. 범위(후보): 합의 원장↔rules.txt·화면, 보드↔실제 상태(낡은 항목 예: gas-repaste), 홀딩스↔증권사↔뱅샐↔LIFE/내무 순자산, KB 복기↔실제 코드, 터미널 숫자↔원천 파일. 주간 한도 초기화일은 미확인 — 초기화 확인되면 착수, 11/05 목표(PB 해석). pre-pro-migration 이전에 실행해 결과를 이관 범위에 반영. / 10/25 겸이 '감사·유지보수 누나 역할 아닌가' → 역할 분담: 감사=문서·원장·보드·KB 모순 채점(무편집, 수정은 요청), 유지보수=화면·산출물 최신·정상 여부(데이터 신선도·틀린 상태 표시), 개발=수리, PB=사용자 쪽(홀딩스·뱅샐·합의 원장) 대조 제공. |
 | P1 | `report-format-rollout` | 보고 형식 통일: 데일리 운용회의·HF·텔레그램 각종·애널리스트·파생·채권·매크로·부동산 전 산출물을 What/So What/근거 데이터/Now What 공식 개조식으로 | PM | — | 2026-11-07 | `docs/desk_kb/STANDARD.md`<br>`screener/committee.py`<br>`reports/` | `report-whatsowhat` | 10/25 겸이 '데일리 운용회의, hf, 각종 텔레그램, 애널리스트, 파생, 채권, 매크로, 부동산 전부 이런 형식의 보고로 보고형식 맞추기'. 기준 샘플 = accum_signals 공식 개조식 v3(스크래치 accum_signals_whatsowhat_v3.md; 3칸 + 근거 데이터 발췌 + 원본 링크, 명사형 종결·한자어 중심). 작업 순서(안): ① 표준 틀 확정(퀀트 report-whatsowhat) → STANDARD.md 반영 ② 대상별 틀 변형: 운용회의(committee*.json 생성 문장·TOP3), HF(재량 북·알파북 코멘트), 텔레그램(3줄 압축: What/So what/Now what 각 1줄·길이 상한), 애널·파생·채권·매크로·부동산 데스크 리포트 ③ 생성 코드(screener/committee.py·tg 발송부·hf 코멘트)와 데스크 프롬프트 동시 수정 — 개발 협업 ④ 샘플 1건씩 겸이 확인 후 일괄 적용. 제약: 기존 합의 유지 — PB 텔레그램 중립 평서체(~다/~함), 공개 저장소 개인 금액 금지, HF 비공개 말투는 사담·1:1에만(공식 산출물은 냉정한 단문 — 이미 합의), 매매 계획 필수 항목(진입·스탑·목표·R:R·확률·E[R]) 유지. 토큰: 형식 통일은 출력 길이를 줄이는 쪽으로(요약 먼저, 근거는 발췌). 화 10/27 11시 이후 'ㄱㄱ' 뒤 상정. |
 | P1 | `pre-pro-migration` | 11/12 Pro 전환 전 집중 작업: 최적화·이관·정리를 Opus/Fable 급으로 끝내고 Pro 이후 Sonnet 기본 운영 체제 확정 | PM | — | 2026-11-11 | private 전용 | — | 10/25 겸이 '최대한 오푸스나 페이블까지 빠방하게 쓰면서 11/12까지 최적화/이관/등등 작업 다 해놓고, pro로 옮기면 소넷 쓰던가'. 범위(후보): ① 토큰긴축 회의 결과 실행(사담·slop 폐지, 누적 데이터 보존·요약·아카이브 규칙) ② 컴팩션·모델 교체에도 품질 유지하는 짧은 상태 파일/핸드오프 ③ PostgreSQL 이관 결정·POC(longterm-terminal-design) ④ pro-plan-round-scale(Pro 라운드 규모·21:10 라운드 교체) ⑤ 데스크별 모델 배정(기본 Sonnet, 규칙 변경·큰 설계만 상위 모델) ⑥ 예약·낡은 보드 항목 정리(98건 중 이월·폐기). 현재 토큰 긴축은 주간 한도 초기화 전까지(PB 해석) — 초기화 후 상위 모델 허용. 화 10/27 11시 이후 'ㄱㄱ' 뒤 착수. |
+| P1 | `freeman-project` | 프리맨 프로젝트(경제적 주권): 금융적 독립 + 생활(주거) 독립을 한 로드맵으로 — 하위 작업 연결판 | PM | — | 2026-11-15 | private 전용 | `housing-capital-bucket`, `report-format-rollout` | 10/25 겸이 '도와줘 누나들, 함께하자 프리맨 프로젝트'. 목적(겸이 취지, 외부 의견 인용): 돈 때문에 의지를 꺾지 않는 삶 — ① 금융적 독립(커리어 소득→금융자본→선택권) ② 생활의 독립(주거 선택권). 이 항목은 새 작업이 아니라 기존 하위 작업의 묶음판: 내무(임차 vs 매수 비교 req-household-da7a8e45·연봉 인상률/이직 req-household-5384bf04·지원금 분리 req-household-ee4dcf8d·세대분리 정정 req-household-a213e261) · 부동산(서울 중급지 격차·경로 비교 req-realestate-acdff38a·만 나이 요건 req-realestate-4b175353·후보 재작성) · 자산배분(주거 자본 버킷 housing-capital-bucket) · 리스크/FRM(레버리지 상한 비율) · LIFE(1억+ 진행률 DC 제외 표시) · 매크로(신현송 뷰 macro-1384f2aa) · 교육(주택 트랙 J7~J14) · 운영(토큰긴축·pro-plan, tue-token-tight-meeting). 월 1회 PM이 한 장 요약(What/So What/Now What)으로 진행 보고. 개인 수치는 비공개 저장소에만. 우선순위: 토큰 긴축 때문에 화 10/27 11시 이후 'ㄱㄱ' 뒤 순서 정리. |
 | P2 | `org-rnr` | 사내톡 🏢 조직도 옆 📋 RnR 보기 — 층·리스크본부 경계·29명 하는 것/안 하는 것·한도 초과 사건 흐름, ui_smoke check_org_rnr | 프론트 | 2026-10-24 | 2026-10-28 | `apps-script/tab_msgr.html`<br>`scripts/ui_smoke.py`<br>`reports/org_rnr.md` | — | 10/24 PB 지시(겸이 ㅇㅇ). 구현 끝·미배포: 브랜치 front-org-rnr-wip(6f409220) — 데이터 reports/org_rnr.md(ORG.md+각 KB 경계, 29명) 기존 getMarkdown 로 읽음(새 getter 없음), check_org_rnr 기본·엑셀×390·1300 OK·데스크 1명 빼면 BAD. 겸이 주간 한도 절약(PB 10/24)으로 보류 — 화 11시 이후 재개: main 기준 rebase·index 재빌드·운영 내용 검수·개발 계약 회신 뒤 push. |
 | P2 | `tue-optfut-quotes` | 선옵(선물·옵션) 시세 터미널 반영 | 파생 | — | 2026-10-30 | — | — | 10/25 겸이 '화요일 11시 이후'. 선물옵션 시세 화면 — 기존 data/deriv/daily.csv·금융위 옵션 API 활용 여부는 파생·데이터가 확인 후 착수. |
 | P2 | `edu-selective` | 교육: 전 데스크 교차학습 폐지 → 교육이 필요한 데스크만 선별 학습 | 교육 | — | 2026-11-07 | — | — | 10/25 겸이 결정. 선별 기준안(교육·평가 제안): 드릴 점수 낮음·복기 반복·KB '10년차 격차' 큰 데스크·신규 충원 데스크(데이터 엔지니어 B). 금요일 라운드는 교육 필요 데스크만 호출. 데스크 수: 현재 29(보드 담당자 30명 = PB + 데스크 29), 데이터 엔지니어 충원 후 30(겸이 10/25 정정). |
