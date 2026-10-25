@@ -5178,6 +5178,20 @@
       "priority": "P2",
       "status": "검수",
       "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-11-01",
+      "files": [],
+      "depends_on": [],
+      "notes": "10/25 감사 reports/audit/2026-10-25_pb_leak.md · 겸이 '지금 올라간 것도 싹다 삭제할 수 있나? 주간한도 초기화 된 다음에'. 현황(PB 확인 10/25): 포크 0·스타 0·워처 0, 14일 조회 5명, clone 2,500 unique(대부분 자동화 추정). 절차안: ① 예약·워크플로 일시 정지(봇 push 경합 방지) ② 미러 clone → git filter-repo --replace-text 로 노출 문자열만 치환(연봉·자산·지원금·종목명 구간, 문자열 목록은 비공개 저장소에 두고 공개 문서에 쓰지 않음) ③ 잔존 grep 0건 확인 ④ main·data 브랜치 force push(승인 필요) ⑤ 워크플로 재개 ⑥ 로컬 clone·worktree·겸이 노트북 수집기 재클론 ⑦ GitHub Support 에 캐시된 SHA·뷰 제거 요청(직접 URL 접근 대비). 한계: 이미 만든 외부 복사본·캐시는 지울 수 없음. 즉시 대안 '저장소 비공개 전환'은 Pages 터미널이 중단돼 비권장. 선행: 겸이 승인(되돌릴 수 없는 force push)·workflow 목록 확인.",
+      "id": "leak-history-rewrite",
+      "title": "공개 저장소 이력에서 유출 개인 금액 제거(b안): 해당 문자열 치환 후 force push — 주간 한도 초기화 후 겸이 'ㄱㄱ'",
+      "owner": "유지보수",
+      "desk": "유지보수",
+      "priority": "P0",
+      "status": "보류",
+      "repo": "public"
     }
   ]
 }
