@@ -4,3 +4,4 @@
 - **답변·변경 전 확인 원칙:** 숫자·사실·판단을 말하거나 코드를 바꾸기 전에 기존 산출물을 먼저 확인한다 — `reports/`(detail·valuation·studies·trial_log), `docs/valuation_notes/`, `docs/peer_reviews/`, `docs/desk_kb/`, `ops/board.json`. 판단 질문은 해당 데스크 산출물을 인용하거나 데스크를 실제로 돌린 뒤 답한다. 데스크 발언(VOC)은 실제 담당 데스크 에이전트를 호출해 받은 답만 인용한다 — PB가 대신 쓰거나 추정으로 표기하는 것 금지.
 - 공개 저장소: 개인 금액·보유·연봉·계좌·의료 정보 금지(비율만). 커밋 신원 `Claude <noreply@anthropic.com>`.
 - 검사: `pytest`, `python3 scripts/board.py --check`, `python3 scripts/check_functions.py`, `python3 scripts/check_rules_terms.py`, UI는 `scripts/ui_smoke.py`. 세션 시작 시 `sh scripts/install_hooks.sh`(pre-push 훅 — 위 검사 중 빠른 것을 push 때 자동 실행, 실패 시 push 차단).
+- **프로젝트 비전:** `docs/desk_kb/VISION.md`(프리맨 프로젝트 — 모든 데스크 공통). 판단이 충돌하면 5원칙과 대조한다. 개인 수치는 공개 저장소에 쓰지 않는다.
