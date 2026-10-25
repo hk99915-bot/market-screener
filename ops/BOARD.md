@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-25 · 작업 281개 · 진행 8 · 검수 10 · 대기 82 · 보류 18 · 완료 163
+기준일 2026-10-25 · 작업 282개 · 진행 8 · 검수 10 · 대기 82 · 보류 19 · 완료 163
 
 **결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
 
@@ -123,7 +123,7 @@
 | P3 ⏫P1 10-23 | `jiang-prediction-ledger` | Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기) | 검증 | — | 2026-11-07 | `reports/views/jiang_predictions.json` | `public-reports` | 애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈. |
 | P3 ⏫P1 10-21 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
-## 보류 (18)
+## 보류 (19)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -138,6 +138,7 @@
 | P2 | `tue-optfut-quotes` | 선옵(선물·옵션) 시세 터미널 반영 | 파생 | — | 2026-10-30 | — | — | 10/25 겸이 '화요일 11시 이후'. 선물옵션 시세 화면 — 기존 data/deriv/daily.csv·금융위 옵션 API 활용 여부는 파생·데이터가 확인 후 착수. |
 | P2 | `edu-selective` | 교육: 전 데스크 교차학습 폐지 → 교육이 필요한 데스크만 선별 학습 | 교육 | — | 2026-11-07 | — | — | 10/25 겸이 결정. 선별 기준안(교육·평가 제안): 드릴 점수 낮음·복기 반복·KB '10년차 격차' 큰 데스크·신규 충원 데스크(데이터 엔지니어 B). 금요일 라운드는 교육 필요 데스크만 호출. 데스크 수: 현재 29(보드 담당자 30명 = PB + 데스크 29), 데이터 엔지니어 충원 후 30(겸이 10/25 정정). |
 | P2 | `macro-governor-shin` | 신현송 한은 총재 뷰 트래킹 — 발언·간담회·의사록·국회 답변 장부화 + 금통위 결정·시장 사후 대조 + 매크로 탭 카드 | 매크로 | 2026-10-24 | 2026-11-07 | `reports/views/governor_shin.json`<br>`docs/desk_kb/macro.md` | — | 10/24 겸이 "진짜 마지막으로 작업예약, 신현송 총재 뷰 트래킹, 메신저랑 작업 보드에만 업뎃" — 예약만. 요청 req-macro-1384f2aa. 주간 한도 절약 — 화 10/27 11시 이후 착수(겸이 ㄱㄱ 뒤). 화면은 착수 때 프론트 장부 1건. |
+| P2 | `realestate-private-viewer` | 부동산 탭에 '내 계획(비공개)' 보기: 토큰 입력 시 pb-private 부동산 보고서(가능 범위·추천 1·2·3순위·내 집 마련 프로필)를 웹에서 열람 | 프론트 | — | 2026-11-07 | `apps-script/tab_realestate.html`<br>`apps-script/tab_life.html` | — | 10/25 겸이 '부동산 계획, 내 프라이빗한 거 웹상에서도 토큰만 넣으면 보고서 볼 수 있게'. 기존 패턴 재사용: LIFE 탭 pbGet(path)+읽기 전용 토큰 localStorage(저장소·서버로 안 감, tab_life.html·tab_my.html). 열람 대상(비공개, 런타임에 읽기만 — 공개 저장소엔 복사 금지): household/reports/home_capacity_*.md, realestate/reco_*.md, study/home_buying_profile.md. 필요: ① 간단 md 렌더러(표·제목·목록) ② 토큰 미입력 시 잠금 안내 ③ 읽기 전용 fine-grained 토큰(pb-private contents:read) — 겸이가 직접 발급·브라우저에만 입력, 채팅으로 주지 않음 ④ 모바일 390px 확인(UI 스모크). 보고서 형식은 report-format-rollout(What/So What/근거/Now What) 적용 후 가장 읽기 좋음. 화 10/27 11시 이후 'ㄱㄱ' 뒤. |
 | P2 | `report-whatsowhat` | 퀀트 보고서 등 연구 산출물 읽기 쉬운 구조로 리팩토링: What / So what / Now what (직관적·겸이 이해 기준) | 퀀트 | — | 2026-11-07 | `docs/desk_kb/STANDARD.md`<br>`reports/studies/` | — | 10/25 겸이 '퀀트 보고서 링크로 준 거 뭔소린지 하나도 모르겠으니까 What so what now what 구조나 그렇게 구조화해서 직관적으로 리팩토링하는 것도 안건으로'. 어느 보고서를 가리키는지는 미확인(착수 때 겸이에게 1줄 확인: 최근 퀀트 링크 보고서). 범위안: ① 퀀트 연구 보고(reports/studies/*.md) 맨 위 3칸 요약 — What(무엇을 봤나·결과 숫자 1~2개) / So what(그래서 의미·확률·한계, 표본 n·등급) / Now what(겸이가 할 일·하지 않을 일·언제 뒤집히나) ② 용어는 쉬운 말(전문용어는 괄호 1줄) ③ 채팅 답변에도 같은 3칸 적용 검토 ④ STANDARD.md §결론 칸(무엇·누가·언제까지·뒤집는 조건)과 합쳐 한 틀로. UXUI·평가(이해도 점검) 협업. tue-token-tight-meeting 과 같이 화 10/27 11시 이후 'ㄱㄱ' 뒤 안건 상정. / 10/25 겸이 샘플 지정: reports/studies/accum_signals.md. PB 시안 v1(쉬운말)→v2: '좀 더 공식적으로, 개조식, 한자어 비중 높여서' 확정 문체 = 공식 개조식(명사형·~함/~필요), 한자어 중심, 3칸 What/So What/Now What + 표본·비용·원본 링크 머리말. 시안(비공개 스크래치): accum_signals_whatsowhat_v2.md. 폐기 기준(후반기 +1%·t 3)은 PB 임의 제안 — 퀀트 확인. |
 | P2 | `tue-postgres-meeting` | PostgreSQL 전환 회의 (longterm-terminal-design 연계) | PM | — | 2026-11-07 | — | — | 10/25 겸이 '화요일 11시 이후'. 설계 문서 2건은 비공개 ops/longterm/ (READ-ONLY, 승인 전 변경 금지). 회의 산출 = 도입 여부·POC 범위 결재안. |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | — | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |

@@ -5161,6 +5161,23 @@
       "priority": "P1",
       "status": "보류",
       "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-11-07",
+      "files": [
+        "apps-script/tab_realestate.html",
+        "apps-script/tab_life.html"
+      ],
+      "depends_on": [],
+      "notes": "10/25 겸이 '부동산 계획, 내 프라이빗한 거 웹상에서도 토큰만 넣으면 보고서 볼 수 있게'. 기존 패턴 재사용: LIFE 탭 pbGet(path)+읽기 전용 토큰 localStorage(저장소·서버로 안 감, tab_life.html·tab_my.html). 열람 대상(비공개, 런타임에 읽기만 — 공개 저장소엔 복사 금지): household/reports/home_capacity_*.md, realestate/reco_*.md, study/home_buying_profile.md. 필요: ① 간단 md 렌더러(표·제목·목록) ② 토큰 미입력 시 잠금 안내 ③ 읽기 전용 fine-grained 토큰(pb-private contents:read) — 겸이가 직접 발급·브라우저에만 입력, 채팅으로 주지 않음 ④ 모바일 390px 확인(UI 스모크). 보고서 형식은 report-format-rollout(What/So What/근거/Now What) 적용 후 가장 읽기 좋음. 화 10/27 11시 이후 'ㄱㄱ' 뒤.",
+      "id": "realestate-private-viewer",
+      "title": "부동산 탭에 '내 계획(비공개)' 보기: 토큰 입력 시 pb-private 부동산 보고서(가능 범위·추천 1·2·3순위·내 집 마련 프로필)를 웹에서 열람",
+      "owner": "프론트",
+      "desk": "프론트",
+      "priority": "P2",
+      "status": "보류",
+      "repo": "public"
     }
   ]
 }
