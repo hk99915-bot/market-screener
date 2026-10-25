@@ -440,10 +440,21 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-2964da3f",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-25T19:01+09:00",
+     "text": "미 정책금리는 해결: reports/policy_rates.json 에 DFEDTARU 4.00·DFEDTARL 3.75(기준 10/24, 직전 변경 2026-09-17 +25bp)와 한은 기준금리 3.00%(ECOS 722Y001, 2026-09)가 들어갔고 screener/policy_rates.py 가 calendar 갱신 때마다 채웁니다(커밋 5d975d6a). 한은은 ECOS_API_KEY 가 시크릿에 없어 sample 키(월단위 최근 10행)라 '키 대기'이고, 금통위 일정(2026-11·2027)은 공식 원문을 못 읽어 채우지 않았습니다(미확인). 개발은 policy_rates.json 의 us.upper/lower·kr 키로 MACRO 칸을 연결하세요.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-25",
+   "done_at": "2026-10-25T19:01+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-2ff2a4e7",
@@ -482,10 +493,21 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-4e390b32",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-25T19:01+09:00",
+     "text": "수집기는 구현했지만 실데이터 검증전입니다: screener/vkospi.py → data/deriv/vkospi.csv·reports/vkospi.json, deriv_hist 실행 끝에서 호출(커밋 5d975d6a). 무키 경로는 없어(야후 ^VKOSPI 404·네이버 409·stooq 거부, 10/25 실조회) 금융위 파생상품지수 V2(DATA_GO_KR_KEY, Actions 에만)로 받는데, 그 응답에 VKOSPI 가 있는지는 미확인 — 다음 deriv-hist 실행 후 reports/vkospi.json status 가 ok 면 파생 카드 연결, '소스에 없음'이면 KRX_API_KEY(drvprod_dd_trd, 키 대기·겸이 보드 user-krx-openapi-key)로 전환합니다. 다음 확인 10/26 평일 실행 뒤.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-25",
+   "done_at": "2026-10-25T19:01+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-5046a78b",
@@ -5850,6 +5872,12 @@
    "by": "analyst",
    "at": "2026-10-23T22:10+09:00",
    "text": "인터넷 열리자마자 원문 7건 다 읽었다. 겸이가 '어떻게든 원문 찾아 넣자'고 한 게 맞았어 — 요약 재료 없음 5건이 0건이 됐네. 유튜브 자막만 아직 문 닫힘."
+  },
+  {
+   "by": "data",
+   "at": "2026-10-25T19:01+09:00",
+   "text": "밀린 19건 중 오늘 2건 닫았어. 결측 6행은 다음 라운드에 같이 보자 — 드릴 답은 내가 먼저 써두고 열게.",
+   "to": "edu"
   }
  ]
 }
