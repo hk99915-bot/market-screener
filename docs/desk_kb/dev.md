@@ -54,6 +54,7 @@
 - 10/24 엑셀 스킨 전수(req-dev-0d1eee58): 다크 전용 하드코딩 배경 → 토큰 --bg2·--bg3·--panel·--on-amber, xl 대비 미달 628→0(390·1300 합): tests/test_skin_tokens.py·ui_smoke check_xl·scripts/skin_audit.py(측정 정의) · revert · 사내톡·연구 보드·부동산·MY·STUDY·HOME·대결 색.
 - 10/24 UXUI 재검수 회귀(req-dev-26f063bc): 폰 머리 151→109px(신선도 배지 폰 짧게, 💬·🔍 44px)·달력 K/S 두 줄·연구 보드 두 줄·단계 카드 56px·목록 44px PC 확대: ui_smoke check_head_clip(머리 ≤110·잘림 기준선 CLIP_BASE) · revert · 모든 탭 머리·공시/인적성 PC 길이(+13%).
 - 10/24 [운영] 텔레그램 'quiz <qid> <답>' → 이슈 'study quiz'(G3, TelegramHook.gs tgParseQuiz_): tests/test_tg_quiz.py(node 대조) · revert · 텔레그램 답장·study.yml. gas_deploy 대상 분리(감사 M3 — 시크릿 GAS_SCHED_SCRIPT_ID 가 다른 ID 면 웹앱=Code.gs·예약 실행기=Scheduler·TelegramHook, 미설정=한 프로젝트로 보고 셋 다): tests/test_gas_deploy.py · revert · GAS 배포. slop_audit JSON 장부 스캔·'종가'·순자산 목표 허용(M6): tests/test_slop_audit.py · revert · 감사 집계.
+- 10/25 watchdog 새 것/밀린 것 구분(🆕 오늘 새로 N · 원래 밀린 것 M, 데스크별 '새 n')·마감 변경 횟수(board.json git 이력, 얕은 클론은 보이는 구간만)(req-dev-8d80aab2): tests/test_watchdog.py · revert · reports/watchdog.json 필드 new_today·backlog·due_changed·findings.new 추가, 텔레그램 하루 1통 본문 2줄.
 
 ## 출처
 - Telegram Bot API sendMessage(core.telegram.org, 원문 미확인) · ops/LOCKS.md · ops/README.md · .github/workflows/tests.yml

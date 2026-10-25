@@ -116,23 +116,62 @@ def detect_fresh(now: datetime, root: Path = ROOT, check=None) -> list[dict]:
     return out
 
 
-def board_first_seen(root: Path = ROOT) -> dict[str, str]:
-    """ops/board.json git 이력에서 작업 id 가 처음 추가된 날짜(커밋일). 이력 없으면 {}."""
+def board_history(root: Path = ROOT) -> tuple[dict[str, str], dict[str, int]]:
+    """ops/board.json git 이력 한 번 훑어 (작업 id 처음 추가일, 작업 id 별 마감(due) 변경 횟수).
+    마감 변경 = 같은 hunk 에서 `-"due": 옛값` 과 `+"due": 새값` 이 다르고 옛값이 null 이 아닌 경우(처음 정하는 건 변경 아님).
+    id 는 hunk 안 가장 가까운 앞 `"id"` 줄(-U12 문맥). 이력이 얕은 클론이면 보이는 구간만 센다."""
     try:
-        r = subprocess.run(["git", "-C", str(root), "log", "--reverse", "--format=@@%cs", "-p", "--unified=0", "--", "ops/board.json"],
+        r = subprocess.run(["git", "-C", str(root), "log", "--reverse", "--format=@@%cs", "-p", "--unified=12", "--", "ops/board.json"],
                            capture_output=True, text=True, timeout=60)
     except Exception:  # noqa: BLE001
-        return {}
-    seen, day = {}, None
-    pat = re.compile(r'^\+\s*\{?\s*"id":\s*"([^"]+)"')
+        return {}, {}
+    seen: dict[str, str] = {}
+    changes: dict[str, int] = {}
+    day, cur, old_due = None, None, None
+    pid = re.compile(r'^([+\- ])\s*\{?\s*"id":\s*"([^"]+)"')
+    pdue = re.compile(r'^([+-])\s*"due":\s*(null|"[^"]*")')
     for ln in r.stdout.splitlines():
         if ln.startswith("@@") and not ln.startswith("@@ "):
-            day = ln[2:12]
+            day, cur, old_due = ln[2:12], None, None
+        elif ln.startswith("@@ "):
+            cur, old_due = None, None
         elif day:
-            m = pat.match(ln)
-            if m and m.group(1) not in seen:
-                seen[m.group(1)] = day
-    return seen
+            m = pid.match(ln)
+            if m:
+                cur, old_due = m.group(2), None
+                if m.group(1) == "+" and cur not in seen:
+                    seen[cur] = day
+                continue
+            m = pdue.match(ln)
+            if m and cur:
+                if m.group(1) == "-":
+                    old_due = m.group(2)
+                elif old_due is not None and old_due != "null" and m.group(2) != old_due:
+                    changes[cur] = changes.get(cur, 0) + 1
+                    old_due = None
+    return seen, changes
+
+
+def board_first_seen(root: Path = ROOT) -> dict[str, str]:
+    return board_history(root)[0]
+
+
+def is_new_finding(f: dict, prev_board: dict, today: str) -> bool:
+    """'오늘 새로 생긴 것' 판정. 이미 보드에 escalated 가 찍혀 있거나(어제까지 걸린 것) 오늘 이전부터 이어진 상태면 원래 밀린 것.
+    overdue: 마감이 어제(=오늘 처음 초과)일 때만 새 것. waiting: 등록 후 정확히 WAIT_DAYS 일째. 그 외 비작업 감지·요청 승격: 보드에 같은 wd-/작업 id 가 없었으면 새 것."""
+    by_id = {t["id"]: t for t in prev_board.get("tasks", [])}
+    t0 = date.fromisoformat(today)
+    tid = f.get("task") or re.sub(r"[^0-9A-Za-z가-힣_.-]+", "-", f"wd-{f['kind']}-{f['id']}")[:80]
+    t = by_id.get(tid)
+    if f["kind"] == "request":
+        return True   # 승격은 오늘 apply_promotions 가 처음 만든 것
+    if t is not None and t.get("escalated") and t["escalated"] < today:
+        return False
+    if f["kind"] == "overdue":
+        return bool(t and t.get("due") == (t0 - timedelta(days=1)).isoformat())
+    if f["kind"] == "waiting":
+        return f.get("days") == WAIT_DAYS
+    return t is None or t.get("escalated") == today
 
 
 def detect_board(board: dict, today: str, first_seen: dict[str, str]) -> list[dict]:
@@ -146,7 +185,8 @@ def detect_board(board: dict, today: str, first_seen: dict[str, str]) -> list[di
         elif t.get("status") == "대기":
             fs = first_seen.get(t["id"])
             if fs and (t0 - date.fromisoformat(fs)).days >= WAIT_DAYS:
-                out.append(F("waiting", t["owner"], t["id"], f"대기 {(t0 - date.fromisoformat(fs)).days}일 (등록 {fs}) {t['title'][:40]}", task=t["id"]))
+                days = (t0 - date.fromisoformat(fs)).days
+                out.append({**F("waiting", t["owner"], t["id"], f"대기 {days}일 (등록 {fs}) {t['title'][:40]}", task=t["id"]), "days": days})
     return out
 
 
@@ -220,12 +260,18 @@ def render(result: dict) -> str:
     else:
         cnt = " · ".join(f"{KIND_KO[k]} {v}" for k, v in result["counts"].items() if v)
         lines = [f"🐶 watchdog {d} · 이상 {n}건 ({cnt})"]
+        if "new_today" in result:
+            lines.append(f"🆕 오늘 새로 {result['new_today']} · 원래 밀린 것 {result['backlog']}")
+        dch = result.get("due_changed") or {}
+        if dch.get("tasks_any"):
+            lines.append(f"📅 마감 바뀐 작업 {dch['tasks_any']}건(총 {dch['total_changes']}회, 2회+ {dch['tasks_2plus']}건)")
         for owner, fs in sorted(by.items(), key=lambda kv: -len(kv[1]))[:8]:
             kinds = {}
             for f in fs:
                 kinds[f["kind"]] = kinds.get(f["kind"], 0) + 1
             top = next((f for f in fs if f["kind"] in ("zero", "fresh", "toss", "request")), fs[0])
-            lines.append(f"· {owner} {len(fs)} — " + "·".join(f"{KIND_KO[k]}{v}" for k, v in kinds.items()) + f" | {top['msg'][:50]}")
+            nn = sum(1 for f in fs if f.get("new"))
+            lines.append(f"· {owner} {len(fs)}(새 {nn}) — " + "·".join(f"{KIND_KO[k]}{v}" for k, v in kinds.items()) + f" | {top['msg'][:50]}")
         if len(by) > 8:
             lines.append(f"· 외 {len(by) - 8}개 데스크")
         lines.append(f"보드 ⏫ 새 승격 {result.get('escalated_new', 0)} · 자동 완료 {result.get('auto_closed', 0)} — 상세 reports/watchdog.json")
@@ -239,18 +285,24 @@ def render(result: dict) -> str:
 
 
 def run(now: datetime, root: Path = ROOT, apply: bool = False, send: bool = False, out=print,
-        fresh_check=None, first_seen: dict | None = None) -> dict:
+        fresh_check=None, first_seen: dict | None = None, due_changes: dict | None = None) -> dict:
     today = now.astimezone(KST).date().isoformat()
     board_p, ledger_p, out_p = root / "ops" / "board.json", root / "docs" / "desk_kb" / "rounds" / "_requests.json", root / "reports" / "watchdog.json"
     board = _load(board_p) or {"tasks": []}
     ledger = _load(ledger_p) or {}
     prev = _load(out_p) or {}
     fs = dict(prev.get("first_seen") or {})
-    for k, v in (first_seen if first_seen is not None else board_first_seen(root)).items():
+    hist = board_history(root) if (first_seen is None or due_changes is None) else ({}, {})
+    dc = dict(due_changes if due_changes is not None else hist[1])
+    for k, v in (first_seen if first_seen is not None else hist[0]).items():
         fs[k] = min(fs.get(k, v), v)
     for t in board.get("tasks", []):
         fs.setdefault(t["id"], today)
     findings = detect_zero(root) + detect_fresh(now, root, fresh_check) + detect_board(board, today, fs)
+    for f in findings:   # 새/밀린 구분은 보드가 바뀌기 전(escalated 찍기 전) 기준
+        f["new"] = is_new_finding(f, board, today)
+        if f["kind"] == "overdue" and dc.get(f["id"]):
+            f["due_changes"] = dc[f["id"]]
     # E: 요청 장부 2영업일 → 보드 P1 (라운드 없이도)
     promos = rc.promotions(ledger, today, board)
     ledger2, board2 = rc.apply_promotions(ledger, board, promos, today)
@@ -259,7 +311,7 @@ def run(now: datetime, root: Path = ROOT, apply: bool = False, send: bool = Fals
         if r.get("promoted") == today and r.get("status") == "promoted" and not r.get("promoted_at"):
             r["promoted_at"] = stamp
     for t in promos:
-        findings.append(F("request", t["owner"], t["id"], t["title"][:70], task=t["id"]))
+        findings.append({**F("request", t["owner"], t["id"], t["title"][:70], task=t["id"]), "new": True})
     board3, n_new, n_closed = escalate(board2, findings, today)
     by: dict[str, list] = {}
     for f in findings:
@@ -267,6 +319,11 @@ def run(now: datetime, root: Path = ROOT, apply: bool = False, send: bool = Fals
     result = {"checked_at": now.astimezone(KST).strftime("%Y-%m-%d %H:%M KST"), "date": today,
               "counts": {k: sum(f["kind"] == k for f in findings) for k in KIND_KO},
               "by_owner": dict(sorted(by.items(), key=lambda kv: -len(kv[1]))),
+              "new_today": sum(1 for f in findings if f.get("new")), "backlog": sum(1 for f in findings if not f.get("new")),
+              "due_changed": {"tasks_2plus": sum(1 for f in findings if f.get("due_changes", 0) >= 2),
+                              "tasks_any": sum(1 for f in findings if f.get("due_changes")),
+                              "total_changes": sum(f.get("due_changes", 0) for f in findings),
+                              "top": sorted(((f["id"], f["due_changes"]) for f in findings if f.get("due_changes")), key=lambda x: -x[1])[:5]},
               "escalated_new": n_new, "auto_closed": n_closed,
               "messenger": messenger(ledger2, now, board3),
               "first_seen": dict(sorted(fs.items())), "sent": prev.get("sent")}

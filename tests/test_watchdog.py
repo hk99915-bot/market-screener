@@ -221,3 +221,47 @@ def test_executor_stale_slot_and_laptop_heartbeat():
     stale = wd.detect_executor(now, gas, lambda wf, since: ran, {"last_run": "2026-10-21T08:30:00+09:00"})
     assert [f["id"] for f in stale] == ["laptop"]
     assert wd.detect_executor(datetime(2026, 10, 21, 12, 30, tzinfo=wd.KST), gas, lambda wf, since: [], None) == []
+
+
+# ── 10/25 req-dev-8d80aab2: 새 것 vs 밀린 것 · 마감 변경 횟수 ────────────────────
+def test_is_new_finding_splits_today_from_backlog():
+    today = "2026-10-21"
+    b = {"tasks": [_task("yday", due="2026-10-20"), _task("old", due="2026-10-10"), _task("seen", due="2026-10-20", escalated="2026-10-20"),
+                   _task("wd-zero-accum", escalated="2026-10-20")]}
+    ov = lambda i: wd.F("overdue", "개발", i, "m", task=i)
+    assert wd.is_new_finding(ov("yday"), b, today) is True      # 어제 마감 = 오늘 처음 초과
+    assert wd.is_new_finding(ov("old"), b, today) is False      # 열흘 밀림
+    assert wd.is_new_finding(ov("seen"), b, today) is False     # 이미 escalated
+    assert wd.is_new_finding({**wd.F("waiting", "개발", "w", "m", task="w"), "days": 3}, b, today) is True
+    assert wd.is_new_finding({**wd.F("waiting", "개발", "w", "m", task="w"), "days": 9}, b, today) is False
+    assert wd.is_new_finding(wd.F("zero", "퀀트", "accum", "m"), b, today) is False   # 어제부터 wd 작업 있음
+    assert wd.is_new_finding(wd.F("zero", "데이터", "research", "m"), b, today) is True
+
+
+def test_board_history_counts_due_changes(tmp_path):
+    def board(a_due, b_due):
+        ts = [_task("A", due=a_due, status="진행"), _task("B", due=b_due, status="진행")]
+        return json.dumps({"tasks": ts}, ensure_ascii=False, indent=2) + "\n"
+
+    def git(*a, **env):
+        subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t", *a], check=True, capture_output=True)
+    git("init", "-q")
+    (tmp_path / "ops").mkdir()
+    f = tmp_path / "ops" / "board.json"
+    for due in [(None, "2026-10-05"), ("2026-10-10", "2026-10-05"), ("2026-10-12", "2026-10-05"), ("2026-10-15", "2026-10-05")]:
+        f.write_text(board(*due), encoding="utf-8")
+        git("add", "ops/board.json"); git("commit", "-q", "-m", "x")
+    seen, ch = wd.board_history(tmp_path)
+    assert set(seen) == {"A", "B"}
+    assert ch == {"A": 2}          # null→10/10 은 첫 설정(제외), 10/10→10/12→10/15 두 번. B 는 안 바뀜.
+
+
+def test_run_reports_new_vs_backlog_and_due_changes(tmp_path):
+    _w(tmp_path / "ops" / "board.json", {"tasks": [_task("yday", due="2026-10-20", status="검수"), _task("old", due="2026-10-01", status="검수")]})
+    _w(tmp_path / "reports" / "accum.json", {"status": "ok", "n": 5})   # 결측 감지 배제
+    msgs = []
+    res = wd.run(NOW, tmp_path, apply=True, out=msgs.append, fresh_check=lambda: {"late": []}, first_seen={}, due_changes={"old": 3, "yday": 1})
+    assert (res["new_today"], res["backlog"]) == (1, 1)
+    assert res["due_changed"] == {"tasks_2plus": 1, "tasks_any": 2, "total_changes": 4, "top": [("old", 3), ("yday", 1)]}
+    txt = "\n".join(msgs)
+    assert "🆕 오늘 새로 1 · 원래 밀린 것 1" in txt and "📅 마감 바뀐 작업 2건(총 4회, 2회+ 1건)" in txt
