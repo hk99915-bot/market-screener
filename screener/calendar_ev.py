@@ -436,6 +436,11 @@ def build(days: int = 75) -> dict:
     except Exception as e:  # noqa: BLE001
         log.warning("지표 결과 실패: %s", e)
     try:
+        from .policy_rates import collect as _policy   # MACRO 탭 기준금리 칸 (req-data-2964da3f)
+        _policy()
+    except Exception as e:  # noqa: BLE001
+        log.warning("정책금리 실패: %s", e)
+    try:
         attach_earn(ev, today)
     except Exception as e:  # noqa: BLE001
         log.warning("실적 결과 첨부 실패: %s", e)

@@ -25,6 +25,7 @@
 ## 처리 기록 (압축)
 - 애널 요청 `mu-revenue-tag`(10/17): MU 매출 0행 원인 = parse() FLOW 루프가 첫 태그에서 `break` + 2019 필터 → 태그 병합으로 수정(위 오해 2). 검증 기준: FQ4(2026-09-03) 매출이 fin_verified.json 과 1% 안.
 - 퀀트 요청 `req-data-4e6e68fe`(10/24): 미장 연도별 hist(us_2010~2025)가 첫 일괄(us_done.txt) 뒤 안 늘어 303종목뿐 → `backfill.backfill_us_fill()` 이 상세 유니버스(reports/detail/US ∪ us_top) 중 없는 종목만 40개 배치·3초 간격으로 받아 연도 파일에 병합, 진행은 data/hist/us_fill.json(대상·보유·남음·원천 없음). 10/24 1회 실행: +363종목(약 3분, 야후 429 없음) → 상세 626 중 622 보유, 없음 4(FDXF·HONA·SPCX·VYLR = 2026 신규 상장·분사, 2025 이전 이력 자체 없음). trend_discovery splice 251→622. 생존편향 그대로(현재 종목만). 남은 한계: 연 넘김(2027-01) 때 기존 종목의 2026 연도 파일은 이 함수가 안 만듦 `[확인 필요: 연 넘김 처리, 2026-12-31, 데이터]`.
+- 개발·파생 요청 `req-data-2964da3f`·`req-data-4e390b32`(10/25): **정책금리** screener/policy_rates.py → reports/policy_rates.json(미 DFEDTARU·DFEDTARL 상·하단 + 직전 변경, 한은 ECOS 722Y001 월단위) — FRED 무키, ECOS 는 sample 키(10행 한도라 요청 시작월을 9개월 전으로 — 12개월 전이면 오래된 쪽 10행만 와서 2026-07 에서 멈춤). 금통위 일정은 공식 원문 미열람이라 '미확인'. **VKOSPI** screener/vkospi.py → data/deriv/vkospi.csv·reports/vkospi.json, deriv_hist 실행 끝에서 호출. 무키 경로 없음(야후 ^VKOSPI 404·네이버 코드 409·stooq 거부, 10/25 실조회) → 금융위 파생상품지수 V2(DATA_GO_KR_KEY, Actions 에만)로 이름 매칭, 응답에 VKOSPI 가 있는지는 **미확인**(없으면 status='소스에 없음'+idxNm 목록). `[자체연구-B: 구현·합성 테스트, VKOSPI 실응답 검증전]`
 - 미결: SK하이닉스 2026Q2 DART 단독분기 매출 < 순이익 — 분기 차감(누적−전분기) 오류 의심, 사업보고서 원문 대조 필요 `[자체연구-검증전]`.
 
 ## 소스 목록 — 원자재·지정학 뉴스 (2026-10-23, req-data-3dda8f42 · 겸이 "야후파이낸스나 토스에 원자재 선물? 지정학은 뉴스트래킹")

@@ -398,6 +398,11 @@ def run(task: str = "run", days: int = 0, redo: str | None = None) -> dict:
     st.update({"rows": len(rows), "daily_done": done, "daily_todo": len(todo), "secs": round(time.time() - t0),
                "coverage": cover, "asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M")})
     STATUS.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
+    try:
+        from . import vkospi   # req-data-4e390b32 — 실패해도 본 적재에 영향 없음
+        vkospi.run(days=5 if task == "run" else 30)
+    except Exception as e:  # noqa: BLE001
+        log.warning("VKOSPI 수집 실패: %s", type(e).__name__)
     log.info("deriv_hist: %d행, 하루소스 %d/%d, %ds", len(rows), done, len(todo), st["secs"])
     return st
 
