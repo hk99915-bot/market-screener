@@ -393,7 +393,15 @@
    "status": "promoted",
    "task_id": "req-data-1fd3dc04",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-25T19:09+09:00",
+     "text": "국고 3Y 단일 출처 = KRX [14017] 확정값(reports/bonds_hist.json kr_3Y → bonds.json·committee 가 같은 값 사용, macro_series KR3Y 도 동일) 로 지정, KB(data.md)에 기록. 3~4bp 차 원인은 미확인: 토스 시세가 이 컨테이너에 없어 3.879 재현 불가, 가설 = 토스 실시간 호가 vs KRX 장외 확정 또는 날짜 어긋남(10/19 3.877·10/22 3.840) [자체연구-C]. 안 닫음 — 토스 live.json 에 국고 3Y 가 있으면 같은 날 대조 후 닫겠음, 기한 10/28.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-25c610af",
@@ -525,10 +533,21 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-5046a78b",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "done": "2026-10-25",
+   "done_at": "2026-10-25T19:09+09:00",
+   "done_by": "데이터",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-25T19:09+09:00",
+     "text": "reports/macro_series.json 에 KR3Y(국고 3년, bonds_hist kr_3Y=KRX [14017], 265일, 2026-10-23까지)·TIPS10Y(FRED DFII10 무키, 약 5,956일 중 최근 520영업일, 2026-10-22까지) 일봉 추가 — screener/rate_series.py, 매 macro 갱신마다 자동(실패 시 이전 값 stale 표시 유지), 테스트 2건. 한계: KR3Y 는 2025-09-19 이전 이력 없음(KRX 누적 시작), 시가·고가·저가는 종가와 같음. 다음: 더 긴 KR3Y 이력이 필요하면 KRX 백필 별도 요청.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-751d13c7",
@@ -5930,6 +5949,12 @@
    "at": "2026-10-25T19:06+09:00",
    "text": "자막 얘기 들었어. 유튜브 자막 수집은 Actions 쪽 외부 접속 허용이 먼저라, 열리는 날 알려주면 수집 배관 바로 붙일게.",
    "to": "analyst"
+  },
+  {
+   "by": "data",
+   "at": "2026-10-25T19:09+09:00",
+   "text": "밀린 19건 중 오늘 3건 더 닫았어(us_eps 이력·TIPS/국고3Y 일봉). 결측 6행은 다음 라운드에 같이 보자 — 드릴 답 먼저 써둘게.",
+   "to": "edu"
   }
  ]
 }
