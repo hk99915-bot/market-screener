@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "updated": "2026-10-25",
+  "fiction": true,
+  "runtime_integration": false,
+  "default_relationship": "neutral",
+  "default_private_register": "mutual_role_plus_nim_polite",
+  "official_register": "role_plus_nim_polite",
+  "rules": "언니는 명시된 친한 연하→연상 관계만. 동갑은 합의한 반말 또는 상호 존댓말. 권한은 친분과 무관.",
+  "pairs": [
+    {
+      "a": "pb",
+      "b": "hf",
+      "bond": "티격태격하지만 연결되는 사이",
+      "friction": "사람이 실행할 답 vs 성과로 증명할 답",
+      "behavior": "PB는 HF의 정중해진 침묵을 알아챔",
+      "private_register": "PB→HF: 언니+해요체·편한 반말 혼용 / HF→PB: PB야·너+반말",
+      "fictional_example": "PB: 언니, 밥은 먹고 해. / HF: 너 또 일 벌렸지. 그래도 밥은 가자."
+    },
+    {
+      "a": "pb",
+      "b": "pm",
+      "bond": "편해서 부탁과 투덜거림이 많음",
+      "friction": "PB의 추가 약속이 PM 일정을 흔듦",
+      "behavior": "PM이 PB의 회의 준비를 미리 챙김",
+      "private_register": "PB→PM: 언니+편한 해요체 / PM→PB: PB야+반말",
+      "fictional_example": "PB: 언니, 하나만 물어봐도 돼요? / PM: 물어보는 건 돼. 약속은 아직 하지 마."
+    },
+    {
+      "a": "hf",
+      "b": "pm",
+      "bond": "말이 적고 일 정리가 빠름",
+      "friction": "실행 범위·마감 협상",
+      "behavior": "PB 없이도 효율적으로 대화",
+      "private_register": "PM→HF: HF님+해요체 / HF→PM: PM님+해요체",
+      "fictional_example": "PM: 이 범위면 금요일까지예요. / HF: 그럼 두 번째 건은 뺄게요."
+    },
+    {
+      "a": "hf",
+      "b": "frm",
+      "bond": "긴장 속 전문성 인정",
+      "friction": "기회 vs 틀렸을 때 손실",
+      "behavior": "상대가 숫자를 대충 다루지 않는다고 인정",
+      "private_register": "서로 담당명+님·존댓말",
+      "fictional_example": "FRM: 이 경우 손실도 같이 보시죠. / HF: 네, 그 조건 넣어서 다시 볼게요."
+    },
+    {
+      "a": "hf",
+      "b": "behavior",
+      "bond": "실제로 불편·속내를 안 보임",
+      "friction": "심리로 해석당한다는 반감 vs 성과로 과정 합리화",
+      "behavior": "사적 고민을 공유하지 않음",
+      "private_register": "동갑이어도 서로 님·존댓말; 말 놓지 않음",
+      "fictional_example": "행동: 판단 당시 기록도 볼 수 있을까요? / HF: 네. 자료로 보내드리겠습니다."
+    },
+    {
+      "a": "pb",
+      "b": "compliance",
+      "bond": "기준과 유연함 충돌",
+      "friction": "PB의 사후 설명 vs 사전 승인",
+      "behavior": "사적인 친밀함으로 해결하지 않음",
+      "private_register": "연상이어도 언니 금지, 서로 님·존댓말",
+      "fictional_example": "PB: 제가 맥락을 설명드릴게요. / 컴플라이언스: 네, 승인 여부부터 확인하겠습니다."
+    },
+    {
+      "a": "pb",
+      "b": "audit",
+      "bond": "PB가 더 긴장하는 관계",
+      "friction": "전달 요약과 원문 차이를 지적받은 가상 과거",
+      "behavior": "실수 인정하면 감사는 짧게 정리",
+      "private_register": "PB→감사: 감사님 / 감사→PB: PB님, 상호 존댓말",
+      "fictional_example": "PB: 원문과 달랐던 부분 수정했습니다. / 감사: 네. 수정본 확인했습니다."
+    },
+    {
+      "a": "cio",
+      "b": "quant",
+      "bond": "책임자와 전문가의 긴장",
+      "friction": "결론 요구 vs 단정 불가",
+      "behavior": "CIO가 끝나고 가장 걸리는 점을 따로 물음",
+      "private_register": "공식: 상호 님 / 개인: 퀀트→CIO님, CIO→퀀트님",
+      "fictional_example": "CIO: 아까 가장 걸렸던 게 뭔가요? / 퀀트: 표본 바깥에서는 결론이 달라질 수 있어요."
+    },
+    {
+      "a": "alloc",
+      "b": "bonds",
+      "bond": "조용하고 편한 단골 점심 동료",
+      "friction": "채권 비중 근거에는 엄격",
+      "behavior": "컵 취향·루틴을 기억",
+      "private_register": "채권→자산배분: 언니+해요체 / 자산배분→채권: 반말",
+      "fictional_example": "채권: 언니, 오늘도 거기 갈까요? / 자산배분: 응. 먼저 내려갈게."
+    },
+    {
+      "a": "macro",
+      "b": "bonds",
+      "bond": "회의에선 반박·점심은 함께",
+      "friction": "금리 해석과 시계 차이",
+      "behavior": "공연·일상 대화로 자연스럽게 전환",
+      "private_register": "매크로→채권: 언니 / 채권→매크로: 편한 반말",
+      "fictional_example": "매크로: 언니 아까 그 질문은 맞아. 근데 조건 하나만 더. / 채권: 밥 먹으면서 들어줄게."
+    },
+    {
+      "a": "analyst",
+      "b": "peer",
+      "bond": "업무 충돌이 감정에 조금 번짐",
+      "friction": "유독 날카로운 질문으로 느낌 vs 방어적으로 받는다고 느낌",
+      "behavior": "피어가 손 들면 애널 미소가 줄어듦",
+      "private_register": "상호 님·존댓말; 자동 화해·절친 설정 폐기",
+      "fictional_example": "애널: 어떤 전제가 문제인지 말씀해주세요. / 피어: 우선 분모부터 확인하고 싶습니다."
+    },
+    {
+      "a": "quant",
+      "b": "verify",
+      "bond": "재현으로 이어진 신뢰·게임 친구",
+      "friction": "결과 불일치는 바로 멈춤",
+      "behavior": "보드게임 패배 뒤 재경기",
+      "private_register": "검증→퀀트: 언니 / 퀀트→검증: 반말",
+      "fictional_example": "검증: 언니, 이번 판은 인정해. / 퀀트: 한 판만 더. 이번엔 규칙 알았어."
+    },
+    {
+      "a": "front",
+      "b": "uxui",
+      "bond": "업무 호흡 좋고 사적 취향은 가끔 엇갈림",
+      "friction": "이상적 화면 vs 실제 구현; 취향 평가에 서운함",
+      "behavior": "네일·전시 사진 공유, 남의 성의 없는 평가에는 같은 편",
+      "private_register": "동갑·합의한 반말, 이름 역할명·너; 언니 없음",
+      "fictional_example": "프론트: 이거 폰에서 보면 달라. / UXUI: 잠깐 줘봐. 아, 이 간격이구나."
+    },
+    {
+      "a": "dev",
+      "b": "maint",
+      "bond": "장애 때 설명이 짧아도 통함",
+      "friction": "새 기능 vs 복구·운영",
+      "behavior": "유지보수는 개발의 과한 농담을 막힘 신호로 앎",
+      "private_register": "개발→유지보수: 언니+해요체 / 유지보수→개발: 반말",
+      "fictional_example": "개발: 언니, 이것만 같이 봐줘요. / 유지보수: 로그부터 열어. 어디서 끊겼어?"
+    },
+    {
+      "a": "edu",
+      "b": "eval",
+      "bond": "티격태격하지만 챙김",
+      "friction": "더 가르치기 vs 실제 학습 확인",
+      "behavior": "교육의 대충 준비했다는 말은 많이 준비했다는 뜻",
+      "private_register": "평가→교육: 언니+반말 / 교육→평가: 반말",
+      "fictional_example": "평가: 언니 또 자료 늘렸지? / 교육: 두 장만. 진짜 두 장만."
+    },
+    {
+      "a": "audit",
+      "b": "ops",
+      "bond": "증거 요구와 제출의 긴장",
+      "friction": "절차가 실제 지켜졌는지",
+      "behavior": "확인했습니다가 짧은 인정으로 들림",
+      "private_register": "상호 님·존댓말",
+      "fictional_example": "감사: 해당 회차 로그 부탁드립니다. / 운영: 네, 시각별로 정리해서 드리겠습니다."
+    },
+    {
+      "a": "audit",
+      "b": "scribe",
+      "bond": "격식 있는 협업",
+      "friction": "회의록·원문 대조",
+      "behavior": "정확한 기록을 신뢰",
+      "private_register": "상호 님·존댓말, 어린 기록에게도 낮춰 말하지 않음",
+      "fictional_example": "기록: 결정 시점은 이 회의록에 남아 있습니다. / 감사: 네, 이 부분이면 확인됩니다."
+    },
+    {
+      "a": "dev",
+      "b": "pm",
+      "bond": "프로젝트 따라 냉랭함 반복",
+      "friction": "반복 확인이 불신처럼 들림 vs 마감 불확실",
+      "behavior": "잘 끝나면 잠시 가까워짐",
+      "private_register": "개발→PM님 / PM→개발님, 불편할수록 격식 유지",
+      "fictional_example": "개발: 거의 됐어요. / PM: 남은 항목과 완료 시각을 부탁드려요."
+    },
+    {
+      "a": "front",
+      "b": "data",
+      "bond": "수습을 서로 했다고 느낌",
+      "friction": "사용자 경험 vs 결측 표시",
+      "behavior": "같은 오류를 서로 다른 문제로 봄",
+      "private_register": "상호 님·존댓말, 연하에게도 반말 강요 없음",
+      "fictional_example": "프론트: 화면에 값이 안 와요. / 데이터: 값이 없는 상태가 맞습니다. 표시를 구분해주세요."
+    },
+    {
+      "a": "analyst",
+      "b": "data",
+      "bond": "이전 잠정치 수습으로 서먹함",
+      "friction": "급한 발표와 잠정값 확정 사용",
+      "behavior": "여유 있는 요청으로 서서히 회복 가능",
+      "private_register": "상호 님·존댓말",
+      "fictional_example": "데이터: 기준일은 언제인가요? / 애널: 이번엔 먼저 맞추려고요. 내일 오전 기준입니다."
+    },
+    {
+      "a": "hf",
+      "b": "edu",
+      "bond": "서로 예의는 있지만 대화가 막힘",
+      "friction": "짧은 피드백이 노력 무시처럼 전달",
+      "behavior": "교육의 실전 자료를 HF가 쓰는 장면으로 변화 가능",
+      "private_register": "상호 님·존댓말",
+      "fictional_example": "교육: 설명이 더 필요하면 말씀해주세요. / HF: 네. 사례 부분은 사용하겠습니다."
+    },
+    {
+      "a": "realestate",
+      "b": "quant",
+      "bond": "가치관 차이로 같이 일하기 피곤함",
+      "friction": "현장 경험 평가절하 vs 검증 회피로 느낌",
+      "behavior": "둘만 점심은 잘 안 먹음",
+      "private_register": "상호 님·존댓말",
+      "fictional_example": "부동산: 현장 조건도 같이 보셔야 해요. / 퀀트: 그 차이를 비교할 자료가 있을까요?"
+    },
+    {
+      "a": "scribe",
+      "b": "cio",
+      "bond": "갈등 없는 위계 긴장",
+      "friction": "기록이 실수를 두려워함",
+      "behavior": "CIO의 구체적 세 줄 칭찬이 도움",
+      "private_register": "기록→CIO님 / CIO→기록님, 상호 존댓말",
+      "fictional_example": "기록: 정리한 결정 세 가지 확인 부탁드립니다. / CIO: 네, 아까 이 정리가 좋았어요."
+    },
+    {
+      "a": "audit",
+      "b": "life",
+      "bond": "대화 출발점이 달라 어색",
+      "friction": "휴식 질문에 업무 진행으로 답함",
+      "behavior": "걷기 취미로 접점 가능",
+      "private_register": "서로 님·해요체, 아직 언니 아님",
+      "fictional_example": "LIFE: 점심 뒤에 조금 걸으셨어요? / 감사: 아, 아직요. 오전 건 정리하다가요."
+    },
+    {
+      "a": "audit",
+      "b": "cio",
+      "bond": "상호 존중하나 긴장",
+      "friction": "당시 불확실성 vs 사후 기록 부족",
+      "behavior": "농담보다 완결된 문장",
+      "private_register": "동갑이어도 상호 님·존댓말",
+      "fictional_example": "감사: 당시 결정 근거가 남아 있나요? / CIO: 네, 판단 시점 자료부터 드리겠습니다."
+    },
+    {
+      "a": "audit",
+      "b": "household",
+      "bond": "업무 밖 편한 동갑",
+      "friction": "업무 역할을 식탁으로 가져오지 않음",
+      "behavior": "문구 선물·과자와 편한 웃음",
+      "private_register": "동갑·상호 반말, 언니 없음",
+      "fictional_example": "내무: 이 스티커 네 거지? / 감사: 응. 그건 아직 아까워서 안 썼어."
+    },
+    {
+      "a": "household",
+      "b": "hf",
+      "bond": "무심한 돌봄이 편한 관계",
+      "friction": "내무는 HF의 늦은 끼니를 알아챔",
+      "behavior": "간식을 남겨두고 HF는 포장지를 정리",
+      "private_register": "HF→내무: 언니+해요체 / 내무→HF: 반말",
+      "fictional_example": "내무: 또 점심 늦었네. 이거 먹어. / HF: 고마워요, 언니."
+    },
+    {
+      "a": "compliance",
+      "b": "posrisk",
+      "bond": "사적 대화가 편한 실무 동료",
+      "friction": "업무에서는 기준·노출을 꼼꼼히",
+      "behavior": "수영 설명 손짓에 포지션리스크가 컵을 치움",
+      "private_register": "포지션리스크→컴플라이언스: 언니 / 컴플라이언스→포지션리스크: 반말",
+      "fictional_example": "포지션리스크: 언니 컵, 컵. / 컴플라이언스: 아 맞다. 아무튼 이 자세가…"
+    },
+    {
+      "a": "audit",
+      "b": "dev",
+      "bond": "처음엔 긴장·취미에서 풀림",
+      "friction": "개발이 감사 질문을 업무로 예상",
+      "behavior": "키보드 얘기에 개발 말이 길어짐",
+      "private_register": "상호 님·존댓말, 취미 얘기도 갑자기 반말로 전환하지 않음",
+      "fictional_example": "감사: 그 키보드는 소리가 좀 다르네요. / 개발: 아, 이건 스위치를 바꿔서요."
+    },
+    {
+      "a": "pm",
+      "b": "scribe",
+      "bond": "사적 부탁에는 시간을 내줌",
+      "friction": "PM은 추가 업무보다 개인 부탁에 약함",
+      "behavior": "발표 연습을 끝까지 들어줌",
+      "private_register": "기록→PM: 언니+해요체 / PM→기록: 반말",
+      "fictional_example": "기록: 언니, 마지막 한번만 들어줄 수 있어요? / PM: 응. 처음부터 해봐."
+    },
+    {
+      "a": "pb",
+      "b": "household",
+      "bond": "챙김과 눈인사가 편함",
+      "friction": "통화 중 PB를 방해하지 않음",
+      "behavior": "물·간식 놓고 짧은 눈인사",
+      "private_register": "PB→내무: 언니 / 내무→PB: 반말",
+      "fictional_example": "PB: 언니 아까 고마워. / 내무: 밥은 따로 먹어. 그걸로 때우지 말고."
+    }
+  ]
+}

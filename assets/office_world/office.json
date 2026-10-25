@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "fiction": true,
+  "runtime_integration": false,
+  "zones": [
+    {
+      "id": "strategy",
+      "members": [
+        "cio",
+        "alloc",
+        "macro",
+        "bonds",
+        "realestate"
+      ]
+    },
+    {
+      "id": "research",
+      "members": [
+        "quant",
+        "analyst",
+        "derivs",
+        "data"
+      ]
+    },
+    {
+      "id": "hf",
+      "members": [
+        "hf"
+      ]
+    },
+    {
+      "id": "pb",
+      "members": [
+        "pb"
+      ]
+    },
+    {
+      "id": "risk",
+      "members": [
+        "frm",
+        "behavior",
+        "compliance",
+        "posrisk"
+      ]
+    },
+    {
+      "id": "engineering",
+      "members": [
+        "dev",
+        "front",
+        "uxui",
+        "maint"
+      ]
+    },
+    {
+      "id": "operations",
+      "members": [
+        "pm",
+        "ops",
+        "scribe"
+      ]
+    },
+    {
+      "id": "education",
+      "members": [
+        "edu",
+        "eval"
+      ]
+    },
+    {
+      "id": "life",
+      "members": [
+        "household",
+        "life"
+      ]
+    },
+    {
+      "id": "verification",
+      "members": [
+        "verify",
+        "peer"
+      ]
+    },
+    {
+      "id": "audit",
+      "members": [
+        "audit"
+      ]
+    }
+  ],
+  "adjacency": [
+    "PB와 HF는 중앙 통로를 사이에 둔 대각선 자리",
+    "PM은 PB와 HF의 대화가 들리는 근거리",
+    "매크로–채권 이웃",
+    "프론트–UXUI 이웃, 개발 맞은편",
+    "감사 별도 업무실"
+  ],
+  "lunch_groups": [
+    {
+      "id": "menu",
+      "members": [
+        "pb",
+        "analyst",
+        "front",
+        "scribe"
+      ]
+    },
+    {
+      "id": "routine",
+      "members": [
+        "alloc",
+        "bonds",
+        "household"
+      ],
+      "occasional": [
+        "macro"
+      ]
+    },
+    {
+      "id": "debate",
+      "members": [
+        "quant",
+        "derivs",
+        "verify",
+        "eval"
+      ]
+    },
+    {
+      "id": "late",
+      "members": [
+        "dev",
+        "maint",
+        "ops",
+        "pm"
+      ],
+      "occasional": [
+        "uxui"
+      ]
+    },
+    {
+      "id": "walk",
+      "members": [
+        "life",
+        "behavior",
+        "realestate"
+      ]
+    }
+  ]
+}
