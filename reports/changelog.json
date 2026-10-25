@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-25 02:37 KST",
+ "generated_at": "2026-10-26 02:53 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,10 +16,10 @@
  "first": "2026-10-15",
  "days": [
   {
-   "date": "2026-10-25",
-   "total": 2,
+   "date": "2026-10-26",
+   "total": 4,
    "work": 1,
-   "auto": 1,
+   "auto": 3,
    "by": {
     "bot": 1
    },
@@ -29,6 +29,699 @@
      "label": "운영",
      "n": 1,
      "items": [
+      {
+       "sha": "e312f0bd",
+       "time": "01:29",
+       "kind": "bot",
+       "summary": "team: 2026-10-25T16:29 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 3,
+    "label": "자동 갱신 3회",
+    "kinds": {
+     "health": 1,
+     "backfill": 1,
+     "lab": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 1
+   }
+  },
+  {
+   "date": "2026-10-25",
+   "total": 89,
+   "work": 82,
+   "auto": 7,
+   "by": {
+    "bot": 23,
+    "agent": 59
+   },
+   "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 1,
+     "items": [
+      {
+       "sha": "5528ed3e",
+       "time": "19:36",
+       "kind": "agent",
+       "summary": "dev: 부동산 탭 '내 계획(비공개)' 보기 — 토큰으로 pb-private manifest·md 열람 (realestate-private-viewer)",
+       "areas": [
+        "web",
+        "ops",
+        "tools",
+        "docs"
+       ],
+       "files": 7,
+       "tasks": [
+        "ops-system",
+        "index-split",
+        "my-tab-ledger-compare",
+        "us-committee-v2",
+        "battle-scoreboard",
+        "english-v2-ui",
+        "repo-size-stage1",
+        "macro-popup-live",
+        "research-synthesis",
+        "deriv-insight",
+        "daily-duel-collapse",
+        "uxui-quant",
+        "public-reports",
+        "macro-tab",
+        "bonds-summary",
+        "uxui-top10-impl",
+        "front-first-round",
+        "org-rnr",
+        "realestate-private-viewer"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "workflow",
+     "label": "워크플로",
+     "n": 1,
+     "items": [
+      {
+       "sha": "5d975d6a",
+       "time": "19:00",
+       "kind": "agent",
+       "summary": "data: 정책금리 시리즈(FRED·ECOS) + VKOSPI 일별 수집 (req-data-2964da3f, req-data-4e390b32)",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 8,
+       "tasks": [
+        "night-futures-line",
+        "deriv-hist",
+        "earn-cal-q3"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 2,
+     "items": [
+      {
+       "sha": "e5510255",
+       "time": "19:09",
+       "kind": "agent",
+       "summary": "data: macro_series 에 국고 3Y(KR3Y)·미 10Y TIPS(TIPS10Y) 일봉 + 국고 3Y 단일 출처 KRX 명시 — req-data-5046a78b·1fd3dc04",
+       "areas": [
+        "engine",
+        "tools",
+        "docs",
+        "data",
+        "etc"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "7eca0ede",
+       "time": "19:06",
+       "kind": "agent",
+       "summary": "data: us_eps 일별 스냅숏 이력(reports/us_eps_hist.parquet, 아카이브 복원 5일) — req-data-751d13c7",
+       "areas": [
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 4,
+       "tasks": [
+        "drivers-audit"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 42,
+     "items": [
+      {
+       "sha": "97bd2a09",
+       "time": "22:43",
+       "kind": "agent",
+       "summary": "pm: 10/25 22:30 팀 업무량 대조(누락 에이전트·메인 대화 행)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "2f336441",
+       "time": "22:43",
+       "kind": "agent",
+       "summary": "pm: 기록 22:30 슬롯 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "83dc1d09",
+       "time": "21:12",
+       "kind": "agent",
+       "summary": "PB: 프리맨 OKR v1.0(전사 1·본부 7·데스크 29, 승인 전 제안안) 반영 — 월 적립 수치는 비공개 치환",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "320f369c",
+       "time": "20:58",
+       "kind": "agent",
+       "summary": "PB: OKR 형식 O1·KR2 로 정리",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b3ada9b2",
+       "time": "20:57",
+       "kind": "agent",
+       "summary": "PB: 프리맨 OKR 초안(OKR.md)과 보드 freeman-okr 등록 (개인 수치 없음)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "86a93051",
+       "time": "20:53",
+       "kind": "agent",
+       "summary": "PB: 에너지 누수 '나태' 메모(개인 수치 없음)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "fb152d47",
+       "time": "20:53",
+       "kind": "agent",
+       "summary": "PB: 프리맨 헌장 검토 반영안 메모(개인 수치 없음)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "6739b3a9",
+       "time": "20:51",
+       "kind": "agent",
+       "summary": "PB: 프리맨 에너지·시간 운영 설계 항목 등록(개인 수치 없음)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "6861b1b8",
+       "time": "20:47",
+       "kind": "agent",
+       "summary": "PB: 주거 자본 버킷 분리 검토 안건 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "c46be707",
+       "time": "20:47",
+       "kind": "agent",
+       "summary": "PB: 프리맨 프로젝트 묶음 항목 등록(개인 수치 없음)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "6b931452",
+       "time": "20:46",
+       "kind": "bot",
+       "summary": "team: 2026-10-25T11:46 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a3882ae3",
+       "time": "19:45",
+       "kind": "agent",
+       "summary": "PB: 이력 정리(유출 문자열 치환) 보드 등록(P0, 겸이 승인 대기)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "4380baa8",
+       "time": "19:43",
+       "kind": "agent",
+       "summary": "PB: 복기 — 공개 장부 개인 금액 유출(금액 없음) / pm: 감사 사용량",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "6e647a74",
+       "time": "19:37",
+       "kind": "agent",
+       "summary": "pm: 부동산·개발(비공개 열람) 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a6a6be70",
+       "time": "19:24",
+       "kind": "agent",
+       "summary": "잠금 — apps-script/tab_realestate.html (개발, realestate-private-viewer)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "20b521c5",
+       "time": "19:23",
+       "kind": "agent",
+       "summary": "PB: 부동산 비공개 보고서 웹 열람(realestate-private-viewer) 보드 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b98ee022",
+       "time": "19:19",
+       "kind": "agent",
+       "summary": "PB: 보고 형식 통일 확대 안건(report-format-rollout, P1) 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "ac70bbde",
+       "time": "19:17",
+       "kind": "agent",
+       "summary": "PB: 보고서 3칸 틀 문체 확정(공식 개조식) 보드 반영",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "55bee794",
+       "time": "19:14",
+       "kind": "agent",
+       "summary": "PB: 퀀트 보고서 What/So what/Now what 리팩토링 안건 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "51e9f068",
+       "time": "19:10",
+       "kind": "agent",
+       "summary": "pm: 메신저 라운드 데이터 2차 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "ce4f0448",
+       "time": "19:08",
+       "kind": "agent",
+       "summary": "pm: 에이전트 고정비 실측(범용 52.8k vs 도구 적음 33.5k) 메모",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d0bae4e6",
+       "time": "19:07",
+       "kind": "agent",
+       "summary": "PB: LOOP 읽기 규칙 개정 검토 보드 등록(P1)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "2bfadb19",
+       "time": "19:06",
+       "kind": "agent",
+       "summary": "pm: 메신저 라운드 시험 사용량(개발·채권) + 토큰 고정비 실측 메모",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "80b2a15e",
+       "time": "19:03",
+       "kind": "agent",
+       "summary": "pm: 메신저 라운드 시험 최종 사용량(116,077)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "50788ef1",
+       "time": "19:02",
+       "kind": "agent",
+       "summary": "pm: 메신저 라운드 시험 사용량 기록(데이터 2건 닫기·회신 반영)",
+       "areas": [
+        "ops",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "94009083",
+       "time": "19:02",
+       "kind": "agent",
+       "summary": "PB: 보드 담당자 목록 조직도 기준 정리(백테스트→퀀트, 헬스→LIFE, UXUI 추가)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "37d7b2be",
+       "time": "18:58",
+       "kind": "agent",
+       "summary": "PB: 데스크 수 정정(현재 29, 충원 후 30)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "0f0a87ae",
+       "time": "18:56",
+       "kind": "agent",
+       "summary": "PB: 데이터 엔지니어 채용 방향·교차학습 폐지·선별 학습 보드 반영",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b276bdae",
+       "time": "18:46",
+       "kind": "agent",
+       "summary": "PB: 토큰긴축 회의 안건 추가(현재 유효 상태 요약 파일)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "48418aba",
+       "time": "18:46",
+       "kind": "agent",
+       "summary": "PB: 토큰긴축 회의 안건 old/ 이동 추가",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "cef2e9f1",
+       "time": "18:45",
+       "kind": "agent",
+       "summary": "PB: 11/12 Pro 전환 전 집중 작업 보드 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d778e83e",
+       "time": "18:45",
+       "kind": "agent",
+       "summary": "PB: 전체 정합성 재검증 보드 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a7ed922d",
+       "time": "18:45",
+       "kind": "agent",
+       "summary": "PB: 정합성 재검증 역할 분담(감사·유지보수) 명시",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "3f363ad2",
+       "time": "18:41",
+       "kind": "agent",
+       "summary": "PB: LIFE 뱅샐 입력 자동화 보드 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b0d53591",
+       "time": "18:29",
+       "kind": "agent",
+       "summary": "PB: 화요일 11시 이후 작업 5건 보드 등록(리스크 이벤트·선옵시세·부동산 드릴다운·PostgreSQL 회의·토큰긴축 회의)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "0f5103e2",
+       "time": "18:09",
+       "kind": "agent",
+       "summary": "household: req-household-483d08f5 회신·닫음 + pm: 사용량",
+       "areas": [
+        "ops",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "c231df44",
+       "time": "18:06",
+       "kind": "agent",
+       "summary": "운영 — 보드 — 장기 검토 터미널 설계안(보류, 11/30)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "765b864b",
+       "time": "15:16",
+       "kind": "bot",
+       "summary": "team: 2026-10-25T06:16 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "6662ea26",
+       "time": "10:15",
+       "kind": "bot",
+       "summary": "team: 2026-10-25T01:15 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "df875514",
+       "time": "07:32",
+       "kind": "bot",
+       "summary": "team: 2026-10-24T22:32 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d2a1e6c8",
+       "time": "04:32",
+       "kind": "bot",
+       "summary": "team: 2026-10-24T19:32 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "709bf86d",
        "time": "01:39",
@@ -44,17 +737,484 @@
        ]
       }
      ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 1,
+     "items": [
+      {
+       "sha": "f516d654",
+       "time": "19:05",
+       "kind": "agent",
+       "summary": "dev: watchdog 새 것/밀린 것 구분 + 마감 변경 횟수 집계 (req-dev-8d80aab2)",
+       "areas": [
+        "tools",
+        "docs"
+       ],
+       "files": 3,
+       "tasks": [
+        "repo-size-stage1",
+        "watchdog-b",
+        "dispatch-redundancy"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 23,
+     "items": [
+      {
+       "sha": "675e5de0",
+       "time": "20:56",
+       "kind": "agent",
+       "summary": "PB: 프리맨 프로젝트 공통 비전 문서(VISION.md) + CLAUDE.md 포인터 (개인 수치 없음)",
+       "areas": [
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "pre-push-guard"
+       ]
+      },
+      {
+       "sha": "6df2f645",
+       "time": "20:44",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T11:44 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b828cfd1",
+       "time": "19:55",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:55 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "563d6305",
+       "time": "19:52",
+       "kind": "agent",
+       "summary": "PB: 감사–PB 관계 반영(relationships.json), KB 문구 톤다운",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "85dd6332",
+       "time": "19:48",
+       "kind": "agent",
+       "summary": "PB: 감사 캐릭터 에피소드 추가(10/25 PB 유출 사고 이후 PB 경계·우선 감시, 겸이 지시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "4f900739",
+       "time": "19:42",
+       "kind": "agent",
+       "summary": "감사: PB 공개 장부 개인 금액 누출 감사 보고 + 재발 방지 요청 2건 (치명 6·중 1, HEAD 제거 확인)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "ffde172a",
+       "time": "19:42",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:42 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "eb026680",
+       "time": "19:40",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:40 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a142e3f1",
+       "time": "19:39",
+       "kind": "agent",
+       "summary": "PB: 요청 장부·사내톡 피드에서 개인 금액 3건 삭제(연봉·자산 수치 → 비공개 참조)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "f37eb6d1",
+       "time": "19:31",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:31 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "579ba3e8",
+       "time": "19:28",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:28 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "83d41c5a",
+       "time": "19:27",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:27 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1e3a278c",
+       "time": "19:26",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:26 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1d03e172",
+       "time": "19:10",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:10 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6ae96dfa",
+       "time": "19:06",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:06 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "8d48925b",
+       "time": "19:04",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:04 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f621f022",
+       "time": "19:02",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T10:02 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5d07b886",
+       "time": "18:47",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T09:47 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "4e04e3cf",
+       "time": "18:18",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T09:18 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "3c4c70a5",
+       "time": "18:17",
+       "kind": "agent",
+       "summary": "운영 — 내무 요청 — [금액]+ 진행률 DC 제외 표시(화 이후)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "6d883988",
+       "time": "18:09",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T09:09 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b1d9805e",
+       "time": "16:52",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-10-25T07:52 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "193826d5",
+       "time": "16:51",
+       "kind": "agent",
+       "summary": "front: document office personas and private chat relationships",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 9,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 1,
+     "items": [
+      {
+       "sha": "e691e3ea",
+       "time": "07:16",
+       "kind": "bot",
+       "summary": "hist: 시세 창고 갱신 2026-10-24",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "repo-size-stage1"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "etc",
+     "label": "기타",
+     "n": 11,
+     "items": [
+      {
+       "sha": "118150f3",
+       "time": "20:43",
+       "kind": "agent",
+       "summary": "PB: 임차 vs 단계적 매수 비교 모델 요청(내무, 수치 비공개 참조)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ca570414",
+       "time": "19:55",
+       "kind": "agent",
+       "summary": "PB: 만 나이 기준 부동산 자격 반영 요청(수치 비공개 참조)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "07922bb8",
+       "time": "19:31",
+       "kind": "agent",
+       "summary": "PB: 생애최초 vs 신혼 경로 비교 요청(부동산)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "85dbfbb8",
+       "time": "19:27",
+       "kind": "agent",
+       "summary": "PB: 연봉인상률·이직 시나리오 반영 요청(내무)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "7284a7cd",
+       "time": "19:26",
+       "kind": "agent",
+       "summary": "PB: 연봉·부모님 지원 입력값 확정 반영 요청(내무)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "dbd526bc",
+       "time": "19:25",
+       "kind": "agent",
+       "summary": "PB: 세대분리 시점 정정 반영 요청(내무·부동산)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "027ba108",
+       "time": "19:09",
+       "kind": "agent",
+       "summary": "data: 요청 회신·닫음 기록(5046a78b·751d13c7·1fd3dc04)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "202af260",
+       "time": "19:06",
+       "kind": "agent",
+       "summary": "dev: 요청 회신·닫음(req-dev-8d80aab2 닫음, req-dev-54eba83d 회신) + 사담",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "035f32e5",
+       "time": "19:03",
+       "kind": "agent",
+       "summary": "PB: 채권 누나에게 policy_rates 검토 요청",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ab5d1e36",
+       "time": "18:47",
+       "kind": "agent",
+       "summary": "PB: req-household-4c160bc3 진행표(차이 원인 대조 완료, 표시 변경 남음)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "7aa7c470",
+       "time": "10:26",
+       "kind": "agent",
+       "summary": "front: refresh macro headshot and candid office background",
+       "areas": [
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      }
+     ]
     }
    ],
    "auto_updates": {
-    "n": 1,
-    "label": "자동 갱신 1회",
+    "n": 7,
+    "label": "자동 갱신 7회",
     "kinds": {
-     "backfill": 1
+     "ops": 2,
+     "health": 2,
+     "backfill": 1,
+     "fin": 1,
+     "scorecard": 1
     }
    },
    "tasks": {
-    "ops-system": 1
+    "ops-system": 43,
+    "repo-size-stage1": 3,
+    "night-futures-line": 1,
+    "deriv-hist": 1,
+    "earn-cal-q3": 1,
+    "watchdog-b": 1,
+    "dispatch-redundancy": 1,
+    "drivers-audit": 1,
+    "index-split": 1,
+    "my-tab-ledger-compare": 1,
+    "us-committee-v2": 1,
+    "battle-scoreboard": 1,
+    "english-v2-ui": 1,
+    "macro-popup-live": 1,
+    "research-synthesis": 1,
+    "deriv-insight": 1,
+    "daily-duel-collapse": 1,
+    "uxui-quant": 1,
+    "public-reports": 1,
+    "macro-tab": 1,
+    "bonds-summary": 1,
+    "uxui-top10-impl": 1,
+    "front-first-round": 1,
+    "org-rnr": 1,
+    "realestate-private-viewer": 1,
+    "pre-push-guard": 1
    }
   },
   {
