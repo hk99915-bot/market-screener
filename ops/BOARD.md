@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-25 · 작업 268개 · 진행 8 · 검수 10 · 대기 83 · 보류 5 · 완료 162
+기준일 2026-10-25 · 작업 269개 · 진행 8 · 검수 10 · 대기 83 · 보류 6 · 완료 162
 
 **결재 대기 3:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이), `appr-edu-xlearn` (겸이)
 
@@ -124,7 +124,7 @@
 | P3 ⏫P1 10-23 | `jiang-prediction-ledger` | Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기) | 검증 | — | 2026-11-07 | `reports/views/jiang_predictions.json` | `public-reports` | 애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈. |
 | P3 ⏫P1 10-21 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
-## 보류 (5)
+## 보류 (6)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -133,6 +133,7 @@
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
 | P2 | `my-isa-split` | MY 탭 ISA(코어) / 위성 북 분리 표시 + 테마 한도 분모 = 순자산(CMA 포함) | 개발 | — | 2026-11-16 | `apps-script/Index.html` | `holdings-unify` | 안건 8-J. 레거시 북 분리안(일요일)이 통과되면 3분할. 동결 — 11/16 이후. |
 | P2 | `user-realestate-keys-1023` | 겸이 결재 필요(보류 11/30): 부동산 데이터 키 3종(R-ONE·실거래가·ECOS) 무료 발급 후 저장소 시크릿 등록할까? | 사용자 | — | 2026-11-30 | `screener/realestate.py` | — | 부동산 10/23: 키 없으면 부동산원 주간 가격 칸이 키 필요로 비어 있음(데스크 2차 보도 스냅샷으로 대체). 발급 후 데이터 데스크가 workflow env 3줄 추가(req-data-50ca9092). 설계서 docs/realestate/2026-10-23_tab_design.md §5 / 10/24 운영 점검: 보류 — 겸이 10/23 '나중에 하자'(a391f778), 기한 11/30 |
+| P3 | `longterm-terminal-design` | 장기 검토: 29데스크 컨텍스트 효율·PostgreSQL POC·선택적 검색 설계안 2건 검토(설계 전용) | PM | 2026-10-25 | 2026-11-30 | private 전용 | — | 10/25 겸이 "이건 장기 검토용". 문서 자체가 READ-ONLY·승인 전 변경 금지 명시. 토큰 긴축 해제 뒤 PM·개발·데이터 검토 일정 잡기. |
 
 ## 완료 (162)
 

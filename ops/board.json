@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-24",
+  "updated": "2026-10-25",
   "owners": [
     "PB",
     "퀀트",
@@ -4964,6 +4964,22 @@
       "priority": "P2",
       "status": "보류",
       "repo": "public"
+    },
+    {
+      "started": "2026-10-25",
+      "due": "2026-11-30",
+      "files": [
+        "pb-private:ops/longterm/2026-10-25_*.md"
+      ],
+      "depends_on": [],
+      "notes": "10/25 겸이 \"이건 장기 검토용\". 문서 자체가 READ-ONLY·승인 전 변경 금지 명시. 토큰 긴축 해제 뒤 PM·개발·데이터 검토 일정 잡기.",
+      "id": "longterm-terminal-design",
+      "title": "장기 검토: 29데스크 컨텍스트 효율·PostgreSQL POC·선택적 검색 설계안 2건 검토(설계 전용)",
+      "owner": "PM",
+      "desk": "PM",
+      "priority": "P3",
+      "status": "보류",
+      "repo": "private"
     }
   ]
 }
