@@ -1,5 +1,6 @@
 """공공 리포트 트래커·Jiang 피드(screener/public_reports) + 리서치 종합 카드 — 합성 데이터, 네트워크 없음."""
 from datetime import date
+from pathlib import Path
 
 from screener import public_reports as pr
 from screener import research_synthesis as rs
@@ -157,3 +158,61 @@ def test_digest_public_items_have_one_line():
     for i in pub:
         assert i.get("one_line") and i.get("confidence") in ("상", "중", "하") and i.get("source_checked"), i["id"]
         assert ("원문 확인" in i["source_checked"]) or ("미확인" in i["source_checked"] and "검증전" in i["source_checked"]), i["id"]
+
+
+# ── 한은 조사연구 목록(BOK 이슈노트·경제연구) · KCMI 목록 — 저장 HTML 픽스처(2026-10-26 접속 발췌) ──
+FIX = Path(__file__).parent / "fixtures" / "public_reports"
+
+
+def test_bok_issue_note_list_fixture():
+    rows = pr.parse_bok_list((FIX / "bok_issue_list.html").read_text(encoding="utf-8"))
+    assert [r["date"] for r in rows] == [date(2026, 10, 26), date(2026, 10, 6), date(2026, 9, 15)]
+    r = rows[0]
+    assert r["title"] == "[제2026-27호] 청년고용 부진 및 정책 과제" and r["series"] == "BOK 이슈노트" and r["depart"] == "고용동향팀"
+    assert r["link"] == "https://www.bok.or.kr/portal/bbs/P0002353/view.do?nttId=11065913&menuNo=200433"
+
+
+def test_bok_research_series_by_board():
+    rows = pr.parse_bok_list((FIX / "bok_research_list.html").read_text(encoding="utf-8"))
+    assert [r["series"] for r in rows] == ["BOK 경제연구(국문)", "BOK 경제연구(영문)"]
+    assert rows[0]["date"] == date(2026, 10, 1) and rows[1]["depart"] == "경제안보연구실"
+    assert pr.parse_bok_list('<li class="bbsRowCls"><a href="/portal/bbs/B0000502/view.do?nttId=1" class="title">보도</a></li>') == []   # 모르는 게시판 버림
+
+
+def test_bok_view_meta_and_gist():
+    v = pr.parse_bok_view((FIX / "bok_issue_view.html").read_text(encoding="utf-8"))
+    assert v["pdf"].startswith("https://www.bok.or.kr/fileSrc/portal/") and v["pdf"].endswith(".pdf") and "token" not in v["pdf"]
+    assert v["kind"] == "경제일반" and v["depart"] == "고용동향팀"
+    assert v["gist"].startswith("팬데믹 이후") and v["gist"].endswith("다.") and len(v["gist"]) <= 200
+
+
+def test_bok_research_source_end_to_end():
+    src = next(s for s in pr.SOURCES if s["id"] == "bok_research")
+    lst, view = (FIX / "bok_issue_list.html").read_text(encoding="utf-8"), (FIX / "bok_issue_view.html").read_text(encoding="utf-8")
+    rows, st = pr.fetch_source(src, get=lambda u: view if "view.do" in u else lst)
+    assert st["status"] == "ok" and rows[0]["pdf"] and rows[0]["summary_src"] == "한은 게시 요지 첫 문장"
+    items, _ = pr.merge([], rows, "bok_research", "한국은행", "한은", "x", date(2026, 10, 26))
+    assert items[0]["series"] == "BOK 이슈노트" and items[0]["pdf"] and items[0]["depart"] == "고용동향팀"
+    items2, _ = pr.merge([dict(i, pdf=None) for i in items], rows, "bok_research", "한국은행", "한은", "y", date(2026, 10, 27))
+    assert len(items2) == len(items) and items2[0]["pdf"]   # 이미 있는 행은 빈 메타만 채움
+
+
+def test_kcmi_list_skips_hashtags():
+    rows = pr.parse_kcmi_list((FIX / "kcmi_list.html").read_text(encoding="utf-8"))
+    assert [r["title"] for r in rows] == ["임팩트투자 생태계 현황과 과제", "미국 사모신용시장의 건전성, 유동성 및 시스템리스크"]
+    assert rows[1]["link"] == "https://www.kcmi.re.kr/report/report_view?report_no=2337" and rows[1]["date"] == date(2026, 10, 12)
+    assert not any(r["title"].startswith("#") for r in rows)
+
+
+def test_bok_view_author_paragraph():
+    v = pr.parse_bok_view('<dd class="depart">거시경제연구실(02-1)</dd><div class="dbdata "><p>저자: 최영준(한국은행)</p>'
+                          '<p>본 연구는 환율급등 경험을 분석한다. 둘째 문장.</p></div>')
+    assert v["author"] == "최영준(한국은행)" and v["gist"] == "본 연구는 환율급등 경험을 분석한다." and v["depart"] == "거시경제연구실"
+
+
+def test_public_card_carries_pdf_and_bok_gist():
+    pub = {"items": [{"key": "k", "src": "bok_research", "group": "한은", "inst": "한국은행", "series": "BOK 이슈노트", "title": "[제2026-27호] t",
+                      "date": "2026-10-26", "link": "l", "pdf": "https://www.bok.or.kr/fileSrc/x.pdf", "summary": "요지 문장이다.",
+                      "summary_src": "한은 게시 요지 첫 문장", "collected_at": "x"}], "calendar": [], "sources": []}
+    row = rs.public_card(pub, date(2026, 10, 26))["items30"][0]
+    assert row["pdf"].endswith(".pdf") and row["src_gist"] == "요지 문장이다." and row["status"] == "요약 대기"

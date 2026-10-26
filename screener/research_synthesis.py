@@ -138,6 +138,10 @@ def _pub_row(i: dict | None, d: dict | None) -> dict:
            "inst": base.get("inst") or inst, "group": base.get("group") or group, "series": base.get("series") or (d or {}).get("series") or "",
            "title": (d or {}).get("title") or base.get("title"), "link": base.get("link") or (d or {}).get("link"),
            "status": "ok" if digest_ok(d) else "요약 대기"}
+    if base.get("pdf"):
+        row["pdf"] = base["pdf"]
+    if base.get("summary_src") and base.get("summary"):   # 기관이 직접 게시한 요지 1문장(한은 조사연구) — 우리 요약 아님
+        row["src_gist"] = base["summary"][:200]
     if row["status"] == "ok":
         row.update({k: d.get(k) for k in PUB_ROW_KEYS})
     return row

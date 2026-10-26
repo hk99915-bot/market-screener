@@ -55,9 +55,15 @@ BOK_SERIES = [
     ("기업경기조사(BSI)·경제심리지수", r"기업경기조사|경제심리지수", M),
     ("국제수지", r"국제수지", M),
     ("수출입물가", r"수출입물가", M),
-    ("BOK 이슈노트", r"이슈\s*노트", None),
-    ("경제연구·조사통계월보", r"경제연구|조사통계월보", None),
+    ("조사통계월보", r"조사통계월보", None),
 ]
+# 한은 조사연구 목록(10/26 겸이 "한은 이슈노트도 트래킹") — 목록은 list.do 가 빈 껍데기이고 실제 행은 newsData/listCont.do(ajax)가 준다.
+# 시리즈는 게시판(bbsId)으로 구분: 제목 정규식 대신 parse_bok_list 가 직접 붙인다. 'BOK 경제브리프'는 2026-10 홈페이지 메뉴에 없음(미확인).
+BOK_BBS = {"P0002353": "BOK 이슈노트", "P0002455": "BOK 경제연구(국문)", "P0002456": "BOK 경제연구(영문)"}
+BOK_RESEARCH_SERIES = [(n, re.escape(n), None) for n in BOK_BBS.values()]
+BOK_LIST = ("https://www.bok.or.kr/portal/singl/newsData/listCont.do?pageIndex=1&targetDepth=3&menuNo={m}&syncMenuChekKey=1"
+            "&searchCnd=1&searchKwd=&sort=1&pageUnit=10&depth2=201156&depth3={m}")
+BOK_DETAIL_N = 10   # 실행마다 상세(view.do)를 여는 최근 행 수 — PDF 링크·담당부서·한은 요지 1문장
 SOURCES: list[dict] = [
     # ── 한국은행 ──
     {"id": "bok_press", "group": "한은", "inst": "한국은행", "series": BOK_SERIES,
@@ -65,9 +71,9 @@ SOURCES: list[dict] = [
               "https://www.bok.or.kr/portal/bbs/B0000338/list.do?menuNo=200761",
               "https://www.bok.or.kr/portal/bbs/B0000338/news.rss", "https://www.bok.or.kr/portal/bbs/B0000245/news.rss",
               "https://www.bok.or.kr/portal/bbs/P0000559/news.rss"]},
-    {"id": "bok_pub", "manual": "간행물 목록 날짜 형식 미파싱(10/21) — 한은 보도자료 RSS(bok_press)로 대체, 이슈노트 목록은 수동", "group": "한은", "inst": "한국은행", "series": BOK_SERIES,
-     "urls": ["https://www.bok.or.kr/portal/bbs/P0002353/list.do?menuNo=200433",
-              "https://www.bok.or.kr/portal/bbs/B0000217/list.do?menuNo=200144"]},
+    # bok_pub(10/21 수동) → bok_research(10/26): 목록 ajax(listCont.do) 직접 파싱. 200433 = BOK 이슈노트, 200431 = BOK 경제연구(국·영문)
+    {"id": "bok_research", "group": "한은", "inst": "한국은행", "series": BOK_RESEARCH_SERIES, "parser": "bok",
+     "urls": [BOK_LIST.format(m=200433), BOK_LIST.format(m=200431)]},
     # ── 정부·연구기관 ──
     {"id": "moef", "group": "정부·연구기관", "inst": "기재부", "series": [("그린북(최근 경제동향)", r"최근\s*경제동향|그린북", M)],
      "urls": ["https://www.moef.go.kr/com/detailRssTagService.do?bbsId=MOSFBBS_000000000028", "https://www.korea.kr/briefing/pressReleaseList.do"]},
@@ -82,7 +88,7 @@ SOURCES: list[dict] = [
      "urls": ["https://www.kiep.go.kr/gallery.es?mid=a10101010000&bid=0001"]},
     {"id": "kif", "manual": "목록이 스크립트로 그려져 정적 HTML 에 날짜 없음(10/21 확인) — 수동", "group": "정부·연구기관", "inst": "금융연구원", "series": [("KIF 보고서", r".", None)],
      "urls": ["https://www.kif.re.kr/kif4/publication/pub_list?mid=10"]},
-    {"id": "kcmi", "group": "정부·연구기관", "inst": "자본시장연구원", "series": [("KCMI 보고서", r".", None)],
+    {"id": "kcmi", "group": "정부·연구기관", "inst": "자본시장연구원", "series": [("KCMI 보고서", r".", None)], "parser": "kcmi",
      "urls": ["https://www.kcmi.re.kr/report/report_list"]},
     {"id": "nabo", "manual": "첫 화면이 스크립트 리다이렉트(10/21 확인) — 수동", "group": "정부·연구기관", "inst": "국회예산정책처", "series": [("NABO 보고서", r"경제|재정|전망|동향", None)],
      "urls": ["https://www.nabo.go.kr/", "https://www.nabo.go.kr/ko/issue.do"]},
@@ -200,6 +206,78 @@ def parse_html_list(text: str, base: str) -> list[dict]:
     return out
 
 
+BOK_ROW = re.compile(r'<li class="bbsRowCls">(.*?)</li>', re.S)
+
+
+def _txt(s: str | None) -> str | None:
+    return _clean(re.sub(r"<!--.*?-->|<span class=\"sr-only\">.*?</span>", " ", s or "", flags=re.S), 300)
+
+
+def parse_bok_list(text: str, base: str = "https://www.bok.or.kr/") -> list[dict]:
+    """한은 newsData/listCont.do 행(li.bbsRowCls) → 제목·등록일·담당부서·view 링크, 시리즈 = 게시판(BOK_BBS). 모르는 게시판은 버림."""
+    out = []
+    for m in BOK_ROW.finditer(text):
+        b = m.group(1)
+        a = re.search(r'<a href="([^"]*?/bbs/(\w+)/view\.do\?nttId=(\d+)[^"]*)"[^>]*class="title"[^>]*>(.*?)</a>', b, re.S)
+        if not a or a.group(2) not in BOK_BBS:
+            continue
+        mn = re.search(r"[?&]menuNo=(\d+)", htmlmod.unescape(a.group(1)))
+        dt = re.search(r'class="date">.*?(20\d\d\.\s*\d{1,2}\.\s*\d{1,2})', b, re.S)
+        dep = re.search(r'class="depart">(.*?)</span>\s*<span class="hits', b, re.S) or re.search(r'class="depart">(.*?)</span>', b, re.S)
+        link = urljoin(base, f"/portal/bbs/{a.group(2)}/view.do?nttId={a.group(3)}" + (f"&menuNo={mn.group(1)}" if mn else ""))
+        out.append({"title": _txt(a.group(4)), "link": link, "date": _date(dt.group(1)) if dt else None,
+                    "summary": None, "vid": None, "series": BOK_BBS[a.group(2)], "depart": _txt(dep.group(1)) if dep else None})
+    return [r for r in out if r["title"]]
+
+
+def parse_bok_view(text: str, base: str = "https://www.bok.or.kr/") -> dict:
+    """한은 view.do → PDF 첨부 링크(/fileSrc/… 고정 경로, 토큰 붙은 CDN 링크는 안 씀)·구분·담당부서(전화 제거)·한은 요지 첫 문장(≤200자).
+    본문 재게시 금지 — 요지는 한은이 게시한 요약의 첫 문장만."""
+    pdf = re.search(r'href="(/fileSrc/[^"]+?\.pdf)"', text)
+    kind = re.search(r'<dd class="ass">(.*?)</dd>', text, re.S)
+    dep = re.search(r'<dd class="depart">(.*?)</dd>', text, re.S)
+    gist = author = None
+    body = re.search(r'<div class="dbdata[^"]*">(.*?)</div>', text, re.S)
+    if body:
+        g = _clean(re.sub(r"<(?!/p>)[^>]+>", "", re.sub(r"</p>", " ¶ ", body.group(1))), 2000) or ""   # 인라인 태그는 공백 없이 제거(원문 띄어쓰기 유지)
+        for para in (x.strip() for x in g.split("¶")):
+            if not para:
+                continue
+            if para.startswith("저자") and not author:   # BOK 경제연구: 첫 문단 = 저자(소속)
+                author = _clean(re.sub(r"^저자\s*[:：]\s*", "", para), 160)
+                continue
+            para = re.sub(r"^1\.\s*", "", para)
+            s1 = re.match(r"(.+?(?:다|음|함)\.)(\s|$)", para)
+            gist = _clean((s1.group(1) if s1 else para), 200)
+            break
+    d = _txt(dep.group(1)) if dep else None
+    return {"pdf": urljoin(base, htmlmod.unescape(pdf.group(1))) if pdf else None, "kind": _txt(kind.group(1)) if kind else None,
+            "depart": re.sub(r"\s*\(.*?\)\s*$", "", d) if d else None, "gist": gist, "author": author}
+
+
+KCMI_ROW = re.compile(r'id="rsidx_(\d+)"(.*?)viewpage\(\1', re.S)
+
+
+def parse_kcmi_list(text: str, base: str = "https://www.kcmi.re.kr/report/report_list") -> list[dict]:
+    """자본시장연구원 목록: 해시태그(#…) 링크가 아니라 rpt_title 의 <strong> 제목 + <em> 안 날짜, 링크 = report_view?report_no=N (req-data-6f17926c)."""
+    out = []
+    for m in KCMI_ROW.finditer(text):
+        b = m.group(2)
+        t = re.search(r'class="rpt_title">\s*<strong>(.*?)</strong>\s*<em>(.*?)</em>', b, re.S)
+        if not t:
+            continue
+        title = _clean(t.group(1), 300)
+        if not title or title.startswith("#"):
+            continue
+        out.append({"title": title, "link": urljoin(base, f"/report/report_view?report_no={m.group(1)}"),
+                    "date": _date(_clean(t.group(2))), "summary": None, "vid": None,
+                    "author": _clean(re.sub(r"<span>.*?</span>", "", t.group(2), flags=re.S), 80)})
+    return out
+
+
+PARSERS = {"bok": parse_bok_list, "kcmi": parse_kcmi_list}
+
+
 def _get(url: str, timeout: int = 20) -> str:
     import requests
     r = requests.get(url, headers=UA, timeout=timeout)
@@ -211,6 +289,9 @@ def _get(url: str, timeout: int = 20) -> str:
 def classify(src: dict, rows: list[dict]) -> list[dict]:
     out = []
     for r in rows:
+        if r.get("series"):   # 전용 파서가 시리즈를 이미 붙임(게시판 구분)
+            out.append(r)
+            continue
         for name, pat, _ in src["series"]:
             if re.search(pat, r["title"] or ""):
                 out.append({**r, "series": name})
@@ -226,7 +307,7 @@ def fetch_source(src: dict, get=_get) -> tuple[list[dict], dict]:
         try:
             t = _get(u) if get is None else get(u)
             feed = t.lstrip().startswith("<?xml") or "<rss" in t[:500] or "<feed" in t[:500]
-            raw = parse_feed(t) if feed else parse_html_list(t, u)
+            raw = parse_feed(t) if feed else (PARSERS[src["parser"]](t, u) if src.get("parser") else parse_html_list(t, u))
             got = classify(src, raw)
             tm = re.search(r"<title[^>]*>(.*?)</title>", t, re.S | re.I)
             diag.append(f"{u.split('/', 3)[-1][:40]} {len(t)}B {'feed' if feed else 'html'} a{len(A_RE.findall(t)) if not feed else 0} "
@@ -237,9 +318,29 @@ def fetch_source(src: dict, get=_get) -> tuple[list[dict], dict]:
         except Exception as e:  # noqa: BLE001
             errs.append(f"{u.split('/')[2]}: {type(e).__name__} {str(e)[:80]}")
             diag.append(f"{u.split('/', 3)[-1][:40]} ERR {str(e)[:40]}")
+    if src.get("parser") == "bok" and rows:
+        rows = enrich_bok(rows, get)
     st = {"diag": diag, "status": "ok" if rows else ("error" if errs and len(errs) == len(src["urls"]) else "empty"),
           "n": len(rows), "reason": "; ".join(errs)[:300] or None, "url": used}
     return rows, st
+
+
+def enrich_bok(rows: list[dict], get=_get, n: int = BOK_DETAIL_N) -> list[dict]:
+    """최근 n행만 상세(view.do)를 열어 PDF·구분·담당부서·한은 요지 1문장을 붙인다. 실패해도 목록 행은 그대로."""
+    import time
+    rows = sorted(rows, key=lambda r: r.get("date") or date.min, reverse=True)
+    for i, r in enumerate(rows[:n]):
+        try:
+            v = parse_bok_view((_get if get is None else get)(r["link"]))
+            r.update({k: v[k] for k in ("pdf", "kind", "author") if v.get(k)})
+            r["depart"] = r.get("depart") or v.get("depart")
+            r["summary"] = r.get("summary") or v.get("gist")
+            r["summary_src"] = "한은 게시 요지 첫 문장" if v.get("gist") else None
+        except Exception as e:  # noqa: BLE001
+            r["detail_err"] = f"{type(e).__name__} {str(e)[:60]}"
+        if get is None or get is _get:
+            time.sleep(0.5)
+    return rows
 
 
 def next_expected(series: list, last_by_series: dict[str, date], today: date) -> list[dict]:
@@ -293,20 +394,31 @@ def pending(pub: dict | None, digest: dict | None, today: date, days: int = 30) 
             for i in (pub or {}).get("items") or [] if (i.get("date") or "") >= cut and not digest_ok(dm.get(i["key"]))]
 
 
+EXTRA = ("depart", "pdf", "kind", "author", "summary_src")   # 전용 파서가 주는 메타(있을 때만 저장)
+
+
 def merge(old: list[dict], new: list[dict], src_id: str, inst: str, group: str, now: str, today: date) -> tuple[list[dict], int]:
     keys = {o["key"] for o in old}
+    by_key = {o["key"]: o for o in old}
     first = not any(o.get("src") == src_id for o in old)
     added = 0
     for r in new:
         k = _key(src_id, r["title"], r.get("date"))
         if k in keys:
+            o = by_key.get(k)
+            if o is not None:   # 이미 있는 행: 비어 있던 메타(PDF·요지 등)만 채운다
+                for f in EXTRA:
+                    if r.get(f) and not o.get(f):
+                        o[f] = r[f]
+                if r.get("summary") and not o.get("summary"):
+                    o["summary"] = _clean(r["summary"])
             continue
         keys.add(k)
         d = r.get("date")
         bf = first or (d is not None and (today - d).days > BACKFILL_AGE)
         old.append({"key": k, "src": src_id, "group": group, "inst": inst, "series": r["series"], "title": r["title"],
                     "date": str(d) if d else None, "link": fix_link(r.get("link")), "summary": _clean(r.get("summary")),
-                    "collected_at": ("backfill " if bf else "") + now})
+                    "collected_at": ("backfill " if bf else "") + now, **{f: r[f] for f in EXTRA if r.get(f)}})
         added += 0 if bf else 1
     return old, added
 

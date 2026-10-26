@@ -127,7 +127,7 @@ function synSec(){
     <b class="am">② ${esc(x.inst||'기관')}의 뷰·톤</b> ${esc(x.view||'')}<br><b class="am">③ 우리 해석</b> ${esc(x.our_take||'')}
     <div class="mu" style="font-size:var(--fs-1);margin-top:3px">${esc(x.grade||'')} · ${esc(x.source_checked||'')} · ${esc(x.by||'')} ${esc(x.written_at||'')}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div></details>`
     :`<div style="margin:0 0 6px 0;border-left:3px solid var(--line);padding-left:7px"><span style="font-size:var(--fs-1);border:1px solid var(--line);border-radius:3px;padding:0 4px" class="mu">요약 대기</span> <span style="font-size:var(--fs-2)">${esc(x.title||'')}</span>
-    <div class="mu" style="font-size:var(--fs-1)">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')}${x.series?` · ${esc(x.series)}`:''}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}</div></div>`;
+    <div class="mu" style="font-size:var(--fs-1)">${esc((x.date||'').slice(5))} · ${esc(x.inst||'')}${x.series?` · ${esc(x.series)}`:''}${x.link?` · <a href="${esc(x.link)}" target="_blank">원문</a> (링크 깨질 수 있음)`:''}${x.pdf?` · <a href="${esc(x.pdf)}" target="_blank">PDF</a>`:''}</div>${x.src_gist?`<div class="mu" style="font-size:var(--fs-1)">${esc(x.inst||'기관')} 게시 요지: ${esc(x.src_gist)}</div>`:''}</div>`;
   const pbRows=pb.items30||null;   // 기본 = 최근 3건 한 줄 뷰만, 나머지 '더 보기' (UXUI 재진단 Top10 #9, 10/23 · 패널 1,310px). 기준은 애널 회신(req-analyst-b697c8bc) 오면 교체
   const c8=card('공공 리포트',`한은·정부/연구기관·시장기관·해외 · 30일 · 우리 한 줄 뷰 먼저${pb.pending_n?` · 요약 대기 ${pb.pending_n}`:''}`,
     pb.status!=='ok'?'<div class="mu">공공 리포트 수집 전 (매일 03:30 Actions 수집 — reports/public_reports.json)</div>':
