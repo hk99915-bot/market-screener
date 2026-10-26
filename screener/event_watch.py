@@ -127,7 +127,8 @@ def parse_naver(j: dict) -> dict | None:
     elif code == "3":
         chg = 0.0
     low = _num(j.get("lowPrice"))
-    return {"last": last, "chg": chg, "low": low, "ts": j.get("localTradedAt"), "status": j.get("marketStatus"),
+    dly = _num(j.get("delayTime")) or 0   # 코스피200 선물(FUT)은 '20분 지연' 시세 — localTradedAt 도 20분 전이라 신선도 180초에 늘 걸렸다(10/26)
+    return {"delay": int(dly * 60), "last": last, "chg": chg, "low": low, "ts": j.get("localTradedAt"), "status": j.get("marketStatus"),
             "stop": (j.get("tradeStopType") or {}).get("name"), "name": j.get("stockName") or j.get("itemCode")}
 
 
@@ -179,7 +180,7 @@ def fresh(q: dict | None, now: datetime, max_age: int) -> bool:
     if ts.tzinfo is None:
         ts = ts.replace(tzinfo=KST)
     age = (now - ts).total_seconds()
-    return -60 <= age <= max_age
+    return -60 <= age <= max_age + int(q.get("delay") or 0)   # 거래소 지연 시세는 공시된 지연만큼 더 허용
 
 
 def kr_open(now: datetime) -> bool:
@@ -207,6 +208,10 @@ def _news_halt_today(day: str) -> set[str]:
             and re.search(r"서킷|사이드카", str(e.get("type", "")))}
 
 
+def _dly(q: dict) -> str:
+    return f" · {q['delay'] // 60}분 지연 시세" if q.get("delay") else ""
+
+
 def _halt_candidates(now: datetime, idx: dict) -> list[tuple[str, str, dict]]:
     """지금 시세가 거래소 발동 조건(1분 지속 전)을 만족하는 (키 몸통, 설명, 시세) 목록."""
     hm = now.astimezone(KST).strftime("%H%M")
@@ -222,7 +227,7 @@ def _halt_candidates(now: datetime, idx: dict) -> list[tuple[str, str, dict]]:
     f = idx.get("FUT")
     if f and "0905" <= hm < "1450" and abs(f["chg"]) >= SIDECAR_PCT:
         side = "sell" if f["chg"] < 0 else "buy"
-        out.append((f"K200F:sidecar-{side}", f"{'매도' if side == 'sell' else '매수'} 사이드카 조건 — 코스피200 선물 {f['chg']*100:+.2f}% 1분 지속", f))
+        out.append((f"K200F:sidecar-{side}", f"{'매도' if side == 'sell' else '매수'} 사이드카 조건 — 코스피200 선물 {f['chg']*100:+.2f}% 1분 지속{_dly(f)}", f))
     return out
 
 
@@ -293,7 +298,7 @@ def kr_events(now: datetime, idx: dict, stocks: dict, rules: dict, held: dict, s
         key = f"halt:K200F:stop:{day}"
         live.add(key)
         if key not in st["sent"] and not halted_today("KOSPI", day, st) and "KOSPI" not in news:
-            out.append(_ev(key, f"🚨 <b>코스피200 선물 거래 정지 표시</b> ({f['stop']}) — 서킷 발동 가능성 · 선물 {f['chg']*100:+.2f}%"))
+            out.append(_ev(key, f"🚨 <b>코스피200 선물 거래 정지 표시</b> ({f['stop']}) — 서킷 발동 가능성 · 선물 {f['chg']*100:+.2f}%{_dly(f)}"))
     for k in [k for k in st["pending"] if k.startswith("halt:") and k not in live]:
         st["pending"].pop(k)   # 조건이 풀리면 '1분 지속' 다시 셈
 

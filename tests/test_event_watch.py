@@ -184,3 +184,17 @@ def test_state_roundtrip_keeps_touch(st):
 def test_run_outside_session_is_noop(st):
     sat = datetime(2026, 10, 17, 12, 0, tzinfo=KST)
     assert ew.run(now=sat, send=lambda *a, **k: pytest.fail("보내면 안 됨")) == {"skipped": True}
+
+
+# ── 10/26 maint req-dev-d1b2e934: FUT 는 '20분 지연' 시세 — 지연만큼 신선도 허용 ──
+def test_parse_naver_keeps_delay_and_fut_delayed_quote_is_fresh():
+    j = {"closePrice": "850.00", "fluctuationsRatio": "-1.54", "compareToPreviousPrice": {"code": "5"},
+         "localTradedAt": (NOW - timedelta(minutes=20)).isoformat(), "delayTime": 20, "stockName": "코스피 200 선물"}
+    fq = ew.parse_naver(j)
+    assert fq["delay"] == 1200
+    assert ew.fresh(fq, NOW, ew.FRESH_KR_SEC)                          # 20분 지연 + 여유 3분 안
+    old = dict(fq, ts=(NOW - timedelta(minutes=30)).isoformat())
+    assert not ew.fresh(old, NOW, ew.FRESH_KR_SEC)                     # 지연보다 더 오래되면 여전히 보류
+    spot = dict(fq, delay=0)
+    assert not ew.fresh(spot, NOW, ew.FRESH_KR_SEC)                    # 실시간 시세는 기존대로 180초
+    assert "20분 지연" in ew._dly(fq) and ew._dly(spot) == ""
