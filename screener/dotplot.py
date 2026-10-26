@@ -623,8 +623,8 @@ def rule_cio(f: dict, asset: str) -> tuple:
     rd = f.get("round_cio") or {}
     if asset != "SPX" and rd.get("sign"):
         t = rd["sign"]
-        return "중립", 1, f"{head} · 데스크 라운드 {rd.get('label', '')} → {'약매수' if t > 0 else '약매도'}", "regime", {
-            **ex, "tilt": t, "refs": [rd.get("src", "")], "base_src": "규칙 환산(검증전) · 시나리오와 라운드 판단 차이 표시"}
+        return "중립", 1, f"운용회의 시나리오 {head} · 하지만 CIO 이벤트 판단 {rd.get('label', '')} → {'약매수' if t > 0 else '약매도'}", "regime", {
+            **ex, "tilt": t, "refs": [rd.get("src", "")], "base_src": "⚠ 운용회의 시나리오와 CIO 판단이 다름 → CIO 판단 쪽으로 기울임(규칙 환산, 검증전)"}
     t = _sgn((b or 0) - (r or 0), CIO_TILT_MIN)
     if t:
         return "중립", 1, f"{head} → 우세 쪽 {'약매수' if t > 0 else '약매도'}", "regime", {
