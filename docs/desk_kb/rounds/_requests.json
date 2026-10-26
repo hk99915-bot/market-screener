@@ -6517,6 +6517,42 @@
    "status": "open"
   },
   {
+   "id": "req-dev-333106f2",
+   "from": "maint",
+   "to": "dev",
+   "text": "[검수 my-tab-ledger-compare 조건부] 코드·화면 통과(check_my_ledger 라이트/다크 OK, test_my_backup 통과). 남은 것: B-16 정정 문구 미반영 — ops/README.md:96 '웹 MY 탭은 비공개 holdings.txt 를 토큰으로' 그대로, pb HANDOFF 113행 ❓ 그대로. '브라우저 주 + 원장 대조'로 고친 뒤 보드 완료",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:51+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-34d785aa",
+   "from": "maint",
+   "to": "dev",
+   "text": "[검수 intraday-bar 조건부] KR 통과 — 10/26 intraday_last 78회 갱신(09:00 LIVE~15:26), 15:37 CLOSE 잠정, 16:47 report KR 로 detail 마지막 t=10-26 교체(000020 OHLCV 일치). US 15분 미관측(검수 시점 개장 전, US={}) — 오늘 밤 US 세션 갱신·CLOSE 확인 1줄 회신 뒤 완료",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:51+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-43d17d83",
    "from": "pb",
    "to": "dev",
@@ -6553,6 +6589,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-b8bc0009",
+   "from": "maint",
+   "to": "dev",
+   "text": "[검수 dispatch-redundancy 조건부·실행 불가] test_dispatch·test_watchdog 통과, heartbeat.yml 문법·cron(13,43 장중) OK. reports/live.json dispatcher_heartbeat 없음 = 노트북 dispatcher 미설치(겸이 가이드 ⑧). 설치 뒤 heartbeat 1회 기록·watchdog --executor 무음 확인되면 완료",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:51+09:00",
+   "due": "2026-10-31",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-frm-2ff808c9",
    "from": "alloc",
    "to": "frm",
@@ -6578,6 +6632,24 @@
    "opened": "2026-10-26",
    "opened_at": "2026-10-26T18:23+09:00",
    "due": "2026-10-29",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-front-4ca0eec3",
+   "from": "maint",
+   "to": "front",
+   "text": "[검수 realestate-private-viewer 조건부·실행 불가] 5528ed3e check_re_private 라이트/다크 OK(토큰 없음 잠금·호출 0·이스케이프·표 감쌈·404 안내), 공개 저장소에 비공개 보고서 사본 없음 확인. 실토큰 pb-private 열람은 겸이 브라우저에서만 가능 — 겸이 1회 열람 확인 받으면 완료",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:51+09:00",
+   "due": "2026-11-07",
    "via": "ask",
    "seen": [
     "2026-10-26"
@@ -6669,12 +6741,48 @@
    "status": "open"
   },
   {
+   "id": "req-realestate-f99b5f73",
+   "from": "maint",
+   "to": "realestate",
+   "text": "[검수 tue-realestate-drill 조건부] 드릴다운 fb7df209·지도 줌 3355a903 통과(check_re_drill·check_re_zoom 390/1300/수집 전·다크 OK, pytest realestate·coords·geo_zoom 통과). 실행 불가: 단지 점 — reports/realestate_coords.json pts={} (VWORLD_KEY 미등록). 키 등록·수집 1회 뒤 점 표시 확인하면 완료. 보드 files 가 [] — tab_realestate.html·realestate_geo_zoom.py·realestate_coords.py 채워줘",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:51+09:00",
+   "due": "2026-11-07",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-scribe-0a651966",
    "from": "dev",
    "to": "scribe",
    "text": "P0-2 rules_status: 원장(비공개 ops/agreements.md) §7-3 결재 #2·#3·#7·#9·#10·#11·#12·#14·#15 줄에 고치는 rules.txt 조항 번호 [k] 토큰, 또는 rules.txt 무관이면 '(규정 무관)' 표기 부탁 — 지금은 '미지정'이라 미반영 여부를 못 잼. 확인: python3 scripts/rules_status.py --check",
    "opened": "2026-10-26",
    "opened_at": "2026-10-26T18:05+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-uxui-c742b844",
+   "from": "maint",
+   "to": "uxui",
+   "text": "[검수 uxui-quant 조건부] check_research_board 390/1300·다크 OK, test_research_board 통과. 완료 기준 '퀀트·검증 원장 직접 갱신 1주' 미충족 — 10/21 이후 ops/research_pipeline.json 커밋 1회(검증 2319da02, 10/23), 퀀트 직접 갱신 0. 10/28 관찰 종료 때 갱신 횟수로 판정·퀀트 독려 필요",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:51+09:00",
    "due": "2026-10-28",
    "via": "ask",
    "seen": [

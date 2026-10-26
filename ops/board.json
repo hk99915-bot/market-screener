@@ -2542,7 +2542,7 @@
       "title": "텔레그램 대결 '내 선택은?' 인라인 버튼 + GAS 웹훅 → pick 이슈",
       "owner": "개발",
       "priority": "P1",
-      "status": "검수",
+      "status": "완료",
       "started": "2026-10-20",
       "due": "2026-10-31",
       "repo": "public",
@@ -2556,7 +2556,8 @@
       ],
       "depends_on": [],
       "notes": "PB 확인: 이슈 프리필 링크가 폰 텔레그램 내장 브라우저에서 무반응(pick 이슈 0건). 버튼 callback_data 'p|날짜|K/U|코드|청산'(≤64B) → TelegramHook.gs doPost(URL ?s= 비밀값 — GAS 는 헤더를 못 읽음 · 누른 사람 id==TG_OWNER_CHAT_ID · CacheService 10분) → 주인 PAT 로 pick 이슈 → pick.yml 기록 + 결과 텔레그램. getUpdates/setWebhook 사용처 없음(두 저장소). 남은 일: 겸이 배포(GH_TOKEN 에 Issues 쓰기 추가·스크립트 속성·웹앱 배포·tgSetWebhook) 후 실제 클릭 1회 확인 → 완료. 절차 docs/telegram_pick_buttons.md. | 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 실제 텔레그램 버튼 클릭 1회 → pick 이슈 기록 확인(GAS 는 10/23 clasp 자동 배포)",
-      "desk": "개발"
+      "desk": "개발",
+      "done": "2026-10-26"
     },
     {
       "id": "research-views",
