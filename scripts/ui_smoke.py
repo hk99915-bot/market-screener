@@ -66,6 +66,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_re_drill(b, port)
         bad += await check_re_zoom(b, port)
         bad += await check_cmt_us(b, port)
+        bad += await check_dotplot_lean(b, port)
         bad += await check_score(b, port)
         bad += await check_eng(b, port)
         bad += await check_macro_popup(b, port)
@@ -165,6 +166,25 @@ async def check_research_board(b, port: int) -> int:
         bad += not ok
         await pg.close()
     return bad
+
+
+async def check_dotplot_lean(b, port: int) -> int:
+    """운용회의 › 국장 기명 점도표 띠: 5단 기울기 색(data-lean)·툴팁(기본 시나리오·▲▼ 전환 조건)·상단 ①②③ (dotplot-neutral-rule)."""
+    pg = await b.new_page(viewport={"width": 1300, "height": 900})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("setView('cmt')")
+    await pg.wait_for_timeout(2500)
+    r = await pg.evaluate("""(()=>{const xs=[...document.querySelectorAll('.dpdot')];
+      return {n:xs.length, leans:[...new Set(xs.map(x=>x.dataset.lean))], tip:xs.filter(x=>/▲/.test(x.title)&&/▼/.test(x.title)).length,
+              top:/① .*데스크 점/.test(document.querySelector('#root').innerText)};})()""")
+    ok = not errs and r["n"] >= 16 and any(l in r["leans"] for l in ("약매수", "약매도")) and r["tip"] > 0 and r["top"]
+    print(f"{'OK ' if ok else 'BAD'} 점도표 기울기 띠 점 {r['n']}개 · 단계 {r['leans']} · 전환 툴팁 {r['tip']} · 상단 {r['top']}"
+          + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return 0 if ok else 1
 
 
 async def check_cmt_us(b, port: int) -> int:

@@ -29,12 +29,21 @@
     겸이   reports/decisions.json 오늘 entry 의 '나'·'나🔥' 선택: 반도체 종목·ETF → SEMI_KR 매수(나🔥 2, 나 1), 그 외 국내 종목 → KOSPI 매수1,
            미국 종목 → SPX 매수1, 인버스 → 해당 지수 매도1, 현금 → 중립, 제출 없음 → 중립 '제출 없음'. 5d 만 (대결이 5거래일 기준).
 
+기울기 5단 (10/26 보드 dotplot-neutral-rule — '중립 = 모름' 금지, 임계값 검증전)
+    각 점 = stance(기존 3단, 하위 호환) + lean(−2 강매도 · −1 약매도 · 0 중립 · +1 약매수 · +2 강매수) + confidence(낮음·보통·높음)
+          + base_prob(기본 시나리오 확률) + flip_up · flip_down(가격·지표 트리거 수치). 규칙이 방향을 못 정한 점은 근거 부호로 약매수/약매도(확신 낮음).
+    순수 중립은 base_prob·flip_up·flip_down 이 다 있을 때만 — lint_dots 위반은 dotplot.json 'lint' 에 남는다.
+    데스크 규칙이 없는 자산·입력 없음 = '해당없음'(na) — 집계·채점 제외.
+    전환 조건 어댑터: docs/desk_kb/rounds/<최근 3일 내 날짜>/event_macro.md '트래킹 트리거' 표 → 코스피(코스피)·S&P(VIX)·반도체(코스피200 IV)·미10년(미 10Y),
+                      event_cio.md So What 신호등(🔴 하방 → −1, 🟢 → +1) → CIO 국내 점의 기울기(시나리오 과반 없을 때만). 없으면 시세 기반(50일선·20일 저점).
+
 근거 태그 (근거 겹침 집계용): rates 금리 · regime 레짐 · signal 신호 · valuation 밸류 · risk 리스크 · flows 수급 · none 없음.
 
 채점 (score) — reports/archive/dotplot/*.json 중 지평이 지난 점:
     실현 방향 = 종가 대비 종가 (US10Y 는 금리 변화 bp). 매수 & 상승 / 매도 & 하락 = 적중.
-    중립은 |변화| < 1%(5d) · 2%(20d) 면 적중 (US10Y 는 10bp · 20bp).
-    Brier: 상승 확률 p = 0.5 + 부호×확신/6 (매수3 → 1.0, 매도3 → 0.0, 중립 0.5), y = 1(상승)·0(하락)·0.5(보합) → (p−y)² 평균.
+    중립(lean 0)은 |변화| < 1%(5d) · 2%(20d) 면 적중 (US10Y 는 10bp · 20bp). 약매수·약매도는 lean 부호로 방향 채점. 해당없음은 제외.
+    Brier: 상승 확률 p = 점의 p_up (규칙 적중 = 0.5 ± 확신/6, 기울기만 = 0.5 ± 1/12, 중립 0.5) — p_up 없는 옛 점은 0.5 + 부호×확신/6.
+           y = 1(상승)·0(하락)·0.5(보합) → (p−y)² 평균. 기울기 단계별 성적 = by_lean.
     출력 reports/dotplot_score.json + docs/desk_kb/_scoreboard.md 행 추가 (같은 날짜 행은 교체).
 """
 from __future__ import annotations
@@ -165,7 +174,86 @@ def _px_feats(c: list[tuple[str, float]]) -> dict:
     low20 = min(v for _, v in c[-20:]) if len(c) >= 20 else None
     return {"last": c[-1][1], "date": c[-1][0], "r1": _ret(c, 1), "r5": _ret(c, 5), "r20": _ret(c, 20),
             "vs200": (c[-1][1] / sma200 - 1) if sma200 else None,
-            "to_low20": (c[-1][1] / low20 - 1) if low20 else None, "vol20": _vol20(c)}
+            "to_low20": (c[-1][1] / low20 - 1) if low20 else None, "vol20": _vol20(c),
+            "sma50": _sma(c, 50), "sma200": sma200, "low20": low20, "high20": max(v for _, v in c[-20:]) if len(c) >= 20 else None}
+
+
+def _band_prob(c: list[tuple[str, float]], horizon: str, is_yield: bool, look: int = 250) -> float | None:
+    """최근 1년(250거래일) 중 h일 변화가 중립 범위 안이었던 빈도 — 중립 점의 기본 시나리오 확률."""
+    n = H_DAYS[horizon]
+    xs = c[-(look + n):]
+    band = NEUTRAL_BAND_BP[horizon] if is_yield else NEUTRAL_BAND[horizon]
+    hits = [abs((xs[i + n][1] - xs[i][1]) * 100 if is_yield else xs[i + n][1] / xs[i][1] - 1) < band
+            for i in range(len(xs) - n) if xs[i][1]]
+    return round(sum(hits) / len(hits), 3) if len(hits) >= 20 else None
+
+
+def _round_dir(root: Path, today: str, name: str, max_age: int = 3) -> Path | None:
+    """docs/desk_kb/rounds/<날짜>/<name> 중 today 이하 · max_age 일 이내 최신."""
+    rd = Path(root) / "docs" / "desk_kb" / "rounds"
+    try:
+        t0 = date.fromisoformat(today)
+        for d in sorted((p for p in rd.iterdir() if p.is_dir() and re.fullmatch(r"\d{4}-\d{2}-\d{2}", p.name)), reverse=True):
+            dd = date.fromisoformat(d.name)
+            if dd <= t0 and (t0 - dd).days <= max_age and (d / name).exists():
+                return d / name
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+EVENT_ROWS = {"KOSPI": ("코스피", False), "SPX": ("VIX", False), "SEMI_KR": ("코스피200 IV", False), "US10Y": ("미 10Y", True)}
+
+
+def parse_event_triggers(text: str) -> dict:
+    """event_macro.md '트래킹 트리거' 표 → {지표: (위험 쪽, 완화 쪽)}."""
+    out, on = {}, False
+    for ln in (text or "").splitlines():
+        if ln.startswith("## "):
+            on = "트리거" in ln
+            continue
+        if on and ln.startswith("|") and not ln.startswith("|---"):
+            cs = [c.strip() for c in ln.strip().strip("|").split("|")]
+            if len(cs) >= 4 and cs[0] not in ("지표",):
+                out[cs[0]] = (cs[2], cs[3])
+    return out
+
+
+def event_inputs(root: Path, today: str) -> dict:
+    """데스크 라운드 산출물 어댑터 — 트리거 표(event_macro)와 CIO 신호등(event_cio). 없으면 빈 값."""
+    out = {"triggers": {}, "round_cio": {}}
+    pm = _round_dir(root, today, "event_macro.md")
+    if pm:
+        rel = str(pm.relative_to(root))
+        tr = parse_event_triggers(pm.read_text(encoding="utf-8"))
+        for a, (key, up_is_risk) in EVENT_ROWS.items():
+            if key in tr:
+                risk, ease = (re.sub(r"\(.*?\)", "", x).strip() for x in tr[key])
+                fmt = lambda x: x if (not x or x[0] not in "<>") else f"{key} {x}"  # noqa: E731
+                up, dn = (fmt(risk), fmt(ease)) if up_is_risk else (fmt(ease), fmt(risk))
+                out["triggers"][a] = {"up": (up if up and up != "—" else None), "down": (dn if dn and dn != "—" else None), "src": rel}
+    pc = _round_dir(root, today, "event_cio.md")
+    if pc:
+        for ln in pc.read_text(encoding="utf-8").splitlines():
+            if "So What" in ln:
+                sg = -1 if ("🔴" in ln or "하방" in ln) else 1 if ("🟢" in ln or "상방" in ln) else 0
+                lab = "🔴 하방" if sg < 0 else "🟢 상방" if sg > 0 else "🟡"
+                out["round_cio"] = {"sign": sg, "label": f"{lab}({pc.parent.name} event_cio)", "src": str(pc.relative_to(root))}
+                break
+    return out
+
+
+def _px_triggers(px: dict, us10_level: float | None) -> dict:
+    out = {}
+    for a in ("KOSPI", "SEMI_KR", "SPX"):
+        p = px.get(a) or {}
+        last, s50, lo, hi = p.get("last"), p.get("sma50"), p.get("low20"), p.get("high20")
+        up = (f"종가 > 50일선 {s50:,.0f}" if s50 and last and last < s50 else f"20일 고점 {hi:,.0f} 돌파" if hi else None)
+        dn = f"종가 < 20일 저점 {lo:,.0f}" if lo else None
+        out[a] = {"up": up, "down": dn, "src": "시세(50일선·20일 고저)"}
+    if us10_level is not None:
+        out["US10Y"] = {"up": f"미10Y > {us10_level + 0.15:.2f}%", "down": f"미10Y < {us10_level - 0.15:.2f}%", "src": "시세 ±15bp"}
+    return out
 
 
 def _scen(c: dict | None) -> dict:
@@ -299,51 +387,151 @@ def derive_features(inputs: dict, today: str | None = None) -> dict:
         "valuation_scale": "hist" if len(_valuation_history()) >= 30 else "fixed",
         "picks": _picks_today(inputs.get("decisions"), today),
         "has_decisions": inputs.get("decisions") is not None,
+        "band_prob": {a: {h: _band_prob(closes.get(a) or [], h, a == "US10Y") for h in H_DAYS} for a in ASSETS},
+        "triggers": {a: {**(_px_triggers(px, us10[-1][1] if us10 else None).get(a) or {}),
+                         **{k: v for k, v in (((inputs.get("events") or {}).get("triggers") or {}).get(a) or {}).items() if v}}
+                     for a in ASSETS},
+        "round_cio": (inputs.get("events") or {}).get("round_cio") or {},
     }
 
 
-# ───────────────────────────── 규칙 ─────────────────────────────
-def _dot(desk, asset, stance, conv, reason, tag, refs):
+# ───────────────────────────── 기울기 (lean) ─────────────────────────────
+# 10/26 겸이 "맨날 중립이야 점도표도" · 보드 dotplot-neutral-rule (10/16 "운용회의에서 모르겠다고 할래?" — 중립 = 모름이 아니라 포지셔닝 + 전환 조건).
+# 원칙: 규칙이 방향을 못 정해도 근거 점수의 부호는 버리지 않는다 → 약매수/약매도(확신 낮음).
+#       순수 중립은 기본 시나리오 확률 + flip_up + flip_down 세 개가 다 있을 때만 (lint_dots). 데스크 규칙이 아예 없는 자산은 '해당없음'(집계·채점 제외).
+# 아래 임계값은 '표시 로직' 값이며 검증전 — 퀀트·매크로 검수 대기 (docs/desk_kb/dev.md 점도표 기울기 절).
+LEANS = {2: "강매수", 1: "약매수", 0: "중립", -1: "약매도", -2: "강매도"}
+NA_LABEL = "해당없음"
+LEAN_ORDER = ("강매수", "약매수", "중립", "약매도", "강매도", NA_LABEL)
+TILT_P = 1 / 12        # 확신 낮음(기울기만) 점의 상승확률 이동 = 매수1(1/6)의 절반 (검증전)
+MACRO_TILT_MIN = 0.05  # 매크로 바람 |s| < 0.05 면 기울기 없음 — macroview 중립 구간과 같은 값 (검증전)
+CIO_TILT_MIN = 0.05    # 강세−약세 확률 차 |d| < 5%p 면 기울기 없음 (검증전)
+US10Y_TILT_BP = 2.0    # 미10년 5일 |변화| < 2bp 면 기울기 없음 (검증전)
+MACRO_STEPS = (-0.3, -MACRO_TILT_MIN, MACRO_TILT_MIN, 0.3)
+
+
+def _lean_of(stance: str, conv: int, tilt=0) -> int:
+    if stance == "매수":
+        return 2 if conv >= 2 else 1
+    if stance == "매도":
+        return -2 if conv >= 2 else -1
+    t = int(tilt or 0)
+    return 1 if t > 0 else -1 if t < 0 else 0
+
+
+def _sgn(x, eps=0.0) -> int:
+    return 0 if x is None or abs(x) < eps else (1 if x > 0 else -1)
+
+
+def _flips(f: dict, asset: str, ex: dict) -> tuple:
+    trig = ((f or {}).get("triggers") or {}).get(asset) or {}
+    up = " · ".join(x for x in (ex.get("up"), trig.get("up")) if x)
+    dn = " · ".join(x for x in (ex.get("down"), trig.get("down")) if x)
+    return (up or None), (dn or None)
+
+
+def _dot(desk, asset, stance, conv, reason, tag, refs, f=None, ex=None):
     conv = max(1, min(3, int(conv)))
-    return [{"desk": desk, "asset": asset, "stance": stance, "conv": conv, "horizon": h, "reason": reason, "tag": tag, "refs": list(refs)}
-            for h in DESK_HORIZONS[desk]]
+    ex = ex or {}
+    na = bool(ex.get("na"))
+    lean = 0 if na else _lean_of(stance, conv, ex.get("tilt"))
+    tilted = stance == "중립" and lean != 0
+    stance = "매수" if lean > 0 else "매도" if lean < 0 else "중립"
+    conf = "낮음" if (tilted or na) else ("높음" if abs(lean) == 2 else "보통")
+    p_up = 0.5 + _sgn(lean) * (TILT_P if tilted else conv / 6)
+    up, dn = _flips(f, asset, ex)
+    out = []
+    for h in DESK_HORIZONS[desk]:
+        bp, bsrc = ex.get("base_prob"), ex.get("base_src")
+        if bp is None and lean:
+            bp, bsrc = max(p_up, 1 - p_up), "규칙 환산(검증전)"
+        if bp is None:
+            bp = (((f or {}).get("band_prob") or {}).get(asset) or {}).get(h)
+            band = f"±{NEUTRAL_BAND_BP[h]:.0f}bp" if asset == "US10Y" else f"±{NEUTRAL_BAND[h] * 100:.0f}%"
+            bsrc = f"보합({band}) 1년 실측 빈도" if bp is not None else None
+        x = {"desk": desk, "asset": asset, "stance": stance, "conv": conv, "horizon": h, "reason": reason, "tag": tag,
+             "refs": list(refs), "lean": lean, "lean_label": NA_LABEL if na else LEANS[lean], "confidence": conf,
+             "p_up": round(p_up, 3), "base_prob": round(bp, 3) if bp is not None else None, "base_src": bsrc,
+             "flip_up": up, "flip_down": dn}
+        if na:
+            x["na"] = True
+        out.append(x)
+    return out
+
+
+def lint_dots(assets: dict) -> list[str]:
+    """점마다 기본 시나리오 확률·flip_up·flip_down(숫자 포함) 필수. 순수 중립은 세 개가 다 없으면 '중립 불허'."""
+    errs = []
+    for a, dots in (assets or {}).items():
+        for x in dots:
+            if x.get("na"):          # 해당없음 = 판단 없음(집계·채점 제외) — 형식 검사 대상 아님
+                continue
+            k = f"{a} {x.get('desk')} {x.get('horizon')}"
+            if x.get("lean") not in LEANS:
+                errs.append(f"{k}: lean 없음/범위 밖")
+                continue
+            miss = [n for n, v in (("기본 시나리오 확률", x.get("base_prob")), ("flip_up", x.get("flip_up")), ("flip_down", x.get("flip_down")))
+                    if v is None or (isinstance(v, str) and not re.search(r"\d", v))]
+            if miss:
+                errs.append(f"{k}: {'중립 불허 — ' if x['lean'] == 0 and not x.get('na') else ''}{'·'.join(miss)} 없음")
+    return errs
 
 
 def _pct(x):
     return "—" if x is None else f"{x * 100:+.1f}%"
 
 
+def _na(reason, tag="none"):
+    return "중립", 1, reason, tag, {"na": True}
+
+
 def rule_quant(f: dict, asset: str) -> tuple:
     if asset == "US10Y":
-        return "중립", 1, "금리 방향 규칙 없음", "none"
+        return _na("금리 방향 규칙 없음")
     p = f["px"].get(asset) or {}
     r1 = p.get("r1")
     g = f.get("crash_grade") or "검증전"
+    up = "−5% 급락일 종가(매수2) 또는 저점 +1% 위 마감(매수1)"
     if asset == "KOSPI" and f.get("crash_day"):
         return "매수", 2, f"급락일 종가(등급 {g}) — 1차 신호, 기다리지 않기" + (f" (하루 {_pct(r1)})" if r1 is not None else ""), "signal"
     if r1 is not None and r1 <= -0.05:
         return "매수", 2, f"급락일 종가(등급 {g}) — 하루 {_pct(r1)}, 기다리지 않기", "signal"
     if asset in ("KOSPI", "SEMI_KR") and f.get("low_signal_ok"):
         return "매수", 1, "저점 +1% 위 마감 신호 충족(C — 참고)", "signal"
-    if p.get("vs200") is not None and p["vs200"] < 0:
-        return "중립", 1, f"200일선 아래({_pct(p['vs200'])}) · 진입 신호 없음", "regime"
-    return "중립", 1, "신호 없음", "none"
+    vs = p.get("vs200")
+    if vs is not None and vs < 0:
+        return "중립", 1, f"200일선 아래({_pct(vs)}) · 진입 신호 없음 → 추세 쪽 약매도", "regime", {"tilt": -1, "up": up}
+    if vs is not None:
+        return "중립", 1, f"200일선 위({_pct(vs)}) · 진입 신호 없음 → 추세 쪽 약매수", "regime", {"tilt": 1, "up": up, "down": "200일선 이탈"}
+    return _na("입력 없음(시세 200일 미만)")
 
 
 def rule_derivs(f: dict, asset: str) -> tuple:
     if asset not in ("KOSPI", "SEMI_KR"):
-        return "중립", 1, "검증된 렌즈 없음", "none"
+        return _na("검증된 렌즈 없음")
     if not f.get("has_derivs"):
-        return "중립", 1, "입력 없음(derivs)", "none"
-    notes = []
+        return _na("입력 없음(derivs)")
+    notes, score = [], 0
     gex, basis, pcr = f.get("gex_bn"), f.get("basis"), f.get("pcr_oi")
+    r5 = ((f["px"].get(asset) or {}).get("r5"))
     if gex is not None and gex < 0:
-        notes.append(f"감마 음수({gex:,.0f}억) — 흔들림 크지만 방향 없음")
+        notes.append(f"감마 음수({gex:,.0f}억) — 5일 추세 증폭")
+        score += _sgn(r5, 0.005)
     if basis is not None and basis < 0:
         notes.append(f"선물 백워데이션({basis:+.2f})")
+        score -= 1
     if pcr is not None and (pcr >= 1.3 or pcr <= 0.7):
-        notes.append(f"PCR {pcr:.2f} 극단(검증전)")
-    return "중립", 1, (" · ".join(notes) or "특이 없음") + " — B 이상 방향 렌즈 없음", "flows"
+        notes.append(f"PCR {pcr:.2f} 극단(검증전, 방향 미반영)")
+    t = _sgn(score)
+    tail = " — B 이상 렌즈 없음" + (" → 근거 부호 쪽 " + ("약매수" if t > 0 else "약매도") if t else "")
+    return "중립", 1, (" · ".join(notes) or "특이 없음") + tail, "flows", {
+        "tilt": t, "up": "베이시스 > 0(콘탱고 복귀)", "down": "베이시스 < 0 & 감마 음수 & 5일 −0.5% 아래"}
+
+
+def _macro_flip(s: float) -> tuple:
+    ups = [t for t in MACRO_STEPS if t > s]
+    dns = [t for t in MACRO_STEPS if t <= s]
+    return (f"바람 ≥ {ups[0]:+.2f}" if ups else None), (f"바람 < {dns[-1]:+.2f}" if dns else "바람 < +0.30")
 
 
 def rule_macro(f: dict, asset: str) -> tuple:
@@ -351,84 +539,111 @@ def rule_macro(f: dict, asset: str) -> tuple:
     lvl, d5 = u.get("level"), u.get("d5_bp")
     if asset == "US10Y":
         if d5 is None:
-            return "중립", 1, "입력 없음(US10Y)", "none"
+            return _na("입력 없음(US10Y)")
+        ex = {"up": "5일 > +10bp(매수1)", "down": "5일 < −10bp(매도1)"}
         if d5 > 10:
-            return "매수", 1, f"5일 {d5:+.0f}bp — 상승 지속", "rates"
+            return "매수", 1, f"5일 {d5:+.0f}bp — 상승 지속", "rates", ex
         if d5 < -10:
-            return "매도", 1, f"5일 {d5:+.0f}bp — 하락 지속", "rates"
-        return "중립", 1, f"5일 {d5:+.0f}bp — 방향 약함", "rates"
+            return "매도", 1, f"5일 {d5:+.0f}bp — 하락 지속", "rates", ex
+        t = _sgn(d5, US10Y_TILT_BP)
+        return "중립", 1, f"5일 {d5:+.0f}bp — 방향 약함" + (" → 같은 쪽 약하게" if t else ""), "rates", {**ex, "tilt": t}
+    rate_dn = "미10Y 5일 +10bp & 5.0% 위(매도1)"
     if lvl is not None and d5 is not None and d5 > 10 and lvl > 5.0:
-        return "매도", 1, f"미 10년 {lvl:.2f}% · 5일 {d5:+.0f}bp 상승", "rates"
+        return "매도", 1, f"미 10년 {lvl:.2f}% · 5일 {d5:+.0f}bp 상승", "rates", {"up": "미10Y 5일 상승 +10bp 이하 진정"}
     s = f.get("macro_score")
     if s is None:
-        return "중립", 1, "입력 없음(macro_view)", "none"
+        return _na("입력 없음(macro_view)")
+    up, dn = _macro_flip(s)
+    ex = {"up": up, "down": " · ".join(x for x in (dn, rate_dn) if x)}
+    from .macroview import wind_label
+    lab = wind_label(s) or ""          # macro_view.json 의 옛 라벨('중립')이 아니라 새 부호 라벨로 다시 읽음
     if s <= -0.3:
-        return "매도", 1, f"매크로 바람 {s:+.2f}", "regime"
+        return "매도", 1, f"매크로 바람 {s:+.2f} {lab}".rstrip(), "regime", ex
     if s >= 0.3:
-        return "매수", 1, f"매크로 바람 {s:+.2f}", "regime"
-    return "중립", 1, f"매크로 바람 {s:+.2f} 중립", "regime"
+        return "매수", 1, f"매크로 바람 {s:+.2f} {lab}".rstrip(), "regime", ex
+    t = _sgn(s, MACRO_TILT_MIN)
+    return "중립", 1, f"매크로 바람 {s:+.2f} {lab or '중립'}".rstrip() + (" → 부호 쪽 약하게" if t else ""), "regime", {**ex, "tilt": t}
 
 
 def rule_risk(f: dict, asset: str) -> tuple:
     p = f["px"].get(asset) or {}
     if asset == "US10Y":
-        return "중립", 1, "한도 규칙 없음", "none"
+        return _na("한도 규칙 없음")
+    vs200 = p.get("vs200")
     if asset == "SEMI_KR":
         v = p.get("vol20")
         if v is None:
-            return "중립", 1, "입력 없음(반도체 시세)", "none"
+            return _na("입력 없음(반도체 시세)")
+        ex = {"up": "20일 실현변동성 < 40% & 200일선 회복", "down": "20일 실현변동성 ≥ 40%(매도1) · ≥ 60%(매도2)"}
         if v >= 0.6:
-            return "매도", 2, f"20일 실현변동성 {v * 100:.0f}% ≥ 60% — 한도 초과", "risk"
+            return "매도", 2, f"20일 실현변동성 {v * 100:.0f}% ≥ 60% — 한도 초과", "risk", ex
         if v >= 0.4:
-            return "매도", 1, f"20일 실현변동성 {v * 100:.0f}% ≥ 40%", "risk"
-        return "중립", 1, f"20일 실현변동성 {v * 100:.0f}% 한도 안", "risk"
-    vs200, tl = p.get("vs200"), p.get("to_low20")
+            return "매도", 1, f"20일 실현변동성 {v * 100:.0f}% ≥ 40%", "risk", ex
+        t = -1 if (vs200 is not None and vs200 < 0) else 0
+        return "중립", 1, f"20일 실현변동성 {v * 100:.0f}% 한도 안" + (f" · 200일선 아래({_pct(vs200)}) → 약매도" if t else ""), "risk", {**ex, "tilt": t}
+    tl = p.get("to_low20")
     if vs200 is None or tl is None:
-        return "중립", 1, "입력 없음(시세)", "none"
+        return _na("입력 없음(시세)")
+    ex = {"up": "200일선 회복", "down": "200일선 아래 & 20일 저점 3% 안(매도1)"}
     if vs200 < 0 and tl <= 0.03:
-        return "매도", 1, f"200일선 아래({_pct(vs200)}) · 20일 저점까지 {_pct(tl)}", "risk"
-    return "중립", 1, f"200일선 {_pct(vs200)} · 20일 저점 위 {_pct(tl)}", "risk"
+        return "매도", 1, f"200일선 아래({_pct(vs200)}) · 20일 저점까지 {_pct(tl)}", "risk", ex
+    if vs200 < 0:
+        return "중립", 1, f"200일선 아래({_pct(vs200)}) · 20일 저점 위 {_pct(tl)} → 약매도", "risk", {**ex, "tilt": -1}
+    return "중립", 1, f"200일선 {_pct(vs200)} · 20일 저점 위 {_pct(tl)}", "risk", ex
 
 
 def rule_analyst(f: dict, asset: str) -> tuple:
     if asset == "US10Y":
-        return "중립", 1, "밸류 규칙 없음", "none"
+        return _na("밸류 규칙 없음")
     t = (f.get("valuation") or {}).get(asset)
     scale = " (임시 눈금, 이력 30일 전)" if asset == "SEMI_KR" and f.get("valuation_scale") == "fixed" else ""
+    ex = {"up": "금리조정 이익수익률 상위 3분위(백분위 ≥ 67%)", "down": "하위 3분위(백분위 ≤ 33%)"}
     if t == "top":
-        return "매수", 1, "금리조정 이익수익률 상위 3분위" + scale, "valuation"
+        return "매수", 1, "금리조정 이익수익률 상위 3분위" + scale, "valuation", ex
     if t == "bottom":
-        return "매도", 1, "금리조정 이익수익률 하위 3분위" + scale, "valuation"
+        return "매도", 1, "금리조정 이익수익률 하위 3분위" + scale, "valuation", ex
     if t == "mid":
-        return "중립", 1, "금리조정 이익수익률 중간 3분위" + scale, "valuation"
-    return "중립", 1, "검증전 (valuation.json 없음)" if not f.get("has_valuation") else "검증전 (자산 항목 없음)", "valuation"
+        return "중립", 1, "금리조정 이익수익률 중간 3분위" + scale, "valuation", ex
+    return _na("검증전 (valuation.json 없음)" if not f.get("has_valuation") else "검증전 (자산 항목 없음)", "valuation")
 
 
 def rule_cio(f: dict, asset: str) -> tuple:
     if asset == "US10Y":
-        return "중립", 1, "시나리오 없음", "none"
+        return _na("시나리오 없음")
     s = f.get("scen_us" if asset == "SPX" else "scen_kr") or {}
     b, r = s.get("bull"), s.get("bear")
     if b is None and r is None:
-        return "중립", 1, "입력 없음(시나리오)", "none"
+        return _na("입력 없음(시나리오)")
+    ex = {"up": "강세 확률 ≥ 45%(매수1)", "down": "약세 확률 ≥ 35%(매도1)"}
     if b is not None and b >= 0.45:
-        return "매수", 1, f"강세 확률 {b * 100:.0f}%", "regime"
+        return "매수", 1, f"강세 확률 {b * 100:.0f}%", "regime", {**ex, "base_prob": b, "base_src": "운용회의 강세 시나리오"}
     if r is not None and r >= 0.35:
-        return "매도", 1, f"약세 확률 {r * 100:.0f}%", "regime"
-    return "중립", 1, f"강세 {(b or 0) * 100:.0f}% · 약세 {(r or 0) * 100:.0f}% — 과반 없음", "regime"
+        return "매도", 1, f"약세 확률 {r * 100:.0f}%", "regime", {**ex, "base_prob": r, "base_src": "운용회의 약세 시나리오"}
+    head = f"강세 {(b or 0) * 100:.0f}% · 약세 {(r or 0) * 100:.0f}% — 과반 없음"
+    rd = f.get("round_cio") or {}
+    if asset != "SPX" and rd.get("sign"):
+        t = rd["sign"]
+        return "중립", 1, f"{head} · 데스크 라운드 {rd.get('label', '')} → {'약매수' if t > 0 else '약매도'}", "regime", {
+            **ex, "tilt": t, "refs": [rd.get("src", "")], "base_src": "규칙 환산(검증전) · 시나리오와 라운드 판단 차이 표시"}
+    t = _sgn((b or 0) - (r or 0), CIO_TILT_MIN)
+    if t:
+        return "중립", 1, f"{head} → 우세 쪽 {'약매수' if t > 0 else '약매도'}", "regime", {
+            **ex, "tilt": t, "base_prob": b if t > 0 else r, "base_src": "운용회의 " + ("강세" if t > 0 else "약세") + " 시나리오"}
+    base = s.get("base") if s.get("base") is not None else (None if b is None or r is None else max(0.0, 1 - b - r))
+    return "중립", 1, head, "regime", {**ex, "base_prob": base, "base_src": "운용회의 기본 시나리오" if base is not None else None}
 
 
 def rule_pb(f: dict, asset: str) -> tuple:
     if asset == "SEMI_KR" and f.get("glide"):
-        return "매도", 1, "비중 축소 중 (테마 한도 글라이드)", "risk"
+        return "매도", 1, "비중 축소 중 (테마 한도 글라이드)", "risk", {"up": "글라이드 종료(테마 비중 40% 이하)"}
     if asset == "US10Y":
-        return "중립", 1, "실행 대본 대상 아님", "none"
+        return _na("실행 대본 대상 아님")
     s = f.get("pb_stance")
     if asset == "SPX" or s is None:
-        return "중립", 1, "실행 대본 없음", "none"
+        return _na("실행 대본 없음")
     m = {"관망": ("중립", 1, "실행 대본 관망"), "분할 매수": ("매수", 1, "실행 대본 분할 매수"), "방어": ("매도", 1, "실행 대본 방어")}
     st_, c, why = m.get(s, ("중립", 1, f"실행 대본 '{s}'"))
-    return st_, c, why, "signal"
+    return st_, c, why, "signal", {"up": "실행 대본 '분할 매수' 전환", "down": "실행 대본 '방어' 전환"}
 
 
 def _is_semi(p: dict) -> bool:
@@ -442,10 +657,10 @@ def _is_inverse(p: dict) -> bool:
 
 def rule_gyeom(f: dict, asset: str) -> tuple:
     if asset == "US10Y":
-        return "중립", 1, "대결 대상 아님", "none"
+        return _na("대결 대상 아님")
     picks = f.get("picks") or []
     if not picks:
-        return "중립", 1, "제출 없음" if f.get("has_decisions") else "입력 없음(decisions)", "none"
+        return _na("제출 없음" if f.get("has_decisions") else "입력 없음(decisions)")
     best = None
     for p in picks:
         conv = 2 if p["who"] == "나🔥" else 1
@@ -471,8 +686,8 @@ def rule_gyeom(f: dict, asset: str) -> tuple:
         if best is None or cand[1] > best[1] or (best[0] == "중립" and cand[0] != "중립"):
             best = cand
     if best is None:
-        return "중립", 1, "제출 없음", "none"
-    return best[0], best[1], best[2], "signal"
+        return _na("제출 없음")
+    return best[0], best[1], best[2], "signal", {"up": "다음 5거래일 대결 제출(나·나🔥 1·2)", "down": "인버스 선택(매도1)"}
 
 
 RULES = {"퀀트": rule_quant, "파생": rule_derivs, "매크로": rule_macro, "리스크": rule_risk,
@@ -491,51 +706,102 @@ def make_dots(f: dict) -> dict[str, list[dict]]:
         dots = []
         for d in DESKS:
             try:
-                stance, conv, reason, tag = RULES[d](f, a)
+                res = RULES[d](f, a)
             except Exception as e:  # noqa: BLE001
-                stance, conv, reason, tag = "중립", 1, f"규칙 오류 {type(e).__name__}", "none"
+                res = _na(f"규칙 오류 {type(e).__name__}")
+            stance, conv, reason, tag = res[:4]
+            ex = dict(res[4]) if len(res) > 4 and isinstance(res[4], dict) else {}
             if stance not in STANCES:
                 stance = "중립"
-            dots += _dot(d, a, stance, conv, reason, tag if tag in TAG_KO else "none", REFS[d])
+            refs = REFS[d] + [r for r in ex.get("refs") or [] if r]
+            dots += _dot(d, a, stance, conv, reason, tag if tag in TAG_KO else "none", refs, f, ex)
         out[a] = dots
     return out
 
 
 # ───────────────────────────── 집계·출력 ─────────────────────────────
+def _label_of(x: dict) -> str:
+    if x.get("na"):
+        return NA_LABEL
+    return x.get("lean_label") or LEANS[_lean_of(x.get("stance", "중립"), int(x.get("conv", 1)))]
+
+
 def summarize(dots: list[dict]) -> dict:
-    """데스크당 한 표(지평이 여러 개면 첫 지평)로 매수·중립·매도 수와 근거 태그 겹침."""
+    """데스크당 한 표(지평이 여러 개면 첫 지평). counts = 기존 3단(해당없음 제외) · lean_counts = 5단 + 해당없음 · net_lean = 평균 기울기."""
     seen, cnt, tags = set(), {s: 0 for s in STANCES}, {}
+    lc = {k: 0 for k in LEAN_ORDER}
+    leans = []
     for d in dots:
         if d["desk"] in seen:
             continue
         seen.add(d["desk"])
+        lab = _label_of(d)
+        lc[lab] += 1
+        if lab == NA_LABEL:
+            continue
         cnt[d["stance"]] += 1
+        leans.append(d.get("lean", _lean_of(d["stance"], int(d.get("conv", 1)))))
         if d.get("tag") and d["tag"] != "none":
             tags[d["tag"]] = tags.get(d["tag"], 0) + 1
-    return {"counts": cnt, "tags": dict(sorted(tags.items(), key=lambda kv: (-kv[1], kv[0])))}
+    return {"counts": cnt, "lean_counts": lc, "na": lc[NA_LABEL],
+            "net_lean": round(sum(leans) / len(leans), 2) if leans else None,
+            "tags": dict(sorted(tags.items(), key=lambda kv: (-kv[1], kv[0])))}
 
 
 def telegram_lines(dp: dict) -> list[str]:
     lines = []
     for a in ASSETS:
         s = summarize(dp["assets"].get(a) or [])
-        c = s["counts"]
+        c = s["lean_counts"]
         ov = ", ".join(f"{TAG_KO.get(k, k)} {v}회" for k, v in s["tags"].items() if v >= 2) or "없음"
-        lines.append(f"점도표 {ASSET_KO[a]}: 매수 {c['매수']}·중립 {c['중립']}·매도 {c['매도']} (근거 겹침: {ov})")
+        net = "—" if s["net_lean"] is None else f"{s['net_lean']:+.2f}"
+        lines.append(f"점도표 {ASSET_KO[a]}: " + "·".join(f"{k} {c[k]}" for k in LEAN_ORDER[:5])
+                     + f" (순기울기 {net}, 해당없음 {c[NA_LABEL]}, 근거 겹침: {ov})")
+        seen = set()
+        for x in dp["assets"].get(a) or []:      # 보드 dotplot-neutral-rule: 중립 점은 '기본 X% · 위 조건 · 아래 조건' 표기
+            if x["desk"] in seen or x.get("na") or x.get("lean", 1) != 0:
+                continue
+            seen.add(x["desk"])
+            bp = "—" if x.get("base_prob") is None else f"{x['base_prob'] * 100:.0f}%"
+            lines.append(f"  중립 {x['desk']}: 기본 {bp} · 위 {x.get('flip_up') or '—'} · 아래 {x.get('flip_down') or '—'}")
     return lines
+
+
+def make_top(dp: dict) -> dict:
+    """STANDARD 8절 상단 3칸 (screener/topline.make 형식)."""
+    from .topline import make
+    lc = {k: 0 for k in LEAN_ORDER}
+    for a in ASSETS:
+        for k, v in (summarize(dp["assets"].get(a) or [])["lean_counts"]).items():
+            lc[k] += v
+    n = sum(v for k, v in lc.items() if k != NA_LABEL)
+    neu = f"{lc['중립'] / n * 100:.0f}%" if n else "—"
+    what = [f"데스크 점 {n}개(해당없음 {lc[NA_LABEL]} 제외) — " + "·".join(f"{k} {lc[k]}" for k in LEAN_ORDER[:5]) + f", 순중립 {neu}"]
+    nets = []
+    for a in ASSETS:
+        v = summarize(dp["assets"].get(a) or [])["net_lean"]
+        if v is not None:
+            nets.append(f"{ASSET_KO[a]} {v:+.2f}")
+    so = ["순기울기(−2~+2) " + " · ".join(nets) if nets else "순기울기 계산 불가(점 없음)",
+          "약매수·약매도 = 근거 부호만(확신 낮음), 기울기 임계값 검증전"]
+    lint = dp.get("lint") or []
+    now = ["조치 없음(점도표 단독 매매 규칙 없음 — 운용회의 입력) · 점별 전환 조건 flip_up·flip_down 참조",
+           f"형식 검사 위반 {len(lint)}건" + (" — 생성기 확인 필요(개발)" if lint else " — 통과")]
+    return make(what, so, now, src=["reports/dotplot.json", "screener/dotplot.py"], asof=dp.get("asof"), grade="검증전")
 
 
 def to_markdown(dp: dict) -> str:
     out = [f"# 기명 점도표 {dp['date']}", "",
-           "데스크 × 자산 — 칸 = 판정(확신) · 지평. US10Y 는 금리 방향(매수 = 금리 상승). 규칙은 `screener/dotplot.py` 문서문자열.", "",
+           "데스크 × 자산 — 칸 = 기울기(확신) · 지평. 5단: 강매수·약매수·중립·약매도·강매도, 해당없음 = 데스크 규칙 없음(집계 제외). "
+           "US10Y 는 금리 방향(매수 = 금리 상승). 규칙은 `screener/dotplot.py` 문서문자열.", "",
            "| 데스크 | " + " | ".join(ASSET_KO[a] for a in ASSETS) + " |", "|---|" + "---|" * len(ASSETS)]
     for d in DESKS:
         cells = []
         for a in ASSETS:
             ds = [x for x in dp["assets"].get(a) or [] if x["desk"] == d]
-            cells.append(f"{ds[0]['stance']}{ds[0]['conv']} ({'/'.join(x['horizon'] for x in ds)})" if ds else "—")
+            cells.append(f"{_label_of(ds[0])}({ds[0].get('confidence', '—')}) ({'/'.join(x['horizon'] for x in ds)})" if ds else "—")
         out.append(f"| {d} | " + " | ".join(cells) + " |")
-    out += ["", "## 합계", ""] + [f"- {ln}" for ln in telegram_lines(dp)] + ["", "## 사유", ""]
+    out += ["", "## 합계", ""] + [f"- {ln}" for ln in telegram_lines(dp)] + ["", "## 사유 · 기본 확률 · 전환 조건", ""]
     for a in ASSETS:
         out.append(f"### {ASSET_KO[a]}")
         seen = set()
@@ -543,19 +809,28 @@ def to_markdown(dp: dict) -> str:
             if x["desk"] in seen:
                 continue
             seen.add(x["desk"])
-            out.append(f"- {x['desk']} {x['stance']}{x['conv']} — {x['reason']} [{TAG_KO.get(x['tag'], x['tag'])}]")
+            bp = "—" if x.get("base_prob") is None else f"{x['base_prob'] * 100:.0f}%"
+            out.append(f"- {x['desk']} {_label_of(x)} — {x['reason']} [{TAG_KO.get(x['tag'], x['tag'])}] · 기본 {bp}"
+                       f" ({x.get('base_src') or '—'}) · ▲ {x.get('flip_up') or '—'} · ▼ {x.get('flip_down') or '—'}")
         out.append("")
+    if dp.get("lint"):
+        out += ["## 형식 검사 위반", ""] + [f"- {e}" for e in dp["lint"]] + [""]
     return "\n".join(out)
 
 
 def build(send: bool = False, root: Path | None = None, today: str | None = None) -> dict:
     r = Path(root or ROOT)
     inputs = load_inputs(r)
+    inputs["events"] = event_inputs(r, today or datetime.now(KST).strftime("%Y-%m-%d"))
     f = derive_features(inputs, today)
     dp = {"date": f["date"], "asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "assets": make_dots(f),
           "closes": {a: (f["px"].get(a) or {}).get("last") for a in ASSETS},
           "note": "지수·업종 수준 판단만. 개인 보유·금액 없음. 규칙: screener/dotplot.py"}
     dp["summary"] = {a: summarize(dp["assets"][a]) for a in ASSETS}
+    dp["lint"] = lint_dots(dp["assets"])
+    if dp["lint"]:
+        log.warning("점도표 형식 위반 %d건: %s", len(dp["lint"]), dp["lint"][:3])
+    dp["top"] = make_top(dp)
     (r / "reports").mkdir(parents=True, exist_ok=True)
     (r / "reports" / "dotplot.json").write_text(json.dumps(dp, ensure_ascii=False, indent=1), encoding="utf-8")
     (r / "reports" / "dotplot.md").write_text(to_markdown(dp), encoding="utf-8")
@@ -567,7 +842,8 @@ def build(send: bool = False, root: Path | None = None, today: str | None = None
             from .config import CFG
             from .report import send_telegram
             if CFG.telegram_token and CFG.telegram_chat:
-                send_telegram("\n".join(telegram_lines(dp)))
+                from .topline import render_tg3
+                send_telegram("\n".join(render_tg3(dp["top"]).split("\n") + telegram_lines(dp)))
             else:
                 log.info("텔레그램 미설정 — 점도표 전송 생략")
         except Exception as e:  # noqa: BLE001
@@ -598,10 +874,10 @@ def realized(series: list[tuple[str, float]], d: str, horizon: str, is_yield: bo
     return b / a - 1 if a else None
 
 
-def judge(stance: str, conv: int, move: float, horizon: str, is_yield: bool) -> tuple[bool, float]:
+def judge(stance: str, conv: int, move: float, horizon: str, is_yield: bool, p_up: float | None = None) -> tuple[bool, float]:
     band = NEUTRAL_BAND_BP[horizon] if is_yield else NEUTRAL_BAND[horizon]
     y = 0.5 if move == 0 else (1.0 if move > 0 else 0.0)
-    p = 0.5 + SIGN[stance] * conv / 6
+    p = p_up if p_up is not None else 0.5 + SIGN[stance] * conv / 6
     brier = (p - y) ** 2
     if stance == "중립":
         return abs(move) < band, brier
@@ -612,16 +888,24 @@ def score_archive(archive: list[dict], series: dict[str, list[tuple[str, float]]
     """순수 함수: 점도표 묶음 + 자산별 종가 시계열 → 데스크별 성적."""
     per: dict[str, dict] = {d: {"n": 0, "hit": 0, "dir_n": 0, "dir_ret_sum": 0.0, "brier_sum": 0.0, "by_asset": {}} for d in DESKS}
     rows = []
+    bl: dict[str, dict] = {}
     for dp in archive:
         d0 = dp.get("date")
         for a, dots in (dp.get("assets") or {}).items():
             ser = series.get(a) or []
             isy = a == "US10Y"
             for x in dots:
+                if x.get("na"):
+                    continue
                 mv = realized(ser, d0, x["horizon"], isy)
                 if mv is None:
                     continue
-                ok, br = judge(x["stance"], int(x.get("conv", 1)), mv, x["horizon"], isy)
+                ok, br = judge(x["stance"], int(x.get("conv", 1)), mv, x["horizon"], isy, x.get("p_up"))
+                lab = _label_of(x)
+                B = bl.setdefault(lab, {"n": 0, "hit": 0, "brier_sum": 0.0})
+                B["n"] += 1
+                B["hit"] += int(ok)
+                B["brier_sum"] += br
                 P = per.setdefault(x["desk"], {"n": 0, "hit": 0, "dir_n": 0, "dir_ret_sum": 0.0, "brier_sum": 0.0, "by_asset": {}})
                 P["n"] += 1
                 P["hit"] += int(ok)
@@ -633,14 +917,16 @@ def score_archive(archive: list[dict], series: dict[str, list[tuple[str, float]]
                 ba["n"] += 1
                 ba["hit"] += int(ok)
                 rows.append({"date": d0, "desk": x["desk"], "asset": a, "horizon": x["horizon"], "stance": x["stance"],
-                             "conv": x.get("conv", 1), "move": round(mv, 4), "hit": ok})
+                             "conv": x.get("conv", 1), "lean_label": lab, "move": round(mv, 4), "hit": ok})
     out = {}
     for d, P in per.items():
         out[d] = {"n": P["n"], "hit": P["hit"], "hit_rate": round(P["hit"] / P["n"], 3) if P["n"] else None,
                   "avg_signed_ret": round(P["dir_ret_sum"] / P["dir_n"], 4) if P["dir_n"] else None, "dir_n": P["dir_n"],
                   "brier": round(P["brier_sum"] / P["n"], 4) if P["n"] else None,
                   "by_asset": {a: {**v, "hit_rate": round(v["hit"] / v["n"], 3) if v["n"] else None} for a, v in P["by_asset"].items()}}
-    return {"desks": out, "scored": rows, "n_scored": len(rows)}
+    by_lean = {k: {"n": v["n"], "hit": v["hit"], "hit_rate": round(v["hit"] / v["n"], 3) if v["n"] else None,
+                   "brier": round(v["brier_sum"] / v["n"], 4) if v["n"] else None} for k, v in bl.items()}
+    return {"desks": out, "scored": rows, "n_scored": len(rows), "by_lean": by_lean}
 
 
 def _scoreboard_row(res: dict, today: str) -> list[str]:
@@ -656,7 +942,7 @@ def _scoreboard_row(res: dict, today: str) -> list[str]:
 
 
 def append_scoreboard(res: dict, today: str, path: Path) -> None:
-    header = ["# 데스크 스코어보드", "", "점도표(기명) 채점 — `screener/dotplot.py score`. 적중 = 방향 일치(중립은 소폭 변동). "
+    header = ["# 데스크 스코어보드", "", "점도표(기명) 채점 — `screener/dotplot.py score`. 적중 = 방향 일치(약매수·약매도 포함, 중립은 소폭 변동, 해당없음 제외). "
               "평균 부호수익 = 매수/매도 점만, 판정 방향 × 실현 변화 (US10Y 는 bp/100). Brier 는 낮을수록 좋음.", "",
               "| 채점일 | 데스크 | n | 적중률 | 평균 부호수익 | Brier |", "|---|---|---|---|---|---|"]
     rows = _scoreboard_row(res, today)

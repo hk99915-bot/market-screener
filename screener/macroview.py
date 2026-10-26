@@ -37,6 +37,30 @@ WHAT = {
 }
 
 
+
+# 바람 라벨 (10/26 겸이 "맨날 중립이야" · 보드 dotplot-neutral-rule): 작은 점수도 부호를 버리지 않는다.
+# |s| < 0.05 만 '중립'(가중 평균 점수의 일간 흔들림 수준으로 잡은 표시 구간), 0.05~0.15 = 약한 역풍/순풍,
+# 0.15~0.4 = 역풍/순풍, ≥ 0.4 = 강한. 임계값은 표시 로직이며 검증전 — 매크로·퀀트 검수 대기 (docs/desk_kb/dev.md).
+WIND_NEUTRAL = 0.05
+
+
+def wind_label(score):
+    if score is None:
+        return None
+    if score <= -0.4:
+        return "강한 역풍"
+    if score <= -0.15:
+        return "역풍"
+    if score >= 0.4:
+        return "강한 순풍"
+    if score >= 0.15:
+        return "순풍"
+    if score <= -WIND_NEUTRAL:
+        return "약한 역풍"
+    if score >= WIND_NEUTRAL:
+        return "약한 순풍"
+    return "중립"
+
 def _stats(rows: list[list]) -> dict | None:
     c = [r[4] if len(r) >= 6 else r[1] for r in rows if (r[4] if len(r) >= 6 else r[1]) is not None]
     if len(c) < 60:
@@ -364,8 +388,7 @@ def build() -> dict:
             den += W.get(k, 0.5)
     score = num / den if den else None
     drivers = sorted([r for r in rows if r["impact"] is not None], key=lambda r: abs(r["impact"]) * W.get(r["key"], 0.5), reverse=True)[:3]
-    label = (None if score is None else "강한 역풍" if score <= -0.4 else "역풍" if score <= -0.15 else
-             "강한 순풍" if score >= 0.4 else "순풍" if score >= 0.15 else "중립")
+    label = wind_label(score)
     summary = (f"매크로 바람 {label} ({score:+.2f}) — 주된 요인: "
                + ", ".join(f"{r['name']} {'+' if r['impact'] > 0 else '−'}" for r in drivers)) if score is not None else ""
     kr = stats.get("KOSPI")

@@ -3264,19 +3264,28 @@ function cmtScenCards(o){
   return `<div style="display:flex;gap:8px;flex-wrap:wrap">${(o.scenarios||[]).map(s=>`<div style="flex:1;min-width:200px;border:1px solid var(--line);padding:8px 10px;line-height:1.6;white-space:normal">
      <div style="display:flex;justify-content:space-between;gap:6px"><b>${esc(s.name)}</b><b class="am" style="font-size:var(--fs-4)">${Math.round((s.prob||0)*100)}%</b></div>
      <div class="mu" style="font-size:var(--fs-1)">${esc(s.def)}</div><div style="font-size:var(--fs-2);margin-top:4px"><span class="am">전환 신호</span> ${esc(s.trigger)}</div><div style="font-size:var(--fs-2)"><span class="am">행동</span> ${esc(s.action)}</div></div>`).join('')}</div>`; }
-/* 기명 점도표 띠 — reports/dotplot.json: 자산마다 데스크 머리글자를 판정 색(매수 초록·중립 회색·매도 빨강)으로. 지수·업종 수준 판단만 */
+/* 기명 점도표 띠 — reports/dotplot.json: 자산마다 데스크 머리글자를 5단 기울기 색으로(강매수 초록 채움·약매수 초록 점선·중립 회색·약매도 빨강 점선·강매도 빨강 채움·해당없음 흐림).
+   툴팁 = 사유 · 확신 · 기본 시나리오 확률 · ▲flip_up / ▼flip_down (10/26 보드 dotplot-neutral-rule). lean 없는 옛 파일은 stance·conv 로 환산. 지수·업종 수준 판단만 */
 function dotStripHtml(){
   if(DOT===null){ DOT=false; google.script.run.withSuccessHandler(t=>{try{DOT=JSON.parse(t);}catch(e){DOT={};} if(view==='cmt') render();}).withFailureHandler(()=>{DOT={}; if(view==='cmt') render();}).getDotplot(); return ''; }
   const d=DOT; if(!d||!d.assets) return '';
   const KO={KOSPI:'코스피',SEMI_KR:'반도체(KR)',SPX:'S&P500',US10Y:'미10년(금리↑=매수)'}, INI={'퀀트':'Q','파생':'D','매크로':'M','리스크':'R','애널':'A','CIO':'C','PB':'P','겸이':'G'};
   const col=s=>s==='매수'?'var(--up)':s==='매도'?'var(--dn)':'var(--muted)';
+  const lab=x=>x.na?'해당없음':x.lean_label||(x.stance==='매수'?(x.conv>=2?'강매수':'약매수'):x.stance==='매도'?(x.conv>=2?'강매도':'약매도'):'중립');
+  const sty=x=>{ const l=lab(x), c=col(x.stance);
+    if(l==='강매수'||l==='강매도') return `border:1px solid ${c};background:${c};color:var(--bg);font-weight:700`;
+    if(l==='약매수'||l==='약매도') return `border:1px dashed ${c};color:${c}`;
+    if(l==='해당없음') return 'border:1px dotted var(--line);color:var(--muted);opacity:.45';
+    return 'border:1px solid var(--muted);color:var(--txt)'; };
+  const tip=x=>[x.desk+' '+lab(x)+(x.confidence?' (확신 '+x.confidence+')':''), x.reason||'',
+    x.base_prob!=null?'기본 시나리오 '+Math.round(x.base_prob*100)+'% · '+(x.base_src||''):'', x.flip_up?'▲ 위로 전환: '+x.flip_up:'', x.flip_down?'▼ 아래로 전환: '+x.flip_down:''].filter(Boolean).join('\n');
   const rows=Object.keys(KO).filter(a=>d.assets[a]).map(a=>{ const seen={}, dots=[];
     (d.assets[a]||[]).forEach(x=>{ if(seen[x.desk]) return; seen[x.desk]=1;
-      dots.push(`<span title="${esc(x.desk+' '+x.stance+x.conv+' · '+(x.reason||''))}" style="display:inline-block;min-width:18px;text-align:center;margin-right:3px;border:1px solid ${col(x.stance)};color:${col(x.stance)};font-weight:${x.conv>=2?'700':'400'};font-size:var(--fs-1);line-height:16px">${INI[x.desk]||x.desk[0]}</span>`); });
-    const c=((d.summary||{})[a]||{}).counts||{}, tg=((d.summary||{})[a]||{}).tags||{}, TK={rates:'금리',regime:'레짐',signal:'신호',valuation:'밸류',risk:'리스크',flows:'수급'};
+      dots.push(`<span class="dpdot" data-lean="${esc(lab(x))}" title="${esc(tip(x))}" style="display:inline-block;min-width:18px;text-align:center;margin-right:3px;${sty(x)};font-size:var(--fs-1);line-height:16px;cursor:help">${INI[x.desk]||x.desk[0]}</span>`); });
+    const sm=(d.summary||{})[a]||{}, c=sm.counts||{}, lc=sm.lean_counts, tg=((d.summary||{})[a]||{}).tags||{}, TK={rates:'금리',regime:'레짐',signal:'신호',valuation:'밸류',risk:'리스크',flows:'수급'};
     const ov=Object.keys(tg).filter(k=>tg[k]>=2).map(k=>(TK[k]||k)+' '+tg[k]).join(' · ');
-    return `<tr><td class="l" style="white-space:nowrap">${KO[a]}</td><td class="l">${dots.join('')}</td><td class="l mu" style="font-size:var(--fs-1);white-space:nowrap"><span class="up">${c['매수']||0}</span>/<span class="mu">${c['중립']||0}</span>/<span class="dn">${c['매도']||0}</span>${ov?' · 겹침 '+esc(ov):''}</td></tr>`; });
-  return `<div class="p c12"><h2><span>기명 점도표</span><small>${esc(d.date||'')} · 데스크 머리글자 = 판정 색 (굵게 = 확신 2+) · 매수/중립/매도 · 규칙 기반, 채점은 docs/desk_kb/_scoreboard.md</small></h2><div class="b" style="white-space:normal">${cmtTbl(['자산','Q퀀트 D파생 M매크로 R리스크 A애널 C CIO P PB G겸이','집계'],rows)}</div></div>`; }
+    return `<tr><td class="l" style="white-space:nowrap">${KO[a]}</td><td class="l">${dots.join('')}</td><td class="l mu" style="font-size:var(--fs-1);white-space:nowrap">${lc?`<span class="up"><b>${lc['강매수']||0}</b>·${lc['약매수']||0}</span>/<span class="mu">${lc['중립']||0}</span>/<span class="dn">${lc['약매도']||0}·<b>${lc['강매도']||0}</b></span>${sm.net_lean!=null?' · 순 '+(sm.net_lean>0?'+':'')+sm.net_lean.toFixed(2):''}${lc['해당없음']?' · 해당없음 '+lc['해당없음']:''}`:`<span class="up">${c['매수']||0}</span>/<span class="mu">${c['중립']||0}</span>/<span class="dn">${c['매도']||0}</span>`}${ov?' · 겹침 '+esc(ov):''}</td></tr>`; });
+  return `<div class="p c12"><h2><span>기명 점도표</span><small>${esc(d.date||'')} · 채움 = 강 · 점선 = 약(근거 부호만, 확신 낮음) · 회색 = 중립 · 흐림 = 해당없음 · 머리글자에 마우스 = 기본 확률·전환 조건 · 집계 강·약매수/중립/약·강매도 · 임계값 검증전, 채점 docs/desk_kb/_scoreboard.md</small></h2><div class="b" style="white-space:normal">${d.top&&d.top.what?`<div class="mu" style="font-size:var(--fs-2);margin-bottom:4px">① ${esc((d.top.what||[]).join(' '))}<br>② ${esc((d.top.so_what||[])[0]||'')}<br>③ ${esc((d.top.now_what||[])[0]||'')}</div>`:''}${cmtTbl(['자산','Q퀀트 D파생 M매크로 R리스크 A애널 C CIO P PB G겸이','집계'],rows)}</div></div>`; }
 /* 새로 켜진 추세 신호 (o.sim_fresh — screener/committee.py _sim_fresh, 원천 reports/sim_signals_KR.json). 종목명 클릭 → 종목 상세 */
 function cmtSimFreshHtml(o){
   const b=o.sim_fresh; if(!b) return '';
