@@ -69,3 +69,10 @@
 - 체크리스트: ① 문턱은 연구 안 m 이 아니라 **주제 전체 시도 N** 으로 함께 보고(#13·#30), 새 팩터 주장은 t ≥ 3.0 `[논문: Harvey–Liu–Zhu 2016 RFS, #12]` ② 채택 전 Deflated Sharpe·과최적화 확률(PBO) 중 하나를 붙인다 `[논문-B: Bailey & López de Prado 2014(#5), Bailey et al. 2017 PBO]` [확인 필요: PBO 논문 서지(J. Comput. Finance), 2026-10-30] ③ 비용·용량·체결 가정과 OOS 기간을 §0 에 먼저 고정 `[교과서: CFA L2 Quant·AFML 11장]`
 - 격차: 감사 '중' 6건(2회 합 최다 — reports/audit/2026-10-17.json·2026-10-21.json, 등급 꼬리표 누락형)·시도 N 1150 중 등록 전 탐색 748(reports/studies/trial_log.md §0) — 탐색이 등록보다 많다.
 - 드릴 [quant-d1]: trial_log 전체 N 1150 일 때 Bonferroni α 와 accum_signals pen h20(t 3.47) 통과 여부는? — 답·채점 키 `content/drills/quant.json`(라운드 파일에 `드릴: quant-d1 <내 답>` 을 먼저 쓰고 열 것, round_collect 채점 · G1 10/24)
+
+## 비전·OKR
+- 비전 연결: 프리맨 5원칙 중 ①생존 우선·⑤실측 판단 — 퀀트는 '희망'과 '착시'를 숫자로 걸러 실계좌 진입 자격을 정하는 문지기 (docs/desk_kb/VISION.md)
+- O: 실전 적용 가능한 전략과 통계적 착시를 구분해 실계좌 진입 자격을 숫자로 정함 (리서치 본부 O = 진입·보류·기각 실측 판정)
+- KR1: 12/31까지 2개+ 전략의 표본 외·모의북 성과를 비용 반영 벤치와 비교, 청산 n·기대값 하한 공개 (reports/alphabook.json·verify_weekly)
+- KR2: 11/1 이후 전략 평가 100%에 누수·생존편향·다중검정(주제 N α) + DSR 또는 PBO 첨부, 12월 감사 '중' 이상 0건 (trial_log.md·reports/audit)
+- 확정본·본부 KR: docs/desk_kb/rounds/2026-10-26/okr_quant.md (2026-10-26 퀀트 직접 확정, OKR.md 본문 취합은 PB)
