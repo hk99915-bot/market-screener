@@ -1,8 +1,8 @@
 {
  "version": 1,
  "schema_version": 1,
- "asof": "2026-10-26",
- "generated_at": "2026-10-26 19:15 KST",
+ "asof": "2026-10-27",
+ "generated_at": "2026-10-27 08:56 KST",
  "sources": [
   {
    "src": "accum",
@@ -73,7 +73,7 @@
  ],
  "by_src": {
   "accum": {
-   "n_events": 3812,
+   "n_events": 3837,
    "h5": {
     "n": 3642,
     "avg_ex": 0.00354,
@@ -96,10 +96,10 @@
   "us_accum": {
    "n_events": 112,
    "h5": {
-    "n": 16,
-    "avg_ex": -0.0067,
-    "med_ex": -0.00575,
-    "hit": 0.5
+    "n": 47,
+    "avg_ex": 0.0037,
+    "med_ex": 0.00715,
+    "hit": 0.617
    },
    "h20": null,
    "h60": null
@@ -128,7 +128,7 @@
    "h60": null
   },
   "disc_us": {
-   "n_events": 62,
+   "n_events": 73,
    "h5": null,
    "h20": null,
    "h60": null
@@ -140,7 +140,7 @@
    "tag": "accum",
    "label": "외인+기관 20일 매집",
    "side": 1,
-   "n_events": 499,
+   "n_events": 500,
    "h5": {
     "n": 477,
     "avg_ex": 0.00762,
@@ -165,7 +165,7 @@
    "tag": "distrib",
    "label": "분배(약세)",
    "side": -1,
-   "n_events": 291,
+   "n_events": 293,
    "h5": {
     "n": 282,
     "avg_ex": -0.00234,
@@ -190,7 +190,7 @@
    "tag": "diverge",
    "label": "가격 정체 속 매집",
    "side": 1,
-   "n_events": 639,
+   "n_events": 643,
    "h5": {
     "n": 608,
     "avg_ex": -0.00378,
@@ -215,7 +215,7 @@
    "tag": "dryexp",
    "label": "거래 마름 뒤 확대",
    "side": 1,
-   "n_events": 530,
+   "n_events": 536,
    "h5": {
     "n": 501,
     "avg_ex": 0.01008,
@@ -240,7 +240,7 @@
    "tag": "foreign",
    "label": "외국인 매집",
    "side": 1,
-   "n_events": 549,
+   "n_events": 553,
    "h5": {
     "n": 527,
     "avg_ex": 0.00231,
@@ -265,7 +265,7 @@
    "tag": "inst",
    "label": "기관 매집",
    "side": 1,
-   "n_events": 510,
+   "n_events": 512,
    "h5": {
     "n": 490,
     "avg_ex": 0.00406,
@@ -290,7 +290,7 @@
    "tag": "pension",
    "label": "연기금 매집",
    "side": 1,
-   "n_events": 246,
+   "n_events": 247,
    "h5": {
     "n": 242,
     "avg_ex": 0.00767,
@@ -315,7 +315,7 @@
    "tag": "streak",
    "label": "연속 순매수",
    "side": 1,
-   "n_events": 548,
+   "n_events": 553,
    "h5": {
     "n": 515,
     "avg_ex": 0.00409,
@@ -480,7 +480,7 @@
    "tag": "new:gcv",
    "label": "new:gcv",
    "side": 1,
-   "n_events": 6,
+   "n_events": 11,
    "h5": null,
    "h20": null,
    "h60": null
@@ -490,7 +490,7 @@
    "tag": "new:hi52",
    "label": "new:hi52",
    "side": 1,
-   "n_events": 24,
+   "n_events": 26,
    "h5": null,
    "h20": null,
    "h60": null
@@ -500,7 +500,7 @@
    "tag": "new:sqz",
    "label": "new:sqz",
    "side": 1,
-   "n_events": 30,
+   "n_events": 34,
    "h5": null,
    "h20": null,
    "h60": null
@@ -542,10 +542,10 @@
    "side": 1,
    "n_events": 80,
    "h5": {
-    "n": 13,
-    "avg_ex": -0.00245,
-    "med_ex": 0.00045,
-    "hit": 0.538
+    "n": 20,
+    "avg_ex": -0.00765,
+    "med_ex": 0.00224,
+    "hit": 0.55
    },
    "h20": null,
    "h60": null
@@ -557,19 +557,19 @@
    "side": 1,
    "n_events": 32,
    "h5": {
-    "n": 3,
-    "avg_ex": -0.02507,
-    "med_ex": -0.02109,
-    "hit": 0.333
+    "n": 27,
+    "avg_ex": 0.0121,
+    "med_ex": 0.01667,
+    "hit": 0.667
    },
    "h20": null,
    "h60": null
   }
  ],
  "first": "2026-02-24",
- "added_today": 7,
+ "added_today": 36,
  "origin_counts": {
-  "live": 275,
+  "live": 311,
   "archive": 178,
   "git": 150,
   "recompute": 3453
@@ -586,9 +586,69 @@
    "recompute:accum": 3453
   }
  },
- "n_events": 4056,
+ "n_events": 4092,
  "ledger": "reports/signal_tracking/<YYYY-MM>.json",
  "recent": [
+  {
+   "date": "2026-10-26",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "HII",
+   "name": "Huntington Ingalls Industries, Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "TDY",
+   "name": "Teledyne Technologies Incorporated Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "HON",
+   "name": "Honeywell International Inc. - Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "FTV",
+   "name": "Fortive Corporation Common Stock ",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
   {
    "date": "2026-10-26",
    "src": "disc_kr",
@@ -625,6 +685,381 @@
    "tag": "adopt:gcv",
    "code": "456160",
    "name": "지투지바이오",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "streak",
+   "code": "092790",
+   "name": "넥스틸",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "streak",
+   "code": "073010",
+   "name": "케이에스피",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "streak",
+   "code": "012790",
+   "name": "신일제약",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "streak",
+   "code": "012210",
+   "name": "삼미금속",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "streak",
+   "code": "000080",
+   "name": "하이트진로",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "pension",
+   "code": "171090",
+   "name": "선익시스템",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "inst",
+   "code": "126340",
+   "name": "비나텍",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "inst",
+   "code": "091580",
+   "name": "상신이디피",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "foreign",
+   "code": "457370",
+   "name": "한켐",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "foreign",
+   "code": "126640",
+   "name": "화신정공",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "foreign",
+   "code": "120110",
+   "name": "코오롱인더",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "foreign",
+   "code": "000990",
+   "name": "DB하이텍",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "dryexp",
+   "code": "186230",
+   "name": "그린플러스",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "dryexp",
+   "code": "114840",
+   "name": "아이패밀리에스씨",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "dryexp",
+   "code": "079550",
+   "name": "LIG디펜스앤에어로스페이스",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "dryexp",
+   "code": "078520",
+   "name": "에이블씨엔씨",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "dryexp",
+   "code": "011370",
+   "name": "서한",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "dryexp",
+   "code": "00680K",
+   "name": "미래에셋증권2우B",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "diverge",
+   "code": "126600",
+   "name": "BGF에코머티리얼즈",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "diverge",
+   "code": "098460",
+   "name": "고영",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "diverge",
+   "code": "080580",
+   "name": "오킨스전자",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "diverge",
+   "code": "006660",
+   "name": "삼성공조",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "distrib",
+   "code": "290650",
+   "name": "엘앤씨바이오",
+   "market": "KR",
+   "side": -1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "distrib",
+   "code": "0010S0",
+   "name": "와이즈플래닛컴퍼니",
+   "market": "KR",
+   "side": -1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "src": "accum",
+   "tag": "accum",
+   "code": "089890",
+   "name": "코세스",
    "market": "KR",
    "side": 1,
    "origin": "live",
@@ -1047,441 +1482,6 @@
    "name": "컨텍",
    "market": "KR",
    "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "disc_kr",
-   "tag": "chase:psar3",
-   "code": "100250",
-   "name": "진양홀딩스",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "disc_kr",
-   "tag": "chase:ma3",
-   "code": "458870",
-   "name": "씨어스",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "disc_kr",
-   "tag": "chase:ma3",
-   "code": "451760",
-   "name": "컨텍",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "disc_kr",
-   "tag": "adopt:sqz",
-   "code": "484120",
-   "name": "도우인시스",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "disc_kr",
-   "tag": "adopt:hi52",
-   "code": "012030",
-   "name": "DB",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "disc_kr",
-   "tag": "adopt:gcv",
-   "code": "491000",
-   "name": "리브스메드",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "streak",
-   "code": "336570",
-   "name": "원텍",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "streak",
-   "code": "294570",
-   "name": "쿠콘",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "streak",
-   "code": "293490",
-   "name": "카카오게임즈",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "streak",
-   "code": "088980",
-   "name": "맥쿼리인프라",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "streak",
-   "code": "048910",
-   "name": "대원미디어",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "streak",
-   "code": "003380",
-   "name": "하림지주",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "streak",
-   "code": "001740",
-   "name": "SK네트웍스",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "pension",
-   "code": "078520",
-   "name": "에이블씨엔씨",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "pension",
-   "code": "004370",
-   "name": "농심",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "inst",
-   "code": "089890",
-   "name": "코세스",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "foreign",
-   "code": "204620",
-   "name": "글로벌텍스프리",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "foreign",
-   "code": "134580",
-   "name": "엔키AX",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "foreign",
-   "code": "042510",
-   "name": "라온시큐어",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "dryexp",
-   "code": "179290",
-   "name": "엠아이텍",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "dryexp",
-   "code": "004960",
-   "name": "한신공영",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "diverge",
-   "code": "361610",
-   "name": "SK아이이테크놀로지",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "diverge",
-   "code": "204620",
-   "name": "글로벌텍스프리",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "diverge",
-   "code": "064850",
-   "name": "에프앤가이드",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "diverge",
-   "code": "047770",
-   "name": "코데즈컴바인",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "distrib",
-   "code": "417030",
-   "name": "니어스랩",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "accum",
-   "code": "441270",
-   "name": "파인엠텍",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "accum",
-   "code": "241790",
-   "name": "티이엠씨씨엔에스",
-   "market": "KR",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-23",
-   "src": "accum",
-   "tag": "accum",
-   "code": "171090",
-   "name": "선익시스템",
-   "market": "KR",
-   "side": 1,
    "origin": "live",
    "fwd": {
     "h5": null,
