@@ -68,7 +68,7 @@
 | **KIS** 주식선물 | 체결 `H0ZFCNT0`(현재가·시고저·체결량·누적·이론가·시장베이시스·괴리율·미결제약정·호가 1단계 포함), 호가 `H0ZFASP0` `[원문: 공식 저장소 코드]` — 코드 docstring 의 종목코드 예시는 `101S12`(삼성전자·하이닉스 주식선물 종목코드 조회 방법은 `[미확인]`) | 웹소켓 실시간 | 앱키·시크릿 + 실전 계좌 **[계좌필요]**, 모의 미지원 | 미확인 | 웹소켓 appkey 당 41건 등록(2차 근거 위 참조) | 약관 미열람, 재배포 미확인 | 노트북 상시 수집기만(Actions 불가) | **조건부** |
 | **KIS** 주식옵션 | 체결 `H0ZOCNT0`·호가 `H0ZOASP0` `[원문]` | 웹소켓 실시간 | 위와 동일 | 위와 동일 | 위와 동일 — 옵션은 행사가·만기별 종목이 많아 41건 안에 못 담음 | 위와 동일 | 위와 동일 | **조건부**(종목 수 제약) |
 | **KIS** 개별주식 선물 **투자자별** | 해당 TR 없음 `[원문]` | — | — | — | — | — | — | **불가** |
-| **토스증권 Open API** | **국내(KRX)·미국 주식**의 시세·호가·체결·종목정보·환율·장 달력·계좌·주문. 웹소켓(`wss://openapi-ws.tossinvest.com/ws/v1`)은 체결·호가·본인 주문 이벤트 `[원문: developers.tossinvest.com/llms.txt, openapi-docs/overview.md]` — **선물·옵션·파생 엔드포인트 없음**(기존 KB 10/23 '원자재·선물 없음'과 일치). 참고: 종목별 `GET /api/v1/stocks/{symbol}/investor-trading`(개인·외국인·기관·기타법인 + 기관 세부 분류, 문서상 "일별 거래량")·`program-trades`(차익·비차익 일별) 있음 — 현물 쪽 보조 | REST 폴링 + 웹소켓 | OAuth2 Client Credentials(토큰), 계좌 헤더는 계좌·주문 API 에만 → 시세는 토큰만 ("사용자 계좌와 무관한 정보이므로 OAuth 2.0 토큰만으로 호출 가능") 단, 토큰 발급에 토스증권 계좌가 필요한지는 **미확인** | 문서에 비용 언급 못 찾음 | REST 그룹별 초당: STOCK_TRADING_TREND 10 · MARKET_DATA 15 · STOCK 5 등 `[원문: overview.md Rate Limits]`; 웹소켓 연결 한도는 AsyncAPI 미열람 | 이용약관·재배포 미열람 | REST 폴링은 Actions 5분 가능, 웹소켓은 노트북 | **파생: 불가**. 현물 투자자별 보조: 조건부 |
+| **토스증권 Open API** | **국내(KRX)·미국 주식**의 시세·호가·체결·종목정보·환율·장 달력·계좌·주문. 웹소켓(`wss://openapi-ws.<토스증권 도메인>/ws/v1`)은 체결·호가·본인 주문 이벤트 `[원문: developers.<토스증권 도메인>/llms.txt, openapi-docs/overview.md]` — **선물·옵션·파생 엔드포인트 없음**(기존 KB 10/23 '원자재·선물 없음'과 일치). 참고: 종목별 `GET /api/v1/stocks/{symbol}/investor-trading`(개인·외국인·기관·기타법인 + 기관 세부 분류, 문서상 "일별 거래량")·`program-trades`(차익·비차익 일별) 있음 — 현물 쪽 보조 | REST 폴링 + 웹소켓 | OAuth2 Client Credentials(토큰), 계좌 헤더는 계좌·주문 API 에만 → 시세는 토큰만 ("사용자 계좌와 무관한 정보이므로 OAuth 2.0 토큰만으로 호출 가능") 단, 토큰 발급에 토스증권 계좌가 필요한지는 **미확인** | 문서에 비용 언급 못 찾음 | REST 그룹별 초당: STOCK_TRADING_TREND 10 · MARKET_DATA 15 · STOCK 5 등 `[원문: overview.md Rate Limits]`; 웹소켓 연결 한도는 AsyncAPI 미열람 | 이용약관·재배포 미열람 | REST 폴링은 Actions 5분 가능, 웹소켓은 노트북 | **파생: 불가**. 현물 투자자별 보조: 조건부 |
 | **키움 REST** | 주식선물옵션 TR **미확인** | — | — | — | — | — | — | **미확인** |
 | **LS증권** | 주식선물 실시간 TR **미확인**(2차: 선물옵션용 웹소켓 경로 존재) | — | 계좌 필요 추정 | — | — | — | — | **미확인** |
 | **KRX 실시간 시세 상품** | KRX Data Marketplace 에 데이터 상품 구매 메뉴가 있다는 것만 확인. 실시간 시세 라이선스(상품명·가격·재배포 조건) **미확인** `[미확인]` — 증권사·벤더 경유 상용 라이선스가 일반적이라는 것은 일반 상식 수준(출처 없음) | — | — | 유료 추정 `[미확인]` | — | — | — | **미확인**(개인 프로젝트엔 비현실적일 가능성) |
@@ -125,7 +125,7 @@
 ## 출처 (접속 2026-10-26)
 
 - KIS 공식 저장소: https://github.com/koreainvestment/open-trading-api (examples_llm/domestic_futureoption, domestic_stock, MCP/KIS Code Assistant MCP/src/prompts/prompt.py)
-- 토스증권 개발자센터: https://developers.tossinvest.com/llms.txt · https://openapi.tossinvest.com/openapi-docs/overview.md · https://openapi.tossinvest.com/openapi-docs/faq.md
+- 토스증권 개발자센터: https://developers.<토스증권 도메인>/llms.txt · https://openapi.<토스증권 도메인>/openapi-docs/overview.md · https://openapi.<토스증권 도메인>/openapi-docs/faq.md (도메인 문자열은 screener/toss_md.py 에만 — tests/test_toss_md.py)
 - KRX OPEN API 이용약관·이용방법: https://openapi.krx.co.kr/contents/OPP/INFO/OPPINFO002.jsp · https://openapi.krx.co.kr/contents/OPP/INFO/OPPINFO003.jsp · https://openapi.krx.co.kr/contents/OPP/INFO/OPPINFO004.jsp
 - KRX 정보데이터시스템 영문 메인(20분 지연 표기): https://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd?locale=en
 - 금융위 파생상품시세정보(공공누리 4유형·T+1): https://www.data.go.kr/data/15094802/openapi.do
