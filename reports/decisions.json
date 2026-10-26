@@ -1974,10 +1974,21 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:57"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "XOM",
+     "name": "Exxon Mobil Corporation",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "d5_close",
+     "by": "공격 PB",
+     "at": "21:57"
     }
    },
    "basis": {
@@ -1988,6 +1999,138 @@
      "VIX 19.45",
      "나스닥 25,955 (-0.21%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. S&P500 7,624로 20일 저점(약세 전환선)과 동일(이격 0.0%), 미 위원회 결론 '할 일 없음'·TOP1 기대값 +0.10R(C)로 기준선 +0.12R 미달. 10/28 FOMC·MSFT·GOOGL 실적 전 신규 위험 확대 근거 부족. 탈출 조건: 20일 저점 2일 이탈 시 약세 판단, 5일 고점 7,757 회복 시 재검토.",
+    "lines": [
+     "S&P500 7,624 = 20일 저점(약세 전환선) 이격 0.0%, 5일 고점 7,757(+1.8%)",
+     "미 위원회 결론 유지·할 일 없음, 강세 36%·기본 44%·약세 20%",
+     "이벤트: 10/27 STX, 10/28 FOMC·MSFT·GOOGL·KLAC, 10/29 AMZN 등",
+     "레드팀: 20일 저점에서의 현금은 반등 시 기회 비용 — 5일 고점 회복 시 재진입 검토 필요"
+    ],
+    "conviction": "보통",
+    "at": "21:57",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 진입 근거(기대값 기준선 초과) 없음"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "위성 북 신규 매수 금지(레거시 매도만) 및 스트레스 구속 한도 사용 중 — 실계좌 신규 매수 없음."
+    },
+    "views_asof": "2026-10-26 19:15",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 0/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 4",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 2회 · 5일 초과 -0.9%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 8건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "공격 PB: 미 위원회 TOP1 계획 그대로 모의 롱. 진입 181.25~185.17, 손절 175.36(−4.3%), 1차 194.99(1.5R)·2차 206.76(3.0R). 1차 선도달 34% vs 손절 47%, E[R] +0.10R(등급 C, 기준선 +0.12 미달 — 검증전)으로 근거 약함 인정, 에너지 비중이 반도체 쏠림과 반대 방향인 점에 베팅. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.055,
+      "stop": -0.043,
+      "rr": 1.5,
+      "win_rate": 0.34,
+      "n": null,
+      "ev": null,
+      "basis": "committee_us TOP1 plan(1차 선도달 34%/손절 47%, E[R] +0.10R C) — 표본 수 미확인"
+     }
+    }
    }
   }
  ],
