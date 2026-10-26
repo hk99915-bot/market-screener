@@ -311,3 +311,38 @@ req-data-2964da3f · req-data-4e390b32 · req-data-5046a78b · req-data-751d13c7
 ## 7. 다음
 - 화 회의: 폐기 후보 4건 결재, §0 승격 시점 관찰(due 전 승격 6건) 확인 요청.
 - PM: 웨이브 1·2 끝난 뒤 이 표에서 닫힌 id 를 지우고 남은 수를 req-pm-100484e2(11/07 충원 판정) 숫자로 재사용.
+
+## 8. 10/26 2차 정리 (PM, 19:50~ KST)
+> 지시: 겸이 10/26 "우선순위 낮고 chore한 거 묶어서 한 번에 해버리든가 기각해". 출발 = 열린 요청 108건(1차 정리 뒤 + 오늘 신규). 결재·규칙 변경·실계좌·개인 재무·보안/유출 관련은 기각 대상에서 제외(남김). 크기·깨움·토큰은 **PM 추정 [검증전]**.
+
+**기각 12 · 처리 4 · 묶음 C 이관 5(+묶음 요청 1 신설) → 남은 88** (108 − 21 + 1).
+
+| 구분 | id | 사유(1줄, 장부 회신과 같음) |
+|---|---|---|
+| 기각 | req-data-25c610af | L, 옵션·공매도·선물은 784ffc43·eee6de46·1a3f3978 로 대체 — 나머지는 범위 좁혀 새 요청 |
+| 기각 | req-data-88dfbe9f | 소형주 숏 연구 — 실행 축 아님, 탐색 비용 큼 |
+| 기각 | req-data-ecc8937e | 무료 원천 미확인 L — 생존편향 표기로 진행 |
+| 기각 | req-data-d16cfea5 | 네이버 경로 작동 중, 전환 이득 작음 |
+| 기각 | req-data-c77cf2b8 | 일봉·ATR 완료, 괴리율만 남음 — 관심목록 단계 |
+| 기각 | req-data-3c64a717 | 20-F 무료 분기 경로 없음 — no_data 표기 유지 |
+| 기각 | req-data-6c908141 | 외부 논객 채점용 PMI·비료 — 우선순위 낮음 |
+| 기각(중복) | req-data-26d5938d | → req-data-76cf9141(R-ONE)·23bdae79(실거래) |
+| 기각(중복) | req-data-a555e088 | → req-data-76cf9141 ECOS 국고 백필(2021-12~2022-12 먼저, 회신에 명시) |
+| 기각 | req-dev-0d73cae1 | 잡주 1m 기록기 L — 연구 축 우선순위 낮음 |
+| 기각(낡음) | req-dev-838025ff | 10/21 일회성 탐침, 실행 흔적·기다리는 쪽 없음 |
+| 기각 | req-life-bc4747b3 | 수신 확인 회신 — 지표는 그대로 받음 |
+| 처리 | req-dev-56e317b9 · req-ops-e6543186 · req-uxui-623edd60 · req-dev-9445319c | 커밋 e6fe1c30 (문서 2줄 정정·schedule_table 1행·uxui 머리말·보드 ponytail-fixes 완료) |
+| 묶음 C | req-dev-082223e8 · 4dcda5cb · dbd49e21 · 808893e4 · req-hf-c7fd8c65 | → **req-dev-a3f3a6b4**(개발, 마감 10/30) 한 깨움 |
+
+남긴 것(기각 안 함, 규칙상): req-data-2ff2a4e7·866790c9(실계좌 주문·거래 요건), PB·내무·부동산·LIFE 비공개 건, 결재(req-pb-db57c704·req-ops-1b60cbd5), 보안(req-dev-d026b1af·req-data-cb6315c2).
+보드: '[요청 승격]' 중 요청이 닫힌 9건 완료(req-data-25c610af·88dfbe9f·d16cfea5·c77cf2b8 · req-dev-0d73cae1·838025ff · req-pb-036d2f5b·1a630ea8·8a75f2cf — 뒤 3건은 PB 결재로 닫힘) + ponytail-fixes → '[요청 승격]' 미완 21 → 12, P1 미완 47.
+
+### 데스크별 남은 수 (88, 받는 쪽 = 보드 owner 기준 — req-dev-516bf7e6·cb19b1e0 은 front)
+data 16 · dev 11(묶음 C 포함) · front 6 · frm 6 · eval 6 · pb 6 · realestate 5 · household 5 · bonds 3 · quant 3 · behavior 2 · derivs 2 · hf 2 · macro 2 · verify 2 · 1건씩: life·audit·compliance·edu·maint·ops·peer·pm·posrisk·uxui·scribe (11).
+
+### 화 10/27 23시 배치 수정 (§6 대비)
+- 데이터: 25 → 16건(L 5→3, M 11→7, S 9→6) — 부하 82 → 51점, 깨움 9 → 5. **데이터 #3(M 잔여) 삭제.** #2 는 S 6건(14f05fa8·1fd3dc04·2ff2a4e7·7ff634a5·866790c9·cb6315c2 중 cb6315c2 는 #1 선행) + ISA 입력 5b659e78·b83a7ef9.
+- 개발: #1 = d026b1af(치명 후속) · 43d17d83(결재 구현 rulebook) · d1b2e934. #2 = **묶음 C(a3f3a6b4)** · 4f89d244.
+- FRM: 4 → 6건(오늘 신규 2ff808c9 — 11/2 09:30 전 회신 희망, e18dcee7 — 화 23시 결재 구현) — 웨이브 3 FRM 깨움 1회에 6건.
+- LIFE: 남은 건 비공개 인수인계 1건뿐 → 웨이브 4 LIFE 깨움 삭제, pb-private 세션(내무와 같이)으로.
+- **1차 밤: 깨움 16 → 15회 ≈ 150~240만 토큰.** 2차 밤 이후 L 잔여 13 → 10건(25c610af·ecc8937e·0d73cae1 기각), 깨움 12~15 → 8~11회 ≈ 80~176만. 전체 추정 깨움 44 → 약 37회 [추정].
