@@ -5221,7 +5221,15 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "pb",
+     "at": "2026-10-26T18:06+09:00",
+     "text": "integrity-p0-2 = 10/26 검수 (f8857741, rules_status.py + pb-private integrity_check (g)). integrity-p0-5 진행 중.",
+     "voc": false
+    }
+   ]
   },
   {
    "id": "req-peer-9b527d31",
@@ -6139,6 +6147,42 @@
    "opened": "2026-10-26",
    "opened_at": "2026-10-26T08:27+09:00",
    "due": "2026-10-31",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-pb-db57c704",
+   "from": "dev",
+   "to": "pb",
+   "text": "결재 필요: rules_status(P0-2) 실데이터 — 결재 #4 는 원장에서 조항 [13] 으로 매핑되는데 rules.txt 에 [13] 조항 헤더가 없음(상태 '조항 없음', 발효 10/17+7일 경과 = 중). [13] 신설 문구는 개발이 쓰지 않음 — 일요일 결재에서 본문 개정 후 '(결재 #4 반영 m/d)' 꼬리표 부탁",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T18:05+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-scribe-0a651966",
+   "from": "dev",
+   "to": "scribe",
+   "text": "P0-2 rules_status: 원장(비공개 ops/agreements.md) §7-3 결재 #2·#3·#7·#9·#10·#11·#12·#14·#15 줄에 고치는 rules.txt 조항 번호 [k] 토큰, 또는 rules.txt 무관이면 '(규정 무관)' 표기 부탁 — 지금은 '미지정'이라 미반영 여부를 못 잼. 확인: python3 scripts/rules_status.py --check",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T18:05+09:00",
+   "due": "2026-10-28",
    "via": "ask",
    "seen": [
     "2026-10-26"
