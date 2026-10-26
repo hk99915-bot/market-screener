@@ -108,7 +108,7 @@ function cmtSrcHtml(a){ const g=x=>x==='검증전'?'검증 전':x;
 function cmtBLCard(o){
   const bl=o.bottom_line||{}, c=({red:'var(--dn)',yellow:'var(--amber)',green:'var(--up)'})[bl.light]||'var(--amber)';
   return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 ${o.market==='US'?'미장':'국장'}${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
-    <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
+    <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${o.top?renderTop(o.top,{c}):(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
 /* HF 데스크 운용회의 개입 4줄 + 알파북(모의) — screener/alphabook.py, reports/alphabook.json */
 /* HF 진입 근거 펼침 줄(screener/entry_why.py build().long, ab3d0ce2) 이름표·판정 배지 — UXUI 10/24 req-uxui-ce6484a5.
    '근거 기술 — …'→왜 · '근거 기대값·리스크 — …'→값 · '근거 펀더|내러|센티 +|중립|−|미확인 …'→축 이름 + 배지 · '근거 약함 — …'→약함. 모르는 줄은 '·' 그대로 */

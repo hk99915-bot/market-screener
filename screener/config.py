@@ -21,6 +21,11 @@ CIO_TOP3_V2 = True
 # (🔴 '오늘 행동 필요'는 해금 + 판정이 매수 쪽일 때만 후보로 켠다). 원장은 읽지 않는다 — 해금되면 이 한 줄을 True 로.
 SATELLITE_LIVE = False
 
+# 보고 상단 3줄형(① What ② So What ③ Now What + 원본) 텔레그램 적용 스위치 — STANDARD.md 8절 · 보드 report-format-rollout.
+# False = 기존 텔레그램 그대로(JSON `top` 키는 항상 생성). True = 운용회의(국·미)·HF 알파북 꼬리·데일리 브리프 상단을 topline.render_tg3 로.
+# 샘플 1건씩 겸이 확인 후 True (지시서 rounds/2026-10-26/report_format_rollout.md 4절 2단계). 되돌리기 = False.
+TOPLINE_TG = False
+
 # 토스 EOD 보충 검증 게이트 (보드 us-eod-toss, 10/21 오너 "토스 보충이 실데이터로 검증 안 됐으면 검증을 하고 넣어").
 # 매일 보충 직전에 us_eod.json 의 '전날' 봉(prev)을 야후 같은 날짜 봉과 대조 → 통과할 때만 보충, 불일치 종목은 개별 제외.
 # - 종가 허용 0.1%: 둘 다 같은 거래소 정규장 종가(마감 단일가)라 원래 센트 단위로 같아야 함. publish 반올림(소수 4자리)은 $1 이상에서

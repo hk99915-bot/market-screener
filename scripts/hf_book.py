@@ -291,8 +291,20 @@ def load() -> dict:
     return b
 
 
-def save(b: dict):
+def save(b: dict, top_args: dict | None = None):
     b["asof"] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+    try:   # 보고 상단 형식 top(STANDARD 8절) — note 는 그대로(하위호환). CLI --what/--so-what/--now-what 있으면 그 문장, 없으면 장부 자동 요약
+        from screener import topline, topline_from
+        ta = {k: v for k, v in (top_args or {}).items() if v}
+        if ta:
+            sp = lambda s: [x.strip() for x in str(s).split("|") if x.strip()]  # noqa: E731
+            b["top"] = topline.make(sp(ta.get("what", "")) or ["해당 없음(--what 미기재)"], sp(ta.get("so_what", "")) or ["해당 없음(--so-what 미기재)"],
+                                    sp(ta.get("now_what", "")) or ["조치 없음(--now-what 미기재)"], src=["reports/hf_discretion.json"],
+                                    asof=b["asof"], grade="검증전")
+        else:
+            b["top"] = topline_from.hf_book(b)
+    except Exception as e:  # noqa: BLE001
+        b["top_error"] = f"{type(e).__name__}: {e}"
     STATE.write_text(json.dumps(b, ensure_ascii=False, indent=1))
 
 
@@ -965,8 +977,15 @@ def main(argv=None):
     a3.add_argument("--why", required=True)
     sp.add_parser("mark")
     sp.add_parser("show")
-    a = ap.parse_args(argv)
+    tp = argparse.ArgumentParser(add_help=False)   # 보고 상단 3칸(STANDARD 8절) — 어느 하위 명령 앞뒤에 둬도 됨. 여러 줄은 '|' 로 구분
+    tp.add_argument("--what")
+    tp.add_argument("--so-what", dest="so_what")
+    tp.add_argument("--now-what", dest="now_what")
+    ta, rest = tp.parse_known_args(argv)
+    a = ap.parse_args(rest)
     b = load()
+    _save = globals()["save"]
+    save = lambda bb: _save(bb, vars(ta))  # noqa: E731
     if a.cmd == "add":
         try:
             p = add(b, a)

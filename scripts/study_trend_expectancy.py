@@ -92,6 +92,22 @@ def run_market(mk: str) -> dict:
             "exp": ex, "wilson": {"n_pass": len(wil), "rows": wil}, "boot_disagree": boot_diff, "pass_by_theme": sectors}
 
 
+def _with_top(o: dict, md: str) -> str:
+    """보고 상단 형식(STANDARD 8절) 문서형 요약 블록 — 실패하면 본문만."""
+    try:
+        from screener import topline, topline_from
+        what = [f"{r['market']}: 통과 {r['exp']['n_pass']}/{r['exp']['n_eligible']} · 우연 기대 {r['exp']['expected_chance']} · 이항 p {r['exp']['binom_p']}"
+                for r in o.get("markets") or []]
+        so = [f"등급 {' · '.join(f'{k} {v}' for k, v in (o.get('grades') or {}).items())} — 재현율 0.9 미만이면 전부 검증전",
+              "주문표 근거 불가(C·참고) — 통과 수가 우연 기대 이하면 효과 없음으로 읽음"]
+        top = topline_from.study("추세 기대값", what or ["결과 없음"], so, src=["reports/studies/trend_expectancy.md"], asof=o.get("generated"))
+        o["top"] = top
+        return topline.render_md(top, doc=True) + md
+    except Exception as e:  # noqa: BLE001
+        print(f"top 실패: {e}")
+        return md
+
+
 def render_md(o: dict) -> str:
     L = ["# 추세 '새로 켜짐' 기대값 하한 — 결과 (C·참고)", "",
          f"> 사전등록 {o['prereg']['doc']} · 생성 {o['generated']} KST · 원천 reports/detail/{{KR,US}}/*.json · 주문표 근거 불가.", "",
@@ -127,7 +143,7 @@ def main(argv=None) -> int:
     if any((r["repro"]["rate"] or 0) < 0.9 for r in mk):
         out["grades"] = {k: "검증전" for k in out["grades"]}
     OUT_J.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    OUT_M.write_text(render_md(out), encoding="utf-8")
+    OUT_M.write_text(_with_top(out, render_md(out)), encoding="utf-8")
     print(render_md(out))
     return 0
 

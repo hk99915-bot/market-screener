@@ -395,6 +395,11 @@ def build() -> dict:
         log.warning("한눈에 층별 줄 실패: %s", e)
         out["glance"] = [{"id": "err", "title": "층별 요약", "line": f"데이터 없음(생성 실패: {type(e).__name__})", "src": "screener/macroview.py",
                           "asof": None, "label": "검증전", "desk": None}]
+    try:   # 보고 상단 형식 top(STANDARD 8절) — summary 는 그대로, 추가만
+        from . import topline_from
+        out["top"] = topline_from.macro(out)
+    except Exception as e:  # noqa: BLE001
+        log.warning("매크로 top 실패: %s", e)
     from .guard import write_json
     write_json(REPORT_DIR / "macro_view.json", out, default=str)
     try:

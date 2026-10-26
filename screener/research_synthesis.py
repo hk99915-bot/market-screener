@@ -415,6 +415,11 @@ def run() -> dict | None:
     out = build(store, views, meta, _load_json(REPORT_DIR / "committee.json"), details,
                 public=_load_json(REPORT_DIR / "public_reports.json"), jiang=_load_json(REPORT_DIR / "views" / "jiang.json"),
                 digest=_load_json(REPORT_DIR / "views" / "digest.json"))
+    try:   # 보고 상단 형식 top(STANDARD 8절) — headline 은 그대로, 추가만
+        from . import topline_from
+        out["top"] = topline_from.research(out)
+    except Exception as e:  # noqa: BLE001
+        log.warning("리서치 종합 top 실패: %s", e)
     if write_json(OUT, out, key="asof"):
         log.info("research_synthesis.json — %s", out["headline"]["text"])
     return out

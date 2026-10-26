@@ -197,6 +197,11 @@ def build(days: int = 7) -> dict:
            "headline": " · ".join(head), "topdown": {"markets": top_lines, "regime": regime},
            "themes": themes[:12], "links": links, "dissent": dissent, "tp_cuts": cuts, "disclosures": disc,
            "topics": dict(all_topics.most_common(8))}
+    try:   # 보고 상단 형식 top(STANDARD 8절) — headline 은 그대로, 추가만
+        from . import topline_from
+        out["top"] = topline_from.daily(out)
+    except Exception as e:  # noqa: BLE001
+        log.warning("데일리 top 실패: %s", e)
     from .guard import write_json
     if write_json(REPORT_DIR / "daily_brief.json", out):   # asof 역행이면 json·md 둘 다 건너뜀
         (REPORT_DIR / "daily_brief.md").write_text(to_markdown(out), encoding="utf-8")
@@ -228,6 +233,10 @@ def to_markdown(o: dict) -> str:
 
 def telegram_text(o: dict) -> str:
     L = [f"<b>🧭 데일리 리서치 브리프</b> · {o['asof']}", f"<b>{o['headline']}</b>", ""]
+    from . import config
+    if getattr(config, "TOPLINE_TG", False) and o.get("top"):   # 3줄형 스위치(기본 꺼짐) — 헤드라인 줄 교체
+        from .topline import render_tg3
+        L = [L[0], render_tg3(o["top"]), ""]
     if o["topdown"]["markets"]:
         L.append("<b>[탑다운]</b> " + " · ".join(o["topdown"]["markets"][:6]))
         L += [f"• {x}" for x in o["topdown"]["regime"]]

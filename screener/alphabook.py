@@ -550,6 +550,12 @@ def update(o: dict, market: str = "KR", now: datetime | None = None, state_path:
     S.update({"v": 1, "updated": now.strftime("%Y-%m-%d %H:%M KST"), "mock": True, "unit": "가상 1단위(NAV 1.0)",
               "rules": "screener/alphabook.py 머리말 · docs/desk_kb/hf.md", "sources_file": SRC_FILE})
     S.setdefault("summary", {})[market] = {"state": blk["state"], "stats": st, "lines": blk["lines"], "say": blk["say"], "asof": today}
+    try:   # 보고 상단 형식 top(STANDARD 8절) — 블록·파일 둘 다 추가만
+        from . import topline_from
+        blk["top"] = topline_from.alphabook_block(blk, market)
+        S["top"] = topline_from.alphabook(S)
+    except Exception as e:  # noqa: BLE001
+        blk["top_error"] = f"{type(e).__name__}: {e}"
     try:
         path.write_text(json.dumps(S, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     except Exception as e:  # noqa: BLE001
@@ -586,4 +592,10 @@ def disc_line(path: Path | None = None) -> str | None:
 
 
 def telegram_tail(o: dict) -> list[str]:
-    return list(((o.get("hf") or {}).get("tg") or [])[:6])      # 머리 1 + 진입 근거 4 + 재량 1 (10/24)
+    hf = o.get("hf") or {}
+    tg = list((hf.get("tg") or [])[:6])      # 머리 1 + 진입 근거 4 + 재량 1 (10/24)
+    from . import config
+    if getattr(config, "TOPLINE_TG", False) and hf.get("top") and tg:   # 3줄형 스위치(기본 꺼짐) — 머리 1줄만 교체
+        from .topline import render_tg3
+        return render_tg3(hf["top"]).split("\n") + tg[1:]
+    return tg

@@ -807,6 +807,11 @@ def build() -> dict:
     o["reco"] = recommend(o)
     o["guide"] = guide(o)
     o["vehicles"] = vehicles(o)
+    try:   # 보고 상단 형식 top(STANDARD 8절) — 추가만
+        from . import topline_from
+        o["top"] = topline_from.bonds(o)
+    except Exception as e:  # noqa: BLE001
+        log.warning("채권 top 실패: %s", e)
     from .guard import write_json
     write_json(OUT, o, separators=(",", ":"))
     log.info("채권: US10Y %s KR10Y %s 소스 %s", (us_chg.get("10Y") or {}).get("v"), (kr_chg.get("10Y") or {}).get("v"), src)

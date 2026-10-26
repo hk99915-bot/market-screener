@@ -113,8 +113,29 @@ def _fmt_grades(g: dict) -> str:
     return " ".join(f"{k}{v}" for k, v in sorted(g.items())) if g else "—"
 
 
+def _top_block(b: dict) -> str:
+    """보고 상단 형식(STANDARD 8절) 문서형 요약 — 결정적(asof = 연구 날짜 최댓값)이라 --check 와 충돌 없음. 실패하면 빈 문자열."""
+    try:
+        import sys as _sys
+        if str(ROOT) not in _sys.path:
+            _sys.path.insert(0, str(ROOT))
+        from screener import topline, topline_from
+        rows = b.get("rows") or []
+        big = sorted(b.get("topics", {}).items(), key=lambda kv: -kv[1]["N"])[:1]
+        what = [f"시도 N {b['N_total']} · 연구 {len(rows)}건 · 전체 한 가족 α {b['alpha_total']}"]
+        if big:
+            what.append(f"최다 주제 {big[0][0]} N {big[0][1]['N']} · α(N) {big[0][1]['alpha_N']}")
+        so = ["연구별 Bonferroni 는 연구 안 m 만 반영 — 주제 N 이 m 의 2배 넘으면 C 등급은 우연 가능 방향"]
+        now = ["새 연구 §0 에 해당 주제 현재 N 1줄 기록(퀀트) · 등급 변경 없음"]
+        asof = max((str(r.get("date") or "") for r in rows), default="") or None
+        top = topline_from.study("시도 일지", what, so, now, src=["reports/studies/trial_log.json", "scripts/trial_log.py"], asof=asof)
+        return topline.render_md(top, doc=True)
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def render_md(b: dict) -> str:
-    L = ["# 시도 일지 (trial log)", "",
+    L = [_top_block(b) + "# 시도 일지 (trial log)", "",
          "> `scripts/trial_log.py --build` 산출물 — 손으로 고치지 않는다. 사람이 적는 칸은 `trial_log.json`.",
          "> 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).",
          "> 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.", "",

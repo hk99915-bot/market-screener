@@ -1,3 +1,23 @@
+## 요약 (What · So What · Now What)
+
+> 기준 2026-10-23
+
+**What**
+- 시도 N 1180 · 연구 41건 · 전체 한 가족 α 4e-05
+- 최다 주제 us_spike N 722 · α(N) 7e-05
+
+**So What**
+- 연구별 Bonferroni 는 연구 안 m 만 반영 — 주제 N 이 m 의 2배 넘으면 C 등급은 우연 가능 방향
+
+**Now What**
+- 새 연구 §0 에 해당 주제 현재 N 1줄 기록(퀀트) · 등급 변경 없음
+
+**원본**
+- reports/studies/trial_log.json
+- scripts/trial_log.py
+
+---
+
 # 시도 일지 (trial log)
 
 > `scripts/trial_log.py --build` 산출물 — 손으로 고치지 않는다. 사람이 적는 칸은 `trial_log.json`.

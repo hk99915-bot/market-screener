@@ -1543,6 +1543,7 @@ def _v2_build(out: dict, k: dict, der: dict, chains: dict, themes_all: list[dict
     except Exception as e:  # noqa: BLE001
         out["tradeplan"] = {"error": f"{type(e).__name__}: {e}"}
         log.warning("trade plan 부착 실패: %s", e)
+    _top_attach(out, "KR")
     _hf_attach(out, "KR")
     try:
         _ideas_log_append(out)
@@ -1570,12 +1571,30 @@ def _bucket(k: dict, stu: dict) -> dict:
     return b.get(key) or b.get("all") or {}
 
 
+def _top_attach(out: dict, market: str) -> None:
+    """보고 상단 형식 `top` 키(STANDARD.md 8절) — bottom_line 은 그대로 두고 추가만. 실패해도 회의는 계속."""
+    try:
+        from . import topline_from
+        out["top"] = topline_from.committee(out, market)
+    except Exception as e:  # noqa: BLE001
+        log.warning("운용회의 top(%s) 실패: %s", market, e)
+
+
+def _tg_top3(o: dict, bl: dict) -> list[str]:
+    """텔레그램 ①②③ 줄 — config.TOPLINE_TG 켜지면 topline 3줄형, 꺼지면 기존 bottom_line 3줄 그대로."""
+    from . import config
+    if getattr(config, "TOPLINE_TG", False) and o.get("top"):
+        from .topline import render_tg3
+        return render_tg3(o["top"]).split("\n")
+    return [f"{'①②③'[i]} {x}" for i, x in enumerate((bl.get("lines") or [])[:3])]
+
+
 def _telegram_v2(o: dict) -> str:
     """모닝 미팅 v2 텔레그램 — 25줄 이내. 점심·장중 세션은 bottom_line + 시계 + ideas_top 만."""
     bl = o.get("bottom_line") or {}
     lunch = o.get("session") in ("점심", "장중")   # 장중(10:30·13:30·14:15)도 짧은 판
     L = [f"🏛 <b>운용회의 · {o.get('session', '')}</b> · {o['date']}  {bl.get('label', '')}"]
-    L += [f"{'①②③'[i]} {x}" for i, x in enumerate((bl.get("lines") or [])[:3])]
+    L += _tg_top3(o, bl)
     if not lunch:
         mc = o.get("macro") or {}
         if (mc.get("regime") or {}).get("line"):
@@ -1771,6 +1790,7 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
     except Exception as e:  # noqa: BLE001
         out["tradeplan"] = {"error": f"{type(e).__name__}: {e}"}
         log.warning("미장 trade plan 부착 실패: %s", e)
+    _top_attach(out, "US")
     _hf_attach(out, "US")
     try:
         _sf = _sim_fresh("US")
@@ -1798,7 +1818,7 @@ V2_FOOTER_US = "미장 회의 = 모델 북·규칙 기반·검증전. 실계좌 
 def telegram_text_us(o: dict) -> str:
     bl = o.get("bottom_line") or {}
     L = ["🗽 <b>미장 운용회의</b> · " + o["date"] + (f"  {bl['label']}" if bl.get("label") else "")] + [f"• {x}" for x in o["head"]]
-    L += [f"{'①②③'[i]} {x}" for i, x in enumerate((bl.get("lines") or [])[:3])]
+    L += _tg_top3(o, bl)
     L += ["", "<b>[시나리오]</b> " + o["verdict"]]
     for s in o["scenarios"]:
         L.append(f"• {s['name']} {(s['prob'] or 0)*100:.0f}% — 신호: {s['trigger']}")

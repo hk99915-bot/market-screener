@@ -222,6 +222,24 @@ def when(d: pd.DataFrame, k: pd.DataFrame) -> dict:
     return out
 
 
+def _with_top(o: dict, md: str) -> str:
+    """보고 상단 형식(STANDARD 8절) 문서형 요약 블록을 md 맨 앞에 — 실패하면 본문만."""
+    try:
+        from screener import topline, topline_from
+        rs = sorted(o.get("results") or [], key=lambda r: ("A", "B", "C", "검증전", "F").index(r["grade"]) if r.get("grade") in ("A", "B", "C", "검증전", "F") else 9)
+        what = [f"{r['sig']} h{r['h']}: ab {r['ab_mean'] * 100:+.2f}% · t {r['t']} · n {r['n']:,} ({r['grade']})" for r in rs[:2] if r.get("ab_mean") is not None]
+        g = {}
+        for r in o.get("results") or []:
+            g[r.get("grade")] = g.get(r.get("grade"), 0) + 1
+        so = [f"등급 분포 {' · '.join(f'{k} {v}' for k, v in g.items())} — 비용 미반영(왕복 ≈0.25%p)"] + topline.fit((o.get("caveats") or ["한계 기재 없음"])[0], max_lines=1)
+        top = topline_from.study("매집 신호", what or ["결과 없음(results 비어 있음)"], so, src=["reports/studies/accum_signals.md"], asof=str(o.get("asof"))[:16])
+        o["top"] = top
+        return topline.render_md(top, doc=True) + md
+    except Exception as e:  # noqa: BLE001
+        print(f"top 실패: {e}")
+        return md
+
+
 def render_md(o: dict) -> str:
     L = [f"# 외인·기관 매집 신호 이벤트 스터디 ({o['asof']})", "",
          f"데이터 {o['data']['first']}~{o['data']['last']} · 거래일 {o['data']['days']} · 종목 {o['data']['codes']} · m={M} · α={ALPHA:.5f}",
@@ -266,7 +284,7 @@ def main() -> int:
                      "ETF·ETN 제외: ETF 의 '기관' 순매수는 LP 가 개인 매매를 받아주는 거울이라 매집으로 읽지 않는다",
                      "월 군집 SE 는 같은 달 이벤트 상관을 고치지만 국면 집중(강세장 몇 달)은 못 고친다(kb:quant#20)"]}
     OUT.write_text(json.dumps(o, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
-    MD.write_text(render_md(o), encoding="utf-8")
+    MD.write_text(_with_top(o, render_md(o)), encoding="utf-8")
     for r in rows:
         print(f"{r['sig']:<10} h{r['h']:<3} n{r['n']:<6} ex {r['ex_mean']} ab {r['ab_mean']} t {r['t']} hit {r['hit']}/{r['hit_lb']} base {r['base_hit']} {r['grade']}")
     print(json.dumps(o["when"], ensure_ascii=False)[:1500])

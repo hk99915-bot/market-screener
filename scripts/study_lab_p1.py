@@ -341,6 +341,23 @@ def screen(q, w, fl, asof: pd.Timestamp, names: dict) -> dict:
             "n_total": len(rows), "top": rows[:20]}
 
 
+def _with_top(o: dict, md: str) -> str:
+    """보고 상단 형식(STANDARD 8절) 문서형 요약 블록 — 실패하면 본문만."""
+    try:
+        from screener import topline, topline_from
+        rk = ("A", "B", "C", "검증전", "F")
+        rs = sorted(o.get("results") or [], key=lambda r: rk.index(r["grade"]) if r.get("grade") in rk else 9)
+        what = [f"{r['id']} {r['label']}: 평균 {r['mean'] * 100:+.2f}% · t {r['t']} · {r['months']}개월 ({r['grade']})"[:90]
+                for r in rs[:2] if r.get("mean") is not None]
+        so = topline.fit((o.get("caveats") or ["한계 기재 없음"])[0], max_lines=2)
+        top = topline_from.study("가설 연구소 P1", what or ["결과 없음"], so, src=["reports/studies/lab_p1.md"], asof=str(o.get("asof"))[:16])
+        o["top"] = top
+        return topline.render_md(top, doc=True) + md
+    except Exception as e:  # noqa: BLE001
+        print(f"top 실패: {e}")
+        return md
+
+
 def render_md(o: dict) -> str:
     f = lambda v: "—" if v is None else f"{v * 100:+.2f}%"  # noqa: E731
     L = [f"# 가설 연구소 P1 결과 ({o['asof']}, 퀀트)", "",
@@ -400,7 +417,7 @@ def main() -> int:
                      "P1-O 는 미래정보 사용·실행 불가 — 상한 서술만",
                      "가설 원천은 개인 원장 사후 사례 분석 — 주제 N 에 등록 전 탐색 포함"]}
     (OUT / "lab_p1.json").write_text(json.dumps(o, ensure_ascii=False, indent=1), encoding="utf-8")
-    (OUT / "lab_p1.md").write_text(render_md(o), encoding="utf-8")
+    (OUT / "lab_p1.md").write_text(_with_top(o, render_md(o)), encoding="utf-8")
     names = accum.load_names(root=ROOT_DATA / "flows")
     try:
         import csv

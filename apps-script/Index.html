@@ -289,6 +289,15 @@ const SEC=[['TREND_LONG','TREND LONG'],['PULLBACK_IN_UPTREND','PULLBACK IN UPTRE
 let D=null, view='home';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* 보고 상단 공통 카드(STANDARD.md 8절 · screener/topline.py 스키마) — ① What ② So What ③ Now What + 근거·기준·원본.
+   top 없으면 '' 반환 → 각 탭은 기존 표시(.summary·.verdict·bottom_line)를 그대로 쓴다(하위호환). opt.c = 번호 색 */
+function renderTop(top,opt){ if(!top||typeof top!=='object') return ''; opt=opt||{}; const c=opt.c||'var(--accent,inherit)';
+  const L=[['what','What'],['so_what','So What'],['now_what','Now What']], ls=k=>(Array.isArray(top[k])?top[k]:top[k]?[top[k]]:[]);
+  const row=([k,lab],i)=>{ const xs=ls(k); return `<div class="tl-row" style="margin:2px 0"><b style="color:${c}">${'①②③'[i]}</b> <b>${lab}</b>: ${xs.length?xs.map(esc).join('<br><span style="padding-left:1.6em"></span>'):'<span class="mu">해당 없음</span>'}</div>`; };
+  const ev=ls('evidence'), src=ls('src');
+  return `<div class="tl-top" style="line-height:1.7;white-space:normal">${L.map(row).join('')}`
+    +(ev.length?`<div class="mu" style="font-size:var(--fs-1);margin-top:4px">근거: ${ev.map(esc).join(' · ')}</div>`:'')
+    +`<div class="mu" style="font-size:var(--fs-1)">${top.asof?'기준 '+esc(top.asof)+' · ':''}${top.grade?'등급 '+esc(top.grade)+' · ':''}원본: ${src.length?src.map(esc).join(' · '):'없음'}</div></div>`; }
 const pct=(x,d=1)=>x==null?'':`<span class="${x>0?'up':x<0?'dn':'mu'}">${(x*100).toFixed(d)>0?'+':''}${(x*100).toFixed(d)}%</span>`;
 const num=(x,d=0)=>x==null?'':Number(x).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
 const n0=x=>x==null?'':Math.round(x);

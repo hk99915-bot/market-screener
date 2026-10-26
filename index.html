@@ -390,6 +390,15 @@ const SEC=[['TREND_LONG','TREND LONG'],['PULLBACK_IN_UPTREND','PULLBACK IN UPTRE
 let D=null, view='home';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* 보고 상단 공통 카드(STANDARD.md 8절 · screener/topline.py 스키마) — ① What ② So What ③ Now What + 근거·기준·원본.
+   top 없으면 '' 반환 → 각 탭은 기존 표시(.summary·.verdict·bottom_line)를 그대로 쓴다(하위호환). opt.c = 번호 색 */
+function renderTop(top,opt){ if(!top||typeof top!=='object') return ''; opt=opt||{}; const c=opt.c||'var(--accent,inherit)';
+  const L=[['what','What'],['so_what','So What'],['now_what','Now What']], ls=k=>(Array.isArray(top[k])?top[k]:top[k]?[top[k]]:[]);
+  const row=([k,lab],i)=>{ const xs=ls(k); return `<div class="tl-row" style="margin:2px 0"><b style="color:${c}">${'①②③'[i]}</b> <b>${lab}</b>: ${xs.length?xs.map(esc).join('<br><span style="padding-left:1.6em"></span>'):'<span class="mu">해당 없음</span>'}</div>`; };
+  const ev=ls('evidence'), src=ls('src');
+  return `<div class="tl-top" style="line-height:1.7;white-space:normal">${L.map(row).join('')}`
+    +(ev.length?`<div class="mu" style="font-size:var(--fs-1);margin-top:4px">근거: ${ev.map(esc).join(' · ')}</div>`:'')
+    +`<div class="mu" style="font-size:var(--fs-1)">${top.asof?'기준 '+esc(top.asof)+' · ':''}${top.grade?'등급 '+esc(top.grade)+' · ':''}원본: ${src.length?src.map(esc).join(' · '):'없음'}</div></div>`; }
 const pct=(x,d=1)=>x==null?'':`<span class="${x>0?'up':x<0?'dn':'mu'}">${(x*100).toFixed(d)>0?'+':''}${(x*100).toFixed(d)}%</span>`;
 const num=(x,d=0)=>x==null?'':Number(x).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
 const n0=x=>x==null?'':Math.round(x);
@@ -3154,7 +3163,7 @@ function cmtSrcHtml(a){ const g=x=>x==='검증전'?'검증 전':x;
 function cmtBLCard(o){
   const bl=o.bottom_line||{}, c=({red:'var(--dn)',yellow:'var(--amber)',green:'var(--up)'})[bl.light]||'var(--amber)';
   return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 ${o.market==='US'?'미장':'국장'}${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
-    <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
+    <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${o.top?renderTop(o.top,{c}):(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
 /* HF 데스크 운용회의 개입 4줄 + 알파북(모의) — screener/alphabook.py, reports/alphabook.json */
 /* HF 진입 근거 펼침 줄(screener/entry_why.py build().long, ab3d0ce2) 이름표·판정 배지 — UXUI 10/24 req-uxui-ce6484a5.
    '근거 기술 — …'→왜 · '근거 기대값·리스크 — …'→값 · '근거 펀더|내러|센티 +|중립|−|미확인 …'→축 이름 + 배지 · '근거 약함 — …'→약함. 모르는 줄은 '·' 그대로 */

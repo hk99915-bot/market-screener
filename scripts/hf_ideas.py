@@ -368,6 +368,14 @@ def lines(o: dict) -> list[str]:
 def main():
     o = build()
     o["watch"] = watch_all()
+    try:   # 보고 상단 형식 top(STANDARD 8절) — 추가만
+        import sys as _sys
+        if str(ROOT) not in _sys.path:
+            _sys.path.insert(0, str(ROOT))
+        from screener import topline_from
+        o["top"] = topline_from.hf_ideas(o)
+    except Exception as e:  # noqa: BLE001
+        print(f"top 실패: {e}")
     OUT.write_text(json.dumps(o, ensure_ascii=False, indent=1), encoding="utf-8")
     print("\n".join(lines(o)))
 
