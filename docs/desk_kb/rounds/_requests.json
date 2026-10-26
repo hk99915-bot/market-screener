@@ -6427,6 +6427,24 @@
    "status": "open"
   },
   {
+   "id": "req-analyst-16fe6a15",
+   "from": "verify",
+   "to": "analyst",
+   "text": "검수 ra-sec-coverage 조건부: 완료 기준 '컨센 없으면 전분기 대비로 대용·표기' 경로가 코드에 없음(earnings_cal·valuation_daily·sec). 현재 49/49 컨센 있어 미발현 — 결측 시 대용·표기 + 테스트 1건. 근거 rounds/2026-10-26/review_verify.md",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:53+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-1a3f3978",
    "from": "pb",
    "to": "data",
@@ -6452,6 +6470,24 @@
    "opened": "2026-10-26",
    "opened_at": "2026-10-26T18:34+09:00",
    "due": "2026-11-06",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-data-b9d651f3",
+   "from": "verify",
+   "to": "data",
+   "text": "검수 bok-issue-note 조건부(실행 불가 — 03:30 Actions 미도래): 로컬 실조회 ok 20행 재현. 10/27 03:30 수집 후 public_reports.json sources bok_research ok 확인 회신",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:53+09:00",
+   "due": "2026-10-27",
    "via": "ask",
    "seen": [
     "2026-10-26"
@@ -6553,6 +6589,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-3f06d142",
+   "from": "verify",
+   "to": "dev",
+   "text": "검수 us-eod-toss 조건부: reports/toss_eod_check.json 0회(야후 STALE 미재발로 게이트 실발동 없음) — STALE 아니어도 매일 토스 prev 봉 vs 야후 섀도 대조 기록(보충 없이)으로 일치율·max_dev 증거 축적 요청",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:53+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-43d17d83",
    "from": "pb",
    "to": "dev",
@@ -6589,6 +6643,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-afc2e971",
+   "from": "verify",
+   "to": "dev",
+   "text": "검수 dotplot-neutral-rule 조건부: ① 보드 '조건 없는 중립은 기록 거부' vs 구현 '기록 후 lint 경고' 정합(코드 또는 보드 문구) ② PB 코스피 중립 '기본 11%' — 중립 점의 기본 시나리오 확률이 11%면 '기본'으로 안 읽힘, base_prob 정의 점검. 근거 review_verify.md",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:53+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-b8bc0009",
    "from": "maint",
    "to": "dev",
@@ -6596,6 +6668,24 @@
    "opened": "2026-10-26",
    "opened_at": "2026-10-26T19:51+09:00",
    "due": "2026-10-31",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-dev-ee592388",
+   "from": "verify",
+   "to": "dev",
+   "text": "검수 integrity-p0-5 조건부: handoff_build 훅·예약 미연결로 생성 1.8시간 뒤 --check rc 1(낡음). 연결 안(오너 결정 필요 시 안건화) + 보드 files 칸에 pb:scripts/handoff_build.py 기재",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:53+09:00",
+   "due": "2026-10-30",
    "via": "ask",
    "seen": [
     "2026-10-26"
@@ -6705,6 +6795,24 @@
    ]
   },
   {
+   "id": "req-posrisk-4a9faa7c",
+   "from": "verify",
+   "to": "posrisk",
+   "text": "검수 tue-risk-events 조건부: event_posrisk 실계좌 스트레스 칸이 10/22 −15.17%·레거시 매도 반영 재계산 미실시 — 화 23시 7월 실측 교체 후 재측정·신호등 갱신, 보드 files 칸 기재",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:53+09:00",
+   "due": "2026-10-28",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-quant-41a36cce",
    "from": "pb",
    "to": "quant",
@@ -6730,6 +6838,24 @@
    "opened": "2026-10-26",
    "opened_at": "2026-10-26T18:34+09:00",
    "due": "2026-11-10",
+   "via": "ask",
+   "seen": [
+    "2026-10-26"
+   ],
+   "checked": [
+    "2026-10-26"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-quant-a12cc3bb",
+   "from": "verify",
+   "to": "quant",
+   "text": "검수 kr-accum 반려(진행 환원): data_store_manifest flows 가 2024-11-26~ 만 — 2022·2023 하락장 백필 없음, accum_signals asof 10-17 재실행 없음. 백필 완료 → 스터디 재실행 후 재검수. 부수: accum.log log1p divide-by-zero 경고",
+   "opened": "2026-10-26",
+   "opened_at": "2026-10-26T19:53+09:00",
+   "due": "2026-10-31",
    "via": "ask",
    "seen": [
     "2026-10-26"

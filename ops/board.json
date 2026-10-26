@@ -1021,7 +1021,7 @@
       "id": "ra-sec-coverage",
       "title": "RA: SEC·DART 커버리지 확장 — 반도체 바스켓 전체(PSI·SOXX 구성 30+종목, 하이닉스 ADR 없음→DART), 실적 발표일·컨센서스 EPS(무료 소스 조사) 수집 파이프라인",
       "owner": "애널",
-      "status": "검수",
+      "status": "완료",
       "priority": "P1",
       "repo": "public",
       "files": [
@@ -1044,7 +1044,8 @@
       ],
       "notes": "컨센서스 없으면 '전분기 대비'로 대용하고 표기. 금액·보유 금지. | 10/24 운영 점검: 담당 데이터→애널(PB 10/24 배정, 애널 작업 중 — 상태·마감은 애널이) | 10/24 애널: 마감(10/21) 경과 원인 = 담당이 '데이터'로만 걸리고 시작일 공란인 채 대기 — 애널·데이터 누구도 착수 안 함(애널이 10/16 겸이 요청을 받고도 담당 지정 안 함). 처리: PSI(N-PORT 2026-07-31)·SOXX(N-PORT 2026-06-30) 주식 합집합 48 + SNDK = 49종목 universe/semis_basket.json(ISIN 대조, CIK 49/49) → us_priority 우선 수집, 가격 없는 27종목 us_watch 추가. sec.py 회전 배치(SEC_BUDGET 80/일)·증분(submissions 최신 정기보고서)·진행 파일 data/fin/sec_progress.json. IFRS 20-F(TSM·ASX·UMC)·US-GAAP 20-F(ASML·STM·NVMI·TSEM)는 분기 손익 없음 → 데이터 데스크 요청. 하이닉스는 기존 DART 경로(valuation BASKET 000660). 실적일·컨센: screener/earnings_cal.py(야후, 추정) → reports/earnings_cal.json, fin.yml 매일. 검수 포인트: 다음 fin.yml 실행 후 sec_progress.summary·valuation 가격 채움.",
       "escalated": "2026-10-21",
-      "desk": "애널"
+      "desk": "애널",
+      "done": "2026-10-26"
     },
     {
       "id": "ra-etf-holdings-full",
@@ -1205,7 +1206,7 @@
       "id": "dotplot-neutral-rule",
       "title": "점도표: '중립' 점은 기본 시나리오 확률 + 위/아래 전환 조건(flip_up/flip_down) 필수 — 조건 없는 중립은 기록 거부. 텔레그램 줄에 '기본 X% · 위 조건 · 아래 조건' 표기",
       "owner": "개발",
-      "status": "검수",
+      "status": "완료",
       "priority": "P1",
       "repo": "public",
       "files": [
@@ -1219,7 +1220,8 @@
       ],
       "notes": "10/16 밤 사용자 지적 '운용회의에서 모르겠다고 할래?' — 중립=모름이 아니라 포지셔닝+전환 조건. 품질 보완이라 동결 예외. | 10/24 운영 점검: 마감 2026-10-20→2026-10-31 — 미착수(screener/dotplot.py 에 flip_up 없음) — 개발 장부 적체",
       "escalated": "2026-10-21",
-      "desk": "개발"
+      "desk": "개발",
+      "done": "2026-10-26"
     },
     {
       "id": "crash-day-active",
@@ -1417,7 +1419,7 @@
       "owner": "교육",
       "desk": "교육",
       "priority": "P2",
-      "status": "검수",
+      "status": "완료",
       "started": null,
       "due": "2026-10-31",
       "repo": "public",
@@ -1430,7 +1432,8 @@
         "study-progress"
       ],
       "notes": "교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. | 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 셔플·검증기 분포 규칙은 78b05b61 로 끝. why 한 문장(태그만 문항) 보강",
-      "escalated": "2026-10-21"
+      "escalated": "2026-10-21",
+      "done": "2026-10-26"
     },
     {
       "id": "macro-consensus-source",
@@ -1710,7 +1713,7 @@
       "title": "국장 외인·기관 매집 스캐너(전 종목 일별 수급 저장소) + 시장 거래대금 + 매집 신호 이벤트 스터디",
       "owner": "퀀트",
       "priority": "P1",
-      "status": "검수",
+      "status": "진행",
       "repo": "public",
       "files": [
         "screener/accum.py",
@@ -2378,7 +2381,7 @@
       "title": "결재 ✅ → rules.txt 반영 현황 블록 + 미반영 검사 (감사 P0-2)",
       "owner": "개발",
       "priority": "P0",
-      "status": "검수",
+      "status": "완료",
       "started": "2026-10-26",
       "due": "2026-10-25",
       "repo": "private",
@@ -2393,7 +2396,8 @@
       ],
       "notes": "10/26 저녁 구현: scripts/rules_status.py(블록 생성·--check) + pb integrity_check (g). 실데이터 치명 0·중 1·경 9(조항 토큰 미지정 9 — 기록 데스크 보강 요청). rules.txt 는 월 14:42 판단 입력 + [13] 22~07시 규칙 변경 금지 → 월 장 후 생성기 착수, 본문 개정은 일요일 오너 결정. 설계: docs/integrity_dev_plan_2026-10-17.md §2 | 10/24 운영 점검: 상태 회신 요청 req-pb-584233b1(10/28)",
       "escalated": "2026-10-21",
-      "desk": "개발"
+      "desk": "개발",
+      "done": "2026-10-26"
     },
     {
       "id": "integrity-p0-3",
@@ -2430,7 +2434,7 @@
       "title": "HANDOFF 생성형 전환 (감사 P0-5)",
       "owner": "개발",
       "priority": "P0",
-      "status": "검수",
+      "status": "완료",
       "started": "2026-10-26",
       "due": "2026-10-25",
       "repo": "private",
@@ -2440,7 +2444,8 @@
       ],
       "notes": "설계 문서만(코드 X), 월 장 후 착수. 진행 중·대기 승인·예약·일요일 안건·커리어 절을 원장·이슈·예약 스냅샷에서 생성, 규칙 절은 CLAUDE.md 참조. 설계: docs/integrity_dev_plan_2026-10-17.md §5 | 10/24 운영 점검: 상태 회신 요청 req-pb-584233b1(10/28)",
       "escalated": "2026-10-21",
-      "desk": "개발"
+      "desk": "개발",
+      "done": "2026-10-26"
     },
     {
       "id": "my-tab-ledger-compare",
@@ -3389,7 +3394,7 @@
       "title": "US 스크리너 마지막 날 봉을 토스 EOD 로 보충(야후 당일 종목봉 지연 STALE 해소)",
       "owner": "개발",
       "priority": "P1",
-      "status": "검수",
+      "status": "완료",
       "started": "2026-10-21",
       "due": "2026-10-28",
       "repo": "public",
@@ -3409,7 +3414,8 @@
         "toss-md-publish"
       ],
       "notes": "겸이 10/21 09:5x '야후가 아니라 토스로 하기로 했잖아'. 10/21 US 스크리너 STALE(야후 10/20 종목봉 미제공). ① 수집: toss_md_live(us 그룹)에 붙임 — ET 16:15 이후 첫 회차 하루 1회 S&P500∪NDX(us_index.csv) candles 1d count=3(전날 봉 포함), 0.5초 간격·청크 잠금·7분 상한 이어받기 → toss-live us_eod.json {date(ET), bars, n, missing}. 새 작업 등록 없음(겸이 git pull 만). ② screener US: 야후 최빈 기준일 < 기대 거래일이면 그 날짜 봉만 토스로 채움(이력은 야후), freshness.json filled·텔레그램·put_state price_src_US 에 'src: 야후+토스 보충 n%'. 파일 없음·날짜 불일치 → 기존 STALE. ③ 테스트 tests/test_us_eod_toss.py. 남은 일: 10/22 아침 첫 실수집 — missing 수(토스 심볼 점 꼴 BRK.B 추정 확인)·소요 시간·screen_us 06:52 보충 여부 확인. KR 범위 밖. ④ 10/21 오너 '토스 보충이 실데이터로 검증 안 됐으면 검증을 하고 넣어' → 검증 게이트: 보충 직전 us_eod.json prev(직전 거래일 봉)를 야후 같은 날짜 봉과 종목별 대조 — 종가 |괴리| ≤0.1%·겹침 ≥90%·일치 ≥98%(screener/config.py TOSS_EOD_*) 통과 때만 보충, 불일치·미대조 종목은 개별 제외, 불통과 → 보충 없이 STALE + '토스 검증 불통과(일치 x%·겹침 y%)'(텔레그램·price_src_US·freshness stale what). 결과 reports/toss_eod_check.json(요약만·최근 30회). count 2→3: toss-live daily_today 실측 21:10 ET 응답에 다음 ET 날짜 야간거래 봉(DIA 10/21 V432)이 붙음 → 늦은 회차 대비. 테스트 tests/test_toss_eod_gate.py(daily_today 실 1d 봉 SPY·QQQ·DIA·IWM·SOXX 픽스처, 야후 값은 픽스처). 미확인: 야후 실값 대조(컨테이너 야후 차단) — 10/22 첫 실수집 후 toss_eod_check.json 의 match_pct·max_dev 로 확인. | 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-28. 남은 것: toss-live us_eod.json 은 생김, main reports/toss_eod_check.json(일치율·max_dev) 아직 없음 — 첫 게이트 결과 확인",
-      "desk": "개발"
+      "desk": "개발",
+      "done": "2026-10-26"
     },
     {
       "id": "display-clarity",
@@ -5016,13 +5022,14 @@
       "files": [],
       "depends_on": [],
       "notes": "10/25 겸이 '화요일 11시 이후에 할 것'. 겸이 원문은 '오후 11시'였으나 '11시 이후'(화 10/27 오전 11시)로 해석 — PB 해석, 다르면 정정. 포함: 실적발표 이후 시나리오, 이스라엘 선거·미 중간선거 이벤트 리스크, 보유 포지션 리스크 검토, 알파시킹(HF). 합의 변경은 10/31 도장 안건으로만.",
-      "status": "검수",
+      "status": "완료",
       "repo": "public",
       "id": "tue-risk-events",
       "title": "실적 이후·이스라엘 선거·미 중간선거 대비 리스크 / 포지션리스크 검토 / 알파시킹",
       "owner": "포지션리스크",
       "desk": "포지션리스크",
-      "priority": "P1"
+      "priority": "P1",
+      "done": "2026-10-26"
     },
     {
       "started": null,
@@ -5404,8 +5411,9 @@
       "title": "한은 이슈노트 자동 트래킹",
       "owner": "데이터",
       "priority": "P2",
-      "status": "검수",
-      "repo": "public"
+      "status": "완료",
+      "repo": "public",
+      "done": "2026-10-26"
     }
   ]
 }
