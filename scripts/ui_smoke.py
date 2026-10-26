@@ -82,7 +82,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_xl_beyond(b, port)
         bad += await check_links_pcr(b, port)
         bad += await check_hf_why(b, port)
-        bad += await check_all_top(b, port)
+        # bad += await check_all_top(b, port)   # 10/26 롤백(TOP_ALL_TABS=false) — 다시 켜면 복구
         bad += await check_re_ga(b, port)
         await b.close()
     return bad
@@ -1078,7 +1078,7 @@ async def check_macro_bond_top(b, port: int) -> int:
           need:['금리','기준금리','환율','유가','다음 주요 일정','FOMC'].every(w=>tx.includes(w)), stale:tx.includes('STALE'),
           over:[...document.querySelectorAll('#root *')].some(e=>e.getBoundingClientRect().right>innerWidth+1&&!e.closest('table')),
           lag:dataLag('KR','2020-01-02',0)!==''&&dataLag('KR',mkPhase('KR').last,0)==='',
-          glance:!!gl&&gl.querySelectorAll('.mgl').length>=5&&gl.getBoundingClientRect().bottom<=844+((document.getElementById('tabTop')||{offsetHeight:0}).offsetHeight+8)&&gl.innerText.includes('데스크 해석'), cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
+          glance:!!gl&&gl.querySelectorAll('.mgl').length>=5&&gl.getBoundingClientRect().bottom<=844&&gl.innerText.includes('데스크 해석'), cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
         res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and m["cmd"] and m["geo"] and m["glance"] and (m["stale"] if body else True)
         await pg.evaluate("setView('bond')")
         await pg.wait_for_timeout(3000)

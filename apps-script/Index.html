@@ -310,7 +310,8 @@ const isTop=t=>!!t&&typeof t==='object'&&!Array.isArray(t)&&('what' in t)&&('now
 const NA=why=>`해당 없음(${why})`;
 function mkTop(what,so,now,src,asof,o){ o=o||{}; const A=x=>(Array.isArray(x)?x:[x]).filter(s=>s!=null&&s!=='').map(String);
   return {what:A(what),so_what:A(so),now_what:A(now),evidence:A(o.ev),src:A(src),asof:asof?String(asof).replace(' KST','').slice(0,16):null,grade:o.grade||null}; }
-function topMount(v){ const r=$('#root'); if(!r||v!==view) return;
+const TOP_ALL_TABS=false;   // 10/26 겸이 "모든 탭에 붙으니 구리다, 롤백" — 탭 상단 3칸 카드 끔(어댑터·생성기 top 키는 유지, 운용회의 결론 카드는 그대로)
+function topMount(v){ if(!TOP_ALL_TABS){ const e=document.getElementById('tabTop'); if(e) e.remove(); return; } const r=$('#root'); if(!r||v!==view) return;
   let el=document.getElementById('tabTop');
   if([...r.querySelectorAll('.tl-top')].some(x=>!x.closest('#tabTop'))){ if(el) el.remove(); return; }   // 탭이 자기 카드 안에 이미 그림(운용회의)
   let t; try{ t=TOPF[v]?TOPF[v]():mkTop(NA('이 화면 요약 어댑터 없음'),NA('—'),NA('—')); }catch(e){ t=mkTop(NA('요약 생성 오류: '+e.message),NA('—'),NA('—')); }
