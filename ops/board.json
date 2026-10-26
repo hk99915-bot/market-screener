@@ -2378,15 +2378,20 @@
       "title": "결재 ✅ → rules.txt 반영 현황 블록 + 미반영 검사 (감사 P0-2)",
       "owner": "개발",
       "priority": "P0",
-      "status": "대기",
-      "started": null,
+      "status": "검수",
+      "started": "2026-10-26",
       "due": "2026-10-25",
       "repo": "private",
-      "files": [],
+      "files": [
+        "scripts/rules_status.py",
+        "tests/test_rules_status.py",
+        "pb:scripts/integrity_check.py",
+        "pb:rules.txt"
+      ],
       "depends_on": [
         "integrity-p0-1"
       ],
-      "notes": "설계만(10/17 밤). rules.txt 는 월 14:42 판단 입력 + [13] 22~07시 규칙 변경 금지 → 월 장 후 생성기 착수, 본문 개정은 일요일 오너 결정. 설계: docs/integrity_dev_plan_2026-10-17.md §2 | 10/24 운영 점검: 상태 회신 요청 req-pb-584233b1(10/28)",
+      "notes": "10/26 저녁 구현: scripts/rules_status.py(블록 생성·--check) + pb integrity_check (g). 실데이터 치명 0·중 1·경 9(조항 토큰 미지정 9 — 기록 데스크 보강 요청). rules.txt 는 월 14:42 판단 입력 + [13] 22~07시 규칙 변경 금지 → 월 장 후 생성기 착수, 본문 개정은 일요일 오너 결정. 설계: docs/integrity_dev_plan_2026-10-17.md §2 | 10/24 운영 점검: 상태 회신 요청 req-pb-584233b1(10/28)",
       "escalated": "2026-10-21",
       "desk": "개발"
     },
