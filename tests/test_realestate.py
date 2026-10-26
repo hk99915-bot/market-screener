@@ -284,3 +284,58 @@ def test_seoul_trades_no_key_and_daily_reuse():
     assert re_.fetch_seoul_trades(boom, "K", date(2026, 10, 24), prev)["reused"] is True
     kept = re_.fetch_seoul_trades(boom, None, date(2026, 10, 25), prev)
     assert kept["reused"] and kept["districts"]["강남구"]["p59"] == 20
+
+
+# ── 드릴다운(10/26 겸이 "구 클릭→동, 동 클릭→단지") — 같은 원자료로 법정동·단지 집계, 구별 파일 ──
+def _tx(amt, area, dong, apt, d, fl="5", by="2005", cancel=""):
+    return {"dealAmount": amt, "excluUseAr": area, "umdNm": dong, "aptNm": apt, "dealYear": "2026", "dealMonth": d[:2], "dealDay": d[2:],
+            "floor": fl, "buildYear": by, "cdealType": cancel}
+
+
+def test_summarize_detail_dong_and_complex():
+    trades = [_tx("100,000", "84.9", "역삼동", "가단지", "0910", "12"), _tx("120,000", "84.6", "역삼동", "가단지", "0915", "3"),
+              _tx("60,000", "59.9", "역삼동", "가단지", "0801"), _tx("140,000", "84.1", "역삼동", "가단지", "0920", "7"),
+              _tx("90,000", "59.5", "역삼동", "나단지", "0705", by="1992"), _tx("99,000", "84.0", "역삼동", "나단지", "0706", cancel="O"),
+              _tx("70,000", "59.2", "개포동", "다단지", "0901")]
+    rents = [{"deposit": "65,000", "monthlyRent": "0", "excluUseAr": "84.9", "umdNm": "역삼동", "aptNm": "가단지"},
+             {"deposit": "10,000", "monthlyRent": "100", "excluUseAr": "84.9", "umdNm": "역삼동", "aptNm": "가단지"},
+             {"deposit": "30,000", "monthlyRent": "0", "excluUseAr": "39.0", "umdNm": "개포동", "aptNm": "라단지", "buildYear": "1988"}]
+    d = re_.summarize_detail(trades, rents)
+    dongs = {x["name"]: x for x in d["dongs"]}
+    assert [x["name"] for x in d["dongs"]] == ["역삼동", "개포동"]                # 거래 수 많은 순
+    y = dongs["역삼동"]
+    assert y["n"] == 5 and y["n_cancel"] == 1 and y["n_jeonse"] == 1 and y["med"] == 10.0
+    assert y["p84"] == 12.0 and y["n84"] == 3 and y["p59"] == 7.5 and y["n_cx"] == 2
+    assert dongs["개포동"]["n_jeonse"] == 1 and dongs["개포동"]["n_cx"] == 2       # 전세만 있는 단지도 셈
+    cx = {(c["dong"], c["name"]): c for c in d["complexes"]}
+    g = cx[("역삼동", "가단지")]
+    assert g["n"] == 4 and g["n_jeonse"] == 1 and g["by"] == 2005 and g["last_d"] == "2026-09-20"
+    assert [r["d"] for r in g["recent"]] == ["2026-09-20", "2026-09-15", "2026-09-10"] and g["recent"][0] == {"d": "2026-09-20", "fl": "7", "a": 84.1, "p": 14.0}
+    a85 = next(a for a in g["areas"] if a["a"] == 85)
+    assert g["areas"][0]["a"] in (84, 85) and sum(a["n"] for a in g["areas"]) == 4 and a85["last_d"] >= "2026-09-10"
+    assert cx[("역삼동", "나단지")]["n"] == 1 and cx[("역삼동", "나단지")]["n_cancel"] == 1 and cx[("역삼동", "나단지")]["by"] == 1992
+    assert cx[("개포동", "라단지")]["n"] == 0 and cx[("개포동", "라단지")]["by"] == 1988 and cx[("개포동", "라단지")]["recent"] == []
+
+
+def test_seoul_trades_detail_out_and_files(tmp_path, monkeypatch):
+    def get(url, params):
+        if "Trade" in url:
+            return _xml([_tx("65,000", "59.5", "역삼동", "가단지", "0910"), _tx("130,000", "84.0", "삼성동", "나단지", "0911")])
+        return _xml([{"deposit": "70,000", "monthlyRent": "0", "excluUseAr": "84.0", "umdNm": "삼성동", "aptNm": "나단지"}])
+    det: dict = {}
+    out = re_.fetch_seoul_trades(get, "K", date(2026, 10, 26), detail_out=det)
+    assert out["detail_dir"] == "reports/realestate_trades" and len(det) == 25
+    g = out["districts"]["강남구"]
+    assert g["detail"] == "reports/realestate_trades/11680.json" and g["n_dong"] == 2 and g["n_cx"] == 2
+    assert {"p59", "n", "entry", "code"} <= set(g)                                    # 기존 칸 유지(하위 호환)
+    monkeypatch.chdir(tmp_path)
+    assert re_.write_details(out, {"11680": det["11680"]}, tmp_path) == 1
+    doc = json.loads((tmp_path / "11680.json").read_text(encoding="utf-8"))
+    assert doc["gu"] == "강남구" and doc["asof"] == "2026-10-26" and doc["label"].startswith("표시 전용") and len(doc["dongs"]) == 2
+    # 같은 날 재사용: detail_dir 있는 값이면 재호출 안 함, 없는 옛 값이면 한 번 더 받음
+    def boom(u, p):
+        raise AssertionError("재호출 금지")
+    assert re_.fetch_seoul_trades(boom, "K", date(2026, 10, 26), out, detail_out={})["reused"] is True
+    old = {k: v for k, v in out.items() if k != "detail_dir"}
+    again = re_.fetch_seoul_trades(get, "K", date(2026, 10, 26), old, detail_out={})
+    assert not again.get("reused") and again["detail_dir"]

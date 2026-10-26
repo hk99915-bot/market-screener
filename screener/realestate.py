@@ -12,6 +12,7 @@
   축 검색이 실패하면 그 축은 이전 값 유지 + stale{why,since,kept}, 최상위 stale_axes(10/24 c3d27b87, geo_news G1 과 같은 규칙).
 - regions: 권역 정의 + 지도 칸(서울 25구·경기 21시) 값·출처 단계·칸별 뉴스 + 지오(assets/realestate_map.json, CC BY 3.0) — 10/24.
 - seoul_trades: 국토부 RTMS 서울 25개 구 최근 3개월 매매·전세 집계(DATA_GO_KR_KEY 있을 때, 하루 1회 — 10/24).
+  드릴다운(10/26): 같은 원자료로 법정동·단지 집계 → reports/realestate_trades/<구코드>.json(구 누를 때 화면이 읽음), 구 행에 detail·n_dong·n_cx.
 못 쓰는 소스(KB 약관 미확인 등)는 unavailable·source_notes 에 이유와 함께.
 실행: write_macro_series 끝(geo_news 다음, 15:45·16:20·06:52 편승). 수동 `python -m screener.realestate`.
 표시 전용 — 매크로 바람 점수·매매 신호에 넣지 않는다. 권역 정의는 데스크 주관(설계서 §2), 권역 값 = 소속 지역 변동률 단순평균(가중 아님).
@@ -24,6 +25,7 @@ import os
 import re
 import urllib.parse
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .config import REPORT_DIR
@@ -568,6 +570,89 @@ def summarize_gu(trades: list[dict], rents: list[dict]) -> dict:
             "entry": entry_level(m59)}
 
 
+# ── 드릴다운(10/26 겸이 "구 클릭하면 동, 동 클릭하면 그 더 세부단위") — 같은 원자료(새 호출 0)로 법정동·단지 집계 → 구별 파일 ──
+DETAIL_DIR = REPORT_DIR / "realestate_trades"
+DETAIL_REL = "reports/realestate_trades"
+DETAIL_RECENT = 3     # 단지별 최근 거래 건수
+DETAIL_AREAS = 6      # 단지별 면적 타입 상한(거래 많은 순)
+
+
+def _deal_date(x: dict) -> str:
+    try:
+        return f"{int(x.get('dealYear')):04d}-{int(x.get('dealMonth')):02d}-{int(x.get('dealDay')):02d}"
+    except (TypeError, ValueError):
+        return ""
+
+
+def summarize_detail(trades: list[dict], rents: list[dict]) -> dict:
+    """구 하나의 item → {dongs:[법정동 집계], complexes:[단지 집계]}. 금액 억 원 2자리, 취소 제외·전세=월세 0(summarize_gu 와 같은 정의).
+    단지 키 = (법정동, 단지명) — 전월세 API 와 맞추려고 aptSeq 대신 이름(같은 동 같은 이름은 드묾)."""
+    import statistics
+    md = lambda v: round(statistics.median(v), 2) if v else None  # noqa: E731
+
+    def eok(x, k):
+        v = _num(x.get(k))
+        return None if v is None else round(v / 10000, 2)
+
+    dong: dict[str, dict] = {}
+    cx: dict[tuple, dict] = {}
+
+    def d_of(x):
+        nm = (x.get("umdNm") or "").strip() or "미상"
+        return dong.setdefault(nm, {"name": nm, "tr": [], "n_cancel": 0, "n_jeonse": 0})
+
+    def c_of(x):
+        k = ((x.get("umdNm") or "").strip() or "미상", (x.get("aptNm") or "").strip() or "미상")
+        return cx.setdefault(k, {"dong": k[0], "name": k[1], "by": None, "tr": [], "n_cancel": 0, "n_jeonse": 0})
+
+    for x in trades:
+        d, c = d_of(x), c_of(x)
+        by = _num(x.get("buildYear"))
+        if by and not c["by"]:
+            c["by"] = int(by)
+        if is_cancelled(x):
+            d["n_cancel"] += 1
+            c["n_cancel"] += 1
+            continue
+        if eok(x, "dealAmount") is None:
+            continue
+        d["tr"].append(x)
+        c["tr"].append(x)
+    for x in rents:
+        if is_jeonse(x):
+            d_of(x)["n_jeonse"] += 1
+            c = c_of(x)
+            c["n_jeonse"] += 1
+            by = _num(x.get("buildYear"))
+            if by and not c["by"]:
+                c["by"] = int(by)
+    dongs = []
+    for d in dong.values():
+        tr = d["tr"]
+        p59 = [eok(x, "dealAmount") for x in tr if area_band(x.get("excluUseAr")) == "59"]
+        p84 = [eok(x, "dealAmount") for x in tr if area_band(x.get("excluUseAr")) == "84"]
+        dongs.append({"name": d["name"], "n": len(tr), "n_cancel": d["n_cancel"], "n_jeonse": d["n_jeonse"],
+                      "med": md([eok(x, "dealAmount") for x in tr]), "p59": md(p59), "n59": len(p59), "p84": md(p84), "n84": len(p84),
+                      "n_cx": sum(1 for c in cx.values() if c["dong"] == d["name"] and (c["tr"] or c["n_jeonse"] or c["n_cancel"]))})
+    dongs.sort(key=lambda r: (-r["n"], r["name"]))
+    comps = []
+    for c in cx.values():
+        tr = sorted(c["tr"], key=lambda x: (_deal_date(x), _num(x.get("floor")) or 0), reverse=True)
+        areas: dict[int, list] = {}
+        for x in tr:
+            a = _num(x.get("excluUseAr"))
+            if a is not None:
+                areas.setdefault(int(round(a)), []).append(x)
+        ar = [{"a": a, "n": len(v), "med": md([eok(x, "dealAmount") for x in v]), "last": eok(v[0], "dealAmount"), "last_d": _deal_date(v[0])}
+              for a, v in sorted(areas.items(), key=lambda kv: (-len(kv[1]), kv[0]))[:DETAIL_AREAS]]
+        comps.append({"dong": c["dong"], "name": c["name"], "by": c["by"], "n": len(tr), "n_cancel": c["n_cancel"], "n_jeonse": c["n_jeonse"],
+                      "med": md([eok(x, "dealAmount") for x in tr]), "last_d": _deal_date(tr[0]) if tr else None, "areas": ar,
+                      "recent": [{"d": _deal_date(x), "fl": (x.get("floor") or "").strip() or None, "a": _num(x.get("excluUseAr")),
+                                  "p": eok(x, "dealAmount")} for x in tr[:DETAIL_RECENT]]})
+    comps.sort(key=lambda r: (r["dong"], -r["n"], r["name"]))
+    return {"dongs": dongs, "complexes": comps}
+
+
 def fetch_rtms(get, svc: tuple[str, str], cd: str, ym: str, key: str) -> list[dict]:
     """한 구·한 달·한 API 전 페이지. get(url, params) → bytes. 실패는 예외(호출자가 구 단위로 건너뜀)."""
     out: list[dict] = []
@@ -587,7 +672,7 @@ def _prev_trades() -> dict | None:
         return None
 
 
-def fetch_seoul_trades(get, key: str | None, today: date, prev: dict | None = None, sleep=None) -> dict:
+def fetch_seoul_trades(get, key: str | None, today: date, prev: dict | None = None, sleep=None, detail_out: dict | None = None) -> dict:
     """서울 25개 구 RTMS 집계 → reports/realestate.json 'seoul_trades'. 키 없음 → '키 필요'(이전 정상값 있으면 유지).
     같은 날 이미 받은 정상값이 있으면 재호출 안 함(하루 1회). 실패 구는 failed 에 이름·오류 형식만(키 제거)."""
     base = {"unit": "억 원(중위·하위25% = 전용 59㎡ 55~65 · 84㎡ 80~90) · 전세가율 = 84㎡ 전세 중위 ÷ 매매 중위 · 구축 = 1999년 이전 준공 비중(매매 건수)",
@@ -595,7 +680,8 @@ def fetch_seoul_trades(get, key: str | None, today: date, prev: dict | None = No
             "src": "국토교통부 아파트 매매(상세)·전월세 실거래가 — 공공데이터포털 apis.data.go.kr (1차, 신고 기준·해제 거래 제외)",
             "label": "표시 전용 · 매매 신호 아님"}
     good = bool(prev) and prev.get("status") in ("ok", "부분")
-    if good and prev.get("asof") == today.isoformat():
+    # 같은 날 재사용 — 단, 드릴다운 파일이 생기기 전 값(detail_dir 없음)이면 한 번 더 받는다(10/26 배포 당일 1회, 호출 ~200)
+    if good and prev.get("asof") == today.isoformat() and (detail_out is None or prev.get("detail_dir")):
         return {**prev, "reused": True}
     if not key:
         if good:
@@ -612,6 +698,10 @@ def fetch_seoul_trades(get, key: str | None, today: date, prev: dict | None = No
                 if sleep:
                     sleep(0.2)
             districts[gu] = {"code": cd, **summarize_gu(tr, rent)}
+            if detail_out is not None:
+                det = summarize_detail(tr, rent)
+                detail_out[cd] = {"gu": gu, "code": cd, **det}
+                districts[gu].update(n_dong=len(det["dongs"]), n_cx=len(det["complexes"]), detail=f"{DETAIL_REL}/{cd}.json")
         except Exception as e:  # noqa: BLE001
             failed.append({"id": gu, "why": _scrub(f"{type(e).__name__}: {e}", key)})
     n_ok = len(districts)
@@ -620,7 +710,22 @@ def fetch_seoul_trades(get, key: str | None, today: date, prev: dict | None = No
     if status == "실패" and good:
         return {**prev, "reused": True, "why": f"이번 수집 전 구 실패({failed[0]['why'] if failed else ''}) — 이전 값 유지"}
     return {"status": status, "asof": today.isoformat(), "period": f"{months[0]}~{months[-1]}", "months": months,
-            "n_ok": n_ok, "n_total": len(GU_CODES), "failed": failed, "districts": districts, **base}
+            "n_ok": n_ok, "n_total": len(GU_CODES), "failed": failed, "districts": districts, **base,
+            **({"detail_dir": DETAIL_REL} if detail_out is not None and n_ok else {})}
+
+
+def write_details(trades: dict, details: dict, out_dir: Path | None = None) -> int:
+    """구별 드릴다운 파일 reports/realestate_trades/<구코드>.json (화면이 구를 누를 때만 읽음). 쓴 파일 수."""
+    from .guard import write_json
+    out_dir = out_dir or DETAIL_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    n = 0
+    for cd, d in details.items():
+        doc = {"schema": 1, "asof": trades.get("asof"), "period": trades.get("period"), "months": trades.get("months"), **d,
+               "unit": "억 원 · 중위 = 취소 제외 매매 · 59㎡ 55~65 · 84㎡ 80~90 · 면적 = 전용㎡ 반올림 · 전세 = 월세 0 건수",
+               "src": trades.get("src"), "label": "표시 전용 · 매매 신호 아님"}
+        n += bool(write_json(out_dir / f"{cd}.json", doc, separators=(",", ":")))
+    return n
 
 
 def _fetch_bytes(url: str, params: dict | None) -> bytes:
@@ -693,8 +798,11 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
         news, feeds, anews = [], [], {}
         errors.append(f"뉴스 실패: {e}")
     try:
+        details: dict = {}
         trades = fetch_seoul_trades(fetch_bytes or (_fetch_bytes if live else (lambda u, p: b"")), env.get("DATA_GO_KR_KEY"), today,
-                                    _prev_trades() if prev_trades is None else (prev_trades or None), sleep)
+                                    _prev_trades() if prev_trades is None else (prev_trades or None), sleep, detail_out=details)
+        if details and not trades.get("reused"):
+            log.info("부동산 RTMS 드릴다운: 구별 파일 %d개", write_details(trades, details))
     except Exception as e:  # noqa: BLE001
         trades = {"status": "실패", "why": _scrub(f"RTMS 집계 실패: {e}", env.get("DATA_GO_KR_KEY"))}
         errors.append(trades["why"])

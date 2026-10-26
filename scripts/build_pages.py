@@ -77,6 +77,7 @@ SHIM = """<script>
     getMacroCmdty: () => get('reports/views/macro_cmdty.json'),
     getRealEstate: () => get('reports/realestate.json'),
     getRealEstateView: () => get('reports/views/realestate.json'),
+    getRealEstateGu: c => /^[0-9]{5}$/.test(String(c)) ? get('reports/realestate_trades/' + c + '.json') : Promise.reject(new Error('bad gu code')),
     getGeoNews: () => get('reports/geo_news.json'),
     getOneliners: () => get('reports/company_oneliner.json'),
     getChainSeries: () => get('reports/chains.json'),

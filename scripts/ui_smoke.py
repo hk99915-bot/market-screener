@@ -63,6 +63,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_oneliner(b, port)
         bad += await check_my_ledger(b, port)
         bad += await check_re_private(b, port)
+        bad += await check_re_drill(b, port)
         bad += await check_cmt_us(b, port)
         bad += await check_score(b, port)
         bad += await check_eng(b, port)
@@ -461,6 +462,80 @@ async def check_re_private(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} 부동산비공개 토큰없음='{n['txt'][:14]}'(호출 {n['calls']}) 목록={o['items']} 이스케이프={'O' if not o['xss'] and o['imgs']==0 else 'X'} 표감쌈={'O' if o['wrap'] else 'X'} 가로스크롤={'있음' if o['hs'] or o['over'] else '없음'} 404='{f['txt'][:12]}'"
           + (f" · 에러: {(nerr or oerr or ferr)[0][:160]}" if (nerr or oerr or ferr) else ""))
     return not ok
+
+
+FAKE_RE_GU = {"schema": 1, "asof": "2026-10-26", "period": "202607~202609", "gu": "강남구", "code": "11680", "label": "표시 전용 · 매매 신호 아님",
+              "dongs": [{"name": "가짜동", "n": 3, "n_cancel": 1, "n_jeonse": 2, "med": 20.0, "p59": 15.0, "n59": 1, "p84": 25.0, "n84": 2, "n_cx": 2},
+                        {"name": "나짜동", "n": 1, "n_cancel": 0, "n_jeonse": 0, "med": 9.0, "p59": None, "n59": 0, "p84": None, "n84": 0, "n_cx": 1}],
+              "complexes": [{"dong": "가짜동", "name": "많이팔린<b>단지</b>", "by": 1999, "n": 2, "n_cancel": 1, "n_jeonse": 1, "med": 15.0, "last_d": "2026-09-20",
+                             "areas": [{"a": 59, "n": 2, "med": 15.0, "last": 16.0, "last_d": "2026-09-20"}],
+                             "recent": [{"d": "2026-09-20", "fl": "12", "a": 59.9, "p": 16.0}, {"d": "2026-08-01", "fl": "3", "a": 59.8, "p": 14.0}]},
+                            {"dong": "가짜동", "name": "비싼단지", "by": 2020, "n": 1, "n_cancel": 0, "n_jeonse": 1, "med": 30.0, "last_d": "2026-07-02",
+                             "areas": [{"a": 84, "n": 1, "med": 30.0, "last": 30.0, "last_d": "2026-07-02"}], "recent": [{"d": "2026-07-02", "fl": "20", "a": 84.9, "p": 30.0}]},
+                            {"dong": "나짜동", "name": "다른동단지", "by": 2010, "n": 1, "n_cancel": 0, "n_jeonse": 0, "med": 9.0, "last_d": "2026-09-01", "areas": [], "recent": []}]}
+
+
+async def check_re_drill(b, port: int) -> int:
+    """부동산 드릴다운(10/26 겸이 '구 클릭→동, 동 클릭→단지'): 구 선택 → 구 파일 lazy(1회) → 동 목록(거래 많은 순) → 단지(거래 수/가격 정렬) → 최근 거래 표,
+    빵부스러기 뒤로(동→구→서울), 이스케이프, 390px 가로 넘침 없음, 권역 배지. 데이터는 가짜(route)."""
+    import json as _j
+    J = _j.loads((ROOT / "reports/realestate.json").read_text(encoding="utf-8"))
+    T = J.setdefault("seoul_trades", {})
+    T.update(status="ok", detail_dir="reports/realestate_trades")
+    T.setdefault("districts", {}).setdefault("강남구", {"code": "11680", "n": 4, "p59": 15.0})
+    T["districts"]["강남구"].update(code="11680", detail="reports/realestate_trades/11680.json", n_dong=2, n_cx=3)
+    bad, out = 0, {}
+    for w in (390, 1300):
+        pg = await b.new_page(viewport={"width": w, "height": 900})
+        errs: list[str] = []
+        calls: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        body = _j.dumps(J, ensure_ascii=False)
+
+        def h_main(r):
+            return r.fulfill(status=200, content_type="application/json", body=body)
+
+        def h_gu(r):
+            calls.append(r.request.url)
+            return r.fulfill(status=200, content_type="application/json", body=_j.dumps(FAKE_RE_GU, ensure_ascii=False))
+        await pg.route("**/reports/realestate.json*", h_main)
+        await pg.route("**/reports/realestate_trades/*", h_gu)
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1200)
+        await pg.evaluate("setView('re')")
+        await pg.wait_for_timeout(1800)
+        r: dict = {"none": await pg.evaluate("!document.getElementById('redr')")}
+        await pg.evaluate("reSel('강남구')")
+        await pg.wait_for_timeout(900)
+        q = "(()=>{const d=document.getElementById('redr');return d?{t:d.innerText,crumb:[...d.querySelectorAll('.recrumb button,.recrumb b')].map(e=>e.textContent),it:[...d.querySelectorAll('.redit .v')].map(e=>e.textContent)}:null})()"
+        g = await pg.evaluate(q)
+        r["dongs"] = bool(g) and g["it"] == ["가짜동", "나짜동"] and "상급지" in g["t"] and g["crumb"][:2] == ["서울", "강남구"]
+        await pg.evaluate("document.querySelectorAll('#redr .redit')[0].click()")
+        await pg.wait_for_timeout(500)
+        d = await pg.evaluate(q)
+        r["cx"] = bool(d) and d["it"] == ["많이팔린<b>단지</b>", "비싼단지"] and d["crumb"][:3] == ["서울", "강남구", "가짜동"]
+        r["esc"] = await pg.evaluate("!document.querySelector('#redr .redit b')")
+        await pg.evaluate("reCxSort('p')")
+        await pg.wait_for_timeout(300)
+        r["sort"] = (await pg.evaluate(q))["it"][0] == "비싼단지"
+        await pg.evaluate("reCxSort('n')")
+        await pg.evaluate("document.querySelectorAll('#redr .recxl > .redit')[0].click()")
+        await pg.wait_for_timeout(400)
+        r["recent"] = await pg.evaluate("(()=>{const x=document.querySelector('#redr .recxd');return !!x&&x.innerText.includes('2026-09-20')&&x.innerText.includes('12층')&&x.querySelectorAll('table').length===2})()")
+        r["over"] = await pg.evaluate("document.documentElement.scrollWidth>innerWidth+1||[...document.querySelectorAll('#redr *')].some(e=>!e.closest('.retw')&&e.getBoundingClientRect().right>innerWidth+1)")
+        await pg.evaluate("[...document.querySelectorAll('.recrumb button')].find(e=>e.textContent==='강남구').click()")
+        await pg.wait_for_timeout(400)
+        r["back_gu"] = (await pg.evaluate(q))["it"] == ["가짜동", "나짜동"]
+        await pg.evaluate("[...document.querySelectorAll('.recrumb button')].find(e=>e.textContent==='서울').click()")
+        await pg.wait_for_timeout(400)
+        r["back_seoul"] = await pg.evaluate("!document.getElementById('redr')")
+        r["lazy1"] = len(calls) == 1
+        ok = all(v for k, v in r.items() if k != "over") and not r["over"] and not errs
+        bad += not ok
+        print(f"{'OK ' if ok else 'BAD'} 부동산드릴다운({w}px) " + " ".join(f"{k}={'O' if (not v if k == 'over' else v) else 'X'}" for k, v in r.items())
+              + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        await pg.close()
+    return bad
 
 
 async def check_macro_popup(b, port: int) -> int:
@@ -903,6 +978,22 @@ if __name__ == "__main__":
     if args[:1] == ["--root"]:
         SERVE = Path(args[1]).resolve()
         args = args[2:]
+    if args[:1] == ["--only"]:   # 체크 하나만(전체가 느릴 때): python3 scripts/ui_smoke.py --only check_re_drill
+        fn_only = globals()[args[1]]
+
+        async def _only(port: int) -> int:
+            from playwright.async_api import async_playwright
+            exe = (glob.glob("/opt/pw-browsers/chromium-*/chrome-linux*/chrome") or [None])[0]
+            async with async_playwright() as p:
+                b = await p.chromium.launch(args=["--no-sandbox"], **({"executable_path": exe} if exe else {}))
+                n = await fn_only(b, port)
+                await b.close()
+            return n
+        srv = _serve(0)
+        try:
+            sys.exit(1 if asyncio.run(_only(srv.server_address[1])) else 0)
+        finally:
+            srv.shutdown()
     srv = _serve(0)   # 빈 포트 자동
     try:
         sys.exit(1 if asyncio.run(run(args or VIEWS, srv.server_address[1])) else 0)
