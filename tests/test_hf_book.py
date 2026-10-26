@@ -99,6 +99,7 @@ def test_s4_chase_ban(monkeypatch):
     bars = [{"t": f"2026-09-{i + 1:02d}", "o": 100, "h": 101, "l": 99, "c": 100.0, "v": 1000} for i in range(25)]
     bars.append({"t": "2026-10-21", "o": 100, "h": 112, "l": 100, "c": 110.0, "v": 5000})
     monkeypatch.setattr(H, "bars", lambda market, code: bars)
+    monkeypatch.setattr(H, "live_kr_stock", lambda code: None)   # live.json 실값이 섞이면 가격 가정이 깨진다
     assert H.s4_hit("000000") == "2026-10-21"
     with pytest.raises(SystemExit, match="추격 롱 금지"):
         H.add(_b(), _a(kind="stock", code="000000", stop=100.0, t1=130.0))
@@ -168,6 +169,7 @@ def test_exit_next_open(monkeypatch):
     bars = [{"t": "2026-10-20", "o": 100.0, "h": 101, "l": 99, "c": 100.0, "v": 1e9},
             {"t": "2026-10-21", "o": 100.0, "h": 101, "l": 99, "c": 100.0, "v": 1e9}]
     monkeypatch.setattr(H, "bars", lambda market, code: bars)
+    monkeypatch.setattr(H, "live_kr_stock", lambda code: None)   # live.json 실값이 섞이면 가격 가정이 깨진다
     b = _b()
     p = H.add(b, _a(kind="us_stock", code="XX", stop=80.0, t1=130.0))
     p["exit_next_open"] = {"after": "2026-10-21", "why": "t"}
@@ -259,6 +261,7 @@ AB_LONG = [{"book": "알파북", "code": "033780", "name": "KT&G", "dir": 1}, {"
 def _stock_env(monkeypatch):
     bars = [{"t": f"2026-10-{i + 1:02d}", "o": 100, "h": 101, "l": 99, "c": 100.0, "v": 1e9} for i in range(20)]
     monkeypatch.setattr(H, "bars", lambda market, code: bars)
+    monkeypatch.setattr(H, "live_kr_stock", lambda code: None)   # live.json 실값이 섞이면 가격 가정이 깨진다
 
 
 def test_indep_same_code_rejected_and_logged(monkeypatch):
