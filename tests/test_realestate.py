@@ -317,6 +317,17 @@ def test_summarize_detail_dong_and_complex():
     assert cx[("개포동", "라단지")]["n"] == 0 and cx[("개포동", "라단지")]["by"] == 1988 and cx[("개포동", "라단지")]["recent"] == []
 
 
+def test_summarize_detail_ga_groups():
+    """법정동 '가' 묶음(10/26): 문래동1가·3가 + 당산동·당산동2가 → 부모 동, n·중위는 합친 거래로 재계산. 단독 동은 묶음 없음."""
+    trades = [_tx("100,000", "84.9", "문래동1가", "A", "0910"), _tx("80,000", "59.9", "문래동3가", "B", "0911"), _tx("60,000", "59.0", "문래동3가", "B", "0912"),
+              _tx("50,000", "84.0", "당산동", "C", "0901"), _tx("70,000", "84.0", "당산동2가", "D", "0902"), _tx("90,000", "84.0", "신길동", "E", "0903")]
+    d = re_.summarize_detail(trades, [])
+    G = d["dong_groups"]
+    assert set(G) == {"문래동", "당산동"} and re_.dong_group_name("문래동3가") == "문래동" and re_.dong_group_name("신길동") == "신길동"
+    assert G["문래동"]["members"] == ["문래동1가", "문래동3가"] and G["문래동"]["n"] == 3 and G["문래동"]["med"] == 8.0
+    assert G["당산동"]["n"] == 2 and G["당산동"]["med"] == 6.0 and G["당산동"]["p84"] == 6.0
+    assert {x["name"] for x in d["dongs"]} >= {"문래동1가", "문래동3가"}   # 원래 동 목록·단지 목록은 그대로
+
 def test_seoul_trades_detail_out_and_files(tmp_path, monkeypatch):
     def get(url, params):
         if "Trade" in url:

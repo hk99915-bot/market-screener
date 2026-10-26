@@ -241,4 +241,10 @@ function msgView(){
     <div class="mgbox" id="mgbox">${feed||'<div class="mgempty">여기엔 아직 없어</div>'}</div>
   </div></div></div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.msg=()=>{ if(MG===null||MG===false) return null; if(isTop(MG.top)) return MG.top; const it=(MG&&MG.items)||[];
+  return mkTop(it.length?`사내톡 ${it.length}건 · 데스크 ${new Set(it.flatMap(x=>[x.from,x.to]).filter(Boolean)).size}곳`:NA('사내톡 데이터 없음'),NA('데스크 대화 기록 — 해석 문장 없음'),NA('기록 열람용'),['reports/msgr_feed.md'],MG.asof||MG.generated_at); };
+}
 </script>

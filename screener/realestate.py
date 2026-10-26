@@ -653,7 +653,32 @@ def summarize_detail(trades: list[dict], rents: list[dict]) -> dict:
                       "recent": [{"d": _deal_date(x), "fl": (x.get("floor") or "").strip() or None, "a": _num(x.get("excluUseAr")),
                                   "p": eok(x, "dealAmount")} for x in tr[:DETAIL_RECENT]]})
     comps.sort(key=lambda r: (r["dong"], -r["n"], r["name"]))
-    return {"dongs": dongs, "complexes": comps}
+    # 법정동 '가' 묶음(10/26 겸이 OK): '○○동N가' → '○○동'. 기본 화면은 묶음, 누르면 1가~N가로 분리. n·중위는 합친 거래로 다시 계산.
+    grp: dict[str, list] = {}
+    for d in dong.values():
+        grp.setdefault(dong_group_name(d["name"]), []).append(d)
+    dong_groups = {}
+    for g, ms in grp.items():
+        if len(ms) < 2 and not GA_RE.match(ms[0]["name"]):
+            continue
+        tr = [x for d in ms for x in d["tr"]]
+        p59 = [eok(x, "dealAmount") for x in tr if area_band(x.get("excluUseAr")) == "59"]
+        p84 = [eok(x, "dealAmount") for x in tr if area_band(x.get("excluUseAr")) == "84"]
+        names = sorted(d["name"] for d in ms)
+        dong_groups[g] = {"name": g, "members": names, "n": len(tr), "n_cancel": sum(d["n_cancel"] for d in ms),
+                          "n_jeonse": sum(d["n_jeonse"] for d in ms), "med": md([eok(x, "dealAmount") for x in tr]),
+                          "p59": md(p59), "n59": len(p59), "p84": md(p84), "n84": len(p84),
+                          "n_cx": sum(1 for c in cx.values() if c["dong"] in names and (c["tr"] or c["n_jeonse"] or c["n_cancel"]))}
+    return {"dongs": dongs, "complexes": comps, "dong_groups": dong_groups}
+
+
+GA_RE = re.compile(r"^(.+동)\d+가$")
+
+
+def dong_group_name(name: str) -> str:
+    """'문래동3가' → '문래동' (법정동 '가' 묶음). 그 외 이름은 그대로."""
+    m = GA_RE.match(name or "")
+    return m.group(1) if m else name
 
 
 def fetch_rtms(get, svc: tuple[str, str], cd: str, ym: str, key: str) -> list[dict]:
@@ -842,6 +867,11 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
         "label": "표시 전용 · 매매 신호 아님 · 뉴스는 제목 키워드 매칭(해석 아님, 검증전) · 데스크 해석은 reports/views/realestate.json",
         "src": "R-ONE 주간 지수(키 있을 때) · ECOS 월간 · 야후 일봉(1주=5거래일·1개월=21거래일·52주 위치) · Google News 검색 RSS 최근 7일",
     }
+    try:   # STANDARD 8절 상단 3칸(묶음 B, 추가만)
+        from . import topline_from
+        out["top"] = topline_from.realestate(out)
+    except Exception as e:  # noqa: BLE001
+        log.warning("부동산 top 실패: %s", e)
     from .guard import write_json
     write_json(OUT, out)
     log.info("부동산: 가격 %s · 금리 %d · 리츠 %d · 뉴스 %s", prices.get("status"), len(rates), len(reits),

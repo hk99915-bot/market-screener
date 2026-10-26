@@ -136,4 +136,12 @@ function drawBondHist(){
   c.timeScale().fitContent();
   const lg=$('#bdleg'); if(lg) lg.innerHTML=leg.join(' &nbsp; ');
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.bond=()=>{ if(BND===null||BND===false) return null; if(BND&&isTop(BND.top)) return BND.top; if(!BND||!BND.us) return mkTop(NA('채권 데이터 없음'),NA('—'),NA('—'),['reports/bonds.json']);
+  const U=(BND.us||{}).chg||{}, K=(BND.kr||{}).chg||{}, b=[]; [['미 10년',U['10Y']],['미 2년',U['2Y']],['국고 3년',K['3Y']]].forEach(([l,d])=>{ if(d&&d.v!=null) b.push(`${l} ${d.v.toFixed(2)}%(1M ${(d.m1||0)>0?'+':''}${Number(d.m1||0).toFixed(0)}bp)`); });
+  const N=BND.notes||[], imp=N.find(n=>/부담|할인율/.test(n))||N[0];
+  return mkTop(b.join(' · ')||NA('금리 데이터 없음'),imp||NA('함의 문장 없음'),(BND.reco||[])[0]||'조치 없음(권고 문장 없음)',['reports/bonds.json'],BND.generated_at||BND.asof); };
+}
 </script>

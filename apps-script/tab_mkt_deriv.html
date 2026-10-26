@@ -168,4 +168,10 @@ function dvResearch(R,V){
   return `<div class="p c12" id="dvRes"><h2>파생 리서치 산출물<small>${esc((R&&R.meta&&R.meta.asof)||'')} · 방향 신호 아님</small></h2><div class="b" style="white-space:normal">
     <div class="mu" style="font-size:var(--fs-1)">${esc((R&&R.meta&&R.meta.note)||'')}</div>${out}</div></div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.deriv=()=>{ const d=DVX.d; if(d===null||d===false) return null; if(d&&isTop(d.top)) return d.top; if(!d||d.pcr_oi==null&&!d.insight) return mkTop(NA('파생 데이터 없음'),NA('—'),NA('—'),['reports/derivs.json']);
+  const i=d.insight||{}; return mkTop(`PCR(미결제) ${d.pcr_oi??'—'} · 맥스페인 ${d.max_pain??'—'} · 현물 ${d.spot??'—'} (만기 ${d.expiry||'—'})`,[i.one_line||NA('인사이트 없음'),'PCR·맥스페인 방향 효과는 검증전'],i.so_what||'조치 없음(인사이트 없음)',['reports/derivs.json'],d.asof||d.date,{grade:'검증전'}); };
+}
 </script>

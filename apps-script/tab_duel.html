@@ -286,4 +286,12 @@ function scoreView(){
    <div class="p c12"><h2>판단 기록<small>최근 3건 · 판단 근거·PB 판단·채점</small></h2><div class="b">
      ${past.slice(0,3).map(it=>duelItemHtml(it,CD)).join('')||'<div class="mu">기록 없음</div>'}${more(past,3,it=>duelItemHtml(it,CD),'지난 기록')}</div></div></div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.score=()=>{ if(DEC===null||DEC===false) return null; const t=(DEC&&DEC.tally)||{}, h=k=>t[k]&&t[k].n?`${k} ${t[k].win}/${t[k].n}(${Math.round((t[k].win/t[k].n)*100)}%)`:null;
+  const w=['나','PB','규칙'].map(h).filter(Boolean);   // 승률만 — 손익 금액 표시 안 함
+  const pend=typeof homePendDuel==='function'&&DEC.items?homePendDuel(DEC.items,Date.now()):0, CD=typeof decCD==='function'?decCD():null;
+  return mkTop(w.length?'누적 대결 승률 '+w.join(' · '):NA('대결 기록 없음'),'표본 적음 — 승률은 참고(검증전)',[pend?`제출 대기 ${pend}건`:null,CD?'쿨다운 중 — 새 모의 베팅 금지':null].filter(Boolean).length?[pend?`제출 대기 ${pend}건`:null,CD?'쿨다운 중 — 새 모의 베팅 금지':null].filter(Boolean):['조치 없음(대기 판 없음)'],['reports/decisions.json','reports/battle_scoreboard.json'],null,{grade:'검증전'}); };
+}
 </script>

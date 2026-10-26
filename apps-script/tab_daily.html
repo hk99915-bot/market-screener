@@ -76,4 +76,19 @@ function briefView(){
   const keys=['premarket_kr','intraday_kr','close_KR','premarket_us','intraday_us','close_US','reports'];
   let h='<div class="grid">'; for(const k of keys) h+=pre(k,k.toUpperCase().replace('_',' ')); return h+'</div>';
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.daily=()=>{ if(DB===null||DB===false) return null; if(DB&&isTop(DB.top)) return DB.top;
+  if(!DB||!DB.asof) return mkTop(NA('데일리 브리프 없음'),NA('—'),NA('—'),['reports/daily_brief.json']);
+  return mkTop(DB.headline||NA('헤드라인 없음'),`목표가 하향 ${(DB.tp_cuts||[]).length}건 · 톤 이탈 ${(DB.dissent||[]).length}건 — 증권가 집계, 매매 신호 아님`,'조치 없음(집계 보고)',['reports/daily_brief.json'],DB.asof); };
+TOPF.views=()=>{ if(VW===null||VW===false) return null; if(VW&&isTop(VW.top)) return VW.top; if(!VW||!VW.summary) return mkTop(NA('VIEW 데이터 없음'),NA('—'),NA('—'),['reports/views.json']);
+  const S=VW.summary, g=x=>x?`${x.label||''} 관문 ${x.gate==null?'—':x.gate}`:null;
+  const ch=(VW.changes||[]).length;
+  return mkTop([g(S.entry),g(S.exit),g(S.allocation)].filter(Boolean).join(' · '),ch?`어제 대비 렌즈 변화 ${ch}건`:NA('렌즈 변화 없음'),
+    NA('VIEW 는 렌즈 상태 표시 — 조치는 운용회의 판정'),['reports/views.json'],VW.asof,{grade:'검증전'}); };
+TOPF.brief=()=>{ const st=D.state||{}, ks=['premarket_kr','intraday_kr','close_KR','premarket_us','intraday_us','close_US','reports'].filter(k=>st[k]);
+  const last=ks.map(k=>[k,st[k].at||'']).sort((a,b)=>a[1]<b[1]?1:-1)[0];
+  return mkTop(`브리핑 기록 ${ks.length}종` + (last?` · 최근 ${last[0]} ${last[1]}`:''),NA('텔레그램 원문 보관 — 해석 문장 없음'),NA('기록 열람용'),['reports/dashboard.json(state)'],last&&last[1]); };
+}
 </script>

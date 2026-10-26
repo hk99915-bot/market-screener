@@ -527,4 +527,11 @@ function myRender(hs,cash,miss){
    ${miss.length?`<div class="mu" style="margin-top:6px">인식 못 한 종목: ${esc(miss.join(', '))}</div>`:''}
    <div class="mu" style="font-size:var(--fs-1);margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.my=()=>{ const t=String(myLoad()||'').split('\n').filter(x=>x.trim()&&!x.trim().startsWith('#')).length;   // 브라우저 런타임만 — 저장소에 개인 수치 없음
+  return mkTop(t?`이 브라우저 입력 ${t}줄 기준 — 비중·위험 표는 아래(값은 이 기기에만)`:NA('보유 입력 없음 — 아래 입력란'),
+    NA('개인 판단 문장은 비공개 저장소(PB) — 화면은 계산 결과만'),'점검 순서: 아래 경고(한도·VaR) → 원장 대조 배지',['브라우저 입력(localStorage)','pb-private holdings·ledger(토큰 시)'],null); };
+}
 </script>

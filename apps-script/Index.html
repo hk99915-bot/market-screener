@@ -50,6 +50,10 @@
   .p{background:var(--panel);border:1px solid var(--line);min-width:0}
   .p h2{margin:0;padding:5px 8px;background:var(--bg3);color:var(--amber);font-size:var(--fs-1);letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
   .p h2 small{color:var(--muted);font-weight:400;letter-spacing:0}
+  .tl-card{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);margin:0 0 8px;padding:6px 10px;min-width:0;font-size:var(--fs-2);overflow-wrap:anywhere}
+  .tl-card .tl-h{color:var(--amber);font-size:var(--fs-1);font-weight:700;letter-spacing:.08em}
+  .tl-card .tl-h small{color:var(--muted);font-weight:400;letter-spacing:0}
+  @media(max-width:700px){ .tl-card{cursor:pointer} .tl-card:not(.open) .tl-row{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tl-card:not(.open) .tl-row br,.tl-card:not(.open) .tl-row br+span{display:none} .tl-card:not(.open) .tl-top>.mu{display:none} .tl-card:not(.open) .tl-h small::after{content:' · 눌러 펼치기'} }
   .p .b{padding:6px 8px;overflow:auto}
   .c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
   @media(max-width:1100px){.c3,.c4{grid-column:span 6}.c8{grid-column:span 12}}
@@ -190,7 +194,7 @@ html.xl #xlrib,html.xl #xlfx{display:flex}
 html.xl .tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#f3f3f3;border-top:1px solid #c6c6c6;justify-content:flex-start;gap:0;padding:0 6px;flex-wrap:nowrap;overflow-x:auto}
 html.xl .tabs button{background:#f3f3f3;color:#333;border:0;border-right:1px solid #d4d4d4;letter-spacing:0;padding:5px 16px;font-weight:400}
 html.xl .tabs button.on{background:#fff;color:#000;border-bottom:2px solid #8a8a8a;font-weight:600}
-html.xl .p{border:1px solid #c6c6c6;box-shadow:none}
+html.xl .p,html.xl .tl-card{border:1px solid #c6c6c6;box-shadow:none}
 html.xl .p h2{background:#f3f3f3;color:#000;letter-spacing:0;font-weight:600;border-bottom:1px solid #d4d4d4}
 html.xl th{background:#f3f3f3;color:#333;border:1px solid #d4d4d4;letter-spacing:0;font-weight:600}
 html.xl td{border:1px solid #e1e1e1}
@@ -298,6 +302,21 @@ function renderTop(top,opt){ if(!top||typeof top!=='object') return ''; opt=opt|
   return `<div class="tl-top" style="line-height:1.7;white-space:normal">${L.map(row).join('')}`
     +(ev.length?`<div class="mu" style="font-size:var(--fs-1);margin-top:4px">근거: ${ev.map(esc).join(' · ')}</div>`:'')
     +`<div class="mu" style="font-size:var(--fs-1)">${top.asof?'기준 '+esc(top.asof)+' · ':''}${top.grade?'등급 '+esc(top.grade)+' · ':''}원본: ${src.length?src.map(esc).join(' · '):'없음'}</div></div>`; }
+/* 모든 탭 상단 3칸 (묶음 B, 10/26 겸이 "모든 탭의 모든 내용들 다") — TOPF[view]=()=>top|null(불러오는 중). 각 tab_*.html 끝에서 등록.
+   JSON 에 top(screener/topline.py 스키마)이 있으면 그대로, 없으면 그 탭이 이미 읽은 데이터의 기존 문장·수치를 재배치(새 해석 금지).
+   근거 없는 칸 = '해당 없음(사유)'. 개인 탭(my·life)은 브라우저 런타임 데이터로만 계산 — 저장소 JSON 에 개인 수치 없음. */
+const TOPF={};
+const isTop=t=>!!t&&typeof t==='object'&&!Array.isArray(t)&&('what' in t)&&('now_what' in t);
+const NA=why=>`해당 없음(${why})`;
+function mkTop(what,so,now,src,asof,o){ o=o||{}; const A=x=>(Array.isArray(x)?x:[x]).filter(s=>s!=null&&s!=='').map(String);
+  return {what:A(what),so_what:A(so),now_what:A(now),evidence:A(o.ev),src:A(src),asof:asof?String(asof).replace(' KST','').slice(0,16):null,grade:o.grade||null}; }
+function topMount(v){ const r=$('#root'); if(!r||v!==view) return;
+  let el=document.getElementById('tabTop');
+  if([...r.querySelectorAll('.tl-top')].some(x=>!x.closest('#tabTop'))){ if(el) el.remove(); return; }   // 탭이 자기 카드 안에 이미 그림(운용회의)
+  let t; try{ t=TOPF[v]?TOPF[v]():mkTop(NA('이 화면 요약 어댑터 없음'),NA('—'),NA('—')); }catch(e){ t=mkTop(NA('요약 생성 오류: '+e.message),NA('—'),NA('—')); }
+  if(!el){ el=document.createElement('div'); el.id='tabTop'; el.className='tl-card'; el.onclick=e=>{ if(!e.target.closest('a')) el.classList.toggle('open'); }; r.prepend(el); }
+  el.innerHTML=`<div class="tl-h">요약 <small>① What ② So What ③ Now What · 기준·원본</small></div>${t===null?'<div class="mu">요약 불러오는 중 …</div>':renderTop(t)}`;
+  clearTimeout(topMount._t); if(t===null&&(topMount._n=(topMount._n||0)+1)<10) topMount._t=setTimeout(()=>topMount(v),1200); else if(t!==null) topMount._n=0; }
 const pct=(x,d=1)=>x==null?'':`<span class="${x>0?'up':x<0?'dn':'mu'}">${(x*100).toFixed(d)>0?'+':''}${(x*100).toFixed(d)}%</span>`;
 const num=(x,d=0)=>x==null?'':Number(x).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
 const n0=x=>x==null?'':Math.round(x);
@@ -454,11 +473,14 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||''); genHdr();
   tape();
   const v=view;
-  if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
+  if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); topMount(v); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
   $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
+  topMount(v);
 }
+/* 화면 일부가 render() 밖에서 #root 를 다시 그려도(사내톡·LIFE 등) 상단 카드 복구 */
+setTimeout(()=>{ const r=$('#root'); if(r) new MutationObserver(()=>{ if(!document.getElementById('tabTop')&&!r.querySelector('.tl-top')&&r.children.length) topMount(view); }).observe(r,{childList:true}); },0);
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['re','부동산'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],

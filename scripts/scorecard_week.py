@@ -381,6 +381,13 @@ def build(today: date | None = None) -> dict:
         "consistency": consistency_skeleton(reg, cur_regime),
     }
     res["telegram"] = telegram_line(res)
+    try:   # STANDARD 8절 상단 3칸(묶음 B, 추가만)
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from screener import topline_from
+        res["top"] = topline_from.scorecard(res)
+    except Exception:  # noqa: BLE001
+        pass
     return res
 
 

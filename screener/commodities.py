@@ -268,6 +268,11 @@ def build(fetch=None, fetch_monthly=None) -> dict:
            "groups": GROUPS + ["파생"], "rows": rows, "unavailable": UNAVAILABLE, "source_notes": SOURCE_NOTES, "summary": summary, "errors": errors,
            "label": "표시 전용 · 매크로 바람 점수 제외 · 업종 연결은 설명이지 매수 권유 아님",
            "src": "야후 일봉(선물 연속·ETF·ETC 종가) · 1주=5거래일 · 1개월=21거래일 · 52주 위치=(현재−저점)÷(고점−저점) · '월간' 줄 = FRED IMF 월평균(1개월=전월 대비, 위치=12개월)"}
+    try:   # STANDARD 8절 상단 3칸(묶음 B, 추가만)
+        from . import topline_from
+        out["top"] = topline_from.commodities(out)
+    except Exception:  # noqa: BLE001
+        pass
     from .guard import write_json
     write_json(OUT, out)
     log.info("원자재 %d개(ok %d) · %s", len(rows), len(ok), summary)

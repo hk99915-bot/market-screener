@@ -82,6 +82,8 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_xl_beyond(b, port)
         bad += await check_links_pcr(b, port)
         bad += await check_hf_why(b, port)
+        bad += await check_all_top(b, port)
+        bad += await check_re_ga(b, port)
         await b.close()
     return bad
 
@@ -1056,7 +1058,7 @@ BOND_LATE = {"checked_at": "2026-10-21 12:00", "n": 21, "late": [{"id": "bonds",
 
 async def check_macro_bond_top(b, port: int) -> int:
     """MARKET › MACRO 첫 화면(macro-tab, 10/23 원자재 macCmd·지정학 macGeo 패널 포함)·채권 '지금 채권 상황 3줄'(bonds-summary), 10/21 겸이: 390px 에서 첫 패널 · 결론(바람·격차 / 수준·방향·의미)이
-    첫 화면(844px) 안 · 기준 배지 · 가로 넘침 없음 · 신선도 계약 late(bonds) 주입 시 ⚠ STALE · dataLag 판정(오래된 날짜만 늦음)."""
+    첫 화면(844px) 안(10/26 묶음 B: 상단 3칸 카드 #tabTop 높이만큼 허용 — 결론이 그 카드로 올라감) · 기준 배지 · 가로 넘침 없음 · 신선도 계약 late(bonds) 주입 시 ⚠ STALE · dataLag 판정(오래된 날짜만 늦음)."""
     import json as _json
     bad = 0
     for label, body in (("실파일", None), ("bonds 늦음 주입", _json.dumps(BOND_LATE, ensure_ascii=False))):
@@ -1076,7 +1078,7 @@ async def check_macro_bond_top(b, port: int) -> int:
           need:['금리','기준금리','환율','유가','다음 주요 일정','FOMC'].every(w=>tx.includes(w)), stale:tx.includes('STALE'),
           over:[...document.querySelectorAll('#root *')].some(e=>e.getBoundingClientRect().right>innerWidth+1&&!e.closest('table')),
           lag:dataLag('KR','2020-01-02',0)!==''&&dataLag('KR',mkPhase('KR').last,0)==='',
-          glance:!!gl&&gl.querySelectorAll('.mgl').length>=5&&gl.getBoundingClientRect().bottom<=844&&gl.innerText.includes('데스크 해석'), cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
+          glance:!!gl&&gl.querySelectorAll('.mgl').length>=5&&gl.getBoundingClientRect().bottom<=844+((document.getElementById('tabTop')||{offsetHeight:0}).offsetHeight+8)&&gl.innerText.includes('데스크 해석'), cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
         res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and m["cmd"] and m["geo"] and m["glance"] and (m["stale"] if body else True)
         await pg.evaluate("setView('bond')")
         await pg.wait_for_timeout(3000)
@@ -1088,6 +1090,91 @@ async def check_macro_bond_top(b, port: int) -> int:
         bad += not ok
         print(f"{'OK ' if ok else 'BAD'} MACRO·채권3줄(390px, {label}) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
               + ("" if ok else f" · macro={m} · bond={n}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        await pg.close()
+    return bad
+
+
+async def check_all_top(b, port: int) -> int:
+    """모든 탭 상단 3칸(묶음 B, 10/26 겸이 "모든 탭의 모든 내용들 다"): 전체 뷰마다 #root 안 .tl-top 에 ①②③ 3줄 + 원본 표기 ·
+    390px·1300px × 기본(다크)·엑셀(라이트) 스킨 · 가로 넘침 없음 · 종목 상세 패널(#detTop)도 1회."""
+    bad = 0
+    for w, h in ((390, 844), (1300, 900)):
+        for skin in ("", "xl"):
+            pg = await b.new_page(viewport={"width": w, "height": h})
+            errs: list[str] = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            await pg.add_init_script(f"try{{localStorage.setItem('mt_skin',{skin!r})}}catch(e){{}}")
+            await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+            await pg.wait_for_timeout(2000)
+            views = await pg.evaluate(ALL_JS)
+            miss = []
+            for v in views:
+                await pg.evaluate(f"setView({v!r})")
+                r = None
+                for _ in range(8):
+                    await pg.wait_for_timeout(500)
+                    r = await pg.evaluate("""(()=>{ const t=document.querySelector('#root .tl-top'); if(!t) return null; const x=t.textContent;   // 390px 는 접힘(원본 줄 숨김) — DOM 존재로 확인
+                      return {rows:t.querySelectorAll('.tl-row').length, ok:['What','So What','Now What','원본'].every(k=>x.includes(k)),
+                      over:t.getBoundingClientRect().right>innerWidth+1}; })()""")
+                    if r and r["rows"] == 3:
+                        break
+                if not r or r["rows"] != 3 or not r["ok"] or r["over"]:
+                    miss.append(f"{v}:{r}")
+            det = None
+            if w == 1300 and not skin:
+                await pg.evaluate("openDetail('005930','KR')")
+                await pg.wait_for_timeout(3000)
+                det = await pg.evaluate("!!document.querySelector('#dr-b #detTop .tl-top')")
+                if not det:
+                    miss.append("detail")
+            ok = not miss and not errs
+            bad += not ok
+            print(f"{'OK ' if ok else 'BAD'} 모든 탭 상단 3칸({w}px, {skin or '기본'}) 뷰 {len(views)}개" + (" · 상세 O" if det else "")
+                  + ("" if not miss else f" · 없음/불량: {' '.join(miss)[:400]}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
+            await pg.close()
+    return bad
+
+
+async def check_re_ga(b, port: int) -> int:
+    """부동산 법정동 '가' 묶음(10/26 겸이 OK, 영등포구 실파일): 구 화면 = 문래동1가~6가가 '문래동' 하나로 묶임(지도 data-grp·라벨 1개, 목록 묶음 버튼, 건수 = 구성 동 합)
+    → 묶음 누르면 data-lv=grp 확대 + 1가~N가 분리 목록 → 동 누르면 dong → 빵부스러기 grp·gu 원복. 390px·1300px."""
+    import json as _j
+    T = _j.loads((ROOT / "reports/realestate_trades/11560.json").read_text(encoding="utf-8"))
+    nsum = sum(d["n"] for d in T["dongs"] if d["name"].startswith("문래동"))
+    bad = 0
+    for w in (390, 1300):
+        pg = await b.new_page(viewport={"width": w, "height": 900})
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1500)
+        await pg.evaluate("setView('re')")
+        await pg.wait_for_timeout(2500)
+        await pg.evaluate("reSel('영등포구')")
+        await pg.wait_for_timeout(3500)
+        r = {}
+        st = await pg.evaluate("""(()=>{ const s=document.getElementById('rezsvg'), g=document.querySelector('#redr .regrp[data-grp="문래동"]');
+          return {lv:s&&s.dataset.lv, grp:s?s.querySelectorAll('path[data-grp="문래동"]').length:0, lab:s?[...s.querySelectorAll('text')].filter(t=>t.textContent.startsWith('문래·')).length:0,
+          btn:g?g.getAttribute('aria-label'):'', single:!!document.querySelector('#redr .redit[aria-label^="문래동3가"]')}; })()""")
+        r["묶음"] = st["lv"] == "gu" and st["grp"] >= 2 and st["lab"] == 1 and f"매매 {nsum}건" in st["btn"] and not st["single"]
+        await pg.evaluate("reDongP('문래동3가')")
+        await pg.wait_for_timeout(1500)
+        st2 = await pg.evaluate("""(()=>{ const s=document.getElementById('rezsvg'); return {lv:s&&s.dataset.lv, m:[...document.querySelectorAll('#redr .redit')].map(e=>e.getAttribute('aria-label')||'').filter(t=>/^문래동\\d가/.test(t)).length,
+          crumb:(document.querySelector('#redr .recrumb')||{}).innerText||''}; })()""")
+        r["분리"] = st2["lv"] == "grp" and st2["m"] >= 2 and "문래동" in st2["crumb"]
+        await pg.evaluate("reDongP('문래동3가')")
+        await pg.wait_for_timeout(1200)
+        r["동"] = await pg.evaluate("document.getElementById('rezsvg').dataset.lv==='dong'")
+        await pg.evaluate("reGo('grp')")
+        await pg.wait_for_timeout(800)
+        r["grp복귀"] = await pg.evaluate("document.getElementById('rezsvg').dataset.lv==='grp'")
+        await pg.evaluate("reGo('gu')")
+        await pg.wait_for_timeout(800)
+        r["gu복귀"] = await pg.evaluate("document.getElementById('rezsvg').dataset.lv==='gu'")
+        ok = all(r.values()) and not errs
+        bad += not ok
+        print(f"{'OK ' if ok else 'BAD'} 부동산 '가' 묶음({w}px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in r.items())
+              + ("" if ok else f" · {st} · {st2}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await pg.close()
     return bad
 

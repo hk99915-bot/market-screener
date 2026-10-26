@@ -338,4 +338,11 @@ function cmtUSView(){
    <div class="p c12"><h2>운용회의 · 미장<small>${esc(o.asof)} · 규칙 기반 · 검증 중</small></h2><div class="b" style="line-height:1.8;white-space:normal">${(o.head||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">결론</b> ${esc(o.verdict)}</div><div class="mu" style="font-size:var(--fs-2);margin-top:4px">🔗 ${esc(o.kr_link||'')}</div></div></div>
    ${cmtSimFreshHtml(o)}${sec.join('')}${o.footer?`<div class="p c12"><div class="b mu" style="font-size:var(--fs-2);white-space:normal">${esc(o.footer)}</div></div>`:''}</div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.cmt=()=>{ if(CMT===null||CMT===false) return null; const o=(typeof CMK!=='undefined'&&CMK==='US'&&typeof CMTU!=='undefined'&&CMTU)?CMTU:CMT;
+  if(o&&isTop(o.top)) return o.top; const bl=(o&&o.bottom_line)||{}, ls=bl.lines||[];
+  return mkTop(ls[0]||NA('운용회의 기록 없음'),ls[1]||NA('—'),ls[2]||NA('—'),['reports/committee.json'],o&&o.asof,{grade:'검증전'}); };
+}
 </script>

@@ -206,4 +206,17 @@ function repBody(it){
   const gl=a=>a.reduce((x,s)=>s.last.date>x?s.last.date:x,'');
   return [...g.entries()].sort((a,b)=>RV.o==='count'?tot(b[1])-tot(a[1]):repCmp(gl(a[1]),gl(b[1]))).map(([sec,a])=>`<details open class="sec"><summary><b class="am">${esc(sec)}</b> <span class="mu">${tot(a)}건 · ${a.length}종목</span></summary>${stockRows(a,false)}</details>`).join('')||'<div class="mu">해당 기간 리포트 없음</div>'; }
 document.addEventListener('click',e=>{const t=e.target.closest('td.tg'); if(!t) return; const sub=t.parentElement.nextElementSibling; if(sub&&sub.classList.contains('sub')){sub.classList.toggle('on'); t.textContent=sub.classList.contains('on')?'▾':'▸';}});
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.rep=()=>{ if(typeof SYN!=='undefined'&&SYN&&isTop(SYN.top)) return SYN.top; if(!SYN) return null;
+  const h=(SYN.headline||{}).text; return mkTop(h||NA('헤드라인 없음'),SYN.label||'증권가 집계 — 우리 판단·매매 신호 아님',NA('괴리 데이터 없음'),['reports/research_synthesis.json'],SYN.generated_at||SYN.asof); };
+TOPF.val=()=>{ if(VAL===null||VAL===false) return null; if(VAL&&isTop(VAL.top)) return VAL.top; if(!VAL||!VAL.basket) return mkTop(NA(VAL&&VAL.err||'밸류에이션 데이터 없음'),NA('—'),NA('—'),['reports/valuation.json']);
+  const b=VAL.basket, d=b.decomp20||{}, s=b.rate_sens||{}, f=(x,n=1)=>x==null?'—':Number(x).toFixed(n), P=x=>x==null?'—':(x>0?'+':'')+(x*100).toFixed(1)+'%';
+  const ev=((VAL.events||{}).next||[])[0];
+  return mkTop([`반도체 바스켓 중앙 PER ${f(b.median_per)}(런레이트 ${f(b.median_per_run_rate)}) · PBR ${f(b.median_pbr,2)} (검증 ${b.n_verified}/${b.n})`,`20일 분해: 가격 ${P(d.d_price)} = 멀티플 ${P(d.d_multiple)} + EPS ${P(d.d_eps)}`],
+    [`금리 ±${s.bp||'—'}bp → 중앙 PER ${P(s.up)}/${P(s.down)} (ERP 고정 가정)`,'밸류에이션은 참고(검증전) — 매매 트리거 아님'],ev?`다음 이벤트 ${String(ev.date).slice(5)} ${ev.name} 확인`:'조치 없음(예정 이벤트 없음)',['reports/valuation.json'],VAL.generated_at||VAL.asof,{grade:'검증전'}); };
+TOPF.dart=()=>{ if(!DS) return null; const it=DS.items||[], fl=it.filter(r=>r.flag||/주의|희석/.test(r.category||''));
+  return mkTop(DS.err?NA(DS.err):`공시 ${it.length}건`+(DS.asof?` (${DS.asof})`:''),fl.length?`주의·희석 분류 ${fl.length}건 — 키워드 분류(검증전)`:NA('주의·희석 공시 없음'),fl.length?'⚠ 주의·희석 필터로 원문 확인(애널)':'조치 없음',['reports/disclosures.json'],DS.asof); };
+}
 </script>

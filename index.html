@@ -152,6 +152,10 @@
   .p{background:var(--panel);border:1px solid var(--line);min-width:0}
   .p h2{margin:0;padding:5px 8px;background:var(--bg3);color:var(--amber);font-size:var(--fs-1);letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
   .p h2 small{color:var(--muted);font-weight:400;letter-spacing:0}
+  .tl-card{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);margin:0 0 8px;padding:6px 10px;min-width:0;font-size:var(--fs-2);overflow-wrap:anywhere}
+  .tl-card .tl-h{color:var(--amber);font-size:var(--fs-1);font-weight:700;letter-spacing:.08em}
+  .tl-card .tl-h small{color:var(--muted);font-weight:400;letter-spacing:0}
+  @media(max-width:700px){ .tl-card{cursor:pointer} .tl-card:not(.open) .tl-row{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tl-card:not(.open) .tl-row br,.tl-card:not(.open) .tl-row br+span{display:none} .tl-card:not(.open) .tl-top>.mu{display:none} .tl-card:not(.open) .tl-h small::after{content:' · 눌러 펼치기'} }
   .p .b{padding:6px 8px;overflow:auto}
   .c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
   @media(max-width:1100px){.c3,.c4{grid-column:span 6}.c8{grid-column:span 12}}
@@ -292,7 +296,7 @@ html.xl #xlrib,html.xl #xlfx{display:flex}
 html.xl .tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#f3f3f3;border-top:1px solid #c6c6c6;justify-content:flex-start;gap:0;padding:0 6px;flex-wrap:nowrap;overflow-x:auto}
 html.xl .tabs button{background:#f3f3f3;color:#333;border:0;border-right:1px solid #d4d4d4;letter-spacing:0;padding:5px 16px;font-weight:400}
 html.xl .tabs button.on{background:#fff;color:#000;border-bottom:2px solid #8a8a8a;font-weight:600}
-html.xl .p{border:1px solid #c6c6c6;box-shadow:none}
+html.xl .p,html.xl .tl-card{border:1px solid #c6c6c6;box-shadow:none}
 html.xl .p h2{background:#f3f3f3;color:#000;letter-spacing:0;font-weight:600;border-bottom:1px solid #d4d4d4}
 html.xl th{background:#f3f3f3;color:#333;border:1px solid #d4d4d4;letter-spacing:0;font-weight:600}
 html.xl td{border:1px solid #e1e1e1}
@@ -400,6 +404,21 @@ function renderTop(top,opt){ if(!top||typeof top!=='object') return ''; opt=opt|
   return `<div class="tl-top" style="line-height:1.7;white-space:normal">${L.map(row).join('')}`
     +(ev.length?`<div class="mu" style="font-size:var(--fs-1);margin-top:4px">근거: ${ev.map(esc).join(' · ')}</div>`:'')
     +`<div class="mu" style="font-size:var(--fs-1)">${top.asof?'기준 '+esc(top.asof)+' · ':''}${top.grade?'등급 '+esc(top.grade)+' · ':''}원본: ${src.length?src.map(esc).join(' · '):'없음'}</div></div>`; }
+/* 모든 탭 상단 3칸 (묶음 B, 10/26 겸이 "모든 탭의 모든 내용들 다") — TOPF[view]=()=>top|null(불러오는 중). 각 tab_*.html 끝에서 등록.
+   JSON 에 top(screener/topline.py 스키마)이 있으면 그대로, 없으면 그 탭이 이미 읽은 데이터의 기존 문장·수치를 재배치(새 해석 금지).
+   근거 없는 칸 = '해당 없음(사유)'. 개인 탭(my·life)은 브라우저 런타임 데이터로만 계산 — 저장소 JSON 에 개인 수치 없음. */
+const TOPF={};
+const isTop=t=>!!t&&typeof t==='object'&&!Array.isArray(t)&&('what' in t)&&('now_what' in t);
+const NA=why=>`해당 없음(${why})`;
+function mkTop(what,so,now,src,asof,o){ o=o||{}; const A=x=>(Array.isArray(x)?x:[x]).filter(s=>s!=null&&s!=='').map(String);
+  return {what:A(what),so_what:A(so),now_what:A(now),evidence:A(o.ev),src:A(src),asof:asof?String(asof).replace(' KST','').slice(0,16):null,grade:o.grade||null}; }
+function topMount(v){ const r=$('#root'); if(!r||v!==view) return;
+  let el=document.getElementById('tabTop');
+  if([...r.querySelectorAll('.tl-top')].some(x=>!x.closest('#tabTop'))){ if(el) el.remove(); return; }   // 탭이 자기 카드 안에 이미 그림(운용회의)
+  let t; try{ t=TOPF[v]?TOPF[v]():mkTop(NA('이 화면 요약 어댑터 없음'),NA('—'),NA('—')); }catch(e){ t=mkTop(NA('요약 생성 오류: '+e.message),NA('—'),NA('—')); }
+  if(!el){ el=document.createElement('div'); el.id='tabTop'; el.className='tl-card'; el.onclick=e=>{ if(!e.target.closest('a')) el.classList.toggle('open'); }; r.prepend(el); }
+  el.innerHTML=`<div class="tl-h">요약 <small>① What ② So What ③ Now What · 기준·원본</small></div>${t===null?'<div class="mu">요약 불러오는 중 …</div>':renderTop(t)}`;
+  clearTimeout(topMount._t); if(t===null&&(topMount._n=(topMount._n||0)+1)<10) topMount._t=setTimeout(()=>topMount(v),1200); else if(t!==null) topMount._n=0; }
 const pct=(x,d=1)=>x==null?'':`<span class="${x>0?'up':x<0?'dn':'mu'}">${(x*100).toFixed(d)>0?'+':''}${(x*100).toFixed(d)}%</span>`;
 const num=(x,d=0)=>x==null?'':Number(x).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
 const n0=x=>x==null?'':Math.round(x);
@@ -816,6 +835,22 @@ function mdToHtml(md,mk){
   if(intab) out+='</table>'; return out;
 }
 function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+function topMarket(mk){ const S=D[mk.toLowerCase()]||{}, sec=S.sections||{}, a=(D.breadth||[]).filter(x=>x.market===mk), L=a[a.length-1];
+  const cls=Object.entries(S.class_counts||{}).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,v])=>`${CLS[k]||k} ${v}`).join(' · ');
+  const what=[`${mk} ${S.n||'—'}종목 분류: ${cls||'—'}`]; if(L) what.push(`200일선 위 ${Math.round((L.pct_above200||0)*100)}% · 상승 ${L.adv}/하락 ${L.dec} · 52주 신고 ${L.new_high52}/신저 ${L.new_low52} (${L.date})`);
+  const cv=((D.state||{})['close_'+mk]||{}).value||'', arrow=cv.replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').split('\n').find(x=>x.startsWith('→'));
+  const so=[arrow?arrow.replace(/^→\s*/,'')+' (마감 코멘트)':NA('마감 코멘트 없음 — 분류는 후보 표시, 판단 아님')];
+  const an=((D.anomalies||{})[mk]||[]).length;
+  const now=[an?`이상 움직임 ${an}종목 — 상세에서 근거 확인(매매 신호 아님)`:'조치 없음(스크리너는 후보 표시 — 매매 신호 아님)'];
+  return mkTop(what,so,now,['reports/dashboard.json'],S.asof||D.generated_at); }
+TOPF.kr=()=>topMarket('KR'); TOPF.us=()=>topMarket('US');
+TOPF.heat=()=>mkTop(`히트맵 ${typeof HMK!=='undefined'?HMK:''} — 업종·종목 등락 색 지도`,NA('표시 전용 — 해석 문장 없음'),NA('표시 전용'),['reports/heatmap_KR.json','reports/heatmap_US.json']);
+TOPF.mdkr=()=>mkTop('KR 전종목 스크리너 표(latest_KR.md)',NA('원표 — 요약 문장 없음'),NA('원표'),['reports/latest_KR.md'],(D.kr||{}).asof);
+TOPF.mdus=()=>mkTop('US 전종목 스크리너 표(latest_US.md)',NA('원표 — 요약 문장 없음'),NA('원표'),['reports/latest_US.md'],(D.us||{}).asof);
+}
 </script>
 
 <!-- tab_home.html — HOME 탭 — 캘린더·이벤트·미장 운용회의 요약·MY 요약 (homeView).
@@ -955,6 +990,20 @@ function homeView(){
   if(CMTU===null) homeCusLoad();
   return h+'</div>';
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.home=()=>{ const bv=mk=>{ const a=(D.breadth||[]).filter(x=>x.market===mk), L=a[a.length-1]; if(!L||L.pct_above200==null) return mk+' 폭 데이터 없음';
+    const p=L.pct_above200; return `${mk} ${p>=0.6?'강세':p>=0.4?'중립':'약세'}(200일선 위 ${Math.round(p*100)}%, ${L.date})`; };
+  const what=[bv('KR')+' · '+bv('US')]; if(typeof MV!=='undefined'&&MV&&MV.score!=null) what.push(`매크로 바람 ${MV.label||''} (${MV.score>0?'+':''}${Number(MV.score).toFixed(2)})`);
+  const so=[]; [['KR',typeof CMT!=='undefined'?CMT:null],['US',typeof CMTU!=='undefined'?CMTU:null]].forEach(([m,o])=>{ if(o&&isTop(o.top)&&o.top.so_what[0]) so.push(`${m} 운용회의 — ${o.top.so_what[0]}`); });
+  if(!so.length) so.push(NA('운용회의 판정 미로드 — DAILY › 운용회의'));
+  const now=[], pend=typeof DEC!=='undefined'&&DEC&&DEC.items?homePendDuel(DEC.items,Date.now()):null, CD=typeof decCD==='function'?decCD():null,
+    n=FR?(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length:null;
+  if(pend) now.push(`대결 제출 대기 ${pend}건 → 성적표`); if(CD) now.push('쿨다운 중 — 새 모의 베팅 금지'); if(n) now.push(`늦은 데이터 ${n}건 확인`);
+  if(!now.length) now.push('조치 없음(대결 대기·쿨다운·늦은 데이터 없음)');
+  return mkTop(what,so,now,['reports/dashboard.json','reports/committee.json','reports/decisions.json','reports/freshness.json'],D.generated_at,{grade:'검증전'}); };
+}
 </script>
 
 <!-- tab_daily.html — DAILY 탭 — 데일리 리포트·VIEWS(관점 레지스트리)·브리핑 기록 (dailyView·viewsView·briefView).
@@ -1034,6 +1083,21 @@ function viewsView(){
 function briefView(){
   const keys=['premarket_kr','intraday_kr','close_KR','premarket_us','intraday_us','close_US','reports'];
   let h='<div class="grid">'; for(const k of keys) h+=pre(k,k.toUpperCase().replace('_',' ')); return h+'</div>';
+}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.daily=()=>{ if(DB===null||DB===false) return null; if(DB&&isTop(DB.top)) return DB.top;
+  if(!DB||!DB.asof) return mkTop(NA('데일리 브리프 없음'),NA('—'),NA('—'),['reports/daily_brief.json']);
+  return mkTop(DB.headline||NA('헤드라인 없음'),`목표가 하향 ${(DB.tp_cuts||[]).length}건 · 톤 이탈 ${(DB.dissent||[]).length}건 — 증권가 집계, 매매 신호 아님`,'조치 없음(집계 보고)',['reports/daily_brief.json'],DB.asof); };
+TOPF.views=()=>{ if(VW===null||VW===false) return null; if(VW&&isTop(VW.top)) return VW.top; if(!VW||!VW.summary) return mkTop(NA('VIEW 데이터 없음'),NA('—'),NA('—'),['reports/views.json']);
+  const S=VW.summary, g=x=>x?`${x.label||''} 관문 ${x.gate==null?'—':x.gate}`:null;
+  const ch=(VW.changes||[]).length;
+  return mkTop([g(S.entry),g(S.exit),g(S.allocation)].filter(Boolean).join(' · '),ch?`어제 대비 렌즈 변화 ${ch}건`:NA('렌즈 변화 없음'),
+    NA('VIEW 는 렌즈 상태 표시 — 조치는 운용회의 판정'),['reports/views.json'],VW.asof,{grade:'검증전'}); };
+TOPF.brief=()=>{ const st=D.state||{}, ks=['premarket_kr','intraday_kr','close_KR','premarket_us','intraday_us','close_US','reports'].filter(k=>st[k]);
+  const last=ks.map(k=>[k,st[k].at||'']).sort((a,b)=>a[1]<b[1]?1:-1)[0];
+  return mkTop(`브리핑 기록 ${ks.length}종` + (last?` · 최근 ${last[0]} ${last[1]}`:''),NA('텔레그램 원문 보관 — 해석 문장 없음'),NA('기록 열람용'),['reports/dashboard.json(state)'],last&&last[1]); };
 }
 </script>
 
@@ -1566,6 +1630,13 @@ function myRender(hs,cash,miss){
    ${miss.length?`<div class="mu" style="margin-top:6px">인식 못 한 종목: ${esc(miss.join(', '))}</div>`:''}
    <div class="mu" style="font-size:var(--fs-1);margin-top:8px;white-space:normal">현재가는 최근 종가. 수익·위험은 지금 비중을 지난 1년(${esc(days[0]||'')}~)에 그대로 적용한 가상 수익률로 계산. 미장은 원화 환산, 한국 날짜 기준 전일 미국 종가. 무위험 3%.</div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.my=()=>{ const t=String(myLoad()||'').split('\n').filter(x=>x.trim()&&!x.trim().startsWith('#')).length;   // 브라우저 런타임만 — 저장소에 개인 수치 없음
+  return mkTop(t?`이 브라우저 입력 ${t}줄 기준 — 비중·위험 표는 아래(값은 이 기기에만)`:NA('보유 입력 없음 — 아래 입력란'),
+    NA('개인 판단 문장은 비공개 저장소(PB) — 화면은 계산 결과만'),'점검 순서: 아래 경고(한도·VaR) → 원장 대조 배지',['브라우저 입력(localStorage)','pb-private holdings·ledger(토큰 시)'],null); };
+}
 </script>
 
 <!-- tab_life.html — LIFE 탭 — pb-private/life/summary.json (lifeView·건강 패널).
@@ -1672,6 +1743,13 @@ function lifeHealthCharts(H){
   add(S.weight,cv('--amber'),'right',2); add(S.smm,cv('--up'),'left',2); add(S.fat_kg,cv('--dn'),'left',2,2);
   c.timeScale().fitContent();
   const l=$('#lhc1l'); if(l) l.innerHTML=`<span style="color:var(--amber)">━ 체중</span> <span class="mu">┅ 기준 경로 (오른쪽 축)</span> &nbsp; <span style="color:var(--up)">━ 골격근량</span> &nbsp; <span style="color:var(--dn)">┅ 체지방량</span> <span class="mu">(왼쪽 축, kg) · 인바디는 4주 추세로만 판단</span>`;
+}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.life=()=>{ if(typeof LIFE==='undefined'||!LIFE) return mkTop(NA(typeof LIFEERR!=='undefined'&&LIFEERR?'비공개 데이터 불러오기 실패':'비공개 데이터 — 토큰 입력 후 표시'),NA('—'),NA('—'),['pb-private life/summary.json(런타임)']);
+  const PR=LIFE.period||{}, b=LIFE.budget_vs_actual||{}, u=b.budget_total?b.actual_total/b.budget_total:null;   // 비율만(금액 표시 안 함)
+  return mkTop(`기간 ${PR.from||'—'}~${PR.to||'—'}`+(u!=null?` · 예산 사용률 ${(u*100).toFixed(0)}%`:''),u!=null&&u>1?'예산 초과':NA('해석 문장 없음 — 비율만'),NA('가계 조치는 PB 상담'),['pb-private life/summary.json(런타임)'],LIFE.updated||PR.to); };
 }
 </script>
 
@@ -1883,6 +1961,19 @@ function repBody(it){
   const gl=a=>a.reduce((x,s)=>s.last.date>x?s.last.date:x,'');
   return [...g.entries()].sort((a,b)=>RV.o==='count'?tot(b[1])-tot(a[1]):repCmp(gl(a[1]),gl(b[1]))).map(([sec,a])=>`<details open class="sec"><summary><b class="am">${esc(sec)}</b> <span class="mu">${tot(a)}건 · ${a.length}종목</span></summary>${stockRows(a,false)}</details>`).join('')||'<div class="mu">해당 기간 리포트 없음</div>'; }
 document.addEventListener('click',e=>{const t=e.target.closest('td.tg'); if(!t) return; const sub=t.parentElement.nextElementSibling; if(sub&&sub.classList.contains('sub')){sub.classList.toggle('on'); t.textContent=sub.classList.contains('on')?'▾':'▸';}});
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.rep=()=>{ if(typeof SYN!=='undefined'&&SYN&&isTop(SYN.top)) return SYN.top; if(!SYN) return null;
+  const h=(SYN.headline||{}).text; return mkTop(h||NA('헤드라인 없음'),SYN.label||'증권가 집계 — 우리 판단·매매 신호 아님',NA('괴리 데이터 없음'),['reports/research_synthesis.json'],SYN.generated_at||SYN.asof); };
+TOPF.val=()=>{ if(VAL===null||VAL===false) return null; if(VAL&&isTop(VAL.top)) return VAL.top; if(!VAL||!VAL.basket) return mkTop(NA(VAL&&VAL.err||'밸류에이션 데이터 없음'),NA('—'),NA('—'),['reports/valuation.json']);
+  const b=VAL.basket, d=b.decomp20||{}, s=b.rate_sens||{}, f=(x,n=1)=>x==null?'—':Number(x).toFixed(n), P=x=>x==null?'—':(x>0?'+':'')+(x*100).toFixed(1)+'%';
+  const ev=((VAL.events||{}).next||[])[0];
+  return mkTop([`반도체 바스켓 중앙 PER ${f(b.median_per)}(런레이트 ${f(b.median_per_run_rate)}) · PBR ${f(b.median_pbr,2)} (검증 ${b.n_verified}/${b.n})`,`20일 분해: 가격 ${P(d.d_price)} = 멀티플 ${P(d.d_multiple)} + EPS ${P(d.d_eps)}`],
+    [`금리 ±${s.bp||'—'}bp → 중앙 PER ${P(s.up)}/${P(s.down)} (ERP 고정 가정)`,'밸류에이션은 참고(검증전) — 매매 트리거 아님'],ev?`다음 이벤트 ${String(ev.date).slice(5)} ${ev.name} 확인`:'조치 없음(예정 이벤트 없음)',['reports/valuation.json'],VAL.generated_at||VAL.asof,{grade:'검증전'}); };
+TOPF.dart=()=>{ if(!DS) return null; const it=DS.items||[], fl=it.filter(r=>r.flag||/주의|희석/.test(r.category||''));
+  return mkTop(DS.err?NA(DS.err):`공시 ${it.length}건`+(DS.asof?` (${DS.asof})`:''),fl.length?`주의·희석 분류 ${fl.length}건 — 키워드 분류(검증전)`:NA('주의·희석 공시 없음'),fl.length?'⚠ 주의·희석 필터로 원문 확인(애널)':'조치 없음',['reports/disclosures.json'],DS.asof); };
+}
 </script>
 
 <!-- tab_quant.html — QUANT 탭 — 공급망·시그널 검증·검증 스터디·전략 연구소·모멘텀·모의 포트폴리오 (chainView·sigView·studyView·labView·momView·pfView).
@@ -2037,6 +2128,25 @@ function drawBt(bt){ const cv=$('#mbt'); if(!cv||!bt||!bt.curve) return; const W
   line(2,'#777');line(3,'#4aa3ff');line(1,'#ff9a1f');
   x.fillStyle='#777';for(let i=0;i<c.length;i+=24)x.fillText(c[i][0].slice(0,4),X(i)-20,H-12);
   x.fillStyle='#ff9a1f';x.fillText('모멘텀',W-300,30);x.fillStyle='#4aa3ff';x.fillText('+필터',W-200,30);x.fillStyle='#999';x.fillText('유니버스',W-110,30);}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.study=()=>{ if(STU===null||STU===false) return null; const m=(STU&&STU.meta)||{};
+  return mkTop(STU&&STU.drop_days?`급락일 반등 스터디 — 급락 기준 ${Array.isArray(STU.drop_days)?STU.drop_days.length+'건':Object.keys(STU.drop_days||{}).join('·')} (코스피·레버리지 이후 수익률 표)`:NA('스터디 결과 없음'),NA('결론 문장은 reports/studies 본문 — 화면은 표'),NA('적용 판단은 퀀트 본문 결론 기준'),['reports/studies/crash_rebound.json'],(m.run_at_utc||'').replace('T',' ').replace('Z',' UTC'),{grade:'검증전'}); };
+TOPF.lab=()=>{ if(LAB===null||LAB===false) return null; if(!LAB||!LAB.results) return mkTop(NA('전략 연구소 결과 없음'),NA('—'),NA('—'),['reports/lab.json']);
+  const g=LAB.gate||{}; return mkTop(`전략 ${Object.keys(LAB.results).length}종 · 동시 검정 ${g.m||'—'}개 → 통과선 t ≥ ${g.req_t!=null?Number(g.req_t).toFixed(2):'—'}`,'다중검정 보정 후 통과선 미달 전략은 참고(C)·폐기(F) — 표의 등급 열 기준',NA('채택은 연구 보드 관문 기준'),['reports/lab.json'],LAB.asof); };
+TOPF.sig=()=>{ if(typeof SG==='undefined'||SG===null||SG===false) return null; if(!SG||!SG.signals) return mkTop(NA('채점 결과 없음'),NA('—'),NA('—'),['reports/signal_scores.json']);
+  const v=Object.values(SG.signals).map(r=>r.verdict||'—'), c={}; v.forEach(x=>c[x]=(c[x]||0)+1);
+  return mkTop(`신호 ${v.length}개 채점: `+Object.entries(c).map(([k,n])=>`${k} ${n}`).join(' · '),'유효 판정 외 신호는 단독 근거 불가',NA('신호 채택은 퀀트 연구 보드 관문'),['reports/signal_scores.json'],SG.asof,{grade:'검증전'}); };
+TOPF.mom=()=>{ const k=MO.KR, u=MO.US; if(!k||!u) return null; const t=x=>(x.top||[]).slice(0,3).map(r=>shortNm(r.name)||r.symbol).join(', ');
+  return mkTop([`KR 상위: ${t(k)||'—'}`,`US 상위: ${t(u)||'—'}`],NA('모멘텀 순위 표시 — 해석 문장 없음'),NA('순위는 후보 — 매매 신호 아님'),['reports/momentum_KR.json','reports/momentum_US.json'],k.asof,{grade:'검증전'}); };
+TOPF.pf=()=>{ if(PF===null||PF===false) return null; if(!PF||!PF.strategies) return mkTop(NA('모의 포트폴리오 결과 없음'),NA('—'),NA('—'),['reports/portfolios.json']);
+  const s=[...PF.strategies].filter(x=>x.stats&&x.stats.sharpe!=null).sort((a,b)=>b.stats.sharpe-a.stats.sharpe);
+  return mkTop(`모의 전략 ${PF.strategies.length}종 · 샤프 상위 ${s.slice(0,2).map(x=>`${x.name} ${x.stats.sharpe}`).join(' · ')||'—'}`,'과거 백테스트(비용 반영) — 미래 성과 보장 아님',NA('실계좌 적용 판단은 퀀트·PB'),['reports/portfolios.json'],PF.asof,{grade:'검증전'}); };
+TOPF.chain=()=>{ if(typeof CH==='undefined'||CH===null||CH===false) return null; if(!CH||!CH.chains) return mkTop(NA('체인 데이터 없음'),NA('—'),NA('—'),['reports/chains_view.json']);
+  const c=Object.values(CH.chains).filter(x=>x.score!=null).sort((a,b)=>b.score-a.score), f=x=>`${x.name} ${(x.score>0?'+':'')+Number(x.score).toFixed(2)}`;
+  return mkTop(`공급망 ${c.length}개 점수: 강 ${c.slice(0,2).map(f).join(' · ')||'—'} / 약 ${c.slice(-1).map(f).join('')||'—'}`,'점수는 대리 지표 합성 — 효과 검증전',NA('공급망 점수 단독 매매 규칙 없음'),['reports/chains_view.json'],CH.asof,{grade:'검증전'}); };
+}
 </script>
 
 <!-- tab_rboard.html — QUANT › 연구 보드 (rbView). UXUI·퀀트 10/21 — 겸이 "퀀트에 많은 게 있는데 관리가 안 되고 도전이 잘 안 되고 직관적이지 않음".
@@ -2127,6 +2237,14 @@ function rbView(){
   setTimeout(()=>{ document.querySelectorAll('[data-rbs]').forEach(b=>b.onclick=()=>{ const e=document.getElementById('rbs_'+b.dataset.rbs); if(e) e.scrollIntoView({behavior:'smooth'}); });
     document.querySelectorAll('[data-rbv]').forEach(b=>b.onclick=()=>setView(b.dataset.rbv)); },0);
   return `<div class="grid">${top}${sec}${chall}</div>`;
+}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.rb=()=>{ if(RB===null||RB===false) return null; if(!RB||!RB.items) return mkTop(NA('연구 보드 데이터 없음'),NA('—'),NA('—'),['reports/research_board.json']);
+  const c={}; RB.items.forEach(x=>c[x.verdict||'—']=(c[x.verdict||'—']||0)+1); const vd=RB.verdicts||{};
+  const qr=(RB.quant_requests||[]).length;
+  return mkTop(`연구 ${RB.items.length}건: `+Object.entries(c).map(([k,n])=>`${k} ${n}`).join(' · '),['보류 = '+(vd['보류']||'—'),'폐기 = '+(vd['폐기']||'—')],qr?`퀀트 요청 ${qr}건 대기`:'조치 없음(대기 요청 없음)',['reports/research_board.json'],RB.asof); };
 }
 </script>
 
@@ -2254,6 +2372,12 @@ function ilabBootHtml(btn){ const B=ILABBT.b, X=ILABBT.x, p1=v=>(v*100).toFixed(
   <tr><td class="l">일시금 CAGR</td><td>${p1(B.cagr_med)}</td><td>${p1(B.cagr_p10)}</td><td><b>${p1(X.cagr_med)}</b></td><td><b>${p1(X.cagr_p10)}</b></td></tr>
   <tr><td class="l">월 적립 최종/넣은 돈</td><td>${mx(B.mult_med)}</td><td>${mx(B.mult_p10)}</td><td><b>${mx(X.mult_med)}</b></td><td><b>${mx(X.mult_p10)}</b></td></tr>
   <tr><td class="l">최대낙폭 (나쁜 10% = 하위10%)</td><td>${p1(B.mdd_med)}</td><td>${p1(B.mdd_p10)}</td><td><b>${p1(X.mdd_med)}</b></td><td><b>${p1(X.mdd_p10)}</b></td></tr></table>`; }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.isa=()=>{ if(ILAB===null||ILAB===false) return null; if(!ILAB||!ILAB.months) return mkTop(NA('ISA 실험실 데이터 없음'),NA('—'),NA('—'),['reports/isa_lab_returns.json']);
+  return mkTop(`자산 ${(ILAB.assets||[]).length}개 · 월 ${(ILAB.months||[]).length}개 수익률 시뮬레이터`,ILAB.note||NA('주석 없음'),NA('비중 선택은 아래 시뮬레이터 — 실계좌 조치 아님'),['reports/isa_lab_returns.json'],ILAB.asof,{grade:'검증전'}); };
+}
 </script>
 
 <!-- tab_bond.html — MARKET › 채권 — bondView·AI 인프라 신용 감시·금리 히스토리.
@@ -2394,6 +2518,14 @@ function drawBondHist(){
   c.timeScale().fitContent();
   const lg=$('#bdleg'); if(lg) lg.innerHTML=leg.join(' &nbsp; ');
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.bond=()=>{ if(BND===null||BND===false) return null; if(BND&&isTop(BND.top)) return BND.top; if(!BND||!BND.us) return mkTop(NA('채권 데이터 없음'),NA('—'),NA('—'),['reports/bonds.json']);
+  const U=(BND.us||{}).chg||{}, K=(BND.kr||{}).chg||{}, b=[]; [['미 10년',U['10Y']],['미 2년',U['2Y']],['국고 3년',K['3Y']]].forEach(([l,d])=>{ if(d&&d.v!=null) b.push(`${l} ${d.v.toFixed(2)}%(1M ${(d.m1||0)>0?'+':''}${Number(d.m1||0).toFixed(0)}bp)`); });
+  const N=BND.notes||[], imp=N.find(n=>/부담|할인율/.test(n))||N[0];
+  return mkTop(b.join(' · ')||NA('금리 데이터 없음'),imp||NA('함의 문장 없음'),(BND.reco||[])[0]||'조치 없음(권고 문장 없음)',['reports/bonds.json'],BND.generated_at||BND.asof); };
+}
 </script>
 
 <!-- tab_realestate.html — MARKET › 부동산 (reView). 10/23 겸이 "마켓에 부동산 누나 추가" → 이름 '부동산'(대체투자 아님) · "마켓에 부동산 탭이 아직 안 뜨네".
@@ -2479,13 +2611,27 @@ let RE_M='p59', RE_SEL=null;
 const RE_MET={p59:{nm:'59㎡ 중위(진입 난이도)',cuts:[7,12],lab:['하 · 7억 미만','중 · 7~12억','상 · 12억 이상'],fmt:v=>v.toFixed(1)+'억'},
   jr:{nm:'전세가율(84㎡)',cuts:[50,60,70],lab:['50% 미만','50~60%','60~70%','70% 이상'],fmt:v=>Math.round(v)+'%'},
   old:{nm:'구축 비중(1999년 이전)',cuts:[20,40,60],lab:['20% 미만','20~40%','40~60%','60% 이상'],fmt:v=>Math.round(v)+'%'}};
-function reSel(id){ RE_SEL=(RE_SEL===id?null:id); RE_DONG=null; RE_CX=null; render(); }
+function reSel(id){ RE_SEL=(RE_SEL===id?null:id); RE_DONG=null; RE_CX=null; RE_DG=null; render(); }
 /* ───── 드릴다운: 구 → 법정동 → 단지 → 최근 거래 (10/26). 데이터 = reports/realestate_trades/<구코드>.json(screener/realestate.py summarize_detail, 구 누를 때만 읽음) ───── */
-let RE_DONG=null, RE_CX=null, RE_CXS='n'; const RE_GUD={};
+let RE_DONG=null, RE_CX=null, RE_CXS='n', RE_DG=null; const RE_GUD={};
+/* 법정동 '가' 묶음 (10/26 겸이 OK): '○○동N가' → '○○동'. 기본 화면은 묶음(색·건수 = 합친 거래), 묶음을 누르면 1가~N가로 한 번 더 확대·분리. 단지 목록은 원래 동 그대로.
+   n·중위 = 생성기 dong_groups(합친 거래로 재계산, screener/realestate.py summarize_detail). 옛 파일(dong_groups 없음)은 건수만 합산·중위 '—'. */
+const reGrpNm=n=>{ const m=/^(.+동)\d+가$/.exec(String(n||'')); return m?m[1]:String(n||''); };
+function reGroups(TD,geo){ const G={}, add=(nm,x)=>{ const g=reGrpNm(nm), o=G[g]||(G[g]={name:g,members:[],n:0,n_cancel:0,n_jeonse:0,n_cx:0,med:null,p59:null,p84:null,n59:0,n84:0,_x:[]});
+    if(!o.members.includes(nm)) o.members.push(nm); if(x&&!o._x.includes(x)){ o._x.push(x); ['n','n_cancel','n_jeonse','n_cx','n59','n84'].forEach(k=>o[k]+=x[k]||0); } };
+  ((TD&&TD.dongs)||[]).forEach(x=>add(x.name,x)); (geo||[]).forEach(d=>add(d.name,null));
+  const pre=(TD&&TD.dong_groups)||{};
+  Object.values(G).forEach(o=>{ o.members.sort((a,b)=>a.localeCompare(b,'ko',{numeric:true})); o.multi=o.members.length>1;
+    if(!o.multi&&o._x[0]) Object.assign(o,o._x[0],{name:o.name,members:o.members,multi:false});
+    else if(pre[o.name]) ['n','n_cancel','n_jeonse','n_cx','med','p59','p84','n59','n84'].forEach(k=>{ if(pre[o.name][k]!==undefined) o[k]=pre[o.name][k]; }); });
+  return G; }
+function reDGo(g){ RE_DG=(RE_DG===g?null:g); RE_DONG=null; RE_CX=null; render(); const e=document.getElementById('redr'); if(e&&e.scrollIntoView) e.scrollIntoView({block:'nearest'}); }
+function reDongP(nm){ const d=reCur(), G=reGroups(d,(reGeoCur()||{}).dongs), g=G[reGrpNm(nm)];
+  if(g&&g.multi&&RE_DG!==g.name&&!RE_DONG) return reDGo(g.name); reDongG(nm); }
 function reGuLoad(cd){ if(!/^\d{5}$/.test(cd)||RE_GUD[cd]!==undefined) return; RE_GUD[cd]=false;
   google.script.run.withSuccessHandler(t=>{ try{ const o=JSON.parse(t); RE_GUD[cd]=(o&&Array.isArray(o.dongs))?o:'err'; }catch(e){ RE_GUD[cd]='err'; } if(view==='re') render(); })
     .withFailureHandler(()=>{ RE_GUD[cd]='err'; if(view==='re') render(); }).getRealEstateGu(cd); }
-function reGo(lv){ if(lv==='seoul'){ RE_SEL=null; RE_DONG=null; RE_CX=null; } else if(lv==='gu'){ RE_DONG=null; RE_CX=null; } else if(lv==='dong'){ RE_CX=null; }
+function reGo(lv){ if(lv==='seoul'){ RE_SEL=null; RE_DONG=null; RE_CX=null; RE_DG=null; } else if(lv==='gu'){ RE_DONG=null; RE_CX=null; RE_DG=null; } else if(lv==='grp'){ RE_DONG=null; RE_CX=null; } else if(lv==='dong'){ RE_CX=null; }
   render(); const e=document.getElementById('redr'); if(e&&e.scrollIntoView) e.scrollIntoView({block:'nearest'}); }
 function reDong(i){ const d=reCur(); if(!d||!d.dongs[i]) return; RE_DONG=d.dongs[i].name; RE_CX=null; render(); const e=document.getElementById('redr'); if(e&&e.scrollIntoView) e.scrollIntoView({block:'start'}); }
 function reCx(i){ const L=reCxList(); if(!L[i]) return; RE_CX=(RE_CX===L[i].name?null:L[i].name); render(); }
@@ -2499,7 +2645,8 @@ function reDrill(J){
   const T=J.seoul_trades||{}, g=RE_SEL&&(T.districts||{})[RE_SEL];
   if(!g) return '';
   const grp=((J.regions||{}).groups||[]).filter(x=>x.id!=='seoul'&&(x.members||[]).includes(RE_SEL)).map(x=>`<span class="rebadge">${esc(x.name)}</span>`).join('');
-  const crumb=`<nav class="recrumb" aria-label="부동산 위치"><button type="button" onclick="reGo('seoul')">서울</button>›${RE_DONG?`<button type="button" onclick="reGo('gu')">${esc(RE_SEL)}</button>›`+(RE_CX?`<button type="button" onclick="reGo('dong')">${esc(RE_DONG)}</button>›<b>${esc(RE_CX)}</b>`:`<b>${esc(RE_DONG)}</b>`):`<b>${esc(RE_SEL)}</b>`}${grp}</nav>`;
+  const gb=RE_DG?`<button type="button" onclick="reGo('grp')">${esc(RE_DG)}</button>›`:'';
+  const crumb=`<nav class="recrumb" aria-label="부동산 위치"><button type="button" onclick="reGo('seoul')">서울</button>›${(RE_DONG||RE_DG)?`<button type="button" onclick="reGo('gu')">${esc(RE_SEL)}</button>›`+(RE_DONG?gb+(RE_CX?`<button type="button" onclick="reGo('dong')">${esc(RE_DONG)}</button>›<b>${esc(RE_CX)}</b>`:`<b>${esc(RE_DONG)}</b>`):`<b>${esc(RE_DG)}</b>`):`<b>${esc(RE_SEL)}</b>`}${grp}</nav>`;
   const wrap=b=>`<div class="redr" id="redr">${crumb}${b}<div class="mu" style="font-size:var(--fs-1);margin-top:6px">국토부 RTMS ${esc(T.period||'')} · 취소 제외 매매 · 전세 = 월세 0 · 억 원 · 표시 전용, 매매 신호 아님</div></div>`;
   if(!g.detail||!g.code) return wrap(`<div class="mu" style="font-size:var(--fs-2)">동·단지 세부는 다음 실거래 수집(국토부 RTMS, 하루 1회) 뒤에 열려요.</div>`);
   reGuLoad(g.code);
@@ -2507,9 +2654,15 @@ function reDrill(J){
   if(D===false||D===undefined) return wrap('<div class="mu">불러오는 중…</div>');
   if(D==='err') return wrap(`<div class="am" style="font-size:var(--fs-2)">${esc(RE_SEL)} 세부 파일을 못 읽었어요. <a href="#" onclick="delete RE_GUD['${esc(g.code)}'];render();return false">다시 시도</a></div>`);
   if(!RE_DONG){
-    const ds=D.dongs||[];
-    return wrap(`<div style="font-size:var(--fs-2);margin-bottom:4px"><b>${esc(RE_SEL)}</b> 법정동 ${ds.length}곳 <span class="mu">· 거래 많은 순 · 눌러서 단지 보기</span></div>
-      <div class="redgrid">${ds.map((x,i)=>`<button type="button" class="redit" onclick="reDong(${i})" aria-label="${esc(x.name)} 매매 ${x.n}건 중위 ${esc(reEok(x.med))}"><span class="v">${esc(x.name)}</span> <span class="mu">${x.n}건</span>
+    const G=reGroups(D,null), dsAll=D.dongs||[], gi=nm=>dsAll.findIndex(x=>x.name===nm);
+    const ds=RE_DG&&G[RE_DG]?dsAll.filter(x=>reGrpNm(x.name)===RE_DG):Object.values(G).filter(g=>g.n||g.n_jeonse||g.n_cancel).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'ko'));
+    const gbtn=x=>`<button type="button" class="redit regrp" data-grp="${esc(x.name)}" onclick="reDGo('${esc(x.name)}')" aria-label="${esc(x.name)} 묶음 ${x.members.length}곳 매매 ${x.n}건 중위 ${esc(reEok(x.med))}"><span class="v">${esc(x.name)}</span> <span class="mu">${x.n}건 · ${esc(x.members[0].replace(x.name,''))}~${esc(x.members[x.members.length-1].replace(x.name,''))} ${x.members.length}곳 ›</span>
+        <small>중위 ${reEok(x.med)} · 59㎡ ${reEok(x.p59)}${x.n59?` (${x.n59})`:''} · 84㎡ ${reEok(x.p84)}${x.n84?` (${x.n84})`:''}</small><small>전세 ${x.n_jeonse||0} · 취소 ${x.n_cancel||0} · 단지 ${x.n_cx||0} · 눌러서 1가~ 분리</small></button>`;
+    if(!RE_DG) return wrap(`<div style="font-size:var(--fs-2);margin-bottom:4px"><b>${esc(RE_SEL)}</b> 법정동 ${ds.length}곳 <span class="mu">· 거래 많은 순 · '가' 단위는 부모 동으로 묶음(눌러서 분리) · 눌러서 단지 보기</span></div>
+      <div class="redgrid">${ds.map(x=>x.multi?gbtn(x):`<button type="button" class="redit" onclick="reDong(${gi(x.name)})" aria-label="${esc(x.name)} 매매 ${x.n}건 중위 ${esc(reEok(x.med))}"><span class="v">${esc(x.name)}</span> <span class="mu">${x.n}건</span>
+        <small>중위 ${reEok(x.med)} · 59㎡ ${reEok(x.p59)}${x.n59?` (${x.n59})`:''} · 84㎡ ${reEok(x.p84)}${x.n84?` (${x.n84})`:''}</small><small>전세 ${x.n_jeonse||0} · 취소 ${x.n_cancel||0} · 단지 ${x.n_cx||0}</small></button>`).join('')}</div>`);
+    return wrap(`<div style="font-size:var(--fs-2);margin-bottom:4px"><b>${esc(RE_DG)}</b> 묶음 ${ds.length}곳 <span class="mu">· 합계 매매 ${G[RE_DG].n}건 · 중위 ${reEok(G[RE_DG].med)} · 눌러서 단지 보기</span></div>
+      <div class="redgrid">${ds.map(x=>`<button type="button" class="redit" onclick="reDong(${gi(x.name)})" aria-label="${esc(x.name)} 매매 ${x.n}건 중위 ${esc(reEok(x.med))}"><span class="v">${esc(x.name)}</span> <span class="mu">${x.n}건</span>
         <small>중위 ${reEok(x.med)} · 59㎡ ${reEok(x.p59)}${x.n59?` (${x.n59})`:''} · 84㎡ ${reEok(x.p84)}${x.n84?` (${x.n84})`:''}</small><small>전세 ${x.n_jeonse||0} · 취소 ${x.n_cancel||0} · 단지 ${x.n_cx||0}</small></button>`).join('')}</div>`);
   }
   const L=reCxList(), dn=(D.dongs||[]).find(x=>x.name===RE_DONG)||{};
@@ -2551,7 +2704,8 @@ function reFit(bb,ar,padF){   // bb(x0,y0,x1,y1)를 화면 비율 ar(=W/H)로 �
   if(w/h>ar){ const nh=w/ar; y0-=(nh-h)/2; h=nh; } else { const nw=h*ar; x0-=(nw-w)/2; w=nw; } return [x0,y0,w,h]; }
 function reDongG(nm){ RE_DONG=(RE_DONG===nm?null:nm); RE_CX=null; render(); }
 function reCxN(nm){ RE_CX=(RE_CX===nm?null:nm); render(); const e=document.querySelector('#redr .recxd'); if(e&&e.scrollIntoView) e.scrollIntoView({block:'nearest'}); }
-function reDKey(e,nm){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); reDongG(nm); } }
+function reDKey(e,nm){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); reDongP(nm); } }
+function reGeoCur(){ const SG=reGeo('seoul'), gcd=RE_SEL&&SG&&(SG.gu||{})[RE_SEL]; return gcd?reGeo(gcd):null; }
 function reDMetric(m){ RE_DM=m; render(); }
 function reAnim(to){ const s=document.getElementById('rezsvg'); if(!s) return; const from=RE_VB||to; RE_VB=to;
   const still=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||from.every((v,i)=>Math.abs(v-to[i])<0.01);
@@ -2565,12 +2719,14 @@ function reZoomMap(areas,rows,M,fill,bin){
   const SG=reGeo('seoul'), sel=RE_SEL&&areas.find(a=>a.id===RE_SEL), gcd=sel&&SG&&(SG.gu||{})[RE_SEL];
   if(gcd) reGeoLoad(gcd);
   const DG=gcd?reGeo(gcd):null, TD=reCur(), dv={}; ((TD&&TD.dongs)||[]).forEach(x=>{ dv[x.name]=x; });
+  const GR=reGroups(TD,(DG&&DG.dongs)||[]), gof=nm=>GR[reGrpNm(nm)], gmode=nm=>{ const g=gof(nm); return !!g&&g.multi&&RE_DG!==g.name&&!RE_DONG; };   // 묶음 표시 여부(동별)
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; areas.forEach(a=>{ const b=reBB(a.d); x0=Math.min(x0,b[0]); y0=Math.min(y0,b[1]); x1=Math.max(x1,b[2]); y1=Math.max(y1,b[3]); });
   const pad=2, base=[x0-pad,y0-pad,(x1-x0)+pad*2,(y1-y0)+pad*2], ar=base[2]/base[3];
   const dsel=RE_DONG&&DG&&(DG.dongs||[]).find(d=>d.name===RE_DONG);
   const gbb=DG&&(DG.dongs||[]).length?reBB(DG.dongs.map(d=>d.d).join('')):(sel?reBB(sel.d):null);   // 구 확대 범위 = 법정동 경계 합(있으면) — 구 경계 단순화와 어긋남 방지
-  const vb=dsel?reFit(reBB(dsel.d),ar,.35):(sel?reFit(gbb,ar,.04):base);
-  const lv=dsel?'dong':(sel?'gu':'seoul'), fs=vb[2]*(lv==='seoul'?0.028:0.034);
+  const gsel=!dsel&&RE_DG&&DG?(DG.dongs||[]).filter(d=>reGrpNm(d.name)===RE_DG):[];
+  const vb=dsel?reFit(reBB(dsel.d),ar,.35):(gsel.length?reFit(reBB(gsel.map(d=>d.d).join('')),ar,.25):(sel?reFit(gbb,ar,.04):base));
+  const lv=dsel?'dong':(gsel.length?'grp':(sel?'gu':'seoul')), fs=vb[2]*(lv==='seoul'?0.028:0.034);
   const DM=RE_DMET[RE_DM], dbin=v=>{ if(v==null) return -1; let i=0; while(i<DM.cuts.length&&v>=DM.cuts[i]) i++; return i; };
   const dfill=i=>i<0?'var(--bg2)':`color-mix(in srgb, var(--ch2) ${[15,38,62,85][i]}%, var(--bg))`;
   const val=r=>r?r[RE_M]:null, short=id=>id==='중구'?'중구':id.replace(/구$/,'');
@@ -2578,17 +2734,21 @@ function reZoomMap(areas,rows,M,fill,bin){
     return `<path d="${a.d}" fill="${f}" class="${on?(lv==='seoul'?'on':'zsel'):(lv!=='seoul'?'dim':'')}" tabindex="0" role="button" aria-pressed="${on}" aria-label="${esc(a.id)} ${esc(M.nm)} ${v==null?'미확인':esc(M.fmt(v))}" onclick="reSel('${esc(a.id)}')" onkeydown="reKey(event,'${esc(a.id)}')"><title>${esc(a.id)} · ${v==null?'미확인':esc(M.fmt(v))}</title></path>`; }).join('');
   const riv=((SG&&SG.rivers)||[]).map(r=>`<path class="reriv" d="${r.d}" style="stroke-width:${Number(r.w)||0.5}"><title>${esc(r.name)}</title></path>`).join('');
   const dongs=(DG&&DG.dongs)||[];
-  const dpaths=dongs.map(d=>{ const x=dv[d.name], v=x?DM.v(x):null, few=!x||(x.n||0)<3, on=RE_DONG===d.name;
-    return `<path d="${d.d}" fill="${few?'var(--bg2)':dfill(dbin(v))}" class="redg${on?' on':(RE_DONG?' dim':'')}" data-dong="${esc(d.name)}" tabindex="0" role="button" aria-pressed="${on}" aria-label="${esc(d.name)} ${x?('매매 '+x.n+'건 · 중위 '+esc(reEok(x.med))):'거래 자료 없음'}" onclick="reDongG('${esc(d.name)}')" onkeydown="reDKey(event,'${esc(d.name)}')"><title>${esc(d.name)} · ${x?x.n+'건':'자료 없음'}</title></path>`; }).join('');
+  const dpaths=dongs.map(d=>{ const gm=gmode(d.name), x=gm?gof(d.name):dv[d.name], v=x?DM.v(x):null, few=!x||(x.n||0)<3, on=RE_DONG===d.name, out=RE_DG&&!RE_DONG&&reGrpNm(d.name)!==RE_DG;
+    return `<path d="${d.d}" fill="${few?'var(--bg2)':dfill(dbin(v))}" class="redg${on?' on':(RE_DONG||out?' dim':'')}${gm?' grp':''}" data-dong="${esc(d.name)}"${gm?` data-grp="${esc(gof(d.name).name)}"`:''} tabindex="0" role="button" aria-pressed="${on}" aria-label="${esc(d.name)} ${x?('매매 '+x.n+'건 · 중위 '+esc(reEok(x.med))):'거래 자료 없음'}" onclick="reDongP('${esc(d.name)}')" onkeydown="reDKey(event,'${esc(d.name)}')"><title>${esc(d.name)} · ${x?x.n+'건':'자료 없음'}</title></path>`; }).join('');
   const tx=(x,y,nm,v,cls,sz)=>`<text x="${x}" y="${y}" font-size="${sz.toFixed(2)}" stroke-width="${(sz*0.22).toFixed(2)}"${cls?` class="${cls}"`:''}>${esc(nm)}${v!=null?`<tspan x="${x}" dy="1.1em" class="rv ${lv==='seoul'?'s0':''}">${esc(v)}</tspan>`:''}</text>`;
   const labs=lv==='seoul'?areas.map(a=>{ const v=val(rows[a.id]); return tx(a.cx,a.cy,short(a.id),v==null?null:M.fmt(v),'',fs); }).join('')
-    :dongs.map(d=>{ const x=dv[d.name], few=x&&(x.n||0)<3, v=x?(few?x.n+'건':DM.fmt(DM.v(x))):null; return tx(d.cx,d.cy,d.name.replace(/동$/,'')||d.name,v,(RE_DONG&&RE_DONG!==d.name)?'thin':'',fs*(RE_DONG&&RE_DONG!==d.name?0.7:1)); }).join('');
+    :(()=>{ const seen={}; return dongs.map(d=>{ if(gmode(d.name)){ const g=gof(d.name); if(seen[g.name]) return ''; seen[g.name]=1;   // 묶음 라벨 1개(구성 동 중심 평균)
+        const ms=dongs.filter(y=>reGrpNm(y.name)===g.name), cx=ms.reduce((a,y)=>a+y.cx,0)/ms.length, cy=ms.reduce((a,y)=>a+y.cy,0)/ms.length, few=(g.n||0)<3, v=few?g.n+'건':DM.fmt(DM.v(g));
+        return tx(cx.toFixed(2),cy.toFixed(2),g.name.replace(/동$/,'')+'·',v,(RE_DG||RE_DONG)?'thin':'',fs*((RE_DG||RE_DONG)?0.7:1)); }
+      const x=dv[d.name], few=x&&(x.n||0)<3, v=x?(few?x.n+'건':DM.fmt(DM.v(x))):null, dimd=(RE_DONG&&RE_DONG!==d.name)||(RE_DG&&!RE_DONG&&reGrpNm(d.name)!==RE_DG);
+      return tx(d.cx,d.cy,RE_DG&&reGrpNm(d.name)===RE_DG?d.name.replace(RE_DG,'')||d.name:(d.name.replace(/동$/,'')||d.name),v,dimd?'thin':'',fs*(dimd?0.7:1)); }).join(''); })();
   const pp=SG&&SG.pp, cxs=(dsel&&pp&&TD?(TD.complexes||[]).filter(c=>c.dong===RE_DONG&&c.lon!=null&&c.lat!=null):[]);
   const dots=cxs.map(c=>{ const x=(c.lon*pp.k-pp.x0)*pp.s, y=(-c.lat-pp.y0)*pp.s, on=RE_CX===c.name;
     return `<circle class="recx${on?' on':''}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(vb[2]*(on?0.024:0.017)).toFixed(3)}" tabindex="0" role="button" aria-pressed="${on}" data-cx="${esc(c.name)}" aria-label="${esc(c.name)} 매매 ${c.n}건 중위 ${esc(reEok(c.med))}" onclick="reCxN(this.dataset.cx)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();reCxN(this.dataset.cx)}"><title>${esc(c.name)} · ${c.n}건 · ${esc(reEok(c.med))}</title></circle>`; }).join('');
   setTimeout(()=>reAnim(vb),0);
   const svg=`<svg id="rezsvg" viewBox="${(RE_VB||vb).map(v=>v.toFixed(2)).join(' ')}" data-lv="${lv}" role="group" aria-label="서울 부동산 지도 — ${lv==='seoul'?'25개 구':esc(RE_SEL)+(dsel?' '+esc(RE_DONG):'')} · 표시 전용, 매매 신호 아님">${gus}${dpaths}${riv}${labs}${dots}</svg>`;
-  const crumb=`<nav class="recrumb" aria-label="지도 위치"><button type="button" onclick="reGo('seoul')"${lv==='seoul'?' aria-current="true"':''}>서울</button>${sel?`›<button type="button" onclick="reGo('gu')"${lv==='gu'?' aria-current="true"':''}>${esc(RE_SEL)}</button>`:''}${dsel?`›<b>${esc(RE_DONG)}</b>`:''}${lv!=='seoul'?` <button type="button" class="retog" onclick="reGo('${lv==='dong'?'gu':'seoul'}')" aria-label="한 단계 위로">← 뒤로</button>`:''}</nav>`;
+  const crumb=`<nav class="recrumb" aria-label="지도 위치"><button type="button" onclick="reGo('seoul')"${lv==='seoul'?' aria-current="true"':''}>서울</button>${sel?`›<button type="button" onclick="reGo('gu')"${lv==='gu'?' aria-current="true"':''}>${esc(RE_SEL)}</button>`:''}${RE_DG&&(dsel||lv==='grp')?(lv==='grp'?`›<b>${esc(RE_DG)}</b>`:`›<button type="button" onclick="reGo('grp')">${esc(RE_DG)}</button>`):''}${dsel?`›<b>${esc(RE_DONG)}</b>`:''}${lv!=='seoul'?` <button type="button" class="retog" onclick="reGo('${lv==='dong'?(RE_DG?'grp':'gu'):(lv==='grp'?'gu':'seoul')}')" aria-label="한 단계 위로">← 뒤로</button>`:''}</nav>`;
   const st=lv==='seoul'?'구를 누르면 그 구로 확대 → 법정동 → 동을 누르면 동으로 확대'
     :(!gcd?'구 코드 확인 중…':(RE_GEO[gcd]==='err'?`${esc(RE_SEL)} 동 경계를 못 읽었어요 — <a href="#" onclick="delete RE_GEO['${esc(gcd)}'];render();return false">다시 시도</a>`
     :(!DG?'동 경계 불러오는 중…':(TD?`동 색 = ${esc(DM.nm)} · 3건 미만 회색(건수 표시) · 동을 누르면 확대`:'동 경계만 — 동별 거래는 실거래 수집(국토부 RTMS, 하루 1회) 뒤에 색이 들어가요'))));
@@ -2724,6 +2884,17 @@ function reView(){
     <details><summary class="mu" style="font-size:var(--fs-2)">아직 못 쓰는 데이터 ${(J.unavailable||[]).length}</summary><ul class="relist">${unav}</ul></details>
   </div></div>${rePvSec()}</div>`;
   /* rePvFill 은 그려진 뒤 */
+}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.re=()=>{ if(REJ===false||(typeof REV!=='undefined'&&REV===false)) return null; const J=REJ||{}, V=(typeof REV!=='undefined'&&REV)||{};
+  if(isTop(J.top)&&!V.one_line) return J.top;
+  const R=(J.rates||[]).filter(r=>r.status==='ok'&&r.last!=null).slice(0,2).map(r=>`${r.name} ${Number(r.last).toFixed(2)}${r.unit||''}(${r.month||'—'})`);
+  const p=J.prices||{}; const what=[R.join(' · ')||NA('금리 데이터 없음'),`가격 지수: ${p.status||'미확인'}`];
+  const so=V.one_line?[`부동산 데스크 한 줄(${String(V.updated||'—').slice(0,10)}): ${V.one_line}`]:[J.label||NA('데스크 한 줄 없음')];
+  const now=(J.stale_axes||[]).length?[`뉴스 축 ${(J.stale_axes||[]).length}개 갱신 지연 — 수집 확인`]:['조치 없음(표시 전용 — 매매 신호 아님)'];
+  return mkTop(what,so,now,['reports/realestate.json','reports/views/realestate.json'],J.generated_at||J.asof,{grade:'검증전'}); };
 }
 </script>
 
@@ -3120,6 +3291,15 @@ function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync
   const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length+(EDQ||[]).length;
   return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:var(--fs-2)"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
 { const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.edu=()=>{ if(!EDU) return null; const T=EDU.tracks||[];
+  return mkTop(`커리큘럼 트랙 ${T.length}개`+(EDU.updated?` · 갱신 ${EDU.updated}`:''),NA('학습 화면 — 시장 판단 아님'),'오늘 할 학습: 아래 트랙의 다음 항목',['content/study.json'],EDU.updated); };
+TOPF.apt=()=>{ if(!EDU) return null; const A=EDU.aptitude||{}; return mkTop(`인적성 문항 ${(A.items||[]).length}개`,NA('학습 화면 — 시장 판단 아님'),'문항 풀이 → 오답 다시 보기',['content/study.json'],EDU.updated); };
+TOPF.eng=()=>{ const i=(typeof ENG!=='undefined'&&ENG.idx)||null; if(i===null||i===false) return null;
+  return mkTop('오늘의 영어 — 기사·단어 학습',NA('학습 화면 — 시장 판단 아님'),'오늘 기사 읽기 → 단어 체크',['content/eng'],i.updated||i.asof); };
+}
 </script>
 
 <!-- tab_committee.html — DAILY › 운용회의 — v1/v2 회의록·기명 점도표 띠·파생 패널·미장 회의·지난 회의 (cmtView·dotStripHtml·cmtUSView).
@@ -3462,6 +3642,13 @@ function cmtUSView(){
    <div class="p c12"><h2>운용회의 · 미장<small>${esc(o.asof)} · 규칙 기반 · 검증 중</small></h2><div class="b" style="line-height:1.8;white-space:normal">${(o.head||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}<div style="margin-top:6px;border:1px solid var(--amber);padding:6px 10px"><b class="am">결론</b> ${esc(o.verdict)}</div><div class="mu" style="font-size:var(--fs-2);margin-top:4px">🔗 ${esc(o.kr_link||'')}</div></div></div>
    ${cmtSimFreshHtml(o)}${sec.join('')}${o.footer?`<div class="p c12"><div class="b mu" style="font-size:var(--fs-2);white-space:normal">${esc(o.footer)}</div></div>`:''}</div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.cmt=()=>{ if(CMT===null||CMT===false) return null; const o=(typeof CMK!=='undefined'&&CMK==='US'&&typeof CMTU!=='undefined'&&CMTU)?CMTU:CMT;
+  if(o&&isTop(o.top)) return o.top; const bl=(o&&o.bottom_line)||{}, ls=bl.lines||[];
+  return mkTop(ls[0]||NA('운용회의 기록 없음'),ls[1]||NA('—'),ls[2]||NA('—'),['reports/committee.json'],o&&o.asof,{grade:'검증전'}); };
+}
 </script>
 
 <!-- tab_duel.html — 대결·주문표 — reports/decisions.json 진입 판·주문표·채점 (decBox·ticketBox). DAILY·QUANT 시그널 화면에 끼워짐.
@@ -3752,6 +3939,14 @@ function scoreView(){
    <div class="p c12"><h2>판단 기록<small>최근 3건 · 판단 근거·PB 판단·채점</small></h2><div class="b">
      ${past.slice(0,3).map(it=>duelItemHtml(it,CD)).join('')||'<div class="mu">기록 없음</div>'}${more(past,3,it=>duelItemHtml(it,CD),'지난 기록')}</div></div></div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.score=()=>{ if(DEC===null||DEC===false) return null; const t=(DEC&&DEC.tally)||{}, h=k=>t[k]&&t[k].n?`${k} ${t[k].win}/${t[k].n}(${Math.round((t[k].win/t[k].n)*100)}%)`:null;
+  const w=['나','PB','규칙'].map(h).filter(Boolean);   // 승률만 — 손익 금액 표시 안 함
+  const pend=typeof homePendDuel==='function'&&DEC.items?homePendDuel(DEC.items,Date.now()):0, CD=typeof decCD==='function'?decCD():null;
+  return mkTop(w.length?'누적 대결 승률 '+w.join(' · '):NA('대결 기록 없음'),'표본 적음 — 승률은 참고(검증전)',[pend?`제출 대기 ${pend}건`:null,CD?'쿨다운 중 — 새 모의 베팅 금지':null].filter(Boolean).length?[pend?`제출 대기 ${pend}건`:null,CD?'쿨다운 중 — 새 모의 베팅 금지':null].filter(Boolean):['조치 없음(대기 판 없음)'],['reports/decisions.json','reports/battle_scoreboard.json'],null,{grade:'검증전'}); };
+}
 </script>
 
 <!-- tab_mkt_deriv.html — MARKET › 파생 — derivs.json·deriv/daily.csv·파생 시그널 스터디 (derivView·drawDerivHist).
@@ -3923,6 +4118,12 @@ function dvResearch(R,V){
   if(!out) return '<div class="p c12" id="dvRes"><h2>파생 리서치 산출물</h2><div class="b mu">데이터 없음 (reports/views/derivs_research.json · reports/studies/2026-10-21_hf_ls_vol.json)</div></div>';
   return `<div class="p c12" id="dvRes"><h2>파생 리서치 산출물<small>${esc((R&&R.meta&&R.meta.asof)||'')} · 방향 신호 아님</small></h2><div class="b" style="white-space:normal">
     <div class="mu" style="font-size:var(--fs-1)">${esc((R&&R.meta&&R.meta.note)||'')}</div>${out}</div></div>`;
+}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.deriv=()=>{ const d=DVX.d; if(d===null||d===false) return null; if(d&&isTop(d.top)) return d.top; if(!d||d.pcr_oi==null&&!d.insight) return mkTop(NA('파생 데이터 없음'),NA('—'),NA('—'),['reports/derivs.json']);
+  const i=d.insight||{}; return mkTop(`PCR(미결제) ${d.pcr_oi??'—'} · 맥스페인 ${d.max_pain??'—'} · 현물 ${d.spot??'—'} (만기 ${d.expiry||'—'})`,[i.one_line||NA('인사이트 없음'),'PCR·맥스페인 방향 효과는 검증전'],i.so_what||'조치 없음(인사이트 없음)',['reports/derivs.json'],d.asof||d.date,{grade:'검증전'}); };
 }
 </script>
 
@@ -4132,6 +4333,12 @@ function mcCmdViews(X){
     <div class="mu" style="font-size:var(--fs-1);margin-top:4px;overflow-wrap:anywhere">출처: ${(G.sources||[]).map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>`).join(' · ')}</div>${foot}</div></div>`:'';
   return now+rel+geo;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.macro=()=>{ if(MCX===null||!MCX.mv) return null; const o=MCX.mv; if(isTop(o.top)) return o.top;
+  const [a,b]=String(o.summary||'').split(' → '); return mkTop(a||NA('매크로 요약 없음'),[b,'바람 점수 가중치는 검증전'].filter(Boolean),'조치 없음(바람 점수 단독 매매 규칙 없음)',['reports/macro_view.json'],o.asof,{grade:'검증전'}); };
+}
 </script>
 
 <!-- tab_system.html — SYSTEM 탭 — 작업 보드·변경 이력·운영 상태 (sysBoardView·sysChgView·sysOpsView·SYSV).
@@ -4260,6 +4467,17 @@ function sysOpsView(){
     ${f7.length?`<div style="margin-top:6px">최근 7일 실패: ${f7.map(([k,n])=>`<span class="${n?'dn':'mu'}">${esc(k)} ${n}</span>`).join(' · ')}</div>`:''}</div></div></div>`;
 }
 const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.sysb=()=>{ const b=SYS.board; if(b===null||b===false) return null; const it=(b&&(b.tasks||b.items))||[], c={}; it.forEach(x=>c[x.status||'—']=(c[x.status||'—']||0)+1);
+  return mkTop(it.length?`작업 ${it.length}건: `+Object.entries(c).map(([k,n])=>`${k} ${n}`).join(' · '):NA('보드 데이터 없음'),NA('운영 보드 — 해석 문장 없음'),'담당별 진행 중 항목은 아래 표',['ops/board.json'],b&&b.updated); };
+TOPF.sysc=()=>{ const c=SYS.chg; if(c===null||c===false) return null; const d=(c&&c.days)||[];
+  return mkTop(d.length?`변경 이력 ${d.length}일 · 최근 ${d[0].date||d[0].d||'—'}`:NA('변경 이력 없음'),(c&&c.note)||NA('—'),NA('기록 열람용'),['reports/changelog.json'],c&&c.generated_at); };
+TOPF.syso=()=>{ const h=SYS.health; if(h===null||h===false) return null; const is=(h&&h.issues)||[], n=FR?(FR.late||[]).length+(FR.stale_today||[]).length:null;
+  return mkTop([`헬스 이슈 ${is.length}건`+(h&&h.fails7d!=null?` · 7일 실패 ${typeof h.fails7d==='object'?Object.values(h.fails7d).reduce((a,b)=>a+(+b||0),0):h.fails7d}건`:''),n!=null?`늦은 데이터 ${n}건`:'신선도 점검 불러오는 중'],
+    is.length||n?'늦거나 실패한 산출물은 화면 값이 오래됐을 수 있음':NA('이슈 없음'),is.length||n?'아래 목록의 fix 명령 확인(개발)':'조치 없음',['reports/health.json','reports/freshness.json'],h&&h.asof); };
+}
 </script>
 
 <!-- tab_msgr.html — SYSTEM › 사내톡 (msgView). 10/23 겸이 "사내톡방에서 누나들끼리 업무요청하고 응답하는거 보고싶다" → "터미널에 사내톡 탭 만들어줘 자동갱신되게, 그리고 실제 누나들의 voc로"
@@ -4504,6 +4722,12 @@ function msgView(){
     <p class="mgsum">오래된 대화가 위, 최신이 아래 · ↳ = 어떤 요청에 대한 답장인지 · 📝 진행자 기록은 누나 본인 말 아님 · 점선 = 사담(잡담, 업무 근거 아님)</p>
     <div class="mgbox" id="mgbox">${feed||'<div class="mgempty">여기엔 아직 없어</div>'}</div>
   </div></div></div>`;
+}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.msg=()=>{ if(MG===null||MG===false) return null; if(isTop(MG.top)) return MG.top; const it=(MG&&MG.items)||[];
+  return mkTop(it.length?`사내톡 ${it.length}건 · 데스크 ${new Set(it.flatMap(x=>[x.from,x.to]).filter(Boolean)).size}곳`:NA('사내톡 데이터 없음'),NA('데스크 대화 기록 — 해석 문장 없음'),NA('기록 열람용'),['reports/msgr_feed.md'],MG.asof||MG.generated_at); };
 }
 </script>
 
@@ -4999,6 +5223,17 @@ function drawCanvas(ch,sc,rs,kr){
     if(i%10===0){x.fillStyle='#777';x.fillText(c.d,px-20,H-padB+26);} });
 }
 
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — 종목 상세 패널(#dr-b) 맨 위. 상세 JSON 의 기존 문장(분류·가치평가 결론·시나리오 트리거) 재배치만. */
+if(typeof TOPF==='object'){
+function topDetail(s){ s=s||{}; const st=s.stats||{}, v=s.valuation||{}, sc=s.scenarios||{}, P=x=>x==null?'—':(x>0?'+':'')+(x*100).toFixed(1)+'%';
+  const what=[`${s.name||s.symbol||''} · 분류 ${CLS[st.class]||st.class||'—'} · 1일 ${P(st.ret1)} · 20일 ${P(st.ret20)}`];
+  const so=[v.verdict||NA('가치평가 결론 없음(재무 부족)')];
+  const now=[sc.bull&&sc.bull.trigger?`상방 트리거: ${sc.bull.trigger}`:null, sc.bear&&sc.bear.trigger?`하방 트리거: ${sc.bear.trigger}`:null].filter(Boolean);
+  return mkTop(what,so,now.length?now:['조치 없음(시나리오 트리거 없음)'],[`reports/detail/${s.market||''}/${s.symbol||''}.json`],s.asof,{grade:'검증전'}); }
+(function(){ const o=renderDetail; renderDetail=function(sym,mk,s){ const r=o.apply(this,arguments); try{ const b=$('#dr-b'); if(b&&!b.querySelector('#detTop')){ const e=document.createElement('div'); e.id='detTop'; e.className='tl-card';
+  e.innerHTML='<div class="tl-h">요약 <small>① What ② So What ③ Now What</small></div>'+renderTop(topDetail(s)); b.prepend(e); } }catch(err){} return r; }; })();
+}
 </script>
 
 <script>
@@ -5084,11 +5319,14 @@ function render(){
   $('#gen').textContent='DATA '+(D.generated_at||''); genHdr();
   tape();
   const v=view;
-  if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
+  if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); topMount(v); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
   $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
+  topMount(v);
 }
+/* 화면 일부가 render() 밖에서 #root 를 다시 그려도(사내톡·LIFE 등) 상단 카드 복구 */
+setTimeout(()=>{ const r=$('#root'); if(r) new MutationObserver(()=>{ if(!document.getElementById('tabTop')&&!r.querySelector('.tl-top')&&r.children.length) topMount(view); }).observe(r,{childList:true}); },0);
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['re','부동산'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],

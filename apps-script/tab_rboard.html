@@ -87,4 +87,12 @@ function rbView(){
     document.querySelectorAll('[data-rbv]').forEach(b=>b.onclick=()=>setView(b.dataset.rbv)); },0);
   return `<div class="grid">${top}${sec}${chall}</div>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.rb=()=>{ if(RB===null||RB===false) return null; if(!RB||!RB.items) return mkTop(NA('연구 보드 데이터 없음'),NA('—'),NA('—'),['reports/research_board.json']);
+  const c={}; RB.items.forEach(x=>c[x.verdict||'—']=(c[x.verdict||'—']||0)+1); const vd=RB.verdicts||{};
+  const qr=(RB.quant_requests||[]).length;
+  return mkTop(`연구 ${RB.items.length}건: `+Object.entries(c).map(([k,n])=>`${k} ${n}`).join(' · '),['보류 = '+(vd['보류']||'—'),'폐기 = '+(vd['폐기']||'—')],qr?`퀀트 요청 ${qr}건 대기`:'조치 없음(대기 요청 없음)',['reports/research_board.json'],RB.asof); };
+}
 </script>

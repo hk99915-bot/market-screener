@@ -204,4 +204,10 @@ function mcCmdViews(X){
     <div class="mu" style="font-size:var(--fs-1);margin-top:4px;overflow-wrap:anywhere">출처: ${(G.sources||[]).map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>`).join(' · ')}</div>${foot}</div></div>`:'';
   return now+rel+geo;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.macro=()=>{ if(MCX===null||!MCX.mv) return null; const o=MCX.mv; if(isTop(o.top)) return o.top;
+  const [a,b]=String(o.summary||'').split(' → '); return mkTop(a||NA('매크로 요약 없음'),[b,'바람 점수 가중치는 검증전'].filter(Boolean),'조치 없음(바람 점수 단독 매매 규칙 없음)',['reports/macro_view.json'],o.asof,{grade:'검증전'}); };
+}
 </script>

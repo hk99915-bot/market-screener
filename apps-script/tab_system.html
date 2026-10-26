@@ -124,4 +124,15 @@ function sysOpsView(){
     ${f7.length?`<div style="margin-top:6px">최근 7일 실패: ${f7.map(([k,n])=>`<span class="${n?'dn':'mu'}">${esc(k)} ${n}</span>`).join(' · ')}</div>`:''}</div></div></div>`;
 }
 const SYSV={sysb:sysBoardView,sysc:sysChgView,syso:sysOpsView};
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.sysb=()=>{ const b=SYS.board; if(b===null||b===false) return null; const it=(b&&(b.tasks||b.items))||[], c={}; it.forEach(x=>c[x.status||'—']=(c[x.status||'—']||0)+1);
+  return mkTop(it.length?`작업 ${it.length}건: `+Object.entries(c).map(([k,n])=>`${k} ${n}`).join(' · '):NA('보드 데이터 없음'),NA('운영 보드 — 해석 문장 없음'),'담당별 진행 중 항목은 아래 표',['ops/board.json'],b&&b.updated); };
+TOPF.sysc=()=>{ const c=SYS.chg; if(c===null||c===false) return null; const d=(c&&c.days)||[];
+  return mkTop(d.length?`변경 이력 ${d.length}일 · 최근 ${d[0].date||d[0].d||'—'}`:NA('변경 이력 없음'),(c&&c.note)||NA('—'),NA('기록 열람용'),['reports/changelog.json'],c&&c.generated_at); };
+TOPF.syso=()=>{ const h=SYS.health; if(h===null||h===false) return null; const is=(h&&h.issues)||[], n=FR?(FR.late||[]).length+(FR.stale_today||[]).length:null;
+  return mkTop([`헬스 이슈 ${is.length}건`+(h&&h.fails7d!=null?` · 7일 실패 ${typeof h.fails7d==='object'?Object.values(h.fails7d).reduce((a,b)=>a+(+b||0),0):h.fails7d}건`:''),n!=null?`늦은 데이터 ${n}건`:'신선도 점검 불러오는 중'],
+    is.length||n?'늦거나 실패한 산출물은 화면 값이 오래됐을 수 있음':NA('이슈 없음'),is.length||n?'아래 목록의 fix 명령 확인(개발)':'조치 없음',['reports/health.json','reports/freshness.json'],h&&h.asof); };
+}
 </script>

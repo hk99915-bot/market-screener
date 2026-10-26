@@ -360,4 +360,20 @@ function mdToHtml(md,mk){
   if(intab) out+='</table>'; return out;
 }
 function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b class="am">$1</b>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/([+-]\d+\.\d%)/g,m=>`<span class="${m[0]==='+'?'up':'dn'}">${m}</span>`);}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+function topMarket(mk){ const S=D[mk.toLowerCase()]||{}, sec=S.sections||{}, a=(D.breadth||[]).filter(x=>x.market===mk), L=a[a.length-1];
+  const cls=Object.entries(S.class_counts||{}).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,v])=>`${CLS[k]||k} ${v}`).join(' · ');
+  const what=[`${mk} ${S.n||'—'}종목 분류: ${cls||'—'}`]; if(L) what.push(`200일선 위 ${Math.round((L.pct_above200||0)*100)}% · 상승 ${L.adv}/하락 ${L.dec} · 52주 신고 ${L.new_high52}/신저 ${L.new_low52} (${L.date})`);
+  const cv=((D.state||{})['close_'+mk]||{}).value||'', arrow=cv.replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').split('\n').find(x=>x.startsWith('→'));
+  const so=[arrow?arrow.replace(/^→\s*/,'')+' (마감 코멘트)':NA('마감 코멘트 없음 — 분류는 후보 표시, 판단 아님')];
+  const an=((D.anomalies||{})[mk]||[]).length;
+  const now=[an?`이상 움직임 ${an}종목 — 상세에서 근거 확인(매매 신호 아님)`:'조치 없음(스크리너는 후보 표시 — 매매 신호 아님)'];
+  return mkTop(what,so,now,['reports/dashboard.json'],S.asof||D.generated_at); }
+TOPF.kr=()=>topMarket('KR'); TOPF.us=()=>topMarket('US');
+TOPF.heat=()=>mkTop(`히트맵 ${typeof HMK!=='undefined'?HMK:''} — 업종·종목 등락 색 지도`,NA('표시 전용 — 해석 문장 없음'),NA('표시 전용'),['reports/heatmap_KR.json','reports/heatmap_US.json']);
+TOPF.mdkr=()=>mkTop('KR 전종목 스크리너 표(latest_KR.md)',NA('원표 — 요약 문장 없음'),NA('원표'),['reports/latest_KR.md'],(D.kr||{}).asof);
+TOPF.mdus=()=>mkTop('US 전종목 스크리너 표(latest_US.md)',NA('원표 — 요약 문장 없음'),NA('원표'),['reports/latest_US.md'],(D.us||{}).asof);
+}
 </script>

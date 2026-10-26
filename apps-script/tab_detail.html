@@ -490,4 +490,15 @@ function drawCanvas(ch,sc,rs,kr){
     if(i%10===0){x.fillStyle='#777';x.fillText(c.d,px-20,H-padB+26);} });
 }
 
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — 종목 상세 패널(#dr-b) 맨 위. 상세 JSON 의 기존 문장(분류·가치평가 결론·시나리오 트리거) 재배치만. */
+if(typeof TOPF==='object'){
+function topDetail(s){ s=s||{}; const st=s.stats||{}, v=s.valuation||{}, sc=s.scenarios||{}, P=x=>x==null?'—':(x>0?'+':'')+(x*100).toFixed(1)+'%';
+  const what=[`${s.name||s.symbol||''} · 분류 ${CLS[st.class]||st.class||'—'} · 1일 ${P(st.ret1)} · 20일 ${P(st.ret20)}`];
+  const so=[v.verdict||NA('가치평가 결론 없음(재무 부족)')];
+  const now=[sc.bull&&sc.bull.trigger?`상방 트리거: ${sc.bull.trigger}`:null, sc.bear&&sc.bear.trigger?`하방 트리거: ${sc.bear.trigger}`:null].filter(Boolean);
+  return mkTop(what,so,now.length?now:['조치 없음(시나리오 트리거 없음)'],[`reports/detail/${s.market||''}/${s.symbol||''}.json`],s.asof,{grade:'검증전'}); }
+(function(){ const o=renderDetail; renderDetail=function(sym,mk,s){ const r=o.apply(this,arguments); try{ const b=$('#dr-b'); if(b&&!b.querySelector('#detTop')){ const e=document.createElement('div'); e.id='detTop'; e.className='tl-card';
+  e.innerHTML='<div class="tl-h">요약 <small>① What ② So What ③ Now What</small></div>'+renderTop(topDetail(s)); b.prepend(e); } }catch(err){} return r; }; })();
+}
 </script>

@@ -558,6 +558,11 @@ def build(send: bool = False) -> dict:
                            "asof": "가격 기준일(KR 종가일). 실행 시각은 generated_at", "rate_adj": "E/P − 무위험(US 미10Y, KR 국고3Y)",
                            "decomp20": "ln(P1/P0) = ln(PER1/PER0) + ln(EPS1/EPS0)",
                            "per_run_rate": "최근 분기 순이익×4 기준 PER", "per_guide": "다음 분기 가이던스×4 기준 PER (universe/fin_guidance.json)", "검증전": f"분기 {MIN_Q}개 미만 또는 20일 전 EPS 기록 없음"}}
+    try:   # STANDARD 8절 상단 3칸(묶음 B, 추가만)
+        from . import topline_from
+        out["top"] = topline_from.valuation(out)
+    except Exception:  # noqa: BLE001
+        pass
     REPORT_DIR.mkdir(exist_ok=True)
     from .guard import allow, write_json
     if not allow(REPORT_DIR / "valuation.json", out.get("asof")):   # asof 역행이면 json·md·이력 모두 건너뜀

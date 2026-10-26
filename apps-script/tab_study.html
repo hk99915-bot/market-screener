@@ -391,4 +391,13 @@ function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync
   const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length+(EDQ||[]).length;
   return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:var(--fs-2)"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
 { const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.edu=()=>{ if(!EDU) return null; const T=EDU.tracks||[];
+  return mkTop(`커리큘럼 트랙 ${T.length}개`+(EDU.updated?` · 갱신 ${EDU.updated}`:''),NA('학습 화면 — 시장 판단 아님'),'오늘 할 학습: 아래 트랙의 다음 항목',['content/study.json'],EDU.updated); };
+TOPF.apt=()=>{ if(!EDU) return null; const A=EDU.aptitude||{}; return mkTop(`인적성 문항 ${(A.items||[]).length}개`,NA('학습 화면 — 시장 판단 아님'),'문항 풀이 → 오답 다시 보기',['content/study.json'],EDU.updated); };
+TOPF.eng=()=>{ const i=(typeof ENG!=='undefined'&&ENG.idx)||null; if(i===null||i===false) return null;
+  return mkTop('오늘의 영어 — 기사·단어 학습',NA('학습 화면 — 시장 판단 아님'),'오늘 기사 읽기 → 단어 체크',['content/eng'],i.updated||i.asof); };
+}
 </script>

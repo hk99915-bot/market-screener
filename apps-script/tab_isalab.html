@@ -122,4 +122,10 @@ function ilabBootHtml(btn){ const B=ILABBT.b, X=ILABBT.x, p1=v=>(v*100).toFixed(
   <tr><td class="l">일시금 CAGR</td><td>${p1(B.cagr_med)}</td><td>${p1(B.cagr_p10)}</td><td><b>${p1(X.cagr_med)}</b></td><td><b>${p1(X.cagr_p10)}</b></td></tr>
   <tr><td class="l">월 적립 최종/넣은 돈</td><td>${mx(B.mult_med)}</td><td>${mx(B.mult_p10)}</td><td><b>${mx(X.mult_med)}</b></td><td><b>${mx(X.mult_p10)}</b></td></tr>
   <tr><td class="l">최대낙폭 (나쁜 10% = 하위10%)</td><td>${p1(B.mdd_med)}</td><td>${p1(B.mdd_p10)}</td><td><b>${p1(X.mdd_med)}</b></td><td><b>${p1(X.mdd_p10)}</b></td></tr></table>`; }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.isa=()=>{ if(ILAB===null||ILAB===false) return null; if(!ILAB||!ILAB.months) return mkTop(NA('ISA 실험실 데이터 없음'),NA('—'),NA('—'),['reports/isa_lab_returns.json']);
+  return mkTop(`자산 ${(ILAB.assets||[]).length}개 · 월 ${(ILAB.months||[]).length}개 수익률 시뮬레이터`,ILAB.note||NA('주석 없음'),NA('비중 선택은 아래 시뮬레이터 — 실계좌 조치 아님'),['reports/isa_lab_returns.json'],ILAB.asof,{grade:'검증전'}); };
+}
 </script>

@@ -135,4 +135,18 @@ function homeView(){
   if(CMTU===null) homeCusLoad();
   return h+'</div>';
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.home=()=>{ const bv=mk=>{ const a=(D.breadth||[]).filter(x=>x.market===mk), L=a[a.length-1]; if(!L||L.pct_above200==null) return mk+' 폭 데이터 없음';
+    const p=L.pct_above200; return `${mk} ${p>=0.6?'강세':p>=0.4?'중립':'약세'}(200일선 위 ${Math.round(p*100)}%, ${L.date})`; };
+  const what=[bv('KR')+' · '+bv('US')]; if(typeof MV!=='undefined'&&MV&&MV.score!=null) what.push(`매크로 바람 ${MV.label||''} (${MV.score>0?'+':''}${Number(MV.score).toFixed(2)})`);
+  const so=[]; [['KR',typeof CMT!=='undefined'?CMT:null],['US',typeof CMTU!=='undefined'?CMTU:null]].forEach(([m,o])=>{ if(o&&isTop(o.top)&&o.top.so_what[0]) so.push(`${m} 운용회의 — ${o.top.so_what[0]}`); });
+  if(!so.length) so.push(NA('운용회의 판정 미로드 — DAILY › 운용회의'));
+  const now=[], pend=typeof DEC!=='undefined'&&DEC&&DEC.items?homePendDuel(DEC.items,Date.now()):null, CD=typeof decCD==='function'?decCD():null,
+    n=FR?(FR.late||[]).length+(FR.regress_today||[]).length+(FR.stale_today||[]).length:null;
+  if(pend) now.push(`대결 제출 대기 ${pend}건 → 성적표`); if(CD) now.push('쿨다운 중 — 새 모의 베팅 금지'); if(n) now.push(`늦은 데이터 ${n}건 확인`);
+  if(!now.length) now.push('조치 없음(대결 대기·쿨다운·늦은 데이터 없음)');
+  return mkTop(what,so,now,['reports/dashboard.json','reports/committee.json','reports/decisions.json','reports/freshness.json'],D.generated_at,{grade:'검증전'}); };
+}
 </script>

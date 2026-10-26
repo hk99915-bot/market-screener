@@ -175,3 +175,54 @@ def study(title: str, what, so_what, now_what=None, src=None, asof=None, grade=N
     """T20 퀀트 연구 스크립트 공용 — 자동 요약(문서형). 조치 판단은 퀀트 본문 몫이라 기본 '조치 없음(사유)'."""
     now = now_what or [f"조치 없음(자동 생성 요약 — {title} 적용 판단은 퀀트 본문 결론 기준)"]
     return make(what, so_what, now, src=src, asof=asof or _now(), grade=grade)
+
+
+# ───── 묶음 B (10/26) — T8 부동산 · T16 밸류에이션 · T17 원자재 · T18 주간 성적표 ─────
+def realestate(o: dict) -> dict:
+    """T8 부동산 — 금리(ECOS)·가격 수집 상태 → '표시 전용' 라벨 → 조치 없음. 해석은 데스크 views 몫(새 해석 금지)."""
+    rates = [r for r in (o.get("rates") or []) if r.get("status") == "ok" and r.get("last") is not None]
+    bits = [f"{r.get('name')} {r['last']:.2f}{r.get('unit') or ''}({r.get('month') or '—'}, 1M {r.get('chg1m') or 0:+.2f})" for r in rates[:2]]
+    p = o.get("prices") or {}
+    what = fit(" · ".join(bits) or "금리 데이터 없음(ECOS 실패)", max_lines=2)
+    what += fit(f"가격 지수: {p.get('status') or '미확인'}" + (f" — {p['why']}" if p.get("why") and p.get("status") != "ok" else ""), max_lines=1)
+    so = fit(o.get("label") or "표시 전용 · 매매 신호 아님", max_lines=2)
+    st = o.get("stale_axes") or []
+    now = [f"뉴스 축 {len(st)}개 갱신 지연 — 수집 확인(개발)"] if st else ["조치 없음(표시 전용 — 데스크 해석은 reports/views/realestate.json)"]
+    return make(what, so, now, src=["reports/realestate.json"], asof=_asof(o.get("generated_at") or o.get("asof")), grade="검증전")
+
+
+def valuation(o: dict) -> dict:
+    """T16 밸류에이션 데일리 — 바스켓 중앙 PER·분해 → 금리 민감도 → 다음 이벤트(telegram_text 문장 재배치)."""
+    b, rt = o.get("basket") or {}, o.get("rates") or {}
+    f = lambda x, d=1: "—" if x is None else f"{x:.{d}f}"  # noqa: E731
+    d, s = b.get("decomp20") or {}, b.get("rate_sens") or {}
+    what = [f"반도체 바스켓 중앙 PER {f(b.get('median_per'))}(런레이트 {f(b.get('median_per_run_rate'))}) · PBR {f(b.get('median_pbr'), 2)} (검증 {b.get('n_verified', 0)}/{b.get('n', 0)})",
+            f"20일 분해(중앙): 가격 {_pct(d.get('d_price'))} = 멀티플 {_pct(d.get('d_multiple'))} + EPS {_pct(d.get('d_eps'))}"]
+    so = [f"금리 ±{s.get('bp', '—')}bp → 중앙 PER {_pct(s.get('up'))}/{_pct(s.get('down'))} (ERP 고정 가정)",
+          "밸류에이션은 참고(검증전) — 매매 트리거 아님"]
+    ev = next(iter((o.get("events") or {}).get("next") or []), None)
+    now = [f"다음 이벤트 {ev['date'][5:]} {ev['name']} 확인(밸류 데스크)"] if ev else ["조치 없음(예정 이벤트 없음)"]
+    return make(what, so, now, evidence=[f"미10Y {f(rt.get('us10y'), 2)}% · 국고3Y {f(rt.get('kr3y'), 2)}%"],
+                src=["reports/valuation.json"], asof=_asof(o.get("generated_at") or o.get("asof")), grade="검증전")
+
+
+def commodities(o: dict) -> dict:
+    """T17 원자재 — summary(±10% 나열) → 라벨 → 조치 없음."""
+    what = fit(o.get("summary") or "원자재 요약 없음(생성 실패)", max_lines=2)
+    so = fit(o.get("label") or "표시 전용", max_lines=1)
+    miss = [r for r in (o.get("rows") or []) if r.get("status") != "ok"]
+    now = [f"미확인 {len(miss)}개 수집 확인(개발)"] if miss else ["조치 없음(표시 전용 — 매크로 바람 점수 제외)"]
+    return make(what, so, now, src=["reports/commodities.json"], asof=_asof(o.get("generated_at") or o.get("asof")))
+
+
+def scorecard(res: dict) -> dict:
+    """T18 주간 성적표 — telegram_line 을 ' — ' 뒤 항목들로 나눠 재배치. 개인 수치는 원래 없음(비율·건수만)."""
+    t = res.get("telegram") or ""
+    head, _, body = t.partition(" — ")
+    parts = body.split(" · ") if body else []
+    duel = [p for p in parts if p.startswith(("대결", "나", "PB"))]
+    rest = [p for p in parts if p not in duel]
+    what = fit(" · ".join(duel) or "대결 기록 없음", max_lines=2)
+    so = fit(" · ".join(rest) or "시장·렌즈 집계 없음", max_lines=2) + ["주간 표본 적음 — 승률은 참고(검증전)"]
+    now = ["상세는 reports/scorecard_week.md — 개인 한도 점검은 비공개 성적표(pb-private)"]
+    return make(what, so[:3], now, src=["reports/scorecard_week.json", "reports/scorecard_week.md"], asof=_asof(res.get("asof")), grade="검증전")

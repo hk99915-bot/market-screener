@@ -150,4 +150,23 @@ function drawBt(bt){ const cv=$('#mbt'); if(!cv||!bt||!bt.curve) return; const W
   line(2,'#777');line(3,'#4aa3ff');line(1,'#ff9a1f');
   x.fillStyle='#777';for(let i=0;i<c.length;i+=24)x.fillText(c[i][0].slice(0,4),X(i)-20,H-12);
   x.fillStyle='#ff9a1f';x.fillText('모멘텀',W-300,30);x.fillStyle='#4aa3ff';x.fillText('+필터',W-200,30);x.fillStyle='#999';x.fillText('유니버스',W-110,30);}
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.study=()=>{ if(STU===null||STU===false) return null; const m=(STU&&STU.meta)||{};
+  return mkTop(STU&&STU.drop_days?`급락일 반등 스터디 — 급락 기준 ${Array.isArray(STU.drop_days)?STU.drop_days.length+'건':Object.keys(STU.drop_days||{}).join('·')} (코스피·레버리지 이후 수익률 표)`:NA('스터디 결과 없음'),NA('결론 문장은 reports/studies 본문 — 화면은 표'),NA('적용 판단은 퀀트 본문 결론 기준'),['reports/studies/crash_rebound.json'],(m.run_at_utc||'').replace('T',' ').replace('Z',' UTC'),{grade:'검증전'}); };
+TOPF.lab=()=>{ if(LAB===null||LAB===false) return null; if(!LAB||!LAB.results) return mkTop(NA('전략 연구소 결과 없음'),NA('—'),NA('—'),['reports/lab.json']);
+  const g=LAB.gate||{}; return mkTop(`전략 ${Object.keys(LAB.results).length}종 · 동시 검정 ${g.m||'—'}개 → 통과선 t ≥ ${g.req_t!=null?Number(g.req_t).toFixed(2):'—'}`,'다중검정 보정 후 통과선 미달 전략은 참고(C)·폐기(F) — 표의 등급 열 기준',NA('채택은 연구 보드 관문 기준'),['reports/lab.json'],LAB.asof); };
+TOPF.sig=()=>{ if(typeof SG==='undefined'||SG===null||SG===false) return null; if(!SG||!SG.signals) return mkTop(NA('채점 결과 없음'),NA('—'),NA('—'),['reports/signal_scores.json']);
+  const v=Object.values(SG.signals).map(r=>r.verdict||'—'), c={}; v.forEach(x=>c[x]=(c[x]||0)+1);
+  return mkTop(`신호 ${v.length}개 채점: `+Object.entries(c).map(([k,n])=>`${k} ${n}`).join(' · '),'유효 판정 외 신호는 단독 근거 불가',NA('신호 채택은 퀀트 연구 보드 관문'),['reports/signal_scores.json'],SG.asof,{grade:'검증전'}); };
+TOPF.mom=()=>{ const k=MO.KR, u=MO.US; if(!k||!u) return null; const t=x=>(x.top||[]).slice(0,3).map(r=>shortNm(r.name)||r.symbol).join(', ');
+  return mkTop([`KR 상위: ${t(k)||'—'}`,`US 상위: ${t(u)||'—'}`],NA('모멘텀 순위 표시 — 해석 문장 없음'),NA('순위는 후보 — 매매 신호 아님'),['reports/momentum_KR.json','reports/momentum_US.json'],k.asof,{grade:'검증전'}); };
+TOPF.pf=()=>{ if(PF===null||PF===false) return null; if(!PF||!PF.strategies) return mkTop(NA('모의 포트폴리오 결과 없음'),NA('—'),NA('—'),['reports/portfolios.json']);
+  const s=[...PF.strategies].filter(x=>x.stats&&x.stats.sharpe!=null).sort((a,b)=>b.stats.sharpe-a.stats.sharpe);
+  return mkTop(`모의 전략 ${PF.strategies.length}종 · 샤프 상위 ${s.slice(0,2).map(x=>`${x.name} ${x.stats.sharpe}`).join(' · ')||'—'}`,'과거 백테스트(비용 반영) — 미래 성과 보장 아님',NA('실계좌 적용 판단은 퀀트·PB'),['reports/portfolios.json'],PF.asof,{grade:'검증전'}); };
+TOPF.chain=()=>{ if(typeof CH==='undefined'||CH===null||CH===false) return null; if(!CH||!CH.chains) return mkTop(NA('체인 데이터 없음'),NA('—'),NA('—'),['reports/chains_view.json']);
+  const c=Object.values(CH.chains).filter(x=>x.score!=null).sort((a,b)=>b.score-a.score), f=x=>`${x.name} ${(x.score>0?'+':'')+Number(x.score).toFixed(2)}`;
+  return mkTop(`공급망 ${c.length}개 점수: 강 ${c.slice(0,2).map(f).join(' · ')||'—'} / 약 ${c.slice(-1).map(f).join('')||'—'}`,'점수는 대리 지표 합성 — 효과 검증전',NA('공급망 점수 단독 매매 규칙 없음'),['reports/chains_view.json'],CH.asof,{grade:'검증전'}); };
+}
 </script>

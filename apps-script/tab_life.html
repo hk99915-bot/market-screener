@@ -103,4 +103,11 @@ function lifeHealthCharts(H){
   c.timeScale().fitContent();
   const l=$('#lhc1l'); if(l) l.innerHTML=`<span style="color:var(--amber)">━ 체중</span> <span class="mu">┅ 기준 경로 (오른쪽 축)</span> &nbsp; <span style="color:var(--up)">━ 골격근량</span> &nbsp; <span style="color:var(--dn)">┅ 체지방량</span> <span class="mu">(왼쪽 축, kg) · 인바디는 4주 추세로만 판단</span>`;
 }
+
+/* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
+if(typeof TOPF==='object'){
+TOPF.life=()=>{ if(typeof LIFE==='undefined'||!LIFE) return mkTop(NA(typeof LIFEERR!=='undefined'&&LIFEERR?'비공개 데이터 불러오기 실패':'비공개 데이터 — 토큰 입력 후 표시'),NA('—'),NA('—'),['pb-private life/summary.json(런타임)']);
+  const PR=LIFE.period||{}, b=LIFE.budget_vs_actual||{}, u=b.budget_total?b.actual_total/b.budget_total:null;   // 비율만(금액 표시 안 함)
+  return mkTop(`기간 ${PR.from||'—'}~${PR.to||'—'}`+(u!=null?` · 예산 사용률 ${(u*100).toFixed(0)}%`:''),u!=null&&u>1?'예산 초과':NA('해석 문장 없음 — 비율만'),NA('가계 조치는 PB 상담'),['pb-private life/summary.json(런타임)'],LIFE.updated||PR.to); };
+}
 </script>

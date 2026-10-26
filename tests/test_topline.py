@@ -125,3 +125,15 @@ def test_telegram_switch_default_off_keeps_old_lines(monkeypatch):
     monkeypatch.setattr(config, "TOPLINE_TG", True)
     new = C._tg_top3(o, o["bottom_line"])
     assert new[0].startswith("① What: ") and new[-1].startswith("기준 2026-10-26 15:53")
+
+
+def test_bundle_b_adapters_lint_clean():
+    """묶음 B(10/26) 생성기 어댑터 — 빈 입력·최소 입력에서도 3칸·lint 0(칸 누락 없음, '해당 없음/조치 없음' 사유로 채움)."""
+    from screener import topline, topline_from as tf
+    cases = [tf.realestate({"rates": [{"name": "기준금리", "status": "ok", "last": 3.0, "unit": "%", "month": "2026-09", "chg1m": 0}],
+                            "prices": {"status": "키 필요", "why": "무키"}, "label": "표시 전용", "asof": "2026-10-26"}),
+             tf.realestate({}), tf.valuation({"basket": {"median_per": 20.0, "n": 3, "n_verified": 2}, "asof": "2026-10-26"}), tf.valuation({}),
+             tf.commodities({"summary": "1개월 ±10% 넘게 움직인 원자재 없음", "rows": [], "asof": "2026-10-26"}),
+             tf.scorecard({"telegram": "📊 주간 성적표 준비됨 (10/19~10/25) — 대결 6건 · 나 승률 33% · 코스피 주간 −2.1%", "asof": "2026-10-25 10:21"})]
+    for top in cases:
+        assert topline.lint(top) == [], top
