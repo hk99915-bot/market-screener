@@ -2,13 +2,13 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-26 · 작업 294개 · 진행 8 · 검수 13 · 대기 79 · 보류 24 · 완료 170
+기준일 2026-10-26 · 작업 294개 · 진행 9 · 검수 13 · 대기 79 · 보류 23 · 완료 170
 
 **결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
 
 **기한 지남:** `ra-sec-coverage` (2026-10-21), `integrity-p0-2` (2026-10-25), `integrity-p0-5` (2026-10-25), `impl-frm-stress-july` (2026-10-25), `impl-sectors-official-switch` (2026-10-25), `impl-pick-gate-start` (2026-10-25), `impl-hf-independence` (2026-10-25), `impl-krx-deriv-probe` (2026-10-25)
 
-## 진행 (8)
+## 진행 (9)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -20,6 +20,7 @@
 | P2 | `front-first-round` | 프론트 첫 라운드 — KB front.md 읽기·드릴 front-d1 풀이 + 화면 파일 다크 전용 하드코딩 색 2곳 토큰화(skin_audit·ui_smoke 통과) | 프론트 | 2026-10-24 | 2026-10-31 | `apps-script/tab_*.html`<br>`docs/desk_kb/rounds/*/front.md` | `appr-staffing-30` | 10/24 겸이 결재 신설(운영 등록). 하드코딩 위치 = grep '#111\/#151515' apps-script/tab_*.html (10/24 2곳). 탭 파일 잠금 --owner 프론트. 이관 작업(tradeplan-ui 등)은 이 라운드 뒤 우선순위대로. |
 | P2 | `guard-rest` | asof 가드 미적용 산출물 마저 적용 (live·dashboard_state·dated md/csv·archive·japan→macro_series 직접 병합 등) | 개발 | 2026-10-17 | 2026-10-31 | `screener/live.py`<br>`screener/dashboard.py`<br>`screener/japan.py`<br>`screener/report.py`<br>`screener/committee.py`<br>`screener/valuation_daily.py`<br>`screener/etf.py` | `detail-us-regress` | 10/17 2차(잔여 개발): live.json(asof 'YYYY-MM-DD HH:MM' 추가·write_json) + dashboard_state.json(put_state 조각별 asof 가드, main.py 스크리너 조각에 시세 기준일) 완료. guard 는 양쪽 시각이 있으면 분 단위·KST 정규화 비교(UTC 'Z' 값이 하루 전으로 읽혀 정상 장중 갱신이 막히던 일 단위 문제 수정), 테스트 tests/test_guard_rest.py 7건. 10/17 3차(데이터2, 정합성 감사 M1·M2): accum.json·us_accum.json 쓰기를 guard.write_json 경유로(계약+역행), chains·us_eps 캐시도 write_json + 만료 판단을 파일 mtime→파일 안 generated_at/asof(KST) 로, ops/freshness.json 에 chains·us_eps 등록(kind=session US). 남음: dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv, daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, 장중 브리핑 조각 asof(현재 없음 → 항상 씀). 10/17 1차 적용 16곳 외: live.json(updated_at 연도 없음 → 형식 변경 필요), dashboard_state.json put_state, dashboard.json·research.json·disclosures.json·calendar.json·views.json·dotplot.json(실행 시각 asof), daily/{d}_*.md·signals/anomalies csv(파일명 날짜 — 같은 날 늦은 실행 덮어쓰기), daily_hist·committee/valuation archive, etf 상세, japan.py:211 macro_series 직접 쓰기, chains·us_eps. 조용한 대체 미처리 6곳(dev.md 표 6~11). 계약 등록 보류: screener/contracts.py 에 "live.json": {v1, date asof, required asof·updated_at·items} 와 dashboard_state.json(조각마다 at 필수, schema_version 미기입 — 화면이 state 통째로 실음) 추가 필요(개발5 잠금 해제 후). / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 2차 이후 잔여(계약 등록·조용한 대체 6곳) 미완 |
 | P2 | `toss-md-pilot` | 토스 Open API 시세 전용 파일럿 (겸이 노트북 수집) | 개발 | 2026-10-20 | 2026-10-31 | `screener/toss_md.py`<br>`tools/toss_md/*`<br>`tests/test_toss_md.py`<br>`docs/toss_md_laptop_setup.md` | — | 겸이 결정 10/20: 시세 전용·노트북(Windows) 1대 수집, 매매는 미래에셋. 코드: GET+화이트리스트, 주문·계좌 경로·계좌 헤더 요청 전 차단, 키는 저장소 밖 env(600/icacls), 응답 원문 로그 금지, 수집 잠금 1개. 결과는 저장소 밖(~/toss_md_data) — 약관 재배포·자동수집 미확인이라 공개 산출물 없음. 10/20 23:5x 겸이 약관 확인 결과 '허용'(재배포·자동수집, 겸이 한 단어 보고·원문 미인용) → 공개 산출물은 1주 crosscheck 통과 후 별도 결재. PILOT 경로는 OpenAPI 원문 대조 완료(1c4338cb). 남은 일: ②키 발급·IP 등록·dry-run·실제 1회 ④1주 crosscheck 괴리 기록 후 채택 여부 결재. 10/21 00:13 노트북 실제 가동 ok=14 fail=0, 첫 대조 KOSDAQ 10/20 종가 토스=네이버 781.97 일치. 10/21 공개 연결 → toss-md-publish(요약만 toss-live 브랜치, main 커밋 없음). 남은 일: 1주 crosscheck(Pages TOSS LIVE 패널) 후 채택 결재. |
+| P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
 ## 검수 (13)
 
@@ -123,7 +124,7 @@
 | P3 ⏫P1 10-23 | `jiang-prediction-ledger` | Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기) | 검증 | — | 2026-11-07 | `reports/views/jiang_predictions.json` | `public-reports` | 애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈. |
 | P3 ⏫P1 10-21 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 
-## 보류 (24)
+## 보류 (23)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -144,7 +145,6 @@
 | P2 | `macro-governor-shin` | 신현송 한은 총재 뷰 트래킹 — 발언·간담회·의사록·국회 답변 장부화 + 금통위 결정·시장 사후 대조 + 매크로 탭 카드 | 매크로 | 2026-10-24 | 2026-11-07 | `reports/views/governor_shin.json`<br>`docs/desk_kb/macro.md` | — | 10/24 겸이 "진짜 마지막으로 작업예약, 신현송 총재 뷰 트래킹, 메신저랑 작업 보드에만 업뎃" — 예약만. 요청 req-macro-1384f2aa. 주간 한도 절약 — 화 10/27 11시 이후 착수(겸이 ㄱㄱ 뒤). 화면은 착수 때 프론트 장부 1건. |
 | P2 | `report-whatsowhat` | 퀀트 보고서 등 연구 산출물 읽기 쉬운 구조로 리팩토링: What / So what / Now what (직관적·겸이 이해 기준) | 퀀트 | — | 2026-11-07 | `docs/desk_kb/STANDARD.md`<br>`reports/studies/` | — | 10/25 겸이 '퀀트 보고서 링크로 준 거 뭔소린지 하나도 모르겠으니까 What so what now what 구조나 그렇게 구조화해서 직관적으로 리팩토링하는 것도 안건으로'. 어느 보고서를 가리키는지는 미확인(착수 때 겸이에게 1줄 확인: 최근 퀀트 링크 보고서). 범위안: ① 퀀트 연구 보고(reports/studies/*.md) 맨 위 3칸 요약 — What(무엇을 봤나·결과 숫자 1~2개) / So what(그래서 의미·확률·한계, 표본 n·등급) / Now what(겸이가 할 일·하지 않을 일·언제 뒤집히나) ② 용어는 쉬운 말(전문용어는 괄호 1줄) ③ 채팅 답변에도 같은 3칸 적용 검토 ④ STANDARD.md §결론 칸(무엇·누가·언제까지·뒤집는 조건)과 합쳐 한 틀로. UXUI·평가(이해도 점검) 협업. tue-token-tight-meeting 과 같이 화 10/27 11시 이후 'ㄱㄱ' 뒤 안건 상정. / 10/25 겸이 샘플 지정: reports/studies/accum_signals.md. PB 시안 v1(쉬운말)→v2: '좀 더 공식적으로, 개조식, 한자어 비중 높여서' 확정 문체 = 공식 개조식(명사형·~함/~필요), 한자어 중심, 3칸 What/So What/Now What + 표본·비용·원본 링크 머리말. 시안(비공개 스크래치): accum_signals_whatsowhat_v2.md. 폐기 기준(후반기 +1%·t 3)은 PB 임의 제안 — 퀀트 확인. |
 | P2 | `tue-postgres-meeting` | PostgreSQL 전환 회의 (longterm-terminal-design 연계) | PM | — | 2026-11-07 | — | — | 10/25 겸이 '화요일 11시 이후'. 설계 문서 2건은 비공개 ops/longterm/ (READ-ONLY, 승인 전 변경 금지). 회의 산출 = 도입 여부·POC 범위 결재안. |
-| P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | — | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 | P2 | `freeman-energy-os` | 프리맨 프로젝트 · 에너지·시간 운영: 24시간과 심리·행동 에너지(집중·꾸준함·결정 피로) 설계 — 행동·LIFE·교육 공동 | 행동 | — | 2026-11-15 | private 전용 | `freeman-project` | 10/25 겸이 정의: 자유 = 타인의 판단·조직 이해관계·경제적 제약에 의지가 꺾이지 않는 상태, 자기 판단으로 결정하고 결과를 스스로 감당. 한정된 24시간과 바이오·감정 에너지도 최적화(뇌과학·행동·심리·집중·꾸준함). 설계 원칙: ① 측정은 최소(이미 있는 것 우선: 운동 출석 로그·주간 회고·쿨다운 규칙·결정 상한 하루 3건) — 기록 행위가 노동이 되지 않게(longterm 문서의 열린 질문) ② 근거 있는 기법만 출처 등급과 함께(구현 의도 Gollwitzer 1999 — LIFE KB #5 원문 대조 전, 습관 형성·주의 관리·결정 피로 연구는 재현 논란 표기) ③ 의료·진단 영역 금지(질병·의료 데이터 저장 금지 규칙) — 수면·에너지는 자가 보고 구간(예: 컨디션 1~5)만, 필요 시 겸이 동의 후 ④ 일일 에너지 예산안: 고집중 블록(시장 판단·학습)·행정 블록(기록·정산)·회복 블록 구분, 시장 시간 고정 슬롯과 충돌 점검 ⑤ 매매 충동·감정 상태와의 연결은 행동 데스크 쿨다운 규칙 재사용. 산출: 한 장 요약(What/So What/Now What)과 주 1회 점검 3문항. 화 10/27 11시 이후 'ㄱㄱ' 뒤. 개인 수치는 비공개 저장소에만. / 10/25 겸이: 에너지가 새는 곳 = '나태'(시작 저항). 설계 방향(안): 최소 시작 단위·구현 의도(if-then)·환경 설계 중심, 죄책감 유발 지표 금지. 이미 잘 되는 영역(운동 출석 장기 연속)을 근거로 '나태'가 어느 영역에서 나오는지 먼저 특정(후보: 이직 준비·학습·행정 일). |
 | P2 | `housing-capital-bucket` | 주거 자본 버킷 검토: 집 마련 자본을 알파·위성 투자 자본과 분리하는 규칙(시점 접근 시 안전자산 이동 글라이드, 계약금·취득비·비상자금 보호) | 자산배분 | — | 2026-11-15 | private 전용 | — | 10/25 겸이가 가져온 외부 의견('내 집 마련 자본을 알파 투자 자본과 분리') 검토 요청. 자산배분·내무·부동산·FRM 공동. 쟁점: ① 버킷 규모·시점은 내무 모델(임차 vs 매수 비교 req-household-da7a8e45, 연봉 인상률·이직 req-household-5384bf04) 결과 후 ② 기존 규칙과 충돌 점검(ISA 글라이드·위성 북 한도·반도체 상한) ③ 주택 매수 시점 근접 시 안전자산(CMA·단기채) 이동 규칙 사전등록 ④ 지금은 매수 계획이 없으므로 '규칙 초안'만, 실계좌 변경은 겸이 결재. 11/15 ISA 리뷰 안건 후보. 개인 수치는 비공개 저장소에만. |
 | P2 | `holdings-unify` | 보유 입력 단일화 — private holdings 파일 → MY_HOLDINGS 시크릿 → MY 탭 자동 반영 | 개발 | — | 2026-11-16 | `apps-script/Code.gs`<br>`apps-script/Index.html` | — | 안건 4. 동결 대상 — 11/16 리뷰 이후 착수. 공개 파일에 보유 수치 금지(토큰 런타임만). |
