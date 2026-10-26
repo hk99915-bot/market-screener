@@ -4483,14 +4483,15 @@ TOPF.syso=()=>{ const h=SYS.health; if(h===null||h===false) return null; const i
 
 <!-- tab_msgr.html — SYSTEM › 사내톡 (msgView). 10/23 겸이 "사내톡방에서 누나들끼리 업무요청하고 응답하는거 보고싶다" → "터미널에 사내톡 탭 만들어줘 자동갱신되게, 그리고 실제 누나들의 voc로"
      → "너무 혼잡해서 잘 못 읽힌다"(같은 날): 기본은 '진행 중'만, 요청은 한 줄 요약 + 탭하면 펼침, 데스크 필터는 드롭다운, 대행 기록은 접음.
+     → 10/26 겸이 "사내톡 구조 깔끔하게 바꾸자, 쓰레드형으로 하던가": 요청·회신·사담이 시간순 말풍선으로 섞여 누가 뭘 물었고 답이 왔는지 한눈에 안 보여서 → 요청 1건 = 쓰레드 카드 1개(최근 활동순), 탭하면 답글 펼침, 사담은 '💬 사담' 하루 묶음으로 분리.
      데이터: reports/msgr_feed.md (내용은 JSON — scripts/msgr_feed.py ← docs/desk_kb/rounds/_requests.json + 메신저 라운드 기록). 매시 team.yml·ask.yml 이 갱신.
      getMarkdown('msgr_feed') 를 쓰는 이유: 새 getter 없이 Code.gs 재붙여넣기 불필요.
      회신: VOC = 그 데스크 에이전트를 실제로 호출해 받은 답(무편집, scripts/ask.py --reply --voc) · 대행 = 진행자·PB 가 대신 적은 처리 기록(데스크 발언으로 인용 금지).
      프로필 사진: 다음 단계(겸이 10/23 "나중에 각 누나들 프로필사진도") — 지금은 이니셜 원. -->
 <style>
 .mgtop{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
-.mgseg{display:flex;border:1px solid var(--line)}
-.mgseg button{min-height:40px;background:none;border:0;border-right:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-2);padding:0 12px;cursor:pointer}
+.mgseg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));flex:1 1 100%;border:1px solid var(--line)}
+.mgseg button{min-height:44px;background:none;border:0;border-right:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-2);line-height:1.25;padding:2px 6px;cursor:pointer;word-break:keep-all;overflow-wrap:anywhere}
 .mgseg button:last-child{border-right:0}
 .mgseg button.on{color:var(--on-amber);background:var(--amber)}
 .mgsel{min-height:40px;background:var(--bg2);color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:0 8px}
@@ -4506,7 +4507,7 @@ TOPF.syso=()=>{ const h=SYS.health; if(h===null||h===false) return null; const i
 .mgwho b{color:var(--txt)}
 .mgwho .ar{color:var(--muted);margin:0 3px}
 .mgdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle}
-.mgone{font-size:var(--fs-2);color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:1px}
+.mgone{font-size:var(--fs-2);color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:1px;overflow-wrap:anywhere}
 .mgit[open] .mgone{display:none}
 .mgbadge{font-size:var(--fs-1);color:var(--amber);margin-left:6px}
 .mgbody{padding:0 0 12px 40px;font-size:var(--fs-3);line-height:1.7}
@@ -4530,6 +4531,38 @@ TOPF.syso=()=>{ const h=SYS.health; if(h===null||h===false) return null; const i
 .mgt{font-size:var(--fs-1);color:var(--muted);margin-left:6px}
 .mgq{font-size:var(--fs-1);color:var(--muted);margin:2px 0 3px;border-left:2px solid var(--amber);padding-left:6px}
 .mgsys{text-align:center;font-size:var(--fs-1);color:var(--muted);margin:8px 0;white-space:normal}
+/* 쓰레드형(10/26) — 카드 = 요청 1건(summary), 펼치면 원문 + 들여쓴 답글 */
+.mgth{border-top:1px solid var(--line);white-space:normal}
+.mgth>summary{list-style:none;display:flex;gap:10px;align-items:flex-start;padding:10px 0;min-height:44px;cursor:pointer}
+.mgth>summary::-webkit-details-marker{display:none}
+.mgth[open]>summary{background:var(--bg2)}
+.mgpair{position:relative;flex:0 0 48px;height:48px}
+.mgpair>.mgav{width:40px;height:40px;flex:none;font-size:var(--fs-1)}
+.mgpair>.mgav.to{position:absolute;right:0;bottom:0;width:24px;height:24px;font-size:var(--fs-1);border:2px solid var(--panel)}
+.mgh1{display:flex;align-items:baseline;gap:6px;font-size:var(--fs-2);line-height:1.4;min-width:0}
+.mgh1 .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mgh1 .nm b{color:var(--txt)}
+.mgh1 .ar{color:var(--muted);margin:0 2px}
+.mgh1 .mgt{margin-left:auto;flex:none}
+.mgst{flex:none;font-size:var(--fs-1);line-height:1.5;padding:0 6px;border:1px solid currentColor;border-radius:9px}
+.mgst.live{color:var(--amber)}.mgst.late{color:var(--dn)}.mgst.done{color:var(--up)}
+.mgth[open] .mgone{display:none}
+.mgcnt{font-size:var(--fs-1);color:var(--muted);margin-top:3px}
+.mgcnt b{color:var(--amber);font-weight:400}
+.mgtb{margin:0 0 12px 22px;padding:2px 0 0 12px;border-left:2px solid var(--line);font-size:var(--fs-3);line-height:1.7}
+.mgtb .mgtxt{overflow-wrap:anywhere}
+.mgr{display:flex;gap:8px;margin-top:12px}
+.mgr>.mgav{flex:0 0 32px;width:32px;height:32px;font-size:var(--fs-1)}
+.mgr .bx{min-width:0;flex:1;border-left:2px solid var(--amber);padding-left:9px;overflow-wrap:anywhere}
+.mgr .hd{font-size:var(--fs-2);color:var(--muted)}
+.mgr .hd b{color:var(--amber)}
+.mgtb .mgproxy{margin-top:10px}
+.mgtb .mgproxy>summary{min-height:40px;list-style:none}
+.mgtb .mgproxy>summary::-webkit-details-marker{display:none}
+.mgtb .mgproxy p{overflow-wrap:anywhere}
+.mgdone{margin-top:12px;font-size:var(--fs-2);color:var(--up);overflow-wrap:anywhere}
+.mgdone .mu{font-size:var(--fs-1)}
+.mgch{margin-left:26px}
 #mgfab{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 6px;background:none;border:1px solid var(--amber-dim);border-radius:3px;color:var(--txt);font-size:var(--fs-4);cursor:pointer}
 #mgfab.on{background:var(--amber);color:var(--on-amber)}
 @media (max-width:700px){#mgfab{margin-left:auto}#mgfab+#sqb{margin-left:0}}
@@ -4546,7 +4579,7 @@ TOPF.syso=()=>{ const h=SYS.health; if(h===null||h===false) return null; const i
 <script>
 let MG=null, MGS='live', MGD='all', MGP=null, MGPOP=false;
 /* 프사·이름 누르면 프로필 — 문서 전체 위임이라 사내톡 탭·🔒 비공개 사담·💬 팝업 어디서든 (10/23 겸이 "비공개 사내톡에서도 클릭하면 프로필") */
-document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-mgp]'); if(t&&MG&&MG.profiles) mgProf(t.dataset.mgp); });
+document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-mgp]'); if(t&&MG&&MG.profiles){ if(t.closest('summary')) e.preventDefault(); mgProf(t.dataset.mgp); } });   // 쓰레드 카드(summary) 안 프사는 펼치지 않고 프로필만
 /* 💬 팝업 채팅방(10/23 겸이 "사내톡이 팝업 채팅방처럼 열리게") — 모든 탭 오른쪽 아래 버튼 → 떠 있는 창에 같은 사내톡(msgView). 사내톡 탭 안에선 탭 그대로. */
 function mgRe(load){ if(MGPOP) mgPopFill(); else if(!load||view==='msg') render(); }
 function mgPopFill(){ const w=document.getElementById('mgpop'); if(w) w.querySelector('.mgpb').innerHTML=msgView(); }
@@ -4570,8 +4603,8 @@ const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
 function mgNm(k){ return MG_NM[k]||k||'?'; }
 function mgHue(k){ let h=0; for(const c of String(k)) h=(h*31+c.charCodeAt(0))%360; return h; }
 const MG_IMG='https://raw.githubusercontent.com/hk99915-bot/market-screener/main/assets/avatars/';   // 프로필 사진(겸이가 GPT 로 만들어 올림, assets/avatars/<키>.png) — 없으면 이니셜 원
-function mgAv(k){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'#ff9a1f':`hsl(${mgHue(k)} 45% 62%)`;
-  return `<div class="mgav" role="button" tabindex="0" title="프로필" data-mgp="${esc(k)}" style="background:${bg};overflow:hidden;cursor:pointer"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()"></div>`; }
+function mgAv(k,c){ const ini=esc(mgNm(k).slice(0,2)), bg=k==='겸이'?'#ff9a1f':`hsl(${mgHue(k)} 45% 62%)`;
+  return `<div class="mgav${c?' '+c:''}" role="button" tabindex="0" title="프로필" data-mgp="${esc(k)}" style="background:${bg};overflow:hidden;cursor:pointer"><span>${ini}</span><img src="${MG_IMG}${encodeURIComponent(k==='겸이'?'owner':k)}.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.remove()"></div>`; }
 /* 원본 보기(10/23 겸이 "한 번씩 더 누르면 원본, 크기 조절 가능하게") — 휠·핀치·두 번 탭(1x↔2.5x)·끌기·＋/－ */
 function mgZoom(src){ if(!src) return; const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;background:#000;z-index:120;overflow:hidden;touch-action:none';
   o.innerHTML=`<img src="${src}" alt="" draggable="false" style="position:absolute;left:50%;top:50%;max-width:100vw;max-height:100vh;transform-origin:center;user-select:none;will-change:transform">
@@ -4657,8 +4690,8 @@ function mgProfGrid(){ const L=(MG&&MG.profiles)||[]; if(!L.length) return '<div
 function mgT(s){ return String(s||'').replace('T',' ').slice(0,16); }
 /* 필터 — 순수 함수. st: live(진행 중+마감 지남)·voc(VOC 회신 있는 것)·done·all */
 function mgFilter(items,st,desk){ return (items||[]).filter(x=>(st==='all'||(st==='live'&&x.status!=='done')||(st==='voc'&&(x.replies||[]).some(p=>p.voc))||x.status===st)&&(desk==='all'||x.from===desk||x.to===desk)); }
-/* 대화 흐름(10/23 겸이 "대화가 이어진다는 느낌이 안 드네"): 요청·답장·완료를 시각순 한 줄 타임라인으로 — 오래된 것 위, 최신 아래(톡방처럼 맨 아래로 스크롤).
-   답장 말풍선엔 원 요청 한 줄 인용. 같은 문장 반복(대행 기록이 요청을 되풀이)은 접어서 시스템 줄 1개로. — 순수 함수(테스트용) */
+/* 이벤트 펼치기 — 요청·답장·완료를 시각순으로(10/23 타임라인 피드에서 쓰던 것). 10/26 쓰레드형부터는 쓰레드 1건의 답글 순서·마지막 활동 계산(mgThread)에 쓴다.
+   같은 문장 반복(대행 기록이 요청을 되풀이)은 뺀다. — 순수 함수(테스트용) */
 function mgEvents(items,chat){ const ev=(chat||[]).map(c=>({t:c.at||'',k:'chat',c}));
   for(const x of items||[]){ const t0=x.opened_at||x.opened||'';
     ev.push({t:t0,k:'req',x});
@@ -4669,8 +4702,50 @@ function mgEvents(items,chat){ const ev=(chat||[]).map(c=>({t:c.at||'',k:'chat',
   }
   ev.sort((a,b)=>String(a.t).localeCompare(String(b.t))); return ev; }
 function mgBub(who,to,txt,t,quote,mine){ return `<div class="mgb2${mine?' me':''}">${mgAv(who)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(who))}</b>${to?`<span class="ar">→</span>${esc(mgNm(to))}`:''}<span class="mgt">${esc(mgT(t).slice(11))}</span></div>${quote?`<div class="mgq">↳ ${esc(quote)}</div>`:''}<div class="mgbub">${esc(txt)}</div></div></div>`; }
-function seg0(S){ return [['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체'],['priv','🔒 비공개 사담'],['prof','👥 프로필'],['org','🏢 조직도']]
-    .map(([k,l])=>`<button class="${MGS===k?'on':''}" data-mgs="${k}">${esc(l)}</button>`).join(''); }
+/* 세그먼트 두 줄(10/26): 위 = 요청 쓰레드 필터 4개, 아래 = 보기 4개(💬 사담·🔒 비공개 사담·👥 프로필·🏢 조직도). 한 줄 7칸은 390px 에서 글자가 세로로 쪼개졌음. */
+function seg0(S){ const b=([k,l])=>`<button type="button" class="${MGS===k?'on':''}" data-mgs="${k}" aria-pressed="${MGS===k}">${esc(l)}</button>`;
+  return `<div class="mgseg" role="group" aria-label="요청 필터">${[['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체']].map(b).join('')}</div>`
+    +`<div class="mgseg" role="group" aria-label="보기">${[['chat',`💬 사담 ${(MG.chat||[]).length}`],['priv','🔒 비공개 사담'],['prof','👥 프로필'],['org','🏢 조직도']].map(b).join('')}</div>`; }
+/* ── 쓰레드형(10/26 겸이 "사내톡 구조 깔끔하게 바꾸자, 쓰레드형으로 하던가") ──
+   요청 1건 = 카드 1개(보낸이→받는이·첫 줄·VOC/대행 수·상태·마지막 활동). 탭하면 그 자리에서 원문 + 시간순 답글.
+   VOC = 본인 답(호박색 줄), 대행 = 진행자 기록(데스크 발언 아님, 기본 접힘 — 연달아 있으면 한 묶음), 완료면 끝에 '✅ 완료 — resolution'. */
+let MGO=new Set();   // 펼친 쓰레드 id — 다시 그려도(필터·자동 갱신) 펼친 채 유지
+function mgTog(el){ if(el.open) MGO.add(el.dataset.id); else MGO.delete(el.dataset.id); }
+const mgA=s=>esc(s).replace(/"/g,'&quot;');
+/* 쓰레드 1건 파생값 — 순수 함수. last = 피드 last_at(msgr_feed.py) 우선, 옛 피드면 이벤트 최댓값. st: live·late(마감 지남 또는 기한 < 오늘)·done */
+function mgThread(x,today){ const ev=mgEvents([x],[]), reps=ev.filter(e=>e.k==='voc'||e.k==='px');
+  const last=x.last_at||(ev.length?ev[ev.length-1].t:'')||x.opened_at||x.opened||'';
+  const st=x.status==='done'?'done':(x.status==='promoted'||(x.due&&today&&x.due<today))?'late':'live';
+  return {x,last,st,reps,nv:reps.filter(e=>e.k==='voc').length,np:reps.filter(e=>e.k==='px').length}; }
+function mgThreads(items,today){ return (items||[]).map(x=>mgThread(x,today)).sort((a,b)=>String(b.last).localeCompare(String(a.last))); }
+const MG_ST2={live:'진행',late:'기한 지남',done:'완료'};
+function mgMD(t){ const s=mgT(t); return s.length>=16?`${s.slice(5,7)}/${s.slice(8,10)} ${s.slice(11)}`:s.slice(5).replace('-','/'); }
+function mgCard(T){ const x=T.x, id=String(x.id||''), txt=String(x.text||'');
+  const cnt=(T.nv||T.np)?`${T.nv?`<b>VOC ${T.nv}</b>`:''}${T.nv&&T.np?' · ':''}${T.np?`📝 대행 ${T.np}`:''}`:'회신 없음';
+  let body='', run=[];
+  const flush=()=>{ if(!run.length) return; body+=`<details class="mgproxy"><summary>📝 대행 기록 ${run.length}건 · 진행자가 적은 처리 메모 — 데스크 발언 아님</summary>${run.map(e=>`<p><span class="mgt" style="margin:0">${esc(mgMD(e.t))}${e.p.sec&&e.p.sec!=='회신'?` · ${esc(e.p.sec)}`:''}</span><br>${esc(e.p.text)}</p>`).join('')}</details>`; run=[]; };
+  for(const e of T.reps){ if(e.k==='px'){ run.push(e); continue; } flush();
+    body+=`<div class="mgr">${mgAv(e.p.by)}<div class="bx"><div class="hd"><b>${esc(mgNm(e.p.by))}</b> · 본인 답(VOC) <span class="mgt">${esc(mgMD(e.t))}</span></div><div class="mgtxt">${esc(e.p.text)}</div></div></div>`; }
+  flush();
+  if(x.status==='done') body+=`<div class="mgdone">✅ 완료 — ${esc(x.resolution||'처리 메모 없음')} <span class="mu">${esc(mgNm(x.done_by||x.to))}${x.done_at?` · ${esc(mgMD(x.done_at))}`:''}</span></div>`;
+  return `<details class="mgth" data-id="${mgA(id)}"${MGO.has(id)?' open':''} ontoggle="mgTog(this)"><summary>
+    <div class="mgpair">${mgAv(x.from)}${mgAv(x.to,'to')}</div>
+    <div class="mgln"><div class="mgh1"><span class="nm"><b>${esc(mgNm(x.from))}</b><span class="ar">→</span><b>${esc(mgNm(x.to))}</b></span><span class="mgst ${T.st}">${MG_ST2[T.st]}</span><span class="mgt">${esc(mgT(T.last).slice(11)||mgMD(T.last))}</span></div>
+      <div class="mgone">${esc(txt)}</div><div class="mgcnt">${cnt}${x.due&&x.status!=='done'?` · 기한 ${esc(String(x.due).slice(5).replace('-','/'))}`:''}</div></div></summary>
+    <div class="mgtb"><div class="mgtxt">${esc(txt)}</div><div class="mgmeta">${esc(id)} · 요청 ${esc(mgMD(x.opened_at||x.opened))}${x.due?` · 기한 ${esc(String(x.due).slice(5).replace('-','/'))}`:''}</div>${body}</div></details>`; }
+/* 사담 묶음 — 하루 = 쓰레드 1개(최근 날 위·첫 날만 펼침), 안에선 시간순. re(답장 대상)가 있으면 그 사담 바로 아래 들여쓰기 — 순수 함수 mgChatTree */
+function mgReOf(c,L){ const r=c.re; if(!r) return -1; const ra=typeof r==='string'?r:(r.at||''), rb=typeof r==='object'?(r.by||''):'', rt=typeof r==='object'?String(r.text||'').slice(0,20):'';
+  return L.findIndex(p=>p!==c&&((ra&&p.at===ra&&(!rb||p.by===rb))||(!ra&&rt&&(!rb||p.by===rb)&&String(p.text||'').startsWith(rt)))); }
+function mgChatTree(L){ const kids=L.map(()=>[]), root=[]; L.forEach((c,i)=>{ const j=mgReOf(c,L); if(j>=0&&j!==i) kids[j].push(i); else root.push(i); });
+  const out=[], walk=(i,d)=>{ out.push({c:L[i],d}); kids[i].forEach(k=>walk(k,Math.min(d+1,3))); }; root.forEach(i=>walk(i,0)); return out; }
+function mgChatView(chat){ const by={}; for(const c of chat){ const d=String(c.at||'').slice(0,10); (by[d]=by[d]||[]).push(c); }
+  return Object.keys(by).sort().reverse().map((d,n)=>{ const L=by[d].slice().sort((a,b)=>String(a.at).localeCompare(String(b.at))), who=[...new Set(L.map(c=>c.by))], id='chat-'+d;
+    const open=MGO.has(id)||(n===0&&!MGO.has('!'+id));
+    return `<details class="mgth" data-id="${mgA(id)}"${open?' open':''} ontoggle="if(!this.open)MGO.add('!'+this.dataset.id);else MGO.delete('!'+this.dataset.id);mgTog(this)"><summary>
+      <div class="mgpair">${mgAv(who[0])}${who[1]?mgAv(who[1],'to'):''}</div>
+      <div class="mgln"><div class="mgh1"><span class="nm"><b>💬 ${esc(d.slice(5).replace('-','/'))} 사담</b></span><span class="mgt">${esc(mgT(L[L.length-1].at).slice(11))}</span></div>
+        <div class="mgone">${esc(who.map(mgNm).join(' · '))}</div><div class="mgcnt">${L.length}줄 · 잡담(업무 근거 아님)</div></div></summary>
+      <div class="mgtb">${mgChatTree(L).map(({c,d})=>`<div${d?` class="mgch" style="margin-left:${d*26}px"`:''}>${mgBub(c.by,c.to,c.text,c.at,d&&c.re&&c.re.text?`${mgNm(c.re.by||'')}: ${String(c.re.text).slice(0,40)}`:'',false)}</div>`).join('')}</div></details>`; }).join(''); }
 function sel0(desks){ return `<select class="mgsel" id="mgsel" aria-label="누나 고르기"><option value="all">모든 누나</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`; }
 /* 🔒 비공개 사담방 — pb-private chat/private_chat.json. 10/23 겸이 "아티팩트를 터미널에 이식, 터미널 버전 하나로만" → 유일한 보는 곳. GAS = Code.gs getPrivate(PRIVATE_TOKEN), 공개 Pages = 이 기기 localStorage 토큰. */
 function mgPrivView(seg,sel){
@@ -4688,7 +4763,7 @@ function mgPrivView(seg,sel){
   const forget=(()=>{ try{ return !!localStorage.getItem('pbPrivTok'); }catch(e){ return false; } })()?` · <a href="#" onclick="try{localStorage.removeItem('pbPrivTok')}catch(e){};MGP=null;mgRe();return false">이 기기 토큰 지우기</a>`:'';
   const empty=(MGP&&MGP._err)?`<div class="mgempty">🔒 사담방 연결 안 됨 — ${esc(MGP._err)}</div>`:MGP===false?'<div class="load">LOADING …</div>':(MGP&&MGP.chat)?'<div class="mgempty">아직 조용해 — 누나들이 루프·라운드 끝에 한마디씩 남겨</div>':'<div class="mgempty">🔒 사담을 못 불러왔어 — 새로고침해 봐 (공개 Pages 면 이 기기 토큰, GAS 면 PRIVATE_TOKEN)</div>';
   return `<div class="grid"><div class="p c12"><h2>사내톡 · 🔒 비공개 사담<small>pb-private · 겸이만</small></h2><div class="b">
-    <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
+    <div class="mgtop">${seg}${sel}</div>
     <p class="mgsum">비공개라 금액·보유 얘기도 해 · 건강·연애는 여기서도 금지 · 잡담이라 업무 근거 아님${forget}</p>
     <div class="mgbox" id="mgbox">${feed||empty}</div></div></div></div>`;
 }
@@ -4701,26 +4776,25 @@ function msgView(){
   const seg=seg0(S);
   if(MGS==='priv') return mgPrivView(seg,sel0(desks));
   if(MGS==='org'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
-    return `<div class="grid"><div class="p c12"><h2>사내톡 · 🏢 조직도<small>docs/desk_kb/ORG.md · 본부는 묶음(상하 아님) · 얼굴 누르면 프로필</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgOrg()}</div></div></div>`; }
+    return `<div class="grid"><div class="p c12"><h2>사내톡 · 🏢 조직도<small>docs/desk_kb/ORG.md · 본부는 묶음(상하 아님) · 얼굴 누르면 프로필</small></h2><div class="b"><div class="mgtop">${seg}</div>${mgOrg()}</div></div></div>`; }
   if(MGS==='prof'){ setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); },0);
-    return `<div class="grid"><div class="p c12"><h2>사내톡 · 👥 프로필<small>${(MG.profiles||[]).length}명 · 사진 탭하면 크게</small></h2><div class="b"><div class="mgtop"><div class="mgseg">${seg}</div></div>${mgProfGrid()}</div></div></div>`; }
+    return `<div class="grid"><div class="p c12"><h2>사내톡 · 👥 프로필<small>${(MG.profiles||[]).length}명 · 사진 탭하면 크게</small></h2><div class="b"><div class="mgtop">${seg}</div>${mgProfGrid()}</div></div></div>`; }
   const sel=sel0(desks);
-  let last='', feed='';
-  for(const e of mgEvents(items,(MG.chat||[]).filter(c=>MGS!=='done'&&(MGD==='all'||c.by===MGD||c.to===MGD)))){ const d=String(e.t).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
-    if(e.k==='chat'){ feed+=`<div class="mgb2 chat">${mgAv(e.c.by)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(e.c.by))}</b>${e.c.to?`<span class="ar">→</span>${esc(mgNm(e.c.to))}`:''}<span class="mgt">${esc(mgT(e.t).slice(11))} · 사담</span></div><div class="mgbub">${esc(e.c.text)}</div></div></div>`; continue; }
-    const q=String(e.x.text||'').slice(0,46)+(String(e.x.text||'').length>46?'…':'');
-    if(e.k==='req') feed+=mgBub(e.x.from,e.x.to,e.x.text,e.t,'',e.x.from==='겸이');
-    else if(e.k==='voc') feed+=mgBub(e.p.by,e.x.from,e.p.text,e.t,`${mgNm(e.x.from)}: ${q}`,false);
-    else if(e.k==='px') feed+=`<div class="mgsys" title="${esc(e.p.text)}">📝 진행자 기록(${esc(mgNm(e.x.to))} 건) · ${esc(String(e.p.text).slice(0,60))}${String(e.p.text).length>60?'…':''}</div>`;
-    else feed+=`<div class="mgsys">✅ ${esc(mgNm(e.x.done_by||e.x.to))} 완료 — ${esc(q)}</div>`;
+  let feed='', sum='';
+  if(MGS==='chat'){   // 💬 사담 — 요청 쓰레드와 안 섞음, 하루 묶음 쓰레드
+    const ch=(MG.chat||[]).filter(c=>MGD==='all'||c.by===MGD||c.to===MGD);
+    feed=mgChatView(ch); sum=`사담 ${ch.length}줄 · 하루 = 묶음 1개(최근 날 위) · 답장은 원 사담 아래 들여쓰기 · 잡담이라 업무 근거 아님`;
+  } else {   // 요청 쓰레드 — 마지막 활동 내림차순, 날짜 구분선도 마지막 활동 기준
+    const TS=mgThreads(items,String(MG.asof||'').slice(0,10)); let last='';
+    for(const T of TS){ const d=String(T.last).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; } feed+=mgCard(T); }
+    sum=`쓰레드 <b>${TS.length}</b>개 · 최근 활동순 · 카드 누르면 원문과 답글 · <b>VOC</b> = 누나 본인 답 · 📝 대행 = 진행자 기록(데스크 발언 아님)`;
   }
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); });
     const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); };
-   
-    const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; mgPbEnd(box); },0);
+    const box=document.getElementById('mgbox'), pb=box&&box.closest('.mgpb'); if(box) box.scrollTop=0; if(pb) pb.scrollTop=0; },0);   // 최신이 위 — 맨 위부터
   return `<div class="grid"><div class="p c12"><h2>사내톡<small>${esc(MG.asof||'—')} · 매시 갱신</small></h2><div class="b">
-    <div class="mgtop"><div class="mgseg">${seg}</div>${sel}</div>
-    <p class="mgsum">오래된 대화가 위, 최신이 아래 · ↳ = 어떤 요청에 대한 답장인지 · 📝 진행자 기록은 누나 본인 말 아님 · 점선 = 사담(잡담, 업무 근거 아님)</p>
+    <div class="mgtop">${seg}${sel}</div>
+    <p class="mgsum">${sum}</p>
     <div class="mgbox" id="mgbox">${feed||'<div class="mgempty">여기엔 아직 없어</div>'}</div>
   </div></div></div>`;
 }

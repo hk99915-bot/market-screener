@@ -131,6 +131,13 @@ def mask_personal_amounts(feed: dict) -> int:
     return n
 
 
+def last_at(x: dict) -> str:
+    """쓰레드 마지막 활동 시각 = max(요청 opened_at, 회신 at, 완료 done_at) — 사내톡 쓰레드 카드 정렬·날짜 구분선용(10/26 겸이 "쓰레드형으로").
+    ISO 문자열(KST +09:00 통일)이라 문자열 비교로 충분. opened_at 없는 옛 요청은 opened(날짜)."""
+    ts = [x.get("opened_at") or x.get("opened") or ""] + [p.get("at") or "" for p in x.get("replies", [])] + [x.get("done_at") or ""]
+    return max(ts)
+
+
 def build(ledger: dict, rounds: Path, now: datetime) -> dict:
     rr = round_replies(rounds)
     items = []
@@ -142,8 +149,9 @@ def build(ledger: dict, rounds: Path, now: datetime) -> dict:
         reps += [dict(p, sec="회신") for p in r.get("replies", [])]
         reps.sort(key=lambda p: p.get("at") or "")
         x["replies"] = reps
+        x["last_at"] = last_at(x)
         items.append(x)
-    items.sort(key=lambda x: (x.get("opened_at") or x.get("opened") or ""), reverse=True)
+    items.sort(key=lambda x: x["last_at"], reverse=True)   # 쓰레드형(10/26): 마지막 활동 최신이 먼저
     st = {}
     for x in items:
         st[x["status"]] = st.get(x["status"], 0) + 1

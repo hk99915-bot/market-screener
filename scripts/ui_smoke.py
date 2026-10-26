@@ -76,6 +76,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_macro_bond_top(b, port)
         bad += await check_research_board(b, port)
         bad += await check_msg_popup(b, port)
+        bad += await check_msg_thread(b, port)
         bad += await check_uxui_rest(b, port)
         bad += await check_head_clip(b, port)
         bad += await check_xl(b, port)
@@ -797,6 +798,69 @@ async def check_msg_popup(b, port: int) -> int:
     ok = all(res.values()) and not errs
     print(f"{'OK ' if ok else 'BAD'} 💬팝업(390px) 본문={body}px 머리={head}px " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
           + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return not ok
+
+
+MSG_FIX = {"asof": "2026-10-26 23:00", "status": {"done": 1, "open": 1}, "profiles": [], "items": [
+    {"id": "req-dev-0000000a", "from": "pb", "to": "dev", "text": "옛 요청인데 답이 최근에 옴 " + "가나다 " * 30, "opened_at": "2026-10-20T09:00+09:00",
+     "status": "done", "done_at": "2026-10-26T21:00+09:00", "done_by": "개발", "resolution": "RESO-OK", "last_at": "2026-10-26T21:00+09:00",
+     "replies": [{"by": "dev", "at": "2026-10-20T10:00+09:00", "text": "진행자 메모 1", "voc": False, "sec": "보류"},
+                 {"by": "dev", "at": "2026-10-20T11:00+09:00", "text": "진행자 메모 2", "voc": False, "sec": "보류"},
+                 {"by": "dev", "at": "2026-10-26T20:00+09:00", "text": "VOC 본인 답", "voc": True, "sec": "회신"}]},
+    {"id": "req-data-0000000b", "from": "quant", "to": "data", "text": "새 요청", "opened_at": "2026-10-25T09:00+09:00", "due": "2026-10-24",
+     "status": "open", "last_at": "2026-10-25T09:00+09:00", "replies": []}],
+    "chat": [{"by": "quant", "to": "data", "at": "2026-10-26T10:00+09:00", "text": "원 사담"},
+             {"by": "macro", "at": "2026-10-26T10:30+09:00", "text": "딴 얘기"},
+             {"by": "data", "to": "quant", "at": "2026-10-26T11:00+09:00", "text": "답장 사담", "re": {"by": "quant", "at": "2026-10-26T10:00+09:00", "text": "원 사담"}}]}
+
+
+async def check_msg_thread(b, port: int) -> int:
+    """사내톡 쓰레드형(10/26 겸이 "쓰레드형으로", 390px, 고정 피드 주입):
+    기본 '진행 중' = 열린 요청만 · '전체' = 카드 2개, 마지막 활동순(옛 요청+최근 답이 위) · 카드·세그 높이 40px+ · 가로 넘침 0 ·
+    펼치면 VOC 답글 1·대행 묶음 1(접힘, '데스크 발언 아님')·'✅ 완료 — resolution' · 기한 지난 열린 요청 = '기한 지남' ·
+    💬 사담 세그 = 요청 카드와 분리, re 답장이 원 사담 아래 들여쓰기 · 💬 팝업에서도 카드 렌더."""
+    import json as _json
+    pg = await b.new_page(viewport={"width": 390, "height": 844}, has_touch=True)
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    J = pg.evaluate
+    await pg.route("**/reports/msgr_feed.md*", lambda r: r.fulfill(status=200, content_type="text/plain", body=_json.dumps(MSG_FIX, ensure_ascii=False)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await J("setView('msg')")
+    await pg.wait_for_timeout(2000)
+    OVER = "[...document.querySelectorAll('#root *, #mgpop *')].filter(e=>e.offsetWidth&&e.getBoundingClientRect().right>innerWidth+1).length"
+    res: dict = {}
+    live = await J("[...document.querySelectorAll('#mgbox .mgth')].map(d=>d.dataset.id)")
+    res["기본진행중"] = live == ["req-data-0000000b"] and "기한 지남" in await J("document.querySelector('#mgbox .mgst').textContent")
+    await pg.click("#root [data-mgs='all']")
+    await pg.wait_for_timeout(500)
+    ids = await J("[...document.querySelectorAll('#mgbox .mgth')].map(d=>d.dataset.id)")
+    res["활동순"] = ids == ["req-dev-0000000a", "req-data-0000000b"]
+    res["터치40+"] = await J("[...document.querySelectorAll('#mgbox .mgth>summary, #root .mgseg button, #mgsel')].every(e=>e.getBoundingClientRect().height>=40)")
+    res["넘침없음"] = await J(OVER) == 0
+    await pg.click("#mgbox .mgth >> nth=0 >> summary >> .mgone")
+    await pg.wait_for_timeout(300)
+    th = await J("""(()=>{ const d=document.querySelector('#mgbox .mgth'); const px=d.querySelector('.mgproxy');
+      return {open:d.open, voc:d.querySelectorAll('.mgr').length, px:d.querySelectorAll('.mgproxy').length, pxClosed:!!px&&!px.open,
+        pxLabel:!!px&&/데스크 발언 아님/.test(px.querySelector('summary').textContent), done:((d.querySelector('.mgdone')||{}).textContent||'')}; })()""")
+    res["펼침"] = th["open"] and th["voc"] == 1 and th["px"] == 1 and th["pxClosed"] and th["pxLabel"] and "✅ 완료 — RESO-OK" in th["done"]
+    res["펼침넘침없음"] = await J(OVER) == 0
+    await pg.click("#root [data-mgs='chat']")
+    await pg.wait_for_timeout(500)
+    ch = await J("""(()=>{ const b=document.getElementById('mgbox'); const t=[...b.querySelectorAll('.mgbub')].map(e=>e.textContent);
+      const k=b.querySelector('.mgch'); return {req:b.querySelectorAll('.mgth[data-id^="req-"]').length, order:t, nested:!!k&&/답장 사담/.test(k.textContent)}; })()""")
+    res["사담분리"] = ch["req"] == 0 and ch["order"] == ["원 사담", "답장 사담", "딴 얘기"] and ch["nested"]
+    await J("MGS='live'; setView('home')")
+    await pg.wait_for_timeout(1200)
+    await J("mgPop(true)")
+    await pg.wait_for_timeout(800)
+    pop = await J("[document.querySelectorAll('#mgpop .mgth').length, [...document.querySelectorAll('#mgpop *')].filter(e=>e.offsetWidth&&e.getBoundingClientRect().right>innerWidth+1).length]")
+    res["팝업카드"] = pop == [1, 0]
+    ok = all(res.values()) and not errs
+    print(f"{'OK ' if ok else 'BAD'} 사내톡 쓰레드(390px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
+          + ("" if ok else f" · live={live} ids={ids} th={th} ch={ch}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await pg.close()
     return not ok
 

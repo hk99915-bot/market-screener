@@ -56,3 +56,13 @@ def test_chat_line_limits_and_feed():
             pass
     f = msgr_feed.build(L, Path("/nonexistent"), NOW)
     assert f["chat"][-1]["by"] == "quant"
+
+
+def test_thread_last_at_orders_by_latest_activity(tmp_path):
+    """쓰레드형(10/26 겸이 "쓰레드형으로"): 카드 정렬 = 마지막 활동(회신·완료 포함) 내림차순 — 늦게 연 요청보다 최근 답이 온 옛 요청이 위."""
+    L, _ = ask.reply(_ledger(), "req-dev-aaaaaaaa", "개발", "올렸어", True, NOW)   # 10/22 요청에 10/23 17:00 답
+    L["requests"][1]["done_at"] = "2026-10-23T13:00+09:00"
+    f = msgr_feed.build(L, tmp_path, NOW)
+    assert [x["id"] for x in f["items"]] == ["req-dev-aaaaaaaa", "req-data-bbbbbbbb"]
+    assert f["items"][0]["last_at"].startswith("2026-10-23T17:00") and f["items"][1]["last_at"] == "2026-10-23T13:00+09:00"
+    assert msgr_feed.last_at({"opened": "2026-10-20", "replies": []}) == "2026-10-20"   # opened_at 없는 옛 요청
