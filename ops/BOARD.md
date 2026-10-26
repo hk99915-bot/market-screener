@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-26 · 작업 293개 · 진행 8 · 검수 11 · 대기 88 · 보류 23 · 완료 163
+기준일 2026-10-26 · 작업 294개 · 진행 8 · 검수 11 · 대기 89 · 보류 23 · 완료 163
 
 **결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
 
@@ -37,7 +37,7 @@
 | P2 ⏫P1 10-21 | `quiz-key-balance` | 문제은행 품질: 정답 위치 셔플(1번 115/125) + why 한 문장(태그만 100/125) + 검증기 경고(모듈 내 같은 위치 >3·태그만 why) | 교육 | — | 2026-10-31 | `content/study/quiz_bank.json`<br>`scripts/study_content_check.py`<br>`tests/test_study_content.py` | `study-progress` | 교육 라운드1 평가 절(docs/desk_kb/rounds/2026-10-17/edu.md). 교육 = H·R·D 트랙 셔플·why, 평가 = Q·M 트랙 + 검증기. duel.pick=answer 125/125 → 데스크가 틀리는 문항 10~20%는 별도 논의. 금액·보유 없음. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 셔플·검증기 분포 규칙은 78b05b61 로 끝. why 한 문장(태그만 문항) 보강 |
 | P2 | `realestate-private-viewer` | 부동산 탭에 '내 계획(비공개)' 보기: 토큰 입력 시 pb-private 부동산 보고서(가능 범위·추천 1·2·3순위·내 집 마련 프로필)를 웹에서 열람 | 프론트 | 2026-10-25 | 2026-11-07 | `apps-script/tab_realestate.html`<br>`apps-script/tab_life.html` | — | 10/25 겸이 '부동산 계획, 내 프라이빗한 거 웹상에서도 토큰만 넣으면 보고서 볼 수 있게'. 기존 패턴 재사용: LIFE 탭 pbGet(path)+읽기 전용 토큰 localStorage(저장소·서버로 안 감, tab_life.html·tab_my.html). 열람 대상(비공개, 런타임에 읽기만 — 공개 저장소엔 복사 금지): household/reports/home_capacity_*.md, realestate/reco_*.md, study/home_buying_profile.md. 필요: ① 간단 md 렌더러(표·제목·목록) ② 토큰 미입력 시 잠금 안내 ③ 읽기 전용 fine-grained 토큰(pb-private contents:read) — 겸이가 직접 발급·브라우저에만 입력, 채팅으로 주지 않음 ④ 모바일 390px 확인(UI 스모크). 보고서 형식은 report-format-rollout(What/So What/근거/Now What) 적용 후 가장 읽기 좋음. 화 10/27 11시 이후 'ㄱㄱ' 뒤. |
 
-## 대기 (88)
+## 대기 (89)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -122,6 +122,7 @@
 | P2 | `appr-staffing-b-1107` | 겸이 결재 필요(11/07): 데이터 엔지니어(B) 채용 판정 — 데이터 승격 ≤4·개발 미결 ≤12 이면 미채용(대안 유지), 아니면 채용 | 사용자 | — | 2026-11-01 | `docs/desk_kb/rounds/2026-10-24/pm_staffing.md` | — | 10/24 겸이 충원 3번 — PM 판정 기준. 11/07 PM이 숫자 측정 후 결재 올림 / 10/25 겸이 '데이터 28 데이터 엔지니어 뽑아야겠네' → 채용 방향 확정(11/07 판정 기다리지 않음). 근거: 데이터 앞 승격 요청 18건(기준 ≤4 초과)·열린 요청 28건. PM이 채용(데이터 엔지니어 B 신설) 절차·페르소나·담당 범위(수집 구현 vs 데이터 누나 분업)·Pro 이후 토큰 영향을 정리해 목표 11/01 전 보고. 개발 미결도 함께 측정. |
 | P2 ⏫P1 10-21 | `pro-plan-round-scale` | Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·우선 데스크, 21:10 자동 라운드 교체 | PM | — | 2026-11-05 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17. |
 | P2 ⏫P1 10-21 | `token-meter-real-usage` | 에이전트 토큰 실측 기록 — team_run 에 transcript 누적(calls·cache_read·신규) 옵션 + team_stats 데스크×모델 표 | 개발 | — | 2026-11-05 | `scripts/team_run.py`<br>`scripts/team_stats.py`<br>`tests/test_team_stats.py` | — | 내무 요청(10/17 토큰 원가센터). 10/17 대조: runs.tokens 는 마지막 호출 컨텍스트 크기에 가까워 실제 누적 처리량의 약 1/30, 기록 누락도 있음(10/16 실측 37건 vs 기록 5건). team_run.py --transcript <agent jsonl> 로 message.id 중복 제거 합산 → runs 에 calls·cache_read·new 추가(기존 tokens 유지). team_stats by_owner_model 추가. 금액은 넣지 않음(토큰·건수만). pro-plan-round-scale(11/5) 입력. |
+| P2 | `rt-deriv-flow-plan` | 장중 파생 수급(헤지 vs 실수요) 수집 기획 — 1단계 네이버 dealTrendInfo 장중 N분 스냅샷 탐침, 2단계 KIS 주식선물 웹소켓(조건부) | 데이터 | — | 2026-11-06 | `docs/desk_kb/rounds/2026-10-26/research_realtime_deriv.md` | — | 리서치 완료(10/26). 오너 결재 대기: (1) 장중 탐침 승인 (2) 금융위 V2·KRX 재배포 약관 점검 (3) KIS 계좌·약관 확인은 오너 몫. 한도 초기화 후 ㄱㄱ. |
 | P2 ⏫P1 10-21 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
 | P2 ⏫P1 10-21 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |
 | P2 ⏫P1 10-21 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
