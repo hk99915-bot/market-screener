@@ -109,6 +109,7 @@ function getMacroCmdty() { return raw_('reports/views/macro_cmdty.json'); }   //
 function getRealEstate() { return raw_('reports/realestate.json'); }   // MARKET › 부동산 (screener/realestate.py, 부동산 10/23)
 function getRealEstateView() { return raw_('reports/views/realestate.json'); }   // MARKET › 부동산 데스크 해석
 function getRealEstateGu(cd) { if (!/^\d{5}$/.test(String(cd))) throw new Error('구 코드 형식 아님'); return raw_('reports/realestate_trades/' + cd + '.json'); }   // 부동산 드릴다운(구→동→단지, 10/26)
+function getRealEstateGeo(k) { if (!/^(\d{5}|seoul)$/.test(String(k))) throw new Error('지도 키 형식 아님'); return raw_('assets/realestate_geo/' + k + '.json'); }   // 부동산 지도 줌(서울 하천·구별 법정동 경계, 10/26)
 function getOneliners() { return raw_('reports/company_oneliner.json'); }   // 종목 상세 머리 한 줄 설명 (screener/oneliner.py, 데이터 10/24)
 function getGeoNews() { return raw_('reports/geo_news.json'); }   // MARKET › MACRO 지정학 축 '최근 뉴스' (screener/geo_news.py, 데이터 10/23 — 자동 수집)
 function getChainSeries() { return raw_('reports/chains.json'); }

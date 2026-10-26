@@ -78,6 +78,7 @@ SHIM = """<script>
     getRealEstate: () => get('reports/realestate.json'),
     getRealEstateView: () => get('reports/views/realestate.json'),
     getRealEstateGu: c => /^[0-9]{5}$/.test(String(c)) ? get('reports/realestate_trades/' + c + '.json') : Promise.reject(new Error('bad gu code')),
+    getRealEstateGeo: c => /^([0-9]{5}|seoul)$/.test(String(c)) ? raw('assets/realestate_geo/' + c + '.json') : Promise.reject(new Error('bad geo key')),
     getGeoNews: () => get('reports/geo_news.json'),
     getOneliners: () => get('reports/company_oneliner.json'),
     getChainSeries: () => get('reports/chains.json'),

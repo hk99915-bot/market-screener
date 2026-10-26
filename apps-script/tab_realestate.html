@@ -24,9 +24,17 @@
 .remapbox path{stroke:var(--line);stroke-width:.6;vector-effect:non-scaling-stroke;cursor:pointer;outline:none}
 .remapbox path:hover,.remapbox path:focus-visible{stroke:var(--txt);stroke-width:2}
 .remapbox path.on{stroke:var(--amber);stroke-width:2.5}
-.relab{position:absolute;transform:translate(-50%,-50%);pointer-events:none;font-size:var(--fs-1);line-height:1.15;text-align:center;color:var(--txt);white-space:nowrap;text-shadow:0 0 2px var(--bg),0 0 2px var(--bg),0 0 3px var(--bg)}
-.relab i{display:none;font-style:normal;font-weight:700}
-@media (min-width:701px){.relab i{display:block}}
+.remapbox path.dim{opacity:.45}
+.remapbox path.zsel{stroke:none}
+.remapbox circle.recx{fill:var(--amber);stroke:var(--bg);stroke-width:1.5;vector-effect:non-scaling-stroke;cursor:pointer;outline:none}
+.remapbox circle.recx.on,.remapbox circle.recx:focus-visible{fill:var(--up);stroke:var(--txt)}   /* 확대 중 선택 구: 구 경계(geoBoundaries 단순화)와 법정동 경계(juso)가 조금 어긋나 구 외곽선은 숨기고 동 경계만 */
+.remapbox path.reriv{fill:none;stroke:var(--blue);stroke-linecap:round;stroke-linejoin:round;opacity:.55;vector-effect:none;pointer-events:none;cursor:default}
+.remapbox path.redg{stroke:var(--muted)}
+.remapbox text{pointer-events:none;fill:var(--txt);text-anchor:middle;dominant-baseline:middle;paint-order:stroke;stroke:var(--bg);stroke-linejoin:round}
+.remapbox text .rv{font-weight:700}
+.remapbox text.thin{fill:var(--muted)}
+@media (max-width:700px){.remapbox text .rv.s0{display:none}}
+.remhint{font-size:var(--fs-1);margin:2px 0 4px;white-space:normal}
 .relegend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:var(--fs-1);margin-top:4px}
 .relegend b{display:inline-block;width:12px;height:12px;border:1px solid var(--line);vertical-align:-2px;margin-right:3px}
 .regu{border:1px solid var(--line);background:var(--bg3);padding:8px 10px;white-space:normal;min-width:0}
@@ -128,23 +136,83 @@ function reGuRows(J,V){
   });
   return {rows, live, T};
 }
+/* ───── 지도 줌: 서울 → 구 → 법정동 (10/26 겸이 "동·단지 세부가 지도에도, 점점 확대 같은 느낌, 한강도"). 경계 = assets/realestate_geo/<구코드>.json
+   (법정동 — southkorea/seoul-maps Apache-2.0, 원자료 juso 2015 · RTMS umdNm 과 이름 매칭), 하천 = assets/realestate_geo/seoul.json(OSM ODbL). screener/realestate_geo_zoom.py.
+   뷰박스 애니메이션 · 동 색 = 거래 수/중위가(n<3 회색 + 건수) · 단지 점 = 좌표 자료 연결 전이라 생략(지어내지 않음 — 아래 단지 목록이 보조). ───── */
+const RE_GEO={}; let RE_DM='n', RE_VB=null;
+const RE_DMET={n:{nm:'거래 수',cuts:[5,15,40],lab:['5건 미만','5~15건','15~40건','40건 이상'],v:x=>x.n,fmt:v=>v+'건'},
+  med:{nm:'중위가',cuts:[7,12,20],lab:['7억 미만','7~12억','12~20억','20억 이상'],v:x=>x.med,fmt:v=>reEok(v)}};
+function reGeoLoad(k){ if(RE_GEO[k]!==undefined) return; RE_GEO[k]=false;
+  google.script.run.withSuccessHandler(t=>{ try{ const o=JSON.parse(t); RE_GEO[k]=(o&&typeof o==='object')?o:'err'; }catch(e){ RE_GEO[k]='err'; } if(view==='re') render(); })
+    .withFailureHandler(()=>{ RE_GEO[k]='err'; if(view==='re') render(); }).getRealEstateGeo(k); }
+function reGeo(k){ const o=RE_GEO[k]; return (o&&typeof o==='object')?o:null; }
+function reBB(d){ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; const n=(String(d).match(/-?\d+(\.\d+)?/g)||[]).map(Number);
+  for(let i=0;i+1<n.length;i+=2){ x0=Math.min(x0,n[i]); x1=Math.max(x1,n[i]); y0=Math.min(y0,n[i+1]); y1=Math.max(y1,n[i+1]); } return [x0,y0,x1,y1]; }
+function reFit(bb,ar,padF){   // bb(x0,y0,x1,y1)를 화면 비율 ar(=W/H)로 넓힌 viewBox [x,y,w,h]
+  let x0=bb[0], y0=bb[1], w=bb[2]-bb[0], h=bb[3]-bb[1]; const p=Math.max(w,h)*padF; x0-=p; y0-=p; w+=2*p; h+=2*p;
+  if(w/h>ar){ const nh=w/ar; y0-=(nh-h)/2; h=nh; } else { const nw=h*ar; x0-=(nw-w)/2; w=nw; } return [x0,y0,w,h]; }
+function reDongG(nm){ RE_DONG=(RE_DONG===nm?null:nm); RE_CX=null; render(); }
+function reCxN(nm){ RE_CX=(RE_CX===nm?null:nm); render(); const e=document.querySelector('#redr .recxd'); if(e&&e.scrollIntoView) e.scrollIntoView({block:'nearest'}); }
+function reDKey(e,nm){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); reDongG(nm); } }
+function reDMetric(m){ RE_DM=m; render(); }
+function reAnim(to){ const s=document.getElementById('rezsvg'); if(!s) return; const from=RE_VB||to; RE_VB=to;
+  const still=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||from.every((v,i)=>Math.abs(v-to[i])<0.01);
+  if(still){ s.setAttribute('viewBox',to.map(v=>v.toFixed(2)).join(' ')); return; }
+  const t0=performance.now(), D=420;
+  const step=t=>{ if(!s.isConnected) return; const k=Math.min(1,(t-t0)/D), e=1-Math.pow(1-k,3);
+    s.setAttribute('viewBox',from.map((v,i)=>(v+(to[i]-v)*e).toFixed(2)).join(' ')); if(k<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step); }
+function reZoomMap(areas,rows,M,fill,bin){
+  reGeoLoad('seoul');
+  const SG=reGeo('seoul'), sel=RE_SEL&&areas.find(a=>a.id===RE_SEL), gcd=sel&&SG&&(SG.gu||{})[RE_SEL];
+  if(gcd) reGeoLoad(gcd);
+  const DG=gcd?reGeo(gcd):null, TD=reCur(), dv={}; ((TD&&TD.dongs)||[]).forEach(x=>{ dv[x.name]=x; });
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; areas.forEach(a=>{ const b=reBB(a.d); x0=Math.min(x0,b[0]); y0=Math.min(y0,b[1]); x1=Math.max(x1,b[2]); y1=Math.max(y1,b[3]); });
+  const pad=2, base=[x0-pad,y0-pad,(x1-x0)+pad*2,(y1-y0)+pad*2], ar=base[2]/base[3];
+  const dsel=RE_DONG&&DG&&(DG.dongs||[]).find(d=>d.name===RE_DONG);
+  const gbb=DG&&(DG.dongs||[]).length?reBB(DG.dongs.map(d=>d.d).join('')):(sel?reBB(sel.d):null);   // 구 확대 범위 = 법정동 경계 합(있으면) — 구 경계 단순화와 어긋남 방지
+  const vb=dsel?reFit(reBB(dsel.d),ar,.35):(sel?reFit(gbb,ar,.04):base);
+  const lv=dsel?'dong':(sel?'gu':'seoul'), fs=vb[2]*(lv==='seoul'?0.028:0.034);
+  const DM=RE_DMET[RE_DM], dbin=v=>{ if(v==null) return -1; let i=0; while(i<DM.cuts.length&&v>=DM.cuts[i]) i++; return i; };
+  const dfill=i=>i<0?'var(--bg2)':`color-mix(in srgb, var(--ch2) ${[15,38,62,85][i]}%, var(--bg))`;
+  const val=r=>r?r[RE_M]:null, short=id=>id==='중구'?'중구':id.replace(/구$/,'');
+  const gus=areas.map(a=>{ const r=rows[a.id], v=val(r), on=RE_SEL===a.id, f=lv==='seoul'?fill(bin(v)):(on?'transparent':'var(--bg2)');
+    return `<path d="${a.d}" fill="${f}" class="${on?(lv==='seoul'?'on':'zsel'):(lv!=='seoul'?'dim':'')}" tabindex="0" role="button" aria-pressed="${on}" aria-label="${esc(a.id)} ${esc(M.nm)} ${v==null?'미확인':esc(M.fmt(v))}" onclick="reSel('${esc(a.id)}')" onkeydown="reKey(event,'${esc(a.id)}')"><title>${esc(a.id)} · ${v==null?'미확인':esc(M.fmt(v))}</title></path>`; }).join('');
+  const riv=((SG&&SG.rivers)||[]).map(r=>`<path class="reriv" d="${r.d}" style="stroke-width:${Number(r.w)||0.5}"><title>${esc(r.name)}</title></path>`).join('');
+  const dongs=(DG&&DG.dongs)||[];
+  const dpaths=dongs.map(d=>{ const x=dv[d.name], v=x?DM.v(x):null, few=!x||(x.n||0)<3, on=RE_DONG===d.name;
+    return `<path d="${d.d}" fill="${few?'var(--bg2)':dfill(dbin(v))}" class="redg${on?' on':(RE_DONG?' dim':'')}" data-dong="${esc(d.name)}" tabindex="0" role="button" aria-pressed="${on}" aria-label="${esc(d.name)} ${x?('매매 '+x.n+'건 · 중위 '+esc(reEok(x.med))):'거래 자료 없음'}" onclick="reDongG('${esc(d.name)}')" onkeydown="reDKey(event,'${esc(d.name)}')"><title>${esc(d.name)} · ${x?x.n+'건':'자료 없음'}</title></path>`; }).join('');
+  const tx=(x,y,nm,v,cls,sz)=>`<text x="${x}" y="${y}" font-size="${sz.toFixed(2)}" stroke-width="${(sz*0.22).toFixed(2)}"${cls?` class="${cls}"`:''}>${esc(nm)}${v!=null?`<tspan x="${x}" dy="1.1em" class="rv ${lv==='seoul'?'s0':''}">${esc(v)}</tspan>`:''}</text>`;
+  const labs=lv==='seoul'?areas.map(a=>{ const v=val(rows[a.id]); return tx(a.cx,a.cy,short(a.id),v==null?null:M.fmt(v),'',fs); }).join('')
+    :dongs.map(d=>{ const x=dv[d.name], few=x&&(x.n||0)<3, v=x?(few?x.n+'건':DM.fmt(DM.v(x))):null; return tx(d.cx,d.cy,d.name.replace(/동$/,'')||d.name,v,(RE_DONG&&RE_DONG!==d.name)?'thin':'',fs*(RE_DONG&&RE_DONG!==d.name?0.7:1)); }).join('');
+  const pp=SG&&SG.pp, cxs=(dsel&&pp&&TD?(TD.complexes||[]).filter(c=>c.dong===RE_DONG&&c.lon!=null&&c.lat!=null):[]);
+  const dots=cxs.map(c=>{ const x=(c.lon*pp.k-pp.x0)*pp.s, y=(-c.lat-pp.y0)*pp.s, on=RE_CX===c.name;
+    return `<circle class="recx${on?' on':''}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${(vb[2]*(on?0.024:0.017)).toFixed(3)}" tabindex="0" role="button" aria-pressed="${on}" data-cx="${esc(c.name)}" aria-label="${esc(c.name)} 매매 ${c.n}건 중위 ${esc(reEok(c.med))}" onclick="reCxN(this.dataset.cx)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();reCxN(this.dataset.cx)}"><title>${esc(c.name)} · ${c.n}건 · ${esc(reEok(c.med))}</title></circle>`; }).join('');
+  setTimeout(()=>reAnim(vb),0);
+  const svg=`<svg id="rezsvg" viewBox="${(RE_VB||vb).map(v=>v.toFixed(2)).join(' ')}" data-lv="${lv}" role="group" aria-label="서울 부동산 지도 — ${lv==='seoul'?'25개 구':esc(RE_SEL)+(dsel?' '+esc(RE_DONG):'')} · 표시 전용, 매매 신호 아님">${gus}${dpaths}${riv}${labs}${dots}</svg>`;
+  const crumb=`<nav class="recrumb" aria-label="지도 위치"><button type="button" onclick="reGo('seoul')"${lv==='seoul'?' aria-current="true"':''}>서울</button>${sel?`›<button type="button" onclick="reGo('gu')"${lv==='gu'?' aria-current="true"':''}>${esc(RE_SEL)}</button>`:''}${dsel?`›<b>${esc(RE_DONG)}</b>`:''}${lv!=='seoul'?` <button type="button" class="retog" onclick="reGo('${lv==='dong'?'gu':'seoul'}')" aria-label="한 단계 위로">← 뒤로</button>`:''}</nav>`;
+  const st=lv==='seoul'?'구를 누르면 그 구로 확대 → 법정동 → 동을 누르면 동으로 확대'
+    :(!gcd?'구 코드 확인 중…':(RE_GEO[gcd]==='err'?`${esc(RE_SEL)} 동 경계를 못 읽었어요 — <a href="#" onclick="delete RE_GEO['${esc(gcd)}'];render();return false">다시 시도</a>`
+    :(!DG?'동 경계 불러오는 중…':(TD?`동 색 = ${esc(DM.nm)} · 3건 미만 회색(건수 표시) · 동을 누르면 확대`:'동 경계만 — 동별 거래는 실거래 수집(국토부 RTMS, 하루 1회) 뒤에 색이 들어가요'))));
+  const cx=lv!=='dong'?'':(cxs.length?`<br>단지 점 ${cxs.length}곳 — 누르면 아래에 최근 거래 · ${esc(TD.coords_src||'단지 위치: 브이월드 연속지적도 필지 중심점')}`
+    :'<br>단지 위치 점: 좌표 캐시 없음(브이월드 키 등록 전이거나 지번 매칭 실패) — 아래 단지 목록에서 고르면 최근 거래가 나와요.');
+  const dleg=lv==='seoul'?'':`<div class="retogs" role="group" aria-label="동 색 기준">${Object.entries(RE_DMET).map(([k,m])=>`<button type="button" class="retog${k===RE_DM?' on':''}" aria-pressed="${k===RE_DM}" onclick="reDMetric('${k}')">${esc(m.nm)}</button>`).join('')}</div>
+    <div class="relegend">${DM.lab.map((l,i)=>`<span><b style="background:${dfill(i)}"></b>${esc(l)}</span>`).join('')}<span><b style="background:var(--bg2)"></b>3건 미만·자료 없음</span></div>`;
+  const dcard=dsel?(()=>{ const x=dv[RE_DONG]; return `<div class="regu"><div style="font-size:var(--fs-3);font-weight:700">${esc(RE_DONG)} <span class="mu" style="font-size:var(--fs-2)">${esc(RE_SEL)} · 법정동</span></div>
+      ${x?`<table class="regt"><tr><td>매매(취소 제외)</td><td>${x.n}건</td></tr><tr><td>중위</td><td>${reEok(x.med)}</td></tr><tr><td>59㎡ 중위</td><td>${reEok(x.p59)}${x.n59?` <span class="mu">n ${x.n59}</span>`:''}</td></tr>
+      <tr><td>84㎡ 중위</td><td>${reEok(x.p84)}${x.n84?` <span class="mu">n ${x.n84}</span>`:''}</td></tr><tr><td>전세</td><td>${x.n_jeonse||0}건</td></tr><tr><td>단지</td><td>${x.n_cx||0}곳</td></tr></table>${x.n<3?'<div class="am" style="font-size:var(--fs-1)">거래 3건 미만 — 중위가 대표성 낮음</div>':''}`
+      :'<div class="mu" style="font-size:var(--fs-2)">이 동 거래 자료 없음(수집 전이거나 이 기간 거래 0)</div>'}</div>`; })():null;
+  return {svg, crumb, hint:`<div class="mu remhint">${st}${cx}</div>`, dleg, dcard, lv};
+}
 function reSeoulMap(J,V){
   const G=((J.regions||{}).geo||{}), areas=(G.areas||[]).filter(a=>a.sido==='서울');
   const {rows, live, T}=reGuRows(J,V);
-  if(!Object.keys(rows).length) return '';
   const M=RE_MET[RE_M], key=RE_M, nb=M.cuts.length+1, pct=nb===3?[18,50,85]:[15,38,62,85];
   const bin=v=>{ if(v==null) return -1; let i=0; while(i<M.cuts.length&&v>=M.cuts[i]) i++; return i; };
   const fill=i=>i<0?'var(--bg2)':`color-mix(in srgb, var(--ch1) ${pct[i]}%, var(--bg))`;
-  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-  areas.forEach(a=>{ const n=(a.d.match(/-?\d+(\.\d+)?/g)||[]).map(Number); for(let i=0;i+1<n.length;i+=2){ x0=Math.min(x0,n[i]); x1=Math.max(x1,n[i]); y0=Math.min(y0,n[i+1]); y1=Math.max(y1,n[i+1]); } });
-  const pad=2, W=(x1-x0)+pad*2, H=(y1-y0)+pad*2;
-  const short=id=>id==='중구'?'중구':id.replace(/구$/,'');
-  const val=(r)=>r?r[key]:null;
-  const svg=areas.length?`<svg viewBox="${(x0-pad).toFixed(1)} ${(y0-pad).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" role="group" aria-label="서울 25개 구 지도 — ${esc(M.nm)}">${areas.map(a=>{ const r=rows[a.id], v=val(r);
-      return `<path d="${a.d}" fill="${fill(bin(v))}" class="${RE_SEL===a.id?'on':''}" tabindex="0" role="button" aria-pressed="${RE_SEL===a.id}" aria-label="${esc(a.id)} ${esc(M.nm)} ${v==null?'미확인':esc(M.fmt(v))}" onclick="reSel('${esc(a.id)}')" onkeydown="reKey(event,'${esc(a.id)}')"><title>${esc(a.id)} · ${v==null?'미확인':esc(M.fmt(v))}</title></path>`; }).join('')}</svg>
-    ${areas.map(a=>{ const r=rows[a.id], v=val(r); return `<span class="relab" style="left:${((a.cx-x0+pad)/W*100).toFixed(1)}%;top:${((a.cy-y0+pad)/H*100).toFixed(1)}%">${esc(short(a.id))}<i>${v==null?'—':esc(M.fmt(v))}</i></span>`; }).join('')}`
-    :'<div class="mu" style="font-size:var(--fs-2)">지도 경계 없음 — python -m screener.realestate_geo 로 재생성</div>';
-  const legend=`<div class="relegend">${M.lab.map((l,i)=>`<span><b style="background:${fill(i)}"></b>${esc(l)}</span>`).join('')}<span><b style="background:var(--bg2)"></b>미확인</span></div>`;
+  const Z=areas.length?reZoomMap(areas,rows,M,fill,bin):null;
+  const svg=Z?Z.svg:'<div class="mu" style="font-size:var(--fs-2)">지도 경계 없음 — python -m screener.realestate_geo 로 재생성</div>';
+  const legend=Z&&Z.lv!=='seoul'?Z.dleg:`<div class="relegend">${M.lab.map((l,i)=>`<span><b style="background:${fill(i)}"></b>${esc(l)}</span>`).join('')}<span><b style="background:var(--bg2)"></b>미확인</span></div>`;
   const tog=Object.entries(RE_MET).map(([k,m])=>`<button type="button" class="retog${k===RE_M?' on':''}" aria-pressed="${k===RE_M}" onclick="reMetric('${k}')">${esc(m.nm.split('(')[0])}</button>`).join('');
   const f=(v,u)=>v==null?'—':(u==='억'?v.toFixed(2)+'억':Math.round(v)+u);
   const s=RE_SEL&&rows[RE_SEL];
@@ -159,10 +227,10 @@ function reSeoulMap(J,V){
   const table=`<details><summary class="mu" style="font-size:var(--fs-2)">표로 보기 · ${ids.length}개 구</summary><div style="overflow-x:auto"><table class="regt wide"><tr><th>구</th><th>59㎡ 중위</th><th>84㎡ 중위</th><th>84㎡ 하위25%</th><th>전세가율</th><th>구축</th><th>n</th><th>진입</th></tr>${ids.map(i=>{ const r=rows[i]; return `<tr><td><a href="#" onclick="reSel('${esc(i)}');return false">${esc(i)}</a></td><td>${f(r.p59,'억')}</td><td>${f(r.p84,'억')}</td><td>${f(r.q1,'억')}</td><td>${f(r.jr,'%')}</td><td>${f(r.old,'%')}</td><td>${r.n??'—'}</td><td>${esc(r.entry||'—')}</td></tr>`; }).join('')}</table></div></details>`;
   const src=live?`숫자 = ${esc(T.src||'국토부 RTMS')} · ${esc(T.period||'')} · 수집 ${esc(T.asof||'')} · 성공 ${T.n_ok??'—'}/${T.n_total??25}개 구${(T.failed||[]).length?` · 실패 ${esc(T.failed.map(x=>x.id).join('·'))}`:''}`
     :`숫자 = 데스크 문서(docs/realestate/2026-10-24_seoul_trades.md · 국토부 RTMS 2026-07~09) — 자동 수집 ${esc(T.status||'대기')}`;
-  return `<h3 style="font-size:var(--fs-2);margin:12px 0 2px;color:var(--amber)">서울 25개 구 실거래 <span class="mu" style="font-size:var(--fs-1)">${live?'국토부 1차 · 자동':'데스크 문서 수치'}</span></h3>
+  return `<h3 style="font-size:var(--fs-2);margin:12px 0 2px;color:var(--amber)">서울 실거래 지도 · 구 → 동 확대 <span class="mu" style="font-size:var(--fs-1)">${live?'국토부 1차 · 자동':'데스크 문서 수치'}</span></h3>
     <div class="retogs" role="group" aria-label="지도 색 기준">${tog}</div>
-    <div class="remap"><div><div class="remapbox">${svg}</div>${legend}</div>${card}</div>${live?reDrill(J):''}${table}
-    <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">${src} · ${esc((V.district_takes||{})._entry_rule||T.entry_rule||'')} · 한 줄·장단점 = 부동산 데스크(views) · ${esc(((G.source||{}).attribution)||'')} · 표시 전용, 매매 신호 아님</div>`;
+    ${Z?Z.crumb:''}<div class="remap"><div><div class="remapbox">${svg}</div>${Z?Z.hint:''}${legend}</div>${(Z&&Z.dcard)||card}</div>${live?reDrill(J):''}${table}
+    <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">${src} · ${esc((V.district_takes||{})._entry_rule||T.entry_rule||'')} · 한 줄·장단점 = 부동산 데스크(views) · ${esc(((G.source||{}).attribution)||'')}${(reGeo('seoul')||{}).src?' · '+esc(reGeo('seoul').src.attribution||''):''} · 표시 전용, 매매 신호 아님</div>`;
 }
 /* 장기 뷰(부동산 데스크 10/24, docs/realestate/2026-10-24_long_view.md) — views.long_view 그대로 렌더. 확률은 '주관' 배지(데스크 판단, 모형 아님) */
 function reLongView(V){

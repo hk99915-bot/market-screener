@@ -102,7 +102,7 @@ def _area(r: list[tuple[float, float]]) -> float:
     return abs(sum(r[i][0] * r[i - 1][1] - r[i - 1][0] * r[i][1] for i in range(len(r)))) / 2
 
 
-def build_asset(src: dict) -> dict:
+def _pick(src: dict) -> list[tuple[str, str, dict]]:
     picked = []
     for f in src["features"]:
         en = re.sub(r"\s*\[.*\]$", "", f["properties"].get("shapeName", ""))   # 'Jung-gu [Central District]' → 'Jung-gu'
@@ -117,12 +117,24 @@ def build_asset(src: dict) -> dict:
     names = [p[0] for p in picked]
     if len(set(names)) != len(names) or len(picked) != len(SEOUL) + len(GYEONGGI) + len(INCHEON):
         raise ValueError(f"영역 수 불일치: {len(picked)} (중복 {[n for n in names if names.count(n) > 1]})")
+    return picked
+
+
+def projection(src: dict, picked: list | None = None):
+    """(x0, y0, s, H), proj(lon, lat) → (x, y) viewBox 단위. 줌 자산(realestate_geo_zoom)이 같은 좌표계를 쓰려고 분리(10/26)."""
+    picked = picked if picked is not None else _pick(src)
     k = math.cos(math.radians(LAT0))
     allp = [(p[0] * k, -p[1]) for _, _, g in picked for r in _rings(g) for p in r]
     x0, x1 = min(p[0] for p in allp), max(p[0] for p in allp)
     y0, y1 = min(p[1] for p in allp), max(p[1] for p in allp)
     s = W / (x1 - x0)
-    H = round((y1 - y0) * s, 1)
+    return (x0, y0, s, round((y1 - y0) * s, 1)), (lambda lon, lat: ((lon * k - x0) * s, (-lat - y0) * s))
+
+
+def build_asset(src: dict) -> dict:
+    picked = _pick(src)
+    (x0, y0, s, H), _ = projection(src, picked)
+    k = math.cos(math.radians(LAT0))
     areas = []
     for ko, sido, g in picked:
         parts, cx, cy, n = [], 0.0, 0.0, 0

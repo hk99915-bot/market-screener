@@ -64,6 +64,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_my_ledger(b, port)
         bad += await check_re_private(b, port)
         bad += await check_re_drill(b, port)
+        bad += await check_re_zoom(b, port)
         bad += await check_cmt_us(b, port)
         bad += await check_score(b, port)
         bad += await check_eng(b, port)
@@ -535,6 +536,104 @@ async def check_re_drill(b, port: int) -> int:
         print(f"{'OK ' if ok else 'BAD'} 부동산드릴다운({w}px) " + " ".join(f"{k}={'O' if (not v if k == 'over' else v) else 'X'}" for k, v in r.items())
               + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await pg.close()
+    return bad
+
+
+FAKE_RE_ZOOM_GU = {"schema": 1, "gu": "강남구", "code": "11680", "period": "2026-07~2026-09",
+                   "dongs": [{"name": "역삼동", "n": 20, "n_cancel": 0, "n_jeonse": 5, "med": 18.5, "p59": 15.0, "n59": 6, "p84": 21.0, "n84": 9, "n_cx": 4},
+                             {"name": "대치동", "n": 2, "n_cancel": 0, "n_jeonse": 1, "med": 30.0, "p59": None, "n59": 0, "p84": 30.0, "n84": 2, "n_cx": 1}],
+                   "complexes": [{"dong": "역삼동", "name": "가짜단지", "by": 2005, "n": 3, "n_cancel": 0, "n_jeonse": 1, "med": 18.0, "last_d": "2026-09-10",
+                                  "areas": [], "recent": [{"d": "2026-09-10", "fl": "7", "a": 84.9, "p": 19.0}]}]}
+
+
+async def check_re_zoom(b, port: int) -> int:
+    """부동산 지도 줌(10/26 겸이 "지도 자체가 점점 확대, 한강도"): 서울(구 25·하천 선) → 구 클릭 뷰박스 확대 + 법정동 경계(강남 14)
+    → 동 색(n<3 회색·'2건' 표시) → 동 클릭 더 확대·동 카드 → 빵부스러기/뒤로 원복. 실거래 없음(수집 전)에서도 경계·줌 동작. 390px 터치 · 1300px, 가로 넘침 없음."""
+    import json as _j
+    J0 = _j.loads((ROOT / "reports/realestate.json").read_text(encoding="utf-8"))
+    G = _j.loads((ROOT / "assets/realestate_geo/seoul.json").read_text(encoding="utf-8"))["pp"]
+    ys = next(d for d in _j.loads((ROOT / "assets/realestate_geo/11680.json").read_text(encoding="utf-8"))["dongs"] if d["name"] == "역삼동")
+    FAKE_RE_ZOOM_GU["complexes"][0].update(lon=round((ys["cx"] / G["s"] + G["x0"]) / G["k"], 5), lat=round(-(ys["cy"] / G["s"] + G["y0"]), 5))
+    bad = 0
+    for live in (True, False):
+        J = _j.loads(_j.dumps(J0))
+        T = J.setdefault("seoul_trades", {})
+        if live:
+            T.update(status="ok", detail_dir="reports/realestate_trades", period="2026-07~2026-09")
+            T.setdefault("districts", {}).setdefault("강남구", {"n": 22, "p59": 15.0})
+            T["districts"]["강남구"].update(code="11680", detail="reports/realestate_trades/11680.json")
+        else:
+            J["seoul_trades"] = {"status": "키 필요"}
+        for w in ((390, 1300) if live else (390,)):
+            ctx = await b.new_context(viewport={"width": w, "height": 900}, has_touch=w < 700, is_mobile=w < 700)
+            pg = await ctx.new_page()
+            errs: list[str] = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            body = _j.dumps(J, ensure_ascii=False)
+
+            def h_geo(r):
+                f = ROOT / "assets/realestate_geo" / r.request.url.split("?")[0].rsplit("/", 1)[-1]
+                return r.fulfill(status=200, content_type="application/json", body=f.read_text(encoding="utf-8")) if f.exists() else r.fulfill(status=404, body="")
+            await pg.route("**/reports/realestate.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))
+            await pg.route("**/reports/realestate_trades/*", lambda r: r.fulfill(status=200, content_type="application/json", body=_j.dumps(FAKE_RE_ZOOM_GU, ensure_ascii=False)))
+            await pg.route("**/assets/realestate_geo/*", h_geo)
+            await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+            await pg.wait_for_timeout(1200)
+            await pg.evaluate("setView('re')")
+            await pg.wait_for_timeout(1500)
+            vbw = "(()=>{const s=document.getElementById('rezsvg');return s?s.viewBox.baseVal.width:0})()"
+            r: dict = {}
+            r["seoul"] = await pg.evaluate("(()=>{const s=document.getElementById('rezsvg');return !!s&&s.dataset.lv==='seoul'&&s.querySelectorAll('path[role=button]').length===25&&s.querySelectorAll('path.reriv').length>=1})()")
+            w0 = await pg.evaluate(vbw)
+            await pg.locator("#rezsvg path[aria-label^='강남구']").first.dispatch_event("click")
+            await pg.wait_for_timeout(1200)
+            w1 = await pg.evaluate(vbw)
+            r["gu_zoom"] = 0 < w1 < w0 / 3
+            r["dongs"] = await pg.evaluate("document.querySelectorAll('#rezsvg path.redg').length") == 14
+            if live:
+                r["few_gray"] = await pg.evaluate("(()=>{const p=document.querySelector('#rezsvg path[data-dong=\"대치동\"]'), t=[...document.querySelectorAll('#rezsvg text')].find(e=>e.textContent.startsWith('대치'));return !!p&&p.getAttribute('fill')==='var(--bg2)'&&!!t&&t.textContent.includes('2건')})()")
+                r["color"] = await pg.evaluate("(()=>{const p=document.querySelector('#rezsvg path[data-dong=\"역삼동\"]');return !!p&&p.getAttribute('fill').startsWith('color-mix')})()")
+            path = "#rezsvg path[data-dong='역삼동']"
+            if w < 700:
+                await pg.locator(path).scroll_into_view_if_needed()
+                pt = await pg.evaluate("""(()=>{const p=document.querySelector("#rezsvg path[data-dong='역삼동']"), b=p.getBoundingClientRect();
+                  for(let i=1;i<10;i++) for(let j=1;j<10;j++){ const x=b.left+b.width*i/10, y=b.top+b.height*j/10; if(document.elementFromPoint(x,y)===p) return [x,y]; } return null})()""")
+                if pt:
+                    await pg.touchscreen.tap(pt[0], pt[1])
+            else:
+                await pg.locator(path).dispatch_event("click")
+            await pg.wait_for_timeout(1000)
+            w2 = await pg.evaluate(vbw)
+            r["dong_zoom"] = 0 < w2 < w1 and await pg.evaluate("document.getElementById('rezsvg').dataset.lv==='dong'")
+            card = await pg.evaluate("(()=>{const c=document.querySelector('.remap .regu');return c?c.innerText:''})()")
+            r["card"] = "역삼동" in card and (("20건" in card) if live else ("자료 없음" in card))
+            if live:   # 단지 점(브이월드 좌표 캐시 lon·lat 있는 단지만) → 누르면 아래 최근 거래
+                await pg.evaluate("document.querySelector('#rezsvg circle.recx').dispatchEvent(new MouseEvent('click',{bubbles:true}))")
+                await pg.wait_for_timeout(500)
+                r["cx_dot"] = await pg.evaluate("(()=>{const x=document.querySelector('#redr .recxd');return document.querySelectorAll('#rezsvg circle.recx').length===1&&!!x&&x.innerText.includes('2026-09-10')})()")
+            else:
+                r["no_dot"] = await pg.evaluate("!document.querySelector('#rezsvg circle.recx')")
+            r["label"] = "매매 신호 아님" in await pg.evaluate("document.querySelector('#rezsvg').getAttribute('aria-label')")
+            r["over"] = await pg.evaluate("document.documentElement.scrollWidth>innerWidth+1||[...document.querySelectorAll('.remap *')].some(e=>!e.closest('svg')&&!e.closest('.retw')&&e.getBoundingClientRect().right>innerWidth+1)")
+            await pg.evaluate("[...document.querySelectorAll('.recrumb button')].find(e=>e.textContent.includes('뒤로')).click()")
+            await pg.wait_for_timeout(900)
+            r["back_gu"] = await pg.evaluate("document.getElementById('rezsvg').dataset.lv==='gu'")
+            await pg.evaluate("[...document.querySelectorAll('.recrumb button')].find(e=>e.textContent==='서울').click()")
+            await pg.wait_for_timeout(900)
+            r["back_seoul"] = await pg.evaluate("document.getElementById('rezsvg').dataset.lv==='seoul'") and abs(await pg.evaluate(vbw) - w0) < 0.5
+            import os as _os
+            if live and _os.environ.get("SMOKE_SHOT_DIR"):   # 눈 확인용(선택): 서울 단계 스크린샷
+                await pg.evaluate("reGo('seoul')")
+                await pg.wait_for_timeout(700)
+                await pg.locator(".remapbox").screenshot(path=str(Path(_os.environ["SMOKE_SHOT_DIR"]) / f"re_zoom_{w}_seoul.png"))
+                await pg.locator("#rezsvg path[aria-label^='송파구']").first.dispatch_event("click")
+                await pg.wait_for_timeout(900)
+                await pg.locator(".remapbox").screenshot(path=str(Path(_os.environ["SMOKE_SHOT_DIR"]) / f"re_zoom_{w}_gu.png"))
+            ok = all(v for k, v in r.items() if k != "over") and not r["over"] and not errs
+            bad += not ok
+            print(f"{'OK ' if ok else 'BAD'} 부동산지도줌({w}px{'' if live else '·수집 전'}) " + " ".join(f"{k}={'O' if (not v if k == 'over' else v) else 'X'}" for k, v in r.items())
+                  + (f" · 에러: {errs[0][:160]}" if errs else ""))
+            await ctx.close()
     return bad
 
 

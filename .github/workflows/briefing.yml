@@ -112,6 +112,8 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           REB_API_KEY: ${{ secrets.REB_API_KEY }}            # 부동산원 R-ONE (req-data-50ca9092 — 시크릿 등록 전엔 빈 값 → realestate '키 필요')
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}      # 공공데이터포털 국토부 실거래가 (등록 전 빈 값)
+          VWORLD_KEY: ${{ secrets.VWORLD_KEY }}              # 브이월드 연속지적도 — 단지 좌표(10/26, 등록 전 빈 값 → 단지 점 생략)
+          VWORLD_DOMAIN: ${{ vars.VWORLD_DOMAIN || 'https://hk99915-bot.github.io' }}   # 키 발급 때 등록한 서비스 URL
           ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}          # 한은 ECOS 개인키 (빈 값이면 'sample' 키 10행)
           KRX_BACKEND: ${{ vars.KRX_BACKEND || 'pykrx' }}
         run: |

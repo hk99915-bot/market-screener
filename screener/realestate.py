@@ -603,10 +603,13 @@ def summarize_detail(trades: list[dict], rents: list[dict]) -> dict:
 
     def c_of(x):
         k = ((x.get("umdNm") or "").strip() or "미상", (x.get("aptNm") or "").strip() or "미상")
-        return cx.setdefault(k, {"dong": k[0], "name": k[1], "by": None, "tr": [], "n_cancel": 0, "n_jeonse": 0})
+        return cx.setdefault(k, {"dong": k[0], "name": k[1], "by": None, "tr": [], "n_cancel": 0, "n_jeonse": 0, "pnu": None})
 
+    from .realestate_coords import make_pnu
     for x in trades:
         d, c = d_of(x), c_of(x)
+        if not c["pnu"]:
+            c["pnu"] = make_pnu(x)   # 단지 좌표(브이월드 연속지적도) 매칭 키 — realestate_coords.attach_coords
         by = _num(x.get("buildYear"))
         if by and not c["by"]:
             c["by"] = int(by)
@@ -646,7 +649,7 @@ def summarize_detail(trades: list[dict], rents: list[dict]) -> dict:
         ar = [{"a": a, "n": len(v), "med": md([eok(x, "dealAmount") for x in v]), "last": eok(v[0], "dealAmount"), "last_d": _deal_date(v[0])}
               for a, v in sorted(areas.items(), key=lambda kv: (-len(kv[1]), kv[0]))[:DETAIL_AREAS]]
         comps.append({"dong": c["dong"], "name": c["name"], "by": c["by"], "n": len(tr), "n_cancel": c["n_cancel"], "n_jeonse": c["n_jeonse"],
-                      "med": md([eok(x, "dealAmount") for x in tr]), "last_d": _deal_date(tr[0]) if tr else None, "areas": ar,
+                      "med": md([eok(x, "dealAmount") for x in tr]), "last_d": _deal_date(tr[0]) if tr else None, "areas": ar, "pnu": c["pnu"],
                       "recent": [{"d": _deal_date(x), "fl": (x.get("floor") or "").strip() or None, "a": _num(x.get("excluUseAr")),
                                   "p": eok(x, "dealAmount")} for x in tr[:DETAIL_RECENT]]})
     comps.sort(key=lambda r: (r["dong"], -r["n"], r["name"]))
@@ -803,6 +806,12 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
                                     _prev_trades() if prev_trades is None else (prev_trades or None), sleep, detail_out=details)
         if details and not trades.get("reused"):
             log.info("부동산 RTMS 드릴다운: 구별 파일 %d개", write_details(trades, details))
+        if live and env.get("VWORLD_KEY"):   # 단지 좌표(10/26) — 키 없으면 호출 0, 화면은 동 단위까지
+            from .realestate_coords import _get_json, attach_coords
+            try:
+                attach_coords(DETAIL_DIR, env.get("VWORLD_KEY"), _get_json, today, env.get("VWORLD_DOMAIN"), sleep=sleep)
+            except Exception as e:  # noqa: BLE001
+                errors.append(_scrub(f"단지 좌표 실패: {e}", env.get("VWORLD_KEY")))
     except Exception as e:  # noqa: BLE001
         trades = {"status": "실패", "why": _scrub(f"RTMS 집계 실패: {e}", env.get("DATA_GO_KR_KEY"))}
         errors.append(trades["why"])
