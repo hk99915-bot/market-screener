@@ -21,6 +21,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from screener.redact import personal_amount_hits  # noqa: E402
 ROUNDS = ROOT / "docs" / "desk_kb" / "rounds"
 KST = timezone(timedelta(hours=9))
 RID = re.compile(r"req-[a-z]+-[0-9a-f]{8}")
@@ -99,6 +101,36 @@ def profiles(chars: Path) -> list[dict]:
     return out
 
 
+MASKED = "[개인 금액 의심 — 가림]"
+
+
+def mask_personal_amounts(feed: dict) -> int:
+    """피드 문자열 중 원화 금액 + 개인 문맥어 동시 출현(screener.redact)인 값은 가린다 — 장부에 이미 들어온 누출이 피드로
+    2배 퍼지지 않게(10/25 사고, 감사 req-dev-d026b1af). 가린 문자열 수만 돌려준다(값은 어디에도 안 씀)."""
+    n = 0
+
+    def walk(o):
+        nonlocal n
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if isinstance(v, str):
+                    if personal_amount_hits(v):
+                        o[k] = MASKED
+                        n += 1
+                else:
+                    walk(v)
+        elif isinstance(o, list):
+            for i, v in enumerate(o):
+                if isinstance(v, str):
+                    if personal_amount_hits(v):
+                        o[i] = MASKED
+                        n += 1
+                else:
+                    walk(v)
+    walk(feed)
+    return n
+
+
 def build(ledger: dict, rounds: Path, now: datetime) -> dict:
     rr = round_replies(rounds)
     items = []
@@ -124,10 +156,12 @@ def build(ledger: dict, rounds: Path, now: datetime) -> dict:
         p["replies"] = sum(1 for x in items for r in x.get("replies", []) if r.get("by") == k and r.get("voc"))
         last = [c for c in chat if c.get("by") == k]
         p["last_chat"] = last[-1]["text"] if last else ""
-    return {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st, "chat": chat, "profiles": prof,
+    feed = {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st, "chat": chat, "profiles": prof,
             "n_reply": sum(1 for x in items if x["replies"]),
             "n_voc": sum(1 for x in items for p in x["replies"] if p.get("voc")),
             "items": items}
+    feed["masked"] = mask_personal_amounts(feed)
+    return feed
 
 
 def main(argv=None) -> int:
@@ -139,6 +173,8 @@ def main(argv=None) -> int:
     feed = build(led, a.ledger.parent, datetime.now(KST))
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(feed, ensure_ascii=False) + "\n", encoding="utf-8")
+    if feed.get("masked"):
+        print(f"⚠ 개인 금액 의심 {feed['masked']}곳 가림 — 장부 원문 정리 필요(값 미표시)", file=sys.stderr)
     print(f"사내톡 피드 {feed['n']}건 · 회신 {feed['n_reply']} · VOC {feed['n_voc']} → {a.out.relative_to(ROOT)}")
     return 0
 

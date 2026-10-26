@@ -21,12 +21,22 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import round_collect as rc  # noqa: E402
+from screener.redact import personal_amount_hits  # noqa: E402
 
 KST = timezone(timedelta(hours=9))
 OWNER = "겸이"
 DUE_BDAYS = 2
 TRAILER = re.compile(r"\n*\(텔레그램[^)]*\)\s*$")
+
+
+def guard_amount(text: str) -> None:
+    """공개 저장소 가드(10/25 PB 누출 사고, 감사 req-dev-d026b1af): 원화 금액 + 개인 문맥어가 같이 있으면 거부.
+    값은 메시지에 싣지 않는다. 비율·가상 예시·모의 고정 사이즈는 통과 — 비공개 값은 '비공개 저장소 ops/agreements.md 참조'로 쓸 것."""
+    n = len(personal_amount_hits(text or ""))
+    if n:
+        raise ValueError(f"개인 금액 의심 {n}곳 — 공개 장부에 금액·연봉·자산·보유 수치를 쓰지 마(비율·상대 표현·'비공개 저장소 참조'로 바꿔 다시)")
 
 
 def desk_ok(name: str) -> str | None:
@@ -67,6 +77,7 @@ def add(ledger: dict, frm: str, to: str, text: str, due: str | None, now: dateti
     if not fk or not tk:
         raise ValueError(f"모르는 데스크: from={frm} to={to}")
     text = TRAILER.sub("", text.strip()).strip()
+    guard_amount(text)
     if not text:
         raise ValueError("내용이 비었음")
     rid = rc.req_id(fk, tk, text)
@@ -107,6 +118,7 @@ def reply(ledger: dict, rid: str, by: str, text: str, voc: bool, now: datetime) 
     text = text.strip()
     if not text:
         raise ValueError("회신 내용이 비었음")
+    guard_amount(text)
     for r in L.get("requests", []):
         if r["id"] == rid:
             r.setdefault("replies", []).append({"by": k, "at": now.astimezone(KST).strftime("%Y-%m-%dT%H:%M+09:00"),
@@ -117,7 +129,7 @@ def reply(ledger: dict, rid: str, by: str, text: str, voc: bool, now: datetime) 
 
 def chat(ledger: dict, by: str, to: str | None, text: str, now: datetime) -> tuple[dict, dict]:
     """사담 1줄(10/23 겸이 "좀 사담들도 넣고"). 데스크 에이전트가 라운드·루프 중 직접 쓴 잡담만 — 업무 VOC·판단 근거로 인용 금지.
-    공개 저장소라 겸이 금액·보유·건강·연애·실존 인물 언급 금지(scripts/ask.py 는 길이만 막고, 내용은 프롬프트 규칙)."""
+    공개 저장소라 겸이 금액·보유·건강·연애·실존 인물 언급 금지(길이는 여기서, 금액+개인 문맥은 guard_amount, 나머지는 프롬프트 규칙)."""
     L = json.loads(json.dumps(ledger)) if ledger else {}
     k = desk_ok(by)
     t = desk_ok(to) if to else None
@@ -126,6 +138,7 @@ def chat(ledger: dict, by: str, to: str | None, text: str, now: datetime) -> tup
     text = " ".join(text.split())
     if not text or len(text) > 160:
         raise ValueError("사담은 1~160자")
+    guard_amount(text)
     c = {"by": k, "at": now.astimezone(KST).strftime("%Y-%m-%dT%H:%M+09:00"), "text": text}
     if t:
         c["to"] = t

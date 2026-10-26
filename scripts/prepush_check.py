@@ -10,6 +10,9 @@
   4) 공개 저장소 이메일 검사 — push 될 커밋들이 추가한 줄에 허용 목록 밖 이메일이 있으면 차단 (10/21 감사 D1:
      애널리스트 실명·이메일이 공개 로그에 저장됨). 허용: noreply@anthropic.com, *@users.noreply.github.com,
      example.com·.test·.invalid 등 예약 도메인 (screener/redact.py). 값은 출력하지 않고 파일·개수만.
+  4a) 개인 금액 검사 — 추가된 줄에 원화 금액 + 개인 문맥어(연봉·순자산·보유 등)가 같이 있으면 차단 (10/25 PB 누출 사고, 감사
+     req-dev-d026b1af). 비율·가상 예시·모의 고정 사이즈는 통과(screener/redact.personal_amount_hits). 지워진 줄에 같은 맥락이
+     있으면(피드·보드 재생성) 새 누출로 안 센다. 값은 출력하지 않고 파일·개수만.
   4b) CI 빨강 게이트 (감사 D2, 10/21 CI 빨강 9h16m 동안 push 120건): origin/main 의 최신 완료된 tests.yml 실행이 실패면,
      tests.yml 이 도는 경로(screener/ scripts/ tests/ docs/ requirements.txt .github/workflows/ Scheduler.gs)를 바꾸는 push 는
      커밋 메시지에 `[ci-fix]` 가 있는 '수리 커밋'일 때만 통과. 데이터·reports 만 바꾸는 push 는 영향 없음.
@@ -101,6 +104,56 @@ def added_lines(base: str | None, head: str = "HEAD") -> dict[str, list[str]]:
         elif cur and ln.startswith("+") and not ln.startswith("+++"):
             res.setdefault(cur, []).append(ln[1:])
     return res
+
+
+def diff_lines(base: str | None, head: str = "HEAD") -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+    """push 범위의 (추가된 줄, 지워진 줄) 파일별. 금액 검사가 '원래 있던 줄의 재배열·재생성'(피드·보드 재정렬)을 새 누출로 세지 않게."""
+    if not base:
+        base = git("merge-base", head, "origin/main") or "origin/main"
+    out = git("diff", "--no-color", "--no-ext-diff", "-U0", f"{base}..{head}")
+    add: dict[str, list[str]] = {}
+    rem: dict[str, list[str]] = {}
+    cur = None
+    for ln in out.splitlines():
+        if ln.startswith("+++ "):
+            cur = ln[6:] if ln.startswith("+++ b/") else None
+        elif ln.startswith("--- "):
+            continue
+        elif cur and ln.startswith("+"):
+            add.setdefault(cur, []).append(ln[1:])
+        elif cur and ln.startswith("-"):
+            rem.setdefault(cur, []).append(ln[1:])
+    return add, rem
+
+
+def amount_hits(added: dict[str, list[str]], removed: dict[str, list[str]] | None = None) -> dict[str, int]:
+    """개인 금액 의심(원화 금액 + 개인 문맥어, screener.redact) '새로 추가된' 개수 (파일별). 값은 돌려주지 않는다.
+    같은 맥락 창이 지워진 줄에도 있으면 새 누출이 아니라 옮겨 쓴 것이라 뺀다(msgr_feed.md 는 통째로 한 줄)."""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from collections import Counter
+    from screener.redact import personal_amount_hits
+    hits = {}
+    for f, lines in added.items():
+        new = Counter(c for x in lines for c in personal_amount_hits(x))
+        if removed and f in removed:
+            new -= Counter(c for x in removed[f] for c in personal_amount_hits(x))
+        n = sum(new.values())
+        if n:
+            hits[f] = n
+    return hits
+
+
+def amount_check(base: str | None, head: str = "HEAD") -> bool:
+    hits = amount_hits(*diff_lines(base, head))
+    if not hits:
+        print("  ✓ 개인 금액 검사 (추가된 줄, 금액+개인 문맥 0건)")
+        return True
+    print(f"  ✗ 개인 금액 검사 — 금액+개인 문맥어(연봉·자산·보유 등) 의심 {sum(hits.values())}곳 (값은 표시 안 함):")
+    for f, n in sorted(hits.items()):
+        print(f"      {f}: {n}곳")
+    print("    → 공개 저장소: 금액을 지우고 비율·상대 표현·'비공개 저장소 참조'로 바꿔 커밋을 고쳐 다시 push (가상 예시는 '예시' 표기)")
+    return False
 
 
 def email_hits(added: dict[str, list[str]]) -> dict[str, int]:
@@ -209,6 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     ok &= run("check_functions", [py, "scripts/check_functions.py"])
     ok &= run("check_rules_terms", [py, "scripts/check_rules_terms.py"])
     ok &= email_check(a.base, a.head)
+    ok &= amount_check(a.base, a.head)
     ok &= ci_gate(a.base, a.head)
     files = changed_files(a.base, a.head)
     sel = None if a.all else tests_for(files)
