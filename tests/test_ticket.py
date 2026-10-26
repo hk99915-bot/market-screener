@@ -136,3 +136,38 @@ def test_cooldown_ignores_future_and_hold(env):
                        {"id": f"{D}-exit-000004", "date": D, "kind": "exit", "name": "보유주",
                         "picks": {"나": {"ticker": "000004", "notional": 1}, "PB": {"cash": True}}, "basis": {"at": f"{D} 13:50"}}])  # 보유 판단은 매도 아님
     assert "✅ 통과" in ticket.apply_ticket_issue("ticket 000001", BODY, OK_AT)
+
+
+# ── 헤지 전용 1배 인버스 예외 (겸이 10/26 18:5x 결재, 비공개 rules.txt [2] 예외 줄) ──
+def _detail_kr(rep, code, name):
+    (rep / "detail" / "KR" / f"{code}.json").write_text(json.dumps({"name": name, "close": 10000, "stats": {}}), encoding="utf-8")
+
+
+def test_k200_inverse1_hedge_exception_not_rejected(env):
+    _detail_kr(env, "114800", "KODEX 인버스")
+    msg = ticket.apply_ticket_issue("ticket 114800", BODY, OK_AT)
+    it = _item(env, "114800")
+    assert "⛔" not in msg and "🟡 헤지 예외 — 조건 확인 필요" in msg and "조건(비공개 rules.txt [2]" in msg
+    assert it["verdict"] == "🟡 헤지 예외 — 조건 확인 필요"
+    assert not any("금지 (~" in r for r in it["reasons"])
+
+
+def test_hedge_exception_other_rules_still_apply(env):
+    _detail_kr(env, "114800", "KODEX 인버스")
+    msg = ticket.apply_ticket_issue("ticket 114800", "매수가 10000\n손절가 9500\n목표가 10800\n근거: 헤지\n보유 5일", OK_AT)
+    assert "⛔ 거부" in msg and "손익비" in msg
+
+
+@pytest.mark.parametrize("code,name", [("252670", "KODEX 200선물인버스2X"), ("251340", "KODEX 코스닥150선물인버스"),
+                                       ("122630", "KODEX 레버리지")])
+def test_non_hedge_inverse_or_leverage_still_rejected(env, code, name):
+    _detail_kr(env, code, name)
+    msg = ticket.apply_ticket_issue(f"ticket {code}", BODY, OK_AT)
+    assert "⛔ 거부" in msg and "레버리지·인버스 금지" in msg
+
+
+def test_is_hedge_inverse1_scope():
+    assert ticket.is_hedge_inverse1("123310", "TIGER 인버스", "KR")
+    assert ticket.is_hedge_inverse1("999999", "ACE 코스피200선물인버스", "KR")
+    assert not ticket.is_hedge_inverse1("252670", "KODEX 200선물인버스2X", "KR")
+    assert not ticket.is_hedge_inverse1("SH", "ProShares Short S&P500", "US")

@@ -15,6 +15,8 @@
   · 추격(RSI14 > 70 또는 전일 +5% 이상) → 절반 사이징
   · 09:00–09:30 KST(국장) / 09:30–10:00 ET(미장) 제출 → 거부
   · 레버리지·인버스 ETF(2027-04-15 까지) → 거부
+    단, 코스피200 1배 인버스(국장, 헤지 전용 예외 — 겸이 10/26 결재, 비공개 rules.txt [2] 예외 줄) → 거부 대신 '🟡 헤지 예외 — 조건 확인 필요'.
+    상한·레거시 평가액은 공개 코드에 넣지 않는다 → 조건은 사람이 비공개 규칙으로 확인. 2배 인버스·레버리지·미국 인버스는 그대로 거부.
   · 당일 서킷브레이커·사이드카 발동(reports/events.json) / CPI·FOMC 당일(reports/calendar.json) → 신규 진입 거부
   · 매도·판정·포상 후 30분 쿨다운(결재 #14 ③): 최근 매도(`exit` 이슈 '매도')·주문표 판정·env COOLDOWN_LAST_AT 시각 +30분 이내 제출 → 거부
     (근거: 10/16 보상 직후 레버리지 충동 — 하우스머니·면허 효과, kb:behavior#3·#8·#22)
@@ -49,6 +51,14 @@ from .defs import COOLDOWN_MIN, HARD_STOP, MIN_RR, RISK_PCT_DEFAULT   # 단일 �
 LEV_BAN_UNTIL = "2027-04-15"
 LEV_CODES = {"122630", "252670", "114800", "233740", "251340", "253150", "253160", "123320", "123310", "130730", "152500"}
 LEV_RE_KR = re.compile(r"(레버리지|인버스|2X|3X)", re.I)
+# 헤지 전용 1배 인버스 예외(겸이 10/26 18:5x 결재 — 비공개 rules.txt [2] 예외 줄). 실계좌 주문표만 해당, 모의 북(HF·알파북·대결)은 무관.
+# 금액 상한은 공개 저장소에 쓰지 않는다 — 조건 목록만 표시하고 판정은 '조건 확인 필요'.
+HEDGE_INV1_EXC = True
+HEDGE_INV1_CODES = {"114800", "123310"}            # KODEX 인버스 · TIGER 인버스 (코스피200 선물 1배)
+HEDGE_INV1_OTHER = re.compile(r"코스닥|KOSDAQ|나스닥|미국|S&P|달러|국채|채권|반도체|2X|3X|레버리지|중국|일본|원유|금", re.I)
+HEDGE_INV1_CONDS = ("장 전 주문표 + 스트레스(ΔS) 감소 확인", "상한 = 국장 레거시 평가액 대비 비율(비공개 rules.txt [2] — 공개 기록 금지)",
+                    "보유 20거래일 상한 · 반등일·레거시 매도 시 같은 비율 축소 · 코스피 50일선 회복 시 전량 청산",
+                    "조건 1회 위반 = 예외 철회(전면 금지 복귀) + [9] 최고 단계")
 LEV_RE_US = re.compile(r"^(SOXL|SOXS|TQQQ|SQQQ|QLD|QID|SSO|SDS|UPRO|SPXU|SPXL|SPXS|UDOW|SDOW|TNA|TZA|TECL|TECS|LABU|LABD|FNGU|FNGD|"
                        r"TSLL|TSLS|TSLQ|TSLT|NVDL|NVDD|NVDU|NVDS|NVDX|NVD|AAPU|AAPD|AMZU|AMZD|MSFU|MSFD|GGLL|GGLS|METU|METD|CONL|CONI|"
                        r"MSTU|MSTZ|MSTX|SMCX|SMCL|AMDL|AMDS|PLTU|PLTD|COIG|COIN?L|BITU|BITI|ETHU|UVXY|SVXY|UVIX|SVIX|YINN|YANG|KORU|"
@@ -150,6 +160,18 @@ def parse_ticket(title: str, body: str) -> dict:
 
 def _detail(code: str, mk: str) -> dict:
     return _j(REPORT_DIR / "detail" / mk / f"{code}.json") or {}
+
+
+def is_hedge_inverse1(code: str, name: str, mk: str) -> bool:
+    """코스피200 1배 인버스(헤지 예외 대상) 여부 — 국장만. 2배·다른 기초자산(코스닥·미국·채권 등)은 False."""
+    if mk != "KR" or not HEDGE_INV1_EXC:
+        return False
+    if lev_factor(code, name, mk) != -1:
+        return False
+    n = str(name or "")
+    if code in HEDGE_INV1_CODES:
+        return True
+    return "인버스" in n and bool(re.search(r"200|코스피|KOSPI", n, re.I)) and not HEDGE_INV1_OTHER.search(n.replace("200", ""))
 
 
 def is_leveraged(code: str, name: str, mk: str) -> bool:
@@ -301,8 +323,11 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None, ctx: dict |
     rr_eff = round((g - e) / risk_ps, 2) if risk_ps > 0 else None
     if rr is None or rr < MIN_RR:
         reject.append(f"손익비 1:{rr if rr is not None else '—'} < 1:{MIN_RR:.0f} — 진입 금지")
-    if is_leveraged(code, name, mk) and d <= LEV_BAN_UNTIL:
+    hedge_exc = is_hedge_inverse1(code, name, mk)
+    if is_leveraged(code, name, mk) and d <= LEV_BAN_UNTIL and not hedge_exc:
         reject.append(f"레버리지·인버스 금지 (~{LEV_BAN_UNTIL})")
+    elif hedge_exc and d <= LEV_BAN_UNTIL:
+        notes.append("헤지 예외(코스피200 1배 인버스) — 조건 확인 필요: " + " · ".join(HEDGE_INV1_CONDS))
     if is_leveraged(code, name, mk):   # 결재 #14 ①: 금지 여부와 무관하게 리셋 비용(변동성 끌림)을 숫자로 남긴다
         lv = lev_factor(code, name, mk) or 2
         notes.append(lev_drag_note(name, lv, max(2, int(tk.get("horizon_days") or 5))))
@@ -344,8 +369,9 @@ def evaluate(tk: dict, created_at: str, now: datetime | None = None, ctx: dict |
     qty = int(math.floor(risk_krw / (risk_ps * fx))) if risk_ps > 0 else 0
     if half:
         qty //= 2
-    verdict = "⛔ 거부" if reject else "⚠️ 절반 사이징" if half else "✅ 통과"
-    out = {"name": name, "date": d, "close": close, "rr": rr, "rr_eff": rr_eff, "stop_eff": stop_eff, "risk_ps": round(risk_ps, 4),
+    verdict = "⛔ 거부" if reject else "🟡 헤지 예외 — 조건 확인 필요" if (hedge_exc and d <= LEV_BAN_UNTIL) else "⚠️ 절반 사이징" if half else "✅ 통과"
+    out = {"hedge_exception": "조건 확인 필요" if (hedge_exc and d <= LEV_BAN_UNTIL and not reject) else None,
+           "name": name, "date": d, "close": close, "rr": rr, "rr_eff": rr_eff, "stop_eff": stop_eff, "risk_ps": round(risk_ps, 4),
            "qty_max": qty, "half": bool(half), "verdict": verdict, "reasons": reject + half + notes,
            "submitted": tk_kst.strftime("%Y-%m-%d %H:%M"), "rsi14": rsi, "ret1": ret1}
     if rn:
@@ -390,7 +416,8 @@ def reply_md(tk: dict, ev: dict) -> str:
     tbl = "| 항목 | 값 |\n|---|---|\n" + "\n".join(f"| {a} | {b} |" for a, b in rows)
     rs = "\n".join(f"- {r}" for r in ev["reasons"]) or "- 규칙 위반 없음"
     return f"### 주문표 {ev['verdict']}\n\n{tbl}\n\n**검사 결과**\n{rs}\n\n제출 {ev['submitted']} KST · 기록 id `{ev['date']}-ticket-{tk['code']}` · " + \
-        ("기록만 남김 — 이 주문표로는 주문하지 않습니다." if ev["verdict"].startswith("⛔") else "성적표에 기록됨 — 이제 주문 가능. 청산은 `exit <코드>` 이슈 또는 보유기간 만료로 채점.")
+        ("기록만 남김 — 이 주문표로는 주문하지 않습니다." if ev["verdict"].startswith("⛔") else
+         "헤지 예외 조건(비공개 rules.txt [2] 예외 줄) 확인 후에만 주문 · 성적표에 기록됨." if ev["verdict"].startswith("🟡") else "성적표에 기록됨 — 이제 주문 가능. 청산은 `exit <코드>` 이슈 또는 보유기간 만료로 채점.")
 
 
 # ───────────── 결재 #15 ISA 코어 매수 (월 1회 · 급락일 선매수 연 2회 상한) ─────────────
