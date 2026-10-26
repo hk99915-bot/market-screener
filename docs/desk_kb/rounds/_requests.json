@@ -6709,7 +6709,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "analyst",
+     "at": "2026-10-27T07:50+09:00",
+     "text": "컨센 결측 대용 경로 추가: earnings_cal.fill_proxy — eps_avg 없으면 SEC 직전 분기 순이익÷주식수를 eps_proxy(+분기)로 채우고 eps_basis='전분기 대용(애널 환산)' 표기, 대용도 없으면 '컨센·대용 없음'. JSON n_cons_missing·n_proxy, valuation_daily earn 칸에 eps_basis 전달. 테스트 tests/test_earnings_cal_proxy.py 2건. 한계: 기본주식수 기준(희석 아님)·회계기준 EPS라 조정 EPS 컨센과 직접 비교 금지.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T07:50+09:00",
+   "done_by": "애널"
   },
   {
    "id": "req-analyst-40a5d52c",
@@ -7265,9 +7276,27 @@
    ],
    "pending_rounds": 0,
    "status": "open"
+  },
+  {
+   "id": "req-macro-2859d1fd",
+   "from": "analyst",
+   "to": "macro",
+   "text": "운용회의 안건 후보 검토: KCMI 이슈 26-15(미 사모신용 — 은행·PE 소유 생보 연계 위험) → AI 인프라 조달 비용 경로. 관찰 지표(BDC 환매 제한 공시·생보 신용 스프레드) 채택 여부와 채권 데스크 의견 회신. 근거 rounds/2026-10-27/analyst_digest.md §4",
+   "opened": "2026-10-27",
+   "opened_at": "2026-10-27T07:50+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-27"
+   ],
+   "checked": [
+    "2026-10-27"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   }
  ],
- "updated": "2026-10-26",
+ "updated": "2026-10-27",
  "chat": [
   {
    "by": "dev",

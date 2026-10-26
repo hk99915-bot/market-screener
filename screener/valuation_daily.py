@@ -516,7 +516,8 @@ def build(send: bool = False) -> dict:
             r["flags"] = (r.get("flags") or []) + ["가격 없음(detail 미생성)"]
         ec = earn.get(b["sym"])
         if ec and ec.get("date"):
-            r["earn"] = {"date": ec["date"], "past": ec.get("past"), "eps_cons_0q": ec.get("eps_avg"), "n_est": ec.get("eps_n"), "src": "야후(추정)"}
+            r["earn"] = {"date": ec["date"], "past": ec.get("past"), "eps_cons_0q": ec.get("eps_avg"), "n_est": ec.get("eps_n"), "src": "야후(추정)",
+                         "eps_basis": ec.get("eps_basis"), "eps_proxy": ec.get("eps_proxy"), "eps_proxy_period": ec.get("eps_proxy_period")}
         last_end = str((q[-1].get("end") if q else None) or "")[:10]
         if last_end and stale_quarter(last_end, today):   # 예: 20-F 제출사가 예전에 낸 10-Q 몇 개만 남은 경우(TSEM 2024-06) — 옛 이익으로 PER 금지
             r["verified"] = False
