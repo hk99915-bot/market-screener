@@ -104,6 +104,7 @@
 | changelog · reports/ops · ops/BOARD.md | ops 23:47 | — | 단일 |
 | ops/team.json | ops 23:47·00:07 + team(매시 17분) — auto 블록 | PM 22:30 Claude 예약 — runs 블록 | 블록 분리 |
 | reports/english/* | Claude 예약 '오늘의 영어' 평일 07:18 | — | 단일(세션이 직접 커밋) |
+| reports/audit/<날짜>.md (정기 감사) | Claude 예약 '정기 감사' 수·토 07:53 새 세션 (trig_01Lc79ufM6xsA2RHqFD4cJsg, 10/24 겸이 승인, 첫 실행 10/28) | 수시 감사(요청 시) | 단일(세션이 직접 커밋) |
 | (저장소 밖) ~/toss_md_data/* — 토스 시세 파일럿(지수 1분·투자자별 매매대금·USDKRW·KR/US 달력) | **겸이 노트북(파일럿, 공개 산출물 없음)** — Windows 작업 스케줄러 평일 09:00–15:50 10분마다 · 매일 08:30·18:30 | — (토큰 재발급 시 이전 토큰 무효 → 다른 주체 금지, GitHub Actions·러너 연결 금지) | 단일. 보드 `toss-md-pilot`, 가이드 docs/toss_md_laptop_setup.md |
 
 Claude 원격 예약 작업(10/17 list_triggers 기준): 오늘의 영어 07:18 · PB 진입·매도 14:42(→pb_call) · PB 미장 21:52(꺼짐) · 기록 12:50/16:00/22:30(pb-private·team.json runs) · 데스크 라운드 평일 21:10(docs) · ISA 리마인드 10/19 10:00(1회). 위 GitHub 산출물과 겹치는 슬롯 없음.
