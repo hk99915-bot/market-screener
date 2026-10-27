@@ -18,3 +18,8 @@
 
 - 400 난 파생 후보(지수선물·지수옵션·상품/채권/통화선물·주식옵션 이름)는 오퍼레이션명 추정 실패 — 상세기능 목록으로 확인 필요. 코스피200 **선물** 일별은 아직 미확인(파생지수·옵션으로 일부 대체 가능성).
 - 키 값은 로그·커밋·채팅에 남기지 않는다. 트래픽 각 1만/일.
+
+## 10/27 진행 (req-data-23bdae79)
+- ① 국토부 매매·전월세: screener/realestate.py 가 이미 연결(서울 25구 3개월, reports/realestate.json seoul_trades status ok · 25/25구, 10/27 갱신 — Actions 실행분). 신트리 단지 원자료 대조는 부동산 데스크.
+- ② 금융위 주식시세 ↔ 우리 일봉 종가 대조: screener/fsc_close.py(→ reports/fsc_close_check.json), deriv_hist.yml 에 단계 추가(평일 16:40, 실패해도 계속). **실호출 검증 전** — 이 컨테이너엔 키가 없어 합성 테스트만(tests/test_fsc_close.py). 첫 Actions 실행 후 match_rate·불일치 목록 확인 필요. 비교 대상 kr_prices 가 Actions 에 없으면 status '대조 불가'로 남는다.
+- ③ 401/Encoding 교체: 10/24 탐침에서 7건 모두 응답했으므로 해당 없음(Decoding 키 정상).
