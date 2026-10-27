@@ -55,3 +55,11 @@ def test_vkospi_found_and_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(vk, "CSV", tmp_path / "none.csv")
     st = vk.run(get=lambda p: body([{"idxNm": "코스피 200 선물지수"}]), env={"DATA_GO_KR_KEY": "k"}, days=1, today=date(2026, 10, 26))
     assert st["status"] == "소스에 없음" and st["idxNm_sample"]
+
+
+def test_policy_display_range_and_basis():
+    d = pr.display({"us": {"lower": {"value": 3.75}, "upper": {"value": 4.0, "date": "2026-10-26"}},
+                    "kr": {"value": 3.0, "month": "2026-09"}})
+    assert d["us"] == "3.75–4.00%" and "2026-10-26" in d["us_basis"]
+    assert d["kr"] == "3.00%" and "월말 2026-09" in d["kr_basis"]
+    assert pr.display({}) == {}

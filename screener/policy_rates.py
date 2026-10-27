@@ -49,6 +49,21 @@ def kr_summary(rows: list[dict]) -> dict | None:
             "recent": [[a, b] for a, b in s[-6:]]}
 
 
+def display(out: dict) -> dict:
+    """화면 표기 — 미국은 목표 '범위'(하단–상단, FRED 일별 기준일), 한국은 단일 기준금리(ECOS 월 시계열 = 월말 값, 일별 아님)."""
+    us, kr = out.get("us") or {}, out.get("kr") or {}
+    lo, hi = (us.get("lower") or {}).get("value"), (us.get("upper") or {}).get("value")
+    d = {}
+    if lo is not None and hi is not None:
+        d["us"] = f"{lo:.2f}–{hi:.2f}%"
+        d["us_basis"] = f"FRED 일별 {(us.get('upper') or {}).get('date', '?')} 기준"
+    if kr.get("value") is not None:
+        d["kr"] = f"{kr['value']:.2f}%"
+        d["kr_basis"] = (f"ECOS 월말 {kr.get('month', '?')} 기준 — 이후 금통위 결정은 다음 달 행에 반영(일별 아님)"
+                         + (" · stale" if kr.get("stale") else ""))
+    return d
+
+
 def collect(fred=None, fetch_json=None, env=None, today: date | None = None) -> dict:
     env = os.environ if env is None else env
     today = today or datetime.now(KST).date()
@@ -90,6 +105,7 @@ def collect(fred=None, fetch_json=None, env=None, today: date | None = None) -> 
     except Exception as e:  # noqa: BLE001
         log.warning("한은 기준금리 실패: %s", str(e).replace(key, "***") if key else e)
         out["kr"] = {**(old.get("kr") or {}), "stale": "ECOS 실패 — 이전 값 유지" if old.get("kr") else "ECOS 실패"}
+    out["display"] = display(out)   # 채권 데스크 검토(req-bonds-6a40b909): 미국 = 범위, 한국 = 단일, 기준일 라벨 분리
     out["kr_meeting"] = "미확인 — 금통위 일정(2026-11·2027) 공식 원문 미열람, calendar.json 미등록"
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     return out
