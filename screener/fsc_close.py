@@ -48,7 +48,9 @@ def fsc_closes(rows: list[dict]) -> dict[str, float]:
 
 def compare(fsc: dict[str, float], ours: dict[str, float]) -> dict:
     common = sorted(set(fsc) & set(ours))
-    bad = [{"code": c, "fsc": fsc[c], "ours": ours[c]} for c in common if abs(fsc[c] - ours[c]) > 0.5]
+    # 공공누리 4유형(재배포 금지) — 금융위 원값(clpr)은 공개 산출물에 남기지 않고 차이율만 (req-data-cb6315c2, 10/27)
+    bad = [{"code": c, "ours": ours[c], "diff_pct": round((ours[c] / fsc[c] - 1) * 100, 3) if fsc[c] else None}
+           for c in common if abs(fsc[c] - ours[c]) > 0.5]
     return {"n_fsc": len(fsc), "n_ours": len(ours), "n_common": len(common), "n_match": len(common) - len(bad),
             "mismatch": bad[:20], "n_mismatch": len(bad)}
 

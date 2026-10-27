@@ -22,9 +22,22 @@ STATUS = REPORT_DIR / "vkospi.json"
 URL = "https://apis.data.go.kr/1160100/GetMarketIndexInfoService_V2/getDerivationProductMarketIndex_V2"
 
 
+# 10/27 req-data-cb6315c2 점검 중 발견: 옛 부분일치('코스피200변동성' 포함)가 VKOSPI 가 아닌 지수(종가 786~810, 같은 날
+# 대표 IV 45~52)를 잡아 10/19~10/26 6행을 잘못 적재. → 이름 정확 일치 + 파생형 단어 제외 + 값 범위(VKOSPI 는 % 단위 변동성).
+_EXACT = {"VKOSPI", "코스피200변동성지수", "KOSPI200변동성지수", "KOSPI200VOLATILITYINDEX", "변동성지수"}
+_EXCLUDE = ("선물", "타겟", "TARGET", "레버리지", "인버스", "커버드", "콜", "풋", "위클리")
+LO, HI = 5.0, 150.0   # [가정: VKOSPI 는 % 단위 변동성이라 5~150 밖이면 다른 지수(가격형)로 본다]
+
+
 def is_vkospi(name: str) -> bool:
     n = (name or "").replace(" ", "").upper()
-    return "VKOSPI" in n or "코스피200변동성" in n or n in ("변동성지수", "KOSPI200변동성지수")
+    if any(w.upper() in n for w in _EXCLUDE):
+        return False
+    return n in _EXACT or n.endswith("VKOSPI") or n == "KOSPI200VKOSPI"
+
+
+def plausible(v: float) -> bool:
+    return LO <= v <= HI
 
 
 def parse_items(js: dict) -> list[dict]:
@@ -58,6 +71,7 @@ def run(get=None, env=None, days: int = 5, today: date | None = None) -> dict:
             def get(params):
                 return requests.get(URL, params=params, timeout=25).json()
         names, found = set(), 0
+        matched, rejected, ambiguous = set(), set(), set()
         d, tried = today, 0
         while tried < days:
             d -= timedelta(days=1)
@@ -70,19 +84,43 @@ def run(get=None, env=None, days: int = 5, today: date | None = None) -> dict:
                 log.warning("VKOSPI %s 실패: %s", d, type(e).__name__)
                 continue
             names |= {str(r.get("idxNm", "")) for r in rows}
+            cands = []
             for r in rows:
-                if is_vkospi(str(r.get("idxNm", ""))):
-                    try:
-                        db[d.isoformat()] = {"date": d.isoformat(), "close": f"{float(r['clpr']):.2f}", "chg_pct": f"{float(r.get('fltRt') or 0):.2f}"}
-                        found += 1
-                    except (KeyError, ValueError):
-                        pass
+                nm = str(r.get("idxNm", ""))
+                if not is_vkospi(nm):
+                    continue
+                try:
+                    v = float(str(r["clpr"]).replace(",", ""))
+                except (KeyError, ValueError):
+                    continue
+                if plausible(v):
+                    cands.append((nm, v, r))
+                else:
+                    rejected.add(f"{nm}={v:g}")
+            if len(cands) == 1:
+                nm, v, r = cands[0]
+                matched.add(nm)
+                db[d.isoformat()] = {"date": d.isoformat(), "close": f"{v:.2f}", "chg_pct": f"{float(r.get('fltRt') or 0):.2f}"}
+                found += 1
+            elif len(cands) > 1:
+                ambiguous.add(" | ".join(sorted(c[0] for c in cands)))
+        if rejected:
+            st["rejected"] = sorted(rejected)[:10]
+        if ambiguous:
+            st["ambiguous"] = sorted(ambiguous)[:5]
         if found:
-            st.update(status="ok")
+            st.update(status="ok", idxNm=sorted(matched))
+        elif ambiguous:
+            st.update(status="후보 여러 개", why="VKOSPI 후보 이름이 둘 이상 — 이름 확인 전 적재 안 함", idxNm_sample=sorted(names)[:40])
         elif names:
             st.update(status="소스에 없음", why="파생상품지수 V2 응답에 VKOSPI 이름 없음", idxNm_sample=sorted(names)[:40])
         else:
             st.update(status="실패", why="응답 행 0 (키·기준일·T+1 확인)")
+    bad = [k for k, r in db.items() if not plausible(float(r.get("close") or 0))]
+    for k in bad:   # 과거 오적재(범위 밖) 정리 — 조용히 지우지 않고 상태에 남김
+        db.pop(k)
+    if bad:
+        st["purged"] = {"n": len(bad), "why": "VKOSPI 범위(5~150) 밖 — 다른 지수 오매칭 행 제거", "dates": sorted(bad)[:10]}
     rows = sorted(db.values(), key=lambda r: r["date"])
     if rows:
         CSV.parent.mkdir(parents=True, exist_ok=True)
@@ -93,6 +131,9 @@ def run(get=None, env=None, days: int = 5, today: date | None = None) -> dict:
         st.update(rows=len(rows), first=rows[0]["date"], last=rows[-1]["date"], last_close=float(rows[-1]["close"]))
     else:
         st.update(rows=0)
+        if CSV.exists():
+            CSV.unlink()
+    st["license"] = "공공누리 제4유형(출처표시·상업적 이용금지·변경금지, 제3자 재배포 금지 문구) — 공개 게시 범위 오너 결재 대기(req-data-cb6315c2)"
     STATUS.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
     return st
 

@@ -63,3 +63,26 @@ def test_policy_display_range_and_basis():
     assert d["us"] == "3.75–4.00%" and "2026-10-26" in d["us_basis"]
     assert d["kr"] == "3.00%" and "월말 2026-09" in d["kr_basis"]
     assert pr.display({}) == {}
+
+
+def test_vkospi_rejects_price_index_and_purges(tmp_path, monkeypatch):
+    """10/27 오매칭 재발 방지: 이름에 '변동성'이 들어간 가격형 지수(값 ~800)는 VKOSPI 가 아니다."""
+    _patch(tmp_path, monkeypatch)
+    vk.CSV.parent.mkdir(parents=True, exist_ok=True)
+    vk.CSV.write_text("date,close,chg_pct\n2026-10-19,803.45,3.60\n2026-10-20,21.00,0.10\n", encoding="utf-8")
+    body = lambda items: {"response": {"body": {"items": {"item": items}}}}  # noqa: E731
+    get = lambda p: body([{"idxNm": "코스피 200 변동성지수", "clpr": "787.27", "fltRt": "0.07"},  # noqa: E731
+                          {"idxNm": "코스피200 변동성타겟 지수", "clpr": "30", "fltRt": "0"}])
+    st = vk.run(get=get, env={"DATA_GO_KR_KEY": "k"}, days=1, today=date(2026, 10, 27))
+    assert st["purged"]["n"] == 1 and st["rows"] == 1 and st["last_close"] == 21.0
+    assert st["status"] == "소스에 없음" and any("787.27" in x for x in st["rejected"])
+    assert "license" in st
+
+
+def test_vkospi_ambiguous_not_loaded(tmp_path, monkeypatch):
+    _patch(tmp_path, monkeypatch)
+    monkeypatch.setattr(vk, "CSV", tmp_path / "none.csv")
+    body = lambda items: {"response": {"body": {"items": {"item": items}}}}  # noqa: E731
+    get = lambda p: body([{"idxNm": "VKOSPI", "clpr": "20"}, {"idxNm": "코스피200 변동성지수", "clpr": "21"}])  # noqa: E731
+    st = vk.run(get=get, env={"DATA_GO_KR_KEY": "k"}, days=1, today=date(2026, 10, 27))
+    assert st["status"] == "후보 여러 개" and st["rows"] == 0
