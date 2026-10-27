@@ -93,7 +93,7 @@ main push 때 gas_deploy.yml 이 clasp 로 .gs 를 배포한다. GitHub Pages(`i
 
 ## 보유 입력 형식 (MY_HOLDINGS 시크릿 = pb-private/holdings.txt, 같은 텍스트)
 
-보유 수치는 저장소에 두지 않는다. 런타임에만 읽는다: 웹 MY 탭은 비공개 저장소 `holdings.txt` 를 토큰으로, 08:50 아침 점검·16:20 규정 알림은 Actions 시크릿 `MY_HOLDINGS` 로. 두 곳에 **같은 텍스트**를 붙여넣는다 (아래는 자리표시 숫자).
+보유 수치는 저장소에 두지 않는다. 런타임에만 읽는다: 웹 MY 탭은 **브라우저 주 + 원장 대조**(B-16 정정 10/27 — 브라우저 localStorage 입력이 주, 비공개 저장소 `holdings.txt` 는 읽기 전용 토큰으로 읽어 해시 대조·불러오기만, 쓰기 없음. `apps-script/tab_my.html` 78행·docs/my_tab_holdings_plan.md), 08:50 아침 점검·16:20 규정 알림은 Actions 시크릿 `MY_HOLDINGS` 로. 두 곳에 **같은 텍스트**를 붙여넣는다 (아래는 자리표시 숫자).
 
 ```
 005930 10 70000          # 위성 북: 종목코드·티커·이름 수량 평균단가
