@@ -65,6 +65,8 @@ def test_build_carries_over_yesterday_event(tmp_path, monkeypatch):
     monkeypatch.setattr(C, "VERIFIED", {})
     monkeypatch.setattr(C, "releases", lambda: {})
     monkeypatch.setattr(C, "attach_earn", lambda ev, today: 0)
+    import screener.policy_rates as _pr   # build() 가 부르는 정책금리 수집이 실제 reports/policy_rates.json 을 덮지 않게
+    monkeypatch.setattr(_pr, "collect", lambda *a, **k: {})
     o = C.build()
     assert any(e.get("ticker") == "META" and e["date"] == "2026-10-21" for e in o["events"])
 
