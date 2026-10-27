@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-27T09:30+09:00",
+ "updated": "2026-10-27T15:21+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -3672,8 +3672,8 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-21",
-  "commits_total": 2104,
-  "commits_bot": 1181,
+  "commits_total": 2127,
+  "commits_bot": 1188,
   "commits_unmapped": 127,
   "audit_files": [
    "2026-10-21",
@@ -4024,7 +4024,7 @@
     }
    },
    "HF": {
-    "commits_7d": 99,
+    "commits_7d": 106,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -4088,7 +4088,7 @@
     },
     "rounds": 0,
     "round_last": null,
-    "req_open": 1,
+    "req_open": 2,
     "audit": {
      "치명": 0,
      "중": 6,
@@ -4096,7 +4096,7 @@
     }
    },
    "PM": {
-    "commits_7d": 196,
+    "commits_7d": 197,
     "board": {
      "진행": 2,
      "검수": 0,
@@ -4906,7 +4906,7 @@
     }
    },
    "개발": {
-    "commits_7d": 194,
+    "commits_7d": 198,
     "board": {
      "진행": 2,
      "검수": 3,
@@ -5104,7 +5104,7 @@
     }
    },
    "운영": {
-    "commits_7d": 44,
+    "commits_7d": 46,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -5276,7 +5276,7 @@
     },
     "rounds": 1,
     "round_last": "2026-10-24",
-    "req_open": 1,
+    "req_open": 2,
     "audit": {
      "치명": 0,
      "중": 0,
@@ -5302,7 +5302,7 @@
     }
    },
    "행동": {
-    "commits_7d": 3,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -5323,16 +5323,16 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 395,
-   "tokens": 75067850,
-   "tools": 18121,
-   "sec": 224396,
+   "runs": 400,
+   "tokens": 75670414,
+   "tools": 18204,
+   "sec": 225247,
    "days": 12,
    "per_day": {
-    "runs": 32.9,
-    "tokens": 6255654.2,
-    "tools": 1510.1,
-    "sec": 18699.7
+    "runs": 33.3,
+    "tokens": 6305867.8,
+    "tools": 1517.0,
+    "sec": 18770.6
    }
   }
  },
@@ -5377,29 +5377,29 @@
    }
   },
   "opus": {
-   "runs": 96,
-   "tokens": 12045046,
-   "tools": 2575,
-   "sec": 33966,
+   "runs": 99,
+   "tokens": 12474410,
+   "tools": 2619,
+   "sec": 34412,
    "days": 4,
    "per_day": {
-    "runs": 24.0,
-    "tokens": 3011261.5,
-    "tools": 643.8,
-    "sec": 8491.5
+    "runs": 24.8,
+    "tokens": 3118602.5,
+    "tools": 654.8,
+    "sec": 8603.0
    }
   },
   "claude-sonnet-5-5": {
-   "runs": 4,
-   "tokens": 483959,
-   "tools": 115,
-   "sec": 1093,
-   "days": 2,
+   "runs": 6,
+   "tokens": 657159,
+   "tools": 154,
+   "sec": 1498,
+   "days": 3,
    "per_day": {
     "runs": 2.0,
-    "tokens": 241979.5,
-    "tools": 57.5,
-    "sec": 546.5
+    "tokens": 219053.0,
+    "tools": 51.3,
+    "sec": 499.3
    }
   },
   "sonnet": {
