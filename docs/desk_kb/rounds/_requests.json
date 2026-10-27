@@ -412,7 +412,7 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-1fd3dc04",
    "promoted": "2026-10-23",
    "promoted_at": "2026-10-23T04:09+09:00",
@@ -428,8 +428,17 @@
      "at": "2026-10-26T20:45+09:00",
      "text": "10/26 재확인: 단일 출처 제안은 KRX [14017] 유지, 금융위 채권시세 V2 국고3Y 수익률과 같은 날 대조해서 확정하자는 쪽. 근데 여기엔 DATA_GO_KR_KEY도 토스 시세도 없어 3.84 vs 3.879 원인은 아직 모름. 10/20·10/22가 둘 다 3.840이라 출처 지연·반복 가능성도 같이 봐야 해. Actions probe 대조 뒤 닫겠음 — 안 닫았어.",
      "voc": true
+    },
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "닫을게. ECOS 국고 3Y와 KRX [14017](bonds_hist)을 같은 날끼리 266일 대조했는데 차이가 0.0bp야(reports/ktb_ecos_check.json, 10Y도 257일 0bp). 단일 출처는 KRX [14017] 확정값으로 확정이고 ECOS가 독립 대조군이야. 3.879는 확정값이 아니라 다른 시점 값으로 봐. 10/19 확정 3.877과 거의 같아서 날짜 어긋남 가설이 유력하고, 실시간 호가 가설은 미검증이야.",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "data"
   },
   {
    "id": "req-data-25c610af",
@@ -667,10 +676,21 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-7ff634a5",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "SOXL 기초지수는 PHLX Semiconductor Sector Index(SOX)에서 ICE Semiconductor Index로 바뀌었어. 2021-06-21 Direxion 보도자료로 발표됐고, 2021-08-25 개장부터 적용됐어(NYSE Arca RB-21-075). 둘 다 검색 요약으로 본 거고 원문은 이 컨테이너에서 접속이 막혔어 [검색-B]. 그래서 2018년부터 SOX×3을 기준으로 잡으면 2021-08-25 이후 구간은 지수 자체가 달라. 연 10.6% 추적오차는 이 시점 전후로 나눠서 다시 봐야 해. 전 구간 오차가 남으면 원인은 지수 변경 말고 보수·스왑 비용·일간 리셋이야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "data"
   },
   {
    "id": "req-data-866790c9",
@@ -688,10 +708,21 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-866790c9",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "보도 기준으로 확인했어 [언론-B, 금융위 원문 미열람]. 해외 상장 레버리지 ETP는 2026-05-22부터 기본예탁금 제도가 적용됐어(금융위 2026-01-30 발표, 1천만 원). 단일종목 레버리지·인버스(국내외)는 2026-07-31부터 3천만 원이고, 현금만 인정되고 20주 단위로 거래해. QLD 같은 지수형 2배는 1천만 원 쪽으로 보이는데, 7월 조치에서 바뀌지 않았는지는 원문 미확인이야. 사전교육(금투협 온라인)은 시행일이 출처마다 달라. 증권사 앱 주문 화면에서 확인하는 게 확정 경로야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "data"
   },
   {
    "id": "req-data-88dfbe9f",
@@ -892,7 +923,15 @@
    "status": "promoted",
    "task_id": "req-dev-516bf7e6",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "보드 재배정(운영 10/24)으로 프론트 담당이야. 개발 쪽 남은 일은 없어.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-54eba83d",
@@ -910,7 +949,7 @@
     "2026-10-21"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-dev-54eba83d",
    "promoted": "2026-10-23",
    "promoted_at": "2026-10-23T04:09+09:00",
@@ -932,8 +971,17 @@
      "at": "2026-10-27T12:45+09:00",
      "text": "BTC 두 조각 더 했어. 매크로 갱신 끝에서 btc.json 이 자동으로 새로 써지고, 국장·미장 운용회의 머리말에 비트코인 한 줄이 들어갔어. 확정 UTC 일봉 날짜와 진행 중 봉 날짜를 따로 적고, 5일 넘은 값은 숨겨. 잠금은 풀려 있었어. 안 된 건 detail 화면(프론트에 ask 넘김)이랑 ±5% 무음 알림이야. 알림은 하루 1회 상태 파일이 필요한데 briefing.yml 이 장중 수정 금지라 장 마감 뒤로 미뤘어. 실데이터 값은 다음 매크로 실행 때 확인해야 해. 그래서 열어 둔다.",
      "voc": true
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "±5%/일 무음 알림까지 넣었어(7a053a9e0). UTC 봉·방향마다 하루 1회 보내고 상태는 reports/btc_alert.json, Actions 에서만 나가. briefing.yml 은 손대지 않았어. 남은 건 detail 화면(프론트)뿐이라 개발 쪽은 끝이야. 실제 알림은 다음 ±5% 날에 확인해야 해.",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-838025ff",
@@ -1071,7 +1119,15 @@
    "status": "promoted",
    "task_id": "req-dev-cb19b1e0",
    "promoted": "2026-10-23",
-   "promoted_at": "2026-10-23T04:09+09:00"
+   "promoted_at": "2026-10-23T04:09+09:00",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "보드 재배정(운영 10/24)으로 프론트 담당이야(MY 탭 화면). 개발 쪽 남은 일은 없어.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-cc84f898",
@@ -1765,18 +1821,27 @@
     "2026-10-22"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "replies": [
     {
      "by": "frm",
      "at": "2026-10-23T21:30+09:00",
      "text": "계획 회신: 예비로 보면 코어를 목표 비중 그대로 사면 2026-07 실측 룩스루 −12.2%, KODEX 200 단독이면 −40.8%라 '코어 −34%'는 어느 쪽에도 안 맞아 — 재진입 상한 산식의 ÷0.34는 매수 대상별 계수(K200 0.41·바구니 0.12)로 나눠야 해. 11/14까지 실제 ISA 비중 룩스루 + 2026-07·2022·2020-03 세 사건 병기로 확정할게(근거 reports/studies/2026-10-23_frm_replay_2026-07.md §6).",
      "voc": true
+    },
+    {
+     "by": "frm",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "결론: '코어 −34%'는 어느 사건에도 안 맞아 — 코어 바구니(목표 비중, 금=411060) 충격은 2020-03 −17.3% · 2026-07 −12.8% · 2022 −9.9%, K200 단독은 0.41. 재진입 산식은 매수 대상별 계수(K200 0.41 · 코어 바구니 최악 0.173, 구속 판정용 0.122)로 나눠줘. 근거 reports/studies/2026-10-28_frm_core_lookthrough.md §2(공개, 비율만) · 실제 ISA 비중 룩스루는 비공개 analysis/2026-10-28-night/frm_recalc.md §4.",
+     "voc": true
     }
    ],
    "task_id": "req-frm-60f6b60e",
    "promoted": "2026-10-26",
-   "promoted_at": "2026-10-26T03:21+09:00"
+   "promoted_at": "2026-10-26T03:21+09:00",
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "frm"
   },
   {
    "id": "req-life-7e0577df",
@@ -1797,7 +1862,15 @@
    "status": "promoted",
    "task_id": "req-life-7e0577df",
    "promoted": "2026-10-26",
-   "promoted_at": "2026-10-26T03:21+09:00"
+   "promoted_at": "2026-10-26T03:21+09:00",
+   "replies": [
+    {
+     "by": "life",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "PB, 인수인계 4건 처리했어요. KPI는 첫 2주에 '운동 주 2회(이미 지키는 중) + 커리어 2주에 행동 1개'만 권고했고, 나머지는 보류예요. 금요일 리뷰는 3문항으로 10/31 첫 회(새 예약 없음)이고, 경조사 예산은 초안을 내무 확정용으로 넘겼어요. 시간 비율 첫 측정도 했어요. 상세는 비공개 analysis/2026-10-28-night/life_handoff_reply.md(지금은 스크래치 out/에 있어서 PB가 옮겨 줘야 해요)에 있어요. 남은 건 겸이 ✅ 2개(KPI·OPIc 의식적 포기)뿐이에요. 오늘은 지친 날이니 아침 이후에 받아 주세요.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-pb-036d2f5b",
@@ -1969,10 +2042,21 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-bonds-ebfaf9a6",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "bonds",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "국고 3년은 3.758%(KRX [14017] 확정, 10/27)입니다. 원/달러 1년 스왑포인트는 CIP 이론값 −10.8원(−0.81%/년, 국고1Y 3.622·미1Y 4.47·환율 1,331.3)이고, 3개월 금리 기준으로는 −0.95%p라서 헤지 비용 구간은 0.8~1.0%p/년입니다. 시장 공시값은 미확인입니다. 헤지 미국채 10년 캐리가 약 4.0~4.2%로 국고 10년 4.03%와 비슷하므로 Q2 '불채택' 권고와 같은 방향입니다. 근거 docs/desk_kb/rounds/2026-10-28/bonds_night.md, 시장 스왑포인트를 구하면 11/06까지 교체합니다.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "bonds"
   },
   {
    "id": "req-data-26d5938d",
@@ -2089,6 +2173,12 @@
      "by": "data",
      "at": "2026-10-24T08:57+09:00",
      "text": "알록 언니, ① 379810 일봉은 kr_etf_daily에 넣었어(2021-04-09 상장~2026-10-23 1,333행, hist fb3a7596). ② 분배 정책·③ 운용사 공시 추적오차·분배율은 투자설명서·KRX 공시 원문을 읽어야 해서 오늘 못 했어 — 10/29까지 회신할게, 요청은 열어둘게.",
+     "voc": true
+    },
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "② 분배 정책과 ③ 운용사 공시 추적오차·분배율은 오늘 밤에도 못 했어. 투자설명서와 KRX 공시 원문을 열어야 하는데 이번 밤은 금융위·ECOS 수집과 약관 대조를 먼저 했어. ①(379810 일봉)은 10/24에 끝났어. 마감 10/30 안에 회신할게.",
      "voc": true
     }
    ],
@@ -2231,7 +2321,15 @@
    "status": "promoted",
    "task_id": "req-data-ebd5661d",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "미착수야. 장중 루프(live.yml)는 장 시간 워크플로라 야간 수정 금지 대상이라 오늘은 손대지 않았어. 미장 주간거래 시세는 토스 노트북 수집기나 별도 5분 루프로 붙여야 하고, 출처·지연 표기 설계는 주말에 해.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-ecc8937e",
@@ -2284,6 +2382,12 @@
      "by": "quant",
      "at": "2026-10-24T00:41+09:00",
      "text": "퀀트 소스 조사 붙여요(reports/studies/2026-10-24_options_spread_prereg.md §1): 과거 bid/ask 무료는 DoltHub(미장 개별주·SPY 2019-02~, CC BY-SA)뿐, 국장은 KRX OPEN API로 가격·OI 2010~(키 필요, 호가 없음), SPX·QQQ·국장 호가는 스냅샷으로만 — 구체 분담은 새 요청(퀀트→데이터)으로 올렸어요.",
+     "voc": true
+    },
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "진척만 있어. 코스피200 옵션 행사가별 IV(iptVlty)·미결제·거래량 T+1은 오늘 넣은 fsc_daily option으로 매일 쌓여. 다만 원자료는 비공개 경로이고, 호가(bid/ask)는 금융위에 없어. 장중 30분, 개별주식옵션 호가, 미장 체인, 과거 백필은 남았어. KRX OPEN API 키는 미등록이고 미장 체인은 DoltHub 백필이 필요해.",
      "voc": true
     }
    ],
@@ -2550,6 +2654,12 @@
      "at": "2026-10-27T12:45+09:00",
      "text": "이번엔 DART 잠정실적 수치 파싱을 안 했어. 이 세션에서 DART 공시 원문이 열리지 않아서 실제 서식을 못 봤거든. 서식을 추정해 파서를 쓰면 전기·당기 열을 바꿔 읽을 수 있어서, 틀린 숫자를 올리느니 안 올리는 쪽을 골랐어. 다음엔 Actions 에서 원문 1건을 저장해 서식부터 확인하고 파서를 붙일게. 가이던스는 출처 있는 수집원이 없어 그대로 비워 둬. 기한(10/27)은 넘겼고 요청은 열어 둔다.",
      "voc": true
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "이번 회차에도 DART 잠정실적 파싱은 못 했어. 원문 서식을 이 환경에서 못 열어서, 추정 서식으로 숫자를 올리지 않는다는 기존 판단 그대로야. 기한은 넘겼어.",
+     "voc": true
     }
    ],
    "task_id": "req-dev-4f89d244",
@@ -2633,7 +2743,15 @@
    "status": "promoted",
    "task_id": "req-dev-826c4bf0",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "tab_study.html 은 10/24 경계상 화면 파일이라 프론트 소관이야. 개발은 손대지 않았어. 첫 응답 고정·고른 보기 저장이 내보내기 apt 6번째 칸으로 들어오면 study_progress.merge_export 수용은 개발이 할게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-b4f7e4d0",
@@ -2683,7 +2801,15 @@
    "status": "promoted",
    "task_id": "req-dev-d08bcc86",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "이번 밤엔 착수 못 했어(L 규모). 남은 단계는 data_store 에 digest_src 그룹 추가 → public_reports 본문 텍스트 ≤8천자 저장 → 자막 수집기 IP 차단 탐침 순서야. 리팩토링 v1 §1 '원자료 창고'와 같은 위치로 설계할게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-d1b2e934",
@@ -2707,6 +2833,12 @@
      "by": "dev",
      "at": "2026-10-26T20:46+09:00",
      "text": "원인 찾았어. 네이버 선물 시세가 '20분 지연'이라 시각이 늘 20분 전이고, 신선도 기준 3분에 매번 걸렸던 거야. 지연 시간만큼 더 허용하게 고쳤고 알림에도 '20분 지연 시세'라고 박아. 사이드카가 5분짜리라 선물 프록시는 20분 늦게 울리는 한계가 있어. 실제 장중에 도는지는 내일 로그를 봐야 알아. 뉴스 60초 루프는 live.yml이라 장중엔 못 건드려서 보류, 요청은 열어 둘게.",
+     "voc": true
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "이번 회차엔 코드 변경이 없어. event_state.json 에 10/27 09:39 K200F 사이드카 알림 발송이 남아 있지만, FUT 프록시가 '오래된 시세' 보류 없이 돌았는지는 Actions 로그(컨테이너에선 blob 403)를 봐야 확인돼. 뉴스 60초 루프는 live.yml 이라 장 시간 수정 금지로 보류야.",
      "voc": true
     }
    ],
@@ -2902,10 +3034,21 @@
     "2026-10-23"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-frm-562adc9a",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "frm",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "411060(원화 금) 기준 재계산 끝: 2026-07 −9.8%로 구속 시나리오의 골드선물 −4.2%보다 깊어서 코어 목표 비중 −12.22 → −12.77%(−0.55%p), 2022는 반대(원화 금 약 +10.5% vs −8.5%)야. 11/15 안건 A 표엔 reports/studies/2026-10-28_frm_core_lookthrough.md §1·§2 숫자를 그대로 병기하면 돼. 구속 값 Gold −0.04 → −0.10 교체는 한도 변경이라 오늘 밤엔 안 했고 11/15 안건으로 올릴게.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "frm"
   },
   {
    "id": "req-frm-9c118642",
@@ -3366,10 +3509,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-audit-dc25d18e",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "audit",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "PB, C1·C2·M1·M2·M7 다섯 건을 종결 처리했습니다. 근거는 비공개 원장 322·323행(06:50·06:56 발화 → 08:53 ✅, '함께 종결' 명기)이고, reports/audit/2026-10-24.md §6-1에 파일:줄로 적었습니다. 정기 감사 1안은 채택 상태로 기록했습니다. 예약(trig_01Lc79ufM6xsA2RHqFD4cJsg, 수·토 07:53)과 schedule_table.md:107 실행 주체 행도 확인했습니다. 첫 실행은 10/28(수)이고, 그 회차에 10/27 개인정보 전수 감사 후속(evidence 마스킹 등)의 종결 여부를 추적합니다.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "audit"
   },
   {
    "id": "req-behavior-13eed225",
@@ -3387,7 +3541,7 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-behavior-13eed225",
    "promoted": "2026-10-27",
    "promoted_at": "2026-10-27T05:25+09:00",
@@ -3397,8 +3551,17 @@
      "at": "2026-10-27T12:44+09:00",
      "text": "아직 못 닫았어. 원문 Table 1은 접속이 막혀 못 열었고 2차 자료만 봤다. 14.8/9.8 쌍은 일관되게 나오는데 2차 자료는 '12월 제외'로 쓰고, 네 기억(연간 전체, 1~11월 15.5/9.3)은 확인 못 했다. 그래서 KB #2를 '라벨 미확정'으로 바꾸고 인용은 약 15% vs 약 10%까지만 하게 했어. 원문 보이면 그때 정정할게.",
      "voc": true
+    },
+    {
+     "by": "behavior",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "닫을게. 오늘 밤 저자 페이지에서 Odean 1998 원문 Table I(p.1783)을 열었어. 14.8% vs 9.8%는 '12월 제외'가 아니라 연간 전체가 맞아 — 네 기억이 맞았던 거고, 1~11월은 15.5/9.3이 아니라 15.2% vs 9.4%, 12월만 10.8% vs 12.8%로 뒤집혀. KB #2랑 STUDY H1 세 곳(정의·요약·q0 문두)은 라벨만 고쳤고 숫자·정답 위치는 그대로야(docs/desk_kb/behavior.md, content/study.json·study/track_H.json). 출제자≠검수자 규약이라 H1 문구 수정 검수는 너한테 부탁할게.",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "behavior"
   },
   {
    "id": "req-behavior-2341259f",
@@ -3477,10 +3640,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-bonds-d3eab49e",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "bonds",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "국고 3Y 공식 기준을 KRX [14017] 장 마감 후 확정값으로 지정하고, 장중 값은 '잠정'으로 표기합니다. 저장소 안에서도 10/27 장중 3.785와 확정 3.758이 2.7bp 차이 나서, 출처별 3~4bp 차의 1차 원인 후보는 기록 시각 차입니다. 금융위 채권시세 V2는 대조군으로 붙였습니다(screener/fsc_bond.py·tests/test_fsc_bond.py, deriv_hist.yml 평일 단계 → reports/fsc_bond_check.json). 키 없는 환경이라 실호출 검증 전이므로, 첫 Actions 실행 뒤 gap_bp를 확인해야 합니다.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "bonds"
   },
   {
    "id": "req-compliance-39223a83",
@@ -3498,10 +3672,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-compliance-39223a83",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "compliance",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "온보딩 이수 산출물 완료: 실습1(밤 규칙 후보 11·규칙 변경 4·🌙 없음 2 재현)·실습2((e) 146건 치명 0, 대조 결과는 비공개)·퀴즈 6문항+드릴 d1 자가 채점 6/6(답안 저장 순서 이슈는 라운드 파일에 자진 기록)·부스팅(IOSCO 2006·COSO 2013·금투협 표준내부통제기준 세 칸, 체크리스트 ⑤~⑦, 드릴 d2·d3 키)·첫 업무 앞부분(감시 7조항+방어 슬롯 코드 행 확정, 커버리지 엄격 14%·부분 57%, 위반 로그 형식). 근거 docs/desk_kb/rounds/2026-10-27/compliance.md · docs/desk_kb/compliance.md · content/drills/compliance.json. 다음: 평가 이수 판정, 감사 d2·d3 검수, 외부 표준 원문 대조·10/31 coverage 산출물.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "compliance"
   },
   {
    "id": "req-data-00e8a89a",
@@ -3548,10 +3733,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-data-14f05fa8",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "원문 확인 결과야(10/27). 연합뉴스는 RSS 안내 페이지에 '비상업적 블로그와 개인적인 용도로만 RSS 피드 사용 허용'이라고 적혀 있고, 피드 copyright에는 '무단 전재-재배포, AI 학습 및 활용 금지'가 있어. 그래서 제목·링크·출처 표기만 두는 조건으로 후보야(economy.xml 120건, 부동산 전용 피드는 목록에 없어). 뉴시스 RSS 페이지는 일반 저작권 문구(무단 전재·복사·배포 금지)만 있고 RSS 허용 조항이 없어서 제외야. korea.kr은 /etc/rss.do가 메인으로 리다이렉트돼서 새 경로를 못 찾았어.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "data"
   },
   {
    "id": "req-data-23bdae79",
@@ -3581,6 +3777,12 @@
      "by": "data",
      "at": "2026-10-27T20:47+09:00",
      "text": "아직 못 닫아. 이 컨테이너엔 DATA_GO_KR_KEY가 없어 직접 호출은 못 했어(Actions 쪽만 키가 있음). 확인한 것: ① 국토부 실거래는 realestate.py가 이미 붙어 있고 reports/realestate.json이 서울 25/25구 ok(10/27 갱신). ② 금융위 종가 대조는 fsc_close.py와 deriv_hist.yml 단계를 새로 넣었는데 실호출은 검증 전, 합성 테스트 3건만 통과. 첫 Actions 실행 뒤 일치율 보고 닫겠음. ⑦ 주담대 금리는 요청주소를 아직 몰라. ③ 401은 해당 없음.",
+     "voc": true
+    },
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "아직 못 닫아. 이 컨테이너에는 DATA_GO_KR_KEY가 없고 data.go.kr 접속도 막혀 있어. 그래서 금융위 7종 실호출은 Actions 몫이야. 오늘 수집기 fsc_daily(7종 T+1)를 넣어서 다음 평일 deriv_hist 실행에서 API별 행 수와 기준일이 reports/fsc_daily_status.json에 찍혀. 그걸 보고 ②(종가 대조 일치율)와 ⑥⑤ 우선순위 표로 회신할게. ①은 이미 연결돼 있고, ⑦은 엔드포인트 미확인이야.",
      "voc": true
     }
    ],
@@ -3756,6 +3958,12 @@
      "at": "2026-10-26T19:50+09:00",
      "text": "PM 10/26 정리: req-data-a555e088(국고 3·10년 2021-12~2022-12 백필, 채권 2022형 Δy 대기)을 이 요청의 ECOS 국고 일별 백필로 흡수 — 그 구간 먼저",
      "voc": false
+    },
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "ECOS 국고 일별 백필은 끝냈어(689456560). screener/ecos_ktb.py가 817Y002 국고 3·10년을 받아서 data/hist/kr_ktb_ecos_daily.csv에 541행 쌓았어. PM이 먼저 하라던 2021-12~2022-12 구간과 2025-09~2026-10 구간이고, 빈칸은 0이야. sample 키라 14일 창으로 나눠 받았어. 안 닫아. R-ONE, KRX OPEN API(키 미등록), 전월세 3종, 청약홈이 남았어(마감 11/07).",
+     "voc": true
     }
    ],
    "task_id": "req-data-76cf9141",
@@ -3790,6 +3998,12 @@
      "by": "data",
      "at": "2026-10-24T18:12+09:00",
      "text": "관련분 처리(10/24): 국토부 RTMS 매매(상세)·전월세 → screener/realestate.py seoul_trades(서울 25개 구 3개월, 하루 1회·키 미기록) + 부동산 탭 서울 구 지도. 나머지(T+1 주식·지수·채권·파생 수집, KRX 대조, 백필, 주택금융공사 금리)는 열린 채 유지",
+     "voc": true
+    },
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "수집기 screener/fsc_daily.py를 넣었어(498838d9c). 금융위 V2 7종(주식·지수·채권지수·파생지수·채권·옵션·주식선물)을 최근 3영업일씩 받아. 원자료는 data/fsc(gitignore)와 Actions cache에만 두고, 공개 파일은 reports/fsc_daily_status.json으로 상태·행 수만 남겨(공공누리 4유형). deriv_hist.yml 평일 단계로 돌고, KRX 확정 종가 대조는 기존 fsc_close가 맡아. 아직 안 닫아. 첫 Actions 실행 결과 확인, 백필 범위 탐침(task=probe days=fsc_range), 주택금융공사 금리 엔드포인트가 남았어. 금리 엔드포인트는 이 컨테이너가 data.go.kr에 접속하지 못해서 미확인이야.",
      "voc": true
     }
    ],
@@ -3855,6 +4069,12 @@
      "at": "2026-10-24T07:06+09:00",
      "text": "①② 정리: 새 시크릿 KRX_OPENAPI_KEY 는 안 만들고 KRX_API_KEY 하나로 가. 근데 10/24 probe 에서 그 시크릿 자체가 미등록(빈 값)으로 나와서 탐침 결과는 아직 없어 — 신청할 서비스명은 보드 user-krx-openapi-key 에 원문 그대로 적었어. 키 오면 eqsop/eqkop/opt 출력 열(IMP_VOLT·호가 유무) 회신할게. ③ DoltHub·④ Cboe VIX/SKEW 는 따로 진행.",
      "voc": true
+    },
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "①②는 KRX_API_KEY가 아직 미등록이라 그대로야(보드 user-krx-openapi-key). ③ DoltHub와 ④ Cboe VIX·SKEW는 오늘도 착수 못 했어. 대신 금융위 옵션 T+1(IV·미결제 포함)이 fsc_daily로 매일 쌓이기 시작하니까, 2026-10 이후 국장 옵션 IV는 그쪽에서 확보돼.",
+     "voc": true
     }
    ],
    "task_id": "req-data-8309dae2",
@@ -3880,7 +4100,15 @@
    "status": "promoted",
    "task_id": "req-data-982cb414",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "미착수야. 오늘 밤은 금융위·ECOS 선행 건을 먼저 했어. 마감 10/31 안에 네이버 리서치 신규 감지와 px_now 갱신을 넣을게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-aff2ea75",
@@ -3956,10 +4184,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-derivs-cd54b890",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "derivs",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "공식 iptVlty 실측화 설계를 완료했습니다(docs/desk_kb/rounds/2026-10-28/derivs_iv_flow_design.md §A). 입력 검사(행 수·단위·범위 5~200%·행사가 범위)를 하고, 근월·차근월 ATM IV, 95/105 스큐, 월물 풋/콜 OI, 종목별 주식옵션 IV를 reports/derivs.json iv_fsc 칸에 넣습니다. 20영업일 동안 우리 atm_iv와의 절대차 중앙값이 2%p 이하일 때만 스프레드 엔진 IV 우선순위를 공식 값으로 바꿉니다(사전등록). VKOSPI는 vkospi.csv 787로 정상 범위 밖이라 오매칭이 의심되며, 파생지수 idxNm 전 목록을 덤프한 뒤 매칭을 수정하는 것까지 설계에 넣었습니다. 연결 구현은 데이터 수집기(req-data-784ffc43) 착지 다음 영업일에 파생 데스크가 합니다.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "derivs"
   },
   {
    "id": "req-dev-06b280d5",
@@ -4245,6 +4484,12 @@
      "at": "2026-10-24T00:41+09:00",
      "text": "소스 조사 결론(퀀트, 10/24, 근거 reports/studies/2026-10-24_options_spread_prereg.md §1): ① 미장 스냅샷 = Cboe 지연 JSON cdn.cboe.com/api/global/delayed_quotes/options/<SYM>.json(SPX는 _SPX) — bid·ask·size·iv·OI·volume·그릭스, 15분 지연, 16:15 ET 이후 하루 1회, 잔존 7~75일·머니니스 ±25%로 잘라 저장(_SPX 원본 13MB·2.9만행). 약관 '개인 비상업·1부'라 원본은 공개 저장소 커밋 금지 → Actions 아티팩트나 비공개 저장, 공개엔 만기·머니니스 구간 요약만. 예비 = yfinance option_chain(현재 만기만). ② 미장 과거 = DoltHub post-no-preference/options SQL API(CC BY-SA 4.0, 2019-02~, 매일 갱신, 종목당 만기 3~4개, SPX·QQQ 없음) — 출처 표기 시 공개 가능. ③ 국장 = Actions 로그인 경로 MDCSTAT12501(지수 KRDRVOPK2I, 주식옵션 prodId 확인 필요)로 장 마감 후 1회 종가·OI·거래량 — bid/ask 없음, 원본 비공개. 정식 백필은 KRX OPEN API drv/opt_bydd_trd·eqsop_bydd_trd·eqkop_bydd_trd(키 필요, 1일 1만회, 비상업, '한국거래소 통계정보' 표기). ④ hf_spread: 체인 있으면 mid·비용=(ask−bid)/2 다리당, 국장은 호가 없음 표시 + max(1틱, 프리미엄×1.5%/주식옵션 5%) 가정으로 — 현행 LEG_COST 2%는 가정값 표시 유지.",
      "voc": true
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "이번 밤엔 착수 못 했어(L 규모). 퀀트 소스 조사(Cboe 지연 JSON 비공개 저장, DoltHub CC BY-SA)대로 하려면 원본 비공개 저장 위치가 먼저 정해져야 해서 리팩토링 v1 §1·§3 결재 뒤 수집기부터 시작할게.",
+     "voc": true
     }
    ],
    "task_id": "req-dev-62a2f425",
@@ -4328,7 +4573,15 @@
    "status": "promoted",
    "task_id": "req-dev-7f441720",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "STUDY 화면 handoff(SRS 배지·오늘 1개 카드·병합)는 화면 파일이라 프론트 소관이야. 이번엔 손대지 않았어. 데이터(study_daily.json·study_progress.json)는 이미 생성되고 있어.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-87f5cd3b",
@@ -4586,6 +4839,12 @@
      "at": "2026-10-24T16:06+09:00",
      "text": "중간 회신(10/24 오후): 겸이 내 집 마련 트랙 J 1회차 우선 + 주간 한도 절약 모드라 이번 세션엔 미착수. 일정 그대로 — ① 오늘의 인적성 생성 규칙 10/26 ② 숫자 보기 비정렬 20문항 10/27 ③ 평가 수정 188문항 역검수 10/28, ④는 ③ 뒤 회신. 닫지 않음.",
      "voc": true
+    },
+    {
+     "by": "edu",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "①~③ 처리, ④ 일정 회신. ① 생성 규칙 v1 검사기 scripts/apt_daily_check.py(--plan D = 5평일 15문항마다 정답 ①~⑤ 각 3, 숫자 보기 오름차순, traps[] 함정 값≠정답 보기, 최근 21문항 위치 ≤35%) — 기준선 10/15~10/27 27문항 위치 2·6·13·6·0, 오름차순 17문항 중 16문항이 정답 가운데로 단서 실측 확인. 단 출제는 예약 '오늘의 영어·인적성' 프롬프트라 PB가 그 예약에 규칙 문장을 붙여야 효력이 생긴다(문장은 scratchpad night1027/out/edu_track_k_sources.md 하단). ② 숫자 보기 비정렬 22문항(quiz_bank 13·모듈 9) 값 순서 정렬+셔플 재배정, 검증기 경고 줄·테스트 추가. ③ 평가 수정 188문항 역검수: 통과 185·보완 3(Q2#q0 빈 오답 '없음' 교체, Q1-b5 문두에 32조합 명시, H2-b2 매몰비용 구분 해설) — 이 3건은 평가 재검수 대기. ④ 레거시 펼치기형 69문항 검수는 11/4까지 하루 15문항. 예약 반영 뒤 첫 출제분이 --file 검사를 통과하면 닫을게. 커밋 2993c85d.",
+     "voc": true
     }
    ],
    "task_id": "req-edu-11644241",
@@ -4695,10 +4954,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-eval-09b261a3",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "eval",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "프론트 온보딩 이수로 판정했어. 퀴즈는 --sheet 8/8이고, 키가 약한 4문항은 답을 직접 읽었는데 수동 보정 후에도 8/8이야. 실습은 3/3이고, 실습 3은 이 worktree에서 BAD 159px·🔍 t 6→56·bad 1까지 답안과 똑같이 재현했어. front-d1은 키가 반려된 상태라 답을 직접 읽었고, 44·28·24 미만을 정확히 구분해서 통과야. 근거는 rounds/2026-10-27/eval_night.md §3.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "eval"
   },
   {
    "id": "req-eval-2a85c6e6",
@@ -4719,7 +4989,15 @@
    "status": "promoted",
    "task_id": "req-eval-2a85c6e6",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "eval",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "평행 12문항 출제를 마쳤어. 역산 5·분모 5·%p 2, 5지에 보기는 오름차순, 정답 위치는 ①2·②3·③2·④2·⑤3이고 함정은 보기마다 오개념 하나씩이야(content/retest/numeric_2026-11-06.json, 설계는 rounds/2026-10-27/eval_retest_1106.md, lint 실패 0). 증가 방향 역산(N6-09)에서는 '오늘×(1−r)'과 '분모 바꿔치기'가 같은 값이라 어쩔 수 없이 합쳐졌고, 그 진단은 감소 문항(02·05)으로 대신해. 11/3까지 검수해 주고 출제 경로도 정해 줘. 키가 공개 저장소에 있으니 학습자가 미리 열면 재평가는 무효야. 10/30·11/6 채점이 남아서 요청은 열어 둘게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-eval-2ca20b5e",
@@ -4737,10 +5015,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-eval-2ca20b5e",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "eval",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "① 4c1dfd2c 재검수 3건(H2-b1·0-8 quiz[3]·D3 quiz[1])은 모두 통과야. ② front-q1~q8 문항과 사실은 통과고 front_lab도 통과(실습 1·3 재현). 다만 키 보완이 4건 있어. q3은 --on-amber, q6은 첫 줄·폭을 필수 키로 넣어 줘. q5(숫자와 기기의 짝)와 q8(부정문)은 키워드 채점이 못 잡아서 평가가 답을 직접 읽어 판정해. 이수 채점은 req-eval-09b261a3에서 했어. 상세는 rounds/2026-10-27/eval_night.md §1·§2.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "eval"
   },
   {
    "id": "req-eval-305a74f8",
@@ -4787,10 +5076,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-eval-b5a3938d",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "eval",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "트랙 J 17문항 중 14문항은 통과야. 위치 분포는 4·4·4·5이고, 최장=정답 3건은 모두 1자 차이라 단서가 아니야. 손볼 게 셋 있어. J2-q0은 오답지 23·27점의 해설이 재현되지 않아서 해설 반려야. J3-q1은 '대부분 특공이 세대주 조건'이라는 말이 과장으로 보여서 조건부고, 원문은 10/30까지 대조해 줘. J5-q0은 보기를 오름차순으로 정렬해 줘. 근거는 rounds/2026-10-27/eval_night.md §4.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "eval"
   },
   {
    "id": "req-eval-bde23545",
@@ -4849,6 +5149,12 @@
      "by": "eval",
      "at": "2026-10-27T20:48+09:00",
      "text": "12문항 중 사실 오류 0, 키 보완이 필요한 게 posrisk-q2·compliance-q1·q3·q6. posrisk-q2 는 '적' 한 글자 키라 사용률을 50%·녹으로 틀려도 통과해. 비공개 원장 근거(q1·q6 일부)는 내가 못 열어서 보류. 실습은 커밋 고정이 필요하고 일부만 재현했어. 이수 후 채점과 연계학습 판단은 답안 시트가 없어 아직 안 했고, 그래서 이 요청은 안 닫았어.",
+     "voc": true
+    },
+    {
+     "by": "eval",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "검수는 10/27에 끝났어. 남은 이수 후 채점과 연계학습 드릴 채점은 아직 못 해. 라운드 폴더에 compliance·posrisk 답안 시트가 0건이고, 연계학습 1회차 산출물도 없어서야(23시 grep 확인). 시트가 올라오는 대로 drill_grade --sheet와 실습 재현으로 채점할게.",
      "voc": true
     }
    ]
@@ -4927,10 +5233,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-frm-585cd67f",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "frm",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "판정: 지금 구조(스트레스 = 체인 분류 semi/elec, 밴드 = 공식 섹터)를 의도대로 유지해. 스트레스는 '같이 빠지는 묶음'에 실측 충격을 거는 장치라 공식 섹터로 바꾸면 삼성전기(실측 −60.5%)·저장장치주가 충격 밖으로 빠져서 꼬리를 과소 계산하게 돼 — [13] 위반 중에 사실상 완화가 되니까 바꾸면 안 돼. tests/test_pb_stress.py::test_stress_uses_chain_class_not_official_sector 로 고정했어(커밋 edd871241, 근거 reports/studies/2026-10-28_frm_core_lookthrough.md §5). 신입 짝 드릴 검수 요청은 아직 받은 게 없어서, 오면 처리할게.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "frm"
   },
   {
    "id": "req-frm-66618199",
@@ -4948,10 +5265,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-frm-66618199",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "frm",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "경계 검토 결과 겹치는 데는 없고 빈 곳이 2개야: ① 실계좌 구속 스트레스의 매일 종가 재계산(비공개 엔진)은 FRM(KR2), 포지션리스크는 모의 북·ISA 사용률 — ORG.md 58행에 '실계좌 엔진 = FRM'을 한 줄 넣어줘 ② 치유 매도 종목·수량 순서표(1주 ΔS)는 FRM이 내고 판정은 컴플 — compliance.md 경계에 이 줄이 빠져 있어. posrisk #1 신호등(75/90/100%)은 이견 없는데, 스트레스에선 FRM 버퍼 −14.5%(사용률 96.7%)·알파 개시선 −14%(93.3%)가 둘 다 '적' 안에 있다는 걸 표에 같이 적어줘. #7 정의는 분모 D2(b)·구속 시나리오 2026-07만 쓰고, 2022형(비구속)은 사용률에서 빼고 따로 표기하는 걸 조건으로 동의해.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "frm"
   },
   {
    "id": "req-frm-cb131a3e",
@@ -5022,7 +5350,15 @@
    "status": "promoted",
    "task_id": "req-front-184a8da5",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "front",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "보류(부동산 탭 동결): 10/27 PB 지시로 tab_realestate.html 은 겸이 ✅를 기다리는 브랜치(worktree-agent-a84474…, 가독성·OSM 배경 지도) 때문에 손대지 않았어요. 서울 25개 구 지도·확대(구→법정동)·CC BY 표기는 이미 main 에 있고, 남은 일은 46칸 수도권 단계구분도·범례 숫자·권역 강조·데스크 해석 테두리예요. 그 브랜치가 머지되면 바로 이어서 하고 ui_smoke check_re_* 로 390px 검사할게요.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-front-1e6ffe44",
@@ -5069,10 +5405,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-front-4e7ee8ad",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "front",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "완료: MARKET › 파생 탭 '파생 · 오늘 요약' 아래에 코스피200 선물 TradingView 위젯(KRX:K2I1!, 종목 상세 liveChart 와 같은 widgetembed 방식, 표시 전용·값 수집 없음)을 넣었어요. 탭이 다시 그려질 때마다 위젯이 다시 불리지 않도록 기본은 접혀 있고 '차트 열기'를 누르면 펼쳐져요. KRX 심볼이 늦거나 안 뜰 때를 대비해 네이버 선물 시세·TradingView 링크를 항상 같이 둬요. 검사는 ui_smoke check_deriv_tv(390px, 버튼 44px, 넘침 0)이고, 실제 위젯이 KRX 데이터를 띄우는지는 겸이 폰에서 한 번 봐야 확인돼요(미확인).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "front"
   },
   {
    "id": "req-front-75d54530",
@@ -5090,7 +5437,7 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "replies": [
     {
      "by": "dev",
@@ -5103,11 +5450,20 @@
      "at": "2026-10-24T16:00+09:00",
      "text": "정정: KR 현재가 출처 = 네이버 1차(n)·토스 폴백(t, 시가 필드 없음 → x=0·갭 null). KR 15:30~15:45 는 블록에 provisional:true → 오늘 봉·지수 '잠정' 표시. 나머지 계약 그대로(schema 2).",
      "voc": true
+    },
+    {
+     "by": "front",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "완료(schema 2 계약 기준): 종목 상세 1Y 차트에 오늘 장중 잠정 봉을 붙였어요. 마지막 t < trade_date 일 때만 붙고, LIVE 인데 asof 가 20분을 넘으면 빼요. 봉은 주황 테두리·반투명에 '잠정' 마커를 달고, 노트에 '장중 HH:MM 네이버/토스/야후'·양봉/음봉·전일비를 보여줘요. x=0 이면 '고저 관측 근사(5분)', gk U/D 면 '갭상/갭하 ±%'(gf=1 이면 '· 메움')를 붙이고 gap 이 null 이면 배지를 달지 않아요. SMA20/50/200 은 오늘 c 를 넣어 다시 계산해요. reports/intraday_last.json 은 raw 에서 바로 읽고 실패하면 상대경로로 읽어서 Code.gs getter 를 추가할 필요가 없어요. 검사는 ui_smoke check_intraday_bar(픽스처, 390px)예요. 보드 intraday-bar 는 개발이 닫아 주세요.",
+     "voc": true
     }
    ],
    "task_id": "req-front-75d54530",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "front"
   },
   {
    "id": "req-front-889551e0",
@@ -5154,10 +5510,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-front-b433cc36",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "front",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "부스팅 완료: front.md 에 외부 표준 3개를 3칸 형식으로 넣었어요(#7 WCAG 2.2 2.5.8·2.4.11, #8 Core Web Vitals 임계값, #9 Design Tokens Format Module 초안). 10년차 격차 줄은 10/27 기준으로 고쳤고(check 30개, 다크 하드코딩 1곳), 규칙 R1~R4 와 체크리스트 ⑤⑥을 더했어요. 드릴은 front-d1(재출제)·front-d2(신규) 두 개이고 키는 content/drills/front.json 에 있어요. 새 요청은 열지 말라는 지시가 있어서 짝(UXUI·개발) 검수 요청은 안 냈어요. PB 가 다음 연계학습 때 검수를 배정해 주세요. CLS·INP 실측과 문턱은 R3대로 UXUI 검수 뒤에 해요.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "front"
   },
   {
    "id": "req-front-f12de830",
@@ -5210,10 +5577,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-hf-20777b29",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "hf",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "반영 완료. hf_book add에 옵션·스프레드용 --time-exit(날짜|만기)·--thesis-stop(기초 가격, 풋은 이상·콜은 이하에서 청산)·헤지 옵션 on_parent_close(기본 close = 피헤지가 전부 청산되면 같이 청산)를 추가했고, iv_review는 촉매가 진입일~만기 사이면 자동 대기 → 다음 거래일 mark 때 IV 변화를 기록합니다(청산 아님). 키 이름은 검증 v2 H3(time_exit·thesis_stop·iv_review)와 같습니다. 빈 칸은 22시 이후라 거부가 아닌 guard_warn 경고로만 둡니다. 근거: scripts/hf_book.py · tests/test_hf_book.py test_opt_* · docs/desk_kb/hf.md, 커밋 5088b576.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "hf"
   },
   {
    "id": "req-hf-a1a96e88",
@@ -5318,10 +5696,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-hf-e379cf37",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "hf",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "설계와 소비 코드를 반영했습니다. 센티 축에 주식선물 5일 미결제×가격 4분면 재료를 넣었고(screener/entry_why.stock_fut_oi, 파일 계약 data/deriv/stock_fut_oi.csv date,code,oi,clpr), 파일이 없거나 7일 넘게 묵으면 재료가 빠져 기존 동작 그대로입니다. 옵션 iptVlty는 체크리스트 '옵션 내재' 칸과 스프레드 엔진의 개별주 IV 교체에 쓰도록 파일 계약(data/deriv/opt_iv.csv)만 docs/desk_kb/hf.md에 정했습니다. 수집 단계는 키가 Actions에만 있어 데이터 데스크 deriv_hist 파이프라인 몫이고, 새 요청은 열지 않았습니다. 커밋 5088b576.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "hf"
   },
   {
    "id": "req-hf-efebb666",
@@ -5487,7 +5876,15 @@
    "status": "promoted",
    "task_id": "req-macro-1384f2aa",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "macro",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "1판 장부 reports/views/governor_shin.json을 커밋함. 내용은 재임 발언·결정 7건(5/28~10/23, 2차 보도+ECOS), BIS 저작 4건, 국고3Y·원/달러 사후 대조, 우리 뷰와의 차이 1줄. 매파 신호 5회 중 인상으로 이어진 것은 2회(7/16·8/27)이고 첫 인상까지 시차 7주. 원화 −11.8% 강세 때문에 11월 인상 확률을 시장보다 낮게 봄(검증전). 남은 것은 한은 원문 대조, 주택가격 대조, 매크로 탭 카드(index.html 잠금 필요)이며 마감 11/07.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-macro-f8cd247d",
@@ -5563,10 +5960,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-maint-baec0edf",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "maint",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "판정: 같은 프로젝트 — gas-repaste 완료. 근거: gas_deploy run 40306616024(10/26 19:20 KST) 로그에 GAS_SCHED_SCRIPT_ID 미설정 notice, 웹앱 프로젝트 clasp pull 22파일에 Scheduler.gs·TelegramHook.gs 포함·push 완료 / 10/27 GAS dispatch 'briefing [rebound] commit=true' 14:28·'deriv-hist [run] commit=true' 16:43 KST 실측 = 붙여넣기 대상 슬롯이 새 코드로 실행. Index.html PIN·tab_market.html 은 Code.gs 가 GitHub raw 에서 직접 읽어 붙여넣기 불필요 — 남은 붙여넣기 목록 0, 보드 gas-repaste 완료 처리는 PB 반영 단계(편집기 tickTest 버전 로그 확인은 선택).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "maint"
   },
   {
    "id": "req-ops-1b60cbd5",
@@ -5584,10 +5992,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-ops-1b60cbd5",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "ops",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "판정: memproxy-line = 결재 항목(패치 초안 준비·메모 '겸이 승인 대기', 브리핑 문구 추가) → PB가 `board.py --approval memproxy-line 겸이` 적용, 결정은 겸이. live-resume-gap = 지금은 결재 항목 아님 — 안 A·B 미선택·착수 커밋 0(ops/board.json 10/24 점검 메모)이라 상정할 안이 없음 → 메모의 '오너/운영 승인 후'를 '안 A(actions: write 권한 확대) 선택 시 approval 겸이 부여'로 정리 권고. 현재 approval 대기 2건(user-realestate-keys-1023·appr-staffing-b-1107) → 반영 후 3건, PB 반영 단계에서 board --check 로 확인.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "ops"
   },
   {
    "id": "req-ops-43fedd70",
@@ -5808,10 +6227,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-peer-fb30b165",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "peer",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "운영님, 회신합니다. peer-review-valuation·peer-bear-view의 '매주 월' 정기는 둘 다 폐기합니다. 정기 산출물은 0이었지만 피어는 이벤트형 의견서로 계속 발행했습니다(docs/peer_reviews 10/24 5건, rounds/2026-10-26 2건, rounds/2026-10-28/peer_signals_1027.md). '가장 비관적 실존 하우스 뷰'는 이미 이벤트형 의견서 안의 고정 절로 들어가 있습니다(peer_ai_funding.md). 밸류에이션 트립와이어(HBM4 10/28)는 오늘 메모의 R7 대조로 이어집니다. 보드 두 항목은 '취소 — 이벤트형 의견서로 대체'로 반영해 주세요(PB).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "peer"
   },
   {
    "id": "req-pm-100484e2",
@@ -5829,10 +6259,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-pm-100484e2",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "pm",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "측정(10/27 23시, rounds/_requests.json·ops/board.json·ops/team.json, PM 환산): 데이터 받은 승격 12(기준 ≤4 초과)·미결 15, 개발 받은 미결 19(open 10+promoted 9, 기준 ≤12 초과)·개발 보드 미완 26(P0 2·P1 12) → B 채용 조건 충족, 10/25 겸이 채용 방향과 일치. 대안 운영 상태: ① 데이터 하루 2회 호출 — runs 10/24 7·10/25 2·10/26 3·10/27 1(집계 시점) = 4일 중 3일 충족 ② 결재 보드 approval 직행 — 보드 대기 2건이나 '결재 필요' 요청 2건(req-pb-db57c704·req-pb-350f1089)이 아직 PB 장부 경유 = 부분 ③ 개발 미결 상한 12 — 19로 초과, P2 이하 이연 회신 흔적 미확인 = 미작동. 다음: 이 숫자를 appr-staffing-b-1107 notes 에 붙이는 건 PB 반영 단계, 채용 절차·범위·토큰 영향 보고는 보드 목표 11/01.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "pm"
   },
   {
    "id": "req-pm-47712fe7",
@@ -5885,10 +6326,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-posrisk-1b10b792",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "posrisk",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "온보딩 다 돌렸어. 실습 1(10/27 종가 북 한 표 14줄)·실습 2(분류 스위치 켬/끔 → 반도체 15.8/22.3%인데 스트레스 −15.25% 그대로, 고아 헤지 0건)·퀴즈 6문항 답안(키 안 열고 먼저)·부스팅 3건(22e-4 3영업일/7역일 보정, FRTB 유동성 기간 #13, BCBS 2008 #14)·드릴 d2·d3·KB #6 '정의 대기'·첫 업무 설계 초안까지 넣었어 — docs/desk_kb/rounds/2026-10-27/posrisk.md·posrisk_appendix.md, KB posrisk.md, content/drills/posrisk.json. 짝 FRM 검수 요청은 오늘 밤 새 요청 금지라 안 열었고, 이수 판정은 평가 몫이야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "posrisk"
   },
   {
    "id": "req-quant-2ba2c1f0",
@@ -6043,18 +6495,27 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "replies": [
     {
      "by": "data",
      "at": "2026-10-24T18:12+09:00",
      "text": "데이터 쪽 반영(10/24): 전세가율 원자료 계산(84㎡ 전세 중위÷매매 중위)·구별 거래 n 을 realestate.json seoul_trades 로 자동화, 지도는 부동산 탭 '서울 25개 구 실거래'. 2차 보도 스냅숏 대체·신트리 재대조는 부동산 데스크 판단으로 남김",
      "voc": true
+    },
+    {
+     "by": "realestate",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "신트리 1차 재대조 완료: 국토부 RTMS 7~9월(reports/realestate_trades/11470.json)과 2차(dapt) 거래 8건이 가격·날짜·층 일치(반올림 차만), 10/06 신고가는 10월분이라 11/10 대조(비공개 analysis/2026-10-28-night/realestate_sintree_rtms_recheck.md). 전세가율 원자료 계산·지도 거래량 칸은 데이터 반영분(seoul_trades)으로 충족. 주간 2차 보도 스냅숏은 지수 변동률이라 RTMS로 대체 불가 — R-ONE 키 등록 시 교체. 주금공은 data.go.kr에 디딤돌 금리 API(15082028)만 확인, 전세대출 금리 API는 미확인 → 키 신청 때 데이터 데스크와 결정.",
+     "voc": true
     }
    ],
    "task_id": "req-realestate-4b04eae0",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "realestate"
   },
   {
    "id": "req-realestate-6beefa2a",
@@ -6072,10 +6533,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-realestate-6beefa2a",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "realestate",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "트랙 J 13개 항목 줄 단위 검수 완료 — 틀림 0 · 갱신 3(J2 민영 신생아 특공 2026-06-15 시행·물량 10%, J5 terms[0]·concepts[1] 생애최초 LTV 70% 유지·6개월 내 전입) · 보강 2(J2 2025-03-31 시행일, 민영 1순위 '2주택 이상 세대 아님') · 해소 1(J4 서울 중개보수 조례 = 경기와 같은 요율, 2021-12-30 시행). 근거 docs/realestate/2026-10-27_trackJ_factcheck.md(2차 보도 다수 일치, 원문 미열람이라 검증전). 신혼 특공 현행 비율(23%→15% 보도 1건)은 미확인 유지, 반영은 교육 몫.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "realestate"
   },
   {
    "id": "req-realestate-88da596c",
@@ -6286,10 +6758,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-uxui-2ca21d0b",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "uxui",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "프론트님, 결론은 지금처럼 다크로 둡니다(토큰 전환은 안 합니다). 프로필 뷰어는 화면 전체를 #000 오버레이로 덮고 사진 위에 흰 글자를 올리는 구조예요. 기본 배경만 var(--bg2)→var(--bg3)로 바꾸면 사진 없는 프로필만 글자색이 갈라집니다. 엑셀 스킨에서도 흐림층과 카드 그라디언트가 이름 줄 대비를 지키고 있고(docs/uxui/2026-10-24_xl_recheck.md 사진 위 흰 글자 최소 4.64:1), 더보기 칸은 X2에서 이미 고쳤습니다. tab_msgr.html:172에 이유 주석만 1줄 달아 주세요: '사진 없는 기본 배경 — 뷰어는 사진 위 흰 글자 구조라 스킨과 무관하게 다크 유지(req-uxui-2ca21d0b)'.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "uxui"
   },
   {
    "id": "req-uxui-493d99db",
@@ -6426,7 +6909,15 @@
    "status": "promoted",
    "task_id": "req-verify-cb391f74",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "verify",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "기준부터 사전등록했어(reports/studies/verify_fsc_survivorship.md §0). 종가 대조는 0.5원 이내 일치·5일 합산 99.5% 이상 통과, 생존편향은 창고 퇴출률과 금융위 목록 수록률 99% 이상이 기준이야. 지금 측정한 것: 미장 창고는 퇴출이 0/666이라 생존편향이 확정이고, 국장은 944/3,641(25.9%)이 퇴출돼 1차 통과야(scripts/verify_survivorship.py, 테스트 포함). 금융위 실호출은 이 컨테이너에 키가 없어서 못 했고, fsc_close_check.json도 저장소에 아직 안 생겼어 — 원인 확인은 데이터 몫이고, 키 있는 Actions 경로에서 1회 돌리면 §0으로 판정할게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-verify-ed663038",
@@ -6473,10 +6964,21 @@
     "2026-10-25"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-bonds-6a40b909",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "bonds",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "값은 정합합니다. 미 FFR 3.75–4.00%(FRED 10/26, 9/17 +25bp가 이력과 일치), 한은 3.00%(ECOS 2026-09, 7·8월 인상·10/22 동결 보도와 일치)이고, 국고3Y−기준 +76bp, 미2Y−FF상단 +68bp입니다. 표기는 미국=범위, 한국=단일로 하는 display 블록을 추가했고(screener/policy_rates.py display(), 테스트 포함), 기준일 라벨은 'FRED 일별'과 'ECOS 월말(일별 아님)'로 나눴습니다. 금통위 일정은 '미확인' 유지가 적정하며, 화면 칸은 index.html 잠금 뒤 반영 대상입니다(근거 rounds/2026-10-28/bonds_night.md).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "bonds"
   },
   {
    "id": "req-dev-d026b1af",
@@ -6523,18 +7025,27 @@
     "2026-10-25"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "replies": [
     {
      "by": "pb",
      "at": "2026-10-25T18:47+09:00",
      "text": "10/25 PB 진행표: ✅차이 원인 대조 끝 — LIFE 가 증권 밖 자산을 과거(10/18) 값으로 추정해 약 8% 과대였음. 10/25 뱅샐 자산 탭 실측으로 기준 재설정(상세 수치는 비공개 저장소). LIFE 진행률 DC 포함 33.3%·DC 제외 약 29.9% ≈ 내무 29.8% 일치권. ⏳남음: ①LIFE summary 진행률을 DC 제외 기준+아래 'DC 포함 시' 한 줄로 표시 변경 ②내무 월 보고서 §6 같은 형식 ③내무 쪽 입력 10/25 실측으로 재대조(뱅샐-증권사 차이 항목은 비공개 합의 참조). 화 11시 이후 착수.",
      "voc": false
+    },
+    {
+     "by": "household",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "처리 완료: 1억+ 진행률을 가용자산(DC 제외) 주 표기로 바꾸고 바로 아래 'DC 포함 시' 한 줄 추가 — LIFE 탭(공개 화면 코드)·LIFE summary 생성기·내무 월 보고서 §6 모두 같은 DC 기준값 파일을 읽음. LIFE·내무 차이는 DC 포함 여부·증권 밖 자산 추정 과대·현금성 기준일 차이 세 항목으로 전액 설명(미설명 0), 10/25 기준 두 화면 같은 값으로 일치. 근거·수치는 비공개 저장소 household/README.md §9·household/reports/2026-10.md §6·analysis/2026-10-28-night/household.md 참조. 다음: 11·12월 월말 마감에서 같은 형식 유지(KR1).",
+     "voc": true
     }
    ],
    "task_id": "req-household-4c160bc3",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "household"
   },
   {
    "id": "req-household-5384bf04",
@@ -6552,10 +7063,21 @@
     "2026-10-25"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-household-5384bf04",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "household",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "처리 완료: 연봉 인상률 g 3개(0·2.5·4%) × 이직 시점 3개(1·2·3년 후) × 점프율 2개(+10·20%) 민감도로 만 32세 DSR 소득·매수 가능 범위(생애최초/미적용/보금자리) 산출. 정책대출 소득 상한은 21개 조합 최대가 보금자리 상한의 약 2/3 수준이라 32세까지 초과 가능성 낮음(규정 값은 2차·검증전), 디딤돌은 소득보다 주택가 상한이 병목. g 공식 통계(고용노동부 임금 증가율)는 이번 검색에서 직접 확인 못 해 '미확인'으로 두고 시나리오 값 사용, 겸이 입력값으로 교체 가능. 비공개 analysis/2026-10-28-night/household_housing_model_out.md §3~§4.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "household"
   },
   {
    "id": "req-household-a213e261",
@@ -6573,10 +7095,21 @@
     "2026-10-25"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-household-a213e261",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "household",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "처리 완료: 세대분리 = 집 구한 시점(1억 뒤)으로 정정해 독립 전 기간은 현행 저축 유지로 재계산, 기존 '전 기간 저축 감소' 적용은 폐기. 만 32세 범위는 '매수 때까지 부모 세대원' 경로가 '1억 후 월세 독립' 경로보다 높게 나오며 두 경로 모두 기존 독립 열보다 상향 — 수치는 비공개 household/reports/home_capacity_2026-10-24.md §7 참조. 부동산 회신용: 생애최초 판정 기준일(대출 실행일 vs 전입일) 원문 확인 요청, 11/7까지.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "household"
   },
   {
    "id": "req-household-da7a8e45",
@@ -6594,10 +7127,21 @@
     "2026-10-25"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-household-da7a8e45",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "household",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "처리 완료: 30년 비교 모델(①평생 임차 ②중급지 소형 구축 매수 ③경기 인접→서울 이동 ④청약 대기)을 집값 4종(상·기본·하·폭락)·금리 3종·레버리지 상한 3단계로 비공개 저장소에 작성. 결론은 '집값 상승률 − 남는 돈 수익률' 차이가 순위를 정함: 금융 수익을 높게 가정하면 임차 우위, 낮게 가정하거나 집값이 강하면 청약·단계 매수 우위, 보수 레버리지에서 ②는 30대 중반에야 성립. 월 상환 비율은 전 경로 약 30% 안쪽(영끌 회피와 정합). 근거 비공개 analysis/2026-10-28-night/household.md §5·household_housing_model.py, 다음: 11·12월 실측으로 월세·S 가정 갱신.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "household"
   },
   {
    "id": "req-household-ee4dcf8d",
@@ -6615,10 +7159,21 @@
     "2026-10-25"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-household-ee4dcf8d",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "household",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "처리 완료: ① home_capacity 연봉을 확정값으로 교체해 DSR 한도 재산출(비과세 식대 제외 시 기존 역산 대비 약 −12%) ② 저축 S 를 근로 S 와 지원(용돈·보험료 환급) 열로 분리, 지원 유지/중단 두 시나리오(지원 = 현행 S 의 약 23%) ③ 워크북 규칙 23·24·25·26 을 비공개 household/README §9 규칙 표로 문서화 — 청약 지원 규칙은 24번으로 존재 확인(9월 원장 입금 행 없음은 11/1 내보내기 때 확인). 상세는 비공개 analysis/2026-10-28-night/household.md·household_housing_model_out.md §1~§2.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "household"
   },
   {
    "id": "req-pb-9e7fce79",
@@ -6703,10 +7258,21 @@
     "2026-10-25"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-realestate-8d77a6b9",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "realestate",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "세대분리 = 집 구하는 시점(1억 뒤 첫 집) 기준 경로별 판정 표 작성: 매매 직행(잔금일 분리)이면 생애최초 LTV(대출 신청일)·특공(공고일)·디딤돌(신청일) 판정일보다 분리가 늦어 닫힐 위험, 전세 경로는 입주=분리라 이후 세 제도 모두 열림 — 규정 2차·검증전. 교체 원문 비공개 analysis/2026-10-28-night/realestate_household_split.md(reco_2026-10-26.md §3-1로 PB 반영 요청, 10/24판 '이직 확정 → 독립' 문구 폐기). 내무는 매매 직행 시나리오를 일반 LTV 40%로 재계산 필요, 판정일 원문 대조 10/31.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "realestate"
   },
   {
    "id": "req-realestate-acdff38a",
@@ -6846,7 +7412,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "① 주식선물·옵션 T+1 적재는 fsc_daily에 넣었어(stock_future·option). 기초자산별 미결제 합은 summary_stock_futures로 계산하는데, 결재 전이라 공개 파일에는 안 써. ② 투자자별 개별종목 선물·옵션은 불가야. KRX OPEN API 서비스 목록과 금융위 V2 어디에도 투자자별이 없어. KRX 정보데이터시스템 화면에는 있어도 약관 제10조②가 자동 수집을 금지해. 대체 지표로는 주식선물 미결제 변화와 현물 투자자별 순매수 조합을 제안해. ③ 현물 투자자별 일별 종목 수급은 이미 data/flows/kr_inv_*.parquet에 있어(외국인·기관합계·연기금·투신). 금융투자 같은 세분을 더하려면 하루에 투자자당 1콜이 더 들어. 다만 이것도 KRX 약관 결재에 묶여 있어.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "data"
   },
   {
    "id": "req-data-b83a7ef9",
@@ -6864,7 +7441,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "미착수야. 국내 1배 원자재 ETF 대조는 마감 11/06 안에 KRX ETF 목록과 운용사 자료로 할게. 기억값 코드 5개는 그때 이름부터 대조할게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-b9d651f3",
@@ -6917,7 +7502,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "대조했어. 금융위 V2 원값이 공개 저장소·Pages에 나간 곳은 data/deriv/vkospi.csv와 reports/vkospi.json 6행뿐이었어. 그런데 이 6행은 VKOSPI가 아니라 다른 가격형 지수(786~810)를 잘못 잡은 값이라 지웠고, 이름 정확 일치와 5~150 범위 가드를 넣었어(f3a58986f). fsc_close_check 불일치 목록도 금융위 원값 대신 차이율만 남기게 바꿨어. 남은 노출이 두 개 있어. 하나는 채권 데스크 fsc_bond_check.json의 일별 국고 1종목 수익률이야. 다른 하나는 더 큰 건데, KRX 정보데이터시스템 약관(2026-08-29 시행) 제10조②·제12조②가 자동 수집과 재배포를 금지해. 그래서 daily.csv·bonds_hist·flows 공개분이 걸려. 둘 다 공개 범위를 바꾸는 일이라 오너 결재로 넘겨(표: scratchpad night1027/out/data_sources_license.md).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "data"
   },
   {
    "id": "req-derivs-c63f55a9",
@@ -6935,7 +7531,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "derivs",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "종목×일 패널 설계와 분류 규칙 사전등록을 완료했습니다(derivs_iv_flow_design.md §B, 커밋 시각 = 등록 시각). 패널은 기관 순매수, 주식선물 ΔOI·베이시스 괴리, 콜/풋 ΔOI·IV, 공매도 잔고 Δ이고, 트리거는 기관 순매수 60일 상위 1/3입니다. 분류는 H 헤지/차익, D 방향성, I 보험, S 숏커버 꼬리표, U 불명이며, 검정은 t+5 초과수익 D−H, 클래스별 30건, IS/OOS, 본페로니 0.0167 기준입니다. 한계도 적었습니다. 주식선물·옵션 투자자별 데이터가 없어 '누가'가 아니라 패턴 추론에 그치고, 2종목이면 클래스당 30건까지 수개월이 걸릴 것으로 추정되어 당분간은 서술 통계만 냅니다. 적재는 req-data-1a3f3978 수집기 첫 실행 다음 영업일에 합니다.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "derivs"
   },
   {
    "id": "req-dev-1a14cbe5",
@@ -6953,7 +7560,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "① 9842e63e 이전(10/25까지) 복습 응답은 tainted 로 표시하고 원응답은 보존, 정답률·n·활동일 집계에서는 뺐어(0fc79a141). 10/26 당일분은 날짜만 있어 수정 후로 봤어(한계). ② 인적성 정답 위치 균등화는 교육 2993c85d 의 apt_daily_check R2·R5 로 이미 들어가 있어. ③ 응답 시간 칸은 STUDY 탭 내보내기 형식을 바꿔야 해서 프론트 쪽이 남았어.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-333106f2",
@@ -6971,7 +7586,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "ops/README.md 를 '브라우저 주 + 원장 대조'로 고쳤어(00d7c4c85). pb-private HANDOFF 113행 ❓ 는 PB 파일이라 손대지 않았으니 PB가 같은 문구로 지워 줘.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-34d785aa",
@@ -6989,7 +7615,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "US 장중 갱신은 오늘 밤 확인했어. intraday_last.json US LIVE 가 22:40·22:56·23:12 KST 에 갱신됐고 559종목 모두 야후, 간격은 약 16분이야. CLOSE 는 05시 이후라 아직 못 봤어. 내일 아침 CLOSE 1줄 확인 뒤 닫을게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-3f06d142",
@@ -7007,7 +7641,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "야후가 정상인 날도 매 US 실행마다 토스 prev 와 야후 같은 날 봉을 대조해서 reports/toss_eod_check.json 에 mode=shadow 로 기록해(보충은 안 함, 546c2e67d). 첫 기록은 다음 screen_us 실행이고, 일치율·max_dev 표본은 이제부터 쌓여.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-43d17d83",
@@ -7025,7 +7670,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "10/26 결재 ③을 배선했어. pb-private risk/rulebook.py 에 stress_buy_gate 를 넣었고, 구속 스트레스가 −15% 밖일 때 매수 뒤 ΔS 가 음수면 금지, 0 이상이면 허용(헤지 인버스 같은 경우), ΔS 계산이 없으면 금지야. risk/frm.py 는 위반 중이면 flags 에 '스트레스를 키우는 매수 금지'를 넣고 stress_gate 칸을 남기고, 매수 전 점검용으로 `python3 risk/frm.py --buy 종목:수량` 이 생겼어. 테스트 risk/tests 15건 통과, 실행 예시: 현재 −15.68%에서 1주를 더 사면 −0.44%p 라 차단. 비공개 저장소라 커밋은 PB 몫이야(rulebook.py·frm.py·tests/test_rulebook.py 미커밋).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-a3f3a6b4",
@@ -7043,7 +7699,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "묶음 C 5건을 처리했어. ① KR 지수가 16:20 전이면 macro_series.json 에 provisional 표시(c52fe8b77) ② 475310 은 10/23 10:26 채점에서 이미 '10/22 종가 −8% 손절 −9.06%'로 확정돼 있었어. 코드는 안 고쳤고 재현 테스트만 넣었어(2e84238cd) ③ calendar.json 에 tentative 칸 추가, 가짜 날짜 없음(f329e9fc7) ④ reports/peers_hist/US.csv 를 매 거래일 누적하고 이력 9거래일을 백필(e9042fbeb) ⑤ hf_risk 고정 입력 테스트(2ce95ea3f). ①③의 화면 표시는 프론트 몫이야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-afc2e971",
@@ -7061,7 +7728,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "① 보드 문구 쪽으로 맞췄어. 조건 없는 중립은 이제 '해당없음(거부)'로 기록되고 집계·채점에서 빠져, lint 는 그대로 남아 ② PB 코스피 11% 는 시나리오 확률이 아니라 '보합(±2%) 1년 실측 빈도'였어. 그래서 표기를 '보합(±2%) 실측 11% ⚠ 중립 근거 약함'으로 바꿨어(33% 미만, 검증전 임계). b5403ccaa, tests/test_dotplot.py. tab_committee 툴팁의 '기본 시나리오' 고정 문구는 프론트가 base_text 칸으로 바꾸면 돼.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-b8bc0009",
@@ -7079,7 +7757,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "노트북 dispatcher 설치(겸이 가이드 ⑧)를 기다리고 있어. 설치되면 heartbeat 1회 기록과 watchdog --executor 무음을 확인하고 닫을게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-dcd43e3b",
@@ -7097,7 +7783,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "세 가지 다 넣었어(6d47ea37e). ① 노트북용 CLI `python -m screener.realestate_coords`(키는 VWORLD_KEY 환경변수, 캐시 json 만 갱신하고 이어받기) + 실행법 docs/realestate/vworld_laptop.md ② 일시 오류는 필지당 3회 재시도 후 건너뛰고, 5필지 연속이면 중단, 키 오류는 즉시 중단 ③ Actions 에서 성공 0 이 2회 연속이면 7일간 호출을 생략하고 캐시만 붙여. 남은 필지는 3,402개라 1,500회씩 약 3일 걸려. 겸이 노트북에서 실행하면 끝나.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-ee592388",
@@ -7115,7 +7812,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "handoff_build 를 붙일 수 있는 자리는 두 가지야. pb-private 세션 시작 훅(install_hook.sh)에 handoff_build 를 실행하게 넣거나, scribe Stop 훅 30분 커밋 주기에 --check 를 실행해 낡으면 재생성하는 방식이야. 둘 다 PB 비공개 저장소 훅이라 PB·겸이 결정이 필요해. 보드 files 칸은 공용 파일이라 PB가 반영해 줘.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-frm-2ff808c9",
@@ -7133,7 +7838,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "frm",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "① 10/27 종가 고정으로 보면 11/2 A안은 −15.68 → −15.40%(⛔ 계속)야. 입금 전 기준이면 비율이 개선돼서 ③엔 안 걸리지만, 입금 후 현금(−14.52%) 기준이면 매수 자체가 −0.88%p라 걸려. 7월형 손실액은 늘어나고(금액은 비공개 파일), B안 '나머지 예수금 보류형'이 −14.59%로 스트레스를 덜 키워(B를 부족분 끝까지 배정형으로 읽으면 A와 같은 배분이라 차이 없음). 겸이 10/27 결정은 A안으로 기록했고, 문언 확정은 컴플이 해줘. ② 원자재 3%(S&P 40→37) 넣으면 코어 2026-07은 [가정 원자재 0%] −12.77 → −12.52%, [−10%] −12.82%라 상품 확정 전엔 판정 보류야. 근거는 비공개 analysis/2026-10-28-night/frm_recalc.md §3, 공개 reports/studies/2026-10-28_frm_core_lookthrough.md §4.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "frm"
   },
   {
    "id": "req-frm-e18dcee7",
@@ -7151,7 +7867,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "frm",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "① 7월 실측 교체는 공개 pb.py(10/24)·비공개 엔진 공식 구간 06/22→07/30 둘 다 반영돼 있는 상태야. ② 2022형은 STRESS_SCENARIOS['2022'] binding False로 계기판 참고 줄만 넣었어(⛔ 판정 불변, 커밋 edd871241, 테스트 포함). 재계산(10/27 종가): 7월형 −15.68% ⛔(10/26 −15.28%에서 반등으로 0.40%p 악화), 2022형 개인 북 −8.56%. 10/26 −15.28 vs −15.35 차이는 미장 종가 시점이 섞여서 생긴 거라 −15.28%로 확정했고, 엔진 1줄 패치는 PB가 적용해야 해(scratchpad/frm_night/frm_last_local.patch). 상세는 비공개 analysis/2026-10-28-night/frm_recalc.md.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "frm"
   },
   {
    "id": "req-front-4ca0eec3",
@@ -7169,7 +7896,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "front",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "남음(겸이 손 필요): realestate-private-viewer 를 실제 토큰으로 열어 보는 일은 겸이 브라우저에서만 할 수 있어요. 겸이가 MARKET › 부동산 '🔒 내 계획(비공개)'을 한 번 열어 보고 됐다고 하면 닫을게요. 코드·ui_smoke check_re_private 는 오늘 전체 검사에서 통과했어요.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-macro-768a1cc8",
@@ -7187,7 +7922,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "macro",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "검수 완료(rounds/2026-10-28/macro_night.md, scripts/studies_wind_threshold_check.py). 바람 중립 폭 0.05는 일간 |Δs| 중앙값 0.046과 같아 유지 적정(검증전). 미10년 2bp는 1일 흔들림 중앙값 3.1bp보다 작아 5일 기울기의 83%가 소음에서 켜지므로 5bp 상향 권고. 22시 규칙상 실제 변경은 개발이 07시 이후 결재를 받아 반영.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "macro"
   },
   {
    "id": "req-pb-db57c704",
@@ -7231,7 +7977,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "posrisk",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "재측정 끝. 7월 실측 공식 구간(06/22→07/30), 레거시 매도 반영된 보유, 10/27 종가로 돌리면 구속 스트레스 −15.68%야 — 사용률 105%, 초과. 매매 없이 하루 만에 0.40%p 나빠졌어(반도체 반등으로 평가액 증가). 공개 엔진(pb.evaluate)은 −15.25%라 엔진 차이가 0.43%p인데, 어느 쪽이든 100% 넘어서 신호는 같아. 근거는 rounds/2026-10-27/posrisk.md(비율만)이고 비공개 상세는 PB 이동 대기. event_posrisk T4 조건 충족이라 10/31 도장 경로 그대로 가. 보드 files 칸 반영은 PB 몫이야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "posrisk"
   },
   {
    "id": "req-quant-41a36cce",
@@ -7303,7 +8060,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "realestate",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "단지 점은 VWORLD_KEY 미등록으로 아직 확인 불가(reports/realestate_coords.json pts 0, asof 10/27) — 키 등록·수집 1회 뒤 확인하면 닫음. 보드 files 는 공용 파일 직접 수정 금지라 PB 반영 요청: apps-script/tab_realestate.html · screener/realestate_geo_zoom.py · screener/realestate_coords.py · tests/test_realestate_coords.py · tests/test_realestate_geo_zoom.py.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-scribe-0a651966",
@@ -7321,7 +8086,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "scribe",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "원장 §7-3 에 조항 매핑 주석 1줄을 새 줄로 추가(원 줄 무변경, 근거 = pb-private 결재 이슈 #2~#15 제목·rules.txt 조항 헤더): #2 [5] · #3 [3][11] · #7 [0](11/15 시행 예정) · #11 [13] · #14 [2] · #15 [0] · #9·#10·#12 규정 무관. rules_status --check: 치명 1(#2 [5] 미반영 — 예약 PB 읽는 조항) · 중 5(#3·#14·#15 미반영, #4·#11 [13] 조항 없음) · 경 1(블록 낡음, --write 필요) — '미지정' 0건이라 이제 미반영을 잴 수 있음. 다음: rules.txt 꼬리표·[13] 신설은 규칙 문서 변경이라 07시 이후 PB·겸이 몫, 원장 줄은 비공개 저장소 미커밋 상태로 PB 커밋 대기.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "scribe"
   },
   {
    "id": "req-uxui-c742b844",
@@ -7339,7 +8115,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "uxui",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "유지보수님, 관찰 종료(10/28)에 맞춰 판정했습니다. 완료 기준 '퀀트·검증 원장 직접 갱신 1주'는 미충족입니다. 10/21 이후 ops/research_pipeline.json 커밋은 퀀트 0·검증 1(2319da028)뿐이고, 같은 기간 퀀트 연구 커밋은 4건 넘게 있었는데 연구 보드 '미등록 자동 탐지'에 20건이 쌓였습니다(reports/research_board.json, 10/27). 화면 검수(390/1300·다크·테스트)는 통과입니다. 그래서 보드 uxui-quant는 '화면 완료·원장 운영 기준 미충족'으로 닫고, 퀀트 독려는 새 요청 대신 이 회신으로 대신하려 합니다(보드 반영은 PB). 배운 것은 10/21과 같습니다. 화면은 원장이 돌아야 살아요.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "uxui"
   },
   {
    "id": "req-verify-7829ae44",
@@ -7357,7 +8144,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "verify",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "재현 완료. 두 숫자가 다른 건 기준일 정의 때문이고, 종가냐 총수익이냐는 아님(S&P TR로 바꿔도 차이 0.04%p 이하). PB의 −9.6%p는 10/12 종가 기준(수익률 9개)으로 −9.56%p, 기사의 −13%는 10/08 종가 기준 비율로 −13.02%가 나와. '20여 년 최악'은 재현 안 됨 — 세 정의 모두 2026-07 창이 더 나빴고, 2000년 이후 하위 1.0~1.9%이니 '2002년 이후 두 번째'가 맞는 표현이야. 근거는 reports/studies/replication_sox_rel.md·.json, scripts/replicate_sox_rel.py(테스트 포함). 인용할 땐 기준일·창 길이·차/비율을 같이 적어 줘.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "verify"
   },
   {
    "id": "req-edu-ff390d0d",
@@ -7375,7 +8173,18 @@
     "2026-10-27"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "edu",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "전부 반영. 채점기에 필수 키(\"req\": true)를 넣어 점수가 넘어도 핵심 판단을 놓치면 불통과 — posrisk-q2 = 99.1·신호등 필수, '적'은 단어 경계 정규식(목적·적절 오탐 없음). compliance-q1 기호 4개 키 추가·흔한 '시행' 삭제(기호 없는 답 최대 4/8), q3 '리스크' 동의어 삭제, q6 문항에 PB 30분 쿨다운 발언 전제 명시+키. 평가가 재현한 역검사 3건(50%·녹 오답 0.6점 통과 등)을 tests/test_drill_grade.py 에 고정. 실습은 첫 줄에 커밋 043d69a77 고정·shallow면 git fetch --unshallow 안내, posrisk 실습2 (a) 방향 단정 삭제·'한도선 위'→안쪽 99.1%, q3 표시 반올림·q5 15% 출처(hf_book.py:698), compliance 실습2 경 건수는 채점 제외. 아침에 평가 재검수 부탁해. 커밋 588af7b9.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "edu"
   },
   {
    "id": "req-front-49f46a4c",
@@ -7393,7 +8202,18 @@
     "2026-10-27"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "front",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "완료: 상단 BTC 를 누르면 나오는 팝업(openMacro)에 'BTC 상세' 패널을 넣었어요(reports/btc.json, raw→상대경로). '확정 일봉 · closed_asof'(UTC 마감 종가·전일비)와 '진행 중 봉 · live_date 미확정'(live_px·확정 종가 대비)을 카드 두 개로 나눴고, 추세·SMA20/50/200·ATR14(%)·경보 문턱·20일 지지/고점(종가 대비 %)을 보여줘요. ok=false 면 '데이터 없음(원인)'이 떠요. 종목 상세가 아니라 팝업에 넣은 거라 tab_detail 잠금은 작업하는 동안만 잡았다가 풀었어요. 검사는 ui_smoke check_btc_detail(390px)예요.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "front"
   },
   {
    "id": "req-front-c1d5f126",
@@ -7411,7 +8231,18 @@
     "2026-10-27"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "front",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "수정 완료, 재검수 부탁해요: front-d1 문항에 '우리 프로젝트 기준으로(버튼 높이는 몇 px?)'와 '규정 최소와 구분'을 넣었어요. 해설은 WCAG 2.5.8 AA 24px(36px 도 규정은 통과)와 프로젝트 기준(터치 44·PC 28, UXUI 10/24)을 나눠 쓰고 토큰 고르는 기준(카드 --bg2/--bg3, 표면 --panel)도 적었어요. 키에서 44 는 req 필수가 됐고 '검정 바탕/글자' 이유 키도 더했어요. '36px 유지' 답은 이제 점수가 0.83 이어도 불통과예요(--grade 로 다시 확인, tests/test_drill_grade.py 에 고정). req 플래그는 main 의 drill_grade 구현(req-edu-ff390d0d)을 그대로 써요.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "front"
   },
   {
    "id": "req-macro-2859d1fd",
@@ -7429,7 +8260,18 @@
     "2026-10-27"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "macro",
+     "at": "2026-10-27T23:40+09:00",
+     "text": "관찰 안건으로 채택 권고(매매 연결 없음). 10/27 신호 5건(PB 브리프·2차 출처)이 모두 조달 경로가 공모 IG에서 구조화·벤더 파이낸싱으로 옮겨 가는 쪽을 가리킴. 관찰 지표는 BDC 환매 제한 공시, BDC 가격/NAV 할인, 미 HY OAS(FRED), 기존 ai_credit '경계'. 생보 스프레드는 무료 소스가 없어 미확인. 채권 쪽 의견: 공모 IG가 열려 있는 동안 비용 상승은 제한적이고, 사모·보증 비중 상승과 HY OAS 1개월 +50bp가 함께 나타나면 경보. 11월 BDC 3Q 공시에서 신규 환매 제한이 0건이면 안건 종결. 근거 rounds/2026-10-28/macro_night.md.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-27",
+   "done_at": "2026-10-27T23:40+09:00",
+   "done_by": "macro"
   },
   {
    "id": "req-pb-350f1089",
