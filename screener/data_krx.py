@@ -33,6 +33,7 @@ PARQUET = DATA_DIR / "kr_prices.parquet"
 SCHEMA = {"yf": pl.Utf8, "date": pl.Date, "open": pl.Float64, "high": pl.Float64,
           "low": pl.Float64, "close": pl.Float64, "volume": pl.Float64}
 KST = ZoneInfo("Asia/Seoul")
+DAY_RETRY_WAIT = 30       # 하루치 조회 실패 시 이만큼 쉬고 1회 재시도 (10/27 16:20 Akamai 차단 → 재실행 성공 사례)
 REFETCH_DAYS = 5          # 매 실행마다 다시 받는 최근 영업일 수 (잠정 → 확정 교체)
 
 
@@ -193,7 +194,13 @@ def update(lookback_days: int = 400, max_calls: int = 450, until: date | None = 
     new, fails = [], 0
     for d in days:
         try:
-            df, prov = _fetch_day_flag(d)
+            try:
+                df, prov = _fetch_day_flag(d)
+            except Exception as e1:  # noqa: BLE001 — 1회 자동 재시도(일시 차단), 두 번째 실패만 실패로 셈
+                log.warning("KRX %s 1차 실패 — %d초 뒤 재시도: %s", d, DAY_RETRY_WAIT, e1)
+                time.sleep(DAY_RETRY_WAIT)
+                df, prov = _fetch_day_flag(d)
+                log.info("KRX %s 재시도 성공", d)
             if len(df) and prov:
                 df = fix_provisional(df, d)
             if len(df):

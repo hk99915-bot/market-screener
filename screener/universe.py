@@ -70,17 +70,29 @@ def _kr_fdr() -> pl.DataFrame:
     })
 
 
+KR_RETRY_WAIT = 60   # pykrx·FDR 둘 다 실패하면 이만큼 쉬고 1회 더 (10/27 16:20 KRX Akamai 차단 → 수동 재실행 성공 사례)
+
+
+def _sleep(sec: float) -> None:   # 테스트에서 바꿔 끼움
+    import time
+    time.sleep(sec)
+
+
 def kr_universe() -> pl.DataFrame:
-    for fn in (_kr_pykrx, _kr_fdr):
-        try:
-            df = fn()
-            # 우선주/스팩/ETF류 제거: 이름 기반 간단 필터
-            df = df.filter(~pl.col("name").str.contains(r"스팩|SPAC|ETN|ETF|리츠|\d호$|우$|우B$|우C$"))
-            _save(df, "kr")
-            log.info("KR 유니버스 %s: %d종목", fn.__name__, len(df))
-            return df
-        except Exception as e:  # noqa: BLE001
-            log.warning("KR 유니버스 %s 실패: %s", fn.__name__, e)
+    for attempt in (1, 2):
+        for fn in (_kr_pykrx, _kr_fdr):
+            try:
+                df = fn()
+                # 우선주/스팩/ETF류 제거: 이름 기반 간단 필터
+                df = df.filter(~pl.col("name").str.contains(r"스팩|SPAC|ETN|ETF|리츠|\d호$|우$|우B$|우C$"))
+                _save(df, "kr")
+                log.info("KR 유니버스 %s: %d종목%s", fn.__name__, len(df), " (재시도 성공)" if attempt == 2 else "")
+                return df
+            except Exception as e:  # noqa: BLE001
+                log.warning("KR 유니버스 %s 실패(%d차): %s", fn.__name__, attempt, e)
+        if attempt == 1:
+            log.warning("KR 유니버스 두 경로 모두 실패 — %d초 뒤 1회 재시도", KR_RETRY_WAIT)
+            _sleep(KR_RETRY_WAIT)
     df = _load("kr")
     if df is None:
         raise RuntimeError("KR 유니버스를 가져올 수 없고 폴백 CSV도 없음")
