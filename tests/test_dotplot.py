@@ -267,3 +267,28 @@ def test_macro_wind_label_signed_small_scores():
     assert wind_label(-0.11) == "약한 역풍" and wind_label(0.07) == "약한 순풍"
     assert wind_label(0.04) == "중립" and wind_label(-0.049) == "중립" and wind_label(None) is None
     assert wind_label(-0.2) == "역풍" and wind_label(0.45) == "강한 순풍"
+
+
+def test_unconditioned_neutral_is_refused_not_counted():
+    """검수 req-dev-afc2e971 ①: 보드 '조건 없는 중립은 기록 거부' — lint 위반 중립은 해당없음(거부)로, 집계에서 빠짐."""
+    ok = {"desk": "PB", "horizon": "5d", "lean": 0, "stance": "중립", "conv": 1, "reason": "관망", "tag": "none",
+          "base_prob": 0.4, "flip_up": "코스피 +2%", "flip_down": "코스피 −2%"}
+    bad = {**ok, "desk": "리스크", "flip_down": None}
+    assets = {"KOSPI": [dict(ok), dict(bad)]}
+    assert len(dp.lint_dots(assets)) == 1
+    assert dp.refuse_unconditioned(assets) == 1
+    a, b = assets["KOSPI"]
+    assert not a.get("na") and b["na"] and b["refused"] and b["lean_label"] == dp.NA_LABEL and "기록 거부" in b["reason"]
+    s = dp.summarize(assets["KOSPI"])
+    assert s["lean_counts"]["중립"] == 1 and s["na"] == 1
+    assert dp.lint_dots(assets) == []          # 거부된 점은 형식 검사 대상 아님
+
+
+def test_base_text_band_vs_scenario():
+    """검수 req-dev-afc2e971 ②: 보합 실측 빈도를 '기본' 으로 표기하지 않음 + 33% 미만 중립은 '근거 약함'."""
+    band = {"lean": 0, "base_prob": 0.112, "base_src": "보합(±2%) 1년 실측 빈도", "base_kind": "band"}
+    assert dp.base_text(band) == "보합(±2%) 실측 11% ⚠ 중립 근거 약함"
+    assert dp.base_text({**band, "base_prob": 0.568}) == "보합(±2%) 실측 57%"
+    assert dp.base_text({"lean": 0, "base_prob": 0.5, "base_src": "운용회의 기본 시나리오"}) == "기본 50%"
+    assert dp.base_text({"lean": 1, "base_prob": None}) == "기본 —"
+    assert dp._base_kind("규칙 환산(검증전)") == "rule" and dp._base_kind("운용회의 강세 시나리오") == "scenario"

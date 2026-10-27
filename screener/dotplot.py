@@ -32,7 +32,7 @@
 기울기 5단 (10/26 보드 dotplot-neutral-rule — '중립 = 모름' 금지, 임계값 검증전)
     각 점 = stance(기존 3단, 하위 호환) + lean(−2 강매도 · −1 약매도 · 0 중립 · +1 약매수 · +2 강매수) + confidence(낮음·보통·높음)
           + base_prob(기본 시나리오 확률) + flip_up · flip_down(가격·지표 트리거 수치). 규칙이 방향을 못 정한 점은 근거 부호로 약매수/약매도(확신 낮음).
-    순수 중립은 base_prob·flip_up·flip_down 이 다 있을 때만 — lint_dots 위반은 dotplot.json 'lint' 에 남는다.
+    순수 중립은 base_prob·flip_up·flip_down 이 다 있을 때만 — 위반은 dotplot.json 'lint' 에 남고 그 점은 '해당없음(거부)'로 기록(집계·채점 제외).
     데스크 규칙이 없는 자산·입력 없음 = '해당없음'(na) — 집계·채점 제외.
     전환 조건 어댑터: docs/desk_kb/rounds/<최근 3일 내 날짜>/event_macro.md '트래킹 트리거' 표 → 코스피(코스피)·S&P(VIX)·반도체(코스피200 IV)·미10년(미 10Y),
                       event_cio.md So What 신호등(🔴 하방 → −1, 🟢 → +1) → CIO 국내 점의 기울기(시나리오 과반 없을 때만). 없으면 시세 기반(50일선·20일 저점).
@@ -452,11 +452,48 @@ def _dot(desk, asset, stance, conv, reason, tag, refs, f=None, ex=None):
         x = {"desk": desk, "asset": asset, "stance": stance, "conv": conv, "horizon": h, "reason": reason, "tag": tag,
              "refs": list(refs), "lean": lean, "lean_label": NA_LABEL if na else LEANS[lean], "confidence": conf,
              "p_up": round(p_up, 3), "base_prob": round(bp, 3) if bp is not None else None, "base_src": bsrc,
-             "flip_up": up, "flip_down": dn}
+             "base_kind": _base_kind(bsrc), "flip_up": up, "flip_down": dn}
         if na:
             x["na"] = True
         out.append(x)
     return out
+
+
+WEAK_NEUTRAL = 1 / 3   # 보합 실측 빈도가 이보다 낮은 중립 = '중립 근거 약함'(5단 중 보합이 가장 그럴듯하다는 근거가 못 됨, 검증전)
+
+
+def _base_kind(src) -> str | None:
+    """base_prob 의 뜻: scenario = 운용회의 시나리오 확률 · band = 보합(±밴드) 1년 실측 빈도 · rule = 규칙 환산(p_up)."""
+    if not src:
+        return None
+    return "band" if str(src).startswith("보합(") else "rule" if "규칙 환산" in str(src) else "scenario"
+
+
+def base_text(x: dict) -> str:
+    """화면·텔레그램 표기 — '기본 X%' 는 시나리오 확률일 때만. 보합 빈도는 '보합(±2%) 실측 X%' 로(검수 req-dev-afc2e971 ②: 중립 '기본 11%' 오독)."""
+    bp = x.get("base_prob")
+    if bp is None:
+        return "기본 —"
+    if x.get("base_kind") == "band" or _base_kind(x.get("base_src")) == "band":
+        band = str(x.get("base_src") or "").split(" ")[0]
+        weak = " ⚠ 중립 근거 약함" if x.get("lean") == 0 and bp < WEAK_NEUTRAL else ""
+        return f"{band} 실측 {bp * 100:.0f}%{weak}"
+    return f"기본 {bp * 100:.0f}%"
+
+
+def refuse_unconditioned(assets: dict) -> int:
+    """보드 dotplot-neutral-rule '조건 없는 중립은 기록 거부'(검수 req-dev-afc2e971 ①): 순수 중립인데 기본 확률·flip_up·flip_down 중
+    하나라도 없으면 그 점을 중립으로 기록하지 않고 '해당없음(거부)' 으로 바꾼다 → 집계·채점에서 빠짐. 위반 문구는 lint 에 남는다."""
+    n = 0
+    for dots in (assets or {}).values():
+        for x in dots:
+            if x.get("na") or x.get("lean") != 0:
+                continue
+            if any(v is None or (isinstance(v, str) and not re.search(r"\d", v)) for v in (x.get("base_prob"), x.get("flip_up"), x.get("flip_down"))):
+                x.update(na=True, refused=True, lean_label=NA_LABEL, confidence="낮음",
+                         reason=f"중립 기록 거부(조건 없음) — {x.get('reason', '')}")
+                n += 1
+    return n
 
 
 def lint_dots(assets: dict) -> list[str]:
@@ -762,8 +799,7 @@ def telegram_lines(dp: dict) -> list[str]:
             if x["desk"] in seen or x.get("na") or x.get("lean", 1) != 0:
                 continue
             seen.add(x["desk"])
-            bp = "—" if x.get("base_prob") is None else f"{x['base_prob'] * 100:.0f}%"
-            lines.append(f"  중립 {x['desk']}: 기본 {bp} · 위 {x.get('flip_up') or '—'} · 아래 {x.get('flip_down') or '—'}")
+            lines.append(f"  중립 {x['desk']}: {base_text(x)} · 위 {x.get('flip_up') or '—'} · 아래 {x.get('flip_down') or '—'}")
     return lines
 
 
@@ -786,7 +822,7 @@ def make_top(dp: dict) -> dict:
           "약매수·약매도 = 근거 부호만(확신 낮음), 기울기 임계값 검증전"]
     lint = dp.get("lint") or []
     now = ["조치 없음(점도표 단독 매매 규칙 없음 — 운용회의 입력) · 점별 전환 조건 flip_up·flip_down 참조",
-           f"형식 검사 위반 {len(lint)}건" + (" — 생성기 확인 필요(개발)" if lint else " — 통과")]
+           f"형식 검사 위반 {len(lint)}건" + (f" — 중립 {dp.get('refused', 0)}점 기록 거부(해당없음 처리)·생성기 확인 필요(개발)" if lint else " — 통과")]
     return make(what, so, now, src=["reports/dotplot.json", "screener/dotplot.py"], asof=dp.get("asof"), grade="검증전")
 
 
@@ -809,8 +845,7 @@ def to_markdown(dp: dict) -> str:
             if x["desk"] in seen:
                 continue
             seen.add(x["desk"])
-            bp = "—" if x.get("base_prob") is None else f"{x['base_prob'] * 100:.0f}%"
-            out.append(f"- {x['desk']} {_label_of(x)} — {x['reason']} [{TAG_KO.get(x['tag'], x['tag'])}] · 기본 {bp}"
+            out.append(f"- {x['desk']} {_label_of(x)} — {x['reason']} [{TAG_KO.get(x['tag'], x['tag'])}] · {base_text(x)}"
                        f" ({x.get('base_src') or '—'}) · ▲ {x.get('flip_up') or '—'} · ▼ {x.get('flip_down') or '—'}")
         out.append("")
     if dp.get("lint"):
@@ -826,10 +861,14 @@ def build(send: bool = False, root: Path | None = None, today: str | None = None
     dp = {"date": f["date"], "asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "assets": make_dots(f),
           "closes": {a: (f["px"].get(a) or {}).get("last") for a in ASSETS},
           "note": "지수·업종 수준 판단만. 개인 보유·금액 없음. 규칙: screener/dotplot.py"}
-    dp["summary"] = {a: summarize(dp["assets"][a]) for a in ASSETS}
     dp["lint"] = lint_dots(dp["assets"])
     if dp["lint"]:
         log.warning("점도표 형식 위반 %d건: %s", len(dp["lint"]), dp["lint"][:3])
+    dp["refused"] = refuse_unconditioned(dp["assets"])   # 위반 중립은 기록 거부(해당없음) — 집계 전에
+    for dots in dp["assets"].values():                   # 화면용 표기(tab_committee 툴팁이 '기본 시나리오' 로 고정 표기 중 — 프론트 교체 대상)
+        for x in dots:
+            x["base_text"] = base_text(x)
+    dp["summary"] = {a: summarize(dp["assets"][a]) for a in ASSETS}
     dp["top"] = make_top(dp)
     (r / "reports").mkdir(parents=True, exist_ok=True)
     (r / "reports" / "dotplot.json").write_text(json.dumps(dp, ensure_ascii=False, indent=1), encoding="utf-8")
