@@ -1,14 +1,14 @@
 {
  "v": 1,
- "asof": "2026-10-26",
- "generated_at": "2026-10-26 22:36 KST",
+ "asof": "2026-10-27",
+ "generated_at": "2026-10-27 09:07 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 293,
+  "total": 279,
   "거래량 급증": 3,
   "거래량 돌파(추격 금지)": 2,
-  "업종 체인": 2,
-  "52주 고점 돌파": 3
+  "52주 고점 돌파": 3,
+  "업종 체인": 2
  },
  "ideas": [
   {
@@ -82,6 +82,20 @@
    "rank": 5
   },
   {
+   "market": "US",
+   "code": "TENB",
+   "name": "Tenable Holdings, Inc. - Common Stock",
+   "asof": "2026-10-26",
+   "close": 48.21,
+   "type": "52주 고점 돌파",
+   "score": 0.738,
+   "direction": "참고(미장 B2 F)",
+   "evidence": "종가 250일 최고 경신 · 5일 +23.8%",
+   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
+   "src": "reports/detail/US/TENB.json chart",
+   "rank": 6
+  },
+  {
    "market": "KR",
    "code": null,
    "name": "정유",
@@ -91,7 +105,7 @@
    "evidence": "체인 점수 +0.72 · 구성 예: S-Oil, GS, SK이노베이션",
    "status": "검증전 — 업종 체인 점수(detail drivers)",
    "src": "reports/detail/*/<코드>.json drivers.chain",
-   "rank": 6
+   "rank": 7
   },
   {
    "market": "US",
@@ -103,54 +117,40 @@
    "evidence": "체인 점수 +0.72 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
    "status": "검증전 — 업종 체인 점수(detail drivers)",
    "src": "reports/detail/*/<코드>.json drivers.chain",
-   "rank": 7
-  },
-  {
-   "market": "US",
-   "code": "TENB",
-   "name": "Tenable Holdings, Inc. - Common Stock",
-   "asof": "2026-10-23",
-   "close": 44.59,
-   "type": "52주 고점 돌파",
-   "score": 0.699,
-   "direction": "참고(미장 B2 F)",
-   "evidence": "종가 250일 최고 경신 · 5일 +19.9%",
-   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
-   "src": "reports/detail/US/TENB.json chart",
    "rank": 8
-  },
-  {
-   "market": "US",
-   "code": "QLYS",
-   "name": "Qualys, Inc. - Common Stock",
-   "asof": "2026-10-23",
-   "close": 216.7,
-   "type": "52주 고점 돌파",
-   "score": 0.697,
-   "direction": "참고(미장 B2 F)",
-   "evidence": "종가 250일 최고 경신 · 5일 +19.7%",
-   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
-   "src": "reports/detail/US/QLYS.json chart",
-   "rank": 9
   },
   {
    "market": "US",
    "code": "HAS",
    "name": "Hasbro, Inc. - Common Stock",
-   "asof": "2026-10-23",
-   "close": 117.44,
+   "asof": "2026-10-26",
+   "close": 117.96,
    "type": "52주 고점 돌파",
-   "score": 0.689,
+   "score": 0.698,
    "direction": "참고(미장 B2 F)",
-   "evidence": "종가 250일 최고 경신 · 5일 +18.9%",
+   "evidence": "종가 250일 최고 경신 · 5일 +19.8%",
    "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
    "src": "reports/detail/US/HAS.json chart",
+   "rank": 9
+  },
+  {
+   "market": "US",
+   "code": "CRL",
+   "name": "Charles River Laboratories International, Inc. Common Stock",
+   "asof": "2026-10-26",
+   "close": 357.27,
+   "type": "52주 고점 돌파",
+   "score": 0.691,
+   "direction": "참고(미장 B2 F)",
+   "evidence": "종가 250일 최고 경신 · 5일 +19.1%",
+   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
+   "src": "reports/detail/US/CRL.json chart",
    "rank": 10
   }
  ],
  "macro": [
   {
-   "driver": "미 10년 금리 20일 -20bp",
+   "driver": "미 10년 금리 20일 -25bp",
    "benefit": "고PER 성장·리츠·유틸리티",
    "hurt": "은행·보험",
    "status": "검증전 — 정성 매크로 규칙",
@@ -165,12 +165,12 @@
   }
  ],
  "gap": {
-  "us_date": "2026-10-23",
-  "nasdaq": -0.0021,
+  "us_date": "2026-10-26",
+  "nasdaq": 0.0082,
   "beta": 0.59,
   "t": 13.1,
   "n": 487,
-  "pred_gap": 0.0002,
+  "pred_gap": 0.0062,
   "band": 0.0223,
   "status": "검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)",
   "src": "data/deriv/daily.csv · reports/macro_series.json NASDAQ"
@@ -199,10 +199,10 @@
    "code": "BUG",
    "name": "BUG · Technology",
    "on": [
-    "200일선 35 지지(5일 저점 −2% 안): 종가 50"
+    "200일선 35 지지(5일 저점 −2% 안): 종가 51"
    ],
    "off": [
-    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 1.5배 +5.0%",
+    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 3.4배 +3.0%",
     "DART 7일: 공급계약·임원매수·지분·자사주·IR 없음",
     "업종 선행(수동 확인): 미 10년 금리 20일 방향(reports/macro_series.json US10Y) — 고PER 소프트웨어 민감",
     "업종 선행(수동 확인): 나스닥 대비 상대강도 — 웹 확인"
@@ -214,12 +214,12 @@
  ],
  "top": {
   "what": [
-   "후보 293건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 2, 업종 체인 2, 52주 고점 돌파 3",
+   "후보 279건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 2, 52주 고점 돌파 3, 업종 체인 2",
    "상위: 뷰노(거래량 급증), AP위성(거래량 급증), 한국피아이엠(거래량 급증)"
   ],
   "so_what": [
    "후보일 뿐 진입 아님 · 검증 상태 F 신호는 반대 근거로만",
-   "미·한 갭 추정 +0.02% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
+   "미·한 갭 추정 +0.62% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
   ],
   "now_what": [
    "진입은 scripts/hf_book.py 체크리스트 통과 건만(HF 데스크)"
@@ -228,7 +228,7 @@
   "src": [
    "reports/hf_ideas.json"
   ],
-  "asof": "2026-10-26 22:36",
+  "asof": "2026-10-27 09:07",
   "grade": "검증전"
  }
 }
