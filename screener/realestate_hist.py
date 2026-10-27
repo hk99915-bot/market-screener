@@ -3,7 +3,7 @@
 - 목적(10/27): 시장 밈 '파란선 안'(중심 10구) vs 밖(14구)의 2022~23 하락폭·회복을 1차 원자료로 검증.
   사전등록(10/27, 데이터 보기 전): 밖 중위 하락폭 ≥ 안 중위 하락폭 × 1.5 **그리고** 밖 회복률 < 안 회복률 → '밖이 더 취약' 가설 지지,
   아니면 기각. 집단 쌍 30개 미만이면 판정 보류. 창: 고점 2021-10~2022-03 · 저점 2022-12~2023-03 · 회복 2023-10~12.
-- 원자료: data/realestate/rtms_hist/<구코드>.csv (취소 제외 매매만, 금액 만원) + _manifest.json(완료 월).
+- 원자료: data/realestate/rtms_hist/<구코드>.csv (취소 제외 매매만, 금액 만원) + _manifest.json(완료 월). data/* 는 .gitignore → Actions 러너 안에서만 존재(저장소엔 결과 json 만).
   수집은 Actions(.github/workflows/re_hist.yml, 수동 실행)에서만 — 키(DATA_GO_KR_KEY)는 파라미터로만 쓰고 저장·로그 금지.
 - 산출: reports/studies/re_bluezone_drawdown.json (집단별 n·중위 하락폭·회복률·판정). 표시 전용 · 매매 신호 아님.
 """

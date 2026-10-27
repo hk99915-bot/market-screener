@@ -4,6 +4,7 @@ run-name: "re_hist [${{ inputs.start }}~${{ inputs.end }}] commit=${{ inputs.com
 # 부동산 데스크 10/27 — 국토부 RTMS 서울 25개 구 매매 실거래 백필(기본 2021-07~2023-12) + 2022~23 반복매매 하락폭 비교.
 # 수동 실행 전용(예약 없음). 이어받기: data/realestate/rtms_hist/_manifest.json 의 완료 월은 건너뜀 → 호출 상한 넘으면 다시 실행.
 # 호출량: 25구 × 30개월 ≈ 750회(일 1회 screener 수집 ~150회와 별도). 키는 env 로만, 로그·파일에 남기지 않음(screener.realestate._scrub).
+# 원자료 CSV 는 .gitignore(data/*) 로 커밋 안 됨 — 러너에서 분석만, 저장소엔 결과 json 만(10/27 1회차 확인). 원자료 보존은 릴리스 자산 결정 뒤(개발).
 # 롤백: 이 파일과 data/realestate/rtms_hist·reports/studies/re_bluezone_drawdown.json 삭제(다른 워크플로·탭 영향 없음).
 on:
   workflow_dispatch:
