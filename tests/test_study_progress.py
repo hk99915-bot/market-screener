@@ -210,7 +210,10 @@ def test_apply_export_v1_merge_and_idempotent(study):
     assert it["apt"]["E2026-10-16-1"]["tz"] == "U" and it["apt"]["N7"]["sec"] == 30
     assert it["eng"]["2026-10-22|q|1"] == {"ok": 0, "date": "2026-10-22", "tz": "C"}
     s = p["summary"]
-    assert s["apt"] == {"n": 3, "ok": 1, "rate": 0.333} and s["eng_review"]["rate"] == 1.0 and s["eng_quiz"]["n"] == 2
+    assert s["apt"] == {"n": 3, "ok": 1, "rate": 0.333} and s["eng_quiz"]["n"] == 2
+    # 10/22 복습(r) = 정답 노출 버그 수정(9842e63e, 10/26) 전 응답 → 원응답 보존, 집계 제외(req-dev-1a14cbe5 ①)
+    assert s["eng_review"] == {"n": 0, "ok": 0, "rate": None, "tainted": 1}
+    assert it["eng"]["2026-10-22|r|0"] == {"ok": 1, "date": "2026-10-22", "tz": "C", "tainted": 1}
     assert s["apt_by"]["오늘의 인적성"] == {"n": 2, "ok": 1, "rate": 0.5} and s["apt_by"]["유형 대응"]["n"] == 1
     assert s["done_modules"] == 2 and p["last"] == "2026-10-23" and p["exports"] == [{"v": 1, "sent": "2026-10-23", "issue": 17}]
     assert p["streak"] == 2                                   # 10/18(일) 뒤 10/19~21 평일 결손 → 10/22~23
@@ -332,3 +335,11 @@ def test_v2_module_quiz_first_response_and_committed_rate(study):
     again = {**x, "quiz": [["2026-10-26", "0-6", 2, 1, 1, 0]]}       # 나중에 다시 맞혀도 첫 응답 유지
     p2, _ = sp.merge_export(p, again, study, it)
     assert p2["summary"]["mod_quiz"]["ok"] == 1
+
+
+def test_eng_review_after_fix_counts(study):
+    x = {"v": 2, "tz": "KST", "sent": "2026-10-27", "eng": [["2026-10-24", "r", 0, 1, "2026-10-26"], ["2026-10-24", "r", 1, 0, "2026-10-25"]]}
+    p, it = sp.merge_export({}, x, study)
+    assert p["summary"]["eng_review"] == {"n": 1, "ok": 1, "rate": 1.0, "tainted": 1}
+    assert "tainted" not in it["eng"]["2026-10-24|r|0"] and it["eng"]["2026-10-24|r|1"]["tainted"] == 1
+    assert "2026-10-25" not in p["days"]                      # tainted 응답일은 활동일 집계에서도 뺌

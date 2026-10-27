@@ -329,6 +329,17 @@ def _first(old: dict | None, new: dict) -> bool:
     return old is None or _rank(new) < _rank(old)
 
 
+# 영어 빈칸형 복습 정답 노출 버그(정답 단어 라벨이 풀기 전 보임) 수정 = 커밋 9842e63e, 2026-10-26 08:21 KST.
+# 그 전에 푼 복습(r) 응답은 tainted — 원응답은 보존하고 정답률·n·일수 집계에서만 뺀다(req-dev-1a14cbe5 ①, 평가·교육 10/26).
+# 응답 기록은 날짜만 있어 10/26 당일 08:21 전/후를 못 가름 → 10/25 까지만 tainted(10/26 응답은 수정 후로 간주, 한계).
+ENG_TAINT_UNTIL = "2026-10-25"
+
+
+def eng_tainted(key: str, rec: dict) -> bool:
+    parts = key.split("|")
+    return len(parts) > 1 and parts[1] == "r" and bool(rec.get("date")) and rec["date"] <= ENG_TAINT_UNTIL
+
+
 APT_SERIES = {"E": "오늘의 인적성", "N": "유형 대응", "M": "암산", "G": "GSAT 수리", "R": "GSAT 추리", "L": "언어논리", "D": "자료해석"}
 
 
@@ -352,8 +363,11 @@ def _summary(p: dict, items: dict | None = None) -> dict:
         b["rate"] = rate(b["ok"], b["n"])
     out["apt_by"] = by
     for k, name in (("r", "eng_review"), ("q", "eng_quiz")):
-        rs = [r for key, r in eng.items() if key.split("|")[1] == k]
+        rs = [r for key, r in eng.items() if key.split("|")[1] == k and not r.get("tainted")]
         out[name] = {"n": len(rs), "ok": sum(r["ok"] for r in rs), "rate": rate(sum(r["ok"] for r in rs), len(rs))}
+        nt = sum(1 for key, r in eng.items() if key.split("|")[1] == k and r.get("tainted"))
+        if nt:
+            out[name]["tainted"] = nt      # 집계 제외 건수(정답 노출 버그 수정 전 응답)
     mq = list((src.get("mq") or {}).values())
     if mq:   # 모듈 확인문제(v2 quiz) — 보기 고른 것(사전 커밋)만 점수, 자기 채점은 '확인'(kb:eval#8)
         c = [r for r in mq if not r.get("self")]
@@ -366,7 +380,7 @@ def _summary(p: dict, items: dict | None = None) -> dict:
 
 
 def _item_dates(items: dict) -> list[str]:
-    return sorted({r["date"] for k in ("apt", "eng", "mq") for r in (items.get(k) or {}).values() if r.get("date")})
+    return sorted({r["date"] for k in ("apt", "eng", "mq") for r in (items.get(k) or {}).values() if r.get("date") and not r.get("tainted")})
 
 
 def apply_export(progress: dict, export, study: dict | None = None, items: dict | None = None) -> dict:
@@ -426,6 +440,9 @@ def merge_export(progress: dict, export, study: dict | None = None, items: dict 
         key = f"{cd}|{kind}|{idx}"
         if _first(it["eng"].get(key), rec):
             it["eng"][key] = rec
+    for key, rec in it["eng"].items():     # 기존 기록까지 다시 판정(멱등) — 원응답(ok·date)은 그대로
+        if eng_tainted(key, rec):
+            rec["tainted"] = 1
     for row in x.get("quiz") or []:   # v2 모듈 확인문제 [날짜(KST), 모듈, 문항 idx, ok, 고른 보기|None, 자기채점 1|0]
         d, mid, qi, ok, _choice, self_ = (list(row) + [None] * 6)[:6]
         rec = {"ok": 1 if ok else 0, "self": 1 if self_ else 0, "date": d, "tz": "K"}
