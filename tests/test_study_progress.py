@@ -318,3 +318,17 @@ def test_g3_index_forms_and_out_of_range_not_silently_dropped():
     p = sp.parse_issue("study quiz", "quiz H2-b2 3)\nquiz H2-b2 2번\nquiz H2-b2 4\nquiz H2-b2 10")
     assert p["quiz"] == [("H2-b2", 3), ("H2-b2", 2)]
     assert p["bad"] == ["quiz H2-b2 4", "quiz H2-b2 10"]
+
+
+def test_v2_module_quiz_first_response_and_committed_rate(study):
+    """v2 quiz(모듈 확인문제) — 첫 응답 고정, 보기 고른 것만 committed 점수, 공개 파일엔 비율만."""
+    x = {"v": 2, "tz": "KST", "sent": "2026-10-27", "apt": [], "eng": [],
+         "quiz": [["2026-10-24", "0-6", 0, 1, 0, 0], ["2026-10-24", "0-6", 1, 0, None, 1], ["2026-10-24", "0-6", 2, 0, 3, 0]]}
+    p, it = sp.merge_export({}, x, study)
+    mq = p["summary"]["mod_quiz"]
+    assert (mq["n"], mq["ok"], mq["self_n"]) == (3, 1, 1)
+    assert (mq["committed"]["n"], mq["committed"]["ok"]) == (2, 1)
+    assert "0-6|0" in it["mq"] and "mq" not in p
+    again = {**x, "quiz": [["2026-10-26", "0-6", 2, 1, 1, 0]]}       # 나중에 다시 맞혀도 첫 응답 유지
+    p2, _ = sp.merge_export(p, again, study, it)
+    assert p2["summary"]["mod_quiz"]["ok"] == 1

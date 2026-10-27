@@ -354,13 +354,19 @@ def _summary(p: dict, items: dict | None = None) -> dict:
     for k, name in (("r", "eng_review"), ("q", "eng_quiz")):
         rs = [r for key, r in eng.items() if key.split("|")[1] == k]
         out[name] = {"n": len(rs), "ok": sum(r["ok"] for r in rs), "rate": rate(sum(r["ok"] for r in rs), len(rs))}
+    mq = list((src.get("mq") or {}).values())
+    if mq:   # 모듈 확인문제(v2 quiz) — 보기 고른 것(사전 커밋)만 점수, 자기 채점은 '확인'(kb:eval#8)
+        c = [r for r in mq if not r.get("self")]
+        out["mod_quiz"] = {"n": len(mq), "ok": sum(r["ok"] for r in mq), "rate": rate(sum(r["ok"] for r in mq), len(mq)),
+                           "committed": {"n": len(c), "ok": sum(r["ok"] for r in c), "rate": rate(sum(r["ok"] for r in c), len(c))},
+                           "self_n": len(mq) - len(c)}
     out["done_modules"] = len({d["id"] for d in p.get("done", [])})
     out["active_days"] = len(activity_dates(p))
     return out
 
 
 def _item_dates(items: dict) -> list[str]:
-    return sorted({r["date"] for k in ("apt", "eng") for r in (items.get(k) or {}).values() if r.get("date")})
+    return sorted({r["date"] for k in ("apt", "eng", "mq") for r in (items.get(k) or {}).values() if r.get("date")})
 
 
 def apply_export(progress: dict, export, study: dict | None = None, items: dict | None = None) -> dict:
@@ -375,7 +381,8 @@ def merge_export(progress: dict, export, study: dict | None = None, items: dict 
     None 이면 옛 공개 파일의 apt·eng 를 옮겨 온다(1회 이전).
 
     v1 {v:1, sent, done{id:날짜}, apt[[id, ok, 초|None, UTC 날짜]], eng[[출제일, r|q, idx, ok]], op[]}
-    v2 {v:2, tz:'KST', ...} apt 5번째 칸 'K'|'U', eng 5번째 칸 = 푼 날(KST), op 4번째 칸 = 푼 날.
+    v2 {v:2, tz:'KST', ...} apt 5번째 칸 'K'|'U', eng 5번째 칸 = 푼 날(KST), op 4번째 칸 = 푼 날,
+       quiz[[날짜, 모듈, 문항 idx, ok, 고른 보기|None, 자기채점]] → items mq{"모듈|idx"}, 공개는 summary.mod_quiz 비율만.
     공개 파일에는 문항·모듈 id 와 정답 여부·초·날짜만 남긴다(원자료·OPIc 자기평가 내용은 넣지 않음, 횟수만)."""
     x = load_export(export)
     v = int(x.get("v", 1))
@@ -385,6 +392,7 @@ def merge_export(progress: dict, export, study: dict | None = None, items: dict 
     it = copy.deepcopy(items) if items is not None else {"apt": p.get("apt") or {}, "eng": p.get("eng") or {}}
     it.setdefault("apt", {})
     it.setdefault("eng", {})
+    it.setdefault("mq", {})
     p.pop("apt", None)
     p.pop("eng", None)
     p.setdefault("exports", [])
@@ -418,6 +426,12 @@ def merge_export(progress: dict, export, study: dict | None = None, items: dict 
         key = f"{cd}|{kind}|{idx}"
         if _first(it["eng"].get(key), rec):
             it["eng"][key] = rec
+    for row in x.get("quiz") or []:   # v2 모듈 확인문제 [날짜(KST), 모듈, 문항 idx, ok, 고른 보기|None, 자기채점 1|0]
+        d, mid, qi, ok, _choice, self_ = (list(row) + [None] * 6)[:6]
+        rec = {"ok": 1 if ok else 0, "self": 1 if self_ else 0, "date": d, "tz": "K"}
+        key = f"{mid}|{qi}"
+        if _first(it["mq"].get(key), rec):
+            it["mq"][key] = rec
     p["op_count"] = max(int(p.get("op_count") or 0), len(x.get("op") or []))
     tag = {"v": v, "sent": x.get("sent"), "issue": x.get("issue")}
     if tag not in p["exports"]:
