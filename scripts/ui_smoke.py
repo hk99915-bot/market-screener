@@ -573,7 +573,7 @@ FAKE_RE_ZOOM_GU = {"schema": 1, "gu": "강남구", "code": "11680", "period": "2
 
 
 async def check_re_zoom(b, port: int) -> int:
-    """부동산 지도 줌(10/26 겸이 "지도 자체가 점점 확대, 한강도"): 서울(구 25·하천 선) → 구 클릭 뷰박스 확대 + 법정동 경계(강남 14)
+    """부동산 지도 줌(10/26 겸이 "지도 자체가 점점 확대, 한강도"): 서울(구 25·하천 선 또는 10/27 배경 지도 타일) → 구 클릭 뷰박스 확대 + 법정동 경계(강남 14)
     → 동 색(n<3 회색·'2건' 표시) → 동 클릭 더 확대·동 카드 → 빵부스러기/뒤로 원복. 실거래 없음(수집 전)에서도 경계·줌 동작. 390px 터치 · 1300px, 가로 넘침 없음."""
     import json as _j
     J0 = _j.loads((ROOT / "reports/realestate.json").read_text(encoding="utf-8"))
@@ -609,7 +609,7 @@ async def check_re_zoom(b, port: int) -> int:
             await pg.wait_for_timeout(1500)
             vbw = "(()=>{const s=document.getElementById('rezsvg');return s?s.viewBox.baseVal.width:0})()"
             r: dict = {}
-            r["seoul"] = await pg.evaluate("(()=>{const s=document.getElementById('rezsvg');return !!s&&s.dataset.lv==='seoul'&&s.querySelectorAll('path[role=button]').length===25&&s.querySelectorAll('path.reriv').length>=1})()")
+            r["seoul"] = await pg.evaluate("(()=>{const s=document.getElementById('rezsvg');return !!s&&s.dataset.lv==='seoul'&&s.querySelectorAll('path[role=button]').length===25&&(s.querySelectorAll('path.reriv').length>=1||s.querySelectorAll('image.retile').length>=1)})()")   # 10/27 배경 지도 타일이 있으면 한강은 타일에(하천 선 생략)
             w0 = await pg.evaluate(vbw)
             await pg.locator("#rezsvg path[aria-label^='강남구']").first.dispatch_event("click")
             await pg.wait_for_timeout(1200)
