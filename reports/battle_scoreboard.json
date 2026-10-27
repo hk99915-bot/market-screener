@@ -1,8 +1,8 @@
 {
  "version": 1,
  "schema_version": 1,
- "asof": "2026-10-27",
- "generated_at": "2026-10-27 20:55 KST",
+ "asof": "2026-10-28",
+ "generated_at": "2026-10-28 08:57 KST",
  "bench": {
   "KR": {
    "ticker": "069500",
@@ -39,10 +39,10 @@
    "comp_ret": -0.14397,
    "avg_ex": -0.01808,
    "n_ex": 5,
-   "open": 1,
+   "open": 2,
    "realized": -0.1519,
-   "unrealized": 0.01424,
-   "total": -0.13766,
+   "unrealized": -0.02585,
+   "total": -0.17775,
    "unrated": 1
   },
   "규칙": {
@@ -84,10 +84,10 @@
    "comp_ret": -0.1891,
    "avg_ex": -0.1766,
    "n_ex": 1,
-   "open": 1,
+   "open": 2,
    "realized": -0.1891,
-   "unrealized": -0.02267,
-   "total": -0.21177,
+   "unrealized": -0.03801,
+   "total": -0.22711,
    "unrated": 0
   }
  },
@@ -194,10 +194,10 @@
     "comp_ret": -0.07871,
     "avg_ex": -0.03127,
     "n_ex": 2,
-    "open": 1,
+    "open": 2,
     "realized": -0.0796,
-    "unrealized": 0.01424,
-    "total": -0.06536,
+    "unrealized": -0.02585,
+    "total": -0.10545,
     "unrated": 0
    },
    "규칙": {
@@ -239,10 +239,10 @@
     "comp_ret": -0.1891,
     "avg_ex": -0.1766,
     "n_ex": 1,
-    "open": 1,
+    "open": 2,
     "realized": -0.1891,
-    "unrealized": -0.02267,
-    "total": -0.21177,
+    "unrealized": -0.03801,
+    "total": -0.22711,
     "unrated": 0
    }
   }
@@ -417,13 +417,15 @@
     },
     {
      "who": "PB",
-     "name": "미제출",
+     "name": "현금",
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "미제출",
-     "ret": null,
-     "why": "제출 없음 — 미평가",
+     "status": "현금",
+     "ret": 0.0,
+     "bench": null,
+     "ex": null,
+     "why": "현금 유지",
      "marks": {}
     },
     {
@@ -438,6 +440,38 @@
      "ex": null,
      "why": "현금 유지",
      "marks": {}
+    },
+    {
+     "who": "PB🔥",
+     "name": "GLW",
+     "ticker": "GLW",
+     "entry": "open",
+     "exit": "d5_close",
+     "status": "보유 중",
+     "ret": -0.01463,
+     "mark_date": "2026-10-27",
+     "bench": 0.00252,
+     "ex": -0.01715,
+     "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
+     "marks": {
+      "2026-10-27": -0.01463
+     }
+    },
+    {
+     "who": "나🔥",
+     "name": "SOXX (반도체)",
+     "ticker": "SOXX",
+     "entry": "open",
+     "exit": "same_close",
+     "status": "보유 중",
+     "ret": 0.02112,
+     "mark_date": "2026-10-27",
+     "bench": 0.00252,
+     "ex": 0.0186,
+     "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
+     "marks": {
+      "2026-10-27": 0.02112
+     }
     }
    ]
   },
@@ -552,13 +586,14 @@
      "entry": "open",
      "exit": "d5_close",
      "status": "보유 중",
-     "ret": 0.01424,
-     "mark_date": "2026-10-26",
-     "bench": 0.00359,
-     "ex": 0.01064,
+     "ret": -0.01122,
+     "mark_date": "2026-10-27",
+     "bench": 0.00922,
+     "ex": -0.02044,
      "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
      "marks": {
-      "2026-10-26": 0.01424
+      "2026-10-26": 0.01424,
+      "2026-10-27": -0.01122
      }
     },
     {
@@ -568,13 +603,14 @@
      "entry": "open",
      "exit": "same_close",
      "status": "보유 중",
-     "ret": -0.02267,
-     "mark_date": "2026-10-26",
-     "bench": 0.00359,
-     "ex": -0.02626,
+     "ret": -0.05913,
+     "mark_date": "2026-10-27",
+     "bench": 0.00922,
+     "ex": -0.06835,
      "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
      "marks": {
-      "2026-10-26": -0.02267
+      "2026-10-26": -0.02267,
+      "2026-10-27": -0.05913
      }
     }
    ]
