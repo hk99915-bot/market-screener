@@ -26,6 +26,9 @@ def test_grade_numbers_terms_and_partial():
     assert g["pass"] and g["score"] == 1.0
     g2 = G.grade(it, "기대 2.5회, 상황 지켜봄")                    # '상황'의 '황'은 신호등이 아님
     assert not g2["pass"] and "2.5" in g2["hit"]
+    f = G.load_keys()["front-d1"]                                    # 필수 키(req) — 44 를 놓치면 다른 키를 다 맞혀도 불통과 (평가 10/27 반려 결함 2)
+    g3 = G.grade(f, "36px 유지(AA 통과), 색은 토큰 --bg2, build_pages 후 ui_smoke·skin_audit xl, 엑셀 스킨 검정 글자")
+    assert g3["score"] >= 0.6 and not g3["pass"] and "44" in g3["miss"]
     b = G.load_keys()["bonds-d1"]
     assert "-1.4" in G.grade(b, "가격 약 1.4% 하락")["hit"]           # 부호 무시 일치
 

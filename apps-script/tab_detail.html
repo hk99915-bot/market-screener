@@ -137,6 +137,27 @@ function macroComment(key,all){
   box.innerHTML=L.map(x=>'· '+x).join('<br>');
   if(typeof MV!=='undefined'&&MV===null){ MV=false; google.script.run.withSuccessHandler(t=>{try{MV=JSON.parse(t);}catch(e){MV={};} macroComment(key,all);}).withFailureHandler(()=>{MV={};}).getMacroView(); }
 }
+/* 비트코인 상세 (req-front-49f46a4c, 개발 10/27): reports/btc.json(매크로 갱신 때마다 새로 씀) — 24시간 시장이라 기준일 둘을 갈라 보인다:
+   closed_asof = 마지막 '확정' UTC 일봉(00:00 UTC = 09:00 KST 경계) · live_date = 아직 진행 중인 봉. 추세·SMA·ATR·지지/고점은 확정 봉 기준. 값이 없으면 '데이터 없음(원인)'. */
+let BTCJ=null, BTCJ_AT=0;
+function btcFill(){ const el=$('#btcB'); if(!el) return;
+  if(BTCJ&&Date.now()-BTCJ_AT<60e3) return btcDraw(el);
+  const f=u=>fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(r=>{ if(!r.ok) throw Error('HTTP '+r.status); return r.json(); });
+  f('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/btc.json').catch(()=>f('reports/btc.json'))
+    .then(d=>{ BTCJ=d; BTCJ_AT=Date.now(); }).catch(e=>{ BTCJ={ok:false,err:String(e&&e.message||e)}; })
+    .finally(()=>{ const e2=$('#btcB'); if(e2) btcDraw(e2); }); }
+function btcDraw(el){ const b=BTCJ||{}; if(!b.ok){ el.innerHTML=`<span class="dn">데이터 없음(${esc(b.err||b.reason||'reports/btc.json ok=false')})</span>`; return; }
+  const u=v=>v==null?'—':'$'+num(v,0), P=v=>v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${Number(v).toFixed(2)}%</span>`;
+  const gap=(v,ref)=>v==null||!ref?'':` <span class="mu">(${((v/ref-1)*100>0?'+':'')}${((v/ref-1)*100).toFixed(1)}%)</span>`;
+  const card=(t,v,sub)=>`<div style="flex:1;min-width:150px;border:1px solid var(--line);padding:6px 10px;line-height:1.5"><div class="mu" style="font-size:var(--fs-1)">${t}</div><div style="font-size:var(--fs-3)"><b>${v}</b></div><div class="mu" style="font-size:var(--fs-1);white-space:normal">${sub}</div></div>`;
+  el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">
+    ${card(`확정 일봉 · ${esc(b.closed_asof||'—')}`,u(b.close),`전일비 ${P(b.chg_1d_pct)} · UTC 마감 확정값`)}
+    ${card(`진행 중 봉 · ${esc(b.live_date||'—')} <span class="am">미확정</span>`,u(b.live_px),`확정 종가 대비 ${P(b.chg_live_pct)} · 하루가 끝나기 전 값`)}
+    ${card('추세 (확정 봉 기준)',esc(b.trend||'—'),`SMA20 ${u(b.sma20)} · 50 ${u(b.sma50)} · 200 ${u(b.sma200)}`)}
+    ${card('ATR14 (하루 평균 흔들림)',`${u(b.atr14)} <span class="mu" style="font-size:var(--fs-1)">${b.atr14_pct!=null?Number(b.atr14_pct).toFixed(2)+'%':''}</span>`,`경보 문턱 하루 ±${b.alert_pct??'—'}%${b.alert?' · <span class="dn">오늘 경보</span>':''}`)}
+  </div>
+  <div style="margin-top:6px">지지 <b>${u(b.support20)}</b> (20일 저점)${gap(b.support20,b.close)} · 고점 <b>${u(b.high20)}</b> (20일 고점)${gap(b.high20,b.close)}</div>
+  <div class="mu" style="font-size:var(--fs-1)">날짜 기준: ${esc(b.day_basis||'UTC 일봉')} — '확정'은 ${esc(b.closed_asof||'—')} 마감 봉, '진행 중'은 ${esc(b.live_date||'—')} 아직 안 끝난 봉. 출처 ${esc(b.src||'')} · 생성 ${esc(b.built_at||'')}</div>`; }
 let MRNG=252;
 function macroBars(key){
   const raw=(MS.series||{})[key]||((typeof CHS!=='undefined'&&CHS&&CHS.series)||{})[key]||[];
@@ -263,10 +284,11 @@ function openMacro(key){
     const ub=MAC_UNITS.map(([u,l])=>{ const dis=u!=='D'&&!s; return `<button data-u="${u}" class="${u===U?'on':''}"${dis?' disabled title="토스 미제공 — 분봉 없음" style="opacity:.4;cursor:not-allowed"':''}>${l}</button>`; }).join('');
     const desc=U==='D'?`일봉 · SMA20/50/200 · 토스 일봉(있고 신선할 때) → 야후`:m.t==='us'?`토스 ${m.id} 1분봉 — 대용(ETF) · 봉 시각=ET 봉 종료`:m.t==='fx'?'토스 매매기준율 · 수집 시점 누적 점(이 브라우저)':'토스 1분봉 · 봉 시각=시작';
     $('#dr-b').innerHTML=`<div class="grid"><div class="p c12"><h2 style="flex-wrap:wrap">${esc(key)}<span class="ctab" id="mcunit">${ub}${m?'':' <span class="mu" style="font-size:var(--fs-1)">분봉: 토스 미제공</span>'}</span>${U==='D'?`<span class="ctab" id="mcrng">${R.map(([n,l])=>`<button data-r="${n}" data-l="${l}" class="${n===MRNG?'on':''}">${l}</button>`).join('')}</span>`:''}<small>${desc}</small></h2><div class="b"><canvas id="mcv" width="960" height="340" style="width:100%;display:block"></canvas><div class="mu" style="font-size:var(--fs-1);margin-top:4px" id="mcinfo"></div></div></div>
+      ${key==='BTC'?`<div class="p c12" id="btcBox"><h2>BTC 상세<small>reports/btc.json · UTC 일봉 · 표시 전용, 매매 신호 아님</small></h2><div class="b" id="btcB" style="white-space:normal;line-height:1.8;font-size:var(--fs-2)"><span class="mu">불러오는 중…</span></div></div>`:''}
       <div class="p c12"><h2>COMMENT<small>규칙 기반 · 일봉 기준 · 예측 아님</small></h2><div class="b" id="mccom" style="line-height:1.8;font-size:var(--fs-2);white-space:normal"></div></div></div>`;
     document.querySelectorAll('#mcrng button').forEach(bt=>bt.onclick=()=>{MRNG=+bt.dataset.r; render();});
     document.querySelectorAll('#mcunit button').forEach(bt=>bt.onclick=()=>{ if(bt.disabled) return; U=bt.dataset.u; macLs('mt_mac_unit',U); render(); });
-    draw(); if(all.length) macroComment(key,all); else $('#mccom').innerHTML='<span class="mu">야후 일봉 없음 — 코멘트 생략</span>'; };
+    if(key==='BTC') btcFill(); draw(); if(all.length) macroComment(key,all); else $('#mccom').innerHTML='<span class="mu">야후 일봉 없음 — 코멘트 생략</span>'; };
   const go=()=>{ if(MAC_KEY!==key) return; const sv=macLs('mt_mac_unit');
     U=!m||!macSrc(key)?'D':(sv&&MAC_UNITS.some(z=>z[0]===sv)?sv:(macOn(m)?'1':'D')); render();
     MAC_TIMER=setInterval(()=>{ if(MAC_KEY!==key||!$('#dr').classList.contains('on')||!$('#mcv')){ macStop(); return; }
@@ -318,14 +340,14 @@ function renderEtf(sym,mk,s){
   });
 }
 function renderDetail(sym,mk,s){
-  window._DETASOF=s.asof;
-  if(s.etf) return renderEtf(sym,mk,s);
+  window._DETASOF=s.asof; window._DETCUR=[sym,mk];
+  if(s.etf){ window._DETCUR=null; return renderEtf(sym,mk,s); }
   const st=s.stats||{}, kr=mk==='KR', sc=s.scenarios||{}, rs=s.research||{};
   $('#dr-t').textContent=`${s.name} (${sym})`; $('#dr-s').innerHTML=`${s.market}${s.theme?` · <span class="am">${esc(s.theme)}</span>`:''} · ${num(s.close,kr?0:2)} ${pct(st.ret1)} · ${CLS[st.class]||''} · ${esc(s.asof||'')}${s.asof_label?` <span class="${s.asof_label.startsWith('장중')?'am':'mu'}">${esc(s.asof_label)}</span>`:''}`;
   const kv=o=>`<div class="kv">${Object.entries(o).map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;
   const lvl=v=>v==null?'—':num(v,kr?0:2);
   let h=oneBox(sym,mk)+`<div class="grid">
-   <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">1Y</button><button data-c="live">LIVE</button></span><small id="ch-note">SMA20 · SMA50 · 20D box · TP</small></h2><div class="b">${ovBar()}<div id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div></div>
+   <div class="p c12"><h2>CHART<span class="ctab"><button data-c="d" class="on">1Y</button><button data-c="live">LIVE</button></span><small id="ch-note">SMA20 · SMA50 · 20D box · TP</small></h2><div class="b">${ovBar()}<div id="ch-intra" style="font-size:var(--fs-1);white-space:normal;line-height:1.6"></div><div id="chb"><canvas id="cv" width="960" height="260"></canvas></div></div></div>
    <div class="p c4"><h2>TECHNICALS</h2><div class="b">${kv({'TREND / MOM':`<span class="am">${n0(st.trend_score)}</span> / ${n0(st.momentum_score)}`,'REV RISK':`<span class="${st.reversal_risk>=60?'dn':''}">${n0(st.reversal_risk)}</span>`,'ADX / RSI':`${n0(st.adx14)} / ${n0(st.rsi14)}`,'CCI / STOCH':`${n0(st.cci20)} / ${n0(st.stoch_k)}`,'MACD':`${num(st.macd,2)} vs ${num(st.macd_sig,2)}`,'5D / 20D / 60D':`${pct(st.ret5)} ${pct(st.ret20)} ${pct(st.ret60)}`,'SMA 20/50/200':`${lvl(st.sma20)} / ${lvl(st.sma50)} / ${lvl(st.sma200)}`,'52W HI / LO':`${lvl(st.high52)} / ${lvl(st.low52)} (${pct(st.from_high52,0)})`,'VOL×20D':`${(st.vol_ratio??0).toFixed(1)}`,'DIST SMA20':`${(st.dist_sma20_atr??0).toFixed(1)} ATR`,'ATR14':lvl(st.atr14),'PSAR':lvl(st.psar)})}</div></div>
    <div class="p c4"><h2>RESEARCH<small>${rs.n30||0}건 · ${rs.brokers30||0}사 / 30D</small></h2><div class="b">${kv({'CONSENSUS TP':rs.consensus_tp?`${lvl(rs.consensus_tp)} (${pct(rs.tp_upside,0)})`:'—'})}${(rs.items||[]).length?`<div style="margin-top:6px;max-height:340px;overflow:auto">${rs.items.map(repLine).join('')}</div>`:'<div class="mu" style="margin-top:6px">최근 6개월 리포트 없음</div>'}</div></div>
    <div class="p c4"><h2>FLOWS 10D<small>억원 · 확정치</small></h2><div class="b">${(s.flows||[]).length?`<table><tr><th class="l">D</th><th>외국인</th><th>기관</th><th>개인</th></tr>${[...s.flows].reverse().map(f=>`<tr><td class="l mu">${f.date}</td><td>${sgn(f['외국인'])}</td><td>${sgn(f['기관'])}</td><td>${sgn(f['개인'])}</td></tr>`).join('')}</table><div class="am" style="margin-top:4px">${esc(s.flow_note)}</div>`:'<div class="mu">'+(kr?'수급 데이터 없음':'미국은 주체별 수급 미공개')+'</div>'}</div></div>
@@ -347,6 +369,7 @@ function renderDetail(sym,mk,s){
    <div class="p c6"><h2>MACRO VIEW</h2><div class="b">${esc(s.comment?.macro||'—')}</div></div>
   </div>`;
   $('#dr-b').innerHTML=h; drawChart(s.chart||[],sc,rs,kr); rvFill(sym,mk);
+  intraLoad(()=>{ const cur=window._DETCUR; if(cur&&cur[0]===sym&&cur[1]===mk&&$('#cv,#lwc')&&document.querySelector('.ctab button.on[data-c="d"]')) drawChart(s.chart||[],sc,rs,kr); });
   document.querySelectorAll('.ctab button').forEach(bt=>bt.onclick=()=>{
     document.querySelectorAll('.ctab button').forEach(z=>z.classList.toggle('on',z===bt));
     if(bt.dataset.c==='live'){ $('#chb').innerHTML=liveChart(sym,s.market,kr,sc,rs,s.close); $('#ch-note').textContent=kr?'네이버 금융 · 일봉 캔들(오늘 봉 포함) / 장중 흐름 · 1분 갱신':'TradingView · 5분봉 · 왼쪽 도구로 수평선 그리기 가능'; }
@@ -410,9 +433,35 @@ function fibDown(ch,w=120){ // 하방 피보나치: 최근 저점(L)→이후 �
   const R=H-L; if(!(R>0)) return null;
   return [0.236,0.382,0.5,0.618,0.786,1,1.272,1.618].map(r=>[(r===1?'100':(r*100).toFixed(1))+'%',H-R*r])
     .filter(([,v])=>v<c&&v>0).sort((x,y)=>y[1]-x[1]).slice(0,3); }
+/* 오늘 장중 잠정 봉 (req-front-75d54530, 개발 계약 schema 2 = screener/intraday_last.py 머리말·tests/test_intraday_last.py, 보드 intraday-bar).
+   reports/intraday_last.json(live 루프 KR 5분·US 15분)을 raw 에서 직접 읽는다(히트맵 heatRefresh 와 같은 방식, GAS·Pages 공통) → 실패하면 같은 저장소 상대경로.
+   규칙: ① 상세 chart 마지막 t < trade_date 일 때만 붙임(EOD 오면 자동 사라짐) ② session=LIVE 인데 asof 20분 초과면 안 붙임 ③ 잠정 = 주황 테두리·반투명 몸통 + '장중 HH:MM 출처'
+   ④ x=0 → '고저 관측 근사(5분)' ⑤ 갭 배지 gk U/D(gap null 이면 배지 없음·추정 금지) ⑥ s20·s50·s200 은 오늘 c 포함 재계산. KR provisional:true(15:30~15:45) → '잠정' 그대로. */
+let INTRA=null, INTRA_AT=0, INTRA_BUSY=false;
+const INTRA_SRC={t:'토스',n:'네이버',y:'야후'};
+function intraLoad(cb){ if(INTRA_BUSY||Date.now()-INTRA_AT<60e3){ if(cb&&!INTRA_BUSY) cb(); return; } INTRA_BUSY=true; INTRA_AT=Date.now();
+  const f=u=>fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(r=>{ if(!r.ok) throw Error('HTTP '+r.status); return r.json(); });
+  f('https://raw.githubusercontent.com/hk99915-bot/market-screener/main/reports/intraday_last.json').catch(()=>f('reports/intraday_last.json'))
+    .then(d=>{ INTRA=d&&d.schema>=2?d:null; }).catch(()=>{ INTRA=INTRA||null; }).finally(()=>{ INTRA_BUSY=false; if(cb) cb(); }); }
+function intraTs(a){ const m=String(a||'').match(/(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/); return m?Date.parse(m[1]+'T'+m[2]+':00+09:00'):NaN; }
+function intraBar(ch){ const cur=window._DETCUR, D=INTRA; if(!cur||!D||!ch||!ch.length) return null;
+  const B=D[cur[1]], row=B&&B.q&&B.q[cur[0]]; if(!row||!B.trade_date) return null;
+  const last=ch[ch.length-1]; if(!last.t||!(last.t<B.trade_date)) return null;
+  const at=intraTs(B.asof); if(B.session==='LIVE'&&(isNaN(at)||Date.now()-at>20*60e3)) return null;
+  const F=D.fields||[], g=k=>{ const i=F.indexOf(k); return i<0?null:row[i]; }, c=g('c'); if(c==null) return null;
+  const o=g('o')??c, h=Math.max(g('h')??c,o,c), l=Math.min(g('l')??c,o,c), x=g('x');
+  const b={t:B.trade_date,d:B.trade_date.slice(5),o,h,l,c,v:g('v')||0,live:1,x,gap:g('gap'),gk:g('gk'),gf:g('gf'),pc:g('pc'),
+    lab:`장중 ${(String(B.asof).match(/\d{2}:\d{2}/)||['?'])[0]} ${INTRA_SRC[g('src')]||g('src')||''}`,prov:!!B.provisional,sess:B.session};
+  const C=ch.map(z=>z.c); [['s20',20],['s50',50],['s200',200]].forEach(([k,n])=>{ if(C.length>=n-1) b[k]=(C.slice(-(n-1)).reduce((a,z)=>a+z,0)+c)/n; });
+  return b; }
+function intraNote(b){ const el=$('#ch-intra'); if(!el) return; if(!b){ el.innerHTML=''; return; }
+  const P=v=>(v>0?'+':v<0?'−':'')+Math.abs(v*100).toFixed(1)+'%', dg=(window._DETCUR||[])[1]==='KR'?0:2;
+  const gb=b.gap==null||!b.gk||b.gk==='0'?'':` <span class="tag" style="border-color:var(${b.gk==='U'?'--up':'--dn'});color:var(${b.gk==='U'?'--up':'--dn'})">${b.gk==='U'?'갭상':'갭하'} ${P(b.gap)}${b.gf?' · 메움':''}</span>`;
+  el.innerHTML=`<span class="am">● ${esc(b.lab)} · 잠정${b.sess==='CLOSE'?'(마감 후 EOD 전)':''}${b.prov?' · 동시호가 직후':''}</span> · 오늘 봉 ${b.c>=b.o?'양봉':'음봉'} 시 ${num(b.o,dg)} 고 ${num(b.h,dg)} 저 ${num(b.l,dg)} 현재 <b>${num(b.c,dg)}</b>${b.pc?` (전일비 ${P(b.c/b.pc-1)})`:''}${gb}${b.x===0?' <span class="mu" title="출처에 시가·고가·저가 필드가 없어 5분 간격 관측값으로 근사">· 고저 관측 근사(5분)</span>':''} <span class="mu">· SMA 는 오늘 현재가 포함 재계산 · 장 마감 뒤 확정 일봉이 오면 사라짐</span>`; }
 function drawChart(ch,sc,rs,kr){
   LASTCH=[ch,sc,rs,kr];
   if(ch&&ch.length&&!ch.some(c=>c.p!=null)) psarJS(ch);
+  if(ch&&ch.length){ fullDates(ch,(window._DETASOF||'')); const ib=intraBar(ch); intraNote(ib); if(ib) ch=ch.concat([ib]); }
   if(!window.LightweightCharts||!ch||!ch.length) return drawCanvas(ch,sc,rs,kr);
   fullDates(ch,(window._DETASOF||''));
   const box=$('#chb'); if(!box) return;
@@ -426,7 +475,8 @@ function drawChart(ch,sc,rs,kr){
   LWCH=c;
   const upC=kr?'#ff4b4b':'#2fd05a', dnC=kr?'#4aa3ff':'#ff4b4b';
   const cs=c.addCandlestickSeries({upColor:upC,downColor:dnC,borderUpColor:upC,borderDownColor:dnC,wickUpColor:upC,wickDownColor:dnC});
-  cs.setData(ch.map(b=>({time:b.t,open:b.o,high:b.h,low:b.l,close:b.c})));
+  cs.setData(ch.map(b=>b.live?{time:b.t,open:b.o,high:b.h,low:b.l,close:b.c,color:'rgba(255,154,31,.25)',borderColor:'#ff9a1f',wickColor:'#ff9a1f'}:{time:b.t,open:b.o,high:b.h,low:b.l,close:b.c}));
+  const lb=ch[ch.length-1]; if(lb&&lb.live) try{ cs.setMarkers([{time:lb.t,position:'aboveBar',color:'#ff9a1f',shape:'arrowDown',text:'잠정'}]); }catch(_){}
   const vs=c.addHistogramSeries({priceScaleId:'vol',priceFormat:{type:'volume'},lastValueVisible:false,priceLineVisible:false});
   c.priceScale('vol').applyOptions({scaleMargins:{top:0.82,bottom:0}});
   vs.setData(ch.map(b=>({time:b.t,value:b.v||0,color:b.c>=b.o?(kr?'rgba(255,75,75,.35)':'rgba(47,208,90,.35)'):(kr?'rgba(74,163,255,.35)':'rgba(255,75,75,.35)')})));
@@ -485,7 +535,9 @@ function drawCanvas(ch,sc,rs,kr){
       const lp=pts[pts.length-1]; x.fillStyle='#ff9a1f'; x.fillText('PSAR '+fm(lp.p)+(lp.p<lp.c?' (상승추세)':' (하락추세)'),padL+6,padT+22); }
     else if(sc.bear?.trail) hline(sc.bear.trail,'#ff9a1f','PSAR '+fm(sc.bear.trail)); }
   ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4b4b':'#4aa3ff'; if(!kr){x.strokeStyle=x.fillStyle=up?'#2fd05a':'#ff4b4b';}
-    x.lineWidth=2;x.beginPath();x.moveTo(px,Y(c.h));x.lineTo(px,Y(c.l));x.stroke();const yo=Y(c.o),yc=Y(c.c);x.fillRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo)));
+    if(c.live){ x.strokeStyle='#ff9a1f'; x.setLineDash([6,4]); }
+    x.lineWidth=2;x.beginPath();x.moveTo(px,Y(c.h));x.lineTo(px,Y(c.l));x.stroke();const yo=Y(c.o),yc=Y(c.c);
+    if(c.live){ x.strokeRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo))); x.setLineDash([]); } else x.fillRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo)));
     const vb=H-padB-(c.v/vmax)*vh*0.95; x.fillStyle=up?'#5a2020':'#1f3a5a'; x.fillRect(px-cw*0.3,vb,cw*0.6,H-padB-vb);
     if(i%10===0){x.fillStyle='#777';x.fillText(c.d,px-20,H-padB+26);} });
 }

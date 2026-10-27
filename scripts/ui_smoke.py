@@ -85,6 +85,9 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_hf_why(b, port)
         # bad += await check_all_top(b, port)   # 10/26 롤백(TOP_ALL_TABS=false) — 다시 켜면 복구
         bad += await check_re_ga(b, port)
+        bad += await check_intraday_bar(b, port)
+        bad += await check_btc_detail(b, port)
+        bad += await check_deriv_tv(b, port)
         await b.close()
     return bad
 
@@ -1241,6 +1244,98 @@ async def check_re_ga(b, port: int) -> int:
               + ("" if ok else f" · {st} · {st2}") + (f" · 에러: {errs[0][:160]}" if errs else ""))
         await pg.close()
     return bad
+
+
+def _intra_fixture(age_min: int = 2, session: str = "LIVE") -> str:
+    """reports/intraday_last.json schema 2 합성 픽스처(계약 screener/intraday_last.py) — trade_date 는 먼 미래라 실데이터 날짜가 바뀌어도 '마지막 t < trade_date' 가 항상 참."""
+    import json as _j
+    from datetime import datetime, timedelta, timezone
+    at = (datetime.now(timezone(timedelta(hours=9))) - timedelta(minutes=age_min)).strftime("%Y-%m-%d %H:%M KST")
+    blk = lambda q: {"trade_date": "2099-01-02", "session": session, "asof": at, "n": len(q), "q": q}   # noqa: E731
+    return _j.dumps({"schema": 2, "fields": ["o", "h", "l", "c", "v", "pc", "r1", "src", "x", "gap", "gk", "gf"], "gap_band": 0.005, "asof": at,
+                     "KR": blk({"005930": [210000.0, 216000.0, 209000.0, 215000.0, 1000000, 200000.0, 0.075, "n", 1, 0.05, "U", 0]}),
+                     "US": blk({"AAPL": [300.0, 305.0, 299.0, 304.0, 0, 301.0, 0.01, "y", 0, None, "0", None]})})
+
+
+async def check_intraday_bar(b, port: int) -> int:
+    """종목 상세 오늘 장중 잠정 봉(req-front-75d54530, 계약 schema 2): 픽스처 주입 → KR 005930 = 노트 '장중 HH:MM 네이버'·갭상 +5.0%·차트 봉 +1,
+    US AAPL x=0 = '고저 관측 근사(5분)'·갭 배지 없음(gap null) · LIVE 인데 asof 30분 전이면 안 붙임 · 390px 가로 넘침 없음."""
+    res: dict = {}
+    for name, age in (("fresh", 2), ("stale", 30)):
+        pg = await b.new_page(viewport={"width": 390, "height": 844})
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        body = _intra_fixture(age)
+        await pg.route("**/intraday_last.json*", lambda r, *_, _b=body: r.fulfill(status=200, content_type="application/json", body=_b))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1500)
+        for sym, mk in (("005930", "KR"), ("AAPL", "US")):
+            await pg.evaluate(f"INTRA_AT=0; openDetail({sym!r},{mk!r})")
+            await pg.wait_for_timeout(2500)
+            r = await pg.evaluate("""(()=>{ const n=document.querySelector('#ch-intra'); const L=LASTCH&&LASTCH[0]; const ib=L?intraBar(L):null;
+              return {note:n?n.innerText:null, live:!!ib, over:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+                right:Math.max(0,...[...document.querySelectorAll('#ch-intra *')].map(e=>e.getBoundingClientRect().right))}; })()""")
+            r["errs"] = errs[:1]
+            res[f"{name}:{mk}"] = r
+        await pg.close()
+    kr, us, st = res["fresh:KR"], res["fresh:US"], res["stale:US"]
+    ok = (kr["live"] and "장중" in (kr["note"] or "") and "네이버" in kr["note"] and "갭상 +5.0%" in kr["note"] and "관측 근사" not in kr["note"]
+          and us["live"] and "관측 근사" in (us["note"] or "") and "갭" not in us["note"].replace("갭상", "").replace("갭하", "") and "야후" in us["note"]
+          and not st["live"] and st["note"] == "" and not res["stale:KR"]["live"]
+          and all(v["over"] <= 1 and v["right"] <= 391 and not v["errs"] for v in res.values()))
+    print(f"{'OK ' if ok else 'BAD'} 장중 잠정 봉(390px) KR={kr['note'][:60] if kr['note'] else kr} · US={'근사' if us['live'] and '관측 근사' in (us['note'] or '') else us} · 20분 초과 안 붙임={'O' if not st['live'] else 'X'}"
+          + "".join(f" · {k} 에러: {v['errs'][0][:120]}" for k, v in res.items() if v["errs"]) + "".join(f" · {k} 넘침 {v['over']}/{v['right']:.0f}" for k, v in res.items() if v["over"] > 1 or v["right"] > 391))
+    return not ok
+
+
+async def check_btc_detail(b, port: int) -> int:
+    """BTC 상세(req-front-49f46a4c): openMacro('BTC') → '확정 일봉 · <closed_asof>' 와 '진행 중 봉 · <live_date>' 두 날짜 분리 · 추세·ATR14·지지/고점 · 390px 넘침 없음.
+    btc.json 은 저장소 파일(raw 실패 시 상대경로) — raw 도 같은 파일이라 기대값은 저장소에서 읽는다."""
+    import json as _j
+    J0 = _j.loads((ROOT / "reports/btc.json").read_text(encoding="utf-8"))
+    pg = await b.new_page(viewport={"width": 390, "height": 844})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.route("**/market-screener/main/reports/btc.json*", lambda r: r.fulfill(status=404, body=""))   # raw → 로컬 파일로(기대값 일치)
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("openMacro('BTC')")
+    await pg.wait_for_timeout(3000)
+    r = await pg.evaluate("""(()=>{ const e=document.querySelector('#btcB'); return {t:e?e.innerText:'', over:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+      right:Math.max(0,...[...document.querySelectorAll('#btcBox *')].map(x=>x.getBoundingClientRect().right))}; })()""")
+    t = r["t"]
+    ok = (f"확정 일봉 · {J0['closed_asof']}" in t and f"진행 중 봉 · {J0['live_date']}" in t and "ATR14" in t and "지지" in t and "고점" in t
+          and str(J0.get("trend", "")) in t and r["over"] <= 1 and r["right"] <= 391 and not errs) if J0.get("ok") else ("데이터 없음" in t and not errs)
+    print(f"{'OK ' if ok else 'BAD'} BTC 상세(390px) 확정={J0.get('closed_asof')} 진행={J0.get('live_date')} 넘침={r['over']}/{r['right']:.0f} {t[:50]!r}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await pg.close()
+    return not ok
+
+
+async def check_deriv_tv(b, port: int) -> int:
+    """파생 탭 코스피200 선물 라이브 차트(req-front-4e7ee8ad): 기본 접힘(iframe 0 — 다시 그릴 때 위젯 재로딩 방지) · 네이버 선물 대체 링크 항상 ·
+    버튼 누르면 widgetembed KRX:K2I1! iframe 1개 · 390px 버튼 높이 ≥44(터치 기기) · 넘침 없음. 위젯 외부 요청은 막는다(표시만 확인)."""
+    ctx = await b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = await ctx.new_page()
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.route("**/s.tradingview.com/**", lambda r: r.fulfill(status=200, content_type="text/html", body="<html><body>tv</body></html>"))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1500)
+    await pg.evaluate("setView('deriv')")
+    await pg.wait_for_timeout(2500)
+    J = lambda js: pg.evaluate(js)   # noqa: E731
+    r0 = await J("""(()=>{ const p=document.getElementById('dvTv'), bt=document.getElementById('dvTvBtn'); return p?{ifr:p.querySelectorAll('iframe').length, nv:!!p.querySelector('a[href*="naver.com/sise"]'),
+      h:bt?bt.getBoundingClientRect().height:0}:null; })()""")
+    if r0:
+        await pg.click("#dvTvBtn")
+        await pg.wait_for_timeout(500)
+    r1 = await J("""(()=>{ const p=document.getElementById('dvTv'); const f=p&&p.querySelector('iframe'); return {src:f?f.src:'', nv:!!(p&&p.querySelector('a[href*="naver.com/sise"]')),
+      over:document.documentElement.scrollWidth-document.documentElement.clientWidth, right:p?Math.max(0,...[...p.querySelectorAll('*')].map(x=>x.getBoundingClientRect().right)):999}; })()""")
+    ok = bool(r0) and r0["ifr"] == 0 and r0["nv"] and r0["h"] >= 44 and "widgetembed" in r1["src"] and "K2I1" in r1["src"] and r1["nv"] \
+        and r1["over"] <= 1 and r1["right"] <= 391 and not errs
+    print(f"{'OK ' if ok else 'BAD'} 파생 K200 선물 차트(390px) 접힘={r0} 펼침={'O' if 'K2I1' in r1['src'] else 'X'} 넘침={r1['over']}/{r1['right']:.0f}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await ctx.close()
+    return not ok
 
 
 if __name__ == "__main__":

@@ -112,7 +112,18 @@ function derivView(){
     <div class="mu" style="font-size:var(--fs-1);margin-top:6px">${esc(S.grades_doc||'')} · 다중검정 m=${S.m??'?'}, α=${S.alpha_bonf??'?'}. 자세한 내용은 QUANT › 검증 스터디.</div></div></div>`:'';
   setTimeout(drawDerivHist,0);
   setTimeout(()=>{ const b=$('#dvA8'); if(b) b.onclick=dvGoA8; },0);
-  return `<div class="grid">${dvTop(d)}${sum}${op}${hist}${vt}${dvResearch(DVX.r,DVX.v)}</div>`;
+  return `<div class="grid">${dvTop(d)}${sum}${dvTv()}${op}${hist}${vt}${dvResearch(DVX.r,DVX.v)}</div>`;
+}
+/* 코스피200 선물 라이브 차트 (req-front-4e7ee8ad, 10/24 겸이 '트레이딩뷰 차트 붙이잖아 우리' + KRX:K2I1!) — 종목 상세 liveChart 와 같은 widgetembed.
+   표시 전용: 위젯 iframe 만 띄우고 값은 읽지 않는다(추출·스크랩 금지). 다시 그릴 때마다 iframe 이 새로 불리지 않게 기본은 접힘, 누르면 펼침(DV_TV).
+   KRX 심볼은 위젯에서 지연·미표시일 수 있어 네이버 선물 시세 링크를 항상 같이 둔다. */
+let DV_TV=false;
+function dvTv(){
+  const sym='KRX:K2I1!', src='https://s.tradingview.com/widgetembed/?symbol='+encodeURIComponent(sym)+'&interval=5&theme=dark&style=1&locale=kr&timezone=Asia%2FSeoul&hidesidetoolbar=1&symboledit=0&saveimage=0&withdateranges=1';
+  const lk=`<div class="lk" style="margin-top:6px;font-size:var(--fs-2)"><a style="margin-right:12px" href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(sym)}" target="_blank" rel="noopener">TradingView에서 열기</a><a style="margin-right:12px" href="https://finance.naver.com/sise/sise_index.naver?code=FUT" target="_blank" rel="noopener">네이버 선물 시세</a><span class="mu">차트가 비거나 멈춰 있으면 네이버 링크로 보세요(KRX 심볼은 위젯에서 지연·미표시 가능)</span></div>`;
+  const body=DV_TV?`<div class="live"><iframe src="${src}" loading="lazy" allowfullscreen title="코스피200 선물 TradingView 차트"></iframe>${lk}</div>`
+    :`<button class="sbtn" id="dvTvBtn" onclick="DV_TV=true;const p=document.getElementById('dvTv');if(p)p.outerHTML=dvTv()">📈 차트 열기 (TradingView · 5분봉)</button>${lk}`;
+  return `<div class="p c12" id="dvTv"><h2>코스피200 선물 · 라이브 차트<small>TradingView 위젯 ${sym} · 연결선물 · 표시 전용(값 미수집)</small></h2><div class="b" style="white-space:normal">${body}</div></div>`;
 }
 function dvGoA8(){ setView('edu'); let n=0; const t=setInterval(()=>{ const m=document.getElementById('mod-A8'); if(m){ clearInterval(t); m.open=true; m.scrollIntoView({behavior:'smooth',block:'start'}); } else if(++n>50) clearInterval(t); },100); }
 function drawDerivHist(){
