@@ -199,3 +199,55 @@ def test_compliance_d2_d3_keys_audit_reverse_check():
     # 질문 문장을 그대로 베껴도(🌙·08:10·13 포함) 통과하지 않는다
     for did in ("compliance-d2", "compliance-d3"):
         assert not G.grade(keys[did], keys[did]["q"])["pass"], did
+
+
+def test_negation_context_blocks_required_keys_audit_recheck():
+    """감사 재검수 10/28(audit_compliance_peer_recheck.md, req-audit-5c11f8ac) — 부정문 오답 3줄 불통과, 표기 변형 맞는 답 통과."""
+    keys = G.load_keys()
+    d2, d3 = keys["compliance-d2"], keys["compliance-d3"]
+    for it, a in ((d2, "[13] 위반 1건, 능동이 아니라 수동(값이 자동 반영). 확인 전 시행이니 옛 값으로 재판정."),
+                  (d2, "위반 1건도 없다. 🌙 기록이 있어 [13] 해당 없음, 능동 변경도 아님. 재판정 불필요."),
+                  (d3, "엄격 1/7≈14%, 부분 4/7≈57%. [6][7]은 '없음'이 아니라 수동(담당 PB).")):
+        r = G.grade(it, a)
+        assert not r["pass"] and r["req_miss"], (a, r)
+    for it, a in ((d2, "밤 22시~07시 창 규칙(13조) 위반 한 건, 능동. 확인 전 시행이라 06:30 주문표는 이전 값으로 다시 본다."),
+                  (d2, "위반이다. [13] 1건, 능동 위반 — 08:10 확인 전 06:30 주문표가 새 값으로 통과했으니 옛 값으로 재판정."),
+                  (d3, "엄격 기준 1/7(약 14%), 부분 포함 시 4/7(약 57%). [6]과 [7]은 미커버(없음), 부분은 주문표 경유 때만."),
+                  (d3, "완전 자동만 치면 14%, 부분까지 57%. [6][7]: 담당·시각 없음. 주문표 안 거치면 부분도 안 걸림.")):
+        r = G.grade(it, a)
+        assert r["pass"] and not r["req_miss"], (a, r)
+
+
+def test_negation_context_negative_keys_and_options():
+    """부정 개념 키(negative / 키에 '없음' 등)는 반대로 — 부재 표지는 무시, 바로 붙은 '…이 아니라' 만 무효. 비필수·negcheck:false 는 그대로."""
+    pos = {"id": "x-d1", "keys": [{"t": ["능동"], "req": True}, {"t": ["옛 값"]}]}
+    assert G.grade(pos, "능동 위반, 옛 값으로")["pass"]
+    assert not G.grade(pos, "능동이 아니라 수동, 옛 값으로")["pass"]
+    assert not G.grade(pos, "능동 변경도 아님, 옛 값으로")["pass"]
+    assert not G.grade(pos, "능동하지 않음, 옛 값으로")["pass"]
+    assert not G.grade(pos, "not 능동, 옛 값으로")["pass"]
+    assert G.grade(pos, "수동이 아니라 능동, 옛 값으로")["pass"]           # 'A가 아니라 B' 의 B 는 긍정
+    assert G.grade(pos, "능동, 다만 기록은 없다. 옛 값으로")["pass"]       # 절이 바뀌면 부정이 키에 안 걸림
+    assert G.grade(pos, "능동 맞음, 옛 값이 아니라 새 값")["score"] == 1.0   # 비필수 키는 부정 판정 안 함
+    off = {"id": "x-d2", "keys": [{"t": ["능동"], "req": True, "negcheck": False}]}
+    assert G.grade(off, "능동이 아니라 수동")["pass"]
+    neg = {"id": "x-d3", "keys": [{"t": ["없음"], "req": True}]}            # 키 문자열에 부정어 → 자동 부정 개념
+    assert G.grade(neg, "담당 없음")["pass"]
+    assert G.grade(neg, "미커버(없음)이고 담당도 없다")["pass"]
+    assert not G.grade(neg, "'없음'이 아니라 수동")["pass"]
+    ban = {"id": "x-d4", "keys": [{"t": ["완화 금지"], "req": True, "negative": True}]}   # 명시 표시
+    assert G.grade(ban, "위반 중 완화 금지라 받을 수 없다")["pass"]
+    assert not G.grade(ban, "완화 금지가 아니라 허용")["pass"]
+    assert not G.grade({**ban, "keys": [{"t": ["완화 금지"], "req": True}]}, "위반 중 완화 금지라 받을 수 없다")["pass"]
+
+
+def test_all_model_answers_pass_with_negation_check():
+    """회귀: content/drills/*.json + content/onboarding/*.json 의 모범답 전부가 부정 문맥 판정 뒤에도 자기 키를 다 맞힌다."""
+    fails = []
+    for d in (G.KEYS_DIR, G.ONB_KEYS_DIR):
+        for qid, it in G.load_keys(d).items():
+            r = G.grade(it, it["answer"])
+            if r["score"] < 1.0 or not r["pass"]:
+                fails.append((qid, r["miss"]))
+    assert fails == []
+    assert len(G.load_keys()) + len(G.load_onboarding()) >= 60

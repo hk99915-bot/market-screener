@@ -9,6 +9,7 @@
 채점: 키 = 숫자 {"n": 값, "tol": 허용오차} 또는 용어 {"t": [동의어…]}. 점수 = 맞힌 키 / 전체 키, `pass`(기본 0.6) 이상이면 통과.
      키에 "req": true 가 있으면 필수 — 점수가 넘어도 그 키를 놓치면 불통과(10/27 평가 키 역검사, req-edu-ff390d0d).
      숫자는 부호 무시 일치도 인정(−1.4% 를 '1.4% 하락'으로 써도), 허용오차 기본 max(1%, 0.05). 용어는 부분 문자열(영문 1~2자는 단어 경계, 're:' 접두는 정규식).
+     필수 용어 키는 부정 문맥이면 불적중('능동이 아니라 수동'·'1건도 없다' — 10/28 감사 재검수, `_negated`). 키 옵션: "negative": true(부정 개념 키) · "negcheck": false(끔).
      기계 채점은 '핵심 숫자·용어를 꺼냈나'만 본다 — 판단의 질은 감사 데스크 채점(LOOP 7항)이 본다.
 
   python3 scripts/drill_grade.py --check                       # KB↔키 파일 정합(답이 KB 에 남았나·id 누락)
@@ -136,12 +137,61 @@ def _nums(text: str) -> list[float]:
     return out
 
 
-def _term_hit(term: str, text: str) -> bool:
+def _term_spans(term: str, text: str) -> list[tuple[int, int]]:
     if term.startswith("re:"):   # 한 글자 신호등(황·적)처럼 부분 문자열이면 오탐('상황')인 용어
-        return re.search(term[3:], text) is not None
+        return [m.span() for m in re.finditer(term[3:], text)]
     if re.fullmatch(r"[A-Za-z]{1,2}", term):
-        return re.search(rf"(?<![A-Za-z]){re.escape(term)}(?![A-Za-z])", text) is not None
-    return term.lower() in text.lower()
+        return [m.span() for m in re.finditer(rf"(?<![A-Za-z]){re.escape(term)}(?![A-Za-z])", text)]
+    return [m.span() for m in re.finditer(re.escape(term.lower()), text.lower())]
+
+
+def _term_hit(term: str, text: str) -> bool:
+    return bool(_term_spans(term, text))
+
+
+# 부정 문맥 (10/28 감사 재검수 req-audit-5c11f8ac — '능동이 아니라 수동'·'1건도 없다'·"'없음'이 아니라" 가 필수 키를 적중시킴).
+# 필수(req) 용어 키의 적중 위치 앞뒤 같은 절(쉼표·마침표 등 경계, NEG_WIN 자 창) 안에 부정 표지가 그 키를 부정하면 그 적중은 무효.
+#  - 강한 부정('아니라·아님·아니다·not'): 긍정 키를 부정.
+#  - 부재 표지('도 없·없다·없음·않·안 '): 긍정 키만 부정. 부정 개념 키(negative:true, 또는 키에 없·않·아니·미커버·불가·불필요 포함)는
+#    반대로 처리 — 부재 표지는 같은 방향이라 무시('미커버(없음)' 정상), 키에 바로 붙은 '…이 아니라' 만 무효("'없음'이 아니라 수동").
+#  - 한국어는 부정이 뒤에 붙는다: 뒤 창 = 위 표지, 앞 창 = 바로 앞 'not '·'안 '·'못 ' 만('A가 아니라 B' 의 B 는 긍정).
+# 키에 "negcheck": false 면 끔(옵션 필드 — 기존 키 파일 호환).
+NEG_WIN = 12
+_CLAUSE_END = re.compile(r"[,;!?\n。]|(?<!\d)\.|\.(?!\d)|\s—\s")
+_NEG_STRONG = re.compile(r"아니(?:라|다|고|며|에요|야)?|아님|\bnot\b|\bisn't\b", re.I)
+_NEG_ABSENT = re.compile(r"도\s*없|없다|없음|없어|없고|않|(?<![가-힣])안\s")
+_NEG_PRE = re.compile(r"(?:\bnot|(?<![가-힣])안|(?<![가-힣])못)\s+$", re.I)
+_NEG_ATTACHED = re.compile(r"[\'\"‘’“”)\]]*\s*(?:이|가|은|는)?\s*(?:아니|아님|not\b)", re.I)
+_NEG_CONCEPT = re.compile(r"없|않|아니|미커버|미지정|불가|불필요|부재")
+
+
+def _is_negative_key(k: dict) -> bool:
+    if "negative" in k:
+        return bool(k["negative"])
+    return any(_NEG_CONCEPT.search(t) for t in k.get("t", []))
+
+
+def _negated(text: str, s: int, e: int, negative: bool) -> bool:
+    post = text[e:e + NEG_WIN]
+    m = _CLAUSE_END.search(post)
+    if m:
+        post = post[:m.start()]
+    if negative:   # 부정 개념 키: 키에 바로 붙은 '…이/가 아니(라)' 만 반대 뜻("'없음'이 아니라") — '창 안이라 시행 아님' 처럼 뒤 낱말 부정은 무시
+        return _NEG_ATTACHED.match(post) is not None
+    if _NEG_STRONG.search(post) or _NEG_ABSENT.search(post):
+        return True
+    pre = text[max(0, s - 6):s]
+    if _NEG_PRE.search(pre):
+        return True
+    return False
+
+
+def _key_hit(k: dict, text: str) -> bool:
+    terms = k.get("t", [])
+    if not (k.get("req") and k.get("negcheck", True)):
+        return any(_term_hit(t, text) for t in terms)
+    negative = _is_negative_key(k)
+    return any(not _negated(text, s, e, negative) for t in terms for s, e in _term_spans(t, text))
 
 
 def key_label(k: dict) -> str:
@@ -156,7 +206,7 @@ def grade(item: dict, text: str) -> dict:
             tol = k.get("tol", max(abs(k["n"]) * 0.01, 0.05))
             ok = any(abs(x - k["n"]) <= tol + 1e-12 or abs(abs(x) - abs(k["n"])) <= tol + 1e-12 for x in nums)
         else:
-            ok = any(_term_hit(t, text) for t in k.get("t", []))
+            ok = _key_hit(k, text)
         (hit if ok else miss).append(key_label(k))
     n = len(hit) + len(miss)
     score = len(hit) / n if n else 0.0
