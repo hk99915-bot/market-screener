@@ -48,6 +48,14 @@ MACRO = [   # (날짜 KST 기준, 이름, 메모, 중요도)  — 미국 발표�
     ("2027-03-18", "BOJ 금리 결정", "3/17~18 회의 · 엔화·엔 캐리 변수", 2),
     ("2027-04-28", "BOJ 금리 결정 (+전망 보고서)", "4/27~28 회의 · 엔화·엔 캐리 변수", 3),
 ]
+# 날짜 미정 일정 (req-dev-dbd49e21 → 묶음 C ③): 확정 날짜가 없으면 MACRO 에 가짜 날짜(12-31 등)를 넣지 않는다 — D-day 가 지어낸 값이 됨.
+# (이름, 기한 'YYYY-MM' 또는 'YYYY', 메모·출처, 중요도). calendar.json 'tentative' 칸으로만 나가고 events·upcoming()·D-day·이벤트일 규칙엔 안 들어간다.
+# 날짜가 공식 확정되면 여기서 지우고 MACRO 로 옮긴다. 기한이 지난 항목은 build() 가 '기한 경과' 로 표시(조용히 사라지지 않게).
+TENTATIVE = [
+    ("한은 잠재성장률 워킹페이퍼 공개", "2026-12", "총재 10/23 국감 발언 '연말 공개' · 일부 보도 12월 · 날짜 미정", 2),
+    ("금통위 기준금리 결정(11월)", "2026-11", "한은 공식 일정 원문 미열람 — 확인 후 MACRO 로 이동", 3),
+    ("금통위 2027년 연간 일정 공개", "2026-12", "한은 공식 공지 대기 — 확인 후 회의별 MACRO 등록", 2),
+]
 US_EARN = ["MSFT", "GOOGL", "AMZN", "META", "AAPL", "NVDA", "AVGO", "AMD", "MU", "SNDK", "TSM", "ASML", "AMAT", "LRCX", "KLAC",
            "TSLA", "INTC", "QCOM", "ORCL", "CRM", "NFLX", "WDC", "STX", "DELL", "SMCI", "ARM", "MRVL", "GEV", "VRT", "ETN"]
 KR_EARN = ["005930", "000660", "009150", "373220", "207940", "005380", "000270", "068270", "035420", "035720", "105560", "055550",
@@ -444,11 +452,23 @@ def build(days: int = 75) -> dict:
         attach_earn(ev, today)
     except Exception as e:  # noqa: BLE001
         log.warning("실적 결과 첨부 실패: %s", e)
-    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "events": ev, "moves": _moves(),
+    out = {"asof": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "events": ev, "moves": _moves(), "tentative": tentative(today),
            "note": "실적일은 야후 기준 예정일(회사 확정 전 추정 포함) — '회사 확정' 표시분은 회사 발표로 확인. 매크로 일정은 연준·BLS·BEA 공식 일정 기준."}
     OUT.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     log.info("캘린더 %d건", len(ev))
     return out
+
+
+def tentative(today: date | None = None) -> list[dict]:
+    """TENTATIVE → [{name, by, note, imp, tentative: True, overdue}] (기한 순). date 키 없음 = 달력 칸·D-day 계산 대상 아님."""
+    today = today or _today()
+    ym = f"{today.year:04d}-{today.month:02d}"
+    out = []
+    for n, by, note, imp in TENTATIVE:
+        over = (by < ym) if len(by) == 7 else (by < f"{today.year:04d}")
+        out.append({"name": n, "by": by, "note": note, "imp": imp, "tentative": True, "overdue": over,
+                    "label": f"날짜 미정 ({by[:4]}년 {int(by[5:7])}월 중)" if len(by) == 7 else f"날짜 미정 ({by}년 중)"})
+    return sorted(out, key=lambda x: (x["by"], -x["imp"]))
 
 
 # ───────────── 실적 결과 자동 첨부 (req-dev-4f89d244, 10/23 개발) ─────────────
