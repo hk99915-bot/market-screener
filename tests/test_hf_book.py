@@ -381,3 +381,14 @@ def test_pair_closes_with_parent():
     b3 = _b()
     H.add(b3, _a(beta_hedge="1"))
     assert any("페어 헤지 — 부모 청산 때 같이" in x for x in H.show(b3))
+
+
+def test_close_part_halves_size():
+    b = _b()
+    p = H.add(b, _a(kind="es", side="숏", stop=7850.0, t1=7450.0))
+    w, r = p["weight"], p["risk"]
+    q = H.close_part(b, p["id"], 0.5, 7650.0, "2026-10-21", "FOMC 전 절반")
+    assert q["weight"] == pytest.approx(w / 2, rel=1e-4) and b["open"][0]["risk"] == pytest.approx(r / 2, rel=1e-4)
+    assert b["closed"][-1]["id"] == p["id"] + "-p1" and b["closed"][-1]["r"] > 0       # 숏 7700 → 7650 이익
+    with pytest.raises(SystemExit):
+        H.close_part(b, p["id"], 1.0, 7650.0, "2026-10-21", "x")

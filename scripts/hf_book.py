@@ -768,6 +768,22 @@ def close_pos(b: dict, p: dict, px: float, d: str, why: str):
     b["closed"].append(p)
 
 
+def close_part(b: dict, pid: str, frac: float, px: float, d: str, why: str) -> dict:
+    """부분 청산 — 크기(weight·risk)의 frac 만큼을 별도 청산 기록으로 떼고 나머지는 그대로 보유(10/27 FOMC 전 지수 노출 50% 축소)."""
+    if not 0 < frac < 1:
+        raise SystemExit("부분 청산 비율은 0~1 사이(전량은 close-now)")
+    p = next(x for x in b["open"] if x["id"] == pid)
+    q = json.loads(json.dumps(p))
+    n = sum(1 for x in b["closed"] if x["id"].startswith(pid + "-p"))
+    q.update(id=f"{pid}-p{n + 1}", weight=round(p["weight"] * frac, 6), risk=round(p["risk"] * frac, 6))
+    if p.get("contracts"):
+        q["contracts"] = round(p["contracts"] * frac, 2)
+        p["contracts"] = round(p["contracts"] * (1 - frac), 2)
+    p.update(weight=round(p["weight"] * (1 - frac), 6), risk=round(p["risk"] * (1 - frac), 6))
+    close_pos(b, q, px, d, f"부분 청산 {frac:.0%} — " + why)
+    return q
+
+
 def book_limits(b: dict, today: str) -> dict:
     """장부 손익 곡선(nav: 거래일별 마지막 값) → 고점 대비·5거래일 손실로 한도 판정."""
     bk = b.get("baskets") or {}
@@ -975,6 +991,12 @@ def main(argv=None):
     a3.add_argument("--px", type=float, required=True)
     a3.add_argument("--d", required=True)
     a3.add_argument("--why", required=True)
+    a4 = sp.add_parser("close-part", help="부분 청산(크기의 일부) — 가격 근거 필수")
+    a4.add_argument("--id", required=True)
+    a4.add_argument("--frac", type=float, required=True)
+    a4.add_argument("--px", type=float, required=True)
+    a4.add_argument("--d", required=True)
+    a4.add_argument("--why", required=True)
     sp.add_parser("mark")
     sp.add_parser("show")
     tp = argparse.ArgumentParser(add_help=False)   # 보고 상단 3칸(STANDARD 8절) — 어느 하위 명령 앞뒤에 둬도 됨. 여러 줄은 '|' 로 구분
@@ -1001,6 +1023,10 @@ def main(argv=None):
         if next_open(p, a.after) is None and p["kind"] not in ("stock", "us_stock", "es", "nq"):
             raise SystemExit("시가 청산은 주식·es·nq 만 — 나머지는 close-now")
         p["exit_next_open"] = {"after": a.after, "why": a.why, "at": datetime.now(KST).strftime("%Y-%m-%d %H:%M")}
+        save(b)
+    elif a.cmd == "close-part":
+        close_part(b, a.id, a.frac, a.px, a.d, a.why)
+        book_limits(b, datetime.now(KST).strftime("%Y-%m-%d"))
         save(b)
     elif a.cmd == "close-now":
         p = next(x for x in b["open"] if x["id"] == a.id)
