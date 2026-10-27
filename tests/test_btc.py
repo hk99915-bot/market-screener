@@ -59,3 +59,20 @@ def test_committee_btc_line_splits_closed_and_live(tmp_path, monkeypatch):
     assert "±5% 변동 경보" in committee._btc_line()
     monkeypatch.setattr(committee, "_kst_today", lambda: date(2026, 11, 3))
     assert committee._btc_line() is None   # 5일 넘은 값은 쓰지 않음
+
+
+def test_alert_sends_once_per_bar_and_direction(tmp_path):
+    """req-dev-54eba83d ④: ±5% 무음 알림 — 같은 UTC 봉·같은 방향은 1회, 문구에 금액·보유 없음."""
+    rows = _rows(last_day="2026-10-23")
+    rows[-1][4] = rows[-2][4] * 0.94
+    o = btc.build(rows, datetime(2026, 10, 23, 5, 0, tzinfo=timezone.utc))
+    sent = []
+    st = tmp_path / "s.json"
+    assert btc.maybe_alert(o, st, sent.append) is True
+    assert btc.maybe_alert(o, st, sent.append) is False            # 같은 봉 재실행 → 안 보냄
+    assert len(sent) == 1 and sent[0].startswith("₿ 비트코인 -6.0%") and "무음" in sent[0] and "매매 신호 아님" in sent[0]
+    rows[-1][4] = rows[-2][4] * 1.06                                # 같은 봉 반대 방향 → 1통 더
+    assert btc.maybe_alert(btc.build(rows, datetime(2026, 10, 23, 6, 0, tzinfo=timezone.utc)), st, sent.append) is True
+    rows[-1][4] = rows[-2][4] * 1.01
+    assert btc.maybe_alert(btc.build(rows, datetime(2026, 10, 23, 7, 0, tzinfo=timezone.utc)), st, sent.append) is False
+    assert len(sent) == 2
