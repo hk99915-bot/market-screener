@@ -81,7 +81,8 @@ def test_fill_last_day_from_toss(tmp_path, monkeypatch):
     assert fr["filled"][-1]["pct"] == 66.7 and fr["filled"][-1]["src"] == "yahoo+toss"
 
 
-def test_fill_missing_or_wrong_date_keeps_stale():
+def test_fill_missing_or_wrong_date_keeps_stale(tmp_path, monkeypatch):
+    monkeypatch.setattr(guard, "_report_dir", lambda: tmp_path)   # 야후 최신 경로의 섀도 대조 기록이 실제 reports/ 를 건드리지 않게
     px0 = _yahoo_px()
     for eod in (None, {**EOD, "date": "2026-10-19"}):
         px, info = smain.us_toss_fill(px0, date(2026, 10, 19), NOW, load=lambda e=eod: e)
