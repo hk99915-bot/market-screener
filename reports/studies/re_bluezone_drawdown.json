@@ -1,0 +1,374 @@
+{
+ "schema": 1,
+ "asof": "202107~202312",
+ "coverage": "750/750 구×월",
+ "prereg": {
+  "date": "2026-10-27",
+  "windows": {
+   "peak": [
+    "202110",
+    "202203"
+   ],
+   "trough": [
+    "202212",
+    "202303"
+   ],
+   "rec": [
+    "202310",
+    "202312"
+   ]
+  },
+  "rule": "밖 중위 하락폭 ≥ 안 × 1.5 그리고 밖 회복률 < 안 → 지지, 아니면 기각 · 쌍 30개 미만 보류",
+  "inside": [
+   "강남구",
+   "강동구",
+   "광진구",
+   "동작구",
+   "마포구",
+   "서초구",
+   "성동구",
+   "송파구",
+   "영등포구",
+   "용산구"
+  ],
+  "excluded": [
+   "중구"
+  ],
+  "pair": "같은 단지(aptSeq)·전용 정수㎡ · 창별 중위가 · 하락폭 = 저점 ÷ 고점 − 1 · 회복률 = (회복 − 저점) ÷ (고점 − 저점)"
+ },
+ "result": {
+  "all_floors": {
+   "inside": {
+    "n_pairs": 684,
+    "n_trades": 4693,
+    "drop_med": -0.2031,
+    "drop_mean": -0.1704,
+    "share_down20": 0.51,
+    "n_recov": 386,
+    "recov_med": 0.3415,
+    "rec_lvl_med": -0.1339
+   },
+   "outside": {
+    "n_pairs": 947,
+    "n_trades": 6209,
+    "drop_med": -0.2143,
+    "drop_mean": -0.1918,
+    "share_down20": 0.559,
+    "n_recov": 574,
+    "recov_med": 0.1943,
+    "rec_lvl_med": -0.1801
+   },
+   "judge": {
+    "ratio_out_in": 1.06,
+    "deeper": false,
+    "slower_recovery": true,
+    "verdict": "기각",
+    "why": "하락폭 비 1.06(기준 ≥1.5) · 회복 밖 0.1943 vs 안 0.3415"
+   },
+   "ratio_ci95": [
+    1.01,
+    1.11
+   ]
+  },
+  "low_in_vs_mid_out": {
+   "inside_low25": {
+    "n_pairs": 173,
+    "n_trades": 993,
+    "drop_med": -0.0995,
+    "drop_mean": -0.0847,
+    "share_down20": 0.277,
+    "n_recov": 63,
+    "recov_med": 0.2162,
+    "rec_lvl_med": -0.0928
+   },
+   "outside_mid40_60": {
+    "n_pairs": 195,
+    "n_trades": 1223,
+    "drop_med": -0.2143,
+    "drop_mean": -0.2107,
+    "share_down20": 0.579,
+    "n_recov": 122,
+    "recov_med": 0.1665,
+    "rec_lvl_med": -0.1892
+   }
+  },
+  "by_gu": {
+   "강남구": {
+    "n_pairs": 101,
+    "n_trades": 603,
+    "drop_med": -0.1709,
+    "drop_mean": -0.1465,
+    "share_down20": 0.347,
+    "n_recov": 58,
+    "recov_med": 0.4371,
+    "rec_lvl_med": -0.0758
+   },
+   "강동구": {
+    "n_pairs": 89,
+    "n_trades": 736,
+    "drop_med": -0.2441,
+    "drop_mean": -0.2128,
+    "share_down20": 0.73,
+    "n_recov": 49,
+    "recov_med": 0.3133,
+    "rec_lvl_med": -0.168
+   },
+   "강북구": {
+    "n_pairs": 27,
+    "n_trades": 202,
+    "drop_med": -0.2069,
+    "drop_mean": -0.173,
+    "share_down20": 0.556,
+    "n_recov": 14,
+    "recov_med": 0.1825,
+    "rec_lvl_med": -0.206
+   },
+   "강서구": {
+    "n_pairs": 92,
+    "n_trades": 576,
+    "drop_med": -0.2427,
+    "drop_mean": -0.2102,
+    "share_down20": 0.652,
+    "n_recov": 62,
+    "recov_med": 0.2369,
+    "rec_lvl_med": -0.1842
+   },
+   "관악구": {
+    "n_pairs": 55,
+    "n_trades": 317,
+    "drop_med": -0.1987,
+    "drop_mean": -0.1715,
+    "share_down20": 0.491,
+    "n_recov": 29,
+    "recov_med": 0.2155,
+    "rec_lvl_med": -0.1702
+   },
+   "광진구": {
+    "n_pairs": 33,
+    "n_trades": 190,
+    "drop_med": -0.181,
+    "drop_mean": -0.1642,
+    "share_down20": 0.424,
+    "n_recov": 16,
+    "recov_med": 0.2854,
+    "rec_lvl_med": -0.1279
+   },
+   "구로구": {
+    "n_pairs": 92,
+    "n_trades": 523,
+    "drop_med": -0.1803,
+    "drop_mean": -0.1597,
+    "share_down20": 0.424,
+    "n_recov": 53,
+    "recov_med": 0.125,
+    "rec_lvl_med": -0.1809
+   },
+   "금천구": {
+    "n_pairs": 34,
+    "n_trades": 238,
+    "drop_med": -0.1875,
+    "drop_mean": -0.1496,
+    "share_down20": 0.441,
+    "n_recov": 21,
+    "recov_med": 0.3138,
+    "rec_lvl_med": -0.1683
+   },
+   "노원구": {
+    "n_pairs": 144,
+    "n_trades": 1027,
+    "drop_med": -0.2447,
+    "drop_mean": -0.2257,
+    "share_down20": 0.708,
+    "n_recov": 100,
+    "recov_med": 0.0805,
+    "rec_lvl_med": -0.2275
+   },
+   "도봉구": {
+    "n_pairs": 68,
+    "n_trades": 463,
+    "drop_med": -0.2374,
+    "drop_mean": -0.2242,
+    "share_down20": 0.603,
+    "n_recov": 40,
+    "recov_med": 0.0139,
+    "rec_lvl_med": -0.2375
+   },
+   "동대문구": {
+    "n_pairs": 69,
+    "n_trades": 527,
+    "drop_med": -0.2373,
+    "drop_mean": -0.1994,
+    "share_down20": 0.623,
+    "n_recov": 43,
+    "recov_med": 0.2297,
+    "rec_lvl_med": -0.1908
+   },
+   "동작구": {
+    "n_pairs": 59,
+    "n_trades": 339,
+    "drop_med": -0.2135,
+    "drop_mean": -0.1877,
+    "share_down20": 0.525,
+    "n_recov": 35,
+    "recov_med": 0.1653,
+    "rec_lvl_med": -0.1543
+   },
+   "마포구": {
+    "n_pairs": 78,
+    "n_trades": 426,
+    "drop_med": -0.2,
+    "drop_mean": -0.1572,
+    "share_down20": 0.487,
+    "n_recov": 36,
+    "recov_med": 0.3882,
+    "rec_lvl_med": -0.1262
+   },
+   "서대문구": {
+    "n_pairs": 62,
+    "n_trades": 390,
+    "drop_med": -0.2035,
+    "drop_mean": -0.1847,
+    "share_down20": 0.516,
+    "n_recov": 31,
+    "recov_med": 0.2844,
+    "rec_lvl_med": -0.1667
+   },
+   "서초구": {
+    "n_pairs": 73,
+    "n_trades": 393,
+    "drop_med": -0.1675,
+    "drop_mean": -0.134,
+    "share_down20": 0.37,
+    "n_recov": 31,
+    "recov_med": 0.3204,
+    "rec_lvl_med": -0.0924
+   },
+   "성동구": {
+    "n_pairs": 66,
+    "n_trades": 425,
+    "drop_med": -0.2179,
+    "drop_mean": -0.207,
+    "share_down20": 0.652,
+    "n_recov": 46,
+    "recov_med": 0.3976,
+    "rec_lvl_med": -0.1372
+   },
+   "성북구": {
+    "n_pairs": 94,
+    "n_trades": 723,
+    "drop_med": -0.2184,
+    "drop_mean": -0.2052,
+    "share_down20": 0.617,
+    "n_recov": 68,
+    "recov_med": 0.2597,
+    "rec_lvl_med": -0.1688
+   },
+   "송파구": {
+    "n_pairs": 80,
+    "n_trades": 943,
+    "drop_med": -0.217,
+    "drop_mean": -0.2014,
+    "share_down20": 0.675,
+    "n_recov": 61,
+    "recov_med": 0.4214,
+    "rec_lvl_med": -0.1292
+   },
+   "양천구": {
+    "n_pairs": 70,
+    "n_trades": 403,
+    "drop_med": -0.1962,
+    "drop_mean": -0.1797,
+    "share_down20": 0.457,
+    "n_recov": 42,
+    "recov_med": 0.4234,
+    "rec_lvl_med": -0.1325
+   },
+   "영등포구": {
+    "n_pairs": 85,
+    "n_trades": 535,
+    "drop_med": -0.1724,
+    "drop_mean": -0.1492,
+    "share_down20": 0.424,
+    "n_recov": 45,
+    "recov_med": 0.25,
+    "rec_lvl_med": -0.1514
+   },
+   "용산구": {
+    "n_pairs": 20,
+    "n_trades": 103,
+    "drop_med": -0.1162,
+    "drop_mean": -0.0914,
+    "share_down20": 0.3,
+    "n_recov": 9,
+    "recov_med": 0.1913,
+    "rec_lvl_med": -0.1554
+   },
+   "은평구": {
+    "n_pairs": 79,
+    "n_trades": 514,
+    "drop_med": -0.1966,
+    "drop_mean": -0.1837,
+    "share_down20": 0.468,
+    "n_recov": 41,
+    "recov_med": 0.2708,
+    "rec_lvl_med": -0.1469
+   },
+   "종로구": {
+    "n_pairs": 19,
+    "n_trades": 92,
+    "drop_med": -0.1152,
+    "drop_mean": -0.0676,
+    "share_down20": 0.158,
+    "n_recov": 7,
+    "recov_med": 0.4731,
+    "rec_lvl_med": -0.041
+   },
+   "중랑구": {
+    "n_pairs": 42,
+    "n_trades": 214,
+    "drop_med": -0.215,
+    "drop_mean": -0.1847,
+    "share_down20": 0.595,
+    "n_recov": 23,
+    "recov_med": 0.0806,
+    "rec_lvl_med": -0.1822
+   }
+  },
+  "floor3plus": {
+   "inside": {
+    "n_pairs": 616,
+    "n_trades": 4161,
+    "drop_med": -0.2045,
+    "drop_mean": -0.1688,
+    "share_down20": 0.511,
+    "n_recov": 346,
+    "recov_med": 0.3417,
+    "rec_lvl_med": -0.1312
+   },
+   "outside": {
+    "n_pairs": 839,
+    "n_trades": 5318,
+    "drop_med": -0.2143,
+    "drop_mean": -0.1917,
+    "share_down20": 0.564,
+    "n_recov": 485,
+    "recov_med": 0.1923,
+    "rec_lvl_med": -0.1804
+   },
+   "judge": {
+    "ratio_out_in": 1.05,
+    "deeper": false,
+    "slower_recovery": true,
+    "verdict": "기각",
+    "why": "하락폭 비 1.05(기준 ≥1.5) · 회복 밖 0.1923 vs 안 0.3417"
+   },
+   "ratio_ci95": [
+    1.01,
+    1.11
+   ]
+  }
+ },
+ "src": "국토교통부 아파트 매매(상세) 실거래가 — 공공데이터포털 RTMSDataSvcAptTradeDev (1차, 신고 기준·해제 거래 제외)",
+ "grade": "자체연구-검증전(1차 원자료 집계 · 구 단위 근사 · 층·향 미통제)",
+ "label": "표시 전용 · 매매 신호 아님"
+}
