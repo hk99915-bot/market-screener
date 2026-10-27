@@ -3,7 +3,7 @@
 python scripts/study_profit_lock.py [--prices PATH]  → reports/studies/profit_lock.json (+ 표준출력 요약)
 
 공개 저장소 — 비율만. 포트 규모는 '시작일 하이닉스 1주 가격의 N배'(비율 파라미터)로만 다룬다.
-사전 등록(결과 전 커밋 3d75d67e): docs/desk_kb/rounds/2026-10-28/quant_profit_lock.md §0 — 그 절을 바꾸지 않는다.
+사전 등록(결과 전 커밋 b6e0e552): docs/desk_kb/rounds/2026-10-28/quant_profit_lock.md §0 — 그 절을 바꾸지 않는다.
 요지: 반도체 = 삼성전자·SK하이닉스 주식(시작 가치 50/50, 사이 리밸런싱 없음), 나머지 = 코스피200 가격지수.
 2023-01-02 종가 시작(반도체 25%) ~ 2026-10-27. 규칙 BH · R25 · R26 · R25W · CAP25M · R25_CASH · R25_INT(N=50/200/1000).
 반등일 = 코스피 종가 ≥ 전일 +0.5%, 체결 = 반등일 종가. 비용: 주식 매도 0.25%, K200 매수 0.05%.
@@ -238,7 +238,7 @@ def main() -> None:
            "semis_mdd": float((sem / sem.cummax() - 1).min()), "k200_mdd": float((k2 / k2.cummax() - 1).min()),
            "rebound_days": int(df["rebound"].sum()), "days": len(df),
            "first": str(df.index[0].date()), "last": str(df.index[-1].date())}
-    out = {"study": "profit_lock", "prereg": "docs/desk_kb/rounds/2026-10-28/quant_profit_lock.md §0 (commit 3d75d67e)",
+    out = {"study": "profit_lock", "prereg": "docs/desk_kb/rounds/2026-10-28/quant_profit_lock.md §0 (commit b6e0e552)",
            "params": {"start": START, "end": END, "w0": W0, "crash": CRASH, "sell_cost": SELL_COST, "buy_cost": BUY_COST,
                       "rebound": REBOUND, "sizes": SIZES, "m": 6},
            "context": ctx, "metrics": m, "verdict": v,
