@@ -9,7 +9,8 @@
         · docs/valuation_notes 에 종목 코드가 있으면 출처만 덧붙임.
 - 내러티브: data/dart.parquet 7일 수주·계약·자사주 취득·IR·타법인 투자(있으면 +1, scripts/hf_ideas._dart_recent 와 같은 거름)
         · reports/research.json 30일 리포트 톤(긍정 > 부정 +1, 반대 −1) · reports/trend_discovery_KR.json 업종 추세 쏠림(lift ≥ 1.5·p < 0.10 +1, lift ≤ 0.67 −1).
-- 센티: detail.flows 5일 외국인·기관 합(둘 다 + → +1, 둘 다 − → −1) · reports/accum.json 매집 태그(있으면 +1).
+- 센티: detail.flows 5일 외국인·기관 합(둘 다 + → +1, 둘 다 − → −1) · reports/accum.json 매집 태그(있으면 +1)
+        · data/deriv/stock_fut_oi.csv 주식선물 5일 미결제 × 가격(OI ↑+가격 ↑ +1, OI ↑+가격 ↓ −1, 파일 없으면 재료 빠짐 — 10/27 req-hf-e379cf37).
 """
 from __future__ import annotations
 
@@ -120,6 +121,40 @@ def narr_axis(det: dict | None, code: str, market: str, today: date, root: Path 
 
 
 # ── 센티 ──────────────────────────────────────────────
+STOCK_FUT_OI = "data/deriv/stock_fut_oi.csv"   # 금융위 주식선물(getStockFuturesPriceInfo_V2) 일별 — 열 date,code,oi,clpr (req-hf-e379cf37)
+OI_MIN_CHG = 0.05                               # 5일 미결제 변화 문턱 ±5% [가정: 표시용, 검증전]
+
+
+def stock_fut_oi(code: str, root: Path = ROOT, n: int = 5) -> dict | None:
+    """주식선물 미결제(OI) 5일 변화 × 선물 가격 변화 → 포지셔닝 판독(교과서 OI 4분면, 검증전).
+
+    OI ↑ + 가격 ↑ = 신규 롱 유입(+1) · OI ↑ + 가격 ↓ = 신규 숏 유입(−1) · OI ↓ = 청산(숏 커버·롱 정리, 0) · |OI 변화| < 5% = 0.
+    파일이 없거나 종목 행이 n+1 개 미만이면 None(센티 축에서 재료 빠짐 → 지어내지 않음). 마지막 행이 7일보다 오래되면 None(stale).
+    """
+    import csv
+    try:
+        rows = [r for r in csv.DictReader(open(root / STOCK_FUT_OI, encoding="utf-8")) if r.get("code") == code]
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        rows = sorted(rows, key=lambda r: r["date"])[-(n + 1):]
+        if len(rows) < n + 1 or (date.today() - date.fromisoformat(rows[-1]["date"][:10])).days > 7:
+            return None
+        o0, o1, p0, p1 = float(rows[0]["oi"]), float(rows[-1]["oi"]), float(rows[0]["clpr"]), float(rows[-1]["clpr"])
+    except (KeyError, ValueError):
+        return None
+    if o0 <= 0 or p0 <= 0:
+        return None
+    oc, pc = o1 / o0 - 1, p1 / p0 - 1
+    if oc >= OI_MIN_CHG:
+        s, tag = (1, "신규 롱 유입") if pc > 0 else (-1, "신규 숏 유입")
+    elif oc <= -OI_MIN_CHG:
+        s, tag = 0, "포지션 청산"
+    else:
+        s, tag = 0, "미결제 변화 작음"
+    return {"s": s, "txt": f"주식선물 {n}일 미결제 {_sg(oc * 100)}%·가격 {_sg(pc * 100)}% ({tag})", "short": f"선물OI {_sg(oc * 100)}% {tag}"}
+
+
 def senti_axis(det: dict | None, code: str, market: str, root: Path = ROOT) -> dict:
     parts = []
     fl = ((det or {}).get("flows") or [])[-5:]
@@ -128,6 +163,9 @@ def senti_axis(det: dict | None, code: str, market: str, root: Path = ROOT) -> d
         s = 1 if f5 > 0 and i5 > 0 else -1 if f5 < 0 and i5 < 0 else 0
         _add(parts, s, f"{len(fl)}일 외국인 {_sg(f5)}억·기관 {_sg(i5)}억", "detail.flows", f"5일 외{_sg(f5)}·기관{_sg(i5)}억")
     if market == "KR":
+        sf = stock_fut_oi(code, root)
+        if sf:
+            _add(parts, sf["s"], sf["txt"], STOCK_FUT_OI, sf["short"])
         ac = _j(root, "reports/accum.json")
         if ac and ac.get("status") == "ok" and isinstance(ac.get("top"), dict):
             tags = sorted({t for rows in ac["top"].values() if isinstance(rows, list) for r in rows if r.get("code") == code for t in (r.get("tags") or [])})

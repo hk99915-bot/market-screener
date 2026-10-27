@@ -392,3 +392,63 @@ def test_close_part_halves_size():
     assert b["closed"][-1]["id"] == p["id"] + "-p1" and b["closed"][-1]["r"] > 0       # 숏 7700 → 7650 이익
     with pytest.raises(SystemExit):
         H.close_part(b, p["id"], 1.0, 7650.0, "2026-10-21", "x")
+
+
+# ── 옵션·스프레드 시간 청산일·논지 붕괴·IV 재평가(10/27 req-hf-20777b29) ──
+def test_opt_guard_fields_and_warn():
+    b = _b()
+    p = H.add(b, _a(kind="spread", und="K200", right="put", strike=900.0, strike2=850.0, expiry="2026-11-12",
+                    stop=None, t1=None, time_exit="2026-11-05", thesis_stop=930.0))
+    assert p["time_exit"] == "2026-11-05" and p["thesis_dir"] == "above" and "guard_warn" not in p
+    assert p["iv_review"] == {"after": "2026-10-28", "iv0": 0.4, "status": "대기"}               # 촉매 10-28 < 만기 → 자동
+    q = H.add(b, _a(kind="put", strike=860.0, expiry="2026-11-12", stop=None, t1=None, catalyst="미정"))
+    assert len(q["guard_warn"]) == 2 and q["iv_review"]["status"].startswith("해당 없음")
+    assert any("⚠️ 빈 칸" in x for x in H.show(b))
+    m = H.add(b, _a(kind="spx_call", strike=7900.0, expiry="2026-11-20", stop=None, t1=None, time_exit="만기"))
+    assert m["time_exit"] == "2026-11-20"
+    with pytest.raises(SystemExit, match="논지 붕괴"):                                             # 풋인데 수준이 현재가 아래
+        H.add(b, _a(kind="put", strike=860.0, expiry="2026-11-12", stop=None, t1=None, thesis_stop=880.0))
+    with pytest.raises(SystemExit, match="시간 청산일"):
+        H.add(b, _a(kind="put", strike=860.0, expiry="2026-11-12", stop=None, t1=None, time_exit="2026-12-01"))
+
+
+def test_opt_time_exit_thesis_and_iv_review():
+    b = _b()
+    H.add(b, _a(kind="put", strike=860.0, expiry="2026-11-12", stop=None, t1=None, thesis_stop=930.0))
+    D["k200"] = 935.0
+    try:
+        out = H.mark(b)
+    finally:
+        D["k200"] = 900.0
+    assert out and out[0]["exit_why"].startswith("논지 붕괴")
+    b2 = _b()
+    H.add(b2, _a(kind="put", strike=860.0, expiry="2026-11-12", stop=None, t1=None, time_exit="2026-11-02"))
+    D.update(date="2026-10-29", iv=0.3)
+    try:
+        assert H.mark(b2) == []                                                                 # IV 재평가만 기록, 청산 아님
+        rv = b2["open"][0]["iv_review"]
+        assert rv["status"] == "완료" and rv["chg"] == pytest.approx(-0.1)
+        assert any("IV 재평가 2026-10-29" in x for x in H.show(b2))
+        D["date"] = "2026-11-02"
+        out = H.mark(b2)
+    finally:
+        D.update(date="2026-10-21", iv=0.4)
+    assert out and out[0]["exit_why"].startswith("시간 청산일")
+
+
+def test_opt_hedge_closes_with_parent():
+    b = _b()
+    par = H.add(b, _a())
+    H.add(b, _a(kind="put", strike=860.0, expiry="2026-11-12", stop=None, t1=None, hedge_of=par["id"]))
+    assert b["open"][1]["on_parent_close"] == "close" and "guard_warn" in b["open"][1]
+    D["fut"] = 870.0                                                                            # 부모 손절
+    try:
+        out = H.mark(b)
+    finally:
+        D["fut"] = 900.0
+    assert b["open"] == [] and out[1]["exit_why"].startswith("피헤지 전부 청산")
+    b2 = _b()
+    par = H.add(b2, _a())
+    H.add(b2, _a(kind="put", strike=860.0, expiry="2026-11-12", stop=None, t1=None, hedge_of=par["id"], on_parent_close="keep"))
+    b2["open"] = b2["open"][1:]
+    assert H.mark(b2) == [] and len(b2["open"]) == 1

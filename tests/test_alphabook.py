@@ -235,6 +235,22 @@ def test_entry_why_axes_from_data_and_weak_flag(tmp_path):
     assert "뒤집힘 종가 < 100(250일 고점 95%)" in w["risk"]               # 100 / 0.95 × 0.95
 
 
+def test_entry_why_stock_fut_oi(tmp_path):
+    from datetime import date, timedelta
+    from screener import entry_why as EW
+    (tmp_path / "data" / "deriv").mkdir(parents=True)
+    t0 = date.today()
+    rows = ["date,code,oi,clpr"] + [f"{(t0 - timedelta(days=5 - i)).isoformat()},000001,{1000 + 40 * i},{100 + i}" for i in range(6)] \
+        + [f"{(t0 - timedelta(days=5 - i)).isoformat()},000002,{1000 + 40 * i},{100 - i}" for i in range(6)]
+    (tmp_path / EW.STOCK_FUT_OI).write_text("\n".join(rows) + "\n", encoding="utf-8")
+    up, dn = EW.stock_fut_oi("000001", tmp_path), EW.stock_fut_oi("000002", tmp_path)
+    assert up["s"] == 1 and "신규 롱" in up["txt"] and dn["s"] == -1 and "신규 숏" in dn["txt"]
+    assert EW.stock_fut_oi("000003", tmp_path) is None                      # 행 없음 → 재료 빠짐
+    ax = EW.senti_axis(None, "000001", "KR", tmp_path)
+    assert ax["v"] == "+" and "stock_fut_oi" in ax["src"]
+    assert EW.stock_fut_oi("000001", tmp_path / "none") is None             # 파일 없음 → 기존 동작 그대로
+
+
 def test_say_line_fallback_without_why():
     s = A.say_line({}, [_ew_order()], None, 1, None)
     assert "B1" in s and "+0.083R" in s and "밀어붙이는" not in s

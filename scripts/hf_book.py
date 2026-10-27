@@ -29,6 +29,11 @@ S&P 옵션 = 블랙숄즈(σ = VIX/100) — 옵션은 실제 호가 아님(근�
 - 페어 진입(10/24 겸이 "롱이랑 헤지를 한 번에 같이 넣어", req-hf-a1a96e88): add --beta-hedge auto|<비율> → 같은 트랜잭션에
   반대 방향 K200F(국장)/ES(미장) 다리(pair=True, hedge_of=부모) — auto = ② 절반 한도를 맞추는 최소 베타조정 델타, 비율 = 부모
   베타조정 델타 × 비율(≤ 1.5). 둘 중 하나라도 검증 실패면 둘 다 미기록. 페어 헤지는 자체 손절·목표·시간 손절 없이 부모 청산 때 같이 청산.
+- 옵션·스프레드 진입 기록(10/27 req-hf-20777b29, 파생 req-derivs-6c470e96 · 검증 v2 H3 '주의' 칸과 같은 키):
+  --time-exit YYYY-MM-DD|만기 → time_exit(그날 mark 가 '시간 청산일' 청산) · --thesis-stop <기초 가격> → thesis_stop(풋 = 기초 ≥ 수준,
+  콜 = ≤ 수준이면 '논지 붕괴' 청산) · 헤지 다리(--hedge-of)는 on_parent_close(기본 close = 피헤지 전부 청산되면 같이 청산, keep = 유지)
+  · iv_review = 촉매 날짜가 진입일~만기 사이면 자동 {after, iv0} → 촉매 다음 거래일 mark 가 IV 변화를 기록(청산 아님, 결정은 HF).
+  빈 칸은 거부가 아니라 경고(guard_warn) — 검증 v2 도 '주의'(무효 아님)로 본다.
 """
 from __future__ import annotations
 
@@ -584,6 +589,62 @@ def checklist(a) -> dict:
     return {k: (float(getattr(a, k)) if k == "p_win" else getattr(a, k)) for k in CHECK}
 
 
+def opt_right(p: dict) -> str:
+    return p.get("right") or ("put" if "put" in p["kind"] else "call")
+
+
+def underlying(p: dict, d: dict) -> tuple[str, float, float | None]:
+    """옵션·스프레드 기초 (날짜, 가격, IV)."""
+    if p["kind"] in SPREAD:
+        st = spread_state(p, d)
+        return st["date"], st["s"], st["iv"]
+    if p["kind"] in ("spx_put", "spx_call"):
+        u = us_last()
+        return u["date"], u["spx"], u["iv"]
+    return d["date"], d["k200"], d["iv"]
+
+
+def opt_guard(p: dict, a) -> dict:
+    """옵션·스프레드 ② 시간 청산일 ③ 논지 붕괴(기초 수준·피헤지 청산 처리) ④ 이벤트 뒤 IV 재평가 — req-hf-20777b29."""
+    warn = []
+    te = getattr(a, "time_exit", None)
+    if te in ("만기", "expiry"):
+        te = p["expiry"]
+    if te:
+        date.fromisoformat(te)
+        if te > p["expiry"]:
+            raise SystemExit(f"시간 청산일 {te} > 만기 {p['expiry']}")
+        p["time_exit"] = te
+    else:
+        warn.append("시간 청산일(--time-exit 날짜|만기)")
+    ts = getattr(a, "thesis_stop", None)
+    if ts is not None:
+        put = opt_right(p) == "put"
+        s0 = p.get("spot")
+        if s0 is not None and (ts <= s0 if put else ts >= s0):
+            raise SystemExit(f"논지 붕괴 수준 {ts:g} 이 현재 기초 {s0:,.2f} 의 {'위' if put else '아래'}가 아님 — 진입 즉시 붕괴")
+        p.update(thesis_stop=ts, thesis_dir="above" if put else "below")
+    elif not p.get("hedge_of"):
+        warn.append("논지 붕괴 수준(--thesis-stop 기초 가격)")
+    if p.get("hedge_of"):
+        p["on_parent_close"] = getattr(a, "on_parent_close", None) or "close"
+    cat = str((p.get("check") or {}).get("catalyst") or "")[:10]
+    note = getattr(a, "iv_review", None)
+    try:
+        cd = date.fromisoformat(cat).isoformat()
+    except ValueError:
+        cd = None
+    if cd and p.get("asof", "") <= cd < p["expiry"]:
+        p["iv_review"] = {"after": cd, "iv0": p.get("iv"), "status": "대기"} | ({"note": note} if note else {})
+    elif note:
+        p["iv_review"] = {"status": "메모", "note": note}
+    else:
+        p["iv_review"] = {"status": "해당 없음 — 만기 전 기록된 이벤트 없음"}
+    if warn:
+        p["guard_warn"] = warn
+    return p
+
+
 def plan_math(rr: float, p: float) -> dict:
     return {"rr": round(rr, 2), "p_win": round(p, 3), "p_be": round(1 / (1 + rr), 3), "ev_r": round(p * rr - (1 - p), 3)}
 
@@ -657,6 +718,8 @@ def add(b: dict, a) -> dict:
                  strike=a.strike, expiry=a.expiry, asof=d["date"], iv=round(d["iv"], 4), spot=d["k200"], market="KR")
         px = price(p, d)
     p["entry"] = round(px, 4)
+    if a.kind in OPT + SPREAD:
+        opt_guard(p, a)
     # 손익비·승률·기대값
     if a.kind in OPT:
         rr = 1.0                                       # 익절 = 프리미엄 2배, 최대손실 = 프리미엄
@@ -807,6 +870,26 @@ def book_limits(b: dict, today: str) -> dict:
     return lim
 
 
+def opt_exit(b: dict, p: dict, d: dict, md: str) -> str | None:
+    """옵션·스프레드 시간 청산일·논지 붕괴·피헤지 청산 판정 + 이벤트 뒤 IV 재평가 기록(청산 아님)."""
+    _, s, iv = underlying(p, d)
+    rv = p.get("iv_review") or {}
+    if rv.get("status") == "대기" and md > rv["after"]:
+        rv.update(status="완료", d=md, iv1=round(iv, 4) if iv else None,
+                  chg=round(iv - rv["iv0"], 4) if iv and rv.get("iv0") else None, value=p["last"])
+    if p.get("time_exit") and md >= p["time_exit"]:
+        return f"시간 청산일 {p['time_exit']} — 세타를 끌고 가지 않음"
+    ts = p.get("thesis_stop")
+    if ts is not None and ((p.get("thesis_dir") == "above" and s >= ts) or (p.get("thesis_dir") == "below" and s <= ts)):
+        return f"논지 붕괴 — 기초 {s:,.2f} {'≥' if p['thesis_dir'] == 'above' else '≤'} {ts:g}"
+    par = p.get("hedge_of") or []
+    if par and p.get("on_parent_close", "close") == "close":
+        alive = {x["id"] for x in b["open"] if x is not p and "exit_d" not in x}
+        if not any(x in alive for x in par):
+            return "피헤지 전부 청산 — 헤지 논지 소멸"
+    return None
+
+
 def mark(b: dict) -> list[dict]:
     d = deriv_last()
     out, keep = [], []
@@ -838,11 +921,15 @@ def mark(b: dict) -> list[dict]:
                 why = "만기 — 내재가치 정산"
             elif px >= p["t1"]:
                 why = "최대이익 50% — 익절"
+            else:
+                why = opt_exit(b, p, d, md)
         elif p["kind"] in OPT:
             if md >= p["expiry"]:
                 why = "만기"
             elif px >= p["t1"]:
                 why = "프리미엄 2배 — 전량 익절(재량 북 단순화)"
+            else:
+                why = opt_exit(b, p, d, md)
         else:
             bar = last_bar(p)
             gap = bar is not None and bar["t"][:10] == md and md != p.get("asof") and (float(bar["o"]) - p["stop"]) * sgn <= 0
@@ -941,6 +1028,15 @@ def show(b: dict) -> list[str]:
         ck = p.get("check") or {}
         kl = f" · 논지 붕괴: {ck['kill']}" if ck.get("kill") else ""
         ct = f" · 촉매 {ck['catalyst']}" if ck.get("catalyst") else ""
+        if p["kind"] in OPT + SPREAD:
+            rv = p.get("iv_review") or {}
+            kl += (f" · 시간 청산 {p['time_exit']}" if p.get("time_exit") else "") \
+                + (f" · 붕괴 기초 {'≥' if p.get('thesis_dir') == 'above' else '≤'} {p['thesis_stop']:g}" if p.get("thesis_stop") is not None else "") \
+                + (f" · 피헤지 청산 시 {'같이 청산' if p['on_parent_close'] == 'close' else '유지'}" if p.get("on_parent_close") else "") \
+                + (f" · IV 재평가 {rv['after']} 뒤" if rv.get("status") == "대기" else
+                   f" · IV 재평가 {rv['d']}: {rv['iv0'] * 100:.1f}%→{rv['iv1'] * 100:.1f}% — 보유 근거 다시 적을 것"
+                   if rv.get("status") == "완료" and rv.get("iv1") and rv.get("iv0") else "") \
+                + (" · ⚠️ 빈 칸: " + ", ".join(p["guard_warn"]) if p.get("guard_warn") else "")
         ls.append(f"- {p['side']} {p['name']} 진입 {p['entry']:,.2f} → {p['last']:,.2f} ({cur:+.2f}R) · {lv} · 크기 {p['weight'] * 100:.2f}% ({qty(p)}){pm}{hg}{ct}{kl} · 근거: {p['why']}")
     if b.get("baskets"):
         ls += _basket().lines(b)
@@ -978,6 +1074,10 @@ def main(argv=None):
     a1.add_argument("--hedge-of", dest="hedge_of", help="헤지 대상 포지션 id(쉼표 구분)")
     for k in CHECK:
         a1.add_argument("--" + k.replace("_", "-"), dest=k, type=float if k == "p_win" else str)
+    a1.add_argument("--time-exit", dest="time_exit", help="옵션·스프레드 시간 청산일 YYYY-MM-DD 또는 '만기'(만기 보유)")
+    a1.add_argument("--thesis-stop", dest="thesis_stop", type=float, help="옵션·스프레드 논지 붕괴 기초 가격(풋 = 이상, 콜 = 이하에서 청산)")
+    a1.add_argument("--on-parent-close", dest="on_parent_close", choices=["close", "keep"], help="헤지 옵션: 피헤지 전부 청산 때 처리(기본 close)")
+    a1.add_argument("--iv-review", dest="iv_review", help="IV 재평가 메모(촉매가 만기 전이면 날짜는 자동)")
     a1.add_argument("--beta-hedge", dest="beta_hedge", help="페어 진입: auto(독립성 ② 절반 한도 최소) | 비율(부모 베타조정 델타 ×, ≤1.5) — K200F/ES 반대 다리 동시 기록")
     a1.add_argument("--indep", help="독립성 ③: 알파북·PB 픽이 안 쓰는 데이터 1개(저장소 경로 + 무엇을 봤나) — 같은 날 같은 방향일 때 필수")
     a1.add_argument("--why", required=True)
@@ -1016,6 +1116,8 @@ def main(argv=None):
             raise
         save(b)
         print(json.dumps(p, ensure_ascii=False))
+        if p.get("guard_warn"):
+            print("⚠️ 옵션·스프레드 빈 칸(검증 v2 '주의'): " + ", ".join(p["guard_warn"]), file=sys.stderr)
         if p.get("pair_hedge"):
             print(json.dumps(next(x for x in b["open"] if x["id"] == p["pair_hedge"]), ensure_ascii=False))
     elif a.cmd == "exit-open":
