@@ -192,7 +192,7 @@ function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) r
   o.onclick=e=>{ if(o._sw){ o._sw=0; return; } if(e.target.closest('[data-nav]')) return mgProfGo(o,k,+e.target.closest('[data-nav]').dataset.nav); if(e.target.closest('[data-x]')) return mgProfClose(o); if(e.target.closest('[data-av]')) return mgZoom(av); if(e.target.closest('[data-card]')) return; if(!e.target.closest('[data-ph]')) return mgProfClose(o); if(bgSrc) mgZoom(bgSrc); };
   /* 옆으로 넘기기(10/23 겸이 "프로필 창에서 옆으로 넘겨서 다른 누나들 볼 수 있게") — 폰: 좌우 스와이프 · PC: 양옆 ‹ › 버튼·←/→ 키 · 순서 = 프로필 목록(부서별) */
   const L=((MG&&MG.profiles)||[]), idx=L.findIndex(p=>p.key===k), ph=o.querySelector('[data-ph]');
-  if(L.length>1){ ['-1','1'].forEach(d=>{ const b=document.createElement('button'); b.type='button'; b.dataset.nav=d; b.className='mgnav'; b.setAttribute('aria-label',d==='1'?'다음 누나':'이전 누나'); b.textContent=d==='1'?'›':'‹'; b.style.cssText=`position:absolute;top:50%;${d==='1'?'right':'left'}:8px;transform:translateY(-50%);z-index:3;width:44px;height:64px;border:0;border-radius:12px;background:#0006;color:#fff;font-size:var(--fs-icon);cursor:pointer`; o.appendChild(b); });
+  if(L.length>1){ ['-1','1'].forEach(d=>{ const b=document.createElement('button'); b.type='button'; b.dataset.nav=d; b.className='mgnav'; b.setAttribute('aria-label',d==='1'?'다음 데스크':'이전 데스크'); b.textContent=d==='1'?'›':'‹'; b.style.cssText=`position:absolute;top:50%;${d==='1'?'right':'left'}:8px;transform:translateY(-50%);z-index:3;width:44px;height:64px;border:0;border-radius:12px;background:#0006;color:#fff;font-size:var(--fs-icon);cursor:pointer`; o.appendChild(b); });
     const cnt=document.createElement('div'); cnt.style.cssText='position:absolute;right:12px;top:14px;z-index:2;color:#fff;font-size:var(--fs-2);text-shadow:0 1px 3px #000'; cnt.textContent=`${idx+1} / ${L.length}`; ph.appendChild(cnt); }
   let sx=null, sy=0; ph.addEventListener('pointerdown',e=>{ if(e.pointerType==='mouse') return; sx=e.clientX; sy=e.clientY; });
   ph.addEventListener('pointerup',e=>{ if(sx==null) return; const dx=e.clientX-sx, dy=e.clientY-sy; sx=null; if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){ o._sw=1; mgProfGo(o,k,dx<0?1:-1); } });
@@ -263,7 +263,7 @@ function mgChatView(chat){ const by={}; for(const c of chat){ const d=String(c.a
       <div class="mgln"><div class="mgh1"><span class="nm"><b>💬 ${esc(d.slice(5).replace('-','/'))} 사담</b></span><span class="mgt">${esc(mgT(L[L.length-1].at).slice(11))}</span></div>
         <div class="mgone">${esc(who.map(mgNm).join(' · '))}</div><div class="mgcnt">${L.length}줄 · 잡담(업무 근거 아님)</div></div></summary>
       <div class="mgtb">${mgChatTree(L).map(({c,d})=>`<div${d?` class="mgch" style="margin-left:${d*26}px"`:''}>${mgBub(c.by,c.to,c.text,c.at,d&&c.re&&c.re.text?`${mgNm(c.re.by||'')}: ${String(c.re.text).slice(0,40)}`:'',false)}</div>`).join('')}</div></details>`; }).join(''); }
-function sel0(desks){ return `<select class="mgsel" id="mgsel" aria-label="누나 고르기"><option value="all">모든 누나</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`; }
+function sel0(desks){ return `<select class="mgsel" id="mgsel" aria-label="데스크 고르기"><option value="all">모든 데스크</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`; }
 /* 🔒 비공개 사담방 — pb-private chat/private_chat.json. 10/23 겸이 "아티팩트를 터미널에 이식, 터미널 버전 하나로만" → 유일한 보는 곳. GAS = Code.gs getPrivate(PRIVATE_TOKEN), 공개 Pages = 이 기기 localStorage 토큰. */
 function mgPrivView(seg,sel){
   if(MGP===null){ MGP=false; google.script.run.withSuccessHandler(t=>{ try{ MGP=t?JSON.parse(t):{_err:/github\.io$/.test(location.hostname)?'지금 공개 Pages 주소로 보고 있어 — 비공개 사담은 GAS 웹앱 주소(script.google.com/macros/…/exec)로 열어야 보여':'빈 응답 — GAS 배포가 옛 버전일 수 있음'}; }catch(e){ MGP={_err:'응답이 JSON 아님: '+String(t).slice(0,60)}; } mgRe(1); }).withFailureHandler(e=>{ MGP={_err:'GAS 호출 실패 — '+String((e&&e.message)||e).slice(0,100)+' (웹앱 URL 이 자동 배포 ID 와 같은지 확인)'}; mgRe(1); }).getPrivate('chat'); }
@@ -278,7 +278,7 @@ function mgPrivView(seg,sel){
       <input id="mgtk" type="password" autocomplete="off" placeholder="github_pat_…" style="min-height:40px;width:min(100%,360px);background:var(--bg2);color:var(--txt);border:1px solid var(--line);padding:0 8px;font:inherit">
       <button id="mgtksv" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">저장하고 열기</button></div>`; }
   const forget=(()=>{ try{ return !!localStorage.getItem('pbPrivTok'); }catch(e){ return false; } })()?` · <a href="#" onclick="try{localStorage.removeItem('pbPrivTok')}catch(e){};MGP=null;mgRe();return false">이 기기 토큰 지우기</a>`:'';
-  const empty=(MGP&&MGP._err)?`<div class="mgempty">🔒 사담방 연결 안 됨 — ${esc(MGP._err)}</div>`:MGP===false?'<div class="load">LOADING …</div>':(MGP&&MGP.chat)?'<div class="mgempty">아직 조용해 — 누나들이 루프·라운드 끝에 한마디씩 남겨</div>':'<div class="mgempty">🔒 사담을 못 불러왔어 — 새로고침해 봐 (공개 Pages 면 이 기기 토큰, GAS 면 PRIVATE_TOKEN)</div>';
+  const empty=(MGP&&MGP._err)?`<div class="mgempty">🔒 사담방 연결 안 됨 — ${esc(MGP._err)}</div>`:MGP===false?'<div class="load">LOADING …</div>':(MGP&&MGP.chat)?'<div class="mgempty">아직 조용해 — 데스크들이 루프·라운드 끝에 한마디씩 남겨</div>':'<div class="mgempty">🔒 사담을 못 불러왔어 — 새로고침해 봐 (공개 Pages 면 이 기기 토큰, GAS 면 PRIVATE_TOKEN)</div>';
   return `<div class="grid"><div class="p c12"><h2>사내톡 · 🔒 비공개 사담<small>pb-private · 겸이만</small></h2><div class="b">
     <div class="mgtop">${seg}${sel}</div>
     <p class="mgsum">비공개라 금액·보유 얘기도 해 · 건강·연애는 여기서도 금지 · 잡담이라 업무 근거 아님${forget}</p>
@@ -304,7 +304,7 @@ function msgView(){
   } else {   // 요청 쓰레드 — 마지막 활동 내림차순, 날짜 구분선도 마지막 활동 기준
     const TS=mgThreads(items,String(MG.asof||'').slice(0,10)); let last='';
     for(const T of TS){ const d=String(T.last).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; } feed+=mgCard(T); }
-    sum=`쓰레드 <b>${TS.length}</b>개 · 최근 활동순 · 카드 누르면 원문과 답글 · <b>VOC</b> = 누나 본인 답 · 📝 대행 = 진행자 기록(데스크 발언 아님)`;
+    sum=`쓰레드 <b>${TS.length}</b>개 · 최근 활동순 · 카드 누르면 원문과 답글 · <b>VOC</b> = 데스크 본인 답 · 📝 대행 = 진행자 기록(데스크 발언 아님)`;
   }
   setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); });
     const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); };

@@ -384,12 +384,12 @@ function eduSyncPayload(){
 }
 function eduSync(){ const P=eduSyncPayload(), base='https://github.com/hk99915-bot/pb-private/issues/new?title='+encodeURIComponent('학습기록 '+P.day);
   const u=base+'&body='+encodeURIComponent(P.body), m=document.getElementById('edusyncm');
-  if(u.length<7500){ window.open(u,'_blank'); if(m) m.textContent='깃허브 이슈 작성 창을 열었어 — [Submit] 누르면 끝 (기록 누나가 걷어 감)'; return; }
+  if(u.length<7500){ window.open(u,'_blank'); if(m) m.textContent='깃허브 이슈 작성 창을 열었어 — [Submit] 누르면 끝 (기록 데스크가 걷어 감)'; return; }
   const go=()=>{ window.open(base+'&body='+encodeURIComponent(P.head+'(아래에 붙여넣기)\n\n'),'_blank'); if(m) m.textContent='기록이 길어서 클립보드에 복사했어 — 열린 창 본문에 길게 눌러 붙여넣고 [Submit]'; };
   try{ navigator.clipboard.writeText(P.body).then(go,()=>{ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); }); }catch(e){ prompt('아래 전체를 복사해서 이슈 본문에 붙여넣어',P.body); go(); } }
 function eduSyncBar(){ setTimeout(()=>{ const b=document.getElementById('edusync'); if(b) b.onclick=eduSync; },0);
   const n=Object.keys(EDONE||{}).length+(ENGS||[]).length+Object.keys(APTS||{}).length+(OPS||[]).length+(EDQ||[]).length;
-  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:var(--fs-2)"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 누나 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;font-size:var(--fs-2)"><button id="edusync" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">📤 학습 기록 보내기</button><span id="edusyncm" class="mu">이 폰에만 쌓인 기록 ${n}건 → 평가 데스크 채점용(비공개 저장소 이슈, 제출은 겸이가)</span></div>`; }
 { const _e=eduView, _a=aptView, _g=engView; eduView=function(){ return eduSyncBar()+_e.apply(this,arguments); }; aptView=function(){ return eduSyncBar()+_a.apply(this,arguments); }; engView=function(){ const h=_g.apply(this,arguments); return /class="load"/.test(h)?h:eduSyncBar()+h; }; }
 
 /* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */

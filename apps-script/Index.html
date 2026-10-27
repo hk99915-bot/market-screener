@@ -292,7 +292,9 @@ const CLS={TREND_LONG:'추세상승',TREND_OVEREXTENDED:'추세과열',PULLBACK_
 const SEC=[['TREND_LONG','TREND LONG'],['PULLBACK_IN_UPTREND','PULLBACK IN UPTREND'],['COUNTERTREND_BOUNCE','COUNTERTREND BOUNCE'],['OVEREXTENDED','OVEREXTENDED / RISK≥60'],['TREND_SHORT','TREND SHORT']];
 let D=null, view='home';
 const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// 10/27 겸이 "모든 터미널 내 누나 표현 금지" — 화면 표시 문자열에서만 호칭 제거(데이터·VOC 원문은 그대로, tab_system sysNm 선례)
+const noNuna=s=>String(s??'').replace(/([가-힣A-Za-z()·]+)\s*누나들?/g,'$1').replace(/누나(들?)/g,'데스크$1');
+const esc=s=>noNuna(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 /* 보고 상단 공통 카드(STANDARD.md 8절 · screener/topline.py 스키마) — ① What ② So What ③ Now What + 근거·기준·원본.
    top 없으면 '' 반환 → 각 탭은 기존 표시(.summary·.verdict·bottom_line)를 그대로 쓴다(하위호환). opt.c = 번호 색 */
 function renderTop(top,opt){ if(!top||typeof top!=='object') return ''; opt=opt||{}; const c=opt.c||'var(--accent,inherit)';
