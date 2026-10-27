@@ -20,6 +20,8 @@
   python3 scripts/drill_grade.py --sheet docs/desk_kb/rounds/2026-10-27/front.md   # 답안의 퀴즈:·드릴: 줄 채점 (키 = 드릴 + 온보딩)
   python3 scripts/drill_grade.py --grade front-q3 --text "…"                        # 온보딩 문항도 같은 --grade
   --check 는 온보딩 문서↔키 정합(답이 문서에 남았나·id 누락·키 형식)도 본다.
+재시험(10/28 평가 '답안 커밋 먼저 → 키 공개'): 문제지에 KEY_PENDING 줄을 두면 키 없는 id 를 허용하고, 평가는 키 공개 전
+  python3 scripts/drill_grade.py --sheet <답안> --keys <비공개 키.json> 로 채점한다. 키 공개 커밋 = 키를 content/onboarding 에 합치고 그 줄 삭제.
 """
 from __future__ import annotations
 
@@ -42,6 +44,7 @@ DRILL_LINE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?드릴(?:\*\*)?\s*[:：]\s*([
 KB_DRILL = re.compile(r"^- 드릴(?:\s*\[([a-z_]+-d\d+)\])?\s*[:(]")
 QUIZ_LINE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?퀴즈(?:\*\*)?\s*[:：]\s*([a-z_]+-q\d+)\s+(.+?)\s*$")
 DOC_QUIZ = re.compile(r"^- 퀴즈(?:\s*\[([a-z_]+-q\d+)\])?\s*[:(]")
+KEY_PENDING = "<!-- 키 비공개: 답안 커밋 뒤 공개 -->"   # 문제지에 이 줄이 있으면 키 없는 퀴즈 id 허용(키 공개 커밋에서 줄 삭제)
 DRILL_HEAD = "## 드릴 표"
 DRILL_COLS = "| 라운드 | 데스크 | 드릴 | 점수 | 판정 | 놓친 키 |"
 DRILL_SEP = "|---|---|---|---|---|---|"
@@ -55,6 +58,12 @@ def load_keys(keys_dir: Path = KEYS_DIR) -> dict[str, dict]:
         for it in d.get("items", []):
             out[it["id"]] = {**it, "desk": d.get("desk", p.stem)}
     return out
+
+
+def load_key_file(path: Path) -> dict[str, dict]:
+    """키 파일 하나(공개 저장소 밖 비공개 재시험 키 등) — load_keys 와 같은 형식."""
+    d = json.loads(path.read_text(encoding="utf-8"))
+    return {it["id"]: {**it, "desk": d.get("desk", path.stem)} for it in d.get("items", [])}
 
 
 def load_onboarding(keys_dir: Path = ONB_KEYS_DIR) -> dict[str, dict]:
@@ -81,7 +90,9 @@ def check_onboarding(doc_dir: Path = ONB_DOC_DIR, keys_dir: Path = ONB_KEYS_DIR)
             errs.append(f"{qid}: 모범답이 자기 키를 다 못 맞힘 {grade(it, it['answer'])['miss']}")
     seen = set()
     for p in sorted(doc_dir.glob("*.md")) if doc_dir.exists() else []:
-        for ln in p.read_text(encoding="utf-8").splitlines():
+        body = p.read_text(encoding="utf-8")
+        pending = KEY_PENDING in body   # 재시험 문제지: 키는 답안 커밋 뒤 공개(G1 순서 증명) — 그 전엔 '키 없음'을 오류로 안 본다
+        for ln in body.splitlines():
             m = DOC_QUIZ.match(ln)
             if not m:
                 continue
@@ -92,6 +103,8 @@ def check_onboarding(doc_dir: Path = ONB_DOC_DIR, keys_dir: Path = ONB_KEYS_DIR)
             elif m.group(1).rsplit("-q", 1)[0] != p.stem.split("_")[0]:
                 errs.append(f"{p.name}: 퀴즈 {m.group(1)} 가 다른 과정 문서에 있음 — '{p.stem.split('_')[0]}-qN' 만 (과정별 문서·키 1:1)")
             elif m.group(1) not in keys:
+                if pending:
+                    continue
                 errs.append(f"{p.name}: 퀴즈 {m.group(1)} 키 없음 (content/onboarding/{m.group(1).rsplit('-q', 1)[0]}.json)")
             else:
                 seen.add(m.group(1))
@@ -249,6 +262,7 @@ def main(argv=None) -> int:
     ap.add_argument("--round")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--sheet", help="답안 파일(퀴즈:·드릴: 줄) 채점")
+    ap.add_argument("--keys", action="append", default=[], help="비공개 키 파일 추가(재시험 — 키 공개 전 평가 채점용, 드릴 키 형식)")
     a = ap.parse_args(argv)
     if a.check:
         errs = check() + check_onboarding()
@@ -257,6 +271,8 @@ def main(argv=None) -> int:
         print(f"{'ok' if not errs else str(len(errs)) + ' errors'}: 드릴 {len(load_keys())}개 · 온보딩 퀴즈 {len(load_onboarding())}개")
         return 1 if errs else 0
     keys = {**load_keys(), **load_onboarding()}
+    for kp in a.keys:
+        keys.update(load_key_file(Path(kp)))
     if a.sheet:
         res = grade_sheet(Path(a.sheet).read_text(encoding="utf-8"), keys)
         for r in res:

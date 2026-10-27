@@ -96,3 +96,57 @@ def test_compliance_keys_reject_eval_wrong_answers():
     assert G.grade(q6, "결정 아님(결재 없이 바꿈), 부모 없는 헤지는 새 숏이라 손절·독립성 검사, 쿨다운도 규칙 변경이라 결재 필요")["pass"]
     for it in (q1, q3, q6):
         assert G.grade(it, it["answer"])["score"] == 1.0
+
+
+def test_compliance_q1_accepts_correct_variants_and_still_rejects_wrong():
+    """평가 반려 10/28(eval_riskhq_onboarding_appendix.md 근거 2) — 강화 키가 맞는 답(C1·C2·컴플 실제 답)을 0.88 로 떨어뜨리던 결함.
+    정답 변형은 통과, 반려 오답(W1~W3)은 계속 불통과. 부정문(W4)은 키로 막지 않고 평가 판독(kb:eval#16)."""
+    q1 = G.load_onboarding()["compliance-q1"]
+    head = "✅ 시행 중, 🗳️ 결정 대기, 🔒 자동 약속, 🌙 22시 이후 합의. 밤 12시 변경은 🌙 로 적고 07시 이후 겸이 맞아 확인 뒤 시행. "
+    correct = [
+        head + "22시 금지는 규칙 변경(한도·금지·절차)에만 걸린다",                           # C1 괄호 열거
+        head + "22시 금지의 대상은 규칙 변경뿐이다",                                         # C2 '대상…뿐'
+        head + "금지 대상은 규칙 변경이고 운영·매매 질문 답변은 아니다",                       # '대상은 규칙 변경'
+        head + "22시 금지는 규칙 변경 한정, 강화 루프·운영은 대상 아님",                       # '한정'
+        # 컴플 실제 답(rounds/2026-10-27/compliance.md:6)
+        "✅ 시행 중 · 🗳️ 결정 대기(일요일·11/15 리뷰) · 🔒 조건부 약속 · 🌙 22시 이후 합의. 밤 12시 한도 변경은 원장 🌙 기록 → "
+        "다음 날 07시 이후 겸이 \"맞아\" 확인 시점부터 ✅ 시행. 22~07시 금지는 규칙 변경(한도·금지·판정 입력·절차·공개 기준)에만 — 루프·운영·버그 수정은 대상 아님.",
+    ]
+    for c in correct:
+        r = G.grade(q1, c)
+        assert r["pass"] and not r["req_miss"], (c, r)
+    wrong = [
+        # W1 10/28 반려 오답
+        "✅ 시행 중, 🗳️ 결정 대기, 🔒 잠금 자동 약속, 🌙 22시 이후 합의. 밤 12시 변경은 즉시 시행하고 확인 불필요. 22시 금지는 규칙 변경 포함 모든 답변에 걸린다.",
+        # W2 기호 없이 서술
+        "시행 중, 결정 대기, 자동 약속, 22시 이후 합의. 즉시 시행. 금지는 전부에 걸린다.",
+        # W3 변형(07시 이후 바로·확인 안 받아도 됨·전부)
+        "✅ 시행 중, 🗳️ 결정 대기, 🔒 자동 약속, 🌙 22시 이후 합의. 07시 이후 바로 시행, 확인 안 받아도 됨. 22시 금지는 전부에 걸린다.",
+        # 넓힌 간격이 '포함·뿐 아니라' 를 정답으로 읽지 않는지
+        head + "22시 금지는 규칙 변경뿐 아니라 운영 답변에도 걸린다",
+        head + "22시 금지 대상은 규칙 변경 포함 모든 답변",
+    ]
+    for w in wrong:
+        r = G.grade(q1, w)
+        assert not r["pass"], (w, r)
+    assert G.grade(q1, q1["answer"])["score"] == 1.0
+
+
+def test_retest_sheet_key_pending_and_private_keys_flag(tmp_path, capsys):
+    """평행 재시험(10/28 평가 '답안 커밋 먼저 → 키 공개'): 키 비공개 표식이 있는 문제지는 키 없는 id 허용, 표식이 없으면 오류.
+    평가는 공개 전 --keys 로 비공개 키를 더해 채점한다."""
+    doc, keys = tmp_path / "doc", tmp_path / "keys"
+    doc.mkdir(); keys.mkdir()
+    (keys / "zz.json").write_text('{"desk":"zz","items":[{"id":"zz-q1","q":"q","answer":"a 1","keys":[{"n":1}]}]}', encoding="utf-8")
+    (doc / "zz.md").write_text("- 퀴즈 [zz-q1]: 문제?\n", encoding="utf-8")
+    (doc / "zz_retest.md").write_text(G.KEY_PENDING + "\n- 퀴즈 [zz-q2]: 평행 문제?\n", encoding="utf-8")
+    assert G.check_onboarding(doc, keys) == []
+    (doc / "zz_retest.md").write_text("- 퀴즈 [zz-q2]: 평행 문제?\n", encoding="utf-8")
+    assert any("zz-q2 키 없음" in e for e in G.check_onboarding(doc, keys))
+    priv = tmp_path / "priv.json"
+    priv.write_text('{"desk":"zz","items":[{"id":"zz-q2","q":"q","answer":"b 2","keys":[{"n":2}]}]}', encoding="utf-8")
+    sheet = tmp_path / "ans.md"
+    sheet.write_text("퀴즈: zz-q2 답은 2\n", encoding="utf-8")
+    assert G.load_key_file(priv)["zz-q2"]["desk"] == "zz"
+    G.main(["--sheet", str(sheet), "--keys", str(priv)])
+    assert "| zz-q2 | 100% | 통과 |" in capsys.readouterr().out
