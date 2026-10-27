@@ -831,7 +831,7 @@ def build(fetch_json=None, fetch_text=None, fetch_prices=None, now: datetime | N
                                     _prev_trades() if prev_trades is None else (prev_trades or None), sleep, detail_out=details)
         if details and not trades.get("reused"):
             log.info("부동산 RTMS 드릴다운: 구별 파일 %d개", write_details(trades, details))
-        if live and env.get("VWORLD_KEY"):   # 단지 좌표(10/26) — 키 없으면 호출 0, 화면은 동 단위까지
+        if live:   # 단지 좌표(10/26) — 키 없으면 호출 0(노트북 CLI 가 채운 캐시만 붙임), 화면은 동 단위까지
             from .realestate_coords import _get_json, attach_coords
             try:
                 attach_coords(DETAIL_DIR, env.get("VWORLD_KEY"), _get_json, today, env.get("VWORLD_DOMAIN"), sleep=sleep)

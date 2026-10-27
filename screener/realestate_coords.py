@@ -93,15 +93,41 @@ def _load(p: Path) -> dict:
         return {}
 
 
+RETRY = 3               # 일시 오류(502·끊김·시간초과) 필지당 시도 횟수 (10/26 Actions 502 → RemoteDisconnected, req-dev-dcd43e3b ②)
+ABORT_SKIPS = 5         # 일시 오류로 연속 건너뛴 필지가 이만큼이면 이번 실행 중단(차단 상태에서 한도 낭비 방지)
+ACTIONS_SKIP_AFTER = 2  # Actions 에서 '성공 0 + 일시 오류 중단' 이 연속 이 횟수면 다음 실행부터 호출 생략(캐시만 붙임, ③)
+ACTIONS_SKIP_DAYS = 7   # 생략 기간 — 지나면 1회 다시 시도. 노트북 실행이 성공하면 즉시 초기화
+FATAL_RE = re.compile(r"vworld status|\b40[13]\b|INVALID_KEY|INCORRECT_KEY|UNAVAILABLE_KEY|OVER_REQUEST_LIMIT", re.I)
+
+
+def _fatal(msg: str) -> bool:
+    """키·도메인·한도 오류 = 재시도해도 같음 → 실행 중단. 나머지(502·끊김·시간초과) = 일시 오류 → 재시도·건너뛰기."""
+    return bool(FATAL_RE.search(msg))
+
+
+def actions_skip(doc: dict, today: date) -> bool:
+    f = doc.get("actions_fail") or {}
+    return f.get("n", 0) >= ACTIONS_SKIP_AFTER and f.get("last", "") >= (today - timedelta(days=ACTIONS_SKIP_DAYS)).isoformat()
+
+
 def attach_coords(detail_dir: Path, key: str | None, get_json, today: date, domain: str | None = None,
-                  cache_path: Path | None = None, max_calls: int = MAX_CALLS, sleep=None) -> dict:
-    """구별 드릴다운 파일의 단지(pnu 있는 것)에 lon·lat 을 붙인다. 키 없으면 캐시에 있는 것만 붙임(호출 0). 결과 요약 dict."""
+                  cache_path: Path | None = None, max_calls: int = MAX_CALLS, sleep=None, where: str = "actions",
+                  write_files: bool = True) -> dict:
+    """구별 드릴다운 파일의 단지(pnu 있는 것)에 lon·lat 을 붙인다. 키 없으면 캐시에 있는 것만 붙임(호출 0). 결과 요약 dict.
+
+    where='actions'|'laptop' — Actions(미국 IP)는 브이월드가 끊는 경우가 있어(10/26 2회 연속 실패) 연속 실패 기록 시 호출 생략.
+    write_files=False = 캐시(reports/realestate_coords.json)만 갱신(노트북 CLI — 드릴다운 파일은 다음 Actions 실행이 캐시로 붙임).
+    """
     from .realestate import _scrub
     cache_path = cache_path or CACHE
     doc = _load(cache_path)
     pts: dict = doc.get("pts") or {}
-    calls = hit = miss = 0
+    calls = hit = miss = ok_calls = skipped = streak = 0
     err = None
+    aborted = False
+    skip_net = where == "actions" and actions_skip(doc, today)
+    if skip_net and key:
+        log.warning("부동산 단지 좌표: Actions 연속 실패 기록(%s) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)", doc.get("actions_fail"))
     files = sorted(detail_dir.glob("*.json")) if detail_dir.exists() else []
     for f in files:
         d = _load(f)
@@ -112,13 +138,30 @@ def attach_coords(detail_dir: Path, key: str | None, get_json, today: date, doma
                 continue
             e = pts.get(pnu)
             stale_miss = e and "miss" in e and e["miss"] < (today - timedelta(days=MISS_RETRY_DAYS)).isoformat()
-            if (e is None or stale_miss) and key and calls < max_calls and err is None:
+            if (e is None or stale_miss) and key and not skip_net and calls < max_calls and err is None and not aborted:
                 calls += 1
-                try:
-                    xy = fetch_parcel(get_json, pnu, key, domain or DEFAULT_DOMAIN)
-                    e = pts[pnu] = {"lon": round(xy[0], 5), "lat": round(xy[1], 5), "d": today.isoformat()} if xy else {"miss": today.isoformat()}
-                except Exception as ex:  # noqa: BLE001 — 키·도메인 오류면 이번 실행 중단(남은 호출 낭비 방지)
-                    err = _scrub(f"{type(ex).__name__}: {ex}", key)
+                last = None
+                for k in range(RETRY):
+                    try:
+                        xy = fetch_parcel(get_json, pnu, key, domain or DEFAULT_DOMAIN)
+                        e = pts[pnu] = {"lon": round(xy[0], 5), "lat": round(xy[1], 5), "d": today.isoformat()} if xy else {"miss": today.isoformat()}
+                        ok_calls += 1
+                        streak = 0
+                        last = None
+                        break
+                    except Exception as ex:  # noqa: BLE001
+                        last = _scrub(f"{type(ex).__name__}: {ex}", key)
+                        if _fatal(last):
+                            err = last          # 키·도메인 오류 = 이번 실행 중단(남은 호출 낭비 방지)
+                            break
+                        if sleep and k < RETRY - 1:
+                            sleep(1.0 * (k + 1))
+                if last and err is None:        # 일시 오류 3회 → 이 필지만 건너뜀(캐시에 miss 안 남김 — 다음 실행에 다시)
+                    skipped += 1
+                    streak += 1
+                    if streak >= ABORT_SKIPS:
+                        aborted = True
+                        err = f"일시 오류로 {streak}필지 연속 실패 — 중단 (마지막: {last})"
                 if sleep:
                     sleep(0.05)
             if e and "lon" in e:
@@ -128,14 +171,26 @@ def attach_coords(detail_dir: Path, key: str | None, get_json, today: date, doma
                 hit += 1
             else:
                 miss += 1
-        if changed:
+        if changed and write_files:
             d["coords_src"] = SRC
             f.write_text(json.dumps(d, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    out = {"calls": calls, "with_pt": hit, "without_pt": miss, "error": err, "key": bool(key)}
-    if calls:
-        cache_path.write_text(json.dumps({"src": SRC, "asof": today.isoformat(), "pts": pts}, ensure_ascii=False, separators=(",", ":")),
-                              encoding="utf-8")
-    log.info("부동산 단지 좌표: 호출 %d · 점 있음 %d · 없음 %d%s", calls, hit, miss, f" · 오류 {err}" if err else "")
+    fail0 = doc.get("actions_fail")
+    if calls and ok_calls:
+        fail = None                                    # 어디서든 성공하면 초기화
+    elif calls and where == "actions":
+        n = (fail0 or {}).get("n", 0) + 1
+        fail = {"n": n, "last": today.isoformat(), "why": (err or "")[:200]}
+    else:
+        fail = fail0
+    out = {"calls": calls, "ok_calls": ok_calls, "skipped": skipped, "with_pt": hit, "without_pt": miss, "error": err, "key": bool(key),
+           "skipped_net": bool(skip_net and key), "where": where}
+    if calls or fail != fail0:
+        body = {"src": SRC, "asof": today.isoformat(), "pts": pts}
+        if fail:
+            body["actions_fail"] = fail
+        cache_path.write_text(json.dumps(body, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    log.info("부동산 단지 좌표(%s): 호출 %d(성공 %d·건너뜀 %d) · 점 있음 %d · 없음 %d%s", where, calls, ok_calls, skipped, hit, miss,
+             f" · 오류 {err}" if err else "")
     return out
 
 
@@ -144,3 +199,35 @@ def _get_json(url: str, params: dict) -> dict:
     r = requests.get(url, params=params, timeout=(10, 30))
     r.raise_for_status()
     return r.json()
+
+
+def main(argv=None) -> int:
+    """노트북(국내 IP) 1회 실행 CLI (req-dev-dcd43e3b ①) — 실행법 docs/realestate/vworld_laptop.md.
+    키 = 환경변수 VWORLD_KEY(인자·파일로 받지 않음). 결과 = reports/realestate_coords.json 만 갱신(이어받기: 캐시에 있는 필지는 건너뜀)."""
+    import argparse
+    import os
+    import time
+    ap = argparse.ArgumentParser(description="브이월드 단지 좌표 캐시 채우기 (노트북 1회 실행)")
+    ap.add_argument("--max", type=int, default=MAX_CALLS, help=f"이번 실행 호출 상한(기본 {MAX_CALLS}, 브이월드 일 한도 안쪽)")
+    ap.add_argument("--dry", action="store_true", help="호출 없이 남은 필지 수만")
+    a = ap.parse_args(argv)
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    key = os.environ.get("VWORLD_KEY")
+    detail = ROOT / "reports" / "realestate_trades"
+    doc = _load(CACHE)
+    pts = doc.get("pts") or {}
+    todo = {c["pnu"] for f in sorted(detail.glob("*.json")) for c in (_load(f).get("complexes") or []) if c.get("pnu") and c["pnu"] not in pts}
+    print(f"캐시 {len(pts)}필지 · 남은 필지 {len(todo)} · Actions 연속 실패 기록 {doc.get('actions_fail') or '없음'}")
+    if a.dry:
+        return 0
+    if not key:
+        print("VWORLD_KEY 환경변수가 없음 — 종료 (키를 파일·인자로 넘기지 말 것)")
+        return 2
+    out = attach_coords(detail, key, _get_json, date.today(), os.environ.get("VWORLD_DOMAIN"), max_calls=a.max, sleep=time.sleep,
+                        where="laptop", write_files=False)
+    print(json.dumps(out, ensure_ascii=False))
+    return 1 if out["error"] and not out["ok_calls"] else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
