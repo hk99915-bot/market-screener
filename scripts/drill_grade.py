@@ -7,6 +7,7 @@
   - 데스크는 라운드 파일에 `드릴: <id> <내 답>` 한 줄을 **먼저** 쓰고, 그 뒤에 키 파일을 열어 본다.
   - `scripts/round_collect.py` 가 라운드 수집 때 이 모듈로 채점해 `_scoreboard.md` 의 `## 드릴 표` 에 싣는다.
 채점: 키 = 숫자 {"n": 값, "tol": 허용오차} 또는 용어 {"t": [동의어…]}. 점수 = 맞힌 키 / 전체 키, `pass`(기본 0.6) 이상이면 통과.
+     키에 "req": true 가 있으면 필수 — 점수가 넘어도 그 키를 놓치면 불통과(10/27 평가 키 역검사, req-edu-ff390d0d).
      숫자는 부호 무시 일치도 인정(−1.4% 를 '1.4% 하락'으로 써도), 허용오차 기본 max(1%, 0.05). 용어는 부분 문자열(영문 1~2자는 단어 경계, 're:' 접두는 정규식).
      기계 채점은 '핵심 숫자·용어를 꺼냈나'만 본다 — 판단의 질은 감사 데스크 채점(LOOP 7항)이 본다.
 
@@ -72,6 +73,8 @@ def check_onboarding(doc_dir: Path = ONB_DOC_DIR, keys_dir: Path = ONB_KEYS_DIR)
         for k in it["keys"]:
             if not (isinstance(k.get("n"), (int, float)) or (isinstance(k.get("t"), list) and k["t"])):
                 errs.append(f"{qid}: 키 형식 오류 {k}")
+            if "req" in k and not isinstance(k["req"], bool):
+                errs.append(f"{qid}: req 는 true/false {k}")
         if not re.fullmatch(rf"{re.escape(it['desk'])}-q\d+", qid):
             errs.append(f"{qid}: id 형식 ≠ '{it['desk']}-qN'")
         if grade(it, it["answer"])["score"] < 1.0:
@@ -144,8 +147,10 @@ def grade(item: dict, text: str) -> dict:
         (hit if ok else miss).append(key_label(k))
     n = len(hit) + len(miss)
     score = len(hit) / n if n else 0.0
-    return {"id": item["id"], "desk": item.get("desk"), "score": round(score, 2), "pass": score >= item.get("pass", PASS),
-            "hit": hit, "miss": miss}
+    # 필수 키(req): 점수가 넘어도 핵심 판단(예: 사용률 99.1·신호등 적)을 놓치면 불통과 — 평가 키 역검사 10/27(req-edu-ff390d0d)
+    req_miss = [key_label(k) for k in item.get("keys", []) if k.get("req") and key_label(k) in miss]
+    return {"id": item["id"], "desk": item.get("desk"), "score": round(score, 2),
+            "pass": score >= item.get("pass", PASS) and not req_miss, "hit": hit, "miss": miss, "req_miss": req_miss}
 
 
 def parse_drill_lines(text: str) -> list[tuple[str, str]]:

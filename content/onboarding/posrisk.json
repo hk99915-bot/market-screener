@@ -45,12 +45,14 @@
    "keys": [
     {
      "n": 99.1,
-     "tol": 0.5
+     "tol": 0.5,
+     "req": true
     },
     {
      "t": [
-      "적"
-     ]
+      "re:적색|빨강|(?<![가-힣])적(?![가-힣])"
+     ],
+     "req": true
     },
     {
      "n": 0.13,
@@ -70,12 +72,13 @@
    ],
    "src": "screener/pb.py STRESS_SCENARIOS·stress_line · req-frm-cb131a3e 회신 · 교육 재계산 10/24(posrisk_lab 실습 1)",
    "pass": 0.6,
-   "added": "2026-10-24"
+   "added": "2026-10-24",
+   "fix": "10/28 평가 검수 반영: '적' 한 글자 → 단어 경계 정규식, 99.1·신호등 필수(req)"
   },
   {
    "id": "posrisk-q3",
    "q": "섹터 전환 뒤 반도체 비중 감소 기록법, 스트레스 불변 이유(코드 칸)",
-   "answer": "반도체(ex) 21.9% → 15.4%(−6.4%p)는 매매가 아니라 분류 기준 변경(OFFICIAL_LIMITS True, GICS/WICS)이므로 사용률 표에 '기준 변경' 표시를 달고 위험 감소로 읽지 않는다. 스트레스는 −14.87% 그대로인데, stress_loss 가 행의 semi 칸(옛 체인 분류 semi_class)으로 −50% 를 걸고 밴드는 semi_new 를 쓰기 때문이다 — 한 테마 두 한도가 두 분류라 FRM·개발에 의도 확인 ask.",
+   "answer": "반도체(ex) 21.9% → 15.4%(−6.4%p — 표시값 차이는 6.5, 원 자료 반올림 전 값은 6.4)는 매매가 아니라 분류 기준 변경(OFFICIAL_LIMITS True, GICS/WICS)이므로 사용률 표에 '기준 변경' 표시를 달고 위험 감소로 읽지 않는다. 스트레스는 −14.87% 그대로인데, stress_loss 가 행의 semi 칸(옛 체인 분류 semi_class)으로 −50% 를 걸고 밴드는 semi_new 를 쓰기 때문이다 — 한 테마 두 한도가 두 분류라 FRM·개발에 의도 확인 ask.",
    "keys": [
     {
      "t": [
@@ -146,7 +149,7 @@
   {
    "id": "posrisk-q5",
    "q": "달러 순노출 ±5% 경보의 표 처리, ES 줄 단일 한도 사용률",
-   "answer": "±5% 는 hf_book 머리말의 결재 한도 목록에 없는 1선(hf_risk) 경보다. 사용률 표에선 한도 열과 섞지 않고 '경보(1선)' 열에 따로 적고, 결재 한도인지 FRM·HF 에 확인한다. 같은 ES 숏 7.56% 의 단일 한도(15%) 사용률 = 7.56 ÷ 15 = 50% → 녹.",
+   "answer": "±5% 는 hf_book 머리말의 결재 한도 목록에 없는 1선(hf_risk) 경보다. 사용률 표에선 한도 열과 섞지 않고 '경보(1선)' 열에 따로 적고, 결재 한도인지 FRM·HF 에 확인한다. 같은 ES 숏 7.56% 의 단일 한도(15% — scripts/hf_book.py 진입 크기 w = min(risk/stop, 0.15), alphabook·tradeplan WEIGHT_CAP 0.15 와 같은 값) 사용률 = 7.56 ÷ 15 = 50% → 녹.",
    "keys": [
     {
      "t": [
@@ -175,7 +178,7 @@
      ]
     }
    ],
-   "src": "python3 scripts/hf_book.py show 10/24 · scripts/hf_book.py 머리말 한도 · docs/desk_kb/posrisk.md 경계",
+   "src": "python3 scripts/hf_book.py show 10/24 · scripts/hf_book.py 머리말 한도 · docs/desk_kb/posrisk.md 경계 · scripts/hf_book.py:698 (0.15 상한)",
    "pass": 0.6,
    "added": "2026-10-24"
   },

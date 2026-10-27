@@ -56,3 +56,19 @@ def test_round_collect_adds_drill_table(tmp_path):
     assert "| 2026-10-27 | quant | quant-d9 | — | id 없음 |" in text
     rc.run("2026-10-27", tmp_path / "rounds", sb, board, ledger, apply=True, out=out.append, audit_dir=tmp_path)
     assert sb.read_text(encoding="utf-8").count("frm-d1 |") == 1          # 재수집해도 중복 없음
+
+
+def test_required_keys_and_weak_key_reverse_checks():
+    """평가 키 역검사(10/27 eval.md §2) 재현 — 틀린 판단이 부수 키로 통과하던 3건이 이제 불통과."""
+    onb = G.load_onboarding()
+    # posrisk-q2: 사용률을 50%·녹으로 틀려도 0.13·컴플·FRM 으로 0.6 통과하던 것 → 필수 키(99.1·적) 누락으로 불통과
+    r = G.grade(onb["posrisk-q2"], "사용률 50% 녹. 0.13%p 남음, 넘으면 컴플이 판정, 시나리오는 FRM")
+    assert r["score"] >= 0.6 and not r["pass"] and r["req_miss"]
+    # '적' 한 글자가 '목적·적절' 에 걸리지 않는다
+    assert not G.grade(onb["posrisk-q2"], "사용률 99.1% 목적상 적절, 0.13%p, 컴플, FRM")["pass"]
+    assert G.grade(onb["posrisk-q2"], "사용률 99.1% 적, 0.13%p 남음, 컴플, FRM")["pass"]
+    # compliance-q1: 기호를 하나도 안 쓴 답은 불통과
+    assert not G.grade(onb["compliance-q1"], "시행 중, 결정 대기, 22시 이후 합의, 07시 이후 맞아 확인, 규칙 변경에만 걸린다")["pass"]
+    # compliance-q3: '리스크' 만으로는 FRM 키를 못 맞힌다
+    assert "FRM" in G.grade(onb["compliance-q3"], "리스크본부가 본다")["miss"]
+    assert G.check_onboarding() == []
