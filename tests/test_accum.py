@@ -50,6 +50,17 @@ def test_split_adjusted_returns():
     assert r == [0.0, 0.0, 0.05]     # 1:5 분할일은 시총 비율(0%), 다음날 +5%
 
 
+def test_zero_mcap_row_no_minus_inf():
+    """시총 0 행(결측)이 −100% 수익·log1p(−1) = −inf 를 만들지 않음 (req-quant-a12cc3bb 부수 경고)."""
+    import warnings
+    df = pd.DataFrame({"date": pd.to_datetime(["2026-01-02", "2026-01-05", "2026-01-06"]), "code": "000001", "mkt": "K",
+                       "close": [10000, 10000, 10100], "mcap": [1000, 0, 1010], "tv": 1, "f": 0, "i": 0, "pen": 0, "trust": 0})
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        out = accum.add_returns(df)
+    assert np.isfinite(out["lv"]).all() and out["r"].iloc[1] == 0.0
+
+
 def test_streak_and_windows():
     df = accum.features(accum.add_returns(_synth()))
     last = df[df["date"] == df["date"].max()].set_index("code")

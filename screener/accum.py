@@ -289,6 +289,8 @@ def add_returns(df: pd.DataFrame) -> pd.DataFrame:
     split = (ratio >= 1.5) | (ratio <= 1 / 1.5)
     r = np.where(split, r_cap, r_px)
     r = np.where((~split) & (np.abs(r) > 0.45), 0.0, r)
+    # 시총 0(거래정지·결측 행)이면 '분할'로 잡혀 r_cap = −100% → log1p(−1) = −inf 경고(accum.log). 데이터 오류로 보고 0.
+    r = np.where(np.asarray(r, float) <= -0.99, 0.0, r)
     df["r"] = pd.Series(r, index=df.index).replace([np.inf, -np.inf], np.nan).fillna(0.0)
     df["lv"] = df.groupby("code", sort=False)["r"].transform(lambda s: np.log1p(s).cumsum())   # 누적 로그가격
     return df
