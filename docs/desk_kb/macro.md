@@ -62,6 +62,9 @@
    - 10/24 갱신(겸이 "리포트 및 유튜브 수집… 잘 맞는 것 같은데"): 콜 17개(유튜브 2 추가 — src_kind 'youtube', 제목·설명란만, 본편 미시청) + 9/26 아시아경제 인용 '금/구리 비율 2027-07~09 고점' 1개. 채점 n=5(적중 3 = 모두 구리 · 빗나감 2 = 모두 금) → **판단 보류 유지**. 순환 틀 고점 순서 실측: 귀금속(1월) → 에너지(3~4월, 전쟁) → 비철(5·9월) → 농산물(8~9월) — 에너지가 비철을 앞질러 틀의 순서는 깨짐. 영상 목록 = analyst_cmdty.json `videos`(제목만이면 '제목만'). 유튜브 갱신: oEmbed(`youtube.com/oembed?url=…`)로 채널·제목, watch 페이지 `publishDate`·`attributedDescription`로 날짜·설명(요청 많으면 빈 페이지 — 날짜 '미확인'). WebFetch는 이 컨테이너에서 DNS 실패 → curl.
    - 관계성(3년 주간, `rounds/2026-10-24/macro_cmdty_view.md` §5): 유가~BEI +0.45(가장 안정), 금~달러 −0.37(지금 금의 주 설명 변수), 금~실질금리 −0.14(중앙은행 매수 분기에 끊김), 구리/금~10y +0.18(성장 신호로 약함). 유가→BEI→10y→금(−)이 같은 달 안에 전달 — 그의 '유동성 순환'과 같은 순서를 다른 메커니즘이 만들 수 있음(사후 해석 위험).
 
+## 중앙은행 총재 뷰 트래킹 (2026-10-24 겸이 "신현송 총재 뷰 트래킹")
+30. [자체연구-검증전] `reports/views/governor_shin.json` — 발언·결정(날짜·출처·src_kind)·BIS 저작·국고 3Y/원/달러 사후 대조·우리 뷰 차이. 채점 = 매파/비둘기 신호 → 다음 금통위 결정 일치 여부(첫 판: 매파 신호 5회 → 인상 2회, 시차 7주). 2차 보도는 원문 대조 전 신뢰도 중. 바람 임계 검수 결과(0.05 유지·미10년 2→5bp 권고)는 `rounds/2026-10-28/macro_night.md`.
+
 ## 출처
 - 교과서·공식 자료: Dalio "How the Economic Machine Works"(2013) / 한국은행 통화정책 파급경로·통화신용정책보고서(중립금리 재추정) / CFA L1 Economics(Business Cycles, Monetary and Fiscal Policy) / FRED 시리즈 노트(CPIAUCSL·CPILFESL·PAYEMS·UNRATE·PPIFIS·DGS10). 2차 자료·요약 확인, 원문 `[확인 필요: 원문 대조, 2026-10-30]`.
 - 자체: `reports/views/analyst_cmdty.json`, `screener/commodities.py`, `reports/commodities.json`, `reports/views/geopolitics.json`, `screener/macroview.py`, `reports/macro_view.json`, `reports/macro_releases.json`, `screener/calendar_ev.py`, `reports/committee.json` macro, `views/registry.json`(`macro_wind`·`kr_regime`·`us10y`·`foreign_flow`·`event_calendar`).
