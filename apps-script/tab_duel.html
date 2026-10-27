@@ -121,10 +121,16 @@ function battleDailyBox(){
   if(BATTLE_DAILY.error) return '<div class="mu">외부 일별 평가 스냅샷 없음</div>';
   return battleDailyHtml(BATTLE_DAILY);
 }
+function bdAgeDays(d){ const a=String((d&&(d.generated_at||d.date))||'').slice(0,10); if(!/^\d{4}-\d{2}-\d{2}$/.test(a)) return NaN;
+  const today=new Date(Date.now()+9*36e5).toISOString().slice(0,10); return Math.round((Date.parse(today)-Date.parse(a))/864e5); }
+function bdSummaryTag(){ const d=BATTLE_DAILY; if(!d||d.loading||d.error) return ''; const a=String(d.generated_at||d.date||'').slice(0,10), age=bdAgeDays(d);
+  return a?' · '+esc(a)+(age>1?' <span style="color:var(--amber)">⚠ '+age+'일 전</span>':''):''; }
 function battleDailyHtml(d){   // 외부 작성 스냅샷 — 금액(원) 대신 수익률만 (공개 저장소 비율 원칙)
   const signed=v=>Number.isFinite(v)?(v>0?'+':'')+(v*100).toFixed(2)+'%':'—';
   const states={open:'보유 중',closed:'청산 조건 충족',cash:'현금',pending:'검증 보류',awaiting:'다음 거래일 대기'};
-  return '<div class="mu" style="font-size:var(--fs-1)">작성 '+esc(d.author||'외부')+' · 갱신 '+esc(d.generated_at||'미확인')+' · 확정 전적과 별도 · 실제 계좌 손익 아님</div>'+
+  const age=bdAgeDays(d);   // 유지보수 10/27: 10/19 스냅샷의 '보유 중'이 오늘 상태처럼 보이던 거짓 표시(#2-4) — 경과일 경고
+  return (age>1?'<div class="b" style="font-size:var(--fs-1);color:var(--amber)">⚠ '+age+'일 전 스냅샷 — 아래 상태(보유 중 등)는 '+esc(String(d.generated_at||d.date||'').slice(0,10))+' 기준, 현재 상태 아님 · 현재 전적은 위 확정 표</div>':'')+
+    '<div class="mu" style="font-size:var(--fs-1)">작성 '+esc(d.author||'외부')+' · 갱신 '+esc(d.generated_at||'미확인')+' · 확정 전적과 별도 · 실제 계좌 손익 아님</div>'+
     (d.battles||[]).map(b=>'<div style="margin-top:6px"><b style="font-size:var(--fs-2)">'+esc(b.date)+' '+esc(b.market==='US'?'미장':'국장')+'</b>'+
       (b.rows||[]).map(r=>'<div style="font-size:var(--fs-2);white-space:normal">'+esc(r.who)+' · '+esc(r.name||r.ticker||'현금')+' <b class="'+(r.ret>=0?'up':'dn')+'">'+signed(r.ret)+'</b> <span class="mu">'+esc(states[r.status]||'검증 보류')+' · '+esc(r.price_date||'—')+'</span></div>').join('')+'</div>').join('');
 }
@@ -280,7 +286,7 @@ function scoreView(){
      <div class="mu" style="font-size:var(--fs-1);margin-top:4px">${esc((S&&S.policy)||'')}${S&&S.bench?` · 벤치마크 ${esc(S.bench.KR.name)} / ${esc(S.bench.US.name)}`:''} · 한 판은 운, 20판 이상 쌓여야 실력</div></div></div>
    <div class="p c12"><h2>대결 누적 성과판<small>판별 · 참가자별 수익률 · 벤치 대비 · 보유 중 평가</small></h2><div class="b">
      ${B.length?B.slice(0,5).map(bsbBattleHtml).join('')+more(B,5,bsbBattleHtml,'지난 판'):'<div class="mu">기록 없음</div>'}
-     <details style="margin-top:6px"><summary class="mu" style="font-size:var(--fs-2);cursor:pointer">외부 일별 평가 스냅샷 (battle_daily)</summary>${battleDailyBox()}</details></div></div>
+     <details style="margin-top:6px"><summary class="mu" style="font-size:var(--fs-2);cursor:pointer">외부 일별 평가 스냅샷 (battle_daily)${(battleDailyBox(),bdSummaryTag())}</summary>${battleDailyBox()}</details></div></div>
    <div class="p c12"><h2>신호 성적<small>원천별 · 신호일 이후 시장 중앙값 대비 초과 · n&lt;30 판단 금지</small></h2><div class="b">${sigScoreCard()}</div></div>
    <div class="p c12"><h2>주문표<small>규정 [4] · 실현 R</small></h2><div class="b">${D.items?ticketBox(D,IU):''}</div></div>
    <div class="p c12"><h2>판단 기록<small>최근 3건 · 판단 근거·PB 판단·채점</small></h2><div class="b">

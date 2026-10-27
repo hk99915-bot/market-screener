@@ -7,7 +7,8 @@
    오늘(KST)보다 뒤면 날짜 대신 'YYYY-MM (부분 월)' + note 로 표기. 원천 수정은 퀀트(req-quant-14188e23). */
 function isaAsof(D){ const a=String(D.asof||''), today=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
   if(a&&a>today) return `${esc(D.note?String(D.note).split('.')[0]:a.slice(0,7)+' 부분 월')} <span class="mu">(원천 asof 가 월말 표기라 미래 날짜 — 표시 안 함)</span>`;
-  return `${esc(a||'—')}${D.note?' ('+esc(String(D.note).split('.')[0])+')':''}`; }
+  const age=/^\d{4}-\d{2}-\d{2}$/.test(a)?Math.round((Date.parse(today)-Date.parse(a))/864e5):NaN;   // 유지보수 10/27: 정적 스냅샷 경과일 명시(#2-4 점검)
+  return `${esc(a||'—')}${D.note?' ('+esc(String(D.note).split('.')[0])+')':''}${age>7?` <span style="color:var(--amber)">· ${age}일 전 정적 스냅샷(자동 갱신 없음)</span>`:''}`; }
 /* ILAB_CALC_BEGIN — DOM 없는 순수 계산 (screener/isa_lab.py 와 같은 정의·같은 순서) */
 function ilabNet(D,cost){ const A=D.assets; return D.months.map((_,t)=>A.map(a=>D.r[a][t]-(cost?D.drag[a]/12:0))); }
 function ilabW(D,wm){ const w=D.assets.map(a=>+(wm[a]||0)); const s=w.reduce((x,y)=>x+y,0); return s>0?w.map(x=>x/s):w; }
