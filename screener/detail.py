@@ -594,6 +594,12 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                           "cls": st0.get("class"), "sr": (v0.get("short") or {}).get("ratio"), "sr20": (v0.get("short") or {}).get("chg20")})
         from .guard import write_json
         write_json(REPORT_DIR / f"peers_{market}.json", {"asof": out["asof"], "rows": peers}, default=lambda x: None)
+        if market == "US":   # 종목별 drv·r20·r1 거래일 누적(req-dev-808893e4) — 실패해도 peers 파일엔 영향 없음
+            try:
+                from . import peers_hist
+                peers_hist.append(market, out["asof"], peers)
+            except Exception as e:  # noqa: BLE001
+                log.warning("peers 누적 실패: %s", e)
     except Exception as e:  # noqa: BLE001
         log.warning("동종 비교 파일 실패: %s", e)
     import shutil
