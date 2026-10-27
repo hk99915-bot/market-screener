@@ -1,7 +1,53 @@
 {
- "checked_at": "2026-10-27 15:51",
+ "checked_at": "2026-10-27 19:15",
  "n": 26,
- "late": [],
+ "late": [
+  {
+   "id": "detail_kr",
+   "path": "reports/detail/KR/_index.json",
+   "expected": "2026-10-27",
+   "actual": "2026-10-26",
+   "mode": "screener.yml KR (16:20 KST)",
+   "fix": "gh workflow run screener.yml -f market=KR -f no_send=true -f commit=true",
+   "desc": "KR 종목 상세 — KR 장마감 16:30 이후 당일"
+  },
+  {
+   "id": "latest_kr",
+   "path": "reports/latest_KR.md",
+   "expected": "2026-10-27",
+   "actual": "2026-10-26",
+   "mode": "screener.yml KR (16:20 KST)",
+   "fix": "gh workflow run screener.yml -f market=KR -f no_send=true -f commit=true",
+   "desc": "KR 스크리너 요약"
+  },
+  {
+   "id": "momentum_kr",
+   "path": "reports/momentum_KR.json",
+   "expected": "2026-10-27",
+   "actual": "2026-10-26",
+   "mode": "screener.yml KR (16:20 KST)",
+   "fix": "gh workflow run screener.yml -f market=KR -f no_send=true -f commit=true",
+   "desc": "KR 모멘텀 순위"
+  },
+  {
+   "id": "peers_kr",
+   "path": "reports/peers_KR.json",
+   "expected": "2026-10-27",
+   "actual": "2026-10-26",
+   "mode": "screener.yml KR (16:20 KST)",
+   "fix": "gh workflow run screener.yml -f market=KR -f no_send=true -f commit=true",
+   "desc": "KR 동종 비교"
+  },
+  {
+   "id": "valuation",
+   "path": "reports/valuation.json",
+   "expected": "2026-10-27",
+   "actual": "2026-10-26",
+   "mode": "screener.yml KR (16:20) · briefing valuation (07:10)",
+   "fix": "gh workflow run briefing.yml -f mode=valuation -f commit=true",
+   "desc": "반도체 밸류에이션 바스켓"
+  }
+ ],
  "regress_today": [],
  "regress_blocked": [
   {
