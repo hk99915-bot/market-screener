@@ -43,10 +43,13 @@ def test_grade_sheet_reads_quiz_and_drill_lines():
 def test_risk_courses_six_items_and_doc_text_does_not_pass():
     """10/24 리스크본부 신입 2명 과정 — 6문항씩, 문서의 문제 문장을 그대로 답으로 내도 통과 못 함(문두에 키 노출 금지)."""
     keys = G.load_onboarding()
+    # 컴플은 10/28 평행 재시험 q7~q12(문제 compliance_retest_1028.md, 답안 커밋 뒤 키 공개)까지 12문항
+    n_items = {"compliance": 12, "posrisk": 6}
+    docs = {"compliance": ["compliance_quiz.md", "compliance_retest_1028.md"], "posrisk": ["posrisk_quiz.md"]}
     for desk in ("compliance", "posrisk"):
         q = {k: v for k, v in keys.items() if v["desk"] == desk}
-        assert sorted(q) == [f"{desk}-q{i}" for i in range(1, 7)], desk
-        doc = (G.ONB_DOC_DIR / f"{desk}_quiz.md").read_text(encoding="utf-8")
+        assert sorted(q, key=lambda s: int(s.rsplit("q", 1)[1])) == [f"{desk}-q{i}" for i in range(1, n_items[desk] + 1)], desk
+        doc = "\n".join((G.ONB_DOC_DIR / f).read_text(encoding="utf-8") for f in docs[desk])
         for ln in doc.splitlines():
             m = G.DOC_QUIZ.match(ln)
             if m and m.group(1) in q:
