@@ -23,6 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import study_answer_lint  # noqa: E402  (정답↔해설 모순 검사, 같은 scripts/ 폴더)
+from quiz_shuffle import _val as _num_val, ordered_numeric  # noqa: E402  (숫자 보기 순서 — 셔플과 같은 판정)
 
 SRC = ROOT / "content" / "study"
 OUT = ROOT / "content" / "study.json"
@@ -170,6 +171,14 @@ def check_key_balance(items: list, where: str, c: Check) -> None:
         c.err(f"{where}: 정답이 유일하게 가장 긴 선택지 {lg}/{len(qs)} ({lg / len(qs):.0%}) > {LONGEST_FAIL_SHARE:.0%} — 오답지 길이 보강 (kb:edu#5③, G2 승격)")
     elif lg / len(qs) > LONGEST_WARN_SHARE:
         c.warn(f"{where}: 정답이 유일하게 가장 긴 선택지 {lg}/{len(qs)} ({lg / len(qs):.0%}) > {LONGEST_WARN_SHARE:.0%} — 실패선 {LONGEST_FAIL_SHARE:.0%} 접근 (kb:edu#5③)")
+
+
+def check_numeric_order(items: list, where: str, c: Check) -> None:
+    """숫자 보기는 값 순서로(Haladyna 2002 '논리·숫자 순서', kb:edu#5) — 10/27 22문항 정렬 뒤 0건, 새로 생기면 경고(req-edu-11644241 ②)."""
+    for i, q in enumerate(items):
+        ch = q.get("choices") or []
+        if len(ch) >= 3 and all(_num_val(x) is not None for x in ch) and not ordered_numeric(ch):
+            c.warn(f"{where}.{q.get('id', i)}: 숫자 보기 비정렬 {ch} — 값 순서로 놓고 python scripts/quiz_shuffle.py --write (kb:edu#5)")
 
 
 def why_thin(q: dict) -> bool:
@@ -333,11 +342,13 @@ def check_all(S: dict) -> Check:
             if top > 3:
                 c.err(f"quiz_bank: {mid} 같은 정답 위치 {top}/{len(ans)} > 3 (kb:edu#7c)")
         check_key_balance(all_items, "quiz_bank", c)
+        check_numeric_order(all_items, "quiz_bank", c)
         for it in all_items:
             if why_thin(it):
                 c.err(f"quiz_bank.{it.get('id')}: why 가 인용 태그뿐/한 문장 미만 — 오답자가 읽을 근거 한 문장 (kb:edu#7b, G2 승격)")
     # 모듈 quiz 도 같은 기준 (2026-10-23 셔플: scripts/quiz_shuffle.py · 10/24 G2 승격)
     check_key_balance([q for m in mods.values() for q in (m.get("quiz") or []) if "choices" in q], "모듈 quiz", c)
+    check_numeric_order([{**q, "id": f"{mid}#q{i}"} for mid, m in mods.items() for i, q in enumerate(m.get("quiz") or []) if "choices" in q], "모듈 quiz", c)
     for mid, m in mods.items():
         for i, q in enumerate(m.get("quiz") or []):
             if why_thin(q):

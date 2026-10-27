@@ -344,3 +344,13 @@ def test_g2_tag_only_why_fails(S):
     S2 = _mini()
     S2["tracks"][0]["modules"][0]["quiz"] = [dict(S2["tracks"][0]["modules"][0]["quiz"][0], why="[교육 보충]")] * 3
     assert any("why 가 한 문장 미만" in e for e in scc.check_all(S2).errors)
+
+
+def test_numeric_choices_sorted_real_and_warned_when_not(S):
+    """req-edu-11644241 ②: 숫자 보기는 값 순서(Haladyna) — 실제 콘텐츠 0건, 뒤섞으면 경고."""
+    assert not any("숫자 보기 비정렬" in w for w in scc.check_all(S).warnings)
+    qb = copy.deepcopy(S["quiz_bank"])
+    it = next(q for q in qb["items"] if q["id"] == "R1-b1")
+    it["choices"] = [it["choices"][i] for i in (2, 0, 3, 1)]
+    it["answer"] = it["choices"].index("+42.9%")
+    assert any("R1-b1" in w and "숫자 보기 비정렬" in w for w in scc.check_all({**S, "quiz_bank": qb}).warnings)
