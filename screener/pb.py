@@ -422,7 +422,7 @@ def band_status(x: float, regime: str) -> dict:
     elif x > cap + 0.005:       # denominator=D2
         st, tag = "over", f"상한 {cap*100:.0f}%({regime}) 초과 — 반도체 신규 매수 금지"
     elif x < SEMI_FLOOR - 0.005:   # denominator=D2
-        st, tag = "floor", f"하단 {SEMI_FLOOR*100:.0f}% 미만 — 재매수 허용(의무 아님)"
+        st, tag = "floor", f"하단 {SEMI_FLOOR*100:.0f}% 미만 — 재매수 허용(의무 아님 · 구속 스트레스 위반 중엔 금지, 10/26 결재 ③)"
     else:
         st, tag = "ok", "밴드 안 ✅"
     return {"x": x, "cap": cap, "trigger": SEMI_BAND, "floor": SEMI_FLOOR, "status": st, "tag": tag}
