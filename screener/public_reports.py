@@ -64,6 +64,7 @@ BOK_RESEARCH_SERIES = [(n, re.escape(n), None) for n in BOK_BBS.values()]
 BOK_LIST = ("https://www.bok.or.kr/portal/singl/newsData/listCont.do?pageIndex=1&targetDepth=3&menuNo={m}&syncMenuChekKey=1"
             "&searchCnd=1&searchKwd=&sort=1&pageUnit=10&depth2=201156&depth3={m}")
 BOK_DETAIL_N = 10   # 실행마다 상세(view.do)를 여는 최근 행 수 — PDF 링크·담당부서·한은 요지 1문장
+KCIF = "https://www.kcif.or.kr"
 SOURCES: list[dict] = [
     # ── 한국은행 ──
     {"id": "bok_press", "group": "한은", "inst": "한국은행", "series": BOK_SERIES,
@@ -90,6 +91,12 @@ SOURCES: list[dict] = [
      "urls": ["https://www.kif.re.kr/kif4/publication/pub_list?mid=10"]},
     {"id": "kcmi", "group": "정부·연구기관", "inst": "자본시장연구원", "series": [("KCMI 보고서", r".", None)], "parser": "kcmi",
      "urls": ["https://www.kcmi.re.kr/report/report_list"]},
+    # 국제금융센터(10/27 겸이 "앞으로 저것도 트래킹할 수 있나?" — KCIF '국내 주가 변동성 확대에 대한 해외시각') — 목록 HTML 직접 파싱.
+    # 특별일보(dailyList, 주제 탭 = pe) · 분석보고서(analysisList) · 이슈브리핑(briefList). 국제금융속보(매일 뉴스 요약)·주간·월간은 양이 많아 제외.
+    # robots.txt 가 'User-Agent : * / Disallow: : /'(형식 깨짐, 검색엔진만 허용 의도로 보임) → 하루 1회 목록 3장(각 10행)만, 상세·PDF 는 열지 않음.
+    {"id": "kcif", "group": "정부·연구기관", "inst": "국제금융센터", "parser": "kcif",
+     "series": [("특별일보", r"해외시각|특별일보", None), ("분석보고서", r"$^", None), ("이슈브리핑", r"$^", None)],
+     "urls": [f"{KCIF}/annual/dailyList?pp=10", f"{KCIF}/analysis/analysisList?pp=10", f"{KCIF}/brief/briefList?pp=10"]},
     {"id": "nabo", "manual": "첫 화면이 스크립트 리다이렉트(10/21 확인) — 수동", "group": "정부·연구기관", "inst": "국회예산정책처", "series": [("NABO 보고서", r"경제|재정|전망|동향", None)],
      "urls": ["https://www.nabo.go.kr/", "https://www.nabo.go.kr/ko/issue.do"]},
     # ── 시장기관 ──
@@ -275,7 +282,55 @@ def parse_kcmi_list(text: str, base: str = "https://www.kcmi.re.kr/report/report
     return out
 
 
-PARSERS = {"bok": parse_bok_list, "kcmi": parse_kcmi_list}
+# 게시판(목록 URL 경로) → 시리즈. 특별일보는 링크의 pe(주제 코드)로 세분 — 이름은 목록 상단 탭 버튼(period_<pe>)이 우선, 없으면 아래 상수.
+KCIF_BOARD = {"dailyList": "특별일보", "analysisList": "분석보고서", "briefList": "이슈브리핑"}
+KCIF_MN = {"001005": "특별일보", "001002": "국제금융속보", "001003": "주간보고서", "001004": "월간보고서"}
+KCIF_PE = {"002015": "주가 급락 해외시각", "002012": "한국 해외시각", "002011": "중동전쟁", "002014": "중동전쟁 시장반응",
+           "002013": "글로벌 무역갈등", "002002": "우크라이나 사태"}   # 2026-10-27 특별일보 탭(진행 중) 확인
+KCIF_ROW = re.compile(r'<li>\s*(?:<h5 class="tit_bar">(.*?)</h5>\s*)?<div class="tit_box">(.*?)</li>', re.S)
+
+
+def kcif_link(href: str) -> tuple[str, str | None, str | None, str | None]:
+    """상세 링크 정규화: 경로?rpt_no=N&mn=..(&pe=..) — 검색·페이지 꼬리(skey·sval·pg·pp) 제거. 반환 (link, rpt_no, mn, pe)."""
+    h = htmlmod.unescape(href)
+    path = h.split("?", 1)[0]
+    q = dict(re.findall(r"[?&](rpt_no|mn|pe)=([^&#]*)", h))
+    rpt, mn, pe = q.get("rpt_no") or None, q.get("mn") or None, q.get("pe") or None
+    link = urljoin(KCIF, path) + f"?rpt_no={rpt}" + (f"&mn={mn}" if mn else "") + (f"&pe={pe}" if pe else "")
+    return link, rpt, mn, pe
+
+
+def parse_kcif_list(text: str, base: str = KCIF + "/annual/dailyList") -> list[dict]:
+    """국제금융센터 목록(li > [h5.tit_bar] div.tit_box a[href=*View?rpt_no=N] p 제목 · div.txt_wrap span 작성자·발간일).
+    시리즈: 특별일보(mn=001005) 링크면 '특별일보·<주제>'(pe), 아니면 게시판 이름(분석보고서·이슈브리핑). tit_bar(주식·신흥국 등) = kind.
+    첨부 PDF 는 목록에 암호화 토큰(filePreview)만 있어 저장하지 않는다 — 링크는 상세 화면(reportView 등)."""
+    board = next((v for k, v in KCIF_BOARD.items() if k in base), "KCIF 보고서")
+    pe_names = {**KCIF_PE, **{k: _clean(v, 40) for k, v in re.findall(r'id="period_(\d+)"[^>]*>(.*?)</button>', text, re.S)}}
+    i = text.find('<ul class="page_list">')
+    out = []
+    for m in KCIF_ROW.finditer(text, i if i >= 0 else 0):
+        a = re.search(r'<a href="([^"]*View\?[^"]*rpt_no=\d+[^"]*)"[^>]*>\s*<p[^>]*>(.*?)</p>', m.group(2), re.S)
+        if not a:
+            continue
+        link, rpt, mn, pe = kcif_link(a.group(1))
+        tw = re.search(r'<div class="txt_wrap">(.*)', m.group(2), re.S)
+        spans = [_clean(s, 80) for s in re.findall(r"<span>(.*?)</span>", tw.group(1) if tw else "", re.S)]
+        spans = [s for s in spans if s]
+        dt = next((_date(s) for s in reversed(spans) if _date(s)), None)
+        bar = _clean((m.group(1) or "").replace("&nbsp;", " "), 60)
+        if mn == "001005":
+            series = "특별일보" + (f"·{pe_names[pe]}" if pe in pe_names else "")
+        elif mn in KCIF_MN and board == "KCIF 보고서":
+            series = KCIF_MN[mn]
+        else:
+            series = board
+        kind = bar.split(">")[-1].strip() if bar and not bar.startswith(("특별일보", "정기보고서")) else None
+        out.append({"title": _clean(a.group(2), 300), "link": link, "date": dt, "summary": None, "vid": None, "series": series,
+                    "kind": kind, "author": ", ".join(s for s in spans if not _date(s))[:80] or None, "rpt_no": rpt})
+    return [r for r in out if r["title"]]
+
+
+PARSERS = {"bok": parse_bok_list, "kcmi": parse_kcmi_list, "kcif": parse_kcif_list}
 
 
 def _get(url: str, timeout: int = 20) -> str:
@@ -386,15 +441,32 @@ def digest_ok(d: dict | None) -> bool:
     return bool(d) and all(d.get(k) for k in THREE + ("one_line",))
 
 
+def digest_index(digest: dict | None) -> dict:
+    """digest 항목 색인: id 와 링크 둘 다로 찾는다. 수집 전에 데스크가 사람 읽는 id 로 먼저 쓴 요약
+    (예: kcif_kospi_vol_20261027 = KCIF rpt_no=37642)도 같은 원문 링크면 그 발간물의 요약으로 본다 — 중복 '요약 대기' 방지."""
+    idx: dict = {}
+    for d in (digest or {}).get("items") or []:
+        if d.get("src") == "jiang":
+            continue
+        idx.setdefault(("id", d.get("id")), d)
+        if d.get("link"):
+            idx.setdefault(("link", fix_link(d["link"])), d)
+    return idx
+
+
+def digest_for(idx: dict, item: dict) -> dict | None:
+    return idx.get(("id", item.get("key"))) or (idx.get(("link", fix_link(item.get("link")))) if item.get("link") else None)
+
+
 def pending(pub: dict | None, digest: dict | None, today: date, days: int = 30) -> list[dict]:
     """최근 days일 발간물 중 digest 세 칸·한 줄 뷰가 없는 것 = 데스크 작업 목록(매크로 KB '공공 리포트 3종 작성 규칙')."""
-    dm = {i.get("id"): i for i in (digest or {}).get("items") or []}
+    idx = digest_index(digest)
     cut = str(today - timedelta(days=days))
     return [{k: i.get(k) for k in ("key", "date", "inst", "series", "title", "link")}
-            for i in (pub or {}).get("items") or [] if (i.get("date") or "") >= cut and not digest_ok(dm.get(i["key"]))]
+            for i in (pub or {}).get("items") or [] if (i.get("date") or "") >= cut and not digest_ok(digest_for(idx, i))]
 
 
-EXTRA = ("depart", "pdf", "kind", "author", "summary_src")   # 전용 파서가 주는 메타(있을 때만 저장)
+EXTRA = ("depart", "pdf", "kind", "author", "summary_src", "rpt_no")   # 전용 파서가 주는 메타(있을 때만 저장)
 
 
 def merge(old: list[dict], new: list[dict], src_id: str, inst: str, group: str, now: str, today: date) -> tuple[list[dict], int]:

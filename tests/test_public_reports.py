@@ -216,3 +216,70 @@ def test_public_card_carries_pdf_and_bok_gist():
                       "summary_src": "한은 게시 요지 첫 문장", "collected_at": "x"}], "calendar": [], "sources": []}
     row = rs.public_card(pub, date(2026, 10, 26))["items30"][0]
     assert row["pdf"].endswith(".pdf") and row["src_gist"] == "요지 문장이다." and row["status"] == "요약 대기"
+
+
+# ── 국제금융센터(KCIF) 목록 — 저장 HTML 축약 픽스처(2026-10-27 접속 발췌, 10/27 겸이 "앞으로 저것도 트래킹할 수 있나?") ──
+KCIF_SRC = next(s for s in pr.SOURCES if s["id"] == "kcif")
+
+
+def _kcif_get(u):
+    name = "daily" if "dailyList" in u else "analysis" if "analysisList" in u else "brief"
+    return (FIX / f"kcif_{name}_list.html").read_text(encoding="utf-8")
+
+
+def test_kcif_daily_list_series_by_topic_tab():
+    rows = pr.parse_kcif_list(_kcif_get("dailyList"), "https://www.kcif.or.kr/annual/dailyList?pp=20")
+    assert [r["rpt_no"] for r in rows] == ["37642", "37639", "37632"]
+    r = rows[0]
+    assert r["title"] == "최근 국내 주가 변동성 확대에 대한 해외시각(10.27)" and r["date"] == date(2026, 10, 27)
+    assert r["series"] == "특별일보·주가 급락 해외시각" and r["author"] == "이다영" and r["kind"] is None
+    assert r["link"] == "https://www.kcif.or.kr/annual/reportView?rpt_no=37642&mn=001005&pe=002015"   # 검색·페이지 꼬리 제거
+
+
+def test_kcif_analysis_and_brief_boards():
+    a = pr.parse_kcif_list(_kcif_get("analysisList"), "https://www.kcif.or.kr/analysis/analysisList?pp=20")
+    assert a[0]["series"] == "분석보고서" and a[0]["kind"] == "주식" and a[0]["title"] == "AI 생태계 내 순환금융 현황 및 리스크 점검"
+    assert a[0]["link"] == "https://www.kcif.or.kr/finance/financeView?rpt_no=37631&mn=002004" and a[0]["date"] == date(2026, 10, 23)
+    b = pr.parse_kcif_list(_kcif_get("briefList"), "https://www.kcif.or.kr/brief/briefList?pp=20")
+    assert b[0]["series"] == "이슈브리핑" and b[0]["kind"] == "신흥국" and b[0]["author"] == "김기봉,이윤탁"
+    sp = [r for r in b if r["rpt_no"] == "37600"][0]   # 이슈브리핑 목록에 섞여 나온 특별일보 = 링크(mn·pe) 기준 특별일보
+    assert sp["series"] == "특별일보·주가 급락 해외시각" and sp["kind"] is None
+    assert pr.parse_kcif_list('<ul class="page_list"><li><div class="tit_box">메뉴</div></li></ul>') == []
+
+
+def test_kcif_source_fetch_merge_and_failure():
+    rows, st = pr.fetch_source(KCIF_SRC, get=_kcif_get)
+    assert st["status"] == "ok" and st["n"] == len(rows) == 3 + 2 + 6
+    items, _ = pr.merge([], rows, "kcif", "국제금융센터", "정부·연구기관", "x", date(2026, 10, 27))
+    assert len(items) == len({r["rpt_no"] for r in rows})   # 게시판 간 겹친 발간물은 한 행
+    assert items[0]["rpt_no"] == "37642" and items[0]["series"].startswith("특별일보")
+
+    def blocked(u):   # Actions(해외 IP) 차단 가정 — 조용히 error 상태만 남기고 다른 소스 수집은 계속
+        raise OSError("403 Forbidden")
+    rows, st = pr.fetch_source(KCIF_SRC, get=blocked)
+    assert rows == [] and st["status"] == "error" and "www.kcif.or.kr" in st["reason"]
+
+
+def test_kcif_digest_written_before_collection_is_not_pending():
+    """애널이 10/27 먼저 요약한 rpt_no=37642(digest id kcif_kospi_vol_20261027)는 수집 key 가 달라도 같은 링크면 요약 있음."""
+    rows, _ = pr.fetch_source(KCIF_SRC, get=_kcif_get)
+    items, _ = pr.merge([], rows, "kcif", "국제금융센터", "정부·연구기관", "x", date(2026, 10, 27))
+    t = date(2026, 10, 27)
+    pub = pr.build_output(items, {"kcif": {"status": "ok", "n": len(items)}}, t, "n")
+    full = {"summary": ["s"], "view": "v", "our_take": "o", "one_line": "한 줄", "grade": "B", "confidence": "중", "source_checked": "원문 확인"}
+    dg = {"items": [dict(full, id="kcif_kospi_vol_20261027", src="kcif", date="2026-10-27", title="[국제금융센터 특별일보] 해외시각(10.27)",
+                         link="https://www.kcif.or.kr/annual/reportView?rpt_no=37642&mn=001005&pe=002015")]}
+    todo = {p["key"] for p in pr.pending(pub, dg, t)}
+    assert len(todo) == len(items) - 1 and not any(i["rpt_no"] == "37642" and i["key"] in todo for i in items)
+    c = rs.public_card(pub, t, dg)
+    hit = [r for r in c["items30"] if r["link"].endswith("rpt_no=37642&mn=001005&pe=002015")]
+    assert len(hit) == 1 and hit[0]["status"] == "ok" and hit[0]["one_line"] == "한 줄"   # 두 번 안 나옴
+    assert c["pending_n"] == len(items) - 1
+
+
+def test_real_digest_covers_kcif_37642():
+    """실제 digest.json 에 rpt_no=37642 요약이 있다 — 첫 수집 날 '요약 대기'로 중복 표시되지 않는 근거."""
+    import json
+    d = json.loads((Path(__file__).resolve().parents[1] / "reports/views/digest.json").read_text(encoding="utf-8"))
+    hit = pr.digest_for(pr.digest_index(d), {"key": "x", "link": "https://www.kcif.or.kr/annual/reportView?rpt_no=37642&mn=001005&pe=002015"})
+    assert hit["id"] == "kcif_kospi_vol_20261027"

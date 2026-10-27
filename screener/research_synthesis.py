@@ -167,10 +167,18 @@ def public_card(pub: dict | None, today: date, digest: dict | None = None) -> di
     srcs = {}
     for s in pub.get("sources") or []:
         srcs[s["status"]] = srcs.get(s["status"], 0) + 1
+    from .public_reports import digest_for, digest_index
     dm = {d.get("id"): d for d in (digest or {}).get("items") or [] if d.get("src") != "jiang"}
-    rows = [_pub_row(i, dm.get(i["key"])) for i in items if (i.get("date") or "") >= c30]
+    idx = digest_index(digest)
+    rows, used = [], set()
+    for i in items:
+        if (i.get("date") or "") >= c30:
+            d = digest_for(idx, i)   # id 또는 같은 원문 링크(데스크가 수집 전에 먼저 쓴 요약)
+            used.add(id(d))
+            rows.append(_pub_row(i, d))
     seen = {r["id"] for r in rows}
-    rows += [_pub_row(None, d) for k, d in dm.items() if k not in seen and (d.get("date") or "") >= c30]   # 수집 밖 1차 자료(국감 발언 등)
+    rows += [_pub_row(None, d) for k, d in dm.items()
+             if k not in seen and id(d) not in used and (d.get("date") or "") >= c30]   # 수집 밖 1차 자료(국감 발언 등)
     rows.sort(key=lambda r: r.get("date") or "", reverse=True)
     return {"status": "ok", "asof": pub.get("asof"), "groups": groups, "new7": new7, "calendar": cal, "sources": srcs,
             "label": pub.get("label"), "items30": rows, "pending_n": sum(r["status"] != "ok" for r in rows)}
