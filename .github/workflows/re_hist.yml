@@ -1,0 +1,55 @@
+name: re_hist
+run-name: "re_hist [${{ inputs.start }}~${{ inputs.end }}] commit=${{ inputs.commit }}"
+
+# 부동산 데스크 10/27 — 국토부 RTMS 서울 25개 구 매매 실거래 백필(기본 2021-07~2023-12) + 2022~23 반복매매 하락폭 비교.
+# 수동 실행 전용(예약 없음). 이어받기: data/realestate/rtms_hist/_manifest.json 의 완료 월은 건너뜀 → 호출 상한 넘으면 다시 실행.
+# 호출량: 25구 × 30개월 ≈ 750회(일 1회 screener 수집 ~150회와 별도). 키는 env 로만, 로그·파일에 남기지 않음(screener.realestate._scrub).
+# 롤백: 이 파일과 data/realestate/rtms_hist·reports/studies/re_bluezone_drawdown.json 삭제(다른 워크플로·탭 영향 없음).
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "시작 월 YYYYMM"
+        default: "202107"
+      end:
+        description: "끝 월 YYYYMM"
+        default: "202312"
+      max_calls:
+        description: "API 호출 상한"
+        default: "900"
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: re_hist
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 백필 + 분석
+        env:
+          PYTHONUNBUFFERED: "1"
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python -m screener.realestate_hist --fetch --analyze --start "${{ inputs.start }}" --end "${{ inputs.end }}" --max-calls "${{ inputs.max_calls }}"
+      - name: 저장
+        if: always() && inputs.commit == 'true'
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add data/realestate/rtms_hist reports/studies/re_bluezone_drawdown.json 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "realestate: RTMS 백필 ${{ inputs.start }}~${{ inputs.end }} $(date -u +%FT%H:%M)"
+          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 10; done
