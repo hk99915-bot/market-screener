@@ -2,7 +2,9 @@
 const fs = require('fs');
 const H = fs.readFileSync('index.html', 'utf8');
 const js = (H.match(/<script>([\s\S]*?)<\/script>/g) || []).map(b => b.replace(/<\/?script>/g, '')).join('\n;\n');
-const i = js.indexOf('const esc=s=>'); const escLine = js.slice(i, js.indexOf('\n', i));
+// esc 가 의존하는 한 줄 헬퍼(10/27 front 214dc7ed: noNuna)도 같이 — 없으면 esc 줄만
+const line = k => { const i = js.indexOf(k); return i < 0 ? '' : js.slice(i, js.indexOf('\n', i)); };
+const escLine = line('const noNuna=s=>') + '\n' + line('const esc=s=>');
 const t = js.slice(js.indexOf('function citeFmt('), js.indexOf('function eduView('));
 const EDONE = {}; const EDQ = []; const eduChips = () => ''; const escA = s => String(s);
 eval(escLine + '\n' + t + '\n;globalThis.eduModule=eduModule;');
