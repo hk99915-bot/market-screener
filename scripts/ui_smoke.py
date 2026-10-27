@@ -62,6 +62,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_us_detail(b, port)
         bad += await check_oneliner(b, port)
         bad += await check_my_ledger(b, port)
+        bad += await check_my_first_screen(b, port)
         bad += await check_re_private(b, port)
         bad += await check_re_drill(b, port)
         bad += await check_re_zoom(b, port)
@@ -871,6 +872,96 @@ async def check_msg_thread(b, port: int) -> int:
 SMALL_JS = """(()=>{ let n=0; for(const e of document.querySelectorAll('body *')){ if(e.closest('details:not([open])')||e.closest('canvas,svg')) continue;
   if(![...e.childNodes].some(c=>c.nodeType===3&&c.textContent.trim())) continue; const r=e.getBoundingClientRect(); if(!r.width||!r.height) continue;
   if(parseFloat(getComputedStyle(e).fontSize)<11) n++; } return n; })()"""
+
+
+def _my_fs_fixture(mode: str) -> dict:
+    """MY 첫 화면 가짜 pb-private 응답(개인 값 아님 — 스펙 docs/uxui/2026-10-28_my_tab_spec.md 의 가상값). mode: ok | none | stale | future.
+    반환: {경로 끝: 본문}. 날짜는 오늘(KST) 기준으로 만든다 — ok = 결론이 숫자보다 1일 뒤, stale = 4일 앞, future = 결론 날짜가 3일 뒤."""
+    import json as _json
+    from datetime import datetime, timedelta, timezone
+    today = datetime.now(timezone(timedelta(hours=9))).date()
+    d = lambda n: (today + timedelta(days=n)).isoformat()  # noqa: E731
+    la = d(-1)
+    latest = {"date": la, "dir": "analysis/fake-weekly", "asof": la, "comment": None, "report": "r.md", "images": [],
+              "kpis": [["주간 위성 북 vs 코스피", "+1.8% vs +1.2% (초과 +0.6%p)"], ["전주 대비", "평가액 +1,000원 · 수익률 −2.5% → +1.8%"],
+                       ["10월 누적 vs 코스피", "−12.0% vs −10.0%"], ["9/30 기초 이후 vs 코스피", "−12.0% vs −10.0% (초과 −2.0%p)"],
+                       ["위성 북 평가액", "1.00M (주간 손익 +1,000원)"], ["구속 스트레스", "−16.0% ⛔ (한도 −15%, 함의 상한 25.0% vs 현재 28.0%)"],
+                       ["위반 / 벌금 누적 / 매매 금지", "1건 (적용 0 · 경고 1) / 0원 / 없음"],
+                       ["FRM (b) 베타·스트레스 / 계기판 VaR·ES", "초과 1/4 · VaR 1.0% · 베타 1.00 · 스트레스 −16.0%"]],
+              "desks": [{"desk": "pb", "file": "analysis/fake-weekly/desk/pb.md"}, {"desk": "cio", "file": "analysis/fake-weekly/desk/cio.md"},
+                        {"desk": "frm", "file": "analysis/fake-weekly/desk/frm.md"}, {"desk": "behavior", "file": None},
+                        {"desk": "alloc", "file": "analysis/fake-weekly/desk/alloc.md"}, {"desk": "household", "file": None}],
+              "stats": {"asof": la, "wk_r": 0.018, "kospi": 0.012, "excess": 0.006, "viol": 1, "viol_live": 0, "stress": -0.16, "stress_ok": False,
+                        "semi_in": 0.28, "semi_ex": 0.20, "wk_r_prev": -0.025, "semi_cap_implied": 0.25}}
+    desk = {"frm": "# FRM\n\n- **구속 스트레스 ⛔ 초과 지속.** 가짜 한도 초과 문장이다. 둘째 문장은 더보기에만.\n- **둘째 줄:** 안 보임\n",
+            "cio": "# CIO\n\n- **성적 해석:** 가짜로 코스피를 앞섰다. 둘째 문장.\n",
+            "alloc": "# 자산배분\n\n- **적립:** 가상 예시 적립 12만원은 가려진다. 둘째 문장.\n"}
+    out = {"analysis/latest.json": _json.dumps(latest, ensure_ascii=False)}
+    out.update({f"analysis/fake-weekly/desk/{k}.md": v for k, v in desk.items()})
+    if mode != "none":
+        h = {"date": d(0), "asof": d(0), "text": "가짜 결론: 주간은 앞섰지만 스트레스 한도 초과 — 반도체 희석이 먼저", "by": "PB", "sources": [],
+             "next": ["가짜 행동 하나", "가짜 행동 둘"]}
+        if mode == "stale":
+            h.update(date=d(-5), asof=d(-5))
+        if mode == "future":
+            h.update(date=d(3))
+        out["analysis/headline.json"] = _json.dumps(h, ensure_ascii=False)
+    return out
+
+
+async def _my_fs_page(b, port: int, mode: str):
+    """390×844 터치 기기로 MY 탭을 열고(가짜 토큰·가짜 pb-private) 페이지·에러 목록을 돌려준다. 스크린샷 스크립트도 이걸 쓴다."""
+    fx = _my_fs_fixture(mode)
+    ctx = await b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = await ctx.new_page()
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.add_init_script("try{ if(!sessionStorage.getItem('_sm')){ sessionStorage.setItem('_sm','1'); localStorage.clear(); localStorage.setItem('mt_gh_tok','smoke'); } }catch(e){}")
+
+    def h(r):
+        u = r.request.url.split("?")[0]
+        key = u.split("/contents/", 1)[-1] if "/contents/" in u else ""
+        if key in fx:
+            return r.fulfill(status=200, content_type="text/plain", body=fx[key])
+        return r.fulfill(status=404, body="{}")
+    await pg.route("https://api.github.com/**", h)
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1200)
+    await pg.evaluate("setView('my')")
+    await pg.wait_for_timeout(2200)
+    return ctx, pg, errs
+
+
+async def check_my_first_screen(b, port: int) -> int:
+    """MY 첫 화면(UXUI 스펙 2026-10-28 §3·§6): 390×844 에서 ①결론 ②KPI 2×2 ③원인 ④다음 행동이 모두 844px 안 · 가로 스크롤 없음 ·
+    첫 화면 원화 금액 0 · '누나' 0 · 색 의미 2개(빨강 ⛔ 한도 초과, 앰버 확인 필요) · headline 없음/오래됨/미래 3상태 표시. 데이터는 가짜(route)."""
+    res = {}
+    for mode in ("ok", "none", "stale", "future"):
+        ctx, pg, errs = await _my_fs_page(b, port, mode)
+        r = await pg.evaluate("""(()=>{ const q=s=>document.querySelector(s), bt=s=>{const e=q(s); return e?Math.round(e.getBoundingClientRect().bottom+window.scrollY):9999;};
+          const f=q('#myfirst'), t=f?f.innerText:'';
+          return {t, b1:bt('#myfs1'), b2:bt('#myfs2'), b4:bt('#myfs4'), k:f?f.querySelectorAll('.myfs-k').length:0,
+            hs:document.documentElement.scrollWidth>window.innerWidth+1, desk:f?f.querySelectorAll('.myfs-d').length:0,
+            am:f?[...f.querySelectorAll('.am')].filter(e=>!e.closest('summary')).map(e=>e.textContent).join('|'):'', dn:f?f.querySelectorAll('.dn').length:0,
+            corr:!!q('#mycorr'), order:(()=>{const a=q('#myfirst'), c=q('#mycorr'), i=q('#myin'); return !!(a&&c&&i&&(a.compareDocumentPosition(c)&4)&&(c.compareDocumentPosition(i)&4));})()}; })()""")
+        res[mode] = (r, errs)
+        await ctx.close()
+    o = res["ok"][0]
+    import re as _re
+    won = _re.findall(r"\d[\d,.]*\s*(?:만|억)?\s*원", o["t"])
+    ok_ok = (o["b4"] <= 844 and o["k"] == 4 and not o["hs"] and not won and "누나" not in o["t"] and o["desk"] == 3 and o["order"]
+             and "가짜 결론" in o["t"] and "앞섬 +0.6%p" in o["t"] and "뒤짐 −2.0%p" in o["t"] and "⛔ 초과 1.0%p" in o["t"]
+             and "−2.5% → +1.8%" in o["t"] and "28.0% > 함의 상한 25.0%" in o["t"] and "가짜 행동 둘" in o["t"] and "1일 차이" in o["t"] and o["dn"] >= 1 and not o["am"])
+    n, s, f = res["none"][0], res["stale"][0], res["future"][0]
+    ok_none = "PB 결론 미갱신(읽기 실패)" in n["am"] and "오늘 PB 미작성" in n["t"] and n["b4"] <= 844
+    ok_stale = "PB 결론 미갱신(마지막" in s["am"] and "4일 차이" in s["am"] and s["b4"] <= 844
+    ok_fut = "날짜 확인 필요" in f["am"] and f["b4"] <= 844
+    errs = [e for m in res.values() for e in m[1]]
+    ok = ok_ok and ok_none and ok_stale and ok_fut and not any(r[0]["hs"] for r in res.values()) and not errs
+    print(f"{'OK ' if ok else 'BAD'} MY첫화면(390×844) 결론↓{o['b1']} KPI↓{o['b2']} 행동↓{o['b4']}px KPI칸={o['k']} 데스크줄={o['desk']} 금액={len(won)} 가로스크롤={'있음' if o['hs'] else '없음'}"
+          f" · 없음={'O' if ok_none else 'X'}({n['b4']}) 오래됨={'O' if ok_stale else 'X'}({s['b4']}) 미래={'O' if ok_fut else 'X'}({f['b4']}) 순서={'O' if o['order'] else 'X'}"
+          + (f" · 에러: {errs[0][:160]}" if errs else "") + ("" if ok else f" · 본문: {o['t'][:300]!r} · 앰버: {o['am']!r}"))
+    return not ok
 
 
 async def check_uxui_rest(b, port: int) -> int:
