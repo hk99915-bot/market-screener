@@ -519,6 +519,14 @@ def p_datagokr():
     print("SUMMARY 주택금융공사 전세자금대출 금리 | endpoint 미확인 — 활용신청 상세 페이지 요청주소 확인 필요")
 
 
+def p_fsc_range():
+    """금융위 V2 7종 과거 백필 가능 범위(옛 기준일 totalCount 만, 값 저장 없음) — req-data-784ffc43."""
+    import json, os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from screener import fsc_daily
+    print("SUMMARY fsc_range", json.dumps(fsc_daily.probe_range(), ensure_ascii=False))
+
+
 def p_seoul_apt():
     """서울 25개 구 아파트 매매·전세 실거래 요약(최근 3개월) — 국토부 API, 키 미출력. 10/24 겸이 '현실적으로 접근 가능한 범위 추천·서울 지역별 코멘트'."""
     import os, statistics, xml.etree.ElementTree as ET

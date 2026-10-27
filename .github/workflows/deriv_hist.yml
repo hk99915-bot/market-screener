@@ -67,6 +67,18 @@ jobs:
           else
             mkdir -p reports/logs; python -m screener.deriv_hist --task "$T" --days "${{ github.event.inputs.days || '0' }}" ${{ github.event.inputs.redo && format('--redo {0}', github.event.inputs.redo) || '' }} 2>&1 | sed -E 's/(로그인 ID:).*/\1 ***/' | tee reports/logs/deriv_hist.txt
           fi
+      - name: 금융위 V2 원자료 캐시 (공공누리 4유형 — 저장소 대신 Actions cache, req-data-cb6315c2)
+        if: steps.g.outputs.go == 'true'
+        uses: actions/cache@v4
+        with:
+          path: data/fsc
+          key: fsc-raw-${{ github.run_id }}
+          restore-keys: fsc-raw-
+      - name: 금융위 V2 T+1 일일 수집 (req-data-784ffc43 — 원자료 비공개, 공개는 상태만 · 백필 범위는 task=probe days=fsc_range)
+        if: steps.g.outputs.go == 'true' && github.event.inputs.task != 'probe'
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python -m screener.fsc_daily --days 3 2>&1 | tail -3 || echo "::warning::fsc_daily 실패"
       - name: 금융위 종가 ↔ 우리 일봉 대조 (req-data-23bdae79 ② — 읽기·표본 대조, 실패해도 계속)
         if: steps.g.outputs.go == 'true' && github.event.inputs.task != 'probe'
         env:
@@ -85,7 +97,7 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          for p in data/deriv reports/deriv_hist_status.json reports/vkospi.json reports/fsc_close_check.json reports/fsc_bond_check.json reports/studies/gamma_regime.json views/registry.json reports/logs/deriv_probe.txt reports/logs/deriv_hist.txt; do [ -e "$p" ] && git add -A "$p"; done; true
+          for p in data/deriv reports/deriv_hist_status.json reports/vkospi.json reports/fsc_close_check.json reports/fsc_bond_check.json reports/fsc_daily_status.json reports/studies/gamma_regime.json views/registry.json reports/logs/deriv_probe.txt reports/logs/deriv_hist.txt; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "deriv: $(date -u +%FT%H:%M)"
           git stash -q -u 2>/dev/null || true
           ok=0
