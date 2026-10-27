@@ -113,3 +113,23 @@ def test_my_tab_shocks_match_pb():
     core = {k: float(v) for k, v in re.findall(r"'([^']+)':(-?[\d.]+)", m.group(4))}
     assert core == sc["core"]
     assert "-0.30:c.kind==='elec'?-0.24" not in src   # 옛 대리 충격 잔존 금지
+
+
+def test_2022_reference_is_non_binding():
+    """겸이 10/26 결재(req-pb-036d2f5b 절충): 2022형은 계기판 병기만 — ⛔ 판정은 '2026-07' 하나. 코어 바구니 전부에 충격."""
+    sc = pb.STRESS_SCENARIOS["2022"]
+    assert sc["binding"] is False
+    from screener.defs import ISA_TARGET
+    assert set(sc["core"]) == set(ISA_TARGET)
+    ev = {"stress": {"2026-07": -0.10, "2022": -0.20}, "stress_denom": "D2"}
+    assert "✅" in pb.stress_line(ev)                       # 2022 가 −20% 여도 구속 판정은 2026-07 만
+    ref = pb.stress_ref_lines(ev)
+    assert len(ref) == 1 and "2022형" in ref[0] and "⛔" not in ref[0] and "판정 아님" in ref[0] and "원" not in ref[0]
+
+
+def test_stress_uses_chain_class_not_official_sector():
+    """req-frm-585cd67f(교육) FRM 판정: 스트레스 충격은 실측 행태 묶음(체인 분류 semi/elec)으로 건다 — 밴드용 공식 섹터(semi_new)가 아니다.
+    삼성전기는 공식 섹터로 반도체가 아니어도 2026-07 실측 −60.5%(반도체보다 깊음) → elec 충격이 빠지면 꼬리를 과소 계산한다."""
+    rows = [{"book": "sat", "v": 1000.0, "semi": False, "elec": True, "semi_new": False, "look": 0.0},
+            {"book": "sat", "v": 1000.0, "semi": True, "elec": False, "semi_new": False, "look": 0.0}]   # 예: 공식 섹터는 하드웨어·저장장치
+    assert pb.stress_loss(rows, 2000.0, "2026-07") == pytest.approx((-600 - 500) / 2000)

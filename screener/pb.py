@@ -192,6 +192,12 @@ def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains
 STRESS_SCENARIOS = {
     "2026-07": {"label": "2026-07 실측(06/22→07/30, 반도체 −50%)", "semi": -0.50, "elec": -0.60, "look": -0.50,
                 "core": {"K200": -0.41, "S&P500": -0.08, "NDX": -0.16, "KTB": 0.0, "Gold": -0.04}},
+    # 2022형(주식·채권 동반 하락) — 계기판 병기만, 비구속(겸이 10/26 결재 req-pb-036d2f5b 절충: 구속 편입 여부는 11/15). ⛔ 판정에 안 들어간다.
+    #   구간 2022-01-03 → 09-30(코스피 2022 저점, 원화 종가 data/hist/kr_etf_daily·kr_2022). semi = KODEX 반도체 −43.7% · elec = 삼성전기 −42.4% ·
+    #   코어: K200 KODEX 200 −27.9 · S&P500 TIGER −8.0 · NDX TIGER 나스닥100(133690, 379810 상장 전 대리) −18.1 · KTB 국고채3년 −4.4 ·
+    #   Gold KODEX 골드선물(H) −8.5 (보유 411060 원화 금은 2022 미상장 — GLD×환율 근사 +10.5%라 이 값이 보수 쪽, reports/studies/2026-10-28_frm_core_lookthrough.md)
+    "2022": {"label": "2022형 실측(01/03→09/30, 주식·채권 동반 하락)", "binding": False, "semi": -0.44, "elec": -0.42, "look": -0.44,
+             "core": {"K200": -0.28, "S&P500": -0.08, "NDX": -0.18, "KTB": -0.04, "Gold": -0.09}},
 }
 from .defs import STRESS_LIMIT   # 0.15 — 어느 시나리오도 −15% 초과 금지 (scorecard_week [11] 스트레스 와 같은 수치)
 STRESS_DENOMINATORS = ("D2", "D1", "EQ")   # docs/rules_terms.md §0: D2 전체 투자자산(기본, 결재 #1 (b) 가정) · D1 위성 북 · EQ 주식만(참고)
@@ -231,7 +237,7 @@ def stress_loss(rows: list[dict], denom: float, scenario: str = "2026-07", books
 
 
 def stress_ref_lines(ev: dict) -> list[str]:
-    """참고 시나리오(binding False) 줄 — 비율만, ⛔ 없음(구속 한도 판정은 stress_line 의 '2026-07' 만). 현재 참고 키 없음(10/24 결재로 실측이 구속으로 승격)."""
+    """참고 시나리오(binding False) 줄 — 비율만, ⛔ 없음(구속 한도 판정은 stress_line 의 '2026-07' 만). 현재 참고 키 = '2022'(계기판, 10/26 결재)."""
     out = []
     for k, sc in STRESS_SCENARIOS.items():
         if sc.get("binding", True) or k not in (ev.get("stress") or {}):
@@ -560,7 +566,7 @@ def brief_keys() -> tuple[str | None, list[str]]:
     L.append(semi_line(ev))
     L += band_lines(ev)
     L.append(stress_line(ev))   # 비율만 (금액 금지)
-    L += stress_ref_lines(ev)   # binding False 참고 시나리오 (현재 없음 — 있으면 ⛔ 없이 1줄씩)
+    L += stress_ref_lines(ev)   # binding False 참고 시나리오 ('2022' 계기판 — ⛔ 없이 1줄씩)
     L += isa_lines(ev)
     for code, px in price_rules.items():
         r = next((x for x in rows if x["s"].upper() == code), None)
