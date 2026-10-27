@@ -166,3 +166,17 @@ def test_symbol_form_consistent_collect_to_data():
     eod = {"date": "2026-10-20", "bars": rec["bars"]}
     out, info = data.fill_last_day(px, WANT, eod)
     assert info["filled"] == 3   # 키가 그대로 맞물림(변환 없음)
+
+
+def test_shadow_check_when_yahoo_fresh(tmp_path, monkeypatch):
+    """검수 req-dev-3f06d142: 야후 정상(기대 거래일 10/20 봉 있음)이어도 토스 prev(10/20) vs 야후 대조를 기록 — 보충 없음, mode=shadow."""
+    monkeypatch.setattr(guard, "_report_dir", lambda: tmp_path)
+    px0 = _yahoo(n_extra=95)
+    px, info = smain.us_toss_fill(px0, WANT, NOW, load=lambda: _eod(n_extra=95))
+    assert info is None and px.equals(px0)
+    rep = json.loads((tmp_path / "toss_eod_check.json").read_text(encoding="utf-8"))["last"]
+    assert rep["mode"] == "shadow" and rep["n_overlap"] == 100 and rep["match_pct"] == 100.0 and rep["prev_date"] == "2026-10-20"
+
+    def boom():
+        raise RuntimeError("net")
+    assert smain.us_toss_fill(px0, WANT, NOW, load=boom) == (px0, None)   # 실패해도 조용히 통과(로그만)

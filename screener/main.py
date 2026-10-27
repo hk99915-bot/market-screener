@@ -70,13 +70,26 @@ def us_toss_fill(px, asof, now: datetime, load=None):
     토스 파일 없음·날짜 다름 → (px, None) 그대로 → 아래 기준일 가드가 기존대로 STALE."""
     from . import guard, tradecal
     exp = tradecal.expected_session("US", now)
-    if asof is None or asof >= exp:
+    if asof is not None and asof >= exp:   # 야후 정상 = 보충 없음. 대신 섀도 대조만 기록(검수 req-dev-3f06d142: 게이트 실발동 0회라 증거 축적)
+        try:
+            eod = (load or data.load_toss_eod)()
+            if eod and eod.get("prev"):
+                chk = data.check_toss_eod(px, exp, eod)
+                chk["mode"] = "shadow"
+                data.write_toss_check(chk, guard._report_dir() / "toss_eod_check.json")
+                log.info("토스 섀도 대조(보충 없음): 겹침 %s%% · 일치 %s%% · 최대 괴리 %s %s%%", chk["overlap_pct"], chk["match_pct"],
+                         chk["max_dev_sym"], chk["max_dev_pct"])
+        except Exception as e:  # noqa: BLE001
+            log.warning("토스 섀도 대조 실패: %s", e)
+        return px, None
+    if asof is None:
         return px, None
     eod = (load or data.load_toss_eod)()
     if not eod or str(eod.get("date")) != exp.isoformat():
         return px, None
     # 실데이터 검증 게이트(10/21 오너 "검증을 하고 넣어"): 토스 prev(직전 거래일) vs 야후 같은 날짜 봉 → 통과해야 보충, 불일치 종목 개별 제외
     chk = data.check_toss_eod(px, exp, eod)
+    chk["mode"] = "gate"
     try:
         data.write_toss_check(chk, guard._report_dir() / "toss_eod_check.json")
     except Exception as e:  # noqa: BLE001
