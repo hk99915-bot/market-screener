@@ -274,6 +274,18 @@ def _krx_override(ser: dict) -> None:
         log.warning("KRX 지수 보정 실패: %s", e)
 
 
+KR_CONFIRM_HHMM = "16:20"   # KRX 지수 종가 확정·_krx_override 보정 시각 — 그 전 오늘 봉은 야후 잠정치(10/22 KOSPI 5,539.94 → 확정 5,533.77)
+
+
+def kr_provisional(ser: dict, now: datetime | None = None) -> dict:
+    """req-dev-082223e8(묶음 C ①): 16:20 KST 전에 쓴 macro_series 의 KOSPI·KOSDAQ 오늘 봉 = '잠정' → {키: 날짜}. 이후·과거 봉이면 빈 dict."""
+    now = now or datetime.now(ZoneInfo("Asia/Seoul"))
+    today = now.strftime("%Y-%m-%d")
+    if now.strftime("%H:%M") >= KR_CONFIRM_HHMM:
+        return {}
+    return {k: today for k in ("KOSPI", "KOSDAQ") if (ser.get(k) or [[None]])[-1][0] == today}
+
+
 def write_macro_series(macro: pl.DataFrame | None = None) -> None:
     """매크로 지표 일봉 OHLCV 2년 → reports/macro_series.json (웹 티커·매크로 표 클릭 차트용).
     항목: [날짜, 시가, 고가, 저가, 종가, 거래량]. 스크린용 200일 데이터와 별도로 2년치를 받는다."""
@@ -335,7 +347,11 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
             from .guard import record_stale
             for k, got in stale.items():
                 record_stale("reports/macro_series.json", k, new_asof, got)
-        write_json(REPORT_DIR / "macro_series.json", {"asof": new_asof, "fmt": "dohlcv", "series": ser, "stale": stale})
+        prov = kr_provisional(ser)   # 16:20 전 KR 지수 오늘 봉 = 야후 잠정치 → 화면·소비자가 '잠정' 표시(16:20 스크리너 실행이 지움)
+        if prov:
+            log.info("KR 지수 오늘 봉 잠정(16:20 전): %s", ",".join(prov))
+        write_json(REPORT_DIR / "macro_series.json", {"asof": new_asof, "fmt": "dohlcv", "series": ser, "stale": stale,
+                                                      "provisional": prov, "provisional_note": f"KR 지수 {KR_CONFIRM_HHMM} KST 전 = 야후 잠정치, KRX 확정 전" if prov else ""})
         try:
             from . import macroview
             macroview.build()
