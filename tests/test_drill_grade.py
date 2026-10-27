@@ -75,3 +75,24 @@ def test_required_keys_and_weak_key_reverse_checks():
     # compliance-q3: '리스크' 만으로는 FRM 키를 못 맞힌다
     assert "FRM" in G.grade(onb["compliance-q3"], "리스크본부가 본다")["miss"]
     assert G.check_onboarding() == []
+
+
+def test_compliance_keys_reject_eval_wrong_answers():
+    """평가 역검수 10/28(eval_track_k.md) — 0.88/0.67/0.83 로 통과하던 오답 3건이 필수 키로 불통과, 모범답·바른 요약은 통과."""
+    onb = G.load_onboarding()
+    q1, q3, q6 = onb["compliance-q1"], onb["compliance-q3"], onb["compliance-q6"]
+    w1 = "✅ 시행 중, 🗳️ 결정 대기, 🔒 잠금 자동 약속, 🌙 22시 이후 합의. 밤 12시 변경은 즉시 시행하고 확인 불필요. 22시 금지는 규칙 변경 포함 모든 답변에 걸린다."
+    r = G.grade(q1, w1)
+    assert not r["pass"] and r["req_miss"]
+    assert G.grade(q1, "✅ 시행 중, 🗳️ 결정 대기, 🔒 자동 약속, 🌙 22시 이후 합의. 🌙 로 적고 07시 이후 맞아 확인 뒤 시행, 22시 금지는 규칙 변경에만")["pass"]
+    w3 = "능동 위반이라 즉시 매도, 크기 0.3%p. 위반 중 완화 금지, 시나리오는 FRM"
+    r = G.grade(q3, w3)
+    assert not r["pass"] and "수동/passive" in r["req_miss"]
+    assert "re:매수[^.]{0,20}능동/re:능동[^.]{0,20}(원상|매수)" in r["miss"]   # 맨 '능동' 은 키를 못 맞힌다
+    assert G.grade(q3, "수동 위반 0.3%p, 기한 정해 해소. 매수로 넘겼다면 능동. 위반 중 완화 금지, 시나리오는 FRM")["pass"]
+    w6 = "쿨다운은 PB 말이니 바로 시행. 결재 없이 커밋됐고 새 숏 진입이라 손절·독립성 검사"
+    r = G.grade(q6, w6)
+    assert not r["pass"] and r["req_miss"]
+    assert G.grade(q6, "결정 아님(결재 없이 바꿈), 부모 없는 헤지는 새 숏이라 손절·독립성 검사, 쿨다운도 규칙 변경이라 결재 필요")["pass"]
+    for it in (q1, q3, q6):
+        assert G.grade(it, it["answer"])["score"] == 1.0
