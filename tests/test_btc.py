@@ -41,3 +41,21 @@ def test_alert_threshold_on_live_move():
 def test_too_few_bars_says_no_data():
     o = btc.build([["2026-10-22", 1, 2, 0.5, 1.5, 1]], datetime(2026, 10, 23, tzinfo=timezone.utc))
     assert o["ok"] is False and "데이터 없음" in o["why"]
+
+
+def test_committee_btc_line_splits_closed_and_live(tmp_path, monkeypatch):
+    """운용회의 한 줄: 확정 UTC 일봉과 진행 중 봉을 날짜로 갈라 적고, 오래된 값·alert 는 처리(req-dev-54eba83d 5단계)."""
+    import json
+    from datetime import date
+    from screener import committee
+    base = {"ok": True, "closed_asof": "2026-10-22", "live_date": "2026-10-23", "close": 81312.0, "chg_1d_pct": -3.21,
+            "live_px": 81619.0, "chg_live_pct": 0.38, "trend": "혼조", "atr14_pct": 2.54, "alert": False, "alert_pct": 5.0}
+    (tmp_path / "btc.json").write_text(json.dumps(base), encoding="utf-8")
+    monkeypatch.setattr(committee, "REPORT_DIR", tmp_path)
+    monkeypatch.setattr(committee, "_kst_today", lambda: date(2026, 10, 23))
+    s = committee._btc_line()
+    assert "10-22 확정" in s and "진행 중 10-23" in s and "경보" not in s
+    (tmp_path / "btc.json").write_text(json.dumps({**base, "alert": True}), encoding="utf-8")
+    assert "±5% 변동 경보" in committee._btc_line()
+    monkeypatch.setattr(committee, "_kst_today", lambda: date(2026, 11, 3))
+    assert committee._btc_line() is None   # 5일 넘은 값은 쓰지 않음

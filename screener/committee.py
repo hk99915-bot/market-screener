@@ -57,6 +57,26 @@ def _ai_credit_line() -> str | None:
     return None
 
 
+def _btc_line() -> str | None:
+    """비트코인 한 줄(req-dev-54eba83d 5단계) — reports/btc.json. 24시간 시장이라 확정 UTC 일봉과 진행 중 봉을 날짜로 갈라 적는다.
+    5일 넘은 값은 무시, 실패해도 회의엔 영향 없음."""
+    try:
+        b = _j("btc.json", {}) or {}
+        if not b.get("ok") or not b.get("closed_asof") \
+                or (_kst_today() - date.fromisoformat(str(b["closed_asof"])[:10])).days > 5:
+            return None
+        s = f"비트코인 {b['close']:,.0f}달러(UTC 일봉 {str(b['closed_asof'])[5:]} 확정, {b['chg_1d_pct']:+.1f}%)"
+        if b.get("live_px") and b.get("live_date"):
+            s += f" · 진행 중 {str(b['live_date'])[5:]} {b['live_px']:,.0f}달러({(b.get('chg_live_pct') or 0):+.1f}%)"
+        s += f" · 추세 {b.get('trend')} · ATR {b.get('atr14_pct')}%"
+        if b.get("alert"):
+            s += f" · ±{b.get('alert_pct'):g}% 변동 경보"
+        return s
+    except Exception as e:  # noqa: BLE001
+        log.info("BTC 줄 실패: %s", e)
+    return None
+
+
 def _kospi_state() -> dict:
     src = "야후 일봉"
     ms = (_j("macro_series.json", {}) or {}).get("series", {}).get("KOSPI") or []
@@ -475,6 +495,9 @@ def build(session: str = "장후") -> dict:
     _acl = _ai_credit_line()
     if _acl:
         head.append(_acl)
+    _btc = _btc_line()
+    if _btc:
+        head.append(_btc)
     try:   # 일본: 닛케이·일본 피어 그룹·엔 캐리 — 규칙에 걸릴 때만 한 줄
         from . import japan
         _jl = japan.committee_line()
@@ -1692,6 +1715,9 @@ def build_us() -> dict:
     _acl = _ai_credit_line()
     if _acl:
         head.append(_acl)
+    _btc = _btc_line()
+    if _btc:
+        head.append(_btc)
     lo = k.get("low20") if k else None
     scen = [
         {"name": "강세 — 고점 경신", "prob": p.get("bull"), "def": "20거래일 뒤 S&P500 +3% 초과",

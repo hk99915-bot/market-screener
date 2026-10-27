@@ -356,6 +356,11 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
             realestate.build()
         except Exception as e:  # noqa: BLE001
             log.warning("부동산 트래킹 실패: %s", e)
+        try:   # 비트코인 트래킹(req-dev-54eba83d 2단계) — 방금 쓴 macro_series BTC 로 reports/btc.json, 실패해도 매크로엔 영향 없음
+            from . import btc
+            btc.run()
+        except Exception as e:  # noqa: BLE001
+            log.warning("BTC 트래킹 실패: %s", e)
     except Exception as e:  # noqa: BLE001
         log.warning("매크로 시계열 저장 실패: %s", e)
 
