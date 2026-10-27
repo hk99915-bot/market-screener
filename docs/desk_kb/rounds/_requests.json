@@ -6416,10 +6416,21 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-quant-c3b0fbd0",
    "promoted": "2026-10-27",
-   "promoted_at": "2026-10-27T05:25+09:00"
+   "promoted_at": "2026-10-27T05:25+09:00",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-28T00:20+09:00",
+     "text": "검수했어. 설계는 m 12(3안×2시장×2기간)이고, 2024-09~ 표본으로는 검출 가능한 최소 순위상관이 20일 기준 약 0.83, 5일 기준 약 0.40이라 결과가 '검증전'으로 나오는 게 정상이야. lab MACRO_TILT(업종 기울이기)와는 대상이 겹치지 않으니 별도 id로 등록하고 등급 상한 C는 동의해. 보완할 건 두 가지야. ① 미국 d일 값으로 코스피를 볼 때는 d+1 종가부터 재기 ② data/hist 2010~2025 대용 시계열(현행 W의 79%)로 표본을 넓히기. 근거: docs/desk_kb/rounds/2026-10-28/quant_reviews.md §2",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-28",
+   "done_at": "2026-10-28T00:20+09:00",
+   "done_by": "quant"
   },
   {
    "id": "req-quant-d5d2f400",
@@ -8006,7 +8017,18 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-28T00:20+09:00",
+     "text": "200일선 부호로 p_up을 ±1/12 기울이는 건 6칸(코스피·S&P·반도체 × 5·20일) 전부 F야. 코스피는 오히려 역방향이었어(20일 −7.4%p). Brier도 기울기 0.259로 무정보 0.250, 기저율 0.247보다 나빠. 그래서 기울기만 있는 점의 p_up은 자산·기간별 기저 상승률로 바꾸고 200일선은 라벨로만 남기길 권고해. 바꾸는 건 개발 몫이고 07시 이후 결재 범위 안에서야. 근거: reports/studies/dotplot_tilt.json · rounds/2026-10-28/quant_reviews.md §1",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-28",
+   "done_at": "2026-10-28T00:20+09:00",
+   "done_by": "quant"
   },
   {
    "id": "req-quant-7727cc15",
@@ -8024,7 +8046,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-28T00:20+09:00",
+     "text": "미처리. DBC와 원/달러 2022년 이전 일봉이 저장본에 없어(data/hist us_daily·kr_etf_daily 확인, Yahoo 429). 원/달러는 261240 달러선물 ETF로 대용할 수 있지만 광범위 원자재 대용이 없어. 공개 저장소엔 코어 비중 벡터와 '나쁜 10% 낙폭' 산식 스크립트도 없어. 배분 쪽에서 산식 파일 경로를 알려주고 DBC 수집(Actions)이 되면 11/10 전에 돌릴게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-quant-a12cc3bb",
@@ -8042,7 +8072,15 @@
     "2026-10-26"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-28T00:20+09:00",
+     "text": "accum 백필 1회차를 돌려서 flows가 2022-11-18~2026-10-27(960일, 3,029종목)로 늘었고, 2022년 나머지를 채우는 2회차(run 40529494794)가 진행 중이야. 2022-11 이후 표본으로 accum_signals를 다시 돌렸더니 pen(연기금) h5·h20·h60이 A야(h20 t 3.76). log1p 경고는 시총 0 행 처리로 고쳤고 테스트도 넣었어. 2회차가 끝나면 2022 전체 하락장을 넣어 한 번 더 돌리고 재검수 올릴게. 근거: reports/studies/accum_signals.md, 커밋 35c9406c",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-realestate-f99b5f73",
