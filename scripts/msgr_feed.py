@@ -155,16 +155,14 @@ def build(ledger: dict, rounds: Path, now: datetime) -> dict:
     st = {}
     for x in items:
         st[x["status"]] = st.get(x["status"], 0) + 1
-    chat = sorted(ledger.get("chat", []), key=lambda c: c.get("at") or "")[-200:]   # 사담(ask.py --chat) 최근 200줄
     prof = profiles(rounds.parent / "CHARACTERS.md")
     for p in prof:
         k = p["key"]
         p["open_in"] = sum(1 for x in items if x.get("to") == k and x.get("status") != "done")
         p["sent"] = sum(1 for x in items if x.get("from") == k)
         p["replies"] = sum(1 for x in items for r in x.get("replies", []) if r.get("by") == k and r.get("voc"))
-        last = [c for c in chat if c.get("by") == k]
-        p["last_chat"] = last[-1]["text"] if last else ""
-    feed = {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st, "chat": chat, "profiles": prof,
+    feed = {"asof": now.strftime("%Y-%m-%d %H:%M"), "n": len(items), "status": st, "profiles": prof,
+            "chat_note": "사담은 pb-private chat/private_chat.json 하나(10/28 통합) — 공개 피드엔 안 실음",
             "n_reply": sum(1 for x in items if x["replies"]),
             "n_voc": sum(1 for x in items for p in x["replies"] if p.get("voc")),
             "items": items}

@@ -814,17 +814,18 @@ MSG_FIX = {"asof": "2026-10-26 23:00", "status": {"done": 1, "open": 1}, "profil
                  {"by": "dev", "at": "2026-10-20T11:00+09:00", "text": "진행자 메모 2", "voc": False, "sec": "보류"},
                  {"by": "dev", "at": "2026-10-26T20:00+09:00", "text": "VOC 본인 답", "voc": True, "sec": "회신"}]},
     {"id": "req-data-0000000b", "from": "quant", "to": "data", "text": "새 요청", "opened_at": "2026-10-25T09:00+09:00", "due": "2026-10-24",
-     "status": "open", "last_at": "2026-10-25T09:00+09:00", "replies": []}],
-    "chat": [{"by": "quant", "to": "data", "at": "2026-10-26T10:00+09:00", "text": "원 사담"},
-             {"by": "macro", "at": "2026-10-26T10:30+09:00", "text": "딴 얘기"},
-             {"by": "data", "to": "quant", "at": "2026-10-26T11:00+09:00", "text": "답장 사담", "re": {"by": "quant", "at": "2026-10-26T10:00+09:00", "text": "원 사담"}}]}
+     "status": "open", "last_at": "2026-10-25T09:00+09:00", "replies": []}]}
+# 🔒 사담 = pb-private chat/private_chat.json 하나(10/28 통합) — 한글 이름 표기, 가짜 값(개인 수치 아님)
+PRIV_FIX = {"chat": [{"by": "퀀트", "to": "데이터", "at": "2026-10-26T10:00+09:00", "text": "원 사담", "src": "public"},
+                     {"by": "매크로", "at": "2026-10-26T10:30+09:00", "text": "딴 얘기"},
+                     {"by": "데이터", "to": "퀀트", "at": "2026-10-26T11:00+09:00", "text": "답장 사담", "re": {"by": "퀀트", "at": "2026-10-26T10:00+09:00", "text": "원 사담"}}]}
 
 
 async def check_msg_thread(b, port: int) -> int:
     """사내톡 쓰레드형(10/26 겸이 "쓰레드형으로", 390px, 고정 피드 주입):
     기본 '진행 중' = 열린 요청만 · '전체' = 카드 2개, 마지막 활동순(옛 요청+최근 답이 위) · 카드·세그 높이 40px+ · 가로 넘침 0 ·
     펼치면 VOC 답글 1·대행 묶음 1(접힘, '데스크 발언 아님')·'✅ 완료 — resolution' · 기한 지난 열린 요청 = '기한 지남' ·
-    💬 사담 세그 = 요청 카드와 분리, re 답장이 원 사담 아래 들여쓰기 · 💬 팝업에서도 카드 렌더."""
+    🔒 사담 세그(10/28 통합 — 공개 💬 사담 칸 없음) = 토큰 없으면 '비공개 — 토큰 필요', 있으면 요청 카드와 분리·re 답장이 원 사담 아래 들여쓰기 · 💬 팝업에서도 카드 렌더."""
     import json as _json
     pg = await b.new_page(viewport={"width": 390, "height": 844}, has_touch=True)
     errs: list[str] = []
@@ -852,10 +853,18 @@ async def check_msg_thread(b, port: int) -> int:
         pxLabel:!!px&&/데스크 발언 아님/.test(px.querySelector('summary').textContent), done:((d.querySelector('.mgdone')||{}).textContent||'')}; })()""")
     res["펼침"] = th["open"] and th["voc"] == 1 and th["px"] == 1 and th["pxClosed"] and th["pxLabel"] and "✅ 완료 — RESO-OK" in th["done"]
     res["펼침넘침없음"] = await J(OVER) == 0
-    await pg.click("#root [data-mgs='chat']")
-    await pg.wait_for_timeout(500)
+    res["공개사담칸없음"] = await J("document.querySelectorAll(\"#root [data-mgs='chat']\").length") == 0
+    await pg.route("https://api.github.com/repos/*/pb-private/contents/chat/private_chat.json*",
+                   lambda r: r.fulfill(status=200, content_type="text/plain", body=_json.dumps(PRIV_FIX, ensure_ascii=False)))
+    await J("try{localStorage.removeItem('pbPrivTok')}catch(e){}; MGP=null")
+    await pg.click("#root [data-mgs='priv']")
+    await pg.wait_for_timeout(800)
+    res["토큰안내"] = "비공개 — 토큰 필요" in await J("document.getElementById('mgbox').textContent")
+    await J("localStorage.setItem('pbPrivTok','smoke-fake'); MGP=null; mgRe()")
+    await pg.wait_for_timeout(1000)
     ch = await J("""(()=>{ const b=document.getElementById('mgbox'); const t=[...b.querySelectorAll('.mgbub')].map(e=>e.textContent);
       const k=b.querySelector('.mgch'); return {req:b.querySelectorAll('.mgth[data-id^="req-"]').length, order:t, nested:!!k&&/답장 사담/.test(k.textContent)}; })()""")
+    await J("try{localStorage.removeItem('pbPrivTok')}catch(e){}; MGP=null")
     res["사담분리"] = ch["req"] == 0 and ch["order"] == ["원 사담", "답장 사담", "딴 얘기"] and ch["nested"]
     await J("MGS='live'; setView('home')")
     await pg.wait_for_timeout(1200)

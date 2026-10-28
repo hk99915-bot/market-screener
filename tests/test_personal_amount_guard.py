@@ -56,8 +56,8 @@ def test_ask_rejects_without_echoing_value():
     with pytest.raises(ValueError):
         ask.reply(L, r["id"], "dev", f"순자산 {N3} 라서", True, NOW)
     with pytest.raises(ValueError):
-        ask.chat(L, "dev", "pb", f"월급 {N4} 날아감", NOW)
-    ask.chat(L, "dev", "pb", "월급 많이 물렸다 ㅠㅠ", NOW)   # 숫자 없는 자조는 통과
+        ask.reply(L, r["id"], "dev", f"월급 {N4} 날아감", True, NOW)
+    ask.reply(L, r["id"], "dev", "월급 많이 물렸다 ㅠㅠ", True, NOW)   # 숫자 없는 자조는 통과 (사담 --chat 은 10/28 pb-private 로 통합)
 
 
 def test_msgr_feed_masks_leak_in_ledger(tmp_path):
@@ -67,7 +67,7 @@ def test_msgr_feed_masks_leak_in_ledger(tmp_path):
            "chat": [{"by": "dev", "at": "2026-10-25T12:00+09:00", "text": f"순자산 {N3} 얘기 금지"}]}
     feed = msgr_feed.build(led, tmp_path, NOW)
     s = json.dumps(feed, ensure_ascii=False)
-    assert N1 not in s and N3 not in s and feed["masked"] == 2
+    assert N1 not in s and N3 not in s and feed["masked"] == 1 and "chat" not in feed   # 사담은 10/28 부터 공개 피드에 안 실음
     assert feed["items"][0]["replies"][0]["text"] == "연봉 비율만 쓸게"
 
 

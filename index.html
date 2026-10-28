@@ -4860,7 +4860,7 @@ function mgProf(k){ const P=((MG&&MG.profiles)||[]).find(p=>p.key===k); if(!P) r
         ${P.hobby?`<div style="margin-top:4px"><span class="am">취미</span> ${esc(P.hobby)}</div>`:''}
         ${P.role?`<div style="margin-top:4px"><span class="am">담당</span> ${esc(P.role)}</div>`:''}
         <div style="margin-top:6px;color:#bbb;font-size:var(--fs-2)">받은 요청(진행 중) ${P.open_in} · 보낸 요청 ${P.sent} · 직접 답장 ${P.replies}</div>
-        ${P.last_chat?`<div style="margin-top:6px;border-left:2px solid var(--amber);padding-left:8px">최근 사담: ${esc(P.last_chat)}</div>`:''}</div></details>
+</div></details>
     </div></div>`;
   const tryBg=ex=>{ const u=`${MG_IMG}bg/${encodeURIComponent(k)}.${ex}`, i=new Image(); i.onload=()=>{ bgSrc=u; o.querySelectorAll('[data-ph],[data-blur]').forEach(el=>el.style.backgroundImage=`url('${u}')`); }; i.onerror=()=>{ if(ex==='jpg') tryBg('png'); }; i.src=u; }; tryBg('jpg');
   o.onclick=e=>{ if(o._sw){ o._sw=0; return; } if(e.target.closest('[data-nav]')) return mgProfGo(o,k,+e.target.closest('[data-nav]').dataset.nav); if(e.target.closest('[data-x]')) return mgProfClose(o); if(e.target.closest('[data-av]')) return mgZoom(av); if(e.target.closest('[data-card]')) return; if(!e.target.closest('[data-ph]')) return mgProfClose(o); if(bgSrc) mgZoom(bgSrc); };
@@ -4893,10 +4893,11 @@ function mgEvents(items,chat){ const ev=(chat||[]).map(c=>({t:c.at||'',k:'chat',
   }
   ev.sort((a,b)=>String(a.t).localeCompare(String(b.t))); return ev; }
 function mgBub(who,to,txt,t,quote,mine){ return `<div class="mgb2${mine?' me':''}">${mgAv(who)}<div class="mgln"><div class="mgwho"><b>${esc(mgNm(who))}</b>${to?`<span class="ar">→</span>${esc(mgNm(to))}`:''}<span class="mgt">${esc(mgT(t).slice(11))}</span></div>${quote?`<div class="mgq">↳ ${esc(quote)}</div>`:''}<div class="mgbub">${esc(txt)}</div></div></div>`; }
-/* 세그먼트 두 줄(10/26): 위 = 요청 쓰레드 필터 4개, 아래 = 보기 4개(💬 사담·🔒 비공개 사담·👥 프로필·🏢 조직도). 한 줄 7칸은 390px 에서 글자가 세로로 쪼개졌음. */
+/* 세그먼트 두 줄(10/26): 위 = 요청 쓰레드 필터 4개, 아래 = 보기 3개(🔒 사담·👥 프로필·🏢 조직도). 한 줄 7칸은 390px 에서 글자가 세로로 쪼개졌음.
+   10/28 겸이 "사담 비공개사담 통합" — 공개 💬 사담 칸 삭제, 사담은 pb-private 하나(🔒). */
 function seg0(S){ const b=([k,l])=>`<button type="button" class="${MGS===k?'on':''}" data-mgs="${k}" aria-pressed="${MGS===k}">${esc(l)}</button>`;
   return `<div class="mgseg" role="group" aria-label="요청 필터">${[['live',`진행 중 ${(S.open||0)+(S.promoted||0)}`],['voc',`답장 온 것 ${MG.items.filter(x=>(x.replies||[]).some(p=>p.voc)).length}`],['done',`완료 ${S.done||0}`],['all','전체']].map(b).join('')}</div>`
-    +`<div class="mgseg" role="group" aria-label="보기">${[['chat',`💬 사담 ${(MG.chat||[]).length}`],['priv','🔒 비공개 사담'],['prof','👥 프로필'],['org','🏢 조직도']].map(b).join('')}</div>`; }
+    +`<div class="mgseg" role="group" aria-label="보기">${[['priv','🔒 사담'],['prof','👥 프로필'],['org','🏢 조직도']].map(b).join('')}</div>`; }
 /* ── 쓰레드형(10/26 겸이 "사내톡 구조 깔끔하게 바꾸자, 쓰레드형으로 하던가") ──
    요청 1건 = 카드 1개(보낸이→받는이·첫 줄·VOC/대행 수·상태·마지막 활동). 탭하면 그 자리에서 원문 + 시간순 답글.
    VOC = 본인 답(호박색 줄), 대행 = 진행자 기록(데스크 발언 아님, 기본 접힘 — 연달아 있으면 한 묶음), 완료면 끝에 '✅ 완료 — resolution'. */
@@ -4938,30 +4939,32 @@ function mgChatView(chat){ const by={}; for(const c of chat){ const d=String(c.a
         <div class="mgone">${esc(who.map(mgNm).join(' · '))}</div><div class="mgcnt">${L.length}줄 · 잡담(업무 근거 아님)</div></div></summary>
       <div class="mgtb">${mgChatTree(L).map(({c,d})=>`<div${d?` class="mgch" style="margin-left:${d*26}px"`:''}>${mgBub(c.by,c.to,c.text,c.at,d&&c.re&&c.re.text?`${mgNm(c.re.by||'')}: ${String(c.re.text).slice(0,40)}`:'',false)}</div>`).join('')}</div></details>`; }).join(''); }
 function sel0(desks){ return `<select class="mgsel" id="mgsel" aria-label="데스크 고르기"><option value="all">모든 데스크</option>${desks.map(k=>`<option value="${esc(k)}"${MGD===k?' selected':''}>${esc(mgNm(k))}</option>`).join('')}</select>`; }
-/* 🔒 비공개 사담방 — pb-private chat/private_chat.json. 10/23 겸이 "아티팩트를 터미널에 이식, 터미널 버전 하나로만" → 유일한 보는 곳. GAS = Code.gs getPrivate(PRIVATE_TOKEN), 공개 Pages = 이 기기 localStorage 토큰. */
+/* 🔒 사담 — pb-private chat/private_chat.json 하나뿐(10/28 겸이 "사담 비공개사담 통합": 공개 사담 37줄 이관, src:"public"). 10/23 겸이 "아티팩트를 터미널에 이식, 터미널 버전 하나로만" → 유일한 보는 곳. GAS = Code.gs getPrivate(PRIVATE_TOKEN), 공개 Pages = 이 기기 localStorage 토큰.
+   이름(한글 표기) → MG_NM 키로 바꿔 mgChatView(하루 묶음·답장 들여쓰기)로 그린다. */
 function mgPrivView(seg,sel){
   if(MGP===null){ MGP=false; google.script.run.withSuccessHandler(t=>{ try{ MGP=t?JSON.parse(t):{_err:/github\.io$/.test(location.hostname)?'지금 공개 Pages 주소로 보고 있어 — 비공개 사담은 GAS 웹앱 주소(script.google.com/macros/…/exec)로 열어야 보여':'빈 응답 — GAS 배포가 옛 버전일 수 있음'}; }catch(e){ MGP={_err:'응답이 JSON 아님: '+String(t).slice(0,60)}; } mgRe(1); }).withFailureHandler(e=>{ MGP={_err:'GAS 호출 실패 — '+String((e&&e.message)||e).slice(0,100)+' (웹앱 URL 이 자동 배포 ID 와 같은지 확인)'}; mgRe(1); }).getPrivate('chat'); }
   const C=(MGP&&MGP.chat)||[], by=k=>{ const x=Object.keys(MG_NM).find(q=>MG_NM[q]===k); return x||k; };
-  let last='', feed='';
-  for(const c of C.filter(c=>MGD==='all'||by(c.by)===MGD||by(c.to)===MGD)){ const d=String(c.at||'').slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; }
-    feed+=`<div class="mgb2 chat">${mgAv(by(c.by))}<div class="mgln"><div class="mgwho"><b data-mgp="${esc(by(c.by))}" style="cursor:pointer">${esc(c.by)}</b>${c.to?`<span class="ar">→</span>${esc(c.to)}`:''}<span class="mgt">${esc(mgT(c.at).slice(11))}${c.src==='panel'?' · 패널 대필(본인 아님)':''}</span></div>${c.re?`<div class="mgq">↳ ${esc(c.re.by||'')}: ${esc(String(c.re.text||'').slice(0,60))}</div>`:''}<div class="mgbub">${esc(c.text)}</div></div></div>`; }
-  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'); if(box) box.scrollTop=box.scrollHeight; mgPbEnd(box); },0);
+  const L=C.map(c=>({...c,by:by(c.by),to:c.to?by(c.to):'',re:(c.re&&typeof c.re==='object')?{...c.re,by:by(c.re.by)}:c.re,text:c.src==='panel'?`${c.text} · (패널 대필 — 본인 아님)`:c.text}))
+    .filter(c=>MGD==='all'||c.by===MGD||c.to===MGD);
+  let feed=L.length?mgChatView(L):'';
+  setTimeout(()=>{ document.querySelectorAll('[data-mgs]').forEach(b=>b.onclick=()=>{ MGS=b.dataset.mgs; mgRe(); }); const s=document.getElementById('mgsel'); if(s) s.onchange=()=>{ MGD=s.value; mgRe(); }; const box=document.getElementById('mgbox'), pb=box&&box.closest('.mgpb'); if(box) box.scrollTop=0; if(pb) pb.scrollTop=0; },0);   // 최신 날이 위
   if(MGP&&MGP._need_token){ setTimeout(()=>{ const sv=document.getElementById('mgtksv'); if(sv) sv.onclick=()=>{ const v=(document.getElementById('mgtk').value||'').trim(); if(!v) return; try{ localStorage.setItem('pbPrivTok',v); }catch(e){} MGP=null; mgRe(); }; },0);
-    feed=`<div class="mgempty" style="white-space:normal;line-height:1.7">🔒 이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
+    feed=`<div class="mgempty" style="white-space:normal;line-height:1.7"><b>🔒 비공개 — 토큰 필요</b><br>이 기기에서 처음 한 번만 — GitHub 읽기 전용 토큰을 넣으면 여기서 바로 보여${MGP._err?`<br><span class="dn">${esc(MGP._err)}</span>`:''}<br>
       <span class="mu" style="font-size:var(--fs-2)">토큰은 이 브라우저에만 저장돼(저장소·채팅·서버로 안 감). 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained token ↗</a> → Repository access: <b>Only select → pb-private</b> → Permissions: <b>Contents = Read-only</b> → 만료 90일</span><br>
       <input id="mgtk" type="password" autocomplete="off" placeholder="github_pat_…" style="min-height:40px;width:min(100%,360px);background:var(--bg2);color:var(--txt);border:1px solid var(--line);padding:0 8px;font:inherit">
       <button id="mgtksv" type="button" style="min-height:40px;background:var(--amber);color:var(--on-amber);border:0;padding:0 14px;font:inherit;cursor:pointer">저장하고 열기</button></div>`; }
   const forget=(()=>{ try{ return !!localStorage.getItem('pbPrivTok'); }catch(e){ return false; } })()?` · <a href="#" onclick="try{localStorage.removeItem('pbPrivTok')}catch(e){};MGP=null;mgRe();return false">이 기기 토큰 지우기</a>`:'';
   const empty=(MGP&&MGP._err)?`<div class="mgempty">🔒 사담방 연결 안 됨 — ${esc(MGP._err)}</div>`:MGP===false?'<div class="load">LOADING …</div>':(MGP&&MGP.chat)?'<div class="mgempty">아직 조용해 — 데스크들이 루프·라운드 끝에 한마디씩 남겨</div>':'<div class="mgempty">🔒 사담을 못 불러왔어 — 새로고침해 봐 (공개 Pages 면 이 기기 토큰, GAS 면 PRIVATE_TOKEN)</div>';
-  return `<div class="grid"><div class="p c12"><h2>사내톡 · 🔒 비공개 사담<small>pb-private · 겸이만</small></h2><div class="b">
+  return `<div class="grid"><div class="p c12"><h2>사내톡 · 🔒 사담<small>pb-private 하나(10/28 통합) · 겸이만</small></h2><div class="b">
     <div class="mgtop">${seg}${sel}</div>
-    <p class="mgsum">비공개라 금액·보유 얘기도 해 · 건강·연애는 여기서도 금지 · 잡담이라 업무 근거 아님${forget}</p>
+    <p class="mgsum">${L.length?`사담 ${L.length}줄 · 하루 = 묶음 1개(최근 날 위) · 답장은 원 사담 아래 · `:''}비공개라 금액·보유 얘기도 해 · 건강·연애는 여기서도 금지 · 잡담이라 업무 근거 아님${forget}</p>
     <div class="mgbox" id="mgbox">${feed||empty}</div></div></div></div>`;
 }
 function msgView(){
   if(view==='msg'&&MGPOP) mgPop(false);
   if(MG===null){ MG=false; google.script.run.withSuccessHandler(t=>{ try{ MG=t?JSON.parse(t):{}; }catch(e){ MG={}; } mgRe(1); }).withFailureHandler(()=>{ MG={}; mgRe(1); }).getMarkdown('msgr_feed'); return '<div class="load">LOADING …</div>'; }
   if(!MG||!MG.items) return '<div class="grid"><div class="p c12"><div class="b mu">사내톡 데이터 없음 — python3 scripts/msgr_feed.py (reports/msgr_feed.md, 매시 team.yml 이 갱신)</div></div></div>';
+  if(MGS==='chat') MGS='priv';   // 10/28 통합 — 옛 💬 사담 칸 상태가 남아 있으면 🔒 사담으로
   const S=MG.status||{}, items=mgFilter(MG.items,MGS,MGD);
   const desks=[...new Set(MG.items.flatMap(x=>[x.from,x.to]))].sort((a,b)=>mgNm(a).localeCompare(mgNm(b),'ko'));
   const seg=seg0(S);
@@ -4972,10 +4975,7 @@ function msgView(){
     return `<div class="grid"><div class="p c12"><h2>사내톡 · 👥 프로필<small>${(MG.profiles||[]).length}명 · 사진 탭하면 크게</small></h2><div class="b"><div class="mgtop">${seg}</div>${mgProfGrid()}</div></div></div>`; }
   const sel=sel0(desks);
   let feed='', sum='';
-  if(MGS==='chat'){   // 💬 사담 — 요청 쓰레드와 안 섞음, 하루 묶음 쓰레드
-    const ch=(MG.chat||[]).filter(c=>MGD==='all'||c.by===MGD||c.to===MGD);
-    feed=mgChatView(ch); sum=`사담 ${ch.length}줄 · 하루 = 묶음 1개(최근 날 위) · 답장은 원 사담 아래 들여쓰기 · 잡담이라 업무 근거 아님`;
-  } else {   // 요청 쓰레드 — 마지막 활동 내림차순, 날짜 구분선도 마지막 활동 기준
+  {   // 요청 쓰레드 — 마지막 활동 내림차순, 날짜 구분선도 마지막 활동 기준
     const TS=mgThreads(items,String(MG.asof||'').slice(0,10)); let last='';
     for(const T of TS){ const d=String(T.last).slice(0,10); if(d!==last){ feed+=`<div class="mgday">${esc(d.slice(5).replace('-','/'))}</div>`; last=d; } feed+=mgCard(T); }
     sum=`쓰레드 <b>${TS.length}</b>개 · 최근 활동순 · 카드 누르면 원문과 답글 · <b>VOC</b> = 데스크 본인 답 · 📝 대행 = 진행자 기록(데스크 발언 아님)`;

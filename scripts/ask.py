@@ -5,7 +5,7 @@
   python3 scripts/ask.py --from 겸이 --to 매크로 --text "..."            # 겸이(오너)도 같은 장부 — 텔레그램 'ask <데스크> <내용>'
   python3 scripts/ask.py --close req-data-1a2b3c4d [--by 데이터]           # 처리 끝 → 닫기
   python3 scripts/ask.py --reply req-data-1a2b3c4d --by 데이터 --text "..." --voc   # 회신(사내톡) — --voc = 데스크 에이전트가 직접 쓴 말
-  python3 scripts/ask.py --chat --by 퀀트 [--to 데이터] --text "..."              # 사담(사내톡 잡담 — 업무 판단 근거 아님)
+  사담은 여기 아님 — pb-private scripts/pchat.py (10/28 겸이 "사담 비공개사담 통합"). --chat 은 안내 후 종료코드 2.
   python3 scripts/ask.py --issue-title "ask 퀀트" --issue-body "..."       # ask.yml (GitHub 이슈) 경로, from=겸이
 
 마감(--due) 기본 = 요청일 + 2영업일(KR). 2영업일 지나도 open 이면 watchdog(매일 00:07 KST)·round_collect 가 보드 P1 승격.
@@ -127,25 +127,6 @@ def reply(ledger: dict, rid: str, by: str, text: str, voc: bool, now: datetime) 
     raise KeyError(rid)
 
 
-def chat(ledger: dict, by: str, to: str | None, text: str, now: datetime) -> tuple[dict, dict]:
-    """사담 1줄(10/23 겸이 "좀 사담들도 넣고"). 데스크 에이전트가 라운드·루프 중 직접 쓴 잡담만 — 업무 VOC·판단 근거로 인용 금지.
-    공개 저장소라 겸이 금액·보유·건강·연애·실존 인물 언급 금지(길이는 여기서, 금액+개인 문맥은 guard_amount, 나머지는 프롬프트 규칙)."""
-    L = json.loads(json.dumps(ledger)) if ledger else {}
-    k = desk_ok(by)
-    t = desk_ok(to) if to else None
-    if not k or (to and not t):
-        raise ValueError(f"모르는 데스크: by={by} to={to}")
-    text = " ".join(text.split())
-    if not text or len(text) > 160:
-        raise ValueError("사담은 1~160자")
-    guard_amount(text)
-    c = {"by": k, "at": now.astimezone(KST).strftime("%Y-%m-%dT%H:%M+09:00"), "text": text}
-    if t:
-        c["to"] = t
-    L.setdefault("chat", []).append(c)
-    return L, c
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--from", dest="frm")
@@ -155,21 +136,19 @@ def main(argv=None) -> int:
     ap.add_argument("--close", metavar="ID")
     ap.add_argument("--by")
     ap.add_argument("--reply", metavar="ID")
-    ap.add_argument("--chat", action="store_true", help="사담 1줄 (--by, 선택 --to, --text)")
+    ap.add_argument("--chat", action="store_true", help="폐지(10/28 통합) — 사담은 pb-private scripts/pchat.py")
     ap.add_argument("--voc", action="store_true", help="--reply 가 데스크 에이전트 실제 발언(무편집)일 때")
     ap.add_argument("--issue-title")
     ap.add_argument("--issue-body", default="")
     ap.add_argument("--ledger", type=Path, default=rc.ROUNDS_DIR / "_requests.json")
     a = ap.parse_args(argv)
+    if a.chat:   # 10/28 겸이 "사담 비공개사담 통합" — 공개 저장소엔 사담 안 남김(개인정보 유출 원천 차단)
+        print("저장 안 함: 사담은 pb-private scripts/pchat.py 로(10/28 통합) — python3 /home/user/pb-private/scripts/pchat.py --by <이름> [--re N|--to 이름] --text \"...\"", file=sys.stderr)
+        return 2
     now = datetime.now(KST)
     led = json.loads(a.ledger.read_text(encoding="utf-8")) if a.ledger.exists() else {}
     try:
-        if a.chat:
-            if not (a.by and a.text):
-                ap.error("--chat 은 --by --text 필요")
-            L, r = chat(led, a.by, a.to, a.text, now)
-            msg = f"☕ 사담 {a.by}: {r['text'][:60]}"
-        elif a.reply:
+        if a.reply:
             if not (a.by and a.text):
                 ap.error("--reply 는 --by --text 필요")
             L, r = reply(led, a.reply, a.by, a.text, a.voc, now)

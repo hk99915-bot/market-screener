@@ -45,17 +45,17 @@ def test_build_merges_round_lines_as_proxy(tmp_path):
     json.dumps(f, ensure_ascii=False)
 
 
-def test_chat_line_limits_and_feed():
-    L, c = ask.chat(_ledger(), "퀀트", "데이터", "  백필 고마워  오늘도 숫자 맞춰줘서 ", NOW)
-    assert c["by"] == "quant" and c["to"] == "data" and c["text"] == "백필 고마워 오늘도 숫자 맞춰줘서"
-    for bad in ("", "x" * 161):
-        try:
-            ask.chat(_ledger(), "퀀트", None, bad, NOW)
-            assert False
-        except ValueError:
-            pass
+def test_chat_moved_to_private(tmp_path, capsys):
+    """10/28 겸이 "사담 비공개사담 통합": ask.py --chat 은 저장 안 하고 pchat.py 안내 후 2, 피드엔 사담 없음(장부에 남은 줄도 안 실음)."""
+    led = tmp_path / "_requests.json"
+    led.write_text(json.dumps(_ledger(), ensure_ascii=False), encoding="utf-8")
+    before = led.read_text(encoding="utf-8")
+    assert ask.main(["--chat", "--by", "퀀트", "--text", "백필 고마워", "--ledger", str(led)]) == 2
+    assert led.read_text(encoding="utf-8") == before and "pchat.py" in capsys.readouterr().err
+    L = dict(_ledger(), chat=[{"by": "quant", "at": "2026-10-23T10:00+09:00", "text": "옛 사담"}])
     f = msgr_feed.build(L, Path("/nonexistent"), NOW)
-    assert f["chat"][-1]["by"] == "quant"
+    assert "chat" not in f and "옛 사담" not in json.dumps(f, ensure_ascii=False) and "pb-private" in f["chat_note"]
+    assert all("last_chat" not in p for p in f["profiles"])
 
 
 def test_thread_last_at_orders_by_latest_activity(tmp_path):
