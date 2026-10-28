@@ -158,10 +158,11 @@ def _term_hit(term: str, text: str) -> bool:
 # 키에 "negcheck": false 면 끔(옵션 필드 — 기존 키 파일 호환).
 NEG_WIN = 12
 _CLAUSE_END = re.compile(r"[,;!?\n。(（]|(?<!\d)\.|\.(?!\d)|\s—\s|뿐")  # 10/28 감사 2차: 괄호·'뿐' 뒤는 다른 절(과잉 차단 방지)
-_NEG_STRONG = re.compile(r"아닌|아니(?:라|다|고|며|에요|야)?|아님|어렵|\bnot\b|\bisn't\b", re.I)
+_NEG_STRONG = re.compile(r"아닌|아니(?:라|다|고|며|에요|야)?|아님|어렵(?!지\s*않)|어려(?:운|워|울)|무관|상관\s*없|\bnot\b|\bisn't\b", re.I)
 _NEG_ABSENT = re.compile(r"도\s*없|없다|없음|없어|없고|않|(?<![가-힣])안\s")
 _NEG_PRE = re.compile(r"(?:\bnot|(?<![가-힣])안|(?<![가-힣])못)\s+$", re.I)
 _NEG_ATTACHED = re.compile(r"[\'\"‘’“”)\]]*\s*(?:이|가|은|는)?\s*(?:아닌|아니|아님|not\b)", re.I)
+_DOUBLE_NEG = re.compile(r"(?:어렵|없|아니)지\s*않\S*")
 _NEG_CONCEPT = re.compile(r"없|않|아니|미커버|미지정|불가|불필요|부재")
 
 
@@ -172,10 +173,11 @@ def _is_negative_key(k: dict) -> bool:
 
 
 def _negated(text: str, s: int, e: int, negative: bool) -> bool:
-    post = text[e:e + NEG_WIN]
+    post = text[e:e + NEG_WIN + 8]   # 창 끝에 걸린 이중부정('어렵|지 않다')을 먼저 지우고 창을 자름
     m = _CLAUSE_END.search(post)
     if m:
         post = post[:m.start()]
+    post = _DOUBLE_NEG.sub("", post)[:NEG_WIN]
     if negative:   # 부정 개념 키: 키에 바로 붙은 '…이/가 아니(라)' 만 반대 뜻("'없음'이 아니라") — '창 안이라 시행 아님' 처럼 뒤 낱말 부정은 무시
         return _NEG_ATTACHED.match(post) is not None
     if _NEG_STRONG.search(post) or _NEG_ABSENT.search(post):

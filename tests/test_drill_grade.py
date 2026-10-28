@@ -270,3 +270,19 @@ def test_negation_audit_recheck2_lines():
     assert not neg("[13] 위반 1건뿐 다른 위반은 없다", "1건")
     assert not neg("능동(자동 반영 아님)", "능동")
     assert not neg("능동이다", "능동")
+
+
+def test_negation_audit_recheck3_frm_lines():
+    """10/28 감사 3차·FRM 짝 검수: '어려운/어려워' 활용·'무관/상관없' 부정, '어렵지 않'(이중부정)은 긍정."""
+    import importlib, sys, os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+    g = importlib.import_module("drill_grade")
+
+    def neg(text, key):
+        i = text.find(key)
+        return g._negated(text, i, i + len(key), False)
+
+    assert neg("능동 변경이라 보기 어려운 자동 반영", "능동")
+    assert neg("유동성 기간과는 무관", "유동성 기간")
+    assert neg("유동성 기간과 상관없음", "유동성 기간")
+    assert not neg("능동 변경이며 판단이 어렵지 않다", "능동")
