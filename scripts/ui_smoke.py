@@ -899,6 +899,11 @@ def _my_fs_fixture(mode: str) -> dict:
             "alloc": "# 자산배분\n\n- **적립:** 가상 예시 적립 12만원은 가려진다. 둘째 문장.\n"}
     out = {"analysis/latest.json": _json.dumps(latest, ensure_ascii=False)}
     out.update({f"analysis/fake-weekly/desk/{k}.md": v for k, v in desk.items()})
+    if mode == "ok":   # 무행동 vs 실제(#mydn) — 가짜 지수 3행, 금액 없음
+        rw = lambda dt, a, dn, gd, gc: {"date": dt, "dn_total": dn, "act_total": a, "dn_kr": dn, "act_kr": a + 1, "dn_us": dn, "act_us": a - 1,  # noqa: E731
+                                         "gap_day_pp": gd, "gap_cum_pp": gc, "mk": "KR+US", "attr": {}}
+        out["analysis/donothing.json"] = _json.dumps({"asof_kr": d(-1), "asof_us": d(-1), "base": d(-3), "notes": [], "sources": [],
+                                                       "series": [rw(d(-3), 100, 100, 0, 0), rw(d(-2), 99, 98, 1.0, 1.0), rw(d(-1), 98.5, 97, 0.5, 1.5)]})
     if mode != "none":
         h = {"date": d(0), "asof": d(0), "text": "가짜 결론: 주간은 앞섰지만 스트레스 한도 초과 — 반도체 희석이 먼저", "by": "PB", "sources": [],
              "next": ["가짜 행동 하나", "가짜 행동 둘"]}
@@ -944,6 +949,7 @@ async def check_my_first_screen(b, port: int) -> int:
           return {t, b1:bt('#myfs1'), b2:bt('#myfs2'), b4:bt('#myfs4'), k:f?f.querySelectorAll('.myfs-k').length:0,
             hs:document.documentElement.scrollWidth>window.innerWidth+1, desk:f?f.querySelectorAll('.myfs-d').length:0,
             am:f?[...f.querySelectorAll('.am')].filter(e=>!e.closest('summary')).map(e=>e.textContent).join('|'):'', dn:f?f.querySelectorAll('.dn').length:0,
+            dnt:(q('#mydn')||{}).innerText||'', dnsvg:!!(q('#mydn')&&q('#mydn svg path')),
             corr:!!q('#mycorr'), order:(()=>{const a=q('#myfirst'), c=q('#mycorr'), i=q('#myin'); return !!(a&&c&&i&&(a.compareDocumentPosition(c)&4)&&(c.compareDocumentPosition(i)&4));})()}; })()""")
         res[mode] = (r, errs)
         await ctx.close()
@@ -952,7 +958,8 @@ async def check_my_first_screen(b, port: int) -> int:
     won = _re.findall(r"\d[\d,.]*\s*(?:만|억)?\s*원", o["t"])
     ok_ok = (o["b4"] <= 844 and o["k"] == 4 and not o["hs"] and not won and "누나" not in o["t"] and o["desk"] == 3 and o["order"]
              and "가짜 결론" in o["t"] and "앞섬 +0.6%p" in o["t"] and "뒤짐 −2.0%p" in o["t"] and "⛔ 초과 1.0%p" in o["t"]
-             and "−2.5% → +1.8%" in o["t"] and "28.0% > 함의 상한 25.0%" in o["t"] and "가짜 행동 둘" in o["t"] and "1일 차이" in o["t"] and o["dn"] >= 1 and not o["am"])
+             and "−2.5% → +1.8%" in o["t"] and "28.0% > 함의 상한 25.0%" in o["t"] and "가짜 행동 둘" in o["t"] and "1일 차이" in o["t"] and o["dn"] >= 1 and not o["am"]
+             and "누적 갭 +1.50%p" in o["dnt"] and "오늘 +0.50%p" in o["dnt"] and o["dnsvg"])
     n, s, f = res["none"][0], res["stale"][0], res["future"][0]
     ok_none = "PB 결론 미갱신(읽기 실패)" in n["am"] and "오늘 PB 미작성" in n["t"] and n["b4"] <= 844
     ok_stale = "PB 결론 미갱신(마지막" in s["am"] and "4일 차이" in s["am"] and s["b4"] <= 844

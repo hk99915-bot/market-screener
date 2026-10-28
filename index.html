@@ -1295,7 +1295,7 @@ function myView(){
     const pi=$('#mypin'); if(pi) pi.onkeydown=e=>{ if(e.key==='Enter') $('#mypinb').click(); };
     const fg=$('#mypinforget'); if(fg) fg.onclick=()=>{ try{ localStorage.removeItem(GHE); }catch(_){} render(); };
     if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ st(); if(ok) myRun(); }); st(); }
-    myFs();
+    myFs(); myDn();
     const mc=$('#mycorr'); if(mc) mc.addEventListener('toggle',e=>{ if(e.target.open) myCorr(); });
     const mj=$('#myjr'); if(mj) mj.addEventListener('toggle',e=>{ if(e.target.open) jrList(); });
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
@@ -1317,6 +1317,7 @@ function myView(){
       #myfirst .myfs-dl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#myfirst .myfs-dm{font-size:var(--fs-1);flex:none}#myfirst .myfs-d[open] .myfs-dm{display:none}
       #myfirst .myfs-df{font-size:var(--fs-2);line-height:1.6;padding:2px 0 6px}#myfirst .myfs-nx{font-size:var(--fs-3);line-height:1.5}</style>
     <div id="myfirst" style="max-width:640px">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">결론 불러오는 중…</div>':'<div class="mu" style="font-size:var(--fs-2)">토큰을 먼저 설정해야 결론·성적표를 볼 수 있어요</div>'}</div>
+    <div id="mydn" style="max-width:640px;margin:6px 0;border-top:1px solid var(--line);padding-top:5px">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">무행동 vs 실제 불러오는 중…</div>':''}</div>
     <details id="mycorr" style="margin:6px 0"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">주간 성적표 전체 · 코멘트 · 심층 분석 <span id="mycorrd" class="mu">${MYFS&&MYFS.L?'(기준 '+myFsMD((MYFS.L.stats||{}).asof||MYFS.L.asof)+')':''}</span></summary><div id="mycorrb" class="mu" style="font-size:var(--fs-2)">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
     <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code> · <code>예적금 9000000</code>(반도체 한도 분모에만 더함)<br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
@@ -1406,6 +1407,32 @@ function myFs(){ if(!ghTok()) return; if(MYFS) myFsShow();
     const ds=MYFS_DESKS.map(([k,n])=>{ const f=((L.desks||[]).find(x=>x.desk===k)||{}).file; return f?pbGet(f).then(t=>({n,d:myFsDesk(t)})).catch(()=>null):Promise.resolve(null); });
     return Promise.all(ds).then(D=>{ MYFS={L,H,D}; myFsShow(); }); })
   .catch(e=>{ const x=$('#myfirst'); if(x&&!MYFS) x.innerHTML=`<div class="am myfs-c">PB 결론 미갱신(읽기 실패 ${esc(e.message)})</div><div class="mu myfs-n">토큰 권한·만료 확인</div>`; }); }
+// ───── 무행동(기준일 보유 고정) vs 실제 — pb-private analysis/donothing.json(퀀트 scorecard/donothing.py, 평일 장 마감 후 갱신)
+// 지수(기준일 = 100)·%p 만 받아 그린다 — 화면에 금액·수량 없음. 인라인 SVG 1개 + 합계/국장/미장 토글.
+let MYDN=null, MYDNK='total';
+const MYDN_TABS=[['total','합계'],['kr','국장'],['us','미장']];
+function myDnHtml(D,k){ const S=(D&&D.series)||[]; if(S.length<2) return '<div class="mu" style="font-size:var(--fs-2)">무행동 vs 실제: 데이터 부족</div>';
+  const a=S.map(r=>+r['act_'+k]), d=S.map(r=>+r['dn_'+k]), n=S.length, L=S[n-1], P=S[n-2];
+  const cum=k==='total'?+L.gap_cum_pp:a[n-1]-d[n-1], day=k==='total'?+L.gap_day_pp:((a[n-1]/a[n-2])-(d[n-1]/d[n-2]))*100;
+  const all=a.concat(d).filter(isFinite), lo=Math.min(...all), hi=Math.max(...all), pad=Math.max(0.5,(hi-lo)*0.08), y0=lo-pad, y1=hi+pad;
+  const W=300, H=100, X=i=>(i/(n-1)*W).toFixed(1), Y=v=>(H-(v-y0)/(y1-y0)*H).toFixed(1);
+  const path=v=>v.map((x,i)=>(i?'L':'M')+X(i)+' '+Y(x)).join(' ');
+  const sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(2)+'%p', ix=v=>(v-100>0?'+':v-100<0?'−':'')+Math.abs(v-100).toFixed(1)+'%';
+  const btn=MYDN_TABS.map(([id,t])=>`<button class="sbtn" data-dnk="${id}" style="padding:2px 8px;${id===k?'border-color:var(--amber);color:var(--amber)':''}">${t}</button>`).join('');
+  const pend=L.us_pending?' · 미장 직전 종가':L.kr_pending?' · 국장 직전 종가':'';
+  return `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:var(--fs-2)"><span class="am">무행동(${myFsMD(D.base)} 보유 고정) vs 실제</span><span style="margin-left:auto;display:flex;gap:4px">${btn}</span></div>
+    <div style="position:relative;margin-top:4px"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block;width:100%;height:120px" role="img" aria-label="무행동 대 실제 지수">
+      ${100>y0&&100<y1?`<line x1="0" x2="${W}" y1="${Y(100)}" y2="${Y(100)}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"/>`:''}
+      <path d="${path(d)}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>
+      <path d="${path(a)}" fill="none" stroke="var(--amber)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+      <span class="mu" style="position:absolute;left:2px;top:0;font-size:var(--fs-1)">${y1.toFixed(0)}</span><span class="mu" style="position:absolute;left:2px;bottom:0;font-size:var(--fs-1)">${y0.toFixed(0)}</span></div>
+    <div class="mu" style="display:flex;justify-content:space-between;font-size:var(--fs-1)"><span>${myFsMD(S[0].date)}</span><span><span style="color:var(--amber)">━ 실제 ${ix(a[n-1])}</span> · ┄ 무행동 ${ix(d[n-1])}</span><span>${myFsMD(L.date)}</span></div>
+    <div style="font-size:var(--fs-2);margin-top:2px">누적 갭 <b>${sg(cum)}</b> · 오늘 ${sg(day)} <span class="mu">(국 ${myFsMD(D.asof_kr)} · 미 ${myFsMD(D.asof_us)}${pend})</span></div>`; }
+function myDnShow(){ const e=$('#mydn'); if(!e||!MYDN) return; e.innerHTML=myDnHtml(MYDN,MYDNK);
+  e.querySelectorAll('[data-dnk]').forEach(b=>b.onclick=()=>{ MYDNK=b.dataset.dnk; myDnShow(); }); }
+function myDn(){ if(!ghTok()) return; if(MYDN) myDnShow();
+  pbGet('analysis/donothing.json').then(JSON.parse).then(D=>{ MYDN=D; myDnShow(); })
+  .catch(e=>{ const x=$('#mydn'); if(x&&!MYDN) x.innerHTML=`<div class="mu" style="font-size:var(--fs-2)">무행동 vs 실제: 아직 없음(${esc(e.message)})</div>`; }); }
 // 성적표 전체 표(스펙 §5): '10월 누적'이 '기초 이후'와 같은 값이면 1줄로 합침 · FRM 행의 스트레스는 KPI ③과 중복이라 뺌 · 비율만 보기면 금액 가림
 function myFsKpis(K){ K=(K||[]).map(k=>[k[0],k[1]]); const bi=K.findIndex(k=>/기초 이후/.test(k[0])), mi=K.findIndex(k=>/월 누적/.test(k[0]));
   const head=v=>String(v).split('(')[0].trim();
