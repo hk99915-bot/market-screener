@@ -737,12 +737,13 @@ async def check_syn(b, port: int) -> int:
         "카드9": await J("document.querySelectorAll('#syn .syn').length") == 9,
         "공공·지정학": all(k in syn_txt for k in ("공공 리포트", "지정학 뷰", "참고 뷰")),
         # STANDARD §4(10/23 겸이 '링크만 말고 내용·해석까지'): digest 가 있으면 펼침 항목이 있고, 펼치면 세 칸이 보인다
+        # 10/28: '요약 대기'는 4번째 줄부터 접힌 #pubMore(7e1c2b3c4) 안에 있어 innerText 로는 안 셈 → 배지 span 을 DOM 에서 정확히 '대기 행 수와 같게' 셈(이전 '이상' 보다 엄격)
         # 공공 리포트(10/23 겸이 "우리 요약/뷰를 더 앞으로"): items30 중 요약 있는 것 = 펼침(첫 줄 = 한 줄 뷰, 펼치면 3종 + 맨 아래 '링크 깨질 수 있음'), 없는 것 = '요약 대기'
         "요약펼침": await J("(()=>{const P=((SYN||{}).public||{}), n=((SYN||{}).digest||{}), rows=P.items30||null, okN=rows?rows.filter(r=>r.status==='ok').length:(n.public||[]).length,"
                          " k=okN+(n.geo||[]).length, d=[...document.querySelectorAll('#syn details.dg')]; if(d.length!==k) return false; if(!k) return true;"
                          " if(!rows) {d[0].open=true; return ['① 내용','② 뷰','③ 우리 해석'].every(w=>d[0].innerText.includes(w));}"
                          " const w=[...document.querySelectorAll('#syn .syn')].find(c=>c.querySelector('h2').innerText.startsWith('공공 리포트')); if(!w) return false;"
-                         " const ds=w.querySelectorAll('details.dg'); if(ds.length!==okN) return false; if((w.innerText.match(/요약 대기/g)||[]).length<rows.length-okN) return false;"
+                         " const ds=w.querySelectorAll('details.dg'); if(ds.length!==okN) return false; if([...w.querySelectorAll('span')].filter(s=>s.textContent.trim()==='요약 대기').length!==rows.length-okN) return false;"
                          " if(!okN) return true; const f=ds[0]; const first=rows.find(r=>r.status==='ok'); if(!f.querySelector('summary').innerText.trim().startsWith(first.one_line.slice(0,12))) return false;"
                          " f.open=true; const t=f.innerText; return ['① 핵심 내용','③ 우리 해석','링크 깨질 수 있음'].every(x=>t.includes(x)) && t.indexOf('링크 깨질 수 있음')>t.indexOf('③ 우리 해석');})()"),
         "라벨": "증권가 집계" in syn_txt,
@@ -1230,13 +1231,17 @@ async def check_macro_bond_top(b, port: int) -> int:
         res: dict = {}
         await pg.evaluate("setView('macro')")
         await pg.wait_for_timeout(3000)
+        # cmd(10/28): 원자재 패널 기본 = '많이 움직인 3개'만 보이고 나머지는 접힌 #macCmdAll(7e1c2b3c4) — innerText '구리'는 그날 시세 순위에 달려 흔들림.
+        # → 구리 행이 패널 DOM 에 있고 + 보이는 줄 = 1주 변동 상위 min(3,대상) + 전체 접힘에 commodities.json 행 전부 (데이터와 화면 대조)
         m = await pg.evaluate("""(()=>{ const t=document.getElementById('macTop'), f=document.querySelector('#root .p'), g=document.getElementById('macGap'), w=document.getElementById('macWind'), gl=document.getElementById('macGlance');
           if(!t) return null; const tx=t.innerText; return {first:f===t, bot:Math.max(g?g.getBoundingClientRect().bottom:9999, w?w.getBoundingClientRect().bottom:9999),
           wind:tx.includes('매크로 바람'), gap:!!g&&tx.includes('격차'), asof:!!t.querySelector('.asof'), tiles:t.querySelectorAll('.mct').length,
           need:['금리','기준금리','환율','유가','다음 주요 일정','FOMC'].every(w=>tx.includes(w)), stale:tx.includes('STALE'),
           over:[...document.querySelectorAll('#root *')].some(e=>e.getBoundingClientRect().right>innerWidth+1&&!e.closest('table')),
           lag:dataLag('KR','2020-01-02',0)!==''&&dataLag('KR',mkPhase('KR').last,0)==='',
-          glance:!!gl&&gl.querySelectorAll('.mgl').length>=5&&gl.getBoundingClientRect().bottom<=844&&gl.innerText.includes('데스크 해석'), cmd:((document.getElementById('macCmd')||{}).innerText||'').includes('구리'), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
+          glance:!!gl&&gl.querySelectorAll('.mgl').length>=5&&gl.getBoundingClientRect().bottom<=844&&gl.innerText.includes('데스크 해석'), cmd:(()=>{ const c=document.getElementById('macCmd'), cm=MCX.cm||{}; if(!c) return false;
+            const n3=Math.min(3,(cm.rows||[]).filter(r=>r.status==='ok'&&r.group!=='파생'&&r.freq!=='월간'&&r.chg1w!=null).length);
+            return c.textContent.includes('구리') && [...c.querySelectorAll('.mcc')].filter(e=>!e.closest('#macCmdAll')).length===n3 && c.querySelectorAll('#macCmdAll .mcc').length===(cm.rows||[]).length; })(), geo:((document.getElementById('macGeo')||{}).innerText||'').includes('호르무즈') }; })()""")
         res["MACRO"] = bool(m) and m["first"] and m["bot"] <= 844 and m["wind"] and m["gap"] and m["asof"] and m["tiles"] >= 5 and m["need"] and not m["over"] and m["lag"] and m["cmd"] and m["geo"] and m["glance"] and (m["stale"] if body else True)
         await pg.evaluate("setView('bond')")
         await pg.wait_for_timeout(3000)
