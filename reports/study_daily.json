@@ -1,33 +1,34 @@
 {
- "date": "2026-10-27",
- "weekday": 1,
+ "date": "2026-10-28",
+ "weekday": 2,
  "review": {
   "id": "0-1",
   "title": "돈의 시간가치 — 이자·복리·할인",
   "stage": 0,
-  "overdue_days": 11,
+  "overdue_days": 12,
   "interval_days": 1
  },
  "new": {
-  "id": "H2",
-  "title": "보상 직후 위험추구·틸트 — 이길 때가 더 위험하다",
-  "track": "H",
+  "id": "R1",
+  "title": "변동성과 손실 회복 공식 — 잃은 만큼 벌어도 원금이 아니다",
+  "track": "R",
   "est_min": 15,
   "total_min": 15,
   "multi_day": false,
   "level": 1,
-  "summary": "방금 딴 돈은 '공돈'으로 분류돼 위험 허용이 커지고(하우스머니), 손실 뒤엔 '본전 회복' 베팅이 커집니다(브레이크이븐). 이기면 '감'이 강화되므로 이길 때가 더 위험합니다.",
-  "terminal_lookup": "모의 대결 탭에서 나🔥 칸의 제출 횟수 n과 '검증전' 표기를 확인해 적는다.",
-  "rule_link": "규칙 [매도 직후 30분 신규 베팅 금지(안건) · 큰 수익/손실 뒤 24시간 쿨다운 · 사이즈 고정 · 실계좌 레버리지·인버스 금지]",
+  "summary": "손실은 비대칭입니다. −50%는 +100%가 있어야 원금이고, −58%는 +138%가 필요합니다. 그래서 리스크 관리의 1순위는 '크게 잃지 않기'입니다.",
+  "terminal_lookup": "DERIV 탭 ATM IV 한 숫자를 찾아 '이 변동성이면 연 끌림 몇 %p'를 적어 본다.",
+  "rule_link": "규칙 [손절 −8% · 테마 한도] — 손실 폭을 먼저 제한하는 이유가 이 공식이다(−8% → +8.7%면 회복 가능, −58%는 +138%).",
   "prereq": [
-   "A6"
+   "0-8",
+   "0-10"
   ],
   "first_two_weeks": true
  },
  "quiz": null,
  "english": {
-  "date": "2026-10-27",
-  "title": "Wall Street Shakes Off Its Fears While Seoul Keeps Sliding",
+  "date": "2026-10-28",
+  "title": "A Bounce, but Not Yet a Recovery",
   "level": "수능 독해(B2) · OPIc IH+ 말하기"
  },
  "daily_cap_min": 20,
@@ -40,9 +41,9 @@
    21
   ]
  },
- "streak": 7,
- "issue_url": "https://github.com/hk99915-bot/market-screener/issues/new?title=study%20H2%20done&body=min%2015",
- "issue_title": "study H2 done",
+ "streak": 10,
+ "issue_url": "https://github.com/hk99915-bot/market-screener/issues/new?title=study%20R1%20done&body=min%2015",
+ "issue_title": "study R1 done",
  "gate": {
   "open_until": "2026-10-30",
   "open": 15,
@@ -52,7 +53,17 @@
    "0-8",
    "0-9",
    "0-10",
-   "D3"
+   "D3",
+   "R3",
+   "R4",
+   "R5",
+   "H3",
+   "H5",
+   "J2",
+   "A1",
+   "A3",
+   "T2",
+   "T7"
   ],
   "next_locked": null,
   "unlock_rule": "앞 모듈 done 이슈"
