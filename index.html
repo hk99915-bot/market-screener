@@ -3220,20 +3220,25 @@ function aptItem(x,key){
    ${tb?`<div style="overflow-x:auto;margin:4px 0"><div class="mu" style="font-size:var(--fs-1)">${esc(tb.cap||'')}</div><table style="width:auto;min-width:280px"><tr>${tb.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${tb.rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${i?'':'l'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
    <div style="margin:4px 0"><b>${esc(x.q)}</b></div>
    <div style="display:flex;flex-direction:column;gap:3px">${x.choices.map((c,i)=>`<button class="sbtn" data-ch="${escA(key)}" data-i="${i}" style="text-align:left;white-space:normal">${'①②③④⑤⑥'[i]||i+1} ${esc(c)}</button>`).join('')}</div>
-   <details style="margin-top:4px" ${r?'open':''}><summary class="mu" style="cursor:pointer;font-size:var(--fs-2)">정답·해설 보기</summary><div style="font-size:var(--fs-2);margin:2px 0 0 14px"><b class="am">정답 ${'①②③④⑤⑥'[x.a]||x.a+1}</b> — ${esc(x.exp||x.exp_ko||'')}${x.why?`<div>근거: ${esc(x.why)}</div>`:''}${x.tip?`<div class="mu">⏩ 시간 단축: ${esc(x.tip)}</div>`:''}</div></details></div>`;
+   <details data-aptw="${escA(key)}" style="margin-top:4px${r?'':';display:none'}" ${r?'open':''}><summary class="mu" style="cursor:pointer;font-size:var(--fs-2)">정답·해설 보기</summary><div style="font-size:var(--fs-2);margin:2px 0 0 14px"><b class="am">정답 ${'①②③④⑤⑥'[x.a]||x.a+1}</b> — ${esc(x.exp||x.exp_ko||'')}${x.why?`<div>근거: ${esc(x.why)}</div>`:''}${x.tip?`<div class="mu">⏩ 시간 단축: ${esc(x.tip)}</div>`:''}</div></details></div>`;
 }
+function aptLock(k){ const r=APTS[k]; if(!r) return; const x=(window.APTX||{})[k];
+  document.querySelectorAll(`[data-ch="${k}"]`).forEach(o=>{ o.disabled=true; const j=+o.dataset.i; if(r.c==null) return; o.style.borderColor=(x&&j===x.a)?'var(--up)':(j===r.c?'var(--dn)':''); }); }
 function aptBind(items){
+  window.APTX=Object.fromEntries(items.map(([x,k])=>[k,x]));
   const byK=Object.fromEntries(items.map(([x,k])=>[k,x]));
   const stopT=()=>{ if(!APTT) return null; clearInterval(APTT.iv); const s=Math.round((Date.now()-APTT.t0)/1000), k=APTT.k; const b=document.querySelector(`[data-tmr="${k}"]`); if(b) b.textContent='⏱ 시작'; APTT=null; return [k,s]; };
   document.querySelectorAll('[data-tmr]').forEach(b=>{ if(!byK[b.dataset.tmr]) return; b.onclick=()=>{ const k=b.dataset.tmr; const was=APTT&&APTT.k; const st=stopT(); if(was===k) return;
     const tv=document.querySelector(`[data-tv="${k}"]`); const t0=Date.now(); b.textContent='⏹ 정지';
     APTT={k,t0,iv:setInterval(()=>{ if(!document.body.contains(tv)){ clearInterval(APTT&&APTT.iv); APTT=null; return; } const s=Math.round((Date.now()-t0)/1000), lim=(byK[k]||{}).time_sec||60; tv.textContent=s+'초'; tv.style.color=s>lim?'var(--dn)':''; },500)}; }; });
   document.querySelectorAll('[data-ch]').forEach(b=>{ if(!byK[b.dataset.ch]) return; b.onclick=()=>{ const k=b.dataset.ch, x=byK[k]; if(!x) return; const i=+b.dataset.i;   // 영어 복습·독해(.engb)는 engBind 가 따로 묶음
+    if(APTS[k]) return;   // 첫 응답만 채점(kb:eval#8 사전 커밋) — 재클릭이 기록을 덮어쓰지 않는다
     let t=null; if(APTT&&APTT.k===k){ const st=stopT(); t=st[1]; }
-    const ok=i===x.a; APTS[k]={ok,t:t!=null?t:(APTS[k]||{}).t??null,at:eduKst(),tz:'KST'}; eduPut('mt_apt_score',APTS);
+    const ok=i===x.a; APTS[k]={ok,t,c:i,at:eduKst(),tz:'KST'};   // c = 고른 보기 번호(오답지 = 함정 유형 진단, kb:eval#9) eduPut('mt_apt_score',APTS);
     document.querySelectorAll(`[data-ch="${k}"]`).forEach(o=>{ const j=+o.dataset.i; o.style.borderColor=j===x.a?'var(--up)':(j===i?'var(--dn)':''); });
     const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
-    const d=b.closest('[data-apt]').querySelector('details'); if(d) d.open=true; aptTally(); }; });
+    const d=b.closest('[data-apt]').querySelector('details'); if(d){ d.style.display=''; d.open=true; } aptLock(k); aptTally(); }; });
+  items.forEach(([x,k])=>{ if(APTS[k]) aptLock(k); });   // 이미 응답한 문항은 버튼 고정 + 고른 보기 표시
 }
 function aptTally(){
   const el=$('#apttally'); if(!el||!EDU||!EDU.aptitude) return;
@@ -3442,7 +3447,7 @@ function engView(){
    MY 탭 회고와 같은 길: pb-private 이슈 '학습기록 YYYY-MM-DD' 작성 창을 열고(겸이가 제출) 기록 데스크가 다음 슬롯에 걷어 평가 데스크에 넘긴다. 토큰·서버 경유 없음, 비율·횟수만. */
 function eduSyncPayload(){
   const day=eduKst();
-  const apt=Object.entries(APTS||{}).map(([k,v])=>[k,v&&v.ok?1:0,v&&v.t!=null?v.t:null,v&&v.at||null,v&&v.tz==='KST'?'K':'U']);   // 5번째: 날짜 기준 K=한국·U=옛 UTC
+  const apt=Object.entries(APTS||{}).map(([k,v])=>[k,v&&v.ok?1:0,v&&v.t!=null?v.t:null,v&&v.at||null,v&&v.tz==='KST'?'K':'U',v&&v.c!=null?v.c:null]);   // 5번째: 날짜 기준 K=한국·U=옛 UTC · 6번째: 고른 보기 번호 c
   const eng=(ENGS||[]).map(r=>[r.date,r.kind==='review'?'r':r.kind==='quiz'?'q':String(r.kind||''),r.idx,r.ok?1:0,r.ts?eduKst(r.ts):null]);   // 5번째: 푼 날(한국)
   const op=(OPS||[]).map(r=>[r.date,r.idx,r.result,r.ts?eduKst(r.ts):null]);
   const quiz=(EDQ||[]).map(r=>[r.date,r.mod,r.qi,r.ok?1:0,r.choice,r.self?1:0]), qok=quiz.filter(x=>x[3]).length;   // 모듈 확인문제 (mt_quiz_log, req-dev-29f439ce) — date 는 한국 기준

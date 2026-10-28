@@ -343,3 +343,10 @@ def test_eng_review_after_fix_counts(study):
     assert p["summary"]["eng_review"] == {"n": 1, "ok": 1, "rate": 1.0, "tainted": 1}
     assert "tainted" not in it["eng"]["2026-10-24|r|0"] and it["eng"]["2026-10-24|r|1"]["tainted"] == 1
     assert "2026-10-25" not in p["days"]                      # tainted 응답일은 활동일 집계에서도 뺌
+
+
+def test_apt_choice_column_kept(study):
+    # 내보내기 apt 6번째 칸 = 고른 보기 번호 c (req-dev-826c4bf0 ②)
+    x = {"v": 2, "tz": "KST", "apt": [["N7", 0, 30, "2026-10-28", "K", 2], ["N8", 1, None, "2026-10-28", "K"]], "eng": []}
+    _, it = sp.merge_export({}, x, study)
+    assert it["apt"]["N7"]["c"] == 2 and "c" not in it["apt"]["N8"]

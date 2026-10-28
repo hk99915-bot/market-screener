@@ -431,6 +431,9 @@ def merge_export(progress: dict, export, study: dict | None = None, items: dict 
         tz_in = (row[4] if len(row) > 4 and row[4] else ("K" if kst else "U"))
         day, tz = _apt_date(str(qid), d, str(tz_in).upper())
         rec = {"ok": 1 if ok else 0, "sec": sec if isinstance(sec, (int, float)) else None, "date": day, "tz": tz}
+        c = row[5] if len(row) > 5 else None   # 6번째 칸: 고른 보기 번호(오답지 = 함정 유형 진단, kb:eval#9)
+        if isinstance(c, int) and not isinstance(c, bool) and c >= 0:
+            rec["c"] = c
         if _first(it["apt"].get(qid), rec):
             it["apt"][qid] = rec
     for row in x.get("eng") or []:
