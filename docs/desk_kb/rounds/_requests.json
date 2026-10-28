@@ -8491,6 +8491,24 @@
    "status": "open"
   },
   {
+   "id": "req-data-310435f3",
+   "from": "verify",
+   "to": "data",
+   "text": "금융위 종가 대조(fsc_close.py) 코드 검토 6건 — 상세 docs/desk_kb/verify.md #17. ① 10/28 실행에서 금융위 응답은 일별 약 2,870행 왔는데 우리 쪽 0행: kr_prices.parquet 이 gitignore 라 Actions 에 없고 data/hist 는 2025-12-30 까지라 날짜가 안 겹침 → 대조 경로 신설 필요(예: Actions 에서 최근 일봉 갱신 후 대조, 또는 basDt 를 hist 구간 2025-12 로 지정하는 옵션으로 1차 검증). ② 하루 ReadTimeout 시 재시도 없음 ③ mismatch 를 |diff_pct| 큰 순으로 ④ 하루 n_common 2,000 미만이면 ok 에서 제외·5일 미만 표시(기준 verify_fsc_survivorship.md §0-A) ⑤ 공휴일·T+1 미갱신·부분 적재(n_fsc 가 직전 5일 중앙값 90% 미만)를 상태로 구분 ⑥ srtnCd lstrip('A') 는 앞 A 전부 제거 — 접두 1개만. 수정은 데이터 몫 — 대조 가능해진 첫 산출 후 검증이 판정",
+   "opened": "2026-10-28",
+   "opened_at": "2026-10-28T20:45+09:00",
+   "due": "2026-10-30",
+   "via": "ask",
+   "seen": [
+    "2026-10-28"
+   ],
+   "checked": [
+    "2026-10-28"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-eval-0d7696d4",
    "from": "edu",
    "to": "eval",
