@@ -287,9 +287,13 @@ def intraday_kr(send: bool = True, state_key: str = "intraday_snapshot") -> str:
         big = [t for t in top[:3] if t.get("chg") is not None]
         if big and min(t["chg"] for t in big) / 100 < chg - 0.02:
             worst = sorted(big, key=lambda t: t["chg"])[:2]
-            notes.append("대형주가 지수보다 더 빠짐 (" + ", ".join(f"{_esc(t['name'])} {t['chg']:+.1f}%" for t in worst) + ") — 시총 상위 집중 매도")
+            if chg < 0:
+                notes.append("대형주가 지수보다 더 빠짐 (" + ", ".join(f"{_esc(t['name'])} {t['chg']:+.1f}%" for t in worst) + ") — 시총 상위 집중 매도")
+            else:
+                notes.append("대형주가 지수보다 덜 오름 (" + ", ".join(f"{_esc(t['name'])} {t['chg']:+.1f}%" for t in worst) + ") — 상승이 중소형 쪽")
         elif big and min(t["chg"] for t in big) / 100 > chg + 0.01:
-            notes.append("대형주가 지수보다 덜 빠짐 — 중소형 쪽 매도가 더 큼")
+            # 상승장에서 '덜 빠짐'은 틀린 문구 (10/28 13:34 코스피 +6.3% 브리핑 오표시)
+            notes.append("대형주가 지수보다 덜 빠짐 — 중소형 쪽 매도가 더 큼" if chg < 0 else "대형주가 지수보다 더 오름 — 시총 상위가 상승 주도")
     # ⑤ 역사적 맥락 (검증 스터디)
     if chg is not None and chg <= -0.05:
         try:
