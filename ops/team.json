@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-10-28T08:49+09:00",
+ "updated": "2026-10-28T14:49+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -4348,9 +4348,9 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-22",
-  "commits_total": 2025,
-  "commits_bot": 1125,
-  "commits_unmapped": 117,
+  "commits_total": 1992,
+  "commits_bot": 1137,
+  "commits_unmapped": 94,
   "audit_files": [
    "2026-10-24",
    "2026-10-26"
@@ -4681,9 +4681,9 @@
     }
    },
    "CIO": {
-    "commits_7d": 4,
+    "commits_7d": 8,
     "board": {
-     "진행": 0,
+     "진행": 1,
      "검수": 0,
      "대기": 2,
      "보류": 0,
@@ -4699,7 +4699,7 @@
     }
    },
    "HF": {
-    "commits_7d": 110,
+    "commits_7d": 119,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -4753,7 +4753,7 @@
     }
    },
    "PB": {
-    "commits_7d": 47,
+    "commits_7d": 51,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -4771,7 +4771,7 @@
     }
    },
    "PM": {
-    "commits_7d": 163,
+    "commits_7d": 164,
     "board": {
      "진행": 2,
      "검수": 0,
@@ -4789,7 +4789,7 @@
     }
    },
    "UXUI": {
-    "commits_7d": 11,
+    "commits_7d": 8,
     "board": {
      "진행": 0,
      "검수": 1,
@@ -4950,6 +4950,24 @@
      "경": 0
     }
    },
+   "analyst_semco_3q26_ni_miss": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
    "audit_compliance_peer": {
     "commits_7d": 0,
     "board": {
@@ -4969,6 +4987,60 @@
     }
    },
    "audit_compliance_peer_appendix": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
+   "audit_compliance_peer_recheck": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
+   "audit_compliance_peer_recheck2": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
+   "audit_compliance_peer_recheck3": {
     "commits_7d": 0,
     "board": {
      "진행": 0,
@@ -5418,6 +5490,42 @@
      "경": 0
     }
    },
+   "frm_posrisk_peer": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
+   "frm_posrisk_peer_recheck": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
    "front_onboarding": {
     "commits_7d": 0,
     "board": {
@@ -5688,6 +5796,24 @@
      "경": 2
     }
    },
+   "ops_meeting_kr": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
    "pb_gold_hedge_check": {
     "commits_7d": 0,
     "board": {
@@ -5796,6 +5922,24 @@
      "경": 0
     }
    },
+   "postmortem_1022_sell": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
    "quant_profit_lock": {
     "commits_7d": 0,
     "board": {
@@ -5815,6 +5959,24 @@
     }
    },
    "quant_reviews": {
+    "commits_7d": 0,
+    "board": {
+     "진행": 0,
+     "검수": 0,
+     "대기": 0,
+     "보류": 0,
+     "완료": 0
+    },
+    "rounds": 1,
+    "round_last": "2026-10-28",
+    "req_open": 0,
+    "audit": {
+     "치명": 0,
+     "중": 0,
+     "경": 0
+    }
+   },
+   "quant_skill_pilot": {
     "commits_7d": 0,
     "board": {
      "진행": 0,
@@ -5941,7 +6103,7 @@
     }
    },
    "감사": {
-    "commits_7d": 13,
+    "commits_7d": 14,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -5951,7 +6113,7 @@
     },
     "rounds": 1,
     "round_last": "2026-10-17",
-    "req_open": 1,
+    "req_open": 0,
     "audit": {
      "치명": 0,
      "중": 0,
@@ -5959,7 +6121,7 @@
     }
    },
    "개발": {
-    "commits_7d": 144,
+    "commits_7d": 131,
     "board": {
      "진행": 2,
      "검수": 3,
@@ -5977,7 +6139,7 @@
     }
    },
    "검증": {
-    "commits_7d": 12,
+    "commits_7d": 6,
     "board": {
      "진행": 3,
      "검수": 0,
@@ -6049,7 +6211,7 @@
     }
    },
    "데이터": {
-    "commits_7d": 39,
+    "commits_7d": 35,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6067,7 +6229,7 @@
     }
    },
    "리스크": {
-    "commits_7d": 6,
+    "commits_7d": 9,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -6077,7 +6239,7 @@
     },
     "rounds": 2,
     "round_last": "2026-10-23",
-    "req_open": 1,
+    "req_open": 0,
     "audit": {
      "치명": 0,
      "중": 0,
@@ -6085,7 +6247,7 @@
     }
    },
    "매크로": {
-    "commits_7d": 13,
+    "commits_7d": 14,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6139,7 +6301,7 @@
     }
    },
    "애널": {
-    "commits_7d": 16,
+    "commits_7d": 13,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6157,7 +6319,7 @@
     }
    },
    "운영": {
-    "commits_7d": 57,
+    "commits_7d": 53,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6175,7 +6337,7 @@
     }
    },
    "유지보수": {
-    "commits_7d": 7,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6229,7 +6391,7 @@
     }
    },
    "컴플라이언스": {
-    "commits_7d": 2,
+    "commits_7d": 4,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6247,7 +6409,7 @@
     }
    },
    "퀀트": {
-    "commits_7d": 37,
+    "commits_7d": 22,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -6265,7 +6427,7 @@
     }
    },
    "파생": {
-    "commits_7d": 6,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6301,7 +6463,7 @@
     }
    },
    "포지션리스크": {
-    "commits_7d": 2,
+    "commits_7d": 4,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -6319,7 +6481,7 @@
     }
    },
    "프론트": {
-    "commits_7d": 19,
+    "commits_7d": 21,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -6376,31 +6538,31 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 437,
-   "tokens": 84030618,
-   "tools": 20487,
-   "sec": 256069,
+   "runs": 468,
+   "tokens": 87179058,
+   "tools": 21159,
+   "sec": 263116,
    "days": 13,
    "per_day": {
-    "runs": 33.6,
-    "tokens": 6463893.7,
-    "tools": 1575.9,
-    "sec": 19697.6
+    "runs": 36.0,
+    "tokens": 6706081.4,
+    "tools": 1627.6,
+    "sec": 20239.7
    }
   }
  },
  "by_model": {
   "미지정": {
-   "runs": 212,
-   "tokens": 34617019,
-   "tools": 9910,
-   "sec": 154413,
-   "days": 8,
+   "runs": 216,
+   "tokens": 35135680,
+   "tools": 10047,
+   "sec": 156462,
+   "days": 9,
    "per_day": {
-    "runs": 26.5,
-    "tokens": 4327127.4,
-    "tools": 1238.8,
-    "sec": 19301.6
+    "runs": 24.0,
+    "tokens": 3903964.4,
+    "tools": 1116.3,
+    "sec": 17384.7
    }
   },
   "claude-fable-5-1": {
@@ -6430,29 +6592,29 @@
    }
   },
   "opus": {
-   "runs": 134,
-   "tokens": 20606220,
-   "tools": 4863,
-   "sec": 64727,
+   "runs": 159,
+   "tokens": 23075790,
+   "tools": 5359,
+   "sec": 69466,
    "days": 5,
    "per_day": {
-    "runs": 26.8,
-    "tokens": 4121244.0,
-    "tools": 972.6,
-    "sec": 12945.4
+    "runs": 31.8,
+    "tokens": 4615158.0,
+    "tools": 1071.8,
+    "sec": 13893.2
    }
   },
   "claude-sonnet-5-5": {
-   "runs": 8,
-   "tokens": 885553,
-   "tools": 193,
-   "sec": 2005,
-   "days": 3,
+   "runs": 10,
+   "tokens": 1045762,
+   "tools": 232,
+   "sec": 2264,
+   "days": 4,
    "per_day": {
-    "runs": 2.7,
-    "tokens": 295184.3,
-    "tools": 64.3,
-    "sec": 668.3
+    "runs": 2.5,
+    "tokens": 261440.5,
+    "tools": 58.0,
+    "sec": 566.0
    }
   },
   "sonnet": {
