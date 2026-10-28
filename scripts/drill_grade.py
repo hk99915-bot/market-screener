@@ -157,11 +157,11 @@ def _term_hit(term: str, text: str) -> bool:
 #  - 한국어는 부정이 뒤에 붙는다: 뒤 창 = 위 표지, 앞 창 = 바로 앞 'not '·'안 '·'못 ' 만('A가 아니라 B' 의 B 는 긍정).
 # 키에 "negcheck": false 면 끔(옵션 필드 — 기존 키 파일 호환).
 NEG_WIN = 12
-_CLAUSE_END = re.compile(r"[,;!?\n。]|(?<!\d)\.|\.(?!\d)|\s—\s")
-_NEG_STRONG = re.compile(r"아니(?:라|다|고|며|에요|야)?|아님|\bnot\b|\bisn't\b", re.I)
+_CLAUSE_END = re.compile(r"[,;!?\n。(（]|(?<!\d)\.|\.(?!\d)|\s—\s|뿐")  # 10/28 감사 2차: 괄호·'뿐' 뒤는 다른 절(과잉 차단 방지)
+_NEG_STRONG = re.compile(r"아닌|아니(?:라|다|고|며|에요|야)?|아님|어렵|\bnot\b|\bisn't\b", re.I)
 _NEG_ABSENT = re.compile(r"도\s*없|없다|없음|없어|없고|않|(?<![가-힣])안\s")
 _NEG_PRE = re.compile(r"(?:\bnot|(?<![가-힣])안|(?<![가-힣])못)\s+$", re.I)
-_NEG_ATTACHED = re.compile(r"[\'\"‘’“”)\]]*\s*(?:이|가|은|는)?\s*(?:아니|아님|not\b)", re.I)
+_NEG_ATTACHED = re.compile(r"[\'\"‘’“”)\]]*\s*(?:이|가|은|는)?\s*(?:아닌|아니|아님|not\b)", re.I)
 _NEG_CONCEPT = re.compile(r"없|않|아니|미커버|미지정|불가|불필요|부재")
 
 

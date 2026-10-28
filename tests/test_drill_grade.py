@@ -251,3 +251,22 @@ def test_all_model_answers_pass_with_negation_check():
                 fails.append((qid, r["miss"]))
     assert fails == []
     assert len(G.load_keys()) + len(G.load_onboarding()) >= 60
+
+
+def test_negation_audit_recheck2_lines():
+    """10/28 감사 2차 재검수(audit_compliance_peer_recheck2.md): 관형형 '아닌'·'어렵다'는 부정, 괄호·'뿐' 뒤는 다른 절."""
+    import importlib, sys, os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+    g = importlib.import_module("drill_grade")
+
+    def neg(text, key, negative=False):
+        i = text.find(key)
+        return g._negated(text, i, i + len(key), negative)
+
+    assert neg("능동 아닌 수동", "능동")
+    assert neg("1건 아닌 2건", "1건")
+    assert neg("1건이라 하기 어렵다", "1건")
+    assert neg("없음 아닌 수동", "없음", negative=True)
+    assert not neg("[13] 위반 1건뿐 다른 위반은 없다", "1건")
+    assert not neg("능동(자동 반영 아님)", "능동")
+    assert not neg("능동이다", "능동")
