@@ -2,18 +2,19 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-28 · 작업 362개 · 진행 11 · 검수 5 · 대기 134 · 보류 21 · 완료 191
+기준일 2026-10-28 · 작업 363개 · 진행 12 · 검수 5 · 대기 134 · 보류 21 · 완료 191
 
 **결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
 
 **기한 지남:** `peer-earnings-preview` (2026-10-27), `rep-semis-cap` (2026-10-27), `impl-frm-stress-july` (2026-10-25), `impl-sectors-official-switch` (2026-10-25), `impl-pick-gate-start` (2026-10-25), `impl-hf-independence` (2026-10-25), `impl-edu-g1-g4` (2026-10-27), `impl-krx-deriv-probe` (2026-10-25)
 
-## 진행 (11)
+## 진행 (12)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
 | P0 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-28 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. / 10/24 운영 점검: 확인 요청 중(req-pb-584233b1, 회신 마감 2026-10-28) — 비공개 작업 — 끝났는지 PB 회신 |
 | P0 ⏫P1 10-21 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-28 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). / 10/24 운영 점검: 확인 요청 중(req-pb-584233b1, 회신 마감 2026-10-28) — 비공개 작업 — 끝났는지 PB 회신 |
+| P0 | `perf-vs-donothing` | [실적 압박] 무행동 벤치 대비 성과 — 전 데스크 기여 보고 | CIO | 2026-10-28 | 2026-11-01 | `docs/desk_kb/rounds/2026-10-28/postmortem_1022_sell.md`<br>`docs/desk_kb/ops_meeting.md` | — | 10/28 겸이 "전체 누나들에게도 공유해서 실적압박 해". 사실: 과거 보유를 매매 없이 유지한 무행동 포트(외부 트래커)가 실계좌보다 앞서 보임 — 같은 시작일·시간가중 기준 갭은 퀀트 역산 중(비공개 analysis/2026-10-28-donothing, 공개는 %p만). 요구: 11/1 주간회의까지 각 데스크 '무행동 대비 내 판단의 기여(+/−, 근거 파일)·다음 주 갭 축소 행동 1개' 3줄 — 위험 조정 비교 필수(무행동 포트는 반도체 집중·레버리지 포함). 이후 매주 주간 성적표에 무행동 벤치 열 고정. |
 | P1 ⏫ | `impl-frm-stress-july` | 리스크 구속 스트레스 시나리오를 7월 실측(개인 북 −15.3%, 바닥 집행 시 −9.8%)으로 교체 — KB·코드·리포트 반영 | 리스크 | 2026-10-26 | **2026-10-25 지남** | `docs/desk_kb/frm.md` | `appr-frm-agenda-a` | 10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-frm-cb131a3e (due 2026-10-25). 결재 항목 appr-frm-agenda-a(완료). |
 | P1 ⏫ | `rep-semis-cap` | 독립 재현: semis_cap (091160·139260·069500 실데이터) — 밴드 45% 도달 빈도·글라이드 H1~H3 원 vs 재현 표 | 검증 | 2026-10-21 | **2026-10-27 지남** | `scripts/replicate_semis_cap.py`<br>`reports/studies/replication_semis_cap.md`<br>`tests/test_rep_semis_cap.py` | — | 22:00 마감. 명세(보고서 §0)만 보고 재구현, 원 코드 미열람. 판정 규약 kb:verify#2·허용오차 kb:verify#5(SE 기반, §0에 먼저 적고 실행). 불일치 시 등급 1단계 강등 요청. 첫 사례 replication_crash_rebound.md 형식. 상위 quant-replicate-studies. / 10/21 검증: H1 재현 일치(replication_semis_cap.md, C·F·F 3/3, 45% 도달 45.6%). 남은 것 H2(원 등급 A — 1순위)·H3. 마감 10/17→10/23: 첫 출근 라운드가 crash_rebound·hollzzak 재현에 쓰였고 10/17~20 미착수. / 10/23 검증: H2·H3 미착수 — 이번 주 알파북·HF 주간 채점 규약(req-verify-ef13d7a3·53fd7992)에 라운드를 씀. 마감 10/23→10/27(H2 원 A 1순위). |
 | P1 | `kr-accum` | 국장 외인·기관 매집 스캐너(전 종목 일별 수급 저장소) + 시장 거래대금 + 매집 신호 이벤트 스터디 | 퀀트 | 2026-10-17 | 2026-10-31 | `screener/accum.py`<br>`scripts/study_accum.py`<br>`.github/workflows/accum.yml`<br>`data/flows/*`<br>`reports/accum.json`<br>`reports/studies/accum_signals.json`<br>`apps-script/tab_market.html`<br>`tests/test_accum.py` | — | pykrx 하루 10콜 → data/flows/kr_inv_YYYY.parquet(2022~ 백필, 재개형). 평일 18:37 KST accum.yml. 화면: MARKET›KR ACCUM(getArchAt('accum','latest') 임시 — Code.gs/build_pages 잠금 풀리면 getAccum 전용 getter로). 남은 일: contracts.py 에 accum.json 계약 등록(개발 소관), 2022 하락장 백필 완료 후 스터디 재실행. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 2022 하락장 백필 완료 확인 → 스터디 재실행(contracts 등록은 끝남) |

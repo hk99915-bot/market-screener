@@ -6360,6 +6360,22 @@
       "depends_on": [],
       "escalated": "2026-10-28",
       "notes": "요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 부동산 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-realestate-f99b5f73`."
+    },
+    {
+      "started": "2026-10-28",
+      "due": "2026-11-01",
+      "files": [
+        "docs/desk_kb/rounds/2026-10-28/postmortem_1022_sell.md",
+        "docs/desk_kb/ops_meeting.md"
+      ],
+      "depends_on": [],
+      "notes": "10/28 겸이 \"전체 누나들에게도 공유해서 실적압박 해\". 사실: 과거 보유를 매매 없이 유지한 무행동 포트(외부 트래커)가 실계좌보다 앞서 보임 — 같은 시작일·시간가중 기준 갭은 퀀트 역산 중(비공개 analysis/2026-10-28-donothing, 공개는 %p만). 요구: 11/1 주간회의까지 각 데스크 '무행동 대비 내 판단의 기여(+/−, 근거 파일)·다음 주 갭 축소 행동 1개' 3줄 — 위험 조정 비교 필수(무행동 포트는 반도체 집중·레버리지 포함). 이후 매주 주간 성적표에 무행동 벤치 열 고정.",
+      "id": "perf-vs-donothing",
+      "title": "[실적 압박] 무행동 벤치 대비 성과 — 전 데스크 기여 보고",
+      "owner": "CIO",
+      "priority": "P0",
+      "status": "진행",
+      "repo": "public"
     }
   ]
 }
