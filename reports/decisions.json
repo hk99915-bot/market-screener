@@ -2653,10 +2653,23 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:56"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "SOXL",
+     "name": "Direxion Daily Semiconductor Bull 3X",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "same_close",
+     "by": "공격 PB",
+     "at": "21:56",
+     "lev_cap": "레버리지 +3배 보유 상한 1일(결재 #14)",
+     "lev_drag": "리셋 비용: Direxion Daily Semiconductor Bull 3X +3배 일일 리셋 — 2일 보유·지수 ±3% 왕복 가정: 지수 -0.09% → 3배 기대 -0.27% vs 실제 -0.81% (끌림 -0.54%p). 보유 길수록·흔들릴수록 커진다"
     }
    },
    "basis": {
@@ -2667,6 +2680,137 @@
      "VIX 17.52",
      "나스닥 26,478 (+1.18%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. 10/28 14:00 ET FOMC 금리 결정과 장후 빅테크 2곳 실적이 같은 날 겹치는 이벤트일로 방향 근거 부족. S&P500 7,723(20일 고점 대비 −1.2%)·VIX 17.5·미 10년 4.99%로 위원회 기본 시나리오 박스권 63%. 개인 진입 게이트 fail(이벤트일·위성 상한·FRM 한도) 및 구속 스트레스 위반 중 매수 금지. 탈출 조건 해당 없음.",
+    "lines": [
+     "S&P500 7,723(+0.6%, 20일 고점 대비 −1.2%) · VIX 17.5 · 미 10년 4.99%(20일 −26bp)",
+     "이벤트: FOMC 10/28 14:00 ET(한국 10/29 03:00) · 장후 빅테크 2곳 실적",
+     "위원회 20거래일 시나리오: 박스권 63% · 강세 22%",
+     "레드팀: FOMC 전 현금은 금리 인하 서프라이즈 시 기회비용 — 단 위반 상태의 매수는 규칙상 불가"
+    ],
+    "conviction": "보통",
+    "at": "21:56",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 이벤트일"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "이벤트일 진입 금지·위성 북 상한·FRM 한도 게이트 fail 및 구속 스트레스 위반 중 매수 금지로 실계좌 진입 불가."
+    },
+    "views_asof": "2026-10-28 19:16",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매수",
+      "b": "bull"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "기본 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 양수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 양수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 강세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 4회 · 5일 초과 -0.9%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "반도체 3배 당일 보유. 국장 메모리 대형주 10/28 +8~11%(하닉 실적·LTA 확대) 연동 갭 기대, 나스닥 20일 −1.2%로 과열 아님, VIX 17.5. 손절 −4%(기초지수 약 −1.3%), 목표 +6%. FOMC 변동성 노출 — 승률 검증 전(후보). 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.06,
+      "stop": -0.04,
+      "rr": 1.5,
+      "win_rate": null,
+      "n": null,
+      "basis": "국장 메모리 급등 연동(후보), 승률 검증 전"
+     }
+    }
    }
   }
  ],
