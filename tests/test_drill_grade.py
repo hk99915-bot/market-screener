@@ -286,3 +286,31 @@ def test_negation_audit_recheck3_frm_lines():
     assert neg("유동성 기간과는 무관", "유동성 기간")
     assert neg("유동성 기간과 상관없음", "유동성 기간")
     assert not neg("능동 변경이며 판단이 어렵지 않다", "능동")
+
+
+def test_posrisk_d2_d3_req_keys_frm_reverse_check():
+    """FRM 짝 검수 10/28(rounds/2026-10-28/frm_posrisk_peer.md, req-frm-379ac6d9 #1): d2·d3 수치·용어 키 req —
+    맞는 답 변형 6/6 통과 · 오답 6/6 불통과(부정형 '무관'·'아니다'·'아님' 포함) · 원 답안 100%."""
+    keys = G.load_keys()
+    d2, d3 = keys["posrisk-d2"], keys["posrisk-d3"]
+    ok = ((d2, "√2 배라 약 1.414% · 유동성 버킷/청산 일수 칸"),
+          (d2, "liquidity horizon 20일 → 1% × sqrt(2) = 1.41%"),
+          (d2, "1.4% (√(20/10)) · 유동성 기간을 늘려 봄"),
+          (d3, "12.5일 → 7일 초과, illiquid, 순자산 15%"),
+          (d3, "12.5 영업일, 비유동, 합계 15% 상한"),
+          (d3, "약 12.5일, 7일 초과 — 22e-4 비유동(15% 이내)"))
+    bad = ((d2, "2.0% (20/10 선형) · 유동성 기간 칸"),
+           (d2, "1.41% 이지만 유동성 기간·청산 일수와는 무관 — 집중도 칸"),
+           (d2, "1.0% 그대로, 유동성 버킷 칸과 같은 생각은 아니다"),
+           (d3, "12.5일이지만 비유동은 아니다(7일 초과 아님) — 저유동"),
+           (d3, "0.5일, 고유동, 상한 없음"),
+           (d3, "0.5일 → 고유동, 15% 해당 없음, 7일 초과 버킷 아님"))
+    for it, a in ok:
+        r = G.grade(it, a)
+        assert r["pass"] and not r["req_miss"], (a, r)
+    for it, a in bad:
+        r = G.grade(it, a)
+        assert not r["pass"] and r["req_miss"], (a, r)
+    for it, a in ((d2, "1.0% × √(20/10) = 1.41% · 유동성 버킷·청산 일수 칸과 같은 생각(출제 본인 — 채점은 짝)"),
+                  (d3, "2.5 ÷ 0.2 = 12.5일 → 7일 초과 버킷 · 22e-4 비유동 · 비유동 합계 15% 상한(출제 본인 — 채점은 짝)")):
+        assert G.grade(it, a)["score"] == 1.0, a
