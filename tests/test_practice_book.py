@@ -78,3 +78,12 @@ def test_trend_trailing_stop_weekly():
     BARS.append({"t": "2026-11-09", "o": 120, "h": 120, "l": 100, "c": 101})       # 올린 손절 아래 마감
     out = P.mark(b)
     assert out and out[0]["exit_why"].startswith("추세 이탈") and out[0]["r"] > 0
+
+
+def test_skip_logged_and_scored(monkeypatch):
+    px = {"v": 100.0}
+    monkeypatch.setattr(P.H, "stock_last", lambda c: ("2026-10-28", px["v"], "테스트"))
+    b = {"open": [], "closed": []}
+    P.skip(b, "055550", "안 산다 — 이틀 연속 시장보다 약함")
+    px["v"] = 95.0
+    assert b["skips"][0]["px"] == 100.0 and any("안 산다 테스트 100(" in x and "-5.0%" in x for x in P.show(b))

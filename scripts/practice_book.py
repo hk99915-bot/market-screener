@@ -58,6 +58,17 @@ def add(b: dict, code: str, stop: float, target: float | None, line: str, market
     return p
 
 
+def skip(b: dict, code: str, line: str, market: str = "KR", now: datetime | None = None) -> dict:
+    """'안 산다'도 결정 — 그때 가격을 적어두고 나중에 '안 산 게 맞았나'(그 뒤 수익률)를 본다."""
+    now = now or datetime.now(KST)
+    last = H.stock_last(code) if market == "KR" else H.us_stock_last(code)
+    if not last:
+        raise SystemExit(f"{code} 가격 없음")
+    s = {"code": code, "market": market, "name": last[2] or code, "line": line, "d": now.strftime("%Y-%m-%d"), "px": float(last[1])}
+    b.setdefault("skips", []).append(s)
+    return s
+
+
 def _r(p, px):
     """비용 차감 R — 왕복 비용(진입가 × COST)을 1R(진입 − 첫 손절)로 나눠 뺀다. 추세추종은 손절이 올라가도 1R 은 첫 손절 기준."""
     return (px - p["entry"] - COST[p["market"]] * p["entry"]) / (p["entry"] - p.get("stop0", p["stop"]))
@@ -129,6 +140,10 @@ def show(b: dict) -> list[str]:
         ls.append(f"- {p['name']} {ent} · 손절 {p['stop']:,.{2 if p['stop'] < 1000 else 0}f} · {tg}{cur} — \"{p['line']}\"")
     for p in cl[-5:]:
         ls.append(f"- 청산 {p['name']} {p['r']:+.2f}R ({p['ret'] * 100:+.1f}%, {p['exit_why']}, {p['exit_d']})")
+    for s in b.get("skips", [])[-5:]:
+        last = H.stock_last(s["code"]) if s["market"] == "KR" else H.us_stock_last(s["code"])
+        since = f" → 지금 {last[1] / s['px'] - 1:+.1%}" if last else ""
+        ls.append(f"- 안 산다 {s['name']} {s['px']:,.0f}({s['d']}){since} — \"{s['line']}\"")
     return ls
 
 
@@ -142,12 +157,19 @@ def main(argv=None):
     a.add_argument("--target", type=float)
     a.add_argument("--trail", action="store_true", help="추세추종: 목표 없음, 손절을 매주 직전 20일 저점으로 올림")
     a.add_argument("--line", required=True)
+    k = sp.add_parser("skip", help="'안 산다' 결정 기록 — 그 뒤 수익률로 채점")
+    k.add_argument("--code", required=True)
+    k.add_argument("--market", default="KR")
+    k.add_argument("--line", required=True)
     sp.add_parser("mark")
     sp.add_parser("show")
     x = ap.parse_args(argv)
     b = load()
     if x.cmd == "add":
         add(b, x.code, x.stop, x.target, x.line, x.market, trail=x.trail)
+        save(b)
+    elif x.cmd == "skip":
+        skip(b, x.code, x.line, x.market)
         save(b)
     elif x.cmd == "mark":
         for p in mark(b):
