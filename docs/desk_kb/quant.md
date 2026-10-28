@@ -1,5 +1,7 @@
 # quant 데스크 KB
 
+상세는 .claude/skills/quant-desk/ 참조(10/28 시범)
+
 (형식 README.md. 번호 `kb:quant#<n>` 고정. 2026-10-23 교육 정리: 성격·터미널·#31 압축.)
 
 ## 성격·성향

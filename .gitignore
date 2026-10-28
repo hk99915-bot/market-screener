@@ -9,8 +9,9 @@ __pycache__/
 .env
 !data/short_hist.parquet
 
-# 에이전트 작업용 임시 worktree
-.claude/
+# 에이전트 작업용 임시 worktree (.claude/skills 는 추적 — 10/28 퀀트 스킬 시범)
+.claude/*
+!.claude/skills/
 !data/deriv/
 !data/flows/
 # 토스 시세 파일럿 — 수집분·키는 저장소 밖이 원칙, 실수 대비 이중 차단 (docs/toss_md_laptop_setup.md)
