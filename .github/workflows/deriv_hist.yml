@@ -79,6 +79,11 @@ jobs:
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
         run: python -m screener.fsc_daily --days 3 2>&1 | tail -3 || echo "::warning::fsc_daily 실패"
+      - name: 우리 일봉(kr_prices 릴리스 자산) 받기 — 종가 대조용 (req-data-310435f3 ①, 실패해도 계속 · 없으면 reports/detail 차선)
+        if: steps.g.outputs.go == 'true' && github.event.inputs.task != 'probe'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/data_store.py pull --groups prices 2>&1 | tail -3 || echo "::warning::kr_prices 받기 실패"
       - name: 금융위 종가 ↔ 우리 일봉 대조 (req-data-23bdae79 ② — 읽기·표본 대조, 실패해도 계속)
         if: steps.g.outputs.go == 'true' && github.event.inputs.task != 'probe'
         env:
