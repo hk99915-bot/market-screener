@@ -273,8 +273,25 @@ def _won(x: float | None) -> str:
     return "-" if x is None else f"{x:+,.0f}억"
 
 
+def sector_moves(rows: list[dict], n: int = 3, min_k: int = 5) -> tuple[list[tuple], list[tuple]]:
+    """업종(g)별 시총 가중 당일 등락 — 종목 min_k 개 미만·'기타' 제외. (업종, 등락, 종목 수) 상위·하위 n."""
+    agg: dict[str, list[float]] = {}
+    for r in rows:
+        g, mc, r1 = r.get("g"), r.get("mc"), r.get("ret1")
+        if not g or g == "기타" or not mc or r1 is None or mc <= 0:
+            continue
+        a = agg.setdefault(g, [0.0, 0.0, 0])
+        a[0] += mc * r1
+        a[1] += mc
+        a[2] += 1
+    out = sorted(((g, a[0] / a[1], a[2]) for g, a in agg.items() if a[2] >= min_k), key=lambda x: -x[1])
+    if len(out) < 2 * n:
+        return out[: len(out) // 2], out[len(out) // 2:][::-1]
+    return out[:n], out[-n:][::-1]
+
+
 def close_comment(idx: dict, inv: dict, br: dict, movers_up: list[dict], movers_dn: list[dict],
-                  fnet: list[dict], inet: list[dict]) -> list[str]:
+                  fnet: list[dict], inet: list[dict], sectors: tuple[list, list] | None = None) -> list[str]:
     L = []
     if idx:
         L.append(" · ".join(f"{k} {v['close']:,.2f} ({v['chg']*100:+.2f}%)" for k, v in idx.items()))
@@ -309,6 +326,11 @@ def close_comment(idx: dict, inv: dict, br: dict, movers_up: list[dict], movers_
                 bits.append("지수는 내렸지만 상승 종목이 더 많음 — 대형주만 약세")
     if bits:
         L.append("→ " + " · ".join(bits))
+    if sectors and sectors[0]:
+        f = lambda xs: ", ".join(f"{g} {r * 100:+.1f}%" for g, r, _ in xs)  # noqa: E731
+        L.append("강한 업종(시총 가중): " + f(sectors[0]))
+        if sectors[1]:
+            L.append("약한 업종(시총 가중): " + f(sectors[1]))
     if movers_up:
         L.append("거래대금 상위 100 중 강세: " + ", ".join(f"{m['name']} {m['ret1']*100:+.1f}%" for m in movers_up))
     if movers_dn:

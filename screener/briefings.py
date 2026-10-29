@@ -360,7 +360,18 @@ def close_kr(last: pl.DataFrame, br: dict) -> str:
     big = last.sort("dollar_vol20", descending=True).head(100)
     up = big.sort("ret1", descending=True).head(4).to_dicts()
     dn = big.sort("ret1").head(4).to_dicts()
-    lines = flows.close_comment(idx, inv, br, up, dn, fnet, inet)
+    sectors = None
+    try:  # 업종·시총은 peers_KR.json(분류), 등락은 오늘 last
+        peers = {r["s"]: r for r in json.loads((REPORT_DIR / "peers_KR.json").read_text(encoding="utf-8")).get("rows", [])}
+        rows = []
+        for r in last.select(["symbol", "ret1"]).to_dicts():
+            p = peers.get(str(r["symbol"]).split(".")[0])
+            if p:
+                rows.append({"g": p.get("g"), "mc": p.get("mc"), "ret1": r["ret1"]})
+        sectors = flows.sector_moves(rows)
+    except Exception as e:  # noqa: BLE001
+        log.debug("업종 등락 실패: %s", e)
+    lines = flows.close_comment(idx, inv, br, up, dn, fnet, inet, sectors)
     return "\n".join(["<b>🔔 마감 코멘트</b>"] + [_esc(x) for x in lines]) if lines else ""
 
 
@@ -455,9 +466,9 @@ def close_us(last: pl.DataFrame, br: dict) -> str:
     L += [_esc(x) for x in usmarket.sector_lines(sec, 3)]
     up, dn = usmarket.movers(last)
     if up:
-        L.append("대형주 강세: " + ", ".join(up))
+        L.append("거래대금 상위 300 중 강세: " + ", ".join(up))
     if dn:
-        L.append("대형주 약세: " + ", ".join(dn))
+        L.append("거래대금 상위 300 중 약세: " + ", ".join(dn))
     L.append("<b>[내일 국장 시사점]</b>")
     L += ["• " + _esc(x) for x in usmarket.kr_implications(idx, sec, mac)]
     return "\n".join(L)
