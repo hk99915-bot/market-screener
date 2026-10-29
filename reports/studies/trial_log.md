@@ -1,9 +1,9 @@
 ## 요약 (What · So What · Now What)
 
-> 기준 2026-10-23
+> 기준 2026-10-29
 
 **What**
-- 시도 N 1180 · 연구 41건 · 전체 한 가족 α 4e-05
+- 시도 N 1200 · 연구 47건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1180** (등록 m 합 408 + 등록 전 탐색 772) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1200** (등록 m 합 427 + 등록 전 탐색 773) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -48,9 +48,11 @@
 | 2026-10-24_trend_discovery |  | trend_sim | — | 미등록 | — | 18 | — | 탐색 통과 KR 2·US 2 vs 우연 기대 13.4·8.7(이항 p 1.00) → 우연과 구분 안 됨. 새 전략군은 종목별 3년 거래 0~5회라 종목별 검정 불가 → 합산(pooled) 사전등록 제안으로 |
 | 2026-10-24_trend_events |  | trend_sim | 6 | m | 0.00833 | — | A1 B2 C1 F2 | KR hi52 A·gcv B·sqz B, US hi52 F·gcv C·sqz F. 주제 N 197 기준은 sqz KR 만 통과(병기). 편입은 다음 결재 |
 | 2026-10-24_trend_events_rerun_us666 |  | (미분류) | — | 미등록 | — | — | A1 B2 F3 | — |
-| accum_signals | 2026-10-17 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
+| 2026-10-29_winner_ex_ante | 2026-10-29 | winner_ex_ante | 7 | prereg.m | 0.00714 | 1 | A(통계 lift>1) · 변동성 표지·선별력 실무 미달2 C(사후 분류·방향만)1 F1 검증전(미실행)3 | H1-1 낙폭 −40% F(lift 0.99) · H1-2·H1-3 통계 lift>1이나 하위 5% 꼬리가 더 커 변동성 표지 |
+| accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
+| dotplot_tilt |  | (미분류) | 6 | m | 0.00833 | — | — | — |
 | entry_signals | 2026-10-16 | crash_entry | 6 | params.m | 0.00833 | — | C1 F5 | 후보 5개 F, 급락일 종가 C → '확인 신호를 기다리지 않기' 추천 |
 | exec_signal | 2026-10-16 | crash_entry | 19 | params.m1+m3+m4 | 0.00263 | — | — | S2′만 C(보정 전), 급락일 종가보다 20일 −5.7%p |
 | fib_levels | 2026-10-15 | fib | 4 | m | 0.0125 | — | F1 | 렌즈 등급 F |
@@ -60,17 +62,21 @@
 | lab_p1 | 2026-10-16 | earnings_yoy | 6 | m | 0.00833 | 1 | — | — |
 | lab_p1_screen | 2026-10-16 | (미분류) | — | 미등록 | — | — | — | — |
 | playbook_signals | 2026-10-15 | crash_entry | — | 미등록 | — | 32 | — | 급락일 종가(B)보다 나은 신호 없음 → 다음 연구(entry_signals)로 재정의 |
+| profit_lock |  | (미분류) | 6 | params.m | 0.00833 | — | — | — |
+| re_bluezone_drawdown | 202107~202 | (미분류) | — | 미등록 | — | — | — | — |
 | replication_crash_rebound | 2026-10-16 | crash_entry | 0 | m | — | — | — | 재현 표 — m 없음, −5% 사건 27일 일치 |
 | replication_hollzzak |  | (미분류) | — | 미등록 | — | — | F2 F(역방향 C)1 검증전1 | — |
 | replication_laor_ib |  | (미분류) | — | 미등록 | — | — | — | — |
 | replication_qld_dca | 2026-10-20 | qld_daily_dca | 0 | m | — | — | — | — |
 | replication_semis_cap |  | (미분류) | — | 미등록 | — | — | — | — |
+| replication_sox_rel |  | (미분류) | — | 미등록 | — | — | — | — |
 | replication_us_spikes |  | (미분류) | — | 미등록 | — | — | — | — |
 | rule_audit | 2026-10-16 | rules | 18 | params.m | 0.00278 | — | C6 F12 | — |
 | semis_cap | 2026-10-16 | semis_cap | 7 | prereg.m | 0.00714 | — | A1 C1 F5 | — |
 | trend_expectancy | 2026-10-17 | trend_sim | 173 | prereg.m | 0.00029 | — | C1 F1 | — |
 | trend_expectancy_verify |  | (미분류) | — | 미등록 | — | — | — | — |
 | us_accum | 2026-10-17 | us_accum | 9 | prereg.m | 0.00556 | 9 | F9 | 9개 모두 F(IS 20일 초과 −0.23~−0.60%p, 비용 0.25%). S8 갭 60일 OOS 평균 +2.28%p 이나 중앙값 −2.23%p → 소수 대박(생존편향 의심) |
+| verify_survivorship | 2026-10-27 | (미분류) | — | 미등록 | — | — | — | — |
 
 ## 2. 주제별 N (같은 질문의 반복 검정)
 
@@ -80,12 +86,13 @@
 | trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, trend_expectancy | 179 | 18 | 197 | 0.00025 |
 | crash_entry | crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 32 | 36 | 68 | 0.00074 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
+| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, dotplot_tilt, lab_p1_screen, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 31 | 0 | 31 | 0.00161 |
 | kr_accum | accum_signals | 24 | 0 | 24 | 0.00208 |
-| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, lab_p1_screen, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_us_spikes, trend_expectancy_verify | 19 | 0 | 19 | 0.00263 |
 | rules | rule_audit | 18 | 0 | 18 | 0.00278 |
 | us_accum | us_accum | 9 | 9 | 18 | 0.00278 |
 | derivs | derivs_signals, gamma_regime | 13 | 0 | 13 | 0.00385 |
 | bond_sleeve | ktb_vs_ust | 11 | 0 | 11 | 0.00455 |
+| winner_ex_ante | 2026-10-29_winner_ex_ante | 7 | 1 | 8 | 0.00625 |
 | alpha_source | 2026-10-21_alpha_sources | 6 | 1 | 7 | 0.00714 |
 | earnings_yoy | lab_p1 | 6 | 1 | 7 | 0.00714 |
 | semis_cap | semis_cap | 7 | 0 | 7 | 0.00714 |
