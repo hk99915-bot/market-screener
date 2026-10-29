@@ -310,9 +310,9 @@ def close_comment(idx: dict, inv: dict, br: dict, movers_up: list[dict], movers_
     if bits:
         L.append("→ " + " · ".join(bits))
     if movers_up:
-        L.append("대형주 강세: " + ", ".join(f"{m['name']} {m['ret1']*100:+.1f}%" for m in movers_up))
+        L.append("거래대금 상위 100 중 강세: " + ", ".join(f"{m['name']} {m['ret1']*100:+.1f}%" for m in movers_up))
     if movers_dn:
-        L.append("대형주 약세: " + ", ".join(f"{m['name']} {m['ret1']*100:+.1f}%" for m in movers_dn))
+        L.append("거래대금 상위 100 중 약세: " + ", ".join(f"{m['name']} {m['ret1']*100:+.1f}%" for m in movers_dn))
     if fnet:
         L.append("외국인 순매수 상위: " + ", ".join([f"{r['name']}({r['amt']:+,.0f}억)" for r in fnet if r["amt"] > 0][:5]))
     if inet:
