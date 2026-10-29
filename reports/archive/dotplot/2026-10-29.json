@@ -1,0 +1,1257 @@
+{
+ "date": "2026-10-29",
+ "asof": "2026-10-29 19:15",
+ "assets": {
+  "KOSPI": [
+   {
+    "desk": "퀀트",
+    "asset": "KOSPI",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "저점 +1% 위 마감 신호 충족(C — 참고)",
+    "tag": "signal",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "보통",
+    "p_up": 0.667,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "50일선 6,583 회복",
+    "flip_down": "20일 고점 대비 −25% 이탈",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "퀀트",
+    "asset": "KOSPI",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "저점 +1% 위 마감 신호 충족(C — 참고)",
+    "tag": "signal",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "보통",
+    "p_up": 0.667,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "50일선 6,583 회복",
+    "flip_down": "20일 고점 대비 −25% 이탈",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "파생",
+    "asset": "KOSPI",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "선물 백워데이션(-0.87) — B 이상 렌즈 없음 → 근거 부호 쪽 약매도",
+    "tag": "flows",
+    "refs": [
+     "reports/derivs.json",
+     "reports/studies/gamma_regime.json"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "낮음",
+    "p_up": 0.417,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "베이시스 > 0(콘탱고 복귀) · 50일선 6,583 회복",
+    "flip_down": "베이시스 < 0 & 감마 음수 & 5일 −0.5% 아래 · 20일 고점 대비 −25% 이탈",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "KOSPI",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "매크로 바람 +0.05 약한 순풍 → 부호 쪽 약하게",
+    "tag": "regime",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "바람 ≥ +0.30 · 50일선 6,583 회복",
+    "flip_down": "바람 < +0.05 · 미10Y 5일 +10bp & 5.0% 위(매도1) · 20일 고점 대비 −25% 이탈",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "KOSPI",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "매크로 바람 +0.05 약한 순풍 → 부호 쪽 약하게",
+    "tag": "regime",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "바람 ≥ +0.30 · 50일선 6,583 회복",
+    "flip_down": "바람 < +0.05 · 미10Y 5일 +10bp & 5.0% 위(매도1) · 20일 고점 대비 −25% 이탈",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "KOSPI",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "200일선 아래(-8.4%) · 20일 저점 위 +8.6% → 약매도",
+    "tag": "risk",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "낮음",
+    "p_up": 0.417,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "200일선 회복 · 50일선 6,583 회복",
+    "flip_down": "200일선 아래 & 20일 저점 3% 안(매도1) · 20일 고점 대비 −25% 이탈",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "KOSPI",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "200일선 아래(-8.4%) · 20일 저점 위 +8.6% → 약매도",
+    "tag": "risk",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "낮음",
+    "p_up": 0.417,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "200일선 회복 · 50일선 6,583 회복",
+    "flip_down": "200일선 아래 & 20일 저점 3% 안(매도1) · 20일 고점 대비 −25% 이탈",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "애널",
+    "asset": "KOSPI",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "검증전 (자산 항목 없음)",
+    "tag": "valuation",
+    "refs": [
+     "reports/valuation.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.112,
+    "base_src": "보합(±2%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "50일선 6,583 회복",
+    "flip_down": "20일 고점 대비 −25% 이탈",
+    "na": true,
+    "base_text": "보합(±2%) 실측 11% ⚠ 중립 근거 약함"
+   },
+   {
+    "desk": "CIO",
+    "asset": "KOSPI",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "운용회의 시나리오 강세 44% · 약세 22% — 과반 없음 · 하지만 CIO 이벤트 판단 🔴 하방(2026-10-26 event_cio) → 약매도",
+    "tag": "regime",
+    "refs": [
+     "reports/committee.json#scenarios",
+     "reports/committee_us.json#scenarios",
+     "docs/desk_kb/rounds/2026-10-26/event_cio.md"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "낮음",
+    "p_up": 0.417,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "강세 확률 ≥ 45%(매수1) · 50일선 6,583 회복",
+    "flip_down": "약세 확률 ≥ 35%(매도1) · 20일 고점 대비 −25% 이탈",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "PB",
+    "asset": "KOSPI",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "실행 대본 관망",
+    "tag": "signal",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": 0,
+    "lean_label": "중립",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.108,
+    "base_src": "보합(±1%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "실행 대본 '분할 매수' 전환 · 50일선 6,583 회복",
+    "flip_down": "실행 대본 '방어' 전환 · 20일 고점 대비 −25% 이탈",
+    "base_text": "보합(±1%) 실측 11% ⚠ 중립 근거 약함"
+   },
+   {
+    "desk": "PB",
+    "asset": "KOSPI",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "실행 대본 관망",
+    "tag": "signal",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": 0,
+    "lean_label": "중립",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.112,
+    "base_src": "보합(±2%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "실행 대본 '분할 매수' 전환 · 50일선 6,583 회복",
+    "flip_down": "실행 대본 '방어' 전환 · 20일 고점 대비 −25% 이탈",
+    "base_text": "보합(±2%) 실측 11% ⚠ 중립 근거 약함"
+   },
+   {
+    "desk": "겸이",
+    "asset": "KOSPI",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "제출 없음",
+    "tag": "none",
+    "refs": [
+     "reports/decisions.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.108,
+    "base_src": "보합(±1%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "50일선 6,583 회복",
+    "flip_down": "20일 고점 대비 −25% 이탈",
+    "na": true,
+    "base_text": "보합(±1%) 실측 11% ⚠ 중립 근거 약함"
+   }
+  ],
+  "SEMI_KR": [
+   {
+    "desk": "퀀트",
+    "asset": "SEMI_KR",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "저점 +1% 위 마감 신호 충족(C — 참고)",
+    "tag": "signal",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "보통",
+    "p_up": 0.667,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "코스피200 IV < 45%",
+    "flip_down": "코스피200 IV > 60%",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "퀀트",
+    "asset": "SEMI_KR",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "저점 +1% 위 마감 신호 충족(C — 참고)",
+    "tag": "signal",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "보통",
+    "p_up": 0.667,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "코스피200 IV < 45%",
+    "flip_down": "코스피200 IV > 60%",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "파생",
+    "asset": "SEMI_KR",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "선물 백워데이션(-0.87) — B 이상 렌즈 없음 → 근거 부호 쪽 약매도",
+    "tag": "flows",
+    "refs": [
+     "reports/derivs.json",
+     "reports/studies/gamma_regime.json"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "낮음",
+    "p_up": 0.417,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "베이시스 > 0(콘탱고 복귀) · 코스피200 IV < 45%",
+    "flip_down": "베이시스 < 0 & 감마 음수 & 5일 −0.5% 아래 · 코스피200 IV > 60%",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "SEMI_KR",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "매크로 바람 +0.05 약한 순풍 → 부호 쪽 약하게",
+    "tag": "regime",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "바람 ≥ +0.30 · 코스피200 IV < 45%",
+    "flip_down": "바람 < +0.05 · 미10Y 5일 +10bp & 5.0% 위(매도1) · 코스피200 IV > 60%",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "SEMI_KR",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "매크로 바람 +0.05 약한 순풍 → 부호 쪽 약하게",
+    "tag": "regime",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "바람 ≥ +0.30 · 코스피200 IV < 45%",
+    "flip_down": "바람 < +0.05 · 미10Y 5일 +10bp & 5.0% 위(매도1) · 코스피200 IV > 60%",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "SEMI_KR",
+    "stance": "매도",
+    "conv": 2,
+    "horizon": "5d",
+    "reason": "20일 실현변동성 60% ≥ 60% — 한도 초과",
+    "tag": "risk",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": -2,
+    "lean_label": "강매도",
+    "confidence": "높음",
+    "p_up": 0.167,
+    "base_prob": 0.833,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "20일 실현변동성 < 40% & 200일선 회복 · 코스피200 IV < 45%",
+    "flip_down": "20일 실현변동성 ≥ 40%(매도1) · ≥ 60%(매도2) · 코스피200 IV > 60%",
+    "base_text": "기본 83%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "SEMI_KR",
+    "stance": "매도",
+    "conv": 2,
+    "horizon": "20d",
+    "reason": "20일 실현변동성 60% ≥ 60% — 한도 초과",
+    "tag": "risk",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": -2,
+    "lean_label": "강매도",
+    "confidence": "높음",
+    "p_up": 0.167,
+    "base_prob": 0.833,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "20일 실현변동성 < 40% & 200일선 회복 · 코스피200 IV < 45%",
+    "flip_down": "20일 실현변동성 ≥ 40%(매도1) · ≥ 60%(매도2) · 코스피200 IV > 60%",
+    "base_text": "기본 83%"
+   },
+   {
+    "desk": "애널",
+    "asset": "SEMI_KR",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "금리조정 이익수익률 상위 3분위 (임시 눈금, 이력 30일 전)",
+    "tag": "valuation",
+    "refs": [
+     "reports/valuation.json"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "보통",
+    "p_up": 0.667,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "금리조정 이익수익률 상위 3분위(백분위 ≥ 67%) · 코스피200 IV < 45%",
+    "flip_down": "하위 3분위(백분위 ≤ 33%) · 코스피200 IV > 60%",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "CIO",
+    "asset": "SEMI_KR",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "운용회의 시나리오 강세 44% · 약세 22% — 과반 없음 · 하지만 CIO 이벤트 판단 🔴 하방(2026-10-26 event_cio) → 약매도",
+    "tag": "regime",
+    "refs": [
+     "reports/committee.json#scenarios",
+     "reports/committee_us.json#scenarios",
+     "docs/desk_kb/rounds/2026-10-26/event_cio.md"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "낮음",
+    "p_up": 0.417,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "강세 확률 ≥ 45%(매수1) · 코스피200 IV < 45%",
+    "flip_down": "약세 확률 ≥ 35%(매도1) · 코스피200 IV > 60%",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "PB",
+    "asset": "SEMI_KR",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "비중 축소 중 (테마 한도 글라이드)",
+    "tag": "risk",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "글라이드 종료(테마 비중 40% 이하) · 코스피200 IV < 45%",
+    "flip_down": "코스피200 IV > 60%",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "PB",
+    "asset": "SEMI_KR",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "비중 축소 중 (테마 한도 글라이드)",
+    "tag": "risk",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "글라이드 종료(테마 비중 40% 이하) · 코스피200 IV < 45%",
+    "flip_down": "코스피200 IV > 60%",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "겸이",
+    "asset": "SEMI_KR",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "제출 없음",
+    "tag": "none",
+    "refs": [
+     "reports/decisions.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.084,
+    "base_src": "보합(±1%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "코스피200 IV < 45%",
+    "flip_down": "코스피200 IV > 60%",
+    "na": true,
+    "base_text": "보합(±1%) 실측 8% ⚠ 중립 근거 약함"
+   }
+  ],
+  "SPX": [
+   {
+    "desk": "퀀트",
+    "asset": "SPX",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "200일선 위(+6.0%) · 진입 신호 없음 → 추세 쪽 약매수",
+    "tag": "regime",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "−5% 급락일 종가(매수2) 또는 저점 +1% 위 마감(매수1) · VIX < 16",
+    "flip_down": "200일선 이탈 · VIX > 25",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "퀀트",
+    "asset": "SPX",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "200일선 위(+6.0%) · 진입 신호 없음 → 추세 쪽 약매수",
+    "tag": "regime",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "−5% 급락일 종가(매수2) 또는 저점 +1% 위 마감(매수1) · VIX < 16",
+    "flip_down": "200일선 이탈 · VIX > 25",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "파생",
+    "asset": "SPX",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "검증된 렌즈 없음",
+    "tag": "none",
+    "refs": [
+     "reports/derivs.json",
+     "reports/studies/gamma_regime.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.452,
+    "base_src": "보합(±1%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "VIX < 16",
+    "flip_down": "VIX > 25",
+    "na": true,
+    "base_text": "보합(±1%) 실측 45%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "SPX",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "매크로 바람 +0.05 약한 순풍 → 부호 쪽 약하게",
+    "tag": "regime",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "바람 ≥ +0.30 · VIX < 16",
+    "flip_down": "바람 < +0.05 · 미10Y 5일 +10bp & 5.0% 위(매도1) · VIX > 25",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "SPX",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "매크로 바람 +0.05 약한 순풍 → 부호 쪽 약하게",
+    "tag": "regime",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.583,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "바람 ≥ +0.30 · VIX < 16",
+    "flip_down": "바람 < +0.05 · 미10Y 5일 +10bp & 5.0% 위(매도1) · VIX > 25",
+    "base_text": "기본 58%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "SPX",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "200일선 +6.0% · 20일 저점 위 +1.6%",
+    "tag": "risk",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": 0,
+    "lean_label": "중립",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.452,
+    "base_src": "보합(±1%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "200일선 회복 · VIX < 16",
+    "flip_down": "200일선 아래 & 20일 저점 3% 안(매도1) · VIX > 25",
+    "base_text": "보합(±1%) 실측 45%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "SPX",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "200일선 +6.0% · 20일 저점 위 +1.6%",
+    "tag": "risk",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": 0,
+    "lean_label": "중립",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.576,
+    "base_src": "보합(±2%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "200일선 회복 · VIX < 16",
+    "flip_down": "200일선 아래 & 20일 저점 3% 안(매도1) · VIX > 25",
+    "base_text": "보합(±2%) 실측 58%"
+   },
+   {
+    "desk": "애널",
+    "asset": "SPX",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "검증전 (자산 항목 없음)",
+    "tag": "valuation",
+    "refs": [
+     "reports/valuation.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.576,
+    "base_src": "보합(±2%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "VIX < 16",
+    "flip_down": "VIX > 25",
+    "na": true,
+    "base_text": "보합(±2%) 실측 58%"
+   },
+   {
+    "desk": "CIO",
+    "asset": "SPX",
+    "stance": "매수",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "강세 22% · 약세 15% — 과반 없음 → 우세 쪽 약매수",
+    "tag": "regime",
+    "refs": [
+     "reports/committee.json#scenarios",
+     "reports/committee_us.json#scenarios"
+    ],
+    "lean": 1,
+    "lean_label": "약매수",
+    "confidence": "낮음",
+    "p_up": 0.583,
+    "base_prob": 0.222,
+    "base_src": "운용회의 강세 시나리오",
+    "base_kind": "scenario",
+    "flip_up": "강세 확률 ≥ 45%(매수1) · VIX < 16",
+    "flip_down": "약세 확률 ≥ 35%(매도1) · VIX > 25",
+    "base_text": "기본 22%"
+   },
+   {
+    "desk": "PB",
+    "asset": "SPX",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "실행 대본 없음",
+    "tag": "none",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.452,
+    "base_src": "보합(±1%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "VIX < 16",
+    "flip_down": "VIX > 25",
+    "na": true,
+    "base_text": "보합(±1%) 실측 45%"
+   },
+   {
+    "desk": "PB",
+    "asset": "SPX",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "실행 대본 없음",
+    "tag": "none",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.576,
+    "base_src": "보합(±2%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "VIX < 16",
+    "flip_down": "VIX > 25",
+    "na": true,
+    "base_text": "보합(±2%) 실측 58%"
+   },
+   {
+    "desk": "겸이",
+    "asset": "SPX",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "제출 없음",
+    "tag": "none",
+    "refs": [
+     "reports/decisions.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.452,
+    "base_src": "보합(±1%) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "VIX < 16",
+    "flip_down": "VIX > 25",
+    "na": true,
+    "base_text": "보합(±1%) 실측 45%"
+   }
+  ],
+  "US10Y": [
+   {
+    "desk": "퀀트",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "금리 방향 규칙 없음",
+    "tag": "none",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.728,
+    "base_src": "보합(±10bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±10bp) 실측 73%"
+   },
+   {
+    "desk": "퀀트",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "금리 방향 규칙 없음",
+    "tag": "none",
+    "refs": [
+     "reports/studies/entry_signals.json",
+     "reports/committee.json#stance.exec.signals",
+     "reports/macro_series.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.76,
+    "base_src": "보합(±20bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±20bp) 실측 76%"
+   },
+   {
+    "desk": "파생",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "검증된 렌즈 없음",
+    "tag": "none",
+    "refs": [
+     "reports/derivs.json",
+     "reports/studies/gamma_regime.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.728,
+    "base_src": "보합(±10bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±10bp) 실측 73%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "US10Y",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "5일 -10bp — 하락 지속",
+    "tag": "rates",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "5일 > +10bp(매수1) · 미 10Y > 5.15%",
+    "flip_down": "5일 < −10bp(매도1) · 미 10Y < 4.80%",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "매크로",
+    "asset": "US10Y",
+    "stance": "매도",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "5일 -10bp — 하락 지속",
+    "tag": "rates",
+    "refs": [
+     "reports/macro_view.json",
+     "reports/macro_series.json#US10Y"
+    ],
+    "lean": -1,
+    "lean_label": "약매도",
+    "confidence": "보통",
+    "p_up": 0.333,
+    "base_prob": 0.667,
+    "base_src": "규칙 환산(검증전)",
+    "base_kind": "rule",
+    "flip_up": "5일 > +10bp(매수1) · 미 10Y > 5.15%",
+    "flip_down": "5일 < −10bp(매도1) · 미 10Y < 4.80%",
+    "base_text": "기본 67%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "한도 규칙 없음",
+    "tag": "none",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.728,
+    "base_src": "보합(±10bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±10bp) 실측 73%"
+   },
+   {
+    "desk": "리스크",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "한도 규칙 없음",
+    "tag": "none",
+    "refs": [
+     "reports/macro_series.json",
+     "data/hist (139260)"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.76,
+    "base_src": "보합(±20bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±20bp) 실측 76%"
+   },
+   {
+    "desk": "애널",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "밸류 규칙 없음",
+    "tag": "none",
+    "refs": [
+     "reports/valuation.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.76,
+    "base_src": "보합(±20bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±20bp) 실측 76%"
+   },
+   {
+    "desk": "CIO",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "시나리오 없음",
+    "tag": "none",
+    "refs": [
+     "reports/committee.json#scenarios",
+     "reports/committee_us.json#scenarios"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.76,
+    "base_src": "보합(±20bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±20bp) 실측 76%"
+   },
+   {
+    "desk": "PB",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "실행 대본 대상 아님",
+    "tag": "none",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.728,
+    "base_src": "보합(±10bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±10bp) 실측 73%"
+   },
+   {
+    "desk": "PB",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "20d",
+    "reason": "실행 대본 대상 아님",
+    "tag": "none",
+    "refs": [
+     "reports/committee.json#stance",
+     "reports/committee.json#stance.exec.steps"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.76,
+    "base_src": "보합(±20bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±20bp) 실측 76%"
+   },
+   {
+    "desk": "겸이",
+    "asset": "US10Y",
+    "stance": "중립",
+    "conv": 1,
+    "horizon": "5d",
+    "reason": "대결 대상 아님",
+    "tag": "none",
+    "refs": [
+     "reports/decisions.json"
+    ],
+    "lean": 0,
+    "lean_label": "해당없음",
+    "confidence": "낮음",
+    "p_up": 0.333,
+    "base_prob": 0.728,
+    "base_src": "보합(±10bp) 1년 실측 빈도",
+    "base_kind": "band",
+    "flip_up": "미 10Y > 5.15%",
+    "flip_down": "미 10Y < 4.80%",
+    "na": true,
+    "base_text": "보합(±10bp) 실측 73%"
+   }
+  ]
+ },
+ "closes": {
+  "KOSPI": 5937.66,
+  "SEMI_KR": 107950.0,
+  "SPX": 7743.98,
+  "US10Y": 5.045
+ },
+ "note": "지수·업종 수준 판단만. 개인 보유·금액 없음. 규칙: screener/dotplot.py",
+ "lint": [],
+ "refused": 0,
+ "summary": {
+  "KOSPI": {
+   "counts": {
+    "매수": 2,
+    "중립": 1,
+    "매도": 3
+   },
+   "lean_counts": {
+    "강매수": 0,
+    "약매수": 2,
+    "중립": 1,
+    "약매도": 3,
+    "강매도": 0,
+    "해당없음": 2
+   },
+   "na": 2,
+   "net_lean": -0.17,
+   "tags": {
+    "regime": 2,
+    "signal": 2,
+    "flows": 1,
+    "risk": 1
+   }
+  },
+  "SEMI_KR": {
+   "counts": {
+    "매수": 3,
+    "중립": 0,
+    "매도": 4
+   },
+   "lean_counts": {
+    "강매수": 0,
+    "약매수": 3,
+    "중립": 0,
+    "약매도": 3,
+    "강매도": 1,
+    "해당없음": 1
+   },
+   "na": 1,
+   "net_lean": -0.29,
+   "tags": {
+    "regime": 2,
+    "risk": 2,
+    "flows": 1,
+    "signal": 1,
+    "valuation": 1
+   }
+  },
+  "SPX": {
+   "counts": {
+    "매수": 3,
+    "중립": 1,
+    "매도": 0
+   },
+   "lean_counts": {
+    "강매수": 0,
+    "약매수": 3,
+    "중립": 1,
+    "약매도": 0,
+    "강매도": 0,
+    "해당없음": 4
+   },
+   "na": 4,
+   "net_lean": 0.75,
+   "tags": {
+    "regime": 3,
+    "risk": 1
+   }
+  },
+  "US10Y": {
+   "counts": {
+    "매수": 0,
+    "중립": 0,
+    "매도": 1
+   },
+   "lean_counts": {
+    "강매수": 0,
+    "약매수": 0,
+    "중립": 0,
+    "약매도": 1,
+    "강매도": 0,
+    "해당없음": 7
+   },
+   "na": 7,
+   "net_lean": -1.0,
+   "tags": {
+    "rates": 1
+   }
+  }
+ },
+ "top": {
+  "what": [
+   "데스크 점 18개(해당없음 14 제외) — 강매수 0·약매수 8·중립 2·약매도 7·강매도 1, 순중립 11%"
+  ],
+  "so_what": [
+   "순기울기(−2~+2) 코스피 -0.17 · 반도체(KR) -0.29 · S&P500 +0.75 · 미10년 -1.00",
+   "약매수·약매도 = 근거 부호만(확신 낮음), 기울기 임계값 검증전"
+  ],
+  "now_what": [
+   "조치 없음(점도표 단독 매매 규칙 없음 — 운용회의 입력) · 점별 전환 조건 flip_up·flip_down 참조",
+   "형식 검사 위반 0건 — 통과"
+  ],
+  "evidence": [],
+  "src": [
+   "reports/dotplot.json",
+   "screener/dotplot.py"
+  ],
+  "asof": "2026-10-29 19:15",
+  "grade": "검증전"
+ }
+}
