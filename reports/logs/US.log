@@ -1,58 +1,56 @@
-2026-10-28 21:54:26,964 INFO screener.universe: US 유니버스 nasdaqtrader: 5866종목
-2026-10-28 21:54:26,967 INFO screener.universe: US 지수 유니버스 560종목 (S&P500 ∪ NDX)
-2026-10-28 21:54:26,967 INFO screener: US 유니버스 560종목
-2026-10-28 21:54:39,425 ERROR yfinance: 
+2026-10-29 21:54:44,715 INFO screener.universe: US 유니버스 nasdaqtrader: 5868종목
+2026-10-29 21:54:44,718 INFO screener.universe: US 지수 유니버스 560종목 (S&P500 ∪ NDX)
+2026-10-29 21:54:44,719 INFO screener: US 유니버스 560종목
+2026-10-29 21:54:45,243 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
+2026-10-29 21:54:55,229 INFO screener.data: US 시세 배치 1/4
+2026-10-29 21:55:07,744 INFO screener.data: US 시세 배치 2/4
+2026-10-29 21:55:20,183 INFO screener.data: US 시세 배치 3/4
+2026-10-29 21:55:28,327 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: CYBR"}}}
+2026-10-29 21:55:28,479 ERROR yfinance: $CYBR: possibly delisted; no timezone found
+2026-10-29 21:55:29,216 ERROR yfinance: 
 1 Failed download:
-2026-10-28 21:54:39,425 ERROR yfinance: ['LITE']: OperationalError('database is locked')
-2026-10-28 21:54:39,667 INFO screener.data: US 시세 배치 1/4
-2026-10-28 21:54:52,720 INFO screener.data: US 시세 배치 2/4
-2026-10-28 21:55:06,033 INFO screener.data: US 시세 배치 3/4
-2026-10-28 21:55:11,371 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: CYBR"}}}
-2026-10-28 21:55:11,547 ERROR yfinance: $CYBR: possibly delisted; no timezone found
-2026-10-28 21:55:15,236 ERROR yfinance: 
-1 Failed download:
-2026-10-28 21:55:15,237 ERROR yfinance: ['CYBR']: possibly delisted; no timezone found
-2026-10-28 21:55:15,391 INFO screener.data: US 시세 배치 4/4
-2026-10-28 21:55:15,660 INFO screener: 토스 섀도 대조(보충 없음): 겹침 92.7% · 일치 100.0% · 최대 괴리 NWSA 0.0167%
-2026-10-28 21:55:15,662 INFO screener: 시세 153753행 / 558종목
-2026-10-28 21:55:15,898 INFO screener: 필터 후 554종목 · 기준일 2026-10-28 · CONFIRMED
-2026-10-28 21:55:17,098 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 21:55:19,582 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 21:55:19,982 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
-2026-10-28 21:55:20,269 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-28 21:55:20,377 INFO matplotlib.font_manager: generated new fontManager
-2026-10-28 21:55:29,016 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-28 21:55:32,372 WARNING screener.live: live NIKKEI 마지막 봉 2026-10-27 < 같은 시장 2026-10-28 — 지연 표시
-2026-10-28 21:55:32,375 INFO screener.live: live.json 17개 지표
-2026-10-28 21:55:32,446 INFO screener.macroview: 매크로 해설: 매크로 바람 중립 (+0.02) — 주된 요인: S&P500 +, 나스닥 −, 미 10년 금리 + · 20일 코스피 -12.7% vs S&P +1.2% (격차 -13.9%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
-2026-10-28 21:55:34,031 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 21:55:35,620 INFO screener.commodities: 원자재 31개(ok 31) · 1개월 ±10% 넘게 움직인 원자재: 유럽 가스(TTF) +43%, 아시아 LNG(JKM, NYMEX 정산가) +22%, 희토류·전략금속 ETF(REMX) -16%, WTI 원유 +14%, 은 -11%
-2026-10-28 21:55:50,549 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
-2026-10-28 21:55:53,151 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 21:59:46,562 INFO screener.realestate: 부동산 RTMS: 성공 구 25/25 · 실패 없음
-2026-10-28 21:59:46,608 INFO screener.realestate: 부동산 RTMS 드릴다운: 구별 파일 25개
-2026-10-28 21:59:46,609 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 2, 'last': '2026-10-28', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
-2026-10-28 21:59:46,624 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3448
-2026-10-28 21:59:46,628 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
-2026-10-28 21:59:58,436 INFO screener.momentum: 모멘텀 순위 US 553종목
-2026-10-28 22:00:15,022 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: CIBR"}}}
-2026-10-28 22:00:17,712 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: DX-Y.NYB"}}}
-2026-10-28 22:00:49,808 INFO screener.drivers: 체인 프록시 93개
-2026-10-28 22:00:56,483 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: FOX"}}}
-2026-10-28 22:01:06,747 INFO screener.drivers: 미장 EPS 추정 558종목
-2026-10-28 22:01:06,756 INFO screener.drivers: 미장 이익 드라이버 558종목
-2026-10-28 22:01:07,161 INFO screener.detail: 미장 재무 요약 546종목
-2026-10-28 22:01:07,609 INFO screener.valuation: US 가치평가 557종목 (검증전 120)
-2026-10-28 22:01:07,676 INFO screener.detail: 한 줄 설명: {'market': 'US', 'universe': 626, 'etf_type': 0, 'kind': 0, 'yahoo': 0, 'yahoo_fail': 0, 'recheck': 0, 'line': 599, 'pending': 27}
-2026-10-28 22:01:08,635 INFO screener.detail: detail/US: 558종목, 30014 KB
-2026-10-28 22:01:08,638 INFO screener.detail: sim_signals_US: 스캔 554 · 통과 0 · 기대 우연 2.0
-2026-10-28 22:01:13,098 INFO screener.detail: trend_discovery_US: 근접 2 · 탐색 통과 7 (우연 기대 18.62)
-2026-10-28 22:01:36,969 INFO screener.etf: ETF US 67개 (24s)
-2026-10-28 22:01:37,053 INFO screener.dashboard: dashboard.json 갱신 (112998 bytes)
-2026-10-28 22:01:37,633 INFO screener.dashboard: 리서치 국면 태그 1968건
-2026-10-28 22:01:37,666 INFO screener.dashboard: research.json 1968건
-2026-10-28 22:01:37,677 INFO screener.dashboard: disclosures.json 1099건
-2026-10-28 22:01:37,717 INFO screener.daily: 데일리 리포트: 리포트 299건, 테마 29개, 통합 체크 1개
-2026-10-28 22:01:38,980 INFO screener.report: 텔레그램 전송 완료 (2개 메시지)
-2026-10-28 22:01:39,530 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-28 22:01:39,554 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
+2026-10-29 21:55:29,217 ERROR yfinance: ['CYBR']: possibly delisted; no timezone found
+2026-10-29 21:55:29,414 INFO screener.data: US 시세 배치 4/4
+2026-10-29 21:55:29,687 INFO screener: 토스 섀도 대조(보충 없음): 겹침 92.7% · 일치 99.6% · 최대 괴리 CLX 1.4516%
+2026-10-29 21:55:29,690 INFO screener: 시세 154035행 / 559종목
+2026-10-29 21:55:30,016 INFO screener: 필터 후 555종목 · 기준일 2026-10-29 · CONFIRMED
+2026-10-29 21:55:31,018 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 21:55:33,129 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 21:55:33,427 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-10-29 21:55:33,870 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-29 21:55:33,881 INFO matplotlib.font_manager: generated new fontManager
+2026-10-29 21:55:41,541 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-29 21:55:44,467 WARNING screener.live: live NIKKEI 마지막 봉 2026-10-28 < 같은 시장 2026-10-29 — 지연 표시
+2026-10-29 21:55:44,470 INFO screener.live: live.json 17개 지표
+2026-10-29 21:55:44,558 INFO screener.macroview: 매크로 해설: 매크로 바람 약한 순풍 (+0.07) — 주된 요인: 나스닥 −, S&P500 +, 미 10년 금리 + · 20일 코스피 -13.6% vs S&P +0.7% (격차 -14.3%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
+2026-10-29 21:55:46,277 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 21:55:47,436 INFO screener.commodities: 원자재 31개(ok 31) · 1개월 ±10% 넘게 움직인 원자재: 유럽 가스(TTF) +35%, 아시아 LNG(JKM, NYMEX 정산가) +27%, 희토류·전략금속 ETF(REMX) -18%, WTI 원유 +14%, 은 -13%
+2026-10-29 21:56:02,893 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
+2026-10-29 21:56:05,101 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 21:59:15,653 INFO screener.realestate: 부동산 RTMS: 성공 구 25/25 · 실패 없음
+2026-10-29 21:59:15,711 INFO screener.realestate: 부동산 RTMS 드릴다운: 구별 파일 25개
+2026-10-29 21:59:15,711 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 2, 'last': '2026-10-28', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
+2026-10-29 21:59:15,733 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3450
+2026-10-29 21:59:15,738 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
+2026-10-29 21:59:27,349 INFO screener.momentum: 모멘텀 순위 US 554종목
+2026-10-29 21:59:44,722 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: CIBR"}}}
+2026-10-29 21:59:46,988 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: DX-Y.NYB"}}}
+2026-10-29 22:00:17,598 INFO screener.drivers: 체인 프록시 93개
+2026-10-29 22:00:25,450 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: FOX"}}}
+2026-10-29 22:00:37,435 INFO screener.drivers: 미장 EPS 추정 559종목
+2026-10-29 22:00:37,445 INFO screener.drivers: 미장 이익 드라이버 559종목
+2026-10-29 22:00:38,000 INFO screener.detail: 미장 재무 요약 547종목
+2026-10-29 22:00:38,600 INFO screener.valuation: US 가치평가 558종목 (검증전 120)
+2026-10-29 22:00:38,682 INFO screener.detail: 한 줄 설명: {'market': 'US', 'universe': 625, 'etf_type': 0, 'kind': 0, 'yahoo': 0, 'yahoo_fail': 0, 'recheck': 0, 'line': 598, 'pending': 27}
+2026-10-29 22:00:39,908 INFO screener.detail: detail/US: 559종목, 30118 KB
+2026-10-29 22:00:39,911 INFO screener.detail: sim_signals_US: 스캔 556 · 통과 0 · 기대 우연 2.1
+2026-10-29 22:00:45,763 INFO screener.detail: trend_discovery_US: 근접 1 · 탐색 통과 7 (우연 기대 19.92)
+2026-10-29 22:01:10,917 INFO screener.etf: ETF US 67개 (25s)
+2026-10-29 22:01:11,009 INFO screener.dashboard: dashboard.json 갱신 (113734 bytes)
+2026-10-29 22:01:11,814 INFO screener.dashboard: 리서치 국면 태그 2055건
+2026-10-29 22:01:11,852 INFO screener.dashboard: research.json 2055건
+2026-10-29 22:01:11,862 INFO screener.dashboard: disclosures.json 1254건
+2026-10-29 22:01:11,910 INFO screener.daily: 데일리 리포트: 리포트 336건, 테마 30개, 통합 체크 1개
+2026-10-29 22:01:13,214 INFO screener.report: 텔레그램 전송 완료 (2개 메시지)
+2026-10-29 22:01:13,831 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-29 22:01:13,856 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
