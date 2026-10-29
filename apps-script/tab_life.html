@@ -3,13 +3,14 @@
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
 /* ───── LIFE: pb-private/life/summary.json (가계부·커리어·건강·목표) — 토큰으로 이 브라우저에서만 읽음, 공개 서버 경유 없음 ───── */
-let LIFE=null, LIFEERR='';
+let LIFE=null, LIFEERR='', LIFEFM=null;
 function lifeView(){
   const tk=ghTok();
+  if(tk&&!LIFE&&!LIFEERR) setTimeout(()=>pbGet('life/freeman_calc.json').then(t=>{ LIFEFM=JSON.parse(t); if(view==='life'&&LIFE) lifeFill(); }).catch(()=>{}),0);
   if(tk&&!LIFE&&!LIFEERR) setTimeout(()=>pbGet('life/summary.json').then(t=>{ LIFE=JSON.parse(t); if(view==='life') lifeFill(); }).catch(e=>{ LIFEERR=e.message; const b=$('#lifeb'); if(b) b.innerHTML=`<div class="p c12"><div class="b dn">불러오기 실패(${esc(e.message)}) — 토큰 권한(pb-private Contents: Read) 확인 · <a href="#" onclick="LIFEERR='';render();return false">다시 시도</a></div></div>`; }),0);
   else if(LIFE) setTimeout(lifeFill,0);
   const head=`<div class="p c12"><h2>LIFE<small>가계부 · 커리어 · 건강 · 목표 · 비공개 저장소(pb-private/life)에서 이 브라우저로 직접 읽음</small></h2><div class="b mu" style="font-size:var(--fs-2);white-space:normal">
-    업데이트 방법: 뱅샐 내보내기 파일·운동·지원 현황은 PB에게 보내면 비공개 저장소에 반영돼요. <a href="#" onclick="LIFE=null;LIFEERR='';render();return false">새로고침</a></div></div>`;
+    업데이트 방법: 뱅샐 내보내기 파일·운동·지원 현황은 PB에게 보내면 비공개 저장소에 반영돼요. <a href="#" onclick="LIFE=null;LIFEERR='';LIFEFM=null;render();return false">새로고침</a></div></div>`;
   if(!tk) return `<div class="grid">${head}<div class="p c12"><div class="b" style="white-space:normal">이 탭은 비공개 저장소 토큰이 있어야 보여요. <a href="#" onclick="setView('my');return false">MY 탭 → 토큰 설정</a>에서 읽기 전용 토큰을 저장한 뒤 돌아오세요.</div></div></div>`;
   return `<div class="grid">${head}<div id="lifeb" style="display:contents"><div class="p c12"><div class="b mu">${LIFEERR?'불러오기 실패('+esc(LIFEERR)+') · <a href="#" onclick="LIFEERR=\'\';render();return false">다시 시도</a>':'불러오는 중…'}</div></div></div></div>`;
 }
@@ -28,6 +29,10 @@ function lifeFill(){
   const prog=`<div class="p c12"><h2>순자산 목표 진행률 · ${esc(G.basis||'순자산 전체')}<small>목표 ${esc(G.target_date||'')}</small></h2><div class="b" style="white-space:normal">
     <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap"><b style="font-size:var(--fs-4)">${P(G.pct)}</b><span>${M(G.current)} / ${G.target>=1e8?(G.target/1e8)+'억+':M(G.target)+'+'}</span><span class="mu">하한 목표 — 넘기는 게 목표 (10/17)</span></div>
     ${bar(G.pct)}${G.pct_incl_dc!=null&&G.pct_incl_dc!==G.pct?`<div style="font-size:var(--fs-2)">DC 포함 시 <b>${P(G.pct_incl_dc)}</b> <span class="mu">(퇴직연금 DC 보조 표기 · 진행률은 가용자산 기준)</span></div>`:''}<div class="mu" style="font-size:var(--fs-1)">가정: 월 저축 ${W(A.monthly_saving)}원 (${esc(A.basis||'')}) · 이체 순유출·보너스 변동은 반영 안 됨 · 순자산: ${esc(NW.note||'')}</div></div></div>`;
+  // 1억까지 — S&P 실제 경로 분포 (life/freeman_calc.py, 10/29 겸이 「MY탭에도 이 표」 → 1억 목표가 있는 LIFE에 둠)
+  const F=LIFEFM, fm=!F?'':`<div class="p c12"><h2>1억까지 몇 달 · 과거 실제 경로<small>${esc(F.data||'')} · ${esc(F.asof||'')}</small></h2><div class="b" style="white-space:normal">
+    <table><tr><th class="l">월 저축</th><th>주식 비중</th><th>중앙</th><th>느린 10%</th><th>최악</th><th class="l">최악 시작</th><th>목표일 내 도달</th></tr>${(F.rows||[]).map(r=>`<tr><td class="l">${Math.round(r.saving_mult*100)}%</td><td>${Math.round(r.w_equity*100)}%</td><td>${r.median}개월</td><td>${r.p10_slow}</td><td class="${r.worst>F.horizon_months?'dn':''}">${r.worst}</td><td class="l mu">${esc(r.worst_start||'')}</td><td class="${r.hit_by_target_date<0.9?'am':'up'}">${P(r.hit_by_target_date)}</td></tr>`).join('')}</table>
+    <div class="mu" style="font-size:var(--fs-1);margin-top:4px">출발 ${M(F.start)} · 월 저축 ${M(F.saving)} · 목표일 ${esc(F.target_date||'')}까지 ${F.horizon_months}개월 · 고정 5% 가정 ${F.fixed5_eta_months}개월 · 주식 외 몫은 현금 연 ${P(F.cash_rate)} · 경로 ${(F.rows[0]||{}).n_paths}개는 서로 겹침(독립 3년 구간 약 18개) · 세금·환율·배당 미반영 · [가정] 프리맨 지표 정의 확정 전 참고용</div></div></div>`;
   // 월별 막대 (inline SVG — 테마 변수만 사용)
   const ms=S.monthly||[], mx=Math.max(1,...ms.map(m=>Math.max(m.income,m.spend,m.invest_in))), H=160, bw=100/Math.max(1,ms.length);
   const svg=`<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" style="width:100%;height:180px;display:block">`+ms.map((m,i)=>{ const x=i*bw, w=bw/4.2;
@@ -54,7 +59,7 @@ function lifeFill(){
   const fv=(g,v)=>v==null||v===''?'—':(g.unit==='원'?M(+v):isNaN(+v)?esc(v):(+v).toLocaleString('ko-KR',{maximumFractionDigits:1}));
   const goals=`<div class="p c6"><h2>GOALS<small>goals/goals.csv</small></h2><div class="b"><table><tr><th class="l">영역</th><th class="l">목표</th><th>현재</th><th>목표치</th><th class="l" style="width:22%">진행</th><th class="l">기한</th></tr>`+
     (S.goals||[]).map(g=>`<tr title="${esc(g.note||'')}"><td class="l mu">${esc(g.area||'')}</td><td class="l">${esc(g.goal)}</td><td>${fv(g,g.current)}</td><td class="mu">${fv(g,g.target)}${g.target!=null&&g.unit&&g.unit!=='원'?' '+esc(g.unit):''}</td><td class="l">${g.pct!=null?bar(g.pct)+`<span class="mu" style="font-size:var(--fs-1)">${P(g.pct)}</span>`:`<span class="mu">${esc(g.status||'')}</span>`}</td><td class="l">${esc(g.target_date||'')}</td></tr>`).join('')+`</table></div></div>`;
-  b.innerHTML=kpis+prog+money+cats+recent+apps+specs+story+body+health+goals+
+  b.innerHTML=kpis+prog+fm+money+cats+recent+apps+specs+story+body+health+goals+
     `<div class="p c12"><div class="b mu" style="font-size:var(--fs-1);white-space:normal">생성 ${esc(S.generated||'')} · 데이터: 비공개 저장소 life/ CSV → build_summary.py → summary.json. 이 화면은 공개 서버에 아무것도 보내지 않아요.</div></div>`;
   setTimeout(()=>lifeHealthCharts(Hh),0);
 }
