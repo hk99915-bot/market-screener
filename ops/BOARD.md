@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-30 · 작업 364개 · 진행 12 · 검수 5 · 대기 135 · 보류 21 · 완료 191
+기준일 2026-10-30 · 작업 367개 · 진행 12 · 검수 5 · 대기 138 · 보류 21 · 완료 191
 
 **결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
 
@@ -35,7 +35,7 @@
 | P1 ⏫ | `dispatch-redundancy` | 실행 이중화 A1~A3 (겸이 10/21 09:3x 승인) — 노트북 정시 dispatcher·하트비트 감시·tgPoll 5분·install 이 tick 만 교체 | 개발 | 2026-10-21 | 2026-10-31 | `tools/dispatch/dispatch.py`<br>`scripts/slot_guard.py`<br>`scripts/watchdog.py`<br>`.github/workflows/heartbeat.yml`<br>`tools/toss_md/publish.py`<br>`apps-script/Scheduler.gs`<br>`apps-script/TelegramHook.gs`<br>`docs/toss_md_laptop_setup.md` | — | A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력). / 10/24 운영 점검: 검수 유지, 마감 2026-10-21→2026-10-31. 남은 것: 겸이 노트북 dispatcher 설치(가이드 ⑧) — reports/live.json 에 dispatcher_heartbeat 아직 없음 |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (135)
+## 대기 (138)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -136,6 +136,9 @@
 | P1 ⏫ | `req-quant-7727cc15` | [요청 승격] 자산배분→퀀트: 11/15 ISA 안건: 코어 비중에 광범위 원자재 3%(S&P 40→37) 넣은 안의 2022형(주식·채권 | 퀀트 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→자산배분: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-7727cc15`. |
 | P1 ⏫ | `req-realestate-f99b5f73` | [요청 승격] 유지보수→부동산: [검수 tue-realestate-drill 조건부] 드릴다운 fb7df209·지도 줌 3355a903 통과 | 부동산 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 부동산 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-realestate-f99b5f73`. |
 | P1 ⏫ | `req-pb-350f1089` | [요청 승격] 행동→PB: 결재 필요(대결 '나' 게이트, 피어 10/24 P1·P2): ① R:R 기준가를 체결 기준(국장 종가·미장 | PB | — | 2026-11-05 | — | — | 요청 2영업일 미처리(2026-10-27~2026-10-29) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→행동: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-350f1089`. |
+| P1 ⏫ | `req-bonds-d826bc52` | [요청 승격] 애널→채권: 미 10년 기간 프리미엄 교차 확인: KCIF 10/21 '미 국채금리 상승 요인 분해'(DKW 모형)가 고 | 채권 | — | 2026-11-06 | — | — | 요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 채권 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-bonds-d826bc52`. |
+| P1 ⏫ | `req-data-310435f3` | [요청 승격] 검증→데이터: 금융위 종가 대조(fsc_close.py) 코드 검토 6건 — 상세 docs/desk_kb/verify.md | 데이터 | — | 2026-11-06 | — | — | 요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-310435f3`. |
+| P1 ⏫ | `req-eval-0d7696d4` | [요청 승격] 교육→평가: 재검수 요청(출제자≠검수자, req-edu-11644241 ③): 평가 수정 오답지 188문항 역검수에서 내 | 평가 | — | 2026-11-06 | — | — | 요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 평가 라운드 파일에 `처리→교육: …` 한 줄 또는 `python3 scripts/ask.py --close req-eval-0d7696d4`. |
 | P2 ⏫P1 10-26 | `impl-edu-g1-g4` | 교육 G1~G4 진행(드릴 답 별도 키 파일·채점 / 검증기 실패 승격 시점 / 퀴즈 응답 텔레그램 수집 / 데스크 블라인드) | 교육 | — | **2026-10-27 지남** | `docs/desk_kb/edu.md` | `appr-edu-g1-g4` | 10/24 07시 운영 등록 — 겸이 결재 승인 구현 요청 req-edu-9af40f50 (due 2026-10-27). 결재 항목 appr-edu-g1-g4(완료). |
 | P2 ⏫P1 10-21 | `peer-earnings-preview` | 피어: 실적 시즌 프리뷰 — 10/29 삼성·MU(12월)·하이닉스 컨센서스 대비 시나리오 3개(상·기본·하)와 주가 반응 통계(과거 실적일 ±1일) | 피어리뷰 | — | **2026-10-27 지남** | `reports/studies/earnings_reaction.md` | `ra-sec-coverage` | '한국 반도체 실적일 변동은 평소와 같음' 기존 결론 재검증 포함. |
 | P2 ⏫P1 10-21 | `edu-dev-handoff` | STUDY 탭 개발 지원: 퀴즈 렌더·복습 뱃지·트랙 필터·진행 저장(이슈 경로) — docs/study_spec.md 'Dev handoff' 기준 | 프론트 | — | **2026-10-28 지남** | `apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py` | `edu-curriculum-v3`, `edu-quiz-srs` | 일요일 오전. Index.html 잠금 필요. / 10/24 운영 점검: 확인 요청 중(req-edu-23239703, 회신 마감 2026-10-28) — 10/23 6ea4dae2·8e411c58 반영분 대비 남은 스펙 / 10/24 운영: 담당 개발→프론트 재배정(appr-staffing-30 프론트 신설 — 화면 구현 이관, docs/desk_kb/front.md·dev.md 경계) |

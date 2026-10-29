@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-29",
+  "updated": "2026-10-30",
   "owners": [
     "PB",
     "퀀트",
@@ -6394,6 +6394,48 @@
       "depends_on": [],
       "escalated": "2026-10-29",
       "notes": "요청 2영업일 미처리(2026-10-27~2026-10-29) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→행동: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-350f1089`."
+    },
+    {
+      "id": "req-bonds-d826bc52",
+      "title": "[요청 승격] 애널→채권: 미 10년 기간 프리미엄 교차 확인: KCIF 10/21 '미 국채금리 상승 요인 분해'(DKW 모형)가 고",
+      "owner": "채권",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-06",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-30",
+      "notes": "요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 채권 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-bonds-d826bc52`."
+    },
+    {
+      "id": "req-data-310435f3",
+      "title": "[요청 승격] 검증→데이터: 금융위 종가 대조(fsc_close.py) 코드 검토 6건 — 상세 docs/desk_kb/verify.md",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-06",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-30",
+      "notes": "요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-310435f3`."
+    },
+    {
+      "id": "req-eval-0d7696d4",
+      "title": "[요청 승격] 교육→평가: 재검수 요청(출제자≠검수자, req-edu-11644241 ③): 평가 수정 오답지 188문항 역검수에서 내",
+      "owner": "평가",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-06",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-10-30",
+      "notes": "요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 평가 라운드 파일에 `처리→교육: …` 한 줄 또는 `python3 scripts/ask.py --close req-eval-0d7696d4`."
     }
   ]
 }
