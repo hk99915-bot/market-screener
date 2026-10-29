@@ -140,6 +140,22 @@ def patch_macro(mr: list[dict]) -> list[dict]:
     return mr
 
 
+def fut_item(f: dict, fp: float, kp: float) -> dict:
+    """K200F 항목. 네이버 FUT basic 은 '20분 지연' 시세(delayTime=20·localTradedAt 20분 전)인데 현물은 실시간이라
+    베이시스(선물−현물)·등락 방향이 어긋난다(10/29 10:03 선물 +1.22% vs 코스피 −0.66%, req-maint-7469ad9a).
+    지연이 있으면 delay(초)·ts 를 싣고 basis 는 비운다(화면은 basis None 이면 data/deriv 값으로 대체). 예외는 지연 없음으로 취급."""
+    ratio = _num(f.get("fluctuationsRatio"))   # 파싱 실패는 호출부 try 가 받는다(기존 동작)
+    it = {"key": "K200F", "last": fp, "chg": ratio / 100, "src": "naver",
+          "basis": round(fp - kp, 2), "spot": kp, "status": f.get("marketStatus")}
+    try:
+        dly = int((_num(f.get("delayTime")) or 0) * 60)
+        if dly > 0:
+            it.update(delay=dly, ts=f.get("localTradedAt"), basis=None, note=f"{dly // 60}분 지연 시세")
+    except Exception:  # noqa: BLE001
+        pass
+    return it
+
+
 def snapshot() -> dict:
     q = kr_indices()
     try:
@@ -162,8 +178,7 @@ def snapshot() -> dict:
         k2 = _rq.get("https://m.stock.naver.com/api/index/KPI200/basic", headers=ua, timeout=10).json()
         fp, kp = _num(f.get("closePrice")), _num(k2.get("closePrice"))
         if fp and kp:
-            items.insert(2, {"key": "K200F", "last": fp, "chg": _num(f.get("fluctuationsRatio")) / 100, "src": "naver",
-                             "basis": round(fp - kp, 2), "spot": kp, "status": f.get("marketStatus")})
+            items.insert(2, fut_item(f, fp, kp))
     except Exception as e:  # noqa: BLE001
         log.info("선물 실패: %s", e)
     now = datetime.now(KST)
