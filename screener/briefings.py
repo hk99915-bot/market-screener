@@ -367,7 +367,7 @@ def close_kr(last: pl.DataFrame, br: dict) -> str:
         for r in last.select(["symbol", "ret1"]).to_dicts():
             p = peers.get(str(r["symbol"]).split(".")[0])
             if p:
-                rows.append({"g": p.get("g"), "mc": p.get("mc"), "ret1": r["ret1"]})
+                rows.append({"g": p.get("g"), "mc": p.get("mc"), "ret1": r["ret1"], "name": p.get("n")})
         sectors = flows.sector_moves(rows)
     except Exception as e:  # noqa: BLE001
         log.debug("업종 등락 실패: %s", e)

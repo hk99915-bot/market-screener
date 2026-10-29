@@ -274,17 +274,21 @@ def _won(x: float | None) -> str:
 
 
 def sector_moves(rows: list[dict], n: int = 3, min_k: int = 5) -> tuple[list[tuple], list[tuple]]:
-    """업종(g)별 시총 가중 당일 등락 — 종목 min_k 개 미만·'기타' 제외. (업종, 등락, 종목 수) 상위·하위 n."""
-    agg: dict[str, list[float]] = {}
+    """업종(g)별 시총 가중 당일 등락 — 종목 min_k 개 미만·'기타' 제외. (업종, 등락, 종목 수, 쏠림) 상위·하위 n.
+    쏠림 = 한 종목 시총 비중이 50% 초과면 (종목명, 비중), 아니면 None — 업종 등락이 사실상 한 종목인 경우 표시."""
+    agg: dict[str, list] = {}
     for r in rows:
         g, mc, r1 = r.get("g"), r.get("mc"), r.get("ret1")
         if not g or g == "기타" or not mc or r1 is None or mc <= 0:
             continue
-        a = agg.setdefault(g, [0.0, 0.0, 0])
+        a = agg.setdefault(g, [0.0, 0.0, 0, None, 0.0])
         a[0] += mc * r1
         a[1] += mc
         a[2] += 1
-    out = sorted(((g, a[0] / a[1], a[2]) for g, a in agg.items() if a[2] >= min_k), key=lambda x: -x[1])
+        if mc > a[4]:
+            a[3], a[4] = r.get("name"), mc
+    out = sorted(((g, a[0] / a[1], a[2], (a[3], a[4] / a[1]) if a[3] and a[4] / a[1] > 0.5 else None)
+                  for g, a in agg.items() if a[2] >= min_k), key=lambda x: -x[1])
     if len(out) < 2 * n:
         return out[: len(out) // 2], out[len(out) // 2:][::-1]
     return out[:n], out[-n:][::-1]
@@ -327,7 +331,8 @@ def close_comment(idx: dict, inv: dict, br: dict, movers_up: list[dict], movers_
     if bits:
         L.append("→ " + " · ".join(bits))
     if sectors and sectors[0]:
-        f = lambda xs: ", ".join(f"{g} {r * 100:+.1f}%" for g, r, _ in xs)  # noqa: E731
+        f = lambda xs: ", ".join(f"{g} {r * 100:+.1f}%" + (f"({d[0]} 비중 {d[1] * 100:.0f}%)" if d else "")  # noqa: E731
+                                 for g, r, _, d in xs)
         L.append("강한 업종(시총 가중): " + f(sectors[0]))
         if sectors[1]:
             L.append("약한 업종(시총 가중): " + f(sectors[1]))
