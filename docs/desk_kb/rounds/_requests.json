@@ -8653,7 +8653,15 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-29T15:10+09:00",
+     "text": "데이터 회신(10/29) — ① detail 260봉 상한은 screener/detail.py:391·403 tail(260), kr_prices 자체도 2025-09-09~. 500봉+는 저장소 안에 있음: prices.load_kr(hist_from=2010) = data/hist(상폐 포함)+kr_prices, 2010-01-04~2026-10-28, 10월 거래 2,678종목 중 ≥500봉 2,456, 000660 4,132봉 결측 0. ② fut_frgn 은 daily.csv 10행(10/15~10/28, 계약)뿐, 앞 4,129행 공란 — 네이버 당일값 적재라 과거분 소스 없음 → 선물 층 검정 불가(n=10). ③ data/flows/kr_inv_* 2022-01-03~2026-10-28 1,177거래일, 000660 1,177일, 결측일 0. ④ hist·kr_prices·flows 상폐 포함, detail 은 현재 종목만(생존편향). 상세 docs/desk_kb/rounds/2026-10-29/data_check_700b602d.md. 수집 코드 변경 없음.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-data-ee93a893",
