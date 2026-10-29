@@ -140,23 +140,25 @@ def quiz_desk(item: dict) -> str:
 
 
 # ───────────────────────── 출석·SRS ─────────────────────────
-def _weekday_gap_ok(a: date, b: date) -> bool:
-    """a < b. 사이에 빠진 평일이 없으면 연속으로 본다 (주말은 건너뛰어도 됨 — 평일 기준 출석)."""
+def _weekday_gap_ok(a: date, b: date, rest: frozenset = frozenset()) -> bool:
+    """a < b. 사이에 빠진 평일이 없으면 연속으로 본다 (주말은 건너뛰어도 됨 — 평일 기준 출석).
+    rest = 쉼 신청일 — 빠져도 끊지 않는다(10/29 겸이 "쉼 신청한 날은 안 끊기로 해", +1 도 안 함)."""
     d = a + timedelta(days=1)
     while d < b:
-        if d.weekday() < 5:
+        if d.weekday() < 5 and d not in rest:
             return False
         d += timedelta(days=1)
     return True
 
 
-def streak(dates: list[str]) -> int:
+def streak(dates: list[str], rest_days: list[str] | None = None) -> int:
     ds = sorted({date.fromisoformat(x) for x in dates})
+    rest = frozenset(date.fromisoformat(x) for x in rest_days or [])
     if not ds:
         return 0
     n = 1
     for a, b in zip(ds, ds[1:]):
-        n = n + 1 if _weekday_gap_ok(a, b) else 1
+        n = n + 1 if _weekday_gap_ok(a, b, rest) else 1
     return n
 
 
@@ -253,7 +255,7 @@ def apply(progress: dict, parsed: dict, bank: dict, study: dict, today: date) ->
         if (qid, day) in answered:
             continue
         p["quiz"].append({"qid": qid, "module": g["module"], "answer": ans, "correct": g["correct"], "ok": g["ok"], "date": day})
-    p["streak"] = streak(activity_dates(p))
+    p["streak"] = streak(activity_dates(p), p.get("rest_days"))
     p["last"] = max([day] + activity_dates(p))
     p["modules"] = derive_modules(p["done"], p["quiz"])
     opened = None if quiz_only else unlock_next(p, study, mid)
@@ -457,7 +459,7 @@ def merge_export(progress: dict, export, study: dict | None = None, items: dict 
     if tag not in p["exports"]:
         p["exports"].append(tag)
     p["days"] = sorted(set(p.get("days") or []) | set(_item_dates(it)))
-    p["streak"] = streak(activity_dates(p))
+    p["streak"] = streak(activity_dates(p), p.get("rest_days"))
     p["last"] = (activity_dates(p) or [None])[-1]
     p["modules"] = derive_modules([{"id": r["id"], "date": r["date"]} for r in p["done"]], p["quiz"])
     for mid in new_done:

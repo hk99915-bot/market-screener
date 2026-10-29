@@ -350,3 +350,10 @@ def test_apt_choice_column_kept(study):
     x = {"v": 2, "tz": "KST", "apt": [["N7", 0, 30, "2026-10-28", "K", 2], ["N8", 1, None, "2026-10-28", "K"]], "eng": []}
     _, it = sp.merge_export({}, x, study)
     assert it["apt"]["N7"]["c"] == 2 and "c" not in it["apt"]["N8"]
+
+
+def test_streak_rest_day_keeps_chain():
+    from screener.study_progress import streak
+    # 10/27(화)·10/28(수) 학습, 10/29(목) 쉼 신청, 10/30(금) 학습 → 끊기지 않고 3(쉼일은 +1 안 함)
+    assert streak(["2026-10-27", "2026-10-28", "2026-10-30"], ["2026-10-29"]) == 3
+    assert streak(["2026-10-27", "2026-10-28", "2026-10-30"]) == 1
