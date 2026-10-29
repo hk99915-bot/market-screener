@@ -1,23 +1,22 @@
 {
 "_doc": "SEC companyfacts 회전 수집 진행 상태 (screener/sec.py update). status: ok=이번 수집 · unchanged=새 정기보고서 없어 생략 · fail=요청 실패 · no_cik=SEC 티커 목록에 없음 · ifrs=IFRS 제출사(us-gaap 없음, 미지원) · no_data=분기 값 없음 · never=아직 차례 안 옴",
 "last_run": {
-"checked": 0,
-"companyfacts": 0,
-"rows_added": 0
+"checked": 9,
+"companyfacts": 9,
+"rows_added": 2452
 },
 "summary": {
 "budget_per_run": 80,
 "by_status": {
 "ifrs": 6,
-"never": 9,
 "no_cik": 1,
 "no_data": 6,
-"ok": 538
+"ok": 547
 },
 "eta_basis": "미확인 종목 ÷ 실행당 종목 수, fin.yml 하루 1회(03:30 KST) 가정",
 "eta_first_cycle": "2026-10-29",
-"fetched_ever": 550,
-"pending_first_check": 9,
+"fetched_ever": 559,
+"pending_first_check": 0,
 "universe": 560
 },
 "tickers": {
@@ -892,6 +891,15 @@
 "fetched": "2026-10-23T15:22Z",
 "last_filed": "2026-07-31",
 "rows": 338,
+"status": "ok"
+},
+"CHKP": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1015922,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-03-31",
+"rows": 53,
 "status": "ok"
 },
 "CHRW": {
@@ -3255,6 +3263,15 @@
 "rows": 286,
 "status": "ok"
 },
+"NET": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1477333,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-08-06",
+"rows": 294,
+"status": "ok"
+},
 "NFLX": {
 "checked": "2026-10-25T18:36Z",
 "cik": 1065280,
@@ -3424,6 +3441,15 @@
 "fetched": "2026-10-26T18:37Z",
 "last_filed": "2026-08-04",
 "rows": 330,
+"status": "ok"
+},
+"OKTA": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1660134,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-08-27",
+"rows": 279,
 "status": "ok"
 },
 "OMC": {
@@ -3786,6 +3812,15 @@
 "rows": 271,
 "status": "ok"
 },
+"QLYS": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1107843,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-08-04",
+"rows": 328,
+"status": "ok"
+},
 "RCL": {
 "checked": "2026-10-26T18:37Z",
 "cik": 884887,
@@ -3912,6 +3947,15 @@
 "rows": 320,
 "status": "ok"
 },
+"RPD": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1560327,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-08-10",
+"rows": 330,
+"status": "ok"
+},
 "RSG": {
 "checked": "2026-10-26T18:37Z",
 "cik": 1060391,
@@ -3937,6 +3981,15 @@
 "fetched": "2026-10-26T18:37Z",
 "last_filed": "2026-08-11",
 "rows": 360,
+"status": "ok"
+},
+"S": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1583708,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-08-28",
+"rows": 241,
 "status": "ok"
 },
 "SBAC": {
@@ -4270,6 +4323,15 @@
 "fetched": "2026-10-27T18:38Z",
 "last_filed": "2026-07-24",
 "rows": 337,
+"status": "ok"
+},
+"TENB": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1660280,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-08-04",
+"rows": 319,
 "status": "ok"
 },
 "TER": {
@@ -4668,6 +4730,15 @@
 "rows": 265,
 "status": "ok"
 },
+"VRNS": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1361113,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-07-29",
+"rows": 294,
+"status": "ok"
+},
 "VRSK": {
 "checked": "2026-10-27T18:38Z",
 "cik": 1442145,
@@ -4965,6 +5036,15 @@
 "rows": 300,
 "status": "ok"
 },
+"ZS": {
+"checked": "2026-10-29T18:37Z",
+"cik": 1713683,
+"err": null,
+"fetched": "2026-10-29T18:37Z",
+"last_filed": "2026-09-03",
+"rows": 314,
+"status": "ok"
+},
 "ZTS": {
 "checked": "2026-10-27T18:38Z",
 "cik": 1555280,
@@ -4975,5 +5055,5 @@
 "status": "ok"
 }
 },
-"updated": "2026-10-28T18:39Z"
+"updated": "2026-10-29T18:37Z"
 }
