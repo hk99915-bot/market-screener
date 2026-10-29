@@ -8853,6 +8853,24 @@
    "done_by": "maint"
   },
   {
+   "id": "req-maint-cae4490b",
+   "from": "pb",
+   "to": "maint",
+   "text": "pb-private daily_my.yml(MY 탭 자동 갱신) 16:50 예약 누락 원인 조사 요청 (10/29 겸이 「정비 쪽에 16:50 누락 원인 요청 넣어」). 사실: cron '50 7 * * 1-5'(16:50 KST)·'50 11 * * 1-5'(20:50 KST). schedule 실행 기록 — 10/28 14:32Z(23:32 KST)·17:27Z(02:27 KST)에만 실행(예정 대비 약 2h42m·5h37m 지연 추정, 어느 cron 회차인지 미확인), 10/29 07:50Z 회차는 08:09Z까지 미실행 → PB가 08:09Z workflow_dispatch로 수동 실행(성공). 10/28 16:50도 수동(08:11Z). 요청: ① GitHub Actions schedule 지연·드롭인지, 워크플로 쪽 문제인지 판별 ② 대책 안(예: 백업 cron 추가·다른 분, 외부 트리거, 결과 미갱신 시 경보) ③ schedule_table.md 반영 필요 여부. 비공개 저장소 내용·금액은 장부에 쓰지 말 것.",
+   "opened": "2026-10-29",
+   "opened_at": "2026-10-29T17:29+09:00",
+   "due": "2026-10-31",
+   "via": "ask",
+   "seen": [
+    "2026-10-29"
+   ],
+   "checked": [
+    "2026-10-29"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-quant-32e05b61",
    "from": "hf",
    "to": "quant",
