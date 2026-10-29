@@ -1,57 +1,59 @@
-2026-10-28 07:24:39,485 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-28 07:24:39,546 INFO matplotlib.font_manager: generated new fontManager
-2026-10-28 07:24:50,986 INFO screener.universe: KR 유니버스 _kr_pykrx: 2557종목
-2026-10-28 07:24:50,986 INFO screener: KR 유니버스 1272종목
-2026-10-28 07:24:53,522 INFO screener.data_krx: KRX 2026-10-21: 2649행
-2026-10-28 07:24:56,228 INFO screener.data_krx: KRX 2026-10-22: 2651행
-2026-10-28 07:24:58,710 INFO screener.data_krx: KRX 2026-10-23: 2648행
-2026-10-28 07:25:00,732 INFO screener.data_krx: KRX 2026-10-26: 2646행
-2026-10-28 07:25:02,639 INFO screener.data_krx: KRX 2026-10-27: 2651행
-2026-10-28 07:27:52,565 INFO screener.data_krx: KRX 2026-10-28 잠정 종가 → 야후 정규장 종가 교체: 2643/2651종목 확인, 891종목 값 변경
-2026-10-28 07:27:52,566 INFO screener.data_krx: KRX 2026-10-28: 2651행 (잠정)
-2026-10-28 07:27:52,744 INFO screener: 시세 338358행 / 1258종목
-2026-10-28 07:27:53,301 INFO screener: 필터 후 724종목 · 기준일 2026-10-28 · CONFIRMED
-2026-10-28 07:27:54,335 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 07:27:56,236 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 07:27:56,364 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
-2026-10-28 07:28:20,225 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-28 07:28:23,057 INFO screener.live: live.json 17개 지표
-2026-10-28 07:28:23,142 INFO screener.macroview: 매크로 해설: 매크로 바람 약한 순풍 (+0.05) — 주된 요인: 나스닥 −, S&P500 +, 미 10년 금리 + · 20일 코스피 -12.7% vs S&P +0.7% (격차 -13.4%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
-2026-10-28 07:28:24,399 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 07:28:25,808 INFO screener.commodities: 원자재 31개(ok 31) · 1개월 ±10% 넘게 움직인 원자재: 유럽 가스(TTF) +31%, 아시아 LNG(JKM, NYMEX 정산가) +22%, 희토류·전략금속 ETF(REMX) -16%, WTI 원유 +14%, MP Materials(미 희토류) -12%
-2026-10-28 07:28:40,740 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
-2026-10-28 07:28:42,804 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-28 07:28:45,596 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 2, 'last': '2026-10-28', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
-2026-10-28 07:28:45,673 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3447
-2026-10-28 07:28:45,677 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
-2026-10-28 07:29:00,184 INFO screener.momentum: 모멘텀 순위 KR 719종목
-2026-10-28 07:29:45,674 INFO screener.detail: 일괄 수급 2666종목
-2026-10-28 07:29:46,470 INFO screener.detail: 재무 요약 1230종목
-2026-10-28 07:29:46,679 INFO screener.valuation: 가치평가 1206종목
-2026-10-28 07:29:52,408 INFO screener.detail: 한 줄 설명: {'market': 'KR', 'universe': 1464, 'etf_type': 2, 'kind': 9, 'yahoo': 7, 'yahoo_fail': 3, 'recheck': 0, 'line': 1463, 'pending': 1}
-2026-10-28 07:29:52,422 INFO screener.detail: WICS: {'status': 'fresh', 'asof': '2026-10-27', 'n': 2456}
-2026-10-28 07:30:05,307 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: CIBR"}}}
-2026-10-28 07:30:07,601 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: DX-Y.NYB"}}}
-2026-10-28 07:30:35,533 INFO screener.drivers: 체인 프록시 93개
-2026-10-28 07:38:03,731 INFO screener.drivers: 뉴스 417종목 (헤드라인 6290건)
-2026-10-28 07:38:03,966 INFO screener.detail: 이익 드라이버 1255종목
-2026-10-28 07:38:08,992 INFO screener.shorts: 공매도 잔고 1일 추가
-2026-10-28 07:38:09,027 INFO screener.detail: 공매도 2764종목
-2026-10-28 07:38:09,214 INFO screener.track: 기술 시그널 과거 1일 복원
-2026-10-28 07:38:09,251 INFO screener.track: 시그널 스냅샷 2026-10-28 1255종목 (누적 259일)
-2026-10-28 07:38:13,053 INFO screener.detail: detail/KR: 1255종목, 72839 KB
-2026-10-28 07:38:13,060 INFO screener.detail: sim_signals_KR: 스캔 1238 · 통과 0 · 기대 우연 3.2
-2026-10-28 07:38:23,801 INFO screener.detail: trend_discovery_KR: 근접 0 · 탐색 통과 3 (우연 기대 18.93)
-2026-10-28 07:46:07,768 INFO screener.etf: ETF KR 218개 (464s)
-2026-10-28 07:46:07,857 INFO screener.etf: 액티브 ETF 합의도: ETF 18/18 · 종목 20
-2026-10-28 07:46:08,000 INFO screener.dashboard: dashboard.json 갱신 (108332 bytes)
-2026-10-28 07:46:08,520 INFO screener.dashboard: 리서치 국면 태그 1888건
-2026-10-28 07:46:08,551 INFO screener.dashboard: research.json 1888건
-2026-10-28 07:46:08,560 INFO screener.dashboard: disclosures.json 986건
-2026-10-28 07:46:08,592 INFO screener.daily: 데일리 리포트: 리포트 263건, 테마 31개, 통합 체크 0개
-2026-10-28 07:46:10,178 INFO screener.report: 텔레그램 전송 완료 (2개 메시지)
-2026-10-28 07:46:10,827 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
-2026-10-28 07:46:10,849 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
-2026-10-28 07:46:10,855 INFO screener.alerts: 알림 의도된 비활성: MY_RULES 없음 (alerts, 2026-10-21 결정)
-2026-10-28 07:46:10,855 INFO screener.alerts: 알림 의도된 비활성: MY_HOLDINGS 없음 (alerts, 2026-10-21 결정)
-2026-10-28 07:46:10,866 INFO screener.alerts: 손절선: 손절선 5,306 위 ✅ · 코스피 6,012 vs 기준 5,306 (+13.3%)
+2026-10-29 07:24:29,559 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-10-29 07:24:29,768 INFO matplotlib.font_manager: generated new fontManager
+2026-10-29 07:24:38,781 INFO screener.universe: KR 유니버스 _kr_pykrx: 2558종목
+2026-10-29 07:24:38,782 INFO screener: KR 유니버스 1261종목
+2026-10-29 07:24:40,199 INFO screener.data_krx: KRX 2026-10-22: 2651행
+2026-10-29 07:24:41,780 INFO screener.data_krx: KRX 2026-10-23: 2648행
+2026-10-29 07:24:43,171 INFO screener.data_krx: KRX 2026-10-26: 2646행
+2026-10-29 07:24:57,576 INFO screener.data_krx: KRX 2026-10-27: 2651행
+2026-10-29 07:24:59,644 INFO screener.data_krx: KRX 2026-10-28: 2651행
+2026-10-29 07:27:49,457 INFO screener.data_krx: KRX 2026-10-29 잠정 종가 → 야후 정규장 종가 교체: 2642/2649종목 확인, 827종목 값 변경
+2026-10-29 07:27:49,457 INFO screener.data_krx: KRX 2026-10-29: 2649행 (잠정)
+2026-10-29 07:27:49,674 INFO screener: 시세 336408행 / 1247종목
+2026-10-29 07:27:50,191 INFO screener: 필터 후 721종목 · 기준일 2026-10-29 · CONFIRMED
+2026-10-29 07:27:51,128 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 07:27:53,374 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 07:27:53,543 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-10-29 07:28:29,888 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-10-29 07:28:32,547 INFO screener.live: live.json 17개 지표
+2026-10-29 07:28:32,639 INFO screener.macroview: 매크로 해설: 매크로 바람 약한 순풍 (+0.05) — 주된 요인: S&P500 +, 나스닥 −, 원/달러 + · 20일 코스피 -13.6% vs S&P +1.2% (격차 -14.8%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
+2026-10-29 07:28:33,872 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 07:28:34,324 INFO screener.commodities: 원자재 31개(ok 31) · 1개월 ±10% 넘게 움직인 원자재: 유럽 가스(TTF) +44%, 아시아 LNG(JKM, NYMEX 정산가) +27%, 희토류·전략금속 ETF(REMX) -16%, WTI 원유 +13%, 은 -12%
+2026-10-29 07:28:49,144 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
+2026-10-29 07:28:51,292 INFO screener.data: MACRO 시세 배치 1/1
+2026-10-29 07:28:53,992 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 2, 'last': '2026-10-28', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
+2026-10-29 07:28:54,094 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3448
+2026-10-29 07:28:54,099 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
+2026-10-29 07:29:07,217 INFO screener.momentum: 모멘텀 순위 KR 715종목
+2026-10-29 07:29:50,843 INFO screener.detail: 일괄 수급 2667종목
+2026-10-29 07:29:51,732 INFO screener.detail: 재무 요약 1216종목
+2026-10-29 07:29:51,956 INFO screener.valuation: 가치평가 1193종목
+2026-10-29 07:29:57,903 INFO screener.detail: 한 줄 설명: {'market': 'KR', 'universe': 1473, 'etf_type': 3, 'kind': 11, 'yahoo': 9, 'yahoo_fail': 2, 'recheck': 0, 'line': 1473, 'pending': 0}
+2026-10-29 07:31:22,961 WARNING screener.wics: WICS 중분류 못 찾은 종목 71 (대분류만 기록)
+2026-10-29 07:31:22,963 INFO screener.wics: WICS 2026-10-28: 2455종목 · 중분류 27개 · 중분류 없음 71 · 호출 100
+2026-10-29 07:31:22,963 INFO screener.detail: WICS: {'status': 'updated', 'asof': '2026-10-28', 'calls': 100, 'n': 2455, 'no_l2': 71, 'l2_groups': 27}
+2026-10-29 07:31:36,007 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: CIBR"}}}
+2026-10-29 07:31:38,322 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"No fundamentals data found for symbol: DX-Y.NYB"}}}
+2026-10-29 07:32:05,926 INFO screener.drivers: 체인 프록시 93개
+2026-10-29 07:39:44,512 INFO screener.drivers: 뉴스 415종목 (헤드라인 6327건)
+2026-10-29 07:39:44,761 INFO screener.detail: 이익 드라이버 1243종목
+2026-10-29 07:39:49,431 INFO screener.shorts: 공매도 잔고 1일 추가
+2026-10-29 07:39:49,447 INFO screener.detail: 공매도 2764종목
+2026-10-29 07:39:49,612 INFO screener.track: 기술 시그널 과거 1일 복원
+2026-10-29 07:39:49,646 INFO screener.track: 시그널 스냅샷 2026-10-29 1243종목 (누적 260일)
+2026-10-29 07:39:53,088 INFO screener.detail: detail/KR: 1243종목, 72344 KB
+2026-10-29 07:39:53,094 INFO screener.detail: sim_signals_KR: 스캔 1227 · 통과 1 · 기대 우연 3.3
+2026-10-29 07:40:02,953 INFO screener.detail: trend_discovery_KR: 근접 1 · 탐색 통과 3 (우연 기대 18.39)
+2026-10-29 07:46:27,493 INFO screener.etf: ETF KR 218개 (385s)
+2026-10-29 07:46:27,580 INFO screener.etf: 액티브 ETF 합의도: ETF 18/18 · 종목 20
+2026-10-29 07:46:27,748 INFO screener.dashboard: dashboard.json 갱신 (113343 bytes)
+2026-10-29 07:46:28,321 INFO screener.dashboard: 리서치 국면 태그 2006건
+2026-10-29 07:46:28,358 INFO screener.dashboard: research.json 2006건
+2026-10-29 07:46:28,367 INFO screener.dashboard: disclosures.json 1106건
+2026-10-29 07:46:28,403 INFO screener.daily: 데일리 리포트: 리포트 337건, 테마 29개, 통합 체크 1개
+2026-10-29 07:46:30,058 INFO screener.report: 텔레그램 전송 완료 (2개 메시지)
+2026-10-29 07:46:30,660 INFO screener.report: 텔레그램 전송 완료 (1개 메시지)
+2026-10-29 07:46:30,682 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 0건
+2026-10-29 07:46:30,689 INFO screener.alerts: 알림 의도된 비활성: MY_RULES 없음 (alerts, 2026-10-21 결정)
+2026-10-29 07:46:30,689 INFO screener.alerts: 알림 의도된 비활성: MY_HOLDINGS 없음 (alerts, 2026-10-21 결정)
+2026-10-29 07:46:30,701 INFO screener.alerts: 손절선: 손절선 5,306 위 ✅ · 코스피 5,938 vs 기준 5,306 (+11.9%)
