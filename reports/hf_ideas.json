@@ -1,14 +1,14 @@
 {
  "v": 1,
- "asof": "2026-10-28",
- "generated_at": "2026-10-28 22:26 KST",
+ "asof": "2026-10-29",
+ "generated_at": "2026-10-29 09:07 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 224,
+  "total": 231,
   "거래량 급증": 3,
   "거래량 돌파(추격 금지)": 1,
-  "52주 고점 돌파": 2,
   "업종 체인": 2,
+  "52주 고점 돌파": 2,
   "52주 저점 이탈": 1,
   "수급 이탈 숏": 1
  },
@@ -28,6 +28,20 @@
    "rank": 1
   },
   {
+   "market": "US",
+   "code": "FFIV",
+   "name": "F5, Inc. - Common Stock",
+   "asof": "2026-10-28",
+   "close": 365.53,
+   "type": "거래량 급증",
+   "score": 3.682,
+   "direction": "숏 후보(물량 출회)",
+   "evidence": "거래량 6.1배 · 1일 -20.4%",
+   "status": "검증전 — 거래량 급증 + 방향",
+   "src": "reports/detail/US/FFIV.json chart",
+   "rank": 2
+  },
+  {
    "market": "KR",
    "code": "030530",
    "name": "원익홀딩스",
@@ -39,20 +53,6 @@
    "evidence": "거래량 6.5배 · 1일 +17.9%",
    "status": "검증전 — 거래량 급증 + 방향 · S4 유사(국장 거래량 3배+상승 추격 = 반대 근거)",
    "src": "reports/detail/KR/030530.json chart",
-   "rank": 2
-  },
-  {
-   "market": "KR",
-   "code": "071970",
-   "name": "HD현대마린엔진",
-   "asof": "2026-10-28",
-   "close": 40700.0,
-   "type": "거래량 급증",
-   "score": 3.117,
-   "direction": "추격 주의(S4 유사) — 롱은 눌림 확인 뒤",
-   "evidence": "거래량 8.6배 · 1일 +14.5%",
-   "status": "검증전 — 거래량 급증 + 방향 · S4 유사(국장 거래량 3배+상승 추격 = 반대 근거)",
-   "src": "reports/detail/KR/071970.json chart",
    "rank": 3
   },
   {
@@ -70,20 +70,6 @@
    "rank": 4
   },
   {
-   "market": "US",
-   "code": "TENB",
-   "name": "Tenable Holdings, Inc. - Common Stock",
-   "asof": "2026-10-27",
-   "close": 48.65,
-   "type": "52주 고점 돌파",
-   "score": 0.748,
-   "direction": "참고(미장 B2 F)",
-   "evidence": "종가 250일 최고 경신 · 5일 +24.8%",
-   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
-   "src": "reports/detail/US/TENB.json chart",
-   "rank": 5
-  },
-  {
    "market": "KR",
    "code": null,
    "name": "정유",
@@ -93,33 +79,33 @@
    "evidence": "체인 점수 +0.71 · 구성 예: S-Oil, GS, SK이노베이션",
    "status": "검증전 — 업종 체인 점수(detail drivers)",
    "src": "reports/detail/*/<코드>.json drivers.chain",
-   "rank": 6
-  },
-  {
-   "market": "US",
-   "code": "QLYS",
-   "name": "Qualys, Inc. - Common Stock",
-   "asof": "2026-10-27",
-   "close": 227.9,
-   "type": "52주 고점 돌파",
-   "score": 0.697,
-   "direction": "참고(미장 B2 F)",
-   "evidence": "종가 250일 최고 경신 · 5일 +19.7%",
-   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
-   "src": "reports/detail/US/QLYS.json chart",
-   "rank": 7
+   "rank": 5
   },
   {
    "market": "US",
    "code": null,
    "name": "정유",
    "type": "업종 체인",
-   "score": 0.69,
+   "score": 0.71,
    "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.69 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
+   "evidence": "체인 점수 +0.71 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
    "status": "검증전 — 업종 체인 점수(detail drivers)",
    "src": "reports/detail/*/<코드>.json drivers.chain",
-   "rank": 8
+   "rank": 6
+  },
+  {
+   "market": "US",
+   "code": "TENB",
+   "name": "Tenable Holdings, Inc. - Common Stock",
+   "asof": "2026-10-28",
+   "close": 48.72,
+   "type": "52주 고점 돌파",
+   "score": 0.698,
+   "direction": "참고(미장 B2 F)",
+   "evidence": "종가 250일 최고 경신 · 5일 +19.8%",
+   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
+   "src": "reports/detail/US/TENB.json chart",
+   "rank": 7
   },
   {
    "market": "KR",
@@ -133,7 +119,7 @@
    "evidence": "종가 250일 최저 이탈 · 5일 -28.7%",
    "status": "검증전 — 52주 저점 이탈",
    "src": "reports/detail/KR/376900.json chart",
-   "rank": 9
+   "rank": 8
   },
   {
    "market": "KR",
@@ -147,12 +133,26 @@
    "evidence": "외국인 -9억·기관 -96억 5일 동반 매도 · 20일 -37.0% · 50일선 아래",
    "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
    "src": "reports/detail/KR/440110.json chart · flow_note",
+   "rank": 9
+  },
+  {
+   "market": "KR",
+   "code": "080580",
+   "name": "오킨스전자",
+   "asof": "2026-10-28",
+   "close": 29700.0,
+   "type": "52주 고점 돌파",
+   "score": 0.66,
+   "direction": "롱 후보",
+   "evidence": "종가 250일 최고 경신 · 5일 +16.0%",
+   "status": "B — 국장 52주 고점 근접 소스 B1 통과(reports/studies/2026-10-21_alpha_sources.md)",
+   "src": "reports/detail/KR/080580.json chart",
    "rank": 10
   }
  ],
  "macro": [
   {
-   "driver": "미 10년 금리 20일 -26bp",
+   "driver": "미 10년 금리 20일 -25bp",
    "benefit": "고PER 성장·리츠·유틸리티",
    "hurt": "은행·보험",
    "status": "검증전 — 정성 매크로 규칙",
@@ -167,12 +167,12 @@
   }
  ],
  "gap": {
-  "us_date": "2026-10-27",
-  "nasdaq": 0.0118,
+  "us_date": "2026-10-28",
+  "nasdaq": 0.0027,
   "beta": 0.594,
   "t": 13.2,
   "n": 488,
-  "pred_gap": 0.0085,
+  "pred_gap": 0.0031,
   "band": 0.0223,
   "status": "검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)",
   "src": "data/deriv/daily.csv · reports/macro_series.json NASDAQ"
@@ -204,7 +204,7 @@
     "200일선 35 지지(5일 저점 −2% 안): 종가 52"
    ],
    "off": [
-    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 1.0배 +1.8%",
+    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 1.2배 -0.9%",
     "DART 7일: 공급계약·임원매수·지분·자사주·IR 없음",
     "업종 선행(수동 확인): 미 10년 금리 20일 방향(reports/macro_series.json US10Y) — 고PER 소프트웨어 민감",
     "업종 선행(수동 확인): 나스닥 대비 상대강도 — 웹 확인"
@@ -216,12 +216,12 @@
  ],
  "top": {
   "what": [
-   "후보 224건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 1, 52주 고점 돌파 2, 업종 체인 2",
-   "상위: 빛과전자(거래량 급증), 원익홀딩스(거래량 급증), HD현대마린엔진(거래량 급증)"
+   "후보 231건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 1, 업종 체인 2, 52주 고점 돌파 2",
+   "상위: 빛과전자(거래량 급증), F5, Inc. - Common Stock(거래량 급증), 원익홀딩스(거래량 급증)"
   ],
   "so_what": [
    "후보일 뿐 진입 아님 · 검증 상태 F 신호는 반대 근거로만",
-   "미·한 갭 추정 +0.85% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
+   "미·한 갭 추정 +0.31% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
   ],
   "now_what": [
    "진입은 scripts/hf_book.py 체크리스트 통과 건만(HF 데스크)"
@@ -230,7 +230,7 @@
   "src": [
    "reports/hf_ideas.json"
   ],
-  "asof": "2026-10-28 22:26",
+  "asof": "2026-10-29 09:07",
   "grade": "검증전"
  }
 }
