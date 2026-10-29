@@ -8807,6 +8807,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-7406791f",
+   "from": "pb",
+   "to": "dev",
+   "text": "pre-push 훅에 'index.html 낡음' 검사 추가 요청 — 10/29 PB가 apps-script/tab_life.html 수정 후 scripts/build_pages.py 재생성을 빠뜨려 tests.yml 빨강(22d79a7f, tests/ 의 index.html 낡음 assert). 또 tests.yml paths 에 index.html 이 없어 재생성 커밋(e96471d24)이 CI 를 안 돌려 수동 dispatch 로 복구. ① apps-script/** 변경이 있는 push 면 build_pages.py 결과와 index.html 비교 ② tests.yml paths 에 apps-script/**·index.html 추가 검토.",
+   "opened": "2026-10-29",
+   "opened_at": "2026-10-29T21:44+09:00",
+   "due": "2026-11-03",
+   "via": "ask",
+   "seen": [
+    "2026-10-29"
+   ],
+   "checked": [
+    "2026-10-29"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-d73e5fda",
    "from": "pb",
    "to": "dev",
