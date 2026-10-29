@@ -3040,10 +3040,21 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "22:18"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "QQQ",
+     "name": "Invesco QQQ Trust",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "same_close",
+     "by": "공격 PB",
+     "at": "22:18"
     }
    },
    "basis": {
@@ -3054,6 +3065,137 @@
      "VIX 16.91",
      "나스닥 26,550 (+0.27%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. 3Q GDP 3.4%(예상 3.2%)·9월 근원 PCE YoY 3.1%(예상 부합)로 12월 인상 경로(약 90%) 유지 쪽, 미 10년 5.045%(10/28 종가, 발표 후 미확인). S&P500 7,744·VIX 16.9로 방향 신호 약함. 개인 진입 게이트 fail(위성 상한·종목 수·FRM 한도) 및 구속 스트레스 위반 중 매수 금지(10/26 임시 운영 규칙). 판단 시각 22:16 KST — 예약 지연으로 마감(22:15) 1분 초과. 탈출 조건 해당 없음.",
+    "lines": [
+     "3Q GDP 3.4%(예상 3.2%) · 9월 근원 PCE YoY 3.1%·MoM 0.3% 예상 부합(BEA 원문 대조: 채권 데스크)",
+     "미 10년 5.045%(10/28) · 10Y−2Y +38bp 베어 스티프닝 · VIX 16.9",
+     "12월 인상 확률 약 90% 유지(매크로·채권 데스크 10/29)",
+     "레드팀: 9월 실질지출 0%·실질소득 −0.3% — 4Q 소비 감속 시 금리 하락·기술주 반등 기회비용"
+    ],
+    "conviction": "보통",
+    "at": "22:18",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 진입 신호 미충족"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "위성 상한·종목 수·FRM 한도 게이트 fail 및 구속 스트레스 위반 중 매수 금지로 실계좌 진입 불가."
+    },
+    "views_asof": "2026-10-29 19:15",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 1/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매수",
+      "b": "bull"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 양수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 양수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 강세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 5회 · 5일 초과 -0.1%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "성장 지표 상회·PCE 예상 부합으로 불확실성 해소 후 기술주 당일 반등 시도. 나스닥 20일 고점 대비 조정 구간. 목표 +1.5%, 손절 −1.0%, 승률 검증전. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.015,
+      "stop": -0.01,
+      "rr": 1.5,
+      "win_rate": null,
+      "n": null,
+      "basis": "당일 변동폭 근사, 승률 검증전"
+     }
+    }
    }
   }
  ],
