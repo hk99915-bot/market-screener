@@ -273,9 +273,23 @@ def _won(x: float | None) -> str:
     return "-" if x is None else f"{x:+,.0f}억"
 
 
-def sector_moves(rows: list[dict], n: int = 3, min_k: int = 5) -> tuple[list[tuple], list[tuple]]:
+# 지주사 — 자회사 지분 가치로 움직여 영위 업종 등락을 왜곡함(10/29 SK스퀘어가 엔터·미디어 88%). 겸이 10/29 「지주사는 따로 업종 빼줘」.
+# 이름 규칙('지주'·'홀딩스', 금융지주는 은행업이라 제외) + 이름에 안 드러나는 지주사 코드.
+HOLDCO_KR = {"402340", "034730", "003550", "001040", "078930", "267250", "000880", "006260", "000150",
+             "004800", "002020", "180640", "000210", "012630", "000240", "086520"}
+
+
+def is_holdco(code: str, name: str | None) -> bool:
+    n = name or ""
+    if "금융지주" in n or n == "신한지주":
+        return False
+    return code in HOLDCO_KR or n.endswith("지주") or "홀딩스" in n
+
+
+def sector_moves(rows: list[dict], n: int = 3, min_k: int = 5) -> tuple[list[tuple], list[tuple], tuple | None]:
     """업종(g)별 시총 가중 당일 등락 — 종목 min_k 개 미만·'기타' 제외. (업종, 등락, 종목 수, 쏠림) 상위·하위 n.
-    쏠림 = 한 종목 시총 비중이 50% 초과면 (종목명, 비중), 아니면 None — 업종 등락이 사실상 한 종목인 경우 표시."""
+    쏠림 = 한 종목 시총 비중이 50% 초과면 (종목명, 비중), 아니면 None — 업종 등락이 사실상 한 종목인 경우 표시.
+    g='지주사' 는 순위에서 빼고 세 번째 값으로 따로 돌려줌."""
     agg: dict[str, list] = {}
     for r in rows:
         g, mc, r1 = r.get("g"), r.get("mc"), r.get("ret1")
@@ -288,14 +302,17 @@ def sector_moves(rows: list[dict], n: int = 3, min_k: int = 5) -> tuple[list[tup
         if mc > a[4]:
             a[3], a[4] = r.get("name"), mc
     out = sorted(((g, a[0] / a[1], a[2], (a[3], a[4] / a[1]) if a[3] and a[4] / a[1] > 0.5 else None)
-                  for g, a in agg.items() if a[2] >= min_k), key=lambda x: -x[1])
+                  for g, a in agg.items() if a[2] >= min_k and g != "지주사"), key=lambda x: -x[1])
+    hc = agg.get("지주사")
+    holdco = (("지주사", hc[0] / hc[1], hc[2], (hc[3], hc[4] / hc[1]) if hc[3] and hc[4] / hc[1] > 0.5 else None)
+              if hc and hc[2] >= min_k else None)
     if len(out) < 2 * n:
-        return out[: len(out) // 2], out[len(out) // 2:][::-1]
-    return out[:n], out[-n:][::-1]
+        return out[: len(out) // 2], out[len(out) // 2:][::-1], holdco
+    return out[:n], out[-n:][::-1], holdco
 
 
 def close_comment(idx: dict, inv: dict, br: dict, movers_up: list[dict], movers_dn: list[dict],
-                  fnet: list[dict], inet: list[dict], sectors: tuple[list, list] | None = None) -> list[str]:
+                  fnet: list[dict], inet: list[dict], sectors: tuple | None = None) -> list[str]:
     L = []
     if idx:
         L.append(" · ".join(f"{k} {v['close']:,.2f} ({v['chg']*100:+.2f}%)" for k, v in idx.items()))
@@ -336,6 +353,9 @@ def close_comment(idx: dict, inv: dict, br: dict, movers_up: list[dict], movers_
         L.append("강한 업종(시총 가중): " + f(sectors[0]))
         if sectors[1]:
             L.append("약한 업종(시총 가중): " + f(sectors[1]))
+        if len(sectors) > 2 and sectors[2]:
+            _, r, k, d = sectors[2]
+            L.append(f"지주사(별도, {k}종목): {r * 100:+.1f}%" + (f"({d[0]} 비중 {d[1] * 100:.0f}%)" if d else ""))
     if movers_up:
         L.append("거래대금 상위 100 중 강세: " + ", ".join(f"{m['name']} {m['ret1']*100:+.1f}%" for m in movers_up))
     if movers_dn:

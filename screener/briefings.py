@@ -365,9 +365,11 @@ def close_kr(last: pl.DataFrame, br: dict) -> str:
         peers = {r["s"]: r for r in json.loads((REPORT_DIR / "peers_KR.json").read_text(encoding="utf-8")).get("rows", [])}
         rows = []
         for r in last.select(["symbol", "ret1"]).to_dicts():
-            p = peers.get(str(r["symbol"]).split(".")[0])
+            code = str(r["symbol"]).split(".")[0]
+            p = peers.get(code)
             if p:
-                rows.append({"g": p.get("g"), "mc": p.get("mc"), "ret1": r["ret1"], "name": p.get("n")})
+                g = "지주사" if flows.is_holdco(code, p.get("n")) else p.get("g")
+                rows.append({"g": g, "mc": p.get("mc"), "ret1": r["ret1"], "name": p.get("n")})
         sectors = flows.sector_moves(rows)
     except Exception as e:  # noqa: BLE001
         log.debug("업종 등락 실패: %s", e)
