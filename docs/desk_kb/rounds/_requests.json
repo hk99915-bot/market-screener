@@ -8656,6 +8656,24 @@
    "status": "open"
   },
   {
+   "id": "req-data-4a8febd2",
+   "from": "quant",
+   "to": "data",
+   "text": "퀀트 req-quant-32e05b61 층화 의존성 — ① WTI 일별(CL=F 또는 FRED DCOILWTICO) 2010-01~2026-10 적재 경로 회신(저장소엔 macro_series 2024-09~만) ② data/hist us_daily KRW=X(2010~, _manifest 기준) 일간 |변화|>5% 이상치 점검. 원본 docs/desk_kb/rounds/2026-10-29/quant_prereg_ec93e2cb.md §5",
+   "opened": "2026-10-29",
+   "opened_at": "2026-10-29T15:26+09:00",
+   "due": "2026-11-04",
+   "via": "ask",
+   "seen": [
+    "2026-10-29"
+   ],
+   "checked": [
+    "2026-10-29"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-data-700b602d",
    "from": "hf",
    "to": "data",
@@ -8850,7 +8868,15 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "quant",
+     "at": "2026-10-29T15:26+09:00",
+     "text": "개정2 사전등록(결과 전, 백테스트 미실행). 국면 층 5개(macroview 계산식 재사용, 각 2층): R1 코스피 200일선 아래/위 · R2 고점 대비 −20% 약세장 · M1 미10Y 20일 차 부호 · M2 원달러 20일 부호 · M3 WTI 20일 부호(미 지표는 t0−1). 층 크기 사전 점검(결과 미사용): R2는 격자 H1 IS 3·OOS 9로 미달, H2×R1은 OOS 층 2로 미달 → m 밖 서술만. 층 간 차이 검정: H1-S = H1-1~6 × {R1,M1,M2,M3} m24 α 0.00208 · H2-S = H2-1~4 × {M1,M2,M3} m12 α 0.00417, p = max(NW·군집, 에피소드 블록 부트스트랩). 주제 N: winner_ex_ante 56(α 0.00089) · kr_accum 60(α 0.00083). 규칙: 주 검정 F면 층 결과로 구제 금지(최대 C), 현재 국면 층만 골라 인용 금지. 데이터: WTI 2010~ 일별 저장소에 없음(USO 대용 대비, M3 상한 C) · KRW=X 로컬 미적재. '대박' 표현 정정 확인·유지. 원본: docs/desk_kb/rounds/2026-10-29/quant_prereg_ec93e2cb.md §5",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-quant-ec93e2cb",
