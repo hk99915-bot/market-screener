@@ -44,3 +44,9 @@
 - 체크리스트: ① 3표(손익·재무상태·현금흐름) 연결 모델 + 베어/베이스/불 시나리오 목표 범위 `[교과서: CFA L2 Equity Valuation·Koller]` ② 의견마다 컨센서스 대비 차이(variant view)·촉매 날짜·틀리면 뒤집힐 숫자 1개 `[현업 관행]` ③ 이익의 질 — OCF/NI·발생액·일회성 조정을 PER 옆에 `[교과서: CFA L1·L2 FSA]`
 - 격차: 감사 중5·경33(2회 합, 경 최다 — reports/audit/2026-10-21.json analyst 경28, 출처·기준일 누락형)·reports/valuation.json `ev_ebitda` 대부분 null(감가상각 미수집).
 - 드릴 [analyst-d1]: reports/valuation.json(10/23) 삼성전자 PER TTM 9.57 vs 런레이트 5.03, 4분기 OPM 14→21→43→52%. 한 숫자로 말해도 되나? — 답·채점 키 `content/drills/analyst.json`(라운드 파일에 `드릴: analyst-d1 <내 답>` 을 먼저 쓰고 열 것, round_collect 채점 · G1 10/24)
+
+## 셀사이드 자료 읽는 법 (2026-10-30, 대신 삼성 자료 정리에서)
+- 구분은 세 칸: 자료가 말하는 것 / 우리 산출물로 확인되는 것 / 확인 불가. 숫자는 우리 데이터로 재계산되는 것만 '확인', 나머지는 '자료 주장'. 저자 추정 표기는 그대로 남긴다.
+- 낙관 편향 표기: reports/detail research 목록에서 매수 의견 비율·목표가 범위를 같이 적는다(10/30 삼성 11건 중 11건 매수). 자료의 '상향 여력'은 저자 주장이지 독립 근거가 아니다.
+- 전망치 크기는 현 런레이트(분기×4)와 비교해 배수로 적는다(대신 608조 = DS 3Q 환산 426조의 1.43배). 정리본: docs/desk_kb/rounds/2026-10-30/analyst_daishin_samsung.md
+
