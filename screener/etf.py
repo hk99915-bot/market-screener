@@ -28,7 +28,8 @@ log = logging.getLogger(__name__)
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
 KR_MUST = ["114800", "252670", "122630", "069500", "102110", "139260", "091160", "091230", "396500", "229200", "233740",
            "251340", "261240", "138230", "133690", "360750", "379800", "381170", "305720", "364980", "471760", "117700",
-           "132030", "305080", "148070", "114260", "153130", "261220", "475310"]
+           "132030", "305080", "148070", "114260", "153130", "261220", "475310",
+           "418670", "218420", "474800", "219390"]   # 10/30 PB ISA 후보: 사이버보안(req-data-3981f7fc)·미 에너지 3종(req-data-ee93a893)
 US_LIST = ["SPY", "QQQ", "DIA", "IWM", "VOO", "VTI", "SCHD", "SOXX", "SMH", "PSI", "XLK", "XLE", "XLF", "XLV", "XLY", "XLP",
            "XLI", "XLU", "XLB", "XLRE", "XLC", "TLT", "IEF", "SHY", "HYG", "JNK", "LQD", "BKLN", "BND", "GLD", "SLV", "USO", "UNG", "UUP",
            "ARKK", "TQQQ", "SQQQ", "SOXL", "SOXS", "SH", "PSQ", "SDS", "UVXY", "EEM", "EWY", "EWJ", "FXI", "KWEB", "VEA", "VWO",

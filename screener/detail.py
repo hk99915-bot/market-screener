@@ -582,10 +582,22 @@ def build(market: str, last: pl.DataFrame, full: pl.DataFrame, store: pl.DataFra
                 ussec = {}
         semi = {"NVDA", "AMD", "AVGO", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "INTC", "QCOM", "TXN", "ADI", "MRVL", "ARM", "MU", "SNDK",
                 "MCHP", "NXPI", "ON", "MPWR", "TER", "WDC", "STX"}
+        kr_w: dict[str, dict] = {}
+        if market == "KR":
+            try:
+                from .sectors import _kr as _kr_wics
+                kr_w = _kr_wics()[0] if _kr_wics()[1] == "WICS" else {}
+            except Exception:  # noqa: BLE001
+                kr_w = {}
+        from .themes import gated_theme
         peers = []
         for s0, v0 in out["stocks"].items():
             va, dv, st0 = v0.get("valuation") or {}, v0.get("drivers") or {}, v0.get("stats") or {}
-            grp = (("반도체" if s0 in semi else ussec.get(s0)) if market == "US" else None) or v0.get("theme") or va.get("sector") or ((dv.get("chain") or {}).get("name")) or "기타"
+            th0 = v0.get("theme")
+            if market == "KR" and th0:   # 테마가 WICS 와 양립 안 하면 WICS 중분류 버킷 (req-data-630b1bfe)
+                w0 = kr_w.get(s0) or {}
+                th0 = gated_theme(th0, w0.get("l1"), w0.get("l2"))
+            grp = (("반도체" if s0 in semi else ussec.get(s0)) if market == "US" else None) or th0 or va.get("sector") or ((dv.get("chain") or {}).get("name")) or "기타"
             peers.append({"s": s0, "n": v0.get("name"), "g": grp, "sec": va.get("sector"),
                           "mc": mc.get(s0) or st0.get("dollar_vol20"), "r1": st0.get("ret1"), "r5": st0.get("ret5"), "r20": st0.get("ret20"),
                           "per": va.get("per"), "pbr": va.get("pbr"), "roe": va.get("roe"), "roen": va.get("roe_norm"),

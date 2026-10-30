@@ -182,7 +182,11 @@ def check_late(val, now: datetime, it: dict) -> tuple[str, str | None] | None:
     d = tradecal.session_on_or_before("KR", loc.date())
     if d == loc.date() and hm < ws:
         d = tradecal.prev_session("KR", d)
-    if ts is None or ts.strftime("%Y-%m-%d") < d.isoformat():
+    # 날짜만 보면 장 전(04:10) publish 가 전날 값을 싣고도 '오늘분'으로 통과한다(10/30 04:10 뒤 멈춤 → 20:54 late 0).
+    # 기대 거래일의 창 시작(09:30) 이후 publish 여야 그날 장중분.
+    h, m = (int(x) for x in ws.split(":"))
+    need = datetime(d.year, d.month, d.day, h, m, tzinfo=KST)
+    if ts is None or ts < need:
         return f"{d.isoformat()} 장중 publish", act
     return None
 

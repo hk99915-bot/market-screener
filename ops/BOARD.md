@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-10-30 · 작업 369개 · 진행 12 · 검수 6 · 대기 139 · 보류 21 · 완료 191
+기준일 2026-10-30 · 작업 370개 · 진행 12 · 검수 6 · 대기 140 · 보류 21 · 완료 191
 
 **결재 대기 2:** `user-realestate-keys-1023` (겸이 · 보류), `appr-staffing-b-1107` (겸이)
 
@@ -36,7 +36,7 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-10-31 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (139)
+## 대기 (140)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -170,6 +170,7 @@
 | P2 | `screen-rev-accel` | 상시 스크린 "매출 가속" (req-dev-2516a3d8, HF) — 조건 고정·일회성 꼬리표·등급 검증전 | 개발 | 2026-10-30 | 2026-11-04 | `screener/`<br>`reports/` | — | 조건(결과 보기 전 고정): 최근 분기 매출 YoY>=+50%·직전 분기 YoY보다 큼·OPM>=10%·분기 매출>=300억·20일 평균 거래대금>=10억(KR, reports/detail financials). 표시: 섹터·YoY(전→현)·OPM·60일 수익률·1년 고점 대비·일회성 의심(바이오 기술료·YoY>300%). 생성 코드=개발, 탭 표시=프론트(ask). 퀀트 H1-5 11/05 결과 연동 전 등급 검증전. HF 수동 결과(505중 41)와 대조 테스트. |
 | P2 ⏫P1 10-21 | `pro-plan-round-scale` | Pro 전환(11/12) 대비 라운드 규모안 — 동시 에이전트 수·빈도·우선 데스크, 21:10 자동 라운드 교체 | PM | — | 2026-11-05 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | Max 5x 일평균(10/15~17): 실행 11.3건·토큰 약 183만. Pro 한도 기준으로 축소 필요. 오너 결정 10/17. |
 | P2 ⏫P1 10-21 | `token-meter-real-usage` | 에이전트 토큰 실측 기록 — team_run 에 transcript 누적(calls·cache_read·신규) 옵션 + team_stats 데스크×모델 표 | 개발 | — | 2026-11-05 | `scripts/team_run.py`<br>`scripts/team_stats.py`<br>`tests/test_team_stats.py` | — | 내무 요청(10/17 토큰 원가센터). 10/17 대조: runs.tokens 는 마지막 호출 컨텍스트 크기에 가까워 실제 누적 처리량의 약 1/30, 기록 누락도 있음(10/16 실측 37건 vs 기록 5건). team_run.py --transcript <agent jsonl> 로 message.id 중복 제거 합산 → runs 에 calls·cache_read·new 추가(기존 tokens 유지). team_stats by_owner_model 추가. 금액은 넣지 않음(토큰·건수만). pro-plan-round-scale(11/5) 입력. |
+| P2 | `data-peers-sec-fallback` | peers_KR 업종 g — 테마 없는 종목의 KRX 업종 폴백(229행, 기타금융 34행)도 WICS 기준으로 정리 | 데이터 | — | 2026-11-06 | `screener/detail.py`<br>`screener/themes.py` | — | req-data-630b1bfe 후속(10/30 데이터 라운드). 테마 게이트는 적용됨, sec 폴백은 KRX 업종명(기타금융·일반서비스 등)이라 WICS 와 어휘가 다름 — WICS 중분류 버킷으로 통일할지 결정 + 화면·trend_discovery 업종 수 변화 점검. 30분 초과라 보드로. |
 | P2 ⏫P1 10-29 | `rt-deriv-flow-plan` | 장중 파생 수급(헤지 vs 실수요) 수집 기획 — 1단계 네이버 dealTrendInfo 장중 N분 스냅샷 탐침, 2단계 KIS 주식선물 웹소켓(조건부) | 데이터 | — | 2026-11-06 | `docs/desk_kb/rounds/2026-10-26/research_realtime_deriv.md` | — | 리서치 완료(10/26). 오너 결재 대기: (1) 장중 탐침 승인 (2) 금융위 V2·KRX 재배포 약관 점검 (3) KIS 계좌·약관 확인은 오너 몫. 한도 초기화 후 ㄱㄱ. |
 | P2 ⏫P1 10-21 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-07 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). |
 | P2 ⏫P1 10-21 | `macro-consensus-source` | 매크로 컨센서스 출처 확보(공개 API 또는 universe/macro_consensus.json 수기+출처) → release_line() consensus 인자 | 데이터 | — | 2026-11-14 | `screener/sec.py`<br>`tests/test_sec_parse.py`<br>`screener/valuation_daily.py` | — | 결재 #9 보강(10/17 겸이): 컨센 있을 때만 '서프라이즈' 허용. 출처 없는 수기 컨센 금지. 매크로·데이터 공동. |

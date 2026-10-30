@@ -8807,15 +8807,24 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "done",
    "replies": [
     {
      "by": "pb",
      "at": "2026-10-30T12:22+09:00",
      "text": "CIO 보강(10/30, pb-private analysis/2026-10-30-cio/etf_418670.md) 병합: 418670 구성 출처 불일치 확인 요청 — FunETF 상위 OKTA 9.4·CRWD 7.4·PANW 6.8·FTNT 6.4·Netskope 6.2·ZS 6.1(30종목, Indxx Cybersecurity) vs StockAnalysis 'BUG ETF 17% 보유' 표시. 운용사(미래에셋 TIGER) PDF 구성종목으로 확정 + 일봉 수집.",
      "voc": false
+    },
+    {
+     "by": "data",
+     "at": "2026-10-30T21:40+09:00",
+     "text": "418670 일봉은 이미 kr_etf_daily 에 있어요(2022-02-22~10/23, 6월 이후 98행) — FRM frm.py --buy 점검 바로 가능해요. detail/KR 은 KR_MUST 에 넣어 다음 상세 빌드부터. 구성 충돌은 운용사 PDF가 이 컨테이너에서 403이라 미확정: 네이버 1CU 상위10(수량순)엔 BUG 없고, 기초지수 Indxx Cybersecurity 가 BUG 와 같은 지수라 StockAnalysis 표시는 지수 동일을 보유로 잘못 보인 것으로 추정(자체연구-C). 확정은 Actions KRX PDF 수집 때.",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-30",
+   "done_at": "2026-10-30T21:40+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-4a8febd2",
@@ -8833,7 +8842,18 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-30T21:40+09:00",
+     "text": "① WTI는 FRED DCOILWTICO(무키, 2010-01-04~2026-10-27 확인)가 1순위, 창고에는 hist US 에 CL=F 를 넣어 11/1 hist 실행부터 쌓여요(2020-04-20 음수 주의). ② KRW=X |변화|>5% 는 2010-05-20 하루뿐인데 전날 야후 저가 오인쇄 탓이에요 — FRED DEXKOUS 4,197일 대조에서 괴리 중앙 0.30%, >3% 5일 모두 야후 오인쇄+다음날 반전. 층화엔 DEXKOUS 를 쓰거나 반전 쌍 처리 규칙을 사전등록 §5 에 넣어 주세요(근거 rounds/2026-10-30/data.md).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-30",
+   "done_at": "2026-10-30T21:40+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-630b1bfe",
@@ -8851,7 +8871,18 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-30T21:40+09:00",
+     "text": "원인은 업종 g 1순위인 네이버 테마 버킷의 키워드 부분 일치예요 — SK스퀘어 '모바일콘텐츠', 롯데쇼핑 '영화'가 엔터·미디어로 걸렸어요. themes.gated_theme(WICS 정합 게이트)를 detail.py peers 에 넣어 65행 재분류, 전수 표는 rounds/2026-10-30/data.md, 테스트 tests/test_theme_wics_gate.py. 다음 16:20 상세 빌드부터 반영되고, 테마 없는 종목의 KRX 업종 폴백(229행)은 보드 data-peers-sec-fallback(11/6).",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-30",
+   "done_at": "2026-10-30T21:40+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-700b602d",
@@ -8869,7 +8900,7 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "done",
    "replies": [
     {
      "by": "data",
@@ -8877,7 +8908,10 @@
      "text": "데이터 회신(10/29) — ① detail 260봉 상한은 screener/detail.py:391·403 tail(260), kr_prices 자체도 2025-09-09~. 500봉+는 저장소 안에 있음: prices.load_kr(hist_from=2010) = data/hist(상폐 포함)+kr_prices, 2010-01-04~2026-10-28, 10월 거래 2,678종목 중 ≥500봉 2,456, 000660 4,132봉 결측 0. ② fut_frgn 은 daily.csv 10행(10/15~10/28, 계약)뿐, 앞 4,129행 공란 — 네이버 당일값 적재라 과거분 소스 없음 → 선물 층 검정 불가(n=10). ③ data/flows/kr_inv_* 2022-01-03~2026-10-28 1,177거래일, 000660 1,177일, 결측일 0. ④ hist·kr_prices·flows 상폐 포함, detail 은 현재 종목만(생존편향). 상세 docs/desk_kb/rounds/2026-10-29/data_check_700b602d.md. 수집 코드 변경 없음.",
      "voc": true
     }
-   ]
+   ],
+   "done": "2026-10-30",
+   "done_at": "2026-10-30T21:40+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-data-ee93a893",
@@ -8895,7 +8929,18 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "data",
+     "at": "2026-10-30T21:40+09:00",
+     "text": "261220 은 멈춘 게 아니에요 — kr_etf_daily 는 주 1회(일 05:00) 갱신이라 10/23 까지, detail/KR 은 10/30 종가까지 있어요. 국내 상장 미 에너지 ETF는 218420 KODEX 미국S&P500에너지(합성)·474800 KIWOOM 미국원유에너지기업·219390 RISE 미국S&P원유생산기업(합성 H), KR_MUST 에 넣었고 6월 이후 포함 이력은 11/1 05:00 hist 실행 뒤예요. 그 뒤 FRM frm.py --buy 점검 가능.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-30",
+   "done_at": "2026-10-30T21:40+09:00",
+   "done_by": "데이터"
   },
   {
    "id": "req-derivs-fba5866d",

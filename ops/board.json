@@ -6471,6 +6471,22 @@
       "priority": "P2",
       "repo": "public",
       "desk": "개발"
+    },
+    {
+      "started": null,
+      "due": "2026-11-06",
+      "files": [
+        "screener/detail.py",
+        "screener/themes.py"
+      ],
+      "depends_on": [],
+      "notes": "req-data-630b1bfe 후속(10/30 데이터 라운드). 테마 게이트는 적용됨, sec 폴백은 KRX 업종명(기타금융·일반서비스 등)이라 WICS 와 어휘가 다름 — WICS 중분류 버킷으로 통일할지 결정 + 화면·trend_discovery 업종 수 변화 점검. 30분 초과라 보드로.",
+      "id": "data-peers-sec-fallback",
+      "title": "peers_KR 업종 g — 테마 없는 종목의 KRX 업종 폴백(229행, 기타금융 34행)도 WICS 기준으로 정리",
+      "owner": "데이터",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public"
     }
   ]
 }

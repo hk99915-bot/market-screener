@@ -64,6 +64,65 @@ def bucket_of(names: list[str]) -> str | None:
     return sorted(cnt.items(), key=lambda x: (-x[1], order[x[0]]))[0][0]
 
 
+# ── WICS 정합 게이트 (req-data-630b1bfe, 10/30) ──
+# 네이버 테마 버킷은 키워드 부분 일치라 업종 밖으로 샌다: SK스퀘어 '모바일콘텐츠'→엔터·미디어(WICS IT/반도체),
+# 롯데쇼핑 '영화'(롯데시네마)→엔터·미디어(WICS 소매). 대표 테마가 공식 섹터(WICS)와 양립 안 하면 WICS 중분류 버킷으로 바꾼다.
+# 양립 = 버킷별 허용 WICS 대분류(L1) — 테마는 업종을 가로지르므로 넓게(2차전지 = IT·소재·산업재·자동차부품 …).
+THEME_WICS_L1: dict[str, frozenset[str]] = {
+    "반도체 장비·소재": frozenset({"IT", "소재", "산업재"}),
+    "반도체": frozenset({"IT"}),
+    "2차전지": frozenset({"IT", "소재", "산업재", "경기관련소비재", "에너지"}),
+    "디스플레이": frozenset({"IT", "소재"}),
+    "전력기기·전선": frozenset({"산업재", "IT", "유틸리티"}),
+    "원전": frozenset({"산업재", "에너지", "유틸리티"}),
+    "조선": frozenset({"산업재", "소재"}),
+    "방산·우주": frozenset({"산업재", "IT", "소재"}),
+    "로봇": frozenset({"산업재", "IT", "경기관련소비재", "건강관리"}),
+    "AI·소프트웨어": frozenset({"IT", "커뮤니케이션서비스"}),
+    "바이오·헬스케어": frozenset({"건강관리"}),
+    "자동차": frozenset({"경기관련소비재", "소재", "IT", "산업재"}),
+    "인터넷·게임": frozenset({"커뮤니케이션서비스", "IT"}),
+    "화장품·소비재": frozenset({"경기관련소비재", "필수소비재", "소재"}),
+    "금융": frozenset({"금융"}),
+    "건설·부동산": frozenset({"산업재", "금융", "소재"}),
+    "에너지·소재": frozenset({"소재", "에너지", "유틸리티", "산업재"}),
+    "통신": frozenset({"커뮤니케이션서비스", "IT"}),
+    "운송·물류": frozenset({"산업재"}),
+}
+# 엔터·미디어는 대분류가 아니라 중분류로 — 같은 경기관련소비재라도 소매(롯데쇼핑)는 아님.
+THEME_WICS_L2: dict[str, frozenset[str]] = {
+    "엔터·미디어": frozenset({"미디어와엔터테인먼트", "호텔,레스토랑,레저등"}),
+}
+# 게이트에 걸렸을 때 쓸 WICS 중분류 → 버킷(기존 버킷 이름 재사용, 없는 건 WICS 이름 짧게)
+WICS_L2_BUCKET: dict[str, str] = {
+    "반도체와반도체장비": "반도체", "디스플레이": "디스플레이", "기술하드웨어와장비": "IT 하드웨어",
+    "소프트웨어와서비스": "AI·소프트웨어", "건강관리장비와서비스": "바이오·헬스케어", "제약과생물공학": "바이오·헬스케어",
+    "교육서비스": "교육", "내구소비재와의류": "내구소비재·의류", "소매(유통)": "유통", "자동차와부품": "자동차",
+    "호텔,레스토랑,레저등": "호텔·레저", "다각화된금융": "금융", "보험": "금융", "은행": "금융", "증권": "금융",
+    "부동산": "건설·부동산", "상업서비스와공급품": "상업서비스", "운송": "운송·물류", "자본재": "자본재",
+    "소재": "에너지·소재", "에너지": "에너지·소재", "유틸리티": "유틸리티", "미디어와엔터테인먼트": "엔터·미디어",
+    "전기통신서비스": "통신", "가정용품과개인용품": "화장품·소비재", "식품,음료,담배": "화장품·소비재",
+    "식품과기본식료품소매": "화장품·소비재",
+}
+
+
+def wics_compatible(theme: str | None, l1: str | None, l2: str | None) -> bool:
+    """대표 테마가 WICS 와 양립하는가. WICS 모름·게이트 없는 버킷은 True(판정 불가 → 테마 유지)."""
+    if not theme or not l1:
+        return True
+    if theme in THEME_WICS_L2:
+        return (l2 or "") in THEME_WICS_L2[theme]
+    allowed = THEME_WICS_L1.get(theme)
+    return True if allowed is None else l1 in allowed
+
+
+def gated_theme(theme: str | None, l1: str | None, l2: str | None) -> str | None:
+    """양립하면 테마 그대로, 아니면 WICS 중분류 버킷(없으면 None → 호출자가 다음 출처로)."""
+    if wics_compatible(theme, l1, l2):
+        return theme
+    return WICS_L2_BUCKET.get(l2 or "")
+
+
 def _get(url: str) -> str:
     r = requests.get(url, headers=UA, timeout=20)
     r.raise_for_status()

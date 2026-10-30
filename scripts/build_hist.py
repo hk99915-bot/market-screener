@@ -57,7 +57,7 @@ US_SYMBOLS = ["SPY", "QQQ", "IWM", "DIA", "SOXX", "SMH", "PSI", "XLK", "XLE", "X
               "MU", "SNDK", "NVDA", "AVGO", "AMD", "TSM", "AMAT", "LRCX", "KLAC", "ASML", "WDC", "STX",
               "MSFT", "AAPL", "AMZN", "GOOGL", "META", "TSLA",
               "^GSPC", "^IXIC", "^SOX", "^VIX", "^TNX", "^RUT", "^DJI",
-              "MUU", "BUG", "KRW=X"]  # 10/24 행동 MUU(c389dd16)·애널 BUG(c77cf2b8)·퀀트 USDKRW 2010~(b372d367, 야후 KRW=X = 원/달러)
+              "MUU", "BUG", "KRW=X", "CL=F"]  # 10/24 행동 MUU(c389dd16)·애널 BUG(c77cf2b8)·퀀트 USDKRW 2010~(b372d367, 야후 KRW=X = 원/달러) · 10/30 퀀트 WTI 근월(4a8febd2, 2020-04-20 음수가 있음 — 수익률은 FRED DCOILWTICO 대조)
 
 
 def kr_etf_codes() -> list[str]:
