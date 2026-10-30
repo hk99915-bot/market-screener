@@ -3217,7 +3217,9 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "16:09"
     },
     "규칙": {
      "ticker": "069500",
@@ -3235,6 +3237,781 @@
      "장중 범위 안 위치 36% (0=저점, 100=고점)",
      "외국인 현물 -1.45조 · 프로그램 비차익 -1,029억"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. 코스피 14:43 5,684(−4.3%), 매도 사이드카 발동일(10:08) — 장중 신규 진입 금지(rules 1절). 반등일 미충족, 급락일 종가 1차 신호(≤−5%) 미충족(종가 확인). 구속 스트레스 위반 중 스트레스 키우는 매수 금지(10/26 임시 운영 규칙). 하락일 매도 금지로 보유 조정 0. [재전송: 14:46 판단 원본, 텔레그램 특수문자 파싱 오류로 실패 → 16시 재전송. 공격 PB 종가 모의 진입은 장 마감 후 기록이라 사후 채점 방지 위해 철회]",
+    "lines": [
+     "코스피 14:43 5,684(−4.3%) · 코스닥 −4.2% · K200F −3.9%(20분 지연)",
+     "하닉 −7.3% · 삼성 −4.2% · 삼성전기 −8.4% — 반도체 현물 매도 주도(파생 10/30 라운드)",
+     "옵션 IV 56%(RV20 60%보다 낮음) · PCR(OI) 1.19 중립 · 외국인 선물 미확인",
+     "급락일 종가 신호 ≤−5% 미충족 — 종가 확정 대기",
+     "레드팀: 종가 −5% 이하 마감 시 급락일 신호 1차 성립, 매수 금지와 충돌 — 신호 기록만",
+     "⚠️ 급락일 현금 — 사유 필수(근거 없는 관망은 복기 대상)"
+    ],
+    "conviction": "보통",
+    "at": "16:09",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 사이드카일·진입 신호 미충족"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "사이드카일 장중 신규 진입 금지 및 구속 스트레스 위반 중 매수 금지로 실계좌 진입 불가."
+    },
+    "crash_day_cash": true,
+    "views_asof": "2026-10-30 15:51",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 6회 · 5일 초과 +1.2%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    }
+   }
+  },
+  {
+   "id": "2026-10-30-exit-000660",
+   "date": "2026-10-30",
+   "kind": "exit",
+   "title": "매도 타점 대결 · SK하이닉스",
+   "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "ticker": "000660",
+     "name": "SK하이닉스 보유",
+     "notional": 1000000.0,
+     "entry": "close",
+     "exit": "d5_close",
+     "by": "PB 재량",
+     "at": "16:09",
+     "keep": 1.0
+    },
+    "규칙": {
+     "ticker": "000660",
+     "name": "SK하이닉스 보유",
+     "notional": 1000000,
+     "entry": "close",
+     "exit": "d5_close"
+    }
+   },
+   "pb_view": {
+    "why": "14:43 −7.3%. 약화 트리거 미충족 유지, 하락일 매도 금지.",
+    "lines": [],
+    "conviction": "보통",
+    "at": "16:09",
+    "plan": null,
+    "views_asof": "2026-10-30 15:51",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 6회 · 5일 초과 +1.2%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    }
+   }
+  },
+  {
+   "id": "2026-10-30-exit-005930",
+   "date": "2026-10-30",
+   "kind": "exit",
+   "title": "매도 타점 대결 · 삼성전자",
+   "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "ticker": "005930",
+     "name": "삼성전자 보유",
+     "notional": 1000000.0,
+     "entry": "close",
+     "exit": "d5_close",
+     "by": "PB 재량",
+     "at": "16:09",
+     "keep": 1.0
+    },
+    "규칙": {
+     "ticker": "005930",
+     "name": "삼성전자 보유",
+     "notional": 1000000,
+     "entry": "close",
+     "exit": "d5_close"
+    }
+   },
+   "pb_view": {
+    "why": "14:43 −4.2%. 반등일 아님 — 치유 매도 1-가는 11/1 결재.",
+    "lines": [],
+    "conviction": "보통",
+    "at": "16:09",
+    "plan": null,
+    "views_asof": "2026-10-30 15:51",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 6회 · 5일 초과 +1.2%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    }
+   }
+  },
+  {
+   "id": "2026-10-30-exit-009150",
+   "date": "2026-10-30",
+   "kind": "exit",
+   "title": "매도 타점 대결 · 삼성전기",
+   "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "ticker": "009150",
+     "name": "삼성전기 보유",
+     "notional": 1000000.0,
+     "entry": "close",
+     "exit": "d5_close",
+     "by": "PB 재량",
+     "at": "16:09",
+     "keep": 1.0
+    },
+    "규칙": {
+     "cash": true,
+     "label": "매도"
+    }
+   },
+   "pb_view": {
+    "why": "14:43 −8.4%. 추가 매수 금지, 테마 여부 11/15.",
+    "lines": [],
+    "conviction": "보통",
+    "at": "16:09",
+    "plan": null,
+    "views_asof": "2026-10-30 15:51",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 6회 · 5일 초과 +1.2%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    }
+   }
+  },
+  {
+   "id": "2026-10-30-exit-MU",
+   "date": "2026-10-30",
+   "kind": "exit",
+   "title": "매도 타점 대결 · Micron",
+   "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "ticker": "MU",
+     "name": "Micron 보유",
+     "notional": 1000000.0,
+     "entry": "close",
+     "exit": "d5_close",
+     "by": "PB 재량",
+     "at": "16:09",
+     "keep": 1.0
+    },
+    "규칙": {
+     "ticker": "MU",
+     "name": "Micron 보유",
+     "notional": 1000000,
+     "entry": "close",
+     "exit": "d5_close"
+    }
+   },
+   "pb_view": {
+    "why": "치유 후보 — 11/1 결재 재검토.",
+    "lines": [],
+    "conviction": "보통",
+    "at": "16:09",
+    "plan": null,
+    "views_asof": "2026-10-30 15:51",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 6회 · 5일 초과 +1.2%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    }
+   }
+  },
+  {
+   "id": "2026-10-30-exit-SNDK",
+   "date": "2026-10-30",
+   "kind": "exit",
+   "title": "매도 타점 대결 · SanDisk",
+   "note": "채점: 5거래일 뒤 종가 (매도=현금 0%, 보유=종목 수익률)",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "ticker": "SNDK",
+     "name": "SanDisk 보유",
+     "notional": 1000000.0,
+     "entry": "close",
+     "exit": "d5_close",
+     "by": "PB 재량",
+     "at": "16:09",
+     "keep": 1.0
+    },
+    "규칙": {
+     "ticker": "SNDK",
+     "name": "SanDisk 보유",
+     "notional": 1000000,
+     "entry": "close",
+     "exit": "d5_close"
+    }
+   },
+   "pb_view": {
+    "why": "조정 없음.",
+    "lines": [],
+    "conviction": "보통",
+    "at": "16:09",
+    "plan": null,
+    "views_asof": "2026-10-30 15:51",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 7 / 축소 3",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 6회 · 5일 초과 +1.2%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    }
    }
   }
  ],
