@@ -20,6 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import hf_book as H  # noqa: E402
+sys.path.insert(0, str(ROOT))
+from screener.tradecal import us_open_hhmm  # noqa: E402
 
 STATE = ROOT / "reports" / "practice_book.json"
 KST = timezone(timedelta(hours=9))
@@ -80,7 +82,7 @@ def mark(b: dict) -> list[dict]:
         bars = H.bars(p["market"], p["code"])
         if p["status"] == "대기":
             cd, ct = p["created"][:10], p["created"][11:16]
-            same_ok = p["market"] == "US" and ct < "22:30"          # 미장: 같은 KST 날짜 봉 = 그날 22:30 KST 개장 세션
+            same_ok = p["market"] == "US" and ct < us_open_hhmm(cd)   # 미장: 같은 KST 날짜 봉 = 그날 개장 세션(여름 22:30·겨울 23:30 KST, ET 로 계산)
             nb = [x for x in bars if (x["t"][:10] > cd or (same_ok and x["t"][:10] == cd)) and x.get("o")]
             if not nb:
                 keep.append(p)

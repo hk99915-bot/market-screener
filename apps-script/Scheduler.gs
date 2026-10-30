@@ -44,7 +44,7 @@ const SCHEDULE = [
   ['19:10', 'briefing.yml', { mode: 'reports', commit: 'true' }, WEEKDAY],
   ['20:52', 'briefing.yml', { mode: 'premarket_us', commit: 'true' }, WEEKDAY],
   ['21:52', 'briefing.yml', { mode: 'premarket_us', commit: 'true' }, WEEKDAY],
-  ['22:20', 'live.yml', { commit: 'true' }, WEEKDAY],
+  ['23:20', 'live.yml', { commit: 'true' }, WEEKDAY],   // 미장 루프 시작 — 겨울(EST, 11/02~) 23:20 · 여름(EDT, 3월 둘째 일요일~) 22:20 로 되돌림(보드 live-us-dst-march)
   ['22:52', 'briefing.yml', { mode: 'intraday_us', commit: 'true' }, WEEKDAY],
 ];
 // 결정 C (docs/schedule_table.md): 이 표의 슬롯은 GAS 가 '주 실행 주체'. 같은 시각 GitHub cron 은 대기(fallback) —
@@ -52,7 +52,7 @@ const SCHEDULE = [
 // commit: 'true' — 워크플로는 수동 실행을 기본 읽기 전용(커밋 안 함)으로 돌린다. 예약 실행기만 커밋 권한을 명시.
 // 슬롯을 더하거나 빼면 tests/test_schedule_single.py 가 워크플로 쪽 가드와 맞는지 검사한다.
 
-const SCHEDULER_VERSION = '2026-10-21 이중화';   // tickTest 첫 줄에 찍힘 — 붙여넣기 확인용
+const SCHEDULER_VERSION = '2026-10-30 겨울시간 · 이중화';   // tickTest 첫 줄에 찍힘 — 붙여넣기 확인용
 const WINDOW_MIN = 10;   // 예정 시각 이후 이 시간 안에만 실행 (cron 대기 12분보다 짧게 — 늦게 깨어나도 몰아서 보내지 않음)
 
 function kstNow_() {

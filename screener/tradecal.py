@@ -89,3 +89,16 @@ def in_session(market: str, now: datetime) -> bool:
     loc = now.astimezone(TZ[market])
     o, c = SESSION[market]
     return is_session(market, loc.date()) and o <= loc.time() < c
+
+
+def us_open_kst(d) -> datetime:
+    """미 정규장 개장(09:30 ET)의 KST 시각 — 서머타임(3월 둘째 일~11월 첫째 일)은 America/New_York 이 계산.
+    2026-10-30 확인: 여름 22:30, 겨울(11/1 뒤) 23:30. KST 22:30 하드코딩 금지 — 이 함수를 쓴다(req-dev-cbd568fc)."""
+    if isinstance(d, str):
+        d = date.fromisoformat(d[:10])
+    return datetime.combine(d, SESSION["US"][0], tzinfo=ET).astimezone(KST)
+
+
+def us_open_hhmm(d) -> str:
+    """us_open_kst 의 'HH:MM' (문자열 비교용)."""
+    return us_open_kst(d).strftime("%H:%M")

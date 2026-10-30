@@ -11,8 +11,8 @@ on:
   schedule:
     - cron: "40 23 * * 0-4"     # 08:40 KST 국장 루프 시작
     - cron: "7 0-6 * * 1-5"     # 국장 시간 매시 백업
-    - cron: "20 13 * * 1-5"     # 22:20 KST 미장 루프 시작
-    - cron: "7 14-19 * * 1-5"   # 미장 시간 매시 백업
+    - cron: "20 14 * * 1-5"     # 23:20 KST 미장 루프 시작 (겨울 EST: 09:20 ET = 14:20 UTC, 11/02~. 여름(EDT, 3월 둘째 일요일~)엔 20 13 = 22:20 KST 로 되돌릴 것 — 보드 live-us-dst-march)
+    - cron: "7 14-20 * * 1-5"   # 미장 시간 매시 백업 (겨울 23:07–05:07 KST. 여름엔 14-19)
   workflow_dispatch:
     inputs:
       commit:
@@ -65,10 +65,11 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          in_window() {   # KST 08:40–15:50 (국장) 또는 22:15–05:15 (미장), 주말 제외 대략
+          in_window() {   # KST 08:40–15:50 (국장) 또는 미장 09:15–16:15 ET (= 여름 22:15–05:15 · 겨울 23:15–06:15 KST, 서머타임은 tz 가 처리), 주말 제외 대략
             hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm))
             [ $hm -ge 840 ] && [ $hm -le 1550 ] && return 0
-            [ $hm -ge 2215 ] || [ $hm -le 515 ] && return 0
+            et=$(TZ=America/New_York date +%H%M); et=$((10#$et))
+            [ $et -ge 915 ] && [ $et -le 1615 ] && return 0
             return 1
           }
           COMMIT="${{ steps.g.outputs.commit }}"

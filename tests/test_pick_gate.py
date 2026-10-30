@@ -196,3 +196,35 @@ def test_audit_apply_marks_without_moving(dec):
     pga.main(["--apply"])
     pk = _picks(dec, "2026-10-23-entry-us")
     assert "나🔥" not in pk and pk["나"]["ticker"] == "SOXX" and "게이트 위반" in pk["나"]["gate_audit"]
+
+
+# ── 결재 10/29 ①: R:R 기준가 = 체결 기준가, 본문 매수가는 참고(±0.5% 넘으면 경고) ──
+def _classify(plan_text, ref=10000.0):
+    from datetime import datetime
+    t = datetime(2026, 10, 30, 14, 0, tzinfo=pick_gate.KST)
+    item = {"id": "2026-10-30-entry", "date": "2026-10-30", "kind": "entry", "market": "KR"}
+    pick = {"ticker": "122630", "notional": 1e6, "entry": "close", "exit": "next_open"}
+    return pick_gate.classify(pick, plan_text, t, item, [], ref_fn=lambda c, d: ref, events=[])
+
+
+def test_entry_in_body_does_not_set_rr_base():
+    # 매수가 9800 을 적어 R:R 을 4 로 부풀려도 체결 기준가(10000) 기준 0.67 → '나🔥'
+    slot, pick, why = _classify("손절 9700 목표 10200 매수가 9800 근거: 반등")
+    assert slot == "나🔥" and any("R:R" in w for w in why)
+    assert pick["plan"]["rr"] == 0.67 and pick["plan"]["ref"] == 10000.0 and pick["plan"]["entry"] == 9800
+    assert "9,800" in pick["plan"]["warn"] and "±0.5%" in pick["plan"]["warn"]
+
+
+def test_entry_within_half_percent_no_warn_and_ref_used():
+    slot, pick, why = _classify("손절 9800 목표 10300 매수가 10040 근거: 반등")   # +0.4%
+    assert slot == "나" and not why and "warn" not in pick["plan"]
+    assert pick["plan"]["rr"] == 1.5      # (10300-10000)/(10000-9800), 매수가 10040 이면 1.55
+    assert pick_gate.entry_warn({"entry": 10051}, 10000.0) and not pick_gate.entry_warn({"entry": 10050}, 10000.0)
+
+
+def test_entry_only_without_ref_is_not_used_for_rr():
+    slot, pick, why = pick_gate.classify(
+        {"ticker": "X", "notional": 1}, "손절 9700 목표 10200 매수가 9800 근거: 반등",
+        __import__("datetime").datetime(2026, 10, 30, 14, 0, tzinfo=pick_gate.KST),
+        {"id": "i", "date": "2026-10-30", "kind": "entry"}, [], ref_fn=lambda c, d: None, events=[])
+    assert slot == "나🔥" and any("R:R 계산 불가" in w for w in why)

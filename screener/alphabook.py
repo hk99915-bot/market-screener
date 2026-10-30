@@ -445,7 +445,9 @@ def _after(market: str, now: datetime, last_bar: str | None) -> str:
     today = str(now.date())
     if market == "KR":
         return today if now.hour >= 9 else (last_bar or str(now.date() - timedelta(days=1)))
-    return (last_bar or str(now.date() - timedelta(days=1))) if now.hour < 22 else today
+    from .tradecal import us_open_kst   # 개장 30분 전 = 여름 22:00·겨울 23:00 KST (ET 로 계산, 서머타임 대응)
+    n = now if now.tzinfo else now.replace(tzinfo=KST)
+    return (last_bar or str(now.date() - timedelta(days=1))) if n < us_open_kst(today) - timedelta(minutes=30) else today
 
 
 def update(o: dict, market: str = "KR", now: datetime | None = None, state_path: Path | None = None) -> dict:

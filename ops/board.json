@@ -2059,7 +2059,7 @@
       "id": "live-us-winter-window",
       "title": "live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지",
       "owner": "개발",
-      "status": "대기",
+      "status": "검수",
       "priority": "P2",
       "repo": "public",
       "files": [
@@ -6436,6 +6436,24 @@
       "depends_on": [],
       "escalated": "2026-10-30",
       "notes": "요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 평가 라운드 파일에 `처리→교육: …` 한 줄 또는 `python3 scripts/ask.py --close req-eval-0d7696d4`."
+    },
+    {
+      "started": "2026-10-30",
+      "due": "2027-03-12",
+      "files": [
+        ".github/workflows/live.yml",
+        "apps-script/Scheduler.gs",
+        "docs/schedule_table.md"
+      ],
+      "depends_on": [],
+      "notes": "11/02 겨울 대응으로 cron 20 14·7 14-20, GAS 23:20 로 바꿈(docs/schedule_table.md §4-2). 3/14 전 금요일까지 20 13·7 14-19·22:20 로 복귀 + Scheduler.gs 재붙여넣기. 근본 해결 후보: 루프 시작 cron 두 개 + in_window ET 판정 + GAS 슬롯 ET 기준 계산.",
+      "id": "live-us-dst-march",
+      "title": "서머타임 시작(2027-03-14) 전에 live.yml 미장 cron·GAS 22:20 슬롯 여름으로 되돌리기",
+      "owner": "개발",
+      "status": "대기",
+      "priority": "P2",
+      "repo": "public",
+      "desk": "개발"
     }
   ]
 }

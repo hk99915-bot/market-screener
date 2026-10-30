@@ -11,6 +11,7 @@ import math
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from .config import REPORT_DIR, DATA_DIR
+from .tradecal import us_open_hhmm
 
 KST = ZoneInfo("Asia/Seoul")
 POLICY = ("모의 추적: 제안일 다음 첫 거래일 시가가 원래 진입 구간 안일 때만 진입. "
@@ -29,7 +30,7 @@ def _mk(r):
 # (다음 거래일 시가 전이라 미래 참조 없음). US = KST 22:30(미장 개장) 전 판은 마지막 판으로 교체, 22:30 이후 판은
 # 그날 행이 없을 때만 캡처. 날짜가 바뀌거나(KR) 22:30 이 지나면(US) 원래 조건은 덮어쓰지 않는다 = '확정판 기준' 불변.
 KR_FINAL_FROM = "15:45"
-US_OPEN_KST = "22:30"
+US_OPEN_KST = "22:30"   # 여름(EDT) 기준 설명용 — 판정은 us_open_hhmm(날짜)(겨울 23:30, 서머타임 대응 10/30)
 SCHEMA = ("행 키: id · date · ticker(종목코드 — code 키는 없음, 원본 안에서는 original.s) · market(없으면 KR) · name · "
           "proposed_at(기록한 확정판 asof) · captured_at · original(확정판 원본, 불변) · state(채점) · note(사후 주석, 원본 아님)")
 
@@ -44,7 +45,7 @@ def capture(book, meeting, now, market="KR"):
     rows = book.setdefault("rows", [])
     mine = [r for r in rows if r["date"] == day and _mk(r) == market]
     if market == "US":
-        replace = hm < US_OPEN_KST
+        replace = hm < us_open_hhmm(day)
     else:
         if hm < KR_FINAL_FROM:
             return   # 장중 판은 기록하지 않음(evaluate 만)
@@ -138,7 +139,7 @@ def evaluate(row, bars):
         return {"status": "review", "reason": "가격 조건 또는 방향 검증 필요"}
     if _mk(row) == "US":   # 제안 이후 처음 '열리는' 세션: ref 다음, 제안이 그날 KST 22:30 이후면 그 세션 제외
         after, pa = row.get("ref") or "", str(row.get("proposed_at") or "")
-        seq = sorted([b for b in bars if b["date"] > after and not (b["date"] < pa[:10] or (b["date"] == pa[:10] and pa[11:16] >= "22:30"))],
+        seq = sorted([b for b in bars if b["date"] > after and not (b["date"] < pa[:10] or (b["date"] == pa[:10] and pa[11:16] >= us_open_hhmm(pa[:10])))],
                      key=lambda b: b["date"])
     else:
         seq = sorted([b for b in bars if b["date"] > row["date"]], key=lambda b: b["date"])

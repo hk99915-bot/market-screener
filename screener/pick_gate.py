@@ -7,8 +7,9 @@
 
 본문 계획 칸 형식(이슈 본문·텔레그램 텍스트 공통, 줄바꿈 또는 한 줄):
   069500 1000000 시가 손절 -2% 목표 +3% 근거: 급락 뒤 반등 확인
-  손절·목표는 가격(9800) 또는 기준가 대비 %(−2%·+3%). 가격이면 기준가 = '매수가 N'(있으면) 아니면 최근 종가.
-  R:R = (목표 − 기준가) ÷ (기준가 − 손절). 계산이 안 되면 'RR 2' 처럼 적은 값을 쓴다(없으면 빈 칸).
+  손절·목표는 가격(9800) 또는 기준가 대비 %(−2%·+3%). 가격이면 기준가 = **체결 기준가**(국장 종가·미장 시가 쪽 확정 시세 — ref_price),
+  본문 '매수가 N'은 참고 표시만(겸이 10/29 결재 ①, kb:behavior#34) — 체결 기준가와 ±0.5% 넘게 다르면 plan['warn'] 경고.
+  R:R = (목표 − 기준가) ÷ (기준가 − 손절). 기준가를 못 구하면 'RR 2' 처럼 적은 값을 쓴다(없으면 계산 불가 → '나🔥').
 """
 from __future__ import annotations
 
@@ -77,9 +78,24 @@ def parse_plan(text: str) -> dict:
     return out
 
 
-def plan_rr(plan: dict, ref: float | None) -> tuple[float | None, str]:
-    """(R:R, 계산 메모). 손절·목표가 % 면 기준가 없이, 가격이면 기준가(매수가 > 최근 종가)로 계산. 못 하면 적은 RR, 그것도 없으면 None."""
-    ref = plan.get("entry") or ref
+ENTRY_WARN = 0.005   # 본문 매수가가 체결 기준가와 이만큼(±0.5%) 넘게 다르면 경고 (결재 10/29 ①)
+
+
+def entry_warn(plan: dict, ref: float | None) -> str | None:
+    """본문 '매수가'(참고)와 체결 기준가 차이가 ±0.5% 를 넘으면 경고 문구, 아니면 None."""
+    e = plan.get("entry")
+    if not e or not ref:
+        return None
+    d = e / ref - 1
+    if abs(d) <= ENTRY_WARN:
+        return None
+    return f"매수가 {e:,.2f}".rstrip("0").rstrip(".") + f" 는 체결 기준가 {ref:,.2f}".rstrip("0").rstrip(".") + f" 와 {_pct(d)} 다름(±0.5% 초과) — R:R 은 체결 기준가로 계산"
+
+
+def plan_rr(plan: dict, ref: float | None, entry_fallback: bool = False) -> tuple[float | None, str]:
+    """(R:R, 계산 메모). 손절·목표가 % 면 기준가 없이, 가격이면 **체결 기준가 ref** 로 계산(본문 매수가는 쓰지 않음 — 결재 10/29 ①).
+    entry_fallback=True 는 옛 기록(ref 저장 전) 소급 점검용만: ref 가 없을 때 매수가로 계산. 못 하면 적은 RR, 그것도 없으면 None."""
+    ref = ref or (plan.get("entry") if entry_fallback else None)
     risk = abs(plan["stop_pct"]) if "stop_pct" in plan else ((ref - plan["stop"]) / ref if "stop" in plan and ref else None)
     rew = plan["target_pct"] if "target_pct" in plan else ((plan["target"] - ref) / ref if "target" in plan and ref else None)
     if risk is not None and rew is not None:
@@ -200,7 +216,7 @@ def classify(pick: dict, plan_text: str, t: datetime, item: dict, items: list[di
     market = item.get("market") or "KR"
     plan = parse_plan(plan_text)
     ref = None
-    if ("stop" in plan or "target" in plan) and not plan.get("entry") and ref_fn:
+    if ("stop" in plan or "target" in plan or "entry" in plan) and ref_fn:
         try:
             ref = ref_fn(pick["ticker"], item["date"])
         except Exception:  # noqa: BLE001
@@ -217,6 +233,9 @@ def classify(pick: dict, plan_text: str, t: datetime, item: dict, items: list[di
         keep["rr"] = round(rr, 2)
     if ref:
         keep["ref"] = ref
+    warn = entry_warn(plan, ref)
+    if warn:
+        keep["warn"] = warn
     out = pick | ({"plan": keep} if keep else {})
     if cd and not reasons:
         out["cooldown"] = cd + " — 현금·비레버리지·비반도체라 '나' 인정"
@@ -238,7 +257,7 @@ def plan_text_line(pick: dict) -> str | None:
         return None
     f = lambda k, kp: (f"{p[k]:,.2f}".rstrip("0").rstrip(".") if k in p else _pct(p[kp]) if kp in p else "—")  # noqa: E731
     return f"계획: 손절 {f('stop', 'stop_pct')} · 목표 {f('target', 'target_pct')} · R:R " + (f"1:{p['rr']:.2f}" if p.get("rr") is not None else "—") + \
-        (f" · 근거 {p['why']}" if p.get("why") else "")
+        (f" · 근거 {p['why']}" if p.get("why") else "") + (f" · ⚠ {p['warn']}" if p.get("warn") else "")
 
 
 def audit(items: list[dict], *, events=None, semi_fn=None) -> list[dict]:
@@ -273,7 +292,7 @@ def audit(items: list[dict], *, events=None, semi_fn=None) -> list[dict]:
                 row["status"] = "통과"
             else:
                 plan = {k: v for k, v in (p.get("plan") or {}).items()}
-                rr, note = plan_rr(plan, plan.get("ref"))
+                rr, note = plan_rr(plan, plan.get("ref"), entry_fallback=True)
                 rs = plan_gaps(plan, rr, note)
                 cd = day_cooldown(t, it, items, events or [], None)
                 v = cooldown_violation(p, it.get("market") or "KR", semi_fn) if cd else None

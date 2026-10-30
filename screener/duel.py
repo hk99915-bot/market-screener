@@ -13,6 +13,7 @@
 """
 from __future__ import annotations
 
+import html
 import json
 import logging
 import re
@@ -681,6 +682,12 @@ def mark_crash_day(it: dict, pk: dict, crash: bool) -> dict:
     return it
 
 
+def _h(x) -> str:
+    """텔레그램 parse_mode=HTML 에 들어가는 사용자 텍스트(why/tg/lines/종목명…) 이스케이프 — '<' 가 섞이면 400 'Unsupported start tag'
+    (10/30 pb_call run 41010299116). 우리가 붙이는 <b>·<a> 태그는 이 함수를 거치지 않는다. 저장본(decisions.json)은 원문 그대로."""
+    return html.escape(str(x if x is not None else ""), quote=False)
+
+
 def record_pb(payload: dict, send: bool = True) -> str:
     """PB 재량 판단 기록 — 예약 세션이 데이터를 읽고 판단해 workflow_dispatch(pb_call)로 넘김.
     payload: {"pick": {"ticker","notional","exit"} | {"cash": true}, "why": str(공식 기록·터미널용 중립 말투), "tg": str(선택, 텔레그램 전용 말투), "lines": [..], "conviction": "낮음|보통|높음"}"""
@@ -780,35 +787,41 @@ def record_pb(payload: dict, send: bool = True) -> str:
         if _vs and _vs.get("lenses"):
             ei["pb_view"]["views_asof"] = _vs.get("asof")
             ei["pb_view"]["lenses"] = _vs["lenses"]
-        ex_msgs.append(f"• {name}: <b>{act}</b> — {e.get('why', '')} " + ((plan_line(e.get("plan")) or "") + " " if e.get("plan") else "") +
+        ex_msgs.append(f"• {_h(name)}: <b>{act}</b> — {_h(e.get('why', ''))} " + ((plan_line(e.get("plan")) or "") + " " if e.get("plan") else "") +
                        f"[<a href=\"{issue_url_exit(code, '보유')}\">나는 보유</a> · <a href=\"{issue_url_exit(code, '매도')}\">나는 매도</a>]")
     decisions.OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     ex_lbl = {"next_open": "다음날 시가", "next_close": "다음날 종가", "d5_close": "5일 뒤 종가", "trail": "추세 이탈(20일선·−8%) 시"} | ({"d5_close": "5거래일째 종가", "same_close": "당일 종가"} if us else {})
     if us:
         dl = us_open_kst(d).astimezone(KST)
         msg = ["💬 <b>PB 판단 · 미장</b> · " + now.strftime("%m/%d %H:%M") + f" KST (세션 {d[5:]})" + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
-               "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 시가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               payload.get("why", ""), *([f"💌 {payload['tg']}"] if payload.get("tg") else []), plan_line(payload.get("plan")), *[f"• {x}" for x in (payload.get("lines") or [])[:6]], "",
+               "<b>" + ("현금 유지" if pk.get("cash") else f"{_h(pk['name'])} {pk['notional']/10000:,.0f}만 · 시가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
+               _h(payload.get("why", "")), *([f"💌 {_h(payload['tg'])}"] if payload.get("tg") else []), plan_line(payload.get("plan")), *[f"• {_h(x)}" for x in (payload.get("lines") or [])[:6]], "",
                f"겸이 판단: {_us_links(d)} (미장 시작 {dl:%H:%M} KST 전)"]
     else:
         msg = ["💬 <b>PB 판단</b> · " + now.strftime("%m/%d %H:%M") + (f" · 확신 {payload.get('conviction')}" if payload.get("conviction") else ""),
-               "<b>" + ("현금 유지" if pk.get("cash") else f"{pk['name']} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
-               payload.get("why", ""), *([f"💌 {payload['tg']}"] if payload.get("tg") else []), *[f"• {x}" for x in (it["pb_view"].get("lines") or [])[:7]], "",
+               "<b>" + ("현금 유지" if pk.get("cash") else f"{_h(pk['name'])} {pk['notional']/10000:,.0f}만 · 종가 진입 → {ex_lbl.get(pk['exit'], pk['exit'])} 청산") + "</b>",
+               _h(payload.get("why", "")), *([f"💌 {_h(payload['tg'])}"] if payload.get("tg") else []), *[f"• {_h(x)}" for x in (it["pb_view"].get("lines") or [])[:7]], "",
                f"겸이 판단: <a href=\"{issue_url(d, '069500 1000000 시가')}\">KODEX 200</a> · <a href=\"{issue_url(d, '122630 1000000 시가')}\">레버리지</a> · "
                f"<a href=\"{issue_url(d, '114800 1000000 시가')}\">인버스</a> · <a href=\"{issue_url(d, '현금')}\">현금</a> · <a href=\"{issue_url_bold(d)}\">🔥공격 픽</a> (15:30 전)"]
     rl = payload.get("real") or {}
     if rl:
-        msg += ["", "💼 <b>실전 적용</b>: " + ("가능" if rl.get("ok") else "규칙상 비추천") + (f" · 총자산의 {rl['size_pct']*100:.0f}% 이내" if isinstance(rl.get("size_pct"), (int, float)) else "") + (" — " + str(rl.get("note")) if rl.get("note") else "")]
+        msg += ["", "💼 <b>실전 적용</b>: " + ("가능" if rl.get("ok") else "규칙상 비추천") + (f" · 총자산의 {rl['size_pct']*100:.0f}% 이내" if isinstance(rl.get("size_pct"), (int, float)) else "") + (" — " + _h(rl.get("note")) if rl.get("note") else "")]
     if bold and (bold.get("ticker") or bold.get("cash")):
         bp = it["picks"]["PB🔥"]
-        msg += ["", "🔥 <b>공격 PB</b>: " + ("현금" if bp.get("cash") else f"{bp['name']} {bp['notional']/10000:,.0f}만 · " + ex_lbl.get(bp["exit"], bp["exit"]) + " 청산") + " (모의 전용)", str(bold.get("why", ""))]
+        msg += ["", "🔥 <b>공격 PB</b>: " + ("현금" if bp.get("cash") else f"{_h(bp['name'])} {bp['notional']/10000:,.0f}만 · " + ex_lbl.get(bp["exit"], bp["exit"]) + " 청산") + " (모의 전용)", _h(bold.get("why", ""))]
         pl2 = plan_line(bold.get("plan"))
         if pl2:
             msg.append(pl2)
     if ex_msgs:
         msg += ["", "<b>보유 종목 매도 타점</b> (5거래일 뒤 종가 채점)", *ex_msgs]
+    sent_note = ""
     if send:
         from .report import send_telegram
         body = "\n".join(m for m in msg if m is not None)
-        send_telegram(body, disable_notification=True, reply_markup=pick_keyboard(d, "US" if us else "KR"))   # 결재 #9(최종): PB 판단·주문표 ⛔ 거부는 무음 (RING_KINDS 밖)
-    return ("PB 판단 기록(미장): " if us else "PB 판단 기록: ") + ("현금" if pk.get("cash") else pk["name"])
+        try:   # 기록(decisions.json)은 위에서 이미 저장 — 전송이 실패해도 워크플로 커밋 단계가 돌게 예외를 삼키고 경고만 (10/30 run 41010299116)
+            send_telegram(body, disable_notification=True, reply_markup=pick_keyboard(d, "US" if us else "KR"))   # 결재 #9(최종): PB 판단·주문표 ⛔ 거부는 무음 (RING_KINDS 밖)
+        except Exception as e:  # noqa: BLE001
+            log.warning("PB 판단 텔레그램 전송 실패(기록은 저장됨): %s", e)
+            print(f"::warning::pb_call 텔레그램 전송 실패(기록은 저장됨): {e}")
+            sent_note = " (텔레그램 전송 실패)"
+    return ("PB 판단 기록(미장): " if us else "PB 판단 기록: ") + ("현금" if pk.get("cash") else pk["name"]) + sent_note
