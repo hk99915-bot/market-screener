@@ -48,7 +48,7 @@
 | 2026-10-24_trend_discovery |  | trend_sim | — | 미등록 | — | 18 | — | 탐색 통과 KR 2·US 2 vs 우연 기대 13.4·8.7(이항 p 1.00) → 우연과 구분 안 됨. 새 전략군은 종목별 3년 거래 0~5회라 종목별 검정 불가 → 합산(pooled) 사전등록 제안으로 |
 | 2026-10-24_trend_events |  | trend_sim | 6 | m | 0.00833 | — | A1 B2 C1 F2 | KR hi52 A·gcv B·sqz B, US hi52 F·gcv C·sqz F. 주제 N 197 기준은 sqz KR 만 통과(병기). 편입은 다음 결재 |
 | 2026-10-24_trend_events_rerun_us666 |  | (미분류) | — | 미등록 | — | — | A1 B2 F3 | — |
-| 2026-10-29_winner_ex_ante | 2026-10-29 | winner_ex_ante | 7 | prereg.m | 0.00714 | 1 | A(통계 lift>1) · 변동성 표지·선별력 실무 미달2 C(사후 분류·방향만)1 F1 검증전(미실행)3 | H1-1 낙폭 −40% F(lift 0.99) · H1-2·H1-3 통계 lift>1이나 하위 5% 꼬리가 더 커 변동성 표지 |
+| 2026-10-29_winner_ex_ante | 2026-10-29 | winner_ex_ante | 7 | prereg.m | 0.00714 | 1 | A(통계 lift>1) · 변동성 표지·선별력 실무 미달2 B(Bonferroni 통과, 2022 하락 구간 부호 반대·IS p 0.056) · 정밀도 5.9% 실무 미달1 C(사후 분류·방향만)1 F3 F(both3 재탕)1 F(차이 유의 안 됨)1 검증전(OOS 날짜 9 < 12)1 검증전(미실행 — fin 접수일 컬럼 없음)1 | H1-1 낙폭 −40% F(lift 0.99) · H1-2·H1-3 통계 lift>1이나 하위 5% 꼬리가 더 커 변동성 표지 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |

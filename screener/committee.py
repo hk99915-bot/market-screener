@@ -30,6 +30,7 @@ def _kst_today() -> date:
     return datetime.now(KST).date()
 
 
+from .kospi_ma import sma_streak, sma_tail
 from .guard import write_json as _gw   # asof 단조 가드 (date 역행 시 쓰지 않음)
 log = logging.getLogger(__name__)
 OUT = REPORT_DIR / "committee.json"
@@ -104,19 +105,13 @@ def _kospi_state() -> dict:
         return {}
     last = c[-1]
     return {"last": last, "ret1": last / c[-2] - 1, "dd20": last / max(c[-21:]) - 1, "from_hi": last / max(c[-250:]) - 1,
-            "low_today": lo[-1], "low20": min(lo[-20:]), "hi5": max(c[-5:]), "src": src, "sma20": st.mean(c[-20:]), "sma50": st.mean(c[-50:]),
+            "low_today": lo[-1], "low20": min(lo[-20:]), "hi5": max(c[-5:]), "src": src, "sma20": sma_tail(c, 20), "sma50": sma_tail(c, 50),
             "prev_close": c[-2], "above20_streak": _above_sma_streak(c, 20)}
 
 
 def _above_sma_streak(c: list[float], n: int = 20) -> int:
-    """끝에서부터 종가가 n일 이동평균 위인 날이 몇 일 연속인지 (회복 확인 = 20일선 2일 연속 회복)."""
-    k = 0
-    for i in range(len(c) - 1, n - 1, -1):
-        if c[i] > st.mean(c[i - n + 1:i + 1]):
-            k += 1
-        else:
-            break
-    return k
+    """끝에서부터 종가가 n일 이동평균 위인 날이 몇 일 연속인지 (회복 확인 = 20일선 2일 연속 회복). 계산은 kospi_ma 단일."""
+    return sma_streak(c, n)
 
 
 from .defs import CRASH_NEAR_PCT, CRASH_PCT   # −5% / −4% (단일 원천 screener/defs.py)

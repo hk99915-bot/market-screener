@@ -16,6 +16,7 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from .config import REPORT_DIR, ROOT
+from .kospi_ma import sma_tail
 
 log = logging.getLogger(__name__)
 KST = ZoneInfo("Asia/Seoul")
@@ -59,7 +60,7 @@ def _kospi(mv: dict) -> dict:
         return {}
     last = c[-1]
     return {"date": rows[-1][0], "last": last, "ret1": last / c[-2] - 1, "dd20": last / max(c[-21:]) - 1,
-            "sma20": st.mean(c[-20:]), "sma200": st.mean(c[-200:]) if len(c) >= 200 else None,
+            "sma20": sma_tail(c, 20), "sma200": st.mean(c[-200:]) if len(c) >= 200 else None,
             "vs200": k.get("vs200")}
 
 
