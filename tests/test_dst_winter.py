@@ -59,7 +59,8 @@ def test_in_window_by_ny_time(utc, want):
 def test_live_cron_winter_slots():
     cfg = yaml.safe_load(LIVE.read_text(encoding="utf-8"))
     crons = [c["cron"] for c in (cfg.get("on") or cfg.get(True))["schedule"]]
-    assert "20 14 * * 1-5" in crons and "20 13 * * 1-5" not in crons   # 23:20 KST 루프 시작
+    # 두 계절 시작 cron 상시(10/30 금 밤 = 여름 22:30 개장도 지켜야 함) — 어느 쪽이 도는지는 in_window(ET)가 고른다
+    assert "20 14 * * 1-5" in crons and "20 13 * * 1-5" in crons   # 23:20 · 22:20 KST 루프 시작
     assert "7 14-20 * * 1-5" in crons                                  # 백업 05:07 KST 까지
     gas = (ROOT / "apps-script" / "Scheduler.gs").read_text(encoding="utf-8")
     assert "['23:20', 'live.yml'" in gas and "['22:20', 'live.yml'" not in gas

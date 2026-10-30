@@ -2069,7 +2069,7 @@
       "started": "2026-10-17",
       "due": "2026-10-31",
       "depends_on": [],
-      "notes": "안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성.",
+      "notes": "안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. | 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료.",
       "desk": "개발",
       "escalated": "2026-10-21"
     },
@@ -6446,12 +6446,12 @@
         "docs/schedule_table.md"
       ],
       "depends_on": [],
-      "notes": "11/02 겨울 대응으로 cron 20 14·7 14-20, GAS 23:20 로 바꿈(docs/schedule_table.md §4-2). 3/14 전 금요일까지 20 13·7 14-19·22:20 로 복귀 + Scheduler.gs 재붙여넣기. 근본 해결 후보: 루프 시작 cron 두 개 + in_window ET 판정 + GAS 슬롯 ET 기준 계산.",
+      "notes": "11/02 겨울 대응으로 cron 20 14·7 14-20, GAS 23:20 로 바꿈(docs/schedule_table.md §4-2). 3/14 전 금요일까지 20 13·7 14-19·22:20 로 복귀 + Scheduler.gs 재붙여넣기. 근본 해결 후보: 루프 시작 cron 두 개 + in_window ET 판정 + GAS 슬롯 ET 기준 계산. | 10/30 21시: 근본 해결 1단계 적용 — 시작 cron 두 개 상시라 3월 cron 되돌림 불필요. 남은 것: GAS 슬롯(23:20 은 여름에 무해 대기열) 선택적 22:20 복귀만.",
       "id": "live-us-dst-march",
       "title": "서머타임 시작(2027-03-14) 전에 live.yml 미장 cron·GAS 22:20 슬롯 여름으로 되돌리기",
       "owner": "개발",
       "status": "대기",
-      "priority": "P2",
+      "priority": "P3",
       "repo": "public",
       "desk": "개발"
     }
