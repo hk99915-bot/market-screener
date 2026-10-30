@@ -1,26 +1,26 @@
 {
  "id": "gamma_regime",
  "registered": "2026-10-16",
- "computed": "2026-10-29 16:47",
+ "computed": "2026-10-30 16:48",
  "question": "숏감마(감마 음수) 구간을 노릴 수 있나?",
  "data": "data/deriv/daily.csv (KRX 확정치 · 옵션 보드 백필 2025-08-29~)",
- "period": "2025-08-29 ~ 2026-10-29",
- "n": 282,
+ "period": "2025-08-29 ~ 2026-10-30",
+ "n": 283,
  "n_min": 60,
  "n_neg": 68,
- "is_until": "2026-06-24",
+ "is_until": "2026-06-25",
  "m": 3,
  "alpha_bonf": 0.0167,
  "nw_lag": 5,
- "grade": "검증전",
- "next_eval": "2026-10-30",
+ "grade": "C",
+ "next_eval": null,
  "grades_doc": "A=IS Bonferroni+OOS · B=IS Bonferroni(OOS 미확인) · C=방향만(p<0.10) · F=효과 없음/반대 · 검증전=표본 미달. 탐색(x)은 최대 C",
  "hypotheses": [
   {
    "id": "H1",
    "name": "감마 음수 → 다음날 |수익률| 확대",
    "exploratory": false,
-   "grade": "검증전",
+   "grade": "A",
    "direction": "+",
    "effect_unit": "|r1| 평균 차이(로그)",
    "desc": {
@@ -30,35 +30,35 @@
      "median": 0.03747
     },
     "pos": {
-     "n": 214,
-     "mean": 0.02024,
-     "median": 0.01509
+     "n": 215,
+     "mean": 0.02033,
+     "median": 0.01525
     }
    },
-   "effect_is": 0.02236,
-   "t_is": 2.62,
-   "p_is": 0.0044,
-   "n_is": 197,
-   "effect_oos": 0.02268,
-   "t_oos": 3.96,
-   "p_oos": 0.0,
+   "effect_is": 0.02322,
+   "t_is": 2.91,
+   "p_is": 0.0018,
+   "n_is": 198,
+   "effect_oos": 0.02177,
+   "t_oos": 3.76,
+   "p_oos": 0.0001,
    "n_oos": 85,
-   "effect_all": 0.02199,
-   "t_all": 5.04,
+   "effect_all": 0.0219,
+   "t_all": 5.03,
    "p_all": 0.0,
-   "n_all": 282,
+   "n_all": 283,
    "n_neg": 68,
-   "n_pos": 214,
-   "n_neg_is": 19,
-   "n_neg_oos": 49,
-   "enough_is": false,
+   "n_pos": 215,
+   "n_neg_is": 20,
+   "n_neg_oos": 48,
+   "enough_is": true,
    "enough_oos": true
   },
   {
    "id": "H1b",
    "name": "감마 음수 → 실현/내재(IV) 흔들림 비 확대",
    "exploratory": false,
-   "grade": "검증전",
+   "grade": "F",
    "direction": "+",
    "effect_unit": "|r1|÷(IV/√252) 평균 차이",
    "desc": {
@@ -68,35 +68,35 @@
      "median": 0.86433
     },
     "pos": {
-     "n": 214,
-     "mean": 0.85603,
-     "median": 0.66148
+     "n": 215,
+     "mean": 0.85781,
+     "median": 0.66269
     }
    },
-   "effect_is": 0.01999,
-   "t_is": 0.12,
-   "p_is": 0.4525,
-   "n_is": 197,
-   "effect_oos": 0.31604,
-   "t_oos": 2.39,
-   "p_oos": 0.0084,
+   "effect_is": 0.02415,
+   "t_is": 0.15,
+   "p_is": 0.4398,
+   "n_is": 198,
+   "effect_oos": 0.30017,
+   "t_oos": 2.26,
+   "p_oos": 0.0118,
    "n_oos": 85,
-   "effect_all": 0.10619,
-   "t_all": 0.97,
-   "p_all": 0.1651,
-   "n_all": 282,
+   "effect_all": 0.10441,
+   "t_all": 0.96,
+   "p_all": 0.1685,
+   "n_all": 283,
    "n_neg": 68,
-   "n_pos": 214,
-   "n_neg_is": 19,
-   "n_neg_oos": 49,
-   "enough_is": false,
+   "n_pos": 215,
+   "n_neg_is": 20,
+   "n_neg_oos": 48,
+   "enough_is": true,
    "enough_oos": true
   },
   {
    "id": "H2",
    "name": "감마 음수 → 다음날 장중이 전날 방향 지속",
    "exploratory": false,
-   "grade": "검증전",
+   "grade": "F",
    "direction": "+",
    "effect_unit": "지속 비율 차이(선형확률)",
    "desc": {
@@ -106,35 +106,35 @@
      "median": 0.0
     },
     "pos": {
-     "n": 213,
-     "mean": 0.47418,
+     "n": 214,
+     "mean": 0.47664,
      "median": 0.0
     }
    },
-   "effect_is": -0.01784,
-   "t_is": -0.2,
-   "p_is": 0.5805,
-   "n_is": 196,
-   "effect_oos": 0.0805,
-   "t_oos": 0.93,
-   "p_oos": 0.1769,
+   "effect_is": 0.00847,
+   "t_is": 0.1,
+   "p_is": 0.4602,
+   "n_is": 197,
+   "effect_oos": 0.05293,
+   "t_oos": 0.6,
+   "p_oos": 0.2732,
    "n_oos": 85,
-   "effect_all": -0.00359,
-   "t_all": -0.06,
-   "p_all": 0.522,
-   "n_all": 281,
+   "effect_all": -0.00605,
+   "t_all": -0.09,
+   "p_all": 0.5371,
+   "n_all": 282,
    "n_neg": 68,
-   "n_pos": 213,
-   "n_neg_is": 19,
-   "n_neg_oos": 49,
-   "enough_is": false,
+   "n_pos": 214,
+   "n_neg_is": 20,
+   "n_neg_oos": 48,
+   "enough_is": true,
    "enough_oos": true
   },
   {
    "id": "H2x",
    "name": "감마 음수 → 시가갭 방향으로 장중 지속 (탐색)",
    "exploratory": true,
-   "grade": "검증전",
+   "grade": "C",
    "direction": "+",
    "effect_unit": "지속 비율 차이",
    "desc": {
@@ -144,28 +144,28 @@
      "median": 1.0
     },
     "pos": {
-     "n": 214,
-     "mean": 0.47196,
+     "n": 215,
+     "mean": 0.47442,
      "median": 0.0
     }
    },
-   "effect_is": 0.20106,
-   "t_is": 1.97,
-   "p_is": 0.0242,
-   "n_is": 197,
-   "effect_oos": 0.19558,
-   "t_oos": 2.11,
-   "p_oos": 0.0173,
+   "effect_is": 0.21685,
+   "t_is": 2.24,
+   "p_is": 0.0126,
+   "n_is": 198,
+   "effect_oos": 0.17173,
+   "t_oos": 1.88,
+   "p_oos": 0.0297,
    "n_oos": 85,
-   "effect_all": 0.16039,
-   "t_all": 2.88,
-   "p_all": 0.002,
-   "n_all": 282,
+   "effect_all": 0.15793,
+   "t_all": 2.84,
+   "p_all": 0.0022,
+   "n_all": 283,
    "n_neg": 68,
-   "n_pos": 214,
-   "n_neg_is": 19,
-   "n_neg_oos": 49,
-   "enough_is": false,
+   "n_pos": 215,
+   "n_neg_is": 20,
+   "n_neg_oos": 48,
+   "enough_is": true,
    "enough_oos": true
   },
   {
@@ -176,26 +176,26 @@
    "direction": "−",
    "effect_unit": "기울기: 거리 1(=100%) 당 |r1| 변화",
    "spearman_all": -0.175,
-   "effect_is": -0.10009,
-   "t_is": -1.77,
-   "p_is": 0.0385,
-   "n_is": 193,
-   "effect_oos": -0.11109,
-   "t_oos": -2.77,
-   "p_oos": 0.0028,
+   "effect_is": -0.10717,
+   "t_is": -1.94,
+   "p_is": 0.0259,
+   "n_is": 194,
+   "effect_oos": -0.10524,
+   "t_oos": -2.66,
+   "p_oos": 0.0039,
    "n_oos": 82,
-   "effect_all": -0.11276,
+   "effect_all": -0.11267,
    "t_all": -4.23,
    "p_all": 0.0,
-   "n_all": 275,
+   "n_all": 276,
    "desc": {
     "below_flip": {
      "n": 65,
      "mean": 0.04014
     },
     "above_flip": {
-     "n": 210,
-     "mean": 0.02009
+     "n": 211,
+     "mean": 0.02018
     }
    }
   }
@@ -235,16 +235,16 @@
   },
   {
    "month": "2026-10",
-   "neg_days": 13
+   "neg_days": 14
   }
  ],
  "latest": {
-  "date": "2026-10-29",
-  "gex_bn": 871.6,
-  "flip": 906.7,
-  "k200": 935.87,
-  "atm_iv": 0.5041,
-  "regime": "감마 양수"
+  "date": "2026-10-30",
+  "gex_bn": -177.9,
+  "flip": 905.9,
+  "k200": 899.78,
+  "atm_iv": 0.5302,
+  "regime": "감마 음수"
  },
  "caveats": [
   "gex_bn 은 딜러 포지션 부호를 가정한 근사치다 (실제 딜러 장부 아님).",
@@ -252,6 +252,6 @@
   "감마 음수 날은 급락 국면(neg_by_month)에 몰려 있어 한두 국면이 결과를 좌우할 수 있다.",
   "derivs_signals H7(하위 1/3) 결과: IV 를 통제하면 감마 효과가 사라졌다 — H1b 가 그 질문의 사전등록 재검정."
  ],
- "ui_line": "감마 레짐 검증: 검증전 (n=282, IS 감마음수 19/20일, 판정 예정 10-30)",
- "summary_ko": "감마가 음수인 날은 옵션 딜러가 '오르면 따라 사고, 내리면 따라 파는' 쪽에 서 있다고 본다. 그래서 흔들림이 커지고 한 방향으로 밀리기 쉽다는 게 통설이다. 이 연구는 그 통설이 코스피200 에서도 맞는지, 그리고 그게 옵션 가격(IV)에 이미 들어 있는 정보 이상인지 본다. 지금까지 282거래일(감마 음수 68일): 다음날 절대 등락은 음수 구간 평균 4.22% vs 양수 2.02%, IV 가 예고한 흔들림 대비 실제 비율은 0.96 vs 0.86, 다음날 장중이 전날 방향을 이어간 비율은 47.06% vs 47.42%. 사전 등록 기준(앞 70%(학습 구간)의 감마 음수 날이 19일 < 20일 — 숏감마 날 대부분이 최근(2026-06~)에 몰림)에 못 미쳐 위 숫자는 서술 통계일 뿐 유의성 판정이 아니다. 예상 판정일 2026-10-30 (매 거래일 자동 재계산)."
+ "ui_line": "감마 레짐 검증: C (n=283)",
+ "summary_ko": "감마가 음수인 날은 옵션 딜러가 '오르면 따라 사고, 내리면 따라 파는' 쪽에 서 있다고 본다. 그래서 흔들림이 커지고 한 방향으로 밀리기 쉽다는 게 통설이다. 이 연구는 그 통설이 코스피200 에서도 맞는지, 그리고 그게 옵션 가격(IV)에 이미 들어 있는 정보 이상인지 본다. 지금까지 283거래일(감마 음수 68일): 다음날 절대 등락은 음수 구간 평균 4.22% vs 양수 2.03%, IV 가 예고한 흔들림 대비 실제 비율은 0.96 vs 0.86, 다음날 장중이 전날 방향을 이어간 비율은 47.06% vs 47.66%. 사전 등록 기준 판정: 렌즈 등급 C (H1 A · H1b F · H2 F). 흔들림이 커 보이는 건 맞지만 IV 로 나누면 차이가 약해진다 → 이미 옵션값에 반영된 위험이라 '숏감마라서' 추가로 얻을 몫은 작다. 방향이 이어진다는(추세 지속) 근거는 없다 → '숏감마 구간에 추세 추종으로 노린다'는 아직 쓸 수 없다. 용도는 사이즈·손절폭 조절(흔들림 크기)까지. 방향 판단 근거로 인용 금지."
 }
