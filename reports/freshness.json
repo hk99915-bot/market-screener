@@ -1,11 +1,11 @@
 {
- "checked_at": "2026-10-30 14:20",
+ "checked_at": "2026-10-30 14:29",
  "n": 26,
  "late": [
   {
    "id": "toss_md",
    "path": "toss-live:live.json",
-   "expected": "2026-10-30 13:50 이후",
+   "expected": "2026-10-30 13:59 이후",
    "actual": "2026-10-30 04:10",
    "mode": "겸이 노트북 작업 스케줄러 (toss_md_intraday, 10분)",
    "fix": "노트북: Get-Content $HOME\\toss_md_data\\heartbeat.json → publish.error 확인, Start-ScheduledTask toss_md_intraday",
@@ -31,14 +31,14 @@
    "id": "secret:MY_RULES",
    "what": "의도된 비활성: MY_RULES 없음 (10/21 결정)",
    "since": "2026-10-19 09:02",
-   "by": "pb",
+   "by": "alerts",
    "fix": "조치 불필요(오너 결정)"
   },
   {
    "id": "secret:MY_HOLDINGS",
    "what": "의도된 비활성: MY_HOLDINGS 없음 (10/21 결정)",
    "since": "2026-10-19 09:02",
-   "by": "pb",
+   "by": "alerts",
    "fix": "조치 불필요(오너 결정)"
   }
  ]
