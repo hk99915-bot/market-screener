@@ -8931,7 +8931,15 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "open",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-30T21:37+09:00",
+     "text": "이번 라운드엔 못 만들었어 — 서머타임이 오늘 밤 장에 걸려서 그걸 먼저 했어. 조건은 네가 준 그대로 보드 screen-rev-accel(마감 11/04)에 고정해 뒀고, 생성 코드는 내가 reports/detail financials로 만들고 탭 표시는 프론트에 넘길게. 네 10/29 수동 결과(505개 중 41개)를 대조 테스트로 써서 같은 정의인지 확인할 거고, 퀀트 H1-5 결과 전까지 등급은 검증전으로 둘게.",
+     "voc": true
+    }
+   ]
   },
   {
    "id": "req-dev-7406791f",
@@ -8949,7 +8957,18 @@
     "2026-10-29"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-10-30T21:37+09:00",
+     "text": "pre-push에 index.html 낡음 검사 넣었어. push 범위가 apps-script/·index.html·build_pages.py를 건드리면 push될 커밋 기준으로 다시 빌드해서 커밋된 index.html이랑 다르면 막아 — 재생성은 했는데 add를 빠뜨린 경우도 잡혀. tests.yml paths에도 apps-script/**·index.html 넣어서 재생성 커밋도 CI 돌아(9aae17414, tests/test_prepush_check.py 5개). 막히면 python3 scripts/build_pages.py 하고 index.html add하면 돼.",
+     "voc": true
+    }
+   ],
+   "done": "2026-10-30",
+   "done_at": "2026-10-30T21:37+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-d73e5fda",
@@ -9309,6 +9328,12 @@
      "by": "dev",
      "at": "2026-10-30T20:48+09:00",
      "text": "금요일 저녁에 바꿀 수 있는 것만 바꿨어. live 미장 루프 cron은 13:20 UTC에서 14:20 UTC로, 그러니까 월~금 23:20 KST이고, 매시 백업은 14-20 UTC로 늘려서 05:07 KST까지 이어받아. in_window는 KST 하드코딩 대신 뉴욕 09:15~16:15로 판정하게 바꿔서 서머타임은 tz가 알아서 해. 22:30·22시로 박혀 있던 idea_tracking·practice_book·alphabook도 tradecal.us_open_kst로 바꿨고 테스트 붙였어. GAS는 코드만 23:20으로 고쳤고, 배포는 내가 못 해서 오너 붙여넣기가 필요해. briefing 미장 슬롯 4개는 모드가 cron 문자열로 정해지는 구조라 확신 없이 안 건드렸어, 특히 22:52 intraday_us는 11/02부터 개장 전이야. PB 판단 부탁(req-pb-6cad4ff3). 실제 동작은 월요일 23:20 루프가 뜨는 걸 봐야 확인돼서 요청은 열어 둔다. 3월 14일 전에 되돌려야 하는 것도 보드에 올렸어.",
+     "voc": true
+    },
+    {
+     "by": "dev",
+     "at": "2026-10-30T21:37+09:00",
+     "text": "오후에 내가 22:20 cron을 23:20으로 '바꿔' 버려서, 아직 여름인 오늘 밤 22:30 개장 시작이 구 GAS 한 줄에만 걸려 있었어. 21시에 22:20·23:20 cron을 둘 다 상시로 두고 in_window(뉴욕 시각)가 고르게 고쳤어(8ee30c28d) — 오늘 밤도, 11/02 뒤도, 3월 뒤도 cron 손댈 필요 없고 겨울 22:20 실행은 1분 만에 끝나. 근거는 docs/schedule_table.md §4-2 보강 줄이랑 tests/test_dst_winter.py. PB 21:52 예약 프롬프트의 마감 문구(11/2 뒤 23:15)는 맞고, 겨울엔 개장 1시간 38분 전 판단이 된다는 것만 알아둬. 11/02(월) 23:20 루프 뜨는 거 보고 닫을게.",
      "voc": true
     }
    ]
