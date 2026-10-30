@@ -24,6 +24,19 @@
 | 2026-10-17 | peer | ✓ | ✓ | ✓ | ✓ | 1 | ✓ | 0/2/2 |
 | 2026-10-17 | quant | ✓ | ✓ | ✓ | — | 1 | ✓ | 0/6/4 |
 | 2026-10-17 | verify | ✓ | ✓ | ✓ | ✓ | 1 | ✓ | — |
+| 2026-10-30 | analyst_daishin_samsung | — | — | — | — | 0 | — | — |
+| 2026-10-30 | analyst_digest | — | — | — | — | 0 | — | — |
+| 2026-10-30 | analyst_general_matter | — | — | — | — | 1 | ✓ | — |
+| 2026-10-30 | analyst_googl_amzn_3q | — | — | — | — | 1 | ✓ | — |
+| 2026-10-30 | analyst_security_peers | — | — | — | — | 1 | ✓ | — |
+| 2026-10-30 | analyst_sndk_fy27q1 | — | — | — | — | 1 | ✓ | — |
+| 2026-10-30 | data | ✓ | ✓ | ✓ | ✓ | 1 | ✓ | — |
+| 2026-10-30 | derivs_intraday | — | — | — | — | 0 | — | — |
+| 2026-10-30 | dev | ✓ | ✓ | ✓ | ✓ | 1 | ✓ | — |
+| 2026-10-30 | macro_bigtech_fcf | — | — | — | — | 1 | ✓ | — |
+| 2026-10-30 | ops_meeting_kr | — | — | — | — | 0 | — | — |
+| 2026-10-30 | owner_paste_daishin_samsung | — | — | — | — | 0 | — | — |
+| 2026-10-30 | quant_theme_corr | — | — | — | — | 0 | — | — |
 
 ### VOC 2026-10-17
 
@@ -38,3 +51,21 @@
 - peer: R2 판정(규정 원문 [5][8][12] 범위)은 pb-private rules.txt를 읽어야 하는데 공개 저장소 데스크는 접근 경로가 이슈 댓글뿐 — CIO 답변 없으면 10/18까지 R2 미판정.
 - quant: 작업 트리를 12개 데스크가 공유해 `git pull --rebase` 가 남의 미커밋 변경에 막힘 — 데스크별 worktree 또는 커밋 경로 지정 규약이 필요.
 - verify: 다른 데스크 미커밋 변경(screener/alerts.py·pb.py)이 같은 작업 사본에 있어 `git pull --rebase`를 못 돌리고 push만 했다 — 데스크별 worktree 분리가 필요하다.
+
+### VOC 2026-10-30
+
+- analyst_general_matter: hada 페이지 차단 — 링크 원문 요약 못 함, 2차 보도로 대체
+- analyst_googl_amzn_3q: q4cdn·cnbc·sec 차단으로 1차 IR 미열람 — 구글 검색 컨센·아마존 3Q26 앤트로픽 이익·차입 481억$ 미확인
+- analyst_security_peers: 파수·이글루 미수집, US 시총 단위 불명, 미국 실적일 1차 확인 불가
+- analyst_sndk_fy27q1: investor.sandisk.com·sec.gov 차단으로 회사 원문 미열람 — GM 85.1%·2Q GM 가이던스 미확인
+- data: 테마·업종을 한 칸에 섞은 걸 겸이 한 마디로 잡았다 — 분류 칸마다 '공식 축' 테스트를 붙여 두겠다. 운용사 PDF(미래에셋) 403·KRX 로그인 없음이라 ETF 구성 확정은 Actions 에서만 된다.
+- dev: GAS Scheduler.gs 23:20 은 오너 붙여넣기 전까지 배포 안 됨 — 오늘 밤은 cron 22:20 이 주 실행이라 붙여넣기는 급하지 않음(월요일 전이면 충분).
+- macro_bigtech_fcf: 빅테크 3Q IR 원문·HYG/IEF 10/29·야간선물 실제값 미확인
+
+## 드릴 표
+
+라운드 파일의 `드릴: <id> <내 답>` 줄을 `scripts/drill_grade.py` 가 content/drills/<desk>.json 키로 채점(round_collect 수집 때). 점수 = 맞힌 핵심 숫자·용어 비율, 60% 이상 통과 — 판단의 질은 감사 채점이 본다 (10/24 겸이 결재 G1).
+
+| 라운드 | 데스크 | 드릴 | 점수 | 판정 | 놓친 키 |
+|---|---|---|---|---|---|
+| 2026-10-30 | dev | dev-d1 | 0% | 미달 | WIP, 26, 27, 리틀/리드타임 |
