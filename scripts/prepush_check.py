@@ -17,6 +17,9 @@
      tests.yml 이 도는 경로(screener/ scripts/ tests/ docs/ requirements.txt .github/workflows/ Scheduler.gs)를 바꾸는 push 는
      커밋 메시지에 `[ci-fix]` 가 있는 '수리 커밋'일 때만 통과. 데이터·reports 만 바꾸는 push 는 영향 없음.
      조회 실패(네트워크·API 제한)는 통과(fail-open, 경고만) — 훅이 내 push 를 이유 없이 막지 않게. 끄기: PREPUSH_CI_GATE=0 (환경변수, 사용은 기록 대상).
+  4c) index.html 낡음 검사 (req-dev-7406791f, 10/29 tab_life.html 수정 후 재생성 빠뜨려 CI 빨강 22d79a7f): push 범위가
+     apps-script/*.html·index.html·scripts/build_pages.py 를 건드리면, push 될 커밋(head)의 원본으로 build_pages 를 돌린 결과와
+     head 의 index.html 을 비교해 다르면 차단. 작업 트리가 아니라 커밋 내용 기준(재생성은 했는데 add 를 빠뜨린 경우도 잡음).
   5) pytest 서브셋 — push 될 커밋들이 바꾼 파일과 관련된 테스트만:
      tests/test_*.py 를 직접 바꿨으면 그 파일, screener/X.py·scripts/X.py 를 바꿨으면 그 모듈 이름을
      import/언급하는 테스트. 공용 모듈(CORE)이 바뀌었거나 서브셋이 MAX_SUBSET 개를 넘으면 전체(≈15초).
@@ -181,7 +184,7 @@ def email_check(base: str | None, head: str = "HEAD") -> bool:
     return False
 
 
-CI_PATHS = ("screener/", "scripts/", "tests/", "docs/", "requirements.txt", ".github/workflows/", "apps-script/Scheduler.gs")
+CI_PATHS = ("screener/", "scripts/", "tests/", "docs/", "requirements.txt", ".github/workflows/", "apps-script/", "index.html")
 CI_FIX_TAG = "[ci-fix]"
 
 
@@ -236,6 +239,52 @@ def ci_gate(base: str | None, head: str = "HEAD") -> bool:
     return ok
 
 
+PAGES_SRC = ("apps-script/", "index.html", "scripts/build_pages.py")
+
+
+def git_show(rev: str, path: str) -> str | None:
+    """rev:path 원문(끝 공백 보존). 없으면 None."""
+    r = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=ROOT, capture_output=True, env=clean_env())
+    return r.stdout.decode("utf-8") if r.returncode == 0 else None
+
+
+def pages_stale(head: str = "HEAD", show=None) -> bool | None:
+    """head 커밋 기준 index.html 이 apps-script 원본 빌드 결과와 다르면 True, 같으면 False, 판정 불가면 None."""
+    show = show or git_show
+    if str(ROOT / "scripts") not in sys.path:
+        sys.path.insert(0, str(ROOT / "scripts"))
+    import build_pages as bp
+
+    def read(name: str) -> str:
+        t = show(head, f"apps-script/{name}.html")
+        if t is None:
+            raise FileNotFoundError(name)
+        return t
+    committed = show(head, "index.html")
+    if committed is None:
+        return None
+    try:
+        return bp.build(bp.screen_source(read)) != committed
+    except (FileNotFoundError, RuntimeError, AssertionError):
+        return None
+
+
+def pages_check(base: str | None, head: str = "HEAD") -> bool:
+    files = changed_files(base, head)
+    if not any(f.startswith(PAGES_SRC) for f in files):
+        return True
+    st = pages_stale(head)
+    if st is None:
+        print("  - index.html 낡음 검사 — 판정 불가(원본·index.html 읽기 실패), 건너뜀")
+        return True
+    if not st:
+        print("  ✓ index.html 낡음 검사 (apps-script 원본 빌드 = 커밋된 index.html)")
+        return True
+    print("  ✗ index.html 낡음 — apps-script/ 원본이 바뀌었는데 커밋된 index.html 이 빌드 결과와 다름(10/29 CI 빨강 재발 방지)")
+    print("    → python3 scripts/build_pages.py && git add index.html && git commit (재생성했다면 add 를 빠뜨린 것)")
+    return False
+
+
 def run(name: str, cmd: list[str]) -> bool:
     t = time.time()
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=clean_env())
@@ -264,6 +313,7 @@ def main(argv: list[str] | None = None) -> int:
     ok &= email_check(a.base, a.head)
     ok &= amount_check(a.base, a.head)
     ok &= ci_gate(a.base, a.head)
+    ok &= pages_check(a.base, a.head)
     files = changed_files(a.base, a.head)
     sel = None if a.all else tests_for(files)
     if sel is None:

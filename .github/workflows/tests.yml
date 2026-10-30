@@ -5,7 +5,7 @@ name: tests
 on:
   push:
     branches: [main]
-    paths: ["screener/**", "scripts/**", "tests/**", "docs/**", "requirements.txt", ".github/workflows/**", "apps-script/Scheduler.gs"]
+    paths: ["screener/**", "scripts/**", "tests/**", "docs/**", "requirements.txt", ".github/workflows/**", "apps-script/**", "index.html"]   # apps-script 화면·index.html 도 (req-dev-7406791f — 10/29 재생성 커밋이 CI 안 돌림)
   pull_request:
   workflow_dispatch:
 

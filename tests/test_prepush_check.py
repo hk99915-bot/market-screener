@@ -65,3 +65,42 @@ def test_checks_run_without_git_env(monkeypatch):
     monkeypatch.setenv("GIT_INDEX_FILE", "/nonexistent/index")
     env = pc.clean_env()
     assert not any(k.startswith("GIT_") for k in env) and "PATH" in env
+
+
+# ── index.html 낡음 검사 (req-dev-7406791f) ──────────────────────────
+def _fake_show(files: dict):
+    return lambda rev, path: files.get(path)
+
+
+def _built(index_src: str, tabs: dict) -> str:
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import build_pages as bp
+    return bp.build(bp.resolve_includes(index_src, lambda n: tabs[n]))
+
+
+def test_pages_stale_detects_tab_change_without_rebuild():
+    shell, tabs = "<!doctype html><title>MARKET TERMINAL</title><?!= include('tab_a') ?></html>", {"tab_a": "<div id=a>old</div>"}
+    files = {"apps-script/Index.html": shell, "apps-script/tab_a.html": tabs["tab_a"], "index.html": _built(shell, tabs)}
+    assert pc.pages_stale("H", _fake_show(files)) is False
+    files["apps-script/tab_a.html"] = "<div id=a>new</div>"          # 10/29 사고: 탭만 고치고 재생성 안 함
+    assert pc.pages_stale("H", _fake_show(files)) is True
+
+
+def test_pages_stale_unknown_when_index_missing():
+    assert pc.pages_stale("H", _fake_show({"apps-script/Index.html": "<!doctype html>"})) is None
+
+
+def test_pages_check_skips_unrelated_push(monkeypatch):
+    monkeypatch.setattr(pc, "changed_files", lambda b, h: ["screener/duel.py"])
+    monkeypatch.setattr(pc, "pages_stale", lambda h: True)
+    assert pc.pages_check(None) is True
+
+
+def test_pages_check_blocks_stale(monkeypatch):
+    monkeypatch.setattr(pc, "changed_files", lambda b, h: ["apps-script/tab_life.html"])
+    monkeypatch.setattr(pc, "pages_stale", lambda h: True)
+    assert pc.pages_check(None) is False
+
+
+def test_current_head_index_is_fresh():
+    assert pc.pages_stale("HEAD") in (False, None)
