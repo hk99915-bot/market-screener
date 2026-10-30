@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-10-30",
+  "updated": "2026-10-31",
   "owners": [
     "PB",
     "퀀트",
@@ -4157,7 +4157,8 @@
       "priority": "P2",
       "status": "진행",
       "repo": "public",
-      "desk": "검증"
+      "desk": "검증",
+      "escalated": "2026-10-31"
     },
     {
       "id": "uxui-top10-impl",
@@ -5053,7 +5054,8 @@
       "title": "선옵(선물·옵션) 시세 터미널 반영",
       "owner": "파생",
       "desk": "파생",
-      "priority": "P2"
+      "priority": "P2",
+      "escalated": "2026-10-31"
     },
     {
       "started": "2026-10-26",
@@ -5095,7 +5097,8 @@
       "title": "토큰긴축 회의: 사담 등 slop 제거·간결화, 누적 데이터 삭제·정리 정책, /compact·모델 변경 시 품질 저하 극복",
       "owner": "PM",
       "desk": "PM",
-      "priority": "P1"
+      "priority": "P1",
+      "escalated": "2026-10-31"
     },
     {
       "started": null,
@@ -5170,7 +5173,8 @@
       "desk": "PM",
       "priority": "P1",
       "status": "보류",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-10-31"
     },
     {
       "started": null,
@@ -6487,6 +6491,20 @@
       "priority": "P2",
       "status": "대기",
       "repo": "public"
+    },
+    {
+      "id": "wd-toss-toss_md",
+      "title": "[watchdog] 토스: toss-live:live.json: 기대 2026-10-30 장중 publish · 실제 2026-10-30 04:10",
+      "owner": "데이터",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-02",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "notes": "scripts/watchdog.py 자동 생성 — 감지가 사라지면 다음 날 자동 완료.",
+      "escalated": "2026-10-31"
     }
   ]
 }
