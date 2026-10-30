@@ -30,16 +30,17 @@
 ## 3. 슬롯 × 실행 주체 (자동 생성 — `python scripts/slot_guard.py --table`)
 | KST | 워크플로 [키] | 요일 | 실행 주체 | 이중 |
 |---|---|---|---|---|
-| 00:07 | live.yml | 화수목금토 | cron 7 14-19 * * 1-5 | — |
+| 00:07 | live.yml | 화수목금토 | cron 7 14-20 * * 1-5 | — |
 | 00:07 | ops.yml | 월화수목금토일 | cron 7 15 * * * | — |
-| 01:07 | live.yml | 화수목금토 | cron 7 14-19 * * 1-5 | — |
+| 01:07 | live.yml | 화수목금토 | cron 7 14-20 * * 1-5 | — |
 | 02:00 | backfill.yml [ALL] | 월화수목금토일 | GAS(주) + cron 0 17 * * *(대기) | — |
-| 02:07 | live.yml | 화수목금토 | cron 7 14-19 * * 1-5 | — |
-| 03:07 | live.yml | 화수목금토 | cron 7 14-19 * * 1-5 | — |
+| 02:07 | live.yml | 화수목금토 | cron 7 14-20 * * 1-5 | — |
+| 03:07 | live.yml | 화수목금토 | cron 7 14-20 * * 1-5 | — |
 | 03:30 | fin.yml | 월화수목금토일 | GAS(주) + cron 30 18 * * *(대기) | — |
 | 03:52 | briefing.yml [intraday_us] | 화수목금토 | GAS(주) + cron 52 18 * * 1-5(대기) | — |
-| 04:07 | live.yml | 화수목금토 | cron 7 14-19 * * 1-5 | — |
+| 04:07 | live.yml | 화수목금토 | cron 7 14-20 * * 1-5 | — |
 | 05:00 | hist.yml | 일 | cron 0 20 * * 6 | — |
+| 05:07 | live.yml | 화수목금토 | cron 7 14-20 * * 1-5 | — |
 | 06:52 | briefing.yml [screen_us] | 화수목금토 | GAS(주) + cron 52 21 * * 1-5(대기) | — |
 | 07:10 | briefing.yml [valuation] | 화수목금토 | cron 10 22 * * 1-5 | — |
 | 07:10 | study_daily.yml | 월화수목금 | cron 10 22 * * 0-4 | — |
@@ -72,13 +73,13 @@
 | 20:52 | briefing.yml [premarket_us] | 월화수목금 | GAS(주) + cron 52 11 * * 1-5(대기) | — |
 | 21:52 | briefing.yml [premarket_us] | 월화수목금 | GAS(주) + cron 52 12 * * 1-5(대기) | — |
 | 22:00 | health.yml | 일 | cron 0 13 * * 0 | — |
-| 22:20 | live.yml | 월화수목금 | GAS(주) + cron 20 13 * * 1-5(대기) | — |
 | 22:52 | briefing.yml [intraday_us] | 월화수목금 | GAS(주) + cron 52 13 * * 1-5(대기) | — |
 | 23:00 | lab.yml | 일 | cron 0 14 * * 0 | — |
-| 23:07 | live.yml | 월화수목금 | cron 7 14-19 * * 1-5 | — |
+| 23:07 | live.yml | 월화수목금 | cron 7 14-20 * * 1-5 | — |
+| 23:20 | live.yml | 월화수목금 | GAS(주) + cron 20 14 * * 1-5(대기) | — |
 | 23:47 | ops.yml | 월화수목금토일 | cron 47 14 * * * | — |
 
-- live 매시 백업(`7 0-6`·`7 14-19`)은 '루프 재개' 트리거다: concurrency `live` 로 동시 1개, 루프가 끝난 뒤 대기열에서 깨어난 실행은 장 시간 밖이면 아무것도 안 한다(전: 1회 시세 커밋).
+- live 매시 백업(`7 0-6`·`7 14-20`)은 '루프 재개' 트리거다: concurrency `live` 로 동시 1개, 루프가 끝난 뒤 대기열에서 깨어난 실행은 장 시간 밖이면 아무것도 안 한다(전: 1회 시세 커밋).
 - 수동 전용(요청형, dispatch 가 유일한 주체): `flowq.yml`(종목 수급 조회), `pb_call.yml`(PB 예약 세션 → 판단 기록). 이슈 트리거: `pick.yml`·`study.yml`. push 트리거: `tests.yml`. 매시: `team.yml`(17분, 10/21 push 트리거→매시).
 
 ## 4. 산출물 × 생산자
@@ -91,7 +92,7 @@
 | reports/public_reports.json · reports/views/jiang.json | fin 03:30 매일 (research_views 다음 · research_synthesis 앞 1줄) | 수동 `python -m screener.public_reports --probe`(저장 안 함) | 단일 — 애널 public-reports |
 | committee.json · committee_hist · dashboard* · daily_brief · macro_view · japan · bonds · derivs | briefing 08:50·10:30·11:35·13:30·14:15·15:45·19:10 (GAS) | — | 시각별 갱신, 슬롯마다 단일 |
 | committee_us.json | briefing 20:52·21:52·22:52·03:52 (GAS) | — | 단일 |
-| reports/live.json · events.json | live 루프 08:40·22:20 (GAS) + 매시 재개 | 수동 live(읽기 전용 기본) | 동시 1개(concurrency) |
+| reports/live.json · events.json | live 루프 08:40·23:20 (GAS, 11/02~ 겨울. 여름 22:20) + 매시 재개 | 수동 live(읽기 전용 기본) | 동시 1개(concurrency) |
 | 장중 이벤트 텔레그램(touch·지수 −4/−5%·서킷/사이드카·보유 손절선/−5%·미장 SPX/NDX −3%·VIX +25%) · reports/event_state.json | **live 루프** 안 백그라운드 `screener.event_watch` 약 60초마다 (2026-10-17 신설) | — (15:05 crash_check 종가 판단 메시지·14:25/16:20 규정 알림은 별도 산출물로 유지) | 단일. touch: 이벤트 감시는 규정 알림이 이미 보낸 코드면 건너뜀(평생 1회). 반대 방향(규정 알림이 이벤트 감시 기록을 보는 것)은 alerts.py 잠금 해제 뒤 — 보드 event-watch, 서킷·사이드카는 뉴스 감지(events.check)와 소리 1회 공유 |
 | reports/decisions.json | live 14:50–15:15 duel · briefing premarket_us duel · screener 규칙 판정 | pick.yml(이슈) · pb_call(PB 예약 세션 14:42) | 필드 병합 방식(각자 자기 칸만) — 슬롯 이중 아님. 1.5단계에서 재점검 |
 | data/deriv/daily.csv · deriv_hist_status · studies/gamma_regime | deriv_hist 16:40 평일 (GAS) | 수동 backfill/probe (commit=true 필요) | 단일 |
@@ -122,7 +123,7 @@ Claude 원격 예약 작업(10/17 list_triggers 기준): 오늘의 영어 07:18 
   | 340분 상한 교대(국장 08:40 시작 → 약 14:20, 미장 22:20 → 약 04:00) | 대기열에 매시 백업 실행이 있으면 바로 이어받음 → 공백 약 1–3분(작업 준비 시간). 10/15 실측: 09:46 시작 → 15:33 종료 → 대기 실행 15:33 시작 |
   | 루프가 죽고 대기 실행이 없음 | 다음 매시 :07 cron. GitHub cron 지연 실측 최대 **약 3–5시간**(10/15 15:07 예약 → 20:19 실행, 10/16 04:07 → 07:05) → 최악은 그 장 남은 시간 전부 공백 |
   | GAS 08:40 시작 누락 | cron 08:40 대기(+12분) → 08:52 시작, 09:00 개장 전이라 공백 없음. cron 도 늦으면 첫 매시 백업까지(10/15 실측 09:46 시작 → 09:00–09:46 공백) |
-- 남은 위험: (a) 위 '루프가 죽고 대기 실행 없음' — 개선안 = 루프 끝에 자기 재개 dispatch(`actions: write` 권한 필요, 10/17 개발 세션에선 권한 확대가 승인되지 않아 보류) 또는 GAS 슬롯 14:20·04:00 에 live 재개 추가(Scheduler.gs 붙여넣기 필요). 보드 `live-resume-gap`. (b) 11/02 겨울 시간부터 미장 23:30–06:00 KST 인데 루프 창은 05:15 까지 — 보드 `live-us-winter-window`. (c) 60초 폴링은 1분 안에 찍고 되돌아간 꼬리(touch)를 놓칠 수 있음 — 종목 basic 응답에 장중 저가가 없으면 현재가로 판정.
+- 남은 위험: (a) 위 '루프가 죽고 대기 실행 없음' — 개선안 = 루프 끝에 자기 재개 dispatch(`actions: write` 권한 필요, 10/17 개발 세션에선 권한 확대가 승인되지 않아 보류) 또는 GAS 슬롯 14:20·04:00 에 live 재개 추가(Scheduler.gs 붙여넣기 필요). 보드 `live-resume-gap`. (b) ~~11/02 겨울 시간 창~~ → 10/30 반영(아래 §4-2). 3월 둘째 일요일 여름 복귀 때 반대로 되돌려야 함 — 보드 `live-us-dst-march`. (c) 60초 폴링은 1분 안에 찍고 되돌아간 꼬리(touch)를 놓칠 수 있음 — 종목 basic 응답에 장중 저가가 없으면 현재가로 판정.
 - 롤백: live.yml 의 이벤트 감시 3줄과 커밋 목록의 `reports/event_state.json` 제거(또는 이 커밋 revert). 15:05·14:25·16:20 슬롯 알림은 그대로라 롤백해도 기존 알림은 산다.
 
 ## 5. 바뀐 것 · 영향 · 롤백
@@ -134,3 +135,17 @@ Claude 원격 예약 작업(10/17 list_triggers 기준): 오늘의 영어 07:18 
 VOC: GAS 붙여넣기 전까지 '창 20분' 잔여 위험이 남는다 — 10/18 체크리스트 0번을 결재(14:00) 전에 처리 요청.
 요청→개발: 1단계 asof 가드와 함께 `commit=auto` 의 슬롯 판정(`slot_guard.gas_slot_near`)을 검토 — 붙여넣기 확인 뒤 auto 를 false 로 좁힐지.
 현재 상태: 이중 슬롯 0·수동 덮어쓰기 0(테스트로 고정) / 오너 GAS 붙여넣기 대기 / 롤백은 revert + 구 GAS 재붙여넣기.
+
+## 4-2. 미 서머타임 종료(11/01) 대응 — 2026-10-30 개발 (req-dev-cbd568fc)
+11/02(월)부터 미장 = 09:30–16:00 ET = **23:30–06:00 KST**(여름 22:30–05:00). GitHub cron 은 UTC 고정이라 서머타임을 모른다 → 미장 시각에 묶인 cron 은 계절마다 손으로 바꾼다. 판정 코드는 tz(America/New_York) 로 한다.
+| 항목 | 전(여름) | 후(겨울, 11/02~) | 근거 |
+|---|---|---|---|
+| live.yml 미장 루프 시작 cron | `20 13 * * 1-5` = 월~금 13:20 UTC = 22:20 KST | `20 14 * * 1-5` = 월~금 14:20 UTC = **23:20 KST**(개장 10분 전) | 개장 09:30 ET = 14:30 UTC(EST −5) |
+| live.yml 미장 매시 백업 | `7 14-19` = 월~금 14:07–19:07 UTC = 23:07–04:07 KST(화~토) | `7 14-20` = 14:07–20:07 UTC = 23:07–**05:07** KST(화~토) | 루프 340분 상한: 23:20 시작 → 약 05:00 종료, 마감 06:00 까지 재개 필요 |
+| live.yml `in_window()` 미장 | KST 22:15–05:15 하드코딩 | **09:15–16:15 ET**(`TZ=America/New_York`) = 겨울 23:15–06:15 · 여름 22:15–05:15 | 서머타임 자동 |
+| Scheduler.gs 미장 루프 슬롯 | 22:20 | **23:20**(배포 필요 — 아래) | 위 cron 과 같은 시각이라야 slot_guard 가 같은 슬롯으로 봄 |
+| `tradecal.us_open_kst()` (신설) | idea_tracking·practice_book 이 KST "22:30" 하드코딩, alphabook `hour < 22` | 날짜별 ET→KST 계산(여름 22:30·겨울 23:30, alphabook 은 개장 30분 전) | 하드코딩 제거 |
+- 이미 tz 로 판정(변경 없음): `tradecal`(ET 세션·expected_session)·`heatmap.py`·`duel.us_open_kst`(마감 판정)·`event_watch`(뉴욕 09:30–16:00)·tab_home 마감 계산·`heatmap.yml`(13–21 UTC 가 양 계절을 덮음).
+- 보류(PB 확인 필요, 바꾸지 않음): briefing.yml 미장 슬롯 — premarket_us 20:52·21:52, intraday_us 22:52(**겨울엔 개장 전**), intraday_us 03:52. 모드가 cron 문자열로 정해져 ET 기준 동일 시각(+1h)으로 옮기려면 모드 case 문 재배선이 필요. 06:52 screen_us·07:10 valuation·07:37 us_accum·08:52 재시도는 마감(06:00) 뒤라 그대로 유효(마감 +52분으로 짧아짐).
+- 배포 필요(개발이 못 함): `apps-script/Scheduler.gs` 붙여넣기(§0 체크리스트, 로그 첫 줄 버전 `2026-10-30 겨울시간 · 이중화`). 붙여넣기 전엔 구 GAS 가 22:20(개장 전)에 live 를 깨우지만 in_window 가 곧 끝내고, 23:20 cron 이 대신 시작한다(+12분 대기).
+- 3월 복귀(2027-03-14 일요일 서머타임 시작): live cron `20 13`·`7 14-19`, GAS 슬롯 22:20 로 되돌림. in_window 는 손댈 필요 없음.
