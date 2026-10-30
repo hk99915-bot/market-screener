@@ -4026,10 +4026,21 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:55"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "CIBR",
+     "name": "First Trust NASDAQ Cybersecurity ETF",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "same_close",
+     "by": "공격 PB",
+     "at": "21:55"
     }
    },
    "basis": {
@@ -4040,6 +4051,138 @@
      "VIX 17.20",
      "나스닥 26,185 (-1.38%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. S&P500 7,720(−0.3%, 10/29)·나스닥 −1.38%·VIX 17.2, 20일 고점 대비 −1.3% 박스권(위원회 기본 시나리오 63%). AI 인프라 신용 경계(바스켓 20일 −20% 이하 4/8종목). 개인 진입 게이트 fail 및 구속 스트레스 위반 중 매수 금지(10/26 임시 운영 규칙, 10/30 종가 −16.00%). 탈출 조건 해당 없음.",
+    "lines": [
+     "S&P500 7,720(−0.3%) · 나스닥 26,185(−1.38%) · VIX 17.2 (10/29)",
+     "미 10년 4.99%(20일 −25bp) · 달러 인덱스 101.8",
+     "AI 인프라 신용 경계 — CIFR·IREN·CRWV·NBIS 20일 −20% 이하",
+     "섹터 점수 상위: 에너지·사이버보안(위원회 비중 확대)",
+     "레드팀: 금리 20일 −25bp 하락은 기술주 지지 요인 — 현금의 기회비용"
+    ],
+    "conviction": "보통",
+    "at": "21:55",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 진입 신호 미충족"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "개인 진입 게이트 fail 및 구속 스트레스 위반 중 매수 금지로 실계좌 진입 불가."
+    },
+    "views_asof": "2026-10-30 19:16",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "보합",
+      "b": "neutral"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 6 / 축소 6",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 6회 · 5일 초과 +1.2%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "반도체 약세 속 상관 낮은 보안 섹터 순환(퀀트 10/30: 반도체 상관 0.19, 위원회 5일 +6.6%). 목표 +1.2%, 손절 −1.0%, 승률 검증전. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.012,
+      "stop": -0.01,
+      "rr": 1.2,
+      "win_rate": null,
+      "n": null,
+      "basis": "당일 변동폭 근사, 승률 검증전"
+     }
+    }
    }
   }
  ],
