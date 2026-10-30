@@ -9,6 +9,7 @@
 3. [위계·자리배치·점심 무리](OFFICE.md)
 4. [장면·연출·이미지 기준](SCENES.md)
 5. [인물전사 요약·색인(학력·커리어 연표·성향·보상 구간 창작)](BIOS.md) → [bios/](bios/)(인물별 상세 전사)
+6. [29인 이름](NAMES.md)
 
 ## 기준 파일과 우선순위
 - 기존 직무·캐릭터 배경: [CHARACTERS](../desk_kb/CHARACTERS.md).
