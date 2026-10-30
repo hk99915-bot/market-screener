@@ -1,6 +1,6 @@
 {
  "version": 1,
- "asof": "2026-10-30 10:35",
+ "asof": "2026-10-30 11:39",
  "policy": "모의 추적: 제안일 다음 첫 거래일 시가가 원래 진입 구간 안일 때만 진입. 다음 시가가 구간 밖이면 미진입 만료. 대기 제안은 미진입. 종가가 손절선 미만이면 종가 손절. 목표는 고가 도달 시 목표가(시가 갭 상승은 시가). 같은 날 목표·종가 손절 동시 충족은 판정 보류. 20거래일 안 +1R 미도달 시 종가 시간 손절. 비용 0.05%, 실거래 아님.",
  "rows": [
   {
@@ -7522,16 +7522,219 @@
     "reason": "다음 거래일 확정 일봉 대기"
    },
    "replaced": "같은 날 앞선 판(2026-10-29 15:51) → 확정판으로 교체"
+  },
+  {
+   "id": "US:2026-10-30:CVNA",
+   "date": "2026-10-30",
+   "ticker": "CVNA",
+   "name": "Carvana Co. Class A Common Stock",
+   "proposed_at": "2026-10-30 11:39",
+   "captured_at": "2026-10-30 11:39 KST",
+   "original": {
+    "s": "CVNA",
+    "n": "Carvana Co. Class A Common Stock",
+    "g": "경기소비재",
+    "side": "롱",
+    "conv": "중간",
+    "score": 0.6,
+    "size": 0.0662416386305165,
+    "entry": 66.50535714285714,
+    "entry_max": 70.11464285714287,
+    "stop": 61.09142857142857,
+    "stop_pct": 0.10567371436936655,
+    "target": 82.74714285714286,
+    "payoff": 2.0,
+    "atr_pct": 0.052836857184683284,
+    "catalyst": [],
+    "status": "대기 — 촉매 없음",
+    "ref": "2026-10-29",
+    "kill": [
+     "종가 61.09 하회 (손절, 협상 대상 아님)",
+     "동의 원천이 반대로 바뀜 (이익 신호 −0.2 이하·50일선 이탈)",
+     "20거래일 안 +1R 미도달 (시간 손절)"
+    ],
+    "sources": [
+     {
+      "k": "us_accum",
+      "label": "매집 흔적 S6·S7·S8·S9 (10-29)",
+      "side": "agree",
+      "grade": "F",
+      "w": 0.0
+     },
+     {
+      "k": "us_drv",
+      "label": "이익 신호 +0.64",
+      "side": "agree",
+      "grade": "검증전",
+      "w": 0.3
+     },
+     {
+      "k": "us_trend",
+      "label": "종가 ≥ 50일선 (+3.7%)",
+      "side": "agree",
+      "grade": "검증전",
+      "w": 0.3
+     }
+    ],
+    "valid": {
+     "entry_days": 1,
+     "hold_max": 20
+    },
+    "catalyst_note": "없음",
+    "plan": {
+     "v": 1,
+     "code": "CVNA",
+     "name": "Carvana Co. Class A Common Stock",
+     "market": "US",
+     "side": "롱",
+     "asof": "2026-10-29",
+     "close": 68.31,
+     "atr": 3.6092857142857153,
+     "atr_pct": 0.052836857184683284,
+     "entry": {
+      "lo": 66.50535714285715,
+      "hi": 70.11464285714285,
+      "ref": 68.31,
+      "cond": "다음 거래일 시가가 66.51~70.11 안이면 시가 진입, 밖이면 미진입 만료(1일). 추격 금지"
+     },
+     "stop": {
+      "px": 61.09142857142857,
+      "pct": 0.10567371436936655,
+      "atr_mult": 2.0,
+      "basis": "max(20일 저점, 종가−2×ATR14), 최소 1×ATR — 종가 이탈 시 청산",
+      "slip_r": -1.048,
+      "loss_eff_pct": 0.11074605265909615,
+      "gap_note": "갭·하한가로 스탑 아래 체결 시 평균 -1.05R (보정 us_trend)"
+     },
+     "t1": {
+      "px": 76.8,
+      "r": 1.18,
+      "basis": "저항 60일 고점 (1.2R)"
+     },
+     "t2": {
+      "px": 97.38,
+      "r": 4.03,
+      "basis": "중앙값(애널 목표가·52주 고점)",
+      "hold": true
+     },
+     "rr1": 1.18,
+     "rr2": 4.03,
+     "prob": {
+      "group": "us_trend",
+      "desc": "US 추세 동의(종가 > 50일선) — 미장 TOP3 us_trend 원천 대용",
+      "cell": "struct 1.0/3.0",
+      "split": "2020-01-01",
+      "p_t1": 0.489,
+      "p_stop": 0.421,
+      "p_t2": 0.09,
+      "p_time": 0.09,
+      "ev_r": 0.0812,
+      "t": 2.48,
+      "n": 20259,
+      "n_dates": 1265,
+      "stop_exit_r": -1.048,
+      "grade": "C",
+      "asof": "2026-10-21",
+      "base_ev_r": 0.0997
+     },
+     "ev_r": 0.0812,
+     "ev_pct": 0.008580705606792563,
+     "scale_out": {
+      "t1_frac": 0.5,
+      "then": "스탑을 진입가(본전)로 이동",
+      "rest": "2차 목표·본전 스탑·시간 손절 중 먼저"
+     },
+     "time_stop": {
+      "days": 20,
+      "rule": "20거래일 안 1차 미도달 → 그날 종가 청산"
+     },
+     "filter": {
+      "state": "보류",
+      "mult": 0.0,
+      "reasons": [
+       "BOJ 금리 결정 (+전망 보고서) 당일 — 위성 신규 진입 금지(agreements)"
+      ],
+      "flags": [],
+      "t2_haircut": 0.0,
+      "grade": "레짐 C · 나머지 검증전"
+     },
+     "earnings": null,
+     "conviction": {
+      "score": 70.9,
+      "grade": "A",
+      "mult": 1.0,
+      "hold_t2": true,
+      "axes": {
+       "fund": {
+        "v": 0.5,
+        "why": [
+         "이익 신호 +0.64"
+        ]
+       },
+       "narr": {
+        "v": null,
+        "why": []
+       },
+       "sent": {
+        "v": 0.4,
+        "why": [
+         "매집 흔적 S6·S7·S8·S9 (10-29)"
+        ]
+       },
+       "tech": {
+        "v": 0.354,
+        "why": [
+         "50일선 괴리·60일 수익률(보정 가중)",
+         "종가 ≥ 50일선 (+3.7%)"
+        ]
+       }
+      },
+      "used": 3,
+      "weights": "검증전 동일가중 (축 간 공통 이력 없음 — 펀더·내러티브 2026-10~). 기술 축 내부만 보정(IC)",
+      "note": null
+     },
+     "size": {
+      "stage": 1,
+      "risk_base": 0.0025,
+      "risk_pct": 0.0,
+      "weight": 0.0,
+      "cap": 0.15,
+      "formula": "비중 = 1회 리스크(해금 단계 × 컨빅션 배수 × 필터 배수) ÷ 손절폭, 상한 15%",
+      "mock": true,
+      "note": "모의 추적·표시용 — 실계좌 위성 해금(§6 1단계 11/16 리뷰) 전 실행 근거 아님"
+     },
+     "verdict": "보류",
+     "why_not": [
+      "매크로·이벤트 필터 보류",
+      "E[R] +0.08 ≤ 무조건 기준선 +0.10 — 양수 몫은 시장 상승(베타), 신호 엣지 아님"
+     ],
+     "verdict_rule": "보류 = 손절폭>15%·2차 R:R<2·필터 보류·컨빅션 D 중 하나 / 관찰 = 보정 E[R] F·검증전 또는 무조건 기준선 이하 / 채택 = 그 외 (모두 모의)",
+     "owners": {
+      "quant": "prob·보정",
+      "analyst": "t2·밸류",
+      "macro": "filter",
+      "cio": "verdict·TOP3",
+      "frm": "size·stop"
+     },
+     "line": "진입 66.51~70.11 · 손절 61.09(−10.6%) · 1차 76.80(1.2R) · 2차 97.38(4.0R) · 1차 선도달 49% vs 손절 42% · E[R] +0.08(C, 기준선 +0.10) · 20일 · 필터 보류 · 컨빅션 A(70.9) · 보류"
+    }
+   },
+   "state": {
+    "status": "not_entered",
+    "reason": "대기 — 촉매 없음"
+   },
+   "market": "US",
+   "ref": "2026-10-29"
   }
  ],
  "summary": {
-  "proposals": 40,
+  "proposals": 41,
   "closed": 4,
   "hit_rate": 0.25,
   "avg_return": -0.02438775,
-  "no_entry_rate": 0.4117647058823529,
-  "no_entry": 14,
-  "resolved": 34
+  "no_entry_rate": 0.42857142857142855,
+  "no_entry": 15,
+  "resolved": 35
  },
  "schema": "행 키: id · date · ticker(종목코드 — code 키는 없음, 원본 안에서는 original.s) · market(없으면 KR) · name · proposed_at(기록한 확정판 asof) · captured_at · original(확정판 원본, 불변) · state(채점) · note(사후 주석, 원본 아님)",
  "summary_by_market": {
@@ -7545,13 +7748,13 @@
    "resolved": 27
   },
   "US": {
-   "proposals": 7,
+   "proposals": 8,
    "closed": 0,
    "hit_rate": null,
    "avg_return": null,
    "no_entry_rate": 1.0,
-   "no_entry": 7,
-   "resolved": 7
+   "no_entry": 8,
+   "resolved": 8
   }
  }
 }
