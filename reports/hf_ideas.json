@@ -1,31 +1,17 @@
 {
  "v": 1,
  "asof": "2026-10-30",
- "generated_at": "2026-10-30 15:56 KST",
+ "generated_at": "2026-10-30 22:17 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 251,
+  "total": 290,
   "거래량 급증": 3,
-  "거래량 돌파(추격 금지)": 1,
-  "52주 고점 돌파": 3,
+  "거래량 돌파(추격 금지)": 3,
   "수급 이탈 숏": 1,
+  "52주 고점 돌파": 1,
   "업종 체인": 2
  },
  "ideas": [
-  {
-   "market": "KR",
-   "code": "489790",
-   "name": "한화비전",
-   "asof": "2026-10-29",
-   "close": 49100.0,
-   "type": "거래량 급증",
-   "score": 5.765,
-   "direction": "추격 주의(S4 유사) — 롱은 눌림 확인 뒤",
-   "evidence": "거래량 13.5배 · 1일 +22.1%",
-   "status": "검증전 — 거래량 급증 + 방향 · S4 유사(국장 거래량 3배+상승 추격 = 반대 근거)",
-   "src": "reports/detail/KR/489790.json chart",
-   "rank": 1
-  },
   {
    "market": "US",
    "code": "ALNY",
@@ -38,7 +24,7 @@
    "evidence": "거래량 8.4배 · 1일 -25.1%",
    "status": "검증전 — 거래량 급증 + 방향",
    "src": "reports/detail/US/ALNY.json chart",
-   "rank": 2
+   "rank": 1
   },
   {
    "market": "US",
@@ -52,21 +38,77 @@
    "evidence": "거래량 6.0배 · 1일 -26.9%",
    "status": "검증전 — 거래량 급증 + 방향",
    "src": "reports/detail/US/NOW.json chart",
+   "rank": 2
+  },
+  {
+   "market": "KR",
+   "code": "236200",
+   "name": "슈프리마",
+   "asof": "2026-10-30",
+   "close": 45650.0,
+   "type": "거래량 급증",
+   "score": 3.534,
+   "direction": "숏 후보(물량 출회)",
+   "evidence": "거래량 8.1배 · 1일 -16.8%",
+   "status": "검증전 — 거래량 급증 + 방향",
+   "src": "reports/detail/KR/236200.json chart",
    "rank": 3
   },
   {
    "market": "KR",
-   "code": "093320",
-   "name": "케이아이엔엑스",
-   "asof": "2026-10-29",
-   "close": 177400.0,
+   "code": "046890",
+   "name": "서울반도체",
+   "asof": "2026-10-30",
+   "close": 11640.0,
    "type": "거래량 돌파(추격 금지)",
    "score": 1.0,
    "direction": "회피(추격 롱 금지) · 페이드 전진 추적",
-   "evidence": "거래량 16.0배 · 20일 신고가 · 1일 +13.3%",
+   "evidence": "거래량 23.4배 · 20일 신고가 · 1일 +3.9%",
    "status": "회피 — 국장 거래량 3배+20일 신고가 추격 F(t −7.4/−6.2), 페이드는 전진 추적 중(scripts/hf_forward.py)",
-   "src": "reports/detail/KR/093320.json chart",
+   "src": "reports/detail/KR/046890.json chart",
    "rank": 4
+  },
+  {
+   "market": "KR",
+   "code": "232680",
+   "name": "라온로보틱스",
+   "asof": "2026-10-30",
+   "close": 11550.0,
+   "type": "거래량 돌파(추격 금지)",
+   "score": 1.0,
+   "direction": "회피(추격 롱 금지) · 페이드 전진 추적",
+   "evidence": "거래량 52.2배 · 20일 신고가 · 1일 +24.2%",
+   "status": "회피 — 국장 거래량 3배+20일 신고가 추격 F(t −7.4/−6.2), 페이드는 전진 추적 중(scripts/hf_forward.py)",
+   "src": "reports/detail/KR/232680.json chart",
+   "rank": 5
+  },
+  {
+   "market": "KR",
+   "code": "003220",
+   "name": "대원제약",
+   "asof": "2026-10-30",
+   "close": 8680.0,
+   "type": "거래량 돌파(추격 금지)",
+   "score": 0.938,
+   "direction": "회피(추격 롱 금지) · 페이드 전진 추적",
+   "evidence": "거래량 9.4배 · 20일 신고가 · 1일 +12.7%",
+   "status": "회피 — 국장 거래량 3배+20일 신고가 추격 F(t −7.4/−6.2), 페이드는 전진 추적 중(scripts/hf_forward.py)",
+   "src": "reports/detail/KR/003220.json chart",
+   "rank": 6
+  },
+  {
+   "market": "KR",
+   "code": "440110",
+   "name": "파두",
+   "asof": "2026-10-30",
+   "close": 46150.0,
+   "type": "수급 이탈 숏",
+   "score": 0.735,
+   "direction": "숏 후보(종목선물·대차 가능 대형주만)",
+   "evidence": "외국인 -38억·기관 -24억 5일 동반 매도 · 20일 -43.5% · 50일선 아래",
+   "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
+   "src": "reports/detail/KR/440110.json chart · flow_note",
+   "rank": 7
   },
   {
    "market": "US",
@@ -80,47 +122,19 @@
    "evidence": "종가 250일 최고 경신 · 5일 +23.3%",
    "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
    "src": "reports/detail/US/TENB.json chart",
-   "rank": 5
-  },
-  {
-   "market": "KR",
-   "code": "003160",
-   "name": "디아이",
-   "asof": "2026-10-29",
-   "close": 43500.0,
-   "type": "52주 고점 돌파",
-   "score": 0.712,
-   "direction": "롱 후보",
-   "evidence": "종가 250일 최고 경신 · 5일 +21.2%",
-   "status": "B — 국장 52주 고점 근접 소스 B1 통과(reports/studies/2026-10-21_alpha_sources.md)",
-   "src": "reports/detail/KR/003160.json chart",
-   "rank": 6
-  },
-  {
-   "market": "KR",
-   "code": "440110",
-   "name": "파두",
-   "asof": "2026-10-29",
-   "close": 49850.0,
-   "type": "수급 이탈 숏",
-   "score": 0.704,
-   "direction": "숏 후보(종목선물·대차 가능 대형주만)",
-   "evidence": "외국인 -44억·기관 -42억 5일 동반 매도 · 20일 -40.4% · 50일선 아래",
-   "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
-   "src": "reports/detail/KR/440110.json chart · flow_note",
-   "rank": 7
+   "rank": 8
   },
   {
    "market": "KR",
    "code": null,
    "name": "정유",
    "type": "업종 체인",
-   "score": 0.7,
+   "score": 0.72,
    "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.70 · 구성 예: S-Oil, GS, SK이노베이션",
+   "evidence": "체인 점수 +0.72 · 구성 예: S-Oil, GS, SK이노베이션",
    "status": "검증전 — 업종 체인 점수(detail drivers)",
    "src": "reports/detail/*/<코드>.json drivers.chain",
-   "rank": 8
+   "rank": 9
   },
   {
    "market": "US",
@@ -132,20 +146,6 @@
    "evidence": "체인 점수 +0.70 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
    "status": "검증전 — 업종 체인 점수(detail drivers)",
    "src": "reports/detail/*/<코드>.json drivers.chain",
-   "rank": 9
-  },
-  {
-   "market": "KR",
-   "code": "294870",
-   "name": "IPARK현대산업개발",
-   "asof": "2026-10-29",
-   "close": 24950.0,
-   "type": "52주 고점 돌파",
-   "score": 0.688,
-   "direction": "롱 후보",
-   "evidence": "종가 250일 최고 경신 · 5일 +18.8%",
-   "status": "B — 국장 52주 고점 근접 소스 B1 통과(reports/studies/2026-10-21_alpha_sources.md)",
-   "src": "reports/detail/KR/294870.json chart",
    "rank": 10
   }
  ],
@@ -158,14 +158,14 @@
    "src": "reports/macro_series.json"
   },
   {
-   "driver": "WTI 20일 +12.7%",
+   "driver": "WTI 20일 +13.3%",
    "benefit": "에너지·정유",
    "hurt": "항공·화학(원가)",
    "status": "검증전 — 정성 매크로 규칙",
    "src": "reports/macro_series.json"
   },
   {
-   "driver": "원달러 20일 -1.9%",
+   "driver": "원달러 20일 -2.0%",
    "benefit": "외국인 수급(국장 대형주)",
    "hurt": "국장 수출주 마진",
    "status": "검증전 — 정성 매크로 규칙",
@@ -175,11 +175,11 @@
  "gap": {
   "us_date": "2026-10-29",
   "nasdaq": -0.0138,
-  "beta": 0.594,
-  "t": 13.2,
-  "n": 489,
-  "pred_gap": -0.0067,
-  "band": 0.0223,
+  "beta": 0.598,
+  "t": 13.3,
+  "n": 490,
+  "pred_gap": -0.0068,
+  "band": 0.0224,
   "status": "검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)",
   "src": "data/deriv/daily.csv · reports/macro_series.json NASDAQ"
  },
@@ -188,12 +188,12 @@
    "code": "086670",
    "name": "비엠티",
    "on": [
-    "200일선 15,272 지지(5일 저점 −2% 안): 종가 15,900"
+    "200일선 15,288 지지(5일 저점 −2% 안): 종가 15,430"
    ],
    "off": [
-    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 2.2배 -6.7%",
-    "외국인·기관 5일 동반 순매수: 외국인 +2억 · 기관 -19억",
-    "동종 대비 5일 상대강도: -4.0% vs 동종 중앙 -0.3%",
+    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 1.6배 -3.0%",
+    "외국인·기관 5일 동반 순매수: 외국인 +9억 · 기관 -28억",
+    "동종 대비 5일 상대강도: -5.7% vs 동종 중앙 +0.0%",
     "DART 7일: 공급계약·임원매수·지분·자사주·IR 없음",
     "업종 선행(수동 확인): LRCX 2027 WFE $200B+ 전망·12월 분기 가이던스 상회(10-21) — 장비 수요 선행 +",
     "업종 선행(수동 확인): SK하이닉스 메모리 체인 점수 +0.36(reports/detail/KR/000660.json drivers)",
@@ -222,12 +222,12 @@
  ],
  "top": {
   "what": [
-   "후보 251건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 1, 52주 고점 돌파 3, 수급 이탈 숏 1",
-   "상위: 한화비전(거래량 급증), Alnylam Pharmaceuticals, Inc. - Common Stock(거래량 급증), ServiceNow, Inc.…"
+   "후보 290건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 3, 수급 이탈 숏 1, 52주 고점 돌파 1",
+   "상위: Alnylam Pharmaceuticals, Inc. - Common Stock(거래량 급증), ServiceNow, Inc. Common Stock(거…"
   ],
   "so_what": [
    "후보일 뿐 진입 아님 · 검증 상태 F 신호는 반대 근거로만",
-   "미·한 갭 추정 -0.67% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
+   "미·한 갭 추정 -0.68% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
   ],
   "now_what": [
    "진입은 scripts/hf_book.py 체크리스트 통과 건만(HF 데스크)"
@@ -236,7 +236,7 @@
   "src": [
    "reports/hf_ideas.json"
   ],
-  "asof": "2026-10-30 15:56",
+  "asof": "2026-10-30 22:17",
   "grade": "검증전"
  }
 }
