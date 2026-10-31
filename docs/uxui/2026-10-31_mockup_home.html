@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko" data-theme="dark" data-conv="intl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MT 재설계 목업</title>
+<!-- UXUI 2026-10-31 블룸버그식 재설계 정적 목업 (HOME + MY). 설계 문서: docs/uxui/2026-10-31_bloomberg_redesign.md
+     모든 숫자는 가짜 샘플이다. 실제 지수·개인 금액·보유 종목·수량 없음(공개 저장소).
+     외부 의존 = Google Fonts(IBM Plex Mono · IBM Plex Sans KR) 하나. 폰트를 못 받으면 시스템 고정폭/산세리프로 떨어진다. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── 토큰 (설계 문서 §4 JSON 과 같은 값) ── */
+:root{
+  --bg:#000000; --surface:#0d0d0d; --raised:#171717; --line:#262626; --line-strong:#3a3a3a;
+  --text:#f2f2f2; --text-2:#a3a3a3; --text-3:#8f8f8f;
+  --accent:#fb8b1e; --on-accent:#000000;
+  --up:#26c165; --down:#ff4d4d;              /* 국제 관례(기본) */
+  --alarm-bg:#c81e1e; --on-alarm:#ffffff;    /* 경보 = 반전 블록(색+모양), 하락 글자색과 모양으로 구분 */
+  --font-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --font-text:"IBM Plex Sans KR","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --fs-1:11px; --fs-2:13px; --fs-3:16px; --fs-4:28px;     /* 4단계: 라벨 · 본문/표 · 소제목/카드값 · 히어로(화면당 1개) */
+  --lh-tight:1.2; --lh-body:1.5;
+  --s-1:4px; --s-2:8px; --s-3:16px; --s-4:24px; --s-5:32px;   /* 8pt 그리드(4 는 반 단계, 글자 옆 간격 전용) */
+  --r-0:0; --r-1:2px; --r-2:4px;
+  --hit:44px;
+}
+html[data-conv="kr"]{ --up:#ff4d4d; --down:#4c8dff; }    /* 한국식: 상승 빨강·하락 파랑 (겸이 결정 항목 D1) */
+html[data-theme="light"]{
+  --bg:#ffffff; --surface:#f6f6f4; --raised:#ececea; --line:#d9d9d6; --line-strong:#b8b8b4;
+  --text:#111111; --text-2:#5c5c5c; --text-3:#6b6b6b;
+  --accent:#a85300; --on-accent:#ffffff;
+  --up:#087a36; --down:#c81e1e; --alarm-bg:#c81e1e; --on-alarm:#ffffff;
+}
+html[data-theme="light"][data-conv="kr"]{ --up:#c81e1e; --down:#1d5bd6; }
+
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:400 var(--fs-2)/var(--lh-body) var(--font-text);-webkit-font-smoothing:antialiased;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+.n{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums;letter-spacing:0}
+.lbl{font:500 var(--fs-1)/var(--lh-tight) var(--font-text);letter-spacing:0;color:var(--text-2)}   /* 한글 라벨 = 산세리프, 자간 0 */
+.tx{font-family:var(--font-text);font-variant-numeric:tabular-nums;letter-spacing:0}   /* 한글 섞인 숫자 줄 = 산세리프 + 고정폭 숫자 */
+.mu{color:var(--text-2)}
+.up{color:var(--up)} .dn{color:var(--down)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ── 머리: 브랜드 · 명령줄 · 상태 (48px 1줄) ── */
+.hd{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:var(--s-2);height:48px;padding:0 var(--s-3);background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{font:600 var(--fs-2)/1 var(--font-num);color:var(--accent);letter-spacing:.06em}
+.cmd{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s-2);height:32px;padding:0 var(--s-2);border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--text-3);font:400 var(--fs-2)/1 var(--font-text);cursor:text}
+.cmd kbd{font:500 var(--fs-1)/1 var(--font-num);color:var(--text-2);border:1px solid var(--line-strong);border-radius:var(--r-1);padding:2px 4px}
+.cmd span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.stat{display:flex;align-items:center;gap:var(--s-1);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text-3)}   /* 정상 = 무채색. 시장색(상승·하락)은 가격에만 — 늦으면 .dot.late = 경보색 */
+.dot.late{background:var(--alarm-bg)}
+.ibtn{min-width:var(--hit);min-height:var(--hit);display:inline-flex;align-items:center;justify-content:center;background:none;border:0;color:var(--text-2);cursor:pointer;padding:0}
+.ibtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6}
+
+/* ── 상위 그룹 내비 (데스크톱: 머리 아래 기능키 줄 / 폰: 하단 고정 5칸) ── */
+.nav{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--bg);padding:0 var(--s-3)}
+.nav button{background:none;border:0;border-bottom:2px solid transparent;min-height:40px;padding:0 var(--s-3);color:var(--text-2);cursor:pointer;display:flex;align-items:center;gap:var(--s-2)}
+.nav button .k{font:500 var(--fs-1)/1 var(--font-num);color:var(--text-3)}
+.nav button.on{color:var(--text);border-bottom-color:var(--accent)}
+.nav button.on .k{color:var(--accent)}
+.sub{display:flex;gap:var(--s-1);padding:var(--s-2) var(--s-3) 0;overflow-x:auto;scrollbar-width:none}
+.sub button{flex:none;background:none;border:1px solid var(--line);border-radius:var(--r-1);min-height:32px;padding:0 var(--s-2);color:var(--text-2);cursor:pointer}
+.sub button.on{border-color:var(--text-2);color:var(--text)}
+
+/* ── 본문 그리드 ── */
+main{padding:var(--s-3);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--s-3);max-width:1440px;margin:0 auto}
+.col-a{grid-column:span 4}.col-b{grid-column:span 5}.col-c{grid-column:span 3}
+.pn{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-1);min-width:0}
+.pn+.pn{margin-top:var(--s-3)}
+.pn>header{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-2);padding:var(--s-2) var(--s-3);border-bottom:1px solid var(--line)}
+.pn>.bd{padding:var(--s-3)}
+
+/* 히어로: 화면당 숫자 1개 */
+.hero .v{font:500 var(--fs-4)/1.1 var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:var(--text)}
+.hero .row{display:flex;align-items:baseline;gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-1)}
+.hero .cmp{font:400 var(--fs-2)/1 var(--font-text);font-variant-numeric:tabular-nums;color:var(--text-2)}
+.state{display:inline-flex;align-items:center;gap:var(--s-1);font:600 var(--fs-1)/1 var(--font-text);padding:4px var(--s-2);border:1px solid var(--line-strong);border-radius:var(--r-1);color:var(--text)}
+.gauge{position:relative;height:4px;background:var(--raised);margin:var(--s-3) 0 var(--s-1)}
+.gauge i{position:absolute;left:0;top:0;bottom:0;background:var(--text-2)}
+.gauge u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text)}
+.gscale{display:flex;justify-content:space-between;font:400 var(--fs-1)/1 var(--font-text);font-variant-numeric:tabular-nums;color:var(--text-3)}
+.rel{margin-top:var(--s-3);padding-top:var(--s-2);border-top:1px solid var(--line);font-weight:500}
+
+/* 할 일 목록: 행 44px */
+.todo{list-style:none;margin:0;padding:0}
+.todo li{display:flex;align-items:center;gap:var(--s-2);min-height:var(--hit);border-bottom:1px solid var(--line);padding:var(--s-1) 0}
+.todo li:last-child{border-bottom:0}
+.todo .i{font:500 var(--fs-1)/1 var(--font-num);color:var(--text-3);width:16px;flex:none}
+.todo .t{flex:1;min-width:0}
+.todo .m{font:400 var(--fs-1)/1 var(--font-text);font-variant-numeric:tabular-nums;color:var(--text-2);white-space:nowrap}
+.todo li.alarm{background:var(--alarm-bg);color:var(--on-alarm);margin:0 calc(-1 * var(--s-3));padding:var(--s-1) var(--s-3);border-bottom:0}
+.todo li.alarm .i,.todo li.alarm .m{color:var(--on-alarm)}
+.todo li.check .m{color:var(--accent)}
+.chev{color:var(--text-3);font-family:var(--font-num)}
+
+/* 시장 3줄 */
+.mk>div{display:grid;grid-template-columns:56px 1fr auto;column-gap:var(--s-3);align-items:baseline;padding:var(--s-2) 0;border-bottom:1px solid var(--line)}
+.mk>div:last-child{border-bottom:0}
+.mk .c1{font:600 var(--fs-2)/1 var(--font-num);color:var(--text-2);letter-spacing:.06em}
+.mk .c2{font-size:var(--fs-3);font-weight:600}
+.mk .c3{font:400 var(--fs-2)/1 var(--font-text);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.mk .sub2{display:block;font-size:var(--fs-1);font-weight:400;color:var(--text-2);margin-top:2px}
+
+/* 시세 표 (띠 애니메이션 대신 정적 격자) */
+.qt{width:100%;border-collapse:collapse;font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.qt td{padding:0 var(--s-2);height:32px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.qt td:first-child{text-align:left;padding-left:0;color:var(--text-2);font-weight:500;letter-spacing:.04em}
+.qt td:last-child{padding-right:0}
+.qt tr:last-child td{border-bottom:0}
+
+/* 접힘 줄 (상세 입구) */
+.rows a{display:flex;align-items:center;gap:var(--s-2);min-height:var(--hit);padding:0 var(--s-3);border-top:1px solid var(--line);color:var(--text);text-decoration:none}
+.rows a:first-child{border-top:0}
+.rows a .lbl{width:72px;flex:none}
+.rows a .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rows a:hover{background:var(--raised)}
+
+/* MY: KPI 2×2 */
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.kpi>div{background:var(--surface);padding:var(--s-2) var(--s-3);min-height:72px}
+.kpi .pair{display:flex;gap:var(--s-2);align-items:baseline;justify-content:flex-end;font:600 var(--fs-3)/1.2 var(--font-text);font-variant-numeric:tabular-nums;margin-top:var(--s-1)}
+.kpi .pair i{font-style:normal;color:var(--text-3);font-weight:400}
+.kpi .d{font:400 var(--fs-1)/1.2 var(--font-text);font-variant-numeric:tabular-nums;color:var(--text-2);text-align:right;margin-top:2px}
+.kpi>div.alarm{background:var(--alarm-bg);color:var(--on-alarm)}
+.kpi>div.alarm .lbl,.kpi>div.alarm .d,.kpi>div.alarm .pair i{color:var(--on-alarm)}
+.alloc{display:flex;height:8px;gap:2px;margin:var(--s-2) 0}
+.alloc i{display:block;background:var(--text-2)}
+.alloc i:nth-child(2){background:var(--text-3);opacity:.7}
+.alloc i:nth-child(3){background:var(--line-strong)}
+.leg{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-3);font:400 var(--fs-1)/1.4 var(--font-text);font-variant-numeric:tabular-nums;color:var(--text-2)}
+.headline{font-size:var(--fs-3);font-weight:600;line-height:1.45}
+.cause{margin:var(--s-2) 0 0;padding:0;list-style:none}
+.cause li{display:flex;gap:var(--s-2);min-height:32px;align-items:baseline;border-top:1px solid var(--line);padding:var(--s-1) 0}
+.cause li .lbl{width:40px;flex:none}
+
+.sample{grid-column:1/-1;font:400 var(--fs-1)/1.4 var(--font-text);color:var(--text-3);text-align:center;padding:var(--s-2) 0}
+.view{display:contents}.view[hidden]{display:none}
+
+/* 폰 하단 탭 (데스크톱에선 숨김) */
+.tabbar{display:none}
+
+/* ── 반응형 ── */
+@media (max-width:1100px){ .col-a,.col-b{grid-column:span 6}.col-c{grid-column:span 12} }
+@media (max-width:700px){
+  .hd{padding:0 var(--s-2) 0 var(--s-3)}
+  .cmd{height:var(--hit);max-width:none}
+  .cmd .full{display:none}
+  .stat .lab{display:none}
+  .nav{display:none}
+  main{padding:var(--s-2) var(--s-3) var(--s-3);gap:var(--s-2)}
+  .col-a,.col-b,.col-c{grid-column:span 12}
+  .pn+.pn{margin-top:var(--s-2)}
+  .pn>.bd{padding:var(--s-3)}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar button{min-height:56px;background:none;border:0;border-top:2px solid transparent;color:var(--text-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+  .tabbar button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6}
+  .tabbar button span{font-size:var(--fs-1)}
+  .tabbar button.on{color:var(--text);border-top-color:var(--accent)}
+  .qt-wide{display:none}
+}
+@media (min-width:701px){ .qt-narrow{display:none} }
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <span class="brand">MT</span>
+  <div class="cmd" role="search" aria-label="명령줄"><kbd>/</kbd><span><span class="full">종목·화면 이동 — 예: 005930 · 채권 · MY · </span>명령</span></div>
+  <span class="stat n" title="데이터 신선도: 늦은 데이터 0건"><i class="dot" aria-hidden="true"></i><span class="lab mu">DATA</span> <span class="mu">07:01</span></span>
+  <button class="ibtn" id="thm" aria-label="밝기 전환" title="밝기 전환 ( \ )"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16" /></svg></button>
+  <button class="ibtn" id="cnv" aria-label="상승·하락 색 관례 전환" title="상승·하락 색 관례"><span class="n" style="font-size:var(--fs-1)" id="cnvl">INTL</span></button>
+</header>
+
+<nav class="nav" aria-label="상위 그룹">
+  <button class="on" data-v="home"><span class="k">1</span>홈</button>
+  <button data-v="my"><span class="k">2</span>내 계좌</button>
+  <button><span class="k">3</span>시장</button>
+  <button><span class="k">4</span>리서치</button>
+  <button><span class="k">5</span>데스크</button>
+  <button><span class="k">6</span>설정·학습</button>
+</nav>
+
+<main>
+<!-- ═══════════ HOME ═══════════ -->
+<div class="view" id="v-home">
+  <section class="col-a">
+    <div class="pn hero" aria-labelledby="h-risk">
+      <header><span class="lbl" id="h-risk">위험 상태 · 구속 스트레스</span><span class="state">한도 안</span></header>
+      <div class="bd">
+        <div class="v">−12.4%</div>
+        <div class="row"><span class="cmp">한도 −15.0%</span><span class="cmp">·</span><span class="cmp">여유 2.6%p</span></div>
+        <div class="gauge" aria-hidden="true"><i style="width:82.7%"></i><u style="left:100%"></u></div>
+        <div class="gscale"><span>0%</span><span>한도 −15%</span></div>
+        <div class="rel">반도체 비중 +3%p → 스트레스 한도에 닿음</div>
+      </div>
+    </div>
+    <div class="pn">
+      <header><span class="lbl">지금 할 일</span><span class="tx mu" style="font-size:var(--fs-1)">3건</span></header>
+      <div class="bd" style="padding-top:0;padding-bottom:0">
+        <ol class="todo">
+          <li class="alarm"><span class="i">⛔</span><span class="t"><b>위성 신규 매수 금지</b> — 규칙 위반 적용 1건</span><span class="m">해제 조건 ›</span></li>
+          <li><span class="i n">1</span><span class="t">대결 제출 대기 2건</span><span class="m n">마감 15:30</span></li>
+          <li class="check"><span class="i n">2</span><span class="t">결론 1줄 미갱신 (확인 필요)</span><span class="m n">D+1</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="col-b">
+    <div class="pn">
+      <header><span class="lbl">시장 3줄</span><span class="tx mu" style="font-size:var(--fs-1)">10/30 마감 기준</span></header>
+      <div class="bd" style="padding-top:var(--s-1);padding-bottom:var(--s-1)">
+        <div class="mk">
+          <div><span class="c1">KR</span><span class="c2">약세<span class="sub2">200일선 위 비율 · 20일 변화</span></span><span class="c3">21% <span class="mu">−12%p</span></span></div>
+          <div><span class="c1">US</span><span class="c2">중립<span class="sub2">200일선 위 비율 · 20일 변화</span></span><span class="c3">57% <span class="mu">+5%p</span></span></div>
+          <div><span class="c1">MACRO</span><span class="c2">약한 역풍<span class="sub2">주 요인 미 10년 금리↑ · 범위 −1~+1</span></span><span class="c3">−0.12</span></div>
+        </div>
+        <div class="rel" style="margin-top:var(--s-1)">한국만 약함 — 20일 코스피 −6.2% vs S&amp;P −1.4% (격차 −4.8%p)</div>
+      </div>
+    </div>
+    <div class="pn">
+      <header><span class="lbl">지수</span><span class="tx mu" style="font-size:var(--fs-1)">샘플 값</span></header>
+      <div class="bd" style="padding-top:0;padding-bottom:0">
+        <table class="qt qt-wide">
+          <tr><td>KOSPI</td><td>2,612.40</td><td class="dn">−1.24%</td><td>SPX</td><td>5,880.20</td><td class="up">+0.42%</td></tr>
+          <tr><td>KOSDAQ</td><td>742.15</td><td class="dn">−0.88%</td><td>NDX</td><td>20,940.55</td><td class="up">+0.61%</td></tr>
+          <tr><td>USDKRW</td><td>1,382.50</td><td class="up">+0.21%</td><td>US10Y</td><td>4.21</td><td class="dn">−3bp</td></tr>
+          <tr><td>K200F</td><td>348.10</td><td class="dn">−1.31%</td><td>VIX</td><td>17.80</td><td class="up">+4.10%</td></tr>
+        </table>
+        <table class="qt qt-narrow">
+          <tr><td>KOSPI</td><td>2,612.40</td><td class="dn">−1.24%</td></tr>
+          <tr><td>KOSDAQ</td><td>742.15</td><td class="dn">−0.88%</td></tr>
+          <tr><td>SPX</td><td>5,880.20</td><td class="up">+0.42%</td></tr>
+          <tr><td>USDKRW</td><td>1,382.50</td><td class="up">+0.21%</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="col-c">
+    <div class="pn rows">
+      <a href="#"><span class="lbl">일정</span><span class="t">11/04 미 FOMC 결과 · 외 2건</span><span class="chev">›</span></a>
+      <a href="#"><span class="lbl">운용회의</span><span class="t">관망 유지 — 변곡 조건 2/4 충족</span><span class="chev">›</span></a>
+      <a href="#"><span class="lbl">데이터</span><span class="t">늦은 데이터 0건</span><span class="chev">›</span></a>
+      <a href="#"><span class="lbl">리서치</span><span class="t">새 리포트 12건 · 증권가 한 줄</span><span class="chev">›</span></a>
+      <a href="#"><span class="lbl">브리핑</span><span class="t">프리마켓 KR 08:40</span><span class="chev">›</span></a>
+    </div>
+    <div class="pn">
+      <header><span class="lbl">다가오는 일정</span><span class="tx mu" style="font-size:var(--fs-1)">중요도순 3</span></header>
+      <div class="bd" style="padding-top:0;padding-bottom:0">
+        <table class="qt"><tr><td>11/04</td><td style="text-align:left" class="tx">미 FOMC 결과</td><td class="mu">04:00</td></tr>
+        <tr><td>11/06</td><td style="text-align:left" class="tx">미 고용보고서</td><td class="mu">22:30</td></tr>
+        <tr><td>11/13</td><td style="text-align:left" class="tx">옵션 만기</td><td class="mu">15:20</td></tr></table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════ MY ═══════════ -->
+<div class="view" id="v-my" hidden>
+  <section class="col-a">
+    <div class="pn">
+      <header><span class="lbl">결론</span><span class="tx mu" style="font-size:var(--fs-1)">PB · 10/30</span></header>
+      <div class="bd"><div class="headline">주간은 코스피를 앞섰지만 규칙 위반 1건이 적용 중 — 위성 신규 매수는 해제 전까지 멈춘다.</div></div>
+    </div>
+    <div class="pn hero">
+      <header><span class="lbl">이번 주 vs 코스피</span><span class="state">앞섬</span></header>
+      <div class="bd">
+        <div class="v">+1.8%p</div>
+        <div class="row"><span class="cmp">위성 +0.6%</span><span class="cmp">│</span><span class="cmp">코스피 −1.2%</span></div>
+      </div>
+    </div>
+  </section>
+  <section class="col-b">
+    <div class="pn">
+      <header><span class="lbl">규칙 계기판</span><span class="tx mu" style="font-size:var(--fs-1)">숫자 기준 10/30</span></header>
+      <div class="bd">
+        <div class="kpi">
+          <div><div class="lbl">기초 이후 vs 코스피</div><div class="pair">−8.1%<i>│</i>−9.0%</div><div class="d">앞섬 +0.9%p</div></div>
+          <div><div class="lbl">구속 스트레스</div><div class="pair">−12.4%<i>/</i>−15%</div><div class="d">한도 안 · 여유 2.6%p</div></div>
+          <div><div class="lbl">반도체 비중</div><div class="pair">22%<i>/</i>25%</div><div class="d">함의 상한까지 3%p</div></div>
+          <div class="alarm"><div class="lbl">⛔ 규칙 위반</div><div class="pair">1건<i>·</i>적용</div><div class="d">위성 신규 매수 금지</div></div>
+        </div>
+        <div class="rel">반도체 22% → 스트레스 −12.4% (한도 −15%) · 3%p 더 늘면 초과</div>
+        <ul class="cause">
+          <li><span class="lbl">FRM</span><span>스트레스 여유가 2주째 3%p 안쪽</span></li>
+          <li><span class="lbl">CIO</span><span>성과 앞섬은 1주 표본 — 판정 보류</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section class="col-c">
+    <div class="pn">
+      <header><span class="lbl">배분</span><span class="tx mu" style="font-size:var(--fs-1)">비율만</span></header>
+      <div class="bd">
+        <div class="alloc" aria-hidden="true"><i style="width:60%"></i><i style="width:30%"></i><i style="width:10%"></i></div>
+        <div class="leg"><span>ISA 코어 60%</span><span>위성 30%</span><span>현금 10%</span></div>
+      </div>
+    </div>
+    <div class="pn rows">
+      <a href="#"><span class="lbl">다음 행동</span><span class="t">1. 해제 조건 확인 2. 적립은 코어로</span><span class="chev">›</span></a>
+      <a href="#"><span class="lbl">보유</span><span class="t mu">접힘 — 토큰으로만 열림</span><span class="chev">›</span></a>
+      <a href="#"><span class="lbl">성적표</span><span class="t">주간 14줄 · 코멘트</span><span class="chev">›</span></a>
+      <a href="#"><span class="lbl">입력</span><span class="t">보유 입력 · 백업 · 일기</span><span class="chev">›</span></a>
+    </div>
+  </section>
+</div>
+
+<div class="sample">목업 · 모든 숫자는 가짜 샘플 · 개인 금액·보유 종목 없음 · UXUI 2026-10-31</div>
+</main>
+
+<nav class="tabbar" aria-label="상위 그룹">
+  <button class="on" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8H4z"/></svg><span>홈</span></button>
+  <button data-v="my"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12"/><path d="M4 10h16"/></svg><span>계좌</span></button>
+  <button><svg viewBox="0 0 24 24"><path d="M4 18l5-6 4 3 7-9"/></svg><span>시장</span></button>
+  <button><svg viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h6"/></svg><span>리서치</span></button>
+  <button><svg viewBox="0 0 24 24"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c1-3 3-4 5-4s4 1 5 4M11 19c1-3 3-4 5-4s4 1 5 4"/></svg><span>데스크</span></button>
+</nav>
+
+<script>
+(function(){
+  const H=document.documentElement;
+  const show=v=>{ document.querySelectorAll('.view').forEach(e=>e.hidden=e.id!=='v-'+v);
+    document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v)); };
+  document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>show(b.dataset.v));
+  document.getElementById('thm').onclick=()=>H.dataset.theme=H.dataset.theme==='dark'?'light':'dark';
+  document.getElementById('cnv').onclick=()=>{ H.dataset.conv=H.dataset.conv==='kr'?'intl':'kr'; document.getElementById('cnvl').textContent=H.dataset.conv==='kr'?'KR':'INTL'; };
+  addEventListener('keydown',e=>{ if(e.target.closest('input,textarea')) return;
+    if(e.key==='1') show('home'); if(e.key==='2') show('my'); if(e.key==='\\') document.getElementById('thm').click(); });
+  const q=new URLSearchParams(location.search);
+  if(q.get('v')) show(q.get('v')); if(q.get('theme')) H.dataset.theme=q.get('theme'); if(q.get('conv')){ H.dataset.conv=q.get('conv'); document.getElementById('cnvl').textContent=q.get('conv').toUpperCase(); }
+})();
+</script>
+</body>
+</html>
