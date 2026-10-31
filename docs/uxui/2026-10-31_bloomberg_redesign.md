@@ -1,9 +1,10 @@
 # 블룸버그식 재설계 — 진단 · 원칙 · 위계 · 토큰 · 구현 단계 (UXUI, 2026-10-31)
 
 > 겸이 요청(10/31 토 17시대): 「애플, 토스 다니는 친구에게 보여줬을 때 창피하지 않게 디자인, uxui 위계 다시 짜줘, 블룸버그 스타일로」.
-> 이 문서는 **설계만** 담았다. 코드는 바꾸지 않았다(`apps-script/*`·`index.html` 수정 0). 겸이 결재 뒤 프론트가 아래 §6 단계표대로 구현하고 UXUI가 검수한다.
-> 목업: [`2026-10-31_mockup_home.html`](2026-10-31_mockup_home.html) — HOME + MY(하단/상단 내비로 전환, `?v=my`·`?theme=light`·`?conv=kr`). **목업의 숫자는 모두 가짜 샘플이다.** 실제 지수·개인 금액·보유 종목·수량 없음.
-> 결재 받을 것은 맨 아래 **§7 겸이 결정 항목 5개**다.
+> 이 문서는 **설계만** 담았다. 코드는 바꾸지 않았다(`apps-script/*`·`index.html` 수정 0). 겸이 결재 뒤 프론트가 아래 §7 단계표대로 구현하고 UXUI가 검수한다.
+> 목업: [`2026-10-31_mockup_home.html`](2026-10-31_mockup_home.html) — HOME + MY(하단/상단 내비로 전환, `?v=my`·`?theme=light`). **목업의 숫자는 모두 가짜 샘플이다.** 실제 지수·개인 금액·보유 종목·수량 없음.
+> 결재 받을 것은 맨 아래 **§8 겸이 결정 항목**이다 — D1 색 관례는 **한국식으로 확정**(겸이 10/31), 나머지 4개 대기.
+> 10/31 추가 요구 「uxui는 그 어떤 화면비율에서도 대칭성이랑 정렬 유지」 → **§5 정렬·대칭 규칙** + 검사 `scripts/ui_align_check.py`(9개 폭 자동 측정).
 
 ## 0. 어떻게 봤나 (측정 정의 — 재측정도 이 정의만 쓴다, 복기 10/23)
 - 대상: main `04e3feee4` 의 빌드된 `index.html`, 10/31 17:2x KST 데이터(raw.githubusercontent 정상 로드). MY 는 비공개 토큰이 없어 **빈 상태만** 봤다.
@@ -35,7 +36,7 @@
 |---|---|---|---|
 | P1 | **검정 바탕 · 장식 0** | 배경 `#000`, 패널 1단(`surface`)·겹 1단(`raised`)만. 그라디언트·그림자·애니메이션 0(시세 띠 → 정적 격자). 둥근 모서리 2px 이하 | 블룸버그 터미널 관행 `[현업 관행]` |
 | P2 | **강조 1색 = 앰버, 뜻은 '지금 볼 곳' 하나** | 앰버는 ① 선택된 탭·초점 ② 확인 필요(데이터 늦음·미작성) 두 곳만. 패널 제목·링크·상태값에서 뺀다(제목 = `text-2` 회색) | 인지 근거표 Healey & Enns 2012, Ajani 2022(강조+주석) |
-| P3 | **시장색은 가격에만, 경보는 모양으로** | 상승/하락 색은 시세 칸·표의 등락 숫자에만. 판단 칸(KPI·결론)은 10/28 MY 스펙 §4 그대로 '상태 2색'. 경보(⛔ 한도 초과·위반 적용) = **빨강 반전 블록 + 흰 글자 + ⛔**(대비 5.74:1) — 하락 '글자색'과 모양으로 구분 | WCAG 1.4.1(색만으로 구분 금지) |
+| P3 | **시장색은 가격에만, 경보는 모양으로** | **한국식 관례(상승 빨강·하락 파랑, D1 확정 10/31)**. 상승/하락 색은 시세 칸·표의 등락 숫자에만. 판단 칸(KPI·결론)은 10/28 MY 스펙 §4 그대로 '상태 2색'. 경보(⛔ 한도 초과·위반 적용) = **빨강 반전 블록 + 흰 글자 + ⛔**(대비 5.74:1) — 같은 빨강 계열인 상승 '글자색'과는 **모양(전폭 반전 블록·⛔·문장)**으로, 하락 파랑과는 색으로 구분. 경보 블록 안에는 등락 숫자를 넣지 않는다 | WCAG 1.4.1(색만으로 구분 금지) |
 | P4 | **글자 = 한글 산세리프, 숫자 = 고정폭** | 본문·라벨 `IBM Plex Sans KR`, 숫자만 있는 칸·티커·시각 `IBM Plex Mono`. 한글 섞인 숫자 줄은 산세리프 + `tabular-nums`. **한글에 자간 금지**(자간은 영문 대문자 라벨에만, 0~.06em 한 값) | Google Fonts 둘 다 OFL. 토스·애플 = 산세리프 본문 + 고정폭 숫자 |
 | P5 | **타이포 4단계** | 11 라벨·단위 / 13 본문·표 / 16 소제목·카드값 / 28 **히어로(화면당 1개)**. 굵기 400·500·600 셋 | 현 `--fs-1~4` 이름 유지(`font_tokens.py` 그대로) |
 | P6 | **간격 8pt 그리드** | 4(글자 옆 반 단계)·8·16·24·32 만. 패널 안 여백 16, 패널 사이 16(폰 8) | 애플 HIG·머티리얼 공통 관행 `[교과서-B]` |
@@ -55,7 +56,7 @@
 | **3 시장** `mkt` | 시장 체력·매크로가 어떤가? | kr · us · macro · heat · bond · deriv · re · mdkr · mdus | KR/US 전종목은 KR·US 안 '전종목' 토글로(상위 칩 9 → 7) |
 | **4 리서치** `res` | 오늘 새로 나온 근거는? | daily(데일리 리포트) · brief · rep · val · dart · views · chain | DAILY 그룹 해체. 공급망(chain)은 퀀트 결과물이 아니라 리서치 근거 |
 | **5 데스크** `desk` | 데스크들이 무엇을 결정·검증 중인가? | cmt(운용회의) · rb(+study·lab) · sig(+mom) · pf(+isa) · msg(사내톡) · sysb(작업 보드) | QUANT + 운용회의 + 사내톡을 '조직' 하나로 |
-| **6 설정·학습** `sys` | (가끔) 시스템·공부 | edu · apt · eng · sysc · syso · 스킨/색 관례 설정 | 폰에선 하단 탭에서 빼고 머리 메뉴(⋯)로 |
+| **6 설정·학습** `sys` | (가끔) 시스템·공부 | edu · apt · eng · sysc · syso · 스킨(밝기·엑셀) 설정 | 폰에선 하단 탭에서 빼고 머리 메뉴(⋯)로 |
 
 - 폰: **하단 고정 탭 5칸**(홈·계좌·시장·리서치·데스크, 56px) + 6번은 머리 메뉴. 지금 머리 140px → 48px(브랜드·명령줄·신선도 점·밝기) — 첫 화면 본문 +92px.
 - 데스크톱: 머리 48px + 상위 내비 40px(키 번호 표기) + 하위 칩 1줄. 시세 띠는 HOME '지수' 패널로 흡수(띠 제거는 결정 D4).
@@ -99,10 +100,8 @@
       "text3":      { "$value": "#8f8f8f", "$description": "최저 글자색 6.5/6.0/5.5 — 이보다 어두운 글자 금지" },
       "accent":     { "$value": "#fb8b1e", "$description": "앰버 1색: 선택·초점·확인 필요만 8.8/8.2/7.5" },
       "onAccent":   { "$value": "#000000", "$description": "앰버 위 글자" },
-      "up":         { "$value": "#26c165", "$description": "상승(국제 관례) 8.9/8.2/7.6" },
-      "down":       { "$value": "#ff4d4d", "$description": "하락(국제 관례) 6.4/5.9/5.5" },
-      "upKR":       { "$value": "{color.dark.down}", "$description": "한국 관례 선택 시 상승 = 빨강" },
-      "downKR":     { "$value": "#4c8dff", "$description": "한국 관례 선택 시 하락 = 파랑 6.6/6.1/5.6" },
+      "up":         { "$value": "#ff4d4d", "$description": "상승 = 빨강(한국식, D1 확정 10/31) 6.4/5.9/5.5" },
+      "down":       { "$value": "#4c8dff", "$description": "하락 = 파랑(한국식) 6.6/6.1/5.6" },
       "alarmBg":    { "$value": "#c81e1e", "$description": "경보 반전 블록 바탕(⛔ 한도 초과·위반 적용)" },
       "onAlarm":    { "$value": "#ffffff", "$description": "경보 블록 글자 5.74" }
     },
@@ -117,10 +116,8 @@
       "text3":      { "$value": "#6b6b6b", "$description": "5.3/4.9/4.5" },
       "accent":     { "$value": "#a85300", "$description": "5.4/5.0/4.6" },
       "onAccent":   { "$value": "#ffffff" },
-      "up":         { "$value": "#087a36", "$description": "5.5/5.0/4.6" },
-      "down":       { "$value": "#c81e1e", "$description": "5.7/5.3/4.9" },
-      "upKR":       { "$value": "{color.light.down}" },
-      "downKR":     { "$value": "#1d5bd6", "$description": "6.0/5.5/5.0" },
+      "up":         { "$value": "#c81e1e", "$description": "상승 = 빨강(한국식) 5.7/5.3/4.9" },
+      "down":       { "$value": "#1d5bd6", "$description": "하락 = 파랑(한국식) 6.0/5.5/5.0" },
       "alarmBg":    { "$value": "#c81e1e" },
       "onAlarm":    { "$value": "#ffffff" }
     }
@@ -136,7 +133,7 @@
       "1": { "$value": "11px", "$description": "라벨·단위·시각 (현 --fs-1)" },
       "2": { "$value": "13px", "$description": "본문·표 (현 --fs-2 12.5px)" },
       "3": { "$value": "16px", "$description": "소제목·카드 값·판정 (현 --fs-3 14px)" },
-      "4": { "$value": "28px", "$description": "히어로 — 화면당 1개 (현 --fs-4 17px, §6 2단계에서 전환)" }
+      "4": { "$value": "28px", "$description": "히어로 — 화면당 1개 (현 --fs-4 17px, §7 2단계에서 전환)" }
     },
     "weight": { "$type": "fontWeight", "regular": { "$value": 400 }, "medium": { "$value": 500 }, "strong": { "$value": 600 } },
     "lineHeight": { "$type": "number", "tight": { "$value": 1.2 }, "body": { "$value": 1.5 } },
@@ -160,36 +157,74 @@
   }
 }
 ```
-- CSS 대응: `--bg/--surface/--raised/--line/--line-strong/--text/--text-2/--text-3/--accent/--on-accent/--up/--down/--alarm-bg/--on-alarm`, `--font-text/--font-num`, `--fs-1~4`, `--s-1~5`, `--r-0~2`. 한국 관례는 `html[data-conv="kr"]` 가 `--up/--down` 두 값만 바꾼다(별칭 1단 — kb:front#9 ③).
+- CSS 대응: `--bg/--surface/--raised/--line/--line-strong/--text/--text-2/--text-3/--accent/--on-accent/--up/--down/--alarm-bg/--on-alarm`, `--font-text/--font-num`, `--fs-1~4`, `--s-1~5`, `--r-0~2`. 색 관례는 한국식 하나(D1 확정) — 관례 토글·국제 토큰 없음.
 - 현 이름과의 다리(1단계에서 별칭으로 유지): `--panel→--surface`, `--bg2/--bg3→--raised`, `--txt→--text`, `--muted→--text-2`, `--amber→--accent`, `--dn→--down`, `--mono→--font-num`. 엑셀 스킨(`html.xl`)은 light 값 위에 맑은 고딕·격자만 덧씌운다.
 
-## 5. 목업
-- 파일: `docs/uxui/2026-10-31_mockup_home.html`(단일 파일, 외부 의존 = Google Fonts 2종). 밝기 전환 버튼(`\`)·색 관례 전환(INTL↔KR)·`1`/`2` 키로 HOME/MY.
-- 실측(같은 정의, 390/1440 · 다크/라이트·KR 관례 5장면): 가로 넘침 0 · 11px 미만 글자 0 · 24px 미만 누름 대상 0 · 글자 크기 종류 **4개**(11·13·16·28) · 웹폰트 로드 확인. HOME 390px 전체 1,372px(현 8,838px), 첫 화면 안 = 위험 상태·할 일·시장 3줄.
-- 스크린샷(세션 임시 폴더, 저장소 밖): `mockup_mobile.png`·`mockup_desktop.png`(HOME), `mockup_mobile_my.png`·`mockup_desktop_my.png`, `mockup_desktop_light_kr.png`.
+## 5. 정렬·대칭 규칙 (겸이 10/31 「uxui는 그 어떤 화면비율에서도 대칭성이랑 정렬 유지」)
+대칭을 '보기 좋음'으로 두지 않고 **측정 가능한 6개 숫자**로 정의한다(§5-2). 가로 모드(폰 눕힘)는 겸이 결정으로 규칙·측정 대상에서 뺀다(10/31 "필요 없음"). 폭 기준 반응형이라 눕혀도 같은 폭의 규칙이 그대로 걸린다.
+
+### 5-1. 규칙
+| # | 규칙 | 구체 값 | 목업 구현 |
+|---|---|---|---|
+| A1 | **단일 그리드** | 폭 ≥701px = **12열**, ≤700px = **4열**. 열 간격 16px(폰 8px). 패널 가장자리는 열 경계에만 놓는다: 1101px↑ 선 0·4·8·12(패널 4｜4｜4, 넓은 패널 8), 701~1100px 선 0·6·12(6｜6) | `.grid{grid-template-columns:repeat(12,…)}`, 폰 `repeat(4,…)`, `.c-4/.c-8/.c-12` |
+| A2 | **좌우 거터 동일** | 좌 = 우 = 16px + 안전 영역. 노치 안전 영역은 좌우 중 **큰 값을 양쪽에 똑같이**(`max(env(safe-area-inset-left), …right)`) — 한쪽만 넓어지는 비대칭 금지 | `--gutter:calc(16px + var(--safe))` |
+| A3 | **max-width 와 중앙 정렬** | 내용 최대 폭 1440px, 그보다 넓으면 `margin:0 auto` 로 가운데. 머리·내비·본문이 **같은 `.wrap`** 을 써서 1920px 에서도 브랜드 왼쪽 끝 = 첫 패널 왼쪽 끝, 마지막 아이콘 오른쪽 끝 = 마지막 패널 오른쪽 끝 | `.wrap{max-width:1440px;margin:0 auto;padding:0 var(--gutter)}` + `data-edge` |
+| A4 | **공통 세로선** | 패널 안 여백 16px 고정 → 같은 열의 글자 시작선 일치. 패널 안 보조 열도 고정폭(할 일 번호 16px, 시장 3줄 첫 열 56px, 입구 줄 라벨 64px, 꺾쇠 16px) → 행마다 글자 시작 x 가 같다 | `.pn>.bd{padding:16px}` 등 |
+| A5 | **행 단위 높이 맞춤** | 한 그리드 행의 패널은 **윗변·아랫변 모두 같은 y**(`align-items:stretch`). 내용이 짧은 패널은 아래가 비고 내용은 위 정렬. 패널 머리 높이 40px 고정 → 같은 행의 본문 시작 y 도 일치. 패널을 열별로 세로로 쌓는 구조 금지(행이 어긋나는 원인) | `.grid{align-items:stretch}`, `.pn{display:flex;flex-direction:column}`, `header{min-height:40px}` |
+| A6 | **숫자 열 우측 정렬** | 숫자는 `tabular-nums`, 열 단위 오른쪽 정렬, 같은 열 소수 자릿수 통일. 표는 `table-layout:fixed` + 열 너비 지정 → 행마다 숫자 열 위치가 흔들리지 않음 | `.qt{table-layout:fixed}`, `<colgroup>` |
+| A7 | **아이콘·배지 기준선** | 패널 머리: 라벨·배지 세로 가운데, 배지 높이 24px 고정. 본문 줄: 글자와 숫자는 `baseline` 정렬. 아이콘 버튼은 44×44 상자 가운데에 20px 그림 | `.state{height:24px}`, `.mk>div{align-items:baseline}` |
+| A8 | **홀수 패널 행** | 한 줄 칸 수보다 패널이 1개 남으면 그 패널은 **전폭**(span 전체). '가운데 정렬'은 좌우에 빈 칸이 생겨 공통 세로선(A1)이 깨지므로 금지. 예: 3개 묶음 → 701~1100px 에서 6｜6 + 전폭 1 | `.grid>.odd{grid-column:span 12}` |
+| A9 | **내비 대칭** | 상위 내비 6칸 **등분**(데스크톱), 폰 하단 탭 5칸 등분. 글자 길이에 따라 폭이 달라지는 탭 금지 | `.nav .wrap{repeat(6,1fr)}`, `.tabbar{repeat(5,1fr)}` |
+| A10 | **잘림·넘침 0** | 말줄임(…) 금지, 좁으면 줄바꿈. 320px 에서도 가로 넘침 0. 표가 넓으면 열을 줄이고 표 밖으로 내보내지 않는다 | `.rows a .t` 줄바꿈, 명령줄 긴 안내는 1025px↑ 에서만 |
+
+### 5-2. 측정 도구
+- `scripts/ui_align_check.py <대상 HTML> [--widths …] [--query '?v=my'] [--panel 선택자] [--edge 선택자] [--shots 폴더]`. 프론트가 CI 에 붙일 수 있게 대상 경로·선택자를 인자로 받는다. 실패가 1개라도 있으면 종료코드 1. 테스트는 `tests/test_ui_align_check.py`(판정 함수 + 좋은/나쁜 HTML 브라우저 측정).
+- 측정 정의(스크립트 docstring 과 같음): 좌우 여백 차 = |패널 왼쪽 끝 최솟값 − (폭 − 오른쪽 끝 최댓값)| · 공통선 = `[data-edge]` 안쪽 상자 좌우 끝 vs 패널 바깥 선 · 행 = 세로 범위가 겹치는 패널 묶음, 윗변·아랫변 각각 최대−최소 · 넘침 = 화면 밖 + 패널 밖으로 나간 요소(스크롤 상자 안·고정 위치 제외) · 잘림 = 자기 글자 요소 중 `overflow≠visible` 또는 `ellipsis` 이고 `scrollWidth > clientWidth+1`. 허용 오차 1px.
+- 판별력 확인: 개정 전 목업(열별로 패널을 쌓던 구조)을 같은 자로 재면 768px 행 윗변 오차 289px·넘침 8, 1440px 행 오차 270px 로 **실패**한다. 자가 실제 어긋남을 잡는다는 뜻이다.
+
+### 5-3. 결과 (목업 개정본, 10/31 18시대, 높이 900px)
+| 폭(px) | 패널 | 좌 / 우 여백 | 여백 차 | 공통선 오차 | 행 윗변 / 아랫변 오차 | 넘침 | 잘림 | HOME | MY | 라이트 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 320 | 6 | 16 / 16 | 0 | 0 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 360 | 6 | 16 / 16 | 0 | 0 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 390 | 6 | 16 / 16 | 0 | 0 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 414 | 6 | 16 / 16 | 0 | 0 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 768 | 6 | 16 / 16 | 0 | 0 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 1024 | 6 | 16 / 16 | 0 | 0 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 1280 | 6 | 16 / 16 | 0 | 0 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 1440 | 6 | 16 / 16.02 | 0.02 | 0.02 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+| 1920 | 6 | 256 / 256.02 | 0.02 | 0.02 | 0 / 0 | 0 | 0 | 통과 | 통과 | 통과 |
+- 합계 **27/27 통과**(9개 폭 × HOME·MY·라이트). 표의 숫자 열은 HOME 다크 기준이고 MY(패널 5개)·라이트도 같은 값이다. 0.02px 는 소수 반올림(허용 1px 안). 1920 은 max-width 1440 을 가운데 두어 좌우 256px 대칭.
+- 재현: `python3 scripts/ui_align_check.py docs/uxui/2026-10-31_mockup_home.html --query '' --query '?v=my' --query '?theme=light'`. 스크린샷 `align_<폭>.png` 는 세션 임시 폴더에 있다(저장소 밖).
+- 한계: 목업 1장 기준이다. 실제 `index.html` 은 35개 화면·인라인 스타일 1,598곳이라 지금 돌리면 대부분 실패할 것으로 추정한다(미측정). 그래서 2단계부터 HOME·MY 에만 문턱을 건다.
+
+## 6. 목업
+- 파일: `docs/uxui/2026-10-31_mockup_home.html`(단일 파일, 외부 의존 = Google Fonts 2종). 밝기 전환 버튼(`\`)·`1`/`2` 키로 HOME/MY. 색은 한국식 고정(관례 토글 없음).
+- 실측(같은 정의, 390/1440 · 다크/라이트 5장면, 10/31 정렬 개정 후): 가로 넘침 0 · 11px 미만 글자 0 · 24px 미만 누름 대상 0 · 글자 크기 종류 **4개**(11·13·16·28) · 웹폰트 로드 확인. HOME 390px 전체 1,428px(현 8,838px), 첫 화면 안 = 위험 상태·할 일·시장 3줄. 정렬 측정은 §5-3.
+- 스크린샷(세션 임시 폴더, 저장소 밖): `mockup_mobile.png`·`mockup_desktop.png`(HOME), `mockup_mobile_my.png`·`mockup_desktop_my.png`, `mockup_desktop_light_kr.png`(라이트), 폭별 `align_<폭>.png` 9장.
 - 목업이 **일부러 안 한 것**: 실제 데이터 연결, 시장·리서치·데스크 화면, 엑셀 스킨, 명령줄 동작(모양만).
 
-## 6. 구현 단계표 (프론트용 — 단계마다 잠금 1~2파일, 단계 끝에 UXUI 검수)
+## 7. 구현 단계표 (프론트용 — 단계마다 잠금 1~2파일, 단계 끝에 UXUI 검수)
 | 단계 | 바꾸는 것 | 영향 파일 | 테스트·검사 | 위험 | 되돌리기 |
 |---|---|---|---|---|---|
-| **1. 토큰·타이포만** | ① `<head>` 에 Google Fonts 링크(IBM Plex Mono·Sans KR, `display=swap`) ② `:root` 새 토큰 추가 + 현 이름은 별칭으로 유지(§4 다리) ③ `body` 를 `--font-text` + `tabular-nums`, 표 `td/th`·시세·`.n` 만 `--font-num` ④ 한글 들어가는 제목·라벨 자간 0(`.p h2`·`.brand`·`.tabs button`) ⑤ `--fs-2` 12.5→13, `--fs-3` 14→16(`--fs-4` 는 17 유지) ⑥ `.p h2` 색 앰버→`--text-2`(앰버 뜻 하나 줄이기) ⑦ 경보용 `--alarm-bg/--on-alarm` 추가(아직 안 씀) | `apps-script/Index.html`(`:root`·`body`·`.p h2`·`.tabs` 블록만), `scripts/font_tokens.py` STEPS 값 | `pytest tests/test_font_tokens.py tests/test_skin_tokens.py` · `python3 scripts/build_pages.py` · `python3 scripts/ui_smoke.py`(전체 35뷰 + check_head_clip) · `python3 scripts/skin_audit.py --skin def` 와 `--skin xl`(대비 미달 0 유지) · 390px 전후 잘림·줄바꿈·머리 높이 비교(10/24 교훈) | 낮음 — 레이아웃 불변. 위험은 글자 폭 변화로 인한 줄바꿈·잘림 → 위 비교로 잡음 | `Index.html` 1커밋 revert. 별칭 덕에 탭 파일은 안 건드림 |
-| **2. HOME·MY 레이아웃** | ① HOME `homeView()` 재배치: 위험 상태 히어로(토큰 있을 때 `latest.json stats`) · 할 일(경보 반전 행) · 시장 3줄 · 입구 줄 · 지수 격자 ② BREADTH/CLASSES/MY PORTFOLIO/EVENTS/CALENDAR/RESEARCH 를 입구 줄로 ③ 달력 칩 5색 → `text-2` 점 + 글자 표기, 이모지 ⭐📌✓ → 글자 ④ MY 는 10/28 스펙 구현분(`#myfirst`)에 히어로·경보 블록만 덧씌움 ⑤ `--fs-4` 17→28 전환: 현 `--fs-4` 24곳을 `--fs-3` 로 재분류한 뒤(히어로만 `--fs-4`) | `apps-script/tab_home.html`, `apps-script/tab_my.html`(첫 화면 블록만), `Index.html`(공통 `.hero`·`.alarm`·`.rows` 클래스), `--fs-4` 쓰는 12파일(`grep -n fs-4 apps-script/*.html`) | 위 전부 + `pytest tests/test_my_first_screen.py` · ui_smoke `check_my_first_screen`·`check_fresh` · **새 check_home_first**: 390px 에서 히어로·할 일·시장 3줄 윗변 < 844px, HOME 전체 ≤ 1,700px, 렌더 이모지 ≤ 1(⛔) · 토큰 없는 상태·있는 상태 둘 다 | 중간 — HOME 이 가장 많이 보는 화면. 기존 패널을 지우지 않고 입구 줄 뒤에 '펼치기'로 남겨 정보 손실 0 | `tab_home.html` 커밋 revert(Index 공통 클래스는 남아도 무해) |
-| **3. 탭 묶기 9→6** | ① `GROUPS` 재편(§3-1) — **뷰 키 유지**, 그룹 키만 추가·변경 ② 폰 하단 탭 5 + 머리 메뉴, 머리 48px(시세 띠 제거는 D4 결재 뒤) ③ 명령줄: 검색창이 화면 이름도 받게(`GROUPS` 이름 색인 추가) ④ 단축키 `1~6`·`/` ⑤ 텔레그램 딥링크·`LASTV`·`setView` 링크 회귀 확인 | `apps-script/Index.html`(머리·`GROUPS`·내비 JS), `scripts/ui_smoke.py`(`MIN_ALL` 35 유지 확인, 그룹 수 검사 추가) | ui_smoke 전체(뷰 35개 그대로 렌더) · `check_head_clip`·`check_xl`(엑셀 하단 시트 탭과 하단 내비 충돌) · skin_audit 두 스킨 · build_pages · 2.4.11 초점 가림(하단 고정 탭 아래로 초점 숨김 — kb:front#7 R4) | 중간 — 손에 익은 위치가 바뀜. 1주 사용 뒤 탐색 시간 재측정 | `GROUPS` 블록 + 머리 마크업 revert. 뷰 키를 안 바꿨으니 링크 깨짐 없음 |
+| **1. 토큰·타이포만** | ① `<head>` 에 Google Fonts 링크(IBM Plex Mono·Sans KR, `display=swap`) ② `:root` 새 토큰 추가 + 현 이름은 별칭으로 유지(§4 다리) ③ `body` 를 `--font-text` + `tabular-nums`, 표 `td/th`·시세·`.n` 만 `--font-num` ④ 한글 들어가는 제목·라벨 자간 0(`.p h2`·`.brand`·`.tabs button`) ⑤ `--fs-2` 12.5→13, `--fs-3` 14→16(`--fs-4` 는 17 유지) ⑥ `.p h2` 색 앰버→`--text-2`(앰버 뜻 하나 줄이기) ⑦ 경보용 `--alarm-bg/--on-alarm` 추가(아직 안 씀) ⑧ `--up`·`--down` 을 한국식(빨강·파랑)으로(D1 확정) | `apps-script/Index.html`(`:root`·`body`·`.p h2`·`.tabs` 블록만), `scripts/font_tokens.py` STEPS 값 | `pytest tests/test_font_tokens.py tests/test_skin_tokens.py` · `python3 scripts/build_pages.py` · `python3 scripts/ui_smoke.py`(전체 35뷰 + check_head_clip) · `python3 scripts/skin_audit.py --skin def` 와 `--skin xl`(대비 미달 0 유지) · 390px 전후 잘림·줄바꿈·머리 높이 비교(10/24 교훈) | 낮음 — 레이아웃 불변. 위험은 글자 폭 변화로 인한 줄바꿈·잘림 → 위 비교로 잡음 | `Index.html` 1커밋 revert. 별칭 덕에 탭 파일은 안 건드림 |
+| **2. HOME·MY 레이아웃** | ① HOME `homeView()` 재배치: 위험 상태 히어로(토큰 있을 때 `latest.json stats`) · 할 일(경보 반전 행) · 시장 3줄 · 입구 줄 · 지수 격자 ② BREADTH/CLASSES/MY PORTFOLIO/EVENTS/CALENDAR/RESEARCH 를 입구 줄로 ③ 달력 칩 5색 → `text-2` 점 + 글자 표기, 이모지 ⭐📌✓ → 글자 ④ MY 는 10/28 스펙 구현분(`#myfirst`)에 히어로·경보 블록만 덧씌움 ⑤ `--fs-4` 17→28 전환: 현 `--fs-4` 24곳을 `--fs-3` 로 재분류한 뒤(히어로만 `--fs-4`) | `apps-script/tab_home.html`, `apps-script/tab_my.html`(첫 화면 블록만), `Index.html`(공통 `.hero`·`.alarm`·`.rows` 클래스), `--fs-4` 쓰는 12파일(`grep -n fs-4 apps-script/*.html`) | 위 전부 + `pytest tests/test_my_first_screen.py` · ui_smoke `check_my_first_screen`·`check_fresh` · **새 check_home_first**: 390px 에서 히어로·할 일·시장 3줄 윗변 < 844px, HOME 전체 ≤ 1,700px, 렌더 이모지 ≤ 1(⛔) · 토큰 없는 상태·있는 상태 둘 다 · **`python3 scripts/ui_align_check.py index.html --panel '.p' --query '?v=home' --query '?v=my'`(9개 폭, §5-2 정의)** | 중간 — HOME 이 가장 많이 보는 화면. 기존 패널을 지우지 않고 입구 줄 뒤에 '펼치기'로 남겨 정보 손실 0 | `tab_home.html` 커밋 revert(Index 공통 클래스는 남아도 무해) |
+| **3. 탭 묶기 9→6** | ① `GROUPS` 재편(§3-1) — **뷰 키 유지**, 그룹 키만 추가·변경 ② 폰 하단 탭 5 + 머리 메뉴, 머리 48px(시세 띠 제거는 D4 결재 뒤) ③ 명령줄: 검색창이 화면 이름도 받게(`GROUPS` 이름 색인 추가) ④ 단축키 `1~6`·`/` ⑤ 텔레그램 딥링크·`LASTV`·`setView` 링크 회귀 확인 | `apps-script/Index.html`(머리·`GROUPS`·내비 JS), `scripts/ui_smoke.py`(`MIN_ALL` 35 유지 확인, 그룹 수 검사 추가) | ui_smoke 전체(뷰 35개 그대로 렌더) · `check_head_clip`·`check_xl`(엑셀 하단 시트 탭과 하단 내비 충돌) · skin_audit 두 스킨 · build_pages · 2.4.11 초점 가림(하단 고정 탭 아래로 초점 숨김 — kb:front#7 R4) · `ui_align_check.py` 9개 폭(상위 내비 6칸 등분·하단 탭 5칸 대칭) | 중간 — 손에 익은 위치가 바뀜. 1주 사용 뒤 탐색 시간 재측정 | `GROUPS` 블록 + 머리 마크업 revert. 뷰 키를 안 바꿨으니 링크 깨짐 없음 |
 
 - 순서 규칙: 단계마다 **겸이 1~2일 실사용 → UXUI 재측정(§0 정의) → 다음 단계**. 22~07시엔 화면 커밋·문턱 신설 안 함(kb:front R3).
 - 공수 추정(프론트 1인, `[자체연구-검증전]`): 1단계 반나절, 2단계 1~1.5일, 3단계 1일.
 - 하드코딩 색 95종·인라인 1,598곳 정리는 이 3단계에 안 넣었다(범위 폭발). 2단계에서 HOME·MY 두 파일 것만 토큰으로 옮기고, 나머지는 탭 하나씩 별도 장부.
 
-## 7. 겸이 결정 항목
+## 8. 겸이 결정 항목
 | # | 질문 | 선택지 | UXUI 권고 |
 |---|---|---|---|
-| D1 | **상승·하락 색 관례** | A 국제(상승 초록·하락 빨강, 블룸버그) · B 한국(상승 빨강·하락 파랑, 토스·증권사 앱) · C 설정 토글(기본 A) | **C(기본 B 도 가능)**. 토스 친구 기준이면 B 가 익숙하고, B 를 고르면 경보(빨강 블록)와 상승 빨강이 겹치므로 경보는 '반전 블록 + ⛔ + 글자'로 모양 구분을 반드시 유지 |
+| D1 | **상승·하락 색 관례** | ~~A 국제 · C 토글~~ → **B 한국식(상승 빨강·하락 파랑) — 확정: D1 = 한국식(겸이 10/31)** | 토큰 기본값·목업·JSON 모두 한국식으로 맞춤(관례 토글·국제 토큰 삭제). 경보는 '전폭 빨강 반전 블록 + ⛔ + 문장'으로 상승 빨강 글자와 모양 구분(P3). 프론트 1단계에서 `--up`/`--down` 값만 바꾸면 기존 `.up`/`.dn` 전부가 한 번에 한국식이 된다(엑셀 스킨 `--dn #c00000` 은 음수 빨강 엑셀 관례라 별도 판단) |
 | D2 | **HOME 히어로 숫자** | A 구속 스트레스(비전 원칙 1 생존 우선) · B 오늘 할 일 수 · C 이번 주 vs 코스피 | **A** — MY 는 C 를 히어로로 둬 중복 회피 |
 | D3 | **기본 밝기** | 다크 기본(블룸버그) · 시스템 따라감 | 다크 기본 + 라이트 토큰 제공(엑셀 스킨은 따로 유지) |
 | D4 | **시세 띠(움직이는 줄)** | 없앰(HOME 지수 격자로) · 정지된 1줄로 유지 | 없앰 — 움직임은 장식 0 원칙 위반, 다른 탭에선 머리 높이만 먹음 |
 | D5 | **상위 그룹 이름** | 한글(홈·내 계좌·시장·리서치·데스크·설정) · 영문(HOME·MY·MKT·RES·DESK·SYS) | 한글 — 영한 혼용이 진단 #10. 영문은 티커·지수 약어에만 |
 
-## 8. 남는 한계·다음 측정
+## 9. 남는 한계·다음 측정
 - '창피하지 않다'는 주관 판정이다. 대리 지표로 **핵심 숫자 탐색 시간**(겸이 5초 테스트: 위험 상태·할 일·KR 국면 세 질문) 을 2단계 전후로 잰다. 현재 기준선은 아직 없음(kb:uxui 격차).
 - 목업은 가짜 데이터라 실제 문장 길이(데스크 결론 60자+)에서 줄바꿈이 더 생길 수 있다 → 2단계 검수에서 실데이터로 재측정.
 - 웹폰트(약 2개 패밀리) 첫 로드 지연: `display=swap` 이라 글자는 바로 보이고 모양만 바뀜(CLS 위험 작음, kb:front#8 실험실 근사로 확인 예정).
