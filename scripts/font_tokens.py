@@ -1,8 +1,9 @@
 """글자 크기 4단계 규칙 검사·고치기 (UXUI 재진단 Top10 #10 '글자 4단계 규칙', 10/24 결재 appr-uxui-top10-next).
 
 화면(apps-script/*.html)의 글자 크기는 apps-script/Index.html :root 토큰만 쓴다:
-  --fs-1 11px  보조(시각·단위·주석·태그)     --fs-2 12.5px 본문·표
-  --fs-3 14px  강조·소제목                    --fs-4 17px   제목·큰 숫자
+  --fs-1 11px  보조(시각·단위·주석·태그)     --fs-2 13px   본문·표
+  --fs-3 16px  강조·소제목                    --fs-4 17px   제목·큰 숫자 (2단계에서 히어로 28px)
+  (10/31 UXUI 블룸버그식 재설계 §7 1단계: 12.5→13 · 14→16)
   --fs-icon 24px  아이콘(글자 아님: 💬 ✕ › ＋ 등)
 `font-size:11px`·`font:12.5px/…` 같은 픽셀 직접 쓰기는 금지 — 새로 쓰면 tests/test_font_tokens.py 가 빨강.
 
@@ -19,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = sorted((ROOT / "apps-script").glob("*.html"))
-STEPS = {"--fs-1": 11.0, "--fs-2": 12.5, "--fs-3": 14.0, "--fs-4": 17.0}
+STEPS = {"--fs-1": 11.0, "--fs-2": 13.0, "--fs-3": 16.0, "--fs-4": 17.0}
 ICON_MIN = 20.0
 PAT = re.compile(r"(font-size\s*:\s*|font\s*:\s*)(\d+(?:\.\d+)?)px")
 DYN = re.compile(r"font-size\s*:\s*\$\{[^}]*\}px")   # 템플릿 계산 픽셀(자동 고치기 불가 — 손으로 토큰 고르기)

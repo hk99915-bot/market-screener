@@ -1103,7 +1103,7 @@ async def check_hf_why(b, port: int) -> int:
           return {none, box:true, keys:rows.map(x=>x.k).join(','), vs:rows.filter(x=>x.v).map(x=>x.v).join(','), color:rows.filter(x=>x.v).every(x=>x.c===tok[x.v]),
             fs:[...new Set(fs)].sort(), over:document.scrollingElement.scrollWidth>innerWidth+1||[...box.querySelectorAll('*')].some(e=>e.getBoundingClientRect().right>innerWidth+1)}; }""", HF_WHY_FIX)
         ok = (r.get("nohf") or (r["box"] and r["none"] and r["keys"] == "왜,값,펀더,내러,센티,펀더,약함" and r["vs"] == "−,미확인,+,중립" and r["color"]
-              and all(x in (11, 12.5, 14, 17) for x in r["fs"]) and not r["over"])) and not errs
+              and all(x in (11, 13, 16, 17) for x in r["fs"]) and not r["over"])) and not errs
         bad += not ok
         print(f"{'OK ' if ok else 'BAD'} HF 진입 근거 이름표·배지({w}px) " + ("HF 블록 없음(검사 건너뜀)" if r.get("nohf") else f"이름표 {r.get('keys')} · 배지 {r.get('vs')} · 색 {r.get('color')} · 글자 {r.get('fs')} · 넘침 {r.get('over')}")
               + (f" · 에러: {errs[0][:160]}" if errs else ""))

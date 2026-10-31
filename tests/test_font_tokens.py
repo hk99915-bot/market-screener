@@ -23,9 +23,9 @@ def test_tokens_defined_once_in_root():
 
 def test_nearest_step_mapping():
     assert ft.token(10) == "--fs-1" and ft.token(11.5) == "--fs-1"
-    assert ft.token(12) == "--fs-2" and ft.token(13) == "--fs-2"
-    assert ft.token(13.5) == "--fs-3" and ft.token(15) == "--fs-3"
-    assert ft.token(16) == "--fs-4" and ft.token(18) == "--fs-4"
+    assert ft.token(12) == "--fs-2" and ft.token(13) == "--fs-2" and ft.token(14) == "--fs-2"
+    assert ft.token(15) == "--fs-3" and ft.token(16) == "--fs-3"
+    assert ft.token(16.5) == "--fs-4" and ft.token(18) == "--fs-4"
     assert ft.token(24) == "--fs-icon"
 
 

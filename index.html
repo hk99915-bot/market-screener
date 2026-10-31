@@ -107,53 +107,69 @@
 })();
 </script>
 
+<!-- 웹폰트 (UXUI 10/31 블룸버그식 재설계 §7 1단계): 한글 본문 IBM Plex Sans KR · 숫자 IBM Plex Mono(tabular-nums). 둘 다 OFL. 못 받으면 시스템 글꼴(display=swap) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#000; --panel:#0b0b0b; --line:#2a2a2a; --amber:#ff9a1f; --amber-dim:#9a5f14;
-    --txt:#e8e8e8; --muted:#8a8a8a; --up:#2fd05a; --dn:#ff4b4b; --blue:#4aa3ff; --cyan:#35d6e6;
-    /* 겹 배경·강조 위 글자 (10/24 엑셀 스킨 대비 req-dev-0d1eee58): 하드코딩 #111·#151515·#0a0a0a 대신 — html.xl 이 밝은 값으로 바꾼다 */
-    --bg2:#111; --bg3:#161616; --on-amber:#000;
+    /* 색 토큰 (UXUI 10/31 docs/uxui/2026-10-31_bloomberg_redesign.md §4 JSON dark, 1단계). 화면은 이름만 쓴다(kb:front#1).
+       색 관례 = 한국식(상승 빨강 · 하락 파랑, 겸이 10/31 D1 확정). 경보 = 전폭 빨강 반전 블록 + ⛔(--alarm-bg/--on-alarm) — 하락 파랑과 색, 상승 빨강 글자와 모양으로 구분 */
+    --bg:#000; --surface:#0d0d0d; --raised:#171717; --line:#262626; --line-strong:#3a3a3a;
+    --text:#f2f2f2; --text-2:#a3a3a3; --text-3:#8f8f8f;      /* text-3 = 최저 글자색(이보다 어두운 글자 금지) */
+    --accent:#fb8b1e; --on-accent:#000;                         /* 앰버 1색 — 뜻 정리(선택·초점·확인 필요만)는 2단계 */
+    --up:#ff4d4d; --down:#4c8dff;
+    --alarm-bg:#c81e1e; --on-alarm:#fff;
+    --font-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,"IBM Plex Sans KR","Noto Sans KR",monospace;   /* 숫자·티커·시각·표 — 한글 글자는 끝의 산세리프로 */
+    --font-text:"IBM Plex Sans KR","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;     /* 한글 본문·라벨, 자간 0 */
+    /* 옛 이름 = 새 토큰 별칭(§4 '다리'). 탭 파일은 옛 이름 그대로 써도 된다. 새 코드는 새 이름 */
+    --panel:var(--surface); --txt:var(--text); --muted:var(--text-2); --amber:var(--accent); --dn:var(--down); --on-amber:var(--on-accent);
+    --amber-dim:#9a5f14; --blue:#4aa3ff; --cyan:#35d6e6;
+    /* 겹 배경 (10/24 엑셀 스킨 대비 req-dev-0d1eee58): 하드코딩 #111·#151515·#0a0a0a 대신 — html.xl 이 밝은 값으로 바꾼다 */
+    --bg2:var(--raised); --bg3:var(--raised);
     /* 차트 두 계열 색 (10/24 req-dev-06b280d5): 기본 = 주황·파랑, 엑셀 = 엑셀 차트 팔레트(파랑 #4472c4 · 진한 주황 #c55a11) — xl 에서 --amber·--blue 가 둘 다 #000 이라 선 구분 불가 */
     --ch1:var(--amber); --ch2:var(--blue);
-    --mono:"IBM Plex Mono","Consolas","Menlo","Noto Sans Mono CJK KR",monospace;
+    --mono:var(--font-num);
     /* 글자 크기 4단계 (UXUI Top10 #10, 10/24 결재 appr-uxui-top10-next) — 화면 글자는 이 4개만. 픽셀 직접 쓰기 금지(tests/test_font_tokens.py · 고치기 python3 scripts/font_tokens.py --fix)
-       1 보조(시각·단위·주석·태그) 11px · 2 본문·표 12.5px · 3 강조·소제목 14px · 4 제목·큰 숫자 17px · 아이콘(글자 아님: 💬 ✕ › 등) 24px */
-    --fs-1:11px; --fs-2:12.5px; --fs-3:14px; --fs-4:17px; --fs-icon:24px;
+       1 보조(시각·단위·주석·태그) 11px · 2 본문·표 13px · 3 강조·소제목 16px · 4 제목·큰 숫자 17px(2단계에서 히어로 28px 로) · 아이콘(글자 아님: 💬 ✕ › 등) 24px
+       10/31 1단계: 12.5→13 · 14→16 (UXUI §4 font.size) */
+    --fs-1:11px; --fs-2:13px; --fs-3:16px; --fs-4:17px; --fs-icon:24px;
   }
   *{box-sizing:border-box}
   small{font-size:var(--fs-1)}   /* 브라우저 기본 smaller(본문의 83% = 10.4px) → 4단계 1 */
-  html,body{margin:0;background:var(--bg);color:var(--txt);font:var(--fs-2)/1.45 var(--mono);-webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:var(--bg);color:var(--txt);font:var(--fs-2)/1.45 var(--font-text);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+  table,th,td,.tape,.n,.clock,.asof{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums}   /* 숫자 칸 = 고정폭 (UXUI P4) */
   a{color:var(--cyan);text-decoration:none}
   .top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 12px;background:var(--bg2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-  .brand{color:var(--amber);font-weight:700;letter-spacing:.12em}
+  .brand{color:var(--amber);font-weight:700;letter-spacing:.06em;font-family:var(--font-num)}
   .clock{color:var(--muted)}
   .tabs{display:flex;flex-wrap:wrap;gap:2px;margin-left:auto}   /* UXUI 재진단 Top10 #1 (10/23): .top 한 줄 1,643px → 1300px 5개·768/1024px 9개 탭이 화면 밖. 줄바꿈 허용 */
   .fresh{max-width:100%;overflow:hidden;text-overflow:ellipsis}
   #sqb{display:none}
-  .tabs button{background:var(--bg3);color:var(--muted);border:1px solid var(--line);padding:4px 10px;font:inherit;cursor:pointer;letter-spacing:.06em}
+  .tabs button{background:var(--bg3);color:var(--muted);border:1px solid var(--line);padding:4px 10px;font:inherit;cursor:pointer;letter-spacing:0}
   .tabs button.on{background:var(--amber);color:var(--on-amber);border-color:var(--amber);font-weight:700}
   .fresh{margin-left:8px;font-size:var(--fs-1);cursor:pointer;white-space:nowrap}
-  .fresh.ok{color:var(--muted)} .fresh.bad{color:#fff;background:#c62828;padding:1px 7px;border-radius:3px;font-weight:700}
+  .fresh.ok{color:var(--muted)} .fresh.bad{color:var(--on-alarm);background:var(--alarm-bg);padding:1px 7px;border-radius:3px;font-weight:700}
   html.xl .fresh.bad{background:#c00000}
-  .asof{margin-left:8px;font-size:var(--fs-1);color:var(--muted);font-weight:400} .asof.stale{color:#fff;background:#c62828;padding:1px 6px;border-radius:3px;font-weight:700}
-  .tape{white-space:nowrap;overflow:hidden;background:#070707;border-bottom:1px solid var(--line);padding:4px 0}
+  .asof{margin-left:8px;font-size:var(--fs-1);color:var(--muted);font-weight:400} .asof.stale{color:var(--on-alarm);background:var(--alarm-bg);padding:1px 6px;border-radius:3px;font-weight:700}
+  .tape{white-space:nowrap;overflow:hidden;background:var(--bg);border-bottom:1px solid var(--line);padding:4px 0}
   .tape .tk{display:inline-block;white-space:nowrap;animation:tk 60s linear infinite;will-change:transform}
   .tape:hover .tk{animation-play-state:paused}
   @keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   @media (prefers-reduced-motion:reduce){.tape .tk{animation:none}}
-  .tape .ti{cursor:pointer;display:inline-block;padding:0 16px;color:var(--txt);border-right:1px solid #1a1a1a}
+  .tape .ti{cursor:pointer;display:inline-block;padding:0 16px;color:var(--txt);border-right:1px solid var(--line)}
   .tape .ti b{color:var(--amber);font-weight:600;margin-right:6px}
   .tape .ti .v{color:var(--txt)}
   .tape .ti .c{margin-left:6px;font-weight:600}
   .tape .ti.u .c{color:var(--up)} .tape .ti.d .c{color:var(--dn)} .tape .ti.f .c{color:var(--muted)}
-  .tape .ti.u{background:linear-gradient(0deg,rgba(47,208,90,.07),transparent)} .tape .ti.d{background:linear-gradient(0deg,rgba(255,75,75,.08),transparent)}
+  .tape .ti.u{background:linear-gradient(0deg,color-mix(in srgb,var(--up) 8%,transparent),transparent)} .tape .ti.d{background:linear-gradient(0deg,color-mix(in srgb,var(--dn) 8%,transparent),transparent)}
   .tape .ti.lv b{color:var(--on-amber);background:var(--amber);padding:0 6px;border-radius:2px}
   .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;padding:8px}
   .p{background:var(--panel);border:1px solid var(--line);min-width:0}
-  .p h2{margin:0;padding:5px 8px;background:var(--bg3);color:var(--amber);font-size:var(--fs-1);letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  .p h2{margin:0;padding:5px 8px;background:var(--bg3);color:var(--text-2);font-size:var(--fs-1);letter-spacing:0;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
   .p h2 small{color:var(--muted);font-weight:400;letter-spacing:0}
   .tl-card{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);margin:0 0 8px;padding:6px 10px;min-width:0;font-size:var(--fs-2);overflow-wrap:anywhere}
-  .tl-card .tl-h{color:var(--amber);font-size:var(--fs-1);font-weight:700;letter-spacing:.08em}
+  .tl-card .tl-h{color:var(--amber);font-size:var(--fs-1);font-weight:700;letter-spacing:0}
   .tl-card .tl-h small{color:var(--muted);font-weight:400;letter-spacing:0}
   @media(max-width:700px){ .tl-card{cursor:pointer} .tl-card:not(.open) .tl-row{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tl-card:not(.open) .tl-row br,.tl-card:not(.open) .tl-row br+span{display:none} .tl-card:not(.open) .tl-top>.mu{display:none} .tl-card:not(.open) .tl-h small::after{content:' · 눌러 펼치기'} }
   .p .b{padding:6px 8px;overflow:auto}
@@ -161,26 +177,26 @@
   @media(max-width:1100px){.c3,.c4{grid-column:span 6}.c8{grid-column:span 12}}
   @media(max-width:700px){.c3,.c4,.c6,.c8{grid-column:span 12}.tabs button{padding:4px 7px}}
   table{border-collapse:collapse;width:100%;white-space:nowrap}
-  th{color:var(--muted);text-align:right;font-weight:400;padding:2px 6px;border-bottom:1px solid var(--line);letter-spacing:.05em}
-  td{padding:2px 6px;text-align:right;border-bottom:1px solid #141414}
+  th{color:var(--muted);text-align:right;font-weight:400;padding:2px 6px;border-bottom:1px solid var(--line);letter-spacing:0}
+  td{padding:2px 6px;text-align:right;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
   th:first-child,td:first-child,th.l,td.l{text-align:left}
   tr:hover td{background:var(--bg3)}
   .up{color:var(--up)}.dn{color:var(--dn)}.mu{color:var(--muted)}.am{color:var(--amber)}
   .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
   .kv div:nth-child(odd){color:var(--muted)}
-  .bar{height:6px;background:#1c1c1c;position:relative;margin:2px 0 6px}
+  .bar{height:6px;background:var(--raised);position:relative;margin:2px 0 6px}
   .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber)}
   .tag{display:inline-block;padding:0 5px;border:1px solid var(--amber-dim);color:var(--amber);font-size:var(--fs-1);margin-right:4px}
   button.tag{background:none;cursor:pointer}   /* 버튼으로 쓴 태그(HOME 달력 ◀▶): 브라우저 기본 회색 바탕에 주황 글자 대비 1.85 → 바탕 없음 (10/24 대비 점검) */
-  .tag.g{border-color:#1f6b33;color:var(--up)}.tag.r{border-color:#7a2020;color:var(--dn)}.tag.b{border-color:#2a4f7a;color:var(--blue)}
-  pre{margin:0;white-space:pre-wrap;color:#d0d0d0;font:inherit}
+  .tag.g{border-color:color-mix(in srgb,var(--up) 45%,transparent);color:var(--up)}.tag.r{border-color:color-mix(in srgb,var(--dn) 45%,transparent);color:var(--dn)}.tag.b{border-color:color-mix(in srgb,var(--blue) 45%,transparent);color:var(--blue)}
+  pre{margin:0;white-space:pre-wrap;color:var(--txt);font:inherit}
   .err{background:#2a0e0e;color:#ffb3b3;border:1px solid #5a1a1a;padding:6px 8px;margin:8px}
   .spark{display:flex;align-items:flex-end;gap:1px;height:34px}
   .spark i{flex:1;background:var(--amber-dim)}.spark i.last{background:var(--amber)}
-  .load{padding:40px;text-align:center;color:var(--muted);letter-spacing:.2em}
+  .load{padding:40px;text-align:center;color:var(--muted);letter-spacing:0}
   .md{padding:10px 14px;max-width:1200px;overflow-x:auto}   /* KR·US 전종목 표가 390px 밖 855px 까지 잘려 못 봤음 → 가로 스크롤 (UXUI 재진단 Top10 #10) */
   .md table{white-space:normal}
-  .md h1,.md h2{color:var(--amber);letter-spacing:.08em;font-size:var(--fs-2);margin:14px 0 6px}
+  .md h1,.md h2{color:var(--amber);letter-spacing:0;font-size:var(--fs-2);margin:14px 0 6px}
   td.sym{cursor:pointer;text-decoration:underline dotted}
   a.il{text-decoration:underline dotted;text-underline-offset:2px}   /* 문장 속 링크 = 점선 밑줄(색만으로 구분 금지, WCAG 1.4.1 · req-dev-3d26f6e6). 붙이기는 decoInline() */
   .px{cursor:pointer;text-decoration:underline dotted;color:var(--amber)}
@@ -193,7 +209,7 @@
   #cv,#mcv,#mbt,#pfc{display:block;width:100%;height:260px;background:#050505}
   .sc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .sc div.k{border:1px solid var(--line);padding:6px 8px}
-  .sc .t{letter-spacing:.1em;font-size:var(--fs-1);margin-bottom:4px}
+  .sc .t{letter-spacing:0;font-size:var(--fs-1);margin-bottom:4px}
   .backdrop{position:fixed;inset:0;background:#0008;z-index:19;display:none}.backdrop.on{display:block}
 .ctab{margin-left:8px}.ctab button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-1);padding:1px 8px;margin-left:4px;cursor:pointer}.ctab button.on{color:var(--amber);border-color:var(--amber)}
 .lvbar{display:flex;flex-wrap:wrap;gap:14px;font-size:var(--fs-2);margin-bottom:6px}.lvbar i{font-style:normal;color:var(--muted)}
@@ -227,7 +243,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 .ovl{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.ovl button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-1);padding:2px 8px;cursor:pointer;border-radius:2px}
 .ovl button.on{color:var(--c,var(--amber));border-color:var(--c,var(--amber))}
 .subtabs{display:none;gap:4px;padding:6px 8px 0;overflow-x:auto;scrollbar-width:none}.subtabs.on{display:flex}.subtabs::-webkit-scrollbar{display:none}
-.subtabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:var(--fs-2);padding:4px 10px;cursor:pointer;letter-spacing:.04em}
+.subtabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-size:var(--fs-2);padding:4px 10px;cursor:pointer;letter-spacing:0}
 .subtabs button.on{color:var(--amber);border-bottom-color:var(--amber)}
 .subtabs.two{flex-wrap:wrap}.subt2{flex:0 0 100%;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:4px 0 2px}.subt2::-webkit-scrollbar{display:none}
 .subtabs .subt2 button{min-height:44px;border:1px solid var(--line);border-radius:3px;font-size:var(--fs-2);padding:0 10px}.subtabs .subt2 button.on{border-color:var(--amber)}
@@ -235,7 +251,7 @@ td.mac{cursor:pointer;text-decoration:underline dotted}
 html,body{overflow-x:hidden}
 .clock,#gen{white-space:nowrap}
 @media (max-width:700px){
-  html,body{font-size:var(--fs-3);line-height:1.55}
+  html,body{font-size:var(--fs-2);line-height:1.55}   /* 10/31: --fs-3 이 14→16 이 되어 폰 본문은 --fs-2(13) — 목업 본문 13 과 같게 */
   .top{flex-wrap:wrap;gap:6px 6px;padding:6px 10px}
   .brand{font-size:var(--fs-2);letter-spacing:.06em}
   .clock{font-size:var(--fs-1)}
@@ -254,7 +270,7 @@ html,body{overflow-x:hidden}
   #sqb{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-width:44px;min-height:44px;background:none;border:1px solid var(--line);color:var(--txt);font-size:var(--fs-4);cursor:pointer}
   .srch{display:none}.top.sopen .srch{display:block}
   .top{transition:transform .2s ease}.top.hid{transform:translateY(-100%)}
-  .top::after{content:'›';position:absolute;right:0;bottom:2px;height:44px;width:28px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:var(--fs-icon);color:var(--amber);background:linear-gradient(90deg,transparent,#111 55%);pointer-events:none}
+  .top::after{content:'›';position:absolute;right:0;bottom:2px;height:44px;width:28px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:var(--fs-icon);color:var(--amber);background:linear-gradient(90deg,transparent,var(--bg2) 55%);pointer-events:none}
   .top.tend::after{display:none}
   html.xl .top::after{display:none}
   .tape .ti{padding:0 12px;font-size:var(--fs-2)}
@@ -280,7 +296,8 @@ html,body{overflow-x:hidden}
 /* 엑셀 스킨 (사무실 모드): 흰 바탕·회색 격자·맑은고딕, 음수만 빨강(엑셀 기본 서식처럼), 차트는 밝게 반전 */
 html.xl{--bg:#fff;--panel:#fff;--line:#d4d4d4;--amber:#000;--amber-dim:#444;--txt:#000;--muted:#595959;--up:#000;--dn:#c00000;--blue:#000;--cyan:#000;
   --bg2:#f3f3f3;--bg3:#f7f7f7;--on-amber:#fff;--ch1:#4472c4;--ch2:#c55a11;
-  --mono:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+  --surface:#fff;--raised:#f7f7f7;--line-strong:#c6c6c6;--text:#000;--text-2:#595959;--text-3:#595959;--accent:#000;--on-accent:#fff;--down:#c00000;--alarm-bg:#c00000;--on-alarm:#fff;   /* 10/31 새 토큰 — 엑셀은 음수 빨강 관례 유지(D1 '별도 판단') */
+  --mono:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif;--font-num:var(--mono);--font-text:var(--mono)}
 html.xl body{font-size:var(--fs-2);background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:72px 21px;padding-bottom:30px}
 html.xl .top{background:#f3f3f3;color:#333;border-bottom:1px solid #d4d4d4;padding:4px 10px}
 html.xl .top .brand,html.xl .top #clock,html.xl .top #gen{color:#333;letter-spacing:0;font-weight:400}
@@ -348,7 +365,7 @@ html.stealth .brand{letter-spacing:0}
 /* 숨은 표 열 표시 (UXUI 재진단 Top10 #10, 10/23): 가로로 밀어야 보이는 표에 '→ 더 있음' 줄 + 오른쪽 그림자. 끝까지 밀면 사라짐 */
 .hmore{font-size:var(--fs-1);color:var(--amber);padding:2px 8px 0;text-align:right}.hmore.end{visibility:hidden}
 .hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line),4px 0 6px -4px #000}   /* 표 첫 열 고정 (UXUI Top10 #10, 10/24): 가로로 밀어도 종목명 열이 남음 */
-.hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(255,154,31,.45),transparent) right/12px 100% no-repeat scroll}
+.hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,color-mix(in srgb,var(--accent) 45%,transparent),transparent) right/12px 100% no-repeat scroll}
 html.xl .hmore{color:#595959}
 /* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5 AAA): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
    10/24 UXUI 결정(docs/uxui/2026-10-24_pc44_decision.md): 손가락이 있는 기기(any-pointer:coarse — 폰·태블릿·터치 노트북) = 44px,
@@ -437,7 +454,7 @@ function simTable(m){
   if(!m||!m.days) return '<div class="mu">시뮬레이션 데이터 부족 (60거래일 미만)</div>';
   const P=x=>x==null?'—':pct(x,1), pos=p=>p>0?'<b class="up">롱</b>':p<0?'<b class="dn">숏</b>':'<span class="mu">관망</span>';
   const fr={}; (m.fresh||[]).forEach(f=>fr[f.strategy]=f);   // 새로 켜짐 + 거래 ≥6 + 승률 Wilson 95% 하한 > 50% (detail.py _fresh, 참고 C)
-  const row=(name,desc,k,mode)=>{const r=m[k][mode], f=mode==='long'&&fr[k]; return `<tr${f?' class="simfresh" style="background:rgba(47,208,90,.12);outline:1px solid var(--up)"':''}><td class="l">${name}${f?` <span class="tag" style="border-color:var(--up);color:var(--up)" title="참고(C) — 1년 거래 ${f.trades}회 표본, 수백 종목 동시 검색이라 일부는 우연">🟢 오늘 켜짐 · 승률 하한 ${Math.round(f.wilson_lo*100)}%</span>`:''}</td><td class="l mu">${desc}</td><td>${P(r.ret)}</td><td>${P(r.ret-m.bh)}</td><td>${P(r.mdd)}</td><td>${r.trades}</td><td>${r.win==null?'—':(r.win*100).toFixed(0)+'%'}</td><td class="l">${pos(r.pos)}${r.pos?` <span class="mu">${r.entry_date} 진입 ${num(r.entry_px)}</span> ${P(r.open_ret)}`:''}</td></tr>`;};
+  const row=(name,desc,k,mode)=>{const r=m[k][mode], f=mode==='long'&&fr[k]; return `<tr${f?' class="simfresh" style="background:color-mix(in srgb,var(--up) 12%,transparent);outline:1px solid var(--up)"':''}><td class="l">${name}${f?` <span class="tag" style="border-color:var(--up);color:var(--up)" title="참고(C) — 1년 거래 ${f.trades}회 표본, 수백 종목 동시 검색이라 일부는 우연">🟢 오늘 켜짐 · 승률 하한 ${Math.round(f.wilson_lo*100)}%</span>`:''}</td><td class="l mu">${desc}</td><td>${P(r.ret)}</td><td>${P(r.ret-m.bh)}</td><td>${P(r.mdd)}</td><td>${r.trades}</td><td>${r.win==null?'—':(r.win*100).toFixed(0)+'%'}</td><td class="l">${pos(r.pos)}${r.pos?` <span class="mu">${r.entry_date} 진입 ${num(r.entry_px)}</span> ${P(r.open_ret)}`:''}</td></tr>`;};
   return `<table class="simt"><tr><th class="l">전략</th><th class="l">방식</th><th>누적수익</th><th>보유대비</th><th>MDD</th><th>거래</th><th>승률</th><th class="l">현재 포지션 · 진입 후 손익</th></tr>
     ${row('이평 추세 롱','종가>50일선 & 20>50 이면 보유','ma','long')}${row('이평 추세 롱숏','위 조건이면 롱, 반대면 숏','ma','ls')}${row('PSAR 롱','종가>PSAR 이면 보유','psar','long')}${row('PSAR 롱숏','종가>PSAR 롱, 아니면 숏','psar','ls')}
     <tr><td class="l">단순 보유</td><td class="l mu">기간 시작에 사서 보유</td><td>${P(m.bh)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td></td></tr></table>${(m.fresh||[]).length?`<div class="mu" style="font-size:var(--fs-1);margin-top:4px">🟢 = 마지막·직전 거래일에 켜진 롱 전략 중 거래 6회 이상·승률 Wilson 95% 하한 50% 초과. 참고(C): 종목당 1년 표본이고 전 종목을 동시에 검색하므로 일부는 우연 — 신호·근거일 뿐 매매 지시 아님.</div>`:''}`;
