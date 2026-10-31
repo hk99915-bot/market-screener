@@ -1,43 +1,43 @@
 {
  "v": 1,
- "asof": "2026-10-30",
- "generated_at": "2026-10-30 22:17 KST",
+ "asof": "2026-10-31",
+ "generated_at": "2026-10-31 19:41 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 290,
+  "total": 310,
   "거래량 급증": 3,
   "거래량 돌파(추격 금지)": 3,
+  "52주 저점 이탈": 1,
   "수급 이탈 숏": 1,
-  "52주 고점 돌파": 1,
   "업종 체인": 2
  },
  "ideas": [
   {
    "market": "US",
-   "code": "ALNY",
-   "name": "Alnylam Pharmaceuticals, Inc. - Common Stock",
-   "asof": "2026-10-29",
-   "close": 174.0,
+   "code": "RDDT",
+   "name": "Reddit, Inc. Class A Common Stock",
+   "asof": "2026-10-30",
+   "close": 91.73,
    "type": "거래량 급증",
-   "score": 5.338,
+   "score": 5.576,
    "direction": "숏 후보(물량 출회)",
-   "evidence": "거래량 8.4배 · 1일 -25.1%",
+   "evidence": "거래량 6.7배 · 1일 -29.2%",
    "status": "검증전 — 거래량 급증 + 방향",
-   "src": "reports/detail/US/ALNY.json chart",
+   "src": "reports/detail/US/RDDT.json chart",
    "rank": 1
   },
   {
    "market": "US",
-   "code": "NOW",
-   "name": "ServiceNow, Inc. Common Stock",
-   "asof": "2026-10-29",
-   "close": 109.67,
+   "code": "INTC",
+   "name": "Intel Corporation - Common Stock",
+   "asof": "2026-10-30",
+   "close": 65.76,
    "type": "거래량 급증",
-   "score": 4.839,
+   "score": 4.351,
    "direction": "숏 후보(물량 출회)",
-   "evidence": "거래량 6.0배 · 1일 -26.9%",
+   "evidence": "거래량 4.6배 · 1일 -28.6%",
    "status": "검증전 — 거래량 급증 + 방향",
-   "src": "reports/detail/US/NOW.json chart",
+   "src": "reports/detail/US/INTC.json chart",
    "rank": 2
   },
   {
@@ -97,6 +97,20 @@
    "rank": 6
   },
   {
+   "market": "US",
+   "code": "RDDT",
+   "name": "Reddit, Inc. Class A Common Stock",
+   "asof": "2026-10-30",
+   "close": 91.73,
+   "type": "52주 저점 이탈",
+   "score": 0.764,
+   "direction": "숏 후보(검증전)",
+   "evidence": "종가 250일 최저 이탈 · 5일 -36.4%",
+   "status": "검증전 — 52주 저점 이탈",
+   "src": "reports/detail/US/RDDT.json chart",
+   "rank": 7
+  },
+  {
    "market": "KR",
    "code": "440110",
    "name": "파두",
@@ -108,20 +122,6 @@
    "evidence": "외국인 -38억·기관 -24억 5일 동반 매도 · 20일 -43.5% · 50일선 아래",
    "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
    "src": "reports/detail/KR/440110.json chart · flow_note",
-   "rank": 7
-  },
-  {
-   "market": "US",
-   "code": "TENB",
-   "name": "Tenable Holdings, Inc. - Common Stock",
-   "asof": "2026-10-29",
-   "close": 51.78,
-   "type": "52주 고점 돌파",
-   "score": 0.733,
-   "direction": "참고(미장 B2 F)",
-   "evidence": "종가 250일 최고 경신 · 5일 +23.3%",
-   "status": "F 참고 — 미장 52주 고점 B2 탈락, 단독 근거 금지",
-   "src": "reports/detail/US/TENB.json chart",
    "rank": 8
   },
   {
@@ -141,9 +141,9 @@
    "code": null,
    "name": "정유",
    "type": "업종 체인",
-   "score": 0.7,
+   "score": 0.72,
    "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.70 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
+   "evidence": "체인 점수 +0.72 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
    "status": "검증전 — 업종 체인 점수(detail drivers)",
    "src": "reports/detail/*/<코드>.json drivers.chain",
    "rank": 10
@@ -151,21 +151,21 @@
  ],
  "macro": [
   {
-   "driver": "미 10년 금리 20일 -25bp",
+   "driver": "미 10년 금리 20일 -35bp",
    "benefit": "고PER 성장·리츠·유틸리티",
    "hurt": "은행·보험",
    "status": "검증전 — 정성 매크로 규칙",
    "src": "reports/macro_series.json"
   },
   {
-   "driver": "WTI 20일 +13.3%",
+   "driver": "WTI 20일 +13.0%",
    "benefit": "에너지·정유",
    "hurt": "항공·화학(원가)",
    "status": "검증전 — 정성 매크로 규칙",
    "src": "reports/macro_series.json"
   },
   {
-   "driver": "원달러 20일 -2.0%",
+   "driver": "원달러 20일 -1.5%",
    "benefit": "외국인 수급(국장 대형주)",
    "hurt": "국장 수출주 마진",
    "status": "검증전 — 정성 매크로 규칙",
@@ -173,12 +173,12 @@
   }
  ],
  "gap": {
-  "us_date": "2026-10-29",
-  "nasdaq": -0.0138,
+  "us_date": "2026-10-30",
+  "nasdaq": -0.0286,
   "beta": 0.598,
   "t": 13.3,
   "n": 490,
-  "pred_gap": -0.0068,
+  "pred_gap": -0.0157,
   "band": 0.0224,
   "status": "검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)",
   "src": "data/deriv/daily.csv · reports/macro_series.json NASDAQ"
@@ -207,10 +207,10 @@
    "code": "BUG",
    "name": "BUG · Technology",
    "on": [
-    "200일선 35 지지(5일 저점 −2% 안): 종가 51"
+    "200일선 35 지지(5일 저점 −2% 안): 종가 49"
    ],
    "off": [
-    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 1.8배 -1.7%",
+    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 1.9배 -3.2%",
     "DART 7일: 공급계약·임원매수·지분·자사주·IR 없음",
     "업종 선행(수동 확인): 미 10년 금리 20일 방향(reports/macro_series.json US10Y) — 고PER 소프트웨어 민감",
     "업종 선행(수동 확인): 나스닥 대비 상대강도 — 웹 확인"
@@ -222,12 +222,12 @@
  ],
  "top": {
   "what": [
-   "후보 290건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 3, 수급 이탈 숏 1, 52주 고점 돌파 1",
-   "상위: Alnylam Pharmaceuticals, Inc. - Common Stock(거래량 급증), ServiceNow, Inc. Common Stock(거…"
+   "후보 310건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 3, 52주 저점 이탈 1, 수급 이탈 숏 1",
+   "상위: Reddit, Inc. Class A Common Stock(거래량 급증), Intel Corporation - Common Stock(거래량 급증),…"
   ],
   "so_what": [
    "후보일 뿐 진입 아님 · 검증 상태 F 신호는 반대 근거로만",
-   "미·한 갭 추정 -0.68% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
+   "미·한 갭 추정 -1.57% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
   ],
   "now_what": [
    "진입은 scripts/hf_book.py 체크리스트 통과 건만(HF 데스크)"
@@ -236,7 +236,7 @@
   "src": [
    "reports/hf_ideas.json"
   ],
-  "asof": "2026-10-30 22:17",
+  "asof": "2026-10-31 19:41",
   "grade": "검증전"
  }
 }
