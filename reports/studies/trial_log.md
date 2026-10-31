@@ -1,9 +1,9 @@
 ## 요약 (What · So What · Now What)
 
-> 기준 2026-10-29
+> 기준 2026-10-31
 
 **What**
-- 시도 N 1200 · 연구 47건 · 전체 한 가족 α 4e-05
+- 시도 N 1210 · 연구 48건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1200** (등록 m 합 427 + 등록 전 탐색 773) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1210** (등록 m 합 433 + 등록 전 탐색 777) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -49,6 +49,7 @@
 | 2026-10-24_trend_events |  | trend_sim | 6 | m | 0.00833 | — | A1 B2 C1 F2 | KR hi52 A·gcv B·sqz B, US hi52 F·gcv C·sqz F. 주제 N 197 기준은 sqz KR 만 통과(병기). 편입은 다음 결재 |
 | 2026-10-24_trend_events_rerun_us666 |  | (미분류) | — | 미등록 | — | — | A1 B2 F3 | — |
 | 2026-10-29_winner_ex_ante | 2026-10-29 | winner_ex_ante | 7 | prereg.m | 0.00714 | 1 | A(통계 lift>1) · 변동성 표지·선별력 실무 미달2 B(Bonferroni 통과, 2022 하락 구간 부호 반대·IS p 0.056) · 정밀도 5.9% 실무 미달1 C(사후 분류·방향만)1 F3 F(both3 재탕)1 F(차이 유의 안 됨)1 검증전(OOS 날짜 9 < 12)1 검증전(미실행 — fin 접수일 컬럼 없음)1 | H1-1 낙폭 −40% F(lift 0.99) · H1-2·H1-3 통계 lift>1이나 하위 5% 꼬리가 더 커 변동성 표지 |
+| 2026-10-31_trend_rule | 2026-10-31 | trend_sim | 6 | prereg.m | 0.00833 | 4 | C(역방향)1 F5 | S1·S2·S3·D1(EW)·D2 F, C1 C(역방향: 필터가 고정보다 OOS 월 −0.37%p). 위성 1단계 추세 규칙 근거 없음 · 코어 필터는 KB 충돌 + 수익 손실 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -56,7 +57,7 @@
 | entry_signals | 2026-10-16 | crash_entry | 6 | params.m | 0.00833 | — | C1 F5 | 후보 5개 F, 급락일 종가 C → '확인 신호를 기다리지 않기' 추천 |
 | exec_signal | 2026-10-16 | crash_entry | 19 | params.m1+m3+m4 | 0.00263 | — | — | S2′만 C(보정 전), 급락일 종가보다 20일 −5.7%p |
 | fib_levels | 2026-10-15 | fib | 4 | m | 0.0125 | — | F1 | 렌즈 등급 F |
-| gamma_regime | 2026-10-16 | derivs | 3 | m | 0.01667 | — | C1 검증전4 | IS 감마음수 17일<20 → 검증전, next_eval 대기 |
+| gamma_regime | 2026-10-16 | derivs | 3 | m | 0.01667 | — | A1 C2 F2 | IS 감마음수 17일<20 → 검증전, next_eval 대기 |
 | hollzzak | 2026-10-16 | crash_entry | 7 | m | 0.00714 | 4 | C1 F3 F(역방향 C)2 검증전1 | H1 F(방향 같으나 풀링 p 0.12)·H2 검증전(재폭락 2010~25 n 9)·H3a F·H3b F(역방향 C)·H4a F(설계↔검증 부호 반대)·H4b C·H4c F(역방향 C) |
 | ktb_vs_ust | 2026-10-23 | bond_sleeve | 11 | m | 0.00455 | — | — | 슬리브 간 장기·믹스 성과 구별 불가 → 선택은 정성(채권·매크로)과 환노출 한도로 |
 | lab_p1 | 2026-10-16 | earnings_yoy | 6 | m | 0.00833 | 1 | — | — |
@@ -83,7 +84,7 @@
 | 주제 | 연구 | 등록 m 합 | 등록 전 탐색 | N | α(N) |
 |---|---|---|---|---|---|
 | us_spike | 2026-10-21_us_smallcap_spikes, 2026-10-21_us_spikes_intraday | 22 | 700 | 722 | 7e-05 |
-| trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, trend_expectancy | 179 | 18 | 197 | 0.00025 |
+| trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, trend_expectancy | 185 | 22 | 207 | 0.00024 |
 | crash_entry | crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 32 | 36 | 68 | 0.00074 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
 | (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, dotplot_tilt, lab_p1_screen, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 31 | 0 | 31 | 0.00161 |
