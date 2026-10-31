@@ -238,7 +238,7 @@ function macChart(cv,all,st,o){
   x.fillStyle='#050505';x.fillRect(0,0,W,H);x.font=`${fs}px monospace`;
   for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,y=Y(v);x.strokeStyle='#1c1c1c';x.lineWidth=1;x.beginPath();x.moveTo(pl,y);x.lineTo(W-pr,y);x.stroke();x.fillStyle='#777';x.fillText(v.toLocaleString(undefined,{maximumFractionDigits:v<20?2:0}),4,y+fs/3);}
   if(vh){const vm=Math.max(...b.map(z=>z.v))||1; b.forEach((z,i)=>{const hgt=z.v/vm*vh; x.fillStyle=z.c>=z.o?'rgba(255,75,75,.45)':'rgba(74,163,255,.45)'; x.fillRect(X(i)-cw*0.35,H-pb-hgt,Math.max(cw*0.7,1),hgt);});}
-  if(hasOHLC){ b.forEach((z,i)=>{const up=z.c>=z.o, col=up?'#ff4b4b':'#4aa3ff'; x.strokeStyle=col;x.fillStyle=col;x.lineWidth=Math.max(1,cw*0.12);
+  if(hasOHLC){ b.forEach((z,i)=>{const up=z.c>=z.o, col=up?'#ff4d4d':'#4c8dff'; x.strokeStyle=col;x.fillStyle=col;x.lineWidth=Math.max(1,cw*0.12);
       x.beginPath();x.moveTo(X(i),Y(z.h));x.lineTo(X(i),Y(z.l));x.stroke();
       const y1=Y(Math.max(z.o,z.c)), y2=Y(Math.min(z.o,z.c)), bw=Math.max(cw*0.7,1); x.fillRect(X(i)-bw/2,y1,bw,Math.max(y2-y1,1));
       if(z.live){x.strokeStyle='#fc3';x.lineWidth=2;x.strokeRect(X(i)-bw/2-2,y1-2,bw+4,Math.max(y2-y1,1)+4);} }); }
@@ -473,7 +473,7 @@ function drawChart(ch,sc,rs,kr){
     grid:{vertLines:{color:'#141414'},horzLines:{color:'#141414'}},rightPriceScale:{borderColor:'#2a2a2a'},timeScale:{borderColor:'#2a2a2a',rightOffset:3,barSpacing:mob?6:8},
     crosshair:{mode:0},handleScroll:{vertTouchDrag:false},localization:{locale:'ko-KR',priceFormatter:v=>num(v,kr?0:2)}});
   LWCH=c;
-  const upC=kr?'#ff4b4b':'#2fd05a', dnC=kr?'#4aa3ff':'#ff4b4b';
+  const upC='#ff4d4d', dnC='#4c8dff';   // 한국식 통일(D1 10/31): 미국 종목도 상승 빨강·하락 파랑 = --up/--down dark 값(캔버스는 xl 에서 반전되므로 고정값)
   const cs=c.addCandlestickSeries({upColor:upC,downColor:dnC,borderUpColor:upC,borderDownColor:dnC,wickUpColor:upC,wickDownColor:dnC});
   cs.setData(ch.map(b=>b.live?{time:b.t,open:b.o,high:b.h,low:b.l,close:b.c,color:'rgba(255,154,31,.25)',borderColor:'#ff9a1f',wickColor:'#ff9a1f'}:{time:b.t,open:b.o,high:b.h,low:b.l,close:b.c}));
   const lb=ch[ch.length-1]; if(lb&&lb.live) try{ cs.setMarkers([{time:lb.t,position:'aboveBar',color:'#ff9a1f',shape:'arrowDown',text:'잠정'}]); }catch(_){}
@@ -534,7 +534,7 @@ function drawCanvas(ch,sc,rs,kr){
     if(pts.length){ ch.forEach((c,i)=>{ if(c.p==null||c.p<lo||c.p>hi) return; const px=padL+cw*i+cw/2; x.fillStyle=c.p<c.c?'#ff9a1f':'#c070ff'; x.beginPath(); x.arc(px,Y(c.p),Math.max(2.5,cw*0.12),0,Math.PI*2); x.fill(); });
       const lp=pts[pts.length-1]; x.fillStyle='#ff9a1f'; x.fillText('PSAR '+fm(lp.p)+(lp.p<lp.c?' (상승추세)':' (하락추세)'),padL+6,padT+22); }
     else if(sc.bear?.trail) hline(sc.bear.trail,'#ff9a1f','PSAR '+fm(sc.bear.trail)); }
-  ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4b4b':'#4aa3ff'; if(!kr){x.strokeStyle=x.fillStyle=up?'#2fd05a':'#ff4b4b';}
+  ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4d4d':'#4c8dff';   // 한국식 통일(D1) — 미국 종목 포함
     if(c.live){ x.strokeStyle='#ff9a1f'; x.setLineDash([6,4]); }
     x.lineWidth=2;x.beginPath();x.moveTo(px,Y(c.h));x.lineTo(px,Y(c.l));x.stroke();const yo=Y(c.o),yc=Y(c.c);
     if(c.live){ x.strokeRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo))); x.setLineDash([]); } else x.fillRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo)));

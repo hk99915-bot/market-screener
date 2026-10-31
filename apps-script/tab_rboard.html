@@ -28,7 +28,7 @@
 <script>
 let RB=null;
 const RB_GH='https://github.com/hk99915-bot/market-screener/blob/main/';
-const RB_VC={'통과':'var(--up)','진행':'var(--amber)','보류':'var(--muted)','폐기':'var(--dn)'};
+const RB_VC={'통과':'var(--ok)','진행':'var(--amber)','보류':'var(--muted)','폐기':'var(--bad)'};
 const RB_VIEWN={study:'검증 스터디',lab:'전략 연구소',sig:'시그널 검증',mom:'모멘텀',pf:'모의 포트폴리오',isa:'ISA 실험실',chain:'공급망'};
 function rbToday(){ return new Date(Date.now()+9*3600e3).toISOString().slice(0,10); }   // KST
 function rbDays(d){ return d?Math.round((Date.parse(d)-Date.parse(rbToday()))/864e5):null; }

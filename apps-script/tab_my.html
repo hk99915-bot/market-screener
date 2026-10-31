@@ -124,14 +124,14 @@ const _ymd=()=>new Date(Date.now()+9*36e5).toISOString().slice(0,10);
 function myExportText(){ return `# MY 탭 내보내기 ${_ymd()} (브라우저 작업본 · holdings.txt 형식 · 개인 값 — 공개 저장소·텔레그램 금지)\n`+myLoad().replace(/\s*$/,'\n'); }
 function myBakMsg(m){ const e=$('#mybakmsg'); if(e) e.innerHTML=m; }
 function myCopy(){ const t=myExportText(), done=()=>{ mySetMeta({exportedAt:Date.now()}); myBadges(); myBakMsg('<span class="up">복사됨</span> — PB 에게는 대화로'); };
-  const fb=()=>{ try{ const x=document.createElement('textarea'); x.value=t; document.body.appendChild(x); x.select(); const ok=document.execCommand('copy'); x.remove(); ok?done():myBakMsg('<span class="dn">복사 실패 — 파일로 저장을 써줘</span>'); }catch(e){ myBakMsg('<span class="dn">복사 실패</span>'); } };
+  const fb=()=>{ try{ const x=document.createElement('textarea'); x.value=t; document.body.appendChild(x); x.select(); const ok=document.execCommand('copy'); x.remove(); ok?done():myBakMsg('<span class="v-bad">복사 실패 — 파일로 저장을 써줘</span>'); }catch(e){ myBakMsg('<span class="v-bad">복사 실패</span>'); } };
   try{ navigator.clipboard.writeText(t).then(done,fb); }catch(e){ fb(); } }
 function myDownload(){ try{ const u=URL.createObjectURL(new Blob([myExportText()],{type:'text/plain;charset=utf-8'})), a=document.createElement('a');
   a.href=u; a.download='holdings_'+_ymd().replace(/-/g,'')+'.txt'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000);
   mySetMeta({exportedAt:Date.now()}); myBadges(); myBakMsg('<span class="up">파일로 저장함</span>'); }catch(e){ myBakMsg('<span class="dn">저장 실패 '+esc(e.message)+'</span>'); } }
 function myImpPreview(){ const t=($('#myimp')||{}).value||'', o=$('#myimpd'); if(!o) return; if(!myNorm(t)){ o.innerHTML='<span class="mu">붙여넣은 내용이 없어요</span>'; return; }
   const d=myDiff(myLoad(),t); o.innerHTML=myDiffHtml(d,'지금 브라우저에만','가져올 내용에만')+(d.n?'<button id="myimpok" class="sbtn" style="margin-top:4px">이 내용으로 바꾸기</button>':'');
-  const ok=$('#myimpok'); if(ok) ok.onclick=()=>{ mySave(myClean(t),'import'); const ta=$('#myta'); if(ta) ta.value=myClean(t); o.innerHTML='<span class="up">가져옴</span>'; $('#myimp').value=''; myAsk(); myBadges(); myRun(); }; }
+  const ok=$('#myimpok'); if(ok) ok.onclick=()=>{ mySave(myClean(t),'import'); const ta=$('#myta'); if(ta) ta.value=myClean(t); o.innerHTML='<span class="v-ok">가져옴</span>'; $('#myimp').value=''; myAsk(); myBadges(); myRun(); }; }
 let MYSYNCED=false;
 function myOpen(){ try{ return localStorage.getItem('mt_myopen')==='1'; }catch(e){ return false; } }
 // ───── 일기·히스토리 보기 + 회고 쓰기 (10/17 겸이) — pb-private 를 이 브라우저에서만 읽고 씀. 공개 서버 경유 없음
@@ -267,7 +267,7 @@ function myFsHead(H,L){ const la=(L&&((L.stats||{}).asof||L.asof))||'', today=_y
     +(fut?`<div class="am myfs-n">날짜 확인 필요 · 결론 ${myFsMD(H.date)} &gt; 오늘 ${myFsMD(today)}</div>`:'')
     +`<div class="myfs-c${stale?' mu':''}">${esc(H.text)} ${by}</div>`
     +(!stale&&gap?`<div class="mu myfs-n">결론 기준 ${myFsMD(H.asof)} · 숫자 기준 ${myFsMD(la)} (${gap}일 차이)</div>`:''); }
-function myFsCell(t,a,b,d,warn){ return `<div class="myfs-k"><div class="myfs-kt">${t}</div><div class="myfs-kv${warn?' dn':''}"><span>${a}</span><span>${b}</span></div><div class="myfs-kd">${d}</div></div>`; }
+function myFsCell(t,a,b,d,warn){ return `<div class="myfs-k"><div class="myfs-kt">${t}</div><div class="myfs-kv${warn?' v-bad':''}"><span>${a}</span><span>${b}</span></div><div class="myfs-kd">${d}</div></div>`; }
 function myFsHtml(L,H,D){ const s=(L&&L.stats)||{}, K=(L&&L.kpis)||[], kr=re=>(K.find(k=>re.test(k[0]))||[])[1]||'';
   const vs=(a,b)=>a==null||b==null||!isFinite(a)||!isFinite(b)?'—':(Math.abs(a-b)<0.05?'같음 0.0%p':(a>b?'앞섬 ':'뒤짐 ')+myFsPp(a-b));
   // ① 이번 주 vs 코스피 (stats)
@@ -277,7 +277,7 @@ function myFsHtml(L,H,D){ const s=(L&&L.stats)||{}, K=(L&&L.kpis)||[], kr=re=>(K
   const c2=myFsCell(esc(brow?brow[0]:'기초 이후 vs 코스피'),bm?myFsP(bn(bm[1])/100):'—',bm?myFsP(bn(bm[2])/100):'—',bm?vs(bn(bm[1]),bn(bm[2])):'—');
   // ③ 구속 스트레스 vs 한도 — stress_ok=false 면 빨강+⛔ 와 초과량, 옆에 한도 주석(Ajani 2022 강조+주석)
   const st=s.stress, over=s.stress_ok===false, ex=st!=null?(-st-MYFS_LIM)*100:null;
-  const c3=myFsCell('구속 스트레스'+(over?' ⛔':''),myFsP(st),'한도 −'+(MYFS_LIM*100).toFixed(0)+'%',st==null?'—':over?`<span class="dn">⛔ 초과 ${Math.abs(ex).toFixed(1)}%p</span>`:`여유 ${Math.abs(ex).toFixed(1)}%p`,over);
+  const c3=myFsCell('구속 스트레스'+(over?' ⛔':''),myFsP(st),'한도 −'+(MYFS_LIM*100).toFixed(0)+'%',st==null?'—':over?`<span class="v-alarm">⛔ 초과 ${Math.abs(ex).toFixed(1)}%p</span>`:`여유 ${Math.abs(ex).toFixed(1)}%p`,over);
   // ④ 규칙 위반 — 적용 건이 있으면 빨강+⛔. 벌금(금액)은 첫 화면에 두지 않는다
   const ban=(String(kr(/위반/)).split('/').pop()||'').trim()||'—', live=+s.viol_live>0;
   const c4=myFsCell('규칙 위반'+(live?' ⛔':''),(s.viol!=null?s.viol:'—')+'건','적용 '+(s.viol_live!=null?s.viol_live:'—'),'매매 금지 '+esc(ban),live);
@@ -285,7 +285,7 @@ function myFsHtml(L,H,D){ const s=(L&&L.stats)||{}, K=(L&&L.kpis)||[], kr=re=>(K
   const prev=s.wk_r_prev!=null?`${myFsP(s.wk_r_prev)} → ${myFsP(s.wk_r)}`:esc(((String(kr(/전주 대비/)).match(/수익률\s*([^·]+)/)||[])[1]||'—').trim());
   // ③ 원인: 관계 문장 1줄(Boger & Franconeri 2024 — 관계는 문장으로) + 데스크 첫 줄
   const si=s.semi_in, cap=s.semi_cap_implied;
-  const rel=si==null?'':`<div class="myfs-rel">반도체 ${myFsP(si).replace('+','')}${cap!=null?` ${si>cap?'&gt;':'≤'} 함의 상한 ${myFsP(cap).replace('+','')}`:''} → 스트레스 <span class="${over?'dn':''}">${myFsP(st)}</span> <span class="mu">(한도 −${(MYFS_LIM*100).toFixed(0)}%)</span></div>`;
+  const rel=si==null?'':`<div class="myfs-rel">반도체 ${myFsP(si).replace('+','')}${cap!=null?` ${si>cap?'&gt;':'≤'} 함의 상한 ${myFsP(cap).replace('+','')}`:''} → 스트레스 <span class="${over?'v-bad':''}">${myFsP(st)}</span> <span class="mu">(한도 −${(MYFS_LIM*100).toFixed(0)}%)</span></div>`;
   const desks=(D||[]).filter(x=>x&&x.d).map(x=>`<details class="myfs-d"><summary><span class="myfs-dl"><b class="am">${x.n}</b> ${esc(myFsMask(x.d.lab))}: ${esc(myFsMask(x.d.first))}</span><span class="mu myfs-dm">더보기</span></summary><div class="myfs-df">${esc(myFsMask(x.d.full))}</div></details>`).join('');
   // ④ 다음 행동: headline.next(문장 또는 배열, 최대 2) — 없으면 'PB 미작성'. 화면이 데스크 글에서 행동을 골라내지 않는다
   const nx=H&&H.next?(Array.isArray(H.next)?H.next:[H.next]).filter(Boolean).slice(0,2):[];
@@ -561,14 +561,14 @@ function myRender(hs,cash,miss){
   const SEMI_FLOOR=0.30, SEMI_GLIDE_TARGET=0.35, SEMI_GLIDE_BY='2026-11-30', VAR99_Z=2.326, VAR99_LIMIT=0.02, VAR99_LIMIT_BEAR=0.015;
   const SEMI_REGIME_CAP={'하락장':0.35,'회복확인':0.40,'상승장':SEMI_CAP}, SEMI_SWING=['009150'];
   const RG=myRegime(Object.keys(kos).sort().map(d=>kos[d])), CAPR=SEMI_REGIME_CAP[RG.regime];
-  const bandSt=x=>x>SEMI_BAND+0.005?{st:'trigger',t:`<b class="dn">⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 ${W(CAPR)}로`}:x>CAPR+0.005?{st:'over',t:`<b class="dn">상한 ${W(CAPR)}(${RG.regime}) 초과</b> — 반도체 신규 매수 금지`}:x<SEMI_FLOOR-0.005?{st:'floor',t:`<span class="am">하단 ${W(SEMI_FLOOR)} 미만 — 재매수 허용(의무 아님 · 구속 스트레스 위반 중엔 금지, 10/26 결재 ③)</span>`}:{st:'ok',t:'<span class="up">밴드 안 ✅</span>'};
+  const bandSt=x=>x>SEMI_BAND+0.005?{st:'trigger',t:`<b class="v-alarm">⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 ${W(CAPR)}로`}:x>CAPR+0.005?{st:'over',t:`<b class="v-bad">상한 ${W(CAPR)}(${RG.regime}) 초과</b> — 반도체 신규 매수 금지`}:x<SEMI_FLOOR-0.005?{st:'floor',t:`<span class="am">하단 ${W(SEMI_FLOOR)} 미만 — 재매수 허용(의무 아님 · 구속 스트레스 위반 중엔 금지, 10/26 결재 ③)</span>`}:{st:'ok',t:'<span class="up">밴드 안 ✅</span>'};
   const swing=A.filter(a=>SEMI_SWING.includes(a.h.r.s)&&semiClass(a).kind!=='semi').reduce((s,a)=>s+a.val,0);
   const bEx=bandSt(semi/DEN), bIn=bandSt((semi+swing)/DEN);
   const P60=P.slice(-60), m60=mean(P60), sd60=Math.sqrt(P60.reduce((s,x)=>s+(x-m60)*(x-m60),0)/Math.max(P60.length-1,1));
   const VAR99=VAR99_Z*sd60*NAV/DEN, VARL=RG.regime==='하락장'?VAR99_LIMIT_BEAR:VAR99_LIMIT, VAROVER=VAR99>VARL;   // denominator=D2b (b) — P 는 NAV 가중이라 NAV/DEN 으로 환산
   const IM=window._myIsaM||{amt:0,day:1}, GL=myGlide(semi,DEN,IM.amt,IM.day,SEMI_GLIDE_BY,SEMI_GLIDE_TARGET);
   const semiTag=bEx.t;
-  op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (레짐 ${RG.regime} 상한 ${W(CAPR)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}.${VAROVER?' <b class="dn">VaR 한도 초과 — 반도체 신규 매수 금지</b>(강제 매도 없음).':''} 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
+  op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (레짐 ${RG.regime} 상한 ${W(CAPR)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}.${VAROVER?' <b class="v-alarm">⛔ VaR 한도 초과 — 반도체 신규 매수 금지</b>(강제 매도 없음).':''} 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
   const top=chainL[0]; if(semi/tot<=0.6&&top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
   if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 섹터 ETF(TIGER 200 IT·PSI 등)부터 — 지수 ETF(KODEX 200·S&P500 등 ISA 코어 적립분)는 줄이지 않습니다.`);
   op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}), 최대낙폭 ${pct(Pm.mdd,0)}. ${Pm.sh>2?'<b>이 숫자를 기대값으로 쓰면 안 됩니다.</b> 지난 1년 메모리 대랠리가 그대로 들어간 이례적 값이고, 같은 베팅이 맞았던 결과일 뿐입니다. 볼 것은 샤프가 아니라 변동성·낙폭.':Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':'보통 수준.'}`);
@@ -581,7 +581,7 @@ function myRender(hs,cash,miss){
   const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
   const isaW={}; let isaEtc=0; for(const a of A){ if(a.book!=='isa') continue; const b=isaBucket(a.h.r.s,a.d.name); if(b) isaW[b]=(isaW[b]||0)+a.val; else isaEtc+=a.val; }
   const isaPanel=hasIsa?`<div class="p" style="margin-bottom:8px"><h2>ISA 코어<small>${DENOM_TERMS.a}의 ${W(isaTot/NAV)} · 목표 S&P40/NDX10/K200 15/국고채20/금15 · 밴드 ±${(ISA_BAND*100).toFixed(0)}%p · 적립으로 맞춤(매도 아님)</small></h2><div class="b"><table><tr><th class="l">바구니</th><th>지금</th><th>목표</th><th>차이</th><th>상태</th></tr>
-     ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="up">밴드 안 ✅</span>':d>0?'<span class="dn">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
+     ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="v-ok">밴드 안 ✅</span>':d>0?'<span class="v-bad">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
      ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${KW(cIsa)} — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>
      <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">ISA 코어 ${KW(isaTot)}. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
   const bandPanel=`<div class="p" style="margin-bottom:8px" id="mysemiband"><h2>반도체 밴드 · 결재 #3<small>레짐 연동 ${Object.entries(SEMI_REGIME_CAP).map(([k,v])=>k+' '+W(v)).join(' / ')} · 발동선 ${W(SEMI_BAND)} · 하단 ${W(SEMI_FLOOR)} · 분모 ${DENL} · 비율만</small></h2><div class="b" style="white-space:normal">
@@ -595,7 +595,7 @@ function myRender(hs,cash,miss){
      <div style="margin:4px 0 8px">${GL.need>0.0005?`11월 말 ${W(SEMI_GLIDE_TARGET)}에 적립만으로는 부족 — 추가 축소 <b>분모의 ${(GL.need*100).toFixed(1)}%p</b> (반등일 매도 또는 적립 증액)`:'<span class="up">적립만으로 11월 말 목표 도달 ✅</span>'}</div>
      <div><b>VaR99 1일 (60거래일 실현)</b> <b class="${VAROVER?'dn':'up'}">${(VAR99*100).toFixed(2)}%</b> / 한도 ${(VARL*100).toFixed(1)}% (${RG.regime==='하락장'?'하락장':'기본'})
        <div style="height:8px;background:var(--line);margin:4px 0;max-width:420px;position:relative"><div style="height:8px;width:${Math.min(VAR99/(VARL*2),1)*100}%;background:${VAROVER?'var(--dn)':'var(--up)'}"></div><div style="position:absolute;left:50%;top:-2px;height:12px;border-left:2px solid var(--amber)"></div></div>
-       ${VAROVER?'<b class="dn">⛔ 반도체 신규 매수 금지</b> — 계기판 플래그(강제 매도 없음). 한도 아래로 내려오면 자동 해제.':'<span class="mu">한도 안 — 플래그 없음 (계기판, 판정 아님)</span>'} <span class="mu">· σ ${P60.length}일 · 정규 근사 2.326σ</span></div>
+       ${VAROVER?'<b class="v-alarm">⛔ 반도체 신규 매수 금지</b> — 계기판 플래그(강제 매도 없음). 한도 아래로 내려오면 자동 해제.':'<span class="mu">한도 안 — 플래그 없음 (계기판, 판정 아님)</span>'} <span class="mu">· σ ${P60.length}일 · 정규 근사 2.326σ</span></div>
    </div></div>`;
   $('#myout').innerHTML=`
    <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px"><label style="float:right;cursor:pointer"><input type="checkbox" id="myratio" ${RO?'checked':''}> 비율만 보기</label>분모: ${DENOM_TERMS.a}(위성+ISA+현금) · 반도체·스트레스 ${DENL} ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 상한 ${W(CAPR)}(${RG.regime}) · 발동선 ${W(SEMI_BAND)}</div>
@@ -616,7 +616,7 @@ function myRender(hs,cash,miss){
     <div class="p c6"><h2>스트레스 테스트<small>종목별 1년 베타로 추정 · 분모 ${DENL}</small></h2><div class="b" style="line-height:1.9">
       <div>코스피 −10% → <b class="dn">${KW(stK)}</b> (${pct(stK/DEN,1)})</div>
       <div>미 반도체(SOXX) −15% → <b class="dn">${KW(stX)}</b> (${pct(stX/DEN,1)})</div>
-      <div>2026-07 실측(06/22→07/30, 반도체 −50%) → <b class="dn">${pct(stS/DEN,1)}</b> ${stS/DEN<-STRESS_LIMIT?'<b class="dn">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 ${DENL} · 비율만)</span></div>
+      <div>2026-07 실측(06/22→07/30, 반도체 −50%) → <b class="dn">${pct(stS/DEN,1)}</b> ${stS/DEN<-STRESS_LIMIT?'<b class="v-alarm">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 ${DENL} · 비율만)</span></div>
       <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${KW(stF)}</b> (${pct(stF/DEN,1)})</div>
       <div>하루 손실이 이보다 클 확률 5%: <b>${KW(Pm.var*NAV)}</b> · 그런 날 평균 ${KW(Pm.cvar*NAV)}</div></div></div>
     <div class="p c6"><h2>헷지안<small>5거래일 수익률 · 최근 1년</small></h2><div class="b">

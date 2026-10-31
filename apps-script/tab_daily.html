@@ -41,7 +41,7 @@ function viewsView(){
   if(!VW||!VW.summary) return '<div class="grid"><div class="p c12"><div class="b mu">VIEW 데이터 없음 — 다음 자동 실행(장전·장 마감) 때 생성</div></div></div>';
   const GC={A:'g',B:'',C:'b',F:'r'};
   const gb=g=>`<span class="tag ${g in GC?GC[g]:'b'}" title="근거 등급">${esc(g||'—')}</span>`;
-  const gr=r=>r==='pass'?'<b class="up">통과</b>':r==='fail'?'<b class="dn">불통과</b>':`<span class="mu">${esc(r||'—')}</span>`;
+  const gr=r=>r==='pass'?'<b class="v-ok">통과</b>':r==='fail'?'<b class="v-bad">불통과</b>':`<span class="mu">${esc(r||'—')}</span>`;
   const RL={gate:'게이트',weight:'가중',alert:'주의',reference:'참고',none:'—'};
   const RC={gate:'am',weight:'am',alert:'',reference:'mu',none:'mu'};
   const tl=x=>x==null?'<span class="mu">— (가중 렌즈 신호 없음)</span>':`<b class="${x>0?'up':x<0?'dn':'mu'}">${x>0?'+':''}${x.toFixed(2)}</b>`;
@@ -50,7 +50,7 @@ function viewsView(){
     const priv=(s.private_gates||[]).length?`<div class="mu" style="font-size:var(--fs-1)">개인 게이트 ${(s.private_gates||[]).length}개 — 비공개 저장소에서 판정: ${(s.private_gates||[]).map(g=>esc(g.name)).join(' · ')}</div>`:'';
     const wts=(s.weights||[]).map(w=>`<div>${w.sign==null?'<span class="mu">·</span>':w.sign>0?'<b class="up">+1</b>':w.sign<0?'<b class="dn">−1</b>':'<span class="mu">0</span>'} ${esc(w.name)} ${gb(w.grade)} <span class="mu">${esc(w.state)}</span></div>`).join('');
     const al=(s.alerts||[]).map(a=>`<div><b class="am">!</b> ${esc(a.name)}${a.expires?` <span class="mu">(~${esc(a.expires)})</span>`:''}<div class="mu" style="font-size:var(--fs-1);white-space:normal">${esc(a.line||'')}</div></div>`).join('');
-    const ov=s.gate==='fail'?'<b class="dn">불통과</b>':s.gate==='pass'?'<b class="up">통과</b>':`<span class="mu">${esc(s.gate||'—')}</span>`;
+    const ov=s.gate==='fail'?'<b class="v-bad">불통과</b>':s.gate==='pass'?'<b class="v-ok">통과</b>':`<span class="mu">${esc(s.gate||'—')}</span>`;
     return `<div class="p c4"><h2>${esc(s.label||d)}<small>공개 게이트 ${ov}</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.7">
       <div class="am" style="font-size:var(--fs-1)">게이트</div>${gates||'<div class="mu">공개 게이트 없음</div>'}${priv}
       <div class="am" style="font-size:var(--fs-1);margin-top:6px">가중 기울기 ${tl(s.tilt)}</div>${wts||'<div class="mu">가중 렌즈 없음</div>'}

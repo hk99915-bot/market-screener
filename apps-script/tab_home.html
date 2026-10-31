@@ -108,7 +108,7 @@ function homeConc(){
   return `<div class="p c12" id="homeconc"><h2>오늘 결론<small>이미 있는 판정만 모음 · 매매 지시 아님</small></h2><div class="b" style="white-space:normal;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:6px">
     ${cell('시장 국면',`<div style="display:flex;gap:12px;flex-wrap:wrap">${bv('KR')}${bv('US')}</div>${mw}<div class="mu" style="font-size:var(--fs-1)">200일선 위 종목 비율 60%↑ 강세 · 40%↓ 약세</div>`)}
     ${cell('오늘 내 할 일',todo)}
-    ${cell('늦은 데이터',n==null?'<div class="mu">점검 불러오는 중</div>':`<a href="#" onclick="freshPop();return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="${n?'dn':'up'}">${n?`⚠ ${n}건`:'0건 · 정상'}</b>&nbsp;${n?'→ 무엇이 늦었나':''}</a>`)}
+    ${cell('늦은 데이터',n==null?'<div class="mu">점검 불러오는 중</div>':`<a href="#" onclick="freshPop();return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="${n?'v-bad':'v-ok'}">${n?`⚠ ${n}건`:'0건 · 정상'}</b>&nbsp;${n?'→ 무엇이 늦었나':''}</a>`)}
   </div></div>`;
 }
 function homeView(){

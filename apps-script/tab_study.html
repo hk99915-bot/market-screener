@@ -78,7 +78,7 @@ function mqParse(q){ const st=String(q.q||'');
   if(i>0){ const ch=st.slice(i).split(/[①-⑩]/).map(x=>x.trim()).filter(Boolean), a=MQN.indexOf(String(q.a||'').trim()[0]); if(ch.length>=2&&a>=0&&a<ch.length) return {stem:st.slice(0,i).trim(),ch,a}; }
   if(q.t==='O/X'){ const a=String(q.a||'').trim().toUpperCase()[0]; if(a==='O'||a==='X') return {stem:st,ch:['O','X'],a:a==='O'?0:1,ox:true}; }
   return {stem:st,ch:null,a:null}; }
-const mqRes=r=>r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>')+(r.self?' <span class="mu" style="font-size:var(--fs-1)">(자기 채점)</span>':''):'';
+const mqRes=r=>r?(r.ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>')+(r.self?' <span class="mu" style="font-size:var(--fs-1)">(자기 채점)</span>':''):'';
 const mqMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
 function mqExp(q,P){ return `<div style="margin:3px 0 4px 16px;font-size:var(--fs-2)"><b class="am">정답: ${P.ch?(P.ox?'':MQN[P.a]+' ')+escC(P.ch[P.a]):escC(q.a)}</b><div class="mu">${escC(q.why||'')}</div></div>`; }
 function mqItem(mid,q,i){ const k='mq:'+mid+':'+i, P=mqParse(q), r=mqFirst(k), ka=escA(k);
@@ -145,7 +145,7 @@ function aptItem(x,key){
   return `<div style="border-bottom:1px solid var(--line);padding:8px 0;white-space:normal;line-height:1.65;max-width:980px" data-apt="${escA(key)}">
    <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.id||'')}</b><span class="tag">${esc(x.sec||x.type||'')}</span><span class="mu" style="font-size:var(--fs-1)">${esc(x.sub||'')} · 목표 ${x.time_sec||60}초</span>
     <button class="sbtn" data-tmr="${escA(key)}" style="margin-left:auto">⏱ 시작</button><span data-tv="${escA(key)}" style="min-width:56px;text-align:right">${r&&r.t!=null?r.t+'초':'0초'}</span>
-    <span data-res="${escA(key)}" style="font-size:var(--fs-2)">${r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>'):''}</span></div>
+    <span data-res="${escA(key)}" style="font-size:var(--fs-2)">${r?(r.ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>'):''}</span></div>
    ${x.passage?`<div style="border-left:2px solid var(--amber);padding:2px 0 2px 10px;margin:4px 0;font-size:var(--fs-2)">${esc(x.passage)}</div>`:''}
    ${tb?`<div style="overflow-x:auto;margin:4px 0"><div class="mu" style="font-size:var(--fs-1)">${esc(tb.cap||'')}</div><table style="width:auto;min-width:280px"><tr>${tb.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${tb.rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${i?'':'l'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
    <div style="margin:4px 0"><b>${esc(x.q)}</b></div>
@@ -166,7 +166,7 @@ function aptBind(items){
     let t=null; if(APTT&&APTT.k===k){ const st=stopT(); t=st[1]; }
     const ok=i===x.a; APTS[k]={ok,t,c:i,at:eduKst(),tz:'KST'};   // c = 고른 보기 번호(오답지 = 함정 유형 진단, kb:eval#9) eduPut('mt_apt_score',APTS);
     document.querySelectorAll(`[data-ch="${k}"]`).forEach(o=>{ const j=+o.dataset.i; o.style.borderColor=j===x.a?'var(--up)':(j===i?'var(--dn)':''); });
-    const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
+    const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>';
     const d=b.closest('[data-apt]').querySelector('details'); if(d){ d.style.display=''; d.open=true; } aptLock(k); aptTally(); }; });
   items.forEach(([x,k])=>{ if(APTS[k]) aptLock(k); });   // 이미 응답한 문항은 버튼 고정 + 고른 보기 표시
 }
@@ -250,7 +250,7 @@ function engVocab(V){
 /* 복습·독해 퀴즈: 버튼 채점 */
 const engKey=(d,kind,i)=>(kind==='review'?'ER':'EQ')+d+'-'+i;
 const engRec=(d,kind,i)=>ENGS.find(r=>r.date===d&&r.kind===kind&&r.idx===i)||null;
-const engResTxt=ok=>ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
+const engResTxt=ok=>ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>';
 const engMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
 const engExp=q=>`<div style="font-size:var(--fs-2);margin-top:4px"><b class="am">정답 ${ENL[q.a]||''}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</div>`;
 function engQ(q,kind,i,d){
@@ -304,7 +304,7 @@ function engOpic(O,d){
   (q.key_phrases||[]).forEach(p=>{ const e=esc(p.en||''); if(!e||!ma.includes(e)) return; ph.push(`<b class="am" style="border-bottom:1px solid var(--amber)">${e}</b>`); ma=ma.split(e).join('\u0001'+(ph.length-1)+'\u0002'); });
   ma=ma.replace(/\u0001(\d+)\u0002/g,(_,n)=>ph[+n]);
   const U=(O.useful||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:var(--fs-2)">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:var(--fs-1)">언제: ${esc(x.when_ko)}</div>`:''}</div>`).join('');
-  const selfTxt=r=>r?(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+` <span class="mu" style="font-size:var(--fs-1)">${esc(String(r.ts||'').slice(11,16))}</span>`:'';
+  const selfTxt=r=>r?(r.result==='ok'?'<b class="v-ok">말했음</b>':'<b class="v-bad">막힘</b>')+` <span class="mu" style="font-size:var(--fs-1)">${esc(String(r.ts||'').slice(11,16))}</span>`:'';
   return `<div class="p c12" id="opic"><h2>OPIc 실전<small>${esc(O.survey_topic||'')} · 문항 ${i+1}/${C.length}</small></h2><div class="b" style="white-space:normal;line-height:1.7;font-size:var(--fs-2)">
    <div class="ovl" style="margin:0 0 8px">${C.map((c,j)=>`<button data-oq="${j}" class="${j===i?'on':''}">${j+1}. ${esc(c.type||'')}</button>`).join('')}</div>
    <div style="font-size:var(--fs-4);margin-bottom:2px"><b>${esc(q.q_en||'')}</b></div>
@@ -334,7 +334,7 @@ function engOpicBind(O,d){
   document.querySelectorAll('[data-otm]').forEach(b=>b.onclick=()=>opTimer(b.dataset.otm,+b.dataset.sec));
   document.querySelectorAll('[data-oself]').forEach(b=>b.onclick=()=>{ const i=Math.min(ENG.oq||0,((O&&O.combo)||[]).length-1), q=((O&&O.combo)||[])[i]||{};
     const r={date:d,idx:i,type:q.type||'',result:b.dataset.oself,ts:new Date().toISOString()}; OPS.push(r); if(OPS.length>2000) OPS=OPS.slice(-2000); eduPut(OPK,OPS);
-    const el=$('#opres'); if(el) el.innerHTML=(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+' <span class="mu" style="font-size:var(--fs-1)">기록됨</span>'; });
+    const el=$('#opres'); if(el) el.innerHTML=(r.result==='ok'?'<b class="v-ok">말했음</b>':'<b class="v-bad">막힘</b>')+' <span class="mu" style="font-size:var(--fs-1)">기록됨</span>'; });
 }
 const ENGCSS=`<style>#engv{overflow-wrap:anywhere}#engv button,#engv select,#engv summary{min-height:44px;box-sizing:border-box}
 #engv summary{display:block;padding:11px 0;cursor:pointer}#engv summary::-webkit-details-marker{display:none}

@@ -957,7 +957,7 @@ async def check_my_first_screen(b, port: int) -> int:
           const f=q('#myfirst'), t=f?f.innerText:'';
           return {t, b1:bt('#myfs1'), b2:bt('#myfs2'), b4:bt('#myfs4'), k:f?f.querySelectorAll('.myfs-k').length:0,
             hs:document.documentElement.scrollWidth>window.innerWidth+1, desk:f?f.querySelectorAll('.myfs-d').length:0,
-            am:f?[...f.querySelectorAll('.am')].filter(e=>!e.closest('summary')).map(e=>e.textContent).join('|'):'', dn:f?f.querySelectorAll('.dn').length:0,
+            am:f?[...f.querySelectorAll('.am')].filter(e=>!e.closest('summary')).map(e=>e.textContent).join('|'):'', dn:f?f.querySelectorAll('.v-alarm').length:0,   /* 10/31 PB: ⛔ 한도 초과 = .v-alarm 반전 블록(시장 .dn 과 분리) */
             dnt:(q('#mydn')||{}).innerText||'', dnsvg:!!(q('#mydn')&&q('#mydn svg path')),
             corr:!!q('#mycorr'), order:(()=>{const a=q('#myfirst'), c=q('#mycorr'), i=q('#myin'); return !!(a&&c&&i&&(a.compareDocumentPosition(c)&4)&&(c.compareDocumentPosition(i)&4));})()}; })()""")
         res[mode] = (r, errs)

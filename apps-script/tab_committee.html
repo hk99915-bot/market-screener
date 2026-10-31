@@ -104,9 +104,9 @@ function cmtSec(no,title,sub,body,open){
 function cmtList(a,cls){ return (a||[]).length?(a||[]).map(x=>`<div class="${cls||''}">• ${esc(x)}</div>`).join(''):''; }
 function cmtTbl(head,rows){ return `<div style="overflow-x:auto"><table><tr>${head.map((h,i)=>`<th class="${i===0?'l':''}">${h}</th>`).join('')}</tr>${rows.join('')}</table></div>`; }
 function cmtSrcHtml(a){ const g=x=>x==='검증전'?'검증 전':x;
-  return (a||[]).map(z=>`<div><b class="${z.side==='agree'?'up':'dn'}">${z.side==='agree'?'＋':'－'}</b> ${esc(z.label)} <span class="tag${z.grade==='F'?' r':z.grade==='검증전'?' b':''}">${esc(g(z.grade))}</span><span class="mu" style="font-size:var(--fs-1)">${z.w!=null?' w '+(z.w>0?'+':'')+z.w:''}${z.perf?' · '+esc(z.perf):''}</span></div>`).join('')||'<span class="mu">원천 없음</span>'; }
+  return (a||[]).map(z=>`<div><b class="${z.side==='agree'?'v-ok':'v-bad'}">${z.side==='agree'?'＋':'－'}</b> ${esc(z.label)} <span class="tag${z.grade==='F'?' r':z.grade==='검증전'?' b':''}">${esc(g(z.grade))}</span><span class="mu" style="font-size:var(--fs-1)">${z.w!=null?' w '+(z.w>0?'+':'')+z.w:''}${z.perf?' · '+esc(z.perf):''}</span></div>`).join('')||'<span class="mu">원천 없음</span>'; }
 function cmtBLCard(o){
-  const bl=o.bottom_line||{}, c=({red:'var(--dn)',yellow:'var(--amber)',green:'var(--up)'})[bl.light]||'var(--amber)';
+  const bl=o.bottom_line||{}, c=({red:'var(--bad)',yellow:'var(--amber)',green:'var(--ok)'})[bl.light]||'var(--amber)';
   return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 ${o.market==='US'?'미장':'국장'}${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
     <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${o.top?renderTop(o.top,{c}):(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
 /* HF 데스크 운용회의 개입 4줄 + 알파북(모의) — screener/alphabook.py, reports/alphabook.json */
@@ -315,7 +315,7 @@ function cmtUSView(){
     `<div class="am" style="font-size:var(--fs-1)">매수 후보</div>${stkLine(o)}${idea((o.ideas||{}).long||[])}<div class="am" style="font-size:var(--fs-1);margin-top:8px">회피</div>${idea((o.ideas||{}).avoid||[])}`,false));
   const IU=o.ideas_top||{}, iu=[...(IU.items||[]),...(IU.candidates||[])];
   sec.push(cmtSec('3-1','매수 진입 후보 (최대 5)','국장 아이디어와 같은 형식 · 진입 구간·손절·목표·R · 게이트 불통과면 대기',
-    `<div style="font-size:var(--fs-2);margin-bottom:6px">시장 진입 게이트 <b class="${IU.entry_gate==='fail'?'dn':IU.entry_gate==='pass'?'up':'mu'}">${esc(IU.entry_gate==='fail'?'불통과':IU.entry_gate==='pass'?'통과':'판정 없음')}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(IU.entry_gate_why||'')}</span></div>
+    `<div style="font-size:var(--fs-2);margin-bottom:6px">시장 진입 게이트 <b class="${IU.entry_gate==='fail'?'v-bad':IU.entry_gate==='pass'?'v-ok':'mu'}">${esc(IU.entry_gate==='fail'?'불통과':IU.entry_gate==='pass'?'통과':'판정 없음')}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(IU.entry_gate_why||'')}</span></div>
     ${iu.length?`<div style="display:flex;gap:8px;flex-wrap:wrap">${iu.map(x=>ideaCardHtml(x,'US')).join('')}</div>`:`<div class="mu">${esc(IU.empty||'후보 없음 — 대기')}</div>`}
     <div class="mu" style="font-size:var(--fs-1);margin-top:6px;white-space:normal">${esc(IU.formula||'')} ${esc(IU.grade_note||'')}</div>${ideaTrackingBox('US')}`,true));
   const A=o.asymmetry||H.asymmetry;

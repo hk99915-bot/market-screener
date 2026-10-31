@@ -36,7 +36,7 @@ function tossBox(){
   let h='';
   if(!T) h+=`<div class="am" style="margin-bottom:6px">토스 데이터 못 읽음(${esc(TOSS_ERR||'로딩 중')}) — 아래 값은 기존 소스(네이버·야후)</div>`;
   else { const a=tossAgeMin(T.published_at||T.generated_at), ok=tossFresh(T.asof);
-    h+=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(T.asof||'').slice(5,16).replace('T',' '))} · publish ${a==null?'—':Math.round(a)+'분 전'} · ${ok?'<span class="up">신선 — 토스 우선</span>':'<span class="dn">지연 — 기존 소스로 폴백</span>'}${(T.missing||[]).length?` · <span class="am">빠짐: ${esc(T.missing.join(', '))}</span>`:''}</div>`; }
+    h+=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(T.asof||'').slice(5,16).replace('T',' '))} · publish ${a==null?'—':Math.round(a)+'분 전'} · ${ok?'<span class="v-ok">신선 — 토스 우선</span>':'<span class="v-bad">지연 — 기존 소스로 폴백</span>'}${(T.missing||[]).length?` · <span class="am">빠짐: ${esc(T.missing.join(', '))}</span>`:''}</div>`; }
   const rows=[['KOSPI','코스피',2],['KOSDAQ','코스닥',2],['USDKRW','원/달러(매매기준율)',2]].map(([k,lab,dg])=>{ const p=tossPick(k); if(!p) return '';
     const bars=T&&(T.indices||{})[k]&&T.date>=tossExpDay()?T.indices[k].bars:null;
     return `<tr><td class="l am">${lab}</td><td>${num(p.v,dg)}</td><td>${p.c==null?'—':pct(p.c,2)}</td><td class="l">${srcBadge(p.src,p.ts)}</td><td style="width:40%">${bars?tossSpark(bars,240,36):''}</td></tr>`; }).join('');
@@ -64,7 +64,7 @@ function tossUsFresh(us,ts){ if(!us||!ts) return false; const a=tossAgeMin(ts); 
 function tossUsBox(){
   const T=TOSS, U=T&&T.us; if(!U) return `<div class="am">토스 미장 데이터 없음(${esc(TOSS_ERR||(T?'us 블록 없음 — 노트북 toss_md_live 작업 확인':'로딩 중'))}) — 미장 값은 기존 소스(야후·네이버)</div>`;
   const ok=tossUsFresh(U,U.asof), S=U.session, cp=v=>v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${Number(v).toFixed(2)}%</span>`;
-  let h=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(U.asof||'').slice(5,16).replace('T',' '))} ${srcBadge('toss',U.asof)} · ${ok?'<span class="up">신선</span>':'<span class="dn">지연 — 기존 소스(야후·네이버)를 보세요</span>'}${S?` · 세션 ${esc(String(S.start).slice(5,16).replace('T',' '))}~${esc(String(S.end).slice(5,16).replace('T',' '))} KST`:''}${(U.missing||[]).length?` · <span class="am">빠짐: ${esc(U.missing.join(', '))}</span>`:''}</div>`;
+  let h=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(U.asof||'').slice(5,16).replace('T',' '))} ${srcBadge('toss',U.asof)} · ${ok?'<span class="v-ok">신선</span>':'<span class="dn">지연 — 기존 소스(야후·네이버)를 보세요</span>'}${S?` · 세션 ${esc(String(S.start).slice(5,16).replace('T',' '))}~${esc(String(S.end).slice(5,16).replace('T',' '))} KST`:''}${(U.missing||[]).length?` · <span class="am">빠짐: ${esc(U.missing.join(', '))}</span>`:''}</div>`;
   const Q=U.quotes||{}, core=['SPY','QQQ','DIA','IWM','SOXX','SMH','TLT','HYG','GLD'].filter(k=>Q[k]), secs=['XLK','XLF','XLE','XLV','XLY','XLP','XLI','XLB','XLU','XLRE','XLC'].filter(k=>Q[k]);
   const sp=U.spark||{};
   h+=`<table><tr><th class="l">ETF</th><th>현재</th><th>등락</th><th class="l">1분봉(ET, 봉 종료 시각)</th></tr>${core.map(k=>`<tr><td class="l am sym" data-sym="${esc(k)}" data-mk="US">${esc(k)}</td><td>${num(Q[k].last,2)}</td><td>${cp(Q[k].chg_pct)}</td><td style="width:45%">${sp[k]?tossSpark(sp[k].bars,240,32):''}</td></tr>`).join('')}</table>`;
@@ -149,7 +149,7 @@ function accumPanel(){   // reports/accum.json (screener/accum.py, 평일 18:37 
   if(ACC===null){ ACC=false; google.script.run.withSuccessHandler(t=>{try{ACC=JSON.parse(t);}catch(e){ACC={};} render();}).withFailureHandler(()=>{ACC={};render();}).getAccum(); }
   if(ACC===false) return '<div class="mu">LOADING …</div>';
   if(!ACC||!ACC.status) return '<div class="mu">데이터 없음 — accum 워크플로 미실행</div>';
-  if(ACC.status==='fail') return `<div class="dn">스캔 실패: ${esc(ACC.reason||'')} <span class="mu">(${esc(ACC.generated_at||'')})</span></div>`;
+  if(ACC.status==='fail') return `<div class="v-bad">스캔 실패: ${esc(ACC.reason||'')} <span class="mu">(${esc(ACC.generated_at||'')})</span></div>`;
   const M=ACC.market||{}, e=x=>x==null?'—':`<span class="${x>=0?'up':'dn'}">${x>0?'+':''}${Math.round(x).toLocaleString()}</span>`;
   const mrow=['KOSPI','KOSDAQ'].filter(k=>M[k]).map(k=>{const m=M[k];return `<tr><td class="l am">${k}</td><td>${Math.round(m.tv_last||0).toLocaleString()}</td><td>${m.tv5_vs_60==null?'—':m.tv5_vs_60.toFixed(2)+'×'}</td><td>${e(m.f5)}</td><td>${e(m.f20)}</td><td>${e(m.i5)}</td><td>${e(m.i20)}</td><td>${e(m.pen20)}</td></tr>`;}).join('');
   const T=ACC.top||{}, tabs=[['accum','매집 상위'],['diverge','매집 후보(가격 정체)'],['foreign','외국인'],['inst','기관'],['pension','연기금'],['streak','동반 연속'],['dryexp','거래 마름→확대'],['distrib','이탈(순매도)']];

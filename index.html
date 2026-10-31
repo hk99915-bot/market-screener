@@ -120,6 +120,9 @@
     --accent:#fb8b1e; --on-accent:#000;                         /* 앰버 1색 — 뜻 정리(선택·초점·확인 필요만)는 2단계 */
     --up:#ff4d4d; --down:#4c8dff;
     --alarm-bg:#c81e1e; --on-alarm:#fff;
+    /* 판정 색 (PB 10/31 — 시장 등락 .up/.dn 과 분리): --ok = 통과·정답·정상(중립 흰색, 상승 빨강과 안 겹침) · --bad = 불통과·오답·실패(경보 빨강 계열 글자)
+       ⛔ 한도 초과·위반 = .v-alarm 반전 블록(--alarm-bg 바탕 + --on-alarm 글자) */
+    --ok:var(--text); --bad:#ff5c5c;
     --font-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,"IBM Plex Sans KR","Noto Sans KR",monospace;   /* 숫자·티커·시각·표 — 한글 글자는 끝의 산세리프로 */
     --font-text:"IBM Plex Sans KR","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;     /* 한글 본문·라벨, 자간 0 */
     /* 옛 이름 = 새 토큰 별칭(§4 '다리'). 탭 파일은 옛 이름 그대로 써도 된다. 새 코드는 새 이름 */
@@ -182,6 +185,7 @@
   th:first-child,td:first-child,th.l,td.l{text-align:left}
   tr:hover td{background:var(--bg3)}
   .up{color:var(--up)}.dn{color:var(--dn)}.mu{color:var(--muted)}.am{color:var(--amber)}
+  .v-ok{color:var(--ok)}.v-bad{color:var(--bad)}.v-alarm{background:var(--alarm-bg);color:var(--on-alarm);padding:0 4px;border-radius:2px;font-weight:700}   /* 판정·경보 (시장색과 분리) */
   .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
   .kv div:nth-child(odd){color:var(--muted)}
   .bar{height:6px;background:var(--raised);position:relative;margin:2px 0 6px}
@@ -296,7 +300,7 @@ html,body{overflow-x:hidden}
 /* 엑셀 스킨 (사무실 모드): 흰 바탕·회색 격자·맑은고딕, 음수만 빨강(엑셀 기본 서식처럼), 차트는 밝게 반전 */
 html.xl{--bg:#fff;--panel:#fff;--line:#d4d4d4;--amber:#000;--amber-dim:#444;--txt:#000;--muted:#595959;--up:#000;--dn:#c00000;--blue:#000;--cyan:#000;
   --bg2:#f3f3f3;--bg3:#f7f7f7;--on-amber:#fff;--ch1:#4472c4;--ch2:#c55a11;
-  --surface:#fff;--raised:#f7f7f7;--line-strong:#c6c6c6;--text:#000;--text-2:#595959;--text-3:#595959;--accent:#000;--on-accent:#fff;--down:#c00000;--alarm-bg:#c00000;--on-alarm:#fff;   /* 10/31 새 토큰 — 엑셀은 음수 빨강 관례 유지(D1 '별도 판단') */
+  --surface:#fff;--raised:#f7f7f7;--line-strong:#c6c6c6;--text:#000;--text-2:#595959;--text-3:#595959;--accent:#000;--on-accent:#fff;--down:#c00000;--alarm-bg:#c00000;--on-alarm:#fff;--ok:#000;--bad:#c00000;   /* 10/31 새 토큰 — 엑셀은 음수 빨강 관례 유지(D1 '별도 판단') */
   --mono:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif;--font-num:var(--mono);--font-text:var(--mono)}
 html.xl body{font-size:var(--fs-2);background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:72px 21px;padding-bottom:30px}
 html.xl .top{background:#f3f3f3;color:#333;border-bottom:1px solid #d4d4d4;padding:4px 10px}
@@ -531,7 +535,7 @@ function tossBox(){
   let h='';
   if(!T) h+=`<div class="am" style="margin-bottom:6px">토스 데이터 못 읽음(${esc(TOSS_ERR||'로딩 중')}) — 아래 값은 기존 소스(네이버·야후)</div>`;
   else { const a=tossAgeMin(T.published_at||T.generated_at), ok=tossFresh(T.asof);
-    h+=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(T.asof||'').slice(5,16).replace('T',' '))} · publish ${a==null?'—':Math.round(a)+'분 전'} · ${ok?'<span class="up">신선 — 토스 우선</span>':'<span class="dn">지연 — 기존 소스로 폴백</span>'}${(T.missing||[]).length?` · <span class="am">빠짐: ${esc(T.missing.join(', '))}</span>`:''}</div>`; }
+    h+=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(T.asof||'').slice(5,16).replace('T',' '))} · publish ${a==null?'—':Math.round(a)+'분 전'} · ${ok?'<span class="v-ok">신선 — 토스 우선</span>':'<span class="v-bad">지연 — 기존 소스로 폴백</span>'}${(T.missing||[]).length?` · <span class="am">빠짐: ${esc(T.missing.join(', '))}</span>`:''}</div>`; }
   const rows=[['KOSPI','코스피',2],['KOSDAQ','코스닥',2],['USDKRW','원/달러(매매기준율)',2]].map(([k,lab,dg])=>{ const p=tossPick(k); if(!p) return '';
     const bars=T&&(T.indices||{})[k]&&T.date>=tossExpDay()?T.indices[k].bars:null;
     return `<tr><td class="l am">${lab}</td><td>${num(p.v,dg)}</td><td>${p.c==null?'—':pct(p.c,2)}</td><td class="l">${srcBadge(p.src,p.ts)}</td><td style="width:40%">${bars?tossSpark(bars,240,36):''}</td></tr>`; }).join('');
@@ -559,7 +563,7 @@ function tossUsFresh(us,ts){ if(!us||!ts) return false; const a=tossAgeMin(ts); 
 function tossUsBox(){
   const T=TOSS, U=T&&T.us; if(!U) return `<div class="am">토스 미장 데이터 없음(${esc(TOSS_ERR||(T?'us 블록 없음 — 노트북 toss_md_live 작업 확인':'로딩 중'))}) — 미장 값은 기존 소스(야후·네이버)</div>`;
   const ok=tossUsFresh(U,U.asof), S=U.session, cp=v=>v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${Number(v).toFixed(2)}%</span>`;
-  let h=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(U.asof||'').slice(5,16).replace('T',' '))} ${srcBadge('toss',U.asof)} · ${ok?'<span class="up">신선</span>':'<span class="dn">지연 — 기존 소스(야후·네이버)를 보세요</span>'}${S?` · 세션 ${esc(String(S.start).slice(5,16).replace('T',' '))}~${esc(String(S.end).slice(5,16).replace('T',' '))} KST`:''}${(U.missing||[]).length?` · <span class="am">빠짐: ${esc(U.missing.join(', '))}</span>`:''}</div>`;
+  let h=`<div class="mu" style="font-size:var(--fs-2);margin-bottom:6px">토스 asof ${esc(String(U.asof||'').slice(5,16).replace('T',' '))} ${srcBadge('toss',U.asof)} · ${ok?'<span class="v-ok">신선</span>':'<span class="dn">지연 — 기존 소스(야후·네이버)를 보세요</span>'}${S?` · 세션 ${esc(String(S.start).slice(5,16).replace('T',' '))}~${esc(String(S.end).slice(5,16).replace('T',' '))} KST`:''}${(U.missing||[]).length?` · <span class="am">빠짐: ${esc(U.missing.join(', '))}</span>`:''}</div>`;
   const Q=U.quotes||{}, core=['SPY','QQQ','DIA','IWM','SOXX','SMH','TLT','HYG','GLD'].filter(k=>Q[k]), secs=['XLK','XLF','XLE','XLV','XLY','XLP','XLI','XLB','XLU','XLRE','XLC'].filter(k=>Q[k]);
   const sp=U.spark||{};
   h+=`<table><tr><th class="l">ETF</th><th>현재</th><th>등락</th><th class="l">1분봉(ET, 봉 종료 시각)</th></tr>${core.map(k=>`<tr><td class="l am sym" data-sym="${esc(k)}" data-mk="US">${esc(k)}</td><td>${num(Q[k].last,2)}</td><td>${cp(Q[k].chg_pct)}</td><td style="width:45%">${sp[k]?tossSpark(sp[k].bars,240,32):''}</td></tr>`).join('')}</table>`;
@@ -644,7 +648,7 @@ function accumPanel(){   // reports/accum.json (screener/accum.py, 평일 18:37 
   if(ACC===null){ ACC=false; google.script.run.withSuccessHandler(t=>{try{ACC=JSON.parse(t);}catch(e){ACC={};} render();}).withFailureHandler(()=>{ACC={};render();}).getAccum(); }
   if(ACC===false) return '<div class="mu">LOADING …</div>';
   if(!ACC||!ACC.status) return '<div class="mu">데이터 없음 — accum 워크플로 미실행</div>';
-  if(ACC.status==='fail') return `<div class="dn">스캔 실패: ${esc(ACC.reason||'')} <span class="mu">(${esc(ACC.generated_at||'')})</span></div>`;
+  if(ACC.status==='fail') return `<div class="v-bad">스캔 실패: ${esc(ACC.reason||'')} <span class="mu">(${esc(ACC.generated_at||'')})</span></div>`;
   const M=ACC.market||{}, e=x=>x==null?'—':`<span class="${x>=0?'up':'dn'}">${x>0?'+':''}${Math.round(x).toLocaleString()}</span>`;
   const mrow=['KOSPI','KOSDAQ'].filter(k=>M[k]).map(k=>{const m=M[k];return `<tr><td class="l am">${k}</td><td>${Math.round(m.tv_last||0).toLocaleString()}</td><td>${m.tv5_vs_60==null?'—':m.tv5_vs_60.toFixed(2)+'×'}</td><td>${e(m.f5)}</td><td>${e(m.f20)}</td><td>${e(m.i5)}</td><td>${e(m.i20)}</td><td>${e(m.pen20)}</td></tr>`;}).join('');
   const T=ACC.top||{}, tabs=[['accum','매집 상위'],['diverge','매집 후보(가격 정체)'],['foreign','외국인'],['inst','기관'],['pension','연기금'],['streak','동반 연속'],['dryexp','거래 마름→확대'],['distrib','이탈(순매도)']];
@@ -983,7 +987,7 @@ function homeConc(){
   return `<div class="p c12" id="homeconc"><h2>오늘 결론<small>이미 있는 판정만 모음 · 매매 지시 아님</small></h2><div class="b" style="white-space:normal;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:6px">
     ${cell('시장 국면',`<div style="display:flex;gap:12px;flex-wrap:wrap">${bv('KR')}${bv('US')}</div>${mw}<div class="mu" style="font-size:var(--fs-1)">200일선 위 종목 비율 60%↑ 강세 · 40%↓ 약세</div>`)}
     ${cell('오늘 내 할 일',todo)}
-    ${cell('늦은 데이터',n==null?'<div class="mu">점검 불러오는 중</div>':`<a href="#" onclick="freshPop();return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="${n?'dn':'up'}">${n?`⚠ ${n}건`:'0건 · 정상'}</b>&nbsp;${n?'→ 무엇이 늦었나':''}</a>`)}
+    ${cell('늦은 데이터',n==null?'<div class="mu">점검 불러오는 중</div>':`<a href="#" onclick="freshPop();return false" style="display:inline-flex;align-items:center;min-height:44px"><b class="${n?'v-bad':'v-ok'}">${n?`⚠ ${n}건`:'0건 · 정상'}</b>&nbsp;${n?'→ 무엇이 늦었나':''}</a>`)}
   </div></div>`;
 }
 function homeView(){
@@ -1069,7 +1073,7 @@ function viewsView(){
   if(!VW||!VW.summary) return '<div class="grid"><div class="p c12"><div class="b mu">VIEW 데이터 없음 — 다음 자동 실행(장전·장 마감) 때 생성</div></div></div>';
   const GC={A:'g',B:'',C:'b',F:'r'};
   const gb=g=>`<span class="tag ${g in GC?GC[g]:'b'}" title="근거 등급">${esc(g||'—')}</span>`;
-  const gr=r=>r==='pass'?'<b class="up">통과</b>':r==='fail'?'<b class="dn">불통과</b>':`<span class="mu">${esc(r||'—')}</span>`;
+  const gr=r=>r==='pass'?'<b class="v-ok">통과</b>':r==='fail'?'<b class="v-bad">불통과</b>':`<span class="mu">${esc(r||'—')}</span>`;
   const RL={gate:'게이트',weight:'가중',alert:'주의',reference:'참고',none:'—'};
   const RC={gate:'am',weight:'am',alert:'',reference:'mu',none:'mu'};
   const tl=x=>x==null?'<span class="mu">— (가중 렌즈 신호 없음)</span>':`<b class="${x>0?'up':x<0?'dn':'mu'}">${x>0?'+':''}${x.toFixed(2)}</b>`;
@@ -1078,7 +1082,7 @@ function viewsView(){
     const priv=(s.private_gates||[]).length?`<div class="mu" style="font-size:var(--fs-1)">개인 게이트 ${(s.private_gates||[]).length}개 — 비공개 저장소에서 판정: ${(s.private_gates||[]).map(g=>esc(g.name)).join(' · ')}</div>`:'';
     const wts=(s.weights||[]).map(w=>`<div>${w.sign==null?'<span class="mu">·</span>':w.sign>0?'<b class="up">+1</b>':w.sign<0?'<b class="dn">−1</b>':'<span class="mu">0</span>'} ${esc(w.name)} ${gb(w.grade)} <span class="mu">${esc(w.state)}</span></div>`).join('');
     const al=(s.alerts||[]).map(a=>`<div><b class="am">!</b> ${esc(a.name)}${a.expires?` <span class="mu">(~${esc(a.expires)})</span>`:''}<div class="mu" style="font-size:var(--fs-1);white-space:normal">${esc(a.line||'')}</div></div>`).join('');
-    const ov=s.gate==='fail'?'<b class="dn">불통과</b>':s.gate==='pass'?'<b class="up">통과</b>':`<span class="mu">${esc(s.gate||'—')}</span>`;
+    const ov=s.gate==='fail'?'<b class="v-bad">불통과</b>':s.gate==='pass'?'<b class="v-ok">통과</b>':`<span class="mu">${esc(s.gate||'—')}</span>`;
     return `<div class="p c4"><h2>${esc(s.label||d)}<small>공개 게이트 ${ov}</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.7">
       <div class="am" style="font-size:var(--fs-1)">게이트</div>${gates||'<div class="mu">공개 게이트 없음</div>'}${priv}
       <div class="am" style="font-size:var(--fs-1);margin-top:6px">가중 기울기 ${tl(s.tilt)}</div>${wts||'<div class="mu">가중 렌즈 없음</div>'}
@@ -1247,14 +1251,14 @@ const _ymd=()=>new Date(Date.now()+9*36e5).toISOString().slice(0,10);
 function myExportText(){ return `# MY 탭 내보내기 ${_ymd()} (브라우저 작업본 · holdings.txt 형식 · 개인 값 — 공개 저장소·텔레그램 금지)\n`+myLoad().replace(/\s*$/,'\n'); }
 function myBakMsg(m){ const e=$('#mybakmsg'); if(e) e.innerHTML=m; }
 function myCopy(){ const t=myExportText(), done=()=>{ mySetMeta({exportedAt:Date.now()}); myBadges(); myBakMsg('<span class="up">복사됨</span> — PB 에게는 대화로'); };
-  const fb=()=>{ try{ const x=document.createElement('textarea'); x.value=t; document.body.appendChild(x); x.select(); const ok=document.execCommand('copy'); x.remove(); ok?done():myBakMsg('<span class="dn">복사 실패 — 파일로 저장을 써줘</span>'); }catch(e){ myBakMsg('<span class="dn">복사 실패</span>'); } };
+  const fb=()=>{ try{ const x=document.createElement('textarea'); x.value=t; document.body.appendChild(x); x.select(); const ok=document.execCommand('copy'); x.remove(); ok?done():myBakMsg('<span class="v-bad">복사 실패 — 파일로 저장을 써줘</span>'); }catch(e){ myBakMsg('<span class="v-bad">복사 실패</span>'); } };
   try{ navigator.clipboard.writeText(t).then(done,fb); }catch(e){ fb(); } }
 function myDownload(){ try{ const u=URL.createObjectURL(new Blob([myExportText()],{type:'text/plain;charset=utf-8'})), a=document.createElement('a');
   a.href=u; a.download='holdings_'+_ymd().replace(/-/g,'')+'.txt'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000);
   mySetMeta({exportedAt:Date.now()}); myBadges(); myBakMsg('<span class="up">파일로 저장함</span>'); }catch(e){ myBakMsg('<span class="dn">저장 실패 '+esc(e.message)+'</span>'); } }
 function myImpPreview(){ const t=($('#myimp')||{}).value||'', o=$('#myimpd'); if(!o) return; if(!myNorm(t)){ o.innerHTML='<span class="mu">붙여넣은 내용이 없어요</span>'; return; }
   const d=myDiff(myLoad(),t); o.innerHTML=myDiffHtml(d,'지금 브라우저에만','가져올 내용에만')+(d.n?'<button id="myimpok" class="sbtn" style="margin-top:4px">이 내용으로 바꾸기</button>':'');
-  const ok=$('#myimpok'); if(ok) ok.onclick=()=>{ mySave(myClean(t),'import'); const ta=$('#myta'); if(ta) ta.value=myClean(t); o.innerHTML='<span class="up">가져옴</span>'; $('#myimp').value=''; myAsk(); myBadges(); myRun(); }; }
+  const ok=$('#myimpok'); if(ok) ok.onclick=()=>{ mySave(myClean(t),'import'); const ta=$('#myta'); if(ta) ta.value=myClean(t); o.innerHTML='<span class="v-ok">가져옴</span>'; $('#myimp').value=''; myAsk(); myBadges(); myRun(); }; }
 let MYSYNCED=false;
 function myOpen(){ try{ return localStorage.getItem('mt_myopen')==='1'; }catch(e){ return false; } }
 // ───── 일기·히스토리 보기 + 회고 쓰기 (10/17 겸이) — pb-private 를 이 브라우저에서만 읽고 씀. 공개 서버 경유 없음
@@ -1390,7 +1394,7 @@ function myFsHead(H,L){ const la=(L&&((L.stats||{}).asof||L.asof))||'', today=_y
     +(fut?`<div class="am myfs-n">날짜 확인 필요 · 결론 ${myFsMD(H.date)} &gt; 오늘 ${myFsMD(today)}</div>`:'')
     +`<div class="myfs-c${stale?' mu':''}">${esc(H.text)} ${by}</div>`
     +(!stale&&gap?`<div class="mu myfs-n">결론 기준 ${myFsMD(H.asof)} · 숫자 기준 ${myFsMD(la)} (${gap}일 차이)</div>`:''); }
-function myFsCell(t,a,b,d,warn){ return `<div class="myfs-k"><div class="myfs-kt">${t}</div><div class="myfs-kv${warn?' dn':''}"><span>${a}</span><span>${b}</span></div><div class="myfs-kd">${d}</div></div>`; }
+function myFsCell(t,a,b,d,warn){ return `<div class="myfs-k"><div class="myfs-kt">${t}</div><div class="myfs-kv${warn?' v-bad':''}"><span>${a}</span><span>${b}</span></div><div class="myfs-kd">${d}</div></div>`; }
 function myFsHtml(L,H,D){ const s=(L&&L.stats)||{}, K=(L&&L.kpis)||[], kr=re=>(K.find(k=>re.test(k[0]))||[])[1]||'';
   const vs=(a,b)=>a==null||b==null||!isFinite(a)||!isFinite(b)?'—':(Math.abs(a-b)<0.05?'같음 0.0%p':(a>b?'앞섬 ':'뒤짐 ')+myFsPp(a-b));
   // ① 이번 주 vs 코스피 (stats)
@@ -1400,7 +1404,7 @@ function myFsHtml(L,H,D){ const s=(L&&L.stats)||{}, K=(L&&L.kpis)||[], kr=re=>(K
   const c2=myFsCell(esc(brow?brow[0]:'기초 이후 vs 코스피'),bm?myFsP(bn(bm[1])/100):'—',bm?myFsP(bn(bm[2])/100):'—',bm?vs(bn(bm[1]),bn(bm[2])):'—');
   // ③ 구속 스트레스 vs 한도 — stress_ok=false 면 빨강+⛔ 와 초과량, 옆에 한도 주석(Ajani 2022 강조+주석)
   const st=s.stress, over=s.stress_ok===false, ex=st!=null?(-st-MYFS_LIM)*100:null;
-  const c3=myFsCell('구속 스트레스'+(over?' ⛔':''),myFsP(st),'한도 −'+(MYFS_LIM*100).toFixed(0)+'%',st==null?'—':over?`<span class="dn">⛔ 초과 ${Math.abs(ex).toFixed(1)}%p</span>`:`여유 ${Math.abs(ex).toFixed(1)}%p`,over);
+  const c3=myFsCell('구속 스트레스'+(over?' ⛔':''),myFsP(st),'한도 −'+(MYFS_LIM*100).toFixed(0)+'%',st==null?'—':over?`<span class="v-alarm">⛔ 초과 ${Math.abs(ex).toFixed(1)}%p</span>`:`여유 ${Math.abs(ex).toFixed(1)}%p`,over);
   // ④ 규칙 위반 — 적용 건이 있으면 빨강+⛔. 벌금(금액)은 첫 화면에 두지 않는다
   const ban=(String(kr(/위반/)).split('/').pop()||'').trim()||'—', live=+s.viol_live>0;
   const c4=myFsCell('규칙 위반'+(live?' ⛔':''),(s.viol!=null?s.viol:'—')+'건','적용 '+(s.viol_live!=null?s.viol_live:'—'),'매매 금지 '+esc(ban),live);
@@ -1408,7 +1412,7 @@ function myFsHtml(L,H,D){ const s=(L&&L.stats)||{}, K=(L&&L.kpis)||[], kr=re=>(K
   const prev=s.wk_r_prev!=null?`${myFsP(s.wk_r_prev)} → ${myFsP(s.wk_r)}`:esc(((String(kr(/전주 대비/)).match(/수익률\s*([^·]+)/)||[])[1]||'—').trim());
   // ③ 원인: 관계 문장 1줄(Boger & Franconeri 2024 — 관계는 문장으로) + 데스크 첫 줄
   const si=s.semi_in, cap=s.semi_cap_implied;
-  const rel=si==null?'':`<div class="myfs-rel">반도체 ${myFsP(si).replace('+','')}${cap!=null?` ${si>cap?'&gt;':'≤'} 함의 상한 ${myFsP(cap).replace('+','')}`:''} → 스트레스 <span class="${over?'dn':''}">${myFsP(st)}</span> <span class="mu">(한도 −${(MYFS_LIM*100).toFixed(0)}%)</span></div>`;
+  const rel=si==null?'':`<div class="myfs-rel">반도체 ${myFsP(si).replace('+','')}${cap!=null?` ${si>cap?'&gt;':'≤'} 함의 상한 ${myFsP(cap).replace('+','')}`:''} → 스트레스 <span class="${over?'v-bad':''}">${myFsP(st)}</span> <span class="mu">(한도 −${(MYFS_LIM*100).toFixed(0)}%)</span></div>`;
   const desks=(D||[]).filter(x=>x&&x.d).map(x=>`<details class="myfs-d"><summary><span class="myfs-dl"><b class="am">${x.n}</b> ${esc(myFsMask(x.d.lab))}: ${esc(myFsMask(x.d.first))}</span><span class="mu myfs-dm">더보기</span></summary><div class="myfs-df">${esc(myFsMask(x.d.full))}</div></details>`).join('');
   // ④ 다음 행동: headline.next(문장 또는 배열, 최대 2) — 없으면 'PB 미작성'. 화면이 데스크 글에서 행동을 골라내지 않는다
   const nx=H&&H.next?(Array.isArray(H.next)?H.next:[H.next]).filter(Boolean).slice(0,2):[];
@@ -1684,14 +1688,14 @@ function myRender(hs,cash,miss){
   const SEMI_FLOOR=0.30, SEMI_GLIDE_TARGET=0.35, SEMI_GLIDE_BY='2026-11-30', VAR99_Z=2.326, VAR99_LIMIT=0.02, VAR99_LIMIT_BEAR=0.015;
   const SEMI_REGIME_CAP={'하락장':0.35,'회복확인':0.40,'상승장':SEMI_CAP}, SEMI_SWING=['009150'];
   const RG=myRegime(Object.keys(kos).sort().map(d=>kos[d])), CAPR=SEMI_REGIME_CAP[RG.regime];
-  const bandSt=x=>x>SEMI_BAND+0.005?{st:'trigger',t:`<b class="dn">⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 ${W(CAPR)}로`}:x>CAPR+0.005?{st:'over',t:`<b class="dn">상한 ${W(CAPR)}(${RG.regime}) 초과</b> — 반도체 신규 매수 금지`}:x<SEMI_FLOOR-0.005?{st:'floor',t:`<span class="am">하단 ${W(SEMI_FLOOR)} 미만 — 재매수 허용(의무 아님 · 구속 스트레스 위반 중엔 금지, 10/26 결재 ③)</span>`}:{st:'ok',t:'<span class="up">밴드 안 ✅</span>'};
+  const bandSt=x=>x>SEMI_BAND+0.005?{st:'trigger',t:`<b class="v-alarm">⛔ 발동선 ${W(SEMI_BAND)} 초과</b> — 다음 반등일 ${W(CAPR)}로`}:x>CAPR+0.005?{st:'over',t:`<b class="v-bad">상한 ${W(CAPR)}(${RG.regime}) 초과</b> — 반도체 신규 매수 금지`}:x<SEMI_FLOOR-0.005?{st:'floor',t:`<span class="am">하단 ${W(SEMI_FLOOR)} 미만 — 재매수 허용(의무 아님 · 구속 스트레스 위반 중엔 금지, 10/26 결재 ③)</span>`}:{st:'ok',t:'<span class="up">밴드 안 ✅</span>'};
   const swing=A.filter(a=>SEMI_SWING.includes(a.h.r.s)&&semiClass(a).kind!=='semi').reduce((s,a)=>s+a.val,0);
   const bEx=bandSt(semi/DEN), bIn=bandSt((semi+swing)/DEN);
   const P60=P.slice(-60), m60=mean(P60), sd60=Math.sqrt(P60.reduce((s,x)=>s+(x-m60)*(x-m60),0)/Math.max(P60.length-1,1));
   const VAR99=VAR99_Z*sd60*NAV/DEN, VARL=RG.regime==='하락장'?VAR99_LIMIT_BEAR:VAR99_LIMIT, VAROVER=VAR99>VARL;   // denominator=D2b (b) — P 는 NAV 가중이라 NAV/DEN 으로 환산
   const IM=window._myIsaM||{amt:0,day:1}, GL=myGlide(semi,DEN,IM.amt,IM.day,SEMI_GLIDE_BY,SEMI_GLIDE_TARGET);
   const semiTag=bEx.t;
-  op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (레짐 ${RG.regime} 상한 ${W(CAPR)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}.${VAROVER?' <b class="dn">VaR 한도 초과 — 반도체 신규 매수 금지</b>(강제 매도 없음).':''} 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
+  op.push(`<b>반도체</b>: 반도체(전기 제외) <b>${W(semi/DEN)}</b> · 분모 ${DENL} (레짐 ${RG.regime} 상한 ${W(CAPR)} · 발동선 ${W(SEMI_BAND)}) → ${semiTag}.${VAROVER?' <b class="v-alarm">⛔ VaR 한도 초과 — 반도체 신규 매수 금지</b>(강제 매도 없음).':''} 반도체+전기(상관 테마) ${W(semiElec/DEN)}. <span class="mu">참고 경보: 지수 ETF 속 반도체 ≈ ${W(look/DEN)} 추가 (한도 제외)</span>${semi/tot>0.6?` — 종목 수는 ${A.length}개지만 실제로는 베팅 하나, 이 사이클이 꺾이면 전부 같이 꺾입니다.`:''}`);
   const top=chainL[0]; if(semi/tot<=0.6&&top&&top[1]/tot>0.5) op.push(`<b>쏠림</b>: 주식의 ${W(top[1]/tot)}가 '${esc(top[0])}' 한 체인입니다. 순자산 기준 ${W(top[1]/NAV)}. 이 체인 하나가 꺾이면 포트 전체가 꺾입니다.`);
   if(dup.length) op.push(`<b>중복</b>: ${dup.slice(0,4).map(x=>`${esc(x.name)}(직접+${esc(x.src.filter(z=>z!=='직접').join(','))})`).join(', ')} — 같은 종목을 ETF로 한 번 더 들고 있습니다. 실질 비중은 아래 '실질 보유'로 보세요. 줄일 땐 섹터 ETF(TIGER 200 IT·PSI 등)부터 — 지수 ETF(KODEX 200·S&P500 등 ISA 코어 적립분)는 줄이지 않습니다.`);
   op.push(`<b>위험 대비 성과</b>: 최근 1년 이 구성 그대로였다면 샤프 ${F(Pm.sh)} (주식만 ${F(Em.sh)}), 최대낙폭 ${pct(Pm.mdd,0)}. ${Pm.sh>2?'<b>이 숫자를 기대값으로 쓰면 안 됩니다.</b> 지난 1년 메모리 대랠리가 그대로 들어간 이례적 값이고, 같은 베팅이 맞았던 결과일 뿐입니다. 볼 것은 샤프가 아니라 변동성·낙폭.':Pm.sh<0.5?'위험에 비해 보상이 낮았습니다.':'보통 수준.'}`);
@@ -1704,7 +1708,7 @@ function myRender(hs,cash,miss){
   const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
   const isaW={}; let isaEtc=0; for(const a of A){ if(a.book!=='isa') continue; const b=isaBucket(a.h.r.s,a.d.name); if(b) isaW[b]=(isaW[b]||0)+a.val; else isaEtc+=a.val; }
   const isaPanel=hasIsa?`<div class="p" style="margin-bottom:8px"><h2>ISA 코어<small>${DENOM_TERMS.a}의 ${W(isaTot/NAV)} · 목표 S&P40/NDX10/K200 15/국고채20/금15 · 밴드 ±${(ISA_BAND*100).toFixed(0)}%p · 적립으로 맞춤(매도 아님)</small></h2><div class="b"><table><tr><th class="l">바구니</th><th>지금</th><th>목표</th><th>차이</th><th>상태</th></tr>
-     ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="up">밴드 안 ✅</span>':d>0?'<span class="dn">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
+     ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="v-ok">밴드 안 ✅</span>':d>0?'<span class="v-bad">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
      ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${KW(cIsa)} — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>
      <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">ISA 코어 ${KW(isaTot)}. 지수 ETF 속 반도체(KODEX 200 등)는 한도 계산에서 빼고 위 '참고 경보' 로만 봅니다.</div></div></div>`:'';
   const bandPanel=`<div class="p" style="margin-bottom:8px" id="mysemiband"><h2>반도체 밴드 · 결재 #3<small>레짐 연동 ${Object.entries(SEMI_REGIME_CAP).map(([k,v])=>k+' '+W(v)).join(' / ')} · 발동선 ${W(SEMI_BAND)} · 하단 ${W(SEMI_FLOOR)} · 분모 ${DENL} · 비율만</small></h2><div class="b" style="white-space:normal">
@@ -1718,7 +1722,7 @@ function myRender(hs,cash,miss){
      <div style="margin:4px 0 8px">${GL.need>0.0005?`11월 말 ${W(SEMI_GLIDE_TARGET)}에 적립만으로는 부족 — 추가 축소 <b>분모의 ${(GL.need*100).toFixed(1)}%p</b> (반등일 매도 또는 적립 증액)`:'<span class="up">적립만으로 11월 말 목표 도달 ✅</span>'}</div>
      <div><b>VaR99 1일 (60거래일 실현)</b> <b class="${VAROVER?'dn':'up'}">${(VAR99*100).toFixed(2)}%</b> / 한도 ${(VARL*100).toFixed(1)}% (${RG.regime==='하락장'?'하락장':'기본'})
        <div style="height:8px;background:var(--line);margin:4px 0;max-width:420px;position:relative"><div style="height:8px;width:${Math.min(VAR99/(VARL*2),1)*100}%;background:${VAROVER?'var(--dn)':'var(--up)'}"></div><div style="position:absolute;left:50%;top:-2px;height:12px;border-left:2px solid var(--amber)"></div></div>
-       ${VAROVER?'<b class="dn">⛔ 반도체 신규 매수 금지</b> — 계기판 플래그(강제 매도 없음). 한도 아래로 내려오면 자동 해제.':'<span class="mu">한도 안 — 플래그 없음 (계기판, 판정 아님)</span>'} <span class="mu">· σ ${P60.length}일 · 정규 근사 2.326σ</span></div>
+       ${VAROVER?'<b class="v-alarm">⛔ 반도체 신규 매수 금지</b> — 계기판 플래그(강제 매도 없음). 한도 아래로 내려오면 자동 해제.':'<span class="mu">한도 안 — 플래그 없음 (계기판, 판정 아님)</span>'} <span class="mu">· σ ${P60.length}일 · 정규 근사 2.326σ</span></div>
    </div></div>`;
   $('#myout').innerHTML=`
    <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px"><label style="float:right;cursor:pointer"><input type="checkbox" id="myratio" ${RO?'checked':''}> 비율만 보기</label>분모: ${DENOM_TERMS.a}(위성+ISA+현금) · 반도체·스트레스 ${DENL} ${hasIsa?`· 위성 ${W(totSat/NAV)} · ISA ${W(isaTot/NAV)}`:`· ISA 블록 없음(<code>## ISA</code> 줄 아래에 ISA 보유를 적으면 분리 표시)`} · 반도체 상한 ${W(CAPR)}(${RG.regime}) · 발동선 ${W(SEMI_BAND)}</div>
@@ -1739,7 +1743,7 @@ function myRender(hs,cash,miss){
     <div class="p c6"><h2>스트레스 테스트<small>종목별 1년 베타로 추정 · 분모 ${DENL}</small></h2><div class="b" style="line-height:1.9">
       <div>코스피 −10% → <b class="dn">${KW(stK)}</b> (${pct(stK/DEN,1)})</div>
       <div>미 반도체(SOXX) −15% → <b class="dn">${KW(stX)}</b> (${pct(stX/DEN,1)})</div>
-      <div>2026-07 실측(06/22→07/30, 반도체 −50%) → <b class="dn">${pct(stS/DEN,1)}</b> ${stS/DEN<-STRESS_LIMIT?'<b class="dn">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 ${DENL} · 비율만)</span></div>
+      <div>2026-07 실측(06/22→07/30, 반도체 −50%) → <b class="dn">${pct(stS/DEN,1)}</b> ${stS/DEN<-STRESS_LIMIT?'<b class="v-alarm">⛔ 구속 한도 −15% 초과</b>':'한도 −15% 안 ✅'} <span class="mu">(결재 #3 · 분모 ${DENL} · 비율만)</span></div>
       <div>원/달러 +5%(원화 약세) → 달러 자산 <b class="up">+${KW(stF)}</b> (${pct(stF/DEN,1)})</div>
       <div>하루 손실이 이보다 클 확률 5%: <b>${KW(Pm.var*NAV)}</b> · 그런 날 평균 ${KW(Pm.cvar*NAV)}</div></div></div>
     <div class="p c6"><h2>헷지안<small>5거래일 수익률 · 최근 1년</small></h2><div class="b">
@@ -1835,7 +1839,7 @@ let LIFECH=[];
 function lifeHealthBody(H){
   const B=H.body||{}, S=H.series||{}, L=H.lifts||{}, WW=H.workouts_weekly||[], T=H.targets||[], WP=H.weight_path, PC=H.pace||{};
   const f1=v=>v==null?'—':(+v).toLocaleString('ko-KR',{maximumFractionDigits:1});
-  const sg=(v,good)=>{ if(v==null) return '<span class="mu">—</span>'; const c=v===0?'mu':((v<0)===(good==='down')?'up':'dn'); return `<span class="${c}">${v>0?'+':''}${f1(v)}</span>`; };
+  const sg=(v,good)=>{ if(v==null) return '<span class="mu">—</span>'; const c=v===0?'mu':((v<0)===(good==='down')?'v-ok':'v-bad'); return `<span class="${c}">${v>0?'+':''}${f1(v)}</span>`; };
   const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,(p||0)*100))}%;${c?'background:var('+c+')':''}"></i></div>`;
   const keys=[['fat_kg','체지방량','kg','down'],['smm','골격근량','kg','up'],['fat_pct','체지방률','%','down'],['visceral_area','내장지방면적','cm²','down'],['weight','체중','kg','down']];
   const any=keys.some(k=>B[k[0]]);
@@ -2310,7 +2314,7 @@ TOPF.chain=()=>{ if(typeof CH==='undefined'||CH===null||CH===false) return null;
 <script>
 let RB=null;
 const RB_GH='https://github.com/hk99915-bot/market-screener/blob/main/';
-const RB_VC={'통과':'var(--up)','진행':'var(--amber)','보류':'var(--muted)','폐기':'var(--dn)'};
+const RB_VC={'통과':'var(--ok)','진행':'var(--amber)','보류':'var(--muted)','폐기':'var(--bad)'};
 const RB_VIEWN={study:'검증 스터디',lab:'전략 연구소',sig:'시그널 검증',mom:'모멘텀',pf:'모의 포트폴리오',isa:'ISA 실험실',chain:'공급망'};
 function rbToday(){ return new Date(Date.now()+9*3600e3).toISOString().slice(0,10); }   // KST
 function rbDays(d){ return d?Math.round((Date.parse(d)-Date.parse(rbToday()))/864e5):null; }
@@ -2461,7 +2465,7 @@ function ilabRecalc(){
   if(s<=0){ o.innerHTML='<span class="dn">비중이 모두 0</span>'; return; }
   const B=ilabEval(D,ilabBase(),S.rebal,S.cost,S.contrib), X=ilabEval(D,S.w,S.rebal,S.cost,S.contrib);
   const p1=v=>v==null||isNaN(v)?'—':(v*100).toFixed(1)+'%', pp=v=>isNaN(v)?'—':`${v>0?'+':''}${(v*100).toFixed(1)}%p`, mx=v=>v.toFixed(2)+'배';
-  const row=(lab,b,x,f,d,better)=>{ const df=d(x-b), good=better==null?'':((x-b)*better>0.0005?'up':(x-b)*better<-0.0005?'dn':'mu'); return `<tr><td class="l">${lab}</td><td>${f(b)}</td><td><b>${f(x)}</b></td><td class="${good}">${df}</td></tr>`; };
+  const row=(lab,b,x,f,d,better)=>{ const df=d(x-b), good=better==null?'':((x-b)*better>0.0005?'v-ok':(x-b)*better<-0.0005?'v-bad':'mu'); return `<tr><td class="l">${lab}</td><td>${f(b)}</td><td><b>${f(x)}</b></td><td class="${good}">${df}</td></tr>`; };
   const dmx=v=>`${v>0?'+':''}${v.toFixed(2)}배`;
   let h=`<table><tr><th class="l">지표</th><th>현행 ISA</th><th>선택</th><th>차이</th></tr>
    <tr><td class="l am" colspan="4">일시금 (2004-01 에 1 넣고 그대로)</td></tr>
@@ -3170,7 +3174,7 @@ function mqParse(q){ const st=String(q.q||'');
   if(i>0){ const ch=st.slice(i).split(/[①-⑩]/).map(x=>x.trim()).filter(Boolean), a=MQN.indexOf(String(q.a||'').trim()[0]); if(ch.length>=2&&a>=0&&a<ch.length) return {stem:st.slice(0,i).trim(),ch,a}; }
   if(q.t==='O/X'){ const a=String(q.a||'').trim().toUpperCase()[0]; if(a==='O'||a==='X') return {stem:st,ch:['O','X'],a:a==='O'?0:1,ox:true}; }
   return {stem:st,ch:null,a:null}; }
-const mqRes=r=>r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>')+(r.self?' <span class="mu" style="font-size:var(--fs-1)">(자기 채점)</span>':''):'';
+const mqRes=r=>r?(r.ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>')+(r.self?' <span class="mu" style="font-size:var(--fs-1)">(자기 채점)</span>':''):'';
 const mqMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
 function mqExp(q,P){ return `<div style="margin:3px 0 4px 16px;font-size:var(--fs-2)"><b class="am">정답: ${P.ch?(P.ox?'':MQN[P.a]+' ')+escC(P.ch[P.a]):escC(q.a)}</b><div class="mu">${escC(q.why||'')}</div></div>`; }
 function mqItem(mid,q,i){ const k='mq:'+mid+':'+i, P=mqParse(q), r=mqFirst(k), ka=escA(k);
@@ -3237,7 +3241,7 @@ function aptItem(x,key){
   return `<div style="border-bottom:1px solid var(--line);padding:8px 0;white-space:normal;line-height:1.65;max-width:980px" data-apt="${escA(key)}">
    <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="am">${esc(x.id||'')}</b><span class="tag">${esc(x.sec||x.type||'')}</span><span class="mu" style="font-size:var(--fs-1)">${esc(x.sub||'')} · 목표 ${x.time_sec||60}초</span>
     <button class="sbtn" data-tmr="${escA(key)}" style="margin-left:auto">⏱ 시작</button><span data-tv="${escA(key)}" style="min-width:56px;text-align:right">${r&&r.t!=null?r.t+'초':'0초'}</span>
-    <span data-res="${escA(key)}" style="font-size:var(--fs-2)">${r?(r.ok?'<b class="up">정답</b>':'<b class="dn">오답</b>'):''}</span></div>
+    <span data-res="${escA(key)}" style="font-size:var(--fs-2)">${r?(r.ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>'):''}</span></div>
    ${x.passage?`<div style="border-left:2px solid var(--amber);padding:2px 0 2px 10px;margin:4px 0;font-size:var(--fs-2)">${esc(x.passage)}</div>`:''}
    ${tb?`<div style="overflow-x:auto;margin:4px 0"><div class="mu" style="font-size:var(--fs-1)">${esc(tb.cap||'')}</div><table style="width:auto;min-width:280px"><tr>${tb.head.map((h,i)=>`<th class="${i?'':'l'}">${esc(h)}</th>`).join('')}</tr>${tb.rows.map(rw=>`<tr>${rw.map((c,i)=>`<td class="${i?'':'l'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
    <div style="margin:4px 0"><b>${esc(x.q)}</b></div>
@@ -3258,7 +3262,7 @@ function aptBind(items){
     let t=null; if(APTT&&APTT.k===k){ const st=stopT(); t=st[1]; }
     const ok=i===x.a; APTS[k]={ok,t,c:i,at:eduKst(),tz:'KST'};   // c = 고른 보기 번호(오답지 = 함정 유형 진단, kb:eval#9) eduPut('mt_apt_score',APTS);
     document.querySelectorAll(`[data-ch="${k}"]`).forEach(o=>{ const j=+o.dataset.i; o.style.borderColor=j===x.a?'var(--up)':(j===i?'var(--dn)':''); });
-    const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
+    const rs=document.querySelector(`[data-res="${k}"]`); if(rs) rs.innerHTML=ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>';
     const d=b.closest('[data-apt]').querySelector('details'); if(d){ d.style.display=''; d.open=true; } aptLock(k); aptTally(); }; });
   items.forEach(([x,k])=>{ if(APTS[k]) aptLock(k); });   // 이미 응답한 문항은 버튼 고정 + 고른 보기 표시
 }
@@ -3342,7 +3346,7 @@ function engVocab(V){
 /* 복습·독해 퀴즈: 버튼 채점 */
 const engKey=(d,kind,i)=>(kind==='review'?'ER':'EQ')+d+'-'+i;
 const engRec=(d,kind,i)=>ENGS.find(r=>r.date===d&&r.kind===kind&&r.idx===i)||null;
-const engResTxt=ok=>ok?'<b class="up">정답</b>':'<b class="dn">오답</b>';
+const engResTxt=ok=>ok?'<b class="v-ok">정답</b>':'<b class="v-bad">오답</b>';
 const engMark=(j,a,c)=>j===a?'border-color:var(--up);color:var(--up)':(j===c?'border-color:var(--dn);color:var(--dn)':'opacity:.6');
 const engExp=q=>`<div style="font-size:var(--fs-2);margin-top:4px"><b class="am">정답 ${ENL[q.a]||''}) ${esc((q.choices||[])[q.a]||'')}</b> — ${esc(q.exp_ko||'')}</div>`;
 function engQ(q,kind,i,d){
@@ -3396,7 +3400,7 @@ function engOpic(O,d){
   (q.key_phrases||[]).forEach(p=>{ const e=esc(p.en||''); if(!e||!ma.includes(e)) return; ph.push(`<b class="am" style="border-bottom:1px solid var(--amber)">${e}</b>`); ma=ma.split(e).join('\u0001'+(ph.length-1)+'\u0002'); });
   ma=ma.replace(/\u0001(\d+)\u0002/g,(_,n)=>ph[+n]);
   const U=(O.useful||[]).map(x=>`<div style="${engCard}"><b class="am">${esc(x.en||'')}</b><div style="font-size:var(--fs-2)">${esc(x.ko||'')}</div>${x.when_ko?`<div class="mu" style="font-size:var(--fs-1)">언제: ${esc(x.when_ko)}</div>`:''}</div>`).join('');
-  const selfTxt=r=>r?(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+` <span class="mu" style="font-size:var(--fs-1)">${esc(String(r.ts||'').slice(11,16))}</span>`:'';
+  const selfTxt=r=>r?(r.result==='ok'?'<b class="v-ok">말했음</b>':'<b class="v-bad">막힘</b>')+` <span class="mu" style="font-size:var(--fs-1)">${esc(String(r.ts||'').slice(11,16))}</span>`:'';
   return `<div class="p c12" id="opic"><h2>OPIc 실전<small>${esc(O.survey_topic||'')} · 문항 ${i+1}/${C.length}</small></h2><div class="b" style="white-space:normal;line-height:1.7;font-size:var(--fs-2)">
    <div class="ovl" style="margin:0 0 8px">${C.map((c,j)=>`<button data-oq="${j}" class="${j===i?'on':''}">${j+1}. ${esc(c.type||'')}</button>`).join('')}</div>
    <div style="font-size:var(--fs-4);margin-bottom:2px"><b>${esc(q.q_en||'')}</b></div>
@@ -3426,7 +3430,7 @@ function engOpicBind(O,d){
   document.querySelectorAll('[data-otm]').forEach(b=>b.onclick=()=>opTimer(b.dataset.otm,+b.dataset.sec));
   document.querySelectorAll('[data-oself]').forEach(b=>b.onclick=()=>{ const i=Math.min(ENG.oq||0,((O&&O.combo)||[]).length-1), q=((O&&O.combo)||[])[i]||{};
     const r={date:d,idx:i,type:q.type||'',result:b.dataset.oself,ts:new Date().toISOString()}; OPS.push(r); if(OPS.length>2000) OPS=OPS.slice(-2000); eduPut(OPK,OPS);
-    const el=$('#opres'); if(el) el.innerHTML=(r.result==='ok'?'<b class="up">말했음</b>':'<b class="dn">막힘</b>')+' <span class="mu" style="font-size:var(--fs-1)">기록됨</span>'; });
+    const el=$('#opres'); if(el) el.innerHTML=(r.result==='ok'?'<b class="v-ok">말했음</b>':'<b class="v-bad">막힘</b>')+' <span class="mu" style="font-size:var(--fs-1)">기록됨</span>'; });
 }
 const ENGCSS=`<style>#engv{overflow-wrap:anywhere}#engv button,#engv select,#engv summary{min-height:44px;box-sizing:border-box}
 #engv summary{display:block;padding:11px 0;cursor:pointer}#engv summary::-webkit-details-marker{display:none}
@@ -3605,9 +3609,9 @@ function cmtSec(no,title,sub,body,open){
 function cmtList(a,cls){ return (a||[]).length?(a||[]).map(x=>`<div class="${cls||''}">• ${esc(x)}</div>`).join(''):''; }
 function cmtTbl(head,rows){ return `<div style="overflow-x:auto"><table><tr>${head.map((h,i)=>`<th class="${i===0?'l':''}">${h}</th>`).join('')}</tr>${rows.join('')}</table></div>`; }
 function cmtSrcHtml(a){ const g=x=>x==='검증전'?'검증 전':x;
-  return (a||[]).map(z=>`<div><b class="${z.side==='agree'?'up':'dn'}">${z.side==='agree'?'＋':'－'}</b> ${esc(z.label)} <span class="tag${z.grade==='F'?' r':z.grade==='검증전'?' b':''}">${esc(g(z.grade))}</span><span class="mu" style="font-size:var(--fs-1)">${z.w!=null?' w '+(z.w>0?'+':'')+z.w:''}${z.perf?' · '+esc(z.perf):''}</span></div>`).join('')||'<span class="mu">원천 없음</span>'; }
+  return (a||[]).map(z=>`<div><b class="${z.side==='agree'?'v-ok':'v-bad'}">${z.side==='agree'?'＋':'－'}</b> ${esc(z.label)} <span class="tag${z.grade==='F'?' r':z.grade==='검증전'?' b':''}">${esc(g(z.grade))}</span><span class="mu" style="font-size:var(--fs-1)">${z.w!=null?' w '+(z.w>0?'+':'')+z.w:''}${z.perf?' · '+esc(z.perf):''}</span></div>`).join('')||'<span class="mu">원천 없음</span>'; }
 function cmtBLCard(o){
-  const bl=o.bottom_line||{}, c=({red:'var(--dn)',yellow:'var(--amber)',green:'var(--up)'})[bl.light]||'var(--amber)';
+  const bl=o.bottom_line||{}, c=({red:'var(--bad)',yellow:'var(--amber)',green:'var(--ok)'})[bl.light]||'var(--amber)';
   return `<div class="p c12" style="border:2px solid ${c}"><h2 style="color:${c}"><span>${esc(bl.label||'')} · 운용회의 ${o.market==='US'?'미장':'국장'}${o.session?' · '+esc(o.session):''}</span><small>${esc(o.asof||'')}${bl.prev_stance&&bl.prev_stance!==bl.stance?' · 판정 '+esc(bl.prev_stance)+'→'+esc(bl.stance):bl.stance?' · 판정 '+esc(bl.stance):''}</small></h2>
     <div class="b" style="line-height:1.75;white-space:normal;font-size:var(--fs-2)">${o.top?renderTop(o.top,{c}):(bl.lines||[]).map((x,i)=>`<div style="margin:2px 0"><b style="color:${c}">${'①②③'[i]||'·'}</b> ${esc(x)}</div>`).join('')}</div></div>`; }
 /* HF 데스크 운용회의 개입 4줄 + 알파북(모의) — screener/alphabook.py, reports/alphabook.json */
@@ -3816,7 +3820,7 @@ function cmtUSView(){
     `<div class="am" style="font-size:var(--fs-1)">매수 후보</div>${stkLine(o)}${idea((o.ideas||{}).long||[])}<div class="am" style="font-size:var(--fs-1);margin-top:8px">회피</div>${idea((o.ideas||{}).avoid||[])}`,false));
   const IU=o.ideas_top||{}, iu=[...(IU.items||[]),...(IU.candidates||[])];
   sec.push(cmtSec('3-1','매수 진입 후보 (최대 5)','국장 아이디어와 같은 형식 · 진입 구간·손절·목표·R · 게이트 불통과면 대기',
-    `<div style="font-size:var(--fs-2);margin-bottom:6px">시장 진입 게이트 <b class="${IU.entry_gate==='fail'?'dn':IU.entry_gate==='pass'?'up':'mu'}">${esc(IU.entry_gate==='fail'?'불통과':IU.entry_gate==='pass'?'통과':'판정 없음')}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(IU.entry_gate_why||'')}</span></div>
+    `<div style="font-size:var(--fs-2);margin-bottom:6px">시장 진입 게이트 <b class="${IU.entry_gate==='fail'?'v-bad':IU.entry_gate==='pass'?'v-ok':'mu'}">${esc(IU.entry_gate==='fail'?'불통과':IU.entry_gate==='pass'?'통과':'판정 없음')}</b> <span class="mu" style="font-size:var(--fs-1)">${esc(IU.entry_gate_why||'')}</span></div>
     ${iu.length?`<div style="display:flex;gap:8px;flex-wrap:wrap">${iu.map(x=>ideaCardHtml(x,'US')).join('')}</div>`:`<div class="mu">${esc(IU.empty||'후보 없음 — 대기')}</div>`}
     <div class="mu" style="font-size:var(--fs-1);margin-top:6px;white-space:normal">${esc(IU.formula||'')} ${esc(IU.grade_note||'')}</div>${ideaTrackingBox('US')}`,true));
   const A=o.asymmetry||H.asymmetry;
@@ -3902,7 +3906,7 @@ function ticketBox(D,IU){
     손절 <input id="tkstopp" value="${TK_STOP}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tkstop" placeholder="손절가" style="width:90px;${IS}">
     목표 <input id="tktgtp" value="${TK_TGT}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tktarget" placeholder="목표가" style="width:90px;${IS}">
     <input id="tkdays" placeholder="보유(일)" value="5" style="width:52px;${IS}">일 <button id="tkgo" class="sbtn">주문표 열기 (깃허브 이슈)</button>
-    ${RN.length?`<div id="tkrnbox" style="border:1px solid var(--dn);padding:5px 8px;margin-top:4px"><b class="dn">⛔ 재협상 2회째</b> <span class="mu" style="font-size:var(--fs-1)">관련 주문표만 — POS_BACKSTOP: 반도체·−20% 아래 보유 종목</span> <label class="mu" style="font-size:var(--fs-1)"><input type="checkbox" id="tkbelow"> −20% 아래 보유 종목</label> — ${RN.map(x=>`${esc(x.rule)} ${x.count}회 · 마지막 ${esc(x.last.slice(5))}`).join(' · ')} <span class="mu" style="font-size:var(--fs-1)">(30일 안 같은 규칙 · ops/renego.json)</span>
+    ${RN.length?`<div id="tkrnbox" style="border:1px solid var(--alarm-bg);padding:5px 8px;margin-top:4px"><b class="v-alarm">⛔ 재협상 2회째</b> <span class="mu" style="font-size:var(--fs-1)">관련 주문표만 — POS_BACKSTOP: 반도체·−20% 아래 보유 종목</span> <label class="mu" style="font-size:var(--fs-1)"><input type="checkbox" id="tkbelow"> −20% 아래 보유 종목</label> — ${RN.map(x=>`${esc(x.rule)} ${x.count}회 · 마지막 ${esc(x.last.slice(5))}`).join(' · ')} <span class="mu" style="font-size:var(--fs-1)">(30일 안 같은 규칙 · ops/renego.json)</span>
       <textarea id="tkrn" rows="2" placeholder="재협상 사유 (필수, 10자 이상) — 이 글은 저장·전송하지 않습니다. 개인 일지에 옮겨 적으세요." style="display:block;width:100%;margin-top:4px;${IS}"></textarea></div>`:''}
     <div id="tklbl" class="mu" style="font-size:var(--fs-1)"></div>`;
   setTimeout(()=>{ const g=$('#tkgo'); if(!g) return; const v=id=>($(id).value||'').trim();
@@ -3935,7 +3939,7 @@ function ticketBox(D,IU){
     g.onclick=()=>{ const c=v('#tkcode')||v('#tkq'); if(!c) return;
     // 재협상 2회째: 사유 글이 있어야 열림. 글 자체는 이슈 본문(공개)에 넣지 않고 '기재' 표시만 — 검사기(screener/ticket.py)는 이 줄로 사유 칸 확인
     scope();
-    if(RN.length&&v('#tkrn').replace(/\s/g,'').length<RENEGO_REASON_MIN){ $('#tklbl').innerHTML=`<b class="dn">⛔ 재협상 2회째 — 사유 칸(${RENEGO_REASON_MIN}자 이상, 공백 제외)을 먼저 적어야 주문표를 열 수 있음</b>`; $('#tkrn').focus(); return; }
+    if(RN.length&&v('#tkrn').replace(/\s/g,'').length<RENEGO_REASON_MIN){ $('#tklbl').innerHTML=`<b class="v-alarm">⛔ 재협상 2회째 — 사유 칸(${RENEGO_REASON_MIN}자 이상, 공백 제외)을 먼저 적어야 주문표를 열 수 있음</b>`; $('#tkrn').focus(); return; }
     const e=+v('#tkentry')||0, st=+v('#tkstop')||0, tg=+v('#tktarget')||0; const rr=e>st&&st>0?((tg-e)/(e-st)).toFixed(2):'';
     window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(RN.length?'재협상사유: 기재함 — 글은 비공개(10자 이상 확인)\n':'')+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
   return `<div style="border-top:1px solid var(--line);margin-top:8px;padding:8px 0;font-size:var(--fs-2);line-height:1.7;white-space:normal"><b class="am">주문표</b> <span class="mu" style="font-size:var(--fs-1)">매수 전 필수(규정 [4]) · 손익비 1:2 미만·레버리지·개장 30분·이벤트 당일 거부 · 추격은 절반 · 1회 리스크 = 위성 북 × r</span>${T?` <span style="font-size:var(--fs-1)">· 채점 ${T.n}건 · 승률 <b>${Math.round((T.hit||0)*100)}%</b> · 평균 <b class="${T.avg_r>=0?'up':'dn'}">${T.avg_r>=0?'+':''}${T.avg_r}R</b></span>`:''}
@@ -5259,7 +5263,7 @@ function macChart(cv,all,st,o){
   x.fillStyle='#050505';x.fillRect(0,0,W,H);x.font=`${fs}px monospace`;
   for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,y=Y(v);x.strokeStyle='#1c1c1c';x.lineWidth=1;x.beginPath();x.moveTo(pl,y);x.lineTo(W-pr,y);x.stroke();x.fillStyle='#777';x.fillText(v.toLocaleString(undefined,{maximumFractionDigits:v<20?2:0}),4,y+fs/3);}
   if(vh){const vm=Math.max(...b.map(z=>z.v))||1; b.forEach((z,i)=>{const hgt=z.v/vm*vh; x.fillStyle=z.c>=z.o?'rgba(255,75,75,.45)':'rgba(74,163,255,.45)'; x.fillRect(X(i)-cw*0.35,H-pb-hgt,Math.max(cw*0.7,1),hgt);});}
-  if(hasOHLC){ b.forEach((z,i)=>{const up=z.c>=z.o, col=up?'#ff4b4b':'#4aa3ff'; x.strokeStyle=col;x.fillStyle=col;x.lineWidth=Math.max(1,cw*0.12);
+  if(hasOHLC){ b.forEach((z,i)=>{const up=z.c>=z.o, col=up?'#ff4d4d':'#4c8dff'; x.strokeStyle=col;x.fillStyle=col;x.lineWidth=Math.max(1,cw*0.12);
       x.beginPath();x.moveTo(X(i),Y(z.h));x.lineTo(X(i),Y(z.l));x.stroke();
       const y1=Y(Math.max(z.o,z.c)), y2=Y(Math.min(z.o,z.c)), bw=Math.max(cw*0.7,1); x.fillRect(X(i)-bw/2,y1,bw,Math.max(y2-y1,1));
       if(z.live){x.strokeStyle='#fc3';x.lineWidth=2;x.strokeRect(X(i)-bw/2-2,y1-2,bw+4,Math.max(y2-y1,1)+4);} }); }
@@ -5494,7 +5498,7 @@ function drawChart(ch,sc,rs,kr){
     grid:{vertLines:{color:'#141414'},horzLines:{color:'#141414'}},rightPriceScale:{borderColor:'#2a2a2a'},timeScale:{borderColor:'#2a2a2a',rightOffset:3,barSpacing:mob?6:8},
     crosshair:{mode:0},handleScroll:{vertTouchDrag:false},localization:{locale:'ko-KR',priceFormatter:v=>num(v,kr?0:2)}});
   LWCH=c;
-  const upC=kr?'#ff4b4b':'#2fd05a', dnC=kr?'#4aa3ff':'#ff4b4b';
+  const upC='#ff4d4d', dnC='#4c8dff';   // 한국식 통일(D1 10/31): 미국 종목도 상승 빨강·하락 파랑 = --up/--down dark 값(캔버스는 xl 에서 반전되므로 고정값)
   const cs=c.addCandlestickSeries({upColor:upC,downColor:dnC,borderUpColor:upC,borderDownColor:dnC,wickUpColor:upC,wickDownColor:dnC});
   cs.setData(ch.map(b=>b.live?{time:b.t,open:b.o,high:b.h,low:b.l,close:b.c,color:'rgba(255,154,31,.25)',borderColor:'#ff9a1f',wickColor:'#ff9a1f'}:{time:b.t,open:b.o,high:b.h,low:b.l,close:b.c}));
   const lb=ch[ch.length-1]; if(lb&&lb.live) try{ cs.setMarkers([{time:lb.t,position:'aboveBar',color:'#ff9a1f',shape:'arrowDown',text:'잠정'}]); }catch(_){}
@@ -5555,7 +5559,7 @@ function drawCanvas(ch,sc,rs,kr){
     if(pts.length){ ch.forEach((c,i)=>{ if(c.p==null||c.p<lo||c.p>hi) return; const px=padL+cw*i+cw/2; x.fillStyle=c.p<c.c?'#ff9a1f':'#c070ff'; x.beginPath(); x.arc(px,Y(c.p),Math.max(2.5,cw*0.12),0,Math.PI*2); x.fill(); });
       const lp=pts[pts.length-1]; x.fillStyle='#ff9a1f'; x.fillText('PSAR '+fm(lp.p)+(lp.p<lp.c?' (상승추세)':' (하락추세)'),padL+6,padT+22); }
     else if(sc.bear?.trail) hline(sc.bear.trail,'#ff9a1f','PSAR '+fm(sc.bear.trail)); }
-  ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4b4b':'#4aa3ff'; if(!kr){x.strokeStyle=x.fillStyle=up?'#2fd05a':'#ff4b4b';}
+  ch.forEach((c,i)=>{const px=padL+cw*i+cw/2;const up=c.c>=c.o;x.strokeStyle=x.fillStyle=up?'#ff4d4d':'#4c8dff';   // 한국식 통일(D1) — 미국 종목 포함
     if(c.live){ x.strokeStyle='#ff9a1f'; x.setLineDash([6,4]); }
     x.lineWidth=2;x.beginPath();x.moveTo(px,Y(c.h));x.lineTo(px,Y(c.l));x.stroke();const yo=Y(c.o),yc=Y(c.c);
     if(c.live){ x.strokeRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo))); x.setLineDash([]); } else x.fillRect(px-cw*0.3,Math.min(yo,yc),cw*0.6,Math.max(2,Math.abs(yc-yo)));

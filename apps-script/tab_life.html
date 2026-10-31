@@ -68,7 +68,7 @@ let LIFECH=[];
 function lifeHealthBody(H){
   const B=H.body||{}, S=H.series||{}, L=H.lifts||{}, WW=H.workouts_weekly||[], T=H.targets||[], WP=H.weight_path, PC=H.pace||{};
   const f1=v=>v==null?'—':(+v).toLocaleString('ko-KR',{maximumFractionDigits:1});
-  const sg=(v,good)=>{ if(v==null) return '<span class="mu">—</span>'; const c=v===0?'mu':((v<0)===(good==='down')?'up':'dn'); return `<span class="${c}">${v>0?'+':''}${f1(v)}</span>`; };
+  const sg=(v,good)=>{ if(v==null) return '<span class="mu">—</span>'; const c=v===0?'mu':((v<0)===(good==='down')?'v-ok':'v-bad'); return `<span class="${c}">${v>0?'+':''}${f1(v)}</span>`; };
   const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,(p||0)*100))}%;${c?'background:var('+c+')':''}"></i></div>`;
   const keys=[['fat_kg','체지방량','kg','down'],['smm','골격근량','kg','up'],['fat_pct','체지방률','%','down'],['visceral_area','내장지방면적','cm²','down'],['weight','체중','kg','down']];
   const any=keys.some(k=>B[k[0]]);

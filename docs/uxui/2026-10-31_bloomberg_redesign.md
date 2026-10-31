@@ -158,6 +158,7 @@
 }
 ```
 - CSS 대응: `--bg/--surface/--raised/--line/--line-strong/--text/--text-2/--text-3/--accent/--on-accent/--up/--down/--alarm-bg/--on-alarm`, `--font-text/--font-num`, `--fs-1~4`, `--s-1~5`, `--r-0~2`. 색 관례는 한국식 하나(D1 확정) — 관례 토글·국제 토큰 없음.
+- 판정 토큰(프론트 10/31, PB 결정 — 1단계 직후 추가): `--ok`(dark = `{color.dark.text}` #f2f2f2 · light/엑셀 #000, 통과·정답·정상 — 상승 빨강과 안 겹치는 중립) · `--bad`(dark #ff5c5c · light/엑셀 #c00000, 불통과·오답·실패 글자) · 클래스 `.v-ok/.v-bad`, ⛔ 한도 초과·위반은 `.v-alarm`(= `alarmBg` 바탕 + `onAlarm` 글자 반전 블록, P3). 시장 등락 `.up/.dn` 은 가격에만.
 - 현 이름과의 다리(1단계에서 별칭으로 유지): `--panel→--surface`, `--bg2/--bg3→--raised`, `--txt→--text`, `--muted→--text-2`, `--amber→--accent`, `--dn→--down`, `--mono→--font-num`. 엑셀 스킨(`html.xl`)은 light 값 위에 맑은 고딕·격자만 덧씌운다.
 
 ## 5. 정렬·대칭 규칙 (겸이 10/31 「uxui는 그 어떤 화면비율에서도 대칭성이랑 정렬 유지」)

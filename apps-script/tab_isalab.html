@@ -80,7 +80,7 @@ function ilabRecalc(){
   if(s<=0){ o.innerHTML='<span class="dn">비중이 모두 0</span>'; return; }
   const B=ilabEval(D,ilabBase(),S.rebal,S.cost,S.contrib), X=ilabEval(D,S.w,S.rebal,S.cost,S.contrib);
   const p1=v=>v==null||isNaN(v)?'—':(v*100).toFixed(1)+'%', pp=v=>isNaN(v)?'—':`${v>0?'+':''}${(v*100).toFixed(1)}%p`, mx=v=>v.toFixed(2)+'배';
-  const row=(lab,b,x,f,d,better)=>{ const df=d(x-b), good=better==null?'':((x-b)*better>0.0005?'up':(x-b)*better<-0.0005?'dn':'mu'); return `<tr><td class="l">${lab}</td><td>${f(b)}</td><td><b>${f(x)}</b></td><td class="${good}">${df}</td></tr>`; };
+  const row=(lab,b,x,f,d,better)=>{ const df=d(x-b), good=better==null?'':((x-b)*better>0.0005?'v-ok':(x-b)*better<-0.0005?'v-bad':'mu'); return `<tr><td class="l">${lab}</td><td>${f(b)}</td><td><b>${f(x)}</b></td><td class="${good}">${df}</td></tr>`; };
   const dmx=v=>`${v>0?'+':''}${v.toFixed(2)}배`;
   let h=`<table><tr><th class="l">지표</th><th>현행 ISA</th><th>선택</th><th>차이</th></tr>
    <tr><td class="l am" colspan="4">일시금 (2004-01 에 1 넣고 그대로)</td></tr>

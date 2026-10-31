@@ -52,7 +52,7 @@ function ticketBox(D,IU){
     손절 <input id="tkstopp" value="${TK_STOP}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tkstop" placeholder="손절가" style="width:90px;${IS}">
     목표 <input id="tktgtp" value="${TK_TGT}" title="매수가 대비 %" style="width:44px;${IS}">% <input id="tktarget" placeholder="목표가" style="width:90px;${IS}">
     <input id="tkdays" placeholder="보유(일)" value="5" style="width:52px;${IS}">일 <button id="tkgo" class="sbtn">주문표 열기 (깃허브 이슈)</button>
-    ${RN.length?`<div id="tkrnbox" style="border:1px solid var(--dn);padding:5px 8px;margin-top:4px"><b class="dn">⛔ 재협상 2회째</b> <span class="mu" style="font-size:var(--fs-1)">관련 주문표만 — POS_BACKSTOP: 반도체·−20% 아래 보유 종목</span> <label class="mu" style="font-size:var(--fs-1)"><input type="checkbox" id="tkbelow"> −20% 아래 보유 종목</label> — ${RN.map(x=>`${esc(x.rule)} ${x.count}회 · 마지막 ${esc(x.last.slice(5))}`).join(' · ')} <span class="mu" style="font-size:var(--fs-1)">(30일 안 같은 규칙 · ops/renego.json)</span>
+    ${RN.length?`<div id="tkrnbox" style="border:1px solid var(--alarm-bg);padding:5px 8px;margin-top:4px"><b class="v-alarm">⛔ 재협상 2회째</b> <span class="mu" style="font-size:var(--fs-1)">관련 주문표만 — POS_BACKSTOP: 반도체·−20% 아래 보유 종목</span> <label class="mu" style="font-size:var(--fs-1)"><input type="checkbox" id="tkbelow"> −20% 아래 보유 종목</label> — ${RN.map(x=>`${esc(x.rule)} ${x.count}회 · 마지막 ${esc(x.last.slice(5))}`).join(' · ')} <span class="mu" style="font-size:var(--fs-1)">(30일 안 같은 규칙 · ops/renego.json)</span>
       <textarea id="tkrn" rows="2" placeholder="재협상 사유 (필수, 10자 이상) — 이 글은 저장·전송하지 않습니다. 개인 일지에 옮겨 적으세요." style="display:block;width:100%;margin-top:4px;${IS}"></textarea></div>`:''}
     <div id="tklbl" class="mu" style="font-size:var(--fs-1)"></div>`;
   setTimeout(()=>{ const g=$('#tkgo'); if(!g) return; const v=id=>($(id).value||'').trim();
@@ -85,7 +85,7 @@ function ticketBox(D,IU){
     g.onclick=()=>{ const c=v('#tkcode')||v('#tkq'); if(!c) return;
     // 재협상 2회째: 사유 글이 있어야 열림. 글 자체는 이슈 본문(공개)에 넣지 않고 '기재' 표시만 — 검사기(screener/ticket.py)는 이 줄로 사유 칸 확인
     scope();
-    if(RN.length&&v('#tkrn').replace(/\s/g,'').length<RENEGO_REASON_MIN){ $('#tklbl').innerHTML=`<b class="dn">⛔ 재협상 2회째 — 사유 칸(${RENEGO_REASON_MIN}자 이상, 공백 제외)을 먼저 적어야 주문표를 열 수 있음</b>`; $('#tkrn').focus(); return; }
+    if(RN.length&&v('#tkrn').replace(/\s/g,'').length<RENEGO_REASON_MIN){ $('#tklbl').innerHTML=`<b class="v-alarm">⛔ 재협상 2회째 — 사유 칸(${RENEGO_REASON_MIN}자 이상, 공백 제외)을 먼저 적어야 주문표를 열 수 있음</b>`; $('#tkrn').focus(); return; }
     const e=+v('#tkentry')||0, st=+v('#tkstop')||0, tg=+v('#tktarget')||0; const rr=e>st&&st>0?((tg-e)/(e-st)).toFixed(2):'';
     window.open(IU('ticket '+c, `매수가 ${v('#tkentry')}\n손절가 ${v('#tkstop')}\n목표가 ${v('#tktarget')}\n근거: \n보유 ${v('#tkdays')||5}일\n`+(RN.length?'재협상사유: 기재함 — 글은 비공개(10자 이상 확인)\n':'')+(rr?`\n(손익비 1:${rr})`:'')),'_blank'); }; },0);
   return `<div style="border-top:1px solid var(--line);margin-top:8px;padding:8px 0;font-size:var(--fs-2);line-height:1.7;white-space:normal"><b class="am">주문표</b> <span class="mu" style="font-size:var(--fs-1)">매수 전 필수(규정 [4]) · 손익비 1:2 미만·레버리지·개장 30분·이벤트 당일 거부 · 추격은 절반 · 1회 리스크 = 위성 북 × r</span>${T?` <span style="font-size:var(--fs-1)">· 채점 ${T.n}건 · 승률 <b>${Math.round((T.hit||0)*100)}%</b> · 평균 <b class="${T.avg_r>=0?'up':'dn'}">${T.avg_r>=0?'+':''}${T.avg_r}R</b></span>`:''}
