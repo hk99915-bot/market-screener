@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-01 · 작업 380개 · 진행 8 · 검수 4 · 대기 69 · 보류 31 · 완료 268
+기준일 2026-11-01 · 작업 380개 · 진행 8 · 검수 4 · 대기 68 · 보류 31 · 완료 269
 
 **결재 대기 6:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이), `appr-staffing-b-1107` (겸이), `freeman-okr` (겸이 · 보류)
 
@@ -28,11 +28,10 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-11-03 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. / 11/01 PM 늦은 일 정리(유효): 유효: 11/02(월) 23:20 루프 기동·06:00 재개 실측 뒤 완료 |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (69)
+## 대기 (68)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
-| P0 ⏫P1 10-21 | `gas-repaste` | GAS 편집기 재붙여넣기 (Scheduler.gs: 16:40 deriv_hist + 14:25 rebound 슬롯 · Index.html PIN 토큰) — 사용자 직접 | PB | — | 2026-11-01 | `apps-script/Scheduler.gs`<br>`apps-script/Index.html` | — | 사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. / 운영 10/17 결정C: Scheduler.gs 가 다시 바뀜(WINDOW_MIN 10·모든 슬롯 commit:'true'·SCHEDULER_VERSION). 체크리스트 docs/schedule_table.md §0 — tickTest 첫 줄 '예약기 버전 2026-10-18 결정C' 확인. 붙여넣기 전에도 commit=auto 로 커밋은 됨(호환). / 10/21 유지보수 추가: apps-script/tab_market.html (히트맵 KR 장중 피드·기준 시각·STALE 배지, maint-heatmap) — 붙여넣기 전엔 GAS 히트맵 KR 은 전일 종가. / 10/24 운영 점검: 확인 요청 중(req-maint-baec0edf, 회신 마감 2026-10-28) — clasp 자동 배포(10/23)가 예약기 프로젝트까지 덮는지 / 11/1 PB: 겸이 웹(Pages)만 사용 → Index·Code.gs 재붙여넣기 불필요. 남은 것 = Scheduler.gs tickTest 첫 줄 '2026-10-30 겨울시간 · 이중화' 확인 1건(11/1 18:52 회의) |
 | P0 | `mig-v1-audit` | 리팩토링 v1 범용판 스냅샷 경계 검사 — migrate_v1 review 판정·허용 목록 JSON·제외 목록 검토 | 감사 | — | 2026-11-03 | `scripts/migrate_v1.py` | `mig-v1-dev-a` | ask.py 요청과 짝. review 0 이어야 11/6 스냅샷 준비 끝 |
 | P0 ⏫P1 10-21 | `integrity-p0-3` | 14:42 PB 예약 프롬프트 규칙 하드코딩 제거 (감사 P0-3 · C-02) | 개발 | — | 2026-11-06 | — | — | 예약 변경 — 월 장 전 금지. 월 14:42 1회는 현 프롬프트로 돌고 PB가 결재 #2·#3 과 수동 대조. 장 후 오너 확인 뒤 교체. 설계: docs/integrity_dev_plan_2026-10-17.md §3 / 10/24 운영 점검: 확인 요청 중(req-pb-584233b1, 회신 마감 2026-10-28) — 비공개 작업 — 끝났는지 PB 회신 / 11/01 PM 늦은 일 정리(유효): 유효: 현 14:42 예약 프롬프트는 문서 경로 참조로 바뀜(10/26) — 옛 예약 원문 의존·규칙 수치 잔존 여부 확인 1건(PB 예약 소관) |
 | P0 | `mig-v1-snapshot` | 리팩토링 v1 스냅샷 최종: migrate_v1 막힘 0·범용판 pytest 0 확인 → 겸이에 '준비 끝' 한 줄 | 개발 | — | 2026-11-06 | `scripts/migrate_v1.py` | `mig-v1-audit`, `mig-v1-dev-b` |  |
@@ -138,7 +137,7 @@
 | P3 ⏫P1 10-21 | `audit-1017-minor` | 감사 경 L2~L13 묶음 (live 동시실행 대기·레짐 기본값/SEMI_CAP 덮임·prices join 순서·valuation asof·data_branch lease·us_accum 입력·accum 저장 크기·team ⛔·회고 커미터·flowq 테스트·detail rets 크기) | 개발 | 2026-10-17 | 2026-11-18 | `screener/pb.py`<br>`screener/prices.py`<br>`scripts/data_branch.py` | — | 표: docs/peer_reviews/2026-10-17_refactor_audit.md §2.2. 담당 열대로 데스크에 나눠 처리. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 착수 흔적 없음(커밋 0) — 10/24 마감 비현실 / 11/01 PM 늦은 일 정리(정리): 보류: 경 등급 묶음 — 리팩토링 이전(11/7~11)으로 파일 경로가 바뀜, 이전 뒤 남은 것만 |
 | P3 | `longterm-terminal-design` | 장기 검토: 29데스크 컨텍스트 효율·PostgreSQL POC·선택적 검색 설계안 2건 검토(설계 전용) | PM | 2026-10-25 | 2026-11-30 | private 전용 | — | 10/25 겸이 "이건 장기 검토용". 문서 자체가 READ-ONLY·승인 전 변경 금지 명시. 토큰 긴축 해제 뒤 PM·개발·데이터 검토 일정 잡기. |
 
-## 완료 (268)
+## 완료 (269)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -161,6 +160,7 @@
 | P0 ⏫P1 10-21 | `my-tab-ledger-compare` | MY 탭 보유 관리 (a)+(b) — 브라우저 주 + 원장 대조(덮어쓰기 확인창·배지 2개·백업 내보내기/가져오기) | 개발 | 2026-10-17 | 2026-10-28 | `apps-script/tab_my.html`<br>`apps-script/tab_home.html`<br>`index.html`<br>`tests/test_my_backup.py`<br>`scripts/ui_smoke.py` | `integrity-p0-4` | 34598d29 · 근거 docs/my_tab_holdings_plan.md, 겸이 승인 10/17 '우웅 ㄱ 알아서 ㄱㄱ'. 남은 것: B-16 정정 문구 반영(ops/README.md:93·pb HANDOFF:58). / 10/24 운영 점검: 검수 유지, 마감 2026-10-18→2026-10-28. 남은 것: B-16 정정 문구(ops/README.md 보유 입력 절·pb HANDOFF) 반영 / 11/01 PM 늦은 일 정리(완료): 근거: 남은 B-16 정정 00d7c4c8(10/27 ops/README MY 탭 보유 출처) |
 | P0 ⏫P1 10-29 | `rebalance-support` | 리밸런싱 실행 지원 (상세는 private) | PB | 2026-10-15 | 2026-10-28 | private 전용 | — | private 저장소 전용. 종목·수량·금액은 이 판에 적지 않는다. 10/16 1·2차 실행 완료, 남은 단계 기한 10/22·10/23. 상세는 pb-private ops/PLAN_2026-10-16.md. / 10/24 운영 점검: 확인 요청 중(req-pb-584233b1, 회신 마감 2026-10-28) — 비공개 작업 — 끝났는지 PB 회신 / 11/1 PB 닫음: ISA 1차 10/16·2차 10/19 체결 완료(비공개 history 10/16·10/19) |
 | P0 ⏫P1 10-21 | `sunday-review` | 10/18(일) 리뷰 — 안건 1~8 결정 (90분, 안건 팩은 private) | PM | 2026-10-16 | 2026-10-28 | private 전용 | — | private: ops/rule_proposals_2026-10-18.md + ops/PLAN_2026-10-16.md 의 시간표. 산출물: 결정 로그 → agreements 🗳️→✅ 이동 → 규정 파일 반영. 결정 없는 안건은 11/16 으로 이월(동결). / 10/24 운영 점검: 확인 요청 중(req-pb-584233b1, 회신 마감 2026-10-28) — 비공개 작업 — 끝났는지 PB 회신 / 11/01 PM 늦은 일 정리(완료): 근거: 10/18 리뷰 실시 — 비공개 합의 원장 10/18 결정 줄·결재 #2·#3 운영 중. 결정 없는 안건은 이 작업 규약대로 11/16 이월(cio-memo·frm-audit·alpha-baseline-fix 보류로 반영) |
+| P0 ⏫P1 10-21 | `gas-repaste` | GAS 편집기 재붙여넣기 (Scheduler.gs: 16:40 deriv_hist + 14:25 rebound 슬롯 · Index.html PIN 토큰) — 사용자 직접 | PB | — | 2026-11-01 | `apps-script/Scheduler.gs`<br>`apps-script/Index.html` | — | 사용자가 GAS 편집기에 직접 붙여넣어야 반영됨(에이전트 불가). 10/16 1ac92739 로 Scheduler.gs 에 14:25 슬롯이 또 늘었음 → 최신 파일 기준으로 한 번에. 10/18 대청소 전(토요일)까지. gas-sched-verify 의 전제. / 운영 10/17 결정C: Scheduler.gs 가 다시 바뀜(WINDOW_MIN 10·모든 슬롯 commit:'true'·SCHEDULER_VERSION). 체크리스트 docs/schedule_table.md §0 — tickTest 첫 줄 '예약기 버전 2026-10-18 결정C' 확인. 붙여넣기 전에도 commit=auto 로 커밋은 됨(호환). / 10/21 유지보수 추가: apps-script/tab_market.html (히트맵 KR 장중 피드·기준 시각·STALE 배지, maint-heatmap) — 붙여넣기 전엔 GAS 히트맵 KR 은 전일 종가. / 10/24 운영 점검: 확인 요청 중(req-maint-baec0edf, 회신 마감 2026-10-28) — clasp 자동 배포(10/23)가 예약기 프로젝트까지 덮는지 / 11/1 PB: 겸이 웹(Pages)만 사용 → Index·Code.gs 재붙여넣기 불필요. 남은 것 = Scheduler.gs tickTest 첫 줄 '2026-10-30 겨울시간 · 이중화' 확인 1건(11/1 18:52 회의) / 11/1 겸이 확인: 편집기 SCHEDULER_VERSION='2026-10-30 겨울시간 · 이중화' 일치 |
 | P0 | `order-ticket-form` | 주문표 폼 → decisions 기록(pick 이슈 경로 재사용): 종목·매수가·손절가·목표가·근거·보유기간, 실매매 전 필수 | 개발 | 2026-10-16 | 2026-11-09 | `screener/duel.py`<br>`screener/decisions.py`<br>`.github/workflows/pick.yml`<br>`apps-script/Index.html` | — | 해금 1단계(11/16) 필수 도구. 금액은 기록하되 공개 저장소엔 비율/모의 100만 환산만. / 10/24 운영 점검: 완료 확인(done 2026-10-24) — 근거 5d2859f3 주문표(ticket) 경로 · tab_duel.html 주문표 섹션 |
 | P1 | `ops-system` | 운영 체계 (작업 보드·잠금·함수 소실 검사·변경 이력·SYSTEM 탭) | 운영 | 2026-10-15 | 2026-10-15 | `ops/*`<br>`scripts/changelog.py`<br>`scripts/board.py`<br>`scripts/lock.py`<br>`scripts/check_functions.py`<br>`scripts/ops_runs.py`<br>`.github/workflows/ops.yml`<br>`apps-script/Index.html`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py`<br>`reports/changelog.json`<br>`reports/ops/*` | — | Index.html 동시 편집으로 함수가 지워진 회귀(myRun) 재발 방지. 에이전트 규약은 ops/README.md. |
 | P1 | `agreements-ledger` | 합의 원장 신설 (대화 합의 → ✅시행/🗳️일요일/🔒약속 한 장) | PB | 2026-10-16 | 2026-10-16 | private 전용 | — | private 저장소 전용. 새 세션은 이 원장부터 읽는다. 일요일 리뷰 후 ✅확정분을 규정 파일로 옮기는 건 sunday-review 산출물. |
