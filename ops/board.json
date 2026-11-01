@@ -2555,9 +2555,10 @@
         "docs/toss_md_laptop_setup.md"
       ],
       "depends_on": [],
-      "notes": "겸이 결정 10/20: 시세 전용·노트북(Windows) 1대 수집, 매매는 미래에셋. 코드: GET+화이트리스트, 주문·계좌 경로·계좌 헤더 요청 전 차단, 키는 저장소 밖 env(600/icacls), 응답 원문 로그 금지, 수집 잠금 1개. 결과는 저장소 밖(~/toss_md_data) — 약관 재배포·자동수집 미확인이라 공개 산출물 없음. 10/20 23:5x 겸이 약관 확인 결과 '허용'(재배포·자동수집, 겸이 한 단어 보고·원문 미인용) → 공개 산출물은 1주 crosscheck 통과 후 별도 결재. PILOT 경로는 OpenAPI 원문 대조 완료(1c4338cb). 남은 일: ②키 발급·IP 등록·dry-run·실제 1회 ④1주 crosscheck 괴리 기록 후 채택 여부 결재. 10/21 00:13 노트북 실제 가동 ok=14 fail=0, 첫 대조 KOSDAQ 10/20 종가 토스=네이버 781.97 일치. 10/21 공개 연결 → toss-md-publish(요약만 toss-live 브랜치, main 커밋 없음). 남은 일: 1주 crosscheck(Pages TOSS LIVE 패널) 후 채택 결재. | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 1주 crosscheck(10/21~) 경과 — 채택 결재",
+      "notes": "겸이 결정 10/20: 시세 전용·노트북(Windows) 1대 수집, 매매는 미래에셋. 코드: GET+화이트리스트, 주문·계좌 경로·계좌 헤더 요청 전 차단, 키는 저장소 밖 env(600/icacls), 응답 원문 로그 금지, 수집 잠금 1개. 결과는 저장소 밖(~/toss_md_data) — 약관 재배포·자동수집 미확인이라 공개 산출물 없음. 10/20 23:5x 겸이 약관 확인 결과 '허용'(재배포·자동수집, 겸이 한 단어 보고·원문 미인용) → 공개 산출물은 1주 crosscheck 통과 후 별도 결재. PILOT 경로는 OpenAPI 원문 대조 완료(1c4338cb). 남은 일: ②키 발급·IP 등록·dry-run·실제 1회 ④1주 crosscheck 괴리 기록 후 채택 여부 결재. 10/21 00:13 노트북 실제 가동 ok=14 fail=0, 첫 대조 KOSDAQ 10/20 종가 토스=네이버 781.97 일치. 10/21 공개 연결 → toss-md-publish(요약만 toss-live 브랜치, main 커밋 없음). 남은 일: 1주 crosscheck(Pages TOSS LIVE 패널) 후 채택 결재. | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 1주 crosscheck(10/21~) 경과 — 채택 결재 | 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조",
       "desk": "개발",
-      "escalated": "2026-11-01"
+      "escalated": "2026-11-01",
+      "approval": "겸이"
     },
     {
       "id": "tg-pick-buttons",
@@ -3403,9 +3404,10 @@
         "docs/toss_md_laptop_setup.md"
       ],
       "depends_on": [],
-      "notes": "A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력). | 10/24 운영 점검: 검수 유지, 마감 2026-10-21→2026-10-31. 남은 것: 겸이 노트북 dispatcher 설치(가이드 ⑧) — reports/live.json 에 dispatcher_heartbeat 아직 없음 | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 노트북 dispatcher 설치(가이드 ⑧) 계속 vs 접기 — live.json dispatcher_heartbeat 아직 없음, 저장소 분리와 연동",
+      "notes": "A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력). | 10/24 운영 점검: 검수 유지, 마감 2026-10-21→2026-10-31. 남은 것: 겸이 노트북 dispatcher 설치(가이드 ⑧) — reports/live.json 에 dispatcher_heartbeat 아직 없음 | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 노트북 dispatcher 설치(가이드 ⑧) 계속 vs 접기 — live.json dispatcher_heartbeat 아직 없음, 저장소 분리와 연동 | 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조",
       "escalated": "2026-10-22",
-      "desk": "개발"
+      "desk": "개발",
+      "approval": "겸이"
     },
     {
       "id": "us-eod-toss",
@@ -4660,7 +4662,7 @@
         ".github/workflows/deriv_hist.yml"
       ],
       "depends_on": [],
-      "notes": "10/24 데이터: deriv_hist.yml probe(run 40031132390, commit=false) 로그에 KRX_API_KEY 값이 빈 칸(설정된 시크릿은 ***로 찍힘, KRX_ID·KRX_PW 는 ***) → 저장소에 KRX_API_KEY 시크릿 미등록. 겸이 할 일: ① openapi.krx.co.kr 로그인 → API 인증키 신청 ② 서비스 이용 신청(서비스 목록 원문 이름): 파생상품 — 옵션 일별매매정보 (주식옵션外)·주식옵션(유가) 일별매매정보·주식옵션(코스닥) 일별매매정보·선물 일별매매정보 (주식선물外)·주식선물(유가) 일별매매정보 / 지수 — 파생상품지수 시세정보(VKOSPI) / 채권 — 국채전문유통시장 일별매매정보(국고 백필) / (선택) 주식 — 유가증권·코스닥 일별매매정보 ③ GitHub Settings › Secrets › Actions 에 이름 KRX_API_KEY 로 등록(채팅으로 키 주지 말 것). 끝나면 데이터가 deriv_hist.yml task=probe days=krx_openapi commit=false 재실행해 엔드포인트별 200 확인. | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): KRX 키 발급·파생 서비스 신청 할지(안 하면 파생 공식 데이터 경로 보류)",
+      "notes": "10/24 데이터: deriv_hist.yml probe(run 40031132390, commit=false) 로그에 KRX_API_KEY 값이 빈 칸(설정된 시크릿은 ***로 찍힘, KRX_ID·KRX_PW 는 ***) → 저장소에 KRX_API_KEY 시크릿 미등록. 겸이 할 일: ① openapi.krx.co.kr 로그인 → API 인증키 신청 ② 서비스 이용 신청(서비스 목록 원문 이름): 파생상품 — 옵션 일별매매정보 (주식옵션外)·주식옵션(유가) 일별매매정보·주식옵션(코스닥) 일별매매정보·선물 일별매매정보 (주식선물外)·주식선물(유가) 일별매매정보 / 지수 — 파생상품지수 시세정보(VKOSPI) / 채권 — 국채전문유통시장 일별매매정보(국고 백필) / (선택) 주식 — 유가증권·코스닥 일별매매정보 ③ GitHub Settings › Secrets › Actions 에 이름 KRX_API_KEY 로 등록(채팅으로 키 주지 말 것). 끝나면 데이터가 deriv_hist.yml task=probe days=krx_openapi commit=false 재실행해 엔드포인트별 200 확인. | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): KRX 키 발급·파생 서비스 신청 할지(안 하면 파생 공식 데이터 경로 보류) | 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조",
       "id": "user-krx-openapi-key",
       "title": "KRX OPEN API 인증키 발급 + 파생 서비스 이용 신청 + 저장소 시크릿 KRX_API_KEY 등록 (10/24 probe: 시크릿이 Actions 에 빈 값)",
       "owner": "사용자",
@@ -4668,7 +4670,7 @@
       "priority": "P1",
       "status": "대기",
       "repo": "public",
-      "approval": null,
+      "approval": "겸이",
       "escalated": "2026-10-26"
     },
     {
@@ -5339,7 +5341,7 @@
       "depends_on": [
         "freeman-project"
       ],
-      "notes": "10/25 겸이 '비전 미션 OKR 본부/누나단위로 수립'. PB 초안 = docs/desk_kb/OKR.md(제안값, 확정 아님). 절차: ① 본부 대표 6명(CIO·퀀트·리스크·PM·교육·내무)이 자기 본부 O/KR 확정 — 각자 직접 작성(대필 금지) ② 데스크는 다음 라운드 호출 때 자기 KB '## 비전·OKR' 절 작성(29명 일괄 호출 금지) ③ 11/15 1차 점검, 월 1회 PM 한 장 요약, 분기 말 자기채점+감사·검증 샘플 확인 ④ KR 은 측정 소스·마감 필수, 개인 수치 금지. 토큰: 본부 대표 6명 호출 약 40만 내외 예상(고정비 포함) — 화 10/27 11시 이후 'ㄱㄱ' 뒤, 가능하면 하루 깨움 묶음에 포함. | 10/25 겸이: '목표(O) 하나, 핵심결과(KR) 2개씩' — 본부·데스크 모두 O 1/KR 2 로 확정(OKR.md 반영). | 10/25 겸이 '반영': 외부 제안안 OKR v1.0 을 docs/desk_kb/OKR.md 에 반영(개인 월 적립 수치는 [비공개]로 치환, 목표 금액 1억+ 는 예외). 성과를 KR 달성률과 1억 기여도 두 점수로 분리. 승인 절차: 겸이 ✅(10/31 목표치 승인) → 본부 대표 확정 → 데스크 자기 KB 작성. 월 적립 목표치는 내무 재검증(세대분리·지원 중단 시나리오) 후 확정. | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): OKR 목표치 승인(10/31 예정 경과, OKR.md 3행 '승인 전 제안안')",
+      "notes": "10/25 겸이 '비전 미션 OKR 본부/누나단위로 수립'. PB 초안 = docs/desk_kb/OKR.md(제안값, 확정 아님). 절차: ① 본부 대표 6명(CIO·퀀트·리스크·PM·교육·내무)이 자기 본부 O/KR 확정 — 각자 직접 작성(대필 금지) ② 데스크는 다음 라운드 호출 때 자기 KB '## 비전·OKR' 절 작성(29명 일괄 호출 금지) ③ 11/15 1차 점검, 월 1회 PM 한 장 요약, 분기 말 자기채점+감사·검증 샘플 확인 ④ KR 은 측정 소스·마감 필수, 개인 수치 금지. 토큰: 본부 대표 6명 호출 약 40만 내외 예상(고정비 포함) — 화 10/27 11시 이후 'ㄱㄱ' 뒤, 가능하면 하루 깨움 묶음에 포함. | 10/25 겸이: '목표(O) 하나, 핵심결과(KR) 2개씩' — 본부·데스크 모두 O 1/KR 2 로 확정(OKR.md 반영). | 10/25 겸이 '반영': 외부 제안안 OKR v1.0 을 docs/desk_kb/OKR.md 에 반영(개인 월 적립 수치는 [비공개]로 치환, 목표 금액 1억+ 는 예외). 성과를 KR 달성률과 1억 기여도 두 점수로 분리. 승인 절차: 겸이 ✅(10/31 목표치 승인) → 본부 대표 확정 → 데스크 자기 KB 작성. 월 적립 목표치는 내무 재검증(세대분리·지원 중단 시나리오) 후 확정. | 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): OKR 목표치 승인(10/31 예정 경과, OKR.md 3행 '승인 전 제안안') | 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조",
       "id": "freeman-okr",
       "title": "프리맨 프로젝트 OKR v1.0: 전사 1 O/2 KR · 본부·검증실 7 O/14 KR · 29개 데스크 29 O/58 KR (겸이 승인 전 제안안)",
       "owner": "PM",
@@ -5347,7 +5349,8 @@
       "priority": "P1",
       "status": "보류",
       "repo": "public",
-      "escalated": "2026-11-01"
+      "escalated": "2026-11-01",
+      "approval": "겸이"
     },
     {
       "id": "req-data-c77cf2b8",
@@ -5949,7 +5952,8 @@
       "files": [],
       "depends_on": [],
       "escalated": "2026-10-27",
-      "notes": "요청 2영업일 미처리(2026-10-24~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→부동산: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-184a8da5`. | 11/01 PM 11/03 일괄 마감 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 부동산 탭 동결 브랜치(가독성·OSM 배경 지도) ✅ 여부 — 머지돼야 46칸 지도 이어감(front 10/27)"
+      "notes": "요청 2영업일 미처리(2026-10-24~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→부동산: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-184a8da5`. | 11/01 PM 11/03 일괄 마감 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 부동산 탭 동결 브랜치(가독성·OSM 배경 지도) ✅ 여부 — 머지돼야 46칸 지도 이어감(front 10/27) | 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조",
+      "approval": "겸이"
     },
     {
       "id": "req-front-4e7ee8ad",
