@@ -1,0 +1,106 @@
+{
+ "_doc": "공개 텔레그램 관찰 피드 채널 목록 (scripts/tg_feed.py 단일 설정). type = sellside | individual. holding_disclosure = 채널이 '작성자 보유 가능'을 고지하는지. individual 은 화면·KB 에서 label '개인 채널·보유 가능성'. 결과 reports/feeds/<out>. mode=headline = 속보 헤드라인 채널(why 제외·키워드 hit·max_pages 거슬러 받기·keep_days 보관). 채널 목록은 9개에서 닫음(11/1 PB) — 추가는 겸이 결재 뒤. tier(11/1 겸이 「웅」 승인): 1 = 평일 저녁 매일 why 추론(marketfeed 는 hit 글만) · 2 = 매주 토요일 묶어서 why 추론. 수집은 tier 무관 9개 모두 하루 2회. why·2주 채점 값은 데스크가 reports/feeds/tg_why.json 에 채움(워크플로는 LLM 호출 안 함).",
+ "channels": [
+  {
+   "name": "akacommodity",
+   "desc": "원자재 애널리스트(셀사이드)",
+   "type": "sellside",
+   "tier": 1,
+   "holding_disclosure": false,
+   "out": "tg_commodity.json"
+  },
+  {
+   "name": "Samsung_Global_AI_SW",
+   "desc": "삼성증권 글로벌 AI/SW",
+   "type": "sellside",
+   "tier": 1,
+   "holding_disclosure": false,
+   "out": "tg_Samsung_Global_AI_SW.json"
+  },
+  {
+   "name": "hedgehara",
+   "desc": "개인 운영",
+   "type": "individual",
+   "tier": 2,
+   "holding_disclosure": false,
+   "out": "tg_hedgehara.json"
+  },
+  {
+   "name": "The_MariTimes",
+   "desc": "개인 운영 — 해운·조선",
+   "type": "individual",
+   "tier": 2,
+   "holding_disclosure": false,
+   "out": "tg_The_MariTimes.json"
+  },
+  {
+   "name": "d_ticker",
+   "desc": "개인 운영 — 시장·섹터·종목",
+   "type": "individual",
+   "tier": 2,
+   "holding_disclosure": true,
+   "out": "tg_d_ticker.json"
+  },
+  {
+   "name": "Trillion_labs",
+   "desc": "개인 운영 — 원자재",
+   "type": "individual",
+   "tier": 2,
+   "holding_disclosure": false,
+   "out": "tg_Trillion_labs.json"
+  },
+  {
+   "name": "marketfeed",
+   "desc": "영문 속보 헤드라인(평일 하루 100개+ 추정)",
+   "type": "individual",
+   "tier": 1,
+   "holding_disclosure": false,
+   "out": "tg_marketfeed.json",
+   "mode": "headline",
+   "max_pages": 10,
+   "keep_days": 7,
+   "keep": 2000,
+   "keywords": [
+    "memory",
+    "DRAM",
+    "NAND",
+    "HBM",
+    "Samsung",
+    "Hynix",
+    "Micron",
+    "SanDisk",
+    "Kioxia",
+    "Nvidia",
+    "hyperscaler capex",
+    "Fed",
+    "CPI",
+    "payrolls",
+    "tariff",
+    "Korea",
+    "KOSPI",
+    "won",
+    "gold",
+    "oil",
+    "Iran",
+    "Hormuz",
+    "election"
+   ]
+  },
+  {
+   "name": "bornlupin",
+   "desc": "개인 운영",
+   "type": "individual",
+   "tier": 2,
+   "holding_disclosure": false,
+   "out": "tg_bornlupin.json"
+  },
+  {
+   "name": "beluga_investment",
+   "desc": "개인 운영",
+   "type": "individual",
+   "tier": 2,
+   "holding_disclosure": false,
+   "out": "tg_beluga_investment.json"
+  }
+ ]
+}

@@ -8,9 +8,6 @@ run-name: "dart_biz ${{ github.event_name == 'workflow_dispatch' && format('[{0}
 on:
   schedule:
     - cron: "23 2 * * 6"   # 토 11:23 KST 주 1회 — 장 없는 날, 다른 DART 수집(fin 03:30)과 떨어진 시각
-    # 임시(11/1~11/6 KST, 보드 dart-supply-temp-cron): 공급망·원자재·금융 750종목 이어받기 매시 41분 — targets_supply.txt 중 색인에 없는 것만,
-    # 다 차면 아무것도 안 함. 11/7 저장소 전환 전 이 줄 삭제(날짜 검사가 11/7 이후 실행도 막음).
-    - cron: "41 * 1-6 11 *"
   workflow_dispatch:
     inputs:
       codes:
@@ -62,12 +59,7 @@ jobs:
           CODES: ${{ inputs.codes }}
           CHAIN: ${{ inputs.chain }}
           FILE: ${{ inputs.file }}
-          SCHED: ${{ github.event.schedule }}
         run: |
-          if [ "$SCHED" = "41 * 1-6 11 *" ]; then
-            if [ "$(TZ=Asia/Seoul date +%F)" \> 2026-11-06 ]; then echo "임시 예약 기간(~11/6 KST) 끝 — 건너뜀"; exit 0; fi
-            FILE=data/dart_biz/targets_supply.txt
-          fi
           # 목록 파일 이어받기는 본문 동시 3개·최신 1건만(11/1 실측: 시간 ≈ 크기에 비례, 연결당 15~20KB/s 시간대 → 실행당 51종목뿐).
           # DART 분당 한도는 공식 문서에서 확인 못 함 → 보수적으로 3. 일일 2만 한도는 실행당 400콜 예산으로 지킴.
           EXTRA=""; [ -n "$FILE" ] && EXTRA="--workers 3 --latest-only"

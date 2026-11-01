@@ -6747,14 +6747,15 @@
         "docs/schedule_table.md"
       ],
       "depends_on": [],
-      "notes": "11/1 겸이 관계도 하청 확장. targets_supply.txt 750종목(남은 579) 이어받기·지분 전 종목 채우기. 11/6 에 두 cron 줄과 schedule_table §3 임시 줄 삭제(날짜 검사가 11/7 이후 실행은 이미 막음). 완료 확인: data/dart_biz/index.json 에 targets 남은 0·data/dart_equity/index.json 1,228행.",
+      "notes": "11/1 겸이 관계도 하청 확장. targets_supply.txt 750종목(남은 579) 이어받기·지분 전 종목 채우기. 11/6 에 두 cron 줄과 schedule_table §3 임시 줄 삭제(날짜 검사가 11/7 이후 실행은 이미 막음). 완료 확인: data/dart_biz/index.json 에 targets 남은 0·data/dart_equity/index.json 1,228행. | 11/1 20:20 KST 조기 완료: biz 대상 750 중 743 수집(남은 7 = 신규상장 고유번호·보고서 없음), 지분 1,205종목 → 두 임시 cron 삭제",
       "id": "dart-supply-temp-cron",
       "title": "dart_biz·dart_equity 임시 매시 예약(41·53분) cron 줄 삭제 — 11/7 저장소 전환 전",
       "owner": "개발",
       "desk": "개발",
-      "status": "진행",
+      "status": "완료",
       "priority": "P2",
-      "repo": "public"
+      "repo": "public",
+      "done": "2026-11-01"
     },
     {
       "started": null,

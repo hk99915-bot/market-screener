@@ -90,6 +90,7 @@ python -m screener.main --market KR --prices data/kr_prices.parquet --no-send
 |---|---|---|
 | yfinance 종목 뉴스 | 없음 | 신호 상위 종목(최대 ~30개)만 최근 3일 헤드라인. US 풍부, KR 은 자주 비어 있음 |
 | 텔레그램 채널 | `TG_API_ID` `TG_API_HASH` `TG_SESSION` `TG_CHANNELS` | my.telegram.org 에서 API 발급 → 로컬에서 1회 로그인해 StringSession 문자열 생성 → 시크릿 등록. 채널은 `@채널명,@채널명`. 종목명 문자열 매칭이라 오탐 있음 |
+| 텔레그램 공개 미리보기 피드 | 없음 | `ops/tg_feeds.json` 9채널(tier 1·2) → `reports/feeds/tg_*.json`(`scripts/tg_feed.py`, `tg_feed.yml` 08:13·20:13). why 추론·2주 채점은 **PB 쪽 예약(데스크 에이전트)이 `reports/feeds/tg_why.json` 에 채움 — 워크플로는 LLM 을 호출하지 않음** |
 | fiscal.ai | `FISCAL_AI_KEY` | 어댑터 자리만 있음 (`news.fetch_fiscal_ai`). API 문서 확인 후 엔드포인트·필드 채워야 동작 |
 
 StringSession 생성:
