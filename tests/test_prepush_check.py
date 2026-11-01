@@ -78,7 +78,8 @@ def _built(index_src: str, tabs: dict) -> str:
     return bp.build(bp.resolve_includes(index_src, lambda n: tabs[n]))
 
 
-def test_pages_stale_detects_tab_change_without_rebuild():
+def test_pages_stale_detects_tab_change_without_rebuild(monkeypatch):
+    monkeypatch.setenv("MS_EDITION", "internal")   # 가짜 셸엔 GROUPS 가 없음 — 범용판 저장소(.edition=public)에서도 내부판 규칙으로 시험
     shell, tabs = "<!doctype html><title>MARKET TERMINAL</title><?!= include('tab_a') ?></html>", {"tab_a": "<div id=a>old</div>"}
     files = {"apps-script/Index.html": shell, "apps-script/tab_a.html": tabs["tab_a"], "index.html": _built(shell, tabs)}
     assert pc.pages_stale("H", _fake_show(files)) is False
