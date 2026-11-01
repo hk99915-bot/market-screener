@@ -498,7 +498,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); topMount(v); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
   topMount(v);
@@ -508,7 +508,7 @@ setTimeout(()=>{ const r=$('#root'); if(r) new MutationObserver(()=>{ if(!docume
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['re','부동산'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
-  res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
+  res:[['rep','리서치'],['val','밸류에이션'],['dart','공시'],['lib','서고']],   // 서고 = 쌓인 분석 문서 색인(req-dev-16bbc8e5, 11/1)
   quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
 GROUPS.sys=[['sysb','작업 보드'],['msg','사내톡'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)

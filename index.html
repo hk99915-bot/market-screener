@@ -86,6 +86,8 @@
     getUsAccum: () => get('reports/us_accum.json'),
     getCooldown: () => get('ops/cooldown.json'),
     getRenego: () => get('ops/renego.json'),
+    getLibrary: () => get('reports/library.json'),   // RESEARCH › 서고 (req-dev-16bbc8e5) — Code.gs getLibrary 와 짝
+    getLibraryDoc: (p) => /^(docs\/desk_kb\/rounds\/[\w.\-\/]+\.md|reports\/studies\/[\w.\-]+\.(md|json)|docs\/valuation_notes\/[\w.\-]+\.md|docs\/peer_reviews\/[\w.\-]+\.md)$/.test(String(p)) && String(p).indexOf('..') < 0 ? get(p) : Promise.reject(new Error('서고 허용 경로 아님')),
     // 🔒 비공개 사담방 — 공개 Pages 엔 토큰이 없다. 10/23 겸이 선택: "이 폰에만 토큰 저장" → 이 기기 브라우저 localStorage('pbPrivTok')에만 두고
     //    GitHub contents API 로 직접 읽는다(저장소·채팅·서버로 안 감). 권장 토큰: fine-grained · pb-private 하나 · Contents 읽기 전용 · 만료 있음.
     getPrivate: (name) => {
@@ -1888,7 +1890,7 @@ TOPF.life=()=>{ if(typeof LIFE==='undefined'||!LIFE) return mkTop(NA(typeof LIFE
 }
 </script>
 
-<!-- tab_research.html — RESEARCH 탭 — 리서치 리포트·애널리스트·밸류에이션 바스켓·공시 (repView·valView·dartView).
+<!-- tab_research.html — RESEARCH 탭 — 리서치 리포트·애널리스트·밸류에이션 바스켓·공시·서고 (repView·valView·dartView·libView).
      apps-script/Index.html 이 include('tab_research') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
@@ -2106,9 +2108,159 @@ TOPF.val=()=>{ if(VAL===null||VAL===false) return null; if(VAL&&isTop(VAL.top)) 
   const ev=((VAL.events||{}).next||[])[0];
   return mkTop([`반도체 바스켓 중앙 PER ${f(b.median_per)}(런레이트 ${f(b.median_per_run_rate)}) · PBR ${f(b.median_pbr,2)} (검증 ${b.n_verified}/${b.n})`,`20일 분해: 가격 ${P(d.d_price)} = 멀티플 ${P(d.d_multiple)} + EPS ${P(d.d_eps)}`],
     [`금리 ±${s.bp||'—'}bp → 중앙 PER ${P(s.up)}/${P(s.down)} (ERP 고정 가정)`,'밸류에이션은 참고(검증전) — 매매 트리거 아님'],ev?`다음 이벤트 ${String(ev.date).slice(5)} ${ev.name} 확인`:'조치 없음(예정 이벤트 없음)',['reports/valuation.json'],VAL.generated_at||VAL.asof,{grade:'검증전'}); };
+TOPF.lib=()=>{ if(!LIB||LIB._loading) return null; if(LIB.err) return mkTop(NA(LIB.err),NA('—'),NA('—'),['reports/library.json']);
+  const c=LIB.cats||{}, g=LIB.grades||{}, it=LIB.items||[], wk=new Date(Date.now()-6*864e5+9*36e5).toISOString().slice(0,10), n7=it.filter(x=>x.date>=wk).length;
+  return mkTop(`서고 ${LIB.n||0}건 — 라운드 ${c.round||0} · 퀀트 연구 ${c.study||0} · 밸류에이션 ${c.valuation||0} · 피어리뷰 ${c.peer||0} (최근 7일 ${n7}건)`,
+    `등급 표기 A ${g.A||0} · B ${g.B||0} · C ${g.C||0} · F ${g.F||0} — 본문 첫 표기 기준(색인), 우리 새 판정 아님`,'검색·데스크·등급 필터로 찾고 탭하면 본문',['reports/library.json','scripts/build_library.py'],LIB.generated_at); };
 TOPF.dart=()=>{ if(!DS) return null; const it=DS.items||[], fl=it.filter(r=>r.flag||/주의|희석/.test(r.category||''));
   return mkTop(DS.err?NA(DS.err):`공시 ${it.length}건`+(DS.asof?` (${DS.asof})`:''),fl.length?`주의·희석 분류 ${fl.length}건 — 키워드 분류(검증전)`:NA('주의·희석 공시 없음'),fl.length?'⚠ 주의·희석 필터로 원문 확인(애널)':'조치 없음',['reports/disclosures.json'],DS.asof); };
 }
+</script>
+<style>
+/* RESEARCH › 서고 (req-dev-16bbc8e5 ①, 11/1) — 토큰만 사용(--line·--muted·--amber·--ok·--bad), 등급 배지는 판정 색(상승·하락 색 아님) */
+.lib-bar{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px 0}
+.lib-bar button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:var(--fs-2);min-height:36px;padding:0 10px;border-radius:3px;cursor:pointer}
+.lib-bar button.on{color:var(--amber);border-color:var(--amber)}
+.lib-bar .lb{font-size:var(--fs-1);color:var(--muted);align-self:center;min-width:28px}
+.lib-q{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-3);padding:8px 10px;margin:0 0 8px 0;border-radius:3px}
+.lib-pin{display:flex;align-items:center;gap:8px;min-height:44px;border:1px solid var(--line);border-left:3px solid var(--amber);padding:0 10px;margin:0 0 10px 0;cursor:pointer}
+.lib-d{font-size:var(--fs-2);color:var(--muted);border-bottom:1px solid var(--line);padding:10px 0 4px 0;margin:0 0 2px 0;display:flex;justify-content:space-between}
+.lib-it{padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer;overflow-wrap:anywhere}
+.lib-it:hover .lib-t{color:var(--amber)}
+.lib-t{font-size:var(--fs-3);font-weight:600;line-height:1.4}
+.lib-m{font-size:var(--fs-1);color:var(--muted);margin-top:2px}
+.lib-s{font-size:var(--fs-2);line-height:1.5;margin-top:3px}
+.lib-g{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border:1px solid var(--line);border-radius:3px;font-size:var(--fs-1);font-weight:700;margin-right:6px;vertical-align:2px}
+.lib-g.gA,.lib-g.gB{color:var(--ok);border-color:var(--ok)} .lib-g.gC{color:var(--muted)} .lib-g.gF{color:var(--bad);border-color:var(--bad)}
+.lib-ser{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:5px;font-size:var(--fs-1)}
+.lib-ser a{border:1px solid var(--line);border-radius:3px;padding:2px 6px;color:var(--muted);text-decoration:none;cursor:pointer}
+.lib-ser a.cur{color:var(--amber);border-color:var(--amber)}
+.lib-rd{font-size:var(--fs-3);line-height:1.65;overflow-wrap:anywhere}
+.lib-rd h1,.lib-rd h2,.lib-rd h3,.lib-rd h4{color:var(--amber);letter-spacing:0;line-height:1.4;margin:16px 0 6px}
+.lib-rd h1{font-size:var(--fs-4)} .lib-rd h2{font-size:var(--fs-3)} .lib-rd h3,.lib-rd h4{font-size:var(--fs-2)}
+.lib-rd p{margin:6px 0} .lib-rd ul,.lib-rd ol{margin:4px 0;padding-left:20px} .lib-rd li{margin:2px 0}
+.lib-rd blockquote{margin:6px 0;padding:2px 10px;border-left:3px solid var(--line);color:var(--muted)}
+.lib-rd code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:var(--raised);padding:0 3px;border-radius:2px}
+.lib-rd pre{background:var(--raised);padding:8px;overflow-x:auto;font-size:var(--fs-2);line-height:1.45} .lib-rd pre code{background:none;padding:0}
+.lib-rd hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.lib-tw{overflow-x:auto;margin:6px 0} .lib-tw table{font-size:var(--fs-2)} .lib-tw td,.lib-tw th{text-align:left;vertical-align:top;white-space:normal;min-width:64px}
+.lib-hd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px 0}
+.lib-hd button,.lib-hd a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:none;color:var(--txt);font:inherit;font-size:var(--fs-2);cursor:pointer;text-decoration:none}
+</style>
+<script>
+/* ── RESEARCH › 서고 (req-dev-16bbc8e5 ①, 11/1 겸이 「분석 리포트들 쌓인거 좀 잘 볼수있게」 + 「퀀트 전략보고서들도」)
+   색인 = reports/library.json (scripts/build_library.py — 라운드·퀀트 연구·밸류에이션 노트·피어리뷰). 본문은 열 때 그 파일 하나만 읽는다
+   (GAS getLibraryDoc 허용 경로 · Pages 정적 파일). json-only 연구는 색인의 body_md(키 표). 마크다운은 아래 간이 렌더(외부 라이브러리 없음). */
+const LIB_GH='https://github.com/hk99915-bot/market-screener/blob/main/';
+const libA=s=>esc(s).replace(/"/g,'&quot;');   // 속성값용 (esc 는 따옴표를 안 바꿈)
+let LIB=null, LIBDOC={};
+const LV=(()=>{ let s={}; try{ s=JSON.parse(localStorage.getItem('mt_lib')||'{}'); }catch(e){} return {q:'',cat:s.cat||'ALL',desk:'ALL',g:'ALL',d:s.d||30,open:null,y:0,more:false,lim:120}; })();
+function libSave(){ try{ localStorage.setItem('mt_lib',JSON.stringify({cat:LV.cat,d:LV.d})); }catch(e){} }
+function libSet(k,v){ LV[k]=v; LV.lim=120; if(k==='cat'||k==='d') libSave(); render(); }
+function libItem(p){ return LIB&&(LIB._by||{})[p]; }
+function libView(){
+  if(!LIB){ LIB={_loading:true}; google.script.run.withSuccessHandler(t=>{ try{ LIB=JSON.parse(t); LIB._by={}; (LIB.items||[]).forEach(x=>LIB._by[x.path]=x); }catch(e){ LIB={err:'서고 색인 파싱 실패'}; } if(view==='lib') render(); })
+      .withFailureHandler(e=>{ LIB={err:/404/.test(e.message)?'서고 색인이 아직 없습니다 (scripts/build_library.py — 매일 23:47 ops 자동 갱신)':(/getLibrary/.test(e.message)?'Code.gs 붙여넣기 필요 (getLibrary·getLibraryDoc)':e.message)}; if(view==='lib') render(); }).getLibrary();
+    return '<div class="load">LOADING …</div>'; }
+  if(LIB._loading) return '<div class="load">LOADING …</div>';
+  if(LIB.err) return `<div class="grid"><div class="p c12" data-panel><h2>서고</h2><div class="b"><div class="err">${esc(LIB.err)}</div></div></div></div>`;
+  return LV.open?libReader():libList();
+}
+function libFilter(){
+  const q=LV.q.trim().toLowerCase(), cut=LV.d==='all'?'':new Date(Date.now()-(LV.d-1)*864e5+9*36e5).toISOString().slice(0,10);
+  return (LIB.items||[]).filter(x=>(!cut||x.date>=cut)&&(LV.cat==='ALL'||x.cat===LV.cat)&&(LV.desk==='ALL'||x.desk===LV.desk)&&(LV.g==='ALL'||x.grade===LV.g)
+    &&(!q||[x.title,x.summary,x.topic,x.desk_ko].join(' ').toLowerCase().includes(q)));
+}
+const LIB_STAGE=['사전등록','본연구','후속 라운드','재현·검증'];
+function libSeries(x){ const ch=x.series&&(LIB.series||{})[x.series]; if(!ch) return '';
+  return `<div class="lib-ser"><span class="mu">연구 묶음</span>${ch.map((s,i)=>`${i?'<span class="mu">→</span>':''}<a data-lp="${libA(s.path)}" class="${s.path===x.path?'cur':''}" title="${esc(s.path)}">${LIB_STAGE[s.stage]||'본연구'}${ch.filter(c=>c.stage===s.stage).length>1?' '+esc(s.path.split('/').pop().replace(/\.(md|json)$/,'').replace(/^20\d\d-\d\d-\d\d_/,'').slice(-14)):''}</a>`).join('')}</div>`; }
+function libRow(x){
+  return `<div class="lib-it" data-lp="${libA(x.path)}" role="button" tabindex="0"><div class="lib-t">${x.grade?`<span class="lib-g g${x.grade}" title="본문 첫 '등급' 표기">${x.grade}</span>`:''}${esc(x.title)}</div>
+    <div class="lib-m">${esc(x.desk_ko||x.desk)} · ${esc((LIB.cat_ko||{})[x.cat]||x.cat)}${x.topic&&x.cat!=='study'?' · '+esc(x.topic):''}${x.json&&x.body_md?' · json':''} · ${Math.max(1,Math.round(x.size/1024))}KB</div>
+    ${x.summary?`<div class="lib-s">${esc(x.summary)}</div>`:''}${libSeries(x)}</div>`;
+}
+function libList(){
+  const it=libFilter(), wd=['일','월','화','수','목','금','토'];
+  const btn=(k,v,l,n)=>`<button class="${LV[k]===v?'on':''}" onclick="libSet('${k}',${typeof v==='number'?v:`'${v}'`})">${l}${n!=null?` <span class="mu">${n}</span>`:''}</button>`;
+  const cats=[['ALL','전체'],['study','퀀트 연구'],['round','라운드'],['valuation','밸류에이션'],['peer','피어리뷰']];
+  const dk=Object.entries(LIB.desks||{}), dshow=LV.more?dk:dk.slice(0,8);
+  if(LV.desk!=='ALL'&&!dshow.some(([k])=>k===LV.desk)) dshow.push([LV.desk,(LIB.desks||{})[LV.desk]||0]);
+  const groups=new Map(); for(const x of it.slice(0,LV.lim)){ const k=x.date||'날짜 없음'; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(x); }
+  const body=[...groups.entries()].map(([d,a])=>{ const w=/^\d{4}-\d\d-\d\d$/.test(d)?wd[new Date(d+'T00:00:00Z').getUTCDay()]:''; return `<div class="lib-d"><b>${esc(d)}${w?` (${w})`:''}</b><span>${a.length}건</span></div>${a.map(libRow).join('')}`; }).join('');
+  const pin=(LIB.pinned||[]).map(p=>`<div class="lib-pin" data-lp="${libA(p.path)}" role="button" tabindex="0"><b class="am">📌</b><span>${esc(p.title)}</span><span class="mu" style="margin-left:auto;font-size:var(--fs-1)">퀀트 원장</span></div>`).join('');
+  return `<div class="grid"><div class="p c12" data-panel><h2>서고<small>${LIB.n||0}건 · 색인 ${esc(LIB.generated_at||'')} KST</small></h2><div class="b">
+    ${pin}
+    <input class="lib-q" type="search" placeholder="제목 · 요약 · 주제 검색" value="${esc(LV.q)}" oninput="LV.q=this.value;LV.lim=120;libFill()">
+    <div class="lib-bar"><span class="lb">기간</span>${btn('d',7,'7일')}${btn('d',30,'30일')}${btn('d','all','전체')}</div>
+    <div class="lib-bar"><span class="lb">종류</span>${cats.map(([k,l])=>btn('cat',k,l,k==='ALL'?null:(LIB.cats||{})[k]||0)).join('')}</div>
+    <div class="lib-bar"><span class="lb">등급</span>${btn('g','ALL','전체')}${['A','B','C','F'].map(g=>btn('g',g,g,(LIB.grades||{})[g]||0)).join('')}</div>
+    <div class="lib-bar"><span class="lb">데스크</span>${btn('desk','ALL','전체')}${dshow.map(([k,n])=>btn('desk',k,esc((LIB.desk_ko||{})[k]||k),n)).join('')}${dk.length>8?`<button onclick="LV.more=!LV.more;render()">${LV.more?'접기':'더 보기 '+(dk.length-8)}</button>`:''}</div>
+    <div id="libcnt" class="mu" style="font-size:var(--fs-1)">${it.length}건${it.length>LV.lim?` · 앞 ${LV.lim}건 표시`:''}</div>
+    <div id="libbody">${body||'<div class="mu" style="padding:12px 0">조건에 맞는 문서 없음 — 기간을 넓히거나 필터를 푸세요</div>'}${it.length>LV.lim?`<button class="lib-q" style="cursor:pointer;color:var(--amber)" onclick="LV.lim+=200;render()">더 보기 (${it.length-LV.lim}건 남음)</button>`:''}</div>
+    <div class="mu" style="font-size:var(--fs-1);margin-top:8px">요약 = 원문 What 첫 줄(없으면 첫 문단) · 등급 = 본문 첫 '등급 A/B/C/F' 표기(퀀트 json 은 grade 필드) · 해석 추가 없음 · 공개 저장소 문서만</div>
+  </div></div></div>`;
+}
+function libFill(){ const b=$('#libbody'); if(!b||!LIB) return; const keep=LV.q; const h=libList(); const t=document.createElement('div'); t.innerHTML=h;
+  const nb=t.querySelector('#libbody'), nc=t.querySelector('#libcnt'); b.innerHTML=nb?nb.innerHTML:''; const c=$('#libcnt'); if(c&&nc) c.innerHTML=nc.innerHTML; LV.q=keep; }
+function libOpen(p){ if(!p) return; LV.y=LV.open?LV.y:scrollY; LV.open=p; render(); scrollTo(0,0);
+  const x=libItem(p);
+  if(!LIBDOC[p]&&!(x&&x.body_md)){ google.script.run.withSuccessHandler(t=>{ LIBDOC[p]={md:String(t||'')}; if(view==='lib'&&LV.open===p) render(); })
+    .withFailureHandler(e=>{ LIBDOC[p]={err:/getLibraryDoc/.test(e.message)?'Code.gs 붙여넣기 필요 (getLibraryDoc)':e.message}; if(view==='lib'&&LV.open===p) render(); }).getLibraryDoc(p); } }
+function libBack(){ const y=LV.y; LV.open=null; render(); setTimeout(()=>scrollTo(0,y),0); }
+function libReader(){
+  const p=LV.open, x=libItem(p)||{path:p,title:p.split('/').pop(),desk_ko:'',cat:'',date:''}, d=LIBDOC[p];
+  let md=x.body_md||(d&&d.md); if(md!=null&&x.title){ const m=String(md).match(/^\s*#\s+(.+)\n/); if(m&&m[1].replace(/[*`_]/g,'').trim()===x.title) md=String(md).slice(m[0].length); }   // 머리 제목 중복 제거
+  const body=md!=null?libMd(md,p):d&&d.err?`<div class="err">${esc(d.err)}</div>`:'<div class="load">LOADING …</div>';
+  return `<div class="grid"><div class="p c12" data-panel><div class="b">
+    <div class="lib-hd"><button onclick="libBack()">← 목록</button><a href="${LIB_GH+esc(p)}" target="_blank" rel="noopener">GitHub 원본 ↗</a>${x.json&&x.json!==p?`<a href="${LIB_GH+esc(x.json)}" target="_blank" rel="noopener">json ↗</a>`:''}</div>
+    <div class="lib-t" style="font-size:var(--fs-4)">${x.grade?`<span class="lib-g g${x.grade}">${x.grade}</span>`:''}${esc(x.title||'')}</div>
+    <div class="lib-m">${esc(x.date||'')} · ${esc(x.desk_ko||'')} · ${esc((LIB.cat_ko||{})[x.cat]||x.cat||'')} · <span style="overflow-wrap:anywhere">${esc(p)}</span></div>
+    ${x.series?libSeries(x):''}
+    <div class="lib-rd" style="margin-top:10px">${body}</div>
+  </div></div></div>`;
+}
+/* 간이 마크다운 렌더 — 제목·목록·표·인용·코드·굵게·기울임·링크·구분선. 원문은 esc 뒤 변환(HTML 주입 없음).
+   상대 링크: 서고에 있는 문서면 화면 안에서 열고(data-lp), 아니면 GitHub 원본. */
+function libLink(href,base){
+  if(/^https?:\/\//.test(href)) return {u:href};
+  if(/^(mailto:|javascript:|data:)/i.test(href)) return {u:'#'};
+  const [pth,frag]=href.split('#'); if(!pth) return {u:'#'+(frag||'')};
+  const parts=(pth.startsWith('/')?pth.slice(1):base.split('/').slice(0,-1).concat(pth).join('/')).split('/'), out=[];
+  for(const s of parts){ if(s==='..') out.pop(); else if(s&&s!=='.') out.push(s); }
+  const r=out.join('/'); return libItem(r)?{lp:r}:{u:LIB_GH+r};
+}
+function libInline(s,base){
+  return String(s).split(/(`[^`]*`)/).map((seg,i)=>{ if(i%2) return `<code>${esc(seg.slice(1,-1))}</code>`;
+    let t=esc(seg);
+    t=t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,a,h)=>{ const L=libLink(h.replace(/&amp;/g,'&'),base); return L.lp?`<a data-lp="${libA(L.lp)}" style="cursor:pointer">${a}</a>`:`<a href="${libA(L.u)}" target="_blank" rel="noopener">${a}</a>`; });
+    t=t.replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/__([^_]+?)__/g,'<b>$1</b>').replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,:;]|$)/g,'$1<i>$2</i>').replace(/~~([^~]+)~~/g,'<s>$1</s>');
+    return t; }).join('');
+}
+function libMd(md,base){
+  const L=String(md).replace(/\r/g,'').split('\n'), out=[]; let i=0;
+  const isTbl=l=>/^\s*\|.*\|\s*$/.test(l), isLi=l=>/^\s*([-*+]|\d+[.)])\s+/.test(l);
+  while(i<L.length){ const l=L[i];
+    if(/^\s*```/.test(l)){ const buf=[]; i++; while(i<L.length&&!/^\s*```/.test(L[i])) buf.push(L[i++]); i++; out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`); continue; }
+    if(/^\s*$/.test(l)){ i++; continue; }
+    if(/^<!--/.test(l.trim())){ while(i<L.length&&!/-->/.test(L[i])) i++; i++; continue; }
+    let m=l.match(/^(#{1,6})\s+(.*)$/); if(m){ const n=Math.min(4,m[1].length); out.push(`<h${n}>${libInline(m[2].replace(/\s#+\s*$/,''),base)}</h${n}>`); i++; continue; }
+    if(/^\s*([-*_])\s*\1\s*\1[\s\-*_]*$/.test(l)){ out.push('<hr>'); i++; continue; }
+    if(isTbl(l)){ const rows=[]; while(i<L.length&&isTbl(L[i])) rows.push(L[i++]);
+      const cells=r=>r.trim().replace(/^\|/,'').replace(/\|$/,'').split(/(?<!\\)\|/).map(c=>c.trim().replace(/\\\|/g,'|'));
+      const sep=rows.length>1&&/^[\s|:\-]+$/.test(rows[1]); const head=sep?cells(rows[0]):null, rest=sep?rows.slice(2):rows;
+      out.push(`<div class="lib-tw"><table>${head?`<tr>${head.map(c=>`<th>${libInline(c,base)}</th>`).join('')}</tr>`:''}${rest.filter(r=>!/^[\s|:\-]+$/.test(r)).map(r=>`<tr>${cells(r).map(c=>`<td>${libInline(c,base)}</td>`).join('')}</tr>`).join('')}</table></div>`); continue; }
+    if(/^\s*>/.test(l)){ const buf=[]; while(i<L.length&&/^\s*>/.test(L[i])) buf.push(L[i++].replace(/^\s*>\s?/,'')); out.push(`<blockquote>${libMd(buf.join('\n'),base)}</blockquote>`); continue; }
+    if(isLi(l)){ const ord=/^\s*\d+[.)]/.test(l), buf=[];
+      while(i<L.length&&(isLi(L[i])||(/^\s{2,}\S/.test(L[i])&&buf.length))){ const ln=L[i++]; if(isLi(ln)){ const ind=ln.match(/^\s*/)[0].length; buf.push({ind,t:ln.replace(/^\s*([-*+]|\d+[.)])\s+/,'')}); } else buf[buf.length-1].t+=' '+ln.trim(); }
+      out.push(`<${ord?'ol':'ul'}>${buf.map(b=>`<li style="${b.ind>=2?`margin-left:${Math.min(3,Math.floor(b.ind/2))*14}px`:''}">${libInline(b.t,base)}</li>`).join('')}</${ord?'ol':'ul'}>`); continue; }
+    const buf=[]; while(i<L.length&&L[i].trim()&&!/^(#{1,6}\s|\s*```|\s*>)/.test(L[i])&&!isTbl(L[i])&&!isLi(L[i])) buf.push(L[i++]);
+    if(!buf.length){ buf.push(L[i++]); }
+    out.push(`<p>${buf.map(b=>libInline(b,base)).join('<br>')}</p>`);
+  }
+  return out.join('');
+}
+document.addEventListener('click',e=>{ if(view!=='lib') return; const t=e.target.closest('[data-lp]'); if(!t) return; e.preventDefault(); libOpen(t.dataset.lp); });
+document.addEventListener('keydown',e=>{ if(view!=='lib'||(e.key!=='Enter'&&e.key!==' ')) return; const t=e.target.closest&&e.target.closest('.lib-it[data-lp],.lib-pin[data-lp]'); if(!t) return; e.preventDefault(); libOpen(t.dataset.lp); });
 </script>
 
 <!-- tab_quant.html — QUANT 탭 — 공급망·시그널 검증·검증 스터디·전략 연구소·모멘텀·모의 포트폴리오 (chainView·sigView·studyView·labView·momView·pfView).
@@ -5664,7 +5816,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); topMount(v); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
   topMount(v);
@@ -5674,7 +5826,7 @@ setTimeout(()=>{ const r=$('#root'); if(r) new MutationObserver(()=>{ if(!docume
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['re','부동산'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
-  res:[['rep','리서치'],['val','밸류에이션'],['dart','공시']],
+  res:[['rep','리서치'],['val','밸류에이션'],['dart','공시'],['lib','서고']],   // 서고 = 쌓인 분석 문서 색인(req-dev-16bbc8e5, 11/1)
   quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
 GROUPS.sys=[['sysb','작업 보드'],['msg','사내톡'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)

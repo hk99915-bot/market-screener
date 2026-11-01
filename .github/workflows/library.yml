@@ -1,0 +1,56 @@
+# 리포트 서고 색인 즉시 갱신 — req-dev-16bbc8e5 ① (11/1 겸이 「분석 리포트들 쌓인거 좀 잘 볼수있게」)
+# 라운드·퀀트 연구·밸류에이션 노트·피어리뷰 문서가 main 에 push 되면 reports/library.json 을 다시 만든다(RESEARCH › 서고).
+# 예약 백업은 ops.yml(23:47·00:07 KST)이 같은 스크립트를 돈다. 봇 push(GITHUB_TOKEN)는 워크플로를 다시 깨우지 않아 루프 없음.
+name: library
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/desk_kb/rounds/**.md"
+      - "reports/studies/*.md"
+      - "reports/studies/*.json"
+      - "docs/valuation_notes/*.md"
+      - "docs/peer_reviews/*.md"
+      - "scripts/build_library.py"
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: library
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # 날짜 없는 연구 파일은 마지막 커밋일 (git log 1회)
+          filter: blob:none     # 이력은 트리만 — 빠르게
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 서고 색인
+        run: python scripts/build_library.py
+      - name: 저장
+        if: github.event_name == 'push' || inputs.commit == 'true'
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add reports/library.json
+          git diff --cached --quiet && exit 0
+          git commit -q -m "lib: 서고 색인 $(date -u +%FT%H:%M) (push 즉시)"
+          for i in 1 2 3; do
+            git push -q origin HEAD:main && exit 0
+            git pull -q --rebase origin main || { git rebase --abort; git fetch -q origin main; git reset -q --hard origin/main; python scripts/build_library.py; git add reports/library.json; git diff --cached --quiet && exit 0; git commit -q -m "lib: 서고 색인 재생성"; }
+          done
+          echo "::warning::library push 실패 — ops.yml 23:47 예약이 따라잡음"

@@ -155,6 +155,13 @@ function getFreshness() { return raw_('reports/freshness.json'); }   // 데이�
 function getAccum() { return raw_('reports/accum.json'); }   // KR 매집 스캔 (MARKET › ACCUM, screener/accum.py 18:37) — contracts.py 등록
 function getUsAccum() { return raw_('reports/us_accum.json'); }   // US 매집 흔적 (screener/us_accum.py) — contracts.py 등록
 function getCooldown() { return raw_('ops/cooldown.json'); }   // 결재 #14 포상·장외 매도 시각 (모의 베팅 30분 쿨다운 카운트다운)
+// RESEARCH › 서고 (req-dev-16bbc8e5 ①, 11/1) — 색인 reports/library.json(scripts/build_library.py) + 본문 md/json 한 파일. 허용 경로만 (임의 경로 읽기 금지)
+function getLibrary() { return raw_('reports/library.json'); }
+function getLibraryDoc(p) {
+  p = String(p || '');
+  if (!/^(docs\/desk_kb\/rounds\/[\w.\-\/]+\.md|reports\/studies\/[\w.\-]+\.(md|json)|docs\/valuation_notes\/[\w.\-]+\.md|docs\/peer_reviews\/[\w.\-]+\.md)$/.test(p) || p.indexOf('..') >= 0) throw new Error('서고 허용 경로 아님: ' + p.slice(0, 80));
+  return raw_(p);
+}
 function getRenego() { return raw_('ops/renego.json'); }   // 재협상 카운터 (규칙 id·날짜·횟수만) — 주문표 ⛔ '재협상 2회째' + 사유 칸
 // 🔒 비공개 사담방 (10/23 겸이 "비공개사담방") — pb-private 의 허용 목록 파일만 읽는다. 스크립트 속성 PRIVATE_TOKEN(pb-private Contents 읽기 전용 PAT) 없으면 빈 문자열.
 function getPrivate(name) {
