@@ -266,7 +266,43 @@ html.stealth .brand{letter-spacing:0}
 .sbtn{background:var(--bg2);color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:4px 8px;cursor:pointer}
 /* 숨은 표 열 표시 (UXUI 재진단 Top10 #10, 10/23): 가로로 밀어야 보이는 표에 '→ 더 있음' 줄 + 오른쪽 그림자. 끝까지 밀면 사라짐 */
 .hmore{font-size:var(--fs-1);color:var(--amber);padding:2px 8px 0;text-align:right}.hmore.end{visibility:hidden}
-.hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line),4px 0 6px -4px #000}   /* 표 첫 열 고정 (UXUI Top10 #10, 10/24): 가로로 밀어도 종목명 열이 남음 */
+/* 카드형 표 유틸 tcard (11/1 프론트, 밸류에이션 폰 잘림) — 공용 패턴(어느 탭이든 class 만 붙이면 됨).
+   쓰는 법: <table class="tcard"> · 첫 칸(또는 td.tc-h) = 머리(+ ${tcMore()}) · 전체 폭 칸 td.tc-w · 핵심 칸 td[data-k="라벨"] (2열 그리드) · 접을 칸 td.tc-x[data-k] ('더 보기'로 펼침) · 칸 안 보조 줄 .tc-sub.
+   넓은 폭(>480px)은 표 그대로 — 첫 열 sticky(아래 .hscr 규칙)·숫자 오른쪽·tabular-nums. 토큰만 사용. */
+.tchips{display:flex;flex-wrap:wrap;gap:4px 6px;padding:6px 8px 0}
+.tchip{display:inline-flex;align-items:baseline;gap:5px;padding:2px 7px;border:1px solid var(--line);border-radius:3px;font-family:var(--font-num);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:var(--fs-2)}
+.tchip i{font-style:normal;color:var(--muted);font-family:var(--font-text)}.tchip small{color:var(--muted);font-size:var(--fs-1)}
+.vnote{padding:0 8px 6px;font-size:var(--fs-2);line-height:1.55;overflow-wrap:anywhere}
+table.tcard td{white-space:nowrap}table.tcard .tc-sub{margin-left:6px;font-size:var(--fs-1)}
+.tc-more,table.tcard .tc-mob{display:none}
+@media (max-width:480px){
+  table.tcard,table.tcard tbody{display:block;white-space:normal}
+  table.tcard tr:has(>th){display:none}
+  table.tcard tr{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding:6px 0 8px;border-bottom:1px solid var(--line)}
+  table.tcard td{display:block;border:0;padding:0;text-align:left;min-width:0;background:none}
+  table.tcard tr>td:first-child:not([data-k]),table.tcard td.tc-h{order:-1;grid-column:1/-1;display:flex;align-items:center;gap:6px;position:static;box-shadow:none;font-size:var(--fs-3)}
+  table.tcard td[data-k]::before{content:attr(data-k);display:block;font-family:var(--font-text);font-size:var(--fs-1);color:var(--muted);line-height:1.3}
+  table.tcard td[data-k]>b{font-weight:600}
+  table.tcard td{white-space:normal}
+  table.tcard .tc-sub{display:block;margin-left:0;line-height:1.35}table.tcard .tc-dt{display:none}
+  table.tcard td.tc-x{display:none;grid-column:1/-1}
+  table.tcard td.tc-w{grid-column:1/-1}
+  table.tcard tr.tc-on td.tc-x{display:block}
+  table.tcard .tc-more{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-height:44px;min-width:64px;padding:0 10px;background:none;border:1px solid var(--line);border-radius:3px;color:var(--muted);font:inherit;font-size:var(--fs-1);cursor:pointer}
+  table.tcard tr.tc-on .tc-more{color:var(--amber);border-color:var(--amber)}
+  table.tcard tr:hover td{background:none}
+}
+/* 가로 스크롤 표 첫 열(11/1 겸이 「제일 왼쪽 열이 이상함」) 원인 2개: ① 스크롤 상자(.b·.md) 왼쪽 padding 8px 이 sticky 기준선 밖이라 그 틈으로 밀린 열 글자가 비침
+   ② 경계선·그림자를 box-shadow 로 줬는데 border-collapse 표 칸에선 크롬이 안 그림(실측 11/1) → 경계·배경을 칸 자기 배경(gradient)으로.
+   수정: 스크롤 상자 왼쪽 padding 0(표 아닌 자식은 margin 으로 보정) · 첫 열 불투명 --panel + 오른쪽 1px --line · z-index · 고정 폭 9em(긴 이름은 그 칸 안에서 줄바꿈 — 말줄임은 ui_smoke 잘림 기준선 0 위반이라 안 씀).
+   10/24 UXUI Top10 #10 의 첫 열 고정 규칙을 이것으로 교체. 토큰만이라 엑셀 스킨(xl)도 그대로. */
+#root .hscr{padding-left:0}
+#root .hscr>:not(table){margin-left:8px}
+#root .hscr>:not(table):not(.hmore):not(:has(table,canvas,svg,iframe)){position:sticky;left:8px;max-width:calc(100% - 16px)}   /* 표 옆 설명 문장은 표와 같이 밀리지 않게(시작이 잘리던 'BR 7.64…' 증상) */
+#root .hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:2;width:9em;min-width:9em;max-width:9em;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;box-shadow:none;
+  background:linear-gradient(to left,var(--line) 1px,var(--panel) 1px)}
+#root .hscr table tr>th:first-child:not([colspan]){z-index:3}
+#root .hscr table tr:hover>td:first-child:not([colspan]){background:linear-gradient(to left,var(--line) 1px,var(--bg3) 1px)}
 .hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,color-mix(in srgb,var(--accent) 45%,transparent),transparent) right/12px 100% no-repeat scroll}
 html.xl .hmore{color:#595959}
 /* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5 AAA): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
@@ -538,6 +574,8 @@ function hMore(){ const r=$('#root'); if(!r) return;
     if(!e.clientWidth||e.scrollWidth<=e.clientWidth+8||!/(auto|scroll)/.test(getComputedStyle(e).overflowX)) return;
     e.dataset.hm='1'; e.classList.add('hscr'); const m=document.createElement('div'); m.className='hmore'; m.textContent='→ 오른쪽에 열 더 있음 · 옆으로 밀기'; e.before(m);
     e.addEventListener('scroll',()=>m.classList.toggle('end',e.scrollLeft+e.clientWidth>=e.scrollWidth-4),{passive:true}); }); }
+const tcMore=()=>'<button type="button" class="tc-more" aria-expanded="false">더 보기</button>';
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('table.tcard .tc-more'); if(!b) return; e.stopPropagation(); const on=b.closest('tr').classList.toggle('tc-on'); b.setAttribute('aria-expanded',on); b.textContent=on?'접기':'더 보기'; });
 { let hmT=null; const q=()=>{ clearTimeout(hmT); hmT=setTimeout(hMore,250); }; new MutationObserver(q).observe($('#root'),{childList:true,subtree:true}); addEventListener('resize',q); }
 /* 폰 머리 접기 (UXUI 재진단 Top10 #8, 10/23): 🔍 = 검색창 열기 · 아래로 스크롤 중 머리 숨김(위로 올리거나 맨 위면 다시) · 탭 줄 끝까지 밀면 '›' 숨김 */
 (function(){ const T=document.querySelector('.top'), B=$('#sqb'), tb=document.querySelector('.tabs'); if(!T||!B||!tb) return;

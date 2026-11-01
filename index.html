@@ -374,7 +374,43 @@ html.stealth .brand{letter-spacing:0}
 .sbtn{background:var(--bg2);color:var(--txt);border:1px solid var(--line);font:inherit;font-size:var(--fs-2);padding:4px 8px;cursor:pointer}
 /* 숨은 표 열 표시 (UXUI 재진단 Top10 #10, 10/23): 가로로 밀어야 보이는 표에 '→ 더 있음' 줄 + 오른쪽 그림자. 끝까지 밀면 사라짐 */
 .hmore{font-size:var(--fs-1);color:var(--amber);padding:2px 8px 0;text-align:right}.hmore.end{visibility:hidden}
-.hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:1px 0 0 var(--line),4px 0 6px -4px #000}   /* 표 첫 열 고정 (UXUI Top10 #10, 10/24): 가로로 밀어도 종목명 열이 남음 */
+/* 카드형 표 유틸 tcard (11/1 프론트, 밸류에이션 폰 잘림) — 공용 패턴(어느 탭이든 class 만 붙이면 됨).
+   쓰는 법: <table class="tcard"> · 첫 칸(또는 td.tc-h) = 머리(+ ${tcMore()}) · 전체 폭 칸 td.tc-w · 핵심 칸 td[data-k="라벨"] (2열 그리드) · 접을 칸 td.tc-x[data-k] ('더 보기'로 펼침) · 칸 안 보조 줄 .tc-sub.
+   넓은 폭(>480px)은 표 그대로 — 첫 열 sticky(아래 .hscr 규칙)·숫자 오른쪽·tabular-nums. 토큰만 사용. */
+.tchips{display:flex;flex-wrap:wrap;gap:4px 6px;padding:6px 8px 0}
+.tchip{display:inline-flex;align-items:baseline;gap:5px;padding:2px 7px;border:1px solid var(--line);border-radius:3px;font-family:var(--font-num);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:var(--fs-2)}
+.tchip i{font-style:normal;color:var(--muted);font-family:var(--font-text)}.tchip small{color:var(--muted);font-size:var(--fs-1)}
+.vnote{padding:0 8px 6px;font-size:var(--fs-2);line-height:1.55;overflow-wrap:anywhere}
+table.tcard td{white-space:nowrap}table.tcard .tc-sub{margin-left:6px;font-size:var(--fs-1)}
+.tc-more,table.tcard .tc-mob{display:none}
+@media (max-width:480px){
+  table.tcard,table.tcard tbody{display:block;white-space:normal}
+  table.tcard tr:has(>th){display:none}
+  table.tcard tr{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding:6px 0 8px;border-bottom:1px solid var(--line)}
+  table.tcard td{display:block;border:0;padding:0;text-align:left;min-width:0;background:none}
+  table.tcard tr>td:first-child:not([data-k]),table.tcard td.tc-h{order:-1;grid-column:1/-1;display:flex;align-items:center;gap:6px;position:static;box-shadow:none;font-size:var(--fs-3)}
+  table.tcard td[data-k]::before{content:attr(data-k);display:block;font-family:var(--font-text);font-size:var(--fs-1);color:var(--muted);line-height:1.3}
+  table.tcard td[data-k]>b{font-weight:600}
+  table.tcard td{white-space:normal}
+  table.tcard .tc-sub{display:block;margin-left:0;line-height:1.35}table.tcard .tc-dt{display:none}
+  table.tcard td.tc-x{display:none;grid-column:1/-1}
+  table.tcard td.tc-w{grid-column:1/-1}
+  table.tcard tr.tc-on td.tc-x{display:block}
+  table.tcard .tc-more{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-height:44px;min-width:64px;padding:0 10px;background:none;border:1px solid var(--line);border-radius:3px;color:var(--muted);font:inherit;font-size:var(--fs-1);cursor:pointer}
+  table.tcard tr.tc-on .tc-more{color:var(--amber);border-color:var(--amber)}
+  table.tcard tr:hover td{background:none}
+}
+/* 가로 스크롤 표 첫 열(11/1 겸이 「제일 왼쪽 열이 이상함」) 원인 2개: ① 스크롤 상자(.b·.md) 왼쪽 padding 8px 이 sticky 기준선 밖이라 그 틈으로 밀린 열 글자가 비침
+   ② 경계선·그림자를 box-shadow 로 줬는데 border-collapse 표 칸에선 크롬이 안 그림(실측 11/1) → 경계·배경을 칸 자기 배경(gradient)으로.
+   수정: 스크롤 상자 왼쪽 padding 0(표 아닌 자식은 margin 으로 보정) · 첫 열 불투명 --panel + 오른쪽 1px --line · z-index · 고정 폭 9em(긴 이름은 그 칸 안에서 줄바꿈 — 말줄임은 ui_smoke 잘림 기준선 0 위반이라 안 씀).
+   10/24 UXUI Top10 #10 의 첫 열 고정 규칙을 이것으로 교체. 토큰만이라 엑셀 스킨(xl)도 그대로. */
+#root .hscr{padding-left:0}
+#root .hscr>:not(table){margin-left:8px}
+#root .hscr>:not(table):not(.hmore):not(:has(table,canvas,svg,iframe)){position:sticky;left:8px;max-width:calc(100% - 16px)}   /* 표 옆 설명 문장은 표와 같이 밀리지 않게(시작이 잘리던 'BR 7.64…' 증상) */
+#root .hscr table tr>:first-child:not([colspan]){position:sticky;left:0;z-index:2;width:9em;min-width:9em;max-width:9em;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;box-shadow:none;
+  background:linear-gradient(to left,var(--line) 1px,var(--panel) 1px)}
+#root .hscr table tr>th:first-child:not([colspan]){z-index:3}
+#root .hscr table tr:hover>td:first-child:not([colspan]){background:linear-gradient(to left,var(--line) 1px,var(--bg3) 1px)}
 .hscr{background:linear-gradient(270deg,var(--panel) 30%,transparent) right/28px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,color-mix(in srgb,var(--accent) 45%,transparent),transparent) right/12px 100% no-repeat scroll}
 html.xl .hmore{color:#595959}
 /* 손가락 터치 영역 44px (UXUI 재진단 Top10 #10, WCAG 2.5.5 AAA): 공시 474·인적성 376 링크·버튼이 44px 미만 → 목록 링크·작은 버튼·접기 줄을 44px 로.
@@ -1900,7 +1936,7 @@ TOPF.life=()=>{ if(typeof LIFE==='undefined'||!LIFE) return mkTop(NA(typeof LIFE
 <script>
 let DS=null, DV={c:'ALL',q:'',d:7};
 const FLAGC={'희석':'dn','주의':'dn','정정':'mu'};
-function discTable(rows,withName){ return `<table><tr><th class="l">날짜</th>${withName?'<th class="l">종목</th>':''}<th class="l">유형</th><th class="l">공시</th></tr>${rows.map(r=>`<tr><td class="l mu">${r.date}</td>${withName?`<td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td>`:''}<td class="l">${esc(r.category)}${r.flag?` <b class="${FLAGC[r.flag]||'am'}">${esc(r.flag)}</b>`:''}</td><td class="l"><a href="${esc(r.link)}" target="_blank">${esc(r.title)}</a></td></tr>`).join('')}</table>`; }
+function discTable(rows,withName){ return `<table class="tcard"><tr><th class="l">날짜</th>${withName?'<th class="l">종목</th>':''}<th class="l">유형</th><th class="l">공시</th></tr>${rows.map(r=>`<tr><td class="l mu"${withName?' data-k="날짜"':''}>${r.date}</td>${withName?`<td class="l am sym tc-h" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td>`:''}<td class="l" data-k="유형">${esc(r.category)}${r.flag?` <b class="${FLAGC[r.flag]||'am'}">${esc(r.flag)}</b>`:''}</td><td class="l tc-w"><a href="${esc(r.link)}" target="_blank">${esc(r.title)}</a></td></tr>`).join('')}</table>`; }   // 폰 = 카드형(tcard, 11/1): 종목 머리 · 날짜·유형 2열 · 공시 제목 전체 폭
 function dartView(){
   if(!DS){ google.script.run.withSuccessHandler(t=>{try{DS=JSON.parse(t);}catch(e){DS={items:[]};} if(view==='dart') render();}).withFailureHandler(e=>{DS={items:[],err:'공시 데이터가 아직 없습니다 (DART_API_KEY 설정 후 다음 자동 실행 때 생성)'}; if(view==='dart') render();}).getDisclosures(); return '<div class="load">LOADING …</div>'; }
   const cats=['ALL','⚠ 주의·희석',...new Set((DS.items||[]).map(r=>r.category))];
@@ -1925,25 +1961,46 @@ function anBadge(r){
   return ` <span class="an" title="${esc((a.style||[]).join(' · '))}">${esc(r.analyst)}<i>${esc(st.join(' · '))}${(a.style||[]).length?' · '+esc(a.style.join(' · ')):''}</i></span>`;
 }
 let VAL=null;
+/* 밸류에이션 바스켓 (11/1 겸이 폰 캡처 「이렇게 잘리는 거 개선」): ① 설명 문장 → 스크롤 상자 밖 칩(줄바꿈) ② 폰(≤480px) = 카드형(tcard) —
+   종목 + 핵심 4칸(PER 범위·E/P−rf·20일 분해·PBR) 2열, 이익추세·검증 메모는 '더 보기' ③ 넓은 폭 = 표 그대로(첫 열 sticky·숫자 오른쪽·tabular-nums).
+   PER 범위 = TTM/런레이트/가이던스 중 있는 분모의 최소~최대(kb:analyst 10/17 '네 분모 범위' — 정규화는 데이터 칸 없음). */
 function valView(){   // 반도체 밸류에이션 바스켓 (reports/valuation.json) — 비율만, 참고 등급, 매매 트리거 아님
   if(VAL===null){ VAL=false; google.script.run.withSuccessHandler(t=>{try{VAL=JSON.parse(t);}catch(e){VAL={};} if(view==='val') render();}).withFailureHandler(e=>{VAL={err:/404/.test(e.message)?'밸류에이션 데이터가 아직 없습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='val') render();}).getValuation(); return '<div class="load">LOADING …</div>'; }
   if(!VAL||!VAL.rows) return `<div class="grid"><div class="p c12"><h2>밸류에이션</h2><div class="b">${VAL&&VAL.err?`<div class="err">${esc(VAL.err)}</div>`:'<div class="mu">—</div>'}</div></div></div>`;
-  const B=VAL.basket||{}, RT=VAL.rates||{}, D=B.decomp20||{}, S=B.rate_sens||{};
+  const B=VAL.basket||{}, RT=VAL.rates||{}, D=B.decomp20||{}, S=B.rate_sens||{}, DF=VAL.definitions||{};
   const f=(x,d=1,s='')=>x==null?'—':Number(x).toFixed(d)+s;
+  const bp=x=>x==null?'—':(x>0?'+':'')+Number(x).toFixed(0)+'bp';
   const trend=r=>{ if(!r.n_quarters) return '<span class="mu">재무 없음</span>'; const om=(r.op_margin_4q||[]).filter(x=>x!=null); const ar=om.length>=2?(om[om.length-1]>om[0]+0.01?'↑':om[om.length-1]<om[0]-0.01?'↓':'→'):'';
     return `${r.rev_yoy!=null?'매출 '+pct(r.rev_yoy,0):'<span class="mu">매출 —</span>'} · OPM ${ar}${om.length?(om[om.length-1]*100).toFixed(0)+'%':''}${r.ocf_ni!=null?' · OCF/NI '+f(r.ocf_ni,1):''}`; };
-  const rows=VAL.rows.map(r=>`<tr><td class="l"><span class="sym am" data-sym="${esc(r.sym)}" data-mk="${r.mk}" style="cursor:pointer">${esc(r.name)}</span>${r.verified?'':' <span class="mu" title="분기 4개 미만 또는 데이터 없음">⚠검증전</span>'}</td><td>${r.loss?'적자':f(r.per,1)} / ${f(r.pbr,2)}</td><td class="l mu">${trend(r)}</td><td>${pct(r.rate_adj)}</td></tr>`).join('');
+  const perR=r=>{ if(r.loss) return {v:'적자',sub:''};
+    const g=r.per_guide_lo!=null&&r.per_guide_hi!=null?[r.per_guide_lo,r.per_guide_hi]:r.per_guide!=null?[r.per_guide]:[];
+    const ps=[['TTM',r.per],['런레이트',r.per_run_rate],...g.map(x=>['가이던스',x])].filter(x=>x[1]!=null&&x[1]>0);
+    if(!ps.length) return {v:'—',sub:''}; const vs=ps.map(x=>x[1]), lo=Math.min(...vs), hi=Math.max(...vs);
+    const seen=new Set(); const sub=ps.filter(x=>!seen.has(x[0])&&seen.add(x[0])).map(x=>`${x[0]} ${f(x[1],1)}`).join(' · ');
+    return {v:ps.length>1&&hi-lo>=0.05?`${f(lo,1)}–${f(hi,1)}`:f(lo,1), sub}; };
+  const dec=r=>{ const d=r.decomp20||{}; if(d.d_price==null) return {v:'<span class="mu">—</span>',sub:''};
+    return {v:`가격 ${pct(d.d_price)}`, sub:`멀티플 ${pct(d.d_multiple)} + EPS ${pct(d.d_eps)}`}; };
+  const rows=VAL.rows.map(r=>{ const p=perR(r), d=dec(r), note=[(r.decomp20||{}).note,...(r.flags||[])].filter(Boolean);
+    return `<tr><td class="l"><span class="sym am" data-sym="${esc(r.sym)}" data-mk="${r.mk}" style="cursor:pointer">${esc(r.name)}</span>${r.verified?'':' <span class="mu" title="분기 4개 미만 또는 데이터 없음">⚠검증전</span>'}${tcMore()}</td>`+
+      `<td data-k="PER 범위" title="${esc(p.sub)}"><b>${p.v}</b><span class="tc-sub mu">${p.sub}</span></td>`+
+      `<td data-k="E/P − rf">${pct(r.rate_adj)}</td>`+
+      `<td data-k="20일 분해" title="${esc(DF.decomp20||'')}">${d.v}<span class="tc-sub mu">${d.sub}</span></td>`+
+      `<td data-k="PBR">${f(r.pbr,2)}</td>`+
+      `<td class="l mu tc-x" data-k="이익추세"${note.length?` title="${esc(note.join(' · '))}"`:''}>${trend(r)}${note.length?`<span class="tc-sub tc-mob">${note.map(esc).join(' · ')}</span><span class="tc-dt" title="${esc(note.join(' · '))}"> ⓘ</span>`:''}</td></tr>`; }).join('');
   const top=a=>(a||[]).map(x=>`${esc(x.name)} ${pct(x.rate_adj)}`).join(' / ')||'—';
+  const chip=(k,v,t='')=>`<span class="tchip"${t?` title="${esc(t)}"`:''}><i>${k}</i>${v}</span>`;
   return `<div class="grid">
-   <div class="p c12"><h2>반도체 밸류에이션 바스켓<small>가격 ${esc(VAL.asof)}${VAL.generated_at?` · 생성 ${esc(VAL.generated_at)} KST`:''} · 검증 ${B.n_verified||0}/${B.n||0} · ${esc(VAL.grade||'')}</small></h2><div class="b">
-    <div class="mu" style="margin-bottom:6px">중앙 PER ${f(B.median_per,1)} · PBR ${f(B.median_pbr,2)} · 미 10Y ${f(RT.us10y,2,'%')}${RT.us10y_live?'(실시간)':''} (5일 ${f(RT.us10y_w1_bp,0,'bp')}${RT.us10y_date?' · '+esc(RT.us10y_date.slice(5))+' 기준':''}) · 국고 3Y ${f(RT.kr3y,2,'%')} (5일 ${f(RT.kr3y_w1_bp,0,'bp')}${RT.kr3y_date?' · '+esc(RT.kr3y_date.slice(5))+' 기준':''})</div>
-    <table><tr><th class="l">종목</th><th title="${esc((VAL.definitions||{}).per||'')}">PER/PBR<br><span class="mu" style="font-weight:normal">보고이익 TTM</span></th><th class="l">이익추세</th><th>금리조정 매력</th></tr>${rows}</table>
-    <div class="mu" style="margin-top:6px">금리조정 매력 상위: ${top(B.cheapest)} · 하위: ${top(B.richest)}</div>
-    <div class="mu">20일 분해(중앙): 가격 ${pct(D.d_price)} = 멀티플 ${pct(D.d_multiple)} + EPS ${pct(D.d_eps)} · ${esc(D.basis||'')}</div>
-    <div class="mu">금리 ±${S.bp||25}bp → 중앙 PER ${pct(S.up)} / ${pct(S.down)} · ${esc(S.formula||'')}</div>
-    <div class="mu">다음 이벤트: ${((VAL.events||{}).next||[]).slice(0,4).map(e=>`${esc(e.date.slice(5))} ${esc(e.name)}`).join(' · ')||'—'} · 발동선: ${((VAL.events||{}).tripwires||[]).filter(t=>t.date).slice(0,3).map(t=>`${esc(t.date.slice(5))} ${esc(t.name)}`).join(' · ')}</div>
-    <div class="mu" style="margin-top:4px">📎 비율만 · 금리조정 매력 = E/P − 무위험(US 미10Y, KR 국고3Y) · 매매 트리거 아님</div>
-   </div></div></div>`;
+   <div class="p c12"><h2>반도체 밸류에이션 바스켓<small>가격 ${esc(VAL.asof)}${VAL.generated_at?` · 생성 ${esc(VAL.generated_at)} KST`:''} · 검증 ${B.n_verified||0}/${B.n||0} · ${esc(VAL.grade||'')}</small></h2>
+    <div class="tchips">${chip('중앙 PER',f(B.median_per,1))}${chip('PBR',f(B.median_pbr,2))}${chip('미 10Y',`${f(RT.us10y,2,'%')}${RT.us10y_live?'<small>실시간</small>':''} <small>5일 ${bp(RT.us10y_w1_bp)}</small>`,RT.us10y_date?RT.us10y_date+' 기준':'')}${chip('국고 3Y',`${f(RT.kr3y,2,'%')} <small>5일 ${bp(RT.kr3y_w1_bp)}</small>`,RT.kr3y_date?RT.kr3y_date+' 기준':'')}</div>
+    <div class="b"><table class="tcard"><tr><th class="l">종목</th><th title="${esc(DF.per||'')} · 런레이트 = ${esc(DF.per_run_rate||'')}">PER 범위<br><span class="mu" style="font-weight:normal">TTM·런레이트·가이던스</span></th><th title="${esc(DF.rate_adj||'')}">금리조정 매력<br><span class="mu" style="font-weight:normal">E/P − rf</span></th><th>20일 분해<br><span class="mu" style="font-weight:normal">가격 = 멀티플 + EPS</span></th><th>PBR</th><th class="l">이익추세</th></tr>${rows}</table></div>
+    <div class="vnote mu">
+     <div>금리조정 매력 상위: ${top(B.cheapest)} · 하위: ${top(B.richest)}</div>
+     <div>20일 분해(중앙): 가격 ${pct(D.d_price)} = 멀티플 ${pct(D.d_multiple)} + EPS ${pct(D.d_eps)} · ${esc(D.basis||'')}</div>
+     <div>금리 ±${S.bp||25}bp → 중앙 PER ${pct(S.up)} / ${pct(S.down)} · ${esc(S.formula||'')}</div>
+     <div>다음 이벤트: ${((VAL.events||{}).next||[]).slice(0,4).map(e=>`${esc(e.date.slice(5))} ${esc(e.name)}`).join(' · ')||'—'} · 발동선: ${((VAL.events||{}).tripwires||[]).filter(t=>t.date).slice(0,3).map(t=>`${esc(t.date.slice(5))} ${esc(t.name)}`).join(' · ')}</div>
+     <div style="margin-top:4px">📎 비율만 · 금리조정 매력 = E/P − 무위험(US 미10Y, KR 국고3Y) · 매매 트리거 아님</div>
+    </div>
+   </div></div>`;
 }
 let R=null, RV={m:'theme',d:30,q:'',o:(()=>{try{return localStorage.getItem('mt_rep_order')||'count';}catch(e){return 'count';}})()};
 // 정렬 토글(10/17 겸이): count=리포트 많은 순 · new=최신순 · old=오래된순 (선택은 이 브라우저에 기억)
@@ -6487,6 +6544,8 @@ function hMore(){ const r=$('#root'); if(!r) return;
     if(!e.clientWidth||e.scrollWidth<=e.clientWidth+8||!/(auto|scroll)/.test(getComputedStyle(e).overflowX)) return;
     e.dataset.hm='1'; e.classList.add('hscr'); const m=document.createElement('div'); m.className='hmore'; m.textContent='→ 오른쪽에 열 더 있음 · 옆으로 밀기'; e.before(m);
     e.addEventListener('scroll',()=>m.classList.toggle('end',e.scrollLeft+e.clientWidth>=e.scrollWidth-4),{passive:true}); }); }
+const tcMore=()=>'<button type="button" class="tc-more" aria-expanded="false">더 보기</button>';
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('table.tcard .tc-more'); if(!b) return; e.stopPropagation(); const on=b.closest('tr').classList.toggle('tc-on'); b.setAttribute('aria-expanded',on); b.textContent=on?'접기':'더 보기'; });
 { let hmT=null; const q=()=>{ clearTimeout(hmT); hmT=setTimeout(hMore,250); }; new MutationObserver(q).observe($('#root'),{childList:true,subtree:true}); addEventListener('resize',q); }
 /* 폰 머리 접기 (UXUI 재진단 Top10 #8, 10/23): 🔍 = 검색창 열기 · 아래로 스크롤 중 머리 숨김(위로 올리거나 맨 위면 다시) · 탭 줄 끝까지 밀면 '›' 숨김 */
 (function(){ const T=document.querySelector('.top'), B=$('#sqb'), tb=document.querySelector('.tabs'); if(!T||!B||!tb) return;

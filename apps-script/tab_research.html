@@ -4,7 +4,7 @@
 <script>
 let DS=null, DV={c:'ALL',q:'',d:7};
 const FLAGC={'희석':'dn','주의':'dn','정정':'mu'};
-function discTable(rows,withName){ return `<table><tr><th class="l">날짜</th>${withName?'<th class="l">종목</th>':''}<th class="l">유형</th><th class="l">공시</th></tr>${rows.map(r=>`<tr><td class="l mu">${r.date}</td>${withName?`<td class="l am sym" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td>`:''}<td class="l">${esc(r.category)}${r.flag?` <b class="${FLAGC[r.flag]||'am'}">${esc(r.flag)}</b>`:''}</td><td class="l"><a href="${esc(r.link)}" target="_blank">${esc(r.title)}</a></td></tr>`).join('')}</table>`; }
+function discTable(rows,withName){ return `<table class="tcard"><tr><th class="l">날짜</th>${withName?'<th class="l">종목</th>':''}<th class="l">유형</th><th class="l">공시</th></tr>${rows.map(r=>`<tr><td class="l mu"${withName?' data-k="날짜"':''}>${r.date}</td>${withName?`<td class="l am sym tc-h" data-sym="${esc(r.code)}" data-mk="KR">${esc(r.name)}</td>`:''}<td class="l" data-k="유형">${esc(r.category)}${r.flag?` <b class="${FLAGC[r.flag]||'am'}">${esc(r.flag)}</b>`:''}</td><td class="l tc-w"><a href="${esc(r.link)}" target="_blank">${esc(r.title)}</a></td></tr>`).join('')}</table>`; }   // 폰 = 카드형(tcard, 11/1): 종목 머리 · 날짜·유형 2열 · 공시 제목 전체 폭
 function dartView(){
   if(!DS){ google.script.run.withSuccessHandler(t=>{try{DS=JSON.parse(t);}catch(e){DS={items:[]};} if(view==='dart') render();}).withFailureHandler(e=>{DS={items:[],err:'공시 데이터가 아직 없습니다 (DART_API_KEY 설정 후 다음 자동 실행 때 생성)'}; if(view==='dart') render();}).getDisclosures(); return '<div class="load">LOADING …</div>'; }
   const cats=['ALL','⚠ 주의·희석',...new Set((DS.items||[]).map(r=>r.category))];
@@ -29,25 +29,46 @@ function anBadge(r){
   return ` <span class="an" title="${esc((a.style||[]).join(' · '))}">${esc(r.analyst)}<i>${esc(st.join(' · '))}${(a.style||[]).length?' · '+esc(a.style.join(' · ')):''}</i></span>`;
 }
 let VAL=null;
+/* 밸류에이션 바스켓 (11/1 겸이 폰 캡처 「이렇게 잘리는 거 개선」): ① 설명 문장 → 스크롤 상자 밖 칩(줄바꿈) ② 폰(≤480px) = 카드형(tcard) —
+   종목 + 핵심 4칸(PER 범위·E/P−rf·20일 분해·PBR) 2열, 이익추세·검증 메모는 '더 보기' ③ 넓은 폭 = 표 그대로(첫 열 sticky·숫자 오른쪽·tabular-nums).
+   PER 범위 = TTM/런레이트/가이던스 중 있는 분모의 최소~최대(kb:analyst 10/17 '네 분모 범위' — 정규화는 데이터 칸 없음). */
 function valView(){   // 반도체 밸류에이션 바스켓 (reports/valuation.json) — 비율만, 참고 등급, 매매 트리거 아님
   if(VAL===null){ VAL=false; google.script.run.withSuccessHandler(t=>{try{VAL=JSON.parse(t);}catch(e){VAL={};} if(view==='val') render();}).withFailureHandler(e=>{VAL={err:/404/.test(e.message)?'밸류에이션 데이터가 아직 없습니다 (다음 자동 실행 때 생성)':e.message}; if(view==='val') render();}).getValuation(); return '<div class="load">LOADING …</div>'; }
   if(!VAL||!VAL.rows) return `<div class="grid"><div class="p c12"><h2>밸류에이션</h2><div class="b">${VAL&&VAL.err?`<div class="err">${esc(VAL.err)}</div>`:'<div class="mu">—</div>'}</div></div></div>`;
-  const B=VAL.basket||{}, RT=VAL.rates||{}, D=B.decomp20||{}, S=B.rate_sens||{};
+  const B=VAL.basket||{}, RT=VAL.rates||{}, D=B.decomp20||{}, S=B.rate_sens||{}, DF=VAL.definitions||{};
   const f=(x,d=1,s='')=>x==null?'—':Number(x).toFixed(d)+s;
+  const bp=x=>x==null?'—':(x>0?'+':'')+Number(x).toFixed(0)+'bp';
   const trend=r=>{ if(!r.n_quarters) return '<span class="mu">재무 없음</span>'; const om=(r.op_margin_4q||[]).filter(x=>x!=null); const ar=om.length>=2?(om[om.length-1]>om[0]+0.01?'↑':om[om.length-1]<om[0]-0.01?'↓':'→'):'';
     return `${r.rev_yoy!=null?'매출 '+pct(r.rev_yoy,0):'<span class="mu">매출 —</span>'} · OPM ${ar}${om.length?(om[om.length-1]*100).toFixed(0)+'%':''}${r.ocf_ni!=null?' · OCF/NI '+f(r.ocf_ni,1):''}`; };
-  const rows=VAL.rows.map(r=>`<tr><td class="l"><span class="sym am" data-sym="${esc(r.sym)}" data-mk="${r.mk}" style="cursor:pointer">${esc(r.name)}</span>${r.verified?'':' <span class="mu" title="분기 4개 미만 또는 데이터 없음">⚠검증전</span>'}</td><td>${r.loss?'적자':f(r.per,1)} / ${f(r.pbr,2)}</td><td class="l mu">${trend(r)}</td><td>${pct(r.rate_adj)}</td></tr>`).join('');
+  const perR=r=>{ if(r.loss) return {v:'적자',sub:''};
+    const g=r.per_guide_lo!=null&&r.per_guide_hi!=null?[r.per_guide_lo,r.per_guide_hi]:r.per_guide!=null?[r.per_guide]:[];
+    const ps=[['TTM',r.per],['런레이트',r.per_run_rate],...g.map(x=>['가이던스',x])].filter(x=>x[1]!=null&&x[1]>0);
+    if(!ps.length) return {v:'—',sub:''}; const vs=ps.map(x=>x[1]), lo=Math.min(...vs), hi=Math.max(...vs);
+    const seen=new Set(); const sub=ps.filter(x=>!seen.has(x[0])&&seen.add(x[0])).map(x=>`${x[0]} ${f(x[1],1)}`).join(' · ');
+    return {v:ps.length>1&&hi-lo>=0.05?`${f(lo,1)}–${f(hi,1)}`:f(lo,1), sub}; };
+  const dec=r=>{ const d=r.decomp20||{}; if(d.d_price==null) return {v:'<span class="mu">—</span>',sub:''};
+    return {v:`가격 ${pct(d.d_price)}`, sub:`멀티플 ${pct(d.d_multiple)} + EPS ${pct(d.d_eps)}`}; };
+  const rows=VAL.rows.map(r=>{ const p=perR(r), d=dec(r), note=[(r.decomp20||{}).note,...(r.flags||[])].filter(Boolean);
+    return `<tr><td class="l"><span class="sym am" data-sym="${esc(r.sym)}" data-mk="${r.mk}" style="cursor:pointer">${esc(r.name)}</span>${r.verified?'':' <span class="mu" title="분기 4개 미만 또는 데이터 없음">⚠검증전</span>'}${tcMore()}</td>`+
+      `<td data-k="PER 범위" title="${esc(p.sub)}"><b>${p.v}</b><span class="tc-sub mu">${p.sub}</span></td>`+
+      `<td data-k="E/P − rf">${pct(r.rate_adj)}</td>`+
+      `<td data-k="20일 분해" title="${esc(DF.decomp20||'')}">${d.v}<span class="tc-sub mu">${d.sub}</span></td>`+
+      `<td data-k="PBR">${f(r.pbr,2)}</td>`+
+      `<td class="l mu tc-x" data-k="이익추세"${note.length?` title="${esc(note.join(' · '))}"`:''}>${trend(r)}${note.length?`<span class="tc-sub tc-mob">${note.map(esc).join(' · ')}</span><span class="tc-dt" title="${esc(note.join(' · '))}"> ⓘ</span>`:''}</td></tr>`; }).join('');
   const top=a=>(a||[]).map(x=>`${esc(x.name)} ${pct(x.rate_adj)}`).join(' / ')||'—';
+  const chip=(k,v,t='')=>`<span class="tchip"${t?` title="${esc(t)}"`:''}><i>${k}</i>${v}</span>`;
   return `<div class="grid">
-   <div class="p c12"><h2>반도체 밸류에이션 바스켓<small>가격 ${esc(VAL.asof)}${VAL.generated_at?` · 생성 ${esc(VAL.generated_at)} KST`:''} · 검증 ${B.n_verified||0}/${B.n||0} · ${esc(VAL.grade||'')}</small></h2><div class="b">
-    <div class="mu" style="margin-bottom:6px">중앙 PER ${f(B.median_per,1)} · PBR ${f(B.median_pbr,2)} · 미 10Y ${f(RT.us10y,2,'%')}${RT.us10y_live?'(실시간)':''} (5일 ${f(RT.us10y_w1_bp,0,'bp')}${RT.us10y_date?' · '+esc(RT.us10y_date.slice(5))+' 기준':''}) · 국고 3Y ${f(RT.kr3y,2,'%')} (5일 ${f(RT.kr3y_w1_bp,0,'bp')}${RT.kr3y_date?' · '+esc(RT.kr3y_date.slice(5))+' 기준':''})</div>
-    <table><tr><th class="l">종목</th><th title="${esc((VAL.definitions||{}).per||'')}">PER/PBR<br><span class="mu" style="font-weight:normal">보고이익 TTM</span></th><th class="l">이익추세</th><th>금리조정 매력</th></tr>${rows}</table>
-    <div class="mu" style="margin-top:6px">금리조정 매력 상위: ${top(B.cheapest)} · 하위: ${top(B.richest)}</div>
-    <div class="mu">20일 분해(중앙): 가격 ${pct(D.d_price)} = 멀티플 ${pct(D.d_multiple)} + EPS ${pct(D.d_eps)} · ${esc(D.basis||'')}</div>
-    <div class="mu">금리 ±${S.bp||25}bp → 중앙 PER ${pct(S.up)} / ${pct(S.down)} · ${esc(S.formula||'')}</div>
-    <div class="mu">다음 이벤트: ${((VAL.events||{}).next||[]).slice(0,4).map(e=>`${esc(e.date.slice(5))} ${esc(e.name)}`).join(' · ')||'—'} · 발동선: ${((VAL.events||{}).tripwires||[]).filter(t=>t.date).slice(0,3).map(t=>`${esc(t.date.slice(5))} ${esc(t.name)}`).join(' · ')}</div>
-    <div class="mu" style="margin-top:4px">📎 비율만 · 금리조정 매력 = E/P − 무위험(US 미10Y, KR 국고3Y) · 매매 트리거 아님</div>
-   </div></div></div>`;
+   <div class="p c12"><h2>반도체 밸류에이션 바스켓<small>가격 ${esc(VAL.asof)}${VAL.generated_at?` · 생성 ${esc(VAL.generated_at)} KST`:''} · 검증 ${B.n_verified||0}/${B.n||0} · ${esc(VAL.grade||'')}</small></h2>
+    <div class="tchips">${chip('중앙 PER',f(B.median_per,1))}${chip('PBR',f(B.median_pbr,2))}${chip('미 10Y',`${f(RT.us10y,2,'%')}${RT.us10y_live?'<small>실시간</small>':''} <small>5일 ${bp(RT.us10y_w1_bp)}</small>`,RT.us10y_date?RT.us10y_date+' 기준':'')}${chip('국고 3Y',`${f(RT.kr3y,2,'%')} <small>5일 ${bp(RT.kr3y_w1_bp)}</small>`,RT.kr3y_date?RT.kr3y_date+' 기준':'')}</div>
+    <div class="b"><table class="tcard"><tr><th class="l">종목</th><th title="${esc(DF.per||'')} · 런레이트 = ${esc(DF.per_run_rate||'')}">PER 범위<br><span class="mu" style="font-weight:normal">TTM·런레이트·가이던스</span></th><th title="${esc(DF.rate_adj||'')}">금리조정 매력<br><span class="mu" style="font-weight:normal">E/P − rf</span></th><th>20일 분해<br><span class="mu" style="font-weight:normal">가격 = 멀티플 + EPS</span></th><th>PBR</th><th class="l">이익추세</th></tr>${rows}</table></div>
+    <div class="vnote mu">
+     <div>금리조정 매력 상위: ${top(B.cheapest)} · 하위: ${top(B.richest)}</div>
+     <div>20일 분해(중앙): 가격 ${pct(D.d_price)} = 멀티플 ${pct(D.d_multiple)} + EPS ${pct(D.d_eps)} · ${esc(D.basis||'')}</div>
+     <div>금리 ±${S.bp||25}bp → 중앙 PER ${pct(S.up)} / ${pct(S.down)} · ${esc(S.formula||'')}</div>
+     <div>다음 이벤트: ${((VAL.events||{}).next||[]).slice(0,4).map(e=>`${esc(e.date.slice(5))} ${esc(e.name)}`).join(' · ')||'—'} · 발동선: ${((VAL.events||{}).tripwires||[]).filter(t=>t.date).slice(0,3).map(t=>`${esc(t.date.slice(5))} ${esc(t.name)}`).join(' · ')}</div>
+     <div style="margin-top:4px">📎 비율만 · 금리조정 매력 = E/P − 무위험(US 미10Y, KR 국고3Y) · 매매 트리거 아님</div>
+    </div>
+   </div></div>`;
 }
 let R=null, RV={m:'theme',d:30,q:'',o:(()=>{try{return localStorage.getItem('mt_rep_order')||'count';}catch(e){return 'count';}})()};
 // 정렬 토글(10/17 겸이): count=리포트 많은 순 · new=최신순 · old=오래된순 (선택은 이 브라우저에 기억)

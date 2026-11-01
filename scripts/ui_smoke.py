@@ -91,6 +91,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_deriv_tv(b, port)
         bad += await check_links(b, port)
         bad += await check_lib_cards(b, port)
+        bad += await check_val_card(b, port)
         await b.close()
     return bad
 
@@ -1572,6 +1573,47 @@ async def check_lib_cards(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} 서고 카드·차트(390px) {r0} 본문={r1}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await ctx.close()
     return not ok
+async def check_val_card(b, port: int) -> int:
+    """RESEARCH › 밸류에이션(11/1 겸이 폰 캡처 「이렇게 잘리는 거 개선」): 320·390·430px = 카드형(tcard) — 표 머리 숨김·카드마다 핵심 4칸(PER 범위·E/P−rf·20일 분해·PBR)
+    2열 · '더 보기' ≥44px 누르면 이익추세 펼침 · 설명은 칩(스크롤 상자 밖) · 가로 넘침 0 · '옆으로 밀기' 안내 0.
+    1300px = 표 그대로(머리 보임) · 600px 가로 스크롤 시 첫 열 sticky 칸 왼쪽 빈틈 0·불투명 배경(겸이 「제일 왼쪽 열이 이상함」) · 고정 폭 9em(줄바꿈, 말줄임 없음)."""
+    bad = 0
+    for w in (320, 390, 430):
+        ctx = await b.new_context(viewport={"width": w, "height": 844}, has_touch=True, is_mobile=True)
+        pg = await ctx.new_page()
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html?v=val", wait_until="load")
+        await pg.wait_for_timeout(3000)
+        r = await pg.evaluate("""(()=>{ const t=document.querySelector('#root table.tcard'); if(!t) return {v:view};
+          const W=innerWidth, tr=t.querySelectorAll('tr')[1], ks=[...tr.querySelectorAll('td[data-k]:not(.tc-x)')].map(x=>x.getBoundingClientRect());
+          const over=[...document.querySelectorAll('#root *')].filter(e=>{const b=e.getBoundingClientRect(); return b.width&&b.right>W+1;}).length;
+          const ch=document.querySelector('#root .tchips'); const btn=tr.querySelector('.tc-more');
+          return {v:view, head:getComputedStyle(t.rows[0]).display, k:ks.length, cols:new Set(ks.map(b=>Math.round(b.left))).size, over, hm:document.querySelectorAll('#root .hmore').length,
+            chipOut:!!ch&&!ch.closest('.b'), chips:ch?ch.children.length:0, btn:btn?Math.round(btn.getBoundingClientRect().height):0}; })()""")
+        await pg.click("#root table.tcard tr:nth-child(2) .tc-more")
+        await pg.wait_for_timeout(200)
+        x = await pg.evaluate("(()=>{const tr=document.querySelectorAll('#root table.tcard tr')[1]; const c=tr.querySelector('td.tc-x'); return [tr.classList.contains('tc-on'), c?getComputedStyle(c).display:'']})()")
+        ok = (r.get("head") == "none" and r.get("k") == 4 and r.get("cols") == 2 and r.get("over") == 0 and r.get("hm") == 0
+              and r.get("chipOut") and r.get("chips") == 4 and r.get("btn", 0) >= 44 and x == [True, "block"] and not errs)
+        print(f"{'OK ' if ok else 'BAD'} 밸류에이션 카드 {w}px {r} 더보기={x}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+        bad += not ok
+        await ctx.close()
+    for w in (600, 1300):
+        ctx = await b.new_context(viewport={"width": w, "height": 900}, has_touch=w < 700)
+        pg = await ctx.new_page()
+        await pg.goto(f"http://127.0.0.1:{port}/index.html?v=val", wait_until="load")
+        await pg.wait_for_timeout(3000)
+        r = await pg.evaluate("""(()=>{ const t=document.querySelector('#root table.tcard'); if(!t) return {v:view}; const e=t.closest('.hscr');
+          const out={head:getComputedStyle(t.rows[0]).display, hscr:!!e&&e.scrollWidth>e.clientWidth+8};   // 넓은 화면에서 표가 다 들어가면(남는 폭 배분) 첫 열 폭 검사 안 함
+          if(out.hscr){ e.scrollLeft=200; const td=t.rows[3].cells[0], cs=getComputedStyle(td); out.gap=Math.round(td.getBoundingClientRect().left-e.getBoundingClientRect().left);
+            out.bg=cs.backgroundImage.includes('gradient'); out.pos=cs.position; out.w=Math.round(td.getBoundingClientRect().width); out.wmax=Math.round(parseFloat(cs.fontSize)*9+parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+1); }
+          return out; })()""")
+        ok = r.get("head") != "none" and (not r.get("hscr") or (r.get("gap") == 0 and r.get("bg") and r.get("pos") == "sticky" and r.get("w", 999) <= r.get("wmax", 0)))
+        print(f"{'OK ' if ok else 'BAD'} 밸류에이션 표 {w}px {r}")
+        bad += not ok
+        await ctx.close()
+    return bad
 
 
 if __name__ == "__main__":
