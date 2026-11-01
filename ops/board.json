@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-11-01",
+  "updated": "2026-11-02",
   "owners": [
     "PB",
     "퀀트",
@@ -5283,7 +5283,8 @@
       "desk": "유지보수",
       "priority": "P0",
       "status": "보류",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-02"
     },
     {
       "started": null,
@@ -6567,7 +6568,8 @@
       "status": "대기",
       "priority": "P2",
       "repo": "public",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-11-02"
     },
     {
       "started": null,
@@ -6583,7 +6585,8 @@
       "owner": "데이터",
       "priority": "P2",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-02"
     },
     {
       "id": "wd-toss-toss_md",
@@ -6775,6 +6778,174 @@
       "status": "대기",
       "priority": "P3",
       "repo": "public"
+    },
+    {
+      "id": "req-analyst-a7697c3b",
+      "title": "[요청 승격] 겸이→애널: 참고 자료: docs/desk_kb/rounds/2026-10-29/owner_paste_ai_finance",
+      "owner": "애널",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 애널 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-analyst-a7697c3b`."
+    },
+    {
+      "id": "req-analyst-c6d87440",
+      "title": "[요청 승격] HF→애널: 참고 자료(HF·겸이 전달, 1차 출처 github.blog GitHub Universe 2026): 9월 ",
+      "owner": "애널",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 애널 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-analyst-c6d87440`."
+    },
+    {
+      "id": "req-bonds-21e18012",
+      "title": "[요청 승격] HF→채권: 겸이 10/29 — 퀀트 req-quant-ec93e2cb·32e05b61에 붙일 '채권 국면' 정의 요청.",
+      "owner": "채권",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 채권 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-bonds-21e18012`."
+    },
+    {
+      "id": "req-bonds-49f1f276",
+      "title": "[요청 승격] 겸이→채권: 참고 자료: docs/desk_kb/rounds/2026-10-29/owner_paste_ai_finance",
+      "owner": "채권",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 채권 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-bonds-49f1f276`."
+    },
+    {
+      "id": "req-derivs-fba5866d",
+      "title": "[요청 승격] HF→파생: 겸이 10/29 — 퀀트 req-quant-ec93e2cb·32e05b61(60일 상위 5% 종목 특징·동반",
+      "owner": "파생",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 파생 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-derivs-fba5866d`."
+    },
+    {
+      "id": "req-dev-2516a3d8",
+      "title": "[요청 승격] HF→개발: 겸이 10/29 '그걸 찾기 위한 게 이 마켓스크리너' — 상시 스크린 '매출 가속' 추가 요청: 조건(결과",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-2516a3d8`."
+    },
+    {
+      "id": "req-front-fcc77b6a",
+      "title": "[요청 승격] 유지보수→프론트: live.json K200F 항목에 delay(초)·note('20분 지연 시세')가 추가됨(네이버 선물은 ",
+      "owner": "프론트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-fcc77b6a`."
+    },
+    {
+      "id": "req-hf-c616c190",
+      "title": "[요청 승격] CIO→HF: 겸이 공유(10/29 23시대): 드러켄밀러 272개 차트·짐 라이트너 '잘못 매겨진 20~30개' 글 — ",
+      "owner": "HF",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 HF 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-hf-c616c190`."
+    },
+    {
+      "id": "req-hf-d8d980d6",
+      "title": "[요청 승격] 유지보수→HF: live.json K200F(네이버 FUT)는 20분 지연 시세인데 hf_book.live_k200 가 실시",
+      "owner": "HF",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 HF 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-hf-d8d980d6`."
+    },
+    {
+      "id": "req-maint-cae4490b",
+      "title": "[요청 승격] PB→유지보수: pb-private daily_my.yml(MY 탭 자동 갱신) 16:50 예약 누락 원인 조사 요청 (10",
+      "owner": "유지보수",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 유지보수 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-maint-cae4490b`."
+    },
+    {
+      "id": "req-quant-32e05b61",
+      "title": "[요청 승격] HF→퀀트: req-quant-ec93e2cb 추가(겸이 10/29, 결과 보기 전 개정) — H1 '60일 상위 5% ",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-32e05b61`."
+    },
+    {
+      "id": "req-quant-ec93e2cb",
+      "title": "[요청 승격] HF→퀀트: 겸이 요청 '60일 상위 5% 종목을 미리 알 수 있었나' 정식 검증 — ① 역케이스: KR 60거래일 수익",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-09",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-02",
+      "notes": "요청 2영업일 미처리(2026-10-29~2026-11-02) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-ec93e2cb`."
     }
   ]
 }
