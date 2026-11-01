@@ -82,6 +82,8 @@ def test_ticket_unaffected_when_one_renegotiation(env, rf):
 
 
 def test_repo_file_public_schema():
+    if not renego.FILE.exists():
+        pytest.skip("범용판(리팩토링 v1): 내부판 전용 파일 없음")
     d = json.loads(renego.FILE.read_text(encoding="utf-8"))
     for e in d.get("events") or []:
         assert set(e) <= renego.ALLOWED_KEYS and renego.valid_rule(e["rule"])

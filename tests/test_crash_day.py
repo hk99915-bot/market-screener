@@ -1,5 +1,6 @@
 """급락일 종가 = 1차 신호 — 운용회의 판정·실행 대본·15:05 알림·PB 책임·성적표·점도표 (합성 입력, 네트워크 없음)."""
 import json
+import pytest
 import sys
 from datetime import date
 from pathlib import Path
@@ -26,7 +27,10 @@ def _stance(k):
 
 
 def test_registry_grade_is_read_verbatim():
-    reg = json.loads((Path(__file__).resolve().parents[1] / "views" / "registry.json").read_text(encoding="utf-8"))
+    rp = Path(__file__).resolve().parents[1] / "views" / "registry.json"
+    if not rp.exists():
+        pytest.skip("범용판(리팩토링 v1): 내부판 전용 파일 없음")
+    reg = json.loads(rp.read_text(encoding="utf-8"))
     g = next(l["evidence"]["grade"] for l in reg["lenses"] if l["id"] == "crash_day_close")
     assert GRADE == g and GRADE in ("A", "B", "C", "F", "검증전")
 

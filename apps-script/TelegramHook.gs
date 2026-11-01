@@ -36,7 +36,8 @@
  *     — tests/test_tg_quiz.py 가 node 로 대조)
  */
 
-const TG_REPO = 'hk99915-bot/market-screener';
+const TG_REPO = 'hk99915-bot/market-screener';   // 기본값. 이슈 받을 저장소는 스크립트 속성 TG_ISSUE_REPO 가 있으면 그것(리팩토링 v1: 11/7 뒤 내부판)
+function tgIssueRepo_() { return String(PropertiesService.getScriptProperties().getProperty('TG_ISSUE_REPO') || TG_REPO).trim(); }
 const TG_NOTIONAL = 1000000;
 const TG_CB_EXIT = { K: { o: '시가', c: '종가', '5': '5일' }, U: { s: '', '5': '5일' } };
 const TG_CODE_RE = { K: /^[0-9A-Za-z]{6}$/, U: /^[A-Za-z][A-Za-z.\-]{0,5}$/ };
@@ -225,7 +226,7 @@ function tgCreateIssue_(title, body) {
   const props = PropertiesService.getScriptProperties();
   const token = props.getProperty('GH_ISSUE_TOKEN') || props.getProperty('GH_TOKEN');
   if (!token) return { ok: false, code: 'GH_TOKEN 없음' };
-  const r = UrlFetchApp.fetch('https://api.github.com/repos/' + TG_REPO + '/issues', {
+  const r = UrlFetchApp.fetch('https://api.github.com/repos/' + tgIssueRepo_() + '/issues', {
     method: 'post', contentType: 'application/json', muteHttpExceptions: true,
     headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
     payload: JSON.stringify({ title: title, body: body + '\n\n(텔레그램 버튼)' }),

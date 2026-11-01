@@ -77,7 +77,8 @@ def test_built_index_has_all_tabs_and_ids():
     assert "<?!=" not in out
     # 커밋된 index.html 이 지금 원본과 같은가 (빌드 잊음 방지)
     committed = (ROOT / "index.html").read_text(encoding="utf-8")
-    assert committed == out, "index.html 이 낡음 → python scripts/build_pages.py"
+    import build_edition as be   # 범용판 저장소(.edition=public)면 그 판으로 비교 (리팩토링 v1)
+    assert committed == be.build_edition(be.default_edition()), "index.html 이 낡음 → python scripts/build_pages.py"
 
 
 @pytest.mark.skipif(not shutil.which("node"), reason="node 없음")

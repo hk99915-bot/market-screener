@@ -154,7 +154,8 @@ def test_surprise_guard():
 
 # ── 중-3·경-8: 옛 한도 문구·죽은 getter ──
 def test_no_legacy_cap_wording_and_dead_getter():
-    assert "상한(60%)" not in (ROOT / "reports" / "decisions.json").read_text(encoding="utf-8")
+    dec = ROOT / "reports" / "decisions.json"   # 범용판엔 없음(§3-1 개인 결재)
+    assert not dec.exists() or "상한(60%)" not in dec.read_text(encoding="utf-8")
     assert "getDetail:" not in (ROOT / "scripts" / "build_pages.py").read_text(encoding="utf-8")
     assert "function getDetail(" not in (ROOT / "apps-script" / "Code.gs").read_text(encoding="utf-8")
 

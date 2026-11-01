@@ -48,6 +48,8 @@ def test_every_item_has_a_command():
 @pytest.mark.parametrize("iid,fix", _cmds())
 def test_fix_commits_and_inputs_exist(iid, fix):
     wf, args = _parse(fix)
+    if not (ROOT / ".github" / "workflows" / wf).exists():
+        pytest.skip("범용판(리팩토링 v1): 내부판 전용 파일 없음")
     inputs = _dispatch_inputs(wf)
     assert inputs, f"{iid}: {wf} 에 workflow_dispatch 입력 없음"
     assert set(args) <= set(inputs), f"{iid}: 없는 입력 {set(args) - set(inputs)}"

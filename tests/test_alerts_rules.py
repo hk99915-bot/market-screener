@@ -86,7 +86,7 @@ def test_touch_rule_parses_and_fires(monkeypatch):
 
 
 def test_savings_rule_parsed_and_zero_default():
-    assert pb.rules("SAVINGS 9200000")["savings"] == 9200000.0
+    assert pb.rules("SAVINGS 1234567")["savings"] == 1234567.0
     assert pb.rules("SEMI_CAP 0.40")["savings"] == 0.0
 
 

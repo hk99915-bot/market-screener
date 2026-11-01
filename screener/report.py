@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -232,10 +233,21 @@ def telegram_summary(market: str, status: str, last: pl.DataFrame, br: dict, ano
     return "\n".join(L)
 
 
+def alerts_off() -> bool:
+    """전역 알림 무음 스위치 — 저장소 변수 `ALERTS_OFF`(워크플로가 `env: ALERTS_OFF: ${{ vars.ALERTS_OFF }}` 로 넘김)가
+    1/true/yes/on 이면 True. 리팩토링 v1 병행 기간(11/7~) 옛 저장소 쪽 알림 이중 발송 방지용(docs/refactor_v1_inventory.md §5).
+    텔레그램 발송 지점은 send_telegram 한 곳뿐이라 여기서만 본다(워크플로 curl 은 telegram_test.yml 이 같은 변수로 직접 확인)."""
+    return os.environ.get("ALERTS_OFF", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def send_telegram(text: str, *, disable_notification: bool = True, reply_markup: dict | None = None) -> None:
     """텔레그램 전송. 기본 **무음**(disable_notification=True). 소리는 결재 #9 등급표(screener/alerts.py RING_KINDS)에 있는
     다섯 종류만 호출부가 `alerts.silent(keys)` 로 켠다 — 본문 이모지(⛔/⚡)로 소리를 정하지 않는다(10/17 최종안).
     reply_markup(인라인 버튼 등, dict)은 쪼갠 메시지 중 **마지막 조각**에만 붙인다(tg-pick-buttons)."""
+    if alerts_off():   # 전역 무음 스위치(저장소 변수 ALERTS_OFF, 11/7 이전 병행용) — 보내지 않고 로그만, 실패 아님
+        log.info("ALERTS_OFF=%s — 텔레그램 발송 생략(%d자): %s", os.environ.get("ALERTS_OFF", ""), len(text),
+                 text.split("\n", 1)[0][:80])
+        return
     from .defs import TELEGRAM_ALL_SILENT
     if TELEGRAM_ALL_SILENT:   # 오너 10/17 "전체 무음" — 호출부가 소리를 요청해도 무음 (단일 지점)
         disable_notification = True

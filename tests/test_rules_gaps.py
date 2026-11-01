@@ -176,6 +176,8 @@ def test_isa_crash_cap_two_per_year(env):
 
 
 def test_isa_counter_file_public_schema():
+    if not (ROOT / "ops" / "isa_buys.json").exists():
+        pytest.skip("범용판(리팩토링 v1): 내부판 전용 파일 없음")
     d = json.loads((ROOT / "ops" / "isa_buys.json").read_text(encoding="utf-8"))
     assert all(set(e) <= ticket.ISA_KEYS for e in d.get("events") or [])
 

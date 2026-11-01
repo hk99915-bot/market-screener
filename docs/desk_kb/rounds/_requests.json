@@ -9907,6 +9907,24 @@
    "status": "open"
   },
   {
+   "id": "req-audit-a7678089",
+   "from": "dev",
+   "to": "audit",
+   "text": "리팩토링 v1 범용판 스냅샷 경계 검사(보드 mig-v1-audit): python3 scripts/migrate_v1.py --private-dir <pb-private> 결과 review 7건(뉴스 본문·시장 메모·연구 코드 docstring으로 보임, 개발 1차 판단 — 검증전) 판정 부탁. 오탐이면 허용 목록 JSON [{path, kind, why}] 을 감사가 만들어 --allow 로 넘기는 방식. 제외 목록(§3-1)·분류 규칙(scripts/migrate_v1.py RULES) 검토도. 결과 docs/refactor_v1_migrate_dryrun.md.",
+   "opened": "2026-11-01",
+   "opened_at": "2026-11-01T18:29+09:00",
+   "due": "2026-11-03",
+   "via": "ask",
+   "seen": [
+    "2026-11-01"
+   ],
+   "checked": [
+    "2026-11-01"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-audit-b5d30579",
    "from": "dev",
    "to": "audit",
@@ -10095,6 +10113,24 @@
    "opened": "2026-11-01",
    "opened_at": "2026-11-01T17:30+09:00",
    "due": "2026-11-03",
+   "via": "ask",
+   "seen": [
+    "2026-11-01"
+   ],
+   "checked": [
+    "2026-11-01"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-front-146fc138",
+   "from": "dev",
+   "to": "front",
+   "text": "리팩토링 v1 범용판 화면(결재 11/1 싹다승인, 보드 mig-v1-front): 개발이 scripts/build_edition.py 로 범용판 빌드를 만듦 — 내부 탭 6개(life·isalab·msgr·study·rboard·system) include 제외, my·duel·committee 3개는 홈·파생·부동산이 함수를 빌려 써서(ghTok·myLoad·myResolve·MYLEDGER·mySync·DEC·decLoad·decCD·decBox·derivPanel·CMT) 코드는 남기고 메뉴·?v=·setView 만 막음. 부탁 4가지: ① 위 공용 함수를 공용 위치로 옮겨 3개 탭도 include 제외 가능하게 ② 범용판 홈·파생·부동산이 decisions·committee·portfolios 데이터 없을 때(범용판 제외 목록) 깨지지 않는지 ③ build_pages.py 잠금 중이라 개발이 못 고침 — main() 이 build_edition.default_edition() 판으로 루트 index.html 을 쓰게 2줄(범용판 저장소엔 .edition=public) ④ ui_smoke 범용판 모드(--edition public, 숨긴 뷰 제외 목록). 새 탭(tab_links 등)은 기본 범용판 — 내부면 build_edition.PUBLIC_DROP_TABS 에 추가 알려줘. 11/6 스냅샷 전에 들어가면 좋고 11/7 필수는 아님.",
+   "opened": "2026-11-01",
+   "opened_at": "2026-11-01T18:29+09:00",
+   "due": "2026-11-05",
    "via": "ask",
    "seen": [
     "2026-11-01"

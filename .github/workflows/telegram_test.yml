@@ -6,6 +6,10 @@ on:
 permissions:
   contents: read
 
+# 전역 알림 무음(리팩토링 v1 병행 11/7~): 저장소 변수 ALERTS_OFF=1 이면 텔레그램 발송 생략·로그만 (screener/report.py alerts_off)
+env:
+  ALERTS_OFF: ${{ vars.ALERTS_OFF }}
+
 jobs:
   send:
     runs-on: ubuntu-latest
@@ -15,6 +19,7 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
         run: |
+          case "$(echo "${ALERTS_OFF}" | tr 'A-Z' 'a-z')" in 1|true|yes|on) echo "ALERTS_OFF=${ALERTS_OFF} — 발송 생략(이 저장소는 무음)"; exit 0;; esac
           curl --silent --show-error --fail --output /dev/null \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=✅ market-screener 연결 테스트 성공 — 실제 매매 신호가 아닙니다." \

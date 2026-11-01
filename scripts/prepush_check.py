@@ -264,7 +264,8 @@ def pages_stale(head: str = "HEAD", show=None) -> bool | None:
     if committed is None:
         return None
     try:
-        return bp.build(bp.screen_source(read)) != committed
+        import build_edition as be   # 범용판 저장소(.edition=public)면 그 판으로 비교 (리팩토링 v1)
+        return be.build_edition(be.default_edition(), read) != committed
     except (FileNotFoundError, RuntimeError, AssertionError):
         return None
 

@@ -1,5 +1,6 @@
 """리포트 서고 색인(scripts/build_library.py) — 합성 폴더, 네트워크 없음 (req-dev-16bbc8e5 ①)."""
 import json
+import pytest
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -98,7 +99,8 @@ def test_series_and_desk_rules():
 
 def test_real_repo_builds_and_no_private_paths():
     d = bl.build()
-    assert d["n"] >= 200 and d["cats"].get("study", 0) >= 40
+    if (bl.ROOT / "docs" / "desk_kb").exists():   # 범용판(라운드·KB 없음)은 건수 하한 생략
+        assert d["n"] >= 200 and d["cats"].get("study", 0) >= 40
     assert all(not i["path"].startswith(("ledger/", "journal/", "household/")) for i in d["items"])
     assert len(json.dumps(d, ensure_ascii=False)) < 1_500_000   # 본문은 안 묶음 — 색인만
 

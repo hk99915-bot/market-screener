@@ -59,10 +59,14 @@ def test_uncontracted_path_passes():
 
 # ── defs.py 단일 원천 ──
 def test_repo_defs_consistent():
+    if not (ROOT / "docs" / "rules_terms.md").exists():
+        pytest.skip("범용판(리팩토링 v1): 내부판 전용 파일 없음")
     assert crt.scan_defs() == []
 
 
 def test_redefinition_and_ui_mismatch_caught(tmp_path):
+    if not (ROOT / "docs" / "rules_terms.md").exists():
+        pytest.skip("범용판(리팩토링 v1): 내부판 전용 파일 없음")
     (tmp_path / "docs").mkdir()
     (tmp_path / "docs" / "rules_terms.md").write_text((ROOT / "docs" / "rules_terms.md").read_text(encoding="utf-8"))
     (tmp_path / "screener").mkdir()

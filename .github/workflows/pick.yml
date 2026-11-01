@@ -15,6 +15,10 @@ concurrency:
   group: pick
   cancel-in-progress: false
 
+# 전역 알림 무음(리팩토링 v1 병행 11/7~): 저장소 변수 ALERTS_OFF=1 이면 텔레그램 발송 생략·로그만 (screener/report.py alerts_off)
+env:
+  ALERTS_OFF: ${{ vars.ALERTS_OFF }}
+
 jobs:
   record:
     if: (startsWith(github.event.issue.title, 'pick') || startsWith(github.event.issue.title, 'exit') || startsWith(github.event.issue.title, 'ticket')) && github.event.issue.user.login == github.repository_owner
