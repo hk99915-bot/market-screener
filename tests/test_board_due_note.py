@@ -34,3 +34,13 @@ def test_due_clear_and_bad_format(tmp_path):
 def test_unknown_id(tmp_path):
     r, _ = _run(tmp_path, "--note", "nope", "x")
     assert r.returncode == 1
+
+
+def test_crowded_dues_warns_over_cap():
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import board
+    mk = lambda i, d, st="대기": {"id": f"t{i}", "status": st, "due": d}
+    tasks = [mk(i, "2026-11-03") for i in range(6)] + [mk(9, "2026-11-04")] + [mk(10 + i, "2026-11-05", "완료") for i in range(7)]
+    assert board.crowded_dues(tasks) == [("2026-11-03", 6)]
+    assert board.crowded_dues(tasks, since="2026-11-04") == []
+    assert board.crowded_dues(tasks[:5]) == []

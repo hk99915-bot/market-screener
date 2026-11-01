@@ -44,6 +44,16 @@ def approval_open(tasks: list[dict]) -> list[dict]:
     return [t for t in tasks if t.get("status") != "완료" and t.get("approval")]
 
 
+DUE_CAP = 5   # 같은 날 미완료 마감 상한 (11/01 PM 늦은 일 정리 — 일괄 마감 재발 방지, 경고만)
+
+
+def crowded_dues(tasks: list[dict], cap: int = DUE_CAP, since: str | None = None) -> list[tuple[str, int]]:
+    """미완료 작업 마감이 같은 날 cap 건을 넘는 날짜 [(날짜, 건수)] (since 이후만). 경고용 — validate 오류 아님."""
+    from collections import Counter
+    c = Counter(t["due"] for t in tasks if t.get("status") != "완료" and t.get("due") and (since is None or t["due"] >= since))
+    return sorted((d, n) for d, n in c.items() if n > cap)
+
+
 def today() -> str:
     return datetime.now(KST).strftime("%Y-%m-%d")
 
@@ -207,6 +217,8 @@ def main() -> int:
     if errs:
         return 1
     if a.check:
+        for d, n in crowded_dues(b["tasks"], since=today()):
+            print(f"⚠ 같은 날 마감 {n}건 > {DUE_CAP}: {d} — 일괄 마감 금지, --due 로 흩을 것", file=sys.stderr)
         print(f"board OK ({len(b['tasks'])}개)"); return 0
     OUT.write_text(render(b) + "\n", encoding="utf-8")
     print(f"ops/BOARD.md 생성 ({len(b['tasks'])}개)")
