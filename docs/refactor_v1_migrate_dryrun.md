@@ -80,14 +80,14 @@
 | qty_ctx | edu_mock | 2 |
 | qty_ctx | market | 1 |
 
-### review 7건(앞 25) — 미리보기 숫자 가림
-- `reports/research_views.json:1` amount/계좌 | 비대면 증권계좌 개설 연계 서버에서 해커의 비정상적인 접근 징후를 포착했다. 9만여건을 전수조사, 99월 99일 고객정보 유출이 확인되었다. 9만 9,999명의 증권종합계좌 번호와 입출금 계좌번호 등 9개 항목이 유
-- `reports/views/analyst_cmdty.json:286` amount/내 | "note": "기간 끝(9/99) 기준. 방송일 = 금 고점(9/99 $9,999) 당일 — 이후 상반기 내 고점 재경신 없음. 영상 본편 미시청, 제목 주장으로 채점(약한 근거)"
-- `reports/views/realestate.json:89` amount/내 | "summary": "서울 사업시행인가 이후 단계 정비사업으로 9~9년 내 약 9.9~9만 가구 이주·멸실 예상, 용산구 9,999가구 최다(조선비즈·연합 99/99). 정부 측 발언으로 재건축·재개발 조합원 지위 
-- `reports/views/realestate.json:89` amount/내 | "summary": "서울 사업시행인가 이후 단계 정비사업으로 9~9년 내 약 9.9~9만 가구 이주·멸실 예상, 용산구 9,999가구 최다(조선비즈·연합 99/99). 정부 측 발언으로 재건축·재개발 조합원 지위 
-- `screener/sectors.py:12` amount/보유 | 전환 전 차이(99/99 detail 기준): 국장 비ETF 9,999 중 반도체 편입 +999·제외 −9, 미장 999 중 +9·−9, 보유 기준 반도체 비중 99.9%→99.9%(밴드 판정 불변) — docs/
-- `scripts/replicate_qld_dca.py:109` amount/적립 | """[start, end] 매 거래일 9만원 적립. px_usd·fx 는 같은 인덱스."""
-- `scripts/study_laor_ib.py:334` amount/원금 | """원화·원금 고정: 사이클마다 9,999만원 환전 투입 → 끝에 원화 환전 회수. 열린 사이클은 마지막 날 평가(매도비용 차감).
+### review 7건(앞 25) — 위치만(미리보기는 콘솔에만: 공개 저장소 pre-push 금액 검사와 충돌 방지)
+- `reports/research_views.json:1` amount/계좌
+- `reports/views/analyst_cmdty.json:286` amount/내
+- `reports/views/realestate.json:89` amount/내
+- `reports/views/realestate.json:89` amount/내
+- `screener/sectors.py:12` amount/보유
+- `scripts/replicate_qld_dca.py:109` amount/적립
+- `scripts/study_laor_ib.py:334` amount/원금
 
 ## C 이름·호칭 줄 수(영역 상위)
 | 영역 | 줄 |

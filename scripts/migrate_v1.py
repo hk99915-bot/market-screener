@@ -265,8 +265,8 @@ def report(pl: Plan, forb: list[str], sc, hits, names, refs, wf, apply_info: str
     L += ["", "## B 금액·개인 — 분류별", "| 종류 | 분류 | 건 |", "|---|---|---|"]
     L += [f"| {k} | {c} | {v} |" for (k, c), v in sorted(cat.items())] or ["| — | — | 0 |"]
     if review:
-        L += ["", f"### review {len(review)}건(앞 {top}) — 미리보기 숫자 가림"]
-        L += [f"- `{h.path}:{h.line}` {h.kind}/{h.ctx} | {h.preview}" for h in review[:top]]
+        L += ["", f"### review {len(review)}건(앞 {top}) — 위치만(미리보기는 콘솔에만: 공개 저장소 pre-push 금액 검사와 충돌 방지)"]
+        L += [f"- `{h.path}:{h.line}` {h.kind}/{h.ctx}" for h in review[:top]]
     L += ["", "## C 이름·호칭 줄 수(영역 상위)", "| 영역 | 줄 |", "|---|---|"]
     L += [f"| `{k}` | {v} |" for k, v in names.most_common(top)]
     L += ["", f"## D 끊긴 참조 후보(파일 상위 {top})", "| 파일 | 참조(건) |", "|---|---|"]
@@ -323,6 +323,8 @@ def main(argv: list[str] | None = None) -> int:
     if a.report:
         Path(a.report).write_text(text, encoding="utf-8")
     print(text)
+    for h in [h for h in hits if h.category == "review"][:25]:   # 콘솔 전용(숫자는 9로 가림)
+        print(f"  미리보기 {h.path}:{h.line} | {h.preview}")
     return rc
 
 
