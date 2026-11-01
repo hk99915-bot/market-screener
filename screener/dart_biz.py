@@ -269,6 +269,9 @@ def prune(ix: dict, code: str, keep: set[str]) -> None:
             continue
         rest.append(r)
     ix["items"] = rest
+    for f in OUT.glob(f"{code}_*.txt"):                   # 색인에서 빠진 옛 파일도
+        if f.stem.split("_", 1)[1] not in keep:
+            f.unlink()
 
 
 # ───────────── 대상 ─────────────
