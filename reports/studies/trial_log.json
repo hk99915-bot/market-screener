@@ -205,6 +205,13 @@
    "unregistered_trials": 4,
    "unregistered_note": "§0 원정의(KRX: 업종 계열) 1차 실행 S1·S2·S3·D1 4개 — 데이터 결함(코스피·코스닥 업종 같은 이름 섞임 추정)으로 무효, EW 업종으로 1:1 재등록(61705edfb). 사전 노출: C1 의 K200 다리는 lab DUAL_MOMENTUM_INDEX F·rule_audit T5 로 방향 기지",
    "discarded": "S1·S2·S3·D1(EW)·D2 F, C1 C(역방향: 필터가 고정보다 OOS 월 −0.37%p). 위성 1단계 추세 규칙 근거 없음 · 코어 필터는 KB 충돌 + 수익 손실"
+  },
+  "2026-11-01_gamma_scalp": {
+   "topic": "vol_premium",
+   "question": "K200 1개월 ATM 풋 매수 + 델타헤지(감마 스칼핑) 모의 — 사이클 손익(명목 %) 비용 후 > 0 인가, VRP 하위 30% 조건 진입이 낫나 (BS 근사·rep_iv)",
+   "unregistered_trials": 0,
+   "unregistered_note": "사전등록(라운드 md §0) 그대로 1회 실행. 변형 W1·D2·NH·비용×0/×2 는 서술(m 밖). 사전 노출: 선행 노트 derivs_mm_vrp §5 사후 VRP 분포(조건부 방향 기지)",
+   "discarded": "H1·H2·H3 F(H1 역방향 p 0.041 — 비용 후 음). 비용 전 평균 ≈ 0 → 무조건 롱감마는 VRP≈0 에 비용만 냄. 교육 자료로만"
   }
  },
  "trials": [
@@ -396,6 +403,15 @@
    "result": "KR hi52 +1.98% t3.31(A) · gcv +1.47% t3.19(B) · sqz +1.64% t5.29(B) / US hi52 +0.45% t1.42(F) · gcv +1.12% t1.83(C) · sqz −0.21%(F). KR OOS 중앙값 음(−0.8~−1.6%) · 재실행(US 666종목 백필): hi52 F·gcv F(C→F)·sqz F",
    "discarded_why": "",
    "study": "2026-10-24_trend_events"
+  },
+  {
+   "date": "2026-11-01",
+   "topic": "vol_premium",
+   "hypothesis": "(사전등록 m=3) H1 롱 ATM 풋+매일 종가 델타헤지 사이클 평균>0 · H2 VRP(rep_iv−σ20) 확장 백분위≤30% 진입만 >0 · H3 조건 사이클−비조건 사이클 >0",
+   "params": "K200 2010-01~2026-10 일봉, 월물(둘째 목) 롤, BS r=q=0·IV=rep_iv, 옵션 반호가 max(1틱,1.5%)·헤지 2bp, IS ~2019/OOS 2020~, NW(1) t·Welch, α 0.0167, 등급 상한 B",
+   "result": "201사이클 H1 −0.079%/월(명목, t −1.74, 비용×0 −0.001%) F · H2 n74 −0.039% F · H3 +0.04%p t0.40 F. IS −0.149%(t −4.2)/OOS +0.025%. 일별 평가 MDD −24.3%p(누적 명목). 손익−(실현²−내재²) 상관 0.71",
+   "discarded_why": "비용 전 기대≈0, 비용 후 음 — 조건부 선별 가치 없음",
+   "study": "2026-11-01_gamma_scalp"
   }
  ]
 }
