@@ -9,7 +9,9 @@
   reports/studies/*.md + md 없는 *.json(json-only 연구)                                                     → cat=study (퀀트 연구)
   docs/valuation_notes/*.md → cat=valuation · docs/peer_reviews/*.md → cat=peer
 
-항목: path·date·desk·desk_ko·cat·topic·title(첫 # 제목)·summary(What 첫 줄 또는 첫 문단 120자)·grade(A/B/C/F)·size
+항목: path·date·desk·desk_ko·cat·topic·title(첫 # 제목 원문 — 본문 상단용)·short(카드 큰 제목 ≤18자 — `<!-- short: … -->` 또는 자동)
+  ·summary(한 줄 결론 ≤60자 — `<!-- oneliner: … -->` › '결론'·'한 줄'·'So What' 다음 첫 문장 › What 첫 줄/첫 문단)·grade(A/B/C/F)·size
+  + kpi(`<!-- kpi: 하닉 −51% -->` 핵심 숫자 칩 1개) · charts(```chart 블록 수 — 명세는 chart_blocks, 화면이 SVG 로 그림)
   + 연구 묶음: series(같은 연구 줄기 키)·stage(0 사전등록 → 1 본연구 → 2 후속 라운드 → 3 재현·검증)
   + json-only 연구: body_md(키 표 마크다운, 화면에서 그대로 렌더) · json(원본 경로)
 본문은 묶지 않는다(전체 md ≈ 4MB) — 화면이 path 로 그때그때 읽는다(Pages = 정적 파일, GAS = Code.gs getLibraryDoc 허용 목록).
@@ -165,7 +167,146 @@ def md_grade(text: str) -> str:
     return m.group(1) if m else ""
 
 
+# ── 짧은 제목·한 줄 결론·핵심 숫자·차트 블록 (프론트 11/1, 겸이 「제목도 너무 길고 내용도 비직관적, 차트 그래프 표 등 활용하고 제목 직관적으로」)
+SHORT_MAX = 18     # 카드 큰 제목 — 390px 한 줄
+ONE_MAX = 60       # 카드 한 줄 결론
+COMMENT_RE = {k: re.compile(rf"<!--\s*{k}\s*:\s*(.+?)\s*-->") for k in ("short", "oneliner", "kpi")}
+_TAIL_SEG = re.compile(r"^(기준|분석만|모의|매매|방향 신호|진입 제안|연구 전용|교육용|실계좌)")
+_ONE_HEAD = (re.compile(r"^\s*(?:#{1,6}\s*)?(?:[-*]\s*)?\**\s*(?:\d+\.\s*)?결론[^:：]{0,8}[:：]\s*(.*)$"),
+             re.compile(r"^\s*(?:[-*]\s*)?\**\s*[^:：]{0,12}한 줄[^:：]{0,6}[:：]\s*(.*)$"),
+             re.compile(r"^\s*(?:[-*]\s*)?(?:[①-⑳]\s*)?\**\s*So What\**\s*[:：]?\s*\**\s*(.*)$"))
+_SYM = re.compile(r"[①-⑳★☆⛔✓✔✗※▶▷◆◇■□●○]")
+_NUM = re.compile(r"[+\-−]?\d[\d,.]*\s*(?:%p|%|bp|배|개월|일|조|억|원)?")
+
+
+def md_comment(text: str, key: str) -> str:
+    """md 안 `<!-- key: … -->` 주석값 (화면 렌더는 주석을 숨긴다)."""
+    m = COMMENT_RE[key].search(text)
+    return strip_md(m.group(1)) if m else ""
+
+
+def short_title(title: str, text: str = "", desk_ko: str = "") -> str:
+    """카드 큰 제목. ① `<!-- short: … -->` ② 자동: '데스크명 — ' 접두·'· 기준 …'·'· 분석만 …'·괄호·'매매 권고 아님' 제거,
+    SHORT_MAX 넘으면 첫 구분자(—·:·|) 앞까지. 말줄임 없음(§5 A10) — 그래도 길면 그대로 두고 화면이 줄바꿈."""
+    c = md_comment(text, "short") if text else ""
+    if c:
+        return c
+    t = strip_md(title)
+    m = re.match(r"^([^—:|]{1,14}?)\s+—\s+(.+)$", t)          # '매크로 — …' · '파생 라운드(…) — …'
+    if m:
+        t = m.group(2)
+    t = re.sub(r"\([^()]*\)|（[^（）]*）|\[[^\]]*\]", "", t)    # 괄호 = 기준일·출처·부연
+    segs = [x.strip() for x in re.split(r"\s+·\s+", t)]
+    keep = [x for x in segs if x and not _TAIL_SEG.match(x)]
+    if len(keep) > 1 and (re.fullmatch(r"(?:\S+\s)?라운드", keep[0]) or keep[0] == desk_ko):   # '파생 라운드 · 롱 풋 …' → 앞 칸 버림
+        keep = keep[1:]
+    t = " · ".join(keep or segs[:1])
+    t = re.sub(r"[,·]?\s*매매 (?:권고|지시) 아님", "", t)
+    t = re.sub(r"\s{2,}", " ", t).strip(" ·—:|-")
+    if len(t) > SHORT_MAX:
+        for m in re.finditer(r"\s*[—:|]\s*", t):   # 따옴표 안 구분자는 건너뜀 ('삼성전자: …' 가 반쪽 따옴표로 잘리지 않게)
+            pre = t[:m.start()]
+            if m.start() >= 4 and pre.count("'") % 2 == 0 and pre.count('"') % 2 == 0 and pre.count("「") == pre.count("」"):
+                t = pre.strip()
+                break
+    if len(t) > SHORT_MAX and " · " in t:
+        t = t.split(" · ")[0]
+    return t or strip_md(title)
+
+
+def tidy_one(t: str, n: int = ONE_MAX) -> str:
+    """한 줄 결론 다듬기 — 괄호(출처·기준)·①②·★ 같은 기호 제거, 숫자는 앞의 2개까지 (넘으면 그 앞 구분에서 자름), n 자 이내."""
+    t = strip_md(t)
+    t = re.sub(r"\([^()]*\)|\[[^\]]*\]", "", t)
+    t = re.sub(r"[①-⑳](?:\s*[·,]\s*[①-⑳])*", "", t).strip()
+    t = re.sub(r"^(?:So What|Now What|What)\s*[:：]\s*", "", t)
+    t = _SYM.sub("", t)
+    t = re.sub(r"\s*(?:→|⇒|≥|≤)\s*", lambda m: " → " if "→" in m.group(0) or "⇒" in m.group(0) else m.group(0).strip(), t)
+    t = re.sub(r"\s{2,}", " ", t).strip(" ·,—:")
+    t = re.split(r"(?<=[.다요야])\s+(?=\S)", t)[0] if len(t) > n or len(_NUM.findall(t)) > 2 else t   # 길면 첫 문장만
+    cuts = [m.start() for m in re.finditer(r"\s+(?:·|—)\s+|;\s*", t)] + [len(t)]   # 절 경계(원래 구분자 유지)
+    out = ""
+    for c in cuts:
+        cand = t[:c].strip(" ·,—:;")
+        if out and (len(cand) > n or len(_NUM.findall(cand)) > 2):
+            break
+        out = cand
+    if len(_NUM.findall(out)) > 2:      # 한 문장 안에 숫자가 많으면 세 번째 숫자 앞 구분(, ·)에서 자름
+        k = [m.start() for m in _NUM.finditer(out)][2]
+        cutp = max(out.rfind(",", 0, k), out.rfind("·", 0, k), out.rfind(" ", 0, k))
+        if cutp > 10:
+            out = out[:cutp].rstrip(" ,·")
+    return out if len(out) <= n else out[: n - 1].rstrip(" ,·") + "…"
+
+
+def oneliner(lines: list[str], text: str = "") -> str:
+    """카드 한 줄 결론. ① `<!-- oneliner: … -->` ② '결론'·'한 줄'·'So What' 다음 첫 문장 ③ 기존 What/첫 문단. ONE_MAX 자."""
+    c = md_comment(text, "oneliner") if text else ""
+    if c:
+        return c if len(c) <= ONE_MAX else c[: ONE_MAX - 1] + "…"
+    fence = False
+    for rx in _ONE_HEAD:
+        for i, ln in enumerate(lines):
+            if ln.lstrip().startswith("```"):
+                fence = not fence
+            if fence:
+                continue
+            m = rx.match(ln)
+            if not m:
+                continue
+            body = m.group(1).strip().strip("*").strip()
+            if not body:                                            # '## 0. 결론' 머리 → 다음 내용 줄
+                body = next((re.sub(r"^\s*(?:[-*]\s+|>\s*|\d+[.)]\s+)", "", x) for x in lines[i + 1:i + 6]
+                             if x.strip() and not x.lstrip().startswith(("#", "|", "```", "<!--"))), "")
+            if len(strip_md(body)) >= 6:
+                return tidy_one(body)
+    s = md_summary(lines)
+    return tidy_one(s) if s else ""
+
+
+CHART_TYPES = ("bar", "line", "hbar")
+
+
+def chart_blocks(text: str) -> tuple[list[dict], list[str]]:
+    """md 안 ```chart … ``` 블록 → (올바른 명세 목록, 오류 문구 목록). 화면(tab_research libChart)이 같은 명세를 SVG 로 그린다.
+    명세: {"type":"bar|line|hbar","title":str,"labels":[…],"series":[{"name":str,"data":[수|null …]}],"unit":"%","note":"출처·기준일"}
+    선택: "signed": true/false — 값 부호 색(한국식 + 빨강·− 파랑). 생략 시 시리즈 1개이고 unit 이 %·%p 면 부호 색."""
+    good, errs = [], []
+    for k, m in enumerate(re.finditer(r"^\s*```chart\s*\n(.*?)^\s*```", text, re.S | re.M), 1):
+        try:
+            d = json.loads(m.group(1))
+        except Exception as e:
+            errs.append(f"차트 {k}: JSON 아님 ({str(e)[:60]})")
+            continue
+        why = []
+        if not isinstance(d, dict):
+            why.append("객체 아님")
+        else:
+            if d.get("type") not in CHART_TYPES:
+                why.append(f"type {d.get('type')!r} ∉ {CHART_TYPES}")
+            labels, series = d.get("labels"), d.get("series")
+            if not isinstance(labels, list) or not labels:
+                why.append("labels 없음")
+            if not isinstance(series, list) or not series:
+                why.append("series 없음")
+            elif isinstance(labels, list):
+                for s in series:
+                    data = s.get("data") if isinstance(s, dict) else None
+                    if not isinstance(data, list) or len(data) != len(labels):
+                        why.append(f"series {s.get('name') if isinstance(s, dict) else s!r} data 길이 ≠ labels")
+                    elif any(not (v is None or (isinstance(v, (int, float)) and not isinstance(v, bool))) for v in data):
+                        why.append(f"series {s.get('name')} 숫자 아닌 값")
+            if not str(d.get("note") or "").strip():
+                why.append("note(출처·기준일) 없음")
+        if why:
+            errs.append(f"차트 {k}: " + " · ".join(why))
+        else:
+            good.append(d)
+    return good, errs
+
+
 _GIT_DATES: dict[str, str] | None = None
+CHART_ERRS: list[str] = []   # build 중 모인 잘못된 chart 블록 (main 이 출력·--check 실패)
 _BASE = ROOT   # build(root) 가 바꾼다 — 항목 path 는 이 기준 상대 경로
 
 
@@ -335,11 +476,22 @@ def json_body(d, rel: str) -> str:
 def _item(path: Path, cat: str, desk: str, topic: str, text: str, meta=None) -> dict:
     lines = text.splitlines()
     rel = path.relative_to(_BASE).as_posix()
-    return {
+    title = md_title(lines) or topic or path.stem
+    it = {
         "path": rel, "date": date_of(path, "\n".join(lines[:15]), meta), "cat": cat, "desk": desk,
-        "desk_ko": DESK_KO.get(desk, desk), "topic": topic, "title": md_title(lines) or topic or path.stem,
-        "summary": md_summary(lines), "grade": md_grade(text), "size": path.stat().st_size,
+        "desk_ko": DESK_KO.get(desk, desk), "topic": topic, "title": title,
+        "short": short_title(title, text, DESK_KO.get(desk, desk)),
+        "summary": oneliner(lines, text), "grade": md_grade(text), "size": path.stat().st_size,
     }
+    kpi = md_comment(text, "kpi")
+    if kpi:
+        it["kpi"] = kpi[:24]
+    charts, errs = chart_blocks(text) if "```chart" in text else ([], [])
+    if charts:
+        it["charts"] = len(charts)
+    if errs:
+        CHART_ERRS.extend(f"{rel}: {e}" for e in errs)
+    return it
 
 
 def scan_rounds(root: Path) -> list[dict]:
@@ -393,8 +545,8 @@ def scan_studies(root: Path) -> list[dict]:
             rel = jp.relative_to(_BASE).as_posix()
             title = (meta.get("title") if isinstance(meta, dict) else None) or topic
             it = {"path": rel, "date": date_of(jp, "", meta), "cat": "study", "desk": study_desk(stem),
-                  "desk_ko": DESK_KO.get(study_desk(stem)), "topic": topic, "title": f"{title} (json)",
-                  "summary": json_summary(meta) or "md 보고서 없음 — 키 표로 보기", "grade": json_grade(meta)[0],
+                  "desk_ko": DESK_KO.get(study_desk(stem)), "topic": topic, "title": f"{title} (json)", "short": short_title(str(title).replace("_", " ")),
+                  "summary": cut(json_summary(meta), ONE_MAX) or "md 보고서 없음 — 키 표로 보기", "grade": json_grade(meta)[0],
                   "size": jp.stat().st_size, "json": rel, "body_md": json_body(meta, rel)}
         it["series"], it["stage"] = ser, stage
         pre = meta.get("prereg") if isinstance(meta, dict) else None
@@ -465,12 +617,13 @@ def mask_amounts(text: str) -> str:
 
 def build(root: Path = ROOT, now: datetime | None = None) -> dict:
     global _BASE, _GIT_DATES
+    CHART_ERRS.clear()
     if root != _BASE:
         _BASE, _GIT_DATES = root, None
     items = scan_rounds(root) + scan_studies(root) + scan_dir(root, "docs/valuation_notes", "valuation", "analyst") \
         + scan_dir(root, "docs/peer_reviews", "peer", "peer")
     for it in items:
-        for k in ("title", "summary", "body_md"):
+        for k in ("title", "short", "summary", "kpi", "body_md"):
             if it.get(k):
                 it[k] = mask_amounts(it[k])
     series = link_series(items)
@@ -507,9 +660,12 @@ def main() -> int:
     a = ap.parse_args()
     d = build()
     txt = dump(d)
-    print(f"서고 {d['n']}건 · {d['cats']} · 묶음 {len(d['series'])} · {len(txt) // 1024}KB")
-    if not a.check:
-        OUT.write_text(txt + "\n", encoding="utf-8")
+    print(f"서고 {d['n']}건 · {d['cats']} · 묶음 {len(d['series'])} · 차트 {sum(x.get('charts', 0) for x in d['items'])} · {len(txt) // 1024}KB")
+    for e in CHART_ERRS:
+        print("  ✗ chart 블록 " + e)
+    if a.check:
+        return 1 if CHART_ERRS else 0
+    OUT.write_text(txt + "\n", encoding="utf-8")
     return 0
 
 

@@ -90,6 +90,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_btc_detail(b, port)
         bad += await check_deriv_tv(b, port)
         bad += await check_links(b, port)
+        bad += await check_lib_cards(b, port)
         await b.close()
     return bad
 
@@ -1481,6 +1482,42 @@ async def check_links(b, port: int) -> int:
         r1["after"] = await J("document.querySelectorAll('.lk-svg path.e.hi,.lk-svg path.e.dim').length")
     ok = ok0 and r1.get("hi", 0) >= 1 and r1.get("on") == 1 and r1.get("rows") == r1.get("hi") and r1.get("back") and r1.get("after") == 0 and not errs
     print(f"{'OK ' if ok else 'BAD'} 관계도(390px) {r0} 선택={r1}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await ctx.close()
+    return not ok
+
+
+async def check_lib_cards(b, port: int) -> int:
+    """RESEARCH › 서고 카드·본문(11/1 겸이 「제목도 너무 길고 내용도 비직관적, 차트 그래프 표 등 활용」), 390px:
+    ① 카드 = 짧은 제목(short) 1줄(≤18자면 줄 높이 1개) + 칩 높이 24px + 가로 넘침 0
+    ② 차트 블록이 있는 문서(색인 charts>0 첫 항목) 열기 → figure.lib-ch 안 SVG 막대/점 ≥ 2·0선/눈금·그림이 패널 안
+    ③ 표 숫자 열(td.n) 오른쪽 정렬 + tabular-nums."""
+    ctx = await b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = await ctx.new_page()
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html?v=lib", wait_until="load")
+    await pg.wait_for_timeout(3000)
+    J = lambda js: pg.evaluate(js)   # noqa: E731
+    r0 = await J("""(()=>{ const its=[...document.querySelectorAll('.lib-it')].slice(0,40); if(!its.length) return {n:0, v:view};
+      const one=its.map(e=>{ const t=e.querySelector('.lib-t'), lh=parseFloat(getComputedStyle(t).lineHeight); return [t.textContent.length, t.getBoundingClientRect().height/lh]; });
+      const chips=[...document.querySelectorAll('.lib-it .lib-c')].map(c=>Math.round(c.getBoundingClientRect().height));
+      return {n:its.length, multi:one.filter(([n,l])=>n<=18&&l>1.5).length, chipH:[Math.min(...chips),Math.max(...chips)],
+        over:document.documentElement.scrollWidth-document.documentElement.clientWidth}; })()""")
+    ok0 = r0.get("n", 0) >= 3 and r0.get("multi") == 0 and r0.get("chipH") == [24, 24] and r0.get("over", 9) <= 1
+    path = await J("(()=>{ const x=(LIB.items||[]).find(i=>i.charts>0); return x?x.path:''; })()")
+    r1 = {"path": path}
+    if path:
+        await J(f"libOpen({path!r})")
+        await pg.wait_for_timeout(2500)
+        r1.update(await J("""(()=>{ const f=document.querySelector('figure.lib-ch'); if(!f) return {fig:0};
+          const s=f.querySelector('svg'), pn=f.closest('.p').getBoundingClientRect(), sr=s?s.getBoundingClientRect():null;
+          const n=[...document.querySelectorAll('.lib-tw td.n')].slice(0,30).map(td=>{ const cs=getComputedStyle(td); return cs.textAlign==='right'&&/tabular-nums/.test(cs.fontVariantNumeric); });
+          return {fig:document.querySelectorAll('figure.lib-ch').length, marks:s?s.querySelectorAll('rect,circle').length:0, axis:s?s.querySelectorAll('line.z,line.g').length:0,
+            inside:!!sr&&sr.left>=pn.left-1&&sr.right<=pn.right+1, numOk:n.every(Boolean), numN:n.length,
+            over:document.documentElement.scrollWidth-document.documentElement.clientWidth}; })()"""))
+    ok1 = bool(path) and r1.get("fig", 0) >= 1 and r1.get("marks", 0) >= 2 and r1.get("axis", 0) >= 2 and r1.get("inside") and r1.get("numOk") and r1.get("over", 9) <= 1
+    ok = ok0 and ok1 and not errs
+    print(f"{'OK ' if ok else 'BAD'} 서고 카드·차트(390px) {r0} 본문={r1}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await ctx.close()
     return not ok
 

@@ -1,4 +1,7 @@
 # CIO — 외부 시장 코멘트(출처 미상·2차) 7개 대조 판정 · 기준 2026-11-01 KST(국장·미 10/30 종가) · 분석만, 매매 지시 아님 · 진입 제안 없음(trade plan 해당 없음)
+<!-- short: 외부 코멘트 7개 대조 -->
+<!-- oneliner: 코멘트 7개 중 우리 판단에 새로 더할 건 0개 — 판단 불변, 관찰 후보 2칸 -->
+<!-- kpi: 판단 변경 0 -->
 
 - 입력: 겸이 붙여넣기(출처·작성일 미상, 2차) · 같은 폴더 `macro_history_analogs.md`·`quant_history_paths.md`·`analyst_exports_oct.md`·`macro_exports_oct.md`·`cio_active_etf_ips.md` · `rounds/2026-10-29/bonds_credit_ai.md` · `rounds/2026-10-30/analyst_security_peers.md` · 비공개 `ops/agreements.md`(10/31 결재 1-가·③, 11/1 14:52 🗳️, 금→국고 🗳️)·`rules.txt` §3·§4 · 비공개 `analysis/2026-11-01-monthly/agenda.md`
 - **입력 등급 먼저(#18):** 코멘트 자체 = **미등급**(출처·근거·기간 없음, 서술). C 미만 → 이 코멘트 위에 규칙·한도·게이트 설계 안 함. 아래 분류는 '우리 산출물(등급 있는 것)과 같은 말인가'만 본다.

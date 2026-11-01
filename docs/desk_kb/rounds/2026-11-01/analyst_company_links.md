@@ -1,4 +1,7 @@
 # 애널 — 기업 관계도(누가 누구와 돈·제품을 주고받나) · 기준 2026-11-01 KST(DART 반기보고서 2026.06 · SEC 8-K · 시세 2026-10-30 종가 · USDKRW 1339.65) · 분석만, 매매 권고 아님
+<!-- short: 기업 관계도 -->
+<!-- oneliner: AI는 같은 돈이 투자·약정·GPU 구매로 도는 순환, 국내는 집중이 리스크 -->
+<!-- kpi: 화살표 150개 -->
 - 화면 JSON `reports/company_links.json` — 노드 79 · 화살표 150(1차 92 · 2차 46 · 검증전 12) · 그룹 4. 빌더는 세션 scratchpad(재현용), 체인 계보는 `analyst_chain_links.md` 재사용
 - 겸이 11/1 요청 원문: 「이런 식의 섹터나 기업 구조도 좀, 누가 누구랑 사업적으로 주고받는지, 터미널에」(Bloomberg 'Nvidia Is at the Center of Circular AI Deals' 차트, 2026-05-06)
 

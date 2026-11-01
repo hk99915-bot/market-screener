@@ -111,3 +111,51 @@ def test_mask_amounts_and_dump_one_item_per_line(tmp_path):
     txt = bl.dump(d)
     assert json.loads(txt) == json.loads(json.dumps(d))
     assert len(txt.splitlines()) == d["n"] + 2
+
+
+# ── 짧은 제목·한 줄 결론·kpi·차트 블록 (프론트 11/1, 겸이 「제목도 너무 길고 내용도 비직관적」)
+LONG = "# 매크로 — '지금의 한국'과 닮은 과거: 수출·이익 최대인데 주가 급락 · 기준 2026-11-01 KST(국장·미 10/30 종가) · 분석만, 매매 권고 아님"
+
+
+def test_short_title_auto_and_comment():
+    t = bl.md_title(LONG.splitlines())
+    s = bl.short_title(t)
+    assert s == "'지금의 한국'과 닮은 과거" and len(s) <= bl.SHORT_MAX          # 데스크 접두·기준·분석만 제거 + ':' 앞
+    assert bl.short_title(t, LONG + "\n<!-- short: 지금 한국과 닮은 과거 -->\n") == "지금 한국과 닮은 과거"   # ① 주석 우선
+    assert bl.short_title("파생 라운드(2026-11-01) · 롱 풋 감마 스칼핑 · 방향 신호 아님(전부 모의)") == "롱 풋 감마 스칼핑"
+    assert bl.short_title("퀀트 — 유사 국면 경로: 지수 −30% 하락 국면 (2026-11-01)") == "유사 국면 경로"
+    assert bl.short_title("애널 — 증권사 '삼성전자: 메모리 판단' 정리와 우리 판단 대조") .count("'") % 2 == 0   # 따옴표 안 ':' 에서 안 자름
+    assert bl.short_title("짧은 제목") == "짧은 제목"
+
+
+def test_oneliner_priority():
+    body = ["# 제목", "- **What:** 무엇 한 줄입니다 아주 길게 씀.", "**So What:** 그래서 이것 — 둘째 문장.", "결론 줄: 수출은 레짐을 안 바꾼다 — 레짐 ③ 유지 · 코스피 5,730.74(200일선 −11.7%) · 원/달러 1,339.65"]
+    one = bl.oneliner(body, "\n".join(body))
+    assert one.startswith("수출은 레짐을 안 바꾼다") and "③" not in one and "(" not in one       # ② '결론' 이 So What·What 보다 먼저, 기호·괄호 제거
+    assert len(bl._NUM.findall(one)) <= 2 and len(one) <= bl.ONE_MAX                           # 숫자 2개까지
+    assert bl.oneliner(body[:3], "\n".join(body[:3])) == "그래서 이것 — 둘째 문장."                # So What 첫 문장
+    assert bl.oneliner(body[:2], "\n".join(body[:2])).startswith("무엇 한 줄")                    # ③ 기존 What
+    txt = "\n".join(body) + "\n<!-- oneliner: 직접 쓴 한 줄 -->"
+    assert bl.oneliner(txt.splitlines(), txt) == "직접 쓴 한 줄"                                   # ① 주석
+    assert bl.md_comment("<!-- kpi: 하닉 −51% -->", "kpi") == "하닉 −51%"
+
+
+def test_chart_block_parse():
+    ok = '{"type":"hbar","title":"t","labels":["a","b"],"series":[{"name":"s","data":[1.5,-2]}],"unit":"%","note":"출처 · 2026-11-01"}'
+    bad_len = '{"type":"bar","labels":["a","b"],"series":[{"name":"s","data":[1]}],"note":"n"}'
+    bad_type = '{"type":"pie","labels":["a"],"series":[{"name":"s","data":[1]}]}'
+    text = f"# x\n```chart\n{ok}\n```\n\n```chart\n{bad_len}\n```\n```chart\n{bad_type}\n```\n```chart\nnot json\n```\n```python\nprint(1)\n```\n"
+    good, errs = bl.chart_blocks(text)
+    assert len(good) == 1 and good[0]["series"][0]["data"] == [1.5, -2]
+    assert len(errs) == 3 and "길이" in errs[0] and "pie" in errs[1] and "note" in errs[1] and "JSON" in errs[2]
+
+
+def test_item_fields_short_kpi_charts(tmp_path):
+    r = tmp_path / "docs" / "desk_kb" / "rounds" / "2026-11-01"
+    _w(r / "quant_paths.md", LONG.replace("매크로", "퀀트") + "\n<!-- kpi: 하닉 −51% -->\n\n**So What:** 바닥은 드물다.\n\n```chart\n"
+       '{"type":"line","title":"t","labels":["3m","6m"],"series":[{"name":"s","data":[1,2]}],"unit":"%","note":"n"}\n```\n')
+    d = bl.build(tmp_path, now=datetime(2026, 11, 1))
+    it = d["items"][0]
+    assert it["short"] == "'지금의 한국'과 닮은 과거" and it["title"].startswith("퀀트 —")   # 원래 제목은 그대로(본문 상단용)
+    assert it["kpi"] == "하닉 −51%" and it["charts"] == 1 and it["summary"] == "바닥은 드물다."
+    assert not bl.CHART_ERRS

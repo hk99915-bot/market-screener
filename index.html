@@ -2127,12 +2127,16 @@ TOPF.dart=()=>{ if(!DS) return null; const it=DS.items||[], fl=it.filter(r=>r.fl
 .lib-q{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:var(--fs-3);padding:8px 10px;margin:0 0 8px 0;border-radius:3px}
 .lib-pin{display:flex;align-items:center;gap:8px;min-height:44px;border:1px solid var(--line);border-left:3px solid var(--amber);padding:0 10px;margin:0 0 10px 0;cursor:pointer}
 .lib-d{font-size:var(--fs-2);color:var(--muted);border-bottom:1px solid var(--line);padding:10px 0 4px 0;margin:0 0 2px 0;display:flex;justify-content:space-between}
-.lib-it{padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer;overflow-wrap:anywhere}
+.lib-it{padding:12px 0;min-height:44px;border-bottom:1px solid var(--line);cursor:pointer;overflow-wrap:anywhere}
 .lib-it:hover .lib-t{color:var(--amber)}
-.lib-t{font-size:var(--fs-3);font-weight:600;line-height:1.4}
-.lib-m{font-size:var(--fs-1);color:var(--muted);margin-top:2px}
-.lib-s{font-size:var(--fs-2);line-height:1.5;margin-top:3px}
-.lib-g{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border:1px solid var(--line);border-radius:3px;font-size:var(--fs-1);font-weight:700;margin-right:6px;vertical-align:2px}
+.lib-t{font-size:calc(var(--fs-4) + 2px);font-weight:700;line-height:1.35;letter-spacing:0}   /* 짧은 제목 ≤18자 = 390px 한 줄 */
+.lib-m{font-size:var(--fs-1);color:var(--muted);margin-top:4px}
+.lib-s{font-size:var(--fs-2);line-height:1.5;margin-top:4px;color:var(--text-2)}
+.lib-cp{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.lib-c{display:inline-flex;align-items:center;height:24px;box-sizing:border-box;padding:0 8px;border:1px solid var(--line);border-radius:3px;font-size:var(--fs-1);color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.lib-c.n{font-family:var(--font-num)}
+.lib-c.kp{color:var(--text);border-color:var(--line-strong);font-family:var(--font-num);font-weight:600}
+.lib-g{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:24px;border:1px solid var(--line);border-radius:3px;font-size:var(--fs-1);font-weight:700}
 .lib-g.gA,.lib-g.gB{color:var(--ok);border-color:var(--ok)} .lib-g.gC{color:var(--muted)} .lib-g.gF{color:var(--bad);border-color:var(--bad)}
 .lib-ser{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:5px;font-size:var(--fs-1)}
 .lib-ser a{border:1px solid var(--line);border-radius:3px;padding:2px 6px;color:var(--muted);text-decoration:none;cursor:pointer}
@@ -2145,7 +2149,28 @@ TOPF.dart=()=>{ if(!DS) return null; const it=DS.items||[], fl=it.filter(r=>r.fl
 .lib-rd code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:var(--raised);padding:0 3px;border-radius:2px}
 .lib-rd pre{background:var(--raised);padding:8px;overflow-x:auto;font-size:var(--fs-2);line-height:1.45} .lib-rd pre code{background:none;padding:0}
 .lib-rd hr{border:0;border-top:1px solid var(--line);margin:12px 0}
-.lib-tw{overflow-x:auto;margin:6px 0} .lib-tw table{font-size:var(--fs-2)} .lib-tw td,.lib-tw th{text-align:left;vertical-align:top;white-space:normal;min-width:64px}
+.lib-tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0;border:1px solid var(--line)}
+.lib-tw table{font-size:var(--fs-2);border-collapse:collapse;min-width:100%}
+.lib-tw td,.lib-tw th{text-align:left;vertical-align:top;white-space:normal;word-break:keep-all;overflow-wrap:break-word;min-width:88px;max-width:240px;padding:6px 8px;border-bottom:1px solid var(--line);font-family:var(--font-text)}
+.lib-tw th{color:var(--text-2);font-weight:600;background:var(--raised)}
+.lib-tw td.n,.lib-tw th.n{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-num);white-space:nowrap;min-width:48px}   /* §5 A6 숫자 열 */
+/* 차트 블록 (11/1) — 범주 팔레트는 dataviz 검증기 통과(dark #0d0d0d·light #fff), 엑셀 스킨은 진한 값 */
+.lib-ch{--lc1:#d0700c;--lc2:#169fad;--lc3:#8f62e6;--lc4:#279e6b;margin:12px 0;padding:12px;border:1px solid var(--line);background:var(--surface);max-width:720px;box-sizing:border-box}
+html.xl .lib-ch{--lc1:#c55a11;--lc2:#0a8a9e;--lc3:#6b3fb5;--lc4:#1e7b4f}
+.lib-ch-t{font-size:var(--fs-2);font-weight:700;color:var(--text);margin:0 0 6px 0;line-height:1.4}
+.lib-ch-svg{display:block;overflow:visible;font-variant-numeric:tabular-nums}
+.lib-ch-svg .g{stroke:var(--line);stroke-width:1}
+.lib-ch-svg .z{stroke:var(--text-2);stroke-width:1.2}
+.lib-ch-svg .ax{fill:var(--text-3);font-family:var(--font-num);font-size:var(--fs-1)}
+.lib-ch-svg .lb{fill:var(--text-2);font-family:var(--font-text);font-size:var(--fs-1)}
+.lib-ch-svg .vl{fill:var(--text);font-family:var(--font-num);font-size:var(--fs-1)}
+.lib-ch-svg .vl.s{font-size:var(--fs-1)}
+.lib-ch-svg .ln{fill:none;stroke-width:2;stroke-linejoin:round}
+.lib-ch-svg .pt{stroke:var(--surface);stroke-width:2}
+.lib-ch-lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:var(--fs-1);color:var(--text-2);margin:0 0 6px 0}
+.lib-ch-lg span{display:inline-flex;align-items:center;gap:5px} .lib-ch-lg i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.lib-ch-n{font-size:var(--fs-1);color:var(--text-3);margin-top:6px;line-height:1.5}
+.lib-ch-tb{margin-top:6px;font-size:var(--fs-1)} .lib-ch-tb summary{cursor:pointer;color:var(--text-2);min-height:28px;display:flex;align-items:center}
 .lib-hd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px 0}
 .lib-hd button,.lib-hd a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:none;color:var(--txt);font:inherit;font-size:var(--fs-2);cursor:pointer;text-decoration:none}
 </style>
@@ -2176,10 +2201,15 @@ function libFilter(){
 const LIB_STAGE=['사전등록','본연구','후속 라운드','재현·검증'];
 function libSeries(x){ const ch=x.series&&(LIB.series||{})[x.series]; if(!ch) return '';
   return `<div class="lib-ser"><span class="mu">연구 묶음</span>${ch.map((s,i)=>`${i?'<span class="mu">→</span>':''}<a data-lp="${libA(s.path)}" class="${s.path===x.path?'cur':''}" title="${esc(s.path)}">${LIB_STAGE[s.stage]||'본연구'}${ch.filter(c=>c.stage===s.stage).length>1?' '+esc(s.path.split('/').pop().replace(/\.(md|json)$/,'').replace(/^20\d\d-\d\d-\d\d_/,'').slice(-14)):''}</a>`).join('')}</div>`; }
+/* 카드 (11/1 겸이 「제목도 너무 길고 내용도 비직관적」): 큰 짧은 제목 1줄 + 한 줄 결론 + 칩(데스크·날짜·등급) + 핵심 숫자 칩 1개.
+   원래 긴 제목은 본문 상단(md 첫 # 제목)과 카드 title 툴팁에만. short·summary·kpi 는 build_library.py 가 만든다. */
+function libChips(x,full){
+  const md=x.date?x.date.slice(5).replace('-','/'):'';
+  return `<div class="lib-cp"><span class="lib-c">${esc(x.desk_ko||x.desk)}</span>${md?`<span class="lib-c n">${esc(md)}</span>`:''}${x.grade?`<span class="lib-c lib-g g${x.grade}" title="본문 첫 '등급' 표기">등급 ${x.grade}</span>`:''}${x.kpi?`<span class="lib-c kp" title="핵심 숫자 — 본문 값">${esc(x.kpi)}</span>`:''}${x.charts?`<span class="lib-c">차트 ${x.charts}</span>`:''}${full?`<span class="lib-c">${esc((LIB.cat_ko||{})[x.cat]||x.cat||'')}</span>`:''}</div>`;
+}
 function libRow(x){
-  return `<div class="lib-it" data-lp="${libA(x.path)}" role="button" tabindex="0"><div class="lib-t">${x.grade?`<span class="lib-g g${x.grade}" title="본문 첫 '등급' 표기">${x.grade}</span>`:''}${esc(x.title)}</div>
-    <div class="lib-m">${esc(x.desk_ko||x.desk)} · ${esc((LIB.cat_ko||{})[x.cat]||x.cat)}${x.topic&&x.cat!=='study'?' · '+esc(x.topic):''}${x.json&&x.body_md?' · json':''} · ${Math.max(1,Math.round(x.size/1024))}KB</div>
-    ${x.summary?`<div class="lib-s">${esc(x.summary)}</div>`:''}${libSeries(x)}</div>`;
+  return `<div class="lib-it" data-lp="${libA(x.path)}" role="button" tabindex="0" title="${libA(x.title||'')}"><div class="lib-t">${esc(x.short||x.title)}</div>
+    ${x.summary?`<div class="lib-s">${esc(x.summary)}</div>`:''}${libChips(x)}${libSeries(x)}</div>`;
 }
 function libList(){
   const it=libFilter(), wd=['일','월','화','수','목','금','토'];
@@ -2215,10 +2245,11 @@ function libReader(){
   const body=md!=null?libMd(md,p):d&&d.err?`<div class="err">${esc(d.err)}</div>`:'<div class="load">LOADING …</div>';
   return `<div class="grid"><div class="p c12" data-panel><div class="b">
     <div class="lib-hd"><button onclick="libBack()">← 목록</button><a href="${LIB_GH+esc(p)}" target="_blank" rel="noopener">GitHub 원본 ↗</a>${x.json&&x.json!==p?`<a href="${LIB_GH+esc(x.json)}" target="_blank" rel="noopener">json ↗</a>`:''}</div>
-    <div class="lib-t" style="font-size:var(--fs-4)">${x.grade?`<span class="lib-g g${x.grade}">${x.grade}</span>`:''}${esc(x.title||'')}</div>
-    <div class="lib-m">${esc(x.date||'')} · ${esc(x.desk_ko||'')} · ${esc((LIB.cat_ko||{})[x.cat]||x.cat||'')} · <span style="overflow-wrap:anywhere">${esc(p)}</span></div>
+    <div class="lib-t">${esc(x.short||x.title||'')}</div>
+    ${x.summary?`<div class="lib-s">${esc(x.summary)}</div>`:''}${x.desk?libChips(x,1):''}
+    <div class="lib-m">${esc(x.date||'')} · <span style="overflow-wrap:anywhere">${esc(p)}</span></div>
     ${x.series?libSeries(x):''}
-    <div class="lib-rd" style="margin-top:10px">${body}</div>
+    <div class="lib-rd" style="margin-top:10px">${body}</div>${md!=null?libDrawLater():''}
   </div></div></div>`;
 }
 /* 간이 마크다운 렌더 — 제목·목록·표·인용·코드·굵게·기울임·링크·구분선. 원문은 esc 뒤 변환(HTML 주입 없음).
@@ -2238,11 +2269,85 @@ function libInline(s,base){
     t=t.replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/__([^_]+?)__/g,'<b>$1</b>').replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,:;]|$)/g,'$1<i>$2</i>').replace(/~~([^~]+)~~/g,'<s>$1</s>');
     return t; }).join('');
 }
+/* 표 숫자 열 — 본문 칸 중 숫자 모양이 70%↑(빈칸·'—' 제외)이면 오른쪽 정렬 + tabular-nums (§5 A6) */
+const LIB_NUM=/^[(]?[+\-−±~≈<>≤≥]?\s*\d[\d,.]*\s*(%p|%|bp|배|x|개월|일|건|개|조|억|원|pt|만|년)?[)]?\**$/;
+function libNumCols(rows){ const n=Math.max(0,...rows.map(r=>r.length)), out=[];
+  for(let j=0;j<n;j++){ let k=0,t=0; for(const r of rows){ const c=String(r[j]==null?'':r[j]).replace(/\*\*|`/g,'').trim(); if(!c||/^[—\-–·]+$|^(미도래|미도달|미산출|n\/a)$/i.test(c)) continue; t++; if(LIB_NUM.test(c)) k++; }
+    out.push(t>0&&k/t>=.7); } return out; }
+/* 차트 블록 — md 안 ```chart {"type":"bar|line|hbar","title","labels","series":[{"name","data"}],"unit","note"} → 순수 SVG(외부 라이브러리 없음).
+   색: 시리즈 = 범주 팔레트 --lc1~4(고정 순서, dataviz 검증기 dark·light 통과) · 수익률(시리즈 1개 + unit %·%p, 또는 "signed":true) = 한국식 --up 빨강·--down 파랑.
+   판정 색(--ok/--bad)은 안 씀. 축·0선·값 직접 라벨, 글자는 글자 토큰. 폭은 그릴 때 실제 px 로 재서(글자 크기 고정) 다시 그림. */
+function libDrawLater(){ setTimeout(libChartsDraw,0); return ''; }
+function libChartsDraw(){ document.querySelectorAll('figure.lib-ch[data-ch]').forEach(f=>{ const W=Math.round(f.clientWidth); if(!W||+f.dataset.w===W) return;
+  let sp; try{ sp=JSON.parse(f.dataset.ch); }catch(e){ return; } f.dataset.w=W; f.innerHTML=libChart(sp,W); }); }
+addEventListener('resize',()=>{ clearTimeout(libChartsDraw._t); libChartsDraw._t=setTimeout(()=>{ if(view==='lib') libChartsDraw(); },150); });
+function libTw(s,fs){ let w=0; for(const ch of String(s)) w+=/[\u1100-\u11ff\u3130-\u318f\uac00-\ud7a3\u4e00-\u9fff]/.test(ch)?fs:fs*.66; return w; }
+function libTicks(lo,hi,n){ const r=hi-lo||Math.abs(hi)||1, st0=r/n, p=Math.pow(10,Math.floor(Math.log10(st0))), st=[1,2,2.5,5,10].map(k=>k*p).find(k=>k>=st0)||10*p;
+  const a=Math.floor(lo/st)*st, b=Math.ceil(hi/st)*st, t=[]; for(let v=a;v<=b+st/2;v+=st) t.push(+v.toFixed(10)); return t; }
+function libChart(sp,W){
+  const type=['bar','line','hbar'].includes(sp.type)?sp.type:'bar', labels=(sp.labels||[]).map(String), S=(sp.series||[]).filter(s=>s&&Array.isArray(s.data)).slice(0,4);
+  if(!labels.length||!S.length) return '<div class="err">차트 블록: labels·series 없음</div>';
+  const unit=String(sp.unit||''), vals=S.flatMap(s=>s.data).filter(v=>typeof v==='number'&&isFinite(v));
+  if(!vals.length) return '<div class="err">차트 블록: 숫자 없음</div>';
+  const signed=sp.signed===true||(sp.signed!==false&&S.length===1&&/^%p?$/.test(unit)), plus=signed||/^%p?$/.test(unit)||vals.some(v=>v<0);
+  const dec=Math.min(3,Math.max(0,...vals.map(v=>((String(v).split('.')[1])||'').length)));
+  const fv=v=>v==null||!isFinite(v)?'—':(v>0&&plus?'+':'')+Number(v).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).replace('-','−')+unit;
+  const ft=(v,st)=>{ const d=Math.min(3,Math.max(0,-Math.floor(Math.log10(st||1)+1e-9))); return (v>0&&plus?'+':'')+Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}).replace('-','−')+unit; };   // 눈금 = 눈금 간격 자릿수
+  const col=(si,v)=>signed?(v>0?'var(--up)':v<0?'var(--down)':'var(--text-3)'):`var(--lc${si+1})`;
+  const FS=11, ttl=t=>`<title>${esc(t)}</title>`;
+  let lo=Math.min(0,...vals), hi=Math.max(0,...vals);
+  let typ=type;
+  if(typ==='bar'){ const gw=(W-48)/labels.length; if(labels.some(l=>libTw(l,FS)>gw-4)) typ='hbar'; }   // 좁은 폭에서 범주 이름이 겹치면 가로 막대로
+  let svg='', H=0;
+  if(typ==='hbar'){
+    const lw=Math.min(W*.42,Math.max(...labels.map(l=>libTw(l,FS)))+8), vw=Math.max(...vals.map(v=>libTw(fv(v),FS)))+10;
+    const x0=lw+(lo<0?vw:2), x1=W-(hi>0?vw:4), tk=libTicks(lo,hi,W<480?3:5); lo=Math.min(lo,tk[0]); hi=Math.max(hi,tk[tk.length-1]);
+    const X=v=>x0+(v-lo)/(hi-lo||1)*(x1-x0), bh=S.length>1?12:18, gap=2, gh=S.length*bh+(S.length-1)*gap, pad=10, top=4;
+    H=top+labels.length*(gh+pad)+20;
+    svg+=tk.map(t=>`<line x1="${X(t)}" x2="${X(t)}" y1="${top}" y2="${H-18}" class="g"/><text x="${X(t)}" y="${H-5}" class="ax" text-anchor="middle">${esc(ft(t,tk[1]-tk[0]))}</text>`).join('');
+    labels.forEach((l,i)=>{ const y=top+i*(gh+pad)+pad/2;
+      svg+=`<text x="${lw-6}" y="${y+gh/2+4}" class="lb" text-anchor="end">${esc(l)}</text>`;
+      S.forEach((s,si)=>{ const v=s.data[i]; if(typeof v!=='number') return; const yy=y+si*(bh+gap), a=X(Math.min(0,v)), b=X(Math.max(0,v));
+        svg+=`<rect x="${a}" y="${yy}" width="${Math.max(1,b-a)}" height="${bh}" rx="2" style="fill:${col(si,v)}">${ttl(`${l} · ${s.name||''} ${fv(v)}`)}</rect>`
+          +`<text x="${v<0?a-4:b+4}" y="${yy+bh/2+4}" class="vl" text-anchor="${v<0?'end':'start'}">${esc(fv(v))}</text>`; }); });
+    svg+=`<line x1="${X(0)}" x2="${X(0)}" y1="${top}" y2="${H-18}" class="z"/>`;
+  } else {
+    const tk=libTicks(lo,hi,4); lo=Math.min(lo,tk[0]); hi=Math.max(hi,tk[tk.length-1]);
+    const aw=Math.max(...tk.map(t=>libTw(ft(t,tk[1]-tk[0]),FS)))+6, endW=typ==='line'?Math.min(W*.3,Math.max(...S.map(s=>libTw(s.name||'',FS)))+8):8;
+    const x0=aw, x1=W-endW, top=16, bot=24; H=Math.round(Math.min(320,Math.max(200,W*.55))); const Y=v=>top+(hi-v)/(hi-lo||1)*(H-top-bot);
+    svg+=tk.map(t=>`<line x1="${x0}" x2="${x1}" y1="${Y(t)}" y2="${Y(t)}" class="g"/><text x="${x0-4}" y="${Y(t)+4}" class="ax" text-anchor="end">${esc(ft(t,tk[1]-tk[0]))}</text>`).join('');
+    const n=labels.length, gw=(x1-x0)/n;
+    const step=Math.max(1,Math.ceil(Math.max(...labels.map(l=>libTw(l,FS)))/(typ==='line'?(x1-x0)/Math.max(1,n-1):gw)*1.1));
+    if(typ==='bar'){ const bw=gw*.78/S.length;
+      labels.forEach((l,i)=>{ if(i%step===0) svg+=`<text x="${x0+gw*(i+.5)}" y="${H-7}" class="lb" text-anchor="middle">${esc(l)}</text>`;
+        S.forEach((s,si)=>{ const v=s.data[i]; if(typeof v!=='number') return; const x=x0+gw*i+gw*.11+si*bw, a=Y(Math.max(0,v)), b=Y(Math.min(0,v));
+          svg+=`<rect x="${x+1}" y="${a}" width="${Math.max(1,bw-2)}" height="${Math.max(1,b-a)}" rx="2" style="fill:${col(si,v)}">${ttl(`${l} · ${s.name||''} ${fv(v)}`)}</rect>`;
+          if(libTw(fv(v),FS)<=bw+2) svg+=`<text x="${x+bw/2}" y="${v<0?b+11:a-3}" class="vl s" text-anchor="middle">${esc(fv(v))}</text>`; }); });
+    } else {
+      const X=i=>n>1?x0+i*(x1-x0)/(n-1):(x0+x1)/2; const ends=[];
+      labels.forEach((l,i)=>{ if(i%step===0||i===n-1&&n>1&&(n-1)%step>=step/2) svg+=`<text x="${X(i)}" y="${H-7}" class="lb" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${esc(l)}</text>`; });
+      S.forEach((s,si)=>{ const c=`var(--lc${si+1})`, pts=s.data.map((v,i)=>typeof v==='number'?[X(i),Y(v),v,i]:null).filter(Boolean); if(!pts.length) return;
+        svg+=`<polyline points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" style="stroke:${c}" class="ln"/>`;
+        svg+=pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="${n>24?2:3.5}" style="fill:${c}" class="pt">${ttl(`${labels[p[3]]} · ${s.name||''} ${fv(p[2])}`)}</circle>`).join('');
+        const L=pts[pts.length-1]; ends.push({y:L[1],t:`${s.name||''} ${fv(L[2])}`,x:L[0]}); });
+      ends.sort((a,b)=>a.y-b.y); for(let k=1;k<ends.length;k++) if(ends[k].y-ends[k-1].y<13) ends[k].y=ends[k-1].y+13;
+      svg+=ends.map(e=>`<text x="${x1+6}" y="${e.y+4}" class="vl">${esc(S.length>1?e.t:e.t.trim())}</text>`).join('');
+    }
+    if(lo<0&&hi>0) svg+=`<line x1="${x0}" x2="${x1}" y1="${Y(0)}" y2="${Y(0)}" class="z"/>`;
+  }
+  const lg=S.length>1?`<div class="lib-ch-lg">${S.map((s,si)=>`<span><i style="background:var(--lc${si+1})"></i>${esc(s.name||'')}</span>`).join('')}</div>`:'';
+  const tbl=`<details class="lib-ch-tb"><summary>표로 보기</summary><div class="lib-tw"><table><tr><th></th>${S.map(s=>`<th class="n">${esc(s.name||'')}</th>`).join('')}</tr>${labels.map((l,i)=>`<tr><td>${esc(l)}</td>${S.map(s=>`<td class="n">${esc(fv(s.data[i]))}</td>`).join('')}</tr>`).join('')}</table></div></details>`;
+  return `<figcaption class="lib-ch-t">${esc(sp.title||'')}${unit?` <span class="mu">(${esc(unit)})</span>`:''}</figcaption>${lg}
+    <svg class="lib-ch-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${libA((sp.title||'차트')+' — '+labels.length+'개 범주')}">${svg}</svg>
+    ${sp.note?`<div class="lib-ch-n">${esc(sp.note)}</div>`:''}${tbl}`;
+}
 function libMd(md,base){
   const L=String(md).replace(/\r/g,'').split('\n'), out=[]; let i=0;
   const isTbl=l=>/^\s*\|.*\|\s*$/.test(l), isLi=l=>/^\s*([-*+]|\d+[.)])\s+/.test(l);
   while(i<L.length){ const l=L[i];
-    if(/^\s*```/.test(l)){ const buf=[]; i++; while(i<L.length&&!/^\s*```/.test(L[i])) buf.push(L[i++]); i++; out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`); continue; }
+    if(/^\s*```/.test(l)){ const isCh=/^\s*```chart\s*$/.test(l), buf=[]; i++; while(i<L.length&&!/^\s*```/.test(L[i])) buf.push(L[i++]); i++;
+      if(isCh){ let sp=null; try{ sp=JSON.parse(buf.join('\n')); }catch(e){} out.push(sp&&typeof sp==='object'?`<figure class="lib-ch" data-ch="${libA(JSON.stringify(sp))}"></figure>`:`<div class="err">차트 블록 JSON 오류 — 원문 확인</div><pre><code>${esc(buf.join('\n'))}</code></pre>`); continue; }
+      out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`); continue; }
     if(/^\s*$/.test(l)){ i++; continue; }
     if(/^<!--/.test(l.trim())){ while(i<L.length&&!/-->/.test(L[i])) i++; i++; continue; }
     let m=l.match(/^(#{1,6})\s+(.*)$/); if(m){ const n=Math.min(4,m[1].length); out.push(`<h${n}>${libInline(m[2].replace(/\s#+\s*$/,''),base)}</h${n}>`); i++; continue; }
@@ -2250,7 +2355,8 @@ function libMd(md,base){
     if(isTbl(l)){ const rows=[]; while(i<L.length&&isTbl(L[i])) rows.push(L[i++]);
       const cells=r=>r.trim().replace(/^\|/,'').replace(/\|$/,'').split(/(?<!\\)\|/).map(c=>c.trim().replace(/\\\|/g,'|'));
       const sep=rows.length>1&&/^[\s|:\-]+$/.test(rows[1]); const head=sep?cells(rows[0]):null, rest=sep?rows.slice(2):rows;
-      out.push(`<div class="lib-tw"><table>${head?`<tr>${head.map(c=>`<th>${libInline(c,base)}</th>`).join('')}</tr>`:''}${rest.filter(r=>!/^[\s|:\-]+$/.test(r)).map(r=>`<tr>${cells(r).map(c=>`<td>${libInline(c,base)}</td>`).join('')}</tr>`).join('')}</table></div>`); continue; }
+      const body=rest.filter(r=>!/^[\s|:\-]+$/.test(r)).map(cells), nc=libNumCols(body), cl=j=>nc[j]?' class="n"':'';
+      out.push(`<div class="lib-tw"><table>${head?`<tr>${head.map((c,j)=>`<th${cl(j)}>${libInline(c,base)}</th>`).join('')}</tr>`:''}${body.map(r=>`<tr>${r.map((c,j)=>`<td${cl(j)}>${libInline(c,base)}</td>`).join('')}</tr>`).join('')}</table></div>`); continue; }
     if(/^\s*>/.test(l)){ const buf=[]; while(i<L.length&&/^\s*>/.test(L[i])) buf.push(L[i++].replace(/^\s*>\s?/,'')); out.push(`<blockquote>${libMd(buf.join('\n'),base)}</blockquote>`); continue; }
     if(isLi(l)){ const ord=/^\s*\d+[.)]/.test(l), buf=[];
       while(i<L.length&&(isLi(L[i])||(/^\s{2,}\S/.test(L[i])&&buf.length))){ const ln=L[i++]; if(isLi(ln)){ const ind=ln.match(/^\s*/)[0].length; buf.push({ind,t:ln.replace(/^\s*([-*+]|\d+[.)])\s+/,'')}); } else buf[buf.length-1].t+=' '+ln.trim(); }

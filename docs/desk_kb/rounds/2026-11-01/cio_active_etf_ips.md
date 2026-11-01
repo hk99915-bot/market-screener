@@ -1,4 +1,7 @@
 # CIO — '겸이 액티브 ETF'(모의) 투자정책서(IPS) 한 장 + 부록 · 기준 2026-11-01 KST(가격 kr_etf_daily 10/16 · 매크로·채권 10/30 · 컨센서스 10/30) · 모의(paper)·설계안, 매매 지시 아님 · 진입 제안 없음(trade plan 해당 없음)
+<!-- short: 모의 액티브 ETF 정책서 -->
+<!-- oneliner: IPS v0 채택(모의) — 스트레스 −12% 한도 안의 위험 예산형 펀드 -->
+<!-- kpi: 스트레스 한도 −12% -->
 
 - 원본(입력): 같은 폴더 `macro_active_etf.md` · `bonds_active_etf.md` · `hf_active_etf.md` · `posrisk_active_etf.md` · `frm_active_etf.md` · `analyst_onepager_security.md`(+`_appendix`) · `docs/desk_kb/allocation.md` · `screener/defs.py ISA_TARGET`(코어 C안) · `reports/active_etf_consensus.json`·`active_etf_snap.json`(10/30) · `reports/committee.json`(10/30 19:16) · `ops/board.json`(FRM 안건 A) · 브리프 `active_etf_brief.md`(11/1). 스트레스 합산 검산 = 스크래치 `cio_stress.py`(FRM 클래스 충격 × 비중 단순 합, 커밋 안 함).
 - 전제: 실계좌·ISA 코어 C안·결재 규칙 불변. 담는 것은 rules.txt §2 화이트리스트(1배 지수 ETF·국내 보통주·국채·금 ETF)만. 공개본 = 비율(%)만.

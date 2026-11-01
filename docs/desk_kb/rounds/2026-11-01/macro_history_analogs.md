@@ -1,4 +1,7 @@
 # 매크로 — '지금의 한국'과 닮은 과거: 수출·이익 최대인데 주가 급락 · 기준 2026-11-01 KST(국장·미 10/30 종가) · 분석만, 매매 권고 아님
+<!-- short: 지금 한국과 닮은 과거 -->
+<!-- oneliner: 하닉 −52.5%, 과거 메모리 사이클 저점권 깊이엔 이미 도달 · 등급 C -->
+<!-- kpi: 하닉 −52.5% -->
 - 자료: macro_view.json·macro_series.json(10/30) · detail/KR/000660.json(DART 분기·stats 10/30) · data/hist kr_index_daily·kr_20xx(자체 계산) · rounds 10/31 macro_us_semis·macro_ds_1101 · 11/1 macro_exports_oct·analyst_exports_oct·quant_chain_corr·analyst_chain_links · 웹검색 9회(fetch 1회 실패: twse.com.tw 차단) · 출처는 부록 C
 
 **'지금' 정의(저장소 보정):** 코스피 5,730.74 = 6/22 종가 9,114.55 대비 −37.1%(4개월) · 하닉 52주 고점 대비 **−52.5%**(stats 10/30) · 하닉 분기 영업이익 2026Q2 60.5조 원(DART, 사상 최대 — 3Q 원문 미대조) · 10월 디램 수출 사상 최고, 낸드·SSD·MCP M/M 동시 감소(2차, 1개월) · 원/달러 2Q말 1,500대→3Q말 −12.4%(원화 강세) · 레짐 ③ KR 하락·US 상승, S&P 고점 −3.1% · AI capex 집행 중.

@@ -1,4 +1,7 @@
 # 매크로 — 10월 품목 잠정 수출(TRASS-BF 2차)의 거시 함의: 사이클 위치·원화·레짐 · 기준 2026-11-01 KST(국장·미 10/30 종가) · 분석만, 매매 권고 아님
+<!-- short: 10월 수출의 거시 함의 -->
+<!-- oneliner: 수출은 레짐을 안 바꾼다 — KR 하락·US 상승 레짐 유지, 다음 판정 12/1 -->
+<!-- kpi: 코스피 5,730.74 -->
 - 자료: 겸이 붙여넣기(2차, 원문 미열람·저장소 미복사, 신뢰도 중 이하) · 애널 판독 rounds/2026-11-01/analyst_exports_oct.md · 10/31 macro_ds_1101·macro_us_semis·macro_curve · 11/1 macro_active_etf·quant_chain_corr §6 · reports/macro_view.json·macro_series.json(10/30)·macro_hist.json · committee.json(10/30 19:16) · calendar.json · flip_watch.py 실행(11/01) · 웹검색 0회
 - 산업부 10월 전체 수출입(11/1 발표 예정)은 **우리 저장소에 없음 → 미확인**. 아래 숫자는 품목 2차 자료 + 우리 환율·지수 계산뿐.
 
