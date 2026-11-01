@@ -27,6 +27,7 @@ import io
 import json
 import logging
 import re
+import threading
 import time
 import zipfile
 from datetime import datetime, timedelta
@@ -62,12 +63,14 @@ class Budget:
     def __init__(self, n: int):
         self.left = n
         self.used = 0
+        self._lock = threading.Lock()                 # 본문 동시 받기(workers>1)에서 여러 스레드가 차감
 
     def take(self) -> None:
-        if self.left <= 0:
-            raise DailyLimit("호출 예산 소진")
-        self.left -= 1
-        self.used += 1
+        with self._lock:
+            if self.left <= 0:
+                raise DailyLimit("호출 예산 소진")
+            self.left -= 1
+            self.used += 1
 
 
 # ───────────── 섹션 추출 (순수 함수 — 테스트 대상) ─────────────
@@ -349,87 +352,151 @@ def _uniq(xs: list[str]) -> list[str]:
 
 # ───────────── 실행 ─────────────
 
-def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3, max_minutes: float = 35) -> dict:
+def _store(code: str, r: dict, got, stat: dict, ix: dict, have: set) -> None:
+    """받은 document.xml 결과 하나를 파일·색인에 반영(순서대로, 주 스레드에서만)."""
+    rn = r["rcept_no"]
+    row = {"code": code, "name": r.get("corp_name", ""), "rcept_no": rn, "report": r.get("report_nm", "").strip(),
+           "kind": r["kind"], "date": r.get("rcept_dt", ""), "chars": 0,
+           "fetched": datetime.now(KST).strftime("%Y-%m-%d"), "parser": PARSER}
+    text = None
+    if isinstance(got, bytes):
+        try:
+            text = extract_from_zip(got, rn)
+        except zipfile.BadZipFile:
+            got = "badzip"
+    if text:
+        OUT.mkdir(parents=True, exist_ok=True)
+        hdr = f"# {row['name']} ({code}) · {row['report']} · 접수 {row['date']} · rcept_no {rn}\n# 원문 https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rn}\n\n"
+        (OUT / f"{code}_{rn}.txt").write_text(hdr + text + "\n", encoding="utf-8")
+        row.update(chars=len(text), status="ok")
+        stat["new"] += 1
+    elif isinstance(got, bytes) or got in ("014", "badzip", "toobig"):   # 확정 실패만 기록(재호출 방지)
+        row["status"] = "no_section" if isinstance(got, bytes) else f"doc_{got}"
+        if isinstance(got, bytes):
+            log.warning("%s %s 사업의 내용 못 찾음 — %s", code, rn, diagnose(got, rn))
+        stat["no_section"] += 1
+    else:                                                    # 일시 오류 — 기록 안 함, 다음 실행에서 재시도
+        log.warning("%s %s 본문 받기 실패(%s)", code, rn, got)
+        stat["err"] += 1
+        return
+    ix.setdefault("items", []).append(row)
+    have.add(rn)
+
+
+def _fetch_doc(code: str, rn: str, bud: Budget, sleep: float):
+    time.sleep(sleep)
+    td = _now()
+    try:
+        got = _get("document.xml", {"rcept_no": rn}, bud, binary=True)
+    except DailyLimit:
+        raise
+    except Exception as e:  # noqa: BLE001  — 재시도 3회 뒤 일시 오류: 기록 안 하고 다음 실행에서
+        got = f"err:{e}"
+    log.info("%s %s 본문 %s %.1fs", code, rn, f"{len(got):,}B" if isinstance(got, bytes) else got, _now() - td)
+    return got
+
+
+def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3, max_minutes: float = 35,
+           workers: int = 1, latest_only: bool = False) -> dict:
+    """workers>1 이면 종목 묶음(workers×2)마다 목록은 순서대로, 본문(document.xml)은 동시에 받는다.
+
+    11/1 실측: 본문 시간 ≈ 1.9초 + 49.8초×MB(상관 0.93) — 연결당 전송이 15~20KB/s 로 묶이는 시간대가 있어(같은 날 다른 실행은 213KB/s)
+    동시 연결로 전송 대기를 겹친다. latest_only=True 면 종목당 최신 정기보고서 1건만(반기가 더 새면 반기) — 대량 첫 수집용.
+    """
     if not key():
         log.info("DART_API_KEY 없음 — 사업보고서 본문 건너뜀")
         return {"skipped": "no key"}
+    from concurrent.futures import ThreadPoolExecutor
     from .fin import corp_codes
     cmap = corp_codes()
     ix = load_index()
     have = {r["rcept_no"] for r in ix.get("items", []) if r.get("parser", 1) >= PARSER}   # 옛 규칙 결과는 성공도 다시 받음
     ix["items"] = [r for r in ix.get("items", []) if r["rcept_no"] in have]   # 옛 규칙 기록은 새로 씀
     bud = Budget(max_calls)
-    stat = {"codes": len(codes), "new": 0, "skip": 0, "no_section": 0, "no_report": 0, "no_corp": 0, "err": 0, "done_codes": 0}
+    workers = max(1, int(workers))
+    chunk = 1 if workers == 1 else workers * 2
+    stat = {"codes": len(codes), "new": 0, "skip": 0, "no_section": 0, "no_report": 0, "no_corp": 0, "err": 0, "done_codes": 0,
+            "workers": workers, "latest_only": latest_only}
     stop = ""
     t0 = _now()
+    pool = ThreadPoolExecutor(max_workers=workers) if workers > 1 else None
 
     def check_time() -> None:
         if max_minutes and _now() - t0 > max_minutes * 60:
             raise TimeBudget("time budget")
 
     try:
-        for i, code in enumerate(codes):
-            stat["done_codes"] = i
-            check_time()
-            cc = cmap.get(code)
-            if not cc:
-                stat["no_corp"] += 1
-                continue
-            try:
-                picks = pick_reports(list_reports(cc, bud))
-            except DailyLimit:
-                raise
-            except Exception as e:  # noqa: BLE001
-                log.warning("%s 목록 실패: %s", code, e)
-                stat["err"] += 1
-                continue
-            if not picks:
-                stat["no_report"] += 1
-                continue
-            for r in picks:
-                rn = r["rcept_no"]
-                if rn in have:
-                    stat["skip"] += 1
+        for c0 in range(0, len(codes), chunk):
+            group, halt = [], None                           # [(i, code, picks)] — 목록은 순서대로
+            for i in range(c0, min(c0 + chunk, len(codes))):
+                code = codes[i]
+                try:
+                    check_time()
+                except DailyLimit as e:
+                    halt = e
+                    break
+                cc = cmap.get(code)
+                if not cc:
+                    stat["no_corp"] += 1
+                    group.append((i, code, None))
                     continue
-                check_time()
-                time.sleep(sleep)
-                td = _now()
-                got = _get("document.xml", {"rcept_no": rn}, bud, binary=True)
-                log.info("%s %s 본문 %s %.1fs", code, rn, f"{len(got):,}B" if isinstance(got, bytes) else got, _now() - td)
-                row = {"code": code, "name": r.get("corp_name", ""), "rcept_no": rn, "report": r.get("report_nm", "").strip(),
-                       "kind": r["kind"], "date": r.get("rcept_dt", ""), "chars": 0,
-                       "fetched": datetime.now(KST).strftime("%Y-%m-%d"), "parser": PARSER}
-                text = None
-                if isinstance(got, bytes):
-                    try:
-                        text = extract_from_zip(got, rn)
-                    except zipfile.BadZipFile:
-                        got = "badzip"
-                if text:
-                    OUT.mkdir(parents=True, exist_ok=True)
-                    hdr = f"# {row['name']} ({code}) · {row['report']} · 접수 {row['date']} · rcept_no {rn}\n# 원문 https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rn}\n\n"
-                    (OUT / f"{code}_{rn}.txt").write_text(hdr + text + "\n", encoding="utf-8")
-                    row.update(chars=len(text), status="ok")
-                    stat["new"] += 1
-                elif isinstance(got, bytes) or got in ("014", "badzip", "toobig"):   # 확정 실패만 기록(재호출 방지)
-                    row["status"] = "no_section" if isinstance(got, bytes) else f"doc_{got}"
-                    if isinstance(got, bytes):
-                        log.warning("%s %s 사업의 내용 못 찾음 — %s", code, rn, diagnose(got, rn))
-                    stat["no_section"] += 1
-                else:                                            # 일시 오류 — 기록 안 함, 다음 실행에서 재시도
-                    log.warning("%s %s 본문 받기 실패(%s)", code, rn, got)
+                try:
+                    picks = pick_reports(list_reports(cc, bud))
+                except DailyLimit as e:
+                    halt = e
+                    break
+                except Exception as e:  # noqa: BLE001
+                    log.warning("%s 목록 실패: %s", code, e)
                     stat["err"] += 1
+                    group.append((i, code, None))
                     continue
-                ix.setdefault("items", []).append(row)
-                have.add(rn)
-            prune(ix, code, {r["rcept_no"] for r in picks})
-            if (i + 1) % 10 == 0:
-                save_index(ix)                                   # 중간 저장
-            time.sleep(sleep)
+                if latest_only and picks:
+                    picks = picks[-1:]
+                if not picks:
+                    stat["no_report"] += 1
+                group.append((i, code, picks))
+            jobs = [(code, r) for _, code, picks in group for r in (picks or []) if r["rcept_no"] not in have]
+            stat["skip"] += sum(1 for _, _, picks in group for r in (picks or []) if r["rcept_no"] in have)
+            got: dict[str, object] = {}
+            if pool and len(jobs) > 1:
+                futs = {r["rcept_no"]: pool.submit(_fetch_doc, code, r["rcept_no"], bud, sleep) for code, r in jobs}
+                for rn, f in futs.items():
+                    try:
+                        got[rn] = f.result()
+                    except DailyLimit as e:
+                        halt = halt or e
+            else:
+                for code, r in jobs:
+                    try:
+                        check_time()
+                        got[r["rcept_no"]] = _fetch_doc(code, r["rcept_no"], bud, sleep)
+                    except DailyLimit as e:
+                        halt = e
+                        break
+            for i, code, picks in group:
+                if not picks:
+                    stat["done_codes"] = i + 1
+                    continue
+                todo = [r for r in picks if r["rcept_no"] not in have]
+                if any(r["rcept_no"] not in got for r in todo):  # 중단으로 못 받은 종목 — 다음 실행에서
+                    break
+                for r in todo:
+                    _store(code, r, got[r["rcept_no"]], stat, ix, have)
+                prune(ix, code, {r["rcept_no"] for r in picks})
+                stat["done_codes"] = i + 1
+                if (i + 1) % 10 == 0:
+                    save_index(ix)                           # 중간 저장
+            if halt:
+                raise halt
+            if not pool:
+                time.sleep(sleep)
         stat["done_codes"] = len(codes)
     except DailyLimit as e:
         stop = str(e)
         log.warning("중단: %s — 받은 만큼 저장, 다음 실행에서 이어받음", e)
+    finally:
+        if pool:
+            pool.shutdown(wait=True)
     stat.update(api_calls=bud.used, stopped=stop, minutes=round((_now() - t0) / 60, 1),
                 remaining=len(codes) - stat["done_codes"])
     ix["last_run"] = {"at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), **stat}
@@ -446,17 +513,24 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--top", type=int, default=60, help="기본 대상일 때 상세 리포트 우선순위 상위 몇 종목")
     ap.add_argument("--max-calls", type=int, default=400)
     ap.add_argument("--max-minutes", type=float, default=35, help="시간 예산(분) — 넘으면 받은 만큼 저장하고 중단")
+    ap.add_argument("--workers", type=int, default=1, help="본문 동시 받기 수(기본 1). DART 공식 분당 한도 미공개 → 3 이하 권장")
+    ap.add_argument("--latest-only", action="store_true", help="종목당 최신 정기보고서 1건만(반기가 더 새면 반기)")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     codes = _uniq(a.codes.replace(" ", ",").split(",")) if a.codes.strip() else []
     if a.chain.strip():
         codes = _uniq(codes + chain_codes(a.chain.strip()))
     if a.file.strip():
-        codes = _uniq(codes + missing_from_file(a.file.strip()))
+        left = missing_from_file(a.file.strip())
+        if not left and not codes:                       # 목록을 다 받음 → 기본 대상으로 넘어가지 않고 아무것도 안 함(색인도 안 씀)
+            log.info("목록 %s 남은 코드 0 — 할 일 없음", a.file)
+            print(json.dumps({"codes": 0, "nothing": True}))
+            return 0
+        codes = _uniq(codes + left)
     if not codes:
         codes = default_codes(a.top)
     log.info("대상 %d종목: %s%s", len(codes), ",".join(codes[:12]), " …" if len(codes) > 12 else "")
-    st = update(codes, max_calls=a.max_calls, max_minutes=a.max_minutes)
+    st = update(codes, max_calls=a.max_calls, max_minutes=a.max_minutes, workers=a.workers, latest_only=a.latest_only)
     print(json.dumps(st, ensure_ascii=False))
     return 0
 

@@ -211,3 +211,42 @@ def test_missing_from_file_skips_indexed(tmp_path, monkeypatch):
     f = tmp_path / "t.txt"
     f.write_text("# 주석\n005930\n010690  # 화신\n\n036010\n010690\n", encoding="utf-8")
     assert db.missing_from_file(f) == ["010690", "036010"]
+
+
+def test_file_all_done_does_nothing(tmp_path, monkeypatch):
+    ix = tmp_path / "index.json"
+    ix.write_text(json.dumps({"items": [{"code": "005930", "rcept_no": "1"}]}), encoding="utf-8")
+    monkeypatch.setattr(db, "INDEX", ix)
+    f = tmp_path / "t.txt"
+    f.write_text("005930\n", encoding="utf-8")
+    monkeypatch.setattr(db, "update", lambda *a, **k: (_ for _ in ()).throw(AssertionError("update 호출 안 돼야 함")))
+    monkeypatch.setattr(db, "default_codes", lambda *a, **k: (_ for _ in ()).throw(AssertionError("기본 대상으로 넘어가면 안 됨")))
+    assert db.main(["--file", str(f)]) == 0
+    assert "last_run" not in json.loads(ix.read_text(encoding="utf-8"))
+
+
+def test_parallel_workers_and_latest_only(tmp_path, monkeypatch):
+    """11/1 '오픈API인데 왜 느려' — 본문 동시 받기(workers)와 최신 1건만(latest_only)이 순차 결과와 같은 색인을 만든다."""
+    monkeypatch.setattr(db, "OUT", tmp_path)
+    monkeypatch.setattr(db, "INDEX", tmp_path / "index.json")
+    monkeypatch.setenv("DART_API_KEY", "x")
+    codes = [f"0000{i:02d}" for i in range(1, 8)]
+    monkeypatch.setattr("screener.fin.corp_codes", lambda: {c: c for c in codes if c != "000004"})
+    calls = []
+
+    def fake_get(path, params, bud, binary=False):
+        bud.take()
+        calls.append(path)
+        if path == "list.json":
+            c = params["corp_code"]
+            return {"status": "000", "list": [
+                {"corp_name": c, "report_nm": "사업보고서 (2025.12)", "rcept_no": f"{c}A", "rcept_dt": "20260320"},
+                {"corp_name": c, "report_nm": "반기보고서 (2026.06)", "rcept_no": f"{c}H", "rcept_dt": "20260814"}]}
+        return _zip({f"{params['rcept_no']}.xml": SAMPLE})
+
+    monkeypatch.setattr(db, "_get", fake_get)
+    st = db.update(codes, sleep=0, workers=3, latest_only=True)
+    assert st["new"] == 6 and st["no_corp"] == 1 and st["done_codes"] == 7 and st["remaining"] == 0
+    assert calls.count("document.xml") == 6 and st["api_calls"] == 12
+    items = json.loads((tmp_path / "index.json").read_text())["items"]
+    assert sorted(r["rcept_no"] for r in items) == sorted(f"{c}H" for c in codes if c != "000004")   # 반기만

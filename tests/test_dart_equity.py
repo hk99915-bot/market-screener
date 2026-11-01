@@ -49,5 +49,7 @@ def test_update_falls_back_and_skips(tmp_path, monkeypatch):
     ix = {r["code"]: r for r in json.loads((tmp_path / "index.json").read_text(encoding="utf-8"))["items"]}
     assert ix["105560"]["n_invest"] == 1 and ix["000001"]["status"] == "none"
     calls.clear()
-    st = de.update(["000001"], sleep=0)                   # 없음 판정 30일 안 → 건너뜀
-    assert st["skip"] == 1 and calls == []
+    before = (tmp_path / "index.json").read_text(encoding="utf-8")
+    st = de.update(["000001", "105560"], sleep=0)         # 없음 판정 30일 안·최신 기간 아님이어도 30일 안 → 할 일 없음
+    assert st.get("nothing") and calls == []
+    assert (tmp_path / "index.json").read_text(encoding="utf-8") == before   # 예약 실행이 빈 커밋을 만들지 않음

@@ -6733,6 +6733,24 @@
       "priority": "P1",
       "status": "대기",
       "repo": "public"
+    },
+    {
+      "started": "2026-11-01",
+      "due": "2026-11-06",
+      "files": [
+        ".github/workflows/dart_biz.yml",
+        ".github/workflows/dart_equity.yml",
+        "docs/schedule_table.md"
+      ],
+      "depends_on": [],
+      "notes": "11/1 겸이 관계도 하청 확장. targets_supply.txt 750종목(남은 579) 이어받기·지분 전 종목 채우기. 11/6 에 두 cron 줄과 schedule_table §3 임시 줄 삭제(날짜 검사가 11/7 이후 실행은 이미 막음). 완료 확인: data/dart_biz/index.json 에 targets 남은 0·data/dart_equity/index.json 1,228행.",
+      "id": "dart-supply-temp-cron",
+      "title": "dart_biz·dart_equity 임시 매시 예약(41·53분) cron 줄 삭제 — 11/7 저장소 전환 전",
+      "owner": "개발",
+      "desk": "개발",
+      "status": "진행",
+      "priority": "P2",
+      "repo": "public"
     }
   ]
 }

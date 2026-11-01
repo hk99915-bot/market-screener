@@ -149,13 +149,16 @@ def update(codes: list[str], max_calls: int = 1500, sleep: float = 0.2, max_minu
     if not key():
         log.info("DART_API_KEY 없음 — 지분 데이터 건너뜀")
         return {"skipped": "no key"}
-    from .fin import corp_codes
-    cmap = corp_codes()
     ix = load_index()
     by = {r["code"]: r for r in ix.get("items", [])}
     cands = candidates()
     newest = cands[0] if cands else (0, "")
     today = datetime.now(KST).strftime("%Y-%m-%d")
+    if all(fresh(by.get(c), newest, today) for c in codes):   # 다 받음 → 호출·색인 쓰기 없이 끝(예약 실행이 빈 커밋을 안 만들게)
+        log.info("지분 데이터: 대상 %d종목 모두 최신 — 할 일 없음", len(codes))
+        return {"codes": len(codes), "nothing": True}
+    from .fin import corp_codes
+    cmap = corp_codes()
     bud = Budget(max_calls)
     stat = {"codes": len(codes), "new": 0, "skip": 0, "none": 0, "no_corp": 0, "err": 0, "done_codes": 0,
             "period": f"{newest[0]} {REPRT_NM.get(newest[1], newest[1])}"}

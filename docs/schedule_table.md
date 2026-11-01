@@ -28,6 +28,7 @@
 | 월 08:50 장전(premarket_kr) 실행 주체 | GAS + cron (한쪽 가드) | GAS 1 + cron 대기 |
 
 ## 3. 슬롯 × 실행 주체 (자동 생성 — `python scripts/slot_guard.py --table`)
+> 임시(11/1~11/6 KST, 보드 `dart-supply-temp-cron`): `dart_biz.yml` 매시 41분(cron `41 * 1-6 11 *`, targets_supply.txt 이어받기)·`dart_equity.yml` 매시 53분(cron `53 * 1-6 11 *`). 할 일이 없으면 호출·커밋 없이 끝, 11/7 이후 날짜 검사로 건너뜀. 시간당 행이 많아 아래 표에는 넣지 않음 — 11/6 에 cron 줄 삭제.
 | KST | 워크플로 [키] | 요일 | 실행 주체 | 이중 |
 |---|---|---|---|---|
 | 00:07 | live.yml | 화수목금토 | cron 7 14-20 * * 1-5 | — |
