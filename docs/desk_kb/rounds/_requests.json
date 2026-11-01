@@ -10014,6 +10014,24 @@
    "status": "open"
   },
   {
+   "id": "req-dev-786a95ac",
+   "from": "analyst",
+   "to": "dev",
+   "text": "dart_biz 수집 대상에 화신(010690)·아비코전자(036010) 추가 요청 — 겸이 11/1 '하청까지' 예시 2종목이 data/dart_biz 에 없어 공급망 자동 추출(scripts/extract_supply_links.py)에 안 잡힘. 아비코전자는 peers_KR 유니버스 밖(names.json 에만 있음)이라 2차 협력사 확장 목록에도 넣어 주세요. 새 파일 들어오면 python3 scripts/extract_supply_links.py 한 줄로 재생성. dart_equity(타법인출자·최대주주) 들어오면 같은 스크립트가 investment 엣지로 합침(inv_prm·trmend_blce_qy_rt / nm·trmend_posesn_stock_qota_rt 필드 가정).",
+   "opened": "2026-11-01",
+   "opened_at": "2026-11-01T18:06+09:00",
+   "due": "2026-11-03",
+   "via": "ask",
+   "seen": [
+    "2026-11-01"
+   ],
+   "checked": [
+    "2026-11-01"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
    "id": "req-dev-8d32d432",
    "from": "겸이",
    "to": "dev",
@@ -10067,6 +10085,24 @@
    "text": "검수 요청(출제≠검수): STUDY 선택 트랙 QM(퀀트 수학) quiz_bank QM1-b1~QM7-b5 35문항 + 모듈 quiz 21 — 정답·해설·오답지(흔한 오해 기반인지)·계산 드릴 7개(formulas '계산 드릴') 검산. 기계 검사 통과(study_content_check·study_answer_lint 0 경고, 가장 긴=정답 0/35). 결과는 평가 라운드 파일 '검수→교육: <id> 통과/반려 사유'.",
    "opened": "2026-11-01",
    "opened_at": "2026-11-01T17:30+09:00",
+   "due": "2026-11-03",
+   "via": "ask",
+   "seen": [
+    "2026-11-01"
+   ],
+   "checked": [
+    "2026-11-01"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-front-68daead0",
+   "from": "analyst",
+   "to": "front",
+   "text": "관계도 화면: reports/company_links.json(수작업) + reports/company_links_auto.json(자동, 노드 245·엣지 389) 합쳐 렌더 요청. 같은 id 체계, 같은 (from,to) 쌍이면 수작업 우선. 자동 파일 새 필드: status '1차(자동)'(tests/test_company_links_view.py STATUS 집합에 추가 필요), node.tier(1|2|3|'holding'), node.sector·universe·anon_refs, edge.affil·both_sides, groups 키 sc_*(자동차·전자부품·반도체·조선 기자재·방산·2차전지·전력기기·원자재·금융·기타). 노드 200+ 라 체인(그룹) 필터·tier 열 배치 권장.",
+   "opened": "2026-11-01",
+   "opened_at": "2026-11-01T18:06+09:00",
    "due": "2026-11-03",
    "via": "ask",
    "seen": [
