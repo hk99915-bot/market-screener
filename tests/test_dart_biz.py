@@ -91,7 +91,7 @@ def test_update_skips_known_rcept_and_writes_index(tmp_path, monkeypatch):
     (tmp_path / f"053800_{old}.txt").write_text("옛것")
     (tmp_path / "index.json").write_text(json.dumps({"items": [
         {"code": "053800", "name": "안랩", "rcept_no": "20260814000005", "report": "반기보고서 (2026.06)", "kind": "반기",
-         "date": "20260814", "chars": 10, "status": "ok"},
+         "date": "20260814", "chars": 10, "status": "ok", "parser": db.PARSER},
         {"code": "053800", "name": "안랩", "rcept_no": old, "report": "사업보고서 (2024.12)", "kind": "사업",
          "date": "20250312", "chars": 3, "status": "ok"}]}))
     rows = [{"corp_name": "안랩", "report_nm": "사업보고서 (2025.12)", "rcept_no": "20260320000002", "rcept_dt": "20260320"},
@@ -165,3 +165,10 @@ def test_old_parser_failures_are_retried(tmp_path, monkeypatch):
     assert db.update(["053800"], sleep=0)["new"] == 1
     items = json.loads((tmp_path / "index.json").read_text())["items"]
     assert len(items) == 1 and items[0]["status"] == "ok" and items[0]["parser"] == db.PARSER
+
+
+def test_single_cell_box_keeps_paragraph_breaks():
+    x = ("<SECTION-1><TITLE>II. 사업의 내용</TITLE><TABLE><TR><TD><P>나. 회사의 현황</P><P>(1) 영업 개황</P>"
+         "<P>점유율 1위</P></TD></TR></TABLE></SECTION-1>")
+    lines = db.xml_to_text(db.biz_section(x)).splitlines()
+    assert "나. 회사의 현황" in lines and "(1) 영업 개황" in lines and "점유율 1위" in lines

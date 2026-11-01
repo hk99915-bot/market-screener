@@ -40,7 +40,7 @@ log = logging.getLogger(__name__)
 KST = ZoneInfo("Asia/Seoul")
 OUT = DATA_DIR / "dart_biz"
 INDEX = OUT / "index.json"
-PARSER = 2                     # 추출 규칙 버전 — 올리면 옛 버전의 실패(no_section) 기록을 다시 시도
+PARSER = 3                     # 추출 규칙 버전 — 올리면 옛 버전 결과를 다음 실행에서 다시 받음(파일은 덮어씀)
 MAX_CHARS = 600_000            # 비정상적으로 긴 섹션 상한(파일 하나 ≈ 1.5MB 이하)
 KINDS = {"사업보고서": "사업", "반기보고서": "반기"}
 
@@ -78,10 +78,18 @@ def _plain(s: str) -> str:
     return re.sub(r"\s+", " ", html.unescape(s)).strip()
 
 
+def _block(s: str) -> str:
+    """칸 하나짜리 행(DART 가 본문 문단을 1칸 표로 감싼 경우) — 문단 줄바꿈을 살린다."""
+    s = re.sub(r"</P\s*>|<BR\b[^>]*/?>|&cr;", "\n", s, flags=re.I)
+    lines = (re.sub(r"\s+", " ", html.unescape(_TAG.sub(" ", ln))).strip() for ln in s.split("\n"))
+    return "\n".join(ln for ln in lines if ln)
+
+
 def _table(m: re.Match) -> str:
     rows = []
     for r in _ROW.findall(m.group(1)):
-        cells = [_plain(c) for _, c in _CELL.findall(r)]
+        raw = _CELL.findall(r)
+        cells = [_block(raw[0][1])] if len(raw) == 1 else [_plain(c) for _, c in raw]
         if any(cells):
             rows.append("\t".join(cells))
     return "\n" + "\n".join(rows) + "\n" if rows else "\n"
@@ -304,8 +312,8 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
     from .fin import corp_codes
     cmap = corp_codes()
     ix = load_index()
-    have = {r["rcept_no"] for r in ix.get("items", []) if r.get("status") == "ok" or r.get("parser", 1) >= PARSER}
-    ix["items"] = [r for r in ix.get("items", []) if r["rcept_no"] in have]   # 재시도 대상 옛 실패 기록은 새로 씀
+    have = {r["rcept_no"] for r in ix.get("items", []) if r.get("parser", 1) >= PARSER}   # 옛 규칙 결과는 성공도 다시 받음
+    ix["items"] = [r for r in ix.get("items", []) if r["rcept_no"] in have]   # 옛 규칙 기록은 새로 씀
     bud = Budget(max_calls)
     stat = {"codes": len(codes), "new": 0, "skip": 0, "no_section": 0, "no_report": 0, "no_corp": 0, "err": 0}
     stop = ""
