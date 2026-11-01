@@ -54,6 +54,7 @@
 | 10:07 | live.yml | 월화수목금 | cron 7 0-6 * * 1-5 | — |
 | 10:30 | briefing.yml [intraday_kr] | 월화수목금 | GAS(주) + cron 30 1 * * 1-5(대기) | — |
 | 11:07 | live.yml | 월화수목금 | cron 7 0-6 * * 1-5 | — |
+| 11:23 | dart_biz.yml | 토 | cron 23 2 * * 6 | — |
 | 11:35 | briefing.yml [committee] | 월화수목금 | GAS(주) + cron 35 2 * * 1-5(대기) | — |
 | 12:07 | live.yml | 월화수목금 | cron 7 0-6 * * 1-5 | — |
 | 13:07 | live.yml | 월화수목금 | cron 7 0-6 * * 1-5 | — |

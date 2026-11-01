@@ -1,0 +1,75 @@
+name: dart_biz
+# 실행 이름 — 수동은 '[체인/코드] commit=<값>' (slot_guard 규약: 수동 dispatch 는 commit 입력으로만 커밋)
+run-name: "dart_biz ${{ github.event_name == 'workflow_dispatch' && format('[{0}{1}] commit={2}', inputs.chain, inputs.codes, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
+
+# DART 사업보고서 본문 'II. 사업의 내용' 수집 (req-dev-8d32d432, 11/1 겸이 "Open api도 있고")
+# → data/dart_biz/<코드>_<rcept_no>.txt + index.json. 이미 받은 rcept_no 는 건너뜀 → 평소 주간 실행은 목록 호출 위주(종목당 1콜).
+# 대상(기본): KR 체인 전 종목(사이버보안 먼저) + 상세 리포트 우선순위 상위 60. 호출 예산 실행당 400콜(DART 일일 한도 2만, fin.yml 1,200콜과 합쳐도 여유).
+on:
+  schedule:
+    - cron: "23 2 * * 6"   # 토 11:23 KST 주 1회 — 장 없는 날, 다른 DART 수집(fin 03:30)과 떨어진 시각
+  workflow_dispatch:
+    inputs:
+      codes:
+        description: "쉼표 구분 종목코드 (비우면 chain 또는 기본 대상)"
+        required: false
+        default: ""
+      chain:
+        description: "screener/drivers.py CHAINS 키 (예: cybersecurity)"
+        required: false
+        default: ""
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dart_biz
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 수집
+        env:
+          PYTHONUNBUFFERED: "1"
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          CODES: ${{ inputs.codes }}
+          CHAIN: ${{ inputs.chain }}
+        run: python -m screener.dart_biz --codes "$CODES" --chain "$CHAIN" --max-calls 400
+      - name: 요약
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          p = pathlib.Path("data/dart_biz/index.json")
+          if not p.exists():
+              print("index.json 없음"); raise SystemExit
+          ix = json.loads(p.read_text())
+          print(f"last_run: `{json.dumps(ix.get('last_run', {}), ensure_ascii=False)}`\n")
+          print("| 코드 | 이름 | 보고서 | 접수 | 글자 | 상태 |\n|---|---|---|---|---|---|")
+          for r in ix.get("items", []):
+              print(f"| {r['code']} | {r.get('name','')} | {r.get('report','')} | {r.get('date','')} | {r.get('chars',0):,} | {r.get('status','')} |")
+          PY
+      - name: 저장
+        if: always() && (github.event_name == 'schedule' || inputs.commit == 'true')
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          [ -d data/dart_biz ] && git add -A data/dart_biz; true
+          git diff --cached --quiet && exit 0
+          git commit -m "data: DART 사업의 내용 $(date -u +%FT%H:%M)"
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || { echo "::error::푸시 실패 — dart_biz 결과가 저장되지 않음"; exit 1; }
