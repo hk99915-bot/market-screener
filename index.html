@@ -89,6 +89,8 @@
     getLibrary: () => get('reports/library.json'),   // RESEARCH › 서고 (req-dev-16bbc8e5) — Code.gs getLibrary 와 짝
     getCompanyLinks: () => get('reports/company_links.json'),   // RESEARCH › 관계도 (11/1 겸이, 애널 데이터) — Code.gs getCompanyLinks 와 짝(개발 ask)
     getCompanyLinksSample: () => get('tests/fixtures/company_links_sample.json'),   // 실제 파일 없을 때 로컬 개발·ui_smoke 용 예시(Pages 사이트엔 tests/ 제외라 404 → '데이터 없음' 안내)
+    getCompanyLinksAuto: () => get('reports/company_links_auto.json'),   // 관계도 하청(2·3차) 자동 추출(11/1 애널, DART 원문 · tier 1/2/3) — 화면이 수작업과 병합(같은 엣지 = 수작업 우선). 없으면 404 → 수작업만
+    getCompanyLinksAutoSample: () => get('tests/fixtures/company_links_auto_sample.json'),   // 자동 파일 없을 때 로컬 개발·ui_smoke 예시(Pages 엔 tests/ 제외 → 404 → 수작업만)
     getLibraryDoc: (p) => /^(docs\/desk_kb\/rounds\/[\w.\-\/]+\.md|reports\/studies\/[\w.\-]+\.(md|json)|docs\/valuation_notes\/[\w.\-]+\.md|docs\/peer_reviews\/[\w.\-]+\.md)$/.test(String(p)) && String(p).indexOf('..') < 0 ? get(p) : Promise.reject(new Error('서고 허용 경로 아님')),
     // 🔒 비공개 사담방 — 공개 Pages 엔 토큰이 없다. 10/23 겸이 선택: "이 폰에만 토큰 저장" → 이 기기 브라우저 localStorage('pbPrivTok')에만 두고
     //    GitHub contents API 로 직접 읽는다(저장소·채팅·서버로 안 감). 권장 토큰: fine-grained · pb-private 하나 · Contents 읽기 전용 · 만료 있음.
@@ -2370,28 +2372,54 @@ function libMd(md,base){
 document.addEventListener('click',e=>{ if(view!=='lib') return; const t=e.target.closest('[data-lp]'); if(!t) return; e.preventDefault(); libOpen(t.dataset.lp); });
 document.addEventListener('keydown',e=>{ if(view!=='lib'||(e.key!=='Enter'&&e.key!==' ')) return; const t=e.target.closest&&e.target.closest('.lib-it[data-lp],.lib-pin[data-lp]'); if(!t) return; e.preventDefault(); libOpen(t.dataset.lp); });
 </script>
+
 <style>
 /* RESEARCH › 관계도 (11/1 겸이 「이런 식의 섹터나 기업 구조도 좀, 누가 누구랑 사업적으로 주고받는지, 터미널에」 — Bloomberg 'Circular AI Deals' 형식)
+   11/1 겸이 「관계도가 너무 작은 듯? 하청들까지 다 안 되나 화신 아비코전자 등등」 → tab_research 에서 분리(tab_links), 보기 3개(그룹 전체·회사 중심·공급망 계단) + 확대/이동.
    관계 유형 색은 상승(--up 빨강)·하락(--down 파랑)·판정(--ok/--bad)과 겹치지 않는 4색 + 선 모양(실선·파선·점선)으로 이중 표기. 엑셀 스킨은 진한 값으로 바꾼다. */
 .lk{--lk-inv:#3ecf8e;--lk-svc:#b48cff;--lk-hw:#e8d44d;--lk-sup:#35d6e6;--lk-etc:var(--text-3)}
 html.xl .lk{--lk-inv:#1e7b4f;--lk-svc:#6b3fb5;--lk-hw:#8a6d00;--lk-sup:#0b7285;--lk-etc:#595959}
 .lk-bar{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px 0}
-.lk-bar button{background:none;border:1px solid var(--line);color:var(--text-2);font:inherit;font-size:var(--fs-2);min-height:44px;padding:0 12px;border-radius:3px;cursor:pointer}
+.lk-bar button,.lk-zm button,.lk-sel,.lk-more{background:none;border:1px solid var(--line);color:var(--text-2);font:inherit;font-size:var(--fs-2);min-height:44px;padding:0 12px;border-radius:3px;cursor:pointer}
 .lk-bar button.on{color:var(--accent);border-color:var(--accent)}
+.lk-sel{width:100%;max-width:100%;background:var(--surface);color:var(--text)}
+.lk-more{color:var(--text);margin-top:6px}
 .lk-desc{font-size:var(--fs-1);color:var(--text-2);margin:0 0 6px 0;overflow-wrap:anywhere}
 .lk-ex{display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid var(--accent);color:var(--accent);border-radius:3px;font-size:var(--fs-1);font-weight:700}
-.lk-svg{display:block;width:100%;height:auto;margin:0 auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.lk-srch{position:relative;margin:0 0 8px 0}
+.lk-q{display:block;width:100%;box-sizing:border-box;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:var(--surface);color:var(--text);font:inherit;font-size:var(--fs-3)}
+.lk-qr:empty{display:none}
+.lk-qr{border:1px solid var(--line);border-top:0;border-radius:0 0 3px 3px;background:var(--surface)}
+.lk-qr button{display:flex;width:100%;align-items:center;gap:8px;min-height:44px;padding:0 12px;background:none;border:0;border-bottom:1px solid var(--line);color:var(--text);font:inherit;font-size:var(--fs-2);text-align:left;cursor:pointer}
+.lk-qr button .mu{margin-left:auto;font-size:var(--fs-1)}
+.lk-zm{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 6px 0}
+.lk-zm button{min-width:44px;padding:0 10px;color:var(--text)}
+.lk-zm .mu{font-size:var(--fs-1)}
+.lk-vp{position:relative;border:1px solid var(--line);border-radius:3px;overflow:hidden;touch-action:none;background:var(--surface)}
+.lk-svg{display:block;width:100%;height:auto;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .lk-svg .nd{cursor:pointer}
 .lk-svg .nd circle.c{fill:var(--raised);stroke:var(--text-2);stroke-width:1.2}
 .lk-svg .nd.pv circle.c{stroke-dasharray:4 3}
-.lk-svg .nd.on circle.c{stroke:var(--accent);stroke-width:2.4}
+.lk-svg .nd.ctr circle.c{stroke:var(--accent);stroke-width:2.4}
+.lk-svg .nd.on circle.c,.lk-svg .nd.on rect.b{stroke:var(--accent);stroke-width:2.4}
 .lk-svg .nd.dim{opacity:.28}
-.lk-svg .nd text{fill:var(--text);font-family:var(--font-text);font-size:var(--fs-1);text-anchor:middle;pointer-events:none}
-.lk-svg .nd text{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}   /* 이름표 뒤 바탕색 테 — 지나가는 화살표 위에서도 읽힘 */
+.lk-svg text{fill:var(--text);font-family:var(--font-text);font-size:var(--fs-1);pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}   /* 이름표 뒤 바탕색 테 — 지나가는 화살표 위에서도 읽힘 */
+.lk-svg .nd text{text-anchor:middle}
+.lk-cam text{font-size:calc(var(--fs-1) / var(--lk-k,1));stroke-width:calc(3px / var(--lk-k,1))}   /* 이름표는 확대·축소와 관계없이 화면 11px(지도 앱처럼) — 계단(.fx)은 칸 안 글자라 같이 커짐 */
+.lk-cam.fx text{font-size:var(--fs-1);stroke-width:3px}
+.lk-svg path.e,.lk-svg circle.c,.lk-svg circle.rg{vector-effect:non-scaling-stroke}
 .lk-svg .nd text.v{fill:var(--text-2);font-family:var(--font-num);stroke:var(--raised)}
+.lk-svg .nd text.s,.lk-svg .nd text.e2{text-anchor:start} .lk-svg .nd text.e{text-anchor:end}
+.lk-svg .nd rect.b{fill:var(--raised);stroke:var(--line-strong);stroke-width:1}
+.lk-svg .nd.anc rect.b{stroke:var(--accent);stroke-width:1.8}
+.lk-svg .nd.aut rect.b{stroke-dasharray:3 2}
+.lk-svg text.hd{fill:var(--text-2);font-weight:700;text-anchor:middle}
+.lk-svg text.sd{fill:var(--text-3);text-anchor:middle}
+.lk-svg circle.rg{fill:none;stroke:var(--line);stroke-dasharray:3 4}
 .lk-svg path.e{fill:none;stroke-width:1.6}
-.lk-svg path.e.dim{opacity:.1}
-.lk-svg path.e.hi{stroke-width:2.6}
+.lk-svg path.e.f{stroke-width:1.4;opacity:.6}
+.lk-svg path.e.dim{opacity:.08}
+.lk-svg path.e.hi{stroke-width:2.6;opacity:1}
 .lk-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs-1);color:var(--text-2);margin:8px 0 0 0;align-items:center}
 .lk-leg span{display:inline-flex;align-items:center;gap:5px}
 .lk-sw{display:inline-block;width:22px;height:0;border-top:2px solid}
@@ -2409,41 +2437,168 @@ html.xl .lk{--lk-inv:#1e7b4f;--lk-svc:#6b3fb5;--lk-hw:#8a6d00;--lk-sup:#0b7285;-
 .lk-l3{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:var(--fs-1);color:var(--text-2);margin-top:3px}
 .lk-st{display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid var(--line);border-radius:3px;font-weight:700}
 .lk-st.s1{color:var(--ok);border-color:var(--ok)} .lk-st.s2{color:var(--text-2);border-color:var(--text-2)} .lk-st.s0{color:var(--text-3);border-style:dashed}
+.lk-st.au{border-style:dotted}
 .lk-l3 a{cursor:pointer;color:var(--cyan)}
+.lk-bc{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;margin:0 0 6px 0;font-size:var(--fs-2)}
+.lk-bc button{background:none;border:0;color:var(--cyan);font:inherit;min-height:44px;padding:0 4px;cursor:pointer;text-decoration:underline dotted}
+.lk-bc .lk-back{min-width:44px;border:1px solid var(--line);border-radius:3px;text-decoration:none;color:var(--text)}
+.lk-bc b{color:var(--text)}
+.lk-xb{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 0 0;font-size:var(--fs-1)}
+.lk-x{background:none;border:1px dashed var(--text-3);color:var(--text-2);font:inherit;font-size:var(--fs-2);min-height:44px;padding:0 10px;border-radius:22px;cursor:pointer}
+.lk-svg .nd.ag circle.c{fill:var(--raised);stroke:var(--text-2);stroke-width:1.4}
+.lk-svg .nd.rest circle.c,.lk-svg .nd.xc circle.c{stroke:var(--text-3);stroke-dasharray:3 3}
+.lk-svg .nd.xc text{fill:var(--text-2)}
+.lk-svg path.e.ag{stroke:var(--line-strong);opacity:.9;vector-effect:none}
+.lk-svg path.e.xe{stroke:var(--text-3);stroke-dasharray:3 4;stroke-width:1}
+.lk-tb{width:100%;border-collapse:collapse;font-size:var(--fs-2)} .lk-tb td,.lk-tb th{padding:6px 4px;border-bottom:1px solid var(--line)} .lk-tb a{cursor:pointer;color:var(--cyan)}
+@keyframes lkIn{from{opacity:.15;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes lkOut{from{opacity:.15;transform:scale(1.5)}to{opacity:1;transform:none}}
+.lk-svg.an-in,.lk-svg.an-out{transform-origin:var(--lk-ox,50%) var(--lk-oy,50%)}
+.lk-svg.an-in{animation:lkIn .34s cubic-bezier(.2,.7,.3,1)} .lk-svg.an-out{animation:lkOut .3s cubic-bezier(.2,.7,.3,1)}
+@media (prefers-reduced-motion: reduce){.lk-svg.an-in,.lk-svg.an-out{animation:none}}   /* 움직임 줄이기 설정이면 확대 전환 없음 */
 </style>
 <script>
-/* ── RESEARCH › 관계도 (11/1 겸이) — 데이터 = reports/company_links.json (애널 데스크, 공통 스키마: groups·nodes·edges).
-   GAS getCompanyLinks(Code.gs — 개발 ask) · Pages 정적 파일. 실제 파일이 없으면(404) 로컬 개발용 tests/fixtures/company_links_sample.json(예시)으로 대체하고 '예시' 배지.
-   그림 = 순수 SVG(외부 라이브러리 없음). 원 면적 ∝ 기업가치(mc_usd), 비상장(PRIVATE) 점선 테두리, 화살표 = 돈·제품이 가는 방향(투자자→피투자, 공급자→고객).
-   배치 = 결정적 간이 force(같은 데이터면 같은 그림) + 원·이름표 겹침 밀어내기 + 화면 안 고정. */
+/* ── RESEARCH › 관계도 — 데이터 = reports/company_links.json(애널 수작업) + reports/company_links_auto.json(애널 DART 원문 자동 추출, tier 1/2/3·체인별 groups).
+   병합: 같은 엣지(from·to·유형, customer=supply 같은 방향)면 수작업 우선 — 자동 쪽은 tier·groups 만 보탬. 출처 배지 '1차(자동)'.
+   공급: Pages getCompanyLinks·getCompanyLinksAuto(build_pages.py) · GAS Code.gs 짝은 개발 ask(없으면 화면이 안내만). 실제 파일이 없으면(404) 로컬 개발용 tests/fixtures/*_sample.json(예시 배지).
+   보기: ① 그룹 전체(간이 force, 상위 N + 더 보기) ② 회사 중심(가운데 회사 · 1단계 거래처 · 2단계 = 공급사의 공급사/고객의 고객, 왼쪽 반원 = 공급·투자, 오른쪽 = 고객)
+         ③ 공급망 계단(체인 하나 · 3차→2차→1차→앵커→고객 칸, 왼쪽→오른쪽 = 제품이 가는 방향). 그림 = 순수 SVG, 확대/이동 = <g> transform 만 바꿈(다시 그리지 않음).
+   규모: 인접 목록 1회 색인(O(E)) · 그림에 올리는 회사는 상한(그룹 300·고리 1단계 24/2단계 60·계단 칸당 30, '더 보기'로 늘림) — 노드 1,000·엣지 3,000 표본에서 ui_smoke 가 그리기 시간을 잰다. */
+/*LK-PURE-BEGIN — DOM 없는 순수 함수(tests/test_company_links_view.py 가 node 로 직접 돌린다) */
+function lkFlowT(t){ return t==='customer'?'supply':String(t||''); }
+function lkEKey(e){ return e.from+'|'+e.to+'|'+lkFlowT(e.type); }
+function lkMerge(man,auto){
+  man=man||{};
+  const D={asof:man.asof||(auto&&auto.asof)||'', basis:man.basis, note:man.note, _example:man._example||null, groups:[], nodes:[], edges:[], _stat:{man:0,auto:0,dup:0,autoN:0}, _auto:null};
+  const gb={}, nb={}, keys=new Map();
+  const addG=(g,a)=>{ if(!g||!g.key) return; const o=gb[g.key]; if(o){ for(const k in g) if(o[k]==null) o[k]=g[k]; return; } gb[g.key]=Object.assign({},g,a?{_auto:true}:{}); D.groups.push(gb[g.key]); };
+  const addN=(n,a)=>{ if(!n||n.id==null) return; const o=nb[n.id];
+    if(o){ for(const k in n) if(o[k]==null) o[k]=n[k]; if(n.groups) o.groups=[...new Set([...(o.groups||[]),...n.groups])]; return; }
+    nb[n.id]=Object.assign({},n,a?{_auto:true}:{}); D.nodes.push(nb[n.id]); if(a) D._stat.autoN++; };
+  (man.groups||[]).forEach(g=>addG(g,false)); (man.nodes||[]).forEach(n=>addN(n,false));
+  (man.edges||[]).forEach(e=>{ const x=Object.assign({},e); D.edges.push(x); D._stat.man++; const k=lkEKey(x); if(!keys.has(k)) keys.set(k,x); });
+  if(auto){ const ex=auto._example||null; D._auto={asof:auto.asof||'', example:ex, n:(auto.edges||[]).length};
+    (auto.groups||[]).forEach(g=>addG(g,true)); (auto.nodes||[]).forEach(n=>addN(n,true));
+    (auto.edges||[]).forEach(e=>{ const k=lkEKey(e), o=keys.get(k);
+      if(o){ D._stat.dup++; if(o.tier==null&&e.tier!=null) o.tier=e.tier; if(e.groups) o.groups=[...new Set([...(o.groups||[]),...e.groups])]; return; }   // 같은 엣지 = 수작업 우선
+      const x=Object.assign({},e,{_auto:true}); if(ex) x._ex=true; keys.set(k,x); D.edges.push(x); D._stat.auto++; }); }
+  D.edges=D.edges.filter(e=>nb[e.from]&&nb[e.to]&&e.from!==e.to);   // 끝 회사가 없는 관계는 버림(건수도 버린 뒤로 셈)
+  D._stat.auto=D.edges.filter(e=>e._auto).length; D._stat.man=D.edges.length-D._stat.auto;
+  return D;
+}
+function lkIndex(D){ D._by={}; D._in={}; D._out={}; D._deg={};
+  D.nodes.forEach(n=>{ D._by[n.id]=n; D._in[n.id]=[]; D._out[n.id]=[]; D._deg[n.id]=0; });
+  D.edges.forEach(e=>{ if(!D._by[e.from]||!D._by[e.to]) return; D._out[e.from].push(e); D._in[e.to].push(e); D._deg[e.from]++; D._deg[e.to]++; });
+  return D; }
+function lkRank(D){ return (a,b)=>(D._deg[b]||0)-(D._deg[a]||0)||((+(D._by[b]||{}).mc_usd||0)-(+(D._by[a]||{}).mc_usd||0))||String(a).localeCompare(String(b)); }
+function lkSubG(D,gk){   // 그룹의 회사·관계 (엣지 groups 우선, 없으면 양 끝 회사가 그룹에 속하면)
+  const inG=n=>!!n&&(n.groups||[]).includes(gk);
+  const E=D.edges.filter(e=>e.groups?e.groups.includes(gk):(inG(D._by[e.from])&&inG(D._by[e.to])));
+  const ids=new Set(D.nodes.filter(inG).map(n=>n.id)); E.forEach(e=>{ ids.add(e.from); ids.add(e.to); });
+  return {ids:[...ids], E}; }
+function lkTopN(D,ids,E,cap){   // 그룹 안 관계 수(동률 = 전체 관계 수·기업가치) 상위 cap 개
+  const dg={}; E.forEach(e=>{ dg[e.from]=(dg[e.from]||0)+1; dg[e.to]=(dg[e.to]||0)+1; }); const r=lkRank(D);
+  const ord=[...ids].sort((a,b)=>(dg[b]||0)-(dg[a]||0)||r(a,b)), keep=new Set(ord.slice(0,cap));
+  return {ids:ord.filter(i=>keep.has(i)), E:E.filter(e=>keep.has(e.from)&&keep.has(e.to)), total:ord.length}; }
+function lkEgo(D,c,cap1,cap2,keep){   // 회사 중심: 1단계 = 직접 거래처, 2단계 = 공급사의 공급사(위쪽 흐름)·고객의 고객(아래쪽 흐름). keep(id)=false 인 회사는 그림 대신 출구(ex)로
+  if(!D._by[c]) return null; const r=lkRank(D), side={}, K=keep||(()=>true);
+  D._in[c].forEach(e=>{ side[e.from]=(side[e.from]||0)|1; });   // 1 = 공급·투자 쪽(나에게 들어옴)
+  D._out[c].forEach(e=>{ side[e.to]=(side[e.to]||0)|2; });      // 2 = 고객·피투자 쪽(나에게서 나감)
+  const allN=Object.keys(side).sort(r), all1=allN.filter(K), ex=allN.filter(i=>!K(i)).map(id=>({id, side:side[id]})), r1=all1.slice(0,cap1), in1=new Set(allN), s2={}, via={};
+  const add2=(x,s,p)=>{ if(x===c||in1.has(x)||!K(x)) return; s2[x]=(s2[x]||0)|s; (via[x]||(via[x]=new Set())).add(p); };
+  r1.forEach(id=>{ if(side[id]&1) D._in[id].forEach(e=>add2(e.from,1,id)); if(side[id]&2) D._out[id].forEach(e=>add2(e.to,2,id)); });
+  const all2=Object.keys(s2).sort(r), r2=all2.slice(0,cap2), ring={}; ring[c]=0; r1.forEach(i=>ring[i]=1); r2.forEach(i=>ring[i]=2);
+  const E=D.edges.filter(e=>ring[e.from]!=null&&ring[e.to]!=null&&!(ring[e.from]===2&&ring[e.to]===2));
+  return {c, r1:r1.map(id=>({id, side:side[id]})), r2:r2.map(id=>({id, side:s2[id], via:[...via[id]]})), n1:all1.length, n2:all2.length, E, ex}; }
+function lkTiers(D,gk,anchor){   // 공급망 계단: 0 = 완성·대형(앵커), 1·2·3 = 1차·2차·3차+ 협력, -1 = 앵커 고객(앵커 1개일 때만).
+  // 자동 추출 노드 tier(1=완성·대형 2=1차 협력 3=2차 협력, holding=지주→0)를 먼저 쓰고, 없으면 앵커에서 공급 방향 거꾸로 BFS
+  const S=lkSubG(D,gk), ids=S.ids, E=S.E, inS=new Set(ids), g=D.groups.find(x=>x.key===gk)||{};
+  const nt=i=>{ const v=(D._by[i]||{}).tier; return v==='holding'?1:(+v>=1?+v:null); };
+  let anc=anchor&&inS.has(anchor)?[anchor]:g.anchor&&inS.has(g.anchor)?[g.anchor]:ids.filter(i=>nt(i)===1);
+  if(!anc.length){ const ind={}; E.forEach(e=>{ if(e.type!=='investment') ind[e.to]=(ind[e.to]||0)+1; }); const r=lkRank(D), a=ids.slice().sort((x,y)=>(ind[y]||0)-(ind[x]||0)||r(x,y))[0]; if(a!=null) anc=[a]; }
+  const t={}; if(!anc.length) return {anchor:null, anchors:[], tier:t, E:[], out:0};
+  anc.forEach(i=>t[i]=0);
+  ids.forEach(i=>{ if(t[i]==null){ const v=nt(i); if(v>=2) t[i]=v-1; } });
+  const inb={}, outb={}; E.forEach(e=>{ (inb[e.to]||(inb[e.to]=[])).push(e); (outb[e.from]||(outb[e.from]=[])).push(e); });
+  const d={}; anc.forEach(i=>d[i]=0); let q=anc.slice();
+  while(q.length){ const nq=[]; for(const x of q) for(const e of (inb[x]||[])) if(e.type!=='investment'&&d[e.from]==null){ d[e.from]=d[x]+1; nq.push(e.from); } q=nq; }
+  ids.forEach(i=>{ if(t[i]==null&&d[i]!=null) t[i]=d[i]; });
+  if(anc.length===1) (outb[anc[0]]||[]).forEach(e=>{ if(t[e.to]==null) t[e.to]=-1; });
+  Object.keys(t).forEach(i=>{ if(t[i]>3) t[i]=3; });
+  return {anchor:anc.length===1?anc[0]:null, anchors:anc, tier:t, E:E.filter(e=>t[e.from]!=null&&t[e.to]!=null&&e.from!==e.to), out:ids.filter(i=>t[i]==null).length}; }
+/* 위계(11/1 겸이 「그 체인도 부동산처럼 클릭하면 커지고 이런 식으로 위계」): L0 섹터 → L1 세그먼트(체인·층) → L2 회사 → L3 회사 중심 */
+const LK_SEC=[['semi','반도체'],['elec','전자부품'],['auto','자동차'],['ship','조선'],['defense','방산'],['battery','2차전지'],['power','전력기기'],['materials','원자재'],['finance','금융'],['ai','AI 순환'],['etc','기타']];
+const LK_SECN={}; LK_SEC.forEach(([k,n])=>LK_SECN[k]=n);
+const LK_CH2S={semi:'semi',memory:'semi',semi_equip:'semi',elec:'elec',components:'elec',it_hw:'elec',auto:'auto',autos:'auto',ship:'ship',shipbuilding:'ship',defense:'defense',battery:'battery',chem:'battery',power:'power',power_grid:'power',utility:'power',nuclear:'power',materials:'materials',steel:'materials',refining:'materials',finance:'finance'};
+const LK_G2S={ai_circle:'ai',kr_semis:'semi',kr_power_ship_defense:'power',kr_battery:'battery',sc_auto:'auto',sc_elec:'elec',sc_semi:'semi',sc_ship:'ship',sc_defense:'defense',sc_battery:'battery',sc_power:'power',sc_materials:'materials',sc_finance:'finance'};
+const LK_TX2S=[[/반도체/,'semi'],[/디스플레이|전기·전자/,'elec'],[/자동차/,'auto'],[/조선/,'ship'],[/방산/,'defense'],[/2차전지|배터리/,'battery'],[/전력|전선|원전/,'power'],[/에너지·소재|화학|철강/,'materials'],[/금융/,'finance']];
+const LK_SEGN={memory:'메모리',semi_equip:'장비·소재',components:'기판·부품',it_hw:'IT 하드웨어',utility:'전력 공기업',nuclear:'원전',steel:'철강',refining:'정유·에너지',chem:'화학'};
+function lkSector(n){   // 섹터: chain(구체) → 자동 sector 문구 → groups → 기타
+  if(n.chain&&LK_CH2S[n.chain]) return LK_CH2S[n.chain];
+  if(n.sector) for(const [re,k] of LK_TX2S) if(re.test(n.sector)) return k;
+  for(const g of (n.groups||[])) if(LK_G2S[g]) return LK_G2S[g];
+  return 'etc'; }
+function lkSeg(n,sec){   // 세그먼트: 구체 체인 이름 → 자동 sector 세부 → 층(완성·대형/1차/2차 협력/지주)
+  if(LK_SEGN[n.chain]) return LK_SEGN[n.chain];
+  if(n.sector==='반도체 장비·소재') return '장비·소재'; if(n.sector==='원전') return '원전';
+  if(sec==='etc') return n.sector||'분류 없음';
+  if(sec==='ai') return n.mkt==='US'?'미국 상장':n.mkt==='PRIVATE'?'비상장 AI':'해외 상장';
+  const t=n.tier; return t==='holding'?'지주':t==1?'완성·대형':t==2?'1차 협력':t==3?'2차 협력':'핵심(수작업)'; }
+function lkHier(D){ D._sec={}; D._seg={}; D.nodes.forEach(n=>{ const s=lkSector(n); D._sec[n.id]=s; D._seg[n.id]=lkSeg(n,s); }); return D; }
+function lkAgg(D,keyOf,ids){   // 묶음별 회사 수·시총 합 + 묶음 사이 관계 수(굵은 선)
+  const inS=ids?new Set(ids):null, G={}, L={};
+  D.nodes.forEach(n=>{ if(inS&&!inS.has(n.id)) return; const k=keyOf(n.id); const o=G[k]||(G[k]={k, n:0, mc:0, ids:[]}); o.n++; o.mc+=(+n.mc_usd||0); o.ids.push(n.id); });
+  D.edges.forEach(e=>{ if(inS&&!(inS.has(e.from)&&inS.has(e.to))) return; const a=keyOf(e.from), b=keyOf(e.to); if(a===b) return; const k=a<b?a+'\u0001'+b:b+'\u0001'+a; L[k]=(L[k]||0)+1; });
+  return {G:Object.values(G).sort((x,y)=>y.n-x.n||y.mc-x.mc), L:Object.keys(L).map(k=>{ const [a,b]=k.split('\u0001'); return {a,b,n:L[k]}; }).sort((x,y)=>y.n-x.n)}; }
+function lkL0(D){ return lkAgg(D,i=>D._sec[i]); }
+function lkL1(D,s){ const ids=D.nodes.filter(n=>D._sec[n.id]===s).map(n=>n.id); return lkAgg(D,i=>D._seg[i],ids); }
+function lkExits(D,ids,inside){   // ids 회사들에서 묶음 밖(inside(id)=false)으로 나가는 관계 수 — 섹터별
+  const S=new Set(ids), X={}; D.edges.forEach(e=>{ const a=S.has(e.from), b=S.has(e.to); if(a===b) return; const o=a?e.to:e.from; if(inside(o)) return; const s=D._sec[o]; X[s]=(X[s]||0)+1; });
+  return Object.keys(X).map(s=>({s, n:X[s]})).sort((x,y)=>y.n-x.n); }
+/*LK-PURE-END*/
 let LK=null;
-const LKV=(()=>{ let g=null; try{ g=localStorage.getItem('mt_links_g'); }catch(e){} return {g, sel:null}; })();
+const LKC=new Map();   // 그룹 배치 캐시(같은 그룹·같은 N·같은 폭이면 다시 계산 안 함)
+const LKV=(()=>{ const s=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } }, q=new URLSearchParams(location.search);
+  let m=q.get('lkm')||s('mt_links_m')||'hier'; if(m==='ego') m='hier'; if(!['grp','hier','stair'].includes(m)) m='hier';
+  return {m, g:q.get('lkg')||s('mt_links_g'), sg:q.get('lkg')||s('mt_links_sg'), pc:q.get('lkc'), p:lkParseHash(), sel:null, cap:{grp:20,r1:12,r2:8,l2:16,agg:14,stair:30}, rows:40, cam:{}, anim:null, ox:'50%', oy:'50%'}; })();
+function lkHash(p){ const a=[p.s,p.g,p.c].filter(x=>x!=null).map(encodeURIComponent); return a.length?'#lk='+a.join('/'):''; }
+function lkParseHash(){ const m=/^#lk=(.*)$/.exec(location.hash||''); if(!m) return {s:null,g:null,c:null};
+  const a=m[1].split('/').map(x=>{ try{ return decodeURIComponent(x); }catch(e){ return x; } }); return {s:a[0]||null, g:a[1]||null, c:a[2]||null}; }
+function lkSave(){ try{ localStorage.setItem('mt_links_m',LKV.m); if(LKV.g) localStorage.setItem('mt_links_g',LKV.g); if(LKV.sg) localStorage.setItem('mt_links_sg',LKV.sg); }catch(e){} }
 const LK_TY={investment:['lk-inv','투자'],service:['lk-svc','서비스'],hardware:['lk-hw','하드웨어'],supply:['lk-sup','공급'],customer:['lk-sup','고객(매출처)'],license:['lk-etc','라이선스'],jv:['lk-etc','합작·계열']};
 const LK_DASH={'lk-svc':'6 4','lk-sup':'2 3','lk-etc':'5 3'};
 const lkTy=t=>LK_TY[t]||['lk-etc',String(t||'기타')];
 const lkA=s=>esc(String(s==null?'':s)).replace(/"/g,'&quot;');
+const LK_MISS='관계도 데이터가 아직 없습니다 (reports/company_links.json — 애널 데스크 생성 중)';
 function lkLoad(){
-  LK={_loading:true};
-  const done=(t,ex)=>{ try{ LK=JSON.parse(t); if(ex) LK._example=LK._example||'예시'; LK._by={}; (LK.nodes||[]).forEach(n=>LK._by[n.id]=n); }catch(e){ LK={err:'관계도 데이터 파싱 실패'}; } if(view==='links') render(); };
-  const miss=m=>{ LK={err:m}; if(view==='links') render(); };
-  const R=google.script.run;
-  if(typeof R.getCompanyLinks!=='function') return miss('Code.gs 에 getCompanyLinks 가 아직 없습니다 (개발 반영 대기)');
-  R.withSuccessHandler(t=>done(t,false)).withFailureHandler(e=>{ const nf=/404/.test(e&&e.message);
-    if(nf&&typeof R.getCompanyLinksSample==='function') return R.withSuccessHandler(t=>done(t,true)).withFailureHandler(()=>miss('관계도 데이터가 아직 없습니다 (reports/company_links.json — 애널 데스크 생성 중)')).getCompanyLinksSample();
-    miss(nf?'관계도 데이터가 아직 없습니다 (reports/company_links.json — 애널 데스크 생성 중)':String(e&&e.message||e)); }).getCompanyLinks();
+  LK={_loading:true}; LKC.clear();
+  const R=google.script.run; let man, auto, ex=false, autoMsg='';
+  const parse=t=>{ try{ return JSON.parse(t); }catch(e){ return null; } };
+  const fin=()=>{ if(man===undefined||auto===undefined) return;
+    if(!man||man.err){ LK={err:(man&&man.err)||'관계도 데이터 파싱 실패'}; }
+    else { try{ LK=lkHier(lkIndex(lkMerge(man,auto))); if(ex) LK._example=LK._example||'예시'; LK._autoMsg=auto?'':autoMsg; LK._gcnt={}; }catch(e){ LK={err:'관계도 데이터 병합 실패: '+(e&&e.message||e)}; } }
+    if(view==='links') render(); };
+  if(typeof R.getCompanyLinks!=='function'){ LK={err:'Code.gs 에 getCompanyLinks 가 아직 없습니다 (개발 반영 대기)'}; return; }
+  R.withSuccessHandler(t=>{ man=parse(t); fin(); }).withFailureHandler(e=>{ const nf=/404/.test(e&&e.message);
+    if(nf&&typeof R.getCompanyLinksSample==='function') return R.withSuccessHandler(t=>{ man=parse(t); ex=true; fin(); }).withFailureHandler(()=>{ man={err:LK_MISS}; fin(); }).getCompanyLinksSample();
+    man={err:nf?LK_MISS:String(e&&e.message||e)}; fin(); }).getCompanyLinks();
+  if(typeof R.getCompanyLinksAuto!=='function'){ auto=null; autoMsg='자동 추출 공급 경로 없음(GAS getCompanyLinksAuto — 개발 반영 대기)'; return; }
+  R.withSuccessHandler(t=>{ auto=parse(t); if(!auto) autoMsg='자동 추출 파일 파싱 실패'; fin(); }).withFailureHandler(e=>{ const nf=/404/.test(e&&e.message);
+    autoMsg=nf?'자동 추출 파일 아직 없음 (reports/company_links_auto.json — 애널 데스크 생성 중)':'자동 추출 파일 읽기 실패';
+    if(nf&&typeof R.getCompanyLinksAutoSample==='function') return R.withSuccessHandler(t=>{ auto=parse(t); fin(); }).withFailureHandler(()=>{ auto=null; fin(); }).getCompanyLinksAutoSample();
+    auto=null; fin(); }).getCompanyLinksAuto();
 }
 function lkGroup(){ const gs=LK.groups||[]; if(!gs.length) return null; return gs.find(g=>g.key===LKV.g)||gs[0]; }
-function lkSub(gk){   // 그룹의 노드·엣지 (엣지 groups 우선, 없으면 양 끝 노드가 그룹에 속하면)
-  const inG=n=>(n.groups||[]).includes(gk);
-  const E=(LK.edges||[]).filter(e=>LK._by[e.from]&&LK._by[e.to]&&(e.groups?e.groups.includes(gk):(inG(LK._by[e.from])&&inG(LK._by[e.to]))));
-  const ids=new Set((LK.nodes||[]).filter(inG).map(n=>n.id)); E.forEach(e=>{ ids.add(e.from); ids.add(e.to); });
-  return {N:[...ids].map(i=>LK._by[i]).filter(Boolean), E};
-}
+function lkSub(gk){ return lkSubG(LK,gk); }   // 현재 데이터(LK) 기준 그룹 부분 그래프
+function lkGcnt(k){ if(LK._gcnt[k]==null) LK._gcnt[k]=lkSub(k).E.length; return LK._gcnt[k]; }
 function lkMc(v){ if(v==null||!isFinite(v)) return ''; return v>=1e12?'$'+(v/1e12).toFixed(1)+'T':v>=1e9?'$'+Math.round(v/1e9)+'B':'$'+Math.round(v/1e6)+'M'; }
 const lkShort=s=>String(s||'').replace(/\s*\([^)]*\)\s*$/,'')||String(s||'');   // 그림 이름표는 끝 괄호 뺌(목록·툴팁엔 전체)
 function lkTw(s){ let w=0; for(const ch of String(s)) w+=/[ᄀ-퟿]/.test(ch)?11:6.6; return w; }
+function lkCut(s,px){ s=lkShort(s); if(lkTw(s)<=px) return s; let o=''; for(const ch of s){ if(lkTw(o+ch+'…')>px) break; o+=ch; } return o+'…'; }
+function lkCw(){ return Math.round(Math.max(288,Math.min(900,(document.documentElement.clientWidth||390)-2*16-2*9-2))); }
+function lkPv(n){ return n.mkt==='PRIVATE'||n.mkt==='GOV'||n.listed===false||!(n.mc_usd>0); }
 function lkLayout(N,E,W,H){
-  const mx=Math.max(1,...N.map(n=>+n.mc_usd||0)), rmin=N.length>18?10:13, rmax=Math.max(24,Math.min(W,H)*(N.length>18?0.09:0.12));
+  const mx=Math.max(1,...N.map(n=>+n.mc_usd||0)), big=N.length>18, rmin=N.length>60?7:big?10:13, rmax=Math.max(N.length>60?16:24,Math.min(W,H)*(N.length>60?0.05:big?0.09:0.12));
   const P=N.map(n=>({id:n.id, n, r:n.mc_usd>0?rmin+(rmax-rmin)*Math.sqrt(n.mc_usd/mx):rmin, hw:lkTw(lkShort(n.name))/2+2}));
   const deg={}; E.forEach(e=>{ deg[e.from]=(deg[e.from]||0)+1; deg[e.to]=(deg[e.to]||0)+1; });   // 관계가 가장 많은 회사를 가운데(허브)
   const ord=[...P].sort((a,b)=>(deg[b.id]||0)-(deg[a.id]||0)||b.r-a.r||String(a.id).localeCompare(String(b.id))), cx=W/2, cy=H/2;
@@ -2451,86 +2606,293 @@ function lkLayout(N,E,W,H){
   const by={}; P.forEach(p=>by[p.id]=p);
   const L=E.map(e=>[by[e.from],by[e.to]]).filter(x=>x[0]&&x[1]&&x[0]!==x[1]);
   const clamp=p=>{ const ex=Math.max(p.r,p.hw)+4; p.x=Math.min(W-ex,Math.max(ex,p.x)); p.y=Math.min(H-p.r-20,Math.max(p.r+4,p.y)); };
-  // Fruchterman–Reingold: 반발 k²/d · 인력 d²/k (k = 칸 면적÷노드 수의 제곱근) · 온도 감소. 후반엔 원·이름표 겹침 밀어내기
-  const K=Math.sqrt(W*H/Math.max(1,P.length))*0.5, IT=400;
+  // Fruchterman–Reingold: 반발 k²/d · 인력 d²/k (k = 칸 면적÷노드 수의 제곱근) · 온도 감소. 후반엔 원·이름표 겹침 밀어내기. 노드가 많으면 반복을 줄인다(300개 ≈ 수십 ms)
+  const K=Math.sqrt(W*H/Math.max(1,P.length))*0.5, IT=P.length>150?110:P.length>60?200:400;
   for(let it=0;it<IT;it++){ const T=Math.max(1.5,W/9*(1-it/IT)); P.forEach(p=>{ p.dx=0; p.dy=0; });
     for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j]; let dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy)||0.01, f=K*K/d; a.dx+=dx/d*f; a.dy+=dy/d*f; b.dx-=dx/d*f; b.dy-=dy/d*f; }
     for(const [a,b] of L){ const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy)||0.01, f=d*d/K*0.5; a.dx-=dx/d*f; a.dy-=dy/d*f; b.dx+=dx/d*f; b.dy+=dy/d*f; }
     for(const p of P){ p.dx+=(cx-p.x)*0.002*K; p.dy+=(cy-p.y)*0.002*K; const m=Math.hypot(p.dx,p.dy)||1; p.x+=p.dx/m*Math.min(m,T); p.y+=p.dy/m*Math.min(m,T); clamp(p); }
     if(it>IT*0.4) for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j];
-      // 원+이름표를 상자 하나로(가로 = 원·이름표 중 넓은 쪽, 세로 = 원 위 ~ 이름표 아래) 보고 겹치면 덜 겹친 축으로 밀어낸다
       const aw=Math.max(a.r,a.hw)+3, bw=Math.max(b.r,b.hw)+3, ox=aw+bw-Math.abs(a.x-b.x), oy=(a.y<b.y?(a.y+a.r+17)-(b.y-b.r):(b.y+b.r+17)-(a.y-a.r))+3;
       if(ox>0&&oy>0){ if(ox<oy){ const s=(a.x<=b.x?-1:1)*ox/2; a.x+=s; b.x-=s; } else { const s=(a.y<=b.y?-1:1)*oy/2; a.y+=s; b.y-=s; } clamp(a); clamp(b); } } }
-  // 빈 띠 없애기: 내용(원 위 ~ 이름표 아래) 세로 범위로 그림 높이를 줄이고 위 여백 4px 로 맞춘다
   const top=Math.min(...P.map(p=>p.y-p.r)), bot=Math.max(...P.map(p=>p.y+p.r+17));
-  P.forEach(p=>p.y+=4-top); by._h=Math.ceil(bot-top+8);
+  P.forEach(p=>p.y+=4-top); by._h=Math.ceil(bot-top+8); by._w=W;
   return by;
 }
-function lkSvg(N,E,W,H,sel){
-  const by=lkLayout(N,E,W,H), H2=Math.min(H,by._h||H), pair={};
-  const on=e=>!sel||e.from===sel||e.to===sel, nb=new Set(sel?[sel]:[]); if(sel) E.forEach(e=>{ if(e.from===sel) nb.add(e.to); if(e.to===sel) nb.add(e.from); });
-  const marks=['lk-inv','lk-svc','lk-hw','lk-sup','lk-etc'].map(c=>`<marker id="m-${c}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L10,5L0,10z" class="${c}" style="fill:var(--${c})"/></marker>`).join('');
-  const edges=E.map(e=>{ const a=by[e.from], b=by[e.to]; if(!a||!b||a===b) return '';
-    const key=[e.from,e.to].sort().join('|'), k=pair[key]=(pair[key]||0)+1, sgn=e.from<e.to?1:-1;
-    const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1, bend=(0.12+0.16*(k-1))*sgn, mx=(a.x+b.x)/2-dy/d*bend*d, my=(a.y+b.y)/2+dx/d*bend*d;
-    const s=(p,r)=>{ const ux=mx-p.x, uy=my-p.y, ul=Math.hypot(ux,uy)||1; return [p.x+ux/ul*r, p.y+uy/ul*r]; };
-    const [x1,y1]=s(a,a.r+1), [x2,y2]=s(b,b.r+3), c=lkTy(e.type)[0];
-    return `<path class="e ${c}${sel?(on(e)?' hi':' dim'):''}" d="M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" style="stroke:var(--${c})" ${LK_DASH[c]?`stroke-dasharray="${LK_DASH[c]}"`:''} marker-end="url(#m-${c})"><title>${esc(a.n.name)} → ${esc(b.n.name)} · ${esc(lkTy(e.type)[1])}${e.size?' · '+esc(e.size):''}</title></path>`; }).join('');
-  const nodes=N.map(n=>{ const p=by[n.id]; if(!p) return ''; const v=lkMc(n.mc_usd);
-    return `<g class="nd${n.mkt==='PRIVATE'||n.mkt==='GOV'||n.listed===false||!(n.mc_usd>0)?' pv':''}${sel===n.id?' on':''}${sel&&!nb.has(n.id)?' dim':''}" data-lk="${lkA(n.id)}" role="button" tabindex="0" aria-label="${lkA(n.name)}">
-      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${Math.max(p.r,22).toFixed(1)}" fill="transparent" stroke="none"/>
-      <circle class="c" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.r.toFixed(1)}"/>
-      ${p.r>=22&&v?`<text class="v" x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}">${v}</text>`:''}
-      <text x="${p.x.toFixed(1)}" y="${(p.y+p.r+13).toFixed(1)}">${esc(lkShort(n.name))}</text><title>${esc(n.name)}${v?' · '+v:' · 기업가치 미확인'}</title></g>`; }).join('');
-  return `<svg class="lk-svg" viewBox="0 0 ${W} ${H2}" width="${W}" height="${H2}" style="max-width:${W}px" role="img" aria-label="기업 관계도"><defs>${marks}</defs><rect data-lk="" x="0" y="0" width="${W}" height="${H2}" fill="transparent"/>${edges}${nodes}</svg>`;
-}
+/* 공용 그림 조각 */
+const LK_MARKS=['lk-inv','lk-svc','lk-hw','lk-sup','lk-etc'].map(c=>`<marker id="m-${c}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L10,5L0,10z" style="fill:var(--${c})"/></marker>`).join('');
+function lkEdge(e,a,b,pair,sel,bend0){   // 곡선 화살표(같은 두 회사 사이 여러 관계는 휘는 정도를 달리)
+  const key=[e.from,e.to].sort().join('|'), k=pair[key]=(pair[key]||0)+1, sgn=e.from<e.to?1:-1;
+  const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1, bend=((bend0==null?0.12:bend0)+0.16*(k-1))*sgn, mx=(a.x+b.x)/2-dy/d*bend*d, my=(a.y+b.y)/2+dx/d*bend*d;
+  const s=(p,r)=>{ const ux=mx-p.x, uy=my-p.y, ul=Math.hypot(ux,uy)||1; return [p.x+ux/ul*r, p.y+uy/ul*r]; };
+  const [x1,y1]=s(a,a.r+1), [x2,y2]=s(b,b.r+3), c=lkTy(e.type)[0], on=!sel||e.from===sel||e.to===sel;
+  return `<path class="e ${c}${sel?(on?' hi':' dim'):''}" d="M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" style="stroke:var(--${c})" ${LK_DASH[c]?`stroke-dasharray="${LK_DASH[c]}"`:''} marker-end="url(#m-${c})"><title>${esc(a.n.name)} → ${esc(b.n.name)} · ${esc(lkTy(e.type)[1])}${e.size?' · '+esc(e.size):''}${e.tier?' · '+e.tier+'차':''}</title></path>`; }
+function lkNb(E,sel){ const nb=new Set(sel?[sel]:[]); if(sel) E.forEach(e=>{ if(e.from===sel) nb.add(e.to); if(e.to===sel) nb.add(e.from); }); return nb; }
+function lkNode(n,p,o){   // o: {lab, cls, sel, nb, la:'m'|'s'|'e'(이름표 위치)}
+  const v=lkMc(n.mc_usd), x=p.x.toFixed(1), y=p.y.toFixed(1), hit=Math.max(p.r,o.hit||22);
+  const la=o.la||'m', tx=la==='m'?p.x:la==='s'?p.x+p.r+4:p.x-p.r-4, ty=la==='m'?p.y+p.r+13:p.y+4;
+  return `<g class="nd${lkPv(n)?' pv':''}${o.cls||''}${o.sel===n.id?' on':''}${o.sel&&!o.nb.has(n.id)?' dim':''}" ${o.href?`data-lkh="${lkA(o.href)}"`:`data-lk="${lkA(n.id)}"`} role="button" tabindex="0" aria-label="${lkA(n.name)}">
+    <circle cx="${x}" cy="${y}" r="${hit.toFixed(1)}" fill="transparent" stroke="none"/><circle class="c" cx="${x}" cy="${y}" r="${p.r.toFixed(1)}"/>
+    ${p.r>=22&&v?`<text class="v" x="${x}" y="${(p.y+4).toFixed(1)}">${v}</text>`:''}
+    ${o.lab?`<text class="${la==='m'?'':la}" x="${tx.toFixed(1)}" y="${ty.toFixed(1)}">${esc(o.cut?lkCut(n.name,o.cut):lkShort(n.name))}</text>`:''}<title>${esc(n.name)}${v?' · '+v:' · 기업가치 미확인'}</title></g>`; }
+/* 확대/이동 틀: 그림 내용(bw×bh)을 화면 칸(vw×vh)에 카메라(이동 x,y·배율 k)로 올린다. 카메라는 보기별로 기억 */
+function lkVp(key,bw,bh,inner,minK,alignX,label,fx){
+  const vw=lkCw(), vhMax=Math.round(Math.min(560,Math.max(300,(window.innerHeight||844)*0.6)));
+  const kf=Math.max(minK,Math.min(1.25,vw/bw,vhMax/bh)), vh=Math.round(Math.max(180,Math.min(vhMax,bh*kf+8)));
+  let cam=LKV.cam[key]; if(!cam){ const x=alignX?alignX(vw,kf):(vw-bw*kf)/2, y=fx?4:Math.max(4,(vh-bh*kf)/2); cam=LKV.cam[key]={k:kf,x,y}; }
+  return `<div class="lk-zm"><button data-lkz="-" aria-label="축소">−</button><button data-lkz="+" aria-label="확대">+</button><button data-lkz="0" aria-label="전체 맞춤">전체</button><span class="mu">끌어서 이동 · 두 손가락 확대 · 이름 없는 원은 누르면 표시</span></div>
+  <div class="lk-vp" data-lkvp="${lkA(key)}" data-bw="${Math.round(bw)}" data-bh="${Math.round(bh)}"><svg class="lk-svg${LKV.anim?' an-'+LKV.anim:''}" style="--lk-ox:${LKV.ox};--lk-oy:${LKV.oy}" viewBox="0 0 ${vw} ${vh}" width="${vw}" height="${vh}" role="img" aria-label="${lkA(label)}"><defs>${LK_MARKS}</defs><rect data-lk="" x="0" y="0" width="${vw}" height="${vh}" fill="transparent"/><g class="lk-cam${fx?' fx':''}" style="--lk-k:${cam.k.toFixed(3)}" transform="translate(${cam.x.toFixed(1)},${cam.y.toFixed(1)}) scale(${cam.k.toFixed(3)})">${inner}</g></svg></div>`; }
+/* ① 그룹 전체 */
+function lkSvg(g,sel){
+  const S=lkSubG(LK,g.key), cap=LKV.cap.grp, T=lkTopN(LK,S.ids,S.E,cap), N=T.ids.map(i=>LK._by[i]), E=T.E, W=lkCw();
+  const H=Math.round(Math.max(340,Math.min(2400,W*(N.length>9?0.75+N.length*0.045:1.0))));
+  const ck=g.key+'|'+N.length+'|'+W; let by=LKC.get(ck); if(!by){ by=lkLayout(N,E,W,H); LKC.set(ck,by); }
+  const nb=lkNb(E,sel), dg={}; E.forEach(e=>{ dg[e.from]=(dg[e.from]||0)+1; dg[e.to]=(dg[e.to]||0)+1; });
+  const labs=new Set(N.length<=24?N.map(n=>n.id):[...N].sort((a,b)=>(dg[b.id]||0)-(dg[a.id]||0)).slice(0,12).map(n=>n.id)); nb.forEach(i=>labs.add(i));
+  const pair={}, edges=E.map(e=>{ const a=by[e.from], b=by[e.to]; return a&&b&&a!==b?lkEdge(e,a,b,pair,sel):''; }).join('');
+  const nodes=N.map(n=>by[n.id]?lkNode(n,by[n.id],{lab:labs.has(n.id),sel,nb}):'').join('');
+  return {svg:lkVp('grp:'+g.key+':'+cap,by._w,by._h,edges+nodes,0.55,null,'기업 관계도 — '+g.name), N, E, total:T.total}; }
+/* ② 회사 중심(ego) */
+function lkEgoSvg(c,sel){   // L3: 같은 섹터 거래처는 원으로, 다른 섹터는 회색 출구 칩('→ 섹터명 N', 누르면 그 섹터로)
+  const cs=LK._sec[c], G=lkEgo(LK,c,LKV.cap.r1,LKV.cap.r2,id=>LK._sec[id]===cs); if(!G) return null;
+  const side=s=>s&1&&!(s&2)?-1:1;   // 공급·투자만 = 왼쪽, 고객(또는 양쪽) = 오른쪽
+  const XC={}; G.ex.forEach(x=>{ const sd=side(x.side), s2=LK._sec[x.id], k='X:'+s2+':'+sd; (XC[k]||(XC[k]={id:k, chip:true, sec:s2, n:0, side:sd<0?1:2})).n++; });
+  const chips=Object.values(XC).sort((a,b)=>b.n-a.n);
+  const L1=G.r1.filter(x=>side(x.side)<0).concat(chips.filter(x=>x.side===1)), R1=G.r1.filter(x=>side(x.side)>0).concat(chips.filter(x=>x.side===2)), L2=G.r2.filter(x=>side(x.side)<0), R2=G.r2.filter(x=>side(x.side)>0);
+  const R1r=Math.max(95,Math.max(L1.length,R1.length)*30/Math.PI), R2r=Math.max(R1r+85,Math.max(L2.length,R2.length)*20/Math.PI), M=R2r+150, My=R2r+60;   // 좌우는 이름표 자리(화면 11px 고정이라 넉넉히)
+  const P={}, mx=Math.max(1,...[c,...G.r1.map(x=>x.id),...G.r2.map(x=>x.id)].map(i=>+LK._by[i].mc_usd||0));
+  const rr=(id,lo,hi)=>{ const n=LK._by[id]; if(!n) return 8; return n.mc_usd>0?lo+(hi-lo)*Math.sqrt(n.mc_usd/mx):lo; };
+  const put=(arr,R,left,lo,hi,ang)=>{ arr.forEach((x,i)=>{ const a=ang?ang[i]:(left?Math.PI/2+Math.PI*(i+0.5)/arr.length:-Math.PI/2+Math.PI*(i+0.5)/arr.length);
+    P[x.id]={x:M+Math.cos(a)*R, y:My+Math.sin(a)*R, r:rr(x.id,lo,hi), a, n:LK._by[x.id]||{id:x.id,name:x.id}, ring:R===R1r?1:2, chip:x.chip?x:null}; }); };
+  P[c]={x:M,y:My,r:20,a:0,n:LK._by[c],ring:0};
+  put(L1,R1r,true,6,15); put(R1,R1r,false,6,15);
+  const ord2=(arr,left)=>{ const m=x=>{ const as=x.via.map(v=>P[v]&&P[v].a).filter(v=>v!=null); let s=as.reduce((p,q)=>p+q,0)/Math.max(1,as.length); return s; };
+    const o=arr.map(x=>({x,k:m(x)})).sort((p,q)=>p.k-q.k).map(z=>z.x); put(o,R2r,left,5,10); };
+  ord2(L2,true); ord2(R2,false);
+  const nb=lkNb(G.E,sel), labs=new Set([c,...G.r1.slice(0,12).map(x=>x.id),...G.r2.slice(0,8).map(x=>x.id)]); nb.forEach(i=>labs.add(i));
+  const pair={}, edges=G.E.map(e=>{ const a=P[e.from], b=P[e.to]; return a&&b?lkEdge(e,a,b,pair,sel,0.06):''; }).join('')+chips.map(x=>{ const p=P[x.id], q=P[c]; return p?`<path class="e xe" d="M${q.x.toFixed(1)},${q.y.toFixed(1)} L${p.x.toFixed(1)},${p.y.toFixed(1)}"/>`:''; }).join('');
+  const nodes=Object.keys(P).sort((a,b)=>P[b].ring-P[a].ring).map(id=>{ const p=P[id], ca=Math.cos(p.a), la=p.ring===0?'m':ca>0.25?'s':ca<-0.25?'e':'m';
+    if(p.chip){ const x=p.chip, lb=`→ ${LK_SECN[x.sec]||x.sec} ${x.n}`; return `<g class="nd xc" data-lkh="${lkA(x.sec)}" role="button" tabindex="0" aria-label="${lkA(lb+'곳 — 그 섹터로')}"><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="22" fill="transparent" stroke="none"/><circle class="c" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="8"/><text class="${la==='m'?'':la}" x="${(la==='s'?p.x+12:la==='e'?p.x-12:p.x).toFixed(1)}" y="${(la==='m'?p.y+21:p.y+4).toFixed(1)}">${esc(lb)}</text><title>${esc(lb)}곳 — 누르면 그 섹터로</title></g>`; }
+    return lkNode(p.n,p,{lab:labs.has(id),sel,nb,la,cls:p.ring===0?' ctr':'',hit:p.ring?14:22,cut:p.ring===2?96:0}); }).join('');
+  const guide=`<circle class="rg" cx="${M}" cy="${My}" r="${R1r.toFixed(1)}"/>${G.r2.length?`<circle class="rg" cx="${M}" cy="${My}" r="${R2r.toFixed(1)}"/>`:''}
+    <text class="sd" x="${(M-R1r*0.55).toFixed(1)}" y="${(My-R2r-22).toFixed(1)}">← 공급·투자</text><text class="sd" x="${(M+R1r*0.55).toFixed(1)}" y="${(My-R2r-22).toFixed(1)}">고객 →</text>`;
+  return {chips, svg:lkVp('ego:'+c+':'+LKV.cap.r1+':'+LKV.cap.r2,2*M,2*My,guide+edges+nodes,0.45,null,'회사 중심 관계도 — '+LK._by[c].name), G}; }
+/* 위계 L0·L1: 묶음 원(크기 ∝ 시총 합, 안 숫자 = 회사 수) + 묶음 사이 굵은 선(관계 수). 원을 누르면 한 단계 안으로 */
+function lkAggSvg(key,A,nameOf,hrefOf,label){
+  const cap=LKV.cap.agg, G=A.G.slice(0,cap), rest=A.G.slice(cap), W=lkCw();
+  const N=G.map(g=>({id:g.k, name:nameOf(g.k), mc_usd:g.mc>0?g.mc:null, _n:g.n}));
+  if(rest.length) N.push({id:'__rest', name:`그 밖 ${rest.length}묶음`, mc_usd:null, _n:rest.reduce((a,g)=>a+g.n,0)});
+  const ids=new Set(N.map(n=>n.id)), E=A.L.filter(l=>ids.has(l.a)&&ids.has(l.b)).slice(0,18).map(l=>({from:l.a, to:l.b, n:l.n}));   // 굵은 선은 관계 많은 18쌍만(나머지는 아래 표)
+  // 원형 배치(묶음 ≤ 15): 큰 묶음이 위에서 시계 방향, 선 = 원 안을 가로지르는 현 — 묶음 수가 적어 force 보다 읽기 쉽다
+  const mxm=Math.max(1,...N.map(n=>+n.mc_usd||0)), R0=Math.max(90,W/2-58), cx=W/2, cy=R0+46, by={};
+  N.forEach((n,i)=>{ const a=-Math.PI/2+2*Math.PI*i/Math.max(1,N.length); by[n.id]={id:n.id, n, x:cx+Math.cos(a)*R0, y:cy+Math.sin(a)*R0, r:n.mc_usd>0?13+15*Math.sqrt(n.mc_usd/mxm):13}; });
+  if(N.length===1){ by[N[0].id].x=cx; by[N[0].id].y=cy; }
+  by._w=W; by._h=Math.round(2*R0+110);
+  const mxn=Math.max(1,...E.map(e=>e.n));
+  const edges=E.map(e=>{ const a=by[e.from], b=by[e.to]; if(!a||!b) return ''; const w=(1+5*Math.sqrt(e.n/mxn)).toFixed(1);
+    return `<path class="e ag" d="M${a.x.toFixed(1)},${a.y.toFixed(1)} L${b.x.toFixed(1)},${b.y.toFixed(1)}" style="stroke-width:${w}px"><title>${esc(a.n.name)} ↔ ${esc(b.n.name)} 관계 ${e.n}건</title></path>`; }).join('');
+  const nodes=N.map(n=>{ const p=by[n.id]; if(!p) return ''; const r=Math.max(p.r,16), href=n.id==='__rest'?null:hrefOf(n.id);
+    return `<g class="nd ag${n.id==='__rest'?' rest':''}" ${href!=null?`data-lkh="${lkA(href)}"`:'data-lkmore="agg"'} role="button" tabindex="0" aria-label="${lkA(n.name+' '+n._n+'곳')}">
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${Math.max(r,22)}" fill="transparent" stroke="none"/><circle class="c" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r.toFixed(1)}"/>
+      <text class="v" x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}">${n._n}</text><text x="${p.x.toFixed(1)}" y="${(p.y+r+13).toFixed(1)}">${esc(n.name)}</text><title>${esc(n.name)} · 회사 ${n._n}곳${n.mc_usd?' · 시총 합 '+lkMc(n.mc_usd):''}</title></g>`; }).join('');
+  return lkVp(key+':'+cap,by._w,by._h,edges+nodes,0.6,null,label); }
+/* 위계 L2: 한 세그먼트 회사들(관계 많은 순 16 + '기타 N곳' 묶음). 원을 누르면 L3 회사 중심 */
+function lkL2Svg(sk,gk){
+  const r=lkRank(LK), all=LK.nodes.filter(n=>LK._sec[n.id]===sk&&LK._seg[n.id]===gk).map(n=>n.id).sort(r), cap=LKV.cap.l2, ids=all.slice(0,cap), keep=new Set(ids);
+  const E=LK.edges.filter(e=>keep.has(e.from)&&keep.has(e.to)), N=ids.map(i=>LK._by[i]); if(all.length>cap) N.push({id:'__more', name:`기타 ${all.length-cap}곳`, mc_usd:null, mkt:'PRIVATE'});
+  const W=lkCw(), H=Math.round(Math.max(340,W*(N.length>9?0.75+N.length*0.045:1.0))), ck='l2|'+sk+'|'+gk+'|'+N.length+'|'+W; let by=LKC.get(ck); if(!by){ by=lkLayout(N,E,W,H); LKC.set(ck,by); }
+  const pair={}, edges=E.map(e=>{ const a=by[e.from], b=by[e.to]; return a&&b&&a!==b?lkEdge(e,a,b,pair,null):''; }).join('');
+  const nodes=N.map(n=>{ const p=by[n.id]; if(!p) return ''; if(n.id==='__more') return `<g class="nd rest" data-lkmore="l2" role="button" tabindex="0" aria-label="${lkA(n.name+' 펼치기')}"><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="22" fill="transparent" stroke="none"/><circle class="c" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.r.toFixed(1)}"/><text x="${p.x.toFixed(1)}" y="${(p.y+p.r+13).toFixed(1)}">${esc(n.name)} ＋</text></g>`;
+    return lkNode(n,p,{lab:true,sel:null,nb:new Set(),href:sk+'|'+gk+'|'+n.id}); }).join('');
+  return {svg:lkVp('l2:'+sk+':'+gk+':'+cap,by._w,by._h,edges+nodes,0.55,null,'세그먼트 회사 — '+gk), ids, all, E}; }
+function lkXbar(X,cur){ return X.length?`<div class="lk-xb"><span class="mu">밖으로 나가는 관계</span>${X.slice(0,8).map(x=>`<button class="lk-x" data-lkh="${lkA(x.s)}">→ ${esc(LK_SECN[x.s]||x.s)}${x.s===cur?'(다른 층)':''} ${x.n}</button>`).join('')}</div>`:''; }
+function lkCrumb(P){ const it=[['','전체']]; if(P.s) it.push([P.s,LK_SECN[P.s]||P.s]); if(P.g) it.push([P.s+'|'+P.g,P.g]); if(P.c&&LK._by[P.c]) it.push([P.s+'|'+P.g+'|'+P.c,lkShort(LK._by[P.c].name)]);
+  return `<nav class="lk-bc" aria-label="관계도 위치">${it.length>1?'<button class="lk-back" data-lkback aria-label="한 단계 위로">←</button>':''}${it.map((x,i)=>i===it.length-1?`<b aria-current="page">${esc(x[1])}</b>`:`<button data-lkh="${lkA(x[0])}">${esc(x[1])}</button><span class="mu">›</span>`).join('')}</nav>`; }
+/* ③ 공급망 계단 */
+function lkStairSvg(g,sel){
+  const T=lkTiers(LK,g.key,g.anchor); if(!T.anchors.length) return null;
+  const cols=[3,2,1,0,-1].filter(k=>Object.values(T.tier).includes(k)), ci={}; cols.forEach((k,i)=>ci[k]=i);
+  const cap=LKV.cap.stair, r=lkRank(LK), byCol={}, more={};
+  Object.keys(T.tier).forEach(id=>{ (byCol[T.tier[id]]||(byCol[T.tier[id]]=[])).push(id); });
+  cols.forEach(k=>{ byCol[k].sort(r); if(byCol[k].length>cap){ more[k]=byCol[k].length-cap; byCol[k]=byCol[k].slice(0,cap); } });
+  const shown=new Set(cols.flatMap(k=>byCol[k])), E=T.E.filter(e=>shown.has(e.from)&&shown.has(e.to));
+  // 엇갈림 줄이기: 오른쪽 칸 순서의 평균 위치(무게중심)로 두 번 정렬
+  const pos={}, setPos=()=>cols.forEach(k=>byCol[k].forEach((id,i)=>pos[id]=i));
+  setPos();
+  for(let pass=0;pass<2;pass++) for(const k of (pass?cols.slice().reverse():cols)){ const bc={};
+    byCol[k].forEach(id=>{ const ys=E.filter(e=>e.from===id||e.to===id).map(e=>pos[e.from===id?e.to:e.from]).filter(v=>v!=null); bc[id]=ys.length?ys.reduce((a,b)=>a+b,0)/ys.length:pos[id]; });
+    byCol[k].sort((a,b)=>bc[a]-bc[b]); setPos(); }
+  const vw=lkCw(), colW=Math.max(116,Math.min(170,vw/Math.min(cols.length,3))), bw=colW-24, rowH=30, top=30;
+  const P={}; cols.forEach(k=>byCol[k].forEach((id,i)=>{ P[id]={x:ci[k]*colW+12, y:top+i*rowH, n:LK._by[id], k}; }));
+  const maxRows=Math.max(...cols.map(k=>byCol[k].length+(more[k]?1:0))), BW=cols.length*colW, BH=top+maxRows*rowH+8;
+  const nb=lkNb(E,sel), anc=T.anchor?LK._by[T.anchor]:{name:'완성·대형'}, ancS=new Set(T.anchors);
+  const hd=cols.map(k=>`<text class="hd" x="${(ci[k]*colW+colW/2).toFixed(1)}" y="16">${k===0?esc(lkCut(anc.name,colW-10)):k===-1?'고객':k===3?'3차+ 협력':k+'차 협력'} ${k===0?'':byCol[k].length+(more[k]||0)}</text>`).join('');
+  const edges=E.map(e=>{ const a=P[e.from], b=P[e.to]; if(!a||!b) return ''; const c=lkTy(e.type)[0], on=!sel||e.from===sel||e.to===sel;
+    let d; const y1=a.y+11, y2=b.y+11;
+    if(b.x>a.x){ const x1=a.x+bw, x2=b.x-3, m=(x2-x1)/2; d=`M${x1},${y1} C${x1+m},${y1} ${x2-m},${y2} ${x2},${y2}`; }
+    else if(b.x<a.x){ const x1=a.x, x2=b.x+bw+3, m=(x1-x2)/2; d=`M${x1},${y1} C${x1-m},${y1-14} ${x2+m},${y2-14} ${x2},${y2}`; }
+    else { const x1=a.x+bw, x2=b.x+bw+3, bx=x1+18; d=`M${x1},${y1} C${bx},${y1} ${bx},${y2} ${x2},${y2}`; }
+    return `<path class="e f ${c}${sel?(on?' hi':' dim'):''}" d="${d}" style="stroke:var(--${c})" ${LK_DASH[c]?`stroke-dasharray="${LK_DASH[c]}"`:''} marker-end="url(#m-${c})"><title>${esc(a.n.name)} → ${esc(b.n.name)} · ${esc(lkTy(e.type)[1])}${e.tier?' · '+e.tier+'차':''}</title></path>`; }).join('');
+  const nodes=Object.keys(P).map(id=>{ const p=P[id], n=p.n;
+    return `<g class="nd${n._auto?' aut':''}${ancS.has(id)?' anc':''}${sel===id?' on':''}${sel&&!nb.has(id)?' dim':''}" data-lk="${lkA(id)}" role="button" tabindex="0" aria-label="${lkA(n.name)}">
+      <rect class="b" x="${p.x}" y="${p.y}" width="${bw}" height="22" rx="3"/><text class="s" x="${p.x+6}" y="${p.y+15}">${esc(lkCut(n.name,bw-12))}</text><title>${esc(n.name)}${n.mkt?' · '+esc(n.mkt):''}</title></g>`; }).join('');
+  const mores=cols.filter(k=>more[k]).map(k=>`<text class="sd" x="${(ci[k]*colW+colW/2).toFixed(1)}" y="${(top+byCol[k].length*rowH+15).toFixed(1)}">+${more[k]}곳 (더 보기)</text>`).join('');
+  const ax=ci[0]*colW+colW;   // 처음 화면: 앵커 칸이 보이게(왼쪽 = 상류는 끌어서)
+  return {svg:lkVp('stair:'+g.key+':'+cap,BW,BH,hd+edges+nodes+mores,1,(vw,k)=>Math.min(0,Math.max(vw-BW*k,vw-(ax+40)*k)),'공급망 계단 — '+g.name,true), T, E, more:Object.values(more).reduce((a,b)=>a+b,0), shown:shown.size}; }
 function lkCanOpen(n){ return n&&n.listed!==false&&((n.mkt==='KR'&&/^\d{6}$/.test(n.id))||(n.mkt==='US'&&/^[A-Z.\-]{1,6}$/.test(n.id))); }
-function lkStatus(s){ const c=s==='1차'?'s1':s==='2차'?'s2':'s0'; return `<span class="lk-st ${c}" title="출처 등급">${esc(s||'검증전')}</span>`; }
+function lkStatus(e){ const s0=e.status||'검증전', s=e._auto&&!/자동/.test(s0)?s0+'(자동)':s0, c=/^1차/.test(s)?'s1':s==='2차'?'s2':'s0';   // 자동 파일은 status 에 이미 '1차(자동)'
+  return `<span class="lk-st ${c}${e._auto?' au':''}" title="${e._auto?'애널 DART 원문 자동 추출(사람 원문 대조 전)':'출처 등급(애널 수작업)'}">${esc(s)}</span>${e._ex?' <span class="lk-ex">예시</span>':''}`; }
 function lkRow(e,sel){
   const a=LK._by[e.from], b=LK._by[e.to], [c,l]=lkTy(e.type), out=sel&&e.from===sel, other=sel?(out?b:a):null;
   const who=sel?`<span class="mu">${out?'나감 →':'← 들어옴'}</span> <span class="who" data-lk="${lkA(other.id)}" role="button" tabindex="0">${esc(other.name)}</span>`
     :`<span class="who" data-lk="${lkA(a.id)}" role="button" tabindex="0">${esc(a.name)}</span><span class="mu">→</span><span class="who" data-lk="${lkA(b.id)}" role="button" tabindex="0">${esc(b.name)}</span>`;
   const det=[other||null].concat(sel?[]:[a,b]).filter(n=>n&&lkCanOpen(n));
-  return `<div class="lk-it"><div class="lk-l1">${who}<span class="ty ${c}">${esc(l)}</span>${e.size?`<span class="sz">${esc(e.size)}</span>`:'<span class="mu">규모 미확인</span>'}</div>
+  return `<div class="lk-it"><div class="lk-l1">${who}<span class="ty ${c}">${esc(l)}</span>${e.tier?`<span class="mu">${+e.tier}차 협력</span>`:''}${e.size?`<span class="sz">${esc(e.size)}</span>`:'<span class="mu">규모 미확인</span>'}</div>
     ${e.why?`<div class="lk-l2">${esc(e.why)}</div>`:''}
-    <div class="lk-l3">${lkStatus(e.status)}<span>${esc(e.src||'출처 없음')}</span>${e.date?`<span>${esc(e.date)}</span>`:''}${det.map(n=>`<a data-od="${lkA(n.id)}" data-mk="${lkA(n.mkt)}">${esc(n.name)} 상세 ›</a>`).join('')}</div></div>`;
+    <div class="lk-l3">${lkStatus(e)}<span>${esc(e.src||'출처 없음')}</span>${e.date?`<span>${esc(e.date)}</span>`:''}${det.map(n=>`<a data-od="${lkA(n.id)}" data-mk="${lkA(n.mkt)}">${esc(n.name)} 상세 ›</a>`).join('')}</div></div>`;
 }
+function lkDefC(){ for(const c of ['005380','009150','005930']) if(LK._by[c]) return c; return Object.keys(LK._by).sort(lkRank(LK))[0]; }
+function lkSearch(q){ q=String(q||'').trim().toLowerCase().replace(/\s+/g,''); if(!q) return [];
+  const r=lkRank(LK), hit=[]; for(const n of LK.nodes){ const nm=String(n.name||'').toLowerCase().replace(/\s+/g,''), id=String(n.id).toLowerCase();
+    const s=nm===q||id===q?0:nm.startsWith(q)||id.startsWith(q)?1:nm.includes(q)?2:-1; if(s>=0) hit.push([s,n.id]); }
+  return hit.sort((a,b)=>a[0]-b[0]||r(a[1],b[1])).slice(0,8).map(x=>LK._by[x[1]]); }
+function lkGrpPick(gs,cur,attr){   // 그룹이 4개 이하면 칩, 많으면(자동 체인) 고르기 상자
+  if(gs.length<=4) return `<div class="lk-bar">${gs.map(x=>`<button class="${x.key===cur?'on':''}" ${attr}="${lkA(x.key)}">${esc(x.name)} <span class="mu">${lkGcnt(x.key)}</span></button>`).join('')}</div>`;
+  return `<div class="lk-bar"><select class="lk-sel" ${attr}-sel aria-label="그룹·체인 고르기">${gs.map(x=>`<option value="${lkA(x.key)}"${x.key===cur?' selected':''}>${esc(x.name)}${x._auto?' (자동)':''} · ${lkGcnt(x.key)}건</option>`).join('')}</select></div>`; }
 function linksView(){
   if(!LK){ lkLoad(); if(LK&&LK._loading) return '<div class="load">LOADING …</div>'; }
   if(LK._loading) return '<div class="load">LOADING …</div>';
-  if(LK.err) return `<div class="grid"><div class="p c12" data-panel><h2>관계도</h2><div class="b"><div class="err">${esc(LK.err)}</div></div></div></div>`;
-  const g=lkGroup(); if(!g) return `<div class="grid"><div class="p c12" data-panel><h2>관계도</h2><div class="b"><div class="mu">그룹 없음 (reports/company_links.json groups)</div></div></div></div>`;
-  const {N,E}=lkSub(g.key); if(LKV.sel&&!N.some(n=>n.id===LKV.sel)) LKV.sel=null;
-  const sel=LKV.sel, sn=sel&&LK._by[sel];
-  const cw=Math.max(288,Math.min(900,(document.documentElement.clientWidth||390)-2*16-2*9-2));
-  const W=Math.round(cw), H=Math.round(Math.max(340,Math.min(1100,W*(N.length>9?0.75+N.length*0.045:1.0))));   // 노드가 많으면 세로로 길게(폰 390 = 25개 ≈ 1.9배)
-  const cnt=k=>lkSub(k).E.length;
-  const types=[...new Set(E.map(e=>lkTy(e.type)[0]))], legT=['lk-inv','lk-svc','lk-hw','lk-sup'].concat(types.includes('lk-etc')?['lk-etc']:[]);
-  const legName={'lk-inv':'투자','lk-svc':'서비스(클라우드 등)','lk-hw':'하드웨어','lk-sup':'공급·고객(부품·소재·매출처)','lk-etc':'기타(합작·계열·라이선스)'};
-  const rows=(sel?E.filter(e=>e.from===sel||e.to===sel):E);
+  const box=(h,b)=>`<div class="grid"><div class="p c12" data-panel><h2>${h}</h2><div class="b">${b}</div></div></div>`;
+  if(LK.err) return box('관계도',`<div class="err">${esc(LK.err)}</div>`);
+  if(!LK.nodes.length) return box('관계도','<div class="mu">회사 없음 (reports/company_links.json nodes)</div>');
+  const m=LKV.m, sel=LKV.sel&&LK._by[LKV.sel]?LKV.sel:null, sn=sel&&LK._by[sel];
   const ex=LK._example?` <span class="lk-ex" title="${lkA(LK._example)}">예시 데이터</span>`:'';
-  return `<div class="grid lk"><div class="p c12" data-panel><h2>관계도 — ${esc(g.name)}${ex}<small>기준 ${esc(LK.asof||'')} · 노드 ${N.length} · 관계 ${E.length}</small></h2><div class="b">
-    <div class="lk-bar">${(LK.groups||[]).map(x=>`<button class="${x.key===g.key?'on':''}" data-lkg="${lkA(x.key)}">${esc(x.name)} <span class="mu">${cnt(x.key)}</span></button>`).join('')}</div>
-    ${g.desc?`<div class="lk-desc">${esc(g.desc)}</div>`:''}
-    ${lkSvg(N,E,W,H,sel)}
+  const au=LK._auto;
+  const src=`수작업 ${LK._stat.man}건${au?` · 자동 ${LK._stat.auto}건(겹침 ${LK._stat.dup}건은 수작업 우선)${au.example?' <span class="lk-ex">자동=예시 fixture</span>':''}`:` · 자동 0건 <span class="mu">(${esc(LK._autoMsg||'자동 추출 없음')})</span>`}`;
+  const modes=`<div class="lk-bar" role="tablist">${[['hier','위계 탐색'],['stair','공급망 계단'],['grp','그룹 전체']].map(([k,l])=>`<button class="${m===k?'on':''}" data-lkm="${k}" role="tab" aria-selected="${m===k}">${l}</button>`).join('')}</div>
+    <div class="lk-srch"><input class="lk-q" type="search" placeholder="회사 이름·코드 검색 (예: 현대차, 009150)" aria-label="회사 검색" autocomplete="off"><div class="lk-qr"></div></div>`;
+  let head='', fig='', rows=[], note='', title='관계도', sel0=null;
+  let cr='';
+  if(m==='hier'){
+    const P=LKV.p;
+    if(LKV.pc&&LK._by[LKV.pc]){ const c=LKV.pc; P.s=LK._sec[c]; P.g=LK._seg[c]; P.c=c; } LKV.pc=null;   // ?lkc= 바로 열기
+    if(P.s&&!LK_SECN[P.s]){ P.s=P.g=P.c=null; } if(P.c&&!LK._by[P.c]) P.c=null; if(P.c&&!P.g){ P.s=LK._sec[P.c]; P.g=LK._seg[P.c]; }
+    cr=lkCrumb(P);
+    if(P.c){
+      const c=P.c, R=lkEgoSvg(c,sel), G=R.G, cn=LK._by[c]; LKV.c=c;
+      title=`${esc(cn.name)} — 회사 중심`;
+      head=`<div class="lk-desc">같은 섹터(${esc(LK_SECN[LK._sec[c]]||'')}) 거래처 ${G.n1}곳${G.n1>G.r1.length?`(상위 ${G.r1.length})`:''} · 2단계(공급사의 공급사·고객의 고객) ${G.n2}곳${G.n2>G.r2.length?`(상위 ${G.r2.length})`:''} · 다른 섹터 ${G.ex.length}곳은 회색 '→ 섹터' 칩(누르면 그 섹터로) · 왼쪽 = 나에게 공급·투자, 오른쪽 = 내 고객</div>`;
+      fig=R.svg+((G.n1>G.r1.length||G.n2>G.r2.length)?`<button class="lk-more" data-lkmore="ego">기타 펼치기 (1단계 +12 · 2단계 +8)</button>`:'');
+      rows=sel?[...LK._in[sel],...LK._out[sel]]:[...LK._in[c],...LK._out[c]];
+      if(!sel) sel0=c;
+    } else if(P.g){
+      const R=lkL2Svg(P.s,P.g);
+      title=`${esc(LK_SECN[P.s])} › ${esc(P.g)}`;
+      head=`<div class="lk-desc">회사 ${R.all.length}곳${R.all.length>R.ids.length?` 중 관계 많은 ${R.ids.length}곳(나머지 '기타' 묶음)`:''} · 세그먼트 안 관계 ${R.E.length}건 · 원을 누르면 그 회사 중심(거래처 2단계)</div>`;
+      fig=R.svg+lkXbar(lkExits(LK,R.all,id=>LK._sec[id]===P.s&&LK._seg[id]===P.g),P.s);
+      rows=R.E;
+    } else if(P.s){
+      const A=lkL1(LK,P.s), ids=A.G.flatMap(g=>g.ids);
+      title=`${esc(LK_SECN[P.s])} — 체인·층`;
+      if(A.G.length===1){ const g=A.G[0].k, R=lkL2Svg(P.s,g); head=`<div class="lk-desc">세그먼트 1개(${esc(g)})라 회사를 바로 보여 줌 · 원을 누르면 그 회사 중심</div>`; fig=R.svg; rows=R.E; }
+      else { head=`<div class="lk-desc">회사 ${ids.length}곳 · 세그먼트 ${A.G.length}개(구체 체인 이름이 없으면 층: 완성·대형 / 1차 협력 / 2차 협력) · 원 크기 ∝ 시총 합 · 선 굵기 ∝ 세그먼트 사이 관계 수</div>`;
+        fig=lkAggSvg('l1:'+P.s,A,k=>k,k=>P.s+'|'+k,'섹터 안 세그먼트 — '+LK_SECN[P.s]); const S=new Set(ids); rows=LK.edges.filter(e=>S.has(e.from)&&S.has(e.to)&&LK._seg[e.from]!==LK._seg[e.to]); }
+      fig+=lkXbar(lkExits(LK,ids,id=>LK._sec[id]===P.s));
+    } else {
+      const A=lkL0(LK);
+      title='섹터 지도';
+      head=`<div class="lk-desc">원 = 섹터(크기 ∝ 소속 기업 시총 합, 안 숫자 = 회사 수) · 선 굵기 ∝ 섹터 사이 관계 수 · 원을 누르면 그 섹터 안으로 (섹터 → 체인·층 → 회사 → 회사 중심)</div>`;
+      fig=lkAggSvg('l0',A,k=>LK_SECN[k]||k,k=>k,'섹터 지도');
+      rows=[];
+      note=`<table class="lk-tb"><tr><th class="l">섹터 사이 관계 많은 순</th><th>건</th></tr>${A.L.slice(0,10).map(l=>`<tr><td class="l"><a data-lkh="${lkA(l.a)}">${esc(LK_SECN[l.a])}</a> ↔ <a data-lkh="${lkA(l.b)}">${esc(LK_SECN[l.b])}</a></td><td>${l.n}</td></tr>`).join('')}</table>`;
+    }
+  } else if(m==='stair'){
+    const gs=LK.groups.filter(x=>lkGcnt(x.key)>0), g=gs.find(x=>x.key===LKV.sg)||gs.find(x=>x._auto)||gs.find(x=>x.key==='kr_semis')||gs[0];
+    if(!g) return box('관계도','<div class="mu">체인 없음</div>');
+    LKV.sg=g.key; const R=lkStairSvg(g,sel);
+    title=`공급망 계단 — ${esc(g.name)}`;
+    head=lkGrpPick(gs,g.key,'data-lksg')+(g.desc?`<div class="lk-desc">${esc(g.desc)}</div>`:'')+(R?`<div class="lk-desc">앵커 ${R.T.anchor?esc(LK._by[R.T.anchor].name):`완성·대형 ${R.T.anchors.length}곳`} · 칸 = 협력 층(3차→2차→1차→완성·대형→고객, 화살표 = 제품이 가는 방향) · 표시 ${R.shown}곳${R.T.out?` · 층을 못 정한 회사 ${R.T.out}곳(앵커와 공급 경로 없음 — 그룹 전체에서 보기)`:''}${LK._auto?' · 층 = 자동 추출 tier(그래프 안 고객 거리 추정), 없으면 앵커에서 거꾸로 센 값':' · 층 = 수작업 관계로 앵커에서 거꾸로 센 값'}</div>`:'');
+    fig=R?R.svg+(R.more?`<button class="lk-more" data-lkmore="stair">더 보기 (칸마다 +30, 남은 ${R.more}곳)</button>`:''):'<div class="mu">앵커를 못 정함</div>';
+    rows=sel?[...LK._in[sel],...LK._out[sel]]:(R?R.E:[]);
+  } else {
+    const g=lkGroup(); if(!g) return box('관계도','<div class="mu">그룹 없음</div>'); LKV.g=g.key;
+    const R=lkSvg(g,sel);
+    title=`그룹 전체 — ${esc(g.name)}`;
+    head=lkGrpPick(LK.groups,g.key,'data-lkg')+(g.desc?`<div class="lk-desc">${esc(g.desc)}</div>`:'')+`<div class="lk-desc">회사 ${R.total}곳 중 관계 많은 ${R.N.length}곳 · 관계 ${R.E.length}건 · 원 면적 ∝ 기업가치(달러, 기준 ${esc(((R.N.find(n=>n.mc_asof)||{}).mc_asof)||'미확인')})</div>`;
+    fig=R.svg+(R.total>R.N.length&&LKV.cap.grp<300?`<button class="lk-more" data-lkmore="grp">더 보기 (+20곳, 남은 ${R.total-R.N.length}곳)</button>`:'');
+    rows=sel?R.E.filter(e=>e.from===sel||e.to===sel):R.E;
+  }
+  const types=[...new Set(LK.edges.map(e=>lkTy(e.type)[0]))], legT=['lk-inv','lk-svc','lk-hw','lk-sup'].concat(types.includes('lk-etc')?['lk-etc']:[]);
+  const legName={'lk-inv':'투자','lk-svc':'서비스(클라우드 등)','lk-hw':'하드웨어','lk-sup':'공급·고객(부품·소재·매출처)','lk-etc':'기타(합작·계열·라이선스)'};
+  const nR=rows.length, shownRows=rows.slice(0,LKV.rows);
+  const sTools=sn?`<div class="lk-hd"><b>${esc(sn.name)}</b><span class="mu">${esc(sn.mkt||'')}${sn.mc_usd?' · '+lkMc(sn.mc_usd)+(sn.mc_asof?' ('+esc(sn.mc_asof)+')':''):' · 기업가치 미확인'} · 관계 ${LK._deg[sel]||0}건</span>${lkCanOpen(sn)?`<button data-od="${lkA(sn.id)}" data-mk="${lkA(sn.mkt)}">상세 ›</button>`:''}${m!=='hier'||sel!==LKV.p.c?`<button data-lkc="${lkA(sel)}">이 회사 중심 ›</button>`:''}<button data-lk="">선택 해제</button></div>`:'';
+  LKV.anim=null;
+  return `<div class="grid lk"><div class="p c12" data-panel><h2>${title}${ex}<small>기준 ${esc(LK.asof||'')} · 회사 ${LK.nodes.length} · 관계 ${LK.edges.length}</small></h2><div class="b">
+    ${modes}${cr}${head}${fig}
     <div class="lk-leg">${legT.map(c=>`<span><i class="lk-sw ${c}"></i>${legName[c]}</span>`).join('')}</div>
-    <div class="lk-leg"><span>원 면적 ∝ 기업가치(달러, 기준 ${esc(((N.find(n=>n.mc_asof)||{}).mc_asof)||'미확인')})</span><span>점선 원 = 비상장·정부·기업가치 미확인(최소 크기)</span><span>화살표 = 돈·제품이 가는 방향</span><span>원을 누르면 그 회사 관계만</span></div>
+    <div class="lk-leg"><span>${src}</span><span>점선 원·점선 칸 = 비상장·정부·기업가치 미확인 / 자동 추출 회사</span><span>화살표 = 돈·제품이 가는 방향</span></div>
   </div></div>
-  <div class="p c12" data-panel><h2>${sn?`${esc(sn.name)} — 들어오는·나가는 관계`:'관계 목록'}<small>${rows.length}건</small></h2><div class="b">
-    ${sn?`<div class="lk-hd"><b>${esc(sn.name)}</b><span class="mu">${esc(sn.mkt||'')}${sn.mc_usd?' · '+lkMc(sn.mc_usd)+(sn.mc_asof?' ('+esc(sn.mc_asof)+')':''):' · 기업가치 미확인'}</span>${lkCanOpen(sn)?`<button data-od="${lkA(sn.id)}" data-mk="${lkA(sn.mkt)}">상세 ›</button>`:''}<button data-lk="">전체 보기</button></div>`:''}
-    ${rows.map(e=>lkRow(e,sel)).join('')||'<div class="mu" style="padding:8px 0">이 회사의 관계 없음</div>'}
-    <div class="mu" style="font-size:var(--fs-1);margin-top:8px">출처 배지: 1차 = 공시(DART·SEC·IR) · 2차 = 언론·차트 · 검증전 = 미확인. 규모는 원문 표기 그대로(우리 추정 없음) · 매매 신호 아님</div>
+  <div class="p c12" data-panel><h2>${sn?`${esc(sn.name)} — 들어오는·나가는 관계`:sel0?`${esc(LK._by[sel0].name)} — 직접 관계(모든 섹터)`:'관계 목록'}<small>${nR}건${nR>shownRows.length?` 중 ${shownRows.length}`:''}</small></h2><div class="b">
+    ${sTools}
+    ${note}${shownRows.map(e=>lkRow(e,sel||sel0)).join('')||(note?'':'<div class="mu" style="padding:8px 0">관계 없음</div>')}
+    ${nR>shownRows.length?`<button class="lk-more" data-lkmore="rows">목록 더 보기 (+60)</button>`:''}
+    <div class="mu" style="font-size:var(--fs-1);margin-top:8px">출처 배지: 1차 = 공시(DART·SEC·IR) · 1차(자동) = 애널 데스크가 DART 원문에서 자동 추출(사람 검수 전) · 2차 = 언론·차트 · 검증전 = 미확인. 같은 관계가 둘 다 있으면 수작업 우선. 규모는 원문 표기 그대로(우리 추정 없음) · 매매 신호 아님</div>
   </div></div></div>`;
 }
+/* 조작: 누르기(선택·모드·그룹·더 보기·확대 버튼) · 검색 · 끌어서 이동 · 두 손가락 확대 · ctrl+휠 확대 */
+const LKP={pts:new Map(), st:null, moved:false, vp:null};
+function lkCamOf(vp){ return vp&&LKV.cam[vp.dataset.lkvp]; }
+function lkCamSet(vp,cam){ const g=vp.querySelector('.lk-cam'); if(g){ g.setAttribute('transform',`translate(${cam.x.toFixed(1)},${cam.y.toFixed(1)}) scale(${cam.k.toFixed(3)})`); g.style.setProperty('--lk-k',cam.k.toFixed(3)); } }
+function lkLocal(vp,cx,cy){ const s=vp.querySelector('svg'), r=s.getBoundingClientRect(), f=(+s.getAttribute('width')||r.width)/(r.width||1); return [(cx-r.left)*f,(cy-r.top)*f]; }
+function lkZoomAt(vp,f,px,py){ const cam=lkCamOf(vp); if(!cam) return; const k=Math.min(4,Math.max(0.15,cam.k*f)), ux=(px-cam.x)/cam.k, uy=(py-cam.y)/cam.k; cam.x=px-ux*k; cam.y=py-uy*k; cam.k=k; lkCamSet(vp,cam); }
+function lkFit(vp){ const cam=lkCamOf(vp), s=vp.querySelector('svg'); if(!cam||!s) return; const vw=+s.getAttribute('width'), vh=+s.getAttribute('height'), bw=+vp.dataset.bw, bh=+vp.dataset.bh;
+  const k=Math.min(1.25,vw/bw,vh/bh); cam.k=k; cam.x=(vw-bw*k)/2; cam.y=(vh-bh*k)/2; lkCamSet(vp,cam); }
+document.addEventListener('pointerdown',e=>{ if(view!=='links') return; const vp=e.target.closest&&e.target.closest('.lk-vp'); if(!vp) return;
+  LKP.vp=vp; LKP.pts.set(e.pointerId,lkLocal(vp,e.clientX,e.clientY)); const cam=lkCamOf(vp); if(!cam) return;
+  if(LKP.pts.size===1){ LKP.st={p:LKP.pts.get(e.pointerId), c:{...cam}}; LKP.moved=false; }
+  else if(LKP.pts.size===2){ const [a,b]=[...LKP.pts.values()]; LKP.st={pinch:true, d:Math.hypot(a[0]-b[0],a[1]-b[1])||1, m:[(a[0]+b[0])/2,(a[1]+b[1])/2], c:{...cam}}; LKP.moved=true; } });
+document.addEventListener('pointermove',e=>{ if(!LKP.st||!LKP.pts.has(e.pointerId)||!LKP.vp) return; const vp=LKP.vp, cam=lkCamOf(vp); if(!cam) return;
+  LKP.pts.set(e.pointerId,lkLocal(vp,e.clientX,e.clientY)); const S=LKP.st;
+  if(S.pinch&&LKP.pts.size>=2){ const [a,b]=[...LKP.pts.values()], d=Math.hypot(a[0]-b[0],a[1]-b[1])||1, mm=[(a[0]+b[0])/2,(a[1]+b[1])/2], k=Math.min(4,Math.max(0.15,S.c.k*d/S.d));
+    const ux=(S.m[0]-S.c.x)/S.c.k, uy=(S.m[1]-S.c.y)/S.c.k; cam.k=k; cam.x=mm[0]-ux*k; cam.y=mm[1]-uy*k; lkCamSet(vp,cam); e.preventDefault(); return; }
+  if(!S.pinch){ const p=LKP.pts.get(e.pointerId), dx=p[0]-S.p[0], dy=p[1]-S.p[1]; if(!LKP.moved&&Math.hypot(dx,dy)<6) return; LKP.moved=true; cam.x=S.c.x+dx; cam.y=S.c.y+dy; lkCamSet(vp,cam); e.preventDefault(); } },{passive:false});
+const lkUp=e=>{ if(!LKP.pts.has(e.pointerId)) return; LKP.pts.delete(e.pointerId); if(!LKP.pts.size) LKP.st=null; else if(LKP.st&&LKP.st.pinch){ const [p]=[...LKP.pts.values()], cam=lkCamOf(LKP.vp); if(cam) LKP.st={p, c:{...cam}}; } };
+document.addEventListener('pointerup',lkUp); document.addEventListener('pointercancel',lkUp);
+document.addEventListener('click',e=>{ if(view!=='links'||!LKP.moved) return; if(e.target.closest&&e.target.closest('.lk-vp')){ e.stopPropagation(); e.preventDefault(); } LKP.moved=false; },true);   // 끈 뒤의 클릭은 선택으로 치지 않음
+document.addEventListener('wheel',e=>{ if(view!=='links'||!(e.ctrlKey||e.metaKey)) return; const vp=e.target.closest&&e.target.closest('.lk-vp'); if(!vp) return; e.preventDefault(); const [x,y]=lkLocal(vp,e.clientX,e.clientY); lkZoomAt(vp,e.deltaY<0?1.15:1/1.15,x,y); },{passive:false});
+document.addEventListener('input',e=>{ if(view!=='links'||!e.target.classList||!e.target.classList.contains('lk-q')) return; const box=e.target.parentElement.querySelector('.lk-qr'); if(!box) return;
+  const hs=lkSearch(e.target.value); box.innerHTML=hs.map(n=>`<button data-lkc="${lkA(n.id)}"><span>${esc(n.name)}</span><span class="mu">${esc(n.id)} · 관계 ${LK._deg[n.id]||0}</span></button>`).join('')||(e.target.value.trim()?'<div class="mu" style="padding:8px 12px">찾는 회사 없음</div>':''); });
+document.addEventListener('change',e=>{ if(view!=='links') return; const t=e.target;
+  if(t.hasAttribute&&t.hasAttribute('data-lkg-sel')){ LKV.g=t.value; LKV.sel=null; LKV.cap.grp=20; lkSave(); render(); }
+  else if(t.hasAttribute&&t.hasAttribute('data-lksg-sel')){ LKV.sg=t.value; LKV.sel=null; LKV.cap.stair=30; lkSave(); render(); } });
+function lkGo(p,dir){ LKV.m='hier'; LKV.p={s:p.s||null, g:p.g||null, c:p.c||null}; LKV.sel=null; LKV.rows=40; LKV.cap.r1=12; LKV.cap.r2=8; LKV.cap.l2=16; LKV.cap.agg=14; LKV.anim=dir||'in'; lkSave();
+  try{ const h=lkHash(LKV.p); if(location.hash!==h) history.pushState({lk:1},'',h||(location.pathname+location.search)); }catch(e){}
+  render(); }
+function lkGoEgo(id){ if(!LK._by[id]) return; lkGo({s:LK._sec[id], g:LK._seg[id], c:id}); }
+function lkUpOne(){ const P=LKV.p; if(history.state&&history.state.lk){ try{ history.back(); return; }catch(e){} } lkGo(P.c?{s:P.s,g:P.g}:P.g?{s:P.s}:{},'out'); }
+window.addEventListener('popstate',()=>{ if(view!=='links'||!LK||LK._loading||LK.err) return; LKV.m='hier'; LKV.p=lkParseHash(); LKV.sel=null; LKV.anim='out'; render(); });   // 브라우저 뒤로가기 = 한 단계 위
 document.addEventListener('click',e=>{ if(view!=='links') return;
   const od=e.target.closest('[data-od]'); if(od){ e.preventDefault(); openDetail(od.dataset.od,od.dataset.mk); return; }
-  const g=e.target.closest('[data-lkg]'); if(g){ LKV.g=g.dataset.lkg; LKV.sel=null; try{ localStorage.setItem('mt_links_g',LKV.g); }catch(x){} render(); return; }
-  const t=e.target.closest('[data-lk]'); if(!t) return; const id=t.dataset.lk; LKV.sel=id&&id!==LKV.sel?id:null; render(); });
-document.addEventListener('keydown',e=>{ if(view!=='links'||(e.key!=='Enter'&&e.key!==' ')) return; const t=e.target.closest&&e.target.closest('[data-lk]'); if(!t) return; e.preventDefault(); t.dispatchEvent(new MouseEvent('click',{bubbles:true})); });
+  const z=e.target.closest('[data-lkz]'); if(z){ const vp=document.querySelector('.lk-vp'); if(!vp) return; const s=vp.querySelector('svg'), w=+s.getAttribute('width'), h=+s.getAttribute('height');
+    if(z.dataset.lkz==='0') lkFit(vp); else lkZoomAt(vp,z.dataset.lkz==='+'?1.3:1/1.3,w/2,h/2); return; }
+  const c=e.target.closest('[data-lkc]'); if(c){ lkGoEgo(c.dataset.lkc); return; }
+  if(e.target.closest('[data-lkback]')){ lkUpOne(); return; }
+  const h=e.target.closest('[data-lkh]'); if(h){ e.preventDefault(); const vp=h.closest('.lk-vp');
+    if(vp){ const r=vp.getBoundingClientRect(), b=h.getBoundingClientRect(); LKV.ox=Math.round((b.left+b.width/2-r.left)/r.width*100)+'%'; LKV.oy=Math.round((b.top+b.height/2-r.top)/r.height*100)+'%'; } else { LKV.ox=LKV.oy='50%'; }
+    const a=h.dataset.lkh.split('|'), up=a.length<=[LKV.p.s,LKV.p.g,LKV.p.c].filter(Boolean).length; lkGo({s:a[0]||null, g:a[1]||null, c:a[2]||null}, up?'out':'in'); return; }
+  const md=e.target.closest('[data-lkm]'); if(md){ LKV.m=md.dataset.lkm; LKV.sel=null; LKV.rows=40; lkSave(); render(); return; }
+  const mo=e.target.closest('[data-lkmore]'); if(mo){ const k=mo.dataset.lkmore;
+    if(k==='grp') LKV.cap.grp=Math.min(300,LKV.cap.grp+20); else if(k==='ego'){ LKV.cap.r1+=12; LKV.cap.r2+=8; } else if(k==='l2') LKV.cap.l2+=16; else if(k==='agg') LKV.cap.agg+=14; else if(k==='stair') LKV.cap.stair+=30; else if(k==='rows') LKV.rows+=60; render(); return; }
+  const g=e.target.closest('[data-lkg]'); if(g){ LKV.g=g.dataset.lkg; LKV.sel=null; LKV.cap.grp=20; lkSave(); render(); return; }
+  const sg=e.target.closest('[data-lksg]'); if(sg){ LKV.sg=sg.dataset.lksg; LKV.sel=null; LKV.cap.stair=30; lkSave(); render(); return; }
+  const t=e.target.closest('[data-lk]'); if(!t) return; const id=t.dataset.lk; LKV.sel=id&&id!==LKV.sel?id:null; LKV.rows=40; render(); });
+document.addEventListener('keydown',e=>{ if(view!=='links'||(e.key!=='Enter'&&e.key!==' ')) return;
+  if(e.target.classList&&e.target.classList.contains('lk-q')){ if(e.key==='Enter'){ const h=lkSearch(e.target.value)[0]; if(h){ e.preventDefault(); lkGoEgo(h.id); } } return; }
+  const t=e.target.closest&&e.target.closest('[data-lk],[data-lkh],[data-lkmore]'); if(!t||/^(BUTTON|A)$/.test(t.tagName)) return; e.preventDefault(); t.dispatchEvent(new MouseEvent('click',{bubbles:true})); });
 if(typeof TOPF==='object') TOPF.links=()=>{ if(!LK||LK._loading) return null; if(LK.err) return mkTop(NA(LK.err),NA('—'),NA('—'),['reports/company_links.json']);
-  const st={}; (LK.edges||[]).forEach(e=>st[e.status||'검증전']=(st[e.status||'검증전']||0)+1);
-  return mkTop(`기업 관계도 ${(LK.groups||[]).length}그룹 · 회사 ${(LK.nodes||[]).length} · 관계 ${(LK.edges||[]).length}건${LK._example?' (예시 데이터)':''}`,
-    `출처 1차 ${st['1차']||0} · 2차 ${st['2차']||0} · 검증전 ${st['검증전']||0} — 애널 데스크 수집, 우리 새 판정 아님`,'그룹 칩 → 원을 누르면 그 회사 관계만',['reports/company_links.json'],LK.asof); };
+  const st={}; LK.edges.forEach(e=>{ const s0=e.status||'검증전', k=e._auto&&!/자동/.test(s0)?s0+'(자동)':s0; st[k]=(st[k]||0)+1; });
+  return mkTop(`기업 관계도 ${LK.groups.length}그룹 · 회사 ${LK.nodes.length} · 관계 ${LK.edges.length}건${LK._example?' (예시 데이터)':''}`,
+    `출처 1차 ${st['1차']||0} · 1차(자동) ${st['1차(자동)']||0} · 2차 ${st['2차']||0} · 검증전 ${(st['검증전']||0)+(st['검증전(자동)']||0)} — 애널 데스크 수집, 우리 새 판정 아님`,'섹터 → 체인·층 → 회사 → 회사 중심(검색으로 바로)',['reports/company_links.json','reports/company_links_auto.json'],LK.asof); };
 </script>
 
 <!-- tab_quant.html — QUANT 탭 — 공급망·시그널 검증·검증 스터디·전략 연구소·모멘텀·모의 포트폴리오 (chainView·sigView·studyView·labView·momView·pfView).

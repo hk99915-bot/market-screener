@@ -1,0 +1,413 @@
+{
+ "asof": "2026-11-01",
+ "_example": "예시 — 프론트 개발·테스트용 자동 추출 표본(reports/company_links_auto.json 같은 스키마 + tier). 2·3차는 가상 이름, 관계는 형식 확인용 — 실제 판단에 쓰지 않는다.",
+ "basis": "예시",
+ "desk": "front(fixture)",
+ "note": "tier = 노드 층(자동 추출 의미 그대로: 1=완성품·대형 2=1차 협력 3=2차 협력, holding=지주)",
+ "groups": [
+  {
+   "key": "chain_hyundai",
+   "name": "현대차 협력사 체인",
+   "desc": "예시 체인 — 앵커 현대차",
+   "anchor": "005380"
+  },
+  {
+   "key": "chain_semco",
+   "name": "삼성전기 협력사 체인",
+   "desc": "예시 체인 — 앵커 삼성전기",
+   "anchor": "009150"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "005380",
+   "name": "현대차",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": "auto",
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": true,
+   "tier": 1
+  },
+  {
+   "id": "000270",
+   "name": "기아",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": "auto",
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": true,
+   "tier": 1
+  },
+  {
+   "id": "096770",
+   "name": "SK이노베이션(SK온)",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": true,
+   "tier": 2
+  },
+  {
+   "id": "010690",
+   "name": "화신",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": "auto",
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": true,
+   "tier": 2
+  },
+  {
+   "id": "012330",
+   "name": "현대모비스",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": "auto",
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": true,
+   "tier": 2
+  },
+  {
+   "id": "EX_H2A",
+   "name": "예시 2차 협력사 A",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": false,
+   "tier": 3
+  },
+  {
+   "id": "EX_H2B",
+   "name": "예시 2차 협력사 B",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": false,
+   "tier": 3
+  },
+  {
+   "id": "EX_H2C",
+   "name": "예시 2차 협력사 C",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": false,
+   "tier": 3
+  },
+  {
+   "id": "EX_H3A",
+   "name": "예시 3차 협력사 A",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_hyundai"
+   ],
+   "listed": false
+  },
+  {
+   "id": "009150",
+   "name": "삼성전기",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": "elec",
+   "groups": [
+    "chain_semco"
+   ],
+   "listed": true,
+   "tier": 1
+  },
+  {
+   "id": "005930",
+   "name": "삼성전자",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_semco"
+   ],
+   "listed": true,
+   "tier": 1
+  },
+  {
+   "id": "036010",
+   "name": "아비코전자",
+   "mkt": "KR",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": "elec",
+   "groups": [
+    "chain_semco"
+   ],
+   "listed": true,
+   "tier": 2
+  },
+  {
+   "id": "EX_S1B",
+   "name": "예시 1차 협력사 B",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_semco"
+   ],
+   "listed": false,
+   "tier": 2
+  },
+  {
+   "id": "EX_S2A",
+   "name": "예시 2차 협력사 D",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_semco"
+   ],
+   "listed": false,
+   "tier": 3
+  },
+  {
+   "id": "EX_S2B",
+   "name": "예시 2차 협력사 E",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_semco"
+   ],
+   "listed": false,
+   "tier": 3
+  },
+  {
+   "id": "EX_S3A",
+   "name": "예시 3차 협력사 F",
+   "mkt": "PRIVATE",
+   "mc_usd": null,
+   "mc_asof": null,
+   "chain": null,
+   "groups": [
+    "chain_semco"
+   ],
+   "listed": false
+  }
+ ],
+ "edges": [
+  {
+   "from": "010690",
+   "to": "005380",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "012330",
+   "to": "005380",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "010690",
+   "to": "000270",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "096770",
+   "to": "005380",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "EX_H2A",
+   "to": "010690",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "EX_H2B",
+   "to": "010690",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "EX_H2C",
+   "to": "012330",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "EX_H3A",
+   "to": "EX_H2A",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_hyundai"
+   ]
+  },
+  {
+   "from": "036010",
+   "to": "009150",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_semco"
+   ]
+  },
+  {
+   "from": "EX_S1B",
+   "to": "009150",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_semco"
+   ]
+  },
+  {
+   "from": "EX_S2A",
+   "to": "036010",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_semco"
+   ]
+  },
+  {
+   "from": "EX_S2B",
+   "to": "036010",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_semco"
+   ]
+  },
+  {
+   "from": "EX_S3A",
+   "to": "EX_S2A",
+   "type": "supply",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_semco"
+   ]
+  },
+  {
+   "from": "009150",
+   "to": "005930",
+   "type": "customer",
+   "size": null,
+   "why": "예시 — 형식 확인용(실제 관계 판단에 쓰지 않음)",
+   "src": "예시 fixture (tests/fixtures) — 실제 파일은 애널 데스크 DART 원문 자동 추출",
+   "status": "검증전",
+   "date": "2026-11-01",
+   "groups": [
+    "chain_semco"
+   ]
+  }
+ ]
+}

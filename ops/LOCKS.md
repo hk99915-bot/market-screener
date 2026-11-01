@@ -28,7 +28,8 @@
 | `apps-script/tab_daily.html` | DAILY › 데일리 리포트·VIEWS·브리핑 기록 |
 | `apps-script/tab_my.html` | MY |
 | `apps-script/tab_life.html` | LIFE |
-| `apps-script/tab_research.html` | RESEARCH › 리서치·밸류에이션·공시 |
+| `apps-script/tab_research.html` | RESEARCH › 리서치·밸류에이션·공시·서고 |
+| `apps-script/tab_links.html` | RESEARCH › 관계도 (11/1 tab_research 에서 분리 — 회사 중심·공급망 계단·그룹 전체) |
 | `apps-script/tab_quant.html` | QUANT › 공급망·시그널·스터디·연구소·모멘텀·모의 포트폴리오 |
 | `apps-script/tab_isalab.html` | QUANT › ISA 실험실 (비중 슬라이더 백테스트) |
 | `apps-script/tab_bond.html` | MARKET › 채권 |

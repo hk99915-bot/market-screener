@@ -75,6 +75,7 @@ script.google.com 프로젝트에는 **폴더가 없다**. 아래 파일을 각�
 | 17 | `tab_detail` | HTML | 종목 상세 서랍·차트 (모든 탭 공용) |
 | 18 | `tab_isalab` | HTML | QUANT › ISA 실험실 (비중 슬라이더 백테스트, 데이터 getIsaLab) |
 | 19 | `tab_mkt_macro` | HTML | MARKET › MACRO (매크로 한눈에 — 기존 getter getMacroView·getBonds·getCalendar) |
+| 20 | `tab_links` | HTML | RESEARCH › 관계도 (11/1 tab_research 에서 분리 · getter getCompanyLinks·getCompanyLinksAuto — Code.gs 짝은 개발) |
 
 main push 때 gas_deploy.yml 이 clasp 로 .gs 를 배포한다. GitHub Pages(`index.html`) 는 `python scripts/build_pages.py` 가 include 를 인라인해 한 파일로 만든다.
 

@@ -1453,35 +1453,87 @@ async def check_deriv_tv(b, port: int) -> int:
 
 
 async def check_links(b, port: int) -> int:
-    """RESEARCH › 관계도(11/1 겸이): ?v=links 바로 열기 · 390px 원(노드)·곡선 화살표·범례 · 원끼리 겹침 0 · 그림이 패널 안 · 그룹 칩·버튼 높이 ≥44(터치) ·
-    원 탭 → 그 회사 관계만 강조(hi>0, 나머지 dim) + 목록이 그 회사 관계로 줄고 '전체 보기'로 복귀. 실제 파일 없으면 예시 fixture(배지 '예시 데이터')."""
+    """RESEARCH › 관계도(11/1 겸이, 같은 날 대규모 보기 개편) — 390px.
+    ① 그룹 전체(?lkm=grp): 원·곡선 화살표·범례 · 원끼리 겹침 0 · 그림이 패널 안 · 칩/버튼 높이 ≥44 · 원 탭 → 그 회사 관계만 강조 + 목록 축소 · '선택 해제'로 복귀
+    ② 위계(?lkm=hier): L0 섹터 지도(원 8~21) → 탭 L1 → 탭 L2(원 ≤21) → 탭 L3 회사 중심(가운데 1·빵부스러기 4칸) · 브라우저 뒤로 = L2 · 검색 '삼성전기' → L3
+    ③ 공급망 계단(?lkm=stair&lkg=sc_auto — 자동 추출 체인): 칸 상자 ≥4 · 층 머리 ≥2
+    ④ 이동/확대: 끌기 → transform 이동, '+' → 배율 증가, 끈 뒤 클릭은 선택 아님
+    ⑤ 규모(실험실 근사): 노드 1,000·엣지 3,000 합성 데이터를 넣고 세 보기 그리기 각각 < 500ms · 카메라 이동 20회 < 50ms"""
     ctx = await b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
     pg = await ctx.new_page()
     errs: list[str] = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
-    await pg.goto(f"http://127.0.0.1:{port}/index.html?v=links", wait_until="load")
-    await pg.wait_for_timeout(3000)
     J = lambda js: pg.evaluate(js)   # noqa: E731
+    url = f"http://127.0.0.1:{port}/index.html?v=links"
+    await pg.goto(url + "&lkm=grp&lkg=ai_circle", wait_until="load")
+    await pg.wait_for_timeout(3000)
     r0 = await J("""(()=>{ const s=document.querySelector('.lk-svg'); if(!s) return {v:view, err:(document.querySelector('#root .err')||{}).textContent||''};
       const pn=s.closest('.p').getBoundingClientRect(), sr=s.getBoundingClientRect(), cs=[...s.querySelectorAll('.nd circle.c')].map(c=>c.getBoundingClientRect());
       let ov=0; for(let i=0;i<cs.length;i++) for(let j=i+1;j<cs.length;j++){ const a=cs[i], b=cs[j]; const d=Math.hypot((a.x+a.width/2)-(b.x+b.width/2),(a.y+a.height/2)-(b.y+b.height/2)); if(d<a.width/2+b.width/2-1) ov++; }
-      const btn=[...document.querySelectorAll('.lk-bar button')].map(x=>x.getBoundingClientRect().height);
+      const btn=[...document.querySelectorAll('.lk-bar button,.lk-zm button,.lk-sel')].map(x=>x.getBoundingClientRect().height);
       return {v:view, n:cs.length, e:s.querySelectorAll('path.e').length, leg:document.querySelectorAll('.lk-leg .lk-sw').length, ov, inside:sr.left>=pn.left-1&&sr.right<=pn.right+1,
         btn:Math.min(...btn), rows:document.querySelectorAll('.lk-it').length, over:document.documentElement.scrollWidth-document.documentElement.clientWidth}; })()""")
     ok0 = r0.get("v") == "links" and r0.get("n", 0) >= 3 and r0.get("e", 0) >= 2 and r0.get("leg", 0) >= 4 and r0.get("ov") == 0 and r0.get("inside") \
-        and r0.get("btn", 0) >= 44 and r0.get("rows", 0) == r0.get("e") and r0.get("over", 9) <= 1
+        and r0.get("btn", 0) >= 44 and r0.get("rows", 0) == min(r0.get("e", 0), 40) and r0.get("over", 9) <= 1
     r1 = {}
     if ok0:
-        hub = await J("""(()=>{ const d={}; [...document.querySelectorAll('.lk-svg .nd')].forEach(g=>d[g.dataset.lk]=0); return Object.keys(d)[0]; })()""")
-        await pg.click(f'.lk-svg .nd[data-lk="{hub}"]')
+        hub = await J("document.querySelector('.lk-svg .nd').dataset.lk")
+        await pg.click(f'.lk-svg .nd[data-lk="{hub}"]', force=True)
         await pg.wait_for_timeout(400)
-        r1 = await J("""(()=>({hi:document.querySelectorAll('.lk-svg path.e.hi').length, dim:document.querySelectorAll('.lk-svg path.e.dim').length,
-          on:document.querySelectorAll('.lk-svg .nd.on').length, rows:document.querySelectorAll('.lk-it').length, back:!!document.querySelector('.lk-hd button[data-lk=""]')}))()""")
+        r1 = await J("""(()=>({hi:document.querySelectorAll('.lk-svg path.e.hi').length, on:document.querySelectorAll('.lk-svg .nd.on').length,
+          rows:document.querySelectorAll('.lk-it').length, back:!!document.querySelector('.lk-hd button[data-lk=""]')}))()""")
         await pg.click('.lk-hd button[data-lk=""]')
         await pg.wait_for_timeout(300)
         r1["after"] = await J("document.querySelectorAll('.lk-svg path.e.hi,.lk-svg path.e.dim').length")
-    ok = ok0 and r1.get("hi", 0) >= 1 and r1.get("on") == 1 and r1.get("rows") == r1.get("hi") and r1.get("back") and r1.get("after") == 0 and not errs
-    print(f"{'OK ' if ok else 'BAD'} 관계도(390px) {r0} 선택={r1}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    ok1 = ok0 and r1.get("hi", 0) >= 1 and r1.get("on") == 1 and r1.get("rows") == min(r1.get("hi", 0), 40) and r1.get("back") and r1.get("after") == 0
+    # ② 위계(11/1 겸이 「부동산처럼 클릭하면 커지고 위계」): L0 섹터 지도 → 원 탭 L1 → 원 탭 L2 → 원 탭 L3(회사 중심) · 빵부스러기 · 브라우저 뒤로 = 한 단계 위 · 검색 → L3
+    await pg.goto(url + "&lkm=hier", wait_until="load")
+    await pg.wait_for_timeout(2500)
+    H = "(()=>({lv:(location.hash.match(/\\//g)||[]).length+(location.hash?1:0), n:document.querySelectorAll('.lk-svg .nd').length, bc:document.querySelectorAll('.lk-bc button[data-lkh],.lk-bc b').length, ctr:document.querySelectorAll('.lk-svg .nd.ctr').length, t:(document.querySelector('.lk h2')||{}).textContent||''}))()"
+    r2 = {"L0": await J(H)}
+    await pg.click('.lk-svg .nd.ag[data-lkh="auto"]', force=True); await pg.wait_for_timeout(600)
+    r2["L1"] = await J(H)
+    await pg.click('.lk-svg .nd.ag[data-lkh]', force=True); await pg.wait_for_timeout(600)
+    r2["L2"] = await J(H)
+    await pg.click('.lk-svg .nd[data-lkh*="|"]:not(.ag)', force=True); await pg.wait_for_timeout(600)
+    r2["L3"] = await J(H)
+    await pg.go_back(); await pg.wait_for_timeout(600)
+    r2["back"] = await J(H)
+    await pg.fill('.lk-q', '삼성전기'); await pg.wait_for_timeout(200)
+    r2["hits"] = await J("document.querySelectorAll('.lk-qr button').length")
+    if r2["hits"]:
+        await pg.click('.lk-qr button'); await pg.wait_for_timeout(600)
+    r2["q"] = await J(H)
+    ok2 = r2["L0"]["n"] >= 8 and r2["L0"]["n"] <= 21 and r2["L1"]["lv"] == 1 and r2["L2"]["lv"] == 2 and r2["L2"]["n"] <= 21 and r2["L3"]["lv"] == 3 and r2["L3"]["ctr"] == 1 \
+        and r2["L3"]["bc"] == 4 and r2["back"]["lv"] == 2 and r2["hits"] >= 1 and "삼성전기" in r2["q"]["t"] and r2["q"]["ctr"] == 1
+    # ④ 이동/확대 (회사 중심 그림에서)
+    box = await pg.evaluate("(()=>{ const r=document.querySelector('.lk-vp').getBoundingClientRect(); return [r.left,r.top,r.width,r.height]; })()")
+    t0 = await J("document.querySelector('.lk-cam').getAttribute('transform')")
+    x0, y0 = box[0] + 12, box[1] + 12
+    await pg.mouse.move(x0, y0); await pg.mouse.down(); await pg.mouse.move(x0 + 60, y0 + 30, steps=6); await pg.mouse.up()
+    await pg.wait_for_timeout(150)
+    t1 = await J("document.querySelector('.lk-cam').getAttribute('transform')")
+    sel_after_drag = await J("document.querySelectorAll('.lk-svg .nd.on').length")
+    k0 = await J("+document.querySelector('.lk-cam').style.getPropertyValue('--lk-k')")
+    await pg.click('.lk-zm button[data-lkz="+"]')
+    k1 = await J("+document.querySelector('.lk-cam').style.getPropertyValue('--lk-k')")
+    ok4 = t0 != t1 and sel_after_drag == 0 and k1 > k0
+    # ③ 공급망 계단
+    await pg.goto(url + "&lkm=stair&lkg=sc_auto", wait_until="load")
+    await pg.wait_for_timeout(2500)
+    r3 = await J("({box:document.querySelectorAll('.lk-svg rect.b').length, hd:document.querySelectorAll('.lk-svg text.hd').length, anc:document.querySelectorAll('.lk-svg .nd.anc').length, over:document.documentElement.scrollWidth-document.documentElement.clientWidth})")
+    ok3 = r3["box"] >= 4 and r3["hd"] >= 2 and r3["anc"] >= 1 and r3["over"] <= 1
+    # ⑤ 규모 — 합성 1,000·3,000
+    r5 = await J("""(()=>{ const N=[],E=[]; let s=7; const rnd=()=>(s=(s*48271)%2147483647)/2147483647;
+      for(let i=0;i<1000;i++) N.push({id:'N'+i,name:'합성회사'+i,mkt:'KR',mc_usd:1e9*(1+i%50),groups:['g'+(i%5)]});
+      for(let j=0;j<3000;j++){ const a=Math.floor(rnd()*1000), b=Math.floor(rnd()*1000); if(a!==b) E.push({from:'N'+a,to:'N'+b,type:'supply',why:'w',src:'s',status:'1차',groups:['g'+(a%5)],tier:1+(j%3)}); }
+      LK=lkHier(lkIndex(lkMerge({asof:'2026-11-01',nodes:N,edges:E,groups:[...Array(5)].map((_,i)=>({key:'g'+i,name:'합성'+i}))},null))); LK._gcnt={}; LKC.clear();
+      const T={}; for(const [m,extra] of [['grp',()=>{LKV.g='g0';}],['hier',()=>{LKV.p={s:null,g:null,c:null};}],['hier3',()=>{LKV.m='hier'; LKV.p={s:LK._sec.N1,g:LK._seg.N1,c:'N1'};}],['stair',()=>{LKV.sg='g0';}]]){ LKV.m=m==='hier3'?'hier':m; LKV.sel=null; extra(); const t=performance.now(); render(); T[m]=Math.round(performance.now()-t); }
+      const vp=document.querySelector('.lk-vp'), cam=LKV.cam[vp.dataset.lkvp], t=performance.now(); for(let i=0;i<20;i++){ cam.x+=3; lkCamSet(vp,cam); } T.pan=Math.round(performance.now()-t);
+      T.nodes=document.querySelectorAll('.lk-svg .nd').length; return T; })()""")
+    ok5 = all(r5.get(m, 9999) < 500 for m in ("grp", "hier", "hier3", "stair")) and r5.get("pan", 999) < 50
+    ok = ok1 and ok2 and ok3 and ok4 and ok5 and not errs
+    print(f"{'OK ' if ok else 'BAD'} 관계도(390px) 그룹={r0} 선택={r1} 위계={r2} 이동={ok4}({k0}→{k1}) 계단={r3} 규모(ms)={r5}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await ctx.close()
     return not ok
 
