@@ -327,6 +327,16 @@ def default_codes(top: int = 60) -> list[str]:
     return _uniq(chain_codes() + pri)
 
 
+def missing_from_file(path: str | Path) -> list[str]:
+    """목록 파일의 코드 중 색인(index.json)에 한 번도 안 들어간 것만 — 이어받기용(이미 받은 종목에 목록 호출을 쓰지 않음).
+
+    11/1 공급망·원자재·금융 750종목(targets_supply.txt)을 실행당 400콜씩 나눠 받을 때, 다음 실행이 남은 것부터 시작하게 한다.
+    """
+    have = {r["code"] for r in load_index().get("items", [])}
+    xs = [ln.split("#", 1)[0].strip() for ln in Path(path).read_text(encoding="utf-8").splitlines()]
+    return [c for c in _uniq(xs) if c not in have]
+
+
 def _uniq(xs: list[str]) -> list[str]:
     seen, out = set(), []
     for c in xs:
@@ -432,6 +442,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="DART 사업보고서 'II. 사업의 내용' 수집")
     ap.add_argument("--codes", default="", help="쉼표 구분 종목코드 (주면 이것만)")
     ap.add_argument("--chain", default="", help="drivers.CHAINS 키 (예: cybersecurity) — codes 와 합침")
+    ap.add_argument("--file", default="", help="종목코드 목록 파일(줄마다 코드, # 주석) — 색인에 아직 없는 코드만 (예: data/dart_biz/targets_supply.txt)")
     ap.add_argument("--top", type=int, default=60, help="기본 대상일 때 상세 리포트 우선순위 상위 몇 종목")
     ap.add_argument("--max-calls", type=int, default=400)
     ap.add_argument("--max-minutes", type=float, default=35, help="시간 예산(분) — 넘으면 받은 만큼 저장하고 중단")
@@ -440,6 +451,8 @@ def main(argv: list[str] | None = None) -> int:
     codes = _uniq(a.codes.replace(" ", ",").split(",")) if a.codes.strip() else []
     if a.chain.strip():
         codes = _uniq(codes + chain_codes(a.chain.strip()))
+    if a.file.strip():
+        codes = _uniq(codes + missing_from_file(a.file.strip()))
     if not codes:
         codes = default_codes(a.top)
     log.info("대상 %d종목: %s%s", len(codes), ",".join(codes[:12]), " …" if len(codes) > 12 else "")

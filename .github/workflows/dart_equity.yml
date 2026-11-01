@@ -1,0 +1,77 @@
+name: dart_equity
+# 실행 이름 — 수동은 '[코드/파일] commit=<값>' (slot_guard 규약: 수동 dispatch 는 commit 입력으로만 커밋)
+run-name: "dart_equity [${{ inputs.codes }}${{ inputs.file }}] commit=${{ inputs.commit }}"
+
+# DART 정기보고서 주요정보 — 타법인 출자현황(otrCprInvstmntSttus) + 최대주주 현황(hyslrSttus) (11/1 겸이 "원자재 금융 등 다른 섹터도")
+# → data/dart_equity/<코드>.json + index.json. 금융·지주·원자재의 지분·계열 엣지(관계도). 종목당 2콜(빈 기간이면 뒤로 최대 3기간).
+# 기본 대상 = reports/peers_KR.json 전 종목. 호출 예산 실행당 1,500콜(DART 일일 한도 2만 — dart_biz 400·fin 1,200 과 합쳐도 여유).
+# 수동 실행만(예약 없음 — 지분은 반기마다 바뀜. 예약을 붙이려면 docs/schedule_table.md·slot_guard 에 슬롯 등록 후).
+on:
+  workflow_dispatch:
+    inputs:
+      codes:
+        description: "쉼표 구분 종목코드 (비우면 file 또는 peers_KR 전 종목)"
+        required: false
+        default: ""
+      file:
+        description: "종목코드 목록 파일 (예: data/dart_biz/targets_supply.txt)"
+        required: false
+        default: ""
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용 — 결정 C)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dart_equity
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 최신 색인
+        # 대기 중이던 run 은 dispatch 시점 SHA 로 체크아웃 → 앞 run 의 색인을 모름(dart_biz 11/1 사고와 같은 방지).
+        run: git fetch --depth 1 origin main && git checkout FETCH_HEAD -- data/dart_equity || true
+      - name: 수집
+        timeout-minutes: 45
+        env:
+          PYTHONUNBUFFERED: "1"
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          CODES: ${{ inputs.codes }}
+          FILE: ${{ inputs.file }}
+        run: python -m screener.dart_equity --codes "$CODES" --file "$FILE" --max-calls 1500 --max-minutes 35
+      - name: 요약
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          p = pathlib.Path("data/dart_equity/index.json")
+          if not p.exists():
+              print("index.json 없음"); raise SystemExit
+          ix = json.loads(p.read_text())
+          it = ix.get("items", [])
+          print(f"last_run: `{json.dumps(ix.get('last_run', {}), ensure_ascii=False)}`\n")
+          print(f"종목 {len(it)} · ok {sum(r.get('status')=='ok' for r in it)} · 출자 행 {sum(r.get('n_invest',0) for r in it):,} · 최대주주 행 {sum(r.get('n_holders',0) for r in it):,}")
+          PY
+      - name: 저장
+        if: always() && inputs.commit == 'true'
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          [ -d data/dart_equity ] && git add -A data/dart_equity; true
+          git diff --cached --quiet && exit 0
+          git commit -m "data: DART 타법인 출자·최대주주 $(date -u +%FT%H:%M)"
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || { echo "::error::푸시 실패 — dart_equity 결과가 저장되지 않음"; exit 1; }

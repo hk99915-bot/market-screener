@@ -1,6 +1,6 @@
 name: dart_biz
 # 실행 이름 — 수동은 '[체인/코드] commit=<값>' (slot_guard 규약: 수동 dispatch 는 commit 입력으로만 커밋)
-run-name: "dart_biz ${{ github.event_name == 'workflow_dispatch' && format('[{0}{1}] commit={2}', inputs.chain, inputs.codes, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
+run-name: "dart_biz ${{ github.event_name == 'workflow_dispatch' && format('[{0}{1}{2}] commit={3}', inputs.chain, inputs.codes, inputs.file, inputs.commit) || format('예약 {0}', github.event.schedule) }}"
 
 # DART 사업보고서 본문 'II. 사업의 내용' 수집 (req-dev-8d32d432, 11/1 겸이 "Open api도 있고")
 # → data/dart_biz/<코드>_<rcept_no>.txt + index.json. 이미 받은 rcept_no 는 건너뜀 → 평소 주간 실행은 목록 호출 위주(종목당 1콜).
@@ -16,6 +16,10 @@ on:
         default: ""
       chain:
         description: "screener/drivers.py CHAINS 키 (예: cybersecurity)"
+        required: false
+        default: ""
+      file:
+        description: "목록 파일(예: data/dart_biz/targets_supply.txt) — 색인에 아직 없는 코드만 이어받기"
         required: false
         default: ""
       commit:
@@ -54,7 +58,8 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           CODES: ${{ inputs.codes }}
           CHAIN: ${{ inputs.chain }}
-        run: python -m screener.dart_biz --codes "$CODES" --chain "$CHAIN" --max-calls 400 --max-minutes 35
+          FILE: ${{ inputs.file }}
+        run: python -m screener.dart_biz --codes "$CODES" --chain "$CHAIN" --file "$FILE" --max-calls 400 --max-minutes 35
       - name: 요약
         if: always()
         run: |

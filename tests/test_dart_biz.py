@@ -202,3 +202,12 @@ def test_time_budget_stops_and_saves(tmp_path, monkeypatch):
     ix = json.loads((tmp_path / "index.json").read_text())
     assert len(ix["items"]) == 2 and ix["last_run"]["stopped"] == "time budget"
     assert (tmp_path / "053800_20260320000001.txt").exists()
+
+
+def test_missing_from_file_skips_indexed(tmp_path, monkeypatch):
+    ix = tmp_path / "index.json"
+    ix.write_text(json.dumps({"items": [{"code": "005930", "rcept_no": "1"}]}), encoding="utf-8")
+    monkeypatch.setattr(db, "INDEX", ix)
+    f = tmp_path / "t.txt"
+    f.write_text("# 주석\n005930\n010690  # 화신\n\n036010\n010690\n", encoding="utf-8")
+    assert db.missing_from_file(f) == ["010690", "036010"]
