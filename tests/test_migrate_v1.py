@@ -43,3 +43,29 @@ def test_plan_has_no_forbidden_and_public_index():
 def test_apply_requires_dest_and_outside_repo(tmp_path):
     assert mv.main(["--apply"]) == 2
     assert mv.main(["--apply", "--dest", str(ROOT / "x_tmp_dest")]) == 2
+
+
+@pytest.mark.parametrize("path", [
+    "reports/studies/2026-10-23_frm_replay_2026-07.md", "reports/studies/2026-10-28_frm_core_lookthrough.md",
+    "docs/peer_reviews/2026-10-17_integrity_audit.md", "docs/peer_reviews/2026-10-17_legacy_book.md",
+    "docs/peer_reviews/2026-10-17_recheck.md", "docs/valuation_notes/2026-10-17_cio_lab_review.md",
+])
+def test_audit_1101_personal_book_excluded(path):
+    """감사 11/1 경계 검사: 개인 북·원장 분석 문서는 스냅샷 제외(내부판엔 남음)."""
+    assert mv.classify(path)[0] == mv.PERSONAL
+    assert mv.classify("docs/peer_reviews/2026-10-24_pick_gate.md")[0] == mv.PUBLIC
+
+
+def test_allow_list_preview_pins_sentence():
+    from privacy_history_audit import Hit
+    old = Hit("snapshot", "a.json", 1, "amount", "내", category="review", preview='"note": "기간 끝(99/99) 금')
+    new = Hit("snapshot", "a.json", 2, "amount", "내", category="review", preview='"note": "새 문장 999만')
+    other = Hit("snapshot", "a.json", 3, "amount", "보유", category="review", preview='"note": "기간 끝(9')
+    n = mv.apply_allow([old, new, other], [{"path": "a.json", "kind": "amount", "ctx": "내", "preview": '"note": "기간 끝('}])
+    assert n == 1 and old.category == "allowed" and new.category == "review" and other.category == "review"
+
+
+def test_default_allow_file_is_internal_and_valid():
+    items = mv.load_allow(ROOT / mv.ALLOW_DEFAULT)
+    assert items and all({"path", "kind", "why"} <= set(x) for x in items)
+    assert mv.classify(mv.ALLOW_DEFAULT)[0] == mv.INTERNAL   # 감사 판정 목록은 범용판에 안 감

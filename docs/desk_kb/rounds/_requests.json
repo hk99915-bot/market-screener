@@ -9937,7 +9937,18 @@
     "2026-11-01"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "audit",
+     "at": "2026-11-01T19:45+09:00",
+     "text": "review 7건 원문 확인 — 전부 오탐(뉴스·시세·연구 가정). 허용 목록 docs/refactor_v1_migrate_allow.json(문장 단위, migrate_v1 기본 로드) + 개인 북·원장 분석 6파일 제외 규칙 추가 → 재실행 review 0·종료코드 0. 판정표 rounds/2026-11-01/audit_mig_v1.md. screener/pb.py:198 주석 1곳은 개발 수정 요청.",
+     "voc": true
+    }
+   ],
+   "done": "2026-11-01",
+   "done_at": "2026-11-01T19:45+09:00",
+   "done_by": "감사"
   },
   {
    "id": "req-audit-b5d30579",
@@ -10101,6 +10112,24 @@
    "done": "2026-11-01",
    "done_at": "2026-11-01T10:35+09:00",
    "done_by": "개발"
+  },
+  {
+   "id": "req-dev-b420ff8d",
+   "from": "audit",
+   "to": "dev",
+   "text": "범용판 경계(mig-v1-audit): screener/pb.py:198 주석에서 개인 보유 상품 코드를 '보유'로 적은 표기를 일반 표현으로 바꿔 줘(11/6 스냅샷 전). 같이: privacy_history_audit 이 200k자 초과 줄을 건너뛰는 사각 — 분할 스캔, holding 지문에 universe 종목명 매핑(mig-v1-dev-b 묶음). 근거 rounds/2026-11-01/audit_mig_v1.md",
+   "opened": "2026-11-01",
+   "opened_at": "2026-11-01T19:45+09:00",
+   "due": "2026-11-05",
+   "via": "ask",
+   "seen": [
+    "2026-11-01"
+   ],
+   "checked": [
+    "2026-11-01"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   },
   {
    "id": "req-edu-9026d859",

@@ -48,6 +48,10 @@ RULES: list[tuple[str, str, str]] = [
     (r"^reports/(decisions\.json|battle_|practice_book|portfolios)", PERSONAL, "§3-1 개인 결재·모의 북"),
     (r"^(docs/office_world/|docs/desk_kb/(CHARACTERS|PERSONAS)\.md$|docs/desk_kb/bios|assets/avatars/|assets/office_world/)",
      PERSONAL, "§3-1 캐릭터 설정(PB 11/1)"),
+    # 감사 경계 검사 11/1(docs/desk_kb/rounds/2026-11-01/audit_mig_v1.md) — 개인 북·원장 분석(금액 없음, 보유 종목명·개인 매매 통계)
+    (r"^(reports/studies/2026-10-(23_frm_replay_2026-07|28_frm_core_lookthrough)\.md|"
+     r"docs/peer_reviews/2026-10-17_(integrity_audit|legacy_book|recheck)\.md|docs/valuation_notes/2026-10-17_cio_lab_review\.md)$",
+     PERSONAL, "감사 11/1 개인 북·원장 분석"),
     # §3 내부판(데스크 운영·겸이 발언·결재)
     (r"^docs/desk_kb/(industry_onepager_template|STANDARD)\.md$", PUBLIC, "§3 산업 한 장 틀·현업급 기준"),
     (r"^docs/desk_kb/", INTERNAL, "§3 데스크 KB·라운드·결재"),
@@ -278,6 +282,33 @@ def report(pl: Plan, forb: list[str], sc, hits, names, refs, wf, apply_info: str
     return "\n".join(L) + "\n", rc
 
 
+ALLOW_DEFAULT = "docs/refactor_v1_migrate_allow.json"   # 감사 확인 오탐(내부판 문서 — 스냅샷엔 안 감)
+
+
+def load_allow(p: Path) -> list[dict]:
+    import json
+    d = json.loads(p.read_text(encoding="utf-8"))
+    return d["items"] if isinstance(d, dict) else d
+
+
+def apply_allow(hits, allow: list[dict]) -> int:
+    """review 히트를 감사 판정 목록과 대조해 'allowed' 로. 항목 = {path, kind[, ctx][, preview]}.
+    preview(숫자 9 마스킹된 미리보기 앞부분)가 있으면 그 문장일 때만 — 봇이 매일 바꾸는 파일에서 새 문장이 묻히지 않게."""
+    n = 0
+    for h in hits:
+        if h.category != "review":
+            continue
+        for x in allow:
+            if (x["path"], x["kind"]) != (h.path, h.kind) or x.get("ctx", h.ctx) != h.ctx:
+                continue
+            if x.get("preview") and not h.preview.startswith(x["preview"]):
+                continue
+            h.category = "allowed"
+            n += 1
+            break
+    return n
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--rev", default="HEAD", help="원본 커밋(기본 HEAD)")
@@ -286,7 +317,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--private-dir", default="", help="pb-private 경로 — 실제 금액·보유 지문(값은 출력 안 함)")
     ap.add_argument("--pytest", action="store_true", help="--apply 뒤 범용판 트리에서 pytest 를 돌려 실패 파일 목록")
     ap.add_argument("--report", default="", help="보고서(markdown) 저장 경로")
-    ap.add_argument("--allow", default="", help="감사 데스크가 확인한 오탐 목록 JSON [{path, kind, why}] — 일치 review 를 'allowed' 로")
+    ap.add_argument("--allow", default="", help="감사 확인 오탐 JSON [{path, kind, ctx?, preview?, why}] — 일치 review 를 allowed 로 (없으면 docs/refactor_v1_migrate_allow.json 이 있을 때 그것)")
     ap.add_argument("--list", choices=(PUBLIC, INTERNAL, PERSONAL, ARCHIVE), help="해당 판 파일 목록만 출력")
     a = ap.parse_args(argv)
     if a.apply and not a.dest:
@@ -306,12 +337,9 @@ def main(argv: list[str] | None = None) -> int:
     forb = check_forbidden(pl)
     sc, hits, names, refs = scan(pl, blobs, Path(a.private_dir) if a.private_dir else None)
     wf = workflow_notes(pl, blobs)
-    if a.allow:
-        import json
-        allow = {(x["path"], x["kind"]) for x in json.loads(Path(a.allow).read_text(encoding="utf-8"))}
-        for h in hits:
-            if h.category == "review" and (h.path, h.kind) in allow:
-                h.category = "allowed"
+    allow_path = Path(a.allow) if a.allow else (ROOT / ALLOW_DEFAULT if (ROOT / ALLOW_DEFAULT).exists() else None)
+    if allow_path:
+        apply_allow(hits, load_allow(allow_path))
     apply_info, pytest_info = "dry-run(쓰지 않음)", "안 돌림"
     if a.apply:
         n = write_snapshot(pl, blobs, dest)
