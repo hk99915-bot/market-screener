@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-01 · 작업 380개 · 진행 8 · 검수 4 · 대기 67 · 보류 31 · 완료 270
+기준일 2026-11-01 · 작업 380개 · 진행 8 · 검수 4 · 대기 66 · 보류 31 · 완료 271
 
 **결재 대기 6:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이), `appr-staffing-b-1107` (겸이), `freeman-okr` (겸이 · 보류)
 
@@ -28,7 +28,7 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-11-03 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. / 11/01 PM 늦은 일 정리(유효): 유효: 11/02(월) 23:20 루프 기동·06:00 재개 실측 뒤 완료 |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (67)
+## 대기 (66)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -37,7 +37,6 @@
 | P0 | `mig-v1-snapshot` | 리팩토링 v1 스냅샷 최종: migrate_v1 막힘 0·범용판 pytest 0 확인 → 겸이에 '준비 끝' 한 줄 | 개발 | — | 2026-11-06 | `scripts/migrate_v1.py` | `mig-v1-audit`, `mig-v1-dev-b` |  |
 | P0 ⏫P1 10-21 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | PB | — | 2026-11-07 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). / 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증. / 10/24 운영 점검: 확인 요청 중(req-data-3df3066a, 회신 마감 2026-10-28) — 16:20 확정 종가 교체 검증 기록 없음 / 11/1 PB: 아직 아님 — fsc_close 금융위 종가 대조 '실호출 검증 전'(e38c8615c·9f2db7781). 검증 데스크 실호출 확인 후 완료 |
 | P0 | `mig-v1-cutover` | 리팩토링 v1 전환(겸이 직접): 옛 저장소 이름 변경·새 공개 저장소·시크릿 23·변수 6·Pages·토큰·GAS·ALERTS_OFF 넘기기·노트북 재설치 | 사용자 | — | 2026-11-07 | `docs/migration_checklist_1107.md` | `mig-v1-snapshot` | 체크리스트 docs/migration_checklist_1107.md · 롤백 = 변수 2개 5분 |
-| P1 ⏫ | `req-frm-60f6b60e` | [요청 승격] HF→리스크: 코어 충격 −34%(코스피 동일) 가정을 ISA 코어 룩스루 충격으로 재계산 — 11/15 전 | 리스크 | — | 2026-11-02 | — | — | 요청 2영업일 미처리(2026-10-22~2026-10-26) → 자동 승격(LOOP.md·watchdog). 처리 후 리스크 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-frm-60f6b60e`. |
 | P1 ⏫ | `req-data-b83a7ef9` | [요청 승격] 자산배분→데이터: 국내 상장 1배 원자재 ETF 대조(11/15 ISA 안건 입력): 광범위 원자재(BCOM/DBC형)·구리( | 데이터 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→자산배분: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-b83a7ef9`. |
 | P1 ⏫ | `req-dev-1a14cbe5` | [요청 승격] PB→개발: 영어·인적성 학습 측정 정상화(10/26 평가·교육 검토 반영, rounds/2026-10-26/eval.m | 개발 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-1a14cbe5`. |
 | P1 ⏫ | `req-dev-34d785aa` | [요청 승격] 유지보수→개발: [검수 intraday-bar 조건부] KR 통과 — 10/26 intraday_last 78회 갱신(09: | 개발 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-34d785aa`. |
@@ -136,7 +135,7 @@
 | P3 ⏫P1 10-21 | `audit-1017-minor` | 감사 경 L2~L13 묶음 (live 동시실행 대기·레짐 기본값/SEMI_CAP 덮임·prices join 순서·valuation asof·data_branch lease·us_accum 입력·accum 저장 크기·team ⛔·회고 커미터·flowq 테스트·detail rets 크기) | 개발 | 2026-10-17 | 2026-11-18 | `screener/pb.py`<br>`screener/prices.py`<br>`scripts/data_branch.py` | — | 표: docs/peer_reviews/2026-10-17_refactor_audit.md §2.2. 담당 열대로 데스크에 나눠 처리. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 착수 흔적 없음(커밋 0) — 10/24 마감 비현실 / 11/01 PM 늦은 일 정리(정리): 보류: 경 등급 묶음 — 리팩토링 이전(11/7~11)으로 파일 경로가 바뀜, 이전 뒤 남은 것만 |
 | P3 | `longterm-terminal-design` | 장기 검토: 29데스크 컨텍스트 효율·PostgreSQL POC·선택적 검색 설계안 2건 검토(설계 전용) | PM | 2026-10-25 | 2026-11-30 | private 전용 | — | 10/25 겸이 "이건 장기 검토용". 문서 자체가 READ-ONLY·승인 전 변경 금지 명시. 토큰 긴축 해제 뒤 PM·개발·데이터 검토 일정 잡기. |
 
-## 완료 (270)
+## 완료 (271)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -281,6 +280,7 @@
 | P1 ⏫ | `kr-accum` | 국장 외인·기관 매집 스캐너(전 종목 일별 수급 저장소) + 시장 거래대금 + 매집 신호 이벤트 스터디 | 퀀트 | 2026-10-17 | 2026-10-31 | `screener/accum.py`<br>`scripts/study_accum.py`<br>`.github/workflows/accum.yml`<br>`data/flows/*`<br>`reports/accum.json`<br>`reports/studies/accum_signals.json`<br>`apps-script/tab_market.html`<br>`tests/test_accum.py` | — | pykrx 하루 10콜 → data/flows/kr_inv_YYYY.parquet(2022~ 백필, 재개형). 평일 18:37 KST accum.yml. 화면: MARKET›KR ACCUM(getArchAt('accum','latest') 임시 — Code.gs/build_pages 잠금 풀리면 getAccum 전용 getter로). 남은 일: contracts.py 에 accum.json 계약 등록(개발 소관), 2022 하락장 백필 완료 후 스터디 재실행. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 2022 하락장 백필 완료 확인 → 스터디 재실행(contracts 등록은 끝남) / 11/01 PM 늦은 일 정리(완료): 근거: 8e25d624 백필 2022-01-03~ 완료·accum_signals 재실행, f9bca20f req-quant-a12cc3bb 닫음(10/27) |
 | P1 | `tg-pick-buttons` | 텔레그램 대결 '내 선택은?' 인라인 버튼 + GAS 웹훅 → pick 이슈 | 개발 | 2026-10-20 | 2026-10-31 | `screener/duel.py`<br>`screener/report.py`<br>`apps-script/TelegramHook.gs`<br>`.github/workflows/pick.yml`<br>`tests/test_tg_pick_buttons.py`<br>`docs/telegram_pick_buttons.md` | — | PB 확인: 이슈 프리필 링크가 폰 텔레그램 내장 브라우저에서 무반응(pick 이슈 0건). 버튼 callback_data 'p/날짜/K/U/코드/청산'(≤64B) → TelegramHook.gs doPost(URL ?s= 비밀값 — GAS 는 헤더를 못 읽음 · 누른 사람 id==TG_OWNER_CHAT_ID · CacheService 10분) → 주인 PAT 로 pick 이슈 → pick.yml 기록 + 결과 텔레그램. getUpdates/setWebhook 사용처 없음(두 저장소). 남은 일: 겸이 배포(GH_TOKEN 에 Issues 쓰기 추가·스크립트 속성·웹앱 배포·tgSetWebhook) 후 실제 클릭 1회 확인 → 완료. 절차 docs/telegram_pick_buttons.md. / 10/24 운영 점검: 검수 유지, 마감 2026-10-24→2026-10-31. 남은 것: 실제 텔레그램 버튼 클릭 1회 → pick 이슈 기록 확인(GAS 는 10/23 clasp 자동 배포) |
 | P1 ⏫ | `req-data-c77cf2b8` | [요청 승격] 애널→데이터: 418670(TIGER 글로벌AI사이버보안)·BUG 유니버스 편입 + 일봉·ATR·괴리율·거래대금 수집 —  | 데이터 | — | 2026-11-02 | — | — | 요청 2영업일 미처리(2026-10-22~2026-10-26) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-c77cf2b8`. |
+| P1 ⏫ | `req-frm-60f6b60e` | [요청 승격] HF→리스크: 코어 충격 −34%(코스피 동일) 가정을 ISA 코어 룩스루 충격으로 재계산 — 11/15 전 | 리스크 | — | 2026-11-02 | — | — | 요청 2영업일 미처리(2026-10-22~2026-10-26) → 자동 승격(LOOP.md·watchdog). 처리 후 리스크 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-frm-60f6b60e`. / 11/1 확정 — 코어 C안 룩스루 최악 −20.6%(2020-03형)·구속 계수 0.128·꼬리 0.206·K200 0.42, docs/desk_kb/rounds/2026-11-01/frm_core_lookthrough.md · 엔진 룩스루 교체는 11/6 개발 메모 |
 | P1 ⏫ | `req-life-7e0577df` | [요청 승격] PB→LIFE: PB→LIFE 인수인계 10/22: 30전 리팩토링 KPI 확정·금요일 리뷰 운영·경조사 예산안·시간 비율  | LIFE | — | 2026-11-02 | — | — | 요청 2영업일 미처리(2026-10-22~2026-10-26) → 자동 승격(LOOP.md·watchdog). 처리 후 LIFE 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-life-7e0577df`. / 11/1 LIFE 마감 — 상세 비공개 life/2026-11-01_handoff_close.md, 남은 건 겸이 응/아니 3개 |
 | P1 ⏫ | `req-pb-036d2f5b` | [요청 승격] 리스크→PB: 결재 필요: pb.py STRESS_SCENARIOS(결재 #3 구속 한도 −15%)에 2022형(주식·채권 | PB | — | 2026-11-02 | — | — | 요청 2영업일 미처리(2026-10-22~2026-10-26) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-036d2f5b`. |
 | P1 ⏫ | `req-pb-1a630ea8` | [요청 승격] 리스크→PB: 스트레스 −15% 위반 중 '스트레스를 키우는 매수 금지'를 rulebook 에 배선 (HF↔FRM 10/2 | PB | — | 2026-11-02 | — | — | 요청 2영업일 미처리(2026-10-22~2026-10-26) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-1a630ea8`. |
