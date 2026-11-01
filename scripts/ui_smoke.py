@@ -89,6 +89,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_intraday_bar(b, port)
         bad += await check_btc_detail(b, port)
         bad += await check_deriv_tv(b, port)
+        bad += await check_links(b, port)
         await b.close()
     return bad
 
@@ -1446,6 +1447,40 @@ async def check_deriv_tv(b, port: int) -> int:
     ok = bool(r0) and r0["ifr"] == 0 and r0["nv"] and r0["h"] >= 44 and "widgetembed" in r1["src"] and "K2I1" in r1["src"] and r1["nv"] \
         and r1["over"] <= 1 and r1["right"] <= 391 and not errs
     print(f"{'OK ' if ok else 'BAD'} 파생 K200 선물 차트(390px) 접힘={r0} 펼침={'O' if 'K2I1' in r1['src'] else 'X'} 넘침={r1['over']}/{r1['right']:.0f}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    await ctx.close()
+    return not ok
+
+
+async def check_links(b, port: int) -> int:
+    """RESEARCH › 관계도(11/1 겸이): ?v=links 바로 열기 · 390px 원(노드)·곡선 화살표·범례 · 원끼리 겹침 0 · 그림이 패널 안 · 그룹 칩·버튼 높이 ≥44(터치) ·
+    원 탭 → 그 회사 관계만 강조(hi>0, 나머지 dim) + 목록이 그 회사 관계로 줄고 '전체 보기'로 복귀. 실제 파일 없으면 예시 fixture(배지 '예시 데이터')."""
+    ctx = await b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = await ctx.new_page()
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.goto(f"http://127.0.0.1:{port}/index.html?v=links", wait_until="load")
+    await pg.wait_for_timeout(3000)
+    J = lambda js: pg.evaluate(js)   # noqa: E731
+    r0 = await J("""(()=>{ const s=document.querySelector('.lk-svg'); if(!s) return {v:view, err:(document.querySelector('#root .err')||{}).textContent||''};
+      const pn=s.closest('.p').getBoundingClientRect(), sr=s.getBoundingClientRect(), cs=[...s.querySelectorAll('.nd circle.c')].map(c=>c.getBoundingClientRect());
+      let ov=0; for(let i=0;i<cs.length;i++) for(let j=i+1;j<cs.length;j++){ const a=cs[i], b=cs[j]; const d=Math.hypot((a.x+a.width/2)-(b.x+b.width/2),(a.y+a.height/2)-(b.y+b.height/2)); if(d<a.width/2+b.width/2-1) ov++; }
+      const btn=[...document.querySelectorAll('.lk-bar button')].map(x=>x.getBoundingClientRect().height);
+      return {v:view, n:cs.length, e:s.querySelectorAll('path.e').length, leg:document.querySelectorAll('.lk-leg .lk-sw').length, ov, inside:sr.left>=pn.left-1&&sr.right<=pn.right+1,
+        btn:Math.min(...btn), rows:document.querySelectorAll('.lk-it').length, over:document.documentElement.scrollWidth-document.documentElement.clientWidth}; })()""")
+    ok0 = r0.get("v") == "links" and r0.get("n", 0) >= 3 and r0.get("e", 0) >= 2 and r0.get("leg", 0) >= 4 and r0.get("ov") == 0 and r0.get("inside") \
+        and r0.get("btn", 0) >= 44 and r0.get("rows", 0) == r0.get("e") and r0.get("over", 9) <= 1
+    r1 = {}
+    if ok0:
+        hub = await J("""(()=>{ const d={}; [...document.querySelectorAll('.lk-svg .nd')].forEach(g=>d[g.dataset.lk]=0); return Object.keys(d)[0]; })()""")
+        await pg.click(f'.lk-svg .nd[data-lk="{hub}"]')
+        await pg.wait_for_timeout(400)
+        r1 = await J("""(()=>({hi:document.querySelectorAll('.lk-svg path.e.hi').length, dim:document.querySelectorAll('.lk-svg path.e.dim').length,
+          on:document.querySelectorAll('.lk-svg .nd.on').length, rows:document.querySelectorAll('.lk-it').length, back:!!document.querySelector('.lk-hd button[data-lk=""]')}))()""")
+        await pg.click('.lk-hd button[data-lk=""]')
+        await pg.wait_for_timeout(300)
+        r1["after"] = await J("document.querySelectorAll('.lk-svg path.e.hi,.lk-svg path.e.dim').length")
+    ok = ok0 and r1.get("hi", 0) >= 1 and r1.get("on") == 1 and r1.get("rows") == r1.get("hi") and r1.get("back") and r1.get("after") == 0 and not errs
+    print(f"{'OK ' if ok else 'BAD'} 관계도(390px) {r0} 선택={r1}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await ctx.close()
     return not ok
 

@@ -1,0 +1,50 @@
+{
+ "_example": "예시 — 프론트 개발·테스트용 작은 표본(reports/company_links.json 공통 스키마). 기업가치·규모는 반올림한 예시 값이고 관계는 언론 보도 수준(2차·검증전) — 실제 판단에 쓰지 않는다. 실제 파일은 애널 데스크가 만든다.",
+ "asof": "2026-11-01",
+ "groups": [
+  {"key": "ai_circle", "name": "AI 순환 거래", "desc": "엔비디아·오픈AI·클라우드 사이 투자↔구매가 맞물린 구조 (예시)"},
+  {"key": "kr_semis", "name": "국내 반도체 공급망", "desc": "HBM·장비 공급 사슬 (예시)"},
+  {"key": "kr_heavy", "name": "전력·조선·방산", "desc": "지분·공급 관계 (예시)"}
+ ],
+ "nodes": [
+  {"id": "NVDA", "name": "엔비디아", "mkt": "US", "mc_usd": 4.5e12, "mc_asof": "예시", "chain": null, "groups": ["ai_circle", "kr_semis"], "listed": true},
+  {"id": "OPENAI", "name": "오픈AI", "mkt": "PRIVATE", "mc_usd": 5.0e11, "mc_asof": "예시(언론 보도 기업가치)", "chain": null, "groups": ["ai_circle", "kr_semis"], "listed": false},
+  {"id": "MSFT", "name": "마이크로소프트", "mkt": "US", "mc_usd": 3.8e12, "mc_asof": "예시", "chain": null, "groups": ["ai_circle"], "listed": true},
+  {"id": "ORCL", "name": "오라클", "mkt": "US", "mc_usd": 7.5e11, "mc_asof": "예시", "chain": null, "groups": ["ai_circle"], "listed": true},
+  {"id": "AMD", "name": "AMD", "mkt": "US", "mc_usd": 3.5e11, "mc_asof": "예시", "chain": null, "groups": ["ai_circle"], "listed": true},
+  {"id": "AVGO", "name": "브로드컴", "mkt": "US", "mc_usd": 1.6e12, "mc_asof": "예시", "chain": null, "groups": ["ai_circle"], "listed": true},
+  {"id": "CRWV", "name": "코어위브", "mkt": "US", "mc_usd": 6.0e10, "mc_asof": "예시", "chain": null, "groups": ["ai_circle"], "listed": true},
+  {"id": "XAI", "name": "xAI", "mkt": "PRIVATE", "mc_usd": null, "mc_asof": null, "chain": null, "groups": ["ai_circle"], "listed": false},
+  {"id": "005930", "name": "삼성전자", "mkt": "KR", "mc_usd": 4.0e11, "mc_asof": "예시", "chain": "memory", "groups": ["kr_semis"], "listed": true},
+  {"id": "000660", "name": "SK하이닉스", "mkt": "KR", "mc_usd": 2.5e11, "mc_asof": "예시", "chain": "memory", "groups": ["kr_semis"], "listed": true},
+  {"id": "042700", "name": "한미반도체", "mkt": "KR", "mc_usd": 8.0e9, "mc_asof": "예시", "chain": "equipment", "groups": ["kr_semis"], "listed": true},
+  {"id": "012450", "name": "한화에어로스페이스", "mkt": "KR", "mc_usd": 3.5e10, "mc_asof": "예시", "chain": null, "groups": ["kr_heavy"], "listed": true},
+  {"id": "042660", "name": "한화오션", "mkt": "KR", "mc_usd": 2.0e10, "mc_asof": "예시", "chain": null, "groups": ["kr_heavy"], "listed": true},
+  {"id": "009540", "name": "HD한국조선해양", "mkt": "KR", "mc_usd": 1.8e10, "mc_asof": "예시", "chain": null, "groups": ["kr_heavy"], "listed": true},
+  {"id": "329180", "name": "HD현대중공업", "mkt": "KR", "mc_usd": 2.5e10, "mc_asof": "예시", "chain": null, "groups": ["kr_heavy"], "listed": true},
+  {"id": "267260", "name": "HD현대일렉트릭", "mkt": "KR", "mc_usd": 1.5e10, "mc_asof": "예시", "chain": null, "groups": ["kr_heavy"], "listed": true}
+ ],
+ "edges": [
+  {"from": "NVDA", "to": "OPENAI", "type": "investment", "size": "최대 1,000억달러(단계 투자 의향)", "why": "데이터센터 구축 단계별 지분 투자 의향 발표 (예시)", "src": "2차(언론 보도) — 예시", "status": "2차", "date": "2025-09", "groups": ["ai_circle"]},
+  {"from": "ORCL", "to": "OPENAI", "type": "service", "size": "약 3,000억달러(5년 클라우드 계약 보도)", "why": "컴퓨팅 용량 공급 계약 (예시)", "src": "2차(언론 보도) — 예시", "status": "2차", "date": "2025-09", "groups": ["ai_circle"]},
+  {"from": "NVDA", "to": "ORCL", "type": "hardware", "size": null, "why": "데이터센터 GPU 공급 (예시)", "src": "2차(언론 보도) — 예시", "status": "검증전", "date": "2025", "groups": ["ai_circle"]},
+  {"from": "MSFT", "to": "OPENAI", "type": "investment", "size": "누적 약 130억달러", "why": "초기·후속 지분 투자 (예시)", "src": "1차(MSFT 10-K) — 예시", "status": "1차", "date": "2025-06", "groups": ["ai_circle"]},
+  {"from": "MSFT", "to": "OPENAI", "type": "service", "size": null, "why": "애저 클라우드 컴퓨팅 제공 (예시)", "src": "1차(MSFT 10-K) — 예시", "status": "1차", "date": "2025-06", "groups": ["ai_circle"]},
+  {"from": "AMD", "to": "OPENAI", "type": "hardware", "size": "6GW 규모 GPU", "why": "다년 GPU 공급 계약 (예시)", "src": "1차(AMD 8-K) — 예시", "status": "1차", "date": "2025-10", "groups": ["ai_circle"]},
+  {"from": "AMD", "to": "OPENAI", "type": "investment", "size": "최대 1.6억주 워런트", "why": "공급 계약과 묶인 지분 워런트 부여 (예시)", "src": "1차(AMD 8-K) — 예시", "status": "1차", "date": "2025-10", "groups": ["ai_circle"]},
+  {"from": "AVGO", "to": "OPENAI", "type": "hardware", "size": "10GW 맞춤 가속기", "why": "맞춤 AI 칩 공동 개발·공급 (예시)", "src": "2차(언론 보도) — 예시", "status": "2차", "date": "2025-10", "groups": ["ai_circle"]},
+  {"from": "NVDA", "to": "CRWV", "type": "investment", "size": "지분 약 5~7%", "why": "초기 지분 투자 (예시)", "src": "1차(CRWV S-1) — 예시", "status": "1차", "date": "2025-03", "groups": ["ai_circle"]},
+  {"from": "NVDA", "to": "CRWV", "type": "hardware", "size": null, "why": "GPU 공급 (예시)", "src": "1차(CRWV S-1) — 예시", "status": "1차", "date": "2025-03", "groups": ["ai_circle"]},
+  {"from": "CRWV", "to": "OPENAI", "type": "service", "size": "약 220억달러(누적 계약 보도)", "why": "GPU 클라우드 용량 계약 (예시)", "src": "2차(언론 보도) — 예시", "status": "2차", "date": "2025-09", "groups": ["ai_circle"]},
+  {"from": "NVDA", "to": "XAI", "type": "investment", "size": null, "why": "자금 조달 참여 보도 (예시)", "src": "2차(언론 보도) — 예시", "status": "검증전", "date": "2025", "groups": ["ai_circle"]},
+  {"from": "000660", "to": "NVDA", "type": "supply", "size": null, "why": "HBM 주 공급사 (예시)", "src": "2차(언론 보도) — 예시", "status": "2차", "date": "2025", "groups": ["kr_semis"]},
+  {"from": "005930", "to": "NVDA", "type": "supply", "size": null, "why": "HBM3E 품질 검증·공급 보도 (예시)", "src": "2차(언론 보도) — 예시", "status": "검증전", "date": "2025", "groups": ["kr_semis"]},
+  {"from": "042700", "to": "000660", "type": "hardware", "size": "매출 비중 상위(공시 수주 기준)", "why": "HBM 적층용 TC 본더 공급 (예시)", "src": "1차(DART 단일판매·공급계약) — 예시", "status": "1차", "date": "2025", "groups": ["kr_semis"]},
+  {"from": "000660", "to": "OPENAI", "type": "supply", "size": null, "why": "대규모 데이터센터용 메모리 공급 의향서 보도 (예시)", "src": "2차(언론 보도) — 예시", "status": "검증전", "date": "2025-10", "groups": ["kr_semis"]},
+  {"from": "005930", "to": "OPENAI", "type": "supply", "size": null, "why": "대규모 데이터센터용 메모리 공급 의향서 보도 (예시)", "src": "2차(언론 보도) — 예시", "status": "검증전", "date": "2025-10", "groups": ["kr_semis"]},
+  {"from": "012450", "to": "042660", "type": "investment", "size": null, "why": "그룹 내 지분 투자 (예시)", "src": "1차(DART 지분 공시) — 예시", "status": "1차", "date": "2025", "groups": ["kr_heavy"]},
+  {"from": "009540", "to": "329180", "type": "investment", "size": null, "why": "중간지주 → 자회사 지분 (예시)", "src": "1차(DART 사업보고서) — 예시", "status": "1차", "date": "2025", "groups": ["kr_heavy"]},
+  {"from": "267260", "to": "329180", "type": "supply", "size": null, "why": "선박용 배전 설비 공급 (예시)", "src": "검증전 — 예시", "status": "검증전", "date": "2025", "groups": ["kr_heavy"]},
+  {"from": "009540", "to": "267260", "type": "jv", "size": null, "why": "같은 그룹 계열 (예시)", "src": "검증전 — 예시", "status": "검증전", "date": "2025", "groups": ["kr_heavy"]}
+ ]
+}

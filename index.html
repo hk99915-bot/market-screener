@@ -87,6 +87,8 @@
     getCooldown: () => get('ops/cooldown.json'),
     getRenego: () => get('ops/renego.json'),
     getLibrary: () => get('reports/library.json'),   // RESEARCH › 서고 (req-dev-16bbc8e5) — Code.gs getLibrary 와 짝
+    getCompanyLinks: () => get('reports/company_links.json'),   // RESEARCH › 관계도 (11/1 겸이, 애널 데이터) — Code.gs getCompanyLinks 와 짝(개발 ask)
+    getCompanyLinksSample: () => get('tests/fixtures/company_links_sample.json'),   // 실제 파일 없을 때 로컬 개발·ui_smoke 용 예시(Pages 사이트엔 tests/ 제외라 404 → '데이터 없음' 안내)
     getLibraryDoc: (p) => /^(docs\/desk_kb\/rounds\/[\w.\-\/]+\.md|reports\/studies\/[\w.\-]+\.(md|json)|docs\/valuation_notes\/[\w.\-]+\.md|docs\/peer_reviews\/[\w.\-]+\.md)$/.test(String(p)) && String(p).indexOf('..') < 0 ? get(p) : Promise.reject(new Error('서고 허용 경로 아님')),
     // 🔒 비공개 사담방 — 공개 Pages 엔 토큰이 없다. 10/23 겸이 선택: "이 폰에만 토큰 저장" → 이 기기 브라우저 localStorage('pbPrivTok')에만 두고
     //    GitHub contents API 로 직접 읽는다(저장소·채팅·서버로 안 감). 권장 토큰: fine-grained · pb-private 하나 · Contents 읽기 전용 · 만료 있음.
@@ -2261,6 +2263,168 @@ function libMd(md,base){
 }
 document.addEventListener('click',e=>{ if(view!=='lib') return; const t=e.target.closest('[data-lp]'); if(!t) return; e.preventDefault(); libOpen(t.dataset.lp); });
 document.addEventListener('keydown',e=>{ if(view!=='lib'||(e.key!=='Enter'&&e.key!==' ')) return; const t=e.target.closest&&e.target.closest('.lib-it[data-lp],.lib-pin[data-lp]'); if(!t) return; e.preventDefault(); libOpen(t.dataset.lp); });
+</script>
+<style>
+/* RESEARCH › 관계도 (11/1 겸이 「이런 식의 섹터나 기업 구조도 좀, 누가 누구랑 사업적으로 주고받는지, 터미널에」 — Bloomberg 'Circular AI Deals' 형식)
+   관계 유형 색은 상승(--up 빨강)·하락(--down 파랑)·판정(--ok/--bad)과 겹치지 않는 4색 + 선 모양(실선·파선·점선)으로 이중 표기. 엑셀 스킨은 진한 값으로 바꾼다. */
+.lk{--lk-inv:#3ecf8e;--lk-svc:#b48cff;--lk-hw:#e8d44d;--lk-sup:#35d6e6;--lk-etc:var(--text-3)}
+html.xl .lk{--lk-inv:#1e7b4f;--lk-svc:#6b3fb5;--lk-hw:#8a6d00;--lk-sup:#0b7285;--lk-etc:#595959}
+.lk-bar{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px 0}
+.lk-bar button{background:none;border:1px solid var(--line);color:var(--text-2);font:inherit;font-size:var(--fs-2);min-height:44px;padding:0 12px;border-radius:3px;cursor:pointer}
+.lk-bar button.on{color:var(--accent);border-color:var(--accent)}
+.lk-desc{font-size:var(--fs-1);color:var(--text-2);margin:0 0 6px 0;overflow-wrap:anywhere}
+.lk-ex{display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid var(--accent);color:var(--accent);border-radius:3px;font-size:var(--fs-1);font-weight:700}
+.lk-svg{display:block;width:100%;height:auto;margin:0 auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.lk-svg .nd{cursor:pointer}
+.lk-svg .nd circle.c{fill:var(--raised);stroke:var(--text-2);stroke-width:1.2}
+.lk-svg .nd.pv circle.c{stroke-dasharray:4 3}
+.lk-svg .nd.on circle.c{stroke:var(--accent);stroke-width:2.4}
+.lk-svg .nd.dim{opacity:.28}
+.lk-svg .nd text{fill:var(--text);font-family:var(--font-text);font-size:var(--fs-1);text-anchor:middle;pointer-events:none}
+.lk-svg .nd text{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}   /* 이름표 뒤 바탕색 테 — 지나가는 화살표 위에서도 읽힘 */
+.lk-svg .nd text.v{fill:var(--text-2);font-family:var(--font-num);stroke:var(--raised)}
+.lk-svg path.e{fill:none;stroke-width:1.6}
+.lk-svg path.e.dim{opacity:.1}
+.lk-svg path.e.hi{stroke-width:2.6}
+.lk-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs-1);color:var(--text-2);margin:8px 0 0 0;align-items:center}
+.lk-leg span{display:inline-flex;align-items:center;gap:5px}
+.lk-sw{display:inline-block;width:22px;height:0;border-top:2px solid}
+.lk-inv{border-color:var(--lk-inv);color:var(--lk-inv)} .lk-svc{border-color:var(--lk-svc);color:var(--lk-svc)} .lk-hw{border-color:var(--lk-hw);color:var(--lk-hw)} .lk-sup{border-color:var(--lk-sup);color:var(--lk-sup)} .lk-etc{border-color:var(--lk-etc);color:var(--lk-etc)}
+.lk-sw.lk-svc{border-top-style:dashed} .lk-sw.lk-sup{border-top-style:dotted} .lk-sw.lk-etc{border-top-style:dashed}
+.lk-hd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 6px 0}
+.lk-hd b{font-size:var(--fs-3)}
+.lk-hd button{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:none;color:var(--text);font:inherit;font-size:var(--fs-2);cursor:pointer}
+.lk-it{padding:8px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.lk-l1{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:var(--fs-2)}
+.lk-l1 .who{font-weight:700;cursor:pointer;color:var(--text);min-height:24px}
+.lk-l1 .ty{font-size:var(--fs-1);font-weight:700}
+.lk-l1 .sz{color:var(--text)}
+.lk-l2{font-size:var(--fs-2);color:var(--text);margin-top:2px;line-height:1.5}
+.lk-l3{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:var(--fs-1);color:var(--text-2);margin-top:3px}
+.lk-st{display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid var(--line);border-radius:3px;font-weight:700}
+.lk-st.s1{color:var(--ok);border-color:var(--ok)} .lk-st.s2{color:var(--text-2);border-color:var(--text-2)} .lk-st.s0{color:var(--text-3);border-style:dashed}
+.lk-l3 a{cursor:pointer;color:var(--cyan)}
+</style>
+<script>
+/* ── RESEARCH › 관계도 (11/1 겸이) — 데이터 = reports/company_links.json (애널 데스크, 공통 스키마: groups·nodes·edges).
+   GAS getCompanyLinks(Code.gs — 개발 ask) · Pages 정적 파일. 실제 파일이 없으면(404) 로컬 개발용 tests/fixtures/company_links_sample.json(예시)으로 대체하고 '예시' 배지.
+   그림 = 순수 SVG(외부 라이브러리 없음). 원 면적 ∝ 기업가치(mc_usd), 비상장(PRIVATE) 점선 테두리, 화살표 = 돈·제품이 가는 방향(투자자→피투자, 공급자→고객).
+   배치 = 결정적 간이 force(같은 데이터면 같은 그림) + 원·이름표 겹침 밀어내기 + 화면 안 고정. */
+let LK=null;
+const LKV=(()=>{ let g=null; try{ g=localStorage.getItem('mt_links_g'); }catch(e){} return {g, sel:null}; })();
+const LK_TY={investment:['lk-inv','투자'],service:['lk-svc','서비스'],hardware:['lk-hw','하드웨어'],supply:['lk-sup','공급'],customer:['lk-sup','고객(매출처)'],license:['lk-etc','라이선스'],jv:['lk-etc','합작·계열']};
+const LK_DASH={'lk-svc':'6 4','lk-sup':'2 3','lk-etc':'5 3'};
+const lkTy=t=>LK_TY[t]||['lk-etc',String(t||'기타')];
+const lkA=s=>esc(String(s==null?'':s)).replace(/"/g,'&quot;');
+function lkLoad(){
+  LK={_loading:true};
+  const done=(t,ex)=>{ try{ LK=JSON.parse(t); if(ex) LK._example=LK._example||'예시'; LK._by={}; (LK.nodes||[]).forEach(n=>LK._by[n.id]=n); }catch(e){ LK={err:'관계도 데이터 파싱 실패'}; } if(view==='links') render(); };
+  const miss=m=>{ LK={err:m}; if(view==='links') render(); };
+  const R=google.script.run;
+  if(typeof R.getCompanyLinks!=='function') return miss('Code.gs 에 getCompanyLinks 가 아직 없습니다 (개발 반영 대기)');
+  R.withSuccessHandler(t=>done(t,false)).withFailureHandler(e=>{ const nf=/404/.test(e&&e.message);
+    if(nf&&typeof R.getCompanyLinksSample==='function') return R.withSuccessHandler(t=>done(t,true)).withFailureHandler(()=>miss('관계도 데이터가 아직 없습니다 (reports/company_links.json — 애널 데스크 생성 중)')).getCompanyLinksSample();
+    miss(nf?'관계도 데이터가 아직 없습니다 (reports/company_links.json — 애널 데스크 생성 중)':String(e&&e.message||e)); }).getCompanyLinks();
+}
+function lkGroup(){ const gs=LK.groups||[]; if(!gs.length) return null; return gs.find(g=>g.key===LKV.g)||gs[0]; }
+function lkSub(gk){   // 그룹의 노드·엣지 (엣지 groups 우선, 없으면 양 끝 노드가 그룹에 속하면)
+  const inG=n=>(n.groups||[]).includes(gk);
+  const E=(LK.edges||[]).filter(e=>LK._by[e.from]&&LK._by[e.to]&&(e.groups?e.groups.includes(gk):(inG(LK._by[e.from])&&inG(LK._by[e.to]))));
+  const ids=new Set((LK.nodes||[]).filter(inG).map(n=>n.id)); E.forEach(e=>{ ids.add(e.from); ids.add(e.to); });
+  return {N:[...ids].map(i=>LK._by[i]).filter(Boolean), E};
+}
+function lkMc(v){ if(v==null||!isFinite(v)) return ''; return v>=1e12?'$'+(v/1e12).toFixed(1)+'T':v>=1e9?'$'+Math.round(v/1e9)+'B':'$'+Math.round(v/1e6)+'M'; }
+const lkShort=s=>String(s||'').replace(/\s*\([^)]*\)\s*$/,'')||String(s||'');   // 그림 이름표는 끝 괄호 뺌(목록·툴팁엔 전체)
+function lkTw(s){ let w=0; for(const ch of String(s)) w+=/[ᄀ-퟿]/.test(ch)?11:6.6; return w; }
+function lkLayout(N,E,W,H){
+  const mx=Math.max(1,...N.map(n=>+n.mc_usd||0)), rmin=N.length>18?10:13, rmax=Math.max(24,Math.min(W,H)*(N.length>18?0.09:0.12));
+  const P=N.map(n=>({id:n.id, n, r:n.mc_usd>0?rmin+(rmax-rmin)*Math.sqrt(n.mc_usd/mx):rmin, hw:lkTw(lkShort(n.name))/2+2}));
+  const deg={}; E.forEach(e=>{ deg[e.from]=(deg[e.from]||0)+1; deg[e.to]=(deg[e.to]||0)+1; });   // 관계가 가장 많은 회사를 가운데(허브)
+  const ord=[...P].sort((a,b)=>(deg[b.id]||0)-(deg[a.id]||0)||b.r-a.r||String(a.id).localeCompare(String(b.id))), cx=W/2, cy=H/2;
+  ord.forEach((p,k)=>{ if(k===0&&ord.length>2){ p.x=cx; p.y=cy; return; } const a=-Math.PI/2+2*Math.PI*(k-(ord.length>2?1:0))/Math.max(1,ord.length-(ord.length>2?1:0)); p.x=cx+Math.cos(a)*W*0.42; p.y=cy+Math.sin(a)*H*0.42; });
+  const by={}; P.forEach(p=>by[p.id]=p);
+  const L=E.map(e=>[by[e.from],by[e.to]]).filter(x=>x[0]&&x[1]&&x[0]!==x[1]);
+  const clamp=p=>{ const ex=Math.max(p.r,p.hw)+4; p.x=Math.min(W-ex,Math.max(ex,p.x)); p.y=Math.min(H-p.r-20,Math.max(p.r+4,p.y)); };
+  // Fruchterman–Reingold: 반발 k²/d · 인력 d²/k (k = 칸 면적÷노드 수의 제곱근) · 온도 감소. 후반엔 원·이름표 겹침 밀어내기
+  const K=Math.sqrt(W*H/Math.max(1,P.length))*0.5, IT=400;
+  for(let it=0;it<IT;it++){ const T=Math.max(1.5,W/9*(1-it/IT)); P.forEach(p=>{ p.dx=0; p.dy=0; });
+    for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j]; let dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy)||0.01, f=K*K/d; a.dx+=dx/d*f; a.dy+=dy/d*f; b.dx-=dx/d*f; b.dy-=dy/d*f; }
+    for(const [a,b] of L){ const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy)||0.01, f=d*d/K*0.5; a.dx-=dx/d*f; a.dy-=dy/d*f; b.dx+=dx/d*f; b.dy+=dy/d*f; }
+    for(const p of P){ p.dx+=(cx-p.x)*0.002*K; p.dy+=(cy-p.y)*0.002*K; const m=Math.hypot(p.dx,p.dy)||1; p.x+=p.dx/m*Math.min(m,T); p.y+=p.dy/m*Math.min(m,T); clamp(p); }
+    if(it>IT*0.4) for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j];
+      // 원+이름표를 상자 하나로(가로 = 원·이름표 중 넓은 쪽, 세로 = 원 위 ~ 이름표 아래) 보고 겹치면 덜 겹친 축으로 밀어낸다
+      const aw=Math.max(a.r,a.hw)+3, bw=Math.max(b.r,b.hw)+3, ox=aw+bw-Math.abs(a.x-b.x), oy=(a.y<b.y?(a.y+a.r+17)-(b.y-b.r):(b.y+b.r+17)-(a.y-a.r))+3;
+      if(ox>0&&oy>0){ if(ox<oy){ const s=(a.x<=b.x?-1:1)*ox/2; a.x+=s; b.x-=s; } else { const s=(a.y<=b.y?-1:1)*oy/2; a.y+=s; b.y-=s; } clamp(a); clamp(b); } } }
+  // 빈 띠 없애기: 내용(원 위 ~ 이름표 아래) 세로 범위로 그림 높이를 줄이고 위 여백 4px 로 맞춘다
+  const top=Math.min(...P.map(p=>p.y-p.r)), bot=Math.max(...P.map(p=>p.y+p.r+17));
+  P.forEach(p=>p.y+=4-top); by._h=Math.ceil(bot-top+8);
+  return by;
+}
+function lkSvg(N,E,W,H,sel){
+  const by=lkLayout(N,E,W,H), H2=Math.min(H,by._h||H), pair={};
+  const on=e=>!sel||e.from===sel||e.to===sel, nb=new Set(sel?[sel]:[]); if(sel) E.forEach(e=>{ if(e.from===sel) nb.add(e.to); if(e.to===sel) nb.add(e.from); });
+  const marks=['lk-inv','lk-svc','lk-hw','lk-sup','lk-etc'].map(c=>`<marker id="m-${c}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L10,5L0,10z" class="${c}" style="fill:var(--${c})"/></marker>`).join('');
+  const edges=E.map(e=>{ const a=by[e.from], b=by[e.to]; if(!a||!b||a===b) return '';
+    const key=[e.from,e.to].sort().join('|'), k=pair[key]=(pair[key]||0)+1, sgn=e.from<e.to?1:-1;
+    const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1, bend=(0.12+0.16*(k-1))*sgn, mx=(a.x+b.x)/2-dy/d*bend*d, my=(a.y+b.y)/2+dx/d*bend*d;
+    const s=(p,r)=>{ const ux=mx-p.x, uy=my-p.y, ul=Math.hypot(ux,uy)||1; return [p.x+ux/ul*r, p.y+uy/ul*r]; };
+    const [x1,y1]=s(a,a.r+1), [x2,y2]=s(b,b.r+3), c=lkTy(e.type)[0];
+    return `<path class="e ${c}${sel?(on(e)?' hi':' dim'):''}" d="M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" style="stroke:var(--${c})" ${LK_DASH[c]?`stroke-dasharray="${LK_DASH[c]}"`:''} marker-end="url(#m-${c})"><title>${esc(a.n.name)} → ${esc(b.n.name)} · ${esc(lkTy(e.type)[1])}${e.size?' · '+esc(e.size):''}</title></path>`; }).join('');
+  const nodes=N.map(n=>{ const p=by[n.id]; if(!p) return ''; const v=lkMc(n.mc_usd);
+    return `<g class="nd${n.mkt==='PRIVATE'||n.mkt==='GOV'||n.listed===false||!(n.mc_usd>0)?' pv':''}${sel===n.id?' on':''}${sel&&!nb.has(n.id)?' dim':''}" data-lk="${lkA(n.id)}" role="button" tabindex="0" aria-label="${lkA(n.name)}">
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${Math.max(p.r,22).toFixed(1)}" fill="transparent" stroke="none"/>
+      <circle class="c" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.r.toFixed(1)}"/>
+      ${p.r>=22&&v?`<text class="v" x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}">${v}</text>`:''}
+      <text x="${p.x.toFixed(1)}" y="${(p.y+p.r+13).toFixed(1)}">${esc(lkShort(n.name))}</text><title>${esc(n.name)}${v?' · '+v:' · 기업가치 미확인'}</title></g>`; }).join('');
+  return `<svg class="lk-svg" viewBox="0 0 ${W} ${H2}" width="${W}" height="${H2}" style="max-width:${W}px" role="img" aria-label="기업 관계도"><defs>${marks}</defs><rect data-lk="" x="0" y="0" width="${W}" height="${H2}" fill="transparent"/>${edges}${nodes}</svg>`;
+}
+function lkCanOpen(n){ return n&&n.listed!==false&&((n.mkt==='KR'&&/^\d{6}$/.test(n.id))||(n.mkt==='US'&&/^[A-Z.\-]{1,6}$/.test(n.id))); }
+function lkStatus(s){ const c=s==='1차'?'s1':s==='2차'?'s2':'s0'; return `<span class="lk-st ${c}" title="출처 등급">${esc(s||'검증전')}</span>`; }
+function lkRow(e,sel){
+  const a=LK._by[e.from], b=LK._by[e.to], [c,l]=lkTy(e.type), out=sel&&e.from===sel, other=sel?(out?b:a):null;
+  const who=sel?`<span class="mu">${out?'나감 →':'← 들어옴'}</span> <span class="who" data-lk="${lkA(other.id)}" role="button" tabindex="0">${esc(other.name)}</span>`
+    :`<span class="who" data-lk="${lkA(a.id)}" role="button" tabindex="0">${esc(a.name)}</span><span class="mu">→</span><span class="who" data-lk="${lkA(b.id)}" role="button" tabindex="0">${esc(b.name)}</span>`;
+  const det=[other||null].concat(sel?[]:[a,b]).filter(n=>n&&lkCanOpen(n));
+  return `<div class="lk-it"><div class="lk-l1">${who}<span class="ty ${c}">${esc(l)}</span>${e.size?`<span class="sz">${esc(e.size)}</span>`:'<span class="mu">규모 미확인</span>'}</div>
+    ${e.why?`<div class="lk-l2">${esc(e.why)}</div>`:''}
+    <div class="lk-l3">${lkStatus(e.status)}<span>${esc(e.src||'출처 없음')}</span>${e.date?`<span>${esc(e.date)}</span>`:''}${det.map(n=>`<a data-od="${lkA(n.id)}" data-mk="${lkA(n.mkt)}">${esc(n.name)} 상세 ›</a>`).join('')}</div></div>`;
+}
+function linksView(){
+  if(!LK){ lkLoad(); if(LK&&LK._loading) return '<div class="load">LOADING …</div>'; }
+  if(LK._loading) return '<div class="load">LOADING …</div>';
+  if(LK.err) return `<div class="grid"><div class="p c12" data-panel><h2>관계도</h2><div class="b"><div class="err">${esc(LK.err)}</div></div></div></div>`;
+  const g=lkGroup(); if(!g) return `<div class="grid"><div class="p c12" data-panel><h2>관계도</h2><div class="b"><div class="mu">그룹 없음 (reports/company_links.json groups)</div></div></div></div>`;
+  const {N,E}=lkSub(g.key); if(LKV.sel&&!N.some(n=>n.id===LKV.sel)) LKV.sel=null;
+  const sel=LKV.sel, sn=sel&&LK._by[sel];
+  const cw=Math.max(288,Math.min(900,(document.documentElement.clientWidth||390)-2*16-2*9-2));
+  const W=Math.round(cw), H=Math.round(Math.max(340,Math.min(1100,W*(N.length>9?0.75+N.length*0.045:1.0))));   // 노드가 많으면 세로로 길게(폰 390 = 25개 ≈ 1.9배)
+  const cnt=k=>lkSub(k).E.length;
+  const types=[...new Set(E.map(e=>lkTy(e.type)[0]))], legT=['lk-inv','lk-svc','lk-hw','lk-sup'].concat(types.includes('lk-etc')?['lk-etc']:[]);
+  const legName={'lk-inv':'투자','lk-svc':'서비스(클라우드 등)','lk-hw':'하드웨어','lk-sup':'공급·고객(부품·소재·매출처)','lk-etc':'기타(합작·계열·라이선스)'};
+  const rows=(sel?E.filter(e=>e.from===sel||e.to===sel):E);
+  const ex=LK._example?` <span class="lk-ex" title="${lkA(LK._example)}">예시 데이터</span>`:'';
+  return `<div class="grid lk"><div class="p c12" data-panel><h2>관계도 — ${esc(g.name)}${ex}<small>기준 ${esc(LK.asof||'')} · 노드 ${N.length} · 관계 ${E.length}</small></h2><div class="b">
+    <div class="lk-bar">${(LK.groups||[]).map(x=>`<button class="${x.key===g.key?'on':''}" data-lkg="${lkA(x.key)}">${esc(x.name)} <span class="mu">${cnt(x.key)}</span></button>`).join('')}</div>
+    ${g.desc?`<div class="lk-desc">${esc(g.desc)}</div>`:''}
+    ${lkSvg(N,E,W,H,sel)}
+    <div class="lk-leg">${legT.map(c=>`<span><i class="lk-sw ${c}"></i>${legName[c]}</span>`).join('')}</div>
+    <div class="lk-leg"><span>원 면적 ∝ 기업가치(달러, 기준 ${esc(((N.find(n=>n.mc_asof)||{}).mc_asof)||'미확인')})</span><span>점선 원 = 비상장·정부·기업가치 미확인(최소 크기)</span><span>화살표 = 돈·제품이 가는 방향</span><span>원을 누르면 그 회사 관계만</span></div>
+  </div></div>
+  <div class="p c12" data-panel><h2>${sn?`${esc(sn.name)} — 들어오는·나가는 관계`:'관계 목록'}<small>${rows.length}건</small></h2><div class="b">
+    ${sn?`<div class="lk-hd"><b>${esc(sn.name)}</b><span class="mu">${esc(sn.mkt||'')}${sn.mc_usd?' · '+lkMc(sn.mc_usd)+(sn.mc_asof?' ('+esc(sn.mc_asof)+')':''):' · 기업가치 미확인'}</span>${lkCanOpen(sn)?`<button data-od="${lkA(sn.id)}" data-mk="${lkA(sn.mkt)}">상세 ›</button>`:''}<button data-lk="">전체 보기</button></div>`:''}
+    ${rows.map(e=>lkRow(e,sel)).join('')||'<div class="mu" style="padding:8px 0">이 회사의 관계 없음</div>'}
+    <div class="mu" style="font-size:var(--fs-1);margin-top:8px">출처 배지: 1차 = 공시(DART·SEC·IR) · 2차 = 언론·차트 · 검증전 = 미확인. 규모는 원문 표기 그대로(우리 추정 없음) · 매매 신호 아님</div>
+  </div></div></div>`;
+}
+document.addEventListener('click',e=>{ if(view!=='links') return;
+  const od=e.target.closest('[data-od]'); if(od){ e.preventDefault(); openDetail(od.dataset.od,od.dataset.mk); return; }
+  const g=e.target.closest('[data-lkg]'); if(g){ LKV.g=g.dataset.lkg; LKV.sel=null; try{ localStorage.setItem('mt_links_g',LKV.g); }catch(x){} render(); return; }
+  const t=e.target.closest('[data-lk]'); if(!t) return; const id=t.dataset.lk; LKV.sel=id&&id!==LKV.sel?id:null; render(); });
+document.addEventListener('keydown',e=>{ if(view!=='links'||(e.key!=='Enter'&&e.key!==' ')) return; const t=e.target.closest&&e.target.closest('[data-lk]'); if(!t) return; e.preventDefault(); t.dispatchEvent(new MouseEvent('click',{bubbles:true})); });
+if(typeof TOPF==='object') TOPF.links=()=>{ if(!LK||LK._loading) return null; if(LK.err) return mkTop(NA(LK.err),NA('—'),NA('—'),['reports/company_links.json']);
+  const st={}; (LK.edges||[]).forEach(e=>st[e.status||'검증전']=(st[e.status||'검증전']||0)+1);
+  return mkTop(`기업 관계도 ${(LK.groups||[]).length}그룹 · 회사 ${(LK.nodes||[]).length} · 관계 ${(LK.edges||[]).length}건${LK._example?' (예시 데이터)':''}`,
+    `출처 1차 ${st['1차']||0} · 2차 ${st['2차']||0} · 검증전 ${st['검증전']||0} — 애널 데스크 수집, 우리 새 판정 아님`,'그룹 칩 → 원을 누르면 그 회사 관계만',['reports/company_links.json'],LK.asof); };
 </script>
 
 <!-- tab_quant.html — QUANT 탭 — 공급망·시그널 검증·검증 스터디·전략 연구소·모멘텀·모의 포트폴리오 (chainView·sigView·studyView·labView·momView·pfView).
@@ -5816,7 +5980,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); topMount(v); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='links'?linksView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
   topMount(v);
@@ -5826,7 +5990,7 @@ setTimeout(()=>{ const r=$('#root'); if(r) new MutationObserver(()=>{ if(!docume
 const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
   mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['re','부동산'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
-  res:[['rep','리서치'],['val','밸류에이션'],['dart','공시'],['lib','서고']],   // 서고 = 쌓인 분석 문서 색인(req-dev-16bbc8e5, 11/1)
+  res:[['rep','리서치'],['val','밸류에이션'],['dart','공시'],['lib','서고'],['links','관계도']],   // 서고 = 쌓인 분석 문서 색인(req-dev-16bbc8e5, 11/1)
   quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
   study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
 GROUPS.sys=[['sysb','작업 보드'],['msg','사내톡'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
@@ -5844,7 +6008,10 @@ function setView(v){ GRP=groupOf(v); LASTV[GRP]=v; view=v;
   render(); }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{const g=b.dataset.g; setView(LASTV[g]||GROUPS[g][0][0]);});
 function load(){
-  google.script.run.withSuccessHandler(d=>{D=d;render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
+  // ?v=<뷰키> 바로 열기 (11/1 프론트 — ui_align_check --query '?v=links' 같은 새 뷰 단독 검사·공유 링크). 모르는 키는 무시
+  const qv=(()=>{ try{ return new URLSearchParams(location.search).get('v'); }catch(e){ return null; } })();
+  const okv=qv&&[...Object.values(GROUPS).flat(),...Object.values(SUBV).flat()].some(x=>x[0]===qv);
+  google.script.run.withSuccessHandler(d=>{D=d; if(okv&&qv!==view) setView(qv); else render();}).withFailureHandler(e=>{$('#root').innerHTML=`<div class="err">LOAD FAILED: ${esc(e.message)}</div>`;}).getData();
 }
 /* 숨은 표 열 '→ 더 있음' (UXUI 재진단 Top10 #10, 10/23): 화면을 그린 뒤 가로 스크롤 상자(.b·overflow 지정 div)를 찾아 위에 한 줄 표시. 끝까지 밀면 숨김 */
 function hMore(){ const r=$('#root'); if(!r) return;

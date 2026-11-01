@@ -125,6 +125,8 @@ SHIM = """<script>
     getCooldown: () => get('ops/cooldown.json'),
     getRenego: () => get('ops/renego.json'),
     getLibrary: () => get('reports/library.json'),   // RESEARCH › 서고 (req-dev-16bbc8e5) — Code.gs getLibrary 와 짝
+    getCompanyLinks: () => get('reports/company_links.json'),   // RESEARCH › 관계도 (11/1 겸이, 애널 데이터) — Code.gs getCompanyLinks 와 짝(개발 ask)
+    getCompanyLinksSample: () => get('tests/fixtures/company_links_sample.json'),   // 실제 파일 없을 때 로컬 개발·ui_smoke 용 예시(Pages 사이트엔 tests/ 제외라 404 → '데이터 없음' 안내)
     getLibraryDoc: (p) => /^(docs\\/desk_kb\\/rounds\\/[\\w.\\-\\/]+\\.md|reports\\/studies\\/[\\w.\\-]+\\.(md|json)|docs\\/valuation_notes\\/[\\w.\\-]+\\.md|docs\\/peer_reviews\\/[\\w.\\-]+\\.md)$/.test(String(p)) && String(p).indexOf('..') < 0 ? get(p) : Promise.reject(new Error('서고 허용 경로 아님')),
     // 🔒 비공개 사담방 — 공개 Pages 엔 토큰이 없다. 10/23 겸이 선택: "이 폰에만 토큰 저장" → 이 기기 브라우저 localStorage('pbPrivTok')에만 두고
     //    GitHub contents API 로 직접 읽는다(저장소·채팅·서버로 안 감). 권장 토큰: fine-grained · pb-private 하나 · Contents 읽기 전용 · 만료 있음.
