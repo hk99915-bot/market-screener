@@ -40,6 +40,7 @@ log = logging.getLogger(__name__)
 KST = ZoneInfo("Asia/Seoul")
 OUT = DATA_DIR / "dart_biz"
 INDEX = OUT / "index.json"
+PARSER = 2                     # 추출 규칙 버전 — 올리면 옛 버전의 실패(no_section) 기록을 다시 시도
 MAX_CHARS = 600_000            # 비정상적으로 긴 섹션 상한(파일 하나 ≈ 1.5MB 이하)
 KINDS = {"사업보고서": "사업", "반기보고서": "반기"}
 
@@ -67,7 +68,7 @@ _BIZ = re.compile(r"^\s*(?:II|Ⅱ|2)\s*[.．]\s*사업의\s*내용")
 _NEXT = re.compile(r"^\s*(?:III|Ⅲ|3)\s*[.．]")
 _CELL = re.compile(r"<(TD|TH|TE|TU)\b[^>]*>(.*?)</\1\s*>", re.S | re.I)
 _ROW = re.compile(r"<TR\b[^>]*>(.*?)</TR\s*>", re.S | re.I)
-_TABLE_INNER = re.compile(r"<TABLE\b[^>]*>((?:(?!<TABLE\b).)*?)</TABLE\s*>", re.S | re.I)
+_TABLE_INNER = re.compile(r"<TABLE(?=[\s>])[^>]*>((?:(?!<TABLE[\s>]).)*?)</TABLE\s*>", re.S | re.I)   # TABLE-GROUP 은 표 아님
 _TAG = re.compile(r"<[^>]+>")
 
 
@@ -88,7 +89,9 @@ def _table(m: re.Match) -> str:
 
 def xml_to_text(x: str) -> str:
     """DART 본문 XML 조각 → 텍스트. 표는 행마다 한 줄, 칸은 탭. 제목은 앞뒤 줄바꿈."""
-    x = re.sub(r"<(IMAGE|IMG|LIBRARY)\b.*?(</\1\s*>|/>)", " ", x, flags=re.S | re.I)
+    # 그림만 지운다. LIBRARY 는 본문 묶음(서식 라이브러리)이라 지우면 안 된다 — 11/1 첫 실행 13/14 누락 원인
+    x = re.sub(r"<IMAGE\b[^>]*>.*?</IMAGE\s*>", " ", x, flags=re.S | re.I)
+    x = re.sub(r"<IMG\b[^>]*/>|<IMG\b[^>]*>[^<]*</IMG\s*>", " ", x, flags=re.I)
     x = re.sub(r"<!--.*?-->", " ", x, flags=re.S)
     while True:                                              # 안쪽 표부터 (중첩 표 대비)
         y = _TABLE_INNER.sub(lambda m: _table(m).replace("\n", "\x00").replace("\t", "\x01"), x)
@@ -157,6 +160,22 @@ def extract_from_zip(blob: bytes, rcept_no: str) -> str | None:
             if len(t) > 50:
                 return t[:MAX_CHARS]
     return None
+
+
+def diagnose(blob: bytes, rcept_no: str) -> str:
+    """추출 실패 원인 추적용 한 줄: 파일·크기·'사업의 내용' 포함 제목·섹션 길이."""
+    try:
+        z = zipfile.ZipFile(io.BytesIO(blob))
+    except zipfile.BadZipFile:
+        return "zip 아님"
+    out = []
+    for n in z.namelist()[:6]:
+        x = _decode(z.read(n))
+        tt = [_plain(m.group(1))[:30] for m in _TITLE.finditer(x)]
+        biz = [t for t in tt if "사업의" in t]
+        sec = biz_section(x)
+        out.append(f"{n}({len(x)}자 제목{len(tt)} 사업{biz[:2]} 섹션{len(sec) if sec else 0}→글{len(xml_to_text(sec)) if sec else 0})")
+    return " · ".join(out)
 
 
 def pick_reports(rows: list[dict]) -> list[dict]:
@@ -285,7 +304,8 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
     from .fin import corp_codes
     cmap = corp_codes()
     ix = load_index()
-    have = {r["rcept_no"] for r in ix.get("items", [])}
+    have = {r["rcept_no"] for r in ix.get("items", []) if r.get("status") == "ok" or r.get("parser", 1) >= PARSER}
+    ix["items"] = [r for r in ix.get("items", []) if r["rcept_no"] in have]   # 재시도 대상 옛 실패 기록은 새로 씀
     bud = Budget(max_calls)
     stat = {"codes": len(codes), "new": 0, "skip": 0, "no_section": 0, "no_report": 0, "no_corp": 0, "err": 0}
     stop = ""
@@ -315,7 +335,7 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
                 got = _get("document.xml", {"rcept_no": rn}, bud, binary=True)
                 row = {"code": code, "name": r.get("corp_name", ""), "rcept_no": rn, "report": r.get("report_nm", "").strip(),
                        "kind": r["kind"], "date": r.get("rcept_dt", ""), "chars": 0,
-                       "fetched": datetime.now(KST).strftime("%Y-%m-%d")}
+                       "fetched": datetime.now(KST).strftime("%Y-%m-%d"), "parser": PARSER}
                 text = None
                 if isinstance(got, bytes):
                     try:
@@ -330,6 +350,8 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
                     stat["new"] += 1
                 elif isinstance(got, bytes) or got in ("014", "badzip"):   # 확정 실패만 기록(재호출 방지)
                     row["status"] = "no_section" if isinstance(got, bytes) else f"doc_{got}"
+                    if isinstance(got, bytes):
+                        log.warning("%s %s 사업의 내용 못 찾음 — %s", code, rn, diagnose(got, rn))
                     stat["no_section"] += 1
                 else:                                            # 일시 오류 — 기록 안 함, 다음 실행에서 재시도
                     log.warning("%s %s 본문 받기 실패(%s)", code, rn, got)

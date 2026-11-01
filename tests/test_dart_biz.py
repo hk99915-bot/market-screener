@@ -132,3 +132,36 @@ def test_budget_stops_cleanly(tmp_path, monkeypatch):
     st = db.update(["053800", "263860"], max_calls=1, sleep=0)
     assert st["api_calls"] == 1 and "예산" in st["stopped"]
     assert json.loads((tmp_path / "index.json").read_text())["last_run"]["no_report"] == 1
+
+
+def test_library_kept_and_img_without_selfclose_does_not_eat_text():
+    """11/1 첫 실행: LIBRARY 묶음을 그림처럼 지워 13/14 '사업의 내용' 누락 + <IMG> 가 다음 '/>' 까지 본문을 삼킴."""
+    x = ("<SECTION-1><TITLE>II. 사업의 내용</TITLE><LIBRARY><SECTION-2><TITLE>1. 사업의 개요</TITLE>"
+         "<P>점유율 서술</P></SECTION-2></LIBRARY><P><IMG USEMAP=\"a\">pic.jpg</IMG>그림 뒤 문단</P>"
+         "<TABLE-GROUP><TABLE><TR><TD>가</TD><TD>나</TD></TR></TABLE></TABLE-GROUP><PGBRK/>"
+         "<P>마지막 문단</P></SECTION-1>")
+    t = db.xml_to_text(db.biz_section(x))
+    assert "1. 사업의 개요" in t and "점유율 서술" in t and "그림 뒤 문단" in t and "마지막 문단" in t
+    assert "가\t나" in t.splitlines() and "pic.jpg" not in t
+
+
+def test_old_parser_failures_are_retried(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "OUT", tmp_path)
+    monkeypatch.setattr(db, "INDEX", tmp_path / "index.json")
+    monkeypatch.setenv("DART_API_KEY", "x")
+    monkeypatch.setattr("screener.fin.corp_codes", lambda: {"053800": "1"})
+    rn = "20260320000868"
+    (tmp_path / "index.json").write_text(json.dumps({"items": [
+        {"code": "053800", "name": "안랩", "rcept_no": rn, "report": "사업보고서 (2025.12)", "kind": "사업",
+         "date": "20260320", "chars": 0, "status": "no_section"}]}))      # parser 키 없음 = 버전 1
+
+    def fake_get(path, params, bud, binary=False):
+        bud.take()
+        if path == "list.json":
+            return {"list": [{"corp_name": "안랩", "report_nm": "사업보고서 (2025.12)", "rcept_no": rn, "rcept_dt": "20260320"}]}
+        return _zip({f"{rn}.xml": SAMPLE})
+
+    monkeypatch.setattr(db, "_get", fake_get)
+    assert db.update(["053800"], sleep=0)["new"] == 1
+    items = json.loads((tmp_path / "index.json").read_text())["items"]
+    assert len(items) == 1 and items[0]["status"] == "ok" and items[0]["parser"] == db.PARSER
