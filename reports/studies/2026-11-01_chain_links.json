@@ -1,0 +1,991 @@
+{
+ "asof": "2026-11-01",
+ "basis": "DART 사업·반기보고서 '사업의 내용'(data/dart_biz, 2026-11-01 수집) · screener/drivers.py CHAINS · reports/chains_view.json(2026-10-30 16:32) · data/fin/us_quarterly.parquet",
+ "desk": "analyst",
+ "note": "화살표 = 전달 방향(from의 변화가 to로). type: demand=from이 to의 수요처/수요 동인, supply=from이 to에 공급(캐파·소재), cost=from의 가격이 to의 원가, fx=원/달러 → 순이익 전달(why 앞 [경로: 매출 환율·헤지·화폐성 자산·연결/지분법]). krw sign은 원/달러 상승(원화 약세) 기준. sign은 from 동인이 오를 때 to 이익 방향. status 1차=공시 원문 문구, 검증전=가정. 상관 숫자는 퀀트 몫(별도).",
+ "nodes": [
+  {
+   "key": "memory",
+   "name": "메모리 반도체",
+   "parent": "p_semis",
+   "kind": "chain"
+  },
+  {
+   "key": "semi_equip",
+   "name": "반도체 장비·소재·부품",
+   "parent": "p_semis",
+   "kind": "chain"
+  },
+  {
+   "key": "battery",
+   "name": "2차전지",
+   "parent": "p_mobility",
+   "kind": "chain"
+  },
+  {
+   "key": "autos",
+   "name": "완성차·부품",
+   "parent": "p_mobility",
+   "kind": "chain"
+  },
+  {
+   "key": "shipbuilding",
+   "name": "조선·기자재",
+   "parent": "p_marine",
+   "kind": "chain"
+  },
+  {
+   "key": "defense",
+   "name": "방산·항공우주",
+   "parent": "p_aero_def",
+   "kind": "chain"
+  },
+  {
+   "key": "power_grid",
+   "name": "전력기기·전선",
+   "parent": "p_power",
+   "kind": "chain"
+  },
+  {
+   "key": "nuclear",
+   "name": "원전·발전",
+   "parent": "p_power",
+   "kind": "chain"
+  },
+  {
+   "key": "bio",
+   "name": "바이오·제약",
+   "parent": "p_health",
+   "kind": "chain"
+  },
+  {
+   "key": "internet",
+   "name": "인터넷·게임",
+   "parent": "p_ict",
+   "kind": "chain"
+  },
+  {
+   "key": "banks",
+   "name": "금융(은행·보험)",
+   "parent": "p_fin",
+   "kind": "chain"
+  },
+  {
+   "key": "brokers",
+   "name": "증권",
+   "parent": "p_fin",
+   "kind": "chain"
+  },
+  {
+   "key": "steel",
+   "name": "철강",
+   "parent": "p_metals",
+   "kind": "chain"
+  },
+  {
+   "key": "nonferrous",
+   "name": "비철·제련",
+   "parent": "p_metals",
+   "kind": "chain"
+  },
+  {
+   "key": "chem",
+   "name": "화학",
+   "parent": "p_petro",
+   "kind": "chain"
+  },
+  {
+   "key": "refining",
+   "name": "정유",
+   "parent": "p_petro",
+   "kind": "chain"
+  },
+  {
+   "key": "cosmetics",
+   "name": "화장품·K소비재",
+   "parent": "p_consumer",
+   "kind": "chain"
+  },
+  {
+   "key": "food",
+   "name": "음식료",
+   "parent": "p_consumer",
+   "kind": "chain"
+  },
+  {
+   "key": "airline",
+   "name": "항공·여행",
+   "parent": "p_consumer",
+   "kind": "chain"
+  },
+  {
+   "key": "it_hw",
+   "name": "IT 하드웨어·디스플레이",
+   "parent": "p_electronics",
+   "kind": "chain"
+  },
+  {
+   "key": "components",
+   "name": "IT 하드웨어 — 전자부품(MLCC·기판)",
+   "parent": "p_electronics",
+   "kind": "chain"
+  },
+  {
+   "key": "appliance",
+   "name": "가전·전장·HVAC",
+   "parent": "p_electronics",
+   "kind": "chain"
+  },
+  {
+   "key": "shipping",
+   "name": "해운",
+   "parent": "p_marine",
+   "kind": "chain"
+  },
+  {
+   "key": "utility",
+   "name": "전력·가스 공기업",
+   "parent": "p_power",
+   "kind": "chain"
+  },
+  {
+   "key": "telecom",
+   "name": "통신",
+   "parent": "p_ict",
+   "kind": "chain"
+  },
+  {
+   "key": "cybersecurity",
+   "name": "사이버보안",
+   "parent": "p_ict",
+   "kind": "chain"
+  },
+  {
+   "key": "entertainment",
+   "name": "엔터",
+   "parent": "p_consumer",
+   "kind": "chain"
+  },
+  {
+   "key": "p_semis",
+   "name": "반도체",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_electronics",
+   "name": "전자·IT 세트",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_mobility",
+   "name": "자동차·모빌리티",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_power",
+   "name": "전력·에너지 인프라",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_petro",
+   "name": "석유·화학",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_metals",
+   "name": "금속 소재",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_marine",
+   "name": "해양·해운",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_aero_def",
+   "name": "방산·항공우주",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_fin",
+   "name": "금융",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_ict",
+   "name": "인터넷·통신·SW",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_health",
+   "name": "헬스케어",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "p_consumer",
+   "name": "소비·여가",
+   "parent": null,
+   "kind": "parent"
+  },
+  {
+   "key": "x_ai_capex",
+   "name": "AI 데이터센터 CAPEX(외생)",
+   "parent": null,
+   "kind": "external"
+  },
+  {
+   "key": "x_oil",
+   "name": "유가·LNG(외생)",
+   "parent": null,
+   "kind": "external"
+  },
+  {
+   "key": "x_gov_kr",
+   "name": "국내 정부·공공 예산·규제요금(외생)",
+   "parent": null,
+   "kind": "external"
+  },
+  {
+   "key": "x_rates",
+   "name": "금리 US10Y·국고(외생)",
+   "parent": null,
+   "kind": "external"
+  },
+  {
+   "key": "x_ev_global",
+   "name": "글로벌 EV·ESS 수요(외생)",
+   "parent": null,
+   "kind": "external"
+  },
+  {
+   "key": "krw",
+   "name": "원/달러",
+   "parent": null,
+   "kind": "external",
+   "note": "상승=원화 약세. 26Q3 2Q말→3Q말 약 −11%(원화 강세, 블로그 2차·검증전)"
+  }
+ ],
+ "edges": [
+  {
+   "from": "x_ai_capex",
+   "to": "memory",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "SK하이닉스 '추론 중심 AI 고도화로 HBM 뿐만 아니라 일반 DRAM 수요도 크게 증가' · 하이퍼스케일러 3사(MSFT·GOOGL·META) capex TTM 3,527억$ vs 전년 1,943억$ = +81.5% [애널 환산 352.7/194.3−1]",
+   "src": "DART 000660 rcept_no 20260317000635 · us_quarterly MSFT/GOOGL 2026-06-30·META 2026-09-30",
+   "status": "1차"
+  },
+  {
+   "from": "memory",
+   "to": "semi_equip",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "동진쎄미켐 '주요 매출처 삼성전자·SK하이닉스, 삼성전자 매출 7,061억' · 솔브레인 '주요매출처 삼성전자·SK하이닉스·LGD·삼성SDI' · ISC '고객사 투자가 HBM에 집중'",
+   "src": "DART 005290 rcept_no 20260319000264 · DART 357780 rcept_no 20260316001567 · DART 095340 rcept_no 20260318000018",
+   "status": "1차"
+  },
+  {
+   "from": "semi_equip",
+   "to": "memory",
+   "type": "supply",
+   "sign": "+",
+   "lag": "연",
+   "why": "장비 반입→양산 수율·캐파: 테크윙 수주잔고 '반도체 장비 Micron, SK hynix 등 322.5억' · 하나마이크론 '주요 고객사 삼성전자·SK하이닉스(경쟁 앰코·ASE)'",
+   "src": "DART 089030 rcept_no 20260623000173 · DART 067310 rcept_no 20260319000032",
+   "status": "1차"
+  },
+  {
+   "from": "memory",
+   "to": "components",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "SK하이닉스 원재료 = 웨이퍼·Substrate·PCB(패키지 기판) · 삼성전기 '주요 매출처 삼성전자와 종속기업, 비중 약 27%'(DX 세트 포함)",
+   "src": "DART 000660 rcept_no 20260317000635 · DART 009150 rcept_no 20260310003071",
+   "status": "1차"
+  },
+  {
+   "from": "x_ai_capex",
+   "to": "components",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "이수페타시스 '매출비중 10% 넘는 주요 매출처 1개사, 약 41%'(글로벌 네트워크 장비) · 코스모신소재 'MLCC는 AI 서버·데이터센터·전장이 수요 견인'",
+   "src": "DART 007660 rcept_no 20260323000847 · DART 005070 rcept_no 20260602000342",
+   "status": "1차"
+  },
+  {
+   "from": "x_ai_capex",
+   "to": "power_grid",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "LS에코에너지 '통신 부문은 북미 데이터센터 투자 확대로 수주 증가' · HD현대일렉 'AI·데이터센터 건설 확대로 ESS 수요' · VRT 매출 TTM +26.2%",
+   "src": "DART 229640 rcept_no 20260316001365 · DART 267260 rcept_no 20260316000940 · us_quarterly VRT 2026-06-30",
+   "status": "1차"
+  },
+  {
+   "from": "x_ai_capex",
+   "to": "appliance",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "LG전자 ES(에어컨·HVAC) 매출 비중 10.5% — 데이터센터 냉각 연결은 체인 프록시(TT·VRT) 가정, 공시 직접 문구 없음",
+   "src": "DART 066570 rcept_no 20260706000276 · drivers.py appliance",
+   "status": "검증전"
+  },
+  {
+   "from": "utility",
+   "to": "power_grid",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "LS일렉 '주요 고객 한국전력, 특약점' · 효성중공업 '한국전력공사 수요 대응 170kV GIS 개발' · 가온전선 '전력케이블 매출처 한국전력공사 등' — 한전 송배전 투자 = 국내 발주",
+   "src": "DART 010120 rcept_no 20260318001243 · DART 298040 rcept_no 20260323001004 · DART 000500 rcept_no 20260316000969",
+   "status": "1차"
+  },
+  {
+   "from": "utility",
+   "to": "nuclear",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "한전KPS '한국전력공사 전액 출자, 주요고객 한전·한수원·발전사' · 한전기술 '체코 두코바니 5·6호기 종합설계 발주처 한국전력공사' · 두산에너빌 '발전설비 수요업체(한국전력공사 등)와 계약'",
+   "src": "DART 051600 rcept_no 20260323000091 · DART 052690 rcept_no 20260326001003 · DART 034020 rcept_no 20260320001246",
+   "status": "1차"
+  },
+  {
+   "from": "nuclear",
+   "to": "power_grid",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "원전 신설 → 계통 연계 변압기·초고압 케이블 — 공시에 직접 연결 문구 미발견(가정)",
+   "src": "애널 판단",
+   "status": "검증전"
+  },
+  {
+   "from": "x_gov_kr",
+   "to": "utility",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "한전 '연료비조정단가 2025 전 분기 5.0원/kWh 유지' — 요금은 정부 승인, 원가 전가 지연",
+   "src": "DART 015760 rcept_no 20260317000686",
+   "status": "1차"
+  },
+  {
+   "from": "x_oil",
+   "to": "utility",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "한전 '발전기는 연료비 원가 기반 경제급전 순위' · 체인 macro WTI −1 · chains_view 점수 −0.35(10/30)",
+   "src": "DART 015760 rcept_no 20260317000686 · reports/chains_view.json",
+   "status": "1차"
+  },
+  {
+   "from": "nonferrous",
+   "to": "power_grid",
+   "type": "cost",
+   "sign": "-",
+   "lag": "즉시",
+   "why": "일진전기 전기동 매입 내수(LS MnM) 51.2%+수입(Codelco) 40.7% · 대한전선 '가격변동원인: 국제 전기동 가격·환율' — 판가 연동이라 마진 영향은 시차분만",
+   "src": "DART 103590 rcept_no 20260311004216 · DART 001440 rcept_no 20260318001418",
+   "status": "1차"
+  },
+  {
+   "from": "power_grid",
+   "to": "nonferrous",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "LS 엠앤엠 '전기동 → LS전선·대한전선·삼동' · 대한전선 '국내 동제련 업체에서 구입' (단 우리 nonferrous=고려아연·풍산, 구리 제련 본체 LS MnM은 power_grid 안)",
+   "src": "DART 006260 rcept_no 20260318001427 · DART 001440 rcept_no 20260318001418",
+   "status": "1차"
+  },
+  {
+   "from": "nonferrous",
+   "to": "battery",
+   "type": "cost",
+   "sign": "+",
+   "lag": "분기",
+   "why": "에코프로 '주요 제품 가격은 원재료 가격 및 계약 조건에 따라 변동' · 엘앤에프 '주요 원재료는 니켈·코발트·망간 전구체+리튬' — 양극재는 메탈 연동(+), 셀은 원가(−)",
+   "src": "DART 086520 rcept_no 20260318001612 · DART 066970 rcept_no 20260814000818",
+   "status": "1차"
+  },
+  {
+   "from": "chem",
+   "to": "battery",
+   "type": "supply",
+   "sign": "+",
+   "lag": "분기",
+   "why": "LG화학 첨단소재 '양극재·분리막 → 국내외 2차전지업체' · 롯데케미칼 Elecfoil(동박) 88.4% · LG엔솔 매입처 LG화학·포스코퓨처엠",
+   "src": "DART 051910 rcept_no 20260313001195 · DART 011170 rcept_no 20260312001296 · DART 373220 rcept_no 20260312000217",
+   "status": "1차"
+  },
+  {
+   "from": "x_ev_global",
+   "to": "battery",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "LG엔솔 '주요 매출처 자동차 OEM, 5대 매출처 약 63%' · 삼성SDI 'BMW·VW·삼성전자·Stellantis·AES' · 에코프로비엠 매출처 삼성SDI·SK온 92.3%",
+   "src": "DART 373220 rcept_no 20260312000217 · DART 006400 rcept_no 20260310002954 · DART 247540 rcept_no 20260318001622",
+   "status": "1차"
+  },
+  {
+   "from": "autos",
+   "to": "battery",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "국내 완성차는 셀 3사의 주 고객이 아님(위 매출처에 현대차·기아 없음) — 연결 약함. 포스코퓨처엠은 GM 양극재 JV",
+   "src": "DART 003670 rcept_no 20260312000826",
+   "status": "1차"
+  },
+  {
+   "from": "steel",
+   "to": "battery",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "포스코퓨처엠 기초소재 매출처 '내화물 ㈜포스코 등 17.2%, 라임화성 ㈜포스코·OCI' — 배터리 종목 매출 일부가 철강 가동률에 묶임",
+   "src": "DART 003670 rcept_no 20260312000826",
+   "status": "1차"
+  },
+  {
+   "from": "steel",
+   "to": "autos",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "현대차 원재료 가격표 '철광석 102$/t·알루미늄' · 현대모비스 '열연철판 천원/kg' — 강판은 반기·연 협상",
+   "src": "DART 005380 rcept_no 20260318001394 · DART 012330 rcept_no 20260309001878",
+   "status": "1차"
+  },
+  {
+   "from": "autos",
+   "to": "steel",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "POSCO홀딩스 '냉연: 자동차·가전 32.1%' · 현대제철 '판재 수요산업 자동차, 조선'",
+   "src": "DART 005490 rcept_no 20260311004517 · DART 004020 rcept_no 20260814003379",
+   "status": "1차"
+  },
+  {
+   "from": "shipbuilding",
+   "to": "steel",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "POSCO '열연: 강관·조선 20.6%' · 동국제강 '후판 27.8%, 주요 매출처 포스코이앤씨·한국조선해양'",
+   "src": "DART 005490 rcept_no 20260311004517 · DART 460860 rcept_no 20260313000519",
+   "status": "1차"
+  },
+  {
+   "from": "steel",
+   "to": "shipbuilding",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "HD현대중공업 '기자재·강재 매입 62.46%, 주요 매입처 ㈜포스코·현대제철' · 삼성중공업 '후판 가격변동원인: 철광석·유연탄'",
+   "src": "DART 329180 rcept_no 20260320000859 · DART 010140 rcept_no 20260312001037",
+   "status": "1차"
+  },
+  {
+   "from": "shipping",
+   "to": "shipbuilding",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "삼성중공업 '해운 시황 변동, 기존 선대 교체수요, 글로벌 에너지 수요에 따라 신규 발주량 변동' — 발주→매출 인식 2~3년",
+   "src": "DART 010140 rcept_no 20260312001037",
+   "status": "1차"
+  },
+  {
+   "from": "shipbuilding",
+   "to": "defense",
+   "type": "supply",
+   "sign": "+",
+   "lag": "분기",
+   "why": "한화에어로 반기 매출(연결조정 전) 해양(한화오션) 63.9% · 방산 29.7% · 항공 9.7% — 방산 체인 최대 종목이 조선 연결",
+   "src": "DART 012450 rcept_no 20260814003198",
+   "status": "1차"
+  },
+  {
+   "from": "x_gov_kr",
+   "to": "defense",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "KAI '방위사업청 등 내수 비율 48.42%' · LIG '최종 사용자 대부분 정부기관' · 쎄트렉아이 '내수 92.2%'",
+   "src": "DART 047810 rcept_no 20260318001461 · DART 079550 rcept_no 20260323001211 · DART 099320 rcept_no 20260406004277",
+   "status": "1차"
+  },
+  {
+   "from": "defense",
+   "to": "shipbuilding",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "STX엔진(조선 체인 소속) '주요 매출처 방위사업청, 한화에어로스페이스, LIG넥스원'",
+   "src": "DART 077970 rcept_no 20260323000690",
+   "status": "1차"
+  },
+  {
+   "from": "refining",
+   "to": "chem",
+   "type": "cost",
+   "sign": "-",
+   "lag": "즉시",
+   "why": "LG화학 석유화학 원재료 '납사·EDC 47.6%, 매입처 GS Caltex·Mitsui' · SK이노 '화학사업은 납사 등을 원료' — 유가 급등 초기엔 재고평가로 방향 불명확",
+   "src": "DART 051910 rcept_no 20260313001195 · DART 096770 rcept_no 20260316000827",
+   "status": "1차"
+  },
+  {
+   "from": "refining",
+   "to": "airline",
+   "type": "cost",
+   "sign": "-",
+   "lag": "즉시",
+   "why": "대한항공 '항공유 매입 2조9,221억, 매입처 GS칼텍스·Shell' · 체인 macro WTI −1 · chains_view 정유 +0.72 vs 항공 −0.45(10/30) — 같은 유가가 반대로 작용",
+   "src": "DART 003490 rcept_no 20260318001125 · reports/chains_view.json",
+   "status": "1차"
+  },
+  {
+   "from": "refining",
+   "to": "shipping",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "HMM '주요 매출처는 얼라이언스 소속선사, GS칼텍스, 현대글로비스' (탱커·벌크)",
+   "src": "DART 011200 rcept_no 20260318001444",
+   "status": "1차"
+  },
+  {
+   "from": "x_oil",
+   "to": "shipping",
+   "type": "cost",
+   "sign": "-",
+   "lag": "즉시",
+   "why": "연료비 — 체인 프록시 WTI −1 가정, 공시 연료비 비중 미추출",
+   "src": "drivers.py shipping",
+   "status": "검증전"
+  },
+  {
+   "from": "steel",
+   "to": "shipping",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "팬오션 '주요 매출처 Vale, ㈜포스코, 현대글로비스, Suzano, 한국남동발전, 한국남부발전'",
+   "src": "DART 028670 rcept_no 20260319001097",
+   "status": "1차"
+  },
+  {
+   "from": "utility",
+   "to": "shipping",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "팬오션 매출처에 남동·남부발전(석탄 수송) — 발전 연료 물동량",
+   "src": "DART 028670 rcept_no 20260319001097",
+   "status": "1차"
+  },
+  {
+   "from": "shipping",
+   "to": "appliance",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "LG전자 '글로벌 원자재, 해상운임 및 환율의 변동성은 지속적인 Risk 요인'",
+   "src": "DART 066570 rcept_no 20260706000276",
+   "status": "1차"
+  },
+  {
+   "from": "steel",
+   "to": "appliance",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "POSCO 냉연 '자동차·가전' 용도 · LG전자 '글로벌 원자재' 리스크",
+   "src": "DART 005490 rcept_no 20260311004517 · DART 066570 rcept_no 20260706000276",
+   "status": "1차"
+  },
+  {
+   "from": "autos",
+   "to": "chem",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "현대모비스 원재료 '나프타·PP·카프로락탐' · 금호석유 합성고무(타이어) 58.4% · 코오롱인더 에어백 '현대모비스, Autoliv'",
+   "src": "DART 012330 rcept_no 20260309001878 · DART 011780 rcept_no 20260318001268 · DART 120110 rcept_no 20260331001900",
+   "status": "1차"
+  },
+  {
+   "from": "x_gov_kr",
+   "to": "cybersecurity",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "윈스 '주요 고객인 공공기관' · 라온 'N²SF 구현 핵심 솔루션' · 4Q 이익 집중 50~69% — 단 지니언스 '2025 민간 매출이 처음 공공 상회'",
+   "src": "DART 136540 rcept_no 20260312000862 · DART 042510 rcept_no 20260320000835 · DART 263860 rcept_no 20260814000732 · rounds/2026-11-01/analyst_onepager_security.md",
+   "status": "1차"
+  },
+  {
+   "from": "telecom",
+   "to": "cybersecurity",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "윈스 '직접 판매: 대형통신사업자, 정부공공기관, 대학교, 금융기관' · SKT 사고 → 예산(연 단위)",
+   "src": "DART 136540 rcept_no 20260312000862",
+   "status": "1차"
+  },
+  {
+   "from": "banks",
+   "to": "cybersecurity",
+   "type": "demand",
+   "sign": "+",
+   "lag": "연",
+   "why": "안랩 판매조직 '공공영업·금융영업·기업영업본부' · 드림시큐리티 '행정·공공·금융기관'",
+   "src": "DART 053800 rcept_no 20260320000868 · DART 203650 rcept_no 20260318001615",
+   "status": "1차"
+  },
+  {
+   "from": "x_rates",
+   "to": "banks",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "KB금융 명목 NIM 1.76%(2026 반기보고서 표 첫 열) — 국내 기준금리·예대금리 경로, US10Y 프록시는 간접",
+   "src": "DART 105560 rcept_no 20260814004200",
+   "status": "1차"
+  },
+  {
+   "from": "x_rates",
+   "to": "bio",
+   "type": "cost",
+   "sign": "-",
+   "lag": "즉시",
+   "why": "할인율 — 기술이전 마일스톤(유한·한미·알테오젠)은 수년 뒤 현금 → 금리 민감, 체인 macro US10Y −1",
+   "src": "DART 196170 rcept_no 20260323001596 · drivers.py bio",
+   "status": "1차"
+  },
+  {
+   "from": "memory",
+   "to": "brokers",
+   "type": "demand",
+   "sign": "+",
+   "lag": "즉시",
+   "why": "코스피 시총 상위 = 반도체 → 거래대금 → 위탁수수료(키움 '국내주식 위탁매매 점유율 18.0%, 리테일 27.8%') — 연결은 가정, 크기는 퀀트 상관으로",
+   "src": "DART 039490 rcept_no 20260317000838",
+   "status": "검증전"
+  },
+  {
+   "from": "airline",
+   "to": "cosmetics",
+   "type": "demand",
+   "sign": "+",
+   "lag": "분기",
+   "why": "아모레 '판매 경로: 순수 국내, 면세와 해외법인 및 수출' — 인바운드 관광 → 면세 채널, 크기 미추출",
+   "src": "DART 090430 rcept_no 20260318000785",
+   "status": "검증전"
+  },
+  {
+   "from": "memory",
+   "to": "appliance",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "삼성전자 DX 원재료(AP·패널·카메라모듈) 표 — 메모리 가격↑는 세트 원가↑. LG전자 원재료 표는 미추출",
+   "src": "DART 005930 rcept_no 20260310002820",
+   "status": "검증전"
+  },
+  {
+   "from": "krw",
+   "to": "shipbuilding",
+   "type": "fx",
+   "sign": "+",
+   "lag": "분기",
+   "why": "[경로: 달러 매출 환율·헤지 비율·화폐성 자산] HD현대중공업 '판매·구매 예상금액 관련 외화 채권·채무 환위험을 선도거래로 회피, 위험회피회계' · 삼성중공업 '외환위험은 미래 예상거래, 확정계약, 인식된 자산·부채에서 발생' · 한화오션 '회피가 필요하다고 판단되는 경우 통화선도'(선택적) — 2차(블로그): 헤지 비율 삼성중 100%·HD현대중 ~75%·한화오션 9%→~70%",
+   "src": "DART 329180 rcept_no 20260320000859 · DART 010140 rcept_no 20260312001037 · DART 042660 rcept_no 20260317000644 · 블로그(나나야) 2차",
+   "status": "1차(정책)·2차(비율)"
+  },
+  {
+   "from": "krw",
+   "to": "power_grid",
+   "type": "fx",
+   "sign": "+",
+   "lag": "분기",
+   "why": "[경로: 수출 매출 환율·순노출 헤지·화폐성 자산] HD현대일렉 수출 77%, '선도거래로 회피, 기타 화폐성 자산·부채는 현행 환율 매매로 단기 불균형 해소' · 효성중공업 '수출대금·수입결제 매칭, 선물환·환변동보험' · LS일렉 '통화선도, KIKO 등 옵션 없음, 환율 10% 변동 민감도 표' — 2차: HD일렉 순노출 40% 헤지·외환손실 479억, LS일렉 화폐성 미헤지 영업외 −392억",
+   "src": "DART 267260 rcept_no 20260316000940 · DART 298040 rcept_no 20260323001004 · DART 010120 rcept_no 20260318001243 · 블로그 2차",
+   "status": "1차(정책)·2차(금액)"
+  },
+  {
+   "from": "krw",
+   "to": "defense",
+   "type": "fx",
+   "sign": "+",
+   "lag": "분기",
+   "why": "[경로: 수출 매출 환율·연결 자회사(한화오션) 환손익] 한화에어로 '노출된 모든 시장위험을 헤지하는 것은 아님, 통화선도 16건' · 현대로템 '통화별·만기별 Matching, Leading·Lagging 우선, 통화선도·옵션·스왑, 환율 5% 민감도 표'",
+   "src": "DART 012450 rcept_no 20260814003198 · DART 064350 rcept_no 20260319001275",
+   "status": "1차(정책)"
+  },
+  {
+   "from": "krw",
+   "to": "memory",
+   "type": "fx",
+   "sign": "+",
+   "lag": "분기",
+   "why": "[경로: 달러 판가] 반도체 수출 비중 큼(하이닉스 '수출은 L/C·D/A') · CHAINS macro KRW +1 — 헤지 정책 미추출",
+   "src": "DART 000660 rcept_no 20260317000635 · drivers.py memory",
+   "status": "검증전"
+  },
+  {
+   "from": "krw",
+   "to": "autos",
+   "type": "fx",
+   "sign": "+",
+   "lag": "분기",
+   "why": "[경로: 해외 판매가 환산] 기아 '대표시장 판매가격에 기간 말일 환율 적용' · CHAINS macro KRW +1",
+   "src": "DART 000270 rcept_no 20260312001224 · drivers.py autos",
+   "status": "1차"
+  },
+  {
+   "from": "krw",
+   "to": "battery",
+   "type": "fx",
+   "sign": "+",
+   "lag": "분기",
+   "why": "[경로: 달러 판가·메탈 원가 동시] LG엔솔 '원재료 시장가격 변동 회피 스왑(현금흐름위험회피)' — 판가·원가 둘 다 달러라 순효과 작음, CHAINS macro KRW +1",
+   "src": "DART 373220 rcept_no 20260312000217 · drivers.py battery",
+   "status": "검증전"
+  },
+  {
+   "from": "krw",
+   "to": "airline",
+   "type": "cost",
+   "sign": "-",
+   "lag": "즉시",
+   "why": "[경로: 달러 항공유·리스료] CHAINS macro KRW −1 · 대한항공 항공유 매입 2조9,221억",
+   "src": "DART 003490 rcept_no 20260318001125 · drivers.py airline",
+   "status": "1차"
+  },
+  {
+   "from": "krw",
+   "to": "utility",
+   "type": "cost",
+   "sign": "-",
+   "lag": "분기",
+   "why": "[경로: 수입 연료 원화 환산, 요금 전가 지연] CHAINS macro KRW −1 · 한전 연료비조정단가 5.0원/kWh 유지",
+   "src": "DART 015760 rcept_no 20260317000686 · drivers.py utility",
+   "status": "1차"
+  }
+ ],
+ "lineage": [
+  {
+   "parent": "p_semis",
+   "children": [
+    "memory",
+    "semi_equip",
+    "components"
+   ],
+   "tree": "반도체 → 메모리(DRAM·NAND·HBM: 삼성전자 DS·SK하이닉스, SK스퀘어=하이닉스 지주) / 비메모리·파운드리(우리 체인 없음, 삼성 DS 일부) / 전공정 장비(원익IPS·주성·HPSP·이오테크닉스) / 소재(솔브레인·동진쎄미켐) / 계측(파크·오로스) / 후공정·HBM(한미반도체 TC본더·하나마이크론·두산테스나) / 테스트 부품(ISC·리노·테크윙) / 패키지 기판(심텍·대덕 → components)"
+  },
+  {
+   "parent": "p_electronics",
+   "children": [
+    "it_hw",
+    "components",
+    "appliance"
+   ],
+   "tree": "전자 세트 → 디스플레이(LGD) / 카메라모듈(LG이노텍, 매출 10%+ 단일 고객) / MLCC(삼성전기 → 이형필름 코스모신소재는 battery에 걸림) / 서버·네트워크 기판(이수페타시스) / 가전·HVAC(LG전자 ES 10.5%) — 삼성전자 DX 56.3%도 여기 속하지만 memory에 매달림"
+  },
+  {
+   "parent": "p_mobility",
+   "children": [
+    "autos",
+    "battery"
+   ],
+   "tree": "자동차 → 완성차(현대·기아) / 모듈·부품(모비스 매출 현대차 39.4%·기아, 만도·위아·한온) / 전장·SW(현대오토에버 그룹 캡티브, LG전자 VS) / 소재(chem 합성고무·에어백, steel 냉연) / 2차전지 수요 → 셀(LG엔솔·SDI) → 양극재(에코프로비엠·엘앤에프·포스코퓨처엠·코스모) → 전구체·제련(에코프로머티 RMP) → 원료·리사이클(에코프로) / 전해액(엔켐)·첨가제(천보) / 동박(롯데 Elecfoil, chem) — 셀 고객은 해외 OEM"
+  },
+  {
+   "parent": "p_power",
+   "children": [
+    "utility",
+    "nuclear",
+    "power_grid"
+   ],
+   "tree": "전력 → 판매·계통(한전, 규제요금) → 발전: 원전 주기기(두산에너빌)·설계(한전기술)·정비(한전KPS)·보일러(BHI)·계측(우진) / 송변전: 변압기(HD현대일렉 수출 77%·효성·산일)·차단·배전(LS일렉) / 전선(대한·LS·가온·일진·LS에코) ← 동 제련(LS MnM) / ESS(HD일렉, battery와 겹침)"
+  },
+  {
+   "parent": "p_petro",
+   "children": [
+    "refining",
+    "chem"
+   ],
+   "tree": "원유 → 정유(S-Oil 정유 86%·SK이노·HD현대오일뱅크·GS칼텍스[지분법]) → 납사 → 기초유분(LG화학·롯데) → 합성수지·합성고무(금호석유 타이어용 58.4%) → 첨단소재(양극재·분리막·EP) / 섬유(효성티앤씨 스판덱스) / 태양광(한화솔루션 큐셀)"
+  },
+  {
+   "parent": "p_metals",
+   "children": [
+    "steel",
+    "nonferrous"
+   ],
+   "tree": "금속 → 철강 고로(POSCO·현대제철: 자동차·조선·가전) / 전기로(동국제강 봉형강 69.9%·후판 27.8%) → 이차전지소재(POSCO 이차전지소재부문·포스코퓨처엠) / 비철 제련(고려아연 아연·연·귀금속) → 신동(풍산 54.5%) → 탄약(풍산 방산 30.8% → defense)"
+  },
+  {
+   "parent": "p_marine",
+   "children": [
+    "shipbuilding",
+    "shipping"
+   ],
+   "tree": "해양 → 해운(HMM 컨테이너·팬오션 벌크+곡물) → 신조 발주 → 대형 조선(HD한국조선해양·HD현대중공업·삼성중공업·한화오션) → 엔진(한화엔진 매출 한화오션 36.8%·HD현대마린엔진·STX엔진[실은 방산]) → 기자재(동성화인텍 LNG 보냉재·성광벤드) → 선박 AM·서비스(HD현대마린솔루션) / 특수선·잠수함(한화오션 → defense)"
+  },
+  {
+   "parent": "p_aero_def",
+   "children": [
+    "defense"
+   ],
+   "tree": "방산 → 지상(한화에어로 K9·현대로템 K2, 로템은 철도 겸업) / 유도무기(LIG) / 항공기(KAI 내수 48.4%) / 방산전자(한화시스템) / 탄약(풍산) / 함정(한화오션 → 한화에어로 연결) / 우주(쎄트렉아이 내수 92.2%)"
+  },
+  {
+   "parent": "p_fin",
+   "children": [
+    "banks",
+    "brokers"
+   ],
+   "tree": "금융 → 은행지주(NIM·대손) / 보험(삼성생명·삼성화재·DB손보) / 카드(삼성카드) / 증권: 위탁매매(키움)·IB·WM(미래·한투·삼성·NH)"
+  },
+  {
+   "parent": "p_ict",
+   "children": [
+    "telecom",
+    "internet",
+    "cybersecurity"
+   ],
+   "tree": "ICT → 통신(SKT 이동전화 73%) → 인터넷 플랫폼(NAVER 검색·광고·커머스, 카카오) / 게임(크래프톤·NC·넷마블·카카오게임즈·펄어비스) / 보안: 엔드포인트(안랩)·NAC(지니언스)·인증·FIDO(라온·드림)·관제·IPS(윈스·이글루)·데이터(파수) / IT서비스(현대오토에버 → autos)"
+  },
+  {
+   "parent": "p_health",
+   "children": [
+    "bio"
+   ],
+   "tree": "헬스케어 → CDMO(삼바·SK바사) / 바이오시밀러(셀트리온) / 플랫폼 기술이전(알테오젠·리가켐) / 신약 L/O(유한·한미·SK바팜) / 톡신(휴젤) / 표적항암(HLB, 선박 구명정 사업 겸업) — 미용기기(클래시스)는 cosmetics에 걸림"
+  },
+  {
+   "parent": "p_consumer",
+   "children": [
+    "cosmetics",
+    "food",
+    "entertainment",
+    "airline"
+   ],
+   "tree": "소비 → 화장품 브랜드(아모레·LG생건·에이피알 수출 82.6%·브이티) → ODM(코스맥스·한국콜마→용기 연우) → 수출 플랫폼(실리콘투) / 미용기기(클래시스) · 음식료 내수(오뚜기 국내 83%·CJ) vs 수출(삼양 해외 77.6%·오리온 중국) · 엔터 IP(공연·음반 수출) · 여행(항공·여행사 → 면세)"
+  }
+ ],
+ "fixes": [
+  {
+   "rank": 1,
+   "key": "memory",
+   "issue": "005930 삼성전자를 메모리 순수주로 가정 — 실제 매출 DX(세트) 56.3%·DS 39%·SDC 8.9%. 메모리 가격↑는 DX 원가↑(내부 헤지), 메모리 체인 최대 가중 종목이 반은 세트 회사",
+   "evidence": "DART 005930 rcept_no 20260310002820 '매출은 DX 부문 187조 9,673억원(56.3%), DS 부문 130조 1,282억원(39%)'"
+  },
+  {
+   "rank": 2,
+   "key": "defense",
+   "issue": "방산 = 미 방산(LMT·RTX·RHM) 사이클 가정 — 최대 종목 한화에어로 매출 64%가 조선(한화오션 연결), 나머지는 방사청 내수(KAI 48%·쎄트렉아이 92%)·수출 수주. 조선 사이클·국내 방위력개선비 고리 없음",
+   "evidence": "DART 012450 rcept_no 20260814003198 반기 사업부문 표(연결조정 전) 해양 63.91%·방산 29.68%·항공 9.70% · DART 047810 rcept_no 20260318001461 · DART 099320 rcept_no 20260406004277"
+  },
+  {
+   "rank": 3,
+   "key": "refining",
+   "issue": "정유 4종 중 2종이 매출상 정유가 주력 아님 — HD현대 연결 조선해양 42%·정유 38%·건설기계 12%·전기전자 5%, GS 연결 유통 46%·가스전력 27%·무역 16%(정유 GS칼텍스는 지분법)",
+   "evidence": "DART 267250 rcept_no 20260320000872 부문별 매출표 · DART 078930 rcept_no 20260318000836 '주요 제품 및 서비스별 매출 비중'"
+  },
+  {
+   "rank": 4,
+   "key": "nuclear",
+   "issue": "원전 = 미 원전·우라늄(CCJ·CEG·SMR·URA) 따라간다 가정 — 한전기술·한전KPS는 한전·한수원 발주·정비(공기업, 규제요금) 매출, 두산은 한전 주기기·해외 정부 입찰. 국내 원전 정책·한전 투자 고리(utility) 없음",
+   "evidence": "DART 051600 rcept_no 20260323000091 '한국전력공사가 전액 출자…주요고객 한전·한수원' · DART 052690 rcept_no 20260326001003 체코 두코바니 발주처 한국전력공사"
+  },
+  {
+   "rank": 5,
+   "key": "chem",
+   "issue": "화학 = 석유화학 스프레드(DOW·LYB·WTI) 가정 — LG화학 연결 매출의 51.5%(2025)가 LG에너지솔루션(2차전지), 석유화학은 38.2%. 화학 체인 최대 종목이 배터리 사이클에 더 묶임(SK이노도 배터리 15%로 refining에 걸림)",
+   "evidence": "DART 051910 rcept_no 20260313001195 '각 사업부문별 매출 비중' 제25기 LG에너지솔루션 51.5%·석유화학 38.2%(비율 열 기준 — 수집본 금액 열 일부 중복 파싱, [확인 필요: 원문 금액 대조, 2026-11-16]) · DART 096770 rcept_no 20260316000827 배터리사업 15.2%"
+  },
+  {
+   "rank": 6,
+   "key": "shipbuilding",
+   "issue": "(차순위) 077970 STX엔진은 매출처가 방사청·한화에어로·LIG — 방산 종목이 조선 체인에",
+   "evidence": "DART 077970 rcept_no 20260323000690"
+  },
+  {
+   "rank": 7,
+   "key": "battery",
+   "issue": "(차순위) 005070 코스모신소재 매출 25%가 MLCC 이형필름(매출처 삼성전기) · 003670 포스코퓨처엠 기초소재는 포스코 가동률에 묶임",
+   "evidence": "DART 005070 rcept_no 20260602000342 · DART 003670 rcept_no 20260312000826"
+  },
+  {
+   "rank": 8,
+   "key": "food",
+   "issue": "(차순위) 음식료 macro KRW 0·XLP — 삼양 해외 77.6%(수출주, KRW+) vs 오뚜기 국내 83%(내수) 혼재",
+   "evidence": "DART 003230 rcept_no 20260318001082 · DART 007310 rcept_no 20260318000621"
+  },
+  {
+   "rank": 9,
+   "key": "cybersecurity",
+   "issue": "(기존 접수) 미장 동일 사이클 가정 vs 국내 공공·정책 예산 — 단 지니언스 2025 민간>공공 전환, 종목별 차이",
+   "evidence": "rounds/2026-11-01/analyst_onepager_security.md · DART 263860 rcept_no 20260814000732"
+  }
+ ],
+ "fx_vs_core": [
+  {
+   "key": "shipbuilding",
+   "verdict": "환율 중심(종목별 헤지 차이)",
+   "line": "26Q3 순이익 미스는 영업외 환손익이 중심 — 1차 공시상 헤지 정책이 '체계적 선도(HD현대중·삼성중)' vs '필요시 선택(한화오션)'으로 다름. 2차: HD현대중 영업외 −4,006억 중 ~3,500억 설명 불가, 한화오션 −3,740억, 삼성중은 일회성 +2,800억 걷으면 미스(애매). 영업이익(본업)과 분리해서 볼 것",
+   "src": "DART 329180·010140·042660 시장위험 · 블로그 2차(검증전)"
+  },
+  {
+   "key": "power_grid",
+   "verdict": "혼재(환 1·본업 1·일회성 1)",
+   "line": "HD현대일렉 = 환손실 중심(2차: 순노출 40% 헤지, 외환손실 479억) · 효성중 = 본업(2차: GIS 미국 매출 4Q 이연, 영업외 +370억 일회성 추정) · LS일렉 = 매출 헤지·화폐성 자산 미헤지로 영업외 −392억(2차, 일회성 애매). 1차는 헤지 수단(선도·매칭·환변동보험)까지만 확인",
+   "src": "DART 267260·298040·010120 · 블로그 2차"
+  },
+  {
+   "key": "defense",
+   "verdict": "본업 중심",
+   "line": "한화에어로 영업익 미스 = 수출 물량 분산·내수 비중(본업, 2차) · 순이익 환손실은 한화오션발 — 단 1차 공시상 한화오션은 지분법이 아니라 연결(해양 63.9%)이라 블로그 '지분법' 표기와 다름 [확인 필요: 3Q 분기보고서 영업외 내역, 2026-11-16] · 현대로템 = 방산→철도 믹스(본업, 2차)",
+   "src": "DART 012450·064350 · 블로그 2차"
+  },
+  {
+   "key": "memory",
+   "verdict": "미확인",
+   "line": "블로그 범위 밖 — 달러 판가라 원화 강세는 매출 환산 −, 헤지 정책 미추출",
+   "src": "drivers.py macro KRW +1"
+  },
+  {
+   "key": "autos",
+   "verdict": "미확인",
+   "line": "블로그 범위 밖 — 해외 판매가 기말 환율 환산(기아), 3Q 분해는 데이터 없음",
+   "src": "DART 000270"
+  }
+ ]
+}
