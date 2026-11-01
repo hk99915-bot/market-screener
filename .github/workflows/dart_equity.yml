@@ -5,11 +5,8 @@ run-name: "dart_equity ${{ github.event_name == 'workflow_dispatch' && format('[
 # DART 정기보고서 주요정보 — 타법인 출자현황(otrCprInvstmntSttus) + 최대주주 현황(hyslrSttus) (11/1 겸이 "원자재 금융 등 다른 섹터도")
 # → data/dart_equity/<코드>.json + index.json. 금융·지주·원자재의 지분·계열 엣지(관계도). 종목당 2콜(빈 기간이면 뒤로 최대 3기간).
 # 기본 대상 = reports/peers_KR.json 전 종목. 호출 예산 실행당 1,500콜(DART 일일 한도 2만 — dart_biz 400·fin 1,200 과 합쳐도 여유).
-# 상시 예약 없음(지분은 반기마다 바뀜). 임시 예약(11/1~11/6 KST, 보드 dart-supply-temp-cron): 첫 전 종목 채우기 이어받기 —
-# 모두 최신이면 호출·색인 쓰기 없이 끝. 11/7 저장소 전환 전 cron 줄 삭제(날짜 검사가 11/7 이후 실행도 막음).
+# 수동 실행만(예약 없음 — 지분은 반기마다 바뀜). 11/1 첫 전 종목 채우기 완료(1,205종목) 뒤 임시 매시 예약 삭제.
 on:
-  schedule:
-    - cron: "53 * 1-6 11 *"
   workflow_dispatch:
     inputs:
       codes:
@@ -53,9 +50,7 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           CODES: ${{ inputs.codes }}
           FILE: ${{ inputs.file }}
-          SCHED: ${{ github.event.schedule }}
         run: |
-          if [ -n "$SCHED" ] && [ "$(TZ=Asia/Seoul date +%F)" \> 2026-11-06 ]; then echo "임시 예약 기간(~11/6 KST) 끝 — 건너뜀"; exit 0; fi
           python -m screener.dart_equity --codes "$CODES" --file "$FILE" --max-calls 1500 --max-minutes 35
       - name: 요약
         if: always()
