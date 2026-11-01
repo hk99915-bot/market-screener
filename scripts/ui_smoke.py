@@ -63,6 +63,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_oneliner(b, port)
         bad += await check_my_ledger(b, port)
         bad += await check_my_first_screen(b, port)
+        bad += await check_my_hq(b, port)
         bad += await check_re_private(b, port)
         bad += await check_re_drill(b, port)
         bad += await check_re_zoom(b, port)
@@ -981,6 +982,65 @@ async def check_my_first_screen(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} MY첫화면(390×844) 결론↓{o['b1']} KPI↓{o['b2']} 행동↓{o['b4']}px KPI칸={o['k']} 데스크줄={o['desk']} 금액={len(won)} 가로스크롤={'있음' if o['hs'] else '없음'}"
           f" · 없음={'O' if ok_none else 'X'}({n['b4']}) 오래됨={'O' if ok_stale else 'X'}({s['b4']}) 미래={'O' if ok_fut else 'X'}({f['b4']}) 순서={'O' if o['order'] else 'X'}"
           + (f" · 에러: {errs[0][:160]}" if errs else "") + ("" if ok else f" · 본문: {o['t'][:300]!r} · 앰버: {o['am']!r}"))
+    return not ok
+
+
+MYHQ_LEAK_RE = r"desks\s*:\s*\[|kr\s*:\s*\[\s*\{|\bo\s*:\s*['\"][가-힣]"   # 본부 목표·KR·매핑을 화면 원본에 객체로 박으면 걸림 — 문구는 pb-private ops/okr.json 에만 (11/1 겸이 「이거 다 프라이빗한거로」)
+
+
+async def check_my_hq(b, port: int) -> int:
+    """MY '본부별 코멘트'(11/1 겸이 「맞춤 코멘트 정돈 · 본부 목표에 맞게」, 계약 = pb-private ops/okr_README.md), 390×844 · 가짜 데이터(route):
+    ① 카드 = okr.json 본부 수 + 종합 · 머리 O 한 줄·KR 칩 2개 — 'OKR:' 줄이 있으면 진행 값·막대, 없으면 '측정 전'
+    ② 데스크 첫 문장 굵게, 나머지 '더 보기'(접힘) · 숫자 강조 · 근거 경로 작은 글씨 · 기준일 7일 초과 '오래됨' · 파일 없음 '코멘트 없음'
+    ③ 가로 스크롤 없음 · 콘솔 에러 0 ④ 화면 원본(tab_my.html)에 본부·KR 문구 하드코딩 0."""
+    import json as _json
+    from datetime import datetime, timedelta, timezone
+    today = datetime.now(timezone(timedelta(hours=9))).date()
+    d = lambda n: (today + timedelta(days=n)).isoformat()  # noqa: E731
+    okr = {"version": 1, "summary": {"key": "pb", "name": "가짜종합", "lead": "pb", "o": "가짜 종합 목표"},
+           "hq": [{"key": "a", "name": "가짜본부A", "lead": "a1", "o": "가짜 목표 A 한 줄", "kr": [{"id": "KR1", "text": "가짜 KR 하나", "due": "12/31"}, {"id": "KR2", "text": "가짜 KR 둘", "due": "12/31"}], "desks": ["a1", "a2"]},
+                  {"key": "b", "name": "가짜본부B", "lead": "b1", "o": "가짜 목표 B 한 줄", "kr": [{"id": "KR1", "text": "가짜 KR 셋"}, {"id": "KR2", "text": "가짜 KR 넷"}], "desks": ["b1"]}],
+           "names": {"pb": "가짜PB", "a1": "가짜A1", "a2": "가짜A2", "b1": "가짜B1"}}
+    md = lambda dt, extra="": (f"기준일: {dt}\n{extra}- **가짜 라벨:** 첫 문장 +1.5%p 앞섬. 둘째 문장은 접힘 (analysis/fake/report.md).\n"  # noqa: E731
+                               "- 둘째 줄 3건 확인. 근거: `analysis/fake/x.md`\n")
+    latest = {"date": d(-1), "asof": d(-1), "dir": "analysis/fake-weekly", "kpis": [], "stats": {"asof": d(-1)},
+              "desks": [{"desk": "pb", "file": "analysis/fake-weekly/desk/pb.md"}, {"desk": "a1", "file": "analysis/fake-weekly/desk/a1.md"},
+                        {"desk": "a2", "file": "analysis/fake-weekly/desk/a2.md"}, {"desk": "b1", "file": None}]}
+    fx = {"ops/okr.json": _json.dumps(okr, ensure_ascii=False), "analysis/latest.json": _json.dumps(latest, ensure_ascii=False),
+          "analysis/fake-weekly/desk/pb.md": md(d(0)), "analysis/fake-weekly/desk/a1.md": md(d(-1), "OKR: 가짜본부A KR1 2/4 | KR2 진행 중\n"),
+          "analysis/fake-weekly/desk/a2.md": md(d(-10))}
+    ctx = await b.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = await ctx.new_page()
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.add_init_script("try{ if(!sessionStorage.getItem('_sm')){ sessionStorage.setItem('_sm','1'); localStorage.clear(); localStorage.setItem('mt_gh_tok','smoke'); } }catch(e){}")
+
+    def h(r):
+        u = r.request.url.split("?")[0]
+        key = u.split("/contents/", 1)[-1] if "/contents/" in u else ""
+        return r.fulfill(status=200, content_type="text/plain", body=fx[key]) if key in fx else r.fulfill(status=404, body="{}")
+    await pg.route("https://api.github.com/**", h)
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1200)
+    await pg.evaluate("setView('my')")
+    await pg.wait_for_timeout(2200)
+    r = await pg.evaluate("""(()=>{ const e=document.querySelector('#myhq'); if(!e) return null; const A=s=>[...e.querySelectorAll(s)];
+      const right=Math.max(0,...A('*').map(x=>x.getBoundingClientRect().right));
+      return {t:e.innerText, cards:A('.myhq-c').length, chips:A('.myhq-chip').length, none:A('.myhq-chip.is-none').length, bars:A('.myhq-bar i').map(i=>i.style.width),
+        bold:A('.myhq-f b').map(x=>x.textContent), more:A('details.myhq-more').length, open:A('details.myhq-more[open]').length,
+        num:A('.myhq-n').map(x=>x.textContent), src:A('.myhq-src').length, old:A('.myhq-old').map(x=>x.textContent), empty:A('.myhq-d.is-empty').map(x=>x.textContent),
+        hs:document.documentElement.scrollWidth>window.innerWidth+1||right>window.innerWidth+1}; })()""")
+    await ctx.close()
+    src = (ROOT / "apps-script" / "tab_my.html").read_text(encoding="utf-8")
+    import re as _re
+    leak = _re.findall(MYHQ_LEAK_RE, src)
+    ok = bool(r) and not errs and not leak and (
+        r["cards"] == 3 and r["chips"] == 4 and r["none"] == 2 and r["bars"] == ["50%"] and "진행 중" in r["t"] and "가짜 목표 A 한 줄" in r["t"]
+        and r["bold"].count("첫 문장 +1.5%p 앞섬.") == 3 and r["more"] == 3 and r["open"] == 0 and "+1.5%p" in r["num"] and r["src"] >= 3
+        and r["old"] == ["오래됨 10일"] and len(r["empty"]) == 1 and "코멘트 없음" in r["empty"][0] and "가짜B1" in r["empty"][0]
+        and "OKR 보고 1/2" in r["t"] and not r["hs"])
+    print(f"{'OK ' if ok else 'BAD'} MY본부카드(390) 카드={r and r['cards']} 칩={r and r['chips']}(측정전 {r and r['none']}) 오래됨={r and r['old']} 빈칸={r and len(r['empty'])}"
+          f" 접힘={r and r['more']}/{r and r['open']} 하드코딩={leak or '없음'}" + (f" · 에러: {errs[0][:160]}" if errs else "") + ("" if ok else f" · {r!r}"[:600]))
     return not ok
 
 
