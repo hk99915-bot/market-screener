@@ -45,6 +45,7 @@
 | 07:10 | briefing.yml [valuation] | 화수목금토 | cron 10 22 * * 1-5 | — |
 | 07:10 | study_daily.yml | 월화수목금 | cron 10 22 * * 0-4 | — |
 | 07:37 | us_accum.yml | 화수목금토 | cron 37 22 * * 1-5 | — |
+| 08:13 | tg_feed.yml | 월화수목금토일 | cron 13 23 * * * | — |
 | 08:20 | health.yml | 월화수목금토일 | cron 20 23 * * * | — |
 | 08:30 | scorecard.yml | 일 | cron 30 23 * * 6 | — |
 | 08:40 | live.yml | 월화수목금 | GAS(주) + cron 40 23 * * 0-4(대기) | — |
@@ -70,6 +71,7 @@
 | 18:37 | accum.yml | 월화수목금 | cron 37 9 * * 1-5 | — |
 | 19:10 | briefing.yml [reports] | 월화수목금 | GAS(주) + cron 10 10 * * 1-5(대기) | — |
 | 20:10 | health.yml | 월화수목금토일 | cron 10 11 * * * | — |
+| 20:13 | tg_feed.yml | 월화수목금토일 | cron 13 11 * * * | — |
 | 20:17 | data_store.yml | 금 | cron 17 11 * * 5 | — |
 | 20:52 | briefing.yml [premarket_us] | 월화수목금 | GAS(주) + cron 52 11 * * 1-5(대기) | — |
 | 21:52 | briefing.yml [premarket_us] | 월화수목금 | GAS(주) + cron 52 12 * * 1-5(대기) | — |
@@ -103,6 +105,8 @@
 | data/hist/*_daily.parquet (시세 창고) | hist 일 05:00 (cron) | — | 단일 |
 | reports/freshness.json | briefing 실행 끝마다 | health 08:20·20:10 | 멱등 재계산(현재 상태 스냅샷) — 덮어써도 역행 없음 |
 | health.json | health 일 22:00 | — | 단일 |
+| reports/feeds/tg_*.json (공개 텔레그램 9채널, `ops/tg_feeds.json`) | tg_feed 08:13·20:13 매일 (cron 단독, 1회 커밋 묶음, 새 글 없으면 커밋 없음) | 수동 tg_feed(읽기 전용 기본) | 단일 — 매크로 관찰 입력 |
+| reports/feeds/tg_why.json (why·채널 2주 채점) | PB 쪽 예약(데스크 에이전트) — tier 1 평일 저녁·tier 2 토요일 | tg_feed 는 없을 때 빈 틀만 생성 | 단일 — 데스크 소유, 워크플로 LLM 호출 없음 |
 | lab.json · scorecard_week · study_daily.json | lab 일 23:00 · scorecard 일 08:30 · study_daily 평일 07:10 | — | 단일 |
 | changelog · reports/ops · ops/BOARD.md | ops 23:47 | — | 단일 |
 | ops/team.json | ops 23:47·00:07 + team(매시 17분) — auto 블록 | PM 22:30 Claude 예약 — runs 블록 | 블록 분리 |

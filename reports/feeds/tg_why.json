@@ -1,0 +1,103 @@
+{
+ "_doc": "데스크가 채우는 '채널 주인이 이걸 왜 올렸나' 해석과 채널 2주 채점. 수집기(tg_feed.py·워크플로)는 쓰지 않음 — 실행은 PB 쪽 예약(데스크 에이전트). 추론 재료 = reports/feeds/tg_*.json 의 head·link·og·images(임시로 받아 보고 커밋 금지)·ctx. 원문 확인 전 숫자 인용 금지, 개인 채널은 펌핑 가능성 감안.",
+ "schedule": {
+  "tier1": "평일 저녁 매일(marketfeed 는 hit 글만)",
+  "tier2": "매주 토요일 묶어서"
+ },
+ "format": {
+  "post_id": "채널/글 id (예: akacommodity/24869)",
+  "why": "채널 주인이 올린 이유 추론 1~2줄",
+  "thesis_link": "연결되는 우리 뷰·KB 항목(예: macro.md #29) 또는 빈칸",
+  "conf": "상|중|하"
+ },
+ "items": [],
+ "score_format": {
+  "new_info_ratio": "새 정보 비율(우리 피드·KB에 없던 정보 ÷ 채점 글)",
+  "port_link_ratio": "포트 연결 비율(보유·관심 섹터에 닿는 글 ÷ 채점 글)",
+  "leading": "선행 여부(가격·공식 발표보다 먼저 나온 사례가 있었나: 예/아니오/미확인 + 사례 id)",
+  "noise_ratio": "소음 비율(잡담·중복·근거 없는 단정 ÷ 채점 글)"
+ },
+ "channel_scores": {
+  "akacommodity": {
+   "tier": 1,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "Samsung_Global_AI_SW": {
+   "tier": 1,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "hedgehara": {
+   "tier": 2,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "The_MariTimes": {
+   "tier": 2,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "d_ticker": {
+   "tier": 2,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "Trillion_labs": {
+   "tier": 2,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "marketfeed": {
+   "tier": 1,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "bornlupin": {
+   "tier": 2,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  },
+  "beluga_investment": {
+   "tier": 2,
+   "window": "",
+   "n": null,
+   "new_info_ratio": null,
+   "port_link_ratio": null,
+   "leading": null,
+   "noise_ratio": null
+  }
+ }
+}
