@@ -10,7 +10,7 @@
 
 검사 항목: 필수 필드 · id 중복 · prereq 존재·순환 · quiz choices 4개·answer 범위 · est_min ≤ 20(v3) ·
           v3 핵심 개념/공식/실수의 출처 태그([consult:…] [kb:…] [reports/studies/…] [교육 보충]) ·
-          로드맵 id 존재 · 정답 위치·가장 긴 선택지·why 한 문장(G2 실패) · 정답↔해설·계산 모순(study_answer_lint) · 인적성(선택지 5·정답 위치 분포·기출 메타 필드·https) · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 2주 게이트(open 정확히 15) · 금지어 · study.json 동기화.
+          로드맵 id 존재 · 정답 위치·가장 긴 선택지·why 한 문장(G2 실패) · 정답↔해설·계산 모순(study_answer_lint) · 인적성(선택지 5·정답 위치 분포·기출 메타 필드·https) · quiz_bank 모듈 참조·모듈당 ≥5·상황 문제 비중 · srs 규칙 · 2주 게이트(open 정확히 15, optional = 게이트 없는 선택 트랙) · 금지어 · study.json 동기화.
 """
 from __future__ import annotations
 
@@ -366,15 +366,18 @@ def check_all(S: dict) -> Check:
             c.err("index.json: 'gate' 없음 (첫 2주 열린 모듈 15개)")
     else:
         op, lk = list(gate.get("open", [])), list(gate.get("locked", []))
+        opt = list(gate.get("optional", []))   # 선택 트랙(게이트 없음, 11/01 QM) — 잠금·해금·새 모듈 선택 밖
         if len(op) != 15 or len(set(op)) != 15:
             c.err(f"gate.open 은 정확히 15개 (지금 {len(op)})")
-        for i in op + lk:
+        for i in op + lk + opt:
             if i not in mods:
                 c.err(f"gate: 없는 모듈 '{i}'")
         if set(op) & set(lk):
             c.err(f"gate: open·locked 겹침 {sorted(set(op) & set(lk))}")
-        if set(op) | set(lk) != set(mods):
-            c.err(f"gate: open+locked ≠ 전체 모듈 (빠짐 {sorted(set(mods) - set(op) - set(lk))})")
+        if set(opt) & (set(op) | set(lk)):
+            c.err(f"gate: optional 이 open·locked 와 겹침 {sorted(set(opt) & (set(op) | set(lk)))}")
+        if set(op) | set(lk) | set(opt) != set(mods):
+            c.err(f"gate: open+locked+optional ≠ 전체 모듈 (빠짐 {sorted(set(mods) - set(op) - set(lk) - set(opt))})")
         if gate.get("unlock_rule") != "앞 모듈 done 이슈":
             c.err("gate.unlock_rule 은 '앞 모듈 done 이슈'")
         ftw = rm.get("first_two_weeks", [])
@@ -423,12 +426,16 @@ def build(S: dict) -> dict:
     hours: dict[str, float] = {}
     gate = idx.get("gate") or {}
     open_ids = set(gate.get("open", []))
+    opt_ids = set(gate.get("optional", []))
     for t in S["tracks"]:
         tt = {k: v for k, v in t.items() if k != "modules"}
         tt["modules"] = [_legacy_module(m) for m in t["modules"]]
         for m in tt["modules"]:
             hours[m["id"]] = float(m["hours"])
             if gate:   # 2주 게이트 플래그 (Index.html 은 무시해도 됨)
+                if m["id"] in opt_ids:   # 선택 트랙: 잠금 없음·기한 없음
+                    m["locked"], m["open_until"], m["optional"] = False, None, True
+                    continue
                 m["locked"] = m["id"] not in open_ids
                 m["open_until"] = None if m["locked"] else gate.get("open_until")
                 if m["locked"]:

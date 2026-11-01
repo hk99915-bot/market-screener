@@ -22,7 +22,8 @@
   },
   "new_pick": "roadmap.order 순서에서 (a) 미완료 (b) prereq 모두 완료(또는 prereq 없음) 인 첫 모듈. 첫 2주는 roadmap.first_two_weeks 를 먼저 소진(consult:pb_learner#L9). 진행 파일이 없으면 first_two_weeks[0]",
   "quiz_pick": "오늘 복습 모듈이 있으면 그 모듈의 quiz_bank 에서 1개(situation 우선), 없으면 새 모듈의 1개. 같은 날엔 같은 문항(날짜 해시로 결정적)",
-  "settled": "stage 4 도달 모듈은 30일마다 1문항만 가벼운 재점검(선택)"
+  "settled": "stage 4 도달 모듈은 30일마다 1문항만 가벼운 재점검(선택)",
+  "optional_quiz": "gate.optional(선택 트랙, 11/01 QM) 문항은 오늘 퀴즈 칸이 비었을 때만(복습·새 모듈 문항 없음) 1개 — 미답 우선·situation 우선·날짜 해시. 하루 퀴즈 1개 상한(daily_cap.quiz) 유지."
  },
  "progress_store": {
   "status": "구현 — 이슈 'study <id> done' → .github/workflows/study.yml → screener/study_progress.py → reports/study_progress.json (Index.html 병합은 Dev handoff #4)",

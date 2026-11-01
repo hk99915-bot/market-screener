@@ -97,18 +97,38 @@ def pick_quiz(bank: dict, module_id: str | None, day: date, progress: dict | Non
     return items[h % len(items)]
 
 
+def pick_optional_quiz(bank: dict, optional_ids: list[str], day: date, progress: dict | None = None) -> dict | None:
+    """선택 트랙(gate.optional, 11/01 QM) 문항 1개 — 오늘 퀴즈 칸이 비었을 때만 쓴다(하루 퀴즈 1개 상한, srs.rules.optional_quiz).
+    pick_quiz 와 같은 규칙(미답 우선 → situation 우선 → 날짜 해시)을 선택 트랙 전체 풀에 적용."""
+    opt = set(optional_ids or [])
+    pool = [q for q in (bank or {}).get("items", []) if q.get("module") in opt]
+    if not pool:
+        return None
+    answered = {q.get("qid") for q in (progress or {}).get("quiz", [])}
+    items = [q for q in pool if q.get("id") not in answered] or pool
+    items = [q for q in items if q.get("kind") == "situation"] or items
+    items.sort(key=lambda q: q.get("id", ""))
+    h = int(hashlib.sha1(f"{day.isoformat()}:optional".encode()).hexdigest(), 16)
+    return items[h % len(items)]
+
+
 def build(today: date, study: dict, bank: dict, srs: dict, progress: dict | None, english: dict | None) -> dict:
     mods = _modules(study)
     review = pick_review(progress or {}, today, mods)
     new_id = pick_new(study, progress or {}, mods)
     quiz_mod = (review or {}).get("id") or new_id
     quiz = pick_quiz(bank, quiz_mod, today, progress)
+    optional_ids = list((study.get("gate") or {}).get("optional", []))
+    quiz_optional = False
+    if quiz is None:   # 퀴즈 칸이 빈 날(구형 모듈 복습·문항 없는 모듈)만 선택 트랙 1문항 — 상한 1개 유지
+        quiz = pick_optional_quiz(bank, optional_ids, today, progress)
+        quiz_optional = quiz is not None
     new = mods.get(new_id) if new_id else None
     gate = study.get("gate") or {}
     next_locked = None
     if gate and not new_id:
         done = _done_ids(progress or {})
-        next_locked = next((i for i in study.get("roadmap", {}).get("order", []) if i not in done), None)
+        next_locked = next((i for i in study.get("roadmap", {}).get("order", []) if i not in done and i not in optional_ids), None)
     issue_mod = new_id or (review or {}).get("id")
     cap = int((srs or {}).get("rules", {}).get("daily_cap", {}).get("est_min_total", 20))
     total_min = int(new.get("est_min") or round(float(new.get("hours", 0)) * 60)) if new else 0
@@ -125,7 +145,7 @@ def build(today: date, study: dict, bank: dict, srs: dict, progress: dict | None
                  "summary": new.get("summary"), "terminal_lookup": new.get("terminal_lookup"), "rule_link": new.get("rule_link"),
                  "prereq": new.get("prereq", []), "first_two_weeks": new_id in study.get("roadmap", {}).get("first_two_weeks", [])} if new else None),
         "quiz": ({"id": quiz["id"], "module": quiz["module"], "kind": quiz.get("kind"), "q": quiz["q"], "choices": quiz["choices"],
-                  "duel_desk": (quiz.get("duel") or {}).get("desk"), "rule_ref": quiz.get("rule_ref")} if quiz else None),
+                  "duel_desk": (quiz.get("duel") or {}).get("desk"), "rule_ref": quiz.get("rule_ref"), "optional": quiz_optional} if quiz else None),
         "english": ({"date": english.get("date"), "title": english.get("title"), "level": english.get("level")} if english else None),
         "daily_cap_min": cap,
         "progress_source": "reports/study_progress.json" if progress else "없음(이슈 'study <id> done' 으로 기록 — screener/study_progress.py)",
@@ -156,7 +176,7 @@ def telegram_text(o: dict) -> str:
     second = []
     if q:
         ch = " / ".join(f"{i}){c}" for i, c in enumerate(q["choices"]))
-        second.append(f"❓ [{q['module']}] {q['q']} — {ch}")
+        second.append(f"❓ [{q['module']}{' 선택' if q.get('optional') else ''}] {q['q']} — {ch}")
     if o.get("issue_url"):
         second.append(f"📝 완료·답 기록(이슈 '{o['issue_title']}', 본문 quiz <qid> <번호 또는 선택지 앞 2자>): {o['issue_url']}")
     if second:

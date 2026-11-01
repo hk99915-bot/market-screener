@@ -137,12 +137,14 @@ def test_bad_format_message():
 def test_two_week_gate_15_open(study):
     g = study["gate"]
     mods = {m["id"]: m for t in study["tracks"] for m in t["modules"]}
-    # locked = 전체 − 15 (10/24 트랙 J 추가로 52 → 58; 모듈 수 하드코딩 대신 파생)
-    assert len(g["open"]) == 15 and len(g["locked"]) == len(mods) - 15 and g["unlock_rule"] == "앞 모듈 done 이슈"
+    # locked = 전체 − 15 − 선택 트랙(10/24 트랙 J 추가로 52 → 58; 11/01 QM 7개는 optional — 모듈 수 하드코딩 대신 파생)
+    opt = set(g.get("optional", []))
+    assert len(g["open"]) == 15 and len(g["locked"]) == len(mods) - 15 - len(opt) and g["unlock_rule"] == "앞 모듈 done 이슈"
     assert g["open"][:10] == study["roadmap"]["first_two_weeks"] and g["open"][0] == "H2"
-    assert sum(1 for m in mods.values() if not m["locked"]) == 15
+    assert sum(1 for m in mods.values() if not m["locked"] and m["id"] not in opt) == 15
     assert all(m["unlock_rule"] == "앞 모듈 done 이슈" and m["open_until"] is None for m in mods.values() if m["locked"])
-    assert all(m["open_until"] == g["open_until"] for m in mods.values() if not m["locked"])
+    assert all(m["open_until"] == g["open_until"] for m in mods.values() if not m["locked"] and m["id"] not in opt)
+    assert all(not mods[i]["locked"] and mods[i].get("optional") and mods[i]["open_until"] is None for i in opt)
 
 
 def test_gate_check_rejects_wrong_count():
@@ -150,6 +152,22 @@ def test_gate_check_rejects_wrong_count():
     S["index"]["gate"]["open"] = S["index"]["gate"]["open"][:-1]
     S["index"]["gate"]["locked"] = S["index"]["gate"]["locked"] + [S["index"]["gate"]["open"][-1]]
     assert any("정확히 15" in e for e in scc.check_all(S).errors)
+
+
+def test_optional_track_outside_gate(study):
+    """선택 트랙(QM, 11/01): open·locked 와 겹치지 않고, 해금·새 모듈 선택에 끼지 않는다."""
+    g = study["gate"]
+    opt = g.get("optional", [])
+    assert opt and all(i.startswith("QM") for i in opt)
+    assert not set(opt) & (set(g["open"]) | set(g["locked"]))
+    p = {"unlocked": []}
+    assert sp.unlock_next(p, study, opt[0]) is None and p["unlocked"] == []
+
+
+def test_gate_check_rejects_optional_overlap():
+    S = scc.load_sources()
+    S["index"]["gate"]["locked"] = S["index"]["gate"]["locked"] + [S["index"]["gate"]["optional"][0]]
+    assert any("optional" in e and "겹침" in e for e in scc.check_all(S).errors)
 
 
 def test_unlock_next_on_done(study):
@@ -173,6 +191,26 @@ def test_daily_picks_only_open_modules(study, bank):
     progress["unlocked"] = [g["locked"][0]]
     o2 = study_daily.build(date(2026, 10, 21), study, bank, srs, progress, None)
     assert o2["new"]["id"] == g["locked"][0]
+
+
+def test_daily_optional_quiz_fills_empty_slot_only(study, bank):
+    """퀴즈 칸이 빈 날만 선택 트랙 1문항(하루 퀴즈 1개 상한) — 문항 있는 모듈 날엔 그 모듈 문항 그대로."""
+    srs = json.loads((ROOT / "content" / "study" / "srs.json").read_text(encoding="utf-8"))
+    opt = set(study["gate"]["optional"])
+    # 10/30 실제 상황: 복습 0-1(문제은행 없음) → 퀴즈 칸이 빈다
+    progress = {"done": [], "quiz": [], "streak": 3, "unlocked": [],
+                "modules": {"0-1": {"done": ["2026-10-15"], "stage": 0, "next_due": "2026-10-16"}}}
+    o = study_daily.build(date(2026, 10, 30), study, bank, srs, progress, None)
+    assert o["review"]["id"] == "0-1" and o["quiz"] and o["quiz"]["module"] in opt and o["quiz"]["optional"] is True
+    assert "선택]" in study_daily.telegram_text(o)
+    assert o["new"] is None or o["new"]["id"] not in opt            # 선택 트랙은 '오늘 새 모듈'로 안 뽑힌다
+    # 같은 날 두 번 → 같은 문항(결정적), 답한 문항은 다음에 피한다
+    assert study_daily.build(date(2026, 10, 30), study, bank, srs, progress, None)["quiz"]["id"] == o["quiz"]["id"]
+    p2 = {**progress, "quiz": [{"qid": o["quiz"]["id"]}]}
+    assert study_daily.build(date(2026, 10, 30), study, bank, srs, p2, None)["quiz"]["id"] != o["quiz"]["id"]
+    # 문항 있는 모듈(H2)이 새 모듈인 날 → 그 모듈 문항, 선택 트랙 아님
+    o3 = study_daily.build(date(2026, 10, 21), study, bank, srs, {"done": [], "quiz": [], "streak": 0, "unlocked": [], "modules": {}}, None)
+    assert o3["quiz"]["module"] == o3["new"]["id"] and o3["quiz"]["optional"] is False
 
 
 def test_daily_message_two_blocks_with_issue_link_and_streak(study, bank):
