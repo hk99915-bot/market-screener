@@ -41,6 +41,10 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: 최신 색인
+        # 대기 중이던 run 은 dispatch 시점 SHA 로 체크아웃 → 앞 run 이 커밋한 index 를 모른 채 다시 받고, 저장의 -X theirs 가
+        # 앞 run 색인 행을 덮어씀(11/1 run 41265986217). 수집 전에 main 의 최신 data/dart_biz 만 가져온다.
+        run: git fetch --depth 1 origin main && git checkout FETCH_HEAD -- data/dart_biz || true
       - name: 수집
         # 11/1 전 체인 run 41261946565 가 수집 53분+ → job 60분 한도에 걸리면 저장 단계가 안 돌아 받은 파일이 사라짐.
         # 코드 시간 예산 35분(받은 만큼 저장하고 중단) + step 상한 45분(코드가 멎어도 step 만 실패 → 아래 always() 저장이 부분 결과 커밋).
