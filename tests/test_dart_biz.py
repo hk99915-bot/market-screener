@@ -172,3 +172,33 @@ def test_single_cell_box_keeps_paragraph_breaks():
          "<P>점유율 1위</P></TD></TR></TABLE></SECTION-1>")
     lines = db.xml_to_text(db.biz_section(x)).splitlines()
     assert "나. 회사의 현황" in lines and "(1) 영업 개황" in lines and "점유율 1위" in lines
+
+
+def test_time_budget_stops_and_saves(tmp_path, monkeypatch):
+    """11/1 전 체인 실행 53분+ — job 60분 한도 전에 받은 만큼 저장하고 끊는다(stopped='time budget')."""
+    monkeypatch.setattr(db, "OUT", tmp_path)
+    monkeypatch.setattr(db, "INDEX", tmp_path / "index.json")
+    monkeypatch.setenv("DART_API_KEY", "x")
+    monkeypatch.setattr("screener.fin.corp_codes", lambda: {"053800": "1", "263860": "2", "042510": "3"})
+    clock = [0.0]
+    monkeypatch.setattr(db, "_now", lambda: clock[0])
+    calls = []
+
+    def fake_get(path, params, bud, binary=False):
+        bud.take()
+        calls.append(path)
+        clock[0] += 10 * 60                                        # 호출마다 10분 흐른 셈
+        if path == "list.json":
+            rn = {"1": "20260320000001", "2": "20260320000002", "3": "20260320000003"}[params.get("corp_code", "1")]
+            return {"list": [{"corp_name": "x", "report_nm": "사업보고서 (2025.12)", "rcept_no": rn, "rcept_dt": "20260320"}]}
+        return _zip({f"{params['rcept_no']}.xml": SAMPLE})
+
+    monkeypatch.setattr(db, "_get", fake_get)
+    monkeypatch.setattr(db, "list_reports", lambda cc, bud, days=560: fake_get("list.json", {"corp_code": cc}, bud)["list"])
+    st = db.update(["053800", "263860", "042510"], sleep=0, max_minutes=35)
+    assert st["stopped"] == "time budget"
+    assert st["new"] == 2 and calls == ["list.json", "document.xml"] * 2      # 40분 시점에서 셋째 종목 전 중단
+    assert st["done_codes"] == 2 and st["remaining"] == 1
+    ix = json.loads((tmp_path / "index.json").read_text())
+    assert len(ix["items"]) == 2 and ix["last_run"]["stopped"] == "time budget"
+    assert (tmp_path / "053800_20260320000001.txt").exists()

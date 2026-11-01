@@ -33,7 +33,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -42,12 +42,15 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: 수집
+        # 11/1 전 체인 run 41261946565 가 수집 53분+ → job 60분 한도에 걸리면 저장 단계가 안 돌아 받은 파일이 사라짐.
+        # 코드 시간 예산 35분(받은 만큼 저장하고 중단) + step 상한 45분(코드가 멎어도 step 만 실패 → 아래 always() 저장이 부분 결과 커밋).
+        timeout-minutes: 45
         env:
           PYTHONUNBUFFERED: "1"
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           CODES: ${{ inputs.codes }}
           CHAIN: ${{ inputs.chain }}
-        run: python -m screener.dart_biz --codes "$CODES" --chain "$CHAIN" --max-calls 400
+        run: python -m screener.dart_biz --codes "$CODES" --chain "$CHAIN" --max-calls 400 --max-minutes 35
       - name: 요약
         if: always()
         run: |

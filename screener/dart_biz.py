@@ -8,7 +8,9 @@
 → data/dart_biz/<코드>_<rcept_no>.txt + 색인 data/dart_biz/index.json.
 
 - 이미 색인에 있는 rcept_no 는 다시 받지 않는다(섹션을 못 찾은 것도 status 로 남겨 반복 호출 방지).
-- 호출 예산(--max-calls, 기본 400)·재시도 3회·일일 한도(020) 감지 시 즉시 중단하고 받은 만큼 저장.
+- 호출 예산(--max-calls, 기본 400)·시간 예산(--max-minutes, 기본 35)·재시도 3회·일일 한도(020) 감지 시 즉시 중단하고 받은 만큼 저장.
+  (11/1 전 체인 실행이 수집 단계 53분+ — 원인: 파싱은 수 MB 에 0.2초 미만, 시간은 document.xml 내려받기(건당 평균 ≈13초,
+  7종목 13건 177초) × 예산 400콜 ≈ 200건 → 50분+ 로 job 60분 한도에 걸려 저장 단계가 못 돎. 그래서 시간 예산 + 스트리밍 크기·시간 상한.)
 - 종목마다 사업보고서 최신 1건 + 그보다 새 반기보고서 1건만 보관 — 옛 rcept_no 파일은 지운다(저장소 크기).
 - 공시 원문은 공개 정보. 개인정보 없음.
 
@@ -43,9 +45,16 @@ INDEX = OUT / "index.json"
 PARSER = 3                     # 추출 규칙 버전 — 올리면 옛 버전 결과를 다음 실행에서 다시 받음(파일은 덮어씀)
 MAX_CHARS = 600_000            # 비정상적으로 긴 섹션 상한(파일 하나 ≈ 1.5MB 이하)
 KINDS = {"사업보고서": "사업", "반기보고서": "반기"}
+MAX_ZIP_BYTES = 40 * 1024 * 1024   # document.xml zip 상한 — 넘으면 받다 끊고 doc_toobig 로 기록(재호출 안 함)
+DOC_SECONDS = 120              # zip 한 건 내려받기 총 시간 상한(requests timeout 은 읽기 간격이라 느린 전송은 못 끊음)
+_now = time.monotonic          # 시간 예산 시계(테스트에서 바꿔 낌)
 
 
 class DailyLimit(RuntimeError):
+    pass
+
+
+class TimeBudget(DailyLimit):
     pass
 
 
@@ -210,17 +219,20 @@ def _get(path: str, params: dict, bud: Budget, binary: bool = False):
     for i in range(3):
         bud.take()
         try:
-            r = requests.get(f"{BASE}/{path}", params={"crtfc_key": key(), **params}, timeout=60)
+            r = requests.get(f"{BASE}/{path}", params={"crtfc_key": key(), **params}, timeout=(15, 60), stream=binary)
             r.raise_for_status()
+            content = _read_capped(r) if binary else r.content
+        except _TooBig:
+            return "toobig"
         except Exception as e:  # noqa: BLE001
             if i == 2:
                 raise
             log.info("DART %s 재시도 %d: %s", path, i + 1, e)
             time.sleep(3 * (i + 1))
             continue
-        if binary and r.content[:2] == b"PK":
-            return r.content
-        txt = r.content.decode("utf-8", "ignore")
+        if binary and content[:2] == b"PK":
+            return content
+        txt = content.decode("utf-8", "ignore")
         st = (re.search(r'"status"\s*:\s*"(\d+)"', txt) or re.search(r"<status>(\d+)</status>", txt))
         st = st.group(1) if st else ""
         if st == "020":
@@ -232,6 +244,25 @@ def _get(path: str, params: dict, bud: Budget, binary: bool = False):
             return j
         raise RuntimeError(f"DART {j.get('status')}: {j.get('message')}")
     return None
+
+
+class _TooBig(Exception):
+    pass
+
+
+def _read_capped(r) -> bytes:
+    """스트리밍으로 받되 크기(MAX_ZIP_BYTES)·총 시간(DOC_SECONDS) 상한. 크기 초과는 확정 실패, 시간 초과는 일시 오류(재시도)."""
+    buf, t0 = io.BytesIO(), time.monotonic()
+    try:
+        for chunk in r.iter_content(256 * 1024):
+            buf.write(chunk)
+            if buf.tell() > MAX_ZIP_BYTES:
+                raise _TooBig(f"{buf.tell()} bytes")
+            if time.monotonic() - t0 > DOC_SECONDS:
+                raise TimeoutError(f"document.xml {DOC_SECONDS}s 초과 ({buf.tell()} bytes)")
+    finally:
+        r.close()
+    return buf.getvalue()
 
 
 def list_reports(corp_code: str, bud: Budget, days: int = 560) -> list[dict]:
@@ -308,7 +339,7 @@ def _uniq(xs: list[str]) -> list[str]:
 
 # ───────────── 실행 ─────────────
 
-def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
+def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3, max_minutes: float = 35) -> dict:
     if not key():
         log.info("DART_API_KEY 없음 — 사업보고서 본문 건너뜀")
         return {"skipped": "no key"}
@@ -318,10 +349,18 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
     have = {r["rcept_no"] for r in ix.get("items", []) if r.get("parser", 1) >= PARSER}   # 옛 규칙 결과는 성공도 다시 받음
     ix["items"] = [r for r in ix.get("items", []) if r["rcept_no"] in have]   # 옛 규칙 기록은 새로 씀
     bud = Budget(max_calls)
-    stat = {"codes": len(codes), "new": 0, "skip": 0, "no_section": 0, "no_report": 0, "no_corp": 0, "err": 0}
+    stat = {"codes": len(codes), "new": 0, "skip": 0, "no_section": 0, "no_report": 0, "no_corp": 0, "err": 0, "done_codes": 0}
     stop = ""
+    t0 = _now()
+
+    def check_time() -> None:
+        if max_minutes and _now() - t0 > max_minutes * 60:
+            raise TimeBudget("time budget")
+
     try:
         for i, code in enumerate(codes):
+            stat["done_codes"] = i
+            check_time()
             cc = cmap.get(code)
             if not cc:
                 stat["no_corp"] += 1
@@ -342,8 +381,11 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
                 if rn in have:
                     stat["skip"] += 1
                     continue
+                check_time()
                 time.sleep(sleep)
+                td = _now()
                 got = _get("document.xml", {"rcept_no": rn}, bud, binary=True)
+                log.info("%s %s 본문 %s %.1fs", code, rn, f"{len(got):,}B" if isinstance(got, bytes) else got, _now() - td)
                 row = {"code": code, "name": r.get("corp_name", ""), "rcept_no": rn, "report": r.get("report_nm", "").strip(),
                        "kind": r["kind"], "date": r.get("rcept_dt", ""), "chars": 0,
                        "fetched": datetime.now(KST).strftime("%Y-%m-%d"), "parser": PARSER}
@@ -359,7 +401,7 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
                     (OUT / f"{code}_{rn}.txt").write_text(hdr + text + "\n", encoding="utf-8")
                     row.update(chars=len(text), status="ok")
                     stat["new"] += 1
-                elif isinstance(got, bytes) or got in ("014", "badzip"):   # 확정 실패만 기록(재호출 방지)
+                elif isinstance(got, bytes) or got in ("014", "badzip", "toobig"):   # 확정 실패만 기록(재호출 방지)
                     row["status"] = "no_section" if isinstance(got, bytes) else f"doc_{got}"
                     if isinstance(got, bytes):
                         log.warning("%s %s 사업의 내용 못 찾음 — %s", code, rn, diagnose(got, rn))
@@ -374,10 +416,12 @@ def update(codes: list[str], max_calls: int = 400, sleep: float = 0.3) -> dict:
             if (i + 1) % 10 == 0:
                 save_index(ix)                                   # 중간 저장
             time.sleep(sleep)
+        stat["done_codes"] = len(codes)
     except DailyLimit as e:
         stop = str(e)
         log.warning("중단: %s — 받은 만큼 저장, 다음 실행에서 이어받음", e)
-    stat.update(api_calls=bud.used, stopped=stop)
+    stat.update(api_calls=bud.used, stopped=stop, minutes=round((_now() - t0) / 60, 1),
+                remaining=len(codes) - stat["done_codes"])
     ix["last_run"] = {"at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"), **stat}
     save_index(ix)
     log.info("사업보고서 본문 %s", stat)
@@ -390,6 +434,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--chain", default="", help="drivers.CHAINS 키 (예: cybersecurity) — codes 와 합침")
     ap.add_argument("--top", type=int, default=60, help="기본 대상일 때 상세 리포트 우선순위 상위 몇 종목")
     ap.add_argument("--max-calls", type=int, default=400)
+    ap.add_argument("--max-minutes", type=float, default=35, help="시간 예산(분) — 넘으면 받은 만큼 저장하고 중단")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     codes = _uniq(a.codes.replace(" ", ",").split(",")) if a.codes.strip() else []
@@ -398,7 +443,7 @@ def main(argv: list[str] | None = None) -> int:
     if not codes:
         codes = default_codes(a.top)
     log.info("대상 %d종목: %s%s", len(codes), ",".join(codes[:12]), " …" if len(codes) > 12 else "")
-    st = update(codes, max_calls=a.max_calls)
+    st = update(codes, max_calls=a.max_calls, max_minutes=a.max_minutes)
     print(json.dumps(st, ensure_ascii=False))
     return 0
 
