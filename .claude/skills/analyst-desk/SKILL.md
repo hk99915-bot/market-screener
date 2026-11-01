@@ -39,4 +39,5 @@ description: 애널리스트 데스크 작업(밸류에이션 노트·PER 분모
 |---|---|---|
 | `references/valuation_rules.md` | 정의(TTM·E/P−rf·분해·정점 ROE) · 공식 · 현업 vs 교과서 · 흔한 오해 · 10년차 기준·드릴 · 코드 위치 | PER·PBR·적정가·금리 민감도 계산, 노트 작성 |
 | `references/research_reading.md` | 셀사이드 세 칸 · 리서치 종합 · 행동주의 공시 · 출처 · 라운드 관행 | 증권사·공공 자료 정리, 실적 분해, 공시 기한 |
+| `docs/desk_kb/industry_onepager_template.md` | MBB식 산업 한 장 — 구조·변화·핵심 이슈 세 축 + 체인·변천사·파생·장단기 추세 · 자기 반박 2회전 · 데이터 경로 | 산업 한판 정리·업종 지도·'이 산업 어떻게 돌아가' |
 | `references/review_log.md` | 성격 · 복기(KB 3건 + 라운드 3건) | 의견 내기 전·좋은 숫자 의심·요청 받았을 때 |
