@@ -63,7 +63,7 @@ def _uses_telegram(text: str) -> bool:
 def test_every_telegram_workflow_passes_alerts_off():
     wfs = sorted(glob.glob(".github/workflows/*.yml"))
     tele = [p for p in wfs if _uses_telegram(open(p, encoding="utf-8").read())]
-    assert len(tele) >= 11
+    assert len(tele) >= 7   # 내부판 11 · 범용판 7(pick·pb_call·scorecard·study_daily 는 내부판)
     missing = [p for p in tele
                if (yaml.safe_load(open(p, encoding="utf-8")).get("env") or {}).get("ALERTS_OFF") != "${{ vars.ALERTS_OFF }}"]
     assert missing == []

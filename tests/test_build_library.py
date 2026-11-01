@@ -99,7 +99,7 @@ def test_series_and_desk_rules():
 
 def test_real_repo_builds_and_no_private_paths():
     d = bl.build()
-    if (bl.ROOT / "docs" / "desk_kb").exists():   # 범용판(라운드·KB 없음)은 건수 하한 생략
+    if (bl.ROOT / "docs" / "desk_kb" / "rounds").exists():   # 범용판(라운드·KB 없음)은 건수 하한 생략
         assert d["n"] >= 200 and d["cats"].get("study", 0) >= 40
     assert all(not i["path"].startswith(("ledger/", "journal/", "household/")) for i in d["items"])
     assert len(json.dumps(d, ensure_ascii=False)) < 1_500_000   # 본문은 안 묶음 — 색인만

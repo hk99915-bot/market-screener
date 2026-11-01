@@ -221,9 +221,13 @@ def write_snapshot(pl: Plan, blobs: dict[str, bytes], dest: Path) -> int:
 
 
 def run_pytest(dest: Path) -> tuple[int, list[str]]:
-    if not (dest / ".git").exists():   # git check-ignore 등을 쓰는 테스트용 — 커밋은 안 함(겸이·개발이 새 저장소에서)
-        subprocess.run(["git", "init", "-q", str(dest)], check=True)
+    if not (dest / ".git").exists():   # git ls-tree·check-ignore 를 쓰는 테스트용
+        subprocess.run(["git", "init", "-q", "-b", "main", str(dest)], check=True)
+    if subprocess.run(["git", "-C", str(dest), "rev-parse", "-q", "--verify", "HEAD"], capture_output=True).returncode:
+        # 커밋이 없으면 스냅샷 1커밋(로컬만 — push 는 하지 않음, 계획서 §4 '이력 없이 시작')
         subprocess.run(["git", "-C", str(dest), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(dest), "-c", "user.name=Claude", "-c", "user.email=noreply@anthropic.com", "commit", "-q",
+                        "-m", "snapshot: market-screener 범용판 (scripts/migrate_v1.py)"], check=True)
     r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--no-header", "-rfE", "--continue-on-collection-errors"],
                        cwd=dest, capture_output=True, text=True)
     failed = sorted({ln.split("::")[0].replace("FAILED ", "").replace("ERROR ", "")
@@ -242,7 +246,7 @@ def report(pl: Plan, forb: list[str], sc, hits, names, refs, wf, apply_info: str
          "## 요약",
          f"- 추적 파일 {len(pl.files)}개 → 범용판 {cnt[PUBLIC]} · 내부판 전용 {cnt[INTERNAL]} · 개인 흔적 제외 {cnt[PERSONAL]} · 보관 {cnt[ARCHIVE]}",
          f"- A 금지 경로·비밀 파일: {'통과(0건)' if not forb else f'**막힘 {len(forb)}건**'}",
-         f"- B 금액·개인(지문 금액 {len(sc.vals)}개·보유 {len(sc.hold)}종, 값 비공개): review {len(review)}건 "
+         f"- B 금액·개인(비공개 지문 {'사용' if sc.vals or sc.hold else '안 씀'} — 개수·값 비공개): review {len(review)}건 "
          f"{'→ 통과' if not review else '→ **막힘**'} · 그 밖 분류 {sum(v for (k, c), v in cat.items() if c != 'review')}건(규정·시장·예시 등 허용)",
          f"- C 이름·호칭('겸이'·'누나'·'사담') 줄: {sum(names.values())} — 막지 않음(인벤토리 §6, 11/12 이후 문구 정리)",
          f"- D 제외 경로를 가리키는 범용판 파일: {len(refs)}개 — 범용판에서 404·테스트 실패 후보",
