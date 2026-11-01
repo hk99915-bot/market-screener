@@ -4,6 +4,8 @@
   python scripts/board.py --set lab-r2 검수     # 상태 변경 (완료/진행이면 날짜 자동 기입) + 생성
   python scripts/board.py --check              # 검증만 (잘못되면 종료코드 1)
   python scripts/board.py --approval appr-x 겸이  # 결재 필드 설정 ('-' 면 비움) + 생성
+  python scripts/board.py --due lab-r2 2026-11-10  # 마감 변경 ('-' 면 비움) + 생성 (11/01 PM 늦은 일 정리)
+  python scripts/board.py --note lab-r2 "11/01 PM: 근거 …"  # notes 끝에 ' | ' 로 한 줄 덧붙임 + 생성
   python scripts/board.py --add '{"id":..,"title":..,"owner":..,"priority":"P1","status":"대기"}'
                                                # 작업 추가 — validate 통과할 때만 기록 (생략한 선택 필드는 기본값)
 """
@@ -11,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -142,6 +145,8 @@ def main() -> int:
     ap.add_argument("--add", metavar="JSON", help="작업 1건(JSON 객체) 추가 — validate 통과 시에만 기록")
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--approval", nargs=2, metavar=("ID", "WHO"), help="결재 필드 설정 (WHO='-' 면 비움)")
+    ap.add_argument("--due", nargs=2, metavar=("ID", "DATE"), help="마감 YYYY-MM-DD 설정 ('-' 면 비움)")
+    ap.add_argument("--note", nargs=2, metavar=("ID", "TEXT"), help="notes 끝에 ' | TEXT' 덧붙임")
     a = ap.parse_args()
     b = load()
     if a.add:
@@ -180,6 +185,20 @@ def main() -> int:
             print("✗", e, file=sys.stderr)
         if aerrs:
             return 1
+        b["updated"] = today()
+        BOARD.write_text(json.dumps(b, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if a.due or a.note:
+        tid = (a.due or a.note)[0]
+        t = next((x for x in b["tasks"] if x["id"] == tid), None)
+        if not t or (a.due and a.note and a.due[0] != a.note[0]):
+            print(f"작업 '{tid}' 없음 (또는 --due·--note id 불일치)", file=sys.stderr); return 1
+        if a.due:
+            d = a.due[1]
+            if d != "-" and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d):
+                print(f"✗ --due 형식 YYYY-MM-DD: {d}", file=sys.stderr); return 1
+            t["due"] = None if d == "-" else d
+        if a.note:
+            t["notes"] = (t.get("notes") or "").rstrip() + (" | " if t.get("notes") else "") + a.note[1].strip()
         b["updated"] = today()
         BOARD.write_text(json.dumps(b, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     errs = validate(b)
