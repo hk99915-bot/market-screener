@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-02 · 작업 393개 · 진행 7 · 검수 4 · 대기 75 · 보류 31 · 완료 276
+기준일 2026-11-02 · 작업 394개 · 진행 7 · 검수 4 · 대기 76 · 보류 31 · 완료 276
 
 **결재 대기 5:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이), `appr-staffing-b-1107` (겸이)
 
@@ -29,7 +29,7 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-11-03 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. / 11/01 PM 늦은 일 정리(유효): 유효: 11/02(월) 23:20 루프 기동·06:00 재개 실측 뒤 완료 |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (75)
+## 대기 (76)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -104,6 +104,7 @@
 | P2 ⏫P1 10-29 | `rt-deriv-flow-plan` | 장중 파생 수급(헤지 vs 실수요) 수집 기획 — 1단계 네이버 dealTrendInfo 장중 N분 스냅샷 탐침, 2단계 KIS 주식선물 웹소켓(조건부) | 데이터 | — | 2026-11-21 | `docs/desk_kb/rounds/2026-10-26/research_realtime_deriv.md` | — | 리서치 완료(10/26). 오너 결재 대기: (1) 장중 탐침 승인 (2) 금융위 V2·KRX 재배포 약관 점검 (3) KIS 계좌·약관 확인은 오너 몫. 한도 초기화 후 ㄱㄱ. / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-06→11-21 |
 | P2 ⏫P1 10-21 | `us-delisted-earnings` | US 상폐 포함 유니버스 백필 + 실적일 캘린더 소스 — 생존편향 없는 US 신호 연구용 | 데이터 | — | 2026-11-22 | `data/hist/us_*.parquet`<br>`screener/universe.py` | — | 퀀트(US) 요청 10/17. 없으면 US 연구는 전부 '현재 구성 후향분석'(등급 상한 B). / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-07→11-22 |
 | P2 ⏫P1 10-27 | `heatmap-gics-wics` | 히트맵 섹터 묶음 토스 섹터 → 공식 GICS(미장)/WICS(국장) 1종목 1섹터 (sectors.py OFFICIAL_LIMITS 원천, 테마·순환매는 토스 유지) | 개발 | — | 2026-11-23 | `screener/heatmap_kr.py`<br>`screener/heatmap.py`<br>`screener/sectors.py` | — | 10/24 겸이 "GICS/WICS로 히트맵도 통일". 화 11시(사용 한도 초기화) 이후 착수. / 11/01 PM 늦은 일 정리(유효): 유효: 겸이 10/24 요청, OFFICIAL_LIMITS 전환(10/24) 뒤 히트맵만 남음 / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-11→11-23 |
+| P2 | `study-tts` | STUDY 듣기 버튼(브라우저 음성 읽기) — OPIc 질문·모범답안·오늘의 영어 본문, 속도 0.8/1.0 | 프론트 | — | 2026-11-23 | `apps-script/tab_study.html` | — | 11/2 겸이 「모범답안도 음성 들을 수 있게」 — 폰 출퇴근 학습. 토큰 0(speechSynthesis). 주간 한도 리셋 뒤 착수. |
 | P2 ⏫P1 10-21 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
 | P3 ⏫P1 10-21 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-14 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |
 | P3 ⏫P1 10-23 | `jiang-prediction-ledger` | Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기) | 검증 | — | 2026-11-23 | `reports/views/jiang_predictions.json` | `public-reports` | 애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈. / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-07→11-23 |
