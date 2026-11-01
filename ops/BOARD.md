@@ -2,9 +2,9 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-01 · 작업 371개 · 진행 7 · 검수 3 · 대기 63 · 보류 31 · 완료 267
+기준일 2026-11-01 · 작업 371개 · 진행 7 · 검수 3 · 대기 62 · 보류 31 · 완료 268
 
-**결재 대기 7:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이), `appr-staffing-b-1107` (겸이), `freeman-okr` (겸이 · 보류), `req-front-184a8da5` (겸이)
+**결재 대기 6:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이), `appr-staffing-b-1107` (겸이), `freeman-okr` (겸이 · 보류)
 
 ## 진행 (7)
 
@@ -26,7 +26,7 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-11-03 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. / 11/01 PM 늦은 일 정리(유효): 유효: 11/02(월) 23:20 루프 기동·06:00 재개 실측 뒤 완료 |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (63)
+## 대기 (62)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -40,7 +40,6 @@
 | P1 ⏫ | `req-dev-34d785aa` | [요청 승격] 유지보수→개발: [검수 intraday-bar 조건부] KR 통과 — 10/26 intraday_last 78회 갱신(09: | 개발 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-34d785aa`. |
 | P1 ⏫ | `req-dev-b8bc0009` | [요청 승격] 유지보수→개발: [검수 dispatch-redundancy 조건부·실행 불가] test_dispatch·test_watchd | 개발 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-b8bc0009`. |
 | P1 ⏫ | `req-dev-ee592388` | [요청 승격] 검증→개발: 검수 integrity-p0-5 조건부: handoff_build 훅·예약 미연결로 생성 1.8시간 뒤 -- | 개발 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-ee592388`. |
-| P1 ⏫ | `req-front-184a8da5` | [요청 승격] 부동산→프론트: MARKET › 부동산 지도 화면 구현 요청(10/24 겸이 '서울·경기권 지도'): 데이터 reports/ | 프론트 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-24~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→부동산: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-184a8da5`. / 11/01 PM 11/03 일괄 마감 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 부동산 탭 동결 브랜치(가독성·OSM 배경 지도) ✅ 여부 — 머지돼야 46칸 지도 이어감(front 10/27) / 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조 |
 | P1 ⏫ | `req-front-4ca0eec3` | [요청 승격] 유지보수→프론트: [검수 realestate-private-viewer 조건부·실행 불가] 5528ed3e check_re_p | 프론트 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→유지보수: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-4ca0eec3`. |
 | P1 ⏫ | `req-pb-db57c704` | [요청 승격] 개발→PB: 결재 필요: rules_status(P0-2) 실데이터 — 결재 #4 는 원장에서 조항 [13] 으로 매핑되 | PB | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→개발: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-db57c704`. |
 | P1 ⏫ | `req-quant-7727cc15` | [요청 승격] 자산배분→퀀트: 11/15 ISA 안건: 코어 비중에 광범위 원자재 3%(S&P 40→37) 넣은 안의 2022형(주식·채권 | 퀀트 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→자산배분: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-7727cc15`. |
@@ -130,7 +129,7 @@
 | P3 ⏫P1 10-21 | `audit-1017-minor` | 감사 경 L2~L13 묶음 (live 동시실행 대기·레짐 기본값/SEMI_CAP 덮임·prices join 순서·valuation asof·data_branch lease·us_accum 입력·accum 저장 크기·team ⛔·회고 커미터·flowq 테스트·detail rets 크기) | 개발 | 2026-10-17 | 2026-11-18 | `screener/pb.py`<br>`screener/prices.py`<br>`scripts/data_branch.py` | — | 표: docs/peer_reviews/2026-10-17_refactor_audit.md §2.2. 담당 열대로 데스크에 나눠 처리. 출처: docs/peer_reviews/2026-10-17_refactor_audit.md / 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — 착수 흔적 없음(커밋 0) — 10/24 마감 비현실 / 11/01 PM 늦은 일 정리(정리): 보류: 경 등급 묶음 — 리팩토링 이전(11/7~11)으로 파일 경로가 바뀜, 이전 뒤 남은 것만 |
 | P3 | `longterm-terminal-design` | 장기 검토: 29데스크 컨텍스트 효율·PostgreSQL POC·선택적 검색 설계안 2건 검토(설계 전용) | PM | 2026-10-25 | 2026-11-30 | private 전용 | — | 10/25 겸이 "이건 장기 검토용". 문서 자체가 READ-ONLY·승인 전 변경 금지 명시. 토큰 긴축 해제 뒤 PM·개발·데이터 검토 일정 잡기. |
 
-## 완료 (267)
+## 완료 (268)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -322,6 +321,7 @@
 | P1 ⏫ | `req-realestate-6beefa2a` | [요청 승격] 교육→부동산: 사실 검수 요청: 내 집 마련 입문 트랙 J1~J6(content/study/track_J.json) — 청 | 부동산 | — | 2026-11-03 | — | — | 요청 2영업일 미처리(2026-10-24~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 부동산 라운드 파일에 `처리→교육: …` 한 줄 또는 `python3 scripts/ask.py --close req-realestate-6beefa2a`. / 11/01 PM 11/03 일괄 마감 정리(완료): 근거: 요청 장부 done 2026-10-27(realestate) — 트랙 J 13개 항목 줄 단위 검수 완료 — 틀림 0 · 갱신 3(J2 민영 신생아 특공 2026-06-15 시행·물량 10%… |
 | P1 ⏫ | `req-realestate-8d77a6b9` | [요청 승격] PB→부동산: 10/25 겸이 정정: 세대분리 시점 = 집을 구하는 시점(전세든 매매든). reco 의 '세대분리(독립)  | 부동산 | — | 2026-11-03 | — | — | 요청 2영업일 미처리(2026-10-25~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 부동산 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-realestate-8d77a6b9`. / 11/01 PM 11/03 일괄 마감 정리(완료): 근거: 요청 장부 done 2026-10-27(realestate) — 세대분리 = 집 구하는 시점(1억 뒤 첫 집) 기준 경로별 판정 표 작성: 매매 직행(잔금일 분리)이면 생애최초 LTV(대출 … |
 | P1 ⏫ | `req-uxui-2ca21d0b` | [요청 승격] 프론트→UXUI: 판단 부탁(front-first-round): tab_msgr.html:139 mgProf() 프로필 뷰어  | UXUI | — | 2026-11-03 | — | — | 요청 2영업일 미처리(2026-10-24~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 UXUI 라운드 파일에 `처리→프론트: …` 한 줄 또는 `python3 scripts/ask.py --close req-uxui-2ca21d0b`. / 11/01 PM 11/03 일괄 마감 정리(완료): 근거: 요청 장부 done 2026-10-27(uxui) — 프론트님, 결론은 지금처럼 다크로 둡니다(토큰 전환은 안 합니다). 프로필 뷰어는 화면 전체를 #000 오버레이로 덮고 사진 … |
+| P1 ⏫ | `req-front-184a8da5` | [요청 승격] 부동산→프론트: MARKET › 부동산 지도 화면 구현 요청(10/24 겸이 '서울·경기권 지도'): 데이터 reports/ | 프론트 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-24~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→부동산: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-184a8da5`. / 11/01 PM 11/03 일괄 마감 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 부동산 탭 동결 브랜치(가독성·OSM 배경 지도) ✅ 여부 — 머지돼야 46칸 지도 이어감(front 10/27) / 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조 / 11/1 프론트: 동결 브랜치 merge 커밋 e9d4e38d3(내용 10/28 main 기반영, 충돌 = 표기만·main 채택) · 46칸 다음 단계 → req-realestate-af8f9686 |
 | P1 | `appr-alloc-1115` | 겸이 결재 필요: 자산배분 11/15 ISA 안건 Q1~Q4(금 현행 유지·미국채 불채택·방어 슬롯 30% 명문화·305080 분류 분리, 비중 변경 0) 권고대로 갈까? | 사용자 | — | 2026-11-15 | `docs/desk_kb/rounds/2026-10-23/alloc_isa_review.md` | — | 10/24 운영 점검: 결재 항목 등록. 근거 alloc_isa_review.md §3. 데이터(10/30)·채권(11/06) 회신 붙인 뒤 11/15 결정. / 10/24 07시대 겸이 "싹다 ㄱㄱ": 승인 — Q1~Q4 권고대로(비중 변경 0), 11/15 회의에서 데이터·채권 회신 붙여 확정 기록 |
 | P1 | `ai-credit` | AI 인프라 신용 감시 | 채권 | 2026-10-15 | — | `screener/bonds.py`<br>`screener/committee.py`<br>`apps-script/Index.html` | — | 업종 국지 신용 스트레스 경보(정상/주의/경계) → 운용회의 head 한 줄 + 채권 탭 섹션. 10/15 첫 커밋. |
 | P1 | `core-weights` | 코어 자산배분 최적 비중 | 자산배분 | 2026-10-15 | — | private 전용 | — | private 저장소 전용. |

@@ -5386,7 +5386,7 @@
     "2026-10-24"
    ],
    "pending_rounds": 0,
-   "status": "promoted",
+   "status": "done",
    "task_id": "req-front-184a8da5",
    "promoted": "2026-10-27",
    "promoted_at": "2026-10-27T05:25+09:00",
@@ -5396,8 +5396,17 @@
      "at": "2026-10-27T23:40+09:00",
      "text": "보류(부동산 탭 동결): 10/27 PB 지시로 tab_realestate.html 은 겸이 ✅를 기다리는 브랜치(worktree-agent-a84474…, 가독성·OSM 배경 지도) 때문에 손대지 않았어요. 서울 25개 구 지도·확대(구→법정동)·CC BY 표기는 이미 main 에 있고, 남은 일은 46칸 수도권 단계구분도·범례 숫자·권역 강조·데스크 해석 테두리예요. 그 브랜치가 머지되면 바로 이어서 하고 ui_smoke check_re_* 로 390px 검사할게요.",
      "voc": true
+    },
+    {
+     "by": "front",
+     "at": "2026-11-01T18:16+09:00",
+     "text": "머지 완료(e9d4e38d3, merge 커밋): 10/27 동결 브랜치(가독성·OSM 배경 지도)는 내용이 이미 10/28 main 에 들어가 있어서(OSM 커밋 patch-id 동일, 가독성 커밋은 '누나→데스크' 표기만 차이) 충돌 4곳 전부 main 표기로 두고 이력만 묶었어요. 결과 화면 = main 그대로 — 390px 타일 9장·'© OpenStreetMap contributors (ODbL)' 표기·가로 넘침 0, ui_smoke check_re_zoom·drill·ga·private 통과. 동결 해제라 46칸 수도권 단계구분도는 이제 이어갈 수 있고, 다음 단계(데이터 최신화·우선순위 확인)는 부동산 데스크에 새 요청으로 넘겼어요.",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-11-01",
+   "done_at": "2026-11-01T18:16+09:00",
+   "done_by": "front"
   },
   {
    "id": "req-front-1e6ffe44",
@@ -10184,6 +10193,24 @@
    "opened": "2026-11-01",
    "opened_at": "2026-11-01T10:44+09:00",
    "due": "2026-11-15",
+   "via": "ask",
+   "seen": [
+    "2026-11-01"
+   ],
+   "checked": [
+    "2026-11-01"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-realestate-af8f9686",
+   "from": "front",
+   "to": "realestate",
+   "text": "req-front-184a8da5 후속: 부동산 탭 동결 해제(가독성·OSM 배경 지도 머지 e9d4e38d3). 46칸 수도권 단계구분도(regions.areas 46칸·legend·권역 강조·데스크 해석 테두리) 다음 단계 착수 전 확인 요청 — ① reports/realestate.json regions 블록 주간 값 최신화 주기·기준 주 ② 서울 25구 OSM 지도와 46칸 수도권 지도를 한 화면(서울 확대→수도권 축소)으로 갈지 별도 보기로 갈지 ③ 인천 7칸 회색 맥락 유지 여부. 회신 오면 프론트가 tab_realestate.html 잠그고 구현(390px·skin_audit·CC BY/OSM 출처 표기 포함). 11/7 저장소 전환 전 큰 리팩터 없음.",
+   "opened": "2026-11-01",
+   "opened_at": "2026-11-01T18:16+09:00",
+   "due": "2026-11-03",
    "via": "ask",
    "seen": [
     "2026-11-01"
