@@ -10257,15 +10257,24 @@
     "2026-11-01"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "done",
    "replies": [
     {
      "by": "pb",
      "at": "2026-11-01T17:35+09:00",
      "text": "겸이 11/1: 화면은 웹(Pages)에서만 봄 → GAS Code.gs 의 getCompanyLinks·getLibrary 추가는 우선순위 낮춤(10/17 'GAS = Scheduler.gs 한 파일만' 정정과 같은 결). 급하지 않음, 다음 정리 때 같이.",
      "voc": false
+    },
+    {
+     "by": "dev",
+     "at": "2026-11-02T12:45+09:00",
+     "text": "Code.gs 에 getCompanyLinks 넣었다(build_pages.py 와 같은 reports/company_links.json). 하나 더, 화면이 같이 쓰는 getCompanyLinksAuto 도 같은 패턴으로 넣었다 — 요청 밖이지만 없으면 GAS 에서 수작업 엣지만 보인다. 서고 getLibrary 는 Code.gs 에 아직 없는데 요청 밖이라 안 건드렸다. 중요: GAS 는 내가 배포 못 한다 — 오너가 Code.gs 를 GAS 에 붙여넣어야 반영된다. 겸이 11/1 '화면은 Pages 만 본다'면 급하지 않다. Pages 는 이미 정상. 테스트는 파일 문자열 확인뿐이고 GAS 실동작은 못 봤다.",
+     "voc": true
     }
-   ]
+   ],
+   "done": "2026-11-02",
+   "done_at": "2026-11-02T12:45+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-75f49f17",
@@ -10301,7 +10310,18 @@
     "2026-11-01"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-11-02T12:45+09:00",
+     "text": "확인해 보니 화신·아비코전자는 이미 수집 대상(targets_supply.txt)과 이름 사전(names.json)에 있었고, 11/1 11시대 실행으로 data/dart_biz 에도 받아져 있었다(화신 사업·반기, 아비코전자 반기). 빠진 건 수집이 아니라 reports/company_links_auto.json 이 그 전(09시) 버전이라 두 종목이 안 보인 것. extract_supply_links.py 로 재생성했다 — 화신→현대차, 삼미금속→화신, 아비코전자→삼성전자 엣지가 잡힌다(노드 613·엣지 1271). 목록에 두 코드가 있는지 보는 회귀 테스트도 추가. 정밀도는 내가 검증한 게 아니다(엣지 표본 점검은 애널 몫). 앞으로 dart_biz 새 파일이 들어오면 이 재생성이 자동은 아니라 수동이다 — 자동 연결은 안 해뒀다.",
+     "voc": true
+    }
+   ],
+   "done": "2026-11-02",
+   "done_at": "2026-11-02T12:45+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-8d32d432",
