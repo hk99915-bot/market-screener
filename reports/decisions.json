@@ -4280,10 +4280,21 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "22:00"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "QQQ",
+     "name": "Invesco QQQ Trust",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "same_close",
+     "by": "공격 PB",
+     "at": "22:00"
     }
    },
    "basis": {
@@ -4294,6 +4305,138 @@
      "VIX 19.42",
      "나스닥 25,437 (-2.86%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. S&P500 7,580.07(10-30 −1.82%)로 20일 저점(약세 전환선) 7,580에 붙어 있고 2일 연속 하락이라 반등 확인 전이다. VIX 19.42, 미 위원회 결론 '할 일 없음'과 같은 방향이다. 진입 조건: 종가 기준으로 20일 저점 위를 지키고 5일 고점 7,744를 돌파하면 재검토한다.",
+    "lines": [
+     "S&P500 7,580.07(−1.82%) · 20일 고점 대비 −3.1% · 20일 저점선 접촉",
+     "VIX 19.42 · 나스닥 −2.86%",
+     "미 위원회 결론 유지(기본) · 할 일 없음",
+     "레드팀: 저점선이 지지되면 현금은 반등 1~2%를 놓친다"
+    ],
+    "conviction": "보통",
+    "at": "22:00",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 반등 확인 전, 검증 전"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0,
+     "note": "위성 신규 매수 금지([6], 11/3까지) 게이트로 실계좌 진입 없음."
+    },
+    "views_asof": "2026-11-02 19:16",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 1/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "역풍",
+      "b": "bear"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 양수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 양수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 5 / 축소 6",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 7회 · 5일 초과 +1.5%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "없음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "나스닥 25,437(−2.86%)로 2일 급락 뒤 과매도 반등을 노린 단기 모의 롱이다. 손절 −1.5%, 목표 +2.5%, 손익비 1.7. 승률은 검증 전이다. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.025,
+      "stop": -0.015,
+      "rr": 1.67,
+      "win_rate": null,
+      "n": null,
+      "ev": null,
+      "basis": "전일 −2.86% 반락 폭 기준, 승률 검증 전"
+     }
+    }
    }
   }
  ],
