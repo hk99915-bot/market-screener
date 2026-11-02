@@ -123,3 +123,21 @@ def test_us_kr_gap_regression(tmp_path):
         w.writerows(rows)
     g = I.us_kr_gap({"NASDAQ": nd}, tmp_path)
     assert g and abs(g["beta"] - 0.5) < 0.05 and g["status"].startswith("검증전")
+
+
+def test_gap_and_crash_hold_ideas(tmp_path):
+    ch = _chart(n=120)
+    days = [b["t"] for b in ch]
+    (tmp_path / "data" / "deriv").mkdir(parents=True)
+    rows = ["date,kospi_close"] + [f"{d},{1000.0}" for d in days[:-1]] + [f"{days[-1]},{960.0}"]   # 마지막 날 코스피 −4%
+    (tmp_path / "data" / "deriv" / "daily.csv").write_text("\n".join(rows))
+    ch[-1]["c"] = 10_100.0                                                                            # 그날 종목 +1%
+    q = [{"period": f"P{i}", "revenue": 100.0 if i < 4 else 150.0, "op": 10.0 if i < 4 else 20.0} for i in range(5)]
+    p = tmp_path / "reports" / "detail" / "KR"
+    p.mkdir(parents=True)
+    (p / "000001.json").write_text(json.dumps({"name": "테스트", "chart": ch, "financials": {"quarters": q}}, ensure_ascii=False))
+    o = I.build(today=date.fromisoformat(days[-1]), root=tmp_path)
+    types = {x["type"] for x in o["ideas"]}
+    assert "급락일 버팀" in types
+    assert I.fin_yoy({"quarters": q})[:2] == (0.5, 1.0)
+    assert I.crash_holds(ch, I.kospi_rets(tmp_path))[-1][0] == days[-1]

@@ -9,6 +9,8 @@
  ③ 52주 종가 고점 돌파·저점 이탈 — 국장 고점 = B1 통과 소스(B), 미장 고점 = B2 F(참고), 저점 이탈 = 검증전
  ④ 업종 체인(detail drivers.chain) 점수 상·하위 — 검증전
  ⑤ 매크로 국면(미 10년·달러·WTI·VIX·원달러 20일 변화) → 수혜/피해 업종 — 검증전(정성 규칙)
+ ⑥ 국장 '숫자 강·가격 약'(최근 분기 매출 YoY ≥ +20%·영업익 YoY ≥ +30% 인데 20일 수익률이 코스피 이하) — 검증전(겸이 10/30 현산형)
+ ⑦ 국장 '급락일 버팀'(최근 5거래일 중 코스피 −3% 이하 날 종가 플러스 + 매출 YoY > 0) — 검증전(겸이 10/30 삼성중공업형)
 유동성: KR 20일 평균 거래대금 ≥ 10억원, US ≥ $2천만. 데이터 = reports/detail/{KR,US}/*.json 차트(마지막 봉이 최신 5거래일 안).
 """
 from __future__ import annotations
@@ -33,7 +35,50 @@ STATUS = {
     "lo": "검증전 — 52주 저점 이탈",
     "chain": "검증전 — 업종 체인 점수(detail drivers)",
     "macro": "검증전 — 정성 매크로 규칙",
+    "gap": "검증전 — 숫자 강·가격 약(현산형, 퀀트 req-quant-ec93e2cb H1-5 영업익 개선 결과 11/05 전)",
+    "hold": "검증전 — 급락일 버팀(삼성중공업형, 사례 1건·검정 계획 없음)",
 }
+GAP_REV, GAP_OP, CRASH, MAX_STOP = 0.20, 0.30, -0.03, 0.15   # MAX_STOP: 20일 저점 손절 거리 상한(넘으면 손절 실무 불가로 제외)
+
+
+def kospi_rets(root: Path) -> dict:
+    """data/deriv/daily.csv 코스피 종가 → {날짜: 일간 수익률}. 없으면 빈 dict."""
+    import csv
+    try:
+        rows = list(csv.DictReader(open(root / "data" / "deriv" / "daily.csv", encoding="utf-8")))
+    except Exception:  # noqa: BLE001
+        return {}
+    out, prev = {}, None
+    for r in rows:
+        try:
+            c = float(r["kospi_close"])
+        except (KeyError, ValueError, TypeError):
+            continue
+        if prev:
+            out[r["date"]] = c / prev - 1
+        prev = c
+    return out
+
+
+def fin_yoy(fin: dict) -> tuple[float, float, str] | None:
+    """detail financials.quarters → (매출 YoY, 영업익 YoY, 분기). 전년 같은 분기 없거나 영업익 기저 ≤ 0 이면 None."""
+    q = [x for x in (fin or {}).get("quarters") or [] if x.get("revenue")]
+    if len(q) < 5 or not q[-5].get("revenue") or q[-5].get("op") is None or q[-1].get("op") is None or q[-5]["op"] <= 0:
+        return None
+    return q[-1]["revenue"] / q[-5]["revenue"] - 1, q[-1]["op"] / q[-5]["op"] - 1, q[-1].get("period", "")
+
+
+def crash_holds(ch: list[dict], krets: dict, n: int = 5) -> list[tuple[str, float, float]]:
+    """최근 n봉 중 코스피 ≤ CRASH 날 종목 종가 수익률 ≥ 0 인 날 → [(날짜, 종목, 코스피)]."""
+    ch = [b for b in ch if b.get("c") and b.get("t")]
+    out = []
+    for i in range(max(1, len(ch) - n), len(ch)):
+        d = ch[i]["t"][:10]
+        k = krets.get(d)
+        r = float(ch[i]["c"]) / float(ch[i - 1]["c"]) - 1
+        if k is not None and k <= CRASH and r >= 0:
+            out.append((d, r, k))
+    return out
 
 
 def _load(path):
@@ -144,6 +189,8 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
     dart = _dart_recent(root, today)
     latest = {}
     feats = {}
+    krets = kospi_rets(root)
+    k20 = None
     for mk in ("KR", "US"):
         for f in sorted(glob.glob(str(root / "reports" / "detail" / mk / "*.json"))):
             d = _load(f)
@@ -157,8 +204,19 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
             if not ft or ft["adv"] < LIQ[mk]:
                 continue
             ft["flow"] = _flow_both(d.get("flow_note") or "")
+            if mk == "KR":
+                ft["yoy"] = fin_yoy(d.get("financials") or {})
+                ft["holds"] = crash_holds(d.get("chart") or [], krets)
+                ch2 = [b for b in (d.get("chart") or []) if b.get("c")]
+                ft["low20"] = min(float(b.get("l") or b["c"]) for b in ch2[-20:])
             feats[(mk, code)] = (d.get("name") or code, ft)
             latest[mk] = max(latest.get(mk, ""), ft["t"])
+    kd = sorted(krets)
+    if len(kd) > 20:
+        k20 = 1.0
+        for x in kd[-20:]:
+            k20 *= 1 + krets[x]
+        k20 -= 1
     for (mk, code), (nm, ft) in feats.items():
         if (date.fromisoformat(latest[mk]) - date.fromisoformat(ft["t"])).days > 7:
             continue
@@ -190,6 +248,20 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
             ideas.append({**base, "type": "수급 이탈 숏", "score": 0.3 + abs(ft["ret20"]),
                           "direction": "숏 후보(종목선물·대차 가능 대형주만)", "evidence": f"외국인 {ft['flow'][0]:+d}억·기관 {ft['flow'][1]:+d}억 5일 동반 매도 · 20일 {ft['ret20'] * 100:+.1f}% · 50일선 아래",
                           "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)", "src": src + " · flow_note"})
+        y = ft.get("yoy")
+        stop_ok = bool(ft.get("low20")) and 1 - ft["low20"] / ft["c"] <= MAX_STOP
+        stop = f" · 손절 후보 20일 저점 {ft['low20']:,.0f}({ft['low20'] / ft['c'] - 1:+.1%})" if ft.get("low20") else ""
+        if mk == "KR" and y and y[0] >= GAP_REV and y[1] >= GAP_OP and k20 is not None and ft["ret20"] <= k20 and not ft["s4"] and stop_ok:
+            ideas.append({**base, "type": "숫자 강·가격 약", "score": 0.4 + min(y[1], 2) / 4 + max(k20 - ft["ret20"], 0),
+                          "direction": "롱 후보(시장이 숫자를 덜 믿은 칸)",
+                          "evidence": f"{y[2]} 매출 YoY {y[0] * 100:+.0f}% · 영업익 YoY {y[1] * 100:+.0f}% · 20일 {ft['ret20'] * 100:+.1f}% vs 코스피 {k20 * 100:+.1f}%" + stop,
+                          "status": STATUS["gap"], "src": src + " · financials · data/deriv/daily.csv"})
+        if mk == "KR" and ft.get("holds") and y and y[0] > 0 and stop_ok:
+            d0, r0, k0 = ft["holds"][-1]
+            ideas.append({**base, "type": "급락일 버팀", "score": 0.4 + (r0 - k0) * 5,
+                          "direction": "롱 후보(시장 급락일에 안 빠짐)",
+                          "evidence": f"{d0} 코스피 {k0 * 100:+.1f}% 날 {r0 * 100:+.1f}% · {y[2]} 매출 YoY {y[0] * 100:+.0f}%" + stop,
+                          "status": STATUS["hold"], "src": src + " · data/deriv/daily.csv"})
         if ft["hi_break"] and not (mk == "KR" and ft["s4"]):      # 같은 날 S4 면 고점 돌파 롱 후보로 안 올림(추격 금지 우선)
             ideas.append({**base, "type": "52주 고점 돌파", "score": 0.5 + max(ft["ret5"], 0),
                           "direction": "롱 후보" if mk == "KR" else "참고(미장 B2 F)",

@@ -1,15 +1,14 @@
 {
  "v": 1,
  "asof": "2026-11-02",
- "generated_at": "2026-11-02 10:06 KST",
+ "generated_at": "2026-11-02 11:05 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 310,
+  "total": 464,
   "거래량 급증": 3,
+  "숫자 강·가격 약": 3,
   "거래량 돌파(추격 금지)": 3,
-  "52주 저점 이탈": 1,
-  "수급 이탈 숏": 1,
-  "업종 체인": 2
+  "급락일 버팀": 1
  },
  "ideas": [
   {
@@ -56,6 +55,48 @@
   },
   {
    "market": "KR",
+   "code": "020120",
+   "name": "키다리스튜디오",
+   "asof": "2026-10-30",
+   "close": 3400.0,
+   "type": "숫자 강·가격 약",
+   "score": 1.318,
+   "direction": "롱 후보(시장이 숫자를 덜 믿은 칸)",
+   "evidence": "2026Q2 매출 YoY +24% · 영업익 YoY +194% · 20일 -59.6% vs 코스피 -16.2% · 손절 후보 20일 저점 3,210(-5.6%)",
+   "status": "검증전 — 숫자 강·가격 약(현산형, 퀀트 req-quant-ec93e2cb H1-5 영업익 개선 결과 11/05 전)",
+   "src": "reports/detail/KR/020120.json chart · financials · data/deriv/daily.csv",
+   "rank": 4
+  },
+  {
+   "market": "KR",
+   "code": "011070",
+   "name": "LG이노텍",
+   "asof": "2026-10-30",
+   "close": 326000.0,
+   "type": "숫자 강·가격 약",
+   "score": 1.16,
+   "direction": "롱 후보(시장이 숫자를 덜 믿은 칸)",
+   "evidence": "2026Q2 매출 YoY +40% · 영업익 YoY +2058% · 20일 -42.2% vs 코스피 -16.2% · 손절 후보 20일 저점 320,500(-1.7%)",
+   "status": "검증전 — 숫자 강·가격 약(현산형, 퀀트 req-quant-ec93e2cb H1-5 영업익 개선 결과 11/05 전)",
+   "src": "reports/detail/KR/011070.json chart · financials · data/deriv/daily.csv",
+   "rank": 5
+  },
+  {
+   "market": "KR",
+   "code": "267270",
+   "name": "HD건설기계",
+   "asof": "2026-10-30",
+   "close": 77200.0,
+   "type": "숫자 강·가격 약",
+   "score": 1.113,
+   "direction": "롱 후보(시장이 숫자를 덜 믿은 칸)",
+   "evidence": "2026Q2 매출 YoY +152% · 영업익 YoY +522% · 20일 -37.5% vs 코스피 -16.2% · 손절 후보 20일 저점 75,900(-1.7%)",
+   "status": "검증전 — 숫자 강·가격 약(현산형, 퀀트 req-quant-ec93e2cb H1-5 영업익 개선 결과 11/05 전)",
+   "src": "reports/detail/KR/267270.json chart · financials · data/deriv/daily.csv",
+   "rank": 6
+  },
+  {
+   "market": "KR",
    "code": "046890",
    "name": "서울반도체",
    "asof": "2026-10-30",
@@ -66,7 +107,7 @@
    "evidence": "거래량 23.4배 · 20일 신고가 · 1일 +3.9%",
    "status": "회피 — 국장 거래량 3배+20일 신고가 추격 F(t −7.4/−6.2), 페이드는 전진 추적 중(scripts/hf_forward.py)",
    "src": "reports/detail/KR/046890.json chart",
-   "rank": 4
+   "rank": 7
   },
   {
    "market": "KR",
@@ -80,7 +121,21 @@
    "evidence": "거래량 52.2배 · 20일 신고가 · 1일 +24.2%",
    "status": "회피 — 국장 거래량 3배+20일 신고가 추격 F(t −7.4/−6.2), 페이드는 전진 추적 중(scripts/hf_forward.py)",
    "src": "reports/detail/KR/232680.json chart",
-   "rank": 5
+   "rank": 8
+  },
+  {
+   "market": "KR",
+   "code": "002790",
+   "name": "아모레퍼시픽홀딩스",
+   "asof": "2026-10-30",
+   "close": 25400.0,
+   "type": "급락일 버팀",
+   "score": 0.944,
+   "direction": "롱 후보(시장 급락일에 안 빠짐)",
+   "evidence": "2026-10-30 코스피 -3.5% 날 +7.4% · 2026Q2 매출 YoY +15% · 손절 후보 20일 저점 23,150(-8.9%)",
+   "status": "검증전 — 급락일 버팀(삼성중공업형, 사례 1건·검정 계획 없음)",
+   "src": "reports/detail/KR/002790.json chart · data/deriv/daily.csv",
+   "rank": 9
   },
   {
    "market": "KR",
@@ -94,58 +149,6 @@
    "evidence": "거래량 9.4배 · 20일 신고가 · 1일 +12.7%",
    "status": "회피 — 국장 거래량 3배+20일 신고가 추격 F(t −7.4/−6.2), 페이드는 전진 추적 중(scripts/hf_forward.py)",
    "src": "reports/detail/KR/003220.json chart",
-   "rank": 6
-  },
-  {
-   "market": "US",
-   "code": "RDDT",
-   "name": "Reddit, Inc. Class A Common Stock",
-   "asof": "2026-10-30",
-   "close": 91.73,
-   "type": "52주 저점 이탈",
-   "score": 0.764,
-   "direction": "숏 후보(검증전)",
-   "evidence": "종가 250일 최저 이탈 · 5일 -36.4%",
-   "status": "검증전 — 52주 저점 이탈",
-   "src": "reports/detail/US/RDDT.json chart",
-   "rank": 7
-  },
-  {
-   "market": "KR",
-   "code": "440110",
-   "name": "파두",
-   "asof": "2026-10-30",
-   "close": 46150.0,
-   "type": "수급 이탈 숏",
-   "score": 0.735,
-   "direction": "숏 후보(종목선물·대차 가능 대형주만)",
-   "evidence": "외국인 -38억·기관 -24억 5일 동반 매도 · 20일 -43.5% · 50일선 아래",
-   "status": "검증전 — 수급 이탈 숏(매수 쪽 수급 지속 C1 은 F, 매도 쪽은 미검정)",
-   "src": "reports/detail/KR/440110.json chart · flow_note",
-   "rank": 8
-  },
-  {
-   "market": "KR",
-   "code": null,
-   "name": "정유",
-   "type": "업종 체인",
-   "score": 0.72,
-   "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.72 · 구성 예: S-Oil, GS, SK이노베이션",
-   "status": "검증전 — 업종 체인 점수(detail drivers)",
-   "src": "reports/detail/*/<코드>.json drivers.chain",
-   "rank": 9
-  },
-  {
-   "market": "US",
-   "code": null,
-   "name": "정유",
-   "type": "업종 체인",
-   "score": 0.72,
-   "direction": "롱 후보 업종",
-   "evidence": "체인 점수 +0.72 · 구성 예: Marathon Petroleum Corporation Common Stock, Phillips 66 Common Stock, Valero Energy Corporation Common Stock",
-   "status": "검증전 — 업종 체인 점수(detail drivers)",
-   "src": "reports/detail/*/<코드>.json drivers.chain",
    "rank": 10
   }
  ],
@@ -222,7 +225,7 @@
  ],
  "top": {
   "what": [
-   "후보 310건 중 상위 10개 — 거래량 급증 3, 거래량 돌파(추격 금지) 3, 52주 저점 이탈 1, 수급 이탈 숏 1",
+   "후보 464건 중 상위 10개 — 거래량 급증 3, 숫자 강·가격 약 3, 거래량 돌파(추격 금지) 3, 급락일 버팀 1",
    "상위: Reddit, Inc. Class A Common Stock(거래량 급증), Intel Corporation - Common Stock(거래량 급증),…"
   ],
   "so_what": [
@@ -236,7 +239,7 @@
   "src": [
    "reports/hf_ideas.json"
   ],
-  "asof": "2026-11-02 10:06",
+  "asof": "2026-11-02 11:05",
   "grade": "검증전"
  }
 }
