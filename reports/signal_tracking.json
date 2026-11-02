@@ -1,8 +1,8 @@
 {
  "version": 1,
  "schema_version": 1,
- "asof": "2026-11-02",
- "generated_at": "2026-11-02 19:16 KST",
+ "asof": "2026-11-03",
+ "generated_at": "2026-11-03 08:55 KST",
  "sources": [
   {
    "src": "accum",
@@ -73,7 +73,7 @@
  ],
  "by_src": {
   "accum": {
-   "n_events": 3938,
+   "n_events": 3974,
    "h5": {
     "n": 3832,
     "avg_ex": 0.00343,
@@ -96,10 +96,10 @@
   "us_accum": {
    "n_events": 178,
    "h5": {
-    "n": 112,
-    "avg_ex": -0.00933,
-    "med_ex": -0.0036,
-    "hit": 0.464
+    "n": 123,
+    "avg_ex": -0.00992,
+    "med_ex": -0.00551,
+    "hit": 0.431
    },
    "h20": null,
    "h60": null
@@ -116,7 +116,7 @@
    "h60": null
   },
   "sim_us": {
-   "n_events": 0,
+   "n_events": 1,
    "h5": null,
    "h20": null,
    "h60": null
@@ -133,12 +133,12 @@
    "h60": null
   },
   "disc_us": {
-   "n_events": 151,
+   "n_events": 175,
    "h5": {
-    "n": 72,
-    "avg_ex": 0.00732,
-    "med_ex": -0.00419,
-    "hit": 0.472
+    "n": 75,
+    "avg_ex": 0.01021,
+    "med_ex": 3e-05,
+    "hit": 0.507
    },
    "h20": null,
    "h60": null
@@ -150,7 +150,7 @@
    "tag": "accum",
    "label": "외인+기관 20일 매집",
    "side": 1,
-   "n_events": 509,
+   "n_events": 511,
    "h5": {
     "n": 498,
     "avg_ex": 0.00738,
@@ -175,7 +175,7 @@
    "tag": "distrib",
    "label": "분배(약세)",
    "side": -1,
-   "n_events": 302,
+   "n_events": 304,
    "h5": {
     "n": 292,
     "avg_ex": -0.00165,
@@ -200,7 +200,7 @@
    "tag": "diverge",
    "label": "가격 정체 속 매집",
    "side": 1,
-   "n_events": 657,
+   "n_events": 664,
    "h5": {
     "n": 641,
     "avg_ex": -0.00269,
@@ -225,7 +225,7 @@
    "tag": "dryexp",
    "label": "거래 마름 뒤 확대",
    "side": 1,
-   "n_events": 557,
+   "n_events": 567,
    "h5": {
     "n": 536,
     "avg_ex": 0.00863,
@@ -250,7 +250,7 @@
    "tag": "foreign",
    "label": "외국인 매집",
    "side": 1,
-   "n_events": 565,
+   "n_events": 568,
    "h5": {
     "n": 553,
     "avg_ex": 0.00278,
@@ -275,7 +275,7 @@
    "tag": "inst",
    "label": "기관 매집",
    "side": 1,
-   "n_events": 519,
+   "n_events": 521,
    "h5": {
     "n": 512,
     "avg_ex": 0.0036,
@@ -325,7 +325,7 @@
    "tag": "streak",
    "label": "연속 순매수",
    "side": 1,
-   "n_events": 581,
+   "n_events": 591,
    "h5": {
     "n": 553,
     "avg_ex": 0.00359,
@@ -530,12 +530,12 @@
    "tag": "new:gcv",
    "label": "new:gcv",
    "side": 1,
-   "n_events": 29,
+   "n_events": 35,
    "h5": {
-    "n": 8,
-    "avg_ex": 0.02813,
-    "med_ex": 0.00126,
-    "hit": 0.625
+    "n": 11,
+    "avg_ex": 0.03,
+    "med_ex": 0.00796,
+    "hit": 0.727
    },
    "h20": null,
    "h60": null
@@ -545,12 +545,12 @@
    "tag": "new:hi52",
    "label": "new:hi52",
    "side": 1,
-   "n_events": 44,
+   "n_events": 52,
    "h5": {
-    "n": 26,
-    "avg_ex": -0.00451,
-    "med_ex": -0.01753,
-    "hit": 0.308
+    "n": 25,
+    "avg_ex": -0.00345,
+    "med_ex": -0.01738,
+    "hit": 0.32
    },
    "h20": null,
    "h60": null
@@ -560,12 +560,12 @@
    "tag": "new:sqz",
    "label": "new:sqz",
    "side": 1,
-   "n_events": 64,
+   "n_events": 71,
    "h5": {
-    "n": 36,
-    "avg_ex": 0.01139,
-    "med_ex": 0.002,
-    "hit": 0.556
+    "n": 37,
+    "avg_ex": 0.01386,
+    "med_ex": 0.00215,
+    "hit": 0.568
    },
    "h20": null,
    "h60": null
@@ -575,13 +575,23 @@
    "tag": "nm:psar",
    "label": "nm:psar",
    "side": 1,
-   "n_events": 3,
+   "n_events": 4,
    "h5": {
     "n": 1,
-    "avg_ex": 0.01501,
-    "med_ex": 0.01501,
+    "avg_ex": 0.01498,
+    "med_ex": 0.01498,
     "hit": 1.0
    },
+   "h20": null,
+   "h60": null
+  },
+  {
+   "src": "disc_us",
+   "tag": "x:ma3",
+   "label": "x:ma3",
+   "side": 1,
+   "n_events": 1,
+   "h5": null,
    "h20": null,
    "h60": null
   },
@@ -590,11 +600,11 @@
    "tag": "x:psar3",
    "label": "x:psar3",
    "side": 1,
-   "n_events": 11,
+   "n_events": 12,
    "h5": {
     "n": 1,
-    "avg_ex": -0.00544,
-    "med_ex": -0.00544,
+    "avg_ex": -0.00547,
+    "med_ex": -0.00547,
     "hit": 0.0
    },
    "h20": null,
@@ -616,16 +626,26 @@
    "h60": null
   },
   {
+   "src": "sim_us",
+   "tag": "psar",
+   "label": "psar",
+   "side": 1,
+   "n_events": 1,
+   "h5": null,
+   "h20": null,
+   "h60": null
+  },
+  {
    "src": "us_accum",
    "tag": "combo",
    "label": "combo",
    "side": 1,
    "n_events": 139,
    "h5": {
-    "n": 80,
-    "avg_ex": -0.0164,
-    "med_ex": -0.009,
-    "hit": 0.4
+    "n": 88,
+    "avg_ex": -0.01601,
+    "med_ex": -0.00833,
+    "hit": 0.375
    },
    "h20": null,
    "h60": null
@@ -637,19 +657,19 @@
    "side": 1,
    "n_events": 39,
    "h5": {
-    "n": 32,
-    "avg_ex": 0.00834,
-    "med_ex": 0.01179,
-    "hit": 0.625
+    "n": 35,
+    "avg_ex": 0.0054,
+    "med_ex": 0.00339,
+    "hit": 0.571
    },
    "h20": null,
    "h60": null
   }
  ],
  "first": "2026-02-24",
- "added_today": 24,
+ "added_today": 61,
  "origin_counts": {
-  "live": 634,
+  "live": 695,
   "archive": 178,
   "git": 150,
   "recompute": 3453
@@ -666,9 +686,384 @@
    "recompute:accum": 3453
   }
  },
- "n_events": 4415,
+ "n_events": 4476,
  "ledger": "reports/signal_tracking/<YYYY-MM>.json",
  "recent": [
+  {
+   "date": "2026-11-02",
+   "src": "sim_us",
+   "tag": "psar",
+   "code": "EXPE",
+   "name": "Expedia Group, Inc. - Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "x:psar3",
+   "code": "PH",
+   "name": "Parker-Hannifin Corporation Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "x:ma3",
+   "code": "MSI",
+   "name": "Motorola Solutions, Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "nm:psar",
+   "code": "HLT",
+   "name": "Hilton Worldwide Holdings Inc. Common Stock ",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "TKO",
+   "name": "TKO Group Holdings, Inc. Class A Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "SW",
+   "name": "Smurfit WestRock plc Ordinary Shares",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "RJF",
+   "name": "Raymond James Financial, Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "PYPL",
+   "name": "PayPal Holdings, Inc. - Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "PRU",
+   "name": "Prudential Financial, Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "IR",
+   "name": "Ingersoll Rand Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:sqz",
+   "code": "CHTR",
+   "name": "Charter Communications, Inc. - Class A Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "PSA",
+   "name": "Public Storage Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "MAS",
+   "name": "Masco Corporation Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "J",
+   "name": "Jacobs Solutions Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "ECL",
+   "name": "Ecolab Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "CL",
+   "name": "Colgate-Palmolive Company Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "BALL",
+   "name": "Ball Corporation Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "AMCR",
+   "name": "Amcor plc Ordinary Shares",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:hi52",
+   "code": "ACGL",
+   "name": "Arch Capital Group Ltd. - Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "UPS",
+   "name": "United Parcel Service, Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "SHW",
+   "name": "Sherwin-Williams Company (The) Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "REGN",
+   "name": "Regeneron Pharmaceuticals, Inc. - Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "LHX",
+   "name": "L3Harris Technologies, Inc. Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "KIM",
+   "name": "Kimco Realty Corporation (HC) Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "disc_us",
+   "tag": "new:gcv",
+   "code": "ERIE",
+   "name": "Erie Indemnity Company - Class A Common Stock",
+   "market": "US",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
   {
    "date": "2026-11-02",
    "src": "disc_kr",
@@ -955,431 +1350,11 @@
    }
   },
   {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "REGN",
-   "name": "Regeneron Pharmaceuticals, Inc. - Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "PEG",
-   "name": "Public Service Enterprise Group Incorporated Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "OTIS",
-   "name": "Otis Worldwide Corporation Common Stock ",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "LDOS",
-   "name": "Leidos Holdings, Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "IP",
-   "name": "International Paper Company Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "GEN",
-   "name": "Gen Digital Inc. - Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "FDXF",
-   "name": "FedEx Freight Holding Company, Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "COP",
-   "name": "ConocoPhillips Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "us_accum",
-   "tag": "combo",
-   "code": "AMCR",
-   "name": "Amcor plc Ordinary Shares",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "x:psar3",
-   "code": "WAB",
-   "name": "Westinghouse Air Brake Technologies Corporation Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "x:psar3",
-   "code": "TPR",
-   "name": "Tapestry, Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:sqz",
-   "code": "WY",
-   "name": "Weyerhaeuser Company Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:sqz",
-   "code": "INCY",
-   "name": "Incyte Corporation - Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:sqz",
-   "code": "GPN",
-   "name": "Global Payments Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:sqz",
-   "code": "CF",
-   "name": "CF Industries Holdings, Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "VRTX",
-   "name": "Vertex Pharmaceuticals Incorporated - Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "ROP",
-   "name": "Roper Technologies, Inc. - Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "REGN",
-   "name": "Regeneron Pharmaceuticals, Inc. - Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "PKG",
-   "name": "Packaging Corporation of America Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "GPN",
-   "name": "Global Payments Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "FANG",
-   "name": "Diamondback Energy, Inc. - Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "EXR",
-   "name": "Extra Space Storage Inc Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "APD",
-   "name": "Air Products and Chemicals, Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:hi52",
-   "code": "AJG",
-   "name": "Arthur J. Gallagher & Co. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:gcv",
-   "code": "VMC",
-   "name": "Vulcan Materials Company (Holding Company) Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:gcv",
-   "code": "PPG",
-   "name": "PPG Industries, Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:gcv",
-   "code": "BRO",
-   "name": "Brown & Brown, Inc. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_us",
-   "tag": "new:gcv",
-   "code": "AJG",
-   "name": "Arthur J. Gallagher & Co. Common Stock",
-   "market": "US",
-   "side": 1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "x:psar3",
-   "code": "002810",
-   "name": "삼영무역",
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "377740",
+   "name": "바이오노트",
    "market": "KR",
    "side": 1,
    "origin": "live",
@@ -1390,11 +1365,11 @@
    }
   },
   {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "new:sqz",
-   "code": "005300",
-   "name": "롯데칠성",
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "268280",
+   "name": "미원에스씨",
    "market": "KR",
    "side": 1,
    "origin": "live",
@@ -1405,11 +1380,11 @@
    }
   },
   {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "new:hi52",
-   "code": "121440",
-   "name": "골프존홀딩스",
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "137310",
+   "name": "에스디바이오센서",
    "market": "KR",
    "side": 1,
    "origin": "live",
@@ -1420,11 +1395,11 @@
    }
   },
   {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "new:gcv",
-   "code": "067160",
-   "name": "SOOP",
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "115180",
+   "name": "큐리언트",
    "market": "KR",
    "side": 1,
    "origin": "live",
@@ -1435,116 +1410,11 @@
    }
   },
   {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "chase:sqz",
-   "code": "003610",
-   "name": "방림",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "chase:psar3",
-   "code": "232680",
-   "name": "라온로보틱스",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "chase:psar3",
-   "code": "003220",
-   "name": "대원제약",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "chase:psar3",
-   "code": "001940",
-   "name": "KISCO홀딩스",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "chase:ma3",
-   "code": "232680",
-   "name": "라온로보틱스",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "chase:ma3",
-   "code": "003220",
-   "name": "대원제약",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "chase:gcv",
-   "code": "003220",
-   "name": "대원제약",
-   "market": "KR",
-   "side": -1,
-   "origin": "live",
-   "fwd": {
-    "h5": null,
-    "h20": null,
-    "h60": null
-   }
-  },
-  {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "adopt:sqz",
-   "code": "005300",
-   "name": "롯데칠성",
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "079160",
+   "name": "CJ CGV",
    "market": "KR",
    "side": 1,
    "origin": "live",
@@ -1555,11 +1425,161 @@
    }
   },
   {
-   "date": "2026-10-30",
-   "src": "disc_kr",
-   "tag": "adopt:gcv",
-   "code": "067160",
-   "name": "SOOP",
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "058820",
+   "name": "CMG제약",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "042500",
+   "name": "링네트",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "025860",
+   "name": "남해화학",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "024720",
+   "name": "콜마홀딩스",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "streak",
+   "code": "002030",
+   "name": "아세아",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "inst",
+   "code": "241790",
+   "name": "티이엠씨씨엔에스",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "inst",
+   "code": "093320",
+   "name": "케이아이엔엑스",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "foreign",
+   "code": "097800",
+   "name": "윈팩",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "foreign",
+   "code": "064760",
+   "name": "티씨케이",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "foreign",
+   "code": "044490",
+   "name": "태웅",
+   "market": "KR",
+   "side": 1,
+   "origin": "live",
+   "fwd": {
+    "h5": null,
+    "h20": null,
+    "h60": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "src": "accum",
+   "tag": "dryexp",
+   "code": "294870",
+   "name": "IPARK현대산업개발",
    "market": "KR",
    "side": 1,
    "origin": "live",
