@@ -1,35 +1,37 @@
-2026-10-30 06:49:39,648 INFO screener.live: live.json 17개 지표
-2026-10-30 06:49:45,813 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': 6199.0, '외국인': -16169.0, '기관': 7432.0}, 'KOSDAQ': {'개인': 1688.0, '외국인': -267.0, '기관': -1377.0}}
-2026-10-30 06:49:53,827 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-30 06:49:54,310 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
-2026-10-30 06:49:54,560 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-10-30 06:49:54,585 INFO matplotlib.font_manager: generated new fontManager
-2026-10-30 06:50:22,086 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-10-30 06:50:24,816 INFO screener.live: live.json 17개 지표
-2026-10-30 06:50:24,817 INFO screener: KR 지수 오늘 봉 잠정(16:20 전): KOSPI,KOSDAQ
-2026-10-30 06:50:24,945 INFO screener.macroview: 매크로 해설: 매크로 바람 약한 순풍 (+0.08, 전일 +0.07) — 변화 없음 · 20일 코스피 -16.4% vs S&P +0.7% (격차 -17.2%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
-2026-10-30 06:50:26,610 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-30 06:50:28,012 INFO screener.commodities: 원자재 31개(ok 31) · 1개월 ±10% 넘게 움직인 원자재: 유럽 가스(TTF) +36%, 아시아 LNG(JKM, NYMEX 정산가) +24%, 희토류·전략금속 ETF(REMX) -18%, 은 -16%, 백금 -15%
-2026-10-30 06:50:42,628 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
-2026-10-30 06:50:45,532 INFO screener.data: MACRO 시세 배치 1/1
-2026-10-30 06:50:48,092 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 2, 'last': '2026-10-28', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
-2026-10-30 06:50:48,107 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3450
-2026-10-30 06:50:48,120 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
-2026-10-30 06:50:57,115 INFO screener.bonds: 채권: US10Y 4.98 KR10Y 4.022 소스 {'us_treasury': 'ok 457일 (마지막 2026-10-29)', 'kr_krx': 'ok 13일 (2026-10-14~, 마지막 2026-10-30)', 'etf_yahoo': 'ok 9/9', 'ai_credit_yahoo': 'ok 11/11'}
-2026-10-30 06:50:57,133 INFO screener.dashboard: dashboard.json 갱신 (113617 bytes)
-2026-10-30 06:50:57,698 INFO screener.dashboard: 리서치 국면 태그 2100건
-2026-10-30 06:50:57,721 INFO screener.dashboard: research.json 2100건
-2026-10-30 06:50:57,729 INFO screener.dashboard: disclosures.json 1260건
-2026-10-30 06:50:57,767 INFO screener.daily: 데일리 리포트: 리포트 381건, 테마 31개, 통합 체크 2개
-2026-10-30 06:50:57,801 INFO screener.daily: 데일리 리포트: 리포트 381건, 테마 31개, 통합 체크 2개
-2026-10-30 06:51:03,128 INFO screener.derivs: 옵션 포지션: PCR 1.18 GEX -184.1억 flip 906.0
-2026-10-30 06:51:04,048 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: ^TOPX"}}}
-2026-10-30 06:51:04,252 ERROR yfinance: $^TOPX: possibly delisted; no timezone found
-2026-10-30 06:51:04,484 ERROR yfinance: 
+2026-11-02 06:49:39,757 INFO screener.live: live.json 17개 지표
+2026-11-02 06:49:45,929 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': -13465.0, '외국인': -3743.0, '기관': 12331.0}, 'KOSDAQ': {'개인': -261.0, '외국인': -322.0, '기관': 623.0}}
+2026-11-02 06:49:53,832 INFO screener.data: MACRO 시세 배치 1/1
+2026-11-02 06:49:54,114 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-11-02 06:49:55,031 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-11-02 06:49:55,369 INFO matplotlib.font_manager: generated new fontManager
+2026-11-02 06:50:22,094 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-11-02 06:50:25,125 INFO screener.live: live.json 17개 지표
+2026-11-02 06:50:25,125 INFO screener: KR 지수 오늘 봉 잠정(16:20 전): KOSPI,KOSDAQ
+2026-11-02 06:50:25,264 INFO screener.macroview: 매크로 해설: 매크로 바람 약한 역풍 (-0.15, 전일 -0.11) — 변화 없음 · 20일 코스피 -15.8% vs S&P -1.8% (격차 -13.9%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
+2026-11-02 06:50:26,317 INFO screener.data: MACRO 시세 배치 1/1
+2026-11-02 06:50:26,931 INFO screener.commodities: 원자재 31개(ok 31) · 1개월 ±10% 넘게 움직인 원자재: 유럽 가스(TTF) +41%, 아시아 LNG(JKM, NYMEX 정산가) +27%, 희토류·전략금속 ETF(REMX) -21%, 은 -16%, 백금 -15%
+2026-11-02 06:50:41,947 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
+2026-11-02 06:50:44,562 INFO screener.data: MACRO 시세 배치 1/1
+2026-11-02 06:54:06,064 INFO screener.realestate: 부동산 RTMS: 성공 구 25/25 · 실패 없음
+2026-11-02 06:54:06,173 INFO screener.realestate: 부동산 RTMS 드릴다운: 구별 파일 25개
+2026-11-02 06:54:06,173 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 2, 'last': '2026-10-28', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
+2026-11-02 06:54:06,187 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3033
+2026-11-02 06:54:06,191 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
+2026-11-02 06:54:15,026 INFO screener.bonds: 채권: US10Y 4.94 KR10Y 4.048 소스 {'us_treasury': 'ok 458일 (마지막 2026-10-30)', 'kr_krx': 'ok 13일 (2026-10-15~, 마지막 2026-11-02)', 'etf_yahoo': 'ok 9/9', 'ai_credit_yahoo': 'ok 11/11'}
+2026-11-02 06:54:15,045 INFO screener.dashboard: dashboard.json 갱신 (112134 bytes)
+2026-11-02 06:54:15,653 INFO screener.dashboard: 리서치 국면 태그 2220건
+2026-11-02 06:54:15,680 INFO screener.dashboard: research.json 2220건
+2026-11-02 06:54:15,690 INFO screener.dashboard: disclosures.json 1455건
+2026-11-02 06:54:15,735 INFO screener.daily: 데일리 리포트: 리포트 460건, 테마 30개, 통합 체크 1개
+2026-11-02 06:54:15,778 INFO screener.daily: 데일리 리포트: 리포트 460건, 테마 30개, 통합 체크 1개
+2026-11-02 06:54:20,600 INFO screener.derivs: 옵션 포지션: PCR 1.16 GEX 521.0억 flip 905.7
+2026-11-02 06:54:21,795 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: ^TOPX"}}}
+2026-11-02 06:54:22,006 ERROR yfinance: $^TOPX: possibly delisted; no timezone found
+2026-11-02 06:54:22,006 ERROR yfinance: 
 1 Failed download:
-2026-10-30 06:51:04,484 ERROR yfinance: ['^TOPX']: possibly delisted; no timezone found
-2026-10-30 06:51:07,939 INFO screener.japan: 일본: 일본: 닛케이 -2.1% · 日 MLCC·수동부품 -7.4% vs 삼성전기 -1.0% (60일 상관 0.82) (일본 패널)
-2026-10-30 06:51:08,263 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
-2026-10-30 06:51:12,196 INFO screener.committee: 운용회의 자료 생성
-2026-10-30 06:51:16,715 INFO screener.calendar_ev: 캘린더 86건
-2026-10-30 06:51:16,728 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 0건
+2026-11-02 06:54:22,007 ERROR yfinance: ['^TOPX']: possibly delisted; no timezone found
+2026-11-02 06:54:26,175 INFO screener.japan: 일본: 일본: 닛케이 -0.3% · 日 메모리(Kioxia) -15.8% vs SK하이닉스 -7.1% (60일 상관 0.82) (일본 패널)
+2026-11-02 06:54:26,572 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 1건
+2026-11-02 06:54:30,527 INFO screener.committee: 운용회의 자료 생성
+2026-11-02 06:54:33,524 INFO screener.calendar_ev: 캘린더 88건
+2026-11-02 06:54:33,536 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 1건
