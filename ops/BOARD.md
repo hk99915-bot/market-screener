@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-02 · 작업 394개 · 진행 7 · 검수 4 · 대기 76 · 보류 31 · 완료 276
+기준일 2026-11-03 · 작업 394개 · 진행 7 · 검수 4 · 대기 76 · 보류 31 · 완료 276
 
 **결재 대기 5:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이), `appr-staffing-b-1107` (겸이)
 
