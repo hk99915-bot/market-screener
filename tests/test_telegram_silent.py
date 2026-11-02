@@ -1,6 +1,7 @@
 """결재 #9 (10/17 14:09 최종) 알림 등급 — 소리 5종(stop2·dl0·touch·halt·fresh 하루 1회)만, 나머지 무음.
 원래: — send_telegram 의 disable_notification 기본값·호출부 분류 (네트워크 없음: requests.post 를 가짜로 바꿔 payload 만 본다)."""
 from datetime import date
+import json
 
 import pytest
 
