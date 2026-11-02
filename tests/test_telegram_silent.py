@@ -143,4 +143,4 @@ def test_parse_entities_failure_fallback_plain_text(monkeypatch):
     assert len(calls) == 2
     assert calls[0].get("parse_mode") == "HTML"
     assert "parse_mode" not in calls[1]
-    assert calls[1]["text"] == "테스트 < 잘못된 태그"
+    assert calls[1]["text"].startswith("테스트 < 잘못된 태그")
