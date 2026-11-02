@@ -760,7 +760,18 @@ def _hf_attach(out: dict, market: str) -> None:
 
 def _hf_tail(txt: str, o: dict) -> str:
     tail = list(((o.get("hf") or {}).get("tg") or [])[:6])     # 머리 1 + 진입 근거 4(10/24 겸이 "왜 진입하는지로") + 재량 1
-    return txt + ("\n" + "\n".join(tail) if tail else "")
+    if not tail:
+        return txt
+    import html as _h
+    tags = {"&lt;b&gt;": "<b>", "&lt;/b&gt;": "</b>", "&lt;i&gt;": "<i>", "&lt;/i&gt;": "</i>"}
+    esc_tail = []
+    for x in tail:
+        y = _h.escape(x, quote=False)
+        for a, b in tags.items():
+            y = y.replace(a, b)
+        esc_tail.append(y)
+    nl = chr(10)
+    return txt + nl + nl.join(esc_tail)
 
 
 def telegram_text(o: dict) -> str:

@@ -120,3 +120,26 @@ def test_pb_morning_goes_through_ring_table_and_duel_silent():
     from screener import duel, pb
     assert "disable_notification=silent(keys)" in inspect.getsource(pb.send)
     assert "loud(" not in inspect.getsource(duel)
+
+
+def test_parse_entities_failure_fallback_plain_text(monkeypatch):
+    """HTML 엔티티 파싱 실패 시 parse_mode를 제거하고 일반 텍스트로 재전송하는지 검증."""
+    calls: list[dict] = []
+    def fake_post(url, data, timeout):
+        calls.append(dict(data))
+        if data.get("parse_mode") == "HTML":
+            resp = _Resp()
+            resp.status_code = 400
+            resp.text = json.dumps({"ok": False, "error_code": 400, "description": "Bad Request: can't parse entities: Unsupported start tag"})
+            return resp
+        return _Resp()
+
+    monkeypatch.setattr(report.CFG, "telegram_token", "123456789:" + "A" * 35)
+    monkeypatch.setattr(report.CFG, "telegram_chat", "-100123")
+    monkeypatch.setattr(report.requests, "post", fake_post)
+
+    report.send_telegram("테스트 < 잘못된 태그")
+    assert len(calls) == 2
+    assert calls[0].get("parse_mode") == "HTML"
+    assert "parse_mode" not in calls[1]
+    assert calls[1]["text"] == "테스트 < 잘못된 태그"

@@ -277,6 +277,11 @@ def send_telegram(text: str, *, disable_notification: bool = True, reply_markup:
         if reply_markup and i == len(chunks) - 1:
             data["reply_markup"] = json.dumps(reply_markup, ensure_ascii=False)
         r = requests.post(url, data=data, timeout=30)
+        if r.status_code == 400 and "can't parse entities" in r.text and data.get("parse_mode"):
+            log.warning("텔레그램 HTML 엔티티 파싱 실패(%s) → parse_mode 제거 후 일반 텍스트로 재전송", r.text[:200])
+            data_retry = dict(data)
+            data_retry.pop("parse_mode", None)
+            r = requests.post(url, data=data_retry, timeout=30)
         if r.status_code != 200:
             raise RuntimeError(f"텔레그램 전송 실패 {r.status_code}: {r.text[:300]}")
     log.info("텔레그램 전송 완료 (%d개 메시지)", len(chunks))
