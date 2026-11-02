@@ -2,6 +2,7 @@
 import io
 import json
 import zipfile
+from pathlib import Path
 
 from screener import dart_biz as db
 
@@ -250,3 +251,20 @@ def test_parallel_workers_and_latest_only(tmp_path, monkeypatch):
     assert calls.count("document.xml") == 6 and st["api_calls"] == 12
     items = json.loads((tmp_path / "index.json").read_text())["items"]
     assert sorted(r["rcept_no"] for r in items) == sorted(f"{c}H" for c in codes if c != "000004")   # 반기만
+
+
+def test_supply_targets_include_hwashin_abico():
+    """11/1 겸이 '하청까지' 예시 2종목 — 수집 대상 목록·확장 이름 사전에 있어야 공급망 자동 추출에 잡힘(req-dev-786a95ac)."""
+    root = Path(__file__).resolve().parents[1]
+    lines = [ln.split("#", 1)[0].strip() for ln in (root / "data/dart_biz/targets_supply.txt").read_text(encoding="utf-8").splitlines()]
+    assert {"010690", "036010"} <= set(lines)
+    names = json.loads((root / "data/flows/names.json").read_text(encoding="utf-8"))
+    assert names["010690"] == "화신" and names["036010"] == "아비코전자"      # 아비코전자는 peers_KR 밖 — 이름 사전이 2차 확장 목록
+
+
+def test_code_gs_company_links_getters():
+    """RESEARCH › 관계도 getter 가 Code.gs 에 build_pages.py 와 같은 파일로 있다(req-dev-23c7fc19)."""
+    root = Path(__file__).resolve().parents[1]
+    gs = (root / "apps-script/Code.gs").read_text(encoding="utf-8")
+    assert "function getCompanyLinks() { return raw_('reports/company_links.json'); }" in gs
+    assert "function getCompanyLinksAuto() { return raw_('reports/company_links_auto.json'); }" in gs

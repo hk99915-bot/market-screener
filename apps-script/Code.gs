@@ -87,6 +87,8 @@ function getStock(market, sym) { return raw_(`reports/detail/${market}/${sym}.js
 function getMacroSeries() { return raw_('reports/macro_series.json'); }
 
 function getAnalysts() { return raw_('reports/analysts.json'); }
+function getCompanyLinks() { return raw_('reports/company_links.json'); }   // RESEARCH › 관계도 수작업 (req-dev-23c7fc19) — build_pages.py getCompanyLinks 와 짝
+function getCompanyLinksAuto() { return raw_('reports/company_links_auto.json'); }   // 관계도 하청 자동 추출 — build_pages.py getCompanyLinksAuto 와 짝(없으면 화면은 수작업만)
 function getResearchViews() { return raw_('reports/research_views.json'); }   // 비종목 리포트 (RESEARCH › 리서치 kind 필터)
 function getResearchSynthesis() { return raw_('reports/research_synthesis.json'); }   // 리서치 종합 (RESEARCH 맨 위, 애널 research-synthesis)
 
