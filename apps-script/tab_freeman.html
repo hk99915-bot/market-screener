@@ -21,7 +21,43 @@
       .myhq .myhq-f{line-height:1.5;margin-top:2px;font-size:var(--fs-3)}.myhq .myhq-lab{font-size:var(--fs-1);color:var(--amber);border:1px solid var(--line);padding:0 4px;white-space:nowrap}
       .myhq .myhq-more summary{cursor:pointer;color:var(--muted);font-size:var(--fs-2);padding:6px 0;min-height:24px}.myhq .myhq-more ul{margin:0;padding-left:18px;line-height:1.5;font-size:var(--fs-2)}.myhq .myhq-more li{margin-bottom:6px}
       .myhq .myhq-src{font-size:var(--fs-1);color:var(--muted);word-break:break-all}.myhq .myhq-n{font-weight:700;color:var(--amber)}</style>
+
+<style>.frnr-b0{margin-top:10px}#frnr-t{font:inherit;font-size:var(--fs-3);color:var(--amber);background:none;border:1px solid var(--line);padding:6px 12px;cursor:pointer;min-height:32px}
+#frnr{margin-top:8px;font-size:var(--fs-2);line-height:1.55;min-width:0;overflow-wrap:anywhere}#frnr[hidden]{display:none}
+#frnr .frnr-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:6px;margin-top:4px}
+#frnr .frnr-c{border:1px solid var(--line);padding:8px;min-width:0}#frnr .frnr-s{font-size:var(--fs-1)}#frnr .frnr-h{margin-top:10px}#frnr .frnr-bu{margin-top:8px}
+#frnr .frnr-t{width:100%;border-collapse:collapse;margin-top:4px;table-layout:fixed}#frnr .frnr-t th,#frnr .frnr-t td{border:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+#frnr .frnr-fl{margin-top:8px}#frnr .frnr-fl ol{margin:4px 0 0;padding-left:20px}#frnr .frnr-fl li{margin:3px 0}
+@media(max-width:600px){#frnr .frnr-t thead{display:none}#frnr .frnr-t,#frnr .frnr-t tbody,#frnr .frnr-t tr,#frnr .frnr-t td{display:block;width:100%}#frnr .frnr-t tr{border:1px solid var(--line);margin-bottom:6px}#frnr .frnr-t td{border:0}#frnr .frnr-t td::before{content:attr(data-l) " ";color:var(--muted);font-size:var(--fs-1)}}</style>
 <script>
+/* ───── 📋 R&R (11/3 겸이 「웅 ㄱㄱ」 ③ — 보드 org-rnr, 내부판 전용) — 데이터 = reports/org_rnr.md(JSON) 하나만 읽음, 화면 하드코딩 금지.
+   getter = 기존 getMarkdown('org_rnr')(새 getter 없음). 데스크 키는 위 본부 OKR 카드와 같은 키(data-k). 줄 고침은 데이터 파일에서(운영·각 데스크). */
+let FRNR=null, FRNRO=false;
+function freeRnrTog(){ FRNRO=!FRNRO; const b=$('#frnr-t'), e=$('#frnr'); if(b) b.setAttribute('aria-expanded',FRNRO); if(e){ e.hidden=!FRNRO; if(FRNRO) e.innerHTML=freeRnr(); } }
+function freeRnr(){
+  if(FRNR===null){ FRNR=false; google.script.run.withSuccessHandler(t=>{ try{ FRNR=t?JSON.parse(t):{_err:'빈 응답 — reports/org_rnr.md 없음'}; }catch(e){ FRNR={_err:'org_rnr.md 가 JSON 아님'}; } const e=$('#frnr'); if(e&&FRNRO) e.innerHTML=freeRnr(); })
+    .withFailureHandler(e=>{ FRNR={_err:'불러오기 실패 — '+String((e&&e.message)||e).slice(0,80)}; const x=$('#frnr'); if(x&&FRNRO) x.innerHTML=freeRnr(); }).getMarkdown('org_rnr'); return '<div class="mu">LOADING …</div>'; }
+  if(FRNR===false) return '<div class="mu">LOADING …</div>';
+  const R=FRNR||{}, D=R.desks||[];
+  if(!D.length) return `<div class="mu">R&R 데이터 없음(${esc(R._err||'desks 비어 있음')}) — reports/org_rnr.md</div>`;
+  const nm=k=>(typeof mgNm==='function'?mgNm(k):k);
+  const who=k=>`<b class="am">${esc(nm(k))}</b>`;
+  const grid=cls=>`class="frnr-g ${cls||''}"`;
+  const lay=(R.layers||[]).map(L=>`<div class="frnr-c"><b>${esc(L.layer)}</b> <span class="mu">${esc(L.what)}</span><div class="frnr-s">${D.filter(x=>x.layer===L.layer).map(x=>esc(nm(x.key))).join(' · ')}</div>${L.note?`<div class="mu frnr-s">${esc(L.note)}</div>`:''}</div>`).join('');
+  const bnd=(R.boundaries||[]).map(x=>`<tr class="frnr-b"><td data-l="주제">${esc(x.topic)}</td><td data-l="주관">${who(x.owner)}</td><td data-l="입력">${esc(x.input||'-')}</td><td data-l="안 하는 것">${esc(x.dont||'')}</td></tr>`).join('');
+  const dual=(R.dual||[]).map(x=>`<div class="frnr-c frnr-d">${who(x.key)} <span class="mu">겸직</span> ${esc(x.what)}</div>`).join('');
+  const risk=(R.risk_split||[]).map(x=>`<div class="frnr-c">${who(x.key)} ${esc(x.what)}</div>`).join('');
+  const bu=(R.bureaus||[...new Set(D.map(x=>x.bureau))]).map(b=>{ const ds=D.filter(x=>x.bureau===b); if(!ds.length) return '';
+    return `<div class="frnr-bu"><b>${esc(b)}</b> <span class="mu frnr-s">${ds.length}명</span><div ${grid()}>${ds.map(x=>`<div class="frnr-c rnr" data-k="${esc(x.key)}">${who(x.key)} <span class="mu frnr-s">${esc(x.layer||'')}</span>
+      <div><span class="up">하는 것</span> ${esc(x.does||'')}</div><div><span class="dn">안 하는 것</span> ${esc(x.dont||'')}</div></div>`).join('')}</div></div>`; }).join('');
+  const F=R.flow||{}, fl=(F.steps||[]).map(x=>`<li class="rnrf">${who(x.key)} — ${esc(x.what)}</li>`).join('');
+  return `<p class="frnr-p">${esc(R.principle||'')}${R.status?` <span class="mu">· ${esc(R.status)} · ${esc(R.asof||'')}</span>`:''}</p>
+    ${bnd?`<div class="frnr-h"><b>경계 표</b> <span class="mu frnr-s">주제 → 주관 / 입력 / 안 하는 것</span></div><table class="frnr-t"><thead><tr><th>주제</th><th>주관</th><th>입력</th><th>안 하는 것</th></tr></thead><tbody>${bnd}</tbody></table>`:''}
+    ${dual?`<div class="frnr-h"><b>겸직</b></div><div ${grid()}>${dual}</div>`:''}
+    <div class="frnr-h"><b>층 — 판단이냐 통제냐 처리냐</b></div><div ${grid()}>${lay}</div>
+    <div class="frnr-h"><b>리스크본부 안 경계</b> <span class="mu frnr-s">감사는 이 넷도 사후·독립으로 봄</span></div><div ${grid()}>${risk}</div>
+    ${fl?`<div class="frnr-c frnr-fl"><b>${esc(F.title||'사건 흐름')}</b> <span class="mu frnr-s">${esc(F.note||'')}</span><ol>${fl}</ol></div>`:''}
+    <div class="frnr-h"><b>${D.length}명 R&R</b> <span class="mu frnr-s">줄 고침은 reports/org_rnr.md</span></div>${bu}`; }
 /* ───── 🗽 FREEMAN: 북극성 = docs/desk_kb/VISION.md (공개 KB, 2026-10-25 겸이 지시) 최소 문구 상수 — 원문이 바뀌면 여기도 맞춘다 ───── */
 const FREE_MISSION='돈 때문에 의지를 포기하지 않는다 — 자기 판단으로 결정하고 결과를 스스로 감당하는 상태 (자본은 쌓되 삶은 소진하지 않는다)';
 const FREE_RULES=['생존이 수익률보다 우선','내 집은 목표이되 영끌은 의무가 아니다','커리어와 금융투자를 함께 키운다','시간과 건강도 자본이다','희망이 아니라 실측으로 판단한다'];
@@ -31,6 +67,7 @@ function freeView(){
   return `<div class="grid"><div class="p c12"><h2>🗽 FREEMAN<small>프로젝트 프리맨 · 목표·조직 · 비공개 저장소(pb-private)에서 이 브라우저로 직접 읽음</small></h2><div class="b">
     ${freeStar()}
     <div id="myhq" class="myhq">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">본부 OKR 불러오는 중…</div>':'<div class="am" style="font-size:var(--fs-2)">GitHub 토큰 필요 — 🔐 MY 탭에서 토큰 설정 후 다시 열어 주세요</div>'}</div>
+    <div class="frnr-b0"><button id="frnr-t" aria-expanded="false" aria-controls="frnr" onclick="freeRnrTog()">📋 R&R — 하는 것 / 안 하는 것 · 경계 표</button><div id="frnr" hidden></div></div>
   </div></div></div>`; }
 // ───── 본부별 코멘트 (11/1 겸이 「맞춤 코멘트 정돈 · 각 본부 목표에 맞게」 → 「이거 다 프라이빗한거로」)
 // 이 파일은 렌더링만 한다 — 본부 목표·KR 문구·데스크→본부 매핑은 pb-private ops/okr.json, 코멘트는 analysis/<주>-weekly/desk/<key>.md 에서 토큰으로 읽는다.

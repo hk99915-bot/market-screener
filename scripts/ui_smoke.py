@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import glob
+import json
 import http.server
 import socketserver
 import sys
@@ -85,6 +86,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_xl_beyond(b, port)
         bad += await check_links_pcr(b, port)
         bad += await check_hf_why(b, port)
+        bad += await check_org_rnr(b, port)
         # bad += await check_all_top(b, port)   # 10/26 롤백(TOP_ALL_TABS=false) — 다시 켜면 복구
         bad += await check_re_ga(b, port)
         bad += await check_intraday_bar(b, port)
@@ -1205,6 +1207,49 @@ async def check_xl_beyond(b, port: int) -> int:
     print(f"{'OK ' if ok else 'BAD'} 엑셀 스킨 그림·상태(1300px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items()) + (f" · 에러: {errs[0][:160]}" if errs else ""))
     await ctx.close()
     return not ok
+
+
+async def check_org_rnr(b, port: int) -> int:
+    """🗽 FREEMAN 탭 📋 R&R(11/3 겸이 「웅 ㄱㄱ」 — 프론트) — 기본·엑셀 × 390·1300px: 토글 전엔 닫힘 · 열면 R&R 줄 수 = reports/org_rnr.md desks(≥29)·키 중복 0·하는 것/안 하는 것 빈칸 0 ·
+    경계 표 행 = 데이터 boundaries(≥4)·겸직 카드 = dual · 사건 흐름 ≥6단계 · #root 요소 오른쪽 끝 > 화면 폭 0(rect.right) · 글자 대비 미달 0(skin_audit 자)."""
+    import skin_audit as sa
+    try:
+        dat = json.loads((SERVE / "reports" / "org_rnr.md").read_text(encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001 — 데이터 없음은 BAD 로 보이게
+        print(f"BAD R&R — reports/org_rnr.md 못 읽음({e})")
+        return 1
+    n_data, n_bnd, n_dual = len(dat.get("desks") or []), len(dat.get("boundaries") or []), len(dat.get("dual") or [])
+    over_js = "(()=>{ const W=innerWidth; return [...document.querySelectorAll('#root *')].filter(e=>e.offsetWidth&&e.getBoundingClientRect().right>W+1).length; })()"
+    bad = 0
+    for skin in ("def", "xl"):
+        for w in (390, 1300):
+            ctx, pg = await sa.page(b, port, w, skin)
+            errs: list[str] = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            await pg.evaluate("setView('free')")
+            await pg.wait_for_timeout(1200)
+            res: dict = {}
+            closed = await pg.evaluate("(()=>{ const e=document.querySelector('#root #frnr'); return !!e && e.hidden; })()")
+            await pg.click("#root #frnr-t")
+            await pg.wait_for_timeout(1800)
+            r = await pg.evaluate("""(()=>{ const rs=[...document.querySelectorAll('#root .rnr')], ks=rs.map(e=>e.dataset.k);
+              return {n:rs.length, dup:ks.length-new Set(ks).size, empty:rs.filter(e=>{ const d=[...e.querySelectorAll(':scope>div')]; return d.length<2||d.slice(0,2).some(x=>x.textContent.replace(/^(하는 것|안 하는 것)/,'').trim().length<2); }).length,
+                flow:document.querySelectorAll('#root .rnrf').length, bnd:document.querySelectorAll('#root .frnr-b').length, dual:document.querySelectorAll('#root .frnr-d').length}; })()""")
+            o = await pg.evaluate(over_js)
+            c = await pg.evaluate(f"({sa.CONTRAST_JS})('#root *')")
+            res["닫힘"] = closed
+            res["줄"] = r["n"] == n_data >= 29 and r["dup"] == 0 and r["empty"] == 0
+            res["경계표"] = r["bnd"] == n_bnd >= 4 and r["dual"] == n_dual >= 4
+            res["흐름"] = r["flow"] >= 6
+            res["넘침0"] = o == 0
+            res["대비0"] = not c["bad"]
+            ok = all(res.values()) and not errs
+            bad += not ok
+            print(f"{'OK ' if ok else 'BAD'} FREEMAN R&R({skin} {w}px) " + " ".join(f"{k}={'O' if v else 'X'}" for k, v in res.items())
+                  + f" · 줄 {r['n']}/데이터 {n_data} · 경계 {r['bnd']}/{n_bnd} · 겸직 {r['dual']}/{n_dual} · 흐름 {r['flow']} · 넘침 {o} · 대비 미달 {len(c['bad'])}"
+                  + (f" {c['bad'][:2]}" if c["bad"] else "") + (f" · 에러: {errs[0][:160]}" if errs else ""))
+            await ctx.close()
+    return bad
 
 
 async def check_xl(b, port: int) -> int:
