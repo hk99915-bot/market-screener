@@ -4649,10 +4649,21 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:54"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "SPY",
+     "name": "SPDR S&P 500 ETF Trust",
+     "notional": 3000000.0,
+     "entry": "open",
+     "exit": "d5_close",
+     "by": "공격 PB",
+     "at": "21:54"
     }
    },
    "basis": {
@@ -4663,6 +4674,138 @@
      "VIX 21.15",
      "나스닥 25,164 (-1.07%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. 미 중간선거 당일·AMD 장후 실적 대기로 이벤트 구간이며, S&P500 20일 고점 대비 −3.5%·전일 −0.51%로 반등 미확인. 개인 진입 게이트 4건(satellite_cap·loss_limit·position_count·frm_limits) 미충족, 반도체 신규 매수 금지 플래그 유지. 눌림 구간 20일 분포(n=2084)는 약세(−3% 미만) 20.1%·기본 43.6%·강세 36.3%로 방향 우위 부족. 탈출 조건: 개표 결과 확정 후 S&P500 종가 기준 20일 고점 대비 −2% 이내 회복 시 재검토.",
+    "lines": [
+     "S&P500 7,541.40(−0.51%, 11/2), 20일 고점 대비 −3.5%, 나스닥 −1.07%",
+     "VIX 21.15, 미 10년물 4.894%(1주 −15bp), WTI 98.59",
+     "눌림 20일 분포 n=2084: 강세 36.3%·기본 43.6%·약세 20.1%(crash_rebound.json)",
+     "레드팀: 선거 결과가 시장 예상과 일치하면 불확실성 해소 랠리를 현금으로 놓칠 위험."
+    ],
+    "conviction": "보통",
+    "at": "21:54",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": 2084,
+     "ev": null,
+     "basis": "현금. spx_buckets20 pullback n=2084: bull 0.363·base 0.436·bear 0.201(20일 기준)"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0,
+     "note": "개인 진입 게이트 satellite_cap·loss_limit·position_count·frm_limits 미충족 및 이벤트 당일 진입 금지로 실계좌 진입 불가."
+    },
+    "views_asof": "2026-11-03 19:16",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 0/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "역풍",
+      "b": "bear"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 3 / 축소 6",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 8회 · 5일 초과 +2.3%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 1건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "S&P500 20일 고점 대비 −3.5% 눌림 구간 반등 베팅. 눌림 구간 20일 분포 강세 36.3%·약세 20.1%(n=2084, 20일 기준이라 5일 승률은 검증 전). 선거 불확실성 해소 후 변동성 축소(VIX 21.15→하락) 시 지수 반등 기대. 손절 −2%, 목표 +2.5%. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.025,
+      "stop": -0.02,
+      "rr": 1.25,
+      "win_rate": null,
+      "n": 2084,
+      "ev": null,
+      "basis": "spx_buckets20 pullback n=2084(20일 지평). 5일 지평 승률 미산출 — 검증 전"
+     }
+    }
    }
   }
  ],
