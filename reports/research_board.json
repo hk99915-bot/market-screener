@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
  "_doc": "scripts/research_board.py --build 산출물 — 손으로 고치지 않는다. 사람이 적는 칸은 ops/research_pipeline.json.",
- "asof": "2026-11-03",
+ "asof": "2026-11-04",
  "stages": [
   {
    "id": "idea",
@@ -275,7 +275,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/accum_signals.json",
-   "updated": "2026-11-02",
+   "updated": "2026-11-03",
    "grade_counts": {}
   },
   {
@@ -298,7 +298,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/trend_expectancy.json",
-   "updated": "2026-11-02",
+   "updated": "2026-11-03",
    "grade_counts": {
     "F": 1,
     "C": 1
@@ -322,7 +322,7 @@
    "auto": [
     "reports/signal_scores.json"
    ],
-   "updated": "2026-11-02"
+   "updated": "2026-11-03"
   },
   {
    "id": "model_pf",
@@ -345,7 +345,7 @@
     "commit": "d6165c69",
     "src": "git log -- screener/portfolios.py (커밋 2개: 63c61bef 10-15 생성, d6165c69 10-17 체결 시차 변경)"
    },
-   "updated": "2026-11-03"
+   "updated": "2026-11-04"
   },
   {
    "id": "lab_weekly",
@@ -363,7 +363,7 @@
    "auto": [
     "reports/lab.json"
    ],
-   "updated": "2026-11-01"
+   "updated": "2026-11-03"
   },
   {
    "id": "lab_p1",
@@ -401,7 +401,7 @@
    "auto": [
     "reports/momentum_bt.json"
    ],
-   "updated": "2026-11-03"
+   "updated": "2026-11-04"
   },
   {
    "id": "derivs",
@@ -686,9 +686,19 @@
    "file": "reports/studies/2026-11-01_vol_strategies.json"
   },
   {
+   "study": "2026-11-03_bond_regime_strata",
+   "date": "2026-11-03",
+   "file": "reports/studies/2026-11-03_bond_regime_strata.md"
+  },
+  {
    "study": "dotplot_tilt",
    "date": null,
    "file": "reports/studies/dotplot_tilt.json"
+  },
+  {
+   "study": "multiple_compression_2022",
+   "date": "2026-11-03",
+   "file": "reports/studies/multiple_compression_2022.md"
   },
   {
    "study": "profit_lock",
@@ -781,11 +791,18 @@
    "text": "AI 공급망 칸별 지속성 지표 4개(docs/desk_kb/rounds/2026-11-02/analyst_chain_persistence.md)를 '숫자 vs 가격' 표 칸으로 흡수(CIO 11/1 판정 ②, req-quant-ec93e2cb 쪽).…"
   },
   {
-   "id": "req-quant-77018bfa",
-   "from": "bonds",
-   "opened": "2026-11-02",
-   "due": "2026-11-05",
-   "text": "채권 국면 정의 초안 bond_regime_v1 (kb:bonds#25, 결과 전 고정·결과 보고 임계 변경 금지, 변경 시 새 id). 입력 ^TNX·HYG·IEF(data/hist/us_2010~2025, 2026 로컬 미적재). 축A ^TNX …"
+   "id": "req-quant-14c996f2",
+   "from": "겸이",
+   "opened": "2026-11-03",
+   "due": "2026-11-10",
+   "text": "사전등록(겸이 11/3 23:14 「1 2 ㅇㅇ」, 결재 ⑤ 조건): 퀀트 시그널 개선안 3개 모의 병행(비공개 원장 574행) — 결과 보기 전 승패 기준 고정: 지표·표본 n·통과선·기간·시도 N 가산. 11/10 전 trial_log 등록 후 …"
+  },
+  {
+   "id": "req-quant-67015597",
+   "from": "겸이",
+   "opened": "2026-11-03",
+   "due": "2026-11-12",
+   "text": "연구 카드(겸이 11/3 22:06 「ㅇㅇ」): VaR 변동성 모델 비교 — EWMA(λ0.94, 현 FRM 엔진) vs GARCH(1,1) vs GJR-GARCH(하락 비대칭). 같은 기간·같은 포트 대용(공개 저장소엔 비율·지수 대용만)으로 Va…"
   }
  ]
 }

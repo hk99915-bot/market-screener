@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-11-03",
+  "updated": "2026-11-04",
   "owners": [
     "PB",
     "퀀트",
@@ -6623,7 +6623,8 @@
       "owner": "개발",
       "priority": "P0",
       "status": "검수",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "started": null,
@@ -6660,7 +6661,8 @@
       "owner": "프론트",
       "priority": "P1",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "started": null,
@@ -6679,7 +6681,8 @@
       "owner": "개발",
       "priority": "P1",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "started": null,
@@ -6697,7 +6700,8 @@
       "owner": "개발",
       "priority": "P0",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "started": null,
@@ -6714,7 +6718,8 @@
       "owner": "사용자",
       "priority": "P0",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "started": null,
@@ -6729,7 +6734,8 @@
       "owner": "PM",
       "priority": "P1",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "started": null,
@@ -6744,7 +6750,8 @@
       "owner": "사용자",
       "priority": "P1",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "started": "2026-11-01",
@@ -6779,7 +6786,8 @@
       "owner": "개발",
       "status": "대기",
       "priority": "P3",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "id": "req-analyst-a7697c3b",
@@ -6962,7 +6970,8 @@
       "owner": "프론트",
       "status": "대기",
       "priority": "P2",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-04"
     },
     {
       "id": "req-data-212c5803",
@@ -7699,6 +7708,34 @@
       "status": "대기",
       "priority": "P3",
       "repo": "public"
+    },
+    {
+      "id": "req-dev-dae36e04",
+      "title": "[요청 승격] 애널→개발: KCIF 상세 화면 요지(ㅁ 블록, 2~6줄)를 public_reports.json summary 로 자동 ",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-11",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-04",
+      "notes": "요청 2영업일 미처리(2026-11-02~2026-11-04) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-dae36e04`."
+    },
+    {
+      "id": "req-quant-3522a3d2",
+      "title": "[요청 승격] 애널→퀀트: AI 공급망 칸별 지속성 지표 4개(docs/desk_kb/rounds/2026-11-02/analyst_c",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-11",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-04",
+      "notes": "요청 2영업일 미처리(2026-11-02~2026-11-04) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-3522a3d2`."
     }
   ]
 }
