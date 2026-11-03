@@ -58,7 +58,7 @@
 | FOREIGN_FLOW_FILTER | 종목별 외국인 수급 장기 | 시장 전체 외국인 현물·선물 2010~ (deriv/daily.csv) | 시장 단위 판은 지금 가능 → 대기열 FUT_FRGN_EXTREME 로 이관. 종목 단위는 L |
 | PAIR_RV | 데이터 아님 — 실행(개인 공매도) 제약 | — | 롱숏 모의 전용 태그(real_eligible=false)로 **대기열 1순위 LS_LOWVOL_DECAY 와 같은 틀**에서 검증 가능 |
 
-## 2. 오늘 실행 1건 — CRASH_NEAR_INDEX (§0 사전등록 커밋 d6ebcad2 이후 실행)
+## 2. 오늘 실행 1건 — CRASH_NEAR_INDEX (§0 사전등록 커밋 a06679a99 이후 실행)
 
 | 구간 | open(다음날 시가) | close(다음날 종가) |
 |---|---|---|
