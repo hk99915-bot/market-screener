@@ -36,3 +36,4 @@ LIFE preserves the supplied original composition. Compliance uses an original-pi
 | life | LIFE | 제공 원본 | e27ea04808243b19e77e218ecabb58f3f1faa8690379eec46c28ca548507e60b |
 | compliance | 컴플라이언스 | 제공 원본 | 5717c115c07ad2b8a63cd013cc071383a1b0f74fd9a297c0b104bf951f8e3cc0 |
 | derivs | 파생 | 제공 원본 | 24b4a0038a28fbf51aa74c82d393a44c75c6f9335fc1c13dfb53f52b69f08d02 |
+| data_eng | 데이터엔지니어 | 타인 촬영(책상, 11/3 겸이 생성·전달, 1600px 리사이즈) | f3d49df958ad479649aac0345a4aacae7a876cd5f29547576d502b646e89c48a |
