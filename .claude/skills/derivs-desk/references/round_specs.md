@@ -49,3 +49,5 @@
 - KRX 파생상품시장 업무규정·상품 명세(승수·최종거래일·사이드카) — 2026-10-16 WebSearch 로 2차 자료 확인, 원문 조항 `[확인 필요: 원문 대조, 2026-10-30]`.
 - 자체연구: `reports/studies/derivs_signals.md/.json`(2026-10-16), `reports/studies/gamma_regime.json`(2026-10-16, next_eval 10-30), `screener/derivs.py` 머리말.
 
+## HF 협업 (2026-11-03)
+- 사전 점검 5칸·그릭스 1줄·주간 리뷰 양식 = `docs/desk_kb/rounds/2026-11-03/derivs_hf_collab.md` §3~§5 (원본 KB `kb:derivs#HF 협업`).
