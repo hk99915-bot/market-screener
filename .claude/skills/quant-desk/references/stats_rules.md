@@ -7,7 +7,7 @@
 - #2 [교과서] **IS/OOS(표본 내/표본 외)**: 시계열은 **날짜로** 자른다(무작위 분할은 미래 정보 누설). 분할점의 기준은 '양쪽에 사건이 충분히 드는가'이지 비율이 아니다. (출처: LdP *AFML* 7장 purging·embargo · fib_levels §0-1 / semis_cap §0 / entry_signals §0-5)
 - #3 [논문] **다중검정(multiple testing)**: 가설 m개를 동시에 보면 효과가 없어도 ≥1개가 우연히 유의할 확률이 1−(1−α)^m. Bonferroni는 α/m으로 나눠 이를 α 근처로 되돌린다. 사후(post-hoc) 가설은 m 밖이므로 등급 상한 C. (출처: Harvey & Liu 2015 "Backtesting" JPM · gamma_regime.json grades_doc "탐색(x)은 최대 C")
 - #4 [자체연구-규약] **등급 A/B/C/F/검증전**: A=사전등록 Bonferroni 통과+OOS(·하락장) 같은 방향 · B=Bonferroni 통과, 하위 구간 미확인 · C=방향만(보정 전 p<0.10) · F=검증했고 효과 없음/반대 · 검증전=사전 최소 표본 미달. F는 '0'이지 '음수'가 아니다(역방향 근거는 'C(역방향)'으로 별도 표기). (출처: views/registry.json grades_doc · scripts/study_rule_audit.py grade())
-- #5 [논문] **Deflated Sharpe Ratio(DSR)**: 시도 횟수 N의 '기대 최대 샤프'를 문턱으로 두고, 왜도·첨도만큼 샤프의 신뢰구간을 넓혀 "우연히 최고였던 전략"을 깎는다. (출처: Bailey & López de Prado 2014, JPM 40(5)) `[확인 필요: 식 표기, 2026-10-30]`
+- #5 [논문] **Deflated Sharpe Ratio(DSR)**: 시도 횟수 N의 '기대 최대 샤프'를 문턱으로 두고, 왜도·첨도만큼 샤프의 신뢰구간을 넓혀 "우연히 최고였던 전략"을 깎는다. 식: DSR=Φ((SR̂−SR₀)√(T−1)/√(1−γ₃SR̂+(γ₄−1)/4·SR̂²)), SR₀=√V[SR]·((1−γ)Φ⁻¹(1−1/N)+γΦ⁻¹(1−1/(Ne))), γ=0.5772(오일러), γ₃ 왜도·γ₄ 비초과 첨도(정규=3), SR는 비연율(주기 단위). (출처: Bailey & López de Prado 2014, JPM 40(5) · 구현 대조 scripts/study_trend_rule.py dsr() 96~108행 — 2차 자료 아닌 코드 대조, 원문 쪽수는 미확인)
 - #6 [교과서] **검출력(power)**: 효과가 진짜 있을 때 검정이 그것을 잡아낼 확률(1−β). 효과 크기·σ·n·α로 정해진다. (출처: CFA L1 Quantitative Methods 가설검정)
 
 ## 공식

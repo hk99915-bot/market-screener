@@ -5,6 +5,7 @@
 ## 출처
 - Harvey, Liu & Zhu, "…and the Cross-Section of Expected Returns", RFS 29(1) 2016, 5–68 — t≥3.0 권고, 316개 팩터 (검색 확인 2026-10-16, 원문 쪽수 미확인)
 - Harvey & Liu, "Backtesting", JPM 41(1) 2015, 13–28 — 샤프 헤어컷, Bonferroni/Holm/BHY (검색 확인, 세 방법 명칭은 R `profitHurdle` 문서 기준 `[확인 필요: 명칭, 2026-10-30]`)
+- Bailey & López de Prado, "The Deflated Sharpe Ratio", JPM 40(5) 2014, 94–107 — PSR·기대 최대 샤프·왜도/첨도 (2차 자료로 확인 첨도는 비초과(정규=3) — 식의 (γ₄−1)/4 가 이 정의 기준, scripts/study_trend_rule.py dsr() kurt=3.0 기본값으로 확인 2026-11-03)
 - Bailey & López de Prado, "The Deflated Sharpe Ratio", JPM 40(5) 2014, 94–107 — PSR·기대 최대 샤프·왜도/첨도 (2차 자료로 확인 `[확인 필요: 첨도 정의 convention, 2026-10-30]`)
 - López de Prado, *AFML*, Wiley 2018 — 7장 purging/embargo · 11장 · 12장 walk-forward/CPCV (목차 확인) · CFA L1 Quantitative Methods 가설검정 `[확인 필요: 절 번호, 2026-10-30]`
 - 자체: reports/studies/entry_signals.md · rule_audit.md · semis_cap.md · exec_signal.md · fib_levels.md · derivs_signals.md · gamma_regime.json · views/registry.json grades_doc · scripts/study_rule_audit.py
