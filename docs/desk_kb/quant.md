@@ -13,7 +13,7 @@
 - #2 [교과서] **IS/OOS(표본 내/표본 외)**: 시계열은 **날짜로** 자른다(무작위 분할은 미래 정보 누설). 분할점의 기준은 '양쪽에 사건이 충분히 드는가'이지 비율이 아니다. (출처: LdP *AFML* 7장 purging·embargo · fib_levels §0-1 / semis_cap §0 / entry_signals §0-5)
 - #3 [논문] **다중검정(multiple testing)**: 가설 m개를 동시에 보면 효과가 없어도 ≥1개가 우연히 유의할 확률이 1−(1−α)^m. Bonferroni는 α/m으로 나눠 이를 α 근처로 되돌린다. 사후(post-hoc) 가설은 m 밖이므로 등급 상한 C. (출처: Harvey & Liu 2015 "Backtesting" JPM · gamma_regime.json grades_doc "탐색(x)은 최대 C")
 - #4 [자체연구-규약] **등급 A/B/C/F/검증전**: A=사전등록 Bonferroni 통과+OOS(·하락장) 같은 방향 · B=Bonferroni 통과, 하위 구간 미확인 · C=방향만(보정 전 p<0.10) · F=검증했고 효과 없음/반대 · 검증전=사전 최소 표본 미달. F는 '0'이지 '음수'가 아니다(역방향 근거는 'C(역방향)'으로 별도 표기). (출처: views/registry.json grades_doc · scripts/study_rule_audit.py grade())
-- #5 [논문] **Deflated Sharpe Ratio(DSR)**: 시도 횟수 N의 '기대 최대 샤프'를 문턱으로 두고, 왜도·첨도만큼 샤프의 신뢰구간을 넓혀 "우연히 최고였던 전략"을 깎는다. (출처: Bailey & López de Prado 2014, JPM 40(5)) `[확인 필요: 식 표기, 2026-10-30]`
+- #5 [논문] **Deflated Sharpe Ratio(DSR)**: 시도 횟수 N의 '기대 최대 샤프'를 문턱으로 두고, 왜도·첨도만큼 샤프의 신뢰구간을 넓혀 "우연히 최고였던 전략"을 깎는다. 식: DSR=Φ((SR̂−SR₀)√(T−1)/√(1−γ₃SR̂+(γ₄−1)/4·SR̂²)), SR₀=√V[SR]·((1−γ)Φ⁻¹(1−1/N)+γΦ⁻¹(1−1/(Ne))), γ=0.5772(오일러), γ₃ 왜도·γ₄ 비초과 첨도(정규=3), SR는 비연율(주기 단위). (출처: Bailey & López de Prado 2014, JPM 40(5) · 구현 대조 scripts/study_trend_rule.py dsr() 96~108행 — 2차 자료 아닌 코드 대조, 원문 쪽수는 미확인)
 - #6 [교과서] **검출력(power)**: 효과가 진짜 있을 때 검정이 그것을 잡아낼 확률(1−β). 효과 크기·σ·n·α로 정해진다. (출처: CFA L1 Quantitative Methods 가설검정)
 
 ## 공식
@@ -30,7 +30,7 @@
 - #15 [현업 관행] 교과서는 IS/OOS 비율(70/30)을 말하지만 현업은 **사건 수**로 정한다: fib(사건 매일 수천)는 2024~ OOS 1.75년이면 충분, 12개월 윈도 연구는 OOS 70개를 위해 2020~, entry_signals는 IS 이벤트 3개라 사전 규칙대로 전체 표본 판정. (근거: 세 보고서 §0 분할 기준 차이)
 
 ## 흔한 오해
-- #16 [교과서] "p<0.05면 진짜" → 20개 중 1개는 우연. m으로 나눈 α와 비교한다. entry_signals D0−D p 0.041은 보정 전이라 등급에 안 넣었다.
+- #16 [교과서] "p<0.05면 진짜" → 20개 중 1개는 우연. m으로 나눈 α와 비교한다. entry_signals D0−D p 0.041은 보정 전이라 등급에 안 넣었다. (출처: reports/studies/entry_signals.md 표 D0 행·§외국인 조건 비교 — 보조 비교라 등급 제외)
 - #17 [자체연구-F] "승률 70%면 좋은 전략" → 손익비 없이 무의미(#11). rule_audit T3 부분익절이 사례.
 - #18 [자체연구-A(효과 작음)] "과거 16년 수익=미래 기대" → semis_cap H2 글라이드 A(+0.34%p)는 '반도체가 코스피를 연 16%p 이긴 표본의 성질'. 등급 A여도 **원천이 표본 기간의 성질이면 보고서에 그렇게 적는다**.
 - #19 [자체연구-규약] "검증전 = 틀렸다" → 시험을 못 본 것. gamma_regime H1 t 5.0도 IS 감마음수 17일<20이라 검증전. "F = 반대로 하면 된다" → F는 0. fib_levels 지지 효과 F가 '피보 선에서 팔아라'를 뜻하지 않는다.
@@ -50,7 +50,7 @@
 ## 출처
 - Harvey, Liu & Zhu, "…and the Cross-Section of Expected Returns", RFS 29(1) 2016, 5–68 — t≥3.0 권고, 316개 팩터 (검색 확인 2026-10-16, 원문 쪽수 미확인)
 - Harvey & Liu, "Backtesting", JPM 41(1) 2015, 13–28 — 샤프 헤어컷, Bonferroni/Holm/BHY (검색 확인, 세 방법 명칭은 R `profitHurdle` 문서 기준 `[확인 필요: 명칭, 2026-10-30]`)
-- Bailey & López de Prado, "The Deflated Sharpe Ratio", JPM 40(5) 2014, 94–107 — PSR·기대 최대 샤프·왜도/첨도 (2차 자료로 확인 `[확인 필요: 첨도 정의 convention, 2026-10-30]`)
+- Bailey & López de Prado, "The Deflated Sharpe Ratio", JPM 40(5) 2014, 94–107 — PSR·기대 최대 샤프·왜도/첨도 (2차 자료로 확인 첨도는 비초과(정규=3) — 식의 (γ₄−1)/4 가 이 정의 기준, scripts/study_trend_rule.py dsr() kurt=3.0 기본값으로 확인 2026-11-03)
 - López de Prado, *AFML*, Wiley 2018 — 7장 purging/embargo · 11장 · 12장 walk-forward/CPCV (목차 확인) · CFA L1 Quantitative Methods 가설검정 `[확인 필요: 절 번호, 2026-10-30]`
 - 자체: reports/studies/entry_signals.md · rule_audit.md · semis_cap.md · exec_signal.md · fib_levels.md · derivs_signals.md · gamma_regime.json · views/registry.json grades_doc · scripts/study_rule_audit.py
 
