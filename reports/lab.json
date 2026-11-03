@@ -1,10 +1,10 @@
 {
- "asof": "2026-10-30",
- "generated": "2026-11-01 18:42",
- "method": "비용 왕복 0.25% 차감 · 기준 2개: ① EW = 같은 기간 유동성 유니버스(종가 ≥ 1,000원, 20일 평균 거래대금 ≥ 50억) 동일가중, ② KOSPI = 코스피 프록시(코스피 종목 규모 상위 200, 120일 평균 거래대금 가중) · 진입 2가지: 시가 = t일 종가 신호 → t+1 시가 진입·t+H 종가 청산 / 종가 = t+1 종가 진입·t+1+H 종가 청산(진입일 기준 전일까지 데이터만 사용) · 겹치지 않는 리밸런싱/이벤트만 평가 · 상폐 포함 데이터, 일간 ±32% 초과 변동은 오류로 제외 · IS 2010~2019 / OOS 2020~2023 / HOLDOUT 2024~ (잠금) · 관문: 검증한 (가설×진입) 조합 m=19개 Bonferroni 양측 5% → IS t ≥ 3.01 & 표본 ≥ 30, OOS 평균>0 & t ≥ 1, HOLDOUT 평균>0 & 표본 ≥ 10 → A / HOLDOUT만 실패 B / IS t≥2지만 보정·OOS 실패 C / 나머지 F · 등급은 두 기준 각각 판정 후 낮은 쪽 (지수 전략은 KOSPI 기준만)",
+ "asof": "2026-11-03",
+ "generated": "2026-11-03 10:14",
+ "method": "비용 왕복 0.25% 차감 · 기준 2개: ① EW = 같은 기간 유동성 유니버스(종가 ≥ 1,000원, 20일 평균 거래대금 ≥ 50억) 동일가중, ② KOSPI = 코스피 프록시(코스피 종목 규모 상위 200, 120일 평균 거래대금 가중) · 진입 2가지: 시가 = t일 종가 신호 → t+1 시가 진입·t+H 종가 청산 / 종가 = t+1 종가 진입·t+1+H 종가 청산(진입일 기준 전일까지 데이터만 사용) · 겹치지 않는 리밸런싱/이벤트만 평가 · 상폐 포함 데이터, 일간 ±32% 초과 변동은 오류로 제외 · IS 2010~2019 / OOS 2020~2023 / HOLDOUT 2024~ (잠금) · 관문: 검증한 (가설×진입) 조합 m=21개 Bonferroni 양측 5% → IS t ≥ 3.04 & 표본 ≥ 30, OOS 평균>0 & t ≥ 1, HOLDOUT 평균>0 & 표본 ≥ 10 → A / HOLDOUT만 실패 B / IS t≥2지만 보정·OOS 실패 C / 나머지 F · 등급은 두 기준 각각 판정 후 낮은 쪽 (지수 전략은 KOSPI 기준만)",
  "gate": {
-  "m": 19,
-  "req_t": 3.008,
+  "m": 21,
+  "req_t": 3.038,
   "alpha": 0.05,
   "tests": [
    "TREND_12_1/open",
@@ -25,7 +25,9 @@
    "LOWVOL_LARGE/open",
    "LOWVOL_LARGE/close",
    "DUAL_MOMENTUM_INDEX/open",
-   "DUAL_MOMENTUM_INDEX/close"
+   "DUAL_MOMENTUM_INDEX/close",
+   "CRASH_NEAR_INDEX/open",
+   "CRASH_NEAR_INDEX/close"
   ]
  },
  "entries": {
@@ -33,9 +35,9 @@
   "close": "다음날 종가 진입"
  },
  "bench_info": {
-  "ew_level": 0.167,
+  "ew_level": 0.164,
   "ew_from": "2010-02-01",
-  "kospi_level": 1.893,
+  "kospi_level": 1.863,
   "kospi_from": "2010-02-01",
   "kospi_check": {
    "yearly": [
@@ -111,26 +113,26 @@
     }
    ],
    "drift_ann": -0.0404,
-   "from": "2024-10-02",
-   "to": "2026-10-30",
+   "from": "2024-10-07",
+   "to": "2026-11-03",
    "n": 505,
    "corr": 0.985,
-   "te_ann": 0.074,
-   "cum_proxy": 1.102,
-   "cum_kospi": 1.21
+   "te_ann": 0.075,
+   "cum_proxy": 1.081,
+   "cum_kospi": 1.198
   },
   "kospi_method": "코스피(.KS) 중 직전일까지 120일 평균 거래대금 상위 200종목, 같은 값으로 가중 (과거 시가총액 이력이 없어 거래대금으로 규모를 대신함)",
   "overnight_bp": {
-   "ew": 18.0,
-   "kospi": 13.5
+   "ew": 17.9,
+   "kospi": 13.4
   },
   "intraday_bp": {
    "ew": -20.7,
-   "kospi": -10.8
+   "kospi": -10.7
   },
   "crash_events": {
    "ew": 47,
-   "kospi": 41
+   "kospi": 42
   }
  },
  "registry": [
@@ -242,6 +244,17 @@
    "hypothesis": "코스피 프록시의 12개월 수익률이 0보다 클 때만 지수를 들고 아니면 현금으로 빠지면, 긴 하락장을 피해서 같은 기간 지수 계속 보유(buy & hold)보다 20거래일당 수익이 높고 최대낙폭도 작다.",
    "rule": "20거래일마다 코스피 프록시 252일 수익률 > 0 이면 지수 보유, 아니면 현금(이자 0으로 계산 — 전략에 불리). 보유↔현금 전환 시 편도 비용 0.125%. 비교 = 같은 기간 지수 계속 보유. 최대낙폭·연복리는 참고 지표(등급은 공통 관문)",
    "registered": "2026-10-16",
+   "status": "검증"
+  },
+  {
+   "id": "CRASH_NEAR_INDEX",
+   "name": "급락 근접일 지수 반등",
+   "family": "이벤트",
+   "hold": 5,
+   "bench": "KOSPI",
+   "hypothesis": "코스피 프록시가 하루 −3% 이하·−5% 초과로 빠진 '급락 근접일' 뒤에는 단기 과잉반응이 풀려, 지수를 다음날 사서 5거래일 들면 같은 시점의 평상시 5일 기대수익보다 더 번다.",
+   "rule": "코스피 프록시 일간 −5% < 수익 ≤ −3% 인 날, 다음날 지수 매수·5거래일 보유(겹치는 신호 건너뜀). 비교 = 신호 시점에 이미 확정된 직전 252거래일의 같은 5일 지수 수익 평균. 주제 crash_entry 시도 N 70",
+   "registered": "2026-11-03",
    "status": "검증"
   },
   {
@@ -434,11 +447,11 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -1.17 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -1.17 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -1.36%, t -1.78; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -1.14%, 표본 34; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -0.45 < Bonferroni 기준 3.01",
+      "[EW] IS t -0.45 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 -0.99%, t -1.52; 평균>0·t≥1 필요)"
      ],
      "posthoc": false
@@ -563,11 +576,11 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -0.81 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -0.81 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -1.24%, t -1.64; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -1.10%, 표본 34; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -0.20 < Bonferroni 기준 3.01",
+      "[EW] IS t -0.20 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 -0.91%, t -1.45; 평균>0·t≥1 필요)"
      ],
      "posthoc": true
@@ -697,11 +710,11 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -3.82 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -3.82 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -0.40%, t -1.90; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -1.03%, 표본 137; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -2.40 < Bonferroni 기준 3.01",
+      "[EW] IS t -2.40 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 -0.27%, t -1.60; 평균>0·t≥1 필요)",
       "[EW] HOLDOUT 미통과 (평균 -0.26%, 표본 137; 평균>0·표본≥10 필요)"
      ],
@@ -785,38 +798,38 @@
       },
       "HOLDOUT": {
        "kospi": {
-        "n": 136,
+        "n": 137,
         "from": "2024-01-04",
-        "to": "2026-10-16",
-        "mean_ex": -0.0103,
-        "t": -2.95,
-        "hit": 0.36,
+        "to": "2026-10-23",
+        "mean_ex": -0.0107,
+        "t": -3.08,
+        "hit": 0.358,
         "avg_win": 0.0283,
-        "avg_loss": -0.032,
-        "payoff": 0.89,
-        "ev": -0.0103,
-        "sharpe": -1.77,
+        "avg_loss": -0.0324,
+        "payoff": 0.87,
+        "ev": -0.0107,
+        "sharpe": -1.84,
         "mdd": -0.8222,
         "mean_raw": -0.0047,
-        "mean_bench": 0.0055,
-        "avg_picks": 50.5
+        "mean_bench": 0.0061,
+        "avg_picks": 50.4
        },
        "ew": {
-        "n": 136,
+        "n": 137,
         "from": "2024-01-04",
-        "to": "2026-10-16",
+        "to": "2026-10-23",
         "mean_ex": -0.0033,
-        "t": -1.55,
-        "hit": 0.419,
+        "t": -1.59,
+        "hit": 0.416,
         "avg_win": 0.0181,
-        "avg_loss": -0.0187,
+        "avg_loss": -0.0186,
         "payoff": 0.97,
         "ev": -0.0033,
-        "sharpe": -0.93,
+        "sharpe": -0.95,
         "mdd": -0.4529,
         "mean_raw": -0.0047,
-        "mean_bench": -0.0015,
-        "avg_picks": 50.5
+        "mean_bench": -0.0013,
+        "avg_picks": 50.4
        }
       }
      },
@@ -827,13 +840,13 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -4.70 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -4.70 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -0.39%, t -1.69; 평균>0·t≥1 필요)",
-      "[KOSPI] HOLDOUT 미통과 (평균 -1.03%, 표본 136; 평균>0·표본≥10 필요)",
+      "[KOSPI] HOLDOUT 미통과 (평균 -1.07%, 표본 137; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -4.39 < Bonferroni 기준 3.01",
+      "[EW] IS t -4.39 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 -0.32%, t -1.76; 평균>0·t≥1 필요)",
-      "[EW] HOLDOUT 미통과 (평균 -0.33%, 표본 136; 평균>0·표본≥10 필요)"
+      "[EW] HOLDOUT 미통과 (평균 -0.33%, 표본 137; 평균>0·표본≥10 필요)"
      ],
      "posthoc": true
     }
@@ -961,12 +974,12 @@
       "ew": "F"
      },
      "reasons": [
-      "[KOSPI] IS t 0.40 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t 0.40 < Bonferroni 기준 3.04",
       "[KOSPI] IS 표본 14 < 30",
       "[KOSPI] OOS 미통과 (평균 -0.06%, t -0.09; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -0.26%, 표본 10; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -3.96 < Bonferroni 기준 3.01",
+      "[EW] IS t -3.96 < Bonferroni 기준 3.04",
       "[EW] IS 표본 14 < 30",
       "[EW] OOS 미통과 (평균 -0.09%, t -0.20; 평균>0·t≥1 필요)",
       "[EW] HOLDOUT 미통과 (평균 -0.80%, 표본 10; 평균>0·표본≥10 필요)"
@@ -1092,10 +1105,10 @@
       "ew": "F"
      },
      "reasons": [
-      "[KOSPI] IS t 1.17 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t 1.17 < Bonferroni 기준 3.04",
       "[KOSPI] IS 표본 14 < 30",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -4.30 < Bonferroni 기준 3.01",
+      "[EW] IS t -4.30 < Bonferroni 기준 3.04",
       "[EW] IS 표본 14 < 30",
       "[EW] OOS 미통과 (평균 +0.28%, t 0.77; 평균>0·t≥1 필요)",
       "[EW] HOLDOUT 미통과 (평균 -0.63%, 표본 10; 평균>0·표본≥10 필요)"
@@ -1237,12 +1250,12 @@
       "ew": "F"
      },
      "reasons": [
-      "[KOSPI] IS t 0.81 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t 0.81 < Bonferroni 기준 3.04",
       "[KOSPI] IS 표본 11 < 30",
       "[KOSPI] OOS 미통과 (평균 -2.61%, t -2.36; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 +1.44%, 표본 6; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -6.01 < Bonferroni 기준 3.01",
+      "[EW] IS t -6.01 < Bonferroni 기준 3.04",
       "[EW] IS 표본 11 < 30",
       "[EW] OOS 미통과 (평균 -1.15%, t -0.81; 평균>0·t≥1 필요)",
       "[EW] HOLDOUT 미통과 (평균 -0.97%, 표본 6; 평균>0·표본≥10 필요)"
@@ -1368,12 +1381,12 @@
       "ew": "F"
      },
      "reasons": [
-      "[KOSPI] IS t 0.77 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t 0.77 < Bonferroni 기준 3.04",
       "[KOSPI] IS 표본 11 < 30",
       "[KOSPI] OOS 미통과 (평균 -1.29%, t -1.10; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 +0.75%, 표본 6; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -6.58 < Bonferroni 기준 3.01",
+      "[EW] IS t -6.58 < Bonferroni 기준 3.04",
       "[EW] IS 표본 11 < 30",
       "[EW] OOS 미통과 (평균 -0.73%, t -0.50; 평균>0·t≥1 필요)",
       "[EW] HOLDOUT 미통과 (평균 -0.34%, 표본 6; 평균>0·표본≥10 필요)"
@@ -1516,11 +1529,11 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -1.00 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -1.00 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -0.38%, t -0.15; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -2.75%, 표본 33; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -0.63 < Bonferroni 기준 3.01",
+      "[EW] IS t -0.63 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 +0.18%, t 0.07; 평균>0·t≥1 필요)"
      ],
      "posthoc": false
@@ -1645,11 +1658,11 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -1.18 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -1.18 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 +1.40%, t 0.59; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -3.68%, 표본 33; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -0.87 < Bonferroni 기준 3.01",
+      "[EW] IS t -0.87 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 +1.77%, t 0.75; 평균>0·t≥1 필요)",
       "[EW] HOLDOUT 미통과 (평균 -0.45%, 표본 33; 평균>0·표본≥10 필요)"
      ],
@@ -1738,38 +1751,38 @@
       },
       "HOLDOUT": {
        "kospi": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": -0.0163,
-        "t": -1.12,
-        "hit": 0.303,
-        "avg_win": 0.0706,
+        "to": "2026-10-01",
+        "mean_ex": -0.0114,
+        "t": -0.77,
+        "hit": 0.324,
+        "avg_win": 0.0778,
         "avg_loss": -0.054,
-        "payoff": 1.31,
-        "ev": -0.0163,
-        "sharpe": -0.69,
+        "payoff": 1.44,
+        "ev": -0.0114,
+        "sharpe": -0.46,
         "mdd": -0.5863,
-        "mean_raw": 0.0139,
-        "mean_bench": 0.0302,
-        "avg_picks": 48.9
+        "mean_raw": 0.0128,
+        "mean_bench": 0.0241,
+        "avg_picks": 48.7
        },
        "ew": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": 0.0113,
-        "t": 0.95,
-        "hit": 0.606,
-        "avg_win": 0.0554,
+        "to": "2026-10-01",
+        "mean_ex": 0.0149,
+        "t": 1.24,
+        "hit": 0.618,
+        "avg_win": 0.0593,
         "avg_loss": -0.0567,
-        "payoff": 0.98,
-        "ev": 0.0113,
-        "sharpe": 0.58,
+        "payoff": 1.05,
+        "ev": 0.0149,
+        "sharpe": 0.75,
         "mdd": -0.227,
-        "mean_raw": 0.0139,
-        "mean_bench": 0.0027,
-        "avg_picks": 48.9
+        "mean_raw": 0.0128,
+        "mean_bench": -0.0022,
+        "avg_picks": 48.7
        }
       }
      },
@@ -1780,10 +1793,10 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -0.54 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -0.54 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -0.05%, t -0.09; 평균>0·t≥1 필요)",
-      "[KOSPI] HOLDOUT 미통과 (평균 -1.63%, 표본 33; 평균>0·표본≥10 필요)",
-      "[EW] IS t 1.96 < Bonferroni 기준 3.01",
+      "[KOSPI] HOLDOUT 미통과 (평균 -1.14%, 표본 34; 평균>0·표본≥10 필요)",
+      "[EW] IS t 1.96 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 +0.25%, t 0.38; 평균>0·t≥1 필요)"
      ],
      "posthoc": false
@@ -1866,38 +1879,38 @@
       },
       "HOLDOUT": {
        "kospi": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": -0.0182,
-        "t": -1.26,
-        "hit": 0.333,
-        "avg_win": 0.0595,
+        "to": "2026-10-01",
+        "mean_ex": -0.0123,
+        "t": -0.8,
+        "hit": 0.353,
+        "avg_win": 0.0699,
         "avg_loss": -0.057,
-        "payoff": 1.04,
-        "ev": -0.0182,
-        "sharpe": -0.77,
+        "payoff": 1.22,
+        "ev": -0.0123,
+        "sharpe": -0.49,
         "mdd": -0.6074,
-        "mean_raw": 0.0142,
-        "mean_bench": 0.0324,
-        "avg_picks": 48.9
+        "mean_raw": 0.0128,
+        "mean_bench": 0.0251,
+        "avg_picks": 48.7
        },
        "ew": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": 0.0102,
-        "t": 0.85,
-        "hit": 0.606,
-        "avg_win": 0.0543,
+        "to": "2026-10-01",
+        "mean_ex": 0.0148,
+        "t": 1.18,
+        "hit": 0.618,
+        "avg_win": 0.0596,
         "avg_loss": -0.0577,
-        "payoff": 0.94,
-        "ev": 0.0102,
-        "sharpe": 0.52,
+        "payoff": 1.03,
+        "ev": 0.0148,
+        "sharpe": 0.72,
         "mdd": -0.2407,
-        "mean_raw": 0.0142,
-        "mean_bench": 0.004,
-        "avg_picks": 48.9
+        "mean_raw": 0.0128,
+        "mean_bench": -0.002,
+        "avg_picks": 48.7
        }
       }
      },
@@ -1908,10 +1921,10 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -0.87 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -0.87 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -0.09%, t -0.14; 평균>0·t≥1 필요)",
-      "[KOSPI] HOLDOUT 미통과 (평균 -1.82%, 표본 33; 평균>0·표본≥10 필요)",
-      "[EW] IS t 1.19 < Bonferroni 기준 3.01",
+      "[KOSPI] HOLDOUT 미통과 (평균 -1.23%, 표본 34; 평균>0·표본≥10 필요)",
+      "[EW] IS t 1.19 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 +0.19%, t 0.29; 평균>0·t≥1 필요)"
      ],
      "posthoc": true
@@ -1999,38 +2012,38 @@
       },
       "HOLDOUT": {
        "kospi": {
-        "n": 411,
+        "n": 413,
         "from": "2024-01-02",
-        "to": "2026-10-30",
+        "to": "2026-11-03",
         "mean_ex": -0.0053,
-        "t": -1.96,
-        "hit": 0.448,
+        "t": -1.99,
+        "hit": 0.446,
         "avg_win": 0.0379,
-        "avg_loss": -0.0402,
-        "payoff": 0.94,
+        "avg_loss": -0.04,
+        "payoff": 0.95,
         "ev": -0.0053,
-        "sharpe": -1.17,
+        "sharpe": -1.18,
         "mdd": -0.9589,
         "mean_raw": -0.007,
-        "mean_bench": -0.0018,
-        "avg_picks": 5.8
+        "mean_bench": -0.0017,
+        "avg_picks": 5.7
        },
        "ew": {
-        "n": 411,
+        "n": 413,
         "from": "2024-01-02",
-        "to": "2026-10-30",
+        "to": "2026-11-03",
         "mean_ex": -0.0042,
-        "t": -1.63,
+        "t": -1.65,
         "hit": 0.465,
-        "avg_win": 0.0358,
-        "avg_loss": -0.0389,
+        "avg_win": 0.0356,
+        "avg_loss": -0.0388,
         "payoff": 0.92,
         "ev": -0.0042,
-        "sharpe": -0.97,
+        "sharpe": -0.98,
         "mdd": -0.9392,
         "mean_raw": -0.007,
         "mean_bench": -0.0028,
-        "avg_picks": 5.8
+        "avg_picks": 5.7
        }
       }
      },
@@ -2041,13 +2054,13 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -3.68 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -3.68 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 -1.03%, t -4.31; 평균>0·t≥1 필요)",
-      "[KOSPI] HOLDOUT 미통과 (평균 -0.53%, 표본 411; 평균>0·표본≥10 필요)",
+      "[KOSPI] HOLDOUT 미통과 (평균 -0.53%, 표본 413; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -2.98 < Bonferroni 기준 3.01",
+      "[EW] IS t -2.98 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 -0.96%, t -4.15; 평균>0·t≥1 필요)",
-      "[EW] HOLDOUT 미통과 (평균 -0.42%, 표본 411; 평균>0·표본≥10 필요)"
+      "[EW] HOLDOUT 미통과 (평균 -0.42%, 표본 413; 평균>0·표본≥10 필요)"
      ],
      "posthoc": false
     }
@@ -2176,12 +2189,12 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -2.80 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -2.80 < Bonferroni 기준 3.04",
       "[KOSPI] IS 표본 3 < 30",
       "[KOSPI] OOS 미통과 (평균 +1.47%, t 0.54; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -0.30%, 표본 8; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -1.98 < Bonferroni 기준 3.01",
+      "[EW] IS t -1.98 < Bonferroni 기준 3.04",
       "[EW] IS 표본 3 < 30",
       "[EW] HOLDOUT 미통과 (평균 +0.90%, 표본 8; 평균>0·표본≥10 필요)"
      ],
@@ -2307,12 +2320,12 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -3.72 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -3.72 < Bonferroni 기준 3.04",
       "[KOSPI] IS 표본 3 < 30",
       "[KOSPI] OOS 미통과 (평균 +0.83%, t 0.36; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 +0.11%, 표본 8; 평균>0·표본≥10 필요)",
       "[EW] IS 평균 초과수익 ≤ 0",
-      "[EW] IS t -2.72 < Bonferroni 기준 3.01",
+      "[EW] IS t -2.72 < Bonferroni 기준 3.04",
       "[EW] IS 표본 3 < 30",
       "[EW] HOLDOUT 미통과 (평균 +1.60%, 표본 8; 평균>0·표본≥10 필요)"
      ],
@@ -2320,16 +2333,16 @@
     }
    },
    "events": [
-    "2026-07-24",
     "2026-07-28",
     "2026-07-29",
     "2026-08-03",
     "2026-08-06",
     "2026-10-13",
     "2026-10-15",
-    "2026-10-30"
+    "2026-10-30",
+    "2026-11-03"
    ],
-   "n_events": 41,
+   "n_events": 42,
    "grade": "F"
   },
   "LOWVOL_LARGE": {
@@ -2412,37 +2425,37 @@
       },
       "HOLDOUT": {
        "kospi": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": -0.0107,
-        "t": -0.73,
-        "hit": 0.394,
-        "avg_win": 0.0611,
+        "to": "2026-10-01",
+        "mean_ex": -0.0064,
+        "t": -0.43,
+        "hit": 0.412,
+        "avg_win": 0.0664,
         "avg_loss": -0.0574,
-        "payoff": 1.07,
-        "ev": -0.0107,
-        "sharpe": -0.45,
+        "payoff": 1.16,
+        "ev": -0.0064,
+        "sharpe": -0.26,
         "mdd": -0.5443,
-        "mean_raw": 0.0195,
-        "mean_bench": 0.0302,
+        "mean_raw": 0.0178,
+        "mean_bench": 0.0241,
         "avg_picks": 38.8
        },
        "ew": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": 0.0168,
-        "t": 1.33,
-        "hit": 0.636,
-        "avg_win": 0.0601,
+        "to": "2026-10-01",
+        "mean_ex": 0.0199,
+        "t": 1.57,
+        "hit": 0.647,
+        "avg_win": 0.063,
         "avg_loss": -0.059,
-        "payoff": 1.02,
-        "ev": 0.0168,
-        "sharpe": 0.82,
+        "payoff": 1.07,
+        "ev": 0.0199,
+        "sharpe": 0.95,
         "mdd": -0.2089,
-        "mean_raw": 0.0195,
-        "mean_bench": 0.0027,
+        "mean_raw": 0.0178,
+        "mean_bench": -0.0022,
         "avg_picks": 38.8
        }
       }
@@ -2454,10 +2467,10 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -0.82 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -0.82 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 +0.04%, t 0.05; 평균>0·t≥1 필요)",
-      "[KOSPI] HOLDOUT 미통과 (평균 -1.07%, 표본 33; 평균>0·표본≥10 필요)",
-      "[EW] IS t 1.70 < Bonferroni 기준 3.01",
+      "[KOSPI] HOLDOUT 미통과 (평균 -0.64%, 표본 34; 평균>0·표본≥10 필요)",
+      "[EW] IS t 1.70 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 +0.34%, t 0.45; 평균>0·t≥1 필요)"
      ],
      "posthoc": false
@@ -2540,37 +2553,37 @@
       },
       "HOLDOUT": {
        "kospi": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": -0.0126,
-        "t": -0.86,
-        "hit": 0.455,
-        "avg_win": 0.0505,
+        "to": "2026-10-01",
+        "mean_ex": -0.0072,
+        "t": -0.47,
+        "hit": 0.471,
+        "avg_win": 0.058,
         "avg_loss": -0.0651,
-        "payoff": 0.78,
-        "ev": -0.0126,
-        "sharpe": -0.53,
+        "payoff": 0.89,
+        "ev": -0.0072,
+        "sharpe": -0.29,
         "mdd": -0.5705,
-        "mean_raw": 0.0199,
-        "mean_bench": 0.0324,
+        "mean_raw": 0.0179,
+        "mean_bench": 0.0251,
         "avg_picks": 38.8
        },
        "ew": {
-        "n": 33,
+        "n": 34,
         "from": "2024-01-12",
-        "to": "2026-09-01",
-        "mean_ex": 0.0158,
-        "t": 1.24,
-        "hit": 0.606,
-        "avg_win": 0.0618,
+        "to": "2026-10-01",
+        "mean_ex": 0.0199,
+        "t": 1.53,
+        "hit": 0.618,
+        "avg_win": 0.0661,
         "avg_loss": -0.0549,
-        "payoff": 1.13,
-        "ev": 0.0158,
-        "sharpe": 0.77,
+        "payoff": 1.2,
+        "ev": 0.0199,
+        "sharpe": 0.93,
         "mdd": -0.2187,
-        "mean_raw": 0.0199,
-        "mean_bench": 0.004,
+        "mean_raw": 0.0179,
+        "mean_bench": -0.002,
         "avg_picks": 38.8
        }
       }
@@ -2582,10 +2595,10 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -1.13 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -1.13 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 +0.01%, t 0.02; 평균>0·t≥1 필요)",
-      "[KOSPI] HOLDOUT 미통과 (평균 -1.26%, 표본 33; 평균>0·표본≥10 필요)",
-      "[EW] IS t 0.98 < Bonferroni 기준 3.01",
+      "[KOSPI] HOLDOUT 미통과 (평균 -0.72%, 표본 34; 평균>0·표본≥10 필요)",
+      "[EW] IS t 0.98 < Bonferroni 기준 3.04",
       "[EW] OOS 미통과 (평균 +0.29%, t 0.39; 평균>0·t≥1 필요)"
      ],
      "posthoc": false
@@ -2663,7 +2676,7 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -1.04 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -1.04 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 +0.02%, t 0.03; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -0.60%, 표본 34; 평균>0·표본≥10 필요)"
      ],
@@ -2791,7 +2804,7 @@
      },
      "reasons": [
       "[KOSPI] IS 평균 초과수익 ≤ 0",
-      "[KOSPI] IS t -0.95 < Bonferroni 기준 3.01",
+      "[KOSPI] IS t -0.95 < Bonferroni 기준 3.04",
       "[KOSPI] OOS 미통과 (평균 +0.12%, t 0.16; 평균>0·t≥1 필요)",
       "[KOSPI] HOLDOUT 미통과 (평균 -0.55%, 표본 34; 평균>0·표본≥10 필요)"
      ],
@@ -2853,7 +2866,168 @@
     }
    },
    "grade": "F"
+  },
+  "CRASH_NEAR_INDEX": {
+   "variants": {
+    "open": {
+     "entry": "open",
+     "label": "다음날 시가 진입",
+     "splits": {
+      "IS": {
+       "kospi": {
+        "n": 17,
+        "from": "2011-05-23",
+        "to": "2019-08-05",
+        "mean_ex": 0.0306,
+        "t": 3.52,
+        "hit": 0.824,
+        "avg_win": 0.0421,
+        "avg_loss": -0.0231,
+        "payoff": 1.82,
+        "ev": 0.0306,
+        "sharpe": 1.23,
+        "mdd": -0.0468,
+        "mean_raw": 0.0291,
+        "mean_bench": -0.0015,
+        "avg_picks": 1.0
+       }
+      },
+      "OOS": {
+       "kospi": {
+        "n": 17,
+        "from": "2020-02-24",
+        "to": "2023-11-07",
+        "mean_ex": 0.0077,
+        "t": 0.48,
+        "hit": 0.588,
+        "avg_win": 0.0442,
+        "avg_loss": -0.0446,
+        "payoff": 0.99,
+        "ev": 0.0077,
+        "sharpe": 0.25,
+        "mdd": -0.2272,
+        "mean_raw": 0.0063,
+        "mean_bench": -0.0013,
+        "avg_picks": 1.0
+       }
+      },
+      "HOLDOUT": {
+       "kospi": {
+        "n": 22,
+        "from": "2024-08-02",
+        "to": "2026-10-20",
+        "mean_ex": 0.0117,
+        "t": 1.03,
+        "hit": 0.545,
+        "avg_win": 0.0512,
+        "avg_loss": -0.0357,
+        "payoff": 1.44,
+        "ev": 0.0117,
+        "sharpe": 0.69,
+        "mdd": -0.1022,
+        "mean_raw": 0.0191,
+        "mean_bench": 0.0074,
+        "avg_picks": 1.0
+       }
+      }
+     },
+     "grade": "C",
+     "grade_by": {
+      "kospi": "C"
+     },
+     "reasons": [
+      "[KOSPI] IS 표본 17 < 30",
+      "[KOSPI] OOS 미통과 (평균 +0.77%, t 0.48; 평균>0·t≥1 필요)"
+     ],
+     "posthoc": false
+    },
+    "close": {
+     "entry": "close",
+     "label": "다음날 종가 진입",
+     "splits": {
+      "IS": {
+       "kospi": {
+        "n": 17,
+        "from": "2011-05-23",
+        "to": "2019-08-05",
+        "mean_ex": 0.0252,
+        "t": 2.34,
+        "hit": 0.765,
+        "avg_win": 0.0422,
+        "avg_loss": -0.0304,
+        "payoff": 1.39,
+        "ev": 0.0252,
+        "sharpe": 0.82,
+        "mdd": -0.0823,
+        "mean_raw": 0.0248,
+        "mean_bench": -0.0004,
+        "avg_picks": 1.0
+       }
+      },
+      "OOS": {
+       "kospi": {
+        "n": 17,
+        "from": "2020-02-24",
+        "to": "2023-11-07",
+        "mean_ex": 0.0057,
+        "t": 0.35,
+        "hit": 0.588,
+        "avg_win": 0.0428,
+        "avg_loss": -0.0474,
+        "payoff": 0.9,
+        "ev": 0.0057,
+        "sharpe": 0.18,
+        "mdd": -0.238,
+        "mean_raw": 0.0052,
+        "mean_bench": -0.0004,
+        "avg_picks": 1.0
+       }
+      },
+      "HOLDOUT": {
+       "kospi": {
+        "n": 22,
+        "from": "2024-08-02",
+        "to": "2026-10-20",
+        "mean_ex": 0.0163,
+        "t": 1.23,
+        "hit": 0.727,
+        "avg_win": 0.0448,
+        "avg_loss": -0.0597,
+        "payoff": 0.75,
+        "ev": 0.0163,
+        "sharpe": 0.83,
+        "mdd": -0.1497,
+        "mean_raw": 0.0265,
+        "mean_bench": 0.0102,
+        "avg_picks": 1.0
+       }
+      }
+     },
+     "grade": "C",
+     "grade_by": {
+      "kospi": "C"
+     },
+     "reasons": [
+      "[KOSPI] IS t 2.34 < Bonferroni 기준 3.04",
+      "[KOSPI] IS 표본 17 < 30",
+      "[KOSPI] OOS 미통과 (평균 +0.57%, t 0.35; 평균>0·t≥1 필요)"
+     ],
+     "posthoc": false
+    }
+   },
+   "events": [
+    "2026-07-07",
+    "2026-07-20",
+    "2026-08-03",
+    "2026-09-02",
+    "2026-09-14",
+    "2026-10-12",
+    "2026-10-20",
+    "2026-10-22"
+   ],
+   "n_events": 74,
+   "grade": "C"
   }
  },
- "runtime_s": 11.4
+ "runtime_s": 26.1
 }

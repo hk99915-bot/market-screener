@@ -28,6 +28,7 @@ log = logging.getLogger(__name__)
 
 REG = "2026-10-15"
 REG2 = "2026-10-16"      # 2차 등록 (코스피 프록시 기준·진입 변형·신규 가설 3개)
+REG3 = "2026-11-03"      # 3차 등록 (연구소 부흥 — 사전등록 docs/desk_kb/rounds/2026-11-03/quant_lab_revival.md §0, 결과 전 커밋)
 COST = 0.0025            # 왕복 비용
 MIN_PX = 1000            # 원
 MIN_TV = 5e9             # 20일 평균 거래대금 50억원
@@ -74,6 +75,12 @@ REGISTRY: list[dict] = [
                    "같은 기간 지수 계속 보유(buy & hold)보다 20거래일당 수익이 높고 최대낙폭도 작다.",
      "rule": "20거래일마다 코스피 프록시 252일 수익률 > 0 이면 지수 보유, 아니면 현금(이자 0으로 계산 — 전략에 불리). "
              "보유↔현금 전환 시 편도 비용 0.125%. 비교 = 같은 기간 지수 계속 보유. 최대낙폭·연복리는 참고 지표(등급은 공통 관문)"},
+    # ── 3차 등록 (2026-11-03, §0 사전등록 커밋이 결과보다 먼저) ──
+    {"id": "CRASH_NEAR_INDEX", "name": "급락 근접일 지수 반등", "family": "이벤트", "hold": 5, "reg": REG3, "bench": "KOSPI",
+     "hypothesis": "코스피 프록시가 하루 −3% 이하·−5% 초과로 빠진 '급락 근접일' 뒤에는 단기 과잉반응이 풀려, 지수를 다음날 사서 "
+                   "5거래일 들면 같은 시점의 평상시 5일 기대수익보다 더 번다.",
+     "rule": "코스피 프록시 일간 −5% < 수익 ≤ −3% 인 날, 다음날 지수 매수·5거래일 보유(겹치는 신호 건너뜀). "
+             "비교 = 신호 시점에 이미 확정된 직전 252거래일의 같은 5일 지수 수익 평균. 주제 crash_entry 시도 N 70"},
     {"id": "TREND_SECTOR", "name": "업종 추세", "family": "추세추종", "hold": None, "wait": True, "reg": REG2,
      "hypothesis": "최근 6~12개월 강한 업종이 다음 달에도 강하다.",
      "rule": "universe/kr_sector.csv 는 현재 시점 업종 스냅샷뿐이라 상장폐지 종목·과거 업종 변경이 빠짐(생존 편향) → 시점별 업종 이력 확보 전까지 대기"},
@@ -433,6 +440,18 @@ def dual_series(kp: pl.DataFrame, cal: pl.DataFrame, entry: str) -> tuple[pl.Dat
     return s, extra
 
 
+def near_series(kp: pl.DataFrame, cal: pl.DataFrame, entry: str, H: int = 5) -> tuple[pl.DataFrame, pl.DataFrame]:
+    """CRASH_NEAR_INDEX: 급락 근접일(−5% < kret ≤ −3%) 뒤 지수 H일 − 직전 252거래일 확정 H일 평균(H+2 지연)."""
+    kc = f"kb_{'o' if entry == 'open' else 'c'}{H}"
+    x = kp.join(cal, on="date").sort("date").with_columns(
+        pl.col(kc).shift(H + 2).rolling_mean(252, min_samples=120).alias("nb"))
+    ev = x.filter((pl.col("kret") <= -0.03) & (pl.col("kret") > -0.05) & pl.col(kc).is_not_null() & pl.col("nb").is_not_null())
+    s = ev.select("date", "ci", (pl.col(kc) - COST).alias("raw"), pl.col("nb").alias("bench"), pl.col("nb").alias("kbench"),
+                  pl.lit(1.0).alias("k")).with_columns((pl.col("raw") - pl.col("bench")).alias("ex"),
+                                                       (pl.col("raw") - pl.col("kbench")).alias("kex"))
+    return _nonoverlap(s, s, H), ev
+
+
 def run() -> dict:
     t0 = time.time()
     df = features(load_kr())
@@ -457,6 +476,11 @@ def run() -> dict:
         if sid == "DUAL_MOMENTUM_INDEX":
             s, extra = dual_series(kp, cal, e)
             ew, cand = False, None
+        elif sid == "CRASH_NEAR_INDEX":
+            s, nev = near_series(kp, cal, e, H)
+            ew, cand, extra = False, None, None
+            res["events"] = [str(x) for x in nev["date"].to_list()][-8:]
+            res["n_events"] = len(nev)
         else:
             cand = candidates(df, sid)
             s = _series(cand, ews[(H, e)], kp, H, e).join(cal, on="date", how="inner")

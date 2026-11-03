@@ -428,6 +428,15 @@
    "result": "201사이클. CC−K200 −0.38%/월(중앙 +0.68, 승 74%) F · SS −0.08%(승 81%, 최악 −31.3%) F · IC +0.05%(최악 −4.6%) F · COL−K200 −0.55% F(역방향 p 0.026). 전부 IS 양·OOS 음. SS 최악 5사이클이 손실 합의 44%",
    "discarded_why": "변동성 매도 쪽도 비용·스큐 감안 후 기대값 근거 없음, 꼬리만 확실",
    "study": "2026-11-01_vol_strategies"
+  },
+  {
+   "date": "2026-11-03",
+   "topic": "crash_entry",
+   "hypothesis": "(사전등록 lab m=21 중 2) CRASH_NEAR_INDEX open/close: 코스피 프록시 −5%<일간≤−3% 뒤 5일 지수 − 직전 252일 확정 5일 평균 > 0",
+   "params": "lab 하네스, 2010~2026-11-03, 겹침 제외 이벤트, 비용 0.25%, IS ~2019/OOS 2020~23/HOLDOUT 2024~, req t 3.04(m=21), 주제 N 70 α(N) 0.00071",
+   "result": "open IS +3.06% t 3.52 n17(중앙 +3.73%, 최대 2건 제외 t 2.95, IS 사건 연도 5개) · OOS +0.77% t 0.48 n17 · HOLDOUT +1.17% t 1.03 n22 → C. close IS t 2.34 → C",
+   "discarded_why": "IS 표본 17<30·OOS t<1 — 방향만(C). 경보·체크리스트 용도, 크기 확대 근거 아님. 후속 = CRASH_NEAR_DECAY(감쇠곡선, N 가산)",
+   "study": "lab"
   }
  ]
 }

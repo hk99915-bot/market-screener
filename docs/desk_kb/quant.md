@@ -78,3 +78,7 @@
 - KR1: 12/31까지 2개+ 전략의 표본 외·모의북 성과를 비용 반영 벤치와 비교, 청산 n·기대값 하한 공개 (reports/alphabook.json·verify_weekly)
 - KR2: 11/1 이후 전략 평가 100%에 누수·생존편향·다중검정(주제 N α) + DSR 또는 PBO 첨부, 12월 감사 '중' 이상 0건 (trial_log.md·reports/audit)
 - 확정본·본부 KR: docs/desk_kb/rounds/2026-10-26/okr_quant.md (2026-10-26 퀀트 직접 확정, OKR.md 본문 취합은 PB)
+
+## 라운드 추가 (2026-11-03 연구소 부흥)
+- #33 [자체연구-규약] **전략 연구소 = 전 데스크 가설 접수처.** 가설은 어느 데스크든 넣고, 사전등록·관문·등급은 퀀트 소관으로 남긴다. 넣는 법(둘 중 하나): ① `python3 scripts/ask.py --from <데스크> --to 퀀트 --text "lab 가설: <id> | 방향 <롱/숏/롱숏/중립/옵션/지수> | horizon <감쇠곡선/이벤트/고정 N일> | 대상 | 데이터 경로 | 출처 파일"` ② `reports/lab_queue.json` items 에 객체 1개(필수 칸 desk·direction·horizon·real_eligible·data_status·data·source). **방향·horizon 칸이 비면 접수하지 않는다.** 감쇠곡선(1·2·3·5·10·20·40·60일)은 전부 보고, 최적 지평은 IS 안에서만 고르며 지평 수만큼 시도 N 에 더한다. 숏·롱숏·옵션은 실계좌 금지 기간(~2027-04-15)엔 `real_eligible=false`(모의/HF 북 검증 전용) — 해제 재평가 때 근거 자료로만 쓴다. 퀀트는 접수 후 §0 사전등록 커밋 → `screener/lab.py` REGISTRY 이관 → 주간 lab 관문 판정. 데이터 없는 가설은 `data_status: 데이터 필요` + 채울 방법·작업량을 적어 대기열에 둔다. 반대 근거: 접수처가 넓어지면 m·N 이 빨리 커져 문턱(t)이 오른다 — 그래서 대기열 순서는 '데이터 있음 × 구조적 근거(문헌·반응함수)'가 먼저다. (출처: docs/desk_kb/rounds/2026-11-03/quant_lab_revival.md)
+
