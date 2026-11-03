@@ -1393,7 +1393,7 @@ function myView(){
       .myhq .myhq-dh{display:flex;gap:6px;align-items:baseline;font-size:var(--fs-1)}.myhq .myhq-dh b{font-size:var(--fs-2)}
       .myhq .myhq-old{border:1px solid var(--amber);color:var(--amber);padding:0 4px;font-size:var(--fs-1)}
       .myhq .myhq-f{line-height:1.55;margin-top:2px;font-size:var(--fs-3)}.myhq .myhq-lab{font-size:var(--fs-1);color:var(--amber);border:1px solid var(--line);padding:0 4px;white-space:nowrap}
-      .myhq .myhq-n{color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}.myhq .myhq-src{font-size:var(--fs-1);color:var(--muted);word-break:break-all}
+      .myhq .myhq-dko{margin-top:3px;font-size:var(--fs-1);color:var(--muted)}.myhq .myhq-dko summary{cursor:pointer;line-height:1.4}.myhq .myhq-dkr{padding-left:10px;line-height:1.4}.myhq .myhq-st{font-size:var(--fs-1);padding:0 4px;border:1px solid var(--line);margin-right:2px}.myhq .myhq-st.is-ok{color:var(--green,#3fb950);border-color:currentColor}.myhq .myhq-n{color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}.myhq .myhq-src{font-size:var(--fs-1);color:var(--muted);word-break:break-all}
       .myhq .myhq-more summary{cursor:pointer;color:var(--muted);font-size:var(--fs-1);padding:6px 0;min-height:24px}.myhq .myhq-more ul{margin:0;padding-left:16px;line-height:1.6}.myhq .myhq-more li{margin-bottom:4px}</style>
     <div id="myhq" class="myhq">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">본부별 코멘트 불러오는 중…</div>':''}</div>
     <details id="mycorr" style="margin:6px 0"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">주간 성적표 전체 · 코멘트 · 심층 분석 <span id="mycorrd" class="mu">${MYFS&&MYFS.L?'(기준 '+myFsMD((MYFS.L.stats||{}).asof||MYFS.L.asof)+')':''}</span></summary><div id="mycorrb" class="mu" style="font-size:var(--fs-2)">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
@@ -1515,19 +1515,28 @@ function myHqChip(kr,v){ const t=String(v||'').trim(), r=t?myHqRatio(t):null;
   return `<div class="myhq-chip${t?'':' is-none'}" title="${esc(kr.text||'')}"><div class="myhq-ct"><b>${esc(kr.id)}</b><span>${esc(kr.text||'')}</span></div>`
     +`<div class="myhq-cv">${t?myHqFmt(t):'측정 전'}${kr.due?` <span class="mu">· ${esc(kr.due)}</span>`:''}</div>`
     +(r!=null?`<div class="myhq-bar"><i style="width:${(r*100).toFixed(0)}%"></i></div>`:'')+'</div>'; }
-function myHqDesk(name,p){ if(!p||!p.items.length) return `<div class="myhq-d is-empty"><b>${esc(name)}</b> 코멘트 없음</div>`;
+// 11/3 겸이 「조직도나 그런 쪽에서 볼 수 있었으면」: 데스크 노드에 개인 OKR(okr.json desks — 확정/제안) 접어서 표시
+function myHqDko(dk){ if(!dk||!dk.o) return ''; const kr=(dk.kr||[]).filter(Boolean);
+  return `<details class="myhq-dko"><summary><span class="myhq-st${dk.st==='확정'?' is-ok':''}">${dk.st==='확정'?'✅ 확정':'📝 제안'}</span> ${esc(dk.o)}</summary>${kr.map((t,i)=>`<div class="myhq-dkr"><b>KR${i+1}</b> ${esc(t)}</div>`).join('')}</details>`; }
+function myHqDesk(name,p,dk){ if(!p||!p.items.length) return `<div class="myhq-d is-empty"><b>${esc(name)}</b> 코멘트 없음${myHqDko(dk)}</div>`;
   const age=p.asof?myFsDays(_ymd(),p.asof):null, old=age==null||age>MYHQ_STALE;
   const [a,...more]=p.items, li=x=>`<li>${x.lab?`<b>${esc(x.lab)}</b> `:''}${myHqFmt(x.first+(x.rest?' '+x.rest:''))}${x.src?`<div class="myhq-src">근거 ${myHqFmt(x.src)}</div>`:''}</li>`;
   const rest=(a.rest||a.src?[`<li>${myHqFmt(a.rest)}${a.src?`<div class="myhq-src">근거 ${myHqFmt(a.src)}</div>`:''}</li>`]:[]).concat(more.map(li));
   return `<div class="myhq-d"><div class="myhq-dh"><b>${esc(name)}</b><span class="mu">${p.asof?myFsMD(p.asof):'기준일 없음'}</span>${p.prev?'<span class="myhq-old">지난주</span>':''}${old&&!p.prev?`<span class="myhq-old">오래됨${age!=null?' '+age+'일':''}</span>`:''}</div>`
     +`<div class="myhq-f">${a.lab?`<span class="myhq-lab">${esc(a.lab)}</span> `:''}<b>${myHqFmt(a.first)}</b></div>`
-    +(rest.length?`<details class="myhq-more"><summary>더 보기 · ${rest.length}줄</summary><ul>${rest.join('')}</ul></details>`:'')+'</div>'; }
+    +(rest.length?`<details class="myhq-more"><summary>더 보기 · ${rest.length}줄</summary><ul>${rest.join('')}</ul></details>`:'')+myHqDko(dk)+'</div>'; }
 function myHqHtml(O,L,D){ const names=(O&&O.names)||{}, nm=k=>names[k]||k, D2=(D||[]).filter(x=>x&&x.k);
   const HQ=(O&&Array.isArray(O.hq))?O.hq:[], sum=O&&O.summary, used=new Set(), okrBy={};
   D2.forEach(x=>{ const o=x.p&&x.p.okr; if(!o) return; const h=HQ.find(h=>h.name===o.hq||h.key===o.hq); if(!h) return;
     const cur=okrBy[h.key]=okrBy[h.key]||{}; Object.entries(o.kr).forEach(([id,v])=>{ if(!cur[id]||x.k===h.lead) cur[id]=v; }); });
+  const DO=(O&&O.desks)||{};
   const card=(h,list,cls)=>{ const kr=(h.kr||[]).slice(0,2), ok=okrBy[h.key]||{};
-    const body=list.length?list.map(x=>myHqDesk(nm(x.k),x.p)).join(''):myHqDesk(nm(h.lead||h.name),null);
+    // 조직도형: 본부 소속 데스크 전원을 노드로(코멘트 없으면 회색), 대표 먼저 · alloc/allocation 중복 1개
+    const mem=[]; (h.desks||[]).forEach(k=>{ const kk=k==='allocation'?'alloc':k; if(!mem.includes(kk)) mem.push(kk); });
+    if(h.lead&&mem.includes(h.lead)) mem.splice(0,0,...mem.splice(mem.indexOf(h.lead),1));
+    const pick=k=>list.find(x=>x.k===k||(k==='alloc'&&x.k==='allocation'));
+    const body=mem.length?mem.map(k=>{ const x=pick(k); return myHqDesk(nm(k),x&&x.p,DO[k]); }).join('')+list.filter(x=>!mem.includes(x.k)&&!(x.k==='allocation'&&mem.includes('alloc'))).map(x=>myHqDesk(nm(x.k),x.p,DO[x.k])).join('')
+      :(list.length?list.map(x=>myHqDesk(nm(x.k),x.p,DO[x.k])).join(''):myHqDesk(nm(h.lead||h.name),null,DO[h.lead]));
     return `<div class="myhq-c${cls||''}"><div class="myhq-h"><span class="myhq-nm">${esc(h.name)}</span>${h.lead?`<span class="mu">대표 ${esc(nm(h.lead))}</span>`:''}</div>`
       +(h.o?`<div class="myhq-o">${esc(h.o)}</div>`:'')+(kr.length?`<div class="myhq-krs">${kr.map(k=>myHqChip(k,ok[k.id])).join('')}</div>`:'')+body+'</div>'; };
   const cards=[];
