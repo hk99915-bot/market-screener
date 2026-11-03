@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import build_edition as be  # noqa: E402
 import build_pages as bp  # noqa: E402
 
-INTERNAL_TABS = {"my", "life", "isalab", "msgr", "duel", "study", "committee", "rboard", "system"}
+INTERNAL_TABS = {"my", "life", "freeman", "isalab", "msgr", "duel", "study", "committee", "rboard", "system"}
 
 
 def test_internal_is_byte_identical():

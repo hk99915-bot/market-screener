@@ -27,6 +27,7 @@ EDITIONS = ("internal", "public")
 # 범용판에서 include 를 통째로 빼는 내부 탭 파일 → 그 자리에 넣는 빈 껍데기(Index.html 이 이름을 참조하는 것만)
 PUBLIC_DROP_TABS = {
     "tab_life": "let LIFE=null; function lifeView(){return '';}",
+    "tab_freeman": "let MYHQ=null; function freeView(){return '';} function myHqLoad(){return Promise.resolve([]);} function myHqHtml(){return '';}",
     "tab_isalab": "function ilabView(){return '';}",
     "tab_msgr": "function msgView(){return '';}",
     "tab_study": "function eduView(){return '';} function aptView(){return '';} function engView(){return '';}",
@@ -36,7 +37,7 @@ PUBLIC_DROP_TABS = {
 # 코드는 남기되 메뉴·주소로 못 여는 탭(다른 탭이 함수를 씀 — 프론트 분리 요청)
 PUBLIC_KEEP_HIDDEN_TABS = ("tab_my", "tab_duel", "tab_committee")
 # 범용판에서 숨기는 뷰 키(GROUPS·SUBV)
-PUBLIC_HIDE_VIEWS = ("my", "life", "isa", "pf", "msg", "sysb", "sysc", "syso", "edu", "apt", "eng", "cmt", "score", "rb")
+PUBLIC_HIDE_VIEWS = ("my", "life", "free", "isa", "pf", "msg", "sysb", "sysc", "syso", "edu", "apt", "eng", "cmt", "score", "rb")
 GROUPS_ANCHOR = "const SUBP={}; for(const [p,a] of Object.entries(SUBV)) for(const [k] of a) SUBP[k]=p;"
 
 

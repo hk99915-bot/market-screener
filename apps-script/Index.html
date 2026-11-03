@@ -331,7 +331,7 @@ html:not(.xl) #root td:has(> a + a){white-space:normal}   /* 한 칸에 짧은 �
   <button id="sqb" type="button" aria-label="종목 검색 열기" title="종목 검색">🔍</button>
   <div class="srch"><input id="sq" placeholder="종목·티커 검색 (예: 삼성전자, 005930, NVDA)" autocomplete="off"><div id="sres"></div></div>
   <div class="tabs">
-    <button class="on" data-g="home">HOME</button><button data-g="my">MY</button><button data-g="life">LIFE</button><button data-g="mkt">MARKET</button>
+    <button class="on" data-g="home">HOME</button><button data-g="my">MY</button><button data-g="life">LIFE</button><button data-g="free">🗽 FREEMAN</button><button data-g="mkt">MARKET</button>
     <button data-g="daily">DAILY</button><button data-g="res">RESEARCH</button><button data-g="quant">QUANT</button><button data-g="study">STUDY</button><button data-g="sys">SYSTEM</button>
   </div>
 </div>
@@ -436,6 +436,7 @@ function med(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)
 <?!= include('tab_daily') ?>
 <?!= include('tab_my') ?>
 <?!= include('tab_life') ?>
+<?!= include('tab_freeman') ?>
 <?!= include('tab_research') ?>
 <?!= include('tab_links') ?>
 <?!= include('tab_quant') ?>
@@ -535,14 +536,14 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); topMount(v); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='links'?linksView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='links'?linksView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='free'?freeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
   topMount(v);
 }
 /* 화면 일부가 render() 밖에서 #root 를 다시 그려도(사내톡·LIFE 등) 상단 카드 복구 */
 setTimeout(()=>{ const r=$('#root'); if(r) new MutationObserver(()=>{ if(!document.getElementById('tabTop')&&!r.querySelector('.tl-top')&&r.children.length) topMount(view); }).observe(r,{childList:true}); },0);
-const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],
+const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],free:[['free','FREEMAN']],
   mkt:[['kr','KR'],['us','US'],['macro','MACRO'],['heat','히트맵'],['mdkr','KR 전종목'],['mdus','US 전종목'],['bond','채권'],['re','부동산'],['deriv','파생']],
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시'],['lib','서고'],['links','관계도']],   // 서고 = 쌓인 분석 문서 색인(req-dev-16bbc8e5, 11/1)
@@ -631,7 +632,7 @@ load(); loadLive(); loadFresh(); setInterval(load, 5*60*1000); setInterval(loadL
    내보내기 = 비공개 저장소 이슈 폼을 미리 채워 여는 링크(쓰기 토큰 불필요) → 워크플로가 usage/*.csv 에 반영. */
 (function(){
   const K='mt_usage_v1', KEEP=180, REPO='hk99915-bot/pb-private';
-  const GRPS=['home','my','life','mkt','daily','res','quant','study','sys'];
+  const GRPS=['home','my','life','free','mkt','daily','res','quant','study','sys'];
   const EVS=['detail','panel','duel','study_chk','quiz','quiz_ok','export','eng_review','eng_review_ok','eng_quiz','eng_quiz_ok'];
   const ENGE=['eng_review','eng_review_ok','eng_quiz','eng_quiz_ok'];   // 영어 복습(단어)·독해(내용) 퀴즈 — quiz/quiz_ok 에도 합산, 첫 응답만(english-v2-ui)
   const kst=()=>new Date(Date.now()+9*3600e3);              // KST 기준 날짜·시각

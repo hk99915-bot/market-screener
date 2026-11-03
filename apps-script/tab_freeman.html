@@ -1,0 +1,111 @@
+<!-- tab_freeman.html — 🗽 FREEMAN 탭(프로젝트 프리맨, 내부판 전용) — 북극성(미션·5원칙) + 본부 OKR·조직도 (pb-private ops/okr.json · analysis/latest.json · desk/<key>.md).
+     apps-script/Index.html 이 include('tab_freeman') 템플릿 태그로 끼워 넣는다. 범용판은 scripts/build_edition.py PUBLIC_DROP_TABS 로 빈 함수만 남김.
+     본부 코멘트 함수(myHq*)는 11/3 MY 탭에서 옮겨 옴 — MY 탭 '주간 성적표' 펼침(o.comment)도 myHqLoad/myHqHtml 을 전역으로 쓴다. 전역 도우미($·esc·ghTok·pbGet 등)는 Index.html/tab_my 에 있다. -->
+<style>.myhq{max-width:1280px;margin:6px 0;border-top:1px solid var(--line);padding-top:8px;font-size:var(--fs-3);line-height:1.5}
+      .myhq .myhq-top{display:flex;gap:6px 12px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px;font-size:var(--fs-3)}.myhq .myhq-note{margin-bottom:8px}
+      .myhq .myhq-sum{font-weight:700;color:var(--txt)}
+      .myhq .myhq-g{display:grid;grid-template-columns:1fr;gap:14px}@media(min-width:760px){.myhq .myhq-g{grid-template-columns:1fr 1fr}.myhq .myhq-c.is-sum{grid-column:1/-1}}@media(min-width:1200px){.myhq .myhq-g{grid-template-columns:1fr 1fr 1fr}}
+      .myhq .myhq-c{border:1px solid var(--line);padding:10px 12px;min-width:0}.myhq .myhq-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.myhq .myhq-nm{font-size:var(--fs-4);font-weight:700;color:var(--amber)}
+      .myhq .myhq-o{line-height:1.5;margin:4px 0 6px;font-weight:700}.myhq .myhq-krs{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:10px}
+      .myhq .myhq-chip{border:1px solid var(--line);padding:5px 8px;min-width:0}.myhq .myhq-chip.is-none .myhq-cv{color:var(--muted)}
+      .myhq .myhq-ct{display:flex;gap:8px;align-items:baseline;font-size:var(--fs-2);color:var(--txt)}.myhq .myhq-ct b{flex:none;border:1px solid var(--amber);color:var(--amber);padding:0 6px;font-size:var(--fs-1)}.myhq .myhq-ct span{flex:1;min-width:0}
+      .myhq .myhq-cv{font-weight:700;line-height:1.5;font-size:var(--fs-2);margin-top:2px}.myhq .myhq-bar{height:5px;background:var(--bg3);margin-top:3px}.myhq .myhq-bar i{display:block;height:100%;background:var(--amber)}
+      .myhq .myhq-ds{display:grid;grid-template-columns:1fr;gap:10px}
+      .myhq .myhq-d{border:1px solid var(--line);background:var(--bg3);padding:8px 10px;min-width:0}.myhq .myhq-d.is-empty{border-style:dashed;color:var(--muted)}
+      .myhq .myhq-dn{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.myhq .myhq-dname{font-size:var(--fs-4);font-weight:700}.myhq .myhq-lead{border:1px solid var(--amber);color:var(--amber);padding:0 6px;font-size:var(--fs-1)}
+      .myhq .myhq-dko{margin:4px 0 6px;font-size:var(--fs-2)}.myhq .myhq-dko .myhq-dkh{display:flex;gap:6px;align-items:baseline}.myhq .myhq-dko .myhq-dkoo{font-weight:700;line-height:1.5}
+      .myhq .myhq-dkr{display:flex;gap:8px;align-items:baseline;line-height:1.5;margin-top:2px}.myhq .myhq-kn{flex:none;border:1px solid var(--line);padding:0 6px;font-size:var(--fs-1);color:var(--muted)}
+      .myhq .myhq-st{font-size:var(--fs-1);padding:0 6px;border:1px solid var(--line);color:var(--muted);background:var(--bg3);white-space:nowrap}.myhq .myhq-st.is-ok{border-color:#2e9e5b;color:#2e9e5b}
+      .myhq .myhq-wk{margin-top:6px;border-top:1px solid var(--line);padding-top:4px;display:flex;gap:6px;align-items:baseline;font-size:var(--fs-1);color:var(--muted)}.myhq .myhq-wk b{color:var(--txt);font-size:var(--fs-2)}
+      .myhq .myhq-old{border:1px solid var(--amber);color:var(--amber);padding:0 4px;font-size:var(--fs-1)}
+      .myhq .myhq-f{line-height:1.5;margin-top:2px;font-size:var(--fs-3)}.myhq .myhq-lab{font-size:var(--fs-1);color:var(--amber);border:1px solid var(--line);padding:0 4px;white-space:nowrap}
+      .myhq .myhq-more summary{cursor:pointer;color:var(--muted);font-size:var(--fs-2);padding:6px 0;min-height:24px}.myhq .myhq-more ul{margin:0;padding-left:18px;line-height:1.5;font-size:var(--fs-2)}.myhq .myhq-more li{margin-bottom:6px}
+      .myhq .myhq-src{font-size:var(--fs-1);color:var(--muted);word-break:break-all}.myhq .myhq-n{font-weight:700;color:var(--amber)}</style>
+<script>
+/* ───── 🗽 FREEMAN: 북극성 = docs/desk_kb/VISION.md (공개 KB, 2026-10-25 겸이 지시) 최소 문구 상수 — 원문이 바뀌면 여기도 맞춘다 ───── */
+const FREE_MISSION='돈 때문에 의지를 포기하지 않는다 — 자기 판단으로 결정하고 결과를 스스로 감당하는 상태 (자본은 쌓되 삶은 소진하지 않는다)';
+const FREE_RULES=['생존이 수익률보다 우선','내 집은 목표이되 영끌은 의무가 아니다','커리어와 금융투자를 함께 키운다','시간과 건강도 자본이다','희망이 아니라 실측으로 판단한다'];
+function freeStar(){ return `<div class="myhq" style="border-top:0;margin-top:0"><div class="myhq-top"><span class="am">북극성</span></div><div class="myhq-c is-sum" style="margin-bottom:8px"><div class="myhq-o"><b>${esc(FREE_MISSION)}</b></div><ol style="margin:4px 0 0;padding-left:18px;line-height:1.6">${FREE_RULES.map(x=>'<li>'+esc(x)+'</li>').join('')}</ol></div></div>`; }
+function freeView(){
+  if(ghTok()) setTimeout(myHq,0);
+  return `<div class="grid"><div class="p c12"><h2>🗽 FREEMAN<small>프로젝트 프리맨 · 목표·조직 · 비공개 저장소(pb-private)에서 이 브라우저로 직접 읽음</small></h2><div class="b">
+    ${freeStar()}
+    <div id="myhq" class="myhq">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">본부 OKR 불러오는 중…</div>':'<div class="am" style="font-size:var(--fs-2)">GitHub 토큰 필요 — 🔐 MY 탭에서 토큰 설정 후 다시 열어 주세요</div>'}</div>
+  </div></div></div>`; }
+// ───── 본부별 코멘트 (11/1 겸이 「맞춤 코멘트 정돈 · 각 본부 목표에 맞게」 → 「이거 다 프라이빗한거로」)
+// 이 파일은 렌더링만 한다 — 본부 목표·KR 문구·데스크→본부 매핑은 pb-private ops/okr.json, 코멘트는 analysis/<주>-weekly/desk/<key>.md 에서 토큰으로 읽는다.
+// 계약 = pb-private ops/okr_README.md (desk md: 1행 '기준일:' · 선택 'OKR: <본부> KR1 <진행> | KR2 <진행>' · '- ' 불릿 3~6줄). 화면은 글을 만들거나 고치지 않는다.
+const MYHQ_STALE=7;   // 기준일이 오늘보다 7일 넘게 지나면 '오래됨'
+let MYHQ=null;        // {O,L,D} 마지막으로 읽은 것(이 창 메모리에만)
+function myHqOkr(s){ s=String(s||'').trim(); const m=s.match(/^(\S+)\s+(.*)$/); if(!m) return null; const kr={};
+  m[2].split('|').forEach((p,i)=>{ const q=p.trim().match(/^(KR\s*[12])\s*[:：]?\s*(.*)$/i); if(q) kr[q[1].replace(/\s/g,'').toUpperCase()]=q[2].trim(); else if(p.trim()) kr['KR'+(i+1)]=p.trim(); });
+  return {hq:m[1], kr}; }
+function myHqItem(t){ t=String(t||'').trim(); let lab='', m=t.match(/^\*\*(.+?)\*\*\s*(.*)$/);
+  if(m&&(/[:：]\s*$/.test(m[1])||m[1].length<=24)){ lab=m[1].replace(/[:：.。]\s*$/,'').trim(); t=m[2]; }
+  t=t.replace(/\*\*/g,'').replace(/^[:：]\s*/,''); let src=''; const g=t.match(/\s*근거\s*[:：]\s*(.+)$/); if(g){ src=g[1]; t=t.slice(0,g.index); }
+  const f=(t.match(/^.*?[.!?。](?=\s|$)/)||[t])[0]; return {lab, first:f.trim(), rest:t.slice(f.length).trim(), src:src.trim()}; }
+function myHqParse(md){ const out={asof:'', okr:null, items:[]}; let cur=null;
+  for(const raw of String(md||'').replace(/\r/g,'').split('\n')){ const l=raw.trim(); let m;
+    if(!out.asof&&(m=l.match(/^기준일\s*[:：]\s*(\d{4}-\d{2}-\d{2})/))){ out.asof=m[1]; continue; }
+    if(!out.okr&&(m=l.match(/^OKR\s*[:：]\s*(.+)$/))){ out.okr=myHqOkr(m[1]); continue; }
+    if(!l||/^#/.test(l)){ cur=null; continue; }
+    if((m=l.match(/^[-*·]\s+(.*)$/))){ cur={t:m[1]}; out.items.push(cur); } else if(cur) cur.t+=' '+l; else { cur={t:l}; out.items.push(cur); } }
+  out.items=out.items.map(x=>myHqItem(x.t)).filter(x=>x.first||x.lab); return out; }
+// 문장 꾸밈: 금액 가림(비율만 보기) → 이스케이프 → 숫자 강조(부호·단위 붙은 것만 — 날짜·경로 숫자 제외) → 경로 괄호·`코드` 작은 글씨
+function myHqFmt(t){ let s=esc(myRatioOnly()?myFsMask(t):String(t||''));
+  s=s.replace(/(^|[^\w.\/#&;-])([+\-−]\d[\d,]*(?:\.\d+)?(?:%p|%|bp)?|\d[\d,]*(?:\.\d+)?(?:%p|%|bp|건|회|배))(?![\w])/g,'$1<b class="myhq-n">$2</b>');
+  s=s.replace(/`([^`]+)`/g,'<span class="myhq-src">$1</span>').replace(/\(([^()]*[\w-]+\/[\w.\/-]*\.(?:md|json|csv|py|txt|html)\b[^()]*)\)/g,'<span class="myhq-src">($1)</span>');
+  return s; }
+function myHqRatio(v){ let m=String(v).match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/); if(m&&+m[2]>0) return Math.min(1,+m[1]/+m[2]);
+  m=String(v).match(/(\d+(?:\.\d+)?)\s*%(?!p)/); return m?Math.min(1,+m[1]/100):null; }
+function myHqChip(kr,v){ const t=String(v||'').trim(), r=t?myHqRatio(t):null;
+  return `<div class="myhq-chip${t?'':' is-none'}" title="${esc(kr.text||'')}"><div class="myhq-ct"><b>${esc(kr.id)}</b><span>${esc(kr.text||'')}</span></div>`
+    +`<div class="myhq-cv">${t?myHqFmt(t):'측정 전'}${kr.due?` <span class="mu">· ${esc(kr.due)}</span>`:''}</div>`
+    +(r!=null?`<div class="myhq-bar"><i style="width:${(r*100).toFixed(0)}%"></i></div>`:'')+'</div>'; }
+// 11/3 겸이 「조직도나 그런 쪽에서 볼 수 있었으면」: 데스크 노드에 개인 OKR(okr.json desks — 확정/제안) 접어서 표시
+function myHqDko(dk){ if(!dk||!dk.o) return ''; const kr=(dk.kr||[]).filter(Boolean), ok=dk.st==='확정';
+  return `<div class="myhq-dko"><div class="myhq-dkh"><span class="myhq-st${ok?' is-ok':''}">${ok?'✅ 확정':'📝 제안'}</span></div><div class="myhq-dkoo">${esc(dk.o)}</div>${kr.map((x,i)=>`<div class="myhq-dkr"><span class="myhq-kn">KR${i+1}</span><span>${esc(x)}</span></div>`).join('')}</div>`; }
+function myHqDesk(name,p,dk,lead){ const hd=`<div class="myhq-dn"><b class="myhq-dname">${esc(name)}</b>${lead?'<span class="myhq-lead">본부 대표</span>':''}</div>`;
+  if(!p||!p.items.length) return `<div class="myhq-d is-empty">${hd}${myHqDko(dk)}<div class="myhq-wk">이번 주 · 코멘트 없음</div></div>`;
+  const age=p.asof?myFsDays(_ymd(),p.asof):null, old=age==null||age>MYHQ_STALE;
+  const [a,...more]=p.items, li=x=>`<li>${x.lab?`<b>${esc(x.lab)}</b> `:''}${myHqFmt(x.first+(x.rest?' '+x.rest:''))}${x.src?`<div class="myhq-src">근거 ${myHqFmt(x.src)}</div>`:''}</li>`;
+  const rest=(a.rest||a.src?[`<li>${myHqFmt(a.rest)}${a.src?`<div class="myhq-src">근거 ${myHqFmt(a.src)}</div>`:''}</li>`]:[]).concat(more.map(li));
+  return `<div class="myhq-d">${hd}${myHqDko(dk)}<div class="myhq-wk"><b>이번 주</b><span>${p.asof?myFsMD(p.asof):'기준일 없음'}</span>${p.prev?'<span class="myhq-old">지난주</span>':''}${old&&!p.prev?`<span class="myhq-old">오래됨${age!=null?' '+age+'일':''}</span>`:''}</div>`
+    +`<div class="myhq-f">${a.lab?`<span class="myhq-lab">${esc(a.lab)}</span> `:''}<b>${myHqFmt(a.first)}</b></div>`
+    +(rest.length?`<details class="myhq-more"><summary>더 보기 · ${rest.length}줄</summary><ul>${rest.join('')}</ul></details>`:'')+'</div>'; }
+function myHqHtml(O,L,D){ const names=(O&&O.names)||{}, nm=k=>names[k]||k, D2=(D||[]).filter(x=>x&&x.k);
+  const HQ=(O&&Array.isArray(O.hq))?O.hq:[], sum=O&&O.summary, used=new Set(), okrBy={};
+  D2.forEach(x=>{ const o=x.p&&x.p.okr; if(!o) return; const h=HQ.find(h=>h.name===o.hq||h.key===o.hq); if(!h) return;
+    const cur=okrBy[h.key]=okrBy[h.key]||{}; Object.entries(o.kr).forEach(([id,v])=>{ if(!cur[id]||x.k===h.lead) cur[id]=v; }); });
+  const DO=(O&&O.desks)||{};
+  const card=(h,list,cls)=>{ const kr=(h.kr||[]).slice(0,2), ok=okrBy[h.key]||{};
+    // 조직도형: 본부 소속 데스크 전원을 노드로(코멘트 없으면 회색), 대표 먼저 · alloc/allocation 중복 1개
+    const mem=[]; (h.desks||[]).forEach(k=>{ const kk=k==='allocation'?'alloc':k; if(!mem.includes(kk)) mem.push(kk); });
+    if(h.lead&&mem.includes(h.lead)) mem.splice(0,0,...mem.splice(mem.indexOf(h.lead),1));
+    const pick=k=>list.find(x=>x.k===k||(k==='alloc'&&x.k==='allocation'));
+    const body=mem.length?mem.map(k=>{ const x=pick(k); return myHqDesk(nm(k),x&&x.p,DO[k],k===h.lead); }).join('')+list.filter(x=>!mem.includes(x.k)&&!(x.k==='allocation'&&mem.includes('alloc'))).map(x=>myHqDesk(nm(x.k),x.p,DO[x.k])).join('')
+      :(list.length?list.map(x=>myHqDesk(nm(x.k),x.p,DO[x.k])).join(''):myHqDesk(nm(h.lead||h.name),null,DO[h.lead],true));
+    return `<div class="myhq-c${cls||''}"><div class="myhq-h"><span class="myhq-nm">${esc(h.name)}</span>${h.lead?`<span class="mu">대표 ${esc(nm(h.lead))}</span>`:''}</div>`
+      +(h.o?`<div class="myhq-o">${esc(h.o)}</div>`:'')+(kr.length?`<div class="myhq-krs">${kr.map(k=>myHqChip(k,ok[k.id])).join('')}</div>`:'')+`<div class="myhq-ds">${body}</div></div>`; };
+  const cards=[];
+  if(sum){ const l=D2.filter(x=>x.k===sum.key); l.forEach(x=>used.add(x)); if(l.length) cards.push(card(sum,l,' is-sum')); }
+  HQ.forEach(h=>{ const l=D2.filter(x=>!used.has(x)&&(h.desks||[]).includes(x.k)); l.forEach(x=>used.add(x)); cards.push(card(h,l)); });
+  const etc=D2.filter(x=>!used.has(x)); if(etc.length) cards.push(card({key:'_etc',name:HQ.length?'기타':'데스크 코멘트'},etc));
+  const have=D2.filter(x=>x.p&&x.p.items.length), stale=have.filter(x=>{ const a=x.p.asof?myFsDays(_ymd(),x.p.asof):null; return a==null||a>MYHQ_STALE; }).length;
+  const dv=Object.values(DO), nDesk=Math.max(dv.length,D2.length), nOk=dv.filter(x=>x&&x.st==='확정').length, nWk=have.filter(x=>!x.p.prev).length;
+  const asof=L&&((L.stats||{}).asof||L.asof);
+  return `<div class="myhq-top"><span class="myhq-sum">본부 ${HQ.length} · 데스크 ${nDesk} · 확정 ${nOk}/제안 ${nDesk-nOk} · 이번 주 코멘트 ${nWk}/${nDesk}</span><span class="mu">${asof?'기준 '+myFsMD(asof)+' · ':''}${stale?`오래됨 ${stale} · `:''}OKR 보고 ${Object.keys(okrBy).length}/${HQ.length}</span></div>`
+    +(O?'':'<div class="am myhq-note">OKR 파일 없음(pb-private ops/okr.json) — 본부 묶음 없이 표시</div>')
+    +`<div class="myhq-g">${cards.join('')}</div>`; }
+// 11/2 겸이 「'지난주' 표시로 보여주기」: 이번 주 desk 파일이 없으면 직전 주(dir 날짜 −7일) 파일을 읽어 '지난주' 라벨
+function myHqPrevDir(dir){ const m=/(\d{4})-(\d{2})-(\d{2})-weekly/.exec(dir||''); if(!m) return ''; const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]-7)); return dir.replace(m[0],d.toISOString().slice(0,10)+'-weekly'); }
+function myHqOne(x,dir){ const k=x&&x.desk; if(!k) return Promise.resolve({k,p:null});
+  const prev=()=>{ const pd=myHqPrevDir(dir); return pd?pbGet(pd+'/desk/'+k+'.md').then(t=>{ const p=myHqParse(t); p.prev=true; return {k,p}; }).catch(()=>({k,p:null})):Promise.resolve({k,p:null}); };
+  return x.file?pbGet(x.file).then(t=>({k,p:myHqParse(t)})).catch(prev):prev(); }
+function myHqLoad(desks,dir){ return Promise.all((desks||[]).map(x=>myHqOne(x,dir))); }
+function myHqShow(){ const e=$('#myhq'); if(e&&MYHQ) e.innerHTML=myHqHtml(MYHQ.O,MYHQ.L,MYHQ.D); }
+function myHq(){ if(!ghTok()) return; if(MYHQ) myHqShow();
+  Promise.all([pbGet('ops/okr.json').then(JSON.parse).catch(()=>null),pbGet('analysis/latest.json').then(JSON.parse)])
+  .then(([O,L])=>myHqLoad(L.desks,L.dir).then(D=>{ MYHQ={O,L,D}; myHqShow(); }))
+  .catch(e=>{ const x=$('#myhq'); if(x&&!MYHQ) x.innerHTML=`<div class="mu" style="font-size:var(--fs-2)">본부별 코멘트: 읽기 실패(${esc(e.message)})</div>`; }); }
+</script>

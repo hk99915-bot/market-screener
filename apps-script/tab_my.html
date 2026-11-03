@@ -189,7 +189,7 @@ function myView(){
     const pi=$('#mypin'); if(pi) pi.onkeydown=e=>{ if(e.key==='Enter') $('#mypinb').click(); };
     const fg=$('#mypinforget'); if(fg) fg.onclick=()=>{ try{ localStorage.removeItem(GHE); }catch(_){} render(); };
     if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ st(); if(ok) myRun(); }); st(); }
-    myFs(); myDn(); myHq();
+    myFs(); myDn();
     const mc=$('#mycorr'); if(mc) mc.addEventListener('toggle',e=>{ if(e.target.open) myCorr(); });
     const mj=$('#myjr'); if(mj) mj.addEventListener('toggle',e=>{ if(e.target.open) jrList(); });
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
@@ -212,21 +212,7 @@ function myView(){
       #myfirst .myfs-df{font-size:var(--fs-2);line-height:1.6;padding:2px 0 6px}#myfirst .myfs-nx{font-size:var(--fs-3);line-height:1.5}</style>
     <div id="myfirst" style="max-width:640px">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">결론 불러오는 중…</div>':'<div class="mu" style="font-size:var(--fs-2)">토큰을 먼저 설정해야 결론·성적표를 볼 수 있어요</div>'}</div>
     <div id="mydn" style="max-width:640px;margin:6px 0;border-top:1px solid var(--line);padding-top:5px">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">무행동 vs 실제 불러오는 중…</div>':''}</div>
-    <style>.myhq{max-width:960px;margin:6px 0;border-top:1px solid var(--line);padding-top:5px;font-size:var(--fs-2)}
-      .myhq .myhq-top{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;margin-bottom:6px}.myhq .myhq-note{margin-bottom:6px}
-      .myhq .myhq-g{display:grid;grid-template-columns:1fr;gap:8px}@media(min-width:760px){.myhq .myhq-g{grid-template-columns:1fr 1fr}.myhq .myhq-c.is-sum{grid-column:1/-1}}
-      .myhq .myhq-c{border:1px solid var(--line);padding:6px 8px;min-width:0}.myhq .myhq-h{display:flex;gap:8px;align-items:baseline}.myhq .myhq-nm{font-size:var(--fs-3);font-weight:700;color:var(--amber)}
-      .myhq .myhq-o{line-height:1.45;margin:2px 0 4px}.myhq .myhq-krs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px}
-      .myhq .myhq-chip{border:1px solid var(--line);padding:3px 5px;min-width:0}.myhq .myhq-chip.is-none .myhq-cv{color:var(--muted)}
-      .myhq .myhq-ct{display:flex;gap:4px;font-size:var(--fs-1);color:var(--muted)}.myhq .myhq-ct b{color:var(--txt);flex:none}.myhq .myhq-ct span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .myhq .myhq-cv{font-weight:700;line-height:1.4}.myhq .myhq-bar{height:4px;background:var(--bg3);margin-top:2px}.myhq .myhq-bar i{display:block;height:100%;background:var(--amber)}
-      .myhq .myhq-d{border-top:1px solid var(--line);padding:5px 0 3px}.myhq .myhq-d.is-empty{border:1px dashed var(--line);background:var(--bg3);color:var(--muted);padding:5px 7px;margin-top:4px}.myhq .myhq-d.is-empty b{color:var(--muted);margin-right:4px}
-      .myhq .myhq-dh{display:flex;gap:6px;align-items:baseline;font-size:var(--fs-1)}.myhq .myhq-dh b{font-size:var(--fs-2)}
-      .myhq .myhq-old{border:1px solid var(--amber);color:var(--amber);padding:0 4px;font-size:var(--fs-1)}
-      .myhq .myhq-f{line-height:1.55;margin-top:2px;font-size:var(--fs-3)}.myhq .myhq-lab{font-size:var(--fs-1);color:var(--amber);border:1px solid var(--line);padding:0 4px;white-space:nowrap}
-      .myhq .myhq-dko{margin-top:3px;font-size:var(--fs-1);color:var(--muted)}.myhq .myhq-dko summary{cursor:pointer;line-height:1.4}.myhq .myhq-dkr{padding-left:10px;line-height:1.4}.myhq .myhq-st{font-size:var(--fs-1);padding:0 4px;border:1px solid var(--line);margin-right:2px}.myhq .myhq-st.is-ok{color:var(--green,#3fb950);border-color:currentColor}.myhq .myhq-n{color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}.myhq .myhq-src{font-size:var(--fs-1);color:var(--muted);word-break:break-all}
-      .myhq .myhq-more summary{cursor:pointer;color:var(--muted);font-size:var(--fs-1);padding:6px 0;min-height:24px}.myhq .myhq-more ul{margin:0;padding-left:16px;line-height:1.6}.myhq .myhq-more li{margin-bottom:4px}</style>
-    <div id="myhq" class="myhq">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">본부별 코멘트 불러오는 중…</div>':''}</div>
+    <div id="myhqlink" class="mu" style="font-size:var(--fs-2);margin:6px 0;border-top:1px solid var(--line);padding-top:5px">목표·본부 OKR·조직도는 <a href="#" onclick="setView('free');return false" style="color:var(--amber)">🗽 FREEMAN 탭</a>으로 옮겼어요</div>
     <details id="mycorr" style="margin:6px 0"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">주간 성적표 전체 · 코멘트 · 심층 분석 <span id="mycorrd" class="mu">${MYFS&&MYFS.L?'(기준 '+myFsMD((MYFS.L.stats||{}).asof||MYFS.L.asof)+')':''}</span></summary><div id="mycorrb" class="mu" style="font-size:var(--fs-2)">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
     <div class="mu" style="font-size:var(--fs-2);margin-bottom:6px;line-height:1.7">한 줄에 하나 — <b>종목코드·티커·이름 수량 평균단가</b>, 현금은 <b>현금 금액</b> / <b>USD 달러금액</b><br>예: <code>005930 10 70000</code> · <code>TIGER 200 IT 5 30000</code> · <code>MU 2 100.0</code> · <code>현금 1000000</code> · <code>USD 1000</code> · <code>예적금 9000000</code>(반도체 한도 분모에만 더함)<br>ISA 코어는 <code>## ISA</code> 한 줄 아래에 같은 형식으로 (예: <code>360750 100 20000</code>) — 분모는 순자산(위성+ISA+현금)</div>
@@ -316,80 +302,6 @@ function myFs(){ if(!ghTok()) return; if(MYFS) myFsShow();
     const ds=MYFS_DESKS.map(([k,n])=>{ const f=((L.desks||[]).find(x=>x.desk===k)||{}).file; return f?pbGet(f).then(t=>({n,d:myFsDesk(t)})).catch(()=>null):Promise.resolve(null); });
     return Promise.all(ds).then(D=>{ MYFS={L,H,D}; myFsShow(); }); })
   .catch(e=>{ const x=$('#myfirst'); if(x&&!MYFS) x.innerHTML=`<div class="am myfs-c">PB 결론 미갱신(읽기 실패 ${esc(e.message)})</div><div class="mu myfs-n">토큰 권한·만료 확인</div>`; }); }
-// ───── 본부별 코멘트 (11/1 겸이 「맞춤 코멘트 정돈 · 각 본부 목표에 맞게」 → 「이거 다 프라이빗한거로」)
-// 이 파일은 렌더링만 한다 — 본부 목표·KR 문구·데스크→본부 매핑은 pb-private ops/okr.json, 코멘트는 analysis/<주>-weekly/desk/<key>.md 에서 토큰으로 읽는다.
-// 계약 = pb-private ops/okr_README.md (desk md: 1행 '기준일:' · 선택 'OKR: <본부> KR1 <진행> | KR2 <진행>' · '- ' 불릿 3~6줄). 화면은 글을 만들거나 고치지 않는다.
-const MYHQ_STALE=7;   // 기준일이 오늘보다 7일 넘게 지나면 '오래됨'
-let MYHQ=null;        // {O,L,D} 마지막으로 읽은 것(이 창 메모리에만)
-function myHqOkr(s){ s=String(s||'').trim(); const m=s.match(/^(\S+)\s+(.*)$/); if(!m) return null; const kr={};
-  m[2].split('|').forEach((p,i)=>{ const q=p.trim().match(/^(KR\s*[12])\s*[:：]?\s*(.*)$/i); if(q) kr[q[1].replace(/\s/g,'').toUpperCase()]=q[2].trim(); else if(p.trim()) kr['KR'+(i+1)]=p.trim(); });
-  return {hq:m[1], kr}; }
-function myHqItem(t){ t=String(t||'').trim(); let lab='', m=t.match(/^\*\*(.+?)\*\*\s*(.*)$/);
-  if(m&&(/[:：]\s*$/.test(m[1])||m[1].length<=24)){ lab=m[1].replace(/[:：.。]\s*$/,'').trim(); t=m[2]; }
-  t=t.replace(/\*\*/g,'').replace(/^[:：]\s*/,''); let src=''; const g=t.match(/\s*근거\s*[:：]\s*(.+)$/); if(g){ src=g[1]; t=t.slice(0,g.index); }
-  const f=(t.match(/^.*?[.!?。](?=\s|$)/)||[t])[0]; return {lab, first:f.trim(), rest:t.slice(f.length).trim(), src:src.trim()}; }
-function myHqParse(md){ const out={asof:'', okr:null, items:[]}; let cur=null;
-  for(const raw of String(md||'').replace(/\r/g,'').split('\n')){ const l=raw.trim(); let m;
-    if(!out.asof&&(m=l.match(/^기준일\s*[:：]\s*(\d{4}-\d{2}-\d{2})/))){ out.asof=m[1]; continue; }
-    if(!out.okr&&(m=l.match(/^OKR\s*[:：]\s*(.+)$/))){ out.okr=myHqOkr(m[1]); continue; }
-    if(!l||/^#/.test(l)){ cur=null; continue; }
-    if((m=l.match(/^[-*·]\s+(.*)$/))){ cur={t:m[1]}; out.items.push(cur); } else if(cur) cur.t+=' '+l; else { cur={t:l}; out.items.push(cur); } }
-  out.items=out.items.map(x=>myHqItem(x.t)).filter(x=>x.first||x.lab); return out; }
-// 문장 꾸밈: 금액 가림(비율만 보기) → 이스케이프 → 숫자 강조(부호·단위 붙은 것만 — 날짜·경로 숫자 제외) → 경로 괄호·`코드` 작은 글씨
-function myHqFmt(t){ let s=esc(myRatioOnly()?myFsMask(t):String(t||''));
-  s=s.replace(/(^|[^\w.\/#&;-])([+\-−]\d[\d,]*(?:\.\d+)?(?:%p|%|bp)?|\d[\d,]*(?:\.\d+)?(?:%p|%|bp|건|회|배))(?![\w])/g,'$1<b class="myhq-n">$2</b>');
-  s=s.replace(/`([^`]+)`/g,'<span class="myhq-src">$1</span>').replace(/\(([^()]*[\w-]+\/[\w.\/-]*\.(?:md|json|csv|py|txt|html)\b[^()]*)\)/g,'<span class="myhq-src">($1)</span>');
-  return s; }
-function myHqRatio(v){ let m=String(v).match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/); if(m&&+m[2]>0) return Math.min(1,+m[1]/+m[2]);
-  m=String(v).match(/(\d+(?:\.\d+)?)\s*%(?!p)/); return m?Math.min(1,+m[1]/100):null; }
-function myHqChip(kr,v){ const t=String(v||'').trim(), r=t?myHqRatio(t):null;
-  return `<div class="myhq-chip${t?'':' is-none'}" title="${esc(kr.text||'')}"><div class="myhq-ct"><b>${esc(kr.id)}</b><span>${esc(kr.text||'')}</span></div>`
-    +`<div class="myhq-cv">${t?myHqFmt(t):'측정 전'}${kr.due?` <span class="mu">· ${esc(kr.due)}</span>`:''}</div>`
-    +(r!=null?`<div class="myhq-bar"><i style="width:${(r*100).toFixed(0)}%"></i></div>`:'')+'</div>'; }
-// 11/3 겸이 「조직도나 그런 쪽에서 볼 수 있었으면」: 데스크 노드에 개인 OKR(okr.json desks — 확정/제안) 접어서 표시
-function myHqDko(dk){ if(!dk||!dk.o) return ''; const kr=(dk.kr||[]).filter(Boolean);
-  return `<details class="myhq-dko"><summary><span class="myhq-st${dk.st==='확정'?' is-ok':''}">${dk.st==='확정'?'✅ 확정':'📝 제안'}</span> ${esc(dk.o)}</summary>${kr.map((t,i)=>`<div class="myhq-dkr"><b>KR${i+1}</b> ${esc(t)}</div>`).join('')}</details>`; }
-function myHqDesk(name,p,dk){ if(!p||!p.items.length) return `<div class="myhq-d is-empty"><b>${esc(name)}</b> 코멘트 없음${myHqDko(dk)}</div>`;
-  const age=p.asof?myFsDays(_ymd(),p.asof):null, old=age==null||age>MYHQ_STALE;
-  const [a,...more]=p.items, li=x=>`<li>${x.lab?`<b>${esc(x.lab)}</b> `:''}${myHqFmt(x.first+(x.rest?' '+x.rest:''))}${x.src?`<div class="myhq-src">근거 ${myHqFmt(x.src)}</div>`:''}</li>`;
-  const rest=(a.rest||a.src?[`<li>${myHqFmt(a.rest)}${a.src?`<div class="myhq-src">근거 ${myHqFmt(a.src)}</div>`:''}</li>`]:[]).concat(more.map(li));
-  return `<div class="myhq-d"><div class="myhq-dh"><b>${esc(name)}</b><span class="mu">${p.asof?myFsMD(p.asof):'기준일 없음'}</span>${p.prev?'<span class="myhq-old">지난주</span>':''}${old&&!p.prev?`<span class="myhq-old">오래됨${age!=null?' '+age+'일':''}</span>`:''}</div>`
-    +`<div class="myhq-f">${a.lab?`<span class="myhq-lab">${esc(a.lab)}</span> `:''}<b>${myHqFmt(a.first)}</b></div>`
-    +(rest.length?`<details class="myhq-more"><summary>더 보기 · ${rest.length}줄</summary><ul>${rest.join('')}</ul></details>`:'')+myHqDko(dk)+'</div>'; }
-function myHqHtml(O,L,D){ const names=(O&&O.names)||{}, nm=k=>names[k]||k, D2=(D||[]).filter(x=>x&&x.k);
-  const HQ=(O&&Array.isArray(O.hq))?O.hq:[], sum=O&&O.summary, used=new Set(), okrBy={};
-  D2.forEach(x=>{ const o=x.p&&x.p.okr; if(!o) return; const h=HQ.find(h=>h.name===o.hq||h.key===o.hq); if(!h) return;
-    const cur=okrBy[h.key]=okrBy[h.key]||{}; Object.entries(o.kr).forEach(([id,v])=>{ if(!cur[id]||x.k===h.lead) cur[id]=v; }); });
-  const DO=(O&&O.desks)||{};
-  const card=(h,list,cls)=>{ const kr=(h.kr||[]).slice(0,2), ok=okrBy[h.key]||{};
-    // 조직도형: 본부 소속 데스크 전원을 노드로(코멘트 없으면 회색), 대표 먼저 · alloc/allocation 중복 1개
-    const mem=[]; (h.desks||[]).forEach(k=>{ const kk=k==='allocation'?'alloc':k; if(!mem.includes(kk)) mem.push(kk); });
-    if(h.lead&&mem.includes(h.lead)) mem.splice(0,0,...mem.splice(mem.indexOf(h.lead),1));
-    const pick=k=>list.find(x=>x.k===k||(k==='alloc'&&x.k==='allocation'));
-    const body=mem.length?mem.map(k=>{ const x=pick(k); return myHqDesk(nm(k),x&&x.p,DO[k]); }).join('')+list.filter(x=>!mem.includes(x.k)&&!(x.k==='allocation'&&mem.includes('alloc'))).map(x=>myHqDesk(nm(x.k),x.p,DO[x.k])).join('')
-      :(list.length?list.map(x=>myHqDesk(nm(x.k),x.p,DO[x.k])).join(''):myHqDesk(nm(h.lead||h.name),null,DO[h.lead]));
-    return `<div class="myhq-c${cls||''}"><div class="myhq-h"><span class="myhq-nm">${esc(h.name)}</span>${h.lead?`<span class="mu">대표 ${esc(nm(h.lead))}</span>`:''}</div>`
-      +(h.o?`<div class="myhq-o">${esc(h.o)}</div>`:'')+(kr.length?`<div class="myhq-krs">${kr.map(k=>myHqChip(k,ok[k.id])).join('')}</div>`:'')+body+'</div>'; };
-  const cards=[];
-  if(sum){ const l=D2.filter(x=>x.k===sum.key); l.forEach(x=>used.add(x)); if(l.length) cards.push(card(sum,l,' is-sum')); }
-  HQ.forEach(h=>{ const l=D2.filter(x=>!used.has(x)&&(h.desks||[]).includes(x.k)); l.forEach(x=>used.add(x)); cards.push(card(h,l)); });
-  const etc=D2.filter(x=>!used.has(x)); if(etc.length) cards.push(card({key:'_etc',name:HQ.length?'기타':'데스크 코멘트'},etc));
-  const have=D2.filter(x=>x.p&&x.p.items.length), stale=have.filter(x=>{ const a=x.p.asof?myFsDays(_ymd(),x.p.asof):null; return a==null||a>MYHQ_STALE; }).length;
-  const asof=L&&((L.stats||{}).asof||L.asof);
-  return `<div class="myhq-top"><span class="am">본부별 코멘트</span><span class="mu">${asof?'기준 '+myFsMD(asof)+' · ':''}코멘트 ${have.length}/${D2.length} 데스크${stale?` · 오래됨 ${stale}`:''} · OKR 보고 ${Object.keys(okrBy).length}/${HQ.length}</span></div>`
-    +(O?'':'<div class="am myhq-note">OKR 파일 없음(pb-private ops/okr.json) — 본부 묶음 없이 표시</div>')
-    +`<div class="myhq-g">${cards.join('')}</div>`; }
-// 11/2 겸이 「'지난주' 표시로 보여주기」: 이번 주 desk 파일이 없으면 직전 주(dir 날짜 −7일) 파일을 읽어 '지난주' 라벨
-function myHqPrevDir(dir){ const m=/(\d{4})-(\d{2})-(\d{2})-weekly/.exec(dir||''); if(!m) return ''; const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]-7)); return dir.replace(m[0],d.toISOString().slice(0,10)+'-weekly'); }
-function myHqOne(x,dir){ const k=x&&x.desk; if(!k) return Promise.resolve({k,p:null});
-  const prev=()=>{ const pd=myHqPrevDir(dir); return pd?pbGet(pd+'/desk/'+k+'.md').then(t=>{ const p=myHqParse(t); p.prev=true; return {k,p}; }).catch(()=>({k,p:null})):Promise.resolve({k,p:null}); };
-  return x.file?pbGet(x.file).then(t=>({k,p:myHqParse(t)})).catch(prev):prev(); }
-function myHqLoad(desks,dir){ return Promise.all((desks||[]).map(x=>myHqOne(x,dir))); }
-function myHqShow(){ const e=$('#myhq'); if(e&&MYHQ) e.innerHTML=myHqHtml(MYHQ.O,MYHQ.L,MYHQ.D); }
-function myHq(){ if(!ghTok()) return; if(MYHQ) myHqShow();
-  Promise.all([pbGet('ops/okr.json').then(JSON.parse).catch(()=>null),pbGet('analysis/latest.json').then(JSON.parse)])
-  .then(([O,L])=>myHqLoad(L.desks,L.dir).then(D=>{ MYHQ={O,L,D}; myHqShow(); }))
-  .catch(e=>{ const x=$('#myhq'); if(x&&!MYHQ) x.innerHTML=`<div class="mu" style="font-size:var(--fs-2)">본부별 코멘트: 읽기 실패(${esc(e.message)})</div>`; }); }
 // ───── 무행동(기준일 보유 고정) vs 실제 — pb-private analysis/donothing.json(퀀트 scorecard/donothing.py, 평일 장 마감 후 갱신)
 // 지수(기준일 = 100)·%p 만 받아 그린다 — 화면에 금액·수량 없음. 인라인 SVG 1개 + 합계/국장/미장 토글.
 let MYDN=null, MYDNK='total';
@@ -484,7 +396,7 @@ function myCorr(){ const b=$('#mycorrb'); if(!b||!ghTok()||b.dataset.done) retur
           `<details style="margin-top:12px"><summary style="cursor:pointer" class="am">전체 보고서</summary><div id="mycrep" style="line-height:1.6;margin-top:6px">불러오는 중…</div></details>`;
         // 데스크 파일이 있는 주간은 본부 카드로(최신 주는 위 '본부별 코멘트'와 같아서 안내만), 없는 옛 주간은 원문 그대로
         const dk=(o.desks||[]).some(x=>x&&x.file), ce=()=>$('#myccom');
-        if(o.comment&&dk&&r.latest){ const e=ce(); if(e) e.innerHTML='<span class="mu">데스크 코멘트는 위 \'본부별 코멘트\' 카드에 본부별로 정리돼 있어요</span>'; }
+        if(o.comment&&dk&&r.latest){ const e=ce(); if(e) e.innerHTML='<span class="mu">데스크 코멘트는 🗽 FREEMAN 탭의 본부 카드에 본부별로 정리돼 있어요</span>'; }
         else if(o.comment&&dk) myHqLoad(o.desks).then(D=>{ const e=ce(); if(e) e.innerHTML='<div class="myhq" style="border:0;padding:0">'+myHqHtml(MYHQ&&MYHQ.O,o,D)+'</div>'; }).catch(()=>{});
         else if(o.comment) pbGet(dir+'/'+o.comment).then(t=>{ const e=ce(); if(e) e.innerHTML=mdLite(t); }).catch(()=>{});
         if(o.web) pbGet(dir+'/'+o.web).then(t=>corrCharts(JSON.parse(t))).catch(()=>{});
