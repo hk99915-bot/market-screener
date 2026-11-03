@@ -5809,7 +5809,7 @@ function mgPop(open){ let w=document.getElementById('mgpop');
 setTimeout(()=>{ if(document.getElementById('mgfab')) return; const b=document.createElement('button'); b.id='mgfab'; b.type='button'; b.title='사내톡'; b.setAttribute('aria-label','사내톡 열기'); b.textContent='💬';
   b.onclick=()=>{ if(view==='msg') return; mgPop(!MGPOP); b.classList.toggle('on',MGPOP); };
   const T=document.querySelector('.top'), q=document.getElementById('sqb'); if(q&&q.parentNode===T) T.insertBefore(b,q); else if(T) T.appendChild(b); else document.body.appendChild(b); },0);
-const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스',realestate:'부동산',scribe:'기록',household:'내무',compliance:'컴플라이언스',posrisk:'포지션리스크',front:'프론트','겸이':'겸이'};
+const MG_NM={pb:'PB',quant:'퀀트',dev:'개발',data:'데이터',audit:'감사',hf:'HF',frm:'리스크',verify:'검증',macro:'매크로',bonds:'채권',derivs:'파생',uxui:'UXUI',edu:'교육',peer:'피어리뷰',ops:'운영',behavior:'행동',maint:'유지보수',cio:'CIO',pm:'PM',analyst:'애널',alloc:'자산배분',life:'LIFE',eval:'평가',backtest:'백테스트',health:'헬스',realestate:'부동산',scribe:'기록',household:'내무',compliance:'컴플라이언스',posrisk:'포지션리스크',front:'프론트',data_eng:'데이터엔지니어','겸이':'겸이'};
 const MG_DOT={open:'var(--amber)',promoted:'var(--dn)',done:'var(--up)'};
 const MG_ST={open:'진행 중',promoted:'마감 지남',done:'완료'};
 function mgNm(k){ return MG_NM[k]||k||'?'; }
@@ -5838,7 +5838,7 @@ function mgProfGo(o,k,d){ const L=((MG&&MG.profiles)||[]); if(L.length<2) return
 /* 🏢 조직도(10/24 겸이 "조직도도 그려줘") — docs/desk_kb/ORG.md(10/17 본부 구조) 그대로. 본부 대표는 소집·취합만, 지시권 없음. 노드 누르면 프로필(문서 위임 클릭). */
 const MG_ORG=[
   ['투자전략본부','대표 CIO',['cio','alloc','macro','bonds','realestate','hf']],
-  ['리서치본부','대표 퀀트',['quant','analyst','derivs','data']],
+  ['리서치본부','대표 퀀트',['quant','analyst','derivs','data','data_eng']],
   ['리스크본부','대표 리스크',['frm','behavior','compliance','posrisk']],
   ['운영본부','대표 PM',['pm','ops','dev','front','scribe','uxui','maint']],
   ['교육본부','대표 교육',['edu','eval']],
