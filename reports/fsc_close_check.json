@@ -1,7 +1,34 @@
 {
- "asof": "2026-11-02 16:48",
+ "asof": "2026-11-03 16:48",
  "source": "금융위 주식시세정보 V2 (data.go.kr, T+1)",
  "days": [
+  {
+   "date": "2026-11-02",
+   "status": "ok",
+   "ours_src": "kr_prices",
+   "n_fsc": 2874,
+   "n_ours": 2651,
+   "n_common": 2651,
+   "n_match": 2648,
+   "mismatch": [
+    {
+     "code": "079170",
+     "ours": 6310.0,
+     "diff_pct": 24.213
+    },
+    {
+     "code": "224110",
+     "ours": 8460.0,
+     "diff_pct": 21.03
+    },
+    {
+     "code": "009160",
+     "ours": 5970.0,
+     "diff_pct": 19.162
+    }
+   ],
+   "n_mismatch": 3
+  },
   {
    "date": "2026-10-30",
    "status": "ok",
@@ -9,35 +36,9 @@
    "n_fsc": 2874,
    "n_ours": 2651,
    "n_common": 2651,
-   "n_match": 2646,
-   "mismatch": [
-    {
-     "code": "309930",
-     "ours": 1100.0,
-     "diff_pct": 30.024
-    },
-    {
-     "code": "069640",
-     "ours": 1677.0,
-     "diff_pct": 28.015
-    },
-    {
-     "code": "121440",
-     "ours": 10300.0,
-     "diff_pct": 26.691
-    },
-    {
-     "code": "109080",
-     "ours": 10000.0,
-     "diff_pct": 23.457
-    },
-    {
-     "code": "297890",
-     "ours": 1603.0,
-     "diff_pct": 18.917
-    }
-   ],
-   "n_mismatch": 5
+   "n_match": 2651,
+   "mismatch": [],
+   "n_mismatch": 0
   },
   {
    "date": "2026-10-29",
@@ -126,21 +127,10 @@
    "n_match": 2648,
    "mismatch": [],
    "n_mismatch": 0
-  },
-  {
-   "date": "2026-10-19",
-   "status": "ok",
-   "ours_src": "kr_prices",
-   "n_fsc": 2866,
-   "n_ours": 2646,
-   "n_common": 2646,
-   "n_match": 2646,
-   "mismatch": [],
-   "n_mismatch": 0
   }
  ],
- "match_rate_all": 0.9998,
+ "match_rate_all": 0.9999,
  "status": "ok",
- "match_rate": 0.9998,
+ "match_rate": 0.9999,
  "verdict": "통과"
 }
