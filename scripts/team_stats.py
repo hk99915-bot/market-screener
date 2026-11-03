@@ -50,6 +50,7 @@ DESKS = {
     "eval": "평가", "peer": "피어리뷰", "behavior": "행동", "audit": "감사", "record": "기록", "uxui": "UXUI",
     "compliance": "컴플라이언스", "posrisk": "포지션리스크",   # 10/24 리스크본부 신설
     "front": "프론트",   # 10/24 운영본부 신설(프론트 개발, appr-staffing-30)
+    "data_eng": "데이터엔지니어",   # 11/3 리서치본부 신설(조건부 채용, 온디맨드)
     "hf": "HF", "realestate": "부동산", "household": "내무", "maint": "유지보수", "scribe": "기록",  # 10/24 감사 L5(runs 키 혼재)
 }
 # 한글 별칭 → 보드 이름 (커밋·잠금에 쓰인 다른 이름)

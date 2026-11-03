@@ -43,7 +43,7 @@ DESK_KO = {
     "derivs": "파생", "analyst": "애널", "dev": "개발", "edu": "교육", "data": "데이터", "verify": "검증",
     "eval": "평가", "peer": "피어리뷰", "behavior": "행동", "audit": "감사", "maint": "유지보수", "uxui": "UXUI",
     "realestate": "부동산", "scribe": "기록", "household": "내무", "compliance": "컴플라이언스",
-    "posrisk": "포지션리스크", "front": "프론트", "hf": "HF",
+    "posrisk": "포지션리스크", "front": "프론트", "hf": "HF", "data_eng": "데이터엔지니어",
     "msg": "사내톡", "round": "라운드 종합", "owner": "오너 자료", "etc": "기타",
 }
 # 접두 별칭 (파일명에 쓰인 줄임말 → 키)

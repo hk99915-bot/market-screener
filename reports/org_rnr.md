@@ -1,7 +1,7 @@
 {
  "_doc": "🗽 FREEMAN 탭 '📋 R&R' 데이터(tab_freeman freeRnr, getMarkdown('org_rnr') — Code.gs raw_('reports/org_rnr.md')·Pages SHIM 같은 경로, 새 getter 없음; 내부판 전용 화면). 원천 = docs/desk_kb/ORG.md + 각 데스크 KB 경계 줄(src) + 11/3 겸이 R&R 경계 결정. 줄 고침은 운영(ORG 소유)·각 데스크가 이 파일에서. 화면은 이 파일만 읽음(하드코딩 금지). 개인 금액·보유 금지(공개 파일).",
  "asof": "2026-11-03",
- "status": "11/3 경계 반영 — 운영·각 데스크 검수 전",
+ "status": "11/3 경계 반영(데이터엔지니어 신설 반영) — 운영·각 데스크 검수 전",
  "principle": "본부는 묶음(상하 아님) — 데스크 간은 요청만, 충돌은 양쪽 기록 후 겸이 결정. 결정은 겸이, 데스크는 추천 + 뒤집힐 조건까지.",
  "layers": [
   {
@@ -146,6 +146,14 @@
    "does": "수집원·정의·약관 확인, 데이터 품질·백필",
    "dont": "약관 금지 용도 사용, 원문 전문 저장",
    "src": "docs/desk_kb/data.md 못 쓰는 것·RSS 약관"
+  },
+  {
+   "key": "data_eng",
+   "bureau": "리서치",
+   "layer": "백",
+   "does": "수집기·백필·스키마 구현(보드 데이터 대기 구현성 21건 인수), 구현 뒤 행 수·기간·결측을 숫자로 데이터에 인계 — 온디맨드",
+   "dont": "데이터 품질 판정(데이터), 화면(프론트), 장애 복구(유지보수), 수집 무관 서버·workflows(개발), 상시 라운드 참여",
+   "src": "docs/desk_kb/data_eng.md · 11/3 겸이 19:25 결재"
   },
   {
    "key": "frm",
@@ -351,6 +359,12 @@
    "owner": "alloc",
    "input": "각 데스크 — 의견만",
    "dont": "결재는 cio(→겸이), alloc 은 결정 안 함·각 데스크는 의견만"
+  },
+  {
+   "topic": "수집 파이프라인 — 판정 vs 구현 vs 복구 vs 서버",
+   "owner": "data_eng",
+   "input": "data — 수집원·정의·약관·품질 판정 / maint — 멈춘 수집 복구·재발 방지 요청",
+   "dont": "data_eng 는 품질 판정 안 함(data)·장애 복구 안 함(maint)·수집 무관 서버·workflows 안 건드림(dev)·화면 안 만짐(front)"
   }
  ],
  "dual": [
