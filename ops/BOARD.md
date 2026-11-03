@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-03 · 작업 444개 · 진행 7 · 검수 4 · 대기 124 · 보류 30 · 완료 279
+기준일 2026-11-03 · 작업 445개 · 진행 7 · 검수 4 · 대기 125 · 보류 30 · 완료 279
 
 **결재 대기 4:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이)
 
@@ -29,7 +29,7 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | 2026-11-03 | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. / 11/01 PM 늦은 일 정리(유효): 유효: 11/02(월) 23:20 루프 기동·06:00 재개 실측 뒤 완료 |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (124)
+## 대기 (125)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -154,6 +154,7 @@
 | P2 ⏫P1 10-21 | `score-calib` | 점수 보정 — Trend/Momentum/Reversal 분포·상한 도달 빈도, 구간별 5/20/60일 수익, 지표 제거 실험 | 퀀트 | — | 2026-12-02 | `screener/scoring.py`<br>`screener/indicators.py`<br>`tests/test_indicators_edge.py` | `px-adjust-unify` | 외부감사 2절. 경계조건(0분모·NaN·정지) 테스트 포함. 유니버스 생존편향은 '현재 구성 후향분석' 라벨로 명시. / 11/01 PM 늦은 일 정리(유효): 유효: 선행 완료, 외부감사 2절 — Pro 전환 뒤 |
 | P2 ⏫P1 10-21 | `token-meter-real-usage` | 에이전트 토큰 실측 기록 — team_run 에 transcript 누적(calls·cache_read·신규) 옵션 + team_stats 데스크×모델 표 | 개발 | — | 2026-12-03 | `scripts/team_run.py`<br>`scripts/team_stats.py`<br>`tests/test_team_stats.py` | — | 내무 요청(10/17 토큰 원가센터). 10/17 대조: runs.tokens 는 마지막 호출 컨텍스트 크기에 가까워 실제 누적 처리량의 약 1/30, 기록 누락도 있음(10/16 실측 37건 vs 기록 5건). team_run.py --transcript <agent jsonl> 로 message.id 중복 제거 합산 → runs 에 calls·cache_read·new 추가(기존 tokens 유지). team_stats by_owner_model 추가. 금액은 넣지 않음(토큰·건수만). pro-plan-round-scale(11/5) 입력. / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-05→11-17 |
 | P2 ⏫P1 10-21 | `memproxy-line` | 장전 브리핑에 밤사이 메모리(MU·DRAM·SKHY) 한 줄 | PB | — | — | `screener/briefings.py` | `night-futures-line` | 패치 초안 준비됨, 겸이 승인 대기. night-futures-line 과 같은 파일(briefings.py) — 그 검수 끝난 뒤 적용. 규칙 동결(10/16~11/15)과 무관한 정보 한 줄이라 허용. 승인 없으면 11/16 이후. |
+| P3 | `front-exports-kr` | 한국 수출(관세청 10일·월간 잠정, 산업부 품목) 화면 연결 — reports/exports_kr.json 칸 읽기 + 금투협 공지 신규 배지(reports/feeds/kofia_notice.json) | 프론트 | — | 2026-11-14 | `reports/exports_kr.json`<br>`reports/feeds/kofia_notice.json` | — | 11/3 데이터엔지니어 수집 완료: monthly{YYYY-MM:{customs,motie_items}}·periods{10일 단위}·series_customs(2025~26 월별 수출 백만달러). 단위는 칸마다 명시, 잠정치(2027-02 확정). 화면 칸 요청은 프론트 판단. |
 | P3 ⏫P1 10-23 | `jiang-prediction-ledger` | Jiang Xueqin(Predictive History) 예측 장부 채우기·판정 — reports/views/jiang_predictions.json (영상 제목·설명에 명시된 예측만, 기한·반증 가능성 표기) | 검증 | — | 2026-11-23 | `reports/views/jiang_predictions.json` | `public-reports` | 애널이 빈 장부만 생성(verdict=null). 참고 뷰 — 우리 판단·매매에 쓰지 않음. 기한 없는 예측은 falsifiable=false 로 따로 셈. / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-07→11-23 |
 | P3 | `tg-forward-library` | 텔레그램 봇 전달(forward) → 리포트 서고 카드(제목·증권사·한 줄·원 링크, 그림 저장 안 함) — 미리보기 꺼진 리포트 채널 대안 | 개발 | — | 2026-11-23 | `apps-script/TelegramHook.gs`<br>`scripts/build_library.py` | — | 11/1 겸이 리포트 채널 요청 — t.me/s 302(미리보기 꺼짐), 계정 로그인 수집은 보안상 비권고. 11/7 저장소 분리 뒤 착수, GAS 재붙여넣기 1회 필요. |
 | P3 ⏫P1 10-21 | `us-accum-pead` | S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정 | 퀀트 | — | 2026-11-30 | `scripts/study_us_accum.py`<br>`reports/studies/us_accum.md` | `us-accum` | 실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. |

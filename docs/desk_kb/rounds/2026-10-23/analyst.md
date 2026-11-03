@@ -14,6 +14,7 @@
 1-b) (11/3 추가) docs/desk_kb/themes.md '기준값 로그'의 지표를 출처 파일(committee·committee_us·bonds·valuation·macro_view·feeds)에서 1줄씩 다시 읽어 대조한다.
    변화 기준(score ±0.10·종목 수 ±1·금리 ±10bp·환율 ±1%·계약가 방향·신규 공시)을 넘으면 digest 보고에 '테마' 칸(테마당 1줄: T# 지표 이전→지금·출처·기준일·트리거 근접)을 넣고
    themes.md 로그 값·'마지막 점검'을 갱신해 같은 커밋에 넣는다. 변화 없으면 '마지막 점검' 날짜만 갱신. 트리거 도달은 5) PB 보고에 1줄.
+1-c) (11/3 추가) reports/feeds/kofia_notice.json 의 items 중 collected 가 최근 2일인 '금투협 공지 신규'를 1줄씩 읽는다(시총비중→펀드 편입 한도 월간 갱신, 채권시장 전망, 규정제도, 자격시험). 숫자는 PDF 첨부에만 있으니 링크 확인 전 인용 금지. exam_schedule:true 는 겸이 D-day 연결을 위해 PB 보고에 제목만 1줄(공개 저장소엔 개인 일정 금지). reports/exports_kr.json 에 새 월/10일 수출(반도체 등)이 있으면 같이 1줄.
 2) 재료 = public_reports summary · jiang desc · (개발 req-dev-d08bcc86 완료 후) data_store pull --groups digest_src 의 자막/본문 발췌 · 웹검색 공개 요약.
 3) 항목마다 {id,src,date,title,link,status,summary[3~5줄 핵심 주장·숫자],view(입장·근거·과거 예측 적중),our_take(우리 포트·운용회의 함의),
    grade(요약 등급·해석 등급),material(재료 출처·기준일),by:'애널',written_at}. 재료 없으면 summary[0]='요약 재료 없음 — <무엇> 수집 후', 지어내지 말 것.

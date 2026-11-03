@@ -2,6 +2,7 @@ name: tg_feed
 
 # 공개 텔레그램 관찰 피드 9채널(ops/tg_feeds.json) → reports/feeds/tg_*.json (11/1 PB 지시). 매크로 데스크 관찰 입력.
 # 공개 웹 미리보기만(로그인·토큰 없음). 칸 = 글 id·시각·첫 줄 120자·링크·사진 URL·링크 og 메타·직전 3개/답장/전달(본문 미저장).
+# + 금투협 공지(kofia_notice.py → reports/feeds/kofia_notice.json)·한국 수출(exports_kr.py → reports/exports_kr.json) 단계 부착(11/3).
 # 매일 08:13·20:13 KST, 1회 커밋(모든 채널 묶음). 새 글이 없으면 파일이 안 바뀌어 커밋 없음(같은 날 커밋 폭주 방지).
 # reports/feeds/tg_why.json 은 데스크가 쓰는 파일 — 덮어쓰지 않는다(origin 것을 그대로 두고, 없을 때만 빈 틀 생성).
 on:
@@ -33,15 +34,23 @@ jobs:
           python-version: "3.12"
       - name: 수집
         run: python scripts/tg_feed.py --pages 2
+      - name: 금투협 공지 + 한국 수출 (11/3 데이터엔지니어 — 새 워크플로 대신 이 수집에 단계로 부착)
+        continue-on-error: true
+        run: |
+          python scripts/kofia_notice.py --pages 2 || true
+          python scripts/exports_kr.py --days 45 || true
       - name: 저장
         if: github.event_name != 'workflow_dispatch' || inputs.commit == 'true'
         run: |
           git config user.name "screener-bot"; git config user.email "screener-bot@users.noreply.github.com"
           mkdir -p /tmp/feeds; cp reports/feeds/tg_*.json /tmp/feeds/; rm -f /tmp/feeds/tg_why.json
+          mkdir -p /tmp/extra; cp reports/feeds/kofia_notice.json reports/exports_kr.json /tmp/extra/ 2>/dev/null || true
           for i in 1 2 3; do
             git fetch -q origin main && git reset -q --hard origin/main && mkdir -p reports/feeds && cp /tmp/feeds/*.json reports/feeds/
+            [ -f /tmp/extra/kofia_notice.json ] && cp /tmp/extra/kofia_notice.json reports/feeds/
+            [ -f /tmp/extra/exports_kr.json ] && cp /tmp/extra/exports_kr.json reports/
             [ -f reports/feeds/tg_why.json ] || python -c "import sys; sys.path.insert(0, 'scripts'); import tg_feed, pathlib; tg_feed.ensure_why(pathlib.Path('reports/feeds/tg_why.json'))"
-            git add reports/feeds/tg_*.json; git diff --cached --quiet && { echo "새 글 없음 — 커밋 없음"; break; }
+            git add reports/feeds/tg_*.json reports/feeds/kofia_notice.json reports/exports_kr.json; git diff --cached --quiet && { echo "새 글 없음 — 커밋 없음"; break; }
             git commit -qm "macro: tg 관찰 피드 $(date -u +%FT%H:%M)" && git push -q origin HEAD:main && break
             sleep 5
           done

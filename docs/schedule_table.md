@@ -106,6 +106,7 @@
 | reports/freshness.json | briefing 실행 끝마다 | health 08:20·20:10 | 멱등 재계산(현재 상태 스냅샷) — 덮어써도 역행 없음 |
 | health.json | health 일 22:00 | — | 단일 |
 | reports/feeds/tg_*.json (공개 텔레그램 9채널, `ops/tg_feeds.json`) | tg_feed 08:13·20:13 매일 (cron 단독, 1회 커밋 묶음, 새 글 없으면 커밋 없음) | 수동 tg_feed(읽기 전용 기본) | 단일 — 매크로 관찰 입력 |
+| reports/feeds/kofia_notice.json (금투협 공지 m_17 시장 태그) · reports/exports_kr.json (관세청·산업부 수출 잠정치) | tg_feed.yml 의 단계로 부착 — 08:13·20:13 (새 건 없으면 커밋 없음) | 수동 tg_feed | 단일 — 애널 digest 1-c 입력 (데이터엔지니어 11/3) |
 | reports/feeds/tg_why.json (why·채널 2주 채점) | PB 쪽 예약(데스크 에이전트) — tier 1 평일 저녁·tier 2 토요일 | tg_feed 는 없을 때 빈 틀만 생성 | 단일 — 데스크 소유, 워크플로 LLM 호출 없음 |
 | lab.json · scorecard_week · study_daily.json | lab 일 23:00 · scorecard 일 08:30 · study_daily 평일 07:10 | — | 단일 |
 | changelog · reports/ops · ops/BOARD.md | ops 23:47 | — | 단일 |
