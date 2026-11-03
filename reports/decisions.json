@@ -4474,6 +4474,168 @@
     "void": "나 미제출 — 채점 제외",
     "scored_at": "2026-11-03 01:35"
    }
+  },
+  {
+   "id": "2026-11-03-entry",
+   "date": "2026-11-03",
+   "kind": "entry",
+   "title": "진입 타점 대결",
+   "note": "",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "cash": true,
+     "by": "PB 재량",
+     "at": "14:44"
+    },
+    "PB🔥": {
+     "ticker": "122630",
+     "name": "KODEX 레버리지",
+     "notional": 2000000.0,
+     "entry": "close",
+     "exit": "next_open",
+     "by": "공격 PB",
+     "at": "14:44",
+     "lev_cap": "레버리지 +2배 보유 상한 1일(결재 #14)",
+     "lev_drag": "리셋 비용: KODEX 레버리지 +2배 일일 리셋 — 2일 보유·지수 ±3% 왕복 가정: 지수 -0.09% → 2배 기대 -0.18% vs 실제 -0.36% (끌림 -0.18%p). 보유 길수록·흔들릴수록 커진다"
+    }
+   },
+   "pb_view": {
+    "why": "현금 유지. 위성 신규 매수 금지 마지막 날([6] 10/30 발동, 11/3까지)이고, 14:39 기준 코스피 −3.79%라 반등일 조건(14:30 +0.5% 이상)도 충족하지 못한다. 실시간 재계산 구속 스트레스는 −13.93%로 한도 안이다. 11/4 금지 해제 뒤에도 신규 진입은 사전 주문표가 있어야 검토한다.",
+    "lines": [
+     "코스피 5,637(−3.79%, 14:39) · 반등일 미충족",
+     "구속 스트레스 −13.93%(실시간 재계산) · 한도 −15% 내",
+     "위성 신규 금지 11/3까지 · 반도체 VaR 플래그 유지",
+     "레드팀: 기술적 반등이 오면 현금은 1~2%를 놓치지만 규칙상 대안 없음"
+    ],
+    "conviction": "보통",
+    "at": "14:44",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 금지일·반등 미확인"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0,
+     "note": "위성 신규 매수 금지([6], 11/3까지) 게이트로 실계좌 진입 없음."
+    },
+    "crash_day_cash": false,
+    "views_asof": "2026-11-03 14:20",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 0/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "역풍",
+      "b": "bear"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 5 / 축소 6",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 8회 · 5일 초과 +2.3%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 1건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "코스피 장중 −3.8% 급락 뒤 다음 날 시가 기술적 반등을 노린 모의 롱이다. 손절 −3%, 목표 +3%, 손익비 1.0이고 승률은 검증 전이다. 실계좌 적용: 불가(모의 전용·레버리지 금지)",
+     "plan": {
+      "target": 0.03,
+      "stop": -0.03,
+      "rr": 1.0,
+      "win_rate": null,
+      "n": null,
+      "ev": null,
+      "basis": "당일 낙폭 기준, 승률 검증 전"
+     }
+    }
+   },
+   "crash_day": false
   }
  ],
  "tally": {
