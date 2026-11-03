@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-03 14:20",
+ "asof": "2026-11-03 15:51",
  "date": "2026-11-03",
  "registry_updated": "2026-10-16",
  "summary": {
@@ -39,14 +39,14 @@
      "grade": "C"
     }
    ],
-   "tilt": null,
+   "tilt": 1.0,
    "weights": [
     {
      "id": "crash_day_close",
      "name": "급락일 종가 진입 (기다리지 않기)",
-     "state": "해당 없음",
+     "state": "급락일(−3%)",
      "grade": "B",
-     "sign": null
+     "sign": 1
     }
    ],
    "alerts": [
@@ -62,14 +62,14 @@
      "name": "옵션 감마·풋콜 (코스피200)",
      "state": "감마 음수",
      "grade": "검증전",
-     "line": "풋/콜 OI 1.135 · ATM IV 0.5967 · RV20 0.596 — 흔들림 큼, 사이즈 주의"
+     "line": "풋/콜 OI 1.134 · ATM IV 0.5984 · RV20 0.5944 — 흔들림 큼, 사이즈 주의"
     },
     {
      "id": "ai_credit",
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -59.9%, 20일 −20%↓ 6/8종목(CIFR, IREN, APLD, CRWV, WULF, NBIS), HYG 1M +0.7%, VIX 19.4 · 최약 CIFR -75%, IREN -69%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.9%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, CRWV, WULF, CORZ, NBIS), HYG 1M -0.0%, VIX 21.1 · 최약 CIFR -76%, IREN -71%"
     }
    ],
    "reference": [
@@ -82,7 +82,7 @@
     {
      "id": "foreign_flow",
      "name": "외국인 현물 순매수 (코스피)",
-     "state": "순매도",
+     "state": "대량 순매도",
      "grade": "검증전"
     },
     {
@@ -201,7 +201,7 @@
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -59.9%, 20일 −20%↓ 6/8종목(CIFR, IREN, APLD, CRWV, WULF, NBIS), HYG 1M +0.7%, VIX 19.4 · 최약 CIFR -75%, IREN -69%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.9%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, CRWV, WULF, CORZ, NBIS), HYG 1M -0.0%, VIX 21.1 · 최약 CIFR -76%, IREN -71%"
     }
    ],
    "reference": [
@@ -214,7 +214,7 @@
     {
      "id": "foreign_flow",
      "name": "외국인 현물 순매수 (코스피)",
-     "state": "순매도",
+     "state": "대량 순매도",
      "grade": "검증전"
     },
     {
@@ -333,7 +333,7 @@
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -59.9%, 20일 −20%↓ 6/8종목(CIFR, IREN, APLD, CRWV, WULF, NBIS), HYG 1M +0.7%, VIX 19.4 · 최약 CIFR -75%, IREN -69%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.9%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, CRWV, WULF, CORZ, NBIS), HYG 1M -0.0%, VIX 21.1 · 최약 CIFR -76%, IREN -71%"
     }
    ],
    "reference": [
@@ -425,7 +425,7 @@
    "review_by": "2026-11-15",
    "state": "하락장",
    "value": {
-    "dd20": -0.1634,
+    "dd20": -0.1967,
     "below200": true,
     "above20": false
    },
@@ -435,7 +435,7 @@
     "allocation": "fail"
    },
    "note": "하락장 = 위성 북 노출 상한 낮춤 (수치는 개인 규정)",
-   "asof": "2026-11-02"
+   "asof": "2026-11-03"
   },
   {
    "id": "crash_day_close",
@@ -450,16 +450,16 @@
     "allocation": "none"
    },
    "review_by": "2026-11-15",
-   "state": "해당 없음",
+   "state": "급락일(−3%)",
    "value": {
-    "ret1": 0.0224,
-    "dd20": -0.1634
+    "ret1": -0.0398,
+    "dd20": -0.1967
    },
-   "bias": null,
+   "bias": "bull",
    "alert": false,
    "gate": {},
-   "note": "",
-   "asof": "2026-11-02"
+   "note": "진입한다면 오늘 종가에 — 확인 신호를 기다리면 평균적으로 더 비싸게 삼 (지수 대비 초과수익 근거는 아님)",
+   "asof": "2026-11-03"
   },
   {
    "id": "confirm_signals",
@@ -480,7 +480,7 @@
    "alert": false,
    "gate": {},
    "note": "강등된 신호 — 진입 근거로 인용 금지",
-   "asof": "2026-11-03 13:35"
+   "asof": "2026-11-03 15:51"
   },
   {
    "id": "foreign_flow",
@@ -495,13 +495,13 @@
     "allocation": "none"
    },
    "review_by": "2026-11-15",
-   "state": "순매도",
-   "value": -3743.0,
+   "state": "대량 순매도",
+   "value": -15155.0,
    "bias": "bear",
    "alert": false,
    "gate": {},
-   "note": "-0.37조 (마감, 오늘 아님)",
-   "asof": "2026-11-02 15:49"
+   "note": "-1.52조 (마감)",
+   "asof": "2026-11-03 15:49"
   },
   {
    "id": "macro_wind",
@@ -517,12 +517,12 @@
    },
    "review_by": "2026-11-15",
    "state": "역풍",
-   "value": -0.2,
+   "value": -0.19,
    "bias": "bear",
    "alert": false,
    "gate": {},
    "note": "역풍",
-   "asof": "2026-11-02"
+   "asof": "2026-11-03"
   },
   {
    "id": "breadth_kr",
@@ -568,7 +568,7 @@
    "alert": false,
    "gate": {},
    "note": "근거 '20일 −15% 이상 하락 중' n=176",
-   "asof": "2026-11-03 13:35"
+   "asof": "2026-11-03 15:51"
   },
   {
    "id": "stock_trend_score",
@@ -626,12 +626,12 @@
    },
    "review_by": "2026-11-15",
    "state": "감마 음수",
-   "value": -306.2,
+   "value": -306.3,
    "bias": null,
    "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.135 · ATM IV 0.5967 · RV20 0.596 — 흔들림 큼, 사이즈 주의",
-   "asof": "2026-11-03 14:20"
+   "note": "풋/콜 OI 1.134 · ATM IV 0.5984 · RV20 0.5944 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-11-03 15:51"
   },
   {
    "id": "gamma_regime",
@@ -647,12 +647,12 @@
    },
    "review_by": "2026-12-16",
    "state": "감마 음수",
-   "value": -306.2,
+   "value": -306.3,
    "bias": null,
    "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.135 · ATM IV 0.5967 · RV20 0.596 — 흔들림 큼, 사이즈 주의",
-   "asof": "2026-11-03 14:20"
+   "note": "풋/콜 OI 1.134 · ATM IV 0.5984 · RV20 0.5944 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-11-03 15:51"
   },
   {
    "id": "ai_credit",
@@ -672,8 +672,8 @@
    "bias": "bear",
    "alert": true,
    "gate": {},
-   "note": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -59.9%, 20일 −20%↓ 6/8종목(CIFR, IREN, APLD, CRWV, WULF, NBIS), HYG 1M +0.7%, VIX 19.4 · 최약 CIFR -75%, IREN -69%",
-   "asof": "2026-10-30"
+   "note": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.9%, 20일 −20%↓ 7/8종목(CIFR, IREN, APLD, CRWV, WULF, CORZ, NBIS), HYG 1M -0.0%, VIX 21.1 · 최약 CIFR -76%, IREN -71%",
+   "asof": "2026-11-02"
   },
   {
    "id": "stock_bond_corr",
@@ -694,7 +694,7 @@
    "alert": false,
    "gate": {},
    "note": "장기채보다 단기채·현금",
-   "asof": "2026-11-02"
+   "asof": "2026-11-03"
   },
   {
    "id": "us10y",
@@ -734,7 +734,7 @@
    },
    "review_by": "2026-12-15",
    "state": "평온",
-   "value": 0.007,
+   "value": 0.0022,
    "bias": null,
    "alert": false,
    "gate": {},
@@ -822,7 +822,7 @@
    "alert": false,
    "gate": {},
    "note": "표본 부족 — 재등급 전",
-   "asof": "2026-11-03 13:35"
+   "asof": "2026-11-03 15:51"
   },
   {
    "id": "event_calendar",
