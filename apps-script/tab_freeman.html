@@ -26,9 +26,9 @@
 #frnr{margin-top:8px;font-size:var(--fs-2);line-height:1.55;min-width:0;overflow-wrap:anywhere}#frnr[hidden]{display:none}
 #frnr .frnr-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:6px;margin-top:4px}
 #frnr .frnr-c{border:1px solid var(--line);padding:8px;min-width:0}#frnr .frnr-s{font-size:var(--fs-1)}#frnr .frnr-h{margin-top:10px}#frnr .frnr-bu{margin-top:8px}
-#frnr .frnr-t{width:100%;border-collapse:collapse;margin-top:4px;table-layout:fixed}#frnr .frnr-t th,#frnr .frnr-t td{border:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+#frnr .frnr-t{width:100%;border-collapse:collapse;margin-top:4px;table-layout:fixed;white-space:normal}#frnr .frnr-t th,#frnr .frnr-t td{border:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
 #frnr .frnr-fl{margin-top:8px}#frnr .frnr-fl ol{margin:4px 0 0;padding-left:20px}#frnr .frnr-fl li{margin:3px 0}
-@media(max-width:600px){#frnr .frnr-t thead{display:none}#frnr .frnr-t,#frnr .frnr-t tbody,#frnr .frnr-t tr,#frnr .frnr-t td{display:block;width:100%}#frnr .frnr-t tr{border:1px solid var(--line);margin-bottom:6px}#frnr .frnr-t td{border:0}#frnr .frnr-t td::before{content:attr(data-l) " ";color:var(--muted);font-size:var(--fs-1)}}</style>
+@media(max-width:600px){#frnr .frnr-t thead{display:none}#frnr .frnr-t,#frnr .frnr-t tbody,#frnr .frnr-t tr,#frnr .frnr-t td{display:block;width:100%}#frnr .frnr-t tr{border:1px solid var(--line);margin-bottom:6px}#frnr .frnr-t td{border:0;text-align:left;position:static;max-width:none}#frnr .frnr-t td::before{content:attr(data-l) " ";color:var(--muted);font-size:var(--fs-1)}}</style>
 <script>
 /* ───── 📋 R&R (11/3 겸이 「웅 ㄱㄱ」 ③ — 보드 org-rnr, 내부판 전용) — 데이터 = reports/org_rnr.md(JSON) 하나만 읽음, 화면 하드코딩 금지.
    getter = 기존 getMarkdown('org_rnr')(새 getter 없음). 데스크 키는 위 본부 OKR 카드와 같은 키(data-k). 줄 고침은 데이터 파일에서(운영·각 데스크). */
