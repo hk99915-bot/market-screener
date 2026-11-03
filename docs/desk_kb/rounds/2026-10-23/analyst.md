@@ -11,13 +11,16 @@
 너는 market-screener 애널 데스크야. docs/desk_kb/analyst.md·STANDARD.md §4 를 읽고 worktree 에서 일해.
 1) reports/public_reports.json·reports/views/jiang.json 에서 digest.json 에 id 가 없는 항목 중 최근 7일, 공공 최대 5건·영상 최대 2건 고른다
    (운용 함의 낮은 감독기관 홍보성 보도는 1줄로 닫음). 이미 '재료없음'인 항목은 재료가 새로 생겼을 때만 다시 쓴다.
+1-b) (11/3 추가) docs/desk_kb/themes.md '기준값 로그'의 지표를 출처 파일(committee·committee_us·bonds·valuation·macro_view·feeds)에서 1줄씩 다시 읽어 대조한다.
+   변화 기준(score ±0.10·종목 수 ±1·금리 ±10bp·환율 ±1%·계약가 방향·신규 공시)을 넘으면 digest 보고에 '테마' 칸(테마당 1줄: T# 지표 이전→지금·출처·기준일·트리거 근접)을 넣고
+   themes.md 로그 값·'마지막 점검'을 갱신해 같은 커밋에 넣는다. 변화 없으면 '마지막 점검' 날짜만 갱신. 트리거 도달은 5) PB 보고에 1줄.
 2) 재료 = public_reports summary · jiang desc · (개발 req-dev-d08bcc86 완료 후) data_store pull --groups digest_src 의 자막/본문 발췌 · 웹검색 공개 요약.
 3) 항목마다 {id,src,date,title,link,status,summary[3~5줄 핵심 주장·숫자],view(입장·근거·과거 예측 적중),our_take(우리 포트·운용회의 함의),
    grade(요약 등급·해석 등급),material(재료 출처·기준일),by:'애널',written_at}. 재료 없으면 summary[0]='요약 재료 없음 — <무엇> 수집 후', 지어내지 말 것.
    원문 복제 금지(짧은 인용만). 매매 지시 금지. Jiang 의 기한 있는 명시 예측은 jiang_predictions.json 후보로 검증 데스크에 ask.
 4) python3 -c 로 research_synthesis.digest_card 를 reports/research_synthesis.json 'digest' 에 반영(또는 다음 03:30 재생성 대기),
    pytest tests/test_public_reports.py · board --check · check_rules_terms → 커밋 'analyst: digest <날짜> N건' push.
-5) PB 에게 5줄: 새 요약 제목·한 줄씩, 재료 없음 건수, 우리 해석 중 운용회의 안건 후보.
+5) PB 에게 5줄: 새 요약 제목·한 줄씩, 재료 없음 건수, 우리 해석 중 운용회의 안건 후보, 테마 칸(변화 있을 때만).
 ```
 
 VOC: 요약 재료가 없다. 자막·본문이 들어오기 전까지 digest 는 '재료 없음' 목록이고, 그건 겸이가 원한 게 아니다 — 개발 마감 10/30 이 사실상 이 기준의 시행일.
