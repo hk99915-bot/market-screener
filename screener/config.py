@@ -65,6 +65,7 @@ class Cfg:
         "DXY": "DX-Y.NYB", "VIX": "^VIX", "SPX": "^GSPC", "KOSPI": "^KS11", "KOSDAQ": "^KQ11",
         "NASDAQ": "^IXIC", "RUT": "^RUT", "GOLD": "GC=F", "BTC": "BTC-USD",
         "NIKKEI": "^N225", "TOPIX": "1306.T",   # 일본 (도쿄도 09:00 KST 개장) — 야후에 TOPIX 지수(^TOPX)가 없어 TOPIX ETF 로 대체
+        "SOX": "^SOX", "SOXX": "SOXX",   # 반도체: 필라델피아반도체지수 + iShares ETF (겸이 11/4 req-data_eng-1cd9cbd1, 아침 브리핑 SOX 미확인 방지)
     })
     telegram_token: str = os.environ.get("TELEGRAM_TOKEN", "")
     telegram_chat: str = os.environ.get("TELEGRAM_CHAT_ID", "")
