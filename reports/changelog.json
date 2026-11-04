@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-03 07:55 KST",
+ "generated_at": "2026-11-05 05:57 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,12 +16,12 @@
  "first": "2026-10-15",
  "days": [
   {
-   "date": "2026-11-03",
-   "total": 79,
-   "work": 2,
-   "auto": 77,
+   "date": "2026-11-05",
+   "total": 76,
+   "work": 3,
+   "auto": 73,
    "by": {
-    "bot": 2
+    "bot": 3
    },
    "areas": [
     {
@@ -29,6 +29,2096 @@
      "label": "운영",
      "n": 1,
      "items": [
+      {
+       "sha": "ddd1a19a",
+       "time": "00:29",
+       "kind": "bot",
+       "summary": "team: 2026-11-04T15:29 (원격 최신 위 재생성)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 2,
+     "items": [
+      {
+       "sha": "4be3c22d",
+       "time": "05:25",
+       "kind": "bot",
+       "summary": "US heatmap: scheduled quote refresh",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "48585882",
+       "time": "03:37",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-04T18:37",
+       "areas": [
+        "data"
+       ],
+       "files": 9,
+       "tasks": []
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 73,
+    "label": "자동 갱신 73회",
+    "kinds": {
+     "live": 68,
+     "backfill": 1,
+     "accum": 1,
+     "health": 1,
+     "fin": 1,
+     "briefing": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 1
+   }
+  },
+  {
+   "date": "2026-11-04",
+   "total": 295,
+   "work": 119,
+   "auto": 176,
+   "by": {
+    "bot": 63,
+    "agent": 56
+   },
+   "areas": [
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 2,
+     "items": [
+      {
+       "sha": "c891a9eb",
+       "time": "12:47",
+       "kind": "agent",
+       "summary": "dev: 토스 EOD 검증 pass=집계 기준 명시(basis) + 배당락 소급조정 재현 테스트 (req-dev-fa0cd143)",
+       "areas": [
+        "engine",
+        "tools",
+        "docs"
+       ],
+       "files": 3,
+       "tasks": [
+        "us-eod-toss"
+       ]
+      },
+      {
+       "sha": "3f053c16",
+       "time": "12:47",
+       "kind": "agent",
+       "summary": "data_eng: macro_series 에 반도체 SOX(^SOX)·SOXX 일봉 OHLCV 추가 (req-data_eng-1cd9cbd1)",
+       "areas": [
+        "engine",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": [
+        "cio-top3-fix",
+        "us-eod-toss",
+        "display-clarity"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 13,
+     "items": [
+      {
+       "sha": "a7a31a0b",
+       "time": "22:50",
+       "kind": "agent",
+       "summary": "pm: 11/4 22:30 PM 대조 — 에이전트 완료 63건·메인 대화 행 추가, 평가 학습 리포트·study_progress 병합",
+       "areas": [
+        "ops",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system",
+        "study-progress"
+       ]
+      },
+      {
+       "sha": "ba752904",
+       "time": "20:51",
+       "kind": "agent",
+       "summary": "pm: 사내 메신저 라운드 11/04 20:42 기록·피드·에이전트 사용량 (닫음 2·VOC 3)",
+       "areas": [
+        "ops",
+        "docs",
+        "data"
+       ],
+       "files": 5,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8d57f790",
+       "time": "20:46",
+       "kind": "agent",
+       "summary": "dev: 연습북 겸이 원문 공개본 제거(src_ref만)·쓰기 금지 테스트 + parquet 전수 표(data-parquet-out 1조각)",
+       "areas": [
+        "ops",
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 8,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8ec1676d",
+       "time": "18:29",
+       "kind": "agent",
+       "summary": "pb: 저장소 용량 대책 P0 2건(parquet 제외·live-data 분리, 11/6 전)",
+       "areas": [
+        "ops",
+        "etc"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "1fd2b93b",
+       "time": "17:43",
+       "kind": "agent",
+       "summary": "pb: 보드 pchat 동시성 결함 P1 등록",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "afa5254e",
+       "time": "16:44",
+       "kind": "agent",
+       "summary": "pb: 통합운영 담당(A=CIO·R=운영) 확정, 보드 S1~S3·후속 요청 4건",
+       "areas": [
+        "ops",
+        "docs",
+        "etc"
+       ],
+       "files": 4,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "28343a70",
+       "time": "15:33",
+       "kind": "bot",
+       "summary": "team: 2026-11-04T06:33 (원격 최신 위 재생성)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "0b7755a9",
+       "time": "12:48",
+       "kind": "agent",
+       "summary": "pm: 사내 메신저 라운드 11/04 12:42 기록·피드·에이전트 사용량 (닫음 1·VOC 2)",
+       "areas": [
+        "ops",
+        "docs",
+        "data"
+       ],
+       "files": 4,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d621e672",
+       "time": "08:46",
+       "kind": "agent",
+       "summary": "pm: 11/4 아침 데스크 8건 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "bd6bea70",
+       "time": "08:27",
+       "kind": "bot",
+       "summary": "team: 2026-11-03T23:27 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "1407ad4a",
+       "time": "07:53",
+       "kind": "agent",
+       "summary": "pm: 애널 digest 11/4 사용량(추정 — 완료 알림 전)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "0e9a738b",
+       "time": "06:00",
+       "kind": "bot",
+       "summary": "운영 — 2026-11-03T21:00 (원격 최신 위 재생성)",
+       "areas": [
+        "ops",
+        "data",
+        "etc"
+       ],
+       "files": 8,
+       "tasks": [
+        "ops-system",
+        "uxui-quant",
+        "quant-trend-adopt-pending"
+       ]
+      },
+      {
+       "sha": "c2ca7712",
+       "time": "02:53",
+       "kind": "bot",
+       "summary": "team: 2026-11-03T17:53 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 3,
+     "items": [
+      {
+       "sha": "9e75ce8e",
+       "time": "20:49",
+       "kind": "agent",
+       "summary": "quant: 급락일 종가 F·장중 5분류 C2/F8·B1 구간 재확인(체제 비의존, 절대 E[R] 8/16해) 결과",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "fc75159a",
+       "time": "15:12",
+       "kind": "agent",
+       "summary": "hf: 연습 장부 추세추종 v2(+2R 본전·+3R 1/3 익절), 삼성중공업 손절 본전 상향",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "c21ee491",
+       "time": "15:10",
+       "kind": "agent",
+       "summary": "hf: 코스피 장중 패턴 트래킹(전강후약·전약후강) 추가",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 5,
+       "tasks": [
+        "hf-alphabook"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 48,
+     "items": [
+      {
+       "sha": "839b3e14",
+       "time": "23:19",
+       "kind": "agent",
+       "summary": "hf: 11/04 23:19 미장 회차 — 재량 없음",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "47d93ccf",
+       "time": "20:52",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T11:52 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "60dbfcb4",
+       "time": "20:50",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T11:50 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5acd13fc",
+       "time": "20:49",
+       "kind": "agent",
+       "summary": "quant: 11/4 라운드 — 급락일 종가·장중 5분류·B1 결과와 못 한 범위",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "32b13b25",
+       "time": "20:47",
+       "kind": "agent",
+       "summary": "dev: 요청 회신·라운드 기록 (c396adfc 닫음, c07dc7f2 첫 조각 보고)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "1ac66b29",
+       "time": "20:47",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T11:47 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1172c607",
+       "time": "20:44",
+       "kind": "agent",
+       "summary": "quant: 급락일 종가·장중 5분류·B1 구간 재확인 사전등록 (결과 전 고정)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1eac97e5",
+       "time": "18:29",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T09:29 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "716e93d4",
+       "time": "18:28",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T09:28 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "0e4c52f7",
+       "time": "18:13",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T09:13 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "c1bfd429",
+       "time": "16:44",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T07:44 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "e079e09e",
+       "time": "16:38",
+       "kind": "agent",
+       "summary": "감사: 종목 아이디어 통합운영 프리모템·담당 판정",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b5b032a0",
+       "time": "16:36",
+       "kind": "agent",
+       "summary": "cio: #22 최종 판정 키 조항(모델 북 2원천, 피어 수정 반영, 겸이 결재)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "4c44846d",
+       "time": "16:36",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T07:36 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2d64992c",
+       "time": "16:13",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T07:13 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "20fb99c2",
+       "time": "15:57",
+       "kind": "agent",
+       "summary": "운영·유지보수: 종목 아이디어 통합운영안 + 피어 반대 3줄(결재 전)",
+       "areas": [
+        "docs"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "796ee88d",
+       "time": "15:56",
+       "kind": "agent",
+       "summary": "hf: 11/04 15:55 운용회의 — 재량 없음, 전강후약 잠정 기록",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "09cb66e7",
+       "time": "15:52",
+       "kind": "agent",
+       "summary": "감사: 종목 아이디어 산재 지도(생성원 13·지적 ①~⑤)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "63ed54cd",
+       "time": "15:44",
+       "kind": "agent",
+       "summary": "cio: 모델 북 고도화 회의(HF 원안·패널·피어)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "0142c328",
+       "time": "15:38",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T06:38 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6266bd4c",
+       "time": "15:35",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T06:35 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "7968936c",
+       "time": "15:06",
+       "kind": "agent",
+       "summary": "hf: 11/04 15:06 장중 — 급락 종가 계획 폐기",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "00142b81",
+       "time": "15:01",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T06:01 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "3c6ab554",
+       "time": "15:00",
+       "kind": "agent",
+       "summary": "hf: 연습 장부 삼천당제약 무효(공시 분류 오류), 개발 요청",
+       "areas": [
+        "docs",
+        "data",
+        "etc"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "9c9081b1",
+       "time": "14:56",
+       "kind": "agent",
+       "summary": "hf: 11/04 연습 장부 3건 대리 등록(소스 태그 선기록)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "9482b7b4",
+       "time": "14:54",
+       "kind": "agent",
+       "summary": "퀀트: 알파 이전 사전등록 결재 반영(피어 수정안)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "81f60728",
+       "time": "14:50",
+       "kind": "agent",
+       "summary": "퀀트: 알파 소스 실계좌 이전 기준 사전등록(HF 원안+피어 반대 3줄)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "89c19fb7",
+       "time": "14:20",
+       "kind": "agent",
+       "summary": "hf: 11/04 14:20 장대응 — 변경 없음, 연습 장부 skip 기록",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "1639f2da",
+       "time": "14:19",
+       "kind": "agent",
+       "summary": "rounds 11/4: 선거 결과 총출동 운용회의(CIO 종합+피어)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5ead8715",
+       "time": "14:06",
+       "kind": "agent",
+       "summary": "hf: 11/04 14:06 장중 — 변경 없음",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "f2b12cd8",
+       "time": "13:34",
+       "kind": "agent",
+       "summary": "rounds 11/4: 선거 민감도 사후 대조 13:30(PB 값 대입)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "22b4677a",
+       "time": "13:32",
+       "kind": "agent",
+       "summary": "rounds 11/4: 운용회의·파생 민감도 작성 주체 표기",
+       "areas": [
+        "docs"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "551f58fc",
+       "time": "13:27",
+       "kind": "agent",
+       "summary": "hf: 11/04 13:27 장대응 — 변경 없음, 공유 반영",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "bd085529",
+       "time": "13:25",
+       "kind": "agent",
+       "summary": "hf: KB — 본부·PB 공유 파일 매 회차 자동 읽기(겸이 11/4)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": [
+        "hf-alphabook"
+       ]
+      },
+      {
+       "sha": "34a69f12",
+       "time": "13:06",
+       "kind": "agent",
+       "summary": "hf: 11/04 13:05 장중 — 변경 없음",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "acb9c441",
+       "time": "12:49",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T03:49 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "7169a33c",
+       "time": "12:48",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T03:48 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2b8e2d10",
+       "time": "12:48",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T03:48 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fecec7de",
+       "time": "12:05",
+       "kind": "agent",
+       "summary": "hf: 11/04 12:05 장중 — 변경 없음",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "34648752",
+       "time": "11:57",
+       "kind": "agent",
+       "summary": "hf: 11/04 11:55 운용회의 — 재량 없음, CIO 관망 동의",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "9bd196e4",
+       "time": "11:06",
+       "kind": "agent",
+       "summary": "hf: 11/04 11:06 장중 — 변경 없음, 급락 종가 조건부 계획 기록",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "c72326d3",
+       "time": "10:06",
+       "kind": "agent",
+       "summary": "hf: 11/04 10:06 장중 — 변경 없음",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "781e1d62",
+       "time": "09:08",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-04T00:08 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "82830d72",
+       "time": "09:07",
+       "kind": "agent",
+       "summary": "hf: 11/04 09:07 장중 — 변경 없음, 채권 금통위 판정 요청",
+       "areas": [
+        "docs",
+        "data",
+        "etc"
+       ],
+       "files": 5,
+       "tasks": []
+      },
+      {
+       "sha": "0fd9a9b0",
+       "time": "08:45",
+       "kind": "agent",
+       "summary": "운용회의: 11/4 본부 회의록(투자전략·리서치·리스크 + CIO 종합 + 피어 반대 3줄)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fcac8711",
+       "time": "08:22",
+       "kind": "agent",
+       "summary": "파생: 미 중간선거 결과 민감도 사전 고정(11/4)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fc827f66",
+       "time": "08:19",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T23:19 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "dd710eb7",
+       "time": "07:50",
+       "kind": "agent",
+       "summary": "애널: digest 2026-11-04 4건(ok 2·재료없음 2) + 테마 점검(T1 변화)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 44,
+     "items": [
+      {
+       "sha": "a64e43d3",
+       "time": "23:20",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T14:20 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "01668e60",
+       "time": "22:51",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T13:51 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6c7f4664",
+       "time": "20:54",
+       "kind": "bot",
+       "summary": "브리핑 — premarket_us decisions 2026-11-04T11:54",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "99650628",
+       "time": "20:52",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T11:52 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "14fb7258",
+       "time": "20:50",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T11:50 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "180ec0b9",
+       "time": "20:47",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T11:47 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fdda8a64",
+       "time": "20:45",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T11:45 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "abba16c1",
+       "time": "19:17",
+       "kind": "bot",
+       "summary": "브리핑 — reports decisions 2026-11-04T10:17",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "bfe4f05a",
+       "time": "18:51",
+       "kind": "agent",
+       "summary": "hf: 바스켓 유지·조건부 베타 헤지 계획 사전 기록(11/05 09:05)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "37fbb756",
+       "time": "16:39",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T07:39 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d48526ce",
+       "time": "15:58",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:58 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "962b595e",
+       "time": "15:56",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:56 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "bf72b381",
+       "time": "15:53",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:53 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5ca80228",
+       "time": "15:44",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:44 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9c100362",
+       "time": "15:13",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:13 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5fdc2d6b",
+       "time": "15:11",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:11 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "91ad756d",
+       "time": "15:06",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:06 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "8a339c30",
+       "time": "15:01",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T06:01 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1a4da329",
+       "time": "14:56",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T05:56 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "56b7aae3",
+       "time": "14:54",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T05:54 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b6c760f6",
+       "time": "14:50",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T05:50 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "3f3269e3",
+       "time": "14:20",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T05:20 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "487bcf2c",
+       "time": "14:19",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T05:19 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b84273e5",
+       "time": "14:06",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T05:06 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "736881e4",
+       "time": "13:35",
+       "kind": "bot",
+       "summary": "브리핑 — intraday_kr decisions 2026-11-04T04:35",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "007ca831",
+       "time": "13:34",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T04:34 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "0719bc15",
+       "time": "13:32",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T04:32 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b67ffbd1",
+       "time": "13:28",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T04:28 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "4b6ed359",
+       "time": "13:06",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T04:06 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f97501ca",
+       "time": "12:49",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T03:49 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "eb57e24c",
+       "time": "12:48",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T03:48 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b052fa0b",
+       "time": "12:06",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T03:06 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ee7c40d1",
+       "time": "12:01",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-04T03:01",
+       "areas": [
+        "data"
+       ],
+       "files": 10,
+       "tasks": []
+      },
+      {
+       "sha": "7ae67624",
+       "time": "11:57",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T02:57 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "df8368d0",
+       "time": "11:06",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T02:06 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6487301a",
+       "time": "10:35",
+       "kind": "bot",
+       "summary": "브리핑 — intraday_kr decisions 2026-11-04T01:35",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "1b29ac7e",
+       "time": "10:07",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T01:07 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "46dae2d7",
+       "time": "09:08",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-04T00:08 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "381fb1fa",
+       "time": "08:55",
+       "kind": "bot",
+       "summary": "브리핑 — premarket_kr decisions 2026-11-03T23:55",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "96b6f91f",
+       "time": "08:45",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T23:45 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2e74f8cb",
+       "time": "08:22",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T23:22 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "589aa325",
+       "time": "07:52",
+       "kind": "agent",
+       "summary": "애널: digest 금액 검사 오탐 문구 정리(시장 집계 수치, 개인 아님)",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "0d38f5a0",
+       "time": "05:07",
+       "kind": "bot",
+       "summary": "US heatmap: scheduled quote refresh",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9ea35e20",
+       "time": "03:28",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-03T18:28",
+       "areas": [
+        "data"
+       ],
+       "files": 9,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "etc",
+     "label": "기타",
+     "n": 9,
+     "items": [
+      {
+       "sha": "0511ebb9",
+       "time": "20:50",
+       "kind": "agent",
+       "summary": "quant: req-quant-05bb1616 회신·종료",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2eee85f1",
+       "time": "18:27",
+       "kind": "agent",
+       "summary": "hf: 퀀트 사전등록 검증 요청(−3~−5% 종가·장중 패턴·통과 소스)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6e714740",
+       "time": "18:13",
+       "kind": "agent",
+       "summary": "pb: PM 요청 — 11/12 Pro 전환 계획(+Supabase 2단계 위치)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fb8a919d",
+       "time": "16:12",
+       "kind": "agent",
+       "summary": "pb: 통합운영 결재 후속 요청 3건(cio 판정 키·dev 원문 이관·ops 14번째 생성원)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "39063c58",
+       "time": "15:38",
+       "kind": "agent",
+       "summary": "hf: CIO 요청 — 모델 북 vs tradeplan 통합 판정",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "0f2f3cc3",
+       "time": "15:34",
+       "kind": "agent",
+       "summary": "hf: 개발 요청 — 모델 북 확신도 vs tradeplan 판정 불일치",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fbba9b49",
+       "time": "12:48",
+       "kind": "agent",
+       "summary": "data_eng: req-data_eng-1cd9cbd1 회신·종료 장부",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "374559ab",
+       "time": "12:47",
+       "kind": "agent",
+       "summary": "dev: req-dev-fa0cd143 회신 장부",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "21b74031",
+       "time": "08:18",
+       "kind": "agent",
+       "summary": "pb: 요청 — macro_series 에 SOXX·^SOX 추가(데이터엔지니어)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 176,
+    "label": "자동 갱신 176회",
+    "kinds": {
+     "live": 150,
+     "briefing": 14,
+     "health": 2,
+     "pb_call": 2,
+     "backfill": 1,
+     "accum": 1,
+     "fin": 1,
+     "english": 1,
+     "study_daily": 1,
+     "us_accum": 1,
+     "report": 1,
+     "deriv": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 13,
+    "battle-scoreboard": 5,
+    "us-eod-toss": 2,
+    "hf-alphabook": 2,
+    "uxui-quant": 1,
+    "quant-trend-adopt-pending": 1,
+    "cio-top3-fix": 1,
+    "display-clarity": 1,
+    "study-progress": 1
+   }
+  },
+  {
+   "date": "2026-11-03",
+   "total": 288,
+   "work": 115,
+   "auto": 173,
+   "by": {
+    "bot": 46,
+    "agent": 69
+   },
+   "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 7,
+     "items": [
+      {
+       "sha": "1b755f63",
+       "time": "23:43",
+       "kind": "agent",
+       "summary": "front: 사내톡 조직도 리서치본부에 데이터엔지니어 추가 + 프로필 BGM",
+       "areas": [
+        "web",
+        "etc"
+       ],
+       "files": 3,
+       "tasks": [
+        "index-split",
+        "uxui-top10-impl",
+        "messenger-chat-1023",
+        "front-first-round",
+        "org-rnr"
+       ]
+      },
+      {
+       "sha": "ba24996c",
+       "time": "19:32",
+       "kind": "agent",
+       "summary": "pm: 데이터엔지니어 데스크 신설(data_eng, 리서치본부·조건부 채용) + 보드 마감 분산",
+       "areas": [
+        "web",
+        "ops",
+        "tools",
+        "docs",
+        "etc"
+       ],
+       "files": 12,
+       "tasks": [
+        "ops-system",
+        "tg-pick-buttons",
+        "requests-e",
+        "dispatch-redundancy",
+        "org-rnr",
+        "mig-v1-dev-a",
+        "data-eng-onboard"
+       ]
+      },
+      {
+       "sha": "d6c40cd9",
+       "time": "19:08",
+       "kind": "agent",
+       "summary": "uxui: FREEMAN 탭 R&R 화면 검수 통과 → 배포 (org-rnr 완료; 경계 표 390px 잘림 CSS 수정·index 재빌드)",
+       "areas": [
+        "web",
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "98306a51",
+       "time": "19:07",
+       "kind": "agent",
+       "summary": "front: FREEMAN 탭 📋 R&R 섹션 + org_rnr.md 11/3 경계 반영 + check_org_rnr(FREEMAN) — 브랜치 검수용",
+       "areas": [
+        "web",
+        "tools",
+        "docs"
+       ],
+       "files": 4,
+       "tasks": [
+        "index-split",
+        "my-tab-ledger-compare",
+        "us-committee-v2",
+        "battle-scoreboard",
+        "english-v2-ui",
+        "macro-popup-live",
+        "research-synthesis",
+        "deriv-insight",
+        "daily-duel-collapse",
+        "uxui-quant",
+        "public-reports",
+        "macro-tab",
+        "bonds-summary",
+        "uxui-top10-impl",
+        "front-first-round",
+        "org-rnr",
+        "data-eng-onboard"
+       ]
+      },
+      {
+       "sha": "1d26f46d",
+       "time": "19:07",
+       "kind": "agent",
+       "summary": "uxui: R&R 경계 표 390px 카드 — 전역 nowrap·sticky 첫 칸 상속 해제(안 하는 것 잘림 수정)",
+       "areas": [
+        "web"
+       ],
+       "files": 1,
+       "tasks": [
+        "index-split",
+        "front-first-round"
+       ]
+      },
+      {
+       "sha": "fbfa45dc",
+       "time": "18:43",
+       "kind": "agent",
+       "summary": "front: 🗽 FREEMAN 탭 신설 — 북극성 + 본부 OKR·누나별 조직도 (MY 에서 이동)",
+       "areas": [
+        "web",
+        "tools"
+       ],
+       "files": 8,
+       "tasks": [
+        "index-split",
+        "r3-semi-band",
+        "my-tab-ledger-compare",
+        "us-committee-v2",
+        "battle-scoreboard",
+        "english-v2-ui",
+        "macro-popup-live",
+        "research-synthesis",
+        "deriv-insight",
+        "daily-duel-collapse",
+        "uxui-quant",
+        "public-reports",
+        "macro-tab",
+        "bonds-summary",
+        "uxui-top10-impl",
+        "front-first-round",
+        "org-rnr",
+        "mig-v1-dev-a"
+       ]
+      },
+      {
+       "sha": "03c294ca",
+       "time": "18:03",
+       "kind": "agent",
+       "summary": "front: MY 본부 카드 조직도형 — 소속 데스크 전원 노드 + 데스크 OKR(확정/제안) 접힘",
+       "areas": [
+        "web"
+       ],
+       "files": 2,
+       "tasks": [
+        "index-split",
+        "r3-semi-band",
+        "my-tab-ledger-compare",
+        "front-first-round"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "workflow",
+     "label": "워크플로",
+     "n": 1,
+     "items": [
+      {
+       "sha": "f3b5c6f1",
+       "time": "19:49",
+       "kind": "agent",
+       "summary": "data_eng: 금투협 공지(m_17) 수집기 + 한국 수출(관세청·산업부) 수집기, tg_feed.yml 단계로 부착",
+       "areas": [
+        "workflow",
+        "ops",
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 15,
+       "tasks": [
+        "ops-system",
+        "event-watch",
+        "live-us-winter-window",
+        "live-resume-gap",
+        "repo-size-stage1",
+        "live-us-dst-march",
+        "dart-supply-temp-cron"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 1,
+     "items": [
+      {
+       "sha": "769d234c",
+       "time": "19:20",
+       "kind": "agent",
+       "summary": "quant: 전략 연구소 부흥 — CRASH_NEAR_INDEX 실행(C)·전 데스크 가설 대기열 lab_queue·접수 규약(kb:quant#33·STANDARD §11)·화면 제안·보드 lab-screen-revival",
+       "areas": [
+        "engine",
+        "ops",
+        "docs",
+        "data"
+       ],
+       "files": 11,
+       "tasks": [
+        "ops-system",
+        "lab-r2",
+        "tradeplan",
+        "report-format-rollout"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 25,
+     "items": [
+      {
+       "sha": "5e2edafe",
+       "time": "23:46",
+       "kind": "agent",
+       "summary": "pm: 건설·조선 리서치(애널·매크로) 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "117bfc1c",
+       "time": "23:20",
+       "kind": "agent",
+       "summary": "board: BOARD.md 재생성(dispatcher 11/8·토스 11/17 반영)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "290752c7",
+       "time": "23:18",
+       "kind": "agent",
+       "summary": "pm: 전 데스크 OKR·전략 본부 회의 5건 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8729ddbf",
+       "time": "22:45",
+       "kind": "agent",
+       "summary": "pm: 애널 리포트 3·4·기록 22:30 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "2e0aa2a3",
+       "time": "22:43",
+       "kind": "agent",
+       "summary": "pm: 11/3 22:30 대조 — 에이전트 5건 + 메인 대화 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "0744b562",
+       "time": "21:56",
+       "kind": "agent",
+       "summary": "board: 직전 커밋 들여쓰기 원복(indent=2, 내용 변화 없음)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8421a1e4",
+       "time": "21:55",
+       "kind": "agent",
+       "summary": "board: 결재 반영 — dispatcher 11/8·토스 shadow 연장(괴리 판정 확인)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "912be68a",
+       "time": "21:31",
+       "kind": "agent",
+       "summary": "pm: 11/3 밤 데스크 8건 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "1db41f6c",
+       "time": "21:24",
+       "kind": "agent",
+       "summary": "analyst: 증설·섹터 로테이션 트래킹 추가",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 3,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b1291b62",
+       "time": "20:48",
+       "kind": "agent",
+       "summary": "pm: 사내 메신저 라운드 11/03 20:42 기록·피드·에이전트 사용량 (닫음 1·VOC 4)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "aeae4166",
+       "time": "19:50",
+       "kind": "agent",
+       "summary": "pm: 11/3 저녁 에이전트 13건 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "6456e025",
+       "time": "19:32",
+       "kind": "agent",
+       "summary": "pm: data-eng-onboard 완료 메모(커밋 해시)",
+       "areas": [
+        "ops"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "3dad111e",
+       "time": "19:26",
+       "kind": "agent",
+       "summary": "pb: 11/3 결재 반영 — 데이터 엔지니어 신설·급락 배지 보드, 교육·데이터 요청",
+       "areas": [
+        "ops",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "3923066c",
+       "time": "19:17",
+       "kind": "agent",
+       "summary": "pm: 11/3 저녁 데스크 6건 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b948d783",
+       "time": "19:04",
+       "kind": "agent",
+       "summary": "pm: 11/3 저녁 데스크 8명 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "cd18e45c",
+       "time": "18:57",
+       "kind": "agent",
+       "summary": "pm: 본부 대표 4명 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "2e5408d0",
+       "time": "18:55",
+       "kind": "agent",
+       "summary": "pm: 11월 보드 마감 몰림 분산(11/9·11/10 → 11/11~11/20, 요청 승격 건만) · appr-staffing-b-1107 측정 갱신",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "cd6fa297",
+       "time": "18:46",
+       "kind": "agent",
+       "summary": "pm: 컴플·PM 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "e2943ffe",
+       "time": "18:45",
+       "kind": "agent",
+       "summary": "pm: 프론트·FRM 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "86438875",
+       "time": "18:38",
+       "kind": "bot",
+       "summary": "team: 2026-11-03T09:38 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "bd624d7f",
+       "time": "18:04",
+       "kind": "agent",
+       "summary": "pm: 매크로 선거 트래킹 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "55d4dd4a",
+       "time": "13:09",
+       "kind": "agent",
+       "summary": "pm: 퀀트 계절성 검증 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "e4148d68",
+       "time": "10:37",
+       "kind": "bot",
+       "summary": "team: 2026-11-03T01:37 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "77eaa45c",
+       "time": "08:21",
+       "kind": "agent",
+       "summary": "pm: 내무·LIFE 패널 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
       {
        "sha": "7c7c00c3",
        "time": "03:27",
@@ -46,10 +2136,875 @@
      ]
     },
     {
-     "area": "data",
-     "label": "데이터",
+     "area": "content",
+     "label": "콘텐츠",
      "n": 1,
      "items": [
+      {
+       "sha": "0fa2b42f",
+       "time": "19:30",
+       "kind": "agent",
+       "summary": "edu: 진입 자격 시험 v1 초안 문항 6/24 (일반 지식, 평가 검수 대기)",
+       "areas": [
+        "content"
+       ],
+       "files": 1,
+       "tasks": [
+        "edu-curriculum-v3"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 3,
+     "items": [
+      {
+       "sha": "1aca964f",
+       "time": "21:31",
+       "kind": "agent",
+       "summary": "스터디 — 2022 고금리 멀티플 압축 대조(균형용)",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "1c959793",
+       "time": "20:47",
+       "kind": "agent",
+       "summary": "quant: bond_regime_v1 라벨 분포·H1 층화(m12 통과 0)·정리매매 제외 민감도 (req-quant-77018bfa)",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "13788920",
+       "time": "20:44",
+       "kind": "agent",
+       "summary": "quant: 사전등록 개정3 — bond_regime_v1 층화(m12)·정리매매 민감도, 결과 전 (req-quant-77018bfa·32e05b61)",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 43,
+     "items": [
+      {
+       "sha": "1d147d97",
+       "time": "23:46",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T14:46 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ecaba785",
+       "time": "23:45",
+       "kind": "agent",
+       "summary": "애널: 건설·조선 섹터 리서치(req-analyst-cc4ded58)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "89823fe6",
+       "time": "23:45",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T14:45 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f179f685",
+       "time": "23:45",
+       "kind": "agent",
+       "summary": "매크로: 건설·조선 매크로 뷰(req-macro-86b8e303)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "740e2a28",
+       "time": "23:43",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T14:43 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "843ffdb6",
+       "time": "23:39",
+       "kind": "agent",
+       "summary": "front: 데이터엔지니어(data_eng) 사내톡 프사·배경사진 추가(겸이 생성, 창작 캐릭터)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "f935d63d",
+       "time": "23:39",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T14:39 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "737082e5",
+       "time": "23:17",
+       "kind": "agent",
+       "summary": "hf: 11/03 23:17 미장 회차 — 재량 없음, 국장 급락 계획 사후 폐기 기록",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "314117a9",
+       "time": "23:15",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T14:15 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "4deadd95",
+       "time": "22:42",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T13:42 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "e11b5989",
+       "time": "22:20",
+       "kind": "agent",
+       "summary": "docs(office): 데이터엔지니어 취미 키보드→레고 테크닉(개발·포지션리스크와 중복 해소, 겸이 지적)",
+       "areas": [
+        "docs"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "8b4d64ca",
+       "time": "22:06",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T13:06 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "acfe61b7",
+       "time": "21:17",
+       "kind": "agent",
+       "summary": "전략 연구소 — 탑다운 업황 지표 가설 사전등록 (TOPDOWN_CYCLE_12M, 미실행)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "985d3196",
+       "time": "20:48",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T11:48 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fe66c53d",
+       "time": "20:48",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 재생성",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "af691b5a",
+       "time": "20:48",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T11:48 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9f502dae",
+       "time": "20:47",
+       "kind": "agent",
+       "summary": "analyst: 건설·조선 섹터 리서치 세 칸 정리 (req-analyst-cc4ded58, 검증전)",
+       "areas": [
+        "docs"
+       ],
+       "files": 3,
+       "tasks": [
+        "valuation-daily",
+        "research-synthesis",
+        "public-reports"
+       ]
+      },
+      {
+       "sha": "9601686a",
+       "time": "20:40",
+       "kind": "agent",
+       "summary": "docs(office): 오피스 세계관 인원 표기 29인→30인(데이터엔지니어 합류)",
+       "areas": [
+        "docs"
+       ],
+       "files": 6,
+       "tasks": []
+      },
+      {
+       "sha": "5782c88c",
+       "time": "20:40",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T11:40 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d296d880",
+       "time": "19:47",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T10:47 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "632a6a57",
+       "time": "19:46",
+       "kind": "agent",
+       "summary": "운영 — 데이터엔지니어(data_eng) 인물전사 신설 — bios·personas·relationships·PEOPLE·CHARACTERS",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 7,
+       "tasks": []
+      },
+      {
+       "sha": "f211cdf4",
+       "time": "19:45",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T10:45 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "3bacf57b",
+       "time": "19:39",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T10:39 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "91d09642",
+       "time": "19:34",
+       "kind": "agent",
+       "summary": "edu: 전략 라이브러리 66장 — 주식·매크로/파생·크레딧/이벤트·운용 체계 + 데스크 바로가기",
+       "areas": [
+        "docs"
+       ],
+       "files": 7,
+       "tasks": [
+        "tradeplan",
+        "report-format-rollout"
+       ]
+      },
+      {
+       "sha": "16c84469",
+       "time": "19:33",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T10:33 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "14b00fd4",
+       "time": "19:29",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T10:29 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "d8f59b05",
+       "time": "19:27",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T10:27 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a06679a9",
+       "time": "19:20",
+       "kind": "agent",
+       "summary": "quant: 전략 연구소 CRASH_NEAR_INDEX 사전등록 §0 (결과 전)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "636dbab5",
+       "time": "19:20",
+       "kind": "agent",
+       "summary": "quant: 연구소 부흥 문서 — 사전등록 커밋 해시를 rebase 후 값으로 정정",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "4221b8b0",
+       "time": "19:16",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-03T10:16 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "8c87a130",
+       "time": "19:15",
+       "kind": "agent",
+       "summary": "derivs: 자기 진단 + HF×파생 협업 R&R·사전 점검 5칸·그릭스 1줄·주간 리뷰 초안 (KB 양쪽·스킬 references)",
+       "areas": [
+        "docs",
+        "etc"
+       ],
+       "files": 6,
+       "tasks": [
+        "deriv-insight",
+        "hf-alphabook"
+       ]
+      },
+      {
+       "sha": "65333a81",
+       "time": "19:09",
+       "kind": "agent",
+       "summary": "pm: STANDARD 10절 결재 안건 카드 — 폰 1화면 8칸·피어 반대 없으면 상정 불가·최대 5건 묶음",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": [
+        "tradeplan",
+        "report-format-rollout"
+       ]
+      },
+      {
+       "sha": "3a45931f",
+       "time": "19:01",
+       "kind": "agent",
+       "summary": "analyst: [ci-fix] macro·quant 스킬 references 를 KB 와 재동기(test_*_skill 빨강 해소)",
+       "areas": [
+        "docs"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "d18604e8",
+       "time": "19:01",
+       "kind": "agent",
+       "summary": "채권 — KB #26 정책 경로 역산 절차(기준금리 대비 CD·1Y·3Y 초과분 → 내재 인상 횟수, 중립 스프레드 구간 명시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "822490d7",
+       "time": "18:59",
+       "kind": "agent",
+       "summary": "analyst: 화두 테마 트래커 themes.md 신설 + digest 1-b 테마 점검 단계",
+       "areas": [
+        "docs"
+       ],
+       "files": 3,
+       "tasks": [
+        "valuation-daily",
+        "research-synthesis",
+        "public-reports"
+       ]
+      },
+      {
+       "sha": "d425ba1a",
+       "time": "18:56",
+       "kind": "agent",
+       "summary": "macro: KB #35 한은 반응함수 체크리스트(10단계) 추가",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": [
+        "macro-governor-shin"
+       ]
+      },
+      {
+       "sha": "1e28bb9b",
+       "time": "18:54",
+       "kind": "agent",
+       "summary": "verify: 주간 독립 채점 10/30 회차 소급 복구 (규약 v2, 11/3 장부 기준 asof 필터)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "bda1524f",
+       "time": "18:53",
+       "kind": "agent",
+       "summary": "frm: KB #27 룩스루가 대리 충격 가정을 바꾼 사례 (비율만)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": [
+        "impl-frm-stress-july"
+       ]
+      },
+      {
+       "sha": "c031b331",
+       "time": "18:53",
+       "kind": "agent",
+       "summary": "quant: KB 정비 1+1 — DSR 식·첨도 정의 확인 필요 해소(구현 대조)·#16 근거 파일 추가",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "be11e066",
+       "time": "18:51",
+       "kind": "agent",
+       "summary": "cio: KB 정비 1+1 — Klein 프리모템 서지 확인 필요 해소·3북 정의에 적용 근거 파일 추가",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ee8c0f19",
+       "time": "13:17",
+       "kind": "agent",
+       "summary": "hf: 11/03 13:17 장대응 — 변경 없음(−3.66%, 15:05 판정 대기)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "9588d9ce",
+       "time": "10:31",
+       "kind": "agent",
+       "summary": "hf: 11/03 급락 종가 조건부 계획 사전 기록",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "d47eb704",
+       "time": "10:29",
+       "kind": "agent",
+       "summary": "hf: 11/03 10:28 장대응 — 변경 없음, 북·연습 장부 mark",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 26,
+     "items": [
+      {
+       "sha": "88a4e4e6",
+       "time": "23:46",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T14:46 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "07eaf086",
+       "time": "23:45",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T14:45 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a4051eab",
+       "time": "23:17",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T14:17 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2eec51a6",
+       "time": "21:31",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T12:31 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "e7dfa1b6",
+       "time": "21:17",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T12:17 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9244a266",
+       "time": "20:54",
+       "kind": "bot",
+       "summary": "브리핑 — premarket_us decisions 2026-11-03T11:54",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "c3909f88",
+       "time": "20:48",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 재생성",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "742bc6f4",
+       "time": "20:48",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T11:48 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "c4e918c9",
+       "time": "20:47",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T11:47 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ac339c43",
+       "time": "20:45",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T11:45 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "7fc07230",
+       "time": "19:50",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T10:50 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f3f1ccbb",
+       "time": "19:33",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T10:33 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2c9e3649",
+       "time": "19:21",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 재생성",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "729e1798",
+       "time": "19:20",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T10:20 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "b2ae7146",
+       "time": "19:16",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T10:16 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "3149ff00",
+       "time": "19:16",
+       "kind": "bot",
+       "summary": "브리핑 — reports decisions 2026-11-03T10:16",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "87bd1c8b",
+       "time": "19:01",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T10:01 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "c0891657",
+       "time": "13:35",
+       "kind": "bot",
+       "summary": "브리핑 — intraday_kr decisions 2026-11-03T04:35",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "a375f1e2",
+       "time": "13:18",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T04:18 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "fab04778",
+       "time": "12:56",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-03T03:56",
+       "areas": [
+        "data"
+       ],
+       "files": 7,
+       "tasks": []
+      },
+      {
+       "sha": "d5d06e18",
+       "time": "12:26",
+       "kind": "agent",
+       "summary": "edu: 학습기록 #24 비율 반영 (11/3, 연속 2일)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": [
+        "study-progress"
+       ]
+      },
+      {
+       "sha": "679512c0",
+       "time": "10:35",
+       "kind": "bot",
+       "summary": "브리핑 — intraday_kr decisions 2026-11-03T01:35",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
+      {
+       "sha": "78119dde",
+       "time": "10:31",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T01:31 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "ab81d191",
+       "time": "10:29",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-03T01:29 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "e92fd28c",
+       "time": "08:55",
+       "kind": "bot",
+       "summary": "브리핑 — premarket_kr decisions 2026-11-02T23:55",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "battle-scoreboard"
+       ]
+      },
       {
        "sha": "6467534a",
        "time": "05:46",
@@ -62,23 +3017,162 @@
        "tasks": []
       }
      ]
+    },
+    {
+     "area": "etc",
+     "label": "기타",
+     "n": 8,
+     "items": [
+      {
+       "sha": "13ccecab",
+       "time": "23:14",
+       "kind": "agent",
+       "summary": "pb: 요청 — 토스 괴리 판정 확인(개발)·시그널 개선안 사전등록(퀀트)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "01126f2d",
+       "time": "22:41",
+       "kind": "agent",
+       "summary": "pb: 연구 요청 — 리밸런싱 밴드 폭(무거래 밴드 논문) 자산배분",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2488582a",
+       "time": "22:06",
+       "kind": "agent",
+       "summary": "pb: 연구 요청 — VaR 모델 비교(EWMA·GARCH·GJR) 퀀트·FRM",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5944b7a6",
+       "time": "20:48",
+       "kind": "agent",
+       "summary": "quant: 요청 77018bfa 닫음·회신 3건 (VOC)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6ba0182d",
+       "time": "20:47",
+       "kind": "agent",
+       "summary": "analyst: req-analyst-cc4ded58 회신 (VOC, 미종결)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a586d573",
+       "time": "19:45",
+       "kind": "agent",
+       "summary": "LIFE — 금투협 수집기 인수 요청 닫기",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "af90af06",
+       "time": "19:38",
+       "kind": "agent",
+       "summary": "pb: 금투협 채용 수집기 LIFE 인수 요청",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "30299734",
+       "time": "19:28",
+       "kind": "agent",
+       "summary": "LIFE — 이직 공고 재조회 요청 교육→LIFE 이관 (req-edu-70130dee 닫음 → req-life-0e096b5c)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
     }
    ],
    "auto_updates": {
-    "n": 77,
-    "label": "자동 갱신 77회",
+    "n": 173,
+    "label": "자동 갱신 173회",
     "kinds": {
-     "live": 70,
-     "briefing": 2,
+     "live": 145,
+     "briefing": 14,
+     "health": 2,
+     "ops": 2,
+     "pb_call": 2,
      "backfill": 1,
      "fin": 1,
      "accum": 1,
-     "health": 1,
-     "english": 1
+     "english": 1,
+     "study_daily": 1,
+     "us_accum": 1,
+     "report": 1,
+     "deriv": 1
     }
    },
    "tasks": {
-    "ops-system": 1
+    "ops-system": 29,
+    "battle-scoreboard": 7,
+    "index-split": 5,
+    "front-first-round": 5,
+    "research-synthesis": 4,
+    "public-reports": 4,
+    "org-rnr": 4,
+    "my-tab-ledger-compare": 3,
+    "deriv-insight": 3,
+    "uxui-top10-impl": 3,
+    "tradeplan": 3,
+    "report-format-rollout": 3,
+    "r3-semi-band": 2,
+    "us-committee-v2": 2,
+    "english-v2-ui": 2,
+    "macro-popup-live": 2,
+    "daily-duel-collapse": 2,
+    "uxui-quant": 2,
+    "macro-tab": 2,
+    "bonds-summary": 2,
+    "mig-v1-dev-a": 2,
+    "valuation-daily": 2,
+    "data-eng-onboard": 2,
+    "study-progress": 1,
+    "impl-frm-stress-july": 1,
+    "macro-governor-shin": 1,
+    "hf-alphabook": 1,
+    "lab-r2": 1,
+    "edu-curriculum-v3": 1,
+    "tg-pick-buttons": 1,
+    "requests-e": 1,
+    "dispatch-redundancy": 1,
+    "event-watch": 1,
+    "live-us-winter-window": 1,
+    "live-resume-gap": 1,
+    "repo-size-stage1": 1,
+    "live-us-dst-march": 1,
+    "dart-supply-temp-cron": 1,
+    "messenger-chat-1023": 1
    }
   },
   {

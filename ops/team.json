@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-11-05T00:29+09:00",
+ "updated": "2026-11-05T05:57+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -8143,13 +8143,13 @@
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
   "since": "2026-10-30",
-  "commits_total": 854,
-  "commits_bot": 618,
-  "commits_unmapped": 35,
+  "commits_total": 1768,
+  "commits_bot": 1179,
+  "commits_unmapped": 91,
   "audit_files": [],
   "desks": {
    "CIO": {
-    "commits_7d": 5,
+    "commits_7d": 10,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -8167,7 +8167,7 @@
     }
    },
    "HF": {
-    "commits_7d": 36,
+    "commits_7d": 82,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -8185,7 +8185,7 @@
     }
    },
    "LIFE": {
-    "commits_7d": 3,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -8203,7 +8203,7 @@
     }
    },
    "PB": {
-    "commits_7d": 12,
+    "commits_7d": 17,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -8221,7 +8221,7 @@
     }
    },
    "PM": {
-    "commits_7d": 34,
+    "commits_7d": 144,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -8239,7 +8239,7 @@
     }
    },
    "UXUI": {
-    "commits_7d": 2,
+    "commits_7d": 4,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11065,7 +11065,7 @@
     }
    },
    "개발": {
-    "commits_7d": 22,
+    "commits_7d": 40,
     "board": {
      "진행": 2,
      "검수": 3,
@@ -11101,7 +11101,7 @@
     }
    },
    "교육": {
-    "commits_7d": 3,
+    "commits_7d": 4,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11119,7 +11119,7 @@
     }
    },
    "기록": {
-    "commits_7d": 0,
+    "commits_7d": 11,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11155,7 +11155,7 @@
     }
    },
    "데이터": {
-    "commits_7d": 0,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11191,7 +11191,7 @@
     }
    },
    "리스크": {
-    "commits_7d": 2,
+    "commits_7d": 4,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11209,7 +11209,7 @@
     }
    },
    "매크로": {
-    "commits_7d": 2,
+    "commits_7d": 20,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11263,7 +11263,7 @@
     }
    },
    "애널": {
-    "commits_7d": 9,
+    "commits_7d": 42,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11281,7 +11281,7 @@
     }
    },
    "운영": {
-    "commits_7d": 30,
+    "commits_7d": 32,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11299,7 +11299,7 @@
     }
    },
    "유지보수": {
-    "commits_7d": 0,
+    "commits_7d": 2,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11317,7 +11317,7 @@
     }
    },
    "자산배분": {
-    "commits_7d": 0,
+    "commits_7d": 1,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11335,7 +11335,7 @@
     }
    },
    "채권": {
-    "commits_7d": 3,
+    "commits_7d": 7,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11353,7 +11353,7 @@
     }
    },
    "컴플라이언스": {
-    "commits_7d": 0,
+    "commits_7d": 1,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11371,7 +11371,7 @@
     }
    },
    "퀀트": {
-    "commits_7d": 14,
+    "commits_7d": 28,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11389,7 +11389,7 @@
     }
    },
    "파생": {
-    "commits_7d": 2,
+    "commits_7d": 9,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11443,7 +11443,7 @@
     }
    },
    "프론트": {
-    "commits_7d": 18,
+    "commits_7d": 25,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -11479,7 +11479,7 @@
     }
    },
    "행동": {
-    "commits_7d": 0,
+    "commits_7d": 1,
     "board": {
      "진행": 0,
      "검수": 0,

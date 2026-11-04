@@ -2,11 +2,11 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-04 · 작업 454개 · 진행 7 · 검수 4 · 대기 134 · 보류 30 · 완료 279
+기준일 2026-11-05 · 작업 454개 · 진행 7 · 검수 4 · 대기 134 · 보류 30 · 완료 279
 
 **결재 대기 4:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이)
 
-**기한 지남:** `live-us-winter-window` (2026-11-03), `leak-history-rewrite` (2026-11-01), `mig-v1-dev-a` (2026-11-03)
+**기한 지남:** `live-us-winter-window` (2026-11-03), `leak-history-rewrite` (2026-11-01), `req-data-b83a7ef9` (2026-11-04), `req-dev-1a14cbe5` (2026-11-04), `mig-v1-dev-a` (2026-11-03)
 
 ## 진행 (7)
 
@@ -39,8 +39,8 @@
 | P0 ⏫P1 11-04 | `mig-v1-snapshot` | 리팩토링 v1 스냅샷 최종: migrate_v1 막힘 0·범용판 pytest 0 확인 → 겸이에 '준비 끝' 한 줄 | 개발 | — | 2026-11-06 | `scripts/migrate_v1.py` | `mig-v1-audit`, `mig-v1-dev-b` |  |
 | P0 ⏫P1 10-21 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | PB | — | 2026-11-07 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). / 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증. / 10/24 운영 점검: 확인 요청 중(req-data-3df3066a, 회신 마감 2026-10-28) — 16:20 확정 종가 교체 검증 기록 없음 / 11/1 PB: 아직 아님 — fsc_close 금융위 종가 대조 '실호출 검증 전'(e38c8615c·9f2db7781). 검증 데스크 실호출 확인 후 완료 |
 | P0 ⏫P1 11-04 | `mig-v1-cutover` | 리팩토링 v1 전환(겸이 직접): 옛 저장소 이름 변경·새 공개 저장소·시크릿 23·변수 6·Pages·토큰·GAS·ALERTS_OFF 넘기기·노트북 재설치 | 사용자 | — | 2026-11-07 | `docs/migration_checklist_1107.md` | `mig-v1-snapshot` | 체크리스트 docs/migration_checklist_1107.md · 롤백 = 변수 2개 5분 |
-| P1 ⏫ | `req-data-b83a7ef9` | [요청 승격] 자산배분→데이터: 국내 상장 1배 원자재 ETF 대조(11/15 ISA 안건 입력): 광범위 원자재(BCOM/DBC형)·구리( | 데이터 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→자산배분: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-b83a7ef9`. |
-| P1 ⏫ | `req-dev-1a14cbe5` | [요청 승격] PB→개발: 영어·인적성 학습 측정 정상화(10/26 평가·교육 검토 반영, rounds/2026-10-26/eval.m | 개발 | — | 2026-11-04 | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-1a14cbe5`. |
+| P1 ⏫ | `req-data-b83a7ef9` | [요청 승격] 자산배분→데이터: 국내 상장 1배 원자재 ETF 대조(11/15 ISA 안건 입력): 광범위 원자재(BCOM/DBC형)·구리( | 데이터 | — | **2026-11-04 지남** | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→자산배분: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-b83a7ef9`. |
+| P1 ⏫ | `req-dev-1a14cbe5` | [요청 승격] PB→개발: 영어·인적성 학습 측정 정상화(10/26 평가·교육 검토 반영, rounds/2026-10-26/eval.m | 개발 | — | **2026-11-04 지남** | — | — | 요청 2영업일 미처리(2026-10-26~2026-10-28) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-1a14cbe5`. |
 | P1 ⏫ | `mig-v1-dev-b` | 리팩토링 v1 개발 2차: 범용판 README 골격 · 릴리스 자산 복사 절차(data_store) · 내부판 워크플로 8개 경로 점검 · 서고 색인 rounds 제외 · 끊긴 참조 정리 | 개발 | — | 2026-11-05 | `README.md`<br>`scripts/data_store.py`<br>`scripts/build_library.py` | `mig-v1-dev-a` | 인벤토리 §5 '11/7 이전 개발 일' 나머지 |
 | P1 ⏫ | `mig-v1-front` | 리팩토링 v1 범용판 화면 — my·duel·committee 공용 함수 분리(include 제외 가능하게)·홈 카드 데이터 없음 처리·build_pages 판 인식·ui_smoke 범용판 모드 | 프론트 | — | 2026-11-05 | `apps-script/*.html`<br>`scripts/build_pages.py`<br>`scripts/ui_smoke.py` | `mig-v1-dev-a` | ask.py 요청과 짝. 11/7 필수는 아님(지금도 숨김으로 동작) — 11/6 스냅샷에 들어가면 좋음 |
 | P1 ⏫ | `req-pb-23606b98` | [요청 승격] 감사→PB: 감사 L2~L4(경): 원장 256·258 PB 해석 꼬리표 · 257 가격 출처·시각 · journal 1 | PB | — | 2026-11-05 | — | — | 요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→감사: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-23606b98`. |
