@@ -1,0 +1,86 @@
+{
+ "source": "퀀트 데스크 scripts/study_ict_hdj1.py",
+ "n_hypotheses": 26,
+ "rules": [
+  {
+   "name": "R1_TurtleSoup",
+   "definition": "Raschke 1995: 당일 저가가 직전 20일 최저가(L20, t-20..t-1)를 하회하고 L20 형성일이 ≥4봉 전이며 종가>L20 → 롱. 숏은 대칭(20일 고가).",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  },
+  {
+   "name": "R2_CRT_PO3",
+   "definition": "전일(C1) 저가를 하회 스윕했으나 종가는 C1 저가 위·C1 고가 아래(범위 안 복귀) → 롱. 한쪽만 스윕한 날만. 숏은 대칭.",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  },
+  {
+   "name": "R3_SMT",
+   "definition": "A지수 저가가 직전 20일 저가 갱신 & 상관지수 B 저가는 직전 20일 저가 미갱신 → 롱(고점 다이버전스는 숏). 쌍 SPX↔NASDAQ.",
+   "markets": [
+    "SPX",
+    "NASDAQ"
+   ]
+  },
+  {
+   "name": "R4_OTE",
+   "definition": "fractal(3/3) 최근 확정 스윙 저점→고점 레그(≥3×ATR): 되돌림 62%에 닿고(저가≤고점−0.62R) 종가가 79% 선 위(≥고점−0.79R), 고점 후 ≤20봉, 레그당 1회 → 롱. 숏 대칭.",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  },
+  {
+   "name": "R5_OrderBlock",
+   "definition": "변위봉(양봉 몸통≥1.5×ATR14(t-1) & 종가>전일 고가) 직전 5봉 내 마지막 음봉을 OB로 두고, 이후 ≤10봉 내 첫 재진입(저가≤OB 고가 & 종가≥OB 저가) → 롱. OB 저가 종가 이탈 시 폐기. 숏 대칭.",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  },
+  {
+   "name": "R6_CISD",
+   "definition": "t-1까지 연속 음봉 런(길이≥2, 도지 건너뜀)의 첫 봉 시가(CISD 수준)를 t 종가가 엄격히 상향 돌파 → 롱. 숏 대칭.",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  },
+  {
+   "name": "R7_BoS",
+   "definition": "fractal(3/3) 최근 확정 스윙 고점을 종가가 처음 상향 돌파(Break of Structure) → 롱(추세 추종). 스윙 저점 하향 돌파 → 숏.",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  },
+  {
+   "name": "R8_FVG_Retest",
+   "definition": "3봉 갭 FVG(저가[t]>고가[t-2], 갭≥0.5×ATR) 형성 후 ≤10봉 내 첫 재진입(저가≤갭 상단 & 종가≥갭 하단) → 롱. 갭 하단 종가 이탈 시 폐기. 숏 대칭.",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  },
+  {
+   "name": "R9_Boom_Daily",
+   "definition": "Boom° Classic 일봉: C2=전일 저가 스윕 후 범위 안 종가 복귀 확정봉 b(양쪽 스윕이면 봉 색 방향); C3~C5=b+1..b+3 안에서 전일 저가 스윕일 s 이후 CISD(마지막 음봉 런 첫 봉 시가를 종가가 엄격히 상향) 확정 → 롱, 시퀀스당 1회, 새 C2 나오면 리셋. 숏 대칭. (LTF CISD 동반 유효조건은 일봉에 없어 생략)",
+   "markets": [
+    "SPX",
+    "NASDAQ",
+    "KOSPI"
+   ]
+  }
+ ]
+}
