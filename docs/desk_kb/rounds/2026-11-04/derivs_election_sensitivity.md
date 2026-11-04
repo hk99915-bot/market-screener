@@ -17,3 +17,5 @@
 한계: IV 1σ는 하루 최대폭 아님(10/15 실현 2.2σ 전례) · 방향 판단 없음 · 대조는 PB가 값만 넣고 범위 이탈 여부 기록
 원본: data/deriv/daily.csv · reports/live.json · reports/committee_us.json · pb-private 비공개 macro.md(시나리오 정의)
 VOC: 파생 — 사전 고정(결과 미반영), 사후 대조는 PB 체크 후 파생 재호출
+
+> 출처(작성 주체): 파생 데스크 서브에이전트(PB 세션 11/4 08:1x 호출)가 직접 작성, PB 편집 없음. 상주 파생 세션 없음.
