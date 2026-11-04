@@ -7736,6 +7736,56 @@
       "depends_on": [],
       "escalated": "2026-11-04",
       "notes": "요청 2영업일 미처리(2026-11-02~2026-11-04) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-3522a3d2`."
+    },
+    {
+      "started": null,
+      "due": "2026-11-14",
+      "files": [
+        "screener/trade_rules.py",
+        "scripts/idea_collect.py"
+      ],
+      "depends_on": [],
+      "notes": "통합운영 A=CIO(판정·되돌림) R=운영(진행·보드) · 기록=기록 데스크 · HF 자문(판정권 없음) — 겸이 11/4 16:43. 근거 rounds/2026-11-04/idea_unify_*.md·cio.md #22. 지난 판정 1줄을 notes 끝에 남길 것. 11/7~11 동결 후 11/12 착수. 개발 본인 수락 필요.",
+      "id": "idea-unify-s1",
+      "title": "아이디어 통합 S1: trade_rules.py 상수 모듈(값 변경 0)+2원천 읽기 전용 수집기",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-12-15",
+      "files": [
+        "reports/idea_tracking.json"
+      ],
+      "depends_on": [
+        "idea-unify-s1"
+      ],
+      "notes": "통합운영 A=CIO(판정·되돌림) R=운영(진행·보드) · 기록=기록 데스크 · HF 자문(판정권 없음) — 겸이 11/4 16:43. 근거 rounds/2026-11-04/idea_unify_*.md·cio.md #22. 지난 판정 1줄을 notes 끝에 남길 것. 11/17 시작·12/1 표본 경보(10거래일 연속 0건)·12/15 CIO 전환 판정. 채택·보류 각 n≥10 전 자동 되돌림 금지(cio #22 a).",
+      "id": "idea-unify-s2",
+      "title": "아이디어 통합 S2: final 그림자 판정 20거래일(IDEA_FINAL 플래그)",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-12-18",
+      "files": [
+        "screener/idea_tracking.py"
+      ],
+      "depends_on": [
+        "idea-unify-s2"
+      ],
+      "notes": "통합운영 A=CIO(판정·되돌림) R=운영(진행·보드) · 기록=기록 데스크 · HF 자문(판정권 없음) — 겸이 11/4 16:43. 근거 rounds/2026-11-04/idea_unify_*.md·cio.md #22. 지난 판정 1줄을 notes 끝에 남길 것. 선행: audit-ideas-basis 닫힘.",
+      "id": "idea-unify-s3",
+      "title": "아이디어 통합 S3: idea_tracking 채점을 final 기준 단일 장부로",
+      "owner": "개발",
+      "priority": "P2",
+      "status": "대기",
+      "repo": "public"
     }
   ]
 }
