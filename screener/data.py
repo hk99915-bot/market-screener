@@ -145,7 +145,9 @@ def check_toss_eod(px: pl.DataFrame, want: date, eod: dict | None, tol: float | 
            "vol_median_dev_pct": round(100 * vol[len(vol) // 2], 2) if vol else None,
            "failed": [[s, round(100 * d, 3)] for s, d in bad[:10]], "n_failed": len(bad),
            "rule": {"close_tol_pct": 100 * tol, "min_overlap_pct": 100 * min_overlap, "min_match_pct": 100 * min_match},
-           "pass": bool(syms) and overlap >= min_overlap and match >= min_match}
+           "pass": bool(syms) and overlap >= min_overlap and match >= min_match,
+           "basis": "pass = 집계(겹침·일치 비율) 기준. 종가 한도(close_tol) 초과 종목은 failed·n_failed 에 남고 보충에서 개별 제외 — "
+                    "배당락 종목은 야후 auto_adjust 가 과거 봉을 소급 조정해 토스 원주가와 어긋남(10/29·10/30 CLX·FAST·CARR 추정)"}
     res["ok_syms"] = ok
     return res
 

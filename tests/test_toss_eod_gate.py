@@ -180,3 +180,14 @@ def test_shadow_check_when_yahoo_fresh(tmp_path, monkeypatch):
     def boom():
         raise RuntimeError("net")
     assert smain.us_toss_fill(px0, WANT, NOW, load=boom) == (px0, None)   # 실패해도 조용히 통과(로그만)
+
+
+def test_pass_is_aggregate_and_says_so_dividend_adjust_case():
+    """req-dev-fa0cd143(11/3 겸이): 종목 하나가 0.1% 한도를 넘어도 pass=true 인 건 설계(집계 게이트 — 겹침 ≥90%·일치 ≥98%,
+    초과 종목은 ok_syms 에서 개별 제외). 10/29·10/30 CLX 1.45%·FAST 0.51%·CARR 0.43% 꼴 = 야후 auto_adjust 가 배당락 뒤 과거 봉을
+    소급 조정한 값 vs 토스 원주가 → 배당락 종목만 어긋남. 결과에 판정 기준(basis)이 적혀 있어야 하고 초과 종목은 보충에서 빠진다."""
+    res = data.check_toss_eod(_yahoo(n_extra=95, close_bump={"X001": 0.9855}), WANT, _eod(n_extra=95))
+    assert res["pass"] and res["n_failed"] == 1 and res["failed"][0][0] == "X001" and res["failed"][0][1] > 1.4
+    assert "X001" not in res["ok_syms"] and res["n_match"] == 99
+    assert res["max_dev_pct"] > res["rule"]["close_tol_pct"]          # 한도 초과 종목이 있는데도 pass
+    assert "집계" in res["basis"] and "개별 제외" in res["basis"]
