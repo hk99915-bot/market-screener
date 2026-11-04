@@ -7810,7 +7810,7 @@
         ".github/workflows/"
       ],
       "depends_on": [],
-      "notes": "겸이 11/4 18:28 「미루지말구 확실히」 — 11/6 스냅샷 전 완료 목표. 근거: 개발 2차 판단·정정(parquet 290MB 1위), 피어 반대 3줄(쓰는 워크플로 7개+직접 URL tab_detail.html:444·tab_market.html:251). 완료 조건: 읽는 워크플로 목록 표 + 각 스텝 테스트 통과 + 스냅샷 제외 목록 반영.",
+      "notes": "겸이 11/4 18:28 「미루지말구 확실히」 — 11/6 스냅샷 전 완료 목표. 근거: 개발 2차 판단·정정(parquet 290MB 1위), 피어 반대 3줄(쓰는 워크플로 7개+직접 URL tab_detail.html:444·tab_market.html:251). 완료 조건: 읽는 워크플로 목록 표 + 각 스텝 테스트 통과 + 스냅샷 제외 목록 반영. | 개발 11/4 1조각: 추적 parquet 전수 표 scripts/parquet_inventory.py(+표 밖 차단 테스트)·docs/data_parquet_out.md. 남은 단계: GROUPS hist_year 를 Actions bootstrap 업로드 뒤 추가 → 읽는 워크플로 pull 그룹 → 스냅샷 제외 → git rm --cached(11/5~6)",
       "id": "data-parquet-out",
       "title": "새 저장소: data/*.parquet main 기록 제외 → Releases(data_store) 전용, parquet 읽는 Actions 전수 확인·Releases 다운로드 스텝으로 교체",
       "owner": "개발",

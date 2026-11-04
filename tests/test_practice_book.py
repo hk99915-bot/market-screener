@@ -1,4 +1,5 @@
 """겸이 연습 장부(scripts/practice_book.py) — 다음 시가 체결·손절·목표·성적표."""
+import json
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -101,3 +102,37 @@ def test_trail_v2_breakeven_and_partial(monkeypatch):
     p = out[0]
     assert p["partial"]["px"] == 131 and p["exit"] == 99          # +3R(130) 넘은 날 1/3 익절, 본전(100) 아래 종가 청산
     assert p["r"] > 0                                              # 1/3 이익이 2/3 소폭 손실을 덮음
+
+
+# --- 겸이 원문 공개 저장소 금지 (11/4 결재 req-dev-c396adfc) ---
+SECRET = "원문-문장-테스트-마커"
+
+
+def test_line_never_saved(tmp_path, monkeypatch):
+    monkeypatch.setattr(P, "STATE", tmp_path / "pb.json")
+    monkeypatch.setattr(P.H, "stock_last", lambda c: (0, 100.0, "테스트"))
+    b = {"open": [], "closed": []}
+    now = datetime(2026, 10, 22, 16, 30, tzinfo=KST)
+    p = P.add(b, "X", 92, 112, SECRET, now=now)
+    P.skip(b, "X", SECRET, now=now)
+    b["closed"].append({"id": "z", "line": SECRET, "r": 1.0, "ret": 0.1, "exit_why": "x", "exit_d": "d", "name": "n"})  # 옛 형식이 들어와도
+    b["voided"] = [{"id": "v", "line": SECRET}]
+    P.save(b)
+    raw = P.STATE.read_text(encoding="utf-8")
+    assert SECRET not in raw and '"line"' not in raw
+    assert p["src_ref"] == p["id"] and b["skips"][0]["src_ref"].startswith("skip:")
+    assert all(SECRET not in x for x in P.show(b))
+
+
+def test_repo_book_has_no_line_field():
+    root = Path(__file__).resolve().parents[1]
+    d = json.loads((root / "reports" / "practice_book.json").read_text(encoding="utf-8"))
+    for k in ("open", "closed", "voided", "skips"):
+        for r in d.get(k, []):
+            assert not any(f in r for f in P.FORBIDDEN_KEYS), f"{k} 에 원문 필드"
+            assert r.get("src_ref")
+
+
+def test_writer_source_has_no_line_key():
+    src = (Path(P.__file__)).read_text(encoding="utf-8")
+    assert '"line":' not in src and "p['line']" not in src and "s['line']" not in src

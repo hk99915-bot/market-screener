@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """겸이 연습 장부(모의) — 한 줄 매매("○○ 사고 싶다, X 밑이면 팔고 Y 오면 판다")를 기록하고 채점한다 (겸이 10/22, HF 개미 교실).
 
-  python3 scripts/practice_book.py add --code 000660 --stop 1120000 --target 1360000 --line "하이닉스 사고 싶다 112만원 밑이면 팔고 136만원 오면 판다"
+  python3 scripts/practice_book.py add --code 000660 --stop <손절가> --target <목표가> [--line "<원문>"]   # 원문은 저장 안 함(아래)
   python3 scripts/practice_book.py mark     # 체결(다음 시가)·손절·목표·20거래일 시간 정리
   python3 scripts/practice_book.py show     # 성적표(건수·적중·평균 R·손익비)
 
 상태 reports/practice_book.json — 금액 없음(가격·R·%만). 모의 전용, 실계좌 주문 아님.
+겸이 원문 문장(--line)은 공개 저장소에 쓰지 않는다(11/4 결재 req-dev-c396adfc) — 공개본엔 src_ref(= 기록 id, pb-private 의 원문 키)만 남고,
+원문은 PB 가 pb-private 에 직접 적는다. save()/load() 가 원문 필드(FORBIDDEN_KEYS)를 항상 걷어낸다 — tests/test_practice_book.py.
 R·수익률은 왕복 비용 차감(국장 0.45%·미장 0.2%) 뒤 숫자.
 체결: 장 마감 뒤 등록 → 다음 거래일 시가(차트 o), 장중 등록 → 그 시각 장중가(heatmap_KR). 손절·목표 = 종가 기준, 갭으로 넘으면 시가 체결.
 """
@@ -29,6 +31,7 @@ HOLD = 20
 RULES = ["손절가를 매수 전에 안 적으면 안 산다 — 겸이 1호 규칙(10/23, −20% 손실 38번의 원인)",
          "추세추종 v2(11/4): +2R 종가 도달 → 손절을 진입가(본전)로, +3R 종가 → 1/3 익절, 나머지는 20일 저점 트레일"]
 BE_R, PART_R, PART_FRAC = 2.0, 3.0, 1 / 3
+FORBIDDEN_KEYS = ("line",)               # 공개 장부에 쓰면 안 되는 필드(겸이 원문)
 COST = {"KR": 0.0045, "US": 0.002}      # 왕복 비용(세금·수수료·슬리피지) — hf_book 국장 주식·미장 주식과 같은 가정
 
 
@@ -36,7 +39,24 @@ def load() -> dict:
     return json.loads(STATE.read_text(encoding="utf-8")) if STATE.exists() else {"v": 1, "note": "겸이 연습 장부 — 모의, 금액 없음", "open": [], "closed": []}
 
 
+def scrub(b: dict) -> int:
+    """원문 필드를 걷어내고 src_ref(기록 id)를 채운다. 걷어낸 필드 수를 돌려준다(값은 다루지 않음)."""
+    n = 0
+    for k in ("open", "closed", "voided"):
+        for p in b.get(k, []):
+            n += sum(1 for f in FORBIDDEN_KEYS if p.pop(f, None) is not None)
+            p.setdefault("src_ref", p.get("id"))
+    seen: dict = {}
+    for s in b.get("skips", []):
+        n += sum(1 for f in FORBIDDEN_KEYS if s.pop(f, None) is not None)
+        base = f"skip:{s.get('d')}:{s.get('market')}:{s.get('code')}"
+        seen[base] = seen.get(base, 0) + 1
+        s.setdefault("src_ref", f"{base}:{seen[base]}")
+    return n
+
+
 def save(b: dict):
+    scrub(b)
     b["asof"] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
     STATE.write_text(json.dumps(b, ensure_ascii=False, indent=1), encoding="utf-8")
 
@@ -51,7 +71,7 @@ def add(b: dict, code: str, stop: float, target: float | None, line: str, market
         raise SystemExit("손절은 목표보다 낮아야 해(롱)")
     open_now = now.weekday() < 5 and (9 * 60) <= now.hour * 60 + now.minute < (15 * 60 + 20)
     p = {"id": f"{now:%Y%m%d}-{len(b['open']) + len(b['closed']) + 1}", "code": code, "market": market,
-         "name": H.detail_name(market, code) or code, "line": line, "stop": stop, "target": target,
+         "name": H.detail_name(market, code) or code, "stop": stop, "target": target,
          "created": now.strftime("%Y-%m-%d %H:%M"), "status": "대기", "days": 0,
          **({"trail": "low20_weekly", "stop0": stop, "v2": True} if trail else {})}
     lv = H.live_kr_stock(code) if (market == "KR" and open_now) else None
@@ -59,6 +79,7 @@ def add(b: dict, code: str, stop: float, target: float | None, line: str, market
         p.update(entry=lv[1], entry_d=now.strftime("%Y-%m-%d"), status="보유", entry_how="장중가(heatmap_KR)")
         if not stop < lv[1] < (target if target is not None else float("inf")):
             raise SystemExit(f"지금가 {lv[1]:,.0f} 가 손절~목표 사이가 아님")
+    p["src_ref"] = p["id"]                                    # 원문(line)은 저장하지 않는다 — 인자는 호환용, PB 가 pb-private 에 적음
     b["open"].append(p)
     return p
 
@@ -69,8 +90,9 @@ def skip(b: dict, code: str, line: str, market: str = "KR", now: datetime | None
     last = H.stock_last(code) if market == "KR" else H.us_stock_last(code)
     if not last:
         raise SystemExit(f"{code} 가격 없음")
-    s = {"code": code, "market": market, "name": last[2] or code, "line": line, "d": now.strftime("%Y-%m-%d"), "px": float(last[1])}
+    s = {"code": code, "market": market, "name": last[2] or code, "d": now.strftime("%Y-%m-%d"), "px": float(last[1])}
     b.setdefault("skips", []).append(s)
+    scrub(b)
     return s
 
 
@@ -160,13 +182,13 @@ def show(b: dict) -> list[str]:
         tg = ("목표 없음(추세추종 — 손절 매주 20일 저점으로 올림" + (" · +2R 본전·+3R 1/3 익절" if p.get("v2") else "") + ")") if p.get("trail") else f"목표 {p['target']:,.0f}"
         if p.get("partial"):
             tg += f" · 1/3 익절됨 {p['partial']['px']:,.0f}({p['partial']['d']})"
-        ls.append(f"- {p['name']} {ent} · 손절 {p['stop']:,.{2 if p['stop'] < 1000 else 0}f} · {tg}{cur} — \"{p['line']}\"")
+        ls.append(f"- {p['name']} {ent} · 손절 {p['stop']:,.{2 if p['stop'] < 1000 else 0}f} · {tg}{cur} — 원문 {p.get('src_ref') or p.get('id')}")
     for p in cl[-5:]:
         ls.append(f"- 청산 {p['name']} {p['r']:+.2f}R ({p['ret'] * 100:+.1f}%, {p['exit_why']}, {p['exit_d']})")
     for s in b.get("skips", [])[-5:]:
         last = H.stock_last(s["code"]) if s["market"] == "KR" else H.us_stock_last(s["code"])
         since = f" → 지금 {last[1] / s['px'] - 1:+.1%}" if last else ""
-        ls.append(f"- 안 산다 {s['name']} {s['px']:,.0f}({s['d']}){since} — \"{s['line']}\"")
+        ls.append(f"- 안 산다 {s['name']} {s['px']:,.0f}({s['d']}){since} — 원문 {s.get('src_ref', '-')}")
     return ls
 
 
@@ -179,11 +201,11 @@ def main(argv=None):
     a.add_argument("--stop", type=float, required=True)
     a.add_argument("--target", type=float)
     a.add_argument("--trail", action="store_true", help="추세추종: 목표 없음, 손절을 매주 직전 20일 저점으로 올림")
-    a.add_argument("--line", required=True)
+    a.add_argument("--line", default="", help="원문 — 저장하지 않음(공개 저장소). PB 가 pb-private 에 적는다")
     k = sp.add_parser("skip", help="'안 산다' 결정 기록 — 그 뒤 수익률로 채점")
     k.add_argument("--code", required=True)
     k.add_argument("--market", default="KR")
-    k.add_argument("--line", required=True)
+    k.add_argument("--line", default="", help="원문 — 저장하지 않음(공개 저장소)")
     sp.add_parser("mark")
     sp.add_parser("show")
     x = ap.parse_args(argv)
