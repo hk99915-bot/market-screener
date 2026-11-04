@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-04 · 작업 452개 · 진행 7 · 검수 4 · 대기 132 · 보류 30 · 완료 279
+기준일 2026-11-04 · 작업 454개 · 진행 7 · 검수 4 · 대기 134 · 보류 30 · 완료 279
 
 **결재 대기 4:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이)
 
@@ -29,10 +29,12 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | **2026-11-03 지남** | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. / 11/01 PM 늦은 일 정리(유효): 유효: 11/02(월) 23:20 루프 기동·06:00 재개 실측 뒤 완료 |
 | P2 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-07 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (132)
+## 대기 (134)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
+| P0 | `data-parquet-out` | 새 저장소: data/*.parquet main 기록 제외 → Releases(data_store) 전용, parquet 읽는 Actions 전수 확인·Releases 다운로드 스텝으로 교체 | 개발 | — | 2026-11-05 | `scripts/migrate_v1.py`<br>`.github/workflows/` | — | 겸이 11/4 18:28 「미루지말구 확실히」 — 11/6 스냅샷 전 완료 목표. 근거: 개발 2차 판단·정정(parquet 290MB 1위), 피어 반대 3줄(쓰는 워크플로 7개+직접 URL tab_detail.html:444·tab_market.html:251). 완료 조건: 읽는 워크플로 목록 표 + 각 스텝 테스트 통과 + 스냅샷 제외 목록 반영. |
+| P0 | `data-live-branch` | 새 저장소: 고빈도 JSON(live·events·decisions·heatmap·intraday·freshness) live-data 브랜치 분리 + 마감 1커밋 | 개발 | — | 2026-11-06 | `.github/workflows/live.yml`<br>`apps-script/Code.gs`<br>`scripts/build_pages.py`<br>`apps-script/tab_detail.html`<br>`apps-script/tab_market.html` | `data-parquet-out` | 겸이 11/4 18:28 「미루지말구 확실히」 — 11/6 스냅샷 전 완료 목표. 근거: 개발 2차 판단·정정(parquet 290MB 1위), 피어 반대 3줄(쓰는 워크플로 7개+직접 URL tab_detail.html:444·tab_market.html:251). 피어 조건 필수: ① 쓰는 워크플로 8개(live·briefing·health·heartbeat·heatmap·pick·pb_call·pages)·읽는 곳(직접 URL 포함) 전수 표 먼저 ② 브랜치 상수 1곳(toss-live TOSS_BASE 패턴) ③ live-data 쓰는 주체는 live.yml 하나, 초기화는 주 1회(매일 force-push 금지) ④ 되돌림 숫자: 병행 대조 불일치 1건 이상 또는 freshness 20분 초과 1회 → 그날 main 복귀 ⑤ 11/6 pytest·ui_smoke 미통과 시 스냅샷 제외(겸이에게 사유 보고). 프론트 협업. |
 | P0 ⏫P1 10-21 | `integrity-p0-3` | 14:42 PB 예약 프롬프트 규칙 하드코딩 제거 (감사 P0-3 · C-02) | 개발 | — | 2026-11-06 | — | — | 예약 변경 — 월 장 전 금지. 월 14:42 1회는 현 프롬프트로 돌고 PB가 결재 #2·#3 과 수동 대조. 장 후 오너 확인 뒤 교체. 설계: docs/integrity_dev_plan_2026-10-17.md §3 / 10/24 운영 점검: 확인 요청 중(req-pb-584233b1, 회신 마감 2026-10-28) — 비공개 작업 — 끝났는지 PB 회신 / 11/01 PM 늦은 일 정리(유효): 유효: 현 14:42 예약 프롬프트는 문서 경로 참조로 바뀜(10/26) — 옛 예약 원문 의존·규칙 수치 잔존 여부 확인 1건(PB 예약 소관) |
 | P0 ⏫P1 11-04 | `mig-v1-snapshot` | 리팩토링 v1 스냅샷 최종: migrate_v1 막힘 0·범용판 pytest 0 확인 → 겸이에 '준비 끝' 한 줄 | 개발 | — | 2026-11-06 | `scripts/migrate_v1.py` | `mig-v1-audit`, `mig-v1-dev-b` |  |
 | P0 ⏫P1 10-21 | `close-swap-verify` | 16:20 잠정→확정 종가 교체 검증 | PB | — | 2026-11-07 | `.github/workflows/screener.yml`<br>`screener/data_krx.py` | — | 16:20 screener.yml 실행 후 당일 KR 종가가 정규장 확정치로 바뀌었는지 (지수·종목 상세·데일리 일치). / 10/16 분은 사후 확인(10/17 토요일 데이터로), 10/19 16:20 실행 분으로 최종 검증. / 10/24 운영 점검: 확인 요청 중(req-data-3df3066a, 회신 마감 2026-10-28) — 16:20 확정 종가 교체 검증 기록 없음 / 11/1 PB: 아직 아님 — fsc_close 금융위 종가 대조 '실호출 검증 전'(e38c8615c·9f2db7781). 검증 데스크 실호출 확인 후 완료 |

@@ -7801,6 +7801,43 @@
       "priority": "P1",
       "status": "대기",
       "repo": "private"
+    },
+    {
+      "started": null,
+      "due": "2026-11-05",
+      "files": [
+        "scripts/migrate_v1.py",
+        ".github/workflows/"
+      ],
+      "depends_on": [],
+      "notes": "겸이 11/4 18:28 「미루지말구 확실히」 — 11/6 스냅샷 전 완료 목표. 근거: 개발 2차 판단·정정(parquet 290MB 1위), 피어 반대 3줄(쓰는 워크플로 7개+직접 URL tab_detail.html:444·tab_market.html:251). 완료 조건: 읽는 워크플로 목록 표 + 각 스텝 테스트 통과 + 스냅샷 제외 목록 반영.",
+      "id": "data-parquet-out",
+      "title": "새 저장소: data/*.parquet main 기록 제외 → Releases(data_store) 전용, parquet 읽는 Actions 전수 확인·Releases 다운로드 스텝으로 교체",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "대기",
+      "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-11-06",
+      "files": [
+        ".github/workflows/live.yml",
+        "apps-script/Code.gs",
+        "scripts/build_pages.py",
+        "apps-script/tab_detail.html",
+        "apps-script/tab_market.html"
+      ],
+      "depends_on": [
+        "data-parquet-out"
+      ],
+      "notes": "겸이 11/4 18:28 「미루지말구 확실히」 — 11/6 스냅샷 전 완료 목표. 근거: 개발 2차 판단·정정(parquet 290MB 1위), 피어 반대 3줄(쓰는 워크플로 7개+직접 URL tab_detail.html:444·tab_market.html:251). 피어 조건 필수: ① 쓰는 워크플로 8개(live·briefing·health·heartbeat·heatmap·pick·pb_call·pages)·읽는 곳(직접 URL 포함) 전수 표 먼저 ② 브랜치 상수 1곳(toss-live TOSS_BASE 패턴) ③ live-data 쓰는 주체는 live.yml 하나, 초기화는 주 1회(매일 force-push 금지) ④ 되돌림 숫자: 병행 대조 불일치 1건 이상 또는 freshness 20분 초과 1회 → 그날 main 복귀 ⑤ 11/6 pytest·ui_smoke 미통과 시 스냅샷 제외(겸이에게 사유 보고). 프론트 협업.",
+      "id": "data-live-branch",
+      "title": "새 저장소: 고빈도 JSON(live·events·decisions·heatmap·intraday·freshness) live-data 브랜치 분리 + 마감 1커밋",
+      "owner": "개발",
+      "priority": "P0",
+      "status": "대기",
+      "repo": "public"
     }
   ]
 }
