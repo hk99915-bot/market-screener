@@ -4815,6 +4815,165 @@
     "void": "나 미제출 — 채점 제외",
     "scored_at": "2026-11-04 01:35"
    }
+  },
+  {
+   "id": "2026-11-04-entry",
+   "date": "2026-11-04",
+   "kind": "entry",
+   "title": "진입 타점 대결",
+   "note": "",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "cash": true,
+     "by": "PB 재량",
+     "at": "14:44"
+    },
+    "PB🔥": {
+     "ticker": "102110",
+     "name": "TIGER 200",
+     "notional": 2000000.0,
+     "entry": "close",
+     "exit": "d5_close",
+     "by": "공격 PB",
+     "at": "14:44"
+    }
+   },
+   "pb_view": {
+    "why": "현금 유지. 미 중간선거 결과 반영 이벤트 당일(하원 민주·상원 미확정)이며 코스피 14:20 5,626.82(−0.39%)로 장중 저점 대비 약 +3.6% 회복한 V자 흐름이나 급락일 종가 신호(≤−5%, 등급 B) 미충족, 20일선 5,854 회복 0일. 개인 진입 게이트(위성 상한·손실 한도·종목 수·FRM 한도) fail로 실계좌 신규 불가. 탈출 조건: 20일선 2일 연속 회복 시 노출 상향 재검토.",
+    "lines": [
+     "코스피 14:20 5,626.82(−0.39%), 장중 저가 −4.0% 대비 회복",
+     "급락일 종가 신호(≤−5%) 미충족, 20일선 5,854 회복 0일",
+     "개인 진입 게이트 4건 fail, 이벤트 당일 장중 진입 금지",
+     "레드팀: 장중 V자 회복이 종가까지 유지되지 않으면 공격 PB 진입 근거가 사라지고 오늘 판단은 단순 관망으로 남음"
+    ],
+    "conviction": "낮음",
+    "at": "14:44",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 검증 전 신호만 존재"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0,
+     "note": "개인 진입 게이트 satellite_cap·loss_limit·position_count·frm_limits fail 및 이벤트 당일 장중 진입 금지"
+    },
+    "crash_day_cash": false,
+    "views_asof": "2026-11-04 14:19",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−3%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 0/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "역풍",
+      "b": "bear"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 3 / 축소 6",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 9회 · 5일 초과 +2.7%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 1건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "장중 V자 반전 추종. 코스피 장중 저가 −4.0%(약 5,422)에서 14:20 −0.39%로 회복, K200F −1.72%. 목표 20일선 5,854(약 +4.0%), 손절 장중 저점 이탈(약 −3.6%). 장중 반전 후 5일 성과는 우리 장부 검증 표본 없음(검증전). 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.04,
+      "stop": -0.036,
+      "rr": 1.1,
+      "win_rate": null,
+      "n": null,
+      "basis": "장중 저점 대비 회복폭·20일선 거리(live.json 14:20, committee exec) — 승률 검증전"
+     }
+    }
+   },
+   "crash_day": false
   }
  ],
  "tally": {
