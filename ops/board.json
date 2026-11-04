@@ -7786,6 +7786,21 @@
       "priority": "P2",
       "status": "대기",
       "repo": "public"
+    },
+    {
+      "started": null,
+      "due": "2026-11-06",
+      "files": [
+        "scripts/pchat.py"
+      ],
+      "depends_on": [],
+      "notes": "11/4 PB 발견. 재현: 사담 에이전트 3~4명 동시 실행. 제안: pull --rebase 대신 fetch 후 JSON 병합(합집합)·커밋 전 json.loads 검증.",
+      "id": "pchat-concurrency",
+      "title": "pb-private pchat.py 동시 push 충돌로 private_chat.json 깨짐(11/4 4회, 충돌 마커 커밋 1회) — 원자적 추가·재시도·JSON 검증 후 커밋",
+      "owner": "유지보수",
+      "priority": "P1",
+      "status": "대기",
+      "repo": "private"
     }
   ]
 }
