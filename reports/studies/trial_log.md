@@ -1,9 +1,9 @@
 ## 요약 (What · So What · Now What)
 
-> 기준 2026-11-03
+> 기준 2026-11-04
 
 **What**
-- 시도 N 1232 · 연구 54건 · 전체 한 가족 α 4e-05
+- 시도 N 1248 · 연구 56건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1232** (등록 m 합 452 + 등록 전 탐색 780) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1248** (등록 m 합 468 + 등록 전 탐색 780) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -56,6 +56,7 @@
 | 2026-11-01_history_paths | 2026-10-30 | (미분류) | — | 미등록 | — | — | 해당 없음(상한 C)1 | — |
 | 2026-11-01_vol_strategies | 2026-11-01 | vol_premium | 4 | m | 0.0125 | — | F4 | H1~H4 전부 F(H4 칼라 역방향 p 0.026, H1 CC 역방향 p 0.097). IS 양·OOS 음 — 2020·2025·2026 급등이 숏콜 쪽을 깎음. 교육·구조 이해용 |
 | 2026-11-03_bond_regime_strata | 2026-11-03 | winner_ex_ante | 12 | m | 0.00417 | 3 | C2 F7 검증전3 | 층 간 차이 Bonferroni(0.00417) 통과 0건 — C 2건(H1-2×약화, H1-3×고금리, 변동성 표지 크기 차이), 나머지 F, H1-4는 OOS 날짜 미달 검증전 |
+| 2026-11-04_crash_close_intraday | 2026-11-04 | crash_entry | 16 | m | 0.00313 | — | C2 F12 | ① 4개 청산 모두 F, ② C 2·F 8 — 신호 채택 없음 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -68,6 +69,7 @@
 | ktb_vs_ust | 2026-10-23 | bond_sleeve | 11 | m | 0.00455 | — | — | 슬리브 간 장기·믹스 성과 구별 불가 → 선택은 정성(채권·매크로)과 환노출 한도로 |
 | lab_p1 | 2026-10-16 | earnings_yoy | 6 | m | 0.00833 | 1 | — | — |
 | lab_p1_screen | 2026-10-16 | (미분류) | — | 미등록 | — | — | — | — |
+| multiple_compression_2022 |  | (미분류) | 0 | prereg.m | — | — | C1 검증전1 | — |
 | playbook_signals | 2026-10-15 | crash_entry | — | 미등록 | — | 32 | — | 급락일 종가(B)보다 나은 신호 없음 → 다음 연구(entry_signals)로 재정의 |
 | profit_lock |  | (미분류) | 6 | params.m | 0.00833 | — | — | — |
 | re_bluezone_drawdown | 202107~202 | (미분류) | — | 미등록 | — | — | — | — |
@@ -91,9 +93,9 @@
 |---|---|---|---|---|---|
 | us_spike | 2026-10-21_us_smallcap_spikes, 2026-10-21_us_spikes_intraday | 22 | 700 | 722 | 7e-05 |
 | trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, trend_expectancy | 185 | 22 | 207 | 0.00024 |
-| crash_entry | crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 32 | 36 | 68 | 0.00074 |
+| crash_entry | 2026-11-04_crash_close_intraday, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 48 | 36 | 84 | 0.0006 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
-| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, dotplot_tilt, lab_p1_screen, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 31 | 0 | 31 | 0.00161 |
+| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, dotplot_tilt, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 31 | 0 | 31 | 0.00161 |
 | kr_accum | accum_signals | 24 | 0 | 24 | 0.00208 |
 | winner_ex_ante | 2026-10-29_winner_ex_ante, 2026-11-03_bond_regime_strata | 19 | 4 | 23 | 0.00217 |
 | rules | rule_audit | 18 | 0 | 18 | 0.00278 |
