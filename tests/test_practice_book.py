@@ -87,3 +87,17 @@ def test_skip_logged_and_scored(monkeypatch):
     P.skip(b, "055550", "안 산다 — 이틀 연속 시장보다 약함")
     px["v"] = 95.0
     assert b["skips"][0]["px"] == 100.0 and any("안 산다 테스트 100(" in x and "-5.0%" in x for x in P.show(b))
+
+
+def test_trail_v2_breakeven_and_partial(monkeypatch):
+    import practice_book as PB
+    bars = [{"t": "2026-11-02", "o": 100, "c": 100, "l": 99}, {"t": "2026-11-03", "o": 100, "c": 121, "l": 100},
+            {"t": "2026-11-04", "o": 121, "c": 131, "l": 120}, {"t": "2026-11-05", "o": 131, "c": 99, "l": 98}]
+    monkeypatch.setattr(PB.H, "bars", lambda m, c: bars)
+    b = {"open": [{"code": "X", "market": "KR", "name": "X", "line": "t", "stop": 90, "stop0": 90, "target": None, "trail": "low20_weekly",
+                   "v2": True, "status": "보유", "entry": 100, "entry_d": "2026-11-02", "created": "2026-11-01 20:00", "days": 0}], "closed": []}
+    out = PB.mark(b)
+    assert len(out) == 1
+    p = out[0]
+    assert p["partial"]["px"] == 131 and p["exit"] == 99          # +3R(130) 넘은 날 1/3 익절, 본전(100) 아래 종가 청산
+    assert p["r"] > 0                                              # 1/3 이익이 2/3 소폭 손실을 덮음

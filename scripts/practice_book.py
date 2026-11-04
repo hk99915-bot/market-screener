@@ -26,7 +26,9 @@ from screener.tradecal import us_open_hhmm  # noqa: E402
 STATE = ROOT / "reports" / "practice_book.json"
 KST = timezone(timedelta(hours=9))
 HOLD = 20
-RULES = ["손절가를 매수 전에 안 적으면 안 산다 — 겸이 1호 규칙(10/23, −20% 손실 38번의 원인)"]
+RULES = ["손절가를 매수 전에 안 적으면 안 산다 — 겸이 1호 규칙(10/23, −20% 손실 38번의 원인)",
+         "추세추종 v2(11/4): +2R 종가 도달 → 손절을 진입가(본전)로, +3R 종가 → 1/3 익절, 나머지는 20일 저점 트레일"]
+BE_R, PART_R, PART_FRAC = 2.0, 3.0, 1 / 3
 COST = {"KR": 0.0045, "US": 0.002}      # 왕복 비용(세금·수수료·슬리피지) — hf_book 국장 주식·미장 주식과 같은 가정
 
 
@@ -50,7 +52,8 @@ def add(b: dict, code: str, stop: float, target: float | None, line: str, market
     open_now = now.weekday() < 5 and (9 * 60) <= now.hour * 60 + now.minute < (15 * 60 + 20)
     p = {"id": f"{now:%Y%m%d}-{len(b['open']) + len(b['closed']) + 1}", "code": code, "market": market,
          "name": H.detail_name(market, code) or code, "line": line, "stop": stop, "target": target,
-         "created": now.strftime("%Y-%m-%d %H:%M"), "status": "대기", "days": 0, **({"trail": "low20_weekly", "stop0": stop} if trail else {})}
+         "created": now.strftime("%Y-%m-%d %H:%M"), "status": "대기", "days": 0,
+         **({"trail": "low20_weekly", "stop0": stop, "v2": True} if trail else {})}
     lv = H.live_kr_stock(code) if (market == "KR" and open_now) else None
     if lv:
         p.update(entry=lv[1], entry_d=now.strftime("%Y-%m-%d"), status="보유", entry_how="장중가(heatmap_KR)")
@@ -90,7 +93,9 @@ def mark(b: dict) -> list[dict]:
             p.update(entry=float(nb[0]["o"]), entry_d=nb[0]["t"][:10], status="보유", entry_how="다음 시가")
         after = [x for x in bars if x["t"][:10] >= p["entry_d"]]
         why, px, d = None, None, None
-        stop, wk = p.get("stop0", p["stop"]), None
+        stop, wk, part = p.get("stop0", p["stop"]), None, None
+        r1 = p["entry"] - p.get("stop0", p["stop"])
+        fl = p.get("floor")                                       # 수동 손절 바닥 {"px","d"} — 그 날짜 이후 봉부터
         for x in after:
             if p.get("trail"):                                    # 주 첫 봉에서 손절 = max(손절, 직전 20봉 저점)
                 w = date.fromisoformat(x["t"][:10]).isocalendar()[:2]
@@ -100,6 +105,8 @@ def mark(b: dict) -> list[dict]:
                     if lows:
                         stop = max(stop, min(lows))
                 wk = w
+            if fl and x["t"][:10] >= fl["d"]:
+                stop = max(stop, float(fl["px"]))
             o, c = float(x["o"]), float(x["c"])
             if x["t"][:10] > p["entry_d"] and o <= stop:
                 why, px, d = "손절(갭 — 시가 체결)", o, x["t"][:10]
@@ -109,12 +116,24 @@ def mark(b: dict) -> list[dict]:
                 why, px, d = "목표", c, x["t"][:10]
             if why:
                 break
+            if p.get("v2"):                                       # 종가 기준 — 다음 봉부터 적용
+                if c >= p["entry"] + BE_R * r1:
+                    stop = max(stop, p["entry"])
+                if part is None and c >= p["entry"] + PART_R * r1:
+                    part = {"px": c, "d": x["t"][:10], "frac": PART_FRAC}
+        if fl and not why:
+            stop = max(stop, float(fl["px"]))                     # 아직 그 날짜 봉이 없어도 다음 봉부터 적용될 손절로 표시
         p["stop"] = stop
+        if part:
+            p["partial"] = part
         p["days"] = len(after)
         if not why and not p.get("trail") and p["days"] >= HOLD:
             why, px, d = "20거래일 시간 정리", float(after[-1]["c"]), after[-1]["t"][:10]
         if why:
-            p.update(exit=px, exit_d=d, exit_why=why, r=round(_r(p, px), 3), ret=round(px / p["entry"] - 1 - COST[p["market"]], 4), status="청산")
+            f = part["frac"] if part else 0.0
+            r = f * _r(p, part["px"]) + (1 - f) * _r(p, px) if part else _r(p, px)
+            ret = (f * part["px"] + (1 - f) * px) / p["entry"] - 1 - COST[p["market"]] if part else px / p["entry"] - 1 - COST[p["market"]]
+            p.update(exit=px, exit_d=d, exit_why=why + (f" · 1/3 익절 {part['px']:,.0f}({part['d']})" if part else ""), r=round(r, 3), ret=round(ret, 4), status="청산")
             b["closed"].append(p)
             out.append(p)
         else:
@@ -138,7 +157,9 @@ def show(b: dict) -> list[str]:
     for p in b["open"]:
         cur = f" · 현재 {p['last']:,.0f} ({_r(p, p['last']):+.2f}R)" if p.get("last") and p.get("entry") else ""
         ent = f"진입 {p['entry']:,.0f}({p['entry_d']})" if p.get("entry") else "다음 시가 체결 대기"
-        tg = "목표 없음(추세추종 — 손절 매주 20일 저점으로 올림)" if p.get("trail") else f"목표 {p['target']:,.0f}"
+        tg = ("목표 없음(추세추종 — 손절 매주 20일 저점으로 올림" + (" · +2R 본전·+3R 1/3 익절" if p.get("v2") else "") + ")") if p.get("trail") else f"목표 {p['target']:,.0f}"
+        if p.get("partial"):
+            tg += f" · 1/3 익절됨 {p['partial']['px']:,.0f}({p['partial']['d']})"
         ls.append(f"- {p['name']} {ent} · 손절 {p['stop']:,.{2 if p['stop'] < 1000 else 0}f} · {tg}{cur} — \"{p['line']}\"")
     for p in cl[-5:]:
         ls.append(f"- 청산 {p['name']} {p['r']:+.2f}R ({p['ret'] * 100:+.1f}%, {p['exit_why']}, {p['exit_d']})")
