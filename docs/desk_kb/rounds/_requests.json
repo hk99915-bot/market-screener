@@ -11523,9 +11523,27 @@
    ],
    "pending_rounds": 0,
    "status": "open"
+  },
+  {
+   "id": "req-dev-69bc1203",
+   "from": "pb",
+   "to": "dev",
+   "text": "시세 등락률 계산 점검: 11/5 03:34 PB가 야후 chart API meta.chartPreviousClose(조회 기간 시작 전 종가)를 전일 종가로 오용해 은 −12.5%(실제 +5.1%) 오보. screener·scripts 중 chartPreviousClose 또는 range>1d 에서 previousClose 를 전일 종가로 쓰는 곳 전수 점검·수정, 직전 종가는 일봉 rows[-2] 또는 regularMarketPreviousClose 사용 + 회귀 테스트",
+   "opened": "2026-11-05",
+   "opened_at": "2026-11-05T07:24+09:00",
+   "due": "2026-11-07",
+   "via": "ask",
+   "seen": [
+    "2026-11-05"
+   ],
+   "checked": [
+    "2026-11-05"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   }
  ],
- "updated": "2026-11-04",
+ "updated": "2026-11-05",
  "chat": [],
  "chat_moved": "pb-private chat/private_chat.json (10/28 통합)"
 }
