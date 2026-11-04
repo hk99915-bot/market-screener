@@ -1,53 +1,53 @@
-# US 스크리너 — 2026-11-03 [CONFIRMED]
+# US 스크리너 — 2026-11-04 [CONFIRMED]
 
-생성 2026-11-04 06:58 KST · 유니버스 554종목 (필터 후)
+생성 2026-11-05 06:59 KST · 유니버스 553종목 (필터 후)
 
 ## 시장 폭 (Breadth)
 
-- 20일선 위 66% · 50일선 위 62% · 200일선 위 61% (20일 전 52%)
-- 상승 233 / 하락 321 · 52주 신고가 11 / 신저가 1
-- 추세상승 171 / 추세하락 130 · 중앙값 수익률 -0.4%
-- **해석:** 강세장(200일선 위 종목 다수) · 20일 전보다 개선(+9%p) · 신고가 확산
+- 20일선 위 69% · 50일선 위 67% · 200일선 위 65% (20일 전 49%)
+- 상승 390 / 하락 163 · 52주 신고가 71 / 신저가 7
+- 추세상승 173 / 추세하락 128 · 중앙값 수익률 +2.4%
+- **해석:** 강세장(200일선 위 종목 다수) · 20일 전보다 개선(+16%p) · 상승 종목 압도 · 신고가 확산
 
 ## 매크로 컨텍스트
 
-**매크로 바람 역풍 (-0.23) — 주된 요인: 나스닥 −, S&P500 −, 미 10년 금리 + · 매크로 역풍 + 한국 초과 하락 겹침 (20일 코스피 -19.3% vs S&P -3.2% (격차 -16.1%p))**
+**매크로 바람 약한 역풍 (-0.10) — 주된 요인: 나스닥 −, 미 10년 금리 +, S&P500 − · 20일 코스피 -18.1% vs S&P -1.5% (격차 -16.7%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족**
 
 | 지표 | 값 | 1D | 20D | 고점대비 | 영향 |
 |---|---|---|---|---|---|
-| 코스피 | 5,648.79 | -3.6% | -19.3% | -38.0% | — |
-| 코스닥 | 704.39 | -4.1% | -21.1% | -42.6% | — |
-| S&P500 | 7,568.92 | +0.4% | -3.2% | -3.2% | -0.72 |
-| 나스닥 | 25,372.01 | +0.8% | -8.1% | -8.1% | -1.00 |
-| 러셀2000(미 중소형) | 2,812.45 | +0.2% | -0.6% | -8.3% | -0.05 |
+| 코스피 | 5,683.80 | +0.6% | -18.1% | -37.6% | — |
+| 코스닥 | 714.95 | +1.5% | -22.3% | -41.7% | — |
+| S&P500 | 7,688.62 | +1.6% | -1.5% | -1.7% | -0.55 |
+| 나스닥 | 25,736.51 | +1.4% | -6.5% | -6.8% | -1.00 |
+| 러셀2000(미 중소형) | 2,856.95 | +1.6% | +2.3% | -6.9% | +0.17 |
 | 닛케이225 | 63,081.86 | -0.3% | -7.7% | -12.8% | — |
-| TOPIX(일본 전체·ETF 1306 가격) | 413.00 | -0.8% | -4.0% | -6.2% | — |
-| VIX(미 변동성) | 20.83 | -1.5% | +38.8% | -32.9% | -0.30 |
-| 미 10년 금리 | 4.95 | +6bp | -32bp | -6.8% | +0.55 |
-| 일본 10년 금리 | 2.82 | -2.1% | -8.9% | -9.4% | — |
-| 달러인덱스 | 101.86 | +0.1% | +0.0% | -0.7% | -0.01 |
-| 원/달러 | 1,347.47 | +1.7% | +0.3% | -13.3% | -0.06 |
-| 엔/달러 | 158.70 | +0.7% | +0.5% | -3.1% | -0.02 |
-| WTI 유가 | 96.83 | +0.4% | +8.3% | -14.3% | -0.12 |
-| 금 | 3,939.20 | -0.8% | -5.9% | -25.9% | -0.40 |
-| 비트코인 | 77,803.16 | +1.5% | -4.6% | -10.2% | -0.07 |
+| TOPIX(일본 전체·ETF 1306 가격) | 414.00 | +0.2% | -5.1% | -6.0% | — |
+| VIX(미 변동성) | 16.61 | -20.3% | +10.1% | -46.5% | +0.00 |
+| 미 10년 금리 | 4.89 | -6bp | -38bp | -7.9% | +0.67 |
+| 일본 10년 금리 | 2.82 | +0.0% | -9.0% | -9.4% | — |
+| 달러인덱스 | 101.53 | -0.3% | -0.7% | -1.0% | +0.14 |
+| 원/달러 | 1,342.39 | -0.2% | +0.2% | -13.6% | -0.04 |
+| 엔/달러 | 158.42 | +0.3% | +0.1% | -3.3% | -0.00 |
+| WTI 유가 | 88.26 | -8.1% | -0.0% | -21.9% | +0.00 |
+| 금 | 4,069.30 | +3.3% | -1.7% | -23.5% | — |
+| 비트코인 | 80,130.53 | +3.6% | -2.4% | -7.5% | -0.04 |
 
-- **코스피**: 52주 고점 대비 -38.0% → 약세장(고점 −20% 이상). 20일 -19.3% (최근 2년 20일 변화 중 이례적으로 큰 하락). 200일선 아래 — 장기 추세 훼손. 같은 기간 S&P500 -3.2% → 한국만 16%p 더 빠짐: 미국발이 아니라 한국 고유 요인(반도체 쏠림·외국인 매도) 쪽.
-- **코스닥**: 52주 고점 대비 -42.6% → 약세장(고점 −20% 이상). 20일 -21.1% (최근 2년 20일 변화 중 이례적으로 큰 하락). 200일선 아래 — 장기 추세 훼손.
-- **S&P500**: 52주 고점 대비 -3.2% → 소폭 조정. 20일 -3.2%. 50일선 아래 — 중기 약세.
-- **나스닥**: 52주 고점 대비 -8.1% → 소폭 조정. 20일 -8.1% (최근 2년 20일 변화 중 큰 편). 50일선 아래 — 중기 약세.
-- **러셀2000(미 중소형)**: 52주 고점 대비 -8.3% → 소폭 조정. 20일 -0.6%. 50일선 아래 — 중기 약세. 중소형이 대형보다 약하면 신용·경기 우려가 깔려 있다는 뜻.
+- **코스피**: 52주 고점 대비 -37.6% → 약세장(고점 −20% 이상). 20일 -18.1% (최근 2년 20일 변화 중 큰 편). 200일선 아래 — 장기 추세 훼손. 같은 기간 S&P500 -1.5% → 한국만 17%p 더 빠짐: 미국발이 아니라 한국 고유 요인(반도체 쏠림·외국인 매도) 쪽.
+- **코스닥**: 52주 고점 대비 -41.7% → 약세장(고점 −20% 이상). 20일 -22.3% (최근 2년 20일 변화 중 이례적으로 큰 하락). 200일선 아래 — 장기 추세 훼손.
+- **S&P500**: 52주 고점 대비 -1.7% → 고점 부근. 20일 -1.5%. 50일선 아래 — 중기 약세.
+- **나스닥**: 52주 고점 대비 -6.8% → 소폭 조정. 20일 -6.5%. 50일선 아래 — 중기 약세.
+- **러셀2000(미 중소형)**: 52주 고점 대비 -6.9% → 소폭 조정. 20일 +2.3%. 50일선 위 — 추세 유지. 중소형이 대형보다 약하면 신용·경기 우려가 깔려 있다는 뜻.
 - **닛케이225**: 52주 고점 대비 -12.8% → 조정(고점 −10% 이상). 20일 -7.7% (최근 2년 20일 변화 중 큰 편). 50일선 아래 — 중기 약세.
-- **TOPIX(일본 전체·ETF 1306 가격)**: 52주 고점 대비 -6.2% → 소폭 조정. 20일 -4.0%. 50일선 아래 — 중기 약세.
-- **VIX(미 변동성)**: 20.8 = 경계 구간. 5일 +19%. 1년 중 상위 15% 수준.
-- **미 10년 금리**: 4.95% = 높은 편(4.5~5%). 1일 +6bp, 20일 -32bp. 1년 중 86번째 백분위. 금리 하락 → 밸류에이션 부담 완화.
-- **일본 10년 금리**: 2.82%. 1일 -6bp, 20일 -27bp.
-- **달러인덱스**: 20일 +0.0%. 방향성 약함.
-- **원/달러**: 1,347원. 20일 +0.3%. 환율 안정.
-- **엔/달러**: 158.7엔. 20일 +0.5%. 큰 변화 없음.
-- **WTI 유가**: $96.8. 20일 +8.3%, 50일선 대비 +1.9%. 업종 간 영향 엇갈림, 시장 전체 영향은 제한적.
-- **금**: $3,939. 20일 -5.9%. 금과 주식이 같이 하락 → 현금 확보(디레버리징) 국면 신호.
-- **비트코인**: 20일 -4.6%. 중립.
+- **TOPIX(일본 전체·ETF 1306 가격)**: 52주 고점 대비 -6.0% → 소폭 조정. 20일 -5.1%. 50일선 아래 — 중기 약세.
+- **VIX(미 변동성)**: 16.6 = 보통. 5일 -2%. 1년 중 상위 58% 수준.
+- **미 10년 금리**: 4.89% = 높은 편(4.5~5%). 1일 -6bp, 20일 -38bp. 1년 중 85번째 백분위. 금리 하락 → 밸류에이션 부담 완화.
+- **일본 10년 금리**: 2.82%. 1일 +0bp, 20일 -28bp.
+- **달러인덱스**: 20일 -0.7%. 방향성 약함.
+- **원/달러**: 1,342원. 20일 +0.2%. 환율 안정.
+- **엔/달러**: 158.4엔. 20일 +0.1%. 큰 변화 없음.
+- **WTI 유가**: $88.3. 20일 -0.0%, 50일선 대비 -7.2%. 업종 간 영향 엇갈림, 시장 전체 영향은 제한적.
+- **금**: $4,069. 20일 -1.7%. 특이점 없음.
+- **비트코인**: 20일 -2.4%. 중립.
 
 _영향: 한국 주식 전체에 대한 매크로 바람(−1~+1). 한국 지수 자체는 결과라서 점수에서 제외. 종목별 민감도는 종목 상세 EARNINGS DRIVERS._
 
@@ -55,236 +55,259 @@ _영향: 한국 주식 전체에 대한 매크로 바람(−1~+1). 한국 지수
 
 | 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| CHD | Church & Dwight Co | NYSE | 109.16 | -1.2% | +13.1% | 98 | 77 | 10 | 추세 상승 | 45 | 68 | -1.9% | 0.9 | 52주 신고가권 · 상승 추세 강도 매우 강함 |  |
-| ED | Consolidated Ediso | NYSE | 116.81 | -1.4% | +11.1% | 98 | 65 | 25 | 추세 상승 | 44 | 67 | -1.7% | 1.1 | 52주 신고가권 · 상승 추세 강도 매우 강함 |  |
-| CRL | Charles River Labo | NYSE | 351.87 | +3.9% | +15.4% | 98 | 65 | 0 | 추세 상승 | 44 | 61 | -7.3% | 1.2 | 모멘텀 둔화 시작 · 상승 추세 강도 매우 강함 |  |
-| CINF | Cincinnati Financi | NASDAQ | 184.34 | +0.3% | +13.0% | 97 | 67 | 47 | 추세 상승 | 43 | 73 | -4.8% | 1.3 | 20일선과 괴리 3.2ATR — 추격 주의 · 모멘텀 둔화 시작 · 상승 추세 강도 매우 강함 |  |
-| HST | Host Hotels & Reso | NASDAQ | 25.78 | +0.8% | +14.7% | 97 | 55 | 47 | 추세 상승 | 43 | 74 | -1.0% | 1.5 | 52주 신고가권 · 20일선과 괴리 2.9ATR — 추격 주의 · 모멘텀 둔화 시작 |  |
-| UNP | Union Pacific Corp | NYSE | 303.43 | -1.2% | +9.7% | 97 | 65 | 25 | 추세 상승 | 43 | 66 | -3.5% | 1.0 | 상승 추세 강도 매우 강함 |  |
-| NSC | Norfolk Southern C | NYSE | 340.95 | -1.4% | +7.8% | 96 | 65 | 10 | 추세 상승 | 41 | 62 | -4.5% | 0.8 | 상승 추세 강도 매우 강함 |  |
-| MAR | Marriott Internati | NASDAQ | 416.38 | +0.0% | +15.3% | 96 | 70 | 45 | 추세 상승 | 41 | 75 | -3.9% | 0.9 | 20일선과 괴리 3.0ATR — 추격 주의 · RSI 75 과매수 · 상승 추세 강도 매우 강함 |  |
-| PG | Procter & Gamble C | NYSE | 162.06 | -0.9% | +9.9% | 96 | 77 | 10 | 추세 상승 | 40 | 63 | -2.2% | 1.0 |  |  |
-| BDX | Becton, Dickinson  | NYSE | 198.17 | -0.2% | +9.9% | 96 | 65 | 0 | 추세 상승 | 40 | 64 | -1.1% | 1.2 | 52주 신고가권 · 모멘텀 둔화 시작 |  |
-| CL | Colgate-Palmolive  | NYSE | 95.62 | -1.9% | +10.2% | 96 | 77 | 0 | 추세 상승 | 39 | 60 | -2.8% | 1.1 |  |  |
-| MAS | Masco Corporation  | NYSE | 82.18 | -1.6% | +17.5% | 95 | 75 | 57 | 추세 상승 | 38 | 72 | -2.0% | 0.9 | 52주 신고가권 · 20일선과 괴리 3.1ATR — 추격 주의 |  |
-| HLT | Hilton Worldwide H | NYSE | 363.83 | -0.2% | +12.8% | 95 | 92 | 25 | 추세 상승 | 38 | 69 | -1.3% | 0.7 | 52주 신고가권 · 모멘텀 가속 |  |
-| SPG | Simon Property Gro | NYSE | 222.08 | +0.2% | +10.1% | 95 | 90 | 47 | 추세 상승 | 38 | 73 | -5.9% | 1.3 | 20일선과 괴리 4.0ATR — 추격 주의 · 모멘텀 가속 |  |
-| RSG | Republic Services, | NYSE | 242.87 | -1.3% | +13.1% | 95 | 77 | 10 | 추세 상승 | 37 | 65 | -2.6% | 1.1 |  |  |
+| TECH | Bio-Techne Corp -  | NASDAQ | 72.73 | +0.1% | +0.3% | 99 | 58 | 0 | 추세 상승 | 48 | 60 | -0.1% | 1.5 | 52주 신고가권 · 상승 추세 강도 매우 강함 |  |
+| CHD | Church & Dwight Co | NYSE | 112.03 | +2.6% | +15.8% | 99 | 67 | 47 | 추세 상승 | 47 | 73 | -1.1% | 1.1 | 52주 신고가권 · 20일선과 괴리 3.1ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| ED | Consolidated Ediso | NYSE | 120.30 | +3.0% | +15.0% | 98 | 55 | 47 | 추세 상승 | 46 | 73 | -0.5% | 1.4 | 52주 신고가권 · 20일선과 괴리 3.4ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| UNP | Union Pacific Corp | NYSE | 308.53 | +1.7% | +12.3% | 98 | 55 | 47 | 추세 상승 | 44 | 70 | -1.9% | 1.1 | 52주 신고가권 · 20일선과 괴리 2.7ATR — 추격 주의 · 모멘텀 둔화 시작 |  |
+| MAR | Marriott Internati | NASDAQ | 424.87 | +2.0% | +19.2% | 97 | 70 | 55 | 추세 상승 | 42 | 78 | -1.9% | 1.2 | 52주 신고가권 · 20일선과 괴리 3.5ATR — 추격 주의 · RSI 78 과매수 |  |
+| PG | Procter & Gamble C | NYSE | 167.32 | +3.2% | +13.9% | 96 | 77 | 20 | 추세 상승 | 41 | 70 | -0.5% | 1.3 | 52주 신고가권 · 20일선과 괴리 2.9ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| CL | Colgate-Palmolive  | NYSE | 98.76 | +3.3% | +13.9% | 96 | 77 | 30 | 추세 상승 | 40 | 66 | -0.9% | 1.1 | 52주 신고가권 · 20일선과 괴리 2.5ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| LLY | Eli Lilly and Comp | NYSE | 1,417.99 | +0.6% | +19.3% | 96 | 63 | 55 | 추세 상승 | 40 | 77 | -2.2% | 1.3 | 20일선과 괴리 3.0ATR — 추격 주의 · RSI 77 과매수 · 모멘텀 둔화 시작 |  |
+| HLT | Hilton Worldwide H | NYSE | 376.53 | +3.5% | +17.5% | 96 | 82 | 57 | 추세 상승 | 39 | 75 | -0.3% | 1.0 | 52주 신고가권 · 20일선과 괴리 3.4ATR — 추격 주의 · 모멘텀 가속 |  |
+| MA | Mastercard Incorpo | NYSE | 672.68 | +3.9% | +18.2% | 96 | 67 | 57 | 추세 상승 | 39 | 75 | -0.1% | 1.3 | 52주 신고가권 · 20일선과 괴리 3.9ATR — 추격 주의 |  |
+| AMGN | Amgen Inc. - Commo | NASDAQ | 478.48 | +3.7% | +15.8% | 95 | 75 | 32 | 추세 상승 | 39 | 73 | -0.8% | 1.6 | 52주 신고가권 · 20일선과 괴리 3.3ATR — 추격 주의 |  |
+| RSG | Republic Services, | NYSE | 245.41 | +1.0% | +13.5% | 95 | 65 | 10 | 추세 상승 | 38 | 67 | -1.6% | 0.9 | 52주 신고가권 · 모멘텀 둔화 시작 |  |
+| AWK | American Water Wor | NYSE | 149.63 | +2.2% | +17.5% | 95 | 75 | 57 | 추세 상승 | 38 | 73 | -0.0% | 1.6 | 52주 신고가권 · 20일선과 괴리 3.5ATR — 추격 주의 |  |
+| KDP | Keurig Dr Pepper I | NASDAQ | 36.79 | +5.9% | +20.5% | 95 | 65 | 10 | 추세 상승 | 38 | 66 | -1.4% | 1.6 | 52주 신고가권 |  |
+| MRNA | Moderna, Inc. - Co | NASDAQ | 258.38 | +13.1% | +31.5% | 95 | 100 | 30 | 추세 상승 | 38 | 68 | -0.1% | 0.8 | 52주 신고가권 · 모멘텀 가속 |  |
 
-## 상승추세 눌림 (Trend ≥60 & Mom ≤40) — 15종목
+## 상승추세 눌림 (Trend ≥60 & Mom ≤40) — 7종목
 
 | 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| PTC | PTC Inc. - Common  | NASDAQ | 194.06 | -0.1% | +0.5% | 100 | 40 | 12 | 상승추세 눌림 | 57 | 74 | -1.0% | 0.7 | 거래량 줄며 조정 — 매물 압력 약한 눌림 · 52주 신고가권 · 20일선 부근 지지 확인 구간 |  |
-| HUM | Humana Inc. Common | NYSE | 417.87 | +1.8% | +3.6% | 86 | 34 | 0 | 상승추세 눌림 | 15 | 54 | -8.3% | 0.9 | 20일선 부근 지지 확인 구간 |  |
-| AME | AMETEK, Inc. | NYSE | 248.58 | +2.8% | -2.0% | 85 | 32 | 0 | 상승추세 눌림 | 12 | 53 | -4.7% | 1.5 | 20일선 부근 지지 확인 구간 |  |
-| VEEV | Veeva Systems Inc. | NYSE | 303.21 | -1.2% | +7.0% | 75 | 34 | 0 | 상승추세 눌림 | 38 | 52 | -7.0% | 0.9 | 20일선 이탈, 50일선 지지 시험 |  |
-| JCI | Johnson Controls I | NYSE | 149.91 | +2.3% | -5.6% | 70 | 27 | 0 | 상승추세 눌림 | 17 | 50 | -6.5% | 0.8 | 20일선 이탈, 50일선 지지 시험 |  |
-| CI | The Cigna Group Co | NYSE | 295.44 | +0.1% | +7.7% | 69 | 34 | 0 | 상승추세 눌림 | 23 | 53 | -6.6% | 1.2 | 20일선 이탈, 50일선 지지 시험 |  |
-| PSX | Phillips 66 Common | NYSE | 271.94 | -1.1% | +0.8% | 69 | 27 | 0 | 상승추세 눌림 | 23 | 47 | -9.2% | 1.1 | 20일선 이탈, 50일선 지지 시험 |  |
-| KMB | Kimberly-Clark Cor | NASDAQ | 104.46 | -3.5% | +7.9% | 64 | 35 | 5 | 상승추세 눌림 | 36 | 49 | -9.5% | 3.3 | 거래량 3배 실린 하락 — 매물 출회 · 거래량 실린 하락 — 눌림보다 이탈 가능성 · 20일선 이탈, 50일선 지지 시험 |  |
-| APA | APA Corporation -  | NASDAQ | 47.77 | -2.2% | +8.9% | 60 | 27 | 0 | 상승추세 눌림 | 30 | 49 | -9.8% | 1.1 | 20일선 이탈, 50일선 지지 시험 |  |
-| CDW | CDW Corporation -  | NASDAQ | 149.77 | -0.5% | +10.4% | 60 | 27 | 0 | 상승추세 눌림 | 30 | 47 | -9.9% | 1.4 | 20일선 이탈, 50일선 지지 시험 · 하락 방향 힘이 우세(-DI>+DI) |  |
-| CNC | Centene Corporatio | NYSE | 67.48 | +1.4% | +4.4% | 60 | 34 | 0 | 상승추세 눌림 | 15 | 50 | -6.9% | 1.0 | 20일선 이탈, 50일선 지지 시험 |  |
-| CRWD | CrowdStrike Holdin | NASDAQ | 244.68 | +1.2% | -12.3% | 60 | 27 | 0 | 상승추세 눌림 | 16 | 47 | -14.7% | 0.7 | 20일선 이탈, 50일선 지지 시험 |  |
-| ELV | Elevance Health, I | NYSE | 413.75 | +0.0% | +3.4% | 60 | 19 | 0 | 상승추세 눌림 | 20 | 47 | -8.2% | 0.6 | 거래량 줄며 조정 — 매물 압력 약한 눌림 · 20일선 이탈, 50일선 지지 시험 |  |
-| EOG | EOG Resources, Inc | NYSE | 155.17 | -1.7% | +8.3% | 60 | 34 | 0 | 상승추세 눌림 | 24 | 51 | -6.5% | 1.2 | 20일선 이탈, 50일선 지지 시험 |  |
-| KMI | Kinder Morgan, Inc | NYSE | 32.87 | +0.5% | +3.1% | 60 | 34 | 0 | 상승추세 눌림 | 13 | 52 | -4.6% | 0.7 | 거래량 줄며 조정 — 매물 압력 약한 눌림 · 20일선 이탈, 50일선 지지 시험 |  |
+| PTC | PTC Inc. - Common  | NASDAQ | 195.18 | +0.6% | +0.8% | 100 | 40 | 25 | 상승추세 눌림 | 58 | 76 | -0.4% | 0.8 | 52주 신고가권 · 20일선 부근 지지 확인 구간 · RSI 76 과매수 |  |
+| IEX | IDEX Corporation C | NYSE | 233.69 | -1.5% | +0.3% | 70 | 34 | 0 | 상승추세 눌림 | 15 | 51 | -3.8% | 1.4 | 20일선 이탈, 50일선 지지 시험 |  |
+| GRMN | Garmin Ltd. Common | NYSE | 289.15 | +6.5% | +4.7% | 67 | 40 | 0 | 상승추세 눌림 | 19 | 55 | -7.6% | 1.4 |  |  |
+| CRL | Charles River Labo | NYSE | 326.29 | -7.3% | +8.7% | 67 | 35 | 0 | 상승추세 눌림 | 41 | 50 | -14.1% | 1.4 | 20일선 이탈, 50일선 지지 시험 · 상승 추세 강도 매우 강함 |  |
+| CVX | Chevron Corporatio | NYSE | 216.96 | -3.7% | +5.8% | 60 | 22 | 0 | 상승추세 눌림 | 30 | 45 | -8.3% | 1.4 | 20일선 이탈, 50일선 지지 시험 · 하락 방향 힘이 우세(-DI>+DI) |  |
+| IFF | International Flav | NYSE | 87.67 | -4.9% | +4.2% | 60 | 22 | 0 | 상승추세 눌림 | 27 | 45 | -8.0% | 2.2 | 거래량 실린 하락 — 눌림보다 이탈 가능성 · 20일선 이탈, 50일선 지지 시험 |  |
+| TRGP | Targa Resources, I | NYSE | 285.00 | -4.5% | +0.8% | 60 | 22 | 0 | 상승추세 눌림 | 12 | 44 | -10.0% | 1.7 | 거래량 실린 하락 — 눌림보다 이탈 가능성 · 50일선까지 이탈 — 추세 훼손 주의 |  |
 
 ## 역추세 반등 (Trend ≤40 & Mom ≥60) — 15종목
 
 | 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| CMCSA | Comcast Corporatio | NASDAQ | 23.67 | -0.8% | +11.5% | 30 | 100 | 35 | 역추세 반등 | 26 | 62 | -25.0% | 1.0 | 200일선 아래 반등 — 위 저항 7% · 모멘텀 가속 |  |
-| DPZ | Domino's Pizza Inc | NASDAQ | 323.09 | +0.2% | +6.7% | 25 | 100 | 15 | 역추세 반등 | 12 | 61 | -25.7% | 0.6 | 200일선 아래 반등 — 위 저항 5% · 추세 강도 약함(횡보성) · 모멘텀 가속 |  |
-| TDG | Transdigm Group In | NYSE | 1,208.04 | -0.5% | +9.5% | 38 | 100 | 25 | 역추세 반등 | 20 | 65 | -17.4% | 1.0 | 200일선 아래 반등 — 위 저항 1% · 모멘텀 가속 |  |
-| TSCO | Tractor Supply Com | NASDAQ | 35.10 | -0.6% | +8.7% | 40 | 100 | 25 | 역추세 반등 | 24 | 60 | -36.9% | 0.5 | 200일선 아래 반등 — 위 저항 7% · 모멘텀 가속 |  |
-| CBRE | CBRE Group Inc Com | NYSE | 135.52 | -0.9% | +3.7% | 27 | 90 | 10 | 역추세 반등 | 18 | 56 | -22.2% | 0.8 | 200일선 아래 반등 — 위 저항 4% · 모멘텀 가속 |  |
-| CMG | Chipotle Mexican G | NYSE | 33.26 | +1.1% | +7.6% | 28 | 90 | 55 | 역추세 반등 | 19 | 62 | -19.7% | 0.6 | 200일선 아래 반등 — 위 저항 2% · 20일선과 괴리 2.5ATR — 추격 주의 · 모멘텀 가속 |  |
-| FSLR | First Solar, Inc.  | NASDAQ | 185.90 | +2.1% | +3.4% | 28 | 90 | 0 | 역추세 반등 | 19 | 56 | -42.1% | 1.5 | 200일선 아래 반등 — 위 저항 16% · 52주 고점 대비 -42% · 모멘텀 가속 |  |
-| GE | GE Aerospace Commo | NYSE | 320.67 | +1.5% | +3.6% | 28 | 90 | 20 | 역추세 반등 | 20 | 58 | -17.4% | 0.9 | 200일선 아래 반등 — 위 저항 0% · 모멘텀 가속 |  |
-| TKO | TKO Group Holdings | NYSE | 187.20 | +1.1% | +6.1% | 28 | 90 | 35 | 역추세 반등 | 21 | 62 | -16.5% | 1.2 | 200일선 아래 반등 — 위 저항 3% · 모멘텀 가속 |  |
-| TPR | Tapestry, Inc. Com | NYSE | 121.02 | +0.2% | +3.7% | 28 | 90 | 20 | 역추세 반등 | 20 | 59 | -26.3% | 1.2 | 200일선 아래 반등 — 위 저항 13% · 모멘텀 가속 |  |
-| FER | Ferrovial N.V. - O | NASDAQ | 57.54 | +0.7% | +11.8% | 36 | 88 | 35 | 역추세 반등 | 40 | 67 | -22.3% | 0.6 | 200일선 아래 반등 — 위 저항 11% · 20일선과 괴리 4.0ATR — 추격 주의 · 모멘텀 가속 |  |
-| FIS | Fidelity National  | NYSE | 38.99 | -2.9% | +16.7% | 30 | 85 | 20 | 역추세 반등 | 24 | 61 | -41.2% | 2.0 | 200일선 아래 반등 — 위 저항 10% · 52주 고점 대비 -41% |  |
-| WY | Weyerhaeuser Compa | NYSE | 20.59 | -3.3% | +10.7% | 34 | 85 | 10 | 역추세 반등 | 34 | 56 | -23.8% | 0.7 | 200일선 아래 반등 — 위 저항 13% |  |
-| DECK | Deckers Outdoor Co | NYSE | 84.09 | -1.1% | +3.0% | 28 | 84 | 0 | 역추세 반등 | 20 | 53 | -31.2% | 0.7 | 200일선 아래 반등 — 위 저항 18% · 모멘텀 가속 |  |
-| HWM | Howmet Aerospace I | NYSE | 223.12 | +4.8% | -3.7% | 35 | 82 | 20 | 역추세 반등 | 39 | 55 | -28.0% | 1.3 | 200일선 아래 반등 — 위 저항 11% · 모멘텀 가속 |  |
+| DECK | Deckers Outdoor Co | NYSE | 89.11 | +6.0% | +10.9% | 38 | 100 | 20 | 역추세 반등 | 21 | 64 | -27.1% | 1.0 | 200일선 아래 반등 — 위 저항 11% · 모멘텀 가속 |  |
+| GE | GE Aerospace Commo | NYSE | 329.45 | +2.7% | +8.5% | 38 | 100 | 35 | 역추세 반등 | 21 | 62 | -15.1% | 1.2 | 모멘텀 가속 |  |
+| HSY | The Hershey Compan | NYSE | 174.50 | +4.2% | +8.8% | 28 | 100 | 10 | 역추세 반등 | 19 | 58 | -26.0% | 1.2 | 200일선 아래 반등 — 위 저항 7% · 모멘텀 가속 |  |
+| PDD | PDD | US | 82.15 | +2.5% | +4.6% | 37 | 100 | 0 | 역추세 반등 | 17 | 57 | -41.0% | 1.2 | 200일선 아래 반등 — 위 저항 10% · 52주 고점 대비 -41% · 추세 강도 약함(횡보성) |  |
+| TPR | Tapestry, Inc. Com | NYSE | 125.31 | +3.5% | +10.5% | 28 | 100 | 55 | 역추세 반등 | 21 | 65 | -23.7% | 1.7 | 200일선 아래 반등 — 위 저항 9% · 20일선과 괴리 2.5ATR — 추격 주의 · 모멘텀 가속 |  |
+| UAL | United Airlines Ho | NASDAQ | 115.76 | +8.0% | +5.1% | 37 | 100 | 20 | 역추세 반등 | 18 | 63 | -16.6% | 1.5 | 추세 강도 약함(횡보성) · 모멘텀 가속 |  |
+| BKNG | Booking Holdings I | NASDAQ | 170.97 | +9.8% | +9.7% | 28 | 90 | 30 | 역추세 반등 | 20 | 61 | -22.0% | 1.9 | 거래량 1.9배 동반 상승 · 200일선 아래 반등 — 위 저항 3% · 모멘텀 가속 |  |
+| BSX | Boston Scientific  | NYSE | 45.82 | +5.3% | +10.2% | 28 | 90 | 10 | 역추세 반등 | 20 | 57 | -56.6% | 1.7 | 200일선 아래 반등 — 위 저항 22% · 52주 고점 대비 -57% · 모멘텀 가속 |  |
+| CBRE | CBRE Group Inc Com | NYSE | 141.11 | +4.1% | +10.6% | 28 | 90 | 45 | 역추세 반등 | 19 | 62 | -19.0% | 1.0 | 200일선 아래 반등 — 위 저항 0% · 모멘텀 가속 |  |
+| CHTR | Charter Communicat | NASDAQ | 120.25 | +5.7% | +12.4% | 29 | 90 | 45 | 역추세 반등 | 23 | 59 | -52.7% | 1.2 | 200일선 아래 반등 — 위 저항 36% · 52주 고점 대비 -53% · 모멘텀 가속 |  |
+| FSLR | First Solar, Inc.  | NASDAQ | 194.51 | +4.6% | +8.0% | 28 | 90 | 40 | 역추세 반등 | 21 | 63 | -39.4% | 3.4 | 거래량 3배 실린 상승 — 매수세 유입 · 200일선 아래 반등 — 위 저항 11% · 모멘텀 가속 |  |
+| LVS | Las Vegas Sands Co | NYSE | 40.74 | +6.5% | +14.7% | 33 | 90 | 70 | 역추세 반등 | 32 | 67 | -40.7% | 1.3 | 200일선 아래 반등 — 위 저항 18% · 20일선과 괴리 3.5ATR — 추격 주의 · 52주 고점 대비 -41% |  |
+| SNA | Snap-On Incorporat | NYSE | 368.70 | +1.8% | +2.4% | 30 | 90 | 0 | 역추세 반등 | 28 | 55 | -12.3% | 1.6 | 200일선 아래 반등 — 위 저항 2% · 모멘텀 가속 |  |
+| WYNN | Wynn Resorts, Limi | NASDAQ | 82.38 | +6.1% | +9.9% | 33 | 90 | 55 | 역추세 반등 | 32 | 62 | -38.4% | 2.0 | 거래량 2.0배 동반 상승 · 200일선 아래 반등 — 위 저항 18% · 20일선과 괴리 2.5ATR — 추격 주의 |  |
+| ALGN | Align Technology,  | NASDAQ | 164.90 | +8.8% | +17.9% | 29 | 85 | 30 | 역추세 반등 | 23 | 67 | -17.7% | 1.6 | 200일선 아래 반등 — 위 저항 2% · 20일선과 괴리 2.8ATR — 추격 주의 |  |
 
 ## 과열 (Reversal Risk ≥60) — 15종목
 
 | 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| FISV | Fiserv, Inc. - Com | NASDAQ | 58.40 | +12.5% | +28.4% | 49 | 90 | 100 | 중립 | 23 | 78 | -17.1% | 3.0 | 거래량 3배 실린 상승 — 매수세 유입 · 20일선과 괴리 5.2ATR — 추격 주의 · RSI 78 과매수 |  |
-| REGN | Regeneron Pharmace | NASDAQ | 973.36 | +1.3% | +31.8% | 93 | 90 | 95 | 추세 과열 | 33 | 83 | -0.2% | 1.5 | 52주 신고가권 · 20일선과 괴리 5.7ATR — 추격 주의 · RSI 83 과매수 |  |
-| DD | DuPont de Nemours, | NYSE | 153.46 | +8.6% | +15.1% | 79 | 63 | 85 | 추세 과열 | 23 | 82 | -1.7% | 3.0 | 거래량 3.0배 동반 상승 · 52주 신고가권 · 20일선과 괴리 5.3ATR — 추격 주의 |  |
-| PNR | Pentair plc. Ordin | NYSE | 69.73 | -1.2% | +32.4% | 57 | 63 | 85 | 중립 | 43 | 83 | -35.6% | 0.8 | 20일선과 괴리 6.1ATR — 추격 주의 · RSI 83 과매수 · 상승 추세 강도 매우 강함 |  |
-| GPN | Global Payments In | NYSE | 98.00 | -1.6% | +19.8% | 80 | 90 | 82 | 추세 과열 | 24 | 71 | -3.3% | 1.4 | 20일선과 괴리 3.6ATR — 추격 주의 · 모멘텀 가속 |  |
-| GEHC | GE HealthCare Tech | NASDAQ | 80.66 | +1.4% | +24.6% | 75 | 90 | 80 | 추세 과열 | 37 | 80 | -10.0% | 1.4 | 20일선과 괴리 4.4ATR — 추격 주의 · RSI 80 과매수 · 모멘텀 가속 |  |
-| IDXX | IDEXX Laboratories | NASDAQ | 672.04 | +0.1% | +30.4% | 62 | 90 | 80 | 중립 | 30 | 77 | -12.7% | 1.7 | 20일선과 괴리 4.9ATR — 추격 주의 · RSI 77 과매수 · 모멘텀 가속 |  |
-| VLTO | Veralto Corp Commo | NYSE | 116.32 | +0.5% | +20.6% | 96 | 90 | 80 | 추세 과열 | 40 | 85 | -0.6% | 1.2 | 52주 신고가권 · 20일선과 괴리 4.8ATR — 추격 주의 · RSI 85 과매수 |  |
-| EXR | Extra Space Storag | NYSE | 156.23 | +0.2% | +16.7% | 87 | 90 | 70 | 추세 과열 | 43 | 81 | -0.5% | 0.9 | 52주 신고가권 · 20일선과 괴리 4.6ATR — 추격 주의 · RSI 81 과매수 |  |
-| FTV | Fortive Corporatio | NYSE | 66.81 | -0.0% | +15.4% | 86 | 75 | 70 | 추세 과열 | 39 | 80 | -1.2% | 1.2 | 52주 신고가권 · 20일선과 괴리 4.0ATR — 추격 주의 · RSI 80 과매수 |  |
-| J | Jacobs Solutions I | NYSE | 159.85 | -0.2% | +14.8% | 91 | 78 | 70 | 추세 과열 | 29 | 77 | -1.1% | 1.2 | 52주 신고가권 · 20일선과 괴리 3.8ATR — 추격 주의 · RSI 77 과매수 |  |
-| LLY | Eli Lilly and Comp | NYSE | 1,409.38 | -0.1% | +21.8% | 96 | 63 | 70 | 추세 과열 | 39 | 76 | -2.8% | 1.0 | 20일선과 괴리 3.1ATR — 추격 주의 · RSI 76 과매수 |  |
-| ROP | Roper Technologies | NASDAQ | 473.58 | -1.2% | +30.7% | 88 | 63 | 70 | 추세 과열 | 46 | 80 | -2.2% | 1.2 | 20일선과 괴리 4.9ATR — 추격 주의 · RSI 80 과매수 · 상승 추세 강도 매우 강함 |  |
-| GEN | Gen Digital Inc. - | NASDAQ | 29.71 | -0.6% | +30.3% | 71 | 90 | 67 | 추세 과열 | 27 | 72 | -6.1% | 0.8 | 20일선과 괴리 4.3ATR — 추격 주의 · 모멘텀 가속 |  |
-| ALLE | Allegion plc Ordin | NYSE | 189.35 | -1.2% | +22.0% | 95 | 63 | 60 | 추세 과열 | 37 | 79 | -1.6% | 0.8 | 52주 신고가권 · 20일선과 괴리 5.1ATR — 추격 주의 · RSI 79 과매수 |  |
+| SWK | Stanley Black & De | NYSE | 118.33 | +13.1% | +34.0% | 95 | 63 | 100 | 추세 과열 | 37 | 84 | -3.5% | 3.7 | 거래량 4배 실린 상승 — 매수세 유입 · 20일선과 괴리 5.2ATR — 추격 주의 · RSI 84 과매수 |  |
+| FISV | Fiserv, Inc. - Com | NASDAQ | 62.05 | +6.2% | +36.9% | 61 | 90 | 95 | 중립 | 27 | 82 | -11.9% | 2.4 | 거래량 2.4배 동반 상승 · 20일선과 괴리 6.1ATR — 추격 주의 · RSI 82 과매수 |  |
+| IDXX | IDEXX Laboratories | NASDAQ | 698.55 | +3.9% | +37.9% | 73 | 90 | 95 | 추세 과열 | 32 | 79 | -9.3% | 2.0 | 거래량 2.0배 동반 상승 · 20일선과 괴리 5.3ATR — 추격 주의 · RSI 79 과매수 |  |
+| MMM | 3M Company Common  | NYSE | 193.95 | +9.5% | +19.6% | 92 | 75 | 95 | 추세 과열 | 29 | 75 | -0.4% | 2.4 | 거래량 2.4배 동반 상승 · 52주 신고가권 · 20일선과 괴리 4.6ATR — 추격 주의 |  |
+| GWW | W.W. Grainger, Inc | NYSE | 1,489.39 | +6.5% | +17.9% | 90 | 90 | 85 | 추세 과열 | 24 | 80 | -2.1% | 2.2 | 거래량 2.2배 동반 상승 · 20일선과 괴리 4.0ATR — 추격 주의 · RSI 80 과매수 |  |
+| ABT | Abbott Laboratorie | NYSE | 115.51 | +5.6% | +17.7% | 68 | 90 | 82 | 추세 과열 | 20 | 74 | -10.3% | 1.3 | 20일선과 괴리 3.8ATR — 추격 주의 · 모멘텀 가속 |  |
+| CLX | Clorox Company (Th | NYSE | 99.16 | +5.7% | +22.4% | 51 | 90 | 82 | 중립 | 28 | 75 | -20.0% | 1.7 | 20일선과 괴리 4.3ATR — 추격 주의 · 모멘텀 가속 |  |
+| CVNA | Carvana Co. Class  | NYSE | 77.56 | +8.8% | +23.6% | 51 | 90 | 82 | 중립 | 28 | 73 | -20.4% | 1.9 | 거래량 1.9배 동반 상승 · 20일선과 괴리 4.1ATR — 추격 주의 · 5일 +31% 급등 |  |
+| GEHC | GE HealthCare Tech | NASDAQ | 85.81 | +6.4% | +32.8% | 76 | 90 | 80 | 추세 과열 | 40 | 85 | -4.2% | 2.2 | 거래량 2.2배 동반 상승 · 20일선과 괴리 5.5ATR — 추격 주의 · RSI 85 과매수 |  |
+| GEN | Gen Digital Inc. - | NASDAQ | 30.89 | +4.0% | +38.0% | 72 | 78 | 80 | 추세 과열 | 29 | 75 | -2.4% | 1.2 | 20일선과 괴리 4.9ATR — 추격 주의 · RSI 75 과매수 · 모멘텀 가속 |  |
+| JKHY | Jack Henry & Assoc | NASDAQ | 179.16 | +10.8% | +23.0% | 80 | 75 | 80 | 추세 과열 | 25 | 76 | -6.3% | 1.7 | 20일선과 괴리 4.0ATR — 추격 주의 · RSI 76 과매수 |  |
+| LOW | Lowe's Companies,  | NYSE | 229.38 | +7.5% | +27.2% | 66 | 63 | 80 | 추세 과열 | 39 | 76 | -20.4% | 1.4 | 20일선과 괴리 5.0ATR — 추격 주의 · RSI 76 과매수 |  |
+| MAS | Masco Corporation  | NYSE | 86.82 | +5.6% | +26.1% | 96 | 75 | 80 | 추세 과열 | 41 | 78 | -1.2% | 1.1 | 52주 신고가권 · 20일선과 괴리 4.3ATR — 추격 주의 · RSI 78 과매수 |  |
+| VLTO | Veralto Corp Commo | NYSE | 117.02 | +0.6% | +22.2% | 97 | 90 | 80 | 추세 과열 | 43 | 86 | -1.2% | 1.1 | 52주 신고가권 · 20일선과 괴리 4.7ATR — 추격 주의 · RSI 86 과매수 |  |
+| VMC | Vulcan Materials C | NYSE | 297.69 | +4.6% | +21.9% | 74 | 75 | 80 | 추세 과열 | 34 | 76 | -9.6% | 1.3 | 20일선과 괴리 4.3ATR — 추격 주의 · RSI 76 과매수 |  |
 
-## 52주 신고가 — 11종목
-
-| 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| BRK-B | BRK-B | US | 557.07 | +0.2% | +10.2% | 99 | 82 | 60 | 추세 과열 | 47 | 75 | -0.4% | 1.2 | 52주 신고가권 · 20일선과 괴리 3.1ATR — 추격 주의 · RSI 75 과매수 |  |
-| VLTO | Veralto Corp Commo | NYSE | 116.32 | +0.5% | +20.6% | 96 | 90 | 80 | 추세 과열 | 40 | 85 | -0.6% | 1.2 | 52주 신고가권 · 20일선과 괴리 4.8ATR — 추격 주의 · RSI 85 과매수 |  |
-| RVTY | Revvity, Inc. Comm | NYSE | 163.48 | +7.8% | +6.7% | 93 | 58 | 0 | 추세 상승 | 34 | 61 | -4.8% | 1.9 | 거래량 1.9배 동반 상승 |  |
-| REGN | Regeneron Pharmace | NASDAQ | 973.36 | +1.3% | +31.8% | 93 | 90 | 95 | 추세 과열 | 33 | 83 | -0.2% | 1.5 | 52주 신고가권 · 20일선과 괴리 5.7ATR — 추격 주의 · RSI 83 과매수 |  |
-| EG | Everest Group, Ltd | NYSE | 410.57 | -1.7% | +11.9% | 92 | 85 | 25 | 추세 상승 | 30 | 64 | -2.6% | 1.2 |  |  |
-| PFE | Pfizer, Inc. Commo | NYSE | 30.00 | -2.2% | +9.1% | 92 | 65 | 0 | 추세 상승 | 30 | 58 | -3.4% | 1.6 | 추세 속 당일 약세 |  |
-| J | Jacobs Solutions I | NYSE | 159.85 | -0.2% | +14.8% | 91 | 78 | 70 | 추세 과열 | 29 | 77 | -1.1% | 1.2 | 52주 신고가권 · 20일선과 괴리 3.8ATR — 추격 주의 · RSI 77 과매수 |  |
-| EXPD | Expeditors Interna | NYSE | 204.31 | +1.9% | +6.5% | 90 | 92 | 10 | 추세 상승 | 25 | 69 | -0.7% | 1.5 | 52주 신고가권 · 모멘텀 가속 |  |
-| FTV | Fortive Corporatio | NYSE | 66.81 | -0.0% | +15.4% | 86 | 75 | 70 | 추세 과열 | 39 | 80 | -1.2% | 1.2 | 52주 신고가권 · 20일선과 괴리 4.0ATR — 추격 주의 · RSI 80 과매수 |  |
-| VRSN | VeriSign, Inc. - C | NASDAQ | 313.88 | +1.8% | +7.1% | 85 | 92 | 0 | 추세 상승 | 13 | 65 | -1.1% | 2.5 | 52주 신고가권 · 추세 강도 약함(횡보성) · 모멘텀 가속 |  |
-| MSCI | MSCI Inc. Common S | NYSE | 639.78 | +0.4% | +15.3% | 83 | 90 | 47 | 추세 상승 | 32 | 73 | -0.6% | 1.1 | 52주 신고가권 · 20일선과 괴리 3.4ATR — 추격 주의 · 모멘텀 가속 |  |
-
-## 52주 신저가 — 1종목
+## 52주 신고가 — 15종목
 
 | 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| APTV | Aptiv PLC Ordinary | NYSE | 41.34 | -6.5% | -7.6% | 0 | 8 | 0 | 추세 하락 | 14 | 36 | -53.5% | 2.4 | 52주 고점 대비 -54% |  |
+| HAS | Hasbro, Inc. - Com | NASDAQ | 121.58 | +3.1% | +34.0% | 100 | 55 | 60 | 추세 과열 | 57 | 85 | -0.8% | 0.6 | 거래량 없는 상승 — 신뢰도 낮음 · 52주 신고가권 · 20일선과 괴리 4.2ATR — 추격 주의 |  |
+| BRK-B | BRK-B | US | 579.09 | +4.0% | +14.4% | 100 | 90 | 70 | 추세 과열 | 49 | 83 | -0.3% | 1.4 | 52주 신고가권 · 20일선과 괴리 4.9ATR — 추격 주의 · RSI 83 과매수 |  |
+| TECH | Bio-Techne Corp -  | NASDAQ | 72.73 | +0.1% | +0.3% | 99 | 58 | 0 | 추세 상승 | 48 | 60 | -0.1% | 1.5 | 52주 신고가권 · 상승 추세 강도 매우 강함 |  |
+| CHD | Church & Dwight Co | NYSE | 112.03 | +2.6% | +15.8% | 99 | 67 | 47 | 추세 상승 | 47 | 73 | -1.1% | 1.1 | 52주 신고가권 · 20일선과 괴리 3.1ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| ED | Consolidated Ediso | NYSE | 120.30 | +3.0% | +15.0% | 98 | 55 | 47 | 추세 상승 | 46 | 73 | -0.5% | 1.4 | 52주 신고가권 · 20일선과 괴리 3.4ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| MTD | Mettler-Toledo Int | NYSE | 1,723.24 | +1.5% | +12.4% | 98 | 52 | 22 | 중립 | 46 | 72 | -0.8% | 1.1 | 52주 신고가권 · 상승 추세 강도 매우 강함 |  |
+| HST | Host Hotels & Reso | NASDAQ | 26.11 | +1.3% | +17.4% | 98 | 67 | 60 | 추세 과열 | 44 | 76 | -0.2% | 1.4 | 52주 신고가권 · 20일선과 괴리 3.2ATR — 추격 주의 · RSI 76 과매수 |  |
+| VLTO | Veralto Corp Commo | NYSE | 117.02 | +0.6% | +22.2% | 97 | 90 | 80 | 추세 과열 | 43 | 86 | -1.2% | 1.1 | 52주 신고가권 · 20일선과 괴리 4.7ATR — 추격 주의 · RSI 86 과매수 |  |
+| BDX | Becton, Dickinson  | NYSE | 209.19 | +5.6% | +16.1% | 96 | 75 | 70 | 추세 과열 | 41 | 75 | -0.3% | 2.6 | 거래량 2.6배 동반 상승 · 52주 신고가권 · 20일선과 괴리 3.5ATR — 추격 주의 |  |
+| PG | Procter & Gamble C | NYSE | 167.32 | +3.2% | +13.9% | 96 | 77 | 20 | 추세 상승 | 41 | 70 | -0.5% | 1.3 | 52주 신고가권 · 20일선과 괴리 2.9ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| MAS | Masco Corporation  | NYSE | 86.82 | +5.6% | +26.1% | 96 | 75 | 80 | 추세 과열 | 41 | 78 | -1.2% | 1.1 | 52주 신고가권 · 20일선과 괴리 4.3ATR — 추격 주의 · RSI 78 과매수 |  |
+| CL | Colgate-Palmolive  | NYSE | 98.76 | +3.3% | +13.9% | 96 | 77 | 30 | 추세 상승 | 40 | 66 | -0.9% | 1.1 | 52주 신고가권 · 20일선과 괴리 2.5ATR — 추격 주의 · 상승 추세 강도 매우 강함 |  |
+| ALLE | Allegion plc Ordin | NYSE | 192.69 | +1.8% | +30.3% | 96 | 63 | 60 | 추세 과열 | 39 | 81 | -1.1% | 1.1 | 52주 신고가권 · 20일선과 괴리 5.2ATR — 추격 주의 · RSI 81 과매수 |  |
+| HLT | Hilton Worldwide H | NYSE | 376.53 | +3.5% | +17.5% | 96 | 82 | 57 | 추세 상승 | 39 | 75 | -0.3% | 1.0 | 52주 신고가권 · 20일선과 괴리 3.4ATR — 추격 주의 · 모멘텀 가속 |  |
+| MA | Mastercard Incorpo | NYSE | 672.68 | +3.9% | +18.2% | 96 | 67 | 57 | 추세 상승 | 39 | 75 | -0.1% | 1.3 | 52주 신고가권 · 20일선과 괴리 3.9ATR — 추격 주의 |  |
 
-## 이상 신호 (거래량 ≥3× 또는 갭 ≥5%) — 15종목
+## 52주 신저가 — 7종목
+
+| 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| APLD | Applied Digital Co | NASDAQ | 16.61 | -6.7% | -30.2% | 0 | 4 | 0 | 추세 하락 | 32 | 37 | -67.3% | 1.2 | 하락 방향 힘이 우세(-DI>+DI) · 52주 고점 대비 -67% |  |
+| CIFR | Cipher Digital Inc | NASDAQ | 6.50 | -20.0% | -55.4% | 0 | 19 | 0 | 추세 하락 | 42 | 29 | -78.4% | 1.8 | RSI 29 과매도 · 하락 방향 힘이 우세(-DI>+DI) · 52주 고점 대비 -78% |  |
+| CRWV | CoreWeave, Inc. -  | NASDAQ | 48.42 | -9.9% | -45.3% | 0 | 4 | 0 | 추세 하락 | 37 | 32 | -65.0% | 0.9 | 하락 방향 힘이 우세(-DI>+DI) · 52주 고점 대비 -65% |  |
+| FIS | Fidelity National  | NYSE | 29.76 | -23.7% | -12.0% | 0 | 18 | 5 | 추세 하락 | 24 | 32 | -55.1% | 4.9 | 거래량 5배 실린 하락 — 매물 출회 · 52주 고점 대비 -55% |  |
+| IREN | IREN Limited - Ord | NASDAQ | 21.71 | -11.2% | -43.9% | 0 | 4 | 0 | 추세 하락 | 40 | 31 | -71.4% | 1.3 | 하락 방향 힘이 우세(-DI>+DI) · 52주 고점 대비 -71% |  |
+| NRG | NRG Energy, Inc. C | NYSE | 83.25 | -13.5% | -23.0% | 0 | 8 | 5 | 추세 하락 | 27 | 30 | -55.7% | 3.1 | 거래량 3배 실린 하락 — 매물 출회 · 52주 고점 대비 -56% |  |
+| VST | Vistra Corp. Commo | NYSE | 120.29 | -13.8% | -27.8% | 10 | 0 | 0 | 추세 하락 | 17 | 33 | -38.5% | 3.0 |  |  |
+
+## 이상 신호 (거래량 ≥3× 또는 갭 ≥5%) — 36종목
 
 | 종목 | 이름 | 1D | 갭 | 거래량배 | 분류 |
 |---|---|---|---|---|---|
-| OKTA | Okta, Inc. - Class | +2.6% | -0.6% | 6.8 | 중립 |
-| ZBRA | Zebra Technologies | -8.8% | -13.7% | 3.4 | 중립 |
-| KMB | Kimberly-Clark Cor | -3.5% | -0.2% | 3.3 | 상승추세 눌림 |
-| LSCC | Lattice Semiconduc | +11.0% | +12.1% | 3.2 | 추세 하락 |
-| HSIC | Henry Schein, Inc. | -4.8% | -4.9% | 3.1 | 추세 하락 |
-| SYY | Sysco Corporation  | -9.3% | -5.1% | 3.0 | 추세 하락 |
-| FISV | Fiserv, Inc. - Com | +12.5% | +8.9% | 3.0 | 중립 |
-| DD | DuPont de Nemours, | +8.6% | +6.1% | 3.0 | 추세 과열 |
-| IT | Gartner, Inc. Comm | -13.2% | -11.6% | 2.9 | 중립 |
-| SHOP | Shopify Inc. - Cla | -8.7% | -12.7% | 2.8 | 중립 |
-| LDOS | Leidos Holdings, I | -6.5% | -7.2% | 2.3 | 중립 |
-| PLTR | Palantir Technolog | -1.6% | -5.7% | 2.0 | 중립 |
-| RVTY | Revvity, Inc. Comm | +7.8% | +7.5% | 1.9 | 추세 상승 |
-| TRI | Thomson Reuters Co | -9.9% | -5.0% | 1.7 | 중립 |
-| BE | Bloom Energy Corpo | +9.0% | +7.2% | 0.9 | 추세 하락 |
+| FIS | Fidelity National  | -23.7% | -21.6% | 4.9 | 추세 하락 |
+| SWK | Stanley Black & De | +13.1% | +6.6% | 3.7 | 추세 과열 |
+| XYZ | Block, Inc. Class  | +15.3% | +10.5% | 3.5 | 추세 과열 |
+| CVS | CVS Health Corpora | -12.5% | -6.7% | 3.4 | 추세 하락 |
+| DDOG | Datadog, Inc. - Cl | -14.4% | -9.4% | 3.4 | 추세 하락 |
+| TRMB | Trimble Inc. - Com | -17.3% | -11.5% | 3.4 | 추세 하락 |
+| FSLR | First Solar, Inc.  | +4.6% | +10.8% | 3.4 | 역추세 반등 |
+| TPL | Texas Pacific Land | -13.4% | -2.1% | 3.4 | 추세 하락 |
+| SRE | DBA Sempra Common  | -2.9% | -1.3% | 3.2 | 추세 하락 |
+| NRG | NRG Energy, Inc. C | -13.5% | -5.4% | 3.1 | 추세 하락 |
+| VST | Vistra Corp. Commo | -13.8% | -10.2% | 3.0 | 추세 하락 |
+| ZBH | Zimmer Biomet Hold | +13.5% | +9.1% | 2.7 | 추세 과열 |
+| FIX | Comfort Systems US | -15.1% | -13.2% | 2.6 | 추세 하락 |
+| ANET | Arista Networks, I | +5.0% | +5.3% | 2.6 | 중립 |
+| UHS | Universal Health S | +10.9% | +5.0% | 2.5 | 추세 상승 |
+| HCA | HCA Healthcare, In | +10.3% | +7.4% | 2.4 | 추세 상승 |
+| MMM | 3M Company Common  | +9.5% | +8.8% | 2.4 | 추세 과열 |
+| IFF | International Flav | -4.9% | -6.2% | 2.2 | 상승추세 눌림 |
+| SYK | Stryker Corporatio | +9.4% | +5.6% | 2.1 | 중립 |
+| AMZN | Amazon.com, Inc. - | +6.1% | +5.6% | 2.0 | 추세 상승 |
+| SWKS | Skyworks Solutions | -2.9% | -14.2% | 2.0 | 중립 |
+| CDW | CDW Corporation -  | +12.7% | +7.4% | 2.0 | 중립 |
+| EME | EMCOR Group, Inc.  | -9.6% | -5.3% | 1.9 | 추세 하락 |
+| CEG | Constellation Ener | -6.7% | -5.6% | 1.9 | 추세 하락 |
+| ALAB | Astera Labs, Inc.  | -4.4% | -6.7% | 1.9 | 추세 하락 |
+| GEV | GE Vernova Inc. Co | -9.3% | -6.9% | 1.9 | 추세 하락 |
+| CIFR | Cipher Digital Inc | -20.0% | -13.9% | 1.8 | 추세 하락 |
+| NEM | Newmont Corporatio | +9.9% | +5.4% | 1.7 | 중립 |
+| VRT | Vertiv Holdings, L | -12.9% | -8.0% | 1.7 | 추세 하락 |
+| DELL | Dell Technologies  | -8.8% | -5.8% | 1.5 | 추세 하락 |
 
 ## 뉴스 (신호 종목, 최근 3일 · 컨텍스트 전용)
 
+- **Bio-Techne Corp - Common Stock**
+  - [11/04] [Bio-Techne (TECH), What Is Behind The Fresh Attention Now?](https://finance.yahoo.com/healthcare/articles/bio-techne-tech-behind-fresh-191032142.html) — Simply Wall St.
+  - [11/03] [Rhythm Pharmaceuticals, Inc. (RYTM) Reports Q3 Loss, Beats Revenue Estimates](https://finance.yahoo.com/healthcare/articles/rhythm-pharmaceuticals-inc-rytm-reports-121504098.html) — Zacks
+  - [11/03] [2 high-flying stocks worth your attention and 1 we turn down](https://finance.yahoo.com/markets/stocks/articles/2-high-flying-stocks-worth-121336275.html) — StockStory
 - **Church & Dwight Company, Inc. Common Stock**
   - [11/03] [Can PG's Premium Brands Hold Up in a Value-Seeking Market?](https://finance.yahoo.com/markets/stocks/articles/pgs-premium-brands-hold-value-154100080.html) — Zacks
   - [11/03] [NWL vs. CHD: Which Stock Is the Better Value Option?](https://finance.yahoo.com/markets/stocks/articles/nwl-vs-chd-stock-better-154002052.html) — Zacks
   - [11/02] [CHD Q3 deep dive: innovation, productivity, and brand strength shape outlook amid inflationary pressures](https://finance.yahoo.com/markets/stocks/articles/chd-q3-deep-dive-innovation-204536006.html) — StockStory
 - **Consolidated Edison, Inc. Common Stock**
-  - [11/03] [Unlocking Q3 Potential of Con Ed (ED): Exploring Wall Street Estimates for Key Metrics](https://finance.yahoo.com/markets/stocks/articles/unlocking-q3-potential-con-ed-131503784.html) — Zacks
-- **Charles River Laboratories International, Inc. Common Stock**
-  - [11/03] [Revvity (RVTY) Tops Q3 Earnings and Revenue Estimates](https://finance.yahoo.com/markets/stocks/articles/revvity-rvty-tops-q3-earnings-112503267.html) — Zacks
-  - [11/02] [Charles River's Q3 Earnings on Deck: What's in Store for the Stock?](https://finance.yahoo.com/markets/stocks/articles/charles-rivers-q3-earnings-deck-153700976.html) — Zacks
-- **Cincinnati Financial Corporation - Common Stock**
-  - [11/03] [2 S&P 500 stocks to consider right now and 1 we find risky](https://finance.yahoo.com/markets/stocks/articles/2-p-500-stocks-consider-120536155.html) — StockStory
-  - [11/03] [CINF Q3 deep dive: earnings buoyed by underwriting discipline, AI investment, and stable premium growth](https://finance.yahoo.com/markets/stocks/articles/cinf-q3-deep-dive-earnings-001336675.html) — StockStory
-  - [11/02] [Are You Looking for a Top Momentum Pick? Why Cincinnati Financial (CINF) is a Great Choice](https://finance.yahoo.com/markets/stocks/articles/looking-top-momentum-pick-why-160002787.html) — Zacks
-- **Host Hotels & Resorts, Inc. - Common Stock**
-  - [11/03] [3 Hotel REITs to Watch for Potential Upside This Earnings Season](https://finance.yahoo.com/real-estate/articles/3-hotel-reits-watch-potential-175800430.html) — Zacks
-  - [11/02] [Host Hotels Gears Up to Report Q3 Earnings: Key Factors to Consider](https://finance.yahoo.com/real-estate/articles/host-hotels-gears-report-q3-165800394.html) — Zacks
+  - [11/04] [Are These 5 Utility Stocks Set to Surpass Q3 Earnings Estimates?](https://finance.yahoo.com/markets/stocks/articles/5-utility-stocks-set-surpass-155200461.html) — Zacks
+  - [11/04] [Consolidated Edison to Report Q3 Results: What's in the Cards?](https://finance.yahoo.com/markets/stocks/articles/consolidated-edison-report-q3-results-132900876.html) — Zacks
+  - [11/03] [How Much Did Dominion Stock Really Pay Its Holders?](https://www.trefis.com/stock/d/articles/622175/how-much-did-dominion-stock-really-pay-its-holders/2026-11-03) — Trefis
 - **Union Pacific Corporation Common Stock**
-  - [11/01] [CSX (CSX) vs. UNP and NSC: Can New Leadership Turn Efficiency Gains Into Lasting Growth?](https://finance.yahoo.com/markets/stocks/articles/csx-csx-vs-unp-nsc-193509390.html) — Insider Monkey
-- **Norfolk Southern Corporation Common Stock**
-  - [11/02] [Norfolk Southern, Schneider National team to scale East Coast intermodal reach](https://www.supplychaindive.com/news/norfolk-southern-schneider-national-team-to-scale-east-coast-intermodal-re/873340/) — Supply Chain Dive
-  - [11/01] [Schneider National (SNDR) Expands Eastern U.S. Intermodal Capacity Through New Rail Partnership](https://finance.yahoo.com/markets/stocks/articles/schneider-national-sndr-expands-eastern-032132658.html) — Simply Wall St.
+  - [11/04] [What Are CSX Investors Betting On?](https://www.trefis.com/stock/csx/articles/622610/what-are-csx-investors-betting-on/2026-11-04) — Trefis
+  - [11/04] [Schneider National says rail partner shift offers network boost](https://www.truckingdive.com/news/schneider-national-says-rail-partner-shift-offers-network-boost/873490/) — Trucking Dive
 - **Marriott International - Class A Common Stock**
-  - [11/03] [Marriott's Long-Term Unit Growth May Face Challenges, UBS Says](https://finance.yahoo.com/markets/stocks/articles/marriott-apos-long-term-unit-202428191.html) — MT Newswires
-  - [11/03] [Salesforce Stocks Decline 3% With Cresta Voice AI Deal in Focus](https://finance.yahoo.com/markets/stocks/articles/salesforce-stocks-decline-3-cresta-153514947.html) — GuruFocus.com
-  - [11/03] [Company News for Nov 3, 2026](https://finance.yahoo.com/markets/stocks/articles/company-news-nov-3-2026-132200382.html) — Zacks
+  - [11/04] [Are You Looking for a Top Momentum Pick? Why Marriott International (MAR) is a Great Choice](https://finance.yahoo.com/markets/stocks/articles/looking-top-momentum-pick-why-160002939.html) — Zacks
+  - [11/04] [What JPMorgan Nasdaq Equity Premium Income (JEPQ) Sold: Marriott Leads on Monday](https://finance.yahoo.com/markets/stocks/articles/jpmorgan-nasdaq-equity-premium-income-110516897.html) — GuruFocus.com
+  - [11/04] [Marriott International (MAR) Stock Sees Modest Fair Value Lift After Q3 Analyst Revisions](https://finance.yahoo.com/markets/stocks/articles/marriott-international-mar-stock-sees-011605272.html) — Simply Wall St.
+- **Procter & Gamble Company (The) Common Stock**
+  - [11/04] [Here’s Why Dividend Kings Coca-Cola, Procter & Gamble, and Colgate-Palmolive Are Hitting 52-Week Highs Following Midterm Election Results](https://www.fool.com/investing/2026/11/04/heres-why-dividend-kings-coca-cola-procter-gamble-and-colgate-palmolive-are-hitting-52-week-highs-following-midterm-election-results/) — Motley Fool
+  - [11/04] [Walmart's Dec. 11 Dividend Isn't the Real Reason to Own the Stock](https://www.fool.com/investing/2026/11/04/walmarts-dec-11-dividend-isnt-the-real-reason-to/) — Motley Fool
+  - [11/04] [Roth IRA vs. Taxable Account: How Much of $13,467 in Dividends Would You Keep?](https://247wallst.com/investing/2026/11/04/roth-ira-vs-taxable-account-how-much-of-13467-in-dividends-would-you-keep/) — 24/7 Wall St.
+- **Colgate-Palmolive Company Common Stock**
+  - [11/04] [Here’s Why Dividend Kings Coca-Cola, Procter & Gamble, and Colgate-Palmolive Are Hitting 52-Week Highs Following Midterm Election Results](https://www.fool.com/investing/2026/11/04/heres-why-dividend-kings-coca-cola-procter-gamble-and-colgate-palmolive-are-hitting-52-week-highs-following-midterm-election-results/) — Motley Fool
+  - [11/04] [1 Dividend King to Buy Before the New Year and Hold Forever](https://www.fool.com/investing/2026/11/04/1-dividend-king-to-buy-before-the-new-year-and-hol/) — Motley Fool
+  - [11/04] [UAE weighs third crude pipeline to bypass Strait of Hormuz, Bloomberg reports](https://finance.yahoo.com/energy/articles/uae-weighs-third-crude-pipeline-160707798.html) — Investing.com
+- **Eli Lilly and Company Common Stock**
+  - [11/04] [Eli Lilly Stocks Rise 2.32% While Revenue Guidance Faces a Quality-of-Growth Test](https://finance.yahoo.com/markets/stocks/articles/eli-lilly-stocks-rise-2-182325872.html) — GuruFocus.com
+  - [11/04] [Novo Nordisk Stock Jumps 6% as Wegovy Hits a Stunning 80% Milestone](https://247wallst.com/investing/2026/11/04/novo-nordisk-stock-jumps-6-as-wegovy-hits-a-stunning-80-milestone/) — 24/7 Wall St.
+  - [11/04] [Novo’s Comeback Gets a Pill-Shaped Boost as Wegovy Starts to Bite Back](https://app.moby.co/home/news/news-novos-comeback-gets-a-pill-shaped-boost-as-wegovy-starts-to-bite-back?utm_source=yahoo_finance&utm_medium=rss) — Moby
 - **PTC Inc. - Common Stock**
-  - [11/03] [What Invesco S&P 500 Equal Weight ETF (RSP) Bought: Moderna Leads on Oct. 30](https://finance.yahoo.com/markets/stocks/articles/invesco-p-500-equal-weight-110557002.html) — GuruFocus.com
-  - [11/02] [PTC Heads Into Q4 Earnings as Schneider Buyout Looms: What's in Store?](https://finance.yahoo.com/markets/stocks/articles/ptc-heads-q4-earnings-schneider-121200445.html) — Zacks
-  - [11/02] [Invesco S&P 500 Equal Weight (RSP) Buys $0.2 Million More Morgan Stanley on Thursday](https://finance.yahoo.com/markets/stocks/articles/invesco-p-500-equal-weight-110450838.html) — GuruFocus.com
-- **Humana Inc. Common Stock**
-  - [11/03] [Is Humana (HUM) Getting Too Expensive For Its Earnings?](https://finance.yahoo.com/markets/stocks/articles/humana-hum-getting-too-expensive-191548817.html) — Simply Wall St.
-  - [11/03] [Can Pharmacy Growth Offset Evernorth's Profit Decline in Cigna's Q3?](https://finance.yahoo.com/healthcare/articles/pharmacy-growth-offset-evernorths-profit-131700673.html) — Zacks
-  - [11/03] [1 healthcare stock with impressive fundamentals and 2 we ignore](https://finance.yahoo.com/healthcare/articles/1-healthcare-stock-impressive-fundamentals-110936664.html) — StockStory
-- **AMETEK, Inc.**
-  - [11/03] [AMETEK Inc (AME) (Q3 2026) Earnings Call Highlights: Record Orders and Backlog Fuel Raised Guidance](https://finance.yahoo.com/markets/stocks/articles/ametek-inc-ame-q3-2026-210855718.html) — GuruFocus.com
-  - [11/03] [AMETEK Q3 Earnings Call Highlights](https://www.marketbeat.com/instant-alerts/transcript-ametek-q3-earnings-call-highlights-2026-11-03/?utm_source=yahoofinance&utm_medium=yahoofinance) — MarketBeat
-  - [11/03] [AEHR Q1 Earnings Beat Estimates on AI Demand, Revenue Outlook Raised](https://finance.yahoo.com/technology/ai/articles/aehr-q1-earnings-beat-estimates-144800603.html) — Zacks
-- **Veeva Systems Inc. Class A Common Stock**
-  - [11/03] [Veeva Systems (VEEV): Turning Industry Expertise into Growth](https://finance.yahoo.com/markets/stocks/articles/veeva-systems-veev-turning-industry-142825862.html) — Insider Monkey
-  - [11/03] [Intuitive Surgical (ISRG) Drives Better Outcomes and Lower Care Costs](https://finance.yahoo.com/healthcare/articles/intuitive-surgical-isrg-drives-better-142635109.html) — Insider Monkey
-  - [11/03] [Rollins (ROL) Misses Quarterly Estimates and Trims Full-Year Organic Growth Outlook](https://finance.yahoo.com/markets/stocks/articles/rollins-rol-misses-quarterly-estimates-141928105.html) — Insider Monkey
-- **Johnson Controls International plc Ordinary Share**
-  - [11/03] [Johnson Controls: 3 Key Takeaways for Long-Term Investors](https://www.fool.com/earnings/takeaways/2026/11/03/johnson-controls-3-key-takeaways-for-long-term-investors/) — Motley Fool
-  - [11/03] [JCI Q3 deep dive: data center demand, margin expansion, and portfolio simplification](https://finance.yahoo.com/markets/stocks/articles/jci-q3-deep-dive-data-002936037.html) — StockStory
-- **The Cigna Group Common Stock**
-  - [11/03] [Can Pharmacy Growth Offset Evernorth's Profit Decline in Cigna's Q3?](https://finance.yahoo.com/healthcare/articles/pharmacy-growth-offset-evernorths-profit-131700673.html) — Zacks
-  - [11/02] [Can Hims & Hers Stock Rally 50% After This Dip?](https://www.trefis.com/stock/hims/articles/621903/can-hims-hers-stock-rally-50-after-this-dip/2026-11-02) — Trefis
-  - [11/02] [What Analyst Projections for Key Metrics Reveal About Cigna (CI) Q3 Earnings](https://finance.yahoo.com/markets/stocks/articles/analyst-projections-key-metrics-reveal-131504694.html) — Zacks
-- **Phillips 66 Common Stock**
-  - [11/03] [Oil Edges Lower As U.S. Bombs Iran Before Election Day](https://www.investors.com/news/oil-prices-us-iran-hormuz-trump-exxon-chevron-midterm-election/?src=A00220&yptr=yahoo) — Investor's Business Daily
-  - [11/03] [Defense and Energy Stocks Are Among the Winners of a Split Congress](https://www.barrons.com/livecoverage/stock-market-news-today-110326/card/defense-and-energy-stocks-are-among-the-winners-of-a-split-congress-vAew8t2Tpug3baqtccon?siteid=yhoof2&yptr=yahoo) — Barrons.com
-  - [11/03] [Carl Icahn’s CVR Energy Strikes $4 Billion Deal for Two Marathon Refineries](https://www.wsj.com/business/deals/carl-icahns-cvr-energy-near-over-4-billion-deal-for-marathon-refineries-e8487579?siteid=yhoof2&yptr=yahoo) — The Wall Street Journal
-- **Kimberly-Clark Corporation - Common Stock**
-  - [11/03] [The Dividend Portfolio That Covers Your Required Minimum Distribution Without Selling a Share: KMB, BIZD, and SPHD](https://247wallst.com/personal-finance/2026/11/03/the-dividend-portfolio-that-covers-your-required-minimum-distribution-without-selling-a-share-kmb-bizd-and-sphd/) — 24/7 Wall St.
-  - [11/03] [Can Kimberly-Clark's Kenvue Acquisition Unlock Long-Term Growth?](https://finance.yahoo.com/markets/stocks/articles/kimberly-clarks-kenvue-acquisition-unlock-153200878.html) — Zacks
-  - [11/03] [Dear Okta Stock Fans, Mark Your Calendars for November 4](https://www.barchart.com/story/news/8618002/dear-okta-stock-fans-mark-your-calendars-for-november-4) — Barchart
-- **Comcast Corporation - Class A Common Stock**
-  - [11/03] [Movie Theaters Are Packed Again. A Brutal Holiday Test Awaits.](https://www.barrons.com/articles/hollywood-box-office-success-test-november-83ca1247?siteid=yhoof2&yptr=yahoo) — Barrons.com
-  - [11/03] [Salesforce Stocks Decline 3% With Cresta Voice AI Deal in Focus](https://finance.yahoo.com/markets/stocks/articles/salesforce-stocks-decline-3-cresta-153514947.html) — GuruFocus.com
-  - [11/03] [Disney: Mickey Mouse To Lay Off Thousands](https://247wallst.com/investing/2026/11/03/disney-mickey-mouse-to-lay-off-thousands/) — 24/7 Wall St.
-- **Domino's Pizza Inc - Common Stock**
-  - [11/03] [YUM Stock Up on Q3 Earnings Beat, Revenues Miss on Taco Bell Weakness](https://finance.yahoo.com/markets/stocks/articles/yum-stock-q3-earnings-beat-152600496.html) — Zacks
-- **Transdigm Group Incorporated Common Stock**
-  - [11/03] [TransDigm Group (TDG) Earnings Expected to Grow: Should You Buy?](https://finance.yahoo.com/markets/stocks/articles/transdigm-group-tdg-earnings-expected-140003052.html) — Zacks
-  - [11/03] [What Just Happened To Howmet Stock?](https://www.trefis.com/stock/hwm/articles/622197/what-just-happened-to-howmet-stock/2026-11-03) — Trefis
-  - [11/02] [Why Did Arxis Stock Fall?](https://www.trefis.com/stock/arxs/articles/621893/why-did-arxis-stock-fall/2026-11-02) — Trefis
-- **Tractor Supply Company - Common Stock**
-  - [11/02] [Amazon, retailers paid more for freight in 3Q](https://finance.yahoo.com/economy/articles/amazon-retailers-paid-more-freight-193009743.html) — FreightWaves
-- **CBRE Group Inc Common Stock Class A**
-  - [11/03] [CBRE (CBRE) Stock Still Looks Reasonable Following Its 82% Run](https://finance.yahoo.com/markets/stocks/articles/cbre-cbre-stock-still-looks-061035065.html) — Simply Wall St.
-- **Chipotle Mexican Grill, Inc. Common Stock**
-  - [11/03] [Can Chipotle Stock Jump 50%?](https://www.trefis.com/stock/cmg/articles/622316/can-chipotle-stock-jump-50/2026-11-03) — Trefis
-  - [11/03] [Why McDonald's Q3 earnings results could look a bit ugly](https://finance.yahoo.com/video/why-mcdonalds-q3-earnings-results-could-look-a-bit-ugly-154022242.html) — Yahoo Finance Video
-  - [11/03] [5 Big Funds Sold McDonald’s. Should You Follow Them Before Earnings?](https://www.tikr.com/blog/5-big-funds-sold-mcdonalds-should-you-follow-them-before-earnings?ref=yahoofinance&tlnk=yf-261103-f2j96wg4) — TIKR
-- **First Solar, Inc. - Common Stock**
-  - [11/03] [Enphase Surges 9%, Sunrun Climbs 7%, SolarEdge Rallies 6% as Solar Rebound Extends Into Earnings](https://247wallst.com/investing/2026/11/03/enphase-surges-9-sunrun-climbs-7-solaredge-rallies-6-as-solar-rebound-extends-into-earnings/) — 24/7 Wall St.
-  - [11/03] [Cloudflare upgraded, Marvell downgraded: Wall Street's top analyst calls](https://finance.yahoo.com/markets/stocks/articles/cloudflare-upgraded-solaredge-downgraded-wall-134728028.html) — The Fly
-  - [11/02] [Should You Buy First Solar Stock Now Or Wait?](https://www.trefis.com/stock/fslr/articles/621855/should-you-buy-first-solar-stock-now-or-wait/2026-11-02) — Trefis
+  - [11/04] [PTC Inc.: Fiscal Q4 Earnings Snapshot](https://finance.yahoo.com/markets/stocks/articles/ptc-inc-fiscal-q4-earnings-212446369.html) — Associated Press
+  - [11/04] [Schneider Electric (ENXTPA:SU) Raises €6.0b As Investors Reassess The PTC Deal Valuation](https://finance.yahoo.com/markets/stocks/articles/schneider-electric-enxtpa-su-raises-131049253.html) — Simply Wall St.
+  - [11/04] [Should You Pick Autodesk Stock Over Its Competitors?](https://www.trefis.com/stock/adsk/articles/622521/should-you-pick-autodesk-stock-over-its-competitors/2026-11-04) — Trefis
+- **IDEX Corporation Common Stock**
+  - [11/04] [SWK's Q3 Earnings Surge on Margin Expansion, 2026 Outlook Raised](https://finance.yahoo.com/markets/stocks/articles/swks-q3-earnings-surge-margin-164200154.html) — Zacks
+  - [11/03] [IEX Q3 deep dive: strong demand in advantaged markets and operational leverage drive guidance raise](https://finance.yahoo.com/markets/stocks/articles/iex-q3-deep-dive-strong-074136541.html) — StockStory
+  - [11/02] [Is Apogee Enterprises (APOG) Outperforming Other Industrial Products Stocks This Year?](https://finance.yahoo.com/markets/stocks/articles/apogee-enterprises-apog-outperforming-other-134003745.html) — Zacks
+- **Garmin Ltd. Common Stock (Switzerland)**
+  - [11/02] [Deciphering Garmin (GRMN) International Revenue Trends](https://finance.yahoo.com/markets/stocks/articles/deciphering-garmin-grmn-international-revenue-131503828.html) — Zacks
+- **Charles River Laboratories International, Inc. Common Stock**
+  - [11/04] [Charles River Laboratories Stock Pulls A Bear Move As Rats And Mice Retreat](https://www.investors.com/news/technology/charles-river-laboratories-stock-crl-earnings-q3-2026/?src=A00220&yptr=yahoo) — Investor's Business Daily
+  - [11/04] [Charles River (CRL) Q3 2026 Earnings Call Transcript](https://www.fool.com/earnings/call-transcripts/2026/11/04/charles-river-crl-q3-2026-earnings-call-transcript/) — Motley Fool
+  - [11/04] [Charles River Q3 Earnings & Revenues Top Estimates, Stock Rises](https://finance.yahoo.com/markets/stocks/articles/charles-river-q3-earnings-revenues-140100376.html) — Zacks
+- **Chevron Corporation Common Stock**
+  - [11/04] [Chevron Stocks Move Lower Refining Supplies Most of the Profit Increase](https://finance.yahoo.com/markets/stocks/articles/chevron-stocks-move-lower-refining-182737164.html) — GuruFocus.com
+  - [11/04] [How to Turn $250,000 Into Nearly $1,000 a Month in Passive Income](https://247wallst.com/investing/2026/11/04/how-to-turn-250000-into-nearly-1000-a-month-in-passive-income/) — 24/7 Wall St.
+  - [11/04] [BP Stock Gains 40.6% in a Year: Should You Bet on the Stock Now?](https://finance.yahoo.com/energy/articles/bp-stock-gains-40-6-164900473.html) — Zacks
+- **International Flavors & Fragrances, Inc. Common Stock**
+  - [11/04] [IFF Earnings Beat Estimates in Q3 on Taste & Scent Strength](https://finance.yahoo.com/markets/stocks/articles/iff-earnings-beat-estimates-q3-172100583.html) — Zacks
+  - [11/03] [IFF shares fall on soft 2026 guidance despite Q3 beat](https://finance.yahoo.com/markets/stocks/articles/iff-shares-fall-soft-2026-222753310.html) — Investing.com
+  - [11/03] [International Flavors & Fragrances’s (NYSE:IFF) Q3 2026 sales top estimates](https://finance.yahoo.com/markets/stocks/articles/international-flavors-fragrances-nyse-iff-221449239.html) — StockStory
+- **Targa Resources, Inc. Common Stock**
+  - [11/04] [What's in Store for These 4 Energy Stocks in Q3 Earnings?](https://finance.yahoo.com/energy/articles/whats-store-4-energy-stocks-130500125.html) — Zacks
+  - [11/03] [4 Energy Stocks That Could Surpass Q3 Earnings Estimates](https://finance.yahoo.com/energy/articles/4-energy-stocks-could-surpass-155000079.html) — Zacks
+  - [11/03] [Targa Resources (TRGP) Q3 Earnings on the Horizon: Analysts' Insights on Key Performance Measures](https://finance.yahoo.com/markets/stocks/articles/targa-resources-trgp-q3-earnings-131506842.html) — Zacks
+- **Deckers Outdoor Corporation Common Stock**
+  - [11/04] [Deckers Outdoor Stock Has The Bull Case Changed After Raised Guidance](https://finance.yahoo.com/markets/stocks/articles/deckers-outdoor-stock-bull-case-190924944.html) — Simply Wall St.
+  - [11/04] [Nike Climbs 7% as Dow Rally Lifts Consumer Stocks; Deckers Gains 7%, Lululemon Rises 6%](https://247wallst.com/investing/2026/11/04/nike-climbs-7-as-dow-rally-lifts-consumer-stocks-deckers-gains-7-lululemon-rises-6/) — 24/7 Wall St.
+  - [11/04] [Is Lululemon's Cash Reason Enough To Buy The Stock?](https://www.trefis.com/stock/lulu/articles/622524/is-lululemons-cash-reason-enough-to-buy-the-stock/2026-11-04) — Trefis
 - **GE Aerospace Common Stock**
-  - [11/03] [GE's Commercial Engines Segment Gains Momentum: Can It Sustain?](https://finance.yahoo.com/markets/stocks/articles/ges-commercial-engines-segment-gains-154400377.html) — Zacks
-  - [11/03] [Howmet Aerospace's Q3 Aerospace Demand Surges: Can Growth Continue?](https://finance.yahoo.com/markets/stocks/articles/howmet-aerospaces-q3-aerospace-demand-143100772.html) — Zacks
-  - [11/03] [GE Vernova Inc. (GEV) Is a Trending Stock: Facts to Know Before Betting on It](https://finance.yahoo.com/markets/stocks/articles/ge-vernova-inc-gev-trending-130004405.html) — Zacks
+  - [11/04] [Has GE Aerospace Stock Become A Different Bet?](https://www.trefis.com/stock/ge/articles/622595/has-ge-aerospace-stock-become-a-different-bet/2026-11-04) — Trefis
+  - [11/04] [General Electric (GE) Stock May Look Reasonable Following Rare Earth Supply News](https://finance.yahoo.com/markets/stocks/articles/general-electric-ge-stock-may-141321385.html) — Simply Wall St.
+  - [11/04] [Are Aerospace Stocks Lagging  General Dynamics (GD) This Year?](https://finance.yahoo.com/markets/stocks/articles/aerospace-stocks-lagging-general-dynamics-134002128.html) — Zacks
+- **The Hershey Company Common Stock**
+  - [11/04] [Hershey’s CEO highlights softness in c-store sales](https://www.cstoredive.com/news/hersheys-ceo-highlights-softness-in-c-store-sales/873494/) — C-Store Dive
+  - [11/04] [Hershey Trades 21% Below Its Historical P/E. Here Are 2 More Dividend Stocks](https://247wallst.com/investing/2026/11/04/hershey-trades-21-below-its-historical-p-e-here-are-2-more-dividend-stocks/) — 24/7 Wall St.
+  - [11/04] [Should You Buy General Mills Stock For Its Cash?](https://www.trefis.com/stock/gis/articles/622495/should-you-buy-general-mills-stock-for-its-cash/2026-11-04) — Trefis
+- **PDD**
+  - [11/03] [PDD Holdings Inc. Sponsored ADR (PDD) Stock Sinks As Market Gains: What You Should Know](https://finance.yahoo.com/markets/stocks/articles/pdd-holdings-inc-sponsored-adr-214502815.html) — Zacks
+- **Tapestry, Inc. Common Stock**
+  - [11/04] [Wall Street Analysts Think Tapestry (TPR) Could Surge 32.99%: Read This Before Placing a Bet](https://finance.yahoo.com/markets/stocks/articles/wall-street-analysts-think-tapestry-135503890.html) — Zacks
+  - [11/04] [Curious about Tapestry (TPR) Q1 Performance? Explore Wall Street Estimates for Key Metrics](https://finance.yahoo.com/markets/stocks/articles/curious-tapestry-tpr-q1-performance-131504745.html) — Zacks
+  - [11/03] [Evercore Names New Top Pick: This Fashion Stock Joins Top 5 Outperformers](https://finance.yahoo.com/markets/stocks/articles/evercore-names-top-pick-fashion-141055474.html) — Investing.com
+- **United Airlines Holdings, Inc. - Common Stock**
+  - [11/04] [Delta vs. United: Could Falling Oil Prices Set the Stage for an Airline Stock Comeback in 2027?](https://www.fool.com/coverage/better-buy/2026/11/04/delta-vs-united-could-falling-oil-prices-set-the-stage-for-an-airline-stock-comeback-in-2027/) — Motley Fool
+  - [11/04] [What Happens To American Airlines Stock If Fuel Stays High?](https://www.trefis.com/stock/aal/articles/622616/what-happens-to-american-airlines-stock-if-fuel-stays-high/2026-11-04) — Trefis
+  - [11/04] [United Airlines Stock Outlook: Is Wall Street Bullish or Bearish?](https://www.barchart.com/story/news/8640033/united-airlines-stock-outlook-is-wall-street-bullish-or-bearish) — Barchart
+- **Booking Holdings Inc. - Common Stock**
+  - [11/04] [Booking Holdings earnings analysis: questions answered and next catalysts](https://finance.yahoo.com/markets/stocks/articles/booking-holdings-earnings-analysis-questions-175810033.html) — Investing.com
+  - [11/04] [Booking Sees 'Some Moderation' in Demand Exiting Q3, Oppenheimer Says](https://finance.yahoo.com/markets/stocks/articles/booking-sees-apos-moderation-apos-171951759.html) — MT Newswires
+  - [11/04] [Booking Holdings Q3 Earnings Beat on Travel Growth, Revenues Miss](https://finance.yahoo.com/markets/stocks/articles/booking-holdings-q3-earnings-beat-155300112.html) — Zacks
+- **Boston Scientific Corporation Common Stock**
+  - [11/04] [Tax-loss selling candidates: the worst-performing US large caps of 2026](https://finance.yahoo.com/markets/stocks/articles/tax-loss-selling-candidates-worst-194700074.html) — Investing.com
+  - [11/04] [BSX Q3 Results Reset Growth Expectations as 2027 Outlook Stays Weak](https://finance.yahoo.com/healthcare/articles/bsx-q3-results-reset-growth-135500158.html) — Zacks
+  - [11/04] [Should You Pick Boston Scientific Stock Over Its Competitors?](https://www.trefis.com/stock/bsx/articles/622505/should-you-pick-boston-scientific-stock-over-its-competitors/2026-11-04) — Trefis
+- **Stanley Black & Decker, Inc. Common Stock**
+  - [11/04] [Why Stanley Black & Decker Is Having Its Best Day in Years](https://www.barrons.com/articles/stanley-black-decker-earnings-stock-price-32a92ca0?siteid=yhoof2&yptr=yahoo) — Barrons.com
+  - [11/04] [Stanley Black & Decker, Inc. Q3 2026 Earnings Call Summary](https://app.moby.co/home/research/tools/earningsCalendar/earnings-stanley-black-decker-inc-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss) — Moby
+  - [11/04] [Stanley Black & Decker earnings analysis: questions answered and next catalysts](https://finance.yahoo.com/markets/stocks/articles/stanley-black-decker-earnings-analysis-181031367.html) — Investing.com
 - **Fiserv, Inc. - Common Stock**
-  - [11/03] [Apple, Palantir, Pfizer, Marvell, AMD, Bloom Energy, Gartner, and More Stocks That Explain Today’s Market](https://www.barrons.com/articles/stock-movers-0b42bd79?siteid=yhoof2&yptr=yahoo) — Barrons.com
-  - [11/03] [Fiserv Inc (FISV) (Q3 2026) Earnings Call Highlights: Organic Revenue Stabilizes as Merchant ...](https://finance.yahoo.com/markets/stocks/articles/fiserv-inc-fisv-q3-2026-210602862.html) — GuruFocus.com
-  - [11/03] [Fiserv (FISV) Q3 2026 Earnings Call Transcript](https://www.fool.com/earnings/call-transcripts/2026/11/03/fiserv-fisv-q3-2026-earnings-call-transcript/) — Motley Fool
-- **Regeneron Pharmaceuticals, Inc. - Common Stock**
-  - [11/03] [BAYRY Q3 Earnings and Revenues Miss Estimates, Pharma Performs Well](https://finance.yahoo.com/healthcare/articles/bayry-q3-earnings-revenues-miss-181200425.html) — Zacks
-  - [11/02] [REGN Q3 deep dive: pipeline progress and core brands drive outperformance](https://finance.yahoo.com/healthcare/articles/regn-q3-deep-dive-pipeline-193336375.html) — StockStory
-  - [11/02] [Regeneron's 'Strong Commercial' Q3 Underscores Core Business Health, RBC Capital Markets Says](https://finance.yahoo.com/healthcare/articles/regeneron-apos-apos-strong-commercial-164005831.html) — MT Newswires
-- **DuPont de Nemours, Inc. Common Stock**
-  - [11/03] [Stock Market Today: Dow Dips Amid Midterm Elections; Palantir Slips, DuPont Surges Past Entry](https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-election-day-apple-stock-palantir-stock/?src=A00220&yptr=yahoo) — Investor's Business Daily
-  - [11/03] [DuPont de Nemours Inc (DD) (Q3 2026) Earnings Call Highlights: Raised Guidance, 31% EPS Growth, ...](https://finance.yahoo.com/markets/stocks/articles/dupont-nemours-inc-dd-q3-210500922.html) — GuruFocus.com
-  - [11/03] [DuPont de Nemours, Inc. Q3 2026 Earnings Call Summary](https://app.moby.co/home/research/tools/earningsCalendar/earnings-dupont-de-nemours-inc-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss) — Moby
-- **Pentair plc. Ordinary Share**
-  - [11/03] [What FT Vest Dividend Aristocrats Target Income (KNG) Bought: C.H. Robinson Leads on Oct. 30](https://finance.yahoo.com/markets/stocks/articles/ft-vest-dividend-aristocrats-target-110455696.html) — GuruFocus.com
-  - [11/03] [What ProShares Dividend Aristocrats (NOBL) Bought: Kimberly-Clark Leads on Friday](https://finance.yahoo.com/markets/stocks/articles/proshares-dividend-aristocrats-nobl-bought-110408938.html) — GuruFocus.com
-- **Global Payments Inc. Common Stock**
-  - [11/03] [GPN's $40B Takeover Buzz: Can Private Equity Revive Its Growth?](https://finance.yahoo.com/markets/stocks/articles/gpns-40b-takeover-buzz-private-152700030.html) — Zacks
-  - [11/03] [Will Higher Enterprise & SMB Contribution Aid GPN's Q3 Earnings?](https://finance.yahoo.com/markets/stocks/articles/higher-enterprise-smb-contribution-aid-152300022.html) — Zacks
-  - [11/03] [PayPal Just Gained 11% in a Month. Michael Burry Still Calls It a “Fat Pitch”](https://www.tikr.com/blog/paypal-just-gained-11-in-a-month-michael-burry-still-calls-it-a-fat-pitch?ref=yahoofinance&tlnk=yf-261103-ggcv2v45) — TIKR
-- **GE HealthCare Technologies Inc. - Common Stock**
-  - [11/03] [GE HealthCare Technologies (GEHC) Unveils New Imaging Tools, Is It Still 8% Undervalued?](https://finance.yahoo.com/healthcare/articles/ge-healthcare-technologies-gehc-unveils-210905563.html) — Simply Wall St.
-  - [11/03] [HSIC Q3 Earnings Beat, Revenues Match, '26 EPS View Up, Stock Down](https://finance.yahoo.com/markets/stocks/articles/hsic-q3-earnings-beat-revenues-131800276.html) — Zacks
-  - [11/02] [IDXX Q3 Earnings & Revenues Surpass Estimates, Stock Up in Pre-Market](https://finance.yahoo.com/markets/stocks/articles/idxx-q3-earnings-revenues-surpass-131700525.html) — Zacks
+  - [11/04] [Clean Harbors Stock Slides 6% Since Posting Q3 Earnings & Revenue Beat](https://finance.yahoo.com/markets/stocks/articles/clean-harbors-stock-slides-6-173600683.html) — Zacks
+  - [11/04] [Adobe downgraded, Constellation upgraded: Wall Street's top analyst calls](https://finance.yahoo.com/markets/stocks/articles/norwegian-cruise-downgrade-duolingo-upgraded-133748798.html) — The Fly
+  - [11/04] [US Stock Market Today: S&P 500 Futures Edge Higher On Strong Factory And Freight Data](https://finance.yahoo.com/markets/stocks/articles/us-stock-market-today-p-130949203.html) — Simply Wall St.
 - **IDEXX Laboratories, Inc. - Common Stock**
+  - [11/03] [IDEXX Laboratories (IDXX) Q3 Earnings Leave Its Premium Valuation In Focus](https://finance.yahoo.com/markets/stocks/articles/idexx-laboratories-idxx-q3-earnings-232237894.html) — Simply Wall St.
+  - [11/03] [Earnings Calendar and Analysis for This Week](https://www.kiplinger.com/investing/stocks/17494/next-week-earnings-calendar-stocks) — Kiplinger
   - [11/03] [IDEXX Laboratories Delivered Strong Results Despite Lackluster Vet Visit Backdrop, UBS Says](https://finance.yahoo.com/healthcare/articles/idexx-laboratories-delivered-strong-results-180427992.html) — MT Newswires
-  - [11/03] [Idexx Laboratories (IDXX) Crossed Above the 200-Day Moving Average: What That Means for Investors](https://finance.yahoo.com/markets/stocks/articles/idexx-laboratories-idxx-crossed-above-133002034.html) — Zacks
-  - [11/03] [Company News for Nov 3, 2026](https://finance.yahoo.com/markets/stocks/articles/company-news-nov-3-2026-132200382.html) — Zacks
-- **Veralto Corp Common Stock **
-  - [11/02] [Veralto's Q3 Earnings Beat Estimates on Strong Sales & Margins](https://finance.yahoo.com/markets/stocks/articles/veraltos-q3-earnings-beat-estimates-173700797.html) — Zacks
-  - [11/01] [Veralto (VLTO) Jumps After Earnings, Is The Upside Already Priced In?](https://finance.yahoo.com/markets/stocks/articles/veralto-vlto-jumps-earnings-upside-101328204.html) — Simply Wall St.
-  - [11/01] [Does Veralto (VLTO) Still Look Undervalued After Raised Guidance?](https://finance.yahoo.com/markets/stocks/articles/does-veralto-vlto-still-look-041934560.html) — Simply Wall St.
+- **3M Company Common Stock**
+  - [11/04] [Stock Market Today: Dow Soars 1,569 Points In Post-Election Rally; Microsoft Leaps Nearly 7% Off New Entry](https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-election-results-elon-musk-spacex-tesla-amd/?src=A00220&yptr=yahoo) — Investor's Business Daily
+  - [11/04] [3M settlement removes major PFAS overhang, UBS says](https://www.proactiveinvestors.com/companies/news/1101248/3m-settlement-removes-major-pfas-overhang-ubs-says-1101248.html) — Proactive
+  - [11/04] [3M (MMM) Expands AI Data Center Optics Push With 500 Job Investment](https://finance.yahoo.com/technology/ai/articles/3m-mmm-expands-ai-data-181604975.html) — Simply Wall St.
+- **W.W. Grainger, Inc. Common Stock**
+  - [11/04] [Grainger (GWW) Q3 2026 Earnings Call Transcript](https://www.fool.com/earnings/call-transcripts/2026/11/04/grainger-gww-q3-2026-earnings-call-transcript/) — Motley Fool
+  - [11/04] [IBD Stock Of The Day Grainger Surges On Best Revenue Growth In 5 Years](https://www.investors.com/research/ibd-stock-of-the-day/grainger-stocks-to-buy-fastenal/?src=A00220&yptr=yahoo) — Investor's Business Daily
+  - [11/04] [Grainger Beats Earnings Estimates in Q3, Hikes '26 Guidance](https://finance.yahoo.com/markets/stocks/articles/grainger-beats-earnings-estimates-q3-172300446.html) — Zacks
+- **Abbott Laboratories Common Stock**
+  - [11/04] [Abbott Laboratories (ABT) Posted Positive Trial Results For Two Heart Devices](https://finance.yahoo.com/healthcare/articles/abbott-laboratories-abt-posted-positive-150925524.html) — Simply Wall St.
+  - [11/04] [BSX Q3 Results Reset Growth Expectations as 2027 Outlook Stays Weak](https://finance.yahoo.com/healthcare/articles/bsx-q3-results-reset-growth-135500158.html) — Zacks
+  - [11/04] [Should You Pick Boston Scientific Stock Over Its Competitors?](https://www.trefis.com/stock/bsx/articles/622505/should-you-pick-boston-scientific-stock-over-its-competitors/2026-11-04) — Trefis
+- **Clorox Company (The) Common Stock**
+  - [11/04] [Clorox vs. PepsiCo: Which Dividend Stock Could Make You Richer Over the Next 10 Years?](https://www.fool.com/investing/2026/11/04/clorox-vs-pepsico-which-dividend-stock-could-make-you-richer-over-the-next-10-years/) — Motley Fool
+  - [11/04] [ETFs Are Net Sellers of Clorox (CLX) on Nov. 2](https://finance.yahoo.com/markets/stocks/articles/etfs-net-sellers-clorox-clx-110321066.html) — GuruFocus.com
+  - [11/03] [Clorox CEO reveals troubling sign for U.S. economy](https://www.thestreet.com/economy/clorox-ceo-economic-warning-consumer-spending) — TheStreet
+- **Carvana Co. Class A Common Stock**
+  - [11/04] [Can Carvana Stock Crash From Here?](https://www.trefis.com/stock/cvna/articles/622534/can-carvana-stock-crash-from-here/2026-11-04) — Trefis
+  - [11/03] [What Sent Carvana Stock Higher?](https://www.trefis.com/stock/cvna/articles/622240/what-sent-carvana-stock-higher/2026-11-03) — Trefis
+  - [11/03] [3 quality compounders with promising prospects](https://finance.yahoo.com/markets/stocks/articles/3-quality-compounders-promising-prospects-111736875.html) — StockStory
