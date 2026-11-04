@@ -78,6 +78,7 @@ HF = 헤지펀드 운용역 출신 누나(실존 인물 흉내 금지 — 원칙
 - **매 회차(장중 매시·11:55·15:55·미장) 0단계 직후 필수 읽기**: `docs/desk_kb/rounds/<오늘>/` 의 `ops_meeting*.md`(본부·총출동 회의록, CIO 종합·피어 반대 3줄), `derivs_*.md`(파생 사전 고정표·사후 대조), 그 밖에 오늘 새로 생긴 PB·리스크 공유 파일. 비공개 결재·치유 계획은 pb-private `analysis/<오늘>-frm/`(cure_plan·consensus) — 접근 가능할 때만, 공개 기록엔 비율만.
 - 회차 기록 첫 줄에 `공유 반영: <읽은 파일> · <내 판단에 바뀐 것 1개 또는 '변경 없음'>` 1줄.
 - 실계좌 제약(이벤트 당일 진입 금지·반도체 신규 금지·사전 주문표·ΔS·레버리지 금지)은 모의 북 판단과 분리해 적는다 — 모의 북은 그대로 독립 운용(북 독립성).
+- **장중 패턴 트래킹**(11/4 겸이 「전강후약 전약후강 장중 변동도 트래킹」): `python3 scripts/hf_intraday_pattern.py`(장중 잠정은 `--today O H L C`) → reports/hf_intraday_pattern.json. 15:55 회차 기록에 오늘 분류 1줄 + 같은 패턴 2020~ 다음날 통계 인용. 검증전 기술 통계 — 매매 신호 아님(신호로 쓰려면 퀀트 사전등록).
 
 ## 작업 기록
 - 10/21 첫 업무(보드 hf-alphabook): 사전등록 #5 → 알파북 엔진(tests/test_alphabook.py) → 운용회의 `hf` 블록·텔레그램. 이후 상태는 reports/alphabook.json·reports/hf_discretion.json 이 원본.
