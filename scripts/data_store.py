@@ -55,7 +55,14 @@ GROUPS: dict[str, list[str]] = {
     "signals": ["data/signals.parquet"],                                  # screener.yml · briefing.yml
     "hist": ["data/hist/*_daily.parquet"],                                # hist.yml (연도별 kr_/us_YYYY 는 불변 → git 유지)
     "flows": ["data/flows/kr_inv_*.parquet"],                             # accum.yml
+    # data-parquet-out (11/5): git 에 남은 parquet 38개를 main 에서 뺀다 (보드 data-parquet-out · docs/data_parquet_out.md)
+    "small": ["data/research.parquet", "data/research_views.parquet", "data/short_hist.parquet", "data/dart.parquet",
+              "data/fin/us_quarterly.parquet", "reports/us_eps_hist.parquet"],   # 누적 6개(합 ~3MB) — fin·screener·briefing 이 pull/push
+    "hist_year": ["data/hist/kr_20[0-9][0-9].parquet", "data/hist/us_20[0-9][0-9].parquet"],   # 연도별 불변 32개(~161MB) — 명시 pull 만
 }
+# 'all' 에 넣지 않는 그룹 — 불변·대용량이라 매 워크플로 pull(기본 all)·주간 스냅샷에 실리면 안 된다. 읽는 곳이 `--groups hist_year` 로만 받는다.
+# 최초 업로드(bootstrap)는 `--groups all,hist_year` 로 명시.
+OPT_IN = {"hist_year"}
 
 
 # ── 이름·메타 ────────────────────────────────────────────────────────
@@ -68,7 +75,12 @@ def asset_path(name: str) -> str:
 
 
 def patterns(groups: str | list[str]) -> list[str]:
-    gs = list(GROUPS) if groups in ("all", ["all"], None, "") else (groups.split(",") if isinstance(groups, str) else groups)
+    raw = [x.strip() for x in (groups.split(",") if isinstance(groups, str) else (groups or [])) if x.strip()] or ["all"]
+    gs: list[str] = []
+    for g in raw:                                   # 'all' = OPT_IN 을 뺀 전부, 'all,hist_year' 처럼 덧붙일 수 있다
+        for x in ([k for k in GROUPS if k not in OPT_IN] if g == "all" else [g]):
+            if x not in gs:
+                gs.append(x)
     bad = [g for g in gs if g not in GROUPS]
     if bad:
         raise SystemExit(f"알 수 없는 그룹: {bad} (가능: {', '.join(GROUPS)})")

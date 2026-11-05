@@ -33,6 +33,15 @@ data/fin/multi.parquet
 data/fin/full.parquet
 data/hist/*_daily.parquet
 data/flows/kr_inv_*.parquet
+# data-parquet-out (11/5): 남은 parquet 38개도 릴리스 전용 — 연도별 불변 32개(hist_year)·누적 6개(small). 추적 해제(git rm --cached)는 릴리스 업로드 확인 뒤.
+data/hist/kr_20[0-9][0-9].parquet
+data/hist/us_20[0-9][0-9].parquet
+data/research.parquet
+data/research_views.parquet
+data/short_hist.parquet
+data/dart.parquet
+data/fin/us_quarterly.parquet
+reports/us_eps_hist.parquet
 data/data_store_status.json
 # 리포트 PDF 레이아웃 디버그 덤프 — 공개 제외 (10/21 감사 D1: 애널리스트 실명·이메일 노출). 코드도 개인정보 제외(screener/research.py _debug_boxes)
 reports/logs/pdf_boxes.json
