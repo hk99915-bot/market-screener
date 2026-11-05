@@ -5339,10 +5339,21 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:57"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "QQQ",
+     "name": "Invesco QQQ Trust",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "d5_close",
+     "by": "공격 PB",
+     "at": "21:57"
     }
    },
    "basis": {
@@ -5353,6 +5364,138 @@
      "VIX 16.61",
      "나스닥 25,737 (+1.44%)"
     ]
+   },
+   "pb_view": {
+    "why": "현금 유지. S&P500 7,688.62(+1.58%, 11/4)로 20일 고점 대비 −1.6%인 고점 부근 구간이며, 해당 20일 분포는 박스권 62.8%·강세 22.2%·약세 15.0%(n=4,333)로 방향 우위 부족. 21:58 KST 선물 ES=F +0.05%, NQ=F −0.85%로 기술주 약세 출발 예상, 11/6 22:30 KST 10월 고용보고서 대기. 탈출 조건: 고용보고서 확인 후 S&P500 종가가 20일 고점 경신 시 재검토.",
+    "lines": [
+     "S&P500 7,688.62(+1.58%, 11/4), 20일 고점 대비 −1.6%, VIX 16.61",
+     "ES=F 7,724.5(+0.05%)·NQ=F 28,324(−0.85%) 21:58 KST, yahoo",
+     "고점 부근 20일 분포 n=4,333: 강세 22.2%·기본 62.8%·약세 15.0%(committee_us)",
+     "레드팀: 고용보고서가 약하게 나와 금리 하락이 이어지면 기술주 반등을 현금으로 놓칠 위험."
+    ],
+    "conviction": "보통",
+    "at": "21:57",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": 4333,
+     "ev": null,
+     "basis": "현금. near_high n=4333: bull 0.222·base 0.628·bear 0.150 (studies/crash_rebound spx_buckets20)"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0,
+     "note": "위성 신규 사전 주문표·ΔS 미제출 및 고용보고서 전일로 실계좌 진입 불가."
+    },
+    "views_asof": "2026-11-05 19:15",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−5%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 1/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 5 / 축소 5",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 10회 · 5일 초과 +2.5%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "QQQ 매수, 5일 보유. 나스닥 20일 −6.5%로 S&P500 20일 −1.5% 대비 낙폭 과대, VIX 16.6(전일 −20.3%)·미 10년 4.89%(20일 −38bp)로 할인율 부담 완화, ARM EPS 0.52 vs 컨센 0.48(+9.3%). 선물 NQ −0.85% 약세 출발을 평균회귀 진입 기회로 판단. 손절 −2.5%, 목표 +4.0%. 승률 검증 전. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.04,
+      "stop": -0.025,
+      "rr": 1.6,
+      "win_rate": null,
+      "n": null,
+      "ev": null,
+      "basis": "검증 전. 나스닥/S&P 20일 수익률 격차 −5.0%p 평균회귀 가정(후보)"
+     }
+    }
    }
   }
  ],
