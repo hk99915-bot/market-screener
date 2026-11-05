@@ -1,0 +1,27 @@
+# 데스크 운용회의 결론 텔레그램 (11/5 겸이 결정 「3」) — reports/views/desk_meeting.json → STANDARD.md 8절 3줄형.
+# PB 가 회의 후 desk_meeting.json 을 갱신·push 한 뒤 수동 실행. 발송은 screener.report.send_telegram (ALERTS_OFF 존중).
+name: desk_meeting_tg
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ALERTS_OFF: ${{ vars.ALERTS_OFF }}
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: 데스크 회의 결론 발송
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
+        run: python -m screener.desk_meeting
