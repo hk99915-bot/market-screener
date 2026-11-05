@@ -240,6 +240,13 @@
    "unregistered_trials": 36,
    "unregistered_note": "탐색 셀: H4 33(낙폭×하락일 문턱 24·반등 +1.0% 3·하락일 조건 없음 3·지수 3) + H1 −1.5% 3. 사전등록 커밋 a48b31b15 후 계산. H2·H3는 별 파일(2번 퀀트) 시도가 따로 가산",
    "discarded": "H1 F 6/6(−1.5% 탐색 C 1)·H4c F; H4a A·H4b B"
+  },
+  "2026-11-05_downday_b": {
+   "topic": "downday_response",
+   "question": "급락일(코스피 −3/−5%) 종가 매수 대상 비교(K200·K200−삼전하닉 EW 근사·저반도체 업종 ETF) + 월 적립 타이밍(1일 고정 vs 첫 하락일 대기 vs 절반)",
+   "unregistered_trials": 0,
+   "unregistered_note": "사전등록 후 계산(커밋 88a1b780d); 탐색 46(H2 30·H3 16), 1번 라인 prereg_downday 등록 9+탐색 36 합산 113",
+   "discarded": "H2 −3% 9셀 F·−5% 검증전, H3 4가설 모두 C(역방향) — 대상 갈아타기·적립 대기 채택 근거 없음"
   }
  },
  "trials": [
@@ -476,6 +483,15 @@
    "result": "H4a A(OOS +1.64%p) · H4b B · H4c F / H1 6개 모두 F",
    "discarded_why": "H1 문턱·보유 어디서도 무작위 진입 초과 없음",
    "study": "2026-11-05_downday"
+  },
+  {
+   "date": "2026-11-05",
+   "topic": "downday_response",
+   "hypothesis": "(사전등록 m=22) H2 코스피 −3/−5% 종가 매수 대상 3종(K200·EXSEMI_EW·저반도체 ETF)×5/10/20일 순 초과>0(18) · H3 월 적립 B(첫 하락일 대기)·C(절반)가 A(1일 고정)보다 12개월 후 ΔV>0·평균단가<0(4)",
+   "params": "IS ≤2021 / OOS 2022~, 군집 20일, 비용 국장 0.45%, 하락일 ±1.5%(코스피 또는 S&P), 코어 C안 근사 sleeve, 탐색 46",
+   "result": "H2 −3% 9셀 F · −5% 9셀 검증전(n=5) · H3 4개 모두 C(역방향)(B 대기 ΔV −0.49%p, 단가 +0.40%)",
+   "discarded_why": "대상 교체·대기 모두 우위 없음",
+   "study": "2026-11-05_downday_b"
   }
  ]
 }
