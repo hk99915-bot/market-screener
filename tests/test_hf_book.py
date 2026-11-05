@@ -341,6 +341,7 @@ def test_pair_auto_passes_net_beta_and_links(monkeypatch):
 
 
 def test_pair_ratio_and_us_es(monkeypatch):
+    monkeypatch.setattr(H, "us_stock_last", lambda t: ("2026-10-20", 250.0))  # 실시간 heatmap_US 가격 의존 제거(11/5 급락으로 LRCX < 손절 200)
     b = _b()
     p = H.add(b, _a(beta_hedge="0.5"))
     assert b["open"][-1]["weight"] == pytest.approx(0.5 * p["weight"], abs=1e-5)
