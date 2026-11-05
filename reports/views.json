@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-05 10:35",
+ "asof": "2026-11-05 11:40",
  "date": "2026-11-05",
  "registry_updated": "2026-10-16",
  "summary": {
@@ -58,6 +58,13 @@
      "line": "하락장 = 위성 북 노출 상한 낮춤 (수치는 개인 규정)"
     },
     {
+     "id": "options_gamma",
+     "name": "옵션 감마·풋콜 (코스피200)",
+     "state": "감마 음수",
+     "grade": "검증전",
+     "line": "풋/콜 OI 1.112 · ATM IV 0.5939 · RV20 0.6035 — 흔들림 큼, 사이즈 주의"
+    },
+    {
      "id": "ai_credit",
      "name": "AI 인프라 신용 감시",
      "state": "경계",
@@ -69,7 +76,7 @@
     {
      "id": "confirm_signals",
      "name": "반등 확인 신호 (저점 지지·5일 고점·저점 2일 이탈)",
-     "state": "켜짐 1/4",
+     "state": "켜짐 0/4",
      "grade": "F"
     },
     {
@@ -105,7 +112,7 @@
     {
      "id": "gamma_regime",
      "name": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
-     "state": "감마 양수",
+     "state": "감마 음수",
      "grade": "검증전"
     },
     {
@@ -225,13 +232,13 @@
     {
      "id": "options_gamma",
      "name": "옵션 감마·풋콜 (코스피200)",
-     "state": "감마 양수",
+     "state": "감마 음수",
      "grade": "검증전"
     },
     {
      "id": "gamma_regime",
      "name": "감마 레짐 (숏감마 구간 흔들림·추세 지속)",
-     "state": "감마 양수",
+     "state": "감마 음수",
      "grade": "검증전"
     },
     {
@@ -399,7 +406,9 @@
    ]
   }
  },
- "changes": [],
+ "changes": [
+  "진입 주의 새로: 옵션 감마·풋콜 (코스피200)"
+ ],
  "lenses": [
   {
    "id": "kr_regime",
@@ -465,13 +474,13 @@
     "allocation": "none"
    },
    "review_by": "2026-11-15",
-   "state": "켜짐 1/4",
-   "value": 1,
+   "state": "켜짐 0/4",
+   "value": 0,
    "bias": null,
    "alert": false,
    "gate": {},
    "note": "강등된 신호 — 진입 근거로 인용 금지",
-   "asof": "2026-11-05 08:56"
+   "asof": "2026-11-05 10:35"
   },
   {
    "id": "foreign_flow",
@@ -559,7 +568,7 @@
    "alert": false,
    "gate": {},
    "note": "근거 '20일 −15% 이상 하락 중' n=176",
-   "asof": "2026-11-05 08:56"
+   "asof": "2026-11-05 10:35"
   },
   {
    "id": "stock_trend_score",
@@ -616,13 +625,13 @@
     "allocation": "none"
    },
    "review_by": "2026-11-15",
-   "state": "감마 양수",
-   "value": 325.8,
+   "state": "감마 음수",
+   "value": -895.0,
    "bias": null,
-   "alert": false,
+   "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.121 · ATM IV 0.604 · RV20 0.5968",
-   "asof": "2026-11-04 19:16"
+   "note": "풋/콜 OI 1.112 · ATM IV 0.5939 · RV20 0.6035 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-11-05 11:40"
   },
   {
    "id": "gamma_regime",
@@ -637,13 +646,13 @@
     "allocation": "none"
    },
    "review_by": "2026-12-16",
-   "state": "감마 양수",
-   "value": 325.8,
+   "state": "감마 음수",
+   "value": -895.0,
    "bias": null,
-   "alert": false,
+   "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.121 · ATM IV 0.604 · RV20 0.5968",
-   "asof": "2026-11-04 19:16"
+   "note": "풋/콜 OI 1.112 · ATM IV 0.5939 · RV20 0.6035 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-11-05 11:40"
   },
   {
    "id": "ai_credit",
@@ -813,7 +822,7 @@
    "alert": false,
    "gate": {},
    "note": "표본 부족 — 재등급 전",
-   "asof": "2026-11-05 08:56"
+   "asof": "2026-11-05 10:35"
   },
   {
    "id": "event_calendar",
