@@ -1,8 +1,8 @@
 {
  "version": 1,
  "schema_version": 1,
- "asof": "2026-11-05",
- "generated_at": "2026-11-05 20:55 KST",
+ "asof": "2026-11-06",
+ "generated_at": "2026-11-06 08:57 KST",
  "bench": {
   "KR": {
    "ticker": "069500",
@@ -39,10 +39,10 @@
    "comp_ret": -0.12615,
    "avg_ex": -0.00491,
    "n_ex": 8,
-   "open": 0,
+   "open": 1,
    "realized": -0.1296,
-   "unrealized": 0,
-   "total": -0.1296,
+   "unrealized": -0.0533,
+   "total": -0.1829,
    "unrated": 1
   },
   "규칙": {
@@ -194,10 +194,10 @@
     "comp_ret": -0.05953,
     "avg_ex": -0.00229,
     "n_ex": 5,
-    "open": 0,
+    "open": 1,
     "realized": -0.0573,
-    "unrealized": 0,
-    "total": -0.0573,
+    "unrealized": -0.0533,
+    "total": -0.1106,
     "unrated": 0
    },
    "규칙": {
@@ -465,13 +465,15 @@
     },
     {
      "who": "PB",
-     "name": "미제출",
+     "name": "현금",
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "미제출",
-     "ret": null,
-     "why": "제출 없음 — 미평가",
+     "status": "현금",
+     "ret": 0.0,
+     "bench": null,
+     "ex": null,
+     "why": "현금 유지",
      "marks": {}
     },
     {
@@ -486,6 +488,22 @@
      "ex": null,
      "why": "현금 유지",
      "marks": {}
+    },
+    {
+     "who": "PB🔥",
+     "name": "Invesco QQQ Trust",
+     "ticker": "QQQ",
+     "entry": "open",
+     "exit": "d5_close",
+     "status": "보유 중",
+     "ret": -0.0533,
+     "mark_date": "2026-11-05",
+     "bench": -0.04292,
+     "ex": -0.01038,
+     "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
+     "marks": {
+      "2026-11-05": -0.0533
+     }
     }
    ]
   },
