@@ -46,6 +46,17 @@
 3. **bootstrap 을 groups=`small` 로 한 번 더**(그 사이 누적 6개가 갱신됐을 수 있음) → 곧바로 2/2 머지(몇 분 안). 누적 6개는 같은 날 두 번 갱신되면 한 판 손실 가능성이 있어 이 간격을 좁힌다.
 4. 2/2 머지 직후 fin·lab·hist 를 workflow_dispatch(commit=false)로 1회씩 돌려 pull 로그(`pull same/ok`)와 결과 확인. 이상 → 롤백 = 2/2 `git revert`(파일은 이력에 있음).
 
+### 1.6 롤백 절차 4줄 (피어 반대 3 · 머지 전 필수 — 명령은 `scripts/data_store.py`·`gh` 실제 인터페이스)
+1. **백업(1/2 머지 전)**: `python scripts/data_store.py pull --groups all,hist_year && D=$(date +%Y%m%d) && gh release create data-latest-bak-$D --title "data-latest 백업 $D" --notes "P0 롤백용" && gh release download data-latest -D /tmp/bak_$D && gh release upload data-latest-bak-$D /tmp/bak_$D/*` (원격 세션은 릴리스 쓰기 403 → 로컬 PC 또는 Actions) — 백업 태그는 `data-YYYYMMDD` 패턴이 아니라 주간 스냅샷 prune 대상이 아니다.
+2. **sha 기록**: bootstrap 직후 `python scripts/data_store.py status` 출력(자산 38+11개·sha)과 `git rev-parse HEAD`·`data/data_store_manifest.json` 의 `git_rev` 를 이 문서 §4 에 한 줄로 남긴다(공개 저장소 — 파일 수·sha·시각만).
+3. **되돌림**: 2/2 `git revert <2/2 해시>`(추적 복귀, 파일은 이력에 있음) → push → `Actions → data_store → mode=bootstrap, groups=all,hist_year, commit=true` 로 릴리스·manifest 를 현재 트리와 다시 맞춘다. 1/2 까지 되돌릴 땐 같은 방식으로 1/2 도 revert(동작 변화 없는 커밋이라 보통 불필요).
+4. **자산 손상/누락 복구**: `python scripts/data_store.py pull --groups all,hist_year`(pull 은 실패 시 로컬 → 주간 스냅샷 → manifest `git_rev` 의 git 본으로 폴백); 특정 주 값은 `python scripts/data_store.py pull --tag data-YYYYMMDD --dest /tmp/restore`, 백업 태그는 `pull --tag data-latest-bak-YYYYMMDD --dest /tmp/restore` 로 받아 복사한 뒤 `push --groups <그룹> --force` 로 되올린다.
+
+### 1.7 연구 스크립트 부재 가드 (피어 반대 2 · PB 조건 ①)
+- 위치: `screener/parquet_guard.py`(`require_hist_year`) ← 공통 로더 `screener/prices.py::_load_cached(hist_from)` 가 호출. `data/hist/kr_YYYY.parquet` 가 하나도 없으면 `HistYearMissing`(FileNotFoundError) — 「python scripts/data_store.py pull --groups hist_year 를 먼저 실행하세요」. 그룹명은 `data_store.GROUPS` 와 일치(테스트 `tests/test_parquet_guard.py`).
+- **커버(공통 로더 경유)**: `screener/analysts·momentum·lab` + 연구 스크립트 12개 — study_profit_lock · study_lab_p1 · study_flow_streak_entry · study_chain_corr · study_hollzzak · study_winner_ex_ante · study_winner_ex_ante2 · study_winner_regime · study_bond_regime(KR 부분) · study_rule_audit · study_semis_cap · study_dotplot_tilt(KR 부분).
+- **미커버(parquet 직접 읽기 — 부재 시 pandas/polars 기본 FileNotFoundError 또는 빈 concat 오류)**: study_us_long_sort · study_us_accum · study_us_r20_reversal · study_ict_hdj1 · study_exec_signal · study_playbook_signals · study_trend_rule · study_fib_levels · study_multiple_compression_2022 · study_tradeplan · verify_survivorship · study_dotplot_tilt(US 부분) · study_bond_regime(US 부분). build_hist 는 hist.yml 이 pull 하므로 워크플로상 안전. 후속: 이들은 각자 `require_hist_year(..., "us"|"kr")` 한 줄로 붙일 수 있다.
+
 ## 2. data-live-branch
 ### 2.1 쓰는 곳 전수 (피어 조건 ①: '8개' 정정 포함)
 피어 목록 8개 중 **heartbeat 는 안 씀**(watchdog `--executor`, 커밋 없음)·**pages 는 읽기만**(paths-ignore 목록). 실제 명시 쓰기는 6개이고, `freshness.json` 은 `screener/guard.py:143,163,181,222`(regress_blocked·stale·source) 부수 기록이라 `reports/` 를 통째 커밋하는 워크플로 약 20개가 따라 쓴다.

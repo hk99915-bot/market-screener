@@ -69,7 +69,8 @@ def adjust(df: pl.DataFrame, sym: str = "yf", band: float = BAND, events: pl.Dat
 def _load_cached(path: str, mtime: float, hist_from: int | None) -> pl.DataFrame:
     parts = []
     if hist_from is not None:
-        for f in sorted(glob.glob(str(Path(path).parent / "hist" / "kr_[0-9][0-9][0-9][0-9].parquet"))):
+        from .parquet_guard import require_hist_year   # 부재 시 pull 안내와 함께 명확히 실패 (data-parquet-out)
+        for f in require_hist_year(Path(path).parent / "hist", "kr"):
             if int(f[-12:-8]) >= hist_from:
                 parts.append(pl.read_parquet(f))
     if Path(path).exists():
