@@ -96,6 +96,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_links(b, port)
         bad += await check_lib_cards(b, port)
         bad += await check_val_card(b, port)
+        bad += await check_md_table(b, port)
         await b.close()
     return bad
 
@@ -1769,6 +1770,41 @@ async def check_val_card(b, port: int) -> int:
           return out; })()""")
         ok = r.get("head") != "none" and (not r.get("hscr") or (r.get("gap") == 0 and r.get("bg") and r.get("pos") == "sticky" and r.get("w", 999) <= r.get("wmax", 0)))
         print(f"{'OK ' if ok else 'BAD'} 밸류에이션 표 {w}px {r}")
+        bad += not ok
+        await ctx.close()
+    return bad
+
+
+MD_FIX = ("# KR 스크리너 — 2026-11-05 [확정]\n\n## 상승추세 눌림 (Trend ≥60 & Mom ≤40) — 2종목\n\n"
+          "| 종목 | 이름 | 시장 | 종가 | 1D | 20D | Trend | Mom | RevRisk | 분류 | ADX | RSI | 52H대비 | 거래량배 | 해석 | 리포트 |\n|" + "---|" * 16 + "\n"
+          "| 012030 | DB | KOSPI | 2,245 | -5.7% | +11.4% | 80 | 35 | 20 | 상승추세 눌림 | 30 | 40 | -9.0% | 1.2 | 상승 추세 속 거래 줄며 조정 — 매물 소화형 약한 눌림 · 20일선 이탈, 50일선 지지 시험 · 상승 추세 강도 매우 강함 | 11/03 KB 매수 여력+20% 손익비1.5 |\n"
+          "| 419050 | 삼기에너지솔루션즈 | KOSDAQ | 1,908 | -11.5% | +7.6% | 60 | 30 | 25 | 상승추세 눌림 | 25 | 38 | -20.0% | 2.0 | 상승 추세 속 거래 줄며 조정 | |\n")
+
+
+async def check_md_table(b, port: int) -> int:
+    """KR 전종목 MD 표(11/5 겸이 412px 「누구 책임이야 프론트?」 — 해석 열이 한 글자 폭으로 세로 줄바꿈, 한 행 815px, 종목 칸에 코드만):
+    412px(폰)·1300px 에서 가짜 latest_KR.md 로 ① 행 높이 ≤ 200px ② 해석 칸 폭 ≥ 12em ③ 종목 칸에 이름+코드(이름 열은 합침) ④ 숫자 칸 nowrap ⑤ 페이지 가로 넘침 없음."""
+    bad = 0
+    for w in (412, 1300):
+        ctx = await b.new_context(viewport={"width": w, "height": 900}, has_touch=w < 700)
+        pg = await ctx.new_page()
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.route("**/latest_KR.md*", lambda r: r.fulfill(status=200, content_type="text/markdown; charset=utf-8", body=MD_FIX))
+        await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+        await pg.wait_for_timeout(1500)
+        await pg.evaluate("setView('mdkr')")
+        await pg.wait_for_timeout(2000)
+        r = await pg.evaluate("""(()=>{ const t=document.querySelector('#root .md table'); if(!t) return {};
+          const hd=[...t.rows[0].cells].map(c=>c.textContent.trim()), r=t.rows[1], c=[...r.cells], fs=parseFloat(getComputedStyle(r).fontSize);
+          const ix=hd.indexOf('해석'), ic=hd.indexOf('종가');
+          return {rowH:Math.max(...[...t.rows].slice(1).map(x=>Math.round(x.getBoundingClientRect().height))), name:!hd.includes('이름'),
+            sym:c[0].innerText.replace(/\\s+/g,' '), txEm:ix<0?0:Math.round(c[ix].getBoundingClientRect().width/fs*10)/10,
+            num1:getComputedStyle(c[ic]).whiteSpace==='nowrap',
+            over:document.documentElement.scrollWidth>innerWidth+1}; })()""")
+        ok = (r.get("rowH", 999) <= 200 and r.get("name") and r.get("sym") == "DB 012030" and r.get("txEm", 0) >= 12
+              and r.get("num1") and not r.get("over") and not errs)
+        print(f"{'OK ' if ok else 'BAD'} 전종목MD표 {w}px {r}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
         bad += not ok
         await ctx.close()
     return bad

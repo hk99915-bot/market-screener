@@ -206,7 +206,13 @@
   .spark i{flex:1;background:var(--amber-dim)}.spark i.last{background:var(--amber)}
   .load{padding:40px;text-align:center;color:var(--muted);letter-spacing:0}
   .md{padding:10px 14px;max-width:1200px;overflow-x:auto}   /* KR·US 전종목 표가 390px 밖 855px 까지 잘려 못 봤음 → 가로 스크롤 (UXUI 재진단 Top10 #10) */
-  .md table{white-space:normal}
+  /* 전종목 MD 표(11/5 겸이 412px 「누구 책임이야 프론트?」): white-space:normal + width:100% 라 16열이 화면 폭에 눌려 한글 열(해석·리포트·이름)이
+     한 글자 폭으로 세로 줄바꿈(한 행 815px). → 표는 내용 폭(가로 스크롤은 .md=.hscr)·숫자 칸 nowrap · 글 칸(.mtx)만 최소 폭 두고 단어 단위 줄바꿈 ·
+     종목 칸 = 이름 + 코드(mdToHtml, 첫 열 sticky 9em). */
+  .md table{white-space:nowrap;width:auto;min-width:100%}
+  .md td.mtx,.md th.mtx{white-space:normal;word-break:keep-all;overflow-wrap:anywhere;min-width:14em;max-width:26em;line-height:1.45}
+  .md td.mtx.rp2,.md th.mtx.rp2{min-width:11em}
+  .md td.sym .mcd{display:block;font-size:var(--fs-1);color:var(--muted);text-decoration:none}
   .md h1,.md h2{color:var(--amber);letter-spacing:0;font-size:var(--fs-2);margin:14px 0 6px}
   td.sym{cursor:pointer;text-decoration:underline dotted}
   a.il{text-decoration:underline dotted;text-underline-offset:2px}   /* 문장 속 링크 = 점선 밑줄(색만으로 구분 금지, WCAG 1.4.1 · req-dev-3d26f6e6). 붙이기는 decoInline() */
@@ -892,9 +898,15 @@ function mdToHtml(md,mk){
   const lines=md.split('\n'); let out='',intab=false;
   const MACK={KOSPI:'KOSPI',KOSDAQ:'KOSDAQ',SPX:'SPX',NASDAQ:'NASDAQ',RUT:'RUT',VIX:'VIX',US10Y:'US10Y',DXY:'DXY',USDKRW:'USDKRW',USDJPY:'USDJPY',WTI:'WTI',GOLD:'GOLD',BTC:'BTC',
     '코스피':'KOSPI','코스닥':'KOSDAQ','S&P500':'SPX','나스닥':'NASDAQ','러셀2000(미 중소형)':'RUT','VIX(미 변동성)':'VIX','미 10년 금리':'US10Y','달러인덱스':'DXY','원/달러':'USDKRW','엔/달러':'USDJPY','WTI 유가':'WTI','금':'GOLD','비트코인':'BTC'};
-  const symCell=c=>{const t=c.trim(); if(MACK[t]) return `<td class="l am mac" data-key="${MACK[t]}">${esc(t)}</td>`; return mk&&(/^[0-9A-Z]{6}$/.test(t)&&mk==='KR'||/^[A-Z][A-Z.\-]{0,5}$/.test(t)&&mk==='US')?`<td class="l am sym" data-sym="${esc(t)}" data-mk="${mk}">${esc(t)}</td>`:`<td class="l">${inline(t)}</td>`;};
+  const symCell=(c,nm)=>{const t=c.trim(); if(MACK[t]) return `<td class="l am mac" data-key="${MACK[t]}">${esc(t)}</td>`; return mk&&(/^[0-9A-Z]{6}$/.test(t)&&mk==='KR'||/^[A-Z][A-Z.\-]{0,5}$/.test(t)&&mk==='US')?`<td class="l am sym" data-sym="${esc(t)}" data-mk="${mk}">${nm?`${esc(nm)}<span class="mcd">${esc(t)}</span>`:esc(t)}</td>`:`<td class="l">${inline(t)}</td>`;};
+  /* 11/5 412px 표 깨짐: 글 열(해석·리포트·영향 설명 등)만 줄바꿈 허용(.mtx) · '종목|이름' 표는 이름을 종목 칸에 합침(첫 열 sticky 라 밀어도 이름이 보임) */
+  const TXT=/^(해석|리포트|코멘트|설명|이유|메모|상태)$/; let tx=[],merge=false;
   for(const l of lines){
-    if(l.startsWith('|')){ if(/^\|[-| ]+\|$/.test(l.trim())) continue; const cells=l.split('|').slice(1,-1); if(!intab){out+='<table>';intab=true;out+='<tr>'+cells.map(c=>`<th class="l">${esc(c.trim())}</th>`).join('')+'</tr>';} else out+='<tr>'+cells.map((c,ci)=>ci===0?symCell(c):`<td class="l">${inline(c.trim())}</td>`).join('')+'</tr>'; continue; }
+    if(l.startsWith('|')){ if(/^\|[-| ]+\|$/.test(l.trim())) continue; const cells=l.split('|').slice(1,-1).map(c=>c.trim());
+      if(!intab){ intab=true; merge=cells[0]==='종목'&&cells[1]==='이름'; tx=cells.map(h=>TXT.test(h)?(h==='리포트'?' mtx rp2':' mtx'):'');
+        out+='<table><tr>'+cells.map((c,ci)=>merge&&ci===1?'':`<th class="l${tx[ci]}">${esc(c)}</th>`).join('')+'</tr>'; }
+      else out+='<tr>'+cells.map((c,ci)=>ci===0?symCell(c,merge?cells[1]:''):merge&&ci===1?'':`<td class="l${tx[ci]||''}">${inline(c)}</td>`).join('')+'</tr>';
+      continue; }
     if(intab){out+='</table>';intab=false;}
     if(l.startsWith('# ')) out+=`<h1>${esc(l.slice(2))}</h1>`; else if(l.startsWith('## ')) out+=`<h2>${esc(l.slice(3))}</h2>`;
     else if(l.startsWith('- ')) out+=`<div>• ${inline(l.slice(2))}</div>`; else if(l.trim()) out+=`<div>${inline(l)}</div>`;

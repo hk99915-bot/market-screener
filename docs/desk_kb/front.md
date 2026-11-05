@@ -46,7 +46,9 @@
 - 사내톡 › 🏢 조직도(운영본부) · 화면 검사 `python3 scripts/ui_smoke.py [view …]` · 스킨 `python3 scripts/skin_audit.py --skin xl`.
 
 ## 복기 (틀린 판단 → 왜 → 다음부터)
-- 아직 없음 — 첫 라운드 뒤부터.
+- 11/5 전종목 MD 표(KR·US) 412px 깨짐 — 겸이 폰 스크린샷 「누구 책임이야 프론트?」: '해석' 열이 한 글자 폭으로 세로 줄바꿈(한 행 815px), 종목 칸엔 코드만. **원인** = 표 생성(`screener/report.py`)이 아니라 렌더러·CSS — `Index.html` `.md table{white-space:normal}` + 공용 `table{width:100%}` 라 16열이 화면 폭에 눌려 한글 칸 최소 폭이 한 글자가 됨(가로 스크롤 상자 `.hscr` 는 있었지만 표가 넘치지 않아 무용).
+- **왜 못 잡았나** = ui_smoke 는 '가로 넘침·에러·잘림'만 봐서 '넘치지 않고 세로로 짓눌린 표'는 OK 로 통과. 390px 에서 MD 뷰를 눈으로 본 적 없음(R1 미적용 화면).
+- **재발 방지** = 넓은 표는 '내용 폭 + 가로 스크롤 + 글 칸만 최소 폭(14em)·keep-all + 숫자 칸 nowrap + 종목 칸 이름(코드) sticky'(`mdToHtml` `.mtx`) · ui_smoke `check_md_table`(412·1300px, 행 높이 ≤200px·해석 칸 ≥12em·종목 칸 이름+코드 — 옛 화면에서 BAD 확인) · 표 검사는 넘침뿐 아니라 '행 높이·칸 최소 폭'도 본다.
 
 ## 출처
 - W3C *WCAG 2.2*(2023) `[규정]` · W3C Design Tokens Community Group, *Design Tokens Format Module*(초안) `[규정-초안]` · Google web.dev "Web Vitals" `[교과서-B]` — 2차 확인 `[확인 필요: 원문 대조, 2026-10-31]`
