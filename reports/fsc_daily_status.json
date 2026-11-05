@@ -1,23 +1,24 @@
 {
- "asof": "2026-11-04 16:47",
+ "asof": "2026-11-05 16:46",
  "source": "금융위 V2 (data.go.kr, T+1)",
  "license": "금융위원회 data.go.kr V2 — 공공누리 제4유형(출처표시·상업적 이용금지·변경금지), 제3자 재배포 금지 문구. 원자료는 공개 저장소에 올리지 않음(req-data-cb6315c2)",
  "apis": {
   "stock": {
    "days": [
     {
-     "status": "ok",
-     "rows": 2875,
-     "total": 2875,
-     "basDt": "2026-11-03"
+     "status": "실패",
+     "why": "ReadTimeout",
+     "rows": 1000,
+     "total": 2876,
+     "basDt": "2026-11-04"
+    },
+    {
+     "basDt": "2026-11-03",
+     "status": "보유",
+     "rows": 2875
     },
     {
      "basDt": "2026-11-02",
-     "status": "보유",
-     "rows": 2874
-    },
-    {
-     "basDt": "2026-10-30",
      "status": "보유",
      "rows": 2874
     }
@@ -30,20 +31,20 @@
      "status": "ok",
      "rows": 171,
      "total": 171,
-     "basDt": "2026-11-03"
+     "basDt": "2026-11-04"
+    },
+    {
+     "basDt": "2026-11-03",
+     "status": "보유",
+     "rows": 171
     },
     {
      "basDt": "2026-11-02",
      "status": "보유",
      "rows": 171
-    },
-    {
-     "basDt": "2026-10-30",
-     "status": "보유",
-     "rows": 171
     }
    ],
-   "latest_ok": "2026-11-03"
+   "latest_ok": "2026-11-04"
   },
   "bond_index": {
    "days": [
@@ -51,20 +52,20 @@
      "status": "ok",
      "rows": 3,
      "total": 3,
-     "basDt": "2026-11-03"
+     "basDt": "2026-11-04"
+    },
+    {
+     "basDt": "2026-11-03",
+     "status": "보유",
+     "rows": 3
     },
     {
      "basDt": "2026-11-02",
      "status": "보유",
      "rows": 3
-    },
-    {
-     "basDt": "2026-10-30",
-     "status": "보유",
-     "rows": 3
     }
    ],
-   "latest_ok": "2026-11-03"
+   "latest_ok": "2026-11-04"
   },
   "deriv_index": {
    "days": [
@@ -72,74 +73,79 @@
      "status": "ok",
      "rows": 323,
      "total": 323,
-     "basDt": "2026-11-03"
+     "basDt": "2026-11-04"
+    },
+    {
+     "basDt": "2026-11-03",
+     "status": "보유",
+     "rows": 323
     },
     {
      "basDt": "2026-11-02",
      "status": "보유",
      "rows": 323
-    },
-    {
-     "basDt": "2026-10-30",
-     "status": "보유",
-     "rows": 323
     }
    ],
-   "latest_ok": "2026-11-03"
+   "latest_ok": "2026-11-04"
   },
   "bond": {
    "days": [
     {
      "status": "ok",
-     "rows": 345,
-     "total": 345,
-     "basDt": "2026-11-03"
+     "rows": 322,
+     "total": 322,
+     "basDt": "2026-11-04"
+    },
+    {
+     "basDt": "2026-11-03",
+     "status": "보유",
+     "rows": 345
     },
     {
      "basDt": "2026-11-02",
      "status": "보유",
      "rows": 330
-    },
-    {
-     "basDt": "2026-10-30",
-     "status": "보유",
-     "rows": 328
     }
    ],
-   "latest_ok": "2026-11-03"
+   "latest_ok": "2026-11-04"
   },
   "option": {
    "days": [
     {
      "status": "실패",
      "why": "ReadTimeout",
-     "rows": 0,
-     "total": 0,
+     "rows": 10000,
+     "total": 21644,
+     "basDt": "2026-11-04"
+    },
+    {
+     "status": "ok",
+     "rows": 21538,
+     "total": 21538,
      "basDt": "2026-11-03"
     },
     {
      "status": "실패",
      "why": "ReadTimeout",
-     "rows": 0,
-     "total": 0,
+     "rows": 6000,
+     "total": 21832,
      "basDt": "2026-11-02"
-    },
-    {
-     "status": "실패",
-     "why": "ReadTimeout",
-     "rows": 1000,
-     "total": 21436,
-     "basDt": "2026-10-30"
     }
    ],
-   "latest_ok": null
+   "latest_ok": "2026-11-03"
   },
   "stock_future": {
    "days": [
     {
      "status": "실패",
      "why": "ReadTimeout",
-     "rows": 1000,
+     "rows": 3000,
+     "total": 3660,
+     "basDt": "2026-11-04"
+    },
+    {
+     "status": "ok",
+     "rows": 3662,
      "total": 3662,
      "basDt": "2026-11-03"
     },
@@ -147,17 +153,12 @@
      "basDt": "2026-11-02",
      "status": "보유",
      "rows": 3664
-    },
-    {
-     "basDt": "2026-10-30",
-     "status": "보유",
-     "rows": 3666
     }
    ],
-   "latest_ok": "2026-11-02"
+   "latest_ok": "2026-11-03"
   }
  },
- "status": "일부",
- "n_ok": 6,
+ "status": "ok",
+ "n_ok": 7,
  "n_api": 7
 }
