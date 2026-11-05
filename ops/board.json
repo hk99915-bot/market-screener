@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-11-05",
+  "updated": "2026-11-06",
   "owners": [
     "PB",
     "퀀트",
@@ -7642,7 +7642,8 @@
       "owner": "프론트",
       "priority": "P2",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-06"
     },
     {
       "started": "2026-11-03",
@@ -7676,7 +7677,8 @@
       "priority": "P2",
       "status": "대기",
       "repo": "public",
-      "desk": "개발"
+      "desk": "개발",
+      "escalated": "2026-11-06"
     },
     {
       "started": "",
@@ -7692,7 +7694,8 @@
       "owner": "프론트",
       "status": "대기",
       "priority": "P3",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-06"
     },
     {
       "started": null,
@@ -7707,7 +7710,8 @@
       "owner": "애널",
       "status": "대기",
       "priority": "P3",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-06"
     },
     {
       "id": "req-dev-dae36e04",
@@ -7816,7 +7820,8 @@
       "owner": "개발",
       "priority": "P0",
       "status": "대기",
-      "repo": "public"
+      "repo": "public",
+      "escalated": "2026-11-06"
     },
     {
       "started": null,
@@ -7964,6 +7969,174 @@
       "depends_on": [],
       "escalated": "2026-11-05",
       "notes": "요청 2영업일 미처리(2026-11-03~2026-11-05) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-67015597`."
+    },
+    {
+      "id": "req-bonds-2b9699c9",
+      "title": "[요청 승격] HF→채권: 11/26 금통위 인상·동결 확률과 국고 3Y·10Y 경로 판정 — 매크로 req-macro-86b8e303",
+      "owner": "채권",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 채권 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-bonds-2b9699c9`."
+    },
+    {
+      "id": "req-cio-de08cdfd",
+      "title": "[요청 승격] HF→CIO: 모델 북(ideas.long) 확신도·사이즈 vs tradeplan verdict/E[R] 통합 판정 요청 ",
+      "owner": "CIO",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 CIO 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-cio-de08cdfd`."
+    },
+    {
+      "id": "req-dev-1e78960e",
+      "title": "[요청 승격] PB→개발: 결재 11/4 16:43: req-dev-6bd21386(11/6 모델 북 병기)·idea-unify-s1(",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-1e78960e`."
+    },
+    {
+      "id": "req-dev-6bd21386",
+      "title": "[요청 승격] HF→개발: 모델 북(committee ideas.long) '확신 높음 15%' vs 같은 종목 tradeplan '보",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-6bd21386`."
+    },
+    {
+      "id": "req-dev-87313b7d",
+      "title": "[요청 승격] HF→개발: hf_ideas '내러티브 초기'(공시 미반영) 유형: DART 제목에 해지·취소·철회·정정 포함 건을 호재",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-87313b7d`."
+    },
+    {
+      "id": "req-dev-c07dc7f2",
+      "title": "[요청 승격] PB→개발: 결재 11/4 18:28(겸이 「미루지말구 확실히」): 보드 data-parquet-out(11/5)·dat",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-c07dc7f2`."
+    },
+    {
+      "id": "req-frm-629bb3dc",
+      "title": "[요청 승격] PB→리스크: 결재 11/4 16:43: 모델 북 사이즈 산식 투입일을 11/7(동결 창)에서 11/12로 이동. 산식은 ",
+      "owner": "리스크",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 리스크 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-frm-629bb3dc`."
+    },
+    {
+      "id": "req-front-5b36153b",
+      "title": "[요청 승격] PB→프론트: 결재 11/4 18:28: data-live-branch 화면 쪽 — Code.gs raw_·build_pa",
+      "owner": "프론트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-5b36153b`."
+    },
+    {
+      "id": "req-ops-23a197a4",
+      "title": "[요청 승격] PB→운영: 결재 11/4 16:43: 통합운영 실무 R=운영 확정 — 보드 idea-unify-s1~s3 진행 관리, ",
+      "owner": "운영",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 운영 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-ops-23a197a4`."
+    },
+    {
+      "id": "req-ops-a7baa9ec",
+      "title": "[요청 승격] PB→운영: 결재 11/4 16:12: ① 연습북 동결 안 함(알파 이전 사전등록 측정 장부 유지, PB 이견 채택) ②",
+      "owner": "운영",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 운영 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-ops-a7baa9ec`."
+    },
+    {
+      "id": "req-pm-2e02a2d8",
+      "title": "[요청 승격] PB→PM: 결재 11/4 18:12(겸이 ㅇㅇ): '11/12 Pro 전환 계획' 작성 — ① 예약 작업 전수(list",
+      "owner": "PM",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 PM 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-pm-2e02a2d8`."
+    },
+    {
+      "id": "req-quant-b0805c45",
+      "title": "[요청 승격] PB→퀀트: 결재 11/4 16:43: 통합운영 S2 그림자에서 채택 표본 n<10일 때 대응(연장 규칙·판정 보류 표기",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-13",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-06",
+      "notes": "요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-b0805c45`."
     }
   ]
 }
