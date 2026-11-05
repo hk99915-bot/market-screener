@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-05 14:20",
+ "asof": "2026-11-05 15:51",
  "date": "2026-11-05",
  "registry_updated": "2026-10-16",
  "summary": {
@@ -39,14 +39,14 @@
      "grade": "C"
     }
    ],
-   "tilt": null,
+   "tilt": 1.0,
    "weights": [
     {
      "id": "crash_day_close",
      "name": "급락일 종가 진입 (기다리지 않기)",
-     "state": "해당 없음",
+     "state": "급락일(−5%)",
      "grade": "B",
-     "sign": null
+     "sign": 1
     }
    ],
    "alerts": [
@@ -62,14 +62,21 @@
      "name": "옵션 감마·풋콜 (코스피200)",
      "state": "감마 음수",
      "grade": "검증전",
-     "line": "풋/콜 OI 1.111 · ATM IV 0.5975 · RV20 0.6176 — 흔들림 큼, 사이즈 주의"
+     "line": "풋/콜 OI 1.114 · ATM IV 0.611 · RV20 0.6212 — 흔들림 큼, 사이즈 주의"
     },
     {
      "id": "ai_credit",
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -58.9%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.0%, VIX 18.3 · 최약 CIFR -72%, IREN -68%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.3%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.3%, VIX 16.6 · 최약 CIFR -78%, IREN -72%"
+    },
+    {
+     "id": "event_calendar",
+     "name": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
+     "state": "당일 있음",
+     "grade": "검증전",
+     "line": "11-05 KOSPI 경보:급락 −5% (사이드카 근처) 발동, 11-05 KOSPI 매도 사이드카 발동, 11-10 미 CPI(10월)"
     }
    ],
    "reference": [
@@ -201,7 +208,7 @@
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -58.9%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.0%, VIX 18.3 · 최약 CIFR -72%, IREN -68%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.3%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.3%, VIX 16.6 · 최약 CIFR -78%, IREN -72%"
     }
    ],
    "reference": [
@@ -262,7 +269,7 @@
     {
      "id": "event_calendar",
      "name": "핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)",
-     "state": "7일 안 1건",
+     "state": "당일 있음",
      "grade": "검증전"
     },
     {
@@ -333,7 +340,7 @@
      "name": "AI 인프라 신용 감시",
      "state": "경계",
      "grade": "검증전",
-     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -58.9%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.0%, VIX 18.3 · 최약 CIFR -72%, IREN -68%"
+     "line": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.3%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.3%, VIX 16.6 · 최약 CIFR -78%, IREN -72%"
     }
    ],
    "reference": [
@@ -407,7 +414,8 @@
   }
  },
  "changes": [
-  "진입 주의 새로: 옵션 감마·풋콜 (코스피200)"
+  "진입 주의 새로: 옵션 감마·풋콜 (코스피200)",
+  "진입 주의 새로: 핵심 이벤트 (7일 안 CPI·FOMC·빅테크 실적)"
  ],
  "lenses": [
   {
@@ -425,7 +433,7 @@
    "review_by": "2026-11-15",
    "state": "하락장",
    "value": {
-    "dd20": -0.1812,
+    "dd20": -0.2092,
     "below200": true,
     "above20": false
    },
@@ -435,7 +443,7 @@
     "allocation": "fail"
    },
    "note": "하락장 = 위성 북 노출 상한 낮춤 (수치는 개인 규정)",
-   "asof": "2026-11-04"
+   "asof": "2026-11-05"
   },
   {
    "id": "crash_day_close",
@@ -450,16 +458,16 @@
     "allocation": "none"
    },
    "review_by": "2026-11-15",
-   "state": "해당 없음",
+   "state": "급락일(−5%)",
    "value": {
-    "ret1": 0.0062,
-    "dd20": -0.1812
+    "ret1": -0.0533,
+    "dd20": -0.2092
    },
-   "bias": null,
+   "bias": "bull",
    "alert": false,
    "gate": {},
-   "note": "",
-   "asof": "2026-11-04"
+   "note": "진입한다면 오늘 종가에 — 확인 신호를 기다리면 평균적으로 더 비싸게 삼 (지수 대비 초과수익 근거는 아님)",
+   "asof": "2026-11-05"
   },
   {
    "id": "confirm_signals",
@@ -480,7 +488,7 @@
    "alert": false,
    "gate": {},
    "note": "강등된 신호 — 진입 근거로 인용 금지",
-   "asof": "2026-11-05 13:35"
+   "asof": "2026-11-05 15:51"
   },
   {
    "id": "foreign_flow",
@@ -496,12 +504,12 @@
    },
    "review_by": "2026-11-15",
    "state": "대량 순매도",
-   "value": -25108.0,
+   "value": -33937.0,
    "bias": "bear",
    "alert": false,
    "gate": {},
-   "note": "-2.51조 (마감, 오늘 아님)",
-   "asof": "2026-11-04 15:49"
+   "note": "-3.39조 (마감)",
+   "asof": "2026-11-05 15:50"
   },
   {
    "id": "macro_wind",
@@ -517,12 +525,12 @@
    },
    "review_by": "2026-11-15",
    "state": "중립",
-   "value": -0.1,
+   "value": -0.09,
    "bias": "neutral",
    "alert": false,
    "gate": {},
    "note": "약한 역풍",
-   "asof": "2026-11-04"
+   "asof": "2026-11-05"
   },
   {
    "id": "breadth_kr",
@@ -560,15 +568,15 @@
    "review_by": "2026-11-15",
    "state": "강세 우위",
    "value": {
-    "강세": 0.438,
-    "기본": 0.347,
-    "약세": 0.216
+    "강세": 0.469,
+    "기본": 0.281,
+    "약세": 0.25
    },
    "bias": null,
    "alert": false,
    "gate": {},
-   "note": "근거 '20일 −15% 이상 하락 중' n=176",
-   "asof": "2026-11-05 13:35"
+   "note": "근거 '20일 −15% 이상 하락 중 −5% 급락' n=32",
+   "asof": "2026-11-05 15:51"
   },
   {
    "id": "stock_trend_score",
@@ -626,12 +634,12 @@
    },
    "review_by": "2026-11-15",
    "state": "감마 음수",
-   "value": -1354.6,
+   "value": -1445.9,
    "bias": null,
    "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.111 · ATM IV 0.5975 · RV20 0.6176 — 흔들림 큼, 사이즈 주의",
-   "asof": "2026-11-05 14:20"
+   "note": "풋/콜 OI 1.114 · ATM IV 0.611 · RV20 0.6212 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-11-05 15:51"
   },
   {
    "id": "gamma_regime",
@@ -647,12 +655,12 @@
    },
    "review_by": "2026-12-16",
    "state": "감마 음수",
-   "value": -1354.6,
+   "value": -1445.9,
    "bias": null,
    "alert": true,
    "gate": {},
-   "note": "풋/콜 OI 1.111 · ATM IV 0.5975 · RV20 0.6176 — 흔들림 큼, 사이즈 주의",
-   "asof": "2026-11-05 14:20"
+   "note": "풋/콜 OI 1.114 · ATM IV 0.611 · RV20 0.6212 — 흔들림 큼, 사이즈 주의",
+   "asof": "2026-11-05 15:51"
   },
   {
    "id": "ai_credit",
@@ -672,8 +680,8 @@
    "bias": "bear",
    "alert": true,
    "gate": {},
-   "note": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -58.9%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.0%, VIX 18.3 · 최약 CIFR -72%, IREN -68%",
-   "asof": "2026-11-03"
+   "note": "AI 인프라 신용 경계: 바스켓 고점 대비 중앙값 -62.3%, 20일 −20%↓ 5/8종목(CIFR, IREN, APLD, CRWV, NBIS), HYG 1M +0.3%, VIX 16.6 · 최약 CIFR -78%, IREN -72%",
+   "asof": "2026-11-04"
   },
   {
    "id": "stock_bond_corr",
@@ -689,12 +697,12 @@
    },
    "review_by": "2026-11-15",
    "state": "같이 움직임",
-   "value": 0.3,
+   "value": 0.32,
    "bias": null,
    "alert": false,
    "gate": {},
    "note": "장기채보다 단기채·현금",
-   "asof": "2026-11-04"
+   "asof": "2026-11-05"
   },
   {
    "id": "us10y",
@@ -734,12 +742,12 @@
    },
    "review_by": "2026-12-15",
    "state": "평온",
-   "value": 0.0027,
+   "value": 0.0005,
    "bias": null,
    "alert": false,
    "gate": {},
    "note": "",
-   "asof": "2026-11-04"
+   "asof": "2026-11-05"
   },
   {
    "id": "japan_semi_lead",
@@ -755,12 +763,12 @@
    },
    "review_by": "2026-12-15",
    "state": "일본 장비 약세",
-   "value": -0.0386,
+   "value": -0.1282,
    "bias": null,
    "alert": false,
    "gate": {},
    "note": "60일 상관 0.682",
-   "asof": "2026-11-04"
+   "asof": "2026-11-05"
   },
   {
    "id": "supply_chain",
@@ -822,7 +830,7 @@
    "alert": false,
    "gate": {},
    "note": "표본 부족 — 재등급 전",
-   "asof": "2026-11-05 13:35"
+   "asof": "2026-11-05 15:51"
   },
   {
    "id": "event_calendar",
@@ -837,12 +845,12 @@
     "allocation": "none"
    },
    "review_by": "2026-11-15",
-   "state": "7일 안 1건",
-   "value": 1,
+   "state": "당일 있음",
+   "value": 3,
    "bias": null,
-   "alert": false,
+   "alert": true,
    "gate": {},
-   "note": "11-10 미 CPI(10월)",
+   "note": "11-05 KOSPI 경보:급락 −5% (사이드카 근처) 발동, 11-05 KOSPI 매도 사이드카 발동, 11-10 미 CPI(10월)",
    "asof": null
   },
   {
