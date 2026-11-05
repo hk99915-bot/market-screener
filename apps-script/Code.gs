@@ -108,6 +108,7 @@ function getCommodities() { return raw_('reports/commodities.json'); }   // MARK
 function getGeopolitics() { return raw_('reports/views/geopolitics.json'); }   // MARKET › MACRO 지정학 축 (매크로 데스크 작성)
 function getAnalystCmdty() { return raw_('reports/views/analyst_cmdty.json'); }   // MARKET › MACRO 애널리스트 원자재 뷰 (매크로 데스크 트래킹)
 function getMacroCmdty() { return raw_('reports/views/macro_cmdty.json'); }   // MARKET › MACRO 원자재 현상황·관계성·지정학 시나리오 (macro_cmdty_view.md 화면용)
+function getDeskMeeting() { return raw_('reports/views/desk_meeting.json'); }   // 데일리 › 운용회의 맨 위 '데스크 회의 결론' 카드 (PB 갱신, 데스크 회의록 요약)
 function getRealEstate() { return raw_('reports/realestate.json'); }   // MARKET › 부동산 (screener/realestate.py, 부동산 10/23)
 function getRealEstateView() { return raw_('reports/views/realestate.json'); }   // MARKET › 부동산 데스크 해석
 function getRealEstateGu(cd) { if (!/^\d{5}$/.test(String(cd))) throw new Error('구 코드 형식 아님'); return raw_('reports/realestate_trades/' + cd + '.json'); }   // 부동산 드릴다운(구→동→단지, 10/26)

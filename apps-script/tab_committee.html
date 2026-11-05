@@ -66,13 +66,20 @@ function sigTrackBox(mk){
     ${rows.length?cmtTbl(['원천 · 신호','건수','5일 초과','적중·n','20일 초과','적중·n','60일 초과','적중·n'],rows):'<div class="mu">추적 신호 없음</div>'}
     <div class="mu" style="font-size:var(--fs-1);white-space:normal">${esc(d.policy||'')}</div></div>`;
 }
-let CMT=null, CMTU=null, CMK='KR', DOT=null;
+let CMT=null, CMTU=null, CMK='KR', DOT=null, DMT=null;
+/* 데스크 회의 결론 카드 (11/5 겸이 「3」) — reports/views/desk_meeting.json (getDeskMeeting). 오늘 날짜 아니면 '지난 회의' 회색 */
+function deskMeetingCard(){
+  if(DMT===null){ DMT=false; google.script.run.withSuccessHandler(t=>{try{DMT=JSON.parse(t);}catch(e){DMT={};} if(view==='cmt') render();}).withFailureHandler(()=>{DMT={};if(view==='cmt') render();}).getDeskMeeting(); return ''; }
+  const d=DMT; if(!d||!d.lines) return '';
+  const kst=new Date(Date.now()+9*3600*1000).toISOString().slice(0,10), stale=d.date!==kst, c=stale?'mu':'';
+  return `<div class="grid"><div class="p c12" id="deskMeet" style="${stale?'opacity:.7':''}"><h2>데스크 회의 결론<small>${stale?'지난 회의 ('+esc(d.date)+')':esc(d.date||'')} · ${esc(d.asof||'')}</small></h2><div class="b ${c}" style="white-space:normal;line-height:1.7"><div style="${stale?'':'border-left:2px solid var(--amber);padding-left:6px'}"><b class="${stale?'':'am'}">${esc(d.inflection||'')}</b></div>${(d.lines||[]).map(x=>'<div>• '+esc(x)+'</div>').join('')}${(d.asks||[]).length?'<div style="margin-top:4px"><b>결재</b> '+(d.asks||[]).map(esc).join(' · ')+'</div>':''}<div class="mu" style="font-size:var(--fs-1);margin-top:4px">회의록 ${esc(d.path||'')}</div></div></div></div>`;
+}
 function cmtView(){
   if(CMK==='US') return cmtUSView();
   if(CMT===null){ CMT=false; google.script.run.withSuccessHandler(t=>{try{CMT=JSON.parse(t);}catch(e){CMT={};} if(view==='cmt') render();}).withFailureHandler(()=>{CMT={};if(view==='cmt') render();}).getCommittee(); return '<div class="load">LOADING …</div>'; }
-  const o=CMT; if(!o||!o.scenarios) return cmtTabs()+'<div class="grid"><div class="p c12"><div class="b mu">운용회의 자료 생성 전</div></div></div>';
-  if(o.bottom_line) return cmtTabs()+cmtV2Html(o);
-  return cmtTabs()+cmtLegacyHtml(o);
+  const o=CMT; if(!o||!o.scenarios) return cmtTabs()+deskMeetingCard()+'<div class="grid"><div class="p c12"><div class="b mu">운용회의 자료 생성 전</div></div></div>';
+  if(o.bottom_line) return cmtTabs()+deskMeetingCard()+cmtV2Html(o);
+  return cmtTabs()+deskMeetingCard()+cmtLegacyHtml(o);
 }
 /* 예전 형식(v1) 운용회의 — 지난 회의 기록(bottom_line 없음)을 열 때 */
 function cmtLegacyHtml(o){
