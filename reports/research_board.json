@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
  "_doc": "scripts/research_board.py --build 산출물 — 손으로 고치지 않는다. 사람이 적는 칸은 ops/research_pipeline.json.",
- "asof": "2026-11-05",
+ "asof": "2026-11-06",
  "stages": [
   {
    "id": "idea",
@@ -275,7 +275,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/accum_signals.json",
-   "updated": "2026-11-04",
+   "updated": "2026-11-05",
    "grade_counts": {}
   },
   {
@@ -298,7 +298,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/trend_expectancy.json",
-   "updated": "2026-11-04",
+   "updated": "2026-11-05",
    "grade_counts": {
     "F": 1,
     "C": 1
@@ -322,7 +322,7 @@
    "auto": [
     "reports/signal_scores.json"
    ],
-   "updated": "2026-11-04"
+   "updated": "2026-11-05"
   },
   {
    "id": "model_pf",
@@ -345,7 +345,7 @@
     "commit": "d6165c69",
     "src": "git log -- screener/portfolios.py (커밋 2개: 63c61bef 10-15 생성, d6165c69 10-17 체결 시차 변경)"
    },
-   "updated": "2026-11-05"
+   "updated": "2026-11-06"
   },
   {
    "id": "lab_weekly",
@@ -401,7 +401,7 @@
    "auto": [
     "reports/momentum_bt.json"
    ],
-   "updated": "2026-11-05"
+   "updated": "2026-11-06"
   },
   {
    "id": "derivs",
@@ -696,9 +696,39 @@
    "file": "reports/studies/2026-11-04_crash_close_intraday.md"
   },
   {
+   "study": "2026-11-05_downday",
+   "date": "2026-11-05",
+   "file": "reports/studies/2026-11-05_downday.json"
+  },
+  {
+   "study": "2026-11-05_downday_b",
+   "date": "2026-11-05",
+   "file": "reports/studies/2026-11-05_downday_b.json"
+  },
+  {
+   "study": "2026-11-05_downday_fix",
+   "date": null,
+   "file": "reports/studies/2026-11-05_downday_fix.json"
+  },
+  {
+   "study": "2026-11-05_hf_oil_drop_theme",
+   "date": "2026-11-05",
+   "file": "reports/studies/2026-11-05_hf_oil_drop_theme.md"
+  },
+  {
+   "study": "2026-11-05_ict_hdj1",
+   "date": "2026-11-04",
+   "file": "reports/studies/2026-11-05_ict_hdj1.json"
+  },
+  {
    "study": "dotplot_tilt",
    "date": null,
    "file": "reports/studies/dotplot_tilt.json"
+  },
+  {
+   "study": "ict_open",
+   "date": null,
+   "file": "reports/studies/ict_open.json"
   },
   {
    "study": "multiple_compression_2022",
@@ -815,6 +845,34 @@
    "opened": "2026-11-04",
    "due": "2026-11-14",
    "text": "결재 11/4 16:43: 통합운영 S2 그림자에서 채택 표본 n<10일 때 대응(연장 규칙·판정 보류 표기)을 사전등록(prereg). 근거 idea_unify_premortem.md 원인1, cio.md #22 (a)"
+  },
+  {
+   "id": "req-quant-971a91c3",
+   "from": "pb",
+   "opened": "2026-11-05",
+   "due": "2026-11-07",
+   "text": "ICT 검증 트리오 반영(11/5 08:20): ① quant_ict_hdj1.md 보정 α를 합산 N=34·α=0.00147로 정정, R7 BoS KOSPI 'C'에 '보정·FDR 미통과, 34회 중 우연 범위(약 89%)' 주석 ② 사전등록 문언…"
+  },
+  {
+   "id": "req-quant-9aace2dc",
+   "from": "겸이",
+   "opened": "2026-11-05",
+   "due": "2026-11-12",
+   "text": "리서치 본부 실적 압박(겸이 11/5 12:09 「리서치도 더 실적압박」, 근거: 모의 대결 누적 나 4/11·PB🔥 2/8·HF 알파북 벤치 대비 −3.6%p, 렌즈 적중 n12<20): ① 리서치 본부 KPI 3개 신설 — (a) 확률 예측 채점…"
+  },
+  {
+   "id": "req-quant-e849de37",
+   "from": "겸이",
+   "opened": "2026-11-05",
+   "due": "2026-11-12",
+   "text": "관망 비용 장부 신설(겸이 11/5 12:13, 컴플·CIO 검토 반영): '막힌 거래'=사전 주문표가 있었는데 하드 한도(구속 S·레버리지 금지·백스톱) 또는 경보(VaR 반도체 플래그 등) 때문에 미집행된 건만, 21거래일 뒤 결과를 무행동·같은…"
+  },
+  {
+   "id": "req-quant-f85b5c1c",
+   "from": "cio",
+   "opened": "2026-11-05",
+   "due": "2026-11-07",
+   "text": "투자본부 규칙 고도화 검증 요청: 분할 진입 확인 조건(종가 진입가+1ATR 2거래일 유지)·시간 손절 N(5/10/20일)·2xATR 손절의 사전등록 검정 설계 가능 여부와 침체 스위치 문턱 사전등록 일정 회신"
   }
  ]
 }
