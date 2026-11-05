@@ -5161,6 +5161,171 @@
     "void": "나 미제출 — 채점 제외",
     "scored_at": "2026-11-05 01:35"
    }
+  },
+  {
+   "id": "2026-11-05-entry",
+   "date": "2026-11-05",
+   "kind": "entry",
+   "title": "진입 타점 대결",
+   "note": "",
+   "picks": {
+    "나": {
+     "pending": true
+    },
+    "PB": {
+     "ticker": "102110",
+     "name": "TIGER 200",
+     "notional": 1000000.0,
+     "entry": "close",
+     "exit": "d5_close",
+     "by": "PB 재량",
+     "at": "14:44"
+    },
+    "PB🔥": {
+     "ticker": "122630",
+     "name": "KODEX 레버리지",
+     "notional": 3000000.0,
+     "entry": "close",
+     "exit": "next_close",
+     "by": "공격 PB",
+     "at": "14:44",
+     "lev_cap": "레버리지 +2배 보유 상한 1일(결재 #14) — 청산 '5일 뒤 종가' → '다음날 종가'로 조정",
+     "lev_drag": "리셋 비용: KODEX 레버리지 +2배 일일 리셋 — 2일 보유·지수 ±3% 왕복 가정: 지수 -0.09% → 2배 기대 -0.18% vs 실제 -0.36% (끌림 -0.18%p). 보유 길수록·흔들릴수록 커진다"
+    }
+   },
+   "pb_view": {
+    "why": "급락일 종가 1차 신호(등급 B) 충족: 코스피 14:43 −5.39%, 장중 저가 −5% 하회. 신호 표본 20일 평균 +7.5%, 승률 81%(n=16, entry_signals). 레짐 하락장(200일선 이탈) 게이트로 규모는 하단 100만원, 대형 지수형으로 한정. 5거래일 보유, 종가 −4% 이탈 시 청산. 반등일 아님(14:30 코스피 −5.3%)으로 하락장 특칙 축소 집행일 아님.",
+    "lines": [
+     "코스피 14:43 −5.39%, 급락일 종가 1차 신호(등급 B) 충족",
+     "20일선 5,790 하회 지속, 레짐 하락장 게이트 fail로 규모 하단",
+     "반등일 미충족으로 보유 반도체 비중 축소 집행일 아님",
+     "레드팀: 급락일 종가 표본(n=16)은 V자 반등 위주로 연속 급락 꼬리를 과소 반영"
+    ],
+    "conviction": "낮음",
+    "at": "14:44",
+    "plan": {
+     "target": 0.05,
+     "stop": -0.04,
+     "rr": 1.25,
+     "win_rate": 0.81,
+     "n": 16,
+     "ev": null,
+     "basis": "entry_signals 급락일 종가(20일 보유 기준, 5일 보유 승률은 검증 전)"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0.0,
+     "note": "위성 북 상한·실계좌 신규 해금 전(11/16)·구속 스트레스 한도 근접 게이트로 실계좌 신규 진입 불가, 적립식 코어 매수 경로만 유지"
+    },
+    "crash_day_cash": false,
+    "views_asof": "2026-11-05 14:20",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "해당 없음",
+      "b": null
+     },
+     "confirm_signals": {
+      "s": "켜짐 1/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "중립",
+      "b": "neutral"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 5 / 축소 6",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 10회 · 5일 초과 +2.5%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "7일 안 1건",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "정상",
+      "b": "neutral"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "급락일 종가 신호(등급 B)에 과매도 반전 베팅을 2배 레버리지로 집중. 레버리지 ETF 당일 −11.3%로 지수 대비 낙폭 확대 구간, 반등 시 탄력 우위로 추정. 종가 −8% 이탈 시 청산. 레버리지 끌림으로 하락 지속 시 손실 가속. 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.1,
+      "stop": -0.08,
+      "rr": 1.25,
+      "win_rate": null,
+      "n": null,
+      "basis": "crash_rebound 레버리지 5일 보유 표본(검증전)"
+     }
+    }
+   },
+   "crash_day": true
   }
  ],
  "tally": {
