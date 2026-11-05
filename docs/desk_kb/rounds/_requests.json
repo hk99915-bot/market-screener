@@ -11576,7 +11576,18 @@
     "2026-11-05"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "analyst",
+     "at": "2026-11-06T07:55+09:00",
+     "text": "판정 장부 신설: reports/views/analyst_calls.json — 11/5 장기 뷰 2건(만기 2027-11-05, 12개월 상대수익 vs 코스피 이진 채점)·11/6 재료판정 1건(만기 11/13). 건마다 틀리면 보일 신호·확인 날짜·채점 규칙 사전 고정, 기록 후 수정 금지(void 후 재기록). 월간 보고 = 매월 첫 영업일 digest 1줄, 퀀트 확률 장부와 한 표 합치기는 퀀트에 요청. 닫음.",
+     "voc": true
+    }
+   ],
+   "done": "2026-11-06",
+   "done_at": "2026-11-06T07:55+09:00",
+   "done_by": "애널"
   },
   {
    "id": "req-cio-1aee53fc",
@@ -12020,9 +12031,45 @@
    ],
    "pending_rounds": 0,
    "status": "open"
+  },
+  {
+   "id": "req-data-710a7fab",
+   "from": "analyst",
+   "to": "data",
+   "text": "reports/macro_series.json SOXX 11/5 종가 131.9(전일 450.41, −70.7%) — 분할 미조정 의심(×3 환산 −12.1%, SOX −12.25%와 근접). 수집원 조정 여부 확인·이력 보정 회신",
+   "opened": "2026-11-06",
+   "opened_at": "2026-11-06T07:55+09:00",
+   "due": "2026-11-09",
+   "via": "ask",
+   "seen": [
+    "2026-11-06"
+   ],
+   "checked": [
+    "2026-11-06"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
+  },
+  {
+   "id": "req-quant-faeaa54d",
+   "from": "analyst",
+   "to": "quant",
+   "text": "req-quant-9aace2dc 협업: 애널 판정 장부 reports/views/analyst_calls.json(3건, prob=null 이진 채점) 키를 확률 장부와 같은 표로 합칠 스키마 회신 — 공통 키 id·desk·made·subject·claim·prob·horizon_end·checks·wrong_if·resolve_rule·status·outcome",
+   "opened": "2026-11-06",
+   "opened_at": "2026-11-06T07:55+09:00",
+   "due": "2026-11-12",
+   "via": "ask",
+   "seen": [
+    "2026-11-06"
+   ],
+   "checked": [
+    "2026-11-06"
+   ],
+   "pending_rounds": 0,
+   "status": "open"
   }
  ],
- "updated": "2026-11-05",
+ "updated": "2026-11-06",
  "chat": [],
  "chat_moved": "pb-private chat/private_chat.json (10/28 통합)"
 }

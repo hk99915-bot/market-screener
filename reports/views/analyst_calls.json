@@ -1,0 +1,64 @@
+{
+ "schema_version": 1,
+ "updated": "2026-11-06 07:54 KST",
+ "_doc": "애널 판정 장부 (req-analyst-e34528db, 겸이 11/5 12:09 '애널 발언도 채점 대상으로'). 장기 뷰·낙관/비관 균형쌍·재료 판정마다 '틀리면 보일 신호'와 '확인 날짜'를 붙여 기록하고 만기에 채점. 퀀트 확률 장부(req-quant-9aace2dc)와 같은 표로 합치는 키 = id·desk·made·subject·claim·prob·horizon_end·checks·wrong_if·resolve_rule·status·outcome. 확률 없는 판정은 prob=null → 적중/실패 이진 채점(Brier 대상 아님). 공개 저장소 — 개인 보유·금액 기록 금지(판정 대상은 공개 데이터의 종목·업종 수준).",
+ "rules": {
+  "kinds": "장기뷰(1~3년) | 균형쌍(낙관·비관 각 1줄) | 재료판정(외부 주장 확인/미확인)",
+  "status": "open | hit | miss | void(판정 기준 사전 변경 시 — 사유 필수)",
+  "monthly": "매월 첫 영업일 digest 보고에 '판정 장부' 1줄(건수·만기 도래·적중/실패) — 퀀트 표에 합쳐지면 그쪽 월간 보고로 일원화",
+  "no_edit": "기록 후 claim·wrong_if·resolve_rule 수정 금지. 바꿀 땐 새 id로 다시 기록하고 이전 건 void"
+ },
+ "calls": [
+  {
+   "id": "ac-20261105-009150-lt",
+   "desk": "애널",
+   "made": "2026-11-05 11:16 KST",
+   "kind": "장기뷰",
+   "subject": "009150 삼성전기",
+   "claim": "어느 분모로도 비쌈 — 1~3년 관점에서 밸류에이션이 결정 근거로 쓸 만큼 싸지 않음",
+   "prob": null,
+   "basis": "valuation.json 2026-11-05(2026Q2 DART): PER TTM 72.7 · 런레이트 58.0 · 가이던스 없음 · PBR 7.16 · ROE 9.8% · E/P−rf −2.3%p / 바스켓 중앙값 PER 42.7·런레이트 29.7",
+   "horizon_end": "2027-11-05",
+   "checks": ["2026-11-30 (3Q26 분기보고서 반영 후 첫 valuation.json)", "2027-05-31 (1Q27 반영)", "2027-11-05 (만기)"],
+   "wrong_if": "런레이트 PER 이 바스켓 런레이트 중앙값 이하(이익 급증으로 분모가 따라잡음) 또는 4개 분기 ROE 15% 이상 정착",
+   "resolve_rule": "2027-11-05 종가 기준 12개월 주가수익률 < 코스피 수익률(코스피 2026-11-05 종가 5,383.80, macro_series.json) → hit, 그 외 miss. 중간 확인일에 wrong_if 충족 시 그날 기록(판정은 만기)",
+   "src": "PB 세션 11/5 애널 호출(장기 뷰 1~3년) — 원문 비공개 저장소 journal/2026-11-05.md",
+   "status": "open",
+   "outcome": null
+  },
+  {
+   "id": "ac-20261105-000660-lt",
+   "desk": "애널",
+   "made": "2026-11-05 11:16 KST",
+   "kind": "장기뷰",
+   "subject": "000660 SK하이닉스",
+   "claim": "HBM4 근거가 구체적 — 1~3년 강세(요청 원문 'HBM4 구체적 강세' 그대로, 기록 시 보충: ROE 61.7%는 정점 ROE 함정 점검 대상)",
+   "prob": null,
+   "basis": "valuation.json 2026-11-05(2026Q2 DART): PER TTM 5.6 · 런레이트 2.4 · PBR 3.43 · ROE 61.7% · E/P−rf +14.3%p(바스켓 최상위) · T3 DRAM 4Q26 계약가 전망 +20% q/q(TrendForce 10/20)",
+   "horizon_end": "2027-11-05",
+   "checks": ["매월 TrendForce DRAM·HBM 계약가 전망(themes.md T3)", "2027-01-31 (4Q26 실적·2027 HBM 계약 언급)", "2027-11-05 (만기)"],
+   "wrong_if": "DRAM 계약가 전망 q/q 한 자릿수 이하 전환 또는 2027 HBM 공급 계약 확정 지연 공시·보도(1차) 또는 빅테크 2027 capex 하향",
+   "resolve_rule": "2027-11-05 종가 기준 12개월 주가수익률 > 코스피 수익률(코스피 2026-11-05 종가 5,383.80) → hit, 그 외 miss",
+   "src": "PB 세션 11/5 애널 호출(장기 뷰 1~3년) — 원문 비공개 저장소 journal/2026-11-05.md",
+   "status": "open",
+   "outcome": null
+  },
+  {
+   "id": "ac-20261106-nand-rumor",
+   "desk": "애널",
+   "made": "2026-11-06 07:54 KST",
+   "kind": "재료판정",
+   "subject": "11/5 미장 반도체 급락 원인설(TrendForce 낸드 ASP 하락 리포트)",
+   "claim": "원인설 1차 자료 미확인 — 원인 귀속 보류",
+   "prob": null,
+   "basis": "digest.json us_semis_20261105_nand_rumor — 웹검색 TrendForce 해당 발간물 미발견, 피드 인용 0건",
+   "horizon_end": "2026-11-13",
+   "checks": ["2026-11-09 (TrendForce 프레스센터 재검색)", "2026-11-13 (만기)"],
+   "wrong_if": "11/5 이전 날짜의 TrendForce 낸드 ASP 하락 발간물이 공개 1차 자료로 확인됨",
+   "resolve_rule": "만기까지 해당 1차 자료 발견 → miss(원인설이 맞았는데 미확인으로 둔 것 = 수집 실패), 미발견 → hit",
+   "src": "reports/views/digest.json",
+   "status": "open",
+   "outcome": null
+  }
+ ]
+}
