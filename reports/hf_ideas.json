@@ -1,10 +1,10 @@
 {
  "v": 1,
- "asof": "2026-11-04",
- "generated_at": "2026-11-04 23:19 KST",
+ "asof": "2026-11-05",
+ "generated_at": "2026-11-05 11:56 KST",
  "note": "HF 아이디에이션 — 후보일 뿐 진입 아님. 진입은 scripts/hf_book.py 체크리스트 통과 후. 검증 상태 F 는 반대 근거로만.",
  "counts": {
-  "total": 406,
+  "total": 539,
   "거래량 급증": 3,
   "급락일 버팀": 2,
   "숫자 강·가격 약": 3,
@@ -26,6 +26,20 @@
    "rank": 1
   },
   {
+   "market": "US",
+   "code": "FIS",
+   "name": "Fidelity National Information Services, Inc. Common Stock",
+   "asof": "2026-11-04",
+   "close": 29.76,
+   "type": "거래량 급증",
+   "score": 4.287,
+   "direction": "숏 후보(물량 출회)",
+   "evidence": "거래량 6.1배 · 1일 -23.7%",
+   "status": "검증전 — 거래량 급증 + 방향",
+   "src": "reports/detail/US/FIS.json chart",
+   "rank": 2
+  },
+  {
    "market": "KR",
    "code": "009830",
    "name": "한화솔루션",
@@ -37,20 +51,6 @@
    "evidence": "거래량 7.5배 · 1일 +18.6%",
    "status": "검증전 — 거래량 급증 + 방향 · S4 유사(국장 거래량 3배+상승 추격 = 반대 근거)",
    "src": "reports/detail/KR/009830.json chart",
-   "rank": 2
-  },
-  {
-   "market": "KR",
-   "code": "388050",
-   "name": "지투파워",
-   "asof": "2026-11-04",
-   "close": 7840.0,
-   "type": "거래량 급증",
-   "score": 3.65,
-   "direction": "추격 주의(S4 유사) — 롱은 눌림 확인 뒤",
-   "evidence": "거래량 22.7배 · 1일 +11.7%",
-   "status": "검증전 — 거래량 급증 + 방향 · S4 유사(국장 거래량 3배+상승 추격 = 반대 근거)",
-   "src": "reports/detail/KR/388050.json chart",
    "rank": 3
   },
   {
@@ -154,27 +154,20 @@
  ],
  "macro": [
   {
-   "driver": "미 10년 금리 20일 -32bp",
+   "driver": "미 10년 금리 20일 -38bp",
    "benefit": "고PER 성장·리츠·유틸리티",
    "hurt": "은행·보험",
-   "status": "검증전 — 정성 매크로 규칙",
-   "src": "reports/macro_series.json"
-  },
-  {
-   "driver": "VIX 20일 +39%",
-   "benefit": "필수소비·헬스케어(방어)",
-   "hurt": "고베타·소형 성장",
    "status": "검증전 — 정성 매크로 규칙",
    "src": "reports/macro_series.json"
   }
  ],
  "gap": {
-  "us_date": "2026-11-03",
-  "nasdaq": 0.0083,
+  "us_date": "2026-11-04",
+  "nasdaq": 0.0144,
   "beta": 0.602,
   "t": 13.3,
   "n": 489,
-  "pred_gap": 0.0064,
+  "pred_gap": 0.0101,
   "band": 0.0225,
   "status": "검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)",
   "src": "data/deriv/daily.csv · reports/macro_series.json NASDAQ"
@@ -206,7 +199,7 @@
     "200일선 35 지지(5일 저점 −2% 안): 종가 47"
    ],
    "off": [
-    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 0.8배 +0.8%",
+    "거래량 동반 상승일(2배+·추격 패턴 아님): 오늘 1.2배 +0.3%",
     "DART 7일: 공급계약·임원매수·지분·자사주·IR 없음",
     "업종 선행(수동 확인): 미 10년 금리 20일 방향(reports/macro_series.json US10Y) — 고PER 소프트웨어 민감",
     "업종 선행(수동 확인): 나스닥 대비 상대강도 — 웹 확인"
@@ -218,12 +211,12 @@
  ],
  "top": {
   "what": [
-   "후보 406건 중 상위 10개 — 거래량 급증 3, 급락일 버팀 2, 숫자 강·가격 약 3, 거래량 돌파(추격 금지) 2",
-   "상위: 대동기어(거래량 급증), 한화솔루션(거래량 급증), 지투파워(거래량 급증)"
+   "후보 539건 중 상위 10개 — 거래량 급증 3, 급락일 버팀 2, 숫자 강·가격 약 3, 거래량 돌파(추격 금지) 2",
+   "상위: 대동기어(거래량 급증), Fidelity National Information Services, Inc. Common Stock(거래량 급증), 한화솔루…"
   ],
   "so_what": [
    "후보일 뿐 진입 아님 · 검증 상태 F 신호는 반대 근거로만",
-   "미·한 갭 추정 +0.64% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
+   "미·한 갭 추정 +1.01% — 검증전 — 설명 회귀(2024-09~, 학습·검증 분리 전)"
   ],
   "now_what": [
    "진입은 scripts/hf_book.py 체크리스트 통과 건만(HF 데스크)"
@@ -232,7 +225,7 @@
   "src": [
    "reports/hf_ideas.json"
   ],
-  "asof": "2026-11-04 23:19",
+  "asof": "2026-11-05 11:56",
   "grade": "검증전"
  }
 }
