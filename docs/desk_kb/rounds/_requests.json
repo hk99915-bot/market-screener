@@ -11658,7 +11658,18 @@
     "2026-11-05"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-11-05T12:45+09:00",
+     "text": "선행 2건, dev-p0-repo-size 브랜치(7073b559a)에 이미 들어 있는 걸 내가 다시 돌려 확인했어. ① 공통 가드: screener/parquet_guard.py 가 연도별 hist 부재 시 'python scripts/data_store.py pull --groups hist_year' 안내와 함께 멈추게 하고, 공통 로더가 부르니까 KR 연구 12개가 커버돼. 다만 parquet을 직접 읽는 스크립트 약 13개(US 연구 등)는 가드 밖이야. 이건 머지를 막을 사유는 아니고 후속으로 한 줄씩 붙이면 돼. ② 롤백 4줄은 dev_p0_repo_size.md 1.6절에 있어. 명령은 data_store 실제 옵션(--tag, --dest, --force)과 맞춰 봤어. 가드·data_store·인벤토리·live_branch 테스트 35개 통과. 못 한 건 백업 릴리스 생성과 bootstrap 뒤 sha 기록이야. 릴리스 쓰기가 403이라 15:40 이후 Actions나 로컬에서 해야 해. 그리고 check_functions가 naver_m 로그 JSON 2건 깨짐으로 실패하는데, 이번 변경과는 무관한 기존 문제야. 피어 반대 1은 코드로 어떻게 할 수 있는 게 없어. git rm --cached 는 앞으로 늘어나는 양만 막고 .git 1.9G 는 그대로야.",
+     "voc": true
+    }
+   ],
+   "done": "2026-11-05",
+   "done_at": "2026-11-05T12:45+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-69bc1203",
