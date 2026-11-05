@@ -86,6 +86,7 @@
     getUsAccum: () => get('reports/us_accum.json'),
     getCooldown: () => get('ops/cooldown.json'),
     getRenego: () => get('ops/renego.json'),
+    getDeskMeeting: () => get('reports/views/desk_meeting.json'),   // 운용회의 맨 위 '데스크 회의 결론' 카드 — Code.gs getDeskMeeting 와 짝(3db30717a 가 심을 빠뜨려 ui_smoke 4건 BAD, 11/5 개발)
     getLibrary: () => get('reports/library.json'),   // RESEARCH › 서고 (req-dev-16bbc8e5) — Code.gs getLibrary 와 짝
     getCompanyLinks: () => get('reports/company_links.json'),   // RESEARCH › 관계도 (11/1 겸이, 애널 데이터) — Code.gs getCompanyLinks 와 짝(개발 ask)
     getCompanyLinksSample: () => get('tests/fixtures/company_links_sample.json'),   // 실제 파일 없을 때 로컬 개발·ui_smoke 용 예시(Pages 사이트엔 tests/ 제외라 404 → '데이터 없음' 안내)
