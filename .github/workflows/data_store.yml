@@ -14,6 +14,10 @@ on:
         description: "snapshot | status | bootstrap"
         required: true
         default: "status"
+      groups:
+        description: "bootstrap 에서 올릴 그룹 (기본 all,hist_year — 연도별 불변 32개 포함). 다시 올릴 땐 small 처럼 좁혀서"
+        required: false
+        default: "all,hist_year"
       commit:
         description: "bootstrap 의 manifest 커밋 여부 (기본 false = 읽기 전용 — 결정 C)"
         required: false
@@ -33,6 +37,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       MODE: ${{ inputs.mode || 'snapshot' }}
+      GROUPS_IN: ${{ inputs.groups }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,7 +50,7 @@ jobs:
         run: |
           case "$MODE" in
             snapshot)  python scripts/data_store.py snapshot --keep 8 ;;
-            bootstrap) python scripts/data_store.py push --groups all --force --git-rev "$(git rev-parse HEAD)" ;;
+            bootstrap) python scripts/data_store.py push --groups "${GROUPS_IN:-all,hist_year}" --force --git-rev "$(git rev-parse HEAD)" ;;
             *)         python scripts/data_store.py status ;;
           esac
       - name: manifest 저장 (bootstrap)

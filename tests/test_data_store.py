@@ -89,7 +89,7 @@ def put(root: Path, rel: str, rows: int, asof: str | None = None, pad: int = 0):
 def test_name_roundtrip_and_groups():
     assert ds.asset_path(ds.asset_name("data/fin/multi.parquet")) == "data/fin/multi.parquet"
     assert ds.matches("data/flows/kr_inv_2027.parquet", ds.patterns("flows"))
-    assert not ds.matches("data/hist/kr_2025.parquet", ds.patterns("hist"))   # 연도 파일은 git 유지
+    assert not ds.matches("data/hist/kr_2025.parquet", ds.patterns("hist"))   # 연도 파일은 hist(일봉 창고) 그룹이 아니라 hist_year
     with pytest.raises(SystemExit):
         ds.patterns("nope")
 
@@ -221,3 +221,27 @@ def test_writer_workflows_pull_before_push():
         t = f.read_text(encoding="utf-8")
         if "data_store.py push" in t:
             assert t.index("data_store.py pull") < t.index("data_store.py push"), f.name
+
+
+def test_hist_year_is_opt_in_and_small_in_all():
+    """data-parquet-out: 연도별 불변 32개(~161MB)는 'all'(기본 pull·주간 스냅샷)에 넣지 않고 명시 그룹으로만, 누적 6개는 'all' 에."""
+    allp, yr = ds.patterns("all"), ds.patterns("hist_year")
+    for f in ("data/hist/kr_2010.parquet", "data/hist/us_2025.parquet"):
+        assert ds.matches(f, yr) and not ds.matches(f, allp), f
+    for f in ("data/hist/kr_etf_daily.parquet", "data/kr_prices.parquet", "data/hist/us_daily.parquet", "data/hist/kr_index_daily.parquet"):
+        assert not ds.matches(f, yr), f                       # 일봉 창고·올해 시세는 yearly 가 아니다
+    for f in ("data/research.parquet", "data/research_views.parquet", "data/short_hist.parquet", "data/dart.parquet",
+              "data/fin/us_quarterly.parquet", "reports/us_eps_hist.parquet"):
+        assert ds.matches(f, allp) and ds.matches(f, ds.patterns("small")), f
+    both = ds.patterns("all,hist_year")
+    assert set(both) == set(allp) | set(yr) and len(both) == len(set(both))
+    assert ds.patterns(["all"]) == allp and ds.patterns("") == allp
+
+
+def test_bootstrap_default_includes_hist_year_but_snapshot_does_not():
+    """최초 업로드는 yearly 포함, 주간 스냅샷(patterns('all'))은 불변 파일을 매주 8벌 복제하지 않는다."""
+    wf = (ROOT / ".github" / "workflows" / "data_store.yml").read_text(encoding="utf-8")
+    assert "all,hist_year" in wf and "GROUPS_IN" in wf
+    src = (ROOT / "scripts" / "data_store.py").read_text(encoding="utf-8")
+    assert 'local_files(patterns("all"))' in src             # snapshot 은 OPT_IN 제외 all
+
