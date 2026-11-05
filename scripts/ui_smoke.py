@@ -66,6 +66,7 @@ async def run(views: list[str], port: int) -> int:
         bad += await check_my_first_screen(b, port)
         bad += await check_my_hq(b, port)
         bad += await check_re_private(b, port)
+        bad += await check_life_work(b, port)
         bad += await check_re_drill(b, port)
         bad += await check_re_zoom(b, port)
         bad += await check_cmt_us(b, port)
@@ -443,6 +444,57 @@ def _toss_fixture() -> str:
 FAKE_REPV_MAN = '{"updated":"2000-01-01","items":[{"path":"realestate/b.md","title":"두번째 가짜","note":"n2","order":2},{"path":"realestate/a.md","title":"첫번째 가짜","note":"n1","order":1},{"path":"../evil.md","title":"나쁜 경로","order":0}]}'
 FAKE_REPV_DOC = ("# 가짜 제목\n\n본문 **강조** <img src=x onerror=\"window.__xss=1\"> <script>window.__xss=2</script>\n\n- 항목 하나\n- 항목 둘\n\n"
                  "| 열A | 열B | 열C | 열D | 열E | 열F |\n|---|---|---|---|---|---|\n| " + " | ".join(["가나다라마바사아자차카타파하" * 2] * 6) + " |\n")
+
+
+FAKE_LIFE_WORK = json.dumps({"generated": "2000-01-01", "period": {}, "kpi": {}, "monthly": [], "categories": [], "budget_vs_actual": {}, "net_worth": {},
+    "progress_1e8": {}, "recent": [], "goals": [], "health": {},
+    "career": {"applications": [], "story_bank": [{"경험명": "가짜 확정"}], "story_bank_count": 1, "specs": [],
+      "work": {"source": "x", "count": 3, "from": "2000-01",
+        "kpi": {"submitted": 1, "done": 2, "open": 1, "weekly_rate": 0.4, "weekly_week": "W", "dday": [{"date": "2000-03-05", "label": "가짜 기한", "days": 2}]},
+        "headline": [{"date": "2000-02", "axis": "AX", "title": "가짜 정본", "outcome": "가짜 성과", "status": "완료"}],
+        "axes": {"전략": {"n": 1, "done": 1, "star3": 1, "star_any": 1, "top": [{"title": "가짜 대표", "outcome": "o", "date": "2000-01"}]}, "PFM": {}, "AX": {"n": 1}},
+        "months": [{"month": "2000-01", "전략": 1, "PFM": 0, "AX": 0, "공통": 0, "requests": 5}, {"month": "2000-02", "전략": 0, "PFM": 0, "AX": 1, "공통": 0, "requests": 0},
+                   {"month": "2000-03", "전략": 0, "PFM": 1, "AX": 0, "공통": 0, "requests": 0}],
+        "trackers": [{"date": "2000-03-05", "axis": "PFM", "title": "가짜 트래커", "status": "진행"}],
+        "items": [{"date": "2000-03-05", "axis": "PFM", "title": "<img src=x onerror=window.__xss=1>가짜", "type": "보고", "role": "담당", "status": "진행"},
+                  {"date": "2000-02", "axis": "AX", "title": "가짜 정본", "outcome": "가짜 성과", "status": "완료", "star": "★★★"},
+                  {"date": "2000-01-02", "axis": "전략", "title": "가짜 대표", "outcome": "o", "status": "완료"}],
+        "story_candidates": ["가짜 후보"]}}}, ensure_ascii=False)
+
+
+async def check_life_work(b, port: int) -> int:
+    """LIFE 탭 'WORK · 내가 해온 일'(summary.json.career.work, 11/5 겸이 업무 뷰): 정본 카드·월 타임라인(빈 달 포함, 행 44px↑, 눌러 펼침)·3축 보드·트래커·후보 칩.
+    제목은 이스케이프(XSS 0), 390px 가로 스크롤 없음. API 는 가짜 응답 — 실제 데이터는 비공개 저장소에만."""
+    pg = await b.new_page(viewport={"width": 390, "height": 844})
+    errs: list[str] = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    await pg.add_init_script("try{ if(!sessionStorage.getItem('_sm')){ sessionStorage.setItem('_sm','1'); localStorage.clear(); localStorage.setItem('mt_gh_tok','smoke'); } }catch(e){}")
+
+    def h(r):
+        u = r.request.url
+        if "life/summary.json" in u:
+            return r.fulfill(status=200, content_type="text/plain", body=FAKE_LIFE_WORK)
+        return r.fulfill(status=404, body="{}")
+    await pg.route("https://api.github.com/**", h)
+    await pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="load")
+    await pg.wait_for_timeout(1200)
+    await pg.evaluate("setView('life')")
+    await pg.wait_for_timeout(2200)
+    o = await pg.evaluate("""(()=>{ const w=document.getElementById('lifework'); const S=[...document.querySelectorAll('details.wkm>summary')];
+      return {has:!!w, head:w?w.textContent:'', rows:S.length, minh:S.length?Math.min(...S.map(e=>e.getBoundingClientRect().height)):0,
+        body:(document.querySelector('#lifeb')||{}).textContent||'', jump:!!document.querySelector('.wkjump'),
+        hs:document.documentElement.scrollWidth>window.innerWidth+1,
+        over:[...document.querySelectorAll('#lifeb *')].filter(e=>e.getBoundingClientRect().right>window.innerWidth+1&&!e.closest('table')).length}; })()""")
+    await pg.evaluate("document.querySelector('details.wkm>summary').click()")
+    await pg.wait_for_timeout(300)
+    opened = await pg.evaluate("(document.querySelector('details.wkm[open]')||{}).textContent||''")
+    xss = await pg.evaluate("!!window.__xss")
+    await pg.close()
+    ok = (o["has"] and "가짜 성과" in o["head"] and o["rows"] == 3 and o["minh"] >= 44 and "가짜 트래커" in o["body"] and "가짜 후보" in o["body"]
+          and "D-2" in o["body"] and "가짜 대표" in o["body"] and o["jump"] and "가짜" in opened and not xss and not o["hs"] and o["over"] == 0 and not errs)
+    print(f"{'OK ' if ok else 'BAD'} LIFE업무뷰 정본={'O' if '가짜 성과' in o['head'] else 'X'} 월행={o['rows']}(최소 {o['minh']:.0f}px) 펼침={'O' if '가짜' in opened else 'X'} "
+          f"이스케이프={'O' if not xss else 'X'} 가로스크롤={'있음' if o['hs'] or o['over'] else '없음'}" + (f" · 에러: {errs[0][:160]}" if errs else ""))
+    return not ok
 
 
 async def check_re_private(b, port: int) -> int:

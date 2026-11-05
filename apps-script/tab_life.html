@@ -10,7 +10,7 @@ function lifeView(){
   if(tk&&!LIFE&&!LIFEERR) setTimeout(()=>pbGet('life/summary.json').then(t=>{ LIFE=JSON.parse(t); if(view==='life') lifeFill(); }).catch(e=>{ LIFEERR=e.message; const b=$('#lifeb'); if(b) b.innerHTML=`<div class="p c12"><div class="b dn">불러오기 실패(${esc(e.message)}) — 토큰 권한(pb-private Contents: Read) 확인 · <a href="#" onclick="LIFEERR='';render();return false">다시 시도</a></div></div>`; }),0);
   else if(LIFE) setTimeout(lifeFill,0);
   const head=`<div class="p c12"><h2>LIFE<small>가계부 · 커리어 · 건강 · 목표 · 비공개 저장소(pb-private/life)에서 이 브라우저로 직접 읽음</small></h2><div class="b mu" style="font-size:var(--fs-2);white-space:normal">
-    업데이트 방법: 뱅샐 내보내기 파일·운동·지원 현황은 PB에게 보내면 비공개 저장소에 반영돼요. <a href="#" onclick="LIFE=null;LIFEERR='';LIFEFM=null;render();return false">새로고침</a></div></div>`;
+    업데이트 방법: 뱅샐 내보내기 파일·운동·지원 현황은 PB에게 보내면 비공개 저장소에 반영돼요. <a href="#" onclick="LIFE=null;LIFEERR='';LIFEFM=null;render();return false">새로고침</a> · <a href="#" class="wkjump" onclick="const e=document.getElementById('lifework');if(e)e.scrollIntoView({behavior:'smooth'});return false" style="display:inline-block;min-height:44px;line-height:44px;padding:0 8px">💼 업무 뷰로 ↓</a></div></div>`;
   if(!tk) return `<div class="grid">${head}<div class="p c12"><div class="b" style="white-space:normal">이 탭은 비공개 저장소 토큰이 있어야 보여요. <a href="#" onclick="setView('my');return false">MY 탭 → 토큰 설정</a>에서 읽기 전용 토큰을 저장한 뒤 돌아오세요.</div></div></div>`;
   return `<div class="grid">${head}<div id="lifeb" style="display:contents"><div class="p c12"><div class="b mu">${LIFEERR?'불러오기 실패('+esc(LIFEERR)+') · <a href="#" onclick="LIFEERR=\'\';render();return false">다시 시도</a>':'불러오는 중…'}</div></div></div></div>`;
 }
@@ -59,10 +59,49 @@ function lifeFill(){
   const fv=(g,v)=>v==null||v===''?'—':(g.unit==='원'?M(+v):isNaN(+v)?esc(v):(+v).toLocaleString('ko-KR',{maximumFractionDigits:1}));
   const goals=`<div class="p c6"><h2>GOALS<small>goals/goals.csv</small></h2><div class="b"><table><tr><th class="l">영역</th><th class="l">목표</th><th>현재</th><th>목표치</th><th class="l" style="width:22%">진행</th><th class="l">기한</th></tr>`+
     (S.goals||[]).map(g=>`<tr title="${esc(g.note||'')}"><td class="l mu">${esc(g.area||'')}</td><td class="l">${esc(g.goal)}</td><td>${fv(g,g.current)}</td><td class="mu">${fv(g,g.target)}${g.target!=null&&g.unit&&g.unit!=='원'?' '+esc(g.unit):''}</td><td class="l">${g.pct!=null?bar(g.pct)+`<span class="mu" style="font-size:var(--fs-1)">${P(g.pct)}</span>`:`<span class="mu">${esc(g.status||'')}</span>`}</td><td class="l">${esc(g.target_date||'')}</td></tr>`).join('')+`</table></div></div>`;
-  b.innerHTML=kpis+prog+fm+money+cats+recent+apps+specs+story+body+health+goals+
+  b.innerHTML=kpis+prog+fm+money+cats+recent+lifeWork(C.work,C)+apps+specs+story+body+health+goals+
     `<div class="p c12"><div class="b mu" style="font-size:var(--fs-1);white-space:normal">생성 ${esc(S.generated||'')} · 데이터: 비공개 저장소 life/ CSV → build_summary.py → summary.json. 이 화면은 공개 서버에 아무것도 보내지 않아요.</div></div>`;
   setTimeout(()=>lifeHealthCharts(Hh),0);
 }
+/* LIFE · 업무 뷰(WORK) — summary.json.career.work (원천 pb-private life/career/work_log.csv, 스펙 life/career/work_view_spec.md).
+   11/5 겸이 「모든 업무 내역들 … 뷰로 보이게끔」. 데이터·문구는 전부 비공개 JSON 에서 오고, 여기엔 키 이름과 그리는 법만 있다(회사명·숫자 하드코딩 금지). */
+const WK_AX={'전략':'--up','PFM':'--amber','AX':'--blue','공통':'--muted','커리어':'--muted'}, WK_AXS=['전략','PFM','AX','공통'];
+function lifeWork(W,C){
+  if(!W||!Array.isArray(W.items)) return '';
+  const K=W.kpi||{}, d0=(K.dday||[])[0], r=K.weekly_rate, rc=r==null?'mu':r>=0.7?'up':r>=0.5?'am':'dn';
+  const ax=a=>`var(${WK_AX[a]||'--muted'})`, chip=a=>`<span style="display:inline-block;min-width:34px;font-size:var(--fs-1);font-weight:700;color:${ax(a)}">${esc(a||'')}</span>`;
+  const tl=(t,v,s)=>`<div class="p c4"><h2>${t}</h2><div class="b"><div style="font-size:var(--fs-4);font-weight:700">${v}</div><div class="mu" style="font-size:var(--fs-1);white-space:normal">${s}</div></div></div>`;
+  const kp=tl('제출물',`${num(K.submitted)||0}<span class="mu" style="font-size:var(--fs-2)"> 건</span>`,`지원서 제출 · 업무 완료 ${num(K.done)||0} · 걸린 것 ${num(K.open)||0}`)+
+    tl('이번 주 이행률',`<span class="${rc}">${r==null?'—':Math.round(r*100)+'%'}</span>`,`${esc(K.weekly_week||'')} · 70%↑ 초록 · 50% 미만 빨강`)+
+    tl('가장 가까운 기한',d0?`<span class="${d0.days<=3?'dn':'am'}">D-${num(d0.days)}</span>`:'—',d0?`${esc(d0.label)} · ${esc(d0.date)}`+((K.dday||[]).slice(1).map(x=>` · ${esc(x.label)} D-${num(x.days)}`).join('')):'기한 없음');
+  const it=(i,dt)=>`<div style="border-left:4px solid ${ax(i.axis)};padding:4px 8px;margin:4px 0;white-space:normal">${dt?`<span class="mu" style="font-size:var(--fs-1)">${esc(i.date)}</span> `:''}${chip(i.axis)} ${esc(i.title)}${i.star?` <span class="am" style="font-size:var(--fs-1)">${esc(i.star)}</span>`:''}${i.outcome?`<div style="font-size:var(--fs-2)"><b>${esc(i.outcome)}</b></div>`:''}${i.role?`<span class="mu" style="font-size:var(--fs-1)">${esc(i.type||'')} · ${esc(i.role)} · ${esc(i.status||'')}</span>`:''}</div>`;
+  const hd=`<div class="p c12" id="lifework"><h2>WORK · 내가 해온 일<small>${esc(W.from||'')}~ · ${num(W.count)||0}건 · 정본 성과</small></h2><div class="b">`+
+    ((W.headline||[]).map(i=>`<div style="border-left:4px solid ${ax(i.axis)};padding:6px 8px;margin:4px 0;white-space:normal">${chip(i.axis)} <b style="font-size:var(--fs-3)">${esc(i.outcome)}</b><div class="mu" style="font-size:var(--fs-1)">${esc(i.title)} · ${esc(i.date)}</div></div>`).join('')||'<span class="mu">정본 성과 없음(work_log pin=정본)</span>')+`</div></div>`;
+  const ms=W.months||[], tot=m=>WK_AXS.reduce((a,k)=>a+(m[k]||0),0), mx=Math.max(1,...ms.map(tot)), byM={};
+  W.items.forEach(i=>{ const k=String(i.date||'').slice(0,7); (byM[k]=byM[k]||[]).push(i); });
+  const pk=ms.reduce((a,m)=>(m.requests||0)>(a.requests||0)?m:a,{}), pi=ms.reduce((a,m)=>tot(m)>tot(a||{})?m:a,null);
+  const leg=WK_AXS.map(a=>`<span style="white-space:nowrap"><i style="display:inline-block;width:10px;height:10px;background:${ax(a)};margin-right:3px"></i>${a}</span>`).join(' ');
+  const tline=`<div class="p c8"><h2>업무 타임라인<small>월별 · 막대 = 축별 항목 수 · 오른쪽 = 담당 비정기 요청</small></h2><div class="b" style="white-space:normal">
+    <div style="font-size:var(--fs-2);margin-bottom:4px">${pk.month?`요청이 가장 몰린 달 <b>${esc(pk.month)}</b>(${num(pk.requests)}건)`:''}${pi?` · 항목이 가장 많은 달 <b>${esc(pi.month)}</b>(${tot(pi)}건)`:''}</div>
+    <div class="mu" style="font-size:var(--fs-1);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px">${leg} · 행을 누르면 그 달 항목</div>`+
+    ms.slice().reverse().map(m=>{ const L=byM[m.month]||[];
+      return `<details class="wkm"><summary style="min-height:44px;display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none"><span style="width:44px;flex:none;font-size:var(--fs-2)">${esc(String(m.month).slice(2).replace('-','.'))}</span>`+
+        `<span style="flex:1;min-width:0;display:flex;height:14px;background:var(--bg2)">${WK_AXS.map(a=>m[a]?`<i title="${a} ${m[a]}" style="display:block;width:${(m[a]/mx*100).toFixed(1)}%;background:${ax(a)}"></i>`:'').join('')}</span>`+
+        `<span class="mu" style="width:60px;flex:none;text-align:right;font-size:var(--fs-1)">${tot(m)?tot(m)+'건':'기록 없음'}${m.requests?' · 요청 '+num(m.requests):''}</span></summary>`+
+        `<div style="padding:0 0 6px 4px">${L.length?L.map(i=>it(i,true)).join(''):'<span class="mu">기록 없음</span>'}</div></details>`; }).join('')+`</div></div>`;
+  const axb=`<div class="p c4"><h2>3축 보드<small>항목 · ★★★ 포폴 후보</small></h2><div class="b" style="white-space:normal">`+
+    ['전략','PFM','AX'].map(a=>{ const X=(W.axes||{})[a]||{}; return `<div style="border-top:3px solid ${ax(a)};padding:6px 0;margin-bottom:6px"><div>${chip(a)} <b>${num(X.n)||0}</b><span class="mu" style="font-size:var(--fs-1)"> 건 · 완료 ${num(X.done)||0} · ★★★ ${num(X.star3)||0} · ★ 이상 ${num(X.star_any)||0}</span></div>`+
+      ((X.top||[]).map(t=>`<div style="font-size:var(--fs-2);margin-top:3px">${esc(t.title)}${t.outcome?` — <b>${esc(t.outcome)}</b>`:''}</div>`).join('')||'<div class="mu" style="font-size:var(--fs-1)">대표 성과 없음</div>')+`</div>`; }).join('')+`</div></div>`;
+  const SB={'진행':'am','대기':'mu','예정':'up'}, dmap={}; (K.dday||[]).forEach(x=>dmap[x.date]=x.days);
+  const trk=`<div class="p c6"><h2>진행 중 · 걸려 있는 것<small>${(W.trackers||[]).length}건 · 진행·대기·예정</small></h2><div class="b" style="white-space:normal">`+
+    ((W.trackers||[]).map(i=>`<div style="min-height:44px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)"><span class="${SB[i.status]||'mu'}" style="flex:none;width:34px;font-size:var(--fs-1);font-weight:700">${esc(i.status)}</span>${chip(i.axis)}<span style="flex:1;min-width:0">${esc(i.title)}</span><span class="mu" style="flex:none;font-size:var(--fs-1);text-align:right">${esc(i.date)}${dmap[i.date]!=null?` <b class="dn">D-${num(dmap[i.date])}</b>`:''}</span></div>`).join('')||'<span class="mu">걸린 것 없음</span>')+`</div></div>`;
+  const sb=(C&&C.story_bank)||[], cand=W.story_candidates||[];
+  const sto=`<div class="p c6"><h2>스토리뱅크<small>확정 ${sb.length} · 후보 ${cand.length} · 자소서·면접 재료</small></h2><div class="b" style="white-space:normal;display:flex;flex-wrap:wrap;gap:6px">`+
+    `<div class="mu" style="font-size:var(--fs-1);width:100%">확정 카드는 아래 STORY BANK · 여기는 승격 대기 후보(점선)</div>`+
+    cand.map(t=>`<span class="mu" style="border:1px dashed var(--line);padding:4px 8px;font-size:var(--fs-2)">${esc(t)}</span>`).join('')+`</div></div>`;
+  return kp+hd+tline+axb+trk+sto;
+}
+
 /* LIFE · 건강 체성분 패널 — summary.json.health(body·series·targets·weight_path·pace·workouts_weekly·lifts). 수치는 비공개 저장소에서 런타임에만 읽음 */
 let LIFECH=[];
 function lifeHealthBody(H){
