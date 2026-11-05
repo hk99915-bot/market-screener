@@ -1,17 +1,7 @@
 {
- "checked_at": "2026-11-06 03:41",
+ "checked_at": "2026-11-06 03:54",
  "n": 26,
- "late": [
-  {
-   "id": "team",
-   "path": "ops/team.json",
-   "expected": "2026-11-06 00:00 이후",
-   "actual": "2026-11-05 20:02",
-   "mode": "team.yml (매시 17분) · ops.yml (00:07 KST)",
-   "fix": "gh workflow run team.yml -f commit=true",
-   "desc": "팀 업무량 — 마지막 사람·에이전트 커밋 후 90분 이내, 매일 00:07 이후 당일"
-  }
- ],
+ "late": [],
  "regress_today": [],
  "regress_blocked": [
   {
@@ -29,7 +19,16 @@
    "mode": "close_kr"
   }
  ],
- "stale_today": [],
+ "stale_today": [
+  {
+   "at": "2026-11-06 03:54",
+   "path": "data/fin/multi.parquet",
+   "what": "data_store pull fallback_snapshot",
+   "want": "release:data-latest",
+   "got": "원격 자산 없음 → data-20261031",
+   "mode": ""
+  }
+ ],
  "stale": [
   {
    "at": "2026-11-02 16:32",
@@ -38,6 +37,14 @@
    "want": "2026-10-30",
    "got": "2026-10-29",
    "mode": "screen_KR"
+  },
+  {
+   "at": "2026-11-06 03:54",
+   "path": "data/fin/multi.parquet",
+   "what": "data_store pull fallback_snapshot",
+   "want": "release:data-latest",
+   "got": "원격 자산 없음 → data-20261031",
+   "mode": ""
   }
  ],
  "contract": "ops/freshness.json",
