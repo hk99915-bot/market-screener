@@ -233,6 +233,13 @@
    "unregistered_trials": 0,
    "unregistered_note": "사전등록 후 계산(커밋 1172c607d); ② 장중 패턴은 hf_intraday_pattern 기술 통계 선행(검정 없음)",
    "discarded": "① 4개 청산 모두 F, ② C 2·F 8 — 신호 채택 없음"
+  },
+  "2026-11-05_downday": {
+   "topic": "downday_response",
+   "question": "하락일 대응: 백스톱 매도 타이밍(H4)·S&P 급락 다음 날 매수(H1) — 무행동 대비",
+   "unregistered_trials": 36,
+   "unregistered_note": "탐색 셀: H4 33(낙폭×하락일 문턱 24·반등 +1.0% 3·하락일 조건 없음 3·지수 3) + H1 −1.5% 3. 사전등록 커밋 a48b31b15 후 계산. H2·H3는 별 파일(2번 퀀트) 시도가 따로 가산",
+   "discarded": "H1 F 6/6(−1.5% 탐색 C 1)·H4c F; H4a A·H4b B"
   }
  },
  "trials": [
@@ -460,6 +467,15 @@
    "result": "미실행(사전등록)",
    "discarded_why": "",
    "study": "lab_queue"
+  },
+  {
+   "date": "2026-11-05",
+   "topic": "downday_response",
+   "hypothesis": "(사전등록 m=9) H4a 반등일 매도>즉시 · H4b 2주 기한>즉시 · H4c 반등일>2주 기한 / H1 S&P 일간 −2·−3% 다음 360750(대리) 5·10·20일 > 무작위 진입",
+   "params": "IS ~2021 / OOS 2022~ · 국장 대형주 200 · 낙폭 −20%(120일 고점)·코스피 −2% · 비용 KR 0.45%·US 0.2% · 월 군집 t",
+   "result": "H4a A(OOS +1.64%p) · H4b B · H4c F / H1 6개 모두 F",
+   "discarded_why": "H1 문턱·보유 어디서도 무작위 진입 초과 없음",
+   "study": "2026-11-05_downday"
   }
  ]
 }

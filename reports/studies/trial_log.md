@@ -1,9 +1,9 @@
 ## 요약 (What · So What · Now What)
 
-> 기준 2026-11-04
+> 기준 2026-11-05
 
 **What**
-- 시도 N 1248 · 연구 56건 · 전체 한 가족 α 4e-05
+- 시도 N 1319 · 연구 59건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1248** (등록 m 합 468 + 등록 전 탐색 780) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1319** (등록 m 합 503 + 등록 전 탐색 816) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -57,6 +57,8 @@
 | 2026-11-01_vol_strategies | 2026-11-01 | vol_premium | 4 | m | 0.0125 | — | F4 | H1~H4 전부 F(H4 칼라 역방향 p 0.026, H1 CC 역방향 p 0.097). IS 양·OOS 음 — 2020·2025·2026 급등이 숏콜 쪽을 깎음. 교육·구조 이해용 |
 | 2026-11-03_bond_regime_strata | 2026-11-03 | winner_ex_ante | 12 | m | 0.00417 | 3 | C2 F7 검증전3 | 층 간 차이 Bonferroni(0.00417) 통과 0건 — C 2건(H1-2×약화, H1-3×고금리, 변동성 표지 크기 차이), 나머지 F, H1-4는 OOS 날짜 미달 검증전 |
 | 2026-11-04_crash_close_intraday | 2026-11-04 | crash_entry | 16 | m | 0.00313 | — | C2 F12 | ① 4개 청산 모두 F, ② C 2·F 8 — 신호 채택 없음 |
+| 2026-11-05_downday | 2026-11-05 | downday_response | 9 | prereg.m | 0.00556 | 36 | — | H1 F 6/6(−1.5% 탐색 C 1)·H4c F; H4a A·H4b B |
+| 2026-11-05_ict_hdj1 | 2026-11-04 | (미분류) | 26 | prereg.m | 0.00192 | — | C1 F19 검증전6 | — |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -66,6 +68,7 @@
 | fib_levels | 2026-10-15 | fib | 4 | m | 0.0125 | — | F1 | 렌즈 등급 F |
 | gamma_regime | 2026-10-16 | derivs | 3 | m | 0.01667 | — | A1 C2 F2 | IS 감마음수 17일<20 → 검증전, next_eval 대기 |
 | hollzzak | 2026-10-16 | crash_entry | 7 | m | 0.00714 | 4 | C1 F3 F(역방향 C)2 검증전1 | H1 F(방향 같으나 풀링 p 0.12)·H2 검증전(재폭락 2010~25 n 9)·H3a F·H3b F(역방향 C)·H4a F(설계↔검증 부호 반대)·H4b C·H4c F(역방향 C) |
+| ict_open |  | (미분류) | — | 미등록 | — | — | — | — |
 | ktb_vs_ust | 2026-10-23 | bond_sleeve | 11 | m | 0.00455 | — | — | 슬리브 간 장기·믹스 성과 구별 불가 → 선택은 정성(채권·매크로)과 환노출 한도로 |
 | lab_p1 | 2026-10-16 | earnings_yoy | 6 | m | 0.00833 | 1 | — | — |
 | lab_p1_screen | 2026-10-16 | (미분류) | — | 미등록 | — | — | — | — |
@@ -94,8 +97,9 @@
 | us_spike | 2026-10-21_us_smallcap_spikes, 2026-10-21_us_spikes_intraday | 22 | 700 | 722 | 7e-05 |
 | trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, trend_expectancy | 185 | 22 | 207 | 0.00024 |
 | crash_entry | 2026-11-04_crash_close_intraday, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 48 | 36 | 84 | 0.0006 |
+| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, 2026-11-05_ict_hdj1, dotplot_tilt, ict_open, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 57 | 0 | 57 | 0.00088 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
-| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, dotplot_tilt, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 31 | 0 | 31 | 0.00161 |
+| downday_response | 2026-11-05_downday | 9 | 36 | 45 | 0.00111 |
 | kr_accum | accum_signals | 24 | 0 | 24 | 0.00208 |
 | winner_ex_ante | 2026-10-29_winner_ex_ante, 2026-11-03_bond_regime_strata | 19 | 4 | 23 | 0.00217 |
 | rules | rule_audit | 18 | 0 | 18 | 0.00278 |
@@ -141,5 +145,6 @@
 | 2026-11-01 | vol_premium | (사전등록 m=4) H1 커버드콜−K200>0 · H2 숏 스트랭글>0 · H3 아이언 콘도르>0 · H4 칼라−K200>0 (사이클 평균, 비용 후) | K200 2010-01~2026-10, 월물 둘째 목 진입·만기 현금정산, BS r=q=0·IV=rep_iv(스큐 민감도 별도), 다리 반호가 max(1틱,1.5%), IS ~2019/OOS 2020~, NW(1) t, α 0.0125, 상한 B | 201사이클. CC−K200 −0.38%/월(중앙 +0.68, 승 74%) F · SS −0.08%(승 81%, 최악 −31.3%) F · IC +0.05%(최악 −4.6%) F · COL−K200 −0.55% F(역방향 p 0.026). 전부 IS 양·OOS 음. SS 최악 5사이클이 손실 합의 44% | 변동성 매도 쪽도 비용·스큐 감안 후 기대값 근거 없음, 꼬리만 확실 | 2026-11-01_vol_strategies |
 | 2026-11-03 | crash_entry | (사전등록 lab m=21 중 2) CRASH_NEAR_INDEX open/close: 코스피 프록시 −5%<일간≤−3% 뒤 5일 지수 − 직전 252일 확정 5일 평균 > 0 | lab 하네스, 2010~2026-11-03, 겹침 제외 이벤트, 비용 0.25%, IS ~2019/OOS 2020~23/HOLDOUT 2024~, req t 3.04(m=21), 주제 N 70 α(N) 0.00071 | open IS +3.06% t 3.52 n17(중앙 +3.73%, 최대 2건 제외 t 2.95, IS 사건 연도 5개) · OOS +0.77% t 0.48 n17 · HOLDOUT +1.17% t 1.03 n22 → C. close IS t 2.34 → C | IS 표본 17<30·OOS t<1 — 방향만(C). 경보·체크리스트 용도, 크기 확대 근거 아님. 후속 = CRASH_NEAR_DECAY(감쇠곡선, N 가산) | lab |
 | 2026-11-03 | topdown_cycle | (사전등록·미실행, m 은 §0 확정 시 가산) TOPDOWN_CYCLE_12M: 업황 지표(조선 수주잔고·반도체 범용 메모리 가격) 개선 업종 종목의 12개월 업종 중앙값 대비 초과 > 0 | lab_queue.json order 14 · IS 2010~2019 / OOS 2020~ · 비용 0.25% · 상폐 포함 창고 · 지표 데이터 미확인(data_eng) | 미실행(사전등록) |  | lab_queue |
+| 2026-11-05 | downday_response | (사전등록 m=9) H4a 반등일 매도>즉시 · H4b 2주 기한>즉시 · H4c 반등일>2주 기한 / H1 S&P 일간 −2·−3% 다음 360750(대리) 5·10·20일 > 무작위 진입 | IS ~2021 / OOS 2022~ · 국장 대형주 200 · 낙폭 −20%(120일 고점)·코스피 −2% · 비용 KR 0.45%·US 0.2% · 월 군집 t | H4a A(OOS +1.64%p) · H4b B · H4c F / H1 6개 모두 F | H1 문턱·보유 어디서도 무작위 진입 초과 없음 | 2026-11-05_downday |
 
 읽는 법: 주제 N 이 연구 m 의 2배를 넘으면(crash_entry 처럼) 그 주제의 C 등급은 '방향'이 아니라 '우연일 수 있는 방향'으로 읽는다. 새 연구 §0 에 그 주제의 현재 N 을 한 줄 적는다.
