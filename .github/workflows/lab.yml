@@ -1,7 +1,7 @@
 name: lab
 
 # 전략 연구소 — 매주 일요일 23:00 KST. 사전 등록 가설을 같은 하네스로 백테스트하고 통계 관문으로 등급을 매긴다.
-# 데이터: data/hist/kr_YYYY.parquet(상폐 포함, 저장소에 커밋됨) + data/kr_prices.parquet(올해) → checkout 만으로 충분.
+# 데이터: data/hist/kr_YYYY.parquet(상폐 포함, 릴리스 data-latest 의 hist_year 그룹) + data/kr_prices.parquet(올해) → 아래 pull 스텝으로 받는다.
 on:
   schedule:
     - cron: "0 14 * * 0"
@@ -33,7 +33,7 @@ jobs:
       - name: 큰 데이터 받기 (릴리스 data-latest → data/ — scripts/data_store.py, repo-size-stage1)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python scripts/data_store.py pull
+        run: python scripts/data_store.py pull --groups all,hist_year   # lab 은 load_kr(hist_from=0) — 연도별 kr_YYYY 필요 (data-parquet-out)
       - name: 실행
         env:
           PYTHONUNBUFFERED: "1"

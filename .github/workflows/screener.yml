@@ -102,8 +102,8 @@ jobs:
         run: |
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
-          python scripts/data_store.py push --groups prices,signals || echo "::error::data_store push 실패 — screener 큰 데이터가 릴리스에 저장되지 않음(data/data_store_status.json)"
-          for p in reports universe data/research.parquet data/dart.parquet data/short_hist.parquet data/data_store_manifest.json; do [ -e "$p" ] && git add -A "$p"; done; true
+          python scripts/data_store.py push --groups prices,signals,small || echo "::error::data_store push 실패 — screener 큰 데이터가 릴리스에 저장되지 않음(data/data_store_status.json)"
+          for p in reports universe data/data_store_manifest.json; do [ -e "$p" ] && git add -A "$p"; done; true
           git diff --cached --quiet || git commit -m "report: ${{ steps.m.outputs.market }} $(date -u +%F)"
           # 커밋 대상이 아닌 변경(교정된 parquet 등)이 남으면 rebase 가 거부돼 푸시가 조용히 실패 → 치워둔다
           git stash -q -u 2>/dev/null || true
