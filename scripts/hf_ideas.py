@@ -304,6 +304,9 @@ def build(today: date | None = None, root: Path = ROOT) -> dict:
             "gap": us_kr_gap(series, root)}
 
 
+NOT_GOOD_NEWS = ("정정", "안내공시", "해지", "취소", "철회")   # 제목에 있으면 내러티브 초기 호재 수에서 제외
+
+
 def _dart_recent(root: Path, today: date, days: int = 7) -> dict:
     """{code: [(날짜, 분류, 제목)]} — 내러티브 초기 후보용(수주·자사주 취득·IR·타법인 투자)."""
     try:
@@ -315,8 +318,8 @@ def _dart_recent(root: Path, today: date, days: int = 7) -> dict:
     out = {}
     for r in d.sort("date", descending=True).iter_rows(named=True):
         ds = str(r["date"])[:10]
-        if "정정" in (r.get("title") or "") or "안내공시" in (r.get("title") or ""):
-            continue                                                  # 기재정정·안내공시 = 새 소식 아님(10/23 현대건설 정정 공시 오탐)
+        if any(w in (r.get("title") or "") for w in NOT_GOOD_NEWS):
+            continue                                                  # 기재정정·안내공시 = 새 소식 아님(10/23 현대건설 정정 공시 오탐) · 해지·취소·철회 = 악재(11/4 삼천당제약 '공급계약 해지' 오탐, req-dev-87313b7d)
         if r["category"] == "자사주" and "취득" not in (r.get("title") or ""):
             continue                                                  # 처분·소각 외 — 취득만
         if 0 <= (today - date.fromisoformat(ds)).days <= days:

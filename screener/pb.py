@@ -195,7 +195,7 @@ STRESS_SCENARIOS = {
     # 2022형(주식·채권 동반 하락) — 계기판 병기만, 비구속(겸이 10/26 결재 req-pb-036d2f5b 절충: 구속 편입 여부는 11/15). ⛔ 판정에 안 들어간다.
     #   구간 2022-01-03 → 09-30(코스피 2022 저점, 원화 종가 data/hist/kr_etf_daily·kr_2022). semi = KODEX 반도체 −43.7% · elec = 삼성전기 −42.4% ·
     #   코어: K200 KODEX 200 −27.9 · S&P500 TIGER −8.0 · NDX TIGER 나스닥100(133690, 379810 상장 전 대리) −18.1 · KTB 국고채3년 −4.4 ·
-    #   Gold KODEX 골드선물(H) −8.5 (보유 411060 원화 금은 2022 미상장 — GLD×환율 근사 +10.5%라 이 값이 보수 쪽, reports/studies/2026-10-28_frm_core_lookthrough.md)
+    #   Gold KODEX 골드선물(H) −8.5 (원화 금 ETF 411060 은 2022 미상장 — GLD×환율 근사 +10.5%라 이 값이 보수 쪽, reports/studies/2026-10-28_frm_core_lookthrough.md)
     "2022": {"label": "2022형 실측(01/03→09/30, 주식·채권 동반 하락)", "binding": False, "semi": -0.44, "elec": -0.42, "look": -0.44,
              "core": {"K200": -0.28, "S&P500": -0.08, "NDX": -0.18, "KTB": -0.04, "Gold": -0.09}},
 }

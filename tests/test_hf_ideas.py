@@ -141,3 +141,16 @@ def test_gap_and_crash_hold_ideas(tmp_path):
     assert "급락일 버팀" in types
     assert I.fin_yoy({"quarters": q})[:2] == (0.5, 1.0)
     assert I.crash_holds(ch, I.kospi_rets(tmp_path))[-1][0] == days[-1]
+
+
+def test_dart_recent_drops_cancellations(tmp_path):
+    """req-dev-87313b7d: '공급계약 해지'·'취소'·'철회' 공시는 호재 수에서 제외 (11/4 삼천당제약 오탐)."""
+    import polars as pl
+    (tmp_path / "data").mkdir()
+    today = date(2026, 11, 4)
+    pl.DataFrame({"date": ["2026-11-02"] * 4, "code": ["000250", "000250", "111111", "222222"],
+                  "category": ["수주·계약"] * 4,
+                  "title": ["단일판매ㆍ공급계약 해지", "단일판매ㆍ공급계약체결(취소)", "투자판단 관련 주요경영사항(철회)", "단일판매ㆍ공급계약체결"]}
+                 ).write_parquet(tmp_path / "data" / "dart.parquet")
+    out = I._dart_recent(tmp_path, today)
+    assert list(out) == ["222222"]
