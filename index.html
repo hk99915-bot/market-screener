@@ -1814,7 +1814,7 @@ function myRender(hs,cash,miss){
       <div class="mu" style="font-size:var(--fs-1);margin-top:4px;white-space:normal">① 필요 금액 = 변동성을 가장 많이 줄이는 매수 금액(100% 헷지). 인버스·레버리지는 일간 재조정으로 오래 들면 손실이 쌓임. ② 상관이 낮거나 음수일수록 분산 효과. 과거 1년 상관이라 위기 때는 바뀔 수 있음(물가 충격엔 채권도 같이 빠짐).</div></div></div>
    </div>
    ${pf?`<div class="p" style="margin-bottom:8px"><h2>모의 전략과 비교<small>2011~ 월간 · 원화</small></h2><div class="b"><table><tr><th class="l">전략</th><th>연수익</th><th>변동성</th><th>샤프</th><th>최대낙폭</th><th class="l">지금 배분</th></tr>
-      <tr><td class="l am">내 포트 (최근 1년)</td><td>${pct(Pm.ret,1)}</td><td>${W(Pm.vol)}</td><td>${F(Pm.sh)}</td><td>${pct(Pm.mdd,0)}</td><td class="l mu">반도체 중심</td></tr>
+      <tr><td class="l am">내 포트 (최근 1년)</td><td>${pct(Pm.ret,1)}</td><td>${W(Pm.vol)}</td><td>${F(Pm.sh)}</td><td>${pct(Pm.mdd,0)}</td><td class="l mu" style="white-space:normal;font-size:var(--fs-1)">${semi/DEN>0.15?'반도체 중심':`주식 ${W(tot/NAV)} · 현금 ${W((cK+cU)/NAV)}`} — 지금 비중을 지난 1년에 적용한 가상값(실제 성과 아님)</td></tr>
       ${pf.filter(x=>!/스트래들/.test(x.name)).map(x=>`<tr><td class="l">${esc(x.name)}</td><td>${pct(x.stats.cagr,1)}</td><td>${W(x.stats.vol)}</td><td>${F(x.stats.sharpe)}</td><td>${pct(x.stats.mdd,0)}</td><td class="l mu" style="white-space:normal;font-size:var(--fs-1)">${Object.entries(x.now||{}).filter(([k,w])=>Math.abs(w)>0.005).map(([k,w])=>`${esc(k)} ${W(w)}`).join(' · ')}</td></tr>`).join('')}</table>
       <div class="mu" style="font-size:var(--fs-1);margin-top:4px">내 포트는 1년, 전략은 15년 성과라 직접 비교는 거칠다. 핵심은 변동성·낙폭 대비 수익 구조.</div></div></div>`:''}
    ${miss.length?`<div class="mu" style="margin-top:6px">인식 못 한 종목: ${esc(miss.join(', '))}</div>`:''}
