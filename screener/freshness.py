@@ -181,6 +181,11 @@ def check(now: datetime | None = None, root: Path = ROOT, items: list[dict] | No
            "stale": stale, "contract": "ops/freshness.json",
            "health": prev.get("health") or [],
            "health_info": prev.get("health_info") or []}   # health = 시크릿 부재 '알림 비활성'(배지 경보) · health_info = 의도된 비활성(10/21 결정, alerts.INTENDED_OFF, 경보 아님) — 둘 다 alerts.secret_health 가 씀, 보존
+    try:   # 오늘 보낸 신호의 슬롯→계산→커밋 지연 (data_eng 11/6, screener/latency.py) — 실패해도 신선도 점검은 계속
+        from . import latency
+        out["latency"] = latency.run(root, now, (prev.get("latency") or {}).get("rows"))
+    except Exception as e:  # noqa: BLE001
+        log.warning("신호 지연 측정 실패: %s", e)
     if write:
         out_p.parent.mkdir(parents=True, exist_ok=True)
         out_p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
