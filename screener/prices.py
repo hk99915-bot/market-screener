@@ -137,6 +137,14 @@ def snap_split_ratio(r: float) -> float | None:
     return None
 
 
+def split_artifact(last, prev) -> bool:
+    """last/prev 가 정수비 분할·병합 불연속이면 True — 일봉 직전 행 대비 등락률이 가짜일 때 호출부가 버린다."""
+    try:
+        return bool(prev) and prev > 0 and snap_split_ratio(float(last) / float(prev)) is not None
+    except (TypeError, ValueError):
+        return False
+
+
 def detect_integer_splits(df: pl.DataFrame, sym: str = "yf") -> pl.DataFrame:
     """US 분할·병합 추정일 [sym, date, r(정수비 스냅)]. 지수(^)·선물/환율(=)·코인(-USD)·KR(.KS/.KQ)은 제외."""
     if not len(df):

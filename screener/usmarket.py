@@ -7,6 +7,8 @@ import logging
 
 import polars as pl
 
+from .prices import split_artifact
+
 log = logging.getLogger(__name__)
 
 INDICES = {"S&P500": "^GSPC", "나스닥": "^IXIC", "다우": "^DJI", "러셀2000": "^RUT", "필라델피아반도체": "^SOX", "VIX": "^VIX"}
@@ -39,7 +41,7 @@ def snapshot(tickers: dict[str, str]) -> dict[str, dict]:
     for name, t in tickers.items():
         try:
             c = raw[t]["Close"].dropna()
-            if len(c) >= 2:
+            if len(c) >= 2 and not split_artifact(c.iloc[-1], c.iloc[-2]):   # 분할일 가짜 등락률 제외
                 out[name] = {"last": float(c.iloc[-1]), "chg": float(c.iloc[-1] / c.iloc[-2] - 1)}
         except Exception:  # noqa: BLE001
             continue

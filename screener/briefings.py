@@ -20,6 +20,7 @@ import polars as pl
 
 from . import dart, flows, research, usmarket
 from .config import DATA_DIR, REPORT_DIR
+from .prices import split_artifact
 from .report import CLASS_KO, send_telegram
 
 log = logging.getLogger(__name__)
@@ -438,7 +439,7 @@ def intraday_us(send: bool = True) -> str:
         for t in top["yf"].to_list():
             try:
                 c = raw[t]["Close"].dropna()
-                if len(c) >= 2:
+                if len(c) >= 2 and not split_artifact(c.iloc[-1], c.iloc[-2]):   # 분할일 가짜 등락률 제외
                     mv.append((t, float(c.iloc[-1] / c.iloc[-2] - 1)))
             except Exception:  # noqa: BLE001
                 continue
