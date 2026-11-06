@@ -52,7 +52,9 @@ def _ai_credit_line() -> str | None:
         al = a.get("alert") or {}
         if int(al.get("lv") or 0) >= 1 and al.get("line") and a.get("asof") \
                 and (_kst_today() - date.fromisoformat(str(a["asof"])[:10])).days <= 5:
-            return str(al["line"]) + " (채권 탭)"
+            # 기준일 표기(11/6): bonds.json 은 close_kr·premarket_us 에서만 다시 만들어 06:52 미장 마감 뒤에도 15:45 까지
+            # 전전일 미국 종가(VIX·HYG)가 남는다 — 같은 카드의 다른 줄과 기준일이 다르면 보이게.
+            return str(al["line"]) + f" (채권 탭 · 미국 {str(a['asof'])[5:10]} 종가)"
     except Exception as e:  # noqa: BLE001
         log.info("AI 인프라 신용 줄 실패: %s", e)
     return None

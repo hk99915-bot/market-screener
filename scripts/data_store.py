@@ -335,6 +335,25 @@ def _fetch(gh: GH, asset: dict, dest: Path, tries: int = 3) -> str | None:
     return err
 
 
+UPLOAD_WAIT = (3, 5, 10)   # 다른 워크플로가 같은 자산을 교체 중일 때 다시 볼 간격(초)
+
+
+def _list_remote(gh: GH, rel: dict, pats: list[str], waits=None) -> dict[str, dict]:
+    """원격 자산 {경로: 자산}. 교체 창(upload_replace 의 '기존 삭제 → 이름 변경' 사이 — 새 판이 `<이름>.uploading` 으로만
+    보임)에 걸리면 잠깐 뒤 다시 본다. 11/5 18:54Z fin push 와 briefing pull 이 2초 겹쳐 multi.parquet 가 '원격 자산 없음'
+    → data-20261031 스냅샷 폴백된 건(11/6 12:28 신선도 알림)."""
+    for w in (*(UPLOAD_WAIT if waits is None else waits), None):
+        got = gh.assets(rel)
+        remote = {asset_path(a["name"]): a for a in got if matches(asset_path(a["name"]), pats)}
+        busy = {asset_path(a["name"][: -len(".uploading")]) for a in got if a["name"].endswith(".uploading")}
+        busy = {p for p in busy if p not in remote and matches(p, pats)}
+        if not busy or w is None:
+            return remote
+        _warn(f"pull: 교체 중 {sorted(busy)} — {w}초 뒤 다시 확인")
+        time.sleep(w)
+    return remote
+
+
 def pull(groups="all", tag: str = TAG, dest_root: Path | None = None, gh: GH | None = None,
          record_stale: bool = False) -> dict:
     gh = gh or GH()
@@ -349,7 +368,7 @@ def pull(groups="all", tag: str = TAG, dest_root: Path | None = None, gh: GH | N
         if rel is None:
             err = f"릴리스 {tag} 없음"
         else:
-            remote = {asset_path(a["name"]): a for a in gh.assets(rel) if matches(asset_path(a["name"]), pats)}
+            remote = _list_remote(gh, rel, pats)
     except Exception as e:  # noqa: BLE001
         err = f"{type(e).__name__}: {e}"
     want = sorted(set(remote) | {p for p in (man.get("files") or {}) if matches(p, pats)})

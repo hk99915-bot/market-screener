@@ -162,6 +162,27 @@ def test_pull_falls_back_to_snapshot_then_git(repo, monkeypatch):
     assert out["ok"] is False
 
 
+def test_pull_waits_out_concurrent_replace(repo, monkeypatch):
+    """11/5 18:54Z: fin push 의 '기존 삭제 → 이름 변경' 2초 창에 briefing pull 이 걸려 '원격 자산 없음' → 스냅샷 폴백.
+    교체 중(`.uploading` 만 보임)이면 잠깐 뒤 다시 보고 새 판을 받아야 한다."""
+    gh = FakeGH()
+    p = put(repo, "data/fin/multi.parquet", 100, "2026-10-31")
+    ds.snapshot(keep=8, day="20261031", gh=gh)
+    ds.push("fin", gh=gh)
+    put(repo, "data/fin/multi.parquet", 110, "2026-11-05")
+    rel = gh.rels["data-latest"]
+    new = gh.upload(rel, "data__fin__multi.parquet.uploading", p, ds.to_label(ds.file_meta(p)))
+    gh.delete_asset(next(a["id"] for a in rel["assets"] if a["name"] == "data__fin__multi.parquet"))
+    want = p.read_bytes()
+    p.unlink()
+    slept = []
+    monkeypatch.setattr(ds.time, "sleep", lambda s: (slept.append(s), gh.rename_asset(new["id"], "data__fin__multi.parquet",
+                                                                                         new["label"])))
+    out = ds.pull("fin", gh=gh)
+    assert out["files"][0]["status"] == "ok" and p.read_bytes() == want
+    assert slept == [ds.UPLOAD_WAIT[0]]
+
+
 def test_pull_git_fallback(repo, monkeypatch):
     gh = FakeGH()
     ds.save_manifest({"tag": "data-latest", "files": {"data/kr_prices.parquet": {"git_rev": "deadbeef"}}})
