@@ -1,16 +1,8 @@
 {
- "checked_at": "2026-11-06 22:54",
+ "checked_at": "2026-11-07 02:54",
  "n": 26,
  "late": [],
- "regress_today": [
-  {
-   "at": "2026-11-06 15:50",
-   "path": "reports/btc.json",
-   "existing": "2026-11-05",
-   "new": "2026-11-04",
-   "mode": "close_kr"
-  }
- ],
+ "regress_today": [],
  "regress_blocked": [
   {
    "at": "2026-10-19 09:02",
@@ -64,42 +56,13 @@
   }
  ],
  "latency": {
-  "day": "2026-11-06",
+  "day": "2026-11-07",
   "sla": {
    "slot_lag_s": 300,
    "commit_lag_s": 60,
    "pages_lag_s": 120,
    "margin_s": 600
   },
-  "rows": [
-   {
-    "key": "2026-11-06:crash",
-    "slot": "15:05",
-    "sent": "2026-11-06 15:09",
-    "deadline": "15:20",
-    "committed": "2026-11-06 22:47:00",
-    "slot_lag_s": 240,
-    "commit_lag_s": 27480,
-    "margin_s": 660,
-    "ok": false,
-    "breach": [
-     "commit_lag_s"
-    ]
-   },
-   {
-    "key": "2026-11-06:stop1",
-    "slot": null,
-    "sent": "2026-11-06 16:47",
-    "deadline": null,
-    "committed": "2026-11-06 22:47:00",
-    "slot_lag_s": null,
-    "commit_lag_s": 21600,
-    "margin_s": null,
-    "ok": false,
-    "breach": [
-     "commit_lag_s"
-    ]
-   }
-  ]
+  "rows": []
  }
 }
