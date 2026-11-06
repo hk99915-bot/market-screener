@@ -61,7 +61,7 @@
 | 2026-11-05_downday_b |  | downday_response | 22 | m | 0.00227 | — | — | H2 −3% 9셀 F·−5% 검증전, H3 4가설 모두 C(역방향) — 대상 갈아타기·적립 대기 채택 근거 없음 |
 | 2026-11-05_downday_fix |  | (미분류) | — | 미등록 | — | — | — | — |
 | 2026-11-05_ict_hdj1 | 2026-11-04 | (미분류) | 26 | prereg.m | 0.00192 | — | C1 F19 검증전6 | — |
-| 2026-11-06_split_entry_rules | 2026-11-06 | entry_rules | 6 | prereg.m | 0.00833 | 3 | 검증전 (미실행)6 | — |
+| 2026-11-06_split_entry_rules | 2026-11-06 | entry_rules | 6 | prereg.m | 0.00833 | 3 | F (신뢰도 중)6 | 6가설 모두 F(±0.03R, 구간 부호 엇갈림) — 확인 조건·시간 손절 N·손절폭 변경은 벤치 대비 개선 근거 없음, 모의 전용 유지 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
