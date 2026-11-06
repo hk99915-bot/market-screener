@@ -59,7 +59,7 @@ def test_ring_table_is_exactly_five():
 
 def _capture(monkeypatch):
     sent: list[tuple[str, bool]] = []
-    monkeypatch.setattr(report, "send_telegram", lambda text, *, disable_notification=True: sent.append((text, disable_notification)))
+    monkeypatch.setattr(report, "send_telegram", lambda text, *, disable_notification=True, **kw: sent.append((text, disable_notification)))
     return sent
 
 
@@ -144,3 +144,29 @@ def test_parse_entities_failure_fallback_plain_text(monkeypatch):
     assert calls[0].get("parse_mode") == "HTML"
     assert "parse_mode" not in calls[1]
     assert calls[1]["text"].startswith("테스트 < 잘못된 태그")
+
+
+def test_crash_ring_flag_default_off(monkeypatch):
+    monkeypatch.delenv(alerts.CRASH_RING_ENV, raising=False)
+    assert alerts.crash_ring_enabled() is False
+
+
+def test_crash_ring_flag_on_overrides_all_silent(posted, monkeypatch):
+    """TELEGRAM_RING_CRASH=1 이면 ⚡ 급락 신호만 TELEGRAM_ALL_SILENT 를 건너뛰어 소리 — 다른 알림은 그대로 무음."""
+    from screener import defs
+    monkeypatch.setattr(defs, "TELEGRAM_ALL_SILENT", True)
+    monkeypatch.setenv(alerts.CRASH_RING_ENV, "1")
+    monkeypatch.setattr(alerts, "_state", lambda: {})
+    monkeypatch.setattr(alerts, "_save", lambda st: None)
+    out = alerts.crash_check({"chg": -0.05, "last": 5000.0}, send=True, today=date(2026, 10, 17))
+    assert out["fired"] and posted[-1]["disable_notification"] == "false"
+    report.send_telegram("⛔ 손절선", disable_notification=False)
+    assert posted[-1]["disable_notification"] == "true"
+
+
+def test_crash_ring_flag_off_stays_silent(posted, monkeypatch):
+    monkeypatch.setenv(alerts.CRASH_RING_ENV, "0")
+    monkeypatch.setattr(alerts, "_state", lambda: {})
+    monkeypatch.setattr(alerts, "_save", lambda st: None)
+    alerts.crash_check({"chg": -0.05, "last": 5000.0}, send=True, today=date(2026, 10, 17))
+    assert posted[-1]["disable_notification"] == "true"

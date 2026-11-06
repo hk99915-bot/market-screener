@@ -54,6 +54,15 @@ def ring(keys) -> bool:
     return any(kind(k) in RING_KINDS for k in keys)
 
 
+CRASH_RING_ENV = "TELEGRAM_RING_CRASH"
+
+
+def crash_ring_enabled() -> bool:
+    """⚡ 급락 신호(crash)만 TELEGRAM_ALL_SILENT·RING_KINDS 밖이어도 소리 — env TELEGRAM_RING_CRASH=1/true/yes/on 일 때만.
+    기본 OFF(11/6 개발 준비분, 오너 11/8 결정 전). 켜는 법: 저장소 변수 + briefing.yml env 한 줄 — 코드 수정 불필요."""
+    return os.environ.get(CRASH_RING_ENV, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def silent(keys=()) -> bool:
     """send_telegram(disable_notification=silent(keys)) 로 쓴다. 인자 없으면 무음(나머지 전부)."""
     return not ring(keys)
@@ -440,7 +449,11 @@ def crash_check(q: dict | None = None, send: bool = True, today: date | None = N
     out["fired"] = True
     if send:
         from .report import send_telegram
-        send_telegram(out["text"], disable_notification=silent(["crash"]))   # 결재 #9(최종): ⚡ 급락 신호는 무음 (RING_KINDS 밖)
+        loud = crash_ring_enabled()   # 기본 OFF → 결재 #9(최종) 그대로 ⚡ 급락 신호 무음 (RING_KINDS 밖)
+        if loud:
+            send_telegram(out["text"], disable_notification=False, all_silent_exempt=True)
+        else:
+            send_telegram(out["text"], disable_notification=silent(["crash"]))
         st.setdefault("sent", {})[key] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
         _save(st)
     return out

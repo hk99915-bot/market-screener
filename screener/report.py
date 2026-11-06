@@ -240,16 +240,19 @@ def alerts_off() -> bool:
     return os.environ.get("ALERTS_OFF", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
-def send_telegram(text: str, *, disable_notification: bool = True, reply_markup: dict | None = None) -> None:
+def send_telegram(text: str, *, disable_notification: bool = True, reply_markup: dict | None = None,
+                  all_silent_exempt: bool = False) -> None:
     """텔레그램 전송. 기본 **무음**(disable_notification=True). 소리는 결재 #9 등급표(screener/alerts.py RING_KINDS)에 있는
     다섯 종류만 호출부가 `alerts.silent(keys)` 로 켠다 — 본문 이모지(⛔/⚡)로 소리를 정하지 않는다(10/17 최종안).
-    reply_markup(인라인 버튼 등, dict)은 쪼갠 메시지 중 **마지막 조각**에만 붙인다(tg-pick-buttons)."""
+    reply_markup(인라인 버튼 등, dict)은 쪼갠 메시지 중 **마지막 조각**에만 붙인다(tg-pick-buttons).
+    all_silent_exempt=True 는 TELEGRAM_ALL_SILENT 를 이 메시지만 건너뛴다 — 호출부가 플래그(예: alerts.crash_ring_enabled,
+    기본 OFF)를 확인한 경우에만 넘긴다(11/6 개발: ⚡ 급락 신호 예외 준비, 11/8 오너 결정 전까지 OFF)."""
     if alerts_off():   # 전역 무음 스위치(저장소 변수 ALERTS_OFF, 11/7 이전 병행용) — 보내지 않고 로그만, 실패 아님
         log.info("ALERTS_OFF=%s — 텔레그램 발송 생략(%d자): %s", os.environ.get("ALERTS_OFF", ""), len(text),
                  text.split("\n", 1)[0][:80])
         return
     from .defs import TELEGRAM_ALL_SILENT
-    if TELEGRAM_ALL_SILENT:   # 오너 10/17 "전체 무음" — 호출부가 소리를 요청해도 무음 (단일 지점)
+    if TELEGRAM_ALL_SILENT and not all_silent_exempt:   # 오너 10/17 "전체 무음" — 호출부가 소리를 요청해도 무음 (단일 지점, 예외는 플래그 게이트)
         disable_notification = True
     if not CFG.telegram_token or not CFG.telegram_chat:
         raise RuntimeError("텔레그램 미설정: TELEGRAM_TOKEN / TELEGRAM_CHAT_ID 시크릿이 비어 있음 (이름 철자 확인)")
