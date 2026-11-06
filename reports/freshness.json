@@ -1,5 +1,5 @@
 {
- "checked_at": "2026-11-06 20:54",
+ "checked_at": "2026-11-06 21:54",
  "n": 26,
  "late": [],
  "regress_today": [
@@ -34,16 +34,7 @@
    "mode": "close_kr"
   }
  ],
- "stale_today": [
-  {
-   "at": "2026-11-06 03:54",
-   "path": "data/fin/multi.parquet",
-   "what": "data_store pull fallback_snapshot",
-   "want": "release:data-latest",
-   "got": "원격 자산 없음 → data-20261031",
-   "mode": ""
-  }
- ],
+ "stale_today": [],
  "stale": [
   {
    "at": "2026-11-02 16:32",
@@ -52,14 +43,6 @@
    "want": "2026-10-30",
    "got": "2026-10-29",
    "mode": "screen_KR"
-  },
-  {
-   "at": "2026-11-06 03:54",
-   "path": "data/fin/multi.parquet",
-   "what": "data_store pull fallback_snapshot",
-   "want": "release:data-latest",
-   "got": "원격 자산 없음 → data-20261031",
-   "mode": ""
   }
  ],
  "contract": "ops/freshness.json",
@@ -79,5 +62,44 @@
    "by": "alerts",
    "fix": "조치 불필요(오너 결정)"
   }
- ]
+ ],
+ "latency": {
+  "day": "2026-11-06",
+  "sla": {
+   "slot_lag_s": 300,
+   "commit_lag_s": 60,
+   "pages_lag_s": 120,
+   "margin_s": 600
+  },
+  "rows": [
+   {
+    "key": "2026-11-06:crash",
+    "slot": "15:05",
+    "sent": "2026-11-06 15:09",
+    "deadline": "15:20",
+    "committed": "2026-11-06 21:34:55",
+    "slot_lag_s": 240,
+    "commit_lag_s": 23155,
+    "margin_s": 660,
+    "ok": false,
+    "breach": [
+     "commit_lag_s"
+    ]
+   },
+   {
+    "key": "2026-11-06:stop1",
+    "slot": null,
+    "sent": "2026-11-06 16:47",
+    "deadline": null,
+    "committed": "2026-11-06 21:34:55",
+    "slot_lag_s": null,
+    "commit_lag_s": 17275,
+    "margin_s": null,
+    "ok": false,
+    "breach": [
+     "commit_lag_s"
+    ]
+   }
+  ]
+ }
 }
