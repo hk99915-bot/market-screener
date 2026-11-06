@@ -4141,7 +4141,7 @@ TOPF.re=()=>{ if(REJ===false||(typeof REV!=='undefined'&&REV===false)) return nu
 }
 </script>
 
-<!-- tab_study.html — STUDY 탭 — 커리큘럼·인적성·오늘의 영어 (eduView·aptView·engView).
+<!-- tab_study.html — STUDY 탭 — 커리큘럼·인적성·오늘의 영어·OPIc (eduView·aptView·engView·opicView).
      apps-script/Index.html 이 include('tab_study') 템플릿 태그로 끼워 넣는다 (GAS 는 HtmlService include, Pages 는 scripts/build_pages.py 가 인라인).
      전역 도우미($·esc·num·pct·render·setView·openDetail 등)는 Index.html 에 있다. -->
 <script>
@@ -4547,6 +4547,71 @@ TOPF.edu=()=>{ if(!EDU) return null; const T=EDU.tracks||[];
 TOPF.apt=()=>{ if(!EDU) return null; const A=EDU.aptitude||{}; return mkTop(`인적성 문항 ${(A.items||[]).length}개`,NA('학습 화면 — 시장 판단 아님'),'문항 풀이 → 오답 다시 보기',['content/study.json'],EDU.updated); };
 TOPF.eng=()=>{ const i=(typeof ENG!=='undefined'&&ENG.idx)||null; if(i===null||i===false) return null;
   return mkTop('오늘의 영어 — 기사·단어 학습',NA('학습 화면 — 시장 판단 아님'),'오늘 기사 읽기 → 단어 체크',['content/eng'],i.updated||i.asof); };
+}
+
+/* ───── OPIc 전용 화면 (11/6 겸이 「교육누나 오픽용 전용탭 12/6까지새로 ㄱㄱ」) — 12/6(일) 응시, 성적 12/11 까지만 STUDY 하위 메뉴에 보인다.
+   내용은 정적(서버 호출 없음), 체크·녹음 완료 표시는 이 브라우저 localStorage(mt_opic_chk)에만. 개인 금액·장소 없음. ───── */
+const OPX={exam:'2026-12-06',result:'2026-12-11',
+ setup:[['자기 평가','6 → 7번 뒤 난이도도 어렵게 (무지성 6-6)','겸이 옛 IH 노트'],['서베이','솔직하게 선택','내 진짜 경험이라 말이 막히지 않음'],
+  ['자기소개(1번)','30초, 아주 짧게','채점 안 됨 — 힘 아끼기'],['답 길이','모든 문항 1분 안팎','깔끔하고 짧게'],
+  ['총 시간','15문항 30~35분 (40분 꽉 채우지 않기)','뒤로 갈수록 체력'],['스킵','최대 5개까지 OK — 두 번 듣고도 모르면 아무 말 없이 10초 후 넘김','억지 답보다 나음']],
+ plan:[['w1','11/7~16','스픽 15분 + 아래 내 답 6개 소리 내어 읽기 (지원서 제출 우선)'],['w2','11/17~23','스토리 6개 키워드만 보고 1분 녹음'],
+  ['w3','11/24~30','롤플레이 RP1·RP2·RP3 + 랜덤 주제 테스트 (아래)'],['m1','12/1','모의 1회 (15문항, 30~35분 목표, 녹음)'],
+  ['m2','12/3','모의 2회 → 시제·직접 인용만 고치기'],['m3','12/5','모의 3회 → 일찍 자기'],['d0','12/6','12:30 도착 · 규정 신분증 · 10분 전 입실']],
+ tpl:[['콤보 순서','①묘사/습관 → ②과거 경험 or 비교 → ③과거 경험(직접 인용, 친구·가족). ②가 비교면 ③은 거의 PE'],
+  ['대조 전략','집 질문이면 집 안 이야기만 — 주제 밖으로 새지 않기'],['과거 경험(PE)','MP(쉬운 말) → body(조금 어려운 표현) → conclusion. What · feeling · why'],
+  ['직접 인용','My mom said, "…" — 과거 시제 ↔ 인용 속 현재 시제 왔다갔다 문법 주의'],['습관','항상 whenever 넣기: Whenever I have free time, I …'],
+  ['RP 유형','먼저 판단: 음성메시지 / 전화 / 직접 대화'],['RP1 질문 3개','인사 → 질문 3개 → 상대 말 되받아 반응(실제 대화처럼) → 마무리'],
+  ['RP2 문제 해결','인사·문제 설명 → 대안+부가설명+반응 ×2 → 사과·감사'],['RP3 경험','문제 해결 경험을 말하기 (문제가 꼭 아니어도 해결 서사로)'],
+  ['IHU 14번','시간 비교(예전 vs 지금) 또는 A/B 비교'],['IHU 15번','사회 이슈 — 스킵하거나 짧게 정리']],
+ glue:['MP는 쉬운 단어, body에서 조금 어려운 단어','Well, that\'s a tough question. I\'ve never really thought about it.','I think that was a good deal.','bought / had / got / purchased','It has turned into a café.','Although I haven\'t made a lot of changes, I\'m happy with that.','…but I love it that way.','I still remember it vividly.','I can\'t wait for … / I\'m looking forward to …','Well, that\'s it. Thank you for listening.'],
+ words:[['휴가 집콕','spend my vacations at home · stay home during vacations · rest / relax / chill out · a homebody'],['초대','invite friends over · come over to my place'],['좋은 시간','have a good / quality / relaxing time · immerse myself in …'],
+  ['예약','appointment = 사람과 약속 · reservation = 후불 예약 · booking = 선불 예약']],
+ rp:[{t:'RP1 질문 3개 — 주말 파티',s:`Hi there! How's it going? I don't have any details about this weekend's party, so could I ask you a few questions?\n\nFirst of all, is there a parking lot near her house? Oh, there is? That's good to know. But I'm planning to drink at the party, so I'll probably walk.\n\nAlso, what time should I get there? Oh, it starts at 7 p.m.? Perfect. I'll be there around seven.\n\nOh, one more thing. Should I bring anything, like beer or whiskey? Wine? Okay, I'll bring two bottles of red wine.\n\nThanks a lot. I'm really looking forward to the party. I'll call you back if I have any more questions. See you soon!`},
+  {t:'RP2 문제 해결 — 아파서 수업 변경',s:`Hi, it's me. I'm calling because I have some bad news. I've been very sick since this morning, so I can't make it to today's session.\n\nSo I was thinking, would it be possible to reschedule it for next week? I'm free on any weekday evening, so whatever works for you is fine with me.\n\nIf that's not an option, do you think I could get a refund for today's session? Or I'm willing to pay for a new one later.\n\nI'm really sorry about this. I'm going to see a doctor this afternoon. Thank you for understanding.`},
+  {t:'RP2 문제 해결 — 항공권 여권번호 오류',s:`Hi, I'm calling in regard to my flight ticket. I found out that the ticket has the wrong passport number printed on it.\n\nFirst of all, why don't we just correct the number on my booking? I can send you a photo of my passport right now.\n\nIf that's not possible, another thing we could do is cancel this ticket and issue a new one. Do you think we could do that without a fee, since it wasn't my mistake?\n\nPlease let me know which one works. Thank you so much for your help.`},
+  {t:'IHU 시간 없을 때 첫 문장',s:`Well, that's a tough question for me. I've never really thought about it before. But if I have to say something, I think …`}],
+ stories:[
+ {id:'s1',t:'우리 집 (묘사)',use:'집 묘사 · 집 구조 · 집의 변화(비교)',kw:'서울 아파트 · 방 3개(거실·동생 방·내 방) · 매일 정리 · 미니멀 가족 · 10년 넘게 살았는데 새집 같음',
+  en:`I live in an apartment in Seoul with my family. There are three rooms: the living room, my brother's room, and my own room.\n\nI'd say our home is really clean, because everyone in my family tidies up every day. We also don't buy too many things. We're a bit of a minimalist family, maybe even a little stingy, but I love it that way.\n\nWe've been living here for over ten years, but it still looks almost brand new, just like the day we moved in. Although we haven't made a lot of changes, I'm really happy with that. Well, that's it. Thank you for listening.`},
+ {id:'s2',t:'집에서 보내는 휴가 · 다큐 (습관)',use:'휴가 · 집에서 하는 일 · 영화/TV · 주말 습관',kw:'homebody · 침대 + 유튜브/넷플릭스 · 다큐 = 모든 감정 · 동물·셀럽·사회 다큐',
+  en:`Whenever I have a vacation, I usually stay home, because I'm a bit of a homebody. My home is my favorite place to relax, lying on my bed and watching YouTube videos or Netflix dramas.\n\nActually, my favorite genre is documentaries. A lot of people think documentaries are boring, but that's not true. A great documentary contains happiness, sadness, anger, all the emotions we feel in life. That's why I love immersing myself in them. I enjoy animal documentaries and celebrity documentaries, but the best one is social documentaries.\n\nSo I almost always spend my vacations and weekends at home, having a really relaxing time.`},
+ {id:'s3',t:'한국 바다 + 머드 축제 (묘사 → PE)',use:'해변 · 국내여행 · 기억에 남는 여행',kw:'반도 = 동·서·남해 · 동해 깊고 파도 → 서핑 · 남해 섬·해산물(꼬막) · 서해 갯벌 · 5년 전 머드 축제',
+  en:`Well, Korea is a peninsula, so we have three seas: the East Sea, the West Sea, and the South Sea.\n\nFirst, the East Sea is the deepest, and the waves are big, so there are a lot of surfing beaches. The South Sea is famous for beautiful islands and delicious seafood. My favorite is boiled cockles. They're tiny shellfish, salty and sweet. And the West Sea is famous for its mud flats.\n\nAbout five years ago, I went to a mud festival on the west coast with my friends. We covered ourselves in mud and played games all day. My friend shouted, "I can't even see your face!" and we laughed so hard. It was a long time ago, but I still remember it vividly.`},
+ {id:'s4',t:'자주 가는 은행 (묘사 → 비교)',use:'은행 묘사 · 은행 가서 하는 일 · 예전 vs 요즘 은행',kw:'집에서 제일 가까운 은행 · 큰 병원 앞 → 사람 많고 시끄럽고 오래 걸림 · 직원 피곤해 보임 · 노란 의자 · 요즘은 앱',
+  en:`I usually go to the bank that's closest to my house. It's located right in front of a big hospital, so there are always a lot of people. To be honest, I don't really like it. It's very loud, it takes a long time, and the bank tellers always look tired. But it's the nearest one, so I have to go there whenever I have something to do at the bank.\n\nOne of the features of this bank is its yellow chairs. They're bright, so the place doesn't feel too gloomy.\n\nThese days, though, I hardly go there anymore. I do most of my banking on my phone, like transfers and checking my account. So I only visit the bank when I really have to.`},
+ {id:'s5',t:'어릴 때 집안일 (PE · 직접 인용)',use:'"What were your responsibilities at home when you were young?" · 집안일 · 가족',kw:'초등학생 때 · 분리수거·설거지 담당 · 엄마 인용 · 귀찮았지만 지금 깔끔한 습관',
+  en:`When I was young, my main job at home was taking out the recycling and doing the dishes after dinner. My parents were pretty strict about chores.\n\nI remember one day, I was playing games and forgot to take out the recycling. My mom came into my room and said, "If you don't do your part, this house won't stay clean." I felt really embarrassed, so I ran out and did it right away.\n\nTo be honest, I hated chores back then. But looking back, that's why I'm such a tidy person now, and why our home still looks so clean.`},
+ {id:'s6',t:'여행 중 숙소 문제 (RP3 · 문제 해결 경험)',use:'RP3 문제 해결 경험 · 예상 못 한 일 · 여행 중 문제',kw:'밤늦게 도착 → 예약 없음 · 확인 메일 보여줌 · 대안 3개 · 근처 호텔 + 택시비 + 업그레이드',
+  en:`One time, I arrived at a guesthouse late at night, and the staff told me they didn't have my reservation. I was shocked, because I had booked it two weeks earlier.\n\nI tried to stay calm and showed them the confirmation email on my phone. It turned out their booking site had made a mistake. The manager said, "I'm so sorry. You can get a refund, wait until tomorrow, or move to our partner hotel." I chose the hotel, and they even paid for my taxi and gave me a better room.\n\nLooking back, I learned that staying polite really helps. Because I didn't get angry, the problem was solved much faster.`}],
+ ready:'준비 확인법: 랜덤 주제 하나를 뽑아 위 틀(MP → body → conclusion, whenever, 직접 인용)로 1분 말할 수 있으면 OK.',
+ day:['규정 신분증','10분 전 입실 (12:30 도착)','자기 평가 6 → 난이도 어렵게','질문 두 번 듣기','모르면 아무 말 없이 10초 → 스킵 (최대 5개)','자기소개 30초','문항당 1분 · 총 30~35분']};
+let OPC=eduGet('mt_opic_chk',{});
+function opicDday(){ const t=eduKst(), d=Math.round((Date.parse(OPX.exam)-Date.parse(t))/864e5); return d>0?'D-'+d:d===0?'D-DAY':'성적 '+OPX.result.slice(5).replace('-','/'); }
+function opicView(){
+  setTimeout(()=>{ document.querySelectorAll('[data-opk]').forEach(b=>b.onclick=()=>{ const k=b.dataset.opk; OPC[k]=OPC[k]?null:eduKst(); if(!OPC[k]) delete OPC[k]; eduPut('mt_opic_chk',OPC); render(); });
+    document.querySelectorAll('[data-optm]').forEach(b=>b.onclick=()=>{ const el=document.getElementById('optm-'+b.dataset.optm); if(!el) return; clearInterval(window._opT); let s=+b.dataset.sec;
+      el.textContent=s+'초'; window._opT=setInterval(()=>{ s--; const e2=document.getElementById('optm-'+b.dataset.optm); if(!e2||s<0){ clearInterval(window._opT); if(e2) e2.textContent='끝 ✋'; return; } e2.textContent=s+'초'; },1000); }); },0);
+  const ck=(k,lab)=>`<button class="sbtn" data-opk="${escA(k)}" style="min-height:44px">${OPC[k]?'✅ '+esc(OPC[k].slice(5)):'☐'} ${esc(lab)}</button>`;
+  const done=OPX.stories.filter(s=>OPC['rec-'+s.id]).length, pd=OPX.plan.filter(p=>OPC['pl-'+p[0]]).length;
+  const row=(a,b,c)=>`<div style="padding:5px 0;border-bottom:1px solid var(--line)"><b class="am">${esc(a)}</b> <span>${esc(b)}</span>${c!=null?`<div class="mu" style="font-size:var(--fs-1)">${esc(c)}</div>`:''}</div>`;   // 표 대신 줄 블록 — 폰 폭(390px)에서 가로 밀림 없음
+  const st=OPX.stories.map((s,i)=>`<div class="p c6"><h2>${i+1}. ${esc(s.t)}<small>${OPC['rec-'+s.id]?'녹음 ✅':'녹음 전'}</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.7">
+    <div class="mu">돌려막는 문제: ${esc(s.use)}</div><div style="margin:4px 0"><span class="tag">키워드</span> ${esc(s.kw)}</div>
+    <details><summary class="am">▸ 영어 답 보기 (외우지 말고 키워드로 말하기)</summary><div style="font-size:var(--fs-3);line-height:1.75">${esc(s.en).split(/\n\n/).map(p=>`<p style="margin:6px 0">${p}</p>`).join('')}</div></details>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px"><button class="sbtn" data-optm="${s.id}" data-sec="60" style="min-height:44px">🎤 1분</button><span id="optm-${s.id}" style="min-width:60px">—</span>${ck('rec-'+s.id,'녹음 완료')}</div></div></div>`).join('');
+  return `<style>#opv button,#opv summary{min-height:44px;box-sizing:border-box}#opv{overflow-wrap:anywhere}</style><div id="opv"><div class="grid">
+   <div class="p c12"><h2>OPIc IH+ 프로토콜<small>12/6(일) 13:00 응시 · 성적 12/11 · 이 화면은 12/11까지</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-3)">
+    <b class="am" style="font-size:var(--fs-5)">${opicDday()}</b> · 스토리 녹음 ${done}/6 · 계획 ${pd}/${OPX.plan.length}
+    <div class="mu" style="font-size:var(--fs-2)">11/16 지원서 제출 전까지는 하루 15분 유지만. 본 훈련은 11/17부터. 10/29부터 AI 자동 채점(기준 동일). 6-6 · 솔직 서베이 · 문항당 1분 · 30~35분 · 스킵 5개까지.</div></div></div>
+   <div class="p c6"><h2>시험 당일 설정 (고정)</h2><div class="b" style="white-space:normal;font-size:var(--fs-2)">${OPX.setup.map(r=>row(...r)).join('')}</div></div>
+   <div class="p c6"><h2>주차 계획<small>${pd}/${OPX.plan.length}</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);display:flex;flex-direction:column;gap:4px">${OPX.plan.map(p=>`<div>${ck('pl-'+p[0],p[1])} <span>${esc(p[2])}</span></div>`).join('')}</div></div>
+   ${st}
+   <div class="p c6"><h2>유형별 답 틀<small>문항당 1분 · 겸이 옛 IH 노트</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2)">${OPX.tpl.map(r=>row(r[0],r[1])).join('')}</div></div>
+   <div class="p c6"><h2>표현 · 단어</h2><div class="b" style="white-space:normal;font-size:var(--fs-3);line-height:1.8">${OPX.glue.map(g=>`<span class="tag" style="margin:2px">${esc(g)}</span>`).join(' ')}
+    <div style="margin-top:8px;font-size:var(--fs-2);line-height:1.6">${OPX.words.map(w=>row(w[0],w[1])).join('')}</div></div></div>
+   <div class="p c12"><h2>롤플레이 스크립트<small>RP1·RP2·IHU</small></h2><div class="b" style="white-space:normal;font-size:var(--fs-2);line-height:1.7">${OPX.rp.map(r=>`<details style="margin-bottom:4px"><summary class="am">▸ ${esc(r.t)}</summary><div style="font-size:var(--fs-3)">${esc(r.s).split(/\n\n/).map(p=>`<p style="margin:6px 0">${p}</p>`).join('')}</div></details>`).join('')}<div class="mu" style="margin-top:6px">${esc(OPX.ready)}</div></div></div>
+   <div class="p c12"><h2>시험장 체크</h2><div class="b" style="white-space:normal;font-size:var(--fs-2);display:flex;flex-wrap:wrap;gap:6px">${OPX.day.map((d,i)=>ck('day-'+i,d)).join('')}</div></div>
+  </div></div>`;
 }
 </script>
 
@@ -6718,7 +6783,7 @@ function render(){
   tape();
   const v=view;
   if(SYSV[v]){ $('#root').innerHTML=SYSV[v](); topMount(v); return; }   // SYSTEM 탭 (작업 보드·변경 이력·운영 상태)
-  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='links'?linksView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='free'?freeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
+  $('#root').innerHTML = v==='home'?homeView():v==='kr'?marketView('KR'):v==='us'?marketView('US'):v==='rep'?repView():v==='val'?valView():v==='daily'?dailyView():v==='dart'?dartView():v==='lib'?libView():v==='links'?linksView():v==='mom'?momView():v==='pf'?pfView():v==='cmt'?cmtView():v==='score'?scoreView():v==='views'?viewsView():v==='heat'?heatView():v==='my'?myView():v==='life'?lifeView():v==='free'?freeView():v==='rb'?rbView():v==='msg'?msgView():v==='study'?studyView():v==='lab'?labView():v==='isa'?ilabView():v==='macro'?macroView():v==='bond'?bondView():v==='re'?reView():v==='deriv'?derivView():v==='edu'?eduView():v==='apt'?aptView():v==='eng'?engView():v==='opic'?opicView():v==='sig'?sigView():v==='chain'?chainView():v==='brief'?briefView():v==='mdkr'?mdView('latest_KR'):mdView('latest_US');
   if(v==='rep') repFill();
   if(v==='dart') dartFill();
   topMount(v);
@@ -6730,7 +6795,7 @@ const GROUPS={home:[['home','HOME']],my:[['my','MY']],life:[['life','LIFE']],fre
   daily:[['daily','데일리 리포트'],['cmt','운용회의'],['score','성적표'],['views','VIEWS'],['brief','브리핑 기록']],
   res:[['rep','리서치'],['val','밸류에이션'],['dart','공시'],['lib','서고'],['links','관계도']],   // 서고 = 쌓인 분석 문서 색인(req-dev-16bbc8e5, 11/1)
   quant:[['rb','연구 보드'],['sig','시그널·모멘텀'],['pf','모의·ISA'],['chain','공급망']],   // UXUI 10/21: 7→4, 옛 화면은 SUBV 두 번째 줄
-  study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어']]};
+  study:[['edu','커리큘럼'],['apt','인적성'],['eng','오늘의 영어'],...(Date.now()<Date.parse('2026-12-12T00:00:00+09:00')?[['opic','OPIc D-day']]:[])]};   // OPIc 전용(11/6 겸이) — 12/6 응시·12/11 성적까지만
 GROUPS.sys=[['sysb','작업 보드'],['msg','사내톡'],['sysc','변경 이력'],['syso','운영 상태']];   // SYSTEM 탭 (ops)
 // QUANT 하위 화면 두 번째 줄 (UXUI·퀀트 10/21 연구 보드): 옛 화면 키 그대로 → setView('lab') 같은 기존 링크·사용 기록 유지
 const SUBV={rb:[['rb','보드'],['study','검증 스터디'],['lab','전략 연구소']],sig:[['sig','시그널 검증'],['mom','모멘텀']],pf:[['pf','모의 포트폴리오'],['isa','ISA 실험실']]};

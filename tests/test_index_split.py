@@ -24,7 +24,7 @@ IDS = ["brand", "stb", "clock", "gen", "sq", "sres", "tape", "subt", "root", "bd
 OWNS = {"tab_market": ["marketView", "heatView", "mdView"], "tab_home": ["homeView"], "tab_daily": ["dailyView", "viewsView", "briefView"],
         "tab_my": ["myView", "myRun", "myFetch", "myRender"], "tab_life": ["lifeView"], "tab_freeman": ["freeView", "myHq", "myHqHtml", "myHqLoad"], "tab_research": ["repView", "valView", "dartView"],
         "tab_quant": ["chainView", "sigView", "studyView", "labView", "momView", "pfView"], "tab_bond": ["bondView", "bondNow"], "tab_rboard": ["rbView", "rbWeek"], "tab_isalab": ["ilabView", "ilabEval", "ilabBoot"],
-        "tab_study": ["eduView", "aptView", "engView"], "tab_committee": ["cmtView", "cmtUSView", "dotStripHtml"],
+        "tab_study": ["eduView", "aptView", "engView", "opicView"], "tab_committee": ["cmtView", "cmtUSView", "dotStripHtml"],
         "tab_duel": ["decBox", "ticketBox", "scoreView"], "tab_mkt_deriv": ["derivView"], "tab_mkt_macro": ["macroView"], "tab_system": ["sysBoardView", "sysChgView", "sysOpsView", "SYSV"],
         "tab_detail": ["openDetail", "renderDetail", "drawChart"]}
 
