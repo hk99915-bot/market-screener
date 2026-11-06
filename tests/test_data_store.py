@@ -266,3 +266,28 @@ def test_bootstrap_default_includes_hist_year_but_snapshot_does_not():
     src = (ROOT / "scripts" / "data_store.py").read_text(encoding="utf-8")
     assert 'local_files(patterns("all"))' in src             # snapshot 은 OPT_IN 제외 all
 
+
+
+def test_pull_success_resolves_earlier_fallback_stale(repo, monkeypatch, tmp_path_factory):
+    """11/6 03:54 multi.parquet 폴백 stale 이 이후 정상 pull 뒤에도 하루 종일 stale_today 경보로 남던 문제(데이터 11/6 라운드).
+    정상(ok·same) pull 은 같은 파일의 'data_store pull …' stale 줄만 지우고, 다른 파일·다른 사유 줄은 남긴다."""
+    from screener import guard
+    rep = tmp_path_factory.mktemp("reports")
+    monkeypatch.setattr(guard, "_report_dir", lambda: rep)
+    monkeypatch.setattr(ds.time, "sleep", lambda s: None)
+    gh = FakeGH()
+    p = put(repo, "data/fin/multi.parquet", 100, "2026-10-31")
+    ds.snapshot(keep=8, day="20261031", gh=gh)
+    ds.push("fin", gh=gh)
+    saved = list(gh.rels["data-latest"]["assets"])
+    gh.rels["data-latest"]["assets"].clear()
+    p.unlink()
+    assert ds.pull("fin", gh=gh, record_stale=True)["files"][0]["status"] == "fallback_snapshot"
+    guard.record_stale("reports/btc.json", "다른 사유", "2026-11-05", "2026-11-04")
+    fr = json.loads((rep / "freshness.json").read_text())
+    assert {r["path"] for r in fr["stale"]} == {"data/fin/multi.parquet", "reports/btc.json"}
+    gh.rels["data-latest"]["assets"].extend(saved)                 # 교체 끝 → 다음 실행 정상
+    st = ds.pull("fin", gh=gh, record_stale=True)["files"][0]["status"]
+    assert st in ("ok", "same")
+    fr = json.loads((rep / "freshness.json").read_text())
+    assert [r["path"] for r in fr["stale"]] == ["reports/btc.json"]

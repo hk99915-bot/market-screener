@@ -297,6 +297,16 @@ def _record_stale(path: str, what: str, got) -> None:
         pass
 
 
+def _resolve_stale(path: str) -> None:
+    """정상 pull(ok·same) 이면 같은 파일의 이전 'data_store pull 폴백' stale 기록을 해소(11/6 multi.parquet 하루 종일 경보)."""
+    try:
+        sys.path.insert(0, str(ROOT))
+        from screener import guard  # noqa: PLC0415
+        guard.resolve_stale(path, "data_store pull ")
+    except Exception:  # noqa: BLE001
+        pass
+
+
 # ── pull ────────────────────────────────────────────────────────────
 def _git_fallback(path: str, rev: str | None, dest: Path) -> bool:
     if not rev:
@@ -380,10 +390,14 @@ def pull(groups="all", tag: str = TAG, dest_root: Path | None = None, gh: GH | N
             meta = from_label(a.get("label"))
             if dest.exists() and meta.get("sha256") and sha256(dest) == meta["sha256"]:
                 rows.append({"path": path, "status": "same", "asof": meta.get("asof")})
+                if dest_root is None and record_stale:
+                    _resolve_stale(path)
                 continue
             e = _fetch(gh, a, dest)
             if e is None:
                 rows.append({"path": path, "status": "ok", "asof": meta.get("asof"), "size": a.get("size")})
+                if dest_root is None and record_stale:
+                    _resolve_stale(path)
                 continue
             reason = e
         else:

@@ -38,6 +38,9 @@ def rep(tmp_path, monkeypatch):
     monkeypatch.setattr(live, "snapshot", lambda *a, **k: {"items": []})
     for mod in (macroview, commodities, geo_news):
         monkeypatch.setattr(mod, "build", lambda *a, **k: None)
+    from screener import btc, realestate   # btc.run 이 실제 reports/btc.json 을 덮던 누수(데이터 11/6)
+    monkeypatch.setattr(btc, "run", lambda *a, **k: None)
+    monkeypatch.setattr(realestate, "build", lambda *a, **k: None)
     monkeypatch.setattr(data, "fetch_prices", lambda syms, *a, **k: _synth(list(syms)))
     return r
 

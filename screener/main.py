@@ -299,6 +299,23 @@ def kr_provisional(ser: dict, now: datetime | None = None) -> dict:
     return {k: today for k in ("KOSPI", "KOSDAQ") if (ser.get(k) or [[None]])[-1][0] == today}
 
 
+H24_KEYS = ("BTC",)   # 주말·휴일 없이 매일 봉이 있어야 하는 지표 — 중간 날짜 빠짐 = 수집원 구멍
+
+
+def fill_holes(ser: dict, prev: dict, key: str) -> list[str]:
+    """ser[key] 의 첫~마지막 날짜 사이에서 빠진 날짜를 prev[key] 행으로 메운다(제자리). 메운 날짜 목록.
+    새 수집 행은 절대 덮지 않는다(같은 날짜면 새 값 우선) — 이전 값은 빈 칸에만."""
+    new, old = ser.get(key) or [], prev.get(key) or []
+    if not new or not old:
+        return []
+    have = {r[0] for r in new}
+    lo, hi = new[0][0], new[-1][0]
+    add = [r for r in old if r and lo < r[0] < hi and r[0] not in have]
+    if add:
+        ser[key] = sorted(new + [list(r) for r in add], key=lambda r: r[0])
+    return [r[0] for r in add]
+
+
 def write_macro_series(macro: pl.DataFrame | None = None) -> None:
     """매크로 지표 일봉 OHLCV 2년 → reports/macro_series.json (웹 티커·매크로 표 클릭 차트용).
     항목: [날짜, 시가, 고가, 저가, 종가, 거래량]. 스크린용 200일 데이터와 별도로 2년치를 받는다."""
@@ -341,6 +358,15 @@ def write_macro_series(macro: pl.DataFrame | None = None) -> None:
                     if k != "JGB10Y":   # JGB10Y 는 야후에 없음 — japan.build 가 따로 채움(정상 경로)
                         stale[k] = v[-1][0] if v and v[-1] else None
                     log.warning("매크로 %s 수집 실패 — 이전 데이터 유지(stale)", k)
+        except Exception:  # noqa: BLE001
+            pass
+        try:   # 24시간 자산(BTC) 중간 봉 구멍 메움 — 11/4·11/6 close_kr(06:50Z) 야후가 전일 UTC 봉만 빼고 줘 btc.json 역행 차단(데이터 11/6)
+            prev_ser = _json.loads((REPORT_DIR / "macro_series.json").read_text(encoding="utf-8")).get("series", {})
+            for k in H24_KEYS:
+                got = fill_holes(ser, prev_ser, k)
+                if got:
+                    stale[f"{k}_hole"] = ",".join(got)
+                    log.warning("매크로 %s 중간 봉 %s 누락 — 이전 파일 값으로 메움(stale)", k, ",".join(got))
         except Exception:  # noqa: BLE001
             pass
         _krx_override(ser)

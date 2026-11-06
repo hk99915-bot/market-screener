@@ -177,6 +177,26 @@ def record_stale(path: str, what: str, want, got) -> None:
     fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def resolve_stale(path: str, what_prefix: str) -> int:
+    """같은 파일의 `stale` 기록 중 what 이 what_prefix 로 시작하는 줄을 뺀다(뒤 실행에서 정상 복원됨 → 해소). 뺀 줄 수.
+    11/6 03:54 multi.parquet 'data_store pull fallback_snapshot' 이 13시 수정·이후 정상 pull 뒤에도 하루 종일 stale_today 로 남던 문제 —
+    freshness.stale_resolved 는 json 의 기준일만 보므로 parquet·릴리스 자산은 여기서 지운다."""
+    fp = _report_dir() / "freshness.json"
+    try:
+        cur = json.loads(fp.read_text(encoding="utf-8")) if fp.exists() else {}
+    except Exception:  # noqa: BLE001
+        return 0
+    rows = cur.get("stale") or []
+    keep = [r for r in rows if not (r.get("path") == str(path) and str(r.get("what") or "").startswith(what_prefix))]
+    n = len(rows) - len(keep)
+    if n:
+        cur["stale"] = keep
+        cur["stale_today"] = [r for r in (cur.get("stale_today") or []) if r in keep]
+        log.info("stale 해소: %s %s* %d줄", path, what_prefix, n)
+        fp.write_text(json.dumps(cur, ensure_ascii=False, indent=1), encoding="utf-8")
+    return n
+
+
 def record_fill(path: str, what: str, info: dict) -> None:
     """목표 날짜를 다른 출처로 채운 경우(조용한 대체 금지 — stale 대신 출처 기록) reports/freshness.json 의 `filled` 에 남김.
     info = {src, date, filled, total, pct, label} (screener.data.fill_last_day)."""
