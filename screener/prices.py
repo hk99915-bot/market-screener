@@ -115,3 +115,49 @@ def crosscheck_dart(events: pl.DataFrame, dart: pl.DataFrame, window_days: int =
         ((pl.col("date") - pl.col("dd")).dt.total_days().is_between(0, window_days)).fill_null(False).alias("ok"))
     g = j.group_by("code").agg(pl.col("ok").any())
     return {"disclosures": len(g), "matched": int(g["ok"].sum()), "missing": sorted(g.filter(~pl.col("ok"))["code"].to_list())}
+
+
+# ───────────── US 분할·병합 불연속 (11/5 SOXX·ITA 3:1, req-data-710a7fab) ─────────────
+# 야후가 분할 직후 과거를 일부만 소급 조정하거나(SOXX: ~10/30 까지만 ÷3, 11/2~11/4 는 원가) 아직 조정 전(ITA)인 채로 내려주면
+# 한 시계열 안에 불연속이 생겨 1일 −68% 같은 가짜 변동이 hf_ideas·ATR·20일선·신호로 흘러간다.
+# US 는 가격제한폭이 없어 KR 규칙(±31%)을 못 쓴다 → 시가/전일종가가 정수비(n:1 분할·1:n 병합) 근처이고 종가도 같은 방향으로 ±31% 밖일 때만.
+SPLIT_NS = (2, 3, 4, 5, 6, 8, 10, 15, 20)
+SPLIT_TOL = {2: 0.02}     # 2:1 은 실제 −50% 급락(실적)과 겹치기 쉬워 허용오차를 더 좁힌다. 나머지 6%.
+SPLIT_TOL_DEFAULT = 0.06
+
+
+def snap_split_ratio(r: float) -> float | None:
+    """시가/전일종가 r 이 n:1 분할(1/n)·1:n 병합(n) 에 허용오차 안이면 정확한 비율, 아니면 None."""
+    for n in SPLIT_NS:
+        tol = SPLIT_TOL.get(n, SPLIT_TOL_DEFAULT)
+        if abs(r * n - 1) <= tol:
+            return 1.0 / n
+        if abs(r / n - 1) <= tol:
+            return float(n)
+    return None
+
+
+def detect_integer_splits(df: pl.DataFrame, sym: str = "yf") -> pl.DataFrame:
+    """US 분할·병합 추정일 [sym, date, r(정수비 스냅)]. 지수(^)·선물/환율(=)·코인(-USD)·KR(.KS/.KQ)은 제외."""
+    if not len(df):
+        return pl.DataFrame(schema={sym: pl.Utf8, "date": pl.Date, "r": pl.Float64})
+    s = pl.col(sym)
+    d = (df.filter(~(s.str.starts_with("^") | s.str.contains("=") | s.str.ends_with("-USD") | s.str.ends_with(".KS") | s.str.ends_with(".KQ")))
+           .filter((pl.col("open") > 0) & (pl.col("close") > 0)).sort(sym, "date")
+           .with_columns(pc=pl.col("close").shift(1).over(sym))
+           .filter(pl.col("pc") > 0)
+           .with_columns(r=pl.col("open") / pl.col("pc"), rc=pl.col("close") / pl.col("pc")))
+    d = d.filter(((pl.col("r") < 1 - BAND) & (pl.col("rc") < 1 - BAND)) | ((pl.col("r") > 1 + BAND) & (pl.col("rc") > 1 + BAND)))
+    rows = [{sym: x[sym], "date": x["date"], "r": f} for x in d.select(sym, "date", "r").to_dicts()
+            if (f := snap_split_ratio(x["r"])) is not None]
+    return pl.DataFrame(rows, schema={sym: pl.Utf8, "date": pl.Date, "r": pl.Float64})
+
+
+def adjust_integer_splits(df: pl.DataFrame, sym: str = "yf") -> pl.DataFrame:
+    """US 일봉의 정수비 분할·병합 불연속을 이벤트 이전 구간에 소급 조정(가격×비율, 거래량÷비율). 이벤트 없으면 그대로.
+    부분 조정 혼합(SOXX)도 이벤트별 누적곱으로 한 기준(최근가)에 맞춰진다."""
+    ev = detect_integer_splits(df, sym)
+    if not len(ev):
+        return df
+    log.warning("US 분할·병합 불연속 소급 조정: %s", ", ".join(f"{x[sym]} {x['date']} x{x['r']:.4g}" for x in ev.to_dicts()))
+    return adjust(df, sym, events=ev)

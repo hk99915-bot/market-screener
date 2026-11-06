@@ -53,6 +53,11 @@ def fetch_prices(yf_symbols: list[str], market: str, lookback_days: int | None =
     if not frames:
         raise RuntimeError(f"{market} 시세 수집 결과 없음")
     df = pl.concat(frames).with_columns(pl.col("date").cast(pl.Date)).sort("yf", "date")
+    try:   # 분할·병합 소급 조정 불일치(야후 부분 조정, 11/5 SOXX·ITA) → 정수비 불연속은 과거 구간에 비율 조정
+        from .prices import adjust_integer_splits
+        df = adjust_integer_splits(df)
+    except Exception as e:  # noqa: BLE001
+        log.warning("분할 불연속 점검 실패(원본 유지): %s", e)
     DATA_DIR.mkdir(exist_ok=True)
     df.write_parquet(DATA_DIR / f"{market.lower()}_prices.parquet")
     return df
