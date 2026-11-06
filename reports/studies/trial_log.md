@@ -1,9 +1,9 @@
 ## 요약 (What · So What · Now What)
 
-> 기준 2026-11-05
+> 기준 2026-11-06
 
 **What**
-- 시도 N 1341 · 연구 60건 · 전체 한 가족 α 4e-05
+- 시도 N 1350 · 연구 62건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1341** (등록 m 합 525 + 등록 전 탐색 816) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1350** (등록 m 합 531 + 등록 전 탐색 819) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -59,7 +59,9 @@
 | 2026-11-04_crash_close_intraday | 2026-11-04 | crash_entry | 16 | m | 0.00313 | — | C2 F12 | ① 4개 청산 모두 F, ② C 2·F 8 — 신호 채택 없음 |
 | 2026-11-05_downday | 2026-11-05 | downday_response | 9 | prereg.m | 0.00556 | 36 | — | H1 F 6/6(−1.5% 탐색 C 1)·H4c F; H4a A·H4b B |
 | 2026-11-05_downday_b |  | downday_response | 22 | m | 0.00227 | — | — | H2 −3% 9셀 F·−5% 검증전, H3 4가설 모두 C(역방향) — 대상 갈아타기·적립 대기 채택 근거 없음 |
+| 2026-11-05_downday_fix |  | (미분류) | — | 미등록 | — | — | — | — |
 | 2026-11-05_ict_hdj1 | 2026-11-04 | (미분류) | 26 | prereg.m | 0.00192 | — | C1 F19 검증전6 | — |
+| 2026-11-06_split_entry_rules | 2026-11-06 | entry_rules | 6 | prereg.m | 0.00833 | 3 | 검증전 (미실행)6 | — |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -99,7 +101,7 @@
 | trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, trend_expectancy | 185 | 22 | 207 | 0.00024 |
 | crash_entry | 2026-11-04_crash_close_intraday, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 48 | 36 | 84 | 0.0006 |
 | downday_response | 2026-11-05_downday, 2026-11-05_downday_b | 31 | 36 | 67 | 0.00075 |
-| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, 2026-11-05_ict_hdj1, dotplot_tilt, ict_open, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 57 | 0 | 57 | 0.00088 |
+| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, 2026-11-05_downday_fix, 2026-11-05_ict_hdj1, dotplot_tilt, ict_open, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 57 | 0 | 57 | 0.00088 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
 | kr_accum | accum_signals | 24 | 0 | 24 | 0.00208 |
 | winner_ex_ante | 2026-10-29_winner_ex_ante, 2026-11-03_bond_regime_strata | 19 | 4 | 23 | 0.00217 |
@@ -107,6 +109,7 @@
 | us_accum | us_accum | 9 | 9 | 18 | 0.00278 |
 | derivs | derivs_signals, gamma_regime | 13 | 0 | 13 | 0.00385 |
 | bond_sleeve | ktb_vs_ust | 11 | 0 | 11 | 0.00455 |
+| entry_rules | 2026-11-06_split_entry_rules | 6 | 3 | 9 | 0.00556 |
 | alpha_source | 2026-10-21_alpha_sources | 6 | 1 | 7 | 0.00714 |
 | vol_premium | 2026-11-01_gamma_scalp, 2026-11-01_vol_strategies | 7 | 0 | 7 | 0.00714 |
 | earnings_yoy | lab_p1 | 6 | 1 | 7 | 0.00714 |
