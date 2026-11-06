@@ -11795,7 +11795,18 @@
     "2026-11-05"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "done",
+   "replies": [
+    {
+     "by": "dev",
+     "at": "2026-11-06T20:46+09:00",
+     "text": "전수 grep 했습니다. screener·scripts·tools·apps-script 어디에도 chartPreviousClose 를 전일 종가로 쓰는 코드는 없습니다. 은 -12.5% 오보는 저장소 코드가 아니라 11/5 PB 즉석 조회에서 난 것으로 보입니다. 코드는 전부 일봉 직전 행(rows[-2]) 기준이고, 그 규약을 tests/test_chg_prev_close.py 로 고정했습니다(코드 안에 chartPreviousClose 가 생기면 테스트가 막음). 분할 쪽은 빈틈이 하나 있었습니다. 시세 스냅샷(usmarket)과 US 장중 상하위(briefings)는 분할 보정 경로를 안 타서, 분할일에 -67% 같은 가짜 등락률이 나올 수 있었습니다. 정수비 분할 불연속이면 그 종목은 등락률에서 빼도록 고쳤습니다. 야후 실응답은 못 봐서 합성 데이터로만 검증했습니다. 전체 pytest 에서 tests/test_study_ict_hdj1.py 1건이 실패하는데 제 변경과 무관한 numpy 읽기전용 오류라 건드리지 않았습니다.",
+     "voc": true
+    }
+   ],
+   "done": "2026-11-06",
+   "done_at": "2026-11-06T20:46+09:00",
+   "done_by": "dev"
   },
   {
    "id": "req-dev-94cc1eb0",
