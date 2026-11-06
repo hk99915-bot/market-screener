@@ -1196,7 +1196,7 @@ const DENOM_TERMS={a:'(a) 투자자산',b:'(b) 투자자산+예적금',c:'(c) �
 const MYRK='mt_ratio_only';
 function myRatioOnly(){ try{ return localStorage.getItem(MYRK)!=='0'; }catch(e){ return window._myRatio!==false; } }
 function mySetRatio(on){ window._myRatio=on; try{ localStorage.setItem(MYRK,on?'1':'0'); }catch(e){} }
-document.addEventListener('change',e=>{ if(e.target&&e.target.id==='myratio'){ mySetRatio(e.target.checked); if(window._myLast) myRender(...window._myLast); if(MYHQ) myHqShow(); } });
+document.addEventListener('change',e=>{ if(e.target&&e.target.id==='myratio'){ mySetRatio(e.target.checked); if(window._myLast) myRender(...window._myLast); if(MYHQ) myHqShow(); if(MYHG) myHgShow(); } });
 function myLoad(){ try{ return localStorage.getItem(MYK)||''; }catch(e){ return window._myTxt||''; } }
 // 저장 = 이 브라우저 작업본(주). 내용이 바뀌었을 때만 메타 savedAt·출처·해시 갱신 (src: 'manual'|'sync'|'import')
 function mySave(t,src){ const prev=myLoad(); window._myTxt=t; try{ localStorage.setItem(MYK,t); }catch(e){}
@@ -1371,7 +1371,7 @@ function myView(){
     const pi=$('#mypin'); if(pi) pi.onkeydown=e=>{ if(e.key==='Enter') $('#mypinb').click(); };
     const fg=$('#mypinforget'); if(fg) fg.onclick=()=>{ try{ localStorage.removeItem(GHE); }catch(_){} render(); };
     if(ghTok()&&!MYSYNCED){ MYSYNCED=true; mySync(ok=>{ st(); if(ok) myRun(); }); st(); }
-    myFs(); myDn();
+    myFs(); myDn(); myHg();
     const mc=$('#mycorr'); if(mc) mc.addEventListener('toggle',e=>{ if(e.target.open) myCorr(); });
     const mj=$('#myjr'); if(mj) mj.addEventListener('toggle',e=>{ if(e.target.open) jrList(); });
     $('#myin').addEventListener('toggle',e=>{ try{ localStorage.setItem('mt_myopen',e.target.open?'1':'0'); }catch(_){} }); if(txt) myRun(); },0);
@@ -1391,9 +1391,18 @@ function myView(){
       #myfirst .myfs-pv{font-size:var(--fs-2);margin-top:6px}#myfirst .myfs-rel{font-weight:700;font-size:var(--fs-3);margin-bottom:2px}
       #myfirst .myfs-d summary{display:flex;gap:6px;align-items:center;cursor:pointer;list-style:none;font-size:var(--fs-2)}#myfirst .myfs-d summary::-webkit-details-marker{display:none}
       #myfirst .myfs-dl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#myfirst .myfs-dm{font-size:var(--fs-1);flex:none}#myfirst .myfs-d[open] .myfs-dm{display:none}
-      #myfirst .myfs-df{font-size:var(--fs-2);line-height:1.6;padding:2px 0 6px}#myfirst .myfs-nx{font-size:var(--fs-3);line-height:1.5}</style>
+      #myfirst .myfs-df{font-size:var(--fs-2);line-height:1.6;padding:2px 0 6px}#myfirst .myfs-nx{font-size:var(--fs-3);line-height:1.5}
+      #myhg .myhg-h{font-size:var(--fs-2);margin-bottom:4px}#myhg .myhg-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin-top:4px}
+      #myhg .myhg-k{border:1px solid var(--line);padding:5px 7px;min-width:0}#myhg .myhg-kt{font-size:var(--fs-1);color:var(--muted)}
+      #myhg .myhg-kv{font-size:var(--fs-3);font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}#myhg .myhg-kd{font-size:var(--fs-1);color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+      #myhg .myhg-bar{position:relative;height:14px;margin:4px 0 0;background:var(--line);border-radius:2px;overflow:hidden}
+      #myhg .myhg-bd{position:absolute;top:0;bottom:0;background:var(--amber);opacity:.35}#myhg .myhg-tg{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--amber)}
+      #myhg .myhg-pt{position:absolute;top:2px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--txt)}#myhg .myhg-pt.out{background:var(--amber);box-shadow:0 0 0 2px var(--txt)}
+      #myhg .myhg-ax{position:relative;height:14px;font-size:var(--fs-1)}#myhg .myhg-ax span{position:absolute;transform:translateX(-50%)}#myhg .myhg-ax span:first-child{left:0;transform:none}
+      #myhg .myhg-n{font-size:var(--fs-1);margin-top:4px;line-height:1.5}</style>
     <div id="myfirst" style="max-width:640px">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">결론 불러오는 중…</div>':'<div class="mu" style="font-size:var(--fs-2)">토큰을 먼저 설정해야 결론·성적표를 볼 수 있어요</div>'}</div>
     <div id="mydn" style="max-width:640px;margin:6px 0;border-top:1px solid var(--line);padding-top:5px">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">무행동 vs 실제 불러오는 중…</div>':''}</div>
+    <div id="myhg" style="max-width:640px;margin:6px 0;border-top:1px solid var(--line);padding-top:5px">${myHgEmpty()}</div>
     <div id="myhqlink" class="mu" style="font-size:var(--fs-2);margin:6px 0;border-top:1px solid var(--line);padding-top:5px">목표·본부 OKR·조직도는 <a href="#" onclick="setView('free');return false" style="color:var(--amber)">🗽 FREEMAN 탭</a>으로 옮겼어요</div>
     <details id="mycorr" style="margin:6px 0"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">주간 성적표 전체 · 코멘트 · 심층 분석 <span id="mycorrd" class="mu">${MYFS&&MYFS.L?'(기준 '+myFsMD((MYFS.L.stats||{}).asof||MYFS.L.asof)+')':''}</span></summary><div id="mycorrb" class="mu" style="font-size:var(--fs-2)">${ghTok()?'여는 중…':'토큰을 먼저 설정해야 볼 수 있어요'}</div></details>
     <details id="myin" ${txt&&!myOpen()?'':'open'} style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--amber);font-size:var(--fs-2);padding:4px 0">보유 입력 (눌러서 열기/닫기)</summary>
@@ -1510,6 +1519,35 @@ function myDnShow(){ const e=$('#mydn'); if(!e||!MYDN) return; e.innerHTML=myDnH
 function myDn(){ if(!ghTok()) return; if(MYDN) myDnShow();
   pbGet('analysis/donothing.json').then(JSON.parse).then(D=>{ MYDN=D; myDnShow(); })
   .catch(e=>{ const x=$('#mydn'); if(x&&!MYDN) x.innerHTML=`<div class="mu" style="font-size:var(--fs-2)">무행동 vs 실제: 아직 없음(${esc(e.message)})</div>`; }); }
+// ───── 헤지 북 계기판 5숫자 — pb-private analysis/hedge_dash.json (scripts/hedge_dash.py, 파생 명세 derivs_delta_nav.md §6)
+// 토큰으로 이 브라우저에서만 읽는다(교정 리포트와 같은 PBAPI 경로). 원 단위(*_krw)는 '비율만 보기'면 숨김. 방향이 아니라 크기·위치만.
+let MYHG=null;
+const myHgPct=(v,d=1,u='%')=>v==null||!isFinite(v)?'n/a':(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(d)+u;
+const myHgKrw=v=>v==null||!isFinite(v)||myRatioOnly()?'':` <span class="mu">· ${v<0?'−':''}${Math.abs(v)>=1e4?(Math.abs(v)/1e4).toFixed(1)+'만':Math.round(Math.abs(v)).toLocaleString()}원</span>`;
+function myHgEmpty(){ return ghTok()?'<div class="mu" style="font-size:var(--fs-2)">헤지 북 불러오는 중…</div>':'<div class="mu" style="font-size:var(--fs-2)"><span class="am">헤지 북</span> · 토큰 필요 — 위 \'토큰 설정\'에서 pb-private 읽기 토큰을 넣으면 보여요</div>'; }
+// 밴드 막대: 0~120% 축 · 밴드 칸(앰버 옅게) · 목표 눈금 · 현재 R 점. 폭은 % 단위(가로 스크롤 없음)
+function myHgBar(R,t,b){ const X=v=>Math.max(0,Math.min(100,v/120*100)).toFixed(1), lo=b[0], hi=b[1], out=R!=null&&(R<lo||R>hi);
+  return `<div class="myhg-bar" role="img" aria-label="순델타 비율 ${R}% · 목표 ${t}% · 밴드 ${lo}~${hi}%">
+    <div class="myhg-bd" style="left:${X(lo)}%;width:${(X(hi)-X(lo))}%"></div><div class="myhg-tg" style="left:${X(t)}%"></div>
+    ${R==null?'':`<div class="myhg-pt${out?' out':''}" style="left:${X(R)}%"></div>`}</div>
+    <div class="mu myhg-ax"><span>0</span><span style="left:${X(lo)}%">${lo}</span><span style="left:${X(hi)}%">${hi}</span><span style="left:${X(100)}%">100</span></div>`; }
+function myHgHtml(J){ const g=J.regime||{}, c=J.cost_meter||{}, b=g.band||[g.target_pct-10,g.target_pct+10], R=J.net_delta_ratio_pct, out=J.in_band===false;
+  const none=!(J.hedge_held_pct>0), rg=J.hedge_need_by_regime_pct||{};
+  const card=(n,t,v,d,w)=>`<div class="myhg-k"><div class="myhg-kt">${n} ${t}</div><div class="myhg-kv${w?' am':''}">${v}</div><div class="myhg-kd">${d}</div></div>`;
+  const k1=card('①','순델타 비율',(R==null?'n/a':R.toFixed(0)+'%')+` <span class="mu" style="font-weight:400">/ 목표 ${g.target_pct}%</span>`,`코스피Δ ${myHgPct(J.delta_kospi_pct,1,'%p')} · S&amp;PΔ ${myHgPct(J.delta_spx_pct,1,'%p')} · 원달러 ${myHgPct(J.fx_pct,1).replace('+','')}`,out);
+  const k2=card('②','보험 필요량',myHgPct(J.hedge_need_pct,2).replace('+','')+myHgKrw(J.hedge_need_krw),`보유 ${myHgPct(J.hedge_held_pct,1).replace('+','')} · 경계 ${myHgPct(rg['경계'],2).replace('+','')} · 위기 ${myHgPct(rg['위기'],2).replace('+','')}`,J.hedge_need_pct>0);
+  const k3=card('③','비용 계량기',myHgPct(c.drag_pct,2)+` <span class="mu" style="font-weight:400">/${c.days||20}일</span>`,`끌림 −σ²t @IV ${c.iv_pct!=null?c.iv_pct.toFixed(1):'n/a'}% · 1σ/일 ${c.sigma_1d_pct!=null?c.sigma_1d_pct.toFixed(2)+'%':'n/a'} · 분모 ${myHgPct(c.drag_den_pct,3)}${myHgKrw(c.drag_krw)}`);
+  const k4=card('④','괴리율',J.basis_gap==null?'n/a':myHgPct(J.basis_gap,2),`${J.basis_gap==null?'보유 0 · ':''}참고 K200 인버스 ${myHgPct(J.basis_gap_ref_pct,2)} · 주문 보류선 ±${J.basis_gap_limit_pct||0.5}%`,J.basis_gap!=null&&Math.abs(J.basis_gap)>(J.basis_gap_limit_pct||0.5));
+  const k5=card('⑤','해제·만기 거리',myHgPct(J.release_dist,1)+` <span class="mu" style="font-weight:400">50일선</span>`,`코스피 ${J.kospi!=null?J.kospi.toLocaleString():'—'} vs 50일선 ${J.kospi_ma50!=null?J.kospi_ma50.toLocaleString():'—'} · 만기 ${J.expiry_days==null?'n/a(보유 0)':J.expiry_days+'/'+(J.expiry_cap||20)+'일'}`);
+  const ai=J.asof_inputs||{};
+  return `<div class="myhg-h"><span class="am">헤지 북</span> <b class="${none?'am':''}">${none?'보험 없음':'보험 보유'}</b> <span class="mu">· 레짐 ${esc(g.name||'—')} ${g.target_pct}% · 밴드 ±${g.band_pp||10}%p${out?' · <span class="am">밴드 밖</span>':' · 밴드 안'}</span></div>
+    ${myHgBar(R,g.target_pct,b)}
+    <div class="myhg-g">${k1}${k2}${k3}${k4}${k5}</div>
+    <div class="mu myhg-n">${esc(J.note||'')} 레짐: ${esc(g.src||'')}. 기준 가격 ${myFsMD(ai.price)} · 코스피·IV ${myFsMD(ai.kospi)} · 계산 ${myFsMD(J.asof)}</div>`; }
+function myHgShow(){ const e=$('#myhg'); if(e&&MYHG) e.innerHTML=myHgHtml(MYHG); }
+function myHg(){ if(!ghTok()) return; if(MYHG) myHgShow();
+  pbGet('analysis/hedge_dash.json').then(JSON.parse).then(J=>{ MYHG=J; myHgShow(); })
+  .catch(e=>{ const x=$('#myhg'); if(x&&!MYHG) x.innerHTML=`<div class="mu" style="font-size:var(--fs-2)"><span class="am">헤지 북</span> · 아직 없음(${esc(e.message)}) — pb-private scripts/hedge_dash.py 실행 필요</div>`; }); }
 // 성적표 전체 표(스펙 §5): '10월 누적'이 '기초 이후'와 같은 값이면 1줄로 합침 · FRM 행의 스트레스는 KPI ③과 중복이라 뺌 · 비율만 보기면 금액 가림
 function myFsKpis(K){ K=(K||[]).map(k=>[k[0],k[1]]); const bi=K.findIndex(k=>/기초 이후/.test(k[0])), mi=K.findIndex(k=>/월 누적/.test(k[0]));
   const head=v=>String(v).split('(')[0].trim();
