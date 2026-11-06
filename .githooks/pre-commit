@@ -1,0 +1,6 @@
+#!/bin/sh
+# 커밋 전 시크릿 가드 (scripts/secret_guard.py) — 토큰·계좌번호 모양·개인 금액(screener/redact)이 추가되면 커밋 차단.
+# 설치: sh scripts/install_hooks.sh · 우회는 SECRET_GUARD_SKIP=1 (stderr·로그 기록) · --no-verify 금지(docs/desk_kb/LOOP.md).
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+PY="$(command -v python3 || command -v python)" || exit 0
+exec "$PY" "$ROOT/scripts/secret_guard.py"
