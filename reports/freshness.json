@@ -1,18 +1,16 @@
 {
- "checked_at": "2026-11-06 15:09",
+ "checked_at": "2026-11-06 15:51",
  "n": 26,
- "late": [
+ "late": [],
+ "regress_today": [
   {
-   "id": "heatmap_kr",
-   "path": "reports/heatmap_KR.json",
-   "expected": "2026-11-06 14:39 이후",
-   "actual": "2026-11-06 14:21",
-   "mode": "live.yml 국장 루프 안 screener.heatmap_kr (약 5분)",
-   "fix": "gh workflow run live.yml -f commit=true",
-   "desc": "MARKET 히트맵 KR 1D — 장중 30분 이내 (보드 maint-heatmap 10/21)"
+   "at": "2026-11-06 15:50",
+   "path": "reports/btc.json",
+   "existing": "2026-11-05",
+   "new": "2026-11-04",
+   "mode": "close_kr"
   }
  ],
- "regress_today": [],
  "regress_blocked": [
   {
    "at": "2026-10-19 09:02",
@@ -26,6 +24,13 @@
    "path": "reports/btc.json",
    "existing": "2026-11-03",
    "new": "2026-11-02",
+   "mode": "close_kr"
+  },
+  {
+   "at": "2026-11-06 15:50",
+   "path": "reports/btc.json",
+   "existing": "2026-11-05",
+   "new": "2026-11-04",
    "mode": "close_kr"
   }
  ],
