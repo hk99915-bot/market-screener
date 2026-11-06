@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
  "_doc": "scripts/research_board.py --build 산출물 — 손으로 고치지 않는다. 사람이 적는 칸은 ops/research_pipeline.json.",
- "asof": "2026-11-06",
+ "asof": "2026-11-07",
  "stages": [
   {
    "id": "idea",
@@ -275,7 +275,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/accum_signals.json",
-   "updated": "2026-11-05",
+   "updated": "2026-11-06",
    "grade_counts": {}
   },
   {
@@ -298,7 +298,7 @@
     "reports/signal_tracking.json"
    ],
    "grades": "reports/studies/trend_expectancy.json",
-   "updated": "2026-11-05",
+   "updated": "2026-11-06",
    "grade_counts": {
     "F": 1,
     "C": 1
@@ -322,7 +322,7 @@
    "auto": [
     "reports/signal_scores.json"
    ],
-   "updated": "2026-11-05"
+   "updated": "2026-11-06"
   },
   {
    "id": "model_pf",
@@ -345,7 +345,7 @@
     "commit": "d6165c69",
     "src": "git log -- screener/portfolios.py (커밋 2개: 63c61bef 10-15 생성, d6165c69 10-17 체결 시차 변경)"
    },
-   "updated": "2026-11-06"
+   "updated": "2026-11-07"
   },
   {
    "id": "lab_weekly",
@@ -401,7 +401,7 @@
    "auto": [
     "reports/momentum_bt.json"
    ],
-   "updated": "2026-11-06"
+   "updated": "2026-11-07"
   },
   {
    "id": "derivs",
@@ -721,6 +721,11 @@
    "file": "reports/studies/2026-11-05_ict_hdj1.json"
   },
   {
+   "study": "2026-11-06_split_entry_rules",
+   "date": "2026-11-06",
+   "file": "reports/studies/2026-11-06_split_entry_rules.md"
+  },
+  {
    "study": "dotplot_tilt",
    "date": null,
    "file": "reports/studies/dotplot_tilt.json"
@@ -812,20 +817,6 @@
    "text": "req-cio-ab5e63e8 그림자 북: A·B 두 판 사전등록 초안 — 성공 지표(공정 벤치 세 줄 기준 초과 %p)·13주 중간 판정 없음·26주 본판정·시도 N 계상 방식."
   },
   {
-   "id": "req-quant-c4c3d23b",
-   "from": "cio",
-   "opened": "2026-11-01",
-   "due": "2026-11-07",
-   "text": "req-cio-420c4e7d ②: 체인 '숫자 vs 가격' 괴리 정기 표는 신설하지 말고 req-quant-ec93e2cb·32e05b61 산출물에 칸 하나로 흡수(소유 퀀트·주간 갱신). 지속성 지표 사전등록 여부·시도 N도 같이."
-  },
-  {
-   "id": "req-quant-3522a3d2",
-   "from": "analyst",
-   "opened": "2026-11-02",
-   "due": "2026-11-07",
-   "text": "AI 공급망 칸별 지속성 지표 4개(docs/desk_kb/rounds/2026-11-02/analyst_chain_persistence.md)를 '숫자 vs 가격' 표 칸으로 흡수(CIO 11/1 판정 ②, req-quant-ec93e2cb 쪽).…"
-  },
-  {
    "id": "req-quant-14c996f2",
    "from": "겸이",
    "opened": "2026-11-03",
@@ -873,6 +864,13 @@
    "opened": "2026-11-05",
    "due": "2026-11-07",
    "text": "투자본부 규칙 고도화 검증 요청: 분할 진입 확인 조건(종가 진입가+1ATR 2거래일 유지)·시간 손절 N(5/10/20일)·2xATR 손절의 사전등록 검정 설계 가능 여부와 침체 스위치 문턱 사전등록 일정 회신"
+  },
+  {
+   "id": "req-quant-c7ac6b25",
+   "from": "analyst_digest",
+   "opened": "2026-11-06",
+   "due": null,
+   "text": "애널 판정 장부를 확률 장부와 한 표로 (req-quant-faeaa54d, 11/12)"
   }
  ]
 }
