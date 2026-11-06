@@ -5679,10 +5679,23 @@
      "pending": true
     },
     "PB": {
-     "pending": true
+     "cash": true,
+     "by": "PB 재량",
+     "at": "21:59"
     },
     "규칙": {
      "cash": true
+    },
+    "PB🔥": {
+     "ticker": "TQQQ",
+     "name": "ProShares UltraPro QQQ",
+     "notional": 2000000.0,
+     "entry": "open",
+     "exit": "same_close",
+     "by": "공격 PB",
+     "at": "21:59",
+     "lev_cap": "레버리지 +3배 보유 상한 1일(결재 #14) — 청산 '5일 뒤 종가' → '당일 종가'로 조정",
+     "lev_drag": "리셋 비용: ProShares UltraPro QQQ +3배 일일 리셋 — 2일 보유·지수 ±3% 왕복 가정: 지수 -0.09% → 3배 기대 -0.27% vs 실제 -0.81% (끌림 -0.54%p). 보유 길수록·흔들릴수록 커진다"
     }
    },
    "basis": {
@@ -5693,6 +5706,138 @@
      "VIX 28.18",
      "나스닥 24,315 (-5.52%)"
     ]
+   },
+   "pb_view": {
+    "why": "PB 현금. S&P500 11-05 -4.36%·나스닥 -5.52%, 20일 고점 대비 -5.9%, VIX 28.18. 규칙 판정도 '전일 하락, 반등 확인 전'으로 현금. 2% 이상 급락 후 20일 분포(spx_buckets20 drop2, n 293) 강세 45.4%·약세 22.9%·심한 약세 6.1%로 반등 우위는 있으나 하루 단위 진입 근거 아님. 씨티 '반등은 매도 기회' 시각과 국내 외국인 2.6조 순매도로 하방 꼬리 열려 있음. 탈출 조건 해당 없음(무포지션), S&P 20일선 회복 2일 시 재평가.",
+    "lines": [
+     "S&P500 7,353.73(-4.36%), 나스닥 24,315(-5.52%), VIX 28.18 — 11-05 종가",
+     "spx_buckets20 drop2(n 293): 강세 45.4%·기본 31.7%·약세 22.9%·심한 약세 6.1%",
+     "규칙 판정 현금(전일 하락, 반등 확인 전) — PB 동일",
+     "레드팀: 반등이 오면 현금은 기회비용이나, 하방 꼬리(심한 약세 6.1%)와 레버리지 끌림을 감안하면 하루 진입의 기대값 근거 불충분"
+    ],
+    "conviction": "보통",
+    "at": "21:59",
+    "plan": {
+     "target": null,
+     "stop": null,
+     "rr": null,
+     "win_rate": null,
+     "n": null,
+     "ev": null,
+     "basis": "현금 — 해당 없음"
+    },
+    "real": {
+     "ok": false,
+     "size_pct": 0,
+     "note": "[6] 일 손실 한도 발동으로 위성 신규 매수 금지(~11/10) 및 재매수 잠금(~11/13) 적용."
+    },
+    "views_asof": "2026-11-06 19:16",
+    "lenses": {
+     "kr_regime": {
+      "s": "하락장",
+      "b": "bear"
+     },
+     "crash_day_close": {
+      "s": "급락일(−5%)",
+      "b": "bull"
+     },
+     "confirm_signals": {
+      "s": "켜짐 2/4",
+      "b": null
+     },
+     "foreign_flow": {
+      "s": "대량 순매도",
+      "b": "bear"
+     },
+     "macro_wind": {
+      "s": "역풍",
+      "b": "bear"
+     },
+     "breadth_kr": {
+      "s": "약함",
+      "b": "bear"
+     },
+     "scenario_base_rate": {
+      "s": "강세 우위",
+      "b": null
+     },
+     "stock_trend_score": {
+      "s": "효과 불분명",
+      "b": null
+     },
+     "index_abs_momentum": {
+      "s": "상태 없음",
+      "b": null
+     },
+     "options_gamma": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "gamma_regime": {
+      "s": "감마 음수",
+      "b": null
+     },
+     "ai_credit": {
+      "s": "경계",
+      "b": "bear"
+     },
+     "stock_bond_corr": {
+      "s": "같이 움직임",
+      "b": null
+     },
+     "us10y": {
+      "s": "급락",
+      "b": "bull"
+     },
+     "yen_carry": {
+      "s": "평온",
+      "b": null
+     },
+     "japan_semi_lead": {
+      "s": "일본 장비 약세",
+      "b": null
+     },
+     "supply_chain": {
+      "s": "확대 2 / 축소 5",
+      "b": null
+     },
+     "committee_ideas": {
+      "s": "채점 11회 · 5일 초과 +2.1%",
+      "b": null
+     },
+     "event_calendar": {
+      "s": "당일 있음",
+      "b": null
+     },
+     "atr_stop": {
+      "s": "종목별",
+      "b": null
+     },
+     "us_regime": {
+      "s": "조정",
+      "b": "bear"
+     },
+     "fib_levels": {
+      "s": "n/a",
+      "b": null
+     },
+     "exec_signal_1": {
+      "s": "n/a",
+      "b": null
+     }
+    },
+    "bold": {
+     "why": "공격 PB: 나스닥100 하루 -5.52%로 과매도 반발 노림. 2% 이상 급락 후 S&P 20일 강세 45.4%(drop2, n 293)는 S&P 20일 기준이라 TQQQ 5일 승률은 검증 전. 3배 상품이라 손절 -12%(지수 약 -4%) 엄수, 목표 +15%(지수 약 +5%). 실계좌 적용: 불가(모의 전용)",
+     "plan": {
+      "target": 0.15,
+      "stop": -0.12,
+      "rr": 1.25,
+      "win_rate": null,
+      "n": null,
+      "ev": null,
+      "basis": "drop2 버킷은 S&P 20일 기준 — TQQQ 5일 승률 검증 전"
+     }
+    }
    }
   }
  ],
