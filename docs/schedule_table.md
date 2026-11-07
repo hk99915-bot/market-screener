@@ -99,7 +99,7 @@
 | reports/live.json · events.json | live 루프 08:40·23:20 (GAS, 11/02~ 겨울. 여름 22:20) + 매시 재개 | 수동 live(읽기 전용 기본) | 동시 1개(concurrency) |
 | 장중 이벤트 텔레그램(touch·지수 −4/−5%·서킷/사이드카·보유 손절선/−5%·미장 SPX/NDX −3%·VIX +25%) · reports/event_state.json | **live 루프** 안 백그라운드 `screener.event_watch` 약 60초마다 (2026-10-17 신설) | — (15:05 crash_check 종가 판단 메시지·14:25/16:20 규정 알림은 별도 산출물로 유지) | 단일. touch: 이벤트 감시는 규정 알림이 이미 보낸 코드면 건너뜀(평생 1회). 반대 방향(규정 알림이 이벤트 감시 기록을 보는 것)은 alerts.py 잠금 해제 뒤 — 보드 event-watch, 서킷·사이드카는 뉴스 감지(events.check)와 소리 1회 공유 |
 | reports/decisions.json | live 14:50–15:15 duel · briefing premarket_us duel · screener 규칙 판정 | pick.yml(이슈) · pb_call(PB 예약 세션 14:42) | 필드 병합 방식(각자 자기 칸만) — 슬롯 이중 아님. 1.5단계에서 재점검 |
-| data/deriv/daily.csv · deriv_hist_status · studies/gamma_regime | deriv_hist 16:40 평일 (GAS) | 수동 backfill/probe (commit=true 필요) | 단일 |
+| data/deriv/daily.csv · deriv_hist_status · studies/gamma_regime · views/shadow_derivs_book.json | deriv_hist 16:40 평일 (GAS) | 수동 backfill/probe (commit=true 필요) | 단일 |
 | data/fin · universe/sec_* · portfolios · momentum · analysts | fin 03:30 매일 (GAS) | — | 단일 |
 | data/hist/kr_YYYY (백필) | backfill 02:00 매일 (GAS) | — | 단일 |
 | data/hist/*_daily.parquet (시세 창고) | hist 일 05:00 (cron) | — | 단일 |
