@@ -130,7 +130,7 @@ SHIM = """<script>
     getCompanyLinksSample: () => get('tests/fixtures/company_links_sample.json'),   // 실제 파일 없을 때 로컬 개발·ui_smoke 용 예시(Pages 사이트엔 tests/ 제외라 404 → '데이터 없음' 안내)
     getCompanyLinksAuto: () => get('reports/company_links_auto.json'),   // 관계도 하청(2·3차) 자동 추출(11/1 애널, DART 원문 · tier 1/2/3) — 화면이 수작업과 병합(같은 엣지 = 수작업 우선). 없으면 404 → 수작업만
     getCompanyLinksAutoSample: () => get('tests/fixtures/company_links_auto_sample.json'),   // 자동 파일 없을 때 로컬 개발·ui_smoke 예시(Pages 엔 tests/ 제외 → 404 → 수작업만)
-    getLibraryDoc: (p) => /^(docs\\/desk_kb\\/rounds\\/[\\w.\\-\\/]+\\.md|reports\\/studies\\/[\\w.\\-]+\\.(md|json)|docs\\/valuation_notes\\/[\\w.\\-]+\\.md|docs\\/peer_reviews\\/[\\w.\\-]+\\.md)$/.test(String(p)) && String(p).indexOf('..') < 0 ? get(p) : Promise.reject(new Error('서고 허용 경로 아님')),
+    getLibraryDoc: (p) => /^(docs\\/desk_kb\\/rounds\\/[\\w.\\-\\/]+\\.md|reports\\/studies\\/[\\w.\\-]+\\.(md|json)|docs\\/valuation_notes\\/[\\w.\\-]+\\.md|docs\\/peer_reviews\\/[\\w.\\-]+\\.md|docs\\/desk_kb\\/money\\.md)$/.test(String(p)) && String(p).indexOf('..') < 0 ? get(p) : Promise.reject(new Error('서고 허용 경로 아님')),
     // 🔒 비공개 사담방 — 공개 Pages 엔 토큰이 없다. 10/23 겸이 선택: "이 폰에만 토큰 저장" → 이 기기 브라우저 localStorage('pbPrivTok')에만 두고
     //    GitHub contents API 로 직접 읽는다(저장소·채팅·서버로 안 감). 권장 토큰: fine-grained · pb-private 하나 · Contents 읽기 전용 · 만료 있음.
     getPrivate: (name) => {

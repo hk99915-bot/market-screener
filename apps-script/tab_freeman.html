@@ -62,10 +62,22 @@ function freeRnr(){
 const FREE_MISSION='돈 때문에 의지를 포기하지 않는다 — 자기 판단으로 결정하고 결과를 스스로 감당하는 상태 (자본은 쌓되 삶은 소진하지 않는다)';
 const FREE_RULES=['생존이 수익률보다 우선','내 집은 목표이되 영끌은 의무가 아니다','커리어와 금융투자를 함께 키운다','시간과 건강도 자본이다','희망이 아니라 실측으로 판단한다'];
 function freeStar(){ return `<div class="myhq" style="border-top:0;margin-top:0"><div class="myhq-top"><span class="am">북극성</span></div><div class="myhq-c is-sum" style="margin-bottom:8px"><div class="myhq-o"><b>${esc(FREE_MISSION)}</b></div><ol style="margin:4px 0 0;padding-left:18px;line-height:1.6">${FREE_RULES.map(x=>'<li>'+esc(x)+'</li>').join('')}</ol></div></div>`; }
+/* 오늘의 연구 (11/7 겸이 「마켓터미널에 붙여조 아티팩트말구」) — 공개 저장소 문서를 RESEARCH › 서고 리더(libOpen)로 연다. 문서 목록만 여기, 본문은 서고가 읽음.
+   경로는 서고 허용 정규식(getLibraryDoc) 안이어야 한다 — money.md 는 11/7 정규식에 1개 추가. 문구는 원문 결론 그대로(새 판정 없음). */
+const FREE_TODAY=[
+  {p:'docs/desk_kb/money.md', t:'돈은 무엇인가? — 화폐 KB', s:'매크로 KB · 9개 데스크 실제 호출 답변(§7) · 독립 피어리뷰(§8)', d:'11/7'},
+  {p:'reports/studies/2026-11-07_safe_leg.md', t:'안전 칸 연구 — 국면 규칙 vs 정적 혼합', s:'국면 규칙 R1~R4 F · 배분 데스크 권고안(결재 대기): 위기 유형 분산형 정적 혼합 75/25', d:'11/7'},
+];
+function freeLib(p){ setView('lib'); libOpen(p); }
+function freeToday(){ if(!FREE_TODAY.length) return '';
+  return `<div class="myhq" style="margin-top:0"><div class="myhq-top"><span class="am">오늘의 연구</span><span class="mu">탭하면 RESEARCH › 서고에서 열림</span></div>`
+    +FREE_TODAY.map(x=>`<div class="lib-pin" role="button" tabindex="0" onclick="freeLib('${libA(x.p)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();freeLib('${libA(x.p)}')}"><b class="am">📄</b><span><b>${esc(x.t)}</b><br><span class="mu" style="font-size:var(--fs-1)">${esc(x.s)}</span></span><span class="mu" style="margin-left:auto;font-size:var(--fs-1)">${esc(x.d)}</span></div>`).join('')
+    +'</div>'; }
 function freeView(){
   if(ghTok()) setTimeout(myHq,0);
   return `<div class="grid"><div class="p c12"><h2>🗽 FREEMAN<small>프로젝트 프리맨 · 목표·조직 · 비공개 저장소(pb-private)에서 이 브라우저로 직접 읽음</small></h2><div class="b">
     ${freeStar()}
+    ${freeToday()}
     <div id="myhq" class="myhq">${ghTok()?'<div class="mu" style="font-size:var(--fs-2)">본부 OKR 불러오는 중…</div>':'<div class="am" style="font-size:var(--fs-2)">GitHub 토큰 필요 — 🔐 MY 탭에서 토큰 설정 후 다시 열어 주세요</div>'}</div>
     <div class="frnr-b0"><button id="frnr-t" aria-expanded="false" aria-controls="frnr" onclick="freeRnrTog()">📋 R&R — 하는 것 / 안 하는 것 · 경계 표</button><div id="frnr" hidden></div></div>
   </div></div></div>`; }
