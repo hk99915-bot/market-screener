@@ -1,9 +1,9 @@
 {
 "_doc": "SEC companyfacts 회전 수집 진행 상태 (screener/sec.py update). status: ok=이번 수집 · unchanged=새 정기보고서 없어 생략 · fail=요청 실패 · no_cik=SEC 티커 목록에 없음 · ifrs=IFRS 제출사(us-gaap 없음, 미지원) · no_data=분기 값 없음 · never=아직 차례 안 옴",
 "last_run": {
-"checked": 0,
-"companyfacts": 0,
-"rows_added": 0
+"checked": 80,
+"companyfacts": 36,
+"rows_added": 10811
 },
 "summary": {
 "budget_per_run": 80,
@@ -11,18 +11,18 @@
 "ifrs": 6,
 "no_cik": 1,
 "no_data": 5,
-"ok": 215,
-"unchanged": 333
+"ok": 236,
+"unchanged": 312
 },
 "eta_basis": "미확인 종목 ÷ 실행당 종목 수, fin.yml 하루 1회(03:30 KST) 가정",
-"eta_first_cycle": "2026-11-06",
+"eta_first_cycle": "2026-11-07",
 "fetched_ever": 559,
 "pending_first_check": 0,
 "universe": 560
 },
 "tickers": {
 "A": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1090872,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -31,52 +31,52 @@
 "status": "unchanged"
 },
 "AAPL": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 320193,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-07-31",
-"rows": 360,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 372,
+"status": "ok"
 },
 "ABBV": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1551152,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-03",
-"rows": 301,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 311,
+"status": "ok"
 },
 "ABNB": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1559720,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-06",
-"rows": 216,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 224,
+"status": "ok"
 },
 "ABT": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1800,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-07-28",
-"rows": 291,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 311,
+"status": "ok"
 },
 "ACGL": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 947484,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-04",
-"rows": 217,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 224,
+"status": "ok"
 },
 "ACN": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1467373,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -85,7 +85,7 @@
 "status": "unchanged"
 },
 "ADBE": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 796343,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -94,7 +94,7 @@
 "status": "unchanged"
 },
 "ADI": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 6281,
 "err": null,
 "fetched": "2026-10-23T15:22Z",
@@ -103,25 +103,25 @@
 "status": "unchanged"
 },
 "ADM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 7084,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-04",
-"rows": 271,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 280,
+"status": "ok"
 },
 "ADP": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 8670,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 300,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-10-30",
+"rows": 310,
+"status": "ok"
 },
 "ADSK": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 769397,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -130,115 +130,115 @@
 "status": "unchanged"
 },
 "AEE": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1002910,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-03",
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-06",
 "rows": 300,
-"status": "unchanged"
+"status": "ok"
 },
 "AEP": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 4904,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-28",
 "rows": 297,
-"status": "ok"
+"status": "unchanged"
 },
 "AES": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 874761,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-04",
-"rows": 300,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 310,
+"status": "ok"
 },
 "AFL": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 4977,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-07",
-"rows": 289,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 298,
+"status": "ok"
 },
 "AIG": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 5272,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-07",
-"rows": 243,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 251,
+"status": "ok"
 },
 "AIZ": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1267238,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-06",
-"rows": 300,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 310,
+"status": "ok"
 },
 "AJG": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 354190,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 259,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 267,
+"status": "ok"
 },
 "AKAM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1086222,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-07",
-"rows": 330,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-06",
+"rows": 341,
+"status": "ok"
 },
 "ALAB": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1736297,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 138,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 150,
+"status": "ok"
 },
 "ALB": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 915913,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 330,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 341,
+"status": "ok"
 },
 "ALGN": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1097149,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 330,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 341,
+"status": "ok"
 },
 "ALL": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 899051,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 270,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 279,
+"status": "ok"
 },
 "ALLE": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1579241,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -247,16 +247,16 @@
 "status": "unchanged"
 },
 "ALNY": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1178670,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-29",
 "rows": 300,
-"status": "ok"
+"status": "unchanged"
 },
 "AMAT": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 6951,
 "err": null,
 "fetched": "2026-10-23T15:22Z",
@@ -265,85 +265,85 @@
 "status": "unchanged"
 },
 "AMCR": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1748790,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-14",
-"rows": 305,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 315,
+"status": "ok"
 },
 "AMD": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 2488,
 "err": null,
-"fetched": "2026-10-23T15:22Z",
-"last_filed": "2026-08-05",
-"rows": 276,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 285,
+"status": "ok"
 },
 "AME": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1037868,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-04",
-"rows": 336,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 347,
+"status": "ok"
 },
 "AMGN": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 318154,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 330,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 341,
+"status": "ok"
 },
 "AMKR": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1047127,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-27",
 "rows": 368,
-"status": "ok"
+"status": "unchanged"
 },
 "AMP": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 820027,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-30",
 "rows": 219,
-"status": "ok"
+"status": "unchanged"
 },
 "AMT": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1053507,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-27",
 "rows": 346,
-"status": "ok"
+"status": "unchanged"
 },
 "AMZN": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1018724,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-30",
 "rows": 279,
-"status": "ok"
+"status": "unchanged"
 },
 "ANET": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1596532,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 324,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 335,
+"status": "ok"
 },
 "AON": {
 "checked": "2026-10-31T18:36Z",
@@ -445,7 +445,7 @@
 "status": "unchanged"
 },
 "ARM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1973239,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -454,7 +454,7 @@
 "status": "unchanged"
 },
 "ASML": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 937966,
 "err": "us-gaap 분기 손익 없음 (taxonomy dei,us-gaap)",
 "fetched": "2026-10-23T15:24Z",
@@ -463,7 +463,7 @@
 "status": "no_data"
 },
 "ASX": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1122411,
 "err": "us-gaap 분기 손익 없음 (taxonomy dei,ifrs-full)",
 "fetched": "2026-10-23T15:24Z",
@@ -481,7 +481,7 @@
 "status": "unchanged"
 },
 "AVGO": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1730168,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -526,7 +526,7 @@
 "status": "ok"
 },
 "AXTI": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1051627,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -1057,13 +1057,13 @@
 "status": "unchanged"
 },
 "COHU": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 21535,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-29",
 "rows": 322,
-"status": "ok"
+"status": "unchanged"
 },
 "COIN": {
 "checked": "2026-10-31T18:36Z",
@@ -1147,7 +1147,7 @@
 "status": "unchanged"
 },
 "CRDO": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1807794,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -1183,13 +1183,13 @@
 "status": "unchanged"
 },
 "CRUS": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 772406,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 278,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 287,
+"status": "ok"
 },
 "CRWD": {
 "checked": "2026-11-01T18:36Z",
@@ -1393,13 +1393,13 @@
 "status": "unchanged"
 },
 "DIOD": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 29002,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 299,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 309,
+"status": "ok"
 },
 "DIS": {
 "checked": "2026-11-01T18:36Z",
@@ -1618,13 +1618,13 @@
 "status": "unchanged"
 },
 "ENTG": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1101302,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-29",
 "rows": 290,
-"status": "ok"
+"status": "unchanged"
 },
 "EOG": {
 "checked": "2026-11-01T18:36Z",
@@ -1915,13 +1915,13 @@
 "status": "ok"
 },
 "FORM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1039399,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-04",
-"rows": 300,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 310,
+"status": "ok"
 },
 "FOX": {
 "checked": "2026-11-02T18:40Z",
@@ -2356,13 +2356,13 @@
 "status": "ok"
 },
 "ICHR": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1652535,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-04",
-"rows": 338,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 349,
+"status": "ok"
 },
 "IDXX": {
 "checked": "2026-11-02T18:40Z",
@@ -2410,13 +2410,13 @@
 "status": "ok"
 },
 "INTC": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 50863,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-30",
 "rows": 293,
-"status": "ok"
+"status": "unchanged"
 },
 "INTU": {
 "checked": "2026-11-02T18:40Z",
@@ -2635,16 +2635,16 @@
 "status": "unchanged"
 },
 "KLAC": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 319201,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-29",
 "rows": 317,
-"status": "ok"
+"status": "unchanged"
 },
 "KLIC": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 56978,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -2707,13 +2707,13 @@
 "status": "ok"
 },
 "LASR": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1124796,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-07",
-"rows": 300,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-06",
+"rows": 310,
+"status": "ok"
 },
 "LDOS": {
 "checked": "2026-11-03T18:40Z",
@@ -2815,7 +2815,7 @@
 "status": "unchanged"
 },
 "LRCX": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 707549,
 "err": null,
 "fetched": "2026-10-23T15:22Z",
@@ -2824,13 +2824,13 @@
 "status": "unchanged"
 },
 "LSCC": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 855658,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-04",
-"rows": 305,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 315,
+"status": "ok"
 },
 "LULU": {
 "checked": "2026-11-03T18:40Z",
@@ -2923,13 +2923,13 @@
 "status": "unchanged"
 },
 "MCHP": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 827054,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-06",
-"rows": 309,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 320,
+"status": "ok"
 },
 "MCK": {
 "checked": "2026-11-03T18:40Z",
@@ -3013,13 +3013,13 @@
 "status": "unchanged"
 },
 "MKSI": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1049502,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-06",
-"rows": 343,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 355,
+"status": "ok"
 },
 "MLM": {
 "checked": "2026-11-03T18:40Z",
@@ -3076,13 +3076,13 @@
 "status": "ok"
 },
 "MPWR": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1280452,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-05",
-"rows": 360,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-03",
+"rows": 372,
+"status": "ok"
 },
 "MRK": {
 "checked": "2026-11-03T18:40Z",
@@ -3112,7 +3112,7 @@
 "status": "unchanged"
 },
 "MRVL": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1835632,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -3184,7 +3184,7 @@
 "status": "unchanged"
 },
 "MTSI": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1493594,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -3193,7 +3193,7 @@
 "status": "unchanged"
 },
 "MU": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 723125,
 "err": null,
 "fetched": "2026-10-23T15:22Z",
@@ -3202,7 +3202,7 @@
 "status": "unchanged"
 },
 "MXL": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1288469,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -3364,7 +3364,7 @@
 "status": "unchanged"
 },
 "NVDA": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1045810,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -3373,7 +3373,7 @@
 "status": "unchanged"
 },
 "NVMI": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1109345,
 "err": "us-gaap 분기 손익 없음 (taxonomy dei,invest,srt,us-gaap)",
 "fetched": "2026-10-23T15:24Z",
@@ -3409,13 +3409,13 @@
 "status": "unchanged"
 },
 "NXPI": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1413447,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-27",
 "rows": 333,
-"status": "ok"
+"status": "unchanged"
 },
 "O": {
 "checked": "2026-11-03T18:40Z",
@@ -3463,16 +3463,16 @@
 "status": "unchanged"
 },
 "ON": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1097864,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-03",
-"rows": 330,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-02",
+"rows": 341,
+"status": "ok"
 },
 "ONTO": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 704532,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -3652,7 +3652,7 @@
 "status": "unchanged"
 },
 "PLAB": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 810136,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -3805,13 +3805,13 @@
 "status": "ok"
 },
 "QCOM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 804328,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-07-29",
-"rows": 271,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-04",
+"rows": 280,
+"status": "ok"
 },
 "QLYS": {
 "checked": "2026-11-05T18:38Z",
@@ -3895,13 +3895,13 @@
 "status": "unchanged"
 },
 "RMBS": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 917273,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-26",
 "rows": 321,
-"status": "ok"
+"status": "unchanged"
 },
 "RMD": {
 "checked": "2026-11-04T18:37Z",
@@ -4039,13 +4039,13 @@
 "status": "ok"
 },
 "SITM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1451809,
 "err": null,
-"fetched": "2026-10-23T15:12Z",
-"last_filed": "2026-08-06",
-"rows": 291,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-11-05",
+"rows": 301,
+"status": "ok"
 },
 "SJM": {
 "checked": "2026-11-04T18:37Z",
@@ -4084,7 +4084,7 @@
 "status": "unchanged"
 },
 "SMTC": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 88941,
 "err": null,
 "fetched": "2026-10-23T15:12Z",
@@ -4102,13 +4102,13 @@
 "status": "unchanged"
 },
 "SNDK": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 2023554,
 "err": null,
-"fetched": "2026-10-23T15:22Z",
-"last_filed": "2026-08-17",
-"rows": 108,
-"status": "unchanged"
+"fetched": "2026-11-07T18:36Z",
+"last_filed": "2026-10-30",
+"rows": 119,
+"status": "ok"
 },
 "SNPS": {
 "checked": "2026-11-04T18:37Z",
@@ -4192,7 +4192,7 @@
 "status": "unchanged"
 },
 "STM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 932787,
 "err": "us-gaap 분기 손익 없음 (taxonomy dei,us-gaap)",
 "fetched": "2026-10-23T15:24Z",
@@ -4246,7 +4246,7 @@
 "status": "unchanged"
 },
 "SWKS": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 4127,
 "err": null,
 "fetched": "2026-10-23T15:22Z",
@@ -4336,13 +4336,13 @@
 "status": "ok"
 },
 "TER": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 97210,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-30",
 "rows": 356,
-"status": "ok"
+"status": "unchanged"
 },
 "TFC": {
 "checked": "2026-11-04T18:37Z",
@@ -4471,7 +4471,7 @@
 "status": "unchanged"
 },
 "TSEM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 928876,
 "err": null,
 "fetched": "2026-10-23T15:24Z",
@@ -4489,7 +4489,7 @@
 "status": "unchanged"
 },
 "TSM": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1046179,
 "err": "us-gaap 분기 손익 없음 (taxonomy dei,ifrs-full,srt)",
 "fetched": "2026-10-23T15:24Z",
@@ -4534,13 +4534,13 @@
 "status": "ok"
 },
 "TXN": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 97476,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-23",
 "rows": 342,
-"status": "ok"
+"status": "unchanged"
 },
 "TXT": {
 "checked": "2026-11-05T18:38Z",
@@ -4579,13 +4579,13 @@
 "status": "ok"
 },
 "UCTT": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1275014,
 "err": null,
 "fetched": "2026-10-30T18:47Z",
 "last_filed": "2026-10-28",
 "rows": 341,
-"status": "ok"
+"status": "unchanged"
 },
 "UDR": {
 "checked": "2026-11-05T18:38Z",
@@ -4615,7 +4615,7 @@
 "status": "unchanged"
 },
 "UMC": {
-"checked": "2026-10-30T18:47Z",
+"checked": "2026-11-07T18:36Z",
 "cik": 1033767,
 "err": "us-gaap 분기 손익 없음 (taxonomy dei,ifrs-full)",
 "fetched": "2026-10-23T15:24Z",
@@ -5056,5 +5056,5 @@
 "status": "ok"
 }
 },
-"updated": "2026-11-06T18:37Z"
+"updated": "2026-11-07T18:36Z"
 }
