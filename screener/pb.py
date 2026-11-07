@@ -148,14 +148,22 @@ def _detail(mk: str, s: str) -> dict | None:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
+USD_SHORT_CODES = ("0046A0", "329750", "455030")   # TIGER 미국초단기(3개월이하)국채 · TIGER 미국달러단기채권액티브 · KODEX 미국달러SOFR금리액티브(합성)
+
+
 def isa_bucket(s: str, name: str) -> str | None:
-    """ISA 코어 종목 → 목표 바구니 (S&P500 / NDX / K200 / KTB / Gold). 못 고르면 None(기타)."""
+    """ISA 코어 종목 → 바구니 (S&P500 / NDX / K200 / KTB / Gold — 목표 바구니, USD_short — 목표 밖). 못 고르면 None(기타).
+    USD_short = 국내 상장 미국 달러 단기채(초단기 국채·달러 단기채·SOFR) — 환노출 상품이라 원화 국고(KTB)와 분리(11/7: 예전엔
+    '국채' 정규식에 걸려 KTB 로 들어가 2026-07 충격 0 으로 계산됨, 실측 약 −6%). ISA_TARGET 에 없는 바구니라 목표·밴드 판정 밖."""
     n = (name or "").upper()
     if s == "360750" or "S&P" in n or s in ("SPY", "IVV", "VOO", "SPLG"):
         return "S&P500"
     if s in ("133690", "379810") or "나스닥" in n or "NDX" in n or s in ("QQQ", "QQQM"):
         return "NDX"
-    if s in ("148070", "305080", "152380") or re.search(r"국고채|국채|KTB", n):
+    if s in USD_SHORT_CODES or re.search(r"(미국|달러).*(초단기|단기|SOFR|T-?BILL)", n) or s in ("SGOV", "BIL", "SHV"):
+        return "USD_short"
+    # 원화 국고채 이름만 KTB ('미국' 이 들어간 국채 상품은 KTB 아님). 305080(미국채10년선물) 분리는 10/23 Q4 결재 대기라 코드 목록에 유지.
+    if s in ("148070", "305080", "152380") or (re.search(r"국고채|KTB", n) and "미국" not in n):
         return "KTB"
     if s in ("132030", "411060") or re.search(r"골드|금선물|금현물|GOLD", n) or s in ("GLD", "IAU"):
         return "Gold"
@@ -186,18 +194,20 @@ def semi_class(mk: str, s: str, name: str, chain: str, is_etf: bool, look_chains
 #   semi(한도 산입 반도체·섹터 ETF 전액) = KODEX 반도체 −50.3% · elec(전기·IT 하드웨어) = 삼성전기 −60.5%(반도체보다 깊음 — 옛 ρ0.8×−30 가정 기각, kb:frm 복기 #3)
 #   look = 지수 ETF 속 반도체 룩스루분 × −50% · core = 코어 바구니 원화 ETF 실측 전체 손실(룩스루 대신, 이중 계산 없음):
 #   K200 KODEX 200 −40.8% · S&P500 TIGER −8.4% · NDX KODEX −15.9% · KTB 국고채3년 +0.3%→0 · Gold KODEX 골드선물 −4.2% (reports/studies/2026-10-23_frm_replay_2026-07.md §1)
+#   USD_short(국내 상장 미국 달러 단기채) 2026-07 = 0046A0 −6.1 · 329750 −6.2 · 455030 −6.4 (detail 종가 06/22→07/30, 원화 강세 −5.8%분) → −0.06
 #   하드 바닥(평단 −30%) 집행 효과는 판정에 넣지 않는다 — 바닥은 집행 전제가 깨지면 0 (안건 D 이중 장치). 개인 북 재생: 바닥 미적용 −15.3% / 집행 시 −9.8% (비율만).
 #   옛 가정(semi −30 · elec −24 · look −30 · 코어 0)은 git 이력. 롤백 = 아래 한 줄을 그 값으로.
 #   binding False 인 키를 추가하면 stress_ref_lines 가 참고 줄(⛔ 없음)로만 보인다.
 STRESS_SCENARIOS = {
     "2026-07": {"label": "2026-07 실측(06/22→07/30, 반도체 −50%)", "semi": -0.50, "elec": -0.60, "look": -0.50,
-                "core": {"K200": -0.41, "S&P500": -0.08, "NDX": -0.16, "KTB": 0.0, "Gold": -0.04}},
+                "core": {"K200": -0.41, "S&P500": -0.08, "NDX": -0.16, "KTB": 0.0, "Gold": -0.04, "USD_short": -0.06}},
     # 2022형(주식·채권 동반 하락) — 계기판 병기만, 비구속(겸이 10/26 결재 req-pb-036d2f5b 절충: 구속 편입 여부는 11/15). ⛔ 판정에 안 들어간다.
     #   구간 2022-01-03 → 09-30(코스피 2022 저점, 원화 종가 data/hist/kr_etf_daily·kr_2022). semi = KODEX 반도체 −43.7% · elec = 삼성전기 −42.4% ·
     #   코어: K200 KODEX 200 −27.9 · S&P500 TIGER −8.0 · NDX TIGER 나스닥100(133690, 379810 상장 전 대리) −18.1 · KTB 국고채3년 −4.4 ·
-    #   Gold KODEX 골드선물(H) −8.5 (원화 금 ETF 411060 은 2022 미상장 — GLD×환율 근사 +10.5%라 이 값이 보수 쪽, reports/studies/2026-10-28_frm_core_lookthrough.md)
+    #   Gold KODEX 골드선물(H) −8.5 (원화 금 ETF 411060 은 2022 미상장 — GLD×환율 근사 +10.5%라 이 값이 보수 쪽, reports/studies/2026-10-28_frm_core_lookthrough.md) ·
+    #   USD_short TIGER 미국달러단기채권액티브(329750) +20.2% (yfinance 종가 01/04→09/30; 원/달러 +20.4%·BIL +0.2% 와 정합. 0046A0·455030 은 2022 미상장)
     "2022": {"label": "2022형 실측(01/03→09/30, 주식·채권 동반 하락)", "binding": False, "semi": -0.44, "elec": -0.42, "look": -0.44,
-             "core": {"K200": -0.28, "S&P500": -0.08, "NDX": -0.18, "KTB": -0.04, "Gold": -0.09}},
+             "core": {"K200": -0.28, "S&P500": -0.08, "NDX": -0.18, "KTB": -0.04, "Gold": -0.09, "USD_short": 0.20}},
 }
 from .defs import STRESS_LIMIT   # 0.15 — 어느 시나리오도 −15% 초과 금지 (scorecard_week [11] 스트레스 와 같은 수치)
 STRESS_DENOMINATORS = ("D2", "D1", "EQ")   # docs/rules_terms.md §0: D2 전체 투자자산(기본, 결재 #1 (b) 가정) · D1 위성 북 · EQ 주식만(참고)
@@ -349,7 +359,7 @@ def evaluate(txt: str, rules_txt: str = "", stress_denominator_code: str = "D2")
     isa_etc = 0.0
     for r in isa:
         if r["isa"]:
-            isa_w[r["isa"]] += r["v"]
+            isa_w[r["isa"]] = isa_w.get(r["isa"], 0.0) + r["v"]   # 목표 밖 바구니(USD_short)도 따로 집계 — 밴드 판정은 ISA_TARGET 만
         else:
             isa_etc += r["v"]
     isa_w = {k: (v / isa_tot if isa_tot else 0.0) for k, v in isa_w.items()}
@@ -528,6 +538,9 @@ def isa_lines(ev: dict) -> list[str]:
         mark = "✅" if abs(d) <= ISA_BAND else ("▲" if d > 0 else "▼")
         parts.append(f"{k} {w*100:.0f}/{t*100:.0f}{mark}")
     L = [f"• ISA 코어 순자산 {ev['isa_tot']/ev['nav']*100:.0f}% · 밴드 ±{ISA_BAND*100:.0f}%p: " + " · ".join(parts)]
+    extra = {k: w for k, w in ev["isa_w"].items() if k not in ISA_TARGET and w > 0.005}
+    if extra:
+        L.append("  목표 밖 바구니(밴드 판정 없음): " + " · ".join(f"{k} {w*100:.0f}%" for k, w in extra.items()))
     if ev["isa_cash"] > 0.005 or ev["isa_etc"] > 0.005:
         L.append(f"  ISA 현금 {ev['isa_cash']*100:.0f}% · 기타 {ev['isa_etc']*100:.0f}%")
     return L
