@@ -47,3 +47,4 @@ description: 매크로 데스크 작업(바람 점수·레짐·코스피−S&P �
 | `references/cmdty_geo_tracking.md` | 원자재·지정학 #22–26·28 · 공공 리포트 #27 · 애널 뷰 #29 · 총재 #30–32 · 오일/배터리 #33 · AMPC #34 | 원자재·지정학 축, 발간물 digest, 애널·총재 장부 갱신 |
 | `references/flip_conditions.md` | 라운드 10/28~10/31 뒤집힘·관찰 조건 F1–F6 외 | 결론에 뒤집힘 줄 쓸 때, flip_watch 결과 해석 |
 | `references/review_log.md` | 성격 · 복기 4건 · 10년차 기준·드릴 · 출처 | 라운드 복기·배움, 지표 표기·시계열·지정학 문장 쓰기 전 |
+| `docs/desk_kb/money.md` (KB 본문) | 화폐 본질·학파·가치론·중앙은행·달러 질서·CBDC/스테이블/BTC·해킹 보안 · 피어 `docs/peer_reviews/2026-11-07_money_kb.md` | 화폐·달러 패권·금/BTC 가치저장·거래소 해킹 질문 |

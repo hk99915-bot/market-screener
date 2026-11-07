@@ -2,6 +2,8 @@
 
 (원본: docs/desk_kb/macro.md 해당 절을 그대로 옮김 — 2026-10-31 스킬 시범. 내용 수정은 양쪽 같이. 번호 = `kb:macro#<n>`.)
 
+- 화폐 KB(본질·학파·가치론·중앙은행·달러 질서·CBDC/스테이블/BTC·해킹 보안): [money.md](money.md) (2026-11-07 신설, 피어 `docs/peer_reviews/2026-11-07_money_kb.md`)
+
 ## 정의
 1. [교과서] 서프라이즈 = 실제 − 컨센서스(표준화 z = ÷ 과거 서프라이즈 σ). 시장은 수치가 아니라 예상과의 차이, 그리고 그것이 바꾸는 금리 경로 기대에 반응. (A1 모듈 `[확인 필요: Citi ESI 방법론, 2026-10-30]`)
 2. [자체연구-검증전] `macro_releases.json` = FRED `value` vs `prev` — **컨센서스 없음·개정 전 잠정치** → '직전 대비 방향'으로만. 대용 = 가격 반응 이례성(`macro_view.json` `z20`, `committee.macro.changed` = 하루 변화 ÷ 60일 σ).
