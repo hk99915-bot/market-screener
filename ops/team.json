@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-11-07T17:52+09:00",
+ "updated": "2026-11-08T00:42+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -9430,10 +9430,10 @@
  "auto": {
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
-  "since": "2026-11-01",
-  "commits_total": 1518,
-  "commits_bot": 1154,
-  "commits_unmapped": 62,
+  "since": "2026-11-02",
+  "commits_total": 1567,
+  "commits_bot": 1162,
+  "commits_unmapped": 64,
   "audit_files": [],
   "desks": {
    "CIO": {
@@ -9455,7 +9455,7 @@
     }
    },
    "HF": {
-    "commits_7d": 69,
+    "commits_7d": 71,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -9509,7 +9509,7 @@
     }
    },
    "PM": {
-    "commits_7d": 53,
+    "commits_7d": 76,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -12587,7 +12587,7 @@
     }
    },
    "개발": {
-    "commits_7d": 35,
+    "commits_7d": 38,
     "board": {
      "진행": 2,
      "검수": 3,
@@ -12641,7 +12641,7 @@
     }
    },
    "기록": {
-    "commits_7d": 0,
+    "commits_7d": 1,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -12731,7 +12731,7 @@
     }
    },
    "매크로": {
-    "commits_7d": 2,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -12803,7 +12803,7 @@
     }
    },
    "운영": {
-    "commits_7d": 33,
+    "commits_7d": 36,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -12911,7 +12911,7 @@
     }
    },
    "파생": {
-    "commits_7d": 2,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -12983,7 +12983,7 @@
     }
    },
    "피어리뷰": {
-    "commits_7d": 0,
+    "commits_7d": 1,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -13022,31 +13022,31 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 959,
-   "tokens": 170266544,
-   "tools": 34753,
-   "sec": 395088,
+   "runs": 1004,
+   "tokens": 179615686,
+   "tools": 36076,
+   "sec": 408444,
    "days": 23,
    "per_day": {
-    "runs": 41.7,
-    "tokens": 7402893.2,
-    "tools": 1511.0,
-    "sec": 17177.7
+    "runs": 43.7,
+    "tokens": 7809377.7,
+    "tools": 1568.5,
+    "sec": 17758.4
    }
   }
  },
  "by_model": {
   "미지정": {
-   "runs": 460,
-   "tokens": 78005195,
-   "tools": 17629,
-   "sec": 240052,
+   "runs": 493,
+   "tokens": 82766755,
+   "tools": 18413,
+   "sec": 252860,
    "days": 17,
    "per_day": {
-    "runs": 27.1,
-    "tokens": 4588540.9,
-    "tools": 1037.0,
-    "sec": 14120.7
+    "runs": 29.0,
+    "tokens": 4868632.6,
+    "tools": 1083.1,
+    "sec": 14874.1
    }
   },
   "claude-fable-5-1": {
@@ -13063,16 +13063,16 @@
    }
   },
   "claude-opus-5-5": {
-   "runs": 113,
-   "tokens": 40115680,
-   "tools": 7496,
+   "runs": 114,
+   "tokens": 43634871,
+   "tools": 7937,
    "sec": 44620,
-   "days": 11,
+   "days": 12,
    "per_day": {
-    "runs": 10.3,
-    "tokens": 3646880.0,
-    "tools": 681.5,
-    "sec": 4056.4
+    "runs": 9.5,
+    "tokens": 3636239.2,
+    "tools": 661.4,
+    "sec": 3718.3
    }
   },
   "opus": {
@@ -13102,16 +13102,16 @@
    }
   },
   "sonnet": {
-   "runs": 102,
-   "tokens": 9496784,
-   "tools": 1177,
-   "sec": 12774,
-   "days": 7,
+   "runs": 113,
+   "tokens": 10565175,
+   "tools": 1275,
+   "sec": 13322,
+   "days": 8,
    "per_day": {
-    "runs": 14.6,
-    "tokens": 1356683.4,
-    "tools": 168.1,
-    "sec": 1824.9
+    "runs": 14.1,
+    "tokens": 1320646.9,
+    "tools": 159.4,
+    "sec": 1665.2
    }
   },
   "claude-opus-5-5+sonnet-5-5": {
