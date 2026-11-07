@@ -36,12 +36,14 @@ const ISA_TARGET=[['S&P500',0.40],['NDX',0.15],['K200',0.15],['KTB',0.20],['Gold
 function isaBucket(s,nm){ const n=String(nm||'').toUpperCase();
   if(s==='360750'||n.includes('S&P')||['SPY','IVV','VOO','SPLG'].includes(s)) return 'S&P500';
   if(['133690','379810'].includes(s)||n.includes('나스닥')||n.includes('NDX')||['QQQ','QQQM'].includes(s)) return 'NDX';
-  if(['148070','305080','152380'].includes(s)||/국고채|국채|KTB/.test(n)) return 'KTB';
+  // USD_short = 국내 상장 미국 달러 단기채(환노출) — 원화 국고(KTB)와 분리, 목표 밖 바구니 (pb.py isa_bucket 과 같게, 11/7)
+  if(['0046A0','329750','455030','SGOV','BIL','SHV'].includes(s)||/(미국|달러).*(초단기|단기|SOFR|T-?BILL)/.test(n)) return 'USD_short';
+  if(['148070','305080','152380'].includes(s)||(/국고채|국채|KTB/.test(n)&&!/미국|달러|(^|[^A-Z])USD?([^A-Z]|$)/.test(n))) return 'KTB';  // 원화 국채 이름형 포함(pb.py RE_NON_KRW_BOND 와 같게, 11/7 감사 F-1)
   if(['132030','411060'].includes(s)||/골드|금선물|금현물|GOLD/.test(n)||['GLD','IAU'].includes(s)) return 'Gold';
   if(s==='069500'||(/(^|\s)200(\s|$)|코스피/.test(n)&&!/IT|반도체|인버스|레버리지/.test(n))) return 'K200';
   return null; }
 // 구속 스트레스 '2026-07 실측' 충격 (pb.py STRESS_SCENARIOS['2026-07'] 과 같게 — tests/test_pb_stress.py 대조, 결재 appr-frm-agenda-a 10/24)
-const STRESS_0726={semi:-0.50,elec:-0.60,look:-0.50,core:{'K200':-0.41,'S&P500':-0.08,'NDX':-0.16,'KTB':0.0,'Gold':-0.04}};
+const STRESS_0726={semi:-0.50,elec:-0.60,look:-0.50,core:{'K200':-0.41,'S&P500':-0.08,'NDX':-0.16,'KTB':0.0,'Gold':-0.04,'USD_short':-0.06}};
 // 반도체 분류 (pb.py semi_class 와 동일): 'semi' = 한도 산입(반도체 체인·미국 반도체·반도체/IT 섹터 ETF 전액), 'elec' = 전기·IT 하드웨어(상관 테마, 보조 수치),
 // 지수 ETF(KODEX 200·S&P500 …)는 한도 밖 — 속의 반도체 룩스루는 lookW 로 돌려 '참고 경보' 로만 보인다 (합의 1-④)
 const SEMI_ETFS=['139260','091160','PSI','SOXX','SMH','SOXL','SOXQ','XSD','SMHX','396500','395160','449450'];
@@ -622,7 +624,7 @@ function myRender(hs,cash,miss){
   const hd=hedge.filter(h=>h.ty==='div').sort((a,b)=>b.red-a.red).slice(0,2);
   if(hd.length) op.push(`<b>구조적 분산</b>: 주식 10%p를 옮긴다면 ${hd.map(h=>`${esc(h.nm)} (변동성 ${W(h.red)} 감소, 포트 상관 ${F(h.rho)})`).join(', ')}가 가장 효과적이었습니다. 인버스와 달리 들고 있어도 녹지 않습니다.`);
   const pf=(typeof PF!=='undefined'&&PF&&PF.strategies)||null;
-  const isaW={}; let isaEtc=0; for(const a of A){ if(a.book!=='isa') continue; const b=isaBucket(a.h.r.s,a.d.name); if(b) isaW[b]=(isaW[b]||0)+a.val; else isaEtc+=a.val; }
+  const isaW={}; let isaEtc=0; for(const a of A){ if(a.book!=='isa') continue; const b=isaBucket(a.h.r.s,a.d.name); if(b&&ISA_TARGET.some(([k])=>k===b)) isaW[b]=(isaW[b]||0)+a.val; else isaEtc+=a.val; }
   const isaPanel=hasIsa?`<div class="p" style="margin-bottom:8px"><h2>ISA 코어<small>${DENOM_TERMS.a}의 ${W(isaTot/NAV)} · 목표 S&P40/NDX10/K200 15/국고채20/금15 · 밴드 ±${(ISA_BAND*100).toFixed(0)}%p · 적립으로 맞춤(매도 아님)</small></h2><div class="b"><table><tr><th class="l">바구니</th><th>지금</th><th>목표</th><th>차이</th><th>상태</th></tr>
      ${ISA_TARGET.map(([k,t])=>{ const w=(isaW[k]||0)/isaTot, d=w-t; const st=Math.abs(d)<=ISA_BAND?'<span class="v-ok">밴드 안 ✅</span>':d>0?'<span class="v-bad">▲ 초과 — 적립 멈춤</span>':'<span class="am">▼ 부족 — 적립 우선</span>'; return `<tr><td class="l">${k}</td><td>${W(w)}</td><td class="mu">${W(t)}</td><td>${(d*100).toFixed(1)>0?'+':''}${(d*100).toFixed(1)}%p</td><td>${st}</td></tr>`; }).join('')}
      ${cIsa?`<tr><td class="l mu">ISA 현금</td><td>${W(cIsa/isaTot)}</td><td colspan="3" class="mu l">${KW(cIsa)} — 부족 바구니부터 적립</td></tr>`:''}${isaEtc?`<tr><td class="l mu">기타(목표 밖)</td><td>${W(isaEtc/isaTot)}</td><td colspan="3" class="mu l">목표 바구니로 분류되지 않은 종목</td></tr>`:''}</table>

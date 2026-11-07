@@ -111,10 +111,7 @@ def test_my_tab_shocks_match_pb():
     sc = pb.STRESS_SCENARIOS["2026-07"]
     assert tuple(float(m.group(i)) for i in (1, 2, 3)) == (sc["semi"], sc["elec"], sc["look"])
     core = {k: float(v) for k, v in re.findall(r"'([^']+)':(-?[\d.]+)", m.group(4))}
-    # 11/7 USD_short(pb.py 신설)는 MY 탭 미러 미반영 — tab_my.html 수정은 index.html 재생성(build_pages)을 같이 해야 해서 후속 커밋.
-    #   미러 반영 커밋에서 이 예외(PENDING)를 지운다. 그 전까지 MY 탭은 0046A0 등을 예전처럼 KTB(충격 0)로 본다.
-    PENDING = {"USD_short"}
-    assert core == {k: v for k, v in sc["core"].items() if k not in PENDING or k in core}
+    assert core == sc["core"]   # 11/7 USD_short 미러 반영 — 예외(PENDING) 없음
     assert "-0.30:c.kind==='elec'?-0.24" not in src   # 옛 대리 충격 잔존 금지
 
 
@@ -147,6 +144,10 @@ def test_stress_uses_chain_class_not_official_sector():
     ("365780", "ACE 국고채10년", "KTB"),
     ("305080", "TIGER 미국채10년선물", "KTB"),                        # 분리 여부는 10/23 Q4 결재 대기 — 코드 목록 유지
     ("484790", "KODEX 미국30년국채액티브(H)", None),                  # 미국 국채 ≠ 원화 국고
+    ("999998", "PLUS 국채선물3년", "KTB"),                            # 11/7 감사 F-1: '국고채' 글자 없는 원화 국채 이름형 (PLUS 의 US ≠ 미국)
+    ("999997", "TIGER 국채3년", "KTB"),
+    ("999996", "ANY US국채30년", None),                               # 'US' 단어 = 미국 국채
+    ("999995", "ANY 달러국채", None),
 ])
 def test_isa_bucket_usd_short_vs_ktb(s, name, want):
     assert pb.isa_bucket(s, name) == want
@@ -176,3 +177,11 @@ def test_evaluate_with_usd_short_in_isa(tmp_path, monkeypatch):
     assert ev["isa_w"]["USD_short"] == pytest.approx(1.0)
     assert ev["stress"]["2026-07"] == pytest.approx(1000 * -0.06 / 2000)
     assert any("USD_short" in ln for ln in pb.isa_lines(ev))
+
+
+def test_my_tab_isa_bucket_matches_pb():
+    """MY 탭 isaBucket 의 USD_short·KTB 판정식이 pb.isa_bucket 과 같은 식 (11/7 감사 F-1 — 미러가 따로 좁아지지 않게)."""
+    src = (Path(__file__).resolve().parents[1] / "apps-script" / "tab_my.html").read_text(encoding="utf-8")
+    assert "/(미국|달러).*(초단기|단기|SOFR|T-?BILL)/.test(n)) return 'USD_short'" in src
+    assert "(/국고채|국채|KTB/.test(n)&&!/" + pb.RE_NON_KRW_BOND.pattern + "/.test(n))) return 'KTB'" in src
+    assert src.index("return 'USD_short'") < src.index("return 'KTB'")   # 순서: USD_short 먼저

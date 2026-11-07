@@ -149,6 +149,7 @@ def _detail(mk: str, s: str) -> dict | None:
 
 
 USD_SHORT_CODES = ("0046A0", "329750", "455030")   # TIGER 미국초단기(3개월이하)국채 · TIGER 미국달러단기채권액티브 · KODEX 미국달러SOFR금리액티브(합성)
+RE_NON_KRW_BOND = re.compile(r"미국|달러|(^|[^A-Z])USD?([^A-Z]|$)")   # 이름 대문자화 뒤 — PLUS·BUSAN 의 US 는 단어 아님 (lookbehind 안 씀: MY 탭 미러가 옛 Safari 에서도 파싱되게)
 
 
 def isa_bucket(s: str, name: str) -> str | None:
@@ -162,8 +163,10 @@ def isa_bucket(s: str, name: str) -> str | None:
         return "NDX"
     if s in USD_SHORT_CODES or re.search(r"(미국|달러).*(초단기|단기|SOFR|T-?BILL)", n) or s in ("SGOV", "BIL", "SHV"):
         return "USD_short"
-    # 원화 국고채 이름만 KTB ('미국' 이 들어간 국채 상품은 KTB 아님). 305080(미국채10년선물) 분리는 10/23 Q4 결재 대기라 코드 목록에 유지.
-    if s in ("148070", "305080", "152380") or (re.search(r"국고채|KTB", n) and "미국" not in n):
+    # 원화 국채(국채·국고채·KTB — 'PLUS 국채선물3년'·'TIGER 국채3년' 같은 이름형 포함)는 KTB. '미국'·'달러'·'US'(단어) 가 들어간
+    # 국채 상품은 KTB 아님(단기는 위 USD_short, 장기는 None). 11/7 감사 F-1: '국고채' 로만 좁혀 원화 국채 이름형이 None 으로 빠지던 회귀 수정.
+    # 305080(미국채10년선물) 분리는 10/23 Q4 결재 대기라 코드 목록에 유지.
+    if s in ("148070", "305080", "152380") or (re.search(r"국고채|국채|KTB", n) and not RE_NON_KRW_BOND.search(n)):
         return "KTB"
     if s in ("132030", "411060") or re.search(r"골드|금선물|금현물|GOLD", n) or s in ("GLD", "IAU"):
         return "Gold"
