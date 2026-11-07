@@ -139,6 +139,7 @@ function getDerivSignals() { return raw_('reports/studies/derivs_signals.json');
 function getGammaStudy() { return raw_('reports/studies/gamma_regime.json'); }
 function getDerivsResearch() { return raw_('reports/views/derivs_research.json'); }   // MARKET › 파생 리서치 산출물 (금융위 V2 탐침·스프레드 사전등록)
 function getHfLsVol() { return raw_('reports/studies/2026-10-21_hf_ls_vol.json'); }   // MARKET › 파생 분산 매도·롱숏 검증 (HF)
+function getShadowBook() { return raw_('reports/views/shadow_derivs_book.json'); }   // MARKET › 파생 › 그림자 파생 북 (모의 · 표시 전용, screener/shadow_book.py)
 function getMacroReleases() { return raw_('reports/macro_releases.json'); }
 function getEnglishLatest() { return raw_('reports/english/latest.json'); }
 function getEnglishAt(d) { return raw_('reports/english/' + d + '.json'); }

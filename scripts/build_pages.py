@@ -104,6 +104,7 @@ SHIM = """<script>
     getGammaStudy: () => get('reports/studies/gamma_regime.json'),
     getDerivsResearch: () => get('reports/views/derivs_research.json'),
     getHfLsVol: () => get('reports/studies/2026-10-21_hf_ls_vol.json'),
+    getShadowBook: () => get('reports/views/shadow_derivs_book.json'),
     getMacroReleases: () => get('reports/macro_releases.json'),
     getEnglishLatest: () => get('reports/english/latest.json'),
     getEnglishAt: (d) => get('reports/english/' + d + '.json'),

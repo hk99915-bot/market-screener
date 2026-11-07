@@ -66,6 +66,7 @@
     getGammaStudy: () => get('reports/studies/gamma_regime.json'),
     getDerivsResearch: () => get('reports/views/derivs_research.json'),
     getHfLsVol: () => get('reports/studies/2026-10-21_hf_ls_vol.json'),
+    getShadowBook: () => get('reports/views/shadow_derivs_book.json'),
     getMacroReleases: () => get('reports/macro_releases.json'),
     getEnglishLatest: () => get('reports/english/latest.json'),
     getEnglishAt: (d) => get('reports/english/' + d + '.json'),
@@ -5360,7 +5361,7 @@ function openBasis(){
 document.addEventListener('click',e=>{ const c=e.target.closest('[data-basis]'); if(c&&!c.closest('.tape')) openBasis(); });
 
 /* ───── 파생(DERIV) 화면: 흩어진 파생 정보 모음 — reports/derivs.json · data/deriv/daily.csv · reports/studies/derivs_signals.json · live.json K200F (새 수집 없음) ───── */
-const DVX={d:null,h:null,s:null,g:null,r:null,v:null}; let DVCH=[];
+const DVX={d:null,h:null,s:null,g:null,r:null,v:null,b:null}; let DVCH=[];
 function dvLoad(k,fn,parse){ if(DVX[k]!==null) return; DVX[k]=false; const r=google.script.run;
   if(typeof r[fn]!=='function'){ DVX[k]={}; return; }
   r.withSuccessHandler(t=>{ try{ DVX[k]=parse?parse(t):(typeof t==='string'?JSON.parse(t):(t||{})); }catch(e){ DVX[k]={}; } if(view==='deriv') render(); })
@@ -5393,7 +5394,7 @@ function dvTop(d){
     <button class="sbtn" style="min-height:44px;margin-top:6px" onclick="const e=document.getElementById('dvSum'); if(e) e.scrollIntoView({behavior:'smooth',block:'start'})">상세 숫자·차트 ↓</button></div></div>`;
 }
 function derivView(){
-  dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv); dvLoad('g','getGammaStudy'); dvLoad('r','getDerivsResearch'); dvLoad('v','getHfLsVol');
+  dvLoad('d','getDerivs'); dvLoad('s','getDerivSignals'); dvLoad('h','getDerivHist',dvCsv); dvLoad('g','getGammaStudy'); dvLoad('r','getDerivsResearch'); dvLoad('v','getHfLsVol'); dvLoad('b','getShadowBook');
   if(DVX.d===false&&DVX.h===false) return '<div class="load">LOADING …</div>';
   const d=DVX.d||{}, R=(DVX.h&&DVX.h.rows)||[], S=DVX.s||{};
   const lv=((L&&L.items)||[]).find(x=>x.key==='K200F')||null;
@@ -5439,7 +5440,7 @@ function derivView(){
     <div class="mu" style="font-size:var(--fs-1);margin-top:6px">${esc(S.grades_doc||'')} · 다중검정 m=${S.m??'?'}, α=${S.alpha_bonf??'?'}. 자세한 내용은 QUANT › 검증 스터디.</div></div></div>`:'';
   setTimeout(drawDerivHist,0);
   setTimeout(()=>{ const b=$('#dvA8'); if(b) b.onclick=dvGoA8; },0);
-  return `<div class="grid">${dvTop(d)}${sum}${dvTv()}${op}${hist}${vt}${dvResearch(DVX.r,DVX.v)}</div>`;
+  return `<div class="grid">${dvTop(d)}${sum}${dvTv()}${op}${hist}${vt}${dvResearch(DVX.r,DVX.v)}${dvShadow(DVX.b)}</div>`;
 }
 /* 코스피200 선물 라이브 차트 (req-front-4e7ee8ad, 10/24 겸이 '트레이딩뷰 차트 붙이잖아 우리' + KRX:K2I1!) — 종목 상세 liveChart 와 같은 widgetembed.
    표시 전용: 위젯 iframe 만 띄우고 값은 읽지 않는다(추출·스크랩 금지). 다시 그릴 때마다 iframe 이 새로 불리지 않게 기본은 접힘, 누르면 펼침(DV_TV).
@@ -5507,6 +5508,20 @@ function dvResearch(R,V){
     <div class="mu" style="font-size:var(--fs-1)">${esc((R&&R.meta&&R.meta.note)||'')}</div>${out}</div></div>`;
 }
 
+// 그림자 파생 북 (11/7 오너 승인 — 모의 · 돈 0 · 표시 전용) — reports/views/shadow_derivs_book.json (screener/shadow_book.py, KRX 일 정산가 마킹).
+// 전략별 한 줄. 사전등록 #1 reports/studies/shadow_mini_put_prereg.md · 다전략 HF reports/studies/shadow_book_prereg.md. 방향 신호·매매 권고 아님.
+function dvShadow(B){
+  const box=b=>`<div class="p c12" id="dvShadow"><h2>그림자 파생 북<small>모의 · 돈 0 · KRX 일 정산가${B&&B.asof?' · 기준 '+esc(B.asof):''} · 방향 신호 아님</small></h2><div class="b" style="white-space:normal">${b}</div></div>`;
+  if(B===null||B===false) return box('<div class="load">LOADING …</div>');
+  const S=(B&&B.strategies)||[];
+  if(!S.length) return box('<div class="mu">데이터 없음 (reports/views/shadow_derivs_book.json)</div>');
+  const w=v=>v==null?'—':`<span class="${v>0?'up':v<0?'dn':'mu'}">${v>0?'+':''}${Math.round(v).toLocaleString('ko-KR')}</span>`;
+  const rows=S.map(s=>{ const m=s.summary||{}; return `<tr><td class="l">${esc(String(s.no||''))} ${esc(s.name||s.id)}</td><td class="l" style="white-space:normal;font-size:var(--fs-1)">${esc((m.legs||[]).join(' + '))}</td>
+    <td class="l">${esc(m.last_status||m.status||'—')}</td><td>${w(m.pnl_cum)}</td><td>${w(m.pnl_day)}</td><td>${w(m.theta_krw_day)}</td><td>${m.cycles??0}/${m.min_cycles??3}</td><td class="mu">${m.n_thin||0}·${m.n_proxy||0}</td></tr>`; }).join('');
+  const H=B.hf_prereg||{};
+  return box(`<div style="overflow-x:auto"><table><tr><th class="l">전략</th><th class="l">다리</th><th class="l">상태</th><th>누적 손익(원)</th><th>오늘</th><th>세타/일</th><th>만기</th><th>thin·대체</th></tr>${rows}</table></div>
+    <div class="mu" style="font-size:var(--fs-1);margin-top:4px">실계좌 아님. 손익 = 방향 × 수량 × 승수(미니 = 정규의 1/5) × 정산가 차 · 미니 옵션 마킹 = 정규 같은 종목 정산가(KRX 상품명세: 기준가격 동일) · 체결가(현재가) 마킹 금지 · 세타 = 정산가 역산 IV 의 BS 근사 · thin = 미니 거래량 0 인 날 · 대체 = 1순위 소스가 없던 날 · 실시간 시세 없음(일 단위) · 매도 다리 증거금 칸은 미구현 · HF 사전등록 ${H.found?`${H.n||0}개 등록`:'아직 없음'} · ${esc(B.wiring&&B.wiring.startsWith('[제안-미적용]')?'자동 갱신 연결 [제안-미적용]':'')}</div>`);
+}
 /* 상단 3칸 어댑터 (묶음 B, 10/26) — Index.html TOPF·mkTop·topMount. 기존 문장·수치 재배치만, 근거 없으면 NA(사유). */
 if(typeof TOPF==='object'){
 TOPF.deriv=()=>{ const d=DVX.d; if(d===null||d===false) return null; if(d&&isTop(d.top)) return d.top; if(!d||d.pcr_oi==null&&!d.insight) return mkTop(NA('파생 데이터 없음'),NA('—'),NA('—'),['reports/derivs.json']);

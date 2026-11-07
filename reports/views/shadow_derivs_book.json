@@ -1,0 +1,108 @@
+{
+ "schema": "shadow_derivs_book/1",
+ "asof": "2026-11-07",
+ "title": "그림자 파생 북 (모의 · 돈 0 · 표시 전용)",
+ "note": "실계좌 아님. KRX 일 정산가 마킹. 방향 신호·매매 권고 아님. 등급 = 검증전(학습 장부).",
+ "spec": {
+  "mult": {
+   "mini": 50000,
+   "k2i": 250000
+  },
+  "mult_src": {
+   "mini": "5만원/pt — KRX 미니코스피200옵션 상품명세 원문 확인(오너 붙여넣기 2026-11-07) · 12801 SETLMULT 로 재대조",
+   "k2i": "25만원/pt — KRX 12801 SETLMULT 250,000 (탐침 2026-10-15)",
+   "mini_fut": "5만원/pt — KRX 상품명세 원문 확인(오너 붙여넣기 2026-11-07)"
+  },
+  "prod_id": {
+   "mini_O": "KRDRVOPMKI",
+   "k2i_O": "KRDRVOPK2I",
+   "mini_F": "KRDRVFUMKI",
+   "k2i_F": "KRDRVFUK2I"
+  },
+  "price": "정산가만(종가=마지막 체결가 마킹 금지) · 미니 옵션 = 정규 코스피200옵션 같은 종목 정산가(k2i_ref, KRX 상품명세: 미니 기준가격 = 정규 같은 종목 기준가격) → 없으면 미니 정산가 → 없으면 전일가 유지 · 선물 = 자체 정산가",
+  "greeks": "정산가 역산 IV · 블랙숄즈 r=3% 배당 0 (근사)",
+  "realtime": "없음 — 장중 실시간은 증권사 Open API 필요(미연결)"
+ },
+ "spec_mini_opt": {
+  "src": "KRX 상품명세(오너 붙여넣기 2026-11-07)",
+  "mult": 50000,
+  "months": "매월 · 연속 6개월(분기월 2·비분기월 4) · 위클리 없음",
+  "strikes": "최근 3개 근월물 ATM±120pt 2.5pt 간격 · 4~6근월물 5pt 간격",
+  "tick": "3pt 미만 0.01 · 3~10 0.02 · 10 이상 0.05",
+  "style": "유럽형 · 최종거래일만 행사 · 현금결제",
+  "last_trade": "결제월 두 번째 목요일",
+  "base_px": "기준가격·증거금 기준가격 = 정규 코스피200옵션 같은 콜/풋·행사가·결제월 기준가격",
+  "limit": "±8/15/20%(옵션이론가 기준)",
+  "position_limit_indiv": "미결제 10,000델타"
+ },
+ "spec_mini_fut": {
+  "src": "KRX 상품명세(오너 붙여넣기 2026-11-07)",
+  "mult": 50000,
+  "months": "매월 · 연속 6개월 상장(분기월 2·비분기월 4)",
+  "tick": "0.02pt = 1,000원",
+  "hours": "08:45~15:45(최종거래일 ~15:20) · 야간 18:00~06:00",
+  "last_trade": "결제월 두 번째 목요일",
+  "settle_method": "현금결제",
+  "limit": "±8/15/20% 단계",
+  "daily_settle": "분기월 = 코스피200선물 정산가 · 비분기월 = 자체 산출 가격",
+  "base_px": "비분기월 = 직전일 정산가",
+  "position_limit_indiv": "미결제 10,000계약"
+ },
+ "wiring": "[제안-미적용] .github/workflows/deriv_hist.yml (평일 16:40, 기존 슬롯 — 새 예약 아님) '감마 레짐' 단계 뒤에 `- name: 그림자 파생 북 (표시 전용)` / `run: python -m screener.shadow_book 2>&1 | tail -5 || echo \"::warning::shadow_book 실패\"` 한 단계 + '저장' for 목록에 reports/views/shadow_derivs_book.json 추가. 붙이기 전까지는 장부가 갱신되지 않지만, 진입·일별 값은 과거 거래일(trdDd)로 다시 받을 수 있어 11/10 정산가 진입 규칙은 그대로 지켜진다(따라잡기 최대 15거래일/회).",
+ "hf_prereg": {
+  "path": "reports/studies/shadow_book_prereg.md",
+  "found": false,
+  "n": 0,
+  "errors": []
+ },
+ "strategies": [
+  {
+   "id": "S1_mini_put_10",
+   "no": 1,
+   "name": "미니 K200 풋 −10% 1계약 매수 (보험료 녹음·급락 손익)",
+   "owner": "파생",
+   "prereg": "reports/studies/shadow_mini_put_prereg.md",
+   "start": "2026-11-10",
+   "min_dte": 20,
+   "roll": "expiry",
+   "min_cycles": 3,
+   "legs": [
+    {
+     "kind": "P",
+     "side": 1,
+     "product": "mini",
+     "moneyness": -0.1,
+     "qty": 1
+    }
+   ],
+   "status": "waiting",
+   "rows": [
+    {
+     "date": "2026-11-07",
+     "status": "진입 대기(11/10 정산가)"
+    }
+   ],
+   "cycles": [],
+   "margin": null,
+   "summary": {
+    "status": "waiting",
+    "legs": [
+     "미니 P -10% 매수×1"
+    ],
+    "last_date": "2026-11-07",
+    "last_status": "진입 대기(11/10 정산가)",
+    "pnl_cum": null,
+    "pnl_day": null,
+    "theta_krw_day": null,
+    "cycles": 0,
+    "min_cycles": 3,
+    "n_days": 0,
+    "n_thin": 0,
+    "n_proxy": 0,
+    "n_mini_gap": 0,
+    "crash_days": []
+   }
+  }
+ ],
+ "generated_at": "2026-11-07 20:05"
+}
