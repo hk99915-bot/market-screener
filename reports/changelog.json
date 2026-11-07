@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-07 05:37 KST",
+ "generated_at": "2026-11-08 04:04 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,12 +16,12 @@
  "first": "2026-10-15",
  "days": [
   {
-   "date": "2026-11-07",
-   "total": 73,
-   "work": 3,
-   "auto": 70,
+   "date": "2026-11-08",
+   "total": 4,
+   "work": 2,
+   "auto": 2,
    "by": {
-    "bot": 3
+    "bot": 2
    },
    "areas": [
     {
@@ -29,6 +29,674 @@
      "label": "운영",
      "n": 1,
      "items": [
+      {
+       "sha": "d94c7c96",
+       "time": "00:42",
+       "kind": "bot",
+       "summary": "team: 2026-11-07T15:42 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 1,
+     "items": [
+      {
+       "sha": "b61ef7c6",
+       "time": "01:50",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-07T16:50",
+       "areas": [
+        "data"
+       ],
+       "files": 7,
+       "tasks": []
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 2,
+    "label": "자동 갱신 2회",
+    "kinds": {
+     "health": 1,
+     "backfill": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 1
+   }
+  },
+  {
+   "date": "2026-11-07",
+   "total": 145,
+   "work": 63,
+   "auto": 82,
+   "by": {
+    "bot": 15,
+    "agent": 48
+   },
+   "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 4,
+     "items": [
+      {
+       "sha": "76c457ff",
+       "time": "20:40",
+       "kind": "agent",
+       "summary": "record: 화폐 KB(money.md) 가독성 재작성 — 한 장 요약·절 첫 줄 결론·출처 각주화",
+       "areas": [
+        "web",
+        "docs"
+       ],
+       "files": 4,
+       "tasks": [
+        "index-split",
+        "research-views",
+        "research-synthesis",
+        "public-reports",
+        "uxui-top10-impl",
+        "front-first-round"
+       ]
+      },
+      {
+       "sha": "41c99954",
+       "time": "20:22",
+       "kind": "agent",
+       "summary": "dev: isa_bucket 원화 국채 이름형 KTB 회귀 수정 + MY 탭 USD_short 미러 반영 (11/7 감사 F-1·(g))",
+       "areas": [
+        "web",
+        "engine",
+        "tools"
+       ],
+       "files": 4,
+       "tasks": [
+        "index-split",
+        "r9-alert-grade",
+        "r3-semi-band",
+        "audit-ring-pb",
+        "audit-1017-minor",
+        "my-tab-ledger-compare",
+        "toss-sectors",
+        "front-first-round"
+       ]
+      },
+      {
+       "sha": "76b9fa09",
+       "time": "20:08",
+       "kind": "agent",
+       "summary": "derivs: 그림자 파생 북(모의·돈 0) — 다리 단위 정산가 마킹 엔진 + 미니 풋 #1 사전등록 + DERIV 패널",
+       "areas": [
+        "web",
+        "engine",
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 8,
+       "tasks": [
+        "index-split",
+        "deriv-insight",
+        "front-first-round"
+       ]
+      },
+      {
+       "sha": "7e032ac9",
+       "time": "20:05",
+       "kind": "agent",
+       "summary": "ui: FREEMAN '오늘의 연구' 링크 2개 → 서고 리더로 열기 · 서고 허용 경로에 화폐 KB 1개 추가",
+       "areas": [
+        "web",
+        "data"
+       ],
+       "files": 5,
+       "tasks": [
+        "index-split",
+        "front-first-round"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "workflow",
+     "label": "워크플로",
+     "n": 1,
+     "items": [
+      {
+       "sha": "04e4492b",
+       "time": "20:11",
+       "kind": "agent",
+       "summary": "derivs: deriv_hist 16:40 슬롯에 그림자 파생 북 마킹 단계 추가 (새 예약 아님)",
+       "areas": [
+        "workflow",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "event-watch",
+        "live-us-winter-window",
+        "live-resume-gap",
+        "repo-size-stage1",
+        "live-us-dst-march",
+        "dart-supply-temp-cron"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 1,
+     "items": [
+      {
+       "sha": "23fae067",
+       "time": "20:07",
+       "kind": "agent",
+       "summary": "dev: isa_bucket 미국 달러 단기채 KTB 오분류 수정 — USD_short 바구니·스트레스 충격",
+       "areas": [
+        "engine",
+        "tools"
+       ],
+       "files": 2,
+       "tasks": [
+        "r9-alert-grade",
+        "r3-semi-band",
+        "audit-ring-pb",
+        "audit-1017-minor",
+        "toss-sectors"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 37,
+     "items": [
+      {
+       "sha": "5cc2d4fd",
+       "time": "22:45",
+       "kind": "agent",
+       "summary": "pm: 기록 22:30 정기 기록 사용량(추정치 — 완료 알림 전)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "7c0f32f5",
+       "time": "22:45",
+       "kind": "agent",
+       "summary": "pm: 기록 22:30 사용량 실측으로 갱신",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "f0c66065",
+       "time": "22:41",
+       "kind": "agent",
+       "summary": "pm: 11/7 22:30 대조 — PB(메인) 메인 대화 사용량 반영",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "16d8b273",
+       "time": "20:42",
+       "kind": "agent",
+       "summary": "운영 — 팀 사용량 — 기록 화폐 KB 재작성(PB 호출)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "173b28f4",
+       "time": "20:27",
+       "kind": "agent",
+       "summary": "운영 — 팀 사용량 — 개발 감사 후속 수정(PB 호출)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d6bc44ee",
+       "time": "20:25",
+       "kind": "agent",
+       "summary": "운영 — 팀 사용량 — 11/7 데스크 사담 10건(PB 호출)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "f70f17b4",
+       "time": "20:18",
+       "kind": "agent",
+       "summary": "pm: 감사 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "e7d33d45",
+       "time": "20:15",
+       "kind": "agent",
+       "summary": "pm: 컴플 옵션 허용 판정 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "589b73f5",
+       "time": "20:10",
+       "kind": "agent",
+       "summary": "pm: 그림자 파생 북 구현 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "25a78f78",
+       "time": "20:09",
+       "kind": "agent",
+       "summary": "pm: 데이터엔지니어 환율 버그 수정 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "f53267ec",
+       "time": "20:07",
+       "kind": "agent",
+       "summary": "pm: 배분 위성 상한 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "bebe87b5",
+       "time": "20:06",
+       "kind": "agent",
+       "summary": "pm: 개발 터미널 연결 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "3e4934ee",
+       "time": "20:05",
+       "kind": "agent",
+       "summary": "pm: 위성 상한 HF·CIO 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "f0b6715b",
+       "time": "20:00",
+       "kind": "agent",
+       "summary": "pm: HF 그림자 북 사전등록 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8f6c912c",
+       "time": "19:50",
+       "kind": "agent",
+       "summary": "pm: 배분 전체 달러·A1 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "3325279e",
+       "time": "19:42",
+       "kind": "agent",
+       "summary": "pm: 파생 안전 칸 의견 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8e6fa09a",
+       "time": "19:40",
+       "kind": "agent",
+       "summary": "pm: 파생 화폐 관점 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "c9510537",
+       "time": "19:40",
+       "kind": "agent",
+       "summary": "pm: HF 안전 칸 의견 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "c275c3fa",
+       "time": "19:36",
+       "kind": "agent",
+       "summary": "pm: 화폐 KB 8데스크 패널·독립 리뷰 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "54d93133",
+       "time": "19:14",
+       "kind": "agent",
+       "summary": "pm: 채권·매크로 안전 칸 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "cf3a3427",
+       "time": "19:14",
+       "kind": "agent",
+       "summary": "pm: 퀀트 안전 칸 재현 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "68f6e436",
+       "time": "19:12",
+       "kind": "agent",
+       "summary": "pm: FRM 안전 칸 검증 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d84ab826",
+       "time": "19:12",
+       "kind": "agent",
+       "summary": "pm: 매크로 화폐 KB·컴플 안전 칸 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "861e5aed",
+       "time": "19:06",
+       "kind": "agent",
+       "summary": "pm: 배분 안전 칸 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "a2974c3e",
+       "time": "18:41",
+       "kind": "agent",
+       "summary": "pm: HF 포지셔닝 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b6534226",
+       "time": "18:34",
+       "kind": "agent",
+       "summary": "pm: CIO 포지셔닝 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "03260f82",
+       "time": "17:52",
+       "kind": "bot",
+       "summary": "team: 2026-11-07T08:52 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "9925406c",
+       "time": "17:24",
+       "kind": "agent",
+       "summary": "pm: 애널 PM 뷰 트래킹 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "aac4dcfe",
+       "time": "16:06",
+       "kind": "agent",
+       "summary": "pm: 기록 16:00 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "5eccb76b",
+       "time": "15:32",
+       "kind": "agent",
+       "summary": "pm: 행동 리프레이밍 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "4571ae22",
+       "time": "15:30",
+       "kind": "agent",
+       "summary": "pm: 매크로 대만 기금 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "0a7ef507",
+       "time": "15:26",
+       "kind": "agent",
+       "summary": "pm: 애널 mRNA 스캔 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "e6031dcd",
+       "time": "15:16",
+       "kind": "agent",
+       "summary": "pm: LIFE 금융권 공고 스캔 사용량 기록",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "b5488e1e",
+       "time": "10:59",
+       "kind": "bot",
+       "summary": "team: 2026-11-07T01:59 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "fc44acdf",
+       "time": "06:33",
+       "kind": "bot",
+       "summary": "team: 2026-11-06T21:33 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "70d1ee62",
+       "time": "05:50",
+       "kind": "bot",
+       "summary": "운영 — 2026-11-06T20:50 (원격 최신 위 재생성)",
+       "areas": [
+        "ops",
+        "data"
+       ],
+       "files": 6,
+       "tasks": [
+        "ops-system",
+        "quant-trend-adopt-pending"
+       ]
+      },
       {
        "sha": "3391adc2",
        "time": "00:58",
@@ -46,10 +714,234 @@
      ]
     },
     {
-     "area": "data",
-     "label": "데이터",
+     "area": "tools",
+     "label": "도구",
      "n": 2,
      "items": [
+      {
+       "sha": "394299be",
+       "time": "18:36",
+       "kind": "agent",
+       "summary": "hf: HF 포지셔닝 트래킹 장부 신설 — 넷·그로스 %ile·수급·전략 성과·PER 압축·신호 4개(관찰)",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": [
+        "hf-alphabook"
+       ]
+      },
+      {
+       "sha": "3f47bb21",
+       "time": "17:23",
+       "kind": "agent",
+       "summary": "analyst: PM 뷰 트래킹 신설 — pm_voices.json(부은영 콜 9·후보 5·미확인 사실 5) + KB 절 + 형식 테스트",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": [
+        "valuation-daily",
+        "research-synthesis",
+        "public-reports"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 8,
+     "items": [
+      {
+       "sha": "1fa48947",
+       "time": "20:22",
+       "kind": "agent",
+       "summary": "dev: 안전 칸 요약본 엔진 수정 반영 문구 · 화폐 KB 피어리뷰 ci-fix 표기 수정 주석 (11/7 감사 F-5·F-6, 내용·판정 불변)",
+       "areas": [
+        "docs"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "1f5b3ce3",
+       "time": "20:08",
+       "kind": "agent",
+       "summary": "derivs: 그림자 북 사전등록 v2 — 국채 3·10년 상품간 스프레드 참고 메모(#1 규칙 불변)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5447c1de",
+       "time": "20:05",
+       "kind": "agent",
+       "summary": "macro: 화폐 KB §7 9개 데스크 실제 호출 답변으로 교체(무편집) · 독립 피어리뷰 I1·I2 반영",
+       "areas": [
+        "docs"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "c215f190",
+       "time": "20:05",
+       "kind": "agent",
+       "summary": "스터디 — 안전 칸 연구 공개 요약본 — 국면 규칙 R1~R4 F, 배분 데스크 권고안(결재 대기) 정적 혼합 75/25",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "35b4ff0f",
+       "time": "20:05",
+       "kind": "agent",
+       "summary": "macro: [ci-fix] 화폐 KB 독립 피어리뷰 원화 금액 패턴 3곳 표기만 수정(test_no_won_amounts)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "154cf308",
+       "time": "19:59",
+       "kind": "agent",
+       "summary": "hf: 그림자 파생 북 사전등록 — 도구 23·국면 6 플레이북·H_sel 채점",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "f0179521",
+       "time": "19:36",
+       "kind": "agent",
+       "summary": "peer: 화폐 KB 독립 검토 — 금 매입 2025 863t 불일치·SWIFT 기준 혼선·옛 돈 실패 사례 누락 등 11건, B− 조건부",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "cc1ad856",
+       "time": "19:11",
+       "kind": "agent",
+       "summary": "macro: 화폐 KB 신설(money.md) — 본질·가치론·중앙은행·달러 질서·미래·해킹 보안·데스크 뷰·자체 레드팀",
+       "areas": [
+        "docs"
+       ],
+       "files": 5,
+       "tasks": [
+        "macro-governor-shin"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 10,
+     "items": [
+      {
+       "sha": "a5f5e53a",
+       "time": "20:25",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-07T11:25 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "20148b47",
+       "time": "20:09",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-07T11:09 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "30a1be2e",
+       "time": "20:06",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-07T11:06 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "8b05a822",
+       "time": "19:59",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-07T10:59 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "006f4b1b",
+       "time": "19:36",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-07T10:36 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "c74246a9",
+       "time": "19:11",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-07T10:11 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "91b59209",
+       "time": "18:05",
+       "kind": "bot",
+       "summary": "data: DART 사업의 내용 2026-11-07T09:05",
+       "areas": [
+        "data"
+       ],
+       "files": 10,
+       "tasks": []
+      },
+      {
+       "sha": "dc283420",
+       "time": "11:50",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-07T02:50",
+       "areas": [
+        "data"
+       ],
+       "files": 7,
+       "tasks": []
+      },
       {
        "sha": "f61aa70d",
        "time": "04:56",
@@ -76,19 +968,44 @@
     }
    ],
    "auto_updates": {
-    "n": 70,
-    "label": "자동 갱신 70회",
+    "n": 82,
+    "label": "자동 갱신 82회",
     "kinds": {
-     "live": 65,
+     "live": 73,
+     "health": 2,
+     "briefing": 2,
      "accum": 1,
      "backfill": 1,
-     "health": 1,
      "fin": 1,
-     "briefing": 1
+     "ops": 1,
+     "us_accum": 1
     }
    },
    "tasks": {
-    "ops-system": 1
+    "ops-system": 37,
+    "index-split": 4,
+    "front-first-round": 4,
+    "research-synthesis": 2,
+    "public-reports": 2,
+    "r9-alert-grade": 2,
+    "r3-semi-band": 2,
+    "audit-ring-pb": 2,
+    "audit-1017-minor": 2,
+    "toss-sectors": 2,
+    "quant-trend-adopt-pending": 1,
+    "valuation-daily": 1,
+    "hf-alphabook": 1,
+    "macro-governor-shin": 1,
+    "deriv-insight": 1,
+    "event-watch": 1,
+    "live-us-winter-window": 1,
+    "live-resume-gap": 1,
+    "repo-size-stage1": 1,
+    "live-us-dst-march": 1,
+    "dart-supply-temp-cron": 1,
+    "my-tab-ledger-compare": 1,
+    "research-views": 1,
+    "uxui-top10-impl": 1
    }
   },
   {
