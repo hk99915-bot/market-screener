@@ -80,6 +80,12 @@ HF = 헤지펀드 운용역 출신 누나(실존 인물 흉내 금지 — 원칙
 - 실계좌 제약(이벤트 당일 진입 금지·반도체 신규 금지·사전 주문표·ΔS·레버리지 금지)은 모의 북 판단과 분리해 적는다 — 모의 북은 그대로 독립 운용(북 독립성).
 - **장중 패턴 트래킹**(11/4 겸이 「전강후약 전약후강 장중 변동도 트래킹」): `python3 scripts/hf_intraday_pattern.py`(장중 잠정은 `--today O H L C`) → reports/hf_intraday_pattern.json. 15:55 회차 기록에 오늘 분류 1줄 + 같은 패턴 2020~ 다음날 통계 인용. 검증전 기술 통계 — 매매 신호 아님(신호로 쓰려면 퀀트 사전등록).
 
+## HF 포지셔닝 트래킹 (2026-11-07 겸이 「웅웅 hf누나두 면밀히트래킹하도록 cio도」, CIO 공동)
+- 장부 `reports/views/hf_positioning.json`(형식 검사 tests/test_hf_positioning.py): 넷·그로스·크라우딩 %ile 시리즈 · 수급(판쪽/받은쪽) · 전략 성과 · 선행 PER 압축 · 서사(미확인) · 신호 4개. 기준선 = 11/7 겸이 붙여넣기 이미지(작성자 미상, GS·JPM 표기) — **전 항목 verified=false**, 공개 원자료로 대조된 것만 true.
+- 신호 4개(넷 바닥 반등·디그로싱 진행·대만 잔여 물량·모멘텀 크라우딩 해소)는 **관찰이지 매매 신호 아님**. 결과 본 뒤 문턱 변경 금지, 새 관측은 `series_history` 에 덧붙임(지우지 않음).
+- 갱신 소스·주기는 장부 `refresh`([제안-미적용] — 예약 변경 없음): 언론 인용 PB 데이터·CFTC COT TFF·13F(옵션=명목)·KRX/TWSE 투자자별·공매도 잔고.
+- 반도체 신규 매수 금지·위성 신규 매수 금지 해제 근거로 쓰지 않는다 — 연결은 결재 안건 후보로만(`hf_book_view`).
+
 ## 작업 기록
 - 10/21 첫 업무(보드 hf-alphabook): 사전등록 #5 → 알파북 엔진(tests/test_alphabook.py) → 운용회의 `hf` 블록·텔레그램. 이후 상태는 reports/alphabook.json·reports/hf_discretion.json 이 원본.
 

@@ -1,0 +1,625 @@
+{
+ "id": "hf_positioning",
+ "title": "헤지펀드 포지셔닝 트래킹",
+ "owner": "hf",
+ "co_owner": "cio",
+ "request": "겸이 11/7 18:29 「웅웅 hf누나두 면밀히트래킹하도록 cio도」",
+ "asof": "2026-11-07 18:26 KST(기준선 붙여넣기 시각) · 데이터 기준일 11/4~11/6",
+ "grade": "검증전",
+ "method": "제3자 이미지 수치를 그대로 옮긴 2차 기준선. 원문(GS 프라임·GS EM Weekly·GSX Global Reflections·JPM Global Equity Strategy·JPM Flows&Liquidity) 미열람 — 전 항목 verified=false. 공개 소스로 대조된 항목만 verified=true 로 바꾸고 출처 url 을 붙인다.",
+ "baseline_src": "겸이 붙여넣기 이미지 4장(11/7 18:26, 작성자 미상) — 원문 미확인",
+ "meta": {
+  "src_kinds": [
+   "겸이 붙여넣기 2차",
+   "공개 원자료",
+   "언론 2차 인용"
+  ],
+  "pct_unit": "%ile(해당 기준기간 분포 내 위치, 0=최저)",
+  "private_ref": "비공개 저장소 analysis/2026-11-07-macro 관찰 5번과 같은 기준선"
+ },
+ "series": [
+  {
+   "name": "미국 L/S 넷 레버리지",
+   "group": "net",
+   "value": "43.3%",
+   "pctile": 0,
+   "base_period": "5년",
+   "src": "GS 프라임 11/5(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "name": "프라임 전체 넷 레버리지",
+   "group": "net",
+   "value": null,
+   "pctile": 4,
+   "base_period": "1년",
+   "src": "GS 프라임 11/5(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "name": "글로벌 L/S 넷(베타조정)",
+   "group": "net",
+   "value": "57.2%",
+   "pctile": 4,
+   "base_period": "3년",
+   "src": "GS 프라임 11/5(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "5년 기준 19%ile"
+  },
+  {
+   "name": "글로벌 L/S 넷(베타조정) 5년",
+   "group": "net",
+   "value": "57.2%",
+   "pctile": 19,
+   "base_period": "5년",
+   "src": "GS 프라임 11/5(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "name": "아시아 L/S 넷 레버리지",
+   "group": "net",
+   "value": "48.0%",
+   "pctile": 21,
+   "base_period": "1년",
+   "src": "GS 프라임·GS EM Weekly 11/6(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "한 달 −16.9pt"
+  },
+  {
+   "name": "미국 L/S 그로스 레버리지",
+   "group": "gross",
+   "value": "207.5%",
+   "pctile": 26,
+   "base_period": "1년",
+   "src": "GS 프라임 11/5(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "넷과 달리 아직 바닥권 아님"
+  },
+  {
+   "name": "대만 HF 그로스 배분",
+   "group": "gross",
+   "value": null,
+   "pctile": 93,
+   "base_period": "5년",
+   "src": "GS EM Weekly 11/6(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "name": "JPM 모멘텀 크라우딩",
+   "group": "crowding",
+   "value": null,
+   "pctile": 76,
+   "base_period": "40년",
+   "src": "JPM Global Equity Strategy 11/6(표기)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "5월 100%ile"
+  }
+ ],
+ "series_history": [
+  {
+   "asof": "2026-11-05~06",
+   "name": "미국 L/S 넷 레버리지",
+   "pctile": 0,
+   "value": "43.3%",
+   "src_kind": "겸이 붙여넣기 2차"
+  },
+  {
+   "asof": "2026-11-05~06",
+   "name": "프라임 전체 넷 레버리지",
+   "pctile": 4,
+   "value": null,
+   "src_kind": "겸이 붙여넣기 2차"
+  },
+  {
+   "asof": "2026-11-05~06",
+   "name": "글로벌 L/S 넷(베타조정)",
+   "pctile": 4,
+   "value": "57.2%",
+   "src_kind": "겸이 붙여넣기 2차"
+  },
+  {
+   "asof": "2026-11-05~06",
+   "name": "글로벌 L/S 넷(베타조정) 5년",
+   "pctile": 19,
+   "value": "57.2%",
+   "src_kind": "겸이 붙여넣기 2차"
+  },
+  {
+   "asof": "2026-11-05~06",
+   "name": "아시아 L/S 넷 레버리지",
+   "pctile": 21,
+   "value": "48.0%",
+   "src_kind": "겸이 붙여넣기 2차"
+  },
+  {
+   "asof": "2026-11-05~06",
+   "name": "미국 L/S 그로스 레버리지",
+   "pctile": 26,
+   "value": "207.5%",
+   "src_kind": "겸이 붙여넣기 2차"
+  },
+  {
+   "asof": "2026-11-05~06",
+   "name": "대만 HF 그로스 배분",
+   "pctile": 93,
+   "value": null,
+   "src_kind": "겸이 붙여넣기 2차"
+  },
+  {
+   "asof": "2026-11-05~06",
+   "name": "JPM 모멘텀 크라우딩",
+   "pctile": 76,
+   "value": null,
+   "src_kind": "겸이 붙여넣기 2차"
+  }
+ ],
+ "flows": [
+  {
+   "side": "판쪽",
+   "item": "HF 미국 그로스 노출 변화",
+   "value": -8.7,
+   "unit": "%p",
+   "period": "10월 중순~11/6",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "롱 매도 규모가 숏 매도(신규 공매도)의 2.2배(표기 그대로) — 롱 정리 주도 디그로싱"
+  },
+  {
+   "side": "판쪽",
+   "item": "레버리지 ETF 매도(하루)",
+   "value": -600,
+   "unit": "억$",
+   "period": "11/5",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "약"
+  },
+  {
+   "side": "판쪽",
+   "item": "CTA 추가 매도 대기(추정치)",
+   "value": -450,
+   "unit": "억$",
+   "period": "향후 1개월",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "모델 추정 — 실제 체결 아님"
+  },
+  {
+   "side": "판쪽",
+   "item": "GS 현물 창구 테크 누적 순매도",
+   "value": -270,
+   "unit": "억$",
+   "period": "10월 중순~11/6",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "7월 −210억$ 대비"
+  },
+  {
+   "side": "판쪽",
+   "item": "대만 주간 순매도(주체 표기 없음 — 외국인 추정)",
+   "value": -157,
+   "unit": "억$",
+   "period": "주간",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "역대 2위(표기)"
+  },
+  {
+   "side": "판쪽",
+   "item": "한국 주간 순매도(주체 표기 없음 — 외국인 추정)",
+   "value": -80,
+   "unit": "억$",
+   "period": "주간",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "side": "받은쪽",
+   "item": "하이퍼스케일러 순매수 비중 변화",
+   "value": 1.7,
+   "unit": "%",
+   "period": "10월 중순~11/6",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "side": "받은쪽",
+   "item": "XLV(헬스케어 ETF) 유입",
+   "value": 15,
+   "unit": "억$",
+   "period": "2주",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "15억$+"
+  },
+  {
+   "side": "받은쪽",
+   "item": "미국 개인 순매수(22세션 연속)",
+   "value": 330,
+   "unit": "억$",
+   "period": "22세션",
+   "src": "표기 출처 JPM Flows&Liquidity 11/4(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "side": "받은쪽",
+   "item": "대만 개인 순매수",
+   "value": 66,
+   "unit": "억$",
+   "period": "주간",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "side": "받은쪽",
+   "item": "한국 개인 순매수",
+   "value": 30,
+   "unit": "억$",
+   "period": "주간",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "side": "받은쪽",
+   "item": "대만 DII(국내 기관) 순매수",
+   "value": 35,
+   "unit": "억$",
+   "period": "주간",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "side": "받은쪽",
+   "item": "한국 기관 순매수",
+   "value": 33,
+   "unit": "억$",
+   "period": "주간",
+   "src": "표기 출처 GS·JPM(이미지)",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  }
+ ],
+ "sold_assets": [
+  {
+   "item": "AI 지출 수혜주 72종목",
+   "value": -13.3,
+   "unit": "%",
+   "period": "선거 후",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "item": "SOX",
+   "value": -28,
+   "unit": "%",
+   "period": "22거래일",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "item": "하이베타 모멘텀",
+   "value": -51,
+   "unit": "%",
+   "period": "6월 고점 대비",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "item": "메모리 선행 PER",
+   "value": -60,
+   "unit": "%",
+   "period": "5월 대비",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "item": "코스피",
+   "value": -44.5,
+   "unit": "%",
+   "period": "6월 고점 대비",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "이미지 수치 그대로. 비공개 분석에서 ^KS11 6/22 고점 다음 날 −10% 이상치 가능성 지적 — 고점 대비 낙폭 인용 전 지수 원자료 대조 필요"
+  },
+  {
+   "item": "코스피 선행 EPS(같은 기간)",
+   "value": 3.4,
+   "unit": "%",
+   "period": "6월 고점 이후",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "가격은 빠지고 이익 추정은 올라감 = 멀티플 압축"
+  }
+ ],
+ "strategy_pnl": [
+  {
+   "strategy": "펀더멘털 L/S",
+   "oct": "약 −3%",
+   "nov_to_5": "−1.3%",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "11월 −2SD"
+  },
+  {
+   "strategy": "TMT",
+   "oct": "7월급 손실",
+   "nov_to_5": "−4% 이상",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "strategy": "멀티스트래티지",
+   "oct": "약 −3%",
+   "nov_to_5": "−1.4%",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false,
+   "note": "모멘텀 매도 −3.7SD"
+  },
+  {
+   "strategy": "주식 퀀트",
+   "oct": "−4~5%",
+   "nov_to_5": "+0.2%",
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "strategy": "아시아 L/S",
+   "oct": "−6%",
+   "nov_to_5": null,
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  },
+  {
+   "strategy": "아시아 퀀트",
+   "oct": "−7~8%",
+   "nov_to_5": null,
+   "src_kind": "겸이 붙여넣기 2차",
+   "verified": false
+  }
+ ],
+ "multiple_compression": {
+  "metric": "선행 PER",
+  "window": "2026-05 중순 → 11/5",
+  "items": [
+   {
+    "segment": "광네트워킹",
+    "chg_pct": -67,
+    "from": null,
+    "to": null,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "메모리",
+    "chg_pct": -60,
+    "from": 8.0,
+    "to": 3.2,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "스토리지",
+    "chg_pct": -59,
+    "from": null,
+    "to": null,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "반도체",
+    "chg_pct": -52,
+    "from": 23.8,
+    "to": 11.5,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "반도체 장비·소재",
+    "chg_pct": -51,
+    "from": null,
+    "to": null,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "프로세서",
+    "chg_pct": -50,
+    "from": 27.6,
+    "to": 13.9,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "AI 공급망",
+    "chg_pct": -35,
+    "from": 24.3,
+    "to": 15.9,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "S&P 500",
+    "chg_pct": -16,
+    "from": 21.2,
+    "to": 17.9,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "하이퍼스케일러",
+    "chg_pct": -14,
+    "from": 22.2,
+    "to": 19.2,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false
+   },
+   {
+    "segment": "다운스트림 소프트웨어",
+    "chg_pct": -5,
+    "from": null,
+    "to": null,
+    "src": "JPM(표기)",
+    "src_kind": "겸이 붙여넣기 2차",
+    "verified": false,
+    "note": "사이버보안 AI +24%(예외)"
+   }
+  ]
+ },
+ "narratives": [
+  {
+   "text": "월아이 캐피털·엔지니어스 게이트 11/5 주식팀 해고·청산",
+   "status": "미확인",
+   "check": "회사 발표·Bloomberg/Reuters 원문"
+  },
+  {
+   "text": "HF 5거래일 기술주 200억$ 순매도, AI 순매수 100% 청산",
+   "status": "미확인",
+   "check": "GS PB 데이터 인용 기사 원문"
+  },
+  {
+   "text": "'VARA' 펀드 10월 −33%, 콜옵션 명목 234억$",
+   "status": "미확인",
+   "check": "13F 옵션 행은 기초자산 명목가치(프리미엄 아님) — 노출 크기로 읽지 말 것, 펀드 실명·월 성과 원문 대조"
+  }
+ ],
+ "signals": [
+  {
+   "id": "net_bottom_rebound",
+   "name": "넷 바닥 반등",
+   "series": "미국 L/S 넷 레버리지",
+   "rule": "pctile 이 0~5 구간에서 출발해 주간 관측 2회 연속 상승",
+   "current": 0,
+   "obs_n": 1,
+   "state": "대기",
+   "state_note": "기준점(0%ile) 1개뿐 — 0/2주",
+   "means": "강제 디레버리징 매도 소진 관찰",
+   "disclaimer": "관찰 — 매매 신호 아님(검증전, 사전등록·백테스트 없음)"
+  },
+  {
+   "id": "degrossing",
+   "name": "디그로싱 진행",
+   "series": "미국 L/S 그로스 레버리지",
+   "rule": "pctile 주간 관측이 직전보다 낮아지는 것이 2회 이상 이어짐",
+   "current": 26,
+   "obs_n": 1,
+   "state": "판정 불가",
+   "state_note": "%ile 시계열 1점. 서술 근거(판쪽 그로스 −8.7%p)는 진행 쪽",
+   "means": "그로스 추가 축소 여지 = 롱·숏 동시 정리 매도 지속 가능",
+   "disclaimer": "관찰 — 매매 신호 아님(검증전, 사전등록·백테스트 없음)"
+  },
+  {
+   "id": "taiwan_residual",
+   "name": "대만 잔여 물량",
+   "series": "대만 HF 그로스 배분",
+   "rule": "pctile ≥ 80",
+   "current": 93,
+   "obs_n": 1,
+   "state": "켜짐",
+   "state_note": "93 ≥ 80",
+   "means": "대만·한국 반도체 잔여 매도 위험",
+   "disclaimer": "관찰 — 매매 신호 아님(검증전, 사전등록·백테스트 없음)"
+  },
+  {
+   "id": "momentum_uncrowd",
+   "name": "모멘텀 크라우딩 해소",
+   "series": "JPM 모멘텀 크라우딩",
+   "rule": "pctile ≤ 50",
+   "current": 76,
+   "obs_n": 1,
+   "state": "꺼짐",
+   "state_note": "76 > 50 — 5월 100에서 내려오는 중이나 미해소",
+   "means": "모멘텀 언와인드 꼬리 남음",
+   "disclaimer": "관찰 — 매매 신호 아님(검증전, 사전등록·백테스트 없음)"
+  }
+ ],
+ "refresh": {
+  "tag": "[제안-미적용] — 스케줄·예약 변경 없음. 채택은 CIO 판정·겸이 결재 뒤",
+  "sources": [
+   {
+    "src": "언론 인용(GS·MS 프라임 데이터를 인용한 Bloomberg·Reuters·FT 등 기사)",
+    "covers": "넷·그로스 %ile·전략 성과",
+    "cadence": "주 1회(월 장후) 수동 검색 + 급락일 수시",
+    "note": "원문 비공개 — 2차 인용, verified=false 유지"
+   },
+   {
+    "src": "CFTC COT TFF(Traders in Financial Futures) — Leveraged Funds, E-mini S&P·나스닥100",
+    "covers": "레버리지 펀드 지수선물 넷",
+    "cadence": "주 1회(금 15:30 ET 발표, 화요일 기준 → 토 KST 갱신)",
+    "url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+   },
+   {
+    "src": "SEC 13F",
+    "covers": "분기말 롱 보유(옵션은 명목)",
+    "cadence": "분기(분기말+45일, 3분기분 11/14 마감)",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=13F-HR"
+   },
+   {
+    "src": "KRX 투자자별 매매동향(외국인·기관·개인)",
+    "covers": "한국 수급 받은쪽/판쪽",
+    "cadence": "일 1회 장후(기존 수급 데이터 재사용 가능 여부 확인 필요)",
+    "url": "https://data.krx.co.kr"
+   },
+   {
+    "src": "TWSE 三大法人買賣金額(외국인·투신·자영)",
+    "covers": "대만 외국인 순매도·DII",
+    "cadence": "일 1회 장후",
+    "url": "https://www.twse.com.tw/zh/trading/foreign/bfi82u.html"
+   },
+   {
+    "src": "KRX 공매도 종합 포털 잔고·TWSE 融券/借券 잔고",
+    "covers": "숏 크라우딩·숏커버 여력",
+    "cadence": "주 1회(잔고 공시 T+2)",
+    "url": "https://data.krx.co.kr"
+   },
+   {
+    "src": "FINRA 공매도 잔고(short interest)",
+    "covers": "미국 개별 종목 숏 크라우딩",
+    "cadence": "월 2회 공시",
+    "url": "https://www.finra.org/finra-data/browse-catalog/equity-short-interest"
+   },
+   {
+    "src": "레버리지 ETF 발행사 일별 순자산·유통주식수(SOXL·TQQQ 등)",
+    "covers": "레버리지 ETF 유출입",
+    "cadence": "주 1회",
+    "note": "주식수 변화×NAV 로 추정 — 추정 표기"
+   }
+  ],
+  "update_rule": "새 관측은 series_history 에 asof·value·pctile·src·src_kind 로 덧붙이고 기존 줄은 지우지 않는다. 결과 본 뒤 신호 문턱 변경 금지."
+ },
+ "hf_book_view": [
+  "알파북(B1 KR 52주 고점 근접): 넷 0%ile·대만 그로스 93%ile 국면은 고점 근접 종목 수 자체가 줄어 신호가 드물다 — 신호가 없으면 현금이 정상이고, 포지셔닝으로 B1 문턱을 바꾸지 않는다(결과 전 고정 문턱).",
+  "위성 v1(보험+알파): '대만 잔여 물량 켜짐'·'모멘텀 크라우딩 꺼짐'은 보험 휴면 해제 재검증(11/27 퀀트)에 넣을 배경 관찰 후보일 뿐 — 상태 전환 트리거로 쓰려면 사전등록 필요. 결재 안건 후보로만 올린다.",
+  "반도체 신규 매수 금지 플래그: 유지. 넷 반등 2주가 확인돼도 플래그 해제 근거가 아니다(플래그 = 반도체 밴드·VaR 계기판 규칙, 결재 #3). 해제 논의는 그 규칙의 조건으로만.",
+  "재량 북(모의): 그로스 26%ile = 디그로싱 여지 → 롱·숏 동시 축소가 이어질 수 있어 숏도 숏커버 급등 위험이 있다. 반도체 숏 아이디어는 공매도 잔고·대차 비용·크라우딩 먼저(kb:hf 10년차 ③), 아니면 '재량 없음'."
+ ],
+ "rule_link": "규칙 완화 근거 아님 — 위성 신규 매수 금지·반도체 신규 매수 금지·실계좌 인버스/공매도 금지 유지. 변경은 결재 안건 후보로만."
+}
