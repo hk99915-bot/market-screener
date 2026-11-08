@@ -1,12 +1,28 @@
 # 데스크 운용회의 결론 텔레그램 (11/5 겸이 결정 「3」) — reports/views/desk_meeting.json → STANDARD.md 8절 3줄형.
-# PB 가 회의 후 desk_meeting.json 을 갱신·push 한 뒤 수동 실행. 발송은 screener.report.send_telegram (ALERTS_OFF 존중).
+# 11/8 Pro 대비(겸이 「pro 대비 싹다 진행」, analysis dev.md #6): desk_meeting.json 이 main 에 push 되면 자동 발송.
+# PB 수동 dispatch 는 필요 없음(남겨 둠 — 같은 date 는 발송 안 함, 재발송은 force=true).
+# 중복 방지: 보낸 date 를 Actions 캐시(키 desk-meeting-sent-<date>)의 마커 파일로 남김 → 같은 date 재push·dispatch 는 건너뜀.
+# push 자동 발송은 오늘(KST) 회의만(--today-only). 발송은 screener.report.send_telegram (ALERTS_OFF 존중, ALERTS_OFF 날은 마커 안 남김).
 name: desk_meeting_tg
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - reports/views/desk_meeting.json
   workflow_dispatch:
+    inputs:
+      force:
+        description: "true 면 같은 date 라도 다시 발송"
+        required: false
+        default: "false"
 
 permissions:
   contents: read
+
+concurrency:
+  group: desk-meeting-tg
+  cancel-in-progress: false
 
 env:
   ALERTS_OFF: ${{ vars.ALERTS_OFF }}
@@ -16,6 +32,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - id: d
+        name: 회의 date
+        run: echo "date=$(python3 -c 'import json;print(json.load(open("reports/views/desk_meeting.json")).get("date") or "none")')" >> "$GITHUB_OUTPUT"
+      - id: sent
+        name: 발송 기록 복원(같은 date)
+        uses: actions/cache/restore@v4
+        with:
+          path: .desk_meeting_state
+          key: desk-meeting-sent-${{ steps.d.outputs.date }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -24,4 +49,16 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN || secrets.TELE }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || secrets.TELE_CHAT }}
-        run: python -m screener.desk_meeting
+          EVENT: ${{ github.event_name }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args="--marker .desk_meeting_state/sent.txt"
+          [ "$EVENT" = "push" ] && args="$args --today-only"
+          [ "$FORCE" = "true" ] && args="$args --force"
+          python -m screener.desk_meeting $args
+      - name: 발송 기록 저장
+        if: steps.sent.outputs.cache-hit != 'true' && hashFiles('.desk_meeting_state/sent.txt') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: .desk_meeting_state
+          key: desk-meeting-sent-${{ steps.d.outputs.date }}
