@@ -194,7 +194,7 @@ def test_desk_er_files_optional(tmp_path):
     (v / "scenario_er_macro.json").write_text(json.dumps({"asof": "2026-11-08", "scenarios": [{"name": "기본", "er": er}]}), encoding="utf-8")
     (v / "scenario_er_committee.json").write_text(json.dumps({"scenarios": [{"name": "약세", "horizon": "20d", "er": er, "er_ann": None}]}), encoding="utf-8")
     lines, skipped = L._desk_er_lines(D, None, root=tmp_path)
-    assert [l["key"] for l in lines] == ["er:macro:기본"]
+    assert [l["key"] for l in lines] == ["er:macro:기본"] and lines[0]["kind"] == "er_macro"
     want = (40 * .08 + 15 * .10 + 15 * .06 + 20 * .03 + 10 * .04) / 100
     assert abs(lines[0]["rate"]["C안(현행)"] - want) < 1e-9 and abs(lines[0]["path"]["C안(현행)"][12] - (1 + want)) < 1e-6
     sk = {s["key"]: s["why"] for s in skipped}
@@ -216,3 +216,17 @@ console.log(JSON.stringify({pn,none,pj:ilabProj(D,pn,2.0),empty:ilabProj(D,none,
     for js, l in zip(o["pj"], D["projection"]["lines"]):
         assert js["key"] == l["key"] and [p["v"] for p in js["pts"]] == [2.0 * v for v in l["path"]["C안(현행)"]]
         assert [p["m"] for p in js["pts"]] == D["projection"]["months"]
+
+
+def test_projection_desk_er_matches_files():
+    # 데스크 er 파일이 저장소에 있으면 점선 연율 = 프리셋 Σ비중×er (애널 12m·매크로 연), CIO 20d(er_ann null) 는 안 그림
+    by = {l["key"]: l for l in D["projection"]["lines"]}
+    f = ROOT / "reports" / "views" / "scenario_er_analyst.json"
+    if not f.exists():
+        pytest.skip("애널 er 파일 없음")
+    J = json.loads(f.read_text(encoding="utf-8"))
+    for sc in J["scenarios"]:
+        k = "er:analyst:" + (sc.get("name") or sc["key"])
+        for pn, wm in D["presets"].items():
+            assert abs(by[k]["rate"][pn] - sum(w / 100 * sc["er"][a] for a, w in wm.items() if w)) < 1e-6
+    assert not any(k.startswith("er:committee:") for k in by)

@@ -193,22 +193,26 @@ DESK_ER = [("macro", "매크로", "reports/views/scenario_er_macro.json"),
 ANNUAL_H = {"1y", "12m", "annual", "연", "연간", "1년"}
 
 
-def _er_entries(J: dict) -> list[tuple[str, dict | None, str]]:
-    """(이름, 연 er{자산:소수} 또는 None, 이유). 연환산 키(er_ann·er_annual) 우선, 없으면 er 가 연(또는 12m)일 때만."""
-    items = J.get("scenarios") if isinstance(J.get("scenarios"), list) else ([J] if isinstance(J.get("er"), dict) else [])
+def _er_entries(J: dict) -> list[tuple[str, dict | None, str, float | None]]:
+    """(이름, 연 er{자산:소수} 또는 None, 안 그리는 이유, 확률). 항목 목록 = scenarios[](애널·CIO) 또는 regimes[](매크로).
+    연환산 키(er_ann·er_annual) 우선, 없으면 er 가 연(또는 12m)일 때만 — CIO 20d 처럼 er_ann=null 이면 그리지 않는다."""
+    items = next((J[k] for k in ("scenarios", "regimes") if isinstance(J.get(k), list)), None)
+    if items is None:
+        items = [J] if isinstance(J.get("er"), dict) else []
     out = []
     for i, x in enumerate(items):
         if not isinstance(x, dict):
             continue
-        nm = str(x.get("name") or x.get("label") or x.get("id") or f"#{i + 1}")
+        nm = str(x.get("name") or x.get("label") or x.get("key") or x.get("id") or f"#{i + 1}")
+        h = str(x.get("horizon") or J.get("horizon") or "").strip().lower()
         er = next((x[k] for k in ("er_ann", "er_annual") if isinstance(x.get(k), dict)), None)
-        if er is None and isinstance(x.get("er"), dict):
-            h = str(x.get("horizon") or J.get("horizon") or "").strip().lower()
-            er = x["er"] if (not h or h in ANNUAL_H) else None
-            why = "" if er is not None else f"er 기간 {h} — 연환산 값 없음(null)"
-        else:
-            why = "" if er is not None else "er 없음"
-        out.append((nm, er, why))
+        why = ""
+        if er is None and isinstance(x.get("er"), dict) and (not h or h in ANNUAL_H):
+            er = x["er"]
+        if er is None:
+            note = str(x.get("er_ann_note") or "").split("(")[0].strip()
+            why = f"기간 {h or '미상'} · 연환산 값 없음(null)" + (f" — {note}" if note else "")
+        out.append((nm, er, why, x.get("prob")))
     return out
 
 
@@ -227,7 +231,9 @@ def _desk_er_lines(D: dict, calm_ok, root: Path = ROOT) -> tuple[list[dict], lis
         ents = _er_entries(J) if isinstance(J, dict) else []
         if not ents:
             skipped.append({"key": "er:" + key, "label": f"{who} 시나리오 기대수익", "why": f"{rel} 에 scenarios[].er 없음"})
-        for nm, er, why in ents:
+        now = J.get("now_regime")
+        now = now.get("key") or now.get("name") if isinstance(now, dict) else now
+        for nm, er, why, prob in ents:
             k = f"er:{key}:{nm}"
             rate = {}
             if er is not None:
@@ -237,10 +243,17 @@ def _desk_er_lines(D: dict, calm_ok, root: Path = ROOT) -> tuple[list[dict], lis
                     if tot > 0 and all(isinstance(v, (int, float)) for _, v in vals):
                         rate[pn] = round(sum(w / tot * v for w, v in vals), 6)
             if not rate:
-                skipped.append({"key": k, "label": f"{who} {nm}", "why": why or "프리셋 자산 er 일부 null"})
+                why = why or "프리셋 자산 er 일부 null"
+                same = next((x for x in skipped if x["key"].startswith(f"er:{key}:") and x["why"] == why), None)
+                if same:   # 같은 이유는 한 줄로
+                    same["label"] += f" · {nm}"
+                else:
+                    skipped.append({"key": k, "label": f"{who} {nm}", "why": why})
                 continue
-            lines.append({"key": k, "label": f"{who} {nm} 기대수익 지속", "kind": "desk", "on": True, "rate": rate,
-                          "src": f"{rel} {nm} (asof {J.get('asof') or '—'}) Σ비중×er",
+            tag = (" (지금)" if now and str(now) in (nm, *[str(x.get("key")) for x in (J.get("regimes") or J.get("scenarios") or []) if (x.get("name") or x.get("key")) == nm]) else "") + \
+                (f" 확률 {prob:.0%}" if isinstance(prob, (int, float)) else "")
+            lines.append({"key": k, "label": f"{who} {nm}{tag} 기대수익 지속", "kind": "er_" + key, "on": key != "macro" or bool(tag.startswith(" (지금)")), "rate": rate,
+                          "src": f"{rel} {nm} (asof {J.get('asof') or '—'}, {J.get('horizon') or '연'}) Σ비중×er · 비용·세금 차감 전",
                           "path": {pn: proj_annual(v) for pn, v in rate.items()}})
     return lines, skipped
 
