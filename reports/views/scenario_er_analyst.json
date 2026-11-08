@@ -1,0 +1,126 @@
+{
+ "desk": "analyst",
+ "asof": "2026-11-08",
+ "price_asof": "2026-11-06 종가(US 지수·heatmap 11-06, 미 금리 11-05)",
+ "horizon": "12m",
+ "unit": "총수익 소수(가격+배당/이자, 보수·세금 미차감). SP·NDX·GOLD = 원화 환산(비헤지), er_usd = 현지 통화",
+ "method": "주식: ER = (1+이익 성장)×(PER 끝/PER 지금) − 1 + 배당 [kb:analyst 분해식 ln P = ln PER + ln EPS]. 코스피: 1년 뒤 TTM PER 6.0 × 이익 배수 ÷ 현 TTM 7.62. 채권: y + 롤 − D·Δy + ½C·Δy². 금: 달러 금 × 환율",
+ "denominators": {
+  "SP": {
+   "PER_TTM_GAAP": 23.5,
+   "PER_runrate": 23.2,
+   "PER_FY0": 19.5,
+   "PER_FY1": 17.1,
+   "PER_NTM": 17.4,
+   "PER_NTM_factset_ext": "18.7~19.0",
+   "EP_minus_rf": "+0.5~+0.9%p (US10Y 4.84)"
+  },
+  "NDX": {
+   "PER_TTM_GAAP": 24.8,
+   "PER_runrate": 27.3,
+   "PER_NTM": 18.2,
+   "EP_minus_rf": "+0.65%p"
+  },
+  "KS": {
+   "PER_TTM": 7.62,
+   "PER_runrate": 4.46,
+   "PER_fwd12_ext": 4.27,
+   "PER_normalized": 11.41,
+   "PBR": 1.39,
+   "EP_minus_rf": "TTM +9.5%p / 정규화 +5.2%p (국고3Y 3.61)"
+  }
+ },
+ "decomp20": {
+  "SP": "20일 −5.6% ≈ 배수 −6.8% + EPS(FY1 30일 리비전) +1.0%",
+  "NDX": "나스닥종합 20일 −10.2% ≈ 배수 −11.8% + EPS +1.0%",
+  "KS": "코스피 20일 −23.6% 전부 배수(EPS 20일 기록 없음 → 변화 0 가정, 검증전)"
+ },
+ "scenarios": [
+  {
+   "key": "bull",
+   "def": "12개월: 미 연착륙 + AI·메모리 이익 컨센서스대로(미 FY1 +14.5%·NDX +18.6%, 코스피 이익 = 현 런레이트 수준 유지) · 미 배수 +5% · 국고3Y +40bp(한은 인상 경로) · 달러 약세(USDKRW −3%)",
+   "prob": 0.25,
+   "er": {
+    "SP": 0.175,
+    "NDX": 0.212,
+    "KS": 0.361,
+    "KR3Y": 0.025,
+    "GOLD": 0.018
+   },
+   "er_usd": {
+    "SP": 0.211,
+    "NDX": 0.249,
+    "GOLD": 0.05
+   },
+   "confidence": "낮음(C) — 코스피 이익 지속 여부가 단일 변수",
+   "src": {
+    "SP": "자체 집계(검증전): S&P 구성 435/518종목 시총가중 — 가격 reports/heatmap_US.json(2026-11-06 종가), 주식 수·GAAP TTM 순이익 reports/detail/US/*.json, 컨센서스 EPS FY0/FY1 reports/us_eps.json(2026-11-07 07:00, Yahoo). NTM PER 17.4(FY0 2/12+FY1 10/12)·FY1/FY0 +14.5%·배당 0.87%. 외부 대조 FactSet NTM P/E 19.0(2026-10-02, https://insight.factset.com/sp-500-earnings-season-preview-q3-2026)·18.7(2026-10-30, 2차 인용 https://www.kucoin.com/blog/sp500-earnings-growth-forecast-2026-valuation-outlook — FactSet 원문 미확인). USDKRW 1,358.02(reports/macro_view.json 2026-11-06), 시나리오별 환율 −3%/0/+6% = 모델 가정(확신 낮음)",
+    "NDX": "자체 집계(검증전): 나스닥100 구성 목록이 저장소에 없어 S&P 구성 중 NASDAQ 상장 시총 상위 100종목 대용(GOOG·GOOGL 중복 포함 — 과대계상 가능). NTM PER 18.2·FY1/FY0 +18.6%·배당 0.39%. 출처 동일(heatmap_US·detail/US·us_eps). 환율 가정 SP와 동일",
+    "KS": "자체 집계(검증전): 코스피 시총 상위 200(reports/peers_KR.json 2026-11-06, PER 있는 167종목) — 코스피200 대용. 삼성전자·SK하이닉스(합계 비중 약 50%)는 reports/valuation.json(2026-11-06) TTM·런레이트 사용. PER TTM 7.62 / 런레이트 4.46(상위 2종목만 런레이트) / 정규화 11.41(peers roen/roe) / 12개월 선행 4.27(한화투자증권 [FI Weekly] 2026-11-02 요약, reports/research_views.json — 요약 잘림, 원문 미확인). 배당 1.5% = 모델 가정. 목표 TTM PER 6.0(정점 이익 할인) = 모델 가정(확신 낮음)",
+    "KR3Y": "채권 산술: 국고 3Y 3.613%(reports/bonds.json kr, 2026-11-06 KRX), 듀레이션 2.82·볼록성 9.5(bonds.json duration), 롤다운 3Y−2Y 1.2bp×D≈+0.03%p. 식 = y + 롤 − D·Δy + ½C·Δy² (상수 만기 3Y ETF 근사, 보수 미차감). Δy 경로(+40/+10/−80bp)는 모델 가정 — base는 한화 'FI Weekly 하단은 여기'(2026-11-02, 최종금리 3.50% 가정 시 3Y 적정 하단) 참고. 채권 데스크 미검토",
+    "GOLD": "금 GC=F $4,074.8(reports/commodities.json 2026-11-06, 52주 고점 $5,318 대비 −23%). base = 대신 최진영 2027 $4,200 전망(reports/views/macro_cmdty.json now 표, 2026-10-23 기준 2차 요약) → +3.1%. bull/bear 달러 금 +5%/+8%은 모델 가정 — 근거 kb:macro #19~20(금~S&P 월간 상관 0.06, S&P 월 −5%↓ 때 금 플러스 50%, 2008형 방패)·macro_cmdty relations(금~달러 −0.37이 주 설명 변수). 원화 금 = 달러 금 × USDKRW(kb:macro #20)"
+   }
+  },
+  {
+   "key": "base",
+   "def": "12개월: 컨센서스 낙관 편향 차감(미 EPS +10%·NDX +13%, 코스피 이익 TTM×1.35) · 미 배수 −3%(NDX −5%, E/P−rf 얇음) · 국고3Y +10bp · USDKRW 불변",
+   "prob": 0.5,
+   "er": {
+    "SP": 0.076,
+    "NDX": 0.077,
+    "KS": 0.078,
+    "KR3Y": 0.034,
+    "GOLD": 0.031
+   },
+   "er_usd": {
+    "SP": 0.076,
+    "NDX": 0.077,
+    "GOLD": 0.031
+   },
+   "confidence": "중하(B−/C) — 미 지수는 집계·외부 대조 있음, KS는 목표 배수 가정",
+   "src": {
+    "SP": "자체 집계(검증전): S&P 구성 435/518종목 시총가중 — 가격 reports/heatmap_US.json(2026-11-06 종가), 주식 수·GAAP TTM 순이익 reports/detail/US/*.json, 컨센서스 EPS FY0/FY1 reports/us_eps.json(2026-11-07 07:00, Yahoo). NTM PER 17.4(FY0 2/12+FY1 10/12)·FY1/FY0 +14.5%·배당 0.87%. 외부 대조 FactSet NTM P/E 19.0(2026-10-02, https://insight.factset.com/sp-500-earnings-season-preview-q3-2026)·18.7(2026-10-30, 2차 인용 https://www.kucoin.com/blog/sp500-earnings-growth-forecast-2026-valuation-outlook — FactSet 원문 미확인). USDKRW 1,358.02(reports/macro_view.json 2026-11-06), 시나리오별 환율 −3%/0/+6% = 모델 가정(확신 낮음)",
+    "NDX": "자체 집계(검증전): 나스닥100 구성 목록이 저장소에 없어 S&P 구성 중 NASDAQ 상장 시총 상위 100종목 대용(GOOG·GOOGL 중복 포함 — 과대계상 가능). NTM PER 18.2·FY1/FY0 +18.6%·배당 0.39%. 출처 동일(heatmap_US·detail/US·us_eps). 환율 가정 SP와 동일",
+    "KS": "자체 집계(검증전): 코스피 시총 상위 200(reports/peers_KR.json 2026-11-06, PER 있는 167종목) — 코스피200 대용. 삼성전자·SK하이닉스(합계 비중 약 50%)는 reports/valuation.json(2026-11-06) TTM·런레이트 사용. PER TTM 7.62 / 런레이트 4.46(상위 2종목만 런레이트) / 정규화 11.41(peers roen/roe) / 12개월 선행 4.27(한화투자증권 [FI Weekly] 2026-11-02 요약, reports/research_views.json — 요약 잘림, 원문 미확인). 배당 1.5% = 모델 가정. 목표 TTM PER 6.0(정점 이익 할인) = 모델 가정(확신 낮음)",
+    "KR3Y": "채권 산술: 국고 3Y 3.613%(reports/bonds.json kr, 2026-11-06 KRX), 듀레이션 2.82·볼록성 9.5(bonds.json duration), 롤다운 3Y−2Y 1.2bp×D≈+0.03%p. 식 = y + 롤 − D·Δy + ½C·Δy² (상수 만기 3Y ETF 근사, 보수 미차감). Δy 경로(+40/+10/−80bp)는 모델 가정 — base는 한화 'FI Weekly 하단은 여기'(2026-11-02, 최종금리 3.50% 가정 시 3Y 적정 하단) 참고. 채권 데스크 미검토",
+    "GOLD": "금 GC=F $4,074.8(reports/commodities.json 2026-11-06, 52주 고점 $5,318 대비 −23%). base = 대신 최진영 2027 $4,200 전망(reports/views/macro_cmdty.json now 표, 2026-10-23 기준 2차 요약) → +3.1%. bull/bear 달러 금 +5%/+8%은 모델 가정 — 근거 kb:macro #19~20(금~S&P 월간 상관 0.06, S&P 월 −5%↓ 때 금 플러스 50%, 2008형 방패)·macro_cmdty relations(금~달러 −0.37이 주 설명 변수). 원화 금 = 달러 금 × USDKRW(kb:macro #20)"
+   }
+  },
+  {
+   "key": "bear",
+   "def": "12개월: 이익 침체(AI 설비투자 하향·메모리 정점 통과: 미 EPS −10%·NDX −12%, 코스피 이익 TTM×0.9) · 미 NTM PER 15.5 · 국고3Y −80bp(성장 충격) · USDKRW +6%",
+   "prob": 0.25,
+   "er": {
+    "SP": -0.141,
+    "NDX": -0.201,
+    "KS": -0.276,
+    "KR3Y": 0.059,
+    "GOLD": 0.145
+   },
+   "er_usd": {
+    "SP": -0.19,
+    "NDX": -0.247,
+    "GOLD": 0.08
+   },
+   "confidence": "낮음(C) — 스태그(유가발 금리↑) 변형이면 KR3Y +2.2%·금 방향 불확실",
+   "src": {
+    "SP": "자체 집계(검증전): S&P 구성 435/518종목 시총가중 — 가격 reports/heatmap_US.json(2026-11-06 종가), 주식 수·GAAP TTM 순이익 reports/detail/US/*.json, 컨센서스 EPS FY0/FY1 reports/us_eps.json(2026-11-07 07:00, Yahoo). NTM PER 17.4(FY0 2/12+FY1 10/12)·FY1/FY0 +14.5%·배당 0.87%. 외부 대조 FactSet NTM P/E 19.0(2026-10-02, https://insight.factset.com/sp-500-earnings-season-preview-q3-2026)·18.7(2026-10-30, 2차 인용 https://www.kucoin.com/blog/sp500-earnings-growth-forecast-2026-valuation-outlook — FactSet 원문 미확인). USDKRW 1,358.02(reports/macro_view.json 2026-11-06), 시나리오별 환율 −3%/0/+6% = 모델 가정(확신 낮음)",
+    "NDX": "자체 집계(검증전): 나스닥100 구성 목록이 저장소에 없어 S&P 구성 중 NASDAQ 상장 시총 상위 100종목 대용(GOOG·GOOGL 중복 포함 — 과대계상 가능). NTM PER 18.2·FY1/FY0 +18.6%·배당 0.39%. 출처 동일(heatmap_US·detail/US·us_eps). 환율 가정 SP와 동일",
+    "KS": "자체 집계(검증전): 코스피 시총 상위 200(reports/peers_KR.json 2026-11-06, PER 있는 167종목) — 코스피200 대용. 삼성전자·SK하이닉스(합계 비중 약 50%)는 reports/valuation.json(2026-11-06) TTM·런레이트 사용. PER TTM 7.62 / 런레이트 4.46(상위 2종목만 런레이트) / 정규화 11.41(peers roen/roe) / 12개월 선행 4.27(한화투자증권 [FI Weekly] 2026-11-02 요약, reports/research_views.json — 요약 잘림, 원문 미확인). 배당 1.5% = 모델 가정. 목표 TTM PER 6.0(정점 이익 할인) = 모델 가정(확신 낮음)",
+    "KR3Y": "채권 산술: 국고 3Y 3.613%(reports/bonds.json kr, 2026-11-06 KRX), 듀레이션 2.82·볼록성 9.5(bonds.json duration), 롤다운 3Y−2Y 1.2bp×D≈+0.03%p. 식 = y + 롤 − D·Δy + ½C·Δy² (상수 만기 3Y ETF 근사, 보수 미차감). Δy 경로(+40/+10/−80bp)는 모델 가정 — base는 한화 'FI Weekly 하단은 여기'(2026-11-02, 최종금리 3.50% 가정 시 3Y 적정 하단) 참고. 채권 데스크 미검토",
+    "GOLD": "금 GC=F $4,074.8(reports/commodities.json 2026-11-06, 52주 고점 $5,318 대비 −23%). base = 대신 최진영 2027 $4,200 전망(reports/views/macro_cmdty.json now 표, 2026-10-23 기준 2차 요약) → +3.1%. bull/bear 달러 금 +5%/+8%은 모델 가정 — 근거 kb:macro #19~20(금~S&P 월간 상관 0.06, S&P 월 −5%↓ 때 금 플러스 50%, 2008형 방패)·macro_cmdty relations(금~달러 −0.37이 주 설명 변수). 원화 금 = 달러 금 × USDKRW(kb:macro #20)"
+   }
+  }
+ ],
+ "prob_basis": "모델 가정 25/50/25(확신 낮음, 대칭 기본값). 운용회의 reports/committee.json(2026-11-06 19:16) 강세 46.9·기본 28.1·약세 25.0%는 '20거래일 뒤 코스피 +5% 초과/±5%/−5% 미만'(1999~ 비슷한 급락 32회 빈도) — 기간(20일 vs 12개월)·대상(코스피만 vs 5자산 공동)·정의가 달라 그대로 쓰지 않음. 참고로 그 확률을 대입하면 기대값 SP +6.8%·NDX +7.1%·KS +12.2%·KR3Y +3.6%·GOLD +5.4%",
+ "ev_model_prob": {
+  "SP": 0.046,
+  "NDX": 0.041,
+  "KS": 0.06,
+  "KR3Y": 0.038,
+  "GOLD": 0.056
+ },
+ "flip": "코스피: SK하이닉스·삼성전자 다음 분기 순이익이 3Q 대비 −20% 이하면 bull 폐기(정점 함정 현실화). 미 지수: FY1 EPS 30일 리비전이 시총가중 −2% 이하로 돌면 base를 bear 쪽으로",
+ "against": "코스피 정규화 PER 11.4 기준으론 이미 싸지 않음 — 정점 이익 지속을 전제한 TTM 7.6·런레이트 4.5는 함정일 수 있다",
+ "note": "예측 아님·비중 변경 권고 아님. 시나리오 정의·확률·배수·환율 경로 상당 부분이 모델 가정. 채권(KR3Y)·금은 채권·매크로 데스크 미검토."
+}
