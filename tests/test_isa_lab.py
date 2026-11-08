@@ -231,3 +231,22 @@ def test_projection_desk_er_matches_files():
         for pn, wm in D["presets"].items():
             assert abs(by[k]["rate"][pn] - sum(w / 100 * sc["er"][a] for a, w in wm.items() if w)) < 1e-6
     assert not any(k.startswith("er:committee:") for k in by)
+
+
+def test_desk_er_schema_adapter():
+    # 감사 중-2(11/8): 세 데스크 파일 실제 구조 — 매크로 regimes[].er(연) · 애널 scenarios[].key+er(12m) · CIO scenarios[].er_20d·er_ann null
+    V = ROOT / "reports" / "views"
+    fs = {k: V / f"scenario_er_{k}.json" for k in ("macro", "analyst", "committee")}
+    if not all(f.exists() for f in fs.values()):
+        pytest.skip("데스크 er 파일 없음")
+    J = {k: json.loads(f.read_text(encoding="utf-8")) for k, f in fs.items()}
+    need = set(L.PRESETS["C안(현행)"])
+    assert all(need <= set(x["er"]) for x in J["macro"]["regimes"])
+    assert J["analyst"]["horizon"] == "12m" and all(need <= set(x["er"]) and x.get("key") for x in J["analyst"]["scenarios"])
+    assert J["committee"]["horizon"] == "20d" and all("er_20d" in x and x.get("er_ann") is None for x in J["committee"]["scenarios"])
+    ents = {k: L._er_entries(j) for k, j in J.items()}
+    assert [e[0] for e in ents["macro"]] == [x["name"] for x in J["macro"]["regimes"]] and all(e[1] is x["er"] for e, x in zip(ents["macro"], J["macro"]["regimes"]))
+    assert [e[0] for e in ents["analyst"]] == [x["key"] for x in J["analyst"]["scenarios"]] and not any(e[0].startswith("#") for e in ents["analyst"])
+    assert all(e[1] is None and "20d" in e[2] for e in ents["committee"])
+    keys = {l["key"]: l for l in D["projection"]["lines"]}
+    assert keys["전체 기간 연복리"]["on"] and not keys["평시 연환산"]["on"]   # 감사 경-1

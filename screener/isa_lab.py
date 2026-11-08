@@ -273,10 +273,11 @@ def projection(D: dict) -> dict:
     def calm_of(name):
         return (rows.get(name) or {}).get(CALM)
 
-    for key, lab, kind in [(CALM, "평시(위기 월 제외) 연환산 지속", "annual"), (FULL, "전체 기간 연복리 지속", "annual")]:
+    # 기본 켬 = 전체 기간 연복리(위기 포함). 평시 연환산은 위기 창을 사후에 뺀 값이라 위로 치우침 → 기본 끔(감사 경-1, 11/8)
+    for key, lab, kind, on in [(FULL, "전체 기간 연복리 지속", "annual", True), (CALM, "평시(위기 월 제외) 연환산 지속", "annual", False)]:
         rate = {k: r.get(key) for k, r in rows.items() if r.get(key) is not None}
         if rate:
-            lines.append({"key": key, "label": lab, "kind": kind, "on": True, "rate": rate,
+            lines.append({"key": key, "label": lab, "kind": kind, "on": on, "rate": rate,
                           "src": f"scenarios.rows['{key}'] ({S.get('source', '')} 정의 · 월수익 재생)",
                           "path": {k: proj_annual(v) for k, v in rate.items()}})
         else:
