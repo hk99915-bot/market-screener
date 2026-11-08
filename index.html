@@ -3530,7 +3530,7 @@ function ilabBoot(D,wm,rebal,cost,P,T,L,seed){ const M=ilabNet(D,cost), w=ilabW(
 /* ILAB_CALC_END */
 
 let ILAB=null, ILABCH=null, ILABBT=null;
-const ILAB_ST={w:{SP:40,NDX:10,KS:15,KR3Y:20,KR10Y:0,UST:0,GOLD:15}, rebal:'A', cost:true, contrib:100, log:true};
+const ILAB_ST={w:{SP:40,NDX:15,KS:15,KR3Y:20,KR10Y:0,UST:0,GOLD:10}, rebal:'A', cost:true, contrib:100, log:true};
 function ilabView(){
   if(ILAB===null){ ILAB=false; google.script.run.withSuccessHandler(t=>{try{ILAB=typeof t==='string'?JSON.parse(t):t;}catch(e){ILAB={};} if(view==='isa') render();}).withFailureHandler(()=>{ILAB={}; if(view==='isa') render();}).getIsaLab(); return '<div class="load">LOADING …</div>'; }
   if(!ILAB||!ILAB.months) return '<div class="grid"><div class="p c12"><div class="b mu">ISA 실험실 데이터 없음 (reports/isa_lab_returns.json — python -m screener.isa_lab build)</div></div></div>';
@@ -3549,11 +3549,40 @@ function ilabView(){
     <div style="margin-top:4px"><label><input type="checkbox" ${S.cost?'checked':''} onchange="ILAB_ST.cost=this.checked;ILABBT=null;ilabRecalc()"> 비용 차감</label>
       &nbsp; <label>월 적립 <input type="number" min="1" value="${S.contrib}" style="width:70px" onchange="ILAB_ST.contrib=Math.max(1,+this.value||100);ilabRecalc()"></label> <span class="mu" style="font-size:var(--fs-1)">(단위 자유 · 브라우저 안에서만 계산, 저장·전송 안 함)</span></div>
   </div></div>
-  <div class="p c8"><h2>현행 ISA vs 선택<small>${esc(D.months[0])}~${esc(D.months[D.months.length-1])} · ${D.months.length}개월 · 원화</small></h2><div class="b" id="ilout"></div></div>
-  <div class="p c12"><h2>누적 곡선 (일시금 1 → 배수)<small><label><input type="checkbox" ${S.log?'checked':''} onchange="ILAB_ST.log=this.checked;ilabRecalc()"> 로그</label></small></h2><div class="b"><div id="ilch" style="height:280px"></div><div class="mu" style="font-size:var(--fs-1)"><span style="color:var(--muted)">━ 현행 ISA 40/10/15/20/15</span> &nbsp; <span style="color:var(--amber)">━ 선택</span></div></div></div>
+  <div class="p c8"><h2>${esc(Object.keys(D.presets)[0])} vs 선택<small>${esc(D.months[0])}~${esc(D.months[D.months.length-1])} · ${D.months.length}개월 · 원화</small></h2><div class="b" id="ilout"></div></div>
+  <div class="p c12"><h2>누적 곡선 (일시금 1 → 배수)<small><label><input type="checkbox" ${S.log?'checked':''} onchange="ILAB_ST.log=this.checked;ilabRecalc()"> 로그</label></small></h2><div class="b"><div id="ilch" style="height:280px"></div><div class="mu" style="font-size:var(--fs-1)"><span style="color:var(--muted)">━ ${esc(Object.keys(D.presets)[0])} ${D.assets.filter(a=>ilabBase()[a]).map(a=>ilabBase()[a]).join('/')}</span> &nbsp; <span style="color:var(--amber)">━ 선택</span></div></div></div>
+  ${ilabRegimeHtml(D)}
   <div class="p c12"><h2>블록 부트스트랩 10년<small>평균 12개월 블록 · 2,000 경로 · 원형</small></h2><div class="b" id="ilbt">${ILABBT?ilabBootHtml(true):ilabBootIdle()}</div></div>
   </div>`;
 }
+/* 위기 유형 블록 (req-quant-a74f9f91): 프리셋 × 국면 — 숫자는 isa_lab.py scenarios() 가 월수익으로 재생해 JSON 에 넣은 값, 화면은 표시만 */
+function ilabRegimeHtml(D){ const S=D.scenarios; if(!S||!S.rows) return '';
+  const p1=v=>v==null||isNaN(v)?'—':`${v>0?'+':''}${(v*100).toFixed(1)}%`;
+  const cols=[]; S.regimes.forEach(g=>{ g.events.forEach(e=>cols.push([g,e[0],e[1]+'~'+e[2]])); });
+  const hd=S.regimes.filter(g=>g.events.length).map(g=>`<th colspan="${g.events.length}">${esc(g.name)}<br><span class="mu" style="font-weight:400">구간 누적</span></th>`).join('');
+  const sub=cols.map(c=>`<th>${esc(c[1])}<br><span class="mu" style="font-weight:400">${esc(c[2])}</span></th>`).join('');
+  const body=Object.entries(S.rows).map(([k,r])=>`<tr><td class="l">${esc(k)}</td>${cols.map(c=>`<td>${p1(r[c[1]])}</td>`).join('')}<td>${p1(r['평시 연환산'])}</td><td>${p1(r['전체 기간 연복리'])}</td></tr>`).join('');
+  const defs=S.regimes.map(g=>`<div><b>${esc(g.key)} ${esc(g.name)}</b> — 「${esc(g.def)}」 <span class="mu">(${esc(S.source)} ${esc(g.def_src)})</span></div>`).join('');
+  return `<div class="p c12"><h2>위기 유형(국면)별 재생<small>${esc(S.window)} 월수익 · 월 리밸 · 비용 차감 · 일시금 시간가중</small></h2><div class="b">
+   <table><tr><th class="l" rowspan="2">프리셋</th>${hd}<th rowspan="2">평시<br><span class="mu" style="font-weight:400">위기 구간 뺀 월 연환산</span></th><th rowspan="2">전체 기간<br><span class="mu" style="font-weight:400">연복리</span></th></tr><tr>${sub}</tr>${body}</table>
+   <div class="mu" style="font-size:var(--fs-1);margin-top:4px">${defs}<div style="color:var(--amber)">${esc(S.note)}</div></div>${ilabDeskHtml(D)}</div></div>`; }
+/* 데스크 국면 블록 (B): 원천 문구 그대로 + 원천에 자산별 숫자가 있을 때만 프리셋 값(FRM 상품 충격 Σ비중×충격) — 없으면 빈칸 */
+function ilabDeskHtml(D){ const S=D.scenarios, K=S&&S.desk; if(!K) return '';
+  const p1=v=>v==null||isNaN(v)?'—':`${v>0?'+':''}${(v*100).toFixed(1)}%`, pr=Object.keys(D.presets), F=K.frm||{};
+  const frm=F.available?`<table style="margin-top:6px"><tr><th class="l">FRM 스트레스 (즉시 충격)</th>${pr.map(k=>`<th>${esc(k)}</th>`).join('')}</tr>${F.scenarios.map(sc=>`<tr><td class="l">${esc(sc.label)}</td>${pr.map(k=>`<td>${p1((F.rows[k]||{})[sc.id])}</td>`).join('')}</tr>`).join('')}</table>
+    <div class="mu" style="font-size:var(--fs-1)">${esc(F.src)} · asof ${esc(F.asof||'—')}(가격 ${esc(F.price_asof||'—')}) · 지금 국면 판정 「${esc(F.regime||'—')}」 — ${esc(F.regime_def)} · 구속 한도 ${F.limit_stress!=null?p1(F.limit_stress):'—'}(포트 기준, 이 표는 코어 프리셋만)</div>`
+    :`<div class="mu">FRM: ${esc(F.why||'원천 미확인')}</div>`;
+  const blank=(nm,x,now)=>`<tr><td class="l">${esc(nm)}</td><td class="l">${now}</td><td class="l mu">${esc(x.why_blank)}</td></tr>`;
+  const mv=K.macro||{}, cm=K.committee||{}, an=K.analyst||{};
+  const cmNow=(cm.scenarios||[]).map(x=>`${esc(x.name)} ${x.prob!=null?(x.prob*100).toFixed(0)+'%':'—'}(${esc(x.def||'')})`).join(' · ');
+  return `<h3 style="margin:10px 0 2px">데스크 국면 블록</h3>${frm}
+   <table style="margin-top:6px"><tr><th class="l">원천</th><th class="l">국면 정의·지금 판정 (원문)</th><th class="l">프리셋 값</th></tr>
+   ${blank('매크로 바람 · '+(mv.src||''),mv,`「${esc(mv.label||'—')}」 ${mv.score!=null?mv.score:''} · ${esc(mv.summary||'')} <span class="mu">(${esc(mv.asof||'—')} · ${esc(mv.label_def||'')})</span>`)}
+   ${blank('운용회의 시나리오 · '+(cm.src||''),cm,`${cmNow} <span class="mu">(${esc(cm.asof||'—')} · 근거 ${esc(cm.basis||'')} n=${esc(cm.n??'—')})</span>`)}
+   ${blank('애널 · '+(an.src||''),an,`「${esc(an.quote||'—')}」`)}
+   </table>
+   <div class="mu" style="font-size:var(--fs-1);margin-top:4px">국면 이름 대응: ${esc(K.mapping)}</div>
+   <div class="mu" style="font-size:var(--fs-1)">위기 유형(배분): ${esc((S.now||{}).regime_rebalance||'—')}</div>`; }
 function ilabSet(el){ ILAB_ST.w[el.dataset.a]=+el.value; const b=$('#ilw_'+el.dataset.a); if(b) b.textContent=el.value+'%'; ILABBT=null; ilabRecalc(); }
 function ilabPreset(i){ const p=Object.values(ILAB.presets)[i]; ILAB.assets.forEach(a=>ILAB_ST.w[a]=+(p[a]||0)); ILABBT=null; render(); }
 function ilabNorm(){ const s=ILAB.assets.reduce((x,a)=>x+(+ILAB_ST.w[a]||0),0); if(s<=0) return; ILAB.assets.forEach(a=>ILAB_ST.w[a]=Math.round((+ILAB_ST.w[a]||0)*100/s)); render(); }
@@ -3567,7 +3596,7 @@ function ilabRecalc(){
   const p1=v=>v==null||isNaN(v)?'—':(v*100).toFixed(1)+'%', pp=v=>isNaN(v)?'—':`${v>0?'+':''}${(v*100).toFixed(1)}%p`, mx=v=>v.toFixed(2)+'배';
   const row=(lab,b,x,f,d,better)=>{ const df=d(x-b), good=better==null?'':((x-b)*better>0.0005?'v-ok':(x-b)*better<-0.0005?'v-bad':'mu'); return `<tr><td class="l">${lab}</td><td>${f(b)}</td><td><b>${f(x)}</b></td><td class="${good}">${df}</td></tr>`; };
   const dmx=v=>`${v>0?'+':''}${v.toFixed(2)}배`;
-  let h=`<table><tr><th class="l">지표</th><th>현행 ISA</th><th>선택</th><th>차이</th></tr>
+  let h=`<table><tr><th class="l">지표</th><th>${esc(Object.keys(D.presets)[0])}</th><th>선택</th><th>차이</th></tr>
    <tr><td class="l am" colspan="4">일시금 (2004-01 에 1 넣고 그대로)</td></tr>
    ${row('연복리 CAGR',B.lump.cagr,X.lump.cagr,p1,pp,1)}${row('연변동성',B.lump.vol,X.lump.vol,p1,pp,-1)}${row('최대낙폭',B.lump.mdd,X.lump.mdd,p1,pp,1)}${row('최악 12개월',B.lump.worst12,X.lump.worst12,p1,pp,1)}${row('최종 배수',B.lump.mult,X.lump.mult,mx,dmx,1)}
    <tr><td class="l am" colspan="4">월 적립 (매달 초 ${num(S.contrib)} · ${D.months.length}회)</td></tr>
