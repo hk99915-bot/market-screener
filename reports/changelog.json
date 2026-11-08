@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-08 04:04 KST",
+ "generated_at": "2026-11-09 04:11 KST",
  "repo": "hk99915-bot/market-screener",
  "note": "이 저장소 git log 만으로 생성 (scripts/changelog.py). 봇 자동 커밋은 '자동 갱신 N회'로 접음.",
  "areas": {
@@ -16,10 +16,10 @@
  "first": "2026-10-15",
  "days": [
   {
-   "date": "2026-11-08",
-   "total": 4,
+   "date": "2026-11-09",
+   "total": 7,
    "work": 2,
-   "auto": 2,
+   "auto": 5,
    "by": {
     "bot": 2
    },
@@ -30,10 +30,10 @@
      "n": 1,
      "items": [
       {
-       "sha": "d94c7c96",
-       "time": "00:42",
+       "sha": "c7664d1e",
+       "time": "03:51",
        "kind": "bot",
-       "summary": "team: 2026-11-07T15:42 (매시)",
+       "summary": "team: 2026-11-08T18:51 (매시)",
        "areas": [
         "ops",
         "docs"
@@ -51,6 +51,737 @@
      "n": 1,
      "items": [
       {
+       "sha": "516ee786",
+       "time": "02:02",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-08T17:02",
+       "areas": [
+        "data"
+       ],
+       "files": 8,
+       "tasks": []
+      }
+     ]
+    }
+   ],
+   "auto_updates": {
+    "n": 5,
+    "label": "자동 갱신 5회",
+    "kinds": {
+     "health": 2,
+     "backfill": 1,
+     "lab": 1,
+     "fin": 1
+    }
+   },
+   "tasks": {
+    "ops-system": 1
+   }
+  },
+  {
+   "date": "2026-11-08",
+   "total": 59,
+   "work": 52,
+   "auto": 7,
+   "by": {
+    "bot": 18,
+    "agent": 34
+   },
+   "areas": [
+    {
+     "area": "web",
+     "label": "화면",
+     "n": 4,
+     "items": [
+      {
+       "sha": "89004c02",
+       "time": "21:14",
+       "kind": "agent",
+       "summary": "데이터엔지니어: ISA 실험실 예상 점선에 매크로·애널 시나리오 기대수익 연결, CIO 20d 는 생략",
+       "areas": [
+        "web",
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 5,
+       "tasks": [
+        "index-split",
+        "isa-lab",
+        "uxui-top10-impl",
+        "front-first-round"
+       ]
+      },
+      {
+       "sha": "b32339f8",
+       "time": "21:10",
+       "kind": "agent",
+       "summary": "데이터엔지니어: ISA 실험실 누적 곡선에 국면별 '예상(가정)' 3년 점선",
+       "areas": [
+        "web",
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 5,
+       "tasks": [
+        "index-split",
+        "isa-lab",
+        "uxui-top10-impl",
+        "front-first-round"
+       ]
+      },
+      {
+       "sha": "2ac02ed8",
+       "time": "21:09",
+       "kind": "agent",
+       "summary": "퀀트: ISA 실험실 국면 표 피어리뷰 반영 — 평시에서 진행 중 부분 월 제외 · K0 정의 · 현재 판정 원천 맞춤 · 한계 문구",
+       "areas": [
+        "web",
+        "engine",
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 6,
+       "tasks": [
+        "index-split",
+        "isa-lab",
+        "uxui-top10-impl",
+        "front-first-round"
+       ]
+      },
+      {
+       "sha": "97341c82",
+       "time": "21:03",
+       "kind": "agent",
+       "summary": "퀀트: ISA 실험실 C안(현행) 프리셋 정정 · 월수익 11/6 까지 재생성 · 위기 유형/데스크 국면 표 (req-quant-a74f9f91)",
+       "areas": [
+        "web",
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 6,
+       "tasks": [
+        "index-split",
+        "isa-lab",
+        "uxui-top10-impl",
+        "front-first-round"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "workflow",
+     "label": "워크플로",
+     "n": 2,
+     "items": [
+      {
+       "sha": "b6105cc1",
+       "time": "19:35",
+       "kind": "agent",
+       "summary": "dev: digest 재료 게이트 — fin.yml 03:30 에 public_reports --pending 결과를 reports/views/digest_pending.json 으로 저장(n·n_recent3·items)",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools"
+       ],
+       "files": 3,
+       "tasks": [
+        "public-reports",
+        "public-reports-summary-1023",
+        "bok-issue-note"
+       ]
+      },
+      {
+       "sha": "5d7c1b3f",
+       "time": "19:35",
+       "kind": "agent",
+       "summary": "dev: 운용회의 텔레그램 push 자동 발송 — desk_meeting.json push 시 desk_meeting_tg.yml 실행, 같은 date 재발송 금지(Actions 캐시 마커)",
+       "areas": [
+        "workflow",
+        "engine",
+        "tools"
+       ],
+       "files": 3,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "engine",
+     "label": "엔진",
+     "n": 1,
+     "items": [
+      {
+       "sha": "922ef5b9",
+       "time": "21:17",
+       "kind": "agent",
+       "summary": "데이터엔지니어: ISA 실험실 점선 감사 반영 — 평시 연환산 기본 끔·전체 기간 연복리 기본, 데스크 er 스키마 검사 테스트",
+       "areas": [
+        "engine",
+        "tools",
+        "data"
+       ],
+       "files": 3,
+       "tasks": [
+        "isa-lab"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "ops",
+     "label": "운영",
+     "n": 22,
+     "items": [
+      {
+       "sha": "e4669269",
+       "time": "22:43",
+       "kind": "agent",
+       "summary": "pm: 11/8 메인 대화 사용량 대조(22:30)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d87f91ca",
+       "time": "22:32",
+       "kind": "bot",
+       "summary": "team: 2026-11-08T13:32 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "30bacb1f",
+       "time": "21:18",
+       "kind": "agent",
+       "summary": "pm: ISA 실험실 국면·기대수익 9데스크 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "ee357674",
+       "time": "20:21",
+       "kind": "agent",
+       "summary": "pm: 사진 감사 사담 29명 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "fc2a5035",
+       "time": "20:15",
+       "kind": "agent",
+       "summary": "pm: 사진 작별 패널 3건 사용량(게시 0)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "9141f56f",
+       "time": "19:41",
+       "kind": "agent",
+       "summary": "pm: 개발 Pro 이관 4건 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "52f9b0b9",
+       "time": "19:30",
+       "kind": "agent",
+       "summary": "pm: Pro 대비 6데스크 사용량(opus)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "3a01204d",
+       "time": "19:22",
+       "kind": "agent",
+       "summary": "pm: 교육 계획·PM 닫기 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "01d9e0c7",
+       "time": "19:21",
+       "kind": "agent",
+       "summary": "pm: 11/8 대청소 닫기 14/15 실행 (겸이 19:15 승인, #13 보류)",
+       "areas": [
+        "ops",
+        "docs",
+        "etc"
+       ],
+       "files": 4,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "15e72579",
+       "time": "19:20",
+       "kind": "agent",
+       "summary": "pm: 컴플 VaR 판정 사용량(추정 — 완료 알림 전)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "169ee18c",
+       "time": "19:19",
+       "kind": "agent",
+       "summary": "pm: 리스크 VaR 질문 사용량",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "dee2ea98",
+       "time": "19:13",
+       "kind": "agent",
+       "summary": "pm: 11/8 주간회의 회의록(비율만) + 데스크 사용량",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "6469651d",
+       "time": "19:09",
+       "kind": "agent",
+       "summary": "pm: 11/8 주간회의 데스크 사용량(리스크·PM·행동·컴플)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "80284c31",
+       "time": "16:06",
+       "kind": "agent",
+       "summary": "pm: 기록 16:00 정기 기록 사용량(추정 — 완료 알림 전)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "af325417",
+       "time": "16:06",
+       "kind": "agent",
+       "summary": "pm: 기록 16:00 사용량 실측 갱신",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "9c5d792d",
+       "time": "15:10",
+       "kind": "bot",
+       "summary": "team: 2026-11-08T06:10 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "8230b6d3",
+       "time": "12:53",
+       "kind": "agent",
+       "summary": "pm: 기록 12:50 정기 기록 사용량(추정 — 완료 알림 전)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "aea55847",
+       "time": "12:53",
+       "kind": "agent",
+       "summary": "pm: 기록 12:50 사용량 실측 갱신",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "71021650",
+       "time": "12:10",
+       "kind": "agent",
+       "summary": "pm: 팀 사용량 — PM 대청소 분류(PB 호출)",
+       "areas": [
+        "ops"
+       ],
+       "files": 1,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d11f95e6",
+       "time": "08:41",
+       "kind": "bot",
+       "summary": "team: 2026-11-07T23:41 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "31d36be8",
+       "time": "05:16",
+       "kind": "bot",
+       "summary": "team: 2026-11-07T20:16 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      },
+      {
+       "sha": "d94c7c96",
+       "time": "00:42",
+       "kind": "bot",
+       "summary": "team: 2026-11-07T15:42 (매시)",
+       "areas": [
+        "ops",
+        "docs"
+       ],
+       "files": 2,
+       "tasks": [
+        "ops-system"
+       ]
+      }
+     ]
+    },
+    {
+     "area": "tools",
+     "label": "도구",
+     "n": 2,
+     "items": [
+      {
+       "sha": "758391ff",
+       "time": "21:15",
+       "kind": "agent",
+       "summary": "데이터엔지니어: [ci-fix] ISA 실험실 점선 테스트 — 데스크 er 파일 갱신에 깨지지 않게 비교 범위 좁힘",
+       "areas": [
+        "tools"
+       ],
+       "files": 1,
+       "tasks": [
+        "isa-lab"
+       ]
+      },
+      {
+       "sha": "7afd0ad8",
+       "time": "21:11",
+       "kind": "agent",
+       "summary": "매크로: 바람 국면(순풍·중립·역풍)별 자산 5종 기대 연수익 — 월말 소급 재구성·다음 달 원화 수익 (ISA 실험실 국면 표)",
+       "areas": [
+        "tools",
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "docs",
+     "label": "문서",
+     "n": 9,
+     "items": [
+      {
+       "sha": "8e68edae",
+       "time": "21:16",
+       "kind": "agent",
+       "summary": "검증: 적중 채점 v1 감사 반영 — 입력 105행 스냅샷+sha256, FRM 라벨 수 정정(23회→17/23)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 3,
+       "tasks": []
+      },
+      {
+       "sha": "1acb9343",
+       "time": "21:12",
+       "kind": "agent",
+       "summary": "애널: 지수 5자산 bull/base/bear 12개월 기대 총수익 (ISA 실험실 국면 표)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "cdec1c07",
+       "time": "21:12",
+       "kind": "agent",
+       "summary": "cio: 운용회의 시나리오별 자산 5종 20일 조건부 기대수익 (dd15 조건, C 등급)",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "31ffd9cc",
+       "time": "21:07",
+       "kind": "agent",
+       "summary": "검증: 데스크 판단 적중 채점 v1 결과 — 전 칸 표본 부족(n≤6), 순위 구분 불가",
+       "areas": [
+        "docs",
+        "data"
+       ],
+       "files": 2,
+       "tasks": []
+      },
+      {
+       "sha": "69f79499",
+       "time": "21:04",
+       "kind": "agent",
+       "summary": "검증: 데스크 판단 적중 채점 사전등록 v1 (결과 보기 전)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "e2aba823",
+       "time": "21:04",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-08T12:04 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "538475f8",
+       "time": "20:46",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-08T11:46 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5024e8f5",
+       "time": "19:21",
+       "kind": "bot",
+       "summary": "msgr: 사내톡 피드 2026-11-08T10:21 (push 즉시)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "29f257a5",
+       "time": "12:09",
+       "kind": "agent",
+       "summary": "pm: 11/8 대청소 분류 — 이상 162건 살리기 119·닫기 15·합치기 28 (목록만, 보드 미변경)",
+       "areas": [
+        "docs"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
+    },
+    {
+     "area": "data",
+     "label": "데이터",
+     "n": 10,
+     "items": [
+      {
+       "sha": "7b81eeb1",
+       "time": "21:17",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-08T12:17 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "9bf8c15b",
+       "time": "21:12",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-08T12:12 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "1a0ea6c3",
+       "time": "21:08",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-08T12:08 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "2b4c2b41",
+       "time": "21:04",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-08T12:04 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a10848c6",
+       "time": "19:21",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-08T10:21 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6d7876cd",
+       "time": "19:13",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-08T10:13 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "6a720609",
+       "time": "12:09",
+       "kind": "bot",
+       "summary": "lib: 서고 색인 2026-11-08T03:09 (push 즉시)",
+       "areas": [
+        "data"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "a771aaa7",
+       "time": "11:30",
+       "kind": "bot",
+       "summary": "macro: tg 관찰 피드 2026-11-08T02:30",
+       "areas": [
+        "data"
+       ],
+       "files": 4,
+       "tasks": []
+      },
+      {
+       "sha": "8fa09a6e",
+       "time": "08:26",
+       "kind": "bot",
+       "summary": "hist: 시세 창고 갱신 2026-11-07",
+       "areas": [
+        "data"
+       ],
+       "files": 2,
+       "tasks": [
+        "repo-size-stage1"
+       ]
+      },
+      {
        "sha": "b61ef7c6",
        "time": "01:50",
        "kind": "bot",
@@ -62,18 +793,58 @@
        "tasks": []
       }
      ]
+    },
+    {
+     "area": "etc",
+     "label": "기타",
+     "n": 2,
+     "items": [
+      {
+       "sha": "9f00ce26",
+       "time": "21:03",
+       "kind": "agent",
+       "summary": "퀀트: req-quant-a74f9f91 닫음 (ISA 실험실 C안 프리셋·11/6 데이터·국면 표 = 97341c82a)",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      },
+      {
+       "sha": "5ea12d7d",
+       "time": "20:45",
+       "kind": "agent",
+       "summary": "pm: 겸이→퀀트 ISA 실험실 프리셋·데이터 갱신 요청",
+       "areas": [
+        "etc"
+       ],
+       "files": 1,
+       "tasks": []
+      }
+     ]
     }
    ],
    "auto_updates": {
-    "n": 2,
-    "label": "자동 갱신 2회",
+    "n": 7,
+    "label": "자동 갱신 7회",
     "kinds": {
-     "health": 1,
-     "backfill": 1
+     "health": 2,
+     "ops": 2,
+     "backfill": 1,
+     "fin": 1,
+     "scorecard": 1
     }
    },
    "tasks": {
-    "ops-system": 1
+    "ops-system": 22,
+    "isa-lab": 6,
+    "index-split": 4,
+    "uxui-top10-impl": 4,
+    "front-first-round": 4,
+    "repo-size-stage1": 1,
+    "public-reports": 1,
+    "public-reports-summary-1023": 1,
+    "bok-issue-note": 1
    }
   },
   {
