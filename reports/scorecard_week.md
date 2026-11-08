@@ -1,42 +1,42 @@
-# 주간 성적표 (공개) 10/26~11/01
+# 주간 성적표 (공개) 11/02~11/08
 
-- 기준: 2026-11-01 11:23 KST · ISO 주 2026-W44 (2026-10-26 ~ 2026-11-01) · 비율·건수만 (금액·보유는 비공개 성적표)
-- 코스피 주간: +3.2% (2026-10-23 → 2026-10-30)
+- 기준: 2026-11-08 11:35 KST · ISO 주 2026-W45 (2026-11-02 ~ 2026-11-08) · 비율·건수만 (금액·보유는 비공개 성적표)
+- 코스피 주간: −11.7% (2026-10-30 → 2026-11-06)
 
 ## 모의 대결 (이번 주 판단일 기준)
 
-채점 1건 · 제외 5건 · 채점 대기 9건 — 모의 금액 기준, 실계좌 아님
+채점 0건 · 제외 8건 · 채점 대기 2건 — 모의 금액 기준, 실계좌 아님
 
 | 참가자 | 판 | 승 | 승률 | 진입 | 적중 | 평균 수익률 | 모의 손익 |
 |---|---|---|---|---|---|---|---|
 | 나 | 0 | 0 | n/a | 0 | n/a | n/a | +0 |
-| 나🔥 | 1 | 0 | 0% | 1 | 100% | +1.16% | +11,580 |
-| └ 나🔥(감) | 1 | 0* | 0% | 1 | 100% | +1.16% | +11,580 |
+| 나🔥 | 0 | 0 | n/a | 0 | n/a | n/a | +0 |
+| └ 나🔥(감) | 0 | 0* | n/a | 0 | n/a | n/a | +0 |
 | └ 나🔥(판단) | 0 | 0* | n/a | 0 | n/a | n/a | +0 |
-| PB | 1 | 0 | 0% | 0 | n/a | n/a | +0 |
-| PB🔥 | 1 | 1 | 100% | 1 | 100% | +3.20% | +64,019 |
-| 규칙 | 1 | 0 | 0% | 0 | n/a | n/a | +0 |
+| PB | 0 | 0 | n/a | 0 | n/a | n/a | +0 |
+| PB🔥 | 0 | 0 | n/a | 0 | n/a | n/a | +0 |
+| 규칙 | 0 | 0 | n/a | 0 | n/a | n/a | +0 |
 
 \* 나🔥 의 '승' = 같은 판에서 '나'보다 손익이 큰 횟수 — **레버리지 해금 근거에서 제외**(결재 #14, 10/17~ 기록·비교용)
 
-급락일 PB 행동률: 0/0 (급락일 없음) — 급락일(코스피 −5%)에 현금이 아닌 PB 픽 또는 게이트 불통 사유 명시 건수
+급락일 PB 행동률: 1/2 (50%) — 급락일(코스피 −5%)에 현금이 아닌 PB 픽 또는 게이트 불통 사유 명시 건수
 
-누적 (전체 기간): 나 4/11 (적중 36%) · PB 5/9 (적중 100%) · 규칙 2/10 · PB🔥 1/6 (적중 17%) · 나🔥 0/2 (적중 50%)
+누적 (전체 기간): 나 4/11 (적중 36%) · PB 5/11 (적중 100%) · 규칙 2/12 · PB🔥 2/8 (적중 25%) · 나🔥 1/4 (적중 50%)
 
 ## 레짐 (운용회의)
 
 | 날짜 | 세션 | 레짐 | 강세/기본/약세 | 스탠스 |
 |---|---|---|---|---|
-| 2026-10-26 | 장후 | 하락장 | 44%/35%/22% | 관망 |
-| 2026-10-27 | 장후 | 하락장 | 44%/35%/22% | 관망 |
-| 2026-10-28 | 장후 | 하락장 | 23%/63%/15% | 관망 |
-| 2026-10-29 | 장후 | 하락장 | 44%/35%/22% | 관망 |
-| 2026-10-30 | 장후 | 하락장 | 44%/35%/22% | 분할 매수 |
+| 2026-11-02 | 장후 | 하락장 | 44%/35%/22% | 관망 |
+| 2026-11-03 | 장후 | 하락장 | 44%/35%/22% | 관망 |
+| 2026-11-04 | 장후 | 하락장 | 44%/35%/22% | 관망 |
+| 2026-11-05 | 장후 | 하락장 | 47%/28%/25% | 분할 매수 |
+| 2026-11-06 | 장후 | 하락장 | 47%/28%/25% | 분할 매수 |
 
 ## 이벤트 · 운영
 
-- 서킷·사이드카: 실제 3건 (서킷 0 · 사이드카 3) · 경보(기준 근접) 2건
-- 워크플로 실패 (7일): 0건 · 데이터 이슈 0건 (health 2026-10-26 01:55)
+- 서킷·사이드카: 실제 5건 (서킷 2 · 사이드카 3) · 경보(기준 근접) 4건
+- 워크플로 실패 (7일): 0건 · 데이터 이슈 0건 (health 2026-11-02 03:12)
 
 ## 관점(렌즈) 등급
 
@@ -119,6 +119,73 @@
 | 2026-10-31_trend_rule | D1 | F |  |
 | 2026-10-31_trend_rule | D2 | F |  |
 | 2026-10-31_trend_rule | C1 | C(역방향) |  |
+| 2026-11-01_chain_corr | 체인 상관·군집·하방·미장 연계(기술통계) | 해당 없음(상한 C) |  |
+| 2026-11-01_gamma_scalp | H1_always_D1 | F |  |
+| 2026-11-01_gamma_scalp | H2_cond_vrp30 | F |  |
+| 2026-11-01_gamma_scalp | H3_cond_minus_non | F |  |
+| 2026-11-01_history_paths | 유사 국면 경로(기술통계) | 해당 없음(상한 C) |  |
+| 2026-11-01_vol_strategies | H1_CC_minus_K200 | F |  |
+| 2026-11-01_vol_strategies | H2_SS | F |  |
+| 2026-11-01_vol_strategies | H3_IC | F |  |
+| 2026-11-01_vol_strategies | H4_COL_minus_K200 | F |  |
+| 2026-11-03_bond_regime_strata | H1-1xBA | F |  |
+| 2026-11-03_bond_regime_strata | H1-1xBC | F |  |
+| 2026-11-03_bond_regime_strata | H1-1xBB | F |  |
+| 2026-11-03_bond_regime_strata | H1-2xBA | F |  |
+| 2026-11-03_bond_regime_strata | H1-2xBC | C |  |
+| 2026-11-03_bond_regime_strata | H1-2xBB | F |  |
+| 2026-11-03_bond_regime_strata | H1-3xBA | F |  |
+| 2026-11-03_bond_regime_strata | H1-3xBC | F |  |
+| 2026-11-03_bond_regime_strata | H1-3xBB | C |  |
+| 2026-11-03_bond_regime_strata | H1-4xBA | 검증전 |  |
+| 2026-11-03_bond_regime_strata | H1-4xBC | 검증전 |  |
+| 2026-11-03_bond_regime_strata | H1-4xBB | 검증전 |  |
+| 2026-11-04_crash_close_intraday | 1_X0 | F |  |
+| 2026-11-04_crash_close_intraday | 1_X1 | F |  |
+| 2026-11-04_crash_close_intraday | 1_X2 | F |  |
+| 2026-11-04_crash_close_intraday | 1_X5 | F |  |
+| 2026-11-04_crash_close_intraday | 2_전강후약|next_ret | C |  |
+| 2026-11-04_crash_close_intraday | 2_전약후강|next_ret | C |  |
+| 2026-11-04_crash_close_intraday | 2_강세 지속|next_ret | F |  |
+| 2026-11-04_crash_close_intraday | 2_약세 지속|next_ret | F |  |
+| 2026-11-04_crash_close_intraday | 2_혼조|next_ret | F |  |
+| 2026-11-04_crash_close_intraday | 2_전강후약|ret5 | F |  |
+| 2026-11-04_crash_close_intraday | 2_전약후강|ret5 | F |  |
+| 2026-11-04_crash_close_intraday | 2_강세 지속|ret5 | F |  |
+| 2026-11-04_crash_close_intraday | 2_약세 지속|ret5 | F |  |
+| 2026-11-04_crash_close_intraday | 2_혼조|ret5 | F |  |
+| 2026-11-05_ict_hdj1 | R1_TurtleSoup|SPX | F |  |
+| 2026-11-05_ict_hdj1 | R1_TurtleSoup|NASDAQ | F |  |
+| 2026-11-05_ict_hdj1 | R1_TurtleSoup|KOSPI | 검증전 |  |
+| 2026-11-05_ict_hdj1 | R2_CRT_PO3|SPX | F |  |
+| 2026-11-05_ict_hdj1 | R2_CRT_PO3|NASDAQ | F |  |
+| 2026-11-05_ict_hdj1 | R2_CRT_PO3|KOSPI | F |  |
+| 2026-11-05_ict_hdj1 | R4_OTE|SPX | F |  |
+| 2026-11-05_ict_hdj1 | R4_OTE|NASDAQ | F |  |
+| 2026-11-05_ict_hdj1 | R4_OTE|KOSPI | F |  |
+| 2026-11-05_ict_hdj1 | R5_OrderBlock|SPX | 검증전 |  |
+| 2026-11-05_ict_hdj1 | R5_OrderBlock|NASDAQ | 검증전 |  |
+| 2026-11-05_ict_hdj1 | R5_OrderBlock|KOSPI | 검증전 |  |
+| 2026-11-05_ict_hdj1 | R6_CISD|SPX | F |  |
+| 2026-11-05_ict_hdj1 | R6_CISD|NASDAQ | F |  |
+| 2026-11-05_ict_hdj1 | R6_CISD|KOSPI | F |  |
+| 2026-11-05_ict_hdj1 | R7_BoS|SPX | F |  |
+| 2026-11-05_ict_hdj1 | R7_BoS|NASDAQ | F |  |
+| 2026-11-05_ict_hdj1 | R7_BoS|KOSPI | C |  |
+| 2026-11-05_ict_hdj1 | R8_FVG_Retest|SPX | F |  |
+| 2026-11-05_ict_hdj1 | R8_FVG_Retest|NASDAQ | F |  |
+| 2026-11-05_ict_hdj1 | R8_FVG_Retest|KOSPI | F |  |
+| 2026-11-05_ict_hdj1 | R9_Boom_Daily|SPX | 검증전 |  |
+| 2026-11-05_ict_hdj1 | R9_Boom_Daily|NASDAQ | 검증전 |  |
+| 2026-11-05_ict_hdj1 | R9_Boom_Daily|KOSPI | F |  |
+| 2026-11-05_ict_hdj1 | R3_SMT|SPX | F |  |
+| 2026-11-05_ict_hdj1 | R3_SMT|NASDAQ | F |  |
+| 2026-11-06_split_entry_rules | H1 | F (신뢰도 중) |  |
+| 2026-11-06_split_entry_rules | H2 | F (신뢰도 중) |  |
+| 2026-11-06_split_entry_rules | H3 | F (신뢰도 중) |  |
+| 2026-11-06_split_entry_rules | H4 | F (신뢰도 중) |  |
+| 2026-11-06_split_entry_rules | H5 | F (신뢰도 중) |  |
+| 2026-11-06_split_entry_rules | H6 | F (신뢰도 중) |  |
 | derivs_signals | H1 | 검증전 | 외국인 선물 순매수 → 다음날 |
 | derivs_signals | H2 | F | 외국인 현물 순매수 → 다음날 |
 | derivs_signals | H3 | F | 외국인 현물 3일 순매도 후 순매수 전환 → 5일 |
@@ -145,6 +212,8 @@
 | hollzzak | H4a | F |  |
 | hollzzak | H4b | C |  |
 | hollzzak | H4c | F(역방향 C) |  |
+| multiple_compression_2022 | 2022 멀티플 압축 크기(미 합산·반도체·코스피) | C |  |
+| multiple_compression_2022 | 2026 대조 판정 | 검증전 |  |
 | re_bluezone_drawdown | - | 자체연구-검증전(1차 원자료 집계 · 구 단위 근사 · 층·향 미통제) |  |
 | rule_audit | T1/s5 | F | 현행과 구별 안 됨(p=0.29) |
 | rule_audit | T1/s12 | F | 현행과 구별 안 됨(p=0.57) |
