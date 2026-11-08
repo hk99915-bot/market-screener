@@ -466,6 +466,18 @@ def pending(pub: dict | None, digest: dict | None, today: date, days: int = 30) 
             for i in (pub or {}).get("items") or [] if (i.get("date") or "") >= cut and not digest_ok(digest_for(idx, i))]
 
 
+PENDING_OUT = VIEWS / "digest_pending.json"
+
+
+def pending_doc(todo: list[dict], now: str, today: date, days: int = 30) -> dict:
+    """digest 재료 게이트(11/8 Pro 대비, data_eng.md A): 애널 digest 예약이 이 파일 n 만 보고 0 이면 '재료 없음' 1줄로 끝."""
+    return {"_doc": "public_reports --pending 결과(fin.yml 03:30 자동). n=0 이면 digest 예약은 에이전트를 띄우지 않음. "
+                    "정의 = 최근 days일 발간물 중 reports/views/digest.json 3종+one_line 이 없는 것.",
+            "asof": str(today), "generated_at": now, "days": days, "n": len(todo),
+            "n_recent3": sum(1 for r in todo if (r.get("date") or "") >= str(today - timedelta(days=3))),   # 최근 3일 발간분(월·수·금 digest 사이 새 재료)
+            "items": [{k: r.get(k) for k in ("key", "date", "inst", "series", "title", "link")} for r in todo]}
+
+
 EXTRA = ("depart", "pdf", "kind", "author", "summary_src", "rpt_no")   # 전용 파서가 주는 메타(있을 때만 저장)
 
 
@@ -617,6 +629,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--probe", action="store_true", help="저장 없이 소스별 결과와 앞 3건만 출력")
     ap.add_argument("--pending", action="store_true", help="수집 없이: 최근 30일 발간물 중 digest 3종·한 줄 뷰가 없는 것(데스크 작업 목록)")
+    ap.add_argument("--out", help="--pending 결과를 JSON 으로도 저장(예: reports/views/digest_pending.json — digest 재료 게이트)")
     a = ap.parse_args()
     if a.pending:
         def _j(p):
@@ -628,6 +641,12 @@ if __name__ == "__main__":
         for r in todo:
             print(f"{r['key']} {r['date']} [{r['inst']}·{r['series']}] {r['title'][:60]} {r['link']}")
         print(f"요약 대기 {len(todo)}건 — reports/views/digest.json 에 id=key 로 3종+one_line 작성 (docs/desk_kb/macro.md '공공 리포트 3종')")
+        if a.out:
+            from pathlib import Path
+            nowk = datetime.now(KST)
+            Path(a.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(a.out).write_text(json.dumps(pending_doc(todo, nowk.strftime("%Y-%m-%d %H:%M KST"), nowk.date()),
+                                              ensure_ascii=False, indent=1), encoding="utf-8")
         raise SystemExit(0)
     o = run(probe=a.probe)
     ok = sum(1 for s in o["sources"] if s["status"] == "ok")

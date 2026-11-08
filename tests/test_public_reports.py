@@ -283,3 +283,22 @@ def test_real_digest_covers_kcif_37642():
     d = json.loads((Path(__file__).resolve().parents[1] / "reports/views/digest.json").read_text(encoding="utf-8"))
     hit = pr.digest_for(pr.digest_index(d), {"key": "x", "link": "https://www.kcif.or.kr/annual/reportView?rpt_no=37642&mn=001005&pe=002015"})
     assert hit["id"] == "kcif_kospi_vol_20261027"
+
+
+def test_pending_doc_gate_shape():
+    """digest 재료 게이트(11/8 Pro 대비): n=0 이면 digest 예약이 에이전트 없이 끝 — n 은 items 길이와 같아야 함."""
+    t = date(2026, 11, 9)
+    todo = [{"key": "k1", "date": "2026-11-07", "inst": "한국은행", "series": "이슈노트", "title": "t", "link": "l", "summary": "x"}]
+    d = pr.pending_doc(todo, "2026-11-09 03:31 KST", t)
+    assert d["n"] == 1 and d["asof"] == "2026-11-09" and set(d["items"][0]) == {"key", "date", "inst", "series", "title", "link"}
+    assert pr.pending_doc([], "n", t)["n"] == 0
+    old = dict(todo[0], date="2026-10-20")
+    assert pr.pending_doc(todo + [old], "n", t)["n_recent3"] == 1
+    assert pr.PENDING_OUT.name == "digest_pending.json" and pr.PENDING_OUT.parent.name == "views"
+
+
+def test_fin_workflow_writes_digest_pending():
+    from pathlib import Path
+    wf = (Path(__file__).resolve().parents[1] / ".github/workflows/fin.yml").read_text(encoding="utf-8")
+    i, j = wf.index("python -m screener.public_reports ||"), wf.index("--pending --out reports/views/digest_pending.json")
+    assert i < j < wf.index("python -m screener.research_synthesis")

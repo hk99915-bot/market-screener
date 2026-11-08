@@ -60,6 +60,8 @@ jobs:
           # 비종목 리포트 — 실패해도 다음 단계는 진행하되 묻히지 않게 경고 + reports/research_views.json status
           python -m screener.main --mode research_views --no-send || echo "::warning::비종목 리포트 수집 실패/부분 — reports/research_views.json status 참조"
           python -m screener.public_reports || echo "::warning::공공 리포트·지정학 피드 수집 실패/부분 — reports/public_reports.json sources 참조 (애널 public-reports)"
+          # digest 재료 게이트(11/8 Pro 대비) — 07:41 애널 digest 예약은 이 파일 n=0 이면 에이전트 없이 끝
+          python -m screener.public_reports --pending --out reports/views/digest_pending.json > /dev/null || echo "::warning::digest_pending 저장 실패 — 애널 digest 예약은 --pending 직접 실행으로 폴백"
           python -m screener.research_synthesis || echo "::warning::리서치 종합 실패 — reports/research_synthesis.json 은 전날 것 유지 (애널 research-synthesis)"
           python -m screener.earnings_cal || echo "::warning::반도체 바스켓 실적일·컨센 실패 — reports/earnings_cal.json 은 전날 것 유지 (애널 ra-sec-coverage)"
           python -m screener.main --mode fin --no-send || true
