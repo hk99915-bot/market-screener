@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-09 · 작업 475개 · 진행 7 · 검수 4 · 대기 141 · 보류 30 · 완료 293
+기준일 2026-11-09 · 작업 488개 · 진행 7 · 검수 4 · 대기 154 · 보류 30 · 완료 293
 
 **결재 대기 4:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이)
 
@@ -29,7 +29,7 @@
 | P2 ⏫P1 10-21 | `live-us-winter-window` | live.yml 미장 창 겨울 시간 대응 — 11/02 뒤 미장 23:30–06:00 KST 인데 in_window 05:15 종료·매시 백업 04:07 까지 | 개발 | 2026-10-17 | **2026-11-03 지남** | `.github/workflows/live.yml`<br>`docs/schedule_table.md` | — | 안 고치면 겨울엔 미장 마지막 45분(05:15–06:00) 이벤트 감시 공백. in_window 0615 + cron '7 20 * * 1-5' 추가 + slot_guard 표 재생성. / 10/30 개발: in_window ET 09:15–16:15(tz)·백업 7 14-20·시작 cron 20 13+20 14 상시(10/30 금 여름 밤 보호)·GAS 23:20 코드(붙여넣기 대기). 확인 = 11/02(월) 23:20 루프 기동·06:00 까지 재개 실측 뒤 완료. / 11/01 PM 늦은 일 정리(유효): 유효: 11/02(월) 23:20 루프 기동·06:00 재개 실측 뒤 완료 |
 | P2 ⏫P1 11-08 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | **2026-11-07 지남** | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). |
 
-## 대기 (141)
+## 대기 (154)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -94,10 +94,23 @@
 | P1 ⏫ | `idea-unify-s1` | 아이디어 통합 S1: trade_rules.py 상수 모듈(값 변경 0)+2원천 읽기 전용 수집기 | 개발 | — | 2026-11-14 | `screener/trade_rules.py`<br>`scripts/idea_collect.py` | — | 통합운영 A=CIO(판정·되돌림) R=운영(진행·보드) · 기록=기록 데스크 · HF 자문(판정권 없음) — 겸이 11/4 16:43. 근거 rounds/2026-11-04/idea_unify_*.md·cio.md #22. 지난 판정 1줄을 notes 끝에 남길 것. 11/7~11 동결 후 11/12 착수. 개발 본인 수락 필요. |
 | P1 ⏫ | `mig-v1-private` | 리팩토링 v1 옛 저장소(내부판) 비공개 전환 + 세션 저장소에 내부판 추가(겸이 직접) | 사용자 | — | 2026-11-14 | — | `mig-v1-parallel` | 전 차수 무사고 확인 뒤 |
 | P1 ⏫ | `req-analyst-dac120cc` | [요청 승격] CIO→애널: req-cio-4a01efeb: '자본 병목' 가설 사실 ①~⑤(오라클 부채·벤더 파이낸싱, 대형 조달 구조 | 애널 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 애널 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-analyst-dac120cc`. |
+| P1 ⏫ | `req-cio-1aee53fc` | [요청 승격] 리스크→CIO: 분할 진입 리스크 의견 frm.md #28 — 조건부 찬성. 핵심: ①추가 시 손절 상향은 R을 지키나 스트 | CIO | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 CIO 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-cio-1aee53fc`. |
+| P1 ⏫ | `req-cio-2f4a213f` | [요청 승격] PB→CIO: 투자본부 규칙 고도화(겸이 11/5 07:57 「투자본부에도 이런 규칙고도화 요청」): 진입 딜레마(확인 후 | CIO | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 CIO 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-cio-2f4a213f`. |
+| P1 ⏫ | `req-cio-4b1c8165` | [요청 승격] HF→CIO: 급락일 1차 신호 정의 이견: committee.py crash_day 가 min(종가, 장중 저가) ≤ − | CIO | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 CIO 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-cio-4b1c8165`. |
+| P1 ⏫ | `req-cio-fe8f0691` | [요청 승격] 겸이→CIO: 투자전략 본부 실적 압박(겸이 11/5 12:11 「투자전략도 압박」): KPI — ① 운용회의 공격안 채점 | CIO | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 CIO 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-cio-fe8f0691`. |
 | P1 ⏫ | `req-compliance-fc90e046` | [요청 승격] CIO→컴플라이언스: req-cio-ab5e63e8 그림자 북: 컴플 조건 목록(실계좌 주문과 분리·모의 신호가 실계좌 근거로 쓰 | 컴플라이언스 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 컴플라이언스 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-compliance-fc90e046`. |
+| P1 ⏫ | `req-data-8e70ab61` | [요청 승격] PB→데이터: 분봉 데이터 검토(겸이 11/5 08:19 「분봉 데이터 받을 수 있지 않나 openapi」): 야후 60분 | 데이터 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-8e70ab61`. |
 | P1 ⏫ | `req-data-d72f4c1a` | [요청 승격] analyst_sndk_fy27q1→데이터: SNDK FY27 1Q 8-K(ex99.1) 원문 수집·GM·사업부 매출 대조 가능 여부 회신 | 데이터 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-10-30~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→analyst_sndk_fy27q1: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-d72f4c1a`. |
+| P1 ⏫ | `req-dev-94cc1eb0` | [요청 승격] PB→개발: 연습북 확장: ① 모의 숏(side=short) 지원 — 현재 skip으로 대용 ② src 필드(gyeom_ | 개발 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-94cc1eb0`. |
 | P1 ⏫ | `req-front-68daead0` | [요청 승격] 애널→프론트: 관계도 화면: reports/company_links.json(수작업) + reports/company_li | 프론트 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-68daead0`. |
+| P1 ⏫ | `req-hf-1cfc4b19` | [요청 승격] 겸이→HF: 투자전략 본부 실적 압박(겸이 11/5 12:11): 알파북 KR 누적 −0.18% vs 벤치 +3.41%( | HF | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 HF 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-hf-1cfc4b19`. |
+| P1 ⏫ | `req-pb-1f2aca39` | [요청 승격] CIO→PB: 결재 필요: 급락일 1차 신호 정의를 registry crash_day_close 등록 정의에 맞춤 — 1차 | PB | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-1f2aca39`. |
+| P1 ⏫ | `req-pb-52aa3926` | [요청 승격] 퀀트→PB: 급락일 등급 B(crash_day_close) 정의 원문 대조 결과 정정 제안 + 결재 필요: n=55 는  | PB | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→퀀트: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-52aa3926`. |
 | P1 ⏫ | `req-quant-117705d8` | [요청 승격] PB→퀀트: CIO 10/31 cio_network 요청: AI DC 바스켓(ANET·CIEN·LITE·CRDO·대한광통 | 퀀트 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-10-31~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-117705d8`. |
+| P1 ⏫ | `req-quant-971a91c3` | [요청 승격] PB→퀀트: ICT 검증 트리오 반영(11/5 08:20): ① quant_ict_hdj1.md 보정 α를 합산 N=34 | 퀀트 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-971a91c3`. |
+| P1 ⏫ | `req-quant-9aace2dc` | [요청 승격] 겸이→퀀트: 리서치 본부 실적 압박(겸이 11/5 12:09 「리서치도 더 실적압박」, 근거: 모의 대결 누적 나 4/1 | 퀀트 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-9aace2dc`. |
+| P1 ⏫ | `req-quant-e849de37` | [요청 승격] 겸이→퀀트: 관망 비용 장부 신설(겸이 11/5 12:13, 컴플·CIO 검토 반영): '막힌 거래'=사전 주문표가 있었 | 퀀트 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-e849de37`. |
+| P1 ⏫ | `req-quant-f85b5c1c` | [요청 승격] CIO→퀀트: 투자본부 규칙 고도화 검증 요청: 분할 진입 확인 조건(종가 진입가+1ATR 2거래일 유지)·시간 손절 N( | 퀀트 | — | 2026-11-16 | — | — | 요청 2영업일 미처리(2026-11-05~2026-11-09) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-f85b5c1c`. |
 | P1 ⏫ | `req-bonds-d826bc52` | [요청 승격] 애널→채권: 미 10년 기간 프리미엄 교차 확인: KCIF 10/21 '미 국채금리 상승 요인 분해'(DKW 모형)가 고 | 채권 | — | 2026-11-17 | — | — | 요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 채권 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-bonds-d826bc52`. / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-06→11-17 |
 | P1 ⏫ | `req-data-72477909` | [요청 승격] PB→데이터: 퀀트 10/31 trend_rule 발견: KRX 업종 지수(scripts/build_hist.py krx_ | 데이터 | — | 2026-11-17 | — | — | 요청 2영업일 미처리(2026-10-31~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-72477909`. |
 | P1 ⏫ | `req-edu-9026d859` | [요청 승격] LIFE→교육: 커리어 연계②: 영어 트랙(req-edu-f169bc47) 첫 모듈 '퍼포먼스 리포트 영어' 검토 + SQL | 교육 | — | 2026-11-17 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 교육 라운드 파일에 `처리→LIFE: …` 한 줄 또는 `python3 scripts/ask.py --close req-edu-9026d859`. |
