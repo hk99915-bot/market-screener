@@ -152,6 +152,163 @@ def _desk_block(presets: dict, root: Path = ROOT) -> dict:
     }
 
 
+# ---- 예상 경로 점선 (데이터엔지니어, 11/8 겸이 「국면별 기대수익률이나 그래프같은 예상치」) ----
+# 화면은 그리기만 — 경로 배수는 여기서 계산해 JSON projection 에 넣는다. 가정이며 비중 변경 권고 아님.
+PROJ_H = 36          # 개월 (1~3년)
+CALM = "평시 연환산"
+FULL = "전체 기간 연복리"
+
+
+def _months_after(last: str, n: int) -> list[str]:
+    y, m = map(int, last.split("-"))
+    out = []
+    for _ in range(n + 1):
+        out.append(f"{y:04d}-{m:02d}")
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+    return out
+
+
+def proj_annual(rate: float, h: int = PROJ_H) -> list[float]:
+    """연 rate 복리를 월로 — k개월 뒤 배수 (1+rate)^(k/12), k=0..h."""
+    return [round((1 + rate) ** (k / 12), 6) for k in range(h + 1)]
+
+
+def proj_then_calm(head: list[float], calm: float, h: int = PROJ_H) -> list[float]:
+    """head(월별 수익률 순서) 를 먼저 겪고, 남은 달은 평시 연환산 calm 으로 복리. k=0 은 1."""
+    v, out = 1.0, [1.0]
+    g = (1 + calm) ** (1 / 12)
+    for k in range(1, h + 1):
+        v *= (1 + head[k - 1]) if k <= len(head) else g
+        out.append(round(v, 6))
+    return out
+
+
+# 데스크 시나리오 기대수익 (매크로 연 · 애널 12m · 운용회의 20d+연환산|null) — 파일이 있으면 프리셋 Σ비중×er 로 점선, 없으면 skipped.
+# 스키마는 각 데스크가 정한다: 아래는 최소 가정(scenarios[] 각 항목에 name/label + er{자산:소수}, 연환산이 따로면 er_ann 우선).
+DESK_ER = [("macro", "매크로", "reports/views/scenario_er_macro.json"),
+           ("analyst", "애널", "reports/views/scenario_er_analyst.json"),
+           ("committee", "운용회의(CIO)", "reports/views/scenario_er_committee.json")]
+ANNUAL_H = {"1y", "12m", "annual", "연", "연간", "1년"}
+
+
+def _er_entries(J: dict) -> list[tuple[str, dict | None, str]]:
+    """(이름, 연 er{자산:소수} 또는 None, 이유). 연환산 키(er_ann·er_annual) 우선, 없으면 er 가 연(또는 12m)일 때만."""
+    items = J.get("scenarios") if isinstance(J.get("scenarios"), list) else ([J] if isinstance(J.get("er"), dict) else [])
+    out = []
+    for i, x in enumerate(items):
+        if not isinstance(x, dict):
+            continue
+        nm = str(x.get("name") or x.get("label") or x.get("id") or f"#{i + 1}")
+        er = next((x[k] for k in ("er_ann", "er_annual") if isinstance(x.get(k), dict)), None)
+        if er is None and isinstance(x.get("er"), dict):
+            h = str(x.get("horizon") or J.get("horizon") or "").strip().lower()
+            er = x["er"] if (not h or h in ANNUAL_H) else None
+            why = "" if er is not None else f"er 기간 {h} — 연환산 값 없음(null)"
+        else:
+            why = "" if er is not None else "er 없음"
+        out.append((nm, er, why))
+    return out
+
+
+def _desk_er_lines(D: dict, calm_ok, root: Path = ROOT) -> tuple[list[dict], list[dict]]:
+    lines, skipped = [], []
+    for key, who, rel in DESK_ER:
+        f = root / rel
+        if not f.exists():
+            skipped.append({"key": "er:" + key, "label": f"{who} 시나리오 기대수익", "why": f"{rel} 없음 — 아직 안 옴"})
+            continue
+        try:
+            J = json.loads(f.read_text(encoding="utf-8"))
+        except Exception as e:  # noqa: BLE001 — 깨진 파일은 그리지 않고 이유만
+            skipped.append({"key": "er:" + key, "label": f"{who} 시나리오 기대수익", "why": f"{rel} 읽기 실패 ({type(e).__name__})"})
+            continue
+        ents = _er_entries(J) if isinstance(J, dict) else []
+        if not ents:
+            skipped.append({"key": "er:" + key, "label": f"{who} 시나리오 기대수익", "why": f"{rel} 에 scenarios[].er 없음"})
+        for nm, er, why in ents:
+            k = f"er:{key}:{nm}"
+            rate = {}
+            if er is not None:
+                for pn, wm in D["presets"].items():
+                    tot = sum(wm.values())
+                    vals = [(wm[a], er.get(a)) for a in wm if wm[a]]
+                    if tot > 0 and all(isinstance(v, (int, float)) for _, v in vals):
+                        rate[pn] = round(sum(w / tot * v for w, v in vals), 6)
+            if not rate:
+                skipped.append({"key": k, "label": f"{who} {nm}", "why": why or "프리셋 자산 er 일부 null"})
+                continue
+            lines.append({"key": k, "label": f"{who} {nm} 기대수익 지속", "kind": "desk", "on": True, "rate": rate,
+                          "src": f"{rel} {nm} (asof {J.get('asof') or '—'}) Σ비중×er",
+                          "path": {pn: proj_annual(v) for pn, v in rate.items()}})
+    return lines, skipped
+
+
+def projection(D: dict) -> dict:
+    """선택 프리셋 누적 경로 끝(마지막 달)에서 이어 붙일 국면별 배수 경로. 원천 = D['scenarios'] (scenarios()·_desk_block()).
+    - 연수익이 있는 칸(평시 연환산·전체 기간 연복리) → 그 연율로 36개월 복리.
+    - 위기형(구간 누적) → 그 위기 창의 월수익(월 리밸·비용 차감)을 그대로 다시 겪은 뒤 평시 연환산 복귀.
+    - FRM 스트레스(즉시 충격) → 첫 달에 충격, 이후 평시 연환산 복귀.
+    - 수치 없는 국면(매크로·운용회의·애널) → 그리지 않고 skipped 에 이유."""
+    S = D.get("scenarios") or {}
+    rows = S.get("rows") or {}
+    m = D["months"]
+    M = net_returns(D, True)
+    lines, skipped = [], []
+
+    def calm_of(name):
+        return (rows.get(name) or {}).get(CALM)
+
+    for key, lab, kind in [(CALM, "평시(위기 월 제외) 연환산 지속", "annual"), (FULL, "전체 기간 연복리 지속", "annual")]:
+        rate = {k: r.get(key) for k, r in rows.items() if r.get(key) is not None}
+        if rate:
+            lines.append({"key": key, "label": lab, "kind": kind, "on": True, "rate": rate,
+                          "src": f"scenarios.rows['{key}'] ({S.get('source', '')} 정의 · 월수익 재생)",
+                          "path": {k: proj_annual(v) for k, v in rate.items()}})
+        else:
+            skipped.append({"key": key, "label": lab, "why": "원천에 수치 없음"})
+    for g in S.get("regimes") or []:
+        for ev, a, b, _ in g.get("events") or []:
+            if a not in m or b not in m or not rows:
+                skipped.append({"key": ev, "label": f"{ev} 재발", "why": "위기 창이 데이터 밖"})
+                continue
+            i, j = m.index(a), m.index(b)
+            rate, path = {}, {}
+            for name, wm in D["presets"].items():
+                c, calm = (rows.get(name) or {}).get(ev), calm_of(name)
+                if c is None or calm is None:
+                    continue
+                twr = simulate(M, weights(D, wm), S.get("rebal", "M"), 0)["twr"][i:j + 1]
+                rate[name] = c
+                path[name] = proj_then_calm(twr, calm)
+            if path:
+                lines.append({"key": ev, "label": f"{ev} 재발({j - i + 1}개월) 후 평시 복귀", "kind": "crisis", "on": True, "rate": rate,
+                              "window": f"{a}~{b}", "src": f"scenarios.rows['{ev}'] 구간 누적 · {g['key']} {g['name']}", "path": path})
+    F = (S.get("desk") or {}).get("frm") or {}
+    if F.get("available"):
+        for sc in F.get("scenarios") or []:
+            rate = {k: r.get(sc["id"]) for k, r in (F.get("rows") or {}).items() if r.get(sc["id"]) is not None and calm_of(k) is not None}
+            if not rate:
+                skipped.append({"key": "frm:" + sc["id"], "label": sc["label"], "why": "프리셋 값 없음(자산 충격 일부 없음)"})
+                continue
+            lines.append({"key": "frm:" + sc["id"], "label": f"FRM {sc['label']} 즉시 충격 후 평시 복귀", "kind": "shock", "on": False,
+                          "rate": rate, "src": f"scenarios.desk.frm.rows['{sc['id']}'] (FRM 국면 판정 {F.get('regime') or '—'})",
+                          "path": {k: proj_then_calm([v], calm_of(k)) for k, v in rate.items()}})
+    else:
+        skipped.append({"key": "frm", "label": "FRM 스트레스", "why": F.get("why") or "원천 미확인"})
+    dl, ds = _desk_er_lines(D, calm_of)
+    lines += dl
+    skipped += ds
+    for k in ("macro", "committee", "analyst"):
+        x = (S.get("desk") or {}).get(k) or {}
+        if x and not any(l["key"].startswith(f"er:{k}:") for l in dl):
+            skipped.append({"key": k, "label": x.get("src", k), "why": x.get("why_blank") or "원천에 수치 없음"})
+    return {"horizon_m": PROJ_H, "months": _months_after(m[-1], PROJ_H), "lines": lines, "skipped": skipped,
+            "basis": "월 리밸·비용 차감 재생값 기준 · 세금 미반영 · 선택 비중이 프리셋과 같을 때 그림(다르면 생략)",
+            "note": "예상은 가정이며 비중 변경 권고 아님 — 과거 재생값을 그대로 이어 붙인 경로이지 예측이 아니다."}
+
+
 # 원천 CSV 마지막 행은 월말 라벨이지만 실제 데이터는 그 달 중간까지일 수 있다 — asof 는 실제 마지막 날
 # (uxui req-quant-14188e23, 미래 날짜 표기 수정). 원천 스냅샷은 10/15 까지, 확장 CSV 는 'thru' 칸에 실제 마지막 날을 적는다.
 SRC_THRU = "2026-10-15"
@@ -202,6 +359,7 @@ def build(src: Path = SRC_DEFAULT, out: Path = OUT_DEFAULT, ext: Path | None = E
         "presets": PRESETS, "crises": CRISES,
     }
     o["scenarios"] = scenarios(o)
+    o["projection"] = projection(o)
     out.write_text(json.dumps(o, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     return o
 

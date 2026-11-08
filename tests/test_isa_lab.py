@@ -162,3 +162,57 @@ def test_regime_calm_excludes_partial_month_and_caveats():
     k0 = [x for x in S["regimes"] if x["key"] == "K0"][0]
     assert "사후 선택" in k0["def"] and k0["def_orig"] == "위 셋 아님"
     assert "424행" in S["now"]["regime_rebalance"] and "하락장" in S["now"]["vs_frm"]
+
+
+def test_projection_paths_from_scenarios():
+    # 예상 경로 점선 (데이터엔지니어 11/8) — 생성기 계산값을 JSON 에 저장, 화면은 곱하기만
+    P = D["projection"]
+    assert P == L.projection(D) and P["horizon_m"] == 36 and len(P["months"]) == 37 and P["months"][0] == D["months"][-1]
+    assert "권고 아님" in P["note"]
+    rows = D["scenarios"]["rows"]
+    by = {l["key"]: l for l in P["lines"]}
+    for name in D["presets"]:
+        calm = rows[name]["평시 연환산"]
+        a = by["평시 연환산"]["path"][name]
+        assert a[0] == 1.0 and abs(a[12] - (1 + calm)) < 1e-6 and abs(a[36] - (1 + calm) ** 3) < 1e-5
+        for ev, n in (("2008형", 16), ("2022형", 12), ("2026-07형", 5)):   # 위기 창을 다시 겪은 끝 = 구간 누적, 이후 평시 복리
+            c = by[ev]["path"][name]
+            assert abs(c[n] - (1 + rows[name][ev])) < 1e-5 and abs(c[n + 12] / c[n] - (1 + calm)) < 1e-5
+        for l in P["lines"]:
+            if l["kind"] == "shock":
+                assert abs(l["path"][name][1] - (1 + l["rate"][name])) < 1e-6
+    for l in P["lines"]:
+        assert l["src"] and set(l["path"]) <= set(D["presets"])
+    sk = {s["key"] for s in P["skipped"]}
+    assert {"macro", "committee", "analyst"} & sk or any(k.startswith("er:") for k in by)   # 수치 없는 국면은 그리지 않음
+
+
+def test_desk_er_files_optional(tmp_path):
+    v = tmp_path / "reports" / "views"
+    v.mkdir(parents=True)
+    er = {"SP": 0.08, "NDX": 0.10, "KS": 0.06, "KR3Y": 0.03, "GOLD": 0.04}
+    (v / "scenario_er_macro.json").write_text(json.dumps({"asof": "2026-11-08", "scenarios": [{"name": "기본", "er": er}]}), encoding="utf-8")
+    (v / "scenario_er_committee.json").write_text(json.dumps({"scenarios": [{"name": "약세", "horizon": "20d", "er": er, "er_ann": None}]}), encoding="utf-8")
+    lines, skipped = L._desk_er_lines(D, None, root=tmp_path)
+    assert [l["key"] for l in lines] == ["er:macro:기본"]
+    want = (40 * .08 + 15 * .10 + 15 * .06 + 20 * .03 + 10 * .04) / 100
+    assert abs(lines[0]["rate"]["C안(현행)"] - want) < 1e-9 and abs(lines[0]["path"]["C안(현행)"][12] - (1 + want)) < 1e-6
+    sk = {s["key"]: s["why"] for s in skipped}
+    assert "아직 안 옴" in sk["er:analyst"] and "20d" in sk["er:committee:약세"]   # 파일 없음 · 연환산 없음 → 안 그림
+
+
+def test_js_projection_draws_json_only(tmp_path):
+    if shutil.which("node") is None:
+        pytest.skip("node 없음")
+    code = _js_calc() + """
+const fs=require('fs'); const D=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+const pn=ilabPresetOf(D,{SP:40,NDX:15,KS:15,KR3Y:20,KR10Y:0,UST:0,GOLD:10}), none=ilabPresetOf(D,{SP:50,NDX:50});
+console.log(JSON.stringify({pn,none,pj:ilabProj(D,pn,2.0),empty:ilabProj(D,none,2.0).length}));"""
+    (tmp_path / "p.js").write_text(code, encoding="utf-8")
+    r = subprocess.run(["node", str(tmp_path / "p.js"), str(DATA)], capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr[-800:]
+    o = json.loads(r.stdout)
+    assert o["pn"] == "C안(현행)" and o["none"] is None and o["empty"] == 0
+    for js, l in zip(o["pj"], D["projection"]["lines"]):
+        assert js["key"] == l["key"] and [p["v"] for p in js["pts"]] == [2.0 * v for v in l["path"]["C안(현행)"]]
+        assert [p["m"] for p in js["pts"]] == D["projection"]["months"]
