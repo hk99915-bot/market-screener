@@ -3582,7 +3582,8 @@ function ilabDeskHtml(D){ const S=D.scenarios, K=S&&S.desk; if(!K) return '';
    ${blank('애널 · '+(an.src||''),an,`「${esc(an.quote||'—')}」`)}
    </table>
    <div class="mu" style="font-size:var(--fs-1);margin-top:4px">국면 이름 대응: ${esc(K.mapping)}</div>
-   <div class="mu" style="font-size:var(--fs-1)">위기 유형(배분): ${esc((S.now||{}).regime_rebalance||'—')}</div>`; }
+   <div class="mu" style="font-size:var(--fs-1)">위기 유형(배분): ${esc((S.now||{}).regime_rebalance||'—')}</div>
+   <div class="mu" style="font-size:var(--fs-1)">FRM 「${esc(F.regime||'—')}」과의 차이: ${esc((S.now||{}).vs_frm||'—')}</div>`; }
 function ilabSet(el){ ILAB_ST.w[el.dataset.a]=+el.value; const b=$('#ilw_'+el.dataset.a); if(b) b.textContent=el.value+'%'; ILABBT=null; ilabRecalc(); }
 function ilabPreset(i){ const p=Object.values(ILAB.presets)[i]; ILAB.assets.forEach(a=>ILAB_ST.w[a]=+(p[a]||0)); ILABBT=null; render(); }
 function ilabNorm(){ const s=ILAB.assets.reduce((x,a)=>x+(+ILAB_ST.w[a]||0),0); if(s<=0) return; ILAB.assets.forEach(a=>ILAB_ST.w[a]=Math.round((+ILAB_ST.w[a]||0)*100/s)); render(); }

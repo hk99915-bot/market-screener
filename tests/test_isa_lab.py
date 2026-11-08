@@ -140,3 +140,25 @@ def test_desk_block_from_sources_only():
                 assert abs(F["rows"][name][sc["id"]] - want) < 1e-6
     for k in ("macro", "committee", "analyst"):          # 원천에 자산별 수치 없음 → 빈칸
         assert all(v is None for v in K[k]["rows"].values()) and "원천에 수치 없음" in K[k]["why_blank"]
+
+
+def test_regime_calm_excludes_partial_month_and_caveats():
+    # 피어리뷰(97341c82a): 진행 중 부분 월은 평시에서 빼고, 사후 선택·K3 표본 없음·§1-B 기준 차이를 note 에 적는다
+    S = D["scenarios"]
+    assert S["calm_excluded_partial"] == D["months"][-1] and D["asof"] < D["months"][-1] + "-28"
+    M = L.net_returns(D, True)
+    m = D["months"]
+    excl = {len(m) - 1}
+    for _, a, b in [(e[0], e[1], e[2]) for g in S["regimes"] for e in g["events"]]:
+        excl |= set(range(m.index(a), m.index(b) + 1))
+    twr = L.simulate(M, L.weights(D, D["presets"]["C안(현행)"]), "M", 0)["twr"]
+    calm = [twr[t] for t in range(len(m)) if t not in excl]
+    g = 1.0
+    for r in calm:
+        g *= 1 + r
+    assert abs(S["rows"]["C안(현행)"]["평시 연환산"] - (g ** (12 / len(calm)) - 1)) < 1e-6
+    for k in ("사후 선택", "K3", "§1-B", "권고 아님"):
+        assert k in S["note"], k
+    k0 = [x for x in S["regimes"] if x["key"] == "K0"][0]
+    assert "사후 선택" in k0["def"] and k0["def_orig"] == "위 셋 아님"
+    assert "424행" in S["now"]["regime_rebalance"] and "하락장" in S["now"]["vs_frm"]

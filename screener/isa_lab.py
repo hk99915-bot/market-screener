@@ -51,7 +51,8 @@ REGIMES = [
     {"key": "K1", "name": "원화 강세·국장 주도 급락형 위기",
      "def": "원/달러 월말 < 직전 12개월 평균 그리고 코스피 20일 고점 대비 ≤ −15%(rules 35행 하락장 문턱)",
      "def_src": "§3 89행", "events": [["2026-07형", "2026-06", "2026-10", "§3 89행 근거 사건 · §1-B '코어 2026-06~10' 월간 창"]]},
-    {"key": "K0", "name": "평시 / 전체 기간", "def": "위 셋 아님", "def_src": "§3 92행", "events": []},
+    {"key": "K0", "name": "평시 / 전체 기간", "def": "위기 창 3개를 뺀 월(사후 선택, 위로 치우침)",
+     "def_orig": "위 셋 아님", "def_src": "§3 92행 원문 「위 셋 아님」 — 실험실 계산은 국면 신호가 아니라 위기 창 제외", "events": []},
 ]
 SCEN_REBAL = "M"
 
@@ -64,6 +65,9 @@ def scenarios(D: dict) -> dict:
     crisis_idx = set()
     for _, a, b in evs:
         crisis_idx |= set(range(m.index(a), m.index(b) + 1))
+    # 진행 중 부분 월(asof < 그 달 말일)은 평시에서 뺀다 — 전체 기간 연복리에는 포함 (피어리뷰 97341c82a)
+    partial = m[-1] if D.get("asof") and D["asof"][:7] == m[-1] and int(D["asof"][8:10]) < 28 else None
+    excl = crisis_idx | ({len(m) - 1} if partial else set())
     rows = {}
     for name, wm in D["presets"].items():
         twr = simulate(M, weights(D, wm), SCEN_REBAL, 0)["twr"]
@@ -73,7 +77,7 @@ def scenarios(D: dict) -> dict:
             for t in range(m.index(a), m.index(b) + 1):
                 acc *= 1 + twr[t]
             cell[ev] = round(acc - 1, 6)
-        calm = [twr[t] for t in range(len(m)) if t not in crisis_idx]
+        calm = [twr[t] for t in range(len(m)) if t not in excl]
         g_c = 1.0
         for r in calm:
             g_c *= 1 + r
@@ -81,10 +85,16 @@ def scenarios(D: dict) -> dict:
         cell["전체 기간 연복리"] = round(twr_stats(twr)["cagr"], 6)
         rows[name] = cell
     return {"regimes": REGIMES, "source": REGIME_SRC, "desk": _desk_block(D["presets"]),
-            "now": {"regime_rebalance": "§3 89행 지금 판정: 「원화 강세 추세 켜짐 · 급락 문턱은 11/6 종가 반영 후 확인 필요」 (11/7)"}, "rebal": SCEN_REBAL, "cost": True,
+            "now": {"regime_rebalance": "현재 상태(부록 C-매크로 424행, 11/7 작성): 「K1 진행 중(문턱 충족, 11/5 종가 기준·11/6 미반영) · K2·K3 꺼짐」 · 기준일 2026-11-05 종가",
+                    "vs_frm": "FRM regime 「하락장」은 rules 35행 시장 국면(반도체 밴드 상한용) 하나를 본 판정이고, 배분 K1 은 그 하락장 문턱에 원/달러 < 12개월 평균(원화 강세)까지 겹친 위기 유형 판정 — 같은 하락 쪽이나 축이 달라 FRM 은 원화 방향을 말하지 않는다"},
+            "calm_excluded_partial": partial, "rebal": SCEN_REBAL, "cost": True,
             "window": f"{m[0]}~{m[-1]}", "rows": rows,
             "note": "과거 구간 재생(월 리밸·비용 차감)이지 기대수익 예측 아님 · 비중 변경 권고 아님. "
-                    "2026-07형은 엔진 일간 재생(06/22→07/30) 대신 월간 창 2026-06~10. 2026-11(진행 중) 은 위기 열에 넣지 않고 평시·전체에 포함."}
+                    "위기 창은 사후 선택 — 다음 위기의 크기·유형 예측 아님. "
+                    "K3(동반 하락+원화 강세)는 표본 없음 — 표에 없는 유형 가능. "
+                    "배분 노트 §1-B 값(−13.22/−7.43/−12.14%)은 비용 차감 전·2026-10 10/15 부분 월 기준이라 이 표와 다르다. "
+                    "2026-07형은 엔진 일간 재생(06/22→07/30) 대신 월간 창 2026-06~10. "
+                    + (f"{partial}(진행 중 부분 월)은 위기 열·평시에서 빼고 전체 기간 연복리에 포함." if partial else "")}
 
 
 # ---- 데스크 국면 블록 (B): 각 데스크가 이미 정리한 국면/시나리오를 문구 그대로 + 원천에 자산별 숫자가 있을 때만 프리셋 값 ----
