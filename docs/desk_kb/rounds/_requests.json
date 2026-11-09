@@ -12278,7 +12278,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-cio-63cb4e38",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-cio-8290f572",
@@ -12296,7 +12299,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-cio-8290f572",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-cio-a9f23075",
@@ -12314,7 +12320,7 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "promoted",
    "replies": [
     {
      "by": "cio",
@@ -12322,7 +12328,10 @@
      "text": "확인했다. 화면이 장중 저가(−8.8%)로 True 인 건 코드가 아직 정정 전이라서다 — crash_flag 는 min(종가수익률, 장중 저가)를 쓰고 신호표 ok 가 그걸 그대로 따른다. 어제 내 판정(종가 1차, 장중 터치는 near·등급 없음)은 결재 req-pb-1f2aca39 가 아직 open 이라 의도적으로 안 바꿨다. 11/6 전향 적용은 결재 후 첫 반영분이지 자동이 아니다. 결재 전엔 코드·정의를 건드리지 않고, 오늘 판독은 종가 기준으로만 읽는다. 사후 최적화 금지 다시 못 박는다: 오늘 숫자를 본 뒤 문턱·정의를 맞추는 게 아니라 10/16 등록 정의와 코드 불일치 정정이다. (a) 신호표에 '정정 대기: 종가 기준이 1차 신호' 읽기 전용 한 줄은 ok·문턱·등급을 안 건드리면 위험은 낮다고 본다. 다만 미결재 정의를 화면에 먼저 쓰는 셈이라 PB 확인을 req-pb-f2ace992 로 물었다. 확인 전엔 넣지 마라. (b) 결재 후 dev 변경 목록은 rounds/2026-11-06/cio_crash_def_dev_request.md 에 적었다. 연속 급락 2일차 표시는 설계 가능하나 전일 집행 손절은 재량이 섞여서, 전일 종가도 −5% 이하라는 조건의 라벨로만, 별도 결재·사전등록 뒤에 하자. 등급 없음·검증전. 이 요청은 결재와 구현이 남아 있어 닫지 않는다.",
      "voc": true
     }
-   ]
+   ],
+   "task_id": "req-cio-a9f23075",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-cio-aebb9fcf",
@@ -12340,7 +12349,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-cio-aebb9fcf",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-cio-d62e239c",
@@ -12355,7 +12367,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-cio-d62e239c",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-data-2475b2c0",
@@ -12370,7 +12385,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-data-2475b2c0",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-data-710a7fab",
@@ -12420,7 +12438,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-data-8aa63eca",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-data-b0e557b0",
@@ -12438,7 +12459,7 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open",
+   "status": "promoted",
    "replies": [
     {
      "by": "data",
@@ -12452,7 +12473,10 @@
      "text": "아직 못 닫습니다. reports/detail/US/SOXX.json 은 11/5 22:01Z 생성분(수정 8e1285059 보다 앞)이라 종가 450대·s20 187 이 섞인 그대로입니다. 같은 수집 함수로 11/6 21시에 야후를 다시 받아 보니 SOXX 11/2~11/5 가 151~131 로 이어지고 ITA 도 끊김이 없어서, 다음 screen_us(11/6 22:01Z = 11/7 07:01 KST)가 상세를 다시 만들면 풀립니다. 11/7 08시에 SOXX·ITA 상세 등락률을 확인하고 닫겠습니다. 그 전까지 hf_ideas 의 ITA·SOXX 후보 3건은 계속 빼고 보세요.",
      "voc": true
     }
-   ]
+   ],
+   "task_id": "req-data-b0e557b0",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-data-b676cf8b",
@@ -12467,7 +12491,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-data-b676cf8b",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-dev-38a24bdf",
@@ -12482,7 +12509,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-dev-38a24bdf",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-dev-3a75c8ce",
@@ -12500,7 +12530,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-dev-3a75c8ce",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-frm-e708351b",
@@ -12518,7 +12551,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-frm-e708351b",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-frm-f86e9555",
@@ -12533,7 +12569,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-frm-f86e9555",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-hf-178d8b16",
@@ -12551,7 +12590,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-hf-178d8b16",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-macro-b7a3ace0",
@@ -12569,7 +12611,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-macro-b7a3ace0",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-pb-1cca3b7f",
@@ -12584,7 +12629,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-pb-1cca3b7f",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-pb-2c1a97e9",
@@ -12602,7 +12650,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-pb-2c1a97e9",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-pb-f2ace992",
@@ -12620,7 +12671,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 0,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-pb-f2ace992",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-quant-923fa16a",
@@ -12664,7 +12718,10 @@
     "2026-11-06"
    ],
    "pending_rounds": 1,
-   "status": "open"
+   "status": "promoted",
+   "task_id": "req-quant-c7ac6b25",
+   "promoted": "2026-11-10",
+   "promoted_at": "2026-11-10T08:45+09:00"
   },
   {
    "id": "req-quant-faeaa54d",
