@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-11-09T20:41+09:00",
+ "updated": "2026-11-10T07:26+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -9987,10 +9987,10 @@
  "auto": {
   "_doc": "scripts/team_stats.py 자동 집계 — 손으로 고치지 말 것. 매핑 규칙은 스크립트 COMMIT_RULES.",
   "window_days": 7,
-  "since": "2026-11-03",
-  "commits_total": 1495,
-  "commits_bot": 1151,
-  "commits_unmapped": 47,
+  "since": "2026-11-04",
+  "commits_total": 1483,
+  "commits_bot": 1140,
+  "commits_unmapped": 46,
   "audit_files": [],
   "desks": {
    "CIO": {
@@ -13638,8 +13638,8 @@
      "보류": 0,
      "완료": 7
     },
-    "rounds": 6,
-    "round_last": "2026-11-06",
+    "rounds": 7,
+    "round_last": "2026-11-09",
     "req_open": 0,
     "audit": {
      "치명": 0,
@@ -13723,31 +13723,31 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 1060,
-   "tokens": 190915028,
-   "tools": 37746,
-   "sec": 423843,
+   "runs": 1063,
+   "tokens": 194939270,
+   "tools": 37959,
+   "sec": 424154,
    "days": 25,
    "per_day": {
-    "runs": 42.4,
-    "tokens": 7636601.1,
-    "tools": 1509.8,
-    "sec": 16953.7
+    "runs": 42.5,
+    "tokens": 7797570.8,
+    "tools": 1518.4,
+    "sec": 16966.2
    }
   }
  },
  "by_model": {
   "미지정": {
-   "runs": 524,
-   "tokens": 86384942,
-   "tools": 18882,
-   "sec": 258496,
+   "runs": 526,
+   "tokens": 86670683,
+   "tools": 18911,
+   "sec": 258807,
    "days": 19,
    "per_day": {
-    "runs": 27.6,
-    "tokens": 4546575.9,
-    "tools": 993.8,
-    "sec": 13605.1
+    "runs": 27.7,
+    "tokens": 4561614.9,
+    "tools": 995.3,
+    "sec": 13621.4
    }
   },
   "claude-fable-5-1": {
@@ -13777,16 +13777,16 @@
    }
   },
   "opus": {
-   "runs": 176,
-   "tokens": 31840034,
-   "tools": 6893,
+   "runs": 177,
+   "tokens": 35578535,
+   "tools": 7077,
    "sec": 76604,
-   "days": 8,
+   "days": 9,
    "per_day": {
-    "runs": 22.0,
-    "tokens": 3980004.2,
-    "tools": 861.6,
-    "sec": 9575.5
+    "runs": 19.7,
+    "tokens": 3953170.6,
+    "tools": 786.3,
+    "sec": 8511.6
    }
   },
   "claude-sonnet-5-5": {
