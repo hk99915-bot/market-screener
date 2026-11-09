@@ -1,17 +1,7 @@
 {
- "checked_at": "2026-11-10 07:00",
+ "checked_at": "2026-11-10 08:56",
  "n": 26,
- "late": [
-  {
-   "id": "team",
-   "path": "ops/team.json",
-   "expected": "2026-11-10 00:00 이후",
-   "actual": "2026-11-09 20:41",
-   "mode": "team.yml (매시 17분) · ops.yml (00:07 KST)",
-   "fix": "gh workflow run team.yml -f commit=true",
-   "desc": "팀 업무량 — 마지막 사람·에이전트 커밋 후 90분 이내, 매일 00:07 이후 당일"
-  }
- ],
+ "late": [],
  "regress_today": [],
  "regress_blocked": [
   {
@@ -54,14 +44,14 @@
    "id": "secret:MY_RULES",
    "what": "의도된 비활성: MY_RULES 없음 (10/21 결정)",
    "since": "2026-10-19 09:02",
-   "by": "alerts",
+   "by": "pb",
    "fix": "조치 불필요(오너 결정)"
   },
   {
    "id": "secret:MY_HOLDINGS",
    "what": "의도된 비활성: MY_HOLDINGS 없음 (10/21 결정)",
    "since": "2026-10-19 09:02",
-   "by": "alerts",
+   "by": "pb",
    "fix": "조치 불필요(오너 결정)"
   }
  ],
