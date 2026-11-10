@@ -1,17 +1,17 @@
 {
  "desks": {
   "퀀트": {
-   "n": 40,
-   "hit": 15,
-   "hit_rate": 0.375,
-   "avg_signed_ret": -0.0366,
-   "dir_n": 26,
-   "brier": 0.305,
+   "n": 42,
+   "hit": 17,
+   "hit_rate": 0.405,
+   "avg_signed_ret": -0.0314,
+   "dir_n": 28,
+   "brier": 0.2988,
    "by_asset": {
     "KOSPI": {
-     "n": 12,
-     "hit": 3,
-     "hit_rate": 0.25
+     "n": 13,
+     "hit": 4,
+     "hit_rate": 0.308
     },
     "SEMI_KR": {
      "n": 11,
@@ -19,9 +19,9 @@
      "hit_rate": 0.364
     },
     "SPX": {
-     "n": 11,
-     "hit": 6,
-     "hit_rate": 0.545
+     "n": 12,
+     "hit": 7,
+     "hit_rate": 0.583
     },
     "US10Y": {
      "n": 6,
@@ -31,17 +31,17 @@
    }
   },
   "파생": {
-   "n": 35,
-   "hit": 17,
-   "hit_rate": 0.486,
-   "avg_signed_ret": 0.0593,
-   "dir_n": 11,
-   "brier": 0.2356,
+   "n": 36,
+   "hit": 18,
+   "hit_rate": 0.5,
+   "avg_signed_ret": 0.0604,
+   "dir_n": 12,
+   "brier": 0.2339,
    "by_asset": {
     "KOSPI": {
-     "n": 12,
-     "hit": 5,
-     "hit_rate": 0.417
+     "n": 13,
+     "hit": 6,
+     "hit_rate": 0.462
     },
     "SEMI_KR": {
      "n": 11,
@@ -61,17 +61,17 @@
    }
   },
   "매크로": {
-   "n": 45,
-   "hit": 19,
-   "hit_rate": 0.422,
-   "avg_signed_ret": 3.2059,
-   "dir_n": 25,
-   "brier": 0.2445,
+   "n": 48,
+   "hit": 21,
+   "hit_rate": 0.438,
+   "avg_signed_ret": 2.9721,
+   "dir_n": 28,
+   "brier": 0.2435,
    "by_asset": {
     "KOSPI": {
-     "n": 12,
-     "hit": 1,
-     "hit_rate": 0.083
+     "n": 13,
+     "hit": 2,
+     "hit_rate": 0.154
     },
     "SEMI_KR": {
      "n": 11,
@@ -79,29 +79,29 @@
      "hit_rate": 0.091
     },
     "SPX": {
-     "n": 11,
+     "n": 12,
      "hit": 8,
-     "hit_rate": 0.727
+     "hit_rate": 0.667
     },
     "US10Y": {
-     "n": 11,
-     "hit": 9,
-     "hit_rate": 0.818
+     "n": 12,
+     "hit": 10,
+     "hit_rate": 0.833
     }
    }
   },
   "리스크": {
-   "n": 40,
-   "hit": 20,
-   "hit_rate": 0.5,
-   "avg_signed_ret": 0.0128,
-   "dir_n": 21,
-   "brier": 0.2681,
+   "n": 42,
+   "hit": 22,
+   "hit_rate": 0.524,
+   "avg_signed_ret": 0.0155,
+   "dir_n": 22,
+   "brier": 0.27,
    "by_asset": {
     "KOSPI": {
-     "n": 12,
-     "hit": 5,
-     "hit_rate": 0.417
+     "n": 13,
+     "hit": 6,
+     "hit_rate": 0.462
     },
     "SEMI_KR": {
      "n": 11,
@@ -109,9 +109,9 @@
      "hit_rate": 0.545
     },
     "SPX": {
-     "n": 11,
-     "hit": 7,
-     "hit_rate": 0.636
+     "n": 12,
+     "hit": 8,
+     "hit_rate": 0.667
     },
     "US10Y": {
      "n": 6,
@@ -139,17 +139,17 @@
    "by_asset": {}
   },
   "PB": {
-   "n": 35,
+   "n": 36,
    "hit": 15,
-   "hit_rate": 0.429,
+   "hit_rate": 0.417,
    "avg_signed_ret": -0.0069,
    "dir_n": 12,
-   "brier": 0.2587,
+   "brier": 0.2546,
    "by_asset": {
     "KOSPI": {
-     "n": 12,
+     "n": 13,
      "hit": 1,
-     "hit_rate": 0.083
+     "hit_rate": 0.077
     },
     "SEMI_KR": {
      "n": 11,
@@ -2608,27 +2608,126 @@
    "lean_label": "중립",
    "move": -0.1434,
    "hit": false
+  },
+  {
+   "date": "2026-11-02",
+   "desk": "퀀트",
+   "asset": "SPX",
+   "horizon": "5d",
+   "stance": "매수",
+   "conv": 1,
+   "lean_label": "약매수",
+   "move": 0.0011,
+   "hit": true
+  },
+  {
+   "date": "2026-11-02",
+   "desk": "매크로",
+   "asset": "SPX",
+   "horizon": "5d",
+   "stance": "매도",
+   "conv": 1,
+   "lean_label": "약매도",
+   "move": 0.0011,
+   "hit": false
+  },
+  {
+   "date": "2026-11-02",
+   "desk": "리스크",
+   "asset": "SPX",
+   "horizon": "5d",
+   "stance": "중립",
+   "conv": 1,
+   "lean_label": "중립",
+   "move": 0.0011,
+   "hit": true
+  },
+  {
+   "date": "2026-11-02",
+   "desk": "매크로",
+   "asset": "US10Y",
+   "horizon": "5d",
+   "stance": "매도",
+   "conv": 1,
+   "lean_label": "약매도",
+   "move": -3.0,
+   "hit": true
+  },
+  {
+   "date": "2026-11-03",
+   "desk": "퀀트",
+   "asset": "KOSPI",
+   "horizon": "5d",
+   "stance": "매도",
+   "conv": 1,
+   "lean_label": "약매도",
+   "move": -0.0725,
+   "hit": true
+  },
+  {
+   "date": "2026-11-03",
+   "desk": "파생",
+   "asset": "KOSPI",
+   "horizon": "5d",
+   "stance": "매도",
+   "conv": 1,
+   "lean_label": "약매도",
+   "move": -0.0725,
+   "hit": true
+  },
+  {
+   "date": "2026-11-03",
+   "desk": "매크로",
+   "asset": "KOSPI",
+   "horizon": "5d",
+   "stance": "매도",
+   "conv": 1,
+   "lean_label": "약매도",
+   "move": -0.0725,
+   "hit": true
+  },
+  {
+   "date": "2026-11-03",
+   "desk": "리스크",
+   "asset": "KOSPI",
+   "horizon": "5d",
+   "stance": "매도",
+   "conv": 1,
+   "lean_label": "약매도",
+   "move": -0.0725,
+   "hit": true
+  },
+  {
+   "date": "2026-11-03",
+   "desk": "PB",
+   "asset": "KOSPI",
+   "horizon": "5d",
+   "stance": "중립",
+   "conv": 1,
+   "lean_label": "중립",
+   "move": -0.0725,
+   "hit": false
   }
  ],
- "n_scored": 219,
+ "n_scored": 228,
  "by_lean": {
   "약매수": {
-   "n": 37,
-   "hit": 10,
-   "hit_rate": 0.27,
-   "brier": 0.3137
+   "n": 38,
+   "hit": 11,
+   "hit_rate": 0.289,
+   "brier": 0.3101
   },
   "중립": {
-   "n": 118,
-   "hit": 48,
-   "hit_rate": 0.407,
-   "brier": 0.2439
+   "n": 120,
+   "hit": 49,
+   "hit_rate": 0.408,
+   "brier": 0.2444
   },
   "약매도": {
-   "n": 51,
-   "hit": 33,
-   "hit_rate": 0.647,
-   "brier": 0.2333
+   "n": 57,
+   "hit": 38,
+   "hit_rate": 0.667,
+   "brier": 0.2299
   },
   "강매도": {
    "n": 11,
@@ -2643,6 +2742,6 @@
    "brier": 0.6942
   }
  },
- "asof": "2026-11-09",
- "n_archive": 17
+ "asof": "2026-11-10",
+ "n_archive": 18
 }
