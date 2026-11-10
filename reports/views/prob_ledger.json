@@ -1,0 +1,210 @@
+{
+ "schema_version": 1,
+ "updated": "2026-11-10 KST",
+ "_doc": "리서치 본부 확률 장부 (req-quant-9aace2dc, 겸이 11/5 12:09 '리서치도 더 실적압박'). 확률 발언을 전부 기록하고 만기에 Brier 로 채점한다. 애널 판정 장부(reports/views/analyst_calls.json)와 공통 키 12개(id·desk·made·subject·claim·prob·horizon_end·checks·wrong_if·resolve_rule·status·outcome) + 퀀트 선택 키 base_rate·source(req-quant-faeaa54d 합의). auto 가 있으면 scripts/brier_score.py 가 만기 종가로 자동 판정. 공개 저장소 — 개인 보유·금액·손절가 수준 기록 금지.",
+ "rules": {
+  "status": "open | hit | miss | void(사유 필수)",
+  "outcome": "1 = claim 이 일어남, 0 = 안 일어남. Brier = (prob − outcome)², 작을수록 좋고 0.25 = 항상 50% 라고 말한 것과 같음",
+  "hit_miss": "hit = outcome 1 (claim 실현). 확률이 0.5 미만인 claim 의 miss 는 '틀림'이 아니다 — 평가는 Brier 로",
+  "no_edit": "기록 후 claim·prob·resolve_rule 수정 금지. 바꿀 땐 새 id 로 다시 기록하고 이전 건 void",
+  "run": "python3 scripts/data_store.py pull --groups all && python3 scripts/brier_score.py --write"
+ },
+ "calls": [
+  {
+   "id": "pc-20261105-000660-up5d",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "000660 SK하이닉스",
+   "claim": "5거래일 뒤 종가가 11/5 종가보다 높다",
+   "prob": 0.66,
+   "base_rate": null,
+   "horizon_end": "2026-11-12",
+   "checks": [
+    "2026-11-12 (만기 종가)"
+   ],
+   "wrong_if": "만기 종가 ≤ 기준 종가",
+   "resolve_rule": "2026-11-12 종가 > 2026-11-05 종가 → 1, 그 외 0 (data/kr_prices.parquet 000660.KS). [가정: 기준가 = 발언일 종가 — 발언은 장중 11:11]",
+   "auto": {
+    "type": "close_up",
+    "yf": "000660.KS",
+    "base_date": "2026-11-05",
+    "horizon_days": 5
+   },
+   "sample": "35건(독립 사건 10)",
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "open",
+   "outcome": null
+  },
+  {
+   "id": "pc-20261105-009150-up5d",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "009150 삼성전기",
+   "claim": "5거래일 뒤 종가가 11/5 종가보다 높다",
+   "prob": 0.69,
+   "base_rate": null,
+   "horizon_end": "2026-11-12",
+   "checks": [
+    "2026-11-12 (만기 종가)"
+   ],
+   "wrong_if": "만기 종가 ≤ 기준 종가",
+   "resolve_rule": "2026-11-12 종가 > 2026-11-05 종가 → 1, 그 외 0 (data/kr_prices.parquet 009150.KS). [가정: 기준가 = 발언일 종가 — 발언은 장중 11:11]",
+   "auto": {
+    "type": "close_up",
+    "yf": "009150.KS",
+    "base_date": "2026-11-05",
+    "horizon_days": 5
+   },
+   "sample": "16건(독립 사건 6)",
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "open",
+   "outcome": null
+  },
+  {
+   "id": "pc-20261105-000660-up20d",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "000660 SK하이닉스",
+   "claim": "20거래일 뒤 종가가 11/5 종가보다 높다",
+   "prob": 0.74,
+   "base_rate": 0.56,
+   "horizon_end": "2026-12-03",
+   "checks": [
+    "2026-12-03 (만기 종가)"
+   ],
+   "wrong_if": "만기 종가 ≤ 기준 종가",
+   "resolve_rule": "2026-12-03 종가 > 2026-11-05 종가 → 1, 그 외 0 (data/kr_prices.parquet 000660.KS). [가정: 기준가 = 발언일 종가 — 발언은 장중 11:11]",
+   "auto": {
+    "type": "close_up",
+    "yf": "000660.KS",
+    "base_date": "2026-11-05",
+    "horizon_days": 20
+   },
+   "sample": "35건(독립 사건 10)",
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "open",
+   "outcome": null
+  },
+  {
+   "id": "pc-20261105-009150-up20d",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "009150 삼성전기",
+   "claim": "20거래일 뒤 종가가 11/5 종가보다 높다",
+   "prob": 0.56,
+   "base_rate": 0.53,
+   "horizon_end": "2026-12-03",
+   "checks": [
+    "2026-12-03 (만기 종가)"
+   ],
+   "wrong_if": "만기 종가 ≤ 기준 종가",
+   "resolve_rule": "2026-12-03 종가 > 2026-11-05 종가 → 1, 그 외 0 (data/kr_prices.parquet 009150.KS). [가정: 기준가 = 발언일 종가 — 발언은 장중 11:11]",
+   "auto": {
+    "type": "close_up",
+    "yf": "009150.KS",
+    "base_date": "2026-11-05",
+    "horizon_days": 20
+   },
+   "sample": "16건(독립 사건 6)",
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "open",
+   "outcome": null
+  },
+  {
+   "id": "pc-20261105-000660-stopfirst",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "000660 SK하이닉스",
+   "claim": "사전 손절선에 먼저 닿는다(+10% 보다 먼저)",
+   "prob": 0.4,
+   "base_rate": null,
+   "horizon_end": "2026-12-03",
+   "checks": [
+    "매 거래일 저가·고가"
+   ],
+   "wrong_if": "반대쪽 선에 먼저 닿음",
+   "resolve_rule": "발언 뒤 저가가 사전 손절선(수준은 비공개 저장소 ops/agreements.md) 이하로 먼저 가면 '선 먼저'=1·'+10% 먼저'=0, 고가가 11/5 발언 시점 대비 +10% 에 먼저 가면 반대. 수동 판정(auto 없음)",
+   "auto": null,
+   "sample": null,
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "hit",
+   "outcome": 1,
+   "resolved": "2026-11-06",
+   "resolved_note": "11/6 저가가 사전 선 아래(11/5 종가 대비 하이닉스 −13.8%·삼성전기 −15.7%, data/kr_prices.parquet), 그 전 +10% 미도달 — 2026-11-10 퀀트 수동 판정"
+  },
+  {
+   "id": "pc-20261105-000660-up10first",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "000660 SK하이닉스",
+   "claim": "+10% 에 먼저 간다(사전 손절선보다 먼저)",
+   "prob": 0.57,
+   "base_rate": null,
+   "horizon_end": "2026-12-03",
+   "checks": [
+    "매 거래일 저가·고가"
+   ],
+   "wrong_if": "반대쪽 선에 먼저 닿음",
+   "resolve_rule": "발언 뒤 저가가 사전 손절선(수준은 비공개 저장소 ops/agreements.md) 이하로 먼저 가면 '선 먼저'=1·'+10% 먼저'=0, 고가가 11/5 발언 시점 대비 +10% 에 먼저 가면 반대. 수동 판정(auto 없음)",
+   "auto": null,
+   "sample": null,
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "miss",
+   "outcome": 0,
+   "resolved": "2026-11-06",
+   "resolved_note": "11/6 저가가 사전 선 아래(11/5 종가 대비 하이닉스 −13.8%·삼성전기 −15.7%, data/kr_prices.parquet), 그 전 +10% 미도달 — 2026-11-10 퀀트 수동 판정"
+  },
+  {
+   "id": "pc-20261105-009150-stopfirst",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "009150 삼성전기",
+   "claim": "사전 손절선에 먼저 닿는다(+10% 보다 먼저)",
+   "prob": 0.5,
+   "base_rate": null,
+   "horizon_end": "2026-12-03",
+   "checks": [
+    "매 거래일 저가·고가"
+   ],
+   "wrong_if": "반대쪽 선에 먼저 닿음",
+   "resolve_rule": "발언 뒤 저가가 사전 손절선(수준은 비공개 저장소 ops/agreements.md) 이하로 먼저 가면 '선 먼저'=1·'+10% 먼저'=0, 고가가 11/5 발언 시점 대비 +10% 에 먼저 가면 반대. 수동 판정(auto 없음)",
+   "auto": null,
+   "sample": null,
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "hit",
+   "outcome": 1,
+   "resolved": "2026-11-06",
+   "resolved_note": "11/6 저가가 사전 선 아래(11/5 종가 대비 하이닉스 −13.8%·삼성전기 −15.7%, data/kr_prices.parquet), 그 전 +10% 미도달 — 2026-11-10 퀀트 수동 판정"
+  },
+  {
+   "id": "pc-20261105-009150-up10first",
+   "desk": "리서치 본부(퀀트)",
+   "made": "2026-11-05 11:11 KST",
+   "kind": "조건부 확률",
+   "subject": "009150 삼성전기",
+   "claim": "+10% 에 먼저 간다(사전 손절선보다 먼저)",
+   "prob": 0.44,
+   "base_rate": null,
+   "horizon_end": "2026-12-03",
+   "checks": [
+    "매 거래일 저가·고가"
+   ],
+   "wrong_if": "반대쪽 선에 먼저 닿음",
+   "resolve_rule": "발언 뒤 저가가 사전 손절선(수준은 비공개 저장소 ops/agreements.md) 이하로 먼저 가면 '선 먼저'=1·'+10% 먼저'=0, 고가가 11/5 발언 시점 대비 +10% 에 먼저 가면 반대. 수동 판정(auto 없음)",
+   "auto": null,
+   "sample": null,
+   "source": "PB 세션 11/5 11:11 리서치 본부 호출(과거 비슷한 급락 사례 기준, 검증전) — 원문 비공개 저장소 scribe/raw/2026-11-05_1250.txt 2906~2914행",
+   "status": "miss",
+   "outcome": 0,
+   "resolved": "2026-11-06",
+   "resolved_note": "11/6 저가가 사전 선 아래(11/5 종가 대비 하이닉스 −13.8%·삼성전기 −15.7%, data/kr_prices.parquet), 그 전 +10% 미도달 — 2026-11-10 퀀트 수동 판정"
+  }
+ ]
+}
