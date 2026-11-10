@@ -2,7 +2,7 @@
  "version": 1,
  "schema_version": 1,
  "asof": "2026-11-10",
- "generated_at": "2026-11-10 08:56 KST",
+ "generated_at": "2026-11-10 10:35 KST",
  "bench": {
   "KR": {
    "ticker": "069500",
@@ -46,18 +46,18 @@
    "unrated": 0
   },
   "규칙": {
-   "n": 12,
+   "n": 13,
    "win": 0,
-   "trades": 0,
-   "hit": null,
-   "cum_ret": 0.0,
-   "comp_ret": 0.0,
-   "avg_ex": null,
-   "n_ex": 0,
-   "open": 1,
-   "realized": 0.0,
-   "unrealized": 0.01398,
-   "total": 0.01398,
+   "trades": 1,
+   "hit": 1.0,
+   "cum_ret": 0.014,
+   "comp_ret": 0.014,
+   "avg_ex": 2e-05,
+   "n_ex": 1,
+   "open": 0,
+   "realized": 0.014,
+   "unrealized": 0,
+   "total": 0.014,
    "unrated": 0
   },
   "나": {
@@ -76,18 +76,18 @@
    "unrated": 0
   },
   "나🔥": {
-   "n": 4,
-   "win": 1,
-   "trades": 4,
-   "hit": 0.5,
-   "cum_ret": -0.1778,
-   "comp_ret": -0.18034,
-   "avg_ex": -0.04301,
-   "n_ex": 4,
-   "open": 1,
-   "realized": -0.1778,
-   "unrealized": 0.05841,
-   "total": -0.11939,
+   "n": 5,
+   "win": 2,
+   "trades": 5,
+   "hit": 0.6,
+   "cum_ret": -0.1193,
+   "comp_ret": -0.13239,
+   "avg_ex": -0.02551,
+   "n_ex": 5,
+   "open": 0,
+   "realized": -0.1193,
+   "unrealized": 0,
+   "total": -0.1193,
    "unrated": 0
   }
  },
@@ -201,18 +201,18 @@
     "unrated": 0
    },
    "규칙": {
-    "n": 7,
+    "n": 8,
     "win": 0,
-    "trades": 0,
-    "hit": null,
-    "cum_ret": 0.0,
-    "comp_ret": 0.0,
-    "avg_ex": null,
-    "n_ex": 0,
-    "open": 1,
-    "realized": 0.0,
-    "unrealized": 0.01398,
-    "total": 0.01398,
+    "trades": 1,
+    "hit": 1.0,
+    "cum_ret": 0.014,
+    "comp_ret": 0.014,
+    "avg_ex": 2e-05,
+    "n_ex": 1,
+    "open": 0,
+    "realized": 0.014,
+    "unrealized": 0,
+    "total": 0.014,
     "unrated": 0
    },
    "나": {
@@ -231,18 +231,18 @@
     "unrated": 0
    },
    "나🔥": {
-    "n": 4,
-    "win": 1,
-    "trades": 4,
-    "hit": 0.5,
-    "cum_ret": -0.1778,
-    "comp_ret": -0.18034,
-    "avg_ex": -0.04301,
-    "n_ex": 4,
-    "open": 1,
-    "realized": -0.1778,
-    "unrealized": 0.05841,
-    "total": -0.11939,
+    "n": 5,
+    "win": 2,
+    "trades": 5,
+    "hit": 0.6,
+    "cum_ret": -0.1193,
+    "comp_ret": -0.13239,
+    "avg_ex": -0.02551,
+    "n_ex": 5,
+    "open": 0,
+    "realized": -0.1193,
+    "unrealized": 0,
+    "total": -0.1193,
     "unrated": 0
    }
   }
@@ -376,6 +376,10 @@
    [
     "2026-10-28",
     0.0
+   ],
+   [
+    "2026-11-09",
+    0.014
    ]
   ],
   "나": [
@@ -440,6 +444,10 @@
    [
     "2026-10-28",
     -0.1778
+   ],
+   [
+    "2026-11-09",
+    -0.1193
    ]
   ]
  },
@@ -449,8 +457,8 @@
    "date": "2026-11-09",
    "market": "US",
    "title": "미장 진입 타점 대결",
-   "state": "진행",
-   "winner": null,
+   "state": "확정",
+   "winner": "나🔥",
    "rows": [
     {
      "who": "나",
@@ -480,14 +488,15 @@
      "ticker": "SPY",
      "entry": "open",
      "exit": "same_close",
-     "status": "보유 중",
-     "ret": 0.01398,
-     "mark_date": "2026-11-09",
+     "status": "확정",
+     "ret": 0.014,
+     "end": "2026-11-09",
      "bench": 0.01398,
-     "ex": 0.0,
-     "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
+     "ex": 2e-05,
+     "win": false,
+     "why": "2026-11-09 시가 741.95 → 2026-11-09 종가 752.69",
      "marks": {
-      "2026-11-09": 0.01398
+      "2026-11-09": 0.014
      }
     },
     {
@@ -496,14 +505,15 @@
      "ticker": "SOXX",
      "entry": "open",
      "exit": "same_close",
-     "status": "보유 중",
-     "ret": 0.05841,
-     "mark_date": "2026-11-09",
+     "status": "확정",
+     "ret": 0.0585,
+     "end": "2026-11-09",
      "bench": 0.01398,
-     "ex": 0.04444,
-     "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
+     "ex": 0.04452,
+     "win": true,
+     "why": "2026-11-09 시가 138.58 → 2026-11-09 종가 146.76",
      "marks": {
-      "2026-11-09": 0.05841
+      "2026-11-09": 0.0585
      }
     }
    ]
@@ -513,7 +523,7 @@
    "date": "2026-11-09",
    "market": "KR",
    "title": "진입 타점 대결",
-   "state": "진행",
+   "state": "제외",
    "winner": null,
    "rows": [
     {
@@ -544,11 +554,9 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
-     "ret": 0.0,
-     "bench": null,
-     "ex": null,
-     "why": "현금 유지",
+     "status": "제외",
+     "ret": null,
+     "why": "나 미제출 — 채점 제외",
      "marks": {}
     }
    ]
