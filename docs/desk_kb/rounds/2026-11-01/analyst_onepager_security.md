@@ -8,7 +8,7 @@
 
 | 축·칸 | 핵심(액션 타이틀) | 근거·출처 |
 |---|---|---|
-| A ① 규모 | 세계 보안 지출 2026 약 2,440~2,490억$(+11.6~12.7%) → 2030 약 3,728억$, CAGR ~10.8% · SASE 2025 ~120억$ → 2030 240억$(CAGR 15%) · 국내 9.3조(2025)→10.6조원(2026E) | [Gartner abstract](https://www.gartner.com/en/documents/7408930)(1차)·[개정치 2차](https://softwarestrategiesblog.com/tag/cybersecurity-spending-2026/) · [Dell'Oro](https://www.delloro.com/news/sase-is-putting-the-nail-in-the-coffin-for-access-routers-as-market-drops-25-percent-in-3q2025/) · KISIA 실태조사(IR협의회 2026-09-08 경유) · 식 (3728/2475)^(1/4)−1 [애널 환산] |
+| A ① 규모 | 세계 보안 지출 2026 약 2,440~2,490억$(+11.6~12.7%) → 2030 약 3,728억$, CAGR ~10.8% · SASE 2025 ~120억달러 → 2030 240억달러(CAGR 15%) · 국내 9.3조(2025)→10.6조원(2026E) | [Gartner abstract](https://www.gartner.com/en/documents/7408930)(1차)·[개정치 2차](https://softwarestrategiesblog.com/tag/cybersecurity-spending-2026/) · [Dell'Oro](https://www.delloro.com/news/sase-is-putting-the-nail-in-the-coffin-for-access-routers-as-market-drops-25-percent-in-3q2025/) · KISIA 실태조사(IR협의회 2026-09-08 경유) · 식 (3728/2475)^(1/4)−1 [애널 환산] |
 | A ② 연결 체인 | 사고 → 규제·보험 요건 → IT 예산(연 단위) → 빌링 → RPO → 매출, 옆에서 10Y(−)·하이퍼스케일러 번들(−) | 우리 체인(chains_view 0.29)은 미장 동일 사이클+CIBR+10Y만 — 국내 정책·상류 원가 고리 없음(부록 §1) |
 | A ③ 이익풀 | **GAAP 영업이익은 FTNT가 95%, 현금은 플랫폼(PANW 33%·FTNT 25%·CRWD 15%)** — 차이는 주식보상(FTNT 3.9% vs 23~26%) | us_quarterly TTM 11사(영업이익 25.8억$·영업CF/매출 36.2%) · companyfacts ShareBasedComp 최근 분기 |
 | A ④ 집중도 | 전체는 파편화(상위 4사 매출 ≈ 지출의 11%), 하위 시장은 과점(SASE 상위 6 = 72%, ZS 21%, 3Q24) · 국내 NAC 지니언스 75%·EDR 49%(2024 조달청) | (114.8+54.0+75.3+33.5)/2,475 [애널 환산, 기간 불일치] · [Dell'Oro](https://www.delloro.com/news/top-six-sase-vendors-own-72-percent-of-2-4-b-3q-2024-market/) · IR협의회 2026-01-27 |
