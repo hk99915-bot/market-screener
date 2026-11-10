@@ -98,7 +98,7 @@
 | committee_us.json | briefing 20:52·21:52·22:52·03:52 (GAS) | — | 단일 |
 | reports/live.json · events.json | live 루프 08:40·23:20 (GAS, 11/02~ 겨울. 여름 22:20) + 매시 재개 | 수동 live(읽기 전용 기본) | 동시 1개(concurrency) |
 | 장중 이벤트 텔레그램(touch·지수 −4/−5%·서킷/사이드카·보유 손절선/−5%·미장 SPX/NDX −3%·VIX +25%) · reports/event_state.json | **live 루프** 안 백그라운드 `screener.event_watch` 약 60초마다 (2026-10-17 신설) | — (15:05 crash_check 종가 판단 메시지·14:25/16:20 규정 알림은 별도 산출물로 유지) | 단일. touch: 이벤트 감시는 규정 알림이 이미 보낸 코드면 건너뜀(평생 1회). 반대 방향(규정 알림이 이벤트 감시 기록을 보는 것)은 alerts.py 잠금 해제 뒤 — 보드 event-watch, 서킷·사이드카는 뉴스 감지(events.check)와 소리 1회 공유 |
-| reports/decisions.json | live 14:50–15:15 duel · briefing premarket_us duel · screener 규칙 판정 | pick.yml(이슈) · pb_call(PB 예약 세션 14:42) | 필드 병합 방식(각자 자기 칸만) — 슬롯 이중 아님. 1.5단계에서 재점검 |
+| reports/decisions.json | live 14:50–15:15 duel · briefing premarket_us duel · screener 규칙 판정 | pick.yml(이슈) · pb_call(PB 예약 세션 14:42 — 11/8부터 예약 꺼짐, 수동 dispatch 만) | 필드 병합 방식(각자 자기 칸만) — 슬롯 이중 아님. 1.5단계에서 재점검 |
 | data/deriv/daily.csv · deriv_hist_status · studies/gamma_regime · views/shadow_derivs_book.json | deriv_hist 16:40 평일 (GAS) | 수동 backfill/probe (commit=true 필요) | 단일 |
 | data/fin · universe/sec_* · portfolios · momentum · analysts | fin 03:30 매일 (GAS) | — | 단일 |
 | data/hist/kr_YYYY (백필) | backfill 02:00 매일 (GAS) | — | 단일 |
@@ -110,12 +110,33 @@
 | reports/feeds/tg_why.json (why·채널 2주 채점) | PB 쪽 예약(데스크 에이전트) — tier 1 평일 저녁·tier 2 토요일 | tg_feed 는 없을 때 빈 틀만 생성 | 단일 — 데스크 소유, 워크플로 LLM 호출 없음 |
 | lab.json · scorecard_week · study_daily.json | lab 일 23:00 · scorecard 일 08:30 · study_daily 평일 07:10 | — | 단일 |
 | changelog · reports/ops · ops/BOARD.md | ops 23:47 | — | 단일 |
-| ops/team.json | ops 23:47·00:07 + team(매시 17분) — auto 블록 | PM 22:30 Claude 예약 — runs 블록 | 블록 분리 |
+| ops/team.json | ops 23:47·00:07 + team(매시 17분) — auto 블록 | PM 22:30 Claude 예약 — runs 블록 · 비공개 저장소 nightly 워크플로(22:40)가 'PB(메인)' 대조 행(11/10~, 쓰기 시크릿 없으면 대기) | 블록 분리 |
 | reports/english/* | Claude 예약 '오늘의 영어' 평일 07:18 | — | 단일(세션이 직접 커밋) |
-| reports/audit/<날짜>.md (정기 감사) | Claude 예약 '정기 감사' 수·토 07:53 새 세션 (trig_01Lc79ufM6xsA2RHqFD4cJsg, 10/24 겸이 승인, 첫 실행 10/28) | 수시 감사(요청 시) | 단일(세션이 직접 커밋) |
+| reports/audit/<날짜>.md (정기 감사) | Claude 예약 '정기 감사' **토 07:53** 새 세션 (trig_01Lc79ufM6xsA2RHqFD4cJsg, 10/24 겸이 승인 수·토 → 11/8 요금제 전환 대비로 토요일만) | 수시 감사(요청 시) | 단일(세션이 직접 커밋) |
 | (저장소 밖) ~/toss_md_data/* — 토스 시세 파일럿(지수 1분·투자자별 매매대금·USDKRW·KR/US 달력) | **겸이 노트북(파일럿, 공개 산출물 없음)** — Windows 작업 스케줄러 평일 09:00–15:50 10분마다 · 매일 08:30·18:30 | — (토큰 재발급 시 이전 토큰 무효 → 다른 주체 금지, GitHub Actions·러너 연결 금지) | 단일. 보드 `toss-md-pilot`, 가이드 docs/toss_md_laptop_setup.md |
 
-Claude 원격 예약 작업(10/17 list_triggers 기준): 오늘의 영어 07:18 · PB 진입·매도 14:42(→pb_call) · PB 미장 21:52(꺼짐) · 기록 12:50/16:00/22:30(pb-private·team.json runs) · 데스크 라운드 평일 21:10(docs) · ISA 리마인드 10/19 10:00(1회). 위 GitHub 산출물과 겹치는 슬롯 없음.
+### 4-0. Claude 원격 예약 작업 (11/10 list_triggers 기준 — 11/8 요금제 전환 대비 축소 반영, 근거는 비공개 합의 원장 11/8 실행 줄)
+| 예약 | KST | 세션 | 쓰는 곳 |
+|---|---|---|---|
+| 오늘의 영어·인적성 | 평일 07:18 | 새 세션 | reports/english/* |
+| 애널 digest | 월·수·금 07:41 (전: 평일) | PB 상주 | 애널 라운드·서고 |
+| 조교 아침 1분 · 조교 금요일 리뷰 | 평일 07:41 · 금 20:26 (11/27까지) | PB 상주 | 대화만 |
+| 정기 감사 | 토 07:53 (전: 수·토) | 새 세션 | reports/audit/* |
+| 본부 운용회의 | 월·목 08:43 (전: 평일) | PB 상주 | rounds/<날짜>/ops_meeting_kr.md · reports/views/desk_meeting.json → desk_meeting_tg.yml |
+| HF 장중 | 평일 10:05·14:05 (전: 09:05~15:05 매시) | HF 상주 | rounds/*-hf-intraday.md · reports/hf_discretion.json·hf_ideas.json |
+| HF 운용회의 개입 | 평일 15:55 (전: 11:55·15:55) | HF 상주 | rounds/*-hf-*.md · hf_discretion·hf_ideas·forward |
+| HF 미장 재량 | 금 09:15 ET (전: 평일) | HF 상주 | rounds/*-hf-us-*.md |
+| 기록 16:00 | 평일 16:00 (전: 매일) | PB 상주 | 비공개 저장소 |
+| PB 결론 1줄 | 평일 17:07 | PB 상주 | 비공개 저장소(11/9부터 비공개 daily_my 워크플로가 자동 문장도 생성) |
+| 스카우트 | 수 19:47 (전: 평일) | PB 상주 | 비공개 저장소 |
+| 주간 회의 | 일 19:43 | PB 상주 | rounds/<날짜>-weekly.md |
+| 사내 메신저 라운드 | 평일 20:40, 새 세션판 (전: 12:40·20:40 상주판) | 새 세션 | _requests.json·rounds/*-msg-*.md (msgr_feed 는 team.yml 매시가 담당) |
+| 기록 22:30 + PM 대조 | 매일 22:30 | PB 상주 | ops/team.json runs 블록 |
+| 일회성 2건 | 11/15 19:13 · 11/29 19:13 | PB 상주 | 비공개 저장소 |
+
+- 꺼짐(11/8): PB 진입·매도 14:42(→pb_call) · PB 미장 21:52 · 데스크 강화 루프 금 21:10 · 기록 12:50 · 옛 메신저 상주판. `pb_call.yml` 은 그대로 있으나 부르는 예약이 없다(수동 dispatch 만).
+- 위 GitHub 산출물과 겹치는 슬롯 없음. 예약 이름에는 옛 주기가 남아 있을 수 있다 — 실제 주기는 위 표.
+- §3 표는 `python scripts/slot_guard.py --table` 출력과 어긋나 있다(11/10 대조: heatmap·team·heartbeat 등 뒤에 생긴 cron 행이 표에 없음). 재생성은 운영 데스크 몫으로 남긴다.
 
 ## 4-1. 장중 이벤트 알림 (오너 10/17 15시대 "사건이 터지면 바로 텔레로 오게, 특정 시간이 아니라")
 - 실행 주체 = live 루프 하나(결정 C). `.github/workflows/live.yml` 루프 단계가 시작할 때 `python -m screener.event_watch` 를 60초 주기 백그라운드로 띄운다. 국장 평일 09:00–15:31 KST·미장 09:30–16:00 뉴욕 밖이면 시세를 받지 않고 끝난다.
