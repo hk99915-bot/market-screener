@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-11-10",
+  "updated": "2026-11-11",
   "owners": [
     "PB",
     "퀀트",
@@ -8616,6 +8616,34 @@
       "depends_on": [],
       "escalated": "2026-11-10",
       "notes": "요청 2영업일 미처리(2026-11-06~2026-11-10) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→analyst_digest: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-c7ac6b25`. | 11/10 운영 정리(C): 기한 11-17→26-12-31 — Pro 대기열 순번(주 1~2건 용량 밖, 처리 약속 아님)"
+    },
+    {
+      "id": "req-quant-5ed3d721",
+      "title": "[요청 승격] 애널→퀀트: 신용융자 담보비율 유지의무 면제 조치(2008-10·2011-08·2020-03·2022-07, 이번 202",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-18",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-11",
+      "notes": "요청 2영업일 미처리(2026-11-09~2026-11-11) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-5ed3d721`."
+    },
+    {
+      "id": "req-verify-56c36ec9",
+      "title": "[요청 승격] 애널→검증: Jiang 11/6 영상(jNESiKXBkn4 'I Was Wrong. The Democrats Take C",
+      "owner": "검증",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-18",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-11",
+      "notes": "요청 2영업일 미처리(2026-11-09~2026-11-11) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-56c36ec9`."
     }
   ]
 }

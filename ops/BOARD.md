@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-11 · 작업 507개 · 진행 11 · 검수 3 · 대기 158 · 보류 32 · 완료 303
+기준일 2026-11-11 · 작업 509개 · 진행 11 · 검수 3 · 대기 160 · 보류 32 · 완료 303
 
 **결재 대기 4:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이)
 
@@ -30,7 +30,7 @@
 | P1 ⏫ | `dispatch-redundancy` | 실행 이중화 A1~A3 (겸이 10/21 09:3x 승인) — 노트북 정시 dispatcher·하트비트 감시·tgPoll 5분·install 이 tick 만 교체 | 개발 | 2026-10-21 | 2026-11-22 | `tools/dispatch/dispatch.py`<br>`scripts/slot_guard.py`<br>`scripts/watchdog.py`<br>`.github/workflows/heartbeat.yml`<br>`tools/toss_md/publish.py`<br>`apps-script/Scheduler.gs`<br>`apps-script/TelegramHook.gs`<br>`docs/toss_md_laptop_setup.md` | — | A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력). / 10/24 운영 점검: 검수 유지, 마감 2026-10-21→2026-10-31. 남은 것: 겸이 노트북 dispatcher 설치(가이드 ⑧) — reports/live.json 에 dispatcher_heartbeat 아직 없음 / 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 노트북 dispatcher 설치(가이드 ⑧) 계속 vs 접기 — live.json dispatcher_heartbeat 아직 없음, 저장소 분리와 연동 / 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조 / 11/3 21:55 겸이 결재(⑥): 즉시 설치 보류 → 11/7 저장소 전환 뒤 새 주소 기준 설치 11/8. dispatch.py 33행 REPO 상수 갱신 필요(피어 지적). / 11/10 운영 정리(D): 기한 11-08→11-22 — [결재 D3] 노트북 dispatcher 설치는 겸이 직접 — '전환 뒤 새 주소 기준 설치'(11/3 결재) 전제가 D1 에 걸림 |
 | P2 ⏫P1 11-08 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-30 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). / 11/10 운영 정리(D): 기한 11-07→11-30 — [결재 D7] 단지 점 확인은 VWORLD_KEY 등록 뒤 — 부동산 키 결재(user-realestate-keys-1023, 11/30)와 같은 날 |
 
-## 대기 (158)
+## 대기 (160)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -54,6 +54,8 @@
 | P1 ⏫ | `pchat-concurrency` | pb-private pchat.py 동시 push 충돌로 private_chat.json 깨짐(11/4 4회, 충돌 마커 커밋 1회) — 원자적 추가·재시도·JSON 검증 후 커밋 | 유지보수 | — | 2026-11-18 | private 전용 | — | 11/4 PB 발견. 재현: 사담 에이전트 3~4명 동시 실행. 제안: pull --rebase 대신 fetch 후 JSON 병합(합집합)·커밋 전 json.loads 검증. / 11/10 운영 정리(C): 기한 11-06→11-18 — 비공개 사담 JSON 동시 push 깨짐 — 데이터 손상 재발 방지(P1). 작은 수정(병합·검증) |
 | P1 ⏫ | `req-compliance-8ba5d14f` | [요청 승격] 리스크→컴플라이언스: 11/2 16:40 점검 때 엔진 표시값만 보고 [11] 구속 스트레스 ⛔를 닫지 말아 줘. 11/1 엔진  | 컴플라이언스 | — | 2026-11-18 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 컴플라이언스 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-compliance-8ba5d14f`. / 11/10 운영 정리(C): 기한 11-11→11-18 — [11] 구속 스트레스 기준선('입금 전') 문언 — 11/15 리뷰 결재 안건으로 넘어감 |
 | P1 ⏫ | `req-pb-1cca3b7f` | [요청 승격] 데이터엔지니어→PB: ⚡ crash 신호를 결재 #9 소리 등급(RING_KINDS)에 넣을지·ALL_SILENT 예외로 둘지 겸 | PB | — | 2026-11-18 | — | — | 요청 2영업일 미처리(2026-11-06~2026-11-10) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→데이터엔지니어: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-1cca3b7f`. / 11/10 운영 정리(D): 기한 11-17→11-18 — [결재 D4] ⚡ 급락 신호를 소리 등급에 넣을지 — 11/6 무음이라 놓침(req-pb-2c1a97e9 실측) |
+| P1 ⏫ | `req-quant-5ed3d721` | [요청 승격] 애널→퀀트: 신용융자 담보비율 유지의무 면제 조치(2008-10·2011-08·2020-03·2022-07, 이번 202 | 퀀트 | — | 2026-11-18 | — | — | 요청 2영업일 미처리(2026-11-09~2026-11-11) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-5ed3d721`. |
+| P1 ⏫ | `req-verify-56c36ec9` | [요청 승격] 애널→검증: Jiang 11/6 영상(jNESiKXBkn4 'I Was Wrong. The Democrats Take C | 검증 | — | 2026-11-18 | — | — | 요청 2영업일 미처리(2026-11-09~2026-11-11) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→애널: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-56c36ec9`. |
 | P1 ⏫ | `req-behavior-e371f42c` | [요청 승격] CIO→행동: req-cio-ab5e63e8 그림자 북: 모의 북에서 잴 편향 칸(처분효과 PGR/PLR·재협상 카운터·밤 | 행동 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 행동 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-behavior-e371f42c`. / 11/10 운영 정리(C): 기한 11-19 유지 — 그림자 북 줄기(부모 req-cio-ab5e63e8) — 같은 날 |
 | P1 ⏫ | `req-cio-ab5e63e8` | [요청 승격] PB→CIO: 결재 10/31(8번 B): 프랍 그림자 북 신설 승인 — 10/28 안(C안 A 규칙 준수판·B 기관식 한 | CIO | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-10-31~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 CIO 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-cio-ab5e63e8`. / 11/10 운영 정리(C): 기한 11-10→11-19 — 프랍 그림자 북 설계·사전등록(CIO 자체 기한 11/14) — 결과 보기 전 고정이라 늦으면 사전등록 의미 상실. 퀀트·컴플·행동 하위 3건 같은 날 |
 | P1 ⏫ | `req-compliance-fc90e046` | [요청 승격] CIO→컴플라이언스: req-cio-ab5e63e8 그림자 북: 컴플 조건 목록(실계좌 주문과 분리·모의 신호가 실계좌 근거로 쓰 | 컴플라이언스 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 컴플라이언스 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-compliance-fc90e046`. / 11/10 운영 정리(C): 기한 11-16→11-19 — 그림자 북 줄기(부모 req-cio-ab5e63e8) — 같은 날 |
