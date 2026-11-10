@@ -1,42 +1,38 @@
-2026-11-09 06:49:40,020 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/home/runner/.cache/py-yfinance' reason: [Errno 17] File exists: '/home/runner/.cache/py-yfinance'. TzCache will not be used. Tip: You can direct cache to use a different location with 'set_tz_cache_location(mylocation)'
-2026-11-09 06:49:40,841 ERROR yfinance: 
+2026-11-10 06:49:49,833 INFO screener.live: live.json 17개 지표
+2026-11-10 06:49:55,343 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': -13525.0, '외국인': 3906.0, '기관': 4734.0}, 'KOSDAQ': {'개인': -563.0, '외국인': -1472.0, '기관': 2148.0}}
+2026-11-10 06:50:01,615 INFO screener.data: MACRO 시세 배치 1/1
+2026-11-10 06:50:01,620 WARNING screener.prices: US 분할·병합 불연속 소급 조정: 1306.T 2026-03-30 x0.1, 1306.T 2026-04-01 x10
+2026-11-10 06:50:01,815 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
+2026-11-10 06:50:01,827 WARNING screener: 매크로 BTC 중간 봉 2026-11-09 누락 — 이전 파일 값으로 메움(stale)
+2026-11-10 06:50:02,206 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
+2026-11-10 06:50:02,242 INFO matplotlib.font_manager: generated new fontManager
+2026-11-10 06:50:47,907 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
+2026-11-10 06:50:50,599 INFO screener.live: live.json 17개 지표
+2026-11-10 06:50:50,600 WARNING screener.guard: stale 기록: reports/macro_series.json BTC_hole (목표 2026-11-10 · 사용 2026-11-09)
+2026-11-10 06:50:50,600 INFO screener: KR 지수 오늘 봉 잠정(16:20 전): KOSPI,KOSDAQ
+2026-11-10 06:50:50,712 INFO screener.macroview: 매크로 해설: 매크로 바람 약한 역풍 (-0.13, 전일 -0.14) — 변화 없음 · 20일 코스피 -13.2% vs S&P -3.3% (격차 -9.9%p) → 매크로보다 업종 쏠림(반도체) 문제, 매크로 반전만으론 회복 근거 부족
+2026-11-10 06:50:51,527 INFO screener.data: MACRO 시세 배치 1/1
+2026-11-10 06:50:52,067 INFO screener.commodities: 원자재 31개(ok 30) · 1개월 ±10% 넘게 움직인 원자재: 아시아 LNG(JKM, NYMEX 정산가) +21%, 가솔린(RBOB) -20%, MP Materials(미 희토류) -18%, 브렌트 원유 -15%, 구리 광산주 ETF(COPX) -12%
+2026-11-10 06:51:06,340 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
+2026-11-10 06:51:09,062 INFO screener.data: MACRO 시세 배치 1/1
+2026-11-10 06:51:11,244 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 3, 'last': '2026-11-05', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
+2026-11-10 06:51:11,271 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3164
+2026-11-10 06:51:11,277 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
+2026-11-10 06:51:19,839 INFO screener.bonds: 채권: US10Y 4.88 KR10Y 3.848 소스 {'us_treasury': 'ok 464일 (마지막 2026-11-09)', 'kr_krx': 'ok 12일 (2026-10-25~, 마지막 2026-11-10)', 'etf_yahoo': 'ok 9/9', 'ai_credit_yahoo': 'ok 11/11'}
+2026-11-10 06:51:19,865 INFO screener.dashboard: dashboard.json 갱신 (114642 bytes)
+2026-11-10 06:51:21,145 INFO screener.dashboard: 리서치 국면 태그 2657건
+2026-11-10 06:51:21,189 INFO screener.dashboard: research.json 2657건
+2026-11-10 06:51:21,206 INFO screener.dashboard: disclosures.json 2142건
+2026-11-10 06:51:21,290 INFO screener.daily: 데일리 리포트: 리포트 483건, 테마 30개, 통합 체크 0개
+2026-11-10 06:51:21,367 INFO screener.daily: 데일리 리포트: 리포트 483건, 테마 30개, 통합 체크 0개
+2026-11-10 06:51:29,206 INFO screener.derivs: 옵션 포지션: PCR 1.02 GEX -544.4억 flip 826.3
+2026-11-10 06:51:30,004 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: ^TOPX"}}}
+2026-11-10 06:51:30,187 ERROR yfinance: $^TOPX: possibly delisted; no timezone found
+2026-11-10 06:51:30,188 ERROR yfinance: 
 1 Failed download:
-2026-11-09 06:49:40,841 ERROR yfinance: ['DX-Y.NYB']: OperationalError('database is locked')
-2026-11-09 06:49:42,273 INFO screener.live: live.json 16개 지표
-2026-11-09 06:49:49,666 INFO screener.flows: 장중 시장 수급: 네이버 모바일 {'KOSPI': {'개인': -4890.0, '외국인': -6894.0, '기관': 7171.0}, 'KOSDAQ': {'개인': -397.0, '외국인': -748.0, '기관': 1075.0}}
-2026-11-09 06:49:57,677 INFO screener.data: MACRO 시세 배치 1/1
-2026-11-09 06:49:57,683 WARNING screener.prices: US 분할·병합 불연속 소급 조정: 1306.T 2026-03-30 x0.1, 1306.T 2026-04-01 x10
-2026-11-09 06:49:57,914 WARNING screener: 매크로 JGB10Y 수집 실패 — 이전 데이터 유지(stale)
-2026-11-09 06:49:58,325 INFO matplotlib.font_manager: Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Non-scalable fonts are not supported
-2026-11-09 06:49:58,471 INFO matplotlib.font_manager: generated new fontManager
-2026-11-09 06:50:26,745 INFO screener: KRX 지수 일봉으로 코스피·코스닥 최근분 보정
-2026-11-09 06:50:29,570 INFO screener.live: live.json 17개 지표
-2026-11-09 06:50:29,570 INFO screener: KR 지수 오늘 봉 잠정(16:20 전): KOSPI,KOSDAQ
-2026-11-09 06:50:29,676 INFO screener.macroview: 매크로 해설: 매크로 바람 역풍 (-0.31, 전일 -0.35) — 변화 없음 · 매크로 역풍 + 한국 초과 하락 겹침 (20일 코스피 -21.5% vs S&P -5.6% (격차 -15.9%p))
-2026-11-09 06:50:30,287 INFO screener.data: MACRO 시세 배치 1/1
-2026-11-09 06:50:32,002 INFO screener.commodities: 원자재 31개(ok 31) · 1개월 ±10% 넘게 움직인 원자재: MP Materials(미 희토류) -23%, 아시아 LNG(JKM, NYMEX 정산가) +21%, 가솔린(RBOB) -16%, 희토류·전략금속 ETF(REMX) -15%, 은 -13%
-2026-11-09 06:50:46,336 INFO screener.geo_news: 지정학 뉴스 hormuz 5 · redsea 5 · ruukr 5 · rare_earth 5 · chips 5 · taiwan 5 · korea 5 · tariff 5
-2026-11-09 06:50:48,652 INFO screener.data: MACRO 시세 배치 1/1
-2026-11-09 06:54:58,909 INFO screener.realestate: 부동산 RTMS: 성공 구 25/25 · 실패 없음
-2026-11-09 06:54:58,984 INFO screener.realestate: 부동산 RTMS 드릴다운: 구별 파일 25개
-2026-11-09 06:54:58,984 WARNING screener.realestate_coords: 부동산 단지 좌표: Actions 연속 실패 기록({'n': 3, 'last': '2026-11-05', 'why': '일시 오류로 5필지 연속 실패 — 중단 (마지막: HTTPError: 502 Server Error: Bad Gateway for url: https://api.vworld.kr/req/data?service=data&version=2.0&request=GetFeature&format=json&data=LP_PA_CBND_BUBUN&k)'}) — 이번 실행 호출 생략, 캐시만 붙임 (노트북 CLI 로 채우기)
-2026-11-09 06:54:59,009 INFO screener.realestate_coords: 부동산 단지 좌표(actions): 호출 0(성공 0·건너뜀 0) · 점 있음 0 · 없음 3156
-2026-11-09 06:54:59,015 INFO screener.realestate: 부동산: 가격 키 필요 · 금리 3 · 리츠 10 · 뉴스 policy 5 · market 5 · core 5 · lower 5 · gg_south 5 · redev 5 · newtown 5
-2026-11-09 06:55:06,999 INFO screener.bonds: 채권: US10Y 4.86 KR10Y 3.887 소스 {'us_treasury': 'ok 463일 (마지막 2026-11-06)', 'kr_krx': 'ok 13일 (2026-10-22~, 마지막 2026-11-09)', 'etf_yahoo': 'ok 9/9', 'ai_credit_yahoo': 'ok 11/11'}
-2026-11-09 06:55:07,027 INFO screener.dashboard: dashboard.json 갱신 (118101 bytes)
-2026-11-09 06:55:08,163 INFO screener.dashboard: 리서치 국면 태그 2554건
-2026-11-09 06:55:08,213 INFO screener.dashboard: research.json 2554건
-2026-11-09 06:55:08,233 INFO screener.dashboard: disclosures.json 2014건
-2026-11-09 06:55:08,309 INFO screener.daily: 데일리 리포트: 리포트 523건, 테마 32개, 통합 체크 1개
-2026-11-09 06:55:08,383 INFO screener.daily: 데일리 리포트: 리포트 523건, 테마 32개, 통합 체크 1개
-2026-11-09 06:55:15,845 INFO screener.derivs: 옵션 포지션: PCR 1.04 GEX -1286.8억 flip 841.5
-2026-11-09 06:55:16,475 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: ^TOPX"}}}
-2026-11-09 06:55:16,571 ERROR yfinance: $^TOPX: possibly delisted; no timezone found
-2026-11-09 06:55:16,572 ERROR yfinance: 
-1 Failed download:
-2026-11-09 06:55:16,572 ERROR yfinance: ['^TOPX']: possibly delisted; no timezone found
-2026-11-09 06:55:19,255 INFO screener.japan: 일본: 일본: 닛케이 +2.3% · 日 메모리(Kioxia) -2.5% vs SK하이닉스 -10.4% (60일 상관 0.76) (일본 패널)
-2026-11-09 06:55:19,662 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 1건
-2026-11-09 06:55:25,344 INFO screener.committee: 운용회의 자료 생성
-2026-11-09 06:55:27,243 INFO screener.calendar_ev: 캘린더 99건
-2026-11-09 06:55:27,267 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 0건, 점검 1건
+2026-11-10 06:51:30,188 ERROR yfinance: ['^TOPX']: possibly delisted; no timezone found
+2026-11-10 06:51:32,491 INFO screener.japan: 일본: 일본: 닛케이 +2.9% · 日 메모리(Kioxia) +9.2% vs SK하이닉스 +0.4% (60일 상관 0.72) (일본 패널)
+2026-11-10 06:51:32,866 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 1건
+2026-11-10 06:51:39,392 INFO screener.committee: 운용회의 자료 생성
+2026-11-10 06:51:41,372 INFO screener.calendar_ev: 캘린더 110건
+2026-11-10 06:51:41,394 INFO screener.views: VIEW 레지스트리: 렌즈 39개, 변경 1건, 점검 1건
