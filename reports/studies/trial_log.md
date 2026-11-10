@@ -1,9 +1,9 @@
 ## 요약 (What · So What · Now What)
 
-> 기준 2026-11-06
+> 기준 2026-11-10
 
 **What**
-- 시도 N 1350 · 연구 62건 · 전체 한 가족 α 4e-05
+- 시도 N 1356 · 연구 63건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1350** (등록 m 합 531 + 등록 전 탐색 819) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1356** (등록 m 합 535 + 등록 전 탐색 821) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -62,6 +62,7 @@
 | 2026-11-05_downday_fix |  | (미분류) | — | 미등록 | — | — | — | — |
 | 2026-11-05_ict_hdj1 | 2026-11-04 | (미분류) | 26 | prereg.m | 0.00192 | — | C1 F19 검증전6 | — |
 | 2026-11-06_split_entry_rules | 2026-11-06 | entry_rules | 6 | prereg.m | 0.00833 | 3 | F (신뢰도 중)6 | 6가설 모두 F(±0.03R, 구간 부호 엇갈림) — 확인 조건·시간 손절 N·손절폭 변경은 벤치 대비 개선 근거 없음, 모의 전용 유지 |
+| 2026-11-10_var_models | 2026-11-10 | var_model | 4 | prereg.m | 0.0125 | 2 | F4 | H1~H4 전부 F(GJR vs 현 엔진 tick 손실 p 0.279). 정규 GARCH·GJR 은 초과 30·33일/기대 16.5 로 Kupiec 기각 → 현행 유지, GJR 은 급락 직후 반응 참고용 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -115,6 +116,7 @@
 | earnings_yoy | lab_p1 | 6 | 1 | 7 | 0.00714 |
 | semis_cap | semis_cap | 7 | 0 | 7 | 0.00714 |
 | committee_ideas | 2026-10-24_avoid_vs_long | 0 | 6 | 6 | 0.00833 |
+| var_model | 2026-11-10_var_models | 4 | 2 | 6 | 0.00833 |
 | us_committee_px | 2026-10-23_us_long_sort, 2026-10-23_us_r20_reversal | 4 | 0 | 4 | 0.0125 |
 | fib | fib_levels | 4 | 0 | 4 | 0.0125 |
 | laor_ib | 2026-10-21_laor_ib_qld, 2026-10-21_laor_infinite_buy | 0 | 1 | 1 | 0.05 |
