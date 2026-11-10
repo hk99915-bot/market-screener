@@ -111,7 +111,7 @@
 | lab.json · scorecard_week · study_daily.json | lab 일 23:00 · scorecard 일 08:30 · study_daily 평일 07:10 | — | 단일 |
 | changelog · reports/ops · ops/BOARD.md | ops 23:47 | — | 단일 |
 | ops/team.json | ops 23:47·00:07 + team(매시 17분) — auto 블록 | PM 22:30 Claude 예약 — runs 블록 · 비공개 저장소 nightly 워크플로(22:40)가 'PB(메인)' 대조 행(11/10~, 쓰기 시크릿 없으면 대기) | 블록 분리 |
-| reports/english/* | Claude 예약 '오늘의 영어' 평일 07:18 | — | 단일(세션이 직접 커밋) |
+| reports/english/* | study_daily 평일 07:10 — 사전 생성 큐 `content/english_queue/<날짜>.json` 게시(`screener/english_queue.py`, 11/10~, LLM 호출 없음) | Claude 예약 '오늘의 영어' 07:18(끄기 전까지 병행 — 그날 파일이 이미 있으면 서로 덮어쓰지 않음) | 큐 게시가 기본. 잔량 3일 이하·그날 파일 없음 = 텔레그램 + Actions 경고 |
 | reports/audit/<날짜>.md (정기 감사) | Claude 예약 '정기 감사' **토 07:53** 새 세션 (trig_01Lc79ufM6xsA2RHqFD4cJsg, 10/24 겸이 승인 수·토 → 11/8 요금제 전환 대비로 토요일만) | 수시 감사(요청 시) | 단일(세션이 직접 커밋) |
 | (저장소 밖) ~/toss_md_data/* — 토스 시세 파일럿(지수 1분·투자자별 매매대금·USDKRW·KR/US 달력) | **겸이 노트북(파일럿, 공개 산출물 없음)** — Windows 작업 스케줄러 평일 09:00–15:50 10분마다 · 매일 08:30·18:30 | — (토큰 재발급 시 이전 토큰 무효 → 다른 주체 금지, GitHub Actions·러너 연결 금지) | 단일. 보드 `toss-md-pilot`, 가이드 docs/toss_md_laptop_setup.md |
 

@@ -2,6 +2,8 @@ name: study_daily
 
 # 오늘의 공부 한 줄 (교육-후임) — 평일 07:10 KST = 전날 22:10 UTC (일~목). 복습 1 + 새 모듈 1 + 퀴즈 1 + 영어 헤드라인.
 # 네트워크 없이 content/study.json·quiz_bank·srs·reports/english/latest.json 만 읽는다. 텔레그램은 시크릿이 있을 때만.
+# 오늘의 영어·OPIc·인적성(11/10~): 미리 써 둔 큐 content/english_queue/<날짜>.json 을 그날 reports/english 로 게시(LLM 호출 없음).
+# 큐 잔량 3일 이하·그날 파일 없음은 텔레그램 + Actions 경고(screener/english_queue.py). 수동 실행은 기본 커밋 없음.
 on:
   schedule:
     - cron: "10 22 * * 0-4"
@@ -34,6 +36,14 @@ jobs:
           python-version: "3.12"
       - name: 콘텐츠 검증 (스키마·id·prereq·quiz)
         run: python scripts/study_content_check.py
+      - name: 영어 큐 검사 (스키마·정답 자리·인적성 규칙)
+        run: python scripts/english_queue_check.py || echo "::warning::영어 큐 검사 실패 — 게시 단계는 그날 파일의 기본 검사만 하고 진행"
+      - name: 오늘의 영어 게시 (사전 생성 큐 → reports/english)
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PYTHONUNBUFFERED: "1"
+        run: python -m screener.english_queue
       - name: 오늘의 공부
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -46,6 +56,7 @@ jobs:
           git config user.name "screener-bot"
           git config user.email "screener-bot@users.noreply.github.com"
           [ -e reports/study_daily.json ] && git add reports/study_daily.json; true
+          git add reports/english; git add reports/freshness.json 2>/dev/null; true
           git diff --cached --quiet || git commit -m "study_daily: $(date -u +%F)"
           ok=0
           for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done

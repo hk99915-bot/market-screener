@@ -103,3 +103,10 @@ CI(`tests.yml` → `tests/test_study_content.py` → `scc.check_all`, 그리고 
 | 6 | **quiz_bank 탭(선택)** | 새 뷰 `qb` 또는 `edu` 하단 | `content/study/quiz_bank.json` getter(`getStudyQuizBank`, 잠금 필요)로 읽어 모듈·난이도·kind 필터 + 랜덤 1문항 '데스크와 대결' 모드. 결과는 `mt_quiz_log`에 누적, 모듈별 정답률을 트랙 진행 바 옆에 표시. |
 
 제약: 금액·보유 표시 없음(기존 설계 유지). 모바일 1열, 표 4열 이하, 수식 한 줄(L5). 모든 등급 문자열(A/B/C/F/검증전)은 그대로 노출(L7). 변경 전 `ops/locks.json`에 Index.html 잠금, 변경 후 `python scripts/check_functions.py`.
+
+## 영어 큐 — 오늘의 영어·OPIc·오늘의 인적성 사전 생성 (교육, 2026-11-10)
+- **구조:** 여러 날 치를 미리 써서 `content/english_queue/<YYYY-MM-DD>.json`(reports/english 와 같은 스키마)에 넣어 두면, `study_daily.yml`(평일 07:10 KST)이 `python -m screener.english_queue` 로 그날 파일을 `reports/english/<날짜>.json`·`latest.json`·`index.json` 에 게시한다. LLM·네트워크 없음.
+- **끊김 방지:** 오늘 뒤 잔량이 3일 이하이면 텔레그램 + Actions 경고(바닥나는 날짜 포함). 그날 파일이 없거나 기본 검사에 실패하면 이전 날짜를 그대로 두고 stale 기록 + 경고. 그날 `reports/english/<날짜>.json` 이 이미 있으면 덮어쓰지 않는다.
+- **검사:** `python3 scripts/english_queue_check.py`(스키마 · 단어 **굵게** · 독해 4문항 꼬리표 [어휘]·[어법]·[요지]·[내용 일치] 순서 · 복습 단어 출처 · 4지 정답 자리 한쪽 40% 이하 · 어법 정답 자리 3일 연속 금지 · 인적성 규칙 v1). 잔량만: `--left`. CI 는 `tests/test_english_queue.py`.
+- **보충 방법:** ① 다음 평일 날짜로 큐 파일을 쓴다(본문은 날짜와 무관한 경제·투자 상식 — 그날 시세 수치 금지, 인적성 수치는 가상 예시). ② 인적성 3문항은 `scripts/apt_gen.py` `make(kind, pos, seed, …)` 로 만든다 — 정답 자리는 `python3 scripts/apt_daily_check.py --plan <날짜>`. ③ 어법 문항(두 번째)은 분사구문·시제 일치·수 일치를 돌려 가며, 그날 문법 설명과 같은 포인트로. ④ 검사 통과 후 커밋(`edu:` 접두). 문항 검수는 평가 데스크(출제자≠검수자, LOOP 4항).
+- **분량 기준(11/10~):** 하루 15분 안 — 단어 5 · 문법 2 · 시제 2 · 복습 3 · 독해 4 · 회화 2(6줄·표현 3) · OPIc 3문항(모범답안 1분 분량) · 인적성 3.
