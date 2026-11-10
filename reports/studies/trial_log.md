@@ -3,7 +3,7 @@
 > 기준 2026-11-10
 
 **What**
-- 시도 N 1356 · 연구 63건 · 전체 한 가족 α 4e-05
+- 시도 N 1386 · 연구 65건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1356** (등록 m 합 535 + 등록 전 탐색 821) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1386** (등록 m 합 549 + 등록 전 탐색 837) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -62,6 +62,8 @@
 | 2026-11-05_downday_fix |  | (미분류) | — | 미등록 | — | — | — | — |
 | 2026-11-05_ict_hdj1 | 2026-11-04 | (미분류) | 26 | prereg.m | 0.00192 | — | C1 F19 검증전6 | — |
 | 2026-11-06_split_entry_rules | 2026-11-06 | entry_rules | 6 | prereg.m | 0.00833 | 3 | F (신뢰도 중)6 | 6가설 모두 F(±0.03R, 구간 부호 엇갈림) — 확인 조건·시간 손절 N·손절폭 변경은 벤치 대비 개선 근거 없음, 모의 전용 유지 |
+| 2026-11-10_event_cpi | 2026-11-10 | event_driven | 14 | prereg.m | 0.00357 | — | F3 | H4 F(IS p 0.90) · H9 F(IS p 0.28) · E1 F — CPI 방향 정보 없음, 크기만 평일 1.15~1.26배 |
+| 2026-11-10_meet_rebound | 2026-11-10 | crash_entry | — | 미등록 | — | 16 | C (기술 통계)1 F (탐색, 상한 C · 16셀 모두 Bonferroni 0.0031 미통과)1 | 16셀 모두 기저 대비 t −0.43~+1.83(최대 = 1997~ +4% 전체 h60, 겹침 표본이라 과대) — Bonferroni 0.05/16=0.0031 미통과, 탐색이라 상한 C → F(무작위 대비 예측력 없음). 재차 저점 이탈 20일 33~55%·60일 56~67% 는 기술 통계(C) |
 | 2026-11-10_var_models | 2026-11-10 | var_model | 4 | prereg.m | 0.0125 | 2 | F4 | H1~H4 전부 F(GJR vs 현 엔진 tick 손실 p 0.279). 정규 GARCH·GJR 은 초과 30·33일/기대 16.5 로 Kupiec 기각 → 현행 유지, GJR 은 급락 직후 반응 참고용 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
@@ -100,7 +102,7 @@
 |---|---|---|---|---|---|
 | us_spike | 2026-10-21_us_smallcap_spikes, 2026-10-21_us_spikes_intraday | 22 | 700 | 722 | 7e-05 |
 | trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, trend_expectancy | 185 | 22 | 207 | 0.00024 |
-| crash_entry | 2026-11-04_crash_close_intraday, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 48 | 36 | 84 | 0.0006 |
+| crash_entry | 2026-11-04_crash_close_intraday, 2026-11-10_meet_rebound, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 48 | 52 | 100 | 0.0005 |
 | downday_response | 2026-11-05_downday, 2026-11-05_downday_b | 31 | 36 | 67 | 0.00075 |
 | (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, 2026-11-05_downday_fix, 2026-11-05_ict_hdj1, dotplot_tilt, ict_open, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 57 | 0 | 57 | 0.00088 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
@@ -108,6 +110,7 @@
 | winner_ex_ante | 2026-10-29_winner_ex_ante, 2026-11-03_bond_regime_strata | 19 | 4 | 23 | 0.00217 |
 | rules | rule_audit | 18 | 0 | 18 | 0.00278 |
 | us_accum | us_accum | 9 | 9 | 18 | 0.00278 |
+| event_driven | 2026-11-10_event_cpi | 14 | 0 | 14 | 0.00357 |
 | derivs | derivs_signals, gamma_regime | 13 | 0 | 13 | 0.00385 |
 | bond_sleeve | ktb_vs_ust | 11 | 0 | 11 | 0.00455 |
 | entry_rules | 2026-11-06_split_entry_rules | 6 | 3 | 9 | 0.00556 |
@@ -153,5 +156,7 @@
 | 2026-11-03 | topdown_cycle | (사전등록·미실행, m 은 §0 확정 시 가산) TOPDOWN_CYCLE_12M: 업황 지표(조선 수주잔고·반도체 범용 메모리 가격) 개선 업종 종목의 12개월 업종 중앙값 대비 초과 > 0 | lab_queue.json order 14 · IS 2010~2019 / OOS 2020~ · 비용 0.25% · 상폐 포함 창고 · 지표 데이터 미확인(data_eng) | 미실행(사전등록) |  | lab_queue |
 | 2026-11-05 | downday_response | (사전등록 m=9) H4a 반등일 매도>즉시 · H4b 2주 기한>즉시 · H4c 반등일>2주 기한 / H1 S&P 일간 −2·−3% 다음 360750(대리) 5·10·20일 > 무작위 진입 | IS ~2021 / OOS 2022~ · 국장 대형주 200 · 낙폭 −20%(120일 고점)·코스피 −2% · 비용 KR 0.45%·US 0.2% · 월 군집 t | H4a A(OOS +1.64%p) · H4b B · H4c F / H1 6개 모두 F | H1 문턱·보유 어디서도 무작위 진입 초과 없음 | 2026-11-05_downday |
 | 2026-11-05 | downday_response | (사전등록 m=22) H2 코스피 −3/−5% 종가 매수 대상 3종(K200·EXSEMI_EW·저반도체 ETF)×5/10/20일 순 초과>0(18) · H3 월 적립 B(첫 하락일 대기)·C(절반)가 A(1일 고정)보다 12개월 후 ΔV>0·평균단가<0(4) | IS ≤2021 / OOS 2022~, 군집 20일, 비용 국장 0.45%, 하락일 ±1.5%(코스피 또는 S&P), 코어 C안 근사 sleeve, 탐색 46 | H2 −3% 9셀 F · −5% 9셀 검증전(n=5) · H3 4개 모두 C(역방향)(B 대기 ΔV −0.49%p, 단가 +0.40%) | 대상 교체·대기 모두 우위 없음 | 2026-11-05_downday_b |
+| 2026-11-10 | crash_entry | (등록 전 탐색 16셀) 급락 뒤 반등일(+3/+4%) 이후 h5·15·20·60 수익 > 기저, 재차 직전 10일 저점 이탈 빈도 | 조건 = 반등일 일간 ≥ 문턱 & 직전 5~10일 낙폭 중 최저 ≤ −8%; 데이터 data/deriv/daily.csv 2010-01~2026-11-10 · ^KS11 1997~ 연결; 비중첩 = 20일 쿨다운; 비용 없음; t = (평균−무조건 h일 평균)/표준오차 | 16셀 t −0.43~+1.83, 비중첩 n 7~45; +4% 2010~ 비중첩 n 7(2026년 4건 포함, 11/10 당일 포함) → F(검증전 성분), 재이탈 20일 3/7·60일 4/7 | 사전등록 없음 + Bonferroni 0.0031 미통과 + 한 국면 쏠림(2026년 다수) → '반등일 투입' 근거로 쓰지 않음 | 2026-11-10_meet_rebound |
+| 2026-11-10 | event_driven | (사전등록 m=14 중 2개 산출) H4 SPY CPI 당일 초과≠0 · H9 국내 이벤트일 069500 ≤−1.5% → 5일 초과>0 / 탐색 E1 069500 CPI 반응일 초과≠0 | IS 2010~2019 / OOS 2020~2026-10-21, BLS 아카이브 발표일, 069500 대리, H9 비용 0.10%, 월 군집 NW(1) | H4 F(IS p 0.899) · H9 F(IS p 0.281, OOS p 0.127) · E1 F(p 0.58) · 반응일 |r| 평일 대비 1.15배(2022~ 1.26배) | 방향 정보 없음 — 크기 자(5~95% 분위)로만 사용 | 2026-11-10_event_cpi |
 
 읽는 법: 주제 N 이 연구 m 의 2배를 넘으면(crash_entry 처럼) 그 주제의 C 등급은 '방향'이 아니라 '우연일 수 있는 방향'으로 읽는다. 새 연구 §0 에 그 주제의 현재 N 을 한 줄 적는다.
