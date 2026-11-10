@@ -1,195 +1,258 @@
 {
- "asof": "2026-11-10 08:36 KST",
+ "asof": "2026-11-11 06:02 KST",
  "window_h": 24,
  "repo": "hk99915-bot/market-screener",
  "note": "지연 = 실행 생성 시각 − 직전 cron 시각(추정, 여러 cron 이 가까우면 과소추정). 누락 추정 = 예정 횟수 − 예약 실행 수.",
  "total": {
-  "runs": 270,
-  "success": 212,
-  "failure": 6,
-  "cancelled": 41,
-  "schedule": 33,
+  "runs": 337,
+  "success": 210,
+  "failure": 8,
+  "cancelled": 95,
+  "schedule": 52,
   "dispatch": 20
  },
  "workflows": [
   {
    "path": "dynamic/pages/pages-build-deployment",
    "name": "pages build and deployment",
-   "runs": 190,
-   "success": 143,
+   "runs": 214,
+   "success": 116,
    "failure": 6,
-   "cancelled": 41,
+   "cancelled": 92,
    "skipped": 0,
    "in_progress": 0,
    "schedule": 0,
    "dispatch": 0,
-   "other": 190,
+   "other": 214,
    "max_delay_min": null,
    "avg_delay_min": null,
    "cron_expected": 0,
    "cron_missed_est": null,
    "last": {
-    "at": "11-10 07:42",
+    "at": "11-11 05:57",
     "event": "dynamic",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42714233641"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42900301906"
    },
    "failures": [
     {
-     "at": "11-10 03:10",
+     "at": "11-10 15:51",
      "event": "dynamic",
-     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42671589689",
+     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42771349576",
      "title": "pages build and deployment"
     },
     {
-     "at": "11-10 03:15",
+     "at": "11-10 16:49",
      "event": "dynamic",
-     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42672392359",
+     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42777964771",
      "title": "pages build and deployment"
     },
     {
-     "at": "11-10 03:20",
+     "at": "11-10 22:32",
      "event": "dynamic",
-     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42673205470",
+     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42825396232",
      "title": "pages build and deployment"
     },
     {
-     "at": "11-10 03:25",
+     "at": "11-10 22:55",
      "event": "dynamic",
-     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42673956095",
+     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42828938006",
      "title": "pages build and deployment"
     },
     {
-     "at": "11-10 07:29",
+     "at": "11-11 05:00",
      "event": "dynamic",
-     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42712342535",
+     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42890941337",
      "title": "pages build and deployment"
+    }
+   ]
+  },
+  {
+   "path": ".github/workflows/tests.yml",
+   "name": "tests",
+   "runs": 13,
+   "success": 9,
+   "failure": 2,
+   "cancelled": 2,
+   "skipped": 0,
+   "in_progress": 0,
+   "schedule": 0,
+   "dispatch": 0,
+   "other": 13,
+   "max_delay_min": null,
+   "avg_delay_min": null,
+   "cron_expected": 0,
+   "cron_missed_est": null,
+   "last": {
+    "at": "11-10 19:49",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42802327798"
+   },
+   "failures": [
+    {
+     "at": "11-10 19:28",
+     "event": "push",
+     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42799430353",
+     "title": "quant: 리서치 본부 확률 장부·Brier 채점 스크립트 — 11/5 발언 8건 기록, 만기 4건 채점(Brier 0.2…"
+    },
+    {
+     "at": "11-10 19:29",
+     "event": "push",
+     "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42799541249",
+     "title": "peer: 11/10 임시 운용회의 피어리뷰 — 결재표 미작성 근거 정정·결재표 문구 불일치·요약 오해 소지"
     }
    ]
   },
   {
    "path": ".github/workflows/briefing.yml",
    "name": "briefing 예약 52 13 * * 1-5",
-   "runs": 26,
-   "success": 26,
+   "runs": 33,
+   "success": 33,
    "failure": 0,
    "cancelled": 0,
    "skipped": 0,
    "in_progress": 0,
-   "schedule": 12,
+   "schedule": 19,
    "dispatch": 14,
    "other": 0,
-   "max_delay_min": 181,
-   "avg_delay_min": 69,
-   "cron_expected": 15,
-   "cron_missed_est": 3,
+   "max_delay_min": 231,
+   "avg_delay_min": 64,
+   "cron_expected": 16,
+   "cron_missed_est": 0,
    "last": {
-    "at": "11-10 08:10",
+    "at": "11-11 05:37",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42718225641"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42897082666"
    },
    "failures": []
   },
   {
    "path": ".github/workflows/pages.yml",
    "name": "pages",
-   "runs": 8,
+   "runs": 21,
    "success": 0,
    "failure": 0,
    "cancelled": 0,
-   "skipped": 8,
+   "skipped": 21,
    "in_progress": 0,
    "schedule": 0,
    "dispatch": 0,
-   "other": 8,
+   "other": 21,
    "max_delay_min": null,
    "avg_delay_min": null,
    "cron_expected": 0,
    "cron_missed_est": null,
    "last": {
-    "at": "11-10 07:29",
+    "at": "11-10 19:49",
     "event": "push",
     "status": "completed",
     "conclusion": "skipped",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42712343198"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42802326898"
    },
    "failures": []
   },
   {
    "path": ".github/workflows/library.yml",
    "name": "library",
-   "runs": 7,
-   "success": 7,
+   "runs": 14,
+   "success": 14,
    "failure": 0,
    "cancelled": 0,
    "skipped": 0,
    "in_progress": 0,
    "schedule": 0,
    "dispatch": 0,
-   "other": 7,
+   "other": 14,
    "max_delay_min": null,
    "avg_delay_min": null,
    "cron_expected": 0,
    "cron_missed_est": null,
    "last": {
-    "at": "11-09 22:46",
+    "at": "11-10 19:49",
     "event": "push",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42628418169"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42802326916"
    },
    "failures": []
   },
   {
    "path": ".github/workflows/live.yml",
    "name": "live-quotes 예약 20 14 * * 1-5",
-   "runs": 7,
+   "runs": 10,
    "success": 7,
    "failure": 0,
-   "cancelled": 0,
+   "cancelled": 1,
    "skipped": 0,
-   "in_progress": 0,
-   "schedule": 5,
+   "in_progress": 2,
+   "schedule": 8,
    "dispatch": 2,
    "other": 0,
    "max_delay_min": 200,
-   "avg_delay_min": 124,
+   "avg_delay_min": 97,
    "cron_expected": 17,
-   "cron_missed_est": 12,
+   "cron_missed_est": 9,
    "last": {
-    "at": "11-10 08:26",
+    "at": "11-11 05:50",
     "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42720516146"
+    "status": "pending",
+    "conclusion": null,
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42899230055"
    },
    "failures": []
   },
   {
-   "path": ".github/workflows/tests.yml",
-   "name": "tests",
-   "runs": 7,
-   "success": 7,
+   "path": ".github/workflows/team.yml",
+   "name": "team",
+   "runs": 4,
+   "success": 4,
    "failure": 0,
    "cancelled": 0,
    "skipped": 0,
    "in_progress": 0,
-   "schedule": 0,
+   "schedule": 4,
    "dispatch": 0,
-   "other": 7,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 0,
-   "cron_missed_est": null,
+   "other": 0,
+   "max_delay_min": 34,
+   "avg_delay_min": 20,
+   "cron_expected": 24,
+   "cron_missed_est": 20,
    "last": {
-    "at": "11-09 22:46",
-    "event": "push",
+    "at": "11-11 05:50",
+    "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42628418178"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42899258434"
+   },
+   "failures": []
+  },
+  {
+   "path": ".github/workflows/health.yml",
+   "name": "health",
+   "runs": 3,
+   "success": 3,
+   "failure": 0,
+   "cancelled": 0,
+   "skipped": 0,
+   "in_progress": 0,
+   "schedule": 3,
+   "dispatch": 0,
+   "other": 0,
+   "max_delay_min": 320,
+   "avg_delay_min": 320,
+   "cron_expected": 2,
+   "cron_missed_est": 0,
+   "last": {
+    "at": "11-11 03:37",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42877087965"
    },
    "failures": []
   },
@@ -205,22 +268,47 @@
    "schedule": 3,
    "dispatch": 0,
    "other": 0,
-   "max_delay_min": 25,
-   "avg_delay_min": 20,
+   "max_delay_min": 23,
+   "avg_delay_min": 14,
    "cron_expected": 20,
    "cron_missed_est": 17,
    "last": {
-    "at": "11-10 01:52",
+    "at": "11-11 00:47",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42659142051"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42848114688"
    },
    "failures": []
   },
   {
-   "path": ".github/workflows/team.yml",
-   "name": "team",
+   "path": ".github/workflows/ops.yml",
+   "name": "ops",
+   "runs": 3,
+   "success": 2,
+   "failure": 0,
+   "cancelled": 0,
+   "skipped": 0,
+   "in_progress": 1,
+   "schedule": 3,
+   "dispatch": 0,
+   "other": 0,
+   "max_delay_min": 355,
+   "avg_delay_min": 355,
+   "cron_expected": 2,
+   "cron_missed_est": 0,
+   "last": {
+    "at": "11-11 06:01",
+    "event": "schedule",
+    "status": "in_progress",
+    "conclusion": null,
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42900988737"
+   },
+   "failures": []
+  },
+  {
+   "path": ".github/workflows/tg_feed.yml",
+   "name": "tg_feed",
    "runs": 3,
    "success": 3,
    "failure": 0,
@@ -230,16 +318,41 @@
    "schedule": 3,
    "dispatch": 0,
    "other": 0,
-   "max_delay_min": 25,
-   "avg_delay_min": 19,
-   "cron_expected": 23,
-   "cron_missed_est": 20,
+   "max_delay_min": 325,
+   "avg_delay_min": 325,
+   "cron_expected": 2,
+   "cron_missed_est": 0,
    "last": {
-    "at": "11-10 07:25",
+    "at": "11-11 03:38",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42711799195"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42877306982"
+   },
+   "failures": []
+  },
+  {
+   "path": ".github/workflows/backfill.yml",
+   "name": "backfill [ALL] commit=true",
+   "runs": 2,
+   "success": 2,
+   "failure": 0,
+   "cancelled": 0,
+   "skipped": 0,
+   "in_progress": 0,
+   "schedule": 1,
+   "dispatch": 1,
+   "other": 0,
+   "max_delay_min": null,
+   "avg_delay_min": null,
+   "cron_expected": 1,
+   "cron_missed_est": 0,
+   "last": {
+    "at": "11-11 02:03",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42860988321"
    },
    "failures": []
   },
@@ -260,17 +373,42 @@
    "cron_expected": 1,
    "cron_missed_est": 0,
    "last": {
-    "at": "11-10 02:46",
+    "at": "11-11 00:45",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42667842978"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42847594992"
    },
    "failures": []
   },
   {
-   "path": ".github/workflows/health.yml",
-   "name": "health",
+   "path": ".github/workflows/fin.yml",
+   "name": "financials 수동 commit=true",
+   "runs": 2,
+   "success": 2,
+   "failure": 0,
+   "cancelled": 0,
+   "skipped": 0,
+   "in_progress": 0,
+   "schedule": 1,
+   "dispatch": 1,
+   "other": 0,
+   "max_delay_min": null,
+   "avg_delay_min": null,
+   "cron_expected": 1,
+   "cron_missed_est": 0,
+   "last": {
+    "at": "11-11 03:33",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42876438876"
+   },
+   "failures": []
+  },
+  {
+   "path": ".github/workflows/heatmap.yml",
+   "name": "US heatmap",
    "runs": 2,
    "success": 2,
    "failure": 0,
@@ -280,16 +418,41 @@
    "schedule": 2,
    "dispatch": 0,
    "other": 0,
-   "max_delay_min": 204,
-   "avg_delay_min": 204,
-   "cron_expected": 1,
-   "cron_missed_est": 0,
+   "max_delay_min": 76,
+   "avg_delay_min": 45,
+   "cron_expected": 18,
+   "cron_missed_est": 16,
    "last": {
-    "at": "11-10 06:23",
+    "at": "11-11 05:25",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42702083207"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42895200084"
+   },
+   "failures": []
+  },
+  {
+   "path": ".github/workflows/msgr_feed.yml",
+   "name": "msgr_feed",
+   "runs": 2,
+   "success": 2,
+   "failure": 0,
+   "cancelled": 0,
+   "skipped": 0,
+   "in_progress": 0,
+   "schedule": 0,
+   "dispatch": 0,
+   "other": 2,
+   "max_delay_min": null,
+   "avg_delay_min": null,
+   "cron_expected": 0,
+   "cron_missed_est": null,
+   "last": {
+    "at": "11-10 19:25",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42799047276"
    },
    "failures": []
   },
@@ -310,36 +473,11 @@
    "cron_expected": 1,
    "cron_missed_est": 0,
    "last": {
-    "at": "11-10 02:36",
+    "at": "11-11 00:38",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42666345429"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/tg_feed.yml",
-   "name": "tg_feed",
-   "runs": 2,
-   "success": 2,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 0,
-   "in_progress": 0,
-   "schedule": 2,
-   "dispatch": 0,
-   "other": 0,
-   "max_delay_min": 207,
-   "avg_delay_min": 207,
-   "cron_expected": 2,
-   "cron_missed_est": 0,
-   "last": {
-    "at": "11-10 06:24",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42702226663"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42846474653"
    },
    "failures": []
   },
@@ -360,61 +498,11 @@
    "cron_expected": 1,
    "cron_missed_est": 0,
    "last": {
-    "at": "11-10 04:59",
+    "at": "11-11 02:14",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42688676512"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/ask.yml",
-   "name": "ask",
-   "runs": 1,
-   "success": 0,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 1,
-   "in_progress": 0,
-   "schedule": 0,
-   "dispatch": 0,
-   "other": 1,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 0,
-   "cron_missed_est": null,
-   "last": {
-    "at": "11-09 21:17",
-    "event": "issues",
-    "status": "completed",
-    "conclusion": "skipped",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42615826428"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/backfill.yml",
-   "name": "backfill [ALL] commit=true",
-   "runs": 1,
-   "success": 1,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 0,
-   "in_progress": 0,
-   "schedule": 0,
-   "dispatch": 1,
-   "other": 0,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 1,
-   "cron_missed_est": 1,
-   "last": {
-    "at": "11-10 02:03",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42660907951"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42862967150"
    },
    "failures": []
   },
@@ -435,161 +523,11 @@
    "cron_expected": 0,
    "cron_missed_est": null,
    "last": {
-    "at": "11-09 08:59",
+    "at": "11-10 19:25",
     "event": "push",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42537793117"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/fin.yml",
-   "name": "financials 수동 commit=true",
-   "runs": 1,
-   "success": 1,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 0,
-   "in_progress": 0,
-   "schedule": 0,
-   "dispatch": 1,
-   "other": 0,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 1,
-   "cron_missed_est": 1,
-   "last": {
-    "at": "11-10 03:33",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42675092522"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/heatmap.yml",
-   "name": "US heatmap",
-   "runs": 1,
-   "success": 1,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 0,
-   "in_progress": 0,
-   "schedule": 1,
-   "dispatch": 0,
-   "other": 0,
-   "max_delay_min": 76,
-   "avg_delay_min": 76,
-   "cron_expected": 18,
-   "cron_missed_est": 17,
-   "last": {
-    "at": "11-10 07:57",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42716418991"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/msgr_feed.yml",
-   "name": "msgr_feed",
-   "runs": 1,
-   "success": 1,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 0,
-   "in_progress": 0,
-   "schedule": 0,
-   "dispatch": 0,
-   "other": 1,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 0,
-   "cron_missed_est": null,
-   "last": {
-    "at": "11-09 08:59",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42537793063"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/ops.yml",
-   "name": "ops",
-   "runs": 1,
-   "success": 0,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 0,
-   "in_progress": 1,
-   "schedule": 1,
-   "dispatch": 0,
-   "other": 0,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 2,
-   "cron_missed_est": 1,
-   "last": {
-    "at": "11-10 08:35",
-    "event": "schedule",
-    "status": "in_progress",
-    "conclusion": null,
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42721754787"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/pick.yml",
-   "name": "pick",
-   "runs": 1,
-   "success": 1,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 0,
-   "in_progress": 0,
-   "schedule": 0,
-   "dispatch": 0,
-   "other": 1,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 0,
-   "cron_missed_est": null,
-   "last": {
-    "at": "11-09 21:17",
-    "event": "issues",
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42615826274"
-   },
-   "failures": []
-  },
-  {
-   "path": ".github/workflows/study.yml",
-   "name": "study",
-   "runs": 1,
-   "success": 0,
-   "failure": 0,
-   "cancelled": 0,
-   "skipped": 1,
-   "in_progress": 0,
-   "schedule": 0,
-   "dispatch": 0,
-   "other": 1,
-   "max_delay_min": null,
-   "avg_delay_min": null,
-   "cron_expected": 0,
-   "cron_missed_est": null,
-   "last": {
-    "at": "11-09 21:17",
-    "event": "issues",
-    "status": "completed",
-    "conclusion": "skipped",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42615826297"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42799047384"
    },
    "failures": []
   },
@@ -605,154 +543,46 @@
    "schedule": 1,
    "dispatch": 0,
    "other": 0,
-   "max_delay_min": 210,
-   "avg_delay_min": 210,
+   "max_delay_min": 353,
+   "avg_delay_min": 353,
    "cron_expected": 1,
    "cron_missed_est": 0,
    "last": {
-    "at": "11-09 10:39",
+    "at": "11-10 13:03",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42546732922"
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42753367123"
    },
    "failures": []
   },
   {
    "path": ".github/workflows/us_accum.yml",
    "name": "us_accum",
-   "runs": 0,
-   "success": 0,
+   "runs": 1,
+   "success": 1,
    "failure": 0,
    "cancelled": 0,
    "skipped": 0,
    "in_progress": 0,
-   "schedule": 0,
+   "schedule": 1,
    "dispatch": 0,
    "other": 0,
-   "max_delay_min": null,
-   "avg_delay_min": null,
+   "max_delay_min": 341,
+   "avg_delay_min": 341,
    "cron_expected": 1,
-   "cron_missed_est": 1,
-   "last": null,
+   "cron_missed_est": 0,
+   "last": {
+    "at": "11-10 13:17",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/hk99915-bot/market-screener/actions/runs/42754940989"
+   },
    "failures": []
   }
  ],
  "gas": [
-  {
-   "slot": "11-09 08:40",
-   "workflow": "live.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 08:50",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 10:30",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 11:35",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 13:30",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 14:15",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 14:25",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 15:05",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 15:45",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 16:20",
-   "workflow": "screener.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 16:40",
-   "workflow": "deriv_hist.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 19:10",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-09 20:52",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 2
-  },
-  {
-   "slot": "11-09 21:52",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 2
-  },
-  {
-   "slot": "11-09 22:52",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 2
-  },
-  {
-   "slot": "11-09 23:20",
-   "workflow": "live.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-10 02:00",
-   "workflow": "backfill.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-10 03:30",
-   "workflow": "fin.yml",
-   "arrived": true,
-   "delay_min": 4
-  },
-  {
-   "slot": "11-10 03:52",
-   "workflow": "briefing.yml",
-   "arrived": true,
-   "delay_min": 2
-  },
   {
    "slot": "11-10 06:52",
    "workflow": "briefing.yml",
@@ -764,6 +594,120 @@
    "workflow": "briefing.yml",
    "arrived": false,
    "delay_min": null
+  },
+  {
+   "slot": "11-10 08:40",
+   "workflow": "live.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 08:50",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 10:30",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 11:35",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 13:30",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 14:15",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 14:25",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 15:05",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 15:45",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 16:20",
+   "workflow": "screener.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 16:40",
+   "workflow": "deriv_hist.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 19:10",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-10 20:52",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 2
+  },
+  {
+   "slot": "11-10 21:52",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 2
+  },
+  {
+   "slot": "11-10 22:52",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 2
+  },
+  {
+   "slot": "11-10 23:20",
+   "workflow": "live.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-11 02:00",
+   "workflow": "backfill.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-11 03:30",
+   "workflow": "fin.yml",
+   "arrived": true,
+   "delay_min": 4
+  },
+  {
+   "slot": "11-11 03:52",
+   "workflow": "briefing.yml",
+   "arrived": true,
+   "delay_min": 2
   }
  ],
  "gas_summary": {
