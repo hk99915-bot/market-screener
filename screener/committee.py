@@ -1378,28 +1378,46 @@ def _ideas_log_score() -> dict:
     codes = list({r["ticker"] for r in log_["rows"]})
     since = min(r["date"] for r in log_["rows"])
     from .prices import load_kr   # 공통 로더 = 기업행위 조정 (px-adjust-unify)
-    px = (load_kr(path=p).with_columns(pl.col("yf").str.slice(0, 6).alias("code"), pl.col("date").cast(pl.Utf8))
-            .filter(pl.col("code").is_in(codes) & (pl.col("date") > since)).sort("date"))
+    adj = load_kr(path=p).with_columns(pl.col("yf").str.slice(0, 6).alias("code"), pl.col("date").cast(pl.Utf8))
+    px = adj.filter(pl.col("code").is_in(codes) & (pl.col("date") > since)).sort("date")
     by = {c: g.select("date", "high", "low", "close").rows() for (c,), g in px.group_by("code")}
+    # 감사 M4 후속(audit-ideas-basis): entry·stop 은 기록 당시 원본가, 봉은 나중 분할로 소급 조정됨 → 같은 기준으로 맞춘다.
+    # 조정배수 = 아이디어 날짜(이전 마지막 거래일) 조정 종가 / 원본 종가. 기록이 이미 조정 기준이면(원본보다 조정 종가에 더 가까우면) 그대로.
+    raw = load_kr(raw=True, path=p).with_columns(pl.col("date").cast(pl.Utf8)).select("yf", "date", pl.col("close").alias("raw_close"))
+    fx = (adj.filter(pl.col("code").is_in(codes) & (pl.col("date") <= max(r["date"] for r in log_["rows"])))
+             .join(raw, on=["yf", "date"], how="inner").sort("date"))
+    fac = {c: g.select("date", "close", "raw_close").rows() for (c,), g in fx.group_by("code")}
+
+    def _basis(r: dict) -> tuple[float, float]:
+        pre = [b for b in fac.get(r["ticker"], []) if b[0] <= r["date"]]
+        if not pre or not pre[-1][1] or not pre[-1][2]:
+            return r["entry"], r["stop"]
+        a, w = pre[-1][1], pre[-1][2]
+        if abs(r["entry"] / w - 1) >= abs(r["entry"] / a - 1):   # 이미 조정 기준 기록
+            return r["entry"], r["stop"]
+        f = a / w
+        return r["entry"] * f, r["stop"] * f
+
     for r in log_["rows"]:
         if (r.get("score") or {}).get("final"):
             continue
         bars = [b for b in by.get(r["ticker"], []) if b[0] > r["date"]][:20]
-        R = r["entry"] - r["stop"]
+        entry, stop = _basis(r)
+        R = entry - stop
         if not bars or R <= 0:
             continue
         sc = {"days": len(bars), "hit1R": False, "stopped": False}
         for i, (d, h, lo, c) in enumerate(bars):
-            if lo is not None and lo <= r["stop"]:
+            if lo is not None and lo <= stop:
                 sc["stopped"], sc["exitR"], sc["exit_date"] = True, -1.0, d
                 break
-            if h is not None and h >= r["entry"] + R and not sc["hit1R"]:
+            if h is not None and h >= entry + R and not sc["hit1R"]:
                 sc["hit1R"], sc["hit_date"] = True, d
         if len(bars) >= 5:
-            sc["ret5"] = bars[4][3] / r["entry"] - 1
+            sc["ret5"] = bars[4][3] / entry - 1
         if len(bars) >= 20:
-            sc["ret20"] = bars[19][3] / r["entry"] - 1
-        sc["R"] = sc.get("exitR", (bars[-1][3] - r["entry"]) / R)
+            sc["ret20"] = bars[19][3] / entry - 1
+        sc["R"] = sc.get("exitR", (bars[-1][3] - entry) / R)
         sc["final"] = sc["stopped"] or len(bars) >= 20
         r["score"] = sc
     IDEAS_LOG.write_text(json.dumps(log_, ensure_ascii=False), encoding="utf-8")

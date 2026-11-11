@@ -2021,16 +2021,17 @@
       "title": "ideas_log 채점 기준 불일치: entry·stop(기록 당시 원본가) vs load_kr 조정 봉 → 이후 분할·병합 종목 가짜 손절/1R",
       "owner": "개발",
       "priority": "P2",
-      "status": "대기",
+      "status": "완료",
       "started": "2026-10-17",
       "due": "2026-12-10",
       "files": [
         "screener/committee.py"
       ],
       "depends_on": [],
-      "notes": "감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료 | 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — xfail(strict) 테스트 그대로 — 미착수 | 11/01 PM 늦은 일 정리(유효): 유효: xfail(strict) tests/test_committee_adjusted.py 그대로 — S 크기 | 11/10 운영 정리(C): 기한 11-24→12-10 — idea-unify-s3(12/18) 선행 — xfail 테스트 1건 통과로 닫는 S 크기 | 11/12 PM: 개발 잠금 대기 — screener/committee.py 개발 잠금(req-dev-7e78b190, 11/12 07:05~) 중이고 origin/main 에 해당 커밋 없음 → 잠금 해제·반영 뒤 처리",
+      "notes": "감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료 | 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — xfail(strict) 테스트 그대로 — 미착수 | 11/01 PM 늦은 일 정리(유효): 유효: xfail(strict) tests/test_committee_adjusted.py 그대로 — S 크기 | 11/10 운영 정리(C): 기한 11-24→12-10 — idea-unify-s3(12/18) 선행 — xfail 테스트 1건 통과로 닫는 S 크기 | 11/12 PM: 개발 잠금 대기 — screener/committee.py 개발 잠금(req-dev-7e78b190, 11/12 07:05~) 중이고 origin/main 에 해당 커밋 없음 → 잠금 해제·반영 뒤 처리 | 11/12 PM(오너 승인, req-dev-7e78b190 커밋 6f173b8fa·잠금 해제 3320b0098 반영 뒤): _ideas_log_score 에 조정배수(아이디어 날짜 조정 종가/원본 종가)를 entry·stop 에 곱함(이미 조정 기준 기록이면 그대로) · xfail(strict) 테스트 통과로 전환",
       "desk": "개발",
-      "escalated": "2026-10-21"
+      "escalated": "2026-10-21",
+      "done": "2026-11-12"
     },
     {
       "id": "audit-1017-minor",

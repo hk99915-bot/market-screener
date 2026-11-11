@@ -63,8 +63,6 @@ def test_ideas_log_score_reads_adjusted_bars(tmp_path, monkeypatch):
     assert sc["stopped"] is False and sc["days"] == 7 and sc["ret5"] == pytest.approx(0.0, abs=1e-6)
 
 
-@pytest.mark.xfail(strict=True, reason="감사 M4 후속(보드 audit-ideas-basis): ideas_log 의 entry·stop 은 기록 당시 원본가인데 "
-                                       "채점 봉은 나중 분할로 소급 조정됨 → 기준 불일치로 가짜 손절. committee.py 잠금(잔여) 해제 뒤 수정")
 def test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop(tmp_path, monkeypatch):
     _parquet(tmp_path)
     log_p = tmp_path / "ideas_log.json"
@@ -74,7 +72,9 @@ def test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop(tmp_path, monke
     monkeypatch.setattr(committee, "IDEAS_ATTRIB", tmp_path / "ideas_attrib.json")
     monkeypatch.setattr(committee, "DATA_DIR", tmp_path)
     committee._ideas_log_score()
-    assert json.loads(log_p.read_text())["rows"][0]["score"]["stopped"] is False
+    sc = json.loads(log_p.read_text())["rows"][0]["score"]
+    # 원본 100 기록 → 조정배수 0.2 로 entry 20·stop 18 환산: 분할을 손절로 채점하지 않고 5일 수익 0 (보드 audit-ideas-basis)
+    assert sc["stopped"] is False and sc["ret5"] == pytest.approx(0.0, abs=1e-6)
 
 
 def test_main_kr_detail_path_uses_load_kr():
