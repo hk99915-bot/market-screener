@@ -130,3 +130,17 @@ def test_committee_exp_block_from_signals_and_study_fallback(tmp_path, monkeypat
     (tmp_path / "sim_signals_KR.json").unlink()
     (tmp_path / "studies" / "trend_expectancy.json").write_text(json.dumps({"markets": [{"market": "KR", "asof": "2026-10-01", "exp": exp}]}), encoding="utf-8")
     assert committee._sim_fresh("KR") is None
+
+
+def test_psar_nan_is_neutral_not_short():
+    """PSAR NaN(첫 봉) 구간은 롱숏에서도 무포지션 — NaN 을 −1(숏)로 읽던 결함 (sim-oos 11/12)."""
+    n = 80
+    c = [100 + i * 0.1 for i in range(n)]
+    ps = [float("nan")] * 30 + [50.0] * (n - 30)
+    d0 = date(2025, 1, 1)
+    g = pl.DataFrame({"date": [d0 + timedelta(days=i) for i in range(n)], "close": c,
+                      "sma20": c, "sma50": [x - 1 for x in c], "psar": ps})
+    nan_ls = detail._simulate(g)["psar"]["ls"]
+    null_ls = detail._simulate(g.with_columns(pl.col("psar").fill_nan(None)))["psar"]["ls"]
+    assert nan_ls["trades"] == null_ls["trades"] == 0          # NaN→롱 전환이 '숏 청산' 거래로 잡히지 않음
+    assert nan_ls["ret"] == null_ls["ret"]

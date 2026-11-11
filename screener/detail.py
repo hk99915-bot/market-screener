@@ -126,7 +126,8 @@ def _simulate(g: pl.DataFrame, days: int = 250) -> dict:
     ps = g["psar"].to_list() if "psar" in g.columns else [None] * len(c)
     dates = g["date"].to_list()
     ma = [1 if (c[i] > s50[i] and s20[i] > s50[i]) else -1 if (c[i] < s50[i] and s20[i] < s50[i]) else 0 for i in range(len(c))]
-    sar = [0 if ps[i] is None else (1 if c[i] > ps[i] else -1) for i in range(len(c))]
+    # PSAR 없음(None·NaN — psar_np 첫 봉은 NaN 이고 polars 는 NaN 을 null 로 안 본다) = 0 중립 (sim-oos 11/12: 이전엔 롱숏에서 −1 숏)
+    sar = [0 if ps[i] is None or ps[i] != ps[i] else (1 if c[i] > ps[i] else -1) for i in range(len(c))]
     out = {"days": len(c), "from": str(dates[0]), "bh": round(c[-1] / c[0] - 1, 4), "cost": COST,
            "last2": [str(dates[-2]), str(dates[-1])]}
     for name, sig in (("ma", ma), ("psar", sar)):
