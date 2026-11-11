@@ -144,7 +144,33 @@ def crash_flag(k: dict) -> dict:
             "grade": crash_day_grade(), "thr": CRASH_PCT}
 
 
-def _scenarios(k: dict, stu: dict, mv: dict) -> list[dict]:
+def _lev_ban_until() -> str:
+    """실계좌 레버리지·인버스 금지 기한 — 단일 원천 screener/ticket.LEV_BAN_UNTIL (읽기 실패 시 보수적으로 그 값 그대로)."""
+    try:
+        from .ticket import LEV_BAN_UNTIL
+        return LEV_BAN_UNTIL
+    except Exception as e:  # noqa: BLE001
+        log.info("LEV_BAN_UNTIL 읽기 실패: %s", e)
+        return "2027-04-15"
+
+
+def _lev_banned(today: date | None = None) -> bool:
+    return str(today or _kst_today()) <= _lev_ban_until()
+
+
+def _earn_span(cal: list[dict] | None, today: date | None = None, market: str | None = None, days: int = 21,
+               tickers=None) -> str:
+    """캘린더 '실적' 일정 중 오늘~days 일 안 구간 문구('11/12~11/20 5건'). 없으면 ''. 고정 날짜 템플릿 대신 (req-dev-7e78b190)."""
+    t = today or _kst_today()
+    ds = sorted(e["date"] for e in (cal or []) if e.get("type") == "실적" and (market is None or e.get("market") == market)
+                and (tickers is None or e.get("ticker") in tickers) and t <= date.fromisoformat(e["date"]) <= t + timedelta(days=days))
+    if not ds:
+        return ""
+    f = lambda d: d[5:].replace("-", "/")  # noqa: E731
+    return (f(ds[0]) if ds[0] == ds[-1] else f"{f(ds[0])}~{f(ds[-1])}") + f" {len(ds)}건"
+
+
+def _scenarios(k: dict, stu: dict, mv: dict, cal: list[dict] | None = None) -> list[dict]:
     b = (stu or {}).get("buckets20") or {}
     deep = k and k.get("dd20", 0) <= -0.15
     shock = k and k.get("ret1", 0) <= -0.05
@@ -153,17 +179,29 @@ def _scenarios(k: dict, stu: dict, mv: dict) -> list[dict]:
     lowt = k.get("low_today") or k.get("last")
     cond = {"deep": "20일 −15% 이상 하락 중 −5% 급락", "dd15": "20일 −15% 이상 하락 중", "drop5": "하루 −5% 급락", "all": "평상시"}[key]
     mvs = (mv or {}).get("label") or "중립"
+    span = _earn_span(cal, market="KR")
+    ban = _lev_banned()
     return [
         {"name": "강세 — 급반등·추세 회복", "prob": p.get("bull"), "def": "20거래일 뒤 코스피 +5% 초과",
          "trigger": f"코스피 20일선({k.get('sma20') or 0:,.0f}) 2일 연속 종가 회복 (노출 상향 기준 · 외국인 조건 없음)",
-         "action": "반도체는 테마 한도(40%) 넘는 만큼 반등 때 덜고, 현금 분할 매수 2차 집행(비반도체 우선), 인버스 헷지 해제"},
+         "action": "반도체는 테마 한도(40%) 넘는 만큼 반등 때 덜고, 현금 분할 매수 2차 집행(비반도체 우선)"
+                   + (", 1배 인버스 헤지(예외 조건분) 보유 시 해제" if ban else ", 헤지 보유 시 해제")},
         {"name": "기본 — 반등 후 박스", "prob": p.get("base"), "def": "20거래일 뒤 ±5% 이내",
          "trigger": f"오늘 저점({lowt:,.0f}) 지지, 외국인 매도 둔화(일 −1조 이내)",
-         "action": "반등 때 중복·약한 고리 축소(ETF 중복, 평균이익 기준 고평가), 실적 시즌(10/21~29) 확인 전 비중 유지"},
+         "action": "반등 때 중복·약한 고리 축소(ETF 중복, 평균이익 기준 고평가), "
+                   + (f"실적 일정({span} · 캘린더) 확인 전 비중 유지" if span else "비중 유지(3주 안 국장 실적 일정 없음 · 캘린더)")},
         {"name": "약세 — 연속 급락(6월 말 패턴)", "prob": p.get("bear"), "def": "20거래일 뒤 −5% 미만 (그중 −15% 미만 " + f"{(p.get('deep_bear') or 0)*100:.0f}%)",
          "trigger": f"오늘 저점({lowt:,.0f}) 2일 연속 종가 이탈, 또는 2단계 서킷, 또는 빅테크 설비투자 가이던스 하향",
-         "action": "손실 한도·가격 규칙 기계적 집행(메모리 절반 축소), 인버스 25% 헷지, 현금 비중 확대"},
+         "action": "손실 한도·가격 규칙 기계적 집행(메모리 절반 축소), 현금 비중 확대 · " + _hedge_clause(ban)},
     ], {"basis": cond, "macro": mvs, **_basis_fields(p, (b.get("all") or {}).get("n"))}
+
+
+def _hedge_clause(ban: bool) -> str:
+    """약세 대응의 헤지 문구 — 금지 기간엔 실계좌 레버리지·인버스 금지와 1배 인버스 헤지 예외(비율은 비공개 규칙)만 적는다."""
+    if ban:
+        return (f"레버리지·인버스 실계좌 금지(~{_lev_ban_until()}) — 헤지는 코스피200 1배 인버스 예외 조건"
+                "(주문표·스트레스 감소 확인) 충족 시만, 비율은 비공개 규칙")
+    return "인버스 헤지 검토(비율은 규칙 문서)"
 
 
 def _basis_fields(p: dict, n_all) -> dict:
@@ -280,7 +318,8 @@ def _stance(k: dict, scen: list[dict], sb: dict, stu: dict, ev7: list[dict], der
         plan = "회복 확인(20일선 2일 연속) — 노출 상향: 현금 1/3씩 분할 집행, 반도체 테마 한도 40% 안에서(신규는 비반도체)."
     elif k.get("low20") and last and last < k["low20"] * 0.995:
         st_ = "방어"
-        plan = "20일 저점 이탈 — 가격 규칙 기계적 집행, 인버스 25% 헷지. 단 하루 −5% 급락이 오면 그날 종가는 1차 신호(위 규칙 우선)."
+        plan = ("20일 저점 이탈 — 가격 규칙 기계적 집행, " + _hedge_clause(_lev_banned())
+                + ". 단 하루 −5% 급락이 오면 그날 종가는 1차 신호(위 규칙 우선).")
     else:
         st_ = "관망"
         plan = (f"오늘은 현금 유지. 1차 신호 = 급락일 종가(코스피 −5%, 15:05 점검) · 2차 = 20일선({sma20 or 0:,.0f}) 2일 연속 회복 시 노출 상향. "
@@ -473,7 +512,7 @@ def build(session: str = "장후") -> dict:
     cal = (_j("calendar.json", {}) or {}).get("events", [])
     sig = (_j("signal_scores.json", {}) or {}).get("signals", {})
     dec = _j("decisions.json", {}) or {}
-    scen, sb = _scenarios(k, stu, mv)
+    scen, sb = _scenarios(k, stu, mv, cal)
     sq = []
     try:
         from .shorts import by_code, squeeze_candidates
@@ -1727,16 +1766,21 @@ def build_us() -> dict:
     if _btc:
         head.append(_btc)
     lo = k.get("low20") if k else None
+    from .calendar_ev import CAPEX
+    span = _earn_span(cal, today, market="US", tickers=CAPEX)
+    ban = _lev_banned(today)
     scen = [
         {"name": "강세 — 고점 경신", "prob": p.get("bull"), "def": "20거래일 뒤 S&P500 +3% 초과",
-         "trigger": "빅테크 실적(10/21~29)에서 설비투자·클라우드 성장 상향 + 10년 금리 하락 전환",
+         "trigger": (f"빅테크 실적({span} · 캘린더)에서" if span else "다음 빅테크 실적(3주 안 일정 없음 · 캘린더)에서")
+                    + " 설비투자·클라우드 성장 상향 + 10년 금리 하락 전환",
          "action": "미국 반도체·AI 인프라 비중 유지, 원화 강세 시 달러 자산 추가 매수 기회"},
         {"name": "기본 — 박스권", "prob": p.get("base"), "def": "20거래일 뒤 ±3% 이내",
          "trigger": "실적은 부합, 금리 5% 근처 횡보",
          "action": "종목 교체(이익 추정 상향 종목으로), 비중 유지"},
         {"name": "약세 — 금리·밸류 조정", "prob": p.get("bear"), "def": f"20거래일 뒤 −3% 미만 (그중 −10% 미만 {(p.get('deep_bear') or 0)*100:.0f}%)",
          "trigger": f"10년 금리 5.3% 돌파, 또는 빅테크 설비투자 가이던스 하향, 또는 S&P 20일 저점({lo or 0:,.0f}) 이탈",
-         "action": "반도체·고PER 비중 축소, SH/PSQ 소량 헷지, 한국 메모리도 같은 신호로 축소(연결 규칙)"},
+         "action": "반도체·고PER 비중 축소, 한국 메모리도 같은 신호로 축소(연결 규칙)"
+                   + (f" · SH/PSQ 등 인버스는 실계좌 금지(~{_lev_ban_until()}) — 모델 북 헤지 칸에서만" if ban else ", SH/PSQ 소량 헷지 검토")},
     ]
     best = max(scen, key=lambda s: s.get("prob") or 0)
     sbf = _basis_fields(p, (b.get("all") or {}).get("n"))

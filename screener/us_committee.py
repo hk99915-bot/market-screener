@@ -249,7 +249,7 @@ def hedges_us(k: dict, scen: list[dict], p: dict, bonds: dict) -> dict:
               "line": (f"강세(20일 +3% 초과, 확률 {(bull.get('prob') or 0)*100:.0f}%)면 북 −{HEDGE_BOOK*3:.1f}%p 이상 기회비용 · "
                        f"약세 깊은 경로(−10% 미만, 확률 {(p.get('deep_bear') or 0)*100:.1f}%)면 북 +{HEDGE_BOOK*10:.1f}%p 이상 방어"
                        + (f" · VIX {k['vix']:.1f} 기준 20일 1σ ±{m20*100:.1f}% → 1σ 하락 시 북 +{HEDGE_BOOK*m20*100:.2f}%p" if m20 else "")),
-              "when": "약세 시나리오 '반도체·고PER 축소, SH/PSQ 소량 헷지'의 실행형. 인버스는 일간 재조정이라 20일 넘게 들면 경로 손실 — 단기만"})
+              "when": "약세 시나리오(반도체·고PER 축소)의 모델 북 헤지 실행형. 인버스는 일간 재조정이라 20일 넘게 들면 경로 손실 — 단기만"})
     shy = next((e for e in (bonds.get("etf") or []) if e.get("s") == "SHY"), None)
     if shy and shy.get("y") is not None:
         H.append({"name": "미 단기채(SHY)·현금 대기", "cost": None, "cost_book": None,
