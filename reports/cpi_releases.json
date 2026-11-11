@@ -1,0 +1,1996 @@
+{
+ "asof": "2026-11-12 07:08",
+ "by": "매크로",
+ "req": "req-macro-4198c8f8",
+ "src": {
+  "dates": "https://alfred.stlouisfed.org/series/downloaddata?seid=CPIAUCSL",
+  "values": "https://alfred.stlouisfed.org/graph/alfredgraph.csv?id=<CPIAUCSL|CPILFESL|CPIAUCNS|CPILFENS>&vintage_date=<release_et>&cosd=2020-01-01",
+  "dates_crosscheck": "reports/studies/2026-11-10_event_cpi.json cpi_table_2015 (BLS https://www.bls.gov/bls/news-release/cpi.htm 파일명)",
+  "time": "08:30 ET [가정: 전 회차 동일, BLS 일정표 원문 미열람]",
+  "cons": "기본 '출처 없음' — CONS 수기 입력분만 값"
+ },
+ "note": "실적치 = 발표일 ALFRED 빈티지(첫 공표) 지수로 계산, 이후 개정 미반영. 전월비=계절조정, 전년비=원계열(BLS 헤드라인 관행). 2025-10 지수는 BLS 미수집(빈칸) → 2025-11 전월비·2026-10 전년비 null. 컨센 대비 차이만 '서프라이즈'로 해석, 직전 대비는 서프라이즈 아님.",
+ "cols": {
+  "ref": "대상월",
+  "release_et": "발표일(미 동부)",
+  "time_et": "발표 시각 ET",
+  "release_kst": "발표 시각 KST",
+  "actual": "실적치 % (hl/core × mom 계절조정·yoy 원계열)",
+  "cons": "컨센서스 %(없으면 null)",
+  "diff_vs_cons_pp": "실적−컨센 %p"
+ },
+ "rows": [
+  {
+   "ref": "2021-12",
+   "release_et": "2022-01-12",
+   "time_et": "08:30",
+   "release_kst": "2022-01-12 22:30",
+   "actual": {
+    "hl_mom": 0.5,
+    "core_mom": 0.6,
+    "hl_yoy": 7.0,
+    "core_yoy": 5.5
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 280.192,
+    "core_sa": 284.759,
+    "hl_nsa": 278.802,
+    "core_nsa": 283.908
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-01",
+   "release_et": "2022-02-10",
+   "time_et": "08:30",
+   "release_kst": "2022-02-10 22:30",
+   "actual": {
+    "hl_mom": 0.6,
+    "core_mom": 0.6,
+    "hl_yoy": 7.5,
+    "core_yoy": 6.0
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 281.933,
+    "core_sa": 286.431,
+    "hl_nsa": 281.148,
+    "core_nsa": 285.996
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-02",
+   "release_et": "2022-03-10",
+   "time_et": "08:30",
+   "release_kst": "2022-03-10 22:30",
+   "actual": {
+    "hl_mom": 0.8,
+    "core_mom": 0.5,
+    "hl_yoy": 7.9,
+    "core_yoy": 6.4
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 284.182,
+    "core_sa": 287.878,
+    "hl_nsa": 283.716,
+    "core_nsa": 288.059
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-03",
+   "release_et": "2022-04-12",
+   "time_et": "08:30",
+   "release_kst": "2022-04-12 21:30",
+   "actual": {
+    "hl_mom": 1.2,
+    "core_mom": 0.3,
+    "hl_yoy": 8.5,
+    "core_yoy": 6.5
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 287.708,
+    "core_sa": 288.811,
+    "hl_nsa": 287.504,
+    "core_nsa": 289.305
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-04",
+   "release_et": "2022-05-11",
+   "time_et": "08:30",
+   "release_kst": "2022-05-11 21:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.6,
+    "hl_yoy": 8.3,
+    "core_yoy": 6.2
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 288.663,
+    "core_sa": 290.455,
+    "hl_nsa": 289.109,
+    "core_nsa": 290.846
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-05",
+   "release_et": "2022-06-10",
+   "time_et": "08:30",
+   "release_kst": "2022-06-10 21:30",
+   "actual": {
+    "hl_mom": 1.0,
+    "core_mom": 0.6,
+    "hl_yoy": 8.6,
+    "core_yoy": 6.0
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 291.474,
+    "core_sa": 292.289,
+    "hl_nsa": 292.296,
+    "core_nsa": 292.506
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-06",
+   "release_et": "2022-07-13",
+   "time_et": "08:30",
+   "release_kst": "2022-07-13 21:30",
+   "actual": {
+    "hl_mom": 1.3,
+    "core_mom": 0.7,
+    "hl_yoy": 9.1,
+    "core_yoy": 5.9
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 295.328,
+    "core_sa": 294.354,
+    "hl_nsa": 296.311,
+    "core_nsa": 294.68
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-07",
+   "release_et": "2022-08-10",
+   "time_et": "08:30",
+   "release_kst": "2022-08-10 21:30",
+   "actual": {
+    "hl_mom": 0.0,
+    "core_mom": 0.3,
+    "hl_yoy": 8.5,
+    "core_yoy": 5.9
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 295.271,
+    "core_sa": 295.275,
+    "hl_nsa": 296.276,
+    "core_nsa": 295.646
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-08",
+   "release_et": "2022-09-13",
+   "time_et": "08:30",
+   "release_kst": "2022-09-13 21:30",
+   "actual": {
+    "hl_mom": 0.1,
+    "core_mom": 0.6,
+    "hl_yoy": 8.3,
+    "core_yoy": 6.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 295.62,
+    "core_sa": 296.95,
+    "hl_nsa": 296.171,
+    "core_nsa": 297.178
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-09",
+   "release_et": "2022-10-13",
+   "time_et": "08:30",
+   "release_kst": "2022-10-13 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.6,
+    "hl_yoy": 8.2,
+    "core_yoy": 6.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 296.761,
+    "core_sa": 298.66,
+    "hl_nsa": 296.808,
+    "core_nsa": 298.442
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-10",
+   "release_et": "2022-11-10",
+   "time_et": "08:30",
+   "release_kst": "2022-11-10 22:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.3,
+    "hl_yoy": 7.7,
+    "core_yoy": 6.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 298.062,
+    "core_sa": 299.471,
+    "hl_nsa": 298.012,
+    "core_nsa": 299.315
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-11",
+   "release_et": "2022-12-13",
+   "time_et": "08:30",
+   "release_kst": "2022-12-13 22:30",
+   "actual": {
+    "hl_mom": 0.1,
+    "core_mom": 0.2,
+    "hl_yoy": 7.1,
+    "core_yoy": 6.0
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 298.349,
+    "core_sa": 300.066,
+    "hl_nsa": 297.711,
+    "core_nsa": 299.6
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2022-12",
+   "release_et": "2023-01-12",
+   "time_et": "08:30",
+   "release_kst": "2023-01-12 22:30",
+   "actual": {
+    "hl_mom": -0.1,
+    "core_mom": 0.3,
+    "hl_yoy": 6.5,
+    "core_yoy": 5.7
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 298.112,
+    "core_sa": 300.974,
+    "hl_nsa": 296.797,
+    "core_nsa": 300.113
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-01",
+   "release_et": "2023-02-14",
+   "time_et": "08:30",
+   "release_kst": "2023-02-14 22:30",
+   "actual": {
+    "hl_mom": 0.5,
+    "core_mom": 0.4,
+    "hl_yoy": 6.4,
+    "core_yoy": 5.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 300.536,
+    "core_sa": 302.702,
+    "hl_nsa": 299.17,
+    "core_nsa": 301.962
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-02",
+   "release_et": "2023-03-14",
+   "time_et": "08:30",
+   "release_kst": "2023-03-14 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.5,
+    "hl_yoy": 6.0,
+    "core_yoy": 5.5
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 301.648,
+    "core_sa": 304.07,
+    "hl_nsa": 300.84,
+    "core_nsa": 304.011
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-03",
+   "release_et": "2023-04-12",
+   "time_et": "08:30",
+   "release_kst": "2023-04-12 21:30",
+   "actual": {
+    "hl_mom": 0.1,
+    "core_mom": 0.4,
+    "hl_yoy": 5.0,
+    "core_yoy": 5.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 301.808,
+    "core_sa": 305.24,
+    "hl_nsa": 301.836,
+    "core_nsa": 305.476
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-04",
+   "release_et": "2023-05-10",
+   "time_et": "08:30",
+   "release_kst": "2023-05-10 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.4,
+    "hl_yoy": 4.9,
+    "core_yoy": 5.5
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 302.918,
+    "core_sa": 306.489,
+    "hl_nsa": 303.363,
+    "core_nsa": 306.899
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-05",
+   "release_et": "2023-06-13",
+   "time_et": "08:30",
+   "release_kst": "2023-06-13 21:30",
+   "actual": {
+    "hl_mom": 0.1,
+    "core_mom": 0.4,
+    "hl_yoy": 4.0,
+    "core_yoy": 5.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 303.294,
+    "core_sa": 307.824,
+    "hl_nsa": 304.127,
+    "core_nsa": 308.096
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-06",
+   "release_et": "2023-07-12",
+   "time_et": "08:30",
+   "release_kst": "2023-07-12 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.2,
+    "hl_yoy": 3.0,
+    "core_yoy": 4.8
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 303.841,
+    "core_sa": 308.309,
+    "hl_nsa": 305.109,
+    "core_nsa": 308.91
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-07",
+   "release_et": "2023-08-10",
+   "time_et": "08:30",
+   "release_kst": "2023-08-10 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.2,
+    "hl_yoy": 3.2,
+    "core_yoy": 4.7
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 304.348,
+    "core_sa": 308.801,
+    "hl_nsa": 305.691,
+    "core_nsa": 309.402
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-08",
+   "release_et": "2023-09-13",
+   "time_et": "08:30",
+   "release_kst": "2023-09-13 21:30",
+   "actual": {
+    "hl_mom": 0.6,
+    "core_mom": 0.3,
+    "hl_yoy": 3.7,
+    "core_yoy": 4.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 306.269,
+    "core_sa": 309.661,
+    "hl_nsa": 307.026,
+    "core_nsa": 310.103
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-09",
+   "release_et": "2023-10-12",
+   "time_et": "08:30",
+   "release_kst": "2023-10-12 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.3,
+    "hl_yoy": 3.7,
+    "core_yoy": 4.1
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 307.481,
+    "core_sa": 310.661,
+    "hl_nsa": 307.789,
+    "core_nsa": 310.817
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-10",
+   "release_et": "2023-11-14",
+   "time_et": "08:30",
+   "release_kst": "2023-11-14 22:30",
+   "actual": {
+    "hl_mom": 0.0,
+    "core_mom": 0.2,
+    "hl_yoy": 3.2,
+    "core_yoy": 4.0
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 307.619,
+    "core_sa": 311.365,
+    "hl_nsa": 307.671,
+    "core_nsa": 311.38
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-11",
+   "release_et": "2023-12-12",
+   "time_et": "08:30",
+   "release_kst": "2023-12-12 22:30",
+   "actual": {
+    "hl_mom": 0.1,
+    "core_mom": 0.3,
+    "hl_yoy": 3.1,
+    "core_yoy": 4.0
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 307.917,
+    "core_sa": 312.251,
+    "hl_nsa": 307.051,
+    "core_nsa": 311.606
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2023-12",
+   "release_et": "2024-01-11",
+   "time_et": "08:30",
+   "release_kst": "2024-01-11 22:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.3,
+    "hl_yoy": 3.4,
+    "core_yoy": 3.9
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 308.85,
+    "core_sa": 313.216,
+    "hl_nsa": 306.746,
+    "core_nsa": 311.907
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-01",
+   "release_et": "2024-02-13",
+   "time_et": "08:30",
+   "release_kst": "2024-02-13 22:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.4,
+    "hl_yoy": 3.1,
+    "core_yoy": 3.9
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 309.685,
+    "core_sa": 314.438,
+    "hl_nsa": 308.417,
+    "core_nsa": 313.623
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-02",
+   "release_et": "2024-03-12",
+   "time_et": "08:30",
+   "release_kst": "2024-03-12 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.4,
+    "hl_yoy": 3.2,
+    "core_yoy": 3.8
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 311.054,
+    "core_sa": 315.565,
+    "hl_nsa": 310.326,
+    "core_nsa": 315.419
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-03",
+   "release_et": "2024-04-10",
+   "time_et": "08:30",
+   "release_kst": "2024-04-10 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.4,
+    "hl_yoy": 3.5,
+    "core_yoy": 3.8
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 312.23,
+    "core_sa": 316.698,
+    "hl_nsa": 312.332,
+    "core_nsa": 317.088
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-04",
+   "release_et": "2024-05-15",
+   "time_et": "08:30",
+   "release_kst": "2024-05-15 21:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.3,
+    "hl_yoy": 3.4,
+    "core_yoy": 3.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 313.207,
+    "core_sa": 317.622,
+    "hl_nsa": 313.548,
+    "core_nsa": 317.978
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-05",
+   "release_et": "2024-06-12",
+   "time_et": "08:30",
+   "release_kst": "2024-06-12 21:30",
+   "actual": {
+    "hl_mom": 0.0,
+    "core_mom": 0.2,
+    "hl_yoy": 3.3,
+    "core_yoy": 3.4
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 313.225,
+    "core_sa": 318.14,
+    "hl_nsa": 314.069,
+    "core_nsa": 318.629
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-06",
+   "release_et": "2024-07-11",
+   "time_et": "08:30",
+   "release_kst": "2024-07-11 21:30",
+   "actual": {
+    "hl_mom": -0.1,
+    "core_mom": 0.1,
+    "hl_yoy": 3.0,
+    "core_yoy": 3.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 313.049,
+    "core_sa": 318.346,
+    "hl_nsa": 314.175,
+    "core_nsa": 319.003
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-07",
+   "release_et": "2024-08-14",
+   "time_et": "08:30",
+   "release_kst": "2024-08-14 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.2,
+    "hl_yoy": 2.9,
+    "core_yoy": 3.2
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 313.534,
+    "core_sa": 318.872,
+    "hl_nsa": 314.54,
+    "core_nsa": 319.214
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-08",
+   "release_et": "2024-09-11",
+   "time_et": "08:30",
+   "release_kst": "2024-09-11 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.3,
+    "hl_yoy": 2.5,
+    "core_yoy": 3.2
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 314.121,
+    "core_sa": 319.768,
+    "hl_nsa": 314.796,
+    "core_nsa": 320.017
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-09",
+   "release_et": "2024-10-10",
+   "time_et": "08:30",
+   "release_kst": "2024-10-10 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.3,
+    "hl_yoy": 2.4,
+    "core_yoy": 3.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 314.686,
+    "core_sa": 320.767,
+    "hl_nsa": 315.301,
+    "core_nsa": 321.109
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-10",
+   "release_et": "2024-11-13",
+   "time_et": "08:30",
+   "release_kst": "2024-11-13 22:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.3,
+    "hl_yoy": 2.6,
+    "core_yoy": 3.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 315.454,
+    "core_sa": 321.666,
+    "hl_nsa": 315.664,
+    "core_nsa": 321.758
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-11",
+   "release_et": "2024-12-11",
+   "time_et": "08:30",
+   "release_kst": "2024-12-11 22:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.3,
+    "hl_yoy": 2.7,
+    "core_yoy": 3.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 316.441,
+    "core_sa": 322.657,
+    "hl_nsa": 315.493,
+    "core_nsa": 321.947
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2024-12",
+   "release_et": "2025-01-15",
+   "time_et": "08:30",
+   "release_kst": "2025-01-15 22:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.2,
+    "hl_yoy": 2.9,
+    "core_yoy": 3.2
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 317.685,
+    "core_sa": 323.383,
+    "hl_nsa": 315.605,
+    "core_nsa": 322.007
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-01",
+   "release_et": "2025-02-12",
+   "time_et": "08:30",
+   "release_kst": "2025-02-12 22:30",
+   "actual": {
+    "hl_mom": 0.5,
+    "core_mom": 0.4,
+    "hl_yoy": 3.0,
+    "core_yoy": 3.3
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 319.086,
+    "core_sa": 324.739,
+    "hl_nsa": 317.671,
+    "core_nsa": 323.842
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-02",
+   "release_et": "2025-03-12",
+   "time_et": "08:30",
+   "release_kst": "2025-03-12 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.2,
+    "hl_yoy": 2.8,
+    "core_yoy": 3.1
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 319.775,
+    "core_sa": 325.475,
+    "hl_nsa": 319.082,
+    "core_nsa": 325.252
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-03",
+   "release_et": "2025-04-10",
+   "time_et": "08:30",
+   "release_kst": "2025-04-10 21:30",
+   "actual": {
+    "hl_mom": -0.1,
+    "core_mom": 0.1,
+    "hl_yoy": 2.4,
+    "core_yoy": 2.8
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 319.615,
+    "core_sa": 325.659,
+    "hl_nsa": 319.799,
+    "core_nsa": 325.933
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-04",
+   "release_et": "2025-05-13",
+   "time_et": "08:30",
+   "release_kst": "2025-05-13 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.2,
+    "hl_yoy": 2.3,
+    "core_yoy": 2.8
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 320.321,
+    "core_sa": 326.43,
+    "hl_nsa": 320.795,
+    "core_nsa": 326.815
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-05",
+   "release_et": "2025-06-11",
+   "time_et": "08:30",
+   "release_kst": "2025-06-11 21:30",
+   "actual": {
+    "hl_mom": 0.1,
+    "core_mom": 0.1,
+    "hl_yoy": 2.4,
+    "core_yoy": 2.8
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 320.58,
+    "core_sa": 326.854,
+    "hl_nsa": 321.465,
+    "core_nsa": 327.509
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-06",
+   "release_et": "2025-07-15",
+   "time_et": "08:30",
+   "release_kst": "2025-07-15 21:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.2,
+    "hl_yoy": 2.7,
+    "core_yoy": 2.9
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 321.5,
+    "core_sa": 327.6,
+    "hl_nsa": 322.561,
+    "core_nsa": 328.364
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-07",
+   "release_et": "2025-08-12",
+   "time_et": "08:30",
+   "release_kst": "2025-08-12 21:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.3,
+    "hl_yoy": 2.7,
+    "core_yoy": 3.1
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 322.132,
+    "core_sa": 328.656,
+    "hl_nsa": 323.048,
+    "core_nsa": 328.98
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-08",
+   "release_et": "2025-09-11",
+   "time_et": "08:30",
+   "release_kst": "2025-09-11 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.3,
+    "hl_yoy": 2.9,
+    "core_yoy": 3.1
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 323.364,
+    "core_sa": 329.793,
+    "hl_nsa": 323.976,
+    "core_nsa": 329.97
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-09",
+   "release_et": "2025-10-24",
+   "time_et": "08:30",
+   "release_kst": "2025-10-24 21:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.2,
+    "hl_yoy": 3.0,
+    "core_yoy": 3.0
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 324.368,
+    "core_sa": 330.542,
+    "hl_nsa": 324.8,
+    "core_nsa": 330.804
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-11",
+   "release_et": "2025-12-18",
+   "time_et": "08:30",
+   "release_kst": "2025-12-18 22:30",
+   "actual": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": 2.7,
+    "core_yoy": 2.6
+   },
+   "actual_note": "전월비: 직전월 2025-10 지수 결측",
+   "index": {
+    "hl_sa": 325.031,
+    "core_sa": 331.068,
+    "hl_nsa": 324.122,
+    "core_nsa": 330.425
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2025-12",
+   "release_et": "2026-01-13",
+   "time_et": "08:30",
+   "release_kst": "2026-01-13 22:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.2,
+    "hl_yoy": 2.7,
+    "core_yoy": 2.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 326.03,
+    "core_sa": 331.86,
+    "hl_nsa": 324.054,
+    "core_nsa": 330.506
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-01",
+   "release_et": "2026-02-13",
+   "time_et": "08:30",
+   "release_kst": "2026-02-13 22:30",
+   "actual": {
+    "hl_mom": 0.2,
+    "core_mom": 0.3,
+    "hl_yoy": 2.4,
+    "core_yoy": 2.5
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 326.588,
+    "core_sa": 332.793,
+    "hl_nsa": 325.252,
+    "core_nsa": 331.95
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-02",
+   "release_et": "2026-03-11",
+   "time_et": "08:30",
+   "release_kst": "2026-03-11 21:30",
+   "actual": {
+    "hl_mom": 0.3,
+    "core_mom": 0.2,
+    "hl_yoy": 2.4,
+    "core_yoy": 2.5
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 327.46,
+    "core_sa": 333.512,
+    "hl_nsa": 326.785,
+    "core_nsa": 333.242
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-03",
+   "release_et": "2026-04-10",
+   "time_et": "08:30",
+   "release_kst": "2026-04-10 21:30",
+   "actual": {
+    "hl_mom": 0.9,
+    "core_mom": 0.2,
+    "hl_yoy": 3.3,
+    "core_yoy": 2.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 330.293,
+    "core_sa": 334.165,
+    "hl_nsa": 330.213,
+    "core_nsa": 334.391
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-04",
+   "release_et": "2026-05-12",
+   "time_et": "08:30",
+   "release_kst": "2026-05-12 21:30",
+   "actual": {
+    "hl_mom": 0.6,
+    "core_mom": 0.4,
+    "hl_yoy": 3.8,
+    "core_yoy": 2.8
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 332.407,
+    "core_sa": 335.423,
+    "hl_nsa": 333.02,
+    "core_nsa": 335.803
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-05",
+   "release_et": "2026-06-10",
+   "time_et": "08:30",
+   "release_kst": "2026-06-10 21:30",
+   "actual": {
+    "hl_mom": 0.5,
+    "core_mom": 0.2,
+    "hl_yoy": 4.2,
+    "core_yoy": 2.9
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 333.979,
+    "core_sa": 336.121,
+    "hl_nsa": 335.123,
+    "core_nsa": 336.846
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-06",
+   "release_et": "2026-07-14",
+   "time_et": "08:30",
+   "release_kst": "2026-07-14 21:30",
+   "actual": {
+    "hl_mom": -0.4,
+    "core_mom": 0.0,
+    "hl_yoy": 3.5,
+    "core_yoy": 2.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 332.568,
+    "core_sa": 336.065,
+    "hl_nsa": 333.952,
+    "core_nsa": 336.882
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-07",
+   "release_et": "2026-08-12",
+   "time_et": "08:30",
+   "release_kst": "2026-08-12 21:30",
+   "actual": {
+    "hl_mom": 0.1,
+    "core_mom": 0.2,
+    "hl_yoy": 3.4,
+    "core_yoy": 2.5
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 332.813,
+    "core_sa": 336.789,
+    "hl_nsa": 333.918,
+    "core_nsa": 337.133
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-08",
+   "release_et": "2026-09-11",
+   "time_et": "08:30",
+   "release_kst": "2026-09-11 21:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.3,
+    "hl_yoy": 3.4,
+    "core_yoy": 2.4
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 334.131,
+    "core_sa": 337.765,
+    "hl_nsa": 334.98,
+    "core_nsa": 338.041
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-09",
+   "release_et": "2026-10-14",
+   "time_et": "08:30",
+   "release_kst": "2026-10-14 21:30",
+   "actual": {
+    "hl_mom": 0.6,
+    "core_mom": 0.3,
+    "hl_yoy": 3.7,
+    "core_yoy": 2.6
+   },
+   "actual_note": null,
+   "index": {
+    "hl_sa": 336.298,
+    "core_sa": 338.896,
+    "hl_nsa": 336.94,
+    "core_nsa": 339.287
+   },
+   "cons": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "출처 없음",
+   "cons_conf": null,
+   "diff_vs_cons_pp": {
+    "hl_mom": null,
+    "core_mom": null,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 파일명 일치"
+  },
+  {
+   "ref": "2026-10",
+   "release_et": "2026-11-10",
+   "time_et": "08:30",
+   "release_kst": "2026-11-10 22:30",
+   "actual": {
+    "hl_mom": 0.4,
+    "core_mom": 0.3,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "actual_note": "전년비: 전년 동월 2025-10 지수 결측",
+   "index": {
+    "hl_sa": 337.476,
+    "core_sa": 339.9,
+    "hl_nsa": 337.511,
+    "core_nsa": 339.921
+   },
+   "cons": {
+    "hl_mom": 0.3,
+    "core_mom": 0.2,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "cons_src": "2차 속보·애널 digest us_cpi_202610, 1차 아님",
+   "cons_conf": "하(헤드라인)·중(근원)",
+   "diff_vs_cons_pp": {
+    "hl_mom": 0.1,
+    "core_mom": 0.1,
+    "hl_yoy": null,
+    "core_yoy": null
+   },
+   "date_check": "BLS 아카이브 대조 범위 밖(퀀트 취득 10/21 이후)"
+  }
+ ]
+}

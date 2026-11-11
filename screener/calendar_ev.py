@@ -205,8 +205,15 @@ def _calc(obs: list[tuple[str, float]], how: str) -> tuple[str, float | None, fl
     if not obs:
         return "", None, None
     if how == "yoy":
+        # 전년 동월은 '12개 앞 행'이 아니라 날짜로 찾는다 — 2025-10 CPI 결측(셧다운 미수집) 때 행 기준이면 13개월 변화가 됐다
+        # (11/11 매크로: 9월 4.02%·10월 4.08% 로 기록됐으나 실제 9월 3.72%·10월 산출 불가, req-macro-b0e9d552). 동월 없으면 None.
+        by = {str(p)[:7]: v for p, v in obs}
         def y(i):
-            return (obs[i][1] / obs[i - 12][1] - 1) * 100 if i >= 12 else None
+            if i < 0:
+                return None
+            yy, mm = str(obs[i][0])[:7].split("-")
+            base = by.get(f"{int(yy) - 1:04d}-{mm}")
+            return (obs[i][1] / base - 1) * 100 if base else None
         return obs[-1][0], y(len(obs) - 1), y(len(obs) - 2)
     if how == "mom_k":
         return obs[-1][0], obs[-1][1] - obs[-2][1], obs[-2][1] - obs[-3][1]
@@ -234,6 +241,9 @@ def releases() -> dict:
                 old.setdefault("errors", {})[sid] = str(e)[:200]
                 continue
             if v is None:
+                o = old["series"].get(sid) or {}
+                if how == "yoy" and o and o.get("period") != per:   # 새 달인데 전년 동월 결측 → 지난 달 값을 이번 달처럼 두지 않음
+                    old.setdefault("errors", {})[sid] = f"{per[:7]} 전년비 산출 불가 — 전년 동월 지수 결측"
                 continue
             old.get("errors", {}).pop(sid, None)
             o = old["series"].get(sid) or {}
@@ -290,9 +300,46 @@ def _fmt(x: dict) -> str:
     return release_line(x)
 
 
+CPI_TAB = REPORT_DIR / "cpi_releases.json"   # scripts/cpi_release_table.py (ALFRED 첫 공표 빈티지 · 컨센은 출처 있을 때만)
+
+
+def _pp(v: float) -> str:
+    return f"{v:+.1f}%"
+
+
+def cpi_lines(row: dict) -> list[str]:
+    """CPI 날짜표 한 행 → 캘린더 결과 줄. 컨센 수치·출처가 있을 때만 '컨센 대비 차이'를 쓰고, 없으면 '컨센 없음'.
+    지표 문장 규칙(결재 #9)의 예외 — 컨센 수치가 같은 줄에 있을 때만 비교 표현 허용(surprise_guard 와 같은 기준)."""
+    a, c = row.get("actual") or {}, row.get("cons") or {}
+    src = row.get("cons_src") or "출처 없음"
+    out = []
+    for k, lab in (("hl_mom", "CPI 전월비(계절조정)"), ("core_mom", "근원 CPI 전월비(계절조정)")):
+        if a.get(k) is None:
+            out.append(f"{lab} 산출 불가({row.get('actual_note') or '지수 결측'})")
+            continue
+        s = f"{lab} {_pp(a[k])}"
+        if c.get(k) is not None:
+            s += f" · 컨센 {_pp(c[k])} → 차이 {a[k] - c[k]:+.1f}%p (컨센 출처: {src})"
+        else:
+            s += " · 컨센 없음"
+        out.append(s)
+    yo = [f"{lab} {a[k]:.1f}%" for k, lab in (("hl_yoy", "CPI 전년비"), ("core_yoy", "근원 전년비")) if a.get(k) is not None]
+    out.append(" · ".join(yo) if yo else f"전년비 산출 불가({row.get('actual_note') or '전년 동월 지수 결측'})")
+    out.append(f"실적치 출처: ALFRED {row.get('release_et')} 빈티지 BLS 지수 계산(BLS 보도자료 원문 미대조)")
+    return out
+
+
+def _cpi_table() -> dict:
+    try:
+        return {r["release_et"]: r for r in json.loads(CPI_TAB.read_text(encoding="utf-8")).get("rows", [])}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def _attach(ev: list[dict], rel: dict) -> None:
     """지난 매크로 이벤트에 결과 붙이기: 발표일~+4일 사이에 처음 보인 새 값 우선, 없으면 그 지표의 가장 최근 이벤트에 현재 최신값."""
     today = _today()
+    cpi_tab = _cpi_table()
     keymap = [("CPI", "CPI"), ("고용", "고용"), ("PCE", "PCE"), ("GDP", "GDP"), ("FOMC", "FOMC"), ("PPI", "PPI")]
     last_ev = {}
     for e in ev:
@@ -311,6 +358,8 @@ def _attach(ev: list[dict], rel: dict) -> None:
         hits = [x for x in rel.get("log", []) if x["grp"] == g and ok_period(x) and d0 <= date.fromisoformat(x["seen"]) <= d0 + timedelta(days=4)]
         if hits:
             e["result"] = [_fmt(x) for x in hits]
+        if g == "CPI" and e["date"] in cpi_tab:          # CPI 날짜표(첫 공표 빈티지)가 있으면 그 행이 우선
+            e["result"] = cpi_lines(cpi_tab[e["date"]])
         if g not in last_ev or e["date"] > last_ev[g]["date"]:
             last_ev[g] = e
     for g, e in last_ev.items():
