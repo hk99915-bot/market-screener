@@ -36,14 +36,28 @@ HISTORY = [
     {"date": "2026-06-23", "market": "KOSPI", "type": "서킷브레이커", "note": "미 기술주 약세"},
     {"date": "2026-06-26", "market": "KOSPI", "type": "서킷브레이커", "note": "미 빅테크 약세 (3일 만에 재발동)"},
 ]
-PAT = [
-    (r"(코스피|유가증권).{0,20}서킷\s*브레이커|서킷\s*브레이커.{0,20}(코스피|유가증권)", "KOSPI", "서킷브레이커"),
-    (r"코스닥.{0,20}서킷\s*브레이커|서킷\s*브레이커.{0,20}코스닥", "KOSDAQ", "서킷브레이커"),
-    (r"(코스피|유가증권).{0,20}매도\s*사이드카|매도\s*사이드카.{0,20}(코스피|유가증권)", "KOSPI", "매도 사이드카"),
-    (r"코스닥.{0,20}매도\s*사이드카|매도\s*사이드카.{0,20}코스닥", "KOSDAQ", "매도 사이드카"),
-    (r"(코스피|유가증권).{0,20}매수\s*사이드카|매수\s*사이드카.{0,20}(코스피|유가증권)", "KOSPI", "매수 사이드카"),
-    (r"코스닥.{0,20}매수\s*사이드카|매수\s*사이드카.{0,20}코스닥", "KOSDAQ", "매수 사이드카"),
-]
+# 서킷·사이드카 발동 문구 → 시장은 '그 문구에 가장 가까운 시장 낱말'로 정한다 (11/11 오탐: 「코스피, 1%대 강세…코스닥은 매수 사이드카 발동」이
+# 옛 정규식 '(코스피).{0,20}매수 사이드카' 에 걸려 KOSPI 로 기록됨 → 앞쪽 20자 안 마지막 시장 낱말 우선, 없으면 뒤쪽 20자 안 첫 시장 낱말)
+HALT_TERMS = [(r"서킷\s*브레이커", "서킷브레이커"), (r"매도\s*사이드카", "매도 사이드카"), (r"매수\s*사이드카", "매수 사이드카")]
+MKT_WORD = re.compile(r"코스피|유가증권|코스닥")
+MKT_KO = {"KOSPI": "코스피", "KOSDAQ": "코스닥", "K200F": "코스피200 선물", "시장": "시장"}
+
+
+def halt_hits(title: str) -> list[tuple[str, str]]:
+    """제목 → [(시장, 유형)]. 발동 문구마다 가장 가까운 시장 낱말로 시장을 정한다(앞 20자 마지막 > 뒤 20자 첫). 시장 낱말이 없으면 건너뜀."""
+    out = []
+    for term, ty in HALT_TERMS:
+        for m in re.finditer(term, title):
+            before = MKT_WORD.findall(title[max(0, m.start() - 20):m.start()])
+            after = MKT_WORD.findall(title[m.end():m.end() + 20])
+            w = before[-1] if before else (after[0] if after else None)
+            if w:
+                hit = ("KOSDAQ" if w == "코스닥" else "KOSPI", ty)
+                if hit not in out:
+                    out.append(hit)
+    return out
+
+
 # 서킷·사이드카 외 굵직한 이벤트 (뉴스 제목 기준, 같은 날 같은 유형은 1회). 세 번째 값 True = '속보' 제목만 (평소에도 자주 쓰는 표현이라)
 PAT_BIG = [
     (r"(한은|한국은행|금통위).{0,20}기준\s*금리.{0,15}(인상|인하|동결)", "한은 기준금리", False),
@@ -110,8 +124,8 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
     for n in _news():
         if n["dt"][:8] != now.strftime("%Y%m%d"):
             continue
-        for pat, mk, ty in PAT:
-            if re.search(pat, n["title"]) and "발동" in n["title"] and (today, mk, ty) not in have:
+        for mk, ty in (halt_hits(n["title"]) if "발동" in n["title"] else []):
+            if (today, mk, ty) not in have:
                 stage = re.search(r"([123])\s*단계", n["title"])
                 e = {"date": today, "time": f"{n['dt'][8:10]}:{n['dt'][10:12]}" if len(n["dt"]) >= 12 else now.strftime("%H:%M"),
                      "market": mk, "type": ty + (f" {stage.group(1)}단계" if stage and ty == "서킷브레이커" else ""),
@@ -150,9 +164,7 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
             try:
                 from .alerts import silent
                 from .report import send_telegram
-                send_telegram("🚨 <b>시장 이벤트</b>\n" + "\n".join(
-                    f"• {e['time']} {e['market']} <b>{e['type']}</b> — {e['title']}" for e in new)
-                    + "\n\n과거 서킷 다음날 통계: 웹 HOME › EVENTS",
+                send_telegram(format_msg(new),
                     disable_notification=silent(_not_yet_rung(halt_keys(new), today)))   # 결재 #9: 서킷·사이드카 실제 발동만 소리, 근접 경보·급변 뉴스는 무음
                 sent = datetime.now(KST).strftime("%H:%M:%S")
                 for e in new:
@@ -161,6 +173,22 @@ def check(live: dict | None = None, send: bool = True) -> list[dict]:
             except Exception as e:  # noqa: BLE001
                 log.warning("이벤트 텔레그램 실패: %s", e)
     return new
+
+
+def format_msg(new: list[dict]) -> str:
+    """텔레그램 문구 (11/11 겸이 「이거좀 다듬어」): 시장은 한글, 실제 발동은 '발동', 지수 근접은 '근접 경보(발동 아님)'로 구분, 통계 안내는 발동이 있을 때만."""
+    lines = []
+    for e in new:
+        mk = MKT_KO.get(e.get("market"), e.get("market"))
+        ty = str(e.get("type", ""))
+        if ty.startswith("경보:"):
+            lines.append(f"• {e['time']} {mk} 근접 경보 — {ty[3:]} · 발동 아님 ({e['title']})")
+        elif any(k in ty for k in ("서킷", "사이드카")):
+            lines.append(f"• {e['time']} <b>{mk} {ty} 발동</b> — {e['title']}")
+        else:
+            lines.append(f"• {e['time']} {mk} <b>{ty}</b> — {e['title']}")
+    tail = "\n\n과거 서킷·사이드카 다음 날 통계: 웹 HOME › EVENTS" if halt_keys(new) else ""
+    return "🚨 <b>시장 이벤트</b>\n" + "\n".join(lines) + tail
 
 
 def _not_yet_rung(keys: list[str], today: str) -> list[str]:
