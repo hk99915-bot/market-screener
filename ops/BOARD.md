@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-12 · 작업 517개 · 진행 11 · 검수 3 · 대기 168 · 보류 32 · 완료 303
+기준일 2026-11-12 · 작업 517개 · 진행 11 · 검수 3 · 대기 167 · 보류 32 · 완료 304
 
 **결재 대기 4:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이)
 
@@ -30,7 +30,7 @@
 | P1 ⏫ | `dispatch-redundancy` | 실행 이중화 A1~A3 (겸이 10/21 09:3x 승인) — 노트북 정시 dispatcher·하트비트 감시·tgPoll 5분·install 이 tick 만 교체 | 개발 | 2026-10-21 | 2026-11-22 | `tools/dispatch/dispatch.py`<br>`scripts/slot_guard.py`<br>`scripts/watchdog.py`<br>`.github/workflows/heartbeat.yml`<br>`tools/toss_md/publish.py`<br>`apps-script/Scheduler.gs`<br>`apps-script/TelegramHook.gs`<br>`docs/toss_md_laptop_setup.md` | — | A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력). / 10/24 운영 점검: 검수 유지, 마감 2026-10-21→2026-10-31. 남은 것: 겸이 노트북 dispatcher 설치(가이드 ⑧) — reports/live.json 에 dispatcher_heartbeat 아직 없음 / 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 노트북 dispatcher 설치(가이드 ⑧) 계속 vs 접기 — live.json dispatcher_heartbeat 아직 없음, 저장소 분리와 연동 / 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조 / 11/3 21:55 겸이 결재(⑥): 즉시 설치 보류 → 11/7 저장소 전환 뒤 새 주소 기준 설치 11/8. dispatch.py 33행 REPO 상수 갱신 필요(피어 지적). / 11/10 운영 정리(D): 기한 11-08→11-22 — [결재 D3] 노트북 dispatcher 설치는 겸이 직접 — '전환 뒤 새 주소 기준 설치'(11/3 결재) 전제가 D1 에 걸림 |
 | P2 ⏫P1 11-08 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-30 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). / 11/10 운영 정리(D): 기한 11-07→11-30 — [결재 D7] 단지 점 확인은 VWORLD_KEY 등록 뒤 — 부동산 키 결재(user-realestate-keys-1023, 11/30)와 같은 날 |
 
-## 대기 (168)
+## 대기 (167)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -63,7 +63,6 @@
 | P1 ⏫ | `req-dev-7e78b190` | [요청 승격] CIO→개발: 11/10 운용회의 미이행 ⑧: committee.json scenarios 문구에 낡은 템플릿 문장('실적 | 개발 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-7e78b190`. |
 | P1 ⏫ | `req-frm-b8d9318b` | [요청 승격] CIO→리스크: 11/10 운용회의 미이행 ③④: (가) 12/1 A1 분할별 s_after·ΔS × 원/달러 ±5·10%  | 리스크 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 리스크 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-frm-b8d9318b`. |
 | P1 ⏫ | `req-macro-4198c8f8` | [요청 승격] CIO→매크로: 11/10 운용회의: CPI 발표 날짜표(2022-01~ 발표일·KST 시각, 컨센서스·실적치 열)를 저장소 | 매크로 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 매크로 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-macro-4198c8f8`. |
-| P1 ⏫ | `req-pb-aae31b94` | [요청 승격] CIO→PB: 11/10 운용회의 미이행 ④⑤⑥: (가) 사전 주문표(order_tickets) 0행 — 11/13 잠금  | PB | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-aae31b94`. |
 | P1 ⏫ | `req-pb-fcccfba4` | [요청 승격] CIO→PB: 11/10 운용회의 미이행 ①: 공식 상태값(official_state) 구속 스트레스를 엔진 최신값으로 갱 | PB | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-fcccfba4`. |
 | P1 ⏫ | `req-quant-0b33c0bc` | [요청 승격] CIO→퀀트: req-cio-ab5e63e8 그림자 북: A·B 두 판 사전등록 초안 — 성공 지표(공정 벤치 세 줄 기준 | 퀀트 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-0b33c0bc`. / 11/10 운영 정리(C): 기한 11-13→11-19 — 그림자 북 줄기(부모 req-cio-ab5e63e8) — 같은 날 |
 | P1 ⏫ | `req-quant-8145918f` | [요청 승격] CIO→퀀트: 11/10 운용회의 미이행 ⑦: CPI 발표 다음 날 반응 연구(2026-10-21 event_driven  | 퀀트 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-8145918f`. |
@@ -240,7 +239,7 @@
 | P3 | `longterm-terminal-design` | 장기 검토: 29데스크 컨텍스트 효율·PostgreSQL POC·선택적 검색 설계안 2건 검토(설계 전용) | PM | 2026-10-25 | 2027-02-01 | private 전용 | — | 10/25 겸이 "이건 장기 검토용". 문서 자체가 READ-ONLY·승인 전 변경 금지 명시. 토큰 긴축 해제 뒤 PM·개발·데이터 검토 일정 잡기. / 11/10 운영 정리(C): 기한 11-30→27-02-01 — 보류 유지 — 재검토 순번 |
 | P3 | `live-us-dst-march` | 서머타임 시작(2027-03-14) 전에 live.yml 미장 cron·GAS 22:20 슬롯 여름으로 되돌리기 | 개발 | 2026-10-30 | 2027-03-12 | `.github/workflows/live.yml`<br>`apps-script/Scheduler.gs`<br>`docs/schedule_table.md` | — | 11/02 겨울 대응으로 cron 20 14·7 14-20, GAS 23:20 로 바꿈(docs/schedule_table.md §4-2). 3/14 전 금요일까지 20 13·7 14-19·22:20 로 복귀 + Scheduler.gs 재붙여넣기. 근본 해결 후보: 루프 시작 cron 두 개 + in_window ET 판정 + GAS 슬롯 ET 기준 계산. / 10/30 21시: 근본 해결 1단계 적용 — 시작 cron 두 개 상시라 3월 cron 되돌림 불필요. 남은 것: GAS 슬롯(23:20 은 여름에 무해 대기열) 선택적 22:20 복귀만. / 11/1 운영 정리: 보류 — 10/30 근본 해결(시작 cron 2개 상시)로 3월 cron 되돌림 사유 사라짐, GAS 22:20 복귀는 선택 사항 |
 
-## 완료 (303)
+## 완료 (304)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -461,6 +460,7 @@
 | P1 ⏫ | `req-front-9454ab44` | [요청 승격] 개발→프론트: 탭 커밋 시 index.html 동반(pre-push 차단 신설) 숙지. | 프론트 | — | 2026-11-17 | — | — | 요청 2영업일 미처리(2026-10-30~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 프론트 라운드 파일에 `처리→개발: …` 한 줄 또는 `python3 scripts/ask.py --close req-front-9454ab44`. / 11/8 19:15 겸이 승인 · pm_cleanup.md 닫기 #14 — 완료 처리(PM) |
 | P1 ⏫ | `req-quant-c4c3d23b` | [요청 승격] CIO→퀀트: req-cio-420c4e7d ②: 체인 '숫자 vs 가격' 괴리 정기 표는 신설하지 말고 req-quant | 퀀트 | — | 2026-11-17 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-c4c3d23b`. / 11/8 19:15 겸이 승인 · pm_cleanup.md 닫기 #7 — 완료 처리(PM) |
 | P1 ⏫ | `req-dev-75f49f17` | [요청 승격] 프론트→개발: scripts/build_library.py 프론트가 PB 지시로 수정 중(11/1 서고 short_titl | 개발 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-01~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→프론트: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-75f49f17`. / 11/8 19:15 겸이 승인 · pm_cleanup.md 닫기 #2 — 완료 처리(PM) |
+| P1 ⏫ | `req-pb-aae31b94` | [요청 승격] CIO→PB: 11/10 운용회의 미이행 ④⑤⑥: (가) 사전 주문표(order_tickets) 0행 — 11/13 잠금  | PB | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-aae31b94`. / 11/12 PB 보조: (가) 모의·양식 1행(비공개) (나) 퀀트 11/10 기록 확인(2d5305211) (다) 경고 해소 확인 — ask.py 닫음 |
 | P1 | `pre-pro-migration` | 11/12 Pro 전환 전 집중 작업: 최적화·이관·정리를 Opus/Fable 급으로 끝내고 Pro 이후 Sonnet 기본 운영 체제 확정 | PM | — | 2026-11-25 | private 전용 | — | 10/25 겸이 '최대한 오푸스나 페이블까지 빠방하게 쓰면서 11/12까지 최적화/이관/등등 작업 다 해놓고, pro로 옮기면 소넷 쓰던가'. 범위(후보): ① 토큰긴축 회의 결과 실행(사담·slop 폐지, 누적 데이터 보존·요약·아카이브 규칙) ② 컴팩션·모델 교체에도 품질 유지하는 짧은 상태 파일/핸드오프 ③ PostgreSQL 이관 결정·POC(longterm-terminal-design) ④ pro-plan-round-scale(Pro 라운드 규모·21:10 라운드 교체) ⑤ 데스크별 모델 배정(기본 Sonnet, 규칙 변경·큰 설계만 상위 모델) ⑥ 예약·낡은 보드 항목 정리(98건 중 이월·폐기). 현재 토큰 긴축은 주간 한도 초기화 전까지(PB 해석) — 초기화 후 상위 모델 허용. 화 10/27 11시 이후 'ㄱㄱ' 뒤 착수. / 11/10 운영 정리(A 완료): 완료, DB 이관 제외 — 비공개 저장소 커밋 ec7db97(HANDOFF Pro판·Pro 첫 주 운영표)·af0418f(22:30 루틴 기계 부분 Actions 이관). DB(Supabase) 이관은 범위 밖으로 남김(tue-postgres-meeting·longterm-terminal-design 에서 추적) |
 | P1 ⏫ | `req-dev-cbd568fc` | [요청 승격] PB→개발: 미 서머타임 종료(11/1) 대응 — 11/2(월)부터 미장 23:30~06:00 KST(겸이 10/30 전 | 개발 | — | 2026-11-25 | — | — | 요청 2영업일 미처리(2026-10-30~2026-11-03) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→PB: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-cbd568fc`. / 11/8 19:15 겸이 승인 · pm_cleanup.md 닫기 #1 — 완료 처리(PM) |
 | P1 | `ai-credit` | AI 인프라 신용 감시 | 채권 | 2026-10-15 | — | `screener/bonds.py`<br>`screener/committee.py`<br>`apps-script/Index.html` | — | 업종 국지 신용 스트레스 경보(정상/주의/경계) → 운용회의 head 한 줄 + 채권 탭 섹션. 10/15 첫 커밋. |
