@@ -788,7 +788,7 @@
       "title": "gamma_regime 10/30 재판정 (사전등록 기준, 라이브 2주 데이터)",
       "owner": "파생",
       "priority": "P2",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2026-11-14",
       "repo": "public",
@@ -799,9 +799,10 @@
         "gamma-regime",
         "deriv-hist"
       ],
-      "notes": "deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. | 11/01 PM 늦은 일 정리(유효): 유효: gamma_regime.json 10/30 16:48 자동 재판정 C — 파생 사람 확인·등급 확정 1줄만 | 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-04→11-14",
+      "notes": "deriv_hist 자동 재판정 결과를 사람이 확인·등급 확정. 10/30 전엔 렌즈 역할 변경 금지. | 11/01 PM 늦은 일 정리(유효): 유효: gamma_regime.json 10/30 16:48 자동 재판정 C — 파생 사람 확인·등급 확정 1줄만 | 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-04→11-14 | 11/12 PM(오너 승인): gamma_regime.json 자동 재판정 C(n 291, H1 A·H1b F·H2 F, computed 11-11 16:49) → docs/desk_kb/derivs.md 48행 C 확정 1줄(용도 사이즈·손절폭만, 방향 인용 금지). 파생 에이전트 미호출 — 파생 이의 시 재개",
       "escalated": "2026-10-21",
-      "desk": "파생"
+      "desk": "파생",
+      "done": "2026-11-12"
     },
     {
       "id": "holdings-unify",
@@ -1775,7 +1776,7 @@
       "id": "us-accum-pead",
       "title": "S8 거래량 갭상승 60일 탐색 결과(OOS 평균 +2.28%p·중앙값 −2.23%p)를 실적일 분리·상폐 포함 유니버스로 재등록 검정",
       "owner": "퀀트",
-      "status": "대기",
+      "status": "완료",
       "priority": "P3",
       "repo": "public",
       "files": [
@@ -1787,9 +1788,10 @@
       "depends_on": [
         "us-accum"
       ],
-      "notes": "실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. | 11/10 운영 정리(C): 기한 11-30→27-01-25 — Pro 대기열 순번(주 1~2건 용량 밖, 처리 약속 아님) · 같은 줄기 → us-delisted-earnings(합치기는 겸이 승인 뒤)",
+      "notes": "실적일 소스 필요(SEC 8-K item 2.02 날짜 또는 reports/calendar.json). 생존편향 없는 유니버스 없으면 '검증전'으로 닫는다. | 11/10 운영 정리(C): 기한 11-30→27-01-25 — Pro 대기열 순번(주 1~2건 용량 밖, 처리 약속 아님) · 같은 줄기 → us-delisted-earnings(합치기는 겸이 승인 뒤) | 11/12 PM(오너 11/12 07:01 승인): 검증전 종료 — 선행 us-delisted-earnings(27-01-18) 없음, 메모 규칙대로. reports/studies/us_accum.md §2 S8 줄 [확인 필요]→검증전. 재개는 데이터 확보 뒤 재등록",
       "desk": "매크로",
-      "escalated": "2026-10-21"
+      "escalated": "2026-10-21",
+      "done": "2026-11-12"
     },
     {
       "id": "us-delisted-earnings",
@@ -2026,7 +2028,7 @@
         "screener/committee.py"
       ],
       "depends_on": [],
-      "notes": "감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료 | 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — xfail(strict) 테스트 그대로 — 미착수 | 11/01 PM 늦은 일 정리(유효): 유효: xfail(strict) tests/test_committee_adjusted.py 그대로 — S 크기 | 11/10 운영 정리(C): 기한 11-24→12-10 — idea-unify-s3(12/18) 선행 — xfail 테스트 1건 통과로 닫는 S 크기",
+      "notes": "감사 M4 검수 중 발견(개발5). 수정안: _ideas_log_score 에서 아이디어 날짜의 조정배수(조정 종가/원본 종가)를 entry·stop 에 곱해 같은 기준으로 비교. xfail 테스트 tests/test_committee_adjusted.py::test_ideas_log_entry_recorded_in_raw_basis_is_not_false_stop 을 통과로 바꾸면 완료 | 10/24 운영 점검: 마감 2026-10-24→2026-10-31 — xfail(strict) 테스트 그대로 — 미착수 | 11/01 PM 늦은 일 정리(유효): 유효: xfail(strict) tests/test_committee_adjusted.py 그대로 — S 크기 | 11/10 운영 정리(C): 기한 11-24→12-10 — idea-unify-s3(12/18) 선행 — xfail 테스트 1건 통과로 닫는 S 크기 | 11/12 PM: 개발 잠금 대기 — screener/committee.py 개발 잠금(req-dev-7e78b190, 11/12 07:05~) 중이고 origin/main 에 해당 커밋 없음 → 잠금 해제·반영 뒤 처리",
       "desk": "개발",
       "escalated": "2026-10-21"
     },
@@ -3949,15 +3951,16 @@
       "title": "[요청 승격] 리스크→개발: MY탭 손절선 칸을 '규칙 바닥(평단 −30%, 결재 #2)'과 '기술 신호(detail bear.stop)",
       "owner": "프론트",
       "priority": "P1",
-      "status": "대기",
+      "status": "완료",
       "started": null,
       "due": "2027-01-05",
       "repo": "public",
       "files": [],
       "depends_on": [],
       "escalated": "2026-10-23",
-      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-cb19b1e0`. | 10/24 운영: 담당 개발→프론트 재배정(appr-staffing-30 프론트 신설 — 화면 구현 이관, docs/desk_kb/front.md·dev.md 경계) — 요청 닫기는 `python3 scripts/ask.py --close req-dev-cb19b1e0 --by 프론트` | 11/01 PM 늦은 일 정리(유효): 유효: tab_my.html 에 '규칙 바닥/기술 신호' 분리 없음(grep 0) | 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-06→11-19 | 11/10 운영 정리(C): 기한 11-19→27-01-05 — Pro 대기열 순번(주 1~2건 용량 밖, 처리 약속 아님)",
-      "desk": "프론트"
+      "notes": "요청 2영업일 미처리(2026-10-21~2026-10-23) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-cb19b1e0`. | 10/24 운영: 담당 개발→프론트 재배정(appr-staffing-30 프론트 신설 — 화면 구현 이관, docs/desk_kb/front.md·dev.md 경계) — 요청 닫기는 `python3 scripts/ask.py --close req-dev-cb19b1e0 --by 프론트` | 11/01 PM 늦은 일 정리(유효): 유효: tab_my.html 에 '규칙 바닥/기술 신호' 분리 없음(grep 0) | 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-06→11-19 | 11/10 운영 정리(C): 기한 11-19→27-01-05 — Pro 대기열 순번(주 1~2건 용량 밖, 처리 약속 아님) | 11/12 PM(오너 승인): 손절선 칸은 HOME 'MY 요약'(apps-script/tab_home.html homeMyFill)에 있었음 — 두 줄(규칙 = 반도체 보유분 평단 −30% 하드 바닥 / 기술 = detail bear.stop)로 분리, ui_smoke 통과",
+      "desk": "프론트",
+      "done": "2026-11-12"
     },
     {
       "id": "req-dev-cc84f898",
