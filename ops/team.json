@@ -1,6 +1,6 @@
 {
  "_doc": "팀원별 업무량 — PM 데스크 소관(docs/desk_kb/pm.md). runs = 에이전트 완료 통계(수작업: PB가 완료 통계를 PM에 넘기면 PM이 한 줄 추가; tools=도구 호출 수, sec=소요 초, tokens=처리 토큰). auto = scripts/team_stats.py 가 저장소에서 매일 자동 집계(ops.yml 00:07·23:47 KST + round_collect --apply). plans = 요금제 타임라인(Pro→Max 5x, 전환일 오너 확인 전). runs.model(선택) = 에이전트 모델. by_plan·by_model = team_stats.py 집계(토큰은 에이전트 처리 토큰이지 요금제 한도 사용량이 아님). earlier = 10/15 이전 수치 미기록 건수. FRM 데스크는 보드 이름 '리스크'로 적는다.",
- "updated": "2026-11-11T06:15+09:00",
+ "updated": "2026-11-11T10:16+09:00",
  "plans": [
   {
    "plan": "Pro",
@@ -10278,12 +10278,12 @@
   "window_days": 7,
   "since": "2026-11-05",
   "commits_total": 1412,
-  "commits_bot": 1114,
-  "commits_unmapped": 41,
+  "commits_bot": 1115,
+  "commits_unmapped": 40,
   "audit_files": [],
   "desks": {
    "CIO": {
-    "commits_7d": 8,
+    "commits_7d": 9,
     "board": {
      "진행": 1,
      "검수": 0,
@@ -10337,7 +10337,7 @@
     }
    },
    "PB": {
-    "commits_7d": 6,
+    "commits_7d": 5,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -10347,7 +10347,7 @@
     },
     "rounds": 0,
     "round_last": null,
-    "req_open": 2,
+    "req_open": 4,
     "audit": {
      "치명": 0,
      "중": 0,
@@ -12829,8 +12829,8 @@
      "보류": 0,
      "완료": 0
     },
-    "rounds": 9,
-    "round_last": "2026-11-10",
+    "rounds": 10,
+    "round_last": "2026-11-11",
     "req_open": 0,
     "audit": {
      "치명": 0,
@@ -13635,13 +13635,13 @@
     "board": {
      "진행": 3,
      "검수": 0,
-     "대기": 3,
+     "대기": 4,
      "보류": 1,
      "완료": 7
     },
     "rounds": 4,
     "round_last": "2026-10-27",
-    "req_open": 1,
+    "req_open": 0,
     "audit": {
      "치명": 0,
      "중": 0,
@@ -13767,7 +13767,7 @@
     },
     "rounds": 2,
     "round_last": "2026-10-23",
-    "req_open": 1,
+    "req_open": 2,
     "audit": {
      "치명": 0,
      "중": 0,
@@ -13811,7 +13811,7 @@
     }
    },
    "애널": {
-    "commits_7d": 7,
+    "commits_7d": 6,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -13829,7 +13829,7 @@
     }
    },
    "운영": {
-    "commits_7d": 7,
+    "commits_7d": 8,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -13923,7 +13923,7 @@
     "board": {
      "진행": 1,
      "검수": 0,
-     "대기": 18,
+     "대기": 19,
      "보류": 2,
      "완료": 26
     },
@@ -13937,7 +13937,7 @@
     }
    },
    "파생": {
-    "commits_7d": 4,
+    "commits_7d": 3,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -14009,7 +14009,7 @@
     }
    },
    "피어리뷰": {
-    "commits_7d": 2,
+    "commits_7d": 3,
     "board": {
      "진행": 0,
      "검수": 0,
@@ -14048,16 +14048,16 @@
  },
  "by_plan": {
   "Max 5x": {
-   "runs": 1090,
-   "tokens": 203335784,
-   "tools": 38695,
-   "sec": 433045,
-   "days": 26,
+   "runs": 1092,
+   "tokens": 203638192,
+   "tools": 38766,
+   "sec": 433842,
+   "days": 27,
    "per_day": {
-    "runs": 41.9,
-    "tokens": 7820607.1,
-    "tools": 1488.3,
-    "sec": 16655.6
+    "runs": 40.4,
+    "tokens": 7542155.3,
+    "tools": 1435.8,
+    "sec": 16068.2
    }
   }
  },
@@ -14089,29 +14089,29 @@
    }
   },
   "claude-opus-5-5": {
-   "runs": 123,
-   "tokens": 51249217,
-   "tools": 8730,
-   "sec": 47354,
-   "days": 14,
+   "runs": 124,
+   "tokens": 51364429,
+   "tools": 8738,
+   "sec": 47454,
+   "days": 15,
    "per_day": {
-    "runs": 8.8,
-    "tokens": 3660658.4,
-    "tools": 623.6,
-    "sec": 3382.4
+    "runs": 8.3,
+    "tokens": 3424295.3,
+    "tools": 582.5,
+    "sec": 3163.6
    }
   },
   "opus": {
-   "runs": 200,
-   "tokens": 34887821,
-   "tools": 7018,
-   "sec": 85388,
-   "days": 9,
+   "runs": 201,
+   "tokens": 35075017,
+   "tools": 7081,
+   "sec": 86085,
+   "days": 10,
    "per_day": {
-    "runs": 22.2,
-    "tokens": 3876424.6,
-    "tools": 779.8,
-    "sec": 9487.6
+    "runs": 20.1,
+    "tokens": 3507501.7,
+    "tools": 708.1,
+    "sec": 8608.5
    }
   },
   "claude-sonnet-5-5": {
