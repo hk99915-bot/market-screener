@@ -126,7 +126,7 @@
 찬성 최강 근거: 세 본부가 서로 다른 기준값(1337.9·1344.5·전일)으로 낸 원/달러 문턱을 평균 내지 않고 FRM 원 조건 '하루 변동'으로 통일하고 퀀트 띠는 보조로 분리했으며(5절), 확률 장부 2건을 '사실상 1건'·no_edit로 묶어 만기 직전 손대는 길을 막았다(3절 (b)).
 
 ## PB 독립 판단
-> PB 한 줄: (PB가 채움)
+> PB 한 줄: 판정 유지·실계좌 신규 0·11/13 '잠금 유지 확인일'에 **동의**. 피어리뷰 지적 4곳(③ 기준값·근접, ① 20일선 동적, C4 공식값 단계, C5 worktree)은 PB가 감시표에 반영했고, ①~④는 토큰 0 스크립트 `pb-private scripts/pro_watch.py`로 매일 판정한다(첫 실행 11/11 09:20: ③ 11/10 원/달러 −1.51% **근접** 기록, 나머지 ✓). **이견 1:** 5줄 요약 2번 「계좌 그대로·한도와 멀어」는 12/1 계획대로 전량 환전 시 −10.49%(한도의 70%)를 빼고 읽으면 안 된다 — 피어리뷰 반대 3에 동의, 겸이 보고 때 같이 말한다.
 
 VOC: CIO — "금리가 하루 오른 건 코어 비중을 바꿀 이유가 아니라, 11/15에 '달러를 얼마나 바꿀까'를 더 진지하게 물을 이유다." (CIO 입력 원문 VOC)
 요청(장부 등록 완료 — 중복 방지로 id만): req-quant-6b3a829b(2022형 금리 쇼크 재생, 11/15) · req-pb-3d87ea49(trial_log 2셀, 11/13) · req-pb-2e41dbce(11/13 잠금 유지 확인 ⓐⓑⓒⓓ) · 기존 유지: req-macro-b0e9d552 · req-pb-aae31b94
@@ -278,11 +278,12 @@ VOC: 이번 답변은 FRM 에이전트(본인)가 엔진을 실제로 실행해�
 
 | # | 조건(숫자) | 할 일 | 명령 | 출처 |
 |---|---|---|---|---|
-| ① | 코스피 종가 < 5175 **2일 연속** 또는 < 4911 **1일**(tell, 관측) · 반대로 > 5603 2일 연속 | 하방: 모의 북 신규 기록 중단 + ④ S 재산출 + FRM 호출 · 상방: 모의 북만 재판정(C) — 실계좌 변화 없음 | C1 | CIO·퀀트·FRM |
+| ① | 코스피 종가 < 5175 **2일 연속** 또는 < 4911 **1일**(tell, 관측) · 반대로 > **20일선(committee `scenarios` 매일 값 — 11/11 5603)** 2일 연속 | 하방: 모의 북 신규 기록 중단 + ④ S 재산출 + FRM 호출 · 상방: 모의 북만 재판정(C) — 실계좌 변화 없음 | C1 | CIO·퀀트·FRM |
 | ② | 미10Y 종가 ≥ 4.90% **2일째**(첫 판정 11/12 07시 이후, 11/11 미 종가) | '상방 조건 ② 상실 → 상방 0/3' 기록만 — 행동 변화 없음 | C2 | CIO·퀀트 |
-| ③ | 원/달러 **전일 종가 대비 하루 ±2%**(11/11 기준 1344.5 → 1317.6 이하 또는 1371.4 이상) · 11/13 PPI 뒤도 같은 기준 | A1 표 재계산(C3) — 끝 상태가 −10%보다 얕은지·원/달러 −10% 줄이 −5%보다 얕은지 확인 · FRM S 재계산 요청 · HF에 B1 페어 폐기 판정 요청 · 보조: A1 계산 기준 1337.9의 ±2%(1311~1365) 밖이면 FRM 재계산 요청(퀀트) | C2 → C3 | 세 본부 |
+| ③ | 원/달러 **전일 종가 대비 하루 ±2%**(전일 종가 ×0.98/×1.02, 종가 출처 = committee `macro.domestic` 장후판 1곳) · **하루 |변동| ≥ 1.5% = 근접 기록**(원화 강세가 이 계좌 손실 방향) · 11/13 PPI 뒤도 같은 기준 | A1 표 재계산(C3) — 끝 상태가 −10%보다 얕은지·원/달러 −10% 줄이 −5%보다 얕은지 확인 · FRM S 재계산 요청 · HF에 B1 페어 폐기 판정 요청 · 보조: A1 계산 기준 1337.9의 ±2%(1311~1365) 밖이면 FRM 재계산 요청(퀀트) | C2 → C3 | 세 본부 |
 | ④ | 구속 스트레스 S ≤ **−7.5%** / S < **−10%** | −7.5%: 임시 재계산 + 데스크(FRM·CIO) 호출 · −10%: 12/1 분할·환전 재상정(11/15 결재표) | C4 | FRM |
 | ⑤ | **11/12 종가 뒤**(1회) 확률 장부 만기 2건 | 채점만 — claim·prob·resolve_rule 수정 금지(no_edit), 같은 사건 1개로 집계 · trial_log 기록 | C5 | 퀀트 |
+| ⑦ | 보조(피어리뷰 추가): 계좌 하루 −2%(rules 73) 재발동 · 11/15 결재 회차 · 11/18~19 엔비디아 실적 반영일 · K200 감마 전환점(daily.csv flip vs k200_close) | 기록만 | C1 | 피어리뷰 |
 | ⑥ | **11/13 장 마감 뒤**(1회) 되사기 잠금 만기 | '잠금 유지 확인' — ⓐ official_state 잠금 줄 '만기 도래·해제 조건 미충족 → 11/15 F·G 반영 회차까지 유지' ⓑ 엔진 실행·공식값 11/13 종가 갱신 ⓒ 반도체 재진입 안건 상정 안 함 ⓓ '11/13 해제' 단어 금지 | C4(공식 갱신) | FRM·컴플·CIO |
 
 명령(공용 체크아웃은 가격이 낡았으니 매번 origin/main 기준):
@@ -293,13 +294,17 @@ git -C /home/user/market-screener fetch -q origin main
 git -C /home/user/market-screener show origin/main:data/deriv/daily.csv | tail -2 | cut -d, -f1,5
 # C2 미10Y·원/달러 최신값(last·chg·date) — chg 기준이 애매하면 전일 값과 직접 비교
 git -C /home/user/market-screener show origin/main:reports/live.json | python3 -c "import json,sys;[print(x['key'],x['last'],x.get('chg'),x.get('date') or x.get('asof')) for x in json.load(sys.stdin)['items'] if x['key'] in ('US10Y','USDKRW')]"
-# C4 엔진(구속 스트레스 S·VaR) — 임시 worktree
-git -C /home/user/market-screener worktree add -q --detach /tmp/msw origin/main
+# ★ 11/11 PB: ①~④·⑦ 날짜는 토큰 0 스크립트 한 줄로 대체 — 동적 문턱(20일선·전일 종가 FX)·연속일 상태 파일 포함
+cd /home/user/pb-private && python3 scripts/pro_watch.py
+# C4 엔진(구속 스트레스 S·VaR) — 임시 worktree (전날 것이 남아 있으면 먼저 지움)
+git -C /home/user/market-screener worktree remove --force /tmp/msw 2>/dev/null; git -C /home/user/market-screener worktree add -q --detach /tmp/msw origin/main
 cd /home/user/pb-private && MS_DIR=/tmp/msw python3 risk/frm.py          # 공식 갱신(frm.json 씀)
+#   공식값을 바꿀 땐 ops/official_state.json 의 stress_official·asof·stress_basis 를 frm.json 값으로 고치고 pb-private 커밋·push(.private true 확인)
 python3 -c "import sys;sys.path.insert(0,'risk');import frm as F;e=F.compute('/tmp/msw')['current'];print(e['checks']['stress'],e['checks']['var99'])"   # 보기만
 # C3 A1 표 재계산(③ 걸렸을 때만, C4의 worktree 사용)
 cd /home/user/pb-private && MS_DIR=/tmp/msw python3 analysis/2026-11-15-review/desk/frm_a1_fx.py
 git -C /home/user/market-screener worktree remove --force /tmp/msw     # C3·C4 끝나면
-# C5 확률 장부 채점(11/12 종가 뒤, prob_ledger.json rules.run 그대로)
-cd /home/user/market-screener && python3 scripts/data_store.py pull --groups all && python3 scripts/brier_score.py --write
+# C5 확률 장부 채점(11/12 종가 뒤, prob_ledger.json rules.run 그대로) — 공용 체크아웃 금지, worktree 에서 실행 후 커밋·push
+#   kr_prices 릴리스에 11/12 행이 아직 없으면 open 으로 남음(다음 날 재실행)
+cd /tmp/msw && python3 scripts/data_store.py pull --groups all && python3 scripts/brier_score.py --write && git add reports/views/prob_ledger.json reports/views/prob_scores.* && git commit -m "quant: 확률 장부 11/12 채점" && git push origin HEAD:main
 ```
