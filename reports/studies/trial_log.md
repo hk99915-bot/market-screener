@@ -3,7 +3,7 @@
 > 기준 2026-11-11
 
 **What**
-- 시도 N 1391 · 연구 67건 · 전체 한 가족 α 4e-05
+- 시도 N 1401 · 연구 69건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1391** (등록 m 합 552 + 등록 전 탐색 839) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1401** (등록 m 합 562 + 등록 전 탐색 839) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -67,6 +67,7 @@
 | 2026-11-10_sheet_quant | 2026-11-10 | isa_core_exec | 3 | prereg.m | 0.01667 | — | C1 F2 | Q1 지정가 선등록 단가 개선 F(IS 평균 +0.11%·+0.14% 비쌈, p 0.27·0.29) · Q2 원자재 3% 낙폭 악화 없음 C(2022 +1.1%p·2026-07 +0.3%p·롤링 나쁜10% +0.4%p 얕음) |
 | 2026-11-10_var_models | 2026-11-10 | var_model | 4 | prereg.m | 0.0125 | 2 | F4 | H1~H4 전부 F(GJR vs 현 엔진 tick 손실 p 0.279). 정규 GARCH·GJR 은 초과 30·33일/기대 16.5 로 Kupiec 기각 → 현행 유지, GJR 은 급락 직후 반응 참고용 |
 | 2026-11-11_meet_cpi_pctl | 2026-11-11 | event_driven | — | 미등록 | — | 2 | — | 서술만 — 낮았던 반응일 비율 2015~ 35%·2022~ 42% = 분포 한가운데(평범). 장 초반 값이라 종가 판정 아님, 서프라이즈 부호 조건부 아님 |
+| 2026-11-12_sim_oos |  | trend_sim | 10 | prereg.m | 0.005 | — | C(역방향)2 F8 | H1~H5 × KR·US 10개 중 F 8 · C(역방향) 2(US 이평·PSAR 롱이 보유보다 OOS 월 −0.94%p·−0.90%p). KR 이평 −0.36%p·PSAR −0.06%p(F), 켜짐 알림(기대값·Wilson)·250일 성적 지속성 F → 종목 상세 시뮬 성적은 표본외 근거 없음, 알림 C·참고 유지 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -88,6 +89,7 @@
 | replication_hollzzak |  | (미분류) | — | 미등록 | — | — | F2 F(역방향 C)1 검증전1 | — |
 | replication_laor_ib |  | (미분류) | — | 미등록 | — | — | — | — |
 | replication_qld_dca | 2026-10-20 | qld_daily_dca | 0 | m | — | — | — | — |
+| replication_rule_audit |  | (미분류) | — | 미등록 | — | — | — | — |
 | replication_semis_cap |  | (미분류) | — | 미등록 | — | — | — | — |
 | replication_sox_rel |  | (미분류) | — | 미등록 | — | — | — | — |
 | replication_us_spikes |  | (미분류) | — | 미등록 | — | — | — | — |
@@ -103,10 +105,10 @@
 | 주제 | 연구 | 등록 m 합 | 등록 전 탐색 | N | α(N) |
 |---|---|---|---|---|---|
 | us_spike | 2026-10-21_us_smallcap_spikes, 2026-10-21_us_spikes_intraday | 22 | 700 | 722 | 7e-05 |
-| trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, trend_expectancy | 185 | 22 | 207 | 0.00024 |
+| trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, 2026-11-12_sim_oos, trend_expectancy | 195 | 22 | 217 | 0.00023 |
 | crash_entry | 2026-11-04_crash_close_intraday, 2026-11-10_meet_rebound, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 48 | 52 | 100 | 0.0005 |
 | downday_response | 2026-11-05_downday, 2026-11-05_downday_b | 31 | 36 | 67 | 0.00075 |
-| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, 2026-11-05_downday_fix, 2026-11-05_ict_hdj1, dotplot_tilt, ict_open, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 57 | 0 | 57 | 0.00088 |
+| (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, 2026-11-05_downday_fix, 2026-11-05_ict_hdj1, dotplot_tilt, ict_open, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_rule_audit, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 57 | 0 | 57 | 0.00088 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
 | kr_accum | accum_signals | 24 | 0 | 24 | 0.00208 |
 | winner_ex_ante | 2026-10-29_winner_ex_ante, 2026-11-03_bond_regime_strata | 19 | 4 | 23 | 0.00217 |
@@ -165,6 +167,6 @@
 | 2026-11-10 | crash_entry | (확인 기록) 11/9 운용회의 채택 퀀트 모의 '이틀 연속 −5% 다음 거래일 종가 K200 1배' — 11/9 15:30 전 사전등록 커밋 여부 | origin/main 2026-11-08T15:00Z~11-09T07:00Z 커밋 전수·reports/practice_book.json·hf_discretion.json·reports/studies grep | 사전등록 커밋 0건·모의 기록 0건 → 채택 조건(85행 '커밋 시각 15:30 이후면 미발동') 대로 **미발동**, 11/6에 이은 2회 연속 미집행. 시도 N 은 +0(회의록 'N 1350' 의 +1 은 실현 안 됨) | 소급 기록 불가 — 결과(11/10 +4.4%)를 본 뒤 진입을 적으면 사후 기록이 되고 채택 조건 자체가 금지 | (없음 — 확인 기록) |
 | 2026-11-11 | event_driven | (서술 2셀, 검정 없음) 11/11 장 초반 코스피 −0.10~−0.22%(잠정)의 CPI 반응일 분포 내 백분위 | 기존 표 reports/studies/2026-11-10_event_cpi(코스피200 반응일 종가→종가) · 창 2015~(141회)·2022~(57회) · 값 = PB 09:01·live.json 09:05 장중 잠정치 | 오늘보다 낮았던 반응일 비율 2015~ 35% · 2022~ 42% → 분포 한가운데(평범) · 반응일 |수익| 중앙값 0.73%·1.11%보다 작음 | 서술 통계라 등급 없음 — 서프라이즈(근원 상회) 조건부 아님, 장 초반 값(종가 판정 아님) → 매매 근거로 쓰지 않음 | 2026-11-11_meet_cpi_pctl |
 
-> ⚠ trial_log.json 에는 있으나 연구 파일이 없는 항목: 2026-11-12_score_calib, 2026-11-12_sim_oos
+> ⚠ trial_log.json 에는 있으나 연구 파일이 없는 항목: 2026-11-12_score_calib
 
 읽는 법: 주제 N 이 연구 m 의 2배를 넘으면(crash_entry 처럼) 그 주제의 C 등급은 '방향'이 아니라 '우연일 수 있는 방향'으로 읽는다. 새 연구 §0 에 그 주제의 현재 N 을 한 줄 적는다.
