@@ -2,7 +2,7 @@
  "version": 1,
  "schema_version": 1,
  "asof": "2026-11-12",
- "generated_at": "2026-11-12 08:56 KST",
+ "generated_at": "2026-11-12 10:35 KST",
  "bench": {
   "KR": {
    "ticker": "069500",
@@ -46,7 +46,7 @@
    "unrated": 0
   },
   "규칙": {
-   "n": 13,
+   "n": 14,
    "win": 0,
    "trades": 1,
    "hit": 1.0,
@@ -76,18 +76,18 @@
    "unrated": 0
   },
   "나🔥": {
-   "n": 5,
-   "win": 2,
-   "trades": 5,
-   "hit": 0.6,
-   "cum_ret": -0.1193,
-   "comp_ret": -0.13239,
-   "avg_ex": -0.02551,
-   "n_ex": 5,
-   "open": 1,
-   "realized": -0.1193,
-   "unrealized": 0.01175,
-   "total": -0.10755,
+   "n": 6,
+   "win": 3,
+   "trades": 6,
+   "hit": 0.667,
+   "cum_ret": -0.1087,
+   "comp_ret": -0.12319,
+   "avg_ex": -0.02007,
+   "n_ex": 6,
+   "open": 0,
+   "realized": -0.1087,
+   "unrealized": 0,
+   "total": -0.1087,
    "unrated": 0
   }
  },
@@ -201,7 +201,7 @@
     "unrated": 0
    },
    "규칙": {
-    "n": 8,
+    "n": 9,
     "win": 0,
     "trades": 1,
     "hit": 1.0,
@@ -231,18 +231,18 @@
     "unrated": 0
    },
    "나🔥": {
-    "n": 5,
-    "win": 2,
-    "trades": 5,
-    "hit": 0.6,
-    "cum_ret": -0.1193,
-    "comp_ret": -0.13239,
-    "avg_ex": -0.02551,
-    "n_ex": 5,
-    "open": 1,
-    "realized": -0.1193,
-    "unrealized": 0.01175,
-    "total": -0.10755,
+    "n": 6,
+    "win": 3,
+    "trades": 6,
+    "hit": 0.667,
+    "cum_ret": -0.1087,
+    "comp_ret": -0.12319,
+    "avg_ex": -0.02007,
+    "n_ex": 6,
+    "open": 0,
+    "realized": -0.1087,
+    "unrealized": 0,
+    "total": -0.1087,
     "unrated": 0
    }
   }
@@ -380,6 +380,10 @@
    [
     "2026-11-09",
     0.014
+   ],
+   [
+    "2026-11-11",
+    0.014
    ]
   ],
   "나": [
@@ -448,6 +452,10 @@
    [
     "2026-11-09",
     -0.1193
+   ],
+   [
+    "2026-11-11",
+    -0.1087
    ]
   ]
  },
@@ -457,8 +465,8 @@
    "date": "2026-11-11",
    "market": "US",
    "title": "미장 진입 타점 대결",
-   "state": "진행",
-   "winner": null,
+   "state": "확정",
+   "winner": "나🔥",
    "rows": [
     {
      "who": "나",
@@ -488,12 +496,14 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
+     "status": "확정",
      "ret": 0.0,
      "bench": null,
      "ex": null,
      "why": "현금 유지",
-     "marks": {}
+     "marks": {
+      "2026-11-11": 0.0
+     }
     },
     {
      "who": "나🔥",
@@ -501,14 +511,15 @@
      "ticker": "SOXX",
      "entry": "open",
      "exit": "same_close",
-     "status": "보유 중",
-     "ret": 0.01175,
-     "mark_date": "2026-11-11",
+     "status": "확정",
+     "ret": 0.0106,
+     "end": "2026-11-11",
      "bench": 0.00348,
-     "ex": 0.00827,
-     "why": "확정 전 평가(최근 확정 종가) — 누적 승패에 합산 안 함",
+     "ex": 0.00712,
+     "win": true,
+     "why": "2026-11-11 시가 153.69 → 2026-11-11 종가 155.40",
      "marks": {
-      "2026-11-11": 0.01175
+      "2026-11-11": 0.0106
      }
     }
    ]
@@ -518,7 +529,7 @@
    "date": "2026-11-11",
    "market": "KR",
    "title": "진입 타점 대결",
-   "state": "진행",
+   "state": "제외",
    "winner": null,
    "rows": [
     {
@@ -549,11 +560,9 @@
      "ticker": null,
      "entry": null,
      "exit": null,
-     "status": "현금",
-     "ret": 0.0,
-     "bench": null,
-     "ex": null,
-     "why": "현금 유지",
+     "status": "제외",
+     "ret": null,
+     "why": "나 미제출 — 채점 제외",
      "marks": {}
     }
    ]
