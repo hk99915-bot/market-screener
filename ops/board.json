@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-11-12",
+  "updated": "2026-11-13",
   "owners": [
     "PB",
     "퀀트",
@@ -8762,6 +8762,34 @@
       "depends_on": [],
       "escalated": "2026-11-12",
       "notes": "요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-b602c58d`."
+    },
+    {
+      "id": "req-pb-2e41dbce",
+      "title": "[요청 승격] 리스크→PB: 11/11 운용회의(FRM ③): 11/13 장 마감 뒤 ⓐ official_state.json 잠금 줄 '",
+      "owner": "PB",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-20",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-13",
+      "notes": "요청 2영업일 미처리(2026-11-11~2026-11-13) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-2e41dbce`."
+    },
+    {
+      "id": "req-quant-6b3a829b",
+      "title": "[요청 승격] 리스크→퀀트: 11/11 운용회의(FRM 입력 ②): 2022형 금리 쇼크(CPI 상회 → 금리 상승 → 주식·채권 동반 ",
+      "owner": "퀀트",
+      "priority": "P1",
+      "status": "대기",
+      "started": null,
+      "due": "2026-11-20",
+      "repo": "public",
+      "files": [],
+      "depends_on": [],
+      "escalated": "2026-11-13",
+      "notes": "요청 2영업일 미처리(2026-11-11~2026-11-13) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-6b3a829b`."
     }
   ]
 }

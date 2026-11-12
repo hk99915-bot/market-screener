@@ -2,7 +2,7 @@
 
 > 자동 생성 — `ops/board.json` 을 고치고 `python scripts/board.py` 로 다시 만든다. 이 파일을 직접 고치지 말 것.
 
-기준일 2026-11-13 · 작업 517개 · 진행 13 · 검수 3 · 대기 160 · 보류 32 · 완료 309
+기준일 2026-11-13 · 작업 519개 · 진행 13 · 검수 3 · 대기 162 · 보류 32 · 완료 309
 
 **결재 대기 4:** `toss-md-pilot` (겸이), `dispatch-redundancy` (겸이), `user-realestate-keys-1023` (겸이 · 보류), `user-krx-openapi-key` (겸이)
 
@@ -34,7 +34,7 @@
 | P1 ⏫ | `dispatch-redundancy` | 실행 이중화 A1~A3 (겸이 10/21 09:3x 승인) — 노트북 정시 dispatcher·하트비트 감시·tgPoll 5분·install 이 tick 만 교체 | 개발 | 2026-10-21 | 2026-11-22 | `tools/dispatch/dispatch.py`<br>`scripts/slot_guard.py`<br>`scripts/watchdog.py`<br>`.github/workflows/heartbeat.yml`<br>`tools/toss_md/publish.py`<br>`apps-script/Scheduler.gs`<br>`apps-script/TelegramHook.gs`<br>`docs/toss_md_laptop_setup.md` | — | A1 노트북 dispatcher(시간표 단일 출처=Scheduler.gs, 예정+2~10분, GAS 선발송 확인) + slot_guard.earlier_dispatch(이중 dispatch 시 먼저 만든 run 만). A2 GAS 하트비트=슬롯 dispatch run, 노트북=live.json dispatcher_heartbeat → heartbeat.yml 장중 30분 watchdog --executor(무음 즉시 1통, RING_KINDS 밖). A3 tgPoll 5분·install tick 만. 겸이 할 일: PAT·PowerShell(가이드 ⑧)·GAS 두 파일 재붙여넣기+tgInstallPolling. 미확인: 08:40·08:50 정지 원인(한도 vs 잠금) — GAS 실행 기록 확인 필요. GAS/노트북 run 구분 불가(같은 PAT 소유자·같은 입력). / 10/24 운영 점검: 검수 유지, 마감 2026-10-21→2026-10-31. 남은 것: 겸이 노트북 dispatcher 설치(가이드 ⑧) — reports/live.json 에 dispatcher_heartbeat 아직 없음 / 11/01 PM 늦은 일 정리(겸이 결정): 겸이 결정 대기(11/01 PM ④): 노트북 dispatcher 설치(가이드 ⑧) 계속 vs 접기 — live.json dispatcher_heartbeat 아직 없음, 저장소 분리와 연동 / 11/1 18:08 겸이 「싹다승인」 — 비공개 원장 11/1 줄 참조 / 11/3 21:55 겸이 결재(⑥): 즉시 설치 보류 → 11/7 저장소 전환 뒤 새 주소 기준 설치 11/8. dispatch.py 33행 REPO 상수 갱신 필요(피어 지적). / 11/10 운영 정리(D): 기한 11-08→11-22 — [결재 D3] 노트북 dispatcher 설치는 겸이 직접 — '전환 뒤 새 주소 기준 설치'(11/3 결재) 전제가 D1 에 걸림 |
 | P2 ⏫P1 11-08 | `tue-realestate-drill` | 부동산 지도 드릴다운: 구 클릭→동 단위 확대, 동 클릭→아파트(단지) 단위 | 부동산 | 2026-10-26 | 2026-11-30 | — | — | 10/25 겸이 원문 '구단위 클릭하면 동단위로 해당 구 확대, 동단위 클릭하면 집적인접어쩌구 그 API 붙여서 아예 아파트단위로도' — '집적인접어쩌구 API'가 어떤 API인지 미확인, 착수 때 겸이에게 1줄 확인. 후보: 국토부 RTMS 아파트 매매/전월세(법정동·단지명 포함). / 11/10 운영 정리(D): 기한 11-07→11-30 — [결재 D7] 단지 점 확인은 VWORLD_KEY 등록 뒤 — 부동산 키 결재(user-realestate-keys-1023, 11/30)와 같은 날 |
 
-## 대기 (160)
+## 대기 (162)
 
 | 우선 | id | 작업 | 담당 | 시작 | 기한 | 파일 | 선행 | 메모 |
 |---|---|---|---|---|---|---|---|---|
@@ -72,6 +72,8 @@
 | P1 ⏫ | `req-quant-8145918f` | [요청 승격] CIO→퀀트: 11/10 운용회의 미이행 ⑦: CPI 발표 다음 날 반응 연구(2026-10-21 event_driven  | 퀀트 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-8145918f`. |
 | P1 ⏫ | `req-quant-b602c58d` | [요청 승격] CIO→퀀트: 11/10 운용회의 미이행 ②: 11/9 채택 모의 진입('이틀 연속 −5%' K200 1배, 11/9 회의 | 퀀트 | — | 2026-11-19 | — | — | 요청 2영업일 미처리(2026-11-10~2026-11-12) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→CIO: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-b602c58d`. |
 | P1 ⏫ | `req-data-310435f3` | [요청 승격] 검증→데이터: 금융위 종가 대조(fsc_close.py) 코드 검토 6건 — 상세 docs/desk_kb/verify.md | 데이터 | — | 2026-11-20 | — | — | 요청 2영업일 미처리(2026-10-28~2026-10-30) → 자동 승격(LOOP.md·watchdog). 처리 후 데이터 라운드 파일에 `처리→검증: …` 한 줄 또는 `python3 scripts/ask.py --close req-data-310435f3`. / 11/1 개발(PM 일정 갱신, 리팩토링 v1 전환 주·같은 날 5건 상한): 마감 11-06→11-18 / 11/10 운영 정리(C): 기한 12-04→11-20 — 금융위 종가 대조 코드 검토 — 5/6 수정(4091eb349), 실행 확인은 req-verify-cb391f74 와 같은 날 |
+| P1 ⏫ | `req-pb-2e41dbce` | [요청 승격] 리스크→PB: 11/11 운용회의(FRM ③): 11/13 장 마감 뒤 ⓐ official_state.json 잠금 줄 ' | PB | — | 2026-11-20 | — | — | 요청 2영업일 미처리(2026-11-11~2026-11-13) → 자동 승격(LOOP.md·watchdog). 처리 후 PB 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-pb-2e41dbce`. |
+| P1 ⏫ | `req-quant-6b3a829b` | [요청 승격] 리스크→퀀트: 11/11 운용회의(FRM 입력 ②): 2022형 금리 쇼크(CPI 상회 → 금리 상승 → 주식·채권 동반  | 퀀트 | — | 2026-11-20 | — | — | 요청 2영업일 미처리(2026-11-11~2026-11-13) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-6b3a829b`. |
 | P1 ⏫ | `req-verify-cb391f74` | [요청 승격] 겸이→검증: 금융위 주식·지수 V2(KRX 확정 T+1) 열림 — 종가 정합성(네이버·토스·야후 잠정) 자동 대조 기준, | 검증 | — | 2026-11-20 | — | — | 요청 2영업일 미처리(2026-10-24~2026-10-27) → 자동 승격(LOOP.md·watchdog). 처리 후 검증 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-verify-cb391f74`. / 11/01 PM 11/03 일괄 마감 정리(유효): 유효: 기준 사전등록(verify.md #16) 끝, 금융위 응답 vs 우리 쪽 0행 결함 확인됨 — 대조 실행 남음 / 11/10 운영 정리(C): 기한 11-26→11-20 — 금융위 확정 종가 대조 실행 — close-swap-verify 와 한 줄기 |
 | P1 ⏫ | `req-dev-6bd21386` | [요청 승격] HF→개발: 모델 북(committee ideas.long) '확신 높음 15%' vs 같은 종목 tradeplan '보 | 개발 | — | 2026-11-26 | — | — | 요청 2영업일 미처리(2026-11-04~2026-11-06) → 자동 승격(LOOP.md·watchdog). 처리 후 개발 라운드 파일에 `처리→HF: …` 한 줄 또는 `python3 scripts/ask.py --close req-dev-6bd21386`. / 11/10 운영 정리(C): 기한 11-13→11-26 — 모델 북 확신도 vs tradeplan 병기 — cio #22 판정 키 확정(11/4), S1 다음 순서 |
 | P1 ⏫ | `req-quant-14c996f2` | [요청 승격] 겸이→퀀트: 사전등록(겸이 11/3 23:14 「1 2 ㅇㅇ」, 결재 ⑤ 조건): 퀀트 시그널 개선안 3개 모의 병행(비 | 퀀트 | — | 2026-11-27 | — | — | 요청 2영업일 미처리(2026-11-03~2026-11-05) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→겸이: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-14c996f2`. / 11/10 운영 정리(C): 기한 11-12→11-27 — 시그널 개선안 3개 모의 사전등록 — 12/1 재판정 입력이라 그 전 |
