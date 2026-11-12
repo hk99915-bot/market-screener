@@ -1,8 +1,22 @@
 {
- "asof": "2026-11-11 16:49",
+ "asof": "2026-11-12 16:49",
  "source": "금융위 채권시세정보 V2 (data.go.kr, T+1) vs KRX [14017]",
  "rule": "공식 = KRX [14017] 확정값 · 금융위 = 대조군(잔존 2.5~3.5년 국고 종목, |차| ≤ 3bp 일치)",
  "days": [
+  {
+   "date": "2026-11-11",
+   "fsc": {
+    "name": "국고01375-2912(19-8)",
+    "rem_y": 3.08,
+    "yield": 3.782,
+    "n_band": 2,
+    "band_median": 3.756
+   },
+   "status": "ok",
+   "krx_3Y": 3.729,
+   "gap_bp": 5.3,
+   "match": false
+  },
   {
    "date": "2026-11-10",
    "fsc": {
@@ -58,23 +72,9 @@
    "krx_3Y": 3.669,
    "gap_bp": 8.1,
    "match": false
-  },
-  {
-   "date": "2026-11-04",
-   "fsc": {
-    "name": "국고01375-2912(19-8)",
-    "rem_y": 3.1,
-    "yield": 3.802,
-    "n_band": 2,
-    "band_median": 3.76
-   },
-   "status": "ok",
-   "krx_3Y": 3.714,
-   "gap_bp": 8.8,
-   "match": false
   }
  ],
  "status": "ok",
  "match_rate": 0.2,
- "gap_bp_median": 7.8
+ "gap_bp_median": 5.3
 }
