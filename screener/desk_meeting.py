@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 from .config import ROOT
 
 VIEW = ROOT / "reports" / "views" / "desk_meeting.json"
-MAX = 90
+MAX = 400  # 11/12 겸이 「너무 짤리는데」 — 90자 잘림 해제(텔레그램 한도 4096자 안)
 
 
 def _clip(s: str, n: int = MAX) -> str:
