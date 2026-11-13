@@ -1,19 +1,48 @@
 {
  "last": {
-  "date": "2026-11-12",
+  "date": "2026-11-13",
   "prev_date": "2026-11-11",
   "n_universe": 559,
   "n_prev": 517,
   "n_overlap": 517,
   "overlap_pct": 92.5,
-  "n_match": 517,
-  "match_pct": 100.0,
-  "max_dev_pct": 0.0165,
-  "max_dev_sym": "CSGP",
-  "ohl_max_dev_pct": 0.0317,
+  "n_match": 510,
+  "match_pct": 98.6,
+  "max_dev_pct": 0.6621,
+  "max_dev_sym": "SBAC",
+  "ohl_max_dev_pct": 0.6622,
   "vol_median_dev_pct": 0.01,
-  "failed": [],
-  "n_failed": 0,
+  "failed": [
+   [
+    "SBAC",
+    0.662
+   ],
+   [
+    "FANG",
+    0.656
+   ],
+   [
+    "EXE",
+    0.653
+   ],
+   [
+    "AWK",
+    0.602
+   ],
+   [
+    "TJX",
+    0.353
+   ],
+   [
+    "DHI",
+    0.34
+   ],
+   [
+    "RMD",
+    0.277
+   ]
+  ],
+  "n_failed": 7,
   "rule": {
    "close_tol_pct": 0.1,
    "min_overlap_pct": 90.0,
@@ -343,6 +372,59 @@
    "vol_median_dev_pct": 0.01,
    "failed": [],
    "n_failed": 0,
+   "rule": {
+    "close_tol_pct": 0.1,
+    "min_overlap_pct": 90.0,
+    "min_match_pct": 98.0
+   },
+   "pass": true,
+   "basis": "pass = 집계(겹침·일치 비율) 기준. 종가 한도(close_tol) 초과 종목은 failed·n_failed 에 남고 보충에서 개별 제외 — 배당락 종목은 야후 auto_adjust 가 과거 봉을 소급 조정해 토스 원주가와 어긋남(10/29·10/30 CLX·FAST·CARR 추정)",
+   "mode": "shadow"
+  },
+  {
+   "date": "2026-11-13",
+   "prev_date": "2026-11-11",
+   "n_universe": 559,
+   "n_prev": 517,
+   "n_overlap": 517,
+   "overlap_pct": 92.5,
+   "n_match": 510,
+   "match_pct": 98.6,
+   "max_dev_pct": 0.6621,
+   "max_dev_sym": "SBAC",
+   "ohl_max_dev_pct": 0.6622,
+   "vol_median_dev_pct": 0.01,
+   "failed": [
+    [
+     "SBAC",
+     0.662
+    ],
+    [
+     "FANG",
+     0.656
+    ],
+    [
+     "EXE",
+     0.653
+    ],
+    [
+     "AWK",
+     0.602
+    ],
+    [
+     "TJX",
+     0.353
+    ],
+    [
+     "DHI",
+     0.34
+    ],
+    [
+     "RMD",
+     0.277
+    ]
+   ],
+   "n_failed": 7,
    "rule": {
     "close_tol_pct": 0.1,
     "min_overlap_pct": 90.0,
