@@ -5,6 +5,8 @@
 - 한국 장외 채권수익률: KRX 정보데이터시스템 [14017] 개별추이 (국고 1~30년, 회사채 AA-·BBB-, CD) — pykrx 세션
 - 채권 ETF: 야후 (TLT IEF SHY LQD HYG, 114260 KODEX 국고채3년, 148070 국고채10년) + 주식 지수(상관관계용)
 - AI 인프라 신용 감시: 야후 (CRWV ORCL NBIS APLD IREN CORZ WULF CIFR + HYG JNK LQD BKLN IEF SHY + ^VIX) → 규칙 기반 신용 경보
+- 신용 스프레드 OAS(11/14): FRED fredgraph.csv — HY·BBB·CCC·IG 최신값·20거래일/1개월/3개월 변화(bp)·CCC−HY. 참고 지표(경보 점수·매매 룰 불변)
+- BDC 바스켓(11/14): 야후 (BIZD ARCC OBDC BXSL) — BDC 개별 채권·CDS 가 없어 주가 낙폭 기반 대용 지표(라벨 동봉)
 
 파생: 장단기 금리차, 신용 스프레드, 한미 금리차, bp 변화, 듀레이션·볼록성·시나리오, 주식-채권 상관, 규칙 기반 해석.
 """
@@ -70,6 +72,27 @@ CREDIT_ETFS = {
     "SHY": "미국채 1-3년 (SHY)",
 }
 LEVELS = ("정상", "주의", "경계")
+
+# FRED OAS(ICE BofA 옵션조정스프레드) — fredgraph.csv, 키 불필요. 값 단위 = %p(1%p = 100bp).
+# 쓰임: 신용시장 전이를 보는 참고 지표다. 경보 점수(credit_alert)·매매 룰에는 넣지 않는다(문턱 변경 금지).
+# 브라우저 UA 는 FRED 가 읽기 타임아웃(rate_series 주석, req-data-fb0157f5) → 기본 UA 로 받는다.
+OAS_IDS = {
+    "hy": ("BAMLH0A0HYM2", "미 하이일드 OAS"),
+    "bbb": ("BAMLC0A4CBBB", "미 BBB OAS"),
+    "ccc": ("BAMLH0A3HYC", "미 CCC OAS"),
+    "ig": ("BAMLC0A0CM", "미 투자등급(IG) OAS"),
+}
+OAS_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={ids}"
+
+# BDC(사업개발회사) 바스켓 — 중소·중견기업 대출을 담아 상장된 BDC(BIZD 는 BDC 묶음 ETF).
+# BDC 개별 채권·CDS 가격은 무료 소스가 없어 AI_BASKET 과 같은 방식으로 '주가 낙폭 기반 대용 지표'만 본다 — 라벨을 결과에 같이 남긴다.
+BDC_BASKET = {
+    "BIZD": "VanEck BDC Income ETF (BDC 묶음)",
+    "ARCC": "Ares Capital (BDC 운용자산 1위)",
+    "OBDC": "Blue Owl Capital Corp",
+    "BXSL": "Blackstone Secured Lending",
+}
+BDC_LABEL = "BDC 주가 낙폭 기반 대용 지표 — BDC 개별 채권·CDS 가격이 아님(무료 소스 없음)"
 
 
 # ───────────────────────── 공통 ─────────────────────────
@@ -340,6 +363,14 @@ def interpret(o: dict) -> list[str]:
             "하이일드가 국채보다 강함 = 위험 선호." if r > 0.01 else "뚜렷한 신용 스트레스 없음.")
                  + (f" 단, AI 인프라 신용 감시는 '{ac['level']}' — 지수에 안 잡히는 업종 스트레스 (아래 섹션)."
                     if (ac := ((o.get("ai_credit") or {}).get("alert") or {})).get("lv", 0) >= 1 else ""))
+    hyo = ((o.get("credit_oas") or {}).get("oas") or {}).get("hy") or {}
+    if hyo.get("v") is not None:   # ICE BofA OAS — 신용시장 전이 참고 지표(점수·룰 불변)
+        cc = (o.get("credit_oas") or {}).get("ccc_minus_hy") or {}
+        lo, hi = hyo.get("min1y"), hyo.get("max1y")
+        rng = f", 1년 {lo:.2f}~{hi:.2f}%" if lo is not None and hi is not None else ""
+        L.append(f"미 하이일드 OAS {hyo['v']:.2f}%{rng} (1개월 {_s(hyo.get('m1'), 0)}bp, 3개월 {_s(hyo.get('m3'), 0)}bp)"
+                 + (f" · CCC−HY {cc['v']:.2f}%p (1개월 {_s(cc.get('m1'), 0)}bp)" if cc.get("v") is not None else "")
+                 + " — 저품질·CCC 구간이 같이 벌어지면 위험 회피가 신용 전반으로 번지는 신호(참고 지표).")
     aa = sp.get("kr_aa") or {}
     if aa.get("v") is not None:
         m1 = aa.get("m1")
@@ -474,6 +505,120 @@ def vehicles(o: dict) -> list[dict]:
     return rows
 
 
+# ───────────────────────── FRED OAS · BDC (대용 지표) ─────────────────────────
+def parse_fred_oas_csv(text: str) -> dict[str, dict[str, float]]:
+    """fredgraph.csv → {시리즈 ID: {YYYY-MM-DD: 값(%)}}. 여러 id 를 한 번에 받으면 넓은 형식(날짜 + 시리즈 열), 하나면 '날짜,값'.
+    '.' = 휴일·결측 → 버린다."""
+    rows = [r for r in csv.reader(io.StringIO(text.lstrip("\ufeff"))) if r]
+    if len(rows) < 2:
+        return {}
+    head = [h.strip() for h in rows[0]]
+    out: dict[str, dict[str, float]] = {h: {} for h in head[1:] if h}
+    for r in rows[1:]:
+        d = r[0].strip()
+        if len(d) != 10:
+            continue
+        for h, raw in zip(head[1:], r[1:]):
+            v = _f(raw)
+            if h and v is not None:
+                out[h][d] = v
+    return {k: v for k, v in out.items() if v}
+
+
+def fetch_fred_oas(ids: list[str] | None = None) -> dict[str, dict[str, float]]:
+    """OAS 4종을 fredgraph.csv 로 수집. 한 번에 받고 빠진 시리즈만 개별 재시도 — 하나도 못 받으면 RuntimeError(호출자가 이전 값 유지)."""
+    import requests
+    ids = list(ids or [i for i, _ in OAS_IDS.values()])
+    out: dict[str, dict[str, float]] = {}
+    errs: list[str] = []
+
+    def one(part: list[str]) -> None:
+        r = requests.get(OAS_URL.format(ids=",".join(part)), timeout=(10, 25))
+        r.raise_for_status()
+        out.update(parse_fred_oas_csv(r.text))
+    try:
+        one(ids)
+    except Exception as e:  # noqa: BLE001
+        errs.append(f"{type(e).__name__}: {str(e)[:120]}")
+    for sid in [i for i in ids if not out.get(i)]:
+        try:
+            one([sid])
+        except Exception as e:  # noqa: BLE001
+            errs.append(f"{sid} {type(e).__name__}: {str(e)[:80]}")
+    if not out:
+        raise RuntimeError("; ".join(errs) or "빈 응답")
+    if errs:
+        log.warning("FRED OAS 일부 실패: %s", errs[:3])
+    return out
+
+
+def _spread_stats(s: list[tuple[str, float]]) -> dict:
+    """(날짜, %p) 시계열 → 최신값·20거래일/1개월/3개월 변화(bp)·1년 최소/최대."""
+    last_d, last_v = s[-1][0], s[-1][1]
+    prev20 = s[-21][1] if len(s) > 20 else None
+    bp = lambda x: None if x is None else round((last_v - x) * 100, 1)  # noqa: E731
+    yr = [v for d, v in s if d >= str(date.fromisoformat(last_d) - timedelta(days=365))]
+    return {"v": round(last_v, 3), "date": last_d, "d20": bp(prev20), "m1": bp(_at(s, 30)), "m3": bp(_at(s, 90)),
+            "min1y": round(min(yr), 3) if yr else None, "max1y": round(max(yr), 3) if yr else None, "n": len(s)}
+
+
+def oas_section(series: dict[str, dict[str, float]]) -> dict:
+    """{시리즈 ID: {날짜: 값}} → bonds.json 'credit_oas'. CCC−HY = 같은 날짜끼리 뺀 스프레드(저품질 구간 내부 격차)."""
+    oas, missing = {}, []
+    for k, (sid, name) in OAS_IDS.items():
+        px = series.get(sid) or {}
+        if len(px) < 2:
+            missing.append(sid)
+            continue
+        oas[k] = {"id": sid, "name": name, **_spread_stats([(d, px[d]) for d in sorted(px)])}
+    if not oas:
+        raise RuntimeError("OAS 시리즈 없음")
+    out = {"asof": max(v["date"] for v in oas.values()),
+           "label": "ICE BofA 옵션조정스프레드(OAS, %p · 1%p=100bp) — FRED fredgraph.csv. 신용시장 전이 참고 지표(경보 점수·매매 룰 불변)",
+           "oas": oas, "missing": missing}
+    c, h = series.get(OAS_IDS["ccc"][0]) or {}, series.get(OAS_IDS["hy"][0]) or {}
+    both = sorted(set(c) & set(h))
+    if len(both) > 1:
+        out["ccc_minus_hy"] = {"name": "CCC−HY (저품질 구간 내부 격차)", **_spread_stats([(d, round(c[d] - h[d], 3)) for d in both])}
+    return out
+
+
+def attach_oas(o: dict, prev: dict, src: dict, get=None) -> None:
+    """OAS 수집·기록. 실패해도 파이프라인은 계속 — 이전 값을 쓰고 stale 로 표시(조용한 대체 금지)."""
+    try:
+        sec = oas_section(fetch_fred_oas() if get is None else get())
+        o["credit_oas"] = sec
+        src["fred_oas"] = f"ok {len(sec['oas'])}종 (마지막 {sec['asof']})" + (f" (빠짐: {', '.join(sec['missing'])})" if sec["missing"] else "")
+    except Exception as e:  # noqa: BLE001
+        src["fred_oas"] = f"실패: {type(e).__name__}: {str(e)[:200]}"
+        log.warning("FRED OAS 실패: %s", e)
+        if prev.get("credit_oas"):
+            o["credit_oas"] = prev["credit_oas"]
+            src["fred_oas"] += " — 이전 값 유지"
+            _stale(o, "credit_oas", (prev.get("credit_oas") or {}).get("asof"))
+
+
+def bdc_credit(px: dict[str, dict[str, float]]) -> dict:
+    """BDC 바스켓 주가 스트레스(대용 지표). BDC_LABEL 을 결과에 같이 넣어 화면·리포트가 출처를 잃지 않게 한다."""
+    basket, missing = [], []
+    for t, n in BDC_BASKET.items():
+        st = _tail_stats(px.get(t) or {})
+        if st is None:
+            missing.append(t)
+            continue
+        basket.append({"s": t, "n": n, "close": st["close"], "date": st["date"], "hi52": st["hi52"], "dd": st["dd"],
+                       "r1": st["r1"], "r20": st["r20"], "vol20": st["vol20"], "obs": st["n"]})
+    basket.sort(key=lambda r: r["dd"])
+    med = _median([r["dd"] for r in basket])
+    med20 = _median([r["r20"] for r in basket if r["r20"] is not None])
+    fp = lambda x: "—" if x is None else f"{x * 100:+.1f}%"  # noqa: E731
+    line = (f"BDC 바스켓 {len(basket)}종(주가 대용): 52주 고점 대비 중앙값 {fp(med)}, 20일 중앙값 {fp(med20)}"
+            + (" · 최약 " + ", ".join(f"{r['s']} {r['dd'] * 100:+.0f}%" for r in basket[:2]) if basket else "")
+            + (f" · 데이터 없음 {', '.join(missing)}" if missing else ""))
+    return {"label": BDC_LABEL, "asof": max((r["date"] for r in basket), default=None), "basket": basket, "missing": missing,
+            "dd_median": None if med is None else round(med, 4), "r20_median": None if med20 is None else round(med20, 4), "line": line}
+
+
 # ───────────────────────── AI 인프라 신용 감시 ─────────────────────────
 def _tail_stats(px: dict[str, float]) -> dict | None:
     """가격 시계열 → 종가·52주 고점 대비 낙폭·20거래일 수익률·20일 실현변동성(연율)."""
@@ -548,11 +693,21 @@ def credit_alert(basket: list[dict], hy_m1: float | None, vix: float | None) -> 
             + (" · 최약 " + ", ".join(f"{r['s']} {r['dd'] * 100:+.0f}%" for r in worst) if worst else ""))
     if lv == 0:
         expl = "AI 데이터센터 업종 주가와 신용시장 모두 평소 범위 — 특별한 경고 없음."
-    elif ch[2]["pt"] == 0 and ch[3]["pt"] == 0:
-        expl = ("하이일드 지수·VIX는 조용한데 AI 데이터센터 업종만 아픔 — 지수 신용 지표(HYG/IEF)에 안 잡히는 '업종 국지 스트레스'. "
-                "이 회사들은 빚으로 GPU·전력·건물을 사고 소수 고객(빅테크·AI 연구소)과의 계약으로 갚는 구조라, 자금 조달이 막히면 주가가 먼저 반응함.")
     else:
-        expl = "업종 스트레스가 하이일드·변동성 지표까지 번지는 중 — 신용시장 전반의 위험 회피로 커질 수 있음."
+        # 전이 문구는 '실제로 점수를 준 항목'만 이름을 부른다(0점 항목을 번졌다고 쓰지 않는다). 0점과 '데이터 없음'도 구분한다.
+        hy_pt, vix_pt = ch[2]["pt"], ch[3]["pt"]
+        quiet = [n for n, pt, v in (("하이일드", hy_pt, hy_m1), ("VIX", vix_pt, vix)) if pt == 0 and v is not None]
+        hot = [n for n, pt in (("하이일드", hy_pt), ("VIX(변동성)", vix_pt)) if pt > 0]
+        unknown = [n for n, v in (("하이일드", hy_m1), ("VIX", vix)) if v is None]
+        if hot:
+            expl = (f"업종 스트레스가 {'·'.join(hot)} 지표까지 번지는 중 — 신용시장 전반의 위험 회피로 커질 수 있음"
+                    + (f" ({'·'.join(quiet)}는 아직 조용)" if quiet else "") + ".")
+        else:
+            expl = ("AI 데이터센터 업종만 아픔 — 지수 신용 지표(HYG/IEF)에 안 잡히는 '업종 국지 스트레스'. "
+                    "이 회사들은 빚으로 GPU·전력·건물을 사고 소수 고객(빅테크·AI 연구소)과의 계약으로 갚는 구조라, 자금 조달이 막히면 주가가 먼저 반응함."
+                    + (f" {'·'.join(quiet)}는 평소 범위." if quiet else ""))
+        if unknown:
+            expl += f" 단, {'·'.join(unknown)} 데이터가 없어 신용시장 전이 여부는 미확인."
     if lv == 2:
         expl += " 경계: AI 인프라 관련(반도체·전력 장비 포함) 비중과 레버리지를 점검할 구간."
     return {"level": level, "lv": lv, "score": score, "checks": ch, "line": line, "explain": expl}
@@ -772,7 +927,7 @@ def build() -> dict:
     prev = _load_json(OUT, {})
     # AI 인프라 신용 감시 (바스켓 + 신용 ETF + VIX) — 실패하면 이전 값 유지
     try:
-        extra = [t for t in list(AI_BASKET) + list(CREDIT_ETFS) + ["^VIX"] if not px.get(t)]
+        extra = [t for t in list(AI_BASKET) + list(CREDIT_ETFS) + list(BDC_BASKET) + ["^VIX"] if not px.get(t)]
         cx = _yf_closes(extra) if extra else {}
         okx = [t for t, v in cx.items() if v]
         px.update({t: v for t, v in cx.items() if v})
@@ -794,6 +949,25 @@ def build() -> dict:
         if prev.get("ai_credit"):
             o["ai_credit"] = prev["ai_credit"]
             _stale(o, "ai_credit", prev.get("asof"))
+
+    # FRED OAS 4종 (11/14) — 신용시장 전이 참고 지표. 실패해도 이전 값으로 계속(경보 점수·매매 룰 불변)
+    attach_oas(o, prev, src)
+
+    # BDC 바스켓 (11/14) — 주가 낙폭 기반 대용 지표. 야후가 비면 이전 값 유지 + stale
+    try:
+        bc = bdc_credit(px)
+        if bc["basket"]:
+            o["bdc_credit"] = bc
+            src["bdc_yahoo"] = f"ok {len(bc['basket'])}/{len(BDC_BASKET)}" + (f" (빠짐: {', '.join(bc['missing'])})" if bc["missing"] else "")
+        elif prev.get("bdc_credit"):
+            o["bdc_credit"] = prev["bdc_credit"]
+            src["bdc_yahoo"] = "실패 — 이전 값 유지"
+            _stale(o, "bdc_credit", prev.get("asof"))
+    except Exception as e:  # noqa: BLE001
+        src["bdc_yahoo"] = f"실패: {type(e).__name__}: {str(e)[:200]}"
+        if prev.get("bdc_credit"):
+            o["bdc_credit"] = prev["bdc_credit"]
+            _stale(o, "bdc_credit", prev.get("asof"))
     if not any((px.get(t) or {}) for t in ETFS) and prev.get("etf"):   # 야후 실패 → 이전 ETF·상관 유지
         for k in ("etf", "corr", "credit_us"):
             if k in prev:
