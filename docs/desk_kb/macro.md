@@ -96,6 +96,7 @@
    - 뒤집힘: PFE 후속 규정 공표 / 화해법안에 45X 조항 포함 / 11/4~5 선거 결과.
 
 ## 출처
+- 문헌: 데스크별 논문 카드는 `docs/desk_kb/lit/macro.md`, 후보 원장은 `content/papers/index.json` — 인용할 때 카드의 '한계·뒤집힐 조건'을 함께 읽는다.
 - 교과서·공식 자료: Dalio "How the Economic Machine Works"(2013) / 한국은행 통화정책 파급경로·통화신용정책보고서(중립금리 재추정) / CFA L1 Economics(Business Cycles, Monetary and Fiscal Policy) / FRED 시리즈 노트(CPIAUCSL·CPILFESL·PAYEMS·UNRATE·PPIFIS·DGS10). 2차 자료·요약 확인, 원문 `[확인 필요: 원문 대조, 2026-10-30]`.
 - 자체: `reports/views/analyst_cmdty.json`, `screener/commodities.py`, `reports/commodities.json`, `reports/views/geopolitics.json`, `screener/macroview.py`, `reports/macro_view.json`, `reports/macro_releases.json`, `screener/calendar_ev.py`, `reports/committee.json` macro, `views/registry.json`(`macro_wind`·`kr_regime`·`us10y`·`foreign_flow`·`event_calendar`).
 

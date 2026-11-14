@@ -1,9 +1,9 @@
 ## 요약 (What · So What · Now What)
 
-> 기준 2026-11-11
+> 기준 2026-11-14
 
 **What**
-- 시도 N 1419 · 연구 70건 · 전체 한 가족 α 4e-05
+- 시도 N 1423 · 연구 72건 · 전체 한 가족 α 4e-05
 - 최다 주제 us_spike N 722 · α(N) 7e-05
 
 **So What**
@@ -24,7 +24,7 @@
 > 출처: `reports/studies/*.json` (날짜 열 = 파일의 generated/asof/registered, 기준일 = 그 날짜) · 단위: 건(가설·조합 수) · α = 0.05/N (식: α(N)=0.05÷N, 소수 5자리).
 > 뜻: 각 연구의 Bonferroni 는 **그 연구 안의 m** 만 나눈다. 같은 질문을 여러 연구에서 다시 보면 시도 N 은 늘어나는데 p 는 그걸 모른다(Harvey & Liu 2015, kb:quant#13). 아래 'α(N)' 은 주제 전체 N 으로 나눴을 때의 문턱 — **등급은 바꾸지 않고** 얼마나 낙관적인지 보이는 용도.
 
-## 0. 합계 — 시도 N = **1419** (등록 m 합 580 + 등록 전 탐색 839) → 전부 한 가족으로 보면 α = 4e-05
+## 0. 합계 — 시도 N = **1423** (등록 m 합 584 + 등록 전 탐색 839) → 전부 한 가족으로 보면 α = 4e-05
 
 ## 1. 연구별
 
@@ -69,6 +69,8 @@
 | 2026-11-11_meet_cpi_pctl | 2026-11-11 | event_driven | — | 미등록 | — | 2 | — | 서술만 — 낮았던 반응일 비율 2015~ 35%·2022~ 42% = 분포 한가운데(평범). 장 초반 값이라 종가 판정 아님, 서프라이즈 부호 조건부 아님 |
 | 2026-11-12_score_calib |  | score_calib | 18 | prereg.m | 0.00278 | — | B1 C1 F16 | 1단계 B 1(R60_KR −2.55%p p 0.0024)·C 1(T60_KR)·F 16 — Trend·Momentum 구간은 KR·US 5/20일 이후 초과수익을 못 가름. 실행 중 NaN 점수 B5 오분류(US 179행) 수정 후 재실행(등급 불변). 2단계 제거 실험은 별도 사전등록 |
 | 2026-11-12_sim_oos |  | trend_sim | 10 | prereg.m | 0.005 | — | C(역방향)2 F8 | H1~H5 × KR·US 10개 중 F 8 · C(역방향) 2(US 이평·PSAR 롱이 보유보다 OOS 월 −0.94%p·−0.90%p). KR 이평 −0.36%p·PSAR −0.06%p(F), 켜짐 알림(기대값·Wilson)·250일 성적 지속성 F → 종목 상세 시뮬 성적은 표본외 근거 없음, 알림 C·참고 유지 |
+| 2026-11-14_night_gap_guard | 2026-11-14 | night_gap | 2 | prereg.m | 0.025 | — | F1 검증전1 | H1 검증전(IS 4건)·H2 F — 갭 반납률 64.7% vs 9.0%(Fisher 3.1e-06)이나 시초→종가 손익 −0.22% vs +0.20%(p 0.313) |
+| 2026-11-14_vrp_rebound_filter | 2026-11-14 | crash_entry | 2 | prereg.m | 0.025 | — | A1 F1 | H1 F — VRP>0 5일 +0.54% vs VRP≤0 −0.08%(p 0.163), IS·OOS 모두 미달. 사건 정의(−2% 단일 급락일)로 바꾸면 부호 반전 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
 | derivs_signals | 2026-10-16 | derivs | 10 | m | 0.005 | — | A1 F2 검증전8 | H8 산수만 A, 나머지 F/검증전 |
@@ -107,7 +109,7 @@
 |---|---|---|---|---|---|
 | us_spike | 2026-10-21_us_smallcap_spikes, 2026-10-21_us_spikes_intraday | 22 | 700 | 722 | 7e-05 |
 | trend_sim | 2026-10-24_trend_discovery, 2026-10-24_trend_events, 2026-10-31_trend_rule, 2026-11-12_sim_oos, trend_expectancy | 195 | 22 | 217 | 0.00023 |
-| crash_entry | 2026-11-04_crash_close_intraday, 2026-11-10_meet_rebound, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 48 | 52 | 100 | 0.0005 |
+| crash_entry | 2026-11-04_crash_close_intraday, 2026-11-10_meet_rebound, 2026-11-14_vrp_rebound_filter, crash_rebound, entry_signals, exec_signal, hollzzak, playbook_signals, replication_crash_rebound | 50 | 52 | 102 | 0.00049 |
 | downday_response | 2026-11-05_downday, 2026-11-05_downday_b | 31 | 36 | 67 | 0.00075 |
 | (미분류) | 2026-10-21_hf_classics, 2026-10-21_hf_desk_signals, 2026-10-21_hf_desk_signals_forward, 2026-10-21_hf_ls_vol, 2026-10-23_hf_bab_recheck, 2026-10-24_trend_events_rerun_us666, 2026-11-01_chain_corr, 2026-11-01_chain_links, 2026-11-01_history_paths, 2026-11-05_downday_fix, 2026-11-05_ict_hdj1, dotplot_tilt, ict_open, lab_p1_screen, multiple_compression_2022, profit_lock, re_bluezone_drawdown, replication_hollzzak, replication_laor_ib, replication_rule_audit, replication_semis_cap, replication_sox_rel, replication_us_spikes, trend_expectancy_verify, verify_survivorship | 57 | 0 | 57 | 0.00088 |
 | trade_plan | 2026-10-21_tradeplan_calib | 54 | 0 | 54 | 0.00093 |
@@ -129,6 +131,7 @@
 | us_committee_px | 2026-10-23_us_long_sort, 2026-10-23_us_r20_reversal | 4 | 0 | 4 | 0.0125 |
 | fib | fib_levels | 4 | 0 | 4 | 0.0125 |
 | isa_core_exec | 2026-11-10_sheet_quant | 3 | 0 | 3 | 0.01667 |
+| night_gap | 2026-11-14_night_gap_guard | 2 | 0 | 2 | 0.025 |
 | laor_ib | 2026-10-21_laor_ib_qld, 2026-10-21_laor_infinite_buy | 0 | 1 | 1 | 0.05 |
 | qld_daily_dca | 2026-10-21_qld_daily_dca, replication_qld_dca | 0 | 0 | 0 | None |
 

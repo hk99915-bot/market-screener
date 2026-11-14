@@ -48,6 +48,7 @@
 - #28 [자체연구-C/검증전] 큰 t가 등급을 정하지 않는 사례 3건: gamma_regime H1(t 5.0, 검증전 — IS 표본 미달), derivs H7(t 3.4, 검증전 — IS 41<60, IV 통제 후 소멸), entry_signals(후보 5개 F + 급락일 종가 C → '확인 신호를 기다리지 않기' 추천). 교육용 대표 사례로 사용 가능. (답변 q7)
 
 ## 출처
+- 문헌: 데스크별 논문 카드는 `docs/desk_kb/lit/quant.md`, 후보 원장은 `content/papers/index.json` — 인용할 때 카드의 '한계·뒤집힐 조건'을 함께 읽는다.
 - Harvey, Liu & Zhu, "…and the Cross-Section of Expected Returns", RFS 29(1) 2016, 5–68 — t≥3.0 권고, 316개 팩터 (검색 확인 2026-10-16, 원문 쪽수 미확인)
 - Harvey & Liu, "Backtesting", JPM 41(1) 2015, 13–28 — 샤프 헤어컷, Bonferroni/Holm/BHY (검색 확인, 세 방법 명칭은 R `profitHurdle` 문서 기준 `[확인 필요: 명칭, 2026-10-30]`)
 - Bailey & López de Prado, "The Deflated Sharpe Ratio", JPM 40(5) 2014, 94–107 — PSR·기대 최대 샤프·왜도/첨도 (2차 자료로 확인 첨도는 비초과(정규=3) — 식의 (γ₄−1)/4 가 이 정의 기준, scripts/study_trend_rule.py dsr() kurt=3.0 기본값으로 확인 2026-11-03)
@@ -69,7 +70,7 @@
 - #32 [논문] **1개월 단기 반전(short-term reversal) vs 12−1 모멘텀**: 지난 1개월 수익이 높은 종목은 다음 1개월 상대수익이 낮다(Jegadeesh 1990, *JF* 45(3) 881–898 · Lehmann 1990, *QJE* 105(1)). 반면 3~12개월 수익(최근 1개월 제외)은 이어진다(Jegadeesh & Titman 1993, *JF* 48(1)). 그래서 **'가격 확인' 필터의 부호는 기간에 달렸다** — 20일(≈1개월) r20>0 필터는 반전 쪽에 걸려 손해. 우리 측정(us_long_sort, 2010~2025 현재 234종목): r20>0 − r20≤−3% 차가 5일 −0.14%p(t −1.98)·20일 −0.59%p(t −2.55), IS·OOS 같은 부호 → C(역방향). 차이: 문헌은 대형·최근 표본에서 반전이 약해졌다고 보고(OOS t −0.8로 우리도 약해짐). 반대 근거: 생존편향 유니버스·drv 미포함. 신뢰도 상(문헌)/중(자체). 처방: 가격 조건을 쓰려면 12−1개월 수익으로 정의하고 별도 사전등록(r20 금지). (출처: 위 논문 서지 — 이번 라운드 원문·검색 미확인, 서지·쪽수 `[확인 필요: 퀀트, 2026-10-30]` · reports/studies/2026-10-23_us_long_sort.md)
 
 ## 10년차 기준 (2026-10-23 교육)
-- 체크리스트: ① 문턱은 연구 안 m 이 아니라 **주제 전체 시도 N** 으로 함께 보고(#13·#30), 새 팩터 주장은 t ≥ 3.0 `[논문: Harvey–Liu–Zhu 2016 RFS, #12]` ② 채택 전 Deflated Sharpe·과최적화 확률(PBO) 중 하나를 붙인다 `[논문-B: Bailey & López de Prado 2014(#5), Bailey et al. 2017 PBO]` [확인 필요: PBO 논문 서지(J. Comput. Finance), 2026-10-30] ③ 비용·용량·체결 가정과 OOS 기간을 §0 에 먼저 고정 `[교과서: CFA L2 Quant·AFML 11장]`
+- 체크리스트: ① 문턱은 연구 안 m 이 아니라 **주제 전체 시도 N** 으로 함께 보고(#13·#30), 새 팩터 주장은 t ≥ 3.0 `[논문: Harvey–Liu–Zhu 2016 RFS, #12]` ② 채택 전 Deflated Sharpe·과최적화 확률(PBO) 중 하나를 붙인다 `[논문-B: Bailey & López de Prado 2014(#5), Bailey·Borwein·López de Prado·Zhu 2016 JCF 19(4) DOI 10.21314/jcf.2016.322]` ③ 비용·용량·체결 가정과 OOS 기간을 §0 에 먼저 고정 `[교과서: CFA L2 Quant·AFML 11장]`
 - 격차: 감사 '중' 6건(2회 합 최다 — reports/audit/2026-10-17.json·2026-10-21.json, 등급 꼬리표 누락형)·시도 N 1150 중 등록 전 탐색 748(reports/studies/trial_log.md §0) — 탐색이 등록보다 많다.
 - 드릴 [quant-d1]: trial_log 전체 N 1150 일 때 Bonferroni α 와 accum_signals pen h20(t 3.47) 통과 여부는? — 답·채점 키 `content/drills/quant.json`(라운드 파일에 `드릴: quant-d1 <내 답>` 을 먼저 쓰고 열 것, round_collect 채점 · G1 10/24)
 

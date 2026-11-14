@@ -537,6 +537,54 @@
    "files": {},
    "auto": [],
    "updated": null
+  },
+  {
+   "id": "vrp_rebound",
+   "name": "VRP 반등 필터 (IV²−RV20² 부호로 공포 과잉 vs 실현변동성 폭발)",
+   "stage": "backtest",
+   "verdict": "보류",
+   "owner": "퀀트",
+   "src": "겸이 11/14",
+   "result": "등급 F — 반등 사건 239건(2010~2026)에서 VRP>0 5일 +0.54% vs VRP≤0 −0.08%(단측 p 0.163). IS(≤2019) p 0.129·OOS(2020~) p 0.290. 승률 64.4% vs 전체 56.9%지만 H1(그룹 차) 기각. −2% 단일 급락일로 사건을 바꾸면 부호까지 뒤집힘",
+   "gate": "실계좌·알림 룰 반영 금지(등급 F). 종목별 IV 이력 확보 후 횡단면 재등록 또는 다른 사건 정의 사전등록해 OOS p<0.025 확인",
+   "due": "2026-11-28",
+   "action": "결과 읽기 — '진입 허가' 조건으로 쓰지 않는다. VRP 는 관측 지표로만",
+   "files": {
+    "study": "reports/studies/2026-11-14_vrp_rebound_filter.md"
+   },
+   "auto": [
+    "reports/studies/2026-11-14_vrp_rebound_filter.json"
+   ],
+   "grades": "reports/studies/2026-11-14_vrp_rebound_filter.json",
+   "updated": "2026-11-14",
+   "grade_counts": {
+    "F": 1,
+    "A": 1
+   }
+  },
+  {
+   "id": "night_gap",
+   "name": "야간선물 갭 · 시초 갭 괴리 → 시초 추격 보류",
+   "stage": "backtest",
+   "verdict": "보류",
+   "owner": "퀀트",
+   "src": "겸이 11/14",
+   "result": "검증전·F — 야간 갭 +0.5% 이상 95일 중 시초가 반납(괴리 ≤−0.3%p) 17일의 갭 반납률 64.7% vs 확인 78일 9.0%(Fisher p 3.1e-06)이나 IS 칸 4건이라 검증전. 시초→종가 손익 −0.22% vs +0.20%(p 0.313, 등급 F). 야간 세션 이력 2025-09~ 14개월",
+   "gate": "모의 ≥60거래일 추적 + 분봉 초반 수급 3다리 조건 재등록. 실계좌 룰·알림 변경 금지",
+   "due": "2026-11-28",
+   "action": "결과 읽기 — '추격 금지' 근거로 인용하지 않는다(H2 F). 갭 반납 위험 표시는 등급 병기",
+   "files": {
+    "study": "reports/studies/2026-11-14_night_gap_guard.md"
+   },
+   "auto": [
+    "reports/studies/2026-11-14_night_gap_guard.json"
+   ],
+   "grades": "reports/studies/2026-11-14_night_gap_guard.json",
+   "updated": "2026-11-14",
+   "grade_counts": {
+    "검증전": 1,
+    "F": 1
+   }
   }
  ],
  "unregistered": [

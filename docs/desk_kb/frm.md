@@ -56,6 +56,7 @@
 - [자체연구-B, 2026-10-23 실측 → 10/24 구속 반영] 2026-07 실측 06/22→07/30: KODEX 반도체 −50.3% · 하이닉스 −54.7% · 삼성전자 −41.4% · 삼성전기 −60.5% · KODEX 200 −40.8% · SOXX −23.0% — 미국 섹터 ETF 대리는 20%p 얕았고 전기 = ρ0.8×반도체 가정은 기각. 10/24 겸이 결재(appr-frm-agenda-a, 안건 A)로 `pb.py STRESS_SCENARIOS["2026-07"]`(구속)을 실측으로 교체, 참고 키 `2026-07m` 삭제 — 아침 점검 ⛔·MY 탭 판정 같은 숫자(tests/test_pb_stress.py). 개인 북 재생 −15.3%(바닥 집행 시 −9.8%, 판정은 바닥 미적용 — 안건 D). 옛 근거(SOXX −29.0% 하한 가정)는 git 이력.
 
 ## 출처
+- 문헌: 데스크별 논문 카드는 `docs/desk_kb/lit/frm.md`, 후보 원장은 `content/papers/index.json` — 인용할 때 카드의 '한계·뒤집힐 조건'을 함께 읽는다.
 - Jorion *Value at Risk* 3판(2007) 5·6·7장·스트레스 장 · BCBS FRTB(2016/2019: ES97.5·스트레스 기간·백테스트 신호등) · BCBS Stress testing principles(2018) — 2차 확인 `[확인 필요: 절 번호, 2026-10-30]`
 - CFA L1 Portfolio Risk and Return I·II · Kelly 1956(성장률, 2차) · Taleb *The Black Swan*(사건 선택 한계)
 - 자체: reports/studies/semis_cap.md(H1 C·H2 A·H3 F) · rule_audit.md(#4 검증전·#6 atr_stop C·#10 검증전) · 리스크 데스크 독립 검증 2026-10-16(비공개, 비율·방법만)

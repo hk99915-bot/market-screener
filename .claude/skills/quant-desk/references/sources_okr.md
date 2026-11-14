@@ -15,7 +15,7 @@
 - #24 [자체] 하루 1분 체크: ① 근거 렌즈 C 이하면 경보로만 ② review_by 경과 ③ 각주 α와 p 직접 비교 ④ §0 커밋이 결과보다 앞서는지.
 
 ## 10년차 기준 (2026-10-23 교육)
-- 체크리스트: ① 문턱은 연구 안 m 이 아니라 **주제 전체 시도 N** 으로 함께 보고(#13·#30), 새 팩터 주장은 t ≥ 3.0 `[논문: Harvey–Liu–Zhu 2016 RFS, #12]` ② 채택 전 Deflated Sharpe·과최적화 확률(PBO) 중 하나를 붙인다 `[논문-B: Bailey & López de Prado 2014(#5), Bailey et al. 2017 PBO]` [확인 필요: PBO 논문 서지(J. Comput. Finance), 2026-10-30] ③ 비용·용량·체결 가정과 OOS 기간을 §0 에 먼저 고정 `[교과서: CFA L2 Quant·AFML 11장]`
+- 체크리스트: ① 문턱은 연구 안 m 이 아니라 **주제 전체 시도 N** 으로 함께 보고(#13·#30), 새 팩터 주장은 t ≥ 3.0 `[논문: Harvey–Liu–Zhu 2016 RFS, #12]` ② 채택 전 Deflated Sharpe·과최적화 확률(PBO) 중 하나를 붙인다 `[논문-B: Bailey & López de Prado 2014(#5), Bailey·Borwein·López de Prado·Zhu 2016 JCF 19(4) DOI 10.21314/jcf.2016.322]` ③ 비용·용량·체결 가정과 OOS 기간을 §0 에 먼저 고정 `[교과서: CFA L2 Quant·AFML 11장]`
 - 격차: 감사 '중' 6건(2회 합 최다 — reports/audit/2026-10-17.json·2026-10-21.json, 등급 꼬리표 누락형)·시도 N 1150 중 등록 전 탐색 748(reports/studies/trial_log.md §0) — 탐색이 등록보다 많다.
 - 드릴 [quant-d1]: trial_log 전체 N 1150 일 때 Bonferroni α 와 accum_signals pen h20(t 3.47) 통과 여부는? — 답·채점 키 `content/drills/quant.json`(라운드 파일에 `드릴: quant-d1 <내 답>` 을 먼저 쓰고 열 것, round_collect 채점 · G1 10/24)
 
