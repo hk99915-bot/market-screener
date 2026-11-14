@@ -1,0 +1,130 @@
+{
+ "schema_version": 1,
+ "purpose": "논문 수집 소스 레지스트리 — 7개 무료 엔드포인트와 데스크 매핑 규칙. papers_ingest.py 가 읽는다. 2026-11-14 실제 접속 시험 결과를 반영.",
+ "updated_at": "2026-11-14",
+ "fetch_defaults": {
+  "timeout_s": 40,
+  "retries": 2,
+  "pause_s": 2.5,
+  "max_new_per_run": 120,
+  "user_agent": "market-screener-papers/1.0 (research ingest; +https://github.com/hk99915-bot/market-screener)"
+ },
+ "desk_map": {
+  "macro": {
+   "label": "매크로·금리·정책",
+   "keywords": ["inflation", "monetary policy", "central bank", "interest rate", "term premium", "yield curve", "fiscal", "recession", "business cycle", "labor market", "exchange rate", "currency", "output gap", "unemployment", "sovereign", "금리", "물가", "통화정책", "재정", "경기", "환율", "금융안정"]
+  },
+  "quant": {
+   "label": "퀀트·팩터·ML",
+   "keywords": ["factor", "cross-section", "anomaly", "predictability", "machine learning", "backtest", "out-of-sample", "alpha", "shrinkage", "overfitting", "data mining", "signal", "팩터", "백테스트", "퀀트"]
+  },
+  "derivs": {
+   "label": "파생·변동성",
+   "keywords": ["option", "implied volatility", "volatility risk premium", "gamma", "futures", "hedging", "variance swap", "straddle", "0dte", "expiration", "옵션", "변동성", "선물", "헤지", "파생"]
+  },
+  "hf": {
+   "label": "고빈도·미시구조",
+   "keywords": ["high-frequency", "intraday", "order book", "market microstructure", "limit order", "tick", "latency", "execution", "liquidity provision", "고빈도", "미시구조", "호가", "체결"]
+  },
+  "allocation": {
+   "label": "자산배분",
+   "keywords": ["asset allocation", "diversification", "portfolio choice", "risk parity", "rebalancing", "optimization", "strategic asset", "target date", "자산배분", "리밸런싱", "분산투자"]
+  },
+  "frm": {
+   "label": "리스크관리",
+   "keywords": ["risk management", "value at risk", "expected shortfall", "drawdown", "tail risk", "stress test", "leverage", "kelly", "position sizing", "리스크", "낙폭", "레버리지", "켈리"]
+  },
+  "behavior": {
+   "label": "행동재무",
+   "keywords": ["behavioral", "investor sentiment", "overreaction", "disposition effect", "attention", "retail investor", "extrapolation", "herding", "행태", "투자심리", "과잉반응", "군집"]
+  }
+ },
+ "sources": [
+  {
+   "id": "arxiv",
+   "label": "arXiv q-fin·econ (Atom API)",
+   "parser": "atom",
+   "url": "https://export.arxiv.org/api/query?search_query=cat:q-fin.PM+OR+cat:q-fin.TR+OR+cat:q-fin.ST+OR+cat:q-fin.GN+OR+cat:q-fin.MF+OR+cat:econ.GN&sortBy=submittedDate&sortOrder=descending&max_results=60",
+   "max_items": 60,
+   "venue": "arXiv",
+   "fulltext": "free_pdf",
+   "desks": ["quant", "derivs", "hf"],
+   "verified": "2026-11-14 200 · Atom XML · 초록 포함 · 키 없음",
+   "note": "철회 탐지: 제목 'Withdrawn' 접두 + arxiv:comment 의 withdrawn/retracted."
+  },
+  {
+   "id": "nber",
+   "label": "NBER Working Papers (RSS)",
+   "parser": "rss_nber",
+   "url": "https://back.nber.org/rss/new.xml",
+   "max_items": 50,
+   "venue": "NBER Working Paper",
+   "fulltext": "free_pdf",
+   "desks": ["macro", "quant", "allocation"],
+   "verified": "2026-11-14 200 · RSS · www.nber.org 는 301 → back 도메인 직결"
+  },
+  {
+   "id": "fed_feds",
+   "label": "Fed FEDS (RSS)",
+   "parser": "rss_fed",
+   "url": "https://www.federalreserve.gov/feeds/feds.xml",
+   "max_items": 50,
+   "venue": "FEDS Working Paper",
+   "fulltext": "free_pdf",
+   "desks": ["macro", "frm", "quant"],
+   "verified": "2026-11-14 200 · RSS 28KB · 저자 링크 + 초록 포함"
+  },
+  {
+   "id": "bis_repec",
+   "label": "BIS Working Papers — RePEc 미러 (HTML 목록)",
+   "parser": "html_repec",
+   "url": "https://ideas.repec.org/s/bis/biswps.html",
+   "max_items": 40,
+   "venue": "BIS Working Paper",
+   "fulltext": "free_pdf",
+   "desks": ["macro", "frm"],
+   "verified": "2026-11-14 200 · HTML · BIS 자체 RSS·RePEc RSS 경로는 404 → 목록 HTML 파싱",
+   "note": "연도 <h3>·번호·제목·저자(& 구분)만 제공, 초록 없음."
+  },
+  {
+   "id": "bok",
+   "label": "한국은행 조사연구자료 (RSS)",
+   "parser": "rss",
+   "max_items": 40,
+   "venue": "한국은행 조사연구자료",
+   "fulltext": "free_pdf",
+   "desks": ["macro", "frm"],
+   "verified": "2026-11-14 200 · RSS 3계열 접속 확인 · 목록 HTML(menuNo=200761)은 JS 렌더라 RSS 우선",
+   "feeds": [
+    {"url": "https://www.bok.or.kr/portal/bbs/B0000257/news.rss?menuNo=200327", "venue": "한국은행 금융안정 조사연구자료"},
+    {"url": "https://www.bok.or.kr/portal/bbs/B0000233/news.rss?menuNo=200707", "venue": "한국은행 통계연구자료"},
+    {"url": "https://www.bok.or.kr/portal/bbs/B0000232/news.rss?menuNo=200706", "venue": "한국은행 지급결제 조사연구자료"}
+   ]
+  },
+  {
+   "id": "kcmi",
+   "label": "자본시장연구원(KCMI) 보고서 (HTML 목록)",
+   "parser": "html_kcmi",
+   "url": "https://www.kcmi.re.kr/report/report_list",
+   "max_items": 30,
+   "venue": "KCMI 보고서",
+   "fulltext": "free_pdf",
+   "desks": ["allocation", "macro", "derivs"],
+   "verified": "2026-11-14 200 · HTML 54KB · rpt_title/em(저자·날짜)/p.txt(초록) 구조 확인",
+   "note": "보고서 번호는 onclick viewpage(<no>) 에서 얻어 report_view?report_no=<no> 로 연결."
+  },
+  {
+   "id": "crossref",
+   "label": "Crossref REST — 최근 금융·경제 저널 (JSON)",
+   "parser": "json_crossref",
+   "url": "https://api.crossref.org/works?filter=from-pub-date:{since},type:journal-article&query.bibliographic=stock%20returns%20portfolio%20anomaly%20volatility&rows=25&select=DOI,title,author,issued,container-title,type,URL,abstract,updated-by,update-to,relation&mailto=market-screener@users.noreply.github.com",
+   "mailto": "market-screener@users.noreply.github.com",
+   "max_items": 25,
+   "venue": "Crossref",
+   "fulltext": "unknown",
+   "desks": ["quant", "macro"],
+   "verified": "2026-11-14 200 · JSON · 429 다발 → 2.5s 간격·지수 backoff 필수",
+   "note": "서지 해석의 主 소스. updated-by/relation 의 retraction 신호를 철회 플래그로 쓴다. {since} 는 수집일 −30일(YYYY-MM-DD)."
+  }
+ ]
+}

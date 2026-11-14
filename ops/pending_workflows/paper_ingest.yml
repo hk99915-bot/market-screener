@@ -1,0 +1,54 @@
+# ⚠️ 이 파일은 `ops/pending_workflows/` 에 있는 '대기본'이다 — 실행되지 않는다.
+# 옮기는 방법(사람 1회, 5초): 머지 후 `git mv ops/pending_workflows/paper_ingest.yml .github/workflows/paper_ingest.yml` → 커밋·푸시.
+# 이유: 이 PR 을 올린 자동화 자격(Pickle GitHub App)에 `workflows` 권한이 없어 `.github/workflows/` 쓰기가 403 으로 막혔다.
+#   (git push: "refusing to allow a GitHub App to create or update workflow ... without `workflows` permission")
+#   App 설치 설정에서 Workflows 권한을 켜면 다음부터는 자동화가 직접 올릴 수 있다.
+#
+name: paper_ingest
+
+# 논문 수집 파이프라인 1단계 (결정론 Python·LLM 없음) — 토 18:00 UTC = 일 03:00 KST 주 1회.
+# 7소스(arXiv·NBER·Fed FEDS·BIS RePEc·한국은행·KCMI·Crossref) 수집 → DOI/arXiv/제목해시 중복 제거 → 점수·철회 플래그 → content/papers/index.json.
+# 이 잡은 네트워크를 쓰는 유일한 문헌 잡이다. pytest·slop-audit(tests.yml)은 캐시·장부만 읽는다.
+# 수동 실행은 기본 읽기 전용(commit=false) — 결정 C: 수동 실행이 예약 산출물을 덮어쓰지 않게.
+# 롤백: 이 워크플로 비활성화 + content/papers/ 삭제. 다른 파이프라인은 이 경로를 읽지 않는다.
+on:
+  schedule:
+    - cron: "0 18 * * 6"
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "true 일 때만 결과 커밋 (기본 false = 읽기 전용)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: papers
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 수집 (7소스 → content/papers/index.json)
+        run: python3 scripts/papers_ingest.py
+      - name: 가드 (장부·lit 서지·철회·길이)
+        run: python3 scripts/paper_lit_check.py --ci
+      - name: 저장
+        if: success() && (github.event_name != 'workflow_dispatch' || inputs.commit == 'true')
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "screener-bot@users.noreply.github.com"
+          git add content/papers/index.json
+          git diff --cached --quiet && { echo "변경 없음"; exit 0; }
+          git commit -m "papers: 주간 수집 $(date -u +%F) [운영] index.json"
+          ok=0
+          for i in 1 2 3 4; do git pull --rebase -X theirs origin main && git push && { ok=1; break; }; git rebase --abort 2>/dev/null || true; sleep $((i*5)); done
+          [ $ok = 1 ] || { echo "::warning::푸시 실패 — 이번 주 색인이 저장되지 않음"; exit 1; }
