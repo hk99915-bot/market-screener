@@ -344,6 +344,19 @@ def test_crossref_retraction_flag_rejects(tmp_path):
     assert bad["withdraw_flag"] is True and bad["status"] == "rejected"
 
 
+def test_same_run_duplicate_propagates_withdrawal(tmp_path):
+    """같은 실행 안에서 두 번째 소스가 철회 신호를 주면 병합된 항목도 즉시 폐기돼야 한다."""
+    doc = json.loads(CROSSREF_JSON)
+    doc["message"]["items"] = doc["message"]["items"][:1]
+    doc["message"]["items"][0]["updated-by"] = [{"type": "retraction", "DOI": "10.1111/jofi.99999"}]
+    sources = [_src("arxiv", "atom", "https://ex.test/arxiv"), _src("crossref", "json_crossref", "https://ex.test/crossref")]
+    _run(tmp_path, sources, {"ex.test/arxiv": ARXIV_DOI_XML, "ex.test/crossref": json.dumps(doc)})
+    doc_idx = json.loads((tmp_path / "index.json").read_text(encoding="utf-8"))
+    rec = next(p for p in doc_idx["papers"] if p["key"] == "doi:10.1111/jofi.13000")
+    assert rec["source"] == ["arxiv", "crossref"]
+    assert rec["withdraw_flag"] is True and rec["status"] == "rejected" and rec["score"] <= -100
+
+
 def test_score_thresholds_high_and_low(tmp_path):
     _run(tmp_path, [_src("arxiv", "atom", "https://ex.test/arxiv"),
                     _src("kcmi", "html_kcmi", "https://ex.test/kcmi", fulltext="free_pdf")],
@@ -468,6 +481,15 @@ def test_lit_check_warns_on_missing_field(tmp_path):
 def test_lit_check_blocks_citing_withdrawn_paper(tmp_path):
     root = _lit_root(tmp_path, [_paper(withdraw_flag=True, withdraw_reason="공저자 데이터 불일치",
                                        status="rejected", score=-100)])
+    assert lit.main(["--root", str(root), "--ci"]) == 1
+    assert any("철회" in f["msg"] for f in lit.check(root) if f["level"] == "error")
+
+
+def test_lit_check_blocks_arxiv_url_citation_of_withdrawn(tmp_path):
+    paper = _paper(key="arxiv:2611.00001", doi=None, arxiv_id="2611.00001", withdraw_flag=True,
+                   withdraw_reason="공저자 데이터 불일치", status="rejected", score=-100)
+    card = GOOD_CARD.replace("· DOI 10.3905/jpm.2014.40.5.094", "· arXiv https://arxiv.org/abs/2611.00001")
+    root = _lit_root(tmp_path, [paper], card)
     assert lit.main(["--root", str(root), "--ci"]) == 1
     assert any("철회" in f["msg"] for f in lit.check(root) if f["level"] == "error")
 

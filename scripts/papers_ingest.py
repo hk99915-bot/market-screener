@@ -529,6 +529,18 @@ def fetch_source(source: dict, *, fetcher, defaults: dict, since: str) -> tuple[
 
 
 # ── index 갱신 ──────────────────────────────────────────────────────
+def apply_withdraw(cur: dict, item: dict, rules: dict, desk_map: dict) -> bool:
+    """이미 장부·대기열에 있는 항목에 새 철회 신호가 오면 플래그를 세우고 점수·상태를 다시 매긴다(소스 간 병합 공통)."""
+    if not item.get("withdraw_flag") or cur.get("withdraw_flag"):
+        return False
+    cur["withdraw_flag"], cur["withdraw_reason"] = True, item.get("withdraw_reason")
+    score, status, reasons, _desk, _hits = score_item(cur, rules, desk_map)
+    cur.update(score=score, status=status,
+               reasons=reasons + [{"rule": "withdraw_note", "points": 0,
+                                   "why": f"수집 중 철회 신호 발견: {item.get('withdraw_reason')}"}])
+    return True
+
+
 def run(*, sources_path=SOURCES_PATH, rules_path=RULES_PATH, index_path=INDEX_PATH,
         fetcher=None, now: datetime | None = None, max_new: int | None = None,
         only: list[str] | None = None, dry_run: bool = False, log=print) -> dict:
@@ -567,17 +579,15 @@ def run(*, sources_path=SOURCES_PATH, rules_path=RULES_PATH, index_path=INDEX_PA
                 if src["id"] not in cur["source"]:
                     cur["source"].append(src["id"])
                     skipped += 1
-                if item["withdraw_flag"] and not cur["withdraw_flag"]:
-                    cur["withdraw_flag"], cur["withdraw_reason"] = True, item["withdraw_reason"]
-                    score, status, reasons, desk, _ = score_item(cur, rules, desk_map)
-                    cur.update(score=score, status=status, reasons=reasons + [{"rule": "withdraw_note", "points": 0,
-                                                                               "why": f"수집 중 철회 신호 발견: {item['withdraw_reason']}"}])
+                if apply_withdraw(cur, item, rules, desk_map):
                     refreshed += 1
                 continue
             if key in pending:
-                if src["id"] not in pending[key]["source"]:
-                    pending[key]["source"].append(src["id"])
+                cur = pending[key]
+                if src["id"] not in cur["source"]:
+                    cur["source"].append(src["id"])
                     skipped += 1
+                apply_withdraw(cur, item, rules, desk_map)   # 같은 실행에서도 철회 신호는 합친다
                 continue
             pending[key] = item
         statuses[src["id"]] = st

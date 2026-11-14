@@ -42,7 +42,7 @@ FIELDS = ("결론", "한계", "적용", "뒤집힐 조건")
 PENDING_RE = re.compile(r"\[확인\s*필요(:?)([^\]]*)\]")
 DATE_RE = re.compile(r"20\d\d-\d\d-\d\d")
 DOI_RE = re.compile(r"10\.\d{4,9}/[^\s·,;)\]]+")
-ARXIV_RE = re.compile(r"(?:arxiv[:\s]*)(\d{4}\.\d{4,5})", re.I)
+ARXIV_RE = re.compile(r"(?:arxiv[:\s]+|arxiv\.org/(?:abs|pdf)/)(\d{4}\.\d{4,5})", re.I)
 SOURCE_HINT_RE = re.compile(r"doi|arxiv|https?://|NBER|FEDS|BIS|RePEc|KCMI|한국은행|Crossref|JEL|NBER|SSRN", re.I)
 PATH_RE = re.compile(r"(?<![\w/.:-])((?:[\w.-]+/)+[\w.-]+\.(?:md|py|json|csv|yml|yaml|parquet))")
 
