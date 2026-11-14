@@ -1874,18 +1874,26 @@ def _v2_build_us(out: dict, k: dict, p: dict, cal: list[dict], today: date) -> N
             reg.get("line") or "레짐 데이터 없음", _lens(_j("views.json", {}) or {}, "committee_ideas")["grade"], GRADE_W)
     except Exception as e:  # noqa: BLE001
         log.warning("미장 ideas_top 실패: %s", e)
-    try:
-        it = out.get("ideas_top") or {}
-        watch = {str(x.get("s")) for x in (it.get("items") or []) + (it.get("candidates") or [])} | {x["s"] for x in (out.get("ideas") or {}).get("long", [])}
-        out["bottom_line"] = _mock_gate(U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US, watch), it)
-    except Exception as e:  # noqa: BLE001
-        log.warning("미장 v2 bottom_line 실패: %s", e)
-    try:   # 매매 계획 표준(trade plan) — 미장 TOP3·시그널 카드·헤지·'할 일' 줄
+    try:   # 매매 계획 표준(trade plan) — bottom_line 보다 먼저(계획 판정이 '실행 후보' 자격을 정한다)
         from . import tradeplan
         tradeplan.attach(out, "US", today)
     except Exception as e:  # noqa: BLE001
         out["tradeplan"] = {"error": f"{type(e).__name__}: {e}"}
         log.warning("미장 trade plan 부착 실패: %s", e)
+    try:   # 계획 판정이 '채택'이 아니면 실행 후보에서 내린다 — 촉매만 채워진 저E[R] 제안의 모의 체결 금지
+        n_dem = U.apply_plan_gate(out.get("ideas_top") or {})
+        if n_dem:
+            log.info("미장 계획 게이트: 실행 후보 %d건 → 대기", n_dem)
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 계획 게이트 실패: %s", e)
+    try:
+        it = out.get("ideas_top") or {}
+        watch = {str(x.get("s")) for x in (it.get("items") or []) + (it.get("candidates") or [])} | {x["s"] for x in (out.get("ideas") or {}).get("long", [])}
+        out["bottom_line"] = _mock_gate(U.bottom_line_us(out, k, prev, cal, today, LIGHTS, V2_FOOTER_US, watch), it)
+        from . import tradeplan as _tp
+        _tp.add_bottom_line_plan(out)   # 계획 줄은 최종 status 반영 뒤에 붙인다
+    except Exception as e:  # noqa: BLE001
+        log.warning("미장 v2 bottom_line 실패: %s", e)
     _top_attach(out, "US")
     _hf_attach(out, "US")
     try:

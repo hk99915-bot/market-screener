@@ -8,7 +8,8 @@ from __future__ import annotations
 import copy
 import json
 import math
-from datetime import datetime
+from datetime import date, datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 from .config import REPORT_DIR, DATA_DIR
 from .tradecal import us_open_hhmm
@@ -33,6 +34,40 @@ KR_FINAL_FROM = "15:45"
 US_OPEN_KST = "22:30"   # 여름(EDT) 기준 설명용 — 판정은 us_open_hhmm(날짜)(겨울 23:30, 서머타임 대응 10/30)
 SCHEMA = ("행 키: id · date · ticker(종목코드 — code 키는 없음, 원본 안에서는 original.s) · market(없으면 KR) · name · "
           "proposed_at(기록한 확정판 asof) · captured_at · original(확정판 원본, 불변) · state(채점) · note(사후 주석, 원본 아님)")
+
+
+def load_book(path=None) -> dict:
+    """reports/idea_tracking.json 읽기(없거나 깨짐 = 빈 책). 중복 제안 검사·기록용 — 읽기 실패가 회의 생성을 막지 않는다."""
+    try:
+        return json.loads(Path(path or REPORT_DIR / "idea_tracking.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"rows": []}
+
+
+def recent_entries(book, market, today, days) -> dict:
+    """{ticker: 마지막 '실행' 제안일} — today 앞 days 달력일 안. 같은 종목 1표본(중복 진입 방지) 규칙용.
+
+    대상 = 당시 실행 상태였거나(original.status '실행…') 실제 진입한 행(entry_date). 대기였던 제안은 세지 않는다
+    (미진입 제안은 다시 올려도 새 표본이다). 오늘 행은 빼서 같은 날 재생성이 스스로를 막지 않게 한다.
+    """
+    lo = today - timedelta(days=days)
+    out: dict = {}
+    for r in (book or {}).get("rows") or []:
+        if _mk(r) != market or not r.get("ticker"):
+            continue
+        try:
+            d = date.fromisoformat(str(r.get("date"))[:10])
+        except ValueError:
+            continue
+        if not (lo <= d < today):
+            continue
+        orig, st = r.get("original") or {}, r.get("state") or {}
+        if not (str(orig.get("status", "")).startswith("실행") or st.get("entry_date")):
+            continue
+        code = str(r["ticker"])
+        if out.get(code) is None or out[code] < str(r["date"]):
+            out[code] = str(r["date"])
+    return out
 
 
 def capture(book, meeting, now, market="KR"):

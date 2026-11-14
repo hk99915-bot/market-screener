@@ -495,6 +495,26 @@ def hedge_plan(h: dict, asym: dict | None) -> dict:
 
 # ───────────── 운용회의 부착 + 문구 가드 ─────────────
 
+def add_bottom_line_plan(o: dict) -> None:
+    """bottom_line '할 일' 줄에 TOP1 계획 요약을 붙인다(계획 없으면 '계획 없음' 문구).
+
+    attach 가 호출한다. 미장(committee._v2_build_us)은 계획을 bottom_line 보다 먼저 붙이고 게이트를 건 뒤
+    bottom_line 을 만들므로, 그 뒤에 이 함수를 한 번 더 부른다 — '계획(' 문구가 이미 있으면 중복으로 붙이지 않는다.
+    """
+    it = o.get("ideas_top") or {}
+    bl = o.get("bottom_line") or {}
+    if not bl.get("lines"):
+        return
+    top = next((x for x in (it.get("items") or []) if x.get("plan")), None)
+    L = bl["lines"]
+    add = (f" | 계획(TOP1 {top.get('n')}): " + top["plan"]["line"]) if top else " | 계획: TOP3 계획 없음 — 매수·편입 문구 없음"
+    i = next((k for k, s in enumerate(L) if "할 일" in str(s)), None)
+    if i is None:
+        L.append(add.strip(" |"))
+    elif "계획(" not in L[i] and "계획:" not in L[i]:
+        L[i] = L[i] + add
+
+
 def attach(o: dict, market: str = "KR", today: date | None = None, calib: dict | None = None) -> dict:
     """committee 산출물 o 의 ideas_top(items·candidates)·stance.exec.cands·sim_fresh·hedges 에 plan, bottom_line '할 일' 에 계획 줄.
     반환 요약 {n_plans, n_adopt, ctx}. 실패한 종목은 plan_error 로 남긴다(조용한 누락 금지)."""
@@ -530,17 +550,7 @@ def attach(o: dict, market: str = "KR", today: date | None = None, calib: dict |
     hd = o.get("hedges") or {}
     for h in hd.get("hedges") or []:
         h["plan"] = hedge_plan(h, hd.get("asymmetry"))
-    bl = o.get("bottom_line") or {}
-    items = it.get("items") or []
-    top = next((x for x in items if x.get("plan")), None)
-    if bl.get("lines"):
-        L = bl["lines"]
-        add = (f" | 계획(TOP1 {top.get('n')}): " + top["plan"]["line"]) if top else " | 계획: TOP3 계획 없음 — 매수·편입 문구 없음"
-        i = next((k for k, s in enumerate(L) if "할 일" in str(s)), None)
-        if i is None:
-            L.append(add.strip(" |"))
-        elif "계획(" not in L[i] and "계획:" not in L[i]:
-            L[i] = L[i] + add
+    add_bottom_line_plan(o)
     o["tradeplan"] = {"v": 1, "n_plans": n, "n_adopt": n_ok, "ctx": ctx, "calib_asof": (calib or {}).get("asof"),
                       "spec": "reports/studies/2026-10-21_tradeplan_spec.md", "mock": True}
     guard_buy_text(o)

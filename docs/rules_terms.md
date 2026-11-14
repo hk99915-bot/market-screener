@@ -74,6 +74,10 @@
 | 대결 당일 쿨다운 | 그날(KST) ops/cooldown.json 실계좌 매도·포상 뒤 또는 '나' 판 손실 확정 뒤(국장 픽은 직전 거래일 국장 판 포함) → 남은 '나' 픽은 현금·비레버리지·비반도체만 '나', 어기면 '나🔥' (겸이 10/23 결재 ②) | KST 날짜 · 확정 = 채점 detail 의 청산 시각 | `pick_gate.py` `day_cooldown` | 대결 확인 메시지·성적표 ✅ | ✅ |
 | 금지일 (서킷·사이드카·CPI·FOMC) | 국장 발동 당일 / 발표 시각이 속한 KST 날짜의 국장; 위성 북 신규 매수에만, ISA 정기 매수 예외 | `reports/events.json`, `reports/calendar.json` | `ticket.py:_halt_today/_macro_today` | 주문표 거부 ✅ | ⚠️ KST 날짜·ISA 적용 여부 |
 | 순자산 목표 진행률 | 가계부 순자산(D4) ÷ 목표(금액은 비공개) | D4 · 월말 | 비공개 `life/summary.json` | 성적표 ✅ | ✅ |
+| 미장 촉매 (실적 예정일 창) | 미장 아이디어의 진입 자격 중 촉매 1종 = 실적 발표 예정일이 오늘부터 14일 안(양끝 포함). 원천 = `reports/calendar.json` 실적 이벤트(US_EARN 30종목) + `reports/earnings_cal.json`(야후 추정일, 반도체 바스켓 49종목), 같은 날짜는 1건 | 오늘(KST) ~ +14일 / 캘린더 기준일 = 파일 `asof` | `us_catalyst.py:earnings` (`US_EARN_DAYS`) | `tests/test_us_catalyst.py` | ✅ 신규(11/14) |
+| 미장 촉매 (EPS 추정 상향) | 미장 아이디어의 진입 자격 중 촉매 1종 = 애널 EPS 컨센 30일 변화율 ≥ +2% 이고 상향 리비전 수 > 하향, 올해, 내년 두 기간이 서로 엇갈리지 않음. 스냅숏이 7일보다 낡으면 촉매로 안 씀. 국장 '목표가↑' 의 미장 대응물(미장 애널 목표가 원천 없음) | 30일 창 / `reports/us_eps.json` 의 `asof`(KST) / 값 = yfinance eps_trend chg30 | `us_catalyst.py:eps_up` (`US_EPS_UP_30`, `US_EPS_MAX_AGE_DAYS`) | `tests/test_us_catalyst.py` | ✅ 신규(11/14) / 문턱은 검증전 |
+| 미장 중복 제안 금지 | 미장 진입 후보의 실행 자격 중 하나 = 같은 종목이 앞선 10달력일 안에 '실행' 제안이었거나 실제 진입했으면 다시 '실행 후보'로 올리지 않음(상태 = '대기 — 중복 제안'). 같은 날 재생성은 같은 제안으로 보아 세지 않음. 목적 = 같은 종목 매일 재진입으로 표본이 1건처럼 부풀 는 것 방지 | 앞선 제안일 ~ 오늘 전날 / `reports/idea_tracking.json` 행(original.status, state.entry_date) | `idea_tracking.py:recent_entries` + `us_committee.py:ideas_top_us` (`US_REPROPOSE_DAYS`) | `tests/test_us_catalyst.py` | ✅ 신규(11/14) |
+| 미장 실행 후보 자격 | 미장 '실행 후보' = 촉매 + 확신 중간 이상 + 시장 게이트 통과 + 종가 ≥ 50일선 + **매매 계획 판정 '채택(모의)'**. 계획이 보류, 관찰(E[R] ≤ 무조건 기준선)이거나 없으면 '대기 — 계획 …' 으로 내림 — 촉매가 채워졌다는 이유만으로 모의 체결하지 않음 | 계획 판정 = `tradeplan.build_plan` verdict / E[R] 기준선 = 같은 칸 무조건 표본 `base_ev_r` | `us_committee.py:apply_plan_gate` (`US_PLAN_ADOPT`, 호출부 `committee._v2_build_us`) | `tests/test_us_catalyst.py` | ✅ 신규(11/14) |
 
 ## 2. 새 규칙을 넣을 때 (체크리스트)
 
