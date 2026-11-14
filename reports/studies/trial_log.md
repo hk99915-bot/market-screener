@@ -70,7 +70,7 @@
 | 2026-11-12_score_calib |  | score_calib | 18 | prereg.m | 0.00278 | — | B1 C1 F16 | 1단계 B 1(R60_KR −2.55%p p 0.0024)·C 1(T60_KR)·F 16 — Trend·Momentum 구간은 KR·US 5/20일 이후 초과수익을 못 가름. 실행 중 NaN 점수 B5 오분류(US 179행) 수정 후 재실행(등급 불변). 2단계 제거 실험은 별도 사전등록 |
 | 2026-11-12_sim_oos |  | trend_sim | 10 | prereg.m | 0.005 | — | C(역방향)2 F8 | H1~H5 × KR·US 10개 중 F 8 · C(역방향) 2(US 이평·PSAR 롱이 보유보다 OOS 월 −0.94%p·−0.90%p). KR 이평 −0.36%p·PSAR −0.06%p(F), 켜짐 알림(기대값·Wilson)·250일 성적 지속성 F → 종목 상세 시뮬 성적은 표본외 근거 없음, 알림 C·참고 유지 |
 | 2026-11-14_night_gap_guard | 2026-11-14 | night_gap | 2 | prereg.m | 0.025 | — | F1 검증전1 | H1 검증전(IS 4건)·H2 F — 갭 반납률 64.7% vs 9.0%(Fisher 3.1e-06)이나 시초→종가 손익 −0.22% vs +0.20%(p 0.313) |
-| 2026-11-14_op_ni_divergence | 2026-11-14 | fundamental_divergence | 2 | prereg.m | 0.025 | — | A1 C1 | H1 C(573건 +0.85%p p 0.086, 유동성 짝 p 0.221) · H2 A(−1.37%p p 1e-05, 단 IS 0·OOS 편중) → 실계좌 반영 없음, H2는 검증·모의 단계 |
+| 2026-11-14_op_ni_divergence | 2026-11-14 | fundamental_divergence | 2 | prereg.m | 0.025 | — | A1 C1 | H1 C(573건 +0.85%p p 0.086, 유동성 짝 p 0.221) · H2 A(−1.37%p p 3.8e-05, 단 IS 0·OOS 편중) → 실계좌 반영 없음, H2는 검증·모의 단계 |
 | 2026-11-14_vrp_rebound_filter | 2026-11-14 | crash_entry | 2 | prereg.m | 0.025 | — | A1 F1 | H1 F — VRP>0 5일 +0.54% vs VRP≤0 −0.08%(p 0.163), IS·OOS 모두 미달. 사건 정의(−2% 단일 급락일)로 바꾸면 부호 반전 |
 | accum_signals | 2026-10-28 | kr_accum | 24 | m | 0.00208 | — | — | pen(연기금 20일 상위10%) h20·h60 만 Bonferroni 통과(t 3.47·3.61). 나머지 accum·diverge·dryexp F, fstreak·istreak·both3·accum60 일부 C. KOSPI 대비 초과는 전부 음(대형주 랠리) → 절대수익 신호 아님 |
 | crash_rebound |  | crash_entry | — | 미등록 | — | — | — | 검정 없음(서술 표) — 가설 생성용 |
