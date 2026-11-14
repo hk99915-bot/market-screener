@@ -39,6 +39,7 @@
 19. [논문 vs 자체연구] **통화 헤지의 교과서 답:** 비미국 주식 투자자에겐 달러가 위기 때 오르는 '안전 통화'라 주식 포트에선 달러를 헤지하지 않고 오히려 더 갖는 쪽이 위험을 줄인다(Campbell, Serfaty-de Medeiros & Viceira 2010). 우리 데이터: 2011~2026 월간에서 원화 금이 환헤지 금보다 연복리 +2.5%p, 2022형 코어 낙폭 0.3%p 얕음 — 교과서와 같은 방향. 그러나 2026-07(한국 주도 급락 + 원화 강세)에선 반대로 0.4%p 졌다. 따름: 환헤지 여부는 '어느 유형의 위기에 대비하나'의 선택이고, 표본 1건으로 바꾸지 않는다(뒤집는 조건: 원화 강세 중 K200 −20% 이상 사건 2회째). `[확인 필요: 논문 권·호·결론 문장 원문 대조, 2026-10-30까지]`
 
 ## 출처
+- 문헌: 데스크별 논문 카드는 `docs/desk_kb/lit/allocation.md`, 후보 원장은 `content/papers/index.json` — 인용할 때 카드의 '한계·뒤집힐 조건'을 함께 읽는다.
 - Brinson, G. P., Hood, L. R. & Beebower, G. L. (1986) "Determinants of Portfolio Performance", *Financial Analysts Journal* 42(4).
 - Ibbotson, R. G. & Kaplan, P. D. (2000) "Does Asset Allocation Policy Explain 40, 90, or 100 Percent of Performance?", *Financial Analysts Journal* 56(1).
 - Campbell, J. Y., Serfaty-de Medeiros, K. & Viceira, L. M. (2010) "Global Currency Hedging", *Journal of Finance* 65(1). (기억 기반 서지, 2026-10-23, 네트워크 미사용)

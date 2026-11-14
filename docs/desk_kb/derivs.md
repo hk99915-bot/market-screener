@@ -59,6 +59,7 @@
 - 실계좌 선물·옵션은 ~2027-04-15 불가(결재 합의). 진입 자격 로드맵은 비공개 저장소 초안(결재 아님).
 
 ## 출처
+- 문헌: 데스크별 논문 카드는 `docs/desk_kb/lit/derivs.md`, 후보 원장은 `content/papers/index.json` — 인용할 때 카드의 '한계·뒤집힐 조건'을 함께 읽는다.
 - Hull, *Options, Futures, and Other Derivatives* 11판: 3장(헤지·베이시스 리스크·최소분산 비율·지수선물 헤지 §3.5), 5장(cost of carry), 10장(옵션시장·OI), 15장(변동성 연율화), 19장(그릭스·감마·델타 헤지 재조정).
 - CFA L1 Derivatives: Arbitrage, Replication and the Cost of Carry · Pricing and Valuation of Futures · Put-Call Parity.
 - KRX 파생상품시장 업무규정·상품 명세(승수·최종거래일·사이드카) — 2026-10-16 WebSearch 로 2차 자료 확인, 원문 조항 `[확인 필요: 원문 대조, 2026-10-30]`.

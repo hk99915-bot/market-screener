@@ -15,6 +15,7 @@
 
 ## 파일
 - `<desk>.md` — 데스크별 KB. 섹션: 정의 / 공식(쉬운 숫자 예시) / 현업 vs 교과서 / 흔한 오해 / 터미널에서 보는 자리 / 우리 연구와의 차이 / 출처 / 복기
+- 문헌(lit) 계층: `lit/README.md` — 데스크별 논문 카드 6개(`lit/macro.md`·`lit/quant.md`·`lit/derivs.md`·`lit/hf.md`·`lit/frm.md`·`lit/allocation.md`). 후보 원장은 `content/papers/index.json`(점수·폐기 사유·철회 플래그). 브리핑·운용회의 에이전트도 문헌 인용은 이 카드에서만 하고, 카드의 '한계·뒤집힐 조건'을 함께 읽는다 — 수집·선별·검사는 `scripts/paper_lit_check.py --ci`(수집은 `.github/workflows/paper_ingest.yml`)
 - 전략 라이브러리: `strategy_library/README.md` — 헤지펀드·자산운용 전략 66장(주식·매크로/파생·크레딧/이벤트·운용 체계), 데스크별 바로가기·확인 태그(11/3 교육)
 - 공통 문서: `ORG.md`(조직도) · `PERSONAS.md`(데스크 성격 프로필, 기록 데스크 관리) · `CHARACTERS.md`(누나 캐릭터 시트 — 창작, 판단 근거 아님) · `LOOP.md`(데스크 루프) · `STANDARD.md`(현업급 기준) · `_scoreboard.md`(데스크 성적) · `rounds/`(라운드 기록)
 - 2026-10-17 추가 KB 5개: `allocation.md` · `scribe.md` · `eval.md` · `household.md` · `life.md` (기존 산출물에서 일반 지식만, 복기 빈 절)
@@ -24,6 +25,7 @@
 ## 규칙
 - 자체연구를 인용할 때는 반드시 등급을 같이 쓴다 (검증전 결과를 확정처럼 쓰지 않는다).
 - 교과서와 자체연구가 다르면 '차이' 섹션에 둘 다 적고, 어느 쪽을 왜 따르는지 적는다.
+- 문헌 인용은 `docs/desk_kb/lit/<desk>.md` 카드로만 한다 — 카드에 없는 논문을 기억으로 인용하지 않는다(`quant.md` 의 PBO 서지처럼 서지가 비어 있던 항목은 lit 카드로 닫는다).
 - 교육 데스크는 KB 항목을 모듈 sources[]로 인용한다 (`kb:derivs#basis`).
 
 ## 데스크 성장 루프 (2026-10-16)

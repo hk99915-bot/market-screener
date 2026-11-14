@@ -90,6 +90,7 @@ HF = 헤지펀드 운용역 출신 누나(실존 인물 흉내 금지 — 원칙
 - 10/21 첫 업무(보드 hf-alphabook): 사전등록 #5 → 알파북 엔진(tests/test_alphabook.py) → 운용회의 `hf` 블록·텔레그램. 이후 상태는 reports/alphabook.json·reports/hf_discretion.json 이 원본.
 
 ## 출처
+- 문헌: 데스크별 논문 카드는 `docs/desk_kb/lit/hf.md`, 후보 원장은 `content/papers/index.json` — 인용할 때 카드의 '한계·뒤집힐 조건'을 함께 읽는다.
 - Grinold & Kahn, *Active Portfolio Management*, 2nd ed., 2000 — IR·기본법칙
 - George & Hwang, "The 52-Week High and Momentum Investing", *Journal of Finance* 59(5), 2004 — B1 근거 문헌
 - 자체: reports/studies/2026-10-21_tradeplan_spec.md, screener/tradeplan.py, reports/studies/2026-10-21_alpha_sources.md

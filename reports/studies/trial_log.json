@@ -303,6 +303,18 @@
    "unregistered_trials": 0,
    "unregistered_note": "사전등록 §0(결과 전 커밋) 그대로. 사전 노출: signal_scores.json trend_score 5일 IC(2025-10~, 표본 3개월 겹침)만",
    "discarded": "1단계 B 1(R60_KR −2.55%p p 0.0024)·C 1(T60_KR)·F 16 — Trend·Momentum 구간은 KR·US 5/20일 이후 초과수익을 못 가름. 실행 중 NaN 점수 B5 오분류(US 179행) 수정 후 재실행(등급 불변). 2단계 제거 실험은 별도 사전등록"
+  },
+  "2026-11-14_vrp_rebound_filter": {
+   "topic": "crash_entry",
+   "question": "반등 구간에서 VRP(IV²−RV20²) 부호가 진입 성과를 가르나",
+   "unregistered_trials": 0,
+   "discarded": "H1 F — VRP>0 5일 +0.54% vs VRP≤0 −0.08%(p 0.163), IS·OOS 모두 미달. 사건 정의(−2% 단일 급락일)로 바꾸면 부호 반전"
+  },
+  "2026-11-14_night_gap_guard": {
+   "topic": "night_gap",
+   "question": "야간선물 갭과 시초 갭의 괴리로 시초 추격을 보류해야 하나",
+   "unregistered_trials": 0,
+   "discarded": "H1 검증전(IS 4건)·H2 F — 갭 반납률 64.7% vs 9.0%(Fisher 3.1e-06)이나 시초→종가 손익 −0.22% vs +0.20%(p 0.313)"
   }
  },
  "trials": [
