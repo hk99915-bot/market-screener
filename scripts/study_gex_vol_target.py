@@ -40,7 +40,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from screener import gex_vol_target as gv  # noqa: E402
-from screener.vrp_filter import realized_vol  # noqa: E402
+from screener.vrp_filter import TRADING_DAYS, realized_vol  # noqa: E402
 
 CSV = ROOT / "data" / "deriv" / "daily.csv"
 OUT = ROOT / "reports" / "studies" / "2026-11-14_gex_vol_target.json"
@@ -90,6 +90,13 @@ def _perf(bt: dict, mask: np.ndarray) -> dict:
         p["avg_w"] = _r(float(np.mean(bt["held"][m])), 4)
         p["time_in_mkt"] = _r(float(np.mean(bt["held"][m] > 0.02)), 3)
     return p
+
+
+def _rebal_yr(bt: dict, mask: np.ndarray) -> float:
+    """연 리밸런싱 횟수(회전이 0보다 큰 날) — 비용·실행 부담 확인용."""
+    m = np.asarray(mask, dtype=bool) & np.isfinite(bt["ret"])
+    n = int(m.sum())
+    return _r(float((bt["trade"][m] > 1e-12).sum() / (n / TRADING_DAYS)), 2) if n else None
 
 
 def _yearly(bt: dict, dates: pd.Series, mask: np.ndarray) -> dict:
@@ -229,11 +236,15 @@ def run(csv: Path = CSV) -> dict:
                "calmar_delta": _r((perf_gex.get("calmar") or 0) - (perf_vt_w.get("calmar") or 0), 3),
                "sign_inverted": inv_perf},
         "benchmarks": {"k200_bh": _perf(bh, eval_m), "matched_exposure": _perf(matched, eval_m),
-                       "cash": _perf(cash, eval_m)},
+                       "cash": _perf(cash, eval_m),
+                       "k200_bh_is": _perf(bh, is_m), "k200_bh_oos": _perf(bh, oos_m),
+                       "matched_is": _perf(matched, is_m), "matched_oos": _perf(matched, oos_m)},
         "main": {"vt_net": _perf(vt, eval_m), "vt_net_is": _perf(vt, is_m), "vt_net_oos": _perf(vt, oos_m),
                  "vt_gross": _perf(vt_gross, eval_m), "vt_yearly": _yearly(vt, dates, eval_m),
+                 "vt_rebal_yr": _rebal_yr(vt, eval_m), "gex_rebal_yr": _rebal_yr(gex_bt, gex_m),
                  "bh_yearly": _yearly(bh, dates, eval_m),
                  "target_vol_realized": _r(gv.perf_metrics(vt["ret"][eval_m]).get("vol"), 4)},
+        "grades": {"H1": h1_grade, "H2": h2_grade},
         "exploratory": expl,
         "meta": {"run_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                  "engine": "screener/gex_vol_target.py", "grades_doc": "A/B/C/F/검증전 — scripts/study_rule_audit.grade() 문턱"},
