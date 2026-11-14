@@ -585,6 +585,29 @@
     "검증전": 1,
     "F": 1
    }
+  },
+  {
+   "id": "turnover_overheat",
+   "name": "거래대금 과열 페널티 (조용한 강세주 vs 거래대금 폭발 급등주)",
+   "stage": "backtest",
+   "verdict": "폐기",
+   "owner": "퀀트",
+   "src": "겸이 11/14",
+   "result": "등급 F — KR 사건 121,887건(2011~2025·180개월)에서 5일 초과수익 조용(≤1.2배) −0.55% vs 과열(≥2.0배) −0.75%(차 +0.21%p, 월 군집 p 0.554), 10일 +0.46%p(p 0.186). IS/OOS 부호 엇갈림. 강세 문턱 +20%·겹침 제거·US 재현에서 부호 반전 — 과열 그룹의 −10% 꼬리(18.4% vs 14.6%)만 일관(서술)",
+   "gate": "룰·알림 반영 금지(등급 F). 뒤집힐 조건 = 상장주식수 이력으로 회전율(대금÷시총) 재정의 사전등록 · 분봉 체결강도 정의 · US 소형주 유니버스",
+   "due": "2026-11-28",
+   "action": "결과 읽기 — 과열 배수를 선별 감점으로 쓰지 않는다. 화면 표시는 등급 F 병기해 참고로만",
+   "files": {
+    "study": "reports/studies/2026-11-14_turnover_overheat.md"
+   },
+   "auto": [
+    "reports/studies/2026-11-14_turnover_overheat.json"
+   ],
+   "grades": "reports/studies/2026-11-14_turnover_overheat.json",
+   "updated": "2026-11-14",
+   "grade_counts": {
+    "F": 2
+   }
   }
  ],
  "unregistered": [
