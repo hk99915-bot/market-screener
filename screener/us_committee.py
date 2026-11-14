@@ -17,6 +17,7 @@ import statistics as st
 from datetime import date, timedelta
 
 from .config import REPORT_DIR
+from . import defs
 
 log = logging.getLogger(__name__)
 HIST_US = REPORT_DIR / "committee_us_hist.json"
@@ -521,6 +522,35 @@ def validation_us(basis: dict, tr: dict) -> list[dict]:
     ]
 
 
+def apply_plan_gate(it: dict) -> int:
+    """매매 계획 판정이 '채택'이 아닌 종목은 '실행 후보'에서 내린다(반환 = 내린 건수).
+
+    촉매가 채워졌다는 이유만으로 E[R] 기준선(무조건 표본 기준선), 매크로 필터, 손절폭 게이트를 넘지 못한 제안이
+    모의 체결로 올라가지 않게 한다(리스크·피어리뷰 합동 점검 2026-11-14). 계획이 없으면(일봉 부족) 마찬가지다.
+    상태를 '대기 — 계획 …' 로 바꾸므로 idea_tracking.capture 는 이 행을 미진입으로 기록한다(소급 체결 없음).
+    """
+    n = 0
+    for x in (it.get("items") or []) + (it.get("candidates") or []):
+        if not str(x.get("status", "")).startswith("실행"):
+            continue
+        if not getattr(defs, "US_PLAN_ADOPT", True):
+            continue
+        p = x.get("plan") or {}
+        v = str(p.get("verdict") or "")
+        if v.startswith("채택"):
+            continue
+        ev, base = p.get("ev_r"), (p.get("prob") or {}).get("base_ev_r")
+        if all(isinstance(z, (int, float)) and math.isfinite(z) for z in (ev, base)):
+            why = f"E[R] {ev:+.2f} ≤ 기준선 {base:+.2f}"
+        else:
+            why = str((p.get("why_not") or [x.get("plan_error") or "계획 없음"])[0])
+        x["status"] = f"대기 — 계획 {v or '없음'}: {why[:46]}"
+        x["plan_gate"] = {"verdict": v or None, "why": why,
+                          "rule": "실행 후보 = 촉매 + 확신 중간 이상 + 게이트 통과 + 50일선 위 + 계획 판정 채택(모의)"}
+        n += 1
+    return n
+
+
 def build_track(o: dict, ms: dict) -> dict:
     """기록(오늘 판 추가 + 없던 과거 판 archive 복원) → 채점 → track·scorecard·validation·idea_tracking."""
     spx = _closes(ms, "SPX")
@@ -581,10 +611,23 @@ def _best_grade(sigs: list[str], grades: dict) -> str:
 
 
 def ideas_top_us(o: dict, peers: list[dict], acc: dict, cal: list[dict], today: date, risk_box, bars_fn,
-                 gate: str, gate_why: str, lens_grade: str = "검증전", grade_w: dict | None = None) -> dict:
+                 gate: str, gate_why: str, lens_grade: str = "검증전", grade_w: dict | None = None,
+                 cat_src: dict | None = None, book: dict | None = None) -> dict:
     """국장 _v2_ideas_top 과 같은 형식. 원천 = us_accum 매집 흔적(연구 등급 가중) + 이익 신호(drv) + 추세(50일선).
     risk_box(code) → 리스크 박스(손절 max(20일 저점, 종가−2×ATR14), 목표 2R) · bars_fn(code) → chart.
-    gate = 시장 진입 게이트('pass'|'fail', S&P 레짐 하락장이면 fail). 불통과·추세 미확인·촉매 없음이면 '대기'."""
+    gate = 시장 진입 게이트('pass'|'fail', S&P 레짐 하락장이면 fail). 불통과·추세 미확인·촉매 없음이면 '대기'.
+    cat_src = 미장 촉매 원천({eps, eps_asof, earn_cal}, 기본 = reports/ 두 파일). 촉매 정의는 us_catalyst 모듈.
+    book = idea_tracking 장부(기본 = reports/idea_tracking.json) — US_REPROPOSE_DAYS 안에 같은 종목이 '실행' 제안이었으면
+    다시 실행 후보로 올리지 않는다(같은 종목 1표본). 촉매는 자격만 열고 점수와 가중은 바꾸지 않는다(검증전 원천을 점수에 넣지 않음)."""
+    from . import idea_tracking as IT
+    from . import us_catalyst as CAT
+    if cat_src is None:
+        try:
+            cat_src = CAT.load_sources()
+        except Exception as e:  # noqa: BLE001 — 원천 없으면 촉매는 실적 캘린더만(기존 동작)
+            log.warning("미장 촉매 원천 로드 실패: %s", e)
+            cat_src = {}
+    recent = IT.recent_entries(book if book is not None else IT.load_book(), "US", today, defs.US_REPROPOSE_DAYS)
     GW = grade_w or {"A": 1.0, "B": 0.8, "C": 0.6, "검증전": 0.3, "F": 0.0}
     meta = {r["s"]: r for r in peers if r.get("s")}
     S: dict = {}
@@ -644,11 +687,11 @@ def ideas_top_us(o: dict, peers: list[dict], acc: dict, cal: list[dict], today: 
         cm = {"높음": 1.0, "중간": 0.7, "낮음": 0.4}[conv]
         payoff = (rb["target"] - rb["close"]) / (rb["close"] - rb["stop"])
         size = min(cm * (payoff / 2) * 0.01 / rb["stop_pct"], 0.15)
-        cat = [{"date": e["date"], "what": "실적 발표" + (" (회사 확정)" if e.get("confirmed") else " (예정일 추정)")}
-               for e in cal if e.get("type") == "실적" and str(e.get("ticker")) == code
-               and str(today) <= e.get("date", "") <= str(today + timedelta(days=14))]
+        ce = CAT.evaluate(code, today, cal, cat_src)
+        cat = ce["catalysts"][:3]
         status = ("대기 — 촉매 없음" if not cat else "대기 — 확신 낮음" if conv == "낮음"
                   else "대기 — 진입 게이트 불통과" if gate == "fail" else "대기 — 추세 미확인(50일선 아래)" if not trend_ok
+                  else "대기 — 중복 제안(" + recent[code][5:] + " 실행, " + str(defs.US_REPROPOSE_DAYS) + "일 안)" if code in recent
                   else "실행 후보")
         m = meta[code]
         row = {"s": code, "n": m.get("n"), "g": m.get("g"), "side": "롱", "conv": conv, "score": round(sc, 2), "size": size,
@@ -660,6 +703,7 @@ def ideas_top_us(o: dict, peers: list[dict], acc: dict, cal: list[dict], today: 
         if v2:
             row["entry"] = entry_floor(rb["close"], rb["stop"], rb["atr_pct"])   # P3/D5
             row["valid"] = dict(VALID)
+            row["catalyst_check"] = ce["check"]
             if not cat:
                 row["catalyst_note"] = "없음"
         allr.append(row)
@@ -674,6 +718,7 @@ def ideas_top_us(o: dict, peers: list[dict], acc: dict, cal: list[dict], today: 
             "formula": "확신 점수 = Σ 동의 원천 가중 − Σ 반대 (가중 = 등급 A1·B.8·C.6·검증전.3·F0). 원천 = 매집 흔적(us_accum, 신호별 연구 등급) · "
                        "이익 신호(peers_US drv ±0.2) · 추세(종가 vs 50일선). 높음 ≥1.2·중간 ≥0.6·낮음 >0, C 이상 동의 없으면 상한 중간. "
                        "진입·손절·목표 = 리스크 박스(손절 max(20일 저점, 종가−2×ATR14), 목표 2R), 사이즈 = 확신도 × 손익비/2 × 1% ÷ 손절폭(상한 15%). "
-                       "실행 = 촉매(14일 안 실적) + 확신 중간 이상 + 시장 게이트 통과 + 종가 ≥ 50일선. 검증전.",
+                       "실행 = 촉매(14일 안 실적 예정일 또는 EPS 추정 30일 상향, screener/us_catalyst.py) + 확신 중간 이상 "
+                       "+ 시장 게이트 통과 + 종가 ≥ 50일선. 촉매는 자격만 열고 점수에 안 들어감(검증전). 검증전.",
             "grade_note": gr_note + " — F 는 가중 0(목록에는 근거로 표시)",
             "empty": None if out else "숫자 근거 있는 미장 후보 없음 (동의 원천 > 반대이고 손절폭 15% 이하인 후보 없음) — 대기"}

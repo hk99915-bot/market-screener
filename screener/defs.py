@@ -75,6 +75,13 @@ ISA_MONTHLY_DAY = 1
 ISA_CRASH_PER_YEAR = 2
 RENEGO_WINDOW_DAYS = 30     # 재협상 횟수를 세는 기간(일) [가정: 월 1회 복기 주기와 맞춤 — 11/30 월말 복기에서 재검토]
 
+# 미장 진입 자격 = 촉매(미장 운용회의 진입 후보) — screener/us_catalyst.py, 정의 docs/rules_terms.md '미장 촉매'
+US_EARN_DAYS = 14           # 실적 예정일 창(일). 국장 진입 후보와 같은 14일
+US_EPS_UP_30 = 0.02         # EPS 컨센 30일 상향 문턱(+2%, yfinance eps_trend chg30) — 검증전 값, 근거 docs/us_catalyst.md
+US_EPS_MAX_AGE_DAYS = 7     # us_eps 스냅숏 최대 나이(일). 넘으면 촉매로 쓰지 않음(낡은 값을 새 근거로 쓰지 않기)
+US_REPROPOSE_DAYS = 10      # 같은 종목 중복 진입 금지(달력일) — 앞선 '실행' 제안이 이 안이면 다시 실행 후보로 올리지 않음
+US_PLAN_ADOPT = True        # 실행 후보 자격에 매매 계획 판정 '채택'을 요구(E[R] 기준선·필터·손절폭 게이트 유지)
+
 # 상수 이름 → rules_terms.md 용어표의 용어 (check_rules_terms 가 문서에 있는지 검사)
 TERMS = {
     "SEMI_CAP": "테마 밴드 40/45/30", "SEMI_BAND": "테마 밴드 40/45/30", "LOSS_LIMIT": "누적 손실 한도",
@@ -84,6 +91,9 @@ TERMS = {
     "SEMI_REGIME_CAP": "테마 밴드 40/45/30", "SEMI_FLOOR": "테마 밴드 40/45/30", "SEMI_GLIDE_TARGET": "테마 밴드 40/45/30",
     "VAR99_LIMIT": "VaR99 (1일)", "VAR99_LIMIT_BEAR": "VaR99 (1일)",
     "POS_BACKSTOP": "백스톱", "SEMI_HARD_FLOOR": "백스톱", "PICK_MIN_RR": "대결 계획 칸", "PICK_GATE_FROM": "대결 계획 칸",
+    "US_EARN_DAYS": "미장 촉매 (실적 예정일 창)", "US_EPS_UP_30": "미장 촉매 (EPS 추정 상향)",
+    "US_EPS_MAX_AGE_DAYS": "미장 촉매 (EPS 추정 상향)", "US_REPROPOSE_DAYS": "미장 중복 제안 금지",
+    "US_PLAN_ADOPT": "미장 실행 후보 자격",
 }
 
 # 규칙 파일에서 숫자로 재정의하면 안 되는 지역 이름 (모듈 내 별칭 포함)

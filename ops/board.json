@@ -1,6 +1,6 @@
 {
   "_doc": "작업 보드. 사람이 읽는 판은 python scripts/board.py 로 ops/BOARD.md 생성. 상태: 대기/진행/검수/완료/보류, 우선순위 P0~P3. files 는 이 작업이 고치는 경로(glob 가능), private 전용 작업은 repo=private 이고 files 비움. 개인 데이터(보유·거래·금액·급여·건강) 금지.",
-  "updated": "2026-11-13",
+  "updated": "2026-11-15",
   "owners": [
     "PB",
     "퀀트",
@@ -8790,6 +8790,26 @@
       "depends_on": [],
       "escalated": "2026-11-13",
       "notes": "요청 2영업일 미처리(2026-11-11~2026-11-13) → 자동 승격(LOOP.md·watchdog). 처리 후 퀀트 라운드 파일에 `처리→리스크: …` 한 줄 또는 `python3 scripts/ask.py --close req-quant-6b3a829b`."
+    },
+    {
+      "started": "2026-11-14",
+      "due": "2026-11-17",
+      "files": [
+        "screener/us_catalyst.py",
+        "screener/us_committee.py",
+        "screener/idea_tracking.py",
+        "screener/defs.py",
+        "tests/test_us_catalyst.py",
+        "docs/us_catalyst.md",
+        "docs/rules_terms.md"
+      ],
+      "depends_on": [],
+      "notes": "원인: 촉매 정의가 calendar_ev.US_EARN 30종목 실적일 하나 → 후보 풀 626종목 중 96%가 촉매 0 → 18건 전부 미진입. 수정: 실적 예정일(calendar.json+earnings_cal.json 14일) + EPS 컨센 30일 상향(us_eps.json 558종목) 촉매 연결, 계획 판정 채택·같은 종목 10일 중복 금지·촉매 기준일 7일 노후 한도 게이트. 과거 18건 소급 체결 없음. 신규 테스트 16건.",
+      "id": "us-catalyst-pipeline",
+      "title": "미장 촉매 배관 보강 — 실적 캘린더 2종 + EPS 추정 상향(558종목) 연결, 계획 판정·중복 제안 게이트",
+      "owner": "개발",
+      "priority": "P1",
+      "status": "검수"
     }
   ]
 }
