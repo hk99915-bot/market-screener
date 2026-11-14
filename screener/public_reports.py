@@ -65,6 +65,7 @@ BOK_LIST = ("https://www.bok.or.kr/portal/singl/newsData/listCont.do?pageIndex=1
             "&searchCnd=1&searchKwd=&sort=1&pageUnit=10&depth2=201156&depth3={m}")
 BOK_DETAIL_N = 10   # 실행마다 상세(view.do)를 여는 최근 행 수 — PDF 링크·담당부서·한은 요지 1문장
 KCIF = "https://www.kcif.or.kr"
+FSR_PAGE = "https://www.federalreserve.gov/publications/financial-stability-report.htm"
 SOURCES: list[dict] = [
     # ── 한국은행 ──
     {"id": "bok_press", "group": "한은", "inst": "한국은행", "series": BOK_SERIES,
@@ -113,9 +114,12 @@ SOURCES: list[dict] = [
     {"id": "nps", "group": "시장기관", "inst": "국민연금", "manual": "기금운용본부 공시(분기, 동적 화면) — 수동 확인",
      "series": [("기금운용 공시", r".", [3, 6, 9, 12])], "urls": []},
     # ── 해외 ──
-    {"id": "fed", "group": "해외", "inst": "Fed", "series": [("Financial Stability Report", r"Financial Stability Report", [4, 11]),
-                                                             ("FOMC 의사록", r"[Mm]inutes of the Federal Open Market Committee|FOMC.*minutes", [1, 2, 4, 5, 7, 8, 10, 11])],
+    {"id": "fed", "group": "해외", "inst": "Fed", "series": [("FOMC 의사록", r"[Mm]inutes of the Federal Open Market Committee|FOMC.*minutes", [1, 2, 4, 5, 7, 8, 10, 11])],
      "urls": ["https://www.federalreserve.gov/feeds/press_monetary.xml", "https://www.federalreserve.gov/feeds/press_all.xml"]},
+    # Fed 금융안정보고서(FSR) 전용 소스(11/14): press_all.xml RSS 에는 FSR 이 실리지 않아 fed 의 FSR 시리즈가 늘 '다음 발간'만 남았다.
+    # 발간 페이지의 PDF 파일명(financial-stability-report-YYYYMMDD.pdf, 날짜=발간일)으로 모은다 — 발간은 4·11월(연 2회).
+    {"id": "fed_fsr", "group": "해외", "inst": "Fed", "parser": "fed_fsr",
+     "series": [("Financial Stability Report", r"Financial Stability Report", [4, 11])], "urls": [FSR_PAGE]},
     {"id": "imf", "manual": "imf.org 가 Actions 요청을 403 차단(10/21 확인) — WEO·GFSR 는 4·10월 수동 확인", "group": "해외", "inst": "IMF", "series": [("WEO", r"World Economic Outlook", [1, 4, 7, 10]),
                                                              ("GFSR", r"Global Financial Stability", [4, 10])],
      "urls": ["https://www.imf.org/en/Publications/RSS?language=eng&series=World%20Economic%20Outlook",
@@ -330,7 +334,30 @@ def parse_kcif_list(text: str, base: str = KCIF + "/annual/dailyList") -> list[d
     return [r for r in out if r["title"]]
 
 
-PARSERS = {"bok": parse_bok_list, "kcmi": parse_kcmi_list, "kcif": parse_kcif_list}
+FSR_PDF = re.compile(r"financial-stability-report-(\d{8})\.pdf")
+
+
+def parse_fed_fsr_list(text: str, base: str = FSR_PAGE) -> list[dict]:
+    """Fed 금융안정보고서 발간 페이지 → 행 1개/발간호. 날짜 = PDF 파일명의 YYYYMMDD(발간일, Fed 는 발간일을 파일명에 박는다).
+    제목 = 'Financial Stability Report (YYYY-MM)' — 발간 월과 보고서 월이 같다(11월 발간 = 11월호, 4월 발간 = 4월호).
+    같은 호의 HTML·PDF 링크가 여러 번 나오므로 발간일로 중복을 접는다. 파일명이 8자리가 아닌 2018-11 호(201811)는 규칙 밖 — 버린다."""
+    out, seen = [], set()
+    for m in FSR_PDF.finditer(text):
+        ds = m.group(1)
+        try:
+            d = date(int(ds[:4]), int(ds[4:6]), int(ds[6:]))
+        except ValueError:
+            continue
+        if d in seen:
+            continue
+        seen.add(d)
+        out.append({"title": f"Financial Stability Report ({d.year}-{d.month:02d})", "date": d,
+                    "link": urljoin(base, f"/publications/files/financial-stability-report-{ds}.pdf"),
+                    "summary": None, "vid": None, "series": "Financial Stability Report"})
+    return out
+
+
+PARSERS = {"bok": parse_bok_list, "kcmi": parse_kcmi_list, "kcif": parse_kcif_list, "fed_fsr": parse_fed_fsr_list}
 
 
 def _get(url: str, timeout: int = 20) -> str:
