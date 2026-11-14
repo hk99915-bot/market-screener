@@ -159,6 +159,12 @@
      "gate": "모의 ≥60거래일 추적 + 분봉 초반 수급 3다리 조건 재등록. 실계좌 룰·알림 변경 금지",
      "due": "2026-11-28", "action": "결과 읽기 — '추격 금지' 근거로 인용하지 않는다(H2 F). 갭 반납 위험 표시는 등급 병기",
      "files": {"study": "reports/studies/2026-11-14_night_gap_guard.md"}, "auto": ["reports/studies/2026-11-14_night_gap_guard.json"],
-     "grades": "reports/studies/2026-11-14_night_gap_guard.json"}
+     "grades": "reports/studies/2026-11-14_night_gap_guard.json"},
+    {"id": "op_ni_divergence", "name": "DART 영업이익 vs 순이익 괴리 — 일회성 미스 역추세(H1) / 영업외·평가손 경고(H2)", "stage": "verify", "verdict": "진행", "owner": "퀀트 → 검증", "src": "겸이 11/14",
+     "result": "H1 C — 괴리+20일 −5% 하락 573건 20일 초과 +0.89% vs 같은 날 낙폭 비괴리 6,652건 +0.05%(차 +0.85%p, 단측 p 0.086), 중앙값 −2.07%·승률 41.0%. 거래대금 5분위 짝짓기에서 +0.66%p·p 0.221 로 소멸. H2 A — 경고 1,880건 −0.70% vs 비경고 19,173건 +0.67%(차 −1.37%p, p 3.8e-05, 22일 클러스터 0.029), 같은 유동성 칸 −1.23%p·p 0.0022. 단 IS 662건 −0.44%p·p 0.207, OOS 2024~ 에서만 −1.90%p",
+     "gate": "H2는 검증 데스크 독립 재현(원 코드 안 보고) + 모의 ≥60거래일. H1은 DART 접수일(rcept_dt) 이력 확보 후 재등록. 실계좌 룰·알림 조건 변경 금지",
+     "due": "2026-11-28", "action": "결과 읽기 — H2 등급 A를 '매도·제외' 근거로 쓰지 않는다(IS 0). 애널 체크리스트 '확인 항목'으로만 표시하고 등급 병기",
+     "files": {"study": "reports/studies/2026-11-14_op_ni_divergence.md"}, "auto": ["reports/studies/2026-11-14_op_ni_divergence.json"],
+     "grades": "reports/studies/2026-11-14_op_ni_divergence.json"}
   ]
 }
